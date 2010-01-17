@@ -82,21 +82,15 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|ID      |F8.0  |
-|ABC     |F8.0  |
-+--------+------+
-2.1 DESCRIPTIVES.  Valid cases = 6; cases with missing value(s) = 0.
-+--------#-+----+-------+-------+-------+
-|Variable#N|Mean|Std Dev|Minimum|Maximum|
-#========#=#====#=======#=======#=======#
-|ABC     #6|3.00|    .84|   2.00|   4.00|
-+--------#-+----+-------+-------+-------+
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+ID,F8.0
+ABC,F8.0
+
+Table: Valid cases = 6; cases with missing value(s) = 0.
+Variable,N,Mean,Std Dev,Minimum,Maximum
+ABC,6,3.00,.84,2.00,4.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

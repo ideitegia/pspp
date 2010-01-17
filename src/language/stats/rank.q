@@ -35,8 +35,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/taint.h>
 #include <math/sort.h>
-#include <output/manager.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include <gsl/gsl_cdf.h>
 
@@ -692,7 +691,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
       int v;
 
       tab_output_text (0, _("Variables Created By RANK"));
-      tab_output_text (0, "\n");
+      tab_output_text (0, "");
 
       for (i = 0 ; i <  n_rank_specs ; ++i )
 	{

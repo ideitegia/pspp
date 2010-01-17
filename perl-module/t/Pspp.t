@@ -40,7 +40,7 @@ sub run_pspp_syntax
     print FH "$syntax";
     close (FH);
 
-    system ("cd $tempdir; $pspp_cmd -o raw-ascii $syntaxfile");
+    system ("cd $tempdir; $pspp_cmd --testing-mode $syntaxfile");
 }
 
 sub run_pspp_syntax_cmp
@@ -52,7 +52,7 @@ sub run_pspp_syntax_cmp
 
     run_pspp_syntax ($tempdir, $syntax);
 
-    my $diff =  diff ("$tempdir/pspp.list", \$result);
+    my $diff =  diff ("$tempdir/pspp.csv", \$result);
 
     if ( ! ($diff eq ""))
     {
@@ -175,32 +175,27 @@ sub run_pspp_syntax_cmp
 	DISPLAY DOCUMENTS.
 	LIST.
 SYNTAX
-1.1 DISPLAY.  
-+--------+-------------------------------------------+--------+
-|Variable|Description                                |Position|
-#========#===========================================#========#
-|id      |Format: F2.0                               |       1|
-|        |Measure: Scale                             |        |
-|        |Display Alignment: Right                   |        |
-|        |Display Width: 8                           |        |
-+--------+-------------------------------------------+--------+
-|name    |Format: A20                                |       2|
-|        |Measure: Nominal                           |        |
-|        |Display Alignment: Left                    |        |
-|        |Display Width: 20                          |        |
-+--------+-------------------------------------------+--------+
+Variable,Description,,Position
+id,Format: F2.0,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+name,Format: A20,,2
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 20,,
 
 File label:
+
 This is the file label
 
 Documents in the active file:
 
 This is a document line
 
-id                 name
--- --------------------
-21 wheelbarrow          
-
+Table: Data List
+id,name
+21,wheelbarrow         
 RESULT
 
 
@@ -256,40 +251,30 @@ RESULT
 GET FILE='$tempfile'.
 DISPLAY DICTIONARY.
 SYNTAX
-1.1 DISPLAY.  
-+----------+---------------------------------------------+--------+
-|Variable  |Description                                  |Position|
-#==========#=============================================#========#
-|integer   |My Integer                                   |       1|
-|          |Format: F8.0                                 |        |
-|          |Measure: Scale                               |        |
-|          |Display Alignment: Right                     |        |
-|          |Display Width: 8                             |        |
-|          |Missing Values: 9; 99                        |        |
-|          +---------+-----------------------------------+        |
-|          |        0|Zero                               |        |
-|          |        1|Unity                              |        |
-|          |        2|Duality                            |        |
-+----------+---------+-----------------------------------+--------+
-|string    |My String                                    |       2|
-|          |Format: A8                                   |        |
-|          |Measure: Nominal                             |        |
-|          |Display Alignment: Left                      |        |
-|          |Display Width: 8                             |        |
-|          |Missing Values: "this    "; "that    "       |        |
-|          +---------+-----------------------------------+        |
-|          | xx      |foo                                |        |
-|          | yy      |bar                                |        |
-+----------+---------+-----------------------------------+--------+
-|longstring|My Long String                               |       3|
-|          |Format: A9                                   |        |
-|          |Measure: Nominal                             |        |
-|          |Display Alignment: Left                      |        |
-|          |Display Width: 9                             |        |
-|          +---------+-----------------------------------+        |
-|          |xxx      |xfoo                               |        |
-+----------+---------+-----------------------------------+--------+
-
+Variable,Description,,Position
+integer,My Integer,,1
+,Format: F8.0,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,Missing Values: 9; 99,,
+,0,Zero,
+,1,Unity,
+,2,Duality,
+string,My String,,2
+,Format: A8,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+,"Missing Values: ""this    ""; ""that    """,,
+,xx      ,foo,
+,yy      ,bar,
+longstring,My Long String,,3
+,Format: A9,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 9,,
+,xxx      ,xfoo,
 RESULT
 
   }
@@ -493,7 +478,7 @@ EOF
 
 SYNTAX
 
- system ("cp $tempdir/pspp.list $tempdir/in.txt");
+ system ("cp $tempdir/pspp.csv $tempdir/in.txt");
 
  run_pspp_syntax ($tempdir, <<SYNTAX);
  get file='$tempdir/out.sav'.
@@ -502,7 +487,7 @@ SYNTAX
 
 SYNTAX
  
- ok (! diff ("$tempdir/pspp.list", "$tempdir/in.txt"), "Streaming of files");
+ ok (! diff ("$tempdir/pspp.csv", "$tempdir/in.txt"), "Streaming of files");
 }
 
 

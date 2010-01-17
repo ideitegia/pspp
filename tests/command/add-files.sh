@@ -84,52 +84,52 @@ cat > b.data <<EOF
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-cat > concatenate.out <<EOF
-A B C D INA INB
-- - - - --- ---
-1 a B     1   0
-8 a M     1   0
-3 a E     1   0
-5 a G     1   0
-0 a A     1   0
-5 a H     1   0
-6 a I     1   0
-7 a J     1   0
-2 a D     1   0
-7 a K     1   0
-1 a C     1   0
-7 a L     1   0
-4 a F     1   0
-1 b   N   0   1
-3 b   O   0   1
-4 b   P   0   1
-6 b   Q   0   1
-7 b   R   0   1
-9 b   S   0   1
+cat > concatenate.csv <<EOF
+Table: Data List
+A,B,C,D,INA,INB
+1,a,B,,1,0
+8,a,M,,1,0
+3,a,E,,1,0
+5,a,G,,1,0
+0,a,A,,1,0
+5,a,H,,1,0
+6,a,I,,1,0
+7,a,J,,1,0
+2,a,D,,1,0
+7,a,K,,1,0
+1,a,C,,1,0
+7,a,L,,1,0
+4,a,F,,1,0
+1,b,,N,0,1
+3,b,,O,0,1
+4,b,,P,0,1
+6,b,,Q,0,1
+7,b,,R,0,1
+9,b,,S,0,1
 EOF
 
-cat > interleave.out <<EOF
-A B C D INA INB FIRST LAST
-- - - - --- --- ----- ----
-0 a A     1   0     1	 1
-1 a B     1   0	    1	 0
-1 a C     1   0	    0	 0
-1 b   N   0   1	    0	 1
-2 a D     1   0	    1	 1
-3 a E     1   0	    1	 0
-3 b   O   0   1	    0	 1
-4 a F     1   0	    1	 0
-4 b   P   0   1	    0	 1
-5 a G     1   0	    1	 0
-5 a H     1   0	    0	 1
-6 a I     1   0	    1	 0
-6 b   Q   0   1	    0	 1
-7 a J     1   0	    1	 0
-7 a K     1   0	    0	 0
-7 a L     1   0	    0	 0
-7 b   R   0   1	    0	 1
-8 a M     1   0	    1	 1
-9 b   S   0   1	    1	 1
+cat > interleave.csv <<EOF
+Table: Data List
+A,B,C,D,INA,INB,FIRST,LAST
+0,a,A,,1,0,1,1
+1,a,B,,1,0,1,0
+1,a,C,,1,0,0,0
+1,b,,N,0,1,0,1
+2,a,D,,1,0,1,1
+3,a,E,,1,0,1,0
+3,b,,O,0,1,0,1
+4,a,F,,1,0,1,0
+4,b,,P,0,1,0,1
+5,a,G,,1,0,1,0
+5,a,H,,1,0,0,1
+6,a,I,,1,0,1,0
+6,b,,Q,0,1,0,1
+7,a,J,,1,0,1,0
+7,a,K,,1,0,0,0
+7,a,L,,1,0,0,0
+7,b,,R,0,1,0,1
+8,a,M,,1,0,1,1
+9,b,,S,0,1,1,1
 EOF
 
 # Test ADD FILES.
@@ -190,9 +190,9 @@ EOF
 	if [ $? -ne 0 ] ; then no_result ; fi
 
 	activity="check $name output"
-	perl -pi -e 's/^\s*$//g' pspp.list
-	perl -pi -e 's/^\s*$//g' $type.out
-	diff -u -b -w pspp.list $type.out
+	perl -pi -e 's/^\s*$//g' pspp.csv
+	perl -pi -e 's/^\s*$//g' $type.csv
+	diff -u -b -w pspp.csv $type.csv
 	if [ $? -ne 0 ] ; then fail ; fi
     done
 done

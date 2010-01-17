@@ -38,8 +38,8 @@
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
-#include <output/manager.h>
-#include <output/table.h>
+#include <output/text-item.h>
+#include <output/tab.h>
 
 #include "xalloc.h"
 
@@ -397,7 +397,6 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
 
   spec_cnt = ll_count (&trns->specs);
   t = tab_create (4, spec_cnt + 1);
-  tab_columns (t, TAB_COL_DOWN);
   tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 3, spec_cnt);
   tab_hline (t, TAL_2, 0, 3, 1);
   tab_headers (t, 0, 0, 1, 0);
@@ -405,7 +404,6 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Record"));
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("Columns"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Format"));
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   row = 1;
   ll_for_each (spec, struct prt_out_spec, ll, &trns->specs)
     {
@@ -516,14 +514,14 @@ flush_records (struct print_trns *trns, int target_record,
         {
           *eject = false;
           if (trns->writer == NULL)
-            som_eject_page ();
+            text_item_submit (text_item_create (TEXT_ITEM_EJECT_PAGE, ""));
           else
             leader = '1';
         }
       line[0] = legacy_from_native (trns->encoding, leader);
 
       if (trns->writer == NULL)
-        tab_output_text (TAB_FIX | TAT_NOWRAP, &line[1]);
+        tab_output_text (TAB_FIX, &line[1]);
       else
         {
           if (!trns->include_prefix)

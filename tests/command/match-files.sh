@@ -85,40 +85,40 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 cat > ff.out <<EOF
-A B C D INA INB FIRST LAST
-- - - - --- --- ----- ----
-0 a A     1   0     1    1
-1 a B N   1   1     1    0
-1 a C     1   0     0    1
-2 a D     1   0     1    1
-3 a E O   1   1     1    1
-4 a F P   1   1     1    1
-5 a G     1   0     1    0
-5 a H     1   0     0    1
-6 a I Q   1   1     1    1
-7 a J R   1   1     1    0
-7 a K     1   0     0    0
-7 a L     1   0     0    1
-8 a M     1   0     1    1
-9 b   S   0   1     1    1
+Table: Data List
+A,B,C,D,INA,INB,FIRST,LAST
+0,a,A,,1,0,1,1
+1,a,B,N,1,1,1,0
+1,a,C,,1,0,0,1
+2,a,D,,1,0,1,1
+3,a,E,O,1,1,1,1
+4,a,F,P,1,1,1,1
+5,a,G,,1,0,1,0
+5,a,H,,1,0,0,1
+6,a,I,Q,1,1,1,1
+7,a,J,R,1,1,1,0
+7,a,K,,1,0,0,0
+7,a,L,,1,0,0,1
+8,a,M,,1,0,1,1
+9,b,,S,0,1,1,1
 EOF
 
 cat > ft.out <<EOF
-A B C D INA INB FIRST LAST
-- - - - --- --- ----- ----
-0 a A     1   0     1    1
-1 a B N   1   1     1    0
-1 a C N   1   1     0    1
-2 a D     1   0     1    1
-3 a E O   1   1     1    1
-4 a F P   1   1     1    1
-5 a G     1   0     1    0
-5 a H     1   0     0    1
-6 a I Q   1   1     1    1
-7 a J R   1   1     1    0
-7 a K R   1   1     0    0
-7 a L R   1   1     0    1
-8 a M     1   0     1    1
+Table: Data List
+A,B,C,D,INA,INB,FIRST,LAST
+0,a,A,,1,0,1,1
+1,a,B,N,1,1,1,0
+1,a,C,N,1,1,0,1
+2,a,D,,1,0,1,1
+3,a,E,O,1,1,1,1
+4,a,F,P,1,1,1,1
+5,a,G,,1,0,1,0
+5,a,H,,1,0,0,1
+6,a,I,Q,1,1,1,1
+7,a,J,R,1,1,1,0
+7,a,K,R,1,1,0,0
+7,a,L,R,1,1,0,1
+8,a,M,,1,0,1,1
 EOF
 
 # Test nonparallel match and table lookup.
@@ -178,9 +178,7 @@ EOF
 	if [ $? -ne 0 ] ; then no_result ; fi
 
 	activity="check $name output"
-	perl -pi -e 's/^\s*$//g' pspp.list
-	perl -pi -e 's/^\s*$//g' $types.out
-	diff -b -w pspp.list $types.out
+	diff -c pspp.csv $types.out
 	if [ $? -ne 0 ] ; then fail ; fi
     done
 done
@@ -203,23 +201,22 @@ $SUPERVISOR $PSPP --testing-mode -e /dev/null $name.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check $name output"
-perl -pi -e 's/^\s*$//g' pspp.list
-diff -b -w - pspp.list <<EOF
-A B C D E F
-- - - - - -
-1 a B 1 b N
-8 a M 3 b O
-3 a E 4 b P
-5 a G 6 b Q
-0 a A 7 b R
-5 a H 9 b S
-6 a I
-7 a J
-2 a D
-7 a K
-1 a C
-7 a L
-4 a F
+diff -c - pspp.csv <<EOF
+Table: Data List
+A,B,C,D,E,F
+1,a,B,1,b,N
+8,a,M,3,b,O
+3,a,E,4,b,P
+5,a,G,6,b,Q
+0,a,A,7,b,R
+5,a,H,9,b,S
+6,a,I,,,
+7,a,J,,,
+2,a,D,,,
+7,a,K,,,
+1,a,C,,,
+7,a,L,,,
+4,a,F,,,
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
@@ -252,13 +249,12 @@ $SUPERVISOR $PSPP --testing-mode -e /dev/null $name.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check $name output"
-perl -pi -e 's/^\s*$//g' pspp.list
-diff -b -w - pspp.list <<EOF | perl -e 's/^\s*$//g'
-        x        z        y
- -------- -------- --------
-     3.00     8.00    30.00 
-     2.00      .      21.00 
-     1.00      .      22.00 
+diff -c - pspp.csv <<EOF
+Table: Data List
+x,z,y
+3.00,8.00,30.00
+2.00,.  ,21.00
+1.00,.  ,22.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

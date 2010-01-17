@@ -204,7 +204,8 @@ check_PROGRAMS += \
 	$(nodist_TESTS) \
 	tests/data/datasheet-test \
 	tests/formats/inexactify \
-	tests/libpspp/sparse-xarray-test
+	tests/libpspp/sparse-xarray-test \
+	tests/output/render-test
 
 tests_data_datasheet_test_SOURCES = \
 	tests/data/datasheet-test.c
@@ -352,6 +353,15 @@ tests_dissect_sysfile_SOURCES = \
 tests_dissect_sysfile_LDADD = gl/libgl.la $(LIBINTL) 
 tests_dissect_sysfile_CPPFLAGS = $(AM_CPPFLAGS) -DINSTALLDIR=\"$(bindir)\"
 
+check_PROGRAMS += tests/output/render-test
+tests_output_render_test_SOURCES = tests/output/render-test.c
+tests_output_render_test_LDADD = \
+	src/libpspp.la \
+	src/libpspp-core.la \
+	$(CAIRO_LIBS) \
+	$(LIBICONV) \
+	$(LIBINTL)
+
 EXTRA_DIST += \
 	$(dist_TESTS) \
         tests/Book1.gnm.unzipped \
@@ -359,9 +369,6 @@ EXTRA_DIST += \
 	tests/no_case_size.sav \
 	tests/coverage.sh tests/test_template \
 	tests/v13.sav tests/v14.sav \
-	tests/bugs/computebug.stat tests/bugs/computebug.out \
-	tests/bugs/recode-copy-bug-1.stat tests/bugs/recode-copy-bug-2.stat \
-	tests/bugs/recode-copy-bug-1.out tests/bugs/recode-copy-bug-2.out \
 	tests/expressions/randist/beta.out \
 	tests/expressions/randist/cauchy.out \
 	tests/expressions/randist/chisq.out \
@@ -401,3 +408,43 @@ check-for-export-var-val:
 DIST_HOOKS += check-for-export-var-val
 
 EXTRA_DIST += tests/OChangeLog
+
+# Autotest testsuite
+
+EXTRA_DIST += \
+	$(TESTSUITE_AT) \
+	$(TESTSUITE) \
+	tests/atlocal.in \
+	$(srcdir)/package.m4 \
+	$(TESTSUITE)
+TESTSUITE_AT = \
+	tests/testsuite.at \
+	tests/output/render.at
+TESTSUITE = $(srcdir)/tests/testsuite
+DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
+
+CHECK_LOCAL += tests_check
+tests_check: tests/atconfig tests/atlocal $(TESTSUITE)
+	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/output $(TESTSUITEFLAGS)
+
+CLEAN_LOCAL += tests_clean
+tests_clean:
+	test ! -f '$(TESTSUITE)' || $(SHELL) '$(TESTSUITE)' -C tests --clean
+
+AUTOM4TE = $(SHELL) $(srcdir)/missing --run autom4te
+AUTOTEST = $(AUTOM4TE) --language=autotest
+$(TESTSUITE): package.m4 $(TESTSUITE_AT)
+	$(AUTOTEST) -I '$(srcdir)' -o $@.tmp $@.at
+	mv $@.tmp $@
+
+# The `:;' works around a Bash 3.2 bug when the output is not writeable.
+$(srcdir)/package.m4: $(top_srcdir)/configure.ac
+	:;{ \
+	  echo '# Signature of the current package.' && \
+	  echo 'm4_define([AT_PACKAGE_NAME],      [@PACKAGE_NAME@])' && \
+	  echo 'm4_define([AT_PACKAGE_TARNAME],   [@PACKAGE_TARNAME@])' && \
+	  echo 'm4_define([AT_PACKAGE_VERSION],   [@PACKAGE_VERSION@])' && \
+	  echo 'm4_define([AT_PACKAGE_STRING],    [@PACKAGE_STRING@])' && \
+	  echo 'm4_define([AT_PACKAGE_BUGREPORT], [@PACKAGE_BUGREPORT@])' && \
+	  echo 'm4_define([AT_PACKAGE_URL],       [@PACKAGE_URL@])'; \
+	} >'$(srcdir)/package.m4'

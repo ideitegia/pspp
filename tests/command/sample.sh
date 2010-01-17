@@ -85,19 +85,17 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/sample.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create head"
-grep -v '^\ *$' $TEMPDIR/pspp.list | head -2 > $TEMPDIR/head
+grep -v '^\ *$' $TEMPDIR/pspp.csv | head -1 > $TEMPDIR/head
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="extract data"
-grep  '[0-9][0-9]*' $TEMPDIR/pspp.list > $TEMPDIR/data
+grep  '[0-9][0-9]*' $TEMPDIR/pspp.csv > $TEMPDIR/data
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare head"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/head
 diff -b $TEMPDIR/head - << EOF
- A
---
+Table: Data List
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

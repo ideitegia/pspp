@@ -17,7 +17,7 @@
 #include <config.h>
 
 #include <data/format.h>
-#include <output/table.h>
+#include <output/tab.h>
 #include <data/casereader.h>
 #include <libpspp/hash.h>
 #include <data/variable.h>
@@ -104,7 +104,6 @@ do_summary_box (const struct descriptives *desc,
 
   table = tab_create (columns, 2 + n_vars);
 
-  tab_dim (table, tab_natural_dimensions, NULL, NULL);
 
   tab_title (table, _("Descriptive Statistics"));
 
@@ -159,13 +158,13 @@ do_summary_box (const struct descriptives *desc,
       const struct variable *var = vv[v];
       const struct fmt_spec *fmt = var_get_print_format (var);
 
-      tab_text (table, 0, 2 + v, TAT_NONE, var_to_string (var));
+      tab_text (table, 0, 2 + v, 0, var_to_string (var));
 
-      tab_double (table, 1, 2 + v, TAT_NONE, desc[v].n, fmt);
-      tab_double (table, 2, 2 + v, TAT_NONE, desc[v].mean, fmt);
-      tab_double (table, 3, 2 + v, TAT_NONE, desc[v].std_dev, fmt);
-      tab_double (table, 4, 2 + v, TAT_NONE, desc[v].min, fmt);
-      tab_double (table, 5, 2 + v, TAT_NONE, desc[v].max, fmt);
+      tab_double (table, 1, 2 + v, 0, desc[v].n, fmt);
+      tab_double (table, 2, 2 + v, 0, desc[v].mean, fmt);
+      tab_double (table, 3, 2 + v, 0, desc[v].std_dev, fmt);
+      tab_double (table, 4, 2 + v, 0, desc[v].min, fmt);
+      tab_double (table, 5, 2 + v, 0, desc[v].max, fmt);
     }
 
 

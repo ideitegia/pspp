@@ -15,15 +15,15 @@ later in this manual.
 @cindex files, PSPP
 @cindex output, PSPP
 @cindex PostScript
+@cindex PDF
+@cindex HTML
+@cindex SVG
 @cindex graphics
 @cindex Ghostscript
 @cindex Free Software Foundation
-PSPP produces output in two forms: tables and charts.  Both of these can
-be written in several formats; currently, ASCII, PostScript, and HTML
-are supported.  In the future, more drivers, such as PCL and X Window
-System drivers, may be developed.  For now, Ghostscript, available from
-the Free Software Foundation, may be used to convert PostScript chart
-output to other formats.
+PSPP produces tables and charts as output, which it can produce in
+several formats; currently, ASCII, PostScript, PDF, HTML, and SVG are
+supported.
 
 The current version of PSPP, @value{VERSION}, is woefully incomplete in
 terms of its statistical procedure support.  PSPP is a work in progress.

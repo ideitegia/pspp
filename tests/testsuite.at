@@ -1,0 +1,5 @@
+AT_INIT
+
+AT_TESTED([pspp])
+
+m4_include([tests/output/render.at])

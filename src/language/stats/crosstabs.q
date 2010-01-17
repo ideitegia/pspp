@@ -56,8 +56,7 @@
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
-#include <output/output.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include "minmax.h"
 #include "xalloc.h"
@@ -201,12 +200,6 @@ struct crosstabs_proc
     unsigned int statistics;    /* Bit k is 1 if statistic k is requested. */
   };
 
-/* Auxiliary data structure for tab_dim. */
-struct crosstabs_dim_aux
-  {
-    enum mv_class exclude;
-  };
-
 static void
 init_proc (struct crosstabs_proc *proc, struct dataset *ds)
 {
@@ -249,8 +242,7 @@ static void tabulate_general_case (struct pivot_table *, const struct ccase *,
 static void tabulate_integer_case (struct pivot_table *, const struct ccase *,
                                    double weight);
 static void postcalc (struct crosstabs_proc *);
-static void submit (struct crosstabs_proc *, struct pivot_table *,
-                    struct tab_table *);
+static void submit (struct pivot_table *, struct tab_table *);
 
 /* Parse and execute CROSSTABS, then clean up. */
 int
@@ -897,7 +889,7 @@ make_summary_table (struct crosstabs_proc *proc)
     }
   ds_destroy (&name);
 
-  submit (proc, NULL, summary);
+  submit (NULL, summary);
 }
 
 /* Output. */
@@ -920,8 +912,6 @@ static void display_symmetric (struct crosstabs_proc *, struct pivot_table *,
 static void display_risk (struct pivot_table *, struct tab_table *);
 static void display_directional (struct crosstabs_proc *, struct pivot_table *,
                                  struct tab_table *);
-static void crosstabs_dim (struct tab_rendering *, void *aux);
-static void crosstabs_dim_free (void *aux);
 static void table_value_missing (struct crosstabs_proc *proc,
                                  struct tab_table *table, int c, int r,
 				 unsigned char opt, const union value *v,
@@ -1029,18 +1019,18 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
       free (x.col_tot);
     }
 
-  submit (proc, NULL, table);
+  submit (NULL, table);
 
   if (chisq)
     {
       if (!showed_fisher)
 	tab_resize (chisq, 4 + (pt->n_vars - 2), -1);
-      submit (proc, pt, chisq);
+      submit (pt, chisq);
     }
 
-  submit (proc, pt, sym);
-  submit (proc, pt, risk);
-  submit (proc, pt, direct);
+  submit (pt, sym);
+  submit (pt, risk);
+  submit (pt, direct);
 
   free (pt->cols);
 }
@@ -1348,10 +1338,8 @@ delete_missing (struct pivot_table *pt)
 
 /* Prepare table T for submission, and submit it. */
 static void
-submit (struct crosstabs_proc *proc, struct pivot_table *pt,
-        struct tab_table *t)
+submit (struct pivot_table *pt, struct tab_table *t)
 {
-  struct crosstabs_dim_aux *aux;
   int i;
 
   if (t == NULL)
@@ -1360,7 +1348,7 @@ submit (struct crosstabs_proc *proc, struct pivot_table *pt,
   tab_resize (t, -1, 0);
   if (tab_nr (t) == tab_t (t))
     {
-      tab_destroy (t);
+      table_unref (&t->table);
       return;
     }
   tab_offset (t, 0, 0);
@@ -1375,61 +1363,7 @@ submit (struct crosstabs_proc *proc, struct pivot_table *pt,
 	   tab_nr (t) - 1);
   tab_vline (t, TAL_2, tab_l (t), 0, tab_nr (t) - 1);
 
-  aux = xmalloc (sizeof *aux);
-  aux->exclude = proc->exclude;
-  tab_dim (t, crosstabs_dim, crosstabs_dim_free, aux);
-
   tab_submit (t);
-}
-
-/* Sets the widths of all the columns and heights of all the rows in
-   table T for driver D. */
-static void
-crosstabs_dim (struct tab_rendering *r, void *aux_)
-{
-  const struct tab_table *t = r->table;
-  struct outp_driver *d = r->driver;
-  struct crosstabs_dim_aux *aux = aux_;
-  int i;
-
-  /* Width of a numerical column. */
-  int c = outp_string_width (d, "0.000000", OUTP_PROPORTIONAL);
-  if (aux->exclude == MV_NEVER)
-    c += outp_string_width (d, "M", OUTP_PROPORTIONAL);
-
-  /* Set width for header columns. */
-  if (tab_l (t) != 0)
-    {
-      size_t i;
-      int w;
-
-      w = d->width - c * (tab_nc (t) - tab_l (t));
-      for (i = 0; i <= tab_nc (t); i++)
-        w -= r->wrv[i];
-      w /= tab_l (t);
-
-      if (w < d->prop_em_width * 8)
-	w = d->prop_em_width * 8;
-
-      if (w > d->prop_em_width * 15)
-	w = d->prop_em_width * 15;
-
-      for (i = 0; i < tab_l (t); i++)
-	r->w[i] = w;
-    }
-
-  for (i = tab_l (t); i < tab_nc (t); i++)
-    r->w[i] = c;
-
-  for (i = 0; i < tab_nr (t); i++)
-    r->h[i] = tab_natural_height (r, i);
-}
-
-static void
-crosstabs_dim_free (void *aux_)
-{
-  struct crosstabs_dim_aux *aux = aux_;
-  free (aux);
 }
 
 static bool

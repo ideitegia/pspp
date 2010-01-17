@@ -27,8 +27,8 @@
 #include <language/command.h>
 #include <libpspp/misc.h>
 #include <math/moments.h>
-#include <output/manager.h>
-#include <output/table.h>
+#include <output/tab.h>
+#include <output/text-item.h>
 
 #include "xalloc.h"
 #include "xmalloca.h"
@@ -379,18 +379,8 @@ run_reliability (struct casereader *input, struct dataset *ds,
 	alpha (s->n_items, s->sum_of_variances, s->variance_of_sums);
     }
 
-
-  {
-    struct tab_table *tab = tab_create(1, 1);
-
-    tab_dim (tab, tab_natural_dimensions, NULL, NULL);
-    tab_flags (tab, SOMF_NO_TITLE );
-
-    tab_text_format (tab, 0, 0, 0, "Scale: %s", ds_cstr (&rel->scale_name));
-
-    tab_submit(tab);
-  }
-
+  text_item_submit (text_item_create_format (TEXT_ITEM_PARAGRAPH, "Scale: %s",
+                                             ds_cstr (&rel->scale_name)));
 
   case_processing_summary (n_valid, n_missing, dataset_dict (ds));
 }
@@ -427,8 +417,6 @@ reliability_statistics (const struct reliability *rel)
 
   struct tab_table *tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
-
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   tab_title (tbl, _("Reliability Statistics"));
 
@@ -470,8 +458,6 @@ reliability_summary_total (const struct reliability *rel)
 
   struct tab_table *tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
-
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   tab_title (tbl, _("Item-Total Statistics"));
 
@@ -680,8 +666,6 @@ case_processing_summary (casenumber n_valid, casenumber n_missing,
   struct tab_table *tbl;
   tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
-
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   tab_title (tbl, _("Case Processing Summary"));
 

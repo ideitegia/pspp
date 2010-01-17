@@ -93,109 +93,70 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|X       |F8.0  |
-+--------+------+
-2.1 EXAMINE.  Case Processing Summary
-#=#=============================#
-# #            Cases            #
-# #---------+---------+---------#
-# #  Valid  | Missing |  Total  #
-# #-+-------+-+-------+-+-------#
-# #N|Percent|N|Percent|N|Percent#
-#=#=#=======#=#=======#=#=======#
-#X#3|   100%|0|     0%|3|   100%#
-#=#=#=======#=#=======#=#=======#
-2.2 EXAMINE.  Percentiles
-#================#================================#
-#                #             Percentiles        #
-#                #---+---+----+----+----+----+----#
-#                # 5 | 10| 25 | 50 | 75 | 90 | 95 #
-#=#==============#===#===#====#====#====#====#====#
-#X|HAverage      #.40|.80|2.00|5.00|8.00|8.00|8.00#
-# |Tukey's Hinges#   |   |3.50|5.00|6.50|    |    #
-#=#==============#===#===#====#====#====#====#====#
-3.1 EXAMINE.  Case Processing Summary
-#=#=============================#
-# #            Cases            #
-# #---------+---------+---------#
-# #  Valid  | Missing |  Total  #
-# #-+-------+-+-------+-+-------#
-# #N|Percent|N|Percent|N|Percent#
-#=#=#=======#=#=======#=#=======#
-#X#3|   100%|0|     0%|3|   100%#
-#=#=#=======#=#=======#=#=======#
-3.2 EXAMINE.  Percentiles
-#==================#================================#
-#                  #             Percentiles        #
-#                  #---+---+----+----+----+----+----#
-#                  # 5 | 10| 25 | 50 | 75 | 90 | 95 #
-#=#================#===#===#====#====#====#====#====#
-#X|Weighted Average#.30|.60|1.50|3.50|5.75|7.10|7.55#
-# |Tukey's Hinges  #   |   |3.50|5.00|6.50|    |    #
-#=#================#===#===#====#====#====#====#====#
-4.1 EXAMINE.  Case Processing Summary
-#=#=============================#
-# #            Cases            #
-# #---------+---------+---------#
-# #  Valid  | Missing |  Total  #
-# #-+-------+-+-------+-+-------#
-# #N|Percent|N|Percent|N|Percent#
-#=#=#=======#=#=======#=#=======#
-#X#3|   100%|0|     0%|3|   100%#
-#=#=#=======#=#=======#=#=======#
-4.2 EXAMINE.  Percentiles
-#================#================================#
-#                #             Percentiles        #
-#                #---+---+----+----+----+----+----#
-#                # 5 | 10| 25 | 50 | 75 | 90 | 95 #
-#=#==============#===#===#====#====#====#====#====#
-#X|Rounded       #.00|.00|2.00|5.00|5.00|8.00|8.00#
-# |Tukey's Hinges#   |   |3.50|5.00|6.50|    |    #
-#=#==============#===#===#====#====#====#====#====#
-5.1 EXAMINE.  Case Processing Summary
-#=#=============================#
-# #            Cases            #
-# #---------+---------+---------#
-# #  Valid  | Missing |  Total  #
-# #-+-------+-+-------+-+-------#
-# #N|Percent|N|Percent|N|Percent#
-#=#=#=======#=#=======#=#=======#
-#X#3|   100%|0|     0%|3|   100%#
-#=#=#=======#=#=======#=#=======#
-5.2 EXAMINE.  Percentiles
-#================#==================================#
-#                #              Percentiles         #
-#                #----+----+----+----+----+----+----#
-#                #  5 | 10 | 25 | 50 | 75 | 90 | 95 #
-#=#==============#====#====#====#====#====#====#====#
-#X|Empirical     #2.00|2.00|2.00|5.00|8.00|8.00|8.00#
-# |Tukey's Hinges#    |    |3.50|5.00|6.50|    |    #
-#=#==============#====#====#====#====#====#====#====#
-6.1 EXAMINE.  Case Processing Summary
-#=#=============================#
-# #            Cases            #
-# #---------+---------+---------#
-# #  Valid  | Missing |  Total  #
-# #-+-------+-+-------+-+-------#
-# #N|Percent|N|Percent|N|Percent#
-#=#=#=======#=#=======#=#=======#
-#X#3|   100%|0|     0%|3|   100%#
-#=#=#=======#=#=======#=#=======#
-6.2 EXAMINE.  Percentiles
-#==========================#==================================#
-#                          #              Percentiles         #
-#                          #----+----+----+----+----+----+----#
-#                          #  5 | 10 | 25 | 50 | 75 | 90 | 95 #
-#=#========================#====#====#====#====#====#====#====#
-#X|Empirical with averaging#2.00|2.00|2.00|5.00|8.00|8.00|8.00#
-# |Tukey's Hinges          #    |    |3.50|5.00|6.50|    |    #
-#=#========================#====#====#====#====#====#====#====#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+X,F8.0
+
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X,3,100%,0,0%,3,100%
+
+Table: Percentiles
+,,Percentiles,,,,,,
+,,5,10,25,50,75,90,95
+X,HAverage,.40,.80,2.00,5.00,8.00,8.00,8.00
+,Tukey's Hinges,,,3.50,5.00,6.50,,
+
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X,3,100%,0,0%,3,100%
+
+Table: Percentiles
+,,Percentiles,,,,,,
+,,5,10,25,50,75,90,95
+X,Weighted Average,.30,.60,1.50,3.50,5.75,7.10,7.55
+,Tukey's Hinges,,,3.50,5.00,6.50,,
+
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X,3,100%,0,0%,3,100%
+
+Table: Percentiles
+,,Percentiles,,,,,,
+,,5,10,25,50,75,90,95
+X,Rounded,.00,.00,2.00,5.00,5.00,8.00,8.00
+,Tukey's Hinges,,,3.50,5.00,6.50,,
+
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X,3,100%,0,0%,3,100%
+
+Table: Percentiles
+,,Percentiles,,,,,,
+,,5,10,25,50,75,90,95
+X,Empirical,2.00,2.00,2.00,5.00,8.00,8.00,8.00
+,Tukey's Hinges,,,3.50,5.00,6.50,,
+
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X,3,100%,0,0%,3,100%
+
+Table: Percentiles
+,,Percentiles,,,,,,
+,,5,10,25,50,75,90,95
+X,Empirical with averaging,2.00,2.00,2.00,5.00,8.00,8.00,8.00
+,Tukey's Hinges,,,3.50,5.00,6.50,,
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

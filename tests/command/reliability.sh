@@ -249,95 +249,68 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-diff pspp.list - << EOF
+diff -c pspp.csv - << EOF
 Scale: Everything
 
-1.1 RELIABILITY.  Case Processing Summary
-#==============#===#======#
-#              # N |   %  #
-#==============#===#======#
-#Cases Valid   #131| 92.91#
-#      Excluded# 10|  7.09#
-#      Total   #141|100.00#
-#==============#===#======#
+Table: Case Processing Summary
+,,N,%
+Cases,Valid,131,92.91
+,Excluded,10,7.09
+,Total,141,100.00
 
-1.2 RELIABILITY.  Reliability Statistics
-#================#==========#
-#Cronbach's Alpha#N of items#
-#================#==========#
-#             .75#         4#
-#================#==========#
+Table: Reliability Statistics
+Cronbach's Alpha,N of items
+.75,4
 
 Scale: Nothing
 
-2.1 RELIABILITY.  Case Processing Summary
-#==============#===#======#
-#              # N |   %  #
-#==============#===#======#
-#Cases Valid   #131| 92.91#
-#      Excluded# 10|  7.09#
-#      Total   #141|100.00#
-#==============#===#======#
+Table: Case Processing Summary
+,,N,%
+Cases,Valid,131,92.91
+,Excluded,10,7.09
+,Total,141,100.00
 
-2.2 RELIABILITY.  Reliability Statistics
-#==========================================================#===#
-#Cronbach's Alpha               Part 1           Value     #.55#
-#                                                N of Items#  2#
-#                               Part 2           Value     #.63#
-#                                                N of Items#  2#
-#                               Total N of Items           #  4#
-#Correlation Between Forms                                 #.61#
-#Spearman-Brown Coefficient     Equal Length               #.75#
-#                               Unequal Length             #.75#
-#Guttman Split-Half Coefficient                            #.75#
-#==========================================================#===#
+Table: Reliability Statistics
+Cronbach's Alpha,Part 1,Value,.55
+,,N of Items,2
+,Part 2,Value,.63
+,,N of Items,2
+,Total N of Items,,4
+Correlation Between Forms,,,.61
+Spearman-Brown Coefficient,Equal Length,,.75
+,Unequal Length,,.75
+Guttman Split-Half Coefficient,,,.75
 
 Scale: Totals
 
-3.1 RELIABILITY.  Case Processing Summary
-#==============#===#======#
-#              # N |   %  #
-#==============#===#======#
-#Cases Valid   #131| 92.91#
-#      Excluded# 10|  7.09#
-#      Total   #141|100.00#
-#==============#===#======#
+Table: Case Processing Summary
+,,N,%
+Cases,Valid,131,92.91
+,Excluded,10,7.09
+,Total,141,100.00
 
-3.2 RELIABILITY.  Reliability Statistics
-#================#==========#
-#Cronbach's Alpha#N of items#
-#================#==========#
-#             .75#         4#
-#================#==========#
+Table: Reliability Statistics
+Cronbach's Alpha,N of items
+.75,4
 
-3.3 RELIABILITY.  Item-Total Statistics
-#=====#==========================#==============================#================================#================================#
-#     #Scale Mean if Item Deleted|Scale Variance if Item Deleted|Corrected Item-Total Correlation|Cronbach's Alpha if Item Deleted#
-#=====#==========================#==============================#================================#================================#
-#var6 #                     15.97|                          8.43|                             .51|                             .71#
-#var8 #                     16.56|                          7.86|                             .53|                             .70#
-#var15#                     16.47|                          8.45|                             .56|                             .68#
-#var17#                     16.60|                          8.00|                             .57|                             .67#
-#=====#==========================#==============================#================================#================================#
+Table: Item-Total Statistics
+,Scale Mean if Item Deleted,Scale Variance if Item Deleted,Corrected Item-Total Correlation,Cronbach's Alpha if Item Deleted
+var6,15.97,8.43,.51,.71
+var8,16.56,7.86,.53,.70
+var15,16.47,8.45,.56,.68
+var17,16.60,8.00,.57,.67
 
 Scale: ANY
 
-4.1 RELIABILITY.  Case Processing Summary
-#==============#===#======#
-#              # N |   %  #
-#==============#===#======#
-#Cases Valid   #131| 92.91#
-#      Excluded# 10|  7.09#
-#      Total   #141|100.00#
-#==============#===#======#
+Table: Case Processing Summary
+,,N,%
+Cases,Valid,131,92.91
+,Excluded,10,7.09
+,Total,141,100.00
 
-4.2 RELIABILITY.  Reliability Statistics
-#================#==========#
-#Cronbach's Alpha#N of items#
-#================#==========#
-#             .75#         4#
-#================#==========#
-
+Table: Reliability Statistics
+Cronbach's Alpha,N of items
+.75,4
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

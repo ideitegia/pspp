@@ -1,0 +1,4 @@
+# -*- shell-script -*-
+PERL='@PERL@'
+CHARSETALIASDIR="$abs_top_builddir/gl"
+export CHARSETALIASDIR

@@ -78,31 +78,21 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|ID      |F8.0  |
-|ABC     |F8.0  |
-+--------+------+
-2.1 T-TEST.  One-Sample Statistics
-#===#=#====#==============#=========#
-#   #N|Mean|Std. Deviation|S.E. Mean#
-#===#=#====#==============#=========#
-#ABC#6|3.00|           .84|      .34#
-#===#=#====#==============#=========#
-2.2 T-TEST.  One-Sample Test
-#===#===================================================#
-#   #               Test Value = 2.000000               #
-#   #----+--+---------------+---------------+-----------#
-#   #    |  |               |               |    95%    #
-#   #    |  |               |               +-----+-----#
-#   #  t |df|Sig. (2-tailed)|Mean Difference|Lower|Upper#
-#===#====#==#===============#===============#=====#=====#
-#ABC#2.93| 5|            .03|           1.00|  .12| 1.88#
-#===#====#==#===============#===============#=====#=====#
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+ID,F8.0
+ABC,F8.0
+
+Table: One-Sample Statistics
+,N,Mean,Std. Deviation,S.E. Mean
+ABC,6,3.00,.84,.34
+
+Table: One-Sample Test
+,Test Value = 2.000000,,,,,
+,,,,,95% Confidence Interval of the Difference,
+,t,df,Sig. (2-tailed),Mean Difference,Lower,Upper
+ABC,2.93,5,.03,1.00,.12,1.88
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

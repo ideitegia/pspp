@@ -91,37 +91,35 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="test output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b $TEMPDIR/pspp.list - <<EOF
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|X       |     1|  1-  5|A5    |
-|Y       |     1|  7-  7|F1.0  |
-+--------+------+-------+------+
-    X Y        A        B
------ - -------- --------
-lasdj 1     1.00     3.00 
-asdfk 0     3.00     4.00 
-asdfj 2     4.00     2.00 
-asdfj 1     4.00     3.00 
-asdfk 2     3.00     2.00 
-asdfj 9     4.00     1.00 
-lajks 9     2.00     1.00 
-asdfk 0     3.00     4.00 
-asdfk 1     3.00     3.00 
-    X Y        A        B        Z        W
------ - -------- -------- -------- --------
-lasdj 1     1.00     3.00      .00     1.00 
-asdfk 0     3.00     4.00      .00     1.00 
-asdfj 2     4.00     2.00     1.00     2.00 
-asdfj 1     4.00     3.00      .00     1.00 
-asdfk 2     3.00     2.00     1.00     2.00 
-asdfj 9     4.00     1.00     4.00     3.00 
-lajks 9     2.00     1.00     4.00     3.00 
-asdfk 0     3.00     4.00      .00     1.00 
-asdfk 1     3.00     3.00      .00     1.00 
+diff -b $TEMPDIR/pspp.csv - <<EOF
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+X,1,1-  5,A5
+Y,1,7-  7,F1.0
+
+Table: Data List
+X,Y,A,B
+lasdj,1,1.00,3.00
+asdfk,0,3.00,4.00
+asdfj,2,4.00,2.00
+asdfj,1,4.00,3.00
+asdfk,2,3.00,2.00
+asdfj,9,4.00,1.00
+lajks,9,2.00,1.00
+asdfk,0,3.00,4.00
+asdfk,1,3.00,3.00
+
+Table: Data List
+X,Y,A,B,Z,W
+lasdj,1,1.00,3.00,.00,1.00
+asdfk,0,3.00,4.00,.00,1.00
+asdfj,2,4.00,2.00,1.00,2.00
+asdfj,1,4.00,3.00,.00,1.00
+asdfk,2,3.00,2.00,1.00,2.00
+asdfj,9,4.00,1.00,4.00,3.00
+lajks,9,2.00,1.00,4.00,3.00
+asdfk,0,3.00,4.00,.00,1.00
+asdfk,1,3.00,3.00,.00,1.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

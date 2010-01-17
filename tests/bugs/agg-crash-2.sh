@@ -77,19 +77,17 @@ if [ $? -ne 0 ] ; then no_result ; fi
 $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|X       |F8.2  |
-|Y       |A25   |
-+--------+------+
-        X                         Y
---------- -------------------------
-    87.34 bar                       
-    87.50 foo                       
+activity="compare output"
+diff $TEMPDIR/pspp.csv - << EOF | cat -E
+Table: Reading free-form data from INLINE.
+Variable,Format
+X,F8.2
+Y,A25
+
+Table: Data List
+X,Y
+87.34,bar                      
+87.50,foo                      
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

@@ -78,38 +78,26 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b  $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|A       |F8.0  |
-|B       |F8.0  |
-+--------+------+
-2.1 T-TEST.  Paired Sample Statistics
-#========#=====#=#==============#=========#
-#        # Mean|N|Std. Deviation|S.E. Mean#
-#========#=====#=#==============#=========#
-#Pair 0 A#4.333|3|         5.774|    3.333#
-#       B#1.333|3|          .577|     .333#
-#========#=====#=#==============#=========#
-2.2 T-TEST.  Paired Samples Correlations
-#======#=====#=#===========#====#
-#      |     #N|Correlation|Sig.#
-#======#=====#=#===========#====#
-#Pair 0|A & B#3|      1.000|.000#
-#======#=====#=#===========#====#
-2.3 T-TEST.  Paired Samples Test
-#===========#==================================================#=====#==#===============#
-#           #                Paired Differences                |     |  |               #
-#           #-----+--------------+---------------+-------------+     |  |               #
-#           #     |              |               |     95%     |     |  |               #
-#           #     |              |               +------+------+     |  |               #
-#           # Mean|Std. Deviation|Std. Error Mean| Lower| Upper|  t  |df|Sig. (2-tailed)#
-#===========#=====#==============#===============#======#======#=====#==#===============#
-#Pair 0A - B#3.000|         5.196|          3.000|-9.908|15.908|1.000| 2|           .423#
-#===========#=====#==============#===============#======#======#=====#==#===============#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+A,F8.0
+B,F8.0
+
+Table: Paired Sample Statistics
+,,Mean,N,Std. Deviation,S.E. Mean
+Pair 0,A,4.333,3,5.774,3.333
+,B,1.333,3,.577,.333
+
+Table: Paired Samples Correlations
+,,N,Correlation,Sig.
+Pair 0,A & B,3,1.000,.000
+
+Table: Paired Samples Test
+,,Paired Differences,,,,,,,
+,,,,,95% Confidence Interval of the Difference,,,,
+,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
+Pair 0,A - B,3.000,5.196,3.000,-9.908,15.908,1.000,2,.423
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

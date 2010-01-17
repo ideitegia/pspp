@@ -1,9 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
-AC_PREREQ(2.60)
+AC_PREREQ(2.63)
 AC_INIT([pspp],[0.7.3],[bug-gnu-pspp@gnu.org])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_TESTDIR([tests])
 AM_INIT_AUTOMAKE
 
 dnl Checks for programs.
@@ -228,7 +229,7 @@ RELOCATABLE_STRIP=:
 
 PSPP_CHECK_PREREQS
 
-AC_CONFIG_FILES([Makefile gl/Makefile])
+AC_CONFIG_FILES([Makefile gl/Makefile tests/atlocal])
 
 AC_OUTPUT
 echo "PSPP configured successfully."

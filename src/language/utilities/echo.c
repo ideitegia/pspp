@@ -19,8 +19,7 @@
 #include <libpspp/str.h>
 #include <language/lexer/lexer.h>
 #include <language/command.h>
-#include <output/table.h>
-#include <output/manager.h>
+#include <output/tab.h>
 
 #include "xalloc.h"
 
@@ -34,9 +33,6 @@ cmd_echo (struct lexer *lexer, struct dataset *ds UNUSED)
     return CMD_FAILURE;
 
   tab = tab_create(1, 1);
-
-  tab_dim (tab, tab_natural_dimensions, NULL, NULL);
-  tab_flags (tab, SOMF_NO_TITLE );
 
   tab_text(tab, 0, 0, 0, ds_cstr (lex_tokstr (lexer)));
 

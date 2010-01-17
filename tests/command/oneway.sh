@@ -96,58 +96,42 @@ activity="run program"
 $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|QUALITY |F8.0  |
-|BRAND   |F8.0  |
-+--------+------+
-2.1 ONEWAY.  Descriptives
-#===============#========#==#====#==============#==========#=======================#=======#=======#
-#               |        #  |    |              |          |95% Confidence Interval|       |       #
-#               |        #  |    |              |          +-----------+-----------+       |       #
-#               |        # N|Mean|Std. Deviation|Std. Error|Lower Bound|Upper Bound|Minimum|Maximum#
-#===============#========#==#====#==============#==========#===========#===========#=======#=======#
-#Breaking Strain|Aspeger # 5|2.20|          1.30|       .58|        .58|       3.82|   1.00|   4.00#
-#               |Bloggs  # 5|3.20|          1.30|       .58|       1.58|       4.82|   2.00|   5.00#
-#               |Charlies# 5|5.00|          1.58|       .71|       3.04|       6.96|   3.00|   7.00#
-#               |Total   #15|3.47|          1.77|       .46|       2.49|       4.45|   1.00|   7.00#
-#===============#========#==#====#==============#==========#===========#===========#=======#=======#
-2.2 ONEWAY.  Test of Homogeneity of Variances
-#===============#================#===#===#============#
-#               #Levene Statistic|df1|df2|Significance#
-#===============#================#===#===#============#
-#Breaking Strain#             .09|  2| 12|         .91#
-#===============#================#===#===#============#
-2.3 ONEWAY.  ANOVA
-#==============================#==============#==#===========#====#============#
-#                              #Sum of Squares|df|Mean Square|  F |Significance#
-#===============#==============#==============#==#===========#====#============#
-#Breaking Strain|Between Groups#         20.13| 2|      10.07|5.12|         .02#
-#               |Within Groups #         23.60|12|       1.97|    |            #
-#               |Total         #         43.73|14|           |    |            #
-#===============#==============#==============#==#===========#====#============#
-2.4 ONEWAY.  Contrast Coefficients
-#==========#=======================#
-#          #      Manufacturer     #
-#          #-------+------+--------#
-#          #Aspeger|Bloggs|Charlies#
-#========#=#=======#======#========#
-#Contrast|1#     -2|     1|       1#
-#        |2#      0|    -1|       1#
-#========#=#=======#======#========#
-2.5 ONEWAY.  Contrast Tests
-#===============================================#=================#==========#====#====#===============#
-#                                       Contrast#Value of Contrast|Std. Error|  t | df |Sig. (2-tailed)#
-#===============#======================#========#=================#==========#====#====#===============#
-#Breaking Strain|Assume equal variances|    1   #             3.80|      1.54|2.47|  12|            .03#
-#               |                      |    2   #             1.80|       .89|2.03|  12|            .07#
-#               |Does not assume equal |    1   #             3.80|      1.48|2.56|8.74|            .03#
-#               |                      |    2   #             1.80|       .92|1.96|7.72|            .09#
-#===============#======================#========#=================#==========#====#====#===============#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+QUALITY,F8.0
+BRAND,F8.0
+
+Table: Descriptives
+,,,,,,95% Confidence Interval for Mean,,,
+,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
+Breaking Strain,Aspeger,5,2.20,1.30,.58,.58,3.82,1.00,4.00
+,Bloggs,5,3.20,1.30,.58,1.58,4.82,2.00,5.00
+,Charlies,5,5.00,1.58,.71,3.04,6.96,3.00,7.00
+,Total,15,3.47,1.77,.46,2.49,4.45,1.00,7.00
+
+Table: Test of Homogeneity of Variances
+,Levene Statistic,df1,df2,Significance
+Breaking Strain,.09,2,12,.91
+
+Table: ANOVA
+,,Sum of Squares,df,Mean Square,F,Significance
+Breaking Strain,Between Groups,20.13,2,10.07,5.12,.02
+,Within Groups,23.60,12,1.97,,
+,Total,43.73,14,,,
+
+Table: Contrast Coefficients
+,,Manufacturer,,
+,,Aspeger,Bloggs,Charlies
+Contrast,1,-2,1,1
+,2,0,-1,1
+
+Table: Contrast Tests
+,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
+Breaking Strain,Assume equal variances,1,3.80,1.54,2.47,12,.03
+,,2,1.80,.89,2.03,12,.07
+,Does not assume equal,1,3.80,1.48,2.56,8.74,.03
+,,2,1.80,.92,1.96,7.72,.09
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

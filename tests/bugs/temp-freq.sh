@@ -86,34 +86,26 @@ if [ $? -ne 0 ] ; then no_result ; fi
 $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|SEX     |A1    |
-|X       |F8.0  |
-+--------+------+
-2.1 FREQUENCIES.  X
-+-----------+--------+---------+--------+-------------+-----------+
-|Value Label|  Value |Frequency| Percent|Valid Percent|Cum Percent|
-#===========#========#=========#========#=============#===========#
-|           |   12.00|        1|   25.00|        25.00|      25.00|
-|           |   13.00|        1|   25.00|        25.00|      50.00|
-|           |   21.00|        1|   25.00|        25.00|      75.00|
-|           |   31.00|        1|   25.00|        25.00|     100.00|
-#===========#========#=========#========#=============#===========#
-|               Total|        4|   100.0|        100.0|           |
-+--------------------+---------+--------+-------------+-----------+
-+---------------+-----+
-|N       Valid  |    4|
-|        Missing|    0|
-|Mean           |19.25|
-|Std Dev        | 8.81|
-|Minimum        |12.00|
-|Maximum        |31.00|
-+---------------+-----+
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+SEX,A1
+X,F8.0
+
+Table: X
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+,12.00,1,25.00,25.00,25.00
+,13.00,1,25.00,25.00,50.00
+,21.00,1,25.00,25.00,75.00
+,31.00,1,25.00,25.00,100.00
+Total,,4,100.0,100.0,
+
+N,Valid,4
+,Missing,0
+Mean,,19.25
+Std Dev,,8.81
+Minimum,,12.00
+Maximum,,31.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

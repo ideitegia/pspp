@@ -82,22 +82,19 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/vectors.stat > $TEMPDIR/vectors.err 2>
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - <<EOF
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|N1      |     1|  1-  1|F1.0  |
-|N2      |     1|  2-  2|F1.0  |
-|N3      |     1|  3-  3|F1.0  |
-|N4      |     1|  4-  4|F1.0  |
-|N5      |     1|  5-  5|F1.0  |
-+--------+------+-------+------+
-N1 N2 N3 N4 N5 X1 X2 X3 X4 X5  I
--- -- -- -- -- -- -- -- -- -- --
- 1  2  3  4  5  .  3  .  .  .  5 
- 6  7  8  9  .  7  8  9 10  .  5 
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+N1,1,1-  1,F1.0
+N2,1,2-  2,F1.0
+N3,1,3-  3,F1.0
+N4,1,4-  4,F1.0
+N5,1,5-  5,F1.0
+
+Table: Data List
+N1,N2,N3,N4,N5,X1,X2,X3,X4,X5,I
+1,2,3,4,5,.,3,.,.,.,5
+6,7,8,9,.,7,8,9,10,.,5
 EOF
 
 if [ $? -ne 0 ] ; then no_result ; fi

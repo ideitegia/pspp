@@ -82,14 +82,11 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/tabs.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|X       |     1|  1- 80|A80   |
-+--------+------+-------+------+
+diff -c $TEMPDIR/pspp.csv - << EOF | perl -e 's/^\s*$//g'
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+X,1,1- 80,A80
+
     1   12  123 1234    12345
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

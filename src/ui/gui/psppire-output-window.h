@@ -52,6 +52,7 @@ struct _PsppireOutputWindow
   PsppireWindow parent;
 
   /* <private> */
+  struct psppire_output_driver *driver;
   GtkLayout *output;
   int max_width;
   int y;

@@ -79,7 +79,7 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="copy output"
-cp $TEMPDIR/pspp.list $TEMPDIR/first.list
+cp $TEMPDIR/pspp.csv $TEMPDIR/first.csv
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program 2"
@@ -103,8 +103,8 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list $TEMPDIR/first.list
-diff -b $TEMPDIR/pspp.list $TEMPDIR/first.list
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.csv $TEMPDIR/first.csv
+diff -b $TEMPDIR/pspp.csv $TEMPDIR/first.csv
 if [ $? -ne 0 ] ; then fail ; fi
 
 

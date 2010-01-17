@@ -81,14 +81,10 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/descript.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF
-1.1 DESCRIPTIVES.  Valid cases = 6; cases with missing value(s) = 0.
-+--------#-+-----+
-|Variable#N| Mean|
-#========#=#=====#
-|X       #6|2.500|
-+--------#-+-----+
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: Valid cases = 6; cases with missing value(s) = 0.
+Variable,N,Mean
+X,6,2.500
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

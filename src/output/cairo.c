@@ -19,11 +19,26 @@
 #include <output/cairo.h>
 
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <libpspp/start-date.h>
+#include <libpspp/str.h>
+#include <libpspp/string-map.h>
 #include <libpspp/version.h>
-#include <output/chart-provider.h>
-#include <output/manager.h>
-#include <output/output.h>
+#include <output/cairo-chart.h>
+#include <output/chart-item-provider.h>
+#include <output/charts/boxplot.h>
+#include <output/charts/np-plot.h>
+#include <output/charts/piechart.h>
+#include <output/charts/plot-hist.h>
+#include <output/charts/roc-chart.h>
+#include <output/charts/scree.h>
+#include <output/driver-provider.h>
+#include <output/options.h>
+#include <output/render.h>
+#include <output/tab.h>
+#include <output/table-item.h>
+#include <output/table.h>
+#include <output/text-item.h>
 
 #include <cairo/cairo-pdf.h>
 #include <cairo/cairo-ps.h>
@@ -43,28 +58,9 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Cairo driver options: (defaults listed first)
-
-   output-file="pspp.pdf"
-   output-type=pdf|ps|png|svg
-   paper-size=letter (see "papersize" file)
-   orientation=portrait|landscape
-   headers=on|off
-
-   left-margin=0.5in
-   right-margin=0.5in
-   top-margin=0.5in
-   bottom-margin=0.5in
-
-   prop-font=serif
-   emph-font=serif italic
-   fixed-font=monospace
-   font-size=10000
-
-   line-gutter=1pt
-   line-spacing=1pt
-   line-width=0.5pt
- */
+/* This file uses TABLE_HORZ and TABLE_VERT enough to warrant abbreviating. */
+#define H TABLE_HORZ
+#define V TABLE_VERT
 
 /* Measurements as we present to the rest of PSPP. */
 #define XR_POINT PANGO_SCALE
@@ -77,18 +73,21 @@ xr_to_pt (int x)
   return x / (double) XR_POINT;
 }
 
-static int
-pt_to_xr (double x)
-{
-  return x * XR_POINT + 0.5;
-}
-
 /* Output types. */
 enum xr_output_type
   {
     XR_PDF,
     XR_PS,
     XR_SVG
+  };
+
+/* Cairo fonts. */
+enum xr_font_type
+  {
+    XR_FONT_PROPORTIONAL,
+    XR_FONT_EMPHASIS,
+    XR_FONT_FIXED,
+    XR_N_FONTS
   };
 
 /* A font for use with Cairo. */
@@ -100,173 +99,185 @@ struct xr_font
     PangoFontMetrics *metrics;
   };
 
-/* Cairo output driver extension record. */
-struct xr_driver_ext
+/* Cairo output driver. */
+struct xr_driver
   {
-    cairo_t *cairo;
-    struct xr_font fonts[OUTP_FONT_CNT];
+    struct output_driver driver;
 
-    bool draw_headers;          /* Draw headers at top of page? */
-    int page_number;		/* Current page number. */
+    /* User parameters. */
+    bool headers;               /* Draw headers at top of page? */
+
+    struct xr_font fonts[XR_N_FONTS];
+    int font_height;            /* In XR units. */
+
+    int width;                  /* Page width minus margins. */
+    int length;                 /* Page length minus margins and header. */
+
+    int left_margin;            /* Left margin in XR units. */
+    int right_margin;           /* Right margin in XR units. */
+    int top_margin;             /* Top margin in XR units. */
+    int bottom_margin;          /* Bottom margin in XR units. */
 
     int line_gutter;		/* Space around lines. */
     int line_space;		/* Space between lines. */
     int line_width;		/* Width of lines. */
-  };
 
-struct xr_driver_options
-  {
-    struct outp_driver *driver;
-
-    char *file_name;            /* Output file name. */
     enum xr_output_type file_type; /* Type of output file. */
 
-
-    bool portrait;              /* Portrait mode? */
-
-    int paper_width;            /* Width of paper before dropping margins. */
-    int paper_length;           /* Length of paper before dropping margins. */
-    int left_margin;		/* Left margin in XR units. */
-    int right_margin;		/* Right margin in XR units. */
-    int top_margin;		/* Top margin in XR units. */
-    int bottom_margin;		/* Bottom margin in XR units. */
+    /* Internal state. */
+    struct render_params *params;
+    char *title;
+    char *subtitle;
+    cairo_t *cairo;
+    int page_number;		/* Current page number. */
+    int y;
   };
 
-static bool handle_option (void *options, const char *key,
-                           const struct string *val);
-static void draw_headers (struct outp_driver *this);
+static void xr_show_page (struct xr_driver *);
+static void draw_headers (struct xr_driver *);
 
-static bool load_font (struct outp_driver *this, struct xr_font *);
+static bool load_font (struct xr_driver *, struct xr_font *);
 static void free_font (struct xr_font *);
-static int text_width (struct outp_driver *, const char *, enum outp_font);
+
+static void xr_draw_line (void *, int bb[TABLE_N_AXES][2],
+                          enum render_line_style styles[TABLE_N_AXES][2]);
+static void xr_measure_cell_width (void *, const struct table_cell *,
+                                   int *min, int *max);
+static int xr_measure_cell_height (void *, const struct table_cell *,
+                                   int width);
+static void xr_draw_cell (void *, const struct table_cell *,
+                          int bb[TABLE_N_AXES][2],
+                          int clip[TABLE_N_AXES][2]);
 
 /* Driver initialization. */
 
-static struct outp_driver *
-xr_allocate (const char *name, int types)
+static struct xr_driver *
+xr_driver_cast (struct output_driver *driver)
 {
-  struct outp_driver *this;
-  struct xr_driver_ext *x;
-  size_t i;
+  assert (driver->class == &cairo_class);
+  return UP_CAST (driver, struct xr_driver, driver);
+}
 
-  this = outp_allocate_driver (&cairo_class, name, types);
-  this->width = this->length = 0;
-  this->font_height = XR_POINT * 10;
-  this->ext = x = xzalloc (sizeof *x);
-  x->cairo = NULL;
-  x->fonts[OUTP_FIXED].string = xstrdup ("monospace");
-  x->fonts[OUTP_PROPORTIONAL].string = xstrdup ("serif");
-  x->fonts[OUTP_EMPHASIS].string = xstrdup ("serif italic");
-  for (i = 0; i < OUTP_FONT_CNT; i++)
-    {
-      struct xr_font *font = &x->fonts[i];
-      font->desc = NULL;
-      font->metrics = NULL;
-      font->layout = NULL;
-    }
-  x->draw_headers = true;
-  x->page_number = 0;
-  x->line_gutter = XR_POINT;
-  x->line_space = XR_POINT;
-  x->line_width = XR_POINT / 2;
+static struct driver_option *
+opt (struct output_driver *d, struct string_map *options, const char *key,
+     const char *default_value)
+{
+  return driver_option_get (d, options, key, default_value);
+}
 
-  return this;
+static struct xr_driver *
+xr_allocate (const char *name, int device_type, struct string_map *o)
+{
+  struct output_driver *d;
+  struct xr_driver *xr;
+
+  xr = xzalloc (sizeof *xr);
+  d = &xr->driver;
+  output_driver_init (d, &cairo_class, name, device_type);
+  xr->headers = true;
+  xr->font_height = XR_POINT * 10;
+  xr->fonts[XR_FONT_FIXED].string
+    = parse_string (opt (d, o, "fixed-font", "monospace"));
+  xr->fonts[XR_FONT_PROPORTIONAL].string
+    = parse_string (opt (d, o, "prop-font", "serif"));
+  xr->fonts[XR_FONT_EMPHASIS].string
+    = parse_string (opt (d, o, "emph-font", "serif italic"));
+  xr->line_gutter = XR_POINT;
+  xr->line_space = XR_POINT;
+  xr->line_width = XR_POINT / 2;
+  xr->page_number = 1;
+
+  return xr;
 }
 
 static bool
-xr_set_cairo (struct outp_driver *this, cairo_t *cairo)
+xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
 {
-  struct xr_driver_ext *x = this->ext;
   int i;
 
-  x->cairo = cairo;
+  xr->cairo = cairo;
 
-  cairo_set_line_width (x->cairo, xr_to_pt (x->line_width));
+  cairo_set_line_width (xr->cairo, xr_to_pt (xr->line_width));
 
-  for (i = 0; i < OUTP_FONT_CNT; i++)
-    if (!load_font (this, &x->fonts[i]))
+  for (i = 0; i < XR_N_FONTS; i++)
+    if (!load_font (xr, &xr->fonts[i]))
       return false;
 
-  this->fixed_width = text_width (this, "0", OUTP_FIXED);
-  this->prop_em_width = text_width (this, "0", OUTP_PROPORTIONAL);
+  if (xr->params == NULL)
+    {
+      int single_width, double_width;
 
-  this->horiz_line_width[OUTP_L_NONE] = 0;
-  this->horiz_line_width[OUTP_L_SINGLE] = 2 * x->line_gutter + x->line_width;
-  this->horiz_line_width[OUTP_L_DOUBLE] = (2 * x->line_gutter + x->line_space
-                                           + 2 * x->line_width);
-  memcpy (this->vert_line_width, this->horiz_line_width,
-          sizeof this->vert_line_width);
+      xr->params = xmalloc (sizeof *xr->params);
+      xr->params->draw_line = xr_draw_line;
+      xr->params->measure_cell_width = xr_measure_cell_width;
+      xr->params->measure_cell_height = xr_measure_cell_height;
+      xr->params->draw_cell = xr_draw_cell;
+      xr->params->aux = xr;
+      xr->params->size[H] = xr->width;
+      xr->params->size[V] = xr->length;
+      xr->params->font_size[H] = xr->font_height / 2; /* XXX */
+      xr->params->font_size[V] = xr->font_height;
+
+      single_width = 2 * xr->line_gutter + xr->line_width;
+      double_width = 2 * xr->line_gutter + xr->line_space + 2 * xr->line_width;
+      for (i = 0; i < TABLE_N_AXES; i++)
+        {
+          xr->params->line_widths[i][RENDER_LINE_NONE] = 0;
+          xr->params->line_widths[i][RENDER_LINE_SINGLE] = single_width;
+          xr->params->line_widths[i][RENDER_LINE_DOUBLE] = double_width;
+        }
+    }
 
   return true;
 }
 
-struct outp_driver *
-xr_create_driver (cairo_t *cairo)
+static struct output_driver *
+xr_create (const char *name, enum output_device_type device_type,
+           struct string_map *o)
 {
-  struct outp_driver *this;
-
-  this = xr_allocate ("cairo", 0);
-  this->width = INT_MAX / 8;
-  this->length = INT_MAX / 8;
-  if (!xr_set_cairo (this, cairo))
-    {
-      this->class->close_driver (this);
-      outp_free_driver (this);
-      return NULL;
-    }
-  return this;
-}
-
-static bool
-xr_open_driver (const char *name, int types, struct substring option_string)
-{
-  struct outp_driver *this;
-  struct xr_driver_ext *x;
-  struct xr_driver_options options;
+  enum { MIN_LENGTH = 3 };
+  struct output_driver *d;
+  struct xr_driver *xr;
   cairo_surface_t *surface;
   cairo_status_t status;
   double width_pt, length_pt;
+  int paper_width, paper_length;
+  char *file_name;
 
-  this = xr_allocate (name, types);
-  x = this->ext;
+  xr = xr_allocate (name, device_type, o);
+  d = &xr->driver;
 
-  options.driver = this;
-  options.file_name = xstrdup ("pspp.pdf");
-  options.file_type = XR_PDF;
-  options.portrait = true;
-  outp_get_paper_size ("", &options.paper_width, &options.paper_length);
-  options.left_margin = XR_INCH / 2;
-  options.right_margin = XR_INCH / 2;
-  options.top_margin = XR_INCH / 2;
-  options.bottom_margin = XR_INCH / 2;
+  xr->headers = parse_boolean (opt (d, o, "headers", "true"));
 
-  outp_parse_options (this->name, option_string, handle_option, &options);
+  xr->file_type = parse_enum (opt (d, o, "output-type", "pdf"),
+                              "pdf", XR_PDF,
+                              "ps", XR_PS,
+                              "svg", XR_SVG,
+                              (char *) NULL);
+  file_name = parse_string (opt (d, o, "output-file",
+                                 (xr->file_type == XR_PDF ? "pspp.pdf"
+                                  : xr->file_type == XR_PS ? "pspp.ps"
+                                  : "pspp.svg")));
 
-  width_pt = options.paper_width / 1000.0;
-  length_pt = options.paper_length / 1000.0;
-  if (options.portrait)
-    {
-      this->width = pt_to_xr (width_pt);
-      this->length = pt_to_xr (length_pt);
-    }
-  else
-    {
-      this->width = pt_to_xr (width_pt);
-      this->length = pt_to_xr (length_pt);
-    }
-  if (x->draw_headers)
-    options.top_margin += 3 * this->font_height;
-  this->width -= options.left_margin + options.right_margin;
-  this->length -= options.top_margin + options.bottom_margin;
+  parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
+  xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
+  xr->right_margin = parse_dimension (opt (d, o, "right-margin", ".5in"));
+  xr->top_margin = parse_dimension (opt (d, o, "top-margin", ".5in"));
+  xr->bottom_margin = parse_dimension (opt (d, o, "bottom-margin", ".5in"));
 
-  if (options.file_type == XR_PDF)
-    surface = cairo_pdf_surface_create (options.file_name,
-                                        width_pt, length_pt);
-  else if (options.file_type == XR_PS)
-    surface = cairo_ps_surface_create (options.file_name, width_pt, length_pt);
-  else if (options.file_type == XR_SVG)
-    surface = cairo_svg_surface_create (options.file_name,
-                                        width_pt, length_pt);
+  if (xr->headers)
+    xr->top_margin += 3 * xr->font_height;
+  xr->width = paper_width - xr->left_margin - xr->right_margin;
+  xr->length = paper_length - xr->top_margin - xr->bottom_margin;
+
+  width_pt = paper_width / 1000.0;
+  length_pt = paper_length / 1000.0;
+  if (xr->file_type == XR_PDF)
+    surface = cairo_pdf_surface_create (file_name, width_pt, length_pt);
+  else if (xr->file_type == XR_PS)
+    surface = cairo_ps_surface_create (file_name, width_pt, length_pt);
+  else if (xr->file_type == XR_SVG)
+    surface = cairo_svg_surface_create (file_name, width_pt, length_pt);
   else
     NOT_REACHED ();
 
@@ -274,264 +285,244 @@ xr_open_driver (const char *name, int types, struct substring option_string)
   if (status != CAIRO_STATUS_SUCCESS)
     {
       error (0, 0, _("opening output file \"%s\": %s"),
-             options.file_name, cairo_status_to_string (status));
+             file_name, cairo_status_to_string (status));
       cairo_surface_destroy (surface);
       goto error;
     }
 
-  x->cairo = cairo_create (surface);
+  xr->cairo = cairo_create (surface);
   cairo_surface_destroy (surface);
 
-  cairo_translate (x->cairo,
-                   xr_to_pt (options.left_margin),
-                   xr_to_pt (options.top_margin));
+  cairo_translate (xr->cairo,
+                   xr_to_pt (xr->left_margin),
+                   xr_to_pt (xr->top_margin));
 
-  if (this->length / this->font_height < 15)
+  if (!xr_set_cairo (xr, xr->cairo))
+    goto error;
+
+  if (xr->length / xr->font_height < MIN_LENGTH)
     {
       error (0, 0, _("The defined page is not long "
-                     "enough to hold margins and headers, plus least 15 "
+                     "enough to hold margins and headers, plus least %d "
                      "lines of the default fonts.  In fact, there's only "
                      "room for %d lines."),
-             this->length / this->font_height);
+             MIN_LENGTH,
+             xr->length / xr->font_height);
       goto error;
     }
 
-  if (!xr_set_cairo (this, x->cairo))
-    goto error;
-
-  outp_register_driver (this);
-  free (options.file_name);
-  return true;
+  free (file_name);
+  return &xr->driver;
 
  error:
-  this->class->close_driver (this);
-  outp_free_driver (this);
-  free (options.file_name);
-  return false;
+  output_driver_destroy (&xr->driver);
+  return NULL;
 }
 
-static bool
-xr_close_driver (struct outp_driver *this)
+static void
+xr_destroy (struct output_driver *driver)
 {
-  struct xr_driver_ext *x = this->ext;
-  bool ok = true;
+  struct xr_driver *xr = xr_driver_cast (driver);
   size_t i;
 
-  if (x->cairo != NULL)
+  if (xr->cairo != NULL)
     {
       cairo_status_t status;
 
-      cairo_surface_finish (cairo_get_target (x->cairo));
-      status = cairo_status (x->cairo);
+      if (xr->y > 0)
+        xr_show_page (xr);
+
+      cairo_surface_finish (cairo_get_target (xr->cairo));
+      status = cairo_status (xr->cairo);
       if (status != CAIRO_STATUS_SUCCESS)
-        error (0, 0, _("error writing output file for %s driver: %s"),
-               this->name, cairo_status_to_string (status));
-      cairo_destroy (x->cairo);
+        error (0, 0, _("error drawing output for %s driver: %s"),
+               output_driver_get_name (driver),
+               cairo_status_to_string (status));
+      cairo_destroy (xr->cairo);
     }
 
-  for (i = 0; i < OUTP_FONT_CNT; i++)
-    free_font (&x->fonts[i]);
-  free (x);
-
-  return ok;
+  for (i = 0; i < XR_N_FONTS; i++)
+    free_font (&xr->fonts[i]);
+  free (xr->params);
+  free (xr);
 }
 
-/* Generic option types. */
-enum
+static void
+xr_flush (struct output_driver *driver)
 {
-  output_file_arg,
-  output_type_arg,
-  paper_size_arg,
-  orientation_arg,
-  line_style_arg,
-  boolean_arg,
-  dimension_arg,
-  string_arg,
-  nonneg_int_arg
-};
+  struct xr_driver *xr = xr_driver_cast (driver);
 
-/* All the options that the Cairo driver supports. */
-static const struct outp_option option_tab[] =
+  cairo_surface_flush (cairo_get_target (xr->cairo));
+}
+
+static void
+xr_init_caption_cell (const char *caption, struct table_cell *cell)
 {
-  {"output-file",		output_file_arg,0},
-  {"output-type",               output_type_arg,0},
-  {"paper-size",		paper_size_arg, 0},
-  {"orientation",		orientation_arg,0},
+  cell->contents = caption;
+  cell->options = TAB_LEFT;
+  cell->destructor = NULL;
+}
 
-  {"headers",			boolean_arg,	1},
-
-  {"prop-font", 		string_arg,	OUTP_PROPORTIONAL},
-  {"emph-font", 		string_arg,	OUTP_EMPHASIS},
-  {"fixed-font",		string_arg,	OUTP_FIXED},
-
-  {"left-margin",		dimension_arg,	0},
-  {"right-margin",		dimension_arg,	1},
-  {"top-margin",		dimension_arg,	2},
-  {"bottom-margin",		dimension_arg,	3},
-  {"font-size",			dimension_arg,	4},
-  {"line-width",		dimension_arg,	5},
-  {"line-gutter",		dimension_arg,	6},
-  {"line-width",		dimension_arg,	7},
-  {NULL, 0, 0},
-};
-
-static bool
-handle_option (void *options_, const char *key, const struct string *val)
+static struct render_page *
+xr_render_table_item (struct xr_driver *xr, const struct table_item *item,
+                      int *caption_heightp)
 {
-  struct xr_driver_options *options = options_;
-  struct outp_driver *this = options->driver;
-  struct xr_driver_ext *x = this->ext;
-  int subcat;
-  char *value = ds_cstr (val);
+  const char *caption = table_item_get_caption (item);
 
-  switch (outp_match_keyword (key, option_tab, &subcat))
+  if (caption != NULL)
     {
-    case -1:
-      error (0, 0,
-             _("unknown configuration parameter `%s' for %s device "
-               "driver"), key, this->class->name);
-      break;
-    case output_file_arg:
-      free (options->file_name);
-      options->file_name = xstrdup (value);
-      break;
-    case output_type_arg:
-      if (!strcmp (value, "pdf"))
-        options->file_type = XR_PDF;
-      else if (!strcmp (value, "ps"))
-        options->file_type = XR_PS;
-      else if (!strcmp (value, "svg"))
-        options->file_type = XR_SVG;
-      else
-        {
-          error (0, 0, _("unknown Cairo output type \"%s\""), value);
-          return false;
-        }
-      break;
-    case paper_size_arg:
-      outp_get_paper_size (value,
-                           &options->paper_width, &options->paper_length);
-      break;
-    case orientation_arg:
-      if (!strcmp (value, "portrait"))
-	options->portrait = true;
-      else if (!strcmp (value, "landscape"))
-	options->portrait = false;
-      else
-	error (0, 0, _("unknown orientation `%s' (valid orientations are "
-                       "`portrait' and `landscape')"), value);
-      break;
-    case boolean_arg:
-      if (!strcmp (value, "on") || !strcmp (value, "true")
-          || !strcmp (value, "yes") || atoi (value))
-        x->draw_headers = true;
-      else if (!strcmp (value, "off") || !strcmp (value, "false")
-               || !strcmp (value, "no") || !strcmp (value, "0"))
-        x->draw_headers = false;
-      else
-        {
-          error (0, 0, _("boolean value expected for %s"), key);
-          return false;
-        }
-      break;
-    case dimension_arg:
-      {
-	int dimension = outp_evaluate_dimension (value);
-
-	if (dimension <= 0)
-          break;
-	switch (subcat)
-	  {
-	  case 0:
-	    options->left_margin = dimension;
-	    break;
-	  case 1:
-	    options->right_margin = dimension;
-	    break;
-	  case 2:
-	    options->top_margin = dimension;
-	    break;
-	  case 3:
-	    options->bottom_margin = dimension;
-	    break;
-	  case 4:
-	    this->font_height = dimension;
-	    break;
-	  case 5:
-	    x->line_width = dimension;
-	    break;
-	  case 6:
-	    x->line_gutter = dimension;
-	    break;
-	  case 7:
-	    x->line_width = dimension;
-	    break;
-	  default:
-	    NOT_REACHED ();
-	  }
-      }
-      break;
-    case string_arg:
-      free (x->fonts[subcat].string);
-      x->fonts[subcat].string = ds_xstrdup (val);
-      break;
-    default:
-      NOT_REACHED ();
+      /* XXX doesn't do well with very large captions */
+      struct table_cell cell;
+      xr_init_caption_cell (caption, &cell);
+      *caption_heightp = xr_measure_cell_height (xr, &cell, xr->width);
     }
+  else
+    *caption_heightp = 0;
 
-  return true;
+  return render_page_create (xr->params, table_item_get_table (item));
+}
+
+static void
+xr_submit (struct output_driver *driver, const struct output_item *output_item)
+{
+  struct xr_driver *xr = xr_driver_cast (driver);
+  if (is_table_item (output_item))
+    {
+      struct table_item *table_item = to_table_item (output_item);
+      struct render_break x_break;
+      struct render_page *page;
+      int caption_height;
+
+      if (xr->y > 0)
+        xr->y += xr->font_height;
+
+      page = xr_render_table_item (xr, table_item, &caption_height);
+      xr->params->size[V] = xr->length - caption_height;
+      for (render_break_init (&x_break, page, H);
+           render_break_has_next (&x_break); )
+        {
+          struct render_page *x_slice;
+          struct render_break y_break;
+
+          x_slice = render_break_next (&x_break, xr->width);
+          for (render_break_init (&y_break, x_slice, V);
+               render_break_has_next (&y_break); )
+            {
+              int space = xr->length - xr->y;
+              struct render_page *y_slice;
+
+              /* XXX doesn't allow for caption or space between segments */
+              if (render_break_next_size (&y_break) > space)
+                {
+                  assert (xr->y > 0);
+                  xr_show_page (xr);
+                  continue;
+                }
+
+              y_slice = render_break_next (&y_break, space);
+              if (caption_height)
+                {
+                  struct table_cell cell;
+                  int bb[TABLE_N_AXES][2];
+
+                  xr_init_caption_cell (table_item_get_caption (table_item),
+                                        &cell);
+                  bb[H][0] = 0;
+                  bb[H][1] = xr->width;
+                  bb[V][0] = 0;
+                  bb[V][1] = caption_height;
+                  xr_draw_cell (xr, &cell, bb, bb);
+                  xr->y += caption_height;
+                  caption_height = 0;
+                }
+
+              render_page_draw (y_slice);
+              xr->y += render_page_get_size (y_slice, V);
+              render_page_unref (y_slice);
+            }
+          render_break_destroy (&y_break);
+        }
+      render_break_destroy (&x_break);
+    }
+  else if (is_chart_item (output_item))
+    {
+      if (xr->y > 0)
+        xr_show_page (xr);
+      xr_draw_chart (to_chart_item (output_item), xr->cairo, 0.0, 0.0,
+                     xr_to_pt (xr->width), xr_to_pt (xr->length));
+      xr_show_page (xr);
+    }
+  else if (is_text_item (output_item))
+    {
+      const struct text_item *text_item = to_text_item (output_item);
+      enum text_item_type type = text_item_get_type (text_item);
+      const char *text = text_item_get_text (text_item);
+
+      switch (type)
+        {
+        case TEXT_ITEM_TITLE:
+          free (xr->title);
+          xr->title = xstrdup (text);
+          break;
+
+        case TEXT_ITEM_SUBTITLE:
+          free (xr->subtitle);
+          xr->subtitle = xstrdup (text);
+          break;
+
+        case TEXT_ITEM_COMMAND_CLOSE:
+          break;
+
+        case TEXT_ITEM_BLANK_LINE:
+          if (xr->y > 0)
+            xr->y += xr->font_height;
+          break;
+
+        case TEXT_ITEM_EJECT_PAGE:
+          if (xr->y > 0)
+            xr_show_page (xr);
+          break;
+
+        default:
+          {
+            struct table_item *item;
+
+            item = table_item_create (table_from_string (0, text), NULL);
+            xr_submit (&xr->driver, &item->output_item);
+            table_item_unref (item);
+          }
+          break;
+        }
+
+    }
+}
+
+static void
+xr_show_page (struct xr_driver *xr)
+{
+  if (xr->headers)
+    {
+      xr->y = 0;
+      draw_headers (xr);
+    }
+  cairo_show_page (xr->cairo);
+
+  xr->page_number++;
+  xr->y = 0;
 }
 
-/* Basic file operations. */
+static void
+xr_layout_cell (struct xr_driver *, const struct table_cell *,
+                int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2],
+                PangoWrapMode, int *width, int *height);
 
 static void
-xr_open_page (struct outp_driver *this)
+dump_line (struct xr_driver *xr, int x0, int y0, int x1, int y1)
 {
-  struct xr_driver_ext *x = this->ext;
-
-  x->page_number++;
-
-  if (x->draw_headers)
-    draw_headers (this);
-}
-
-static void
-xr_close_page (struct outp_driver *this)
-{
-  struct xr_driver_ext *x = this->ext;
-  cairo_show_page (x->cairo);
-}
-
-static void
-xr_output_chart (struct outp_driver *this, const struct chart *chart)
-{
-  struct xr_driver_ext *x = this->ext;
-  struct chart_geometry geom;
-
-  outp_eject_page (this);
-  outp_open_page (this);
-
-  cairo_save (x->cairo);
-  cairo_translate (x->cairo, 0.0, xr_to_pt (this->length));
-  cairo_scale (x->cairo, 1.0, -1.0);
-  chart_geometry_init (x->cairo, &geom,
-                       xr_to_pt (this->width), xr_to_pt (this->length));
-  chart_draw (chart, x->cairo, &geom);
-  chart_geometry_free (x->cairo, &geom);
-  cairo_restore (x->cairo);
-
-  outp_close_page (this);
-}
-
-/* Draws a line from (x0,y0) to (x1,y1). */
-static void
-dump_line (struct outp_driver *this, int x0, int y0, int x1, int y1)
-{
-  struct xr_driver_ext *x = this->ext;
-  cairo_new_path (x->cairo);
-  cairo_move_to (x->cairo, xr_to_pt (x0), xr_to_pt (y0));
-  cairo_line_to (x->cairo, xr_to_pt (x1), xr_to_pt (y1));
-  cairo_stroke (x->cairo);
+  cairo_new_path (xr->cairo);
+  cairo_move_to (xr->cairo, xr_to_pt (x0), xr_to_pt (y0 + xr->y));
+  cairo_line_to (xr->cairo, xr_to_pt (x1), xr_to_pt (y1 + xr->y));
+  cairo_stroke (xr->cairo);
 }
 
 /* Draws a horizontal line X0...X2 at Y if LEFT says so,
@@ -539,19 +530,18 @@ dump_line (struct outp_driver *this, int x0, int y0, int x1, int y1)
    Draws a horizontal line X1...X3 at Y if RIGHT says so,
    shortening it to X2...X3 if SHORTEN is true. */
 static void
-horz_line (struct outp_driver *this,
-           int x0, int x1, int x2, int x3, int y,
-           enum outp_line_style left, enum outp_line_style right,
+horz_line (struct xr_driver *xr, int x0, int x1, int x2, int x3, int y,
+           enum render_line_style left, enum render_line_style right,
            bool shorten)
 {
-  if (left != OUTP_L_NONE && right != OUTP_L_NONE && !shorten)
-    dump_line (this, x0, y, x3, y);
+  if (left != RENDER_LINE_NONE && right != RENDER_LINE_NONE && !shorten)
+    dump_line (xr, x0, y, x3, y);
   else
     {
-      if (left != OUTP_L_NONE)
-        dump_line (this, x0, y, shorten ? x1 : x2, y);
-      if (right != OUTP_L_NONE)
-        dump_line (this, shorten ? x2 : x1, y, x3, y);
+      if (left != RENDER_LINE_NONE)
+        dump_line (xr, x0, y, shorten ? x1 : x2, y);
+      if (right != RENDER_LINE_NONE)
+        dump_line (xr, shorten ? x2 : x1, y, x3, y);
     }
 }
 
@@ -560,33 +550,34 @@ horz_line (struct outp_driver *this,
    Draws a vertical line Y1...Y3 at X if BOTTOM says so,
    shortening it to Y2...Y3 if SHORTEN is true. */
 static void
-vert_line (struct outp_driver *this,
-           int y0, int y1, int y2, int y3, int x,
-           enum outp_line_style top, enum outp_line_style bottom,
+vert_line (struct xr_driver *xr, int y0, int y1, int y2, int y3, int x,
+           enum render_line_style top, enum render_line_style bottom,
            bool shorten)
 {
-  if (top != OUTP_L_NONE && bottom != OUTP_L_NONE && !shorten)
-    dump_line (this, x, y0, x, y3);
+  if (top != RENDER_LINE_NONE && bottom != RENDER_LINE_NONE && !shorten)
+    dump_line (xr, x, y0, x, y3);
   else
     {
-      if (top != OUTP_L_NONE)
-        dump_line (this, x, y0, x, shorten ? y1 : y2);
-      if (bottom != OUTP_L_NONE)
-        dump_line (this, x, shorten ? y2 : y1, x, y3);
+      if (top != RENDER_LINE_NONE)
+        dump_line (xr, x, y0, x, shorten ? y1 : y2);
+      if (bottom != RENDER_LINE_NONE)
+        dump_line (xr, x, shorten ? y2 : y1, x, y3);
     }
 }
 
-/* Draws a generalized intersection of lines in the rectangle
-   (X0,Y0)-(X3,Y3).  The line coming from the top to the center
-   is of style TOP, from left to center of style LEFT, from
-   bottom to center of style BOTTOM, and from right to center of
-   style RIGHT. */
 static void
-xr_line (struct outp_driver *this,
-         int x0, int y0, int x3, int y3,
-         enum outp_line_style top, enum outp_line_style left,
-         enum outp_line_style bottom, enum outp_line_style right)
+xr_draw_line (void *xr_, int bb[TABLE_N_AXES][2],
+              enum render_line_style styles[TABLE_N_AXES][2])
 {
+  const int x0 = bb[H][0];
+  const int y0 = bb[V][0];
+  const int x3 = bb[H][1];
+  const int y3 = bb[V][1];
+  const int top = styles[H][0];
+  const int left = styles[V][0];
+  const int bottom = styles[H][1];
+  const int right = styles[V][1];
+
   /* The algorithm here is somewhat subtle, to allow it to handle
      all the kinds of intersections that we need.
 
@@ -616,16 +607,16 @@ xr_line (struct outp_driver *this,
                   |        #     #       |
                y3 |________#_____#_______|
   */
-  struct xr_driver_ext *ext = this->ext;
+  struct xr_driver *xr = xr_;
 
   /* Offset from center of each line in a pair of double lines. */
-  int double_line_ofs = (ext->line_space + ext->line_width) / 2;
+  int double_line_ofs = (xr->line_space + xr->line_width) / 2;
 
   /* Are the lines along each axis single or double?
      (It doesn't make sense to have different kinds of line on the
      same axis, so we don't try to gracefully handle that case.) */
-  bool double_vert = top == OUTP_L_DOUBLE || bottom == OUTP_L_DOUBLE;
-  bool double_horz = left == OUTP_L_DOUBLE || right == OUTP_L_DOUBLE;
+  bool double_vert = top == RENDER_LINE_DOUBLE || bottom == RENDER_LINE_DOUBLE;
+  bool double_horz = left == RENDER_LINE_DOUBLE || right == RENDER_LINE_DOUBLE;
 
   /* When horizontal lines are doubled,
      the left-side line along y1 normally runs from x0 to x2,
@@ -652,16 +643,16 @@ xr_line (struct outp_driver *this,
      single.  We actually choose to cut off the line anyhow, as
      shown in the first diagram above.
   */
-  bool shorten_y1_lines = top == OUTP_L_DOUBLE;
-  bool shorten_y2_lines = bottom == OUTP_L_DOUBLE;
+  bool shorten_y1_lines = top == RENDER_LINE_DOUBLE;
+  bool shorten_y2_lines = bottom == RENDER_LINE_DOUBLE;
   bool shorten_yc_line = shorten_y1_lines && shorten_y2_lines;
   int horz_line_ofs = double_vert ? double_line_ofs : 0;
   int xc = (x0 + x3) / 2;
   int x1 = xc - horz_line_ofs;
   int x2 = xc + horz_line_ofs;
 
-  bool shorten_x1_lines = left == OUTP_L_DOUBLE;
-  bool shorten_x2_lines = right == OUTP_L_DOUBLE;
+  bool shorten_x1_lines = left == RENDER_LINE_DOUBLE;
+  bool shorten_x2_lines = right == RENDER_LINE_DOUBLE;
   bool shorten_xc_line = shorten_x1_lines && shorten_x2_lines;
   int vert_line_ofs = double_horz ? double_line_ofs : 0;
   int yc = (y0 + y3) / 2;
@@ -669,164 +660,187 @@ xr_line (struct outp_driver *this,
   int y2 = yc + vert_line_ofs;
 
   if (!double_horz)
-    horz_line (this, x0, x1, x2, x3, yc, left, right, shorten_yc_line);
+    horz_line (xr, x0, x1, x2, x3, yc, left, right, shorten_yc_line);
   else
     {
-      horz_line (this, x0, x1, x2, x3, y1, left, right, shorten_y1_lines);
-      horz_line (this, x0, x1, x2, x3, y2, left, right, shorten_y2_lines);
+      horz_line (xr, x0, x1, x2, x3, y1, left, right, shorten_y1_lines);
+      horz_line (xr, x0, x1, x2, x3, y2, left, right, shorten_y2_lines);
     }
 
   if (!double_vert)
-    vert_line (this, y0, y1, y2, y3, xc, top, bottom, shorten_xc_line);
+    vert_line (xr, y0, y1, y2, y3, xc, top, bottom, shorten_xc_line);
   else
     {
-      vert_line (this, y0, y1, y2, y3, x1, top, bottom, shorten_x1_lines);
-      vert_line (this, y0, y1, y2, y3, x2, top, bottom, shorten_x2_lines);
+      vert_line (xr, y0, y1, y2, y3, x1, top, bottom, shorten_x1_lines);
+      vert_line (xr, y0, y1, y2, y3, x2, top, bottom, shorten_x2_lines);
     }
 }
 
-/* Writes STRING at location (X,Y) trimmed to the given MAX_WIDTH
-   and with the given JUSTIFICATION for THIS driver. */
-static int
-draw_text (struct outp_driver *this,
-           const char *string, int x, int y, int max_width,
-           enum outp_justification justification)
+static void
+xr_measure_cell_width (void *xr_, const struct table_cell *cell,
+                       int *min_width, int *max_width)
 {
-  struct outp_text text;
-  int width;
+  struct xr_driver *xr = xr_;
+  int bb[TABLE_N_AXES][2];
+  int clip[TABLE_N_AXES][2];
+  int h;
 
-  text.font = OUTP_PROPORTIONAL;
-  text.justification = justification;
-  text.string = ss_cstr (string);
-  text.h = max_width;
-  text.v = this->font_height;
-  text.x = x;
-  text.y = y;
-  this->class->text_metrics (this, &text, &width, NULL);
-  this->class->text_draw (this, &text);
-  return width;
+  bb[H][0] = 0;
+  bb[H][1] = INT_MAX;
+  bb[V][0] = 0;
+  bb[V][1] = INT_MAX;
+  clip[H][0] = clip[H][1] = clip[V][0] = clip[V][1] = 0;
+  xr_layout_cell (xr, cell, bb, clip, PANGO_WRAP_WORD, max_width, &h);
+
+  bb[H][1] = 1;
+  xr_layout_cell (xr, cell, bb, clip, PANGO_WRAP_WORD, min_width, &h);
 }
 
-/* Writes STRING at location (X,Y) trimmed to the given MAX_WIDTH
-   and with the given JUSTIFICATION for THIS driver. */
 static int
-text_width (struct outp_driver *this, const char *string, enum outp_font font)
+xr_measure_cell_height (void *xr_, const struct table_cell *cell, int width)
 {
-  struct outp_text text;
-  int width;
+  struct xr_driver *xr = xr_;
+  int bb[TABLE_N_AXES][2];
+  int clip[TABLE_N_AXES][2];
+  int w, h;
 
-  text.font = font;
-  text.justification = OUTP_LEFT;
-  text.string = ss_cstr (string);
-  text.h = INT_MAX;
-  text.v = this->font_height;
-  text.x = 0;
-  text.y = 0;
-  this->class->text_metrics (this, &text, &width, NULL);
-  return width;
+  bb[H][0] = 0;
+  bb[H][1] = width;
+  bb[V][0] = 0;
+  bb[V][1] = INT_MAX;
+  clip[H][0] = clip[H][1] = clip[V][0] = clip[V][1] = 0;
+  xr_layout_cell (xr, cell, bb, clip, PANGO_WRAP_WORD, &w, &h);
+  return h;
+}
+
+static void
+xr_draw_cell (void *xr_, const struct table_cell *cell,
+              int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2])
+{
+  struct xr_driver *xr = xr_;
+  int w, h;
+
+  xr_layout_cell (xr, cell, bb, clip, PANGO_WRAP_WORD, &w, &h);
+}
+
+/* Writes STRING at location (X,Y) trimmed to the given MAX_WIDTH
+   and with the given cell OPTIONS for XR. */
+static int
+draw_text (struct xr_driver *xr, const char *string, int x, int y,
+           int max_width, unsigned int options)
+{
+  struct table_cell cell;
+  int bb[TABLE_N_AXES][2];
+  int w, h;
+
+  cell.contents = string;
+  cell.options = options;
+  bb[H][0] = x;
+  bb[V][0] = y;
+  bb[H][1] = x + max_width;
+  bb[V][1] = xr->font_height;
+  xr_layout_cell (xr, &cell, bb, bb, PANGO_WRAP_WORD_CHAR, &w, &h);
+  return w;
 }
 
 /* Writes LEFT left-justified and RIGHT right-justified within
    (X0...X1) at Y.  LEFT or RIGHT or both may be null. */
 static void
-draw_header_line (struct outp_driver *this,
-                  const char *left, const char *right,
+draw_header_line (struct xr_driver *xr, const char *left, const char *right,
                   int x0, int x1, int y)
 {
   int right_width = 0;
   if (right != NULL)
-    right_width = (draw_text (this, right, x0, y, x1 - x0, OUTP_RIGHT)
-                   + this->prop_em_width);
+    right_width = (draw_text (xr, right, x0, y, x1 - x0, TAB_RIGHT)
+                   + xr->font_height / 2);
   if (left != NULL)
-    draw_text (this, left, x0, y, x1 - x0 - right_width, OUTP_LEFT);
+    draw_text (xr, left, x0, y, x1 - x0 - right_width, TAB_LEFT);
 }
 
-/* Draw top of page headers for THIS driver. */
+/* Draw top of page headers for XR. */
 static void
-draw_headers (struct outp_driver *this)
+draw_headers (struct xr_driver *xr)
 {
-  struct xr_driver_ext *ext = this->ext;
   char *r1, *r2;
   int x0, x1;
   int y;
 
-  y = -3 * this->font_height;
-  x0 = this->prop_em_width;
-  x1 = this->width - this->prop_em_width;
+  y = -3 * xr->font_height;
+  x0 = xr->font_height / 2;
+  x1 = xr->width - xr->font_height / 2;
 
   /* Draw box. */
-  cairo_rectangle (ext->cairo, 0, xr_to_pt (y), xr_to_pt (this->width),
-                   xr_to_pt (2 * (this->font_height
-                                  + ext->line_width + ext->line_gutter)));
-  cairo_save (ext->cairo);
-  cairo_set_source_rgb (ext->cairo, 0.9, 0.9, 0.9);
-  cairo_fill_preserve (ext->cairo);
-  cairo_restore (ext->cairo);
-  cairo_stroke (ext->cairo);
+  cairo_rectangle (xr->cairo, 0, xr_to_pt (y), xr_to_pt (xr->width),
+                   xr_to_pt (2 * (xr->font_height
+                                  + xr->line_width + xr->line_gutter)));
+  cairo_save (xr->cairo);
+  cairo_set_source_rgb (xr->cairo, 0.9, 0.9, 0.9);
+  cairo_fill_preserve (xr->cairo);
+  cairo_restore (xr->cairo);
+  cairo_stroke (xr->cairo);
 
-  y += ext->line_width + ext->line_gutter;
+  y += xr->line_width + xr->line_gutter;
 
-  r1 = xasprintf (_("%s - Page %d"), get_start_date (), ext->page_number);
+  r1 = xasprintf (_("%s - Page %d"), get_start_date (), xr->page_number);
   r2 = xasprintf ("%s - %s", version, host_system);
 
-  draw_header_line (this, outp_title, r1, x0, x1, y);
-  y += this->font_height;
+  draw_header_line (xr, xr->title, r1, x0, x1, y);
+  y += xr->font_height;
 
-  draw_header_line (this, outp_subtitle, r2, x0, x1, y);
+  draw_header_line (xr, xr->subtitle, r2, x0, x1, y);
 
   free (r1);
   free (r2);
 }
 
-/* Format TEXT on THIS driver.
-   If DRAW is nonzero, draw the text.
-   The width of the widest line is stored into *WIDTH, if WIDTH
-   is nonnull.
-   The total height of the text written is stored into *HEIGHT,
-   if HEIGHT is nonnull. */
 static void
-text (struct outp_driver *this, const struct outp_text *text, bool draw,
-      int *width, int *height)
+xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
+                int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2],
+                PangoWrapMode wrap, int *width, int *height)
 {
-  struct xr_driver_ext *ext = this->ext;
-  struct xr_font *font = &ext->fonts[text->font];
+  struct xr_font *font;
 
-  pango_layout_set_text (font->layout,
-                         text->string.string, text->string.length);
+  font = (cell->options & TAB_FIX ? &xr->fonts[XR_FONT_FIXED]
+          : cell->options & TAB_EMPH ? &xr->fonts[XR_FONT_EMPHASIS]
+          : &xr->fonts[XR_FONT_PROPORTIONAL]);
+
+  pango_layout_set_text (font->layout, cell->contents, -1);
+
   pango_layout_set_alignment (
     font->layout,
-    (text->justification == OUTP_RIGHT ? PANGO_ALIGN_RIGHT
-     : text->justification == OUTP_LEFT ? PANGO_ALIGN_LEFT
+    ((cell->options & TAB_ALIGNMENT) == TAB_RIGHT ? PANGO_ALIGN_RIGHT
+     : (cell->options & TAB_ALIGNMENT) == TAB_LEFT ? PANGO_ALIGN_LEFT
      : PANGO_ALIGN_CENTER));
-  pango_layout_set_width (font->layout, text->h == INT_MAX ? -1 : text->h);
-  pango_layout_set_wrap (font->layout, PANGO_WRAP_WORD_CHAR);
-  /* XXX need to limit number of lines to those that fit in text->v. */
+  pango_layout_set_width (font->layout,
+                          bb[H][1] == INT_MAX ? -1 : bb[H][1] - bb[H][0]);
+  pango_layout_set_wrap (font->layout, wrap);
 
-  if (draw)
+  if (clip[H][0] != clip[H][1])
     {
-      int x = text->x;
-      if (text->justification != OUTP_LEFT && text->h != INT_MAX)
+      cairo_save (xr->cairo);
+
+      if (clip[H][1] != INT_MAX || clip[V][1] != INT_MAX)
         {
-          int w, h, excess;
-          pango_layout_get_size (font->layout, &w, &h);
-          excess = text->h - w;
-          if (excess > 0)
-            {
-              if (text->justification == OUTP_CENTER)
-                x += excess / 2;
-              else
-                x += excess;
-            }
+          double x0 = xr_to_pt (clip[H][0]);
+          double y0 = xr_to_pt (clip[V][0] + xr->y);
+          double x1 = xr_to_pt (clip[H][1]);
+          double y1 = xr_to_pt (clip[V][1] + xr->y);
+
+          cairo_rectangle (xr->cairo, x0, y0, x1 - x0, y1 - y0);
+          cairo_clip (xr->cairo);
         }
-      cairo_save (ext->cairo);
-      cairo_translate (ext->cairo, xr_to_pt (text->x), xr_to_pt (text->y));
-      pango_cairo_show_layout (ext->cairo, font->layout);
-      cairo_restore (ext->cairo);
+
+      cairo_translate (xr->cairo,
+                       xr_to_pt (bb[H][0]),
+                       xr_to_pt (bb[V][0] + xr->y));
+      pango_cairo_show_layout (xr->cairo, font->layout);
+      cairo_restore (xr->cairo);
     }
 
   if (width != NULL || height != NULL)
     {
       int w, h;
+
       pango_layout_get_size (font->layout, &w, &h);
       if (width != NULL)
         *width = w;
@@ -834,27 +848,13 @@ text (struct outp_driver *this, const struct outp_text *text, bool draw,
         *height = h;
     }
 }
-
-static void
-xr_text_metrics (struct outp_driver *this, const struct outp_text *t,
-                 int *width, int *height)
-{
-  text (this, t, false, width, height);
-}
-
-static void
-xr_text_draw (struct outp_driver *this, const struct outp_text *t)
-{
-  text (this, t, true, NULL, NULL);
-}
 
 /* Attempts to load FONT, initializing its other members based on
-   its 'string' member and the information in THIS.  Returns true
+   its 'string' member and the information in DRIVER.  Returns true
    if successful, otherwise false. */
 static bool
-load_font (struct outp_driver *this, struct xr_font *font)
+load_font (struct xr_driver *xr, struct xr_font *font)
 {
-  struct xr_driver_ext *x = this->ext;
   PangoContext *context;
   PangoLanguage *language;
 
@@ -864,9 +864,9 @@ load_font (struct outp_driver *this, struct xr_font *font)
       error (0, 0, _("\"%s\": bad font specification"), font->string);
       return false;
     }
-  pango_font_description_set_absolute_size (font->desc, this->font_height);
+  pango_font_description_set_absolute_size (font->desc, xr->font_height);
 
-  font->layout = pango_cairo_create_layout (x->cairo);
+  font->layout = pango_cairo_create_layout (xr->cairo);
   pango_layout_set_font_description (font->layout, font->desc);
 
   language = pango_language_get_default ();
@@ -888,23 +888,183 @@ free_font (struct xr_font *font)
 }
 
 /* Cairo driver class. */
-const struct outp_class cairo_class =
+const struct output_driver_class cairo_class =
 {
   "cairo",
-  0,
-
-  xr_open_driver,
-  xr_close_driver,
-
-  xr_open_page,
-  xr_close_page,
-  NULL,
-
-  xr_output_chart,
-
-  NULL,
-
-  xr_line,
-  xr_text_metrics,
-  xr_text_draw,
+  xr_create,
+  xr_destroy,
+  xr_submit,
+  xr_flush,
 };
+
+/* GUI rendering helpers. */
+
+struct xr_rendering
+  {
+    /* Table items. */
+    struct render_page *page;
+    struct xr_driver *xr;
+    int title_height;
+
+    /* Chart items. */
+    struct chart_item *chart;
+  };
+
+#define CHART_WIDTH 500
+#define CHART_HEIGHT 375
+
+struct xr_driver *
+xr_create_driver (cairo_t *cairo)
+{
+  struct xr_driver *xr;
+  struct string_map map;
+
+  string_map_init (&map);
+  xr = xr_allocate ("cairo", 0, &map);
+  string_map_destroy (&map);
+
+  xr->width = INT_MAX / 8;
+  xr->length = INT_MAX / 8;
+  if (!xr_set_cairo (xr, cairo))
+    {
+      output_driver_destroy (&xr->driver);
+      return NULL;
+    }
+  return xr;
+}
+
+struct xr_rendering *
+xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
+                     cairo_t *cr)
+{
+  struct xr_rendering *r = NULL;
+
+  if (is_text_item (item))
+    {
+      const struct text_item *text_item = to_text_item (item);
+      const char *text = text_item_get_text (text_item);
+      struct table_item *table_item;
+
+      table_item = table_item_create (table_from_string (0, text), NULL);
+      r = xr_rendering_create (xr, &table_item->output_item, cr);
+      table_item_unref (table_item);
+    }
+  else if (is_table_item (item))
+    {
+      r = xzalloc (sizeof *r);
+      r->xr = xr;
+      xr_set_cairo (xr, cr);
+      r->page = xr_render_table_item (xr, to_table_item (item),
+                                      &r->title_height);
+    }
+  else if (is_chart_item (item))
+    {
+      r = xzalloc (sizeof *r);
+      r->chart = to_chart_item (output_item_ref (item));
+    }
+
+  return r;
+}
+
+void
+xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
+{
+  if (r->chart == NULL)
+    {
+      *w = render_page_get_size (r->page, H) / 1024;
+      *h = (render_page_get_size (r->page, V) + r->title_height) / 1024;
+    }
+  else
+    {
+      *w = CHART_WIDTH;
+      *h = CHART_HEIGHT;
+    }
+}
+
+void
+xr_rendering_draw (struct xr_rendering *r, cairo_t *cr)
+{
+  if (r->chart == NULL)
+    {
+      struct xr_driver *xr = r->xr;
+
+      xr_set_cairo (xr, cr);
+      xr->y = 0;
+      render_page_draw (r->page);
+    }
+  else
+    xr_draw_chart (r->chart, cr, 0, 0, CHART_WIDTH, CHART_HEIGHT);
+}
+
+void
+xr_draw_chart (const struct chart_item *chart_item, cairo_t *cr,
+               double x, double y, double width, double height)
+{
+  struct xrchart_geometry geom;
+
+  cairo_save (cr);
+  cairo_translate (cr, x, y + height);
+  cairo_scale (cr, 1.0, -1.0);
+  xrchart_geometry_init (cr, &geom, width, height);
+  if (is_boxplot (chart_item))
+    xrchart_draw_boxplot (chart_item, cr, &geom);
+  else if (is_histogram_chart (chart_item))
+    xrchart_draw_histogram (chart_item, cr, &geom);
+  else if (is_np_plot_chart (chart_item))
+    xrchart_draw_np_plot (chart_item, cr, &geom);
+  else if (is_piechart (chart_item))
+    xrchart_draw_piechart (chart_item, cr, &geom);
+  else if (is_roc_chart (chart_item))
+    xrchart_draw_roc (chart_item, cr, &geom);
+  else if (is_scree (chart_item))
+    xrchart_draw_scree (chart_item, cr, &geom);
+  else
+    NOT_REACHED ();
+  xrchart_geometry_free (cr, &geom);
+
+  cairo_restore (cr);
+}
+
+char *
+xr_draw_png_chart (const struct chart_item *item,
+                   const char *file_name_template, int number)
+{
+  const int width = 640;
+  const int length = 480;
+
+  cairo_surface_t *surface;
+  cairo_status_t status;
+  const char *number_pos;
+  char *file_name;
+  cairo_t *cr;
+
+  number_pos = strchr (file_name_template, '#');
+  if (number_pos != NULL)
+    file_name = xasprintf ("%.*s%d%s", (int) (number_pos - file_name_template),
+                           file_name_template, number, number_pos + 1);
+  else
+    file_name = xstrdup (file_name_template);
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, length);
+  cr = cairo_create (surface);
+
+  cairo_save (cr);
+  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
+  cairo_rectangle (cr, 0, 0, width, length);
+  cairo_fill (cr);
+  cairo_restore (cr);
+
+  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+
+  xr_draw_chart (item, cr, 0.0, 0.0, width, length);
+
+  status = cairo_surface_write_to_png (surface, file_name);
+  if (status != CAIRO_STATUS_SUCCESS)
+    error (0, 0, _("writing output file \"%s\": %s"),
+           file_name, cairo_status_to_string (status));
+
+  cairo_destroy (cr);
+  cairo_surface_destroy (surface);
+
+  return file_name;
+}

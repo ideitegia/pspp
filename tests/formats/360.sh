@@ -231,26 +231,26 @@ list.
 EOF
     if [ $? -ne 0 ] ; then no_result ; fi
 
-    # Make sure that pspp.list isn't left over from another run.
-    rm -f pspp.list
+    # Make sure that pspp.csv isn't left over from another run.
+    rm -f pspp.csv
 
     activity="run $type.pspp"
     $SUPERVISOR $PSPP --testing-mode $type.pspp
     if [ $? -ne 0 ] ; then fail ; fi
 
     activity="compare $type.pspp output"
-    perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-    diff -b  $TEMPDIR/pspp.list - << EOF
-     start        end count
----------- ---------- -----
-07/22/2007 10/06/2007   321
-07/14/1789 08/26/1789     4
-01/01/1972 12/31/1999   682
-     start        end count
----------- ---------- -----
-07/22/2007 10/06/2007   322
-07/14/1789 08/26/1789     5
-01/01/1972 12/31/1999   683
+    diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Data List
+start,end,count
+07/22/2007,10/06/2007,321
+07/14/1789,08/26/1789,4
+01/01/1972,12/31/1999,682
+
+Table: Data List
+start,end,count
+07/22/2007,10/06/2007,322
+07/14/1789,08/26/1789,5
+01/01/1972,12/31/1999,683
 EOF
     if [ $? -ne 0 ] ; then fail ; fi
 done

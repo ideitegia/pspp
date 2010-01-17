@@ -72,45 +72,38 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' pspp.list
-diff -b -w pspp.list - <<EOF
-1.1 DISPLAY.  
-+--------+-------------------------------------------+--------+
-|Variable|Description                                |Position|
-#========#===========================================#========#
-|cont    |continents of the world                    |       1|
-|        |Format: A32                                |        |
-|        |Measure: Nominal                           |        |
-|        |Display Alignment: Left                    |        |
-|        |Display Width: 8                           |        |
-+--------+-------------------------------------------+--------+
-|size    |sq km                                      |       2|
-|        |Format: F8.2                               |        |
-|        |Measure: Nominal                           |        |
-|        |Display Alignment: Left                    |        |
-|        |Display Width: 8                           |        |
-+--------+-------------------------------------------+--------+
-|pop     |population                                 |       3|
-|        |Format: F8.2                               |        |
-|        |Measure: Nominal                           |        |
-|        |Display Alignment: Left                    |        |
-|        |Display Width: 8                           |        |
-+--------+-------------------------------------------+--------+
-|count   |number of countries                        |       4|
-|        |Format: F8.2                               |        |
-|        |Measure: Nominal                           |        |
-|        |Display Alignment: Left                    |        |
-|        |Display Width: 8                           |        |
-+--------+-------------------------------------------+--------+
-                            cont     size      pop    count
--------------------------------- -------- -------- --------
-Asia                             44579000 3.7E+009    44.00 
-Africa                           30065000 7.8E+008    53.00 
-North America                    24256000 4.8E+008    23.00 
-South America                    17819000 3.4E+008    12.00 
-Antarctica                       13209000      .00      .00 
-Europe                            9938000 7.3E+008    46.00 
-Australia/Oceania                 7687000 31000000    14.00 
+diff -c pspp.csv - <<EOF
+Variable,Description,,Position
+cont,continents of the world,,1
+,Format: A32,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+size,sq km,,2
+,Format: F8.2,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+pop,population,,3
+,Format: F8.2,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+count,number of countries,,4
+,Format: F8.2,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+
+Table: Data List
+cont,size,pop,count
+Asia                            ,44579000,3.7E+009,44.00
+Africa                          ,30065000,7.8E+008,53.00
+North America                   ,24256000,4.8E+008,23.00
+South America                   ,17819000,3.4E+008,12.00
+Antarctica                      ,13209000,.00,.00
+Europe                          ,9938000,7.3E+008,46.00
+Australia/Oceania               ,7687000,31000000,14.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

@@ -86,33 +86,27 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output $i"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF
-1.1 FREQUENCIES.  X
-+-----------+--------+---------+--------+-------------+-----------+
-|Value Label|  Value |Frequency| Percent|Valid Percent|Cum Percent|
-#===========#========#=========#========#=============#===========#
-|           |    1.00|        1|   20.00|        20.00|      20.00|
-|           |    2.00|        1|   20.00|        20.00|      40.00|
-|           |    3.00|        1|   20.00|        20.00|      60.00|
-|           |    4.00|        1|   20.00|        20.00|      80.00|
-|           |    5.00|        1|   20.00|        20.00|     100.00|
-#===========#========#=========#========#=============#===========#
-|               Total|        5|   100.0|        100.0|           |
-+--------------------+---------+--------+-------------+-----------+
-+-----------------------+----+
-|N           Valid      |   5|
-|            Missing    |   0|
-|Mean                   |3.00|
-|Std Dev                |1.58|
-|Minimum                |1.00|
-|Maximum                |5.00|
-|Percentiles 0          |1.00|
-|            25         |1.50|
-|            50 (Median)|3.00|
-|            75         |4.50|
-|            100        |5.00|
-+-----------------------+----+
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: X
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+,1.00,1,20.00,20.00,20.00
+,2.00,1,20.00,20.00,40.00
+,3.00,1,20.00,20.00,60.00
+,4.00,1,20.00,20.00,80.00
+,5.00,1,20.00,20.00,100.00
+Total,,5,100.0,100.0,
+
+N,Valid,5
+,Missing,0
+Mean,,3.00
+Std Dev,,1.58
+Minimum,,1.00
+Maximum,,5.00
+Percentiles,0,1.00
+,25,1.50
+,50 (Median),3.00
+,75,4.50
+,100,5.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

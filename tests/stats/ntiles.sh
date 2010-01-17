@@ -81,7 +81,7 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="move output"
-cp $TEMPDIR/pspp.list $TEMPDIR/list.ref
+cp $TEMPDIR/pspp.csv $TEMPDIR/list.ref
 if [ $? -ne 0 ] ; then no_result ; fi
 
 i=$[$i+1];
@@ -110,7 +110,7 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-diff $TEMPDIR/pspp.list $TEMPDIR/list.ref
+diff $TEMPDIR/pspp.csv $TEMPDIR/list.ref
 if [ $? -ne 0 ] ; then fail; fi
 
 

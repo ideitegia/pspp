@@ -214,11 +214,12 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE > /dev/null
 if [ $? -ne 1 ] ; then no_result ; fi
 
 activity="examine output 1"
-diff $TEMPDIR/pspp.list - <<EOF
+diff -c $TEMPDIR/pspp.csv - <<EOF
 $TEMPDIR/foo.sps:10: error: DISPLAY: AKSDJ is not a variable name.
-warning: Error encountered while ERROR=STOP is effective.
-$TEMPDIR/foo.sps:10: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 
+warning: Error encountered while ERROR=STOP is effective.
+
+$TEMPDIR/foo.sps:10: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
@@ -240,15 +241,14 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE > /dev/null
 if [ $? -ne 1 ] ; then no_result ; fi
 
 activity="examine output 2"
-diff $TEMPDIR/pspp.list - <<EOF
+diff $TEMPDIR/pspp.csv - <<EOF
 $TEMPDIR/foo.sps:10: error: DISPLAY: AKSDJ is not a variable name.
 
-       x
---------
-    1.00 
-    2.00 
-    3.00 
-
+Table: Data List
+x
+1.00
+2.00
+3.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

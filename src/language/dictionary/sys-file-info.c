@@ -39,9 +39,7 @@
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
-#include <output/manager.h>
-#include <output/output.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include "minmax.h"
 #include "xalloc.h"
@@ -65,23 +63,6 @@ enum
 
 static int describe_variable (const struct variable *v, struct tab_table *t,
                               int r, int pc, int flags);
-
-/* Sets the widths of all the columns and heights of all the rows in
-   table T for driver D. */
-static void
-sysfile_info_dim (struct tab_rendering *r, void *aux UNUSED)
-{
-  const struct tab_table *t = r->table;
-  static const int max[] = {20, 5, 35, 3, 0};
-  const int *p;
-  int i;
-
-  for (p = max; *p; p++)
-    r->w[p - max] = MIN (tab_natural_width (r, p - max),
-                         *p * r->driver->prop_em_width);
-  for (i = 0; i < tab_nr (t); i++)
-    r->h[i] = tab_natural_height (r, i);
-}
 
 /* SYSFILE INFO utility. */
 int
@@ -161,11 +142,9 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
                    dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
 
 
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_submit (t);
 
   t = tab_create (4, 1 + 2 * dict_get_var_cnt (d));
-  tab_dim (t, sysfile_info_dim, NULL, NULL);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Variable"));
   tab_joint_text (t, 1, 0, 2, 0, TAB_LEFT | TAT_TITLE, _("Description"));
@@ -180,7 +159,6 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   tab_vline (t, TAL_1, 3, 0, r);
 
   tab_resize (t, -1, r);
-  tab_flags (t, SOMF_NO_TITLE);
   tab_submit (t);
 
   dict_destroy (d);
@@ -213,7 +191,6 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
     display_documents (dataset_dict (ds));
   else if (lex_match_id (lexer, "FILE"))
     {
-      som_blank_line ();
       if (!lex_force_match_id (lexer, "LABEL"))
 	return CMD_FAILURE;
       if (dict_get_label (dataset_dict (ds)) == NULL)
@@ -310,7 +287,6 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
 static void
 display_macros (void)
 {
-  som_blank_line ();
   tab_output_text (TAB_LEFT, _("Macros not supported."));
 }
 
@@ -319,7 +295,6 @@ display_documents (const struct dictionary *dict)
 {
   const char *documents = dict_get_documents (dict);
 
-  som_blank_line ();
   if (documents == NULL)
     tab_output_text (TAB_LEFT, _("The active file dictionary does not "
                                  "contain any documents."));
@@ -330,50 +305,19 @@ display_documents (const struct dictionary *dict)
 
       tab_output_text (TAB_LEFT | TAT_TITLE,
 		       _("Documents in the active file:"));
-      som_blank_line ();
       for (i = 0; i < dict_get_document_line_cnt (dict); i++)
         {
           dict_get_document_line (dict, i, &line);
-          tab_output_text (TAB_LEFT | TAB_FIX | TAT_NOWRAP, ds_cstr (&line));
+          tab_output_text (TAB_LEFT | TAB_FIX, ds_cstr (&line));
         }
       ds_destroy (&line);
     }
-}
-
-struct variables_dim_aux
-  {
-    int flags;
-  };
-
-/* Sets the widths of all the columns and heights of all the rows in
-   table T for driver D. */
-static void
-variables_dim (struct tab_rendering *r, void *aux_)
-{
-  const struct outp_driver *d = r->driver;
-  struct variables_dim_aux *aux = aux_;
-
-  tab_natural_dimensions (r, NULL);
-  if (aux->flags & (DF_VALUE_LABELS | DF_VARIABLE_LABELS | DF_MISSING_VALUES
-                    | DF_AT_ATTRIBUTES | DF_ATTRIBUTES))
-    {
-      r->w[1] = MAX (r->w[1], d->prop_em_width * 5);
-      r->w[2] = MAX (r->w[2], d->prop_em_width * 35);
-    }
-}
-
-static void
-variables_dim_free (void *aux_)
-{
-  struct variables_dim_aux *aux = aux_;
-  free (aux);
 }
 
 static void
 display_variables (const struct variable **vl, size_t n, int flags)
 {
   struct tab_table *t;
-  struct variables_dim_aux *aux;
   int nc;			/* Number of columns. */
   int pc;			/* `Position column' */
   int r;			/* Current row. */
@@ -400,10 +344,6 @@ display_variables (const struct variable **vl, size_t n, int flags)
   if (flags & DF_DICT_INDEX)
     tab_text (t, pc, 0, TAB_LEFT | TAT_TITLE, _("Position"));
 
-  aux = xmalloc (sizeof *aux);
-  aux->flags = flags;
-  tab_dim (t, variables_dim, variables_dim_free, aux);
-
   r = 1;
   for (i = 0; i < n; i++)
     r = describe_variable (vl[i], t, r, pc, flags);
@@ -413,12 +353,9 @@ display_variables (const struct variable **vl, size_t n, int flags)
       tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, nc - 1, r - 1);
       tab_vline (t, TAL_1, 1, 0, r - 1);
     }
-  else
-    tab_flags (t, SOMF_NO_TITLE);
   if (flags & ~DF_DICT_INDEX)
     tab_vline (t, TAL_1, nc - 1, 0, r - 1);
   tab_resize (t, -1, r);
-  tab_columns (t, TAB_COL_DOWN);
   tab_submit (t);
 }
 
@@ -490,8 +427,6 @@ display_data_file_attributes (struct attrset *set, int flags)
   tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Attribute"));
   tab_text (t, 1, 0, TAB_LEFT | TAT_TITLE, _("Value"));
   display_attributes (t, set, flags, 0, 1);
-  tab_columns (t, TAB_COL_DOWN);
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_title (t, "Custom data file attributes.");
   tab_submit (t);
 }
@@ -720,8 +655,6 @@ display_vectors (const struct dictionary *dict, int sorted)
 
   t = tab_create (4, nrow + 1);
   tab_headers (t, 0, 0, 1, 0);
-  tab_columns (t, TAB_COL_DOWN);
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 3, nrow);
   tab_box (t, -1, -1, -1, TAL_1, 0, 0, 3, nrow);
   tab_hline (t, TAL_2, 0, 3, 1);
@@ -729,7 +662,6 @@ display_vectors (const struct dictionary *dict, int sorted)
   tab_text (t, 1, 0, TAT_TITLE | TAB_LEFT, _("Position"));
   tab_text (t, 2, 0, TAT_TITLE | TAB_LEFT, _("Variable"));
   tab_text (t, 3, 0, TAT_TITLE | TAB_LEFT, _("Print Format"));
-  tab_flags (t, SOMF_NO_TITLE);
 
   row = 1;
   for (i = 0; i < nvec; i++)

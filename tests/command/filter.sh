@@ -91,34 +91,35 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="check results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - << EOF
- X FILTER_$
--- --------
- 1     1.00 
- 3     1.00 
- 5     1.00 
- 7     1.00 
- 9     1.00 
- X FILTER_$
--- --------
- 1     1.00 
- 2      .00 
- 3     1.00 
- 4      .00 
- 5     1.00 
- 6      .00 
- 7     1.00 
- 8      .00 
- 9     1.00 
-10      .00 
- X FILTER_$
--- --------
- 2     1.00 
- 4     1.00 
- 6     1.00 
- 8     1.00 
-10     1.00 
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Data List
+X,FILTER_$
+1,1.00
+3,1.00
+5,1.00
+7,1.00
+9,1.00
+
+Table: Data List
+X,FILTER_$
+1,1.00
+2,.00
+3,1.00
+4,.00
+5,1.00
+6,.00
+7,1.00
+8,.00
+9,1.00
+10,.00
+
+Table: Data List
+X,FILTER_$
+2,1.00
+4,1.00
+6,1.00
+8,1.00
+10,1.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

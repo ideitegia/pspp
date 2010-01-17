@@ -84,25 +84,24 @@ cat > b.data <<EOF
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-cat > update.out <<EOF
-A B C D INA INB
-- - - - --- ---
-0 a A     1   0
-1 b B N   1   1
-1 a C     1   0
-2 a D     1   0
-3 b E O   1   1
-4 b F P   1   1
-5 a G     1   0
-5 a H     1   0
-6 b I Q   1   1
-7 b J R   1   1
-7 a K     1   0
-7 a L     1   0
-8 a M     1   0
-9 b   S   0   1
+cat > update.csv <<EOF
+Table: Data List
+A,B,C,D,INA,INB
+0,a,A,,1,0
+1,b,B,N,1,1
+1,a,C,,1,0
+2,a,D,,1,0
+3,b,E,O,1,1
+4,b,F,P,1,1
+5,a,G,,1,0
+5,a,H,,1,0
+6,b,I,Q,1,1
+7,b,J,R,1,1
+7,a,K,,1,0
+7,a,L,,1,0
+8,a,M,,1,0
+9,b,,S,0,1
 EOF
-perl -pi -e 's/^\s*$//g' update.out
 
 # Test UPDATE.
 dla="data list notable file='a.data' /A B C 1-3 (a)."
@@ -160,8 +159,8 @@ EOF
     if [ $? -ne 0 ] ; then no_result ; fi
 
     activity="check $name output"
-    perl -pi -e 's/^\s*$//g' pspp.list
-    diff -c -b -w pspp.list update.out
+    perl -pi -e 's/^\s*$//g' pspp.csv
+    diff -c pspp.csv update.csv
     if [ $? -ne 0 ] ; then fail ; fi
     diff -c -b -w - errors <<EOF
 $name.pspp:8: warning: UPDATE: Encountered 3 sets of duplicate cases in the master file.

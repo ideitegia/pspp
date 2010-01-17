@@ -16,45 +16,42 @@
 
 #include <config.h>
 
-#include "gettext.h"
-#define _(msgid) gettext (msgid)
-
 /* A driver for creating OpenDocument Format text files from PSPP's output */
 
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
+#include <libpspp/str.h>
 #include <libpspp/version.h>
+#include <output/driver-provider.h>
+#include <output/options.h>
+#include <output/tab.h>
+#include <output/table-item.h>
+#include <output/table-provider.h>
+#include <output/text-item.h>
 
-#include <output/manager.h>
-#include <output/output.h>
-#include <output/table.h>
-
-#include <time.h>
+#include <libgen.h>
+#include <libxml/xmlwriter.h>
 #include <pwd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
-#include <libgen.h>
-
-#include <libxml/xmlwriter.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "xalloc.h"
-
 #include "error.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 #define _xml(X) (const xmlChar *)(X)
 
-
-struct odf_driver_options
+struct odt_driver
 {
-  struct outp_driver *driver;
-  
+  struct output_driver driver;
+
   char *file_name;            /* Output file name. */
   bool debug;
-};
 
-
-struct odt_driver_ext 
-{
   /* The name of the temporary directory used to construct the ODF */
   char *dirname;
 
@@ -64,10 +61,16 @@ struct odt_driver_ext
   /* Writer fot the manifest.xml file */
   xmlTextWriterPtr manifest_wtr;
 
-  struct odf_driver_options opts;
+  /* Number of tables so far. */
+  int table_num;
 };
 
-
+static struct odt_driver *
+odt_driver_cast (struct output_driver *driver)
+{
+  assert (driver->class == &odt_class);
+  return UP_CAST (driver, struct odt_driver, driver);
+}
 
 /* Create the "mimetype" file needed by ODF */
 static void
@@ -87,7 +90,7 @@ create_mimetype (const char *dirname)
 
 /* Create a new XML file called FILENAME in the temp directory, and return a writer for it */
 static xmlTextWriterPtr
-create_writer (const struct odt_driver_ext *driver, const char *filename)
+create_writer (const struct odt_driver *driver, const char *filename)
 {
   char *copy = NULL;
   xmlTextWriterPtr w;
@@ -112,20 +115,20 @@ create_writer (const struct odt_driver_ext *driver, const char *filename)
 
 
 static void
-register_file (struct odt_driver_ext *x, const char *filename)
+register_file (struct odt_driver *odt, const char *filename)
 {
-  assert (x->manifest_wtr);
-  xmlTextWriterStartElement (x->manifest_wtr, _xml("manifest:file-entry"));
-  xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:media-type"),  _xml("text/xml"));
-  xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:full-path"),  _xml (filename));
-  xmlTextWriterEndElement (x->manifest_wtr);
+  assert (odt->manifest_wtr);
+  xmlTextWriterStartElement (odt->manifest_wtr, _xml("manifest:file-entry"));
+  xmlTextWriterWriteAttribute (odt->manifest_wtr, _xml("manifest:media-type"),  _xml("text/xml"));
+  xmlTextWriterWriteAttribute (odt->manifest_wtr, _xml("manifest:full-path"),  _xml (filename));
+  xmlTextWriterEndElement (odt->manifest_wtr);
 }
 
 static void
-write_style_data (struct odt_driver_ext *x)
+write_style_data (struct odt_driver *odt)
 {
-  xmlTextWriterPtr w = create_writer (x, "styles.xml");
-  register_file (x, "styles.xml");
+  xmlTextWriterPtr w = create_writer (odt, "styles.xml");
+  register_file (odt, "styles.xml");
 
   xmlTextWriterStartElement (w, _xml ("office:document-styles"));
   xmlTextWriterWriteAttribute (w, _xml ("xmlns:office"),
@@ -214,10 +217,10 @@ write_style_data (struct odt_driver_ext *x)
 }
 
 static void
-write_meta_data (struct odt_driver_ext *x)
+write_meta_data (struct odt_driver *odt)
 {
-  xmlTextWriterPtr w = create_writer (x, "meta.xml");
-  register_file (x, "meta.xml");
+  xmlTextWriterPtr w = create_writer (odt, "meta.xml");
+  register_file (odt, "meta.xml");
 
   xmlTextWriterStartElement (w, _xml ("office:document-meta"));
   xmlTextWriterWriteAttribute (w, _xml ("xmlns:office"), _xml ("urn:oasis:names:tc:opendocument:xmlns:office:1.0"));
@@ -272,312 +275,241 @@ enum
   boolean_arg,
 };
 
-static const struct outp_option option_tab[] =
+static struct driver_option *
+opt (struct output_driver *d, struct string_map *options, const char *key,
+     const char *default_value)
 {
-  {"output-file",		output_file_arg,0},
-
-  {"debug",			boolean_arg,	1},
-
-  {NULL, 0, 0},
-};
-
-static bool
-handle_option (void *options_, const char *key, const struct string *val)
-{
-  struct odf_driver_options *options = options_;
-  struct outp_driver *this = options->driver;
-  int subcat;
-  char *value = ds_cstr (val);
-
-  switch (outp_match_keyword (key, option_tab, &subcat))
-    {
-    case -1:
-      error (0, 0,
-             _("unknown configuration parameter `%s' for %s device "
-               "driver"), key, this->class->name);
-      break;
-    case output_file_arg:
-      free (options->file_name);
-      options->file_name = xstrdup (value);
-      break;
-    case boolean_arg:
-      if (!strcmp (value, "on") || !strcmp (value, "true")
-          || !strcmp (value, "yes") || atoi (value))
-        options->debug = true;
-      else if (!strcmp (value, "off") || !strcmp (value, "false")
-               || !strcmp (value, "no") || !strcmp (value, "0"))
-        options->debug = false;
-      else
-        {
-          error (0, 0, _("boolean value expected for %s"), key);
-          return false;
-        }
-      break;
-
-    default:
-      NOT_REACHED ();
-    }
-
-  return true;
+  return driver_option_get (d, options, key, default_value);
 }
 
-
-static bool
-odt_open_driver (const char *name, int types, struct substring option_string)
+static struct output_driver *
+odt_create (const char *name, enum output_device_type device_type,
+            struct string_map *o)
 {
-  struct odt_driver_ext *x;
-  struct outp_driver *this = outp_allocate_driver (&odt_class, name, types);
+  struct output_driver *d;
+  struct odt_driver *odt;
 
-  this->ext = x = xmalloc (sizeof *x);
+  odt = xzalloc (sizeof *odt);
+  d = &odt->driver;
+  output_driver_init (d, &odt_class, name, device_type);
 
-  x->opts.driver = this;
-  x->opts.file_name = xstrdup ("pspp.pdt");
-  x->opts.debug = false;
+  odt->file_name = parse_string (opt (d, o, "output-file", "pspp.pdt"));
+  odt->debug = parse_boolean (opt (d, o, "debug", "false"));
 
-  outp_parse_options (this->name, option_string, handle_option, &x->opts);
+  odt->dirname = xstrdup ("odt-XXXXXX");
+  mkdtemp (odt->dirname);
 
-  outp_register_driver (this);
-
-  x->dirname = xstrdup ("odt-XXXXXX");
-  mkdtemp (x->dirname);
-
-  create_mimetype (x->dirname);
+  create_mimetype (odt->dirname);
 
   /* Create the manifest */
-  x->manifest_wtr = create_writer (x, "META-INF/manifest.xml");
+  odt->manifest_wtr = create_writer (odt, "META-INF/manifest.xml");
 
-  xmlTextWriterStartElement (x->manifest_wtr, _xml("manifest:manifest"));
-  xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("xmlns:manifest"),
+  xmlTextWriterStartElement (odt->manifest_wtr, _xml("manifest:manifest"));
+  xmlTextWriterWriteAttribute (odt->manifest_wtr, _xml("xmlns:manifest"),
 			       _xml("urn:oasis:names:tc:opendocument:xmlns:manifest:1.0"));
 
 
   /* Add a manifest entry for the document as a whole */
-  xmlTextWriterStartElement (x->manifest_wtr, _xml("manifest:file-entry"));
-  xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:media-type"),  _xml("application/vnd.oasis.opendocument.text"));
-  xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:full-path"),  _xml("/"));
-  xmlTextWriterEndElement (x->manifest_wtr);
+  xmlTextWriterStartElement (odt->manifest_wtr, _xml("manifest:file-entry"));
+  xmlTextWriterWriteAttribute (odt->manifest_wtr, _xml("manifest:media-type"),  _xml("application/vnd.oasis.opendocument.text"));
+  xmlTextWriterWriteAttribute (odt->manifest_wtr, _xml("manifest:full-path"),  _xml("/"));
+  xmlTextWriterEndElement (odt->manifest_wtr);
 
 
-  write_meta_data (x);
-  write_style_data (x);
+  write_meta_data (odt);
+  write_style_data (odt);
 
-  x->content_wtr = create_writer (x, "content.xml");
-  register_file (x, "content.xml");
+  odt->content_wtr = create_writer (odt, "content.xml");
+  register_file (odt, "content.xml");
 
 
   /* Some necessary junk at the start */
-  xmlTextWriterStartElement (x->content_wtr, _xml("office:document-content"));
-  xmlTextWriterWriteAttribute (x->content_wtr, _xml("xmlns:office"),
+  xmlTextWriterStartElement (odt->content_wtr, _xml("office:document-content"));
+  xmlTextWriterWriteAttribute (odt->content_wtr, _xml("xmlns:office"),
 			       _xml("urn:oasis:names:tc:opendocument:xmlns:office:1.0"));
 
-  xmlTextWriterWriteAttribute (x->content_wtr, _xml("xmlns:text"),
+  xmlTextWriterWriteAttribute (odt->content_wtr, _xml("xmlns:text"),
 			       _xml("urn:oasis:names:tc:opendocument:xmlns:text:1.0"));
 
-  xmlTextWriterWriteAttribute (x->content_wtr, _xml("xmlns:table"),
+  xmlTextWriterWriteAttribute (odt->content_wtr, _xml("xmlns:table"),
 			       _xml("urn:oasis:names:tc:opendocument:xmlns:table:1.0"));
 
-  xmlTextWriterWriteAttribute (x->content_wtr, _xml("office:version"), _xml("1.1"));
+  xmlTextWriterWriteAttribute (odt->content_wtr, _xml("office:version"), _xml("1.1"));
 
-  xmlTextWriterStartElement (x->content_wtr, _xml("office:body"));
-  xmlTextWriterStartElement (x->content_wtr, _xml("office:text"));
+  xmlTextWriterStartElement (odt->content_wtr, _xml("office:body"));
+  xmlTextWriterStartElement (odt->content_wtr, _xml("office:text"));
 
 
 
   /* Close the manifest */
-  xmlTextWriterEndElement (x->manifest_wtr);
-  xmlTextWriterEndDocument (x->manifest_wtr);
-  xmlFreeTextWriter (x->manifest_wtr);
+  xmlTextWriterEndElement (odt->manifest_wtr);
+  xmlTextWriterEndDocument (odt->manifest_wtr);
+  xmlFreeTextWriter (odt->manifest_wtr);
 
-  return true;
+  return d;
 }
 
-static bool
-odt_close_driver (struct outp_driver *this)
+static void
+odt_destroy (struct output_driver *driver)
 {
+  struct odt_driver *odt = odt_driver_cast (driver);
+
   struct string zip_cmd;
   struct string rm_cmd;
-  struct odt_driver_ext *x = this->ext;
 
-  xmlTextWriterEndElement (x->content_wtr); /* office:text */
-  xmlTextWriterEndElement (x->content_wtr); /* office:body */
-  xmlTextWriterEndElement (x->content_wtr); /* office:document-content */
+  xmlTextWriterEndElement (odt->content_wtr); /* office:text */
+  xmlTextWriterEndElement (odt->content_wtr); /* office:body */
+  xmlTextWriterEndElement (odt->content_wtr); /* office:document-content */
 
-  xmlTextWriterEndDocument (x->content_wtr);
-  xmlFreeTextWriter (x->content_wtr);
+  xmlTextWriterEndDocument (odt->content_wtr);
+  xmlFreeTextWriter (odt->content_wtr);
 
   /* Zip up the directory */
   ds_init_empty (&zip_cmd);
   ds_put_format (&zip_cmd,
 		 "cd %s ; rm -f ../%s; zip -q -X ../%s mimetype; zip -q -X -u -r ../pspp.odt .",
-		 x->dirname, x->opts.file_name, x->opts.file_name);
+		 odt->dirname, odt->file_name, odt->file_name);
   system (ds_cstr (&zip_cmd));
   ds_destroy (&zip_cmd);
 
 
-  if ( !x->opts.debug )
+  if ( !odt->debug )
     {
       /* Remove the temp dir */
       ds_init_empty (&rm_cmd);
-      ds_put_format (&rm_cmd, "rm -r %s", x->dirname);
+      ds_put_format (&rm_cmd, "rm -r %s", odt->dirname);
       system (ds_cstr (&rm_cmd));
       ds_destroy (&rm_cmd);
     }
   else
-    fprintf (stderr, "Not removing directory %s\n", x->dirname);
+    fprintf (stderr, "Not removing directory %s\n", odt->dirname);
 
-  free (x->dirname);
-  free (x);
-
-  return true;
+  free (odt->dirname);
+  free (odt);
 }
 
 static void
-odt_open_page (struct outp_driver *this UNUSED)
+odt_submit_table (struct odt_driver *odt, struct table_item *item)
 {
-}
-
-static void
-odt_close_page (struct outp_driver *this UNUSED)
-{
-}
-
-static void
-odt_output_chart (struct outp_driver *this UNUSED, const struct chart *chart UNUSED)
-{
- printf ("%s\n", __FUNCTION__);
-}
-
-
-/* Submit a table to the ODT driver */
-static void
-odt_submit (struct outp_driver *this, struct som_entity *e)
-{
+  const struct table *tab = table_item_get_table (item);
+  const char *caption = table_item_get_caption (item);
   int r, c;
-  
-  struct odt_driver_ext *x = this->ext;
-  struct tab_table *tab = e->ext;
-
 
   /* Write a heading for the table */
-  xmlTextWriterStartElement (x->content_wtr, _xml("text:h"));
-  xmlTextWriterWriteFormatAttribute (x->content_wtr, _xml("text:level"), "%d", e->subtable_num == 1 ? 2 : 3);
-  xmlTextWriterWriteString (x->content_wtr, _xml (tab->title) );
-  xmlTextWriterEndElement (x->content_wtr);
+  if (caption != NULL)
+    {
+      xmlTextWriterStartElement (odt->content_wtr, _xml("text:h"));
+      xmlTextWriterWriteFormatAttribute (odt->content_wtr, _xml("text:level"),
+                                         "%d", 2);
+      xmlTextWriterWriteString (odt->content_wtr,
+                                _xml (table_item_get_caption (item)) );
+      xmlTextWriterEndElement (odt->content_wtr);
+    }
 
   /* Start table */
-  xmlTextWriterStartElement (x->content_wtr, _xml("table:table"));
-  xmlTextWriterWriteFormatAttribute (x->content_wtr, _xml("table:name"), 
-				     "TABLE-%d.%d", e->table_num, e->subtable_num);
+  xmlTextWriterStartElement (odt->content_wtr, _xml("table:table"));
+  xmlTextWriterWriteFormatAttribute (odt->content_wtr, _xml("table:name"), 
+				     "TABLE-%d", odt->table_num++);
 
 
   /* Start column definitions */
-  xmlTextWriterStartElement (x->content_wtr, _xml("table:table-column"));
-  xmlTextWriterWriteFormatAttribute (x->content_wtr, _xml("table:number-columns-repeated"), "%d", tab_nc (tab));
-  xmlTextWriterEndElement (x->content_wtr);
+  xmlTextWriterStartElement (odt->content_wtr, _xml("table:table-column"));
+  xmlTextWriterWriteFormatAttribute (odt->content_wtr, _xml("table:number-columns-repeated"), "%d", table_nc (tab));
+  xmlTextWriterEndElement (odt->content_wtr);
 
 
   /* Deal with row headers */
-  if ( tab_t (tab) > 0)
-    xmlTextWriterStartElement (x->content_wtr, _xml("table:table-header-rows"));
+  if ( table_ht (tab) > 0)
+    xmlTextWriterStartElement (odt->content_wtr, _xml("table:table-header-rows"));
     
 
   /* Write all the rows */
-  for (r = 0 ; r < tab_nr (tab); ++r)
+  for (r = 0 ; r < table_nr (tab); ++r)
     {
-      int spanned_columns = 0;
       /* Start row definition */
-      xmlTextWriterStartElement (x->content_wtr, _xml("table:table-row"));
+      xmlTextWriterStartElement (odt->content_wtr, _xml("table:table-row"));
 
       /* Write all the columns */
-      for (c = 0 ; c < tab_nc (tab) ; ++c)
+      for (c = 0 ; c < table_nc (tab) ; ++c)
 	{
-	  char *s = NULL;
-	  unsigned int opts = tab->ct[tab_nc (tab) * r + c];
-	  struct substring ss = tab->cc[tab_nc (tab) * r + c];
+          struct table_cell cell;
 
-	  if (opts & TAB_EMPTY)
-	    {
-	      xmlTextWriterStartElement (x->content_wtr, _xml("table:table-cell"));
-	      xmlTextWriterEndElement (x->content_wtr);
-	      continue;
-	    }
+          table_get_cell (tab, c, r, &cell);
 
-	  if ( opts & TAB_JOIN)
-	    {
-	      if ( spanned_columns == 0)
-		{
-		  struct tab_joined_cell *j = (struct tab_joined_cell*) ss_data (ss);
-		  s = ss_xstrdup (j->contents);
-		}
-	    }
-	  else
-	    s = ss_xstrdup (ss);
+          if (c == cell.d[TABLE_HORZ][0] && r == cell.d[TABLE_VERT][0])
+            {
+              int colspan = table_cell_colspan (&cell);
+              int rowspan = table_cell_rowspan (&cell);
 
-	  if ( spanned_columns == 0 )
-	    {
-	      xmlTextWriterStartElement (x->content_wtr, _xml("table:table-cell"));
-	      xmlTextWriterWriteAttribute (x->content_wtr, _xml("office:value-type"), _xml("string"));
+              xmlTextWriterStartElement (odt->content_wtr, _xml("table:table-cell"));
+              xmlTextWriterWriteAttribute (odt->content_wtr, _xml("office:value-type"), _xml("string"));
 
-	      if ( opts & TAB_JOIN )
-		{
-		  struct tab_joined_cell *j = (struct tab_joined_cell*) ss_data (ss);
-		  spanned_columns = j->x2 - j->x1;
+              if (colspan > 1)
+                xmlTextWriterWriteFormatAttribute (
+                  odt->content_wtr, _xml("table:number-columns-spanned"),
+                  "%d", colspan);
 
-		  xmlTextWriterWriteFormatAttribute (x->content_wtr,
-						     _xml("table:number-columns-spanned"),
-						     "%d", spanned_columns);
-		}
+              if (rowspan > 1)
+                xmlTextWriterWriteFormatAttribute (
+                  odt->content_wtr, _xml("table:number-rows-spanned"),
+                  "%d", rowspan);
 
-	      xmlTextWriterStartElement (x->content_wtr, _xml("text:p"));
+	      xmlTextWriterStartElement (odt->content_wtr, _xml("text:p"));
 
-	      if ( r < tab_t (tab) || c < tab_l (tab) )
-		xmlTextWriterWriteAttribute (x->content_wtr, _xml("text:style-name"), _xml("Table_20_Heading"));
+	      if ( r < table_ht (tab) || c < table_hl (tab) )
+		xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:style-name"), _xml("Table_20_Heading"));
 	      else
-		xmlTextWriterWriteAttribute (x->content_wtr, _xml("text:style-name"), _xml("Table_20_Contents"));
+		xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:style-name"), _xml("Table_20_Contents"));
 
-	      xmlTextWriterWriteString (x->content_wtr, _xml (s));
-	  
-	      xmlTextWriterEndElement (x->content_wtr); /* text:p */
-	      xmlTextWriterEndElement (x->content_wtr); /* table:table-cell */
+	      xmlTextWriterWriteString (odt->content_wtr, _xml(cell.contents));
+
+	      xmlTextWriterEndElement (odt->content_wtr); /* text:p */
+	      xmlTextWriterEndElement (odt->content_wtr); /* table:table-cell */
 	    }
 	  else
 	    {
-	      xmlTextWriterStartElement (x->content_wtr, _xml("table:covered-table-cell"));
-	      xmlTextWriterEndElement (x->content_wtr);
+	      xmlTextWriterStartElement (odt->content_wtr, _xml("table:covered-table-cell"));
+	      xmlTextWriterEndElement (odt->content_wtr);
 	    }
-	  if ( opts & TAB_JOIN )
-	    spanned_columns --;
 
-	  free (s);
+          table_cell_free (&cell);
 	}
   
-      xmlTextWriterEndElement (x->content_wtr); /* row */
+      xmlTextWriterEndElement (odt->content_wtr); /* row */
 
-      if ( tab_t (tab) > 0 && r == tab_t (tab) - 1)
-	xmlTextWriterEndElement (x->content_wtr); /* table-header-rows */
+      if ( table_ht (tab) > 0 && r == table_ht (tab) - 1)
+	xmlTextWriterEndElement (odt->content_wtr); /* table-header-rows */
     }
 
-  xmlTextWriterEndElement (x->content_wtr); /* table */
+  xmlTextWriterEndElement (odt->content_wtr); /* table */
 }
 
+/* Submit a table to the ODT driver */
+static void
+odt_submit (struct output_driver *driver,
+            const struct output_item *output_item)
+{
+  struct odt_driver *odt = odt_driver_cast (driver);
+  if (is_table_item (output_item))
+    odt_submit_table (odt, to_table_item (output_item));
+  else if (is_text_item (output_item))
+    {
+      const struct text_item *text_item = to_text_item (output_item);
+      const char *text = text_item_get_text (text_item);
+
+      /* XXX apply different styles based on text_item's type.  */
+      xmlTextWriterStartElement (odt->content_wtr, _xml("text:p"));
+      xmlTextWriterWriteString (odt->content_wtr, _xml(text));
+      xmlTextWriterEndElement (odt->content_wtr);
+    }
+}
 
 /* ODT driver class. */
-const struct outp_class odt_class =
+const struct output_driver_class odt_class =
 {
   "odf",
-  1,
-
-  odt_open_driver,
-  odt_close_driver,
-
-  odt_open_page,
-  odt_close_page,
-  NULL,
-
-  odt_output_chart,
+  odt_create,
+  odt_destroy,
   odt_submit,
-
-  NULL,
-  NULL,
   NULL,
 };

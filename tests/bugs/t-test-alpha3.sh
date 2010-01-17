@@ -84,33 +84,23 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b  $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|x       |F8.0  |
-|gv      |A8    |
-+--------+------+
-2.1 T-TEST.  Group Statistics
-#==========#=#====#==============#=========#
-#     gv   |N|Mean|Std. Deviation|S.E. Mean#
-#==========#=#====#==============#=========#
-#x One     |5|2.60|           .55|      .24#
-#  Two     |3|3.50|           .50|      .29#
-#==========#=#====#==============#=========#
-2.2 T-TEST.  Independent Samples Test
-#============================#=========#============================================================================#
-#                            # Levene's|                        t-test for Equality of Means                        #
-#                            #----+----+-----+----+---------------+---------------+---------------------+-----------#
-#                            #    |    |     |    |               |               |                     |    95%    #
-#                            #    |    |     |    |               |               |                     +-----+-----#
-#                            #  F |Sig.|  t  | df |Sig. (2-tailed)|Mean Difference|Std. Error Difference|Lower|Upper#
-#============================#====#====#=====#====#===============#===============#=====================#=====#=====#
-#xEqual variances assumed    #1.13| .33|-2.32|6.00|            .06|           -.90|                  .38|-1.83|  .03#
-# Equal variances not assumed#    |    |-2.38|4.70|            .07|           -.90|                  .38|-1.89|  .09#
-#============================#====#====#=====#====#===============#===============#=====================#=====#=====#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+gv,A8
+
+Table: Group Statistics
+,gv,N,Mean,Std. Deviation,S.E. Mean
+x,One     ,5,2.60,.55,.24
+,Two     ,3,3.50,.50,.29
+
+Table: Independent Samples Test
+,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
+,,,,,,,,,95% Confidence Interval of the Difference,
+,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
+x,Equal variances assumed,1.13,.33,-2.32,6.00,.06,-.90,.38,-1.83,.03
+,Equal variances not assumed,,,-2.38,4.70,.07,-.90,.38,-1.89,.09
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

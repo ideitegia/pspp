@@ -23,7 +23,7 @@
 #include <libpspp/getl.h>
 #include <language/lexer/lexer.h>
 #include <language/command.h>
-#include <output/manager.h>
+#include <output/driver.h>
 #include "psppire-output-window.h"
 
 extern struct dataset *the_dataset;
@@ -102,7 +102,7 @@ execute_syntax (struct getl_interface *sss)
   if (!lazy_casereader_destroy (reader, lazy_serial))
     psppire_data_store_set_reader (the_data_store, reader);
 
-  som_flush ();
+  output_flush ();
 
   return retval;
 }

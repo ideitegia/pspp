@@ -41,7 +41,7 @@
 #include <libpspp/getl.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/version.h>
-#include <output/output.h>
+#include <output/driver.h>
 #include <output/journal.h>
 #include <language/syntax-string-source.h>
 
@@ -98,7 +98,6 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
   gsl_set_error_handler_off ();
   fn_init ();
-  outp_init ();
   settings_init (&viewer_width, &viewer_length);
   fh_init ();
   the_source_stream =
@@ -154,7 +153,7 @@ de_initialize (void)
   destroy_source_stream (the_source_stream);
   message_dialog_done ();
   settings_done ();
-  outp_done ();
+  output_close ();
   i18n_done ();
 }
 

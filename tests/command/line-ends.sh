@@ -88,16 +88,15 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-       a        b        c
--------- -------- --------
-    1.00     2.00     3.00
-    4.00     5.00     6.00
-    7.00     8.00     9.00
-   10.00    11.00    12.00
-   13.00    14.00    15.00
-   16.00    17.00    18.00
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Data List
+a,b,c
+1.00,2.00,3.00
+4.00,5.00,6.00
+7.00,8.00,9.00
+10.00,11.00,12.00
+13.00,14.00,15.00
+16.00,17.00,18.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

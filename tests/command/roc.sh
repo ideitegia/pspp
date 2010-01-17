@@ -99,74 +99,54 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 ROC.  Case Summary
-#========#===================#
-#        # Valid N (listwise)#
-#        #==========#========#
-#a       #Unweighted|Weighted#
-#========#==========#========#
-#Positive#         5|  50.000#
-#Negative#         5|  50.000#
-#========#==========#========#
-1.2 ROC.  Area Under the Curve (x)
-#====#==========#===============#=======================#
-#    |          |               | Asymp. 99% Confidence #
-#    |          |               +-----------+-----------#
-#Area|Std. Error|Asymptotic Sig.|Lower Bound|Upper Bound#
-#====#==========#===============#===========#===========#
-#.910|      .030|           .000|       .839|       .981#
-#====#==========#===============#===========#===========#
-1.3 ROC.  Coordinates of the Curve (x)
-#====================================#===========#===============#
-#Positive if greater than or equal to|Sensitivity|1 - Specificity#
-#====================================#===========#===============#
-#                                .000|      1.000|          1.000#
-#                               1.500|       .960|           .440#
-#                               2.500|       .880|           .160#
-#                               3.500|       .680|           .060#
-#                               4.500|       .400|           .020#
-#                               6.000|       .000|           .000#
-#====================================#===========#===============#
-2.1 ROC.  Case Summary
-#========#===================#
-#        # Valid N (listwise)#
-#        #==========#========#
-#a       #Unweighted|Weighted#
-#========#==========#========#
-#Positive#         5|  50.000#
-#Negative#         5|  50.000#
-#========#==========#========#
-See pspp-1.png for a chart.
-2.2 ROC.  Area Under the Curve
-#===================#====#==========#===============#=======================#
-#                   #    |          |               | Asymp. 95%            #
-#                   #    |          |               +-----------+-----------#
-#Variable under test#Area|Std. Error|Asymptotic Sig.|Lower Bound|Upper Bound#
-#===================#====#==========#===============#===========#===========#
-#                  x#.910|      .030|           .000|       .860|       .960#
-#                  y#.697|      .052|           .001|       .611|       .783#
-#===================#====#==========#===============#===========#===========#
-2.3 ROC.  Coordinates of the Curve
-#=============#====================================#===========#===============#
-#Test variable#Positive if greater than or equal to|Sensitivity|1 - Specificity#
-#=============#====================================#===========#===============#
-#            x#                                .000|      1.000|          1.000#
-#             #                               1.500|       .960|           .440#
-#             #                               2.500|       .880|           .160#
-#             #                               3.500|       .680|           .060#
-#             #                               4.500|       .400|           .020#
-#             #                               6.000|       .000|           .000#
-#-------------#------------------------------------+-----------+---------------#
-#            y#                                .000|      1.000|          1.000#
-#             #                               1.500|       .960|           .900#
-#             #                               2.500|       .680|           .340#
-#             #                               3.000|       .600|           .340#
-#             #                               3.500|       .600|           .300#
-#             #                               4.500|       .200|           .020#
-#             #                               6.000|       .000|           .000#
-#=============#====================================#===========#===============#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Case Summary
+,Valid N (listwise),
+a,Unweighted,Weighted
+Positive,5,50.000
+Negative,5,50.000
+
+Table: Area Under the Curve (x)
+,,,Asymp. 99% Confidence Interval,
+Area,Std. Error,Asymptotic Sig.,Lower Bound,Upper Bound
+.910,.030,.000,.839,.981
+
+Table: Coordinates of the Curve (x)
+Positive if greater than or equal to,Sensitivity,1 - Specificity
+.000,1.000,1.000
+1.500,.960,.440
+2.500,.880,.160
+3.500,.680,.060
+4.500,.400,.020
+6.000,.000,.000
+
+Table: Case Summary
+,Valid N (listwise),
+a,Unweighted,Weighted
+Positive,5,50.000
+Negative,5,50.000
+
+Table: Area Under the Curve
+,,,,Asymp. 95% Confidence Interval,
+Variable under test,Area,Std. Error,Asymptotic Sig.,Lower Bound,Upper Bound
+x,.910,.030,.000,.860,.960
+y,.697,.052,.001,.611,.783
+
+Table: Coordinates of the Curve
+Test variable,Positive if greater than or equal to,Sensitivity,1 - Specificity
+x,.000,1.000,1.000
+,1.500,.960,.440
+,2.500,.880,.160
+,3.500,.680,.060
+,4.500,.400,.020
+,6.000,.000,.000
+y,.000,1.000,1.000
+,1.500,.960,.900
+,2.500,.680,.340
+,3.000,.600,.340
+,3.500,.600,.300
+,4.500,.200,.020
+,6.000,.000,.000
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

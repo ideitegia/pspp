@@ -40,8 +40,8 @@
 #include <libpspp/message.h>
 #include <libpspp/i18n.h>
 #include <math/random.h>
+#include <output/driver.h>
 #include <output/journal.h>
-#include <output/output.h>
 
 #if HAVE_LIBTERMCAP
 #if HAVE_TERMCAP_H
@@ -504,7 +504,7 @@ stc_custom_listing (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_s
       /* FIXME */
       return 0;
     }
-  outp_enable_device (listing, OUTP_DEV_LISTING);
+  output_set_type_enabled (listing, OUTPUT_DEVICE_LISTING);
 
   return 1;
 }

@@ -159,31 +159,55 @@ EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output"
-diff $TEMPDIR/pspp.list - << EOF
+diff $TEMPDIR/pspp.csv - << EOF
 1 2 
 
+
+
 12
+
 1 -2 
+
+
 
 3 4 
 
+
+
 34
+
 3 -4 
+
+
 
 . 6 
 
+
+
 .6
+
 . -6 
+
+
 
 7 . 
 
+
+
 7.
+
 7 -. 
+
+
 
 9 0 
 
+
+
 90
+
 9 -0 
+
 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

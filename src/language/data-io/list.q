@@ -29,7 +29,7 @@
 #include <data/data-out.h>
 #include <data/format.h>
 #include <data/procedure.h>
-#include <data/short-names.h>
+#include <data/subcase.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/dictionary/split-file.h>
@@ -38,10 +38,8 @@
 #include <libpspp/ll.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
-#include <output/htmlP.h>
-#include <output/manager.h>
-#include <output/output.h>
-#include <output/table.h>
+#include <output/tab.h>
+#include <output/table-item.h>
 
 #include "minmax.h"
 #include "xalloc.h"
@@ -61,85 +59,18 @@
 /* (declarations) */
 /* (functions) */
 
-/* Layout for one output driver. */
-struct list_target
-  {
-    struct ll ll;
-    struct outp_driver *driver;
-    int type;		/* 0=Values and labels fit across the page. */
-    size_t n_vertical;	/* Number of labels to list vertically. */
-    size_t header_rows;	/* Number of header rows. */
-    char **header;	/* The header itself. */
-  };
-
 /* Parsed command. */
 static struct cmd_list cmd;
-
-/* Line buffer. */
-static struct string line_buffer;
-
-/* TTY-style output functions. */
-static unsigned n_lines_remaining (struct outp_driver *d);
-static unsigned n_chars_width (struct outp_driver *d);
-static void write_line (struct outp_driver *d, const char *s);
-
-/* Other functions. */
-static void list_case (const struct ccase *, casenumber case_idx,
-                       const struct dataset *, struct ll_list *targets);
-static void determine_layout (struct ll_list *targets);
-static void clean_up (struct ll_list *targets);
-static void write_header (struct list_target *);
-static void write_all_headers (struct casereader *, const struct dataset *,
-                               struct ll_list *targets);
-
-/* Returns the number of text lines that can fit on the remainder of
-   the page. */
-static inline unsigned
-n_lines_remaining (struct outp_driver *d)
-{
-  int diff;
-
-  diff = d->length - d->cp_y;
-  return (diff > 0) ? (diff / d->font_height) : 0;
-}
-
-/* Returns the number of fixed-width character that can fit across the
-   page. */
-static inline unsigned
-n_chars_width (struct outp_driver *d)
-{
-  return d->width / d->fixed_width;
-}
-
-/* Writes the line S at the current position and advances to the next
-   line.  */
-static void
-write_line (struct outp_driver *d, const char *s)
-{
-  struct outp_text text;
-
-  assert (d->cp_y + d->font_height <= d->length);
-  text.font = OUTP_FIXED;
-  text.justification = OUTP_LEFT;
-  text.string = ss_cstr (s);
-  text.x = d->cp_x;
-  text.y = d->cp_y;
-  text.h = text.v = INT_MAX;
-  d->class->text_draw (d, &text);
-  d->cp_x = 0;
-  d->cp_y += d->font_height;
-}
 
 /* Parses and executes the LIST procedure. */
 int
 cmd_list (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
-  struct variable *casenum_var = NULL;
   struct casegrouper *grouper;
   struct casereader *group;
-  struct ll_list targets;
-  casenumber case_idx;
+  struct subcase sc;
+  size_t i;
   bool ok;
 
   if (!parse_list (lexer, ds, &cmd, NULL))
@@ -190,569 +121,66 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
       cmd.step = 1;
     }
 
-  /* Case number. */
-  if (cmd.numbering == LST_NUMBERED)
+  subcase_init_empty (&sc);
+  for (i = 0; i < cmd.n_variables; i++)
+    subcase_add_var (&sc, cmd.v_variables[i], SC_ASCEND);
+
+  grouper = casegrouper_create_splits (proc_open (ds), dict);
+  while (casegrouper_get_next_group (grouper, &group))
     {
-      /* Initialize the case-number variable. */
-      int width = cmd.last == LONG_MAX ? 5 : intlog10 (cmd.last);
-      struct fmt_spec format = fmt_for_output (FMT_F, width, 0);
-      casenum_var = var_create ("Case#", 0);
-      var_set_both_formats (casenum_var, &format);
+      struct ccase *ccase;
+      struct table *t;
 
-      /* Add the case-number variable at the beginning of the variable list. */
-      cmd.n_variables++;
-      cmd.v_variables = xnrealloc (cmd.v_variables,
-                                   cmd.n_variables, sizeof *cmd.v_variables);
-      memmove (&cmd.v_variables[1], &cmd.v_variables[0],
-	       (cmd.n_variables - 1) * sizeof *cmd.v_variables);
-      cmd.v_variables[0] = casenum_var;
-    }
+      group = casereader_project (group, &sc);
+      if (cmd.numbering == LST_NUMBERED)
+        group = casereader_create_arithmetic_sequence (group, 1, 1);
+      group = casereader_select (group, cmd.first - 1,
+                                 (cmd.last != LONG_MAX ? cmd.last
+                                  : CASENUMBER_MAX), cmd.step);
 
-  determine_layout (&targets);
-
-  case_idx = 0;
-  for (grouper = casegrouper_create_splits (proc_open (ds), dict);
-       casegrouper_get_next_group (grouper, &group);
-       casereader_destroy (group))
-    {
-      struct ccase *c;
-
-      write_all_headers (group, ds, &targets);
-      for (; (c = casereader_read (group)) != NULL; case_unref (c))
+      ccase = casereader_peek (group, 0);
+      if (ccase != NULL)
         {
-          case_idx++;
-          if (case_idx >= cmd.first && case_idx <= cmd.last
-              && (case_idx - cmd.first) % cmd.step == 0)
-            list_case (c, case_idx, ds, &targets);
+          output_split_file_values (ds, ccase);
+          case_unref (ccase);
         }
+
+      if (cmd.numbering == LST_NUMBERED)
+        {
+          struct fmt_spec fmt;
+          size_t col;
+          int width;
+
+          width = cmd.last == LONG_MAX ? 5 : intlog10 (cmd.last);
+          fmt = fmt_for_output (FMT_F, width, 0);
+          col = caseproto_get_n_widths (casereader_get_proto (group)) - 1;
+
+          t = table_from_casereader (group, col, _("Case Number"), &fmt);
+        }
+      else
+        t = NULL;
+
+      for (i = 0; i < cmd.n_variables; i++)
+        {
+          const struct variable *var = cmd.v_variables[i];
+          struct table *c;
+
+          c = table_from_casereader (group, i, var_get_name (var),
+                                     var_get_print_format (var));
+          t = table_hpaste (t, c);
+        }
+
+      casereader_destroy (group);
+
+      table_item_submit (table_item_create (t, "Data List"));
     }
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;
 
-  ds_destroy(&line_buffer);
-
-  clean_up (&targets);
-
-  var_destroy (casenum_var);
+  subcase_destroy (&sc);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
-
-/* Writes headers to all devices.  This is done at the beginning of
-   each SPLIT FILE group. */
-static void
-write_all_headers (struct casereader *input, const struct dataset *ds,
-                   struct ll_list *targets)
-{
-  struct list_target *target;
-  struct ccase *c;
-
-  c = casereader_peek (input, 0);
-  if (c == NULL)
-    return;
-  output_split_file_values (ds, c);
-  case_unref (c);
-
-  ll_for_each (target, struct list_target, ll, targets)
-    {
-      struct outp_driver *d = target->driver;
-      if (!d->class->special)
-	{
-	  d->cp_y += d->font_height;		/* Blank line. */
-	  write_header (target);
-	}
-      else if (d->class == &html_class)
-	{
-	  struct html_driver_ext *x = d->ext;
-
-	  fputs ("<TABLE BORDER=1>\n  <TR>\n", x->file);
-
-	  {
-	    size_t i;
-
-	    for (i = 0; i < cmd.n_variables; i++)
-	      fprintf (x->file, "    <TH><EM>%s</EM></TH>\n",
-		       var_get_name (cmd.v_variables[i]));
-	  }
-
-	  fputs ("  </TR>\n", x->file);
-	}
-      else
-	NOT_REACHED ();
-    }
-}
-
-/* Writes the headers.  Some of them might be vertical; most are
-   probably horizontal. */
-static void
-write_header (struct list_target *target)
-{
-  struct outp_driver *d = target->driver;
-
-  if (d->class->special || !target->header_rows)
-    return;
-
-  if (n_lines_remaining (d) < target->header_rows + 1)
-    {
-      outp_eject_page (d);
-      assert (n_lines_remaining (d) >= target->header_rows + 1);
-    }
-
-  /* Design the header. */
-  if (!target->header)
-    {
-      size_t i;
-      size_t x;
-
-      /* Allocate, initialize header. */
-      target->header = xnmalloc (target->header_rows, sizeof *target->header);
-      {
-	int w = n_chars_width (d);
-	for (i = 0; i < target->header_rows; i++)
-	  {
-	    target->header[i] = xmalloc (w + 1);
-	    memset (target->header[i], ' ', w);
-	  }
-      }
-
-      /* Put in vertical names. */
-      for (i = x = 0; i < target->n_vertical; i++)
-	{
-	  const struct variable *v = cmd.v_variables[i];
-          const char *name = var_get_name (v);
-          size_t name_len = strlen (name);
-          const struct fmt_spec *print = var_get_print_format (v);
-	  size_t j;
-
-	  memset (&target->header[target->header_rows - 1][x], '-', print->w);
-	  x += print->w - 1;
-	  for (j = 0; j < name_len; j++)
-	    target->header[name_len - j - 1][x] = name[j];
-	  x += 2;
-	}
-
-      /* Put in horizontal names. */
-      for (; i < cmd.n_variables; i++)
-	{
-	  const struct variable *v = cmd.v_variables[i];
-          const char *name = var_get_name (v);
-          size_t name_len = strlen (name);
-          const struct fmt_spec *print = var_get_print_format (v);
-
-	  memset (&target->header[target->header_rows - 1][x], '-',
-		  MAX (print->w, (int) name_len));
-	  if ((int) name_len < print->w)
-	    x += print->w - name_len;
- 	  memcpy (&target->header[0][x], name, name_len);
-	  x += name_len + 1;
-	}
-
-      /* Add null bytes. */
-      for (i = 0; i < target->header_rows; i++)
-	{
-	  for (x = n_chars_width (d); x >= 1; x--)
-	    if (target->header[i][x - 1] != ' ')
-	      {
-		target->header[i][x] = 0;
-		break;
-	      }
-	  assert (x);
-	}
-    }
-
-  /* Write out the header, in back-to-front order except for the last line. */
-  if (target->header_rows >= 2)
-    {
-      size_t i;
-
-      for (i = target->header_rows - 1; i-- != 0; )
-        write_line (d, target->header[i]);
-    }
-  write_line (d, target->header[target->header_rows - 1]);
-}
-
-
-/* Frees up all the memory we've allocated. */
-static void
-clean_up (struct ll_list *targets)
-{
-  struct list_target *target, *next;
-
-  ll_for_each_safe (target, next, struct list_target, ll, targets)
-    {
-      struct outp_driver *d = target->driver;
-      if (d->class->special == 0)
-        {
-          if (target->header)
-            {
-              size_t i;
-              for (i = 0; i < target->header_rows; i++)
-                free (target->header[i]);
-              free (target->header);
-            }
-        }
-      else if (d->class == &html_class)
-        {
-          if (d->page_open)
-            {
-              struct html_driver_ext *x = d->ext;
-
-              fputs ("</TABLE>\n", x->file);
-            }
-        }
-      else
-        NOT_REACHED ();
-
-      ll_remove (&target->ll);
-      free (target);
-    }
-  
-  free (cmd.v_variables);
-}
-
-/* Writes string STRING at the current position.  If the text would
-   fall off the side of the page, then advance to the next line,
-   indenting by amount INDENT. */
-static void
-write_varname (struct outp_driver *d, char *string, int indent)
-{
-  struct outp_text text;
-  int width;
-
-  if (d->cp_x + outp_string_width (d, string, OUTP_FIXED) > d->width)
-    {
-      d->cp_y += d->font_height;
-      if (d->cp_y + d->font_height > d->length)
-	outp_eject_page (d);
-      d->cp_x = indent;
-    }
-
-  text.font = OUTP_FIXED;
-  text.justification = OUTP_LEFT;
-  text.string = ss_cstr (string);
-  text.x = d->cp_x;
-  text.y = d->cp_y;
-  text.h = text.v = INT_MAX;
-  d->class->text_draw (d, &text);
-  d->class->text_metrics (d, &text, &width, NULL);
-  d->cp_x += width;
-}
-
-/* When we can't fit all the values across the page, we write out all
-   the variable names just once.  This is where we do it. */
-static void
-write_fallback_headers (struct outp_driver *d)
-{
-  const int max_width = n_chars_width(d) - 10;
-
-  int index = 0;
-  int width = 0;
-  int line_number = 0;
-
-  const char *Line = _("Line");
-  char *leader = xmalloca (strlen (Line)
-                           + INT_STRLEN_BOUND (line_number) + 1 + 1);
-
-  while (index < cmd.n_variables)
-    {
-      struct outp_text text;
-      int leader_width;
-
-      /* Ensure that there is enough room for a line of text. */
-      if (d->cp_y + d->font_height > d->length)
-	outp_eject_page (d);
-
-      /* The leader is a string like `Line 1: '.  Write the leader. */
-      sprintf (leader, "%s %d:", Line, ++line_number);
-      text.font = OUTP_FIXED;
-      text.justification = OUTP_LEFT;
-      text.string = ss_cstr (leader);
-      text.x = 0;
-      text.y = d->cp_y;
-      text.h = text.v = INT_MAX;
-      d->class->text_draw (d, &text);
-      d->class->text_metrics (d, &text, &leader_width, NULL);
-      d->cp_x = leader_width;
-
-      goto entry;
-      do
-	{
-	  width++;
-
-	entry:
-	  {
-	    int var_width = var_get_print_format (cmd.v_variables[index])->w;
-	    if (width + var_width > max_width && width != 0)
-	      {
-		width = 0;
-		d->cp_x = 0;
-		d->cp_y += d->font_height;
-		break;
-	      }
-	    width += var_width;
-	  }
-
-	  {
-	    char varname[VAR_NAME_LEN + 2];
-	    snprintf (varname, sizeof varname,
-                      " %s", var_get_name (cmd.v_variables[index]));
-	    write_varname (d, varname, leader_width);
-	  }
-	}
-      while (++index < cmd.n_variables);
-
-    }
-  d->cp_x = 0;
-  d->cp_y += d->font_height;
-
-  freea (leader);
-}
-
-/* There are three possible layouts for the LIST procedure:
-
-   1. If the values and their variables' name fit across the page,
-   then they are listed across the page in that way.
-
-   2. If the values can fit across the page, but not the variable
-   names, then as many variable names as necessary are printed
-   vertically to compensate.
-
-   3. If not even the values can fit across the page, the variable
-   names are listed just once, at the beginning, in a compact format,
-   and the values are listed with a variable name label at the
-   beginning of each line for easier reference.
-
-   This is complicated by the fact that we have to do all this for
-   every output driver, not just once.  */
-static void
-determine_layout (struct ll_list *targets)
-{
-  struct outp_driver *d;
-
-  /* This is the largest page width of any driver, so we can tell what
-     size buffer to allocate. */
-  int largest_page_width = 0;
-
-  ll_init (targets);
-  for (d = outp_drivers (NULL); d; d = outp_drivers (d))
-    {
-      size_t column;	/* Current column. */
-      int width;	/* Accumulated width. */
-      int height;       /* Height of vertical names. */
-      int max_width;	/* Page width. */
-
-      struct list_target *target;
-
-      target = xmalloc (sizeof *target);
-      ll_push_tail (targets, &target->ll);
-      target->driver = d;
-      target->type = 0;
-      target->n_vertical = 0;
-      target->header = NULL;
-
-      if (d->class == &html_class)
-	continue;
-      assert (d->class->special == 0);
-
-      outp_open_page (d);
-
-      max_width = n_chars_width (d);
-      largest_page_width = MAX (largest_page_width, max_width);
-
-      /* Try layout #1. */
-      for (width = cmd.n_variables - 1, column = 0; column < cmd.n_variables; column++)
-	{
-	  const struct variable *v = cmd.v_variables[column];
-          int fmt_width = var_get_print_format (v)->w;
-          int name_len = strlen (var_get_name (v));
-	  width += MAX (fmt_width, name_len);
-	}
-      if (width <= max_width)
-	{
-	  target->header_rows = 2;
-	  continue;
-	}
-
-      /* Try layout #2. */
-      for (width = cmd.n_variables - 1, height = 0, column = 0;
-	   column < cmd.n_variables && width <= max_width;
-	   column++)
-        {
-          const struct variable *v = cmd.v_variables[column];
-          int fmt_width = var_get_print_format (v)->w;
-          size_t name_len = strlen (var_get_name (v));
-          width += fmt_width;
-          if (name_len > height)
-            height = name_len;
-        }
-
-      /* If it fit then we need to determine how many labels can be
-         written horizontally. */
-      if (width <= max_width && height <= SHORT_NAME_LEN)
-	{
-#ifndef NDEBUG
-	  target->n_vertical = SIZE_MAX;
-#endif
-	  for (column = cmd.n_variables; column-- != 0; )
-	    {
-	      const struct variable *v = cmd.v_variables[column];
-              int name_len = strlen (var_get_name (v));
-              int fmt_width = var_get_print_format (v)->w;
-	      int trial_width = width - fmt_width + MAX (fmt_width, name_len);
-	      if (trial_width > max_width)
-		{
-		  target->n_vertical = column + 1;
-		  break;
-		}
-	      width = trial_width;
-	    }
-	  assert (target->n_vertical != SIZE_MAX);
-
-	  target->n_vertical = cmd.n_variables;
-	  /* Finally determine the length of the headers. */
-	  for (target->header_rows = 0, column = 0;
-	       column < target->n_vertical;
-	       column++)
-            {
-              const struct variable *var = cmd.v_variables[column];
-              size_t name_len = strlen (var_get_name (var));
-              target->header_rows = MAX (target->header_rows, name_len);
-            }
-	  target->header_rows++;
-	  continue;
-	}
-
-      /* Otherwise use the ugly fallback listing format. */
-      target->type = 1;
-      target->header_rows = 0;
-
-      d->cp_y += d->font_height;
-      write_fallback_headers (d);
-      d->cp_y += d->font_height;
-    }
-
-  ds_init_empty (&line_buffer);
-}
-
-/* Writes case C to output. */
-static void
-list_case (const struct ccase *c, casenumber case_idx,
-           const struct dataset *ds, struct ll_list *targets)
-{
-  struct dictionary *dict = dataset_dict (ds);
-  const char *encoding = dict_get_encoding (dict);
-  struct list_target *target;
-
-  ll_for_each (target, struct list_target, ll, targets)
-    {
-      struct outp_driver *d = target->driver;
-
-      if (d->class->special == 0)
-        {
-          const int max_width = n_chars_width (d);
-          int column;
-
-          if (!target->header_rows)
-            {
-              ds_put_format(&line_buffer, "%8s: ",
-                            var_get_name (cmd.v_variables[0]));
-            }
-
-
-          for (column = 0; column < cmd.n_variables; column++)
-            {
-              const struct variable *v = cmd.v_variables[column];
-              const struct fmt_spec *print = var_get_print_format (v);
-              int width;
-              char *s;
-
-              if (target->type == 0 && column >= target->n_vertical)
-                {
-                  int name_len = strlen (var_get_name (v));
-                  width = MAX (name_len, print->w);
-                }
-              else
-                width = print->w;
-
-              if (width + ds_length(&line_buffer) > max_width &&
-                  ds_length(&line_buffer) != 0)
-                {
-                  if (!n_lines_remaining (d))
-                    {
-                      outp_eject_page (d);
-                      write_header (target);
-                    }
-
-                  write_line (d, ds_cstr (&line_buffer));
-                  ds_clear(&line_buffer);
-
-                  if (!target->header_rows)
-                    ds_put_format (&line_buffer, "%8s: ", var_get_name (v));
-                }
-
-              if (width > print->w)
-                ds_put_char_multiple(&line_buffer, ' ', width - print->w);
-
-              if (fmt_is_string (print->type) || dict_contains_var (dict, v))
-                s = data_out (case_data (c, v), encoding, print);
-              else
-                {
-                  union value case_idx_value;
-                  case_idx_value.f = case_idx;
-                  s = data_out (&case_idx_value, encoding, print);
-                }
-
-              ds_put_cstr (&line_buffer, s);
-              free (s);
-              ds_put_char(&line_buffer, ' ');
-            }
-
-          if (!n_lines_remaining (d))
-            {
-              outp_eject_page (d);
-              write_header (target);
-            }
-
-          write_line (d, ds_cstr (&line_buffer));
-          ds_clear(&line_buffer);
-        }
-      else if (d->class == &html_class)
-        {
-          struct html_driver_ext *x = d->ext;
-          int column;
-
-          fputs ("  <TR>\n", x->file);
-
-          for (column = 0; column < cmd.n_variables; column++)
-            {
-              const struct variable *v = cmd.v_variables[column];
-              const struct fmt_spec *print = var_get_print_format (v);
-              char *s;
-
-              if (fmt_is_string (print->type)
-                  || dict_contains_var (dict, v))
-                s = data_out (case_data (c, v), encoding, print);
-              else
-                {
-                  union value case_idx_value;
-                  case_idx_value.f = case_idx;
-                  s = data_out (&case_idx_value, encoding, print);
-                }
-
-              fputs ("    <TD>", x->file);
-              html_put_cell_contents (d, TAB_FIX, ss_cstr (s));
-              fputs ("</TD>\n", x->file);
-
-              free (s);
-            }
-
-          fputs ("  </TR>\n", x->file);
-        }
-      else
-        NOT_REACHED ();
-    }
-}
-
 
 /*
    Local Variables:

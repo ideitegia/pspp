@@ -89,29 +89,33 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/split.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF
-Variable Value Label
-X            1
-X Y
-- -
-1 2 
-1 6 
-1 7 
-1 9 
-1 5 
-1 4 
-Variable Value Label
-X            2
-X Y
-- -
-2 7 
-2 0 
-2 6 
-2 5 
-2 8 
-2 9 
-2 4
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Title: Test SPLIT FILE utility
+
+Variable,Value,Label
+X,1,
+
+Table: Data List
+X,Y
+1,2
+1,6
+1,7
+1,9
+1,5
+1,4
+
+Variable,Value,Label
+X,2,
+
+Table: Data List
+X,Y
+2,7
+2,0
+2,6
+2,5
+2,8
+2,9
+2,4
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

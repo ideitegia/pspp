@@ -33,7 +33,7 @@
 #include <libpspp/str.h>
 #include <libpspp/verbose-msg.h>
 #include <libpspp/version.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include "xalloc.h"
 

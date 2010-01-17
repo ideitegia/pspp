@@ -85,31 +85,23 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 1"
-diff - $TEMPDIR/pspp.list <<EOF
-1.1 NPAR TESTS.  Frequencies
-#=================================#=#
-#                                 |N#
-#---------------------------------+-#
-#height - age Negative Differences|1#
-#             Positive Differences|3#
-#             Ties                |2#
-#             Total               |6#
-#---------------------------------+-#
-#rank - heightNegative Differences|3#
-#             Positive Differences|2#
-#             Ties                |1#
-#             Total               |6#
-#=================================#=#
+diff -c - $TEMPDIR/pspp.csv <<EOF
+Table: Frequencies
+,,N
+height - age,Negative Differences,1
+,Positive Differences,3
+,Ties,2
+,Total,6
+rank - height,Negative Differences,3
+,Positive Differences,2
+,Ties,1
+,Total,6
 
-1.2 NPAR TESTS.  Test Statistics
-#=====================#============#=============#
-#                     |height - age|rank - height#
-#=====================#============#=============#
-#Exact Sig. (2-tailed)|        .625|        1.000#
-#Exact Sig. (1-tailed)|        .312|         .500#
-#Point Probability    |        .250|         .312#
-#=====================#============#=============#
-
+Table: Test Statistics
+,height - age,rank - height
+Exact Sig. (2-tailed),.625,1.000
+Exact Sig. (1-tailed),.312,.500
+Point Probability,.250,.312
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

@@ -37,7 +37,7 @@
 #include <libpspp/version.h>
 #include <language/prompt.h>
 #include <output/journal.h>
-#include <output/manager.h>
+#include <output/driver.h>
 #include <ui/terminal/terminal.h>
 
 #include "xalloc.h"
@@ -156,7 +156,7 @@ readln_read (struct string *line, enum prompt_style style)
   welcome ();
 
   if (style == PROMPT_FIRST)
-    som_flush ();
+    output_flush ();
 
 #if HAVE_READLINE
   rl_attempted_completion_function = (style == PROMPT_FIRST

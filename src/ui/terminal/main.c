@@ -46,7 +46,7 @@
 #include <libpspp/message.h>
 #include <libpspp/version.h>
 #include <math/random.h>
-#include <output/output.h>
+#include <output/driver.h>
 #include <ui/debugger.h>
 #include <ui/terminal/msg-ui.h>
 #include <ui/terminal/read-line.h>
@@ -96,7 +96,6 @@ main (int argc, char **argv)
   fpu_init ();
   gsl_set_error_handler_off ();
 
-  outp_init ();
   fn_init ();
   fh_init ();
   the_source_stream =
@@ -128,20 +127,6 @@ main (int argc, char **argv)
   command_line_processor_parse (clp, argc, argv);
 
   msg_ui_init (the_source_stream);
-
-  if (!settings_get_testing_mode ())
-    {
-      outp_read_devices ();
-    }
-  else
-    {
-      outp_configure_driver_line
-	(
-	 ss_cstr ("raw-ascii:ascii:listing:width=9999 length=9999 "
-		  "output-file=\"pspp.list\" emphasis=none "
-		  "headers=off paginate=off squeeze=on "
-		  "top-margin=0 bottom-margin=0"));
-    }
 
   the_lexer = lex_create (the_source_stream);
 
@@ -219,7 +204,7 @@ clean_up (void)
       destroy_source_stream (the_source_stream);
       prompt_done ();
       readln_uninitialize ();
-      outp_done ();
+      output_close ();
       msg_ui_done ();
       i18n_done ();
     }

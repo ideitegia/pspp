@@ -34,6 +34,7 @@ EXTRA_DIST = OChangeLog ONEWS config.rpath pspp-mode.el
 CLEANFILES = 
 CLEAN_LOCAL =
 ALL_LOCAL =
+CHECK_LOCAL =
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
 noinst_LIBRARIES=
 noinst_LTLIBRARIES=
@@ -86,6 +87,7 @@ uninstall-hook: $(UNINSTALL_DATA_HOOKS)
 
 clean-local: $(CLEAN_LOCAL)
 all-local: $(ALL_LOCAL)
+check-local: $(CHECK_LOCAL)
 
 # A convenience target to build all the binaries
 programs: $(PROGRAMS)

@@ -92,7 +92,7 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="copy output"
-cp $TEMPDIR/pspp.list $TEMPDIR/pspp.list1
+cp $TEMPDIR/pspp.csv $TEMPDIR/pspp.csv1
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program 2"
@@ -130,7 +130,7 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare outputs"
-diff $TEMPDIR/pspp.list $TEMPDIR/pspp.list1
+diff $TEMPDIR/pspp.csv $TEMPDIR/pspp.csv1
 if [ $? -ne 0 ] ; then fail ; fi
 
 # Now try a missing dependent variable
@@ -170,7 +170,7 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare outputs"
-diff $TEMPDIR/pspp.list $TEMPDIR/pspp.list1
+diff $TEMPDIR/pspp.csv $TEMPDIR/pspp.csv1
 if [ $? -ne 0 ] ; then fail ; fi
 
 

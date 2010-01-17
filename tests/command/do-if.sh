@@ -112,7 +112,6 @@ $SUPERVISOR $PSPP --testing-mode test1.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare test1 results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -u $TEMPDIR/test1.out $TEMPDIR/test1.expected
 if [ $? -ne 0 ] ; then fail ; fi
 

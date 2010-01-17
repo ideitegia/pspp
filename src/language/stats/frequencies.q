@@ -48,12 +48,10 @@
 #include <libpspp/str.h>
 #include <math/histogram.h>
 #include <math/moments.h>
-#include <output/chart.h>
+#include <output/chart-item.h>
 #include <output/charts/piechart.h>
 #include <output/charts/plot-hist.h>
-#include <output/manager.h>
-#include <output/output.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include "freq.h"
 
@@ -612,12 +610,12 @@ postcalc (const struct dataset *ds)
 
 	  hist = freq_tab_to_hist (ft,v);
 
-          chart_submit (histogram_chart_create (
-                          hist, var_to_string(v),
-			  vf->tab.valid_cases,
-			  d[frq_mean],
-			  d[frq_stddev],
-			  normal));
+          chart_item_submit (histogram_chart_create (
+                               hist->gsl_hist, var_to_string(v),
+                               vf->tab.valid_cases,
+                               d[frq_mean],
+                               d[frq_stddev],
+                               normal));
 
 	  statistic_destroy (&hist->parent);
 	}
@@ -1001,41 +999,6 @@ compare_freq_alpha_d (const void *a_, const void *b_, const void *v_)
 
 /* Frequency table display. */
 
-struct full_dim_aux
-  {
-    bool show_labels;
-  };
-
-/* Sets the widths of all the columns and heights of all the rows in
-   table T for driver D. */
-static void
-full_dim (struct tab_rendering *r, void *aux_)
-{
-  const struct outp_driver *d = r->driver;
-  const struct tab_table *t = r->table;
-  const struct full_dim_aux *aux = aux_;
-  int i;
-
-  for (i = 0; i < tab_nc (t); i++)
-    {
-      r->w[i] = tab_natural_width (r, i);
-      if (aux->show_labels && i == 0)
-        r->w[i] = MIN (r->w[i], d->prop_em_width * 15);
-      else
-        r->w[i] = MAX (r->w[i], d->prop_em_width * 8);
-    }
-
-  for (i = 0; i < tab_nr (t); i++)
-    r->h[i] = d->font_height;
-}
-
-static void
-full_dim_free (void *aux_)
-{
-  struct full_dim_aux *aux = aux_;
-  free (aux);
-}
-
 /* Displays a full frequency table for variable V. */
 static void
 dump_full (const struct variable *v, const struct variable *wv)
@@ -1060,17 +1023,11 @@ dump_full (const struct variable *v, const struct variable *wv)
 
   const bool lab = (cmd.labels == FRQ_LABELS);
 
-  struct full_dim_aux *aux;
-
   vf = get_var_freqs (v);
   ft = &vf->tab;
   n_categories = ft->n_valid + ft->n_missing;
   t = tab_create (5 + lab, n_categories + 2);
   tab_headers (t, 0, 0, 1, 0);
-
-  aux = xmalloc (sizeof *aux);
-  aux->show_labels = lab;
-  tab_dim (t, full_dim, full_dim_free, aux);
 
   if (lab)
     tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Value Label"));
@@ -1137,31 +1094,6 @@ dump_full (const struct variable *v, const struct variable *wv)
   tab_submit (t);
 }
 
-/* Sets the widths of all the columns and heights of all the rows in
-   table T for driver D. */
-static void
-condensed_dim (struct tab_rendering *r, void *aux UNUSED)
-{
-  struct outp_driver *d = r->driver;
-  const struct tab_table *t = r->table;
-
-  int cum_width = outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL);
-  int zeros_width = outp_string_width (d, "000", OUTP_PROPORTIONAL);
-  int max_width = MAX (cum_width, zeros_width);
-
-  int i;
-
-  for (i = 0; i < 2; i++)
-    {
-      r->w[i] = tab_natural_width (r, i);
-      r->w[i] = MAX (r->w[i], d->prop_em_width * 8);
-    }
-  for (i = 2; i < 4; i++)
-    r->w[i] = max_width;
-  for (i = 0; i < tab_nr (t); i++)
-    r->h[i] = d->font_height;
-}
-
 /* Display condensed frequency table for variable V. */
 static void
 dump_condensed (const struct variable *v, const struct variable *wv)
@@ -1186,7 +1118,6 @@ dump_condensed (const struct variable *v, const struct variable *wv)
   tab_text (t, 2, 1, TAB_CENTER | TAT_TITLE, _("Pct"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Cum"));
   tab_text (t, 3, 1, TAB_CENTER | TAT_TITLE, _("Pct"));
-  tab_dim (t, condensed_dim, NULL, NULL);
 
   r = 2;
   for (f = ft->valid; f < ft->missing; f++)
@@ -1216,7 +1147,6 @@ dump_condensed (const struct variable *v, const struct variable *wv)
 	   0, 0, 3, r - 1);
   tab_hline (t, TAL_2, 0, 3, 2);
   tab_title (t, "%s", var_to_string (v));
-  tab_columns (t, SOM_COL_DOWN);
   tab_submit (t);
 }
 
@@ -1385,7 +1315,6 @@ dump_statistics (const struct variable *v, bool show_varname,
   calc_stats (v, stat_value);
 
   t = tab_create (3, n_stats + n_percentiles + 2);
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
 
@@ -1426,11 +1355,8 @@ dump_statistics (const struct variable *v, bool show_varname,
 		  var_get_print_format (v));
     }
 
-  tab_columns (t, SOM_COL_DOWN);
   if (show_varname)
     tab_title (t, "%s", var_to_string (v));
-  else
-    tab_flags (t, SOMF_NO_TITLE);
 
 
   tab_submit (t);
@@ -1519,7 +1445,7 @@ do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
 
   slices = freq_tab_to_slice_array(frq_tab, var, &n_slices);
 
-  chart_submit (piechart_create (var_to_string(var), slices, n_slices));
+  chart_item_submit (piechart_create (var_to_string(var), slices, n_slices));
 
   for (i = 0 ; i < n_slices ; ++i )
     ds_destroy (&slices[i].label);

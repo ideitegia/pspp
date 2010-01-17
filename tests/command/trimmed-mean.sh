@@ -86,43 +86,33 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|X       |F8.0  |
-|C       |F8.0  |
-+--------+------+
-2.1 EXAMINE.  Case Processing Summary
-#=#=======================================#
-# #                 Cases                 #
-# #-------------+-----------+-------------#
-# #    Valid    |  Missing  |    Total    #
-# #-----+-------+---+-------+-----+-------#
-# #  N  |Percent| N |Percent|  N  |Percent#
-#=#=====#=======#===#=======#=====#=======#
-#X#52.00|   100%|.00|     0%|52.00|   100%#
-#=#=====#=======#===#=======#=====#=======#
-2.2 EXAMINE.  Descriptives
-#==============================================#=========#==========#
-#                                              #Statistic|Std. Error#
-#==============================================#=========#==========#
-#X Mean                                        #   2.02  |    .03   #
-#  95% Confidence Interval for Mean Lower Bound#   1.95  |          #
-#                                   Upper Bound#   2.09  |          #
-#  5% Trimmed Mean                             #   2.00  |          #
-#  Median                                      #   2.00  |          #
-#  Variance                                    #   .06   |          #
-#  Std. Deviation                              #   .24   |          #
-#  Minimum                                     #   1.00  |          #
-#  Maximum                                     #   3.00  |          #
-#  Range                                       #   2.00  |          #
-#  Interquartile Range                         #   .00   |          #
-#  Skewness                                    #   1.19  |    .33   #
-#  Kurtosis                                    #  15.73  |    .65   #
-#==============================================#=========#==========#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+X,F8.0
+C,F8.0
+
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X,52.00,100%,.00,0%,52.00,100%
+
+Table: Descriptives
+,,,Statistic,Std. Error
+X,Mean,,2.02,.03
+,95% Confidence Interval for Mean,Lower Bound,1.95,
+,,Upper Bound,2.09,
+,5% Trimmed Mean,,2.00,
+,Median,,2.00,
+,Variance,,.06,
+,Std. Deviation,,.24,
+,Minimum,,1.00,
+,Maximum,,3.00,
+,Range,,2.00,
+,Interquartile Range,,.00,
+,Skewness,,1.19,.33
+,Kurtosis,,15.73,.65
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

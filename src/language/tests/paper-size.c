@@ -21,19 +21,22 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/assertion.h>
-#include <output/output.h>
+#include <libpspp/string-map.h>
+#include <output/measure.h>
 
 /* Executes the DEBUG PAPER SIZE command. */
 int
 cmd_debug_paper_size (struct lexer *lexer, struct dataset *ds UNUSED)
 {
+  const char *paper_size;
   int h, v;
 
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
+  paper_size = ds_cstr (lex_tokstr (lexer));
 
-  printf ("\"%s\" => ", ds_cstr (lex_tokstr (lexer)));
-  if (outp_get_paper_size (ds_cstr (lex_tokstr (lexer)), &h, &v))
+  printf ("\"%s\" => ", paper_size);
+  if (measure_paper (paper_size, &h, &v))
     printf ("%.1f x %.1f in, %.0f x %.0f mm\n",
             h / 72000., v / 72000.,
             h / (72000 / 25.4), v / (72000 / 25.4));

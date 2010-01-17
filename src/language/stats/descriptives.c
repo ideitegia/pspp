@@ -35,8 +35,7 @@
 #include <libpspp/message.h>
 #include <libpspp/assertion.h>
 #include <math/moments.h>
-#include <output/manager.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include "xalloc.h"
 
@@ -554,13 +553,11 @@ dump_z_table (struct dsc_proc *dsc)
 
   t = tab_create (2, cnt + 1);
   tab_title (t, _("Mapping of variables to corresponding Z-scores."));
-  tab_columns (t, SOM_COL_DOWN);
   tab_headers (t, 0, 0, 1, 0);
   tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 1, cnt);
   tab_hline (t, TAL_2, 0, 1, 1);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Source"));
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Target"));
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   {
     size_t i, y;
@@ -879,7 +876,6 @@ display (struct dsc_proc *dsc)
   tab_box (t, -1, -1, -1, TAL_1, 1, 0, nc - 1, dsc->var_cnt);
   tab_hline (t, TAL_2, 0, nc - 1, 1);
   tab_vline (t, TAL_2, 1, 0, dsc->var_cnt);
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   nc = 0;
   tab_text (t, nc++, 0, TAB_LEFT | TAT_TITLE, _("Variable"));

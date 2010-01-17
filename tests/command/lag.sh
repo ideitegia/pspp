@@ -81,21 +81,18 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/lag.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare result"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - <<EOF
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|W       |     1|  1-  1|F1.0  |
-+--------+------+-------+------+
-W        X        Y        Z
-- -------- -------- --------
-1      .        .        .   
-2     1.00      .        .   
-3     2.00     1.00     1.00 
-4     3.00     2.00     2.00 
-5     4.00     3.00     3.00 
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+W,1,1-  1,F1.0
+
+Table: Data List
+W,X,Y,Z
+1,.  ,.  ,.  
+2,1.00,.  ,.  
+3,2.00,1.00,1.00
+4,3.00,2.00,2.00
+5,4.00,3.00,3.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

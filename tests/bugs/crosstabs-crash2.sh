@@ -78,40 +78,29 @@ if [ $? -ne 0 ] ; then no_result ; fi
 $SUPERVISOR $PSPP --testing-mode $TESTFILE > /dev/null
 if [ $? -ne 0 ] ; then no_result ; fi
 
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|x       |F8.0  |
-|y       |A18   |
-+--------+------+
-$TEMPDIR/crosstabs-crash2.sh.sps:4: warning: BEGIN DATA: Missing value(s) for all variables from x onward.  These will be filled with the system-missing value or blanks, as appropriate.
-$TEMPDIR/crosstabs-crash2.sh.sps:6: warning: BEGIN DATA: Missing value(s) for all variables from x onward.  These will be filled with the system-missing value or blanks, as appropriate.
-2.1 CROSSTABS.  Summary.
-#===============#=====================================================#
-#               #                        Cases                        #
-#               #-----------------+-----------------+-----------------#
-#               #      Valid      |     Missing     |      Total      #
-#               #--------+--------+--------+--------+--------+--------#
-#               #       N| Percent|       N| Percent|       N| Percent#
-#---------------#--------+--------+--------+--------+--------+--------#
-#x * y          #       4|   66.7%|       2|   33.3%|       6|  100.0%#
-#===============#========#========#========#========#========#========#
-2.2 CROSSTABS.  x * y [count].
-#===============#===================================#========#
-#               #                 y                 |        #
-#               #--------+--------+--------+--------+        #
-#              x#     one|   three|     two|    zero|  Total #
-#               #unity   |lots    |duality |none    |        #
-#               #        |        |        |        |        #
-#---------------#--------+--------+--------+--------+--------#
-#           1.00#     1.0|      .0|      .0|     1.0|     2.0#
-#           2.00#      .0|      .0|     1.0|      .0|     1.0#
-#           3.00#      .0|     1.0|      .0|      .0|     1.0#
-#Total          #     1.0|     1.0|     1.0|     1.0|     4.0#
-#===============#========#========#========#========#========#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+y,A18
+
+"$TEMPDIR/crosstabs-crash2.sh.sps:4: warning: BEGIN DATA: Missing value(s) for all variables from x onward.  These will be filled with the system-missing value or blanks, as appropriate."
+
+"$TEMPDIR/crosstabs-crash2.sh.sps:6: warning: BEGIN DATA: Missing value(s) for all variables from x onward.  These will be filled with the system-missing value or blanks, as appropriate."
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,4,66.7%,2,33.3%,6,100.0%
+
+Table: x * y [count].
+,y,,,,
+x,one unity         ,three lots        ,two duality       ,zero none         ,Total
+1.00,1.0,.0,.0,1.0,2.0
+2.00,.0,.0,1.0,.0,1.0
+3.00,.0,1.0,.0,.0,1.0
+Total,1.0,1.0,1.0,1.0,4.0
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

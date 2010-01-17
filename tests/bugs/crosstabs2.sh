@@ -80,52 +80,32 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|x       |F8.0  |
-|y       |F8.0  |
-+--------+------+
-2.1 CROSSTABS.  Summary.
-#===============#=====================================================#
-#               #                        Cases                        #
-#               #-----------------+-----------------+-----------------#
-#               #      Valid      |     Missing     |      Total      #
-#               #--------+--------+--------+--------+--------+--------#
-#               #       N| Percent|       N| Percent|       N| Percent#
-#---------------#--------+--------+--------+--------+--------+--------#
-#x * y          #       4|  100.0%|       0|    0.0%|       4|  100.0%#
-#===============#========#========#========#========#========#========#
-2.2 CROSSTABS.  x * y [count].
-#===============#=================#========#
-#               #        y        |        #
-#               #--------+--------+        #
-#              x#    1.00|    2.00|  Total #
-#---------------#--------+--------+--------#
-#           2.00#      .0|     1.0|     1.0#
-#           3.00#     1.0|      .0|     1.0#
-#           4.00#     1.0|     1.0|     2.0#
-#Total          #     2.0|     2.0|     4.0#
-#===============#========#========#========#
-2.3 CROSSTABS.  Chi-square tests.
-#===============#========#========#========#
-#Statistic      #   Value|      df|  Asymp.#
-#               #        |        |    Sig.#
-#               #        |        |(2-sided#
-#               #        |        |       )#
-#---------------#--------+--------+--------#
-#Pearson        #    2.00|       2|     .37#
-#Chi-Square     #        |        |        #
-#Likelihood     #    2.77|       2|     .25#
-#Ratio          #        |        |        #
-#Linear-by-Linea#     .27|       1|     .60#
-#r Association  #        |        |        #
-#N of Valid     #       4|        |        #
-#Cases          #        |        |        #
-#===============#========#========#========#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+y,F8.0
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,4,100.0%,0,0.0%,4,100.0%
+
+Table: x * y [count].
+,y,,
+x,1.00,2.00,Total
+2.00,.0,1.0,1.0
+3.00,1.0,.0,1.0
+4.00,1.0,1.0,2.0
+Total,2.0,2.0,4.0
+
+Table: Chi-square tests.
+Statistic,Value,df,Asymp. Sig. (2-sided)
+Pearson Chi-Square,2.00,2,.37
+Likelihood Ratio,2.77,2,.25
+Linear-by-Linear Association,.27,1,.60
+N of Valid Cases,4,,
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

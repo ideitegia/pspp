@@ -78,7 +78,7 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="copy output"
-mv $TEMPDIR/pspp.list $TEMPDIR/ref.list
+mv $TEMPDIR/pspp.csv $TEMPDIR/ref.csv
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program 2"
@@ -105,7 +105,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare outputs"
-diff $TEMPDIR/ref.list $TEMPDIR/pspp.list
+diff $TEMPDIR/ref.csv $TEMPDIR/pspp.csv
 if [ $? -ne 0 ] ; then fail ; fi
 
 

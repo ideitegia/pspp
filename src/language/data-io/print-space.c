@@ -26,8 +26,8 @@
 #include <language/data-io/file-handle.h>
 #include <language/expressions/public.h>
 #include <language/lexer/lexer.h>
-#include <output/manager.h>
 #include <libpspp/message.h>
+#include <output/text-item.h>
 
 #include "xalloc.h"
 
@@ -123,7 +123,7 @@ print_space_trns_proc (void *t_, struct ccase **c,
 
   while (n--)
     if (trns->writer == NULL)
-      som_blank_line ();
+      text_item_submit (text_item_create (TEXT_ITEM_BLANK_LINE, ""));
     else
       dfm_put_record (trns->writer, " ", 1);
 

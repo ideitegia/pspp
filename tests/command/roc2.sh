@@ -106,25 +106,17 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 ROC.  Case Summary
-#========#===================#
-#        # Valid N (listwise)#
-#        #==========#========#
-#a       #Unweighted|Weighted#
-#========#==========#========#
-#Positive#        14|  14.000#
-#Negative#        14|  14.000#
-#========#==========#========#
-1.2 ROC.  Area Under the Curve (x)
-#====#==========#===============#=======================#
-#    |          |               | Asymp. 95% Confidence #
-#    |          |               +-----------+-----------#
-#Area|Std. Error|Asymptotic Sig.|Lower Bound|Upper Bound#
-#====#==========#===============#===========#===========#
-#.490|      .111|           .927|       .307|       .673#
-#====#==========#===============#===========#===========#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Case Summary
+,Valid N (listwise),
+a,Unweighted,Weighted
+Positive,14,14.000
+Negative,14,14.000
+
+Table: Area Under the Curve (x)
+,,,Asymp. 95% Confidence Interval,
+Area,Std. Error,Asymptotic Sig.,Lower Bound,Upper Bound
+.490,.111,.927,.307,.673
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

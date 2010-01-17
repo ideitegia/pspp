@@ -98,54 +98,39 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results 1"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 CORRELATIONS.  Correlations
-#========================#=====#=====#=====#=====#
-#                        #foo  |bar  |wiz  |bang #
-#----+-------------------#-----+-----+-----+-----#
-#foo |Pearson Correlation#1.000| .802| .890|-.308#
-#    |Sig. (2-tailed)    #     | .055| .017| .553#
-#----+-------------------#-----+-----+-----+-----#
-#bar |Pearson Correlation# .802|1.000| .519| .118#
-#    |Sig. (2-tailed)    # .055|     | .291| .824#
-#----+-------------------#-----+-----+-----+-----#
-#wiz |Pearson Correlation# .890| .519|1.000|-.344#
-#    |Sig. (2-tailed)    # .017| .291|     | .505#
-#----+-------------------#-----+-----+-----+-----#
-#bang|Pearson Correlation#-.308| .118|-.344|1.000#
-#    |Sig. (2-tailed)    # .553| .824| .505|     #
-#====#===================#=====#=====#=====#=====#
-2.1 CORRELATIONS.  Correlations
-#=======================#=====#=====#
-#                       #bar  |wiz  #
-#---+-------------------#-----+-----#
-#bar|Pearson Correlation#1.000| .497#
-#   |Sig. (2-tailed)    #     | .210#
-#---+-------------------#-----+-----#
-#wiz|Pearson Correlation# .497|1.000#
-#   |Sig. (2-tailed)    # .210|     #
-#===#===================#=====#=====#
-3.1 CORRELATIONS.  Correlations
-#========================#=====#=====#=====#=====#
-#                        #foo  |bar  |wiz  |bang #
-#----+-------------------#-----+-----+-----+-----#
-#foo |Pearson Correlation#1.000| .805| .883|-.308#
-#    |Sig. (2-tailed)    #     | .029| .008| .553#
-#    |N                  #    7|    7|    7|    6#
-#----+-------------------#-----+-----+-----+-----#
-#bar |Pearson Correlation# .805|1.000| .497| .164#
-#    |Sig. (2-tailed)    # .029|     | .210| .725#
-#    |N                  #    7|    8|    8|    7#
-#----+-------------------#-----+-----+-----+-----#
-#wiz |Pearson Correlation# .883| .497|1.000|-.337#
-#    |Sig. (2-tailed)    # .008| .210|     | .460#
-#    |N                  #    7|    8|    8|    7#
-#----+-------------------#-----+-----+-----+-----#
-#bang|Pearson Correlation#-.308| .164|-.337|1.000#
-#    |Sig. (2-tailed)    # .553| .725| .460|     #
-#    |N                  #    6|    7|    7|    7#
-#====#===================#=====#=====#=====#=====#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Correlations
+,,foo,bar,wiz,bang
+foo,Pearson Correlation,1.000,.802,.890,-.308
+,Sig. (2-tailed),,.055,.017,.553
+bar,Pearson Correlation,.802,1.000,.519,.118
+,Sig. (2-tailed),.055,,.291,.824
+wiz,Pearson Correlation,.890,.519,1.000,-.344
+,Sig. (2-tailed),.017,.291,,.505
+bang,Pearson Correlation,-.308,.118,-.344,1.000
+,Sig. (2-tailed),.553,.824,.505,
+
+Table: Correlations
+,,bar,wiz
+bar,Pearson Correlation,1.000,.497
+,Sig. (2-tailed),,.210
+wiz,Pearson Correlation,.497,1.000
+,Sig. (2-tailed),.210,
+
+Table: Correlations
+,,foo,bar,wiz,bang
+foo,Pearson Correlation,1.000,.805,.883,-.308
+,Sig. (2-tailed),,.029,.008,.553
+,N,7,7,7,6
+bar,Pearson Correlation,.805,1.000,.497,.164
+,Sig. (2-tailed),.029,,.210,.725
+,N,7,8,8,7
+wiz,Pearson Correlation,.883,.497,1.000,-.337
+,Sig. (2-tailed),.008,.210,,.460
+,N,7,8,8,7
+bang,Pearson Correlation,-.308,.164,-.337,1.000
+,Sig. (2-tailed),.553,.725,.460,
+,N,6,7,7,7
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
@@ -181,7 +166,7 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="copy results"
-cp $TEMPDIR/pspp.list $TEMPDIR/weighted
+cp $TEMPDIR/pspp.csv $TEMPDIR/weighted
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program 3"
@@ -215,7 +200,7 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="Compare weighted and unweighted results"
-diff $TEMPDIR/pspp.list $TEMPDIR/weighted
+diff $TEMPDIR/pspp.csv $TEMPDIR/weighted
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

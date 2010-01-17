@@ -99,36 +99,27 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 EXAMINE.  Case Processing Summary
-#==#=======================================#
-#  #                 Cases                 #
-#  #-------------+-----------+-------------#
-#  #    Valid    |  Missing  |    Total    #
-#  #-----+-------+---+-------+-----+-------#
-#  #  N  |Percent| N |Percent|  N  |Percent#
-#==#=====#=======#===#=======#=====#=======#
-#V1#23.00|   100%|.00|     0%|23.00|   100%#
-#==#=====#=======#===#=======#=====#=======#
-1.2 EXAMINE.  Extreme Values
-#============#===========#=====#
-#            #Case Number|Value#
-#============#===========#=====#
-#V1 Highest 1#         21|20.00#
-#           2#         20|19.00#
-#           3#         19|18.00#
-#           4#         19|18.00#
-#           5#         18|17.00#
-#           6#         17|16.00#
-#  ----------#-----------+-----#
-#    Lowest 1#          1| 1.00#
-#           2#          2| 2.00#
-#           3#          3| 3.00#
-#           4#          3| 3.00#
-#           5#          4| 3.00#
-#           6#          5| 4.00#
-#============#===========#=====#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+V1,23.00,100%,.00,0%,23.00,100%
+
+Table: Extreme Values
+,,,Case Number,Value
+V1,Highest,1,21,20.00
+,,2,20,19.00
+,,3,19,18.00
+,,4,19,18.00
+,,5,18,17.00
+,,6,17,16.00
+,Lowest,1,1,1.00
+,,2,2,2.00
+,,3,3,3.00
+,,4,3,3.00
+,,5,4,3.00
+,,6,5,4.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

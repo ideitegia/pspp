@@ -74,27 +74,20 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 DISPLAY.
-+--------+-------------------------------------------+--------+
-|Variable|Description                                |Position|
-#========#===========================================#========#
-|x       |Format: F8.2                               |       1|
-|        |Measure: Scale                             |        |
-|        |Display Alignment: Left                    |        |
-|        |Display Width: 10                          |        |
-+--------+-------------------------------------------+--------+
-|y       |Format: F8.2                               |       2|
-|        |Measure: Ordinal                           |        |
-|        |Display Alignment: Right                   |        |
-|        |Display Width: 12                          |        |
-+--------+-------------------------------------------+--------+
-|z       |Format: F8.2                               |       3|
-|        |Measure: Nominal                           |        |
-|        |Display Alignment: Center                  |        |
-|        |Display Width: 14                          |        |
-+--------+-------------------------------------------+--------+
+diff -c $TEMPDIR/pspp.csv - << EOF
+Variable,Description,,Position
+x,Format: F8.2,,1
+,Measure: Scale,,
+,Display Alignment: Left,,
+,Display Width: 10,,
+y,Format: F8.2,,2
+,Measure: Ordinal,,
+,Display Alignment: Right,,
+,Display Width: 12,,
+z,Format: F8.2,,3
+,Measure: Nominal,,
+,Display Alignment: Center,,
+,Display Width: 14,,
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

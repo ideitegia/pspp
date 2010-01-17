@@ -43,7 +43,7 @@
 #include <math/coefficient.h>
 #include <math/linreg.h>
 #include <math/moments.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include "xalloc.h"
 #include "gettext.h"

@@ -18,21 +18,23 @@
 
 #include "msg-ui.h"
 
-#include "unilbrk.h"
-#include "localcharset.h"
-
-#include <libpspp/msg-locator.h>
-#include <libpspp/getl.h>
 #include <data/settings.h>
+#include <libpspp/getl.h>
 #include <libpspp/message.h>
+#include <libpspp/msg-locator.h>
 #include <libpspp/str.h>
 #include <output/journal.h>
-#include <output/output.h>
-#include <output/table.h>
+#include <output/driver.h>
+#include <output/tab.h>
+
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include "unilbrk.h"
+#include "localcharset.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -187,9 +189,9 @@ handle_msg (const struct msg *m)
       /* Disable screen output devices, because the error should
          already have been reported to the screen with the
          dump_message call above. */
-      outp_enable_device (false, OUTP_DEV_SCREEN);
+      output_set_type_enabled (false, OUTPUT_DEVICE_SCREEN);
       tab_output_text (TAB_LEFT, ds_cstr (&string));
-      outp_enable_device (true, OUTP_DEV_SCREEN);
+      output_set_type_enabled (true, OUTPUT_DEVICE_SCREEN);
     }
 
   ds_destroy (&string);

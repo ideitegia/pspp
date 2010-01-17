@@ -79,19 +79,16 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' pspp.list
-diff -b pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+----------------+------+
-|    Variable    |Format|
-#================#======#
-|longVariablename|F8.0  |
-|x               |F8.0  |
-+----------------+------+
-longVariablename        x
----------------- -------- 
-           99.00     2.00
-           97.00     4.00
+diff pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+longVariablename,F8.0
+x,F8.0
+
+Table: Data List
+longVariablename,x
+99.00,2.00
+97.00,4.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

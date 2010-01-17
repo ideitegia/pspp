@@ -97,18 +97,17 @@ grep  'X=X' $TEMPDIR/foo.sav
 if [ $? -eq 0 ] ; then fail ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-       x variable variab_a variab_b
--------- -------- -------- --------
-    1.00     1.00     1.00     2.00 
-    1.00     1.00     2.00    30.00 
-    1.00     2.00     1.00     8.00 
-    1.00     2.00     2.00    20.00 
-    2.00     1.00     1.00     2.00 
-    2.00     1.00     2.00    22.00 
-    2.00     2.00     1.00     1.00 
-    2.00     2.00     2.00     3.00 
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Data List
+x,variable,variab_a,variab_b
+1.00,1.00,1.00,2.00
+1.00,1.00,2.00,30.00
+1.00,2.00,1.00,8.00
+1.00,2.00,2.00,20.00
+2.00,1.00,1.00,2.00
+2.00,1.00,2.00,22.00
+2.00,2.00,1.00,1.00
+2.00,2.00,2.00,3.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

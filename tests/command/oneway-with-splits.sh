@@ -99,117 +99,78 @@ activity="run program"
 $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|QUALITY |F8.0  |
-|BRAND   |F8.0  |
-|S       |F8.0  |
-+--------+------+
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+QUALITY,F8.0
+BRAND,F8.0
+S,F8.0
 
-Variable Value    Label
-S            1.00
+Variable,Value,Label
+S,1.00,
 
-2.1 ONEWAY.  Descriptives
-#===============#=======#=#====#==============#==========#=======================#=======#=======#
-#               |       # |    |              |          |    95% Confidence     |       |       #
-#               |       # |    |              |          +-----------+-----------+       |       #
-#               |       #N|Mean|Std. Deviation|Std. Error|Lower Bound|Upper Bound|Minimum|Maximum#
-#===============#=======#=#====#==============#==========#===========#===========#=======#=======#
-#Breaking Strain|Aspeger#5|2.20|          1.30|       .58|        .58|       3.82|   1.00|   4.00#
-#               |Bloggs #2|3.50|          2.12|      1.50|     -15.56|      22.56|   2.00|   5.00#
-#               |Total  #7|2.57|          1.51|       .57|       1.17|       3.97|   1.00|   5.00#
-#===============#=======#=#====#==============#==========#===========#===========#=======#=======#
+Table: Descriptives
+,,,,,,95% Confidence Interval for Mean,,,
+,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
+Breaking Strain,Aspeger,5,2.20,1.30,.58,.58,3.82,1.00,4.00
+,Bloggs,2,3.50,2.12,1.50,-15.56,22.56,2.00,5.00
+,Total,7,2.57,1.51,.57,1.17,3.97,1.00,5.00
 
-2.2 ONEWAY.  Test of Homogeneity of Variances
-#===============#================#===#===#============#
-#               #Levene Statistic|df1|df2|Significance#
-#===============#================#===#===#============#
-#Breaking Strain#           1.086|  1|  5|        .345#
-#===============#================#===#===#============#
+Table: Test of Homogeneity of Variances
+,Levene Statistic,df1,df2,Significance
+Breaking Strain,1.09,1,5,.35
 
-2.3 ONEWAY.  ANOVA
-#==============================#==============#==#===========#=====#============#
-#                              #Sum of Squares|df|Mean Square|  F  |Significance#
-#===============#==============#==============#==#===========#=====#============#
-#Breaking Strain|Between Groups#          2.41| 1|      2.414|1.068|        .349#
-#               |Within Groups #         11.30| 5|      2.260|     |            #
-#               |Total         #         13.71| 6|           |     |            #
-#===============#==============#==============#==#===========#=====#============#
+Table: ANOVA
+,,Sum of Squares,df,Mean Square,F,Significance
+Breaking Strain,Between Groups,2.41,1,2.41,1.07,.35
+,Within Groups,11.30,5,2.26,,
+,Total,13.71,6,,,
 
-2.4 ONEWAY.  Contrast Coefficients
-#==========#==============#
-#          # Manufacturer #
-#          #-------+------#
-#          #Aspeger|Bloggs#
-#========#=#=======#======#
-#Contrast|1#     -2|     2#
-#        |2#     -1|     1#
-#========#=#=======#======#
+Table: Contrast Coefficients
+,,Manufacturer,
+,,Aspeger,Bloggs
+Contrast,1,-2,2
+,2,-1,1
 
-2.5 ONEWAY.  Contrast Tests
-#===============================================#=================#==========#=====#=====#===============#
-#                                       Contrast#Value of Contrast|Std. Error|  t  |  df |Sig. (2-tailed)#
-#===============#======================#========#=================#==========#=====#=====#===============#
-#Breaking Strain|Assume equal variances|    1   #             2.60|     2.516|1.034|    5|           .349#
-#               |                      |    2   #             1.30|     1.258|1.034|    5|           .349#
-#               |Does not assume equal |    1   #             2.60|     3.219| .808|1.318|           .539#
-#               |                      |    2   #             1.30|     1.609| .808|1.318|           .539#
-#===============#======================#========#=================#==========#=====#=====#===============#
+Table: Contrast Tests
+,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
+Breaking Strain,Assume equal variances,1,2.60,2.52,1.03,5,.35
+,,2,1.30,1.26,1.03,5,.35
+,Does not assume equal,1,2.60,3.22,.81,1.32,.54
+,,2,1.30,1.61,.81,1.32,.54
 
-Variable Value    Label
-S            2.00
+Variable,Value,Label
+S,2.00,
 
-2.6 ONEWAY.  Descriptives
-#===============#========#=#====#==============#==========#=======================#=======#=======#
-#               |        # |    |              |          |    95% Confidence     |       |       #
-#               |        # |    |              |          +-----------+-----------+       |       #
-#               |        #N|Mean|Std. Deviation|Std. Error|Lower Bound|Upper Bound|Minimum|Maximum#
-#===============#========#=#====#==============#==========#===========#===========#=======#=======#
-#Breaking Strain|Bloggs  #3|3.00|          1.00|       .58|        .52|       5.48|   2.00|   4.00#
-#               |Charlies#5|5.00|          1.58|       .71|       3.04|       6.96|   3.00|   7.00#
-#               |Total   #8|4.25|          1.67|       .59|       2.85|       5.65|   2.00|   7.00#
-#===============#========#=#====#==============#==========#===========#===========#=======#=======#
+Table: Descriptives
+,,,,,,95% Confidence Interval for Mean,,,
+,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
+Breaking Strain,Bloggs,3,3.00,1.00,.58,.52,5.48,2.00,4.00
+,Charlies,5,5.00,1.58,.71,3.04,6.96,3.00,7.00
+,Total,8,4.25,1.67,.59,2.85,5.65,2.00,7.00
 
-2.7 ONEWAY.  Test of Homogeneity of Variances
-#===============#================#===#===#============#
-#               #Levene Statistic|df1|df2|Significance#
-#===============#================#===#===#============#
-#Breaking Strain#            .923|  1|  6|        .374#
-#===============#================#===#===#============#
+Table: Test of Homogeneity of Variances
+,Levene Statistic,df1,df2,Significance
+Breaking Strain,.92,1,6,.37
 
-2.8 ONEWAY.  ANOVA
-#==============================#==============#==#===========#=====#============#
-#                              #Sum of Squares|df|Mean Square|  F  |Significance#
-#===============#==============#==============#==#===========#=====#============#
-#Breaking Strain|Between Groups#          7.50| 1|      7.500|3.750|        .101#
-#               |Within Groups #         12.00| 6|      2.000|     |            #
-#               |Total         #         19.50| 7|           |     |            #
-#===============#==============#==============#==#===========#=====#============#
+Table: ANOVA
+,,Sum of Squares,df,Mean Square,F,Significance
+Breaking Strain,Between Groups,7.50,1,7.50,3.75,.10
+,Within Groups,12.00,6,2.00,,
+,Total,19.50,7,,,
 
-2.9 ONEWAY.  Contrast Coefficients
-#==========#===============#
-#          #  Manufacturer #
-#          #------+--------#
-#          #Bloggs|Charlies#
-#========#=#======#========#
-#Contrast|1#    -2|       2#
-#        |2#    -1|       1#
-#========#=#======#========#
+Table: Contrast Coefficients
+,,Manufacturer,
+,,Bloggs,Charlies
+Contrast,1,-2,2
+,2,-1,1
 
-2.10 ONEWAY.  Contrast Tests
-#===============================================#=================#==========#=====#=====#===============#
-#                                       Contrast#Value of Contrast|Std. Error|  t  |  df |Sig. (2-tailed)#
-#===============#======================#========#=================#==========#=====#=====#===============#
-#Breaking Strain|Assume equal variances|    1   #             4.00|     2.066|1.936|    6|           .101#
-#               |                      |    2   #             2.00|     1.033|1.936|    6|           .101#
-#               |Does not assume equal |    1   #             4.00|     1.826|2.191|5.882|           .072#
-#               |                      |    2   #             2.00|      .913|2.191|5.882|           .072#
-#===============#======================#========#=================#==========#=====#=====#===============#
-
+Table: Contrast Tests
+,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
+Breaking Strain,Assume equal variances,1,4.00,2.07,1.94,6,.10
+,,2,2.00,1.03,1.94,6,.10
+,Does not assume equal,1,4.00,1.83,2.19,5.88,.07
+,,2,2.00,.91,2.19,5.88,.07
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

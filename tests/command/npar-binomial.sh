@@ -251,107 +251,94 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 1"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b $TEMPDIR/pspp.list - << EOF
+diff -c $TEMPDIR/pspp.csv - << EOF
 P < 0.5; N1/N2 < 1
-1.1 NPAR TESTS.  Binomial Test
-+-+------#--------+-----+--------------+----------+---------------------+
-| |      #Category|  N  |Observed Prop.|Test Prop.|Exact Sig. (1-tailed)|
-+-+------#--------+-----+--------------+----------+---------------------+
-|x|Group1#    1.00| 6.00|          .286|      .300|                 .551|
-| |Group2#    2.00|15.00|          .714|          |                     |
-| |Total #        |21.00|         1.000|          |                     |
-+-+------#--------+-----+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1.00,6.00,.286,.300,.551
+,Group2,2.00,15.00,.714,,
+,Total,,21.00,1.000,,
+
 P < 0.5; N1/N2 > 1
-2.1 NPAR TESTS.  Binomial Test
-+-+------#--------+--+--------------+----------+---------------------+
-| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (1-tailed)|
-+-+------#--------+--+--------------+----------+---------------------+
-|x|Group1#       1| 7|          .538|      .400|                 .229|
-| |Group2#       2| 6|          .462|          |                     |
-| |Total #        |13|         1.000|          |                     |
-+-+------#--------+--+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,7,.538,.400,.229
+,Group2,2,6,.462,,
+,Total,,13,1.000,,
+
 P < 0.5; N1/N2 = 1
-3.1 NPAR TESTS.  Binomial Test
-+-+------#--------+--+--------------+----------+---------------------+
-| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (1-tailed)|
-+-+------#--------+--+--------------+----------+---------------------+
-|x|Group1#       1| 8|          .500|      .400|                 .284|
-| |Group2#       2| 8|          .500|          |                     |
-| |Total #        |16|         1.000|          |                     |
-+-+------#--------+--+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,8,.500,.400,.284
+,Group2,2,8,.500,,
+,Total,,16,1.000,,
+
 P > 0.5; N1/N2 < 1
-4.1 NPAR TESTS.  Binomial Test
-+-+------#--------+--+--------------+----------+---------------------+
-| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (1-tailed)|
-+-+------#--------+--+--------------+----------+---------------------+
-|x|Group1#       1|11|          .478|      .600|                 .164|
-| |Group2#       2|12|          .522|          |                     |
-| |Total #        |23|         1.000|          |                     |
-+-+------#--------+--+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,11,.478,.600,.164
+,Group2,2,12,.522,,
+,Total,,23,1.000,,
+
 P > 0.5; N1/N2 > 1
-5.1 NPAR TESTS.  Binomial Test
-+-+------#--------+--+--------------+----------+---------------------+
-| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (1-tailed)|
-+-+------#--------+--+--------------+----------+---------------------+
-|x|Group1#       1|11|          .550|      .600|                 .404|
-| |Group2#       2| 9|          .450|          |                     |
-| |Total #        |20|         1.000|          |                     |
-+-+------#--------+--+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,11,.550,.600,.404
+,Group2,2,9,.450,,
+,Total,,20,1.000,,
+
 P > 0.5; N1/N2 == 1
-6.1 NPAR TESTS.  Binomial Test
-+-+------#--------+--+--------------+----------+---------------------+
-| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (1-tailed)|
-+-+------#--------+--+--------------+----------+---------------------+
-|x|Group1#       1|11|          .500|      .600|                 .228|
-| |Group2#       2|11|          .500|          |                     |
-| |Total #        |22|         1.000|          |                     |
-+-+------#--------+--+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,11,.500,.600,.228
+,Group2,2,11,.500,,
+,Total,,22,1.000,,
+
 P == 0.5; N1/N2 < 1
-7.1 NPAR TESTS.  Binomial Test
-+-+------#--------+--+--------------+----------+---------------------+
-| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (2-tailed)|
-+-+------#--------+--+--------------+----------+---------------------+
-|x|Group1#       1| 8|          .348|      .500|                 .210|
-| |Group2#       2|15|          .652|          |                     |
-| |Total #        |23|         1.000|          |                     |
-+-+------#--------+--+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,1,8,.348,.500,.210
+,Group2,2,15,.652,,
+,Total,,23,1.000,,
+
 P == 0.5; N1/N2 > 1
-8.1 NPAR TESTS.  Binomial Test
-+-+------#--------+--+--------------+----------+---------------------+
-| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (2-tailed)|
-+-+------#--------+--+--------------+----------+---------------------+
-|x|Group1#       1|12|          .667|      .500|                 .238|
-| |Group2#       2| 6|          .333|          |                     |
-| |Total #        |18|         1.000|          |                     |
-+-+------#--------+--+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,1,12,.667,.500,.238
+,Group2,2,6,.333,,
+,Total,,18,1.000,,
+
 P == 0.5; N1/N2 == 1
-9.1 NPAR TESTS.  Binomial Test
-+-+------#--------+--+--------------+----------+---------------------+
-| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (2-tailed)|
-+-+------#--------+--+--------------+----------+---------------------+
-|x|Group1#       1|10|          .500|      .500|                1.000|
-| |Group2#       2|10|          .500|          |                     |
-| |Total #        |20|         1.000|          |                     |
-+-+------#--------+--+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,1,10,.500,.500,1.000
+,Group2,2,10,.500,,
+,Total,,20,1.000,,
+
 P == 0.5; N1/N2 == 1 Cutpoint
-10.1 NPAR TESTS.  Binomial Test
-+-+------#--------+------+--------------+----------+---------------------+
-| |      #Category|   N  |Observed Prop.|Test Prop.|Exact Sig. (2-tailed)|
-+-+------#--------+------+--------------+----------+---------------------+
-|x|Group1#   <= 10|10.000|          .385|      .500|                 .327|
-| |Group2#        |16.000|          .615|          |                     |
-| |Total #        |26.000|         1.000|          |                     |
-+-+------#--------+------+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,<= 10,10.000,.385,.500,.327
+,Group2,,16.000,.615,,
+,Total,,26.000,1.000,,
+
 P == 0.5; N1/N2 == 1 Named values
-11.1 NPAR TESTS.  Binomial Test
-+-+------#--------+------+--------------+----------+---------------------+
-| |      #Category|   N  |Observed Prop.|Test Prop.|Exact Sig. (2-tailed)|
-+-+------#--------+------+--------------+----------+---------------------+
-|x|Group1#  10.000|10.000|          .435|      .500|                 .678|
-| |Group2#  20.000|13.000|          .565|          |                     |
-| |Total #        |23.000|         1.000|          |                     |
-+-+------#--------+------+--------------+----------+---------------------+
+
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,10.000,10.000,.435,.500,.678
+,Group2,20.000,13.000,.565,,
+,Total,,23.000,1.000,,
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

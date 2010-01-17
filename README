@@ -4,7 +4,7 @@ is a free replacement for the proprietary program SPSS.
 PSPP development is ongoing. It already supports a large subset of
 SPSS's syntax.  Its statistical procedure support is currently
 limited, but growing.  At your option, PSPP will produce statistical
-reports in ASCII, PostScript, or HTML formats. 
+reports in ASCII, PostScript, PDF, HTML, or SVG formats. 
 
 Instructions for PSPP installation are in INSTALL, including a list of
 prerequisite packages and other PSPP-specific information.  Full
@@ -52,8 +52,8 @@ following support to users:
 
 	* Attractive output, including graphs, in a variety of human-
           and machine-readable formats.  PSPP currently produces
-          output in ASCII, PostScript, and HTML formats.  We will
-          enhance PSPP's output formatting in the future.
+          output in ASCII, PostScript, PDF, HTML, and SVG formats.  We
+          will enhance PSPP's output formatting in the future.
 
 	* Good documentation.  Currently the PSPP manual describes its
           language completely, but we would like to add information on

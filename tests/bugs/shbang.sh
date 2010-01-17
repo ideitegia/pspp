@@ -74,12 +74,12 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-       a
---------
-    1.00
-    2.00
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.csv
+diff -b  -w $TEMPDIR/pspp.csv - << EOF
+Table: Data List
+a
+1.00
+2.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

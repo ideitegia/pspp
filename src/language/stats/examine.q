@@ -48,10 +48,10 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <math/moments.h>
+#include <output/chart-item.h>
 #include <output/charts/boxplot.h>
 #include <output/charts/np-plot.h>
-#include <output/manager.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include "minmax.h"
 #include "xalloc.h"
@@ -61,9 +61,7 @@
 #define N_(msgid) msgid
 
 /* (headers) */
-#include <output/chart.h>
 #include <output/charts/plot-hist.h>
-#include <output/charts/plot-chart.h>
 #include <math/histogram.h>
 
 /* (specification)
@@ -339,7 +337,7 @@ show_npplot (const struct variable **dependent_var,
 	  struct string label;
 	  const struct factor_result *result =
 	    ll_data (ll, struct factor_result, ll);
-          struct chart *npp, *dnpp;
+          struct chart_item *npp, *dnpp;
           struct casereader *reader;
           struct np *np;
 
@@ -350,20 +348,20 @@ show_npplot (const struct variable **dependent_var,
           np = result->metrics[v].np;
           reader = casewriter_make_reader (np->writer);
           npp = np_plot_create (np, reader, ds_cstr (&label));
-          dnpp = dnp_plot_create (np, reader, ds_cstr (&label));
+          dnpp = np_plot_create (np, reader, ds_cstr (&label));
 
 	  ds_destroy (&label);
 
           if (npp == NULL || dnpp == NULL)
             {
               msg (MW, _("Not creating NP plot because data set is empty."));
-              chart_unref (npp);
-              chart_unref (dnpp);
+              chart_item_unref (npp);
+              chart_item_unref (dnpp);
             }
           else
             {
-              chart_submit (npp);
-              chart_submit (dnpp);
+              chart_item_submit (npp);
+              chart_item_submit (dnpp);
             }
 
 	  statistic_destroy (&np->parent.parent);
@@ -406,8 +404,9 @@ show_histogram (const struct variable **dependent_var,
 
           moments1_calculate (result->metrics[v].moments,
                               &n, &mean, &var, NULL,  NULL);
-          chart_submit (histogram_chart_create (histogram, ds_cstr (&str),
-                                                n, mean, sqrt (var), false));
+          chart_item_submit (histogram_chart_create (histogram->gsl_hist,
+                                                     ds_cstr (&str), n, mean,
+                                                     sqrt (var), false));
 
 	  ds_destroy (&str);
 	}
@@ -471,7 +470,7 @@ show_boxplot_groups (const struct variable **dependent_var,
 	  ds_destroy (&str);
 	}
 
-      chart_submit (boxplot_get_chart (boxplot));
+      boxplot_submit (boxplot);
     }
 }
 
@@ -519,7 +518,7 @@ show_boxplot_variables (const struct variable **dependent_var,
           metrics->box_whisker = NULL;
 	}
 
-      chart_submit (boxplot_get_chart (boxplot));
+      boxplot_submit (boxplot);
     }
 }
 
@@ -1135,8 +1134,6 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
   tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
-
   /* Outline the box */
   tab_box (tbl,
 	   TAL_2, TAL_2,
@@ -1371,8 +1368,6 @@ show_descriptives (const struct variable **dependent_var,
 
   tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
-
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   /* Outline the box */
   tab_box (tbl,
@@ -1684,8 +1679,6 @@ show_extremes (const struct variable **dependent_var,
   tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
-
   /* Outline the box */
   tab_box (tbl,
 	   TAL_2, TAL_2,
@@ -1887,8 +1880,6 @@ show_percentiles (const struct variable **dependent_var,
 
   tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
-
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   /* Outline the box */
   tab_box (tbl,

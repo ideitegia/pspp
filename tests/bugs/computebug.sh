@@ -53,24 +53,42 @@ pass()
 }
 
 mkdir -p $TEMPDIR
-
-activity="copy file"
-cp $top_srcdir/tests/bugs/computebug.stat $TEMPDIR
-if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="chdir"
 cd $TEMPDIR
 if [ $? -ne 0 ] ; then no_result ; fi
 
+activity="create input"
+cat > $TESTFILE <<EOF
+DATA LIST LIST
+ /A (A161)
+ B (A3).
+
+BEGIN DATA
+abc   def
+ghi   jkl
+END DATA.
+
+COMPUTE A=upcase(A).
+EXECUTE.
+LIST.
+EOF
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode $TEMPDIR/computebug.stat
+$SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list $top_srcdir/tests/bugs/computebug.out
-diff -b -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/computebug.out
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+A,A161
+B,A3
+
+Table: Data List
+A,B
+ABC                                                                                                                                                              ,def
+GHI                                                                                                                                                              ,jkl
+EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

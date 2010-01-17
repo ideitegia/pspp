@@ -80,30 +80,30 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-      R1
---------
-     7.71 
-     2.99 
-      .21 
-     4.95 
-     6.34 
-     4.43 
-     7.49 
-     8.32 
-     4.99 
-     5.83 
-     2.25 
-      .25 
-     1.98 
-     7.09 
-     7.61 
-     2.66 
-     1.69 
-     2.64 
-      .88 
-     1.50 
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.csv
+diff -b  -w $TEMPDIR/pspp.csv - << EOF
+Table: Data List
+R1
+7.71
+2.99
+.21
+4.95
+6.34
+4.43
+7.49
+8.32
+4.99
+5.83
+2.25
+.25
+1.98
+7.09
+7.61
+2.66
+1.69
+2.64
+.88
+1.50
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

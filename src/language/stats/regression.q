@@ -43,7 +43,7 @@
 #include <math/coefficient.h>
 #include <math/linreg.h>
 #include <math/moments.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include "xalloc.h"
 
@@ -150,7 +150,6 @@ reg_stats_r (pspp_linreg_cache * c)
   adjrsq = 1.0 - (1.0 - rsq) * (c->n_obs - 1.0) / (c->n_obs - c->n_indeps);
   std_error = sqrt (pspp_linreg_mse (c));
   t = tab_create (n_cols, n_rows);
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
   tab_hline (t, TAL_2, 0, n_cols - 1, 1);
   tab_vline (t, TAL_2, 2, 0, n_rows - 1);
@@ -193,7 +192,6 @@ reg_stats_coeff (pspp_linreg_cache * c)
 
   t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 1, 0);
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
   tab_hline (t, TAL_2, 0, n_cols - 1, 1);
   tab_vline (t, TAL_2, 2, 0, n_rows - 1);
@@ -290,7 +288,6 @@ reg_stats_anova (pspp_linreg_cache * c)
   assert (c != NULL);
   t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 1, 0);
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
 
@@ -381,7 +378,6 @@ reg_stats_bcov (pspp_linreg_cache * c)
   n_rows = 2 * (c->n_indeps + 1);
   t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 1, 0);
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
   tab_hline (t, TAL_2, 0, n_cols - 1, 1);
   tab_vline (t, TAL_2, 2, 0, n_rows - 1);

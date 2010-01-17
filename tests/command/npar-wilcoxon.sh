@@ -95,33 +95,26 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="generate results"
-cat > $TEMPDIR/results.txt <<EOF
-1.1 NPAR TESTS.  Ranks
-#============================#==#=========#============#
-#                            # N|Mean Rank|Sum of Ranks#
-#============================#==#=========#============#
-#second - firstNegative Ranks# 5|     8.60|       43.00#
-#              Positive Ranks# 8|     6.00|       48.00#
-#              Ties          # 2|         |            #
-#              Total         #15|         |            #
-#============================#==#=========#============#
+cat > $TEMPDIR/results.csv <<EOF
+Table: Ranks
+,,N,Mean Rank,Sum of Ranks
+second - first,Negative Ranks,5,8.60,43.00
+,Positive Ranks,8,6.00,48.00
+,Ties,2,,
+,Total,15,,
 
-1.2 NPAR TESTS.  Test Statistics
-#======================#==============#
-#                      #second - first#
-#======================#==============#
-#Z                     #          -.18#
-#Asymp. Sig. (2-tailed)#           .86#
-#Exact Sig. (2-tailed) #           .89#
-#Exact Sig. (1-tailed) #           .45#
-#======================#==============#
-
+Table: Test Statistics
+,second - first
+Z,-.18
+Asymp. Sig. (2-tailed),.86
+Exact Sig. (2-tailed),.89
+Exact Sig. (1-tailed),.45
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output 1"
-diff pspp.list $TEMPDIR/results.txt
+diff -c pspp.csv $TEMPDIR/results.csv
 if [ $? -ne 0 ] ; then fail ; fi
 
 
@@ -165,7 +158,7 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 2"
-diff pspp.list $TEMPDIR/results.txt
+diff pspp.csv $TEMPDIR/results.csv
 if [ $? -ne 0 ] ; then fail ; fi
 
 

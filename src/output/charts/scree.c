@@ -18,94 +18,38 @@
 
 #include <output/charts/scree.h>
 
-#include <output/chart-provider.h>
-#include <output/charts/cartesian.h>
-#include <output/charts/plot-chart.h>
+#include <output/chart-item-provider.h>
 
-#include <gsl/gsl_vector.h>
-
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-struct scree
-  {
-    struct chart chart;
-    const gsl_vector *eval;
-    const char *xlabel;
-  };
-
-static const struct chart_class scree_class;
 
 struct scree *
 scree_create (const gsl_vector *eigenvalues, const char *xlabel)
 {
   struct scree *rc = xmalloc (sizeof *rc);
-  chart_init (&rc->chart, &scree_class);
-  rc->eval = eigenvalues;
-  rc->xlabel = xlabel;
+  chart_item_init (&rc->chart_item, &scree_class, NULL);
+
+  rc->eval = gsl_vector_alloc (eigenvalues->size);
+  gsl_vector_memcpy (rc->eval, eigenvalues);
+
+  rc->xlabel = xstrdup (xlabel);
+
   return rc;
 }
 
-
-struct chart *
-scree_get_chart (struct scree *rc)
-{
-  return &rc->chart;
-}
-
 static void
-scree_draw (const struct chart *chart, cairo_t *cr,
-                struct chart_geometry *geom)
+scree_destroy (struct chart_item *chart_item)
 {
-  const struct scree *rc = UP_CAST (chart, struct scree, chart);
-  size_t i;
-  double min, max;
+  struct scree *rc = to_scree (chart_item);
 
-  chart_write_title (cr, geom, _("Scree Plot"));
-  chart_write_xlabel (cr, geom, rc->xlabel);
-  chart_write_ylabel (cr, geom, _("Eigenvalue"));
-
-  gsl_vector_minmax (rc->eval, &min, &max);
-
-  if ( fabs (max) > fabs (min))
-    max = fabs (max);
-  else
-    max = fabs (min);
-
-  chart_write_yscale (cr, geom, 0, max, max);
-  chart_write_xscale (cr, geom, 0, rc->eval->size + 1, rc->eval->size + 1);
-
-  chart_vector_start (cr, geom, "");
-  for (i = 0 ; i < rc->eval->size; ++i)
-    {
-      const double x = 1 + i;
-      const double y = gsl_vector_get (rc->eval, i);
-      chart_vector (cr, geom, x, y);
-    }
-  chart_vector_end (cr, geom);
-
-  for (i = 0 ; i < rc->eval->size; ++i)
-    {
-      const double x = 1 + i;
-      const double y = gsl_vector_get (rc->eval, i);
-      chart_datum (cr, geom, 0, x, y);
-    }
-}
-
-static void
-scree_destroy (struct chart *chart)
-{
-  struct scree *rc = UP_CAST (chart, struct scree, chart);
-
+  gsl_vector_free (rc->eval);
+  free (rc->xlabel);
   free (rc);
 }
 
-static const struct chart_class scree_class =
+const struct chart_item_class scree_class =
   {
-    scree_draw,
     scree_destroy
   };
-
-

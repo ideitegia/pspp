@@ -39,3 +39,4 @@ gitlog-to-changelog
 *.deps
 *.la
 *.libs
+/package.m4

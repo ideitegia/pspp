@@ -166,29 +166,30 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE -e /dev/null
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b pspp.list - << EOF
-       X        Y
--------- --------
-    1.00     2.00
-    2.00     3.00
-    3.00     4.00
-    4.00     5.00
-    5.00     6.00
-X        Y
-- --------
-1     3.00
-2     4.00
-3     5.00
-4     6.00
-5     7.00
-X        Y
-- --------
-1     4.00
-2     5.00
-3     6.00
-4     7.00
-5     8.00
+diff -c pspp.csv - << EOF
+Table: Data List
+X,Y
+1.00,2.00
+2.00,3.00
+3.00,4.00
+4.00,5.00
+5.00,6.00
+
+Table: Data List
+X,Y
+1,3.00
+2,4.00
+3,5.00
+4,6.00
+5,7.00
+
+Table: Data List
+X,Y
+1,4.00
+2,5.00
+3,6.00
+4,7.00
+5,8.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

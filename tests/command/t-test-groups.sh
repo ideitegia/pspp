@@ -85,41 +85,29 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|ID      |F8.0  |
-|INDEP   |F8.0  |
-|DEP1    |F8.0  |
-|DEP2    |F8.0  |
-+--------+------+
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+ID,F8.0
+INDEP,F8.0
+DEP1,F8.0
+DEP2,F8.0
 
-2.1 T-TEST.  Group Statistics
-#==========#=#====#==============#========#
-#     INDEP|N|Mean|Std. Deviation|SE. Mean#
-#==========#=#====#==============#========#
-#DEP1 1.1  |5|2.00|          .707|    .316#
-#     2.1  |5|4.00|          .707|    .316#
-#DEP2 1.1  |5|4.00|          .707|    .316#
-#     2.1  |5|2.00|          .707|    .316#
-#==========#=#====#==============#========#
+Table: Group Statistics
+,INDEP,N,Mean,Std. Deviation,S.E. Mean
+DEP1,1.1,5,2.00,.71,.32
+,2.1,5,4.00,.71,.32
+DEP2,1.1,5,4.00,.71,.32
+,2.1,5,2.00,.71,.32
 
-2.2 T-TEST.  Independent Samples Test
-#===============================#==========#===============================================================================#
-#                               # Levene's |                          t-test for Equality of Means                         #
-#                               #----+-----+------+-----+---------------+---------------+---------------------+------------#
-#                               #    |     |      |     |               |               |                     |    95%     #
-#                               #    |     |      |     |               |               |                     +------+-----#
-#                               # F  | Sig.|   t  |  df |Sig. (2-tailed)|Mean Difference|Std. Error Difference| Lower|Upper#
-#===============================#====#=====#======#=====#===============#===============#=====================#======#=====#
-#DEP1Equal variances assumed    #.000|1.000|-4.472|    8|           .002|         -2.000|                 .447|-3.031|-.969#
-#    Equal variances not assumed#    |     |-4.472|8.000|           .002|         -2.000|                 .447|-3.031|-.969#
-#DEP2Equal variances assumed    #.000|1.000| 4.472|    8|           .002|          2.000|                 .447|  .969|3.031#
-#    Equal variances not assumed#    |     | 4.472|8.000|           .002|          2.000|                 .447|  .969|3.031#
-#===============================#====#=====#======#=====#===============#===============#=====================#======#=====#
+Table: Independent Samples Test
+,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
+,,,,,,,,,95% Confidence Interval of the Difference,
+,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
+DEP1,Equal variances assumed,.00,1.00,-4.47,8.00,.00,-2.00,.45,-3.03,-.97
+,Equal variances not assumed,,,-4.47,8.00,.00,-2.00,.45,-3.03,-.97
+DEP2,Equal variances assumed,.00,1.00,4.47,8.00,.00,2.00,.45,.97,3.03
+,Equal variances not assumed,,,4.47,8.00,.00,2.00,.45,.97,3.03
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

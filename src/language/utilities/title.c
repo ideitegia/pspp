@@ -27,29 +27,30 @@
 #include <libpspp/message.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
-#include <output/output.h>
+#include <output/text-item.h>
 
 #include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static int get_title (struct lexer *, const char *cmd, char **title);
+static int parse_title (struct lexer *, enum text_item_type);
+static void set_title (const char *title, enum text_item_type);
 
 int
 cmd_title (struct lexer *lexer, struct dataset *ds UNUSED)
 {
-  return get_title (lexer, "TITLE", &outp_title);
+  return parse_title (lexer, TEXT_ITEM_TITLE);
 }
 
 int
 cmd_subtitle (struct lexer *lexer, struct dataset *ds UNUSED)
 {
-  return get_title (lexer, "SUBTITLE", &outp_subtitle);
+  return parse_title (lexer, TEXT_ITEM_SUBTITLE);
 }
 
 static int
-get_title (struct lexer *lexer, const char *cmd, char **title)
+parse_title (struct lexer *lexer, enum text_item_type type)
 {
   int c;
 
@@ -59,28 +60,22 @@ get_title (struct lexer *lexer, const char *cmd, char **title)
       lex_get (lexer);
       if (!lex_force_string (lexer))
 	return CMD_FAILURE;
-      if (*title)
-	free (*title);
-      *title = ds_xstrdup (lex_tokstr (lexer));
+      set_title (ds_cstr (lex_tokstr (lexer)), type);
       lex_get (lexer);
-      if (lex_token (lexer) != '.')
-	{
-	  msg (SE, _("%s: `.' expected after string."), cmd);
-	  return CMD_FAILURE;
-	}
+      return lex_end_of_command (lexer);
     }
   else
     {
-      char *cp;
-
-      if (*title)
-	free (*title);
-      *title = xstrdup (lex_rest_of_line (lexer));
+      set_title (lex_rest_of_line (lexer), type);
       lex_discard_line (lexer);
-      for (cp = *title; *cp; cp++)
-	*cp = toupper ((unsigned char) (*cp));
     }
   return CMD_SUCCESS;
+}
+
+static void
+set_title (const char *title, enum text_item_type type)
+{
+  text_item_submit (text_item_create (type, title));
 }
 
 /* Performs the FILE LABEL command. */

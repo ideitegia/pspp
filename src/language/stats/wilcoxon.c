@@ -38,7 +38,7 @@
 #include <libpspp/misc.h>
 #include <math/sort.h>
 #include <math/wilcoxon-sig.h>
-#include <output/table.h>
+#include <output/tab.h>
 #include <signal.h>
 #include <unistd.h>
 
@@ -227,8 +227,6 @@ show_ranks_box (const struct wilcoxon_state *ws,
 
   struct tab_table *table = tab_create (5, 1 + 4 * t2s->n_pairs);
 
-  tab_dim (table, tab_natural_dimensions, NULL, NULL);
-
   tab_title (table, _("Ranks"));
 
   tab_headers (table, 2, 0, 1, 0);
@@ -307,8 +305,6 @@ show_tests_box (const struct wilcoxon_state *ws,
 {
   size_t i;
   struct tab_table *table = tab_create (1 + t2s->n_pairs, exact ? 5 : 3);
-
-  tab_dim (table, tab_natural_dimensions, NULL, NULL);
 
   tab_title (table, _("Test Statistics"));
 

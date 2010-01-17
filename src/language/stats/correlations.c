@@ -30,8 +30,7 @@
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <output/manager.h>
-#include <output/table.h>
+#include <output/tab.h>
 #include <libpspp/message.h>
 #include <data/format.h>
 #include <math/moments.h>
@@ -96,7 +95,6 @@ output_descriptives (const struct corr *corr, const gsl_matrix *means,
 
   struct tab_table *t = tab_create (nc, nr);
   tab_title (t, _("Descriptive Statistics"));
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
 
@@ -191,7 +189,6 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 
   t = tab_create (nc, nr);
   tab_title (t, _("Correlations"));
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
 

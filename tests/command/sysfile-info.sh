@@ -78,43 +78,34 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="filter output"
-egrep -v '^(Created|Endian|Integer Format|Real Format): ' $TEMPDIR/pspp.list > $TEMPDIR/out-filtered
+egrep -v '^(Created|Endian|Integer Format|Real Format):,' $TEMPDIR/pspp.csv > $TEMPDIR/out-filtered
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/out-filtered
-diff -b -w $TEMPDIR/out-filtered - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|x       |F8.0  |
-|name    |A10   |
-+--------+------+
-2.1 SYSFILE INFO.  
-File:           pro.sav
-Label:          No label.
-Variables:      2
-Cases:          3
-Type:           System File
-Weight:         Not weighted.
-Mode:           Compression on.
-Charset:        Unknown
-+--------+-------------+---+
-|Variable|Description  |Pos|
-|        |             |iti|
-|        |             |on |
-#========#=============#===#
-|x       |Format: F8.2 |  1|
-|        |Measure:     |   |
-|        |Display      |   |
-|        |Display      |   |
-+--------+-------------+---+
-|name    |Format: A10  |  2|
-|        |Measure:     |   |
-|        |Display      |   |
-|        |Display      |   |
-+--------+-------------+---+
+diff -c $TEMPDIR/out-filtered - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+name,A10
+
+File:,pro.sav
+Label:,No label.
+Variables:,2
+Cases:,3
+Type:,System File
+Weight:,Not weighted.
+Mode:,Compression on.
+Charset:,Unknown
+
+Variable,Description,,Position
+x,Format: F8.2,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+name,Format: A10,,2
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 10,,
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

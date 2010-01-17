@@ -92,18 +92,17 @@ $SUPERVISOR $PSPP --testing-mode $TEMPDIR/valuelabel.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - <<EOF
-n s     nlabel     slabel
-- - ---------- ----------
-.                         
-0 a Very dissa Wouldn't b 
-1 b Dissatisfi Unhappy    
-2 c Neutral    Bored      
-3 d Satisfied  Satiated   
-4 e Very satis Elated     
-5 f                       
-6 g                       
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: Data List
+n,s,nlabel,slabel
+.,,,
+0,a,Very dissa,Wouldn't b
+1,b,Dissatisfi,Unhappy   
+2,c,Neutral   ,Bored     
+3,d,Satisfied ,Satiated  
+4,e,Very satis,Elated    
+5,f,,
+6,g,,
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

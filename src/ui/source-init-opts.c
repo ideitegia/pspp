@@ -20,7 +20,6 @@
 #include <stdbool.h>
 #include <xalloc.h>
 #include <string.h>
-#include <output/output.h>
 #include <data/file-name.h>
 #include <libpspp/getl.h>
 #include <language/syntax-file.h>

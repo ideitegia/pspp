@@ -23,6 +23,12 @@
 #include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
+#if HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+#if HAVE_READLINE
+#include <readline/readline.h>
+#endif
 
 #include <data/casereader.h>
 #include <data/dictionary.h>
@@ -36,16 +42,8 @@
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
-#include <output/manager.h>
 #include <libpspp/getl.h>
-
-#if HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
-
-#if HAVE_READLINE
-#include <readline/readline.h>
-#endif
+#include <output/text-item.h>
 
 #include "xalloc.h"
 #include "xmalloca.h"
@@ -142,11 +140,7 @@ cmd_parse_in_state (struct lexer *lexer, struct dataset *ds,
 {
   int result;
 
-  som_new_series ();
-
   result = do_parse_command (lexer, ds, state);
-  if (cmd_result_is_failure (result))
-    lex_discard_rest_of_command (lexer);
 
   assert (!proc_is_open (ds));
   unset_cmd_algorithm ();
@@ -174,8 +168,9 @@ static enum cmd_result
 do_parse_command (struct lexer *lexer,
 		  struct dataset *ds, enum cmd_state state)
 {
-  const struct command *command;
+  const struct command *command = NULL;
   enum cmd_result result;
+  bool opened = false;
 
   /* Read the command's first token. */
   prompt_set_style (PROMPT_FIRST);
@@ -202,52 +197,55 @@ do_parse_command (struct lexer *lexer,
       result = CMD_FAILURE;
       goto finish;
     }
-  else if (command->function == NULL)
+  text_item_submit (text_item_create (TEXT_ITEM_COMMAND_OPEN, command->name));
+  opened = true;
+
+  if (command->function == NULL)
     {
       msg (SE, _("%s is not yet implemented."), command->name);
       result = CMD_NOT_IMPLEMENTED;
-      goto finish;
     }
   else if ((command->flags & F_TESTING) && !settings_get_testing_mode ())
     {
       msg (SE, _("%s may be used only in testing mode."), command->name);
       result = CMD_FAILURE;
-      goto finish;
     }
   else if ((command->flags & F_ENHANCED) && settings_get_syntax () != ENHANCED)
     {
       msg (SE, _("%s may be used only in enhanced syntax mode."),
            command->name);
       result = CMD_FAILURE;
-      goto finish;
     }
   else if (!in_correct_state (command, state))
     {
       report_state_mismatch (command, state);
       result = CMD_FAILURE;
-      goto finish;
     }
-
-  /* Execute command. */
-  msg_set_command_name (command->name);
-  som_set_command_name (command->name);
-  result = command->function (lexer, ds);
-  som_set_command_name (NULL);
-  msg_set_command_name (NULL);
+  else
+    {
+      /* Execute command. */
+      msg_set_command_name (command->name);
+      result = command->function (lexer, ds);
+      msg_set_command_name (NULL);
+    }
 
   assert (cmd_result_is_valid (result));
 
  finish:
-  if ( cmd_result_is_failure (result))
+  if (cmd_result_is_failure (result))
     {
-      const struct source_stream *cs = lex_get_source_stream (lexer);
-
-      if ( source_stream_current_error_mode (cs) == ERRMODE_STOP )
+      lex_discard_rest_of_command (lexer);
+      if (source_stream_current_error_mode (
+            lex_get_source_stream (lexer)) == ERRMODE_STOP )
 	{
 	  msg (MW, _("Error encountered while ERROR=STOP is effective."));
 	  result = CMD_CASCADING_FAILURE;
 	}
     }
+
+  if (opened)
+    text_item_submit (text_item_create (TEXT_ITEM_COMMAND_CLOSE,
+                                        command->name));
 
   return result;
 }

@@ -124,49 +124,93 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 # We need to filter out the dates/times
 activity="date filter"
-grep -v '[Ee]ntered' $TEMPDIR/pspp.list > $TEMPDIR/pspp.filtered
+sed 's/(Entered [^)]*)/(Entered <date>)/' $TEMPDIR/pspp.csv > $TEMPDIR/pspp.filtered
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.filtered
-diff -b  $TEMPDIR/pspp.filtered - <<EOF
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|X       |     1|  1-  1|F1.0  |
-|Y       |     1|  2-  2|F1.0  |
-+--------+------+-------+------+
+diff -c $TEMPDIR/pspp.filtered - <<EOF
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+X,1,1-  1,F1.0
+Y,1,2-  2,F1.0
+
 Documents in the active file:
+
 document First line of a document
+
 Second line of a document
+
 The last line should end with a period: .
+
+(Entered <date>)
+
 File label:
+
 This is a test file label
+
 Documents in the active file:
+
 document First line of a document
+
 Second line of a document
+
 The last line should end with a period: .
+
+(Entered <date>)
+
 Line one
+
 Line two
+
+(Entered <date>)
+
 File label:
+
 This is a test file label
+
 Documents in the active file:
+
 document First line of a document
+
 Second line of a document
+
 The last line should end with a period: .
+
+(Entered <date>)
+
 Line one
+
 Line two
+
+(Entered <date>)
+
 document There should be another document now.
+
+(Entered <date>)
+
 Documents in the active file:
+
 document First line of a document
+
 Second line of a document
+
 The last line should end with a period: .
+
+(Entered <date>)
+
 Line one
+
 Line two
+
+(Entered <date>)
+
 document There should be another document now.
+
+(Entered <date>)
+
 File label:
+
 This is a test file label
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

@@ -90,36 +90,34 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare data"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b $TEMPDIR/pspp.list - << foobar
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|A       |     1|  1-  1|F1.0  |
-|B       |     1|  2-  2|F1.0  |
-+--------+------+-------+------+
-A B
-- -
-1 2 
-3 4 
-5 6 
-7 8 
-9 0 
-2.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|A       |     1|  1-  1|F1.0  |
-|B       |     1|  2-  2|F1.0  |
-+--------+------+-------+------+
-A B
-- -
-0 9 
-8 7 
-6 5 
-4 3 
-2 1 
+diff -c $TEMPDIR/pspp.csv - << foobar
+Title: Test BEGIN DATA ... END DATA
+
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+A,1,1-  1,F1.0
+B,1,2-  2,F1.0
+
+Table: Data List
+A,B
+1,2
+3,4
+5,6
+7,8
+9,0
+
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+A,1,1-  1,F1.0
+B,1,2-  2,F1.0
+
+Table: Data List
+A,B
+0,9
+8,7
+6,5
+4,3
+2,1
 foobar
 if [ $? -ne 0 ] ; then fail ; fi
 

@@ -19,7 +19,7 @@
 
 #include <data/variable.h>
 #include <libpspp/str.h>
-#include <output/table.h>
+#include <output/tab.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
 #include "npar.h"
@@ -56,8 +56,6 @@ output_frequency_table (const struct two_sample_test *t2s,
 
   const struct variable *wv = dict_get_weight (dict);
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
-
-  tab_dim (table, tab_natural_dimensions, NULL, NULL);
 
   tab_title (table, _("Frequencies"));
 
@@ -109,8 +107,6 @@ output_statistics_table (const struct two_sample_test *t2s,
 {
   int i;
   struct tab_table *table = tab_create (1 + t2s->n_pairs, 4);
-
-  tab_dim (table, tab_natural_dimensions, NULL, NULL);
 
   tab_title (table, _("Test Statistics"));
 

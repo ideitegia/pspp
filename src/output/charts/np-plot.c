@@ -21,44 +21,15 @@
 #include <gsl/gsl_cdf.h>
 
 #include <data/casereader.h>
-#include <data/casewriter.h>
 #include <libpspp/cast.h>
-#include <libpspp/message.h>
 #include <math/np.h>
-#include <output/chart-provider.h>
-#include <output/charts/cartesian.h>
-#include <output/charts/plot-chart.h>
+#include <output/chart-item-provider.h>
 
 #include "gl/minmax.h"
 
-#include "gettext.h"
-#define _(msgid) gettext (msgid)
-
-/* An NP or DNP plot. */
-struct np_plot_chart
-  {
-    struct chart chart;
-    char *label;
-    struct casereader *data;
-
-    /* Copied directly from struct np. */
-    double y_min, y_max;
-    double dns_min, dns_max;
-
-    /* Calculated. */
-    double slope, intercept;
-    double y_first, y_last;
-    double x_lower, x_upper;
-    double slack;
-  };
-
-static const struct chart_class np_plot_chart_class;
-static const struct chart_class dnp_plot_chart_class;
-
-static struct chart *
-make_np_plot (const struct chart_class *class,
-              const struct np *np, const struct casereader *reader,
-              const char *label)
+static struct chart_item *
+make_np_plot (const struct np *np, const struct casereader *reader,
+              const char *label, bool detrended)
 {
   struct np_plot_chart *npp;
 
@@ -66,13 +37,13 @@ make_np_plot (const struct chart_class *class,
     return NULL;
 
   npp = xmalloc (sizeof *npp);
-  chart_init (&npp->chart, class);
-  npp->label = xstrdup (label);
+  chart_item_init (&npp->chart_item, &np_plot_chart_class, label);
   npp->data = casereader_clone (reader);
   npp->y_min = np->y_min;
   npp->y_max = np->y_max;
   npp->dns_min = np->dns_min;
   npp->dns_max = np->dns_max;
+  npp->detrended = detrended;
 
   /* Slope and intercept of the ideal normal probability line. */
   npp->slope = 1.0 / np->stddev;
@@ -87,7 +58,7 @@ make_np_plot (const struct chart_class *class,
   npp->x_upper = MAX (np->y_max, (npp->y_last  - npp->intercept) / npp->slope);
   npp->slack = (npp->x_upper - npp->x_lower) * 0.05;
 
-  return &npp->chart;
+  return &npp->chart_item;
 }
 
 /* Creates and returns a normal probability plot corresponding to
@@ -98,11 +69,11 @@ make_np_plot (const struct chart_class *class,
    Returns a null pointer if the data set is empty.
 
    The caller retains ownership of NP and READER. */
-struct chart *
+struct chart_item *
 np_plot_create (const struct np *np, const struct casereader *reader,
                 const char *label)
 {
-  return make_np_plot (&np_plot_chart_class, np, reader, label);
+  return make_np_plot (np, reader, label, false);
 }
 
 /* Creates and returns a detrended normal probability plot
@@ -114,83 +85,23 @@ np_plot_create (const struct np *np, const struct casereader *reader,
    Returns a null pointer if the data set is empty.
 
    The caller retains ownership of NP and READER. */
-struct chart *
+struct chart_item *
 dnp_plot_create (const struct np *np, const struct casereader *reader,
                  const char *label)
 {
-  return make_np_plot (&dnp_plot_chart_class, np, reader, label);
+  return make_np_plot (np, reader, label, true);
 }
 
 static void
-np_plot_chart_draw (const struct chart *chart, cairo_t *cr,
-                    struct chart_geometry *geom)
+np_plot_chart_destroy (struct chart_item *chart_item)
 {
-  const struct np_plot_chart *npp = UP_CAST (chart, struct np_plot_chart,
-                                             chart);
-  struct casereader *data;
-  struct ccase *c;
-
-  chart_write_title (cr, geom, _("Normal Q-Q Plot of %s"), npp->label);
-  chart_write_xlabel (cr, geom, _("Observed Value"));
-  chart_write_ylabel (cr, geom, _("Expected Normal"));
-  chart_write_xscale (cr, geom,
-                      npp->x_lower - npp->slack,
-                      npp->x_upper + npp->slack, 5);
-  chart_write_yscale (cr, geom, npp->y_first, npp->y_last, 5);
-
-  data = casereader_clone (npp->data);
-  for (; (c = casereader_read (data)) != NULL; case_unref (c))
-    chart_datum (cr, geom, 0,
-                 case_data_idx (c, NP_IDX_Y)->f,
-                 case_data_idx (c, NP_IDX_NS)->f);
-  casereader_destroy (data);
-
-  chart_line (cr, geom, npp->slope, npp->intercept,
-              npp->y_first, npp->y_last, CHART_DIM_Y);
-}
-
-static void
-dnp_plot_chart_draw (const struct chart *chart, cairo_t *cr,
-                     struct chart_geometry *geom)
-{
-  const struct np_plot_chart *dnpp = UP_CAST (chart, struct np_plot_chart,
-                                              chart);
-  struct casereader *data;
-  struct ccase *c;
-
-  chart_write_title (cr, geom, _("Detrended Normal Q-Q Plot of %s"),
-                     dnpp->label);
-  chart_write_xlabel (cr, geom, _("Observed Value"));
-  chart_write_ylabel (cr, geom, _("Dev from Normal"));
-  chart_write_xscale (cr, geom, dnpp->y_min, dnpp->y_max, 5);
-  chart_write_yscale (cr, geom, dnpp->dns_min, dnpp->dns_max, 5);
-
-  data = casereader_clone (dnpp->data);
-  for (; (c = casereader_read (data)) != NULL; case_unref (c))
-    chart_datum (cr, geom, 0, case_data_idx (c, NP_IDX_Y)->f,
-                 case_data_idx (c, NP_IDX_DNS)->f);
-  casereader_destroy (data);
-
-  chart_line (cr, geom, 0, 0, dnpp->y_min, dnpp->y_max, CHART_DIM_X);
-}
-
-static void
-np_plot_chart_destroy (struct chart *chart)
-{
-  struct np_plot_chart *npp = UP_CAST (chart, struct np_plot_chart, chart);
+  struct np_plot_chart *npp = to_np_plot_chart (chart_item);
   casereader_destroy (npp->data);
   free (npp->label);
   free (npp);
 }
 
-static const struct chart_class np_plot_chart_class =
+const struct chart_item_class np_plot_chart_class =
   {
-    np_plot_chart_draw,
-    np_plot_chart_destroy
-  };
-
-static const struct chart_class dnp_plot_chart_class =
-  {
-    dnp_plot_chart_draw,
     np_plot_chart_destroy
   };

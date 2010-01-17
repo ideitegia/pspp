@@ -18,28 +18,24 @@
 
 #include <language/stats/roc.h>
 
-#include <data/procedure.h>
-#include <language/lexer/variable-parser.h>
-#include <language/lexer/value-parser.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-
 #include <data/casegrouper.h>
 #include <data/casereader.h>
 #include <data/casewriter.h>
 #include <data/dictionary.h>
 #include <data/format.h>
-#include <math/sort.h>
+#include <data/procedure.h>
 #include <data/subcase.h>
-
-
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <language/lexer/value-parser.h>
+#include <language/lexer/variable-parser.h>
 #include <libpspp/misc.h>
+#include <math/sort.h>
+#include <output/chart-item.h>
+#include <output/charts/roc-chart.h>
+#include <output/tab.h>
 
 #include <gsl/gsl_cdf.h>
-#include <output/table.h>
-
-#include <output/chart.h>
-#include <output/charts/roc-chart.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -939,7 +935,6 @@ show_auc  (struct roc_state *rs, const struct cmd_roc *roc)
 
   tab_headers (tbl, n_cols - n_fields, 0, 1, 0);
 
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   tab_text (tbl, n_cols - n_fields, 1, TAT_TITLE, _("Area"));
 
@@ -1031,8 +1026,6 @@ show_summary (const struct cmd_roc *roc)
 
   tab_headers (tbl, 1, 0, 2, 0);
 
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
-
   tab_box (tbl,
 	   TAL_2, TAL_2,
 	   -1, -1,
@@ -1092,8 +1085,6 @@ show_coords (struct roc_state *rs, const struct cmd_roc *roc)
 
 
   tab_headers (tbl, 1, 0, 1, 0);
-
-  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   tab_hline (tbl, TAL_2, 0, n_cols - 1, 1);
 
@@ -1171,7 +1162,7 @@ output_roc (struct roc_state *rs, const struct cmd_roc *roc)
       for (i = 0; i < roc->n_vars; i++)
         roc_chart_add_var (rc, var_get_name (roc->vars[i]),
                            rs[i].cutpoint_rdr);
-      chart_submit (roc_chart_get_chart (rc));
+      roc_chart_submit (rc);
     }
 
   show_auc (rs, roc);

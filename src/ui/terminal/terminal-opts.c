@@ -15,26 +15,32 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
+#include "terminal-opts.h"
+
 #include <argp.h>
 #include <stdbool.h>
 #include <xalloc.h>
 #include <stdlib.h>
+
 #include <data/settings.h>
-#include <output/output.h>
-#include "msg-ui.h"
-#include <ui/command-line.h>
-#include <libpspp/verbose-msg.h>
-#include <libpspp/llx.h>
 #include <data/file-name.h>
-#include "terminal-opts.h"
-#include <libpspp/getl.h>
 #include <language/syntax-file.h>
-#include "read-line.h"
+#include <libpspp/getl.h>
+#include <libpspp/llx.h>
+#include <libpspp/string-map.h>
+#include <libpspp/string-set.h>
+#include <libpspp/verbose-msg.h>
+#include <output/driver.h>
+#include <ui/command-line.h>
+#include <ui/terminal/msg-ui.h>
+#include <ui/terminal/read-line.h>
+
+#include "gl/error.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
-
 
 static const struct argp_option test_options [] =
   {
@@ -85,8 +91,11 @@ parse_io_opts (int key, char *arg, struct argp_state *state)
   struct source_init
   {
     struct llx_list file_list;
-    bool cleared_device_defaults;
     bool interactive;
+
+    /* Output devices. */
+    struct string_map macros;
+    struct string_set drivers;
   };
 
   struct fn_element {
@@ -105,10 +114,15 @@ parse_io_opts (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_INIT:
       state->hook = sip = xzalloc (sizeof (struct source_init));
       llx_init (&sip->file_list);
+      string_map_init (&sip->macros);
+      string_set_init (&sip->drivers);
       break;
     case ARGP_KEY_ARG:
       if (strchr (arg, '='))
-	outp_configure_macro (arg);
+        {
+          if (!output_define_macro (arg, &sip->macros))
+            error (0, 0, _("\"%s\" is not a valid macro definition"), arg);
+        }
       else
 	{
 	  llx_push_tail (&sip->file_list, arg, &llx_malloc_mgr);
@@ -136,9 +150,16 @@ parse_io_opts (int key, char *arg, struct argp_state *state)
 			      ERRMODE_CONTINUE
 			      );
 
-	  if (!sip->cleared_device_defaults)
-	    outp_configure_add ("interactive");
+          string_set_insert (&sip->drivers, "interactive");
 	}
+
+      if (!settings_get_testing_mode ())
+        output_read_configuration (&sip->macros, &sip->drivers);
+      else
+        output_configure_driver ("csv:csv::");
+
+      string_map_destroy (&sip->macros);
+      string_set_destroy (&sip->drivers);
       }
       break;
     case ARGP_KEY_FINI:
@@ -151,15 +172,10 @@ parse_io_opts (int key, char *arg, struct argp_state *state)
       sip->interactive = true;
       break;
     case 'l':
-      outp_list_classes ();
+      output_list_classes ();
       break;
     case 'o':
-      if (! sip->cleared_device_defaults)
-	{
-	  outp_configure_clear ();
-	  sip->cleared_device_defaults = true;
-	}
-      outp_configure_add (arg);
+      string_set_insert (&sip->drivers, arg);
       break;
     default:
       return ARGP_ERR_UNKNOWN;

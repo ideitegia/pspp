@@ -31,8 +31,7 @@
 #include <language/lexer/variable-parser.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
-#include <output/manager.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include "xalloc.h"
 
@@ -78,7 +77,6 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
     return;
 
   t = tab_create (3, split_cnt + 1);
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_vline (t, TAL_GAP, 1, 0, split_cnt);
   tab_vline (t, TAL_GAP, 2, 0, split_cnt);
   tab_text (t, 0, 0, TAB_NONE, _("Variable"));
@@ -104,6 +102,5 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
       if (val_lab)
 	tab_text (t, 2, i + 1, TAB_LEFT, val_lab);
     }
-  tab_flags (t, SOMF_NO_TITLE);
   tab_submit (t);
 }

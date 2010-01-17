@@ -136,32 +136,34 @@ $SUPERVISOR $PSPP --testing-mode test.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare test results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - <<'EOF'
-            username                                 password        uid        gid                                    gecos                                     home                                    shell
--------------------- ---------------------------------------- ---------- ---------- ---------------------------------------- ---------------------------------------- ----------------------------------------
-root                 $1$nyeSP5gD$pDq/                                  0          0 ,,,                                      /root                                    /bin/bash
-blp                  $1$BrP/pFg4$g7OG                               1000       1000 Ben Pfaff,,,                             /home/blp                                /bin/bash
-john                 $1$JBuq/Fioq$g4A                               1001       1001 John Darrington,,,                       /home/john                               /bin/bash
-jhs                  $1$D3li4hPL$88X1                               1002       1002 Jason Stover,,,                          /home/jhs                                /bin/csh
-   model year mileage price type age
--------- ---- ------- ----- ---- ---
-Civic    2002   29883 15900 Si     2
-Civic    2003   13415 15900 EX     1
-Civic    1992  107000  3800 n/a   12
-Accord   2002   26613 17900 EX     1
-   model     year  mileage    price     type      age
--------- -------- -------- -------- -------- --------
-Civic        2002    29883    15900 Si              2
-Civic        2003    13415    15900 EX              1
-Civic        1992   107000     3800 n/a            12
-Accord       2002    26613    17900 EX              1
-      name  age color   received  price height       type
----------- ---- ----- ---------- ------ ------ ----------
-Rover       4.5 Brown 12.02.2004  80.00  1'4"  Dog
-Charlie      .  Gold  05.04.2007  12.30  3"    Fish
-Molly       2.0 Black 12.12.2006  25.00  5"    Cat
-Gilly        .  White 10.04.2007  10.00  3"    Guinea Pig
+diff -c $TEMPDIR/pspp.csv - <<'EOF'
+Table: Data List
+username,password,uid,gid,gecos,home,shell
+root                ,$1$nyeSP5gD$pDq/                        ,0,0,",,,                                     ",/root                                   ,/bin/bash                               
+blp                 ,$1$BrP/pFg4$g7OG                        ,1000,1000,"Ben Pfaff,,,                            ",/home/blp                               ,/bin/bash                               
+john                ,$1$JBuq/Fioq$g4A                        ,1001,1001,"John Darrington,,,                      ",/home/john                              ,/bin/bash                               
+jhs                 ,$1$D3li4hPL$88X1                        ,1002,1002,"Jason Stover,,,                         ",/home/jhs                               ,/bin/csh                                
+
+Table: Data List
+model,year,mileage,price,type,age
+Civic   ,2002,29883,15900,Si  ,2
+Civic   ,2003,13415,15900,EX  ,1
+Civic   ,1992,107000,3800,n/a ,12
+Accord  ,2002,26613,17900,EX  ,1
+
+Table: Data List
+model,year,mileage,price,type,age
+Civic   ,2002,29883,15900,Si      ,2
+Civic   ,2003,13415,15900,EX      ,1
+Civic   ,1992,107000,3800,n/a     ,12
+Accord  ,2002,26613,17900,EX      ,1
+
+Table: Data List
+name,age,color,received,price,height,type
+Rover     ,4.5,Brown,12.02.2004,80.00,"1'4"" ",Dog       
+Charlie   ,. ,Gold ,05.04.2007,12.30,"3""   ",Fish      
+Molly     ,2.0,Black,12.12.2006,25.00,"5""   ",Cat       
+Gilly     ,. ,White,10.04.2007,10.00,"3""   ",Guinea Pig
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

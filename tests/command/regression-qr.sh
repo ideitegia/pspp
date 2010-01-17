@@ -1569,37 +1569,27 @@ activity="run program"
 $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|v0      |F8.0  |
-|v1      |F8.0  |
-+--------+------+
-2.1 REGRESSION.  Model Summary
-#============#========#=================#==========================#
-#          R #R Square|Adjusted R Square|Std. Error of the Estimate#
-#========#===#========#=================#==========================#
-#        |.05#     .00|              .00|                      8.11#
-#========#===#========#=================#==========================#
-2.2 REGRESSION.  ANOVA
-#===================#==============#====#===========#====#============#
-#                   #Sum of Squares| df |Mean Square|  F |Significance#
-#========#==========#==============#====#===========#====#============#
-#        |Regression#        235.23|   1|     235.23|3.58|         .06#
-#        |Residual  #      98438.40|1498|      65.71|    |            #
-#        |Total     #      98673.63|1499|           |    |            #
-#========#==========#==============#====#===========#====#============#
-2.3 REGRESSION.  Coefficients
-#===================#====#==========#====#====#============#
-#                   #  B |Std. Error|Beta|  t |Significance#
-#========#==========#====#==========#====#====#============#
-#        |(Constant)#1.24|       .42| .00|2.95|         .21#
-#        |    v1    #1.37|       .72| .05|1.89|         .06#
-#        |          #    |          |    |    |            #
-#========#==========#====#==========#====#====#============#
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+v0,F8.0
+v1,F8.0
+
+Table: Model Summary
+,R,R Square,Adjusted R Square,Std. Error of the Estimate
+,.05,.00,.00,8.11
+
+Table: ANOVA
+,,Sum of Squares,df,Mean Square,F,Significance
+,Regression,235.23,1,235.23,3.58,.06
+,Residual,98438.40,1498,65.71,,
+,Total,98673.63,1499,,,
+
+Table: Coefficients
+,,B,Std. Error,Beta,t,Significance
+,(Constant),1.24,.42,.00,2.95,.21
+,v1,1.37,.72,.05,1.89,.06
+,,,,,,
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

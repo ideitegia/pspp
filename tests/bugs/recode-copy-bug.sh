@@ -53,39 +53,88 @@ pass()
 }
 
 mkdir -p $TEMPDIR
-
-activity="copy template 1" 
-cp $top_srcdir/tests/bugs/recode-copy-bug-1.stat $TEMPDIR
-if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="copy template 2" 
-cp $top_srcdir/tests/bugs/recode-copy-bug-2.stat $TEMPDIR
-if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="chdir"
 cd $TEMPDIR
 if [ $? -ne 0 ] ; then no_result ; fi
 
+activity="create syntax 1"
+cat > recode-copy-bug-1.stat <<EOF
+TITLE 'Test for regression of recode COPY bug'
 
-activity="run program 1"
-$SUPERVISOR $PSPP --testing-mode $TEMPDIR/recode-copy-bug-1.stat
+DATA LIST LIST
+ /A (A1)
+ B (A1).
+
+BEGIN DATA
+1     2
+2     3
+3     4
+END DATA.
+
+** Clearly, the else=copy is superfluous here
+RECODE A ("1"="3") ("3"="1") (ELSE=COPY).
+EXECUTE.
+LIST.
+EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
+activity="create syntax 2" 
+cat > recode-copy-bug-2.stat <<EOF
+DATA LIST LIST
+ /A (A1)
+ B (A1).
+
+BEGIN DATA
+1     2
+2     3
+3     4
+END DATA.
+
+STRING A1 (A1).
+RECODE A ("1"="3") ("3"="1") (ELSE=COPY) INTO a1.
+EXECUTE.
+LIST.
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="run program 1"
+$SUPERVISOR $PSPP --testing-mode recode-copy-bug-1.stat
+if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 1"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-1.out
-diff -b -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-1.out
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Title: Test for regression of recode COPY bug
+
+Table: Reading free-form data from INLINE.
+Variable,Format
+A,A1
+B,A1
+
+Table: Data List
+A,B
+3,2
+2,3
+1,4
+EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="run program 2"
-$SUPERVISOR $PSPP --testing-mode $TEMPDIR/recode-copy-bug-2.stat
+$SUPERVISOR $PSPP --testing-mode recode-copy-bug-2.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
-
 activity="compare output 2"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-2.out
-diff -b -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-2.out
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+A,A1
+B,A1
+
+Table: Data List
+A,B,A1
+1,2,3
+2,3,2
+3,4,1
+EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

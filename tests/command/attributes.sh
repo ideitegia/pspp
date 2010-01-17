@@ -100,48 +100,33 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-1.1 DISPLAY.  
-+--------+-----------------+-----------------------------------+
-|Variable|Description      |                                   |
-#========#=================#===================================#
-|a       |Custom attributes|                                   |
-|        |ValidationRule[1]|a * b > 3                          |
-|        |ValidationRule[2]|a + b > 2                          |
-+--------+-----------------+-----------------------------------+
-|b       |Custom attributes|                                   |
-|        |ValidationRule[1]|a * b > 3                          |
-|        |ValidationRule[2]|a + b > 2                          |
-+--------+-----------------+-----------------------------------+
-|c       |Custom attributes|                                   |
-|        |QuestionWording  |X or Y?                            |
-+--------+-----------------+-----------------------------------+
-1.2 DISPLAY.  Custom data file attributes.
-+---------+---------------+
-|Attribute|Value          |
-#=========#===============#
-|array[1] |array element 1|
-|array[2] |array element 2|
-|key      |value          |
-+---------+---------------+
-2.1 DISPLAY.  
-+--------+---------------+-----------------------------------+
-|Variable|Description    |                                   |
-#========#===============#===================================#
-|b       |Custom attribut|s:                                 |
-|        |ValidationRule |a * b > 3                          |
-+--------+---------------+-----------------------------------+
-|c       |Custom attribut|s:                                 |
-|        |QuestionWording|X or Y?                            |
-+--------+---------------+-----------------------------------+
-2.2 DISPLAY.  Custom data file attributes.
-+---------+---------------+
-|Attribute|Value          |
-#=========#===============#
-|array    |array element 2|
-|key      |value          |
-+---------+---------------+
+diff -c $TEMPDIR/pspp.csv - << EOF
+Variable,Description,
+a,Custom attributes:,
+,ValidationRule[1],a * b > 3
+,ValidationRule[2],a + b > 2
+b,Custom attributes:,
+,ValidationRule[1],a * b > 3
+,ValidationRule[2],a + b > 2
+c,Custom attributes:,
+,QuestionWording,X or Y?
+
+Table: Custom data file attributes.
+Attribute,Value
+array[1],array element 1
+array[2],array element 2
+key,value
+
+Variable,Description,
+b,Custom attributes:,
+,ValidationRule,a * b > 3
+c,Custom attributes:,
+,QuestionWording,X or Y?
+
+Table: Custom data file attributes.
+Attribute,Value
+array,array element 2
+key,value
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

@@ -94,61 +94,47 @@ EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list  - <<EOF
-+------+--------+--------+------------+
-|Vector|Position|Variable|Print Format|
-#======#========#========#============#
-|v     |       1|v1      |F8.2        |
-|      |       2|v2      |F8.2        |
-|      |       3|v3      |F8.2        |
-|      |       4|v4      |F8.2        |
-+------+--------+--------+------------+
-+------+--------+--------+------------+
-|Vector|Position|Variable|Print Format|
-#======#========#========#============#
-|#vec  |       1|#vec1   |COMMA10.2   |
-|      |       2|#vec2   |COMMA10.2   |
-|      |       3|#vec3   |COMMA10.2   |
-|      |       4|#vec4   |COMMA10.2   |
-+------+--------+--------+------------+
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|x5      |     1|  1-  1|F1.0  |
-|x2      |     1|  2-  2|F1.0  |
-|x3      |     1|  3-  3|F1.0  |
-|x1      |     1|  4-  4|F1.0  |
-|x4      |     1|  5-  5|F1.0  |
-+--------+------+-------+------+
-+------+--------+--------+------------+
-|Vector|Position|Variable|Print Format|
-#======#========#========#============#
-|x     |       1|x1      |F8.2        |
-|      |       2|x2      |F8.2        |
-|      |       3|x3      |F8.2        |
-|      |       4|x4      |F8.2        |
-|      |       5|x5      |F8.2        |
-+------+--------+--------+------------+
-+------+--------+--------+------------+
-|Vector|Position|Variable|Print Format|
-#======#========#========#============#
-|a     |       1|u       |F1.0        |
-|      |       2|w       |F1.0        |
-|      |       3|x       |F1.0        |
-|      |       4|y       |F1.0        |
-+------+--------+--------+------------+
-|b     |       1|x       |F1.0        |
-|      |       2|y       |F1.0        |
-|      |       3|z       |F1.0        |
-+------+--------+--------+------------+
-|c     |       1|u       |F1.0        |
-|      |       2|w       |F1.0        |
-|      |       3|x       |F1.0        |
-|      |       4|y       |F1.0        |
-|      |       5|z       |F1.0        |
-+------+--------+--------+------------+
+diff -c $TEMPDIR/pspp.csv  - <<EOF
+Vector,Position,Variable,Print Format
+v,1,v1,F8.2
+,2,v2,F8.2
+,3,v3,F8.2
+,4,v4,F8.2
+
+Vector,Position,Variable,Print Format
+#vec,1,#vec1,COMMA10.2
+,2,#vec2,COMMA10.2
+,3,#vec3,COMMA10.2
+,4,#vec4,COMMA10.2
+
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+x5,1,1-  1,F1.0
+x2,1,2-  2,F1.0
+x3,1,3-  3,F1.0
+x1,1,4-  4,F1.0
+x4,1,5-  5,F1.0
+
+Vector,Position,Variable,Print Format
+x,1,x1,F8.2
+,2,x2,F8.2
+,3,x3,F8.2
+,4,x4,F8.2
+,5,x5,F8.2
+
+Vector,Position,Variable,Print Format
+a,1,u,F1.0
+,2,w,F1.0
+,3,x,F1.0
+,4,y,F1.0
+b,1,x,F1.0
+,2,y,F1.0
+,3,z,F1.0
+c,1,u,F1.0
+,2,w,F1.0
+,3,x,F1.0
+,4,y,F1.0
+,5,z,F1.0
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

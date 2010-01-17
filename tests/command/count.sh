@@ -85,24 +85,23 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results 1"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - <<EOF
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|V1      |     1|  1-  2|A2    |
-|V2      |     1|  3-  4|A2    |
-+--------+------+-------+------+
-V1 V2        C
--- -- --------
-12 34      .00 
-32 1      1.00 
-2  13     1.00 
-41 21      .00 
-11 04      .00 
-03  4     1.00 
-01 93      .00 
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Title: Test COUNT transformation
+
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+V1,1,1-  2,A2
+V2,1,3-  4,A2
+
+Table: Data List
+V1,V2,C
+12,34,.00
+32,1 ,1.00
+2 ,13,1.00
+41,21,.00
+11,04,.00
+03,4,1.00
+01,93,.00
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
@@ -133,22 +132,19 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - <<EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|x       |F8.0  |
-|y       |F8.0  |
-+--------+------+
-       x        y        C
--------- -------- --------
-    1.00     2.00     1.00 
-    2.00     3.00     1.00 
-    4.00     5.00      .00 
-    2.00     2.00     2.00 
-    5.00     6.00      .00 
+diff -c $TEMPDIR/pspp.csv - <<EOF
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+y,F8.0
+
+Table: Data List
+x,y,C
+1.00,2.00,1.00
+2.00,3.00,1.00
+4.00,5.00,.00
+2.00,2.00,2.00
+5.00,6.00,.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

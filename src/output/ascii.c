@@ -26,12 +26,17 @@
 #include <data/settings.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
-#include <libpspp/pool.h>
 #include <libpspp/start-date.h>
+#include <libpspp/string-map.h>
 #include <libpspp/version.h>
-#include <output/chart-provider.h>
-#include <output/chart.h>
-#include <output/output.h>
+#include <output/cairo.h>
+#include <output/chart-item-provider.h>
+#include "output/options.h"
+#include <output/tab.h>
+#include <output/text-item.h>
+#include <output/driver-provider.h>
+#include <output/render.h>
+#include <output/table-item.h>
 
 #include "error.h"
 #include "minmax.h"
@@ -40,31 +45,9 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* ASCII driver options: (defaults listed first)
-
-   output-file="pspp.list"
-   append=no|yes                If output-file exists, append to it?
-   chart-files="pspp-#.png"     Name used for charts.
-   chart-type=png|none
-
-   paginate=on|off              Formfeeds are desired?
-   tab-width=8                  Width of a tab; 0 to not use tabs.
-
-   headers=on|off               Put headers at top of page?
-   emphasis=bold|underline|none Style to use for emphasis.
-   length=66|auto
-   width=79|auto
-   squeeze=off|on               Squeeze multiple newlines into exactly one.
-
-   top-margin=2
-   bottom-margin=2
-
-   box[x]="strng"               Sets box character X (X in base 4: 0-3333).
-   init="string"                Set initialization string.
- */
-
-/* Disable messages by failed range checks. */
-/*#define SUPPRESS_WARNINGS 1 */
+/* This file uses TABLE_HORZ and TABLE_VERT enough to warrant abbreviating. */
+#define H TABLE_HORZ
+#define V TABLE_VERT
 
 /* Line styles bit shifts. */
 enum
@@ -77,16 +60,23 @@ enum
     LNS_COUNT = 256
   };
 
+static inline int
+make_box_index (int left, int right, int top, int bottom)
+{
+  return ((left << LNS_LEFT) | (right << LNS_RIGHT)
+          | (top << LNS_TOP) | (bottom << LNS_BOTTOM));
+}
+
 /* Character attributes. */
 #define ATTR_EMPHASIS   0x100   /* Bold-face. */
 #define ATTR_BOX        0x200   /* Line drawing character. */
 
 /* A line of text. */
-struct line
+struct ascii_line
   {
     unsigned short *chars;      /* Characters and attributes. */
-    int char_cnt;               /* Length. */
-    int char_cap;               /* Allocated bytes. */
+    int n_chars;                /* Length. */
+    int allocated_chars;        /* Allocated "chars" elements. */
   };
 
 /* How to emphasize text. */
@@ -97,10 +87,10 @@ enum emphasis_style
     EMPH_NONE                   /* No emphasis. */
   };
 
-/* ASCII output driver extension record. */
-struct ascii_driver_ext
+/* ASCII output driver. */
+struct ascii_driver
   {
-    struct pool *pool;
+    struct output_driver driver;
 
     /* User parameters. */
     bool append;                /* Append if output-file already exists? */
@@ -109,12 +99,13 @@ struct ascii_driver_ext
     bool squeeze_blank_lines;   /* Squeeze multiple blank lines into one? */
     enum emphasis_style emphasis; /* How to emphasize text. */
     int tab_width;		/* Width of a tab; 0 not to use tabs. */
-    bool enable_charts;         /* Enable charts? */
-    const char *chart_file_name; /* Name of files used for charts. */
+    char *chart_file_name;      /* Name of files used for charts. */
 
+    int width;                  /* Page width. */
+    int length;                 /* Page length minus margins and header. */
     bool auto_width;            /* Use viewwidth as page width? */
     bool auto_length;           /* Use viewlength as page width? */
-    int page_length;		/* Page length before subtracting margins. */
+
     int top_margin;		/* Top margin in lines. */
     int bottom_margin;		/* Bottom margin in lines. */
 
@@ -122,408 +113,658 @@ struct ascii_driver_ext
     char *init;                 /* Device initialization string. */
 
     /* Internal state. */
+    char *title;
+    char *subtitle;
     char *file_name;            /* Output file name. */
     FILE *file;                 /* Output file. */
     bool reported_error;        /* Reported file open error? */
     int page_number;		/* Current page number. */
-    struct line *lines;         /* Page content. */
-    int line_cap;               /* Number of lines allocated. */
+    struct ascii_line *lines;   /* Page content. */
+    int allocated_lines;        /* Number of lines allocated. */
     int chart_cnt;              /* Number of charts so far. */
+    int y;
   };
 
-static void ascii_flush (struct outp_driver *);
-static int get_default_box_char (size_t idx);
-static bool update_page_size (struct outp_driver *, bool issue_error);
-static bool handle_option (void *this, const char *key,
-                           const struct string *val);
+static int vertical_margins (const struct ascii_driver *);
 
-static bool
-ascii_open_driver (const char *name, int types, struct substring options)
+static const char *get_default_box (int right, int bottom, int left, int top);
+static bool update_page_size (struct ascii_driver *, bool issue_error);
+static int parse_page_size (struct driver_option *);
+
+static void ascii_close_page (struct ascii_driver *);
+static void ascii_open_page (struct ascii_driver *);
+
+static void ascii_draw_line (void *, int bb[TABLE_N_AXES][2],
+                             enum render_line_style styles[TABLE_N_AXES][2]);
+static void ascii_measure_cell_width (void *, const struct table_cell *,
+                                      int *min, int *max);
+static int ascii_measure_cell_height (void *, const struct table_cell *,
+                                      int width);
+static void ascii_draw_cell (void *, const struct table_cell *,
+                             int bb[TABLE_N_AXES][2],
+                             int clip[TABLE_N_AXES][2]);
+
+static struct ascii_driver *
+ascii_driver_cast (struct output_driver *driver)
 {
-  struct outp_driver *this;
-  struct ascii_driver_ext *x;
-  int i;
-
-  this = outp_allocate_driver (&ascii_class, name, types);
-  this->width = 79;
-  this->font_height = 1;
-  this->prop_em_width = 1;
-  this->fixed_width = 1;
-  for (i = 0; i < OUTP_L_COUNT; i++)
-    this->horiz_line_width[i] = this->vert_line_width[i] = i != OUTP_L_NONE;
-
-  this->ext = x = pool_create_container (struct ascii_driver_ext, pool);
-  x->append = false;
-  x->headers = true;
-  x->paginate = true;
-  x->squeeze_blank_lines = false;
-  x->emphasis = EMPH_BOLD;
-  x->tab_width = 8;
-  x->chart_file_name = pool_strdup (x->pool, "pspp-#.png");
-  x->enable_charts = true;
-  x->auto_width = false;
-  x->auto_length = false;
-  x->page_length = 66;
-  x->top_margin = 2;
-  x->bottom_margin = 2;
-  for (i = 0; i < LNS_COUNT; i++)
-    x->box[i] = NULL;
-  x->init = NULL;
-  x->file_name = pool_strdup (x->pool, "pspp.list");
-  x->file = NULL;
-  x->reported_error = false;
-  x->page_number = 0;
-  x->lines = NULL;
-  x->line_cap = 0;
-  x->chart_cnt = 1;
-
-  if (!outp_parse_options (this->name, options, handle_option, this))
-    goto error;
-
-  if (!update_page_size (this, true))
-    goto error;
-
-  for (i = 0; i < LNS_COUNT; i++)
-    if (x->box[i] == NULL)
-      {
-        char s[2];
-        s[0] = get_default_box_char (i);
-        s[1] = '\0';
-        x->box[i] = pool_strdup (x->pool, s);
-      }
-
-  outp_register_driver (this);
-
-  return true;
-
- error:
-  pool_destroy (x->pool);
-  outp_free_driver (this);
-  return false;
+  assert (driver->class == &ascii_class);
+  return UP_CAST (driver, struct ascii_driver, driver);
 }
 
-static int
-get_default_box_char (size_t idx)
+static struct driver_option *
+opt (struct output_driver *d, struct string_map *options, const char *key,
+     const char *default_value)
 {
-  /* Disassemble IDX into components. */
-  unsigned top = (idx >> LNS_TOP) & 3;
-  unsigned left = (idx >> LNS_LEFT) & 3;
-  unsigned bottom = (idx >> LNS_BOTTOM) & 3;
-  unsigned right = (idx >> LNS_RIGHT) & 3;
+  return driver_option_get (d, options, key, default_value);
+}
 
-  /* Reassemble components into nibbles in the order TLBR.
-     This makes it easy to read the case labels. */
-  unsigned value = (top << 12) | (left << 8) | (bottom << 4) | (right << 0);
-  switch (value)
+static struct output_driver *
+ascii_create (const char *name, enum output_device_type device_type,
+              struct string_map *o)
+{
+  struct output_driver *d;
+  struct ascii_driver *a;
+  int paper_length;
+  int right, bottom, left, top;
+
+  a = xzalloc (sizeof *a);
+  d = &a->driver;
+  output_driver_init (&a->driver, &ascii_class, name, device_type);
+  a->append = parse_boolean (opt (d, o, "append", "false"));
+  a->headers = parse_boolean (opt (d, o, "headers", "true"));
+  a->paginate = parse_boolean (opt (d, o, "paginate", "true"));
+  a->squeeze_blank_lines = parse_boolean (opt (d, o, "squeeze", "false"));
+  a->emphasis = parse_enum (opt (d, o, "emphasis", "bold"),
+                            "bold", EMPH_BOLD,
+                            "underline", EMPH_UNDERLINE,
+                            "none", EMPH_NONE,
+                            (char *) NULL);
+  a->tab_width = parse_int (opt (d, o, "tab-width", "0"), 8, INT_MAX);
+
+  if (parse_enum (opt (d, o, "chart-type", "png"),
+                  "png", true,
+                  "none", false,
+                  (char *) NULL))
+    a->chart_file_name = parse_chart_file_name (opt (d, o, "chart-files",
+                                                     "pspp-#.png"));
+  else
+    a->chart_file_name = NULL;
+
+  a->top_margin = parse_int (opt (d, o, "top-margin", "2"), 0, INT_MAX);
+  a->bottom_margin = parse_int (opt (d, o, "bottom-margin", "2"), 0, INT_MAX);
+
+  a->width = parse_page_size (opt (d, o, "width", "79"));
+  paper_length = parse_page_size (opt (d, o, "length", "66"));
+  a->auto_width = a->width < 0;
+  a->auto_length = paper_length < 0;
+  a->length = paper_length - vertical_margins (a);
+
+  for (right = 0; right < 4; right++)
+    for (bottom = 0; bottom < 4; bottom++)
+      for (left = 0; left < 4; left++)
+        for (top = 0; top < 4; top++)
+          {
+            int indx = make_box_index (left, right, top, bottom);
+            const char *default_value;
+            char name[16];
+
+            sprintf (name, "box[%d%d%d%d]", right, bottom, left, top);
+            default_value = get_default_box (right, bottom, left, top);
+            a->box[indx] = parse_string (opt (d, o, name, default_value));
+          }
+  a->init = parse_string (opt (d, o, "init", ""));
+
+  a->title = xstrdup ("");
+  a->subtitle = xstrdup ("");
+  a->file_name = parse_string (opt (d, o, "output-file", "pspp.list"));
+  a->file = NULL;
+  a->reported_error = false;
+  a->page_number = 0;
+  a->lines = NULL;
+  a->allocated_lines = 0;
+  a->chart_cnt = 1;
+
+  if (!update_page_size (a, true))
+    goto error;
+
+  return d;
+
+error:
+  output_driver_destroy (d);
+  return NULL;
+}
+
+static const char *
+get_default_box (int right, int bottom, int left, int top)
+{
+  switch ((top << 12) | (left << 8) | (bottom << 4) | (right << 0))
     {
     case 0x0000:
-      return ' ';
+      return " ";
 
     case 0x0100: case 0x0101: case 0x0001:
-      return '-';
+      return "-";
 
     case 0x1000: case 0x1010: case 0x0010:
-      return '|';
+      return "|";
 
     case 0x0300: case 0x0303: case 0x0003:
     case 0x0200: case 0x0202: case 0x0002:
-      return '=';
+      return "=";
 
     default:
-      return left > 1 || top > 1 || right > 1 || bottom > 1 ? '#' : '+';
+      return left > 1 || top > 1 || right > 1 || bottom > 1 ? "#" : "+";
     }
+}
+
+static int
+parse_page_size (struct driver_option *option)
+{
+  int dim = atol (option->default_value);
+
+  if (option->value != NULL)
+    {
+      if (!strcmp (option->value, "auto"))
+        dim = -1;
+      else
+        {
+          int value;
+          char *tail;
+
+          errno = 0;
+          value = strtol (option->value, &tail, 0);
+          if (dim >= 1 && errno != ERANGE && *tail == '\0')
+            dim = value;
+          else
+            error (0, 0, _("%s: %s must be positive integer or `auto'"),
+                   option->driver_name, option->name);
+        }
+    }
+
+  driver_option_destroy (option);
+
+  return dim;
+}
+
+static int
+vertical_margins (const struct ascii_driver *a)
+{
+  return a->top_margin + a->bottom_margin + (a->headers ? 3 : 0);
 }
 
 /* Re-calculates the page width and length based on settings,
    margins, and, if "auto" is set, the size of the user's
    terminal window or GUI output window. */
 static bool
-update_page_size (struct outp_driver *this, bool issue_error)
+update_page_size (struct ascii_driver *a, bool issue_error)
 {
-  struct ascii_driver_ext *x = this->ext;
-  int margins = x->top_margin + x->bottom_margin + 1 + (x->headers ? 3 : 0);
+  enum { MIN_WIDTH = 6, MIN_LENGTH = 6 };
 
-  if (x->auto_width)
-    this->width = settings_get_viewwidth ();
-  if (x->auto_length)
-    x->page_length = settings_get_viewlength ();
+  if (a->auto_width)
+    a->width = settings_get_viewwidth ();
+  if (a->auto_length)
+    a->length = settings_get_viewlength () - vertical_margins (a);
 
-  this->length = x->page_length - margins;
-
-  if (this->width < 59 || this->length < 15)
+  if (a->width < MIN_WIDTH || a->length < MIN_LENGTH)
     {
       if (issue_error)
         error (0, 0,
                _("ascii: page excluding margins and headers "
-                 "must be at least 59 characters wide by 15 lines long, but "
+                 "must be at least %d characters wide by %d lines long, but "
                  "as configured is only %d characters by %d lines"),
-             this->width, this->length);
-      if (this->width < 59)
-        this->width = 59;
-      if (this->length < 15)
-        {
-          this->length = 15;
-          x->page_length = this->length + margins;
-        }
+               MIN_WIDTH, MIN_LENGTH,
+               a->width, a->length);
+      if (a->width < MIN_WIDTH)
+        a->width = MIN_WIDTH;
+      if (a->length < MIN_LENGTH)
+        a->length = MIN_LENGTH;
       return false;
     }
 
   return true;
 }
 
-static bool
-ascii_close_driver (struct outp_driver *this)
+static void
+ascii_destroy (struct output_driver *driver)
 {
-  struct ascii_driver_ext *x = this->ext;
+  struct ascii_driver *a = ascii_driver_cast (driver);
+  int i;
 
-  ascii_flush (this);
-  pool_detach_file (x->pool, x->file);
-  pool_destroy (x->pool);
+  if (a->y > 0)
+    ascii_close_page (a);
 
-  return true;
+  free (a->title);
+  free (a->subtitle);
+  free (a->file_name);
+  free (a->chart_file_name);
+  for (i = 0; i < LNS_COUNT; i++)
+    free (a->box[i]);
+  free (a->init);
+  if (a->file != NULL)
+    fclose (a->file);
+  for (i = 0; i < a->allocated_lines; i++)
+    free (a->lines[i].chars);
+  free (a->lines);
+  free (a);
 }
 
-/* Generic option types. */
-enum
-  {
-    boolean_arg,
-    emphasis_arg,
-    nonneg_int_arg,
-    page_size_arg,
-    string_arg
-  };
-
-static const struct outp_option option_tab[] =
-  {
-    {"headers", boolean_arg, 0},
-    {"paginate", boolean_arg, 1},
-    {"squeeze", boolean_arg, 2},
-    {"append", boolean_arg, 3},
-
-    {"emphasis", emphasis_arg, 0},
-
-    {"length", page_size_arg, 0},
-    {"width", page_size_arg, 1},
-
-    {"top-margin", nonneg_int_arg, 0},
-    {"bottom-margin", nonneg_int_arg, 1},
-    {"tab-width", nonneg_int_arg, 2},
-
-    {"output-file", string_arg, 0},
-    {"chart-files", string_arg, 1},
-    {"chart-type", string_arg, 2},
-    {"init", string_arg, 3},
-
-    {NULL, 0, 0},
-  };
-
-static bool
-handle_option (void *this_, const char *key,
-               const struct string *val)
+static void
+ascii_flush (struct output_driver *driver)
 {
-  struct outp_driver *this = this_;
-  struct ascii_driver_ext *x = this->ext;
-  int subcat;
-  const char *value;
+  struct ascii_driver *a = ascii_driver_cast (driver);
+  if (a->file != NULL)
+    fflush (a->file);
+}
 
-  value = ds_cstr (val);
-  if (!strncmp (key, "box[", 4))
+static void
+ascii_init_caption_cell (const char *caption, struct table_cell *cell)
+{
+  cell->contents = caption;
+  cell->options = TAB_LEFT;
+  cell->destructor = NULL;
+}
+
+static void
+ascii_submit (struct output_driver *driver,
+              const struct output_item *output_item)
+{
+  struct ascii_driver *a = ascii_driver_cast (driver);
+  if (is_table_item (output_item))
     {
-      char *tail;
-      int indx = strtol (&key[4], &tail, 4);
-      if (*tail != ']' || indx < 0 || indx > LNS_COUNT)
-	{
-	  error (0, 0, _("ascii: bad index value for `box' key: syntax "
-                         "is box[INDEX], 0 <= INDEX < %d decimal, with INDEX "
-                         "expressed in base 4"),
-                 LNS_COUNT);
-	  return false;
-	}
-      if (x->box[indx] != NULL)
-	error (0, 0, _("ascii: multiple values for %s"), key);
-      x->box[indx] = pool_strdup (x->pool, value);
-      return true;
-    }
+      struct table_item *table_item = to_table_item (output_item);
+      const char *caption = table_item_get_caption (table_item);
+      struct render_params params;
+      struct render_page *page;
+      struct render_break x_break;
+      int caption_height;
+      int i;
 
-  switch (outp_match_keyword (key, option_tab, &subcat))
-    {
-    case -1:
-      error (0, 0, _("ascii: unknown parameter `%s'"), key);
-      break;
-    case page_size_arg:
-      {
-	char *tail;
-	int arg;
+      update_page_size (a, false);
 
-        if (ss_equals_case (ds_ss (val), ss_cstr ("auto")))
-          {
-            if (!(this->device & OUTP_DEV_SCREEN))
-              {
-                /* We only let `screen' devices have `auto'
-                   length or width because output to such devices
-                   is flushed before each new command.  Resizing
-                   a device in the middle of output seems like a
-                   bad idea. */
-                error (0, 0, _("ascii: only screen devices may have `auto' "
-                               "length or width"));
-              }
-            else if (subcat == 0)
-              x->auto_length = true;
-            else
-              x->auto_width = true;
-          }
-        else
-          {
-            errno = 0;
-            arg = strtol (value, &tail, 0);
-            if (arg < 1 || errno == ERANGE || *tail)
-              {
-                error (0, 0, _("ascii: positive integer required as "
-                               "`%s' value"),
-                       key);
-                break;
-              }
-            switch (subcat)
-              {
-              case 0:
-                x->page_length = arg;
-                break;
-              case 1:
-                this->width = arg;
-                break;
-              default:
-                NOT_REACHED ();
-              }
-          }
-      }
-      break;
-    case emphasis_arg:
-      if (!strcmp (value, "bold"))
-        x->emphasis = EMPH_BOLD;
-      else if (!strcmp (value, "underline"))
-        x->emphasis = EMPH_UNDERLINE;
-      else if (!strcmp (value, "none"))
-        x->emphasis = EMPH_NONE;
-      else
-        error (0, 0,
-               _("ascii: `emphasis' value must be `bold', "
-                 "`underline', or `none'"));
-      break;
-    case nonneg_int_arg:
-      {
-	char *tail;
-	int arg;
-
-	errno = 0;
-	arg = strtol (value, &tail, 0);
-	if (arg < 0 || errno == ERANGE || *tail)
-	  {
-	    error (0, 0,
-                   _("ascii: zero or positive integer required as `%s' value"),
-                   key);
-	    break;
-	  }
-	switch (subcat)
-	  {
-	  case 0:
-	    x->top_margin = arg;
-	    break;
-	  case 1:
-	    x->bottom_margin = arg;
-	    break;
-	  case 2:
-	    x->tab_width = arg;
-	    break;
-	  default:
-	    NOT_REACHED ();
-	  }
-      }
-      break;
-    case boolean_arg:
-      {
-	bool setting;
-	if (!strcmp (value, "on") || !strcmp (value, "true")
-	    || !strcmp (value, "yes") || atoi (value))
-	  setting = true;
-	else if (!strcmp (value, "off") || !strcmp (value, "false")
-		 || !strcmp (value, "no") || !strcmp (value, "0"))
-	  setting = false;
-	else
-	  {
-	    error (0, 0, _("ascii: boolean value expected for `%s'"), key);
-	    return false;
-	  }
-	switch (subcat)
-	  {
-	  case 0:
-	    x->headers = setting;
-	    break;
-	  case 1:
-	    x->paginate = setting;
-	    break;
-          case 2:
-            x->squeeze_blank_lines = setting;
-            break;
-          case 3:
-            x->append = setting;
-            break;
-	  default:
-	    NOT_REACHED ();
-	  }
-      }
-      break;
-    case string_arg:
-      switch (subcat)
+      if (caption != NULL)
         {
-        case 0:
-          x->file_name = pool_strdup (x->pool, value);
-          break;
-        case 1:
-          if (ds_find_char (val, '#') != SIZE_MAX)
-            x->chart_file_name = pool_strdup (x->pool, value);
-          else
-            error (0, 0, _("`chart-files' value must contain `#'"));
-          break;
-        case 2:
-          if (!strcmp (value, "png"))
-            x->enable_charts = true;
-          else if (!strcmp (value, "none"))
-            x->enable_charts = false;
-          else
+          /* XXX doesn't do well with very large captions */
+          struct table_cell cell;
+          ascii_init_caption_cell (caption, &cell);
+          caption_height = ascii_measure_cell_height (a, &cell, a->width);
+        }
+      else
+        caption_height = 0;
+
+      params.draw_line = ascii_draw_line;
+      params.measure_cell_width = ascii_measure_cell_width;
+      params.measure_cell_height = ascii_measure_cell_height;
+      params.draw_cell = ascii_draw_cell,
+      params.aux = a;
+      params.size[H] = a->width;
+      params.size[V] = a->length - caption_height;
+      params.font_size[H] = 1;
+      params.font_size[V] = 1;
+      for (i = 0; i < RENDER_N_LINES; i++)
+        {
+          int width = i == RENDER_LINE_NONE ? 0 : 1;
+          params.line_widths[H][i] = width;
+          params.line_widths[V][i] = width;
+        }
+
+      if (a->file == NULL)
+        {
+          ascii_open_page (a);
+          a->y = 0;
+        }
+
+      page = render_page_create (&params, table_item_get_table (table_item));
+      for (render_break_init (&x_break, page, H);
+           render_break_has_next (&x_break); )
+        {
+          struct render_page *x_slice;
+          struct render_break y_break;
+
+          x_slice = render_break_next (&x_break, a->width);
+          for (render_break_init (&y_break, x_slice, V);
+               render_break_has_next (&y_break); )
             {
-              error (0, 0,
-                     _("ascii: `png' or `none' expected for `chart-type'"));
-              return false;
+              struct render_page *y_slice;
+              int space;
+
+              if (a->y > 0)
+                a->y++;
+
+              space = a->length - a->y - caption_height;
+              if (render_break_next_size (&y_break) > space)
+                {
+                  assert (a->y > 0);
+                  ascii_close_page (a);
+                  a->y = 0;
+                  ascii_open_page (a);
+                  continue;
+                }
+
+              y_slice = render_break_next (&y_break, space);
+              if (caption_height)
+                {
+                  struct table_cell cell;
+                  int bb[TABLE_N_AXES][2];
+
+                  ascii_init_caption_cell (caption, &cell);
+                  bb[H][0] = 0;
+                  bb[H][1] = a->width;
+                  bb[V][0] = 0;
+                  bb[V][1] = caption_height;
+                  ascii_draw_cell (a, &cell, bb, bb);
+                  a->y += caption_height;
+                  caption_height = 0;
+                }
+              render_page_draw (y_slice);
+              a->y += render_page_get_size (y_slice, V);
+              render_page_unref (y_slice);
             }
+          render_break_destroy (&y_break);
+        }
+      render_break_destroy (&x_break);
+    }
+  else if (is_chart_item (output_item) && a->chart_file_name != NULL)
+    {
+      struct chart_item *chart_item = to_chart_item (output_item);
+      char *file_name;
+
+      file_name = xr_draw_png_chart (chart_item, a->chart_file_name,
+                                     a->chart_cnt++);
+      if (file_name != NULL)
+        {
+          struct text_item *text_item;
+
+          text_item = text_item_create_format (
+            TEXT_ITEM_PARAGRAPH, _("See %s for a chart."), file_name);
+
+          ascii_submit (driver, &text_item->output_item);
+          text_item_unref (text_item);
+          free (file_name);
+        }
+    }
+  else if (is_text_item (output_item))
+    {
+      const struct text_item *text_item = to_text_item (output_item);
+      enum text_item_type type = text_item_get_type (text_item);
+      const char *text = text_item_get_text (text_item);
+
+      switch (type)
+        {
+        case TEXT_ITEM_TITLE:
+          free (a->title);
+          a->title = xstrdup (text);
           break;
-        case 3:
-          x->init = pool_strdup (x->pool, value);
+
+        case TEXT_ITEM_SUBTITLE:
+          free (a->subtitle);
+          a->subtitle = xstrdup (text);
+          break;
+
+        case TEXT_ITEM_COMMAND_CLOSE:
+          break;
+
+        case TEXT_ITEM_BLANK_LINE:
+          if (a->y > 0)
+            a->y++;
+          break;
+
+        case TEXT_ITEM_EJECT_PAGE:
+          if (a->y > 0)
+            ascii_close_page (a);
+          break;
+
+        default:
+          {
+            struct table_item *item;
+
+            item = table_item_create (table_from_string (0, text), NULL);
+            ascii_submit (&a->driver, &item->output_item);
+            table_item_unref (item);
+          }
           break;
         }
+    }
+}
+
+const struct output_driver_class ascii_class =
+  {
+    "ascii",
+    ascii_create,
+    ascii_destroy,
+    ascii_submit,
+    ascii_flush,
+  };
+
+enum wrap_mode
+  {
+    WRAP_WORD,
+    WRAP_CHAR,
+    WRAP_WORD_CHAR
+  };
+
+static void ascii_expand_line (struct ascii_driver *, int y, int length);
+static void ascii_layout_cell (struct ascii_driver *,
+                               const struct table_cell *,
+                               int bb[TABLE_N_AXES][2],
+                               int clip[TABLE_N_AXES][2], enum wrap_mode wrap,
+                               int *width, int *height);
+
+static void
+ascii_draw_line (void *a_, int bb[TABLE_N_AXES][2],
+                 enum render_line_style styles[TABLE_N_AXES][2])
+{
+  struct ascii_driver *a = a_;
+  unsigned short int value;
+  int x1, y1;
+  int x, y;
+
+  /* Clip to the page. */
+  if (bb[H][0] >= a->width || bb[V][0] + a->y >= a->length)
+    return;
+  x1 = MIN (bb[H][1], a->width);
+  y1 = MIN (bb[V][1] + a->y, a->length);
+
+  /* Draw. */
+  value = ATTR_BOX | make_box_index (styles[V][0], styles[V][1],
+                                     styles[H][0], styles[H][1]);
+  for (y = bb[V][0] + a->y; y < y1; y++)
+    {
+      ascii_expand_line (a, y, x1);
+      for (x = bb[H][0]; x < x1; x++)
+        a->lines[y].chars[x] = value;
+    }
+}
+
+static void
+ascii_measure_cell_width (void *a_, const struct table_cell *cell,
+                          int *min_width, int *max_width)
+{
+  struct ascii_driver *a = a_;
+  int bb[TABLE_N_AXES][2];
+  int clip[TABLE_N_AXES][2];
+  int h;
+
+  bb[H][0] = 0;
+  bb[H][1] = INT_MAX;
+  bb[V][0] = 0;
+  bb[V][1] = INT_MAX;
+  clip[H][0] = clip[H][1] = clip[V][0] = clip[V][1] = 0;
+  ascii_layout_cell (a, cell, bb, clip, WRAP_WORD, max_width, &h);
+
+  if (strchr (cell->contents, ' '))
+    {
+      bb[H][1] = 1;
+      ascii_layout_cell (a, cell, bb, clip, WRAP_WORD, min_width, &h);
+    }
+  else
+    *min_width = *max_width;
+}
+
+static int
+ascii_measure_cell_height (void *a_, const struct table_cell *cell, int width)
+{
+  struct ascii_driver *a = a_;
+  int bb[TABLE_N_AXES][2];
+  int clip[TABLE_N_AXES][2];
+  int w, h;
+
+  bb[H][0] = 0;
+  bb[H][1] = width;
+  bb[V][0] = 0;
+  bb[V][1] = INT_MAX;
+  clip[H][0] = clip[H][1] = clip[V][0] = clip[V][1] = 0;
+  ascii_layout_cell (a, cell, bb, clip, WRAP_WORD, &w, &h);
+  return h;
+}
+
+static void
+ascii_draw_cell (void *a_, const struct table_cell *cell,
+                 int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2])
+{
+  struct ascii_driver *a = a_;
+  int w, h;
+
+  ascii_layout_cell (a, cell, bb, clip, WRAP_WORD, &w, &h);
+}
+
+/* Ensures that at least the first LENGTH characters of line Y in
+   ascii driver A have been cleared out. */
+static void
+ascii_expand_line (struct ascii_driver *a, int y, int length)
+{
+  struct ascii_line *line = &a->lines[y];
+  if (line->n_chars < length)
+    {
+      int x;
+      if (line->allocated_chars < length)
+        {
+          line->allocated_chars = MAX (length, MIN (length * 2, a->width));
+          line->chars = xnrealloc (line->chars, line->allocated_chars,
+                                   sizeof *line->chars);
+        }
+      for (x = line->n_chars; x < length; x++)
+        line->chars[x] = ' ';
+      line->n_chars = length;
+    }
+}
+
+static void
+text_draw (struct ascii_driver *a, const struct table_cell *cell,
+           int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2],
+           int y, const char *string, int n)
+{
+  int x0 = MAX (0, clip[H][0]);
+  int y0 = MAX (0, clip[V][0] + a->y);
+  int x1 = clip[H][1];
+  int y1 = MIN (a->length, clip[V][1] + a->y);
+  int x;
+
+  y += a->y;
+  if (y < y0 || y >= y1)
+    return;
+
+  switch (cell->options & TAB_ALIGNMENT)
+    {
+    case TAB_LEFT:
+      x = bb[H][0];
+      break;
+    case TAB_CENTER:
+      x = (bb[H][0] + bb[H][1] - n + 1) / 2;
+      break;
+    case TAB_RIGHT:
+      x = bb[H][1] - n;
       break;
     default:
       NOT_REACHED ();
     }
 
-  return true;
+  if (x0 > x)
+    {
+      n -= x0 - x;
+      if (n <= 0)
+        return;
+      string += x0 - x;
+      x = x0;
+    }
+  if (x + n >= x1)
+    n = x1 - x;
+
+  if (n > 0)
+    {
+      int attr = cell->options & TAB_EMPH ? ATTR_EMPHASIS : 0;
+      size_t i;
+
+      ascii_expand_line (a, y, x + n);
+      for (i = 0; i < n; i++)
+        a->lines[y].chars[x + i] = string[i] | attr;
+    }
 }
 
 static void
-ascii_open_page (struct outp_driver *this)
+ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
+                   int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2],
+                   enum wrap_mode wrap, int *width, int *height)
 {
-  struct ascii_driver_ext *x = this->ext;
+  size_t length = strlen (cell->contents);
+  int y, pos;
+
+  *width = 0;
+  pos = 0;
+  for (y = bb[V][0]; y < bb[V][1] && pos < length; y++)
+    {
+      const char *line = &cell->contents[pos];
+      const char *new_line;
+      size_t line_len;
+
+      /* Find line length without considering word wrap. */
+      line_len = MIN (bb[H][1] - bb[H][0], length - pos);
+      new_line = memchr (line, '\n', line_len);
+      if (new_line != NULL)
+        line_len = new_line - line;
+
+      /* Word wrap. */
+      if (pos + line_len < length && wrap != WRAP_CHAR)
+        {
+          size_t space_len = line_len;
+          while (space_len > 0 && !isspace ((unsigned char) line[space_len]))
+            space_len--;
+          if (space_len > 0)
+            line_len = space_len;
+          else if (wrap == WRAP_WORD)
+            {
+              while (pos + line_len < length
+                     && !isspace ((unsigned char) line[line_len]))
+                line_len++;
+            }
+        }
+      if (line_len > *width)
+        *width = line_len;
+
+      /* Draw text. */
+      text_draw (a, cell, bb, clip, y, line, line_len);
+
+      /* Next line. */
+      pos += line_len;
+      if (pos < length && isspace ((unsigned char) cell->contents[pos]))
+        pos++;
+    }
+  *height = y - bb[V][0];
+}
+
+/* ascii_close_page () and support routines. */
+
+static void
+ascii_open_page (struct ascii_driver *a)
+{
   int i;
 
-  update_page_size (this, false);
-
-  if (x->file == NULL)
+  if (a->file == NULL)
     {
-      x->file = fn_open (x->file_name, x->append ? "a" : "w");
-      if (x->file != NULL)
+      a->file = fn_open (a->file_name, a->append ? "a" : "w");
+      if (a->file != NULL)
         {
-          pool_attach_file (x->pool, x->file);
-          if (x->init != NULL)
-            fputs (x->init, x->file);
+          if (a->init != NULL)
+            fputs (a->init, a->file);
         }
       else
         {
@@ -533,400 +774,145 @@ ascii_open_page (struct outp_driver *this)
              later.  It would be better to simply drop the driver
              entirely, but we do not have a convenient mechanism
              for this (yet). */
-          if (!x->reported_error)
+          if (!a->reported_error)
             error (0, errno, _("ascii: opening output file \"%s\""),
-                   x->file_name);
-          x->reported_error = true;
+                   a->file_name);
+          a->reported_error = true;
         }
     }
 
-  x->page_number++;
+  a->page_number++;
 
-  if (this->length > x->line_cap)
+  if (a->length > a->allocated_lines)
     {
-      x->lines = pool_nrealloc (x->pool,
-                                x->lines, this->length, sizeof *x->lines);
-      for (i = x->line_cap; i < this->length; i++)
+      a->lines = xnrealloc (a->lines, a->length, sizeof *a->lines);
+      for (i = a->allocated_lines; i < a->length; i++)
         {
-          struct line *line = &x->lines[i];
+          struct ascii_line *line = &a->lines[i];
           line->chars = NULL;
-          line->char_cap = 0;
+          line->allocated_chars = 0;
         }
-      x->line_cap = this->length;
+      a->allocated_lines = a->length;
     }
 
-  for (i = 0; i < this->length; i++)
-    x->lines[i].char_cnt = 0;
+  for (i = 0; i < a->length; i++)
+    a->lines[i].n_chars = 0;
 }
 
-/* Ensures that at least the first LENGTH characters of line Y in
-   THIS driver identified X have been cleared out. */
-static inline void
-expand_line (struct outp_driver *this, int y, int length)
-{
-  struct ascii_driver_ext *ext = this->ext;
-  struct line *line = &ext->lines[y];
-  if (line->char_cnt < length)
-    {
-      int x;
-      if (line->char_cap < length)
-        {
-          line->char_cap = MIN (length * 2, this->width);
-          line->chars = pool_nrealloc (ext->pool,
-                                       line->chars,
-                                       line->char_cap, sizeof *line->chars);
-        }
-      for (x = line->char_cnt; x < length; x++)
-        line->chars[x] = ' ';
-      line->char_cnt = length;
-    }
-}
-
+/* Writes LINE to A's output file.  */
 static void
-ascii_line (struct outp_driver *this,
-            int x0, int y0, int x1, int y1,
-            enum outp_line_style top, enum outp_line_style left,
-            enum outp_line_style bottom, enum outp_line_style right)
+output_line (struct ascii_driver *a, const struct ascii_line *line)
 {
-  struct ascii_driver_ext *ext = this->ext;
-  int y;
-  unsigned short value;
-
-  assert (this->page_open);
-#if DEBUGGING
-  if (x0 < 0 || x1 > this->width || y0 < 0 || y1 > this->length)
-    {
-#if !SUPPRESS_WARNINGS
-      printf (_("ascii: bad line (%d,%d)-(%d,%d) out of (%d,%d)\n"),
-	      x0, y0, x1, y1, this->width, this->length);
-#endif
-      return;
-    }
-#endif
-
-  value = ((left << LNS_LEFT) | (right << LNS_RIGHT)
-           | (top << LNS_TOP) | (bottom << LNS_BOTTOM) | ATTR_BOX);
-  for (y = y0; y < y1; y++)
-    {
-      int x;
-
-      expand_line (this, y, x1);
-      for (x = x0; x < x1; x++)
-        ext->lines[y].chars[x] = value;
-    }
-}
-
-static void
-text_draw (struct outp_driver *this,
-           enum outp_font font,
-           int x, int y,
-           enum outp_justification justification, int width,
-           const char *string, size_t length)
-{
-  struct ascii_driver_ext *ext = this->ext;
-  unsigned short attr = font == OUTP_EMPHASIS ? ATTR_EMPHASIS : 0;
-
-  int line_len;
-
-  switch (justification)
-    {
-    case OUTP_LEFT:
-      break;
-    case OUTP_CENTER:
-      x += (width - length + 1) / 2;
-      break;
-    case OUTP_RIGHT:
-      x += width - length;
-      break;
-    default:
-      NOT_REACHED ();
-    }
-
-  if (y >= this->length || x >= this->width)
-    return;
-
-  if (x + length > this->width)
-    length = this->width - x;
-
-  line_len = x + length;
-
-  expand_line (this, y, line_len);
-  while (length-- > 0)
-    ext->lines[y].chars[x++] = *string++ | attr;
-}
-
-/* Divides the text T->S into lines of width T->H.  Sets *WIDTH
-   to the maximum width of a line and *HEIGHT to the number of
-   lines, if those arguments are non-null.  Actually draws the
-   text if DRAW is true. */
-static void
-delineate (struct outp_driver *this, const struct outp_text *text, bool draw,
-           int *width, int *height)
-{
-  int max_width;
-  int height_left;
-
-  const char *cp = ss_data (text->string);
-
-  max_width = 0;
-  height_left = text->v;
-
-  while (height_left > 0)
-    {
-      size_t chars_left;
-      size_t line_len;
-      const char *end;
-
-      /* Initially the line is up to text->h characters long. */
-      chars_left = ss_end (text->string) - cp;
-      if (chars_left == 0)
-        break;
-      line_len = MIN (chars_left, text->h);
-
-      /* A new-line terminates the line prematurely. */
-      end = memchr (cp, '\n', line_len);
-      if (end != NULL)
-        line_len = end - cp;
-
-      /* Don't cut off words if it can be avoided. */
-      if (cp + line_len < ss_end (text->string))
-        {
-          size_t space_len = line_len;
-          while (space_len > 0 && !isspace ((unsigned char) cp[space_len]))
-            space_len--;
-          if (space_len > 0)
-            line_len = space_len;
-        }
-
-      /* Draw text. */
-      if (draw)
-        text_draw (this,
-                   text->font,
-                   text->x, text->y + (text->v - height_left),
-                   text->justification, text->h,
-                   cp, line_len);
-
-      /* Update. */
-      height_left--;
-      if (line_len > max_width)
-        max_width = line_len;
-
-      /* Next line. */
-      cp += line_len;
-      if (cp < ss_end (text->string) && isspace ((unsigned char) *cp))
-        cp++;
-    }
-
-  if (width != NULL)
-    *width = max_width;
-  if (height != NULL)
-    *height = text->v - height_left;
-}
-
-static void
-ascii_text_metrics (struct outp_driver *this, const struct outp_text *t,
-                    int *width, int *height)
-{
-  delineate (this, t, false, width, height);
-}
-
-static void
-ascii_text_draw (struct outp_driver *this, const struct outp_text *t)
-{
-  assert (this->page_open);
-  delineate (this, t, true, NULL, NULL);
-}
-
-/* ascii_close_page () and support routines. */
-
-/* Writes the LENGTH characters in S to OUT.  */
-static void
-output_line (struct outp_driver *this, const struct line *line,
-             struct string *out)
-{
-  struct ascii_driver_ext *ext = this->ext;
-  const unsigned short *s = line->chars;
   size_t length;
+  size_t i;
 
-  for (length = line->char_cnt; length-- > 0; s++)
-    if (*s & ATTR_BOX)
-      ds_put_cstr (out, ext->box[*s & 0xff]);
-    else
-      {
-        if (*s & ATTR_EMPHASIS)
-          {
-            if (ext->emphasis == EMPH_BOLD)
-              {
-                ds_put_char (out, *s);
-                ds_put_char (out, '\b');
-              }
-            else if (ext->emphasis == EMPH_UNDERLINE)
-              ds_put_cstr (out, "_\b");
-          }
-        ds_put_char (out, *s);
-      }
+  length = line->n_chars;
+  while (length > 0 && line->chars[length - 1] == ' ')
+    length--;
+
+  for (i = 0; i < length; i++)
+    {
+      int attribute = line->chars[i] & (ATTR_BOX | ATTR_EMPHASIS);
+      int ch = line->chars[i] & ~(ATTR_BOX | ATTR_EMPHASIS);
+
+      switch (attribute)
+        {
+        case ATTR_BOX:
+          fputs (a->box[ch], a->file);
+          break;
+
+        case ATTR_EMPHASIS:
+          if (a->emphasis == EMPH_BOLD)
+            fprintf (a->file, "%c\b%c", ch, ch);
+          else if (a->emphasis == EMPH_UNDERLINE)
+            fprintf (a->file, "_\b%c", ch);
+          else
+            putc (ch, a->file);
+          break;
+
+        default:
+          putc (ch, a->file);
+          break;
+        }
+    }
+
+  putc ('\n', a->file);
 }
 
 static void
-append_lr_justified (struct string *out, int width,
-                     const char *left, const char *right)
+output_title_line (FILE *out, int width, const char *left, const char *right)
 {
-  ds_put_char_multiple (out, ' ', width);
+  struct string s = DS_EMPTY_INITIALIZER;
+  ds_put_char_multiple (&s, ' ', width);
   if (left != NULL)
     {
       size_t length = MIN (strlen (left), width);
-      memcpy (ds_end (out) - width, left, length);
+      memcpy (ds_end (&s) - width, left, length);
     }
   if (right != NULL)
     {
       size_t length = MIN (strlen (right), width);
-      memcpy (ds_end (out) - length, right, length);
+      memcpy (ds_end (&s) - length, right, length);
     }
-  ds_put_char (out, '\n');
+  ds_put_char (&s, '\n');
+  fputs (ds_cstr (&s), out);
+  ds_destroy (&s);
 }
 
 static void
-dump_output (struct outp_driver *this, struct string *out)
+ascii_close_page (struct ascii_driver *a)
 {
-  struct ascii_driver_ext *x = this->ext;
-  fwrite (ds_data (out), ds_length (out), 1, x->file);
-  ds_clear (out);
-}
+  bool any_blank;
+  int i, y;
 
-static void
-ascii_close_page (struct outp_driver *this)
-{
-  struct ascii_driver_ext *x = this->ext;
-  struct string out;
-  int line_num;
-
-  if (x->file == NULL)
+  if (a->file == NULL)
     return;
 
-  ds_init_empty (&out);
+  if (!a->top_margin && !a->bottom_margin && a->squeeze_blank_lines
+      && !a->paginate && a->page_number > 1)
+    putc ('\n', a->file);
 
-  ds_put_char_multiple (&out, '\n', x->top_margin);
-  if (x->headers)
+  for (i = 0; i < a->top_margin; i++)
+    putc ('\n', a->file);
+  if (a->headers)
     {
       char *r1, *r2;
 
-      r1 = xasprintf (_("%s - Page %d"), get_start_date (), x->page_number);
+      r1 = xasprintf (_("%s - Page %d"), get_start_date (), a->page_number);
       r2 = xasprintf ("%s - %s" , version, host_system);
 
-      append_lr_justified (&out, this->width, outp_title, r1);
-      append_lr_justified (&out, this->width, outp_subtitle, r2);
-      ds_put_char (&out, '\n');
+      output_title_line (a->file, a->width, a->title, r1);
+      output_title_line (a->file, a->width, a->subtitle, r2);
+      putc ('\n', a->file);
 
       free (r1);
       free (r2);
     }
-  dump_output (this, &out);
 
-  for (line_num = 0; line_num < this->length; line_num++)
+  any_blank = false;
+  for (y = 0; y < a->allocated_lines; y++)
     {
+      struct ascii_line *line = &a->lines[y];
 
-      /* Squeeze multiple blank lines into a single blank line if
-         requested. */
-      if (x->squeeze_blank_lines)
+      if (a->squeeze_blank_lines && y > 0 && line->n_chars == 0)
+        any_blank = true;
+      else
         {
-          if (line_num >= x->line_cap)
-            break;
-          if (line_num > 0
-              && x->lines[line_num].char_cnt == 0
-              && x->lines[line_num - 1].char_cnt == 0)
-            continue;
-        }
+          if (any_blank)
+            {
+              putc ('\n', a->file);
+              any_blank = false;
+            }
 
-      if (line_num < x->line_cap)
-        output_line (this, &x->lines[line_num], &out);
-      ds_put_char (&out, '\n');
-      dump_output (this, &out);
-    }
-
-  ds_put_char_multiple (&out, '\n', x->bottom_margin);
-  if (x->paginate)
-    ds_put_char (&out, '\f');
-
-  dump_output (this, &out);
-  ds_destroy (&out);
-}
-
-/* Flushes all output to the user and lets the user deal with it.
-   This is applied only to output drivers that are designated as
-   "screen" drivers that the user is interacting with in real
-   time. */
-static void
-ascii_flush (struct outp_driver *this)
-{
-  struct ascii_driver_ext *x = this->ext;
-  if (x->file != NULL)
-    {
-      if (fn_close (x->file_name, x->file) != 0)
-        error (0, errno, _("ascii: closing output file \"%s\""),
-               x->file_name);
-      pool_detach_file (x->pool, x->file);
-      x->file = NULL;
-    }
-}
-
-static void
-ascii_output_chart (struct outp_driver *this, const struct chart *chart)
-{
-  struct ascii_driver_ext *x = this->ext;
-  struct outp_text t;
-  char *file_name;
-  char *text;
-
-  /* Draw chart into separate file */
-  file_name = chart_draw_png (chart, x->chart_file_name, x->chart_cnt++);
-
-  /* Mention chart in output.
-     First advance current position. */
-  if (!this->page_open)
-    outp_open_page (this);
-  else
-    {
-      this->cp_y++;
-      if (this->cp_y >= this->length)
-        {
-          outp_close_page (this);
-          outp_open_page (this);
+          output_line (a, line);
         }
     }
+  if (!a->squeeze_blank_lines)
+    for (y = a->allocated_lines; y < a->length; y++)
+      putc ('\n', a->file);
 
-  /* Then write the text. */
-  text = xasprintf ("See %s for a chart.", file_name);
-  t.font = OUTP_FIXED;
-  t.justification = OUTP_LEFT;
-  t.string = ss_cstr (text);
-  t.h = this->width;
-  t.v = 1;
-  t.x = 0;
-  t.y = this->cp_y;
-  ascii_text_draw (this, &t);
-  this->cp_y++;
-
-  free (file_name);
-  free (text);
+  for (i = 0; i < a->bottom_margin; i++)
+    putc ('\n', a->file);
+  if (a->paginate)
+    putc ('\f', a->file);
 }
-
-const struct outp_class ascii_class =
-{
-  "ascii",
-  0,
-
-  ascii_open_driver,
-  ascii_close_driver,
-
-  ascii_open_page,
-  ascii_close_page,
-  ascii_flush,
-
-  ascii_output_chart,
-
-  NULL,                         /* submit */
-
-  ascii_line,
-  ascii_text_metrics,
-  ascii_text_draw,
-};

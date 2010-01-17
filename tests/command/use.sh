@@ -84,19 +84,18 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="check results"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - << EOF
- X
---
- 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
+diff -c $TEMPDIR/pspp.csv - << EOF
+Table: Data List
+X
+1
+2
+3
+4
+5
+6
+7
+8
+9
 10
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

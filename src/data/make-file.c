@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include <data/file-name.h>
 #include <data/make-file.h>

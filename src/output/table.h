@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,188 +14,177 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if !tab_h
-#define tab_h 1
+#ifndef OUTPUT_TABLE_H
+#define OUTPUT_TABLE_H 1
 
-#include <limits.h>
-#include <libpspp/str.h>
+/* Tables.
 
-/* Cell options. */
+.  A table is a rectangular grid of cells.  Cells can be joined to form larger
+   cells.  Rows and columns can be separated by rules of various types.  Rows
+   at the top and bottom of a table and columns at the left and right edges of
+   a table can be designated as headers, which means that if the table must be
+   broken across more than one page, those rows or columns are repeated on each
+   page.
+
+   Every table is an instance of a particular table class that is responsible
+   for keeping track of cell data.  By far the most common table class is
+   struct tab_table (see output/tab.h).  This header also declares some other
+   kinds of table classes, near the end of the file.
+
+   A table is not itself an output_item, and thus a table cannot by itself be
+   used for output, but they can be embedded inside struct table_item (see
+   table-item.h) for that purpose. */
+
+#include <stdbool.h>
+#include <stddef.h>
+
+struct casereader;
+struct fmt_spec;
+struct variable;
+
+/* Properties of a table cell. */
 enum
   {
     TAB_NONE = 0,
 
-    TAB_ALIGN_MASK = 03,	/* Alignment mask. */
-    TAB_RIGHT = 00,		/* Right justify. */
-    TAB_LEFT = 01,		/* Left justify. */
-    TAB_CENTER = 02,		/* Center. */
+    /* Alignment of cell contents. */
+    TAB_RIGHT      = 0 << 0,    /* Right justify. */
+    TAB_LEFT       = 1 << 0,    /* Left justify. */
+    TAB_CENTER     = 2 << 0,    /* Centered. */
+    TAB_ALIGNMENT  = 3 << 0,	/* Alignment mask. */
 
-    /* Cell types. */
-    TAB_JOIN = 004,		/* Joined cell. */
-    TAB_EMPTY = 010,		/* Empty cell. */
+    /* These flags may be combined with any alignment. */
+    TAB_EMPH       = 1 << 2,    /* Emphasize cell contents. */
+    TAB_FIX        = 1 << 3,    /* Use fixed font. */
 
-    /* Flags. */
-    TAB_EMPH = 020,             /* Emphasize cell contents. */
-    TAB_FIX = 040,              /* Use fixed font. */
+    /* Bits with values (1 << TAB_FIRST_AVAILABLE) and higher are
+       not used, so they are available for subclasses to use as
+       they wish. */
+    TAB_FIRST_AVAILABLE = 4
   };
 
-/* Line styles. */
+/* Styles for the rules around table cells. */
 enum
   {
-    TAL_0 = 0,			/* No line. */
-    TAL_1 = 1,			/* Single line. */
-    TAL_2 = 2,			/* Double line. */
-    TAL_GAP = 3,                /* Spacing but no line. */
-    TAL_COUNT,			/* Number of line styles. */
+    TAL_0,			/* No line. */
+    TAL_GAP,                    /* Spacing but no line. */
+    TAL_1,			/* Single line. */
+    TAL_2,			/* Double line. */
+    N_LINES
   };
 
-/* Column styles.  Must correspond to SOM_COL_*. */
-enum
+/* Given line styles A and B (each one of the TAL_* enumeration constants
+   above), returns a line style that "combines" them, that is, that gives a
+   reasonable line style choice for a rule for different reasons should have
+   both styles A and B.
+
+   Used especially for pasting tables together (see table_paste()). */
+static inline int table_rule_combine (int a, int b)
+{
+  return a > b ? a : b;
+}
+
+/* A table axis.
+
+   Many table-related declarations use 2-element arrays in place of "x" and "y"
+   variables.  This reduces code duplication significantly, because much table
+   code has treat rows and columns the same way.
+
+   A lot of code that uses these enumerations assumes that the two values are 0
+   and 1, so don't change them to other values. */
+enum table_axis
   {
-    TAB_COL_NONE,			/* No columns. */
-    TAB_COL_DOWN			/* Columns down first. */
+    TABLE_HORZ,
+    TABLE_VERT,
+    TABLE_N_AXES
   };
-
-/* Joined cell. */
-struct tab_joined_cell
-  {
-    int x1, y1;
-    int x2, y2;
-    struct substring contents;
-  };
-
-struct outp_driver;
-struct tab_table;
-struct tab_rendering;
-
-typedef void tab_dim_func (struct tab_rendering *, void *aux);
-typedef void tab_dim_free_func (void *aux);
 
 /* A table. */
-struct tab_table
+struct table
   {
-    struct pool *container;
-    int ref_cnt;                /* Reference count. */
+    const struct table_class *class;
 
-    /* Contents. */
-    int col_style;		/* Columns: One of TAB_COL_*. */
-    char *title;                /* Table title. */
-    unsigned flags;		/* SOMF_*. */
-    int nc, nr;			/* Number of columns, rows. */
-    int cf;			/* Column factor for indexing purposes. */
-    int l, r, t, b;		/* Number of header rows on each side. */
-    struct substring *cc;	/* Cell contents; substring *[nr][nc]. */
-    unsigned char *ct;		/* Cell types; unsigned char[nr][nc]. */
-    unsigned char *rh;		/* Horiz rules; unsigned char[nr+1][nc]. */
-    unsigned char *rv;		/* Vert rules; unsigned char[nr][nc+1]. */
+    /* Table size.
 
-    /* Calculating row and column dimensions. */
-    tab_dim_func *dim;		/* Calculates cell widths and heights. */
-    tab_dim_free_func *dim_free; /* Frees space allocated for dim function. */
-    void *dim_aux;              /* Auxiliary data for dim function. */
+       n[TABLE_HORZ]: Number of columns.
+       n[TABLE_VERT]: Number of rows. */
+    int n[TABLE_N_AXES];
 
-    /* Editing info. */
-    int col_ofs, row_ofs;	/* X and Y offsets. */
+    /* Table headers.
+
+       Rows at the top and bottom of a table and columns at the left and right
+       edges of a table can be designated as headers.  If the table must be
+       broken across more than one page for output, headers rows and columns
+       are repeated on each page.
+
+       h[TABLE_HORZ][0]: Left header columns.
+       h[TABLE_HORZ][1]: Right header columns.
+       h[TABLE_VERT][0]: Top header rows.
+       h[TABLE_VERT][1]: Bottom header rows. */
+    int h[TABLE_N_AXES][2];
+
+    /* Reference count.  A table may be shared between multiple owners,
+       indicated by a reference count greater than 1.  When this is the case,
+       the table must not be modified. */
+    int ref_cnt;
   };
 
-/* Number of rows or columns in TABLE. */
-static inline int tab_nr (const struct tab_table *table) { return table->nr; }
-static inline int tab_nc (const struct tab_table *table) { return table->nc; }
+/* Reference counting. */
+struct table *table_ref (const struct table *);
+void table_unref (struct table *);
+bool table_is_shared (const struct table *);
+struct table *table_unshare (struct table *);
 
-/* Number of left/right/top/bottom header columns/rows in TABLE. */
-static inline int tab_l (const struct tab_table *table) { return table->l; }
-static inline int tab_r (const struct tab_table *table) { return table->r; }
-static inline int tab_t (const struct tab_table *table) { return table->t; }
-static inline int tab_b (const struct tab_table *table) { return table->b; }
+/* Returns the number of columns or rows, respectively, in T. */
+static inline int table_nc (const struct table *t)
+        { return t->n[TABLE_HORZ]; }
+static inline int table_nr (const struct table *t)
+        { return t->n[TABLE_VERT]; }
 
-struct tab_rendering
-  {
-    const struct tab_table *table;
-    struct outp_driver *driver;
+/* Returns the number of left, right, top, or bottom headers, respectively, in
+   T.  */
+static inline int table_hl (const struct table *t)
+        { return t->h[TABLE_HORZ][0]; }
+static inline int table_hr (const struct table *t)
+        { return t->h[TABLE_HORZ][1]; }
+static inline int table_ht (const struct table *t)
+        { return t->h[TABLE_VERT][0]; }
+static inline int table_hb (const struct table *t)
+        { return t->h[TABLE_VERT][1]; }
 
-    int *w;			/* Column widths; [nc]. */
-    int *h;			/* Row heights; [nr]. */
-    int *hrh;			/* Heights of horizontal rules; [nr+1]. */
-    int *wrv;			/* Widths of vertical rules; [nc+1]. */
+/* Set headers. */
+void table_set_hl (struct table *, int hl);
+void table_set_hr (struct table *, int hr);
+void table_set_ht (struct table *, int ht);
+void table_set_hb (struct table *, int hb);
+
+/* Table classes. */
 
-    /* These fields would be redundant with those in struct tab_table, except
-       that a table will be rendered with fewer header rows or columns than
-       requested when we are pressed for space. */
-    int l, r, t, b;		/* Number of header rows/columns. */
-    int wl, wr, ht, hb;		/* Width/height of header rows/columns. */
-  };
+/* Simple kinds of tables. */
+struct table *table_from_string (unsigned int options, const char *);
+struct table *table_from_variables (unsigned int options,
+                                    struct variable **, size_t);
+struct table *table_from_casereader (const struct casereader *,
+                                     size_t column,
+                                     const char *heading,
+                                     const struct fmt_spec *);
 
-/* Tables. */
-struct tab_table *tab_create (int nc, int nr);
-void tab_destroy (struct tab_table *);
-void tab_ref (struct tab_table *);
-void tab_resize (struct tab_table *, int nc, int nr);
-void tab_realloc (struct tab_table *, int nc, int nr);
-void tab_headers (struct tab_table *, int l, int r, int t, int b);
-void tab_columns (struct tab_table *, int style);
-void tab_title (struct tab_table *, const char *, ...)
-     PRINTF_FORMAT (2, 3);
-void tab_flags (struct tab_table *, unsigned);
-void tab_submit (struct tab_table *);
+/* Combining tables. */
+struct table *table_paste (struct table *, struct table *,
+                           enum table_axis orientation);
+struct table *table_hpaste (struct table *left, struct table *right);
+struct table *table_vpaste (struct table *top, struct table *bottom);
 
-/* Dimensioning. */
-tab_dim_func tab_natural_dimensions;
-int tab_natural_width (const struct tab_rendering *, int c);
-int tab_natural_height (const struct tab_rendering *, int r);
-void tab_dim (struct tab_table *,
-              tab_dim_func *, tab_dim_free_func *, void *aux);
+/* Taking subsets of tables. */
+struct table *table_select (struct table *, int rect[TABLE_N_AXES][2]);
+struct table *table_select_slice (struct table *, enum table_axis,
+                                  int z0, int z1, bool add_headers);
+struct table *table_select_columns (struct table *,
+                                    int x0, int x1, bool add_headers);
+struct table *table_select_rows (struct table *,
+                                 int y0, int y1, bool add_headers);
 
-/* Rules. */
-void tab_hline (struct tab_table *, int style, int x1, int x2, int y);
-void tab_vline (struct tab_table *, int style, int x, int y1, int y2);
-void tab_box (struct tab_table *, int f_h, int f_v, int i_h, int i_v,
-	      int x1, int y1, int x2, int y2);
+/* Miscellaneous table operations. */
+struct table *table_transpose (struct table *);
 
-/* Text options, passed in the `opt' argument. */
-enum
-  {
-    TAT_NONE = 0,		/* No options. */
-    TAT_TITLE = 0x0200 | TAB_EMPH, /* Title attributes. */
-    TAT_NOWRAP = 0x0800         /* No text wrap (tab_output_text() only). */
-  };
-
-/* Cells. */
-struct fmt_spec;
-struct dictionary;
-union value;
-void tab_value (struct tab_table *, int c, int r, unsigned char opt,
-		const union value *, const struct dictionary *dict,
-		const struct fmt_spec *);
-
-void tab_fixed (struct tab_table *, int c, int r, unsigned char opt,
-		double v, int w, int d);
-
-void tab_double (struct tab_table *, int c, int r, unsigned char opt,
-		double v, const struct fmt_spec *);
-
-void tab_text (struct tab_table *, int c, int r, unsigned opt, const char *);
-void tab_text_format (struct tab_table *, int c, int r, unsigned opt,
-                      const char *, ...)
-     PRINTF_FORMAT (5, 6);
-
-void tab_joint_text (struct tab_table *, int x1, int y1, int x2, int y2,
-		     unsigned opt, const char *);
-void tab_joint_text_format (struct tab_table *, int x1, int y1, int x2, int y2,
-                            unsigned opt, const char *, ...)
-     PRINTF_FORMAT (7, 8);
-
-/* Editing. */
-void tab_offset (struct tab_table *, int col, int row);
-void tab_next_row (struct tab_table *);
-
-/* Current row/column offset. */
-#define tab_row(TABLE) ((TABLE)->row_ofs)
-#define tab_col(TABLE) ((TABLE)->col_ofs)
-
-/* Simple output. */
-void tab_output_text (int options, const char *string);
-void tab_output_text_format (int options, const char *, ...)
-     PRINTF_FORMAT (2, 3);
-
-#endif /* tab_h */
-
+#endif /* output/table.h */

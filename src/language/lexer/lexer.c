@@ -32,6 +32,7 @@
 #include <libpspp/getl.h>
 #include <libpspp/str.h>
 #include <output/journal.h>
+#include <output/text-item.h>
 
 #include "xalloc.h"
 
@@ -873,16 +874,17 @@ lex_preprocess_line (struct string *line,
     }
 }
 
-/* Reads a line, without performing any preprocessing.
-   Sets *SYNTAX, if SYNTAX is non-null, to the line's syntax
-   mode. */
+/* Reads a line, without performing any preprocessing. */
 bool
 lex_get_line_raw (struct lexer *lexer)
 {
   bool ok = getl_read_line (lexer->ss, &lexer->line_buffer);
-  enum syntax_mode mode = lex_current_syntax_mode (lexer);
-  journal_write (mode == GETL_BATCH, ds_cstr (&lexer->line_buffer));
-
+  if (ok)
+    {
+      const char *line = ds_cstr (&lexer->line_buffer);
+      journal_write (lex_current_syntax_mode (lexer) == GETL_BATCH, line);
+      text_item_submit (text_item_create (TEXT_ITEM_SYNTAX, line));
+    }
   return ok;
 }
 

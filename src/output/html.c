@@ -15,8 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "chart.h"
-#include "htmlP.h"
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -24,14 +23,19 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
 #include <data/file-name.h>
-#include <output/chart-provider.h>
-#include <output/output.h>
-#include <output/manager.h>
-#include <output/table.h>
+#include <libpspp/assertion.h>
+#include <libpspp/cast.h>
+#include <libpspp/compiler.h>
 #include <libpspp/version.h>
+#include <output/cairo.h>
+#include <output/chart-item.h>
+#include <output/driver-provider.h>
+#include <output/options.h>
+#include <output/output-item-provider.h>
+#include <output/table-provider.h>
+#include <output/table-item.h>
+#include <output/text-item.h>
 
 #include "error.h"
 #include "xalloc.h"
@@ -39,66 +43,136 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* HTML driver options: (defaults listed first)
+struct html_driver
+  {
+    struct output_driver driver;
 
-   output-file="pspp.html"
-   chart-files="pspp-#.png"
-*/
+    char *file_name;
+    char *chart_file_name;
 
+    FILE *file;
+    size_t chart_cnt;
+
+    bool in_syntax;
+  };
+
+const struct output_driver_class html_class;
+
+static void html_output_table (struct html_driver *, struct table_item *);
 static void escape_string (FILE *file,
                            const char *text, size_t length,
                            const char *space);
-static bool handle_option (void *this,
-                           const char *key, const struct string *val);
 static void print_title_tag (FILE *file, const char *name,
                              const char *content);
 
-static bool
-html_open_driver (const char *name, int types, struct substring options)
+static struct html_driver *
+html_driver_cast (struct output_driver *driver)
 {
-  struct outp_driver *this;
-  struct html_driver_ext *x;
+  assert (driver->class == &html_class);
+  return UP_CAST (driver, struct html_driver, driver);
+}
 
-  this = outp_allocate_driver (&html_class, name, types);
-  this->ext = x = xmalloc (sizeof *x);
-  x->file_name = xstrdup ("pspp.html");
-  x->chart_file_name = xstrdup ("pspp-#.png");
-  x->file = NULL;
-  x->chart_cnt = 1;
+static struct driver_option *
+opt (struct output_driver *d, struct string_map *options, const char *key,
+     const char *default_value)
+{
+  return driver_option_get (d, options, key, default_value);
+}
 
-  outp_parse_options (name, options, handle_option, this);
+static struct output_driver *
+html_create (const char *name, enum output_device_type device_type,
+             struct string_map *o)
+{
+  struct output_driver *d;
+  struct html_driver *html;
 
-  x->file = fn_open (x->file_name, "w");
-  if (x->file == NULL)
+  html = xzalloc (sizeof *html);
+  d = &html->driver;
+  output_driver_init (&html->driver, &html_class, name, device_type);
+  html->file_name = parse_string (opt (d, o, "output-file", "pspp.html"));
+  html->chart_file_name = parse_chart_file_name (opt (d, o, "chart-files",
+                                                      "pspp-#.png"));
+  html->file = NULL;
+  html->chart_cnt = 1;
+
+  html->file = fn_open (html->file_name, "w");
+  if (html->file == NULL)
     {
-      error (0, errno, _("opening HTML output file: %s"), x->file_name);
+      error (0, errno, _("opening HTML output file: %s"), html->file_name);
       goto error;
     }
 
   fputs ("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n"
-         "   \"http://www.w3.org/TR/html4/loose.dtd\">\n", x->file);
-  fputs ("<HTML>\n", x->file);
-  fputs ("<HEAD>\n", x->file);
-  /* The <TITLE> tag is required, so we use a default if the user
-     didn't provide one. */
-  print_title_tag (x->file,
-                   "TITLE", outp_title ? outp_title : _("PSPP Output"));
-  fprintf (x->file, "<META NAME=\"generator\" CONTENT=\"%s\">\n", version);
+         "   \"http://www.w3.org/TR/html4/loose.dtd\">\n", html->file);
+  fputs ("<HTML>\n", html->file);
+  fputs ("<HEAD>\n", html->file);
+  print_title_tag (html->file, "TITLE", _("PSPP Output"));
+  fprintf (html->file, "<META NAME=\"generator\" CONTENT=\"%s\">\n", version);
+  fputs ("<META http-equiv=\"Content-Style-Type\" content=\"text/css\">\n",
+         html->file);
   fputs ("<META HTTP-EQUIV=\"Content-Type\" "
-         "CONTENT=\"text/html; charset=ISO-8859-1\">\n", x->file);
-  fputs ("</HEAD>\n", x->file);
-  fputs ("<BODY BGCOLOR=\"#ffffff\" TEXT=\"#000000\"\n", x->file);
-  fputs (" LINK=\"#1f00ff\" ALINK=\"#ff0000\" VLINK=\"#9900dd\">\n", x->file);
-  print_title_tag (x->file, "H1", outp_title);
-  print_title_tag (x->file, "H2", outp_subtitle);
+         "CONTENT=\"text/html; charset=ISO-8859-1\">\n", html->file);
+  fputs ("<STYLE>\n"
+         "<!--\n"
+         "body {\n"
+         "  background: white;\n"
+         "  color: black;\n"
+         "  padding: 0em 12em 0em 3em;\n"
+         "  margin: 0\n"
+         "}\n"
+         "body>p {\n"
+         "  margin: 0pt 0pt 0pt 0em\n"
+         "}\n"
+         "body>p + p {\n"
+         "  text-indent: 1.5em;\n"
+         "}\n"
+         "h1 {\n"
+         "  font-size: 150%;\n"
+         "  margin-left: -1.33em\n"
+         "}\n"
+         "h2 {\n"
+         "  font-size: 125%;\n"
+         "  font-weight: bold;\n"
+         "  margin-left: -.8em\n"
+         "}\n"
+         "h3 {\n"
+         "  font-size: 100%;\n"
+         "  font-weight: bold;\n"
+         "  margin-left: -.5em }\n"
+         "h4 {\n"
+         "  font-size: 100%;\n"
+         "  margin-left: 0em\n"
+         "}\n"
+         "h1, h2, h3, h4, h5, h6 {\n"
+         "  font-family: sans-serif;\n"
+         "  color: blue\n"
+         "}\n"
+         "html {\n"
+         "  margin: 0\n"
+         "}\n"
+         "code {\n"
+         "  font-family: sans-serif\n"
+         "}\n"
+         "table {\n"
+         "  border-collapse: collapse;\n"
+         "  margin-bottom: 1em\n"
+         "}\n"
+         "th { background: #dddddd; font-weight: normal; font-style: oblique }\n"
+         "caption {\n"
+         "  text-align: left\n"
+         "}\n"
+         "-->\n"
+         "</STYLE>\n",
+         html->file);
+  fputs ("</HEAD>\n", html->file);
+  fputs ("<BODY BGCOLOR=\"#ffffff\" TEXT=\"#000000\"\n", html->file);
+  fputs (" LINK=\"#1f00ff\" ALINK=\"#ff0000\" VLINK=\"#9900dd\">\n", html->file);
 
-  outp_register_driver (this);
-  return true;
+  return d;
 
  error:
-  this->class->close_driver (this);
-  outp_free_driver (this);
-  return false;
+  output_driver_destroy (d);
+  return NULL;
 }
 
 /* Emits <NAME>CONTENT</NAME> to the output, escaping CONTENT as
@@ -114,113 +188,128 @@ print_title_tag (FILE *file, const char *name, const char *content)
     }
 }
 
-static bool
-html_close_driver (struct outp_driver *this)
+static void
+html_destroy (struct output_driver *driver)
 {
-  struct html_driver_ext *x = this->ext;
-  bool ok;
+  struct html_driver *html = html_driver_cast (driver);
 
-  if (x->file != NULL)
+  if (html->file != NULL)
     {
-      fprintf (x->file,
+      if (html->in_syntax)
+        {
+          fprintf (html->file, "</PRE>\n");
+          html->in_syntax = false;
+        }
+      fprintf (html->file,
                "</BODY>\n"
                "</HTML>\n"
                "<!-- end of file -->\n");
-      ok = fn_close (x->file_name, x->file) == 0;
-      x->file = NULL;
+      fn_close (html->file_name, html->file);
     }
-  else
-    ok = true;
-  free (x->chart_file_name);
-  free (x->file_name);
-  free (x);
-
-  return ok;
+  free (html->chart_file_name);
+  free (html->file_name);
+  free (html);
 }
-
-/* Generic option types. */
-enum
-  {
-    string_arg,
-    nonneg_int_arg
-  };
-
-/* All the options that the HTML driver supports. */
-static const struct outp_option option_tab[] =
-  {
-    {"output-file",		string_arg,     0},
-    {"chart-files",            string_arg,     1},
-    {NULL, 0, 0},
-  };
 
 static bool
-handle_option (void *this_, const char *key, const struct string *val)
+is_syntax_item (const struct output_item *item)
 {
-  struct outp_driver *this = this_;
-  struct html_driver_ext *x = this->ext;
-  int subcat;
+  return (is_text_item (item)
+          && text_item_get_type (to_text_item (item)) == TEXT_ITEM_SYNTAX);
+}
 
-  switch (outp_match_keyword (key, option_tab, &subcat))
+static void
+html_submit (struct output_driver *driver,
+             const struct output_item *output_item)
+{
+  struct html_driver *html = html_driver_cast (driver);
+
+  if (html->in_syntax && !is_syntax_item (output_item))
     {
-    case -1:
-      error (0, 0,
-             _("unknown configuration parameter `%s' for HTML device driver"),
-             key);
-      break;
-    case string_arg:
-      switch (subcat)
-        {
-        case 0:
-          free (x->file_name);
-          x->file_name = ds_xstrdup (val);
-          break;
-        case 1:
-          if (ds_find_char (val, '#') != SIZE_MAX)
-            {
-              free (x->chart_file_name);
-              x->chart_file_name = ds_xstrdup (val);
-            }
-          else
-            error (0, 0, _("`chart-files' value must contain `#'"));
-          break;
-        default:
-          NOT_REACHED ();
-        }
-      break;
-    default:
-      NOT_REACHED ();
+      fprintf (html->file, "</PRE>\n");
+      html->in_syntax = false;
     }
 
-  return true;
-}
-
-static void output_tab_table (struct outp_driver *, struct tab_table *);
-
-static void
-html_output_chart (struct outp_driver *this, const struct chart *chart)
-{
-  struct html_driver_ext *x = this->ext;
-  char *file_name;
-
-  file_name = chart_draw_png (chart, x->chart_file_name, x->chart_cnt++);
-  fprintf (x->file, "<IMG SRC=\"%s\"/>", file_name);
-  free (file_name);
-}
-
-static void
-html_submit (struct outp_driver *this, struct som_entity *s)
-{
-  extern struct som_table_class tab_table_class;
-
-  assert (s->class == &tab_table_class ) ;
-
-  switch (s->type)
+  if (is_table_item (output_item))
     {
-    case SOM_TABLE:
-      output_tab_table ( this, (struct tab_table *) s->ext);
-      break;
-    default:
-      NOT_REACHED ();
+      struct table_item *table_item = to_table_item (output_item);
+      html_output_table (html, table_item);
+    }
+  else if (is_chart_item (output_item) && html->chart_file_name != NULL)
+    {
+      struct chart_item *chart_item = to_chart_item (output_item);
+      char *file_name;
+
+      file_name = xr_draw_png_chart (chart_item, html->chart_file_name,
+                                     html->chart_cnt++);
+      if (file_name != NULL)
+        {
+          fprintf (html->file, "<IMG SRC=\"%s\"/>", file_name);
+          free (file_name);
+        }
+    }
+  else if (is_text_item (output_item))
+    {
+      struct text_item *text_item = to_text_item (output_item);
+      const char *s = text_item_get_text (text_item);
+
+      switch (text_item_get_type (text_item))
+        {
+        case TEXT_ITEM_TITLE:
+          print_title_tag (html->file, "H1", s);
+          break;
+
+        case TEXT_ITEM_SUBTITLE:
+          print_title_tag (html->file, "H2", s);
+          break;
+
+        case TEXT_ITEM_COMMAND_OPEN:
+          fprintf (html->file, "<DIV class=\"");
+          escape_string (html->file, s, strlen (s), "_");
+          fprintf (html->file, "\">");
+          print_title_tag (html->file, "H3", s);
+          break;
+
+        case TEXT_ITEM_COMMAND_CLOSE:
+          fprintf (html->file, "</DIV>\n");
+          break;
+
+        case TEXT_ITEM_SUBHEAD:
+          print_title_tag (html->file, "H4", s);
+          break;
+
+        case TEXT_ITEM_SYNTAX:
+          if (!html->in_syntax)
+            {
+              fprintf (html->file, "<PRE class=\"syntax\">");
+              html->in_syntax = true;
+            }
+          else
+            putc ('\n', html->file);
+          escape_string (html->file, s, strlen (s), " ");
+          break;
+
+        case TEXT_ITEM_PARAGRAPH:
+          print_title_tag (html->file, "P", s);
+          break;
+
+        case TEXT_ITEM_MONOSPACE:
+          print_title_tag (html->file, "PRE", s); /* should be <P><TT> */
+          break;
+
+        case TEXT_ITEM_BLANK_LINE:
+          fputs ("<BR>", html->file);
+          break;
+
+        case TEXT_ITEM_EJECT_PAGE:
+          /* Nothing to do. */
+          break;
+
+        case TEXT_ITEM_COMMENT:
+        case TEXT_ITEM_ECHO:
+          /* We print out syntax anyway, so nothing to do here either. */
+          break;
+        }
     }
 }
 
@@ -249,6 +338,9 @@ escape_string (FILE *file,
         case ' ':
           fputs (space, file);
           break;
+        case '"':
+          fputs ("&quot;", file);
+          break;
         default:
           putc (c, file);
           break;
@@ -256,135 +348,150 @@ escape_string (FILE *file,
     }
 }
 
-/* Outputs content for a cell with options OPTS and contents
-   TEXT. */
-void
-html_put_cell_contents (struct outp_driver *this,
-                        unsigned int opts, const struct substring text)
-{
-  struct html_driver_ext *x = this->ext;
-
-  if (!(opts & TAB_EMPTY))
-    {
-      if (opts & TAB_EMPH)
-        fputs ("<EM>", x->file);
-      if (opts & TAB_FIX)
-        {
-          fputs ("<TT>", x->file);
-          escape_string (x->file, ss_data (text), ss_length (text), "&nbsp;");
-          fputs ("</TT>", x->file);
-        }
-      else
-        {
-          size_t initial_spaces = ss_span (text, ss_cstr (CC_SPACES));
-          escape_string (x->file,
-                         ss_data (text) + initial_spaces,
-                         ss_length (text) - initial_spaces,
-                         " ");
-        }
-      if (opts & TAB_EMPH)
-        fputs ("</EM>", x->file);
-    }
-}
-
-/* Write table T to THIS output driver. */
 static void
-output_tab_table (struct outp_driver *this, struct tab_table *t)
+put_border (FILE *file, int n_borders, int style, const char *border_name)
 {
-  struct html_driver_ext *x = this->ext;
-
-  if (tab_nr (t) == 1 && tab_nc (t) == 1)
-    {
-      fputs ("<P>", x->file);
-      html_put_cell_contents (this, t->ct[0], *t->cc);
-      fputs ("</P>\n", x->file);
-
-      return;
-    }
-
-  fputs ("<TABLE BORDER=1>\n", x->file);
-
-  if (t->title != NULL)
-    {
-      fprintf (x->file, "  <CAPTION>");
-      escape_string (x->file, t->title, strlen (t->title), " ");
-      fputs ("</CAPTION>\n", x->file);
-    }
-
-  {
-    int r;
-    unsigned char *ct = t->ct;
-
-    for (r = 0; r < tab_nr (t); r++)
-      {
-	int c;
-
-	fputs ("  <TR>\n", x->file);
-	for (c = 0; c < tab_nc (t); c++, ct++)
-	  {
-            struct substring *cc;
-            const char *tag;
-            struct tab_joined_cell *j = NULL;
-
-            cc = t->cc + c + r * tab_nc (t);
-	    if (*ct & TAB_JOIN)
-              {
-                j = (struct tab_joined_cell *) ss_data (*cc);
-                cc = &j->contents;
-                if (j->x1 != c || j->y1 != r)
-                  continue;
-              }
-
-            /* Output <TD> or <TH> tag. */
-            tag = (r < tab_t (t) || r >= tab_nr (t) - tab_b (t)
-                   || c < tab_l (t) || c >= tab_nc (t) - tab_r (t)) ? "TH" : "TD";
-            fprintf (x->file, "    <%s ALIGN=%s",
-                     tag,
-                     (*ct & TAB_ALIGN_MASK) == TAB_LEFT ? "LEFT"
-                     : (*ct & TAB_ALIGN_MASK) == TAB_RIGHT ? "RIGHT"
-                     : "CENTER");
-	    if (*ct & TAB_JOIN)
-	      {
-		if (j->x2 - j->x1 > 1)
-		  fprintf (x->file, " COLSPAN=%d", j->x2 - j->x1);
-		if (j->y2 - j->y1 > 1)
-		  fprintf (x->file, " ROWSPAN=%d", j->y2 - j->y1);
-	      }
-	    putc ('>', x->file);
-
-            /* Output cell contents. */
-            html_put_cell_contents (this, *ct, *cc);
-
-            /* Output </TH> or </TD>. */
-	    fprintf (x->file, "</%s>\n", tag);
-	  }
-	fputs ("  </TR>\n", x->file);
-      }
-  }
-
-  fputs ("</TABLE>\n\n", x->file);
+  fprintf (file, "%sborder-%s: %s",
+           n_borders == 0 ? " STYLE=\"" : "; ",
+           border_name,
+           style == TAL_1 ? "thin solid" : "double");
 }
 
+static void
+html_output_table (struct html_driver *html, struct table_item *item)
+{
+  const struct table *t = table_item_get_table (item);
+  const char *caption;
+  int x, y;
 
+  fputs ("<TABLE>\n", html->file);
 
-/* HTML driver class. */
-const struct outp_class html_class =
+  caption = table_item_get_caption (item);
+  if (caption != NULL)
+    {
+      fputs ("  <CAPTION>", html->file);
+      escape_string (html->file, caption, strlen (caption), " ");
+      fputs ("</CAPTION>\n", html->file);
+    }
+
+  for (y = 0; y < table_nr (t); y++)
+    {
+      fputs ("  <TR>\n", html->file);
+      for (x = 0; x < table_nc (t); x++)
+        {
+          struct table_cell cell;
+          const char *tag;
+          bool is_header;
+          int alignment, colspan, rowspan;
+          int top, left, right, bottom, n_borders;
+          const char *s;
+
+          table_get_cell (t, x, y, &cell);
+          if (x != cell.d[TABLE_HORZ][0] || y != cell.d[TABLE_VERT][0])
+            continue;
+
+          /* Output <TD> or <TH> tag. */
+          is_header = (y < table_ht (t)
+                       || y >= table_nr (t) - table_hb (t)
+                       || x < table_hl (t)
+                       || x >= table_nc (t) - table_hr (t));
+          tag = is_header ? "TH" : "TD";
+          fprintf (html->file, "    <%s", tag);
+
+          alignment = cell.options & TAB_ALIGNMENT;
+          if (alignment != TAB_LEFT)
+            fprintf (html->file, " ALIGN=%s",
+                     alignment == TAB_RIGHT ? "RIGHT" : "CENTER");
+
+          colspan = table_cell_colspan (&cell);
+          if (colspan > 1)
+            fprintf (html->file, " COLSPAN=%d", colspan);
+
+          rowspan = table_cell_rowspan (&cell);
+          if (rowspan > 1)
+            fprintf (html->file, " ROWSPAN=%d", rowspan);
+
+          /* Cell borders. */
+          n_borders = 0;
+          
+          top = table_get_rule (t, TABLE_VERT, x, y);
+          if (top > TAL_GAP)
+            put_border (html->file, n_borders++, top, "top");
+
+          if (y == table_nr (t) - 1)
+            {
+              bottom = table_get_rule (t, TABLE_VERT, x, y + 1);
+              if (bottom > TAL_GAP)
+                put_border (html->file, n_borders++, bottom, "bottom");
+            }
+
+          left = table_get_rule (t, TABLE_HORZ, x, y);
+          if (left > TAL_GAP)
+            put_border (html->file, n_borders++, left, "left");
+
+          if (x == table_nc (t) - 1)
+            {
+              right = table_get_rule (t, TABLE_HORZ, x + 1, y);
+              if (right > TAL_GAP)
+                put_border (html->file, n_borders++, right, "right");
+            }
+
+          if (n_borders > 0)
+            fputs ("\"", html->file);
+
+          if (top > TAL_GAP || bottom > TAL_GAP
+              || left > TAL_GAP || right > TAL_GAP)
+            {
+              fputs (" STYLE=\"", html->file);
+              if (top > TAL_GAP)
+                fprintf (html->file, "border-top: %s",
+                         top == TAL_1 ? "thin solid" : "double");
+
+              if (top > TAL_GAP && left > TAL_GAP)
+                fputs ("; ", html->file);
+
+              if (left > TAL_GAP)
+                fprintf (html->file, "border-left: %s",
+                         left == TAL_1 ? "thin solid" : "double");
+              fputs ("\"", html->file);
+            }
+
+          putc ('>', html->file);
+
+          /* Output cell contents. */
+          s = cell.contents;
+          if (cell.options & TAB_EMPH)
+            fputs ("<EM>", html->file);
+          if (cell.options & TAB_FIX)
+            {
+              fputs ("<TT>", html->file);
+              escape_string (html->file, s, strlen (s), "&nbsp;");
+              fputs ("</TT>", html->file);
+            }
+          else
+            {
+              s += strspn (s, CC_SPACES);
+              escape_string (html->file, s, strlen (s), " ");
+            }
+          if (cell.options & TAB_EMPH)
+            fputs ("</EM>", html->file);
+
+          /* Output </TH> or </TD>. */
+          fprintf (html->file, "</%s>\n", tag);
+
+          table_cell_free (&cell);
+        }
+      fputs ("  </TR>\n", html->file);
+    }
+
+  fputs ("</TABLE>\n\n", html->file);
+}
+
+const struct output_driver_class html_class =
   {
     "html",
-    1,
-
-    html_open_driver,
-    html_close_driver,
-
-    NULL,
-    NULL,
-    NULL,
-
-    html_output_chart,
-
+    html_create,
+    html_destroy,
     html_submit,
-
-    NULL,
-    NULL,
     NULL,
   };

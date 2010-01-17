@@ -15,17 +15,20 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <language/command.h>
-#include <libpspp/message.h>
-#include <libpspp/getl.h>
-#include <language/syntax-file.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/str.h>
+#include <unistd.h>
+
 #include <data/file-name.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <language/syntax-file.h>
+#include <libpspp/getl.h>
+#include <libpspp/message.h>
+#include <libpspp/str.h>
 
 #include "dirname.h"
 #include "xalloc.h"

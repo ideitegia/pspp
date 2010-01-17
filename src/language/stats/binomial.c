@@ -16,7 +16,7 @@
 
 #include <config.h>
 #include <libpspp/compiler.h>
-#include <output/table.h>
+#include <output/tab.h>
 
 #include <data/format.h>
 #include <data/case.h>
@@ -188,8 +188,6 @@ binomial_execute (const struct dataset *ds,
 	var_get_print_format (wvar) : & F_8_0;
 
       struct tab_table *table = tab_create (7, ost->n_vars * 3 + 1);
-
-      tab_dim (table, tab_natural_dimensions, NULL, NULL);
 
       tab_title (table, _("Binomial Test"));
 

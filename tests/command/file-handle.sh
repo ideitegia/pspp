@@ -81,21 +81,17 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
-diff  -b  $TEMPDIR/pspp.list - << EOF 
-1.1 DATA LIST.  Reading free-form data from myhandle.
-+--------+------+
-|Variable|Format|
-#========#======#
-|x       |F8.0  |
-+--------+------+
+diff -c $TEMPDIR/pspp.csv - << EOF 
+Table: Reading free-form data from myhandle.
+Variable,Format
+x,F8.0
 
-       x
---------
-    1.00 
-    2.00 
-    5.00 
-  109.00 
-
+Table: Data List
+x
+1.00
+2.00
+5.00
+109.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

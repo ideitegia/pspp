@@ -44,10 +44,10 @@
 #include <libpspp/misc.h>
 #include <libpspp/message.h>
 
-#include <output/table.h>
+#include <output/tab.h>
 
 #include <output/charts/scree.h>
-#include <output/chart.h>
+#include <output/chart-item.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -935,7 +935,7 @@ show_scree (const struct cmd_factor *f, struct idata *idata)
 
   s = scree_create (idata->eval, label);
 
-  chart_submit (scree_get_chart (s));
+  scree_submit (s);
 }
 
 static void
@@ -963,8 +963,6 @@ show_communalities (const struct cmd_factor * factor,
   t = tab_create (nc, nr);
 
   tab_title (t, _("Communalities"));
-
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
 
@@ -1026,8 +1024,6 @@ show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const 
     tab_title (t, _("Component Matrix"));
   else 
     tab_title (t, _("Factor Matrix"));
-
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
 
@@ -1135,8 +1131,6 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
   t = tab_create (nc, nr);
 
   tab_title (t, _("Total Variance Explained"));
-
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
 
@@ -1288,8 +1282,6 @@ show_correlation_matrix (const struct cmd_factor *factor, const struct idata *id
 
   tab_title (t, _("Correlation Matrix"));
 
-  tab_dim (t, tab_natural_dimensions, NULL, NULL);
-
   tab_hline (t, TAL_1, 0, nc - 1, heading_rows);
 
   if (nr > heading_rows)
@@ -1431,7 +1423,6 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
       struct tab_table *t = tab_create (nc, nr);
       tab_title (t, _("Descriptive Statistics"));
-      tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
       tab_headers (t, heading_columns, 0, heading_rows, 0);
 
