@@ -66,7 +66,7 @@ data list file='$top_srcdir/tests/weighting.data'/AVAR 1-5 BVAR 6-10.
 weight by BVAR.
 list.
 *list /cases=from 5 to 20 by 2 /format numbered.
-list /format numbered weight.
+list /format numbered.
 
 *** Multiple lines.
 data list file='$top_srcdir/tests/list.data' notable /X000 to X126 1-127.

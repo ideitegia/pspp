@@ -56,8 +56,7 @@
      *variables=varlist("PV_NO_SCRATCH");
      cases=:from n:first,"%s>0"/by n:step,"%s>0"/ *to n:last,"%s>0";
      +format=numbering:numbered/!unnumbered,
-             wrap:!wrap/single,
-             weight:weight/!noweight.
+             wrap:!wrap/single.
 */
 /* (declarations) */
 /* (functions) */
@@ -191,30 +190,6 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
       cmd.step = 1;
     }
 
-  /* Weighting variable. */
-  if (cmd.weight == LST_WEIGHT)
-    {
-      if (dict_get_weight (dict) != NULL)
-	{
-	  size_t i;
-
-	  for (i = 0; i < cmd.n_variables; i++)
-	    if (cmd.v_variables[i] == dict_get_weight (dict))
-	      break;
-	  if (i >= cmd.n_variables)
-	    {
-	      /* Add the weight variable to the end of the variable list. */
-	      cmd.n_variables++;
-	      cmd.v_variables = xnrealloc (cmd.v_variables, cmd.n_variables,
-                                           sizeof *cmd.v_variables);
-	      cmd.v_variables[cmd.n_variables - 1]
-                = dict_get_weight (dict);
-	    }
-	}
-      else
-	msg (SW, _("`/FORMAT WEIGHT' specified, but weighting is not on."));
-    }
-
   /* Case number. */
   if (cmd.numbering == LST_NUMBERED)
     {
@@ -224,7 +199,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
       casenum_var = var_create ("Case#", 0);
       var_set_both_formats (casenum_var, &format);
 
-      /* Add the weight variable at the beginning of the variable list. */
+      /* Add the case-number variable at the beginning of the variable list. */
       cmd.n_variables++;
       cmd.v_variables = xnrealloc (cmd.v_variables,
                                    cmd.n_variables, sizeof *cmd.v_variables);

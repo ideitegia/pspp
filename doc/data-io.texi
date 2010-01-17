@@ -826,8 +826,7 @@ random variates between 0 and 10.
 LIST
         /VARIABLES=var_list
         /CASES=FROM start_index TO end_index BY incr_index
-        /FORMAT=@{UNNUMBERED,NUMBERED@} @{WRAP,SINGLE@} 
-                @{NOWEIGHT,WEIGHT@}
+        /FORMAT=@{UNNUMBERED,NUMBERED@} @{WRAP,SINGLE@}
 @end display
 
 The @cmd{LIST} procedure prints the values of specified variables to the
@@ -846,9 +845,7 @@ settings.  If CASES is not specified then all cases are printed.
 The FORMAT subcommand can be used to change the output format.  NUMBERED
 will print case numbers along with each case; UNNUMBERED, the default,
 causes the case numbers to be omitted.  The WRAP and SINGLE settings are
-currently not used.  WEIGHT will cause case weights to be printed along
-with variable values; NOWEIGHT, the default, causes case weights to be
-omitted from the output.
+currently not used.
 
 Case numbers start from 1.  They are counted after all transformations
 have been considered.
