@@ -58,8 +58,8 @@ struct _PsppireOutputWindow
   int y;
 
   GtkTreeView *overview;
-  int last_table_num;
-  GtkTreeIter last_top_level;
+  GtkTreeIter cur_command;
+  bool in_command;
 
   struct output_item **items;
   size_t n_items, allocated_items;

@@ -24,8 +24,11 @@
 #include <libpspp/message.h>
 #include <libpspp/string-map.h>
 #include <output/cairo.h>
+#include <output/chart-item.h>
 #include <output/driver-provider.h>
 #include <output/output-item.h>
+#include <output/table-item.h>
+#include <output/text-item.h>
 #include <output/tab.h>
 #include <stdlib.h>
 
@@ -176,6 +179,10 @@ psppire_output_submit (struct output_driver *this,
   PsppireOutputWindow *viewer;
   GtkWidget *drawing_area;
   struct xr_rendering *r;
+  struct string title;
+  GtkTreeStore *store;
+  GtkTreePath *path;
+  GtkTreeIter iter;
   cairo_t *cr;
   int tw, th;
 
@@ -187,6 +194,26 @@ psppire_output_submit (struct output_driver *this,
     }
   viewer = pod->viewer;
 
+  if (viewer->n_items >= viewer->allocated_items)
+    viewer->items = x2nrealloc (viewer->items, &viewer->allocated_items,
+                                sizeof *viewer->items);
+  viewer->items[viewer->n_items++] = output_item_ref (item);
+
+  if (is_text_item (item))
+    {
+      const struct text_item *text_item = to_text_item (item);
+      enum text_item_type type = text_item_get_type (text_item);
+      const char *text = text_item_get_text (text_item);
+
+      if (type == TEXT_ITEM_COMMAND_CLOSE)
+        {
+          viewer->in_command = false;
+          return;
+        }
+      else if (text[0] == '\0')
+        return;
+    }
+
   cr = gdk_cairo_create (GTK_WIDGET (pod->viewer)->window);
   if (pod->xr == NULL)
     pod->xr = xr_create_driver (cr);
@@ -194,11 +221,6 @@ psppire_output_submit (struct output_driver *this,
   r = xr_rendering_create (pod->xr, item, cr);
   if (r == NULL)
     goto done;
-
-  if (viewer->n_items >= viewer->allocated_items)
-    viewer->items = x2nrealloc (viewer->items, &viewer->allocated_items,
-                                sizeof *viewer->items);
-  viewer->items[viewer->n_items++] = output_item_ref (item);
 
   xr_rendering_measure (r, &tw, &th);
 
@@ -212,6 +234,56 @@ psppire_output_submit (struct output_driver *this,
   gtk_widget_show (drawing_area);
   g_signal_connect (G_OBJECT (drawing_area), "expose_event",
                      G_CALLBACK (expose_event_callback), NULL);
+
+  if (!is_text_item (item)
+      || text_item_get_type (to_text_item (item)) != TEXT_ITEM_SYNTAX
+      || !viewer->in_command)
+    {
+      store = GTK_TREE_STORE (gtk_tree_view_get_model (viewer->overview));
+
+      ds_init_empty (&title);
+      if (is_text_item (item)
+          && text_item_get_type (to_text_item (item)) == TEXT_ITEM_COMMAND_OPEN)
+        {
+          gtk_tree_store_append (store, &iter, NULL);
+          viewer->cur_command = iter; /* XXX shouldn't save a GtkTreeIter */
+          viewer->in_command = true;
+        }
+      else
+        {
+          GtkTreeIter *p = viewer->in_command ? &viewer->cur_command : NULL;
+          gtk_tree_store_append (store, &iter, p);
+        }
+
+      ds_clear (&title);
+      if (is_text_item (item))
+        ds_put_cstr (&title, text_item_get_text (to_text_item (item)));
+      else if (is_table_item (item))
+        {
+          const char *caption = table_item_get_caption (to_table_item (item));
+          if (caption != NULL)
+            ds_put_format (&title, "Table: %s", caption);
+          else
+            ds_put_cstr (&title, "Table");
+        }
+      else if (is_chart_item (item))
+        {
+          const char *s = chart_item_get_title (to_chart_item (item));
+          if (s != NULL)
+            ds_put_format (&title, "Chart: %s", s);
+          else
+            ds_put_cstr (&title, "Chart");
+        }
+      gtk_tree_store_set (store, &iter,
+                          COL_TITLE, ds_cstr (&title),
+                          COL_Y, viewer->y,
+                          -1);
+      ds_destroy (&title);
+
+      path = gtk_tree_model_get_path (GTK_TREE_MODEL (store), &iter);
+      gtk_tree_view_expand_row (viewer->overview, path, TRUE);
+      gtk_tree_path_free (path);
+    }
 
   if (pod->viewer->max_width < tw)
     pod->viewer->max_width = tw;
@@ -437,7 +509,8 @@ psppire_output_window_init (PsppireOutputWindow *window)
                                              N_COLS,
                                              G_TYPE_STRING, /* COL_TITLE */
                                              G_TYPE_LONG))); /* COL_Y */
-  window->last_table_num = -1;
+
+  window->in_command = false;
 
   window->items = NULL;
   window->n_items = window->allocated_items = 0;
