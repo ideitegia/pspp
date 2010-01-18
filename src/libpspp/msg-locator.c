@@ -17,8 +17,9 @@
 #include <config.h>
 #include <stdlib.h>
 #include "msg-locator.h"
-#include <libpspp/message.h>
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
+#include <libpspp/message.h>
 #include "getl.h"
 
 #include "xalloc.h"
@@ -77,7 +78,7 @@ get_msg_location (const struct source_stream *ss, struct msg_locator *loc)
     }
   else
     {
-      loc->file_name = getl_source_name (ss);
+      loc->file_name = CONST_CAST (char *, getl_source_name (ss));
       loc->line_number = getl_source_location (ss);
     }
 }

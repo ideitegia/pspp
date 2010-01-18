@@ -34,6 +34,7 @@
 #include <language/lexer/lexer.h>
 #include <language/prompt.h>
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
@@ -140,7 +141,7 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
   if (fh_get_referent (fh) != FH_REF_INLINE)
     {
       struct stat s;
-      r->where.file_name = fh_get_file_name (fh);
+      r->where.file_name = CONST_CAST (char *, fh_get_file_name (fh));
       r->where.line_number = 0;
       r->file = fn_open (fh_get_file_name (fh),
                          fh_get_mode (fh) == FH_MODE_TEXT ? "r" : "rb");

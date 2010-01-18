@@ -79,19 +79,27 @@ msg_done (void)
 struct msg *
 msg_dup(const struct msg *m)
 {
-  struct msg *new_msg = xmalloc (sizeof *m);
+  struct msg *new_msg;
 
-  *new_msg = *m;
-  new_msg->text = xstrdup(m->text);
+  new_msg = xmemdup (m, sizeof *m);
+  if (m->where.file_name != NULL)
+    new_msg->where.file_name = xstrdup (m->where.file_name);
+  new_msg->text = xstrdup (m->text);
 
   return new_msg;
 }
 
+/* Frees a message created by msg_dup().
+
+   (Messages not created by msg_dup(), as well as their where.file_name
+   members, are typically not dynamically allocated, so this function should
+   not be used to destroy them.) */
 void
-msg_destroy(struct msg *m)
+msg_destroy (struct msg *m)
 {
-  free(m->text);
-  free(m);
+  free (m->where.file_name);
+  free (m->text);
+  free (m);
 }
 
 /* Emits M as an error message.

@@ -69,8 +69,8 @@ msg_class_from_category_and_severity (enum msg_category category,
 /* A file location.  */
 struct msg_locator
   {
-    const char *file_name;		/* File name. */
-    int line_number;			/* Line number. */
+    char *file_name;		/* File name. */
+    int line_number;            /* Line number. */
   };
 
 /* A message. */
