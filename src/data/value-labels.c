@@ -28,22 +28,11 @@
 #include <libpspp/compiler.h>
 #include <libpspp/hash-functions.h>
 #include <libpspp/hmap.h>
+#include <libpspp/intern.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
 #include "xalloc.h"
-
-static struct atom *atom_create (const char *string);
-static void atom_destroy (struct atom *);
-static const char *atom_to_string (const struct atom *);
-
-/* Returns the label in VL.  The caller must not modify or free
-   the returned value. */
-const char *
-val_lab_get_label (const struct val_lab *vl)
-{
-  return atom_to_string (vl->label);
-}
 
 /* Creates and returns a new, empty set of value labels with the
    given WIDTH. */
@@ -69,7 +58,7 @@ val_labs_clone (const struct val_labs *vls)
 
   copy = val_labs_create (vls->width);
   HMAP_FOR_EACH (label, struct val_lab, node, &vls->labels)
-    val_labs_add (copy, &label->value, atom_to_string (label->label));
+    val_labs_add (copy, &label->value, label->label);
   return copy;
 }
 
@@ -124,7 +113,7 @@ val_labs_clear (struct val_labs *vls)
     {
       hmap_delete (&vls->labels, &label->node);
       value_destroy (&label->value, vls->width);
-      atom_destroy (label->label);
+      intern_unref (label->label);
       free (label);
     }
 }
@@ -144,7 +133,7 @@ do_add_val_lab (struct val_labs *vls, const union value *value,
   struct val_lab *lab = xmalloc (sizeof *lab);
   value_init (&lab->value, vls->width);
   value_copy (&lab->value, value, vls->width);
-  lab->label = atom_create (label);
+  lab->label = intern_new (label);
   hmap_insert (&vls->labels, &lab->node, value_hash (value, vls->width, 0));
 }
 
@@ -173,8 +162,8 @@ val_labs_replace (struct val_labs *vls, const union value *value,
   struct val_lab *vl = val_labs_lookup (vls, value);
   if (vl != NULL)
     {
-      atom_destroy (vl->label);
-      vl->label = atom_create (label);
+      intern_unref (vl->label);
+      vl->label = intern_new (label);
     }
   else
     do_add_val_lab (vls, value, label);
@@ -186,7 +175,7 @@ val_labs_remove (struct val_labs *vls, struct val_lab *label)
 {
   hmap_delete (&vls->labels, &label->node);
   value_destroy (&label->value, vls->width);
-  atom_destroy (label->label);
+  intern_unref (label->label);
   free (label);
 }
 
@@ -197,7 +186,7 @@ const char *
 val_labs_find (const struct val_labs *vls, const union value *value)
 {
   const struct val_lab *label = val_labs_lookup (vls, value);
-  return label ? atom_to_string (label->label) : NULL;
+  return label ? label->label : NULL;
 }
 
 /* Searches VLS for a value label for VALUE.  If successful,
@@ -269,90 +258,4 @@ val_labs_sorted (const struct val_labs *vls)
     }
   else
     return NULL;
-}
-
-/* Atoms: reference-counted constant strings. */
-
-/* An atom. */
-struct atom
-  {
-    struct hmap_node node;      /* Hash map node. */
-    char *string;               /* String value. */
-    unsigned ref_count;         /* Number of references. */
-  };
-
-/* Hash table of atoms. */
-static struct hmap atoms = HMAP_INITIALIZER (atoms);
-
-static void free_atom (struct atom *atom);
-static void free_all_atoms (void);
-
-/* Creates and returns an atom for STRING. */
-static struct atom *
-atom_create (const char *string)
-{
-  static bool initialized;
-  struct atom *atom;
-  size_t hash;
-
-  assert (string != NULL);
-
-  if (!initialized)
-    {
-      initialized = true;
-      atexit (free_all_atoms);
-    }
-
-  hash = hash_string (string, 0);
-  HMAP_FOR_EACH_WITH_HASH (atom, struct atom, node, hash, &atoms)
-    if (!strcmp (atom->string, string))
-      {
-        atom->ref_count++;
-        return atom;
-      }
-
-  atom = xmalloc (sizeof *atom);
-  atom->string = xstrdup (string);
-  atom->ref_count = 1;
-  hmap_insert (&atoms, &atom->node, hash);
-  return atom;
-}
-
-/* Destroys ATOM. */
-static void
-atom_destroy (struct atom *atom)
-{
-  if (atom != NULL)
-    {
-      assert (atom->ref_count > 0);
-      atom->ref_count--;
-      if (atom->ref_count == 0)
-        {
-          hmap_delete (&atoms, &atom->node);
-          free_atom (atom);
-        }
-    }
-}
-
-/* Returns the string associated with ATOM. */
-static const char *
-atom_to_string (const struct atom *atom)
-{
-  return atom->string;
-}
-
-static void
-free_atom (struct atom *atom)
-{
-  free (atom->string);
-  free (atom);
-}
-
-static void
-free_all_atoms (void)
-{
-  struct atom *atom, *next;
-
-  HMAP_FOR_EACH_SAFE (atom, next, struct atom, node, &atoms)
-    free_atom (atom);
 }

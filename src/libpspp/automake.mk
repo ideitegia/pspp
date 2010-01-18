@@ -40,6 +40,8 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/i18n.h \
 	src/libpspp/integer-format.c \
 	src/libpspp/integer-format.h \
+	src/libpspp/intern.c \
+	src/libpspp/intern.h \
 	src/libpspp/legacy-encoding.c \
 	src/libpspp/legacy-encoding.h \
 	src/libpspp/ll.c \

@@ -38,7 +38,7 @@ struct val_lab
   {
     struct hmap_node node;      /* Node in hash map. */
     union value value;          /* The value being labeled. */
-    struct atom *label;         /* A ref-counted string. */
+    const char *label;          /* An interned string. */
   };
 
 /* Returns the value in VL.  The caller must not modify or free
@@ -52,7 +52,13 @@ static inline const union value *val_lab_get_value (const struct val_lab *vl)
   return &vl->value;
 }
 
-const char *val_lab_get_label (const struct val_lab *);
+/* Returns the label in VL.  The caller must not modify or free the returned
+   value. */
+static inline const char *
+val_lab_get_label (const struct val_lab *vl)
+{
+  return vl->label;
+}
 
 /* A set of value labels. */
 struct val_labs
