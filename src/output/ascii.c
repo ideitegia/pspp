@@ -333,6 +333,8 @@ ascii_destroy (struct output_driver *driver)
   if (a->y > 0)
     ascii_close_page (a);
 
+  if (a->file != NULL)
+    fn_close (a->file_name, a->file);
   free (a->title);
   free (a->subtitle);
   free (a->file_name);
@@ -340,8 +342,6 @@ ascii_destroy (struct output_driver *driver)
   for (i = 0; i < LNS_COUNT; i++)
     free (a->box[i]);
   free (a->init);
-  if (a->file != NULL)
-    fclose (a->file);
   for (i = 0; i < a->allocated_lines; i++)
     free (a->lines[i].chars);
   free (a->lines);
