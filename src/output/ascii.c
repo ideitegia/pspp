@@ -352,8 +352,15 @@ static void
 ascii_flush (struct output_driver *driver)
 {
   struct ascii_driver *a = ascii_driver_cast (driver);
-  if (a->file != NULL)
-    fflush (a->file);
+  if (a->y > 0)
+    {
+      ascii_close_page (a);
+
+      if (fn_close (a->file_name, a->file) != 0)
+        error (0, errno, _("ascii: closing output file \"%s\""),
+               a->file_name);
+      a->file = NULL;
+    }
 }
 
 static void
@@ -408,10 +415,7 @@ ascii_submit (struct output_driver *driver,
         }
 
       if (a->file == NULL)
-        {
-          ascii_open_page (a);
-          a->y = 0;
-        }
+        ascii_open_page (a);
 
       page = render_page_create (&params, table_item_get_table (table_item));
       for (render_break_init (&x_break, page, H);
@@ -435,7 +439,6 @@ ascii_submit (struct output_driver *driver,
                 {
                   assert (a->y > 0);
                   ascii_close_page (a);
-                  a->y = 0;
                   ascii_open_page (a);
                   continue;
                 }
@@ -915,4 +918,6 @@ ascii_close_page (struct ascii_driver *a)
     putc ('\n', a->file);
   if (a->paginate)
     putc ('\f', a->file);
+
+  a->y = 0;
 }
