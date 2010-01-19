@@ -109,6 +109,11 @@ msg_emit (struct msg *m)
 {
   if ( s_stream )
     get_msg_location (s_stream, &m->where);
+  else
+    {
+      m->where.file_name = NULL;
+      m->where.line_number = -1;
+    }
 
   if (!messages_disabled)
      msg_handler (m);
