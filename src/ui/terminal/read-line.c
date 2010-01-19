@@ -155,8 +155,7 @@ readln_read (struct string *line, enum prompt_style style)
 
   welcome ();
 
-  if (style == PROMPT_FIRST)
-    output_flush ();
+  output_flush ();
 
 #if HAVE_READLINE
   rl_attempted_completion_function = (style == PROMPT_FIRST
