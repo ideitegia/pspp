@@ -117,7 +117,7 @@ struct ascii_driver
     char *subtitle;
     char *file_name;            /* Output file name. */
     FILE *file;                 /* Output file. */
-    bool reported_error;        /* Reported file open error? */
+    bool error;                 /* Output error? */
     int page_number;		/* Current page number. */
     struct ascii_line *lines;   /* Page content. */
     int allocated_lines;        /* Number of lines allocated. */
@@ -132,7 +132,7 @@ static bool update_page_size (struct ascii_driver *, bool issue_error);
 static int parse_page_size (struct driver_option *);
 
 static void ascii_close_page (struct ascii_driver *);
-static void ascii_open_page (struct ascii_driver *);
+static bool ascii_open_page (struct ascii_driver *);
 
 static void ascii_draw_line (void *, int bb[TABLE_N_AXES][2],
                              enum render_line_style styles[TABLE_N_AXES][2]);
@@ -218,7 +218,7 @@ ascii_create (const char *name, enum output_device_type device_type,
   a->subtitle = xstrdup ("");
   a->file_name = parse_string (opt (d, o, "output-file", "pspp.list"));
   a->file = NULL;
-  a->reported_error = false;
+  a->error = false;
   a->page_number = 0;
   a->lines = NULL;
   a->allocated_lines = 0;
@@ -376,6 +376,8 @@ ascii_submit (struct output_driver *driver,
               const struct output_item *output_item)
 {
   struct ascii_driver *a = ascii_driver_cast (driver);
+  if (a->error)
+    return;
   if (is_table_item (output_item))
     {
       struct table_item *table_item = to_table_item (output_item);
@@ -414,8 +416,8 @@ ascii_submit (struct output_driver *driver,
           params.line_widths[V][i] = width;
         }
 
-      if (a->file == NULL)
-        ascii_open_page (a);
+      if (a->file == NULL && !ascii_open_page (a))
+        return;
 
       page = render_page_create (&params, table_item_get_table (table_item));
       for (render_break_init (&x_break, page, H);
@@ -439,7 +441,8 @@ ascii_submit (struct output_driver *driver,
                 {
                   assert (a->y > 0);
                   ascii_close_page (a);
-                  ascii_open_page (a);
+                  if (!ascii_open_page (a))
+                    return;
                   continue;
                 }
 
@@ -756,10 +759,13 @@ ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
 
 /* ascii_close_page () and support routines. */
 
-static void
+static bool
 ascii_open_page (struct ascii_driver *a)
 {
   int i;
+
+  if (a->error)
+    return false;
 
   if (a->file == NULL)
     {
@@ -771,16 +777,10 @@ ascii_open_page (struct ascii_driver *a)
         }
       else
         {
-          /* Report the error to the user and complete
-             initialization.  If we do not finish initialization,
-             then calls to other driver functions will segfault
-             later.  It would be better to simply drop the driver
-             entirely, but we do not have a convenient mechanism
-             for this (yet). */
-          if (!a->reported_error)
-            error (0, errno, _("ascii: opening output file \"%s\""),
-                   a->file_name);
-          a->reported_error = true;
+          error (0, errno, _("ascii: opening output file \"%s\""),
+                 a->file_name);
+          a->error = true;
+          return false;
         }
     }
 
@@ -800,6 +800,8 @@ ascii_open_page (struct ascii_driver *a)
 
   for (i = 0; i < a->length; i++)
     a->lines[i].n_chars = 0;
+
+  return true;
 }
 
 /* Writes LINE to A's output file.  */
@@ -868,6 +870,7 @@ ascii_close_page (struct ascii_driver *a)
   bool any_blank;
   int i, y;
 
+  a->y = 0;
   if (a->file == NULL)
     return;
 
@@ -918,6 +921,4 @@ ascii_close_page (struct ascii_driver *a)
     putc ('\n', a->file);
   if (a->paginate)
     putc ('\f', a->file);
-
-  a->y = 0;
 }
