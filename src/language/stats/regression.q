@@ -862,6 +862,7 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
 	}
     }
   free (rows);
+  return result;
 }
 
 static bool
