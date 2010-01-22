@@ -157,6 +157,7 @@ covariance_1pass_create (size_t n_vars, const struct variable **vars,
   cov->n_cm = (n_vars * (n_vars - 1)  ) / 2;
 
   cov->cm = xcalloc (sizeof *cov->cm, cov->n_cm);
+  cov->categoricals = NULL;
 
   return cov;
 }

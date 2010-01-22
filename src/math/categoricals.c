@@ -91,11 +91,14 @@ void
 categoricals_destroy ( struct categoricals *cat)
 {
   int i;
-  for (i = 0 ; i < cat->n_vp; ++i)
-    hmap_destroy (&cat->vp[i].map);
-
-  pool_destroy (cat->pool);
-  free (cat);
+  if (cat != NULL)
+    {
+      for (i = 0 ; i < cat->n_vp; ++i)
+	hmap_destroy (&cat->vp[i].map);
+      
+      pool_destroy (cat->pool);
+      free (cat);
+    }
 }
 
 
