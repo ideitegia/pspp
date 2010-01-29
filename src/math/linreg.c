@@ -71,7 +71,7 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
 {
   linreg *c;
 
-  c = (linreg *) malloc (sizeof (linreg));
+  c = xmalloc (sizeof (linreg));
   c->depvar = depvar;
   c->indep_vars = indep_vars;
   c->indep_means = gsl_vector_alloc (p);

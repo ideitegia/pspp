@@ -659,8 +659,6 @@ subcommand_save (struct dataset *ds, int save, linreg ** models)
   int n_trns = 0;
   int i;
 
-  assert (models != NULL);
-
   if (save)
     {
       /* Count the number of transformations we will need. */
@@ -954,6 +952,8 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	{
 	  msg (SE,
 	       gettext ("No valid data found. This command was skipped."));
+	  linreg_free (models[k]);
+	  models[k] = NULL;
 	}
     }
 
