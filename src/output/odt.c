@@ -293,7 +293,7 @@ odt_create (const char *name, enum output_device_type device_type,
   d = &odt->driver;
   output_driver_init (d, &odt_class, name, device_type);
 
-  odt->file_name = parse_string (opt (d, o, "output-file", "pspp.pdt"));
+  odt->file_name = parse_string (opt (d, o, "output-file", "pspp.odt"));
   odt->debug = parse_boolean (opt (d, o, "debug", "false"));
 
   odt->dirname = xstrdup ("odt-XXXXXX");
