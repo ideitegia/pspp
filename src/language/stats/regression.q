@@ -821,21 +821,16 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
   
   for (i = 0; i < n_all_vars; i++)
     {
-      for (j = k; j < n_vars; j++)
+      for (j = 0; j < n_vars; j++)
 	{
 	  if (vars[j] == all_vars[i])
 	    {
-	      if (vars[j] != dep_var)
-		{
-		  rows[j] = i;
-		}
-	      else
-		{
-		  dep_subscript = i;
-		}
-	      k++;
-	      break;
+	      rows[j] = i;
 	    }
+	}
+      if (all_vars[i] == dep_var)
+	{
+	  dep_subscript = i;
 	}
     }
   for (i = 0; i < cov->size1 - 1; i++)
