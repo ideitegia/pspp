@@ -70,10 +70,15 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
 	      double n, size_t p)
 {
   linreg *c;
+  size_t i;
 
   c = xmalloc (sizeof (linreg));
   c->depvar = depvar;
-  c->indep_vars = indep_vars;
+  c->indep_vars = xnmalloc (p, sizeof (*indep_vars));
+  for (i = 0; i < p; i++)
+    {
+      c->indep_vars[i] = indep_vars[i];
+    }
   c->indep_means = gsl_vector_alloc (p);
   c->indep_std = gsl_vector_alloc (p);
   c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the
@@ -111,6 +116,7 @@ linreg_free (void *m)
       gsl_vector_free (c->indep_std);
       gsl_matrix_free (c->cov);
       gsl_vector_free (c->ssx);
+      free (c->indep_vars);
       free (c->coeff);
       free (c);
     }
