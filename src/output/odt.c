@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -367,8 +367,8 @@ odt_destroy (struct output_driver *driver)
   /* Zip up the directory */
   ds_init_empty (&zip_cmd);
   ds_put_format (&zip_cmd,
-		 "cd %s ; rm -f ../%s; zip -q -X ../%s mimetype; zip -q -X -u -r ../pspp.odt .",
-		 odt->dirname, odt->file_name, odt->file_name);
+		 "cd %s ; rm -f ../%s; zip -q -X ../%s mimetype; zip -q -X -u -r ../%s .",
+		 odt->dirname, odt->file_name, odt->file_name, odt->file_name);
   system (ds_cstr (&zip_cmd));
   ds_destroy (&zip_cmd);
 
