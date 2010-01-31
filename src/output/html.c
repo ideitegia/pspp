@@ -439,23 +439,6 @@ html_output_table (struct html_driver *html, struct table_item *item)
           if (n_borders > 0)
             fputs ("\"", html->file);
 
-          if (top > TAL_GAP || bottom > TAL_GAP
-              || left > TAL_GAP || right > TAL_GAP)
-            {
-              fputs (" STYLE=\"", html->file);
-              if (top > TAL_GAP)
-                fprintf (html->file, "border-top: %s",
-                         top == TAL_1 ? "thin solid" : "double");
-
-              if (top > TAL_GAP && left > TAL_GAP)
-                fputs ("; ", html->file);
-
-              if (left > TAL_GAP)
-                fprintf (html->file, "border-left: %s",
-                         left == TAL_1 ? "thin solid" : "double");
-              fputs ("\"", html->file);
-            }
-
           putc ('>', html->file);
 
           /* Output cell contents. */
