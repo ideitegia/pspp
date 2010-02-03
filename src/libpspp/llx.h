@@ -186,6 +186,8 @@ size_t llx_remove_if (struct llx *r0, struct llx *r1,
                       const struct llx_manager *);
 
 /* Non-mutating algorithms. */
+struct llx *llx_find (const struct llx *r0, const struct llx *r1,
+                      const void *target);
 struct llx *llx_find_equal (const struct llx *r0, const struct llx *r1,
                             const void *target,
                             llx_compare_func *, void *aux);

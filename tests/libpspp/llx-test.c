@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -863,6 +863,34 @@ static void
 test_find_equal (void)
 {
   test_examine_equal_range (test_find_equal_helper);
+}
+
+/* Tests llx_find(). */
+static void
+test_find (void)
+{
+  const int max_elems = 8;
+
+  int cnt;
+
+  for (cnt = 0; cnt <= max_elems; cnt++)
+    {
+      struct llx_list list;
+      struct element **elems;
+      struct llx **elemp;
+      int *values;
+
+      int i;
+
+      allocate_ascending (cnt, &list, &elems, &elemp, &values);
+
+      for (i = 0; i < cnt; i++)
+        check (llx_find (llx_head (&list), llx_null (&list), elems[i])
+               == elemp[i]);
+      check (llx_find (llx_head (&list), llx_null (&list), NULL) == NULL);
+
+      free_elements (cnt, &list, elems, elemp, values);
+    }
 }
 
 /* Helper function for testing llx_find_if. */
@@ -2040,6 +2068,7 @@ main (void)
   run_test (test_remove_equal, "remove_equal");
   run_test (test_remove_if, "remove_if");
   run_test (test_find_equal, "find_equal");
+  run_test (test_find, "find");
   run_test (test_find_if, "find_if");
   run_test (test_find_adjacent_equal, "find_adjacent_equal");
   run_test (test_count_range, "count_range");

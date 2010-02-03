@@ -219,6 +219,20 @@ llx_remove_if (struct llx *r0, struct llx *r1,
   return count;
 }
 
+/* Returns the first node in R0...R1 that has data TARGET.
+   Returns NULL if no node in R0...R1 equals TARGET. */
+struct llx *
+llx_find (const struct llx *r0, const struct llx *r1, const void *target)
+{
+  const struct llx *x;
+
+  for (x = r0; x != r1; x = llx_next (x))
+    if (llx_data (x) == target)
+      return CONST_CAST (struct llx *, x);
+
+  return NULL;
+}
+
 /* Returns the first node in R0...R1 that equals TARGET
    according to COMPARE given auxiliary data AUX.
    Returns R1 if no node in R0...R1 equals TARGET. */
