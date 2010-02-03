@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <libpspp/msg-locator.h>
@@ -92,53 +93,53 @@ format_message (struct msg *m, struct string *msg)
 
   switch (m->severity)
     {
-    case MSG_ERROR:
+    case MSG_S_ERROR:
       switch (m->category)
 	{
-	case MSG_SYNTAX:
+	case MSG_C_SYNTAX:
 	  label = _("syntax error");
 	  break;
 
-	case MSG_DATA:
+	case MSG_C_DATA:
 	  label = _("data file error");
 	  break;
 
-	case MSG_GENERAL:
+	case MSG_C_GENERAL:
 	default:
 	  label = _("PSPP error");
 	  break;
 	}
       break;
-    case MSG_WARNING:
+    case MSG_S_WARNING:
       switch (m->category)
 	{
-	case MSG_SYNTAX:
+	case MSG_C_SYNTAX:
 	  label = _("syntax warning");
           break;
 
-	case MSG_DATA:
+	case MSG_C_DATA:
 	  label = _("data file warning");
 	  break;
 
-	case MSG_GENERAL:
+	case MSG_C_GENERAL:
         default:
 	  label = _("PSPP warning");
           break;
         }
       break;
-    case MSG_NOTE:
+    case MSG_S_NOTE:
     default:
       switch (m->category)
         {
-        case MSG_SYNTAX:
+        case MSG_C_SYNTAX:
 	  label = _("syntax information");
           break;
 
-        case MSG_DATA:
+        case MSG_C_DATA:
 	  label = _("data file information");
           break;
 
-        case MSG_GENERAL:
+        case MSG_C_GENERAL:
         default:
 	  label = _("PSPP information");
 	  break;
@@ -156,15 +157,17 @@ enqueue_msg (const struct msg *msg)
 
   switch (m->severity)
     {
-    case MSG_ERROR:
+    case MSG_S_ERROR:
       error_cnt++;
       break;
-    case MSG_WARNING:
+    case MSG_S_WARNING:
       warning_cnt++;
       break;
-    case MSG_NOTE:
+    case MSG_S_NOTE:
       note_cnt++;
       break;
+    case MSG_N_SEVERITIES:
+      NOT_REACHED ();
     }
 
   if (g_queue_get_length (early_queue) < MAX_EARLY_MESSAGES)

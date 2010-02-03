@@ -1199,8 +1199,8 @@ vdata_warning (const struct data_in *i, const char *format, va_list args)
   ds_put_format (&text, _("%s field) "), fmt_name (i->format));
   ds_put_vformat (&text, format, args);
 
-  m.category = MSG_DATA;
-  m.severity = MSG_WARNING;
+  m.category = MSG_C_DATA;
+  m.severity = MSG_S_WARNING;
   m.text = ds_cstr (&text);
   m.where.file_name = NULL;
   m.where.line_number = -1;

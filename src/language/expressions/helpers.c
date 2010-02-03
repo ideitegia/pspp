@@ -30,8 +30,8 @@ expr_error (void *aux UNUSED, const char *format, ...)
   struct msg m;
   va_list args;
 
-  m.category = MSG_SYNTAX;
-  m.severity = MSG_ERROR;
+  m.category = MSG_C_SYNTAX;
+  m.severity = MSG_S_ERROR;
   va_start (args, format);
   m.text = xvasprintf (format, args);
   va_end (args);

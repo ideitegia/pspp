@@ -102,8 +102,8 @@ error (struct pfm_reader *r, const char *msg, ...)
   ds_put_vformat (&text, msg, args);
   va_end (args);
 
-  m.category = MSG_GENERAL;
-  m.severity = MSG_ERROR;
+  m.category = MSG_C_GENERAL;
+  m.severity = MSG_S_ERROR;
   m.where.file_name = NULL;
   m.where.line_number = 0;
   m.text = ds_cstr (&text);
@@ -131,8 +131,8 @@ warning (struct pfm_reader *r, const char *msg, ...)
   ds_put_vformat (&text, msg, args);
   va_end (args);
 
-  m.category = MSG_GENERAL;
-  m.severity = MSG_WARNING;
+  m.category = MSG_C_GENERAL;
+  m.severity = MSG_S_WARNING;
   m.where.file_name = NULL;
   m.where.line_number = 0;
   m.text = ds_cstr (&text);

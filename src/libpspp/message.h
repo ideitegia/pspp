@@ -24,17 +24,19 @@
 /* What kind of message is this? */
 enum msg_category
   {
-    MSG_GENERAL,        /* General info. */
-    MSG_SYNTAX,         /* Messages that relate to syntax files. */
-    MSG_DATA            /* Messages that relate to data files. */
+    MSG_C_GENERAL,              /* General info. */
+    MSG_C_SYNTAX,               /* Messages that relate to syntax files. */
+    MSG_C_DATA,                 /* Messages that relate to data files. */
+    MSG_N_CATEGORIES
   };
 
 /* How important a condition is it? */
 enum msg_severity
   {
-    MSG_ERROR,
-    MSG_WARNING,
-    MSG_NOTE
+    MSG_S_ERROR,
+    MSG_S_WARNING,
+    MSG_S_NOTE,
+    MSG_N_SEVERITIES
   };
 
 /* Combination of a category and a severity for convenience. */
@@ -45,7 +47,6 @@ enum msg_class
     DE, DW, DN,			/* Data-file error/note. */
     MSG_CLASS_CNT,
   };
-
 
 static inline enum msg_category
 msg_class_to_category (enum msg_class class)
