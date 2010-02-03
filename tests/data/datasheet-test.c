@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -748,7 +748,7 @@ enum
     N_DATASHEET_OPTIONS
   };
 
-static struct argv_option datasheet_argv_options[N_DATASHEET_OPTIONS] =
+static const struct argv_option datasheet_argv_options[N_DATASHEET_OPTIONS] =
   {
     {"max-rows", 0, required_argument, OPT_MAX_ROWS},
     {"max-columns", 0, required_argument, OPT_MAX_COLUMNS},
