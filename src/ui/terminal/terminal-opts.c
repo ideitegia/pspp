@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@
 #include <libpspp/llx.h>
 #include <libpspp/string-map.h>
 #include <libpspp/string-set.h>
-#include <libpspp/verbose-msg.h>
 #include <output/driver.h>
 #include <ui/command-line.h>
 #include <ui/terminal/msg-ui.h>
@@ -44,7 +43,6 @@
 
 static const struct argp_option test_options [] =
   {
-    {"verbose", 'v', 0, 0, N_("Increase diagnostic verbosity level"), 0},
     {"testing-mode", 'T', 0, OPTION_HIDDEN, 0, 0},
 
     { 0, 0, 0, 0, 0, 0 }
@@ -57,9 +55,6 @@ parse_test_opts (int key, char *arg, struct argp_state *state)
     {
     case 'T':
       settings_set_testing_mode (true);
-      break;
-    case 'v':
-      verbose_increment_level ();
       break;
     default:
       return ARGP_ERR_UNKNOWN;

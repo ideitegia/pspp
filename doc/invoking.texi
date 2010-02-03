@@ -41,7 +41,7 @@ pspp [ -B @var{dir} | --config-dir=@var{dir} ] [ -o @var{device} | --device=@var
        [ -I @var{dir} | --include=@var{dir} ] [ -i | --interactive ] 
        [ -r | --no-statrc ] [ -h | --help ] [ -l | --list ] 
        [ -s | --safer ]
-       [ --testing-mode ] [ -V | --version ] [ -v | --verbose ] 
+       [ --testing-mode ] [ -V | --version ]
        [ @var{key}=@var{value} ] @var{file}@enddots{}
 @end example
 
@@ -212,44 +212,6 @@ The default is @code{enhanced}.
 Prints a brief message listing PSPP's version, warranties you don't
 have, copying conditions and copyright, and e-mail address for bug
 reports, then terminates.
-
-@item -v
-@item --verbose
-
-Increments PSPP's verbosity level.  Higher verbosity levels cause
-PSPP to display greater amounts of information about what it is
-doing.  Often useful for debugging PSPP's configuration.  
-
-This option can be given multiple times to set the verbosity level to
-that value.  The default verbosity level is 0, in which no informational
-messages will be displayed.
-
-Higher verbosity levels cause messages to be displayed when the
-corresponding events take place.
-
-@table @asis
-@item 1
-
-Driver and subsystem initializations.
-
-@item 2
-
-Completion of driver initializations.  Beginning of driver closings.
-
-@item 3
-
-Completion of driver closings.
-
-@item 4
-
-Files searched for; success of searches.
-
-@item 5
-
-Individual directories included in file searches.
-@end table
-
-Each verbosity level also includes messages from lower verbosity levels.
 
 @end table
 

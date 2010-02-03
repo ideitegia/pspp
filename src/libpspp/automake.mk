@@ -80,8 +80,6 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/tmpfile.h \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
-	src/libpspp/verbose-msg.c \
-	src/libpspp/verbose-msg.h \
 	src/libpspp/version.h 
 
 DISTCLEANFILES+=src/libpspp/version.c

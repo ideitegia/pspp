@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
-#include <libpspp/verbose-msg.h>
 #include <libpspp/version.h>
 #include <output/tab.h>
 
@@ -89,7 +88,6 @@ read_syntax_file (struct getl_interface *s,
   /* Open file, if not yet opened. */
   if (sfs->syntax_file == NULL)
     {
-      verbose_msg (1, _("opening \"%s\" as syntax file"), sfs->fn);
       sfs->syntax_file = fn_open (sfs->fn, "r");
 
       if (sfs->syntax_file == NULL)

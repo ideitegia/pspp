@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,7 +34,6 @@
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
-#include <libpspp/verbose-msg.h>
 #include <libpspp/version.h>
 
 #include "xalloc.h"
@@ -132,8 +131,6 @@ fn_search_path (const char *base_name, const char *path_)
   ds_init_cstr (&path, path_);
   fn_interp_vars (ds_ss (&path), insert_env_var, NULL, &path);
 
-  verbose_msg (2, _("searching for \"%s\" in path \"%s\""),
-               base_name, ds_cstr (&path));
   while (ds_separate (&path, ss_cstr (":"), &save_idx, &dir))
     {
       /* Construct file name. */
@@ -147,14 +144,12 @@ fn_search_path (const char *base_name, const char *path_)
       /* Check whether file exists. */
       if (fn_exists (ds_cstr (&file)))
 	{
-	  verbose_msg (2, _("...found \"%s\""), ds_cstr (&file));
           ds_destroy (&path);
 	  return ds_cstr (&file);
 	}
     }
 
   /* Failure. */
-  verbose_msg (2, _("...not found"));
   ds_destroy (&path);
   ds_destroy (&file);
   return NULL;
