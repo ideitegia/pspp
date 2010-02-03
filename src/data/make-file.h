@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,9 +14,12 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef MKFILE_H
-#define MKFILE_H
+#ifndef MAKE_FILE_H
+#define MAKE_FILE_H
 
+#include <stdbool.h>
+#include <stdio.h>
+#include <sys/types.h>
 
 /* Creates a temporary file and stores its name in *FILE_NAME and
    a file descriptor for it in *FD.  Returns success.  Caller is
