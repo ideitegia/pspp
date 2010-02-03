@@ -110,6 +110,12 @@ struct llx_list
     struct ll_list ll_list;     /* The list. */
   };
 
+/* Suitable for use as the initializer for a `struct llx_list'
+   named LIST.  Typical usage:
+       struct llx_list list = LLX_INITIALIZER (list);
+   LLX_INITIALIZER() is an alternative to llx_init(). */
+#define LLX_INITIALIZER(LIST) { LL_INITIALIZER ((LIST).ll_list) }
+
 /* Memory manager. */
 struct llx_manager
   {
