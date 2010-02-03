@@ -68,6 +68,8 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/sparse-xarray.h \
 	src/libpspp/start-date.c \
 	src/libpspp/start-date.h \
+	src/libpspp/string-array.c \
+	src/libpspp/string-array.h \
 	src/libpspp/string-map.c \
 	src/libpspp/string-map.h \
 	src/libpspp/string-set.c \
