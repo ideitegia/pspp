@@ -118,7 +118,7 @@ void insert_range (void *array, size_t count, size_t size,
 /* Makes room for a new element at IDX in ARRAY, which initially
    consists of COUNT elements of SIZE bytes each, by shifting
    elements IDX...COUNT (exclusive) to the right by one
-   positions. */
+   position. */
 void insert_element (void *array, size_t count, size_t size,
                      size_t idx);
 

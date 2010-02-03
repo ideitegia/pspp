@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -370,7 +370,7 @@ insert_range (void *array_, size_t count, size_t size,
 /* Makes room for a new element at IDX in ARRAY, which initially
    consists of COUNT elements of SIZE bytes each, by shifting
    elements IDX...COUNT (exclusive) to the right by one
-   positions. */
+   position. */
 void
 insert_element (void *array, size_t count, size_t size,
                 size_t idx)
