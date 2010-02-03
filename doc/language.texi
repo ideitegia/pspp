@@ -3,10 +3,6 @@
 @cindex language, PSPP
 @cindex PSPP, language
 
-@note{PSPP is not even close to completion.
-Only a few statistical procedures are implemented.  PSPP
-is a work in progress.}
-
 This chapter discusses elements common to many PSPP commands.
 Later chapters will describe individual commands in detail.
 
