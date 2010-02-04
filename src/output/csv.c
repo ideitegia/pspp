@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,10 +42,9 @@ struct csv_driver
     struct output_driver driver;
 
     char *separator;            /* Comma or tab. */
-
     char *file_name;            /* Output file name. */
     FILE *file;                 /* Output file. */
-    bool reported_error;        /* Reported file open error? */
+    int n_items;                /* Number of items output so far. */
   };
 
 static struct csv_driver *
@@ -75,8 +74,15 @@ csv_create (const char *name, enum output_device_type device_type,
 
   csv->separator = parse_string (opt (d, o, "separator", ","));
   csv->file_name = parse_string (opt (d, o, "output-file", "pspp.csv"));
-  csv->file = NULL;
-  csv->reported_error = false;
+  csv->file = fn_open (csv->file_name, "w");
+  csv->n_items = 0;
+
+  if (csv->file == NULL)
+    {
+      error (0, errno, _("csv: opening output file \"%s\""), csv->file_name);
+      output_driver_destroy (d);
+      return NULL;
+    }
 
   return d;
 }
@@ -142,25 +148,11 @@ csv_output_field_format (FILE *file, const char *format, ...)
   free (s);
 }
 
-static bool
-csv_open_file (struct csv_driver *csv)
+static void
+csv_put_separator (struct csv_driver *csv)
 {
-  if (csv->file == NULL)
-    {
-      csv->file = fn_open (csv->file_name, "w");
-      if (csv->file == NULL)
-        {
-          if (!csv->reported_error)
-            error (0, errno, _("csv: opening output file \"%s\""),
-                   csv->file_name);
-          csv->reported_error = true;
-          return false;
-        }
-    }
-  else
+  if (csv->n_items++ > 0)
     putc ('\n', csv->file);
-
-  return true;
 }
 
 static void
@@ -176,8 +168,7 @@ csv_submit (struct output_driver *driver,
       const struct table *t = table_item_get_table (table_item);
       int x, y;
 
-      if (!csv_open_file (csv))
-        return;
+      csv_put_separator (csv);
 
       if (caption != NULL)
         {
@@ -216,7 +207,7 @@ csv_submit (struct output_driver *driver,
           || type == TEXT_ITEM_SYNTAX)
         return;
 
-      csv_open_file (csv);
+      csv_put_separator (csv);
       switch (type)
         {
         case TEXT_ITEM_TITLE:
