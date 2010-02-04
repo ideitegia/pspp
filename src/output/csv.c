@@ -92,10 +92,11 @@ csv_destroy (struct output_driver *driver)
 {
   struct csv_driver *csv = csv_driver_cast (driver);
 
+  if (csv->file != NULL)
+    fn_close (csv->file_name, csv->file);
+
   free (csv->separator);
   free (csv->file_name);
-  if (csv->file != NULL)
-    fclose (csv->file);
   free (csv);
 }
 
