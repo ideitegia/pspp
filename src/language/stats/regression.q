@@ -186,7 +186,7 @@ reg_stats_coeff (linreg * c)
   struct tab_table *t;
 
   assert (c != NULL);
-  n_rows = c->n_coeffs + 3;
+  n_rows = linreg_n_coeffs (c) + 3;
 
   t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 1, 0);
@@ -805,15 +805,16 @@ static double
 fill_covariance (gsl_matrix *cov, struct covariance *all_cov, 
 		 const struct variable **vars,
 		 size_t n_vars, const struct variable *dep_var, 
-		 const struct variable **all_vars, size_t n_all_vars)
+		 const struct variable **all_vars, size_t n_all_vars,
+		 double *means)
 {
   size_t i;
   size_t j;
-  size_t k = 0;
   size_t dep_subscript;
   size_t *rows;
   const gsl_matrix *ssizes;
   const gsl_matrix *cm;
+  const gsl_matrix *mean_matrix;
   double result = 0.0;
   
   cm = covariance_calculate (all_cov);
@@ -833,14 +834,17 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
 	  dep_subscript = i;
 	}
     }
+  mean_matrix = covariance_moments (all_cov, MOMENT_MEAN);
   for (i = 0; i < cov->size1 - 1; i++)
     {
+      means[i] = gsl_matrix_get (mean_matrix, rows[i], 0);
       for (j = 0; j < cov->size2 - 1; j++)
 	{
 	  gsl_matrix_set (cov, i, j, gsl_matrix_get (cm, rows[i], rows[j]));
 	  gsl_matrix_set (cov, j, i, gsl_matrix_get (cm, rows[j], rows[i]));
 	}
     }
+  means[cov->size1 - 1] = gsl_matrix_get (mean_matrix, dep_subscript, 0);
   ssizes = covariance_moments (all_cov, MOMENT_NONE);
   result = gsl_matrix_get (ssizes, dep_subscript, rows[0]);
   for (i = 0; i < cov->size1 - 1; i++)
@@ -866,6 +870,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
   int n_indep = 0;
   int k;
   double n_data;
+  double *means;
   struct ccase *c;
   struct covariance *cov;
   const struct variable **vars;
@@ -900,6 +905,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
       dict_get_vars (dict, &v_variables, &n_variables, 0);
     }
   vars = xnmalloc (n_variables, sizeof (*vars));
+  means  = xnmalloc (n_variables, sizeof (*vars));
   cov = covariance_1pass_create (n_variables, v_variables,
 				 dict_get_weight (dict), MV_ANY);
 
@@ -918,11 +924,14 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
       
       this_cm = gsl_matrix_alloc (n_indep + 1, n_indep + 1);
       n_data = fill_covariance (this_cm, cov, vars, n_indep, 
-				       dep_var, v_variables, n_variables);
+				dep_var, v_variables, n_variables, means);
       models[k] = linreg_alloc (dep_var, (const struct variable **) vars,
 				n_data, n_indep);
       models[k]->depvar = dep_var;
-      
+      for (i = 0; i < n_indep; i++)
+	{
+	  linreg_set_indep_variable_mean (models[k], i, means[i]);
+	}
       /*
 	For large data sets, use QR decomposition.
       */
@@ -951,9 +960,10 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	  models[k] = NULL;
 	}
     }
-
+  
   casereader_destroy (reader);
   free (vars);
+  free (means);
   casereader_destroy (input);
   covariance_destroy (cov);
   
