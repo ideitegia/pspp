@@ -98,7 +98,6 @@ struct ascii_driver
     bool paginate;		/* Insert formfeeds? */
     bool squeeze_blank_lines;   /* Squeeze multiple blank lines into one? */
     enum emphasis_style emphasis; /* How to emphasize text. */
-    int tab_width;		/* Width of a tab; 0 not to use tabs. */
     char *chart_file_name;      /* Name of files used for charts. */
 
     int width;                  /* Page width. */
@@ -179,7 +178,6 @@ ascii_create (const char *name, enum output_device_type device_type,
                             "underline", EMPH_UNDERLINE,
                             "none", EMPH_NONE,
                             (char *) NULL);
-  a->tab_width = parse_int (opt (d, o, "tab-width", "0"), 8, INT_MAX);
 
   if (parse_enum (opt (d, o, "chart-type", "png"),
                   "png", true,

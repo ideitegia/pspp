@@ -659,11 +659,6 @@ without the @code{cairo} library.
 If set, a formfeed will be written at the end of every page.  Default:
 @code{on}.
 
-@item tab-width=@var{tab-width-value}
-
-The distance between tab stops for this device.  If set to 0, tabs will
-not be used in the output.  Default: @code{8}.
-
 @item headers=@var{boolean}
 
 If enabled, two lines of header information giving title and subtitle,
