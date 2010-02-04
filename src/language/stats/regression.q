@@ -905,7 +905,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
       dict_get_vars (dict, &v_variables, &n_variables, 0);
     }
   vars = xnmalloc (n_variables, sizeof (*vars));
-  means  = xnmalloc (n_variables, sizeof (*vars));
+  means  = xnmalloc (n_variables, sizeof (*means));
   cov = covariance_1pass_create (n_variables, v_variables,
 				 dict_get_weight (dict), MV_ANY);
 
