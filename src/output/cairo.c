@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -235,7 +235,7 @@ static struct output_driver *
 xr_create (const char *name, enum output_device_type device_type,
            struct string_map *o)
 {
-  enum { MIN_LENGTH = 3 };
+  enum { MIN_WIDTH = 3, MIN_LENGTH = 3 };
   struct output_driver *d;
   struct xr_driver *xr;
   cairo_surface_t *surface;
@@ -299,6 +299,16 @@ xr_create (const char *name, enum output_device_type device_type,
 
   if (!xr_set_cairo (xr, xr->cairo))
     goto error;
+
+  if (xr->width / (xr->font_height / 2) < MIN_WIDTH)
+    {
+      error (0, 0, _("The defined page is not wide enough to hold at least %d "
+                     "characters in the default font.  In fact, there's only "
+                     "room for %d characters."),
+             MIN_WIDTH,
+             xr->width / (xr->font_height / 2));
+      goto error;
+    }
 
   if (xr->length / xr->font_height < MIN_LENGTH)
     {
