@@ -487,7 +487,8 @@ xr_submit (struct output_driver *driver, const struct output_item *output_item)
           {
             struct table_item *item;
 
-            item = table_item_create (table_from_string (0, text), NULL);
+            item = table_item_create (table_from_string (TAB_LEFT, text),
+                                      NULL);
             xr_submit (&xr->driver, &item->output_item);
             table_item_unref (item);
           }
@@ -945,7 +946,8 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
       const char *text = text_item_get_text (text_item);
       struct table_item *table_item;
 
-      table_item = table_item_create (table_from_string (0, text), NULL);
+      table_item = table_item_create (table_from_string (TAB_LEFT, text),
+                                      NULL);
       r = xr_rendering_create (xr, &table_item->output_item, cr);
       table_item_unref (table_item);
     }

@@ -523,7 +523,8 @@ ascii_submit (struct output_driver *driver,
           {
             struct table_item *item;
 
-            item = table_item_create (table_from_string (0, text), NULL);
+            item = table_item_create (table_from_string (TAB_LEFT, text),
+                                      NULL);
             ascii_submit (&a->driver, &item->output_item);
             table_item_unref (item);
           }
