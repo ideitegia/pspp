@@ -151,9 +151,8 @@ struct linreg_struct
    */
   gsl_matrix *hat;
 
-  struct variable *resid;
   struct variable *pred;
-
+  struct variable *resid;
 };
 
 typedef struct linreg_struct linreg;
@@ -199,6 +198,8 @@ double linreg_coeff (const linreg *, size_t);
 const struct variable * linreg_indep_var (const linreg *, size_t);
 size_t linreg_n_coeffs (const linreg *);
 size_t linreg_n_obs (const linreg *);
+double linreg_sse (const linreg *);
 double linreg_ssreg (const linreg *);
 double linreg_dfmodel (const linreg *);
+double linreg_sst (const linreg *);
 #endif

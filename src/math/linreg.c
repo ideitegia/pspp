@@ -72,7 +72,7 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
   linreg *c;
   size_t i;
 
-  c = xmalloc (sizeof (linreg));
+  c = xmalloc (sizeof (*c));
   c->depvar = depvar;
   c->indep_vars = xnmalloc (p, sizeof (*indep_vars));
   for (i = 0; i < p; i++)
@@ -100,8 +100,8 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
      Default settings.
    */
   c->method = LINREG_SWEEP;
-  c->resid = NULL;		/* The variable storing my residuals. */
-  c->pred = NULL;		/* The variable storing my predicted values. */
+  c->pred = NULL;
+  c->resid = NULL;
 
   return c;
 }
@@ -365,6 +365,7 @@ linreg_fit (const gsl_matrix *cov, linreg *l)
 
   params = gsl_matrix_calloc (cov->size1, cov->size2);
   gsl_matrix_memcpy (params, cov);
+  l->sst = gsl_matrix_get (cov, cov->size1 - 1, cov->size2 - 1);
 
   if (l->method == LINREG_SWEEP)
     {
@@ -420,9 +421,20 @@ linreg_n_obs (const linreg *c)
 }
 
 double
+linreg_sse (const linreg *c)
+{
+  return c->sse;
+}
+
+double
 linreg_ssreg (const linreg *c)
 {
-  return c->ssm;
+  return (c->sst - c->sse);
+}
+
+double linreg_sst (const linreg *c)
+{
+  return c->sst;
 }
 
 double 

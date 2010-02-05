@@ -144,8 +144,8 @@ reg_stats_r (linreg * c)
   double std_error;
 
   assert (c != NULL);
-  rsq = c->ssm / c->sst;
-  adjrsq = 1.0 - (1.0 - rsq) * (c->n_obs - 1.0) / (c->n_obs - c->n_indeps);
+  rsq = linreg_ssreg (c) / linreg_sst (c);
+  adjrsq = 1.0 - (1.0 - rsq) * (linreg_n_obs (c) - 1.0) / (linreg_n_obs (c) - linreg_n_coeffs (c));
   std_error = sqrt (linreg_mse (c));
   t = tab_create (n_cols, n_rows, 0);
   tab_dim (t, tab_natural_dimensions, NULL);
@@ -293,9 +293,9 @@ reg_stats_anova (linreg * c)
   tab_text (t, 1, 3, TAB_LEFT | TAT_TITLE, _("Total"));
 
   /* Sums of Squares */
-  tab_double (t, 2, 1, 0, c->ssm, NULL);
-  tab_double (t, 2, 3, 0, c->sst, NULL);
-  tab_double (t, 2, 2, 0, c->sse, NULL);
+  tab_double (t, 2, 1, 0, linreg_ssreg (c), NULL);
+  tab_double (t, 2, 3, 0, linreg_sst (c), NULL);
+  tab_double (t, 2, 2, 0, linreg_sse (c), NULL);
 
 
   /* Degrees of freedom */
@@ -858,6 +858,8 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
 	  result = gsl_matrix_get (ssizes, rows[i], dep_subscript);
 	}
     }
+  gsl_matrix_set (cov, cov->size1 - 1, cov->size1 - 1, 
+		  gsl_matrix_get (cm, dep_subscript, dep_subscript));
   free (rows);
   return result;
 }
