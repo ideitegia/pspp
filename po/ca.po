@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.7.2-pre1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2009-09-08 21:57-0700\n"
-"PO-Revision-Date: 2009-12-20 23:44+0100\n"
+"PO-Revision-Date: 2010-01-24 16:28+0100\n"
 "Last-Translator: Francesc Josep Miguel Quesada <Miguel.Quesada@uab.cat>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
 "MIME-Version: 1.0\n"
@@ -3834,21 +3834,20 @@ msgid "PSPP information"
 msgstr "Informació del PSPP"
 
 #: src/ui/gui/message-dialog.c:222
-#, fuzzy
 msgid "The PSPP processing engine reported the following message:"
 msgid_plural "The PSPP processing engine reported the following messages:"
 msgstr[0] "El processador de PSPP ha donat el seguent missatge:"
 msgstr[1] "El processador de PSPP ha donat el seguent missatge:"
 
 #: src/ui/gui/message-dialog.c:229
-#, fuzzy, c-format
+#, c-format
 msgid "The PSPP processing engine reported %d message."
 msgid_plural "The PSPP processing engine reported %d messages."
 msgstr[0] "El processador de PSPP ha donat el missatge %d."
 msgstr[1] "El processador de PSPP ha donat el missatge %d."
 
 #: src/ui/gui/message-dialog.c:236
-#, fuzzy, c-format
+#, c-format
 msgid "%d of these messages are displayed below."
 msgid_plural "%d of these messages are displayed below."
 msgstr[0] "%d d'aquests missatges es mostren a continuació."
@@ -4315,21 +4314,21 @@ msgstr ""
 "\n"
 
 #: src/ui/gui/text-data-import-dialog.c:755
-#, fuzzy, c-format
+#, c-format
 msgid "The selected file contains %zu line of text.  "
 msgid_plural "The selected file contains %zu lines of text.  "
 msgstr[0] "L'arxiu seleccionat conté %zu linies de text.  "
 msgstr[1] "L'arxiu seleccionat conté %zu linies de text.  "
 
 #: src/ui/gui/text-data-import-dialog.c:763
-#, fuzzy, c-format
+#, c-format
 msgid "The selected file contains approximately %lu line of text.  "
 msgid_plural "The selected file contains approximately %lu lines of text.  "
-msgstr[0] "L'arxiu seleccionat conté aproximadament %lu linies de text.  "
+msgstr[0] "L'arxiu seleccionat conté aproximadament %lu linia de text.  "
 msgstr[1] "L'arxiu seleccionat conté aproximadament %lu linies de text.  "
 
 #: src/ui/gui/text-data-import-dialog.c:769
-#, fuzzy, c-format
+#, c-format
 msgid "Only the first %zu line of the file will be shown for preview purposes in the following screens.  "
 msgid_plural "Only the first %zu lines of the file will be shown for preview purposes in the following screens.  "
 msgstr[0] "Només les primeres %zu linies de l'arxiu es previsualitzaran a les seguents pantalles.  "
@@ -4839,7 +4838,6 @@ msgid "Search substrings"
 msgstr "Cercar subcadenes"
 
 #: src/ui/gui/find.glade:185
-#, fuzzy
 msgid "Wrap around"
 msgstr "Envolcallar"
 
@@ -5814,9 +5812,8 @@ msgid "Pearson Chi-Square"
 msgstr "Chi-quadrat de Pearson"
 
 #: src/language/stats/crosstabs.q:1777
-#, fuzzy
 msgid "Likelihood Ratio"
-msgstr "Raó de Semblança"
+msgstr "Raó de Similitut"
 
 #: src/language/stats/crosstabs.q:1778
 msgid "Fisher's Exact Test"
@@ -5939,7 +5936,7 @@ msgid "Expected Normal"
 msgstr "Normal esperada"
 
 #: src/language/stats/examine.q:360
-#, fuzzy, c-format
+#, c-format
 msgid "Detrended Normal Q-Q Plot of %s"
 msgstr "Gràfica Normal Detrended Q-Q de %s"
 
@@ -6017,9 +6014,8 @@ msgid "S.E. Skew"
 msgstr "E.E. Asim."
 
 #: src/language/stats/frequencies.q:407
-#, fuzzy
 msgid "At most one of BARCHART, HISTOGRAM, or HBAR should be given.  HBAR will be assumed.  Argument values will be given precedence increasing along the order given."
-msgstr "Al menys s'ha de demar un d'entre BARCHART, HISTOGRAM o HBAR.  S'assumeix HBAR.  (Argument values will be given precedence increasing along the order given)."
+msgstr "Al menys s'ha de donar algun BARCHART, HISTOGRAM o HBAR.  S'assumeix HBAR.  Els valors d'arguments Argument tindrán preferencia creixent en aquest mateix ordre)."
 
 #: src/language/stats/frequencies.q:490
 #, c-format
@@ -6357,9 +6353,8 @@ msgid "Total N of Items"
 msgstr "N total d'elements"
 
 #: src/language/stats/reliability.q:604
-#, fuzzy
 msgid "Correlation Between Forms"
-msgstr "Correlation entre formes"
+msgstr "Correlación entre formes"
 
 #: src/language/stats/reliability.q:608
 msgid "Spearman-Brown Coefficient"
