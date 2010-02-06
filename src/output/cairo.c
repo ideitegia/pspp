@@ -895,7 +895,8 @@ free_font (struct xr_font *font)
   if (font->desc != NULL)
     pango_font_description_free (font->desc);
   pango_font_metrics_unref (font->metrics);
-  g_object_unref (font->layout);
+  if (font->layout != NULL)
+    g_object_unref (font->layout);
 }
 
 /* Cairo driver class. */
