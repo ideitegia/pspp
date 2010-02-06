@@ -18,17 +18,7 @@
 
 /* A driver for creating OpenDocument Format text files from PSPP's output */
 
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/str.h>
-#include <libpspp/version.h>
-#include <output/driver-provider.h>
-#include <output/options.h>
-#include <output/tab.h>
-#include <output/table-item.h>
-#include <output/table-provider.h>
-#include <output/text-item.h>
-
+#include <errno.h>
 #include <libgen.h>
 #include <libxml/xmlwriter.h>
 #include <pwd.h>
@@ -37,8 +27,19 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "xalloc.h"
-#include "error.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/str.h"
+#include "libpspp/version.h"
+#include "output/driver-provider.h"
+#include "output/options.h"
+#include "output/tab.h"
+#include "output/table-item.h"
+#include "output/table-provider.h"
+#include "output/text-item.h"
+
+#include "gl/xalloc.h"
+#include "gl/error.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -73,7 +74,7 @@ odt_driver_cast (struct output_driver *driver)
 }
 
 /* Create the "mimetype" file needed by ODF */
-static void
+static bool
 create_mimetype (const char *dirname)
 {
   FILE *fp;
@@ -81,11 +82,20 @@ create_mimetype (const char *dirname)
   ds_init_cstr (&filename, dirname);
   ds_put_cstr (&filename, "/mimetype");
   fp = fopen (ds_cstr (&filename), "w");
+
+  if (fp == NULL)
+    {
+      error (0, errno, _("failed to create output file %s"),
+             ds_cstr (&filename));
+      ds_destroy (&filename);
+      return false;
+    }
   ds_destroy (&filename);
 
-  assert (fp);
   fprintf (fp, "application/vnd.oasis.opendocument.text");
   fclose (fp);
+
+  return true;
 }
 
 /* Create a new XML file called FILENAME in the temp directory, and return a writer for it */
@@ -299,7 +309,11 @@ odt_create (const char *name, enum output_device_type device_type,
   odt->dirname = xstrdup ("odt-XXXXXX");
   mkdtemp (odt->dirname);
 
-  create_mimetype (odt->dirname);
+  if (!create_mimetype (odt->dirname))
+    {
+      output_driver_destroy (d);
+      return NULL;
+    }
 
   /* Create the manifest */
   odt->manifest_wtr = create_writer (odt, "META-INF/manifest.xml");
@@ -354,28 +368,31 @@ odt_destroy (struct output_driver *driver)
 {
   struct odt_driver *odt = odt_driver_cast (driver);
 
-  struct string zip_cmd;
-  struct string rm_cmd;
+  if (odt->content_wtr != NULL)
+    {
+      struct string zip_cmd;
 
-  xmlTextWriterEndElement (odt->content_wtr); /* office:text */
-  xmlTextWriterEndElement (odt->content_wtr); /* office:body */
-  xmlTextWriterEndElement (odt->content_wtr); /* office:document-content */
+      xmlTextWriterEndElement (odt->content_wtr); /* office:text */
+      xmlTextWriterEndElement (odt->content_wtr); /* office:body */
+      xmlTextWriterEndElement (odt->content_wtr); /* office:document-content */
 
-  xmlTextWriterEndDocument (odt->content_wtr);
-  xmlFreeTextWriter (odt->content_wtr);
+      xmlTextWriterEndDocument (odt->content_wtr);
+      xmlFreeTextWriter (odt->content_wtr);
 
-  /* Zip up the directory */
-  ds_init_empty (&zip_cmd);
-  ds_put_format (&zip_cmd,
-		 "cd %s ; rm -f ../%s; zip -q -X ../%s mimetype; zip -q -X -u -r ../%s .",
-		 odt->dirname, odt->file_name, odt->file_name, odt->file_name);
-  system (ds_cstr (&zip_cmd));
-  ds_destroy (&zip_cmd);
-
+      /* Zip up the directory */
+      ds_init_empty (&zip_cmd);
+      ds_put_format (&zip_cmd,
+                     "cd %s ; rm -f ../%s; zip -q -X ../%s mimetype; zip -q -X -u -r ../%s .",
+                     odt->dirname, odt->file_name, odt->file_name, odt->file_name);
+      system (ds_cstr (&zip_cmd));
+      ds_destroy (&zip_cmd);
+    }
 
   if ( !odt->debug )
     {
       /* Remove the temp dir */
+      struct string rm_cmd;
+
       ds_init_empty (&rm_cmd);
       ds_put_format (&rm_cmd, "rm -r %s", odt->dirname);
       system (ds_cstr (&rm_cmd));
