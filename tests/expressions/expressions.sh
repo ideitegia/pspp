@@ -1565,7 +1565,7 @@ sed < $TEMPDIR/expr-list >> $TEMPDIR/expr-opt.stat \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run optimizing program"
-$SUPERVISOR $PSPP --testing-mode \
+$SUPERVISOR $PSPP --testing-mode -o pspp.csv \
 	 $TEMPDIR/expr-opt.stat >$TEMPDIR/expr-opt.err 2> $TEMPDIR/expr-opt.out
 
 activity="compare optimizing output"
@@ -1581,7 +1581,7 @@ sed < $TEMPDIR/expr-list >> $TEMPDIR/expr-noopt.stat \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run non-optimizing program"
-$SUPERVISOR $PSPP --testing-mode \
+$SUPERVISOR $PSPP --testing-mode -o pspp.csv \
 	$TEMPDIR/expr-noopt.stat >$TEMPDIR/expr-noopt.err 2> $TEMPDIR/expr-noopt.out
 
 activity="compare non-optimizing output"
@@ -1597,7 +1597,7 @@ sed < $TEMPDIR/expr-list >> $TEMPDIR/expr-opt-pos.stat \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run optimizing postfix program"
-$SUPERVISOR $PSPP --testing-mode \
+$SUPERVISOR $PSPP --testing-mode -o pspp.csv \
 	 $TEMPDIR/expr-opt-pos.stat >$TEMPDIR/expr-opt-pos.err 2> $TEMPDIR/expr-opt-pos.out
 if [ $? -eq 0 ] ; then no_result ; fi
 
@@ -1609,7 +1609,7 @@ sed < $TEMPDIR/expr-list >> $TEMPDIR/expr-noopt-pos.stat \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run non-optimizing postfix program"
-$SUPERVISOR $PSPP --testing-mode \
+$SUPERVISOR $PSPP --testing-mode -o pspp.csv \
 	$TEMPDIR/expr-noopt-pos.stat >$TEMPDIR/expr-noopt-pos.err 2> $TEMPDIR/expr-noopt-pos.out
 if [ $? -eq 0 ] ; then no_result ; fi
 

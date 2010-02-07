@@ -282,30 +282,57 @@ parse_string (struct driver_option *o)
   return retval;
 }
 
-/* Parses O's value as a string and returns it as a malloc'd string that the
-   caller is responsible for freeing.
+static char *
+default_chart_file_name (const char *file_name)
+{
+  if (strcmp (file_name, "-"))
+    {
+      const char *extension = strrchr (file_name, '.');
+      int stem_length = extension ? extension - file_name : strlen (file_name);
+      return xasprintf ("%.*s-#.png", stem_length, file_name);
+    }
+  else
+    return NULL;
+}
 
-   The string must contain at least one '#' character, which the client will
-   presumably replace by a number as part of writing charts to separate files.
+/* Parses and returns a chart file name, or NULL if no charts should be output.
+   If a nonnull string is returned, it will contain at least one '#' character,
+   which the client will presumably replace by a number as part of writing
+   charts to separate files.
+
+   If O->value is "none", then this function returns NULL.
+
+   If O->value is non-NULL but not "none", returns a copy of that string (if it
+   contains '#').
+
+   If O->value is NULL, then O's default_value should be the name of the main
+   output file.  Returns NULL if default_value is "-", and otherwise returns a
+   copy of string string with its extension stripped off and "-#.png" appended.
 
    Destroys O. */
 char *
 parse_chart_file_name (struct driver_option *o)
 {
-  char *value;
+  char *chart_file_name;
 
-  if (o->value != NULL && strchr (o->value, '#') != NULL)
-    value = xstrdup (o->value);
-  else
+  if (o->value != NULL)
     {
-      value = xstrdup (o->default_value);
-      if (o->value != NULL)
-        error (0, 0, _("%s: \"%s\" is \"%s\" but a file name that contains "
-                       "\"#\" is required."),
-               o->name, o->value, o->driver_name);
+      if (!strcmp (o->value, "none"))
+        chart_file_name = NULL;
+      else if (strchr (o->value, '#') != NULL)
+        chart_file_name = xstrdup (o->value);
+      else
+        {
+          error (0, 0, _("%s: \"%s\" is \"%s\" but a file name that contains "
+                         "\"#\" is required."),
+                 o->name, o->value, o->driver_name);
+          chart_file_name = default_chart_file_name (o->default_value);
+        }
     }
+  else
+    chart_file_name = default_chart_file_name (o->default_value);
 
   driver_option_destroy (o);
 
-  return value;
+  return chart_file_name;
 }

@@ -92,7 +92,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 #This command should fail
 activity="run program 1"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE > /dev/null
 if [ $? -eq 0 ] ; then fail ; fi
 
 
@@ -110,7 +110,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 2"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 
@@ -158,7 +158,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 # This command should fail
 activity="run program 3"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE > /dev/null
 if [ $? -eq 0 ] ; then fail ; fi
 
 activity="create wrapper 6"
@@ -174,7 +174,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 4"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 
@@ -210,7 +210,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 5"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE > /dev/null
 if [ $? -ne 1 ] ; then no_result ; fi
 
 activity="examine output 1"
@@ -237,7 +237,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 6"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE > /dev/null
 if [ $? -ne 1 ] ; then no_result ; fi
 
 activity="examine output 2"
@@ -268,7 +268,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 #This command should fail
 activity="run program 7"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE > /dev/null
 if [ $? -eq 0 ] ; then no_result ; fi
 
 pass;

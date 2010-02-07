@@ -1,226 +1,418 @@
-@node Invocation
-
-@chapter Starting PSPP
+@node Invoking PSPP
+@chapter Invoking @command{pspp}
 @cindex invocation
 @cindex PSPP, invoking
 
-There are two separate user interfaces for PSPP.
-There is the command line interface, which responds to commands
-typed by the user.
-The command line interface is generally available on more platforms
-than the graphic user interface and since it doesn't require a
-graphics device it can be used from a remote terminal.
-Platforms which have a windowing system may also be able to support
-the graphic user interface.
-The graphic user interface can perform all functionality of the
-command line interface.
-In addition it gives an instantaneous view of the data, variables and
-statistical output.
+PSPP has two separate user interfaces.  This chapter describes
+@command{pspp}, PSPP's command-line driven text-based user interface.
+The following chapter briefly describes PSPPIRE, the graphical user
+interface to PSPP.
 
-Whichever interface you choose, a basic understanding of the concepts
-used by PSPP is necessary before effective use of the system can be achieved.
-
+The sections below describe the @command{pspp} program's command-line
+interface.
 
 @menu
-* The command line user interface::  
-* The graphic user interface::  
+* Main Options::                
+* PDF PostScript and SVG Output Options::  
+* Plain Text Output Options::   
+* HTML Output Options::         
+* OpenDocument Output Options::  
+* Comma-Separated Value Output Options::  
 @end menu
 
+@node Main Options
+@section Main Options
 
-@node The command line user interface
-@section The command line user interface
+Here is a summary of all the options, grouped by type, followed by
+explanations in the same order.
 
-@cindex command line, options
-@cindex options, command-line
+In the table, arguments to long options also apply to any
+corresponding short options.
 
+@table @emph
+@item Non-option arguments
 @example
-pspp [ -B @var{dir} | --config-dir=@var{dir} ] [ -o @var{device} | --device=@var{device} ]
-       [ -a @{compatible|enhanced@} | --algorithm=@{compatible|enhanced@}]
-       [ -x @{compatible|enhanced@} | --syntax=@{compatible|enhanced@}]
-       [ -I- | --no-include ]
-       [ -I @var{dir} | --include=@var{dir} ] [ -i | --interactive ] 
-       [ -r | --no-statrc ] [ -h | --help ] [ -l | --list ] 
-       [ -s | --safer ]
-       [ --testing-mode ] [ -V | --version ]
-       [ @var{key}=@var{value} ] @var{file}@enddots{}
+@var{syntax-file}
 @end example
 
-@menu
-* Non-option Arguments::        Specifying syntax files and output devices.
-* Configuration Options::       Change the configuration for the current run.
-* Input and output options::    Controlling input and output files.
-* Language control options::    Language variants.
-* Informational options::       Helpful information about PSPP.
-@end menu
-
-@node Non-option Arguments
-@subsection Non-option Arguments
-
-Syntax files and output device substitutions can be specified on
-PSPP's command line:
-
-@table @code
-@item @var{file}
-
-A file by itself on the command line will be executed as a syntax file.
-If multiple files are specified, they are executed in order, as if
-their contents had been given in a single file.
-PSPP terminates after the syntax files run, unless the @code{-i} or
-@code{--interactive} option is given (@pxref{Language control options}).
-
-@item @var{key}=@var{value}
-
-Defines an output device macro @var{key} to expand to @var{value},
-overriding any macro having the same @var{key} defined in the device
-configuration file.  @xref{Macro definitions}.
-
-@end table
-
-There is one other way to specify a syntax file, if your operating
-system supports it.  If you have a syntax file @file{foobar.stat}, put
-the notation
-
+@item Output options
 @example
-#! /usr/local/bin/pspp
+-o, --output=@var{output-file}
+-O @var{option}=@var{value}
+-O format=@var{format}
+-O device=@{terminal|listing@}
+-e, --error-file=@var{error-file}
 @end example
 
-at the top, and mark the file as executable with @code{chmod +x
-foobar.stat}.  (If PSPP is not installed in @file{/usr/local/bin},
-then insert its actual installation directory into the syntax file
-instead.)  Now you should be able to invoke the syntax file just by
-typing its name.  You can include any options on the command line as
-usual.  PSPP entirely ignores any lines beginning with @samp{#!}.
+@item Language options
+@example
+-I, --include=@var{dir}
+-I-, --no-include
+-i, --interactive
+-r, --no-statrc
+-a, --algorithm=@{compatible|enhanced@}
+-x, --syntax=@{compatible|enhanced@}
+@end example
 
-@node Configuration Options
-@subsection Configuration Options
+@item Informational options
+@example
+-h, --help
+-V, --version
+@end example
 
-Configuration options are used to change PSPP's configuration for the
-current run.  The configuration options are:
-
-@table @code
-@item -a @{compatible|enhanced@}
-@itemx --algorithm=@{compatible|enhanced@}
-
-If you chose @code{compatible}, then PSPP will use the same  algorithms 
-as used by some proprietary statistical analysis packages.
-This is not recommended, as  these algorithms are inferior and in some cases 
-compeletely broken.
-The default setting is @code{enhanced}.
-Certain commands have subcommands which allow you to override this setting on 
-a per command basis.
-
-@item -B @var{dir}
-@itemx --config-dir=@var{dir}
-
-Sets the configuration directory to @var{dir}.  @xref{File locations}.
-
-@item -o @var{device}
-@itemx --device=@var{device}
-
-Selects the output device with name @var{device}.  If this option is
-given more than once, then all devices mentioned are selected.  This
-option disables all devices besides those mentioned on the command line.
+@item Other options
+@example
+-s, --safer
+--testing-mode
+@end example
 @end table
 
-@node Input and output options
-@subsection Input and output options
-
-Input and output options affect how PSPP reads input and writes
-output.  These are the input and output options:
-
 @table @code
-@item -I-
-@itemx --no-include
+@item @var{syntax-file}
+Read and execute the named syntax file.  If no syntax files are
+specified, PSPP prompts for commands.  If any syntax files are
+specified, PSPP by default exits after it runs them, but you may make
+it prompt for commands by specifying @samp{-} as an additional syntax
+file.
 
-Clears all directories from the include path.  This includes all
-directories put in the include path by default.  @xref{Miscellaneous
-configuring}.
+@item -o @var{output-file}
+Write output to @var{output-file}.  PSPP has several different output
+drivers that support output in various formats (use @option{--help} to
+list the available formats).  Specify this option more than once to
+produce multiple output files, presumably in different formats.
+
+Use @samp{-} as @var{output-file} to write output to standard output.
+
+If no @option{-o} option is used, then PSPP writes output to standard
+output in plain text format.
+
+@item -O @var{option}=@var{value}
+Sets an option for the output file configured by a preceding
+@option{-o}.  Most options are specific to particular output formats.
+A few options that apply generically are listed below.
+
+@item -O format=@var{format}
+PSPP uses the extension of the file name given on @option{-o} to
+select an output format.  Use this option to override this choice by
+specifying an alternate format, e.g.@: @option{-o pspp.out -O html} to
+write HTML to a file named @file{pspp.out}.  Use @option{--help} to
+list the available formats.
+
+@item -O device=@{terminal|listing@}
+Sets whether PSPP considers the output device configured by the
+preceding @option{-o} to be a terminal or a listing device.  This
+affects what output will be sent to the device, as configured by the
+SET command's output routing subcommands (@pxref{SET}).  By default,
+output written to standard output is considered a terminal device and
+other output is considered a listing device.
+
+@item -e @var{error-file}
+@itemx --error-file=@var{error-file}
+Configures a file to receive PSPP error, warning, and note messages in
+plain text format.  Use @samp{-} as @var{error-file} to write messages
+to standard output.  The default error file is standard output in the
+absence of these options, but this is suppressed if an output device
+writes to standard output (or another terminal), to avoid printing
+every message twice.  Use @samp{none} as @var{error-file} to
+explicitly suppress the default.
 
 @item -I @var{dir}
 @itemx --include=@var{dir}
+Appends @var{dir} to the set of directories searched by INCLUDE
+(@pxref{INCLUDE}) and INSERT (@pxref{INSERT}).
 
-Appends directory @var{dir} to the path that is searched for include
-files in PSPP syntax files.
+@item -I-
+@itemx --no-include
+Clears all directories from the include path, including directories
+inserted in the include path by default.  The default include path is
+@file{.} (the current directory), followed by @file{.pspp} in the
+user's home directory, followed by PSPP's system configuration
+directory (usually @file{/etc/pspp} or @file{/usr/local/etc/pspp}).
+
+@item -i
+@itemx --interactive
+This option forces syntax files to be interpreted in interactive
+mode, rather than the default batch mode.  @xref{Syntax Variants}, for
+a description of the differences.
+
+@item -r
+@itemx --no-statrc
+Disables running @file{rc} at PSPP startup time.
+
+@item -a @{enhanced|compatible@}
+@itemx --algorithm=@{enhanced|compatible@}
+With @code{enhanced}, the default, PSPP uses the best implemented
+algorithms for statistical procedures.  With @code{compatible},
+however, PSPP will in some cases use inferior algorithms to produce
+the same results as the proprietary program SPSS.
+
+Some commands have subcommands that override this setting on a per
+command basis.
+
+@item -x @{enhanced|compatible@}
+@itemx --syntax=@{enhanced|compatible@}
+With @code{enhanced}, the default, PSPP accepts its own extensions
+beyond those compatible with the proprietary program SPSS.  With
+@code{compatible}, PSPP rejects syntax that uses these extensions.
+
+@item -?
+@itemx --help
+Prints a message describing PSPP command-line syntax and the available
+device formats, then exits.
+
+@item -V
+@itemx --version
+Prints a brief message listing PSPP's version, warranties you don't
+have, copying conditions and copyright, and e-mail address for bug
+reports, then exits.
+
+@item -s
+@itemx --safer
+Disables certain unsafe operations.  This includes the ERASE and
+HOST commands, as well as use of pipes as input and output files.
 
 @item --testing-mode
-
 Invoke heuristics to assist with testing PSPP.  For use by @code{make
 check} and similar scripts.
 @end table
 
-@node Language control options
-@subsection Language control options
+@node PDF PostScript and SVG Output Options
+@section PDF, PostScript, and SVG Output Options
 
-Language control options control how PSPP syntax files are parsed and
-interpreted.  The available language control options are:
+To produce output in PDF, PostScript, and SVG formats, specify
+@option{-o @var{file}} on the PSPP command line, optionally followed
+by any of the options shown in the table below to customize the output
+format.
 
-@table @code
-@item -i
-@itemx --interactive
-
-When a syntax file is specified on the command line, PSPP normally
-terminates after processing it.  Giving this option will cause PSPP to
-bring up a command prompt after processing the syntax file.
-
-In addition, this forces syntax files to be interpreted in interactive
-mode, rather than the default batch mode.  @xref{Tokenizing lines}, for
-information on the differences between batch mode and interactive mode
-command interpretation.
-
-@item -r
-@itemx --no-statrc
-
-Prevents the execution of the PSPP startup syntax file.
-
-@item -s
-@itemx --safer
-
-Disables certain unsafe operations.  This includes the ERASE and
-HOST commands, as well as use of pipes as input and output files.
-@end table
-
-@node Informational options
-@subsection Informational options
-
-Informational options cause information about PSPP to be written to
-the terminal.  Here are the available options:
+PDF, PostScript, and SVG output is only available if your installation
+of PSPP was compiled with the Cairo library.
 
 @table @code
-@item -h
-@item --help
+@item -O format=@{pdf|ps|svg@}
+Specify the output format.  This is only necessary if the file name
+given on @option{-o} does not end in @file{.pdf}, @file{.ps}, or
+@file{.svg}.
 
-Prints a message describing PSPP command-line syntax and the available
-device driver classes, then terminates.
+@item -O paper-size=@var{paper-size}
+Paper size, as a name (e.g.@: @code{a4}, @code{letter}) or
+measurements (e.g.@: @code{210x297}, @code{8.5x11in}).
 
-@item -l
-@item --list
+The default paper size is taken from the @env{PAPERSIZE} environment
+variable or the file indicated by the @env{PAPERCONF} environment
+variable, if either variable is set.  If not, and your system supports
+the @code{LC_PAPER} locale category, then the default paper size is
+taken from the locale.  Otherwise, if @file{/etc/papersize} exists,
+the default paper size is read from it.  As a last resort, A4 paper is
+assumed.
 
-Lists the available device driver classes, then terminates.
+@item -O orientation=@var{orientation}
+Either @code{portrait} or @code{landscape}.  Default: @code{portrait}.
 
-@item -x @{compatible|enhanced@}
-@itemx --syntax=@{compatible|enhanced@}
+@item -O headers=@var{boolean}
+When enabled, headers showing the time and date, title and subtitle,
+and page number are printed at the top of each page.  Default:
+@code{on}.
 
-If you chose @code{compatible}, then PSPP will only accept command syntax that 
-is compatible with the proprietary program SPSS.
-If you choose @code{enhanced} then additional syntax will be available.
-The default is @code{enhanced}.
+@item -O left-margin=@var{dimension}
+@itemx -O right-margin=@var{dimension}
+@itemx -O top-margin=@var{dimension}
+@itemx -O bottom-margin=@var{dimension}
+Sets the margins around the page.  The headers, if enabled, are not
+included in the margins; they are in addition to the margins.  See
+below for the allowed forms of @var{dimension} Default: @code{0.5in}.
 
+@item -O prop-font=@var{font-name}
+@itemx -O emph-font=@var{font-name}
+@itemx -O fixed-font=@var{font-name}
+Sets the font used for proportional, emphasized, or fixed-pitch text.
+Most systems support CSS-like font names such as ``serif'' and
+``monospace'', but a wide range of system-specific font are likely to
+be supported as well.
 
-@item -V
-@item --version
+Default: proportional font @code{serif}, emphasis font @code{serif
+italic}, fixed-pitch font @code{monospace}.
 
-Prints a brief message listing PSPP's version, warranties you don't
-have, copying conditions and copyright, and e-mail address for bug
-reports, then terminates.
+@item -O font-size=@var{font-size}
+Sets the size of the default fonts, in thousandths of a point.  Default:
+10000 (10 point).
 
+@item -O line-gutter=@var{dimension}
+Sets the width of white space on either side of lines that border text
+or graphics objects.  Default: @code{1pt}.
+
+@item -O line-spacing=@var{dimension}
+Sets the spacing between the lines in a double line in a table.
+Default: @code{1pt}.
+
+@item -O line-width=@var{dimension}
+Sets the width of the lines used in tables.  Default: @code{0.5pt}.
 @end table
 
+Each @var{dimension} value above may be specified in various units
+based on its suffix: @samp{mm} for millimeters, @samp{in} for inches,
+or @samp{pt} for points.  Lacking a suffix, numbers below 50 are
+assumed to be in inches and those about 50 are assumed to be in
+millimeters.
 
-@node The graphic user interface
+@node Plain Text Output Options
+@section Plain Text Output Options
+
+PSPP can produce plain text output, drawing boxes using ASCII or
+Unicode line drawing characters.  To produce plain text output,
+specify @option{-o @var{file}} on the PSPP command line, optionally
+followed by options from the table below to customize the output
+format.
+
+@table @code
+@item -O format=txt
+Specify the output format.  This is only necessary if the file name
+given on @option{-o} does not end in @file{.txt} or @file{.list}.
+
+@item -O charts=@{@var{template}.png|none@}
+Name for chart files included in output.  The value should be a file
+name that includes a single @samp{#} and ends in @file{png}.  When a
+chart is output, the @samp{#} is replaced by the chart number.  The
+default is the file name specified on @option{-o} with the extension
+stripped off and replaced by @file{-#.png}.
+
+Specify @code{none} to disable chart output.  Charts are always
+disabled if your installation of PSPP was compiled without the
+Cairo library.
+
+@item -O paginate=@var{boolean}
+If set, PSPP writes an ASCII formfeed the end of every page.  Default:
+@code{off}.
+
+@item -O headers=@var{boolean}
+If enabled, PSPP prints two lines of header information giving title
+and subtitle, page number, date and time, and PSPP version are printed
+at the top of every page.  These two lines are in addition to any top
+margin requested.  Default: @code{off}.
+
+@item -O length=@var{line-count}
+Physical length of a page.  Headers and margins are subtracted from
+this value.  You may specify the number of lines as a number, or for
+screen output you may specify @code{auto} to track the height of the
+terminal as it changes.  Default: @code{66}.
+
+@item -O width=@var{character-count}
+Width of a page, in characters.  Margins are subtracted from this
+value.  For screen output you may specify @code{auto} in place of a
+number to track the width of the terminal as it changes.  Default:
+@code{79}.
+
+@item -O top-margin=@var{top-margin-lines}
+Length of the top margin, in lines.  PSPP subtracts this value from
+the page length.  Default: @code{0}.
+
+@item -O bottom-margin=@var{bottom-margin-lines}
+Length of the bottom margin, in lines.  PSPP subtracts this value from
+the page length.  Default: @code{0}.
+
+@item -O box[@var{line-type}]=@var{box-chars}
+Sets the characters used for lines in tables.  @var{line-type} is a
+4-digit number that indicates the type of line to change, in the order
+`right', `bottom', `left', `top'.  Each digit is 0 for ``no line'', 1
+for a single line, and 2 for a double line.  @var{box-chars} is the
+character or string of characters to use for this type of line.
+
+For example, @code{box[0101]="|"} sets @samp{|} as the character to
+use for a single-width vertical line, and @code{box[1100]="\xda"} sets
+@samp{"\xda"}, which on MS-DOS is suitable for the top-left corner of
+a box, as the character for the intersection of two single-width
+lines, one each from the right and bottom.
+
+The defaults use @samp{-}, @samp{|}, and @samp{+} for single-width
+lines and @samp{=} and @samp{#} for double-width lines.
+
+@item -O init=@var{init-string}
+If set, this string is written at the beginning of each output file.
+It can be used to initialize device features, e.g.@: to enable VT100
+line-drawing characters.
+
+@item -O emphasis=@{none|bold|underline@}
+How to emphasize text.  Bold and underline emphasis are achieved with
+overstriking, which may not be supported by all the software to which
+you might pass the output.  Default: @code{none}.
+@end table
+
+@node HTML Output Options
+@section HTML Output Options
+
+To produce output in HTML format, specify @option{-o @var{file}} on
+the PSPP command line, optionally followed by any of the options shown
+in the table below to customize the output format.
+
+@table @code
+@item -O format=html
+Specify the output format.  This is only necessary if the file name
+given on @option{-o} does not end in @file{.html}.
+
+@item -O charts=@{@var{template}.png|none@}
+Sets the name used for chart files.  @xref{Plain Text Output Options},
+for details.
+@end table
+
+@node OpenDocument Output Options
+@section OpenDocument Output Options
+
+To produce output as an OpenDocument text (ODT) document, specify
+@option{-o @var{file}} on the PSPP command line.  If @var{file} does
+not end in @file{.odt}, you must also specify @option{-O format=odt}.
+
+The OpenDocument output format does not have any configurable options.
+
+@node Comma-Separated Value Output Options
+@section Comma-Separated Value Output Options
+
+To produce output in comma-separated value (CSV) format, specify
+@option{-o @var{file}} on the PSPP command line, optionally followed
+by any of the options shown in the table below to customize the output
+format.
+
+@table @code
+@item -O format=csv
+Specify the output format.  This is only necessary if the file name
+given on @option{-o} does not end in @file{.csv}.
+
+@item -O separator=@var{field-separator}
+Sets the character used to separate fields.  The default is a comma
+(@samp{,}).
+@end table
+
+The CSV format used is an extension to that specified in RFC 4180:
+
+@table @asis
+@item Tables
+Each table row is output on a separate line, and each column is output
+as a field.  The contents of a cell that spans multiple rows or
+columns is output only for the top-left row and column; the rest are
+output as empty fields.  When a table has a caption, it is output just
+above the table as a single field prefixed by @samp{Table:}.
+
+@item Text
+Text in output is printed as a field on a line by itself.  The TITLE
+and SUBTITLE produce similar output, prefixed by @samp{Title:} or
+@samp{Subtitle:}, respectively.
+
+@item Messages
+Errors, warnings, and notes are printed the same way as text.
+
+@item Charts
+Charts are not included in CSV output.
+@end table
+
+Successive output items are separated by a blank line.
+
+@node Invoking PSPPIRE
+@chapter Invoking @command{psppire}
 @section The graphic user interface
-
 @cindex Graphic user interface
 @cindex PSPPIRE
+
+The PSPPIRE graphic user interface for PSPP can perform all
+functionality of the command line interface.  In addition it gives an
+instantaneous view of the data, variables and statistical output.
 
 The graphic user interface can be started by typing @command{psppire} at a 
 command prompt.

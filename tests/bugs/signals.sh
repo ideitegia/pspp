@@ -59,7 +59,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="sending SIGINT to pspp"
-echo 'host kill -INT $PPID' | $PSPP --testing-mode > /dev/null 2> $TEMPDIR/stderr1
+echo 'host kill -INT $PPID' | $PSPP -o pspp.csv > /dev/null 2> $TEMPDIR/stderr1
 if [ $? -ne 0 ] ; then no_result ; fi
 
 # SIGINT should have caused a clean shutdown
@@ -68,7 +68,7 @@ activity="checking for absence of error messages 1"
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="sending SIGSEGV to pspp"
-echo 'host kill -SEGV $PPID' | $PSPP --testing-mode > /dev/null 2> $TEMPDIR/stderr2
+echo 'host kill -SEGV $PPID' | $PSPP -o pspp.csv > /dev/null 2> $TEMPDIR/stderr2
 if [ $? -eq 0 ] ; then no_result ; fi
 
 # SIGSEGV should have caused an error message

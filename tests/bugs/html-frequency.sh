@@ -77,7 +77,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 cd $TEMPDIR
 
 activity="run data"
-$SUPERVISOR $PSPP -o html $TESTFILE
+$SUPERVISOR $PSPP -o pspp.html $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 

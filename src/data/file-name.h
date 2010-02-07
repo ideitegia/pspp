@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,19 +19,11 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <libpspp/str.h>
 #include <sys/types.h>
 
-/* Search path for configuration files. */
-extern const char *config_path;
+struct string_set;
 
-void fn_init (void);
-
-void fn_interp_vars (struct substring src,
-                     void (*insert_variable) (const char *var,
-                                              struct string *dst, void *aux),
-                     void *aux, struct string *dst);
-char *fn_search_path (const char *base_name, const char *path);
+char *fn_search_path (const char *base_name, char **path);
 char *fn_dir_name (const char *fn);
 char *fn_extension (const char *fn);
 

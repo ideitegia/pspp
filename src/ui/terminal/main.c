@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,35 +29,34 @@
 #include <ieeefp.h>
 #endif
 
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "data/procedure.h"
+#include "data/settings.h"
+#include "data/variable.h"
+#include "gsl/gsl_errno.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/prompt.h"
+#include "libpspp/argv-parser.h"
+#include "libpspp/compiler.h"
+#include "libpspp/getl.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/version.h"
+#include "math/random.h"
+#include "output/driver.h"
+#include "ui/debugger.h"
+#include "ui/source-init-opts.h"
+#include "ui/terminal/msg-ui.h"
+#include "ui/terminal/read-line.h"
+#include "ui/terminal/terminal-opts.h"
+#include "ui/terminal/terminal.h"
 
-#include <libpspp/i18n.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <libpspp/getl.h>
-#include <data/file-name.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/variable.h>
-#include <gsl/gsl_errno.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/prompt.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/version.h>
-#include <math/random.h>
-#include <output/driver.h>
-#include <ui/debugger.h>
-#include <ui/terminal/msg-ui.h>
-#include <ui/terminal/read-line.h>
-#include <ui/terminal/terminal.h>
-#include <ui/terminal/terminal-opts.h>
-#include <ui/command-line.h>
-#include <ui/source-init-opts.h>
-
-#include "fatal-signal.h"
-#include "progname.h"
-#include "relocatable.h"
+#include "gl/fatal-signal.h"
+#include "gl/progname.h"
+#include "gl/relocatable.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -76,15 +75,14 @@ static struct dataset * the_dataset = NULL;
 static struct lexer *the_lexer;
 static struct source_stream *the_source_stream ;
 
-const char *argp_program_version = version;
-const char *argp_program_bug_address = PACKAGE_BUGREPORT;
-
 /* Program entry point. */
 int
 main (int argc, char **argv)
 {
   int *view_width_p, *view_length_p;
-  struct command_line_processor *clp;
+  struct terminal_opts *terminal_opts;
+  struct argv_parser *parser;
+
   set_program_name (argv[0]);
 
   signal (SIGABRT, bug_handler);
@@ -96,12 +94,8 @@ main (int argc, char **argv)
   fpu_init ();
   gsl_set_error_handler_off ();
 
-  fn_init ();
   fh_init ();
-  the_source_stream =
-    create_source_stream (
-			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
-			  );
+  the_source_stream = create_source_stream ();
   prompt_init ();
   readln_initialize ();
   terminal_init (&view_width_p, &view_length_p);
@@ -110,21 +104,13 @@ main (int argc, char **argv)
 
   the_dataset = create_dataset ();
 
-
-
-  clp = command_line_processor_create (_("PSPP --- A program for statistical analysis"),
-				       _("FILE1, FILE2 ... FILEn"), NULL);
-
-  command_line_processor_add_options (clp, &io_argp,
-				      _("Options affecting input and output locations:"), the_source_stream);
-
-  command_line_processor_add_options (clp, &test_argp,
-				      _("Diagnostic options:"), the_source_stream);
-
-  command_line_processor_add_options (clp, &post_init_argp,
-				      _("Options affecting syntax and behavior:"), the_source_stream);
-
-  command_line_processor_parse (clp, argc, argv);
+  parser = argv_parser_create ();
+  terminal_opts = terminal_opts_init (parser, the_source_stream);
+  source_init_register_argv_parser (parser, the_source_stream);
+  if (!argv_parser_run (parser, argc, argv))
+    exit (EXIT_FAILURE);
+  terminal_opts_done (terminal_opts, argc, argv);
+  argv_parser_destroy (parser);
 
   msg_ui_init (the_source_stream);
 

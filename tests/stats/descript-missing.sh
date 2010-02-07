@@ -83,7 +83,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode $TEMPDIR/descript.stat
+$SUPERVISOR $PSPP -o pspp.csv $TEMPDIR/descript.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"

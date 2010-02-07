@@ -84,7 +84,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -e $TEMPDIR/stdout $TEMPDIR/vector.stat
+$SUPERVISOR $PSPP -o pspp.csv -e $TEMPDIR/stdout $TEMPDIR/vector.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare stdout"

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,13 +72,10 @@ int tgetnum (const char *);
      cpi=integer "x>0" "%s must be greater than 0";
      cprompt=string;
      decimal=dec:dot/comma;
-     disk=custom;
      dprompt=string;
-     echo=echo:on/off;
      endcmd=string "x==1" "one character long";
      epoch=custom;
-     errorbreak=errbrk:on/off;
-     errors=errors:terminal/listing/both/on/none/off;
+     errors=custom;
      format=custom;
      headers=headers:no/yes/blank;
      highres=hires:on/off;
@@ -88,11 +85,10 @@ int tgetnum (const char *);
      log=custom;
      length=custom;
      locale=custom;
-     listing=custom;
      lowres=lores:auto/on/off;
      lpi=integer "x>0" "%s must be greater than 0";
      menus=menus:standard/extended;
-     messages=messages:on/off/terminal/listing/both/on/none/off;
+     messages=custom;
      mexpand=mexp:on/off;
      miterate=integer "x>0" "%s must be greater than 0";
      mnest=integer "x>0" "%s must be greater than 0";
@@ -102,9 +98,9 @@ int tgetnum (const char *);
      mxmemory=integer;
      mxwarns=integer;
      nulline=null:on/off;
-     printback=prtbck:on/off;
+     printback=custom;
      prompt=string;
-     results=res:on/off/terminal/listing/both/on/none/off;
+     results=custom;
      rib=rib:msbfirst/lsbfirst/vax/native;
      rrb=rrb:native/isl/isb/idl/idb/vf/vd/vg/zs/zl;
      safer=safe:on;
@@ -162,24 +158,14 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
   if (cmd.sbc_decimal)
     settings_set_decimal_char (cmd.dec == STC_DOT ? '.' : ',');
 
-  if (cmd.sbc_echo)
-    settings_set_echo (cmd.echo == STC_ON);
   if (cmd.sbc_endcmd)
     settings_set_endcmd (cmd.s_endcmd[0]);
-  if (cmd.sbc_errorbreak)
-    settings_set_errorbreak (cmd.errbrk == STC_ON);
-  if (cmd.sbc_errors)
-    {
-      bool both = cmd.errors == STC_BOTH || cmd.errors == STC_ON;
-      settings_set_error_routing_to_terminal (cmd.errors == STC_TERMINAL || both);
-      settings_set_error_routing_to_listing (cmd.errors == STC_LISTING || both);
-    }
   if (cmd.sbc_include)
     settings_set_include (cmd.inc == STC_ON);
   if (cmd.sbc_mxerrs)
-    settings_set_mxerrs (cmd.n_mxerrs[0]);
+    settings_set_max_messages (MSG_S_ERROR, cmd.n_mxerrs[0]);
   if (cmd.sbc_mxwarns)
-    settings_set_mxwarns (cmd.n_mxwarns[0]);
+    settings_set_max_messages (MSG_S_WARNING, cmd.n_mxwarns[0]);
   if (cmd.sbc_nulline)
     settings_set_nulline (cmd.null == STC_ON);
   if (cmd.sbc_rib)
@@ -280,7 +266,30 @@ stc_to_float_format (int stc)
   NOT_REACHED ();
 }
 
+static int
+set_output_routing (struct lexer *lexer, enum settings_output_type type)
+{
+  enum settings_output_devices devices;
 
+  lex_match (lexer, '=');
+  if (lex_match_id (lexer, "ON") || lex_match_id (lexer, "BOTH"))
+    devices = SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL;
+  else if (lex_match_id (lexer, "TERMINAL"))
+    devices = SETTINGS_DEVICE_TERMINAL;
+  else if (lex_match_id (lexer, "LISTING"))
+    devices = SETTINGS_DEVICE_LISTING;
+  else if (lex_match_id (lexer, "OFF") || lex_match_id (lexer, "NONE"))
+    devices = 0;
+  else
+    {
+      lex_error (lexer, NULL);
+      return 0;
+    }
+
+  settings_set_output_routing (type, devices);
+
+  return 1;
+}
 
 /* Parses the BLANKS subcommand, which controls the value that
    completely blank fields in numeric data imply.  X, Wnd: Syntax is
@@ -334,6 +343,13 @@ stc_custom_epoch (struct lexer *lexer,
     }
 
   return 1;
+}
+
+static int
+stc_custom_errors (struct lexer *lexer, struct dataset *ds UNUSED,
+                   struct cmd_set *cmd UNUSED, void *aux UNUSED)
+{
+  return set_output_routing (lexer, SETTINGS_OUTPUT_ERROR);
 }
 
 static int
@@ -396,7 +412,26 @@ stc_custom_locale (struct lexer *lexer, struct dataset *ds UNUSED,
   return 1;
 }
 
+static int
+stc_custom_messages (struct lexer *lexer, struct dataset *ds UNUSED,
+                   struct cmd_set *cmd UNUSED, void *aux UNUSED)
+{
+  return set_output_routing (lexer, SETTINGS_OUTPUT_NOTE);
+}
 
+static int
+stc_custom_printback (struct lexer *lexer, struct dataset *ds UNUSED,
+                      struct cmd_set *cmd UNUSED, void *aux UNUSED)
+{
+  return set_output_routing (lexer, SETTINGS_OUTPUT_SYNTAX);
+}
+
+static int
+stc_custom_results (struct lexer *lexer, struct dataset *ds UNUSED,
+                    struct cmd_set *cmd UNUSED, void *aux UNUSED)
+{
+  return set_output_routing (lexer, SETTINGS_OUTPUT_RESULT);
+}
 
 static int
 stc_custom_seed (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
@@ -488,33 +523,24 @@ stc_custom_log (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *
 {
   return stc_custom_journal (lexer, ds, cmd, aux);
 }
-
-static int
-stc_custom_listing (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
-{
-  bool listing;
-
-  lex_match (lexer, '=');
-  if (lex_match_id (lexer, "ON") || lex_match_id (lexer, "YES"))
-    listing = true;
-  else if (lex_match_id (lexer, "OFF") || lex_match_id (lexer, "NO"))
-    listing = false;
-  else
-    {
-      /* FIXME */
-      return 0;
-    }
-  output_set_type_enabled (listing, OUTPUT_DEVICE_LISTING);
-
-  return 1;
-}
-
-static int
-stc_custom_disk (struct lexer *lexer, struct dataset *ds, struct cmd_set *cmd UNUSED, void *aux)
-{
-  return stc_custom_listing (lexer, ds, cmd, aux);
-}
 
+static char *
+show_output_routing (enum settings_output_type type)
+{
+  enum settings_output_devices devices;
+  const char *s;
+
+  devices = settings_get_output_routing (type);
+  if (devices & SETTINGS_DEVICE_LISTING)
+    s = devices & SETTINGS_DEVICE_TERMINAL ? "BOTH" : "LISTING";
+  else if (devices & SETTINGS_DEVICE_TERMINAL)
+    s = "TERMINAL";
+  else
+    s = "NONE";
+
+  return xstrdup (s);
+}
+
 static char *
 show_blanks (const struct dataset *ds UNUSED)
 {
@@ -600,12 +626,7 @@ show_endcmd (const struct dataset *ds UNUSED)
 static char *
 show_errors (const struct dataset *ds UNUSED)
 {
-  bool terminal = settings_get_error_routing_to_terminal ();
-  bool listing = settings_get_error_routing_to_listing ();
-  return xstrdup (terminal && listing ? "BOTH"
-                  : terminal ? "TERMINAL"
-                  : listing ? "LISTING"
-                  : "NONE");
+  return show_output_routing (SETTINGS_OUTPUT_ERROR);
 }
 
 static char *
@@ -628,9 +649,27 @@ show_locale (const struct dataset *ds UNUSED)
 }
 
 static char *
+show_messages (const struct dataset *ds UNUSED)
+{
+  return show_output_routing (SETTINGS_OUTPUT_NOTE);
+}
+
+static char *
+show_printback (const struct dataset *ds UNUSED)
+{
+  return show_output_routing (SETTINGS_OUTPUT_SYNTAX);
+}
+
+static char *
+show_results (const struct dataset *ds UNUSED)
+{
+  return show_output_routing (SETTINGS_OUTPUT_RESULT);
+}
+
+static char *
 show_mxerrs (const struct dataset *ds UNUSED)
 {
-  return xasprintf ("%d", settings_get_mxerrs ());
+  return xasprintf ("%d", settings_get_max_messages (MSG_S_ERROR));
 }
 
 static char *
@@ -642,7 +681,7 @@ show_mxloops (const struct dataset *ds UNUSED)
 static char *
 show_mxwarns (const struct dataset *ds UNUSED)
 {
-  return xasprintf ("%d", settings_get_mxwarns ());
+  return xasprintf ("%d", settings_get_max_messages (MSG_S_WARNING));
 }
 
 /* Returns a name for the given INTEGER_FORMAT value. */
@@ -773,9 +812,12 @@ const struct show_sbc show_table[] =
     {"FORMAT", show_format},
     {"LENGTH", show_length},
     {"LOCALE", show_locale},
+    {"MESSAGES", show_messages},
     {"MXERRS", show_mxerrs},
     {"MXLOOPS", show_mxloops},
     {"MXWARNS", show_mxwarns},
+    {"PRINTBACk", show_printback},
+    {"RESULTS", show_results},
     {"RIB", show_rib},
     {"RRB", show_rrb},
     {"SCOMPRESSION", show_scompression},

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2010  Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,10 +15,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 
-#ifndef SOURCE_INIT_OPTS
-#define SOURCE_INIT_OPTS
+#ifndef UI_SOURCE_INIT_OPTS
+#define UI_SOURCE_INIT_OPTS
 
-extern const struct argp post_init_argp;
+struct argv_parser;
+struct source_stream;
 
-#endif
+void source_init_register_argv_parser (struct argv_parser *,
+                                       struct source_stream *);
 
+#endif /* ui/source/source-init-opts.h */

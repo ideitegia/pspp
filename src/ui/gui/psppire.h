@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2009  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,12 +17,9 @@
 #ifndef PSPPIRE_H
 #define PSPPIRE_H
 
-#include <argp.h>
+struct source_stream;
 
-struct command_line_processor ;
-extern const struct argp non_option_argp ;
-
-void initialize (struct command_line_processor *, int argc, char **argv);
+void initialize (struct source_stream *, const char *data_file);
 void de_initialize (void);
 
 void psppire_quit (void);

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,55 +15,57 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <gl/xalloc.h>
-#include <gtk/gtk.h>
-#include "psppire.h"
-#include "progname.h"
-#include <stdlib.h>
-#include <argp.h>
-#include <gl/relocatable.h>
-#include <ui/command-line.h>
-#include <ui/source-init-opts.h>
 
-#include <libpspp/version.h>
-#include <libpspp/copyleft.h>
+#include "ui/gui/psppire.h"
+
+#include <gtk/gtk.h>
+#include <stdlib.h>
+
+#include "libpspp/argv-parser.h"
+#include "libpspp/assertion.h"
+#include "libpspp/getl.h"
+#include "libpspp/version.h"
+#include "libpspp/copyleft.h"
+#include "ui/source-init-opts.h"
+
+#include "gl/progname.h"
+#include "gl/relocatable.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-const char *argp_program_version = version;
-const char *argp_program_bug_address = PACKAGE_BUGREPORT;
-
 
 /* Arguments to be interpreted before the X server gets initialised */
 
-static const struct argp_option startup_options [] =
+enum
   {
-    {"no-splash",  'q',  0,  0,  N_("Don't show the splash screen"), 0 },
-    { 0, 0, 0, 0, 0, 0 }
+    OPT_NO_SPLASH,
+    N_STARTUP_OPTIONS
   };
 
-static error_t
-parse_startup_opts (int key, char *arg, struct argp_state *state)
+static const struct argv_option startup_options[N_STARTUP_OPTIONS] =
+  {
+    {"no-splash", 'q', no_argument, OPT_NO_SPLASH}
+  };
+
+static void
+startup_option_callback (int id, void *show_splash_)
 {
-  gboolean *showsplash = state->input;
+  gboolean *show_splash = show_splash_;
 
-  switch (key)
+  switch (id)
     {
-    case 'q':
-      *showsplash = FALSE;
+    case OPT_NO_SPLASH:
+      *show_splash = FALSE;
       break;
+
     default:
-      return ARGP_ERR_UNKNOWN;
+      NOT_REACHED ();
     }
-  return 0;
 }
-
-static const struct argp startup_argp = {startup_options, parse_startup_opts, 0, 0, 0, 0, 0};
-
 
-
 static GtkWidget *
 create_splash_window (void)
 {
@@ -108,10 +110,9 @@ quit_one_loop (gpointer data)
 
 struct initialisation_parameters
 {
-  int argc;
-  char **argv;
+  struct source_stream *ss;
+  const char *data_file;
   GtkWidget *splash_window;
-  struct command_line_processor *clp;
 };
 
 
@@ -119,7 +120,7 @@ static gboolean
 run_inner_loop (gpointer data)
 {
   struct initialisation_parameters *ip = data;
-  initialize (ip->clp, ip->argc, ip->argv);
+  initialize (ip->ss, ip->data_file);
 
   g_timeout_add (500, hide_splash_window, ip->splash_window);
 
@@ -144,10 +145,10 @@ static GMemVTable vtable =
 int
 main (int argc, char *argv[])
 {
-  struct command_line_processor *clp ;
   struct initialisation_parameters init_p;
   gboolean show_splash = TRUE;
-
+  struct argv_parser *parser;
+  struct source_stream *ss;
   const gchar *vers;
 
   set_program_name (argv[0]);
@@ -170,21 +171,22 @@ main (int argc, char *argv[])
       g_warning (vers);
     }
 
-  clp = command_line_processor_create (_("PSPPIRE --- A user interface for PSPP"), "[ DATA-FILE ]", 0);
-
-  command_line_processor_add_options (clp, &startup_argp, _("Miscellaneous options:"),  &show_splash);
-  command_line_processor_add_options (clp, &post_init_argp,
-				      _("Options affecting syntax and behavior:"),  NULL);
-  command_line_processor_add_options (clp, &non_option_argp, NULL, NULL);
-
-  command_line_processor_parse (clp, argc, argv);
-
+  /* Let GDK remove any options that it owns. */
   gdk_init (&argc, &argv);
 
+  /* Parse our own options. */
+  ss = create_source_stream ();
+  parser = argv_parser_create ();
+  argv_parser_add_options (parser, startup_options, N_STARTUP_OPTIONS,
+                           startup_option_callback, &show_splash);
+  source_init_register_argv_parser (parser, ss);
+  if (!argv_parser_run (parser, argc, argv))
+    exit (EXIT_FAILURE);
+  argv_parser_destroy (parser);
+
   init_p.splash_window = create_splash_window ();
-  init_p.argc = argc;
-  init_p.argv = argv;
-  init_p.clp = clp;
+  init_p.ss = ss;
+  init_p.data_file = optind < argc ? argv[optind] : NULL;
 
   if ( show_splash )
     gtk_widget_show (init_p.splash_window);

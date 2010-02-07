@@ -132,7 +132,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run test"
-$SUPERVISOR $PSPP --testing-mode test.pspp
+$SUPERVISOR $PSPP -o pspp.csv test.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare test results"

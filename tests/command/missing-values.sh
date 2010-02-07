@@ -119,7 +119,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode --error-file=$TEMPDIR/errs $TEMPDIR/missing-values.stat 
+$SUPERVISOR $PSPP -o pspp.csv --error-file=$TEMPDIR/errs $TEMPDIR/missing-values.stat 
 # Note   vv   --- there are errors in input.  Therefore, the  command must FAIL
 if [ $? -eq 0 ] ; then fail ; fi
 

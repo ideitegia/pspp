@@ -81,12 +81,12 @@ chmod u-w $TEMPDIR
 # on a single PSPP invocation, except that charts are only supported for
 # a single driver at a time, and we'd prefer to test chart support for
 # all of our driver types.
-for driver in list-ascii list-ps html; do
+for file in pspp.csv pspp.html pspp.odt pspp.pdf pspp.txt; do
     # PSPP will fail to create the output file.  Currently this doesn't cause
     # PSPP's exit status to be nonzero, although this is arguably incorrect.
     # At any rate, PSPP should not crash.
-    activity="run pspp with $driver driver"
-    $SUPERVISOR $PSPP -o $driver test.pspp >/dev/null 2>&1
+    activity="run pspp with $file driver"
+    $SUPERVISOR $PSPP -o $file test.pspp >/dev/null 2>&1
     if [ $? -ne 0 ] ; then fail ; fi
 done
 

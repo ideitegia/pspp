@@ -41,6 +41,7 @@ cd $TEMPDIR
 activity="write pspp syntax"
 cat > month-out.pspp <<EOF
 set errors=none.
+set mxerr=1000000.
 set mxwarns=10000000.
 data list /x 1-10.
 begin data.
@@ -111,7 +112,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode month-out.pspp
+$SUPERVISOR $PSPP -o pspp.csv month-out.pspp
 if [ $? -eq 0 ] ; then no_result ; fi
 
 activity="compare output"

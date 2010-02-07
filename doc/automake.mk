@@ -6,7 +6,6 @@ doc_pspp_TEXINFOS = doc/version.texi \
 	doc/bugs.texi \
 	doc/command-index.texi \
 	doc/concept-index.texi \
-	doc/configuring.texi \
 	doc/data-io.texi \
 	doc/data-selection.texi \
 	doc/expressions.texi \

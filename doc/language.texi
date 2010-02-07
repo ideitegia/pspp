@@ -208,9 +208,9 @@ new command, which allows for visual indentation of a command without
 that command being considered part of the previous command. 
 The period terminating the end of a command is optional but recommended.
 
-In interactive mode, each command must  either be terminated with a period,
-or an empty line must follow the command.
-The use of (@samp{+} and @samp{@minus{}} as continuation characters is not
+In interactive mode, each command must be terminated with a period
+or by a blank line.
+The use of @samp{+} and @samp{@minus{}} as continuation characters is not
 permitted.
 
 @node Types of Commands

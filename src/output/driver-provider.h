@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,9 +17,11 @@
 #ifndef OUTPUT_DRIVER_PROVIDER_H
 #define OUTPUT_DRIVER_PROVIDER_H 1
 
-#include <libpspp/compiler.h>
 #include <stdbool.h>
-#include <output/driver.h>
+
+#include "data/settings.h"
+#include "libpspp/compiler.h"
+#include "output/driver.h"
 
 struct output_item;
 struct string_map;
@@ -29,12 +31,12 @@ struct output_driver
   {
     const struct output_driver_class *class; /* Driver class. */
     char *name;                              /* Name of this driver. */
-    enum output_device_type device_type;     /* One of OUTPUT_DEVICE_*. */
+    enum settings_output_devices device_type; /* One of SETTINGS_DEVICE_*. */
   };
 
 void output_driver_init (struct output_driver *,
                          const struct output_driver_class *,
-                         const char *name, enum output_device_type);
+                         const char *name, enum settings_output_devices);
 void output_driver_destroy (struct output_driver *);
 
 const char *output_driver_get_name (const struct output_driver *);
@@ -47,22 +49,8 @@ const char *output_driver_get_name (const struct output_driver *);
    with error(), which will never call into the output drivers.  */
 struct output_driver_class
   {
-    const char *name;		/* Name of this driver class. */
-
-    /* Creates a new output driver of this class.  NAME and TYPE should be
-       passed directly to output_driver_init.  Returns the new output driver if
-       successful, otherwise a null pointer.
-
-       It is up to the driver class to decide how to interpret OPTIONS.  The
-       functions in output/options.h can be useful.  OPTIONS may be modified
-       but the caller is responsible for destroying it.
-
-       The returned driver should not have been registered (with
-       output_driver_register).  The caller will register the driver (if this
-       is desirable). */
-    struct output_driver *(*create) (const char *name,
-                                     enum output_device_type type,
-                                     struct string_map *options);
+    /* Name of this driver class. */
+    const char *name;
 
     /* Closes and frees DRIVER. */
     void (*destroy) (struct output_driver *driver);
@@ -83,17 +71,31 @@ struct output_driver_class
     void (*flush) (struct output_driver *driver);
   };
 
-void output_driver_register (struct output_driver *);
-void output_driver_unregister (struct output_driver *);
-bool output_driver_is_registered (const struct output_driver *);
+/* Useful for output driver implementation. */
+void output_driver_track_current_command (const struct output_item *, char **);
+
+/* An abstract way for the output subsystem to create an output driver. */
+struct output_driver_factory
+  {
+    /* The file extension, without the leading dot, e.g. "pdf". */
+    const char *extension;
 
-/* Common drivers. */
-extern const struct output_driver_class ascii_class;
-extern const struct output_driver_class html_class;
-extern const struct output_driver_class odt_class;
-extern const struct output_driver_class csv_class;
-#ifdef HAVE_CAIRO
-extern const struct output_driver_class cairo_class;
-#endif
+    /* Creates a new output driver of this class.  NAME and TYPE should be
+       passed directly to output_driver_init.  Returns the new output driver if
+       successful, otherwise a null pointer.
+
+       It is up to the driver class to decide how to interpret OPTIONS.  The
+       create function should delete pairs that it understands from OPTIONS,
+       because the caller may issue errors about unknown options for any pairs
+       that remain.  The functions in output/options.h can be useful.
+
+       The returned driver should not have been registered (with
+       output_driver_register).  The caller will register the driver (if this
+       is desirable). */
+    struct output_driver *(*create) (const char *name,
+                                     enum settings_output_devices type,
+                                     struct string_map *options);
+  };
+
 
 #endif /* output/driver-provider.h */

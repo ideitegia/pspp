@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,15 +16,16 @@
 
 #include <config.h>
 
+#include "libpspp/getl.h"
+
 #include <stdlib.h>
 
-#include "getl.h"
+#include "libpspp/ll.h"
+#include "libpspp/str.h"
+#include "libpspp/string-array.h"
 
-#include <libpspp/str.h>
-#include <libpspp/ll.h>
-#include <libpspp/version.h>
-
-#include "xalloc.h"
+#include "gl/relocatable.h"
+#include "gl/xalloc.h"
 
 struct getl_source
   {
@@ -41,14 +42,15 @@ struct getl_source
 struct source_stream
   {
     struct ll_list sources ;  /* List of source files. */
-
-    struct string the_include_path;
+    struct string_array include_path;
   };
 
-const char *
-getl_include_path (const struct source_stream *ss)
+char **
+getl_include_path (const struct source_stream *ss_)
 {
-  return ds_cstr (&ss->the_include_path);
+  struct source_stream *ss = CONST_CAST (struct source_stream *, ss_);
+  string_array_terminate_null (&ss->include_path);
+  return ss->include_path.strings;
 }
 
 static struct getl_source *
@@ -80,15 +82,19 @@ source_stream_current_error_mode (const struct source_stream *ss)
 
 /* Initialize getl. */
 struct source_stream *
-create_source_stream (const char *initial_include_path)
+create_source_stream (void)
 {
-  struct source_stream *ss = xzalloc (sizeof (*ss));
+  struct source_stream *ss;
+
+  ss = xzalloc (sizeof (*ss));
   ll_init (&ss->sources);
-#if 0
-  ds_init_cstr (&ss->the_include_path,
-                fn_getenv_default ("STAT_INCLUDE_PATH", include_path));
-#endif
-  ds_init_cstr (&ss->the_include_path, initial_include_path);
+
+  string_array_init (&ss->include_path);
+  string_array_append (&ss->include_path, ".");
+  if (getenv ("HOME") != NULL)
+    string_array_append_nocopy (&ss->include_path,
+                                xasprintf ("%s/.pspp", getenv ("HOME")));
+  string_array_append (&ss->include_path, relocate (PKGDATADIR));
 
   return ss;
 }
@@ -97,17 +103,14 @@ create_source_stream (const char *initial_include_path)
 void
 getl_clear_include_path (struct source_stream *ss)
 {
-  ds_clear (&ss->the_include_path);
+  string_array_clear (&ss->include_path);
 }
 
 /* Add to the include path. */
 void
 getl_add_include_dir (struct source_stream *ss, const char *path)
 {
-  if (ds_length (&ss->the_include_path))
-    ds_put_char (&ss->the_include_path, ':');
-
-  ds_put_cstr (&ss->the_include_path, path);
+  string_array_append (&ss->include_path, path);
 }
 
 /* Appends source S to the list of source files. */
@@ -231,7 +234,7 @@ destroy_source_stream (struct source_stream *ss)
 {
   while ( !ll_is_empty (&ss->sources))
     close_source (ss);
-  ds_destroy (&ss->the_include_path);
+  string_array_destroy (&ss->include_path);
 
   free (ss);
 }

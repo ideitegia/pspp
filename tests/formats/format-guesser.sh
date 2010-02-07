@@ -186,7 +186,7 @@ activity="create syntax file"
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode \
+$SUPERVISOR $PSPP --testing-mode -o pspp.csv \
 	 $TEMPDIR/test.stat >$TEMPDIR/test.err 2> $TEMPDIR/test.out
 
 activity="compare output"

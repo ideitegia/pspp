@@ -330,7 +330,6 @@ SET
 (interaction)
         /CPROMPT='cprompt_string'
         /DPROMPT='dprompt_string'
-        /ERRORBREAK=@{OFF,ON@}
         /MXERRS=max_errs
         /MXWARNS=max_warnings
         /PROMPT='prompt'
@@ -353,17 +352,14 @@ SET
         /WRB=@{NATIVE,ISL,ISB,IDL,IDB,VF,VD,VG,ZS,ZL@}
 
 (output routing)
-        /ECHO=@{ON,OFF@}
         /ERRORS=@{ON,OFF,TERMINAL,LISTING,BOTH,NONE@}
-        /INCLUDE=@{ON,OFF@}
         /MESSAGES=@{ON,OFF,TERMINAL,LISTING,BOTH,NONE@}
-        /PRINTBACK=@{ON,OFF@}
+        /PRINTBACK=@{ON,OFF,TERMINAL,LISTING,BOTH,NONE@}
         /RESULTS=@{ON,OFF,TERMINAL,LISTING,BOTH,NONE@}
 
 (output driver options)
         /HEADERS=@{NO,YES,BLANK@}
         /LENGTH=@{NONE,length_in_lines@}
-        /LISTING=@{ON,OFF,'file-name'@}
         /MORE=@{ON,OFF@}
         /WIDTH=@{NARROW,WIDTH,n_characters@}
 
@@ -383,7 +379,6 @@ SET
         /BOXSTRING=@{'xxx','xxxxxxxxxxx'@}
         /CASE=@{UPPER,UPLOW@}
         /CPI=cpi_value
-        /DISK=@{ON,OFF@}
         /HIGHRES=@{ON,OFF@}
         /HISTOGRAM='c'
         /LOWRES=@{AUTO,ON,OFF@}
@@ -524,10 +519,6 @@ The command continuation prompt.  The default is @samp{    > }.
 Prompt used when expecting data input within @cmd{BEGIN DATA} (@pxref{BEGIN
 DATA}).  The default is @samp{data> }.
 
-@item ERRORBREAK
-Whether an error causes PSPP to stop processing the current command
-file after finishing the current command.  The default is OFF.
-
 @item MXERRS
 The maximum number of errors before PSPP halts processing of the current
 command file.  The default is 50.
@@ -615,22 +606,48 @@ RB format (@pxref{Binary and Hexadecimal Numeric Formats}).  The choices
 are the same as SET RIB.  The default is NATIVE.
 @end table
 
-Output routing subcommands affect where the output of transformations
-and procedures is sent.  These subcommands are
+In the PSPP text-based interface, the output routing subcommands
+affect where output is sent.  The following values are allowed for
+each of these subcommands:
 
 @table @asis
-@item ECHO
+@item OFF
+@item NONE
+Discard this kind of output.
 
-If turned on, commands are written to the listing file as they are read
-from command files.  The default is OFF.
+@item TERMINAL
+Write this output to the terminal, but not to listing files and other
+output devices.
 
-@itemx ERRORS
-@itemx INCLUDE
-@itemx MESSAGES
-@item PRINTBACK
-@item RESULTS
-Currently not used.
+@item LISTING
+Write this output to listing files and other output devices, but not
+to the terminal.
+
+@item ON
+@itemx BOTH
+Write this type of output to all output devices.
 @end table
+
+These output routing subcommands are:
+
+@table @asis
+@item ERRORS
+Applies to error and warning messages.  The default is BOTH.
+
+@itemx MESSAGES
+Applies to notes.  The default is BOTH.
+
+@itemx PRINTBACK
+Determines whether the syntax used for input is printed back as part
+of the output.  The default is NONE.
+
+@itemx RESULTS
+Applies to everything not in one of the above categories, such as the
+results of statistical procedures.  The default is BOTH.
+@end table
+
+These subcommands have no effect on output in the PSPP GUI
+environment.
 
 Output driver option subcommands affect output drivers' settings.  These
 subcommands are
@@ -638,7 +655,6 @@ subcommands are
 @table @asis
 @item HEADERS
 @itemx LENGTH
-@itemx LISTING
 @itemx MORE
 @itemx PAGER 
 @itemx WIDTH
@@ -646,7 +662,6 @@ subcommands are
 
 @cindex headers
 @cindex length
-@cindex listing
 @cindex more
 @cindex pager 
 @cindex width

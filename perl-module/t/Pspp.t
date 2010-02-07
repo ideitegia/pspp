@@ -40,7 +40,7 @@ sub run_pspp_syntax
     print FH "$syntax";
     close (FH);
 
-    system ("cd $tempdir; $pspp_cmd --testing-mode $syntaxfile");
+    system ("cd $tempdir; $pspp_cmd -o pspp.csv $syntaxfile");
 }
 
 sub run_pspp_syntax_cmp

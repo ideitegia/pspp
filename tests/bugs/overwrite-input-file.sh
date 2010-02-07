@@ -77,7 +77,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 1"
-$SUPERVISOR $PSPP --testing-mode $TESTFILE
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check and save copy of output files"
@@ -103,7 +103,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 2"
-{ $SUPERVISOR $PSPP --testing-mode $TESTFILE -e /dev/null; } >/dev/null 2>&1
+{ $SUPERVISOR $PSPP -o pspp.csv $TESTFILE -e /dev/null; } >/dev/null 2>&1
 # PSPP should have terminated with a signal.  POSIX requires that the exit
 # status of a process terminated by a signal be greater than 128.
 if [ $? -le 128 ] ; then no_result ; fi
@@ -142,7 +142,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 3"
-$SUPERVISOR $PSPP --testing-mode $TESTFILE -e /dev/null
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE -e /dev/null
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check for remaining temporary files"
@@ -162,7 +162,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 4"
-$SUPERVISOR $PSPP --testing-mode $TESTFILE -e /dev/null
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE -e /dev/null
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"

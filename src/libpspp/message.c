@@ -170,8 +170,6 @@ request_bug_report_and_abort (const char *msg)
   fprintf (stderr, "version:             %s\n", stat_version);
   fprintf (stderr, "host_system:         %s\n", host_system);
   fprintf (stderr, "build_system:        %s\n", build_system);
-  fprintf (stderr, "default_config_path: %s\n", default_config_path);
-  fprintf (stderr, "include_path:        %s\n", include_path);
   fprintf (stderr, "locale_dir:          %s\n", locale_dir);
   fprintf (stderr, "compiler version:    %s\n",
 #ifdef __VERSION__

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ struct ascii_driver
     struct output_driver driver;
 
     /* User parameters. */
-    bool append;                /* Append if output-file already exists? */
+    bool append;                /* Append if output file already exists? */
     bool headers;		/* Print headers at top of page? */
     bool paginate;		/* Insert formfeeds? */
     bool squeeze_blank_lines;   /* Squeeze multiple blank lines into one? */
@@ -124,6 +124,10 @@ struct ascii_driver
     int y;
   };
 
+static const struct output_driver_class ascii_driver_class;
+
+static void ascii_submit (struct output_driver *, const struct output_item *);
+
 static int vertical_margins (const struct ascii_driver *);
 
 static const char *get_default_box (int right, int bottom, int left, int top);
@@ -146,7 +150,7 @@ static void ascii_draw_cell (void *, const struct table_cell *,
 static struct ascii_driver *
 ascii_driver_cast (struct output_driver *driver)
 {
-  assert (driver->class == &ascii_class);
+  assert (driver->class == &ascii_driver_class);
   return UP_CAST (driver, struct ascii_driver, driver);
 }
 
@@ -158,7 +162,7 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
 }
 
 static struct output_driver *
-ascii_create (const char *name, enum output_device_type device_type,
+ascii_create (const char *file_name, enum settings_output_devices device_type,
               struct string_map *o)
 {
   struct output_driver *d;
@@ -168,28 +172,21 @@ ascii_create (const char *name, enum output_device_type device_type,
 
   a = xzalloc (sizeof *a);
   d = &a->driver;
-  output_driver_init (&a->driver, &ascii_class, name, device_type);
+  output_driver_init (&a->driver, &ascii_driver_class, file_name, device_type);
   a->append = parse_boolean (opt (d, o, "append", "false"));
-  a->headers = parse_boolean (opt (d, o, "headers", "true"));
-  a->paginate = parse_boolean (opt (d, o, "paginate", "true"));
-  a->squeeze_blank_lines = parse_boolean (opt (d, o, "squeeze", "false"));
-  a->emphasis = parse_enum (opt (d, o, "emphasis", "bold"),
+  a->headers = parse_boolean (opt (d, o, "headers", "false"));
+  a->paginate = parse_boolean (opt (d, o, "paginate", "false"));
+  a->squeeze_blank_lines = parse_boolean (opt (d, o, "squeeze", "true"));
+  a->emphasis = parse_enum (opt (d, o, "emphasis", "none"),
                             "bold", EMPH_BOLD,
                             "underline", EMPH_UNDERLINE,
                             "none", EMPH_NONE,
                             (char *) NULL);
 
-  if (parse_enum (opt (d, o, "chart-type", "png"),
-                  "png", true,
-                  "none", false,
-                  (char *) NULL))
-    a->chart_file_name = parse_chart_file_name (opt (d, o, "chart-files",
-                                                     "pspp-#.png"));
-  else
-    a->chart_file_name = NULL;
+  a->chart_file_name = parse_chart_file_name (opt (d, o, "charts", file_name));
 
-  a->top_margin = parse_int (opt (d, o, "top-margin", "2"), 0, INT_MAX);
-  a->bottom_margin = parse_int (opt (d, o, "bottom-margin", "2"), 0, INT_MAX);
+  a->top_margin = parse_int (opt (d, o, "top-margin", "0"), 0, INT_MAX);
+  a->bottom_margin = parse_int (opt (d, o, "bottom-margin", "0"), 0, INT_MAX);
 
   a->width = parse_page_size (opt (d, o, "width", "79"));
   paper_length = parse_page_size (opt (d, o, "length", "66"));
@@ -214,7 +211,7 @@ ascii_create (const char *name, enum output_device_type device_type,
 
   a->title = xstrdup ("");
   a->subtitle = xstrdup ("");
-  a->file_name = parse_string (opt (d, o, "output-file", "pspp.list"));
+  a->file_name = xstrdup (file_name);
   a->file = NULL;
   a->error = false;
   a->page_number = 0;
@@ -531,10 +528,14 @@ ascii_submit (struct output_driver *driver,
     }
 }
 
-const struct output_driver_class ascii_class =
+const struct output_driver_factory txt_driver_factory =
+  { "txt", ascii_create };
+const struct output_driver_factory list_driver_factory =
+  { "list", ascii_create };
+
+static const struct output_driver_class ascii_driver_class =
   {
-    "ascii",
-    ascii_create,
+    "text",
     ascii_destroy,
     ascii_submit,
     ascii_flush,

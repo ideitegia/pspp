@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,17 +52,14 @@ struct settings
   int *viewlength;
   int *viewwidth;
   bool safer_mode;
-  bool do_echo;
   bool include;
   int epoch;
-  bool errorbreak;
   bool route_errors_to_terminal;
   bool route_errors_to_listing;
   bool scompress;
   bool undefined;
   double blanks;
-  int mxwarns;
-  int mxerrs;
+  int max_messages[MSG_N_SEVERITIES];
   bool printback;
   bool mprint;
   int mxloops;
@@ -77,6 +74,8 @@ struct settings
   int syntax;
 
   struct fmt_number_style *styles;
+
+  enum settings_output_devices output_routing[SETTINGS_N_OUTPUT_TYPES];
 };
 
 static struct settings the_settings = {
@@ -94,14 +93,10 @@ static struct settings the_settings = {
   NULL,
     /* safer_mode */
   false,
-    /* do_echo */
-  false,
     /* include */
   true,
     /* epoch */
   -1,
-    /* errorbreak */
-  false,
     /* route_errors_to_terminal */
   true,
     /* route_errors_to_listing */
@@ -112,10 +107,12 @@ static struct settings the_settings = {
   true,
     /* blanks */
   SYSMIS,
-    /* mxwarns */
-  100,
-    /* mxerrs */
-  100,
+    /* max_messages */
+  {
+    100,                        /* MSG_S_ERROR */
+    100,                        /* MSG_S_WARNING */
+    100                         /* MSG_S_NOTE */
+  },
     /* printback */
   true,
     /* mprint */
@@ -139,7 +136,12 @@ static struct settings the_settings = {
     /* syntax */
   ENHANCED,
     /* styles */
-  NULL
+  NULL,
+    /* output devices */
+  {SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL,
+   SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL,
+   0,
+   SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL}
 };
 
 static void init_viewport ( int *, int *);
@@ -269,20 +271,6 @@ settings_set_safer_mode (void)
   the_settings.safer_mode = true;
 }
 
-/* Echo commands to the listing file/printer? */
-bool
-settings_get_echo (void)
-{
-  return the_settings.do_echo;
-}
-
-/* Set echo. */
-void
-settings_set_echo ( bool echo)
-{
-  the_settings.do_echo = echo;
-}
-
 /* If echo is on, whether commands from include files are echoed. */
 bool
 settings_get_include (void)
@@ -319,50 +307,6 @@ settings_set_epoch ( int epoch)
 
   the_settings.epoch = epoch;
   assert (the_settings.epoch >= 0);
-}
-
-/* Does an error stop execution? */
-bool
-settings_get_errorbreak (void)
-{
-  return the_settings.errorbreak;
-}
-
-/* Sets whether an error stops execution. */
-void
-settings_set_errorbreak ( bool errorbreak)
-{
-  the_settings.errorbreak = errorbreak;
-}
-
-/* Route error messages to terminal? */
-bool
-settings_get_error_routing_to_terminal (void)
-{
-  return the_settings.route_errors_to_terminal;
-}
-
-/* Sets whether error messages should be routed to the
-   terminal. */
-void
-settings_set_error_routing_to_terminal ( bool route_to_terminal)
-{
-  the_settings.route_errors_to_terminal = route_to_terminal;
-}
-
-/* Route error messages to listing file? */
-bool
-settings_get_error_routing_to_listing (void)
-{
-  return the_settings.route_errors_to_listing;
-}
-
-/* Sets whether error messages should be routed to the
-   listing file. */
-void
-settings_set_error_routing_to_listing ( bool route_to_listing)
-{
-  the_settings.route_errors_to_listing = route_to_listing;
 }
 
 /* Compress system files by default? */
@@ -408,46 +352,24 @@ settings_set_blanks ( double blanks)
   the_settings.blanks = blanks;
 }
 
-/* Maximum number of warnings + errors. */
+/* Returns the maximum number of messages to show of the given SEVERITY before
+   aborting.  (The value for MSG_S_WARNING is interpreted as maximum number of
+   warnings and errors combined.) */
 int
-settings_get_mxwarns (void)
+settings_get_max_messages (enum msg_severity severity)
 {
-  return the_settings.mxwarns;
+  assert (severity < MSG_N_SEVERITIES);
+  return the_settings.max_messages[severity];
 }
 
-/* Sets maximum number of warnings + errors. */
+/* Sets the maximum number of messages to show of the given SEVERITY before
+   aborting to MAX.  (The value for MSG_S_WARNING is interpreted as maximum
+   number of warnings and errors combined.) */
 void
-settings_set_mxwarns ( int mxwarns)
+settings_set_max_messages (enum msg_severity severity, int max)
 {
-  the_settings.mxwarns = mxwarns;
-}
-
-/* Maximum number of errors. */
-int
-settings_get_mxerrs (void)
-{
-  return the_settings.mxerrs;
-}
-
-/* Sets maximum number of errors. */
-void
-settings_set_mxerrs ( int mxerrs)
-{
-  the_settings.mxerrs = mxerrs;
-}
-
-/* Whether commands are written to the display. */
-bool
-settings_get_printback (void)
-{
-  return the_settings.printback;
-}
-
-/* Sets whether commands are written to the display. */
-void
-settings_set_printback ( bool printback)
-{
-  the_settings.printback = printback;
+  assert (severity < MSG_N_SEVERITIES);
+  the_settings.max_messages[severity] = max;
 }
 
 /* Independent of get_printback, controls whether the commands
@@ -756,4 +678,19 @@ settings_dollar_template (const struct fmt_spec *fmt)
     }
 
   return ds_cstr (&str);
+}
+
+void
+settings_set_output_routing (enum settings_output_type type,
+                             enum settings_output_devices devices)
+{
+  assert (type < SETTINGS_N_OUTPUT_TYPES);
+  the_settings.output_routing[type] = devices;
+}
+
+enum settings_output_devices
+settings_get_output_routing (enum settings_output_type type)
+{
+  assert (type < SETTINGS_N_OUTPUT_TYPES);
+  return the_settings.output_routing[type] | SETTINGS_DEVICE_UNFILTERED;
 }

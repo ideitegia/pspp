@@ -18,192 +18,319 @@
 
 #include "terminal-opts.h"
 
-#include <argp.h>
 #include <stdbool.h>
 #include <xalloc.h>
 #include <stdlib.h>
+#include <unistd.h>
 
-#include <data/settings.h>
-#include <data/file-name.h>
-#include <language/syntax-file.h>
-#include <libpspp/getl.h>
-#include <libpspp/llx.h>
-#include <libpspp/string-map.h>
-#include <libpspp/string-set.h>
-#include <output/driver.h>
-#include <ui/command-line.h>
-#include <ui/terminal/msg-ui.h>
-#include <ui/terminal/read-line.h>
+#include "data/settings.h"
+#include "data/file-name.h"
+#include "language/syntax-file.h"
+#include "libpspp/argv-parser.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/getl.h"
+#include "libpspp/llx.h"
+#include "libpspp/str.h"
+#include "libpspp/string-array.h"
+#include "libpspp/string-map.h"
+#include "libpspp/string-set.h"
+#include "libpspp/version.h"
+#include "output/driver.h"
+#include "output/driver-provider.h"
+#include "ui/terminal/msg-ui.h"
+#include "ui/terminal/read-line.h"
 
 #include "gl/error.h"
+#include "gl/progname.h"
+#include "gl/version-etc.h"
+#include "gl/xmemdup0.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-static const struct argp_option test_options [] =
+struct terminal_opts
   {
-    {"testing-mode", 'T', 0, OPTION_HIDDEN, 0, 0},
-
-    { 0, 0, 0, 0, 0, 0 }
+    struct source_stream *source_stream;
+    enum syntax_mode syntax_mode;
+    struct string_map options;  /* Output driver options. */
+    bool has_output_driver;
+    bool has_terminal_driver;
+    bool process_statrc;
   };
 
-static error_t
-parse_test_opts (int key, char *arg, struct argp_state *state)
+enum
+  {
+    OPT_TESTING_MODE,
+    OPT_ERROR_FILE,
+    OPT_OUTPUT,
+    OPT_OUTPUT_OPTION,
+    OPT_INTERACTIVE,
+    OPT_NO_STATRC,
+    OPT_HELP,
+    OPT_VERSION,
+    N_TERMINAL_OPTIONS
+  };
+
+static struct argv_option terminal_argv_options[N_TERMINAL_OPTIONS] =
+  {
+    {"testing-mode", 0, no_argument, OPT_TESTING_MODE},
+    {"error-file", 'e', required_argument, OPT_ERROR_FILE},
+    {"output", 'o', required_argument, OPT_OUTPUT},
+    {NULL, 'O', required_argument, OPT_OUTPUT_OPTION},
+    {"interactive", 'i', no_argument, OPT_INTERACTIVE},
+    {"no-statrc", 'r', no_argument, OPT_NO_STATRC},
+    {"help", 'h', no_argument, OPT_HELP},
+    {"version", 'V', no_argument, OPT_VERSION},
+  };
+
+static void
+register_output_driver (struct terminal_opts *to)
 {
-  switch (key)
+  if (!string_map_is_empty (&to->options))
     {
-    case 'T':
+      struct output_driver *driver;
+
+      driver = output_driver_create (&to->options);
+      if (driver != NULL)
+        {
+          output_driver_register (driver);
+
+          to->has_output_driver = true;
+          if (driver->device_type == SETTINGS_DEVICE_TERMINAL)
+            to->has_terminal_driver = true;
+        }
+      string_map_clear (&to->options);
+    }
+}
+
+static void
+parse_output_option (struct terminal_opts *to, const char *option)
+{
+  const char *equals;
+  char *key, *value;
+
+  equals = strchr (option, '=');
+  if (equals == NULL)
+    {
+      error (0, 0, _("%s: output option missing `='"), option);
+      return;
+    }
+
+  key = xmemdup0 (option, equals - option);
+  if (string_map_contains (&to->options, key))
+    {
+      error (0, 0, _("%s: output option %s specified more than twice"), key);
+      free (key);
+      return;
+    }
+
+  value = xmemdup0 (equals + 1, strlen (equals + 1));
+  string_map_insert_nocopy (&to->options, key, value);
+}
+
+static char *
+get_supported_formats (void)
+{
+  const struct string_set_node *node;
+  struct string_array format_array;
+  struct string_set format_set;
+  char *format_string;
+  const char *format;
+  size_t i;
+
+  /* Get supported formats as unordered set. */
+  string_set_init (&format_set);
+  output_get_supported_formats (&format_set);
+
+  /* Converted supported formats to sorted array. */
+  string_array_init (&format_array);
+  STRING_SET_FOR_EACH (format, node, &format_set)
+    string_array_append (&format_array, format);
+  string_array_sort (&format_array);
+  string_set_destroy (&format_set);
+
+  /* Converted supported formats to string. */
+  format_string = string_array_join (&format_array, " ");
+  string_array_destroy (&format_array);
+  return format_string;
+}
+
+static char *
+get_default_include_path (void)
+{
+  struct source_stream *ss;
+  struct string dst;
+  char **path;
+  size_t i;
+
+  ss = create_source_stream ();
+  path = getl_include_path (ss);
+  ds_init_empty (&dst);
+  for (i = 0; path[i] != NULL; i++)
+    ds_put_format (&dst, " %s", path[i]);
+  destroy_source_stream (ss);
+
+  return ds_steal_cstr (&dst);
+}
+
+static void
+usage (void)
+{
+  char *supported_formats = get_supported_formats ();
+  char *default_include_path = get_default_include_path ();
+
+  printf ("\
+PSPP, a program for statistical analysis of sample data.\n\
+Usage: %s [OPTION]... FILE...\n\
+\n\
+Arguments to long options also apply to equivalent short options.\n\
+\n\
+Output options:\n\
+  -o, --output=FILE         output to FILE, default format from FILE's name\n\
+  -O format=FORMAT          override format for previous -o\n\
+  -O OPTION=VALUE           set output option to customize previous -o\n\
+  -O device={terminal|listing}  override device type for previous -o\n\
+  -e, --error-file=FILE     append errors, warnings, and notes to FILE\n\
+Supported output formats: %s\n\
+\n\
+Language options:\n\
+  -I, --include=DIR         append DIR to search path\n\
+  -I-, --no-include         clear search path\n\
+  -r, --no-statrc           disable running rc file at startup\n\
+  -a, --algorithm={compatible|enhanced}\n\
+                            set to `compatible' if you want output\n\
+                            calculated from broken algorithms\n\
+  -x, --syntax={compatible|enhanced}\n\
+                            set to `compatible' to disable PSPP extensions\n\
+  -i, --interactive         interpret syntax in interactive mode\n\
+  -s, --safer               don't allow some unsafe operations\n\
+Default search path:%s\n\
+\n\
+Informative output:\n\
+  -h, --help                display this help and exit\n\
+  -V, --version             output version information and exit\n\
+\n\
+Non-option arguments are interpreted as syntax files to execute.\n",
+          program_name, supported_formats, default_include_path);
+
+  free (supported_formats);
+  free (default_include_path);
+
+  emit_bug_reporting_address ();
+  exit (EXIT_SUCCESS);
+}
+
+static void
+terminal_option_callback (int id, void *to_)
+{
+  struct terminal_opts *to = to_;
+
+  switch (id)
+    {
+    case OPT_TESTING_MODE:
       settings_set_testing_mode (true);
       break;
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
 
-  return 0;
+    case OPT_ERROR_FILE:
+      msg_ui_set_error_file (optarg);
+      break;
+
+    case OPT_OUTPUT:
+      register_output_driver (to);
+      string_map_insert (&to->options, "output-file", optarg);
+      break;
+
+    case OPT_OUTPUT_OPTION:
+      parse_output_option (to, optarg);
+      break;
+
+    case OPT_INTERACTIVE:
+      to->syntax_mode = GETL_INTERACTIVE;
+      break;
+
+    case OPT_NO_STATRC:
+      to->process_statrc = false;
+      break;
+
+    case OPT_HELP:
+      usage ();
+      exit (EXIT_SUCCESS);
+
+    case OPT_VERSION:
+      version_etc (stdout, "pspp", PACKAGE_NAME, PACKAGE_VERSION,
+                   "Ben Pfaff", "John Darrington", "Jason Stover",
+                   (char *) NULL);
+      exit (EXIT_SUCCESS);
+
+    default:
+      NOT_REACHED ();
+    }
 }
 
-static const struct argp_option io_options [] =
-  {
-    {"error-file", 'e', "FILE", 0,
-     N_("Send error messages to FILE (appended)"), 0},
-
-    {"device", 'o', "DEVICE", 0,
-     N_("Select output driver DEVICE and disable defaults"), 0},
-
-    {"list", 'l', 0, 0,
-     N_("Print a list of known driver classes, then exit"), 0},
-
-    {"interactive", 'i', 0, 0, N_("Start an interactive session"), 0},
-
-    { 0, 0, 0, 0, 0, 0 }
-  };
-
-
-static error_t
-parse_io_opts (int key, char *arg, struct argp_state *state)
+struct terminal_opts *
+terminal_opts_init (struct argv_parser *ap, struct source_stream *ss)
 {
-  struct source_init
-  {
-    struct llx_list file_list;
-    bool interactive;
+  struct terminal_opts *to;
 
-    /* Output devices. */
-    struct string_map macros;
-    struct string_set drivers;
-  };
+  to = xmalloc (sizeof *to);
+  to->source_stream = ss;
+  to->syntax_mode = GETL_BATCH;
+  string_map_init (&to->options);
+  to->has_output_driver = false;
+  to->process_statrc = true;
 
-  struct fn_element {
-    struct ll ll;
-    const char *fn;
-  };
+  argv_parser_add_options (ap, terminal_argv_options, N_TERMINAL_OPTIONS,
+                           terminal_option_callback, to);
+  return to;
+}
 
-  struct source_init *sip = state->hook;
+static void
+add_syntax_file (struct terminal_opts *to, const char *file_name)
+{
+  if (!strcmp (file_name, "-") && isatty (STDIN_FILENO))
+    getl_append_source (to->source_stream, create_readln_source (),
+                        GETL_INTERACTIVE, ERRMODE_CONTINUE);
+  else
+    getl_append_source (to->source_stream,
+                        create_syntax_file_source (file_name),
+                        to->syntax_mode, ERRMODE_CONTINUE);
+}
 
-  struct source_stream *ss = state->input;
-
-  struct command_line_processor *clp = get_subject (state);
-
-  switch (key)
+void
+terminal_opts_done (struct terminal_opts *to, int argc, char *argv[])
+{
+  if (to->process_statrc)
     {
-    case ARGP_KEY_INIT:
-      state->hook = sip = xzalloc (sizeof (struct source_init));
-      llx_init (&sip->file_list);
-      string_map_init (&sip->macros);
-      string_set_init (&sip->drivers);
-      break;
-    case ARGP_KEY_ARG:
-      if (strchr (arg, '='))
+      char *rc = fn_search_path ("rc", getl_include_path (to->source_stream));
+      if (rc != NULL)
         {
-          if (!output_define_macro (arg, &sip->macros))
-            error (0, 0, _("\"%s\" is not a valid macro definition"), arg);
+          getl_append_source (to->source_stream,
+                              create_syntax_file_source (rc), GETL_BATCH,
+                              ERRMODE_CONTINUE);
+          free (rc);
         }
-      else
-	{
-	  llx_push_tail (&sip->file_list, arg, &llx_malloc_mgr);
-	}
-      break;
-    case ARGP_KEY_SUCCESS:
-      {
-      struct llx *llx = llx_null (&sip->file_list);
-      while ((llx = llx_next (llx)) != llx_null (&sip->file_list))
-	{
-	  const char *fn = llx_data (llx);
-	  /* Assume it's a syntax file */
-	  getl_append_source (ss,
-			      create_syntax_file_source (fn),
-			      GETL_BATCH,
-			      ERRMODE_CONTINUE
-			      );
-
-	}
-
-      if (sip->interactive || llx_is_empty (&sip->file_list))
-	{
-	  getl_append_source (ss, create_readln_source (),
-			      GETL_INTERACTIVE,
-			      ERRMODE_CONTINUE
-			      );
-
-          string_set_insert (&sip->drivers, "interactive");
-	}
-
-      if (!settings_get_testing_mode ())
-        output_read_configuration (&sip->macros, &sip->drivers);
-      else
-        output_configure_driver ("csv:csv::");
-
-      string_map_destroy (&sip->macros);
-      string_set_destroy (&sip->drivers);
-      }
-      break;
-    case ARGP_KEY_FINI:
-      free (sip);
-      break;
-    case 'e':
-      msg_ui_set_error_file (arg);
-      break;
-    case 'i':
-      sip->interactive = true;
-      break;
-    case 'l':
-      output_list_classes ();
-      break;
-    case 'o':
-      string_set_insert (&sip->drivers, arg);
-      break;
-    default:
-      return ARGP_ERR_UNKNOWN;
     }
 
-  return 0;
-}
-
-const struct argp io_argp =  {io_options, parse_io_opts, 0, 0, 0, 0, 0};
-const struct argp test_argp =  {test_options, parse_test_opts, 0, 0, 0, 0, 0};
-
-#if 0
-static const struct argp_child children [] =
-  {
-    {&io_argp, 0, N_("Options affecting input and output locations:"), 0},
-    {&test_argp, 0, N_("Diagnostic options:"), 0},
-    {0, 0, 0, 0}
-  };
-
-
-static error_t
-propagate_aux (int key, char *arg, struct argp_state *state)
-{
-  if ( key == ARGP_KEY_INIT)
+  if (optind < argc)
     {
       int i;
-      for (i = 0 ; i < sizeof (children) / sizeof (children[0]) - 1 ; ++i)
-	state->child_inputs[i] = state->input;
+
+      for (i = optind; i < argc; i++)
+        add_syntax_file (to, argv[i]);
+    }
+  else
+    add_syntax_file (to, "-");
+
+  register_output_driver (to);
+  if (!to->has_output_driver)
+    {
+      string_map_insert (&to->options, "output-file", "-");
+      string_map_insert (&to->options, "format", "txt");
+      register_output_driver (to);
     }
 
-  return ARGP_ERR_UNKNOWN;
+  string_map_destroy (&to->options);
+  free (to);
 }
-
-const struct argp terminal_argp =  {NULL, propagate_aux, 0, 0, children, 0, 0};
-
-#endif

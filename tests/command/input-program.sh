@@ -87,7 +87,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run test1"
-$SUPERVISOR $PSPP --testing-mode test1.pspp
+$SUPERVISOR $PSPP -o pspp.csv test1.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare test1 results"
@@ -121,7 +121,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run test2"
-$SUPERVISOR $PSPP --testing-mode test2.pspp
+$SUPERVISOR $PSPP -o pspp.csv test2.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare test2 results"
@@ -161,7 +161,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run test3"
-$SUPERVISOR $PSPP --testing-mode test3.pspp
+$SUPERVISOR $PSPP -o pspp.csv test3.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare test3 results"
@@ -207,7 +207,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run test4"
-$SUPERVISOR $PSPP --testing-mode test4.pspp
+$SUPERVISOR $PSPP -o pspp.csv test4.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare test4 results"
@@ -244,7 +244,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run test5"
-$SUPERVISOR $PSPP --testing-mode test5.pspp
+$SUPERVISOR $PSPP -o pspp.csv test5.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare test5 results"

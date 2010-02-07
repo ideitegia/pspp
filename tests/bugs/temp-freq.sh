@@ -83,7 +83,7 @@ FINISH
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-$SUPERVISOR $PSPP --testing-mode $TESTFILE
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 diff -c $TEMPDIR/pspp.csv - << EOF

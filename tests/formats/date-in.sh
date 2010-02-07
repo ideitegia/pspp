@@ -254,7 +254,7 @@ $PERL date-in.pl
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode date-in.pspp
+$SUPERVISOR $PSPP -o pspp.csv date-in.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare adate.out output"

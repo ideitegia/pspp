@@ -94,7 +94,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode $TESTFILE
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

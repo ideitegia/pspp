@@ -75,7 +75,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE
+$SUPERVISOR $PSPP -o pspp.csv -e /dev/null $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

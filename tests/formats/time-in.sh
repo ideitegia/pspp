@@ -170,7 +170,7 @@ $PERL time-in.pl
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode time-in.pspp
+$SUPERVISOR $PSPP -o pspp.csv time-in.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare time.out output"

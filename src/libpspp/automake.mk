@@ -105,10 +105,6 @@ src/libpspp/version.c: $(top_srcdir)/AUTHORS Makefile
 (`date`).\";" >> $@
 	echo "const char host_system[] = \"$(host_triplet)\";" >> $@
 	echo "const char build_system[] = \"$(build_triplet)\";" >> $@
-	echo "const char default_config_path[] =\
-\"\$$HOME/.pspp:$(pkgsysconfdir)\";" >> $@
-	echo "const char include_path[] =\
-\"./:\$$HOME/.pspp/include:$(pkgdatadir)\";" >> $@
 	echo "const char locale_dir[] = \"$(datadir)/locale\";" >> $@
 	echo "const char *const authors[] = {" >> $@
 	sed -e 's/^/  \"/' -e 's/$$/\",/' $(top_srcdir)/AUTHORS >> $@

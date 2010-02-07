@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2009  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,53 +16,48 @@
 
 #include <config.h>
 
-#include <libpspp/i18n.h>
+#include "ui/gui/psppire.h"
+
 #include <assert.h>
-#include <libintl.h>
 #include <gsl/gsl_errno.h>
-
-#include <xalloc.h>
-#include <argp.h>
-#include <ui/command-line.h>
-#include "relocatable.h"
-
-#include "psppire-data-window.h"
-#include "psppire.h"
-#include "widgets.h"
-
-#include <libpspp/getl.h>
-#include <unistd.h>
-#include <data/casereader.h>
-#include <data/datasheet.h>
-#include <data/file-handle-def.h>
-#include <data/settings.h>
-#include <data/file-name.h>
-#include <data/procedure.h>
-#include <libpspp/getl.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/version.h>
-#include <output/driver.h>
-#include <output/journal.h>
-#include <language/syntax-string-source.h>
-
 #include <gtk/gtk.h>
-#include "psppire-dict.h"
-#include "dict-display.h"
-#include "psppire-selector.h"
-#include "psppire-var-view.h"
-#include "psppire-var-store.h"
-#include "psppire-data-store.h"
-#include "executor.h"
-#include "message-dialog.h"
-#include <ui/syntax-gen.h>
+#include <libintl.h>
+#include <unistd.h>
 
-#include "psppire-window-register.h"
-#include "psppire-output-window.h"
+#include "data/casereader.h"
+#include "data/datasheet.h"
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "data/por-file-reader.h"
+#include "data/procedure.h"
+#include "data/settings.h"
+#include "data/sys-file-reader.h"
+#include "language/lexer/lexer.h"
+#include "language/syntax-string-source.h"
+#include "libpspp/getl.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/version.h"
+#include "output/driver.h"
+#include "output/journal.h"
+#include "ui/gui/dict-display.h"
+#include "ui/gui/executor.h"
+#include "ui/gui/message-dialog.h"
+#include "ui/gui/psppire-data-store.h"
+#include "ui/gui/psppire-data-window.h"
+#include "ui/gui/psppire-dict.h"
+#include "ui/gui/psppire-output-window.h"
+#include "ui/gui/psppire-selector.h"
+#include "ui/gui/psppire-var-store.h"
+#include "ui/gui/psppire-var-view.h"
+#include "ui/gui/psppire-window-register.h"
+#include "ui/gui/psppire.h"
+#include "ui/gui/widgets.h"
+#include "ui/source-init-opts.h"
+#include "ui/syntax-gen.h"
 
-#include <data/sys-file-reader.h>
-#include <data/por-file-reader.h>
-
-#include <ui/source-init-opts.h>
+#include "gl/xalloc.h"
+#include "gl/relocatable.h"
 
 GtkRecentManager *the_recent_mgr = 0;
 PsppireDataStore *the_data_store = 0;
@@ -74,6 +69,8 @@ struct source_stream *the_source_stream ;
 struct dataset * the_dataset = NULL;
 
 static GtkWidget *the_data_window;
+
+static void load_data_file (const char *);
 
 static void
 replace_casereader (struct casereader *s)
@@ -88,7 +85,7 @@ replace_casereader (struct casereader *s)
 
 
 void
-initialize (struct command_line_processor *clp, int argc, char **argv)
+initialize (struct source_stream *ss, const char *data_file)
 {
   PsppireDict *dictionary = 0;
 
@@ -97,18 +94,13 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
   preregister_widgets ();
 
   gsl_set_error_handler_off ();
-  fn_init ();
   settings_init (&viewer_width, &viewer_length);
   fh_init ();
-  the_source_stream =
-    create_source_stream (
-			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
-			  );
 
   the_dataset = create_dataset ();
 
-
   message_dialog_init (the_source_stream);
+  the_source_stream = ss;
 
   dictionary = psppire_dict_new_from_dict (dataset_dict (the_dataset));
 
@@ -135,11 +127,8 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
   psppire_selector_set_default_selection_func (GTK_TYPE_TREE_VIEW, insert_source_row_into_tree_view);
 
   the_data_window = psppire_data_window_new ();
-
-  command_line_processor_replace_aux (clp, &post_init_argp, the_source_stream);
-  command_line_processor_replace_aux (clp, &non_option_argp, the_source_stream);
-
-  command_line_processor_parse (clp, argc, argv);
+  if (data_file != NULL)
+    load_data_file (data_file);
 
   execute_syntax (create_syntax_string_source (""));
 
@@ -248,81 +237,61 @@ create_icon_factory (void)
 
   gtk_icon_factory_add_default (factory);
 }
-
 
-
-static error_t
-parse_non_options (int key, char *arg, struct argp_state *state)
+static void
+load_data_file (const char *arg)
 {
-  struct source_stream *ss = state->input;
+  gchar *filename = NULL;
+  gchar *utf8 = NULL;
+  const gchar *local_encoding = NULL;
+  gsize written = -1;
+  const gboolean local_is_utf8 = g_get_charset (&local_encoding);
 
-  if ( NULL == ss )
-    return 0;
+  /* There seems to be no Glib function to convert from local encoding
+     to filename encoding.  Therefore it has to be done in two steps:
+     the intermediate encoding is UTF8.
 
-  switch (key)
+     Either step could fail.  However, in many cases the file can still
+     be loaded even if the conversion fails. So in those cases, after showing
+     a warning, we simply copy the locally encoded filename to the destination
+     and hope for the best.
+  */
+
+  if ( local_is_utf8)
     {
-    case ARGP_KEY_ARG:
-      {
-	gchar *filename = NULL;
-	gchar *utf8 = NULL;
-	const gchar *local_encoding = NULL;
-	gsize written = -1;
-	const gboolean local_is_utf8 = g_get_charset (&local_encoding);
-
-	/* There seems to be no Glib function to convert from local encoding
-	   to filename encoding.  Therefore it has to be done in two steps:
-	   the intermediate encoding is UTF8.
-
-	   Either step could fail.  However, in many cases the file can still
-	   be loaded even if the conversion fails. So in those cases, after showing
-	   a warning, we simply copy the locally encoded filename to the destination
-	   and hope for the best.
-	*/
-
-	if ( local_is_utf8)
-	  {
-	    utf8 = xstrdup (arg);
-	  }
-	else
-	  {
-	    GError *err = NULL;
-	    utf8 = g_locale_to_utf8 (arg, -1, NULL, &written, &err);
-	    if ( NULL == utf8)
-	      {
-		g_warning ("Cannot convert filename from local encoding \"%s\" to UTF-8: %s",
-			   local_encoding,
-			   err->message);
-		g_clear_error (&err);
-	      }
-	  }
-
-	if ( NULL != utf8)
-	  {
-	    GError *err = NULL;
-	    filename = g_filename_from_utf8 (utf8, written, NULL, NULL, &err);
-	    if ( NULL == filename)
-	      {
-		g_warning ("Cannot convert filename from UTF8 to filename encoding: %s",
-			   err->message);
-		g_clear_error (&err);
-	      }
-	  }
-
-	g_free (utf8);
-
-	if ( filename == NULL)
-	  filename = xstrdup (arg);
-
-	psppire_window_load (PSPPIRE_WINDOW (the_data_window), filename);
-
-	g_free (filename);
-	break;
-      }
-    default:
-      return ARGP_ERR_UNKNOWN;
+      utf8 = xstrdup (arg);
     }
-  return 0;
+  else
+    {
+      GError *err = NULL;
+      utf8 = g_locale_to_utf8 (arg, -1, NULL, &written, &err);
+      if ( NULL == utf8)
+        {
+          g_warning ("Cannot convert filename from local encoding \"%s\" to UTF-8: %s",
+                     local_encoding,
+                     err->message);
+          g_clear_error (&err);
+        }
+    }
+
+  if ( NULL != utf8)
+    {
+      GError *err = NULL;
+      filename = g_filename_from_utf8 (utf8, written, NULL, NULL, &err);
+      if ( NULL == filename)
+        {
+          g_warning ("Cannot convert filename from UTF8 to filename encoding: %s",
+                     err->message);
+          g_clear_error (&err);
+        }
+    }
+
+  g_free (utf8);
+
+  if ( filename == NULL)
+    filename = xstrdup (arg);
+
+  psppire_window_load (PSPPIRE_WINDOW (the_data_window), filename);
+
+  g_free (filename);
 }
-
-
-const struct argp non_option_argp = {NULL, parse_non_options, 0, 0, 0, 0, 0};

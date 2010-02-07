@@ -200,7 +200,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 echo -n .
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode num-in.pspp
+$SUPERVISOR $PSPP -o pspp.csv num-in.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 echo -n .
 

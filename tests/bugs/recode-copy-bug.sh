@@ -97,7 +97,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 1"
-$SUPERVISOR $PSPP --testing-mode recode-copy-bug-1.stat
+$SUPERVISOR $PSPP -o pspp.csv recode-copy-bug-1.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 1"
@@ -119,7 +119,7 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="run program 2"
-$SUPERVISOR $PSPP --testing-mode recode-copy-bug-2.stat
+$SUPERVISOR $PSPP -o pspp.csv recode-copy-bug-2.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 2"

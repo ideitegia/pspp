@@ -88,7 +88,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode $TESTFILE
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="copy output"
@@ -126,7 +126,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 2"
-$SUPERVISOR $PSPP --testing-mode $TESTFILE
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare outputs"
@@ -166,7 +166,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 3"
-$SUPERVISOR $PSPP --testing-mode $TESTFILE
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare outputs"

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ struct getl_interface
 
 struct source_stream;
 
-struct source_stream * create_source_stream (const char *);
+struct source_stream *create_source_stream (void);
 
 enum syntax_mode source_stream_current_syntax_mode
    (const struct source_stream *);
@@ -94,7 +94,7 @@ void destroy_source_stream (struct source_stream *);
 
 void getl_clear_include_path (struct source_stream *);
 void getl_add_include_dir (struct source_stream *, const char *);
-const char * getl_include_path (const struct source_stream *);
+char **getl_include_path (const struct source_stream *);
 
 void getl_abort_noninteractive (struct source_stream *);
 bool getl_is_interactive (const struct source_stream *);

@@ -88,7 +88,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode date-out.pspp
+$SUPERVISOR $PSPP -o pspp.csv date-out.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
@@ -510,7 +510,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode bad-date-out.pspp
+$SUPERVISOR $PSPP -o pspp.csv bad-date-out.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"

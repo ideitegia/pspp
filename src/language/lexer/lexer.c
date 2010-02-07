@@ -882,7 +882,6 @@ lex_get_line_raw (struct lexer *lexer)
   if (ok)
     {
       const char *line = ds_cstr (&lexer->line_buffer);
-      journal_write (lex_current_syntax_mode (lexer) == GETL_BATCH, line);
       text_item_submit (text_item_create (TEXT_ITEM_SYNTAX, line));
     }
   return ok;

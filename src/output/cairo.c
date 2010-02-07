@@ -133,6 +133,8 @@ struct xr_driver
     int y;
   };
 
+static const struct output_driver_class cairo_driver_class;
+
 static void xr_show_page (struct xr_driver *);
 static void draw_headers (struct xr_driver *);
 
@@ -154,7 +156,7 @@ static void xr_draw_cell (void *, const struct table_cell *,
 static struct xr_driver *
 xr_driver_cast (struct output_driver *driver)
 {
-  assert (driver->class == &cairo_class);
+  assert (driver->class == &cairo_driver_class);
   return UP_CAST (driver, struct xr_driver, driver);
 }
 
@@ -173,7 +175,7 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
 
   xr = xzalloc (sizeof *xr);
   d = &xr->driver;
-  output_driver_init (d, &cairo_class, name, device_type);
+  output_driver_init (d, &cairo_driver_class, name, device_type);
   xr->headers = true;
   xr->font_height = XR_POINT * 10;
   xr->fonts[XR_FONT_FIXED].string
@@ -232,8 +234,8 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
 }
 
 static struct output_driver *
-xr_create (const char *name, enum output_device_type device_type,
-           struct string_map *o)
+xr_create (const char *file_name, enum settings_output_devices device_type,
+           struct string_map *o, enum xr_output_type file_type)
 {
   enum { MIN_WIDTH = 3, MIN_LENGTH = 3 };
   struct output_driver *d;
@@ -242,22 +244,13 @@ xr_create (const char *name, enum output_device_type device_type,
   cairo_status_t status;
   double width_pt, length_pt;
   int paper_width, paper_length;
-  char *file_name;
 
-  xr = xr_allocate (name, device_type, o);
+  xr = xr_allocate (file_name, device_type, o);
   d = &xr->driver;
 
   xr->headers = parse_boolean (opt (d, o, "headers", "true"));
 
-  xr->file_type = parse_enum (opt (d, o, "output-type", "pdf"),
-                              "pdf", XR_PDF,
-                              "ps", XR_PS,
-                              "svg", XR_SVG,
-                              (char *) NULL);
-  file_name = parse_string (opt (d, o, "output-file",
-                                 (xr->file_type == XR_PDF ? "pspp.pdf"
-                                  : xr->file_type == XR_PS ? "pspp.ps"
-                                  : "pspp.svg")));
+  xr->file_type = file_type;
 
   parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
   xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
@@ -321,12 +314,32 @@ xr_create (const char *name, enum output_device_type device_type,
       goto error;
     }
 
-  free (file_name);
   return &xr->driver;
 
  error:
   output_driver_destroy (&xr->driver);
   return NULL;
+}
+
+static struct output_driver *
+xr_pdf_create (const char *file_name, enum settings_output_devices device_type,
+               struct string_map *o)
+{
+  return xr_create (file_name, device_type, o, XR_PDF);
+}
+
+static struct output_driver *
+xr_ps_create (const char *file_name, enum settings_output_devices device_type,
+               struct string_map *o)
+{
+  return xr_create (file_name, device_type, o, XR_PS);
+}
+
+static struct output_driver *
+xr_svg_create (const char *file_name, enum settings_output_devices device_type,
+               struct string_map *o)
+{
+  return xr_create (file_name, device_type, o, XR_SVG);
 }
 
 static void
@@ -899,11 +912,13 @@ free_font (struct xr_font *font)
     g_object_unref (font->layout);
 }
 
-/* Cairo driver class. */
-const struct output_driver_class cairo_class =
+struct output_driver_factory pdf_driver_factory = { "pdf", xr_pdf_create };
+struct output_driver_factory ps_driver_factory = { "ps", xr_ps_create };
+struct output_driver_factory svg_driver_factory = { "svg", xr_svg_create };
+
+static const struct output_driver_class cairo_driver_class =
 {
   "cairo",
-  xr_create,
   xr_destroy,
   xr_submit,
   xr_flush,

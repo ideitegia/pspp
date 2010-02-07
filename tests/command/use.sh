@@ -79,7 +79,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP -B $STAT_CONFIG_PATH --testing-mode $TEMPDIR/filter.stat
+$SUPERVISOR $PSPP -o pspp.csv $TEMPDIR/filter.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

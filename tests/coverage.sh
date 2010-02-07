@@ -47,6 +47,6 @@ FREQUENCIES /COVERAGE
 
 EOF
 
-src/pspp -o html $TEMPDIR/cov.sps
+src/pspp -o pspp.html $TEMPDIR/cov.sps
 
 rm -rf $TEMPDIR

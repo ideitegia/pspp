@@ -68,7 +68,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="Run pspp 1"
-PAPERSIZE=letter $SUPERVISOR $PSPP --testing-mode paper-size.pspp > paper-size.out
+PAPERSIZE=letter $SUPERVISOR $PSPP --testing-mode -o pspp.csv paper-size.pspp > paper-size.out
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
@@ -88,7 +88,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="Run pspp 2"
-PAPERSIZE=a4 $SUPERVISOR $PSPP --testing-mode paper-size-2.pspp > paper-size-2.out
+PAPERSIZE=a4 $SUPERVISOR $PSPP --testing-mode -o pspp.csv paper-size-2.pspp > paper-size-2.out
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results 2"

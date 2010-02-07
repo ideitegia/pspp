@@ -235,7 +235,7 @@ EOF
     rm -f pspp.csv
 
     activity="run $type.pspp"
-    $SUPERVISOR $PSPP --testing-mode $type.pspp
+    $SUPERVISOR $PSPP -o pspp.csv $type.pspp
     if [ $? -ne 0 ] ; then fail ; fi
 
     activity="compare $type.pspp output"

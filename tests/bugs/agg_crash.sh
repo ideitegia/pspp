@@ -76,7 +76,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 # So this will have a non zero error status.
 # But it shouldn't crash!
 activity="run_program"
-$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE 
+$SUPERVISOR $PSPP -o pspp.csv -e /dev/null $TESTFILE 
 if [ $? -ne 1 ] ; then fail ; fi
 
 

@@ -84,7 +84,7 @@ sed < $TEMPDIR/moments-list-2p >> $TEMPDIR/moments-2p.stat \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run two-pass program"
-$SUPERVISOR $PSPP --testing-mode \
+$SUPERVISOR $PSPP --testing-mode -o pspp.csv \
 	 $TEMPDIR/moments-2p.stat >$TEMPDIR/moments-2p.err 2> $TEMPDIR/moments-2p.out
 
 activity="compare two-pass output"
@@ -98,7 +98,7 @@ sed < $TEMPDIR/moments-list-1p >> $TEMPDIR/moments-1p.stat \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run one-pass program"
-$SUPERVISOR $PSPP --testing-mode \
+$SUPERVISOR $PSPP --testing-mode -o pspp.csv \
 	 $TEMPDIR/moments-1p.stat >$TEMPDIR/moments-1p.err 2> $TEMPDIR/moments-1p.out
 
 activity="compare one-pass output"

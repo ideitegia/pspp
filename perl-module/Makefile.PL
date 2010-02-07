@@ -12,7 +12,7 @@ do 'pspp-module-config' || do {
 };
 
 WriteMakefile(
-    FULLPERL          => "PSPP_TEST_CMD=\"$Locations{BuildDir}/src/ui/terminal/pspp -B $Locations{SourceDir}/config\" \$(PERL)",
+    FULLPERL          => "PSPP_TEST_CMD=\"$Locations{BuildDir}/src/ui/terminal/pspp\" \$(PERL)",
     NAME              => 'PSPP',
     DISTNAME          => 'PSPP-Perl',
     VERSION_FROM      => "$Locations{BuildDir}/src/libpspp/version.c", 

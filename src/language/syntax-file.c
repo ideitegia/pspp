@@ -113,10 +113,6 @@ read_syntax_file (struct getl_interface *s,
     }
   while (sfs->ln == 1 && !memcmp (ds_cstr (line), "#!", 2));
 
-  /* Echo to listing file, if configured to do so. */
-  if (settings_get_echo ())
-    tab_output_text (TAB_LEFT | TAB_FIX, ds_cstr (line));
-
   return true;
 }
 

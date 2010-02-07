@@ -5,7 +5,6 @@ GNULIB = ../gnulib
 GNULIB_TOOL = $(GNULIB)/gnulib-tool
 
 GNULIB_MODULES = \
-	argp \
 	assert \
 	byteswap \
 	c-ctype \
@@ -81,6 +80,8 @@ GNULIB_MODULES = \
 	unistr/u8-strncat \
 	unlocked-io \
 	vasprintf-posix \
+	version-etc \
+	version-etc-fsf \
 	vfprintf-posix \
 	vprintf-posix \
 	vsnprintf \

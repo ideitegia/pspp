@@ -72,7 +72,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode wkday-out.pspp
+$SUPERVISOR $PSPP -o pspp.csv wkday-out.pspp
 if [ $? -eq 0 ] ; then no_result ; fi
 
 activity="compare output"

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ struct html_driver
     bool in_syntax;
   };
 
-const struct output_driver_class html_class;
+static const struct output_driver_class html_driver_class;
 
 static void html_output_table (struct html_driver *, struct table_item *);
 static void escape_string (FILE *file,
@@ -68,7 +68,7 @@ static void print_title_tag (FILE *file, const char *name,
 static struct html_driver *
 html_driver_cast (struct output_driver *driver)
 {
-  assert (driver->class == &html_class);
+  assert (driver->class == &html_driver_class);
   return UP_CAST (driver, struct html_driver, driver);
 }
 
@@ -80,7 +80,7 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
 }
 
 static struct output_driver *
-html_create (const char *name, enum output_device_type device_type,
+html_create (const char *file_name, enum settings_output_devices device_type,
              struct string_map *o)
 {
   struct output_driver *d;
@@ -88,10 +88,12 @@ html_create (const char *name, enum output_device_type device_type,
 
   html = xzalloc (sizeof *html);
   d = &html->driver;
-  output_driver_init (&html->driver, &html_class, name, device_type);
-  html->file_name = parse_string (opt (d, o, "output-file", "pspp.html"));
-  html->chart_file_name = parse_chart_file_name (opt (d, o, "chart-files",
-                                                      "pspp-#.png"));
+  output_driver_init (&html->driver, &html_driver_class, file_name,
+                      device_type);
+
+  html->file_name = xstrdup (file_name);
+  html->chart_file_name = parse_chart_file_name (opt (d, o, "charts",
+                                                      file_name));
   html->file = NULL;
   html->chart_cnt = 1;
 
@@ -470,10 +472,11 @@ html_output_table (struct html_driver *html, struct table_item *item)
   fputs ("</TABLE>\n\n", html->file);
 }
 
-const struct output_driver_class html_class =
+struct output_driver_factory html_driver_factory = { "html", html_create };
+
+static const struct output_driver_class html_driver_class =
   {
     "html",
-    html_create,
     html_destroy,
     html_submit,
     NULL,

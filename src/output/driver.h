@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,34 +20,19 @@
 #include <stdbool.h>
 
 struct output_item;
-struct string_map;
 struct string_set;
-
-void output_close (void);
-
-struct output_driver *output_driver_create (const char *class_name,
-                                            struct string_map *options);
-
-bool output_define_macro (const char *, struct string_map *macros);
-void output_read_configuration (const struct string_map *macros,
-                                const struct string_set *drivers);
-void output_configure_driver (const char *);
-
-void output_list_classes (void);
+struct string_map;
 
 void output_submit (struct output_item *);
+
 void output_flush (void);
 
-/* Device types. */
-enum output_device_type
-  {
-    OUTPUT_DEVICE_UNKNOWN,	/* Unknown type of device. */
-    OUTPUT_DEVICE_LISTING,	/* Listing device. */
-    OUTPUT_DEVICE_SCREEN,	/* Screen device. */
-    OUTPUT_DEVICE_PRINTER	/* Printer device. */
-  };
-unsigned int output_get_enabled_types (void);
-void output_set_enabled_types (unsigned int);
-void output_set_type_enabled (bool enable, enum output_device_type);
+void output_close (void);
+void output_get_supported_formats (struct string_set *);
+
+struct output_driver *output_driver_create (struct string_map *options);
+void output_driver_register (struct output_driver *);
+void output_driver_unregister (struct output_driver *);
+bool output_driver_is_registered (const struct output_driver *);
 
 #endif /* output/driver.h */

@@ -66,10 +66,12 @@ struct odt_driver
   int table_num;
 };
 
+static const struct output_driver_class odt_driver_class;
+
 static struct odt_driver *
 odt_driver_cast (struct output_driver *driver)
 {
-  assert (driver->class == &odt_class);
+  assert (driver->class == &odt_driver_class);
   return UP_CAST (driver, struct odt_driver, driver);
 }
 
@@ -293,7 +295,7 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
 }
 
 static struct output_driver *
-odt_create (const char *name, enum output_device_type device_type,
+odt_create (const char *file_name, enum settings_output_devices device_type,
             struct string_map *o)
 {
   struct output_driver *d;
@@ -301,9 +303,9 @@ odt_create (const char *name, enum output_device_type device_type,
 
   odt = xzalloc (sizeof *odt);
   d = &odt->driver;
-  output_driver_init (d, &odt_class, name, device_type);
+  output_driver_init (d, &odt_driver_class, file_name, device_type);
 
-  odt->file_name = parse_string (opt (d, o, "output-file", "pspp.odt"));
+  odt->file_name = xstrdup (file_name);
   odt->debug = parse_boolean (opt (d, o, "debug", "false"));
 
   odt->dirname = xstrdup ("odt-XXXXXX");
@@ -521,11 +523,11 @@ odt_submit (struct output_driver *driver,
     }
 }
 
-/* ODT driver class. */
-const struct output_driver_class odt_class =
+struct output_driver_factory odt_driver_factory = { "odt", odt_create };
+
+static const struct output_driver_class odt_driver_class =
 {
   "odf",
-  odt_create,
   odt_destroy,
   odt_submit,
   NULL,

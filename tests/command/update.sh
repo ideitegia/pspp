@@ -155,7 +155,7 @@ EOF
 
     activity="run $name.pspp"
     rm -f errors
-    $SUPERVISOR $PSPP --testing-mode --error-file=errors $name.pspp
+    $SUPERVISOR $PSPP -o pspp.csv --error-file=errors $name.pspp
     if [ $? -ne 0 ] ; then no_result ; fi
 
     activity="check $name output"

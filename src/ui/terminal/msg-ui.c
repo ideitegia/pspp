@@ -92,14 +92,15 @@ check_msg_count (struct source_stream *ss)
 {
   if (!getl_is_interactive (ss))
     {
-      if (settings_get_errorbreak () && error_count)
-        msg (MN, _("Terminating execution of syntax file due to error."));
-      else if (error_count > settings_get_mxerrs () )
+      int max_errors = settings_get_max_messages (MSG_S_ERROR);
+      int max_warnings = settings_get_max_messages (MSG_S_WARNING);
+
+      if (error_count > max_errors)
         msg (MN, _("Errors (%d) exceed limit (%d)."),
-             error_count, settings_get_mxerrs ());
-      else if (error_count + warning_count > settings_get_mxwarns () )
+             error_count, max_errors);
+      else if (error_count + warning_count > max_warnings)
         msg (MN, _("Warnings (%d) exceed limit (%d)."),
-             error_count + warning_count, settings_get_mxwarns () );
+             error_count + warning_count, max_warnings);
       else
         return;
 
@@ -143,20 +144,22 @@ handle_msg (const struct msg *m)
 
   struct severity
     {
+      enum settings_output_type type;
       const char *name;         /* How to identify this severity. */
       int *count;               /* Number of msgs with this severity so far. */
     };
 
   static struct severity severities[] =
     {
-      {N_("error"), &error_count},          /* MSG_ERROR. */
-      {N_("warning"), &warning_count},      /* MSG_WARNING. */
-      {NULL, NULL},                         /* MSG_NOTE. */
+      { SETTINGS_OUTPUT_ERROR, N_("error"), &error_count },
+      { SETTINGS_OUTPUT_ERROR, N_("warning"), &warning_count },
+      { SETTINGS_OUTPUT_NOTE, NULL, NULL},
     };
 
   const struct category *category = &categories[m->category];
   const struct severity *severity = &severities[m->severity];
   struct string string = DS_EMPTY_INITIALIZER;
+  enum settings_output_devices routing;
 
   if (category->show_file_location && m->where.file_name)
     {
@@ -177,21 +180,22 @@ handle_msg (const struct msg *m)
 
   ds_put_cstr (&string, m->text);
 
-  if (msg_file != stdout || settings_get_error_routing_to_terminal ())
+  routing = settings_get_output_routing (severity->type);
+  if (msg_file != stdout || routing & SETTINGS_DEVICE_TERMINAL)
     dump_message (ds_cstr (&string),
                   isatty (fileno (msg_file)) ? settings_get_viewwidth () : INT_MAX, 8,
                   write_stream, msg_file);
 
   dump_message (ds_cstr (&string), 78, 0, write_journal, NULL);
 
-  if (settings_get_error_routing_to_listing ())
+  if (routing & SETTINGS_DEVICE_LISTING)
     {
-      /* Disable screen output devices, because the error should
-         already have been reported to the screen with the
-         dump_message call above. */
-      output_set_type_enabled (false, OUTPUT_DEVICE_SCREEN);
+      /* Disable terminal output devices, because the error should already have
+         been reported to the terminal with the dump_message call above. */
+      settings_set_output_routing (severity->type,
+                                   routing & ~SETTINGS_DEVICE_TERMINAL);
       tab_output_text (TAB_LEFT, ds_cstr (&string));
-      output_set_type_enabled (true, OUTPUT_DEVICE_SCREEN);
+      settings_set_output_routing (severity->type, routing);
     }
 
   ds_destroy (&string);

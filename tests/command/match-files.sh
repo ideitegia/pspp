@@ -174,7 +174,7 @@ EOF
 	if [ $? -ne 0 ] ; then no_result ; fi
 
 	activity="run $name.pspp"
-	$SUPERVISOR $PSPP --testing-mode -e /dev/null $name.pspp 
+	$SUPERVISOR $PSPP -o pspp.csv -e /dev/null $name.pspp 
 	if [ $? -ne 0 ] ; then no_result ; fi
 
 	activity="check $name output"
@@ -197,7 +197,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run $name.pspp"
-$SUPERVISOR $PSPP --testing-mode -e /dev/null $name.pspp 
+$SUPERVISOR $PSPP -o pspp.csv -e /dev/null $name.pspp 
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check $name output"
@@ -245,7 +245,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run $name.pspp"
-$SUPERVISOR $PSPP --testing-mode -e /dev/null $name.pspp 
+$SUPERVISOR $PSPP -o pspp.csv -e /dev/null $name.pspp 
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check $name output"

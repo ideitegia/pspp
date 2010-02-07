@@ -67,7 +67,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 #This must fail
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -e /dev/null $TEMPDIR/ct.stat 
+$SUPERVISOR $PSPP -o pspp.csv -e /dev/null $TEMPDIR/ct.stat 
 if [ $? -ne 1 ] ; then fail ; fi
 
 pass;

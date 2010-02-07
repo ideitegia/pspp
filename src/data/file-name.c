@@ -16,142 +16,68 @@
 
 #include <config.h>
 
-#include <data/file-name.h>
+#include "data/file-name.h"
 
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
-#include "intprops.h"
-#include "minmax.h"
-#include "dirname.h"
-#include "xmalloca.h"
+#include "data/settings.h"
+#include "libpspp/hash.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "libpspp/version.h"
 
-#include <data/settings.h>
-#include <libpspp/hash.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <libpspp/version.h>
-
-#include "xalloc.h"
+#include "gl/dirname.h"
+#include "gl/intprops.h"
+#include "gl/minmax.h"
+#include "gl/relocatable.h"
+#include "gl/xalloc.h"
+#include "gl/xmalloca.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-#include <unistd.h>
-#include <sys/stat.h>
 
 #if defined _WIN32 || defined __WIN32__
 #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
 #include <windows.h>
 #endif
 
-/* Initialization. */
-
-const char *config_path;
-
-void
-fn_init (void)
-{
-  config_path = fn_getenv_default ("STAT_CONFIG_PATH", default_config_path);
-}
-
 /* Functions for performing operations on file names. */
 
-
-/* Copies from SRC to DST, calling INSERT_VARIABLE to handle each
-   instance of $var or ${var} in SRC.  $$ is replaced by $. */
-void
-fn_interp_vars (struct substring src,
-                void (*insert_variable) (const char *var,
-                                         struct string *dst, void *aux),
-                void *aux, struct string *dst_)
-{
-  struct string dst = DS_EMPTY_INITIALIZER;
-  int c;
-
-  while ((c = ss_get_char (&src)) != EOF)
-    if (c != '$')
-      ds_put_char (&dst, c);
-    else
-      {
-        if (ss_match_char (&src, '$') || ss_is_empty (src))
-          ds_put_char (&dst, '$');
-        else
-          {
-            struct substring var_name;
-            char *var;
-
-            if (ss_match_char (&src, '('))
-              ss_get_until (&src, ')', &var_name);
-            else if (ss_match_char (&src, '{'))
-              ss_get_until (&src, '}', &var_name);
-            else
-              ss_get_chars (&src, MAX (1, ss_span (src, ss_cstr (CC_ALNUM))),
-                            &var_name);
-
-            var = ss_xstrdup (var_name);
-            insert_variable (var, &dst, aux);
-            free (var);
-          }
-      }
-
-  ds_swap (&dst, dst_);
-  ds_destroy (&dst);
-}
-
-static void
-insert_env_var (const char *var, struct string *dst, void *aux UNUSED)
-{
-  const char *value = fn_getenv (var);
-  if (value != NULL)
-    ds_put_cstr (dst, value);
-}
-
-/* Searches for a configuration file with name NAME in the path
-   given by PATH, which is environment-interpolated.
-   Directories in PATH are delimited by ':'.  Returns the
-   malloc'd full name of the first file found, or NULL if none is
-   found. */
+/* Searches for a configuration file with name NAME in the directories given in
+   PATH, which is terminated by a null pointer.  Returns the full name of the
+   first file found, which the caller is responsible for freeing with free(),
+   or NULL if none is found. */
 char *
-fn_search_path (const char *base_name, const char *path_)
+fn_search_path (const char *base_name, char **path)
 {
-  struct string path;
-  struct substring dir;
-  struct string file = DS_EMPTY_INITIALIZER;
-  size_t save_idx = 0;
+  size_t i;
 
   if (fn_is_absolute (base_name))
     return xstrdup (base_name);
 
-  /* Interpolate environment variables. */
-  ds_init_cstr (&path, path_);
-  fn_interp_vars (ds_ss (&path), insert_env_var, NULL, &path);
-
-  while (ds_separate (&path, ss_cstr (":"), &save_idx, &dir))
+  for (i = 0; path[i] != NULL; i++)
     {
-      /* Construct file name. */
-      ds_clear (&file);
-      ds_put_substring (&file, dir);
-      if (!ds_is_empty (&file) && !ISSLASH (ds_last (&file)))
-	ds_put_char (&file, '/');
-      ds_put_cstr (&file, base_name);
-      ds_relocate (&file);
+      const char *dir = path[i];
+      char *file;
 
-      /* Check whether file exists. */
-      if (fn_exists (ds_cstr (&file)))
-	{
-          ds_destroy (&path);
-	  return ds_cstr (&file);
-	}
+      if (!strcmp (dir, "") || !strcmp (dir, "."))
+        file = xstrdup (base_name);
+      else if (ISSLASH (dir[strlen (dir) - 1]))
+        file = xasprintf ("%s%s", dir, base_name);
+      else
+        file = xasprintf ("%s/%s", dir, base_name);
+
+      if (fn_exists (file))
+        return file;
+      free (file);
     }
 
-  /* Failure. */
-  ds_destroy (&path);
-  ds_destroy (&file);
   return NULL;
 }
 
@@ -245,11 +171,6 @@ safety_violation (const char *fn)
 }
 #endif
 
-/* As a general comment on the following routines, a `sensible value'
-   for errno includes 0 if there is no associated system error.  The
-   routines will only set errno to 0 if there is an error in a
-   callback that sets errno to 0; they themselves won't. */
-
 /* File open routine that understands `-' as stdin/stdout and `|cmd'
    as a pipe to command `cmd'.  Returns resultant FILE on success,
    NULL on failure.  If NULL is returned then errno is set to a
@@ -259,12 +180,18 @@ fn_open (const char *fn, const char *mode)
 {
   assert (mode[0] == 'r' || mode[0] == 'w' || mode[0] == 'a');
 
-  if (mode[0] == 'r' && (!strcmp (fn, "stdin") || !strcmp (fn, "-")))
-    return stdin;
-  else if (mode[0] == 'w' && (!strcmp (fn, "stdout") || !strcmp (fn, "-")))
-    return stdout;
-  else if (mode[0] == 'w' && !strcmp (fn, "stderr"))
-    return stderr;
+  if (mode[0] == 'r')
+    {
+      if (!strcmp (fn, "stdin") || !strcmp (fn, "-"))
+        return stdin;
+    }
+  else
+    {
+      if (!strcmp (fn, "stdout") || !strcmp (fn, "-"))
+        return stdout;
+      if (!strcmp (fn, "stderr"))
+        return stderr;
+    }
 
 #if HAVE_POPEN
   if (fn[0] == '|')
@@ -297,7 +224,7 @@ fn_open (const char *fn, const char *mode)
     {
       FILE *f = fopen (fn, mode);
 
-      if (f && mode[0] == 'w')
+      if (f && mode[0] != 'r')
 	setvbuf (f, NULL, _IOLBF, 0);
 
       return f;

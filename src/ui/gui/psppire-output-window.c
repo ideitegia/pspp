@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -301,7 +301,6 @@ done:
 static struct output_driver_class psppire_output_class =
   {
     "PSPPIRE",                  /* name */
-    NULL,                       /* create */
     NULL,                       /* destroy */
     psppire_output_submit,      /* submit */
     NULL,                       /* flush */
@@ -315,7 +314,8 @@ psppire_output_window_setup (void)
 
   pod = xzalloc (sizeof *pod);
   d = &pod->driver;
-  output_driver_init (d, &psppire_output_class, "PSPPIRE", 0);
+  output_driver_init (d, &psppire_output_class, "PSPPIRE",
+                      SETTINGS_DEVICE_UNFILTERED);
   output_driver_register (d);
 }
 
@@ -387,12 +387,13 @@ add_filter (GtkFileChooser *chooser, const char *name, const char *pattern)
 
 static void
 export_output (PsppireOutputWindow *window, struct string_map *options,
-               const char *class_name)
+               const char *format)
 {
   struct output_driver *driver;
   size_t i;
 
-  driver = output_driver_create (class_name, options);
+  string_map_insert (options, "format", format);
+  driver = output_driver_create (options);
   if (driver == NULL)
     return;
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,14 +22,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <output/driver.h>
-#include <output/tab.h>
-#include <output/table-item.h>
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/string-map.h"
+#include "output/driver.h"
+#include "output/tab.h"
+#include "output/table-item.h"
 
 #include "gl/error.h"
 #include "gl/progname.h"
+#include "gl/xalloc.h"
 #include "gl/xvasprintf.h"
 
 /* --transpose: Transpose the table before outputting? */
@@ -70,24 +72,67 @@ main (int argc, char **argv)
   return 0;
 }
 
+static void
+configure_drivers (int width, int length)
+{
+  struct string_map options, tmp;
+  struct output_driver *driver;
+
+  string_map_init (&options);
+  string_map_insert (&options, "format", "txt");
+  string_map_insert (&options, "output-file", "-");
+  string_map_insert_nocopy (&options, xstrdup ("width"),
+                            xasprintf ("%d", width));
+  string_map_insert_nocopy (&options, xstrdup ("length"),
+                            xasprintf ("%d", length));
+
+  /* Render to stdout. */
+  string_map_clone (&tmp, &options);
+  driver = output_driver_create (&tmp);
+  if (driver == NULL)
+    exit (EXIT_FAILURE);
+  output_driver_register (driver);
+  string_map_destroy (&tmp);
+
+  /* Render to render.txt. */
+  string_map_replace (&options, "output-file", "render.txt");
+  driver = output_driver_create (&options);
+  if (driver == NULL)
+    exit (EXIT_FAILURE);
+  output_driver_register (driver);
+
+  /* Render to render.pdf. */
+  string_map_insert (&options, "output-file", "render.pdf");
+  string_map_insert (&options, "headers", "off");
+  string_map_insert (&options, "top-margin", "0");
+  string_map_insert (&options, "bottom-margin", "0");
+  string_map_insert (&options, "left-margin", "0");
+  string_map_insert (&options, "right-margin", "0");
+  string_map_insert_nocopy (&options, xstrdup ("paper-size"),
+                            xasprintf ("%dx%dpt", width * 5, length * 6));
+  driver = output_driver_create (&options);
+  if (driver == NULL)
+    exit (EXIT_FAILURE);
+  output_driver_register (driver);
+
+  string_map_destroy (&options);
+}
+
 static const char *
 parse_options (int argc, char **argv)
 {
-  bool configured_driver = false;
   int width = 79;
   int length = 66;
 
   for (;;)
     {
       enum {
-        OPT_DRIVER = UCHAR_MAX + 1,
-        OPT_WIDTH,
+        OPT_WIDTH = UCHAR_MAX + 1,
         OPT_LENGTH,
         OPT_HELP
       };
       static const struct option options[] =
         {
-          {"driver", required_argument, NULL, OPT_DRIVER},
           {"width", required_argument, NULL, OPT_WIDTH},
           {"length", required_argument, NULL, OPT_LENGTH},
           {"transpose", no_argument, &transpose, 1},
@@ -101,11 +146,6 @@ parse_options (int argc, char **argv)
 
       switch (c)
         {
-        case OPT_DRIVER:
-          output_configure_driver (optarg);
-          configured_driver = true;
-          break;
-
         case OPT_WIDTH:
           width = atoi (optarg);
           break;
@@ -130,32 +170,7 @@ parse_options (int argc, char **argv)
 
     }
 
-  if (!configured_driver)
-    {
-      char *config;
-
-#if 1
-      config = xasprintf ("ascii:ascii:listing:headers=off top-margin=0 "
-                          "bottom-margin=0 output-file=- emphasis=none "
-                          "paginate=off squeeze=on width=%d length=%d",
-                          width, length);
-      output_configure_driver (config);
-      free (config);
-
-      config = xasprintf ("ascii:ascii:listing:headers=off top-margin=0 "
-                          "bottom-margin=0 output-file=render.txt "
-                          "emphasis=none paginate=off squeeze=on");
-      output_configure_driver (config);
-      free (config);
-#endif
-
-      config = xasprintf ("pdf:cairo:listing:headers=off top-margin=0 "
-                          "bottom-margin=0 left-margin=0 right-margin=0 "
-                          "output-file=render.pdf paper-size=%dx%dpt",
-                          width * 5, length * 6);
-      output_configure_driver (config);
-      free (config);
-    }
+  configure_drivers (width, length);
 
   if (optind + 1 != argc)
     error (1, 0, "exactly one non-option argument required; "

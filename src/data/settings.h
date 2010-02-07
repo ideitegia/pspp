@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,9 +19,11 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <data/format.h>
-#include <libpspp/float-format.h>
-#include <libpspp/integer-format.h>
+
+#include "data/format.h"
+#include "libpspp/float-format.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/message.h"
 
 struct caseproto;
 struct settings;
@@ -63,21 +65,11 @@ void settings_set_viewwidth ( int);
 bool settings_get_safer_mode (void);
 void settings_set_safer_mode (void);
 
-bool settings_get_echo (void);
-void settings_set_echo ( bool);
 bool settings_get_include (void);
 void settings_set_include ( bool);
 
 int settings_get_epoch (void);
 void settings_set_epoch ( int);
-
-bool settings_get_errorbreak (void);
-void settings_set_errorbreak ( bool);
-
-bool settings_get_error_routing_to_terminal (void);
-void settings_set_error_routing_to_terminal (bool);
-bool settings_get_error_routing_to_listing (void);
-void settings_set_error_routing_to_listing (bool);
 
 bool settings_get_scompression (void);
 void settings_set_scompression (bool);
@@ -87,13 +79,9 @@ void settings_set_undefined (bool);
 double settings_get_blanks (void);
 void settings_set_blanks (double);
 
-int settings_get_mxwarns (void);
-void settings_set_mxwarns ( int);
-int settings_get_mxerrs (void);
-void settings_set_mxerrs ( int);
+int settings_get_max_messages (enum msg_severity);
+void settings_set_max_messages (enum msg_severity, int max);
 
-bool settings_get_printback (void);
-void settings_set_printback (bool);
 bool settings_get_mprint (void);
 void settings_set_mprint (bool);
 
@@ -139,5 +127,27 @@ void settings_set_decimal_char (char decimal);
 const struct fmt_number_style * settings_get_style (enum fmt_type type);
 
 char * settings_dollar_template (const struct fmt_spec *fmt);
+
+/* Routing of different kinds of output. */
+enum settings_output_devices
+  {
+    SETTINGS_DEVICE_LISTING = 1 << 0,  /* File or device. */
+    SETTINGS_DEVICE_TERMINAL = 1 << 1, /* Screen. */
+    SETTINGS_DEVICE_UNFILTERED = 1 << 2 /* Gets all output, no filtering. */
+  };
+
+enum settings_output_type
+  {
+    SETTINGS_OUTPUT_ERROR,      /* Errors and warnings. */
+    SETTINGS_OUTPUT_NOTE,       /* Notes. */
+    SETTINGS_OUTPUT_SYNTAX,     /* Syntax. */
+    SETTINGS_OUTPUT_RESULT,     /* Everything else. */
+    SETTINGS_N_OUTPUT_TYPES
+  };
+
+void settings_set_output_routing (enum settings_output_type,
+                                  enum settings_output_devices);
+enum settings_output_devices settings_get_output_routing (
+  enum settings_output_type);
 
 #endif /* !settings_h */

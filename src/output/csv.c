@@ -47,10 +47,12 @@ struct csv_driver
     int n_items;                /* Number of items output so far. */
   };
 
+static const struct output_driver_class csv_driver_class;
+
 static struct csv_driver *
 csv_driver_cast (struct output_driver *driver)
 {
-  assert (driver->class == &csv_class);
+  assert (driver->class == &csv_driver_class);
   return UP_CAST (driver, struct csv_driver, driver);
 }
 
@@ -62,7 +64,7 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
 }
 
 static struct output_driver *
-csv_create (const char *name, enum output_device_type device_type,
+csv_create (const char *file_name, enum settings_output_devices device_type,
             struct string_map *o)
 {
   struct output_driver *d;
@@ -70,7 +72,7 @@ csv_create (const char *name, enum output_device_type device_type,
 
   csv = xzalloc (sizeof *csv);
   d = &csv->driver;
-  output_driver_init (&csv->driver, &csv_class, name, device_type);
+  output_driver_init (&csv->driver, &csv_driver_class, file_name, device_type);
 
   csv->separator = parse_string (opt (d, o, "separator", ","));
   csv->file_name = parse_string (opt (d, o, "output-file", "pspp.csv"));
@@ -227,10 +229,11 @@ csv_submit (struct output_driver *driver,
     }
 }
 
-const struct output_driver_class csv_class =
+struct output_driver_factory csv_driver_factory = { "csv", csv_create };
+
+static const struct output_driver_class csv_driver_class =
   {
     "csv",
-    csv_create,
     csv_destroy,
     csv_submit,
     csv_flush,

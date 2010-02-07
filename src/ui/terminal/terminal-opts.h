@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2010  Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,13 +15,15 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 
-#ifndef TERMINAL_OPTS
-#define TERMINAL_OPTS
+#ifndef UI_TERMINAL_TERMINAL_OPTS_H
+#define UI_TERMINAL_TERMINAL_OPTS_H 1
 
-extern const struct argp io_argp ;
-extern const struct argp test_argp ;
+struct argv_parser;
+struct source_stream;
+struct terminal_opts;
 
-extern const struct argp terminal_argp;
+struct terminal_opts *terminal_opts_init (struct argv_parser *,
+                                          struct source_stream *);
+void terminal_opts_done (struct terminal_opts *, int argc, char *argv[]);
 
-#endif
-
+#endif /* ui/terminal/terminal-opts.h */

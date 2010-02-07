@@ -81,7 +81,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode $TEMPDIR/sample.stat 
+$SUPERVISOR $PSPP -o pspp.csv $TEMPDIR/sample.stat 
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create head"

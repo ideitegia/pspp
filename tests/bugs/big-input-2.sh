@@ -84,7 +84,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE 
+$SUPERVISOR $PSPP -o pspp.csv -e /dev/null $TESTFILE 
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="appending to data"
@@ -93,7 +93,7 @@ $PERL -e 'for ($i=0; $i<25000; $i++) { print "AB04\nAB12\n" };' >> $TEMPDIR/larg
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE 
+$SUPERVISOR $PSPP -o pspp.csv -e /dev/null $TESTFILE 
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

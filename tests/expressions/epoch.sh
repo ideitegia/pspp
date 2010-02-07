@@ -142,7 +142,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode $TEMPDIR/epoch.stat > $TEMPDIR/epoch.err 2> $TEMPDIR/epoch.out
+$SUPERVISOR $PSPP --testing-mode -o pspp.csv $TEMPDIR/epoch.stat > $TEMPDIR/epoch.err 2> $TEMPDIR/epoch.out
 
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/epoch.out

@@ -71,7 +71,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode bcd-in.pspp
+$SUPERVISOR $PSPP -o pspp.csv bcd-in.pspp
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="gunzip expected results"

@@ -33,6 +33,7 @@
 @dircategory Math
 @direntry
 * PSPP: (pspp).             Statistical analysis package.
+* PSPPIRE: (pspp).          Graphical user interface to PSPP.
 @end direntry
 
 @copying
@@ -86,7 +87,8 @@ in the production of this manual.
 * Introduction::                Description of the package.
 * License::                     Your rights and obligations.
 
-* Invocation::                  Starting and running PSPP.
+* Invoking PSPP::               Starting the PSPP text-based interface.
+* Invoking PSPPIRE::            Starting the PSPP graphical user interface.
 * Using PSPP::                  How to use PSPP --- A brief tutorial.
 * Language::                    Basics of the PSPP command language.
 * Expressions::                 Numeric and string expression syntax.
@@ -107,8 +109,6 @@ in the production of this manual.
 * Function Index::              Index of PSPP functions for expressions.
 * Command Index::               Index of PSPP procedures.
 * Concept Index::               Index of concepts.
-
-* Configuration::               Configuring PSPP.
 
 * GNU Free Documentation License:: License for copying this manual.
 @end menu
@@ -135,8 +135,6 @@ in the production of this manual.
 @include function-index.texi
 @include command-index.texi
 @include concept-index.texi
-
-@include configuring.texi
 
 @include fdl.texi
 
