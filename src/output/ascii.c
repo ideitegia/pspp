@@ -26,12 +26,14 @@
 #include <data/settings.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
+#include <libpspp/message.h>
 #include <libpspp/start-date.h>
 #include <libpspp/string-map.h>
 #include <libpspp/version.h>
 #include <output/cairo.h>
 #include <output/chart-item-provider.h>
-#include "output/options.h"
+#include <output/message-item.h>
+#include <output/options.h>
 #include <output/tab.h>
 #include <output/text-item.h>
 #include <output/driver-provider.h>
@@ -112,6 +114,7 @@ struct ascii_driver
     char *init;                 /* Device initialization string. */
 
     /* Internal state. */
+    char *command_name;
     char *title;
     char *subtitle;
     char *file_name;            /* Output file name. */
@@ -209,6 +212,7 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
           }
   a->init = parse_string (opt (d, o, "init", ""));
 
+  a->command_name = NULL;
   a->title = xstrdup ("");
   a->subtitle = xstrdup ("");
   a->file_name = xstrdup (file_name);
@@ -330,6 +334,7 @@ ascii_destroy (struct output_driver *driver)
 
   if (a->file != NULL)
     fn_close (a->file_name, a->file);
+  free (a->command_name);
   free (a->title);
   free (a->subtitle);
   free (a->file_name);
@@ -367,103 +372,121 @@ ascii_init_caption_cell (const char *caption, struct table_cell *cell)
 }
 
 static void
+ascii_output_table_item (struct ascii_driver *a,
+                         const struct table_item *table_item)
+{
+  const char *caption = table_item_get_caption (table_item);
+  struct render_params params;
+  struct render_page *page;
+  struct render_break x_break;
+  int caption_height;
+  int i;
+
+  update_page_size (a, false);
+
+  if (caption != NULL)
+    {
+      /* XXX doesn't do well with very large captions */
+      struct table_cell cell;
+      ascii_init_caption_cell (caption, &cell);
+      caption_height = ascii_measure_cell_height (a, &cell, a->width);
+    }
+  else
+    caption_height = 0;
+
+  params.draw_line = ascii_draw_line;
+  params.measure_cell_width = ascii_measure_cell_width;
+  params.measure_cell_height = ascii_measure_cell_height;
+  params.draw_cell = ascii_draw_cell,
+    params.aux = a;
+  params.size[H] = a->width;
+  params.size[V] = a->length - caption_height;
+  params.font_size[H] = 1;
+  params.font_size[V] = 1;
+  for (i = 0; i < RENDER_N_LINES; i++)
+    {
+      int width = i == RENDER_LINE_NONE ? 0 : 1;
+      params.line_widths[H][i] = width;
+      params.line_widths[V][i] = width;
+    }
+
+  if (a->file == NULL && !ascii_open_page (a))
+    return;
+
+  page = render_page_create (&params, table_item_get_table (table_item));
+  for (render_break_init (&x_break, page, H);
+       render_break_has_next (&x_break); )
+    {
+      struct render_page *x_slice;
+      struct render_break y_break;
+
+      x_slice = render_break_next (&x_break, a->width);
+      for (render_break_init (&y_break, x_slice, V);
+           render_break_has_next (&y_break); )
+        {
+          struct render_page *y_slice;
+          int space;
+
+          if (a->y > 0)
+            a->y++;
+
+          space = a->length - a->y - caption_height;
+          if (render_break_next_size (&y_break) > space)
+            {
+              assert (a->y > 0);
+              ascii_close_page (a);
+              if (!ascii_open_page (a))
+                return;
+              continue;
+            }
+
+          y_slice = render_break_next (&y_break, space);
+          if (caption_height)
+            {
+              struct table_cell cell;
+              int bb[TABLE_N_AXES][2];
+
+              ascii_init_caption_cell (caption, &cell);
+              bb[H][0] = 0;
+              bb[H][1] = a->width;
+              bb[V][0] = 0;
+              bb[V][1] = caption_height;
+              ascii_draw_cell (a, &cell, bb, bb);
+              a->y += caption_height;
+              caption_height = 0;
+            }
+          render_page_draw (y_slice);
+          a->y += render_page_get_size (y_slice, V);
+          render_page_unref (y_slice);
+        }
+      render_break_destroy (&y_break);
+    }
+  render_break_destroy (&x_break);
+}
+
+static void
+ascii_output_text (struct ascii_driver *a, const char *text)
+{
+  struct table_item *table_item;
+
+  table_item = table_item_create (table_from_string (TAB_LEFT, text), NULL);
+  ascii_output_table_item (a, table_item);
+  table_item_unref (table_item);
+}
+
+static void
 ascii_submit (struct output_driver *driver,
               const struct output_item *output_item)
 {
   struct ascii_driver *a = ascii_driver_cast (driver);
+
+  output_driver_track_current_command (output_item, &a->command_name);
+
   if (a->error)
     return;
+
   if (is_table_item (output_item))
-    {
-      struct table_item *table_item = to_table_item (output_item);
-      const char *caption = table_item_get_caption (table_item);
-      struct render_params params;
-      struct render_page *page;
-      struct render_break x_break;
-      int caption_height;
-      int i;
-
-      update_page_size (a, false);
-
-      if (caption != NULL)
-        {
-          /* XXX doesn't do well with very large captions */
-          struct table_cell cell;
-          ascii_init_caption_cell (caption, &cell);
-          caption_height = ascii_measure_cell_height (a, &cell, a->width);
-        }
-      else
-        caption_height = 0;
-
-      params.draw_line = ascii_draw_line;
-      params.measure_cell_width = ascii_measure_cell_width;
-      params.measure_cell_height = ascii_measure_cell_height;
-      params.draw_cell = ascii_draw_cell,
-      params.aux = a;
-      params.size[H] = a->width;
-      params.size[V] = a->length - caption_height;
-      params.font_size[H] = 1;
-      params.font_size[V] = 1;
-      for (i = 0; i < RENDER_N_LINES; i++)
-        {
-          int width = i == RENDER_LINE_NONE ? 0 : 1;
-          params.line_widths[H][i] = width;
-          params.line_widths[V][i] = width;
-        }
-
-      if (a->file == NULL && !ascii_open_page (a))
-        return;
-
-      page = render_page_create (&params, table_item_get_table (table_item));
-      for (render_break_init (&x_break, page, H);
-           render_break_has_next (&x_break); )
-        {
-          struct render_page *x_slice;
-          struct render_break y_break;
-
-          x_slice = render_break_next (&x_break, a->width);
-          for (render_break_init (&y_break, x_slice, V);
-               render_break_has_next (&y_break); )
-            {
-              struct render_page *y_slice;
-              int space;
-
-              if (a->y > 0)
-                a->y++;
-
-              space = a->length - a->y - caption_height;
-              if (render_break_next_size (&y_break) > space)
-                {
-                  assert (a->y > 0);
-                  ascii_close_page (a);
-                  if (!ascii_open_page (a))
-                    return;
-                  continue;
-                }
-
-              y_slice = render_break_next (&y_break, space);
-              if (caption_height)
-                {
-                  struct table_cell cell;
-                  int bb[TABLE_N_AXES][2];
-
-                  ascii_init_caption_cell (caption, &cell);
-                  bb[H][0] = 0;
-                  bb[H][1] = a->width;
-                  bb[V][0] = 0;
-                  bb[V][1] = caption_height;
-                  ascii_draw_cell (a, &cell, bb, bb);
-                  a->y += caption_height;
-                  caption_height = 0;
-                }
-              render_page_draw (y_slice);
-              a->y += render_page_get_size (y_slice, V);
-              render_page_unref (y_slice);
-            }
-          render_break_destroy (&y_break);
-        }
-      render_break_destroy (&x_break);
-    }
+    ascii_output_table_item (a, to_table_item (output_item));
   else if (is_chart_item (output_item) && a->chart_file_name != NULL)
     {
       struct chart_item *chart_item = to_chart_item (output_item);
@@ -515,16 +538,17 @@ ascii_submit (struct output_driver *driver,
           break;
 
         default:
-          {
-            struct table_item *item;
-
-            item = table_item_create (table_from_string (TAB_LEFT, text),
-                                      NULL);
-            ascii_submit (&a->driver, &item->output_item);
-            table_item_unref (item);
-          }
+          ascii_output_text (a, text);
           break;
         }
+    }
+  else if (is_message_item (output_item))
+    {
+      const struct message_item *message_item = to_message_item (output_item);
+      const struct msg *msg = message_item_get_msg (message_item);
+      char *s = msg_to_string (msg, a->command_name);
+      ascii_output_text (a, s);
+      free (s);
     }
 }
 

@@ -29,6 +29,5 @@
 void journal_enable (void);
 void journal_disable (void);
 void journal_set_file_name (const char *);
-void journal_write (bool prefix, const char *);
 
 #endif /* output/journal.h */

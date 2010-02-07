@@ -16,16 +16,7 @@
 
 #include <config.h>
 
-#include "msg-ui.h"
-
-#include <data/settings.h>
-#include <libpspp/getl.h>
-#include <libpspp/message.h>
-#include <libpspp/msg-locator.h>
-#include <libpspp/str.h>
-#include <output/journal.h>
-#include <output/driver.h>
-#include <output/tab.h>
+#include "ui/terminal/msg-ui.h"
 
 #include <errno.h>
 #include <limits.h>
@@ -33,45 +24,37 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "unilbrk.h"
-#include "localcharset.h"
+#include "data/settings.h"
+#include "libpspp/getl.h"
+#include "libpspp/message.h"
+#include "libpspp/msg-locator.h"
+#include "libpspp/str.h"
+#include "output/journal.h"
+#include "output/driver.h"
+#include "output/tab.h"
+#include "output/message-item.h"
+
+#include "gl/unilbrk.h"
+#include "gl/localcharset.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-/* Number of errors, warnings reported. */
-static int error_count;
-static int warning_count;
-static const char *error_file;
+/* Number of messages reported, by severity level. */
+static int counts[MSG_N_SEVERITIES];
+
+/* True after the maximum number of errors or warnings has been exceeded. */
+static bool too_many_errors;
+
+/* True after the maximum number of notes has been exceeded. */
+static bool too_many_notes;
 
 static void handle_msg (const struct msg *);
-
-static FILE *msg_file ;
-
-void
-msg_ui_set_error_file (const char *filename)
-{
-  error_file = filename;
-}
 
 void
 msg_ui_init (struct source_stream *ss)
 {
-  msg_file = stdout;
-
-  if ( error_file )
-    {
-      msg_file = fopen (error_file, "a");
-      if ( NULL == msg_file )
-	{
-	  int err = errno;
-	  printf ( _("Cannot open %s (%s). "
-		     "Writing errors to stdout instead.\n"),
-		   error_file, strerror(err) );
-	  msg_file = stdout;
-	}
-    }
   msg_init (ss, handle_msg);
 }
 
@@ -80,202 +63,80 @@ msg_ui_done (void)
 {
   msg_done ();
   msg_locator_done ();
-
-  if ( msg_file ) /* FIXME: do we really want to close stdout ?? */
-    fclose (msg_file);
 }
 
 /* Checks whether we've had so many errors that it's time to quit
    processing this syntax file. */
-void
-check_msg_count (struct source_stream *ss)
+bool
+msg_ui_too_many_errors (void)
 {
-  if (!getl_is_interactive (ss))
-    {
-      int max_errors = settings_get_max_messages (MSG_S_ERROR);
-      int max_warnings = settings_get_max_messages (MSG_S_WARNING);
-
-      if (error_count > max_errors)
-        msg (MN, _("Errors (%d) exceed limit (%d)."),
-             error_count, max_errors);
-      else if (error_count + warning_count > max_warnings)
-        msg (MN, _("Warnings (%d) exceed limit (%d)."),
-             error_count + warning_count, max_warnings);
-      else
-        return;
-
-      getl_abort_noninteractive (ss);
-    }
+  return too_many_errors;
 }
 
 void
-reset_msg_count (void)
+msg_ui_reset_counts (void)
 {
-  error_count = warning_count = 0;
+  int i;
+
+  for (i = 0; i < MSG_N_SEVERITIES; i++)
+    counts[i] = 0;
+  too_many_errors = false;
+  too_many_notes = false;
 }
 
 bool
-any_errors (void)
+msg_ui_any_errors (void)
 {
-  return error_count > 0;
+  return counts[MSG_S_ERROR] > 0;
 }
-
-typedef void write_line_func (int indent, struct substring line, void *aux);
-static void dump_message (char *msg, unsigned width, unsigned indent,
-                          write_line_func *, void *aux);
-static write_line_func write_stream;
-static write_line_func write_journal;
+
+static void
+submit_note (char *s)
+{
+  struct msg m;
+
+  m.category = MSG_C_GENERAL;
+  m.severity = MSG_S_NOTE;
+  m.where.file_name = NULL;
+  m.where.line_number = -1;
+  m.text = s;
+  message_item_submit (message_item_create (&m));
+  free (s);
+}
 
 static void
 handle_msg (const struct msg *m)
 {
-  struct category
-    {
-      bool show_command_name;   /* Show command name with error? */
-      bool show_file_location;  /* Show syntax file location? */
-    };
+  int n_msgs, max_msgs;
 
-  static const struct category categories[] =
-    {
-      {false, false},           /* MSG_GENERAL. */
-      {true, true},             /* MSG_SYNTAX. */
-      {false, true},            /* MSG_DATA. */
-    };
+  if (too_many_errors || (too_many_notes && m->severity == MSG_S_NOTE))
+    return;
 
-  struct severity
-    {
-      enum settings_output_type type;
-      const char *name;         /* How to identify this severity. */
-      int *count;               /* Number of msgs with this severity so far. */
-    };
+  message_item_submit (message_item_create (m));
 
-  static struct severity severities[] =
+  counts[m->severity]++;
+  max_msgs = settings_get_max_messages (m->severity);
+  n_msgs = counts[m->severity];
+  if (m->severity == MSG_S_WARNING)
+    n_msgs += counts[MSG_S_ERROR];
+  if (n_msgs > max_msgs)
     {
-      { SETTINGS_OUTPUT_ERROR, N_("error"), &error_count },
-      { SETTINGS_OUTPUT_ERROR, N_("warning"), &warning_count },
-      { SETTINGS_OUTPUT_NOTE, NULL, NULL},
-    };
-
-  const struct category *category = &categories[m->category];
-  const struct severity *severity = &severities[m->severity];
-  struct string string = DS_EMPTY_INITIALIZER;
-  enum settings_output_devices routing;
-
-  if (category->show_file_location && m->where.file_name)
-    {
-      ds_put_format (&string, "%s:", m->where.file_name);
-      if (m->where.line_number != -1)
-	ds_put_format (&string, "%d:", m->where.line_number);
-      ds_put_char (&string, ' ');
+      if (m->severity == MSG_S_NOTE)
+        {
+          too_many_notes = true;
+          submit_note (xasprintf (_("Notes (%d) exceed limit (%d).  "
+                                    "Suppressing further notes."),
+                                  n_msgs, max_msgs));
+        }
+      else
+        {
+          too_many_errors = true;
+          if (m->severity == MSG_S_WARNING)
+            submit_note (xasprintf (_("Warnings (%d) exceed limit (%d)."),
+                                    n_msgs, max_msgs));
+          else
+            submit_note (xasprintf (_("Errors (%d) exceed limit (%d)."),
+                                    n_msgs, max_msgs));
+        }
     }
-
-  if (severity->name != NULL)
-    ds_put_format (&string, "%s: ", gettext (severity->name));
-
-  if (severity->count != NULL)
-    ++*severity->count;
-
-  if (category->show_command_name && msg_get_command_name () != NULL)
-    ds_put_format (&string, "%s: ", msg_get_command_name ());
-
-  ds_put_cstr (&string, m->text);
-
-  routing = settings_get_output_routing (severity->type);
-  if (msg_file != stdout || routing & SETTINGS_DEVICE_TERMINAL)
-    dump_message (ds_cstr (&string),
-                  isatty (fileno (msg_file)) ? settings_get_viewwidth () : INT_MAX, 8,
-                  write_stream, msg_file);
-
-  dump_message (ds_cstr (&string), 78, 0, write_journal, NULL);
-
-  if (routing & SETTINGS_DEVICE_LISTING)
-    {
-      /* Disable terminal output devices, because the error should already have
-         been reported to the terminal with the dump_message call above. */
-      settings_set_output_routing (severity->type,
-                                   routing & ~SETTINGS_DEVICE_TERMINAL);
-      tab_output_text (TAB_LEFT, ds_cstr (&string));
-      settings_set_output_routing (severity->type, routing);
-    }
-
-  ds_destroy (&string);
-}
-
-/* Divides MSG into lines of WIDTH width for the first line and
-   WIDTH - INDENT width for each succeeding line, and writes the
-   lines by calling DUMP_LINE for each line, passing AUX as
-   auxiliary data. */
-static void
-dump_message (char *msg, unsigned width, unsigned indent,
-              write_line_func *dump_line, void *aux)
-{
-  size_t length = strlen (msg);
-  char *string, *breaks;
-  int line_indent;
-  size_t line_start, i;
-
-  /* Allocate temporary buffers.
-     If we can't get memory for them, then just dump the whole
-     message. */
-  string = strdup (msg);
-  breaks = malloc (length);
-  if (string == NULL || breaks == NULL)
-    {
-      free (string);
-      free (breaks);
-      dump_line (0, ss_cstr (msg), aux);
-      return;
-    }
-
-  /* Break into lines. */
-  if (indent > width / 3)
-    indent = width / 3;
-  ulc_width_linebreaks (string, length,
-                        width - indent, -indent, 0,
-                        NULL, locale_charset (), breaks);
-
-  /* Write out lines. */
-  line_start = 0;
-  line_indent = 0;
-  for (i = 0; i < length; i++)
-    if (breaks[i] == UC_BREAK_POSSIBLE || breaks[i] == UC_BREAK_MANDATORY)
-      {
-        dump_line (line_indent,
-                   ss_buffer (string + line_start, i - line_start), aux);
-        line_indent = indent;
-
-        /* UC_BREAK_POSSIBLE means that a line break can be
-           inserted, and that the character should be included
-           in the next line.
-           UC_BREAK_MANDATORY means that this character is a line
-           break, so it should not be included in the next line. */
-        line_start = i + (breaks[i] == UC_BREAK_MANDATORY);
-      }
-  if (line_start < length)
-    dump_line (line_indent,
-               ss_buffer (string + line_start, length - line_start), aux);
-
-  free (string);
-  free (breaks);
-}
-
-/* Write LINE_INDENT spaces, LINE, then a new-line to STREAM. */
-static void
-write_stream (int line_indent, struct substring line, void *stream_)
-{
-  FILE *stream = stream_;
-  int i;
-  for (i = 0; i < line_indent; i++)
-    putc (' ', stream);
-  fwrite (ss_data (line), 1, ss_length (line), stream);
-  putc ('\n', stream);
-}
-
-/* Writes LINE to the journal. */
-static void
-write_journal (int line_indent UNUSED, struct substring line, void *unused UNUSED)
-{
-  char *s = xstrndup (ss_data (line), ss_length (line));
-  journal_write (true, s);
-  free (s);
 }

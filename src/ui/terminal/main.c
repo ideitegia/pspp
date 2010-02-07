@@ -129,13 +129,13 @@ main (int argc, char **argv)
 		     "a cascade of dependent command failures."));
 	  getl_abort_noninteractive (the_source_stream);
 	}
-      else
-	check_msg_count (the_source_stream);
+      else if (msg_ui_too_many_errors ())
+        getl_abort_noninteractive (the_source_stream);
     }
 
 
   clean_up ();
-  return any_errors ();
+  return msg_ui_any_errors ();
 }
 
 

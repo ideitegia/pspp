@@ -20,6 +20,7 @@
 
 #include <libpspp/assertion.h>
 #include <libpspp/cast.h>
+#include <libpspp/message.h>
 #include <libpspp/start-date.h>
 #include <libpspp/str.h>
 #include <libpspp/string-map.h>
@@ -33,6 +34,7 @@
 #include <output/charts/roc-chart.h>
 #include <output/charts/scree.h>
 #include <output/driver-provider.h>
+#include <output/message-item.h>
 #include <output/options.h>
 #include <output/render.h>
 #include <output/tab.h>
@@ -126,6 +128,7 @@ struct xr_driver
 
     /* Internal state. */
     struct render_params *params;
+    char *command_name;
     char *title;
     char *subtitle;
     cairo_t *cairo;
@@ -364,6 +367,7 @@ xr_destroy (struct output_driver *driver)
       cairo_destroy (xr->cairo);
     }
 
+  free (xr->command_name);
   for (i = 0; i < XR_N_FONTS; i++)
     free_font (&xr->fonts[i]);
   free (xr->params);
@@ -406,67 +410,81 @@ xr_render_table_item (struct xr_driver *xr, const struct table_item *item,
 }
 
 static void
+xr_output_table_item (struct xr_driver *xr,
+                      const struct table_item *table_item)
+{
+  struct render_break x_break;
+  struct render_page *page;
+  int caption_height;
+
+  if (xr->y > 0)
+    xr->y += xr->font_height;
+
+  page = xr_render_table_item (xr, table_item, &caption_height);
+  xr->params->size[V] = xr->length - caption_height;
+  for (render_break_init (&x_break, page, H);
+       render_break_has_next (&x_break); )
+    {
+      struct render_page *x_slice;
+      struct render_break y_break;
+
+      x_slice = render_break_next (&x_break, xr->width);
+      for (render_break_init (&y_break, x_slice, V);
+           render_break_has_next (&y_break); )
+        {
+          int space = xr->length - xr->y;
+          struct render_page *y_slice;
+
+          /* XXX doesn't allow for caption or space between segments */
+          if (render_break_next_size (&y_break) > space)
+            {
+              assert (xr->y > 0);
+              xr_show_page (xr);
+              continue;
+            }
+
+          y_slice = render_break_next (&y_break, space);
+          if (caption_height)
+            {
+              struct table_cell cell;
+              int bb[TABLE_N_AXES][2];
+
+              xr_init_caption_cell (table_item_get_caption (table_item),
+                                    &cell);
+              bb[H][0] = 0;
+              bb[H][1] = xr->width;
+              bb[V][0] = 0;
+              bb[V][1] = caption_height;
+              xr_draw_cell (xr, &cell, bb, bb);
+              xr->y += caption_height;
+              caption_height = 0;
+            }
+
+          render_page_draw (y_slice);
+          xr->y += render_page_get_size (y_slice, V);
+          render_page_unref (y_slice);
+        }
+      render_break_destroy (&y_break);
+    }
+  render_break_destroy (&x_break);
+}
+
+static void
+xr_output_text (struct xr_driver *xr, const char *text)
+{
+  struct table_item *table_item;
+
+  table_item = table_item_create (table_from_string (TAB_LEFT, text), NULL);
+  xr_output_table_item (xr, table_item);
+  table_item_unref (table_item);
+}
+
+static void
 xr_submit (struct output_driver *driver, const struct output_item *output_item)
 {
   struct xr_driver *xr = xr_driver_cast (driver);
   if (is_table_item (output_item))
-    {
-      struct table_item *table_item = to_table_item (output_item);
-      struct render_break x_break;
-      struct render_page *page;
-      int caption_height;
-
-      if (xr->y > 0)
-        xr->y += xr->font_height;
-
-      page = xr_render_table_item (xr, table_item, &caption_height);
-      xr->params->size[V] = xr->length - caption_height;
-      for (render_break_init (&x_break, page, H);
-           render_break_has_next (&x_break); )
-        {
-          struct render_page *x_slice;
-          struct render_break y_break;
-
-          x_slice = render_break_next (&x_break, xr->width);
-          for (render_break_init (&y_break, x_slice, V);
-               render_break_has_next (&y_break); )
-            {
-              int space = xr->length - xr->y;
-              struct render_page *y_slice;
-
-              /* XXX doesn't allow for caption or space between segments */
-              if (render_break_next_size (&y_break) > space)
-                {
-                  assert (xr->y > 0);
-                  xr_show_page (xr);
-                  continue;
-                }
-
-              y_slice = render_break_next (&y_break, space);
-              if (caption_height)
-                {
-                  struct table_cell cell;
-                  int bb[TABLE_N_AXES][2];
-
-                  xr_init_caption_cell (table_item_get_caption (table_item),
-                                        &cell);
-                  bb[H][0] = 0;
-                  bb[H][1] = xr->width;
-                  bb[V][0] = 0;
-                  bb[V][1] = caption_height;
-                  xr_draw_cell (xr, &cell, bb, bb);
-                  xr->y += caption_height;
-                  caption_height = 0;
-                }
-
-              render_page_draw (y_slice);
-              xr->y += render_page_get_size (y_slice, V);
-              render_page_unref (y_slice);
-            }
-          render_break_destroy (&y_break);
-        }
-      render_break_destroy (&x_break);
-    }
+    xr_output_table_item (xr, to_table_item (output_item));
   else if (is_chart_item (output_item))
     {
       if (xr->y > 0)
@@ -507,17 +525,17 @@ xr_submit (struct output_driver *driver, const struct output_item *output_item)
           break;
 
         default:
-          {
-            struct table_item *item;
-
-            item = table_item_create (table_from_string (TAB_LEFT, text),
-                                      NULL);
-            xr_submit (&xr->driver, &item->output_item);
-            table_item_unref (item);
-          }
+          xr_output_text (xr, text);
           break;
         }
-
+    }
+  else if (is_message_item (output_item))
+    {
+      const struct message_item *message_item = to_message_item (output_item);
+      const struct msg *msg = message_item_get_msg (message_item);
+      char *s = msg_to_string (msg, xr->command_name);
+      xr_output_text (xr, s);
+      free (s);
     }
 }
 
@@ -960,6 +978,19 @@ xr_create_driver (cairo_t *cairo)
   return xr;
 }
 
+static struct xr_rendering *
+xr_rendering_create_text (struct xr_driver *xr, const char *text, cairo_t *cr)
+{
+  struct table_item *table_item;
+  struct xr_rendering *r;
+
+  table_item = table_item_create (table_from_string (0, text), NULL);
+  r = xr_rendering_create (xr, &table_item->output_item, cr);
+  table_item_unref (table_item);
+
+  return r;
+}
+
 struct xr_rendering *
 xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
                      cairo_t *cr)
@@ -967,15 +998,15 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
   struct xr_rendering *r = NULL;
 
   if (is_text_item (item))
+    r = xr_rendering_create_text (xr, text_item_get_text (to_text_item (item)),
+                                  cr);
+  else if (is_message_item (item))
     {
-      const struct text_item *text_item = to_text_item (item);
-      const char *text = text_item_get_text (text_item);
-      struct table_item *table_item;
-
-      table_item = table_item_create (table_from_string (TAB_LEFT, text),
-                                      NULL);
-      r = xr_rendering_create (xr, &table_item->output_item, cr);
-      table_item_unref (table_item);
+      const struct message_item *message_item = to_message_item (item);
+      const struct msg *msg = message_item_get_msg (message_item);
+      char *s = msg_to_string (msg, NULL);
+      r = xr_rendering_create_text (xr, s, cr);
+      free (s);
     }
   else if (is_table_item (item))
     {

@@ -32,6 +32,7 @@
 #include "libpspp/str.h"
 #include "libpspp/version.h"
 #include "output/driver-provider.h"
+#include "output/message-item.h"
 #include "output/options.h"
 #include "output/tab.h"
 #include "output/table-item.h"
@@ -64,6 +65,9 @@ struct odt_driver
 
   /* Number of tables so far. */
   int table_num;
+
+  /* Name of current command. */
+  char *command_name;
 };
 
 static const struct output_driver_class odt_driver_class;
@@ -403,6 +407,7 @@ odt_destroy (struct output_driver *driver)
   else
     fprintf (stderr, "Not removing directory %s\n", odt->dirname);
 
+  free (odt->command_name);
   free (odt->dirname);
   free (odt);
 }
@@ -503,23 +508,37 @@ odt_submit_table (struct odt_driver *odt, struct table_item *item)
   xmlTextWriterEndElement (odt->content_wtr); /* table */
 }
 
+static void
+odt_output_text (struct odt_driver *odt, const char *text)
+{
+  xmlTextWriterStartElement (odt->content_wtr, _xml("text:p"));
+  xmlTextWriterWriteString (odt->content_wtr, _xml(text));
+  xmlTextWriterEndElement (odt->content_wtr);
+}
+
 /* Submit a table to the ODT driver */
 static void
 odt_submit (struct output_driver *driver,
             const struct output_item *output_item)
 {
   struct odt_driver *odt = odt_driver_cast (driver);
+
+  output_driver_track_current_command (output_item, &odt->command_name);
+
   if (is_table_item (output_item))
     odt_submit_table (odt, to_table_item (output_item));
   else if (is_text_item (output_item))
     {
-      const struct text_item *text_item = to_text_item (output_item);
-      const char *text = text_item_get_text (text_item);
-
       /* XXX apply different styles based on text_item's type.  */
-      xmlTextWriterStartElement (odt->content_wtr, _xml("text:p"));
-      xmlTextWriterWriteString (odt->content_wtr, _xml(text));
-      xmlTextWriterEndElement (odt->content_wtr);
+      odt_output_text (odt, text_item_get_text (to_text_item (output_item)));
+    }
+  else if (is_message_item (output_item))
+    {
+      const struct message_item *message_item = to_message_item (output_item);
+      const struct msg *msg = message_item_get_msg (message_item);
+      char *s = msg_to_string (msg, odt->command_name);
+      odt_output_text (odt, s);
+      free (s);
     }
 }
 

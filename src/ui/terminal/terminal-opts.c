@@ -38,6 +38,7 @@
 #include "libpspp/version.h"
 #include "output/driver.h"
 #include "output/driver-provider.h"
+#include "output/msglog.h"
 #include "ui/terminal/msg-ui.h"
 #include "ui/terminal/read-line.h"
 
@@ -57,6 +58,7 @@ struct terminal_opts
     struct string_map options;  /* Output driver options. */
     bool has_output_driver;
     bool has_terminal_driver;
+    bool has_error_file;
     bool process_statrc;
   };
 
@@ -234,7 +236,8 @@ terminal_option_callback (int id, void *to_)
       break;
 
     case OPT_ERROR_FILE:
-      msg_ui_set_error_file (optarg);
+      if (!strcmp (optarg, "none") || msglog_create (optarg))
+        to->has_error_file = true;
       break;
 
     case OPT_OUTPUT:
@@ -279,6 +282,7 @@ terminal_opts_init (struct argv_parser *ap, struct source_stream *ss)
   to->syntax_mode = GETL_BATCH;
   string_map_init (&to->options);
   to->has_output_driver = false;
+  to->has_error_file = false;
   to->process_statrc = true;
 
   argv_parser_add_options (ap, terminal_argv_options, N_TERMINAL_OPTIONS,
@@ -330,6 +334,9 @@ terminal_opts_done (struct terminal_opts *to, int argc, char *argv[])
       string_map_insert (&to->options, "format", "txt");
       register_output_driver (to);
     }
+
+  if (to->has_terminal_driver && !to->has_error_file)
+    msglog_create ("-");
 
   string_map_destroy (&to->options);
   free (to);

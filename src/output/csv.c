@@ -19,15 +19,17 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include <data/file-name.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/string-map.h>
-#include <output/text-item.h>
-#include <output/driver-provider.h>
-#include <output/options.h>
-#include <output/table-item.h>
-#include <output/table-provider.h>
+#include "data/file-name.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/string-map.h"
+#include "output/text-item.h"
+#include "output/driver-provider.h"
+#include "output/options.h"
+#include "output/message-item.h"
+#include "output/table-item.h"
+#include "output/table-provider.h"
 
 #include "gl/error.h"
 #include "gl/xalloc.h"
@@ -43,6 +45,7 @@ struct csv_driver
 
     char *separator;            /* Comma or tab. */
     char *file_name;            /* Output file name. */
+    char *command_name;         /* Current command. */
     FILE *file;                 /* Output file. */
     int n_items;                /* Number of items output so far. */
   };
@@ -164,6 +167,8 @@ csv_submit (struct output_driver *driver,
 {
   struct csv_driver *csv = csv_driver_cast (driver);
 
+  output_driver_track_current_command (output_item, &csv->command_name);
+
   if (is_table_item (output_item))
     {
       struct table_item *table_item = to_table_item (output_item);
@@ -225,6 +230,16 @@ csv_submit (struct output_driver *driver,
           csv_output_field (csv->file, text);
           break;
         }
+      putc ('\n', csv->file);
+    }
+  else if (is_message_item (output_item))
+    {
+      const struct message_item *message_item = to_message_item (output_item);
+      const struct msg *msg = message_item_get_msg (message_item);
+      char *s = msg_to_string (msg, csv->command_name);
+      csv_put_separator (csv);
+      csv_output_field (csv->file, s);
+      free (s);
       putc ('\n', csv->file);
     }
 }

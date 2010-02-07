@@ -27,6 +27,8 @@
         - Charts (see output/chart-item.h).
 
         - Text strings (see output/text-item.h).
+
+        - Messages (see output/message-item.h).
 */
 
 #include <libpspp/cast.h>

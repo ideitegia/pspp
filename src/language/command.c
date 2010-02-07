@@ -224,9 +224,7 @@ do_parse_command (struct lexer *lexer,
   else
     {
       /* Execute command. */
-      msg_set_command_name (command->name);
       result = command->function (lexer, ds);
-      msg_set_command_name (NULL);
     }
 
   assert (cmd_result_is_valid (result));

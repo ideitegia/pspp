@@ -90,8 +90,10 @@ void msg_init (struct source_stream *, void (*handler) (const struct msg *) );
 
 void msg_done (void);
 
-struct msg * msg_dup(const struct msg *m);
-void msg_destroy(struct msg *m);
+/* Working with messages. */
+struct msg *msg_dup (const struct msg *);
+void msg_destroy(struct msg *);
+char *msg_to_string (const struct msg *, const char *command_name);
 
 /* Emitting messages. */
 void msg (enum msg_class, const char *format, ...)
@@ -103,8 +105,6 @@ void msg_enable (void);
 void msg_disable (void);
 
 /* Error context. */
-void msg_set_command_name (const char *);
-const char *msg_get_command_name (void);
 void msg_push_msg_locator (const struct msg_locator *);
 void msg_pop_msg_locator (const struct msg_locator *);
 

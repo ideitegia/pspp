@@ -15,23 +15,22 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
+#include "ui/gui/psppire-dict.h"
+
 #include <string.h>
 #include <stdlib.h>
-
 #include <gtk/gtk.h>
-#include <ui/gui/psppire-marshal.h>
 
-#include "psppire-var-ptr.h"
-#include "psppire-dict.h"
-#include <data/dictionary.h>
-#include <data/missing-values.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <libpspp/i18n.h>
-
-#include "helper.h"
-#include "message-dialog.h"
-
+#include "data/dictionary.h"
+#include "data/missing-values.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "ui/gui/helper.h"
+#include "ui/gui/psppire-marshal.h"
+#include "ui/gui/psppire-var-ptr.h"
 
 enum  {
   BACKEND_CHANGED,

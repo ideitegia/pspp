@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,14 +26,15 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <libpspp/str.h>
 #include <libpspp/version.h>
 
-#include "progname.h"
-#include "xalloc.h"
-#include "xvasprintf.h"
+#include "gl/progname.h"
+#include "gl/xalloc.h"
+#include "gl/xvasprintf.h"
 
-/* Current command name as set by msg_set_command_name(). */
-static char *command_name;
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Message handler as set by msg_init(). */
 static void (*msg_handler)  (const struct msg *);
@@ -73,11 +74,12 @@ void
 msg_done (void)
 {
 }
-
+
+/* Working with messages. */
 
 /* Duplicate a message */
 struct msg *
-msg_dup(const struct msg *m)
+msg_dup (const struct msg *m)
 {
   struct msg *new_msg;
 
@@ -102,6 +104,47 @@ msg_destroy (struct msg *m)
   free (m);
 }
 
+char *
+msg_to_string (const struct msg *m, const char *command_name)
+{
+  const char *label;
+  struct string s;
+
+  ds_init_empty (&s);
+
+  if (m->category != MSG_C_GENERAL
+      && (m->where.file_name || m->where.line_number != -1))
+    {
+      if (m->where.file_name)
+        ds_put_format (&s, "%s:", m->where.file_name);
+      if (m->where.line_number != -1)
+        ds_put_format (&s, "%d:", m->where.line_number);
+      ds_put_char (&s, ' ');
+    }
+
+  switch (m->severity)
+    {
+    case MSG_S_ERROR:
+      label = _("error");
+      break;
+    case MSG_S_WARNING:
+      label = _("warning");
+      break;
+    case MSG_S_NOTE:
+    default:
+      label = _("note");
+      break;
+    }
+  ds_put_format (&s, "%s: ", label);
+
+  if (m->category == MSG_C_SYNTAX && command_name != NULL)
+    ds_put_format (&s, "%s: ", command_name);
+
+  ds_put_cstr (&s, m->text);
+
+  return ds_cstr (&s);
+}
+
 /* Emits M as an error message.
    Frees allocated data in M. */
 void
@@ -139,22 +182,6 @@ msg_enable (void)
 }
 
 /* Private functions. */
-
-/* Sets COMMAND_NAME as the command name included in some kinds
-   of error messages. */
-void
-msg_set_command_name (const char *command_name_)
-{
-  free (command_name);
-  command_name = command_name_ ? xstrdup (command_name_) : NULL;
-}
-
-/* Returns the current command name, or NULL if none. */
-const char *
-msg_get_command_name (void)
-{
-  return command_name;
-}
 
 void
 request_bug_report_and_abort (const char *msg)

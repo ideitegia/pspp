@@ -1,5 +1,5 @@
-/* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004,2005  Free Software Foundation
+/* PSPP - a program for statistical analysis.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,14 +14,11 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef ERROR_DIALOG_H
-#define ERROR_DIALOG_H
+#ifndef OUTPUT_MSGLOG_H
+#define OUTPUT_MSGLOG_H 1
 
-#include <libpspp/message.h>
+/* Output driver to log errors, warnings, and notes to files. */
 
-struct source_stream ;
+struct output_driver *msglog_create (const char *file_name);
 
-void message_dialog_init (struct source_stream *);
-void message_dialog_done (void);
-
-#endif
+#endif /* output/msglog.h */

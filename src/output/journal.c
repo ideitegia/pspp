@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,91 +16,159 @@
 
 #include <config.h>
 
-#include <output/journal.h>
+#include "output/journal.h"
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/file-name.h>
-#include <libpspp/str.h>
+#include "data/file-name.h"
+#include "libpspp/cast.h"
+#include "libpspp/str.h"
+#include "output/driver-provider.h"
+#include "output/message-item.h"
+#include "output/text-item.h"
 
-#include "fwriteerror.h"
-#include "error.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/fwriteerror.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Journaling enabled? */
-static bool journal_enabled = false;
+struct journal_driver
+  {
+    struct output_driver driver;
+    FILE *file;
+    char *command_name;
+  };
 
-/* Name of the journal file. */
-static char *journal_file_name = NULL;
+static const struct output_driver_class journal_class;
 
-/* Journal file. */
-static FILE *journal_file = NULL;
+/* Journal driver, if journaling is enabled. */
+static struct journal_driver *journal;
 
+/* Name of journal file. */
+static char *journal_file_name;
+
+static struct journal_driver *
+journal_driver_cast (struct output_driver *driver)
+{
+  assert (driver->class == &journal_class);
+  return UP_CAST (driver, struct journal_driver, driver);
+}
+
+static void
+journal_close (void)
+{
+  if (journal != NULL && journal->file != NULL)
+    {
+      if (fwriteerror (journal->file))
+        error (0, errno, _("error writing \"%s\""), journal_file_name);
+      journal->file = NULL;
+    }
+}
+
+static void
+journal_destroy (struct output_driver *driver)
+{
+  struct journal_driver *j = journal_driver_cast (driver);
+
+  journal_close ();
+  free (j->command_name);
+  free (j);
+
+  journal = NULL;
+}
+
+static void
+journal_output (struct journal_driver *j, const char *s)
+{
+  if (j->file == NULL)
+    {
+      j->file = fopen (journal_file_name, "a");
+      if (j->file == NULL)
+        {
+          error (0, errno, _("%s: open failed"), journal_file_name);
+          output_driver_destroy (&j->driver);
+          return;
+        }
+    }
+
+  fprintf (j->file, "%s\n", s);
+}
+
+static void
+journal_submit (struct output_driver *driver, const struct output_item *item)
+{
+  struct journal_driver *j = journal_driver_cast (driver);
+
+  output_driver_track_current_command (item, &j->command_name);
+
+  if (is_text_item (item))
+    {
+      const struct text_item *text_item = to_text_item (item);
+      enum text_item_type type = text_item_get_type (text_item);
+
+      if (type == TEXT_ITEM_SYNTAX)
+        journal_output (j, text_item_get_text (text_item));
+    }
+  else if (is_message_item (item))
+    {
+      const struct message_item *message_item = to_message_item (item);
+      const struct msg *msg = message_item_get_msg (message_item);
+      char *s = msg_to_string (msg, j->command_name);
+      journal_output (j, s);
+      free (s);
+    }
+}
+
+static const struct output_driver_class journal_class =
+  {
+    "journal",
+    journal_destroy,
+    journal_submit,
+    NULL                        /* flush */
+  };
+
 /* Enables journaling. */
 void
 journal_enable (void)
 {
-  journal_enabled = true;
+  if (journal == NULL)
+    {
+      /* If no journal file name is configured, use the default. */
+      if (journal_file_name == NULL)
+	{
+	  const char *output_path = default_output_path ();
+	  journal_file_name = xasprintf ("%s%s", output_path, "pspp.jnl");
+	}
+
+      /* Create journal driver. */
+      journal = xzalloc (sizeof *journal);
+      output_driver_init (&journal->driver, &journal_class, "journal",
+                          SETTINGS_DEVICE_UNFILTERED);
+      journal->file = NULL;
+      journal->command_name = NULL;
+
+      /* Register journal driver. */
+      output_driver_register (&journal->driver);
+    }
 }
 
 /* Disables journaling. */
 void
 journal_disable (void)
 {
-  journal_enabled = false;
-  if (journal_file != NULL)
-    fflush (journal_file);
+  if (journal != NULL)
+    output_driver_destroy (&journal->driver);
 }
 
 /* Sets the name of the journal file to FILE_NAME. */
 void
 journal_set_file_name (const char *file_name)
 {
-  assert (file_name != NULL);
-
-  if (journal_file != NULL)
-    {
-      if (fwriteerror (journal_file))
-        error (0, errno, _("error writing \"%s\""), journal_file_name);
-    }
-
+  journal_close ();
   free (journal_file_name);
   journal_file_name = xstrdup (file_name);
-}
-
-/* Writes LINE to the journal file (if journaling is enabled).
-   If PREFIX is non-null, the line will be prefixed by "> ". */
-void
-journal_write (bool prefix, const char *line)
-{
-  if (!journal_enabled)
-    return;
-
-  if (journal_file == NULL)
-    {
-      if (journal_file_name == NULL)
-	{
-	  const char *output_path = default_output_path ();
-	  journal_file_name = xasprintf ("%s%s", output_path, "pspp.jnl");
-	}
-      journal_file = fopen (journal_file_name, "w");
-      if (journal_file == NULL)
-        {
-          error (0, errno, _("error creating \"%s\""), journal_file_name);
-          journal_enabled = false;
-          return;
-        }
-    }
-
-  if (prefix)
-    fputs ("> ", journal_file);
-  fputs (line, journal_file);
-  if (strchr (line, '\n') == NULL)
-    putc ('\n', journal_file);
-  fflush (journal_file);
 }

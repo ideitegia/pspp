@@ -34,6 +34,7 @@
 #include "libpspp/string-map.h"
 #include "libpspp/string-set.h"
 #include "libpspp/str.h"
+#include "output/message-item.h"
 #include "output/output-item.h"
 #include "output/text-item.h"
 
@@ -83,8 +84,16 @@ output_submit__ (struct output_item *item)
 
       next = llx_next (llx);
 
-      if (is_text_item (item)
-          && text_item_get_type (to_text_item (item)) == TEXT_ITEM_SYNTAX)
+      if (is_message_item (item))
+        {
+          const struct msg *m = message_item_get_msg (to_message_item (item));
+          if (m->severity == MSG_S_NOTE)
+            type = SETTINGS_OUTPUT_NOTE;
+          else
+            type = SETTINGS_OUTPUT_ERROR;
+        }
+      else if (is_text_item (item)
+               && text_item_get_type (to_text_item (item)) == TEXT_ITEM_SYNTAX)
         type = SETTINGS_OUTPUT_SYNTAX;
       else
         type = SETTINGS_OUTPUT_RESULT;

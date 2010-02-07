@@ -30,6 +30,10 @@ src_output_liboutput_la_SOURCES = \
 	src/output/journal.h \
 	src/output/measure.c \
 	src/output/measure.h \
+	src/output/message-item.c \
+	src/output/message-item.h \
+	src/output/msglog.c \
+	src/output/msglog.h \
 	src/output/odt.c \
 	src/output/options.c \
 	src/output/options.h \

@@ -23,19 +23,21 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <data/file-name.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/compiler.h>
-#include <libpspp/version.h>
-#include <output/cairo.h>
-#include <output/chart-item.h>
-#include <output/driver-provider.h>
-#include <output/options.h>
-#include <output/output-item-provider.h>
-#include <output/table-provider.h>
-#include <output/table-item.h>
-#include <output/text-item.h>
+#include "data/file-name.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/version.h"
+#include "output/cairo.h"
+#include "output/chart-item.h"
+#include "output/driver-provider.h"
+#include "output/message-item.h"
+#include "output/options.h"
+#include "output/output-item-provider.h"
+#include "output/table-provider.h"
+#include "output/table-item.h"
+#include "output/text-item.h"
 
 #include "error.h"
 #include "xalloc.h"
@@ -50,6 +52,7 @@ struct html_driver
     char *file_name;
     char *chart_file_name;
 
+    char *command_name;
     FILE *file;
     size_t chart_cnt;
 
@@ -210,6 +213,7 @@ html_destroy (struct output_driver *driver)
     }
   free (html->chart_file_name);
   free (html->file_name);
+  free (html->command_name);
   free (html);
 }
 
@@ -225,6 +229,8 @@ html_submit (struct output_driver *driver,
              const struct output_item *output_item)
 {
   struct html_driver *html = html_driver_cast (driver);
+
+  output_driver_track_current_command (output_item, &html->command_name);
 
   if (html->in_syntax && !is_syntax_item (output_item))
     {
@@ -312,6 +318,14 @@ html_submit (struct output_driver *driver,
           /* We print out syntax anyway, so nothing to do here either. */
           break;
         }
+    }
+  else if (is_message_item (output_item))
+    {
+      const struct message_item *message_item = to_message_item (output_item);
+      const struct msg *msg = message_item_get_msg (message_item);
+      char *s = msg_to_string (msg, html->command_name);
+      print_title_tag (html->file, "P", s);
+      free (s);
     }
 }
 

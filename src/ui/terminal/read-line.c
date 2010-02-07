@@ -151,7 +151,7 @@ readln_read (struct string *line, enum prompt_style style)
 
   assert (initialised);
 
-  reset_msg_count ();
+  msg_ui_reset_counts ();
 
   welcome ();
 

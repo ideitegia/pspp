@@ -40,9 +40,9 @@
 #include "libpspp/version.h"
 #include "output/driver.h"
 #include "output/journal.h"
+#include "output/message-item.h"
 #include "ui/gui/dict-display.h"
 #include "ui/gui/executor.h"
-#include "ui/gui/message-dialog.h"
 #include "ui/gui/psppire-data-store.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dict.h"
@@ -70,6 +70,7 @@ struct dataset * the_dataset = NULL;
 
 static GtkWidget *the_data_window;
 
+static void handle_msg (const struct msg *);
 static void load_data_file (const char *);
 
 static void
@@ -99,8 +100,8 @@ initialize (struct source_stream *ss, const char *data_file)
 
   the_dataset = create_dataset ();
 
-  message_dialog_init (the_source_stream);
   the_source_stream = ss;
+  msg_init (ss, handle_msg);
 
   dictionary = psppire_dict_new_from_dict (dataset_dict (the_dataset));
 
@@ -140,7 +141,6 @@ void
 de_initialize (void)
 {
   destroy_source_stream (the_source_stream);
-  message_dialog_done ();
   settings_done ();
   output_close ();
   i18n_done ();
@@ -294,4 +294,10 @@ load_data_file (const char *arg)
   psppire_window_load (PSPPIRE_WINDOW (the_data_window), filename);
 
   g_free (filename);
+}
+
+static void
+handle_msg (const struct msg *m)
+{
+  message_item_submit (message_item_create (m));
 }
