@@ -84,7 +84,7 @@ csv_create (const char *file_name, enum settings_output_devices device_type,
 
   if (csv->file == NULL)
     {
-      error (0, errno, _("csv: opening output file \"%s\""), csv->file_name);
+      error (0, errno, _("error opening output file \"%s\""), csv->file_name);
       output_driver_destroy (d);
       return NULL;
     }

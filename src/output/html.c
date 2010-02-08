@@ -103,7 +103,7 @@ html_create (const char *file_name, enum settings_output_devices device_type,
   html->file = fn_open (html->file_name, "w");
   if (html->file == NULL)
     {
-      error (0, errno, _("opening HTML output file: %s"), html->file_name);
+      error (0, errno, _("error opening output file \"%s\""), html->file_name);
       goto error;
     }
 

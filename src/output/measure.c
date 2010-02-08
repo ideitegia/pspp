@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -245,7 +245,7 @@ read_paper_conf (const char *file_name, int *h, int *v)
   file = fopen (file_name, "r");
   if (file == NULL)
     {
-      error (0, errno, _("error opening \"%s\""), file_name);
+      error (0, errno, _("error opening input file \"%s\""), file_name);
       return false;
     }
 
@@ -256,7 +256,7 @@ read_paper_conf (const char *file_name, int *h, int *v)
       if (!ds_read_config_line (&line, &line_number, file))
 	{
 	  if (ferror (file))
-	    error (0, errno, _("error reading \"%s\""), file_name);
+	    error (0, errno, _("error reading file \"%s\""), file_name);
 	  break;
 	}
 

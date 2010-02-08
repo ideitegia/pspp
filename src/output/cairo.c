@@ -280,7 +280,7 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
   status = cairo_surface_status (surface);
   if (status != CAIRO_STATUS_SUCCESS)
     {
-      error (0, 0, _("opening output file \"%s\": %s"),
+      error (0, 0, _("error opening output file \"%s\": %s"),
              file_name, cairo_status_to_string (status));
       cairo_surface_destroy (surface);
       goto error;
@@ -1119,7 +1119,7 @@ xr_draw_png_chart (const struct chart_item *item,
 
   status = cairo_surface_write_to_png (surface, file_name);
   if (status != CAIRO_STATUS_SUCCESS)
-    error (0, 0, _("writing output file \"%s\": %s"),
+    error (0, 0, _("error writing output file \"%s\": %s"),
            file_name, cairo_status_to_string (status));
 
   cairo_destroy (cr);

@@ -91,7 +91,7 @@ create_mimetype (const char *dirname)
 
   if (fp == NULL)
     {
-      error (0, errno, _("failed to create output file %s"),
+      error (0, errno, _("error opening output file \"%s\""),
              ds_cstr (&filename));
       ds_destroy (&filename);
       return false;

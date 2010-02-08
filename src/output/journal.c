@@ -64,7 +64,8 @@ journal_close (void)
   if (journal != NULL && journal->file != NULL)
     {
       if (fwriteerror (journal->file))
-        error (0, errno, _("error writing \"%s\""), journal_file_name);
+        error (0, errno, _("error writing output file \"%s\""),
+               journal_file_name);
       journal->file = NULL;
     }
 }
@@ -89,7 +90,8 @@ journal_output (struct journal_driver *j, const char *s)
       j->file = fopen (journal_file_name, "a");
       if (j->file == NULL)
         {
-          error (0, errno, _("%s: open failed"), journal_file_name);
+          error (0, errno, _("error opening output file \"%s\""),
+                 journal_file_name);
           output_driver_destroy (&j->driver);
           return;
         }
