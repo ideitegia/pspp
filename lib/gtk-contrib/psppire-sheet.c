@@ -1391,7 +1391,7 @@ psppire_sheet_set_model (PsppireSheet *sheet, PsppireSheetModel *model)
 
 
 void
-psppire_sheet_change_entry (PsppireSheet *sheet, GtkType entry_type)
+psppire_sheet_change_entry (PsppireSheet *sheet, GType entry_type)
 {
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (PSPPIRE_IS_SHEET (sheet));

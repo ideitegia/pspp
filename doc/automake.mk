@@ -61,7 +61,7 @@ doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 
 docbookdir = $(docdir)
 docbook_DATA = doc/pspp.xml
-
+EXTRA_DIST += doc/pspp.xml
 
 EXTRA_DIST += doc/OChangeLog
 CLEANFILES += pspp-dev.dvi $(docbook_DATA)

@@ -196,6 +196,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
   dict_set_documents (agr.dict, dict_get_documents (dict));
 
   /* OUTFILE subcommand must be first. */
+  lex_match (lexer, '/');
   if (!lex_force_match_id (lexer, "OUTFILE"))
     goto error;
   lex_match (lexer, '=');

@@ -39,4 +39,6 @@ gitlog-to-changelog
 *.deps
 *.la
 *.libs
+/arg-nonnull.h
 /package.m4
+/unused-parameter.h

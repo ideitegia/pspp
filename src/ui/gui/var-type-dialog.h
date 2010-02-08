@@ -38,8 +38,6 @@ enum
 
 struct variable;
 
-typedef void (*variable_changed_func)(struct variable *var);
-
 struct var_type_dialog
 {
   GtkWidget *window;
@@ -85,11 +83,6 @@ struct var_type_dialog
 
 
 struct var_type_dialog * var_type_dialog_create (GtkWindow *);
-
-
-void var_type_dialog_set_variable (struct var_type_dialog *dialog,
-				  variable_changed_func set_variable_changed,
-				  struct variable *var);
 
 void var_type_dialog_show (struct var_type_dialog *dialog);
 

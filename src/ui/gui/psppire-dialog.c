@@ -481,7 +481,7 @@ connect_notify_signal (GtkWidget *w, gpointer data)
 
       while ((col = gtk_tree_view_get_column (tv, i++)))
 	{
-	  GList *renderers = gtk_tree_view_column_get_cell_renderers (col);
+	  GList *renderers = gtk_cell_layout_get_cells (GTK_CELL_LAYOUT (col));
 	  GList *start = renderers;
 	  while (renderers)
 	    {

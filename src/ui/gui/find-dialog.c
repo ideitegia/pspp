@@ -208,7 +208,7 @@ find_dialog (GObject *o, gpointer data)
 
   buttonbox = get_widget_assert (fd.xml, "find-buttonbox");
 
-  gtk_box_pack_start_defaults (GTK_BOX (buttonbox), find_button);
+  psppire_box_pack_start_defaults (GTK_BOX (buttonbox), find_button);
   gtk_box_reorder_child (GTK_BOX (buttonbox), find_button, 0);
 
   dialog = get_widget_assert (fd.xml, "find-dialog");

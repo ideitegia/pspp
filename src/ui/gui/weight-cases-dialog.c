@@ -34,20 +34,31 @@
 
 #include "psppire-var-store.h"
 
+struct weight_cases_dialog
+{
+  PsppireDict *dict;
+  GtkEntry *entry;
+  GtkLabel *status;
+  GtkToggleButton *off;
+  GtkToggleButton *on;
+};
+
 static void
 on_select (PsppireSelector *sel, gpointer data)
 {
-  GtkRadioButton *radiobutton2 = data;
+  struct weight_cases_dialog *wcd = data;
 
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radiobutton2), TRUE);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (wcd->on), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (wcd->on), TRUE);
 }
 
 static void
 on_deselect (PsppireSelector *sel, gpointer data)
 {
-  GtkRadioButton *radiobutton1 = data;
+  struct weight_cases_dialog *wcd = data;
 
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radiobutton1), TRUE);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (wcd->off), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (wcd->on), FALSE);
 }
 
 
@@ -58,15 +69,6 @@ on_toggle (GtkToggleButton *button, gpointer data)
   if ( gtk_toggle_button_get_active (button))
     gtk_entry_set_text (entry, "");
 }
-
-struct weight_cases_dialog
-{
-  PsppireDict *dict;
-  GtkEntry *entry;
-  GtkLabel *status;
-  GtkToggleButton *off;
-  GtkToggleButton *on;
-};
 
 static void
 refresh (PsppireDialog *dialog, const struct weight_cases_dialog *wcd)
@@ -111,11 +113,12 @@ weight_cases_dialog (GObject *o, gpointer data)
   GtkWidget *dialog = get_widget_assert (xml, "weight-cases-dialog");
   GtkWidget *source = get_widget_assert (xml, "weight-cases-treeview");
   GtkWidget *entry = get_widget_assert (xml, "weight-cases-entry");
-  GtkWidget *selector = get_widget_assert (xml, "weight-cases-selector");
   GtkWidget *radiobutton1 = get_widget_assert (xml,
 					       "weight-cases-radiobutton1");
   GtkWidget *radiobutton2 = get_widget_assert (xml, "radiobutton2");
   GtkWidget *status  = get_widget_assert (xml, "weight-status-label");
+
+  GtkWidget *selector = get_widget_assert (xml, "weight-cases-selector");
 
   PsppireVarStore *vs = NULL;
 
@@ -125,12 +128,9 @@ weight_cases_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_signal_connect (radiobutton1, "toggled", G_CALLBACK (on_toggle), entry);
-  g_signal_connect (selector, "selected", G_CALLBACK (on_select),
-		    radiobutton2);
 
-  g_signal_connect (selector, "de-selected", G_CALLBACK (on_deselect),
-		    radiobutton1);
-
+  g_signal_connect (selector, "selected", G_CALLBACK (on_select), &wcd);
+  g_signal_connect (selector, "de-selected", G_CALLBACK (on_deselect), &wcd);
   
   g_object_set (source, "model", wcd.dict,
 				 "selection-mode", GTK_SELECTION_SINGLE,
@@ -139,7 +139,6 @@ weight_cases_dialog (GObject *o, gpointer data)
 
   psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector),
 				    is_currently_in_entry);
-
 
   wcd.entry = GTK_ENTRY (entry);
   wcd.status = GTK_LABEL (status);

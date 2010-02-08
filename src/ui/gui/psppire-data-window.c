@@ -58,6 +58,7 @@
 #include "reliability-dialog.h"
 #include "roc-dialog.h"
 #include "correlation-dialog.h"
+#include "factor-dialog.h"
 #include "oneway-anova-dialog.h"
 #include "t-test-independent-samples-dialog.h"
 #include "t-test-one-sample.h"
@@ -619,8 +620,8 @@ data_save_as_dialog (PsppireDataWindow *de)
       (gtk_radio_button_get_group (GTK_RADIO_BUTTON(button_sys)),
        _("Portable File"));
 
-    gtk_box_pack_start_defaults (GTK_BOX (vbox), button_sys);
-    gtk_box_pack_start_defaults (GTK_BOX (vbox), button_por);
+    psppire_box_pack_start_defaults (GTK_BOX (vbox), button_sys);
+    psppire_box_pack_start_defaults (GTK_BOX (vbox), button_por);
 
     gtk_widget_show_all (vbox);
 
@@ -1720,6 +1721,20 @@ psppire_data_window_init (PsppireDataWindow *de)
 
     g_signal_connect (invoke_correlation_dialog, "activate",
 		      G_CALLBACK (correlation_dialog), de);
+  }
+
+  {
+    GtkAction *invoke_factor_dialog =
+      resolve_action (de->builder, "factor-analysis", NULL);
+
+    g_object_set (invoke_factor_dialog,
+		  "tooltip", _("Principal Axis Factoring and Principal Components Analysis"),
+		  "stock-id", "pspp-factor",
+		  NULL
+		  );
+
+    g_signal_connect (invoke_factor_dialog, "activate",
+		      G_CALLBACK (factor_dialog), de);
   }
 
 

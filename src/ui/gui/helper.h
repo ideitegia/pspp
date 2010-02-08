@@ -62,5 +62,7 @@ GtkBuilder *builder_new_real (const gchar *name);
 /* Create a deep copy of SRC */
 GtkListStore * clone_list_store (const GtkListStore *src);
 
+void psppire_box_pack_start_defaults (GtkBox *box, GtkWidget *widget);
+
 
 #endif
