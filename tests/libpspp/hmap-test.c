@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -665,6 +665,10 @@ test_insert_ordered (int max_elems, hash_function *hash)
   int *values;
   struct hmap hmap;
   int i;
+
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 3
+  return;
+#endif  /* GCC 4.3 */
 
   hmap_init (&hmap);
   elements = xnmalloc (max_elems, sizeof *elements);
