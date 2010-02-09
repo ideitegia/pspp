@@ -24,9 +24,7 @@ GNULIB_MODULES = \
         fseeko \
         ftello \
 	fwriteerror \
-	gethostname \
 	getline \
-	getlogin_r \
 	getopt \
 	gettext-h \
 	gettimeofday \
@@ -64,7 +62,6 @@ GNULIB_MODULES = \
 	strcspn \
 	strerror \
 	strftime \
-	strsep \
 	strtod \
 	strtok_r \
 	strtol \
