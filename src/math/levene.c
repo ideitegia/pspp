@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -164,7 +164,7 @@ levene_precalc (const struct levene_info *l)
 
 
       for ( gs = hsh_first(gp->group_hash, &hi);
-	    gs != 0;
+	    gs != NULL;
 	    gs = hsh_next(gp->group_hash, &hi))
 	{
 	  gs->lz_total = 0;
@@ -196,7 +196,7 @@ levene_calc (const struct dictionary *dict, const struct ccase *c,
 
       gs = hsh_find(gp->group_hash,(void *) &key );
 
-      if ( 0 == gs )
+      if ( gs == NULL )
 	continue ;
 
       if ( !var_is_value_missing (var, v, l->exclude))
@@ -246,7 +246,7 @@ levene2_precalc (struct levene_info *l)
       struct hsh_table *hash = group_proc_get (var)->group_hash;
 
 
-      for (g = hsh_first(hash,&hi); g != 0; g = hsh_next(hash, &hi))
+      for (g = hsh_first(hash,&hi); g != NULL; g = hsh_next(hash, &hi))
 	{
 	  g->lz_mean = g->lz_total / g->n ;
 	}
@@ -277,7 +277,7 @@ levene2_calc (const struct dictionary *dict, const struct ccase *c,
 
       gs = hsh_find(group_proc_get (var)->group_hash,(void *) &key );
 
-      if ( 0 == gs )
+      if ( gs == NULL )
 	continue;
 
       if ( !var_is_value_missing (var, v, l->exclude))
@@ -306,7 +306,7 @@ levene2_postcalc (struct levene_info *l)
       struct group_proc *gp = group_proc_get (var);
       struct hsh_table *hash = gp->group_hash;
 
-      for (g = hsh_first(hash, &hi); g != 0; g = hsh_next(hash, &hi))
+      for (g = hsh_first(hash, &hi); g != NULL; g = hsh_next(hash, &hi))
 	{
 	  lz_numerator += g->n * pow2(g->lz_mean - l->lz[v].grand_mean );
 	}
