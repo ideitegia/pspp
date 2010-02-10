@@ -101,6 +101,7 @@ configure_drivers (int width, int length)
     exit (EXIT_FAILURE);
   output_driver_register (driver);
 
+#ifdef HAVE_CAIRO
   /* Render to render.pdf. */
   string_map_insert (&options, "output-file", "render.pdf");
   string_map_insert (&options, "headers", "off");
@@ -114,6 +115,7 @@ configure_drivers (int width, int length)
   if (driver == NULL)
     exit (EXIT_FAILURE);
   output_driver_register (driver);
+#endif
 
   string_map_destroy (&options);
 }

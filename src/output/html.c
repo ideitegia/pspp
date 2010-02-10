@@ -243,6 +243,7 @@ html_submit (struct output_driver *driver,
       struct table_item *table_item = to_table_item (output_item);
       html_output_table (html, table_item);
     }
+#ifdef HAVE_CAIRO
   else if (is_chart_item (output_item) && html->chart_file_name != NULL)
     {
       struct chart_item *chart_item = to_chart_item (output_item);
@@ -256,6 +257,7 @@ html_submit (struct output_driver *driver,
           free (file_name);
         }
     }
+#endif  /* HAVE_CAIRO */
   else if (is_text_item (output_item))
     {
       struct text_item *text_item = to_text_item (output_item);

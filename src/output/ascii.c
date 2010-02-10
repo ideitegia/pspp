@@ -487,6 +487,7 @@ ascii_submit (struct output_driver *driver,
 
   if (is_table_item (output_item))
     ascii_output_table_item (a, to_table_item (output_item));
+#ifdef HAVE_CAIRO
   else if (is_chart_item (output_item) && a->chart_file_name != NULL)
     {
       struct chart_item *chart_item = to_chart_item (output_item);
@@ -506,6 +507,7 @@ ascii_submit (struct output_driver *driver,
           free (file_name);
         }
     }
+#endif  /* HAVE_CAIRO */
   else if (is_text_item (output_item))
     {
       const struct text_item *text_item = to_text_item (output_item);
