@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-    Copyright (C) 2005, 2006  Free Software Foundation
+    Copyright (C) 2005, 2006, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -790,14 +790,12 @@ on_var_type_ok_clicked (GtkWidget *w, gpointer data)
     gint decimals = atoi (gtk_entry_get_text
 			 (GTK_ENTRY (dialog->entry_decimals)));
 
-    gint new_type = VAL_NUMERIC;
     gint new_width = 0;
     bool result = false;
     struct fmt_spec spec;
     switch (dialog->active_button)
       {
       case BUTTON_STRING:
-	new_type = VAL_STRING;
 	new_width = width;
 	result = make_output_format_try (&spec, FMT_A, width, 0);
 	break;
