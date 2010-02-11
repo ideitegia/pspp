@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -131,8 +131,7 @@ get_object_assert (GtkBuilder *builder, const gchar *name, GType type)
 
   if ( !o )
     g_critical ("Object \"%s\" could not be found\n", name);
-
-  if ( ! g_type_is_a (G_OBJECT_TYPE (o), type))
+  else if ( ! g_type_is_a (G_OBJECT_TYPE (o), type))
    {
      g_critical ("Object \"%s\" was expected to have type %s, but in fact has type %s", 
 	name, g_type_name (type), G_OBJECT_TYPE_NAME (o));
