@@ -106,8 +106,8 @@ hcf (void)
   exit (EXIT_FAILURE);
 }
 
-int fail (const char *, ...) PRINTF_FORMAT (1, 2);
-int error (const char *, ...) PRINTF_FORMAT (1, 2);
+int fail (const char *, ...) PRINTF_FORMAT (1, 2) NO_RETURN;
+int error (const char *, ...) PRINTF_FORMAT (1, 2) NO_RETURN;
 
 /* Output an error message and terminate unsuccessfully. */
 int
