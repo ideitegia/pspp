@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -601,7 +601,7 @@ postcalc (const struct dataset *ds)
 
 
 
-      if ( chart == GFT_HIST && var_is_numeric (v) )
+      if ( chart == GFT_HIST && var_is_numeric (v) && ft->n_valid > 0)
 	{
 	  double d[frq_n_stats];
 	  struct histogram *hist ;
@@ -1169,6 +1169,8 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
   int idx;
 
   /* Calculate percentiles. */
+
+  assert (ft->n_valid > 0);
 
   for (i = 0; i < n_percentiles; i++)
     {
