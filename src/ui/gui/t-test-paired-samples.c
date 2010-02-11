@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -133,6 +133,8 @@ select_as_pair_member (GtkTreeIter source_iter,
 
       gtk_tree_model_get (tt_d->list_store, &dest_iter, 1, &v1, -1);
     }
+  else
+    v1 = NULL;
 
   if ( n_rows == 0 || v1 != NULL)
     {
