@@ -43,6 +43,7 @@ GNULIB_MODULES = \
 	mempcpy \
 	memset \
 	minmax \
+	mkdtemp \
 	mkstemp \
 	printf-posix \
 	printf-safe \
