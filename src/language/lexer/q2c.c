@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2008, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1069,7 +1069,7 @@ dump_declarations (void)
 	  if (buf == NULL)
 	    buf = xmalloc (1024);
 	  else
-	    dump (0, buf);
+	    dump (0, "%s", buf);
 
 	  if (k)
 	    sprintf (buf, "%s%s,", st_upper (prefix), sym->name);
@@ -1082,7 +1082,7 @@ dump_declarations (void)
     if (buf)
       {
 	buf[strlen (buf) - 1] = 0;
-	dump (0, buf);
+	dump (0, "%s", buf);
 	free (buf);
       }
     if (f)

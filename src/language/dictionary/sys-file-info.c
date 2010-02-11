@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -120,9 +120,10 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   tab_text (t, 0, 5, TAB_LEFT, _("Variables:"));
   tab_text_format (t, 1, 5, TAB_LEFT, "%zu", dict_get_var_cnt (d));
   tab_text (t, 0, 6, TAB_LEFT, _("Cases:"));
-  tab_text_format (t, 1, 6, TAB_LEFT,
-                   info.case_cnt == -1 ? _("Unknown") : "%ld",
-                   (long int) info.case_cnt);
+  if (info.case_cnt == -1)
+    tab_text (t, 1, 6, TAB_LEFT, _("Unknown"));
+  else
+    tab_text_format (t, 1, 6, TAB_LEFT, "%ld", (long int) info.case_cnt);
   tab_text (t, 0, 7, TAB_LEFT, _("Type:"));
   tab_text (t, 1, 7, TAB_LEFT, _("System File"));
   tab_text (t, 0, 8, TAB_LEFT, _("Weight:"));
@@ -138,8 +139,8 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 
 
   tab_text (t, 0, 10, TAB_LEFT, _("Charset:"));
-  tab_text_format (t, 1, 10, TAB_LEFT,
-                   dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
+  tab_text (t, 1, 10, TAB_LEFT,
+            dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
 
 
   tab_submit (t);

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -182,7 +182,7 @@ create_variable_frequency_table (const struct dictionary *dict,
 
   table = tab_create(4, n_cells + 2);
 
-  tab_title (table, var_to_string(var));
+  tab_title (table, "%s", var_to_string(var));
   tab_text (table, 1, 0, TAB_LEFT, _("Observed N"));
   tab_text (table, 2, 0, TAB_LEFT, _("Expected N"));
   tab_text (table, 3, 0, TAB_LEFT, _("Residual"));

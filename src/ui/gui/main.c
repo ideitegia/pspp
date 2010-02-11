@@ -168,7 +168,7 @@ main (int argc, char *argv[])
 				 GTK_MINOR_VERSION,
 				 GTK_MICRO_VERSION)) )
     {
-      g_warning (vers);
+      g_warning ("%s", vers);
     }
 
   /* Let GDK remove any options that it owns. */

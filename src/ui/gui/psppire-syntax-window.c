@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -311,7 +311,7 @@ syntax_save_as (PsppireWindow *se)
 
       if ( ! save_editor_to_file (PSPPIRE_SYNTAX_WINDOW (se), filename, &err) )
 	{
-	  msg ( ME, err->message );
+	  msg ( ME, "%s", err->message );
 	  g_error_free (err);
 	}
 
@@ -336,7 +336,7 @@ syntax_save (PsppireWindow *se)
       save_editor_to_file (PSPPIRE_SYNTAX_WINDOW (se), filename, &err);
       if ( err )
 	{
-	  msg (ME, err->message);
+	  msg (ME, "%s", err->message);
 	  g_error_free (err);
 	}
     }
@@ -570,7 +570,7 @@ error_dialog (GtkWindow *w, const gchar *filename,  GError *err)
   g_object_set (dialog, "icon-name", "psppicon", NULL);
 
   gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
-					    err->message);
+					    "%s", err->message);
 
   gtk_dialog_run (GTK_DIALOG (dialog));
 

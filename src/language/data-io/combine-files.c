@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -562,7 +562,7 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
                 ds_put_format (&s, _("In an earlier file, %s was a string "
                                      "variable with width %d."),
                                var_name, var_get_width (mv));
-              msg (SE, ds_cstr (&s));
+              msg (SE, "%s", ds_cstr (&s));
               ds_destroy (&s);
               return false;
             }

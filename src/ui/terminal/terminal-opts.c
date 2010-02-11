@@ -123,7 +123,7 @@ parse_output_option (struct terminal_opts *to, const char *option)
   key = xmemdup0 (option, equals - option);
   if (string_map_contains (&to->options, key))
     {
-      error (0, 0, _("%s: output option %s specified more than twice"), key);
+      error (0, 0, _("%s: output option specified more than once"), key);
       free (key);
       return;
     }
