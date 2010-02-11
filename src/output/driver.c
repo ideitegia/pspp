@@ -246,8 +246,10 @@ output_driver_track_current_command (const struct output_item *output_item,
 extern const struct output_driver_factory txt_driver_factory;
 extern const struct output_driver_factory list_driver_factory;
 extern const struct output_driver_factory html_driver_factory;
-extern const struct output_driver_factory odt_driver_factory;
 extern const struct output_driver_factory csv_driver_factory;
+#ifdef ODT_SUPPORT
+extern const struct output_driver_factory odt_driver_factory;
+#endif
 #ifdef HAVE_CAIRO
 extern const struct output_driver_factory pdf_driver_factory;
 extern const struct output_driver_factory ps_driver_factory;
@@ -259,8 +261,10 @@ static const struct output_driver_factory *factories[] =
     &txt_driver_factory,
     &list_driver_factory,
     &html_driver_factory,
-    &odt_driver_factory,
     &csv_driver_factory,
+#ifdef ODT_SUPPORT
+    &odt_driver_factory,
+#endif
 #ifdef HAVE_CAIRO
     &pdf_driver_factory,
     &ps_driver_factory,

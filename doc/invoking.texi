@@ -360,6 +360,9 @@ To produce output as an OpenDocument text (ODT) document, specify
 @option{-o @var{file}} on the PSPP command line.  If @var{file} does
 not end in @file{.odt}, you must also specify @option{-O format=odt}.
 
+ODT support is only available if your installation of PSPP was
+compiled with the libxml2 library.
+
 The OpenDocument output format does not have any configurable options.
 
 @node Comma-Separated Value Output Options

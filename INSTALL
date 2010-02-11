@@ -66,6 +66,11 @@ Gnumeric files.
 
     * libxml2 (http://xmlsoft.org/).  
 
+Installing the following packages will allow your PSPP binary to write
+OpenDocument text (ODT) files:
+
+    * libxml2 (http://xmlsoft.org/).  
+
 The following packages are optional.
 
     * libncurses (http://www.gnu.org/software/ncurses/).  Without it,

@@ -126,18 +126,43 @@ if test x"$with_libpq" != x"no" ; then
 fi
 AM_CONDITIONAL(PSQL_SUPPORT, test -n "$PG_CONFIG")
 
-dnl Checks needed for Gnumeric reader
-gnm_support=yes;
-PKG_CHECK_MODULES(LIBXML2, libxml-2.0,,
-			   [PSPP_OPTIONAL_PREREQ([libxml2]); gnm_support=no;]);
-AC_SEARCH_LIBS(gzopen,z,,[PSPP_OPTIONAL_PREREQ([zlib]); gnm_support=no;])
-AC_CHECK_HEADERS(zlib.h,,[PSPP_OPTIONAL_PREREQ([zlib]); gnm_support=no;])
+dnl Check for libxml2
+PKG_CHECK_MODULES(
+  [LIBXML2], [libxml-2.0], 
+  [HAVE_LIBXML2=yes],
+  [HAVE_LIBXML2=no
+   PSPP_OPTIONAL_PREREQ([libxml2])])
 
-if test x"$gnm_support" = x"yes" ; then 
-   AC_DEFINE([GNM_SUPPORT], 1,
-   [Define to 1 if building in support for reading Gnumeric files.])
+dnl Check for zlib.
+AC_SEARCH_LIBS(
+  [gzopen], [z],
+  [HAVE_ZLIB=yes],
+  [HAVE_ZLIB=no
+   PSPP_OPTIONAL_PREREQ([zlib])])
+AC_CHECK_HEADERS(
+  [zlib.h], 
+  [],
+  [HAVE_ZLIB=no
+   PSPP_OPTIONAL_PREREQ([zlib])])
+
+dnl Gnumeric support requires libxml2 and zlib.
+if test $HAVE_LIBXML2 = yes && test $HAVE_ZLIB = yes; then
+  GNM_SUPPORT=yes
+  AC_DEFINE(
+    [GNM_SUPPORT], [1],
+    [Define to 1 if building in support for reading Gnumeric files.])
+else
+  GNM_SUPPORT=no
 fi
-AM_CONDITIONAL(GNM_SUPPORT, test x"$gnm_support" = x"yes")
+AM_CONDITIONAL([GNM_SUPPORT], [test $GNM_SUPPORT = yes])
+
+dnl ODT support requires libxml2.
+if test $HAVE_LIBXML2 = yes; then
+  AC_DEFINE(
+    [ODT_SUPPORT], [1],
+    [Define to 1 if building in support for writing ODT files.])
+fi
+AM_CONDITIONAL([ODT_SUPPORT], [test $HAVE_LIBXML2 = yes])
 
 AC_ARG_WITH(
   gui_tools,

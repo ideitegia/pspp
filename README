@@ -4,7 +4,7 @@ is a free replacement for the proprietary program SPSS.
 PSPP development is ongoing. It already supports a large subset of
 SPSS's syntax.  Its statistical procedure support is currently
 limited, but growing.  At your option, PSPP will produce statistical
-reports in ASCII, PostScript, PDF, HTML, or SVG formats. 
+reports in ASCII, PostScript, PDF, HTML, SVG, or OpenDocument formats. 
 
 Instructions for PSPP installation are in INSTALL, including a list of
 prerequisite packages and other PSPP-specific information.  Full

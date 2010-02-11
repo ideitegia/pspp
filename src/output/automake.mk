@@ -34,7 +34,6 @@ src_output_liboutput_la_SOURCES = \
 	src/output/message-item.h \
 	src/output/msglog.c \
 	src/output/msglog.h \
-	src/output/odt.c \
 	src/output/options.c \
 	src/output/options.h \
 	src/output/output-item-provider.h \
@@ -67,6 +66,9 @@ src_output_liboutput_la_SOURCES += \
 	src/output/charts/plot-hist-cairo.c \
 	src/output/charts/roc-chart-cairo.c \
 	src/output/charts/scree-cairo.c
+endif
+if ODT_SUPPORT
+src_output_liboutput_la_SOURCES += src/output/odt.c
 endif
 
 EXTRA_DIST += src/output/OChangeLog
