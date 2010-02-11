@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ calc_moments (enum moment max_moment,
 
       /* From _SPSS Statistical Algorithms, 2nd ed.,
          0-918469-89-9, section "DESCRIPTIVES". */
-      if (fabs (*variance) >= 1e-20)
+      if (fabs (s2) >= 1e-20)
         {
           if (max_moment >= MOMENT_SKEWNESS && skewness != NULL && w > 2.)
             {
