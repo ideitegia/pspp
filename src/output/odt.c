@@ -21,6 +21,9 @@
 #include <errno.h>
 #include <libgen.h>
 #include <libxml/xmlwriter.h>
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
@@ -267,6 +270,22 @@ write_meta_data (struct odt_driver *odt)
     xmlTextWriterWriteString (w, _xml (buf));
     xmlTextWriterEndElement (w);
   }
+
+#ifdef HAVE_PWD_H
+  {
+    struct passwd *pw = getpwuid (getuid ());
+    if (pw != NULL)
+      {
+        xmlTextWriterStartElement (w, _xml ("meta:initial-creator"));
+        xmlTextWriterWriteString (w, _xml (strtok (pw->pw_gecos, ",")));
+        xmlTextWriterEndElement (w);
+
+        xmlTextWriterStartElement (w, _xml ("dc:creator"));
+        xmlTextWriterWriteString (w, _xml (strtok (pw->pw_gecos, ",")));
+        xmlTextWriterEndElement (w);
+      }
+  }
+#endif
 
   xmlTextWriterEndElement (w);
   xmlTextWriterEndElement (w);

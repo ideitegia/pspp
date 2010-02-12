@@ -194,7 +194,7 @@ fi
 PSPP_READLINE
 
 dnl Checks for header files.
-AC_CHECK_HEADERS([sys/wait.h fpu_control.h ieeefp.h fenv.h])
+AC_CHECK_HEADERS([sys/wait.h fpu_control.h ieeefp.h fenv.h pwd.h])
 
 # For gnulib.
 gl_INIT
