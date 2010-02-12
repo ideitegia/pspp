@@ -1184,6 +1184,7 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
   for (i = 0; i < (nc - heading_columns) / 3 ; ++i)
     {
       tab_text (t, i * 3 + 1, 1, TAB_CENTER | TAT_TITLE, _("Total"));
+      /* xgettext:no-c-format */
       tab_text (t, i * 3 + 2, 1, TAB_CENTER | TAT_TITLE, _("% of Variance"));
       tab_text (t, i * 3 + 3, 1, TAB_CENTER | TAT_TITLE, _("Cumulative %"));
 
