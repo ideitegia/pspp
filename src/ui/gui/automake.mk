@@ -73,7 +73,11 @@ UI_FILES = \
 	src/ui/gui/t-test.ui \
 	src/ui/gui/text-data-import.ui \
 	src/ui/gui/var-sheet-dialogs.ui \
-	src/ui/gui/variable-info.ui
+	src/ui/gui/variable-info.ui \
+	src/ui/gui/data-editor.glade \
+	src/ui/gui/output-viewer.glade \
+	src/ui/gui/syntax-editor.glade
+
 
 nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/data-editor.ui \
@@ -229,11 +233,7 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/widget-io.c \
 	src/ui/gui/widget-io.h \
 	src/ui/gui/widgets.c \
-	src/ui/gui/widgets.h \
-	src/ui/gui/data-editor.glade \
-	src/ui/gui/output-viewer.glade \
-	src/ui/gui/syntax-editor.glade
-
+	src/ui/gui/widgets.h
 
 nodist_src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-marshal.c \
