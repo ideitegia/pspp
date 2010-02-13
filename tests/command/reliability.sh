@@ -259,7 +259,7 @@ Cases,Valid,131,92.91
 ,Total,141,100.00
 
 Table: Reliability Statistics
-Cronbach's Alpha,N of items
+Cronbach's Alpha,N of Items
 .75,4
 
 Scale: Nothing
@@ -290,7 +290,7 @@ Cases,Valid,131,92.91
 ,Total,141,100.00
 
 Table: Reliability Statistics
-Cronbach's Alpha,N of items
+Cronbach's Alpha,N of Items
 .75,4
 
 Table: Item-Total Statistics
@@ -309,7 +309,7 @@ Cases,Valid,131,92.91
 ,Total,141,100.00
 
 Table: Reliability Statistics
-Cronbach's Alpha,N of items
+Cronbach's Alpha,N of Items
 .75,4
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

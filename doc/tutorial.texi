@@ -507,7 +507,7 @@ Output (dictionary information omitted for clarity):
 
 1.2 RELIABILITY.  Reliability Statistics
 #================#==========#
-#Cronbach's Alpha#N of items#
+#Cronbach's Alpha#N of Items#
 #================#==========#
 #             .86#         3#
 #================#==========#
