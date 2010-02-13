@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -543,7 +543,7 @@ reliability_statistics_model_alpha (struct tab_table *tbl,
 		_("Cronbach's Alpha"));
 
   tab_text (tbl, 1, 0, TAB_CENTER | TAT_TITLE,
-		_("N of items"));
+		_("N of Items"));
 
   tab_double (tbl, 0, 1, TAB_RIGHT, s->alpha, NULL);
 
