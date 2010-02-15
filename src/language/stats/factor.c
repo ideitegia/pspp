@@ -524,6 +524,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
   const struct dictionary *dict = dataset_dict (ds);
 
   struct cmd_factor factor;
+  factor.n_vars = 0;
+  factor.vars = NULL;
   factor.method = METHOD_CORR;
   factor.missing_type = MISS_LISTWISE;
   factor.exclude = MV_ANY;
