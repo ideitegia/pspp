@@ -229,7 +229,7 @@ RELOCATABLE_STRIP=:
 
 PSPP_CHECK_PREREQS
 
-AC_CONFIG_FILES([Makefile gl/Makefile tests/atlocal])
+AC_CONFIG_FILES([Makefile gl/Makefile tests/atlocal perl-module/lib/PSPP.pm])
 
 AC_OUTPUT
 echo "PSPP configured successfully."
