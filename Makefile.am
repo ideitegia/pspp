@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-AUTOMAKE_OPTIONS = gnits 1.10.1 subdir-objects
+AUTOMAKE_OPTIONS = std-options check-news 1.10.1 subdir-objects
 
 SUBDIRS = gl
 DISTCLEANFILES = ./po/stamp-po xconfigure 
