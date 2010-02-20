@@ -52,7 +52,7 @@ doc/tut.texi:
 	echo "@set example-dir $(examplesdir)" > $@
 
 
-doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
+$(srcdir)/doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 	@$(MKDIR_P)  doc
 	$(MAKEINFO) $(AM_MAKEINFOFLAGS) --docbook -I $(top_srcdir) \
 		$(top_srcdir)/doc/pspp.texinfo -o - \
@@ -60,8 +60,7 @@ doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 	$(XMLLINT) --output /dev/null $@ 2>&1 2> /dev/null || ( $(RM) $@ && false )
 
 docbookdir = $(docdir)
-docbook_DATA = doc/pspp.xml
-EXTRA_DIST += doc/pspp.xml
+dist_docbook_DATA = doc/pspp.xml
 
 EXTRA_DIST += doc/OChangeLog
 CLEANFILES += pspp-dev.dvi $(docbook_DATA)
