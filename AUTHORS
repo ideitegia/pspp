@@ -14,7 +14,16 @@ revisions to other modules.
 including lib/gslextras and the linear regression features. Jason 
 is also an important contributor to GSL, which is used by PSPP. 
 
-* Harry Thijssen contributed and maintains the Dutch translation.
+* Translators:
+
+  - Dutch: Harry Thijssen.
+
+  - Catalan and Spanish: Palmira Payá Sanchez, Javier Gómez Serrano,
+    and Francesc Josep Miguel Quesada.
+
+  - British English: John Darrington.
+
+  - Brazilian Portuguese: Michel Almada de Castro Boaventura.
 
 We also thank past contributors:
 
