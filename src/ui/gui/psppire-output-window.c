@@ -450,29 +450,25 @@ psppire_output_window_export (PsppireOutputWindow *window)
       string_map_insert (&options, "output-file", filename);
       if (filter == pdf_filter)
         {
-          string_map_insert (&options, "output-type", "pdf");
-          export_output (window, &options, "cairo");
+          export_output (window, &options, "pdf");
         }
       else if (filter == html_filter)
         export_output (window, &options, "html");
       else if (filter == odt_filter)
-        export_output (window, &options, "odf");
+        export_output (window, &options, "odt");
       else if (filter == txt_filter)
         {
           string_map_insert (&options, "headers", "false");
           string_map_insert (&options, "paginate", "false");
           string_map_insert (&options, "squeeze", "true");
           string_map_insert (&options, "emphasis", "none");
-          string_map_insert (&options, "chart-type", "none");
+          string_map_insert (&options, "charts", "none");
           string_map_insert (&options, "top-margin", "0");
           string_map_insert (&options, "bottom-margin", "0");
-          export_output (window, &options, "ascii");
+          export_output (window, &options, "txt");
         }
       else if (filter == ps_filter)
-        {
-          string_map_insert (&options, "output-type", "ps");
-          export_output (window, &options, "cairo");
-        }
+        export_output (window, &options, "ps");
       else if (filter == csv_filter)
         export_output (window, &options, "csv");
       else
