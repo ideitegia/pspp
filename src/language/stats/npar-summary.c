@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -160,11 +160,15 @@ do_summary_box (const struct descriptives *desc,
 
       tab_text (table, 0, 2 + v, 0, var_to_string (var));
 
-      tab_double (table, 1, 2 + v, 0, desc[v].n, fmt);
-      tab_double (table, 2, 2 + v, 0, desc[v].mean, fmt);
-      tab_double (table, 3, 2 + v, 0, desc[v].std_dev, fmt);
-      tab_double (table, 4, 2 + v, 0, desc[v].min, fmt);
-      tab_double (table, 5, 2 + v, 0, desc[v].max, fmt);
+      col = 1;
+      if (desc != NULL)
+        {
+          tab_double (table, col++, 2 + v, 0, desc[v].n, fmt);
+          tab_double (table, col++, 2 + v, 0, desc[v].mean, fmt);
+          tab_double (table, col++, 2 + v, 0, desc[v].std_dev, fmt);
+          tab_double (table, col++, 2 + v, 0, desc[v].min, fmt);
+          tab_double (table, col++, 2 + v, 0, desc[v].max, fmt);
+        }
     }
 
 
