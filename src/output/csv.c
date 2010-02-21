@@ -78,7 +78,7 @@ csv_create (const char *file_name, enum settings_output_devices device_type,
   output_driver_init (&csv->driver, &csv_driver_class, file_name, device_type);
 
   csv->separator = parse_string (opt (d, o, "separator", ","));
-  csv->file_name = parse_string (opt (d, o, "output-file", "pspp.csv"));
+  csv->file_name = xstrdup (file_name);
   csv->file = fn_open (csv->file_name, "w");
   csv->n_items = 0;
 
