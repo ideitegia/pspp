@@ -33,6 +33,7 @@
 #include "libpspp/cast.h"
 #include "libpspp/str.h"
 #include "libpspp/version.h"
+#include "libpspp/zip-writer.h"
 #include "output/driver-provider.h"
 #include "output/message-item.h"
 #include "output/options.h"
@@ -53,17 +54,16 @@ struct odt_driver
 {
   struct output_driver driver;
 
+  struct zip_writer *zip;     /* ZIP file writer. */
   char *file_name;            /* Output file name. */
-  bool debug;
 
-  /* The name of the temporary directory used to construct the ODF */
-  char *dirname;
+  /* content.xml */
+  xmlTextWriterPtr content_wtr; /* XML writer. */
+  FILE *content_file;           /* Temporary file. */
 
-  /* Writer for the content.xml file */
-  xmlTextWriterPtr content_wtr;
-
-  /* Writer fot the manifest.xml file */
-  xmlTextWriterPtr manifest_wtr;
+  /* manifest.xml */
+  xmlTextWriterPtr manifest_wtr; /* XML writer. */
+  FILE *manifest_file;           /* Temporary file. */
 
   /* Number of tables so far. */
   int table_num;
@@ -83,52 +83,34 @@ odt_driver_cast (struct output_driver *driver)
 
 /* Create the "mimetype" file needed by ODF */
 static bool
-create_mimetype (const char *dirname)
+create_mimetype (struct zip_writer *zip)
 {
   FILE *fp;
-  struct string filename;
-  ds_init_cstr (&filename, dirname);
-  ds_put_cstr (&filename, "/mimetype");
-  fp = fopen (ds_cstr (&filename), "w");
 
+  fp = tmpfile ();
   if (fp == NULL)
     {
-      error (0, errno, _("error opening output file \"%s\""),
-             ds_cstr (&filename));
-      ds_destroy (&filename);
+      error (0, errno, _("error creating temporary file"));
       return false;
     }
-  ds_destroy (&filename);
 
   fprintf (fp, "application/vnd.oasis.opendocument.text");
+  zip_writer_add (zip, fp, "mimetype");
   fclose (fp);
 
   return true;
 }
 
-/* Create a new XML file called FILENAME in the temp directory, and return a writer for it */
-static xmlTextWriterPtr
-create_writer (const struct odt_driver *driver, const char *filename)
+/* Creates a new temporary file and stores it in *FILE, then creates an XML
+   writer for it and stores it in *W. */
+static void
+create_writer (FILE **file, xmlTextWriterPtr *w)
 {
-  char *copy = NULL;
-  xmlTextWriterPtr w;
-  struct string str;
-  ds_init_cstr (&str, driver->dirname);
-  ds_put_cstr (&str, "/");
-  ds_put_cstr (&str, filename);
+  /* XXX this can fail */
+  *file = tmpfile ();
+  *w = xmlNewTextWriter (xmlOutputBufferCreateFile (*file, NULL));
 
-  /* dirname modifies its argument, so we must copy it */
-  copy = xstrdup (ds_cstr (&str));
-  mkdir (dirname (copy), 0700);
-  free (copy);
-
-  w = xmlNewTextWriterFilename (ds_cstr (&str), 0);
-
-  ds_destroy (&str);
-
-  xmlTextWriterStartDocument (w, NULL, "UTF-8", NULL);
-
-  return w;
+  xmlTextWriterStartDocument (*w, NULL, "UTF-8", NULL);
 }
 
 
@@ -145,7 +127,10 @@ register_file (struct odt_driver *odt, const char *filename)
 static void
 write_style_data (struct odt_driver *odt)
 {
-  xmlTextWriterPtr w = create_writer (odt, "styles.xml");
+  xmlTextWriterPtr w;
+  FILE *file;
+
+  create_writer (&file, &w);
   register_file (odt, "styles.xml");
 
   xmlTextWriterStartElement (w, _xml ("office:document-styles"));
@@ -232,12 +217,17 @@ write_style_data (struct odt_driver *odt)
 
   xmlTextWriterEndDocument (w);
   xmlFreeTextWriter (w);
+  zip_writer_add (odt->zip, file, "styles.xml");
+  fclose (file);
 }
 
 static void
 write_meta_data (struct odt_driver *odt)
 {
-  xmlTextWriterPtr w = create_writer (odt, "meta.xml");
+  xmlTextWriterPtr w;
+  FILE *file;
+
+  create_writer (&file, &w);
   register_file (odt, "meta.xml");
 
   xmlTextWriterStartElement (w, _xml ("office:document-meta"));
@@ -291,46 +281,37 @@ write_meta_data (struct odt_driver *odt)
   xmlTextWriterEndElement (w);
   xmlTextWriterEndDocument (w);
   xmlFreeTextWriter (w);
-}
-
-enum
-{
-  output_file_arg,
-  boolean_arg,
-};
-
-static struct driver_option *
-opt (struct output_driver *d, struct string_map *options, const char *key,
-     const char *default_value)
-{
-  return driver_option_get (d, options, key, default_value);
+  zip_writer_add (odt->zip, file, "meta.xml");
+  fclose (file);
 }
 
 static struct output_driver *
 odt_create (const char *file_name, enum settings_output_devices device_type,
-            struct string_map *o)
+            struct string_map *o UNUSED)
 {
   struct output_driver *d;
   struct odt_driver *odt;
+  struct zip_writer *zip;
+
+  zip = zip_writer_create (file_name);
+  if (zip == NULL)
+    return NULL;
 
   odt = xzalloc (sizeof *odt);
   d = &odt->driver;
   output_driver_init (d, &odt_driver_class, file_name, device_type);
 
+  odt->zip = zip;
   odt->file_name = xstrdup (file_name);
-  odt->debug = parse_boolean (opt (d, o, "debug", "false"));
 
-  odt->dirname = xstrdup ("odt-XXXXXX");
-  mkdtemp (odt->dirname);
-
-  if (!create_mimetype (odt->dirname))
+  if (!create_mimetype (zip))
     {
       output_driver_destroy (d);
       return NULL;
     }
 
   /* Create the manifest */
-  odt->manifest_wtr = create_writer (odt, "META-INF/manifest.xml");
+  create_writer (&odt->manifest_file, &odt->manifest_wtr);
 
   xmlTextWriterStartElement (odt->manifest_wtr, _xml("manifest:manifest"));
   xmlTextWriterWriteAttribute (odt->manifest_wtr, _xml("xmlns:manifest"),
@@ -347,7 +328,7 @@ odt_create (const char *file_name, enum settings_output_devices device_type,
   write_meta_data (odt);
   write_style_data (odt);
 
-  odt->content_wtr = create_writer (odt, "content.xml");
+  create_writer (&odt->content_file, &odt->content_wtr);
   register_file (odt, "content.xml");
 
 
@@ -373,6 +354,8 @@ odt_create (const char *file_name, enum settings_output_devices device_type,
   xmlTextWriterEndElement (odt->manifest_wtr);
   xmlTextWriterEndDocument (odt->manifest_wtr);
   xmlFreeTextWriter (odt->manifest_wtr);
+  zip_writer_add (odt->zip, odt->manifest_file, "META-INF/manifest.xml");
+  fclose (odt->manifest_file);
 
   return d;
 }
@@ -384,39 +367,19 @@ odt_destroy (struct output_driver *driver)
 
   if (odt->content_wtr != NULL)
     {
-      struct string zip_cmd;
-
       xmlTextWriterEndElement (odt->content_wtr); /* office:text */
       xmlTextWriterEndElement (odt->content_wtr); /* office:body */
       xmlTextWriterEndElement (odt->content_wtr); /* office:document-content */
 
       xmlTextWriterEndDocument (odt->content_wtr);
       xmlFreeTextWriter (odt->content_wtr);
+      zip_writer_add (odt->zip, odt->content_file, "content.xml");
+      fclose (odt->content_file);
 
-      /* Zip up the directory */
-      ds_init_empty (&zip_cmd);
-      ds_put_format (&zip_cmd,
-                     "cd %s ; rm -f ../%s; zip -q -X ../%s mimetype; zip -q -X -u -r ../%s .",
-                     odt->dirname, odt->file_name, odt->file_name, odt->file_name);
-      system (ds_cstr (&zip_cmd));
-      ds_destroy (&zip_cmd);
+      zip_writer_close (odt->zip);
     }
-
-  if ( !odt->debug )
-    {
-      /* Remove the temp dir */
-      struct string rm_cmd;
-
-      ds_init_empty (&rm_cmd);
-      ds_put_format (&rm_cmd, "rm -r %s", odt->dirname);
-      system (ds_cstr (&rm_cmd));
-      ds_destroy (&rm_cmd);
-    }
-  else
-    fprintf (stderr, "Not removing directory %s\n", odt->dirname);
-
+  
   free (odt->command_name);
-  free (odt->dirname);
   free (odt);
 }
 

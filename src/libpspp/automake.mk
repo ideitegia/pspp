@@ -82,7 +82,9 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/tmpfile.h \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
-	src/libpspp/version.h 
+	src/libpspp/version.h \
+	src/libpspp/zip-writer.c \
+	src/libpspp/zip-writer.h
 
 DISTCLEANFILES+=src/libpspp/version.c
 
