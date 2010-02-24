@@ -145,6 +145,18 @@ AC_CHECK_HEADERS(
   [HAVE_ZLIB=no
    PSPP_OPTIONAL_PREREQ([zlib])])
 
+dnl Avoid interference between zlib's crc32() function and gnulib's
+dnl crc32() function, which have different signatures.  PSPP calls
+dnl only gnulib's crc32() directly, but it calls zlib's crc32()
+dnl indirectly through other zlib calls.  If we don't rename gnulib's
+dnl crc32(), then zlib will call gnulib's version instead of its own,
+dnl causing failures.
+if test $HAVE_ZLIB = yes; then
+  AC_DEFINE(
+    [crc32], [gl_crc32],
+    [Avoid making zlib call gnulib's crc32() instead of its own.])
+fi
+
 dnl Gnumeric support requires libxml2 and zlib.
 if test $HAVE_LIBXML2 = yes && test $HAVE_ZLIB = yes; then
   GNM_SUPPORT=yes
