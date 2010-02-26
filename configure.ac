@@ -150,12 +150,12 @@ dnl crc32() function, which have different signatures.  PSPP calls
 dnl only gnulib's crc32() directly, but it calls zlib's crc32()
 dnl indirectly through other zlib calls.  If we don't rename gnulib's
 dnl crc32(), then zlib will call gnulib's version instead of its own,
-dnl causing failures.
-if test $HAVE_ZLIB = yes; then
-  AC_DEFINE(
-    [crc32], [gl_crc32],
-    [Avoid making zlib call gnulib's crc32() instead of its own.])
-fi
+dnl causing failures.  (This can happen even if zlib isn't detected
+dnl directly, because other libraries that PSPP uses, e.g. libpng,
+dnl sometimes use zlib themselves.)
+AC_DEFINE(
+  [crc32], [gl_crc32],
+  [Avoid making zlib call gnulib's crc32() instead of its own.])
 
 dnl Gnumeric support requires libxml2 and zlib.
 if test $HAVE_LIBXML2 = yes && test $HAVE_ZLIB = yes; then
