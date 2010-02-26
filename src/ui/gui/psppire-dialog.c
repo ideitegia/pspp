@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -305,7 +305,7 @@ configure_event_callback (GtkDialog *dialog,
 
   g_object_get (dialog, "name", &base, NULL);
 
-  psppire_conf_save_window_geometry (conf, base, event);
+  psppire_conf_save_window_geometry (conf, base, GTK_WINDOW (dialog));
 
   return FALSE;
 }

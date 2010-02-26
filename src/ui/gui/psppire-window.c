@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009  Free Software Foundation
+   Copyright (C) 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -203,19 +203,6 @@ on_realize (GtkWindow *window, gpointer data)
 }
 
 
-static gboolean
-save_geometry (GtkWidget *window, GdkEvent *event, gpointer data)
-{
-  const gchar *base = G_OBJECT_TYPE_NAME (window);
-
-  PsppireConf *conf = psppire_conf_new ();
-
-  psppire_conf_save_window_geometry (conf, base, event);
-
-  return FALSE;
-}
-
-
 static void
 psppire_window_finalize (GObject *object)
 {
@@ -382,6 +369,13 @@ on_delete (PsppireWindow *w, GdkEvent *event, gpointer user_data)
 {
   PsppireWindowRegister *reg = psppire_window_register_new ();
 
+  const gchar *base = G_OBJECT_TYPE_NAME (w);
+
+  PsppireConf *conf = psppire_conf_new ();
+
+  psppire_conf_save_window_geometry (conf, base, GTK_WINDOW (w));
+
+
   if ( w->dirty )
     {
       gint response = psppire_window_query_save (w);
@@ -434,12 +428,6 @@ psppire_window_init (PsppireWindow *window)
   g_signal_connect_swapped (window, "delete-event", G_CALLBACK (on_delete), window);
 
   g_object_set (window, "icon-name", "psppicon", NULL);
-
-  g_signal_connect (window, "configure-event",
-		    G_CALLBACK (save_geometry), window);
-
-  g_signal_connect (window, "window-state-event",
-		    G_CALLBACK (save_geometry), window);
 
   g_signal_connect (window, "realize",
 		    G_CALLBACK (on_realize), window);

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009  Free Software Foundation
+   Copyright (C) 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -262,36 +262,29 @@ psppire_conf_set_window_geometry (PsppireConf *conf,
 void
 psppire_conf_save_window_geometry (PsppireConf *conf,
 				   const gchar *base,
-				   GdkEvent *e)
+				   GtkWindow *gtk_window)
 {
-  switch (e->type)
+  gboolean maximized;
+  GdkWindow *w;
+
+  w = gtk_widget_get_window (GTK_WIDGET (gtk_window));
+  if (w == NULL)
+    return;
+
+  maximized = (gdk_window_get_state (w) & GDK_WINDOW_STATE_MAXIMIZED) != 0;
+  psppire_conf_set_boolean (conf, base, "maximize", maximized);
+
+  if (!maximized)
     {
-    case GDK_CONFIGURE:
-      {
-	GdkEventConfigure *event = &e->configure;
+      gint width, height;
+      gint x, y;
 
-	if ( gdk_window_get_state (event->window) &
-	     GDK_WINDOW_STATE_MAXIMIZED )
-	  return;
+      gdk_drawable_get_size (w, &width, &height);
+      gdk_window_get_position (w, &x, &y);
 
-	psppire_conf_set_int (conf, base, "height", event->height);
-	psppire_conf_set_int (conf, base, "width", event->width);
-
-	psppire_conf_set_int (conf, base, "x", event->x);
-	psppire_conf_set_int (conf, base, "y", event->y);
-      }
-      break;
-    case GDK_WINDOW_STATE:
-      {
-	GdkEventWindowState *event = &e->window_state;
-
-	psppire_conf_set_boolean (conf, base, "maximize",
-				  event->new_window_state &
-				  GDK_WINDOW_STATE_MAXIMIZED );
-      }
-      break;
-    default:
-      break;
-    };
-
+      psppire_conf_set_int (conf, base, "height", height);
+      psppire_conf_set_int (conf, base, "width", width);
+      psppire_conf_set_int (conf, base, "x", x);
+      psppire_conf_set_int (conf, base, "y", y);
+    }
 }
