@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,19 +16,18 @@
 
 #include <config.h>
 
-#include <data/casereader.h>
-#include <data/casereader-provider.h>
+#include "data/casereader.h"
+#include "data/casereader-provider.h"
 
 #include <stdlib.h>
 
-#include <data/casewindow.h>
-#include <data/casewriter.h>
-#include <data/settings.h>
-#include <libpspp/assertion.h>
-#include <libpspp/heap.h>
-#include <libpspp/taint.h>
+#include "data/casereader-shim.h"
+#include "data/casewriter.h"
+#include "libpspp/assertion.h"
+#include "libpspp/heap.h"
+#include "libpspp/taint.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* A casereader. */
 struct casereader
@@ -40,8 +39,6 @@ struct casereader
     const struct casereader_class *class; /* Class. */
     void *aux;                            /* Auxiliary data for class. */
   };
-
-static void insert_shim (struct casereader *);
 
 /* Reads and returns the next case from READER.  The caller owns
    the returned case and must call case_unref on it when its data
@@ -114,7 +111,7 @@ casereader_clone (const struct casereader *reader_)
     return NULL;
 
   if (reader->class->clone == NULL)
-    insert_shim (reader);
+    casereader_shim_insert (reader);
   clone = reader->class->clone (reader, reader->aux);
   assert (clone != NULL);
   assert (clone != reader);
@@ -175,7 +172,7 @@ casereader_peek (struct casereader *reader, casenumber idx)
     {
       struct ccase *c;
       if (reader->class->peek == NULL)
-        insert_shim (reader);
+        casereader_shim_insert (reader);
       c = reader->class->peek (reader, reader->aux, idx);
       if (c != NULL)
         return c;
@@ -598,111 +595,6 @@ static const struct casereader_class random_reader_casereader_class =
     random_reader_peek,
   };
 
-/* Buffering shim for implementing clone and peek operations.
-
-   The "clone" and "peek" operations aren't implemented by all
-   types of casereaders, but we have to expose a uniform
-   interface anyhow.  We do this by interposing a buffering
-   casereader on top of the existing casereader on the first call
-   to "clone" or "peek".  The buffering casereader maintains a
-   window of cases that spans the positions of the original
-   casereader and all of its clones (the "clone set"), from the
-   position of the casereader that has read the fewest cases to
-   the position of the casereader that has read the most.
-
-   Thus, if all of the casereaders in the clone set are at
-   approximately the same position, only a few cases are buffered
-   and there is little inefficiency.  If, on the other hand, one
-   casereader is not used to read any cases at all, but another
-   one is used to read all of the cases, the entire contents of
-   the casereader is copied into the buffer.  This still might
-   not be so inefficient, given that case data in memory is
-   shared across multiple identical copies, but in the worst case
-   the window implementation will write cases to disk instead of
-   maintaining them in-memory. */
-
-/* A buffering shim for a non-clonable or non-peekable
-   casereader. */
-struct shim
-  {
-    struct casewindow *window;          /* Window of buffered cases. */
-    struct casereader *subreader;       /* Subordinate casereader. */
-  };
-
-static const struct casereader_random_class shim_class;
-
-/* Interposes a buffering shim atop READER. */
-static void
-insert_shim (struct casereader *reader)
-{
-  const struct caseproto *proto = casereader_get_proto (reader);
-  casenumber case_cnt = casereader_get_case_cnt (reader);
-  struct shim *b = xmalloc (sizeof *b);
-  b->window = casewindow_create (proto, settings_get_workspace_cases (proto));
-  b->subreader = casereader_create_random (proto, case_cnt, &shim_class, b);
-  casereader_swap (reader, b->subreader);
-  taint_propagate (casewindow_get_taint (b->window),
-                   casereader_get_taint (reader));
-  taint_propagate (casereader_get_taint (b->subreader),
-                   casereader_get_taint (reader));
-}
-
-/* Ensures that B's window contains at least CASE_CNT cases.
-   Return true if successful, false upon reaching the end of B's
-   subreader or an I/O error. */
-static bool
-prime_buffer (struct shim *b, casenumber case_cnt)
-{
-  while (casewindow_get_case_cnt (b->window) < case_cnt)
-    {
-      struct ccase *tmp = casereader_read (b->subreader);
-      if (tmp == NULL)
-        return false;
-      casewindow_push_head (b->window, tmp);
-    }
-  return true;
-}
-
-/* Reads the case at the given 0-based OFFSET from the front of
-   the window into C.  Returns the case if successful, or a null
-   pointer if OFFSET is beyond the end of file or upon I/O error.
-   The caller must call case_unref() on the returned case when it
-   is no longer needed. */
-static struct ccase *
-shim_read (struct casereader *reader UNUSED, void *b_,
-           casenumber offset)
-{
-  struct shim *b = b_;
-  if (!prime_buffer (b, offset + 1))
-    return NULL;
-  return casewindow_get_case (b->window, offset);
-}
-
-/* Destroys B. */
-static void
-shim_destroy (struct casereader *reader UNUSED, void *b_)
-{
-  struct shim *b = b_;
-  casewindow_destroy (b->window);
-  casereader_destroy (b->subreader);
-  free (b);
-}
-
-/* Discards CNT cases from the front of B's window. */
-static void
-shim_advance (struct casereader *reader UNUSED, void *b_, casenumber case_cnt)
-{
-  struct shim *b = b_;
-  casewindow_pop_tail (b->window, case_cnt);
-}
-
-/* Class for the buffered reader. */
-static const struct casereader_random_class shim_class =
-  {
-    shim_read,
-    shim_destroy,
-    shim_advance,
-  };
 
 static const struct casereader_class casereader_null_class;
 
