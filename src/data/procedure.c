@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,30 +16,32 @@
 
 #include <config.h>
 
+#include "data/procedure.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <data/case.h>
-#include <data/case-map.h>
-#include <data/caseinit.h>
-#include <data/casereader.h>
-#include <data/casereader-provider.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <libpspp/deque.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-#include <libpspp/taint.h>
-#include <libpspp/i18n.h>
+#include "data/case.h"
+#include "data/case-map.h"
+#include "data/caseinit.h"
+#include "data/casereader.h"
+#include "data/casereader-provider.h"
+#include "data/casereader-shim.h"
+#include "data/casewriter.h"
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "libpspp/deque.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "libpspp/taint.h"
+#include "libpspp/i18n.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 struct dataset {
   /* Cases are read from source,
@@ -92,8 +94,9 @@ struct dataset {
                                    but proc_commit not yet called. */
     }
   proc_state;
-  casenumber cases_written;       /* Cases output so far. */
-  bool ok;                    /* Error status. */
+  casenumber cases_written;     /* Cases output so far. */
+  bool ok;                      /* Error status. */
+  struct casereader_shim *shim; /* Shim on proc_open() casereader. */
 
   void (*callback) (void *); /* Callback for when the dataset changes */
   void *cb_data;
@@ -165,6 +168,8 @@ static const struct casereader_class proc_casereader_class;
 struct casereader *
 proc_open (struct dataset *ds)
 {
+  struct casereader *reader;
+
   assert (ds->source != NULL);
   assert (ds->proc_state == PROC_COMMITTED);
 
@@ -217,9 +222,19 @@ proc_open (struct dataset *ds)
   /* FIXME: use taint in dataset in place of `ok'? */
   /* FIXME: for trivial cases we can just return a clone of
      ds->source? */
-  return casereader_create_sequential (NULL, dict_get_proto (ds->dict),
-                                       CASENUMBER_MAX,
-                                       &proc_casereader_class, ds);
+
+  /* Create casereader and insert a shim on top.  The shim allows us to
+     arbitrarily extend the casereader's lifetime, by slurping the cases into
+     the shim's buffer in proc_commit().  That is especially useful when output
+     table_items are generated directly from the procedure casereader (e.g. by
+     the LIST procedure) when we are using an output driver that keeps a
+     reference to the output items passed to it (e.g. the GUI output driver in
+     PSPPIRE). */
+  reader = casereader_create_sequential (NULL, dict_get_proto (ds->dict),
+                                         CASENUMBER_MAX,
+                                         &proc_casereader_class, ds);
+  ds->shim = casereader_shim_insert (reader);
+  return reader;
 }
 
 /* Returns true if a procedure is in progress, that is, if
@@ -298,6 +313,11 @@ proc_casereader_destroy (struct casereader *reader, void *ds_)
   struct dataset *ds = ds_;
   struct ccase *c;
 
+  /* We are always the subreader for a casereader_buffer, so if we're being
+     destroyed then it's because the casereader_buffer has read all the cases
+     that it ever will. */
+  ds->shim = NULL;
+
   /* Make sure transformations happen for every input case, in
      case they have side effects, and ensure that the replacement
      active file gets all the cases it should. */
@@ -318,6 +338,9 @@ proc_casereader_destroy (struct casereader *reader, void *ds_)
 bool
 proc_commit (struct dataset *ds)
 {
+  if (ds->shim != NULL)
+    casereader_shim_slurp (ds->shim);
+
   assert (ds->proc_state == PROC_CLOSED);
   ds->proc_state = PROC_COMMITTED;
 
