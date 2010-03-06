@@ -109,10 +109,6 @@ dist_TESTS = \
 	tests/bugs/comment-at-eof.sh \
 	tests/bugs/compute-fmt.sh \
 	tests/bugs/compression.sh \
-	tests/bugs/crosstabs.sh \
-	tests/bugs/crosstabs2.sh \
-	tests/bugs/crosstabs-crash.sh \
-	tests/bugs/crosstabs-crash2.sh \
 	tests/bugs/curtailed.sh \
 	tests/bugs/data-crash.sh \
 	tests/bugs/double-frequency.sh \
@@ -419,13 +415,14 @@ EXTRA_DIST += \
 	$(TESTSUITE)
 TESTSUITE_AT = \
 	tests/testsuite.at \
+	tests/language/stats/crosstabs.at \
 	tests/output/render.at
 TESTSUITE = $(srcdir)/tests/testsuite
 DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
 
 CHECK_LOCAL += tests_check
 tests_check: tests/atconfig tests/atlocal $(TESTSUITE)
-	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/output $(TESTSUITEFLAGS)
+	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/output:src/ui/terminal $(TESTSUITEFLAGS)
 
 CLEAN_LOCAL += tests_clean
 tests_clean:
