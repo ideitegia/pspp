@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -345,6 +345,10 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds,
           case_unref (c);
         }
 
+      /* Initialize hash tables. */
+      for (pt = &proc->pivots[0]; pt < &proc->pivots[proc->n_pivots]; pt++)
+        hmap_init (&pt->data);
+
       /* Tabulate. */
       for (; (c = casereader_read (group)) != NULL; case_unref (c))
         for (pt = &proc->pivots[0]; pt < &proc->pivots[proc->n_pivots]; pt++)
@@ -444,9 +448,6 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds,
       pt->n_consts = 0;
       pt->const_vars = NULL;
       pt->const_values = NULL;
-      hmap_init (&pt->data);
-      pt->entries = NULL;
-      pt->n_entries = 0;
 
       for (j = 0; j < n_by; j++)
         pt->vars[j] = by[j][by_iter[j]];
