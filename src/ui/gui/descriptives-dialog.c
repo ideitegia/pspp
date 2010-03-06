@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -176,6 +176,9 @@ generate_syntax (const struct descriptives_dialog *scd)
     g_string_append (string, "\n    /SAVE");
 
   g_string_append (string, ".");
+
+  if (gtk_toggle_button_get_active (scd->save_z_scores))
+    g_string_append (string, "\nEXECUTE.");
 
   text = string->str;
 
