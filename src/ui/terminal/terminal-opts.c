@@ -335,7 +335,7 @@ terminal_opts_done (struct terminal_opts *to, int argc, char *argv[])
       register_output_driver (to);
     }
 
-  if (to->has_terminal_driver && !to->has_error_file)
+  if (!to->has_terminal_driver && !to->has_error_file)
     msglog_create ("-");
 
   string_map_destroy (&to->options);
