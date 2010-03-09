@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -94,7 +94,6 @@ tab_create (int nc, int nr)
 void
 tab_resize (struct tab_table *t, int nc, int nr)
 {
-  assert (t != NULL);
   if (nc != -1)
     {
       assert (nc + t->col_ofs <= t->cf);
@@ -118,7 +117,6 @@ tab_realloc (struct tab_table *t, int nc, int nr)
 {
   int ro, co;
 
-  assert (t != NULL);
   ro = t->row_ofs;
   co = t->col_ofs;
   if (ro || co)
@@ -200,8 +198,6 @@ tab_headers (struct tab_table *table, int l, int r, int t, int b)
 void
 tab_vline (struct tab_table *t, int style, int x, int y1, int y2)
 {
-  assert (t != NULL);
-
 #if DEBUGGING
   if (x + t->col_ofs < 0 || x + t->col_ofs > tab_nc (t)
       || y1 + t->row_ofs < 0 || y1 + t->row_ofs >= tab_nr (t)
@@ -240,8 +236,6 @@ tab_vline (struct tab_table *t, int style, int x, int y1, int y2)
 void
 tab_hline (struct tab_table * t, int style, int x1, int x2, int y)
 {
-  assert (t != NULL);
-
   x1 += t->col_ofs;
   x2 += t->col_ofs;
   y += t->row_ofs;
@@ -270,8 +264,6 @@ void
 tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
 	 int x1, int y1, int x2, int y2)
 {
-  assert (t != NULL);
-
 #if DEBUGGING
   if (x1 + t->col_ofs < 0 || x1 + t->col_ofs >= tab_nc (t)
       || x2 + t->col_ofs < 0 || x2 + t->col_ofs >= tab_nc (t)
@@ -357,7 +349,6 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
 {
   char *contents;
 
-  assert (table != NULL && v != NULL && f != NULL);
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
       || c + table->col_ofs >= tab_nc (table)
@@ -426,8 +417,6 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 {
   union value double_value ;
   char *s;
-
-  assert (table != NULL);
 
   assert (c >= 0);
   assert (c < tab_nc (table));
@@ -635,7 +624,6 @@ tab_offset (struct tab_table *t, int col, int row)
 {
   int diff = 0;
 
-  assert (t != NULL);
 #if DEBUGGING
   if (row < -1 || row > tab_nr (t))
     {
@@ -663,7 +651,6 @@ tab_offset (struct tab_table *t, int col, int row)
 void
 tab_next_row (struct tab_table *t)
 {
-  assert (t != NULL);
   t->cc += t->cf;
   t->ct += t->cf;
   if (++t->row_ofs >= tab_nr (t))
