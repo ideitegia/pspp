@@ -176,7 +176,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 2"
-$SUPERVISOR $PSPP -o pspp.csv $TESTFILE  > $TEMPDIR/output
+$SUPERVISOR $PSPP -o pspp.csv $TESTFILE -e $TEMPDIR/output
 if [ $? -eq 0 ] ; then no_result ; fi
 
 activity="compare errors 2"
