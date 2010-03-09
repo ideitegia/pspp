@@ -1141,42 +1141,46 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
 
   struct tab_table *table;
   struct string title;
+  struct pivot_table x;
+
   int i;
 
-  table = tab_create (pt->n_consts + 1 + pt->n_cols + 1,
-                      (pt->n_entries / pt->n_cols) * 3 / 2 * proc->n_cells + 10);
-  tab_headers (table, pt->n_consts + 1, 0, 2, 0);
+  make_pivot_table_subset (pt, 0, 0, &x);
+
+  table = tab_create (x.n_consts + 1 + x.n_cols + 1,
+                      (x.n_entries / x.n_cols) * 3 / 2 * proc->n_cells + 10);
+  tab_headers (table, x.n_consts + 1, 0, 2, 0);
 
   /* First header line. */
-  tab_joint_text (table, pt->n_consts + 1, 0,
-                  (pt->n_consts + 1) + (pt->n_cols - 1), 0,
-                  TAB_CENTER | TAT_TITLE, var_get_name (pt->vars[COL_VAR]));
+  tab_joint_text (table, x.n_consts + 1, 0,
+                  (x.n_consts + 1) + (x.n_cols - 1), 0,
+                  TAB_CENTER | TAT_TITLE, var_get_name (x.vars[COL_VAR]));
 
-  tab_hline (table, TAL_1, pt->n_consts + 1,
-             pt->n_consts + 2 + pt->n_cols - 2, 1);
+  tab_hline (table, TAL_1, x.n_consts + 1,
+             x.n_consts + 2 + x.n_cols - 2, 1);
 
   /* Second header line. */
-  for (i = 2; i < pt->n_consts + 2; i++)
-    tab_joint_text (table, pt->n_consts + 2 - i - 1, 0,
-                    pt->n_consts + 2 - i - 1, 1,
-                    TAB_RIGHT | TAT_TITLE, var_to_string (pt->vars[i]));
-  tab_text (table, pt->n_consts + 2 - 2, 1, TAB_RIGHT | TAT_TITLE,
-            var_get_name (pt->vars[ROW_VAR]));
-  for (i = 0; i < pt->n_cols; i++)
-    table_value_missing (proc, table, pt->n_consts + 2 + i - 1, 1, TAB_RIGHT,
-                         &pt->cols[i], pt->vars[COL_VAR]);
-  tab_text (table, pt->n_consts + 2 + pt->n_cols - 1, 1, TAB_CENTER, _("Total"));
+  for (i = 2; i < x.n_consts + 2; i++)
+    tab_joint_text (table, x.n_consts + 2 - i - 1, 0,
+                    x.n_consts + 2 - i - 1, 1,
+                    TAB_RIGHT | TAT_TITLE, var_to_string (x.vars[i]));
+  tab_text (table, x.n_consts + 2 - 2, 1, TAB_RIGHT | TAT_TITLE,
+            var_get_name (x.vars[ROW_VAR]));
+  for (i = 0; i < x.n_cols; i++)
+    table_value_missing (proc, table, x.n_consts + 2 + i - 1, 1, TAB_RIGHT,
+                         &x.cols[i], x.vars[COL_VAR]);
+  tab_text (table, x.n_consts + 2 + x.n_cols - 1, 1, TAB_CENTER, _("Total"));
 
-  tab_hline (table, TAL_1, 0, pt->n_consts + 2 + pt->n_cols - 1, 2);
-  tab_vline (table, TAL_1, pt->n_consts + 2 + pt->n_cols - 1, 0, 1);
+  tab_hline (table, TAL_1, 0, x.n_consts + 2 + x.n_cols - 1, 2);
+  tab_vline (table, TAL_1, x.n_consts + 2 + x.n_cols - 1, 0, 1);
 
   /* Title. */
   ds_init_empty (&title);
-  for (i = 0; i < pt->n_consts + 2; i++)
+  for (i = 0; i < x.n_consts + 2; i++)
     {
       if (i)
         ds_put_cstr (&title, " * ");
-      ds_put_cstr (&title, var_get_name (pt->vars[i]));
+      ds_put_cstr (&title, var_get_name (x.vars[i]));
     }
   for (i = 0; i < pt->n_consts; i++)
     {
@@ -1491,10 +1495,10 @@ static void
 display_dimensions (struct crosstabs_proc *proc, struct pivot_table *pt,
                     struct tab_table *table, int first_difference)
 {
-  tab_hline (table, TAL_1, pt->n_vars - first_difference - 1, tab_nc (table) - 1, 0);
+  tab_hline (table, TAL_1, pt->n_consts + pt->n_vars - first_difference - 1, tab_nc (table) - 1, 0);
 
   for (; first_difference >= 2; first_difference--)
-    table_value_missing (proc, table, pt->n_vars - first_difference - 1, 0,
+    table_value_missing (proc, table, pt->n_consts + pt->n_vars - first_difference - 1, 0,
 			 TAB_RIGHT, &pt->entries[0]->values[first_difference],
 			 pt->vars[first_difference]);
 }
@@ -1536,15 +1540,16 @@ display_crosstabulation (struct crosstabs_proc *proc, struct pivot_table *pt,
   double *mp;
 
   for (r = 0; r < pt->n_rows; r++)
-    table_value_missing (proc, table, pt->n_vars - 2, r * proc->n_cells,
-                         TAB_RIGHT, &pt->rows[r], pt->vars[ROW_VAR]);
+    table_value_missing (proc, table, pt->n_consts + pt->n_vars - 2,
+                         r * proc->n_cells, TAB_RIGHT, &pt->rows[r],
+                         pt->vars[ROW_VAR]);
 
   tab_text (table, pt->n_vars - 2, pt->n_rows * proc->n_cells,
 	    TAB_LEFT, _("Total"));
 
   /* Put in the actual cells. */
   mp = pt->mat;
-  tab_offset (table, pt->n_vars - 1, -1);
+  tab_offset (table, pt->n_consts + pt->n_vars - 1, -1);
   for (r = 0; r < pt->n_rows; r++)
     {
       if (proc->n_cells > 1)
