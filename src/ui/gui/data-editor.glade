@@ -38,29 +38,11 @@
               </widget>
             </child>
             <child>
-              <widget class="GtkImageMenuItem" id="open1">
+              <widget class="GtkImageMenuItem" id="file_open">
                 <property name="label">gtk-open</property>
                 <property name="visible">True</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <child>
-                  <widget class="GtkMenu" id="open1_menu">
-                    <child>
-                      <widget class="GtkMenuItem" id="file_open_syntax">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Syntax</property>
-                        <property name="use_underline">True</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkMenuItem" id="file_open_data">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Data</property>
-                        <property name="use_underline">True</property>
-                      </widget>
-                    </child>
-                  </widget>
-                </child>
               </widget>
             </child>
             <child>

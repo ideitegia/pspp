@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,52 +18,46 @@
 
 #include <gtk/gtksignal.h>
 #include <gtk/gtkbox.h>
-#include "executor.h"
-#include "helper.h"
-
-#include "text-data-import-dialog.h"
-
-
-#include <ui/syntax-gen.h>
-#include <language/syntax-string-source.h>
-#include <libpspp/message.h>
 #include <stdlib.h>
 
-#include <data/procedure.h>
-
-#include "psppire.h"
-#include "psppire-window.h"
-#include "psppire-data-window.h"
-#include "psppire-syntax-window.h"
-
-#include "about.h"
-
-#include "goto-case-dialog.h"
-#include "weight-cases-dialog.h"
-#include "split-file-dialog.h"
-#include "transpose-dialog.h"
-#include "sort-cases-dialog.h"
-#include "select-cases-dialog.h"
-#include "compute-dialog.h"
-#include "find-dialog.h"
-#include "rank-dialog.h"
-#include "recode-dialog.h"
-#include "comments-dialog.h"
-#include "variable-info-dialog.h"
-#include "descriptives-dialog.h"
-#include "crosstabs-dialog.h"
-#include "frequencies-dialog.h"
-#include "examine-dialog.h"
-#include "regression-dialog.h"
-#include "reliability-dialog.h"
-#include "roc-dialog.h"
-#include "correlation-dialog.h"
-#include "factor-dialog.h"
-#include "oneway-anova-dialog.h"
-#include "t-test-independent-samples-dialog.h"
-#include "t-test-one-sample.h"
-#include "t-test-paired-samples.h"
-
+#include "data/any-reader.h"
+#include "data/procedure.h"
+#include "language/syntax-string-source.h"
+#include "libpspp/message.h"
+#include "ui/gui/about.h"
+#include "ui/gui/comments-dialog.h"
+#include "ui/gui/compute-dialog.h"
+#include "ui/gui/correlation-dialog.h"
+#include "ui/gui/crosstabs-dialog.h"
+#include "ui/gui/descriptives-dialog.h"
+#include "ui/gui/examine-dialog.h"
+#include "ui/gui/executor.h"
+#include "ui/gui/factor-dialog.h"
+#include "ui/gui/find-dialog.h"
+#include "ui/gui/frequencies-dialog.h"
+#include "ui/gui/goto-case-dialog.h"
+#include "ui/gui/helper.h"
+#include "ui/gui/oneway-anova-dialog.h"
+#include "ui/gui/psppire-data-window.h"
+#include "ui/gui/psppire-syntax-window.h"
+#include "ui/gui/psppire-window.h"
+#include "ui/gui/psppire.h"
+#include "ui/gui/rank-dialog.h"
+#include "ui/gui/recode-dialog.h"
+#include "ui/gui/regression-dialog.h"
+#include "ui/gui/reliability-dialog.h"
+#include "ui/gui/roc-dialog.h"
+#include "ui/gui/select-cases-dialog.h"
+#include "ui/gui/sort-cases-dialog.h"
+#include "ui/gui/split-file-dialog.h"
+#include "ui/gui/t-test-independent-samples-dialog.h"
+#include "ui/gui/t-test-one-sample.h"
+#include "ui/gui/t-test-paired-samples.h"
+#include "ui/gui/text-data-import-dialog.h"
+#include "ui/gui/transpose-dialog.h"
+#include "ui/gui/variable-info-dialog.h"
+#include "ui/gui/weight-cases-dialog.h"
+#include "ui/syntax-gen.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -390,7 +384,19 @@ sysfile_chooser_dialog (PsppireWindow *toplevel)
 				 GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 				 NULL);
 
-  GtkFileFilter *filter = gtk_file_filter_new ();
+  GtkFileFilter *filter;
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Data and Syntax Files"));
+  gtk_file_filter_add_pattern (filter, "*.sav");
+  gtk_file_filter_add_pattern (filter, "*.SAV");
+  gtk_file_filter_add_pattern (filter, "*.por");
+  gtk_file_filter_add_pattern (filter, "*.POR");
+  gtk_file_filter_add_pattern (filter, "*.sps");
+  gtk_file_filter_add_pattern (filter, "*.SPS");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
   gtk_file_filter_add_pattern (filter, "*.sav");
   gtk_file_filter_add_pattern (filter, "*.SAV");
@@ -400,6 +406,12 @@ sysfile_chooser_dialog (PsppireWindow *toplevel)
   gtk_file_filter_set_name (filter, _("Portable Files (*.por) "));
   gtk_file_filter_add_pattern (filter, "*.por");
   gtk_file_filter_add_pattern (filter, "*.POR");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Syntax Files (*.sps) "));
+  gtk_file_filter_add_pattern (filter, "*.sps");
+  gtk_file_filter_add_pattern (filter, "*.SPS");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   filter = gtk_file_filter_new ();
@@ -434,7 +446,7 @@ sysfile_chooser_dialog (PsppireWindow *toplevel)
 /* Callback for the data_open action.
    Prompts for a filename and opens it */
 static void
-open_data_dialog (GtkAction *action, PsppireWindow *de)
+open_window (GtkAction *action, PsppireWindow *de)
 {
   GtkWidget *dialog = sysfile_chooser_dialog (de);
 
@@ -445,7 +457,10 @@ open_data_dialog (GtkAction *action, PsppireWindow *de)
 	gchar *name =
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-	psppire_window_load (de, name);
+        if (any_reader_may_open (name))
+          psppire_window_load (de, name);
+        else
+          open_syntax_window (name);
 
 	g_free (name);
       }
@@ -1182,15 +1197,15 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkWidget *toolbarbutton = get_widget_assert (de->builder, "button-open");
 
     GtkAction *action_data_open =
-      resolve_action (de->builder, "file_open_data", NULL);
+      resolve_action (de->builder, "file_open", NULL);
 
     g_object_set (action_data_open,
-		  "tooltip",  _("Open a data file"),
+		  "tooltip",  _("Open a data or syntax file"),
 		  "stock-id", "gtk-open",
 		  NULL);
 
     g_signal_connect (action_data_open, "activate",
-		      G_CALLBACK (open_data_dialog), de);
+		      G_CALLBACK (open_window), de);
 
     g_signal_connect_swapped (toolbarbutton, "clicked",
 		      G_CALLBACK (gtk_action_activate), action_data_open);
@@ -1798,10 +1813,6 @@ psppire_data_window_init (PsppireDataWindow *de)
 		    G_CALLBACK (create_syntax_window),
 		    NULL);
 
-  g_signal_connect (get_action_assert (de->builder,"file_open_syntax"),
-		    "activate",
-		    G_CALLBACK (open_syntax_window),
-		    de);
 
   {
     GtkAction *abt = get_action_assert (de->builder, "help_about");

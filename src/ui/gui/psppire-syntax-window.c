@@ -360,50 +360,16 @@ create_syntax_window (void)
   gtk_widget_show (w);
 }
 
-/* Callback for the File->Open->Syntax menuitem */
 void
-open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
+open_syntax_window (const char *file_name)
 {
-  GtkFileFilter *filter;
-  gint response;
+  GtkWidget *se = psppire_syntax_window_new ();
 
-  GtkWidget *dialog =
-    gtk_file_chooser_dialog_new (_("Open Syntax"),
-				 GTK_WINDOW (parent),
-				 GTK_FILE_CHOOSER_ACTION_OPEN,
-				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-				 GTK_STOCK_OPEN,   GTK_RESPONSE_ACCEPT,
-				 NULL);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Syntax Files (*.sps) "));
-  gtk_file_filter_add_pattern (filter, "*.sps");
-  gtk_file_filter_add_pattern (filter, "*.SPS");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("All Files"));
-  gtk_file_filter_add_pattern (filter, "*");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  response = gtk_dialog_run (GTK_DIALOG (dialog));
-
-  if (response == GTK_RESPONSE_ACCEPT)
-    {
-      const char *file_name = gtk_file_chooser_get_filename
-	(GTK_FILE_CHOOSER (dialog));
-
-      GtkWidget *se = psppire_syntax_window_new ();
-
-      if ( psppire_window_load (PSPPIRE_WINDOW (se), file_name) ) 
-	gtk_widget_show (se);
-      else
-	gtk_widget_destroy (se);
-    }
-
-  gtk_widget_destroy (dialog);
+  if ( psppire_window_load (PSPPIRE_WINDOW (se), file_name) )
+    gtk_widget_show (se);
+  else
+    gtk_widget_destroy (se);
 }
-
 
 static void
 on_text_changed (GtkTextBuffer *buffer, PsppireSyntaxWindow *window)
@@ -463,11 +429,6 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    "activate",
 		    G_CALLBACK (create_syntax_window),
 		    NULL);
-
-  g_signal_connect (get_action_assert (xml,"file_open_syntax"),
-		    "activate",
-		    G_CALLBACK (open_syntax_window),
-		    window);
 
 #if 0
   g_signal_connect (get_action_assert (xml,"file_new_data"),
@@ -580,7 +541,7 @@ error_dialog (GtkWindow *w, const gchar *filename,  GError *err)
 /*
   Loads the buffer from the file called FILENAME
 */
-static gboolean
+gboolean
 syntax_load (PsppireWindow *window, const gchar *filename)
 {
   GError *err = NULL;

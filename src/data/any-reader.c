@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,28 +42,36 @@ enum detect_result
     IO_ERROR                    /* File couldn't be opened. */
   };
 
-/* Tries to detect whether HANDLE represents a given type of
-   file, by opening the file and passing it to DETECT, and
-   returns a detect_result. */
+/* Tries to detect whether FILE is a given type of file, by opening the file
+   and passing it to DETECT, and returns a detect_result. */
 static enum detect_result
-try_detect (struct file_handle *handle, bool (*detect) (FILE *))
+try_detect (const char *file_name, bool (*detect) (FILE *))
 {
   FILE *file;
   bool is_type;
 
-  file = fn_open (fh_get_file_name (handle), "rb");
+  file = fn_open (file_name, "rb");
   if (file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\": %s."),
-           fh_get_file_name (handle), strerror (errno));
+           file_name, strerror (errno));
       return IO_ERROR;
     }
 
   is_type = detect (file);
 
-  fn_close (fh_get_file_name (handle), file);
+  fn_close (file_name, file);
 
   return is_type ? YES : NO;
+}
+
+/* Returns true if any_reader_open() would be able to open FILE as a data
+   file, false otherwise. */
+bool
+any_reader_may_open (const char *file)
+{
+  return (try_detect (file, sfm_detect) == YES
+          || try_detect (file, pfm_detect) == YES);
 }
 
 /* Returns a casereader for HANDLE.  On success, returns the new
@@ -78,13 +86,13 @@ any_reader_open (struct file_handle *handle, struct dictionary **dict)
       {
         enum detect_result result;
 
-        result = try_detect (handle, sfm_detect);
+        result = try_detect (fh_get_file_name (handle), sfm_detect);
         if (result == IO_ERROR)
           return NULL;
         else if (result == YES)
           return sfm_open_reader (handle, dict, NULL);
 
-        result = try_detect (handle, pfm_detect);
+        result = try_detect (fh_get_file_name (handle), pfm_detect);
         if (result == IO_ERROR)
           return NULL;
         else if (result == YES)
