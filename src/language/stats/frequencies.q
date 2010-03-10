@@ -1374,7 +1374,7 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
   double x_max = -DBL_MAX;
 
   struct histogram *hist;
-  const double bins = 11;
+  int bins;
 
   struct hsh_iterator hi;
   struct hsh_table *fh = ft->data;
@@ -1389,6 +1389,11 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
       if ( frq->value.f < x_min ) x_min = frq->value.f ;
       if ( frq->value.f > x_max ) x_max = frq->value.f ;
     }
+
+  /* Sturges' formula. */
+  bins = ceil (log (ft->valid_cases) / log (2) + 1);
+  if (bins < 5)
+    bins = 5;
 
   hist = histogram_create (bins, x_min, x_max);
 
