@@ -76,6 +76,12 @@ AM_CONDITIONAL([HAVE_GUI],
 if test "$with_cairo" != no && test "$with_gui" != "no"; then
   PKG_CHECK_MODULES([GTK], [gtk+-2.0 >= 2.12], [],
     [PSPP_REQUIRED_PREREQ([gtk+ 2.0 version 2.12 or later (or use --without-gui)])])
+
+  AC_ARG_VAR([GLIB_GENMARSHAL])
+  AC_CHECK_PROGS([GLIB_GENMARSHAL], [glib-genmarshal])
+  if test "x$GLIB_GENMARSHAL" = x; then
+    PSPP_REQUIRED_PREREQ([glib-genmarshal (or use --without-gui)])
+  fi
 fi
 
 dnl Checks needed for psql reader
