@@ -366,6 +366,11 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
       stats &= ~BIT_INDEX (frq_median);
       n_stats--;
     }
+  if (chart == GFT_HIST)
+    {
+      add_percentile (0.25, false);
+      add_percentile (0.75, false);
+    }
 
   /* Do it! */
   input = casereader_create_filter_weight (proc_open (ds), dataset_dict (ds),
@@ -1380,6 +1385,23 @@ dump_statistics (const struct variable *v, bool show_varname,
   tab_submit (t);
 }
 
+static double
+calculate_iqr (void)
+{
+  double q1 = SYSMIS;
+  double q3 = SYSMIS;
+  int i;
+
+  for (i = 0; i < n_percentiles; i++)
+    {
+      if (fabs (0.25 - percentiles[i].p) < DBL_EPSILON)
+        q1 = percentiles[i].value;
+      else if (fabs (0.75 - percentiles[i].p) < DBL_EPSILON)
+        q3 = percentiles[i].value;
+    }
+
+  return q1 == SYSMIS || q3 == SYSMIS ? SYSMIS : q3 - q1;
+}
 
 /* Create a gsl_histogram from a freq_tab */
 struct histogram *
@@ -1390,6 +1412,7 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
   double x_max = -DBL_MAX;
 
   struct histogram *hist;
+  double iqr;
   int bins;
 
   struct hsh_iterator hi;
@@ -1406,9 +1429,18 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
       if ( frq->value.f > x_max ) x_max = frq->value.f ;
     }
 
-  /* Sturges' formula. */
-  bins = ceil (log (ft->valid_cases) / log (2) + 1);
-  if (bins < 5)
+  /* Freedman-Diaconis' choice of bin width. */
+  iqr = calculate_iqr ();
+  if (iqr != SYSMIS)
+    {
+      double bin_width = 2 * iqr / pow (ft->valid_cases, 1.0 / 3.0);
+      bins = (x_max - x_min) / bin_width;
+      if (bins < 5)
+        bins = 5;
+      else if (bins > 400)
+        bins = 400;
+    }
+  else
     bins = 5;
 
   hist = histogram_create (bins, x_min, x_max);
