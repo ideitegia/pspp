@@ -145,13 +145,14 @@ struct percentile
   double x2;       /* The datum value >= the percentile */
   int flag;
   int flag2;       /* Set to 1 if this percentile value has been found */
+  bool show;       /* True to show this percentile in the statistics box. */
 };
 
 
-static void add_percentile (double x) ;
+static void add_percentile (double x, bool show);
 
 static struct percentile *percentiles;
-static int n_percentiles;
+static int n_percentiles, n_show_percentiles;
 
 /* Groups of statistics. */
 #define BI          BIT_INDEX
@@ -298,6 +299,7 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   int i;
 
   n_percentiles = 0;
+  n_show_percentiles = 0;
   percentiles = NULL;
 
   n_variables = 0;
@@ -344,7 +346,7 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 	  int pl;
 	  subc_list_double *ptl_list = &cmd.dl_percentiles[i];
 	  for ( pl = 0 ; pl < subc_list_double_count(ptl_list); ++pl)
-	      add_percentile (subc_list_double_at(ptl_list, pl) / 100.0 );
+            add_percentile (subc_list_double_at(ptl_list, pl) / 100.0, true);
 	}
     }
   if ( cmd.sbc_ntiles )
@@ -353,14 +355,14 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 	{
 	  int j;
 	  for (j = 0; j <= cmd.n_ntiles[i]; ++j )
-	      add_percentile (j / (double) cmd.n_ntiles[i]);
+            add_percentile (j / (double) cmd.n_ntiles[i], true);
 	}
     }
   if (stats & BIT_INDEX (frq_median))
     {
       /* Treat the median as the 50% percentile.
          We output it in the percentiles table as "50 (Median)." */
-      add_percentile (0.5);
+      add_percentile (0.5, true);
       stats &= ~BIT_INDEX (frq_median);
       n_stats--;
     }
@@ -850,9 +852,10 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 }
 
 /* Adds X to the list of percentiles, keeping the list in proper
-   order. */
+   order.  If SHOW is true, the percentile will be shown in the statistics
+   box, otherwise it will be hidden. */
 static void
-add_percentile (double x)
+add_percentile (double x, bool show)
 {
   int i;
 
@@ -860,7 +863,14 @@ add_percentile (double x)
     {
       /* Do nothing if it's already in the list */
       if ( fabs(x - percentiles[i].p) < DBL_EPSILON )
-	return;
+        {
+          if (show && !percentiles[i].show)
+            {
+              n_show_percentiles++;
+              percentiles[i].show = true;
+            }
+          return;
+        }
 
       if (x < percentiles[i].p)
 	break;
@@ -872,7 +882,10 @@ add_percentile (double x)
                                    n_percentiles + 1, sizeof *percentiles);
       insert_element (percentiles, n_percentiles, sizeof *percentiles, i);
       percentiles[i].p = x;
+      percentiles[i].show = show;
       n_percentiles++;
+      if (show)
+        n_show_percentiles++;
     }
 }
 
@@ -1152,8 +1165,8 @@ dump_condensed (const struct variable *v, const struct variable *wv)
 
 /* Statistical display. */
 
-/* Calculates all the pertinent statistics for variable V, putting
-   them in array D[].  FIXME: This could be made much more optimal. */
+/* Calculates all the pertinent statistics for variable V, putting them in
+   array D[]. */
 static void
 calc_stats (const struct variable *v, double d[frq_n_stats])
 {
@@ -1316,7 +1329,7 @@ dump_statistics (const struct variable *v, bool show_varname,
     }
   calc_stats (v, stat_value);
 
-  t = tab_create (3, n_stats + n_percentiles + 2);
+  t = tab_create (3, n_stats + n_show_percentiles + 2);
 
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
 
@@ -1344,6 +1357,9 @@ dump_statistics (const struct variable *v, bool show_varname,
 
   for (i = 0; i < n_percentiles; i++, r++)
     {
+      if (!percentiles[i].show)
+        continue;
+
       if ( i == 0 )
 	{
 	  tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Percentiles"));
