@@ -236,6 +236,21 @@ tab_vline (struct tab_table *t, int style, int x, int y1, int y2)
 void
 tab_hline (struct tab_table * t, int style, int x1, int x2, int y)
 {
+#if DEBUGGING
+  if (y + t->row_ofs < 0 || y + t->row_ofs > tab_nr (t)
+      || x1 + t->col_ofs < 0 || x1 + t->col_ofs >= tab_nc (t)
+      || x2 + t->col_ofs < 0 || x2 + t->col_ofs >= tab_nc (t))
+    {
+      printf (_("bad hline: x=(%d+%d=%d,%d+%d=%d) y=%d+%d=%d in "
+		"table size (%d,%d)\n"),
+              x1, t->col_ofs, x1 + t->col_ofs,
+              x2, t->col_ofs, x2 + t->col_ofs,
+              y, t->row_ofs, y + t->row_ofs,
+	      tab_nc (t), tab_nr (t));
+      return;
+    }
+#endif
+
   x1 += t->col_ofs;
   x2 += t->col_ofs;
   y += t->row_ofs;
