@@ -120,7 +120,6 @@ dist_TESTS = \
 	tests/bugs/examine-1sample.sh \
 	tests/bugs/examine-missing.sh \
 	tests/bugs/examine-missing2.sh \
-	tests/bugs/freq-nolabels.sh \
 	tests/bugs/get-no-file.sh \
 	tests/bugs/html-frequency.sh \
 	tests/bugs/if_crash.sh \

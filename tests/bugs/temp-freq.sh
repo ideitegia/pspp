@@ -100,6 +100,7 @@ Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
 ,31.00,1,25.00,25.00,100.00
 Total,,4,100.0,100.0,
 
+Table: X
 N,Valid,4
 ,Missing,0
 Mean,,19.25

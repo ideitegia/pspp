@@ -14,12 +14,6 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-/*
-  TODO:
-
-  * Remember that histograms, bar charts need mean, stddev.
-*/
-
 #include <config.h>
 
 #include <math.h>
@@ -67,35 +61,26 @@
 /* (specification)
    FREQUENCIES (frq_):
      *+variables=custom;
-     +format=cond:condense/onepage(*n:onepage_limit,"%s>=0")/!standard,
-	     table:limit(n:limit,"%s>0")/notable/!table,
-	     labels:!labels/nolabels,
-	     sort:!avalue/dvalue/afreq/dfreq,
-	     spaces:!single/double,
-	     paging:newpage/!oldpage;
+     +format=table:limit(n:limit,"%s>0")/notable/!table,
+	     sort:!avalue/dvalue/afreq/dfreq;
      missing=miss:include/!exclude;
      barchart(ba_)=:minimum(d:min),
 	    :maximum(d:max),
 	    scale:freq(*n:freq,"%s>0")/percent(*n:pcnt,"%s>0");
      piechart(pie_)=:minimum(d:min),
 	    :maximum(d:max),
-	    missing:missing/!nomissing;
+	    missing:missing/!nomissing,
+	    scale:!freq/percent;
      histogram(hi_)=:minimum(d:min),
 	    :maximum(d:max),
 	    scale:freq(*n:freq,"%s>0")/percent(*n:pcnt,"%s>0"),
-	    norm:!nonormal/normal,
-	    incr:increment(d:inc,"%s>0");
-     hbar(hb_)=:minimum(d:min),
-	    :maximum(d:max),
-	    scale:freq(*n:freq,"%s>0")/percent(*n:pcnt,"%s>0"),
-	    norm:!nonormal/normal,
-	    incr:increment(d:inc,"%s>0");
+	    norm:!nonormal/normal;
      +grouped=custom;
      +ntiles=integer;
      +percentiles = double list;
-     +statistics[st_]=1|mean,2|semean,3|median,4|mode,5|stddev,6|variance,
- 	    7|kurtosis,8|skewness,9|range,10|minimum,11|maximum,12|sum,
- 	    13|default,14|seskewness,15|sekurtosis,all,none.
+     +statistics[st_]=mean,semean,median,mode,stddev,variance,
+ 	    kurtosis,skewness,range,minimum,maximum,sum,
+ 	    default,seskewness,sekurtosis,all,none.
 */
 /* (declarations) */
 /* (functions) */
@@ -169,26 +154,25 @@ static int n_percentiles, n_show_percentiles;
 static unsigned long stats;
 static int n_stats;
 
-/* Types of graphs. */
-enum
+struct frq_chart
   {
-    GFT_NONE,			/* Don't draw graphs. */
-    GFT_BAR,			/* Draw bar charts. */
-    GFT_HIST,			/* Draw histograms. */
-    GFT_PIE,                    /* Draw piechart */
-    GFT_HBAR			/* Draw bar charts or histograms at our discretion. */
+    double x_min;               /* X axis minimum value. */
+    double x_max;               /* X axis maximum value. */
+    int y_scale;                /* Y axis scale: FRQ_FREQ or FRQ_PERCENT. */
+
+    /* Histograms only. */
+    double y_max;               /* Y axis maximum value. */
+    bool draw_normal;           /* Whether to draw normal curve. */
+
+    /* Pie charts only. */
+    bool include_missing;       /* Whether to include missing values. */
   };
+
+/* Histogram and pie chart settings. */
+static struct frq_chart hist, pie;
 
 /* Parsed command. */
 static struct cmd_frequencies cmd;
-
-/* Summary of the barchart, histogram, and hbar subcommands. */
-/* FIXME: These should not be mututally exclusive */
-static int chart;		/* NONE/BAR/HIST/HBAR/PIE. */
-static double min, max;		/* Minimum, maximum on y axis. */
-static int format;		/* FREQ/PERCENT: Scaling of y axis. */
-static double scale, incr;	/* FIXME */
-static int normal;		/* FIXME */
 
 /* Variables for which to calculate statistics. */
 static size_t n_variables;
@@ -216,7 +200,6 @@ struct freq_tab
     double total_cases;		/* Sum of weights of all cases. */
     double valid_cases;		/* Sum of weights of valid cases. */
   };
-
 
 /* Per-variable frequency data. */
 struct var_freqs
@@ -251,9 +234,8 @@ static void calc (const struct ccase *, const struct dataset *);
 static void postcalc (const struct dataset *);
 
 static void postprocess_freq_tab (const struct variable *);
-static void dump_full ( const struct variable *, const struct variable *);
-static void dump_condensed (const struct variable *, const struct variable *);
-static void dump_statistics (const struct variable *, bool show_varname, const struct variable *);
+static void dump_freq_table (const struct variable *, const struct variable *);
+static void dump_statistics (const struct variable *, const struct variable *);
 static void cleanup_freq_tab (const struct variable *);
 
 static hsh_compare_func compare_value_numeric_a, compare_value_alpha_a;
@@ -308,9 +290,6 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   if (!parse_frequencies (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
 
-  if (cmd.onepage_limit == LONG_MIN)
-    cmd.onepage_limit = 50;
-
   /* Figure out statistics to calculate. */
   stats = 0;
   if (cmd.a_statistics[FRQ_ST_DEFAULT] || !cmd.sbc_statistics)
@@ -335,7 +314,7 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 
   /* Charting. */
   determine_charts ();
-  if (chart != GFT_NONE || cmd.sbc_ntiles)
+  if (cmd.sbc_histogram || cmd.sbc_piechart || cmd.sbc_ntiles)
     cmd.sort = FRQ_AVALUE;
 
   /* Work out what percentiles need to be calculated */
@@ -366,7 +345,7 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
       stats &= ~BIT_INDEX (frq_median);
       n_stats--;
     }
-  if (chart == GFT_HIST)
+  if (cmd.sbc_histogram)
     {
       add_percentile (0.25, false);
       add_percentile (0.75, false);
@@ -398,105 +377,45 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 static void
 determine_charts (void)
 {
-  int count = (!!cmd.sbc_histogram) + (!!cmd.sbc_barchart) +
-    (!!cmd.sbc_hbar) + (!!cmd.sbc_piechart);
-
-  if (!count)
-    {
-      chart = GFT_NONE;
-      return;
-    }
-  else if (count > 1)
-    {
-      chart = GFT_HBAR;
-      msg (SW, _("At most one of BARCHART, HISTOGRAM, or HBAR should be "
-	   "given.  HBAR will be assumed.  Argument values will be "
-	   "given precedence increasing along the order given."));
-    }
-  else if (cmd.sbc_histogram)
-    chart = GFT_HIST;
-  else if (cmd.sbc_barchart)
-    chart = GFT_BAR;
-  else if (cmd.sbc_piechart)
-    chart = GFT_PIE;
-  else
-    chart = GFT_HBAR;
-
-  min = max = SYSMIS;
-  format = FRQ_FREQ;
-  scale = SYSMIS;
-  incr = SYSMIS;
-  normal = 0;
-
   if (cmd.sbc_barchart)
-    {
-      if (cmd.ba_min != SYSMIS)
-	min = cmd.ba_min;
-      if (cmd.ba_max != SYSMIS)
-	max = cmd.ba_max;
-      if (cmd.ba_scale == FRQ_FREQ)
-	{
-	  format = FRQ_FREQ;
-	  scale = cmd.ba_freq;
-	}
-      else if (cmd.ba_scale == FRQ_PERCENT)
-	{
-	  format = FRQ_PERCENT;
-	  scale = cmd.ba_pcnt;
-	}
-    }
+    msg (SW, _("Bar charts are not implemented."));
 
   if (cmd.sbc_histogram)
     {
-      if (cmd.hi_min != SYSMIS)
-	min = cmd.hi_min;
-      if (cmd.hi_max != SYSMIS)
-	max = cmd.hi_max;
-      if (cmd.hi_scale == FRQ_FREQ)
-	{
-	  format = FRQ_FREQ;
-	  scale = cmd.hi_freq;
-	}
-      else if (cmd.hi_scale == FRQ_PERCENT)
-	{
-	  format = FRQ_PERCENT;
-	  scale = cmd.ba_pcnt;
-	}
-      if (cmd.hi_norm != FRQ_NONORMAL )
-	normal = 1;
-      if (cmd.hi_incr == FRQ_INCREMENT)
-	incr = cmd.hi_inc;
+      hist.x_min = cmd.hi_min;
+      hist.x_max = cmd.hi_max;
+      hist.y_scale = cmd.hi_scale;
+      hist.y_max = cmd.hi_scale == FRQ_FREQ ? cmd.hi_freq : cmd.hi_pcnt;
+      hist.draw_normal = cmd.hi_norm != FRQ_NONORMAL;
+      hist.include_missing = false;
+
+      if (hist.x_min != SYSMIS && hist.x_max != SYSMIS
+          && hist.x_min >= hist.x_max)
+        {
+          msg (SE, _("MAX for histogram must be greater than or equal to MIN, "
+                     "but MIN was specified as %.15g and MAX as %.15g.  "
+                     "MIN and MAX will be ignored."), hist.x_min, hist.x_max);
+          hist.x_min = hist.x_max = SYSMIS;
+        }
     }
 
-  if (cmd.sbc_hbar)
+  if (cmd.sbc_piechart)
     {
-      if (cmd.hb_min != SYSMIS)
-	min = cmd.hb_min;
-      if (cmd.hb_max != SYSMIS)
-	max = cmd.hb_max;
-      if (cmd.hb_scale == FRQ_FREQ)
-	{
-	  format = FRQ_FREQ;
-	  scale = cmd.hb_freq;
-	}
-      else if (cmd.hb_scale == FRQ_PERCENT)
-	{
-	  format = FRQ_PERCENT;
-	  scale = cmd.ba_pcnt;
-	}
-      if (cmd.hb_norm)
-	normal = 1;
-      if (cmd.hb_incr == FRQ_INCREMENT)
-	incr = cmd.hb_inc;
+      pie.x_min = cmd.pie_min;
+      pie.x_max = cmd.pie_max;
+      pie.y_scale = cmd.pie_scale;
+      pie.include_missing = cmd.pie_missing == FRQ_MISSING;
+
+      if (pie.x_min != SYSMIS && pie.x_max != SYSMIS
+          && pie.x_min >= pie.x_max)
+        {
+          msg (SE, _("MAX for pie chart must be greater than or equal to MIN, "
+                     "but MIN was specified as %.15g and MAX as %.15g.  "
+                     "MIN and MAX will be ignored."), pie.x_min, pie.x_max);
+          pie.x_min = pie.x_max = SYSMIS;
+        }
     }
 
-  if (min != SYSMIS && max != SYSMIS && min >= max)
-    {
-      msg (SE, _("MAX must be greater than or equal to MIN, if both are "
-	   "specified.  However, MIN was specified as %g and MAX as %g.  "
-	   "MIN and MAX will be ignored."), min, max);
-      min = max = SYSMIS;
-    }
 }
 
 /* Add data from case C to the frequency table. */
@@ -574,63 +493,40 @@ postcalc (const struct dataset *ds)
       struct var_freqs *vf = get_var_freqs (v);
       struct freq_tab *ft = &vf->tab;
       int n_categories;
-      int dumped_freq_tab = 1;
 
       postprocess_freq_tab (v);
 
       /* Frequencies tables. */
       n_categories = ft->n_valid + ft->n_missing;
-      if (cmd.table == FRQ_TABLE
-	  || (cmd.table == FRQ_LIMIT && n_categories <= cmd.limit))
-	switch (cmd.cond)
-	  {
-	  case FRQ_CONDENSE:
-	    dump_condensed (v, wv);
-	    break;
-	  case FRQ_STANDARD:
-	    dump_full (v, wv);
-	    break;
-	  case FRQ_ONEPAGE:
-	    if (n_categories > cmd.onepage_limit)
-	      dump_condensed (v, wv);
-	    else
-	      dump_full (v, wv);
-	    break;
-	  default:
-            NOT_REACHED ();
-	  }
-      else
-	dumped_freq_tab = 0;
+      if  (cmd.table == FRQ_TABLE
+           || (cmd.table == FRQ_LIMIT && n_categories <= cmd.limit))
+        dump_freq_table (v, wv);
 
       /* Statistics. */
       if (n_stats)
-	dump_statistics (v, !dumped_freq_tab, wv);
+	dump_statistics (v, wv);
 
-
-
-      if ( chart == GFT_HIST && var_is_numeric (v) && ft->n_valid > 0)
+      if (cmd.sbc_histogram && var_is_numeric (v) && ft->n_valid > 0)
 	{
 	  double d[frq_n_stats];
-	  struct histogram *hist ;
+	  struct histogram *histogram;
 
 	  calc_stats (v, d);
 
-	  hist = freq_tab_to_hist (ft,v);
+	  histogram = freq_tab_to_hist (ft, v);
 
           chart_item_submit (histogram_chart_create (
-                               hist->gsl_hist, var_to_string(v),
+                               histogram->gsl_hist, var_to_string(v),
                                vf->tab.valid_cases,
                                d[frq_mean],
                                d[frq_stddev],
-                               normal));
+                               hist.draw_normal));
 
-	  statistic_destroy (&hist->parent);
+	  statistic_destroy (&histogram->parent);
 	}
 
-      if ( chart == GFT_PIE)
-	{
-	  do_piechart(v_variables[i], ft);
-	}
+      if (cmd.sbc_piechart)
+        do_piechart(v_variables[i], ft);
 
       cleanup_freq_tab (v);
 
@@ -1019,7 +915,7 @@ compare_freq_alpha_d (const void *a_, const void *b_, const void *v_)
 
 /* Displays a full frequency table for variable V. */
 static void
-dump_full (const struct variable *v, const struct variable *wv)
+dump_freq_table (const struct variable *v, const struct variable *wv)
 {
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : &F_8_0;
   int n_categories;
@@ -1032,6 +928,7 @@ dump_full (const struct variable *v, const struct variable *wv)
   double cum_freq = 0.0;
 
   static const char *headings[] = {
+    N_("Value Label"),
     N_("Value"),
     N_("Frequency"),
     N_("Percent"),
@@ -1039,23 +936,19 @@ dump_full (const struct variable *v, const struct variable *wv)
     N_("Cum Percent")
   };
 
-  const bool lab = (cmd.labels == FRQ_LABELS);
-
   vf = get_var_freqs (v);
   ft = &vf->tab;
   n_categories = ft->n_valid + ft->n_missing;
-  t = tab_create (5 + lab, n_categories + 2);
+  t = tab_create (6, n_categories + 2);
   tab_headers (t, 0, 0, 1, 0);
 
-  if (lab)
-    tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Value Label"));
-
-  for (x = 0; x < 5; x++)
-    tab_text (t, lab + x, 0, TAB_CENTER | TAT_TITLE, gettext (headings[x]));
+  for (x = 0; x < 6; x++)
+    tab_text (t, x, 0, TAB_CENTER | TAT_TITLE, gettext (headings[x]));
 
   r = 1;
   for (f = ft->valid; f < ft->missing; f++)
     {
+      const char *label;
       double percent, valid_percent;
 
       cum_freq += f->count;
@@ -1064,106 +957,44 @@ dump_full (const struct variable *v, const struct variable *wv)
       valid_percent = f->count / ft->valid_cases * 100.0;
       cum_total += valid_percent;
 
-      if (lab)
-	{
-	  const char *label = var_lookup_value_label (v, &f->value);
-	  if (label != NULL)
-	    tab_text (t, 0, r, TAB_LEFT, label);
-	}
+      label = var_lookup_value_label (v, &f->value);
+      if (label != NULL)
+        tab_text (t, 0, r, TAB_LEFT, label);
 
-      tab_value (t, 0 + lab, r, TAB_NONE, &f->value, ft->dict, &vf->print);
-      tab_double (t, 1 + lab, r, TAB_NONE, f->count, wfmt);
-      tab_double (t, 2 + lab, r, TAB_NONE, percent, NULL);
-      tab_double (t, 3 + lab, r, TAB_NONE, valid_percent, NULL);
-      tab_double (t, 4 + lab, r, TAB_NONE, cum_total, NULL);
+      tab_value (t, 1, r, TAB_NONE, &f->value, ft->dict, &vf->print);
+      tab_double (t, 2, r, TAB_NONE, f->count, wfmt);
+      tab_double (t, 3, r, TAB_NONE, percent, NULL);
+      tab_double (t, 4, r, TAB_NONE, valid_percent, NULL);
+      tab_double (t, 5, r, TAB_NONE, cum_total, NULL);
       r++;
     }
   for (; f < &ft->valid[n_categories]; f++)
     {
+      const char *label;
+
       cum_freq += f->count;
 
-      if (lab)
-	{
-	  const char *label = var_lookup_value_label (v, &f->value);
-	  if (label != NULL)
-	    tab_text (t, 0, r, TAB_LEFT, label);
-	}
+      label = var_lookup_value_label (v, &f->value);
+      if (label != NULL)
+        tab_text (t, 0, r, TAB_LEFT, label);
 
-      tab_value (t, 0 + lab, r, TAB_NONE, &f->value, ft->dict, &vf->print);
-      tab_double (t, 1 + lab, r, TAB_NONE, f->count, wfmt);
-      tab_double (t, 2 + lab, r, TAB_NONE,
+      tab_value (t, 1, r, TAB_NONE, &f->value, ft->dict, &vf->print);
+      tab_double (t, 2, r, TAB_NONE, f->count, wfmt);
+      tab_double (t, 3, r, TAB_NONE,
 		     f->count / ft->total_cases * 100.0, NULL);
-      tab_text (t, 3 + lab, r, TAB_NONE, _("Missing"));
+      tab_text (t, 4, r, TAB_NONE, _("Missing"));
       r++;
     }
 
-  tab_box (t, TAL_1, TAL_1,
-	   cmd.spaces == FRQ_SINGLE ? -1 : TAL_GAP, TAL_1,
-	   0, 0, 4 + lab, r);
-  tab_hline (t, TAL_2, 0, 4 + lab, 1);
-  tab_hline (t, TAL_2, 0, 4 + lab, r);
-  tab_joint_text (t, 0, r, 0 + lab, r, TAB_RIGHT | TAT_TITLE, _("Total"));
+  tab_box (t, TAL_1, TAL_1, -1, TAL_1, 0, 0, 5, r);
+  tab_hline (t, TAL_2, 0, 5, 1);
+  tab_hline (t, TAL_2, 0, 5, r);
+  tab_joint_text (t, 0, r, 1, r, TAB_RIGHT | TAT_TITLE, _("Total"));
   tab_vline (t, TAL_0, 1, r, r);
-  tab_double (t, 1 + lab, r, TAB_NONE, cum_freq, wfmt);
-  tab_fixed (t, 2 + lab, r, TAB_NONE, 100.0, 5, 1);
-  tab_fixed (t, 3 + lab, r, TAB_NONE, 100.0, 5, 1);
+  tab_double (t, 2, r, TAB_NONE, cum_freq, wfmt);
+  tab_fixed (t, 3, r, TAB_NONE, 100.0, 5, 1);
+  tab_fixed (t, 4, r, TAB_NONE, 100.0, 5, 1);
 
-  tab_title (t, "%s", var_to_string (v));
-  tab_submit (t);
-}
-
-/* Display condensed frequency table for variable V. */
-static void
-dump_condensed (const struct variable *v, const struct variable *wv)
-{
-  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : &F_8_0;
-  int n_categories;
-  struct var_freqs *vf;
-  struct freq_tab *ft;
-  struct freq_mutable *f;
-  struct tab_table *t;
-  int r;
-  double cum_total = 0.0;
-
-  vf = get_var_freqs (v);
-  ft = &vf->tab;
-  n_categories = ft->n_valid + ft->n_missing;
-  t = tab_create (4, n_categories + 2);
-
-  tab_headers (t, 0, 0, 2, 0);
-  tab_text (t, 0, 1, TAB_CENTER | TAT_TITLE, _("Value"));
-  tab_text (t, 1, 1, TAB_CENTER | TAT_TITLE, _("Freq"));
-  tab_text (t, 2, 1, TAB_CENTER | TAT_TITLE, _("Pct"));
-  tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Cum"));
-  tab_text (t, 3, 1, TAB_CENTER | TAT_TITLE, _("Pct"));
-
-  r = 2;
-  for (f = ft->valid; f < ft->missing; f++)
-    {
-      double percent;
-
-      percent = f->count / ft->total_cases * 100.0;
-      cum_total += f->count / ft->valid_cases * 100.0;
-
-      tab_value (t, 0, r, TAB_NONE, &f->value, ft->dict, &vf->print);
-      tab_double (t, 1, r, TAB_NONE, f->count, wfmt);
-      tab_double (t, 2, r, TAB_NONE, percent, NULL);
-      tab_double (t, 3, r, TAB_NONE, cum_total, NULL);
-      r++;
-    }
-  for (; f < &ft->valid[n_categories]; f++)
-    {
-      tab_value (t, 0, r, TAB_NONE, &f->value, ft->dict, &vf->print);
-      tab_double (t, 1, r, TAB_NONE, f->count, wfmt);
-      tab_double (t, 2, r, TAB_NONE,
-		 f->count / ft->total_cases * 100.0, NULL);
-      r++;
-    }
-
-  tab_box (t, TAL_1, TAL_1,
-	   cmd.spaces == FRQ_SINGLE ? -1 : TAL_GAP, TAL_1,
-	   0, 0, 3, r - 1);
-  tab_hline (t, TAL_2, 0, 3, 2);
   tab_title (t, "%s", var_to_string (v));
   tab_submit (t);
 }
@@ -1314,8 +1145,7 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
 
 /* Displays a table of all the statistics requested for variable V. */
 static void
-dump_statistics (const struct variable *v, bool show_varname,
-		 const struct variable *wv)
+dump_statistics (const struct variable *v, const struct variable *wv)
 {
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : &F_8_0;
   struct freq_tab *ft;
@@ -1378,9 +1208,7 @@ dump_statistics (const struct variable *v, bool show_varname,
 		  var_get_print_format (v));
     }
 
-  if (show_varname)
-    tab_title (t, "%s", var_to_string (v));
-
+  tab_title (t, "%s", var_to_string (v));
 
   tab_submit (t);
 }
@@ -1403,37 +1231,54 @@ calculate_iqr (void)
   return q1 == SYSMIS || q3 == SYSMIS ? SYSMIS : q3 - q1;
 }
 
+static bool
+chart_includes_value (const struct frq_chart *chart,
+                      const struct variable *var,
+                      const union value *value)
+{
+  if (!chart->include_missing && var_is_value_missing (var, value, MV_ANY))
+    return false;
+
+  if (var_is_numeric (var)
+      && ((chart->x_min != SYSMIS && value->f < chart->x_min)
+          || (chart->x_max != SYSMIS && value->f > chart->x_max)))
+    return false;
+
+  return true;
+}
+
 /* Create a gsl_histogram from a freq_tab */
 struct histogram *
 freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
 {
+  double x_min, x_max, valid_freq;
   int i;
-  double x_min = DBL_MAX;
-  double x_max = -DBL_MAX;
 
-  struct histogram *hist;
+  struct histogram *histogram;
   double iqr;
   int bins;
 
-  struct hsh_iterator hi;
-  struct hsh_table *fh = ft->data;
-  struct freq_mutable *frq;
-
-  /* Find out the extremes of the x value */
-  for ( frq = hsh_first(fh, &hi); frq != 0; frq = hsh_next(fh, &hi) )
+  /* Find out the extremes of the x value, within the range to be included in
+     the histogram, and sum the total frequency of those values. */
+  x_min = DBL_MAX;
+  x_max = -DBL_MAX;
+  valid_freq = 0;
+  for (i = 0; i < ft->n_valid; i++)
     {
-      if (var_is_value_missing(var, &frq->value, MV_ANY))
-	continue;
-
-      if ( frq->value.f < x_min ) x_min = frq->value.f ;
-      if ( frq->value.f > x_max ) x_max = frq->value.f ;
+      const struct freq_mutable *frq = &ft->valid[i];
+      if (chart_includes_value (&hist, var, &frq->value))
+        {
+          x_min = MIN (x_min, frq->value.f);
+          x_max = MAX (x_max, frq->value.f);
+          valid_freq += frq->count;
+        }
     }
 
   /* Freedman-Diaconis' choice of bin width. */
   iqr = calculate_iqr ();
   if (iqr != SYSMIS)
     {
-      double bin_width = 2 * iqr / pow (ft->valid_cases, 1.0 / 3.0);
+      double bin_width = 2 * iqr / pow (valid_freq, 1.0 / 3.0);
       bins = (x_max - x_min) / bin_width;
       if (bins < 5)
         bins = 5;
@@ -1443,23 +1288,31 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
   else
     bins = 5;
 
-  hist = histogram_create (bins, x_min, x_max);
-
-  for( i = 0 ; i < ft->n_valid ; ++i )
+  histogram = histogram_create (bins, x_min, x_max);
+  for (i = 0; i < ft->n_valid; i++)
     {
-      frq = &ft->valid[i];
-      histogram_add (hist, frq->value.f, frq->count);
+      const struct freq_mutable *frq = &ft->valid[i];
+      if (chart_includes_value (&hist, var, &frq->value))
+        histogram_add (histogram, frq->value.f, frq->count);
     }
 
-  return hist;
+  return histogram;
 }
 
-
-static struct slice *
-freq_tab_to_slice_array(const struct freq_tab *frq_tab,
-			const struct variable *var,
-			int *n_slices);
-
+static int
+add_slice (const struct freq_mutable *freq, const struct variable *var,
+           struct slice *slice)
+{
+  if (chart_includes_value (&pie, var, &freq->value))
+    {
+      ds_init_empty (&slice->label);
+      var_append_value_name (var, &freq->value, &slice->label);
+      slice->magnitude = freq->count;
+      return 1;
+    }
+  else
+    return 0;
+}
 
 /* Allocate an array of slices and fill them from the data in frq_tab
    n_slices will contain the number of slices allocated.
@@ -1468,24 +1321,21 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
 static struct slice *
 freq_tab_to_slice_array(const struct freq_tab *frq_tab,
 			const struct variable *var,
-			int *n_slices)
+			int *n_slicesp)
 {
-  int i;
   struct slice *slices;
+  int n_slices;
+  int i;
 
-  *n_slices = frq_tab->n_valid;
+  slices = xnmalloc (frq_tab->n_valid + frq_tab->n_missing, sizeof *slices);
+  n_slices = 0;
 
-  slices = xnmalloc (*n_slices, sizeof *slices);
+  for (i = 0; i < frq_tab->n_valid; i++)
+    n_slices += add_slice (&frq_tab->valid[i], var, &slices[n_slices]);
+  for (i = 0; i < frq_tab->n_missing; i++)
+    n_slices += add_slice (&frq_tab->missing[i], var, &slices[n_slices]);
 
-  for (i = 0 ; i < *n_slices ; ++i )
-    {
-      const struct freq_mutable *frq = &frq_tab->valid[i];
-
-      ds_init_empty (&slices[i].label);
-      var_append_value_name (var, &frq->value, &slices[i].label);
-      slices[i].magnitude = frq->count;
-    }
-
+  *n_slicesp = n_slices;
   return slices;
 }
 
@@ -1498,13 +1348,19 @@ do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
   struct slice *slices;
   int n_slices, i;
 
-  slices = freq_tab_to_slice_array(frq_tab, var, &n_slices);
+  slices = freq_tab_to_slice_array (frq_tab, var, &n_slices);
 
-  chart_item_submit (piechart_create (var_to_string(var), slices, n_slices));
+  if (n_slices < 2)
+    msg (SW, _("Omitting pie chart for %s, which has only %d unique values."),
+         var_get_name (var), n_slices);
+  else if (n_slices > 50)
+    msg (SW, _("Omitting pie chart for %s, which has over 50 unique values."),
+         var_get_name (var));
+  else
+    chart_item_submit (piechart_create (var_to_string(var), slices, n_slices));
 
-  for (i = 0 ; i < n_slices ; ++i )
+  for (i = 0; i < n_slices; i++)
     ds_destroy (&slices[i].label);
-
   free (slices);
 }
 

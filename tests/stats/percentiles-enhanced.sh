@@ -95,6 +95,7 @@ Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
 ,5.00,1,20.00,20.00,100.00
 Total,,5,100.0,100.0,
 
+Table: X
 N,Valid,5
 ,Missing,0
 Mean,,3.00
@@ -151,6 +152,7 @@ Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
 ,5.00,2.00,20.00,20.00,100.00
 Total,,10.00,100.0,100.0,
 
+Table: X
 N,Valid,10.00
 ,Missing,.00
 Mean,,3.00
@@ -204,6 +206,7 @@ Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
 ,5.00,2.00,33.33,33.33,100.00
 Total,,6.00,100.0,100.0,
 
+Table: X
 N,Valid,6.00
 ,Missing,.00
 Mean,,3.50
@@ -258,6 +261,7 @@ Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
 ,99.00,4.00,40.00,Missing,
 Total,,10.00,100.0,100.0,
 
+Table: X
 N,Valid,6.00
 ,Missing,4.00
 Mean,,3.50

@@ -118,11 +118,7 @@ respectively.
 FREQUENCIES
         /VARIABLES=var_list
         /FORMAT=@{TABLE,NOTABLE,LIMIT(limit)@}
-                @{STANDARD,CONDENSE,ONEPAGE[(onepage_limit)]@}
-                @{LABELS,NOLABELS@}
                 @{AVALUE,DVALUE,AFREQ,DFREQ@}
-                @{SINGLE,DOUBLE@}
-                @{OLDPAGE,NEWPAGE@}
         /MISSING=@{EXCLUDE,INCLUDE@}
         /STATISTICS=@{DEFAULT,MEAN,SEMEAN,MEDIAN,MODE,STDDEV,VARIANCE,
                      KURTOSIS,SKEWNESS,RANGE,MINIMUM,MAXIMUM,SUM,
@@ -130,8 +126,9 @@ FREQUENCIES
         /NTILES=ntiles
         /PERCENTILES=percent@dots{}
         /HISTOGRAM=[MINIMUM(x_min)] [MAXIMUM(x_max)] 
-                   [@{FREQ,PCNT@}] [@{NONORMAL,NORMAL@}]
-        /PIECHART=[MINIMUM(x_min)] [MAXIMUM(x_max)] @{NOMISSING,MISSING@}
+                   [@{FREQ[(y_max)],PERCENT[(y_max)]@}] [@{NONORMAL,NORMAL@}]
+        /PIECHART=[MINIMUM(x_min)] [MAXIMUM(x_max)]
+                  [@{FREQ,PERCENT@}] [@{NOMISSING,MISSING@}]
 
 (These options are not currently implemented.)
         /BARCHART=@dots{}
@@ -142,11 +139,9 @@ FREQUENCIES
 The @cmd{FREQUENCIES} procedure outputs frequency tables for specified
 variables.
 @cmd{FREQUENCIES} can also calculate and display descriptive statistics
-(including median and mode) and percentiles.
-
-@cmd{FREQUENCIES} also support graphical output in the form of
-histograms and pie charts.  In the future, it will be able to produce
-bar charts and output percentiles for grouped data.
+(including median and mode) and percentiles,
+@cmd{FREQUENCIES} can also output
+histograms and pie charts.  
 
 The VARIABLES subcommand is the only required subcommand.  Specify the
 variables to be analyzed.
@@ -162,29 +157,10 @@ with a numeric argument causes them to be output except when there are
 more than the specified number of values in the table.
 
 @item
-STANDARD frequency tables contain more complete information, but also to
-take up more space on the printed page.  CONDENSE frequency tables are
-less informative but take up less space.  ONEPAGE with a numeric
-argument will output standard frequency tables if there are the
-specified number of values or less, condensed tables otherwise.  ONEPAGE
-without an argument defaults to a threshold of 50 values.
-
-@item
-LABELS causes value labels to be displayed in STANDARD frequency
-tables.  NOLABLES prevents this.
-
-@item
 Normally frequency tables are sorted in ascending order by value.  This
 is AVALUE.  DVALUE tables are sorted in descending order by value.
 AFREQ and DFREQ tables are sorted in ascending and descending order,
 respectively, by frequency count.
-
-@item
-SINGLE spaced frequency tables are closely spaced.  DOUBLE spaced
-frequency tables have wider spacing.
-
-@item
-OLDPAGE and NEWPAGE are not currently used.
 @end itemize
 
 The MISSING subcommand controls the handling of user-missing values.
@@ -208,13 +184,11 @@ boundaries of the data set divided into the specified number of ranges.
 For instance, @code{/NTILES=4} would cause quartiles to be reported.
 
 The HISTOGRAM subcommand causes the output to include a histogram for
-each specified numeric variable.  The X axis by default ranges from the
-minimum to the maximum value observed in the data, but the MINIMUM and
-MAXIMUM keywords can set an explicit range.  The Y axis by default is
-labeled in frequencies; use the PERCENT keyword to causes it to be
-labeled in percent of the total observed count.  Specify NORMAL to
-superimpose a normal curve on the histogram.
-Histograms are not created for string variables.
+each specified numeric variable.  The X axis by default ranges from
+the minimum to the maximum value observed in the data, but the MINIMUM
+and MAXIMUM keywords can set an explicit range.  Specify NORMAL to
+superimpose a normal curve on the histogram.  Histograms are not
+created for string variables.
 
 The PIECHART adds a pie chart for each variable to the data.  Each
 slice represents one value, with the size of the slice proportional to
@@ -222,6 +196,9 @@ the value's frequency.  By default, all non-missing values are given
 slices.  The MINIMUM and MAXIMUM keywords can be used to limit the
 displayed slices to a given range of values.  The MISSING keyword adds
 slices for missing values.
+
+The FREQ and PERCENT options on HISTOGRAM and PIECHART are accepted
+but not currently honored.
 
 @node EXAMINE
 @comment  node-name,  next,  previous,  up
