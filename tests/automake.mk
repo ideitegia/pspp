@@ -102,7 +102,6 @@ dist_TESTS = \
 	tests/formats/360.sh \
 	tests/bugs/agg_crash.sh \
 	tests/bugs/agg-crash-2.sh \
-	tests/bugs/alpha-freq.sh \
 	tests/bugs/big-input.sh \
 	tests/bugs/big-input-2.sh \
 	tests/bugs/case-map.sh \
@@ -111,7 +110,6 @@ dist_TESTS = \
 	tests/bugs/compression.sh \
 	tests/bugs/curtailed.sh \
 	tests/bugs/data-crash.sh \
-	tests/bugs/double-frequency.sh \
 	tests/bugs/empty-do-repeat.sh \
 	tests/bugs/get.sh \
 	tests/bugs/examine-crash.sh \
@@ -121,7 +119,6 @@ dist_TESTS = \
 	tests/bugs/examine-missing.sh \
 	tests/bugs/examine-missing2.sh \
 	tests/bugs/get-no-file.sh \
-	tests/bugs/html-frequency.sh \
 	tests/bugs/if_crash.sh \
 	tests/bugs/input-crash.sh \
 	tests/bugs/lag_crash.sh \
@@ -130,7 +127,6 @@ dist_TESTS = \
 	tests/bugs/multipass.sh \
 	tests/bugs/overwrite-input-file.sh \
 	tests/bugs/overwrite-special-file.sh \
-	tests/bugs/piechart.sh \
 	tests/bugs/random.sh \
 	tests/bugs/shbang.sh \
 	tests/bugs/signals.sh \
@@ -148,7 +144,6 @@ dist_TESTS = \
 	tests/bugs/computebug.sh \
 	tests/bugs/compute-lv.sh \
 	tests/bugs/compute-sum.sh \
-	tests/bugs/temp-freq.sh \
 	tests/bugs/print-crash.sh \
 	tests/bugs/keep-all.sh \
 	tests/data/datasheet-test.sh \
@@ -159,9 +154,6 @@ dist_TESTS = \
 	tests/stats/descript-missing.sh \
 	tests/stats/descript-mean-bug.sh \
 	tests/stats/moments.sh \
-	tests/stats/percentiles-compatible.sh \
-	tests/stats/ntiles.sh \
-	tests/stats/percentiles-enhanced.sh \
 	tests/expressions/expressions.sh \
 	tests/expressions/epoch.sh \
 	tests/expressions/randist.sh \
@@ -415,6 +407,7 @@ EXTRA_DIST += \
 TESTSUITE_AT = \
 	tests/testsuite.at \
 	tests/language/stats/crosstabs.at \
+	tests/language/stats/frequencies.at \
 	tests/output/render.at
 TESTSUITE = $(srcdir)/tests/testsuite
 DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
