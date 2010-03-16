@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ union value
   };
 
 static inline void value_init (union value *, int width);
+static inline void value_clone (union value *, const union value *, int width);
 static inline bool value_needs_init (int width);
 static inline bool value_try_init (union value *, int width);
 static inline void value_destroy (union value *, int width);
@@ -96,6 +97,17 @@ value_init (union value *v, int width)
 {
   if (width > MAX_SHORT_STRING)
     v->long_string = xmalloc (width);
+}
+
+/* Initializes V as a value of the given WIDTH, as with value_init(), and
+   copies SRC's value into V as its initial value. */
+static inline void
+value_clone (union value *v, const union value *src, int width)
+{
+  if (width <= MAX_SHORT_STRING)
+    *v = *src;
+  else
+    v->long_string = xmemdup (src->long_string, width);
 }
 
 /* Returns true if a value of the given WIDTH actually needs to

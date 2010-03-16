@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -131,8 +131,7 @@ do_add_val_lab (struct val_labs *vls, const union value *value,
                 const char *label)
 {
   struct val_lab *lab = xmalloc (sizeof *lab);
-  value_init (&lab->value, vls->width);
-  value_copy (&lab->value, value, vls->width);
+  value_clone (&lab->value, value, vls->width);
   lab->label = intern_new (label);
   hmap_insert (&vls->labels, &lab->node, value_hash (value, vls->width, 0));
 }

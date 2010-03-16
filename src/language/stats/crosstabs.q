@@ -654,9 +654,7 @@ tabulate_general_case (struct pivot_table *pt, const struct ccase *c,
   for (j = 0; j < pt->n_vars; j++)
     {
       const struct variable *var = pt->vars[j];
-      int width = var_get_width (var);
-      value_init (&te->values[j], width);
-      value_copy (&te->values[j], case_data (c, var), width);
+      value_clone (&te->values[j], case_data (c, var), var_get_width (var));
     }
   hmap_insert (&pt->data, &te->node, hash);
 }
