@@ -638,7 +638,7 @@ typedef struct
 
 void
 sort (void *array, size_t count, size_t size,
-	    algo_compare_func *compare, const void *aux)
+      algo_compare_func *compare, const void *aux)
 {
   char *const first = array;
   const size_t max_thresh = MAX_THRESH * size;
