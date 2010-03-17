@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -91,8 +91,8 @@ static bool
 do_binomial (const struct dictionary *dict,
 	     struct casereader *input,
 	     const struct binomial_test *bst,
-	     struct freq_mutable *cat1,
-	     struct freq_mutable *cat2,
+	     struct freq *cat1,
+	     struct freq *cat2,
              enum mv_class exclude
 	     )
 {
@@ -160,7 +160,7 @@ binomial_execute (const struct dataset *ds,
   const struct binomial_test *bst = (const struct binomial_test *) test;
   const struct one_sample_test *ost = (const struct one_sample_test*) test;
 
-  struct freq_mutable *cat[2];
+  struct freq *cat[2];
   int i;
 
   assert ((bst->category1 == SYSMIS) == (bst->category2 == SYSMIS) || bst->cutpoint != SYSMIS);

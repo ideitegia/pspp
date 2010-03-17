@@ -20,37 +20,36 @@
 #include <stdlib.h>
 #include <gsl/gsl_histogram.h>
 
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/dictionary/split-file.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/array.h>
-#include <libpspp/bit-vector.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
-#include <math/histogram.h>
-#include <math/moments.h>
-#include <output/chart-item.h>
-#include <output/charts/piechart.h>
-#include <output/charts/plot-hist.h>
-#include <output/tab.h>
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/settings.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/dictionary/split-file.h"
+#include "language/lexer/lexer.h"
+#include "language/stats/freq.h"
+#include "libpspp/array.h"
+#include "libpspp/bit-vector.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hmap.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+#include "math/histogram.h"
+#include "math/moments.h"
+#include "output/chart-item.h"
+#include "output/charts/piechart.h"
+#include "output/charts/plot-hist.h"
+#include "output/tab.h"
 
-#include "freq.h"
-
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -187,13 +186,12 @@ static struct pool *syntax_pool;        /* For syntax-related data. */
 /* Entire frequency table. */
 struct freq_tab
   {
-    struct hsh_table *data;	/* Undifferentiated data. */
-    struct freq_mutable *valid; /* Valid freqs. */
+    struct hmap data;           /* Hash table for accumulating counts. */
+    struct freq *valid;         /* Valid freqs. */
     int n_valid;		/* Number of total freqs. */
-    const struct dictionary *dict; /* The dict from whence entries in the table
-				      come */
+    const struct dictionary *dict; /* Source of entries in the table. */
 
-    struct freq_mutable *missing; /* Missing freqs. */
+    struct freq *missing;       /* Missing freqs. */
     int n_missing;		/* Number of missing freqs. */
 
     /* Statistics. */
@@ -238,10 +236,10 @@ static void dump_freq_table (const struct variable *, const struct variable *);
 static void dump_statistics (const struct variable *, const struct variable *);
 static void cleanup_freq_tab (const struct variable *);
 
-static hsh_compare_func compare_value_numeric_a, compare_value_alpha_a;
-static hsh_compare_func compare_value_numeric_d, compare_value_alpha_d;
-static hsh_compare_func compare_freq_numeric_a, compare_freq_alpha_a;
-static hsh_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
+static algo_compare_func compare_value_numeric_a, compare_value_alpha_a;
+static algo_compare_func compare_value_numeric_d, compare_value_alpha_d;
+static algo_compare_func compare_freq_numeric_a, compare_freq_alpha_a;
+static algo_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
 
 
 static void do_piechart(const struct variable *var,
@@ -427,27 +425,20 @@ calc (const struct ccase *c, const struct dataset *ds)
 
   for (i = 0; i < n_variables; i++)
     {
-      const struct variable *v = v_variables[i];
-      const union value *val = case_data (c, v);
-      struct var_freqs *vf = get_var_freqs (v);
-      struct freq_tab *ft = &vf->tab;
+      const struct variable *var = v_variables[i];
+      int width = var_get_width (var);
 
-      struct freq_mutable target;
-      struct freq_mutable **fpp;
+      const union value *value = case_data (c, var);
+      size_t hash = value_hash (value, width, 0);
 
-      target.value = *val;
-      fpp = (struct freq_mutable **) hsh_probe (ft->data, &target);
+      struct hmap *hmap = &get_var_freqs (var)->tab.data;
+      struct freq *f;
 
-      if (*fpp != NULL)
-        (*fpp)->count += weight;
-      else
-        {
-          struct freq_mutable *fp = pool_alloc (data_pool, sizeof *fp);
-          fp->count = weight;
-          value_init_pool (data_pool, &fp->value, vf->width);
-          value_copy (&fp->value, val, vf->width);
-          *fpp = fp;
-        }
+      f = freq_hmap_search (hmap, value, width, hash);
+      if (f == NULL)
+        f = freq_hmap_insert (hmap, value, width, hash);
+
+      f->count += weight;
     }
 }
 
@@ -474,7 +465,7 @@ precalc (struct casereader *input, struct dataset *ds)
       const struct variable *v = v_variables[i];
       struct freq_tab *ft = &get_var_freqs (v)->tab;
 
-      ft->data = hsh_create (16, compare_freq, hash_freq, NULL, v);
+      hmap_init (&ft->data);
     }
 }
 
@@ -536,7 +527,7 @@ postcalc (const struct dataset *ds)
 /* Returns the comparison function that should be used for
    sorting a frequency table by FRQ_SORT using VAL_TYPE
    values. */
-static hsh_compare_func *
+static algo_compare_func *
 get_freq_comparator (int frq_sort, enum val_type val_type)
 {
   bool is_numeric = val_type == VAL_NUMERIC;
@@ -555,12 +546,12 @@ get_freq_comparator (int frq_sort, enum val_type val_type)
     }
 }
 
-/* Returns true iff the value in struct freq_mutable F is non-missing
+/* Returns true iff the value in struct freq F is non-missing
    for variable V. */
 static bool
 not_missing (const void *f_, const void *v_)
 {
-  const struct freq_mutable *f = f_;
+  const struct freq *f = f_;
   const struct variable *v = v_;
 
   return !var_is_value_missing (v, &f->value, MV_ANY);
@@ -570,27 +561,18 @@ not_missing (const void *f_, const void *v_)
 static void
 postprocess_freq_tab (const struct variable *v)
 {
-  hsh_compare_func *compare;
+  algo_compare_func *compare;
   struct freq_tab *ft;
   size_t count;
-  void *const *data;
-  struct freq_mutable *freqs, *f;
+  struct freq *freqs, *f;
   size_t i;
 
   ft = &get_var_freqs (v)->tab;
   compare = get_freq_comparator (cmd.sort, var_get_type (v));
 
   /* Extract data from hash table. */
-  count = hsh_count (ft->data);
-  data = hsh_data (ft->data);
-
-  /* Copy dereferenced data into freqs. */
-  freqs = xnmalloc (count, sizeof *freqs);
-  for (i = 0; i < count; i++)
-    {
-      struct freq_mutable *f = data[i];
-      freqs[i] = *f;
-    }
+  count = hmap_count (&ft->data);
+  freqs = freq_hmap_extract (&ft->data);
 
   /* Put data into ft. */
   ft->valid = freqs;
@@ -624,9 +606,9 @@ postprocess_freq_tab (const struct variable *v)
 static void
 cleanup_freq_tab (const struct variable *v)
 {
-  struct freq_tab *ft = &get_var_freqs (v)->tab;
-  free (ft->valid);
-  hsh_destroy (ft->data);
+  struct var_freqs *vf = get_var_freqs (v);
+  free (vf->tab.valid);
+  freq_hmap_destroy (&vf->tab.data, vf->width);
 }
 
 /* Parses the VARIABLES subcommand, adding to
@@ -796,8 +778,8 @@ add_percentile (double x, bool show)
 static int
 compare_value_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
 {
-  const struct freq_mutable *a = a_;
-  const struct freq_mutable *b = b_;
+  const struct freq *a = a_;
+  const struct freq *b = b_;
 
   if (a->value.f > b->value.f)
     return 1;
@@ -811,8 +793,8 @@ compare_value_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
 static int
 compare_value_alpha_a (const void *a_, const void *b_, const void *v_)
 {
-  const struct freq_mutable *a = a_;
-  const struct freq_mutable *b = b_;
+  const struct freq *a = a_;
+  const struct freq *b = b_;
   const struct variable *v = v_;
   struct var_freqs *vf = get_var_freqs (v);
 
@@ -838,8 +820,8 @@ compare_value_alpha_d (const void *a, const void *b, const void *v)
 static int
 compare_freq_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
 {
-  const struct freq_mutable *a = a_;
-  const struct freq_mutable *b = b_;
+  const struct freq *a = a_;
+  const struct freq *b = b_;
 
   if (a->count > b->count)
     return 1;
@@ -859,8 +841,8 @@ compare_freq_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
 static int
 compare_freq_alpha_a (const void *a_, const void *b_, const void *v_)
 {
-  const struct freq_mutable *a = a_;
-  const struct freq_mutable *b = b_;
+  const struct freq *a = a_;
+  const struct freq *b = b_;
   const struct variable *v = v_;
   struct var_freqs *vf = get_var_freqs (v);
 
@@ -877,8 +859,8 @@ compare_freq_alpha_a (const void *a_, const void *b_, const void *v_)
 static int
 compare_freq_numeric_d (const void *a_, const void *b_, const void *aux UNUSED)
 {
-  const struct freq_mutable *a = a_;
-  const struct freq_mutable *b = b_;
+  const struct freq *a = a_;
+  const struct freq *b = b_;
 
   if (a->count > b->count)
     return -1;
@@ -898,8 +880,8 @@ compare_freq_numeric_d (const void *a_, const void *b_, const void *aux UNUSED)
 static int
 compare_freq_alpha_d (const void *a_, const void *b_, const void *v_)
 {
-  const struct freq_mutable *a = a_;
-  const struct freq_mutable *b = b_;
+  const struct freq *a = a_;
+  const struct freq *b = b_;
   const struct variable *v = v_;
   struct var_freqs *vf = get_var_freqs (v);
 
@@ -921,7 +903,7 @@ dump_freq_table (const struct variable *v, const struct variable *wv)
   int n_categories;
   struct var_freqs *vf;
   struct freq_tab *ft;
-  struct freq_mutable *f;
+  struct freq *f;
   struct tab_table *t;
   int r, x;
   double cum_total = 0.0;
@@ -1009,7 +991,7 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
   struct freq_tab *ft = &get_var_freqs (v)->tab;
   double W = ft->valid_cases;
   struct moments *m;
-  struct freq_mutable *f=0;
+  struct freq *f=0;
   int most_often;
   double X_mode;
 
@@ -1265,7 +1247,7 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
   valid_freq = 0;
   for (i = 0; i < ft->n_valid; i++)
     {
-      const struct freq_mutable *frq = &ft->valid[i];
+      const struct freq *frq = &ft->valid[i];
       if (chart_includes_value (&hist, var, &frq->value))
         {
           x_min = MIN (x_min, frq->value.f);
@@ -1291,7 +1273,7 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
   histogram = histogram_create (bins, x_min, x_max);
   for (i = 0; i < ft->n_valid; i++)
     {
-      const struct freq_mutable *frq = &ft->valid[i];
+      const struct freq *frq = &ft->valid[i];
       if (chart_includes_value (&hist, var, &frq->value))
         histogram_add (histogram, frq->value.f, frq->count);
     }
@@ -1300,7 +1282,7 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
 }
 
 static int
-add_slice (const struct freq_mutable *freq, const struct variable *var,
+add_slice (const struct freq *freq, const struct variable *var,
            struct slice *slice)
 {
   if (chart_includes_value (&pie, var, &freq->value))

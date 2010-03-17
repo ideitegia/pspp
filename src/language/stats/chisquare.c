@@ -18,142 +18,116 @@
 
 #include <language/stats/chisquare.h>
 
-#include <stdlib.h>
-#include <math.h>
-
-#include <data/format.h>
-#include <data/case.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <language/stats/freq.h>
-#include <language/stats/npar.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash.h>
-#include <libpspp/message.h>
-#include <libpspp/taint.h>
-#include <output/tab.h>
-
 #include <gsl/gsl_cdf.h>
+#include <math.h>
+#include <stdlib.h>
 
-#include "xalloc.h"
+#include "data/format.h"
+#include "data/case.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/procedure.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "language/stats/freq.h"
+#include "language/stats/npar.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/message.h"
+#include "libpspp/taint.h"
+#include "output/tab.h"
+
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Return a hash table containing the frequency counts of each
-   value of VAR in CF .
-   It is the caller's responsibility to free the hash table when
-   no longer required.
-*/
-static struct hsh_table *
+/* Adds frequency counts of each value of VAR in INPUT between LO and HI to
+   FREQ_HASH.  LO and HI and each input value is truncated to an integer.
+   Returns true if successful, false on input error.  It is the caller's
+   responsibility to initialize FREQ_HASH and to free it when no longer
+   required, even on failure. */
+static bool
 create_freq_hash_with_range (const struct dictionary *dict,
 			     struct casereader *input,
 			     const struct variable *var,
-			     double lo,
-			     double hi)
+			     double lo_, double hi_,
+                             struct hmap *freq_hash)
 {
+  struct freq **entries;
   bool warn = true;
-  float i_d;
   struct ccase *c;
+  double lo, hi;
+  double i_d;
 
-  struct hsh_table *freq_hash =
-    hsh_create (4, compare_freq, hash_freq,
-		free_freq_mutable_hash,
-		(void *) var);
+  assert (var_is_numeric (var));
+  lo = trunc (lo_);
+  hi = trunc (hi_);
 
   /* Populate the hash with zero entries */
-  for (i_d = trunc (lo); i_d <= trunc (hi); i_d += 1.0 )
+  entries = xnmalloc (hi - lo + 1, sizeof *entries);
+  for (i_d = lo; i_d <= hi; i_d += 1.0 )
     {
-      struct freq_mutable *fr = xmalloc (sizeof (*fr));
-      value_init (&fr->value, 0);
-      fr->value.f = i_d;
-      fr->count = 0;
-      hsh_insert (freq_hash, fr);
+      size_t ofs = i_d - lo;
+      union value value = { i_d };
+      entries[ofs] = freq_hmap_insert (freq_hash, &value, 0,
+                                       value_hash (&value, 0, 0));
     }
 
   for (; (c = casereader_read (input)) != NULL; case_unref (c))
     {
-      struct freq_mutable fr;
-      fr.value.f = trunc (case_num (c, var));
-      if (fr.value.f >= lo && fr.value.f <= hi)
+      double x = trunc (case_num (c, var));
+      if (x >= lo && x <= hi)
         {
-          struct freq_mutable *existing_fr = hsh_force_find (freq_hash, &fr);
-          existing_fr->count += dict_get_case_weight (dict, c, &warn);
+          size_t ofs = x - lo;
+          struct freq *fr = entries[ofs];
+          fr->count += dict_get_case_weight (dict, c, &warn);
         }
     }
-  if (casereader_destroy (input))
-    return freq_hash;
-  else
-    {
-      hsh_destroy (freq_hash);
-      return NULL;
-    }
+
+  return casereader_destroy (input);
 }
 
-
-/* Return a hash table containing the frequency counts of each
-   value of VAR in INPUT .
-   It is the caller's responsibility to free the hash table when
-   no longer required.
-*/
-static struct hsh_table *
+/* Adds frequency counts of each value of VAR in INPUT to FREQ_HASH.  LO and HI
+   and each input value is truncated to an integer.  Returns true if
+   successful, false on input error.  It is the caller's responsibility to
+   initialize FREQ_HASH and to free it when no longer required, even on
+   failure. */
+static bool
 create_freq_hash (const struct dictionary *dict,
 		  struct casereader *input,
-		  const struct variable *var)
+		  const struct variable *var,
+                  struct hmap *freq_hash)
 {
   int width = var_get_width (var);
   bool warn = true;
   struct ccase *c;
 
-  struct hsh_table *freq_hash =
-    hsh_create (4, compare_freq, hash_freq,
-		free_freq_mutable_hash,
-		(void *) var);
-
   for (; (c = casereader_read (input)) != NULL; case_unref (c))
     {
-      struct freq_mutable fr;
-      void **p;
+      const union value *value = case_data (c, var);
+      size_t hash = value_hash (value, width, 0);
+      double weight = dict_get_case_weight (dict, c, &warn);
+      struct freq *f;
 
-      fr.value = *case_data (c, var);
-      fr.count = dict_get_case_weight (dict, c, &warn);
+      f = freq_hmap_search (freq_hash, value, width, hash);
+      if (f == NULL)
+        f = freq_hmap_insert (freq_hash, value, width, hash);
 
-      p = hsh_probe (freq_hash, &fr);
-      if (*p == NULL)
-        {
-          struct freq_mutable *new_fr = *p = xmalloc (sizeof *new_fr);
-          value_init (&new_fr->value, width);
-          value_copy (&new_fr->value, &fr.value, width);
-          new_fr->count = fr.count;
-        }
-      else
-        {
-          struct freq *existing_fr = *p;
-          existing_fr->count += fr.count;
-        }
+      f->count += weight;
     }
-  if (casereader_destroy (input))
-    return freq_hash;
-  else
-    {
-      hsh_destroy (freq_hash);
-      return NULL;
-    }
+
+  return casereader_destroy (input);
 }
-
-
 
 static struct tab_table *
 create_variable_frequency_table (const struct dictionary *dict,
 				 struct casereader *input,
 				 const struct chisquare_test *test,
-				 int v,
-				 struct hsh_table **freq_hash)
+				 int v, struct hmap *freq_hash)
 
 {
   int i;
@@ -162,11 +136,14 @@ create_variable_frequency_table (const struct dictionary *dict,
   struct tab_table *table ;
   const struct variable *var =  ost->vars[v];
 
-  *freq_hash = create_freq_hash (dict, input, var);
-  if (*freq_hash == NULL)
-    return NULL;
+  hmap_init (freq_hash);
+  if (!create_freq_hash (dict, input, var, freq_hash))
+    {
+      freq_hmap_destroy (freq_hash, var_get_width (var));
+      return NULL;
+    }
 
-  n_cells = hsh_count (*freq_hash);
+  n_cells = hmap_count (freq_hash);
 
   if ( test->n_expected > 0 && n_cells != test->n_expected )
     {
@@ -175,8 +152,6 @@ create_variable_frequency_table (const struct dictionary *dict,
 	  test->n_expected, n_cells,
 	  var_get_name (var)
 	  );
-      hsh_destroy (*freq_hash);
-      *freq_hash = NULL;
       return NULL;
     }
 
@@ -323,11 +298,12 @@ chisquare_execute (const struct dataset *ds,
     {
       for ( v = 0 ; v < ost->n_vars ; ++v )
 	{
+          const struct variable *var = ost->vars[v];
 	  double total_obs = 0.0;
-	  struct hsh_table *freq_hash = NULL;
+	  struct hmap freq_hash;
           struct casereader *reader =
             casereader_create_filter_missing (casereader_clone (input),
-                                              &ost->vars[v], 1, exclude,
+                                              &var, 1, exclude,
 					      NULL, NULL);
 	  struct tab_table *freq_table =
             create_variable_frequency_table(dict, reader, cst, v, &freq_hash);
@@ -336,9 +312,9 @@ chisquare_execute (const struct dataset *ds,
 
 	  if ( NULL == freq_table )
             continue;
-          ff = (struct freq **) hsh_sort (freq_hash);
+          ff = freq_hmap_sort (&freq_hash, var_get_width (var));
 
-	  n_cells = hsh_count (freq_hash);
+	  n_cells = hmap_count (&freq_hash);
 
 	  for ( i = 0 ; i < n_cells ; ++i )
 	    total_obs += ff[i]->count;
@@ -351,7 +327,7 @@ chisquare_execute (const struct dataset *ds,
 	      const union value *observed_value = &ff[i]->value;
 
 	      ds_init_empty (&str);
-	      var_append_value_name (ost->vars[v], observed_value, &str);
+	      var_append_value_name (var, observed_value, &str);
 
 	      /* The key */
 	      tab_text (freq_table, 0, i + 1, TAB_LEFT, ds_cstr (&str));
@@ -384,7 +360,8 @@ chisquare_execute (const struct dataset *ds,
 
 	  tab_submit (freq_table);
 
-	  hsh_destroy (freq_hash);
+          freq_hmap_destroy (&freq_hash, var_get_width (var));
+          free (ff);
 	}
     }
   else  /* ranged == true */
@@ -395,28 +372,30 @@ chisquare_execute (const struct dataset *ds,
 
       for ( v = 0 ; v < ost->n_vars ; ++v )
 	{
+          const struct variable *var = ost->vars[v];
 	  double total_obs = 0.0;
           struct casereader *reader =
             casereader_create_filter_missing (casereader_clone (input),
-                                              &ost->vars[v], 1, exclude,
+                                              &var, 1, exclude,
 					      NULL, NULL);
-	  struct hsh_table *freq_hash =
-	    create_freq_hash_with_range (dict, reader,
-                                         ost->vars[v], cst->lo, cst->hi);
-
+	  struct hmap freq_hash;
 	  struct freq **ff;
 
-          if (freq_hash == NULL)
-            continue;
+          hmap_init (&freq_hash);
+          if (!create_freq_hash_with_range (dict, reader, var,
+                                            cst->lo, cst->hi, &freq_hash))
+            {
+              freq_hmap_destroy (&freq_hash, var_get_width (var));
+              continue;
+            }
 
-          ff = (struct freq **) hsh_sort (freq_hash);
-	  assert ( n_cells == hsh_count (freq_hash));
+          ff = freq_hmap_sort (&freq_hash, var_get_width (var));
 
-	  for ( i = 0 ; i < hsh_count (freq_hash) ; ++i )
+	  for ( i = 0 ; i < hmap_count (&freq_hash) ; ++i )
 	    total_obs += ff[i]->count;
 
 	  xsq[v] = 0.0;
-	  for ( i = 0 ; i < hsh_count (freq_hash) ; ++i )
+	  for ( i = 0 ; i < hmap_count (&freq_hash) ; ++i )
 	    {
 	      struct string str;
 	      double exp;
@@ -437,7 +416,7 @@ chisquare_execute (const struct dataset *ds,
 	      if ( cst->n_expected > 0 )
 		exp = cst->expected[i] * total_obs / total_expected ;
 	      else
-		exp = total_obs / (double) hsh_count (freq_hash);
+		exp = total_obs / (double) hmap_count (&freq_hash);
 
 	      /* The expected N */
 	      tab_double (freq_table, v * 4 + 3, i + 2 , TAB_NONE,
@@ -456,7 +435,8 @@ chisquare_execute (const struct dataset *ds,
 
 	  df[v] = n_cells - 1.0;
 
-	  hsh_destroy (freq_hash);
+	  freq_hmap_destroy (&freq_hash, var_get_width (var));
+          free (ff);
 	}
 
       tab_submit (freq_table);

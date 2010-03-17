@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,35 +14,28 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef freq_h
-#define freq_h
+#ifndef LANGUAGE_STATS_FREQ_H
+#define LANGUAGE_STATS_FREQ_H 1
 
-union value ;
+#include "data/value.h"
+#include "libpspp/hmap.h"
+
 /* Frequency table entry. */
 struct freq
   {
-    const union value value;	/* The value. */
+    struct hmap_node hmap_node; /* Element in hash table. */
+    union value value;          /* The value. */
     double count;		/* The number of occurrences of the value. */
   };
 
-/* Non const version of frequency table entry. */
-struct freq_mutable
-  {
-    union value value;	        /* The value. */
-    double count;		/* The number of occurrences of the value. */
-  };
+void freq_hmap_destroy (struct hmap *, int width);
 
+struct freq *freq_hmap_search (struct hmap *, const union value *, int width,
+                               size_t hash);
+struct freq *freq_hmap_insert (struct hmap *, const union value *, int width,
+                               size_t hash);
 
-int compare_freq ( const void *_f1, const void *_f2, const void *_var);
+struct freq **freq_hmap_sort (struct hmap *, int width);
+struct freq *freq_hmap_extract (struct hmap *);
 
-unsigned int hash_freq (const void *_f, const void *_var);
-
-/* Free function for struct freq */
-void free_freq_hash (void *fr, const void *aux);
-
-/* Free function for struct freq_mutable */
-void free_freq_mutable_hash (void *fr, const void *var);
-
-
-
-#endif
+#endif /* language/stats/freq.h */
