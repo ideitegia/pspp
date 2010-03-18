@@ -87,9 +87,9 @@
 /* Statistics. */
 enum
   {
-    frq_mean = 0, frq_semean, frq_median, frq_mode, frq_stddev, frq_variance,
-    frq_kurt, frq_sekurt, frq_skew, frq_seskew, frq_range, frq_min, frq_max,
-    frq_sum, frq_n_stats
+    FRQ_MEAN, FRQ_SEMEAN, FRQ_MEDIAN, FRQ_MODE, FRQ_STDDEV, FRQ_VARIANCE,
+    FRQ_KURT, FRQ_SEKURT, FRQ_SKEW, FRQ_SESKEW, FRQ_RANGE, FRQ_MIN, FRQ_MAX,
+    FRQ_SUM, FRQ_N_STATS
   };
 
 /* Description of a statistic. */
@@ -100,7 +100,7 @@ struct frq_info
   };
 
 /* Table of statistics, indexed by dsc_*. */
-static const struct frq_info st_name[frq_n_stats + 1] =
+static const struct frq_info st_name[FRQ_N_STATS + 1] =
 {
   {FRQ_ST_MEAN, N_("Mean")},
   {FRQ_ST_SEMEAN, N_("S.E. Mean")},
@@ -140,14 +140,14 @@ static int n_percentiles, n_show_percentiles;
 
 /* Groups of statistics. */
 #define BI          BIT_INDEX
-#define frq_default							\
-	(BI (frq_mean) | BI (frq_stddev) | BI (frq_min) | BI (frq_max))
-#define frq_all							\
-	(BI (frq_sum) | BI(frq_min) | BI(frq_max)		\
-	 | BI(frq_mean) | BI(frq_semean) | BI(frq_stddev)	\
-	 | BI(frq_variance) | BI(frq_kurt) | BI(frq_sekurt)	\
-	 | BI(frq_skew) | BI(frq_seskew) | BI(frq_range)	\
-	 | BI(frq_range) | BI(frq_mode) | BI(frq_median))
+#define FRQ_DEFAULT							\
+	(BI (FRQ_MEAN) | BI (FRQ_STDDEV) | BI (FRQ_MIN) | BI (FRQ_MAX))
+#define FRQ_ALL							\
+	(BI (FRQ_SUM) | BI(FRQ_MIN) | BI(FRQ_MAX)		\
+	 | BI(FRQ_MEAN) | BI(FRQ_SEMEAN) | BI(FRQ_STDDEV)	\
+	 | BI(FRQ_VARIANCE) | BI(FRQ_KURT) | BI(FRQ_SEKURT)	\
+	 | BI(FRQ_SKEW) | BI(FRQ_SESKEW) | BI(FRQ_RANGE)	\
+	 | BI(FRQ_RANGE) | BI(FRQ_MODE) | BI(FRQ_MEDIAN))
 
 /* Statistics; number of statistics. */
 static unsigned long stats;
@@ -210,7 +210,7 @@ struct var_freqs
     double *groups;		/* Groups. */
 
     /* Statistics. */
-    double stat[frq_n_stats];
+    double stat[FRQ_N_STATS];
 
     /* Variable attributes. */
     int width;
@@ -225,7 +225,7 @@ get_var_freqs (const struct variable *v)
 
 static void determine_charts (void);
 
-static void calc_stats (const struct variable *v, double d[frq_n_stats]);
+static void calc_stats (const struct variable *v, double d[FRQ_N_STATS]);
 
 static void precalc (struct casereader *, struct dataset *);
 static void calc (const struct ccase *, const struct dataset *);
@@ -291,22 +291,22 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   /* Figure out statistics to calculate. */
   stats = 0;
   if (cmd.a_statistics[FRQ_ST_DEFAULT] || !cmd.sbc_statistics)
-    stats |= frq_default;
+    stats |= FRQ_DEFAULT;
   if (cmd.a_statistics[FRQ_ST_ALL])
-    stats |= frq_all;
+    stats |= FRQ_ALL;
   if (cmd.sort != FRQ_AVALUE && cmd.sort != FRQ_DVALUE)
-    stats &= ~BIT_INDEX (frq_median);
-  for (i = 0; i < frq_n_stats; i++)
+    stats &= ~BIT_INDEX (FRQ_MEDIAN);
+  for (i = 0; i < FRQ_N_STATS; i++)
     if (cmd.a_statistics[st_name[i].st_indx])
       stats |= BIT_INDEX (i);
-  if (stats & frq_kurt)
-    stats |= BIT_INDEX (frq_sekurt);
-  if (stats & frq_skew)
-    stats |= BIT_INDEX (frq_seskew);
+  if (stats & FRQ_KURT)
+    stats |= BIT_INDEX (FRQ_SEKURT);
+  if (stats & FRQ_SKEW)
+    stats |= BIT_INDEX (FRQ_SESKEW);
 
   /* Calculate n_stats. */
   n_stats = 0;
-  for (i = 0; i < frq_n_stats; i++)
+  for (i = 0; i < FRQ_N_STATS; i++)
     if ((stats & BIT_INDEX (i)))
       n_stats++;
 
@@ -335,12 +335,12 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
             add_percentile (j / (double) cmd.n_ntiles[i], true);
 	}
     }
-  if (stats & BIT_INDEX (frq_median))
+  if (stats & BIT_INDEX (FRQ_MEDIAN))
     {
       /* Treat the median as the 50% percentile.
          We output it in the percentiles table as "50 (Median)." */
       add_percentile (0.5, true);
-      stats &= ~BIT_INDEX (frq_median);
+      stats &= ~BIT_INDEX (FRQ_MEDIAN);
       n_stats--;
     }
   if (cmd.sbc_histogram)
@@ -499,7 +499,7 @@ postcalc (const struct dataset *ds)
 
       if (cmd.sbc_histogram && var_is_numeric (v) && ft->n_valid > 0)
 	{
-	  double d[frq_n_stats];
+	  double d[FRQ_N_STATS];
 	  struct histogram *histogram;
 
 	  calc_stats (v, d);
@@ -509,8 +509,8 @@ postcalc (const struct dataset *ds)
           chart_item_submit (histogram_chart_create (
                                histogram->gsl_hist, var_to_string(v),
                                vf->tab.valid_cases,
-                               d[frq_mean],
-                               d[frq_stddev],
+                               d[FRQ_MEAN],
+                               d[FRQ_STDDEV],
                                hist.draw_normal));
 
 	  statistic_destroy (&histogram->parent);
@@ -986,7 +986,7 @@ dump_freq_table (const struct variable *v, const struct variable *wv)
 /* Calculates all the pertinent statistics for variable V, putting them in
    array D[]. */
 static void
-calc_stats (const struct variable *v, double d[frq_n_stats])
+calc_stats (const struct variable *v, double d[FRQ_N_STATS])
 {
   struct freq_tab *ft = &get_var_freqs (v)->tab;
   double W = ft->valid_cases;
@@ -1109,20 +1109,20 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
     moments_pass_one (m, f->value.f, f->count);
   for (f = ft->valid; f < ft->missing; f++)
     moments_pass_two (m, f->value.f, f->count);
-  moments_calculate (m, NULL, &d[frq_mean], &d[frq_variance],
-                     &d[frq_skew], &d[frq_kurt]);
+  moments_calculate (m, NULL, &d[FRQ_MEAN], &d[FRQ_VARIANCE],
+                     &d[FRQ_SKEW], &d[FRQ_KURT]);
   moments_destroy (m);
 
   /* Formulas below are taken from _SPSS Statistical Algorithms_. */
-  d[frq_min] = ft->valid[0].value.f;
-  d[frq_max] = ft->valid[ft->n_valid - 1].value.f;
-  d[frq_mode] = X_mode;
-  d[frq_range] = d[frq_max] - d[frq_min];
-  d[frq_sum] = d[frq_mean] * W;
-  d[frq_stddev] = sqrt (d[frq_variance]);
-  d[frq_semean] = d[frq_stddev] / sqrt (W);
-  d[frq_seskew] = calc_seskew (W);
-  d[frq_sekurt] = calc_sekurt (W);
+  d[FRQ_MIN] = ft->valid[0].value.f;
+  d[FRQ_MAX] = ft->valid[ft->n_valid - 1].value.f;
+  d[FRQ_MODE] = X_mode;
+  d[FRQ_RANGE] = d[FRQ_MAX] - d[FRQ_MIN];
+  d[FRQ_SUM] = d[FRQ_MEAN] * W;
+  d[FRQ_STDDEV] = sqrt (d[FRQ_VARIANCE]);
+  d[FRQ_SEMEAN] = d[FRQ_STDDEV] / sqrt (W);
+  d[FRQ_SESKEW] = calc_seskew (W);
+  d[FRQ_SEKURT] = calc_sekurt (W);
 }
 
 /* Displays a table of all the statistics requested for variable V. */
@@ -1131,7 +1131,7 @@ dump_statistics (const struct variable *v, const struct variable *wv)
 {
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : &F_8_0;
   struct freq_tab *ft;
-  double stat_value[frq_n_stats];
+  double stat_value[FRQ_N_STATS];
   struct tab_table *t;
   int i, r;
 
@@ -1156,7 +1156,7 @@ dump_statistics (const struct variable *v, const struct variable *wv)
 
   r=2; /* N missing and N valid are always dumped */
 
-  for (i = 0; i < frq_n_stats; i++)
+  for (i = 0; i < FRQ_N_STATS; i++)
     if (stats & BIT_INDEX (i))
       {
 	tab_text (t, 0, r, TAB_LEFT | TAT_TITLE,
