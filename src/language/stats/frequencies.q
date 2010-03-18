@@ -173,10 +173,6 @@ static struct frq_chart hist, pie;
 /* Parsed command. */
 static struct cmd_frequencies cmd;
 
-/* Variables for which to calculate statistics. */
-static size_t n_variables;
-static const struct variable **v_variables;
-
 /* Pools. */
 static struct pool *syntax_pool;        /* For syntax-related data. */
 
@@ -201,6 +197,8 @@ struct freq_tab
 /* Per-variable frequency data. */
 struct var_freqs
   {
+    struct variable *var;
+
     /* Freqency table. */
     struct freq_tab tab;	/* Frequencies table to use. */
 
@@ -216,24 +214,27 @@ struct var_freqs
     struct fmt_spec print;
   };
 
-static inline struct var_freqs *
-get_var_freqs (const struct variable *v)
-{
-  return var_get_aux (v);
-}
+struct frq_proc
+  {
+    struct var_freqs *vars;
+    size_t n_vars;
+  };
 
 static void determine_charts (void);
 
-static void calc_stats (const struct variable *v, double d[FRQ_N_STATS]);
+static void calc_stats (const struct var_freqs *v, double d[FRQ_N_STATS]);
 
-static void precalc (struct casereader *, struct dataset *);
-static void calc (const struct ccase *, const struct dataset *);
-static void postcalc (const struct dataset *);
+static void precalc (struct frq_proc *, struct casereader *, struct dataset *);
+static void calc (struct frq_proc *, const struct ccase *,
+                  const struct dataset *);
+static void postcalc (struct frq_proc *, const struct dataset *);
 
-static void postprocess_freq_tab (const struct variable *);
-static void dump_freq_table (const struct variable *, const struct variable *);
-static void dump_statistics (const struct variable *, const struct variable *);
-static void cleanup_freq_tab (const struct variable *);
+static void postprocess_freq_tab (struct var_freqs *);
+static void dump_freq_table (const struct var_freqs *,
+                             const struct variable *weight_var);
+static void dump_statistics (const struct var_freqs *,
+                             const struct variable *weight_var);
+static void cleanup_freq_tab (struct var_freqs *);
 
 static algo_compare_func compare_value_numeric_a, compare_value_alpha_a;
 static algo_compare_func compare_value_numeric_d, compare_value_alpha_d;
@@ -262,14 +263,13 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   result = internal_cmd_frequencies (lexer, ds);
   pool_destroy (syntax_pool);
   syntax_pool=0;
-  free (v_variables);
-  v_variables=0;
   return result;
 }
 
 static int
 internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 {
+  struct frq_proc frq;
   struct casegrouper *grouper;
   struct casereader *input, *group;
   bool ok;
@@ -279,10 +279,10 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   n_show_percentiles = 0;
   percentiles = NULL;
 
-  n_variables = 0;
-  v_variables = NULL;
+  frq.vars = NULL;
+  frq.n_vars = 0;
 
-  if (!parse_frequencies (lexer, ds, &cmd, NULL))
+  if (!parse_frequencies (lexer, ds, &cmd, &frq))
     return CMD_FAILURE;
 
   /* Figure out statistics to calculate. */
@@ -355,15 +355,17 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
     {
       struct ccase *c;
 
-      precalc (group, ds);
+      precalc (&frq, group, ds);
       for (; (c = casereader_read (group)) != NULL; case_unref (c))
-        calc (c, ds);
-      postcalc (ds);
+        calc (&frq, c, ds);
+      postcalc (&frq, ds);
     }
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;
 
   free_frequencies(&cmd);
+
+  free (frq.vars);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
@@ -415,25 +417,21 @@ determine_charts (void)
 
 /* Add data from case C to the frequency table. */
 static void
-calc (const struct ccase *c, const struct dataset *ds)
+calc (struct frq_proc *frq, const struct ccase *c, const struct dataset *ds)
 {
   double weight = dict_get_case_weight (dataset_dict (ds), c, NULL);
   size_t i;
 
-  for (i = 0; i < n_variables; i++)
+  for (i = 0; i < frq->n_vars; i++)
     {
-      const struct variable *var = v_variables[i];
-      int width = var_get_width (var);
-
-      const union value *value = case_data (c, var);
-      size_t hash = value_hash (value, width, 0);
-
-      struct hmap *hmap = &get_var_freqs (var)->tab.data;
+      struct var_freqs *vf = &frq->vars[i];
+      const union value *value = case_data (c, vf->var);
+      size_t hash = value_hash (value, vf->width, 0);
       struct freq *f;
 
-      f = freq_hmap_search (hmap, value, width, hash);
+      f = freq_hmap_search (&vf->tab.data, value, vf->width, hash);
       if (f == NULL)
-        f = freq_hmap_insert (hmap, value, width, hash);
+        f = freq_hmap_insert (&vf->tab.data, value, vf->width, hash);
 
       f->count += weight;
     }
@@ -442,7 +440,7 @@ calc (const struct ccase *c, const struct dataset *ds)
 /* Prepares each variable that is the target of FREQUENCIES by setting
    up its hash table. */
 static void
-precalc (struct casereader *input, struct dataset *ds)
+precalc (struct frq_proc *frq, struct casereader *input, struct dataset *ds)
 {
   struct ccase *c;
   size_t i;
@@ -454,54 +452,47 @@ precalc (struct casereader *input, struct dataset *ds)
       case_unref (c);
     }
 
-  for (i = 0; i < n_variables; i++)
-    {
-      const struct variable *v = v_variables[i];
-      struct freq_tab *ft = &get_var_freqs (v)->tab;
-
-      hmap_init (&ft->data);
-    }
+  for (i = 0; i < frq->n_vars; i++)
+    hmap_init (&frq->vars[i].tab.data);
 }
 
 /* Finishes up with the variables after frequencies have been
    calculated.  Displays statistics, percentiles, ... */
 static void
-postcalc (const struct dataset *ds)
+postcalc (struct frq_proc *frq, const struct dataset *ds)
 {
   const struct dictionary *dict = dataset_dict (ds);
   const struct variable *wv = dict_get_weight (dict);
   size_t i;
 
-  for (i = 0; i < n_variables; i++)
+  for (i = 0; i < frq->n_vars; i++)
     {
-      const struct variable *v = v_variables[i];
-      struct var_freqs *vf = get_var_freqs (v);
-      struct freq_tab *ft = &vf->tab;
+      struct var_freqs *vf = &frq->vars[i];
       int n_categories;
 
-      postprocess_freq_tab (v);
+      postprocess_freq_tab (vf);
 
       /* Frequencies tables. */
-      n_categories = ft->n_valid + ft->n_missing;
+      n_categories = vf->tab.n_valid + vf->tab.n_missing;
       if  (cmd.table == FRQ_TABLE
            || (cmd.table == FRQ_LIMIT && n_categories <= cmd.limit))
-        dump_freq_table (v, wv);
+        dump_freq_table (vf, wv);
 
       /* Statistics. */
       if (n_stats)
-	dump_statistics (v, wv);
+	dump_statistics (vf, wv);
 
-      if (cmd.sbc_histogram && var_is_numeric (v) && ft->n_valid > 0)
+      if (cmd.sbc_histogram && var_is_numeric (vf->var) && vf->tab.n_valid > 0)
 	{
 	  double d[FRQ_N_STATS];
 	  struct histogram *histogram;
 
-	  calc_stats (v, d);
+	  calc_stats (vf, d);
 
-	  histogram = freq_tab_to_hist (ft, v);
+	  histogram = freq_tab_to_hist (&vf->tab, vf->var);
 
           chart_item_submit (histogram_chart_create (
-                               histogram->gsl_hist, var_to_string(v),
+                               histogram->gsl_hist, var_to_string(vf->var),
                                vf->tab.valid_cases,
                                d[FRQ_MEAN],
                                d[FRQ_STDDEV],
@@ -511,9 +502,9 @@ postcalc (const struct dataset *ds)
 	}
 
       if (cmd.sbc_piechart)
-        do_piechart(v_variables[i], ft);
+        do_piechart(vf->var, &vf->tab);
 
-      cleanup_freq_tab (v);
+      cleanup_freq_tab (vf);
 
     }
 }
@@ -553,16 +544,13 @@ not_missing (const void *f_, const void *v_)
 
 /* Summarizes the frequency table data for variable V. */
 static void
-postprocess_freq_tab (const struct variable *v)
+postprocess_freq_tab (struct var_freqs *vf)
 {
+  struct freq_tab *ft = &vf->tab;
   algo_compare_func *compare;
-  struct freq_tab *ft;
   size_t count;
   struct freq *freqs, *f;
   size_t i;
-
-  ft = &get_var_freqs (v)->tab;
-  compare = get_freq_comparator (cmd.sort, var_get_type (v));
 
   /* Extract data from hash table. */
   count = hmap_count (&ft->data);
@@ -570,13 +558,14 @@ postprocess_freq_tab (const struct variable *v)
 
   /* Put data into ft. */
   ft->valid = freqs;
-  ft->n_valid = partition (freqs, count, sizeof *freqs, not_missing, v);
+  ft->n_valid = partition (freqs, count, sizeof *freqs, not_missing, vf->var);
   ft->missing = freqs + ft->n_valid;
   ft->n_missing = count - ft->n_valid;
 
   /* Sort data. */
-  sort (ft->valid, ft->n_valid, sizeof *ft->valid, compare, v);
-  sort (ft->missing, ft->n_missing, sizeof *ft->missing, compare, v);
+  compare = get_freq_comparator (cmd.sort, var_get_type (vf->var));
+  sort (ft->valid, ft->n_valid, sizeof *ft->valid, compare, vf);
+  sort (ft->missing, ft->n_missing, sizeof *ft->missing, compare, vf);
 
   /* Summary statistics. */
   ft->valid_cases = 0.0;
@@ -598,57 +587,66 @@ postprocess_freq_tab (const struct variable *v)
 
 /* Frees the frequency table for variable V. */
 static void
-cleanup_freq_tab (const struct variable *v)
+cleanup_freq_tab (struct var_freqs *vf)
 {
-  struct var_freqs *vf = get_var_freqs (v);
   free (vf->tab.valid);
   freq_hmap_destroy (&vf->tab.data, vf->width);
 }
 
-/* Parses the VARIABLES subcommand, adding to
-   {n_variables,v_variables}. */
+/* Parses the VARIABLES subcommand. */
 static int
-frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
+frq_custom_variables (struct lexer *lexer, struct dataset *ds,
+                      struct cmd_frequencies *cmd UNUSED, void *frq_ UNUSED)
 {
-  size_t old_n_variables = n_variables;
+  struct frq_proc *frq = frq_;
+  struct variable **vars;
+  size_t n_vars;
   size_t i;
 
   lex_match (lexer, '=');
-  if (lex_token (lexer) != T_ALL && (lex_token (lexer) != T_ID
-                         || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
+  if (lex_token (lexer) != T_ALL
+      && (lex_token (lexer) != T_ID
+          || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
     return 2;
 
-  if (!parse_variables_const (lexer, dataset_dict (ds), &v_variables, &n_variables,
-			PV_APPEND | PV_NO_SCRATCH))
+  /* Get list of current variables, to avoid duplicates. */
+  vars = xmalloc (frq->n_vars * sizeof *vars);
+  n_vars = frq->n_vars;
+  for (i = 0; i < frq->n_vars; i++)
+    vars[i] = frq->vars[i].var;
+
+  if (!parse_variables (lexer, dataset_dict (ds), &vars, &n_vars,
+                        PV_APPEND | PV_NO_SCRATCH))
     return 0;
 
-  for (i = old_n_variables; i < n_variables; i++)
+  frq->vars = xrealloc (frq->vars, n_vars * sizeof *frq->vars);
+  for (i = frq->n_vars; i < n_vars; i++)
     {
-      const struct variable *v = v_variables[i];
-      struct var_freqs *vf;
+      struct variable *var = vars[i];
+      struct var_freqs *vf = &frq->vars[i];
 
-      if (var_get_aux (v) != NULL)
-	{
-	  msg (SE, _("Variable %s specified multiple times on VARIABLES "
-		     "subcommand."), var_get_name (v));
-	  return 0;
-	}
-      vf = var_attach_aux (v, xmalloc (sizeof *vf), var_dtor_free);
+      vf->var = var;
       vf->tab.valid = vf->tab.missing = NULL;
       vf->tab.dict = dataset_dict (ds);
       vf->n_groups = 0;
       vf->groups = NULL;
-      vf->width = var_get_width (v);
-      vf->print = *var_get_print_format (v);
+      vf->width = var_get_width (var);
+      vf->print = *var_get_print_format (var);
     }
+  frq->n_vars = n_vars;
+
+  free (vars);
+
   return 1;
 }
 
 /* Parses the GROUPED subcommand, setting the n_grouped, grouped
    fields of specified variables. */
 static int
-frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
+frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *frq_ UNUSED)
 {
+  struct frq_proc *frq = frq_;
+
   lex_match (lexer, '=');
   if ((lex_token (lexer) == T_ID && dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
       || lex_token (lexer) == T_ID)
@@ -698,22 +696,31 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
           }
 
 	for (i = 0; i < n; i++)
-          if (var_get_aux (v[i]) == NULL)
+          {
+            size_t j;
+
+            for (j = 0; j < frq->n_vars; j++)
+              {
+                struct var_freqs *vf = &frq->vars[j];
+                if (vf->var == v[i])
+                  {
+                    if (vf->groups != NULL)
+                      msg (SE, _("Variables %s specified multiple times on "
+                                 "GROUPED subcommand."), var_get_name (v[i]));
+                    else
+                      {
+                        vf->n_groups = nl;
+                        vf->groups = dl;
+                      }
+                    goto found;
+                  }
+              }
             msg (SE, _("Variables %s specified on GROUPED but not on "
                        "VARIABLES."), var_get_name (v[i]));
-          else
-            {
-              struct var_freqs *vf = get_var_freqs (v[i]);
 
-              if (vf->groups != NULL)
-                msg (SE, _("Variables %s specified multiple times on GROUPED "
-                           "subcommand."), var_get_name (v[i]));
-              else
-                {
-                  vf->n_groups = nl;
-                  vf->groups = dl;
-                }
-            }
+          found:;
+          }
+
 	free (v);
 	if (!lex_match (lexer, '/'))
 	  break;
@@ -770,7 +777,8 @@ add_percentile (double x, bool show)
 
 /* Ascending numeric compare of values. */
 static int
-compare_value_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
+compare_value_numeric_a (const void *a_, const void *b_,
+                         const void *vf_ UNUSED)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
@@ -785,34 +793,33 @@ compare_value_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
 
 /* Ascending string compare of values. */
 static int
-compare_value_alpha_a (const void *a_, const void *b_, const void *v_)
+compare_value_alpha_a (const void *a_, const void *b_, const void *vf_)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
-  const struct variable *v = v_;
-  struct var_freqs *vf = get_var_freqs (v);
+  const struct var_freqs *vf = vf_;
 
   return value_compare_3way (&a->value, &b->value, vf->width);
 }
 
 /* Descending numeric compare of values. */
 static int
-compare_value_numeric_d (const void *a, const void *b, const void *aux UNUSED)
+compare_value_numeric_d (const void *a, const void *b, const void *vf_ UNUSED)
 {
-  return -compare_value_numeric_a (a, b, aux);
+  return -compare_value_numeric_a (a, b, vf_);
 }
 
 /* Descending string compare of values. */
 static int
-compare_value_alpha_d (const void *a, const void *b, const void *v)
+compare_value_alpha_d (const void *a, const void *b, const void *vf_)
 {
-  return -compare_value_alpha_a (a, b, v);
+  return -compare_value_alpha_a (a, b, vf_);
 }
 
 /* Ascending numeric compare of frequency;
    secondary key on ascending numeric value. */
 static int
-compare_freq_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
+compare_freq_numeric_a (const void *a_, const void *b_, const void *vf_ UNUSED)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
@@ -833,12 +840,11 @@ compare_freq_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
 /* Ascending numeric compare of frequency;
    secondary key on ascending string value. */
 static int
-compare_freq_alpha_a (const void *a_, const void *b_, const void *v_)
+compare_freq_alpha_a (const void *a_, const void *b_, const void *vf_)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
-  const struct variable *v = v_;
-  struct var_freqs *vf = get_var_freqs (v);
+  const struct var_freqs *vf = vf_;
 
   if (a->count > b->count)
     return 1;
@@ -851,7 +857,7 @@ compare_freq_alpha_a (const void *a_, const void *b_, const void *v_)
 /* Descending numeric compare of frequency;
    secondary key on ascending numeric value. */
 static int
-compare_freq_numeric_d (const void *a_, const void *b_, const void *aux UNUSED)
+compare_freq_numeric_d (const void *a_, const void *b_, const void *vf_ UNUSED)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
@@ -872,12 +878,11 @@ compare_freq_numeric_d (const void *a_, const void *b_, const void *aux UNUSED)
 /* Descending numeric compare of frequency;
    secondary key on ascending string value. */
 static int
-compare_freq_alpha_d (const void *a_, const void *b_, const void *v_)
+compare_freq_alpha_d (const void *a_, const void *b_, const void *vf_)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
-  const struct variable *v = v_;
-  struct var_freqs *vf = get_var_freqs (v);
+  const struct var_freqs *vf = vf_;
 
   if (a->count > b->count)
     return -1;
@@ -891,12 +896,11 @@ compare_freq_alpha_d (const void *a_, const void *b_, const void *v_)
 
 /* Displays a full frequency table for variable V. */
 static void
-dump_freq_table (const struct variable *v, const struct variable *wv)
+dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
 {
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : &F_8_0;
+  const struct freq_tab *ft = &vf->tab;
   int n_categories;
-  struct var_freqs *vf;
-  struct freq_tab *ft;
   struct freq *f;
   struct tab_table *t;
   int r, x;
@@ -912,8 +916,6 @@ dump_freq_table (const struct variable *v, const struct variable *wv)
     N_("Cum Percent")
   };
 
-  vf = get_var_freqs (v);
-  ft = &vf->tab;
   n_categories = ft->n_valid + ft->n_missing;
   t = tab_create (6, n_categories + 2);
   tab_headers (t, 0, 0, 1, 0);
@@ -933,7 +935,7 @@ dump_freq_table (const struct variable *v, const struct variable *wv)
       valid_percent = f->count / ft->valid_cases * 100.0;
       cum_total += valid_percent;
 
-      label = var_lookup_value_label (v, &f->value);
+      label = var_lookup_value_label (vf->var, &f->value);
       if (label != NULL)
         tab_text (t, 0, r, TAB_LEFT, label);
 
@@ -950,7 +952,7 @@ dump_freq_table (const struct variable *v, const struct variable *wv)
 
       cum_freq += f->count;
 
-      label = var_lookup_value_label (v, &f->value);
+      label = var_lookup_value_label (vf->var, &f->value);
       if (label != NULL)
         tab_text (t, 0, r, TAB_LEFT, label);
 
@@ -971,7 +973,7 @@ dump_freq_table (const struct variable *v, const struct variable *wv)
   tab_fixed (t, 3, r, TAB_NONE, 100.0, 5, 1);
   tab_fixed (t, 4, r, TAB_NONE, 100.0, 5, 1);
 
-  tab_title (t, "%s", var_to_string (v));
+  tab_title (t, "%s", var_to_string (vf->var));
   tab_submit (t);
 }
 
@@ -980,9 +982,9 @@ dump_freq_table (const struct variable *v, const struct variable *wv)
 /* Calculates all the pertinent statistics for variable V, putting them in
    array D[]. */
 static void
-calc_stats (const struct variable *v, double d[FRQ_N_STATS])
+calc_stats (const struct var_freqs *vf, double d[FRQ_N_STATS])
 {
-  struct freq_tab *ft = &get_var_freqs (v)->tab;
+  const struct freq_tab *ft = &vf->tab;
   double W = ft->valid_cases;
   struct moments *m;
   struct freq *f=0;
@@ -1061,7 +1063,6 @@ calc_stats (const struct variable *v, double d[FRQ_N_STATS])
 
   for (i = 0; i < n_percentiles; i++)
     {
-      struct freq_tab *ft = &get_var_freqs (v)->tab;
       double s;
 
       double dummy;
@@ -1121,24 +1122,24 @@ calc_stats (const struct variable *v, double d[FRQ_N_STATS])
 
 /* Displays a table of all the statistics requested for variable V. */
 static void
-dump_statistics (const struct variable *v, const struct variable *wv)
+dump_statistics (const struct var_freqs *vf, const struct variable *wv)
 {
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : &F_8_0;
-  struct freq_tab *ft;
+  const struct freq_tab *ft = &vf->tab;
   double stat_value[FRQ_N_STATS];
   struct tab_table *t;
   int i, r;
 
-  if (var_is_alpha (v))
+  if (var_is_alpha (vf->var))
     return;
-  ft = &get_var_freqs (v)->tab;
+
   if (ft->n_valid == 0)
     {
       msg (SW, _("No valid data for variable %s; statistics not displayed."),
-	   var_get_name (v));
+	   var_get_name (vf->var));
       return;
     }
-  calc_stats (v, stat_value);
+  calc_stats (vf, stat_value);
 
   t = tab_create (3, n_stats + n_show_percentiles + 2);
 
@@ -1181,10 +1182,10 @@ dump_statistics (const struct variable *v, const struct variable *wv)
       else
         tab_fixed (t, 1, r, TAB_LEFT, percentiles[i].p * 100, 3, 0);
       tab_double (t, 2, r, TAB_NONE, percentiles[i].value,
-		  var_get_print_format (v));
+		  var_get_print_format (vf->var));
     }
 
-  tab_title (t, "%s", var_to_string (v));
+  tab_title (t, "%s", var_to_string (vf->var));
 
   tab_submit (t);
 }
