@@ -133,8 +133,6 @@ struct percentile
 };
 
 
-static void add_percentile (double x, bool show);
-
 static struct percentile *percentiles;
 static int n_percentiles, n_show_percentiles;
 
@@ -172,9 +170,6 @@ static struct frq_chart hist, pie;
 
 /* Parsed command. */
 static struct cmd_frequencies cmd;
-
-/* Pools. */
-static struct pool *syntax_pool;        /* For syntax-related data. */
 
 /* Frequency tables. */
 
@@ -216,6 +211,8 @@ struct var_freqs
 
 struct frq_proc
   {
+    struct pool *pool;
+
     struct var_freqs *vars;
     size_t n_vars;
   };
@@ -241,6 +238,7 @@ static algo_compare_func compare_value_numeric_d, compare_value_alpha_d;
 static algo_compare_func compare_freq_numeric_a, compare_freq_alpha_a;
 static algo_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
 
+static void add_percentile (struct frq_proc *, double x, bool show);
 
 static void do_piechart(const struct variable *var,
 			const struct freq_tab *frq_tab);
@@ -252,22 +250,8 @@ freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var);
 
 /* Parser and outline. */
 
-static int internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds);
-
 int
 cmd_frequencies (struct lexer *lexer, struct dataset *ds)
-{
-  int result;
-
-  syntax_pool = pool_create ();
-  result = internal_cmd_frequencies (lexer, ds);
-  pool_destroy (syntax_pool);
-  syntax_pool=0;
-  return result;
-}
-
-static int
-internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 {
   struct frq_proc frq;
   struct casegrouper *grouper;
@@ -279,11 +263,15 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   n_show_percentiles = 0;
   percentiles = NULL;
 
+  frq.pool = pool_create ();
   frq.vars = NULL;
   frq.n_vars = 0;
 
   if (!parse_frequencies (lexer, ds, &cmd, &frq))
-    return CMD_FAILURE;
+    {
+      pool_destroy (frq.pool);
+      return CMD_FAILURE;
+    }
 
   /* Figure out statistics to calculate. */
   stats = 0;
@@ -320,7 +308,8 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 	  int pl;
 	  subc_list_double *ptl_list = &cmd.dl_percentiles[i];
 	  for ( pl = 0 ; pl < subc_list_double_count(ptl_list); ++pl)
-            add_percentile (subc_list_double_at(ptl_list, pl) / 100.0, true);
+            add_percentile (&frq, subc_list_double_at(ptl_list, pl) / 100.0,
+                            true);
 	}
     }
   if ( cmd.sbc_ntiles )
@@ -329,21 +318,21 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 	{
 	  int j;
 	  for (j = 0; j <= cmd.n_ntiles[i]; ++j )
-            add_percentile (j / (double) cmd.n_ntiles[i], true);
+            add_percentile (&frq, j / (double) cmd.n_ntiles[i], true);
 	}
     }
   if (stats & BIT_INDEX (FRQ_MEDIAN))
     {
       /* Treat the median as the 50% percentile.
          We output it in the percentiles table as "50 (Median)." */
-      add_percentile (0.5, true);
+      add_percentile (&frq, 0.5, true);
       stats &= ~BIT_INDEX (FRQ_MEDIAN);
       n_stats--;
     }
   if (cmd.sbc_histogram)
     {
-      add_percentile (0.25, false);
-      add_percentile (0.75, false);
+      add_percentile (&frq, 0.25, false);
+      add_percentile (&frq, 0.75, false);
     }
 
   /* Do it! */
@@ -365,6 +354,7 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 
   free_frequencies(&cmd);
 
+  pool_destroy (frq.pool);
   free (frq.vars);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
@@ -674,7 +664,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 		if (nl >= ml)
 		  {
 		    ml += 16;
-		    dl = pool_nrealloc (syntax_pool, dl, ml, sizeof *dl);
+		    dl = pool_nrealloc (frq->pool, dl, ml, sizeof *dl);
 		  }
 		dl[nl++] = lex_tokval (lexer);
 		lex_get (lexer);
@@ -739,7 +729,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
    order.  If SHOW is true, the percentile will be shown in the statistics
    box, otherwise it will be hidden. */
 static void
-add_percentile (double x, bool show)
+add_percentile (struct frq_proc *frq, double x, bool show)
 {
   int i;
 
@@ -762,7 +752,7 @@ add_percentile (double x, bool show)
 
   if (i >= n_percentiles || x != percentiles[i].p)
     {
-      percentiles = pool_nrealloc (syntax_pool, percentiles,
+      percentiles = pool_nrealloc (frq->pool, percentiles,
                                    n_percentiles + 1, sizeof *percentiles);
       insert_element (percentiles, n_percentiles, sizeof *percentiles, i);
       percentiles[i].p = x;
