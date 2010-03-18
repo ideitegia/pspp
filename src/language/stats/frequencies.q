@@ -178,7 +178,6 @@ static size_t n_variables;
 static const struct variable **v_variables;
 
 /* Pools. */
-static struct pool *data_pool;  	/* For per-SPLIT FILE group data. */
 static struct pool *syntax_pool;        /* For syntax-related data. */
 
 /* Frequency tables. */
@@ -263,8 +262,6 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   result = internal_cmd_frequencies (lexer, ds);
   pool_destroy (syntax_pool);
   syntax_pool=0;
-  pool_destroy (data_pool);
-  data_pool=0;
   free (v_variables);
   v_variables=0;
   return result;
@@ -456,9 +453,6 @@ precalc (struct casereader *input, struct dataset *ds)
       output_split_file_values (ds, c);
       case_unref (c);
     }
-
-  pool_destroy (data_pool);
-  data_pool = pool_create ();
 
   for (i = 0; i < n_variables; i++)
     {
