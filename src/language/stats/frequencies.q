@@ -157,9 +157,6 @@ struct frq_chart
     bool include_missing;       /* Whether to include missing values. */
   };
 
-/* Histogram and pie chart settings. */
-static struct frq_chart hist, pie;
-
 /* Parsed command. */
 static struct cmd_frequencies cmd;
 
@@ -214,9 +211,12 @@ struct frq_proc
     /* Statistics; number of statistics. */
     unsigned long stats;
     int n_stats;
+
+    /* Histogram and pie chart settings. */
+    struct frq_chart *hist, *pie;
   };
 
-static void determine_charts (void);
+static void determine_charts (struct frq_proc *frq);
 
 static void calc_stats (const struct frq_proc *, const struct var_freqs *,
                         double d[FRQ_N_STATS]);
@@ -241,8 +241,8 @@ static algo_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
 static void add_percentile (struct frq_proc *, double x, bool show,
                             size_t *allocated_percentiles);
 
-static void do_piechart(const struct variable *var,
-			const struct freq_tab *frq_tab);
+static void do_piechart(const struct frq_chart *, const struct variable *,
+			const struct freq_tab *);
 
 struct histogram *freq_tab_to_hist(const struct frq_proc *,
                                    const struct freq_tab *,
@@ -268,6 +268,9 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   frq.percentiles = NULL;
   frq.n_percentiles = 0;
   frq.n_show_percentiles = 0;
+
+  frq.hist = NULL;
+  frq.pie = NULL;
 
   allocated_percentiles = 0;
 
@@ -300,7 +303,7 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
       frq.n_stats++;
 
   /* Charting. */
-  determine_charts ();
+  determine_charts (&frq);
   if (cmd.sbc_histogram || cmd.sbc_piechart || cmd.sbc_ntiles)
     cmd.sort = FRQ_AVALUE;
 
@@ -362,53 +365,61 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   pool_destroy (frq.pool);
   free (frq.vars);
   free (frq.percentiles);
+  free (frq.hist);
+  free (frq.pie);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
 
 /* Figure out which charts the user requested.  */
 static void
-determine_charts (void)
+determine_charts (struct frq_proc *frq)
 {
   if (cmd.sbc_barchart)
     msg (SW, _("Bar charts are not implemented."));
 
   if (cmd.sbc_histogram)
     {
-      hist.x_min = cmd.hi_min;
-      hist.x_max = cmd.hi_max;
-      hist.y_scale = cmd.hi_scale;
-      hist.y_max = cmd.hi_scale == FRQ_FREQ ? cmd.hi_freq : cmd.hi_pcnt;
-      hist.draw_normal = cmd.hi_norm != FRQ_NONORMAL;
-      hist.include_missing = false;
+      struct frq_chart *hist;
 
-      if (hist.x_min != SYSMIS && hist.x_max != SYSMIS
-          && hist.x_min >= hist.x_max)
+      hist = frq->hist = xmalloc (sizeof *frq->hist);
+      hist->x_min = cmd.hi_min;
+      hist->x_max = cmd.hi_max;
+      hist->y_scale = cmd.hi_scale;
+      hist->y_max = cmd.hi_scale == FRQ_FREQ ? cmd.hi_freq : cmd.hi_pcnt;
+      hist->draw_normal = cmd.hi_norm != FRQ_NONORMAL;
+      hist->include_missing = false;
+
+      if (hist->x_min != SYSMIS && hist->x_max != SYSMIS
+          && hist->x_min >= hist->x_max)
         {
           msg (SE, _("MAX for histogram must be greater than or equal to MIN, "
                      "but MIN was specified as %.15g and MAX as %.15g.  "
-                     "MIN and MAX will be ignored."), hist.x_min, hist.x_max);
-          hist.x_min = hist.x_max = SYSMIS;
+                     "MIN and MAX will be ignored."),
+               hist->x_min, hist->x_max);
+          hist->x_min = hist->x_max = SYSMIS;
         }
     }
 
   if (cmd.sbc_piechart)
     {
-      pie.x_min = cmd.pie_min;
-      pie.x_max = cmd.pie_max;
-      pie.y_scale = cmd.pie_scale;
-      pie.include_missing = cmd.pie_missing == FRQ_MISSING;
+      struct frq_chart *pie;
 
-      if (pie.x_min != SYSMIS && pie.x_max != SYSMIS
-          && pie.x_min >= pie.x_max)
+      pie = frq->pie = xmalloc (sizeof *frq->pie);
+      pie->x_min = cmd.pie_min;
+      pie->x_max = cmd.pie_max;
+      pie->y_scale = cmd.pie_scale;
+      pie->include_missing = cmd.pie_missing == FRQ_MISSING;
+
+      if (pie->x_min != SYSMIS && pie->x_max != SYSMIS
+          && pie->x_min >= pie->x_max)
         {
           msg (SE, _("MAX for pie chart must be greater than or equal to MIN, "
                      "but MIN was specified as %.15g and MAX as %.15g.  "
-                     "MIN and MAX will be ignored."), pie.x_min, pie.x_max);
-          pie.x_min = pie.x_max = SYSMIS;
+                     "MIN and MAX will be ignored."), pie->x_min, pie->x_max);
+          pie->x_min = pie->x_max = SYSMIS;
         }
     }
-
 }
 
 /* Add data from case C to the frequency table. */
@@ -478,7 +489,7 @@ postcalc (struct frq_proc *frq, const struct dataset *ds)
       if (frq->n_stats)
 	dump_statistics (frq, vf, wv);
 
-      if (cmd.sbc_histogram && var_is_numeric (vf->var) && vf->tab.n_valid > 0)
+      if (frq->hist && var_is_numeric (vf->var) && vf->tab.n_valid > 0)
 	{
 	  double d[FRQ_N_STATS];
 	  struct histogram *histogram;
@@ -492,13 +503,13 @@ postcalc (struct frq_proc *frq, const struct dataset *ds)
                                vf->tab.valid_cases,
                                d[FRQ_MEAN],
                                d[FRQ_STDDEV],
-                               hist.draw_normal));
+                               frq->hist->draw_normal));
 
 	  statistic_destroy (&histogram->parent);
 	}
 
-      if (cmd.sbc_piechart)
-        do_piechart(vf->var, &vf->tab);
+      if (frq->pie)
+        do_piechart(frq->pie, vf->var, &vf->tab);
 
       cleanup_freq_tab (vf);
 
@@ -1254,12 +1265,12 @@ freq_tab_to_hist (const struct frq_proc *frq, const struct freq_tab *ft,
   valid_freq = 0;
   for (i = 0; i < ft->n_valid; i++)
     {
-      const struct freq *frq = &ft->valid[i];
-      if (chart_includes_value (&hist, var, &frq->value))
+      const struct freq *f = &ft->valid[i];
+      if (chart_includes_value (frq->hist, var, &f->value))
         {
-          x_min = MIN (x_min, frq->value.f);
-          x_max = MAX (x_max, frq->value.f);
-          valid_freq += frq->count;
+          x_min = MIN (x_min, f->value.f);
+          x_max = MAX (x_max, f->value.f);
+          valid_freq += f->count;
         }
     }
 
@@ -1280,19 +1291,19 @@ freq_tab_to_hist (const struct frq_proc *frq, const struct freq_tab *ft,
   histogram = histogram_create (bins, x_min, x_max);
   for (i = 0; i < ft->n_valid; i++)
     {
-      const struct freq *frq = &ft->valid[i];
-      if (chart_includes_value (&hist, var, &frq->value))
-        histogram_add (histogram, frq->value.f, frq->count);
+      const struct freq *f = &ft->valid[i];
+      if (chart_includes_value (frq->hist, var, &f->value))
+        histogram_add (histogram, f->value.f, f->count);
     }
 
   return histogram;
 }
 
 static int
-add_slice (const struct freq *freq, const struct variable *var,
-           struct slice *slice)
+add_slice (const struct frq_chart *pie, const struct freq *freq,
+           const struct variable *var, struct slice *slice)
 {
-  if (chart_includes_value (&pie, var, &freq->value))
+  if (chart_includes_value (pie, var, &freq->value))
     {
       ds_init_empty (&slice->label);
       var_append_value_name (var, &freq->value, &slice->label);
@@ -1308,7 +1319,8 @@ add_slice (const struct freq *freq, const struct variable *var,
    The caller is responsible for freeing slices
 */
 static struct slice *
-freq_tab_to_slice_array(const struct freq_tab *frq_tab,
+freq_tab_to_slice_array(const struct frq_chart *pie,
+                        const struct freq_tab *frq_tab,
 			const struct variable *var,
 			int *n_slicesp)
 {
@@ -1320,9 +1332,9 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
   n_slices = 0;
 
   for (i = 0; i < frq_tab->n_valid; i++)
-    n_slices += add_slice (&frq_tab->valid[i], var, &slices[n_slices]);
+    n_slices += add_slice (pie, &frq_tab->valid[i], var, &slices[n_slices]);
   for (i = 0; i < frq_tab->n_missing; i++)
-    n_slices += add_slice (&frq_tab->missing[i], var, &slices[n_slices]);
+    n_slices += add_slice (pie, &frq_tab->missing[i], var, &slices[n_slices]);
 
   *n_slicesp = n_slices;
   return slices;
@@ -1332,12 +1344,13 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
 
 
 static void
-do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
+do_piechart(const struct frq_chart *pie, const struct variable *var,
+            const struct freq_tab *frq_tab)
 {
   struct slice *slices;
   int n_slices, i;
 
-  slices = freq_tab_to_slice_array (frq_tab, var, &n_slices);
+  slices = freq_tab_to_slice_array (pie, frq_tab, var, &n_slices);
 
   if (n_slices < 2)
     msg (SW, _("Omitting pie chart for %s, which has only %d unique values."),
