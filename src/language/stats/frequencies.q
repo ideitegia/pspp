@@ -143,10 +143,6 @@ struct percentile
 	 | BI(FRQ_SKEW) | BI(FRQ_SESKEW) | BI(FRQ_RANGE)	\
 	 | BI(FRQ_RANGE) | BI(FRQ_MODE) | BI(FRQ_MEDIAN))
 
-/* Statistics; number of statistics. */
-static unsigned long stats;
-static int n_stats;
-
 struct frq_chart
   {
     double x_min;               /* X axis minimum value. */
@@ -214,6 +210,10 @@ struct frq_proc
 
     struct percentile *percentiles;
     int n_percentiles, n_show_percentiles;
+
+    /* Statistics; number of statistics. */
+    unsigned long stats;
+    int n_stats;
   };
 
 static void determine_charts (void);
@@ -278,26 +278,26 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
     }
 
   /* Figure out statistics to calculate. */
-  stats = 0;
+  frq.stats = 0;
   if (cmd.a_statistics[FRQ_ST_DEFAULT] || !cmd.sbc_statistics)
-    stats |= FRQ_DEFAULT;
+    frq.stats |= FRQ_DEFAULT;
   if (cmd.a_statistics[FRQ_ST_ALL])
-    stats |= FRQ_ALL;
+    frq.stats |= FRQ_ALL;
   if (cmd.sort != FRQ_AVALUE && cmd.sort != FRQ_DVALUE)
-    stats &= ~BIT_INDEX (FRQ_MEDIAN);
+    frq.stats &= ~BIT_INDEX (FRQ_MEDIAN);
   for (i = 0; i < FRQ_N_STATS; i++)
     if (cmd.a_statistics[st_name[i].st_indx])
-      stats |= BIT_INDEX (i);
-  if (stats & FRQ_KURT)
-    stats |= BIT_INDEX (FRQ_SEKURT);
-  if (stats & FRQ_SKEW)
-    stats |= BIT_INDEX (FRQ_SESKEW);
+      frq.stats |= BIT_INDEX (i);
+  if (frq.stats & FRQ_KURT)
+    frq.stats |= BIT_INDEX (FRQ_SEKURT);
+  if (frq.stats & FRQ_SKEW)
+    frq.stats |= BIT_INDEX (FRQ_SESKEW);
 
   /* Calculate n_stats. */
-  n_stats = 0;
+  frq.n_stats = 0;
   for (i = 0; i < FRQ_N_STATS; i++)
-    if ((stats & BIT_INDEX (i)))
-      n_stats++;
+    if ((frq.stats & BIT_INDEX (i)))
+      frq.n_stats++;
 
   /* Charting. */
   determine_charts ();
@@ -326,13 +326,13 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
                             &allocated_percentiles);
 	}
     }
-  if (stats & BIT_INDEX (FRQ_MEDIAN))
+  if (frq.stats & BIT_INDEX (FRQ_MEDIAN))
     {
       /* Treat the median as the 50% percentile.
          We output it in the percentiles table as "50 (Median)." */
       add_percentile (&frq, 0.5, true, &allocated_percentiles);
-      stats &= ~BIT_INDEX (FRQ_MEDIAN);
-      n_stats--;
+      frq.stats &= ~BIT_INDEX (FRQ_MEDIAN);
+      frq.n_stats--;
     }
   if (cmd.sbc_histogram)
     {
@@ -475,7 +475,7 @@ postcalc (struct frq_proc *frq, const struct dataset *ds)
         dump_freq_table (vf, wv);
 
       /* Statistics. */
-      if (n_stats)
+      if (frq->n_stats)
 	dump_statistics (frq, vf, wv);
 
       if (cmd.sbc_histogram && var_is_numeric (vf->var) && vf->tab.n_valid > 0)
@@ -1148,7 +1148,7 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
     }
   calc_stats (frq, vf, stat_value);
 
-  t = tab_create (3, n_stats + frq->n_show_percentiles + 2);
+  t = tab_create (3, frq->n_stats + frq->n_show_percentiles + 2);
 
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
 
@@ -1159,7 +1159,7 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
   r=2; /* N missing and N valid are always dumped */
 
   for (i = 0; i < FRQ_N_STATS; i++)
-    if (stats & BIT_INDEX (i))
+    if (frq->stats & BIT_INDEX (i))
       {
 	tab_text (t, 0, r, TAB_LEFT | TAT_TITLE,
 		      gettext (st_name[i].s10));
