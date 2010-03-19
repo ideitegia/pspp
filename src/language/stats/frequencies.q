@@ -157,9 +157,6 @@ struct frq_chart
     bool include_missing;       /* Whether to include missing values. */
   };
 
-/* Parsed command. */
-static struct cmd_frequencies cmd;
-
 /* Frequency tables. */
 
 /* Entire frequency table. */
@@ -205,8 +202,14 @@ struct frq_proc
     struct var_freqs *vars;
     size_t n_vars;
 
+    /* Percentiles to calculate and possibly display. */
     struct percentile *percentiles;
     int n_percentiles, n_show_percentiles;
+
+    /* Frequency table display. */
+    int max_categories;         /* Maximum categories to show. */
+    int sort;                   /* FRQ_AVALUE or FRQ_DVALUE
+                                   or FRQ_ACOUNT or FRQ_DCOUNT. */
 
     /* Statistics; number of statistics. */
     unsigned long stats;
@@ -216,7 +219,8 @@ struct frq_proc
     struct frq_chart *hist, *pie;
   };
 
-static void determine_charts (struct frq_proc *frq);
+static void determine_charts (struct frq_proc *,
+                              const struct cmd_frequencies *);
 
 static void calc_stats (const struct frq_proc *, const struct var_freqs *,
                         double d[FRQ_N_STATS]);
@@ -226,7 +230,7 @@ static void calc (struct frq_proc *, const struct ccase *,
                   const struct dataset *);
 static void postcalc (struct frq_proc *, const struct dataset *);
 
-static void postprocess_freq_tab (struct var_freqs *);
+static void postprocess_freq_tab (const struct frq_proc *, struct var_freqs *);
 static void dump_freq_table (const struct var_freqs *,
                              const struct variable *weight_var);
 static void dump_statistics (const struct frq_proc *, const struct var_freqs *,
@@ -253,6 +257,7 @@ struct histogram *freq_tab_to_hist(const struct frq_proc *,
 int
 cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 {
+  struct cmd_frequencies cmd;
   struct frq_proc frq;
   struct casegrouper *grouper;
   struct casereader *input, *group;
@@ -280,6 +285,12 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
       return CMD_FAILURE;
     }
 
+  /* Figure out when to show frequency tables. */
+  frq.max_categories = (cmd.table == FRQ_NOTABLE ? -1
+                        : cmd.table == FRQ_TABLE ? INT_MAX
+                        : cmd.limit);
+  frq.sort = cmd.sort;
+
   /* Figure out statistics to calculate. */
   frq.stats = 0;
   if (cmd.a_statistics[FRQ_ST_DEFAULT] || !cmd.sbc_statistics)
@@ -303,7 +314,7 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
       frq.n_stats++;
 
   /* Charting. */
-  determine_charts (&frq);
+  determine_charts (&frq, &cmd);
   if (cmd.sbc_histogram || cmd.sbc_piechart || cmd.sbc_ntiles)
     cmd.sort = FRQ_AVALUE;
 
@@ -373,21 +384,21 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 
 /* Figure out which charts the user requested.  */
 static void
-determine_charts (struct frq_proc *frq)
+determine_charts (struct frq_proc *frq, const struct cmd_frequencies *cmd)
 {
-  if (cmd.sbc_barchart)
+  if (cmd->sbc_barchart)
     msg (SW, _("Bar charts are not implemented."));
 
-  if (cmd.sbc_histogram)
+  if (cmd->sbc_histogram)
     {
       struct frq_chart *hist;
 
       hist = frq->hist = xmalloc (sizeof *frq->hist);
-      hist->x_min = cmd.hi_min;
-      hist->x_max = cmd.hi_max;
-      hist->y_scale = cmd.hi_scale;
-      hist->y_max = cmd.hi_scale == FRQ_FREQ ? cmd.hi_freq : cmd.hi_pcnt;
-      hist->draw_normal = cmd.hi_norm != FRQ_NONORMAL;
+      hist->x_min = cmd->hi_min;
+      hist->x_max = cmd->hi_max;
+      hist->y_scale = cmd->hi_scale;
+      hist->y_max = cmd->hi_scale == FRQ_FREQ ? cmd->hi_freq : cmd->hi_pcnt;
+      hist->draw_normal = cmd->hi_norm != FRQ_NONORMAL;
       hist->include_missing = false;
 
       if (hist->x_min != SYSMIS && hist->x_max != SYSMIS
@@ -401,15 +412,15 @@ determine_charts (struct frq_proc *frq)
         }
     }
 
-  if (cmd.sbc_piechart)
+  if (cmd->sbc_piechart)
     {
       struct frq_chart *pie;
 
       pie = frq->pie = xmalloc (sizeof *frq->pie);
-      pie->x_min = cmd.pie_min;
-      pie->x_max = cmd.pie_max;
-      pie->y_scale = cmd.pie_scale;
-      pie->include_missing = cmd.pie_missing == FRQ_MISSING;
+      pie->x_min = cmd->pie_min;
+      pie->x_max = cmd->pie_max;
+      pie->y_scale = cmd->pie_scale;
+      pie->include_missing = cmd->pie_missing == FRQ_MISSING;
 
       if (pie->x_min != SYSMIS && pie->x_max != SYSMIS
           && pie->x_min >= pie->x_max)
@@ -475,14 +486,11 @@ postcalc (struct frq_proc *frq, const struct dataset *ds)
   for (i = 0; i < frq->n_vars; i++)
     {
       struct var_freqs *vf = &frq->vars[i];
-      int n_categories;
 
-      postprocess_freq_tab (vf);
+      postprocess_freq_tab (frq, vf);
 
       /* Frequencies tables. */
-      n_categories = vf->tab.n_valid + vf->tab.n_missing;
-      if  (cmd.table == FRQ_TABLE
-           || (cmd.table == FRQ_LIMIT && n_categories <= cmd.limit))
+      if (vf->tab.n_valid + vf->tab.n_missing <= frq->max_categories)
         dump_freq_table (vf, wv);
 
       /* Statistics. */
@@ -551,7 +559,7 @@ not_missing (const void *f_, const void *v_)
 
 /* Summarizes the frequency table data for variable V. */
 static void
-postprocess_freq_tab (struct var_freqs *vf)
+postprocess_freq_tab (const struct frq_proc *frq, struct var_freqs *vf)
 {
   struct freq_tab *ft = &vf->tab;
   algo_compare_func *compare;
@@ -570,7 +578,7 @@ postprocess_freq_tab (struct var_freqs *vf)
   ft->n_missing = count - ft->n_valid;
 
   /* Sort data. */
-  compare = get_freq_comparator (cmd.sort, var_get_type (vf->var));
+  compare = get_freq_comparator (frq->sort, var_get_type (vf->var));
   sort (ft->valid, ft->n_valid, sizeof *ft->valid, compare, vf);
   sort (ft->missing, ft->n_missing, sizeof *ft->missing, compare, vf);
 
