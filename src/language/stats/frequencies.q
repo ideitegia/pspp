@@ -237,11 +237,6 @@ static void dump_statistics (const struct frq_proc *, const struct var_freqs *,
                              const struct variable *weight_var);
 static void cleanup_freq_tab (struct var_freqs *);
 
-static algo_compare_func compare_value_numeric_a, compare_value_alpha_a;
-static algo_compare_func compare_value_numeric_d, compare_value_alpha_d;
-static algo_compare_func compare_freq_numeric_a, compare_freq_alpha_a;
-static algo_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
-
 static void add_percentile (struct frq_proc *, double x, bool show,
                             size_t *allocated_percentiles);
 
@@ -524,28 +519,6 @@ postcalc (struct frq_proc *frq, const struct dataset *ds)
     }
 }
 
-/* Returns the comparison function that should be used for
-   sorting a frequency table by FRQ_SORT using VAL_TYPE
-   values. */
-static algo_compare_func *
-get_freq_comparator (int frq_sort, enum val_type val_type)
-{
-  bool is_numeric = val_type == VAL_NUMERIC;
-  switch (frq_sort)
-    {
-    case FRQ_AVALUE:
-      return is_numeric ? compare_value_numeric_a : compare_value_alpha_a;
-    case FRQ_DVALUE:
-      return is_numeric ? compare_value_numeric_d : compare_value_alpha_d;
-    case FRQ_AFREQ:
-      return is_numeric ? compare_freq_numeric_a : compare_freq_alpha_a;
-    case FRQ_DFREQ:
-      return is_numeric ? compare_freq_numeric_d : compare_freq_alpha_d;
-    default:
-      NOT_REACHED ();
-    }
-}
-
 /* Returns true iff the value in struct freq F is non-missing
    for variable V. */
 static bool
@@ -557,12 +530,39 @@ not_missing (const void *f_, const void *v_)
   return !var_is_value_missing (v, &f->value, MV_ANY);
 }
 
+struct freq_compare_aux
+  {
+    bool by_freq;
+    bool ascending_freq;
+
+    int width;
+    bool ascending_value;
+  };
+
+static int
+compare_freq (const void *a_, const void *b_, const void *aux_)
+{
+  const struct freq_compare_aux *aux = aux_;
+  const struct freq *a = a_;
+  const struct freq *b = b_;
+
+  if (aux->by_freq && a->count != b->count)
+    {
+      int cmp = a->count > b->count ? 1 : -1;
+      return aux->ascending_freq ? cmp : -cmp;
+    }
+  else
+    {
+      int cmp = value_compare_3way (&a->value, &b->value, aux->width);
+      return aux->ascending_value ? cmp : -cmp;
+    }
+}
 /* Summarizes the frequency table data for variable V. */
 static void
 postprocess_freq_tab (const struct frq_proc *frq, struct var_freqs *vf)
 {
   struct freq_tab *ft = &vf->tab;
-  algo_compare_func *compare;
+  struct freq_compare_aux aux;
   size_t count;
   struct freq *freqs, *f;
   size_t i;
@@ -578,9 +578,12 @@ postprocess_freq_tab (const struct frq_proc *frq, struct var_freqs *vf)
   ft->n_missing = count - ft->n_valid;
 
   /* Sort data. */
-  compare = get_freq_comparator (frq->sort, var_get_type (vf->var));
-  sort (ft->valid, ft->n_valid, sizeof *ft->valid, compare, vf);
-  sort (ft->missing, ft->n_missing, sizeof *ft->missing, compare, vf);
+  aux.by_freq = frq->sort == FRQ_AFREQ || frq->sort == FRQ_DFREQ;
+  aux.ascending_freq = frq->sort != FRQ_DFREQ;
+  aux.width = vf->width;
+  aux.ascending_value = frq->sort != FRQ_DVALUE;
+  sort (ft->valid, ft->n_valid, sizeof *ft->valid, compare_freq, &aux);
+  sort (ft->missing, ft->n_missing, sizeof *ft->missing, compare_freq, &aux);
 
   /* Summary statistics. */
   ft->valid_cases = 0.0;
@@ -792,122 +795,6 @@ add_percentile (struct frq_proc *frq, double x, bool show,
 
 /* Comparison functions. */
 
-/* Ascending numeric compare of values. */
-static int
-compare_value_numeric_a (const void *a_, const void *b_,
-                         const void *vf_ UNUSED)
-{
-  const struct freq *a = a_;
-  const struct freq *b = b_;
-
-  if (a->value.f > b->value.f)
-    return 1;
-  else if (a->value.f < b->value.f)
-    return -1;
-  else
-    return 0;
-}
-
-/* Ascending string compare of values. */
-static int
-compare_value_alpha_a (const void *a_, const void *b_, const void *vf_)
-{
-  const struct freq *a = a_;
-  const struct freq *b = b_;
-  const struct var_freqs *vf = vf_;
-
-  return value_compare_3way (&a->value, &b->value, vf->width);
-}
-
-/* Descending numeric compare of values. */
-static int
-compare_value_numeric_d (const void *a, const void *b, const void *vf_ UNUSED)
-{
-  return -compare_value_numeric_a (a, b, vf_);
-}
-
-/* Descending string compare of values. */
-static int
-compare_value_alpha_d (const void *a, const void *b, const void *vf_)
-{
-  return -compare_value_alpha_a (a, b, vf_);
-}
-
-/* Ascending numeric compare of frequency;
-   secondary key on ascending numeric value. */
-static int
-compare_freq_numeric_a (const void *a_, const void *b_, const void *vf_ UNUSED)
-{
-  const struct freq *a = a_;
-  const struct freq *b = b_;
-
-  if (a->count > b->count)
-    return 1;
-  else if (a->count < b->count)
-    return -1;
-
-  if (a->value.f > b->value.f)
-    return 1;
-  else if (a->value.f < b->value.f)
-    return -1;
-  else
-    return 0;
-}
-
-/* Ascending numeric compare of frequency;
-   secondary key on ascending string value. */
-static int
-compare_freq_alpha_a (const void *a_, const void *b_, const void *vf_)
-{
-  const struct freq *a = a_;
-  const struct freq *b = b_;
-  const struct var_freqs *vf = vf_;
-
-  if (a->count > b->count)
-    return 1;
-  else if (a->count < b->count)
-    return -1;
-  else
-    return value_compare_3way (&a->value, &b->value, vf->width);
-}
-
-/* Descending numeric compare of frequency;
-   secondary key on ascending numeric value. */
-static int
-compare_freq_numeric_d (const void *a_, const void *b_, const void *vf_ UNUSED)
-{
-  const struct freq *a = a_;
-  const struct freq *b = b_;
-
-  if (a->count > b->count)
-    return -1;
-  else if (a->count < b->count)
-    return 1;
-
-  if (a->value.f > b->value.f)
-    return 1;
-  else if (a->value.f < b->value.f)
-    return -1;
-  else
-    return 0;
-}
-
-/* Descending numeric compare of frequency;
-   secondary key on ascending string value. */
-static int
-compare_freq_alpha_d (const void *a_, const void *b_, const void *vf_)
-{
-  const struct freq *a = a_;
-  const struct freq *b = b_;
-  const struct var_freqs *vf = vf_;
-
-  if (a->count > b->count)
-    return -1;
-  else if (a->count < b->count)
-    return 1;
-  else
-    return value_compare_3way (&a->value, &b->value, vf->width);
-}
 
 /* Frequency table display. */
 
