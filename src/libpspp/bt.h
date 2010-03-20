@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
    balancing applied to the balanced tree, as its operation is
    fully encapsulated. */
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <libpspp/cast.h>
 
@@ -78,6 +79,13 @@ void bt_moved (struct bt *, struct bt_node *);
 static inline size_t bt_count (const struct bt *bt)
 {
   return bt->size;
+}
+
+/* Return true if BT contains no nodes,
+   false if BT contains at least one node. */
+static inline bool bt_is_empty (const struct bt *bt)
+{
+  return bt->size == 0;
 }
 
 #endif /* libpspp/bt.h */
