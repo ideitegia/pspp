@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -81,9 +81,7 @@ static inline int calculate_h_alpha (size_t);
 /* Initializes BT as an empty BT that uses the given COMPARE
    function, passing in AUX as auxiliary data. */
 void
-bt_init (struct bt *bt,
-         bt_compare_func *compare,
-         const void *aux)
+bt_init (struct bt *bt, bt_compare_func *compare, const void *aux)
 {
   bt->root = NULL;
   bt->compare = compare;
