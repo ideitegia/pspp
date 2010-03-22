@@ -23,9 +23,10 @@
 
 struct chart_item;
 struct output_item;
+struct string_map;
 
 /* Used by PSPPIRE to render in the GUI. */
-struct xr_driver *xr_create_driver (cairo_t *);
+struct xr_driver *xr_create_driver (cairo_t *, struct string_map *options);
 struct xr_rendering *xr_rendering_create (struct xr_driver *,
                                           const struct output_item *,
                                           cairo_t *);

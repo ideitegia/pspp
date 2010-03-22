@@ -959,15 +959,9 @@ struct xr_rendering
 #define CHART_HEIGHT 375
 
 struct xr_driver *
-xr_create_driver (cairo_t *cairo)
+xr_create_driver (cairo_t *cairo, struct string_map *options)
 {
-  struct xr_driver *xr;
-  struct string_map map;
-
-  string_map_init (&map);
-  xr = xr_allocate ("cairo", 0, &map);
-  string_map_destroy (&map);
-
+  struct xr_driver *xr = xr_allocate ("cairo", 0, options);
   xr->width = INT_MAX / 8;
   xr->length = INT_MAX / 8;
   if (!xr_set_cairo (xr, cairo))

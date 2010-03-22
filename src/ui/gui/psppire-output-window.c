@@ -216,7 +216,29 @@ psppire_output_submit (struct output_driver *this,
 
   cr = gdk_cairo_create (GTK_WIDGET (pod->viewer)->window);
   if (pod->xr == NULL)
-    pod->xr = xr_create_driver (cr);
+    {
+      const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
+      struct string_map options = STRING_MAP_INITIALIZER (options);
+      PangoFontDescription *font_desc;
+      char *font_name;
+
+      /* Use GTK+ default font as proportional font. */
+      font_name = pango_font_description_to_string (style->font_desc);
+      string_map_insert (&options, "prop-font", font_name);
+      g_free (font_name);
+
+      /* Derived emphasized font from proportional font. */
+      font_desc = pango_font_description_copy (style->font_desc);
+      pango_font_description_set_style (font_desc, PANGO_STYLE_ITALIC);
+      font_name = pango_font_description_to_string (font_desc);
+      string_map_insert (&options, "emph-font", font_name);
+      g_free (font_name);
+      pango_font_description_free (font_desc);
+
+      pod->xr = xr_create_driver (cr, &options);
+
+      string_map_destroy (&options);
+    }
 
   r = xr_rendering_create (pod->xr, item, cr);
   if (r == NULL)
