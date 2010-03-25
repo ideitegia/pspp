@@ -575,7 +575,7 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
             var_set_label (mv, var_get_label (dv));
         }
       else
-        mv = dict_clone_var_assert (m, dv, var_get_name (dv));
+        mv = dict_clone_var_assert (m, dv);
     }
 
   return true;

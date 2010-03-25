@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1615,7 +1615,7 @@ prepare_formats_page (struct import_assistant *ia)
           if (!dict_make_unique_var_name (dict, var_get_name (modified_var),
                                           &number, name))
             NOT_REACHED ();
-          dict_clone_var_assert (dict, modified_var, name);
+          dict_clone_var_as_assert (dict, modified_var, name);
         }
     }
   fmt_guesser_destroy (fg);

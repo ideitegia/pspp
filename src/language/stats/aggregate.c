@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -237,8 +237,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
           agr.break_var_cnt = subcase_get_n_fields (&agr.sort);
 
           for (i = 0; i < agr.break_var_cnt; i++)
-            dict_clone_var_assert (agr.dict, agr.break_vars[i],
-                                   var_get_name (agr.break_vars[i]));
+            dict_clone_var_assert (agr.dict, agr.break_vars[i]);
 
           /* BREAK must follow the options. */
           break;
@@ -582,7 +581,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 		  }
 
 		if (function->alpha_type == VAL_STRING)
-		  destvar = dict_clone_var (agr->dict, v->src, dest[i]);
+		  destvar = dict_clone_var_as (agr->dict, v->src, dest[i]);
 		else
                   {
                     assert (var_is_numeric (v->src)

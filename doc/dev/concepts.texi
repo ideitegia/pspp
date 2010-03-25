@@ -2106,15 +2106,21 @@ if through a call to @code{var_create} with those arguments
 of variables, and returns the new variable.
 @end deftypefun
 
-@deftypefun {struct variable *} dict_clone_var (struct dictionary *@var{dict}, const struct variable *@var{old_var}, const char *@var{name})
-@deftypefunx {struct variable *} dict_clone_var_assert (struct dictionary *@var{dict}, const struct variable *@var{old_var}, const char *@var{name})
+@deftypefun {struct variable *} dict_clone_var (struct dictionary *@var{dict}, const struct variable *@var{old_var})
+@deftypefunx {struct variable *} dict_clone_var_assert (struct dictionary *@var{dict}, const struct variable *@var{old_var})
 Creates a new variable as a clone of @var{var}, inserts the new
-variable into @var{dict}, and returns the new variable.  The new
-variable is named @var{name}.  Other properties of the new variable
-are copied from @var{old_var}, except for those not copied by
-@code{var_clone} (@pxref{var_clone}).
+variable into @var{dict}, and returns the new variable.  Other
+properties of the new variable are copied from @var{old_var}, except
+for those not copied by @code{var_clone} (@pxref{var_clone}).
 
 @var{var} does not need to be a member of any dictionary.
+@end deftypefun
+
+@deftypefun {struct variable *} dict_clone_var_as (struct dictionary *@var{dict}, const struct variable *@var{old_var}, const char *@var{name})
+@deftypefunx {struct variable *} dict_clone_var_as_assert (struct dictionary *@var{dict}, const struct variable *@var{old_var}, const char *@var{name})
+These functions are similar to @code{dict_clone_var} and
+@code{dict_clone_var_assert}, respectively, except that the new
+variable is named @var{name} instead of keeping @var{old_var}'s name.
 @end deftypefun
 
 @node Dictionary Deleting Variables

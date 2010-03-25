@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1624,10 +1624,7 @@ data_sheet_set_clip (PsppireSheet *sheet)
   clip_dict = dict_create ();
   dict_set_encoding (clip_dict, dict_get_encoding (ds->dict->dict));
   for (i = col0; i <= coli; i++)
-    {
-      const struct variable *old = dict_get_var (ds->dict->dict, i);
-      dict_clone_var_assert (clip_dict, old, var_get_name (old));
-    }
+    dict_clone_var_assert (clip_dict, dict_get_var (ds->dict->dict, i));
 
   /* Construct clip data. */
   map = case_map_by_name (ds->dict->dict, clip_dict);

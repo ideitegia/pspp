@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -185,7 +185,7 @@ dict_clone (const struct dictionary *s)
       const struct vardict_info *svdi;
       struct vardict_info dvdi;
       struct variable *sv = s->var[i];
-      struct variable *dv = dict_clone_var_assert (d, sv, var_get_name (sv));
+      struct variable *dv = dict_clone_var_assert (d, sv);
       size_t i;
 
       for (i = 0; i < var_get_short_name_cnt (sv); i++)
@@ -410,27 +410,46 @@ dict_create_var_assert (struct dictionary *d, const char *name, int width)
   return add_var (d, var_create (name, width));
 }
 
-/* Creates and returns a new variable in D with name NAME, as a
-   copy of existing variable OLD_VAR, which need not be in D or
-   in any dictionary.  Returns a null pointer if the given NAME
-   would duplicate that of an existing variable in the
+/* Creates and returns a new variable in D, as a copy of existing variable
+   OLD_VAR, which need not be in D or in any dictionary.  Returns a null
+   pointer if OLD_VAR's name would duplicate that of an existing variable in
+   the dictionary. */
+struct variable *
+dict_clone_var (struct dictionary *d, const struct variable *old_var)
+{
+  return dict_clone_var_as (d, old_var, var_get_name (old_var));
+}
+
+/* Creates and returns a new variable in D, as a copy of existing variable
+   OLD_VAR, which need not be in D or in any dictionary.  Assert-fails if
+   OLD_VAR's name would duplicate that of an existing variable in the
    dictionary. */
 struct variable *
-dict_clone_var (struct dictionary *d, const struct variable *old_var,
-                const char *name)
+dict_clone_var_assert (struct dictionary *d, const struct variable *old_var)
+{
+  return dict_clone_var_as_assert (d, old_var, var_get_name (old_var));
+}
+
+/* Creates and returns a new variable in D with name NAME, as a copy of
+   existing variable OLD_VAR, which need not be in D or in any dictionary.
+   Returns a null pointer if the given NAME would duplicate that of an existing
+   variable in the dictionary. */
+struct variable *
+dict_clone_var_as (struct dictionary *d, const struct variable *old_var,
+                   const char *name)
 {
   return (dict_lookup_var (d, name) == NULL
-          ? dict_clone_var_assert (d, old_var, name)
+          ? dict_clone_var_as_assert (d, old_var, name)
           : NULL);
 }
 
-/* Creates and returns a new variable in D with name NAME, as a
-   copy of existing variable OLD_VAR, which need not be in D or
-   in any dictionary.  Assert-fails if the given NAME would
-   duplicate that of an existing variable in the dictionary. */
+/* Creates and returns a new variable in D with name NAME, as a copy of
+   existing variable OLD_VAR, which need not be in D or in any dictionary.
+   Assert-fails if the given NAME would duplicate that of an existing variable
+   in the dictionary. */
 struct variable *
-dict_clone_var_assert (struct dictionary *d, const struct variable *old_var,
-                       const char *name)
+dict_clone_var_as_assert (struct dictionary *d, const struct variable *old_var,
+                          const char *name)
 {
   struct variable *new_var = var_clone (old_var);
   assert (dict_lookup_var (d, name) == NULL);

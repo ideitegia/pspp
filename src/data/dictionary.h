@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -56,10 +56,14 @@ struct variable *dict_create_var (struct dictionary *, const char *,
                                   int width);
 struct variable *dict_create_var_assert (struct dictionary *, const char *,
                                          int width);
-struct variable *dict_clone_var (struct dictionary *, const struct variable *,
-                                 const char *);
+struct variable *dict_clone_var (struct dictionary *, const struct variable *);
 struct variable *dict_clone_var_assert (struct dictionary *,
-                                        const struct variable *, const char *);
+                                        const struct variable *);
+struct variable *dict_clone_var_as (struct dictionary *,
+                                    const struct variable *, const char *);
+struct variable *dict_clone_var_as_assert (struct dictionary *,
+                                           const struct variable *,
+                                           const char *);
 
 /* Deleting variables. */
 void dict_delete_var (struct dictionary *, struct variable *);
