@@ -138,7 +138,6 @@ po/Makevars.template po/pspp.pot
 
 clean:
 	rm -f config.sub config.guess config.rpath
-	rm -f ABOUT-NLS
 	rm -fr autom4te.cache
 	rm -f aclocal.m4
 	rm -f missing mkinstalldirs

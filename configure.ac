@@ -32,11 +32,10 @@ PSPP_CC_FOR_BUILD
 PSPP_PERL
 
 dnl Internationalization macros.
-AC_ARG_ENABLE(nls, [AS_HELP_STRING([--disable-nls], [do not use Native Language Support])])
-if  test x"$enable_nls" != x"no"  ; then
- AC_DEFINE(ENABLE_NLS, 1, [Define to 1 if translation of program messages to the user's native language is requested.])
+AC_PROVIDE([AM_PO_SUBDIRS])	# PSPP provides its own po/ support.
+AM_GNU_GETTEXT([external], [need-ngettext])
+AM_GNU_GETTEXT_VERSION([0.17])
 fi
-
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
@@ -278,7 +277,8 @@ RELOCATABLE_STRIP=:
 
 PSPP_CHECK_PREREQS
 
-AC_CONFIG_FILES([Makefile gl/Makefile tests/atlocal perl-module/lib/PSPP.pm])
+AC_CONFIG_FILES(
+  [Makefile gl/Makefile po/Makefile tests/atlocal perl-module/lib/PSPP.pm])
 
 AC_OUTPUT
 echo "PSPP configured successfully."

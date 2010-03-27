@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = std-options check-news 1.10.1 subdir-objects
 
-SUBDIRS = gl
+SUBDIRS = gl po
 DISTCLEANFILES = ./po/stamp-po xconfigure 
 BUILT_SOURCES =
 
