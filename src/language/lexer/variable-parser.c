@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,25 +16,26 @@
 
 #include <config.h>
 
-#include <language/lexer/variable-parser.h>
+#include "language/lexer/variable-parser.h"
 
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "lexer.h"
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/variable.h>
-#include <libpspp/assertion.h>
-#include <libpspp/bit-vector.h>
-#include <libpspp/hash.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
+#include "data/dictionary.h"
+#include "data/procedure.h"
+#include "data/variable.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/hmapx.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -738,7 +739,7 @@ struct array_var_set
   {
     struct variable *const *var;/* Array of variables. */
     size_t var_cnt;             /* Number of elements in var. */
-    struct hsh_table *name_tab; /* Hash from variable names to variables. */
+    struct hmapx vars_by_name;  /* Variables hashed by name. */
   };
 
 /* Returns the number of variables in VS. */
@@ -767,19 +768,18 @@ array_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
                               size_t *idx)
 {
   struct array_var_set *avs = vs->aux;
-  struct variable *v, *const *vpp;
+  struct hmapx_node *node;
+  struct variable **varp;
 
-  v = var_create (name, 0);
-  vpp = hsh_find (avs->name_tab, &v);
-  var_destroy (v);
+  HMAPX_FOR_EACH_WITH_HASH (varp, node, hash_case_string (name, 0),
+                            &avs->vars_by_name)
+    if (!strcasecmp (name, var_get_name (*varp)))
+      {
+        *idx = varp - avs->var;
+        return true;
+      }
 
-  if (vpp != NULL)
-    {
-      *idx = vpp - avs->var;
-      return true;
-    }
-  else
-    return false;
+  return false;
 }
 
 /* Destroys VS. */
@@ -788,13 +788,12 @@ array_var_set_destroy (struct var_set *vs)
 {
   struct array_var_set *avs = vs->aux;
 
-  hsh_destroy (avs->name_tab);
+  hmapx_destroy (&avs->vars_by_name);
   free (avs);
   free (vs);
 }
 
-/* Returns a variable set based on the VAR_CNT variables in
-   VAR. */
+/* Returns a variable set based on the VAR_CNT variables in VAR. */
 struct var_set *
 var_set_create_from_array (struct variable *const *var, size_t var_cnt)
 {
@@ -810,15 +809,20 @@ var_set_create_from_array (struct variable *const *var, size_t var_cnt)
   vs->aux = avs = xmalloc (sizeof *avs);
   avs->var = var;
   avs->var_cnt = var_cnt;
-  avs->name_tab = hsh_create (2 * var_cnt,
-                              compare_var_ptrs_by_name, hash_var_ptr_by_name,
-                              NULL, NULL);
+  hmapx_init (&avs->vars_by_name);
   for (i = 0; i < var_cnt; i++)
-    if (hsh_insert (avs->name_tab, (void *) &var[i]) != NULL)
-      {
-        var_set_destroy (vs);
-        return NULL;
-      }
+    {
+      const char *name = var_get_name (var[i]);
+      size_t idx;
+
+      if (array_var_set_lookup_var_idx (vs, name, &idx))
+        {
+          var_set_destroy (vs);
+          return NULL;
+        }
+      hmapx_insert (&avs->vars_by_name, CONST_CAST (void *, &avs->var[i]),
+                    hash_case_string (name, 0));
+    }
 
   return vs;
 }
