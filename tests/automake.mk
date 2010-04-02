@@ -12,7 +12,6 @@ dist_TESTS = \
 	tests/command/add-files.sh \
 	tests/command/aggregate.sh \
 	tests/command/attributes.sh \
-	tests/command/autorecod.sh \
 	tests/command/beg-data.sh \
 	tests/command/bignum.sh \
 	tests/command/count.sh \
@@ -417,6 +416,7 @@ EXTRA_DIST += \
 	$(TESTSUITE)
 TESTSUITE_AT = \
 	tests/testsuite.at \
+	tests/language/stats/autorecode.at \
 	tests/language/stats/crosstabs.at \
 	tests/language/stats/frequencies.at \
 	tests/output/render.at
