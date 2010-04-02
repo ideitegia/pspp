@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -209,6 +209,22 @@ value_init_pool (struct pool *pool, union value *value, int width)
 {
   if (width > MAX_SHORT_STRING)
     value->long_string = pool_alloc_unaligned (pool, width);
+}
+
+/* Same as value_clone(), except that memory for VALUE (if necessary) is
+   allocated from POOL and will be freed automatically when POOL is destroyed.
+
+   VALUE must not be freed manually by calling value_destroy().  If it needs to
+   be resized, it must be done using value_resize_pool() instead of
+   value_resize(). */
+void
+value_clone_pool (struct pool *pool,
+                  union value *value, const union value *src, int width)
+{
+  if (width > MAX_SHORT_STRING)
+    value->long_string = pool_clone_unaligned (pool, src->long_string, width);
+  else
+    *value = *src;
 }
 
 /* Same as value_resize, except that VALUE must have been

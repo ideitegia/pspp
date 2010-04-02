@@ -81,6 +81,8 @@ static inline void value_swap (union value *, union value *);
 
 struct pool;
 void value_init_pool (struct pool *, union value *, int width);
+void value_clone_pool (struct pool *, union value *, const union value *,
+                       int width);
 void value_resize_pool (struct pool *, union value *,
                         int old_width, int new_width);
 
