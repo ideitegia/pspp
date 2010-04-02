@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -121,8 +121,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
   lex_match_id (lexer, "VARIABLES");
   lex_match (lexer, '=');
   if (!parse_variables_const (lexer, dataset_dict (ds), &arc.src_vars,
-			      &arc.var_cnt,
-                        PV_NO_DUPLICATE))
+			      &arc.var_cnt, PV_NO_DUPLICATE))
     goto lossage;
   if (!lex_force_match_id (lexer, "INTO"))
     goto lossage;
@@ -179,14 +178,14 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
   arc.src_values = xnmalloc (arc.var_cnt, sizeof *arc.src_values);
   for (i = 0; i < dst_cnt; i++)
     {
-	/* FIXME: consolodate this hsh_create */
-    if (var_is_alpha (arc.src_vars[i]))
-      arc.src_values[i] = hsh_create (10, compare_alpha_value,
-                                      hash_alpha_value, NULL, arc.src_vars[i]);
-    else
-      arc.src_values[i] = hsh_create (10, compare_numeric_value,
-                                      hash_numeric_value, NULL, NULL);
-   }
+      /* FIXME: consolodate this hsh_create */
+      if (var_is_alpha (arc.src_vars[i]))
+        arc.src_values[i] = hsh_create (10, compare_alpha_value,
+                                        hash_alpha_value, NULL, arc.src_vars[i]);
+      else
+        arc.src_values[i] = hsh_create (10, compare_numeric_value,
+                                        hash_numeric_value, NULL, NULL);
+    }
 
   input = proc_open (ds);
   for (; (c = casereader_read (input)) != NULL; case_unref (c))
