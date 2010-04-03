@@ -391,7 +391,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	  size_t n_dest_prev = n_dest;
 
 	  if (!parse_DATA_LIST_vars (lexer, &dest, &n_dest,
-                                     PV_APPEND | PV_SINGLE | PV_NO_SCRATCH))
+                                     (PV_APPEND | PV_SINGLE | PV_NO_SCRATCH
+                                      | PV_NO_DUPLICATE)))
 	    goto error;
 
 	  /* Assign empty labels. */

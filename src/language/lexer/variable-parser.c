@@ -34,6 +34,7 @@
 #include "libpspp/misc.h"
 #include "libpspp/pool.h"
 #include "libpspp/str.h"
+#include "libpspp/stringi-set.h"
 
 #include "gl/xalloc.h"
 
@@ -400,7 +401,8 @@ extract_num (char *s, char *r, int *n, int *d)
 /* Parses a list of variable names according to the DATA LIST version
    of the TO convention.  */
 bool
-parse_DATA_LIST_vars (struct lexer *lexer, char ***names, size_t *nnames, int pv_opts)
+parse_DATA_LIST_vars (struct lexer *lexer, char ***names,
+                      size_t *nnames, int pv_opts)
 {
   int n1, n2;
   int d1, d2;
@@ -408,16 +410,27 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names, size_t *nnames, int pv
   size_t nvar, mvar;
   char name1[VAR_NAME_LEN + 1], name2[VAR_NAME_LEN + 1];
   char root1[VAR_NAME_LEN + 1], root2[VAR_NAME_LEN + 1];
+  struct stringi_set set;
   int success = 0;
 
   assert (names != NULL);
   assert (nnames != NULL);
   assert ((pv_opts & ~(PV_APPEND | PV_SINGLE
                        | PV_NO_SCRATCH | PV_NO_DUPLICATE)) == 0);
-  /* FIXME: PV_NO_DUPLICATE is not implemented. */
+  stringi_set_init (&set);
 
   if (pv_opts & PV_APPEND)
-    nvar = mvar = *nnames;
+    {
+      nvar = mvar = *nnames;
+
+      if (pv_opts & PV_NO_DUPLICATE)
+        {
+          size_t i;
+
+          for (i = 0; i < nvar; i++)
+            stringi_set_insert (&set, (*names)[i]);
+        }
+    }
   else
     {
       nvar = mvar = 0;
@@ -477,6 +490,13 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names, size_t *nnames, int pv
 	    {
               char name[VAR_NAME_LEN + 1];
 	      sprintf (name, "%s%0*d", root1, d1, n);
+
+              if (pv_opts & PV_NO_DUPLICATE && !stringi_set_insert (&set, name))
+                {
+                  msg (SE, _("Variable %s appears twice in variable list."),
+                       name);
+                  goto fail;
+                }
 	      (*names)[nvar] = xstrdup (name);
 	      nvar++;
 	    }
@@ -501,6 +521,7 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names, size_t *nnames, int pv
 
 fail:
   *nnames = nvar;
+  stringi_set_destroy (&set);
   if (!success)
     {
       int i;

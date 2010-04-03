@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -67,7 +67,8 @@ cmd_rename_variables (struct lexer *lexer, struct dataset *ds)
 	  msg (SE, _("`=' expected between lists of new and old variable names."));
 	  goto lossage;
 	}
-      if (!parse_DATA_LIST_vars (lexer, &rename_new_names, &prev_nv_1, PV_APPEND))
+      if (!parse_DATA_LIST_vars (lexer, &rename_new_names, &prev_nv_1,
+                                 PV_APPEND | PV_NO_DUPLICATE))
 	goto lossage;
       if (prev_nv_1 != rename_cnt)
 	{
