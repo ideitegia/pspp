@@ -74,6 +74,8 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/string-map.h \
 	src/libpspp/string-set.c \
 	src/libpspp/string-set.h \
+	src/libpspp/stringi-set.c \
+	src/libpspp/stringi-set.h \
 	src/libpspp/str.c \
 	src/libpspp/str.h \
 	src/libpspp/taint.c \
