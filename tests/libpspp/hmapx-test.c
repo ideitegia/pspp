@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -935,6 +935,44 @@ test_swap_random_hash (void)
   test_swap (128, random_hash);
 }
 
+/* Inserts elements into an HMAPX in ascending order, then clears the hash
+   table using hmapx_clear(). */
+static void
+test_clear (void)
+{
+  const int max_elems = 128;
+  struct element *elements;
+  struct hmapx_node **nodes;
+  int *values;
+  struct hmapx hmapx;
+  int cnt;
+
+  elements = xnmalloc (max_elems, sizeof *elements);
+  nodes = xnmalloc (max_elems, sizeof *nodes);
+  values = xnmalloc (max_elems, sizeof *values);
+
+  hmapx_init (&hmapx);
+  for (cnt = 0; cnt <= max_elems; cnt++)
+    {
+      int i;
+
+      for (i = 0; i < cnt; i++)
+        {
+          values[i] = elements[i].data = i;
+          nodes[i] = hmapx_insert (&hmapx, &elements[i],
+                                   random_hash (elements[i].data));
+          check_hmapx (&hmapx, values, i + 1, random_hash);
+        }
+      hmapx_clear (&hmapx);
+      check_hmapx (&hmapx, NULL, 0, random_hash);
+    }
+  hmapx_destroy (&hmapx);
+
+  free (elements);
+  free (nodes);
+  free (values);
+}
+
 static void
 test_destroy_null (void) 
 {
@@ -1025,6 +1063,8 @@ main (void)
             "change and move key data in nodes (constant hash)");
 
   run_test (test_swap_random_hash, "test swapping tables");
+
+  run_test (test_clear, "test clearing hash table");
 
   run_test (test_destroy_null, "test destroying null table");
   run_test (test_shrink_empty, "test shrinking an empty table");
