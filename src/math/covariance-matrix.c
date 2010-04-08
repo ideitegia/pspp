@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -383,32 +383,34 @@ covariance_accumulator_hash (const void *h, const void *aux)
 {
   struct covariance_accumulator *ca = (struct covariance_accumulator *) h;
   size_t *n_vars = (size_t *) aux;
-  size_t idx_max;
-  size_t idx_min;
   const struct variable *v_min;
   const struct variable *v_max;
   const union value *val_min;
   const union value *val_max;
 
   /*
-     Order everything by the variables' indices. This ensures we get the
+     Order everything by the variables' addresses. This ensures we get the
      same key regardless of the order in which the variables are stored
      and passed around.
    */
-  v_min =
-    (var_get_dict_index (ca->v1) <
-     var_get_dict_index (ca->v2)) ? ca->v1 : ca->v2;
-  v_max = (ca->v1 == v_min) ? ca->v2 : ca->v1;
-
-  val_min = (v_min == ca->v1) ? ca->val1 : ca->val2;
-  val_max = (ca->val1 == val_min) ? ca->val2 : ca->val1;
-
-  idx_min = var_get_dict_index (v_min);
-  idx_max = var_get_dict_index (v_max);
+  if (ca->v1 < ca->v2)
+    {
+      v_min = ca->v1;
+      v_max = ca->v2;
+      val_min = ca->val1;
+      val_max = ca->val2;
+    }
+  else
+    {
+      v_min = ca->v2;
+      v_max = ca->v2;
+      val_min = ca->val2;
+      val_max = ca->val1;
+    }
 
   if (var_is_numeric (v_max) && var_is_numeric (v_min))
     {
-      return (*n_vars * idx_max + idx_min);
+      return hash_pointer (v_min, hash_pointer (v_max, 0));
     }
   if (var_is_numeric (v_max) && var_is_alpha (v_min))
     {
@@ -422,7 +424,8 @@ covariance_accumulator_hash (const void *h, const void *aux)
     {
       unsigned hash = value_hash (val_max, var_get_width (v_max), 0);
       hash = value_hash (val_min, var_get_width (v_min), hash);
-      return hash_int (*n_vars * (*n_vars + 1 + idx_max) + idx_min, hash);
+      hash = hash_pointer (v_min, hash);
+      return hash_pointer (v_max, hash);
     }
   return -1u;
 }
@@ -453,25 +456,12 @@ static int
 ordered_match_nodes (const struct covariance_accumulator *c, const struct variable *v1,
 		     const struct variable *v2, const union value *val1, const union value *val2)
 {
-  size_t result;
-  size_t m;
-
-  result = var_get_dict_index (v1) ^ var_get_dict_index (c->v1);
-  m = var_get_dict_index (v2) ^ var_get_dict_index (c->v2);
-  result = result|m;
-  if (var_is_alpha (v1))
-    {
-      result |= value_compare_3way (val1, c->val1, var_get_width (v1));
-      if (var_is_alpha (v2))
-	{
-	  result |= value_compare_3way (val2, c->val2, var_get_width (v2));
-	}
-    }
-  else if (var_is_alpha (v2))
-    {
-      result |= value_compare_3way (val2, c->val2, var_get_width (v2));
-    }
-  return result;
+  return (v1 != c->v1
+          || v2 != c->v2
+          || (var_is_alpha (v1)
+              && !value_equal (val1, c->val1, var_get_width (v1)))
+          || (var_is_alpha (v2)
+              && !value_equal (val2, c->val2, var_get_width (v2))));
 }
   
 /*
@@ -487,12 +477,8 @@ match_nodes (const struct covariance_accumulator *c,
 	     const struct variable *v1, const struct variable *v2,
 	     const union value *val1, const union value *val2)
 {
-  size_t n;
-  size_t m;
-
-  n = ordered_match_nodes (c, v1, v2, val1, val2);
-  m = ordered_match_nodes (c, v2, v1, val2, val1);
-  return (n & m);
+  return (ordered_match_nodes (c, v1, v2, val1, val2)
+          && ordered_match_nodes (c, v2, v1, val2, val1));
 }
 
 /*
@@ -522,8 +508,9 @@ hash_numeric_alpha (const struct variable *v1, const struct variable *v2,
   unsigned int result = -1u;
   if (var_is_numeric (v1) && var_is_alpha (v2))
     {
-      result = n_vars * ((n_vars + 1) + var_get_dict_index (v1))
-	+ var_get_dict_index (v2) + value_hash (val, var_get_width (v2), 0);
+      result = hash_pointer (v1, 0);
+      result = hash_pointer (v2, result);
+      result = value_hash (val, var_get_width (v2), result);
     }
   else if (var_is_alpha (v1) && var_is_numeric (v2))
     {
@@ -861,9 +848,9 @@ is_covariance_contributor (const struct covariance_accumulator *ca, const struct
   assert (dm != NULL);
   v1 = design_matrix_col_to_var (dm, i);
   v2 = design_matrix_col_to_var (dm, j);
-  if (var_get_dict_index (v1) == var_get_dict_index(ca->v1))
+  if (v1 == ca->v1)
     {
-      if (var_get_dict_index (v2) == var_get_dict_index (ca->v2))
+      if (v2 == ca->v2)
 	{
 	  k = dm_get_exact_subscript (dm, v1, ca->val1);
 	  if (k == i)
@@ -876,9 +863,9 @@ is_covariance_contributor (const struct covariance_accumulator *ca, const struct
 	    }
 	}
     }
-  else if (var_get_dict_index (v1) == var_get_dict_index (ca->v2))
+  else if (v1 == ca->v2)
     {
-      if (var_get_dict_index (v2) == var_get_dict_index (ca->v1))
+      if (v2 == ca->v1)
 	{
 	  k = dm_get_exact_subscript (dm, v1, ca->val2);
 	  if (k == i)
@@ -936,10 +923,10 @@ update_ssize (struct design_matrix *dm, size_t i, size_t j, struct covariance_ac
   const struct variable *var;
   double tmp;
   var = design_matrix_col_to_var (dm, i);
-  if (var_get_dict_index (ca->v1) == var_get_dict_index (var))
+  if (ca->v1 == var)
     {
       var = design_matrix_col_to_var (dm, j);
-      if (var_get_dict_index (ca->v2) == var_get_dict_index (var))
+      if (ca->v2 == var)
 	{
 	  tmp = design_matrix_get_element (dm, i, j);
 	  tmp += ca->ssize;

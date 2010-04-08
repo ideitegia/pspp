@@ -267,7 +267,7 @@ is_interaction (const struct variable *var, const struct interaction_variable **
   for (i = 0; i < n_intr; i++)
     {
       intr = interaction_get_variable (iv[i]);
-      if (var_get_dict_index (intr) == var_get_dict_index (var))
+      if (intr == var)
 	{
 	  return true;
 	}
