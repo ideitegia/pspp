@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -171,4 +171,13 @@ hash_double (double d, unsigned int basis)
 #else /* SIZEOF_DOUBLE != 8 */
   return hash_bytes (&d, sizeof d, basis);
 #endif /* SIZEOF_DOUBLE != 8 */
+}
+
+/* Returns a hash value for pointer P, starting from BASIS. */
+unsigned int
+hash_pointer (const void *p, unsigned int basis)
+{
+  /* Casting to uintptr_t before casting to int suppresses a GCC warning about
+     on 64-bit platforms. */
+  return hash_int ((int) (uintptr_t) p, basis);
 }
