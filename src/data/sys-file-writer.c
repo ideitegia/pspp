@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -95,9 +95,9 @@ struct sfm_writer
 static const struct casewriter_class sys_file_casewriter_class;
 
 static void write_header (struct sfm_writer *, const struct dictionary *);
-static void write_variable (struct sfm_writer *, const struct variable *, const struct dictionary *);
-static void write_value_labels (struct sfm_writer *,
-                                struct variable *, int idx, const struct dictionary *);
+static void write_variable (struct sfm_writer *, const struct variable *);
+static void write_value_labels (struct sfm_writer *, struct variable *,
+                                int idx);
 static void write_integer_info_record (struct sfm_writer *);
 static void write_float_info_record (struct sfm_writer *);
 
@@ -223,7 +223,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   /* Write basic variable info. */
   short_names_assign (d);
   for (i = 0; i < dict_get_var_cnt (d); i++)
-    write_variable (w, dict_get_var (d, i), d);
+    write_variable (w, dict_get_var (d, i));
 
   /* Write out value labels. */
   idx = 0;
@@ -231,7 +231,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     {
       struct variable *v = dict_get_var (d, i);
 
-      write_value_labels (w, v, idx, d);
+      write_value_labels (w, v, idx);
       idx += sfm_width_to_octs (var_get_width (v));
     }
 
@@ -421,7 +421,7 @@ write_variable_continuation_records (struct sfm_writer *w, int width)
 /* Write the variable record(s) for variable V to system file
    W. */
 static void
-write_variable (struct sfm_writer *w, const struct variable *v, const struct dictionary *dict)
+write_variable (struct sfm_writer *w, const struct variable *v)
 {
   int width = var_get_width (v);
   int segment_cnt = sfm_width_to_segments (width);
@@ -461,7 +461,7 @@ write_variable (struct sfm_writer *w, const struct variable *v, const struct dic
   /* Value label. */
   if (var_has_label (v))
     {
-      char *label = recode_string (dict_get_encoding (dict), UTF8, var_get_label (v), -1);
+      char *label = recode_string (var_get_encoding (v), UTF8, var_get_label (v), -1);
       size_t label_len = MIN (strlen (label), 255);
       size_t padded_len = ROUND_UP (label_len, 4);
       write_int (w, label_len);
@@ -508,7 +508,7 @@ write_variable (struct sfm_writer *w, const struct variable *v, const struct dic
    Value labels for long string variables are written separately,
    by write_long_string_value_labels. */
 static void
-write_value_labels (struct sfm_writer *w, struct variable *v, int idx, const struct dictionary *dict)
+write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 {
   const struct val_labs *val_labs;
   const struct val_lab **labels;
@@ -527,7 +527,7 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx, const str
   for (i = 0; i < n_labels; i++)
     {
       const struct val_lab *vl = labels[i];
-      char *label = recode_string (dict_get_encoding (dict), UTF8, val_lab_get_label (vl), -1);
+      char *label = recode_string (var_get_encoding (v), UTF8, val_lab_get_label (vl), -1);
       uint8_t len = MIN (strlen (label), 255);
 
       write_value (w, val_lab_get_value (vl), var_get_width (v));

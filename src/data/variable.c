@@ -590,10 +590,9 @@ var_append_value_name (const struct variable *v, const union value *value,
 		       struct string *str)
 {
   const char *name = var_lookup_value_label (v, value);
-  const struct dictionary *dict = var_get_vardict (v)->dict;
   if (name == NULL)
     {
-      char *s = data_out (value, dict_get_encoding (dict), &v->print);
+      char *s = data_out (value, var_get_encoding (v), &v->print);
       ds_put_cstr (str, s);
       free (s);
     }
@@ -1051,6 +1050,15 @@ bool
 var_has_attributes (const struct variable *v)
 {
   return attrset_count (&v->attributes) > 0;
+}
+
+/* Returns the encoding of values of variable VAR.  (This is actually a
+   property of the dictionary.)  Returns null if no specific encoding has been
+   set.  */
+const char *
+var_get_encoding (const struct variable *var)
+{
+  return var_has_vardict (var) ? dict_get_encoding (var->vardict.dict) : NULL;
 }
 
 /* Returns V's vardict structure. */

@@ -178,6 +178,9 @@ struct attrset *var_get_attributes (const struct variable *);
 void var_set_attributes (struct variable *, const struct attrset *);
 bool var_has_attributes (const struct variable *);
 
+/* Encoding. */
+const char *var_get_encoding (const struct variable *);
+
 /* Function types. */
 typedef bool var_predicate_func (const struct variable *);
 

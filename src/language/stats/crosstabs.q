@@ -1191,7 +1191,8 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
       /* Insert the formatted value of the variable, then trim
          leading spaces in what was just inserted. */
       ofs = ds_length (&title);
-      s = data_out (&pt->const_values[i], dict_get_encoding (proc->dict), var_get_print_format (var));
+      s = data_out (&pt->const_values[i], var_get_encoding (var),
+                    var_get_print_format (var));
       ds_put_cstr (&title, s);
       free (s);
       ds_remove (&title, ofs, ss_cspan (ds_substr (&title, ofs, SIZE_MAX),

@@ -1653,14 +1653,13 @@ enum {
 
 /* Perform data_out for case CC, variable V, appending to STRING */
 static void
-data_out_g_string (GString *string, const struct dictionary *dict, 
-		   const struct variable *v,
+data_out_g_string (GString *string, const struct variable *v,
 		   const struct ccase *cc)
 {
   const struct fmt_spec *fs = var_get_print_format (v);
   const union value *val = case_data (cc, v);
 
-  char *s = data_out (val, dict_get_encoding (dict), fs);
+  char *s = data_out (val, var_get_encoding (v), fs);
 
   g_string_append (string, s);
 
@@ -1694,7 +1693,7 @@ clip_to_text (void)
       for (c = 0 ; c < var_cnt ; ++c)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
-	  data_out_g_string (string, clip_dict, v, cc);
+	  data_out_g_string (string, v, cc);
 	  if ( c < val_cnt - 1 )
 	    g_string_append (string, "\t");
 	}
@@ -1741,7 +1740,7 @@ clip_to_html (void)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
 	  g_string_append (string, "<td>");
-	  data_out_g_string (string, clip_dict, v, cc);
+	  data_out_g_string (string, v, cc);
 	  g_string_append (string, "</td>\n");
 	}
 
