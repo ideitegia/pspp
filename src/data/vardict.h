@@ -23,7 +23,7 @@
 
 struct dictionary ;
 
-/* Dictionary data stored in variable. */
+/* Dictionary data associated with variable. */
 struct vardict_info
   {
     int dict_index;     /* Dictionary index containing the variable. */
@@ -32,11 +32,10 @@ struct vardict_info
   };
 
 /* Called by dictionary code, defined in variable.c. */
-const struct vardict_info *var_get_vardict (const struct variable *);
-void var_set_vardict (struct variable *, const struct vardict_info *);
+struct vardict_info *var_get_vardict (const struct variable *);
+void var_set_vardict (struct variable *, struct vardict_info *);
 bool var_has_vardict (const struct variable *);
 void var_clear_vardict (struct variable *);
-
 
 /* Called by variable.c, defined in dictionary.c. */
 void dict_var_changed (const struct variable *v);

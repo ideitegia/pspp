@@ -63,7 +63,7 @@ struct variable
     bool leave;                 /* Leave value from case to case? */
 
     /* Data for use by containing dictionary. */
-    struct vardict_info vardict;
+    struct vardict_info *vardict;
 
     /* Used only for system and portable file input and output.
        See short-names.h. */
@@ -96,7 +96,7 @@ var_create (const char *name, int width)
   assert (width >= 0 && width <= MAX_STRING);
 
   v = xmalloc (sizeof *v);
-  v->vardict.dict_index = v->vardict.case_index = -1;
+  v->vardict = NULL;
   var_set_name (v, name);
   v->width = width;
   mv_init (&v->miss, width);
@@ -183,7 +183,7 @@ var_get_name (const struct variable *v)
 void
 var_set_name (struct variable *v, const char *name)
 {
-  assert (v->vardict.dict_index == -1);
+  assert (!var_has_vardict (v));
   assert (var_is_plausible_name (name, false));
 
   str_copy_trunc (v->name, sizeof v->name, name);
@@ -900,8 +900,8 @@ var_clear_short_names (struct variable *v)
 size_t
 var_get_dict_index (const struct variable *v)
 {
-  assert (v->vardict.dict_index != -1);
-  return v->vardict.dict_index;
+  assert (var_has_vardict (v));
+  return v->vardict->dict_index;
 }
 
 /* Returns V's index within the case represented by its
@@ -911,8 +911,8 @@ var_get_dict_index (const struct variable *v)
 size_t
 var_get_case_index (const struct variable *v)
 {
-  assert (v->vardict.case_index != -1);
-  return v->vardict.case_index;
+  assert (var_has_vardict (v));
+  return v->vardict->case_index;
 }
 
 /* Returns V's auxiliary data, or a null pointer if none has been
@@ -1033,37 +1033,36 @@ var_has_attributes (const struct variable *v)
 const char *
 var_get_encoding (const struct variable *var)
 {
-  return var_has_vardict (var) ? dict_get_encoding (var->vardict.dict) : NULL;
+  return var_has_vardict (var) ? dict_get_encoding (var->vardict->dict) : NULL;
 }
 
 /* Returns V's vardict structure. */
-const struct vardict_info *
+struct vardict_info *
 var_get_vardict (const struct variable *v)
 {
-  assert (var_has_vardict (v));
-  return &v->vardict;
+  return CONST_CAST (struct vardict_info *, v->vardict);
 }
 
 /* Sets V's vardict data to VARDICT. */
 void
-var_set_vardict (struct variable *v, const struct vardict_info *vardict)
+var_set_vardict (struct variable *v, struct vardict_info *vardict)
 {
   assert (vardict->dict_index >= 0);
   assert (vardict->case_index >= 0);
   assert (vardict->dict != NULL);
-  v->vardict = *vardict;
+  v->vardict = vardict;
 }
 
 /* Returns true if V has vardict data. */
 bool
 var_has_vardict (const struct variable *v)
 {
-  return v->vardict.dict_index != -1;
+  return v->vardict != NULL;
 }
 
 /* Clears V's vardict data. */
 void
 var_clear_vardict (struct variable *v)
 {
-  v->vardict.dict_index = v->vardict.case_index = -1;
+  v->vardict = NULL;
 }

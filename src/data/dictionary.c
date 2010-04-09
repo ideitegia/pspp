@@ -185,8 +185,6 @@ dict_clone (const struct dictionary *s)
 
   for (i = 0; i < s->var_cnt; i++)
     {
-      const struct vardict_info *svdi;
-      struct vardict_info dvdi;
       struct variable *sv = s->var[i];
       struct variable *dv = dict_clone_var_assert (d, sv);
       size_t i;
@@ -194,10 +192,7 @@ dict_clone (const struct dictionary *s)
       for (i = 0; i < var_get_short_name_cnt (sv); i++)
         var_set_short_name (dv, i, var_get_short_name (sv, i));
 
-      svdi = var_get_vardict (sv);
-      dvdi = *svdi;
-      dvdi.dict = d;
-      var_set_vardict (dv, &dvdi);
+      var_get_vardict (dv)->case_index = var_get_vardict (sv)->case_index;
     }
 
   d->next_value_idx = s->next_value_idx;
@@ -367,11 +362,13 @@ static struct variable *
 add_var (struct dictionary *d, struct variable *v)
 {
   /* Add dictionary info to variable. */
-  struct vardict_info vdi;
-  vdi.case_index = d->next_value_idx;
-  vdi.dict_index = d->var_cnt;
-  vdi.dict = d;
-  var_set_vardict (v, &vdi);
+  struct vardict_info *vdi;
+
+  vdi = xmalloc (sizeof *vdi);
+  vdi->case_index = d->next_value_idx;
+  vdi->dict_index = d->var_cnt;
+  vdi->dict = d;
+  var_set_vardict (v, vdi);
 
   /* Update dictionary. */
   if (d->var_cnt >= d->var_cap)
@@ -523,12 +520,9 @@ compare_var_ptrs (const void *a_, const void *b_, const void *aux UNUSED)
 
 /* Sets the dict_index in V's vardict to DICT_INDEX. */
 static void
-set_var_dict_index (struct variable *v, int dict_index)
+set_var_dict_index (struct dictionary *d, struct variable *v, int dict_index)
 {
-  struct vardict_info vdi = *var_get_vardict (v);
-  struct dictionary *d = vdi.dict;
-  vdi.dict_index = dict_index;
-  var_set_vardict (v, &vdi);
+  var_get_vardict (v)->dict_index = dict_index;
 
   if ( d->changed ) d->changed (d, d->changed_data);
   if ( d->callbacks &&  d->callbacks->var_changed )
@@ -539,9 +533,7 @@ set_var_dict_index (struct variable *v, int dict_index)
 static void
 set_var_case_index (struct variable *v, int case_index)
 {
-  struct vardict_info vdi = *var_get_vardict (v);
-  vdi.case_index = case_index;
-  var_set_vardict (v, &vdi);
+  var_get_vardict (v)->case_index = case_index;
 }
 
 /* Re-sets the dict_index in the dictionary variables with
@@ -552,7 +544,7 @@ reindex_vars (struct dictionary *d, size_t from, size_t to)
   size_t i;
 
   for (i = from; i < to; i++)
-    set_var_dict_index (d->var[i], i);
+    set_var_dict_index (d, d->var[i], i);
 }
 
 /* Deletes variable V from dictionary D and frees V.
@@ -602,6 +594,7 @@ dict_delete_var (struct dictionary *d, struct variable *v)
 
 
   /* Free memory. */
+  free (var_get_vardict (v));
   var_clear_vardict (v);
   var_destroy (v);
 
@@ -693,14 +686,14 @@ dict_reorder_vars (struct dictionary *d,
       size_t index = var_get_dict_index (order[i]);
       assert (d->var[index] == order[i]);
       d->var[index] = NULL;
-      set_var_dict_index (order[i], i);
+      set_var_dict_index (d, order[i], i);
     }
   for (i = 0; i < d->var_cnt; i++)
     if (d->var[i] != NULL)
       {
         assert (count < d->var_cnt);
         new_var[count] = d->var[i];
-        set_var_dict_index (new_var[count], count);
+        set_var_dict_index (d, new_var[count], count);
         count++;
       }
   free (d->var);
@@ -711,14 +704,14 @@ dict_reorder_vars (struct dictionary *d,
 static void
 rename_var (struct dictionary *d, struct variable *v, const char *new_name)
 {
-  struct vardict_info vdi;
+  struct vardict_info *vardict;
 
   assert (dict_contains_var (d, v));
 
-  vdi = *var_get_vardict (v);
+  vardict = var_get_vardict (v);
   var_clear_vardict (v);
   var_set_name (v, new_name);
-  var_set_vardict (v, &vdi);
+  var_set_vardict (v, vardict);
 }
 
 /* Changes the name of V in D to name NEW_NAME.  Assert-fails if
