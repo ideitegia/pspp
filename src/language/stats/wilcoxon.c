@@ -1,5 +1,5 @@
 /* Pspp - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ wilcoxon_execute (const struct dataset *ds,
 
   struct wilcoxon_state *ws = xcalloc (sizeof (*ws), t2s->n_pairs);
   const struct variable *weight = dict_get_weight (dict);
-  struct variable *weightx = var_create_internal (WEIGHT_IDX, 0);
+  struct variable *weightx = dict_create_internal_var (WEIGHT_IDX, 0);
   struct caseproto *proto;
 
   input =
@@ -108,8 +108,8 @@ wilcoxon_execute (const struct dataset *ds,
       struct subcase ordering;
       variable_pair *vp = &t2s->pairs[i];
 
-      ws[i].sign = var_create_internal (0, 0);
-      ws[i].absdiff = var_create_internal (1, 0);
+      ws[i].sign = dict_create_internal_var (0, 0);
+      ws[i].absdiff = dict_create_internal_var (1, 0);
 
       r = casereader_create_filter_missing (r, *vp, 2,
 					    exclude,
@@ -195,15 +195,15 @@ wilcoxon_execute (const struct dataset *ds,
 
   casereader_destroy (input);
 
-  var_destroy (weightx);
+  dict_destroy_internal_var (weightx);
 
   show_ranks_box (ws, t2s, dict);
   show_tests_box (ws, t2s, exact, timer);
 
   for (i = 0 ; i < t2s->n_pairs; ++i )
     {
-      var_destroy (ws[i].sign);
-      var_destroy (ws[i].absdiff);
+      dict_destroy_internal_var (ws[i].sign);
+      dict_destroy_internal_var (ws[i].absdiff);
     }
 
   free (ws);

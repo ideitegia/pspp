@@ -154,10 +154,13 @@ struct attrset *dict_get_attributes (const struct dictionary *);
 void dict_set_attributes (struct dictionary *, const struct attrset *);
 bool dict_has_attributes (const struct dictionary *);
 
-
+/* Data encoding. */
 void dict_set_encoding (struct dictionary *d, const char *enc);
 const char *dict_get_encoding (const struct dictionary *d);
 
+/* Internal variables. */
+struct variable *dict_create_internal_var (int case_idx, int width);
+void dict_destroy_internal_var (struct variable *);
 
 /* Functions to be called upon dictionary changes. */
 struct dict_callbacks

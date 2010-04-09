@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 
 #include <config.h>
 #include <assert.h>
+#include <data/dictionary.h>
 #include <data/value.h>
 #include <data/variable.h>
 #include <gl/unistr.h>
@@ -84,14 +85,14 @@ interaction_variable_create (const struct variable **vars, int n_vars)
 	      width += var_get_width (vars[i]);
 	    }
 	}
-      result->intr = var_create_internal (0, width);
+      result->intr = dict_create_internal_var (0, width);
     }
 
   return result;
 }
 void interaction_variable_destroy (struct interaction_variable *iv)
 {
-  var_destroy (iv->intr);
+  dict_destroy_internal_var (iv->intr);
   free (iv->members);
   free (iv);
 }

@@ -711,8 +711,8 @@ agr_destroy (struct agr_proc *agr)
       else if (iter->function == SD)
         moments1_destroy (iter->moments);
 
-      var_destroy (iter->subject);
-      var_destroy (iter->weight);
+      dict_destroy_internal_var (iter->subject);
+      dict_destroy_internal_var (iter->weight);
 
       free (iter);
     }
@@ -1105,10 +1105,10 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
             proto = caseproto_add_width (proto, 0);
 
 	    if ( ! iter->subject)
-	      iter->subject = var_create_internal (0, 0);
+	      iter->subject = dict_create_internal_var (0, 0);
 
 	    if ( ! iter->weight)
-	      iter->weight = var_create_internal (1, 0);
+	      iter->weight = dict_create_internal_var (1, 0);
 
             subcase_init_var (&ordering, iter->subject, SC_ASCEND);
 	    iter->writer = sort_create_writer (&ordering, proto);

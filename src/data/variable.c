@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -149,27 +149,6 @@ var_clone (const struct variable *old_var)
   return new_var;
 }
 
-/* Create a variable of the specified WIDTH to be used for
-   internal calculations only.  The variable is assigned a unique
-   dictionary index and a case index of CASE_IDX. */
-struct variable *
-var_create_internal (int case_idx, int width)
-{
-  struct variable *v = var_create ("$internal", width);
-  struct vardict_info vdi;
-  static int counter = INT_MAX / 2;
-
-  vdi.dict = NULL;
-  vdi.case_index = case_idx;
-  vdi.dict_index = counter++;
-  if (counter == INT_MAX)
-    counter = INT_MAX / 2;
-
-  var_set_vardict (v, &vdi);
-
-  return v;
-}
-
 /* Destroys variable V.
    V must not belong to a dictionary.  If it does, use
    dict_delete_var instead. */
@@ -178,11 +157,7 @@ var_destroy (struct variable *v)
 {
   if (v != NULL)
     {
-      if (var_has_vardict (v))
-	{
-	  const struct vardict_info *vdi = var_get_vardict (v);
-	  assert (vdi->dict == NULL);
-	}
+      assert (!var_has_vardict (v));
       mv_destroy (&v->miss);
       cat_stored_values_destroy (v->obs_vals);
       var_clear_short_names (v);
@@ -1075,6 +1050,7 @@ var_set_vardict (struct variable *v, const struct vardict_info *vardict)
 {
   assert (vardict->dict_index >= 0);
   assert (vardict->case_index >= 0);
+  assert (vardict->dict != NULL);
   v->vardict = *vardict;
 }
 
