@@ -81,7 +81,10 @@ void
 dict_set_encoding (struct dictionary *d, const char *enc)
 {
   if (enc)
-    d->encoding = xstrdup (enc);
+    {
+      free (d->encoding);
+      d->encoding = xstrdup (enc);
+    }
 }
 
 const char *
