@@ -901,7 +901,7 @@ size_t
 var_get_dict_index (const struct variable *v)
 {
   assert (var_has_vardict (v));
-  return v->vardict->dict_index;
+  return vardict_get_dict_index (v->vardict);
 }
 
 /* Returns V's index within the case represented by its
@@ -912,7 +912,7 @@ size_t
 var_get_case_index (const struct variable *v)
 {
   assert (var_has_vardict (v));
-  return v->vardict->case_index;
+  return vardict_get_case_index (v->vardict);
 }
 
 /* Returns V's auxiliary data, or a null pointer if none has been
@@ -1033,7 +1033,9 @@ var_has_attributes (const struct variable *v)
 const char *
 var_get_encoding (const struct variable *var)
 {
-  return var_has_vardict (var) ? dict_get_encoding (var->vardict->dict) : NULL;
+  return (var_has_vardict (var)
+          ? dict_get_encoding (vardict_get_dictionary (var->vardict))
+          : NULL);
 }
 
 /* Returns V's vardict structure. */
@@ -1047,9 +1049,6 @@ var_get_vardict (const struct variable *v)
 void
 var_set_vardict (struct variable *v, struct vardict_info *vardict)
 {
-  assert (vardict->dict_index >= 0);
-  assert (vardict->case_index >= 0);
-  assert (vardict->dict != NULL);
   v->vardict = vardict;
 }
 

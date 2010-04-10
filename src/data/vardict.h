@@ -42,4 +42,22 @@ void dict_var_changed (const struct variable *v);
 void dict_var_resized (const struct variable *v, int old_width);
 void dict_var_display_width_changed (const struct variable *v);
 
+static inline int
+vardict_get_dict_index (const struct vardict_info *vardict)
+{
+  return vardict->dict_index;
+}
+
+static inline int
+vardict_get_case_index (const struct vardict_info *vardict)
+{
+  return vardict->case_index;
+}
+
+static inline struct dictionary *
+vardict_get_dictionary (const struct vardict_info *vardict)
+{
+  return vardict->dict;
+}
+
 #endif /* data/vardict.h */
