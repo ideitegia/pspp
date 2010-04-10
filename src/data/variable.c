@@ -199,8 +199,6 @@ var_is_valid_name (const char *name, bool issue_error)
   bool plausible;
   size_t length, i;
 
-  assert (name != NULL);
-
   /* Note that strlen returns number of BYTES, not the number of
      CHARACTERS */
   length = strlen (name);
@@ -245,8 +243,6 @@ bool
 var_is_plausible_name (const char *name, bool issue_error)
 {
   size_t length;
-
-  assert (name != NULL);
 
   /* Note that strlen returns number of BYTES, not the number of
      CHARACTERS */
@@ -849,7 +845,6 @@ var_get_short_name (const struct variable *var, size_t idx)
 void
 var_set_short_name (struct variable *var, size_t idx, const char *short_name)
 {
-  assert (var != NULL);
   assert (short_name == NULL || var_is_plausible_name (short_name, false));
 
   /* Clear old short name numbered IDX, if any. */
@@ -955,7 +950,6 @@ var_detach_aux (struct variable *v)
 void
 var_clear_aux (struct variable *v)
 {
-  assert (v != NULL);
   if (v->aux != NULL)
     {
       if (v->aux_dtor != NULL)
