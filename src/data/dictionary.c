@@ -683,7 +683,7 @@ dict_reorder_vars (struct dictionary *d,
   assert (count == 0 || order != NULL);
   assert (count <= d->var_cnt);
 
-  new_var = xnmalloc (d->var_cnt, sizeof *new_var);
+  new_var = xnmalloc (d->var_cap, sizeof *new_var);
   memcpy (new_var, order, count * sizeof *new_var);
   for (i = 0; i < count; i++)
     {
