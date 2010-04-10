@@ -179,8 +179,6 @@ dict_clone (const struct dictionary *s)
   struct dictionary *d;
   size_t i;
 
-  assert (s != NULL);
-
   d = dict_create ();
 
   for (i = 0; i < s->var_cnt; i++)
@@ -235,8 +233,6 @@ dict_clear (struct dictionary *d)
 {
   /* FIXME?  Should we really clear case_limit, label, documents?
      Others are necessarily cleared by deleting all the variables.*/
-  assert (d != NULL);
-
   while (d->var_cnt > 0 )
     {
       dict_delete_var (d, d->var[d->var_cnt - 1]);
@@ -266,8 +262,6 @@ dict_clear_aux (struct dictionary *d)
 {
   int i;
 
-  assert (d != NULL);
-
   for (i = 0; i < d->var_cnt; i++)
     var_clear_aux (d->var[i]);
 }
@@ -293,8 +287,6 @@ dict_destroy (struct dictionary *d)
 size_t
 dict_get_var_cnt (const struct dictionary *d)
 {
-  assert (d != NULL);
-
   return d->var_cnt;
 }
 
@@ -304,7 +296,6 @@ dict_get_var_cnt (const struct dictionary *d)
 struct variable *
 dict_get_var (const struct dictionary *d, size_t idx)
 {
-  assert (d != NULL);
   assert (idx < d->var_cnt);
 
   return d->var[idx];
@@ -334,9 +325,6 @@ dict_get_vars_mutable (const struct dictionary *d, struct variable ***vars,
   size_t count;
   size_t i;
 
-  assert (d != NULL);
-  assert (vars != NULL);
-  assert (cnt != NULL);
   assert (exclude == (exclude & DC_ALL));
 
   count = 0;
@@ -613,7 +601,6 @@ dict_delete_vars (struct dictionary *d,
 {
   /* FIXME: this can be done in O(count) time, but this algorithm
      is O(count**2). */
-  assert (d != NULL);
   assert (count == 0 || vars != NULL);
 
   while (count-- > 0)
@@ -642,8 +629,6 @@ dict_delete_scratch_vars (struct dictionary *d)
 
   /* FIXME: this can be done in O(count) time, but this algorithm
      is O(count**2). */
-  assert (d != NULL);
-
   for (i = 0; i < d->var_cnt; )
     if (var_get_dict_class (d->var[i]) == DC_SCRATCH)
       dict_delete_var (d, d->var[i]);
@@ -675,7 +660,6 @@ dict_reorder_vars (struct dictionary *d,
   struct variable **new_var;
   size_t i;
 
-  assert (d != NULL);
   assert (count == 0 || order != NULL);
   assert (count <= d->var_cnt);
 
@@ -924,7 +908,6 @@ dict_make_unique_var_name (const struct dictionary *dict, const char *hint,
 struct variable *
 dict_get_weight (const struct dictionary *d)
 {
-  assert (d != NULL);
   assert (d->weight == NULL || dict_contains_var (d, d->weight));
 
   return d->weight;
@@ -940,7 +923,6 @@ double
 dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
 		      bool *warn_on_invalid)
 {
-  assert (d != NULL);
   assert (c != NULL);
 
   if (d->weight == NULL)
@@ -965,7 +947,6 @@ dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
 void
 dict_set_weight (struct dictionary *d, struct variable *v)
 {
-  assert (d != NULL);
   assert (v == NULL || dict_contains_var (d, v));
   assert (v == NULL || var_is_numeric (v));
 
@@ -983,7 +964,6 @@ dict_set_weight (struct dictionary *d, struct variable *v)
 struct variable *
 dict_get_filter (const struct dictionary *d)
 {
-  assert (d != NULL);
   assert (d->filter == NULL || dict_contains_var (d, d->filter));
 
   return d->filter;
@@ -994,7 +974,6 @@ dict_get_filter (const struct dictionary *d)
 void
 dict_set_filter (struct dictionary *d, struct variable *v)
 {
-  assert (d != NULL);
   assert (v == NULL || dict_contains_var (d, v));
   assert (v == NULL || var_is_numeric (v));
 
@@ -1012,8 +991,6 @@ dict_set_filter (struct dictionary *d, struct variable *v)
 casenumber
 dict_get_case_limit (const struct dictionary *d)
 {
-  assert (d != NULL);
-
   return d->case_limit;
 }
 
@@ -1022,8 +999,6 @@ dict_get_case_limit (const struct dictionary *d)
 void
 dict_set_case_limit (struct dictionary *d, casenumber case_limit)
 {
-  assert (d != NULL);
-
   d->case_limit = case_limit;
 }
 
@@ -1052,8 +1027,6 @@ dict_get_proto (const struct dictionary *d_)
 int
 dict_get_next_value_idx (const struct dictionary *d)
 {
-  assert (d != NULL);
-
   return d->next_value_idx;
 }
 
@@ -1062,8 +1035,6 @@ dict_get_next_value_idx (const struct dictionary *d)
 size_t
 dict_get_case_size (const struct dictionary *d)
 {
-  assert (d != NULL);
-
   return sizeof (union value) * dict_get_next_value_idx (d);
 }
 
@@ -1148,8 +1119,6 @@ dict_get_compacted_proto (const struct dictionary *d,
 const struct variable *const *
 dict_get_split_vars (const struct dictionary *d)
 {
-  assert (d != NULL);
-
   return d->split;
 }
 
@@ -1157,8 +1126,6 @@ dict_get_split_vars (const struct dictionary *d)
 size_t
 dict_get_split_cnt (const struct dictionary *d)
 {
-  assert (d != NULL);
-
   return d->split_cnt;
 }
 
@@ -1189,7 +1156,6 @@ void
 dict_set_split_vars (struct dictionary *d,
                      struct variable *const *split, size_t cnt)
 {
-  assert (d != NULL);
   assert (cnt == 0 || split != NULL);
 
   d->split_cnt = cnt;
@@ -1214,8 +1180,6 @@ dict_set_split_vars (struct dictionary *d,
 const char *
 dict_get_label (const struct dictionary *d)
 {
-  assert (d != NULL);
-
   return d->label;
 }
 
@@ -1224,8 +1188,6 @@ dict_get_label (const struct dictionary *d)
 void
 dict_set_label (struct dictionary *d, const char *label)
 {
-  assert (d != NULL);
-
   free (d->label);
   d->label = label != NULL ? xstrndup (label, 60) : NULL;
 }
@@ -1310,7 +1272,6 @@ dict_create_vector (struct dictionary *d,
 {
   size_t i;
 
-  assert (var != NULL);
   assert (cnt > 0);
   for (i = 0; i < cnt; i++)
     assert (dict_contains_var (d, var[i]));
@@ -1342,7 +1303,6 @@ dict_create_vector_assert (struct dictionary *d,
 const struct vector *
 dict_get_vector (const struct dictionary *d, size_t idx)
 {
-  assert (d != NULL);
   assert (idx < d->vector_cnt);
 
   return d->vector[idx];
@@ -1352,8 +1312,6 @@ dict_get_vector (const struct dictionary *d, size_t idx)
 size_t
 dict_get_vector_cnt (const struct dictionary *d)
 {
-  assert (d != NULL);
-
   return d->vector_cnt;
 }
 
