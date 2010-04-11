@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -47,6 +47,18 @@ hmap_swap (struct hmap *a, struct hmap *b)
     a->buckets = &a->one;
   if (!b->mask)
     b->buckets = &b->one;
+}
+
+/* Removes all of the elements from MAP, without destroying MAP itself and
+   without accessing the existing elements (if any). */
+void
+hmap_clear (struct hmap *map)
+{
+  size_t i;
+
+  for (i = 0; i <= map->mask; i++)
+    map->buckets[i] = NULL;
+  map->count = 0;
 }
 
 /* Frees the memory, if any, allocated by hash map MAP.  This has

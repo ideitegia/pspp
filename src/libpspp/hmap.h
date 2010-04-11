@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -158,6 +158,7 @@ struct hmap
 /* Creation and destruction. */
 void hmap_init (struct hmap *);
 void hmap_swap (struct hmap *, struct hmap *);
+void hmap_clear (struct hmap *);
 void hmap_destroy (struct hmap *);
 
 /* Storage management. */

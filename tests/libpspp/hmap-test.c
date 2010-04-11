@@ -915,6 +915,45 @@ test_swap_random_hash (void)
   test_swap (128, random_hash);
 }
 
+/* Inserts elements into an hmap in ascending order, then clears the hash table
+   using hmap_clear(). */
+static void
+test_clear (void)
+{
+  const int max_elems = 128;
+  struct element *elements;
+  int *values;
+  struct hmap hmap;
+  int cnt;
+
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 3
+  return;
+#endif  /* GCC 4.3 */
+
+  elements = xnmalloc (max_elems, sizeof *elements);
+  values = xnmalloc (max_elems, sizeof *values);
+
+  for (cnt = 0; cnt <= max_elems; cnt++)
+    {
+      int i;
+
+      hmap_init (&hmap);
+      for (i = 0; i < cnt; i++)
+        {
+          values[i] = elements[i].data = i;
+          hmap_insert (&hmap, &elements[i].node,
+                       random_hash (elements[i].data));
+          check_hmap (&hmap, values, i + 1, random_hash);
+        }
+      hmap_clear (&hmap);
+      check_hmap (&hmap, NULL, 0, random_hash);
+      hmap_destroy (&hmap);
+    }
+
+  free (elements);
+  free (values);
+}
+
 static void
 test_destroy_null (void) 
 {
@@ -998,6 +1037,8 @@ main (void)
             "change key data in nodes (constant hash)");
 
   run_test (test_swap_random_hash, "test swapping tables");
+
+  run_test (test_clear, "test clearing hash table");
 
   run_test (test_destroy_null, "test destroying null table");
   run_test (test_shrink_empty, "test shrinking an empty table");
