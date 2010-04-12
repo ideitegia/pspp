@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,33 +16,19 @@
 
 #include <config.h>
 
-#include <data/short-names.h>
+#include "data/short-names.h"
 
-#include <data/dictionary.h>
-#include <data/sys-file-private.h>
-#include <data/variable.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/dictionary.h"
+#include "data/sys-file-private.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "libpspp/stringi-set.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-/* Compares two strings. */
-static int
-compare_strings (const void *a, const void *b, const void *aux UNUSED)
-{
-  return strcmp (a, b);
-}
-
-/* Hashes a string. */
-static unsigned
-do_hash_string (const void *s, const void *aux UNUSED)
-{
-  return hash_string (s, 0);
-}
 
 /* Sets V's short name to BASE, followed by a suffix of the form
    _A, _B, _C, ..., _AA, _AB, etc. according to the value of
@@ -79,18 +65,19 @@ set_var_short_name_suffix (struct variable *v, size_t i,
 }
 
 static void
-claim_short_name (struct variable *v, size_t i, struct hsh_table *short_names)
+claim_short_name (struct variable *v, size_t i,
+                  struct stringi_set *short_names)
 {
   const char *short_name = var_get_short_name (v, i);
-  if (short_name != NULL
-      && hsh_insert (short_names, (char *) short_name) != NULL)
+  if (short_name != NULL && !stringi_set_insert (short_names, short_name))
     var_set_short_name (v, i, NULL);
 }
 
 /* Form initial short_name from the variable name, then try _A,
    _B, ... _AA, _AB, etc., if needed. */
 static void
-assign_short_name (struct variable *v, size_t i, struct hsh_table *short_names)
+assign_short_name (struct variable *v, size_t i,
+                   struct stringi_set *short_names)
 {
   int trial;
 
@@ -104,7 +91,7 @@ assign_short_name (struct variable *v, size_t i, struct hsh_table *short_names)
       else
         set_var_short_name_suffix (v, i, var_get_name (v), trial);
 
-      if (hsh_insert (short_names, (char *) var_get_short_name (v, i)) == NULL)
+      if (stringi_set_insert (short_names, var_get_short_name (v, i)))
         break;
     }
 }
@@ -121,15 +108,10 @@ void
 short_names_assign (struct dictionary *d)
 {
   size_t var_cnt = dict_get_var_cnt (d);
-  struct hsh_table *short_names;
+  struct stringi_set short_names;
   size_t i, j;
 
-  /* Create hash used for detecting conflicts.  The entries in
-     the hash table point to strings owned by dictionary
-     variables, not by us, so we don't need to provide a free
-     function. */
-  short_names = hsh_create (var_cnt, compare_strings, do_hash_string,
-                            NULL, NULL);
+  stringi_set_init (&short_names);
 
   /* Clear short names that conflict with a variable name. */
   for (i = 0; i < var_cnt; i++)
@@ -153,8 +135,9 @@ short_names_assign (struct dictionary *d)
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
-      if (strlen (var_get_name (v)) <= SHORT_NAME_LEN)
-        var_set_short_name (v, 0, var_get_name (v));
+      const char *name = var_get_name (v);
+      if (strlen (name) <= SHORT_NAME_LEN)
+        var_set_short_name (v, 0, name);
     }
 
   /* Each variable with an assigned short name for its first
@@ -165,14 +148,14 @@ short_names_assign (struct dictionary *d)
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
-      claim_short_name (v, 0, short_names);
+      claim_short_name (v, 0, &short_names);
     }
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
       int segment_cnt = sfm_width_to_segments (var_get_width (v));
       for (j = 1; j < segment_cnt; j++)
-        claim_short_name (v, j, short_names);
+        claim_short_name (v, j, &short_names);
     }
 
   /* Assign short names to first segment of remaining variables,
@@ -180,16 +163,15 @@ short_names_assign (struct dictionary *d)
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
-      assign_short_name (v, 0, short_names);
+      assign_short_name (v, 0, &short_names);
     }
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
       int segment_cnt = sfm_width_to_segments (var_get_width (v));
       for (j = 1; j < segment_cnt; j++)
-        assign_short_name (v, j, short_names);
+        assign_short_name (v, j, &short_names);
     }
 
-  /* Get rid of hash table. */
-  hsh_destroy (short_names);
+  stringi_set_destroy (&short_names);
 }
