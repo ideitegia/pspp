@@ -3,4 +3,5 @@ AT_INIT
 m4_include([tests/language/stats/autorecode.at])
 m4_include([tests/language/stats/crosstabs.at])
 m4_include([tests/language/stats/frequencies.at])
+m4_include([tests/language/xforms/recode.at])
 m4_include([tests/output/render.at])

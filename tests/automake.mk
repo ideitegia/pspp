@@ -139,7 +139,6 @@ dist_TESTS = \
 	tests/bugs/unwritable-dir.sh \
 	tests/bugs/val-labs.sh \
 	tests/bugs/val-labs-trailing-slash.sh \
-	tests/bugs/recode-copy-bug.sh \
 	tests/bugs/computebug.sh \
 	tests/bugs/compute-lv.sh \
 	tests/bugs/compute-sum.sh \
@@ -148,7 +147,6 @@ dist_TESTS = \
 	tests/data/datasheet-test.sh \
 	tests/libpspp/sparse-xarray-test.sh \
 	tests/output/paper-size.sh \
-	tests/xforms/recode.sh \
 	tests/stats/descript-basic.sh \
 	tests/stats/descript-missing.sh \
 	tests/stats/descript-mean-bug.sh \
@@ -419,6 +417,7 @@ TESTSUITE_AT = \
 	tests/language/stats/autorecode.at \
 	tests/language/stats/crosstabs.at \
 	tests/language/stats/frequencies.at \
+	tests/language/xforms/recode.at \
 	tests/output/render.at
 TESTSUITE = $(srcdir)/tests/testsuite
 DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
