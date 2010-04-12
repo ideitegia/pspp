@@ -23,12 +23,13 @@
 
 struct dictionary ;
 
-/* Dictionary data associated with variable. */
+/* Binds a variable to a dictionary. */
 struct vardict_info
   {
-    int dict_index;     /* Dictionary index containing the variable. */
+    struct dictionary *dict;
+    struct variable *var;
+    struct hmap_node name_node; /* In struct dictionary's name_map. */
     int case_index;     /* Index into case of variable data. */
-    struct dictionary *dict;  /* The dictionary containing the variable */
   };
 
 /* Called by dictionary code, defined in variable.c. */
@@ -42,11 +43,7 @@ void dict_var_changed (const struct variable *v);
 void dict_var_resized (const struct variable *v, int old_width);
 void dict_var_display_width_changed (const struct variable *v);
 
-static inline int
-vardict_get_dict_index (const struct vardict_info *vardict)
-{
-  return vardict->dict_index;
-}
+int vardict_get_dict_index (const struct vardict_info *);
 
 static inline int
 vardict_get_case_index (const struct vardict_info *vardict)
