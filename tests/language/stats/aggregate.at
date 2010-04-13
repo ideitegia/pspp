@@ -1,63 +1,22 @@
-#!/bin/sh
+AT_BANNER([AGGREGATE procedure])
 
-# This program tests the aggregate procedure
-
-TEMPDIR=/tmp/pspp-tst-$$
-TESTFILE=$TEMPDIR/aggregate.pspp
-
-
-# ensure that top_srcdir and top_builddir  are absolute
-if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
-if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
-top_srcdir=`cd $top_srcdir; pwd`
-top_builddir=`cd $top_builddir; pwd`
-PSPP=$top_builddir/src/ui/terminal/pspp
-
-
-STAT_CONFIG_PATH=$top_srcdir/config
-export STAT_CONFIG_PATH
-
-cleanup()
-{
-     if [ x"$PSPP_TEST_NO_CLEANUP" != x ] ; then 
-	echo "NOT cleaning $TEMPDIR" 
-	return ; 
-     fi
-     cd /
-     rm -rf $TEMPDIR
-}
-
-
-fail()
-{
-    echo $activity
-    echo FAILED
-    cleanup;
-    exit 1;
-}
-
-
-no_result()
-{
-    echo $activity
-    echo NO RESULT;
-    cleanup;
-    exit 2;
-}
-
-pass()
-{
-    cleanup;
-    exit 0;
-}
-
-mkdir -p $TEMPDIR
-
-cd $TEMPDIR
-
-activity="data create"
-cat > aggregate.data <<EOF
-2 42
+dnl CHECK_AGGREGATE(OUTFILE, SORT, MISSING)
+dnl
+dnl Checks the AGGREGATE procedure with the specified combination of:
+dnl
+dnl - OUTFILE: One of "scratch", "active", or "external" according to
+dnl   where AGGREGATE's output should be directed.
+dnl 
+dnl - SORT: Either "presorted" or "unsorted" according to whether
+dnl   AGGREGATE should received presorted input.
+dnl
+dnl - MISSING: Either "itemwise" or "columnwise" according to the basis
+dnl   on which missing values should be eliminated.
+dnl
+m4_define([CHECK_AGGREGATE], [
+  AT_SETUP([AGGREGATE $2 data to $1 file, $3 missing])
+  AT_DATA([aggregate.data],
+  [2 42
 1001
 4 41
 3112
@@ -69,13 +28,20 @@ cat > aggregate.data <<EOF
 1441
 2881
 1551
-EOF
-if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="command skeleton create"
-cat > agg-skel.pspp <<EOF
-	/document
-	/break=g
+])
+  AT_DATA([aggregate.sps],
+    [DATA LIST NOTABLE FILE='aggregate.data' /G N 1-2 S 3(a) W 4.
+WEIGHT BY w.
+MISSING VALUES n(4) s('4').
+m4_if([$2], [presorted], [SORT CASES BY g.])
+AGGREGATE dnl
+m4_if([$1], [active], [OUTFILE=*],
+      [$1], [external], [OUTFILE='aggregate.sys'],
+      [outfile=@%:@AGGREGATE]) dnl
+m4_if([$2], [presorted], [/PRESORTED]) dnl
+m4_if([$3], [columnwise], [/MISSING=COLUMNWISE])
+	/DOCUMENT
+	/BREAK=g
 	/N = n
 	/NI = n./
 	NU = nu
@@ -152,11 +118,14 @@ cat > agg-skel.pspp <<EOF
 	/NSDI = sd.(n)
 	/NSUM = sum(n)
 	/NSUMI = sum.(n).
-EOF
-
-activity="expected output (itemwise missing) create"
-cat > agg-itemwise.csv <<EOF
-warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
+m4_if([$1], [external], [GET FILE='aggregate.sys'.],
+      [$1], [scratch], [GET FILE=@%:@AGGREGATE.])
+LIST.
+])
+  AT_CHECK([pspp -O format=csv aggregate.sps], [0], [stdout])
+  AT_CHECK([[sed 's/^[^:]*:[0-9]*: //' < stdout]], [0],
+    [m4_if([$3], [itemwise],
+      [warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
 
 warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
 
@@ -169,12 +138,9 @@ G,N,NI,NU,NUI,NFGT2,NFGT2I,SFGT2,SFGT2I,NFIN23,NFIN23I,SFIN23,SFIN23I,NFLT2,NFLT
 1,7.00,7.00,6,6,.333,.429,.333,.429,.333,.286,.333,.286,.500,.429,.500,.429,0,0,0,0,.667,.714,.667,.714,5,5,5,5,5,5,5,5,2.00,2.29,0,0,0,0,6.00,7.00,6.00,7.00,1.00,.00,1.00,.00,5,6,5,6,1,0,1,0,33.3,42.9,33.3,42.9,33.3,28.6,33.3,28.6,50.0,42.9,50.0,42.9,66.7,71.4,66.7,71.4,1.50,2.00,1.79,1.80,12.00,16.00
 2,5.00,5.00,4,4,1.000,1.000,1.000,1.000,.000,.000,.000,.000,.000,.000,.000,.000,6,6,6,4,1.000,1.000,1.000,1.000,8,8,8,8,8,8,8,8,7.00,7.00,6,6,6,4,3.00,3.00,3.00,5.00,2.00,2.00,2.00,.00,3,3,3,4,1,1,1,0,100.0,100.0,100.0,100.0,.0,.0,.0,.0,.0,.0,.0,.0,100.0,100.0,100.0,100.0,7.00,7.00,1.00,1.00,21.00,21.00
 3,2.00,2.00,1,1,.000,.000,.000,.000,.000,.000,.000,.000,1.000,1.000,1.000,1.000,1,1,1,1,1.000,1.000,1.000,1.000,1,1,1,1,1,1,1,1,1.00,1.00,1,1,1,1,2.00,2.00,2.00,2.00,.00,.00,.00,.00,1,1,1,1,0,0,0,0,.0,.0,.0,.0,.0,.0,.0,.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,1.00,1.00,.00,.00,2.00,2.00
-4,1.00,1.00,1,1,.   ,.   ,.   ,1.000,.   ,.   ,.   ,.000,.   ,.   ,.   ,.000,.,.,,4,.   ,.   ,.   ,1.000,.,.,,4,.,.,,4,.  ,.  ,.,.,,4,.00,.00,.00,1.00,1.00,1.00,1.00,.00,0,0,0,1,1,1,1,0,. ,. ,. ,100.0,. ,. ,. ,.0,. ,. ,. ,.0,. ,. ,. ,100.0,NaN,NaN,.  ,.  ,.  ,.  
-EOF
-
-activity="expected output (columnwise missing) create"
-cat > agg-columnwise.csv <<EOF
-warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
+4,1.00,1.00,1,1,.   ,.   ,.   ,1.000,.   ,.   ,.   ,.000,.   ,.   ,.   ,.000,.,.,,4,.   ,.   ,.   ,1.000,.,.,,4,.,.,,4,.  ,.  ,.,.,,4,.00,.00,.00,1.00,1.00,1.00,1.00,.00,0,0,0,1,1,1,1,0,. ,. ,. ,100.0,. ,. ,. ,.0,. ,. ,. ,.0,. ,. ,. ,100.0,NaN,NaN,.  ,.  ,.  ,.  @&t@
+],
+      [warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
 
 warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
 
@@ -185,58 +151,62 @@ warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-o
 Table: Data List
 G,N,NI,NU,NUI,NFGT2,NFGT2I,SFGT2,SFGT2I,NFIN23,NFIN23I,SFIN23,SFIN23I,NFLT2,NFLT2I,SFLT2,SFLT2I,NFIRST,NFIRSTI,SFIRST,SFIRSTI,NFOUT23,NFOUT23I,SFOUT23,SFOUT23I,NLAST,NLASTI,SLAST,SLASTI,NMAX,NMAXI,SMAX,SMAXI,NMEAN,NMEANI,NMIN,NMINI,SMIN,SMINI,NN,NNI,SN,SNI,NNMISS,NNMISSI,SNMISS,SNMISSI,NNU,NNUI,SNU,SNUI,NNUMISS,NNUMISSI,SNUMISS,SNUMISSI,NPGT2,NPGT2I,SPGT2,SPGT2I,NPIN23,NPIN23I,SPIN23,SPIN23I,NPLT2,NPLT2I,SPLT2,SPLT2I,NPOUT23,NPOUT23I,SPOUT23,SPOUT23I,NMEDIAN,NMEDIANI,NSD,NSDI,NSUM,NSUMI
 1,7.00,7.00,6,6,.   ,.429,.   ,.429,.   ,.286,.   ,.286,.   ,.429,.   ,.429,.,0,,0,.   ,.714,.   ,.714,.,5,,5,.,5,,5,.  ,2.29,.,0,,0,6.00,7.00,6.00,7.00,1.00,.00,1.00,.00,5,6,5,6,1,0,1,0,. ,42.9,. ,42.9,. ,28.6,. ,28.6,. ,42.9,. ,42.9,. ,71.4,. ,71.4,.  ,2.00,.  ,1.80,.  ,16.00
-2,5.00,5.00,4,4,.   ,.   ,.   ,1.000,.   ,.   ,.   ,.000,.   ,.   ,.   ,.000,.,.,,4,.   ,.   ,.   ,1.000,.,.,,8,.,.,,8,.  ,.  ,.,.,,4,3.00,3.00,3.00,5.00,2.00,2.00,2.00,.00,3,3,3,4,1,1,1,0,. ,. ,. ,100.0,. ,. ,. ,.0,. ,. ,. ,.0,. ,. ,. ,100.0,.  ,.  ,.  ,.  ,.  ,.  
+2,5.00,5.00,4,4,.   ,.   ,.   ,1.000,.   ,.   ,.   ,.000,.   ,.   ,.   ,.000,.,.,,4,.   ,.   ,.   ,1.000,.,.,,8,.,.,,8,.  ,.  ,.,.,,4,3.00,3.00,3.00,5.00,2.00,2.00,2.00,.00,3,3,3,4,1,1,1,0,. ,. ,. ,100.0,. ,. ,. ,.0,. ,. ,. ,.0,. ,. ,. ,100.0,.  ,.  ,.  ,.  ,.  ,.  @&t@
 3,2.00,2.00,1,1,.000,.000,.000,.000,.000,.000,.000,.000,1.000,1.000,1.000,1.000,1,1,1,1,1.000,1.000,1.000,1.000,1,1,1,1,1,1,1,1,1.00,1.00,1,1,1,1,2.00,2.00,2.00,2.00,.00,.00,.00,.00,1,1,1,1,0,0,0,0,.0,.0,.0,.0,.0,.0,.0,.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,1.00,1.00,.00,.00,2.00,2.00
-4,1.00,1.00,1,1,.   ,.   ,.   ,1.000,.   ,.   ,.   ,.000,.   ,.   ,.   ,.000,.,.,,4,.   ,.   ,.   ,1.000,.,.,,4,.,.,,4,.  ,.  ,.,.,,4,.00,.00,.00,1.00,1.00,1.00,1.00,.00,0,0,0,1,1,1,1,0,. ,. ,. ,100.0,. ,. ,. ,.0,. ,. ,. ,.0,. ,. ,. ,100.0,.  ,.  ,.  ,.  ,.  ,.  
-EOF
+4,1.00,1.00,1,1,.   ,.   ,.   ,1.000,.   ,.   ,.   ,.000,.   ,.   ,.   ,.000,.,.,,4,.   ,.   ,.   ,1.000,.,.,,4,.,.,,4,.  ,.  ,.,.,,4,.00,.00,.00,1.00,1.00,1.00,1.00,.00,0,0,0,1,1,1,1,0,. ,. ,. ,100.0,. ,. ,. ,.0,. ,. ,. ,.0,. ,. ,. ,100.0,.  ,.  ,.  ,.  ,.  ,.  @&t@
+])])
+  AT_CLEANUP])
 
-for outfile in scratch active external; do
-    for sort in presorted unsorted; do
-	for missing in itemwise columnwise; do
-	    name=$outfile-$sort-$missing
+CHECK_AGGREGATE([scratch], [presorted], [itemwise])
+CHECK_AGGREGATE([scratch], [presorted], [columnwise])
+CHECK_AGGREGATE([scratch], [unsorted], [itemwise])
+CHECK_AGGREGATE([scratch], [unsorted], [columnwise])
+CHECK_AGGREGATE([active], [presorted], [itemwise])
+CHECK_AGGREGATE([active], [presorted], [columnwise])
+CHECK_AGGREGATE([active], [unsorted], [itemwise])
+CHECK_AGGREGATE([active], [unsorted], [columnwise])
+CHECK_AGGREGATE([external], [presorted], [itemwise])
+CHECK_AGGREGATE([external], [presorted], [columnwise])
+CHECK_AGGREGATE([external], [unsorted], [itemwise])
+CHECK_AGGREGATE([external], [unsorted], [columnwise])
 
-	    activity="create $name.pspp"
-	    {
-		echo "data list notable file='aggregate.data' /G N 1-2 S 3(a) W 4."
-		echo "weight by w."
-		echo "missing values n(4) s('4')."
-		if [ "$sort" = "presorted" ]; then
-		    echo "sort cases by g."
-		fi
-		echo "aggregate"
-		if [ "$outfile" = "active" ]; then
-		    echo "	outfile=*"
-		elif [ "$outfile" = "external" ]; then
-		    echo "	outfile='aggregate.sys'"
-		else
-		    echo "	outfile=#AGGREGATE"
-		fi
-		if [ "$sort" = "presorted" ]; then
-		    echo "	/presorted"
-		fi
-		if [ "$missing" = "columnwise" ]; then
-		    echo "	/missing=columnwise"
-		fi
-		cat agg-skel.pspp
-		if [ "$outfile" = "external" ]; then
-		    echo "get file='aggregate.sys'."
-		elif [ "$outfile" = "scratch" ]; then
-		    echo "get file=#AGGREGATE."
-		fi
-		echo "list."
-	    } > $name.pspp
-	    if [ $? -ne 0 ] ; then no_result ; fi
-	    
-	    activity="run $name.pspp"
-	    $SUPERVISOR $PSPP -o pspp.csv -e /dev/null $name.pspp 
-	    if [ $? -ne 0 ] ; then no_result ; fi
+AT_SETUP([AGGREGATE crash with MAX function])
+AT_DATA([aggregate.sps], 
+  [DATA LIST LIST /X (F8.2) Y (a25).
 
-	    activity="check $name output"
-	    perl -pi -e 's/^.*:\d+: //;' pspp.csv
-	    diff -c pspp.csv agg-$missing.csv
-	    if [ $? -ne 0 ] ; then fail ; fi
-	done
-    done
-done
+BEGIN DATA.
+87.50 foo
+87.34 bar
+1 bar
+END DATA.
 
-pass;
+AGGREGATE OUTFILE=* /BREAK=y /X=MAX(x).
+LIST /x y.
+])
+AT_CHECK([pspp -O format=csv aggregate.sps], [0],
+  [Table: Reading free-form data from INLINE.
+Variable,Format
+X,F8.2
+Y,A25
+
+Table: Data List
+X,Y
+87.34,bar                      @&t@
+87.50,foo                      @&t@
+])
+AT_CLEANUP
+
+AT_SETUP([AGGREGATE crash with invalid syntax])
+AT_DATA([aggregate.sps],
+  [INPUT PROGRAM.
+LOOP c=1 TO 20.
+  COMPUTE x=UNIFORM(10)
+  END CASE.
+END LOOP.
+END FILE.
+END INPUT PROGRAM.
+
+AGGREGATE /BREAK=x .
+])
+AT_CHECK([pspp -O format=csv aggregate.sps], [1], [ignore], [])
+AT_CLEANUP

@@ -1,5 +1,6 @@
 AT_INIT
 
+m4_include([tests/language/stats/aggregate.at])
 m4_include([tests/language/stats/autorecode.at])
 m4_include([tests/language/stats/crosstabs.at])
 m4_include([tests/language/stats/descriptives.at])

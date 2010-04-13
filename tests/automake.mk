@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 
 dist_TESTS = \
 	tests/command/add-files.sh \
-	tests/command/aggregate.sh \
 	tests/command/attributes.sh \
 	tests/command/beg-data.sh \
 	tests/command/bignum.sh \
@@ -99,8 +98,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/agg_crash.sh \
-	tests/bugs/agg-crash-2.sh \
 	tests/bugs/big-input.sh \
 	tests/bugs/big-input-2.sh \
 	tests/bugs/case-map.sh \
@@ -407,6 +404,7 @@ EXTRA_DIST += \
 	$(TESTSUITE)
 TESTSUITE_AT = \
 	tests/testsuite.at \
+	tests/language/stats/aggregate.at \
 	tests/language/stats/autorecode.at \
 	tests/language/stats/crosstabs.at \
 	tests/language/stats/descriptives.at \
