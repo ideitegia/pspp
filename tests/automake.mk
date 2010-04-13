@@ -143,9 +143,6 @@ dist_TESTS = \
 	tests/data/datasheet-test.sh \
 	tests/libpspp/sparse-xarray-test.sh \
 	tests/output/paper-size.sh \
-	tests/stats/descript-basic.sh \
-	tests/stats/descript-missing.sh \
-	tests/stats/descript-mean-bug.sh \
 	tests/stats/moments.sh \
 	tests/expressions/expressions.sh \
 	tests/expressions/epoch.sh \
@@ -412,6 +409,7 @@ TESTSUITE_AT = \
 	tests/testsuite.at \
 	tests/language/stats/autorecode.at \
 	tests/language/stats/crosstabs.at \
+	tests/language/stats/descriptives.at \
 	tests/language/stats/frequencies.at \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/recode.at \
