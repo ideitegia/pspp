@@ -105,7 +105,6 @@ dist_TESTS = \
 	tests/bugs/big-input-2.sh \
 	tests/bugs/case-map.sh \
 	tests/bugs/comment-at-eof.sh \
-	tests/bugs/compute-fmt.sh \
 	tests/bugs/compression.sh \
 	tests/bugs/curtailed.sh \
 	tests/bugs/data-crash.sh \
@@ -139,9 +138,6 @@ dist_TESTS = \
 	tests/bugs/unwritable-dir.sh \
 	tests/bugs/val-labs.sh \
 	tests/bugs/val-labs-trailing-slash.sh \
-	tests/bugs/computebug.sh \
-	tests/bugs/compute-lv.sh \
-	tests/bugs/compute-sum.sh \
 	tests/bugs/print-crash.sh \
 	tests/bugs/keep-all.sh \
 	tests/data/datasheet-test.sh \
@@ -417,6 +413,7 @@ TESTSUITE_AT = \
 	tests/language/stats/autorecode.at \
 	tests/language/stats/crosstabs.at \
 	tests/language/stats/frequencies.at \
+	tests/language/xforms/compute.at \
 	tests/language/xforms/recode.at \
 	tests/output/render.at
 TESTSUITE = $(srcdir)/tests/testsuite

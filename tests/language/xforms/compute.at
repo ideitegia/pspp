@@ -1,0 +1,100 @@
+AT_BANNER([COMPUTE transformation])
+
+AT_SETUP([COMPUTE crash with SAVE])
+AT_DATA([compute.sps],
+  [INPUT PROGRAM.
+COMPUTE num = 3.
+END FILE.
+END INPUT PROGRAM.
+EXECUTE.
+
+SAVE outfile='temp.sav'.
+])
+AT_CHECK([pspp -O format=csv compute.sps])
+AT_DATA([list.sps],
+  [GET FILE='temp.sav'.
+LIST.
+])
+AT_CHECK([pspp -O format=csv list.sps], [0], 
+  [])
+AT_CLEANUP
+
+AT_SETUP([COMPUTE bug in long string UPCASE])
+AT_DATA([compute.sps],
+  [DATA LIST LIST
+ /A (A161)
+ B (A3).
+
+BEGIN DATA
+abc   def
+ghi   jkl
+END DATA.
+
+COMPUTE A=upcase(A).
+EXECUTE.
+LIST.
+])
+AT_CHECK([pspp -O format=csv compute.sps], [0],
+  [Table: Reading free-form data from INLINE.
+Variable,Format
+A,A161
+B,A3
+
+Table: Data List
+A,B
+ABC                                                                                                                                                              ,def
+GHI                                                                                                                                                              ,jkl
+])
+AT_CLEANUP
+
+AT_SETUP([COMPUTE bug with long variable names])
+AT_DATA([compute.sps],
+  [DATA LIST LIST /longVariablename * x *.
+BEGIN DATA.
+1 2
+3 4
+END DATA.
+
+
+COMPUTE longvariableName=100-longvariablename.
+
+LIST.
+])
+AT_CHECK([pspp -O format=csv compute.sps], [0],
+  [Table: Reading free-form data from INLINE.
+Variable,Format
+longVariablename,F8.0
+x,F8.0
+
+Table: Data List
+longVariablename,x
+99.00,2.00
+97.00,4.00
+])
+AT_CLEANUP
+
+AT_SETUP([COMPUTE self-reference to new variable])
+AT_DATA([compute.sps],
+  [DATA LIST /ITEM 1-3.
+COMPUTE SUM=SUM+ITEM.
+PRINT OUTFILE='compute-sum.out' /ITEM SUM.
+LEAVE SUM
+BEGIN DATA.
+123
+404
+555
+999
+END DATA.
+])
+AT_CHECK([pspp -O format=csv compute.sps], [0],
+  [Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+ITEM,1,1-  3,F3.0
+])
+AT_CHECK([cat compute-sum.out], [0],
+  [ 123   123.00 @&t@
+ 404   527.00 @&t@
+ 555  1082.00 @&t@
+ 999  2081.00 @&t@
+])
+AT_CLEANUP
