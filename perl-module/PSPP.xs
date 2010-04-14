@@ -181,11 +181,10 @@ format_value (val, var)
 CODE:
  SV *ret;
  const struct fmt_spec *fmt = var_get_print_format (var);
- const struct dictionary *dict = var_get_vardict (var)->dict;
  union value uv;
  char *s;
  make_value_from_scalar (&uv, val, var);
- s = data_out (&uv, dict_get_encoding (dict), fmt);
+ s = data_out (&uv, var_get_encoding (var), fmt);
  value_destroy (&uv, var_get_width (var));
  ret = newSVpv (s, fmt->w);
  free (s);
