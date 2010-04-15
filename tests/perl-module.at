@@ -1,0 +1,757 @@
+AT_BANNER([Perl module tests])
+
+dnl This command can be used to run with the PSPP Perl module after it has been
+dnl built (with "make") but before it has been installed.  The -I options are
+dnl equivalent to "use ExtUtils::testlib;" inside the Perl program, but it does
+dnl not need to be run with the perl-module build directory as the current
+dnl working directory.
+m4_define([RUN_PERL_MODULE],
+  [LD_LIBRARY_PATH=$abs_top_builddir/src/.libs \
+   $PERL -I$abs_top_builddir/perl-module/blib/arch \
+         -I$abs_top_builddir/perl-module/blib/lib])
+
+AT_SETUP([Perl create system file])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+AT_DATA([test.pl],
+  [use warnings;
+   use strict;
+   use PSPP;
+
+   my $d = PSPP::Dict->new();
+   die "dictionary creation" if !ref $d;
+   die if $d->get_var_cnt () != 0;
+
+   $d->set_label ("My Dictionary");
+   $d->set_documents ("These Documents");
+
+   # Tests for variable creation
+
+   my $var0 = PSPP::Var->new ($d, "le");
+   die "trap illegal variable name" if ref $var0;
+   die if $d->get_var_cnt () != 0;
+
+   $var0 = PSPP::Var->new ($d, "legal");
+   die "accept legal variable name" if !ref $var0;
+   die if $d->get_var_cnt () != 1;
+
+   my $var1 = PSPP::Var->new ($d, "money", 
+			      (fmt=>PSPP::Fmt::DOLLAR,
+			       width=>4, decimals=>2) );
+   die "cappet valid format" if !ref $var1;
+   die if $d->get_var_cnt () != 2;
+
+   $d->set_weight ($var1);
+
+   my $sysfile = PSPP::Sysfile->new ('testfile.sav', $d);
+   die "create sysfile object" if !ref $sysfile;
+
+   $sysfile->close ();
+])
+AT_CHECK([RUN_PERL_MODULE test.pl])
+AT_DATA([dump-dict.sps],
+  [GET FILE='testfile.sav'.
+DISPLAY FILE LABEL.
+DISPLAY DOCUMENTS.
+DISPLAY DICTIONARY.
+SHOW WEIGHT.
+])
+AT_CHECK([pspp -O format=csv dump-dict.sps], [0],
+  [File label:
+
+My Dictionary
+
+Documents in the active file:
+
+These Documents
+
+Variable,Description,,Position
+legal,Format: F9.2,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+money,Format: DOLLAR6.2,,2
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+
+dump-dict.sps:5: note: SHOW: WEIGHT is money.
+])
+AT_CLEANUP
+
+AT_SETUP([Perl writing cases to system files])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+AT_DATA([test.pl],
+  [[use warnings;
+    use strict;
+    use PSPP;
+
+    my $d = PSPP::Dict->new();
+    PSPP::Var->new ($d, "id",
+		    (
+		     fmt=>PSPP::Fmt::F, 
+		     width=>2, 
+		     decimals=>0
+		     )
+		    );
+
+    PSPP::Var->new ($d, "name",
+			   (
+			    fmt=>PSPP::Fmt::A, 
+			    width=>20, 
+			    )
+			   );
+
+    $d->set_documents ("This should not appear");
+    $d->clear_documents ();
+    $d->add_document ("This is a document line");
+
+    $d->set_label ("This is the file label");
+
+    # Check that we can write cases to system files.
+    my $sysfile = PSPP::Sysfile->new ("testfile.sav", $d);
+    my $res = $sysfile->append_case ( [34, "frederick"]);
+    die "append case" if !$res;
+
+    $res = $sysfile->append_case ( [34, "frederick", "extra"]);
+    die "append case with too many variables" if $res;
+    $sysfile->close ();
+
+    # Check that sysfiles are closed properly automaticallly in the destructor.
+    my $sysfile2 = PSPP::Sysfile->new ("testfile2.sav", $d);
+    $res = $sysfile2->append_case ( [21, "wheelbarrow"]);
+    die "append case 2" if !$res;
+
+    $res = $sysfile->append_case ( [34, "frederick", "extra"]);
+    die "append case with too many variables" if $res;
+
+    # Don't close.  We want to test that the destructor does that.
+]])
+AT_CHECK([RUN_PERL_MODULE test.pl])
+AT_DATA([dump-dicts.sps],
+  [GET FILE='testfile.sav'.
+DISPLAY DICTIONARY.
+DISPLAY FILE LABEL.
+DISPLAY DOCUMENTS.
+LIST.
+
+GET FILE='testfile2.sav'.
+DISPLAY DICTIONARY.
+DISPLAY FILE LABEL.
+DISPLAY DOCUMENTS.
+LIST.
+])
+AT_CHECK([pspp -O format=csv dump-dicts.sps], [0],
+  [Variable,Description,,Position
+id,Format: F2.0,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+name,Format: A20,,2
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 20,,
+
+File label:
+
+This is the file label
+
+Documents in the active file:
+
+This is a document line
+
+Table: Data List
+id,name
+34,frederick           @&t@
+
+Variable,Description,,Position
+id,Format: F2.0,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+name,Format: A20,,2
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 20,,
+
+File label:
+
+This is the file label
+
+Documents in the active file:
+
+This is a document line
+
+Table: Data List
+id,name
+21,wheelbarrow         @&t@
+])
+AT_CLEANUP
+
+AT_SETUP([Perl write variable parameters])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+AT_DATA([test.pl],
+  [[use warnings;
+    use strict;
+    use PSPP;
+
+    my $dict = PSPP::Dict->new();
+    die "dictionary creation" if !ref $dict;
+
+    my $int = PSPP::Var->new ($dict, "integer", 
+			      (width=>8, decimals=>0) );
+
+    $int->set_label ("My Integer");
+
+    $int->add_value_label (99, "Silly");
+    $int->clear_value_labels ();
+    $int->add_value_label (0, "Zero");
+    $int->add_value_label (1, "Unity");
+    $int->add_value_label (2, "Duality");
+
+    my $str = PSPP::Var->new ($dict, "string", 
+			      (fmt=>PSPP::Fmt::A, width=>8) );
+
+
+    $str->set_label ("My String");
+    $str->add_value_label ("xx", "foo");
+    $str->add_value_label ("yy", "bar");
+
+    $str->set_missing_values ("this", "that");
+
+    my $longstr = PSPP::Var->new ($dict, "longstring", 
+			      (fmt=>PSPP::Fmt::A, width=>9) );
+
+
+    $longstr->set_label ("My Long String");
+    my $re = $longstr->add_value_label ("xxx", "xfoo");
+
+    $int->set_missing_values (9, 99);
+
+    my $sysfile = PSPP::Sysfile->new ("testfile.sav", $dict);
+
+
+    $sysfile->close ();
+]])
+AT_CHECK([RUN_PERL_MODULE test.pl])
+AT_DATA([dump-dict.sps],
+  [GET FILE='testfile.sav'.
+DISPLAY DICTIONARY.
+])
+AT_CHECK([pspp -O format=csv dump-dict.sps], [0],
+  [Variable,Description,,Position
+integer,My Integer,,1
+,Format: F8.0,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,Missing Values: 9; 99,,
+,0,Zero,
+,1,Unity,
+,2,Duality,
+string,My String,,2
+,Format: A8,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+,"Missing Values: ""this    ""; ""that    """,,
+,xx      ,foo,
+,yy      ,bar,
+longstring,My Long String,,3
+,Format: A9,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 9,,
+,xxx      ,xfoo,
+])
+AT_CLEANUP
+
+AT_SETUP([Perl dictionary survives system file])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+AT_DATA([test.pl],
+  [[use warnings;
+use strict;
+use PSPP;
+
+my $sysfile ;
+
+    {
+	my $d = PSPP::Dict->new();
+
+	PSPP::Var->new ($d, "id",
+			(
+			 fmt=>PSPP::Fmt::F, 
+			 width=>2, 
+			 decimals=>0
+			 )
+			);
+
+	$sysfile = PSPP::Sysfile->new ("testfile.sav", $d);
+    }
+
+    my $res = $sysfile->append_case ([3]);
+    print "Dictionary survives sysfile\n" if $res;
+]])
+AT_CHECK([RUN_PERL_MODULE test.pl], [0],
+  [Dictionary survives sysfile
+])
+AT_CLEANUP
+
+m4_define([PERL_GENERATE_SYSFILE],
+  [AT_DATA([sample.sps],
+    [[data list notable list /string (a8) longstring (a12) numeric (f10) date (date11) dollar (dollar8.2) datetime (datetime17)
+begin data.
+1111 One   1 1/1/1 1   1/1/1+01:01
+2222 Two   2 2/2/2 2   2/2/2+02:02
+3333 Three 3 3/3/3 3   3/3/3+03:03
+.    .     . .     .   .
+5555 Five  5 5/5/5 5   5/5/5+05:05
+end data.
+
+
+variable labels string 'A Short String Variable'
+  /longstring 'A Long String Variable'
+  /numeric 'A Numeric Variable'
+  /date 'A Date Variable'
+  /dollar 'A Dollar Variable'
+  /datetime 'A Datetime Variable'.
+
+
+missing values numeric (9, 5, 999).
+
+missing values string ("3333").
+
+add value labels
+  /string '1111' 'ones' '2222' 'twos' '3333' 'threes'
+  /numeric 1 'Unity' 2 'Duality' 3 'Thripality'.
+
+variable attribute
+    variables = numeric
+    attribute=colour[1]('blue') colour[2]('pink') colour[3]('violet')
+    attribute=size('large') nationality('foreign').
+
+
+save outfile='sample.sav'.
+]])
+   AT_CHECK([pspp -O format=csv sample.sps])])
+
+AT_SETUP([Perl read system file])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+PERL_GENERATE_SYSFILE
+AT_DATA([test.pl],
+  [[use warnings;
+    use strict;
+    use PSPP;
+
+    my $sf = PSPP::Reader->open ("sample.sav");
+
+    my $dict = $sf->get_dict ();
+
+    for (my $v = 0 ; $v < $dict->get_var_cnt() ; $v++)
+    {
+       my $var = $dict->get_var ($v);
+       my $name = $var->get_name ();
+       my $label = $var->get_label ();
+
+       print "Variable $v is \"$name\", label is \"$label\"\n";
+
+       my $vl = $var->get_value_labels ();
+
+       print "Value Labels:\n";
+       print "$_ => $vl->{$_}\n" for keys %$vl;
+    }
+
+    while (my @c = $sf->get_next_case () )
+    {
+       for (my $v = 0; $v < $dict->get_var_cnt(); $v++)
+       {
+	   print "val$v: \"$c[$v]\"\n";
+       }
+       print "\n";
+    }
+]])
+AT_CHECK([RUN_PERL_MODULE test.pl], [0],
+  [Variable 0 is "string", label is "A Short String Variable"
+Value Labels:
+3333     => threes
+1111     => ones
+2222     => twos
+Variable 1 is "longstring", label is "A Long String Variable"
+Value Labels:
+Variable 2 is "numeric", label is "A Numeric Variable"
+Value Labels:
+1 => Unity
+3 => Thripality
+2 => Duality
+Variable 3 is "date", label is "A Date Variable"
+Value Labels:
+Variable 4 is "dollar", label is "A Dollar Variable"
+Value Labels:
+Variable 5 is "datetime", label is "A Datetime Variable"
+Value Labels:
+val0: "1111    "
+val1: "One         "
+val2: "1"
+val3: "13197686400"
+val4: "1"
+val5: "13197690060"
+
+val0: "2222    "
+val1: "Two         "
+val2: "2"
+val3: "13231987200"
+val4: "2"
+val5: "13231994520"
+
+val0: "3333    "
+val1: "Three       "
+val2: "3"
+val3: "13266028800"
+val4: "3"
+val5: "13266039780"
+
+val0: ".       "
+val1: ".           "
+val2: ""
+val3: ""
+val4: ""
+val5: ""
+
+val0: "5555    "
+val1: "Five        "
+val2: "5"
+val3: "13334630400"
+val4: "5"
+val5: "13334648700"
+
+])
+AT_CLEANUP
+
+AT_SETUP([Perl copying system files])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+PERL_GENERATE_SYSFILE
+AT_DATA([test.pl],
+  [[use warnings;
+    use strict;
+    use PSPP;
+
+    my $input = PSPP::Reader->open ("sample.sav");
+
+    my $dict = $input->get_dict ();
+
+    my $output = PSPP::Sysfile->new ("copy.sav", $dict);
+
+    while (my (@c) = $input->get_next_case () )
+    {
+      $output->append_case (\@c);
+    }
+
+    $output->close ();
+]])
+AT_CHECK([RUN_PERL_MODULE test.pl])
+AT_DATA([dump-dicts.sps],
+  [GET FILE='sample.sav'.
+DISPLAY DICTIONARY.
+LIST.
+
+GET FILE='copy.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+AT_CHECK([pspp -O format=csv dump-dicts.sps], [0],
+  [[Variable,Description,,Position
+string,A Short String Variable,,1
+,Format: A8,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+,"Missing Values: ""3333    """,,
+,1111    ,ones,
+,2222    ,twos,
+,3333    ,threes,
+longstring,A Long String Variable,,2
+,Format: A12,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 12,,
+numeric,A Numeric Variable,,3
+,Format: F10.0,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,Missing Values: 9; 5; 999,,
+,1,Unity,
+,2,Duality,
+,3,Thripality,
+,Custom attributes:,,
+,size,large,
+,nationality,foreign,
+,colour[1],blue,
+,colour[2],pink,
+,colour[3],violet,
+date,A Date Variable,,4
+,Format: DATE11,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+dollar,A Dollar Variable,,5
+,Format: DOLLAR11.2,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+datetime,A Datetime Variable,,6
+,Format: DATETIME17.0,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+
+Table: Data List
+string,longstring,numeric,date,dollar,datetime
+1111    ,One         ,1,01-JAN-2001,$1.00,01-JAN-2001 01:01
+2222    ,Two         ,2,02-FEB-2002,$2.00,02-FEB-2002 02:02
+3333    ,Three       ,3,03-MAR-2003,$3.00,03-MAR-2003 03:03
+.       ,.           ,.,.,.  ,.
+5555    ,Five        ,5,05-MAY-2005,$5.00,05-MAY-2005 05:05
+
+Variable,Description,,Position
+string,A Short String Variable,,1
+,Format: A8,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+,"Missing Values: ""3333    """,,
+,1111    ,ones,
+,2222    ,twos,
+,3333    ,threes,
+longstring,A Long String Variable,,2
+,Format: A12,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 12,,
+numeric,A Numeric Variable,,3
+,Format: F10.0,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,Missing Values: 9; 5; 999,,
+,1,Unity,
+,2,Duality,
+,3,Thripality,
+,Custom attributes:,,
+,size,large,
+,nationality,foreign,
+,colour[1],blue,
+,colour[2],pink,
+,colour[3],violet,
+date,A Date Variable,,4
+,Format: DATE11,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+dollar,A Dollar Variable,,5
+,Format: DOLLAR11.2,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+datetime,A Datetime Variable,,6
+,Format: DATETIME17.0,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+
+Table: Data List
+string,longstring,numeric,date,dollar,datetime
+1111    ,One         ,1,01-JAN-2001,$1.00,01-JAN-2001 01:01
+2222    ,Two         ,2,02-FEB-2002,$2.00,02-FEB-2002 02:02
+3333    ,Three       ,3,03-MAR-2003,$3.00,03-MAR-2003 03:03
+.       ,.           ,.,.,.  ,.
+5555    ,Five        ,5,05-MAY-2005,$5.00,05-MAY-2005 05:05
+]])
+AT_CLEANUP
+
+AT_SETUP([Perl value formatting])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+AT_DATA([dd.sps],
+  [DATA LIST LIST /d (DATETIME17).
+BEGIN DATA.
+11/9/2001+08:20
+END DATA.
+
+SAVE OUTFILE='dd.sav'.
+])
+AT_CHECK([pspp -O format=csv dd.sps], [0],
+  [Table: Reading free-form data from INLINE.
+Variable,Format
+d,DATETIME17.0
+])
+AT_DATA([test.pl],
+  [[use warnings;
+    use strict;
+    use PSPP;
+
+    my $sf = PSPP::Reader->open ("dd.sav");
+
+    my $dict = $sf->get_dict ();
+
+    my (@c) = $sf->get_next_case ();
+
+    my $var = $dict->get_var (0);
+    my $val = $c[0];
+    my $formatted = PSPP::format_value ($val, $var);
+    my $str = gmtime ($val - PSPP::PERL_EPOCH);
+    print "Formatted string is \"$formatted\"\n";
+    print "Perl representation is \"$str\"\n";
+]])
+AT_CHECK([RUN_PERL_MODULE test.pl], [0],
+  [[Formatted string is "11-SEP-2001 08:20"
+Perl representation is "Tue Sep 11 08:20:00 2001"
+]])
+AT_CLEANUP
+
+AT_SETUP([Perl opening nonexistent file])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+AT_DATA([test.pl],
+  [[use warnings;
+    use strict;
+    use PSPP;
+
+    my $sf = PSPP::Reader->open ("no-such-file.sav");
+
+    die "Returns undef on opening failure" if ref $sf;
+    print $PSPP::errstr, "\n";
+]])
+AT_CHECK([RUN_PERL_MODULE test.pl], [0],
+  [[Error opening "no-such-file.sav" for reading as a system file: No such file or directory.
+]],
+  [[Name "PSPP::errstr" used only once: possible typo at test.pl line 8.
+]])
+AT_CLEANUP
+
+AT_SETUP([Perl missing values])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+PERL_GENERATE_SYSFILE
+AT_DATA([test.pl],
+  [[use warnings;
+    use strict;
+    use PSPP;
+
+    my $sf = PSPP::Reader->open ("sample.sav");
+
+    my $dict = $sf->get_dict ();
+
+    my (@c) = $sf->get_next_case ();
+
+    my $stringvar = $dict->get_var (0);
+    my $numericvar = $dict->get_var (2);
+    my $val = $c[0];
+
+    die "Missing Value Negative String"
+        if PSPP::value_is_missing ($val, $stringvar);
+
+    $val = $c[2];
+
+    die "Missing Value Negative Num"
+        if PSPP::value_is_missing ($val, $numericvar);
+
+    @c = $sf->get_next_case (); 
+    @c = $sf->get_next_case (); 
+
+    $val = $c[0];
+    die "Missing Value Positive"
+        if !PSPP::value_is_missing ($val, $stringvar);
+
+    @c = $sf->get_next_case (); 
+    $val = $c[2];
+    die "Missing Value Positive SYS"
+        if !PSPP::value_is_missing ($val, $numericvar);
+
+    @c = $sf->get_next_case (); 
+    $val = $c[2];
+    die "Missing Value Positive Num"
+        if !PSPP::value_is_missing ($val, $numericvar);
+]])
+AT_CHECK([RUN_PERL_MODULE test.pl])
+AT_CLEANUP
+
+AT_SETUP([Perl custom attributes])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+PERL_GENERATE_SYSFILE
+AT_DATA([test.pl],
+  [[use warnings;
+    use strict;
+    use PSPP;
+
+    my $sf = PSPP::Reader->open ("sample.sav");
+
+    my $dict = $sf->get_dict ();
+
+    my $var = $dict->get_var_by_name ("numeric");
+
+    my $attr = $var->get_attributes ();
+
+    foreach my $k (keys %$attr)
+    {
+	my $ll = $attr->{$k};
+	print "$k =>";
+	print map "$_\n", join ', ', @$ll;
+    }
+]])
+AT_CHECK([RUN_PERL_MODULE test.pl], [0],
+  [[colour =>blue, pink, violet
+nationality =>foreign
+size =>large
+]])
+AT_CLEANUP
+
+AT_SETUP([Perl Pspp.t])
+AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+AT_CHECK([RUN_PERL_MODULE $abs_top_builddir/perl-module/t/Pspp.t], [0],
+  [[1..36
+ok 1 - use PSPP;
+ok 2 - Dictionary Creation
+ok 3
+ok 4 - Trap illegal variable name
+ok 5
+ok 6 - Accept legal variable name
+ok 7
+ok 8 - Trap duplicate variable name
+ok 9
+ok 10 - Accept valid format
+ok 11
+ok 12 - Create sysfile object
+ok 13 - Write system file
+ok 14 - Append Case
+ok 15 - Appending Case with too many variables
+ok 16 - existance
+ok 17 - Append Case 2
+ok 18 - existance2
+ok 19 - Check output
+ok 20 - Dictionary Creation 2
+ok 21 - Value label for short string
+ok 22 - Value label for long string
+ok 23 - Check output 2
+ok 24 - Dictionary survives sysfile
+ok 25 - Basic reader operation
+ok 26 - Streaming of files
+Formatted string is "11-SEP-2001 08:20"
+ok 27 - format_value function
+ok 28 - Perl representation of time
+ok 29 - Returns undef on opening failure
+ok 30 - Error string on open failure
+ok 31 - Missing Value Negative String
+ok 32 - Missing Value Negative Num
+ok 33 - Missing Value Positive
+ok 34 - Missing Value Positive SYS
+ok 35 - Missing Value Positive Num
+ok 36 - Custom Attributes
+]],
+  [[# @&t@
+# @@ -0,0 +1 @@
+# +
+# @@ -0,0 +1 @@
+# +
+# @@ -0,0 +1 @@
+# +
+# @@ -0,0 +1 @@
+# +
+]])
+AT_CLEANUP

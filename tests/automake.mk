@@ -411,7 +411,8 @@ TESTSUITE_AT = \
 	tests/language/stats/frequencies.at \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/recode.at \
-	tests/output/render.at
+	tests/output/render.at \
+	tests/perl-module.at
 TESTSUITE = $(srcdir)/tests/testsuite
 DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
 

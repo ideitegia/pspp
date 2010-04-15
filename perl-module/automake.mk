@@ -48,11 +48,6 @@ perl_module_tarball:
 	fi
 	$(MAKE) $(AM_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz
 
-CHECK_LOCAL += perl_module_check
-perl_module_check:
-	loc=`pwd` ; cd $(top_builddir)/src/.libs ; llp=`pwd` ; cd $$loc ;  \
-	LANG=C LD_LIBRARY_PATH=$$llp sh -c "cd perl-module && $(MAKE) $(AM_MAKEFLAGS) test"
-
 CLEAN_LOCAL += perl_module_clean
 perl_module_clean:
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) clean || true

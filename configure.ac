@@ -190,7 +190,13 @@ if test x"$with_gui_tools" = x"yes" ; then
 fi
 AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
 
-AM_CONDITIONAL(WITH_PERL_MODULE, test x"$cross_compiling" != x"yes")
+if test x"$cross_compiling" != x"yes"; then
+   WITH_PERL_MODULE=yes
+else
+   WITH_PERL_MODULE=no
+fi	
+AC_SUBST([WITH_PERL_MODULE])
+AM_CONDITIONAL(WITH_PERL_MODULE, test $WITH_PERL_MODULE = yes)
 
 AC_SEARCH_LIBS([cblas_dsdot], [gslcblas],,[PSPP_REQUIRED_PREREQ([libgslcblas])])
 AC_SEARCH_LIBS([gsl_cdf_binomial_P], [gsl],,[PSPP_REQUIRED_PREREQ([libgsl (version 1.8 or later)])])
