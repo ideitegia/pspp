@@ -2,6 +2,37 @@
 
 include $(top_srcdir)/src/ui/gui/sheet/automake.mk
 
+UI_FILES = \
+	src/ui/gui/correlation.ui \
+	src/ui/gui/crosstabs.ui \
+	src/ui/gui/descriptives.ui \
+	src/ui/gui/examine.ui \
+	src/ui/gui/factor.ui \
+	src/ui/gui/find.ui \
+	src/ui/gui/frequencies.ui \
+	src/ui/gui/oneway.ui \
+	src/ui/gui/psppire.ui \
+	src/ui/gui/rank.ui \
+	src/ui/gui/sort.ui \
+	src/ui/gui/recode.ui \
+	src/ui/gui/regression.ui \
+	src/ui/gui/reliability.ui \
+	src/ui/gui/roc.ui \
+	src/ui/gui/t-test.ui \
+	src/ui/gui/text-data-import.ui \
+	src/ui/gui/var-sheet-dialogs.ui \
+	src/ui/gui/variable-info.ui \
+	src/ui/gui/data-editor.glade \
+	src/ui/gui/output-viewer.glade \
+	src/ui/gui/syntax-editor.glade
+
+EXTRA_DIST += \
+	src/ui/gui/OChangeLog \
+	src/ui/gui/psppicon.png \
+	src/ui/gui/marshaller-list \
+	src/ui/gui/pspp.desktop
+
+if HAVE_GUI
 bin_PROGRAMS += src/ui/gui/psppire 
 
 src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
@@ -52,32 +83,6 @@ uninstall-icons:
 	gtk-update-icon-cache --ignore-theme-index $(themedir)
 
 UNINSTALL_DATA_HOOKS += uninstall-icons
-
-
-UI_FILES = \
-	src/ui/gui/correlation.ui \
-	src/ui/gui/crosstabs.ui \
-	src/ui/gui/descriptives.ui \
-	src/ui/gui/examine.ui \
-	src/ui/gui/factor.ui \
-	src/ui/gui/find.ui \
-	src/ui/gui/frequencies.ui \
-	src/ui/gui/oneway.ui \
-	src/ui/gui/psppire.ui \
-	src/ui/gui/rank.ui \
-	src/ui/gui/sort.ui \
-	src/ui/gui/recode.ui \
-	src/ui/gui/regression.ui \
-	src/ui/gui/reliability.ui \
-	src/ui/gui/roc.ui \
-	src/ui/gui/t-test.ui \
-	src/ui/gui/text-data-import.ui \
-	src/ui/gui/var-sheet-dialogs.ui \
-	src/ui/gui/variable-info.ui \
-	src/ui/gui/data-editor.glade \
-	src/ui/gui/output-viewer.glade \
-	src/ui/gui/syntax-editor.glade
-
 
 nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/data-editor.ui \
@@ -268,13 +273,7 @@ SUFFIXES += .glade .ui
 desktopdir = $(datadir)/applications
 desktop_DATA = src/ui/gui/pspp.desktop
 
-EXTRA_DIST += src/ui/gui/OChangeLog\
-	src/ui/gui/psppicon.png \
-	src/ui/gui/marshaller-list \
-	$(desktop_DATA)
-
 BUILT_SOURCES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h
 CLEANFILES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h \
 	$(nodist_src_ui_gui_psppire_DATA)
-
-
+endif HAVE_GUI
