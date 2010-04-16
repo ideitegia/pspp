@@ -104,35 +104,65 @@ dnl only set PG_LDFLAGS if it's not found.
 AC_ARG_WITH(
   libpq, 
   [AS_HELP_STRING([--without-libpq], [don't compile in Postgres capability])])
+AC_ARG_VAR([PG_CONFIG], 
+           [Full pathname of the pg_config program shipped with Postgresql])
+AC_PATH_PROG([PG_CONFIG], [pg_config], [], 
+             [$PATH:/usr/local/pgsql/bin:/usr/pgsql/bin])
 
-if test x"$with_libpq" != x"no" ; then
- AC_SEARCH_LIBS([PQexec], [pq], [libpq_in_std_lib_path=yes])
+if test x"$with_libpq" != x"no" && test -n "$PG_CONFIG" ; then 
+  AC_SUBST(PG_CONFIG)
+  PG_CFLAGS=-I`$PG_CONFIG --includedir` 
+  AC_SUBST(PG_CFLAGS)
 
- AC_ARG_VAR([PG_CONFIG], [Full pathname of the pg_config program shipped with Postgresql])
- if test x"$cross_compiling" != x"yes" ; then
-   AC_PATH_PROG([PG_CONFIG], [pg_config], [], [$PATH:/usr/local/pgsql/bin:/usr/pgsql/bin])
- fi 
- if test -n "$PG_CONFIG" ; then 
-   AC_SUBST(PG_CONFIG)
-   AC_DEFINE([PSQL_SUPPORT], 1,
-   [Define to 1 if building in support for reading from postgres databases.])
-   PG_CFLAGS=-I`$PG_CONFIG --includedir` 
-   AC_SUBST(PG_CFLAGS)
-   
-   if test "x$libpq_in_std_lib_path" != x"yes" ; then
-      PG_LDFLAGS="-L`$PG_CONFIG --libdir` -R`$PG_CONFIG --libdir`"
-   fi
-   AC_SUBST(PG_LDFLAGS)
+  AC_CHECK_LIB([pq], [PQexec],
+     [:], 
+     [PG_LDFLAGS="-L`$PG_CONFIG --libdir` -R`$PG_CONFIG --libdir`"])
+  AC_SUBST(PG_LDFLAGS)
 
-   PG_LIBS=-lpq
-   AC_SUBST(PG_LIBS)
-   PKG_CHECK_EXISTS(libssl,
-         AC_DEFINE([USE_SSL],1,
-	 	    [Define to 1 if the openssl library is present.])
-	    ,)
- fi
+  PG_LIBS=-lpq
+  AC_SUBST(PG_LIBS)
+
+  PKG_CHECK_EXISTS(libssl,
+	AC_DEFINE([USE_SSL],1,
+		   [Define to 1 if the openssl library is present.])
+	   ,)
+
+  # Now verify that we can actually link against libpq.  If we are
+  # cross-compiling and picked up a host libpq, or if libpq is just
+  # badly installed, this will fail.
+  AC_CACHE_CHECK(
+    [whether -lpq links successfully],
+    [pspp_cv_have_libpq],
+    [save_CPPFLAGS=$CPPFLAGS
+     save_LIBS=$LIBS
+     save_LDFLAGS=$LDFLAGS
+     CPPFLAGS="$PG_CFLAGS $CPPFLAGS"
+     LIBS="$PG_LIBS $LIBS"
+     LDFLAGS="$PG_LDFLAGS $LDFLAGS"
+     AC_LINK_IFELSE(
+       [AC_LANG_PROGRAM(
+	 [#include <libpq-fe.h>
+	 ], [PQfinish (0);])],
+       [pspp_cv_have_libpq=yes],
+       [pspp_cv_have_libpq=no])
+     CPPFLAGS=$save_CPPFLAGS
+     LIBS=$save_LIBS
+     LDFLAGS=$save_LDFLAGS])
+
+  if test $pspp_cv_have_libpq = yes; then
+    AC_DEFINE([PSQL_SUPPORT], [1],
+      [Define to 1 if building in support for reading from postgres
+       databases.])
+  else
+    PG_CONFIG=
+    PG_CFLAGS=
+    PG_LDFLAGS=
+    PG_LIBS=
+  fi
+else
+  pspp_cv_have_libpq=no
 fi
-AM_CONDITIONAL(PSQL_SUPPORT, test -n "$PG_CONFIG")
+AM_CONDITIONAL(PSQL_SUPPORT, test $pspp_cv_have_libpq = yes)
 
 dnl Check for libxml2
 PKG_CHECK_MODULES(
