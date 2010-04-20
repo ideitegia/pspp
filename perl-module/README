@@ -7,8 +7,9 @@ system files.
 INSTALLATION
 
 To install you must have first installed and built pspp 0.7.2 or
-later.  Pspp is not required to use this module, only to install
-it. 
+later.  The Perl module does not use the installed PSPP binaries, but
+it does require the libpspp-core-$VERSION.so library installed with
+PSPP (see below).
 
 To install this module type the following:
 
@@ -34,7 +35,7 @@ required during installation, but are not needed to run the module.
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2007, 2009 by Free Software Foundation
+Copyright (C) 2007, 2009, 2010 by Free Software Foundation
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
