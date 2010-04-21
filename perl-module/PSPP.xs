@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -18,6 +18,12 @@
 
 
 #include <config.h>
+
+/* The Gnulib "strftime" module defines my_strftime in <config.h> for use by
+   gl/strftime.c.  Perl also defines my_strftime in embed.h for some other
+   purpose.  The former definition doesn't matter in this file, so suppress it
+   to avoid a compiler warning. */
+#undef my_strftime
 
 #include "EXTERN.h"
 #include "perl.h"
