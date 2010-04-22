@@ -5,8 +5,10 @@ A system file encapsulates a set of cases and dictionary information
 that describes how they may be interpreted.  This chapter describes
 the format of a system file.
 
-System files use three data types: 8-bit characters, 32-bit integers,
-and 64-bit floating points, called here @code{char}, @code{int32}, and
+System files use four data types: 8-bit characters, 32-bit integers,
+64-bit integers, 
+and 64-bit floating points, called here @code{char}, @code{int32},
+@code{int64}, and
 @code{flt64}, respectively.  Data is not necessarily aligned on a word
 or double-word boundary: the long variable name record (@pxref{Long
 Variable Names Record}) and very long string records (@pxref{Very Long
@@ -58,24 +60,7 @@ if present.
 Document record, if present.
 
 @item
-Any of the following records, if present, in any order:
-
-@itemize @minus
-@item
-Machine integer info record.
-
-@item
-Machine floating-point info record.
-
-@item
-Variable display parameter record.
-
-@item
-Long variable names record.
-
-@item
-Miscellaneous informational records.
-@end itemize
+Any records not explicitly included in this list, in any order.
 
 @item
 Dictionary termination record.
@@ -99,6 +84,7 @@ Each type of record is described separately below.
 * Character Encoding Record::
 * Long String Value Labels Record::
 * Data File and Variable Attributes Records::
+* Extended Number of Cases Record::
 * Miscellaneous Informational Records::
 * Dictionary Termination Record::
 * Data Record::
@@ -166,7 +152,7 @@ In the general case it is not possible to determine the number of cases
 that will be output to a system file at the time that the header is
 written.  The way that this is dealt with is by writing the entire
 system file, including the header, then seeking back to the beginning of
-the file and writing just the @code{ncases} field.  For `files' in which
+the file and writing just the @code{ncases} field.  For files in which
 this is not valid, the seek operation fails.  In this case,
 @code{ncases} remains -1.
 
@@ -999,6 +985,45 @@ will contain a variable attribute record with the following contents:
 00000020  27 33 34 27 0a 29 62 65  72 74 28 27 31 32 33 27  |'34'.)bert('123'|
 00000030  0a 29                                             |.)              |
 @end example
+
+@node Extended Number of Cases Record
+@section Extended Number of Cases Record
+
+The file header record expresses the number of cases in the system
+file as an int32 (@pxref{File Header Record}).  This record allows the
+number of cases in the system file to be expressed as a 64-bit number.
+
+@example
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
+int64               unknown;
+int64               ncases64;
+@end example
+
+@table @code
+@item int32 rec_type;
+Record type.  Always set to 7.
+
+@item int32 subtype;
+Record subtype.  Always set to 16.
+
+@item int32 size;
+Size of each element.  Always set to 8.
+
+@item int32 count;
+Number of pieces of data in the data part.  Alway set to 2.
+
+@item int64 unknown;
+Meaning unknown.  Always set to 1.
+
+@item int64 ncases64;
+Number of cases in the file as a 64-bit integer.  Presumably this
+could be -1 to indicate that the number of cases is unknown, for the
+same reason as @code{ncases} in the file header record, but this has
+not been observed in the wild.
+@end table
 
 @node Miscellaneous Informational Records
 @section Miscellaneous Informational Records

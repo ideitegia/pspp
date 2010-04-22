@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -845,7 +845,7 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
       return;
 
     case 16:
-      /* New in SPSS v14?  Unknown purpose.  */
+      /* Extended number of cases.  Not important. */
       break;
 
     case 17:

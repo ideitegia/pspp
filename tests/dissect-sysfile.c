@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@ static void read_datafile_attributes (struct sfm_reader *r,
                                       size_t size, size_t count);
 static void read_variable_attributes (struct sfm_reader *r,
                                       size_t size, size_t count);
+static void read_ncases64 (struct sfm_reader *, size_t size, size_t count);
 static void read_character_encoding (struct sfm_reader *r,
 				       size_t size, size_t count);
 static void read_long_string_value_labels (struct sfm_reader *r,
@@ -97,6 +98,7 @@ static void sys_error (struct sfm_reader *, const char *, ...)
 
 static void read_bytes (struct sfm_reader *, void *, size_t);
 static int read_int (struct sfm_reader *);
+static int64_t read_int64 (struct sfm_reader *);
 static double read_float (struct sfm_reader *);
 static void read_string (struct sfm_reader *, char *, size_t);
 static void skip_bytes (struct sfm_reader *, size_t);
@@ -535,8 +537,8 @@ read_extension_record (struct sfm_reader *r)
       return;
 
     case 16:
-      /* New in SPSS v14?  Unknown purpose.  */
-      break;
+      read_ncases64 (r, size, count);
+      return;
 
     case 17:
       read_datafile_attributes (r, size, count);
@@ -748,6 +750,31 @@ read_attributes (struct sfm_reader *r, struct text_record *text,
       if (text_match (text, '/'))
         return true; 
     }
+}
+
+/* Read extended number of cases record. */
+static void
+read_ncases64 (struct sfm_reader *r, size_t size, size_t count)
+{
+  int64_t unknown, ncases64;
+
+  if (size != 8)
+    {
+      sys_warn (r, _("Bad size %zu for extended number of cases."), size);
+      skip_bytes (r, size * count);
+      return;
+    }
+  if (count != 2)
+    {
+      sys_warn (r, _("Bad count %zu for extended number of cases."), size);
+      skip_bytes (r, size * count);
+      return;
+    }
+  unknown = read_int64 (r);
+  ncases64 = read_int64 (r);
+  printf ("%08lx: extended number of cases: "
+          "unknown=%"PRId64", ncases64=%"PRId64"\n",
+          ftell (r->file), unknown, ncases64);
 }
 
 static void
@@ -1083,6 +1110,16 @@ static int
 read_int (struct sfm_reader *r)
 {
   uint8_t integer[4];
+  read_bytes (r, integer, sizeof integer);
+  return integer_get (r->integer_format, integer, sizeof integer);
+}
+
+/* Reads a 64-bit signed integer from R and returns its value in
+   host format. */
+static int64_t
+read_int64 (struct sfm_reader *r)
+{
+  uint8_t integer[8];
   read_bytes (r, integer, sizeof integer);
   return integer_get (r->integer_format, integer, sizeof integer);
 }
