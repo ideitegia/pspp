@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ integer_get (enum integer_format format, const void *from_, size_t cnt)
   size_t i;
 
   assert (is_integer_format (format));
-  assert (cnt < 8);
+  assert (cnt <= 8);
 
   switch (format)
     {
