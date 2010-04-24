@@ -237,6 +237,10 @@ Optional Features
     In these cases you can use --without-lib{xx} to force configure
     to disregard it.
 
+`--without-perl-module'
+   Disable building the Perl module, in case it does not build properly
+   or you do not need it.
+
 `--enable-anachronistic-dependencies'
    If you use this option, some of the checks for dependent libraries
    will be relaxed, permitting configure to succeed when older versions

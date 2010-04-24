@@ -222,11 +222,19 @@ if test x"$with_gui_tools" = x"yes" ; then
 fi
 AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
 
-if test x"$cross_compiling" != x"yes"; then
-   WITH_PERL_MODULE=yes
-else
-   WITH_PERL_MODULE=no
-fi	
+AC_ARG_WITH(
+  [perl-module],
+  [AS_HELP_STRING([--without-perl-module], [do not build the Perl module])],
+  [case $with_perl_module in # (
+     yes|no) ;; # (
+     *) AC_MSG_FAILURE([--with-perl-module argument must be 'yes' or 'no']) ;;
+   esac
+   WITH_PERL_MODULE=$with_perl_module],
+  [if test x"$cross_compiling" != x"yes"; then
+     WITH_PERL_MODULE=yes
+   else
+     WITH_PERL_MODULE=no
+   fi])
 AC_SUBST([WITH_PERL_MODULE])
 AM_CONDITIONAL(WITH_PERL_MODULE, test $WITH_PERL_MODULE = yes)
 
