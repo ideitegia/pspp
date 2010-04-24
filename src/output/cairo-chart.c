@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ xrchart_geometry_free (cairo_t *cr UNUSED, struct xrchart_geometry *geom)
   free (geom->dataset);
 }
 
-#if ! PANGO_VERSION_CHECK (2, 22, 0)
+#if ! PANGO_VERSION_CHECK (1, 22, 0)
 int pango_layout_get_baseline (PangoLayout    *layout);
 
 /* Shamelessly copied from the pango source */
