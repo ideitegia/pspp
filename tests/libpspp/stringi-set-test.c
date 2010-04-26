@@ -283,13 +283,18 @@ check_stringi_set (struct stringi_set *set, const int data[], size_t cnt)
   check (stringi_set_find_node (set, "") == NULL);
 
   if (cnt == 0)
-    check (stringi_set_first (set) == NULL);
+    {
+      check (stringi_set_first (set) == NULL);
+      free (stringi_set_get_array (set));
+    }
   else
     {
       const struct stringi_set_node *node;
+      char **array;
       int *data_copy;
       int left;
 
+      array = stringi_set_get_array (set);
       data_copy = xmemdup (data, cnt * sizeof *data);
       left = cnt;
       for (node = stringi_set_first (set), i = 0; i < cnt;
@@ -297,6 +302,8 @@ check_stringi_set (struct stringi_set *set, const int data[], size_t cnt)
         {
           const char *s = stringi_set_node_get_string (node);
           size_t j;
+
+          check (s == array[i]);
 
           for (j = 0; j < left; j++)
             if (!strcasecmp (s, make_string (data_copy[j])))
@@ -310,6 +317,16 @@ check_stringi_set (struct stringi_set *set, const int data[], size_t cnt)
         }
       check (node == NULL);
       free (data_copy);
+      free (array);
+
+      array = stringi_set_get_sorted_array (set);
+      for (i = 0; i < cnt; i++)
+        {
+          if (i > 0)
+            check (strcasecmp (array[i - 1], array[i]) < 0);
+          check (stringi_set_contains (set, array[i]));
+        }
+      free (array);
     }
 }
 

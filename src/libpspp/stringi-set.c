@@ -19,12 +19,13 @@
 
 #include <config.h>
 
-#include <libpspp/stringi-set.h>
+#include "libpspp/stringi-set.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#include <libpspp/hash-functions.h>
+#include "libpspp/cast.h"
+#include "libpspp/hash-functions.h"
 
 #include "gl/xalloc.h"
 
@@ -225,6 +226,54 @@ stringi_set_subtract (struct stringi_set *a, const struct stringi_set *b)
       HMAP_FOR_EACH (node, struct stringi_set_node, hmap_node, &b->hmap)
         stringi_set_delete__ (a, node->string, node->hmap_node.hash);
     }
+}
+
+/* Allocates and returns an array that points to each of the strings in SET.
+   The caller must not free or modify any of the strings.  Removing a string
+   from SET invalidates the corresponding element of the returned array.  The
+   caller it is responsible for freeing the returned array itself (with
+   free()).
+
+   The returned array is in the same order as observed by stringi_set_first()
+   and stringi_set_next(), that is, no particular order. */
+char **
+stringi_set_get_array (const struct stringi_set *set)
+{
+  const struct stringi_set_node *node;
+  const char *s;
+  char **array;
+  size_t i;
+
+  array = xnmalloc (stringi_set_count (set), sizeof *array);
+
+  i = 0;
+  STRINGI_SET_FOR_EACH (s, node, set)
+    array[i++] = CONST_CAST (char *, s);
+
+  return array;
+}
+
+static int
+compare_strings (const void *a_, const void *b_)
+{
+  const char *const *a = a_;
+  const char *const *b = b_;
+  return strcasecmp (*a, *b);
+}
+
+/* Allocates and returns an array that points to each of the strings in SET.
+   The caller must not free or modify any of the strings.  Removing a string
+   from SET invalidates the corresponding element of the returned array.  The
+   caller it is responsible for freeing the returned array itself (with
+   free()).
+
+   The returned array is ordered according to strcasecmp(). */
+char **
+stringi_set_get_sorted_array (const struct stringi_set *set)
+{
+  char **array = stringi_set_get_array (set);
+  qsort (array, stringi_set_count (set), sizeof *array, compare_strings);
+  return array;
 }
 
 /* Internal functions. */

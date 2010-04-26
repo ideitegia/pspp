@@ -77,6 +77,9 @@ void stringi_set_union_and_intersection (struct stringi_set *,
 void stringi_set_intersect (struct stringi_set *, const struct stringi_set *);
 void stringi_set_subtract (struct stringi_set *, const struct stringi_set *);
 
+char **stringi_set_get_array (const struct stringi_set *);
+char **stringi_set_get_sorted_array (const struct stringi_set *);
+
 static inline const struct stringi_set_node *stringi_set_first (
   const struct stringi_set *);
 static inline const struct stringi_set_node *stringi_set_next (
