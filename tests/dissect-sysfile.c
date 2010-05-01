@@ -79,6 +79,8 @@ static void read_character_encoding (struct sfm_reader *r,
 				       size_t size, size_t count);
 static void read_long_string_value_labels (struct sfm_reader *r,
                                            size_t size, size_t count);
+static void read_unknown_extension (struct sfm_reader *,
+                                    size_t size, size_t count);
 static void read_compressed_data (struct sfm_reader *);
 
 static struct text_record *open_text_record (
@@ -558,7 +560,8 @@ read_extension_record (struct sfm_reader *r)
 
     default:
       sys_warn (r, _("Unrecognized record type 7, subtype %d."), subtype);
-      break;
+      read_unknown_extension (r, size, count);
+      return;
     }
 
   skip_bytes (r, bytes);
@@ -855,6 +858,80 @@ read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
           free (value);
           free (label);
 	}
+    }
+}
+
+static void
+hex_dump (size_t offset, const void *buffer_, size_t buffer_size)
+{
+  const uint8_t *buffer = buffer_;
+
+  while (buffer_size > 0)
+    {
+      size_t n = MIN (buffer_size, 16);
+      size_t i;
+
+      printf ("%04zx", offset);
+      for (i = 0; i < 16; i++)
+        {
+          if (i < n)
+            printf ("%c%02x", i == 8 ? '-' : ' ', buffer[i]);
+          else
+            printf ("   ");
+        }
+
+      printf (" |");
+      for (i = 0; i < 16; i++)
+        {
+          unsigned char c = i < n ? buffer[i] : ' ';
+          putchar (isprint (c) ? c : '.');
+        }
+      printf ("|\n");
+
+      offset += n;
+      buffer += n;
+      buffer_size -= n;
+    }
+}
+
+/* Reads and prints any type 7 record that we don't understand. */
+static void
+read_unknown_extension (struct sfm_reader *r, size_t size, size_t count)
+{
+  unsigned char *buffer;
+  size_t i;
+
+  if (size == 0 || count > 65536 / size)
+    skip_bytes (r, size * count);
+  else if (size != 1)
+    {
+      buffer = xmalloc (size);
+      for (i = 0; i < count; i++)
+        {
+          read_bytes (r, buffer, size);
+          hex_dump (i * size, buffer, size);
+        }
+      free (buffer);
+    }
+  else
+    {
+      buffer = xmalloc (count);
+      read_bytes (r, buffer, count);
+      if (memchr (buffer, 0, count) == 0)
+        for (i = 0; i < count; i++)
+          {
+            unsigned char c = buffer[i];
+
+            if (c == '\\')
+              printf ("\\\\");
+            else if (c == '\n' || isprint (c))
+              putchar (c);
+            else
+              printf ("\\%02x", c);
+          }
+      else
+        hex_dump (0, buffer, count);
+      free (buffer);
     }
 }
 
