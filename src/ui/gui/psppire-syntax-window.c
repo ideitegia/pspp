@@ -545,12 +545,26 @@ gboolean
 syntax_load (PsppireWindow *window, const gchar *filename)
 {
   GError *err = NULL;
-  gchar *text;
+  gchar *text_locale = NULL;
+  gchar *text_utf8 = NULL;
+  gsize len_locale = -1;
+  gsize len_utf8 = -1;
   GtkTextIter iter;
   PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (window);
 
   /* FIXME: What if it's a very big file ? */
-  if ( ! g_file_get_contents (filename, &text, NULL, &err) )
+  if ( ! g_file_get_contents (filename, &text_locale, &len_locale, &err) )
+    {
+      error_dialog (GTK_WINDOW (window), filename, err);
+      g_clear_error (&err);
+      return FALSE;
+    }
+
+  text_utf8 = g_locale_to_utf8 (text_locale, len_locale, NULL, &len_utf8, &err);
+
+  free (text_locale);
+
+  if ( text_utf8 == NULL )
     {
       error_dialog (GTK_WINDOW (window), filename, err);
       g_clear_error (&err);
@@ -559,9 +573,11 @@ syntax_load (PsppireWindow *window, const gchar *filename)
 
   gtk_text_buffer_get_iter_at_line (sw->buffer, &iter, 0);
 
-  gtk_text_buffer_insert (sw->buffer, &iter, text, -1);
+  gtk_text_buffer_insert (sw->buffer, &iter, text_utf8, len_utf8);
 
   gtk_text_buffer_set_modified (sw->buffer, FALSE);
+
+  free (text_utf8);
 
   return TRUE;
 }
