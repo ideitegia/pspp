@@ -417,6 +417,7 @@ EXTRA_DIST += \
 	$(TESTSUITE)
 TESTSUITE_AT = \
 	tests/testsuite.at \
+	tests/language/dictionary/mrsets.at \
 	tests/language/stats/aggregate.at \
 	tests/language/stats/autorecode.at \
 	tests/language/stats/crosstabs.at \

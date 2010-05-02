@@ -118,6 +118,13 @@ val_labs_clear (struct val_labs *vls)
     }
 }
 
+/* Returns the width of VLS. */
+int
+val_labs_get_width (const struct val_labs *vls)
+{
+  return vls->width;
+}
+
 /* Returns the number of value labels in VLS.
    Returns 0 if VLS is null. */
 size_t

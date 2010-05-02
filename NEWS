@@ -1,9 +1,13 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2009-12-05 20:44:30 blp>
-Copyright (C) 1996-9, 2000, 2008, 2009 Free Software Foundation, Inc.
+Time-stamp: <2010-04-25 21:08:59 blp>
+Copyright (C) 1996-9, 2000, 2008, 2009, 2010 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
+
+Changes from 0.7.3 to 0.7.4:
+
+ * The MRSETS command is now implemented.
 
 Changes from 0.7.2 to 0.7.3:
 

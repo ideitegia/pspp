@@ -12,6 +12,7 @@ several utility functions for examining and adjusting them.
 * LEAVE::                       Don't clear variables between cases.
 * MISSING VALUES::              Set missing values for variables.
 * MODIFY VARS::                 Rename, reorder, and drop variables.
+* MRSETS::                      Add, modify, and list multiple response sets.
 * NUMERIC::                     Create new numeric variables.
 * PRINT FORMATS::               Set variable print formats.
 * RENAME VARIABLES::            Rename variables.
@@ -292,6 +293,113 @@ Formats}); otherwise, the default is F8.2.
 
 Variables created with @cmd{NUMERIC} are initialized to the
 system-missing value.
+
+@node MRSETS
+@section MRSETS
+@vindex MRSETS
+
+@display
+MRSETS 
+    /MDGROUP NAME=name VARIABLES=var_list VALUE=value
+     [CATEGORYLABELS=@{VARLABELS,COUNTEDVALUES@}]
+     [@{LABEL='label',LABELSOURCE=VARLABEL@}]
+
+    /MCGROUP NAME=name VARIABLES=var_list [LABEL='label']
+
+    /DELETE NAME=@{[names],ALL@}
+
+    /DISPLAY NAME=@{[names],ALL@}
+@end display
+
+@cmd{MRSETS} creates, modifies, deletes, and displays multiple
+response sets.  A multiple response set is a set of variables that
+represent multiple responses to a single survey question in one of the
+two following ways:
+
+@itemize @bullet
+@item
+A @dfn{multiple dichotomy set} is analogous to a survey question with
+a set of checkboxes.  Each variable in the set is treated in a Boolean
+fashion: one value (the "counted value") means that the box was
+checked, and any other value means that it was not.
+
+@item
+A @dfn{multiple category set} represents a survey question where the
+respondent is instructed to list up to @var{n} choices.  Each variable
+represents one of the responses.
+@end itemize
+
+Any number of subcommands may be specified in any order.
+
+The MDGROUP subcommand creates a new multiple dichotomy set or
+replaces an existing multiple response set.  The NAME, VARIABLES, and
+VALUE specifications are required.  The others are optional:
+
+@itemize @bullet
+@item
+NAME specifies the name used in syntax for the new multiple dichotomy
+set.  The name must begin with @samp{$}; it must otherwise follow the
+rules for identifiers (@pxref{Tokens}).
+
+@item
+VARIABLES specifies the variables that belong to the set.  At least
+two variables must be specified.  The variables must be all string or
+all numeric.
+
+@item
+VALUE specifies the counted value.  If the variables are numeric, the
+value must be an integer.  If the variables are strings, then the
+value must be a string that is no longer than the shortest of the
+variables in the set (ignoring trailing spaces).
+
+@item
+CATEGORYLABELS optionally specifies the source of the labels for each
+category in the set:
+
+@itemize @minus
+@item
+VARLABELS, the default, uses variable labels or, for variables without
+variable labels, variable names.  PSPP warns if two variables have the
+same variable label, since these categories cannot be distinguished in
+output.
+
+@item 
+COUNTEDVALUES instead uses each variable's value label for the counted
+value.  PSPP warns if two variables have the same value label for the
+counted value or if one of the variables lacks a value label, since
+such categories cannot be distinguished in output.
+@end itemize
+
+@item
+LABEL optionally specifies a label for the multiple response set.  If
+neither LABEL nor LABELSOURCE=VARLABEL is specified, the set is
+unlabeled.
+
+@item
+LABELSOURCE=VARLABEL draws the multiple response set's label from the
+first variable label among the variables in the set; if none of the
+variables has a label, the name of the first variable is used.
+LABELSOURCE=VARLABEL must be used with CATEGORYLABELS=COUNTEDVALUES.
+It is mutually exclusive with LABEL.
+@end itemize
+
+The MCGROUP subcommand creates a new multiple category set or
+replaces an existing multiple response set.  The NAME and VARIABLES
+specifications are required, and LABEL is optional.  Their meanings
+are as described above to MDGROUP.  PSPP warns if two variables in the
+set have different value labels for a single value, since each of the
+variables in the set should have the same possible categories.
+
+The DELETE subcommand deletes multiple response groups.  A list of
+groups may be named within a set of required square brackets, or ALL
+may be used to delete all groups.
+
+The DISPLAY subcommand displays information about defined multiple
+response sets.  Its syntax is the same as the DELETE subcommand.
+
+Multiple response sets are saved to and read from system files by,
+e.g., the @cmd{SAVE} and @cmd{GET} command.  Otherwise, multiple
+response sets are currently used only by third party software.
 
 @node PRINT FORMATS
 @section PRINT FORMATS

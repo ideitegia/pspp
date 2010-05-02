@@ -120,7 +120,6 @@ const struct variable *const *dict_get_split_vars (const struct dictionary *);
 size_t dict_get_split_cnt (const struct dictionary *);
 void dict_set_split_vars (struct dictionary *,
                           struct variable *const *, size_t cnt);
-void dict_unset_split_var (struct dictionary *, struct variable *);
 
 /* File label. */
 const char *dict_get_label (const struct dictionary *);
@@ -148,6 +147,16 @@ size_t dict_get_vector_cnt (const struct dictionary *);
 const struct vector *dict_lookup_vector (const struct dictionary *,
                                          const char *name);
 void dict_clear_vectors (struct dictionary *);
+
+/* Multiple response sets. */
+const struct mrset *dict_get_mrset (const struct dictionary *, size_t idx);
+size_t dict_get_n_mrsets (const struct dictionary *);
+const struct mrset *dict_lookup_mrset (const struct dictionary *,
+                                       const char *name);
+
+bool dict_add_mrset (struct dictionary *, struct mrset *);
+bool dict_delete_mrset (struct dictionary *, const char *name);
+void dict_clear_mrsets (struct dictionary *);
 
 /* Attributes. */
 struct attrset *dict_get_attributes (const struct dictionary *);

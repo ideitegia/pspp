@@ -16,8 +16,8 @@
 
 #include <config.h>
 
-#include <data/sys-file-reader.h>
-#include <data/sys-file-private.h>
+#include "data/sys-file-reader.h"
+#include "data/sys-file-private.h"
 
 #include <errno.h>
 #include <float.h>
@@ -25,36 +25,37 @@
 #include <setjmp.h>
 #include <stdlib.h>
 
-#include <libpspp/i18n.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/compiler.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
-#include <libpspp/hash.h>
-#include <libpspp/array.h>
+#include "data/attributes.h"
+#include "data/case.h"
+#include "data/casereader-provider.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "data/format.h"
+#include "data/missing-values.h"
+#include "data/mrset.h"
+#include "data/short-names.h"
+#include "data/value-labels.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+#include "libpspp/stringi-set.h"
 
-#include <data/attributes.h>
-#include <data/case.h>
-#include <data/casereader-provider.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <data/file-name.h>
-#include <data/format.h>
-#include <data/missing-values.h>
-#include <data/short-names.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <data/value.h>
-
-#include "c-ctype.h"
-#include "inttostr.h"
-#include "minmax.h"
-#include "unlocked-io.h"
-#include "xalloc.h"
-#include "xsize.h"
+#include "gl/c-ctype.h"
+#include "gl/inttostr.h"
+#include "gl/minmax.h"
+#include "gl/unlocked-io.h"
+#include "gl/xalloc.h"
+#include "gl/xsize.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -100,6 +101,8 @@ static struct variable **make_var_by_value_idx (struct sfm_reader *,
 static struct variable *lookup_var_by_value_idx (struct sfm_reader *,
                                                  struct variable **,
                                                  int value_idx);
+static struct variable *lookup_var_by_short_name (struct dictionary *,
+                                                  const char *short_name);
 
 static void sys_msg (struct sfm_reader *r, int class,
                      const char *format, va_list args)
@@ -128,12 +131,15 @@ static void text_warn (struct sfm_reader *r, struct text_record *text,
                        const char *format, ...)
   PRINTF_FORMAT (3, 4);
 static char *text_get_token (struct text_record *,
-                             struct substring delimiters);
+                             struct substring delimiters, char *delimiter);
 static bool text_match (struct text_record *, char c);
 static bool text_read_short_name (struct sfm_reader *, struct dictionary *,
                                   struct text_record *,
                                   struct substring delimiters,
                                   struct variable **);
+static const char *text_parse_counted_string (struct sfm_reader *,
+                                              struct text_record *);
+static size_t text_pos (const struct text_record *);
 
 static bool close_reader (struct sfm_reader *r);
 
@@ -169,6 +175,8 @@ static void read_machine_integer_info (struct sfm_reader *,
 				       );
 static void read_machine_float_info (struct sfm_reader *,
                                      size_t size, size_t count);
+static void read_mrsets (struct sfm_reader *, size_t size, size_t count,
+                         struct dictionary *);
 static void read_display_parameters (struct sfm_reader *,
                                      size_t size, size_t count,
                                      struct dictionary *);
@@ -825,8 +833,9 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
       break;
 
     case 7:
-      /* Used by the MRSETS command. */
-      break;
+    case 19:
+      read_mrsets (r, size, count, dict);
+      return;
 
     case 8:
       /* Used by the SPSS Data Entry software. */
@@ -1005,6 +1014,160 @@ read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
   if (lowest != LOWEST)
     sys_warn (r, _("File specifies unexpected value %g as %s."),
               lowest, "LOWEST");
+}
+
+/* Read record type 7, subtype 7 or 19. */
+static void
+read_mrsets (struct sfm_reader *r, size_t size, size_t count,
+             struct dictionary *dict)
+{
+  struct text_record *text;
+  struct mrset *mrset;
+
+  text = open_text_record (r, size * count);
+  for (;;)
+    {
+      const char *name, *label, *counted;
+      struct stringi_set var_names;
+      size_t allocated_vars;
+      char delimiter;
+      int width;
+
+      mrset = xzalloc (sizeof *mrset);
+
+      name = text_get_token (text, ss_cstr ("="), NULL);
+      if (name == NULL)
+        break;
+      mrset->name = xstrdup (name);
+
+      if (text_match (text, 'C'))
+        {
+          mrset->type = MRSET_MC;
+          if (!text_match (text, ' '))
+            {
+              sys_warn (r, _("Missing space following 'C' at offset %zu "
+                             "in MRSETS record"), text_pos (text));
+              break;
+            }
+        }
+      else if (text_match (text, 'D'))
+        {
+          mrset->type = MRSET_MD;
+          mrset->cat_source = MRSET_VARLABELS;
+        }
+      else if (text_match (text, 'E'))
+        {
+          char *number;
+
+          mrset->type = MRSET_MD;
+          mrset->cat_source = MRSET_COUNTEDVALUES;
+          if (!text_match (text, ' '))
+            {
+              sys_warn (r, _("Missing space following 'E' at offset %zu "
+                             "in MRSETS record"), text_pos (text));
+              break;
+            }
+
+          number = text_get_token (text, ss_cstr (" "), NULL);
+          if (!strcmp (number, "11"))
+            mrset->label_from_var_label = true;
+          else if (strcmp (number, "1"))
+            sys_warn (r, _("Unexpected label source value \"%s\" "
+                           "following 'E' at offset %zu in MRSETS record"),
+                      number, text_pos (text));
+        }
+      else
+        {
+          sys_warn (r, _("Missing 'C', 'D', or 'E' at offset %zu "
+                         "in MRSETS record."),
+                    text_pos (text));
+          break;
+        }
+
+      if (mrset->type == MRSET_MD)
+        {
+          counted = text_parse_counted_string (r, text);
+          if (counted == NULL)
+            break;
+        }
+
+      label = text_parse_counted_string (r, text);
+      if (label == NULL)
+        break;
+      mrset->label = label[0] != '\0' ? xstrdup (label) : NULL;
+
+      stringi_set_init (&var_names);
+      allocated_vars = 0;
+      width = INT_MAX;
+      do
+        {
+          struct variable *var;
+          const char *var_name;
+
+          var_name = text_get_token (text, ss_cstr (" \n"), &delimiter);
+          if (var_name == NULL)
+            {
+              sys_warn (r, _("Missing new-line parsing variable names "
+                             "at offset %zu in MRSETS record."),
+                        text_pos (text));
+              break;
+            }
+
+          var = lookup_var_by_short_name (dict, var_name);
+          if (var == NULL)
+            continue;
+          if (!stringi_set_insert (&var_names, var_name))
+            {
+              sys_warn (r, _("Duplicate variable name %s "
+                             "at offset %zu in MRSETS record."),
+                        var_name, text_pos (text));
+              continue;
+            }
+
+          if (mrset->label == NULL && mrset->label_from_var_label
+              && var_has_label (var))
+            mrset->label = xstrdup (var_get_label (var));
+
+          if (mrset->n_vars
+              && var_get_type (var) != var_get_type (mrset->vars[0]))
+            {
+              sys_warn (r, _("MRSET %s contains both string and "
+                             "numeric variables."), name);
+              continue;
+            }
+          width = MIN (width, var_get_width (var));
+
+          if (mrset->n_vars >= allocated_vars)
+            mrset->vars = x2nrealloc (mrset->vars, &allocated_vars,
+                                      sizeof *mrset->vars);
+          mrset->vars[mrset->n_vars++] = var;
+        }
+      while (delimiter != '\n');
+
+      if (mrset->n_vars < 2)
+        {
+          sys_warn (r, _("MRSET %s has only %zu variables."), mrset->name,
+                    mrset->n_vars);
+          mrset_destroy (mrset);
+          continue;
+        }
+
+      if (mrset->type == MRSET_MD)
+        {
+          mrset->width = width;
+          value_init (&mrset->counted, width);
+          if (width == 0)
+            mrset->counted.f = strtod (counted, NULL);
+          else
+            value_copy_str_rpad (&mrset->counted, width,
+                                 (const uint8_t *) counted, ' ');
+        }
+
+      dict_add_mrset (dict, mrset);
+      mrset = NULL;
+    }
+  mrset_destroy (mrset);
+  close_text_record (r, text);
 }
 
 /* Read record type 7, subtype 11, which specifies how variables
@@ -1355,7 +1518,7 @@ read_attributes (struct sfm_reader *r, struct text_record *text,
       int index;
 
       /* Parse the key. */
-      key = text_get_token (text, ss_cstr ("("));
+      key = text_get_token (text, ss_cstr ("("), NULL);
       if (key == NULL)
         return;
 
@@ -1366,7 +1529,7 @@ read_attributes (struct sfm_reader *r, struct text_record *text,
           char *value;
           size_t length;
 
-          value = text_get_token (text, ss_cstr ("\n"));
+          value = text_get_token (text, ss_cstr ("\n"), NULL);
           if (value == NULL)
             {
               text_warn (r, text, _("Error parsing attribute value %s[%d]"),
@@ -1952,7 +2115,7 @@ read_variable_to_value_pair (struct sfm_reader *r, struct dictionary *dict,
       if (!text_read_short_name (r, dict, text, ss_cstr ("="), var))
         return false;
       
-      *value = text_get_token (text, ss_buffer ("\t\0", 2));
+      *value = text_get_token (text, ss_buffer ("\t\0", 2), NULL);
       if (*value == NULL)
         return false;
 
@@ -1969,13 +2132,13 @@ text_read_short_name (struct sfm_reader *r, struct dictionary *dict,
                       struct text_record *text, struct substring delimiters,
                       struct variable **var)
 {
-  char *short_name = text_get_token (text, delimiters);
+  char *short_name = text_get_token (text, delimiters, NULL);
   if (short_name == NULL)
     return false;
 
   *var = lookup_var_by_short_name (dict, short_name);
   if (*var == NULL)
-    text_warn (r, text, _("Variable map refers to unknown variable %s."),
+    text_warn (r, text, _("Dictionary record refers to unknown variable %s."),
                short_name);
   return true;
 }
@@ -1997,14 +2160,76 @@ text_warn (struct sfm_reader *r, struct text_record *text,
 }
 
 static char *
-text_get_token (struct text_record *text, struct substring delimiters)
+text_get_token (struct text_record *text, struct substring delimiters,
+                char *delimiter)
 {
   struct substring token;
+  char *end;
 
   if (!ss_tokenize (text->buffer, delimiters, &text->pos, &token))
     return NULL;
-  ss_data (token)[ss_length (token)] = '\0';
+
+  end = &ss_data (token)[ss_length (token)];
+  if (delimiter != NULL)
+    *delimiter = *end;
+  *end = '\0';
   return ss_data (token);
+}
+
+/* Reads a integer value expressed in decimal, then a space, then a string that
+   consists of exactly as many bytes as specified by the integer, then a space,
+   from TEXT.  Returns the string, null-terminated, as a subset of TEXT's
+   buffer (so the caller should not free the string). */
+static const char *
+text_parse_counted_string (struct sfm_reader *r, struct text_record *text)
+{
+  size_t start;
+  size_t n;
+  char *s;
+
+  start = text->pos;
+  n = 0;
+  for (;;)
+    {
+      int c = text->buffer.string[text->pos];
+      if (c < '0' || c > '9')
+        break;
+      n = (n * 10) + (c - '0');
+      text->pos++;
+    }
+  if (start == text->pos)
+    {
+      sys_warn (r, _("Expecting digit at offset %zu in MRSETS record."),
+                 text->pos);
+      return NULL;
+    }
+
+  if (!text_match (text, ' '))
+    {
+      sys_warn (r, _("Expecting space at offset %zu in MRSETS record."),
+                text->pos);
+      return NULL;
+    }
+
+  if (text->pos + n > text->buffer.length)
+    {
+      sys_warn (r, _("%zu-byte string starting at offset %zu "
+                     "exceeds record length %zu."),
+                n, text->pos, text->buffer.length);
+      return NULL;
+    }
+
+  s = &text->buffer.string[text->pos];
+  if (s[n] != ' ')
+    {
+      sys_warn (r,
+                _("Expecting space at offset %zu following %zu-byte string."),
+                text->pos + n, n);
+      return NULL;
+    }
+  s[n] = '\0';
+  text->pos += n + 1;
+  return s;
 }
 
 static bool
@@ -2017,6 +2242,13 @@ text_match (struct text_record *text, char c)
     }
   else
     return false;
+}
+
+/* Returns the current byte offset inside the TEXT's string. */
+static size_t
+text_pos (const struct text_record *text)
+{
+  return text->pos;
 }
 
 /* Messages. */

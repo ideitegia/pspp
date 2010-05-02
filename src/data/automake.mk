@@ -73,6 +73,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/missing-values.h \
 	src/data/make-file.c \
 	src/data/make-file.h \
+	src/data/mrset.c \
+	src/data/mrset.h \
 	src/data/procedure.c \
 	src/data/procedure.h \
 	src/data/por-file-reader.c \

@@ -64,6 +64,7 @@ static void read_machine_integer_info (struct sfm_reader *,
                                        size_t size, size_t count);
 static void read_machine_float_info (struct sfm_reader *,
                                      size_t size, size_t count);
+static void read_mrsets (struct sfm_reader *, size_t size, size_t count);
 static void read_display_parameters (struct sfm_reader *,
                                      size_t size, size_t count);
 static void read_long_var_name_map (struct sfm_reader *r,
@@ -90,6 +91,8 @@ static bool read_variable_to_value_pair (struct text_record *,
                                          char **key, char **value);
 static char *text_tokenize (struct text_record *, int delimiter);
 static bool text_match (struct text_record *text, int c);
+static const char *text_parse_counted_string (struct text_record *);
+static size_t text_pos (const struct text_record *);
 
 static void usage (int exit_code);
 static void sys_warn (struct sfm_reader *, const char *, ...)
@@ -523,8 +526,9 @@ read_extension_record (struct sfm_reader *r)
       break;
 
     case 7:
-      /* Unknown purpose. */
-      break;
+    case 19:
+      read_mrsets (r, size, count);
+      return;
 
     case 11:
       read_display_parameters (r, size, count);
@@ -630,6 +634,107 @@ read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
   if (lowest != LOWEST)
     sys_warn (r, _("File specifies unexpected value %g as %s."),
               lowest, "LOWEST");
+}
+
+/* Read record type 7, subtype 7. */
+static void
+read_mrsets (struct sfm_reader *r, size_t size, size_t count)
+{
+  struct text_record *text;
+
+  printf ("%08lx: multiple response sets\n", ftell (r->file));
+  text = open_text_record (r, size * count);
+  for (;;)
+    {
+      const char *name;
+      enum { MRSET_MC, MRSET_MD } type;
+      bool cat_label_from_counted_values = false;
+      bool label_from_var_label = false;
+      const char *counted;
+      const char *label;
+      const char *variables;
+
+      name = text_tokenize (text, '=');
+      if (name == NULL)
+        break;
+
+      if (text_match (text, 'C'))
+        {
+          type = MRSET_MC;
+          counted = NULL;
+          if (!text_match (text, ' '))
+            {
+              sys_warn (r, "missing space following 'C' at offset %zu "
+                        "in mrsets record", text_pos (text));
+              break;
+            }
+        }
+      else if (text_match (text, 'D'))
+        {
+          type = MRSET_MD;
+        }
+      else if (text_match (text, 'E'))
+        {
+          char *number;
+
+          type = MRSET_MD;
+          cat_label_from_counted_values = true;
+
+          if (!text_match (text, ' '))
+            {
+              sys_warn (r, _("Missing space following 'E' at offset %zu "
+                             "in MRSETS record"), text_pos (text));
+              break;
+            }
+
+          number = text_tokenize (text, ' ');
+          if (!strcmp (number, "11"))
+            label_from_var_label = true;
+          else if (strcmp (number, "1"))
+            sys_warn (r, _("Unexpected label source value \"%s\" "
+                           "following 'E' at offset %zu in MRSETS record"),
+                      number, text_pos (text));
+
+        }
+      else
+        {
+          sys_warn (r, "missing 'C', 'D', or 'E' at offset %zu "
+                    "in mrsets record", text_pos (text));
+          break;
+        }
+
+      if (type == MRSET_MD)
+        {
+          counted = text_parse_counted_string (text);
+          if (counted == NULL)
+            break;
+        }
+
+      label = text_parse_counted_string (text);
+      if (label == NULL)
+        break;
+
+      variables = text_tokenize (text, '\n');
+      if (variables == NULL)
+        {
+          sys_warn (r, "missing variable names following label "
+                    "at offset %zu in mrsets record", text_pos (text));
+          break;
+        }
+
+      printf ("\t\"%s\": multiple %s set",
+              name, type == MRSET_MC ? "category" : "dichotomy");
+      if (counted != NULL)
+        printf (", counted value \"%s\"", counted);
+      if (cat_label_from_counted_values)
+        printf (", category labels from counted values");
+      if (label[0] != '\0')
+        printf (", label \"%s\"", label);
+      if (label_from_var_label)
+        printf (", label from variable label");
+      printf(", variables \"%s\"\n", variables);
+    }
+  close_text_record (text);
 }
 
 /* Read record type 7, subtype 11. */
@@ -1033,6 +1138,7 @@ read_compressed_data (struct sfm_reader *r)
 /* State. */
 struct text_record
   {
+    struct sfm_reader *reader;  /* Reader. */
     char *buffer;               /* Record contents. */
     size_t size;                /* Size of buffer. */
     size_t pos;                 /* Current position in buffer. */
@@ -1046,6 +1152,8 @@ open_text_record (struct sfm_reader *r, size_t size)
   struct text_record *text = xmalloc (sizeof *text);
   char *buffer = xmalloc (size + 1);
   read_bytes (r, buffer, size);
+  buffer[size] = '\0';
+  text->reader = r;
   text->buffer = buffer;
   text->size = size;
   text->pos = 0;
@@ -1088,6 +1196,54 @@ text_match (struct text_record *text, int c)
     return false;
 }
 
+/* Reads a integer value expressed in decimal, then a space, then a string that
+   consists of exactly as many bytes as specified by the integer, then a space,
+   from TEXT.  Returns the string, null-terminated, as a subset of TEXT's
+   buffer (so the caller should not free the string). */
+static const char *
+text_parse_counted_string (struct text_record *text)
+{
+  size_t start;
+  size_t n;
+  char *s;
+
+  start = text->pos;
+  n = 0;
+  while (isdigit ((unsigned char) text->buffer[text->pos]))
+    n = (n * 10) + (text->buffer[text->pos++] - '0');
+  if (start == text->pos)
+    {
+      sys_error (text->reader, "expecting digit at offset %zu in record",
+                 text->pos);
+      return NULL;
+    }
+
+  if (!text_match (text, ' '))
+    {
+      sys_error (text->reader, "expecting space at offset %zu in record",
+                 text->pos);
+      return NULL;
+    }
+
+  if (text->pos + n > text->size)
+    {
+      sys_error (text->reader, "%zu-byte string starting at offset %zu "
+                 "exceeds record length %zu", n, text->pos, text->size);
+      return NULL;
+    }
+
+  s = &text->buffer[text->pos];
+  if (s[n] != ' ')
+    {
+      sys_error (text->reader, "expecting space at offset %zu following "
+                 "%zu-byte string", text->pos + n, n);
+      return NULL;
+    }
+  s[n] = '\0';
+  text->pos += n + 1;
+  return s;
+}
+
 /* Reads a variable=value pair from TEXT.
    Looks up the variable in DICT and stores it into *VAR.
    Stores a null-terminated value into *VALUE. */
@@ -1105,6 +1261,13 @@ read_variable_to_value_pair (struct text_record *text,
              || text->buffer[text->pos] == '\0'))
     text->pos++;
   return true;
+}
+
+/* Returns the current byte offset inside the TEXT's string. */
+static size_t
+text_pos (const struct text_record *text)
+{
+  return text->pos;
 }
 
 static void

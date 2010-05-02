@@ -78,6 +78,7 @@ Each type of record is described separately below.
 * Document Record::
 * Machine Integer Info Record::
 * Machine Floating-Point Info Record::
+* Multiple Response Sets Records::
 * Variable Display Parameter Record::
 * Long Variable Names Record::
 * Very Long String Record::
@@ -594,6 +595,129 @@ The value used for HIGHEST in missing values.
 @item flt64 lowest;
 The value used for LOWEST in missing values.
 @end table
+
+@node Multiple Response Sets Records
+@section Multiple Response Sets Records
+
+The system file format has two different types of records that
+represent multiple response sets (@pxref{MRSETS,,,pspp, PSPP Users
+Guide}).  The first type of record describes multiple response sets
+that can be understood by SPSS before version 14.  The second type of
+record, with a closely related format, is used for multiple dichotomy
+sets that use the CATEGORYLABELS=COUNTEDVALUES feature added in
+version 14.
+
+@example
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
+
+/* @r{Exactly @code{count} bytes of data.} */
+char                mrsets[];
+@end example
+
+@table @code
+@item int32 rec_type;
+Record type.  Always set to 7.
+
+@item int32 subtype;
+Record subtype.  Set to 7 for records that describe multiple response
+sets understood by SPSS before version 14, or to 19 for records that
+describe dichotomy sets that use the CATEGORYLABELS=COUNTEDVALUES
+feature added in version 14.
+
+@item int32 size;
+The size of each element in the @code{mrsets} member. Always set to 1.
+
+@item int32 count;
+The total number of bytes in @code{mrsets}.
+
+@item char mrsets[];
+A series of multiple response sets, each of which consists of the
+following:
+
+@itemize @bullet
+@item
+The set's name (an identifier that begins with @samp{$}).
+
+@item
+An equals sign (@samp{=}).
+
+@item
+@samp{C} for a multiple category set, @samp{D} for a multiple
+dichotomy set with CATEGORYLABELS=VARLABELS, or @samp{E} for a
+multiple dichotomy set with CATEGORYLABELS=COUNTEDVALUES.
+
+@item
+For a multiple dichotomy set with CATEGORYLABELS=COUNTEDVALUES, a
+space, followed by a number expressed as decimal digits, followed by a
+space.  If LABELSOURCE=VARLABEL was specified on MRSETS, then the
+number is 11; otherwise it is 1.@footnote{This part of the format may
+not be fully understood, because only a single example of each
+possibility has been examined.}
+
+@item
+For either kind of multiple dichotomy set, the counted value, as a
+positive integer count specified as decimal digits, followed by a
+space, followed by as many string bytes as specified in the count.  If
+the set contains numeric variables, the string consists of the counted
+integer value expressed as decimal digits.  If the set contains string
+variables, the string contains the counted string value.  Either way,
+the string may be padded on the right with spaces (older versions of
+SPSS seem to always pad to a width of 8 bytes; newer versions don't).
+
+@item
+A space.
+
+@item
+The multiple response set's label, using the same format as for the
+counted value for multiple dichotomy sets.  A string of length 0 means
+that the set does not have a label.  A string of length 0 is also
+written if LABELSOURCE=VARLABEL was specified.
+
+@item
+A space.
+
+@item
+The names of the variables in the set, each separated from the
+previous by a single space.
+
+@item
+A line feed (byte 0x0a).
+@end itemize
+@end table
+
+Example: Given appropriate variable definitions, consider the
+following MRSETS command:
+
+@example
+MRSETS /MCGROUP NAME=$a LABEL='my mcgroup' VARIABLES=a b c
+       /MDGROUP NAME=$b VARIABLES=g e f d VALUE=55
+       /MDGROUP NAME=$c LABEL='mdgroup #2' VARIABLES=h i j VALUE='Yes'
+       /MDGROUP NAME=$d LABEL='third mdgroup' CATEGORYLABELS=COUNTEDVALUES
+        VARIABLES=k l m VALUE=34
+       /MDGROUP NAME=$e CATEGORYLABELS=COUNTEDVALUES LABELSOURCE=VARLABEL
+        VARIABLES=n o p VALUE='choice'.
+@end example
+
+The above would generate the following multiple response set record of
+subtype 7:
+
+@example
+$a=C 10 my mcgroup a b c
+$b=D2 55 0  g e f d
+$c=D3 Yes 10 mdgroup #2 h i j
+@end example
+
+It would also generate the following multiple response set record with
+subtype 19:
+
+@example
+$d=E 1 2 34 13 third mdgroup k l m
+$e=E 11 6 choice 0  n o p
+@end example
 
 @node Variable Display Parameter Record
 @section Variable Display Parameter Record

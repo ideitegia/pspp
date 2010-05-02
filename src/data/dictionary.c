@@ -18,6 +18,7 @@
 
 #include "data/dictionary.h"
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <ctype.h>
 
@@ -25,6 +26,7 @@
 #include "data/case.h"
 #include "data/category.h"
 #include "data/identifier.h"
+#include "data/mrset.h"
 #include "data/settings.h"
 #include "data/value-labels.h"
 #include "data/vardict.h"
@@ -66,6 +68,8 @@ struct dictionary
     struct vector **vector;     /* Vectors of variables. */
     size_t vector_cnt;          /* Number of vectors. */
     struct attrset attributes;  /* Custom attributes. */
+    struct mrset **mrsets;      /* Multiple response sets. */
+    size_t n_mrsets;            /* Number of multiple response sets. */
 
     char *encoding;             /* Character encoding of string data */
 
@@ -77,6 +81,8 @@ struct dictionary
     void *changed_data;
   };
 
+static void dict_unset_split_var (struct dictionary *, struct variable *);
+static void dict_unset_mrset_var (struct dictionary *, struct variable *);
 
 void
 dict_set_encoding (struct dictionary *d, const char *enc)
@@ -222,6 +228,20 @@ dict_clone (const struct dictionary *s)
 
   dict_set_attributes (d, dict_get_attributes (s));
 
+  for (i = 0; i < s->n_mrsets; i++)
+    {
+      const struct mrset *old = s->mrsets[i];
+      struct mrset *new;
+      size_t j;
+
+      /* Clone old mrset, then replace vars from D by vars from S. */
+      new = mrset_clone (old);
+      for (j = 0; j < new->n_vars; j++)
+        new->vars[j] = dict_lookup_var_assert (d, var_get_name (new->vars[j]));
+
+      dict_add_mrset (d, new);
+    }
+
   return d;
 }
 
@@ -278,6 +298,7 @@ dict_destroy (struct dictionary *d)
       dict_clear (d);
       hmap_destroy (&d->name_map);
       attrset_destroy (&d->attributes);
+      free (d->mrsets);
       free (d);
     }
 }
@@ -577,6 +598,7 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   var_clear_aux (v);
 
   dict_unset_split_var (d, v);
+  dict_unset_mrset_var (d, v);
 
   if (d->weight == v)
     dict_set_weight (d, NULL);
@@ -1153,7 +1175,7 @@ dict_get_split_cnt (const struct dictionary *d)
 
 /* Removes variable V, which must be in D, from D's set of split
    variables. */
-void
+static void
 dict_unset_split_var (struct dictionary *d, struct variable *v)
 {
   int orig_count;
@@ -1362,7 +1384,138 @@ dict_clear_vectors (struct dictionary *d)
   d->vector = NULL;
   d->vector_cnt = 0;
 }
+
+/* Multiple response sets. */
 
+/* Returns the multiple response set in DICT with index IDX, which must be
+   between 0 and the count returned by dict_get_n_mrsets(), exclusive. */
+const struct mrset *
+dict_get_mrset (const struct dictionary *dict, size_t idx)
+{
+  assert (idx < dict->n_mrsets);
+  return dict->mrsets[idx];
+}
+
+/* Returns the number of multiple response sets in DICT. */
+size_t
+dict_get_n_mrsets (const struct dictionary *dict)
+{
+  return dict->n_mrsets;
+}
+
+/* Looks for a multiple response set named NAME in DICT.  If it finds one,
+   returns its index; otherwise, returns SIZE_MAX. */
+static size_t
+dict_lookup_mrset_idx (const struct dictionary *dict, const char *name)
+{
+  size_t i;
+
+  for (i = 0; i < dict->n_mrsets; i++)
+    if (!strcasecmp (name, dict->mrsets[i]->name))
+      return i;
+
+  return SIZE_MAX;
+}
+
+/* Looks for a multiple response set named NAME in DICT.  If it finds one,
+   returns it; otherwise, returns NULL. */
+const struct mrset *
+dict_lookup_mrset (const struct dictionary *dict, const char *name)
+{
+  size_t idx = dict_lookup_mrset_idx (dict, name);
+  return idx != SIZE_MAX ? dict->mrsets[idx] : NULL;
+}
+
+/* Adds MRSET to DICT, replacing any existing set with the same name.  Returns
+   true if a set was replaced, false if none existed with the specified name.
+
+   Ownership of MRSET is transferred to DICT. */
+bool
+dict_add_mrset (struct dictionary *dict, struct mrset *mrset)
+{
+  size_t idx;
+
+  assert (mrset_ok (mrset, dict));
+
+  idx = dict_lookup_mrset_idx (dict, mrset->name);
+  if (idx == SIZE_MAX)
+    {
+      dict->mrsets = xrealloc (dict->mrsets,
+                               (dict->n_mrsets + 1) * sizeof *dict->mrsets);
+      dict->mrsets[dict->n_mrsets++] = mrset;
+      return true;
+    }
+  else
+    {
+      mrset_destroy (dict->mrsets[idx]);
+      dict->mrsets[idx] = mrset;
+      return false;
+    }
+}
+
+/* Looks for a multiple response set in DICT named NAME.  If found, removes it
+   from DICT and returns true.  If none is found, returns false without
+   modifying DICT.
+
+   Deleting one multiple response set causes the indexes of other sets within
+   DICT to change. */
+bool
+dict_delete_mrset (struct dictionary *dict, const char *name)
+{
+  size_t idx = dict_lookup_mrset_idx (dict, name);
+  if (idx != SIZE_MAX)
+    {
+      mrset_destroy (dict->mrsets[idx]);
+      dict->mrsets[idx] = dict->mrsets[--dict->n_mrsets];
+      return true;
+    }
+  else
+    return false;
+}
+
+/* Deletes all multiple response sets from DICT. */
+void
+dict_clear_mrsets (struct dictionary *dict)
+{
+  size_t i;
+
+  for (i = 0; i < dict->n_mrsets; i++)
+    mrset_destroy (dict->mrsets[i]);
+  free (dict->mrsets);
+  dict->mrsets = NULL;
+  dict->n_mrsets = 0;
+}
+
+/* Removes VAR, which must be in DICT, from DICT's multiple response sets. */
+static void
+dict_unset_mrset_var (struct dictionary *dict, struct variable *var)
+{
+  size_t i;
+
+  assert (dict_contains_var (dict, var));
+
+  for (i = 0; i < dict->n_mrsets; )
+    {
+      struct mrset *mrset = dict->mrsets[i];
+      size_t j;
+
+      for (j = 0; j < mrset->n_vars; )
+        if (mrset->vars[j] == var)
+          remove_element (mrset->vars, mrset->n_vars--,
+                          sizeof *mrset->vars, j);
+        else
+          j++;
+
+      if (mrset->n_vars < 2)
+        {
+          mrset_destroy (mrset);
+          dict->mrsets[i] = dict->mrsets[--dict->n_mrsets];
+        }
+      else
+        i++;
+    }
+}
+
 /* Returns D's attribute set.  The caller may examine or modify
    the attribute set, but must not destroy it.  Destroying D or
    calling dict_set_attributes for D will also destroy D's

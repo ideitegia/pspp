@@ -16,8 +16,8 @@
 
 #include <config.h>
 
-#include "sys-file-writer.h"
-#include "sys-file-private.h"
+#include "data/sys-file-writer.h"
+#include "data/sys-file-private.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -26,32 +26,33 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include <libpspp/float-format.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-#include <libpspp/i18n.h>
-#include <libpspp/version.h>
+#include "data/attributes.h"
+#include "data/case.h"
+#include "data/casewriter-provider.h"
+#include "data/casewriter.h"
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "data/format.h"
+#include "data/make-file.h"
+#include "data/missing-values.h"
+#include "data/mrset.h"
+#include "data/settings.h"
+#include "data/short-names.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "libpspp/float-format.h"
+#include "libpspp/i18n.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "libpspp/version.h"
 
-#include <data/attributes.h>
-#include <data/case.h>
-#include <data/casewriter-provider.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <data/file-name.h>
-#include <data/format.h>
-#include <data/make-file.h>
-#include <data/missing-values.h>
-#include <data/settings.h>
-#include <data/short-names.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-
-#include "minmax.h"
-#include "unlocked-io.h"
-#include "xalloc.h"
+#include "gl/xmemdup0.h"
+#include "gl/minmax.h"
+#include "gl/unlocked-io.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -112,6 +113,9 @@ static void write_vls_length_table (struct sfm_writer *w,
 
 static void write_long_string_value_labels (struct sfm_writer *,
                                             const struct dictionary *);
+
+static void write_mrsets (struct sfm_writer *, const struct dictionary *,
+                          bool pre_v14);
 
 static void write_variable_display_parameters (struct sfm_writer *w,
                                                const struct dictionary *dict);
@@ -241,6 +245,8 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   write_integer_info_record (w);
   write_float_info_record (w);
 
+  write_mrsets (w, d, true);
+
   write_variable_display_parameters (w, d);
 
   if (opts.version >= 3)
@@ -253,6 +259,8 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   if (attrset_count (dict_get_attributes (d)))
     write_data_file_attributes (w, d);
   write_variable_attributes (w, d);
+
+  write_mrsets (w, d, false);
 
   write_encoding_record (w, d);
 
@@ -618,6 +626,64 @@ write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
     }
   if (n_attrsets) 
     write_attribute_record (w, &s, 18);
+  ds_destroy (&s);
+}
+
+/* Write multiple response sets.  If PRE_V14 is true, writes sets supported by
+   SPSS before release 14, otherwise writes sets supported only by later
+   versions. */
+static void
+write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
+              bool pre_v14)
+{
+  struct string s = DS_EMPTY_INITIALIZER;
+  size_t n_mrsets;
+  size_t i;
+
+  n_mrsets = dict_get_n_mrsets (dict);
+  if (n_mrsets == 0)
+    return;
+
+  for (i = 0; i < n_mrsets; i++)
+    {
+      const struct mrset *mrset = dict_get_mrset (dict, i);
+      const char *label;
+      size_t j;
+
+      if ((mrset->type != MRSET_MD || mrset->cat_source != MRSET_COUNTEDVALUES)
+          != pre_v14)
+        continue;
+
+      ds_put_format (&s, "%s=", mrset->name);
+      if (mrset->type == MRSET_MD)
+        {
+          char *counted;
+
+          if (mrset->cat_source == MRSET_COUNTEDVALUES)
+            ds_put_format (&s, "E %d ", mrset->label_from_var_label ? 11 : 1);
+          else
+            ds_put_char (&s, 'D');
+
+          if (mrset->width == 0)
+            counted = xasprintf ("%.0f", mrset->counted.f);
+          else
+            counted = xmemdup0 (value_str (&mrset->counted, mrset->width),
+                                mrset->width);
+          ds_put_format (&s, "%zu %s", strlen (counted), counted);
+          free (counted);
+        }
+      else
+        ds_put_char (&s, 'C');
+      ds_put_char (&s, ' ');
+
+      label = mrset->label && !mrset->label_from_var_label ? mrset->label : "";
+      ds_put_format (&s, "%zu %s", strlen (label), label);
+
+      for (j = 0; j < mrset->n_vars; j++)
+        ds_put_format (&s, " %s", var_get_short_name (mrset->vars[j], 0));
+      ds_put_char (&s, '\n');
+    }
+  write_attribute_record (w, &s, 7);
   ds_destroy (&s);
 }
 

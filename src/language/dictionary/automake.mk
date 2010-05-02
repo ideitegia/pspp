@@ -7,6 +7,7 @@ language_dictionary_sources = \
  src/language/dictionary/formats.c \
  src/language/dictionary/missing-values.c \
  src/language/dictionary/modify-variables.c \
+ src/language/dictionary/mrsets.c \
  src/language/dictionary/numeric.c \
  src/language/dictionary/rename-variables.c \
  src/language/dictionary/split-file.c \

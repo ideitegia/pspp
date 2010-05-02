@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,6 +72,7 @@ DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "IF", cmd_if)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "LEAVE", cmd_leave)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "LOOP", cmd_loop)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "MISSING VALUES", cmd_missing_values)
+DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "MRSETS", cmd_mrsets)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "NUMERIC", cmd_numeric)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "PRINT EJECT", cmd_print_eject)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "PRINT FORMATS", cmd_print_formats)
@@ -202,7 +203,6 @@ UNIMPL_CMD ("MODEL CLOSE ", "Close server connection")
 UNIMPL_CMD ("MODEL HANDLE", "Define server connection")
 UNIMPL_CMD ("MODEL LIST ", "Show existing models")
 UNIMPL_CMD ("MODEL NAME ", "Specify model label")
-UNIMPL_CMD ("MRSETS", "Multiple response sets")
 UNIMPL_CMD ("MULTIPLE CORRESPONDENCE", "Multiple correspondence analysis")
 UNIMPL_CMD ("MULT RESPONSE", "Multiple reponse analysis")
 UNIMPL_CMD ("MVA", "Missing value analysis")
