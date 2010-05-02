@@ -165,9 +165,10 @@ main (int argc, char *argv[])
               sys_error (&r, _("Unrecognized record type %d."), rec_type);
             }
         }
-      printf ("%08lx: end-of-dictionary record "
-              "(first byte of data at %08lx)\n",
-              ftell (r.file), ftell (r.file) + 4);
+      printf ("%08llx: end-of-dictionary record "
+              "(first byte of data at %08llx)\n",
+              (long long int) ftello (r.file),
+              (long long int) ftello (r.file) + 4);
 
       if (r.compressed)
         read_compressed_data (&r);
@@ -309,8 +310,8 @@ read_variable_record (struct sfm_reader *r)
   int write_format;
   char name[9];
 
-  printf ("%08lx: variable record #%d\n",
-          ftell (r->file), r->n_variable_records++);
+  printf ("%08llx: variable record #%d\n",
+          (long long int) ftello (r->file), r->n_variable_records++);
 
   width = read_int (r);
   has_variable_label = read_int (r);
@@ -355,7 +356,7 @@ read_variable_record (struct sfm_reader *r)
     sys_error (r, _("Variable label indicator field is not 0 or 1."));
   if (has_variable_label == 1)
     {
-      long int offset = ftell (r->file);
+      long long int offset = ftello (r->file);
       size_t len;
       char label[255 + 1];
 
@@ -364,7 +365,7 @@ read_variable_record (struct sfm_reader *r)
         sys_error (r, _("Variable %s has label of invalid length %zu."),
                    name, len);
       read_string (r, label, len + 1);
-      printf("\t%08lx Variable label: \"%s\"\n", offset, label);
+      printf("\t%08llx Variable label: \"%s\"\n", offset, label);
 
       skip_bytes (r, ROUND_UP (len, 4) - len);
     }
@@ -374,7 +375,7 @@ read_variable_record (struct sfm_reader *r)
     {
       int i;
 
-      printf ("\t%08lx Missing values:", ftell (r->file));
+      printf ("\t%08llx Missing values:", (long long int) ftello (r->file));
       if (!width)
         {
           if (missing_value_code < -3 || missing_value_code > 3
@@ -429,7 +430,7 @@ read_value_label_record (struct sfm_reader *r)
   int label_cnt, var_cnt;
   int i;
 
-  printf ("%08lx: value labels record\n", ftell (r->file));
+  printf ("%08llx: value labels record\n", (long long int) ftello (r->file));
 
   /* Read number of labels. */
   label_cnt = read_int (r);
@@ -465,7 +466,7 @@ read_value_label_record (struct sfm_reader *r)
 
   /* Read number of variables associated with value label from type 4
      record. */
-  printf ("\t%08lx: apply to variables", ftell (r->file));
+  printf ("\t%08llx: apply to variables", (long long int) ftello (r->file));
   var_cnt = read_int (r);
   for (i = 0; i < var_cnt; i++)
     printf (" #%d", read_int (r));
@@ -478,14 +479,14 @@ read_document_record (struct sfm_reader *r)
   int n_lines;
   int i;
 
-  printf ("%08lx: document record\n", ftell (r->file));
+  printf ("%08llx: document record\n", (long long int) ftello (r->file));
   n_lines = read_int (r);
   printf ("\t%d lines of documents\n", n_lines);
 
   for (i = 0; i < n_lines; i++)
     {
       char line[81];
-      printf ("\t%08lx: ", ftell (r->file));
+      printf ("\t%08llx: ", (long long int) ftello (r->file));
       read_string (r, line, sizeof line);
       trim_spaces (line);
       printf ("line %d: \"%s\"\n", i, line);
@@ -495,13 +496,13 @@ read_document_record (struct sfm_reader *r)
 static void
 read_extension_record (struct sfm_reader *r)
 {
-  long int offset = ftell (r->file);
+  long long int offset = ftello (r->file);
   int subtype = read_int (r);
   size_t size = read_int (r);
   size_t count = read_int (r);
   size_t bytes = size * count;
 
-  printf ("%08lx: Record 7, subtype %d, size=%zu, count=%zu\n",
+  printf ("%08llx: Record 7, subtype %d, size=%zu, count=%zu\n",
           offset, subtype, size, count);
 
   switch (subtype)
@@ -574,7 +575,7 @@ read_extension_record (struct sfm_reader *r)
 static void
 read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count)
 {
-  long int offset = ftell (r->file);
+  long long int offset = ftello (r->file);
   int version_major = read_int (r);
   int version_minor = read_int (r);
   int version_revision = read_int (r);
@@ -584,7 +585,7 @@ read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count)
   int integer_representation = read_int (r);
   int character_code = read_int (r);
 
-  printf ("%08lx: machine integer info\n", offset);
+  printf ("%08llx: machine integer info\n", offset);
   if (size != 4 || count != 8)
     sys_error (r, _("Bad size (%zu) or count (%zu) field on record type 7, "
                     "subtype 3."),
@@ -610,12 +611,12 @@ read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count)
 static void
 read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
 {
-  long int offset = ftell (r->file);
+  long long int offset = ftello (r->file);
   double sysmis = read_float (r);
   double highest = read_float (r);
   double lowest = read_float (r);
 
-  printf ("%08lx: machine float info\n", offset);
+  printf ("%08llx: machine float info\n", offset);
   if (size != 8 || count != 3)
     sys_error (r, _("Bad size (%zu) or count (%zu) on extension 4."),
                size, count);
@@ -642,7 +643,8 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count)
 {
   struct text_record *text;
 
-  printf ("%08lx: multiple response sets\n", ftell (r->file));
+  printf ("%08llx: multiple response sets\n",
+          (long long int) ftello (r->file));
   text = open_text_record (r, size * count);
   for (;;)
     {
@@ -745,7 +747,8 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count)
   bool includes_width;
   size_t i;
 
-  printf ("%08lx: variable display parameters\n", ftell (r->file));
+  printf ("%08llx: variable display parameters\n",
+          (long long int) ftello (r->file));
   if (size != 4)
     {
       sys_warn (r, _("Bad size %zu on extension 11."), size);
@@ -796,7 +799,8 @@ read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count)
   char *var;
   char *long_name;
 
-  printf ("%08lx: long variable names (short => long)\n", ftell (r->file));
+  printf ("%08llx: long variable names (short => long)\n",
+          (long long int) ftello (r->file));
   text = open_text_record (r, size * count);
   while (read_variable_to_value_pair (text, &var, &long_name))
     printf ("\t%s => %s\n", var, long_name);
@@ -812,7 +816,8 @@ read_long_string_map (struct sfm_reader *r, size_t size, size_t count)
   char *var;
   char *length_s;
 
-  printf ("%08lx: very long strings (variable => length)\n", ftell (r->file));
+  printf ("%08llx: very long strings (variable => length)\n",
+          (long long int) ftello (r->file));
   text = open_text_record (r, size * count);
   while (read_variable_to_value_pair (text, &var, &length_s))
     printf ("\t%s => %d\n", var, atoi (length_s));
@@ -880,9 +885,9 @@ read_ncases64 (struct sfm_reader *r, size_t size, size_t count)
     }
   unknown = read_int64 (r);
   ncases64 = read_int64 (r);
-  printf ("%08lx: extended number of cases: "
+  printf ("%08llx: extended number of cases: "
           "unknown=%"PRId64", ncases64=%"PRId64"\n",
-          ftell (r->file), unknown, ncases64);
+          (long long int) ftello (r->file), unknown, ncases64);
 }
 
 static void
@@ -890,7 +895,7 @@ read_datafile_attributes (struct sfm_reader *r, size_t size, size_t count)
 {
   struct text_record *text;
   
-  printf ("%08lx: datafile attributes\n", ftell (r->file));
+  printf ("%08llx: datafile attributes\n", (long long int) ftello (r->file));
   text = open_text_record (r, size * count);
   read_attributes (r, text, "datafile");
   close_text_record (text);
@@ -899,22 +904,22 @@ read_datafile_attributes (struct sfm_reader *r, size_t size, size_t count)
 static void
 read_character_encoding (struct sfm_reader *r, size_t size, size_t count)
 {
-  const unsigned long int posn =  ftell (r->file);
+  long long int posn =  ftello (r->file);
   char *encoding = xcalloc (size, count + 1);
   read_string (r, encoding, count + 1);
 
-  printf ("%08lx: Character Encoding: %s\n", posn, encoding);
+  printf ("%08llx: Character Encoding: %s\n", posn, encoding);
 }
 
 static void
 read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
 {
-  const long start = ftell (r->file);
+  long long int start = ftello (r->file);
 
-  printf ("%08lx: long string value labels\n", start);
-  while (ftell (r->file) - start < size * count)
+  printf ("%08llx: long string value labels\n", start);
+  while (ftello (r->file) - start < size * count)
     {
-      long posn = ftell (r->file);
+      long long posn = ftello (r->file);
       char var_name[VAR_NAME_LEN + 1];
       int var_name_len;
       int n_values;
@@ -933,7 +938,7 @@ read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
       width = read_int (r);
       n_values = read_int (r);
 
-      printf ("\t%08lx: %s, width %d, %d values\n",
+      printf ("\t%08llx: %s, width %d, %d values\n",
               posn, var_name, width, n_values);
 
       /* Read values. */
@@ -945,7 +950,7 @@ read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
           char *label;
 	  int label_length;
 
-          posn = ftell (r->file);
+          posn = ftello (r->file);
 
           /* Read value. */
           value_length = read_int (r);
@@ -957,7 +962,7 @@ read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
           label = xmalloc (label_length + 1);
           read_string (r, label, label_length + 1);
 
-          printf ("\t\t%08lx: \"%s\" (%d bytes) => \"%s\" (%d bytes)\n",
+          printf ("\t\t%08llx: \"%s\" (%d bytes) => \"%s\" (%d bytes)\n",
                   posn, value, value_length, label, label_length);
 
           free (value);
@@ -1045,7 +1050,7 @@ read_variable_attributes (struct sfm_reader *r, size_t size, size_t count)
 {
   struct text_record *text;
   
-  printf ("%08lx: variable attributes\n", ftell (r->file));
+  printf ("%08llx: variable attributes\n", (long long int) ftello (r->file));
   text = open_text_record (r, size * count);
   for (;;) 
     {
@@ -1061,20 +1066,20 @@ read_compressed_data (struct sfm_reader *r)
 {
   enum { N_OPCODES = 8 };
   uint8_t opcodes[N_OPCODES];
-  long int opcode_ofs;
+  long long int opcode_ofs;
   int opcode_idx;
   int case_num;
   int i;
 
   read_int (r);
-  printf ("\n%08lx: compressed data:\n", ftell (r->file));
+  printf ("\n%08llx: compressed data:\n", (long long int) ftello (r->file));
 
   opcode_idx = N_OPCODES;
   case_num = 0;
   for (case_num = 0; ; case_num++)
     {
-      printf ("%08lx: case %d's uncompressible data begins\n",
-              ftell (r->file), case_num);
+      printf ("%08llx: case %d's uncompressible data begins\n",
+              (long long int) ftello (r->file), case_num);
       for (i = 0; i < r->n_var_widths; i++)
         {
           int width = r->var_widths[i];
@@ -1083,12 +1088,12 @@ read_compressed_data (struct sfm_reader *r)
 
           if (opcode_idx >= N_OPCODES)
             {
-              opcode_ofs = ftell (r->file);
+              opcode_ofs = ftello (r->file);
               read_bytes (r, opcodes, 8);
               opcode_idx = 0;
             }
           opcode = opcodes[opcode_idx];
-          printf ("%08lx: variable %d: opcode %d: ",
+          printf ("%08llx: variable %d: opcode %d: ",
                   opcode_ofs + opcode_idx, i, opcode);
 
           switch (opcode)
@@ -1283,8 +1288,8 @@ usage (int exit_code)
 static void
 sys_msg (struct sfm_reader *r, const char *format, va_list args)
 {
-  printf ("\"%s\" near offset 0x%lx: ",
-          r->file_name, (unsigned long) ftell (r->file));
+  printf ("\"%s\" near offset 0x%llx: ",
+          r->file_name, (long long int) ftello (r->file));
   vprintf (format, args);
   putchar ('\n');
 }

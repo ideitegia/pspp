@@ -2261,8 +2261,8 @@ sys_msg (struct sfm_reader *r, int class, const char *format, va_list args)
   struct string text;
 
   ds_init_empty (&text);
-  ds_put_format (&text, "\"%s\" near offset 0x%lx: ",
-                 fh_get_file_name (r->fh), (unsigned long) ftell (r->file));
+  ds_put_format (&text, "\"%s\" near offset 0x%llx: ",
+                 fh_get_file_name (r->fh), (long long int) ftello (r->file));
   ds_put_vformat (&text, format, args);
 
   m.category = msg_class_to_category (class);

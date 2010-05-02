@@ -119,7 +119,7 @@ zip_writer_add (struct zip_writer *zw, FILE *file, const char *member_name)
   char buf[4096];
 
   /* Local file header. */
-  offset = ftell (zw->file);
+  offset = ftello (zw->file);
   put_u32 (zw, 0x04034b50);     /* local file header signature */
   put_u16 (zw, 10);             /* version needed to extract */
   put_u16 (zw, 1 << 3);         /* general purpose bit flag */
@@ -135,7 +135,7 @@ zip_writer_add (struct zip_writer *zw, FILE *file, const char *member_name)
 
   /* File data. */
   size = crc = 0;
-  fseek (file, 0, SEEK_SET);
+  fseeko (file, 0, SEEK_SET);
   while ((bytes_read = fread (buf, 1, sizeof buf, file)) > 0)
     {
       put_bytes (zw, buf, bytes_read);
@@ -173,7 +173,7 @@ zip_writer_close (struct zip_writer *zw)
   if (zw == NULL)
     return true;
 
-  dir_start = ftell (zw->file);
+  dir_start = ftello (zw->file);
   for (i = 0; i < zw->n_members; i++)
     {
       struct zip_member *m = &zw->members[i];
@@ -200,7 +200,7 @@ zip_writer_close (struct zip_writer *zw)
       free (m->name);
     }
   free (zw->members);
-  dir_end = ftell (zw->file);
+  dir_end = ftello (zw->file);
 
   /* End of central directory record. */
   put_u32 (zw, 0x06054b50);     /* end of central dir signature */

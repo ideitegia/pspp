@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -322,7 +322,7 @@ flip_file (struct flip_pgm *flip)
   output_buf = input_buf + flip->n_vars * case_capacity;
 
   input_file = flip->file;
-  if (fseek (input_file, 0, SEEK_SET) != 0)
+  if (fseeko (input_file, 0, SEEK_SET) != 0)
     {
       msg (SE, _("Error rewinding FLIP file: %s."), strerror (errno));
       return false;
@@ -387,7 +387,7 @@ flip_file (struct flip_pgm *flip)
   pool_unregister (flip->pool, input_buf);
   free (input_buf);
 
-  if (fseek (output_file, 0, SEEK_SET) != 0)
+  if (fseeko (output_file, 0, SEEK_SET) != 0)
     {
       msg (SE, _("Error rewinding FLIP source file: %s."), strerror (errno));
       return false;

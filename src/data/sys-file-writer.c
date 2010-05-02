@@ -976,7 +976,7 @@ close_writer (struct sfm_writer *w)
       /* Seek back to the beginning and update the number of cases.
          This is just a courtesy to later readers, so there's no need
          to check return values or report errors. */
-      if (ok && w->case_cnt <= INT32_MAX && !fseek (w->file, 80, SEEK_SET))
+      if (ok && w->case_cnt <= INT32_MAX && !fseeko (w->file, 80, SEEK_SET))
         {
           write_int (w, w->case_cnt);
           clearerr (w->file);

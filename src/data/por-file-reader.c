@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -96,8 +96,8 @@ error (struct pfm_reader *r, const char *msg, ...)
   va_list args;
 
   ds_init_empty (&text);
-  ds_put_format (&text, _("portable file %s corrupt at offset 0x%lx: "),
-                 fh_get_file_name (r->fh), ftell (r->file));
+  ds_put_format (&text, _("portable file %s corrupt at offset 0x%llx: "),
+                 fh_get_file_name (r->fh), (long long int) ftello (r->file));
   va_start (args, msg);
   ds_put_vformat (&text, msg, args);
   va_end (args);
@@ -125,8 +125,8 @@ warning (struct pfm_reader *r, const char *msg, ...)
   va_list args;
 
   ds_init_empty (&text);
-  ds_put_format (&text, _("reading portable file %s at offset 0x%lx: "),
-                 fh_get_file_name (r->fh), ftell (r->file));
+  ds_put_format (&text, _("reading portable file %s at offset 0x%llx: "),
+                 fh_get_file_name (r->fh), (long long int) ftello (r->file));
   va_start (args, msg);
   ds_put_vformat (&text, msg, args);
   va_end (args);
