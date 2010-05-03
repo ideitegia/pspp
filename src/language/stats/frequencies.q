@@ -125,10 +125,6 @@ struct percentile
 {
   double p;        /* the %ile to be calculated */
   double value;    /* the %ile's value */
-  double x1;       /* The datum value <= the percentile */
-  double x2;       /* The datum value >= the percentile */
-  int flag;
-  int flag2;       /* Set to 1 if this percentile value has been found */
   bool show;       /* True to show this percentile in the statistics box. */
 };
 
@@ -222,8 +218,9 @@ struct frq_proc
 static void determine_charts (struct frq_proc *,
                               const struct cmd_frequencies *);
 
-static void calc_stats (const struct frq_proc *, const struct var_freqs *,
-                        double d[FRQ_N_STATS]);
+static void calc_stats (const struct var_freqs *, double d[FRQ_N_STATS]);
+static void calc_percentiles (const struct frq_proc *,
+                              const struct var_freqs *);
 
 static void precalc (struct frq_proc *, struct casereader *, struct dataset *);
 static void calc (struct frq_proc *, const struct ccase *,
@@ -497,7 +494,7 @@ postcalc (struct frq_proc *frq, const struct dataset *ds)
 	  double d[FRQ_N_STATS];
 	  struct histogram *histogram;
 
-	  calc_stats (frq, vf, d);
+	  calc_stats (vf, d);
 
 	  histogram = freq_tab_to_hist (frq, &vf->tab, vf->var);
 
@@ -883,114 +880,74 @@ dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
 
 /* Statistical display. */
 
-/* Calculates all the pertinent statistics for variable V, putting them in
-   array D[]. */
+static double
+calc_percentile (double p, double valid_cases, double x1, double x2)
+{
+  double s, dummy;
+
+  s = (settings_get_algorithm () != COMPATIBLE
+       ? modf ((valid_cases - 1) * p, &dummy)
+       : modf ((valid_cases + 1) * p - 1, &dummy));
+
+  return x1 + (x2 - x1) * s;
+}
+
+/* Calculates all of the percentiles for VF within FRQ. */
 static void
-calc_stats (const struct frq_proc *frq,
-            const struct var_freqs *vf, double d[FRQ_N_STATS])
+calc_percentiles (const struct frq_proc *frq, const struct var_freqs *vf)
 {
   const struct freq_tab *ft = &vf->tab;
   double W = ft->valid_cases;
-  struct moments *m;
-  struct freq *f=0;
-  double prev_value;
-  int most_often;
-  double X_mode;
-
+  const struct freq *f;
+  int percentile_idx;
   double rank;
-  int i = 0;
-  int idx;
-
-  /* Calculate percentiles. */
 
   assert (ft->n_valid > 0);
 
-  for (i = 0; i < frq->n_percentiles; i++)
-    {
-      struct percentile *pc = &frq->percentiles[i];
-
-      pc->flag = 0;
-      pc->flag2 = 0;
-    }
-
   rank = 0;
-  prev_value = SYSMIS;
-  for (idx = 0; idx < ft->n_valid; ++idx)
+  percentile_idx = 0;
+  for (f = ft->valid; f < ft->missing; f++)
     {
-      f = &ft->valid[idx];
-      rank += f->count ;
-      for (i = 0; i < frq->n_percentiles; i++)
+      rank += f->count;
+      for (; percentile_idx < frq->n_percentiles; percentile_idx++)
         {
-          struct percentile *pc = &frq->percentiles[i];
-	  double tp;
+          struct percentile *pc = &frq->percentiles[percentile_idx];
+          double tp;
 
-	  if ( pc->flag2  ) continue ;
+          tp = (settings_get_algorithm () == ENHANCED
+                ? (W - 1) * pc->p
+                : (W + 1) * pc->p - 1);
 
-	  if ( settings_get_algorithm () != COMPATIBLE )
-	    tp =
-	      (ft->valid_cases - 1) *  pc->p;
-	  else
-	    tp =
-	      (ft->valid_cases + 1) *  pc->p - 1;
+          if (rank <= tp)
+            break;
 
-	  if ( pc->flag )
-	    {
-	      pc->x2 = f->value.f;
-	      pc->x1 = prev_value;
-	      pc->flag2 = 1;
-	      continue;
-	    }
-
-          if (rank >  tp )
-	  {
-	    if ( f->count > 1 && rank - (f->count - 1) > tp )
-	      {
-		pc->x2 = pc->x1 = f->value.f;
-		pc->flag2 = 1;
-	      }
-	    else
-	      {
-		pc->flag=1;
-	      }
-
-	    continue;
-	  }
+          if (f->count > 1
+              && (rank - (f->count - 1) > tp || f + 1 >= ft->missing))
+            pc->value = f->value.f;
+          else
+            pc->value = calc_percentile (pc->p, W, f->value.f, f[1].value.f);
         }
-      prev_value = f->value.f;
     }
-
-  for (i = 0; i < frq->n_percentiles; i++)
+  for (; percentile_idx < frq->n_percentiles; percentile_idx++)
     {
-      struct percentile *pc = &frq->percentiles[i];
-
-      /* Catches the case when p == 100% */
-      if ( ! pc->flag2 )
-	pc->x1 = pc->x2 = f->value.f;
-
-      /*
-      printf("percentile %d (p==%.2f); X1 = %g; X2 = %g\n",
-	     i,pc->p,pc->x1,pc->x2);
-      */
+      struct percentile *pc = &frq->percentiles[percentile_idx];
+      pc->value = ft->valid[ft->n_valid - 1].value.f;
     }
+}
 
-  for (i = 0; i < frq->n_percentiles; i++)
-    {
-      struct percentile *pc = &frq->percentiles[i];
-      double s;
+/* Calculates all the pertinent statistics for VF, putting them in array
+   D[]. */
+static void
+calc_stats (const struct var_freqs *vf, double d[FRQ_N_STATS])
+{
+  const struct freq_tab *ft = &vf->tab;
+  double W = ft->valid_cases;
+  const struct freq *f;
+  struct moments *m;
+  int most_often;
+  double X_mode;
 
-      double dummy;
-      if ( settings_get_algorithm () != COMPATIBLE )
-	{
-	  s = modf((ft->valid_cases - 1) * pc->p , &dummy);
-	}
-      else
-	{
-	  s = modf((ft->valid_cases + 1) * pc->p -1, &dummy);
-	}
-
-      pc->value = pc->x1 + (pc->x2 - pc->x1) * s ;
-    }
-
+  assert (ft->n_valid > 0);
 
   /* Calculate the mode. */
   most_often = -1;
@@ -1052,7 +1009,8 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
 	   var_get_name (vf->var));
       return;
     }
-  calc_stats (frq, vf, stat_value);
+  calc_stats (vf, stat_value);
+  calc_percentiles (frq, vf);
 
   t = tab_create (3, frq->n_stats + frq->n_show_percentiles + 2);
 
