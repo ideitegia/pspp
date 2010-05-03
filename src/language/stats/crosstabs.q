@@ -200,41 +200,6 @@ struct crosstabs_proc
     unsigned int statistics;    /* Bit k is 1 if statistic k is requested. */
   };
 
-static void
-init_proc (struct crosstabs_proc *proc, struct dataset *ds)
-{
-  const struct variable *wv = dict_get_weight (dataset_dict (ds));
-  proc->dict = dataset_dict (ds);
-  proc->bad_warn = true;
-  proc->variables = NULL;
-  proc->n_variables = 0;
-  proc->pivots = NULL;
-  proc->n_pivots = 0;
-  proc->weight_format = wv ? *var_get_print_format (wv) : F_8_0;
-}
-
-static void
-free_proc (struct crosstabs_proc *proc)
-{
-  struct pivot_table *pt;
-
-  free (proc->variables);
-  for (pt = &proc->pivots[0]; pt < &proc->pivots[proc->n_pivots]; pt++)
-    {
-      free (pt->vars);
-      free (pt->const_vars);
-      /* We must not call value_destroy on const_values because
-         it is a wild pointer; it never pointed to anything owned
-         by the pivot_table.
-
-         The rest of the data was allocated and destroyed at a
-         lower level already. */
-    }
-  free (proc->pivots);
-}
-
-static int internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds,
-                                   struct crosstabs_proc *);
 static bool should_tabulate_case (const struct pivot_table *,
                                   const struct ccase *, enum mv_class exclude);
 static void tabulate_general_case (struct pivot_table *, const struct ccase *,
@@ -244,91 +209,90 @@ static void tabulate_integer_case (struct pivot_table *, const struct ccase *,
 static void postcalc (struct crosstabs_proc *);
 static void submit (struct pivot_table *, struct tab_table *);
 
-/* Parse and execute CROSSTABS, then clean up. */
+/* Parses and executes the CROSSTABS procedure. */
 int
 cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 {
+  const struct variable *wv = dict_get_weight (dataset_dict (ds));
   struct crosstabs_proc proc;
-  int result;
-
-  init_proc (&proc, ds);
-  result = internal_cmd_crosstabs (lexer, ds, &proc);
-  free_proc (&proc);
-
-  return result;
-}
-
-/* Parses and executes the CROSSTABS procedure. */
-static int
-internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds,
-                        struct crosstabs_proc *proc)
-{
   struct casegrouper *grouper;
   struct casereader *input, *group;
   struct cmd_crosstabs cmd;
   struct pivot_table *pt;
+  int result;
   bool ok;
   int i;
 
-  if (!parse_crosstabs (lexer, ds, &cmd, proc))
-    return CMD_FAILURE;
+  proc.dict = dataset_dict (ds);
+  proc.bad_warn = true;
+  proc.variables = NULL;
+  proc.n_variables = 0;
+  proc.pivots = NULL;
+  proc.n_pivots = 0;
+  proc.weight_format = wv ? *var_get_print_format (wv) : F_8_0;
 
-  proc->mode = proc->n_variables ? INTEGER : GENERAL;
+  if (!parse_crosstabs (lexer, ds, &cmd, &proc))
+    {
+      result = CMD_FAILURE;
+      goto exit;
+    }
+
+  proc.mode = proc.n_variables ? INTEGER : GENERAL;
 
   /* CELLS. */
   if (!cmd.sbc_cells)
-    proc->cells = 1u << CRS_CL_COUNT;
+    proc.cells = 1u << CRS_CL_COUNT;
   else if (cmd.a_cells[CRS_CL_ALL])
-    proc->cells = UINT_MAX;
+    proc.cells = UINT_MAX;
   else
     {
-      proc->cells = 0;
+      proc.cells = 0;
       for (i = 0; i < CRS_CL_count; i++)
 	if (cmd.a_cells[i])
-	  proc->cells |= 1u << i;
-      if (proc->cells == 0)
-        proc->cells = ((1u << CRS_CL_COUNT)
+	  proc.cells |= 1u << i;
+      if (proc.cells == 0)
+        proc.cells = ((1u << CRS_CL_COUNT)
                        | (1u << CRS_CL_ROW)
                        | (1u << CRS_CL_COLUMN)
                        | (1u << CRS_CL_TOTAL));
     }
-  proc->cells &= ((1u << CRS_CL_count) - 1);
-  proc->cells &= ~((1u << CRS_CL_NONE) | (1u << CRS_CL_ALL));
-  proc->n_cells = 0;
+  proc.cells &= ((1u << CRS_CL_count) - 1);
+  proc.cells &= ~((1u << CRS_CL_NONE) | (1u << CRS_CL_ALL));
+  proc.n_cells = 0;
   for (i = 0; i < CRS_CL_count; i++)
-    if (proc->cells & (1u << i))
-      proc->a_cells[proc->n_cells++] = i;
+    if (proc.cells & (1u << i))
+      proc.a_cells[proc.n_cells++] = i;
 
   /* STATISTICS. */
   if (cmd.a_statistics[CRS_ST_ALL])
-    proc->statistics = UINT_MAX;
+    proc.statistics = UINT_MAX;
   else if (cmd.sbc_statistics)
     {
       int i;
 
-      proc->statistics = 0;
+      proc.statistics = 0;
       for (i = 0; i < CRS_ST_count; i++)
 	if (cmd.a_statistics[i])
-	  proc->statistics |= 1u << i;
-      if (proc->statistics == 0)
-        proc->statistics |= 1u << CRS_ST_CHISQ;
+	  proc.statistics |= 1u << i;
+      if (proc.statistics == 0)
+        proc.statistics |= 1u << CRS_ST_CHISQ;
     }
   else
-    proc->statistics = 0;
+    proc.statistics = 0;
 
   /* MISSING. */
-  proc->exclude = (cmd.miss == CRS_TABLE ? MV_ANY
+  proc.exclude = (cmd.miss == CRS_TABLE ? MV_ANY
                    : cmd.miss == CRS_INCLUDE ? MV_SYSTEM
                    : MV_NEVER);
-  if (proc->mode == GENERAL && proc->mode == MV_NEVER)
+  if (proc.mode == GENERAL && proc.mode == MV_NEVER)
     {
       msg (SE, _("Missing mode REPORT not allowed in general mode.  "
 		 "Assuming MISSING=TABLE."));
-      proc->mode = MV_ANY;
+      proc.mode = MV_ANY;
     }
 
   /* PIVOT. */
-  proc->pivot = cmd.pivot == CRS_PIVOT;
+  proc.pivot = cmd.pivot == CRS_PIVOT;
 
   input = casereader_create_filter_weight (proc_open (ds), dataset_dict (ds),
                                            NULL, NULL);
@@ -346,18 +310,18 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds,
         }
 
       /* Initialize hash tables. */
-      for (pt = &proc->pivots[0]; pt < &proc->pivots[proc->n_pivots]; pt++)
+      for (pt = &proc.pivots[0]; pt < &proc.pivots[proc.n_pivots]; pt++)
         hmap_init (&pt->data);
 
       /* Tabulate. */
       for (; (c = casereader_read (group)) != NULL; case_unref (c))
-        for (pt = &proc->pivots[0]; pt < &proc->pivots[proc->n_pivots]; pt++)
+        for (pt = &proc.pivots[0]; pt < &proc.pivots[proc.n_pivots]; pt++)
           {
             double weight = dict_get_case_weight (dataset_dict (ds), c,
-                                                  &proc->bad_warn);
-            if (should_tabulate_case (pt, c, proc->exclude))
+                                                  &proc.bad_warn);
+            if (should_tabulate_case (pt, c, proc.exclude))
               {
-                if (proc->mode == GENERAL)
+                if (proc.mode == GENERAL)
                   tabulate_general_case (pt, c, weight);
                 else
                   tabulate_integer_case (pt, c, weight);
@@ -368,12 +332,29 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds,
       casereader_destroy (group);
 
       /* Output. */
-      postcalc (proc);
+      postcalc (&proc);
     }
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;
 
-  return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
+  result = ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
+
+exit:
+  free (proc.variables);
+  for (pt = &proc.pivots[0]; pt < &proc.pivots[proc.n_pivots]; pt++)
+    {
+      free (pt->vars);
+      free (pt->const_vars);
+      /* We must not call value_destroy on const_values because
+         it is a wild pointer; it never pointed to anything owned
+         by the pivot_table.
+
+         The rest of the data was allocated and destroyed at a
+         lower level already. */
+    }
+  free (proc.pivots);
+
+  return result;
 }
 
 /* Parses the TABLES subcommand. */
