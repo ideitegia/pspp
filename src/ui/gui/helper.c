@@ -41,6 +41,7 @@
 
 #include "psppire-data-store.h"
 
+#include "gl/configmake.h"
 #include "xalloc.h"
 
 #include <gettext.h>

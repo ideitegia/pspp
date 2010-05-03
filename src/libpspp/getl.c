@@ -24,6 +24,7 @@
 #include "libpspp/str.h"
 #include "libpspp/string-array.h"
 
+#include "gl/configmake.h"
 #include "gl/relocatable.h"
 #include "gl/xalloc.h"
 

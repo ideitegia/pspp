@@ -56,6 +56,7 @@
 #include "ui/source-init-opts.h"
 #include "ui/syntax-gen.h"
 
+#include "gl/configmake.h"
 #include "gl/xalloc.h"
 #include "gl/relocatable.h"
 

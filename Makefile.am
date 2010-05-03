@@ -9,8 +9,7 @@ BUILT_SOURCES =
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/gl \
 	-I$(top_builddir)/gl \
-	-DINSTALLDIR=\"$(bindir)\" \
-	-DDOCDIR=\"$(docdir)\"
+	-DINSTALLDIR=\"$(bindir)\"
 
 AM_CFLAGS=
 

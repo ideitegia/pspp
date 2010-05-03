@@ -10,6 +10,7 @@ GNULIB_MODULES = \
 	c-ctype \
 	c-strtod \
 	close \
+	configmake \
 	count-one-bits \
 	crc \
 	crypto/md4 \

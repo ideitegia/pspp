@@ -28,6 +28,7 @@
 #include "libpspp/copyleft.h"
 #include "ui/source-init-opts.h"
 
+#include "gl/configmake.h"
 #include "gl/progname.h"
 #include "gl/relocatable.h"
 #include "gl/xalloc.h"
