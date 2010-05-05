@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2009  Free Software Foundation
+   Copyright (C) 2006, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -667,10 +667,10 @@ text_for_column (PsppireVarStore *vs,
 	  case FMT_DTIME:
 	  case FMT_WKDAY:
 	  case FMT_MONTH:
-	    return g_locale_to_utf8 (type_label[VT_DATE], -1, 0, 0, err);
+	    return g_locale_to_utf8 (gettext (type_label[VT_DATE]), -1, 0, 0, err);
 	    break;
 	  case FMT_DOLLAR:
-	    return g_locale_to_utf8 (type_label[VT_DOLLAR], -1, 0, 0, err);
+	    return g_locale_to_utf8 (gettext (type_label[VT_DOLLAR]), -1, 0, 0, err);
 	    break;
 	  case FMT_CCA:
 	  case FMT_CCB:
