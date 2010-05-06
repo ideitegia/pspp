@@ -22,8 +22,7 @@ measure_to_string (const struct variable *var, GError **err)
   const gint measure = var_get_measure (var);
 
   g_assert (measure < n_MEASURES);
-  return g_locale_to_utf8 (gettext (measures[measure]),
-			   -1, 0, 0, err);
+  return gettext (measures[measure]);
 }
 
 
@@ -34,7 +33,7 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
   gchar *s;
   const struct missing_values *miss = var_get_missing_values (pv);
   if ( mv_is_empty (miss))
-    return g_locale_to_utf8 (gettext (none), -1, 0, 0, err);
+    return xstrdup (gettext (none));
   else
     {
       if ( ! mv_has_range (miss))

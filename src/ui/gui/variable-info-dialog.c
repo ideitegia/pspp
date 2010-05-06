@@ -91,8 +91,6 @@ populate_text (PsppireDictView *treeview, gpointer data)
   text = measure_to_string (var, NULL);
   g_string_append_printf (gstring, _("Measurement Level: %s\n"),
 			  text);
-  g_free (text);
-
 
 
   /* Value Labels */

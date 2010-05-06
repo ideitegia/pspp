@@ -643,16 +643,16 @@ text_for_column (PsppireVarStore *vs,
 	switch ( write_spec->type )
 	  {
 	  case FMT_F:
-	    return g_locale_to_utf8 (gettext (type_label[VT_NUMERIC]), -1, 0, 0, err);
+	    return xstrdup (gettext (type_label[VT_NUMERIC]));
 	    break;
 	  case FMT_COMMA:
-	    return g_locale_to_utf8 (gettext (type_label[VT_COMMA]), -1, 0, 0, err);
+	    return xstrdup (gettext (type_label[VT_COMMA]));
 	    break;
 	  case FMT_DOT:
-	    return g_locale_to_utf8 (gettext (type_label[VT_DOT]), -1, 0, 0, err);
+	    return xstrdup (gettext (type_label[VT_DOT]));
 	    break;
 	  case FMT_E:
-	    return g_locale_to_utf8 (gettext (type_label[VT_SCIENTIFIC]), -1, 0, 0, err);
+	    return xstrdup (gettext (type_label[VT_SCIENTIFIC]));
 	    break;
 	  case FMT_DATE:
 	  case FMT_EDATE:
@@ -667,20 +667,20 @@ text_for_column (PsppireVarStore *vs,
 	  case FMT_DTIME:
 	  case FMT_WKDAY:
 	  case FMT_MONTH:
-	    return g_locale_to_utf8 (gettext (type_label[VT_DATE]), -1, 0, 0, err);
+	    return xstrdup (gettext (type_label[VT_DATE]));
 	    break;
 	  case FMT_DOLLAR:
-	    return g_locale_to_utf8 (gettext (type_label[VT_DOLLAR]), -1, 0, 0, err);
+	    return xstrdup (gettext (type_label[VT_DOLLAR]));
 	    break;
 	  case FMT_CCA:
 	  case FMT_CCB:
 	  case FMT_CCC:
 	  case FMT_CCD:
 	  case FMT_CCE:
-	    return g_locale_to_utf8 (gettext (type_label[VT_CUSTOM]), -1, 0, 0, err);
+	    return xstrdup (gettext (type_label[VT_CUSTOM]));
 	    break;
 	  case FMT_A:
-	    return g_locale_to_utf8 (gettext (type_label[VT_STRING]), -1, 0, 0, err);
+	    return xstrdup (gettext (type_label[VT_STRING]));
 	    break;
 	  default:
             {
@@ -739,7 +739,7 @@ text_for_column (PsppireVarStore *vs,
     case PSPPIRE_VAR_STORE_COL_VALUES:
       {
 	if ( ! var_has_value_labels (pv))
-	  return g_locale_to_utf8 (gettext (none), -1, 0, 0, err);
+	  return xstrdup (gettext (none));
 	else
 	  {
 	    const struct val_labs *vls = var_get_value_labels (pv);
@@ -762,12 +762,12 @@ text_for_column (PsppireVarStore *vs,
 	const gint align = var_get_alignment (pv);
 
 	g_assert (align < n_ALIGNMENTS);
-	return g_locale_to_utf8 (gettext (alignments[align]), -1, 0, 0, err);
+	return xstrdup (gettext (alignments[align]));
       }
       break;
     case PSPPIRE_VAR_STORE_COL_MEASURE:
       {
-	return measure_to_string (pv, err);
+	return xstrdup (measure_to_string (pv, err));
       }
       break;
     }
