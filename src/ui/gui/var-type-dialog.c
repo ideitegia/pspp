@@ -262,12 +262,12 @@ preview_custom (GtkWidget *w, gpointer data)
       union value v;
       v.f = 1234.56;
 
-      sample_text = value_to_text (v, NULL, dialog->fmt_l);
+      sample_text = value_to_text (v, dialog->vs->dictionary, dialog->fmt_l);
       gtk_label_set_text (GTK_LABEL (dialog->label_psample), sample_text);
       g_free (sample_text);
 
       v.f = -v.f;
-      sample_text = value_to_text (v, NULL, dialog->fmt_l);
+      sample_text = value_to_text (v, dialog->vs->dictionary, dialog->fmt_l);
       gtk_label_set_text (GTK_LABEL (dialog->label_nsample), sample_text);
       g_free (sample_text);
     }
@@ -315,20 +315,19 @@ set_format_type_from_treeview (GtkTreeView *treeview, gpointer data)
 
   dialog->fmt_l = custom_format;
   dialog->fmt_l.type = *(int*) g_value_get_pointer (&the_value);
-
 }
-
-
 
 
 /* Create the structure */
 struct var_type_dialog *
-var_type_dialog_create (GtkWindow *toplevel)
+var_type_dialog_create (GtkWindow *toplevel, PsppireVarStore *vs)
 {
   gint i;
   struct var_type_dialog *dialog = g_malloc (sizeof (struct var_type_dialog));
 
   GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
+
+  dialog->vs = vs;
 
   dialog->window = get_widget_assert (xml,"var_type_dialog");
   dialog->active_button = -1;

@@ -487,7 +487,8 @@ psppire_var_sheet_realize (GtkWidget *w)
 						PSPPIRE_VAR_STORE (psppire_sheet_get_model (PSPPIRE_SHEET (vs))));
 
   vs->missing_val_dialog = missing_val_dialog_create (GTK_WINDOW (toplevel));
-  vs->var_type_dialog = var_type_dialog_create (GTK_WINDOW (toplevel));
+  vs->var_type_dialog = var_type_dialog_create (GTK_WINDOW (toplevel),
+						PSPPIRE_VAR_STORE (psppire_sheet_get_model (PSPPIRE_SHEET (vs))));
 
   /* Chain up to the parent class */
   GTK_WIDGET_CLASS (parent_class)->realize (w);

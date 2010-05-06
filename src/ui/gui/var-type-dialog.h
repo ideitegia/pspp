@@ -20,6 +20,8 @@
 
 #include <data/format.h>
 
+#include "psppire-var-store.h"
+
 /*  This module describes the behaviour of the Variable Type dialog box,
     used for input of the variable type parameter in the var sheet */
 
@@ -44,6 +46,10 @@ struct var_type_dialog
 
   /* Variable to be updated */
   struct variable *pv;
+  
+  /* The variable store to which this dialog relates */
+  PsppireVarStore *vs;
+  
 
   /* Local copy of format specifier */
   struct fmt_spec fmt_l;
@@ -82,7 +88,7 @@ struct var_type_dialog
 };
 
 
-struct var_type_dialog * var_type_dialog_create (GtkWindow *);
+struct var_type_dialog * var_type_dialog_create (GtkWindow *, PsppireVarStore *vs);
 
 void var_type_dialog_show (struct var_type_dialog *dialog);
 
