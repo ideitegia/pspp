@@ -4,7 +4,7 @@
   <requires lib="psppire" version="2054.17080"/>
   <!-- interface-naming-policy project-wide -->
   <object class="PsppireDialog" id="regression-dialog">
-    <property name="title">Regression</property>
+    <property name="title" translatable="yes">Regression</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox1">
@@ -233,7 +233,7 @@
   </object>
   <object class="PsppireDialog" id="save-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Regression: Save</property>
+    <property name="title" translatable="yes">Regression: Save</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox2">
@@ -295,7 +295,7 @@
   </object>
   <object class="PsppireDialog" id="statistics-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Regression: Statistics</property>
+    <property name="title" translatable="yes">Regression: Statistics</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox3">

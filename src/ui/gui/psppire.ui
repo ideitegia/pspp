@@ -4,7 +4,7 @@
   <!-- interface-requires gtk+ 2.12 -->
   <!-- interface-naming-policy project-wide -->
   <object class="PsppireDialog" id="weight-cases-dialog">
-    <property name="title">Weight Cases</property>
+    <property name="title" translatable="yes">Weight Cases</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox2">
@@ -192,7 +192,7 @@
     </child>
   </object>
   <object class="PsppireDialog" id="transpose-dialog">
-    <property name="title">Transpose</property>
+    <property name="title" translatable="yes">Transpose</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox1">
@@ -380,7 +380,7 @@
   </object>
   <object class="PsppireDialog" id="split-file-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Split File</property>
+    <property name="title" translatable="yes">Split File</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox3">
@@ -706,7 +706,7 @@
   </object>
   <object class="PsppireDialog" id="compute-variable-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Compute Variable</property>
+    <property name="title" translatable="yes">Compute Variable</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox5">
@@ -1049,7 +1049,7 @@
   </object>
   <object class="PsppireDialog" id="select-cases-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Select Cases</property>
+    <property name="title" translatable="yes">Select Cases</property>
     <property name="modal">True</property>
     <property name="orientation">Vertical</property>
     <child internal-child="hbox">
@@ -1582,7 +1582,7 @@
   </object>
   <object class="PsppireDialog" id="comments-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Data File Comments</property>
+    <property name="title" translatable="yes">Data File Comments</property>
     <property name="modal">True</property>
     <property name="orientation">Vertical</property>
     <child internal-child="hbox">
@@ -1700,7 +1700,7 @@
   </object>
   <object class="PsppireDialog" id="select-cases-range-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Select Cases: Range</property>
+    <property name="title" translatable="yes">Select Cases: Range</property>
     <property name="modal">True</property>
     <property name="orientation">Vertical</property>
     <child internal-child="hbox">
@@ -1805,7 +1805,7 @@
   </object>
   <object class="PsppireDialog" id="type-and-label-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Compute Variable: Type and Label</property>
+    <property name="title" translatable="yes">Compute Variable: Type and Label</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox9">
@@ -2085,7 +2085,7 @@
   </object>
   <object class="PsppireDialog" id="goto-case-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Goto Case</property>
+    <property name="title" translatable="yes">Goto Case</property>
     <property name="modal">True</property>
     <property name="orientation">Vertical</property>
     <child internal-child="hbox">
@@ -2146,7 +2146,7 @@
   </object>
   <object class="PsppireDialog" id="select-cases-random-sample-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Select Cases: Random Sample</property>
+    <property name="title" translatable="yes">Select Cases: Random Sample</property>
     <property name="modal">True</property>
     <property name="orientation">Vertical</property>
     <child internal-child="hbox">

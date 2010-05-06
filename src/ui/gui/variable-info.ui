@@ -5,7 +5,7 @@
   <!-- interface-naming-policy project-wide -->
   <object class="PsppireDialog" id="variable-info-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Variables</property>
+    <property name="title" translatable="yes">Variables</property>
     <property name="modal">True</property>
     <property name="slidable">True</property>
     <child internal-child="hbox">

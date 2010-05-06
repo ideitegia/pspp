@@ -315,7 +315,7 @@
           <widget class="GtkMenu" id="data_menu">
             <child>
               <widget class="GtkImageMenuItem" id="data_sort-cases">
-                <property name="label">_Sort Cases</property>
+                <property name="label" translatable="yes">_Sort Cases</property>
                 <property name="visible">True</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>

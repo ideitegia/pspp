@@ -5,7 +5,7 @@
   <!-- interface-naming-policy project-wide -->
   <object class="PsppireDialog" id="t-test-independent-samples-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Independent-Samples T Test</property>
+    <property name="title" translatable="yes">Independent-Samples T Test</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox15">
@@ -228,7 +228,7 @@
   </object>
   <object class="PsppireDialog" id="define-groups-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Define Groups</property>
+    <property name="title" translatable="yes">Define Groups</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox2">
@@ -417,7 +417,7 @@
   </object>
   <object class="PsppireDialog" id="options-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Options</property>
+    <property name="title" translatable="yes">Options</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox3">
@@ -526,7 +526,7 @@
   </object>
   <object class="PsppireDialog" id="t-test-one-sample-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">One - Sample T Test</property>
+    <property name="title" translatable="yes">One - Sample T Test</property>
     <property name="modal">True</property>
     <property name="orientation">Tabular</property>
     <child internal-child="hbox">
@@ -701,7 +701,7 @@
   </object>
   <object class="PsppireDialog" id="t-test-paired-samples-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Paired Samples T Test</property>
+    <property name="title" translatable="yes">Paired Samples T Test</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox6">

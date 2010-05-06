@@ -6,7 +6,7 @@
   <object class="GtkListStore" id="liststore1"/>
   <object class="PsppireDialog" id="frequencies-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Frequencies</property>
+    <property name="title" translatable="yes">Frequencies</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox1">
@@ -248,7 +248,7 @@
   </object>
   <object class="PsppireDialog" id="tables-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Frequencies: Frequency Tables</property>
+    <property name="title" translatable="yes">Frequencies: Frequency Tables</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox6">
@@ -505,7 +505,7 @@
   </object>
   <object class="PsppireDialog" id="charts-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Frequencies: Charts</property>
+    <property name="title" translatable="yes">Frequencies: Charts</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox5">

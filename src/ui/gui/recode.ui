@@ -689,7 +689,7 @@
   </object>
   <object class="PsppireDialog" id="recode-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Recode into Same Variables</property>
+    <property name="title" translatable="yes">Recode into Same Variables</property>
     <property name="modal">True</property>
     <property name="orientation">Tabular</property>
     <child internal-child="hbox">

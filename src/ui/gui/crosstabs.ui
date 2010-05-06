@@ -4,7 +4,7 @@
   <requires lib="psppire" version="2054.22072"/>
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="PsppireDialog" id="crosstabs-dialog">
-    <property name="title">Crosstabs</property>
+    <property name="title" translatable="yes">Crosstabs</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox1">
@@ -224,7 +224,7 @@
   </object>
   <object class="PsppireDialog" id="format-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Crosstabs: Format</property>
+    <property name="title" translatable="yes">Crosstabs: Format</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox2">
@@ -366,7 +366,7 @@
   </object>
   <object class="PsppireDialog" id="cell-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Crosstabs: Cells</property>
+    <property name="title" translatable="yes">Crosstabs: Cells</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox3">
@@ -427,7 +427,7 @@
   </object>
   <object class="PsppireDialog" id="stat-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Crosstabs: Statistics</property>
+    <property name="title" translatable="yes">Crosstabs: Statistics</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox4">

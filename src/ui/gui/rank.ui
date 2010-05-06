@@ -5,7 +5,7 @@
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="PsppireDialog" id="rank-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Rank Cases</property>
+    <property name="title" translatable="yes">Rank Cases</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox1">
@@ -343,7 +343,7 @@
   </object>
   <object class="PsppireDialog" id="rank-types-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Rank Cases: Types</property>
+    <property name="title" translatable="yes">Rank Cases: Types</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox2">
@@ -622,7 +622,7 @@
   </object>
   <object class="PsppireDialog" id="ties-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-    <property name="title">Rank Cases: Ties</property>
+    <property name="title" translatable="yes">Rank Cases: Ties</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
       <object class="GtkHBox" id="dialog-hbox3">
