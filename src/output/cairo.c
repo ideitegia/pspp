@@ -16,31 +16,31 @@
 
 #include <config.h>
 
-#include <output/cairo.h>
+#include "output/cairo.h"
 
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/message.h>
-#include <libpspp/start-date.h>
-#include <libpspp/str.h>
-#include <libpspp/string-map.h>
-#include <libpspp/version.h>
-#include <output/cairo-chart.h>
-#include <output/chart-item-provider.h>
-#include <output/charts/boxplot.h>
-#include <output/charts/np-plot.h>
-#include <output/charts/piechart.h>
-#include <output/charts/plot-hist.h>
-#include <output/charts/roc-chart.h>
-#include <output/charts/scree.h>
-#include <output/driver-provider.h>
-#include <output/message-item.h>
-#include <output/options.h>
-#include <output/render.h>
-#include <output/tab.h>
-#include <output/table-item.h>
-#include <output/table.h>
-#include <output/text-item.h>
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "libpspp/start-date.h"
+#include "libpspp/str.h"
+#include "libpspp/string-map.h"
+#include "libpspp/version.h"
+#include "output/cairo-chart.h"
+#include "output/chart-item-provider.h"
+#include "output/charts/boxplot.h"
+#include "output/charts/np-plot.h"
+#include "output/charts/piechart.h"
+#include "output/charts/plot-hist.h"
+#include "output/charts/roc-chart.h"
+#include "output/charts/scree.h"
+#include "output/driver-provider.h"
+#include "output/message-item.h"
+#include "output/options.h"
+#include "output/render.h"
+#include "output/tab.h"
+#include "output/table-item.h"
+#include "output/table.h"
+#include "output/text-item.h"
 
 #include <cairo/cairo-pdf.h>
 #include <cairo/cairo-ps.h>
@@ -52,10 +52,10 @@
 #include <pango/pangocairo.h>
 #include <stdlib.h>
 
-#include "error.h"
-#include "intprops.h"
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/intprops.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
