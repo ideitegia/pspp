@@ -41,5 +41,7 @@ gitlog-to-changelog
 *.la
 *.libs
 /arg-nonnull.h
+/c++defs.h
 /package.m4
 /unused-parameter.h
+/warn-on-use.h
