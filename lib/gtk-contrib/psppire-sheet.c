@@ -3022,9 +3022,7 @@ psppire_sheet_click_cell (PsppireSheet *sheet, gint row, gint column)
       sheet->range.row0 = 0;
       sheet->range.col0 = 0;
       sheet->range.rowi = psppire_axis_unit_count (sheet->vaxis) - 1;
-      sheet->range.coli =
-	psppire_axis_unit_count (sheet->haxis) - 1;
-      psppire_sheet_select_range (sheet, NULL);
+      sheet->range.coli = psppire_axis_unit_count (sheet->haxis) - 1;
       return TRUE;
     }
 
