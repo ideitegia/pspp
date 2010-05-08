@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -106,6 +106,7 @@ struct render_break
 
 void render_break_init (struct render_break *, struct render_page *,
                         enum table_axis);
+void render_break_init_empty (struct render_break *);
 void render_break_destroy (struct render_break *);
 
 bool render_break_has_next (const struct render_break *);

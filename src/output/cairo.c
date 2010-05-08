@@ -101,6 +101,18 @@ struct xr_font
     PangoFontMetrics *metrics;
   };
 
+/* An output item whose rendering is in progress. */
+struct xr_render_fsm
+  {
+    /* Renders as much of itself as it can on the current page.  Returns true
+       if rendering is complete, false if the output item needs another
+       page. */
+    bool (*render) (struct xr_render_fsm *, struct xr_driver *);
+
+    /* Destroys the output item. */
+    void (*destroy) (struct xr_render_fsm *);
+  };
+
 /* Cairo output driver. */
 struct xr_driver
   {
@@ -134,12 +146,14 @@ struct xr_driver
     cairo_t *cairo;
     int page_number;		/* Current page number. */
     int y;
+    struct xr_render_fsm *fsm;
   };
 
 static const struct output_driver_class cairo_driver_class;
 
-static void xr_show_page (struct xr_driver *);
 static void draw_headers (struct xr_driver *);
+static void xr_driver_destroy_fsm (struct xr_driver *);
+static void xr_driver_run_fsm (struct xr_driver *);
 
 static bool load_font (struct xr_driver *, struct xr_font *);
 static void free_font (struct xr_font *);
@@ -153,8 +167,11 @@ static int xr_measure_cell_height (void *, const struct table_cell *,
 static void xr_draw_cell (void *, const struct table_cell *,
                           int bb[TABLE_N_AXES][2],
                           int clip[TABLE_N_AXES][2]);
+
+static struct xr_render_fsm *xr_render_output_item (
+  struct xr_driver *, const struct output_item *);
 
-/* Driver initialization. */
+/* Output driver basics. */
 
 static struct xr_driver *
 xr_driver_cast (struct output_driver *driver)
@@ -317,6 +334,8 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
       goto error;
     }
 
+  draw_headers (xr);
+
   return &xr->driver;
 
  error:
@@ -351,12 +370,11 @@ xr_destroy (struct output_driver *driver)
   struct xr_driver *xr = xr_driver_cast (driver);
   size_t i;
 
+  xr_driver_destroy_fsm (xr);
+
   if (xr->cairo != NULL)
     {
       cairo_status_t status;
-
-      if (xr->y > 0)
-        xr_show_page (xr);
 
       cairo_surface_finish (cairo_get_target (xr->cairo));
       status = cairo_status (xr->cairo);
@@ -410,147 +428,83 @@ xr_render_table_item (struct xr_driver *xr, const struct table_item *item,
 }
 
 static void
-xr_output_table_item (struct xr_driver *xr,
-                      const struct table_item *table_item)
-{
-  struct render_break x_break;
-  struct render_page *page;
-  int caption_height;
-
-  if (xr->y > 0)
-    xr->y += xr->font_height;
-
-  page = xr_render_table_item (xr, table_item, &caption_height);
-  xr->params->size[V] = xr->length - caption_height;
-  for (render_break_init (&x_break, page, H);
-       render_break_has_next (&x_break); )
-    {
-      struct render_page *x_slice;
-      struct render_break y_break;
-
-      x_slice = render_break_next (&x_break, xr->width);
-      for (render_break_init (&y_break, x_slice, V);
-           render_break_has_next (&y_break); )
-        {
-          int space = xr->length - xr->y;
-          struct render_page *y_slice;
-
-          /* XXX doesn't allow for caption or space between segments */
-          if (render_break_next_size (&y_break) > space)
-            {
-              assert (xr->y > 0);
-              xr_show_page (xr);
-              continue;
-            }
-
-          y_slice = render_break_next (&y_break, space);
-          if (caption_height)
-            {
-              struct table_cell cell;
-              int bb[TABLE_N_AXES][2];
-
-              xr_init_caption_cell (table_item_get_caption (table_item),
-                                    &cell);
-              bb[H][0] = 0;
-              bb[H][1] = xr->width;
-              bb[V][0] = 0;
-              bb[V][1] = caption_height;
-              xr_draw_cell (xr, &cell, bb, bb);
-              xr->y += caption_height;
-              caption_height = 0;
-            }
-
-          render_page_draw (y_slice);
-          xr->y += render_page_get_size (y_slice, V);
-          render_page_unref (y_slice);
-        }
-      render_break_destroy (&y_break);
-    }
-  render_break_destroy (&x_break);
-}
-
-static void
-xr_output_text (struct xr_driver *xr, const char *text)
-{
-  struct table_item *table_item;
-
-  table_item = table_item_create (table_from_string (TAB_LEFT, text), NULL);
-  xr_output_table_item (xr, table_item);
-  table_item_unref (table_item);
-}
-
-static void
 xr_submit (struct output_driver *driver, const struct output_item *output_item)
 {
   struct xr_driver *xr = xr_driver_cast (driver);
-  if (is_table_item (output_item))
-    xr_output_table_item (xr, to_table_item (output_item));
-  else if (is_chart_item (output_item))
+
+  xr_driver_output_item (xr, output_item);
+  while (xr_driver_need_new_page (xr))
     {
-      if (xr->y > 0)
-        xr_show_page (xr);
-      xr_draw_chart (to_chart_item (output_item), xr->cairo, 0.0, 0.0,
-                     xr_to_pt (xr->width), xr_to_pt (xr->length));
-      xr_show_page (xr);
+      cairo_show_page (xr->cairo);
+      xr_driver_next_page (xr, xr->cairo);
     }
-  else if (is_text_item (output_item))
+}
+
+/* Functions for rendering a series of output items to a series of Cairo
+   contexts, with pagination, possibly including headers.
+
+   Used by PSPPIRE for printing, and by the basic Cairo output driver above as
+   its underlying implementation.
+
+   See the big comment in cairo.h for intended usage. */
+
+/* Gives new page CAIRO to XR for output.  CAIRO may be null to skip actually
+   rendering the page (which might be useful to find out how many pages an
+   output document has without actually rendering it). */
+void
+xr_driver_next_page (struct xr_driver *xr, cairo_t *cairo)
+{
+  xr->page_number++;
+  xr->cairo = cairo;
+  xr->y = 0;
+  draw_headers (xr);
+  xr_driver_run_fsm (xr);
+}
+
+/* Start rendering OUTPUT_ITEM to XR.  Only valid if XR is not in the middle of
+   rendering a previous output item, that is, only if xr_driver_need_new_page()
+   returns false. */
+void
+xr_driver_output_item (struct xr_driver *xr,
+                       const struct output_item *output_item)
+{
+  assert (xr->fsm == NULL);
+  xr->fsm = xr_render_output_item (xr, output_item);
+  xr_driver_run_fsm (xr);
+}
+
+/* Returns true if XR is in the middle of rendering an output item and needs a
+   new page to be appended using xr_driver_next_page() to make progress,
+   otherwise false. */
+bool
+xr_driver_need_new_page (const struct xr_driver *xr)
+{
+  return xr->fsm != NULL;
+}
+
+/* Returns true if the current page doesn't have any content yet (besides
+   headers, if enabled). */
+bool
+xr_driver_is_page_blank (const struct xr_driver *xr)
+{
+  return xr->y == 0;
+}
+
+static void
+xr_driver_destroy_fsm (struct xr_driver *xr)
+{
+  if (xr->fsm != NULL)
     {
-      const struct text_item *text_item = to_text_item (output_item);
-      enum text_item_type type = text_item_get_type (text_item);
-      const char *text = text_item_get_text (text_item);
-
-      switch (type)
-        {
-        case TEXT_ITEM_TITLE:
-          free (xr->title);
-          xr->title = xstrdup (text);
-          break;
-
-        case TEXT_ITEM_SUBTITLE:
-          free (xr->subtitle);
-          xr->subtitle = xstrdup (text);
-          break;
-
-        case TEXT_ITEM_COMMAND_CLOSE:
-          break;
-
-        case TEXT_ITEM_BLANK_LINE:
-          if (xr->y > 0)
-            xr->y += xr->font_height;
-          break;
-
-        case TEXT_ITEM_EJECT_PAGE:
-          if (xr->y > 0)
-            xr_show_page (xr);
-          break;
-
-        default:
-          xr_output_text (xr, text);
-          break;
-        }
-    }
-  else if (is_message_item (output_item))
-    {
-      const struct message_item *message_item = to_message_item (output_item);
-      const struct msg *msg = message_item_get_msg (message_item);
-      char *s = msg_to_string (msg, xr->command_name);
-      xr_output_text (xr, s);
-      free (s);
+      xr->fsm->destroy (xr->fsm);
+      xr->fsm = NULL;
     }
 }
 
 static void
-xr_show_page (struct xr_driver *xr)
+xr_driver_run_fsm (struct xr_driver *xr)
 {
-  if (xr->headers)
-    {
-      xr->y = 0;
-      draw_headers (xr);
-    }
-  cairo_show_page (xr->cairo);
-
-  xr->page_number++;
-  xr->y = 0;
+  if (xr->fsm != NULL && !xr->fsm->render (xr->fsm, xr))
+    xr_driver_destroy_fsm (xr);
 }
 
 static void
@@ -778,9 +732,9 @@ draw_text (struct xr_driver *xr, const char *string, int x, int y,
   cell.contents = string;
   cell.options = options;
   bb[H][0] = x;
-  bb[V][0] = y;
+  bb[V][0] = y - xr->y;
   bb[H][1] = x + max_width;
-  bb[V][1] = xr->font_height;
+  bb[V][1] = xr->font_height - xr->y;
   xr_layout_cell (xr, &cell, bb, bb, PANGO_WRAP_WORD_CHAR, &w, &h);
   return w;
 }
@@ -806,6 +760,9 @@ draw_headers (struct xr_driver *xr)
   char *r1, *r2;
   int x0, x1;
   int y;
+
+  if (!xr->headers || xr->cairo == NULL)
+    return;
 
   y = -3 * xr->font_height;
   x0 = xr->font_height / 2;
@@ -959,7 +916,7 @@ struct xr_rendering
 #define CHART_HEIGHT 375
 
 struct xr_driver *
-xr_create_driver (cairo_t *cairo, struct string_map *options)
+xr_driver_create (cairo_t *cairo, struct string_map *options)
 {
   struct xr_driver *xr = xr_allocate ("cairo", 0, options);
   xr->width = INT_MAX / 8;
@@ -1120,4 +1077,255 @@ xr_draw_png_chart (const struct chart_item *item,
   cairo_surface_destroy (surface);
 
   return file_name;
+}
+
+struct xr_table_state
+  {
+    struct xr_render_fsm fsm;
+    struct table_item *table_item;
+    struct render_break x_break;
+    struct render_break y_break;
+    int caption_height;
+  };
+
+static bool
+xr_table_render (struct xr_render_fsm *fsm, struct xr_driver *xr)
+{
+  struct xr_table_state *ts = UP_CAST (fsm, struct xr_table_state, fsm);
+
+  for (;;)
+    {
+      struct render_page *y_slice;
+      int space;
+
+      while (!render_break_has_next (&ts->y_break))
+        {
+          struct render_page *x_slice;
+
+          render_break_destroy (&ts->y_break);
+          if (!render_break_has_next (&ts->x_break))
+            return false;
+
+          x_slice = render_break_next (&ts->x_break, xr->width);
+          render_break_init (&ts->y_break, x_slice, V);
+        }
+
+      space = xr->length - xr->y;
+      if (render_break_next_size (&ts->y_break) > space)
+        {
+          assert (xr->y > 0);
+          return true;
+        }
+
+      y_slice = render_break_next (&ts->y_break, space);
+      if (ts->caption_height)
+        {
+          if (xr->cairo)
+            {
+              struct table_cell cell;
+              int bb[TABLE_N_AXES][2];
+
+              xr_init_caption_cell (table_item_get_caption (ts->table_item),
+                                    &cell);
+              bb[H][0] = 0;
+              bb[H][1] = xr->width;
+              bb[V][0] = 0;
+              bb[V][1] = ts->caption_height;
+              xr_draw_cell (xr, &cell, bb, bb);
+            }
+          xr->y += ts->caption_height;
+          ts->caption_height = 0;
+        }
+
+      if (xr->cairo)
+        render_page_draw (y_slice);
+      xr->y += render_page_get_size (y_slice, V);
+      render_page_unref (y_slice);
+    }
+}
+
+static void
+xr_table_destroy (struct xr_render_fsm *fsm)
+{
+  struct xr_table_state *ts = UP_CAST (fsm, struct xr_table_state, fsm);
+
+  table_item_unref (ts->table_item);
+  render_break_destroy (&ts->x_break);
+  render_break_destroy (&ts->y_break);
+  free (ts);
+}
+
+static struct xr_render_fsm *
+xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
+{
+  struct xr_table_state *ts;
+  struct render_page *page;
+
+  ts = xmalloc (sizeof *ts);
+  ts->fsm.render = xr_table_render;
+  ts->fsm.destroy = xr_table_destroy;
+  ts->table_item = table_item_ref (table_item);
+
+  if (xr->y > 0)
+    xr->y += xr->font_height;
+
+  page = xr_render_table_item (xr, table_item, &ts->caption_height);
+  xr->params->size[V] = xr->length - ts->caption_height;
+
+  render_break_init (&ts->x_break, page, H);
+  render_break_init_empty (&ts->y_break);
+
+  return &ts->fsm;
+}
+
+struct xr_chart_state
+  {
+    struct xr_render_fsm fsm;
+    struct chart_item *chart_item;
+  };
+
+static bool
+xr_chart_render (struct xr_render_fsm *fsm, struct xr_driver *xr)
+{
+  struct xr_chart_state *cs = UP_CAST (fsm, struct xr_chart_state, fsm);
+
+  if (xr->y > 0)
+    return true;
+
+  if (xr->cairo != NULL)
+    xr_draw_chart (cs->chart_item, xr->cairo, 0.0, 0.0,
+                   xr_to_pt (xr->width), xr_to_pt (xr->length));
+  xr->y = xr->length;
+
+  return false;
+}
+
+static void
+xr_chart_destroy (struct xr_render_fsm *fsm)
+{
+  struct xr_chart_state *cs = UP_CAST (fsm, struct xr_chart_state, fsm);
+
+  chart_item_unref (cs->chart_item);
+  free (cs);
+}
+
+static struct xr_render_fsm *
+xr_render_chart (const struct chart_item *chart_item)
+{
+  struct xr_chart_state *cs;
+
+  cs = xmalloc (sizeof *cs);
+  cs->fsm.render = xr_chart_render;
+  cs->fsm.destroy = xr_chart_destroy;
+  cs->chart_item = chart_item_ref (chart_item);
+
+  return &cs->fsm;
+}
+
+static bool
+xr_eject_render (struct xr_render_fsm *fsm UNUSED, struct xr_driver *xr)
+{
+  return xr->y > 0;
+}
+
+static void
+xr_eject_destroy (struct xr_render_fsm *fsm UNUSED)
+{
+  /* Nothing to do. */
+}
+
+static struct xr_render_fsm *
+xr_render_eject (void)
+{
+  static struct xr_render_fsm eject_renderer =
+    {
+      xr_eject_render,
+      xr_eject_destroy
+    };
+
+  return &eject_renderer;
+}
+
+static struct xr_render_fsm *
+xr_create_text_renderer (struct xr_driver *xr, const char *text)
+{
+  struct table_item *table_item;
+  struct xr_render_fsm *fsm;
+
+  table_item = table_item_create (table_from_string (TAB_LEFT, text), NULL);
+  fsm = xr_render_table (xr, table_item);
+  table_item_unref (table_item);
+
+  return fsm;
+}
+
+static struct xr_render_fsm *
+xr_render_text (struct xr_driver *xr, const struct text_item *text_item)
+{
+  enum text_item_type type = text_item_get_type (text_item);
+  const char *text = text_item_get_text (text_item);
+
+  switch (type)
+    {
+    case TEXT_ITEM_TITLE:
+      free (xr->title);
+      xr->title = xstrdup (text);
+      draw_headers (xr);
+      break;
+
+    case TEXT_ITEM_SUBTITLE:
+      free (xr->subtitle);
+      xr->subtitle = xstrdup (text);
+      draw_headers (xr);
+      break;
+
+    case TEXT_ITEM_COMMAND_CLOSE:
+      break;
+
+    case TEXT_ITEM_BLANK_LINE:
+      if (xr->y > 0)
+        xr->y += xr->font_height;
+      break;
+
+    case TEXT_ITEM_EJECT_PAGE:
+      if (xr->y > 0)
+        return xr_render_eject ();
+      break;
+
+    default:
+      return xr_create_text_renderer (xr, text);
+    }
+
+  return NULL;
+}
+
+static struct xr_render_fsm *
+xr_render_message (struct xr_driver *xr,
+                   const struct message_item *message_item)
+{
+  const struct msg *msg = message_item_get_msg (message_item);
+  struct xr_render_fsm *fsm;
+  char *s;
+
+  s = msg_to_string (msg, xr->command_name);
+  fsm = xr_create_text_renderer (xr, s);
+  free (s);
+
+  return fsm;
+}
+
+static struct xr_render_fsm *
+xr_render_output_item (struct xr_driver *xr,
+                       const struct output_item *output_item)
+{
+  if (is_table_item (output_item))
+    return xr_render_table (xr, to_table_item (output_item));
+  else if (is_chart_item (output_item))
+    return xr_render_chart (to_chart_item (output_item));
+  else if (is_text_item (output_item))
+    return xr_render_text (xr, to_text_item (output_item));
+  else if (is_message_item (output_item))
+    return xr_render_message (xr, to_message_item (output_item));
+  else
+    return NULL;
 }

@@ -235,7 +235,7 @@ psppire_output_submit (struct output_driver *this,
       g_free (font_name);
       pango_font_description_free (font_desc);
 
-      pod->xr = xr_create_driver (cr, &options);
+      pod->xr = xr_driver_create (cr, &options);
 
       string_map_destroy (&options);
     }

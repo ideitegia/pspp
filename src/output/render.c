@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -955,6 +955,18 @@ render_break_init (struct render_break *b, struct render_page *page,
   b->hw = headers_width (page, axis);
 }
 
+/* Initializes B as a render_break structure for which
+   render_break_has_next() always returns false. */
+void
+render_break_init_empty (struct render_break *b)
+{
+  b->page = NULL;
+  b->axis = TABLE_HORZ;
+  b->cell = 0;
+  b->pixel = 0;
+  b->hw = 0;
+}
+
 /* Frees B and unrefs the render_page that it owns. */
 void
 render_break_destroy (struct render_break *b)
@@ -971,7 +983,7 @@ render_break_has_next (const struct render_break *b)
   const struct render_page *page = b->page;
   enum table_axis axis = b->axis;
 
-  return b->cell < page->n[axis] - page->h[axis][1];
+  return page != NULL && b->cell < page->n[axis] - page->h[axis][1];
 }
 
 /* Returns the minimum SIZE argument that, if passed to render_break_next(),
