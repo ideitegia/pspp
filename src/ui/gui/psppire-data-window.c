@@ -843,73 +843,6 @@ file_quit (GtkCheckMenuItem *menuitem, gpointer data)
 }
 
 
-
-static GtkWidget *
-create_data_sheet_variable_popup_menu (PsppireDataWindow *de)
-{
-  GtkWidget *menu = gtk_menu_new ();
-
-  GtkWidget *sort_ascending =
-    gtk_action_create_menu_item (gtk_action_new ("sort-up",
-						 _("Sort Ascending"),
-						 NULL,
-						 "gtk-sort-ascending"));
-
-  GtkWidget *sort_descending =
-    gtk_action_create_menu_item (gtk_action_new ("sort-down",
-						 _("Sort Descending"),
-						 NULL,
-						 "gtk-sort-descending"));
-
-  GtkWidget *insert_variable =
-    gtk_menu_item_new_with_label (_("Insert Variable"));
-
-  GtkWidget *clear_variable =
-    gtk_menu_item_new_with_label (_("Clear"));
-
-
-  gtk_action_connect_proxy (de->delete_variables,
-			    clear_variable );
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), insert_variable);
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
-			 gtk_separator_menu_item_new ());
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), clear_variable);
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
-			 gtk_separator_menu_item_new ());
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), sort_ascending);
-
-
-  g_signal_connect_swapped (sort_ascending, "activate",
-			    G_CALLBACK (psppire_data_editor_sort_ascending),
-			    de->data_editor);
-
-  g_signal_connect_swapped (sort_descending, "activate",
-			    G_CALLBACK (psppire_data_editor_sort_descending),
-			    de->data_editor);
-
-  g_signal_connect_swapped (insert_variable, "activate",
-			    G_CALLBACK (gtk_action_activate),
-			    de->insert_variable);
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), sort_descending);
-
-  gtk_widget_show_all (menu);
-
-  return menu;
-}
-
-
 static GtkWidget *
 create_data_sheet_cases_popup_menu (PsppireDataWindow *de)
 {
@@ -1817,8 +1750,16 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 
   {
-    GtkMenu *data_sheet_variable_popup_menu =
-      GTK_MENU (create_data_sheet_variable_popup_menu (de));
+    GtkMenu *data_sheet_variable_popup_menu = get_widget_assert (de->builder,
+								 "datasheet-variable-popup");
+
+    g_signal_connect_swapped (get_action_assert (de->builder, "sort-up"), "activate",
+			    G_CALLBACK (psppire_data_editor_sort_ascending),
+			    de->data_editor);
+
+    g_signal_connect_swapped (get_action_assert (de->builder, "sort-down"), "activate",
+			    G_CALLBACK (psppire_data_editor_sort_descending),
+			    de->data_editor);
 
     GtkMenu *var_sheet_variable_popup_menu =
       GTK_MENU (create_var_sheet_variable_popup_menu (de));

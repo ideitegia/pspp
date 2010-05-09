@@ -2,6 +2,23 @@
 <interface>
   <object class="GtkUIManager" id="uimanager1">
     <child>
+      <object class="GtkActionGroup" id="actiongroup2">
+        <child>
+          <object class="GtkAction" id="sort-up">
+            <property name="stock-id">gtk-sort-ascending</property>
+            <property name="label" translatable="yes">Sort Ascending</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="sort-down">
+            <property name="stock-id">gtk-sort-descending</property>
+            <property name="label" translatable="yes">Sort Descending</property>
+          </object>
+        </child>
+      </object>
+   </child>
+	
+    <child>
       <object class="GtkActionGroup" id="actiongroup1">
         <child>
           <object class="GtkAction" id="file">
@@ -568,11 +585,22 @@
 	  <toolitem name="toolbar_select-cases" action="view_value-labels"/>
         </placeholder>
       </toolbar>
+      <popup name="datasheet-variable-popup">
+	  <menuitem action="action_insert-variable"/>
+	  <separator/>
+	  <menuitem action="edit_clear-variables"/>
+	  <separator/>
+          <menuitem action="sort-up"/>
+          <menuitem action="sort-down"/>
+      </popup>
 </ui>
   </object>
   <!-- interface-requires gtk+ 2.6 -->
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkMenuBar" constructor="uimanager1" id="menubar">
+    <property name="visible">True</property>
+  </object>
+  <object class="GtkMenu" constructor="uimanager1" id="datasheet-variable-popup">
     <property name="visible">True</property>
   </object>
   <object class="GtkHandleBox" id="handlebox1">
