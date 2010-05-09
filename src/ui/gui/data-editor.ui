@@ -11,7 +11,7 @@
         </child>
         <child>
           <object class="GtkAction" id="new1">
-            <property name="stock_id">gtk-new</property>
+            <property name="stock-id">gtk-new</property>
             <property name="name">new1</property>
           </object>
         </child>
@@ -29,7 +29,7 @@
         </child>
         <child>
           <object class="GtkAction" id="file_open">
-            <property name="stock_id">gtk-open</property>
+            <property name="stock-id">gtk-open</property>
             <property name="name">file_open</property>
           </object>
         </child>
@@ -41,13 +41,13 @@
         </child>
         <child>
           <object class="GtkAction" id="file_save">
-            <property name="stock_id">gtk-save</property>
+            <property name="stock-id">gtk-save</property>
             <property name="name">file_save</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_save_as">
-            <property name="stock_id">gtk-save-as</property>
+            <property name="stock-id">gtk-save-as</property>
             <property name="name">file_save_as</property>
           </object>
         </child>
@@ -83,7 +83,7 @@
         </child>
         <child>
           <object class="GtkAction" id="file_quit">
-            <property name="stock_id">gtk-quit</property>
+            <property name="stock-id">gtk-quit</property>
             <property name="name">file_quit</property>
           </object>
         </child>
@@ -111,7 +111,7 @@
         </child>
         <child>
           <object class="GtkAction" id="edit_goto-case">
-            <property name="stock_id">Go To Case</property>
+            <property name="label" translatable="yes">Go To Case</property>
             <property name="name">edit_goto-case</property>
             <property name="tooltip" translatable="yes">Jump to a case in the data sheet</property>
 	    <property name="stock-id">gtk-jump-to</property>
@@ -120,19 +120,19 @@
         </child>
         <child>
           <object class="GtkAction" id="edit_cut">
-            <property name="stock_id">gtk-cut</property>
+            <property name="stock-id">gtk-cut</property>
             <property name="name">edit_cut</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_copy">
-            <property name="stock_id">gtk-copy</property>
+            <property name="stock-id">gtk-copy</property>
             <property name="name">edit_copy</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_paste">
-            <property name="stock_id">gtk-paste</property>
+            <property name="stock-id">gtk-paste</property>
             <property name="name">edit_paste</property>
           </object>
         </child>
@@ -150,7 +150,7 @@
         </child>
         <child>
           <object class="GtkAction" id="edit_find">
-            <property name="stock_id">gtk-find</property>
+            <property name="stock-id">gtk-find</property>
             <property name="name">edit_find</property>
           </object>
         </child>
@@ -208,7 +208,7 @@
         </child>
         <child>
           <object class="GtkAction" id="data_sort-cases">
-            <property name="stock_id">_Sort Cases</property>
+            <property name="label" translatable="yes">_Sort Cases</property>
             <property name="name">data_sort-cases</property>
           </object>
         </child>
@@ -443,7 +443,7 @@
         </child>
         <child>
           <object class="GtkAction" id="help_about">
-            <property name="stock_id">_About</property>
+            <property name="stock-id">gtk-about</property>
             <property name="name">help_about</property>
           </object>
         </child>
