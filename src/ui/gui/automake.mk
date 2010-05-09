@@ -22,7 +22,7 @@ UI_FILES = \
 	src/ui/gui/text-data-import.ui \
 	src/ui/gui/var-sheet-dialogs.ui \
 	src/ui/gui/variable-info.ui \
-	src/ui/gui/data-editor.glade \
+	src/ui/gui/data-editor.ui \
 	src/ui/gui/output-viewer.glade \
 	src/ui/gui/syntax-editor.glade
 
@@ -85,7 +85,6 @@ uninstall-icons:
 UNINSTALL_DATA_HOOKS += uninstall-icons
 
 nodist_src_ui_gui_psppire_DATA = \
-	$(top_builddir)/src/ui/gui/data-editor.ui \
 	$(top_builddir)/src/ui/gui/output-viewer.ui \
 	$(top_builddir)/src/ui/gui/syntax-editor.ui
 

@@ -549,8 +549,8 @@ insert_case (GtkAction *action, gpointer data)
 static void
 on_insert_variable (GtkAction *action, gpointer data)
 {
-  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
-  psppire_data_editor_insert_variable (de);
+  PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (data);
+  psppire_data_editor_insert_variable (dw->data_editor);
 }
 
 
@@ -1193,24 +1193,6 @@ psppire_data_window_init (PsppireDataWindow *de)
 
 
 
-  {
-    GtkWidget *toolbarbutton = get_widget_assert (de->builder, "button-open");
-
-    GtkAction *action_data_open =
-      resolve_action (de->builder, "file_open", NULL);
-
-    g_object_set (action_data_open,
-		  "tooltip",  _("Open a data or syntax file"),
-		  "stock-id", "gtk-open",
-		  NULL);
-
-    g_signal_connect (action_data_open, "activate",
-		      G_CALLBACK (open_window), de);
-
-    g_signal_connect_swapped (toolbarbutton, "clicked",
-		      G_CALLBACK (gtk_action_activate), action_data_open);
-  }
-
 
 
   {
@@ -1244,21 +1226,19 @@ psppire_data_window_init (PsppireDataWindow *de)
 
 
   {
-    GtkAction *action_data_save =
-      resolve_action (de->builder, "file_save", "button-save");
-
-
-    g_object_set (action_data_save,
-		  "tooltip", _("Save data to file"),
-		  "stock-id", "gtk-save",
-		  NULL);
+    GtkAction *action_data_save = get_action_assert (de->builder, "file_save");
 
     g_signal_connect_swapped (action_data_save, "activate",
-			      G_CALLBACK (data_save), de);
+		      G_CALLBACK (data_save), de);
   }
 
 
+  {
+    GtkAction *action_data_open =  get_action_assert (de->builder, "file_open");
 
+    g_signal_connect (action_data_open, "activate",
+                     G_CALLBACK (open_window), de);
+  }
 
   {
     GtkAction *action_data_save_as =
@@ -1297,24 +1277,38 @@ psppire_data_window_init (PsppireDataWindow *de)
 
 
 
-  {
-    GtkAction *value_labels_action =
-      resolve_action (de->builder,
-		      "view_value-labels", "togglebutton-value-labels");
-
-    g_object_set (value_labels_action,
-		  "tooltip",  _("Show/hide value labels"),
-		  "stock-id", "pspp-value-labels",
-		  NULL);
-
-    g_signal_connect (value_labels_action, "toggled",
-		      G_CALLBACK (toggle_value_labels), de);
-  }
-
 
   g_signal_connect (get_action_assert (de->builder, "edit_paste"), "activate",
 		    G_CALLBACK (on_edit_paste),
 		    de);
+
+  {
+    de->insert_case = get_action_assert (de->builder, "edit_insert-case");
+    g_signal_connect (de->insert_case, "activate",
+		    G_CALLBACK (insert_case),
+		    de);
+    
+  }
+
+  {
+    de->insert_variable = get_action_assert (de->builder, "action_insert-variable");
+
+    g_signal_connect (de->insert_variable, "activate",
+		    G_CALLBACK (on_insert_variable),
+		    de);
+    
+
+  }
+
+  de->invoke_goto_dialog = get_action_assert (de->builder, "edit_goto-case");
+  g_signal_connect (de->invoke_goto_dialog, "activate", G_CALLBACK (goto_case_dialog), de);
+
+
+  {
+    GtkAction *value_labels_action = get_action_assert (de->builder, "view_value-labels");
+    g_signal_connect (value_labels_action, "toggled",
+		      G_CALLBACK (toggle_value_labels), de);
+  }
 
   {
     de->delete_cases =
@@ -1354,65 +1348,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 
 
-  de->insert_variable =
-    resolve_action (de->builder, "edit_insert-variable",
-		    "button-insert-variable");
-
-  g_object_set (de->insert_variable,
-		"tooltip", _("Create a new variable at the current position"),
-		"stock-id", "pspp-insert-variable",
-		NULL);
-
-  g_signal_connect (de->insert_variable, "activate",
-		    G_CALLBACK (on_insert_variable), de->data_editor);
-
-
-
-
-
-  de->insert_case =
-    resolve_action (de->builder, "edit_insert-case", "button-insert-case");
-
-  g_object_set (de->insert_case,
-		"tooltip", _("Create a new case at the current position"),
-		"stock-id", "pspp-insert-case",
-		NULL);
-
-  g_signal_connect (de->insert_case, "activate",
-		    G_CALLBACK (insert_case), de);
-
-
-
-
-
-  de->invoke_goto_dialog =
-    resolve_action (de->builder, "edit_goto-case", "button-goto-case");
-
-
-  g_object_set (de->invoke_goto_dialog,
-		"tooltip", _("Jump to a Case in the Data Sheet"),
-		"stock-id", "gtk-jump-to",
-		NULL);
-
-  g_signal_connect (de->invoke_goto_dialog, "activate",
-		    G_CALLBACK (goto_case_dialog), de);
-
-
-
-  {
-    GtkAction *invoke_weight_cases_dialog =
-      resolve_action (de->builder, "data_weight-cases", "button-weight-cases");
-
-
-    g_object_set (invoke_weight_cases_dialog,
-		  "stock-id", "pspp-weight-cases",
-		  "tooltip", _("Weight cases by variable"),
-		  NULL);
-
-    g_signal_connect (invoke_weight_cases_dialog, "activate",
-		      G_CALLBACK (weight_cases_dialog), de);
-  }
-
 
   {
     GtkAction *invoke_transpose_dialog =
@@ -1426,20 +1361,6 @@ psppire_data_window_init (PsppireDataWindow *de)
 
     g_signal_connect (invoke_transpose_dialog, "activate",
 		      G_CALLBACK (transpose_dialog), de);
-  }
-
-
-  {
-    GtkAction *invoke_split_file_dialog =
-      resolve_action (de->builder, "data_split-file", "button-split-file");
-
-    g_object_set (invoke_split_file_dialog,
-		  "tooltip", _("Split the active file"),
-		  "stock-id", "pspp-split-file",
-		  NULL);
-
-    g_signal_connect (invoke_split_file_dialog, "activate",
-		      G_CALLBACK (split_file_dialog), de);
   }
 
 
@@ -1458,19 +1379,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 
 
-  {
-    GtkAction *invoke_select_cases_dialog =
-      resolve_action (de->builder, "data_select-cases", "button-select-cases");
-
-    g_object_set (invoke_select_cases_dialog,
-		  "tooltip", _("Select cases from the active file"),
-		  "stock-id", "pspp-select-cases",
-		  NULL);
-
-    g_signal_connect (invoke_select_cases_dialog, "activate",
-		      G_CALLBACK (select_cases_dialog), de);
-  }
-
 
   {
     GtkAction *invoke_compute_dialog =
@@ -1484,6 +1392,39 @@ psppire_data_window_init (PsppireDataWindow *de)
     g_signal_connect (invoke_compute_dialog, "activate",
 		      G_CALLBACK (compute_dialog), de);
   }
+
+  {
+    GtkAction *invoke_find_dialog = get_action_assert (de->builder, "edit_find");
+
+    g_signal_connect (invoke_find_dialog, "activate",
+                     G_CALLBACK (find_dialog), de);
+  }
+
+ 
+   {
+     GtkAction *invoke_split_file_dialog = get_action_assert (de->builder, "data_split-file");
+
+     g_signal_connect (invoke_split_file_dialog, "activate",
+                     G_CALLBACK (split_file_dialog), de);
+  }
+
+
+  {
+    GtkAction *invoke_weight_cases_dialog = get_action_assert (de->builder, "data_weight-cases");
+
+    g_signal_connect (invoke_weight_cases_dialog, "activate",
+                     G_CALLBACK (weight_cases_dialog), de);
+  }
+
+
+
+   {
+    GtkAction *invoke_variable_info_dialog  =  get_action_assert (de->builder, "utilities_variables");
+
+    g_signal_connect (invoke_variable_info_dialog, "activate",
+                     G_CALLBACK (variable_info_dialog), de);
+  }
+
 
 
   {
@@ -1559,17 +1500,6 @@ psppire_data_window_init (PsppireDataWindow *de)
 
 
   {
-    GtkAction *invoke_find_dialog =
-      resolve_action (de->builder, "edit_find", "button-find");
-
-    g_object_set (invoke_find_dialog, "stock-id", "gtk-find", NULL);
-
-    g_signal_connect (invoke_find_dialog, "activate",
-		      G_CALLBACK (find_dialog), de);
-  }
-
-
-  {
     GtkAction *invoke_rank_dialog =
       resolve_action (de->builder, "transform_rank", NULL);
 
@@ -1608,20 +1538,6 @@ psppire_data_window_init (PsppireDataWindow *de)
 
     g_signal_connect (invoke_recode_different_dialog, "activate",
 		      G_CALLBACK (recode_different_dialog), de);
-  }
-
-
-  {
-    GtkAction *invoke_variable_info_dialog  =
-      resolve_action (de->builder, "utilities_variables", "button-goto-variable");
-
-    g_object_set (invoke_variable_info_dialog,
-		  "stock-id", "pspp-goto-variable",
-		  "tooltip", _("Jump to variable"),
-		  NULL);
-
-    g_signal_connect (invoke_variable_info_dialog, "activate",
-		      G_CALLBACK (variable_info_dialog), de);
   }
 
 
