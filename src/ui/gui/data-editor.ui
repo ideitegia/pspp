@@ -608,6 +608,11 @@
 	  <separator/>
 	  <menuitem action="edit_clear-variables"/>
       </popup>
+      <popup name="datasheet-cases-popup">
+	  <menuitem action="edit_insert-case"/>
+	  <separator/>
+	  <menuitem action="edit_clear-cases"/>
+      </popup>
 </ui>
   </object>
   <!-- interface-requires gtk+ 2.6 -->
@@ -619,6 +624,9 @@
     <property name="visible">True</property>
   </object>
   <object class="GtkMenu" constructor="uimanager1" id="varsheet-variable-popup">
+    <property name="visible">True</property>
+  </object>
+  <object class="GtkMenu" constructor="uimanager1" id="datasheet-cases-popup">
     <property name="visible">True</property>
   </object>
   <object class="GtkHandleBox" id="handlebox1">

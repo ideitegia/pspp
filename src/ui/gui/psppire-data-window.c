@@ -843,43 +843,6 @@ file_quit (GtkCheckMenuItem *menuitem, gpointer data)
 }
 
 
-static GtkWidget *
-create_data_sheet_cases_popup_menu (PsppireDataWindow *de)
-{
-  GtkWidget *menu = gtk_menu_new ();
-
-  GtkWidget *insert_case =
-    gtk_menu_item_new_with_label (_("Insert Case"));
-
-  GtkWidget *delete_case =
-    gtk_menu_item_new_with_label (_("Clear"));
-
-
-  gtk_action_connect_proxy (de->delete_cases,
-			    delete_case);
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), insert_case);
-
-  g_signal_connect_swapped (insert_case, "activate",
-			    G_CALLBACK (gtk_action_activate),
-			    de->insert_case);
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
-			 gtk_separator_menu_item_new ());
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), delete_case);
-
-
-  gtk_widget_show_all (menu);
-
-  return menu;
-}
-
-
-
 static void
 on_recent_data_select (GtkMenuShell *menushell,
 		       PsppireWindow *window)
@@ -1582,7 +1545,13 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 
   {
-    GtkMenu *data_sheet_variable_popup_menu = get_widget_assert (de->builder,
+    GtkWidget *data_sheet_cases_popup_menu = get_widget_assert (de->builder,
+							      "datasheet-cases-popup");
+
+    GtkWidget *var_sheet_variable_popup_menu = get_widget_assert (de->builder,
+								"varsheet-variable-popup");
+
+    GtkWidget *data_sheet_variable_popup_menu = get_widget_assert (de->builder,
 								 "datasheet-variable-popup");
 
     g_signal_connect_swapped (get_action_assert (de->builder, "sort-up"), "activate",
@@ -1592,12 +1561,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     g_signal_connect_swapped (get_action_assert (de->builder, "sort-down"), "activate",
 			    G_CALLBACK (psppire_data_editor_sort_descending),
 			    de->data_editor);
-
-    GtkMenu *var_sheet_variable_popup_menu = get_widget_assert (de->builder,
-								"varsheet-variable-popup");
-
-    GtkMenu *data_sheet_cases_popup_menu =
-      GTK_MENU (create_data_sheet_cases_popup_menu (de));
 
     g_object_set (de->data_editor,
 		  "datasheet-column-menu", data_sheet_variable_popup_menu,
