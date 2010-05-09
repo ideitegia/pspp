@@ -63,6 +63,12 @@ struct _PsppireOutputWindow
 
   struct output_item **items;
   size_t n_items, allocated_items;
+
+  /* Variables pertaining to printing */
+  GtkPrintSettings *print_settings;
+  struct xr_driver *print_xrd;
+  int print_item;
+  int print_n_pages;
 };
 
 struct _PsppireOutputWindowClass

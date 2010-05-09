@@ -110,6 +110,8 @@ psppire_output_window_dispose (GObject *obj)
   viewer->items = NULL;
   viewer->n_items = viewer->allocated_items = 0;
 
+  g_object_unref (viewer->print_settings);
+
   /* Chain up to the parent class */
   G_OBJECT_CLASS (parent_class)->dispose (obj);
 }
@@ -396,6 +398,9 @@ on_row_activate (GtkTreeView *overview,
   gtk_adjustment_set_value (vadj, y);
 }
 
+static void psppire_output_window_print (PsppireOutputWindow *window);
+
+
 static GtkFileFilter *
 add_filter (GtkFileChooser *chooser, const char *name, const char *pattern)
 {
@@ -578,6 +583,10 @@ psppire_output_window_init (PsppireOutputWindow *window)
   g_signal_connect_swapped (get_action_assert (xml, "file_export"), "activate",
                             G_CALLBACK (psppire_output_window_export), window);
 
+
+  g_signal_connect_swapped (get_action_assert (xml, "file_print"), "activate",
+                            G_CALLBACK (psppire_output_window_print), window);
+
   g_object_unref (xml);
 
   g_signal_connect (window, "delete-event",
@@ -592,4 +601,130 @@ psppire_output_window_new (void)
 				   "filename", "Output",
 				   "description", _("Output Viewer"),
 				   NULL));
+}
+
+
+
+
+
+static gboolean
+paginate (GtkPrintOperation *operation,
+	  GtkPrintContext   *context,
+	  PsppireOutputWindow *window)
+{
+  g_print ("%s\n", __FUNCTION__);
+
+  if ( window->print_item < window->n_items )
+    {
+      g_print ("Passing item %d\n", window->print_item);
+      xr_driver_output_item (window->print_xrd, window->items[window->print_item++]);
+      bool x = xr_driver_need_new_page (window->print_xrd);
+      if ( x )
+	{
+	  g_print ("Need new page: %d\n", x);
+	  xr_driver_next_page (window->print_xrd, NULL);
+	  window->print_n_pages ++;
+	}
+      return FALSE;
+    }
+  else
+    {
+      struct string_map options = STRING_MAP_INITIALIZER (options);
+      g_print ("Number of pages is %d\n", window->print_n_pages);
+      gtk_print_operation_set_n_pages (operation, window->print_n_pages);
+      window->print_item = 0;
+
+      //      xr_driver_destroy (window->print_xrd);
+
+      window->print_xrd =
+	xr_driver_create (gtk_print_context_get_cairo_context (context), &options);
+
+      string_map_destroy (&options);
+
+      return TRUE;
+    }
+}
+
+
+static void
+begin_print (GtkPrintOperation *operation,
+	     GtkPrintContext   *context,
+	     PsppireOutputWindow *window)
+{
+  g_print ("%s\n", __FUNCTION__);
+
+  struct string_map options = STRING_MAP_INITIALIZER (options);
+
+  window->print_xrd =
+    xr_driver_create (gtk_print_context_get_cairo_context (context), &options);
+
+  string_map_destroy (&options);
+  window->print_item = 0;
+  window->print_n_pages = 1;
+}
+
+static void
+end_print (GtkPrintOperation *operation,
+	   GtkPrintContext   *context,
+	   PsppireOutputWindow *window)
+{
+  g_print ("%s\n", __FUNCTION__);
+  //  xr_driver_destroy (window->print_xrd);
+}
+
+static void
+done (GtkPrintOperation *operation,
+      GtkPrintOperationResult   result,
+      gpointer           user_data)    
+{
+  g_print ("%s %d\n", __FUNCTION__, result);
+}
+
+
+static void
+draw_page (GtkPrintOperation *operation,
+	   GtkPrintContext   *context,
+	   gint               page_number,
+	   PsppireOutputWindow *window)
+{
+  g_print ("%s: %d\n", __FUNCTION__, page_number);
+
+  xr_driver_next_page (window->print_xrd, gtk_print_context_get_cairo_context (context));
+  while ( window->print_item < window->n_items)
+    {
+      xr_driver_output_item (window->print_xrd, window->items [window->print_item++]);
+      if ( xr_driver_need_new_page (window->print_xrd) )
+	  break;	  
+    }
+}
+
+
+static void
+psppire_output_window_print (PsppireOutputWindow *window)
+{
+  GtkPrintOperationResult res;
+
+  GtkPrintOperation *print = gtk_print_operation_new ();
+
+  if (window->print_settings != NULL) 
+    gtk_print_operation_set_print_settings (print, window->print_settings);
+
+  g_signal_connect (print, "begin_print", G_CALLBACK (begin_print), window);
+  g_signal_connect (print, "end_print", G_CALLBACK (end_print),     window);
+  g_signal_connect (print, "paginate", G_CALLBACK (paginate),       window);
+  g_signal_connect (print, "draw_page", G_CALLBACK (draw_page),     window);
+  g_signal_connect (print, "done", G_CALLBACK (done),               window);
+
+  res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
+                                 GTK_WINDOW (window), NULL);
+
+  if (res == GTK_PRINT_OPERATION_RESULT_APPLY)
+    {
+      if (window->print_settings != NULL)
+        g_object_unref (window->print_settings);
+      window->print_settings = g_object_ref (gtk_print_operation_get_print_settings (print));
+      
+    }
+
+  g_object_unref (print);
 }

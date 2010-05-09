@@ -32,6 +32,13 @@
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="file_print">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Print</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
                   </widget>
                 </child>
               </widget>
