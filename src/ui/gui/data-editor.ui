@@ -158,7 +158,7 @@
           <object class="GtkAction" id="edit_clear-variables">
             <property name="name">edit_clear-variables</property>
             <property name="label" translatable="yes">Cl_ear Variables</property>
-	    <property name="tooltip">Delete the variables at the selected position(s)</property>
+	    <property name="tooltip" translatable="yes">Delete the variables at the selected position(s)</property>
             <property name="stock-id">gtk-clear</property>
           </object>
         </child>
@@ -465,7 +465,7 @@
         <child>
           <object class="GtkAction" id="help_reference">
             <property name="name">help_reference</property>
-            <property name="label">_Reference Manual</property>
+            <property name="label" translatable="yes">_Reference Manual</property>
           </object>
         </child>
         <child>
