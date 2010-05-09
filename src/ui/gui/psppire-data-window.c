@@ -879,41 +879,6 @@ create_data_sheet_cases_popup_menu (PsppireDataWindow *de)
 }
 
 
-static GtkWidget *
-create_var_sheet_variable_popup_menu (PsppireDataWindow *de)
-{
-  GtkWidget *menu = gtk_menu_new ();
-
-  GtkWidget *insert_variable =
-    gtk_menu_item_new_with_label (_("Insert Variable"));
-
-  GtkWidget *delete_variable =
-    gtk_menu_item_new_with_label (_("Clear"));
-
-
-  gtk_action_connect_proxy (de->delete_variables,
-			    delete_variable);
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), insert_variable);
-
-  g_signal_connect_swapped (insert_variable, "activate",
-			    G_CALLBACK (gtk_action_activate),
-			    de->insert_variable);
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
-			 gtk_separator_menu_item_new ());
-
-
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), delete_variable);
-
-
-  gtk_widget_show_all (menu);
-
-  return menu;
-}
-
 
 static void
 on_recent_data_select (GtkMenuShell *menushell,
@@ -1628,8 +1593,8 @@ psppire_data_window_init (PsppireDataWindow *de)
 			    G_CALLBACK (psppire_data_editor_sort_descending),
 			    de->data_editor);
 
-    GtkMenu *var_sheet_variable_popup_menu =
-      GTK_MENU (create_var_sheet_variable_popup_menu (de));
+    GtkMenu *var_sheet_variable_popup_menu = get_widget_assert (de->builder,
+								"varsheet-variable-popup");
 
     GtkMenu *data_sheet_cases_popup_menu =
       GTK_MENU (create_data_sheet_cases_popup_menu (de));
