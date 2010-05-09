@@ -54,6 +54,7 @@
           <object class="GtkAction" id="file_import-text">
             <property name="name">file_import-text</property>
             <property name="label" translatable="yes">_Import Delimited Text Data</property>
+	    <property name="stock-id">gtk-convert</property>
           </object>
         </child>
         <child>
@@ -157,12 +158,16 @@
           <object class="GtkAction" id="edit_clear-variables">
             <property name="name">edit_clear-variables</property>
             <property name="label" translatable="yes">Cl_ear Variables</property>
+	    <property name="tooltip">Delete the variables at the selected position(s)</property>
+            <property name="stock-id">gtk-clear</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_clear-cases">
             <property name="name">edit_clear-cases</property>
+            <property name="stock-id">gtk-clear</property>
             <property name="label" translatable="yes">_Clear Cases</property>
+            <property name="tooltip" translatable="yes">Delete the cases at the selected position(s)</property>
           </object>
         </child>
         <child>
@@ -188,6 +193,7 @@
           <object class="GtkAction" id="view_fonts">
             <property name="name">view_fonts</property>
             <property name="label" translatable="yes">_Fonts</property>
+            <property name="stock-id">gtk-select-font</property>
           </object>
         </child>
         <child>
@@ -227,12 +233,16 @@
           <object class="GtkAction" id="data_sort-cases">
             <property name="label" translatable="yes">_Sort Cases</property>
             <property name="name">data_sort-cases</property>
+	    <property name="stock-id">gtk-sort-ascending</property>
+	    <property name="tooltip" translatable="yes">Sort cases in the active file</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="data_transpose">
+	    <property name="stock-id">pspp-transpose</property>
             <property name="name">data_transpose</property>
             <property name="label" translatable="yes">_Transpose</property>
+	    <property name="tooltip" translatable="yes">Transpose the cases with the variables</property>
           </object>
         </child>
         <child>

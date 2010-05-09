@@ -1116,11 +1116,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *action_data_new =
       get_action_assert (de->builder, "file_new_data");
 
-    g_object_set (action_data_new,
-		  "tooltip", _("New data file"),
-		  "stock-id", "gtk-new",
-		  NULL);
-
     g_signal_connect (action_data_new, "activate",
 		      G_CALLBACK (new_file), de);
   }
@@ -1130,11 +1125,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *invoke_text_import_assistant =
       get_action_assert (de->builder, "file_import-text");
-
-    g_object_set (invoke_text_import_assistant,
-		  "tooltip",  _("Import text data file"),
-		  "stock-id", "gtk-convert",
-		  NULL);
 
     g_signal_connect (invoke_text_import_assistant, "activate",
 		      G_CALLBACK (text_data_import_assistant), de);
@@ -1160,11 +1150,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *action_data_save_as =
       get_action_assert (de->builder, "file_save_as");
-
-    g_object_set (action_data_save_as,
-		  "tooltip", _("Save data to file"),
-		  "stock-id", "gtk-save-as",
-		  NULL);
 
     g_signal_connect_swapped (action_data_save_as, "activate",
 		      G_CALLBACK (data_save_as_dialog), de);
@@ -1230,12 +1215,6 @@ psppire_data_window_init (PsppireDataWindow *de)
       get_action_assert (de->builder, "edit_clear-cases");
 
 
-    g_object_set (de->delete_cases,
-		  "label", _("Clear"),
-		  "tooltip", _("Delete the cases at the selected position(s)"),
-		  "stock-id", "gtk-clear",
-		  NULL);
-
     g_signal_connect_swapped (de->delete_cases, "activate",
 			      G_CALLBACK (psppire_data_editor_delete_cases),
 			      de->data_editor);
@@ -1247,13 +1226,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     de->delete_variables =
       get_action_assert (de->builder, "edit_clear-variables");
-
-    g_object_set (de->delete_variables,
-		  "label", _("Clear"),
-		  "tooltip", _("Delete the variables at the selected position(s)"),
-		  "stock-id", "gtk-clear",
-		  NULL);
-
 
     g_signal_connect_swapped (de->delete_variables, "activate",
 			      G_CALLBACK (psppire_data_editor_delete_variables),
@@ -1269,11 +1241,6 @@ psppire_data_window_init (PsppireDataWindow *de)
       get_action_assert (de->builder, "data_transpose");
 
 
-    g_object_set (invoke_transpose_dialog,
-		  "tooltip", _("Transpose the cases with the variables"),
-		  "stock-id", "pspp-transpose",
-		  NULL);
-
     g_signal_connect (invoke_transpose_dialog, "activate",
 		      G_CALLBACK (transpose_dialog), de);
   }
@@ -1284,11 +1251,6 @@ psppire_data_window_init (PsppireDataWindow *de)
       get_action_assert (de->builder, "data_sort-cases");
 
 
-    g_object_set (invoke_sort_cases_dialog,
-		  "tooltip", _("Sort cases in the active file"),
-		  "stock-id", "gtk-sort-ascending",
-		  NULL);
-
     g_signal_connect (invoke_sort_cases_dialog, "activate",
 		      G_CALLBACK (sort_cases_dialog), de);
   }
@@ -1298,11 +1260,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *invoke_compute_dialog =
       get_action_assert (de->builder, "transform_compute");
-
-    g_object_set (invoke_compute_dialog,
-		  "tooltip", _("Compute new values for a variable"),
-		  "stock-id", "pspp-compute",
-		  NULL);
 
     g_signal_connect (invoke_compute_dialog, "activate",
 		      G_CALLBACK (compute_dialog), de);
@@ -1346,10 +1303,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_oneway_anova_dialog =
       get_action_assert (de->builder, "oneway-anova");
 
-    g_object_set (invoke_oneway_anova_dialog,
-		  "tooltip", _("Perform one way analysis of variance"),
-		  NULL);
-
     g_signal_connect (invoke_oneway_anova_dialog, "activate",
 		      G_CALLBACK (oneway_anova_dialog), de);
   }
@@ -1360,11 +1313,6 @@ psppire_data_window_init (PsppireDataWindow *de)
       get_action_assert (de->builder, "indep-t-test");
 
 
-    g_object_set (invoke_t_test_independent_samples_dialog,
-		  "tooltip",
-		  _("Calculate T Test for samples from independent groups"),
-		  NULL);
-
     g_signal_connect (invoke_t_test_independent_samples_dialog, "activate",
 		      G_CALLBACK (t_test_independent_samples_dialog), de);
   }
@@ -1374,11 +1322,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_t_test_paired_samples_dialog =
       get_action_assert (de->builder, "paired-t-test");
 
-    g_object_set (invoke_t_test_paired_samples_dialog,
-		  "tooltip",
-		  _("Calculate T Test for paired samples"),
-		  NULL);
-
     g_signal_connect (invoke_t_test_paired_samples_dialog, "activate",
 		      G_CALLBACK (t_test_paired_samples_dialog), de);
   }
@@ -1387,11 +1330,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *invoke_t_test_one_sample_dialog =
       get_action_assert (de->builder, "one-sample-t-test");
-
-    g_object_set (invoke_t_test_one_sample_dialog,
-		  "tooltip",
-		  _("Calculate T Test for sample from a single distribution"),
-		  NULL);
 
     g_signal_connect (invoke_t_test_one_sample_dialog, "activate",
 		      G_CALLBACK (t_test_one_sample_dialog), de);
@@ -1403,11 +1341,6 @@ psppire_data_window_init (PsppireDataWindow *de)
       get_action_assert (de->builder, "utilities_comments");
 
 
-    g_object_set (invoke_comments_dialog,
-		  "tooltip",
-		  _("Commentary text for the data file"),
-		  NULL);
-
     g_signal_connect (invoke_comments_dialog, "activate",
 		      G_CALLBACK (comments_dialog), de);
   }
@@ -1418,11 +1351,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_rank_dialog =
       get_action_assert (de->builder, "transform_rank");
 
-    g_object_set (invoke_rank_dialog,
-		  "stock-id", "pspp-rank-cases",
-		  "tooltip", _("Rank Cases"),
-		  NULL);
-
     g_signal_connect (invoke_rank_dialog, "activate",
 		      G_CALLBACK (rank_dialog), de);
   }
@@ -1431,11 +1359,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *invoke_recode_same_dialog =
       get_action_assert (de->builder, "transform_recode-same");
-
-    g_object_set (invoke_recode_same_dialog,
-		  "stock-id", "pspp-recode-same",
-		  "tooltip", _("Recode values into the same variables"),
-		  NULL);
 
     g_signal_connect (invoke_recode_same_dialog, "activate",
 		      G_CALLBACK (recode_same_dialog), de);
@@ -1446,10 +1369,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_recode_different_dialog  =
       get_action_assert (de->builder, "transform_recode-different");
 
-    g_object_set (invoke_recode_different_dialog,
-		  "stock-id", "pspp-recode-different",
-		  "tooltip", _("Recode values into different variables"),
-		  NULL);
 
     g_signal_connect (invoke_recode_different_dialog, "activate",
 		      G_CALLBACK (recode_different_dialog), de);
@@ -1460,11 +1379,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_descriptives_dialog =
       get_action_assert (de->builder, "analyze_descriptives");
 
-    g_object_set (invoke_descriptives_dialog,
-		  "tooltip", _("Calculate descriptive statistics (mean, variance, ...)"),
-		  "stock-id", "pspp-descriptives",
-		  NULL);
-
     g_signal_connect (invoke_descriptives_dialog, "activate",
 		      G_CALLBACK (descriptives_dialog), de);
   }
@@ -1474,10 +1388,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_frequencies_dialog =
       get_action_assert (de->builder, "analyze_frequencies");
 
-    g_object_set (invoke_frequencies_dialog,
-		  "tooltip", _("Generate frequency statistics"),
-		  "stock-id", "pspp-frequencies",
-		  NULL);
 
     g_signal_connect (invoke_frequencies_dialog, "activate",
 		      G_CALLBACK (frequencies_dialog), de);
@@ -1488,10 +1398,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_crosstabs_dialog =
       get_action_assert (de->builder, "crosstabs");
 
-    g_object_set (invoke_crosstabs_dialog,
-		  "tooltip", _("Generate crosstabulations"),
-		  "stock-id", "pspp-crosstabs",
-		  NULL);
 
     g_signal_connect (invoke_crosstabs_dialog, "activate",
 		      G_CALLBACK (crosstabs_dialog), de);
@@ -1503,10 +1409,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_examine_dialog =
       get_action_assert (de->builder, "analyze_explore");
 
-    g_object_set (invoke_examine_dialog,
-		  "tooltip", _("Examine Data by Factors"),
-		  "stock-id", "pspp-examine",
-		  NULL);
 
     g_signal_connect (invoke_examine_dialog, "activate",
 		      G_CALLBACK (examine_dialog), de);
@@ -1517,11 +1419,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_regression_dialog =
       get_action_assert (de->builder, "linear-regression");
 
-    g_object_set (invoke_regression_dialog,
-		  "tooltip", _("Estimate parameters of the linear model"),
-		  "stock-id", "pspp-regression",
-		  NULL
-		  );
 
     g_signal_connect (invoke_regression_dialog, "activate",
 		      G_CALLBACK (regression_dialog), de);
@@ -1531,11 +1428,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_reliability_dialog =
       get_action_assert (de->builder, "reliability");
 
-    g_object_set (invoke_reliability_dialog,
-		  "tooltip", _("Reliability Analysis"),
-		  "stock-id", "pspp-reliability",
-		  NULL
-		  );
 
     g_signal_connect (invoke_reliability_dialog, "activate",
 		      G_CALLBACK (reliability_dialog), de);
@@ -1545,11 +1437,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_roc_dialog =
       get_action_assert (de->builder, "roc-curve");
 
-    g_object_set (invoke_roc_dialog,
-		  "tooltip", _("ROC Curve"),
-		  "stock-id", "pspp-roc",
-		  NULL
-		  );
 
     g_signal_connect (invoke_roc_dialog, "activate",
 		      G_CALLBACK (roc_dialog), de);
@@ -1559,11 +1446,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_correlation_dialog =
       get_action_assert (de->builder, "correlation");
 
-    g_object_set (invoke_correlation_dialog,
-		  "tooltip", _("Bivariate Correlation"),
-		  "stock-id", "pspp-correlation",
-		  NULL
-		  );
 
     g_signal_connect (invoke_correlation_dialog, "activate",
 		      G_CALLBACK (correlation_dialog), de);
@@ -1572,12 +1454,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *invoke_factor_dialog =
       get_action_assert (de->builder, "factor-analysis");
-
-    g_object_set (invoke_factor_dialog,
-		  "tooltip", _("Principal Axis Factoring and Principal Components Analysis"),
-		  "stock-id", "pspp-factor",
-		  NULL
-		  );
 
     g_signal_connect (invoke_factor_dialog, "activate",
 		      G_CALLBACK (factor_dialog), de);
@@ -1647,7 +1523,7 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   {
     GtkAction *abt = get_action_assert (de->builder, "help_about");
-    g_object_set (abt, "stock-id", "gtk-about", NULL);
+
     g_signal_connect (abt,
 		      "activate",
 		      G_CALLBACK (about_new),
@@ -1700,12 +1576,7 @@ psppire_data_window_init (PsppireDataWindow *de)
 
 
   {
-    GtkAction *font_action =
-      get_action_assert (de->builder, "view_fonts");
-
-    g_object_set (font_action,
-		  "stock-id", "gtk-select-font",
-		  NULL);
+    GtkAction *font_action =  get_action_assert (de->builder, "view_fonts");
 
     g_signal_connect (font_action,
 		      "activate",
@@ -1732,10 +1603,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *split_window_action =
       get_action_assert (de->builder, "windows_split");
 
-    g_object_set (split_window_action,
-		  "tooltip", _("Split the window vertically and horizontally"),
-		  "stock-id", "pspp-split-window",
-		  NULL);
 
     g_signal_connect (split_window_action, "toggled",
 		      G_CALLBACK (toggle_split_window),
