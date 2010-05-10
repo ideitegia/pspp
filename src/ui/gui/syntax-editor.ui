@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<!--*- mode: xml -*-->
+<interface>
+  <object class="GtkUIManager" id="uimanager1">
+    <child>
+      <object class="GtkActionGroup" id="actiongroup1">
+        <child>
+          <object class="GtkAction" id="menu_syntax_file">
+            <property name="name">menu_syntax_file</property>
+            <property name="label" translatable="yes">_File</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="new2">
+            <property name="stock-id">gtk-new</property>
+            <property name="name">new2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="file_new_syntax">
+            <property name="name">file_new_syntax</property>
+            <property name="label" translatable="yes">_Syntax</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="file_new_data">
+            <property name="name">file_new_data</property>
+            <property name="label" translatable="yes">_Data</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="open2">
+            <property name="stock-id">gtk-open</property>
+            <property name="name">open2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="file_open_syntax">
+            <property name="name">file_open_syntax</property>
+            <property name="label" translatable="yes">_Syntax</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="file_open_data">
+            <property name="name">file_open_data</property>
+            <property name="label" translatable="yes">_Data</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="file_save">
+            <property name="stock-id">gtk-save</property>
+            <property name="name">file_save</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="file_save_as">
+            <property name="stock-id">gtk-save-as</property>
+            <property name="name">file_save_as</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="file_quit">
+            <property name="stock-id">gtk-quit</property>
+            <property name="name">file_quit</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menuitem7">
+            <property name="name">menuitem7</property>
+            <property name="label" translatable="yes">_Edit</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="cut2">
+            <property name="stock-id">gtk-cut</property>
+            <property name="name">cut2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="copy2">
+            <property name="stock-id">gtk-copy</property>
+            <property name="name">copy2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="paste2">
+            <property name="stock-id">gtk-paste</property>
+            <property name="name">paste2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="delete1">
+            <property name="stock-id">gtk-delete</property>
+            <property name="name">delete1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="run1">
+            <property name="name">run1</property>
+            <property name="label" translatable="yes">_Run</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="run_all">
+            <property name="name">run_all</property>
+            <property name="label" translatable="yes">All</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="run_selection">
+            <property name="name">run_selection</property>
+            <property name="label" translatable="yes">Selection</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="run_current_line">
+            <property name="name">run_current_line</property>
+            <property name="label" translatable="yes">Current Line</property>
+          </object>
+          <accelerator key="R" modifiers="GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="run_to_end">
+            <property name="name">run_to_end</property>
+            <property name="label" translatable="yes">To End</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="windows">
+            <property name="name">windows</property>
+            <property name="label" translatable="yes">_Windows</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="windows_minimise_all">
+            <property name="name">windows_minimise_all</property>
+            <property name="label" translatable="yes">_Minimize All Windows</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <ui>
+      <menubar name="menubar">
+        <menu action="menu_syntax_file">
+          <menu action="new2">
+            <menuitem action="file_new_syntax"/>
+            <menuitem action="file_new_data"/>
+          </menu>
+          <menu action="open2">
+            <menuitem action="file_open_syntax"/>
+            <menuitem action="file_open_data"/>
+          </menu>
+          <menuitem action="file_save"/>
+          <menuitem action="file_save_as"/>
+          <separator/>
+          <menuitem action="file_quit"/>
+        </menu>
+        <menu action="menuitem7">
+          <menuitem action="cut2"/>
+          <menuitem action="copy2"/>
+          <menuitem action="paste2"/>
+          <menuitem action="delete1"/>
+        </menu>
+        <menu action="run1">
+          <menuitem action="run_all"/>
+          <menuitem action="run_selection"/>
+          <menuitem action="run_current_line"/>
+          <menuitem action="run_to_end"/>
+        </menu>
+        <menu action="windows">
+          <menuitem action="windows_minimise_all"/>
+        </menu>
+      </menubar>
+    </ui>
+  </object>
+  <object class="GtkMenuBar" constructor="uimanager1" id="menubar">
+    <property name="visible">True</property>
+    <property name="pack_direction">GTK_PACK_DIRECTION_LTR</property>
+    <property name="child_pack_direction">GTK_PACK_DIRECTION_LTR</property>
+  </object>
+  <object class="GtkScrolledWindow" id="scrolledwindow8">
+    <property name="visible">True</property>
+    <property name="can_focus">True</property>
+    <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+    <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+    <property name="shadow_type">GTK_SHADOW_IN</property>
+    <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
+    <child>
+      <object class="GtkTextView" id="syntax_text_view">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="editable">True</property>
+        <property name="overwrite">False</property>
+        <property name="accepts_tab">True</property>
+        <property name="justification">GTK_JUSTIFY_LEFT</property>
+        <property name="wrap_mode">GTK_WRAP_NONE</property>
+        <property name="cursor_visible">True</property>
+        <property name="pixels_above_lines">0</property>
+        <property name="pixels_below_lines">0</property>
+        <property name="pixels_inside_wrap">0</property>
+        <property name="left_margin">0</property>
+        <property name="right_margin">0</property>
+        <property name="indent">0</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkStatusbar" id="statusbar2">
+    <property name="visible">True</property>
+    <property name="has_resize_grip">True</property>
+  </object>
+</interface>

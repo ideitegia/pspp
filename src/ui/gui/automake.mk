@@ -23,7 +23,7 @@ UI_FILES = \
 	src/ui/gui/var-sheet-dialogs.ui \
 	src/ui/gui/variable-info.ui \
 	src/ui/gui/data-editor.ui \
-	src/ui/gui/output-viewer.glade \
+	src/ui/gui/output-viewer.ui \
 	src/ui/gui/syntax-editor.ui
 
 EXTRA_DIST += \
@@ -83,9 +83,6 @@ uninstall-icons:
 	gtk-update-icon-cache --ignore-theme-index $(themedir)
 
 UNINSTALL_DATA_HOOKS += uninstall-icons
-
-nodist_src_ui_gui_psppire_DATA = \
-	$(top_builddir)/src/ui/gui/output-viewer.ui
 
 dist_src_ui_gui_psppire_DATA = \
 	$(UI_FILES) \
@@ -262,10 +259,6 @@ src/ui/gui/psppire-marshal.c: src/ui/gui/marshaller-list
 
 src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
 	$(GLIB_GENMARSHAL) --header --prefix=psppire_marshal $? > $@
-
-SUFFIXES += .glade .ui
-.glade.ui:
-	$(top_srcdir)/lib/gtk-contrib/gtk-builder-convert $< $@
 
 desktopdir = $(datadir)/applications
 desktop_DATA = src/ui/gui/pspp.desktop
