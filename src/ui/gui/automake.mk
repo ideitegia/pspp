@@ -24,7 +24,7 @@ UI_FILES = \
 	src/ui/gui/variable-info.ui \
 	src/ui/gui/data-editor.ui \
 	src/ui/gui/output-viewer.glade \
-	src/ui/gui/syntax-editor.glade
+	src/ui/gui/syntax-editor.ui
 
 EXTRA_DIST += \
 	src/ui/gui/OChangeLog \
@@ -85,9 +85,7 @@ uninstall-icons:
 UNINSTALL_DATA_HOOKS += uninstall-icons
 
 nodist_src_ui_gui_psppire_DATA = \
-	$(top_builddir)/src/ui/gui/output-viewer.ui \
-	$(top_builddir)/src/ui/gui/syntax-editor.ui
-
+	$(top_builddir)/src/ui/gui/output-viewer.ui
 
 dist_src_ui_gui_psppire_DATA = \
 	$(UI_FILES) \
