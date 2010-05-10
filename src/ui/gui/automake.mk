@@ -116,8 +116,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-hbuttonbox.c \
 	src/ui/gui/psppire-vbuttonbox.c \
 	src/ui/gui/psppire-acr.c \
-	src/ui/gui/about.c \
-	src/ui/gui/about.h \
 	src/ui/gui/checkbox-treeview.c \
 	src/ui/gui/checkbox-treeview.h \
 	src/ui/gui/comments-dialog.c \
@@ -149,6 +147,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/goto-case-dialog.c \
 	src/ui/gui/goto-case-dialog.h \
 	src/ui/gui/helper.c \
+	src/ui/gui/help-menu.c \
+	src/ui/gui/help-menu.h \
 	src/ui/gui/helper.h \
 	src/ui/gui/main.c \
 	src/ui/gui/missing-val-dialog.c \

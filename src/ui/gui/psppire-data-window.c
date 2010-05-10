@@ -24,7 +24,7 @@
 #include "data/procedure.h"
 #include "language/syntax-string-source.h"
 #include "libpspp/message.h"
-#include "ui/gui/about.h"
+#include "ui/gui/help-menu.h"
 #include "ui/gui/comments-dialog.h"
 #include "ui/gui/compute-dialog.h"
 #include "ui/gui/correlation-dialog.h"
@@ -1443,26 +1443,11 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   }
 
-  g_signal_connect (get_action_assert (de->builder,"file_new_syntax"),
-		    "activate",
-		    G_CALLBACK (create_syntax_window),
-		    NULL);
-
-
-  {
-    GtkAction *abt = get_action_assert (de->builder, "help_about");
-
-    g_signal_connect (abt,
+    g_signal_connect (get_action_assert (de->builder,"file_new_syntax"),
 		      "activate",
-		      G_CALLBACK (about_new),
-		      de);
-  }
+		      G_CALLBACK (create_syntax_window),
+		      NULL);
 
-
-  g_signal_connect (get_action_assert (de->builder,"help_reference"),
-		    "activate",
-		    G_CALLBACK (reference_manual),
-		    de);
 
 
   g_signal_connect (de->data_editor,
@@ -1540,6 +1525,8 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
+    merge_help_menu (uim);
+    
     PSPPIRE_WINDOW (de)->menu =
       GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
   }

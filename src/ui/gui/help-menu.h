@@ -14,7 +14,12 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+#ifndef HELP_MENU_H
+#define HELP_MENU_H
+
 #include <gtk/gtk.h>
 
 
-void about_new (GtkMenuItem *m, GtkWindow *parent);
+void merge_help_menu (GtkUIManager *uim);
+
+#endif

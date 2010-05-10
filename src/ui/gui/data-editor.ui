@@ -456,24 +456,6 @@
             <property name="label" translatable="yes">_Split</property>
           </object>
         </child>
-        <child>
-          <object class="GtkAction" id="help">
-            <property name="name">help</property>
-            <property name="label" translatable="yes">_Help</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="help_reference">
-            <property name="name">help_reference</property>
-            <property name="label" translatable="yes">_Reference Manual</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="help_about">
-            <property name="stock-id">gtk-about</property>
-            <property name="name">help_about</property>
-          </object>
-        </child>
       </object>
     </child>
     <ui>
@@ -569,10 +551,6 @@
         <menu action="windows">
           <menuitem action="windows_minimise_all"/>
           <menuitem action="windows_split"/>
-        </menu>
-        <menu action="help">
-          <menuitem action="help_reference"/>
-          <menuitem action="help_about"/>
         </menu>
       </menubar>
       <toolbar action="toolbar">

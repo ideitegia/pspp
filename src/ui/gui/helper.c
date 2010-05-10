@@ -230,25 +230,6 @@ connect_help (GtkBuilder *xml)
 }
 
 
-void
-reference_manual (GtkMenuItem *menu, gpointer data)
-{
-  GError *err = NULL;
-  gchar *cmd = g_strdup_printf ("yelp file://%s", relocate (DOCDIR "/pspp.xml"));
-
-  if ( ! g_spawn_command_line_async (cmd, &err) )
-    {
-      msg (ME, _("Cannot open reference manual: %s.  The PSPP user manual is "
-                 "also available at "
-                 "http://www.gnu.org/software/pspp/documentation.html"),
-           err->message);
-    }
-
-  g_free (cmd);
-  g_clear_error (&err);
-}
-
-
 /* Create a deep copy of SRC */
 GtkListStore *
 clone_list_store (const GtkListStore *src)

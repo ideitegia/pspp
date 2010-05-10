@@ -3,7 +3,7 @@
 
 <glade-interface>
 
-	<widget class="GtkMenuBar" id="menubar2">
+	<widget class="GtkMenuBar" id="menubar">
 	  <property name="visible">True</property>
 	  <property name="pack_direction">GTK_PACK_DIRECTION_LTR</property>
 	  <property name="child_pack_direction">GTK_PACK_DIRECTION_LTR</property>
@@ -216,32 +216,6 @@
 		    <widget class="GtkMenuItem" id="windows_minimise_all">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">_Minimize All Windows</property>
-		      <property name="use_underline">True</property>
-		    </widget>
-		  </child>
-		</widget>
-	      </child>
-	    </widget>
-	  </child>
-	  <child>
-	    <widget class="GtkMenuItem" id="menuitem9">
-	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">_Help</property>
-	      <property name="use_underline">True</property>
-
-	      <child>
-		<widget class="GtkMenu" id="menuitem9_menu">
-		  <child>
-		    <widget class="GtkMenuItem" id="help_reference">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Reference Manual</property>
-		      <property name="use_underline">True</property>
-		    </widget>
-		  </child>
-		  <child>
-		    <widget class="GtkMenuItem" id="help_about">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_About</property>
 		      <property name="use_underline">True</property>
 		    </widget>
 		  </child>

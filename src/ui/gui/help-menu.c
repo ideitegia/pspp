@@ -21,10 +21,11 @@
 
 #include <libpspp/copyleft.h>
 #include <libpspp/version.h>
-#include "about.h"
-#include "helper.h"
+#include "help-menu.h"
+#include <libpspp/message.h>
 
 #include "gl/configmake.h"
+#include "gl/relocatable.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -33,7 +34,7 @@
 
 static const gchar *artists[] = { "Patrick Brunier", "Dondi Bogusky", NULL};
 
-void
+static void
 about_new (GtkMenuItem *m, GtkWindow *parent)
 {
   GtkWidget *about =  gtk_about_dialog_new ();
@@ -85,3 +86,65 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
   gtk_widget_hide (about);
 }
 
+
+static void
+reference_manual (GtkMenuItem *menu, gpointer data)
+{
+  GError *err = NULL;
+  gchar *cmd = g_strdup_printf ("yelp file://%s", relocate (DOCDIR "/pspp.xml"));
+
+  if ( ! g_spawn_command_line_async (cmd, &err) )
+    {
+      msg (ME, _("Cannot open reference manual: %s.  The PSPP user manual is "
+                 "also available at "
+                 "http://www.gnu.org/software/pspp/documentation.html"),
+           err->message);
+    }
+
+  g_free (cmd);
+  g_clear_error (&err);
+}
+
+void
+merge_help_menu (GtkUIManager *uim)
+{
+  GtkActionGroup *action_group = gtk_action_group_new ("help");
+
+  static const GtkActionEntry entries[] =
+    {
+      {
+	"help", NULL,                               /* name, stock id */
+	N_("_Help"), NULL,                          /* label, accelerator */
+	NULL,
+	NULL,
+      },
+    
+      {
+	"help_reference", GTK_STOCK_HELP,            /* name, stock id */
+	N_("_Reference Manual"), NULL,               /* label, accelerator */
+	NULL,                                        /* tooltip */
+	G_CALLBACK (reference_manual)
+      },
+    
+      {
+	"help_about", GTK_STOCK_ABOUT,
+	NULL, NULL, NULL,
+	G_CALLBACK (about_new)
+      },
+    };
+
+  gtk_action_group_set_translation_domain (action_group, PACKAGE);
+
+  gtk_ui_manager_add_ui_from_string   (uim, "\
+      <menubar name=\"menubar\">\
+        <menu action=\"help\">\
+          <menuitem action=\"help_reference\"/>\
+          <menuitem action=\"help_about\"/>\
+        </menu>\
+       </menubar>\
+       ", -1, 0);
+
+  gtk_action_group_add_actions (action_group, entries, G_N_ELEMENTS (entries), NULL);
+
+  gtk_ui_manager_insert_action_group  (uim, action_group, 0);
+}

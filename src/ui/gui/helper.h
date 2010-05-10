@@ -54,8 +54,6 @@ gchar * convert_glib_filename_to_system_filename (const gchar *fname,
 
 void connect_help (GtkBuilder *);
 
-void reference_manual (GtkMenuItem *, gpointer);
-
 #define builder_new(NAME) builder_new_real (relocate (PKGDATADIR "/" NAME))
 
 GtkBuilder *builder_new_real (const gchar *name);
