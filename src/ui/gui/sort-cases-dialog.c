@@ -90,7 +90,7 @@ generate_syntax (const struct sort_cases_dialog *scd)
 
 /* Pops up the Sort Cases dialog box */
 void
-sort_cases_dialog (GObject *o, gpointer data)
+sort_cases_dialog (gpointer data)
 {
   gint response;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);

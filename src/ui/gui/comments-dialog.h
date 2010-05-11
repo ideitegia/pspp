@@ -18,6 +18,6 @@
 #ifndef COMMENTS_DIALOG_H
 #define COMMENTS_DIALOG_H
 
-void comments_dialog (GObject *o, gpointer data);
+void comments_dialog (gpointer data);
 
 #endif /*  COMMENTS_DIALOG_H */

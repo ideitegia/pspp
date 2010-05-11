@@ -40,7 +40,7 @@ refresh (const PsppireDataWindow *de, GtkBuilder *xml)
 }
 
 void
-goto_case_dialog (GObject *o, gpointer data)
+goto_case_dialog (gpointer data)
 {
   gint response;
   GtkBuilder *xml = builder_new ("psppire.ui");

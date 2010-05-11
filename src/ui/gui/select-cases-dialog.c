@@ -237,7 +237,7 @@ set_radiobutton (GtkWidget *button, gpointer data)
 
 /* Pops up the Select Cases dialog box */
 void
-select_cases_dialog (GObject *o, gpointer data)
+select_cases_dialog (gpointer data)
 {
   gint response;
   struct select_cases_dialog scd = {0,0,0,0,0,0};

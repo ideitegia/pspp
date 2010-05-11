@@ -20,6 +20,6 @@
 
 #include <gtk/gtk.h>
 
-void sort_cases_dialog (GObject *o, gpointer data);
+void sort_cases_dialog (gpointer data);
 
 #endif

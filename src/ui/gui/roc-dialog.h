@@ -20,6 +20,6 @@
 
 #include <gtk/gtk.h>
 
-void roc_dialog (GObject *o, gpointer data);
+void roc_dialog (gpointer data);
 
 #endif

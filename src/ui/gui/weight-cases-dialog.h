@@ -22,7 +22,7 @@
 #include <glib-object.h>
 
 /* Pops up the Weight Cases dialog box */
-void weight_cases_dialog (GObject *o, gpointer data);
+void weight_cases_dialog (gpointer data);
 
 
 #endif

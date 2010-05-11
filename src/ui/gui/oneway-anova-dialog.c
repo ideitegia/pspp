@@ -123,7 +123,7 @@ refresh (struct oneway_anova_dialog *ow)
 
 /* Pops up the dialog box */
 void
-oneway_anova_dialog (GObject *o, gpointer data)
+oneway_anova_dialog (gpointer data)
 {
   gint response;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);

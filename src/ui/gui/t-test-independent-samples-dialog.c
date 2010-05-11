@@ -388,7 +388,7 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the dialog box */
 void
-t_test_independent_samples_dialog (GObject *o, gpointer data)
+t_test_independent_samples_dialog (gpointer data)
 {
   struct tt_indep_samples_dialog tt_d;
   gint response;

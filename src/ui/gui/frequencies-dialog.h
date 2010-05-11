@@ -20,6 +20,6 @@
 
 #include <gtk/gtk.h>
 
-void frequencies_dialog (GObject *o, gpointer data);
+void frequencies_dialog (gpointer data);
 
 #endif

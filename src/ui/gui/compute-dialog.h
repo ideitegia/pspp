@@ -20,6 +20,6 @@
 
 #include <gtk/gtk.h>
 
-void compute_dialog (GObject *o, gpointer data);
+void compute_dialog (gpointer data);
 
 #endif

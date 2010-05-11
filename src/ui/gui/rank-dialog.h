@@ -20,6 +20,6 @@
 
 #include <gtk/gtk.h>
 
-void rank_dialog (GObject *o, gpointer data);
+void rank_dialog (gpointer data);
 
 #endif

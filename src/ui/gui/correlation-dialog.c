@@ -83,7 +83,7 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Correlation dialog box */
 void
-correlation_dialog (GObject *o, gpointer data)
+correlation_dialog (gpointer data)
 {
   struct correlation rd;
   gint response;

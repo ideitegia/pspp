@@ -22,7 +22,7 @@
 #include <glib-object.h>
 
 /* Pops up the Split File dialog box */
-void split_file_dialog (GObject *o, gpointer data);
+void split_file_dialog (gpointer data);
 
 
 #endif

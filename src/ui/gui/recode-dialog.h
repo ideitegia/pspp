@@ -20,7 +20,7 @@
 
 #include <gtk/gtk.h>
 
-void recode_same_dialog (GObject *o, gpointer data);
-void recode_different_dialog (GObject *o, gpointer data);
+void recode_same_dialog (gpointer data);
+void recode_different_dialog (gpointer data);
 
 #endif

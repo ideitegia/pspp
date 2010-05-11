@@ -383,7 +383,7 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Crosstabs dialog box */
 void
-crosstabs_dialog (GObject *o, gpointer data)
+crosstabs_dialog (gpointer data)
 {
   gint response;
   struct crosstabs_dialog cd;

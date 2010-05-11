@@ -222,7 +222,7 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Regression dialog box */
 void
-regression_dialog (GObject *o, gpointer data)
+regression_dialog (gpointer data)
 {
   gint response;
   struct regression_dialog rd;

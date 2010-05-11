@@ -102,7 +102,7 @@ static gchar * generate_syntax (const struct weight_cases_dialog *wcd);
 
 /* Pops up the Weight Cases dialog box */
 void
-weight_cases_dialog (GObject *o, gpointer data)
+weight_cases_dialog (gpointer data)
 {
   gint response;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);

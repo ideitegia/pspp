@@ -19,6 +19,6 @@
 
 #include <gtk/gtk.h>
 
-void correlation_dialog (GObject *o, gpointer data);
+void correlation_dialog (gpointer data);
 
 #endif

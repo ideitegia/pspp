@@ -234,7 +234,7 @@ run_opts_dialog (struct examine_dialog *ed)
 
 /* Pops up the Examine dialog box */
 void
-examine_dialog (GObject *o, gpointer data)
+examine_dialog (gpointer data)
 {
   gint response;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);

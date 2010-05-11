@@ -21,6 +21,6 @@
 #include <gtk/gtk.h>
 
 
-void descriptives_dialog (GObject *o, gpointer data);
+void descriptives_dialog (gpointer data);
 
 #endif

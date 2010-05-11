@@ -184,7 +184,7 @@ value_labels_toggled (GtkToggleButton *tb, gpointer data)
 /* Pops up the Find dialog box
  */
 void
-find_dialog (GObject *o, gpointer data)
+find_dialog (gpointer data)
 {
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 

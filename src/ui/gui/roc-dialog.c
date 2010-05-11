@@ -119,7 +119,7 @@ on_curve_button_toggle  (GtkCheckButton *curve, struct roc *rd)
 
 /* Pops up the Roc dialog box */
 void
-roc_dialog (GObject *o, gpointer data)
+roc_dialog (gpointer data)
 {
   struct roc rd;
   gint response;

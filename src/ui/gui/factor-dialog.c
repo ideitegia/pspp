@@ -200,7 +200,7 @@ on_extract_toggle (GtkToggleButton *button, struct factor *f)
 
 /* Pops up the Factor dialog box */
 void
-factor_dialog (GObject *o, gpointer data)
+factor_dialog (gpointer data)
 {
   struct factor fd;
   gint response;

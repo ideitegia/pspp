@@ -20,6 +20,6 @@
 
 #include <gtk/gtk.h>
 
-void goto_case_dialog (GObject *o, gpointer data);
+void goto_case_dialog (gpointer data);
 
 #endif

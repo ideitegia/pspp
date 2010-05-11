@@ -453,7 +453,7 @@ sensitive_if_active (GtkToggleButton *toggle, GtkWidget *w)
 
 /* Pops up the Frequencies dialog box */
 void
-frequencies_dialog (GObject *o, gpointer data)
+frequencies_dialog (gpointer data)
 {
   gint response;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);

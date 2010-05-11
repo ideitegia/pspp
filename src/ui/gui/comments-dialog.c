@@ -91,7 +91,7 @@ wrap_line (GtkTextBuffer *buffer,
 
 
 void
-comments_dialog (GObject *o, gpointer data)
+comments_dialog (gpointer data)
 {
   GtkTextIter iter;
   gint response ;

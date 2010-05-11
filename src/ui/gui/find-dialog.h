@@ -22,6 +22,6 @@
 #include <glib-object.h>
 
 /* Pops up the Find dialog box */
-void find_dialog (GObject *o, gpointer data);
+void find_dialog (gpointer data);
 
 #endif

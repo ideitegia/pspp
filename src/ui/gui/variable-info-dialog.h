@@ -19,6 +19,6 @@
 
 #include <gtk/gtk.h>
 
-void variable_info_dialog (GObject *o, gpointer data);
+void variable_info_dialog (gpointer data);
 
 #endif

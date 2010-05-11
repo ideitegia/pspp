@@ -455,7 +455,7 @@ static void recode_dialog (PsppireDataWindow *de, gboolean diff);
 
 /* Pops up the Recode Same version of the dialog box */
 void
-recode_same_dialog (GObject *o, gpointer data)
+recode_same_dialog (gpointer data)
 {
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
@@ -464,7 +464,7 @@ recode_same_dialog (GObject *o, gpointer data)
 
 /* Pops up the Recode Different version of the dialog box */
 void
-recode_different_dialog (GObject *o, gpointer data)
+recode_different_dialog (gpointer data)
 {
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 

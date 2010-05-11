@@ -110,7 +110,7 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Reliability dialog box */
 void
-reliability_dialog (GObject *o, gpointer data)
+reliability_dialog (gpointer data)
 {
   struct reliability rd;
   gint response;

@@ -17,6 +17,7 @@
 #include <config.h>
 #include <gtk/gtk.h>
 
+#include "variable-info-dialog.h"
 #include "var-display.h"
 #include <data/variable.h>
 #include <data/format.h>
@@ -143,7 +144,7 @@ static gchar * generate_syntax (PsppireDictView *treeview);
 
 
 void
-variable_info_dialog (GObject *o, gpointer data)
+variable_info_dialog (gpointer data)
 {
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 

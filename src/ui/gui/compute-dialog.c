@@ -363,7 +363,7 @@ contents_plausible (gpointer data)
 
 /* Pops up the Compute dialog box */
 void
-compute_dialog (GObject *o, gpointer data)
+compute_dialog (gpointer data)
 {
   gint response;
   PsppireDataWindow *de = data;

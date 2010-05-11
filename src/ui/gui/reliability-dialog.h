@@ -20,6 +20,6 @@
 
 #include <gtk/gtk.h>
 
-void reliability_dialog (GObject *o, gpointer data);
+void reliability_dialog (gpointer data);
 
 #endif

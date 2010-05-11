@@ -20,6 +20,6 @@
 
 #include <gtk/gtk.h>
 
-void regression_dialog (GObject *o, gpointer data);
+void regression_dialog (gpointer data);
 
 #endif

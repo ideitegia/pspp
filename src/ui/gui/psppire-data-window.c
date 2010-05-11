@@ -1109,7 +1109,7 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 
   de->invoke_goto_dialog = get_action_assert (de->builder, "edit_goto-case");
-  g_signal_connect (de->invoke_goto_dialog, "activate", G_CALLBACK (goto_case_dialog), de);
+  g_signal_connect_swapped  (de->invoke_goto_dialog, "activate", G_CALLBACK (goto_case_dialog), de);
 
 
   {
@@ -1139,14 +1139,14 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *invoke_transpose_dialog = get_action_assert (de->builder, "data_transpose");
 
-    g_signal_connect (invoke_transpose_dialog, "activate", G_CALLBACK (transpose_dialog), de);
+    g_signal_connect_swapped  (invoke_transpose_dialog, "activate", G_CALLBACK (transpose_dialog), de);
   }
 
 
   {
     GtkAction *invoke_sort_cases_dialog = get_action_assert (de->builder, "data_sort-cases");
 
-    g_signal_connect (invoke_sort_cases_dialog, "activate", G_CALLBACK (sort_cases_dialog), de);
+    g_signal_connect_swapped  (invoke_sort_cases_dialog, "activate", G_CALLBACK (sort_cases_dialog), de);
   }
 
 
@@ -1154,27 +1154,27 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *invoke_compute_dialog = get_action_assert (de->builder, "transform_compute");
 
-    g_signal_connect (invoke_compute_dialog, "activate", G_CALLBACK (compute_dialog), de);
+    g_signal_connect_swapped  (invoke_compute_dialog, "activate", G_CALLBACK (compute_dialog), de);
   }
 
   {
     GtkAction *invoke_find_dialog = get_action_assert (de->builder, "edit_find");
 
-    g_signal_connect (invoke_find_dialog, "activate", G_CALLBACK (find_dialog), de);
+    g_signal_connect_swapped  (invoke_find_dialog, "activate", G_CALLBACK (find_dialog), de);
   }
 
  
    {
      GtkAction *invoke_split_file_dialog = get_action_assert (de->builder, "data_split-file");
 
-     g_signal_connect (invoke_split_file_dialog, "activate", G_CALLBACK (split_file_dialog), de);
+     g_signal_connect_swapped  (invoke_split_file_dialog, "activate", G_CALLBACK (split_file_dialog), de);
   }
 
 
   {
     GtkAction *invoke_weight_cases_dialog = get_action_assert (de->builder, "data_weight-cases");
 
-    g_signal_connect (invoke_weight_cases_dialog, "activate", G_CALLBACK (weight_cases_dialog), de);
+    g_signal_connect_swapped  (invoke_weight_cases_dialog, "activate", G_CALLBACK (weight_cases_dialog), de);
   }
 
 
@@ -1182,7 +1182,7 @@ psppire_data_window_init (PsppireDataWindow *de)
    {
     GtkAction *invoke_variable_info_dialog  =  get_action_assert (de->builder, "utilities_variables");
 
-    g_signal_connect (invoke_variable_info_dialog, "activate", G_CALLBACK (variable_info_dialog), de);
+    g_signal_connect_swapped  (invoke_variable_info_dialog, "activate", G_CALLBACK (variable_info_dialog), de);
   }
 
 
@@ -1190,35 +1190,35 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *invoke_oneway_anova_dialog = get_action_assert (de->builder, "oneway-anova");
 
-    g_signal_connect (invoke_oneway_anova_dialog, "activate", G_CALLBACK (oneway_anova_dialog), de);
+    g_signal_connect_swapped  (invoke_oneway_anova_dialog, "activate", G_CALLBACK (oneway_anova_dialog), de);
   }
 
 
   {
     GtkAction *invoke_t_test_independent_samples_dialog = get_action_assert (de->builder, "indep-t-test");
 
-    g_signal_connect (invoke_t_test_independent_samples_dialog, "activate", G_CALLBACK (t_test_independent_samples_dialog), de);
+    g_signal_connect_swapped  (invoke_t_test_independent_samples_dialog, "activate", G_CALLBACK (t_test_independent_samples_dialog), de);
   }
 
 
   {
     GtkAction *invoke_t_test_paired_samples_dialog = get_action_assert (de->builder, "paired-t-test");
 
-    g_signal_connect (invoke_t_test_paired_samples_dialog, "activate", G_CALLBACK (t_test_paired_samples_dialog), de);
+    g_signal_connect_swapped  (invoke_t_test_paired_samples_dialog, "activate", G_CALLBACK (t_test_paired_samples_dialog), de);
   }
 
 
   {
     GtkAction *invoke_t_test_one_sample_dialog = get_action_assert (de->builder, "one-sample-t-test");
 
-    g_signal_connect (invoke_t_test_one_sample_dialog, "activate", G_CALLBACK (t_test_one_sample_dialog), de);
+    g_signal_connect_swapped  (invoke_t_test_one_sample_dialog, "activate", G_CALLBACK (t_test_one_sample_dialog), de);
   }
 
 
   {
     GtkAction *invoke_comments_dialog = get_action_assert (de->builder, "utilities_comments");
 
-    g_signal_connect (invoke_comments_dialog, "activate", G_CALLBACK (comments_dialog), de);
+    g_signal_connect_swapped  (invoke_comments_dialog, "activate", G_CALLBACK (comments_dialog), de);
   }
 
 
@@ -1226,14 +1226,14 @@ psppire_data_window_init (PsppireDataWindow *de)
   {
     GtkAction *invoke_rank_dialog = get_action_assert (de->builder, "transform_rank");
 
-    g_signal_connect (invoke_rank_dialog, "activate", G_CALLBACK (rank_dialog), de);
+    g_signal_connect_swapped  (invoke_rank_dialog, "activate", G_CALLBACK (rank_dialog), de);
   }
 
 
   {
     GtkAction *invoke_recode_same_dialog = get_action_assert (de->builder, "transform_recode-same");
 
-    g_signal_connect (invoke_recode_same_dialog, "activate", G_CALLBACK (recode_same_dialog), de);
+    g_signal_connect_swapped  (invoke_recode_same_dialog, "activate", G_CALLBACK (recode_same_dialog), de);
   }
 
 
@@ -1241,66 +1241,66 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkAction *invoke_recode_different_dialog  = get_action_assert (de->builder, "transform_recode-different");
 
 
-    g_signal_connect (invoke_recode_different_dialog, "activate", G_CALLBACK (recode_different_dialog), de);
+    g_signal_connect_swapped  (invoke_recode_different_dialog, "activate", G_CALLBACK (recode_different_dialog), de);
   }
 
 
   {
     GtkAction *invoke_descriptives_dialog = get_action_assert (de->builder, "analyze_descriptives");
 
-    g_signal_connect (invoke_descriptives_dialog, "activate", G_CALLBACK (descriptives_dialog), de);
+    g_signal_connect_swapped  (invoke_descriptives_dialog, "activate", G_CALLBACK (descriptives_dialog), de);
   }
 
 
   {
     GtkAction *invoke_frequencies_dialog = get_action_assert (de->builder, "analyze_frequencies");
 
-    g_signal_connect (invoke_frequencies_dialog, "activate", G_CALLBACK (frequencies_dialog), de);
+    g_signal_connect_swapped  (invoke_frequencies_dialog, "activate", G_CALLBACK (frequencies_dialog), de);
   }
 
 
   {
     GtkAction *invoke_crosstabs_dialog = get_action_assert (de->builder, "crosstabs");
 
-    g_signal_connect (invoke_crosstabs_dialog, "activate", G_CALLBACK (crosstabs_dialog), de);
+    g_signal_connect_swapped  (invoke_crosstabs_dialog, "activate", G_CALLBACK (crosstabs_dialog), de);
   }
 
 
   {
     GtkAction *invoke_examine_dialog = get_action_assert (de->builder, "analyze_explore");
 
-    g_signal_connect (invoke_examine_dialog, "activate", G_CALLBACK (examine_dialog), de);
+    g_signal_connect_swapped  (invoke_examine_dialog, "activate", G_CALLBACK (examine_dialog), de);
   }
 
 
   {
     GtkAction *invoke_regression_dialog = get_action_assert (de->builder, "linear-regression");
 
-    g_signal_connect (invoke_regression_dialog, "activate", G_CALLBACK (regression_dialog), de);
+    g_signal_connect_swapped  (invoke_regression_dialog, "activate", G_CALLBACK (regression_dialog), de);
   }
 
   {
     GtkAction *invoke_reliability_dialog = get_action_assert (de->builder, "reliability");
 
-    g_signal_connect (invoke_reliability_dialog, "activate", G_CALLBACK (reliability_dialog), de);
+    g_signal_connect_swapped  (invoke_reliability_dialog, "activate", G_CALLBACK (reliability_dialog), de);
  }
 
   {
     GtkAction *invoke_roc_dialog = get_action_assert (de->builder, "roc-curve");
 
-    g_signal_connect (invoke_roc_dialog, "activate", G_CALLBACK (roc_dialog), de);
+    g_signal_connect_swapped  (invoke_roc_dialog, "activate", G_CALLBACK (roc_dialog), de);
   }
 
   {
     GtkAction *invoke_correlation_dialog = get_action_assert (de->builder, "correlation");
 
-    g_signal_connect (invoke_correlation_dialog, "activate", G_CALLBACK (correlation_dialog), de);
+    g_signal_connect_swapped  (invoke_correlation_dialog, "activate", G_CALLBACK (correlation_dialog), de);
   }
 
   {
     GtkAction *invoke_factor_dialog = get_action_assert (de->builder, "factor-analysis");
 
-    g_signal_connect (invoke_factor_dialog, "activate", G_CALLBACK (factor_dialog), de);
+    g_signal_connect_swapped  (invoke_factor_dialog, "activate", G_CALLBACK (factor_dialog), de);
   }
 
 

@@ -156,7 +156,7 @@ select_as_pair_member (GtkTreeIter source_iter,
 
 /* Pops up the dialog box */
 void
-t_test_paired_samples_dialog (GObject *o, gpointer data)
+t_test_paired_samples_dialog (gpointer data)
 {
   struct tt_paired_samples_dialog tt_d;
   gint response;

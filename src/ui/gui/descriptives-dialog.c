@@ -203,7 +203,7 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Descriptives dialog box */
 void
-descriptives_dialog (GObject *o, gpointer data)
+descriptives_dialog (gpointer data)
 {
   gint response;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);

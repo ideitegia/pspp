@@ -21,7 +21,7 @@
 #include <glib.h>
 #include <glib-object.h>
 
-void transpose_dialog (GObject *o, gpointer data);
+void transpose_dialog (gpointer data);
 
 
 #endif

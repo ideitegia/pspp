@@ -21,6 +21,6 @@
 #include <gtk/gtk.h>
 
 
-void crosstabs_dialog (GObject *o, gpointer data);
+void crosstabs_dialog (gpointer data);
 
 #endif
