@@ -17,9 +17,8 @@
 #ifndef __SORT_CASES_DIALOG_H
 #define __SORT_CASES_DIALOG_H
 
+#include "psppire-data-window.h"
 
-#include <gtk/gtk.h>
-
-void sort_cases_dialog (gpointer data);
+void sort_cases_dialog (PsppireDataWindow * data);
 
 #endif

@@ -388,11 +388,10 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the dialog box */
 void
-t_test_independent_samples_dialog (gpointer data)
+t_test_independent_samples_dialog (PsppireDataWindow *de)
 {
   struct tt_indep_samples_dialog tt_d;
   gint response;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   PsppireVarStore *vs = NULL;
 

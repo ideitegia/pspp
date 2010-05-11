@@ -237,12 +237,11 @@ set_radiobutton (GtkWidget *button, gpointer data)
 
 /* Pops up the Select Cases dialog box */
 void
-select_cases_dialog (gpointer data)
+select_cases_dialog (PsppireDataWindow *de)
 {
   gint response;
   struct select_cases_dialog scd = {0,0,0,0,0,0};
   GtkWidget *dialog   ;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   GtkWidget *entry = NULL;
   GtkWidget *selector ;
   GtkWidget *button_range;

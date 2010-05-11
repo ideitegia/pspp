@@ -119,13 +119,12 @@ on_curve_button_toggle  (GtkCheckButton *curve, struct roc *rd)
 
 /* Pops up the Roc dialog box */
 void
-roc_dialog (gpointer data)
+roc_dialog (PsppireDataWindow *de)
 {
   struct roc rd;
   gint response;
 
   GtkBuilder *xml = builder_new ("roc.ui");
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "roc-dialog");

@@ -110,13 +110,12 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Reliability dialog box */
 void
-reliability_dialog (gpointer data)
+reliability_dialog (PsppireDataWindow *de)
 {
   struct reliability rd;
   gint response;
 
   GtkBuilder *xml = builder_new ("reliability.ui");
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "reliability-dialog");

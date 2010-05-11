@@ -18,8 +18,8 @@
 #define __ROC_DIALOG_H
 
 
-#include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void roc_dialog (gpointer data);
+void roc_dialog (PsppireDataWindow * data);
 
 #endif

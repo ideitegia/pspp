@@ -200,7 +200,7 @@ on_extract_toggle (GtkToggleButton *button, struct factor *f)
 
 /* Pops up the Factor dialog box */
 void
-factor_dialog (gpointer data)
+factor_dialog (PsppireDataWindow *dw)
 {
   struct factor fd;
   gint response;
@@ -221,7 +221,7 @@ factor_dialog (gpointer data)
 
   fd.extraction_dialog = get_widget_assert (fd.xml, "extractions-dialog");
 
-  fd.de = PSPPIRE_DATA_WINDOW (data);
+  fd.de = dw;
 
   g_signal_connect_swapped (dialog, "refresh", G_CALLBACK (refresh),  &fd);
 

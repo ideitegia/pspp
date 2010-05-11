@@ -17,8 +17,8 @@
 #ifndef __VARIABLE_DIALOG_H
 #define __VARIABLE_DIALOG_H
 
-#include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void variable_info_dialog (gpointer data);
+void variable_info_dialog (PsppireDataWindow * data);
 
 #endif

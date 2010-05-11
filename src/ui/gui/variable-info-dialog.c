@@ -144,10 +144,8 @@ static gchar * generate_syntax (PsppireDictView *treeview);
 
 
 void
-variable_info_dialog (gpointer data)
+variable_info_dialog (PsppireDataWindow *de)
 {
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
-
   gint response ;
 
   GtkBuilder *xml = builder_new ("variable-info.ui");

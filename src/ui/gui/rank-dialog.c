@@ -218,10 +218,9 @@ set_sensitivity (struct rank_dialog *rd)
 
 /* Pops up the Rank dialog box */
 void
-rank_dialog (gpointer data)
+rank_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct rank_dialog rd;
 

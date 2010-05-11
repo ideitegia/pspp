@@ -363,10 +363,9 @@ contents_plausible (gpointer data)
 
 /* Pops up the Compute dialog box */
 void
-compute_dialog (gpointer data)
+compute_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireDataWindow *de = data;
 
   PsppireVarStore *vs = NULL;
   struct compute_dialog scd;

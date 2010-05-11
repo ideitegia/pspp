@@ -184,10 +184,8 @@ value_labels_toggled (GtkToggleButton *tb, gpointer data)
 /* Pops up the Find dialog box
  */
 void
-find_dialog (gpointer data)
+find_dialog (PsppireDataWindow *de)
 {
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
-
   struct find_dialog fd;
 
   GtkWidget *dialog ;

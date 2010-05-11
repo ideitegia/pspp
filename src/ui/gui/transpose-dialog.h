@@ -18,10 +18,9 @@
 #ifndef TRANSPOSE_DIALOG_H
 #define TRANSPOSE_DIALOG_H
 
-#include <glib.h>
-#include <glib-object.h>
+#include "psppire-data-window.h"
 
-void transpose_dialog (gpointer data);
+void transpose_dialog (PsppireDataWindow * data);
 
 
 #endif

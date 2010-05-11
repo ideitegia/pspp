@@ -18,7 +18,8 @@
 #define __CORRELATION_DIALOG_H
 
 #include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void correlation_dialog (gpointer data);
+void correlation_dialog (PsppireDataWindow * data);
 
 #endif

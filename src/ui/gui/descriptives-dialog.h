@@ -19,8 +19,9 @@
 
 
 #include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
 
-void descriptives_dialog (gpointer data);
+void descriptives_dialog (PsppireDataWindow * data);
 
 #endif
