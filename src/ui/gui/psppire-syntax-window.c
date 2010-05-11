@@ -425,10 +425,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   gtk_widget_show_all (box);
 
-  g_signal_connect (get_action_assert (xml,"file_new_syntax"),
-		    "activate",
-		    G_CALLBACK (create_syntax_window),
-		    NULL);
+  g_signal_connect_swapped (get_action_assert (xml,"file_new_syntax"), "activate", G_CALLBACK (create_syntax_window), NULL);
 
 #if 0
   g_signal_connect (get_action_assert (xml,"file_new_data"),
