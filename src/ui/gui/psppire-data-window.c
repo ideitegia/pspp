@@ -934,6 +934,21 @@ set_unsaved (gpointer w)
   psppire_window_set_unsaved (PSPPIRE_WINDOW (w));
 }
 
+
+/* Connects the action called ACTION_NAME to HANDLER passing DW as the auxilliary data.
+   Returns a pointer to the action
+*/
+static GtkAction *
+connect_action (PsppireDataWindow *dw, const char *action_name, 
+				    GCallback handler)
+{
+  GtkAction *action = get_action_assert (dw->builder, action_name);
+ 
+  g_signal_connect_swapped (action, "activate", handler, dw);
+
+  return action;
+}
+
 static void
 psppire_data_window_init (PsppireDataWindow *de)
 {
@@ -1009,40 +1024,31 @@ psppire_data_window_init (PsppireDataWindow *de)
 		    de);
 
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "edit_copy"), "activate", G_CALLBACK (on_edit_copy), de);
+  connect_action (de, "edit_copy", G_CALLBACK (on_edit_copy));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "edit_cut"),  "activate", G_CALLBACK (on_edit_cut), de);
+  connect_action (de, "edit_cut", G_CALLBACK (on_edit_cut));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "file_new_data"),"activate", G_CALLBACK (new_file), de);
+  connect_action (de, "file_new_data", G_CALLBACK (new_file));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "file_import-text"), "activate", G_CALLBACK (text_data_import_assistant), de);
+  connect_action (de, "file_import-text", G_CALLBACK (text_data_import_assistant));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "file_save"),"activate", G_CALLBACK (data_save), de);
+  connect_action (de, "file_save", G_CALLBACK (data_save));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "file_open"), "activate", G_CALLBACK (open_window), de);
+  connect_action (de, "file_open", G_CALLBACK (open_window));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "file_save_as"), "activate", G_CALLBACK (data_save_as_dialog), de);
+  connect_action (de, "file_save_as", G_CALLBACK (data_save_as_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "file_information_working-file"), "activate", G_CALLBACK (display_dict), de);
+  connect_action (de, "file_information_working-file", G_CALLBACK (display_dict));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "file_information_external-file"), "activate", G_CALLBACK (sysfile_info), de);
+  connect_action (de, "file_information_external-file", G_CALLBACK (sysfile_info));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "edit_paste"), "activate", G_CALLBACK (on_edit_paste), de);
+  connect_action (de, "edit_paste", G_CALLBACK (on_edit_paste));
 
-  {
-    de->insert_case = get_action_assert (de->builder, "edit_insert-case");
-    g_signal_connect_swapped (de->insert_case, "activate", G_CALLBACK (insert_case), de);
-  }
+  de->insert_case = connect_action (de, "edit_insert-case", G_CALLBACK (insert_case));
 
-  {
-    de->insert_variable = get_action_assert (de->builder, "action_insert-variable");
-    g_signal_connect_swapped (de->insert_variable, "activate", G_CALLBACK (on_insert_variable), de);
-  }
+  de->insert_variable = connect_action (de, "action_insert-variable", G_CALLBACK (on_insert_variable));
 
-  {
-    de->invoke_goto_dialog = get_action_assert (de->builder, "edit_goto-case");
-    g_signal_connect_swapped (de->invoke_goto_dialog, "activate", G_CALLBACK (goto_case_dialog), de);
-  }
+  de->invoke_goto_dialog = connect_action (de, "edit_goto-case", G_CALLBACK (goto_case_dialog));
 
   g_signal_connect_swapped (get_action_assert (de->builder, "view_value-labels"), "toggled", G_CALLBACK (toggle_value_labels), de);
 
@@ -1064,53 +1070,53 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "data_transpose"), "activate", G_CALLBACK (transpose_dialog), de);
+  connect_action (de, "data_transpose", G_CALLBACK (transpose_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "data_sort-cases"), "activate", G_CALLBACK (sort_cases_dialog), de);
+  connect_action (de, "data_sort-cases", G_CALLBACK (sort_cases_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "transform_compute"), "activate", G_CALLBACK (compute_dialog), de);
+  connect_action (de, "transform_compute", G_CALLBACK (compute_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "edit_find"), "activate", G_CALLBACK (find_dialog), de);
+  connect_action (de, "edit_find", G_CALLBACK (find_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "data_split-file"), "activate", G_CALLBACK (split_file_dialog), de);
+  connect_action (de, "data_split-file", G_CALLBACK (split_file_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "data_weight-cases"), "activate", G_CALLBACK (weight_cases_dialog), de);
+  connect_action (de, "data_weight-cases", G_CALLBACK (weight_cases_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "utilities_variables"), "activate", G_CALLBACK (variable_info_dialog), de);
+  connect_action (de, "utilities_variables", G_CALLBACK (variable_info_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "oneway-anova"), "activate", G_CALLBACK (oneway_anova_dialog), de);
+  connect_action (de, "oneway-anova", G_CALLBACK (oneway_anova_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "indep-t-test"), "activate", G_CALLBACK (t_test_independent_samples_dialog), de);
+  connect_action (de, "indep-t-test", G_CALLBACK (t_test_independent_samples_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "paired-t-test"), "activate", G_CALLBACK (t_test_paired_samples_dialog), de);
+  connect_action (de, "paired-t-test", G_CALLBACK (t_test_paired_samples_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "one-sample-t-test"), "activate", G_CALLBACK (t_test_one_sample_dialog), de);
+  connect_action (de, "one-sample-t-test", G_CALLBACK (t_test_one_sample_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "utilities_comments"), "activate", G_CALLBACK (comments_dialog), de);
+  connect_action (de, "utilities_comments", G_CALLBACK (comments_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "transform_rank"), "activate", G_CALLBACK (rank_dialog), de);
+  connect_action (de, "transform_rank", G_CALLBACK (rank_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "transform_recode-same"), "activate", G_CALLBACK (recode_same_dialog), de);
+  connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "transform_recode-different"), "activate", G_CALLBACK (recode_different_dialog), de);
+  connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "analyze_descriptives"), "activate", G_CALLBACK (descriptives_dialog), de);
+  connect_action (de, "analyze_descriptives", G_CALLBACK (descriptives_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "analyze_frequencies"), "activate", G_CALLBACK (frequencies_dialog), de);
+  connect_action (de, "analyze_frequencies", G_CALLBACK (frequencies_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "crosstabs"), "activate", G_CALLBACK (crosstabs_dialog), de);
+  connect_action (de, "crosstabs", G_CALLBACK (crosstabs_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "analyze_explore"), "activate", G_CALLBACK (examine_dialog), de);
+  connect_action (de, "analyze_explore", G_CALLBACK (examine_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "linear-regression"), "activate", G_CALLBACK (regression_dialog), de);
+  connect_action (de, "linear-regression", G_CALLBACK (regression_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "reliability"), "activate", G_CALLBACK (reliability_dialog), de);
+  connect_action (de, "reliability", G_CALLBACK (reliability_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "roc-curve"), "activate", G_CALLBACK (roc_dialog), de);
+  connect_action (de, "roc-curve", G_CALLBACK (roc_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "correlation"), "activate", G_CALLBACK (correlation_dialog), de);
+  connect_action (de, "correlation", G_CALLBACK (correlation_dialog));
  
-  g_signal_connect_swapped (get_action_assert (de->builder, "factor-analysis"), "activate", G_CALLBACK (factor_dialog), de);
+  connect_action (de, "factor-analysis", G_CALLBACK (factor_dialog));
  
 
   {
@@ -1164,8 +1170,7 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   }
 
-  g_signal_connect_swapped (get_action_assert (de->builder,"file_new_syntax"), "activate", G_CALLBACK (create_syntax_window), NULL);
-
+  connect_action (de, "file_new_syntax", G_CALLBACK (create_syntax_window));
 
 
   g_signal_connect (de->data_editor,
@@ -1186,21 +1191,21 @@ psppire_data_window_init (PsppireDataWindow *de)
   gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
   gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "view_statusbar"), "activate", G_CALLBACK (status_bar_activate), de);
+  connect_action (de, "view_statusbar", G_CALLBACK (status_bar_activate));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "view_gridlines"), "activate", G_CALLBACK (grid_lines_activate), de);
+  connect_action (de, "view_gridlines", G_CALLBACK (grid_lines_activate));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "view_data"), "activate", G_CALLBACK (data_view_activate), de);
+  connect_action (de, "view_data", G_CALLBACK (data_view_activate));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "view_variables"), "activate", G_CALLBACK (variable_view_activate), de);
+  connect_action (de, "view_variables", G_CALLBACK (variable_view_activate));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "view_fonts"), "activate", G_CALLBACK (fonts_activate), de);
+  connect_action (de, "view_fonts", G_CALLBACK (fonts_activate));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "file_quit"), "activate", G_CALLBACK (file_quit), de);
+  connect_action (de, "file_quit", G_CALLBACK (file_quit));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "transform_run-pending"), "activate", G_CALLBACK (execute), de);
+  connect_action (de, "transform_run-pending", G_CALLBACK (execute));
 
-  g_signal_connect_swapped (get_action_assert (de->builder, "windows_minimise_all"), "activate", G_CALLBACK (psppire_window_minimise_all), de);
+  connect_action (de, "windows_minimise_all", G_CALLBACK (psppire_window_minimise_all));
 
   g_signal_connect_swapped (get_action_assert (de->builder, "windows_split"), "toggled", G_CALLBACK (toggle_split_window), de);
 
