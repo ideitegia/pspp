@@ -136,8 +136,6 @@ struct xr_driver
     int line_space;		/* Space between lines. */
     int line_width;		/* Width of lines. */
 
-    enum xr_output_type file_type; /* Type of output file. */
-
     /* Internal state. */
     struct render_params *params;
     char *command_name;
@@ -270,8 +268,6 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
 
   xr->headers = parse_boolean (opt (d, o, "headers", "true"));
 
-  xr->file_type = file_type;
-
   parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
   xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
   xr->right_margin = parse_dimension (opt (d, o, "right-margin", ".5in"));
@@ -285,11 +281,11 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
 
   width_pt = paper_width / 1000.0;
   length_pt = paper_length / 1000.0;
-  if (xr->file_type == XR_PDF)
+  if (file_type == XR_PDF)
     surface = cairo_pdf_surface_create (file_name, width_pt, length_pt);
-  else if (xr->file_type == XR_PS)
+  else if (file_type == XR_PS)
     surface = cairo_ps_surface_create (file_name, width_pt, length_pt);
-  else if (xr->file_type == XR_SVG)
+  else if (file_type == XR_SVG)
     surface = cairo_svg_surface_create (file_name, width_pt, length_pt);
   else
     NOT_REACHED ();
