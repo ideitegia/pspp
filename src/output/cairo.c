@@ -188,13 +188,13 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
 static struct xr_driver *
 xr_allocate (const char *name, int device_type, struct string_map *o)
 {
+  int paper_width, paper_length;
   struct output_driver *d;
   struct xr_driver *xr;
 
   xr = xzalloc (sizeof *xr);
   d = &xr->driver;
   output_driver_init (d, &cairo_driver_class, name, device_type);
-  xr->headers = true;
   xr->font_height = XR_POINT * 10;
   xr->fonts[XR_FONT_FIXED].string
     = parse_string (opt (d, o, "fixed-font", "monospace"));
@@ -206,6 +206,19 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
   xr->line_space = XR_POINT;
   xr->line_width = XR_POINT / 2;
   xr->page_number = 0;
+
+  xr->headers = parse_boolean (opt (d, o, "headers", "true"));
+
+  parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
+  xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
+  xr->right_margin = parse_dimension (opt (d, o, "right-margin", ".5in"));
+  xr->top_margin = parse_dimension (opt (d, o, "top-margin", ".5in"));
+  xr->bottom_margin = parse_dimension (opt (d, o, "bottom-margin", ".5in"));
+
+  if (xr->headers)
+    xr->top_margin += 3 * xr->font_height;
+  xr->width = paper_width - xr->left_margin - xr->right_margin;
+  xr->length = paper_length - xr->top_margin - xr->bottom_margin;
 
   return xr;
 }
@@ -261,26 +274,12 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
   cairo_surface_t *surface;
   cairo_status_t status;
   double width_pt, length_pt;
-  int paper_width, paper_length;
 
   xr = xr_allocate (file_name, device_type, o);
   d = &xr->driver;
 
-  xr->headers = parse_boolean (opt (d, o, "headers", "true"));
-
-  parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
-  xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
-  xr->right_margin = parse_dimension (opt (d, o, "right-margin", ".5in"));
-  xr->top_margin = parse_dimension (opt (d, o, "top-margin", ".5in"));
-  xr->bottom_margin = parse_dimension (opt (d, o, "bottom-margin", ".5in"));
-
-  if (xr->headers)
-    xr->top_margin += 3 * xr->font_height;
-  xr->width = paper_width - xr->left_margin - xr->right_margin;
-  xr->length = paper_length - xr->top_margin - xr->bottom_margin;
-
-  width_pt = paper_width / 1000.0;
-  length_pt = paper_length / 1000.0;
+  width_pt = (xr->width + xr->left_margin + xr->right_margin) / 1000.0;
+  length_pt = (xr->length + xr->top_margin + xr->bottom_margin) / 1000.0;
   if (file_type == XR_PDF)
     surface = cairo_pdf_surface_create (file_name, width_pt, length_pt);
   else if (file_type == XR_PS)
@@ -921,8 +920,6 @@ struct xr_driver *
 xr_driver_create (cairo_t *cairo, struct string_map *options)
 {
   struct xr_driver *xr = xr_allocate ("cairo", 0, options);
-  xr->width = INT_MAX / 8;
-  xr->length = INT_MAX / 8;
   if (!xr_set_cairo (xr, cairo))
     {
       output_driver_destroy (&xr->driver);
