@@ -621,8 +621,33 @@ static void
 create_xr_print_driver (GtkPrintContext *context, PsppireOutputWindow *window)
 {
   struct string_map options;
+  GtkPageSetup *page_setup;
+  double width, height;
+  double left_margin;
+  double right_margin;
+  double top_margin;
+  double bottom_margin;
+
+  page_setup = gtk_print_context_get_page_setup (context);
+  width = gtk_page_setup_get_paper_width (page_setup, GTK_UNIT_MM);
+  height = gtk_page_setup_get_paper_height (page_setup, GTK_UNIT_MM);
+  left_margin = gtk_page_setup_get_left_margin (page_setup, GTK_UNIT_MM);
+  right_margin = gtk_page_setup_get_right_margin (page_setup, GTK_UNIT_MM);
+  top_margin = gtk_page_setup_get_top_margin (page_setup, GTK_UNIT_MM);
+  bottom_margin = gtk_page_setup_get_bottom_margin (page_setup, GTK_UNIT_MM);
 
   string_map_init (&options);
+  string_map_insert_nocopy (&options, xstrdup ("paper-size"),
+                            xasprintf("%.2fx%.2fmm", width, height));
+  string_map_insert_nocopy (&options, xstrdup ("left-margin"),
+                            xasprintf ("%.2fmm", left_margin));
+  string_map_insert_nocopy (&options, xstrdup ("right-margin"),
+                            xasprintf ("%.2fmm", right_margin));
+  string_map_insert_nocopy (&options, xstrdup ("top-margin"),
+                            xasprintf ("%.2fmm", top_margin));
+  string_map_insert_nocopy (&options, xstrdup ("bottom-margin"),
+                            xasprintf ("%.2fmm", bottom_margin));
+
   window->print_xrd =
     xr_driver_create (gtk_print_context_get_cairo_context (context), &options);
 
