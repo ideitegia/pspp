@@ -205,7 +205,7 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
   xr->line_gutter = XR_POINT;
   xr->line_space = XR_POINT;
   xr->line_width = XR_POINT / 2;
-  xr->page_number = 1;
+  xr->page_number = 0;
 
   return xr;
 }
@@ -302,12 +302,11 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
   xr->cairo = cairo_create (surface);
   cairo_surface_destroy (surface);
 
-  cairo_translate (xr->cairo,
-                   xr_to_pt (xr->left_margin),
-                   xr_to_pt (xr->top_margin));
-
   if (!xr_set_cairo (xr, xr->cairo))
     goto error;
+
+  cairo_save (xr->cairo);
+  xr_driver_next_page (xr, xr->cairo);
 
   if (xr->width / (xr->font_height / 2) < MIN_WIDTH)
     {
@@ -431,7 +430,9 @@ xr_submit (struct output_driver *driver, const struct output_item *output_item)
   xr_driver_output_item (xr, output_item);
   while (xr_driver_need_new_page (xr))
     {
+      cairo_restore (xr->cairo);
       cairo_show_page (xr->cairo);
+      cairo_save (xr->cairo);
       xr_driver_next_page (xr, xr->cairo);
     }
 }
@@ -450,6 +451,11 @@ xr_submit (struct output_driver *driver, const struct output_item *output_item)
 void
 xr_driver_next_page (struct xr_driver *xr, cairo_t *cairo)
 {
+  if (cairo != NULL)
+    cairo_translate (cairo,
+                     xr_to_pt (xr->left_margin),
+                     xr_to_pt (xr->top_margin));
+
   xr->page_number++;
   xr->cairo = cairo;
   xr->y = 0;
