@@ -617,7 +617,17 @@ psppire_output_window_new (void)
 
 
 
+static void
+create_xr_print_driver (GtkPrintContext *context, PsppireOutputWindow *window)
+{
+  struct string_map options;
 
+  string_map_init (&options);
+  window->print_xrd =
+    xr_driver_create (gtk_print_context_get_cairo_context (context), &options);
+
+  string_map_destroy (&options);
+}
 
 static gboolean
 paginate (GtkPrintOperation *operation,
@@ -641,22 +651,15 @@ paginate (GtkPrintOperation *operation,
     }
   else
     {
-      struct string_map options = STRING_MAP_INITIALIZER (options);
       g_print ("Number of pages is %d\n", window->print_n_pages);
       gtk_print_operation_set_n_pages (operation, window->print_n_pages);
       window->print_item = 0;
 
-      //      xr_driver_destroy (window->print_xrd);
-
-      window->print_xrd =
-	xr_driver_create (gtk_print_context_get_cairo_context (context), &options);
-
-      string_map_destroy (&options);
+      create_xr_print_driver (context, window);
 
       return TRUE;
     }
 }
-
 
 static void
 begin_print (GtkPrintOperation *operation,
@@ -665,12 +668,8 @@ begin_print (GtkPrintOperation *operation,
 {
   g_print ("%s\n", __FUNCTION__);
 
-  struct string_map options = STRING_MAP_INITIALIZER (options);
+  create_xr_print_driver (context, window);
 
-  window->print_xrd =
-    xr_driver_create (gtk_print_context_get_cairo_context (context), &options);
-
-  string_map_destroy (&options);
   window->print_item = 0;
   window->print_n_pages = 1;
 }
