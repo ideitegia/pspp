@@ -268,7 +268,7 @@ text_data_import_assistant (GtkWindow *parent_window)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	char *syntax = generate_syntax (ia);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 	free (syntax);
       }
       break;

@@ -179,7 +179,7 @@ t_test_one_sample_dialog (PsppireDataWindow *de)
       {
 	gchar *syntax = generate_syntax (&tt_d);
 
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

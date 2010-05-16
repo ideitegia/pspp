@@ -467,7 +467,7 @@ t_test_independent_samples_dialog (PsppireDataWindow *de)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&tt_d);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 	g_free (syntax);
       }
       break;
