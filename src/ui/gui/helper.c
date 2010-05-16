@@ -40,6 +40,7 @@
 #include <data/settings.h>
 
 #include "psppire-data-store.h"
+#include "psppire.h"
 
 #include "gl/configmake.h"
 #include "xalloc.h"
@@ -274,14 +275,35 @@ clone_list_store (const GtkListStore *src)
 }
 
 
+
+
+static gboolean 
+on_delete (GtkWindow *window, GdkEvent *e, GtkWindow **addr)
+{
+  *addr = NULL;
+
+  return FALSE;
+}
+
 void
 paste_syntax_in_new_window (const gchar *syntax)
 {
-  GtkWidget *se = psppire_syntax_window_new ();
+  static GtkWidget *the_syntax_pasteboard = NULL;
 
-  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
+  if ( NULL == the_syntax_pasteboard)
+    {
+      the_syntax_pasteboard = psppire_syntax_window_new ();
+      g_signal_connect (the_syntax_pasteboard, "delete-event", G_CALLBACK (on_delete),
+			&the_syntax_pasteboard);
+    }
 
-  gtk_widget_show (se);
+  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (the_syntax_pasteboard)->buffer,
+				    syntax, -1);
+
+  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (the_syntax_pasteboard)->buffer,
+				    "\n", 1);
+
+  gtk_widget_show (the_syntax_pasteboard);
 }
 
 
