@@ -115,26 +115,26 @@ static bool run_regression (struct casereader *, struct cmd_regression *,
 /*
    STATISTICS subcommand output functions.
  */
-static void reg_stats_r (linreg *);
-static void reg_stats_coeff (linreg *);
-static void reg_stats_anova (linreg *);
-static void reg_stats_outs (linreg *);
-static void reg_stats_zpp (linreg *);
-static void reg_stats_label (linreg *);
-static void reg_stats_sha (linreg *);
-static void reg_stats_ci (linreg *);
-static void reg_stats_f (linreg *);
-static void reg_stats_bcov (linreg *);
-static void reg_stats_ses (linreg *);
-static void reg_stats_xtx (linreg *);
-static void reg_stats_collin (linreg *);
-static void reg_stats_tol (linreg *);
-static void reg_stats_selection (linreg *);
-static void statistics_keyword_output (void (*)(linreg *),
-				       int, linreg *);
+static void reg_stats_r (linreg *, void *);
+static void reg_stats_coeff (linreg *, void *);
+static void reg_stats_anova (linreg *, void *);
+static void reg_stats_outs (linreg *, void *);
+static void reg_stats_zpp (linreg *, void *);
+static void reg_stats_label (linreg *, void *);
+static void reg_stats_sha (linreg *, void *);
+static void reg_stats_ci (linreg *, void *);
+static void reg_stats_f (linreg *, void *);
+static void reg_stats_bcov (linreg *, void *);
+static void reg_stats_ses (linreg *, void *);
+static void reg_stats_xtx (linreg *, void *);
+static void reg_stats_collin (linreg *, void *);
+static void reg_stats_tol (linreg *, void *);
+static void reg_stats_selection (linreg *, void *);
+static void statistics_keyword_output (void (*)(linreg *, void *),
+				       int, linreg *, void *);
 
 static void
-reg_stats_r (linreg * c)
+reg_stats_r (linreg *c, void *aux UNUSED)
 {
   struct tab_table *t;
   int n_rows = 2;
@@ -170,7 +170,7 @@ reg_stats_r (linreg * c)
   Table showing estimated regression coefficients.
  */
 static void
-reg_stats_coeff (linreg * c)
+reg_stats_coeff (linreg * c, void *aux_)
 {
   size_t j;
   int n_cols = 7;
@@ -186,6 +186,7 @@ reg_stats_coeff (linreg * c)
   struct tab_table *t;
 
   assert (c != NULL);
+  gsl_matrix *cov = (gsl_matrix *) aux_;
   n_rows = linreg_n_coeffs (c) + 3;
 
   t = tab_create (n_cols, n_rows, 0);
@@ -234,8 +235,9 @@ reg_stats_coeff (linreg * c)
          Standardized coefficient, i.e., regression coefficient
          if all variables had unit variance.
        */
-      beta = sqrt (gsl_matrix_get (linreg_cov (c), j, j));
-      beta *= linreg_coeff (c, j) / c->depvar_std;
+      beta = sqrt (gsl_matrix_get (cov, j, j));
+      beta *= linreg_coeff (c, j) / 
+	sqrt (gsl_matrix_get (cov, cov->size1 - 1, cov->size2 - 1));
       tab_double (t, 4, this_row, 0, beta, NULL);
 
       /*
@@ -260,7 +262,7 @@ reg_stats_coeff (linreg * c)
   Display the ANOVA table.
  */
 static void
-reg_stats_anova (linreg * c)
+reg_stats_anova (linreg * c, void *aux UNUSED)
 {
   int n_cols = 7;
   int n_rows = 4;
@@ -316,40 +318,40 @@ reg_stats_anova (linreg * c)
 }
 
 static void
-reg_stats_outs (linreg * c)
+reg_stats_outs (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 
 static void
-reg_stats_zpp (linreg * c)
+reg_stats_zpp (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 
 static void
-reg_stats_label (linreg * c)
+reg_stats_label (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 
 static void
-reg_stats_sha (linreg * c)
+reg_stats_sha (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_ci (linreg * c)
+reg_stats_ci (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_f (linreg * c)
+reg_stats_f (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_bcov (linreg * c)
+reg_stats_bcov (linreg * c, void *aux UNUSED)
 {
   int n_cols;
   int n_rows;
@@ -390,43 +392,43 @@ reg_stats_bcov (linreg * c)
   tab_submit (t);
 }
 static void
-reg_stats_ses (linreg * c)
+reg_stats_ses (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_xtx (linreg * c)
+reg_stats_xtx (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_collin (linreg * c)
+reg_stats_collin (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_tol (linreg * c)
+reg_stats_tol (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_selection (linreg * c)
+reg_stats_selection (linreg * c, void *aux UNUSED)
 {
   assert (c != NULL);
 }
 
 static void
-statistics_keyword_output (void (*function) (linreg *),
-			   int keyword, linreg * c)
+statistics_keyword_output (void (*function) (linreg *, void *),
+			   int keyword, linreg * c, void *aux)
 {
   if (keyword)
     {
-      (*function) (c);
+      (*function) (c, aux);
     }
 }
 
 static void
-subcommand_statistics (int *keywords, linreg * c)
+subcommand_statistics (int *keywords, linreg * c, void *aux)
 {
   /*
      The order here must match the order in which the STATISTICS
@@ -486,21 +488,21 @@ subcommand_statistics (int *keywords, linreg * c)
 	  keywords[r] = 1;
 	}
     }
-  statistics_keyword_output (reg_stats_r, keywords[r], c);
-  statistics_keyword_output (reg_stats_anova, keywords[anova], c);
-  statistics_keyword_output (reg_stats_coeff, keywords[coeff], c);
-  statistics_keyword_output (reg_stats_outs, keywords[outs], c);
-  statistics_keyword_output (reg_stats_zpp, keywords[zpp], c);
-  statistics_keyword_output (reg_stats_label, keywords[label], c);
-  statistics_keyword_output (reg_stats_sha, keywords[sha], c);
-  statistics_keyword_output (reg_stats_ci, keywords[ci], c);
-  statistics_keyword_output (reg_stats_f, keywords[f], c);
-  statistics_keyword_output (reg_stats_bcov, keywords[bcov], c);
-  statistics_keyword_output (reg_stats_ses, keywords[ses], c);
-  statistics_keyword_output (reg_stats_xtx, keywords[xtx], c);
-  statistics_keyword_output (reg_stats_collin, keywords[collin], c);
-  statistics_keyword_output (reg_stats_tol, keywords[tol], c);
-  statistics_keyword_output (reg_stats_selection, keywords[selection], c);
+  statistics_keyword_output (reg_stats_r, keywords[r], c, aux);
+  statistics_keyword_output (reg_stats_anova, keywords[anova], c, aux);
+  statistics_keyword_output (reg_stats_coeff, keywords[coeff], c, aux);
+  statistics_keyword_output (reg_stats_outs, keywords[outs], c, aux);
+  statistics_keyword_output (reg_stats_zpp, keywords[zpp], c, aux);
+  statistics_keyword_output (reg_stats_label, keywords[label], c, aux);
+  statistics_keyword_output (reg_stats_sha, keywords[sha], c, aux);
+  statistics_keyword_output (reg_stats_ci, keywords[ci], c, aux);
+  statistics_keyword_output (reg_stats_f, keywords[f], c, aux);
+  statistics_keyword_output (reg_stats_bcov, keywords[bcov], c, aux);
+  statistics_keyword_output (reg_stats_ses, keywords[ses], c, aux);
+  statistics_keyword_output (reg_stats_xtx, keywords[xtx], c, aux);
+  statistics_keyword_output (reg_stats_collin, keywords[collin], c, aux);
+  statistics_keyword_output (reg_stats_tol, keywords[tol], c, aux);
+  statistics_keyword_output (reg_stats_selection, keywords[selection], c, aux);
 }
 
 /*
@@ -815,9 +817,10 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
   const gsl_matrix *ssizes;
   const gsl_matrix *cm;
   const gsl_matrix *mean_matrix;
+  const gsl_matrix *ssize_matrix;
   double result = 0.0;
   
-  cm = covariance_calculate (all_cov);
+  cm = covariance_calculate_unnormalized (all_cov);
   rows = xnmalloc (cov->size1 - 1, sizeof (*rows));
   
   for (i = 0; i < n_all_vars; i++)
@@ -835,16 +838,19 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
 	}
     }
   mean_matrix = covariance_moments (all_cov, MOMENT_MEAN);
+  ssize_matrix = covariance_moments (all_cov, MOMENT_NONE);
   for (i = 0; i < cov->size1 - 1; i++)
     {
-      means[i] = gsl_matrix_get (mean_matrix, rows[i], 0);
+      means[i] = gsl_matrix_get (mean_matrix, rows[i], 0)
+	/ gsl_matrix_get (ssize_matrix, rows[i], 0);
       for (j = 0; j < cov->size2 - 1; j++)
 	{
 	  gsl_matrix_set (cov, i, j, gsl_matrix_get (cm, rows[i], rows[j]));
 	  gsl_matrix_set (cov, j, i, gsl_matrix_get (cm, rows[j], rows[i]));
 	}
     }
-  means[cov->size1 - 1] = gsl_matrix_get (mean_matrix, dep_subscript, 0);
+  means[cov->size1 - 1] = gsl_matrix_get (mean_matrix, dep_subscript, 0)
+    / gsl_matrix_get (ssize_matrix, dep_subscript, 0);
   ssizes = covariance_moments (all_cov, MOMENT_NONE);
   result = gsl_matrix_get (ssizes, dep_subscript, rows[0]);
   for (i = 0; i < cov->size1 - 1; i++)
@@ -934,6 +940,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	{
 	  linreg_set_indep_variable_mean (models[k], i, means[i]);
 	}
+      linreg_set_depvar_mean (models[k], means[i]);
       /*
 	For large data sets, use QR decomposition.
       */
@@ -951,7 +958,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	  
 	  if (!taint_has_tainted_successor (casereader_get_taint (input)))
 	    {
-	      subcommand_statistics (cmd->a_statistics, models[k]);
+	      subcommand_statistics (cmd->a_statistics, models[k], this_cm);
 	    }
 	}
       else

@@ -129,11 +129,6 @@ struct linreg_struct
 				   dfe, but since it is the best unbiased
 				   estimate of the population variance, it
 				   has its own entry here. */
-  gsl_vector *ssx;		/* Centered sums of squares for independent
-				   variables, i.e. \sum (x[i] - mean(x))^2. */
-  double ssy;			/* Centered sums of squares for dependent
-				   variable.
-				 */
   /*
      Covariance matrix of the parameter estimates.
    */
@@ -144,12 +139,6 @@ struct linreg_struct
   double dft;
   double dfe;
   double dfm;
-
-  /*
-     'Hat' or Hessian matrix, i.e. (X'X)^{-1}, where X is our
-     design matrix.
-   */
-  gsl_matrix *hat;
 
   struct variable *pred;
   struct variable *resid;
@@ -197,9 +186,11 @@ gsl_matrix * linreg_cov (const linreg *);
 double linreg_coeff (const linreg *, size_t);
 const struct variable * linreg_indep_var (const linreg *, size_t);
 size_t linreg_n_coeffs (const linreg *);
-size_t linreg_n_obs (const linreg *);
+double linreg_n_obs (const linreg *);
 double linreg_sse (const linreg *);
 double linreg_ssreg (const linreg *);
 double linreg_dfmodel (const linreg *);
 double linreg_sst (const linreg *);
+void linreg_set_depvar_mean (linreg *, double);
+double linreg_get_depvar_mean (linreg *);
 #endif

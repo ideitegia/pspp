@@ -81,9 +81,7 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
     }
   c->indep_means = gsl_vector_alloc (p);
   c->indep_std = gsl_vector_alloc (p);
-  c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the
-					   independent variables.
-					 */
+
   c->ss_indeps = gsl_vector_alloc (p);	/* Sums of squares for the
 					   model parameters.
 					 */
@@ -91,11 +89,13 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
   c->n_indeps = p;
   c->n_coeffs = p;
   c->coeff = xnmalloc (p, sizeof (*c->coeff));
-  c->cov = gsl_matrix_alloc (c->n_coeffs + 1, c->n_coeffs + 1);
+  c->cov = gsl_matrix_calloc (c->n_coeffs + 1, c->n_coeffs + 1);
   c->dft = n - 1;
   c->dfm = p;
   c->dfe = c->dft - c->dfm;
   c->intercept = 0.0;
+  c->depvar_mean = 0.0;
+  c->depvar_std = 0.0;
   /*
      Default settings.
    */
@@ -115,7 +115,6 @@ linreg_free (void *m)
       gsl_vector_free (c->indep_means);
       gsl_vector_free (c->indep_std);
       gsl_matrix_free (c->cov);
-      gsl_vector_free (c->ssx);
       free (c->indep_vars);
       free (c->coeff);
       free (c);
@@ -266,6 +265,34 @@ void linreg_set_indep_variable_mean (linreg *c, size_t j, double m)
   assert (c != NULL);
   gsl_vector_set (c->indep_means, j, m);
 }
+static void invert_r (gsl_matrix *r, gsl_matrix *r_inv)
+{
+  size_t i;
+  size_t j;
+  size_t k;
+  size_t row;
+  double tmp;
+
+  for (i = 0; i < r->size1; i++)
+    {
+      gsl_matrix_set (r_inv, i, i, 1.0 / gsl_matrix_get (r, i, i));
+    }
+  for (i = 0; i < r->size1; i++)
+    {
+      row = 0;
+      for (j = row + 1 + i; j < r->size2; j++)
+	{
+	  tmp = 0.0;
+	  for (k = 1; k <= j - row; k++)
+	    {
+	      tmp += gsl_matrix_get (r, row, row + k) 
+		* gsl_matrix_get (r_inv, row + k, j);
+	    }
+	  gsl_matrix_set (r_inv, row, j, -tmp / gsl_matrix_get (r, row, row));
+	  row++;
+	}
+    }
+}
 
 static void
 linreg_fit_qr (const gsl_matrix *cov, linreg *l)
@@ -296,52 +323,61 @@ linreg_fit_qr (const gsl_matrix *cov, linreg *l)
   gsl_linalg_QR_decomp (xtx, tau);
   q = gsl_matrix_alloc (xtx->size1, xtx->size2);
   r = gsl_matrix_alloc (xtx->size1, xtx->size2);
+
   gsl_linalg_QR_unpack (xtx, tau, q, r);
   gsl_linalg_QR_solve (xtx, tau, xty, params);
   for (i = 0; i < params->size; i++)
     {
       l->coeff[i] = gsl_vector_get (params, i);
     }
-
-  l->intercept = l->depvar_mean;
+  l->sst = gsl_matrix_get (cov, cov->size1 - 1, cov->size2 - 1);
+  l->ssm = 0.0;
   for (i = 0; i < l->n_indeps; i++)
     {
-      l->intercept -= l->coeff[i] * linreg_get_indep_variable_mean (l, i);
+      l->ssm += gsl_vector_get (xty, i) * l->coeff[i];
     }
+  l->sse = l->sst - l->ssm;
 
-  l->sse = gsl_matrix_get (cov, cov->size1 - 1, cov->size2 - 1);
+  gsl_blas_dtrsm (CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit, linreg_mse (l),
+		  r, q);
+  /* Copy the lower triangle into the upper triangle. */
+  double intercept_variance = 0.0;
+  for (i = 0; i < q->size1; i++)
+    {
+      gsl_matrix_set (l->cov, i + 1, i + 1, gsl_matrix_get (q, i, i));
+      for (j = i + 1; j < q->size2; j++)
+	{
+	  intercept_variance -= 2.0 * gsl_matrix_get (q, i, j) *
+	    linreg_get_indep_variable_mean (l, i) *
+	    linreg_get_indep_variable_mean (l, j);
+	  gsl_matrix_set (q, i, j, gsl_matrix_get (q, j, i));
+	}
+    }
+  l->intercept = linreg_get_depvar_mean (l);
+  tmp = 0.0;
   for (i = 0; i < l->n_indeps; i++)
     {
-      tmp += gsl_vector_get (xty, i) * l->coeff[i];
-    }
-  l->sse -= 2.0 * tmp;
-  for (i = 0; i < xtx->size1; i++)
-    {
-      tmp = 0.0;
-      for (j = i; j < xtx->size2; j++)
-	{
-	  tmp += gsl_matrix_get (xtx, i, j) * l->coeff[j];
-	}
-      l->sse += tmp * tmp;
+      tmp = linreg_get_indep_variable_mean (l, i);
+      l->intercept -= l->coeff[i] * tmp;
+      intercept_variance += tmp * tmp * gsl_matrix_get (q, i, i);
     }
 
-#if 0
-  p = l->hat->size1 - 1;
-  for (i = 0; i < l->cov->size1 - 1; i++)
+  /* Covariances related to the intercept. */
+  intercept_variance += linreg_mse (l) / linreg_n_obs (l);
+  gsl_matrix_set (l->cov, 0, 0, intercept_variance);  
+  double intcpt_coef = 0.0;
+  for (i = 0; i < q->size1; i++)
     {
-      gsl_matrix_set (l->cov, p - i, p - i, 1.0 / gsl_matrix_get (r, p - i, p - i));
-      for (j = 0; j < i; j++)
+      for (j = 0; j < q->size2; j++)
 	{
-	  tmp = -1.0 * gsl_matrix_get (r, p - i, p - j);
-	  tmp /= gsl_matrix_get (r, p - i, p - i) * gsl_matrix_get (r, p - j, p - j);
-	  gsl_matrix_set (l->cov, p - i, p - j, tmp);
+	  intcpt_coef -= gsl_matrix_get (q, i, j) 
+	    * linreg_get_indep_variable_mean (l, j);
 	}
+      gsl_matrix_set (l->cov, 0, i + 1, intcpt_coef);
+      gsl_matrix_set (l->cov, i + 1, 0, intcpt_coef);
+      intcpt_coef = 0.0;
     }
-#endif 
-  gsl_matrix_transpose_memcpy (l->cov, q);
-  gsl_blas_dtrsm (CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit, 1.0,
-		  r, l->cov);
-
+      
   gsl_matrix_free (q);
   gsl_matrix_free (r);
   gsl_vector_free (xty);
@@ -359,24 +395,23 @@ linreg_fit_qr (const gsl_matrix *cov, linreg *l)
 void
 linreg_fit (const gsl_matrix *cov, linreg *l)
 {
-  gsl_matrix *params;
   assert (l != NULL);
   assert (cov != NULL);
 
-  params = gsl_matrix_calloc (cov->size1, cov->size2);
-  gsl_matrix_memcpy (params, cov);
   l->sst = gsl_matrix_get (cov, cov->size1 - 1, cov->size2 - 1);
-
   if (l->method == LINREG_SWEEP)
     {
+      gsl_matrix *params;
+      params = gsl_matrix_calloc (cov->size1, cov->size2);
+      gsl_matrix_memcpy (params, cov);
       reg_sweep (params);
       post_sweep_computations (l, params);  
+      gsl_matrix_free (params);
     }
   else if (l->method == LINREG_QR)
     {
-      linreg_fit_qr (params, l);
+      linreg_fit_qr (cov, l);
     }
-  gsl_matrix_free (params);
 }
 
 double linreg_mse (const linreg *c)
@@ -414,7 +449,7 @@ linreg_n_coeffs (const linreg *c)
   return c->n_coeffs;
 }
 
-size_t
+double
 linreg_n_obs (const linreg *c)
 {
   return c->n_obs;
@@ -441,4 +476,16 @@ double
 linreg_dfmodel ( const linreg *c)
 {
   return c->dfm;
+}
+
+void
+linreg_set_depvar_mean (linreg *c, double x)
+{
+  c->depvar_mean = x;
+}
+
+double 
+linreg_get_depvar_mean (linreg *c)
+{
+  return c->depvar_mean;
 }
