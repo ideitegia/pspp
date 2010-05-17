@@ -40,6 +40,7 @@ void covariance_accumulate_pass1 (struct covariance *, const struct ccase *);
 void covariance_accumulate_pass2 (struct covariance *, const struct ccase *);
 
 const gsl_matrix * covariance_calculate (struct covariance *cov);
+const gsl_matrix * covariance_calculate_unnormalized (struct covariance *);
 
 void covariance_destroy (struct covariance *cov);
 

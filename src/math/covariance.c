@@ -590,7 +590,6 @@ covariance_calculate_single_pass (struct covariance *cov)
 }
 
 
-
 /* 
    Return a pointer to gsl_matrix containing the pairwise covariances.
    The matrix remains owned by the COV object, and must not be freed.
@@ -614,6 +613,86 @@ covariance_calculate (struct covariance *cov)
     }
 }
 
+/*
+  Covariance computed without dividing by the sample size.
+ */
+static const gsl_matrix *
+covariance_calculate_double_pass_unnormalized (struct covariance *cov)
+{
+  size_t i, j;
+  for (i = 0 ; i < cov->dim; ++i)
+    {
+      for (j = 0 ; j < cov->dim; ++j)
+	{
+	  int idx;
+	  double *x = gsl_matrix_ptr (cov->moments[MOMENT_VARIANCE], i, j);
+
+	  idx = cm_idx (cov, i, j);
+	  if ( idx >= 0)
+	    {
+	      x = &cov->cm [idx];
+	    }
+	}
+    }
+
+  return  cm_to_gsl (cov);
+}
+
+static const gsl_matrix *
+covariance_calculate_single_pass_unnormalized (struct covariance *cov)
+{
+  size_t i, j;
+  size_t m;
+
+  for (i = 0 ; i < cov->dim; ++i)
+    {
+      for (j = 0 ; j < cov->dim; ++j)
+	{
+	  double *x = gsl_matrix_ptr (cov->moments[MOMENT_VARIANCE], i, j);
+	  *x -= pow2 (gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j))
+	    / gsl_matrix_get (cov->moments[MOMENT_NONE], i, j);
+	}
+    }
+  for ( j = 0 ; j < cov->dim - 1; ++j)
+    {
+      for (i = j + 1 ; i < cov->dim; ++i)
+	{
+	  double *x = &cov->cm [cm_idx (cov, i, j)];
+	  
+	  *x -=
+	    gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j) 
+	    *
+	    gsl_matrix_get (cov->moments[MOMENT_MEAN], j, i) 
+	  / gsl_matrix_get (cov->moments[MOMENT_NONE], i, j);
+	}
+    }
+
+  return cm_to_gsl (cov);
+}
+
+
+/* 
+   Return a pointer to gsl_matrix containing the pairwise covariances.
+   The matrix remains owned by the COV object, and must not be freed.
+   Call this function only after all data have been accumulated.
+*/
+const gsl_matrix *
+covariance_calculate_unnormalized (struct covariance *cov)
+{
+  assert ( cov->state > 0 );
+
+  switch (cov->passes)
+    {
+    case 1:
+      return covariance_calculate_single_pass_unnormalized (cov);  
+      break;
+    case 2:
+      return covariance_calculate_double_pass_unnormalized (cov);  
+      break;
+    default:
+      NOT_REACHED ();
+    }
+}
 
 
 
@@ -622,7 +701,7 @@ void
 covariance_destroy (struct covariance *cov)
 {
   size_t i;
-  free (cov->vars);
+
   categoricals_destroy (cov->categoricals);
 
   for (i = 0; i < n_MOMENTS; ++i)
