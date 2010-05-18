@@ -422,6 +422,7 @@ TESTSUITE_AT = \
 	tests/language/stats/autorecode.at \
 	tests/language/stats/crosstabs.at \
 	tests/language/stats/descriptives.at \
+	tests/language/stats/factor.at \
 	tests/language/stats/frequencies.at \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/recode.at \
