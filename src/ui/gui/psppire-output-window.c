@@ -650,16 +650,11 @@ paginate (GtkPrintOperation *operation,
 	  GtkPrintContext   *context,
 	  PsppireOutputWindow *window)
 {
-  g_print ("%s\n", __FUNCTION__);
-
   if ( window->print_item < window->n_items )
     {
-      g_print ("Passing item %d\n", window->print_item);
       xr_driver_output_item (window->print_xrd, window->items[window->print_item++]);
-      bool x = xr_driver_need_new_page (window->print_xrd);
-      if ( x )
+      if (xr_driver_need_new_page (window->print_xrd))
 	{
-	  g_print ("Need new page: %d\n", x);
 	  xr_driver_next_page (window->print_xrd, NULL);
 	  window->print_n_pages ++;
 	}
@@ -667,12 +662,9 @@ paginate (GtkPrintOperation *operation,
     }
   else
     {
-      g_print ("Number of pages is %d\n", window->print_n_pages);
       gtk_print_operation_set_n_pages (operation, window->print_n_pages);
       window->print_item = 0;
-
       create_xr_print_driver (context, window);
-
       return TRUE;
     }
 }
@@ -682,8 +674,6 @@ begin_print (GtkPrintOperation *operation,
 	     GtkPrintContext   *context,
 	     PsppireOutputWindow *window)
 {
-  g_print ("%s\n", __FUNCTION__);
-
   create_xr_print_driver (context, window);
 
   window->print_item = 0;
@@ -695,16 +685,7 @@ end_print (GtkPrintOperation *operation,
 	   GtkPrintContext   *context,
 	   PsppireOutputWindow *window)
 {
-  g_print ("%s\n", __FUNCTION__);
   //  xr_driver_destroy (window->print_xrd);
-}
-
-static void
-done (GtkPrintOperation *operation,
-      GtkPrintOperationResult   result,
-      gpointer           user_data)    
-{
-  g_print ("%s %d\n", __FUNCTION__, result);
 }
 
 
@@ -714,8 +695,6 @@ draw_page (GtkPrintOperation *operation,
 	   gint               page_number,
 	   PsppireOutputWindow *window)
 {
-  g_print ("%s: %d\n", __FUNCTION__, page_number);
-
   xr_driver_next_page (window->print_xrd, gtk_print_context_get_cairo_context (context));
   while ( window->print_item < window->n_items)
     {
@@ -740,7 +719,6 @@ psppire_output_window_print (PsppireOutputWindow *window)
   g_signal_connect (print, "end_print", G_CALLBACK (end_print),     window);
   g_signal_connect (print, "paginate", G_CALLBACK (paginate),       window);
   g_signal_connect (print, "draw_page", G_CALLBACK (draw_page),     window);
-  g_signal_connect (print, "done", G_CALLBACK (done),               window);
 
   res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
                                  GTK_WINDOW (window), NULL);
