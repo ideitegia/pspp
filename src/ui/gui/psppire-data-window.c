@@ -25,6 +25,7 @@
 #include "language/syntax-string-source.h"
 #include "libpspp/message.h"
 #include "ui/gui/help-menu.h"
+#include "ui/gui/binomial-dialog.h"
 #include "ui/gui/comments-dialog.h"
 #include "ui/gui/compute-dialog.h"
 #include "ui/gui/correlation-dialog.h"
@@ -1120,6 +1121,8 @@ psppire_data_window_init (PsppireDataWindow *de)
   connect_action (de, "factor-analysis", G_CALLBACK (factor_dialog));
 
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
+
+  connect_action (de, "binomial", G_CALLBACK (binomial_dialog));
  
 
   {
