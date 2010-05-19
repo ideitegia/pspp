@@ -12,12 +12,13 @@
         <child>
           <object class="GtkAction" id="file_print">
             <property name="name">file_print</property>
-            <property name="label" translatable="yes">_Print</property>
+            <property name="stock-id">gtk-print</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_export">
             <property name="name">file_export</property>
+            <property name="stock-id">gtk-convert</property>
             <property name="label" translatable="yes">_Export</property>
           </object>
         </child>
