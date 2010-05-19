@@ -90,10 +90,9 @@ generate_syntax (const struct sort_cases_dialog *scd)
 
 /* Pops up the Sort Cases dialog box */
 void
-sort_cases_dialog (GObject *o, gpointer data)
+sort_cases_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct sort_cases_dialog scd;
 
@@ -142,7 +141,7 @@ sort_cases_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&scd);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

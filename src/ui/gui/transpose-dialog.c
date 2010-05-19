@@ -77,10 +77,9 @@ dialog_state_valid (gpointer data)
 
 
 void
-transpose_dialog (GObject *o, gpointer data)
+transpose_dialog (PsppireDataWindow *de)
 {
   gint response ;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   PsppireDict *dict = NULL;
 
   GtkBuilder *xml = builder_new ("psppire.ui");
@@ -124,7 +123,7 @@ transpose_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (dict, xml);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

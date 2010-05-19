@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -172,7 +172,7 @@ psppire_axis_start_pixel (const PsppireAxis *a, gint unit)
   fraction = (unit - start) / (gdouble) tower_node_get_size (&an->unit_node);
 
   return  tower_node_get_level (&an->pixel_node) +
-    nearbyint (fraction * tower_node_get_size (&an->pixel_node));
+    rint (fraction * tower_node_get_size (&an->pixel_node));
 }
 
 gint
@@ -196,8 +196,8 @@ psppire_axis_unit_size (const PsppireAxis *axis, gint unit)
 
   an = tower_data (n, struct axis_node, unit_node);
 
-  return nearbyint (tower_node_get_size (&an->pixel_node)
-		     / (gdouble) tower_node_get_size (&an->unit_node));
+  return rint (tower_node_get_size (&an->pixel_node)
+               / (gdouble) tower_node_get_size (&an->unit_node));
 }
 
 
@@ -472,7 +472,7 @@ split (PsppireAxis *a, gint posn)
   tower_resize (&a->unit_tower, &existing_node->unit_node, posn - start);
 
   tower_resize (&a->pixel_tower, &existing_node->pixel_node,
-		nearbyintf (fraction * existing_pixel_size));
+		rintf (fraction * existing_pixel_size));
 
   tower_insert (&a->unit_tower,
 		existing_unit_size - (posn - start),
@@ -481,7 +481,7 @@ split (PsppireAxis *a, gint posn)
 
 
   tower_insert (&a->pixel_tower,
-		nearbyintf (existing_pixel_size * (1 - fraction)),
+		rintf (existing_pixel_size * (1 - fraction)),
 		&new_node->pixel_node,
 		tower_next (&a->pixel_tower, &existing_node->pixel_node));
 }

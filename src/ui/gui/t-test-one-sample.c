@@ -120,11 +120,10 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the dialog box */
 void
-t_test_one_sample_dialog (GObject *o, gpointer data)
+t_test_one_sample_dialog (PsppireDataWindow *de)
 {
   struct tt_one_sample_dialog tt_d;
   gint response;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   PsppireVarStore *vs = NULL;
 
@@ -180,7 +179,7 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&tt_d);
 
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

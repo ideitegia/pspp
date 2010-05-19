@@ -30,7 +30,7 @@
 #include "psppire-data-window.h"
 #include "psppire-window-register.h"
 #include "psppire.h"
-#include "about.h"
+#include "help-menu.h"
 #include "psppire-syntax-window.h"
 #include "syntax-editor-source.h"
 #include <language/lexer/lexer.h>
@@ -392,7 +392,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   GtkBuilder *xml = builder_new ("syntax-editor.ui");
   GtkWidget *box = gtk_vbox_new (FALSE, 0);
 
-  GtkWidget *menubar = get_widget_assert (xml, "menubar2");
+  GtkWidget *menubar = get_widget_assert (xml, "menubar");
   GtkWidget *sw = get_widget_assert (xml, "scrolledwindow8");
 
 
@@ -425,10 +425,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   gtk_widget_show_all (box);
 
-  g_signal_connect (get_action_assert (xml,"file_new_syntax"),
-		    "activate",
-		    G_CALLBACK (create_syntax_window),
-		    NULL);
+  g_signal_connect_swapped (get_action_assert (xml,"file_new_syntax"), "activate", G_CALLBACK (create_syntax_window), NULL);
 
 #if 0
   g_signal_connect (get_action_assert (xml,"file_new_data"),
@@ -436,21 +433,6 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    G_CALLBACK (create_data_window),
 		    window);
 #endif
-
-  {
-    GtkAction *abt = get_action_assert (xml, "help_about");
-    g_object_set (abt, "stock-id", "gtk-about", NULL);
-
-    g_signal_connect (abt,
-		      "activate",
-		      G_CALLBACK (about_new),
-		      window);
-  }
-
-  g_signal_connect (get_action_assert (xml,"help_reference"),
-		    "activate",
-		    G_CALLBACK (reference_manual),
-		    NULL);
 
   g_signal_connect_swapped (get_action_assert (xml, "file_save"),
 		    "activate",
@@ -496,8 +478,10 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   {
   GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1", GTK_TYPE_UI_MANAGER));
 
+  merge_help_menu (uim);
+
   PSPPIRE_WINDOW (window)->menu =
-    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar2/windows/windows_minimise_all")->parent);
+    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
   }
 
   g_object_unref (xml);

@@ -164,10 +164,9 @@ refresh (PsppireDialog *dialog, struct split_file_dialog *d)
 
 /* Pops up the Split File dialog box */
 void
-split_file_dialog (GObject *o, gpointer data)
+split_file_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   struct split_file_dialog sfd;
   PsppireVarStore *vs ;
 
@@ -218,7 +217,7 @@ split_file_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&sfd);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

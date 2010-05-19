@@ -17,6 +17,7 @@
 #include <config.h>
 #include <gtk/gtk.h>
 
+#include "variable-info-dialog.h"
 #include "var-display.h"
 #include <data/variable.h>
 #include <data/format.h>
@@ -143,10 +144,8 @@ static gchar * generate_syntax (PsppireDictView *treeview);
 
 
 void
-variable_info_dialog (GObject *o, gpointer data)
+variable_info_dialog (PsppireDataWindow *de)
 {
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
-
   gint response ;
 
   GtkBuilder *xml = builder_new ("variable-info.ui");
@@ -197,7 +196,7 @@ variable_info_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (PSPPIRE_DICT_VIEW (treeview));
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

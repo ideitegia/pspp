@@ -32,7 +32,7 @@
 #include <output/tab.h>
 #include <stdlib.h>
 
-#include "about.h"
+#include "help-menu.h"
 
 #include "psppire-output-window.h"
 
@@ -570,16 +570,6 @@ psppire_output_window_init (PsppireOutputWindow *window)
 		    G_CALLBACK (cancel_urgency),
 		    NULL);
 
-  g_signal_connect (get_action_assert (xml,"help_about"),
-		    "activate",
-		    G_CALLBACK (about_new),
-		    window);
-
-  g_signal_connect (get_action_assert (xml,"help_reference"),
-		    "activate",
-		    G_CALLBACK (reference_manual),
-		    NULL);
-
   g_signal_connect (get_action_assert (xml,"windows_minimise-all"),
 		    "activate",
 		    G_CALLBACK (psppire_window_minimise_all),
@@ -587,9 +577,10 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   {
     GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1", GTK_TYPE_UI_MANAGER));
+    merge_help_menu (uim);
 
     PSPPIRE_WINDOW (window)->menu =
-      GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar1/windows_menuitem/windows_minimise-all")->parent);
+      GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows_menuitem/windows_minimise-all")->parent);
   }
 
   g_signal_connect_swapped (get_action_assert (xml, "file_export"), "activate",

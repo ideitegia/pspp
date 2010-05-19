@@ -123,10 +123,9 @@ refresh (struct oneway_anova_dialog *ow)
 
 /* Pops up the dialog box */
 void
-oneway_anova_dialog (GObject *o, gpointer data)
+oneway_anova_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   PsppireVarStore *vs = NULL;
 
@@ -224,7 +223,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&ow);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

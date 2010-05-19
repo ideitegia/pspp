@@ -19,7 +19,8 @@
 
 
 #include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void frequencies_dialog (GObject *o, gpointer data);
+void frequencies_dialog (PsppireDataWindow * data);
 
 #endif

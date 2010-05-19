@@ -18,6 +18,8 @@
 #ifndef COMMENTS_DIALOG_H
 #define COMMENTS_DIALOG_H
 
-void comments_dialog (GObject *o, gpointer data);
+#include "psppire-data-window.h"
+
+void comments_dialog (PsppireDataWindow * data);
 
 #endif /*  COMMENTS_DIALOG_H */

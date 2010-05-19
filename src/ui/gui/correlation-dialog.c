@@ -83,13 +83,12 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Correlation dialog box */
 void
-correlation_dialog (GObject *o, gpointer data)
+correlation_dialog (PsppireDataWindow *de)
 {
   struct correlation rd;
   gint response;
 
   GtkBuilder *xml = builder_new ("correlation.ui");
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "correlation-dialog");
@@ -131,7 +130,7 @@ correlation_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&rd);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

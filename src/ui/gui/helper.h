@@ -29,7 +29,7 @@
 
 #include "gl/configmake.h"
 
-void paste_syntax_in_new_window (const gchar *syntax);
+void paste_syntax_to_window (const gchar *syntax);
 
 struct fmt_spec;
 
@@ -53,8 +53,6 @@ gchar * convert_glib_filename_to_system_filename (const gchar *fname,
 						  GError **err);
 
 void connect_help (GtkBuilder *);
-
-void reference_manual (GtkMenuItem *, gpointer);
 
 #define builder_new(NAME) builder_new_real (relocate (PKGDATADIR "/" NAME))
 

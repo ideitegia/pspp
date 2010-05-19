@@ -18,8 +18,8 @@
 #define __RANK_DIALOG_H
 
 
-#include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void rank_dialog (GObject *o, gpointer data);
+void rank_dialog (PsppireDataWindow *);
 
 #endif

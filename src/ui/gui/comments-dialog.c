@@ -91,11 +91,10 @@ wrap_line (GtkTextBuffer *buffer,
 
 
 void
-comments_dialog (GObject *o, gpointer data)
+comments_dialog (PsppireDataWindow *de)
 {
   GtkTextIter iter;
   gint response ;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   struct comment_dialog cd;
 
   GtkBuilder *xml = builder_new ("psppire.ui");
@@ -178,7 +177,7 @@ comments_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&cd);
 
-	paste_syntax_in_new_window (syntax);
+	paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

@@ -18,11 +18,10 @@
 #ifndef WEIGHT_CASES_DIALOG_H
 #define WEIGHT_CASES_DIALOG_H
 
-#include <glib.h>
-#include <glib-object.h>
+#include "psppire-data-window.h"
 
 /* Pops up the Weight Cases dialog box */
-void weight_cases_dialog (GObject *o, gpointer data);
+void weight_cases_dialog (PsppireDataWindow * data);
 
 
 #endif

@@ -383,7 +383,7 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Crosstabs dialog box */
 void
-crosstabs_dialog (GObject *o, gpointer data)
+crosstabs_dialog (PsppireDataWindow *de)
 {
   gint response;
   struct crosstabs_dialog cd;
@@ -391,8 +391,6 @@ crosstabs_dialog (GObject *o, gpointer data)
   GtkBuilder *xml = builder_new ("crosstabs.ui");
   PsppireVarStore *vs = NULL;
   PsppireDict *dict = NULL;
-
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
 
   GtkWidget *dialog = get_widget_assert   (xml, "crosstabs-dialog");
@@ -479,7 +477,7 @@ crosstabs_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&cd);
 
-	paste_syntax_in_new_window (syntax);
+	paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

@@ -62,7 +62,7 @@ treeview_create_checkbox_model (GtkTreeView *treeview,
       GtkTreeIter iter;
       gtk_list_store_append (list, &iter);
       gtk_list_store_set (list, &iter,
-                          CHECKBOX_COLUMN_LABEL, items[i].label,
+                          CHECKBOX_COLUMN_LABEL, gettext (items[i].label),
                           CHECKBOX_COLUMN_SELECTED,
 			  (default_items & (1u << i)) != 0,
                           -1);

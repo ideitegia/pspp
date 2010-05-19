@@ -455,19 +455,15 @@ static void recode_dialog (PsppireDataWindow *de, gboolean diff);
 
 /* Pops up the Recode Same version of the dialog box */
 void
-recode_same_dialog (GObject *o, gpointer data)
+recode_same_dialog (PsppireDataWindow *de)
 {
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
-
   recode_dialog (de, FALSE);
 }
 
 /* Pops up the Recode Different version of the dialog box */
 void
-recode_different_dialog (GObject *o, gpointer data)
+recode_different_dialog (PsppireDataWindow *de)
 {
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
-
   recode_dialog (de, TRUE);
 }
 
@@ -1101,7 +1097,7 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&rd);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

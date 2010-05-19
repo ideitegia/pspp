@@ -19,7 +19,8 @@
 
 
 #include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void factor_dialog (GObject *o, gpointer data);
+void factor_dialog (PsppireDataWindow * data);
 
 #endif

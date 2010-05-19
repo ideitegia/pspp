@@ -18,8 +18,8 @@
 #define __REGRESSION_DIALOG_H
 
 
-#include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void regression_dialog (GObject *o, gpointer data);
+void regression_dialog (PsppireDataWindow * data);
 
 #endif

@@ -18,9 +18,8 @@
 #define __SELECT_CASES_DIALOG_H
 
 
-#include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-
-void select_cases_dialog (GObject *o, gpointer data);
+void select_cases_dialog (PsppireDataWindow * data);
 
 #endif

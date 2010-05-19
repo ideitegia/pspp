@@ -40,14 +40,12 @@ refresh (const PsppireDataWindow *de, GtkBuilder *xml)
 }
 
 void
-goto_case_dialog (GObject *o, gpointer data)
+goto_case_dialog (PsppireDataWindow *de)
 {
   gint response;
   GtkBuilder *xml = builder_new ("psppire.ui");
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   GtkWidget *dialog = get_widget_assert   (xml, "goto-case-dialog");
-
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 

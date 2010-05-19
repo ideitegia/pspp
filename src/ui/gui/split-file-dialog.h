@@ -18,11 +18,10 @@
 #ifndef SPLIT_FILE_DIALOG_H
 #define SPLIT_FILE_DIALOG_H
 
-#include <glib.h>
-#include <glib-object.h>
+#include "psppire-data-window.h"
 
 /* Pops up the Split File dialog box */
-void split_file_dialog (GObject *o, gpointer data);
+void split_file_dialog (PsppireDataWindow * data);
 
 
 #endif

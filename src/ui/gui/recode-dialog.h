@@ -18,9 +18,9 @@
 #define __RECODE_DIALOG_H
 
 
-#include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void recode_same_dialog (GObject *o, gpointer data);
-void recode_different_dialog (GObject *o, gpointer data);
+void recode_same_dialog (PsppireDataWindow * data);
+void recode_different_dialog (PsppireDataWindow * data);
 
 #endif

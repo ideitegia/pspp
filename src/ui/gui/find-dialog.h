@@ -19,9 +19,9 @@
 #define FIND_DIALOG_H
 
 #include <glib.h>
-#include <glib-object.h>
+#include "psppire-data-window.h"
 
 /* Pops up the Find dialog box */
-void find_dialog (GObject *o, gpointer data);
+void find_dialog (PsppireDataWindow *);
 
 #endif

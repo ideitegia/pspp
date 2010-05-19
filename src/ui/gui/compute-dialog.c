@@ -363,10 +363,9 @@ contents_plausible (gpointer data)
 
 /* Pops up the Compute dialog box */
 void
-compute_dialog (GObject *o, gpointer data)
+compute_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireDataWindow *de = data;
 
   PsppireVarStore *vs = NULL;
   struct compute_dialog scd;
@@ -449,7 +448,7 @@ compute_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&scd);
 
-	paste_syntax_in_new_window (syntax);
+	paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

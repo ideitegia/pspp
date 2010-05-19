@@ -102,10 +102,9 @@ static gchar * generate_syntax (const struct weight_cases_dialog *wcd);
 
 /* Pops up the Weight Cases dialog box */
 void
-weight_cases_dialog (GObject *o, gpointer data)
+weight_cases_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   struct weight_cases_dialog wcd;
 
   GtkBuilder *xml = builder_new ("psppire.ui");
@@ -165,7 +164,7 @@ weight_cases_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&wcd);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 	g_free (syntax);
       }
       break;

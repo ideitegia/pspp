@@ -110,13 +110,12 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Reliability dialog box */
 void
-reliability_dialog (GObject *o, gpointer data)
+reliability_dialog (PsppireDataWindow *de)
 {
   struct reliability rd;
   gint response;
 
   GtkBuilder *xml = builder_new ("reliability.ui");
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "reliability-dialog");
@@ -174,7 +173,7 @@ reliability_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&rd);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

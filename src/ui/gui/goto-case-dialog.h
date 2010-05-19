@@ -19,7 +19,8 @@
 
 
 #include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void goto_case_dialog (GObject *o, gpointer data);
+void goto_case_dialog (PsppireDataWindow * data);
 
 #endif

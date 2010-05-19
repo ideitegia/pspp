@@ -234,10 +234,9 @@ run_opts_dialog (struct examine_dialog *ed)
 
 /* Pops up the Examine dialog box */
 void
-examine_dialog (GObject *o, gpointer data)
+examine_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct examine_dialog ex_d;
 
@@ -315,7 +314,7 @@ examine_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&ex_d);
-	paste_syntax_in_new_window (syntax);
+	paste_syntax_to_window (syntax);
 	g_free (syntax);
       }
       break;

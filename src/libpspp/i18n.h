@@ -26,9 +26,28 @@ void  i18n_init (void);
 
 struct pool;
 
+
+/* 
+Converts the string TEXT, which should be encoded in FROM-encoding, to a
+dynamically allocated string in TO-encoding.   Any characters which cannot
+be converted will be represented by '?'.
+
+LENGTH should be the length of the string or -1, if null terminated.
+
+The returned string will be allocated on POOL.
+
+This function's behaviour differs from that of g_convert_with_fallback provided
+by GLib.  The GLib function will fail (returns NULL) if any part of the input
+string is not valid in the declared input encoding.  This function however perseveres
+even in the presence of badly encoded input.
+*/
 char *recode_string_pool (const char *to, const char *from,
 			  const char *text, int length, struct pool *pool);
 
+
+
+/* Similar to recode_string_pool, but allocates the returned value on the heap instead of 
+   in a pool.  It is the caller's responsibility to free the returned value. */
 char *recode_string (const char *to, const char *from,
 		      const char *text, int len);
 

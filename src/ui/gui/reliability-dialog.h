@@ -18,8 +18,8 @@
 #define __RELIABILITY_DIALOG_H
 
 
-#include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-void reliability_dialog (GObject *o, gpointer data);
+void reliability_dialog (PsppireDataWindow * data);
 
 #endif

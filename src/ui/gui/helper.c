@@ -40,6 +40,7 @@
 #include <data/settings.h>
 
 #include "psppire-data-store.h"
+#include "psppire.h"
 
 #include "gl/configmake.h"
 #include "xalloc.h"
@@ -230,25 +231,6 @@ connect_help (GtkBuilder *xml)
 }
 
 
-void
-reference_manual (GtkMenuItem *menu, gpointer data)
-{
-  GError *err = NULL;
-  gchar *cmd = g_strdup_printf ("yelp file://%s", relocate (DOCDIR "/pspp.xml"));
-
-  if ( ! g_spawn_command_line_async (cmd, &err) )
-    {
-      msg (ME, _("Cannot open reference manual: %s.  The PSPP user manual is "
-                 "also available at "
-                 "http://www.gnu.org/software/pspp/documentation.html"),
-           err->message);
-    }
-
-  g_free (cmd);
-  g_clear_error (&err);
-}
-
-
 /* Create a deep copy of SRC */
 GtkListStore *
 clone_list_store (const GtkListStore *src)
@@ -293,14 +275,35 @@ clone_list_store (const GtkListStore *src)
 }
 
 
-void
-paste_syntax_in_new_window (const gchar *syntax)
+
+
+static gboolean 
+on_delete (GtkWindow *window, GdkEvent *e, GtkWindow **addr)
 {
-  GtkWidget *se = psppire_syntax_window_new ();
+  *addr = NULL;
 
-  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
+  return FALSE;
+}
 
-  gtk_widget_show (se);
+void
+paste_syntax_to_window (const gchar *syntax)
+{
+  static GtkWidget *the_syntax_pasteboard = NULL;
+
+  if ( NULL == the_syntax_pasteboard)
+    {
+      the_syntax_pasteboard = psppire_syntax_window_new ();
+      g_signal_connect (the_syntax_pasteboard, "delete-event", G_CALLBACK (on_delete),
+			&the_syntax_pasteboard);
+    }
+
+  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (the_syntax_pasteboard)->buffer,
+				    syntax, -1);
+
+  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (the_syntax_pasteboard)->buffer,
+				    "\n", 1);
+
+  gtk_widget_show (the_syntax_pasteboard);
 }
 
 

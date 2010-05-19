@@ -222,13 +222,12 @@ dialog_state_valid (gpointer data)
 
 /* Pops up the Regression dialog box */
 void
-regression_dialog (GObject *o, gpointer data)
+regression_dialog (PsppireDataWindow *de)
 {
   gint response;
   struct regression_dialog rd;
 
   GtkBuilder *xml = builder_new ("regression.ui");
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "regression-dialog");
@@ -301,7 +300,7 @@ regression_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&rd);
-        paste_syntax_in_new_window (syntax);
+        paste_syntax_to_window (syntax);
 
 	g_free (syntax);
       }

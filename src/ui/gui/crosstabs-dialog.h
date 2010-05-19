@@ -19,8 +19,8 @@
 
 
 #include <gtk/gtk.h>
+#include "psppire-data-window.h"
 
-
-void crosstabs_dialog (GObject *o, gpointer data);
+void crosstabs_dialog (PsppireDataWindow * data);
 
 #endif

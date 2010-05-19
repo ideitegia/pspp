@@ -218,10 +218,9 @@ set_sensitivity (struct rank_dialog *rd)
 
 /* Pops up the Rank dialog box */
 void
-rank_dialog (GObject *o, gpointer data)
+rank_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct rank_dialog rd;
 
@@ -335,7 +334,7 @@ rank_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&rd);
-	paste_syntax_in_new_window (syntax);
+	paste_syntax_to_window (syntax);
 	g_free (syntax);
       }
       break;
