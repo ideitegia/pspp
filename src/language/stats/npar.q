@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+
 #include <language/stats/npar.h>
 
 #include <math.h>
@@ -132,6 +133,7 @@ npar_execute(struct casereader *input,
   free (summary_descriptives);
   casereader_destroy (input);
 }
+
 
 int
 cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
@@ -338,7 +340,9 @@ npar_custom_binomial (struct lexer *lexer, struct dataset *ds,
 
   btp->category1 = btp->category2 = btp->cutpoint = SYSMIS;
 
-  if ( lex_match(lexer, '(') )
+  btp->p = 0.5;
+
+  if ( lex_match (lexer, '(') )
     {
       if ( lex_force_num (lexer) )
 	{
@@ -349,6 +353,10 @@ npar_custom_binomial (struct lexer *lexer, struct dataset *ds,
       else
 	return 0;
     }
+  else
+    /* Kludge: q2c swallows the '=' so put it back here  */
+     lex_put_back (lexer, '=');
+
 
   if ( lex_match (lexer, '=') )
     {
@@ -377,6 +385,7 @@ npar_custom_binomial (struct lexer *lexer, struct dataset *ds,
 	}
       else
 	return 2;
+
     }
 
   specs->n_tests++;

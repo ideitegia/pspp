@@ -178,7 +178,7 @@ END DATA.
 WEIGHT BY w.
 
 NPAR TESTS
-	/BINOMIAL(0.5) = x
+	/BINOMIAL = x
 	.
 
 
