@@ -685,7 +685,7 @@ end_print (GtkPrintOperation *operation,
 	   GtkPrintContext   *context,
 	   PsppireOutputWindow *window)
 {
-  //  xr_driver_destroy (window->print_xrd);
+  xr_driver_destroy (window->print_xrd);
 }
 
 

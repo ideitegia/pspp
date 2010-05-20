@@ -928,6 +928,18 @@ xr_driver_create (cairo_t *cairo, struct string_map *options)
   return xr;
 }
 
+/* Destroy XR, which should have been created with xr_driver_create().  Any
+   cairo_t added to XR is not destroyed, because it is owned by the client. */
+void
+xr_driver_destroy (struct xr_driver *xr)
+{
+  if (xr != NULL)
+    {
+      xr->cairo = NULL;
+      output_driver_destroy (&xr->driver);
+    }
+}
+
 static struct xr_rendering *
 xr_rendering_create_text (struct xr_driver *xr, const char *text, cairo_t *cr)
 {
