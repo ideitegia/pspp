@@ -163,6 +163,8 @@ struct cmd_factor
   double econverge;
   int iterations;
 
+  double rconverge;
+
   /* Format */
   double blank;
   bool sort;
@@ -539,14 +541,41 @@ clone_matrix (const gsl_matrix *m)
 }
 
 
+static double 
+initial_sv (const gsl_matrix *fm)
+{
+  int j, k;
+
+  double sv = 0.0;
+  for (j = 0 ; j < fm->size2; ++j)
+    {
+      double l4s = 0;
+      double l2s = 0;
+
+      for (k = j + 1 ; k < fm->size2; ++k)
+	{
+	  double lambda = gsl_matrix_get (fm, k, j);
+	  double lambda_sq = lambda * lambda;
+	  double lambda_4 = lambda_sq * lambda_sq;
+
+	  l4s += lambda_4;
+	  l2s += lambda_sq;
+	}
+      sv += ( fm->size1 * l4s - (l2s * l2s) ) / (fm->size1 * fm->size1 );
+    }
+  return sv;
+}
+
 static void
-rotate (const gsl_matrix *unrot, const gsl_vector *communalities, enum rotation_type rot_type,
+rotate (const struct cmd_factor *cf, const gsl_matrix *unrot,
+	const gsl_vector *communalities,
 	gsl_matrix *result,
 	gsl_vector *rotated_loadings
 	)
 {
   int j, k;
   int i;
+  double prev_sv;
 
   /* First get a normalised version of UNROT */
   gsl_matrix *normalised = gsl_matrix_calloc (unrot->size1, unrot->size2);
@@ -574,11 +603,19 @@ rotate (const gsl_matrix *unrot, const gsl_vector *communalities, enum rotation_
 
   gsl_matrix_free (h_sqrt_inv);
 
+
   /* Now perform the rotation iterations */
-  for (i = 0 ; i < 25 ; ++i)
+
+  prev_sv = initial_sv (normalised);
+  for (i = 0 ; i < cf->iterations ; ++i)
     {
+      double sv = 0.0;
       for (j = 0 ; j < normalised->size2; ++j)
 	{
+	  /* These variables relate to the convergence criterium */
+	  double l4s = 0;
+	  double l2s = 0;
+
 	  for (k = j + 1 ; k < normalised->size2; ++k)
 	    {
 	      int p;
@@ -588,6 +625,7 @@ rotate (const gsl_matrix *unrot, const gsl_vector *communalities, enum rotation_
 	      double d = 0.0;
 	      double x, y;
 	      double phi;
+
 	      for (p = 0; p < normalised->size1; ++p)
 		{
 		  double jv = gsl_matrix_get (normalised, p, j);
@@ -601,18 +639,38 @@ rotate (const gsl_matrix *unrot, const gsl_vector *communalities, enum rotation_
 		  d += 2 * u * v;
 		}
 
-	      rotation_coeff [rot_type] (&x, &y, a, b, c, d, normalised);
+	      rotation_coeff [cf->rotation] (&x, &y, a, b, c, d, normalised);
 
 	      phi = atan2 (x,  y) / 4.0 ;
-	  
+
+	      /* Don't bother rotating if the angle is small */
+	      if ( fabs (sin (phi) ) <= pow (10.0, -15.0))
+		  continue;
+
 	      for (p = 0; p < normalised->size1; ++p)
 		{
 		  double *lambda0 = gsl_matrix_ptr (normalised, p, j);
 		  double *lambda1 = gsl_matrix_ptr (normalised, p, k);
 		  drot_go (phi, lambda0, lambda1);
 		}
+
+	      /* Calculate the convergence criterium */
+	      {
+		double lambda = gsl_matrix_get (normalised, k, j);
+		double lambda_sq = lambda * lambda;
+		double lambda_4 = lambda_sq * lambda_sq;
+
+		l4s += lambda_4;
+		l2s += lambda_sq;
+	      }
 	    }
+	  sv += ( normalised->size1 * l4s - (l2s * l2s) ) / (normalised->size1 * normalised->size1 );
 	}
+
+      if ( fabs (sv - prev_sv) <= cf->rconverge)
+	break;
+
+      prev_sv = sv;
     }
 
   gsl_blas_dgemm (CblasNoTrans,  CblasNoTrans, 1.0,
@@ -718,10 +776,13 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
   factor.min_eigen = SYSMIS;
   factor.iterations = 25;
   factor.econverge = 0.001;
+
   factor.blank = 0;
   factor.sort = false;
   factor.plot = 0;
   factor.rotation = ROT_VARIMAX;
+
+  factor.rconverge = 0.0001;
 
   factor.wv = dict_get_weight (dict);
 
@@ -846,6 +907,16 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		    {
 		      lex_force_num (lexer);
 		      factor.econverge = lex_number (lexer);
+		      lex_get (lexer);
+		      lex_force_match (lexer, ')');
+		    }
+		}
+	      else if (lex_match_id (lexer, "RCONVERGE"))
+		{
+		  if ( lex_force_match (lexer, '('))
+		    {
+		      lex_force_num (lexer);
+		      factor.rconverge = lex_number (lexer);
 		      lex_get (lexer);
 		      lex_force_match (lexer, ')');
 		    }
@@ -1781,7 +1852,7 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 	rotated_factors = gsl_matrix_calloc (factor_matrix->size1, factor_matrix->size2);
 	rotated_loadings = gsl_vector_calloc (factor_matrix->size2);
 
-	rotate (factor_matrix, extracted_communalities, factor->rotation, rotated_factors, rotated_loadings);
+	rotate (factor, factor_matrix, extracted_communalities, rotated_factors, rotated_loadings);
       }
 
     show_explained_variance (factor, idata, idata->eval, extracted_eigenvalues, rotated_loadings);
@@ -1815,3 +1886,6 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
   casereader_destroy (r);
 }
+
+
+
