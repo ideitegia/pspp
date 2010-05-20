@@ -540,7 +540,10 @@ clone_matrix (const gsl_matrix *m)
 
 
 static void
-rotate (const gsl_matrix *unrot, const gsl_vector *communalities, enum rotation_type rot_type, gsl_matrix *result)
+rotate (const gsl_matrix *unrot, const gsl_vector *communalities, enum rotation_type rot_type,
+	gsl_matrix *result,
+	gsl_vector *rotated_loadings
+	)
 {
   int j, k;
   int i;
@@ -618,14 +621,19 @@ rotate (const gsl_matrix *unrot, const gsl_vector *communalities, enum rotation_
   gsl_matrix_free (h_sqrt);
 
 
-  /* reflect negative sums */
+  /* reflect negative sums and populate the rotated loadings vector*/
   for (i = 0 ; i < result->size2; ++i)
     {
+      double ssq = 0.0;
       double sum = 0.0;
       for (j = 0 ; j < result->size1; ++j)
 	{
+	  double s = gsl_matrix_get (result, j, i);
+	  ssq += s * s;
 	  sum += gsl_matrix_get (result, j, i);
 	}
+
+      gsl_vector_set (rotated_loadings, i, ssq);
 
       if ( sum < 0 )
 	for (j = 0 ; j < result->size1; ++j)
@@ -634,8 +642,6 @@ rotate (const gsl_matrix *unrot, const gsl_vector *communalities, enum rotation_
 	    *lambda = - *lambda;
 	  }
     }
-
-  //  dump_matrix (result);
 }
 
 
@@ -1041,6 +1047,9 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
+  if ( factor.rotation == ROT_NONE )
+    factor.print &= ~PRINT_ROTATION;
+
   if ( ! run_factor (ds, &factor)) 
     goto error;
 
@@ -1293,7 +1302,8 @@ show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const 
 static void
 show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 			 const gsl_vector *initial_eigenvalues,
-			 const gsl_vector *extracted_eigenvalues)
+			 const gsl_vector *extracted_eigenvalues,
+			 const gsl_vector *rotated_loadings)
 {
   size_t i;
   int c = 0;
@@ -1308,6 +1318,8 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 
   double e_total = 0.0;
   double e_cum = 0.0;
+
+  double r_cum = 0.0;
 
   int nc = heading_columns;
 
@@ -1396,7 +1408,6 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
       e_total = i_total;
     }
 
-
   for (i = 0 ; i < factor->n_vars; ++i)
     {
       const double i_lambda = gsl_vector_get (initial_eigenvalues, i);
@@ -1405,12 +1416,16 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
       const double e_lambda = gsl_vector_get (extracted_eigenvalues, i);
       double e_percent = 100.0 * e_lambda / e_total ;
 
+      const double r_lambda = gsl_vector_get (rotated_loadings, i);
+      double r_percent = 100.0 * r_lambda / e_total ;
+
       c = 0;
 
       tab_text_format (t, c++, i + heading_rows, TAB_LEFT | TAT_TITLE, _("%d"), i + 1);
 
       i_cum += i_percent;
       e_cum += e_percent;
+      r_cum += r_percent;
 
       /* Initial Eigenvalues */
       if (factor->print & PRINT_INITIAL)
@@ -1419,6 +1434,7 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 	tab_double (t, c++, i + heading_rows, 0, i_percent, NULL);
 	tab_double (t, c++, i + heading_rows, 0, i_cum, NULL);
       }
+
 
       if (factor->print & PRINT_EXTRACTION)
 	{
@@ -1430,6 +1446,17 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 	      tab_double (t, c++, i + heading_rows, 0, e_cum, NULL);
 	    }
 	}
+
+      if (factor->print & PRINT_ROTATION)
+	{
+	  if (i < idata->n_extractions)
+	    {
+	      tab_double (t, c++, i + heading_rows, 0, r_lambda, NULL);
+	      tab_double (t, c++, i + heading_rows, 0, r_percent, NULL);
+	      tab_double (t, c++, i + heading_rows, 0, r_cum, NULL);
+	    }
+      }
+
     }
 
   tab_submit (t);
@@ -1686,6 +1713,9 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
     }
     
   {
+    gsl_matrix *rotated_factors = NULL;
+    gsl_vector *rotated_loadings = NULL;
+
     const gsl_vector *extracted_eigenvalues = NULL;
     gsl_vector *initial_communalities = gsl_vector_alloc (factor->n_vars);
     gsl_vector *extracted_communalities = gsl_vector_alloc (factor->n_vars);
@@ -1745,7 +1775,16 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
     show_communalities (factor, initial_communalities, extracted_communalities);
 
-    show_explained_variance (factor, idata, idata->eval, extracted_eigenvalues);
+
+    if ( factor->rotation != ROT_NONE)
+      {
+	rotated_factors = gsl_matrix_calloc (factor_matrix->size1, factor_matrix->size2);
+	rotated_loadings = gsl_vector_calloc (factor_matrix->size2);
+
+	rotate (factor_matrix, extracted_communalities, factor->rotation, rotated_factors, rotated_loadings);
+      }
+
+    show_explained_variance (factor, idata, idata->eval, extracted_eigenvalues, rotated_loadings);
 
     factor_matrix_workspace_free (fmw);
 
@@ -1757,16 +1796,13 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
     if ( factor->rotation != ROT_NONE)
       {
-	gsl_matrix *rotated_factors = gsl_matrix_calloc (factor_matrix->size1, factor_matrix->size2);
-
-	rotate (factor_matrix, extracted_communalities, factor->rotation, rotated_factors);
-
 	show_factor_matrix (factor, idata,
 			    factor->extraction == EXTRACTION_PC ? _("Rotated Component Matrix") : _("Rotated Factor Matrix"),
 			    rotated_factors);
 
 	gsl_matrix_free (rotated_factors);
       }
+
 
 
     gsl_vector_free (initial_communalities);
