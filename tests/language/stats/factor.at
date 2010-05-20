@@ -1499,6 +1499,22 @@ question21,.732,,
 question22,.613,,
 question23,.819,,.345
 question24,.695,,.386
+ 
+Table: Rotated Factor Matrix
+,Factor,,
+,1,2,3
+question13,.771,,
+question14,.726,,
+question15,.676,,
+question16,.591,,
+question17,.587,.446,
+question18,,.739,
+question19,,.727,
+question20,,.540,
+question21,.402,.533,.321
+question22,,.559,
+question23,.449,.377,.668
+question24,.324,.321,.652
 ])
 
 AT_CLEANUP
@@ -1734,8 +1750,8 @@ socst,1.000,.900
 Table: Total Variance Explained
 ,Initial Eigenvalues,,,Extraction Sums of Squared Loadings,,,Rotation Sums of Squared Loadings,,
 Component,Total,% of Variance,Cumulative %,Total,% of Variance,Cumulative %,Total,% of Variance,Cumulative %
-1,3.381,67.616,67.616,3.381,67.616,67.616,,,
-2,.557,11.148,78.764,.557,11.148,78.764,,,
+1,3.381,67.616,67.616,3.381,67.616,67.616,2.113,42.267,42.267
+2,.557,11.148,78.764,.557,11.148,78.764,1.825,36.497,78.764
 3,.407,8.136,86.900,,,,,,
 4,.356,7.123,94.023,,,,,,
 5,.299,5.977,100.000,,,,,,
@@ -1748,6 +1764,15 @@ write,.824,-.155
 math,.844,.195
 science,.801,.456
 socst,.783,-.536
+
+Table: Rotated Component Matrix
+,Component,
+,1,2
+read,.650,.559
+write,.508,.667
+math,.757,.421
+science,.900,.198
+socst,.222,.922
 ])
 
 AT_CLEANUP
