@@ -34,11 +34,11 @@ This version of PSPP should work with the Gnulib commit shown below.
 Gnulib does not maintain a stable API or ABI, so it is possible that
 PSPP will not work with older or newer versions of Gnulib.
 
-    commit 4f01268d0c584c20704e42527f4fa125e7525aae
-    Author: Karl Berry <karl@freefriends.org>
-    Date:   Thu Mar 25 16:01:21 2010 -0700
+    commit 75dc5a3dbe3c65f57adc9533561100079922e180
+    Author: Bruno Haible <bruno@clisp.org>
+    Date:   Wed May 19 23:30:18 2010 +0200
 
-	autoupdate
+	Clean up dead code in recent commit.
 
 To clone Gnulib into a directory named "gnulib" using Git, and then
 check out this particular commit, run these commands:
