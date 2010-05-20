@@ -342,6 +342,7 @@ generate_syntax (const struct factor *rd)
   g_string_append (string, "INITIAL ");
   if ( rd->extraction.unrotated )  
     g_string_append (string, "EXTRACTION ");
+  g_string_append (string, "ROTATION");
 
 
   g_string_append (string, ".\n");
