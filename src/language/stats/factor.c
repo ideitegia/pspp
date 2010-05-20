@@ -95,6 +95,52 @@ enum print_opts
     PRINT_FSCORE      = 0x1000
   };
 
+enum rotation_type
+  {
+    ROT_VARIMAX = 0,
+    ROT_EQUAMAX,
+    ROT_QUARTIMAX,
+    ROT_NONE
+  };
+
+typedef void (*rotation_coefficients) (double *x, double *y,
+				    double a, double b, double c, double d,
+				    const gsl_matrix *loadings );
+
+
+static void
+varimax_coefficients (double *x, double *y,
+		      double a, double b, double c, double d,
+		      const gsl_matrix *loadings )
+{
+  *x = d - 2 * a * b / loadings->size1;
+  *y = c - (a * a - b * b) / loadings->size1;
+}
+
+static void
+equamax_coefficients (double *x, double *y,
+		      double a, double b, double c, double d,
+		      const gsl_matrix *loadings )
+{
+  *x = d - loadings->size2 * a * b / loadings->size1;
+  *y = c - loadings->size2 * (a * a - b * b) / (2 * loadings->size1);
+}
+
+static void
+quartimax_coefficients (double *x, double *y,
+		      double a UNUSED, double b UNUSED, double c, double d,
+		      const gsl_matrix *loadings UNUSED)
+{
+  *x = d ;
+  *y = c ;
+}
+
+static const rotation_coefficients rotation_coeff[3] = {
+  varimax_coefficients,
+  equamax_coefficients,
+  quartimax_coefficients
+};
+
 
 struct cmd_factor 
 {
@@ -109,6 +155,7 @@ struct cmd_factor
   enum print_opts print;
   enum extraction_method extraction;
   enum plot_opts plot;
+  enum rotation_type rotation;
 
   /* Extraction Criteria */
   int n_factors;
@@ -462,13 +509,144 @@ sort_matrix_indirect (const gsl_matrix *input, gsl_permutation *perm)
 }
 
 
+static void
+drot_go (double phi, double *l0, double *l1)
+{
+  double r0 = cos (phi) * *l0 + sin (phi) * *l1;
+  double r1 = - sin (phi) * *l0 + cos (phi) * *l1;
+
+  *l0 = r0;
+  *l1 = r1;
+}
+
+
+static gsl_matrix *
+clone_matrix (const gsl_matrix *m)
+{
+  int j, k;
+  gsl_matrix *c = gsl_matrix_calloc (m->size1, m->size2);
+
+  for (j = 0 ; j < c->size1; ++j)
+    {
+      for (k = 0 ; k < c->size2; ++k)
+	{
+	  const double *v = gsl_matrix_const_ptr (m, j, k);
+	  gsl_matrix_set (c, j, k, *v);
+	}
+    }
+
+  return c;
+}
+
+
+static void
+rotate (const gsl_matrix *unrot, const gsl_vector *communalities, enum rotation_type rot_type, gsl_matrix *result)
+{
+  int j, k;
+  int i;
+
+  /* First get a normalised version of UNROT */
+  gsl_matrix *normalised = gsl_matrix_calloc (unrot->size1, unrot->size2);
+  gsl_matrix *h_sqrt = gsl_matrix_calloc (communalities->size, communalities->size);
+  gsl_matrix *h_sqrt_inv ;
+
+  /* H is the diagonal matrix containing the absolute values of the communalities */
+  for (i = 0 ; i < communalities->size ; ++i)
+    {
+      double *ptr = gsl_matrix_ptr (h_sqrt, i, i);
+      *ptr = fabs (gsl_vector_get (communalities, i));
+    }
+
+  /* Take the square root of the communalities */
+  gsl_linalg_cholesky_decomp (h_sqrt);
+
+
+  /* Save a copy of h_sqrt and invert it */
+  h_sqrt_inv = clone_matrix (h_sqrt);
+  gsl_linalg_cholesky_decomp (h_sqrt_inv);
+  gsl_linalg_cholesky_invert (h_sqrt_inv);
+
+  /* normalised vertion is H^{1/2} x UNROT */
+  gsl_blas_dgemm (CblasNoTrans,  CblasNoTrans, 1.0, h_sqrt_inv, unrot, 0.0, normalised);
+
+  gsl_matrix_free (h_sqrt_inv);
+
+  /* Now perform the rotation iterations */
+  for (i = 0 ; i < 25 ; ++i)
+    {
+      for (j = 0 ; j < normalised->size2; ++j)
+	{
+	  for (k = j + 1 ; k < normalised->size2; ++k)
+	    {
+	      int p;
+	      double a = 0.0;
+	      double b = 0.0;
+	      double c = 0.0;
+	      double d = 0.0;
+	      double x, y;
+	      double phi;
+	      for (p = 0; p < normalised->size1; ++p)
+		{
+		  double jv = gsl_matrix_get (normalised, p, j);
+		  double kv = gsl_matrix_get (normalised, p, k);
+	      
+		  double u = jv * jv - kv * kv;
+		  double v = 2 * jv * kv;
+		  a += u;
+		  b += v;
+		  c +=  u * u - v * v;
+		  d += 2 * u * v;
+		}
+
+	      rotation_coeff [rot_type] (&x, &y, a, b, c, d, normalised);
+
+	      phi = atan2 (x,  y) / 4.0 ;
+	  
+	      for (p = 0; p < normalised->size1; ++p)
+		{
+		  double *lambda0 = gsl_matrix_ptr (normalised, p, j);
+		  double *lambda1 = gsl_matrix_ptr (normalised, p, k);
+		  drot_go (phi, lambda0, lambda1);
+		}
+	    }
+	}
+    }
+
+  gsl_blas_dgemm (CblasNoTrans,  CblasNoTrans, 1.0,
+		  h_sqrt, normalised,  0.0,   result);
+
+  gsl_matrix_free (h_sqrt);
+
+
+  /* reflect negative sums */
+  for (i = 0 ; i < result->size2; ++i)
+    {
+      double sum = 0.0;
+      for (j = 0 ; j < result->size1; ++j)
+	{
+	  sum += gsl_matrix_get (result, j, i);
+	}
+
+      if ( sum < 0 )
+	for (j = 0 ; j < result->size1; ++j)
+	  {
+	    double *lambda = gsl_matrix_ptr (result, j, i);
+	    *lambda = - *lambda;
+	  }
+    }
+
+  //  dump_matrix (result);
+}
+
+
 /*
   Get an approximation for the factor matrix into FACTORS, and the communalities into COMMUNALITIES.
   R is the matrix to be analysed.
   WS is a pointer to a structure which must have been initialised with factor_matrix_workspace_init.
  */
 static void
-iterate_factor_matrix (const gsl_matrix *r, gsl_vector *communalities, gsl_matrix *factors, struct factor_matrix_workspace *ws)
+iterate_factor_matrix (const gsl_matrix *r, gsl_vector *communalities, gsl_matrix *factors, 
+		       struct factor_matrix_workspace *ws)
 {
   size_t i;
   gsl_matrix_view mv ;
@@ -502,8 +680,7 @@ iterate_factor_matrix (const gsl_matrix *r, gsl_vector *communalities, gsl_matri
   /* Take the square root of gamma */
   gsl_linalg_cholesky_decomp (ws->gamma);
 
-  gsl_blas_dgemm (CblasNoTrans,  CblasNoTrans,
-		  1.0, &mv.matrix, ws->gamma, 0.0, factors);
+  gsl_blas_dgemm (CblasNoTrans,  CblasNoTrans, 1.0, &mv.matrix, ws->gamma, 0.0, factors);
 
   for (i = 0 ; i < r->size1 ; ++i)
     {
@@ -538,6 +715,7 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
   factor.blank = 0;
   factor.sort = false;
   factor.plot = 0;
+  factor.rotation = ROT_VARIMAX;
 
   factor.wv = dict_get_weight (dict);
 
@@ -602,17 +780,27 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		}
 	    }
 	}
-#if FACTOR_FULLY_IMPLEMENTED
       else if (lex_match_id (lexer, "ROTATION"))
 	{
           lex_match (lexer, '=');
           while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
 	    {
-	      if (lex_match_id (lexer, "VARIMAX"))
+	      /* VARIMAX and DEFAULT are defaults */
+	      if (lex_match_id (lexer, "VARIMAX") || lex_match_id (lexer, "DEFAULT"))
 		{
+		  factor.rotation = ROT_VARIMAX;
 		}
-	      else if (lex_match_id (lexer, "DEFAULT"))
+	      else if (lex_match_id (lexer, "EQUAMAX"))
 		{
+		  factor.rotation = ROT_EQUAMAX;
+		}
+	      else if (lex_match_id (lexer, "QUARTIMAX"))
+		{
+		  factor.rotation = ROT_QUARTIMAX;
+		}
+	      else if (lex_match_id (lexer, "NOROTATE"))
+		{
+		  factor.rotation = ROT_NONE;
 		}
 	      else
 		{
@@ -621,7 +809,6 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		}
 	    }
 	}
-#endif
       else if (lex_match_id (lexer, "CRITERIA"))
 	{
           lex_match (lexer, '=');
@@ -1012,7 +1199,7 @@ show_communalities (const struct cmd_factor * factor,
 
 
 static void
-show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const gsl_matrix *fm)
+show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const char *title, const gsl_matrix *fm)
 {
   int i;
   const int n_factors = idata->n_extractions;
@@ -1025,10 +1212,14 @@ show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const 
 
   struct tab_table *t = tab_create (nc, nr);
 
+  /* 
   if ( factor->extraction == EXTRACTION_PC )
     tab_title (t, _("Component Matrix"));
   else 
     tab_title (t, _("Factor Matrix"));
+  */
+
+  tab_title (t, title);
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
 
@@ -1533,6 +1724,8 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 	  }
 	gsl_vector_free (diff);
 
+
+
 	gsl_vector_memcpy (extracted_communalities, idata->msr);
 	extracted_eigenvalues = fmw->eval;
       }
@@ -1544,8 +1737,11 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 	gsl_vector_memcpy (extracted_communalities, initial_communalities);
 
 	iterate_factor_matrix (analysis_matrix, extracted_communalities, factor_matrix, fmw);
+
+
 	extracted_eigenvalues = idata->eval;
       }
+
 
     show_communalities (factor, initial_communalities, extracted_communalities);
 
@@ -1555,7 +1751,23 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
     show_scree (factor, idata);
 
-    show_factor_matrix (factor, idata, factor_matrix);
+    show_factor_matrix (factor, idata,
+			factor->extraction == EXTRACTION_PC ? _("Component Matrix") : _("Factor Matrix"),
+			factor_matrix);
+
+    if ( factor->rotation != ROT_NONE)
+      {
+	gsl_matrix *rotated_factors = gsl_matrix_calloc (factor_matrix->size1, factor_matrix->size2);
+
+	rotate (factor_matrix, extracted_communalities, factor->rotation, rotated_factors);
+
+	show_factor_matrix (factor, idata,
+			    factor->extraction == EXTRACTION_PC ? _("Rotated Component Matrix") : _("Rotated Factor Matrix"),
+			    rotated_factors);
+
+	gsl_matrix_free (rotated_factors);
+      }
+
 
     gsl_vector_free (initial_communalities);
     gsl_vector_free (extracted_communalities);
