@@ -42,8 +42,6 @@ src_data_libdata_la_SOURCES = \
 	src/data/case.h \
 	src/data/case-tmpfile.c \
 	src/data/case-tmpfile.h \
-	src/data/category.c \
-	src/data/category.h \
 	src/data/data-in.c \
 	src/data/data-in.h \
 	src/data/data-out.c \

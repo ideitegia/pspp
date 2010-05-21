@@ -1682,7 +1682,7 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
   const gsl_matrix *analysis_matrix;
   struct idata *idata = idata_alloc (factor->n_vars);
 
-  struct covariance *cov = covariance_create (factor->n_vars, factor->vars,
+  struct covariance *cov = covariance_1pass_create (factor->n_vars, factor->vars,
 					      factor->wv, factor->exclude);
 
   for ( ; (c = casereader_read (r) ); case_unref (c))

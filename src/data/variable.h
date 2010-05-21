@@ -166,11 +166,6 @@ void var_clear_aux (struct variable *);
 void *var_detach_aux (struct variable *);
 void var_dtor_free (struct variable *);
 
-/* Observed categorical values. */
-struct cat_vals *var_get_obs_vals (const struct variable *);
-void var_set_obs_vals (const struct variable *, struct cat_vals *);
-bool var_has_obs_vals (const struct variable *);
-
 /* Custom attributes. */
 struct attrset *var_get_attributes (const struct variable *);
 void var_set_attributes (struct variable *, const struct attrset *);

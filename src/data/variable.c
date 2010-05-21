@@ -20,7 +20,6 @@
 #include <stdlib.h>
 
 #include <data/attributes.h>
-#include <data/category.h>
 #include <data/data-out.h>
 #include <data/format.h>
 #include <data/dictionary.h>
@@ -74,11 +73,6 @@ struct variable
     void *aux;
     void (*aux_dtor) (struct variable *);
 
-    /* Values of a categorical variable.  Procedures need
-       vectors with binary entries, so any variable of type ALPHA will
-       have its values stored here. */
-    struct cat_vals *obs_vals;
-
     /* Custom attributes. */
     struct attrset attributes;
   };
@@ -112,7 +106,6 @@ var_create (const char *name, int width)
   v->short_name_cnt = 0;
   v->aux = NULL;
   v->aux_dtor = NULL;
-  v->obs_vals = NULL;
   attrset_init (&v->attributes);
 
   return v;
@@ -127,8 +120,7 @@ var_create (const char *name, int width)
 
     - The new variable is not added to OLD_VAR's dictionary by
       default.  Use dict_clone_var, instead, to do that.
-
-    - Auxiliary data and obs_vals are not copied. */
+*/
 struct variable *
 var_clone (const struct variable *old_var)
 {
@@ -159,7 +151,6 @@ var_destroy (struct variable *v)
     {
       assert (!var_has_vardict (v));
       mv_destroy (&v->miss);
-      cat_stored_values_destroy (v->obs_vals);
       var_clear_short_names (v);
       var_clear_aux (v);
       val_labs_destroy (v->val_labs);
@@ -965,35 +956,6 @@ void
 var_dtor_free (struct variable *v)
 {
   free (v->aux);
-}
-
-/* Observed categorical values. */
-
-/* Returns V's observed categorical values,
-   which V must have. */
-struct cat_vals *
-var_get_obs_vals (const struct variable *v)
-{
-  assert (v->obs_vals != NULL);
-  return v->obs_vals;
-}
-
-/* Sets V's observed categorical values to CAT_VALS.
-   V becomes the owner of CAT_VALS. */
-void
-var_set_obs_vals (const struct variable *v_, struct cat_vals *cat_vals)
-{
-  struct variable *v = CONST_CAST (struct variable *, v_ );
-  cat_stored_values_destroy (v->obs_vals);
-  v->obs_vals = cat_vals;
-}
-
-/* Returns true if V has observed categorical values,
-   false otherwise. */
-bool
-var_has_obs_vals (const struct variable *v)
-{
-  return v->obs_vals != NULL;
 }
 
 /* Returns variable V's attribute set.  The caller may examine or
