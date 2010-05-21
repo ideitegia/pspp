@@ -459,11 +459,14 @@ open_window (PsppireWindow *de)
 	gchar *name =
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-	if (any_reader_may_open (name))
+	gchar *sysname = convert_glib_filename_to_system_filename (name, NULL);
+
+	if (any_reader_may_open (sysname))
 	  psppire_window_load (de, name);
 	else
 	  open_syntax_window (name);
 
+	g_free (sysname);
 	g_free (name);
       }
       break;
