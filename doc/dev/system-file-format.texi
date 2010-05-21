@@ -1087,7 +1087,8 @@ element.
 In record type 18, this field contains a sequence of one or more
 variable attribute sets.  If more than one variable attribute set is
 present, each one after the first is delimited from the previous by
-@code{/}.  Each variable attribute set consists of a variable name,
+@code{/}.  Each variable attribute set consists of a (potentially
+long) variable name,
 followed by @code{:}, followed by an attribute set with the same
 syntax as on record type 17.
 

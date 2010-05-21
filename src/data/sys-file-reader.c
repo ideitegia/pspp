@@ -133,6 +133,10 @@ static void text_warn (struct sfm_reader *r, struct text_record *text,
 static char *text_get_token (struct text_record *,
                              struct substring delimiters, char *delimiter);
 static bool text_match (struct text_record *, char c);
+static bool text_read_variable_name (struct sfm_reader *, struct dictionary *,
+                                     struct text_record *,
+                                     struct substring delimiters,
+                                     struct variable **);
 static bool text_read_short_name (struct sfm_reader *, struct dictionary *,
                                   struct text_record *,
                                   struct substring delimiters,
@@ -1697,7 +1701,7 @@ read_variable_attributes (struct sfm_reader *r,
   for (;;) 
     {
       struct variable *var;
-      if (!text_read_short_name (r, dict, text, ss_cstr (":"), &var))
+      if (!text_read_variable_name (r, dict, text, ss_cstr (":"), &var))
         break;
       read_attributes (r, text, var != NULL ? var_get_attributes (var) : NULL);
     }
@@ -2130,6 +2134,27 @@ read_variable_to_value_pair (struct sfm_reader *r, struct dictionary *dict,
         return true;
     }
 }
+
+static bool
+text_read_variable_name (struct sfm_reader *r, struct dictionary *dict,
+                         struct text_record *text, struct substring delimiters,
+                         struct variable **var)
+{
+  char *name;
+
+  name = text_get_token (text, delimiters, NULL);
+  if (name == NULL)
+    return false;
+
+  *var = dict_lookup_var (dict, name);
+  if (*var != NULL)
+    return true;
+
+  text_warn (r, text, _("Dictionary record refers to unknown variable %s."),
+             name);
+  return false;
+}
+
 
 static bool
 text_read_short_name (struct sfm_reader *r, struct dictionary *dict,
