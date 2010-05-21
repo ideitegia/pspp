@@ -267,8 +267,10 @@ stops (@samp{.}).  The variable name is padded on the right with spaces.
 
 @item int32 label_len;
 This field is present only if @code{has_var_label} is set to 1.  It is
-set to the length, in characters, of the variable label, which must be a
-number between 0 and 120.
+set to the length, in characters, of the variable label.  The
+documented maximum length varies from 120 to 255 based on SPSS
+version, but some files have been seen with longer labels.  PSPP
+accepts longer labels and truncates them to 255 bytes on input.
 
 @item char label[];
 This field is present only if @code{has_var_label} is set to 1.  It has
@@ -426,7 +428,9 @@ in length.  Its type and width cannot be determined until the
 following value label variables record (see below) is read.
 
 @item char label_len;
-The label's length, in bytes.
+The label's length, in bytes.  The documented maximum length varies
+from 60 to 120 based on SPSS version.  PSPP supports value labels up
+to 255 bytes long.
 
 @item char label[];
 @code{label_len} bytes of the actual label, followed by up to 7 bytes

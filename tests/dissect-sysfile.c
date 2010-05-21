@@ -357,16 +357,20 @@ read_variable_record (struct sfm_reader *r)
   if (has_variable_label == 1)
     {
       long long int offset = ftello (r->file);
-      size_t len;
+      size_t len, read_len;
       char label[255 + 1];
 
       len = read_int (r);
-      if (len >= sizeof label)
-        sys_error (r, _("Variable %s has label of invalid length %zu."),
-                   name, len);
-      read_string (r, label, len + 1);
+
+      /* Read up to 255 bytes of label. */
+      read_len = MIN (sizeof label - 1, len);
+      read_string (r, label, read_len + 1);
       printf("\t%08llx Variable label: \"%s\"\n", offset, label);
 
+      /* Skip unread label bytes. */
+      skip_bytes (r, len - read_len);
+
+      /* Skip label padding up to multiple of 4 bytes. */
       skip_bytes (r, ROUND_UP (len, 4) - len);
     }
 
