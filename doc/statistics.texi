@@ -547,7 +547,9 @@ FACTOR  VARIABLES=var_list
 
         [ /EXTRACTION=@{PC, PAF@}] 
 
-        [ /PRINT=[INITIAL] [EXTRACTION] [UNIVARIATE] [CORRELATION] [COVARIANCE] [DET] [SIG] [ALL] [DEFAULT] ]
+        [ /ROTATION=@{VARIMAX, EQUAMAX, QUARTIMAX, NOROTATE@}]
+
+        [ /PRINT=[INITIAL] [EXTRACTION] [ROTATION] [UNIVARIATE] [CORRELATION] [COVARIANCE] [DET] [SIG] [ALL] [DEFAULT] ]
 
         [ /PLOT=[EIGEN] ]
 
@@ -567,6 +569,11 @@ The /EXTRACTION subcommand is used to specify the way in which factors (componen
 If PC is specified, then Principal Components Analysis is used.  If PAF is specified, then Principal Axis Factoring is
 used. By default Principal Components Analysis will be used.
 
+The /ROTATION subcommand is used to specify the method by which the extracted solution will be rotated.
+Three methods are available: VARIMAX (which is the default), EQUAMAX, and QUARTIMAX.
+If don't want any rotation to be performed, the word NOROTATE will prevent the command from performing any
+rotation on the data. Oblique rotations are not supported.
+
 The /METHOD subcommand should be used to determine whether the covariance matrix or the correlation matrix of the data is
 to be analysed.  By default, the correlation matrix is analysed.
 
@@ -579,6 +586,8 @@ The /PRINT subcommand may be used to select which features of the analysis are r
       Initial communalities and eigenvalues are printed.
 @item EXTRACTION
       Extracted communalities and eigenvalues are printed.
+@item ROTATION
+      Rotated communalities and eigenvalues are printed.
 @item CORRELATION
       The correlation matrix is printed.
 @item COVARIANCE
