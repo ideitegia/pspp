@@ -20,6 +20,7 @@ src_math_libpspp_math_la_SOURCES = \
 	src/math/group.c  src/math/group.h \
 	src/math/group-proc.h \
 	src/math/histogram.c src/math/histogram.h \
+	src/math/interaction.c src/math/interaction.h \
 	src/math/levene.c src/math/levene.h \
 	src/math/linreg.c src/math/linreg.h \
 	src/math/merge.c  src/math/merge.h \
