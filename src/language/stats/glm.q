@@ -39,7 +39,6 @@
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
 #include <math/covariance.h>
-#include <math/coefficient.h>
 #include <math/linreg.h>
 #include <math/moments.h>
 #include <output/tab.h>
