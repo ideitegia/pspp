@@ -264,34 +264,6 @@ void linreg_set_indep_variable_mean (linreg *c, size_t j, double m)
   assert (c != NULL);
   gsl_vector_set (c->indep_means, j, m);
 }
-static void invert_r (gsl_matrix *r, gsl_matrix *r_inv)
-{
-  size_t i;
-  size_t j;
-  size_t k;
-  size_t row;
-  double tmp;
-
-  for (i = 0; i < r->size1; i++)
-    {
-      gsl_matrix_set (r_inv, i, i, 1.0 / gsl_matrix_get (r, i, i));
-    }
-  for (i = 0; i < r->size1; i++)
-    {
-      row = 0;
-      for (j = row + 1 + i; j < r->size2; j++)
-	{
-	  tmp = 0.0;
-	  for (k = 1; k <= j - row; k++)
-	    {
-	      tmp += gsl_matrix_get (r, row, row + k) 
-		* gsl_matrix_get (r_inv, row + k, j);
-	    }
-	  gsl_matrix_set (r_inv, row, j, -tmp / gsl_matrix_get (r, row, row));
-	  row++;
-	}
-    }
-}
 
 static void
 linreg_fit_qr (const gsl_matrix *cov, linreg *l)
