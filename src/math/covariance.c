@@ -135,7 +135,7 @@ covariance_1pass_create (size_t n_vars, const struct variable **vars,
 			 const struct variable *weight, enum mv_class exclude)
 {
   size_t i;
-  struct covariance *cov = xmalloc (sizeof *cov);
+  struct covariance *cov = xzalloc (sizeof *cov);
 
   cov->passes = 1;
   cov->state = 0;
@@ -156,7 +156,8 @@ covariance_1pass_create (size_t n_vars, const struct variable **vars,
 
   cov->n_cm = (n_vars * (n_vars - 1)  ) / 2;
 
-  cov->cm = xcalloc (sizeof *cov->cm, cov->n_cm);
+  if (cov->n_cm > 0)
+    cov->cm = xcalloc (sizeof *cov->cm, cov->n_cm);
   cov->categoricals = NULL;
 
   return cov;

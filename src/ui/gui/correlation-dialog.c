@@ -74,7 +74,7 @@ dialog_state_valid (gpointer data)
   GtkTreeModel *liststore =
     gtk_tree_view_get_model (GTK_TREE_VIEW (corr->variables));
 
-  if  (gtk_tree_model_iter_n_children (liststore, NULL) >= 1)
+  if  (gtk_tree_model_iter_n_children (liststore, NULL) > 1)
     return TRUE;
 
   return FALSE;
