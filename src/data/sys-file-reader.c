@@ -1679,7 +1679,7 @@ read_long_string_value_labels (struct sfm_reader *r,
                  first 255 bytes.  The maximum documented length
                  of a label is 120 bytes so this is more than
                  generous. */
-              skip_bytes (r, sizeof label - (label_length + 1));
+              skip_bytes (r, (label_length + 1) - sizeof label);
             }
 
           if (!skip && !var_add_value_label (v, &value, label))
