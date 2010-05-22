@@ -1080,6 +1080,7 @@ read_compressed_data (struct sfm_reader *r)
   printf ("\n%08llx: compressed data:\n", (long long int) ftello (r->file));
 
   opcode_idx = N_OPCODES;
+  opcode_ofs = 0;
   case_num = 0;
   for (case_num = 0; ; case_num++)
     {
