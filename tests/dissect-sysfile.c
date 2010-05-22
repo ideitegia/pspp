@@ -102,6 +102,7 @@ static void sys_error (struct sfm_reader *, const char *, ...)
      NO_RETURN;
 
 static void read_bytes (struct sfm_reader *, void *, size_t);
+static bool try_read_bytes (struct sfm_reader *, void *, size_t);
 static int read_int (struct sfm_reader *);
 static int64_t read_int64 (struct sfm_reader *);
 static double read_float (struct sfm_reader *);
@@ -1093,7 +1094,13 @@ read_compressed_data (struct sfm_reader *r)
           if (opcode_idx >= N_OPCODES)
             {
               opcode_ofs = ftello (r->file);
-              read_bytes (r, opcodes, 8);
+              if (i == 0)
+                {
+                  if (!try_read_bytes (r, opcodes, 8))
+                    return;
+                }
+              else
+                read_bytes (r, opcodes, 8);
               opcode_idx = 0;
             }
           opcode = opcodes[opcode_idx];
@@ -1358,6 +1365,16 @@ static void
 read_bytes (struct sfm_reader *r, void *buf, size_t byte_cnt)
 {
   read_bytes_internal (r, false, buf, byte_cnt);
+}
+
+/* Reads BYTE_CNT bytes into BUF.
+   Returns true if exactly BYTE_CNT bytes are successfully read.
+   Returns false if an immediate end-of-file is encountered.
+   Aborts if an I/O error or a partial read occurs. */
+static bool
+try_read_bytes (struct sfm_reader *r, void *buf, size_t byte_cnt)
+{
+  return read_bytes_internal (r, true, buf, byte_cnt);
 }
 
 /* Reads a 32-bit signed integer from R and returns its value in
