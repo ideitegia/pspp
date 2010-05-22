@@ -1084,7 +1084,7 @@ read_compressed_data (struct sfm_reader *r)
     {
       printf ("%08llx: case %d's uncompressible data begins\n",
               (long long int) ftello (r->file), case_num);
-      for (i = 0; i < r->n_var_widths; i++)
+      for (i = 0; i < r->n_var_widths; )
         {
           int width = r->var_widths[i];
           char raw_value[8];
@@ -1107,6 +1107,11 @@ read_compressed_data (struct sfm_reader *r)
               if (width != 0)
                 printf (", but this is a string variable (width=%d)", width);
               printf ("\n");
+              i++;
+              break;
+
+            case 0:
+              printf ("ignored padding\n");
               break;
 
             case 252:
@@ -1118,6 +1123,7 @@ read_compressed_data (struct sfm_reader *r)
               printf ("uncompressible data: ");
               print_untyped_value (r, raw_value);
               printf ("\n");
+              i++;
               break;
 
             case 254:
@@ -1125,14 +1131,15 @@ read_compressed_data (struct sfm_reader *r)
               if (width == 0)
                 printf (", but this is a numeric variable");
               printf ("\n");
+              i++;
               break;
 
             case 255:
               printf ("SYSMIS");
               if (width != 0)
                 printf (", but this is a string variable (width=%d)", width);
-
               printf ("\n");
+              i++;
               break;
             }
 
