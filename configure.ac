@@ -76,8 +76,8 @@ AC_ARG_WITH([gui],
 AM_CONDITIONAL([HAVE_GUI], 
                [test "$with_cairo" != no && test "$with_gui" != "no"])
 if test "$with_cairo" != no && test "$with_gui" != "no"; then
-  PKG_CHECK_MODULES([GTK], [gtk+-2.0 >= 2.12], [],
-    [PSPP_REQUIRED_PREREQ([gtk+ 2.0 version 2.12 or later (or use --without-gui)])])
+  PKG_CHECK_MODULES([GTK], [gtk+-2.0 >= 2.16], [],
+    [PSPP_REQUIRED_PREREQ([gtk+ 2.0 version 2.16 or later (or use --without-gui)])])
 
   AC_ARG_VAR([GLIB_GENMARSHAL])
   AC_CHECK_PROGS([GLIB_GENMARSHAL], [glib-genmarshal])
@@ -239,7 +239,8 @@ AC_SUBST([WITH_PERL_MODULE])
 AM_CONDITIONAL(WITH_PERL_MODULE, test $WITH_PERL_MODULE = yes)
 
 AC_SEARCH_LIBS([cblas_dsdot], [gslcblas],,[PSPP_REQUIRED_PREREQ([libgslcblas])])
-AC_SEARCH_LIBS([gsl_cdf_binomial_P], [gsl],,[PSPP_REQUIRED_PREREQ([libgsl (version 1.8 or later)])])
+PKG_CHECK_MODULES([GSL], [gsl >= 1.12], [], [PSPP_REQUIRED_PREREQ([gsl 2.0 version 1.12 or later])])
+
 PSPP_GSL_NEEDS_FGNU89_INLINE
 
 dnl Recent versions of GNU ncurses install the curses header files into
