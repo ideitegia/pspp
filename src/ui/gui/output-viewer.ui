@@ -29,9 +29,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="imagemenuitem7">
+          <object class="GtkAction" id="edit_copy">
             <property name="stock-id">gtk-copy</property>
-            <property name="name">imagemenuitem7</property>
+            <property name="name">edit_copy</property>
           </object>
         </child>
         <child>
@@ -55,7 +55,7 @@
           <menuitem action="file_print"/>
         </menu>
         <menu action="menuitem2">
-          <menuitem action="imagemenuitem7"/>
+          <menuitem action="edit_copy"/>
         </menu>
         <menu action="windows_menuitem">
           <menuitem action="windows_minimise-all"/>
