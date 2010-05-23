@@ -73,6 +73,7 @@
           <object class="GtkAction" id="file-information">
             <property name="name">file-information</property>
             <property name="label" translatable="yes">D_isplay Data File Information</property>
+            <property name="stock-id">gtk-info</property>
           </object>
         </child>
         <child>
