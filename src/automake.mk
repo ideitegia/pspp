@@ -25,6 +25,7 @@ src_libpspp_core_la_LIBADD = \
 src_libpspp_la_SOURCES = 
 
 src_libpspp_la_CFLAGS = $(GSL_CFLAGS)
+src_libpspp_la_LDFLAGS = -release $(VERSION)
 
 src_libpspp_la_LIBADD = \
 	src/language/liblanguage.la \
