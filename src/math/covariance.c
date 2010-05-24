@@ -267,6 +267,7 @@ get_val (const struct covariance *cov, int i, const struct ccase *c)
   return categoricals_get_binary_by_subscript (cov->categoricals, i - cov->n_vars, c);
 }
 
+#if 0
 void
 dump_matrix (const gsl_matrix *m)
 {
@@ -279,6 +280,7 @@ dump_matrix (const gsl_matrix *m)
       printf ("\n");
     }
 }
+#endif
 
 /* Call this function for every case in the data set */
 void
@@ -643,7 +645,6 @@ static const gsl_matrix *
 covariance_calculate_single_pass_unnormalized (struct covariance *cov)
 {
   size_t i, j;
-  size_t m;
 
   for (i = 0 ; i < cov->dim; ++i)
     {

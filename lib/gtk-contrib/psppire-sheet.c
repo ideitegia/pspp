@@ -545,9 +545,6 @@ static void draw_row_title_buttons 	 (PsppireSheet *sheet);
 
 
 static void size_allocate_global_button 	 (PsppireSheet *sheet);
-static void psppire_sheet_button_size_request	 (PsppireSheet *sheet,
-						  const PsppireSheetButton *button,
-						  GtkRequisition *requisition);
 
 static void psppire_sheet_real_cell_clear 		 (PsppireSheet *sheet,
 							  gint row,
@@ -4676,27 +4673,6 @@ psppire_sheet_get_attributes (const PsppireSheet *sheet, gint row, gint col,
     attr->justification = *j;
 
   return TRUE;
-}
-
-static void
-psppire_sheet_button_size_request	 (PsppireSheet *sheet,
-					  const PsppireSheetButton *button,
-					  GtkRequisition *button_requisition)
-{
-  GtkRequisition requisition;
-  GtkRequisition label_requisition;
-
-  label_requisition.height = DEFAULT_ROW_HEIGHT;
-  label_requisition.width = COLUMN_MIN_WIDTH;
-
-  requisition.height = DEFAULT_ROW_HEIGHT;
-  requisition.width = COLUMN_MIN_WIDTH;
-
-
-  *button_requisition = requisition;
-  button_requisition->width = MAX (requisition.width, label_requisition.width);
-  button_requisition->height = MAX (requisition.height, label_requisition.height);
-
 }
 
 static void

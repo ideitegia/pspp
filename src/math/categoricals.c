@@ -102,6 +102,7 @@ categoricals_destroy ( struct categoricals *cat)
 }
 
 
+#if 0
 void
 categoricals_dump (const struct categoricals *cat)
 {
@@ -132,8 +133,8 @@ categoricals_dump (const struct categoricals *cat)
       for (node = hmap_first (m); node; node = hmap_next (m, node))
 	{
 	  struct string s;
-	  ds_init_empty (&s);
 	  const struct value_node *vn = HMAP_DATA (node, struct value_node, node);
+	  ds_init_empty (&s);
 	  var_append_value_name (vp->var, &vn->value, &s);
 	  printf ("Value: %s; Index %d; CC %g\n",
 		  ds_cstr (&s),
@@ -155,6 +156,7 @@ categoricals_dump (const struct categoricals *cat)
     printf ("%d ", cat->reverse_variable_map[v]);
   printf ("\n");
 }
+#endif
 
 
 

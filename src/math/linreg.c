@@ -268,6 +268,8 @@ void linreg_set_indep_variable_mean (linreg *c, size_t j, double m)
 static void
 linreg_fit_qr (const gsl_matrix *cov, linreg *l)
 {
+  double intcpt_coef = 0.0;
+  double intercept_variance = 0.0;
   gsl_matrix *xtx;
   gsl_matrix *q;
   gsl_matrix *r;
@@ -312,7 +314,6 @@ linreg_fit_qr (const gsl_matrix *cov, linreg *l)
   gsl_blas_dtrsm (CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit, linreg_mse (l),
 		  r, q);
   /* Copy the lower triangle into the upper triangle. */
-  double intercept_variance = 0.0;
   for (i = 0; i < q->size1; i++)
     {
       gsl_matrix_set (l->cov, i + 1, i + 1, gsl_matrix_get (q, i, i));
@@ -336,7 +337,6 @@ linreg_fit_qr (const gsl_matrix *cov, linreg *l)
   /* Covariances related to the intercept. */
   intercept_variance += linreg_mse (l) / linreg_n_obs (l);
   gsl_matrix_set (l->cov, 0, 0, intercept_variance);  
-  double intcpt_coef = 0.0;
   for (i = 0; i < q->size1; i++)
     {
       for (j = 0; j < q->size2; j++)

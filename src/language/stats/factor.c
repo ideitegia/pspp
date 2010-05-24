@@ -211,6 +211,7 @@ idata_free (struct idata *id)
 }
 
 
+#if 0
 static void
 dump_matrix (const gsl_matrix *m)
 {
@@ -249,6 +250,7 @@ dump_vector (const gsl_vector *v)
     }
   printf ("\n");
 }
+#endif
 
 
 static int 

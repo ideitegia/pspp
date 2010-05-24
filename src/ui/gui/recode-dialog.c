@@ -801,30 +801,6 @@ on_change_clicked (GObject *obj, gpointer data)
 }
 
 
-/* If there's nothing selected in the variable treeview,
-   then automatically select the first item */
-static void
-select_something (GtkTreeModel *treemodel,
-		  GtkTreePath  *arg1,
-		  GtkTreeIter  *arg2,
-		  gpointer      data)
-{
-  struct recode_dialog *rd = data;
-  GtkTreeSelection *sel;
-
-  sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (rd->variable_treeview));
-
-  if ( gtk_tree_selection_count_selected_rows (sel) < 1)
-    {
-      GtkTreeIter iter;
-
-      gtk_tree_model_get_iter_first   (treemodel, &iter);
-
-      gtk_tree_selection_select_iter  (sel, &iter);
-    }
-}
-
-
 /* Callback for the new_value_entry and new_value_togglebutton widgets.
    It's used to enable/disable the acr. */
 static void
@@ -921,7 +897,6 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
   if (rd.different)
     {
-      GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd.variable_treeview)->list);
       GtkTreeSelection *sel;
 
       GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
