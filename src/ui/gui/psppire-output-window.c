@@ -735,6 +735,7 @@ static void
 on_select_all (PsppireOutputWindow *window)
 {
   GtkTreeSelection *sel = gtk_tree_view_get_selection (window->overview);
+  gtk_tree_view_expand_all (window->overview);
   gtk_tree_selection_select_all (sel);
 }
 
