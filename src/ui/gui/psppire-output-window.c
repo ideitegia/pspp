@@ -716,21 +716,33 @@ on_selection_change (GtkTreeSelection *sel, GtkAction *copy_action)
 }
 
 static void
+on_select_all (PsppireOutputWindow *window)
+{
+  GtkTreeSelection *sel = gtk_tree_view_get_selection (window->overview);
+  gtk_tree_selection_select_all (sel);
+}
+
+
+static void
 psppire_output_window_init (PsppireOutputWindow *window)
 {
   GtkTreeViewColumn *column;
   GtkCellRenderer *renderer;
   GtkBuilder *xml;
   GtkAction *copy_action;
+  GtkAction *select_all_action;
   GtkTreeSelection *sel;
 
   xml = builder_new ("output-viewer.ui");
 
   copy_action = get_action_assert (xml, "edit_copy");
+  select_all_action = get_action_assert (xml, "edit_select-all");
 
   gtk_action_set_sensitive (copy_action, FALSE);
 
   g_signal_connect_swapped (copy_action, "activate", G_CALLBACK (on_copy), window);
+
+  g_signal_connect_swapped (select_all_action, "activate", G_CALLBACK (on_select_all), window);
 
   gtk_widget_reparent (get_widget_assert (xml, "vbox1"), GTK_WIDGET (window));
 

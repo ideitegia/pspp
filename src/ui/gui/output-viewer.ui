@@ -29,6 +29,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="edit_select-all">
+            <property name="name">edit_select-all</property>
+            <property name="label" translatable="yes">Select _All</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="edit_copy">
             <property name="stock-id">gtk-copy</property>
             <property name="name">edit_copy</property>
@@ -56,6 +62,7 @@
         </menu>
         <menu action="menuitem2">
           <menuitem action="edit_copy"/>
+          <menuitem action="edit_select-all"/>
         </menu>
         <menu action="windows_menuitem">
           <menuitem action="windows_minimise-all"/>
