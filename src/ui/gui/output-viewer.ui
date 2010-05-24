@@ -31,7 +31,7 @@
         <child>
           <object class="GtkAction" id="edit_select-all">
             <property name="name">edit_select-all</property>
-            <property name="label" translatable="yes">Select _All</property>
+            <property name="stock-id">gtk-select-all</property>
           </object>
         </child>
         <child>
