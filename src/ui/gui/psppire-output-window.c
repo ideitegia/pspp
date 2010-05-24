@@ -532,7 +532,8 @@ enum {
   SELECT_FMT_NULL,
   SELECT_FMT_TEXT,
   SELECT_FMT_UTF8,
-  SELECT_FMT_HTML
+  SELECT_FMT_HTML,
+  SELECT_FMT_ODT
 };
 
 
@@ -628,7 +629,12 @@ clipboard_get_cb (GtkClipboard     *clipboard,
       string_map_insert (&options, "format", "html");
       break;
 
+    case SELECT_FMT_ODT:
+      string_map_insert (&options, "format", "odt");
+      break;
+
     default:
+      g_print ("unsupportted clip target\n");
       goto finish;
       break;
     }
@@ -654,6 +660,12 @@ clipboard_get_cb (GtkClipboard     *clipboard,
   if ( driver->class->flush)
     driver->class->flush (driver);
 
+
+  /* Some drivers (eg: the odt one) don't write anything until they
+     are closed */
+  output_driver_destroy (driver);
+  driver = NULL;
+
   if ( g_file_get_contents (filename, &text, &length, NULL) )
     {
       gtk_selection_data_set (selection_data, selection_data->target,
@@ -663,7 +675,9 @@ clipboard_get_cb (GtkClipboard     *clipboard,
 
  finish:
 
-  output_driver_destroy (driver);
+  if (driver != NULL)
+    output_driver_destroy (driver);
+
   g_free (text);
 
   unlink (filename);
@@ -688,7 +702,9 @@ static const GtkTargetEntry targets[] = {
   { "UTF8_STRING",   0, SELECT_FMT_UTF8 },
   { "text/plain;charset=utf-8", 0, SELECT_FMT_UTF8 },
 
-  { "text/html",     0, SELECT_FMT_HTML }
+  { "text/html",     0, SELECT_FMT_HTML },
+
+  { "application/vnd.oasis.opendocument.text", 0, SELECT_FMT_ODT }
 };
 
 static void
