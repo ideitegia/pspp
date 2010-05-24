@@ -624,6 +624,10 @@ clipboard_get_cb (GtkClipboard     *clipboard,
       string_map_insert (&options, "format", "txt");
       break;
 
+    case SELECT_FMT_HTML:
+      string_map_insert (&options, "format", "html");
+      break;
+
     default:
       goto finish;
       break;
@@ -647,7 +651,8 @@ clipboard_get_cb (GtkClipboard     *clipboard,
       n = n->next;
     }
 
-  driver->class->flush (driver);
+  if ( driver->class->flush)
+    driver->class->flush (driver);
 
   if ( g_file_get_contents (filename, &text, &length, NULL) )
     {
@@ -683,9 +688,7 @@ static const GtkTargetEntry targets[] = {
   { "UTF8_STRING",   0, SELECT_FMT_UTF8 },
   { "text/plain;charset=utf-8", 0, SELECT_FMT_UTF8 },
 
-  /*
   { "text/html",     0, SELECT_FMT_HTML }
-  */
 };
 
 static void
