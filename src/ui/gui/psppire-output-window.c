@@ -50,6 +50,7 @@
 enum
   {
     COL_TITLE,                  /* Table title. */
+    COL_ADDR,                   /* Pointer to the table */
     COL_Y,                      /* Y position of top of title. */
     N_COLS
   };
@@ -312,6 +313,7 @@ psppire_output_submit (struct output_driver *this,
         }
       gtk_tree_store_set (store, &iter,
                           COL_TITLE, ds_cstr (&title),
+			  COL_ADDR, item, 
                           COL_Y, viewer->y,
                           -1);
       ds_destroy (&title);
@@ -525,14 +527,207 @@ psppire_output_window_export (PsppireOutputWindow *window)
   gtk_widget_destroy (dialog);
 }
 
+
+enum {
+  SELECT_FMT_NULL,
+  SELECT_FMT_TEXT,
+  SELECT_FMT_UTF8,
+  SELECT_FMT_HTML
+};
+
+
+static void
+insert_glyph (struct string_map *map, const char *opt, gunichar glyph)
+{
+  char s[6] = {0,0,0,0,0,0};
+
+  g_unichar_to_utf8 (glyph, s);
+  string_map_insert (map, opt, s);
+}
+
+struct glyph_pair
+{
+  gunichar glyph;
+  char opt[10];
+};
+
+struct glyph_pair table[] = {
+  {0x250C, "box[1100]"},
+  {0x2518, "box[0011]"},
+  {0x2510, "box[0110]"},
+  {0x2514, "box[1001]"},
+  {0x2502, "box[0101]"},
+  {0x2500, "box[1010]"},
+  {0x2534, "box[1011]"},
+  {0x252C, "box[1110]"},
+  {0x2501, "box[2020]"},
+  {0x2503, "box[0202]"},
+  {0x253F, "box[2121]"},
+  {0x2542, "box[1212]"},
+  {0x254B, "box[2222]"},
+  {0x2525, "box[0121]"},
+  {0x2530, "box[1210]"},
+  {0x2538, "box[1012]"},
+  {0x251D, "box[2101]"},
+  {0x2537, "box[2021]"},
+  {0x252F, "box[2120]"}
+};
+
+
+static void
+utf8_box_chars (struct string_map *map)
+{
+  int i;
+  for (i = 0; i < sizeof (table) / sizeof (table[0]); ++i)
+    {
+      const struct glyph_pair *p = &table[i];
+      insert_glyph (map, p->opt, p->glyph);
+    }
+}
+
+
+
+static void
+clipboard_get_cb (GtkClipboard     *clipboard,
+		  GtkSelectionData *selection_data,
+		  guint             info,
+		  gpointer          data)
+{
+  PsppireOutputWindow *window = data;
+
+  gsize length;
+  gchar *text = NULL;
+  struct output_driver *driver = NULL;
+  char *filename = NULL;
+  struct string_map options;
+
+  GtkTreeSelection *sel = gtk_tree_view_get_selection (window->overview);
+  GtkTreeModel *model = gtk_tree_view_get_model (window->overview);
+
+  GList *rows = gtk_tree_selection_get_selected_rows (sel, &model);
+  GList *n = rows;
+
+  if ( n == NULL)
+    return;
+
+  string_map_init (&options);
+  filename = tempnam (NULL, NULL);
+  string_map_insert (&options, "output-file", filename);
+
+  switch (info)
+    {
+    case SELECT_FMT_UTF8:
+      utf8_box_chars (&options);
+      /* fall-through */
+
+    case SELECT_FMT_TEXT:
+      string_map_insert (&options, "format", "txt");
+      break;
+
+    default:
+      goto finish;
+      break;
+    }
+
+  driver = output_driver_create (&options);
+  if (driver == NULL)
+    goto finish;
+
+  while (n)
+    {
+      GtkTreePath *path = n->data ; 
+      GtkTreeIter iter;
+      struct output_item *item ;
+
+      gtk_tree_model_get_iter (model, &iter, path);
+      gtk_tree_model_get (model, &iter, COL_ADDR, &item, -1);
+
+      driver->class->submit (driver, item);
+
+      n = n->next;
+    }
+
+  driver->class->flush (driver);
+
+  if ( g_file_get_contents (filename, &text, &length, NULL) )
+    {
+      gtk_selection_data_set (selection_data, selection_data->target,
+			      8,
+			      (const guchar *) text, length);
+    }
+
+ finish:
+
+  output_driver_destroy (driver);
+  g_free (text);
+
+  unlink (filename);
+  free (filename);
+
+  g_list_free (rows);
+}
+
+static void
+clipboard_clear_cb (GtkClipboard *clipboard,
+		    gpointer data)
+{
+}
+
+static const GtkTargetEntry targets[] = {
+
+  { "STRING",        0, SELECT_FMT_TEXT },
+  { "TEXT",          0, SELECT_FMT_TEXT },
+  { "COMPOUND_TEXT", 0, SELECT_FMT_TEXT },
+  { "text/plain",    0, SELECT_FMT_TEXT },
+
+  { "UTF8_STRING",   0, SELECT_FMT_UTF8 },
+  { "text/plain;charset=utf-8", 0, SELECT_FMT_UTF8 },
+
+  /*
+  { "text/html",     0, SELECT_FMT_HTML }
+  */
+};
+
+static void
+on_copy (PsppireOutputWindow *window)
+{
+  {
+    GtkClipboard *clipboard =
+      gtk_widget_get_clipboard (GTK_WIDGET (window),
+				GDK_SELECTION_CLIPBOARD);
+
+    if (!gtk_clipboard_set_with_data (clipboard, targets,
+				       G_N_ELEMENTS (targets),
+				       clipboard_get_cb, clipboard_clear_cb,
+				      window))
+
+      clipboard_clear_cb (clipboard, window);
+  }
+}
+
+static void
+on_selection_change (GtkTreeSelection *sel, GtkAction *copy_action)
+{
+  /* The Copy action is available only if there is something selected */
+  gtk_action_set_sensitive (copy_action, gtk_tree_selection_count_selected_rows (sel) > 0);
+}
+
 static void
 psppire_output_window_init (PsppireOutputWindow *window)
 {
   GtkTreeViewColumn *column;
   GtkCellRenderer *renderer;
   GtkBuilder *xml;
+  GtkAction *copy_action;
+  GtkTreeSelection *sel;
 
   xml = builder_new ("output-viewer.ui");
+
+  copy_action = get_action_assert (xml, "edit_copy");
+
+  gtk_action_set_sensitive (copy_action, FALSE);
+
+  g_signal_connect_swapped (copy_action, "activate", G_CALLBACK (on_copy), window);
 
   gtk_widget_reparent (get_widget_assert (xml, "vbox1"), GTK_WIDGET (window));
 
@@ -540,10 +735,18 @@ psppire_output_window_init (PsppireOutputWindow *window)
   window->y = 0;
 
   window->overview = GTK_TREE_VIEW (get_widget_assert (xml, "overview"));
+
+  sel = gtk_tree_view_get_selection (window->overview);
+
+  gtk_tree_selection_set_mode (sel, GTK_SELECTION_MULTIPLE);
+
+  g_signal_connect (sel, "changed", G_CALLBACK (on_selection_change), copy_action);
+
   gtk_tree_view_set_model (window->overview,
                            GTK_TREE_MODEL (gtk_tree_store_new (
                                              N_COLS,
-                                             G_TYPE_STRING, /* COL_TITLE */
+                                             G_TYPE_STRING,  /* COL_TITLE */
+					     G_TYPE_POINTER, /* COL_ADDR */
                                              G_TYPE_LONG))); /* COL_Y */
 
   window->in_command = false;
