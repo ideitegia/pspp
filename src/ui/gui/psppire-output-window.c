@@ -415,17 +415,6 @@ on_row_activate (GtkTreeView *overview,
 static void psppire_output_window_print (PsppireOutputWindow *window);
 
 
-static GtkFileFilter *
-add_filter (GtkFileChooser *chooser, const char *name, const char *pattern)
-{
-  GtkFileFilter *filter = gtk_file_filter_new ();
-  g_object_ref_sink (G_OBJECT (filter));
-  gtk_file_filter_set_name (filter, name);
-  gtk_file_filter_add_pattern (filter, pattern);
-  gtk_file_chooser_add_filter (chooser, filter);
-  return filter;
-}
-
 static void
 export_output (PsppireOutputWindow *window, struct string_map *options,
                const char *format)
@@ -443,62 +432,216 @@ export_output (PsppireOutputWindow *window, struct string_map *options,
   output_driver_destroy (driver);
 }
 
+
+struct file_types
+{
+  const gchar *label;
+  const gchar *ext;
+};
+
+enum 
+  {
+    FT_AUTO = 0,
+    FT_PDF,
+    FT_HTML,
+    FT_ODT,
+    FT_TXT,
+    FT_PS,
+    FT_CSV,
+    n_FT
+  };
+
+#define N_EXTENTIONS (n_FT - 1)
+
+struct file_types ft[n_FT] = {
+  {N_("Infer file type from extention"),  NULL},
+  {N_("PDF (*.pdf)"),                     ".pdf"},
+  {N_("HTML (*.html)"),                   ".html"},
+  {N_("OpenDocument (*.odt)"),            ".odt"},
+  {N_("Text (*.txt)"),                    ".txt"},
+  {N_("PostScript (*.ps)"),               ".ps"},
+  {N_("Comma-Separated Values (*.csv)"),  ".csv"}
+};
+
+
+static void
+on_combo_change (GtkFileChooser *chooser)
+{
+  gboolean sensitive = FALSE;
+  GtkWidget *combo = gtk_file_chooser_get_extra_widget (chooser);
+
+  int x = 0; 
+  gchar *fn = gtk_file_chooser_get_filename (chooser);
+
+  if (combo &&  GTK_WIDGET_REALIZED (combo))
+    x = gtk_combo_box_get_active (GTK_COMBO_BOX (combo));
+
+  if (fn == NULL)
+    {
+      sensitive = FALSE;
+    }
+  else
+    {
+      gint i;
+      if ( x != 0 )
+	sensitive = TRUE;
+
+      for (i = 1 ; i < N_EXTENTIONS ; ++i)
+	{
+	  if ( g_str_has_suffix (fn, ft[i].ext))
+	    {
+	      sensitive = TRUE;
+	      break;
+	    }
+	}
+    }
+
+  g_free (fn);
+
+  gtk_dialog_set_response_sensitive (GTK_DIALOG (chooser), GTK_RESPONSE_ACCEPT, sensitive);
+}
+
+
+static void
+on_file_chooser_change (GObject *w, GParamSpec *pspec, gpointer data)
+{
+
+  GtkFileChooser *chooser = data;
+  const gchar *name = g_param_spec_get_name (pspec);
+
+  if ( ! GTK_WIDGET_REALIZED (chooser))
+    return;
+
+  /* Ignore this one.  It causes recursion. */
+  if ( 0 == strcmp ("tooltip-text", name))
+    return;
+
+  on_combo_change (chooser);
+}
+
+
+/* Recursively descend all the children of W, connecting
+   to their "notify" signal */
+static void
+iterate_widgets (GtkWidget *w, gpointer data)
+{
+  if ( GTK_IS_CONTAINER (w))
+    gtk_container_forall (GTK_CONTAINER (w), iterate_widgets, data);
+  else
+    g_signal_connect (w, "notify",  G_CALLBACK (on_file_chooser_change), data);
+}
+
+
+
+static GtkListStore *
+create_file_type_list (void)
+{
+  int i;
+  GtkTreeIter iter;
+  GtkListStore *list = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_STRING);
+  
+  for (i = 0 ; i < 6 ; ++i)
+    {
+      gtk_list_store_append (list, &iter);
+      gtk_list_store_set (list, &iter,
+			  0,  gettext (ft[i].label),
+			  1,  ft[i].ext,
+			  -1);
+    }
+  
+  return list;
+}
+
 static void
 psppire_output_window_export (PsppireOutputWindow *window)
 {
   gint response;
+  GtkWidget *combo;
+  GtkListStore *list;
 
-  GtkFileFilter *pdf_filter;
-  GtkFileFilter *html_filter;
-  GtkFileFilter *odt_filter;
-  GtkFileFilter *txt_filter;
-  GtkFileFilter *ps_filter;
-  GtkFileFilter *csv_filter;
   GtkFileChooser *chooser;
-  GtkWidget *dialog;
-
-  dialog = gtk_file_chooser_dialog_new (_("Export Output"),
+  
+  GtkWidget *dialog = gtk_file_chooser_dialog_new (_("Export Output"),
                                         GTK_WINDOW (window),
                                         GTK_FILE_CHOOSER_ACTION_SAVE,
                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                                         GTK_STOCK_SAVE,   GTK_RESPONSE_ACCEPT,
                                         NULL);
+
   chooser = GTK_FILE_CHOOSER (dialog);
 
-  pdf_filter = add_filter (chooser, _("PDF Files (*.pdf)"), "*.pdf");
-  html_filter = add_filter (chooser, _("HTML Files (*.html)"), "*.html");
-  odt_filter = add_filter (chooser, _("OpenDocument Files (*.odt)"), "*.odt");
-  txt_filter = add_filter (chooser, _("Text Files (*.txt)"), "*.txt");
-  ps_filter = add_filter (chooser, _("PostScript Files (*.ps)"), "*.ps");
-  csv_filter = add_filter (chooser, _("Comma-Separated Value Files (*.csv)"),
-                           "*.csv");
+  list = create_file_type_list ();
+
+  combo = gtk_combo_box_new_with_model (GTK_TREE_MODEL (list));
+
+
+  {
+    /* Create text cell renderer */
+    GtkCellRenderer *cell = gtk_cell_renderer_text_new();
+    gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo), cell, FALSE );
+
+    gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (combo), cell,  "text", 0);
+  }
+
+  g_signal_connect_swapped (combo, "changed", G_CALLBACK (on_combo_change), chooser);
+
+  gtk_combo_box_set_active (GTK_COMBO_BOX (combo), 0);
+
+  gtk_file_chooser_set_extra_widget (chooser, combo);
+
+  /* This kludge is necessary because there is no signal to tell us
+     when the candidate filename of a GtkFileChooser has changed */
+  gtk_container_forall (GTK_CONTAINER (dialog), iterate_widgets, dialog);
+
 
   gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
-  gtk_file_chooser_set_filter (chooser, pdf_filter);
 
   response = gtk_dialog_run (GTK_DIALOG (dialog));
 
   if ( response == GTK_RESPONSE_ACCEPT )
     {
+      int file_type = gtk_combo_box_get_active (GTK_COMBO_BOX (combo));
       char *filename = gtk_file_chooser_get_filename (chooser);
-      GtkFileFilter *filter = gtk_file_chooser_get_filter (chooser);
       struct string_map options;
 
       g_return_if_fail (filename);
-      g_return_if_fail (filter);
 
+      if (file_type == FT_AUTO)
+	{
+	  gint i;
+	  for (i = 1 ; i < N_EXTENTIONS ; ++i)
+	    {
+	      if ( g_str_has_suffix (filename, ft[i].ext))
+		{
+		  file_type = i;
+		  break;
+		}
+	    }
+	}
+
+      
       string_map_init (&options);
       string_map_insert (&options, "output-file", filename);
-      if (filter == pdf_filter)
-        {
+
+      switch (file_type)
+	{
+	case FT_PDF:
           export_output (window, &options, "pdf");
-        }
-      else if (filter == html_filter)
-        export_output (window, &options, "html");
-      else if (filter == odt_filter)
-        export_output (window, &options, "odt");
-      else if (filter == txt_filter)
-        {
+	  break;
+	case FT_HTML:
+          export_output (window, &options, "html");
+	  break;
+	case FT_ODT:
+          export_output (window, &options, "odt");
+	  break;
+	case FT_PS:
+          export_output (window, &options, "ps");
+	  break;
+	case FT_CSV:
+          export_output (window, &options, "csv");
+	  break;
+
+	case FT_TXT:
           string_map_insert (&options, "headers", "false");
           string_map_insert (&options, "paginate", "false");
           string_map_insert (&options, "squeeze", "true");
@@ -507,22 +650,15 @@ psppire_output_window_export (PsppireOutputWindow *window)
           string_map_insert (&options, "top-margin", "0");
           string_map_insert (&options, "bottom-margin", "0");
           export_output (window, &options, "txt");
-        }
-      else if (filter == ps_filter)
-        export_output (window, &options, "ps");
-      else if (filter == csv_filter)
-        export_output (window, &options, "csv");
-      else
-        g_return_if_reached ();
+	  break;
+	default:
+	  g_assert_not_reached ();
+	}
+
+      string_map_destroy (&options);
 
       free (filename);
     }
-
-  g_object_unref (G_OBJECT (pdf_filter));
-  g_object_unref (G_OBJECT (html_filter));
-  g_object_unref (G_OBJECT (txt_filter));
-  g_object_unref (G_OBJECT (ps_filter));
-  g_object_unref (G_OBJECT (csv_filter));
 
   gtk_widget_destroy (dialog);
 }
@@ -699,7 +835,7 @@ clipboard_get_cb (GtkClipboard     *clipboard,
       break;
 
     default:
-      g_print ("unsupportted clip target\n");
+      g_warning ("unsupported clip target\n");
       goto finish;
       break;
     }
