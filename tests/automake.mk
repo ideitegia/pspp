@@ -7,6 +7,7 @@ TESTS_ENVIRONMENT += PERL='$(PERL)' PG_CONFIG='$(PG_CONFIG)'
 TESTS_ENVIRONMENT += CHARSETALIASDIR='$(abs_top_builddir)/gl'
 
 TESTS_ENVIRONMENT += LC_ALL=C
+TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
 	tests/command/add-files.sh \

@@ -5,7 +5,7 @@
 set -e
 
 : ${top_builddir:=.}
-RUN_TEST="${top_builddir}/tests/libpspp/sparse-xarray-test --verbosity=0"
+RUN_TEST="${top_builddir}/tests/libpspp/sparse-xarray-test$EXEEXT --verbosity=0"
 
 # Each on-disk sparse_xarray eats up a file descriptor, so for the
 # tests that involve on-disk sparse_xarrays we need to limit the
