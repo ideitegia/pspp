@@ -40,7 +40,8 @@ perl_module_tarball:
 	 for f in $(module_sources); do \
 	  destdir=`dirname $$f` ;\
 	  mkdir -p $$destdir ;\
-	  if test "$(top_srcdir)/$$f" -nt "$(top_builddir)/$$f" ; then \
+	  if test ! -e "$(top_builddir)/$$f" || \
+	     test "$(top_srcdir)/$$f" -nt "$(top_builddir)/$$f" ; then \
 		 cp $(top_srcdir)/$$f $$destdir ; \
 		 echo cp $(top_srcdir)/$$f $$destdir ; \
 	  fi ; \
