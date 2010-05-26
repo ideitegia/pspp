@@ -36,7 +36,7 @@ make_np_plot (const struct np *np, const struct casereader *reader,
   if (np->n < 1.0)
     return NULL;
 
-  npp = xmalloc (sizeof *npp);
+  npp = xzalloc (sizeof *npp);
   chart_item_init (&npp->chart_item, &np_plot_chart_class, label);
   npp->data = casereader_clone (reader);
   npp->y_min = np->y_min;
@@ -97,7 +97,6 @@ np_plot_chart_destroy (struct chart_item *chart_item)
 {
   struct np_plot_chart *npp = to_np_plot_chart (chart_item);
   casereader_destroy (npp->data);
-  free (npp->label);
   free (npp);
 }
 

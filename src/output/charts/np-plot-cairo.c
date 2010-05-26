@@ -34,7 +34,7 @@ np_plot_chart_draw (const struct chart_item *chart_item, cairo_t *cr,
   struct casereader *data;
   struct ccase *c;
 
-  xrchart_write_title (cr, geom, _("Normal Q-Q Plot of %s"), npp->label);
+  xrchart_write_title (cr, geom, _("Normal Q-Q Plot of %s"), chart_item->title);
   xrchart_write_xlabel (cr, geom, _("Observed Value"));
   xrchart_write_ylabel (cr, geom, _("Expected Normal"));
   xrchart_write_xscale (cr, geom,
@@ -61,8 +61,7 @@ dnp_plot_chart_draw (const struct chart_item *chart_item, cairo_t *cr,
   struct casereader *data;
   struct ccase *c;
 
-  xrchart_write_title (cr, geom, _("Detrended Normal Q-Q Plot of %s"),
-                       dnpp->label);
+  xrchart_write_title (cr, geom, _("Detrended Normal Q-Q Plot of %s"), chart_item->title);
   xrchart_write_xlabel (cr, geom, _("Observed Value"));
   xrchart_write_ylabel (cr, geom, _("Dev from Normal"));
   xrchart_write_xscale (cr, geom, dnpp->y_min, dnpp->y_max, 5);

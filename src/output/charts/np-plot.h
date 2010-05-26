@@ -25,7 +25,6 @@ struct np;
 struct np_plot_chart
   {
     struct chart_item chart_item;
-    char *label;
     struct casereader *data;
     bool detrended;
 
