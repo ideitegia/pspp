@@ -348,7 +348,7 @@ show_npplot (const struct variable **dependent_var,
           np = result->metrics[v].np;
           reader = casewriter_make_reader (np->writer);
           npp = np_plot_create (np, reader, ds_cstr (&label));
-          dnpp = np_plot_create (np, reader, ds_cstr (&label));
+          dnpp = dnp_plot_create (np, reader, ds_cstr (&label));
 
 	  ds_destroy (&label);
 
