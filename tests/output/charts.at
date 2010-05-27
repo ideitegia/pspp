@@ -1,0 +1,120 @@
+AT_BANNER([CHARTS Rudimentary run tests])
+
+dnl Check that the charts work
+dnl Currently, "work" means that the commands which
+dnl should generate them, run without crashing.
+dnl Better tests will come later (hopefully)
+
+AT_SETUP([Examine])
+AT_DATA([charts.sps],[
+input program.
+loop #i = 1 to 1000.
+ compute x  = rv.normal (56, 3) + rv.uniform (1, 1).
+ compute y  = rv.normal (6, 2) + rv.uniform (1, 2).
+ compute A  = rv.uniform (-1, 1).
+  compute A = (A > 0).
+ end case.
+end loop.
+end file.
+end input program.
+
+examine x y by a
+	/plot = histogram, npplot
+	.
+
+examine x y by a
+	/compare = groups
+	/plot = boxplot
+	.
+
+examine x y by a
+	/compare = variables
+	/plot = boxplot
+	.
+])
+
+AT_CHECK([pspp -O format=csv charts.sps], [0], [ignore])
+
+AT_CLEANUP
+
+AT_SETUP([Roc])
+AT_DATA([roc.sps],[
+data list list /fred * group * w *.
+begin data.
+99  0 1000
+99  1 3
+97  0 908
+97  1 2
+95  0 904
+96  1 7
+94  1 9
+93  0 823
+93  1 12
+90  0 723
+90  1 42
+84  0 523
+84  1 98
+73  0 500
+75  1 180
+63  0 520
+69  1 320
+60  0 510
+60  1 418
+50  0 488
+54  1 432
+46  0 428
+43  1 528
+36  0 324
+36  1 612
+26  0 294
+28  1 682
+20  0 119
+20  1 719
+10  0 97
+10  1 809
+end data.
+
+weight by w.
+
+compute bert = fred + (group < 0.5) * 45.
+compute charlie = fred + (group > 0.5) * 15.
+
+
+ROC /fred bert charlie by group (0)
+	/plot = curve (reference).
+
+])
+
+AT_CHECK([pspp -O format=csv roc.sps], [0], [ignore])
+
+AT_CLEANUP
+
+
+
+
+AT_SETUP([Scree])
+AT_DATA([scree.sps],[
+input program.
+vector vec(10).
+loop #i = 1 to 100.
+ loop #v = 1 to 3.
+ compute vec(#v) = rv.normal (0, 45).
+ end loop.
+ loop #v = 4 to 10.
+ compute vec(#v) = vec (#v - 3) + rv.normal (0, 30).
+ end loop.
+ end case.
+end loop.
+end file.
+end input program.
+
+
+factor /variables = all
+        /print initial
+	/plot = eigen.
+
+])
+
+AT_CHECK([pspp -O format=csv scree.sps], [0], [ignore])
+
+AT_CLEANUP
