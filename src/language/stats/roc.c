@@ -47,7 +47,7 @@ struct cmd_roc
   const struct variable **vars;
   const struct dictionary *dict;
 
-  const struct variable *state_var ;
+  const struct variable *state_var;
   union value state_value;
 
   /* Plot the roc curve */
@@ -93,6 +93,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
   roc.pos = roc.pos_weighted = 0;
   roc.neg = roc.neg_weighted = 0;
   roc.dict = dataset_dict (ds);
+  roc.state_var = NULL;
 
   if (!parse_variables_const (lexer, dict, &roc.vars, &roc.n_vars,
 			      PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
@@ -275,7 +276,8 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
   return CMD_SUCCESS;
 
  error:
-  value_destroy (&roc.state_value, var_get_width (roc.state_var));
+  if ( roc.state_var)
+    value_destroy (&roc.state_value, var_get_width (roc.state_var));
   free (roc.vars);
   return CMD_FAILURE;
 }
