@@ -183,6 +183,7 @@ The NTILES subcommand causes the percentiles to be reported at the
 boundaries of the data set divided into the specified number of ranges.
 For instance, @code{/NTILES=4} would cause quartiles to be reported.
 
+@cindex histogram
 The HISTOGRAM subcommand causes the output to include a histogram for
 each specified numeric variable.  The X axis by default ranges from
 the minimum to the maximum value observed in the data, but the MINIMUM
@@ -190,6 +191,7 @@ and MAXIMUM keywords can set an explicit range.  Specify NORMAL to
 superimpose a normal curve on the histogram.  Histograms are not
 created for string variables.
 
+@cindex piechart
 The PIECHART adds a pie chart for each variable to the data.  Each
 slice represents one value, with the size of the slice proportional to
 the value's frequency.  By default, all non-missing values are given
@@ -243,7 +245,11 @@ values of the dependent variable.  A number in parentheses determines
 how many upper and lower extremes to show.  The default number is 5.
 
 
+@cindex boxplot
+@cindex histogram
+@cindex npplot
 The PLOT subcommand specifies which plots are to be produced if any.
+Available plots are HISTOGRAM, NPPLOT and BOXPLOT.
 
 The COMPARE subcommand is only relevant if producing boxplots, and it is only 
 useful there is more than one dependent variable and at least one factor.   If 
