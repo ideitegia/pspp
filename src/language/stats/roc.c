@@ -95,6 +95,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
   roc.dict = dataset_dict (ds);
   roc.state_var = NULL;
 
+  lex_match (lexer, '/');
   if (!parse_variables_const (lexer, dict, &roc.vars, &roc.n_vars,
 			      PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
     goto error;
