@@ -81,11 +81,11 @@ xrchart_draw_piechart (const struct chart_item *chart_item, cairo_t *cr,
       const double segment_angle =
 	pie->slices[i].magnitude / total_magnitude * 2 * M_PI ;
 
-      const double label_x = centre_x -
-	radius * sin(angle + segment_angle/2.0);
+      const double label_x = centre_x +
+	radius * cos (angle + segment_angle/2.0);
 
       const double label_y = centre_y +
-	radius * cos(angle + segment_angle/2.0);
+	radius * sin (angle + segment_angle/2.0);
 
       /* Fill the segment */
       draw_segment (cr,
