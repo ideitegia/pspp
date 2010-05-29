@@ -902,15 +902,15 @@ render_cell (const struct render_page *page, const struct table_cell *cell)
   page->params->draw_cell (page->params->aux, cell, bb, clip);
 }
 
-/* Renders PAGE, by calling the 'draw_line' and 'draw_cell' functions from the
-   render_params provided to render_page_create(). */
-void
-render_page_draw (const struct render_page *page)
+/* Draws the cells of PAGE indicated in BB. */
+static void
+render_page_draw_cells (const struct render_page *page,
+                        int bb[TABLE_N_AXES][2])
 {
   int x, y;
 
-  for (y = 0; y <= page->n[V] * 2; y++)
-    for (x = 0; x <= page->n[H] * 2; )
+  for (y = bb[V][0]; y < bb[V][1]; y++)
+    for (x = bb[H][0]; x < bb[H][1]; )
       if (is_rule (x) || is_rule (y))
         {
           int d[TABLE_N_AXES];
@@ -924,11 +924,90 @@ render_page_draw (const struct render_page *page)
           struct table_cell cell;
 
           table_get_cell (page->table, x / 2, y / 2, &cell);
-          if (y / 2 == cell.d[V][0])
+          if (y == bb[V][0] || y / 2 == cell.d[V][0])
             render_cell (page, &cell);
           x = rule_ofs (cell.d[H][1]);
           table_cell_free (&cell);
         }
+}
+
+/* Renders PAGE, by calling the 'draw_line' and 'draw_cell' functions from the
+   render_params provided to render_page_create(). */
+void
+render_page_draw (const struct render_page *page)
+{
+  int bb[TABLE_N_AXES][2];
+
+  bb[H][0] = 0;
+  bb[H][1] = page->n[H] * 2 + 1;
+  bb[V][0] = 0;
+  bb[V][1] = page->n[V] * 2 + 1;
+
+  render_page_draw_cells (page, bb);
+}
+
+/* Returns the greatest value i, 0 <= i < n, such that cp[i] <= x0. */
+static int
+get_clip_min_extent (int x0, const int cp[], int n)
+{
+  int low, high, best;
+
+  low = 0;
+  high = n;
+  best = 0;
+  while (low < high)
+    {
+      int middle = low + (high - low) / 2;
+
+      if (cp[middle] <= x0)
+        {
+          best = middle;
+          low = middle + 1;
+        }
+      else
+        high = middle;
+    }
+
+  return best;
+}
+
+/* Returns the least value i, 0 <= i < n, such that cp[i + 1] >= x1. */
+static int
+get_clip_max_extent (int x1, const int cp[], int n)
+{
+  int low, high, best;
+
+  low = 0;
+  high = n;
+  best = n;
+  while (low < high)
+    {
+      int middle = low + (high - low) / 2;
+
+      if (cp[middle] >= x1)
+        best = high = middle;
+      else
+        low = middle + 1;
+    }
+
+  return best;
+}
+
+/* Renders the cells of PAGE that intersect (X,Y)-(X+W,Y+H), by calling the
+   'draw_line' and 'draw_cell' functions from the render_params provided to
+   render_page_create(). */
+void
+render_page_draw_region (const struct render_page *page,
+                         int x, int y, int w, int h)
+{
+  int bb[TABLE_N_AXES][2];
+
+  bb[H][0] = get_clip_min_extent (x, page->cp[H], page->n[H] * 2 + 1);
+  bb[H][1] = get_clip_max_extent (x + w, page->cp[H], page->n[H] * 2 + 1);
+  bb[V][0] = get_clip_min_extent (y, page->cp[V], page->n[V] * 2 + 1);
+  bb[V][1] = get_clip_max_extent (y + h, page->cp[V], page->n[V] * 2 + 1);
+
+  render_page_draw_cells (page, bb);
 }
 
 /* Breaking up tables to fit on a page. */

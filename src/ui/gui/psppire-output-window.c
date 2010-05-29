@@ -168,7 +168,8 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   cairo_t *cr;
 
   cr = gdk_cairo_create (widget->window);
-  xr_rendering_draw (r, cr);
+  xr_rendering_draw (r, cr, event->area.x, event->area.y,
+                     event->area.width, event->area.height);
   cairo_destroy (cr);
 
   return TRUE;

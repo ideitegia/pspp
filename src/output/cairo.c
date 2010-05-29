@@ -1002,8 +1002,11 @@ xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
     }
 }
 
+/* Draws onto CR at least the region of R that is enclosed in (X,Y)-(X+W,Y+H),
+   and possibly some additional parts. */
 void
-xr_rendering_draw (struct xr_rendering *r, cairo_t *cr)
+xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
+                   int x, int y, int w, int h)
 {
   if (r->chart == NULL)
     {
@@ -1011,7 +1014,8 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr)
 
       xr_set_cairo (xr, cr);
       xr->y = 0;
-      render_page_draw (r->page);
+      render_page_draw_region (r->page,
+                               x * 1024, y * 1024, w * 1024, h * 1024);
     }
   else
     xr_draw_chart (r->chart, cr, 0, 0, CHART_WIDTH, CHART_HEIGHT);
