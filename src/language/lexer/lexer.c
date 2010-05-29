@@ -1218,13 +1218,6 @@ finish:
   if (type != CHARACTER_STRING)
     convert_numeric_string_to_char_string (lexer, type);
 
-  if (ds_length (&lexer->tokstr) > 255)
-    {
-      msg (SE, _("String exceeds 255 characters in length (%zu characters)."),
-	   ds_length (&lexer->tokstr));
-      ds_truncate (&lexer->tokstr, 255);
-    }
-
   return T_STRING;
 }
 

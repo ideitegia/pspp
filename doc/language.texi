@@ -112,8 +112,7 @@ significant inside strings.
 
 Strings can be concatenated using @samp{+}, so that @samp{"a" + 'b' +
 'c'} is equivalent to @samp{'abc'}.  Concatenation is useful for
-splitting a single string across multiple source lines. The maximum
-length of a string, after concatenation, is 255 characters.
+splitting a single string across multiple source lines.
 
 Strings may also be expressed as hexadecimal, octal, or binary
 character values by prefixing the initial quote character by @samp{X},
