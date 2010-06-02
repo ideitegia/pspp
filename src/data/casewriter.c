@@ -99,6 +99,8 @@ casewriter_make_reader (struct casewriter *writer)
 {
   struct casereader *reader = writer->class->convert_to_reader (writer, writer->aux);
   taint_propagate (writer->taint, casereader_get_taint (reader));
+
+  caseproto_unref (writer->proto);
   taint_destroy (writer->taint);
   free (writer);
   return reader;
