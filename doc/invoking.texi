@@ -41,6 +41,7 @@ corresponding short options.
 -O @var{option}=@var{value}
 -O format=@var{format}
 -O device=@{terminal|listing@}
+--no-output
 -e, --error-file=@var{error-file}
 @end example
 
@@ -105,6 +106,11 @@ affects what output will be sent to the device, as configured by the
 SET command's output routing subcommands (@pxref{SET}).  By default,
 output written to standard output is considered a terminal device and
 other output is considered a listing device.
+
+@item --no-output
+Disables output entirely, if neither @option{-o} nor @option{-O} is
+also used.  If one of those options is used, @option{--no-output} has
+no effect.
 
 @item -e @var{error-file}
 @itemx --error-file=@var{error-file}

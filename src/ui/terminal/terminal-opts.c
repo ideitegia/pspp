@@ -68,6 +68,7 @@ enum
     OPT_ERROR_FILE,
     OPT_OUTPUT,
     OPT_OUTPUT_OPTION,
+    OPT_NO_OUTPUT,
     OPT_INTERACTIVE,
     OPT_NO_STATRC,
     OPT_HELP,
@@ -81,6 +82,7 @@ static struct argv_option terminal_argv_options[N_TERMINAL_OPTIONS] =
     {"error-file", 'e', required_argument, OPT_ERROR_FILE},
     {"output", 'o', required_argument, OPT_OUTPUT},
     {NULL, 'O', required_argument, OPT_OUTPUT_OPTION},
+    {"no-output", 0, no_argument, OPT_NO_OUTPUT},
     {"interactive", 'i', no_argument, OPT_INTERACTIVE},
     {"no-statrc", 'r', no_argument, OPT_NO_STATRC},
     {"help", 'h', no_argument, OPT_HELP},
@@ -195,6 +197,7 @@ Output options:\n\
   -O OPTION=VALUE           set output option to customize previous -o\n\
   -O device={terminal|listing}  override device type for previous -o\n\
   -e, --error-file=FILE     append errors, warnings, and notes to FILE\n\
+  --no-output               disable default output driver\n\
 Supported output formats: %s\n\
 \n\
 Language options:\n\
@@ -247,6 +250,12 @@ terminal_option_callback (int id, void *to_)
 
     case OPT_OUTPUT_OPTION:
       parse_output_option (to, optarg);
+      break;
+
+    case OPT_NO_OUTPUT:
+      /* Pretend that we already have an output driver, which disables adding
+         one in terminal_opts_done() when we don't already have one. */
+      to->has_output_driver = true;
       break;
 
     case OPT_INTERACTIVE:
