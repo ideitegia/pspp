@@ -1,7 +1,7 @@
 // -*- c -*-
 //
 // PSPP - a program for statistical analysis.
-// Copyright (C) 2005, 2006, 2009 Free Software Foundation, Inc.
+// Copyright (C) 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -291,7 +291,15 @@ function CTIME.SECONDS (time) = time;
 function DATE.DMY (d, m, y) = expr_ymd_to_date (y, m, d);
 function DATE.MDY (m, d, y) = expr_ymd_to_date (y, m, d);
 function DATE.MOYR (m, y) = expr_ymd_to_date (y, m, 1);
-function DATE.QYR (q, y) = expr_ymd_to_date (y, q * 3 - 2, 1);
+function DATE.QYR (q, y)
+{
+  if (q < 1.0 || q > 4.0 || q != (int) q)
+    {
+      msg (SW, _("The first argument to DATE.QYR must be 1, 2, 3, or 4."));
+      return SYSMIS;
+    }
+   return expr_ymd_to_date (y, q * 3 - 2, 1);
+}
 function DATE.WKYR (w, y) = expr_wkyr_to_date (w, y);
 function DATE.YRDAY (y, yday) = expr_yrday_to_date (y, yday);
 function YRMODA (y, m, d) = expr_yrmoda (y, m, d);
