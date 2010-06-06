@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -141,15 +141,9 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
             goto done;
 
           if (lex_is_number (lexer))
-            {
-              width = 0;
-              fprintf (stderr, "(%s = %.2f)", name, lex_tokval (lexer));
-            }
+            width = 0;
           else if (lex_token (lexer) == T_STRING)
-            {
-              width = ds_length (lex_tokstr (lexer));
-              fprintf (stderr, "(%s = \"%.2s\")", name, ds_cstr (lex_tokstr (lexer)));
-            }
+            width = ds_length (lex_tokstr (lexer));
           else
             {
               lex_error (lexer, _("expecting number or string"));
@@ -190,9 +184,6 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
       goto done;
     }
 
-  if ( ds != NULL )
-    fprintf(stderr, "; ");
-  fprintf (stderr, "%s => ", lex_rest_of_line (lexer));
   lex_get (lexer);
 
   expr = expr_parse_any (lexer, ds, optimize);
@@ -200,7 +191,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
     {
       if (expr != NULL)
         expr_free (expr);
-      fprintf (stderr, "error\n");
+      printf ("error\n");
       goto done;
     }
 
@@ -213,16 +204,16 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
         {
           double d = expr_evaluate_num (expr, c, 0);
           if (d == SYSMIS)
-            fprintf (stderr, "sysmis\n");
+            printf ("sysmis\n");
           else
-            fprintf (stderr, "%.2f\n", d);
+            printf ("%.2f\n", d);
         }
         break;
 
       case OP_boolean:
         {
           double b = expr_evaluate_num (expr, c, 0);
-          fprintf (stderr, "%s\n",
+          printf ("%s\n",
                    b == SYSMIS ? "sysmis" : b == 0.0 ? "false" : "true");
         }
         break;
@@ -232,9 +223,9 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
           struct substring s;
           expr_evaluate (expr, c, 0, &s);
 
-          fputc ('"', stderr);
-          fwrite (s.string, s.length, 1, stderr);
-          fputs ("\"\n", stderr);
+          putchar ('"');
+          fwrite (s.string, s.length, 1, stdout);
+          puts ("\"");
           break;
         }
 
@@ -268,24 +259,24 @@ expr_debug_print_postfix (const struct expression *e)
         {
         case OP_operation:
           if (op->operation == OP_return_number)
-            fprintf (stderr, "return_number");
+            printf ("return_number");
           else if (op->operation == OP_return_string)
-            fprintf (stderr, "return_string");
+            printf ("return_string");
           else if (is_function (op->operation))
-            fprintf (stderr, "%s", operations[op->operation].prototype);
+            printf ("%s", operations[op->operation].prototype);
           else if (is_composite (op->operation))
-            fprintf (stderr, "%s", operations[op->operation].name);
+            printf ("%s", operations[op->operation].name);
           else
-            fprintf (stderr, "%s:", operations[op->operation].name);
+            printf ("%s:", operations[op->operation].name);
           break;
         case OP_number:
           if (op->number != SYSMIS)
-            fprintf (stderr, "n<%g>", op->number);
+            printf ("n<%g>", op->number);
           else
-            fprintf (stderr, "n<SYSMIS>");
+            printf ("n<SYSMIS>");
           break;
         case OP_string:
-          fprintf (stderr, "s<%.*s>",
+          printf ("s<%.*s>",
                    (int) op->string.length,
                    op->string.string != NULL ? op->string.string : "");
           break;
@@ -293,21 +284,21 @@ expr_debug_print_postfix (const struct expression *e)
           {
             char str[FMT_STRING_LEN_MAX + 1];
             fmt_to_string (op->format, str);
-            fprintf (stderr, "f<%s>", str);
+            printf ("f<%s>", str);
           }
           break;
         case OP_variable:
-          fprintf (stderr, "v<%s>", var_get_name (op->variable));
+          printf ("v<%s>", var_get_name (op->variable));
           break;
         case OP_vector:
-          fprintf (stderr, "vec<%s>", vector_get_name (op->vector));
+          printf ("vec<%s>", vector_get_name (op->vector));
           break;
         case OP_integer:
-          fprintf (stderr, "i<%d>", op->integer);
+          printf ("i<%d>", op->integer);
           break;
         default:
           NOT_REACHED ();
         }
     }
-  fprintf (stderr, "\n");
+  printf ("\n");
 }

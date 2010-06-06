@@ -6,7 +6,9 @@ m4_ifndef([AT_SKIP_IF],
      [AT_CHECK([($1) \
 && exit 77 || exit 0], [0], [ignore], [ignore])])])
 
+m4_include([tests/data/calendar.at])
 m4_include([tests/language/dictionary/mrsets.at])
+m4_include([tests/language/expressions/evaluate.at])
 m4_include([tests/language/stats/aggregate.at])
 m4_include([tests/language/stats/autorecode.at])
 m4_include([tests/language/stats/crosstabs.at])

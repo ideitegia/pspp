@@ -141,8 +141,6 @@ dist_TESTS = \
 	tests/data/datasheet-test.sh \
 	tests/libpspp/sparse-xarray-test.sh \
 	tests/output/paper-size.sh \
-	tests/expressions/expressions.sh \
-	tests/expressions/epoch.sh \
 	tests/expressions/randist.sh \
 	tests/expressions/valuelabel.sh \
 	tests/expressions/variables.sh \
@@ -417,7 +415,9 @@ EXTRA_DIST += \
 	$(TESTSUITE)
 TESTSUITE_AT = \
 	tests/testsuite.at \
+	tests/data/calendar.at \
 	tests/language/dictionary/mrsets.at \
+	tests/language/expressions/evaluate.at \
 	tests/language/stats/aggregate.at \
 	tests/language/stats/autorecode.at \
 	tests/language/stats/crosstabs.at \
