@@ -12,9 +12,9 @@ sub generate_output {
 	next if $type->{ROLE} eq 'fixed';
 
 	my ($human_name) = $type->{HUMAN_NAME};
-	$human_name = "" if !defined $human_name;
+	$human_name = $type->{NAME} if !defined $human_name;
 	
-	my (@members) = ("\"$type->{NAME}\"", "\"\"",
+	my (@members) = ("\"$type->{NAME}\"", "\"$human_name\"",
 			 0, "OP_$type->{NAME}", 0, "{}", 0, 0);
 	print "{", join (', ', @members), "},\n";
     }
