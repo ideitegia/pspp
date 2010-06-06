@@ -141,7 +141,6 @@ dist_TESTS = \
 	tests/data/datasheet-test.sh \
 	tests/libpspp/sparse-xarray-test.sh \
 	tests/output/paper-size.sh \
-	tests/stats/moments.sh \
 	tests/expressions/expressions.sh \
 	tests/expressions/epoch.sh \
 	tests/expressions/randist.sh \
@@ -427,6 +426,7 @@ TESTSUITE_AT = \
 	tests/language/stats/frequencies.at \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/recode.at \
+	tests/math/moments.at \
 	tests/output/render.at \
 	tests/perl-module.at
 TESTSUITE = $(srcdir)/tests/testsuite

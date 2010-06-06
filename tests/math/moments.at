@@ -1,0 +1,29 @@
+AT_BANNER([calculating moments])
+
+m4_define([MOMENTS_TESTCASES],
+  [[[1 2 3 4], [W=4.000 M1=2.500 M2=1.667 M3=0.000 M4=-1.200]],
+  [[1*5 2*5 3*5 4*5], [W=20.000 M1=2.500 M2=1.316 M3=0.000 M4=-1.401]],
+  [[1*1 2*2 3*3 4*4], [W=10.000 M1=3.000 M2=1.111 M3=-0.712 M4=-0.450]],
+  [[1*0], [W=0.000 M1=sysmis M2=sysmis M3=sysmis M4=sysmis]],
+  [[1*1], [W=1.000 M1=1.000 M2=sysmis M3=sysmis M4=sysmis]],
+  [[1*2], [W=2.000 M1=1.000 M2=0.000 M3=sysmis M4=sysmis]],
+  [[1*3], [W=3.000 M1=1.000 M2=0.000 M3=sysmis M4=sysmis]],
+  [[1*2 3], [W=3.000 M1=1.667 M2=1.333 M3=1.732 M4=sysmis]],
+  [[1 1.00000001], [W=2.000 M1=1.000 M2=0.000 M3=sysmis M4=sysmis]],
+  [[1000001 1000002 1000003 1000004], [W=4.000 M1=1000002.500 M2=1.667 M3=0.000 M4=-1.200]]])
+
+m4_define([TEST_MOMENTS],
+  [AT_SETUP([$1 moments])
+   AT_CAPTURE_FILE([moments.sps])
+   AT_DATA([moments.sps],
+[m4_foreach([pair], [MOMENTS_TESTCASES], [DEBUG MOMENTS $2/m4_car(pair).
+])])
+   AT_CHECK([pspp --testing-mode --no-output moments.sps], [0], 
+  [],
+  [m4_foreach([pair], [MOMENTS_TESTCASES], [m4_argn([2], pair)
+])])
+   AT_CLEANUP
+])
+
+TEST_MOMENTS([two-pass], [])
+TEST_MOMENTS([one-pass], [ONEPASS])
