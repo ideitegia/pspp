@@ -66,7 +66,7 @@ our ($toktype);
 sub init_all_types {
     # Common user-visible types used throughout evaluation trees.
     init_type ('number', 'any', C_TYPE => 'double',
-	       ATOM => 'number', MANGLE => 'n', HUMAN_NAME => 'num',
+	       ATOM => 'number', MANGLE => 'n', HUMAN_NAME => 'number',
 	       STACK => 'ns', MISSING_VALUE => 'SYSMIS');
     init_type ('string', 'any', C_TYPE => 'struct substring',
 	       ATOM => 'string', MANGLE => 's', HUMAN_NAME => 'string',
