@@ -630,16 +630,16 @@ absorb_miss no_opt no_abbrev string function VALUELABEL (var v)
 
 // Artificial.
 operator SQUARE (x) = x * x;
-boolean operator NUM_TO_BOOLEAN (x)
+boolean operator NUM_TO_BOOLEAN (x, string op_name)
 {
   if (x == 0. || x == 1. || x == SYSMIS)
     return x;
   else
     {
-      msg (SE, _("A number being treated as a Boolean in an "
-                 "expression was found to have a value other than "
-                 "0 (false), 1 (true), or the system-missing value.  "
-                 "The result was forced to 0."));
+      msg (SE, _("An operand of the %.*s operator was found to have a value "
+                 "other than 0 (false), 1 (true), or the system-missing "
+                 "value.  The result was forced to 0."),
+           (int) op_name.length, op_name.string);
       return 0.;
     }
 }

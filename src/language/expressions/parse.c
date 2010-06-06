@@ -344,7 +344,13 @@ type_coercion_core (struct expression *e,
         {
           /* Convert numeric to boolean. */
           if (do_coercion)
-            *node = expr_allocate_unary (e, OP_NUM_TO_BOOLEAN, *node);
+            {
+              union any_node *op_name;
+
+              op_name = expr_allocate_string (e, ss_cstr (operator_name));
+              *node = expr_allocate_binary (e, OP_NUM_TO_BOOLEAN, *node,
+                                            op_name);
+            }
           return true;
         }
       break;
