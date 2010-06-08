@@ -20,7 +20,9 @@
 */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "psppire-conf.h"
 
@@ -140,7 +142,15 @@ psppire_conf_class_init (PsppireConfClass *class)
 static void
 psppire_conf_init (PsppireConf *conf)
 {
-  const gchar *dirname = g_get_user_config_dir ();
+  const gchar *dirname;
+  struct stat s;
+
+  /* Get the name of the directory for user configuration files, then, if it
+     doesn't already exist, create it, since we might be the first program
+     to want to put files there. */
+  dirname = g_get_user_config_dir ();
+  if (stat (dirname, &s) == -1 && errno == ENOENT)
+    mkdir (dirname, 0777);
 
   conf->filename = g_strdup_printf ("%s/%s", dirname, "psppirerc");
 
