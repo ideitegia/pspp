@@ -150,7 +150,7 @@ psppire_conf_init (PsppireConf *conf)
      to want to put files there. */
   dirname = g_get_user_config_dir ();
   if (stat (dirname, &s) == -1 && errno == ENOENT)
-    mkdir (dirname, 0777);
+    mkdir (dirname, 0700);
 
   conf->filename = g_strdup_printf ("%s/%s", dirname, "psppirerc");
 
