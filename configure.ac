@@ -36,10 +36,6 @@ dnl Internationalization macros.
 AC_PROVIDE([AM_PO_SUBDIRS])	# PSPP provides its own po/ support.
 AM_GNU_GETTEXT([external], [need-ngettext])
 AM_GNU_GETTEXT_VERSION([0.17])
-if test -n "$LIBINTL"; then
-  AC_DEFINE([DEPENDS_ON_LIBINTL], [1], 
-    [Define to 1 if libintl is a separate library, not integrated into libc])
-fi
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
