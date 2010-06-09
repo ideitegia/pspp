@@ -6,13 +6,11 @@
         <child>
           <object class="GtkAction" id="sort-up">
             <property name="stock-id">gtk-sort-ascending</property>
-            <property name="label" translatable="yes">Sort Ascending</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="sort-down">
             <property name="stock-id">gtk-sort-descending</property>
-            <property name="label" translatable="yes">Sort Descending</property>
           </object>
         </child>
       </object>
@@ -193,7 +191,6 @@
         <child>
           <object class="GtkAction" id="view_fonts">
             <property name="name">view_fonts</property>
-            <property name="label" translatable="yes">_Fonts</property>
             <property name="stock-id">gtk-select-font</property>
           </object>
         </child>
