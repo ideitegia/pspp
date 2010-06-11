@@ -334,7 +334,7 @@ tests_libpspp_sparse_xarray_test_SOURCES = \
 	src/libpspp/sparse-xarray.c \
 	src/libpspp/str.c \
 	src/libpspp/pool.c \
-	src/libpspp/tmpfile.c \
+	src/libpspp/temp-file.c \
 	tests/libpspp/sparse-xarray-test.c
 tests_libpspp_sparse_xarray_test_LDADD = gl/libgl.la $(LIBINTL) 
 tests_libpspp_sparse_xarray_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,16 +17,17 @@
 /* A interface to allow a temporary file to be treated as an
    array of data. */
 
-#ifndef LIBPSPP_TMPFILE_H
-#define LIBPSPP_TMPFILE_H 1
+#ifndef LIBPSPP_TEMP_FILE_H
+#define LIBPSPP_TEMP_FILE_H 1
 
 #include <stdbool.h>
 #include <sys/types.h>
 
-struct tmpfile *tmpfile_create (void);
-bool tmpfile_destroy (struct tmpfile *);
-bool tmpfile_read (const struct tmpfile *, off_t offset, size_t n, void *);
-bool tmpfile_write (struct tmpfile *, off_t offset, size_t n, const void *);
-bool tmpfile_error (const struct tmpfile *);
+struct temp_file *temp_file_create (void);
+bool temp_file_destroy (struct temp_file *);
+bool temp_file_read (const struct temp_file *, off_t offset, size_t n, void *);
+bool temp_file_write (struct temp_file *, off_t offset, size_t n,
+                      const void *);
+bool temp_file_error (const struct temp_file *);
 
-#endif /* libpspp/tmpfile.h */
+#endif /* libpspp/temp-file.h */

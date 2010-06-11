@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 #include <libpspp/misc.h>
 #include <libpspp/range-set.h>
 #include <libpspp/sparse-array.h>
-#include <libpspp/tmpfile.h>
+#include <libpspp/temp-file.h>
 
 #include "md4.h"
 #include "minmax.h"
@@ -40,7 +40,7 @@ struct sparse_xarray
     uint8_t *default_row;               /* Defaults for unwritten rows. */
     unsigned long int max_memory_rows;  /* Max rows before dumping to disk. */
     struct sparse_array *memory;        /* Backing, if stored in memory. */
-    struct tmpfile *disk;               /* Backing, if stored on disk. */
+    struct temp_file *disk;             /* Backing, if stored on disk. */
     struct range_set *disk_rows;        /* Allocated rows, if on disk. */
   };
 
@@ -103,7 +103,7 @@ sparse_xarray_clone (const struct sparse_xarray *old)
       const struct range_set_node *node;
       void *tmp = xmalloc (old->n_bytes);
 
-      new->disk = tmpfile_create ();
+      new->disk = temp_file_create ();
       new->disk_rows = range_set_clone (old->disk_rows, NULL);
       for (node = range_set_first (old->disk_rows); node != NULL;
            node = range_set_next (old->disk_rows, node))
@@ -115,8 +115,8 @@ sparse_xarray_clone (const struct sparse_xarray *old)
           for (idx = start; idx < end; idx++)
             {
               off_t offset = (off_t) idx * old->n_bytes;
-              if (!tmpfile_read (old->disk, offset, old->n_bytes, tmp)
-                  || !tmpfile_write (new->disk, offset, old->n_bytes, tmp))
+              if (!temp_file_read (old->disk, offset, old->n_bytes, tmp)
+                  || !temp_file_write (new->disk, offset, old->n_bytes, tmp))
                 {
                   free (tmp);
                   sparse_xarray_destroy (new);
@@ -151,7 +151,7 @@ sparse_xarray_destroy (struct sparse_xarray *sx)
             free (*row);
           sparse_array_destroy (sx->memory);
         }
-      tmpfile_destroy (sx->disk);
+      temp_file_destroy (sx->disk);
       range_set_destroy (sx->disk_rows);
       free (sx);
     }
@@ -192,16 +192,16 @@ dump_sparse_xarray_to_disk (struct sparse_xarray *sx)
   assert (sx->memory != NULL);
   assert (sx->disk == NULL);
 
-  sx->disk = tmpfile_create ();
+  sx->disk = temp_file_create ();
   sx->disk_rows = range_set_create ();
 
   for (row = sparse_array_first (sx->memory, &idx); row != NULL;
        row = sparse_array_next (sx->memory, idx, &idx))
     {
-      if (!tmpfile_write (sx->disk, (off_t) idx * sx->n_bytes, sx->n_bytes,
+      if (!temp_file_write (sx->disk, (off_t) idx * sx->n_bytes, sx->n_bytes,
                           *row))
         {
-          tmpfile_destroy (sx->disk);
+          temp_file_destroy (sx->disk);
           sx->disk = NULL;
           range_set_destroy (sx->disk_rows);
           sx->disk_rows = NULL;
@@ -246,8 +246,8 @@ sparse_xarray_read (const struct sparse_xarray *sx, unsigned long int row,
   else
     {
       if (range_set_contains (sx->disk_rows, row))
-        return tmpfile_read (sx->disk, (off_t) row * sx->n_bytes + start,
-                             n, data);
+        return temp_file_read (sx->disk, (off_t) row * sx->n_bytes + start,
+                               n, data);
     }
 
   memcpy (data, sx->default_row + start, n);
@@ -261,15 +261,15 @@ write_disk_row (struct sparse_xarray *sx, unsigned long int row,
 {
   off_t ofs = (off_t) row * sx->n_bytes;
   if (range_set_contains (sx->disk_rows, row))
-    return tmpfile_write (sx->disk, ofs + start, n, data);
+    return temp_file_write (sx->disk, ofs + start, n, data);
   else
     {
       range_set_insert (sx->disk_rows, row, 1);
-      return (tmpfile_write (sx->disk, ofs, start, sx->default_row)
-              && tmpfile_write (sx->disk, ofs + start, n, data)
-              && tmpfile_write (sx->disk, ofs + start + n,
-                                sx->n_bytes - start - n,
-                                sx->default_row + start + n));
+      return (temp_file_write (sx->disk, ofs, start, sx->default_row)
+              && temp_file_write (sx->disk, ofs + start, n, data)
+              && temp_file_write (sx->disk, ofs + start + n,
+                                  sx->n_bytes - start - n,
+                                  sx->default_row + start + n));
     }
 }
 
@@ -346,12 +346,12 @@ sparse_xarray_write_columns (struct sparse_xarray *sx, size_t start,
           for (row = start_row; row < end_row; row++)
             {
               off_t offset = (off_t) row * sx->n_bytes;
-              if (!tmpfile_write (sx->disk, offset + start, n, data))
+              if (!temp_file_write (sx->disk, offset + start, n, data))
                 break;
             }
         }
 
-      if (tmpfile_error (sx->disk))
+      if (temp_file_error (sx->disk))
         return false;
     }
   return true;
@@ -392,8 +392,8 @@ get_row (const struct sparse_xarray *sx, unsigned long int idx,
       uint8_t **p = sparse_array_get (sx->memory, idx);
       return *p;
     }
-  else if (tmpfile_read (sx->disk, (off_t) idx * sx->n_bytes,
-                         sx->n_bytes, buffer))
+  else if (temp_file_read (sx->disk, (off_t) idx * sx->n_bytes,
+                           sx->n_bytes, buffer))
     return buffer;
   else
     return NULL;
@@ -456,10 +456,11 @@ sparse_xarray_copy (const struct sparse_xarray *sx, struct sparse_xarray *dx,
               for (row = start; row < end; row++)
                 {
                   off_t offset = (off_t) row * sx->n_bytes;
-                  success = (tmpfile_read (sx->disk, offset, sx->n_bytes, tmp)
+                  success = (temp_file_read (sx->disk, offset, sx->n_bytes,
+                                             tmp)
                              && cb (tmp, tmp, aux)
-                             && tmpfile_write (dx->disk, offset,
-                                               dx->n_bytes, tmp));
+                             && temp_file_write (dx->disk, offset,
+                                                 dx->n_bytes, tmp));
                   if (!success)
                     break;
                 }
@@ -596,7 +597,7 @@ sparse_xarray_model_checker_hash (const struct sparse_xarray *sx,
           for (idx = start; idx < end; idx++)
             {
               off_t offset = (off_t) idx * sx->n_bytes;
-              if (!tmpfile_read (sx->disk, offset, sx->n_bytes, tmp))
+              if (!temp_file_read (sx->disk, offset, sx->n_bytes, tmp))
                 NOT_REACHED ();
               md4_process_bytes (&idx, sizeof idx, &ctx);
               md4_process_bytes (tmp, sx->n_bytes, &ctx);

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 #include <config.h>
 
-#include <libpspp/tmpfile.h>
+#include <libpspp/temp-file.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -34,7 +34,7 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-struct tmpfile
+struct temp_file
   {
     FILE *file;                 /* Underlying file. */
 
@@ -47,10 +47,10 @@ struct tmpfile
 
 /* Creates and returns a new temporary file.  The temporary file
    will be automatically deleted when the process exits. */
-struct tmpfile *
-tmpfile_create (void)
+struct temp_file *
+temp_file_create (void)
 {
-  struct tmpfile *tf = xmalloc (sizeof *tf);
+  struct temp_file *tf = xmalloc (sizeof *tf);
   tf->file = tmpfile ();
   if (tf->file == NULL)
     error (0, errno, _("failed to create temporary file"));
@@ -62,12 +62,12 @@ tmpfile_create (void)
    TF always succeeded, false if an I/O error occurred at some
    point. */
 bool
-tmpfile_destroy (struct tmpfile *tf)
+temp_file_destroy (struct temp_file *tf)
 {
   bool ok = true;
   if (tf != NULL)
     {
-      ok = !tmpfile_error (tf);
+      ok = !temp_file_error (tf);
       if (tf->file != NULL)
         fclose (tf->file);
       free (tf);
@@ -80,11 +80,11 @@ tmpfile_destroy (struct tmpfile *tf)
    Returns true if the seek is successful and TF is not
    otherwise tainted, false otherwise. */
 static bool
-do_seek (const struct tmpfile *tf_, off_t offset)
+do_seek (const struct temp_file *tf_, off_t offset)
 {
-  struct tmpfile *tf = CONST_CAST (struct tmpfile *, tf_);
+  struct temp_file *tf = CONST_CAST (struct temp_file *, tf_);
 
-  if (!tmpfile_error (tf))
+  if (!temp_file_error (tf))
     {
       if (tf->position == offset)
         return true;
@@ -105,11 +105,11 @@ do_seek (const struct tmpfile *tf_, off_t offset)
    Returns true if successful, false upon an I/O error (in which
    case TF is marked tainted). */
 static bool
-do_read (const struct tmpfile *tf_, void *buffer, size_t bytes)
+do_read (const struct temp_file *tf_, void *buffer, size_t bytes)
 {
-  struct tmpfile *tf = CONST_CAST (struct tmpfile *, tf_);
+  struct temp_file *tf = CONST_CAST (struct temp_file *, tf_);
 
-  assert (!tmpfile_error (tf));
+  assert (!temp_file_error (tf));
   if (bytes > 0 && fread (buffer, bytes, 1, tf->file) != 1)
     {
       if (ferror (tf->file))
@@ -129,9 +129,9 @@ do_read (const struct tmpfile *tf_, void *buffer, size_t bytes)
    Returns true if successful, false upon an I/O error (in which
    case TF is marked tainted). */
 static bool
-do_write (struct tmpfile *tf, const void *buffer, size_t bytes)
+do_write (struct temp_file *tf, const void *buffer, size_t bytes)
 {
-  assert (!tmpfile_error (tf));
+  assert (!temp_file_error (tf));
   if (bytes > 0 && fwrite (buffer, bytes, 1, tf->file) != 1)
     {
       error (0, errno, _("writing to temporary file"));
@@ -144,7 +144,7 @@ do_write (struct tmpfile *tf, const void *buffer, size_t bytes)
 /* Reads N bytes from TF at byte offset OFFSET into DATA.
    Returns true if successful, false on failure.  */
 bool
-tmpfile_read (const struct tmpfile *tf, off_t offset, size_t n, void *data)
+temp_file_read (const struct temp_file *tf, off_t offset, size_t n, void *data)
 {
   return do_seek (tf, offset) && do_read (tf, data, n);
 }
@@ -152,7 +152,8 @@ tmpfile_read (const struct tmpfile *tf, off_t offset, size_t n, void *data)
 /* Writes the N bytes in DATA to TF at byte offset OFFSET.
    Returns true if successful, false on failure.  */
 bool
-tmpfile_write (struct tmpfile *tf, off_t offset, size_t n, const void *data)
+temp_file_write (struct temp_file *tf, off_t offset, size_t n,
+                 const void *data)
 {
   return do_seek (tf, offset) && do_write (tf, data, n);
 }
@@ -160,7 +161,7 @@ tmpfile_write (struct tmpfile *tf, off_t offset, size_t n, const void *data)
 /* Returns true if an error has occurred in I/O on TF,
    false if no error has been detected. */
 bool
-tmpfile_error (const struct tmpfile *tf)
+temp_file_error (const struct temp_file *tf)
 {
   return tf->file == NULL || ferror (tf->file) || feof (tf->file);
 }

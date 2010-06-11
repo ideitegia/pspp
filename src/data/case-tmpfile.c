@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 #include <libpspp/assertion.h>
 #include <libpspp/taint.h>
-#include <libpspp/tmpfile.h>
+#include <libpspp/temp-file.h>
 
 #include "error.h"
 #include "xalloc.h"
@@ -36,7 +36,7 @@ struct case_tmpfile
     struct caseproto *proto;    /* Format of cases in the tmpfile. */
     size_t case_size;           /* Number of bytes per case. */
     size_t *offsets;            /* Offset to each value. */
-    struct tmpfile *tmpfile;    /* Temporary file. */
+    struct temp_file *temp_file; /* Temporary file. */
   };
 
 /* Returns the number of bytes needed to store a value with the
@@ -72,7 +72,7 @@ case_tmpfile_create (const struct caseproto *proto)
 
   ctf = xmalloc (sizeof *ctf);
   ctf->taint = taint_create ();
-  ctf->tmpfile = tmpfile_create ();
+  ctf->temp_file = temp_file_create ();
   ctf->proto = caseproto_ref (proto);
   ctf->case_size = 0;
   n_values = caseproto_get_n_widths (proto);
@@ -97,7 +97,7 @@ case_tmpfile_destroy (struct case_tmpfile *ctf)
   if (ctf != NULL)
     {
       struct taint *taint = ctf->taint;
-      tmpfile_destroy (ctf->tmpfile);
+      temp_file_destroy (ctf->temp_file);
       caseproto_unref (ctf->proto);
       free (ctf->offsets);
       free (ctf);
@@ -149,9 +149,9 @@ case_tmpfile_get_values (const struct case_tmpfile *ctf,
     {
       int width = caseproto_get_width (ctf->proto, i);
       if (width != -1
-          && !tmpfile_read (ctf->tmpfile, case_offset + ctf->offsets[i],
-                            width_to_n_bytes (width),
-                            value_to_data (&values[i], width)))
+          && !temp_file_read (ctf->temp_file, case_offset + ctf->offsets[i],
+                              width_to_n_bytes (width),
+                              value_to_data (&values[i], width)))
           return false;
     }
   return true;
@@ -194,9 +194,9 @@ case_tmpfile_put_values (struct case_tmpfile *ctf,
     {
       int width = caseproto_get_width (ctf->proto, i);
       if (width != -1
-          && !tmpfile_write (ctf->tmpfile, case_offset + ctf->offsets[i],
-                             width_to_n_bytes (width),
-                             value_to_data (values++, width)))
+          && !temp_file_write (ctf->temp_file, case_offset + ctf->offsets[i],
+                               width_to_n_bytes (width),
+                               value_to_data (values++, width)))
           return false;
     }
   return true;
