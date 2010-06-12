@@ -86,7 +86,7 @@ DEBUG EVALUATE/DATE.DMY(1,1,99) = DATE.DMY(1,1,2099).
 DEBUG EVALUATE/DATE.DMY(1,1,100).
 ])
 
-AT_CHECK([pspp --testing-mode --no-output epoch.sps], [1],
+AT_CHECK([pspp --testing-mode --error-file=- --no-output epoch.sps], [1],
   [true
 true
 true
