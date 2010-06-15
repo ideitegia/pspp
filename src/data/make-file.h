@@ -21,18 +21,6 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-/* Creates a temporary file and stores its name in *FILE_NAME and
-   a file descriptor for it in *FD.  Returns success.  Caller is
-   responsible for freeing *FILE_NAME. */
-int make_temp_file (int *fd, char **file_name);
-
-
-/* Creates a temporary file and stores its name in *FILE_NAME and
-   a file stream for it in *FP.  Returns success.  Caller is
-   responsible for freeing *FILE_NAME. */
-int make_unique_file_stream (FILE **fp, char **file_name) ;
-
-
 /* Prepares to atomically replace a (potentially) existing file
    by a new file, by creating a temporary file with the given
    PERMISSIONS bits in the same directory as *FILE_NAME.
