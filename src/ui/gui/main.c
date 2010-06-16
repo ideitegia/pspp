@@ -26,11 +26,13 @@
 #include "libpspp/getl.h"
 #include "libpspp/version.h"
 #include "libpspp/copyleft.h"
+#include "libpspp/str.h"
 #include "ui/source-init-opts.h"
 
 #include "gl/configmake.h"
 #include "gl/progname.h"
 #include "gl/relocatable.h"
+#include "gl/version-etc.h"
 #include "gl/xalloc.h"
 
 #include "gettext.h"
@@ -42,14 +44,92 @@
 
 enum
   {
+    OPT_HELP,
+    OPT_VERSION,
     OPT_NO_SPLASH,
     N_STARTUP_OPTIONS
   };
 
 static const struct argv_option startup_options[N_STARTUP_OPTIONS] =
   {
+    {"help",      'h', no_argument, OPT_HELP},
+    {"version",   'V', no_argument, OPT_VERSION},
     {"no-splash", 'q', no_argument, OPT_NO_SPLASH}
   };
+
+static char *
+get_default_include_path (void)
+{
+  struct source_stream *ss;
+  struct string dst;
+  char **path;
+  size_t i;
+
+  ss = create_source_stream ();
+  path = getl_include_path (ss);
+  ds_init_empty (&dst);
+  for (i = 0; path[i] != NULL; i++)
+    ds_put_format (&dst, " %s", path[i]);
+  destroy_source_stream (ss);
+
+  return ds_steal_cstr (&dst);
+}
+
+static void
+usage (void)
+{
+  char *default_include_path = get_default_include_path ();
+  GOptionGroup *gtk_options;
+  GOptionContext *ctx;
+  gchar *gtk_help_base, *gtk_help;
+
+  /* Get help text for GTK+ options.  */
+  ctx = g_option_context_new ("psppire");
+  gtk_options = gtk_get_option_group (FALSE);
+  gtk_help_base = g_option_context_get_help (ctx, FALSE, gtk_options);
+  g_option_context_free (ctx);
+
+  /* The GTK+ help text starts with usage instructions that we don't want,
+     followed by a blank line.  Trim off everything up to and including the
+     first blank line. */
+  gtk_help = strstr (gtk_help_base, "\n\n");
+  gtk_help = gtk_help != NULL ? gtk_help + 2 : gtk_help_base;
+
+  printf (_("\
+PSPPIRE, a GUI for PSPP, a program for statistical analysis of sample data.\n\
+Usage: %s [OPTION]... FILE\n\
+\n\
+Arguments to long options also apply to equivalent short options.\n\
+\n\
+GUI options:\n\
+  -q, --no-splash           don't show splash screen during startup\n\
+\n\
+%s\
+Language options:\n\
+  -I, --include=DIR         append DIR to search path\n\
+  -I-, --no-include         clear search path\n\
+  -a, --algorithm={compatible|enhanced}\n\
+                            set to `compatible' if you want output\n\
+                            calculated from broken algorithms\n\
+  -x, --syntax={compatible|enhanced}\n\
+                            set to `compatible' to disable PSPP extensions\n\
+  -i, --interactive         interpret syntax in interactive mode\n\
+  -s, --safer               don't allow some unsafe operations\n\
+Default search path:%s\n\
+\n\
+Informative output:\n\
+  -h, --help                display this help and exit\n\
+  -V, --version             output version information and exit\n\
+\n\
+A non-option argument is interpreted as a .sav or .por file to load.\n"),
+          program_name, gtk_help, default_include_path);
+
+  free (default_include_path);
+  g_free (gtk_help_base);
+
+  emit_bug_reporting_address ();
+  exit (EXIT_SUCCESS);
+}
 
 static void
 startup_option_callback (int id, void *show_splash_)
@@ -58,6 +138,16 @@ startup_option_callback (int id, void *show_splash_)
 
   switch (id)
     {
+    case OPT_HELP:
+      usage ();
+      break;
+
+    case OPT_VERSION:
+      version_etc (stdout, "psppire", PACKAGE_NAME, PACKAGE_VERSION,
+                   "Ben Pfaff", "John Darrington", "Jason Stover",
+                   (char *) NULL);
+      exit (EXIT_SUCCESS);
+
     case OPT_NO_SPLASH:
       *show_splash = FALSE;
       break;
