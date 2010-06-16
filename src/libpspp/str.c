@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1240,9 +1240,9 @@ ds_steal_cstr (struct string *st)
    to ST, false if no characters were read before an I/O error or
    end of file (or if MAX_LENGTH was 0).
 
-   This function accepts LF, CR LF, and CR sequences as new-line,
-   and translates each of them to a single '\n' new-line
-   character in ST. */
+   This function treats LF and CR LF sequences as new-line,
+   translating each of them to a single '\n' new-line character
+   in ST. */
 bool
 ds_read_line (struct string *st, FILE *stream, size_t max_length)
 {
@@ -1251,21 +1251,36 @@ ds_read_line (struct string *st, FILE *stream, size_t max_length)
   for (length = 0; length < max_length; length++)
     {
       int c = getc (stream);
-      if (c == EOF)
-        break;
-
-      if (c == '\r')
+      switch (c)
         {
+        case EOF:
+          return length > 0;
+
+        case '\n':
+          ds_put_char (st, c);
+          return true;
+
+        case '\r':
           c = getc (stream);
-          if (c != '\n')
+          if (c == '\n')
             {
-              ungetc (c, stream);
-              c = '\n';
+              /* CR followed by LF is special: translate to \n. */
+              ds_put_char (st, '\n');
+              return true;
             }
+          else
+            {
+              /* CR followed by anything else is just CR. */
+              ds_put_char (st, '\r');
+              if (c == EOF)
+                return true;
+              ungetc (c, stream);
+            }
+          break;
+
+        default:
+          ds_put_char (st, c);
         }
-      ds_put_char (st, c);
-      if (c == '\n')
-        return true;
     }
 
   return length > 0;

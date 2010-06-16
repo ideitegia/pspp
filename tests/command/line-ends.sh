@@ -67,7 +67,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="create input.txt"
-printf '1 2 3\n4 5 6\r\n7 8 9\r10 11 12\n13 14 15 \r\n16 17 18\r' > input.txt
+printf '1 2 3\n4 5 6\r\n7\r8\r9\r\n10 11 12\n13 14 15 \r\n16\r\r17\r18\n' > input.txt
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -77,7 +77,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="check input.txt"
 cksum input.txt > input.cksum
 diff input.cksum - <<EOF
-4116052799 48 input.txt
+1732021750 50 input.txt
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
