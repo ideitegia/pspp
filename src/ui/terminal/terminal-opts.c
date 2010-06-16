@@ -185,7 +185,7 @@ usage (void)
   char *supported_formats = get_supported_formats ();
   char *default_include_path = get_default_include_path ();
 
-  printf ("\
+  printf (_("\
 PSPP, a program for statistical analysis of sample data.\n\
 Usage: %s [OPTION]... FILE...\n\
 \n\
@@ -217,7 +217,7 @@ Informative output:\n\
   -h, --help                display this help and exit\n\
   -V, --version             output version information and exit\n\
 \n\
-Non-option arguments are interpreted as syntax files to execute.\n",
+Non-option arguments are interpreted as syntax files to execute.\n"),
           program_name, supported_formats, default_include_path);
 
   free (supported_formats);
