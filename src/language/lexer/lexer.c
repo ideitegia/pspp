@@ -176,19 +176,19 @@ lex_get (struct lexer *lexer)
 	  return;
 	}
 
-  /* If a token was pushed ahead, return it. */
-  if (lexer->put_token)
-    {
-      restore_token (lexer);
+      /* If a token was pushed ahead, return it. */
+      if (lexer->put_token)
+        {
+          restore_token (lexer);
 #if DUMP_TOKENS
 	  dump_token (lexer);
 #endif
-      return;
-    }
+          return;
+        }
 
-  for (;;)
-    {
-      /* Skip whitespace. */
+      for (;;)
+        {
+          /* Skip whitespace. */
 	  while (c_isspace ((unsigned char) *lexer->prog))
 	    lexer->prog++;
 
