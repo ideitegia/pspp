@@ -273,3 +273,7 @@ BUILT_SOURCES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h
 CLEANFILES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h \
 	$(nodist_src_ui_gui_psppire_DATA)
 endif HAVE_GUI
+
+#ensure the installcheck passes even if there is no X server available
+installcheck-local:
+	DISPLAY=/invalid/port $(MAKE) $(AM_MAKEFLAGS) installcheck-binPROGRAMS

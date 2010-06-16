@@ -262,11 +262,12 @@ main (int argc, char *argv[])
       g_warning ("%s", vers);
     }
 
-  /* Let GDK remove any options that it owns. */
-  gdk_init (&argc, &argv);
 
-  /* Parse our own options. */
   ss = create_source_stream ();
+  /* Parse our own options. 
+     This must come BEFORE gdk_init otherwise options such as 
+     --help --version which ought to work without an X server, won't.
+  */
   parser = argv_parser_create ();
   argv_parser_add_options (parser, startup_options, N_STARTUP_OPTIONS,
                            startup_option_callback, &show_splash);
@@ -274,6 +275,11 @@ main (int argc, char *argv[])
   if (!argv_parser_run (parser, argc, argv))
     exit (EXIT_FAILURE);
   argv_parser_destroy (parser);
+
+  /* Initialise GDK.  Theoretically this call can remove options from argc,argv if
+     it thinks they are gdk options.
+     However there shouldn't be any here because of the gtk_parse_args call above. */
+  gdk_init (&argc, &argv);
 
   init_p.splash_window = create_splash_window ();
   init_p.ss = ss;
