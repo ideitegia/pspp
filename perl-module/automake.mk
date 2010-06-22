@@ -26,7 +26,7 @@ perl-module/pspp-module-config: Makefile
 perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
 
-perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz: $(module_sources)
+perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz: $(module_sources) perl-module/Makefile
 	rm -f $@
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
 
