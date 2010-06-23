@@ -4,6 +4,7 @@ include $(top_srcdir)/src/ui/gui/sheet/automake.mk
 
 UI_FILES = \
 	src/ui/gui/binomial.ui \
+	src/ui/gui/compute.ui \
 	src/ui/gui/correlation.ui \
 	src/ui/gui/crosstabs.ui \
 	src/ui/gui/chi-square.ui \

@@ -370,7 +370,7 @@ compute_dialog (PsppireDataWindow *de)
   PsppireVarStore *vs = NULL;
   struct compute_dialog scd;
 
-  GtkBuilder *xml = builder_new ("psppire.ui");
+  GtkBuilder *xml = builder_new ("compute.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "compute-variable-dialog");
 
