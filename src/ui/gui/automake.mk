@@ -21,6 +21,7 @@ UI_FILES = \
 	src/ui/gui/regression.ui \
 	src/ui/gui/reliability.ui \
 	src/ui/gui/roc.ui \
+	src/ui/gui/select-cases.ui \
 	src/ui/gui/t-test.ui \
 	src/ui/gui/text-data-import.ui \
 	src/ui/gui/var-sheet-dialogs.ui \

@@ -247,7 +247,7 @@ select_cases_dialog (PsppireDataWindow *de)
   GtkWidget *button_range;
   GtkWidget *button_sample;
 
-  scd.xml = builder_new ("psppire.ui");
+  scd.xml = builder_new ("select-cases.ui");
 
   g_object_get (de->data_editor, "data-store", &scd.data_store, NULL);
 
