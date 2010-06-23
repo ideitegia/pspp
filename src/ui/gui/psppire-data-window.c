@@ -1077,6 +1077,8 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   connect_action (de, "data_transpose", G_CALLBACK (transpose_dialog));
 
+  connect_action (de, "data_select-cases", G_CALLBACK (select_cases_dialog));
+ 
   connect_action (de, "data_sort-cases", G_CALLBACK (sort_cases_dialog));
 
   connect_action (de, "transform_compute", G_CALLBACK (compute_dialog));
@@ -1086,6 +1088,7 @@ psppire_data_window_init (PsppireDataWindow *de)
   connect_action (de, "data_split-file", G_CALLBACK (split_file_dialog));
 
   connect_action (de, "data_weight-cases", G_CALLBACK (weight_cases_dialog));
+
 
   connect_action (de, "utilities_variables", G_CALLBACK (variable_info_dialog));
  
@@ -1118,7 +1121,7 @@ psppire_data_window_init (PsppireDataWindow *de)
   connect_action (de, "reliability", G_CALLBACK (reliability_dialog));
  
   connect_action (de, "roc-curve", G_CALLBACK (roc_dialog));
- 
+
   connect_action (de, "correlation", G_CALLBACK (correlation_dialog));
  
   connect_action (de, "factor-analysis", G_CALLBACK (factor_dialog));
