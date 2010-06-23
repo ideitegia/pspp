@@ -119,8 +119,6 @@ struct xr_driver
     struct output_driver driver;
 
     /* User parameters. */
-    bool headers;               /* Draw headers at top of page? */
-
     struct xr_font fonts[XR_N_FONTS];
     int font_height;            /* In XR units. */
 
@@ -149,7 +147,6 @@ struct xr_driver
 
 static const struct output_driver_class cairo_driver_class;
 
-static void draw_headers (struct xr_driver *);
 static void xr_driver_destroy_fsm (struct xr_driver *);
 static void xr_driver_run_fsm (struct xr_driver *);
 
@@ -207,16 +204,12 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
   xr->line_width = XR_POINT / 2;
   xr->page_number = 0;
 
-  xr->headers = parse_boolean (opt (d, o, "headers", "true"));
-
   parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
   xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
   xr->right_margin = parse_dimension (opt (d, o, "right-margin", ".5in"));
   xr->top_margin = parse_dimension (opt (d, o, "top-margin", ".5in"));
   xr->bottom_margin = parse_dimension (opt (d, o, "bottom-margin", ".5in"));
 
-  if (xr->headers)
-    xr->top_margin += 3 * xr->font_height;
   xr->width = paper_width - xr->left_margin - xr->right_margin;
   xr->length = paper_length - xr->top_margin - xr->bottom_margin;
 
@@ -319,16 +312,13 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
 
   if (xr->length / xr->font_height < MIN_LENGTH)
     {
-      error (0, 0, _("The defined page is not long "
-                     "enough to hold margins and headers, plus least %d "
-                     "lines of the default fonts.  In fact, there's only "
+      error (0, 0, _("The defined page is not long enough to hold at least %d "
+                     "lines in the default font.  In fact, there's only "
                      "room for %d lines."),
              MIN_LENGTH,
              xr->length / xr->font_height);
       goto error;
     }
-
-  draw_headers (xr);
 
   return &xr->driver;
 
@@ -437,7 +427,7 @@ xr_submit (struct output_driver *driver, const struct output_item *output_item)
 }
 
 /* Functions for rendering a series of output items to a series of Cairo
-   contexts, with pagination, possibly including headers.
+   contexts, with pagination.
 
    Used by PSPPIRE for printing, and by the basic Cairo output driver above as
    its underlying implementation.
@@ -458,7 +448,6 @@ xr_driver_next_page (struct xr_driver *xr, cairo_t *cairo)
   xr->page_number++;
   xr->cairo = cairo;
   xr->y = 0;
-  draw_headers (xr);
   xr_driver_run_fsm (xr);
 }
 
@@ -483,8 +472,7 @@ xr_driver_need_new_page (const struct xr_driver *xr)
   return xr->fsm != NULL;
 }
 
-/* Returns true if the current page doesn't have any content yet (besides
-   headers, if enabled). */
+/* Returns true if the current page doesn't have any content yet. */
 bool
 xr_driver_is_page_blank (const struct xr_driver *xr)
 {
@@ -718,79 +706,6 @@ xr_draw_cell (void *xr_, const struct table_cell *cell,
   int w, h;
 
   xr_layout_cell (xr, cell, bb, clip, PANGO_WRAP_WORD, &w, &h);
-}
-
-/* Writes STRING at location (X,Y) trimmed to the given MAX_WIDTH
-   and with the given cell OPTIONS for XR. */
-static int
-draw_text (struct xr_driver *xr, const char *string, int x, int y,
-           int max_width, unsigned int options)
-{
-  struct table_cell cell;
-  int bb[TABLE_N_AXES][2];
-  int w, h;
-
-  cell.contents = string;
-  cell.options = options;
-  bb[H][0] = x;
-  bb[V][0] = y - xr->y;
-  bb[H][1] = x + max_width;
-  bb[V][1] = xr->font_height - xr->y;
-  xr_layout_cell (xr, &cell, bb, bb, PANGO_WRAP_WORD_CHAR, &w, &h);
-  return w;
-}
-
-/* Writes LEFT left-justified and RIGHT right-justified within
-   (X0...X1) at Y.  LEFT or RIGHT or both may be null. */
-static void
-draw_header_line (struct xr_driver *xr, const char *left, const char *right,
-                  int x0, int x1, int y)
-{
-  int right_width = 0;
-  if (right != NULL)
-    right_width = (draw_text (xr, right, x0, y, x1 - x0, TAB_RIGHT)
-                   + xr->font_height / 2);
-  if (left != NULL)
-    draw_text (xr, left, x0, y, x1 - x0 - right_width, TAB_LEFT);
-}
-
-/* Draw top of page headers for XR. */
-static void
-draw_headers (struct xr_driver *xr)
-{
-  char *r1, *r2;
-  int x0, x1;
-  int y;
-
-  if (!xr->headers || xr->cairo == NULL)
-    return;
-
-  y = -3 * xr->font_height;
-  x0 = xr->font_height / 2;
-  x1 = xr->width - xr->font_height / 2;
-
-  /* Draw box. */
-  cairo_rectangle (xr->cairo, 0, xr_to_pt (y), xr_to_pt (xr->width),
-                   xr_to_pt (2 * (xr->font_height
-                                  + xr->line_width + xr->line_gutter)));
-  cairo_save (xr->cairo);
-  cairo_set_source_rgb (xr->cairo, 0.9, 0.9, 0.9);
-  cairo_fill_preserve (xr->cairo);
-  cairo_restore (xr->cairo);
-  cairo_stroke (xr->cairo);
-
-  y += xr->line_width + xr->line_gutter;
-
-  r1 = xasprintf (_("%s - Page %d"), get_start_date (), xr->page_number);
-  r2 = xasprintf ("%s - %s", version, host_system);
-
-  draw_header_line (xr, xr->title, r1, x0, x1, y);
-  y += xr->font_height;
-
-  draw_header_line (xr, xr->subtitle, r2, x0, x1, y);
-
-  free (r1);
-  free (r2);
 }
 
 static void
@@ -1285,13 +1200,11 @@ xr_render_text (struct xr_driver *xr, const struct text_item *text_item)
     case TEXT_ITEM_TITLE:
       free (xr->title);
       xr->title = xstrdup (text);
-      draw_headers (xr);
       break;
 
     case TEXT_ITEM_SUBTITLE:
       free (xr->subtitle);
       xr->subtitle = xstrdup (text);
-      draw_headers (xr);
       break;
 
     case TEXT_ITEM_COMMAND_CLOSE:

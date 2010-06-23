@@ -104,7 +104,6 @@ configure_drivers (int width, int length)
 #ifdef HAVE_CAIRO
   /* Render to render.pdf. */
   string_map_insert (&options, "output-file", "render.pdf");
-  string_map_insert (&options, "headers", "off");
   string_map_insert (&options, "top-margin", "0");
   string_map_insert (&options, "bottom-margin", "0");
   string_map_insert (&options, "left-margin", "0");

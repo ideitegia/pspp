@@ -214,17 +214,11 @@ assumed.
 @item -O orientation=@var{orientation}
 Either @code{portrait} or @code{landscape}.  Default: @code{portrait}.
 
-@item -O headers=@var{boolean}
-When enabled, headers showing the time and date, title and subtitle,
-and page number are printed at the top of each page.  Default:
-@code{on}.
-
 @item -O left-margin=@var{dimension}
 @itemx -O right-margin=@var{dimension}
 @itemx -O top-margin=@var{dimension}
 @itemx -O bottom-margin=@var{dimension}
-Sets the margins around the page.  The headers, if enabled, are not
-included in the margins; they are in addition to the margins.  See
+Sets the margins around the page.  See
 below for the allowed forms of @var{dimension} Default: @code{0.5in}.
 
 @item -O prop-font=@var{font-name}

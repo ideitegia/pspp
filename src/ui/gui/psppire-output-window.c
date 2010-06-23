@@ -243,7 +243,6 @@ psppire_output_submit (struct output_driver *this,
          it is already close enough to INT_MAX when expressed as thousands of a
          point.) */
       string_map_insert (&options, "paper-size", "300x200000mm");
-      string_map_insert (&options, "headers", "off");
       string_map_insert (&options, "left-margin", "0");
       string_map_insert (&options, "right-margin", "0");
       string_map_insert (&options, "top-margin", "0");
