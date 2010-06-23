@@ -9,6 +9,7 @@ UI_FILES = \
 	src/ui/gui/chi-square.ui \
 	src/ui/gui/descriptives.ui \
 	src/ui/gui/examine.ui \
+	src/ui/gui/goto-case.ui \
 	src/ui/gui/factor.ui \
 	src/ui/gui/find.ui \
 	src/ui/gui/frequencies.ui \

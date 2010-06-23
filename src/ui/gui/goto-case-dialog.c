@@ -35,15 +35,14 @@ refresh (const PsppireDataWindow *de, GtkBuilder *xml)
 
   case_count =  psppire_data_store_get_case_count (ds);
 
-  gtk_spin_button_set_range (GTK_SPIN_BUTTON (case_num_entry),
-			     1, case_count);
+  gtk_spin_button_set_range (GTK_SPIN_BUTTON (case_num_entry), 1, case_count);
 }
 
 void
 goto_case_dialog (PsppireDataWindow *de)
 {
   gint response;
-  GtkBuilder *xml = builder_new ("psppire.ui");
+  GtkBuilder *xml = builder_new ("goto-case.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "goto-case-dialog");
 
