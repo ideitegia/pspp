@@ -263,7 +263,7 @@ tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_str_test_SOURCES = \
 	tests/libpspp/str-test.c
-tests_libpspp_str_test_LDADD = gl/libgl.la src/libpspp/libpspp.la $(LIBINTL) 
+tests_libpspp_str_test_LDADD = src/libpspp/libpspp.la gl/libgl.la $(LIBINTL) 
 
 tests_libpspp_string_map_test_SOURCES = \
 	src/libpspp/hash-functions.c \
