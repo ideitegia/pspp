@@ -453,7 +453,7 @@ enum
 #define N_EXTENTIONS (n_FT - 1)
 
 struct file_types ft[n_FT] = {
-  {N_("Infer file type from extention"),  NULL},
+  {N_("Infer file type from extension"),  NULL},
   {N_("PDF (*.pdf)"),                     ".pdf"},
   {N_("HTML (*.html)"),                   ".html"},
   {N_("OpenDocument (*.odt)"),            ".odt"},
