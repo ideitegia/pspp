@@ -183,7 +183,7 @@ check_PROGRAMS += \
 
 tests_data_datasheet_test_SOURCES = \
 	tests/data/datasheet-test.c
-tests_data_datasheet_test_LDADD = gl/libgl.la src/libpspp-core.la $(LIBINTL) 
+tests_data_datasheet_test_LDADD = src/libpspp-core.la $(LIBINTL) 
 tests_data_datasheet_test_CFLAGS = $(AM_CFLAGS)
 
 tests_libpspp_ll_test_SOURCES = \
@@ -263,7 +263,7 @@ tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_str_test_SOURCES = \
 	tests/libpspp/str-test.c
-tests_libpspp_str_test_LDADD = src/libpspp/libpspp.la gl/libgl.la $(LIBINTL) 
+tests_libpspp_str_test_LDADD = gl/libgl.la src/libpspp/libpspp.la $(LIBINTL) 
 
 tests_libpspp_string_map_test_SOURCES = \
 	src/libpspp/hash-functions.c \

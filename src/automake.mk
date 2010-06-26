@@ -31,9 +31,7 @@ src_libpspp_la_LIBADD = \
 	src/language/liblanguage.la \
 	src/math/libpspp-math.la \
 	src/output/liboutput.la \
-        $(GSL_LIBS) \
-	gl/libgl.la
-
+        $(GSL_LIBS)
 
 include $(top_srcdir)/src/math/automake.mk
 include $(top_srcdir)/src/output/automake.mk
