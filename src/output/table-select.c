@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -97,7 +97,8 @@ table_select_slice (struct table *subtable, enum table_axis axis,
 
   if (add_headers)
     {
-      if (z0 == subtable->h[axis][0] && z1 == subtable->h[axis][1])
+      if (z0 == subtable->h[axis][0]
+          && z1 == subtable->n[axis] - subtable->h[axis][1])
         return subtable;
 
       if (subtable->h[axis][0])
