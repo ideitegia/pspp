@@ -23,7 +23,7 @@ perl-module/pspp-module-config: Makefile
 	 (cd $(top_builddir) && echo `pwd`\' );\
 	 echo ');') > $(top_builddir)/perl-module/pspp-module-config
 
-perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
+perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config $(module_sources)
 	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
 
 perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz: $(module_sources) perl-module/Makefile
@@ -35,7 +35,7 @@ module-make: perl-module/Makefile src/libpspp-core.la
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
 ALL_LOCAL += perl_module_tarball
-perl_module_tarball:
+perl_module_tarball: $(module_sources)
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
 	 for f in $(module_sources); do \
 	  destdir=`dirname $$f` ;\
