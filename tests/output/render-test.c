@@ -109,7 +109,7 @@ configure_drivers (int width, int length)
   string_map_insert (&options, "left-margin", "0");
   string_map_insert (&options, "right-margin", "0");
   string_map_insert_nocopy (&options, xstrdup ("paper-size"),
-                            xasprintf ("%dx%dpt", width * 5, length * 6));
+                            xasprintf ("%dx%dpt", width * 5, length * 8));
   driver = output_driver_create (&options);
   if (driver == NULL)
     exit (EXIT_FAILURE);

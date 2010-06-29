@@ -95,10 +95,8 @@ enum xr_font_type
 /* A font for use with Cairo. */
 struct xr_font
   {
-    char *string;
     PangoFontDescription *desc;
     PangoLayout *layout;
-    PangoFontMetrics *metrics;
   };
 
 /* An output item whose rendering is in progress. */
@@ -120,7 +118,6 @@ struct xr_driver
 
     /* User parameters. */
     struct xr_font fonts[XR_N_FONTS];
-    int font_height;            /* In XR units. */
 
     int width;                  /* Page width minus margins. */
     int length;                 /* Page length minus margins and header. */
@@ -136,6 +133,7 @@ struct xr_driver
 
     /* Internal state. */
     struct render_params *params;
+    int char_width, char_height;
     char *command_name;
     char *title;
     char *subtitle;
@@ -149,9 +147,6 @@ static const struct output_driver_class cairo_driver_class;
 
 static void xr_driver_destroy_fsm (struct xr_driver *);
 static void xr_driver_run_fsm (struct xr_driver *);
-
-static bool load_font (struct xr_driver *, struct xr_font *);
-static void free_font (struct xr_font *);
 
 static void xr_draw_line (void *, int bb[TABLE_N_AXES][2],
                           enum render_line_style styles[TABLE_N_AXES][2]);
@@ -182,23 +177,58 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
   return driver_option_get (d, options, key, default_value);
 }
 
+static PangoFontDescription *
+parse_font (struct output_driver *d, struct string_map *options,
+            const char *key, const char *default_value,
+            int default_points)
+{
+  PangoFontDescription *desc;
+  char *string;
+
+  /* Parse KEY as a font description. */
+  string = parse_string (opt (d, options, key, default_value));
+  desc = pango_font_description_from_string (string);
+  if (desc == NULL)
+    {
+      error (0, 0, _("\"%s\": bad font specification"), string);
+
+      /* Fall back to DEFAULT_VALUE, which had better be a valid font
+         description. */
+      desc = pango_font_description_from_string (default_value);
+      assert (desc != NULL);
+    }
+  free (string);
+
+  /* If the font description didn't include an explicit font size, then set it
+     to DEFAULT_POINTS. */
+  if (!(pango_font_description_get_set_fields (desc) & PANGO_FONT_MASK_SIZE))
+    pango_font_description_set_size (desc,
+                                     default_points / 1000.0 * PANGO_SCALE);
+
+  return desc;
+}
+
 static struct xr_driver *
 xr_allocate (const char *name, int device_type, struct string_map *o)
 {
   int paper_width, paper_length;
   struct output_driver *d;
   struct xr_driver *xr;
+  int font_points;
 
   xr = xzalloc (sizeof *xr);
   d = &xr->driver;
   output_driver_init (d, &cairo_driver_class, name, device_type);
-  xr->font_height = XR_POINT * 10;
-  xr->fonts[XR_FONT_FIXED].string
-    = parse_string (opt (d, o, "fixed-font", "monospace"));
-  xr->fonts[XR_FONT_PROPORTIONAL].string
-    = parse_string (opt (d, o, "prop-font", "serif"));
-  xr->fonts[XR_FONT_EMPHASIS].string
-    = parse_string (opt (d, o, "emph-font", "serif italic"));
+
+  font_points = parse_int (opt (d, o, "font-size", "10000"),
+                           1000, 1000000);
+  xr->fonts[XR_FONT_FIXED].desc = parse_font (d, o, "fixed-font", "monospace",
+                                              font_points);
+  xr->fonts[XR_FONT_PROPORTIONAL].desc = parse_font (d, o, "prop-font",
+                                                     "serif", font_points);
+  xr->fonts[XR_FONT_EMPHASIS].desc = parse_font (d, o, "emph-font",
+                                                 "serif italic", font_points);
+
   xr->line_gutter = XR_POINT;
   xr->line_space = XR_POINT;
   xr->line_width = XR_POINT / 2;
@@ -217,17 +247,56 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
 }
 
 static bool
+xr_is_72dpi (cairo_t *cr)
+{
+  cairo_surface_type_t type;
+  cairo_surface_t *surface;
+
+  surface = cairo_get_target (cr);
+  type = cairo_surface_get_type (surface);
+  return type == CAIRO_SURFACE_TYPE_PDF || type == CAIRO_SURFACE_TYPE_PS;
+}
+
+static bool
 xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
 {
+  PangoContext *context;
+  PangoFontMap *map;
   int i;
 
   xr->cairo = cairo;
 
   cairo_set_line_width (xr->cairo, xr_to_pt (xr->line_width));
 
+  map = pango_cairo_font_map_get_default ();
+  context = pango_cairo_font_map_create_context (PANGO_CAIRO_FONT_MAP (map));
+  if (xr_is_72dpi (cairo))
+    {
+      /* Pango seems to always scale fonts according to the DPI specified
+         in the font map, even if the surface has a real DPI.  The default
+         DPI is 96, so on a 72 DPI device fonts end up being 96/72 = 133%
+         of their desired size.  We deal with this by fixing the resolution
+         here.  Presumably there is a better solution, but what? */
+      pango_cairo_context_set_resolution (context, 72.0);
+    }
+
+  xr->char_width = 0;
+  xr->char_height = 0;
   for (i = 0; i < XR_N_FONTS; i++)
-    if (!load_font (xr, &xr->fonts[i]))
-      return false;
+    {
+      struct xr_font *font = &xr->fonts[i];
+      int char_width, char_height;
+
+      font->layout = pango_layout_new (context);
+      pango_layout_set_font_description (font->layout, font->desc);
+
+      pango_layout_set_text (font->layout, "0", 1);
+      pango_layout_get_size (font->layout, &char_width, &char_height);
+      xr->char_width = MAX (xr->char_width, char_width);
+      xr->char_height = MAX (xr->char_height, char_height);
+    }
+
+  g_object_unref (G_OBJECT (context));
 
   if (xr->params == NULL)
     {
@@ -241,8 +310,8 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
       xr->params->aux = xr;
       xr->params->size[H] = xr->width;
       xr->params->size[V] = xr->length;
-      xr->params->font_size[H] = xr->font_height / 2; /* XXX */
-      xr->params->font_size[V] = xr->font_height;
+      xr->params->font_size[H] = xr->char_width;
+      xr->params->font_size[V] = xr->char_height;
 
       single_width = 2 * xr->line_gutter + xr->line_width;
       double_width = 2 * xr->line_gutter + xr->line_space + 2 * xr->line_width;
@@ -300,23 +369,23 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
   cairo_save (xr->cairo);
   xr_driver_next_page (xr, xr->cairo);
 
-  if (xr->width / (xr->font_height / 2) < MIN_WIDTH)
+  if (xr->width / xr->char_width < MIN_WIDTH)
     {
       error (0, 0, _("The defined page is not wide enough to hold at least %d "
                      "characters in the default font.  In fact, there's only "
                      "room for %d characters."),
              MIN_WIDTH,
-             xr->width / (xr->font_height / 2));
+             xr->width / xr->char_width);
       goto error;
     }
 
-  if (xr->length / xr->font_height < MIN_LENGTH)
+  if (xr->length / xr->char_height < MIN_LENGTH)
     {
       error (0, 0, _("The defined page is not long enough to hold at least %d "
                      "lines in the default font.  In fact, there's only "
                      "room for %d lines."),
              MIN_LENGTH,
-             xr->length / xr->font_height);
+             xr->length / xr->char_height);
       goto error;
     }
 
@@ -371,7 +440,15 @@ xr_destroy (struct output_driver *driver)
 
   free (xr->command_name);
   for (i = 0; i < XR_N_FONTS; i++)
-    free_font (&xr->fonts[i]);
+    {
+      struct xr_font *font = &xr->fonts[i];
+
+      if (font->desc != NULL)
+        pango_font_description_free (font->desc);
+      if (font->layout != NULL)
+        g_object_unref (font->layout);
+    }
+
   free (xr->params);
   free (xr);
 }
@@ -764,45 +841,6 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
     }
 }
 
-/* Attempts to load FONT, initializing its other members based on
-   its 'string' member and the information in DRIVER.  Returns true
-   if successful, otherwise false. */
-static bool
-load_font (struct xr_driver *xr, struct xr_font *font)
-{
-  PangoContext *context;
-  PangoLanguage *language;
-
-  font->desc = pango_font_description_from_string (font->string);
-  if (font->desc == NULL)
-    {
-      error (0, 0, _("\"%s\": bad font specification"), font->string);
-      return false;
-    }
-  pango_font_description_set_absolute_size (font->desc, xr->font_height);
-
-  font->layout = pango_cairo_create_layout (xr->cairo);
-  pango_layout_set_font_description (font->layout, font->desc);
-
-  language = pango_language_get_default ();
-  context = pango_layout_get_context (font->layout);
-  font->metrics = pango_context_get_metrics (context, font->desc, language);
-
-  return true;
-}
-
-/* Frees FONT. */
-static void
-free_font (struct xr_font *font)
-{
-  free (font->string);
-  if (font->desc != NULL)
-    pango_font_description_free (font->desc);
-  pango_font_metrics_unref (font->metrics);
-  if (font->layout != NULL)
-    g_object_unref (font->layout);
-}
-
 struct output_driver_factory pdf_driver_factory = { "pdf", xr_pdf_create };
 struct output_driver_factory ps_driver_factory = { "ps", xr_ps_create };
 struct output_driver_factory svg_driver_factory = { "svg", xr_svg_create };
@@ -1097,7 +1135,7 @@ xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
   ts->table_item = table_item_ref (table_item);
 
   if (xr->y > 0)
-    xr->y += xr->font_height;
+    xr->y += xr->char_height;
 
   page = xr_render_table_item (xr, table_item, &ts->caption_height);
   xr->params->size[V] = xr->length - ts->caption_height;
@@ -1212,7 +1250,7 @@ xr_render_text (struct xr_driver *xr, const struct text_item *text_item)
 
     case TEXT_ITEM_BLANK_LINE:
       if (xr->y > 0)
-        xr->y += xr->font_height;
+        xr->y += xr->char_height;
       break;
 
     case TEXT_ITEM_EJECT_PAGE:
