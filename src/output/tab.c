@@ -709,6 +709,8 @@ static void
 tab_destroy (struct table *table)
 {
   struct tab_table *t = tab_cast (table);
+  free (t->title);
+  t->title = NULL;
   pool_destroy (t->container);
 }
 
