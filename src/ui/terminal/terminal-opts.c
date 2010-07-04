@@ -286,7 +286,7 @@ terminal_opts_init (struct argv_parser *ap, struct source_stream *ss)
 {
   struct terminal_opts *to;
 
-  to = xmalloc (sizeof *to);
+  to = xzalloc (sizeof *to);
   to->source_stream = ss;
   to->syntax_mode = GETL_BATCH;
   string_map_init (&to->options);
