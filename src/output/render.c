@@ -1051,7 +1051,10 @@ void
 render_break_destroy (struct render_break *b)
 {
   if (b != NULL)
-    render_page_unref (b->page);
+    {
+      render_page_unref (b->page);
+      b->page = NULL;
+    }
 }
 
 /* Returns true if B still has cells that are yet to be returned,
