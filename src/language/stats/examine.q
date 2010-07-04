@@ -365,6 +365,7 @@ show_npplot (const struct variable **dependent_var,
             }
 
 	  statistic_destroy (&np->parent.parent);
+	  casereader_destroy (reader);
 	}
     }
 }
