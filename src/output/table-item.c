@@ -84,6 +84,7 @@ table_item_destroy (struct output_item *output_item)
   struct table_item *item = to_table_item (output_item);
   free (item->caption);
   table_unref (item->table);
+  free (item);
 }
 
 const struct output_item_class table_item_class =

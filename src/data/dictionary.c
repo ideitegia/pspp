@@ -298,6 +298,7 @@ dict_destroy (struct dictionary *d)
       hmap_destroy (&d->name_map);
       attrset_destroy (&d->attributes);
       free (d->mrsets);
+      free (d->encoding);
       free (d);
     }
 }

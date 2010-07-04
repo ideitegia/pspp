@@ -291,8 +291,11 @@ i18n_done (void)
 {
   struct hmapx_node *node;
   struct converter *cvtr;
+
   HMAPX_FOR_EACH (cvtr, node, &map)
     {
+      free (cvtr->tocode);
+      free (cvtr->fromcode);
       iconv_close (cvtr->conv);
       free (cvtr);
     }
