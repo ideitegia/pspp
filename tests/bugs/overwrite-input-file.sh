@@ -98,7 +98,7 @@ COMPUTE Y = X + 1.
 XSAVE OUTFILE='foo.sav'.
 XEXPORT OUTFILE='foo.por'.
 PRINT OUTFILE='foo.data'.
-HOST kill -TERM \$PPID
+HOST COMMAND=['kill -TERM \$PPID'].
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 

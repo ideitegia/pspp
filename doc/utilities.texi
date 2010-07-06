@@ -212,12 +212,19 @@ control to the operating system.
 
 @display
 HOST.
+HOST COMMAND=['command'...].
 @end display
 
 @cmd{HOST} suspends the current PSPP session and temporarily returns control 
 to the operating system.
 This command cannot be used if the SAFER setting is active.
 
+If the COMMAND subcommand is specified, as a sequence of shell
+commands as quoted strings within square brackets, then PSPP executes
+them together in a single subshell.
+
+If no subcommands are specified, then PSPP invokes an interactive
+subshell.
 
 @node INCLUDE
 @section INCLUDE

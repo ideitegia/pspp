@@ -8,6 +8,7 @@ language_utilities_sources = \
 	src/language/utilities/cd.c \
 	src/language/utilities/date.c \
 	src/language/utilities/echo.c \
+	src/language/utilities/host.c \
 	src/language/utilities/title.c \
 	src/language/utilities/include.c \
 	src/language/utilities/permissions.c 
