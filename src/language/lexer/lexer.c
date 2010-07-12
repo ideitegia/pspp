@@ -40,11 +40,6 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-
-#define DUMP_TOKENS 0
-
-
-
 struct lexer
 {
   struct string line_buffer;
@@ -83,10 +78,6 @@ enum string_type
   };
 
 static int parse_string (struct lexer *, enum string_type);
-
-#if DUMP_TOKENS
-static void dump_token (struct lexer *);
-#endif
 
 /* Initialization. */
 
@@ -180,9 +171,6 @@ lex_get (struct lexer *lexer)
       if (lexer->put_token)
         {
           restore_token (lexer);
-#if DUMP_TOKENS
-	  dump_token (lexer);
-#endif
           return;
         }
 
@@ -199,27 +187,18 @@ lex_get (struct lexer *lexer)
 	    {
 	      lexer->dot = 0;
 	      lexer->token = '.';
-#if DUMP_TOKENS
-	      dump_token (lexer);
-#endif
 	      return;
 	    }
 	  else if (!lex_get_line (lexer))
 	    {
 	      lexer->prog = NULL;
 	      lexer->token = T_STOP;
-#if DUMP_TOKENS
-	      dump_token (lexer);
-#endif
 	      return;
 	    }
 
 	  if (lexer->put_token)
 	    {
               restore_token (lexer);
-#if DUMP_TOKENS
-	      dump_token (lexer);
-#endif
 	      return;
 	    }
 	}
@@ -394,10 +373,6 @@ lex_get (struct lexer *lexer)
         }
       break;
     }
-
-#if DUMP_TOKENS
-  dump_token (lexer);
-#endif
 }
 
 /* Parses an identifier at the current position into tokid and
@@ -1224,60 +1199,6 @@ finish:
   return T_STRING;
 }
 
-#if DUMP_TOKENS
-/* Reads one token from the lexer and writes a textual representation
-   on stdout for debugging purposes. */
-static void
-dump_token (struct lexer *lexer)
-{
-  {
-    const char *curfn;
-    int curln;
-
-    curln = getl_source_location (lexer->ss);
-    curfn = getl_source_name (lexer->ss);
-    if (curfn)
-      fprintf (stderr, "%s:%d\t", curfn, curln);
-  }
-
-  switch (lexer->token)
-    {
-    case T_ID:
-      fprintf (stderr, "ID\t%s\n", lexer->tokid);
-      break;
-
-    case T_POS_NUM:
-    case T_NEG_NUM:
-      fprintf (stderr, "NUM\t%f\n", lexer->tokval);
-      break;
-
-    case T_STRING:
-      fprintf (stderr, "STRING\t`%s'\n", ds_cstr (&lexer->tokstr));
-      break;
-
-    case T_STOP:
-      fprintf (stderr, "STOP\n");
-      break;
-
-    case T_EXP:
-      fprintf (stderr, "MISC\tEXP\"");
-      break;
-
-    case 0:
-      fprintf (stderr, "MISC\tEOF\n");
-      break;
-
-    default:
-      if (lex_is_keyword (lexer->token))
-	fprintf (stderr, "KEYWORD\t%s\n", lex_token_name (lexer->token));
-      else
-	fprintf (stderr, "PUNCT\t%c\n", lexer->token);
-      break;
-    }
-}
-#endif /* DUMP_TOKENS */
-
-
 /* Token Accessor Functions */
 
 int
