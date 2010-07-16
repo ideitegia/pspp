@@ -862,6 +862,7 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
   gsl_matrix_set (cov, cov->size1 - 1, cov->size1 - 1, 
 		  gsl_matrix_get (cm, dep_subscript, dep_subscript));
   free (rows);
+  gsl_matrix_free (cm);
   return result;
 }
 static size_t
@@ -928,7 +929,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
   const struct variable *dep_var;
   struct casereader *reader;
   const struct dictionary *dict;
-  gsl_matrix *this_cm;
+  size_t n_all_vars;
 
   assert (models != NULL);
 
@@ -955,7 +956,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
     {
       dict_get_vars (dict, &v_variables, &n_variables, 0);
     }
-  size_t n_all_vars = get_n_all_vars (cmd);
+  n_all_vars = get_n_all_vars (cmd);
   all_vars = xnmalloc (n_all_vars, sizeof (*all_vars));
   fill_all_vars (all_vars, cmd);
   vars = xnmalloc (n_variables, sizeof (*vars));
@@ -973,6 +974,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
   
   for (k = 0; k < cmd->n_dependent; k++)
     {
+      gsl_matrix *this_cm;
       dep_var = cmd->v_dependent[k];
       n_indep = identify_indep_vars (vars, dep_var);
       
@@ -1014,6 +1016,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	  linreg_free (models[k]);
 	  models[k] = NULL;
 	}
+      gsl_matrix_free (this_cm);
     }
   
   casereader_destroy (reader);
