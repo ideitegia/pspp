@@ -42,9 +42,9 @@
 #endif
 
 struct converter
-  {
-    const char *tocode;
-    const char *fromcode;
+ {
+    char *tocode;
+    char *fromcode;
     iconv_t conv;
   };
 
