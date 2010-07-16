@@ -16,6 +16,7 @@ libglade_psppire_la_SOURCES = \
 	glade/acr.c \
 	glade/dictview.c \
 	glade/var-view.c \
+	src/ui/gui/helper.c \
 	src/ui/gui/psppire-conf.c \
 	src/ui/gui/psppire-acr.c \
 	src/ui/gui/psppire-buttonbox.c \
