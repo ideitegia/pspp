@@ -43,6 +43,7 @@ struct reliability
   GtkWidget *variables;
   GtkWidget *split_point_hbox;
   GtkWidget *split_spinbutton;
+  GtkWidget *scale_if_item_deleted_checkbutton;
 };
 
 
@@ -93,6 +94,9 @@ refresh (PsppireDialog *dialog, struct reliability *rd)
 
   gtk_spin_button_set_range (GTK_SPIN_BUTTON (rd->split_spinbutton),
 			     0, 0);
+
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->scale_if_item_deleted_checkbutton),
+				FALSE);
 }
 
 
@@ -127,6 +131,8 @@ reliability_dialog (PsppireDataWindow *de)
 
   rd.model_combo = get_widget_assert   (xml, "combobox1");
   rd.split_spinbutton = get_widget_assert (xml, "spinbutton1");
+
+  rd.scale_if_item_deleted_checkbutton = get_widget_assert (xml, "totals-checkbutton");
 
   g_signal_connect_swapped (rd.model_combo, "changed",
 			    G_CALLBACK (on_method_change), &rd);
@@ -206,6 +212,9 @@ generate_syntax (const struct reliability *rd)
     g_string_append_printf (string, "SPLIT (%d)",
 			    gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (rd->split_spinbutton))
 			    );
+
+  if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (rd->scale_if_item_deleted_checkbutton)))
+    g_string_append (string, "\n\t/SUMMARY = TOTAL");
 
   g_string_append (string, ".\n");
 
