@@ -119,6 +119,7 @@ data_in (struct substring input, const char *encoding,
 
   struct data_in i;
 
+  char *s = NULL;
   bool ok;
 
   assert ((width != 0) == fmt_is_string (format));
@@ -146,7 +147,7 @@ data_in (struct substring input, const char *encoding,
   else
     {
       const char *dest_encoding;
-      char *s = NULL;
+
       if ( dict == NULL)
 	{
 	  assert (0 == (fmt_get_category (format) & (FMT_CAT_BINARY | FMT_CAT_STRING)));
@@ -156,15 +157,14 @@ data_in (struct substring input, const char *encoding,
 	dest_encoding = dict_get_encoding (dict);
 
       s = recode_string (dest_encoding, i.src_enc, ss_data (input), ss_length (input));
-      ss_alloc_uninit (&i.input, strlen (s));
-      memcpy (ss_data (i.input), s, ss_length (input));
-      free (s);
+      i.input = ss_cstr (s);
     }
 
   ok = handlers[i.format] (&i);
   if (!ok)
     default_result (&i);
 
+  free (s);
   return ok;
 }
 
