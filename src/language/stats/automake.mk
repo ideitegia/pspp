@@ -7,7 +7,6 @@ src_language_stats_built_sources = \
 	src/language/stats/examine.c \
 	src/language/stats/frequencies.c \
 	src/language/stats/glm.c \
-	src/language/stats/means.c \
 	src/language/stats/npar.c \
 	src/language/stats/oneway.c \
 	src/language/stats/rank.c \

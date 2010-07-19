@@ -2,7 +2,6 @@ crosstabs.c
 examine.c
 frequencies.c
 glm.c
-means.c
 npar.c
 oneway.c
 rank.c
