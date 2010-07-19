@@ -27,7 +27,7 @@
 #include <unistd.h>
 
 #include "data/settings.h"
-#include "libpspp/hash.h"
+#include "libpspp/hash-functions.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "libpspp/version.h"

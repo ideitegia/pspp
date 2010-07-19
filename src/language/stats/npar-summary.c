@@ -19,7 +19,6 @@
 #include <data/format.h>
 #include <output/tab.h>
 #include <data/casereader.h>
-#include <libpspp/hash.h>
 #include <data/variable.h>
 #include "npar-summary.h"
 #include <math/moments.h>

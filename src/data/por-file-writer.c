@@ -39,7 +39,6 @@
 #include <data/value-labels.h>
 #include <data/variable.h>
 
-#include <libpspp/hash.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>

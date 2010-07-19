@@ -35,12 +35,7 @@ struct chisquare_test
 };
 
 struct casereader;
-struct dictionary;
-struct hsh_table;
 struct dataset;
-
-void chisquare_insert_variables (const struct npar_test *test,
-				 struct hsh_table *variables);
 
 
 void chisquare_execute (const struct dataset *ds,

@@ -29,7 +29,6 @@
 #include <language/command.h>
 #include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
-#include <libpspp/hash.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 

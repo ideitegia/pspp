@@ -24,7 +24,6 @@
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
-#include <libpspp/hash.h>
 #include <libpspp/message.h>
 
 #include "xalloc.h"

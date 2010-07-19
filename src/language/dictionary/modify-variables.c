@@ -28,7 +28,6 @@
 #include <libpspp/array.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
-#include <libpspp/hash.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>

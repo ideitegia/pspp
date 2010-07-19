@@ -19,7 +19,7 @@
 
 #include <data/val-type.h>
 #include <data/variable.h>
-#include <libpspp/hash.h>
+#include <libpspp/hash-functions.h>
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
 #include <gl/unistr.h>

@@ -45,8 +45,6 @@
 
 #include <minmax.h>
 
-#include <libpspp/hash.h>
-
 static double calculate_binomial_internal (double n1, double n2,
 					   double p);
 

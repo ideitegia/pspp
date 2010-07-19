@@ -42,7 +42,6 @@
 #include "libpspp/array.h"
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
-#include "libpspp/hash.h"
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"

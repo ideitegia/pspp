@@ -36,7 +36,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include <libpspp/hash.h>
+struct pool;
 
 struct sparse_array *sparse_array_create (size_t elem_size);
 struct sparse_array *sparse_array_create_pool (struct pool *,

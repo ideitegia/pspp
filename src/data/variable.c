@@ -31,7 +31,7 @@
 #include <libpspp/misc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
-#include <libpspp/hash.h>
+#include <libpspp/hash-functions.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
