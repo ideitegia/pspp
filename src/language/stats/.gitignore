@@ -6,5 +6,4 @@ npar.c
 oneway.c
 rank.c
 regression.c
-reliability.c
 t-test.c

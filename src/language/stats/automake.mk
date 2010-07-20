@@ -11,7 +11,6 @@ src_language_stats_built_sources = \
 	src/language/stats/oneway.c \
 	src/language/stats/rank.c \
 	src/language/stats/regression.c \
-	src/language/stats/reliability.c \
 	src/language/stats/t-test.c
 
 language_stats_sources = \
@@ -33,6 +32,7 @@ language_stats_sources = \
 	src/language/stats/freq.h \
 	src/language/stats/npar-summary.c \
 	src/language/stats/npar-summary.h \
+	src/language/stats/reliability.c \
 	src/language/stats/roc.c \
 	src/language/stats/roc.h \
 	src/language/stats/sign.c \
