@@ -97,7 +97,6 @@ const char *lex_tokid (const struct lexer *);
 const struct string *lex_tokstr (const struct lexer *);
 
 /* Really weird functions. */
-void lex_negative_to_dash (struct lexer *);
 void lex_skip_comment (struct lexer *);
 
 #endif /* !lexer_h */

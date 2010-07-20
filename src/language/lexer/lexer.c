@@ -215,13 +215,8 @@ lex_get (struct lexer *lexer)
 	  {
 	    char *tail;
 
-	    /* `-' can introduce a negative number, or it can be a
-	       token by itself.  If it is not followed by a digit or a
-	       decimal point, it is definitely not a number.
-	       Otherwise, it might be either, but most of the time we
-	       want it as a number.  When the syntax calls for a `-'
-	       token, lex_negative_to_dash() must be used to break
-	       negative numbers into two tokens. */
+	    /* `-' can introduce a negative number, or it can be a token by
+	       itself. */
 	    if (*lexer->prog == '-')
 	      {
 		ds_put_byte (&lexer->tokstr, *lexer->prog++);
@@ -1133,23 +1128,6 @@ lex_token_representation (struct lexer *lexer)
 }
 
 /* Really weird functions. */
-
-/* Most of the time, a `-' is a lead-in to a negative number.  But
-   sometimes it's actually part of the syntax.  If a dash can be part
-   of syntax then this function is called to rip it off of a
-   number. */
-void
-lex_negative_to_dash (struct lexer *lexer)
-{
-  if (lexer->token == T_NEG_NUM)
-    {
-      lexer->token = T_POS_NUM;
-      lexer->tokval = -lexer->tokval;
-      ds_assign_substring (&lexer->tokstr, ds_substr (&lexer->tokstr, 1, SIZE_MAX));
-      save_token (lexer);
-      lexer->token = T_DASH;
-    }
-}
 
 /* Skip a COMMENT command. */
 void

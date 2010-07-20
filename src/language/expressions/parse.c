@@ -499,16 +499,14 @@ match_operator (struct lexer *lexer, const struct operator ops[], size_t op_cnt,
   const struct operator *op;
 
   for (op = ops; op < ops + op_cnt; op++)
-    {
-      if (op->token == T_DASH)
-        lex_negative_to_dash (lexer);
-      if (lex_match (lexer, op->token))
-        {
-          if (operator != NULL)
-            *operator = op;
-          return true;
-        }
-    }
+    if (lex_token (lexer) == op->token)
+      {
+        if (op->token != T_NEG_NUM)
+          lex_get (lexer);
+        if (operator != NULL)
+          *operator = op;
+        return true;
+      }
   if (operator != NULL)
     *operator = NULL;
   return false;
@@ -710,6 +708,7 @@ parse_add (struct lexer *lexer, struct expression *e)
     {
       { T_PLUS, OP_ADD, "addition (`+')" },
       { T_DASH, OP_SUB, "subtraction (`-')" },
+      { T_NEG_NUM, OP_ADD, "subtraction (`-')" },
     };
 
   return parse_binary_operators (lexer, e, parse_mul (lexer, e),
@@ -752,8 +751,21 @@ parse_exp (struct lexer *lexer, struct expression *e)
       "That is, `a**b**c' equals `(a**b)**c', not as `a**(b**c)'.  "
       "To disable this warning, insert parentheses.");
 
-  return parse_binary_operators (lexer, e, parse_primary (lexer, e), &op, 1,
-                                 parse_primary, chain_warning);
+  union any_node *lhs, *node;
+  bool negative = false;
+
+  if (lex_token (lexer) == T_NEG_NUM)
+    {
+      lhs = expr_allocate_number (e, -lex_tokval (lexer));
+      negative = true;
+      lex_get (lexer);
+    }
+  else
+    lhs = parse_primary (lexer, e);
+
+  node = parse_binary_operators (lexer, e, lhs, &op, 1,
+                                  parse_primary, chain_warning);
+  return negative ? expr_allocate_unary (e, OP_NEG, node) : node;
 }
 
 /* Parses system variables. */
