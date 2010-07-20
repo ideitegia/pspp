@@ -65,6 +65,6 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_math.h>
 
-int reg_sweep (gsl_matrix * A);
+int reg_sweep (gsl_matrix *, int);
 
 #endif

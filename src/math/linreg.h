@@ -142,6 +142,7 @@ struct linreg_struct
 
   struct variable *pred;
   struct variable *resid;
+  int dependent_column; /* Column containing the dependent variable. Defaults to last column. */
 };
 
 typedef struct linreg_struct linreg;

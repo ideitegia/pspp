@@ -74,6 +74,7 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
   c = xmalloc (sizeof (*c));
   c->depvar = depvar;
   c->indep_vars = xnmalloc (p, sizeof (*indep_vars));
+  c->dependent_column = p;
   for (i = 0; i < p; i++)
     {
       c->indep_vars[i] = indep_vars[i];
@@ -375,7 +376,7 @@ linreg_fit (const gsl_matrix *cov, linreg *l)
       gsl_matrix *params;
       params = gsl_matrix_calloc (cov->size1, cov->size2);
       gsl_matrix_memcpy (params, cov);
-      reg_sweep (params);
+      reg_sweep (params, l->dependent_column);
       post_sweep_computations (l, params);  
       gsl_matrix_free (params);
     }
@@ -460,3 +461,9 @@ linreg_get_depvar_mean (linreg *c)
 {
   return c->depvar_mean;
 }
+static
+linreg_set_dependent_column (linreg *c, int column)
+{
+  c->dependent_column = column;
+}
+
