@@ -1508,6 +1508,8 @@ format_cell_entry (struct tab_table *table, int c, int r, double value,
 
   tab_text_format (table, c, r, TAB_RIGHT, "%s%s",
                    s + strspn (s, " "), suffixes);
+
+  free (s);
 }
 
 /* Displays the crosstabulation table. */
