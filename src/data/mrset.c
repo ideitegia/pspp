@@ -58,6 +58,7 @@ mrset_destroy (struct mrset *mrset)
       free (mrset->label);
       free (mrset->vars);
       value_destroy (&mrset->counted, mrset->width);
+      free (mrset);
     }
 }
 

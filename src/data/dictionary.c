@@ -297,7 +297,7 @@ dict_destroy (struct dictionary *d)
       dict_clear (d);
       hmap_destroy (&d->name_map);
       attrset_destroy (&d->attributes);
-      free (d->mrsets);
+      dict_clear_mrsets (d);
       free (d->encoding);
       free (d);
     }

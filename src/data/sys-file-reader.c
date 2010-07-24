@@ -1172,6 +1172,7 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
 
       dict_add_mrset (dict, mrset);
       mrset = NULL;
+      stringi_set_destroy (&var_names);
     }
   mrset_destroy (mrset);
   close_text_record (r, text);
