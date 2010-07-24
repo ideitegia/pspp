@@ -56,7 +56,7 @@ struct cronbach
   struct moments1 *total ; /* Moments of the totals */
 };
 
-#if 1
+#if 0
 static void
 dump_cronbach (const struct cronbach *s)
 {
