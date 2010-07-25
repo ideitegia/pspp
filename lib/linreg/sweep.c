@@ -88,7 +88,7 @@ reg_sweep (gsl_matrix * A, int last_col)
 	    {
 	      ordered_cols[i] = i;
 	    }
-	  for (i = last_col + 1; i < A->size1 - 1; i++)
+	  for (i = last_col + 1; i < A->size1; i++)
 	    {
 	      ordered_cols[i - 1] = i;
 	    }
