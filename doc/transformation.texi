@@ -23,7 +23,7 @@ as a rule.
 
 @display
 AGGREGATE 
-        OUTFILE=@{*,'file-name',file_handle@}
+        OUTFILE=@{*,'file-name',file_handle@} [MODE=@{REPLACE, ADDVARIABLES@}]
         /PRESORTED
         /DOCUMENT
         /MISSING=COLUMNWISE
@@ -40,13 +40,29 @@ The OUTFILE subcommand is required and must appear first.  Specify a
 system file, portable file, or scratch file by file name or file
 handle (@pxref{File Handles}).
 The aggregated cases are written to this file.  If @samp{*} is
-specified, then the aggregated cases replace the active file.  Use of
-OUTFILE to write a portable file or scratch file is a PSPP extension.
+specified, then the aggregated cases replace the active file.
+Use of OUTFILE to write a portable file or scratch file is a PSPP extension.
+
+If OUTFILE=@samp{*} is given, then the subcommand MODE may also be
+specified.
+The mode subcommand has two possible values: ADDVARIABLES or REPLACE.
+In REPLACE mode, the entire active file is replaced by a new file
+which contains just the break variables and the destination varibles.
+In this mode, the new file will contain as many cases as there are
+unique combinations of the break variables.
+In ADDVARIABLES mode, the destination variables will be appended to 
+the existing active file.
+Cases which have identical combinations of values in their break
+variables, will receive identical values for the destination variables.
+The number of cases in the active file will remain unchanged.
+Note that if ADDVARIABLES is specified, then the data @emph{must} be
+sorted on the break variables.
 
 By default, the active file will be sorted based on the break variables
 before aggregation takes place.  If the active file is already sorted
 or otherwise grouped in terms of the break variables, specify
 PRESORTED to save time.
+PRESORTED is assumed if MODE=ADDVARIABLES is used.
 
 Specify DOCUMENT to copy the documents from the active file into the
 aggregate file (@pxref{DOCUMENT}).  Otherwise, the aggregate file will

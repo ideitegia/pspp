@@ -146,17 +146,18 @@ struct agr_proc
     struct subcase sort;                /* Sort criteria (break variables). */
     const struct variable **break_vars;       /* Break variables. */
     size_t break_var_cnt;               /* Number of break variables. */
-    struct ccase *break_case;           /* Last values of break variables. */
 
     enum missing_treatment missing;     /* How to treat missing values. */
     struct agr_var *agr_vars;           /* First aggregate variable. */
     struct dictionary *dict;            /* Aggregate dictionary. */
     const struct dictionary *src_dict;  /* Dict of the source */
     int case_cnt;                       /* Counts aggregated cases. */
+
+    bool add_variables;                 /* True iff the aggregated variables should
+					   be appended to the existing dictionary */
   };
 
-static void initialize_aggregate_info (struct agr_proc *,
-                                       const struct ccase *);
+static void initialize_aggregate_info (struct agr_proc *);
 
 static void accumulate_aggregate_info (struct agr_proc *,
                                        const struct ccase *);
@@ -164,8 +165,9 @@ static void accumulate_aggregate_info (struct agr_proc *,
 static bool parse_aggregate_functions (struct lexer *, const struct dictionary *,
 				       struct agr_proc *);
 static void agr_destroy (struct agr_proc *);
-static void dump_aggregate_info (struct agr_proc *agr,
-                                 struct casewriter *output);
+static void dump_aggregate_info (const struct agr_proc *agr,
+                                 struct casewriter *output,
+				 const struct ccase *break_case);
 
 /* Parsing. */
 
@@ -187,13 +189,8 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 
   memset(&agr, 0 , sizeof (agr));
   agr.missing = ITEMWISE;
-  agr.break_case = NULL;
-
-  agr.dict = dict_create ();
   agr.src_dict = dict;
   subcase_init_empty (&agr.sort);
-  dict_set_label (agr.dict, dict_get_label (dict));
-  dict_set_documents (agr.dict, dict_get_documents (dict));
 
   /* OUTFILE subcommand must be first. */
   lex_match (lexer, '/');
@@ -206,6 +203,32 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
       if (out_file == NULL)
         goto error;
     }
+
+  if (out_file == NULL && lex_match_id (lexer, "MODE"))
+    {
+      lex_match (lexer, '=');
+      if (lex_match_id (lexer, "ADDVARIABLES"))
+	{
+	  agr.add_variables = true;
+
+	  /* presorted is assumed in ADDVARIABLES mode */
+	  presorted = true;
+	}
+      else if (lex_match_id (lexer, "REPLACE"))
+	{
+	  agr.add_variables = false;
+	}
+      else
+	goto error;
+    }
+
+  if ( agr.add_variables )
+    agr.dict = dict_clone (dict);
+  else
+    agr.dict = dict_create ();    
+
+  dict_set_label (agr.dict, dict_get_label (dict));
+  dict_set_documents (agr.dict, dict_get_documents (dict));
 
   /* Read most of the subcommands. */
   for (;;)
@@ -236,8 +259,9 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
             goto error;
           agr.break_var_cnt = subcase_get_n_fields (&agr.sort);
 
-          for (i = 0; i < agr.break_var_cnt; i++)
-            dict_clone_var_assert (agr.dict, agr.break_vars[i]);
+	  if  (! agr.add_variables)
+	    for (i = 0; i < agr.break_var_cnt; i++)
+	      dict_clone_var_assert (agr.dict, agr.break_vars[i]);
 
           /* BREAK must follow the options. */
           break;
@@ -295,18 +319,40 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
        casegrouper_get_next_group (grouper, &group);
        casereader_destroy (group))
     {
+      struct casereader *placeholder = NULL;
       struct ccase *c = casereader_peek (group, 0);
+
       if (c == NULL)
         {
           casereader_destroy (group);
           continue;
         }
-      initialize_aggregate_info (&agr, c);
-      case_unref (c);
 
-      for (; (c = casereader_read (group)) != NULL; case_unref (c))
-        accumulate_aggregate_info (&agr, c);
-      dump_aggregate_info (&agr, output);
+      initialize_aggregate_info (&agr);
+
+      if ( agr.add_variables )
+	placeholder = casereader_clone (group);
+
+      {
+	struct ccase *cg;
+	for (; (cg = casereader_read (group)) != NULL; case_unref (cg))
+	  accumulate_aggregate_info (&agr, cg);
+      }
+
+
+      if  (agr.add_variables)
+	{
+	  struct ccase *cg;
+	  for (; (cg = casereader_read (placeholder)) != NULL; case_unref (cg))
+	    dump_aggregate_info (&agr, output, cg);
+
+	  casereader_destroy (placeholder);
+	}
+      else
+	{
+	  dump_aggregate_info (&agr, output, c);
+	  case_unref (c);
+	}
     }
   if (!casegrouper_destroy (grouper))
     goto error;
@@ -694,7 +740,6 @@ agr_destroy (struct agr_proc *agr)
 
   subcase_destroy (&agr->sort);
   free (agr->break_vars);
-  case_unref (agr->break_case);
   for (iter = agr->agr_vars; iter; iter = next)
     {
       next = iter->next;
@@ -920,23 +965,28 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 
 /* Writes an aggregated record to OUTPUT. */
 static void
-dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
+dump_aggregate_info (const struct agr_proc *agr, struct casewriter *output, const struct ccase *break_case)
 {
   struct ccase *c = case_create (dict_get_proto (agr->dict));
 
-  {
-    int value_idx = 0;
-    int i;
+  if ( agr->add_variables)
+    {
+      case_copy (c, 0, break_case, 0, dict_get_var_cnt (agr->src_dict));
+    }
+  else
+    {
+      int value_idx = 0;
+      int i;
 
-    for (i = 0; i < agr->break_var_cnt; i++)
-      {
-        const struct variable *v = agr->break_vars[i];
-        value_copy (case_data_rw_idx (c, value_idx),
-                    case_data (agr->break_case, v),
-                    var_get_width (v));
-        value_idx++;
-      }
-  }
+      for (i = 0; i < agr->break_var_cnt; i++)
+	{
+	  const struct variable *v = agr->break_vars[i];
+	  value_copy (case_data_rw_idx (c, value_idx),
+		      case_data (break_case, v),
+		      var_get_width (v));
+	  value_idx++;
+	}
+    }
 
   {
     struct agr_var *i;
@@ -1070,12 +1120,9 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
 
 /* Resets the state for all the aggregate functions. */
 static void
-initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
+initialize_aggregate_info (struct agr_proc *agr)
 {
   struct agr_var *iter;
-
-  case_unref (agr->break_case);
-  agr->break_case = case_ref (input);
 
   for (iter = agr->agr_vars; iter; iter = iter->next)
     {
