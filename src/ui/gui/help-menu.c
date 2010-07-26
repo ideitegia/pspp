@@ -96,9 +96,9 @@ reference_manual (GtkMenuItem *menu, gpointer data)
   if ( ! g_spawn_command_line_async (cmd, &err) )
     {
       msg (ME, _("Cannot open reference manual: %s.  The PSPP user manual is "
-                 "also available at "
-                 "http://www.gnu.org/software/pspp/documentation.html"),
-           err->message);
+                 "also available at %s"),
+                  err->message,
+                  "http://www.gnu.org/software/pspp/documentation.html");
     }
 
   g_free (cmd);
