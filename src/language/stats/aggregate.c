@@ -46,11 +46,14 @@
 #include <math/statistic.h>
 #include <math/percentiles.h>
 
+#include "aggregate.h"
+
 #include "minmax.h"
 #include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
 
 /* Argument for AGGREGATE function. */
 union agr_argument
@@ -87,49 +90,38 @@ struct agr_var
 /* Aggregation functions. */
 enum
   {
-    NONE, SUM, MEAN, MEDIAN, SD, MAX, MIN, PGT, PLT, PIN, POUT, FGT, FLT, FIN,
+    SUM, MEAN, MEDIAN, SD, MAX, MIN, PGT, PLT, PIN, POUT, FGT, FLT, FIN,
     FOUT, N, NU, NMISS, NUMISS, FIRST, LAST,
-    N_AGR_FUNCS, N_NO_VARS, NU_NO_VARS,
+
     FUNC = 0x1f, /* Function mask. */
     FSTRING = 1<<5, /* String function bit. */
   };
 
-/* Attributes of an aggregation function. */
-struct agr_func
-  {
-    const char *name;		/* Aggregation function name. */
-    size_t n_args;              /* Number of arguments. */
-    enum val_type alpha_type;   /* When given ALPHA arguments, output type. */
-    struct fmt_spec format;	/* Format spec if alpha_type != ALPHA. */
-  };
 
 /* Attributes of aggregation functions. */
-static const struct agr_func agr_func_tab[] =
+const struct agr_func agr_func_tab[] =
   {
-    {"<NONE>",  0, -1,          {0, 0, 0}},
-    {"SUM",     0, -1,          {FMT_F, 8, 2}},
-    {"MEAN",	0, -1,          {FMT_F, 8, 2}},
-    {"MEDIAN",	0, -1,          {FMT_F, 8, 2}},
-    {"SD",      0, -1,          {FMT_F, 8, 2}},
-    {"MAX",     0, VAL_STRING,  {-1, -1, -1}},
-    {"MIN",     0, VAL_STRING,  {-1, -1, -1}},
-    {"PGT",     1, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"PLT",     1, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"PIN",     2, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"POUT",    2, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"FGT",     1, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"FLT",     1, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"FIN",     2, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"FOUT",    2, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"N",       0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"NU",      0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"NMISS",   0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"NUMISS",  0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"FIRST",   0, VAL_STRING,  {-1, -1, -1}},
-    {"LAST",    0, VAL_STRING,  {-1, -1, -1}},
-    {NULL,      0, -1,          {-1, -1, -1}},
-    {"N",       0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"NU",      0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"SUM",     N_("Sum of values"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"MEAN",	N_("Mean average"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"MEDIAN",	N_("Median average"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"SD",      N_("Standard deviation"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"MAX",     N_("Maximum value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {"MIN",     N_("Minimum value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {"PGT",     N_("Percentage greater than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"PLT",     N_("Percentage less than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"PIN",     N_("Percentage included in range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"POUT",    N_("Percentage excluded from range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"FGT",     N_("Fraction greater than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FLT",     N_("Fraction less than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FIN",     N_("Fraction included in range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FOUT",    N_("Fraction excluded from range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"N",       N_("Number of cases"), AGR_SV_NO, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NU",      N_("Number of cases (unweighted)"), AGR_SV_OPT, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NMISS",   N_("Number of missing values"), AGR_SV_YES, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NUMISS",  N_("Number of missing values (unweighted)"), AGR_SV_YES, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"FIRST",   N_("First non-missing value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {"LAST",    N_("Last non-missing value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {NULL,      NULL, AGR_SV_NO, 0, -1,          {-1, -1, -1}},
   };
 
 /* Missing value types. */
@@ -496,11 +488,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
       /* Check for leading lparen. */
       if (!lex_match (lexer, '('))
 	{
-	  if (func_index == N)
-	    func_index = N_NO_VARS;
-	  else if (func_index == NU)
-	    func_index = NU_NO_VARS;
-	  else
+	  if (function->src_vars == AGR_SV_YES)
 	    {
 	      lex_error (lexer, _("expecting `('"));
 	      goto error;
@@ -649,7 +637,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
                 struct fmt_spec f;
 		v->src = NULL;
 		destvar = dict_create_var (agr->dict, dest[i], 0);
-                if (func_index == N_NO_VARS && dict_get_weight (dict) != NULL)
+                if (func_index == N && dict_get_weight (dict) != NULL)
                   f = fmt_for_output (FMT_F, 8, 2);
                 else
                   f = function->format;
@@ -948,13 +936,13 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	  default:
 	    NOT_REACHED ();
 	  }
-    } else {
+      } else {
       switch (iter->function)
 	{
-	case N_NO_VARS:
+	case N:
 	  iter->dbl[0] += weight;
 	  break;
-	case NU_NO_VARS:
+	case NU:
 	  iter->int1++;
 	  break;
 	default:
@@ -1078,7 +1066,7 @@ dump_aggregate_info (const struct agr_proc *agr, struct casewriter *output, cons
 	    break;
 	  case N:
 	  case N | FSTRING:
-	    v->f = i->dbl[0];
+	      v->f = i->dbl[0];
             break;
 	  case NU:
 	  case NU | FSTRING:
@@ -1094,12 +1082,6 @@ dump_aggregate_info (const struct agr_proc *agr, struct casewriter *output, cons
 	      memcpy (value_str_rw (v, width), i->string, width);
 	    else
               value_set_missing (v, width);
-	    break;
-	  case N_NO_VARS:
-	    v->f = i->dbl[0];
-	    break;
-	  case NU_NO_VARS:
-	    v->f = i->int1;
 	    break;
 	  case NMISS:
 	  case NMISS | FSTRING:
