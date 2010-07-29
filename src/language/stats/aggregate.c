@@ -1003,21 +1003,22 @@ dump_aggregate_info (const struct agr_proc *agr, struct casewriter *output, cons
 	    break;
 	  case MEDIAN:
 	    {
-	      struct casereader *sorted_reader;
-	      struct percentile *median = percentile_create (0.5, i->cc);
-              struct order_stats *os = &median->parent;
+	      if ( i->writer)
+		{
+		  struct percentile *median = percentile_create (0.5, i->cc);
+		  struct order_stats *os = &median->parent;
+		  struct casereader *sorted_reader = casewriter_make_reader (i->writer);
+		  i->writer = NULL;
 
-	      sorted_reader = casewriter_make_reader (i->writer);
-
-	      order_stats_accumulate (&os, 1,
-				      sorted_reader,
-				      i->weight,
-				      i->subject,
-				      i->exclude);
-
-	      v->f = percentile_calculate (median, PC_HAVERAGE);
-
-	      statistic_destroy (&median->parent.parent);
+		  order_stats_accumulate (&os, 1,
+					  sorted_reader,
+					  i->weight,
+					  i->subject,
+					  i->exclude);
+		  i->dbl[0] = percentile_calculate (median, PC_HAVERAGE);
+		  statistic_destroy (&median->parent.parent);
+		}
+	      v->f = i->dbl[0];
 	    }
 	    break;
 	  case SD:
