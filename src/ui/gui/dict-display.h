@@ -19,6 +19,9 @@
    dictionary in  GTK widgets.
 */
 
+#ifndef DICT_DISPLAY 
+#define DICT_DISPLAY 1
+
 #include <gtk/gtk.h>
 
 #include "psppire-selector.h"
@@ -44,4 +47,4 @@ void insert_source_row_into_entry (GtkTreeIter source_iter,
 gboolean is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
 				PsppireSelector *selector);
 
-
+#endif

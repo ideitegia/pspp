@@ -981,8 +981,6 @@ psppire_selector_set_filter_func (PsppireSelector *selector,
 				  FilterItemsFunc *filter_func)
 {
   selector->filter = filter_func ;
-  
-  set_default_filter (selector);
 }
 
 

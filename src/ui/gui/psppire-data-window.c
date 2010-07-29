@@ -57,6 +57,7 @@
 #include "ui/gui/t-test-paired-samples.h"
 #include "ui/gui/text-data-import-dialog.h"
 #include "ui/gui/transpose-dialog.h"
+#include "ui/gui/aggregate-dialog.h"
 #include "ui/gui/variable-info-dialog.h"
 #include "ui/gui/weight-cases-dialog.h"
 #include "ui/syntax-gen.h"
@@ -1080,6 +1081,8 @@ psppire_data_window_init (PsppireDataWindow *de)
   connect_action (de, "data_select-cases", G_CALLBACK (select_cases_dialog));
  
   connect_action (de, "data_sort-cases", G_CALLBACK (sort_cases_dialog));
+
+  connect_action (de, "data_aggregate", G_CALLBACK (aggregate_dialog));
 
   connect_action (de, "transform_compute", G_CALLBACK (compute_dialog));
 

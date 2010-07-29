@@ -14,8 +14,7 @@
           </object>
         </child>
       </object>
-   </child>
-	
+    </child>
     <child>
       <object class="GtkActionGroup" id="actiongroup1">
         <child>
@@ -241,6 +240,13 @@
             <property name="name">data_transpose</property>
             <property name="label" translatable="yes">_Transpose</property>
 	    <property name="tooltip" translatable="yes">Transpose the cases with the variables</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="data_aggregate">
+	    <property name="stock-id">pspp-aggregate</property>
+            <property name="name">data_aggregate</property>
+            <property name="label" translatable="yes">_Aggregate</property>
           </object>
         </child>
         <child>
@@ -505,6 +511,7 @@
         <menu action="data">
           <menuitem action="data_sort-cases"/>
           <menuitem action="data_transpose"/>
+          <menuitem action="data_aggregate"/>
           <separator/>
           <menuitem action="data_split-file"/>
           <menuitem action="data_select-cases"/>
@@ -572,24 +579,24 @@
         </placeholder>
       </toolbar>
       <popup name="datasheet-variable-popup">
-	  <menuitem action="action_insert-variable"/>
-	  <separator/>
-	  <menuitem action="edit_clear-variables"/>
-	  <separator/>
-          <menuitem action="sort-up"/>
-          <menuitem action="sort-down"/>
+	<menuitem action="action_insert-variable"/>
+	<separator/>
+	<menuitem action="edit_clear-variables"/>
+	<separator/>
+        <menuitem action="sort-up"/>
+        <menuitem action="sort-down"/>
       </popup>
       <popup name="varsheet-variable-popup">
-	  <menuitem action="action_insert-variable"/>
-	  <separator/>
-	  <menuitem action="edit_clear-variables"/>
+	<menuitem action="action_insert-variable"/>
+	<separator/>
+	<menuitem action="edit_clear-variables"/>
       </popup>
       <popup name="datasheet-cases-popup">
-	  <menuitem action="edit_insert-case"/>
-	  <separator/>
-	  <menuitem action="edit_clear-cases"/>
+	<menuitem action="edit_insert-case"/>
+	<separator/>
+	<menuitem action="edit_clear-cases"/>
       </popup>
-</ui>
+    </ui>
   </object>
   <!-- interface-requires gtk+ 2.6 -->
   <!-- interface-naming-policy toplevel-contextual -->

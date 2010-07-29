@@ -23,6 +23,7 @@
 #include "dict-display.h"
 
 #include "psppire-dict.h"
+#include "psppire-var-view.h"
 #include <libpspp/i18n.h>
 #include "helper.h"
 #include <data/variable.h>
@@ -150,6 +151,4 @@ is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
 
   return result;
 }
-
-
 

@@ -3,6 +3,7 @@
 include $(top_srcdir)/src/ui/gui/sheet/automake.mk
 
 UI_FILES = \
+	src/ui/gui/aggregate.ui \
 	src/ui/gui/binomial.ui \
 	src/ui/gui/compute.ui \
 	src/ui/gui/correlation.ui \
@@ -116,6 +117,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-hbuttonbox.c \
 	src/ui/gui/psppire-vbuttonbox.c \
 	src/ui/gui/psppire-acr.c \
+	src/ui/gui/aggregate-dialog.c \
+	src/ui/gui/aggregate-dialog.h \
 	src/ui/gui/binomial-dialog.c \
 	src/ui/gui/binomial-dialog.h \
 	src/ui/gui/checkbox-treeview.c \
