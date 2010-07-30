@@ -228,7 +228,6 @@ unlink_replace_files (void)
       /* We don't free_replace_file(RF) because calling free is unsafe
          from an asynchronous signal handler. */
       unlink (rf->tmp_name);
-      fflush (stdout);
     }
   unblock_fatal_signals ();
 }
