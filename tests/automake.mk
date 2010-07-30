@@ -328,13 +328,13 @@ tests_libpspp_sparse_xarray_test_SOURCES = \
 	src/libpspp/argv-parser.c \
 	src/libpspp/bt.c \
 	src/libpspp/deque.c \
+	src/libpspp/ext-array.c \
 	src/libpspp/model-checker.c \
 	src/libpspp/range-set.c \
 	src/libpspp/sparse-array.c \
 	src/libpspp/sparse-xarray.c \
 	src/libpspp/str.c \
 	src/libpspp/pool.c \
-	src/libpspp/temp-file.c \
 	tests/libpspp/sparse-xarray-test.c
 tests_libpspp_sparse_xarray_test_LDADD = gl/libgl.la $(LIBINTL) 
 tests_libpspp_sparse_xarray_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10

@@ -14,20 +14,20 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-/* A interface to allow a temporary file to be treated as an
-   array of data. */
+/* An interface to an array of octets that is stored on disk as a temporary
+   file. */
 
-#ifndef LIBPSPP_TEMP_FILE_H
-#define LIBPSPP_TEMP_FILE_H 1
+#ifndef LIBPSPP_EXT_ARRAY_H
+#define LIBPSPP_EXT_ARRAY_H 1
 
 #include <stdbool.h>
 #include <sys/types.h>
 
-struct temp_file *temp_file_create (void);
-bool temp_file_destroy (struct temp_file *);
-bool temp_file_read (const struct temp_file *, off_t offset, size_t n, void *);
-bool temp_file_write (struct temp_file *, off_t offset, size_t n,
+struct ext_array *ext_array_create (void);
+bool ext_array_destroy (struct ext_array *);
+bool ext_array_read (const struct ext_array *, off_t offset, size_t n, void *);
+bool ext_array_write (struct ext_array *, off_t offset, size_t n,
                       const void *);
-bool temp_file_error (const struct temp_file *);
+bool ext_array_error (const struct ext_array *);
 
-#endif /* libpspp/temp-file.h */
+#endif /* libpspp/ext-array.h */

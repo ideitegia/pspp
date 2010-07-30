@@ -24,10 +24,10 @@
 #include <string.h>
 
 #include <libpspp/assertion.h>
+#include <libpspp/ext-array.h>
 #include <libpspp/misc.h>
 #include <libpspp/range-set.h>
 #include <libpspp/sparse-array.h>
-#include <libpspp/temp-file.h>
 
 #include "md4.h"
 #include "minmax.h"
@@ -40,7 +40,7 @@ struct sparse_xarray
     uint8_t *default_row;               /* Defaults for unwritten rows. */
     unsigned long int max_memory_rows;  /* Max rows before dumping to disk. */
     struct sparse_array *memory;        /* Backing, if stored in memory. */
-    struct temp_file *disk;             /* Backing, if stored on disk. */
+    struct ext_array *disk;             /* Backing, if stored on disk. */
     struct range_set *disk_rows;        /* Allocated rows, if on disk. */
   };
 
@@ -103,7 +103,7 @@ sparse_xarray_clone (const struct sparse_xarray *old)
       const struct range_set_node *node;
       void *tmp = xmalloc (old->n_bytes);
 
-      new->disk = temp_file_create ();
+      new->disk = ext_array_create ();
       new->disk_rows = range_set_clone (old->disk_rows, NULL);
       for (node = range_set_first (old->disk_rows); node != NULL;
            node = range_set_next (old->disk_rows, node))
@@ -115,8 +115,8 @@ sparse_xarray_clone (const struct sparse_xarray *old)
           for (idx = start; idx < end; idx++)
             {
               off_t offset = (off_t) idx * old->n_bytes;
-              if (!temp_file_read (old->disk, offset, old->n_bytes, tmp)
-                  || !temp_file_write (new->disk, offset, old->n_bytes, tmp))
+              if (!ext_array_read (old->disk, offset, old->n_bytes, tmp)
+                  || !ext_array_write (new->disk, offset, old->n_bytes, tmp))
                 {
                   free (tmp);
                   sparse_xarray_destroy (new);
@@ -151,7 +151,7 @@ sparse_xarray_destroy (struct sparse_xarray *sx)
             free (*row);
           sparse_array_destroy (sx->memory);
         }
-      temp_file_destroy (sx->disk);
+      ext_array_destroy (sx->disk);
       range_set_destroy (sx->disk_rows);
       free (sx);
     }
@@ -192,16 +192,16 @@ dump_sparse_xarray_to_disk (struct sparse_xarray *sx)
   assert (sx->memory != NULL);
   assert (sx->disk == NULL);
 
-  sx->disk = temp_file_create ();
+  sx->disk = ext_array_create ();
   sx->disk_rows = range_set_create ();
 
   for (row = sparse_array_first (sx->memory, &idx); row != NULL;
        row = sparse_array_next (sx->memory, idx, &idx))
     {
-      if (!temp_file_write (sx->disk, (off_t) idx * sx->n_bytes, sx->n_bytes,
+      if (!ext_array_write (sx->disk, (off_t) idx * sx->n_bytes, sx->n_bytes,
                           *row))
         {
-          temp_file_destroy (sx->disk);
+          ext_array_destroy (sx->disk);
           sx->disk = NULL;
           range_set_destroy (sx->disk_rows);
           sx->disk_rows = NULL;
@@ -246,7 +246,7 @@ sparse_xarray_read (const struct sparse_xarray *sx, unsigned long int row,
   else
     {
       if (range_set_contains (sx->disk_rows, row))
-        return temp_file_read (sx->disk, (off_t) row * sx->n_bytes + start,
+        return ext_array_read (sx->disk, (off_t) row * sx->n_bytes + start,
                                n, data);
     }
 
@@ -261,13 +261,13 @@ write_disk_row (struct sparse_xarray *sx, unsigned long int row,
 {
   off_t ofs = (off_t) row * sx->n_bytes;
   if (range_set_contains (sx->disk_rows, row))
-    return temp_file_write (sx->disk, ofs + start, n, data);
+    return ext_array_write (sx->disk, ofs + start, n, data);
   else
     {
       range_set_insert (sx->disk_rows, row, 1);
-      return (temp_file_write (sx->disk, ofs, start, sx->default_row)
-              && temp_file_write (sx->disk, ofs + start, n, data)
-              && temp_file_write (sx->disk, ofs + start + n,
+      return (ext_array_write (sx->disk, ofs, start, sx->default_row)
+              && ext_array_write (sx->disk, ofs + start, n, data)
+              && ext_array_write (sx->disk, ofs + start + n,
                                   sx->n_bytes - start - n,
                                   sx->default_row + start + n));
     }
@@ -346,12 +346,12 @@ sparse_xarray_write_columns (struct sparse_xarray *sx, size_t start,
           for (row = start_row; row < end_row; row++)
             {
               off_t offset = (off_t) row * sx->n_bytes;
-              if (!temp_file_write (sx->disk, offset + start, n, data))
+              if (!ext_array_write (sx->disk, offset + start, n, data))
                 break;
             }
         }
 
-      if (temp_file_error (sx->disk))
+      if (ext_array_error (sx->disk))
         return false;
     }
   return true;
@@ -392,7 +392,7 @@ get_row (const struct sparse_xarray *sx, unsigned long int idx,
       uint8_t **p = sparse_array_get (sx->memory, idx);
       return *p;
     }
-  else if (temp_file_read (sx->disk, (off_t) idx * sx->n_bytes,
+  else if (ext_array_read (sx->disk, (off_t) idx * sx->n_bytes,
                            sx->n_bytes, buffer))
     return buffer;
   else
@@ -456,10 +456,10 @@ sparse_xarray_copy (const struct sparse_xarray *sx, struct sparse_xarray *dx,
               for (row = start; row < end; row++)
                 {
                   off_t offset = (off_t) row * sx->n_bytes;
-                  success = (temp_file_read (sx->disk, offset, sx->n_bytes,
+                  success = (ext_array_read (sx->disk, offset, sx->n_bytes,
                                              tmp)
                              && cb (tmp, tmp, aux)
-                             && temp_file_write (dx->disk, offset,
+                             && ext_array_write (dx->disk, offset,
                                                  dx->n_bytes, tmp));
                   if (!success)
                     break;
@@ -597,7 +597,7 @@ sparse_xarray_model_checker_hash (const struct sparse_xarray *sx,
           for (idx = start; idx < end; idx++)
             {
               off_t offset = (off_t) idx * sx->n_bytes;
-              if (!temp_file_read (sx->disk, offset, sx->n_bytes, tmp))
+              if (!ext_array_read (sx->disk, offset, sx->n_bytes, tmp))
                 NOT_REACHED ();
               md4_process_bytes (&idx, sizeof idx, &ctx);
               md4_process_bytes (tmp, sx->n_bytes, &ctx);
