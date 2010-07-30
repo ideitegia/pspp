@@ -26,7 +26,6 @@ dist_TESTS = \
 	tests/command/file-label.sh \
 	tests/command/file-handle.sh \
 	tests/command/filter.sh \
-	tests/command/flip.sh \
 	tests/command/get-data-txt.sh \
 	tests/command/get-data-txt-examples.sh \
 	tests/command/get-data-txt-importcases.sh \
@@ -430,6 +429,7 @@ TESTSUITE_AT = \
 	tests/language/stats/crosstabs.at \
 	tests/language/stats/descriptives.at \
 	tests/language/stats/factor.at \
+	tests/language/stats/flip.at \
 	tests/language/stats/frequencies.at \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/recode.at \
