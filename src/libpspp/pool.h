@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -85,9 +85,14 @@ void pool_add_subpool (struct pool *, struct pool *subpool);
 /* Files. */
 FILE *pool_fopen (struct pool *, const char *, const char *);
 int pool_fclose (struct pool *, FILE *) WARN_UNUSED_RESULT;
-FILE *pool_tmpfile (struct pool *);
 void pool_attach_file (struct pool *, FILE *);
 void pool_detach_file (struct pool *, FILE *);
+
+/* Temporary files. */
+FILE *pool_create_temp_file (struct pool *);
+void pool_fclose_temp_file (struct pool *, FILE *);
+void pool_attach_temp_file (struct pool *, FILE *);
+void pool_detach_temp_file (struct pool *, FILE *);
 
 /* Custom allocations. */
 void pool_register (struct pool *, void (*free) (void *), void *p);

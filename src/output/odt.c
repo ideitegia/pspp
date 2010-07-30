@@ -32,6 +32,7 @@
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
 #include "libpspp/str.h"
+#include "libpspp/temp-file.h"
 #include "libpspp/version.h"
 #include "libpspp/zip-writer.h"
 #include "output/driver-provider.h"
@@ -87,7 +88,7 @@ create_mimetype (struct zip_writer *zip)
 {
   FILE *fp;
 
-  fp = tmpfile ();
+  fp = create_temp_file ();
   if (fp == NULL)
     {
       error (0, errno, _("error creating temporary file"));
@@ -96,7 +97,7 @@ create_mimetype (struct zip_writer *zip)
 
   fprintf (fp, "application/vnd.oasis.opendocument.text");
   zip_writer_add (zip, fp, "mimetype");
-  fclose (fp);
+  close_temp_file (fp);
 
   return true;
 }
@@ -107,7 +108,7 @@ static void
 create_writer (FILE **file, xmlTextWriterPtr *w)
 {
   /* XXX this can fail */
-  *file = tmpfile ();
+  *file = create_temp_file ();
   *w = xmlNewTextWriter (xmlOutputBufferCreateFile (*file, NULL));
 
   xmlTextWriterStartDocument (*w, NULL, "UTF-8", NULL);
@@ -218,7 +219,7 @@ write_style_data (struct odt_driver *odt)
   xmlTextWriterEndDocument (w);
   xmlFreeTextWriter (w);
   zip_writer_add (odt->zip, file, "styles.xml");
-  fclose (file);
+  close_temp_file (file);
 }
 
 static void
@@ -282,7 +283,7 @@ write_meta_data (struct odt_driver *odt)
   xmlTextWriterEndDocument (w);
   xmlFreeTextWriter (w);
   zip_writer_add (odt->zip, file, "meta.xml");
-  fclose (file);
+  close_temp_file (file);
 }
 
 static struct output_driver *
@@ -355,7 +356,7 @@ odt_create (const char *file_name, enum settings_output_devices device_type,
   xmlTextWriterEndDocument (odt->manifest_wtr);
   xmlFreeTextWriter (odt->manifest_wtr);
   zip_writer_add (odt->zip, odt->manifest_file, "META-INF/manifest.xml");
-  fclose (odt->manifest_file);
+  close_temp_file (odt->manifest_file);
 
   return d;
 }
@@ -374,7 +375,7 @@ odt_destroy (struct output_driver *driver)
       xmlTextWriterEndDocument (odt->content_wtr);
       xmlFreeTextWriter (odt->content_wtr);
       zip_writer_add (odt->zip, odt->content_file, "content.xml");
-      fclose (odt->content_file);
+      close_temp_file (odt->content_file);
 
       zip_writer_close (odt->zip);
     }

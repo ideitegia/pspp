@@ -207,6 +207,7 @@ tests_libpspp_heap_test_SOURCES = \
 	src/libpspp/heap.h \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
+	src/libpspp/temp-file.c \
 	tests/libpspp/heap-test.c
 tests_libpspp_heap_test_LDADD = gl/libgl.la $(LIBINTL) 
 tests_libpspp_heap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
@@ -257,6 +258,7 @@ tests_libpspp_range_set_test_SOURCES = \
 	src/libpspp/pool.h \
 	src/libpspp/range-set.c \
 	src/libpspp/range-set.h \
+	src/libpspp/temp-file.c \
 	tests/libpspp/range-set-test.c
 tests_libpspp_range_set_test_LDADD = gl/libgl.la $(LIBINTL) 
 tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
@@ -282,6 +284,7 @@ tests_libpspp_stringi_map_test_SOURCES = \
 	src/libpspp/stringi-map.c \
 	src/libpspp/string-set.c \
 	src/libpspp/stringi-set.c \
+	src/libpspp/temp-file.c \
 	tests/libpspp/stringi-map-test.c
 tests_libpspp_stringi_map_test_LDADD = gl/libgl.la $(LIBINTL)
 tests_libpspp_stringi_map_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
@@ -300,6 +303,7 @@ tests_libpspp_stringi_set_test_SOURCES = \
 	src/libpspp/pool.c \
 	src/libpspp/str.c \
 	src/libpspp/stringi-set.c \
+	src/libpspp/temp-file.c \
 	tests/libpspp/stringi-set-test.c
 tests_libpspp_stringi_set_test_LDADD = gl/libgl.la $(LIBINTL)
 tests_libpspp_stringi_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
@@ -309,6 +313,7 @@ tests_libpspp_tower_test_SOURCES = \
 	src/libpspp/abt.h \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
+	src/libpspp/temp-file.c \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
 	tests/libpspp/tower-test.c
@@ -320,7 +325,8 @@ tests_libpspp_sparse_array_test_SOURCES = \
 	src/libpspp/sparse-array.h \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
-	tests/libpspp/sparse-array-test.c
+	tests/libpspp/sparse-array-test.c \
+	src/libpspp/temp-file.c
 tests_libpspp_sparse_array_test_LDADD = gl/libgl.la $(LIBINTL) 
 tests_libpspp_sparse_array_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
@@ -335,6 +341,7 @@ tests_libpspp_sparse_xarray_test_SOURCES = \
 	src/libpspp/sparse-xarray.c \
 	src/libpspp/str.c \
 	src/libpspp/pool.c \
+	src/libpspp/temp-file.c \
 	tests/libpspp/sparse-xarray-test.c
 tests_libpspp_sparse_xarray_test_LDADD = gl/libgl.la $(LIBINTL) 
 tests_libpspp_sparse_xarray_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10

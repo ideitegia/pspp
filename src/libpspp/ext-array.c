@@ -19,17 +19,18 @@
 
 #include <config.h>
 
-#include <libpspp/ext-array.h>
+#include "libpspp/ext-array.h"
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/temp-file.h"
 
-#include "error.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -50,7 +51,7 @@ struct ext_array *
 ext_array_create (void)
 {
   struct ext_array *ea = xmalloc (sizeof *ea);
-  ea->file = tmpfile ();
+  ea->file = create_temp_file ();
   if (ea->file == NULL)
     error (0, errno, _("failed to create temporary file"));
   ea->position = 0;

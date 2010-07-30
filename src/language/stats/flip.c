@@ -144,7 +144,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
 	  }
     }
 
-  flip->file = pool_tmpfile (flip->pool);
+  flip->file = pool_create_temp_file (flip->pool);
   if (flip->file == NULL)
     {
       msg (SE, _("Could not create temporary file for FLIP."));
@@ -328,7 +328,7 @@ flip_file (struct flip_pgm *flip)
       return false;
     }
 
-  output_file = pool_tmpfile (flip->pool);
+  output_file = pool_create_temp_file (flip->pool);
   if (output_file == NULL)
     {
       msg (SE, _("Error creating FLIP source file."));
@@ -379,11 +379,7 @@ flip_file (struct flip_pgm *flip)
       case_idx += read_cases;
     }
 
-  if (pool_fclose (flip->pool, input_file) == EOF)
-    {
-      msg (SE, _("Error closing FLIP source file: %s."), strerror (errno));
-      return false;
-    }
+  pool_fclose_temp_file (flip->pool, input_file);
   pool_unregister (flip->pool, input_buf);
   free (input_buf);
 

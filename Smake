@@ -9,6 +9,7 @@ GNULIB_MODULES = \
 	byteswap \
 	c-ctype \
 	c-strtod \
+	clean-temp \
 	close \
 	configmake \
 	count-one-bits \
@@ -71,7 +72,6 @@ GNULIB_MODULES = \
 	strtoul \
 	sys_stat \
 	tempname \
-	tmpfile \
 	trunc \
 	unilbrk/ulc-width-linebreaks \
 	unistd \

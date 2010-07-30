@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,14 +15,18 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "pool.h"
+
+#include "libpspp/pool.h"
+
 #include <stdint.h>
 #include <stdlib.h>
-#include <libpspp/assertion.h>
-#include "message.h"
-#include "str.h"
 
-#include "xalloc.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/temp-file.h"
+#include "libpspp/str.h"
+
+#include "gl/xalloc.h"
 
 /* Fast, low-overhead memory block suballocator. */
 struct pool
@@ -45,6 +49,7 @@ enum
   {
     POOL_GIZMO_MALLOC,
     POOL_GIZMO_FILE,
+    POOL_GIZMO_TEMP_FILE,
     POOL_GIZMO_SUBPOOL,
     POOL_GIZMO_REGISTERED,
   };
@@ -64,7 +69,7 @@ struct pool_gizmo
     /* Type-dependent info. */
     union
       {
-	FILE *file;		/* POOL_GIZMO_FILE. */
+	FILE *file;		/* POOL_GIZMO_FILE, POOL_GIZMO_TEMP_FILE. */
 	struct pool *subpool;	/* POOL_GIZMO_SUBPOOL. */
 
 	/* POOL_GIZMO_REGISTERED. */
@@ -755,20 +760,6 @@ pool_fclose (struct pool *pool, FILE *file)
   return fclose (file);
 }
 
-/* Creates a temporary file with tmpfile() and returns a handle to it
-   if successful or a null pointer if not.
-   The file will be closed automatically when POOL is destroyed, or it
-   may be closed explicitly in advance using pool_fclose(), or
-   detached from the pool with pool_detach_file(). */
-FILE *
-pool_tmpfile (struct pool *pool)
-{
-  FILE *file = tmpfile ();
-  if (file != NULL)
-    pool_attach_file (pool, file);
-  return file;
-}
-
 /* Attaches FILE to POOL.
    The file will be closed automatically when POOL is destroyed, or it
    may be closed explicitly in advance using pool_fclose(), or
@@ -790,6 +781,57 @@ pool_detach_file (struct pool *pool, FILE *file)
 
   for (g = pool->gizmos; g; g = g->next)
     if (g->type == POOL_GIZMO_FILE && g->p.file == file)
+      {
+        delete_gizmo (pool, g);
+        return;
+      }
+}
+
+/* Creates a temporary file with create_temp_file() and returns a handle to it
+   if successful or a null pointer if not.
+   The file will be closed automatically when POOL is destroyed, or it
+   may be closed explicitly in advance using pool_fclose_temp_file(), or
+   detached from the pool with pool_detach_temp_file(). */
+FILE *
+pool_create_temp_file (struct pool *pool)
+{
+  FILE *file = create_temp_file ();
+  if (file != NULL)
+    pool_attach_temp_file (pool, file);
+  return file;
+}
+
+/* Closes file FILE managed by POOL.
+   FILE must have been opened with create_temp_file(). */
+void
+pool_fclose_temp_file (struct pool *pool, FILE *file)
+{
+  assert (pool && file);
+  pool_detach_temp_file (pool, file);
+  close_temp_file (file);
+}
+
+/* Attaches FILE, which must have been opened with create_temp_file(), to POOL.
+   The file will be closed automatically when POOL is destroyed, or it
+   may be closed explicitly in advance using pool_fclose_temp_file(), or
+   detached from the pool with pool_detach_temp_file(). */
+void
+pool_attach_temp_file (struct pool *pool, FILE *file)
+{
+  struct pool_gizmo *g = pool_alloc (pool, sizeof *g);
+  g->type = POOL_GIZMO_TEMP_FILE;
+  g->p.file = file;
+  add_gizmo (pool, g);
+}
+
+/* Detaches FILE that was opened with create_temp_file() from POOL. */
+void
+pool_detach_temp_file (struct pool *pool, FILE *file)
+{
+  struct pool_gizmo *g;
+
+  for (g = pool->gizmos; g; g = g->next)
+    if (g->type == POOL_GIZMO_TEMP_FILE && g->p.file == file)
       {
         delete_gizmo (pool, g);
         return;
@@ -946,6 +988,9 @@ free_gizmo (struct pool_gizmo *gizmo)
       break;
     case POOL_GIZMO_FILE:
       fclose (gizmo->p.file);	/* Ignore errors. */
+      break;
+    case POOL_GIZMO_TEMP_FILE:
+      close_temp_file (gizmo->p.file); /* Ignore errors. */
       break;
     case POOL_GIZMO_SUBPOOL:
       gizmo->p.subpool->parent = NULL;

@@ -84,6 +84,8 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/str.h \
 	src/libpspp/taint.c \
 	src/libpspp/taint.h \
+	src/libpspp/temp-file.c \
+	src/libpspp/temp-file.h \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
 	src/libpspp/version.h \
