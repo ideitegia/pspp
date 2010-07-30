@@ -177,7 +177,7 @@ recode_string_pool (const char *to, const char *from,
 	      }
 	    /* Fall through */
 	  case E2BIG:
-	    free (outbuf);
+	    pool_free (pool, outbuf);
 	    outbufferlength <<= 1;
 	    outbuf = pool_malloc (pool, outbufferlength);
 	    op = outbuf;
