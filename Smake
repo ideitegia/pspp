@@ -17,7 +17,6 @@ GNULIB_MODULES = \
 	crypto/md4 \
 	dirname \
 	environ \
-	exit \
 	fatal-signal \
 	fcntl \
 	fpieee \
@@ -28,9 +27,9 @@ GNULIB_MODULES = \
         ftello \
 	fwriteerror \
 	getline \
-	getopt \
 	gettext-h \
 	gettimeofday \
+        getopt-gnu \
 	gitlog-to-changelog \
 	isfinite \
 	isinf \
@@ -41,10 +40,7 @@ GNULIB_MODULES = \
         mbchar \
 	memcasecmp \
 	memchr \
-	memcmp \
-	memmove \
 	mempcpy \
-	memset \
 	minmax \
 	mkdtemp \
 	mkstemp \
@@ -63,7 +59,6 @@ GNULIB_MODULES = \
 	stdint \
 	stpcpy \
 	strcase \
-	strcspn \
 	strerror \
 	strftime \
 	strtod \
