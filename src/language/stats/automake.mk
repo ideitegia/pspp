@@ -15,6 +15,7 @@ src_language_stats_built_sources = \
 
 language_stats_sources = \
 	src/language/stats/aggregate.c \
+	src/language/stats/aggregate.h \
 	src/language/stats/autorecode.c \
 	src/language/stats/binomial.c \
 	src/language/stats/binomial.h \
