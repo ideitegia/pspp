@@ -98,6 +98,11 @@ journal_output (struct journal_driver *j, const char *s)
     }
 
   fprintf (j->file, "%s\n", s);
+
+  /* Flush the journal in case the syntax we're about to write
+     causes a crash.  Having the syntax already written to disk
+     makes postmortem analysis of the problem possible. */
+  fflush (j->file);
 }
 
 static void
