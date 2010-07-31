@@ -1776,3 +1776,23 @@ socst,.222,.922
 ])
 
 AT_CLEANUP
+
+
+
+AT_SETUP([FACTOR empty dataset])
+dnl Test that something sane happens when the dataset contains no complete observations
+
+AT_DATA([factor-empty.sps],
+  [data list notable list /x * y * z *.
+begin data.
+3.4        .     92.9
+.        32.09   34.2
+1.00     19.80     .
+2.00       .      3.6
+end data.
+
+factor /variables = ALL.
+])
+
+AT_CHECK([pspp -O format=csv factor-empty.sps], [0], [ignore])
+AT_CLEANUP

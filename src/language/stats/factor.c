@@ -1694,6 +1694,12 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
   idata->cov = covariance_calculate (cov);
 
+  if (idata->cov == NULL)
+    {
+      msg (MW, _("The dataset contains no complete observations. No analysis will be performed."));
+      goto finish;
+    }
+
   var_matrix = covariance_moments (cov, MOMENT_VARIANCE);
   mean_matrix = covariance_moments (cov, MOMENT_MEAN);
   idata->n = covariance_moments (cov, MOMENT_NONE);

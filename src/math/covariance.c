@@ -601,7 +601,8 @@ covariance_calculate_single_pass (struct covariance *cov)
 const gsl_matrix *
 covariance_calculate (struct covariance *cov)
 {
-  assert ( cov->state > 0 );
+  if ( cov->state <= 0 )
+    return NULL;
 
   switch (cov->passes)
     {
@@ -681,7 +682,8 @@ covariance_calculate_single_pass_unnormalized (struct covariance *cov)
 const gsl_matrix *
 covariance_calculate_unnormalized (struct covariance *cov)
 {
-  assert ( cov->state > 0 );
+  if ( cov->state <= 0 )
+    return NULL;
 
   switch (cov->passes)
     {
