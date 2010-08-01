@@ -356,9 +356,9 @@ enum
 /* Set VAL to the value appropriate for COL according to the
    current state of the dialog */
 static gboolean
-get_summary_spec (gint col, GValue *val,
-		  const struct aggregate *agg)
+get_summary_spec (gint col, GValue *val, gpointer data)
 {
+  const struct aggregate *agg = data;
   switch (col)
     {
     case SUMMARY_COL_VARNAME:
