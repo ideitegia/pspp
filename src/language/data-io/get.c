@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 	    type = PFM_TAPE;
 	  else
 	    {
-	      lex_error (lexer, _("expecting COMM or TAPE"));
+	      lex_error (lexer, _("expecting %s or %s"), "COMM", "TAPE");
               goto error;
 	    }
 	}

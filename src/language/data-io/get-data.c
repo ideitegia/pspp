@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -312,7 +312,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
                            DP_DELIMITED, &has_type);
           else
             {
-              lex_error (lexer, _("expecting FIXED or DELIMITED"));
+              lex_error (lexer, _("expecting %s or %s"), "FIXED", "DELIMITED");
               goto error;
             }
           if (!ok)
@@ -350,7 +350,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
             }
           else
             {
-              lex_error (lexer, _("expecting LINE or VARIABLES"));
+              lex_error (lexer, _("expecting %s or %s"), "LINE", "VARIABLES");
               goto error;
             }
         }
