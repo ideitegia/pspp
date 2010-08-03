@@ -209,9 +209,9 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     goto error;
 
   /* Create the file on disk. */
-  mode = S_IRUSR | S_IRGRP | S_IROTH;
+  mode = 0444;
   if (opts.create_writeable)
-    mode |= S_IWUSR | S_IWGRP | S_IWOTH;
+    mode |= 0222;
   w->rf = replace_file_start (fh_get_file_name (fh), "wb", mode,
                               &w->file, NULL);
   if (w->rf == NULL)

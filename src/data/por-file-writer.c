@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -150,9 +150,9 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
     goto error;
 
   /* Create file. */
-  mode = S_IRUSR | S_IRGRP | S_IROTH;
+  mode = 0444;
   if (opts.create_writeable)
-    mode |= S_IWUSR | S_IWGRP | S_IWOTH;
+    mode |= 0222;
   w->rf = replace_file_start (fh_get_file_name (fh), "w", mode,
                               &w->file, NULL);
   if (w->rf == NULL)

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -108,9 +108,9 @@ change_permissions (const char *file_name, enum PER per)
     }
 
   if ( per == PER_RW )
-    mode = buf.st_mode | S_IWUSR ;
+    mode = buf.st_mode | 0200;
   else
-    mode = buf.st_mode & ~( S_IWOTH | S_IWUSR | S_IWGRP );
+    mode = buf.st_mode & ~0222;
 
   if ( -1 == chmod(file_name, mode))
 

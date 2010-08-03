@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2004, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-2004, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -66,9 +66,8 @@ dfm_open_writer (struct file_handle *fh)
   w = xmalloc (sizeof *w);
   w->fh = fh_ref (fh);
   w->lock = lock;
-  w->rf = replace_file_start (fh_get_file_name (w->fh), "wb",
-                              (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP
-                               | S_IROTH | S_IWOTH), &w->file, NULL);
+  w->rf = replace_file_start (fh_get_file_name (w->fh), "wb", 0666,
+                              &w->file, NULL);
   if (w->rf == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for writing "
