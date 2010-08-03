@@ -268,10 +268,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   write_int (w, 0);
 
   if (write_error (w))
-    {
-      close_writer (w);
-      return NULL;
-    }
+    goto error;
 
   return casewriter_create (dict_get_proto (d), &sys_file_casewriter_class, w);
 
