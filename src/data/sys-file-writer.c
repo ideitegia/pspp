@@ -159,8 +159,7 @@ sfm_writer_default_options (void)
 }
 
 /* Opens the system file designated by file handle FH for writing
-   cases from dictionary D according to the given OPTS.  If
-   COMPRESS is nonzero, the system file will be compressed.
+   cases from dictionary D according to the given OPTS.
 
    No reference to D is retained, so it may be modified or
    destroyed at will after this function returns.  D is not
