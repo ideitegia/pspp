@@ -144,8 +144,8 @@ static void put_cmp_opcode (struct sfm_writer *, uint8_t);
 static void put_cmp_number (struct sfm_writer *, double);
 static void put_cmp_string (struct sfm_writer *, const void *, size_t);
 
-bool write_error (const struct sfm_writer *);
-bool close_writer (struct sfm_writer *);
+static bool write_error (const struct sfm_writer *);
+static bool close_writer (struct sfm_writer *);
 
 /* Returns default options for writing a system file. */
 struct sfm_write_options
@@ -946,7 +946,7 @@ sys_file_casewriter_destroy (struct casewriter *writer, void *w_)
 }
 
 /* Returns true if an I/O error has occurred on WRITER, false otherwise. */
-bool
+static bool
 write_error (const struct sfm_writer *writer)
 {
   return ferror (writer->file);
@@ -954,7 +954,7 @@ write_error (const struct sfm_writer *writer)
 
 /* Closes a system file after we're done with it.
    Returns true if successful, false if an I/O error occurred. */
-bool
+static bool
 close_writer (struct sfm_writer *w)
 {
   bool ok;
