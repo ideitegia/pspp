@@ -964,7 +964,7 @@ variables factored by a single independent variable.
 It is used to compare the means of a population
 divided into more than two groups. 
 
-The  variables to be analysed should be given in the @code{VARIABLES}
+The dependent variables to be analysed should be given in the @code{VARIABLES}
 subcommand.  
 The list of variables must be followed by the @code{BY} keyword and
 the name of the independent (or factor) variable.
@@ -990,6 +990,16 @@ If the total sum of the coefficients are not zero, then PSPP will
 display a warning, but will proceed with the analysis.
 The @code{CONTRAST} subcommand may be given up to 10 times in order
 to specify different contrast tests.
+The @code{MISSING} subcommand defines how missing values are handled.
+If LISTWISE is specified then cases which have missing values for 
+the independent variable or any dependent variable will be ignored.
+If ANALYSIS is specified, then cases will be ignored if the independent
+variable is missing or if the dependent variable currently being 
+analysed is missing.  The default is ANALYSIS.
+A setting of EXCLUDE means that variables whose values are
+user-missing are to be excluded from the analysis. A setting of
+INCLUDE means they are to be included.  The default is EXCLUDE.
+
 
 @node RANK
 @comment  node-name,  next,  previous,  up
