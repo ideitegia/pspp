@@ -1,0 +1,8 @@
+AT_INIT
+
+# Define SKIP_IF for compatibility with Autotest before 2.64
+m4_ifndef([AT_SKIP_IF],
+  [m4_define([AT_SKIP_IF],
+     [AT_CHECK([($1) \
+&& exit 77 || exit 0], [0], [ignore], [ignore])])])
+

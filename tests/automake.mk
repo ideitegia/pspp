@@ -419,8 +419,8 @@ EXTRA_DIST += \
 	tests/atlocal.in \
 	$(srcdir)/package.m4 \
 	$(TESTSUITE)
+
 TESTSUITE_AT = \
-	tests/testsuite.at \
 	tests/data/calendar.at \
 	tests/language/dictionary/mrsets.at \
 	tests/language/expressions/evaluate.at \
@@ -435,9 +435,18 @@ TESTSUITE_AT = \
 	tests/language/xforms/recode.at \
 	tests/math/moments.at \
 	tests/output/render.at \
+	tests/output/charts.at \
 	tests/perl-module.at
+
 TESTSUITE = $(srcdir)/tests/testsuite
 DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
+
+$(srcdir)/tests/testsuite.at: tests/testsuite.in Makefile
+	cp $< $@
+	for t in $(TESTSUITE_AT); do \
+	  echo "m4_include([$$t])" >> $@ ;\
+	done
+
 
 CHECK_LOCAL += tests_check
 tests_check: tests/atconfig tests/atlocal $(TESTSUITE)
@@ -449,7 +458,7 @@ tests_clean:
 
 AUTOM4TE = $(SHELL) $(srcdir)/build-aux/missing --run autom4te
 AUTOTEST = $(AUTOM4TE) --language=autotest
-$(TESTSUITE): package.m4 $(TESTSUITE_AT)
+$(TESTSUITE): package.m4 $(srcdir)/tests/testsuite.at $(TESTSUITE_AT) 
 	$(AUTOTEST) -I '$(srcdir)' -o $@.tmp $@.at
 	mv $@.tmp $@
 
