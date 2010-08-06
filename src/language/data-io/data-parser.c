@@ -597,22 +597,23 @@ parse_delimited_no_span (const struct data_parser *parser,
   const char *encoding = dfm_reader_get_legacy_encoding (reader);
   struct string tmp = DS_EMPTY_INITIALIZER;
   struct substring s;
-  struct field *f;
+  struct field *f, *end;
 
   if (dfm_eof (reader))
     return false;
 
-  for (f = parser->fields; f < &parser->fields[parser->field_cnt]; f++)
+  end = &parser->fields[parser->field_cnt];
+  for (f = parser->fields; f < end; f++)
     {
       int first_column, last_column;
       if (!cut_field (parser, reader, &first_column, &last_column, &tmp, &s))
 	{
-	  if (settings_get_undefined ())
+	  if (f < end - 1 && settings_get_undefined ())
 	    msg (SW, _("Missing value(s) for all variables from %s onward.  "
                        "These will be filled with the system-missing value "
                        "or blanks, as appropriate."),
 		 f->name);
-          for (; f < &parser->fields[parser->field_cnt]; f++)
+          for (; f < end; f++)
             value_set_missing (case_data_rw_idx (c, f->case_idx),
                                fmt_var_width (&f->format));
           goto exit;
