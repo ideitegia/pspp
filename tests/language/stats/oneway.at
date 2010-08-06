@@ -1,0 +1,278 @@
+AT_BANNER([ONEWAY procedure])
+
+AT_SETUP([ONEWAY basic operation])
+AT_DATA([oneway.sps],
+  [DATA LIST NOTABLE LIST /QUALITY * BRAND * .
+BEGIN DATA
+3 1
+2 1
+1 1
+1 1
+4 1
+5 2
+2 2
+4 2
+2 2
+3 2
+7  3
+4  3
+5  3
+3  3
+6  3
+END DATA
+
+VARIABLE LABELS brand 'Manufacturer'.
+VARIABLE LABELS quality 'Breaking Strain'.
+
+VALUE LABELS /brand 1 'Aspeger' 2 'Bloggs' 3 'Charlies'.
+
+ONEWAY
+	quality BY brand
+	/STATISTICS descriptives homogeneity
+	/CONTRAST =  -2 1 1 
+	/CONTRAST = 0 -1 1
+	.
+])
+
+AT_CHECK([pspp -O format=csv oneway.sps], [0], 
+[Table: Descriptives
+,,,,,,95% Confidence Interval for Mean,,,
+,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
+Breaking Strain,Aspeger,5,2.20,1.30,.58,.58,3.82,1.00,4.00
+,Bloggs,5,3.20,1.30,.58,1.58,4.82,2.00,5.00
+,Charlies,5,5.00,1.58,.71,3.04,6.96,3.00,7.00
+,Total,15,3.47,1.77,.46,2.49,4.45,1.00,7.00
+
+Table: Test of Homogeneity of Variances
+,Levene Statistic,df1,df2,Significance
+Breaking Strain,.09,2,12,.91
+
+Table: ANOVA
+,,Sum of Squares,df,Mean Square,F,Significance
+Breaking Strain,Between Groups,20.13,2,10.07,5.12,.02
+,Within Groups,23.60,12,1.97,,
+,Total,43.73,14,,,
+
+Table: Contrast Coefficients
+,,Manufacturer,,
+,,Aspeger,Bloggs,Charlies
+Contrast,1,-2,1,1
+,2,0,-1,1
+
+Table: Contrast Tests
+,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
+Breaking Strain,Assume equal variances,1,3.80,1.54,2.47,12,.03
+,,2,1.80,.89,2.03,12,.07
+,Does not assume equal,1,3.80,1.48,2.56,8.74,.03
+,,2,1.80,.92,1.96,7.72,.09
+])
+AT_CLEANUP
+
+
+AT_SETUP([ONEWAY with splits])
+AT_DATA([oneway-splits.sps],
+[DATA LIST NOTABLE LIST /QUALITY * BRAND * S *.
+BEGIN DATA
+3 1 1
+2 1 1
+1 1 1
+1 1 1
+4 1 1
+5 2 1
+2 2 1
+4 2 2
+2 2 2
+3 2 2
+7  3 2
+4  3 2
+5  3 2
+3  3 2
+6  3 2
+END DATA
+
+VARIABLE LABELS brand 'Manufacturer'.
+VARIABLE LABELS quality 'Breaking Strain'.
+
+VALUE LABELS /brand 1 'Aspeger' 2 'Bloggs' 3 'Charlies'.
+
+SPLIT FILE by s.
+
+ONEWAY
+	quality BY brand
+	/STATISTICS descriptives homogeneity
+	/CONTRAST =  -2 2
+	/CONTRAST = -1 1
+	.
+])
+
+AT_CHECK([pspp -O format=csv oneway-splits.sps], [0], 
+[Variable,Value,Label
+S,1.00,
+
+Table: Descriptives
+,,,,,,95% Confidence Interval for Mean,,,
+,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
+Breaking Strain,Aspeger,5,2.20,1.30,.58,.58,3.82,1.00,4.00
+,Bloggs,2,3.50,2.12,1.50,-15.56,22.56,2.00,5.00
+,Total,7,2.57,1.51,.57,1.17,3.97,1.00,5.00
+
+Table: Test of Homogeneity of Variances
+,Levene Statistic,df1,df2,Significance
+Breaking Strain,1.09,1,5,.35
+
+Table: ANOVA
+,,Sum of Squares,df,Mean Square,F,Significance
+Breaking Strain,Between Groups,2.41,1,2.41,1.07,.35
+,Within Groups,11.30,5,2.26,,
+,Total,13.71,6,,,
+
+Table: Contrast Coefficients
+,,Manufacturer,
+,,Aspeger,Bloggs
+Contrast,1,-2,2
+,2,-1,1
+
+Table: Contrast Tests
+,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
+Breaking Strain,Assume equal variances,1,2.60,2.52,1.03,5,.35
+,,2,1.30,1.26,1.03,5,.35
+,Does not assume equal,1,2.60,3.22,.81,1.32,.54
+,,2,1.30,1.61,.81,1.32,.54
+
+Variable,Value,Label
+S,2.00,
+
+Table: Descriptives
+,,,,,,95% Confidence Interval for Mean,,,
+,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
+Breaking Strain,Bloggs,3,3.00,1.00,.58,.52,5.48,2.00,4.00
+,Charlies,5,5.00,1.58,.71,3.04,6.96,3.00,7.00
+,Total,8,4.25,1.67,.59,2.85,5.65,2.00,7.00
+
+Table: Test of Homogeneity of Variances
+,Levene Statistic,df1,df2,Significance
+Breaking Strain,.92,1,6,.37
+
+Table: ANOVA
+,,Sum of Squares,df,Mean Square,F,Significance
+Breaking Strain,Between Groups,7.50,1,7.50,3.75,.10
+,Within Groups,12.00,6,2.00,,
+,Total,19.50,7,,,
+
+Table: Contrast Coefficients
+,,Manufacturer,
+,,Bloggs,Charlies
+Contrast,1,-2,2
+,2,-1,1
+
+Table: Contrast Tests
+,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
+Breaking Strain,Assume equal variances,1,4.00,2.07,1.94,6,.10
+,,2,2.00,1.03,1.94,6,.10
+,Does not assume equal,1,4.00,1.83,2.19,5.88,.07
+,,2,2.00,.91,2.19,5.88,.07
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([ONEWAY with missing values])
+dnl Check that missing are treated properly
+AT_DATA([oneway-missing1.sps],
+[DATA LIST NOTABLE LIST /v1 * v2 * dep * vn *.
+BEGIN DATA
+. .  1  4
+3 3  1  2
+2 2  1  2
+1 1  1  2
+1 1  1  2
+4 4  1  2
+5 5  2  2
+2 2  2  2
+4 4  2  2
+2 2  2  2
+3 3  2  2
+7 7  3  2
+4 4  3  2
+5 5  3  2
+3 3  3  2
+6 6  3  2
+END DATA
+
+ONEWAY
+	v1 v2 BY dep
+	/STATISTICS descriptives homogeneity
+	/MISSING ANALYSIS 
+	.
+])
+
+AT_DATA([oneway-missing2.sps],
+[DATA LIST NOTABLE LIST /v1 * v2 * dep * vn * .
+BEGIN DATA
+4 .  1  2 
+3 3  1  2
+2 2  1  2
+1 1  1  2
+1 1  1  2
+4 4  1  2
+5 5  2  2
+2 2  2  2
+4 4  2  2
+2 2  2  2
+3 3  2  2
+7 7  3  2
+4 4  3  2
+5 5  3  2
+3 3  3  2
+6 6  3  2
+END DATA
+
+ONEWAY
+	v1 v2 BY dep
+	/STATISTICS descriptives homogeneity
+	/MISSING LISTWISE
+	.
+])
+
+
+
+AT_CHECK([pspp -O format=csv oneway-missing1.sps > first.out], [0])
+
+AT_CHECK([pspp -O format=csv oneway-missing2.sps > second.out], [0])
+
+AT_CHECK([diff first.out second.out], [0], [])
+
+dnl Now a test with missing values in the independent variable
+AT_DATA([oneway-missing3.sps],
+[DATA LIST NOTABLE LIST /v1 * v2 * dep * vn * .
+BEGIN DATA
+4 2  .  2 
+3 3  1  2
+2 2  1  2
+1 1  1  2
+1 1  1  2
+4 4  1  2
+5 5  2  2
+2 2  2  2
+4 4  2  2
+2 2  2  2
+3 3  2  2
+7 7  3  2
+4 4  3  2
+5 5  3  4
+3 3  3  2
+6 6  3  2
+END DATA
+
+ONEWAY
+	v1 v2 BY dep
+	/STATISTICS descriptives homogeneity
+	/MISSING ANALYSIS
+	.
+])
+
+AT_CHECK([pspp -O format=csv oneway-missing3.sps > third.out], [0])
+
+AT_CHECK([diff first.out third.out], [0], [])
+
+AT_CLEANUP

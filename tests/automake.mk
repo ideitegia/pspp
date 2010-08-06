@@ -44,9 +44,6 @@ dist_TESTS = \
 	tests/command/npar-chisquare.sh \
 	tests/command/npar-wilcoxon.sh \
 	tests/command/npar-sign.sh \
-	tests/command/oneway.sh \
-	tests/command/oneway-missing.sh \
-	tests/command/oneway-with-splits.sh \
 	tests/command/permissions.sh \
 	tests/command/print.sh \
 	tests/command/print-strings.sh \
@@ -431,6 +428,7 @@ TESTSUITE_AT = \
 	tests/language/stats/factor.at \
 	tests/language/stats/flip.at \
 	tests/language/stats/frequencies.at \
+	tests/language/stats/oneway.at \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/recode.at \
 	tests/math/moments.at \
