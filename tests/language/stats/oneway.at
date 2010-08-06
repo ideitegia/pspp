@@ -276,3 +276,99 @@ AT_CHECK([pspp -O format=csv oneway-missing3.sps > third.out], [0])
 AT_CHECK([diff first.out third.out], [0], [])
 
 AT_CLEANUP
+
+
+
+
+
+AT_SETUP([ONEWAY descriptives subcommand])
+
+AT_DATA([oneway-descriptives.sps],
+  [DATA LIST NOTABLE LIST /QUALITY * BRAND * .
+BEGIN DATA
+13 11
+12 11
+11 11
+11 11
+14 11
+15 25
+12 25
+14 25
+12 25
+13 25
+17  301
+14  301
+15  301
+13  301
+16  301
+END DATA
+
+
+ONEWAY
+	quality BY brand
+	/STATISTICS descriptives
+	.
+])
+
+AT_CHECK([pspp -O format=csv oneway-descriptives.sps], [0], 
+[Table: Descriptives
+,,,,,,95% Confidence Interval for Mean,,,
+,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
+QUALITY,11.00,5,12.20,1.30,.58,10.58,13.82,11.00,14.00
+,25.00,5,13.20,1.30,.58,11.58,14.82,12.00,15.00
+,301.00,5,15.00,1.58,.71,13.04,16.96,13.00,17.00
+,Total,15,13.47,1.77,.46,12.49,14.45,11.00,17.00
+
+Table: ANOVA
+,,Sum of Squares,df,Mean Square,F,Significance
+QUALITY,Between Groups,20.13,2,10.07,5.12,.02
+,Within Groups,23.60,12,1.97,,
+,Total,43.73,14,,,
+])
+
+AT_CLEANUP
+
+
+
+AT_SETUP([ONEWAY homogeneity subcommand])
+
+AT_DATA([oneway-homogeneity.sps],
+  [DATA LIST NOTABLE LIST /QUALITY * BRAND * .
+BEGIN DATA
+13 11
+12 11
+11 11
+11 11
+14 11
+15 25
+12 25
+14 25
+12 25
+13 25
+17  301
+14  301
+15  301
+13  301
+16  301
+END DATA
+
+
+ONEWAY
+	quality BY brand
+	/STATISTICS homogeneity
+	.
+])
+
+AT_CHECK([pspp -O format=csv oneway-homogeneity.sps], [0], 
+[Table: Test of Homogeneity of Variances
+,Levene Statistic,df1,df2,Significance
+QUALITY,.09,2,12,.91
+
+Table: ANOVA
+,,Sum of Squares,df,Mean Square,F,Significance
+QUALITY,Between Groups,20.13,2,10.07,5.12,.02
+,Within Groups,23.60,12,1.97,,
+,Total,43.73,14,,,
+])
+
+AT_CLEANUP
