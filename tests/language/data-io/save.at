@@ -1,0 +1,31 @@
+AT_BANNER([SAVE])
+
+# UNSELECTED=DELETE used to cause a crash if there was actually a
+# filter variable.
+AT_SETUP([SAVE -- delete unselected])
+AT_DATA([data.txt], [dnl
+0 '1 9:30:05' 1/2/2003 "25/8/1995 15:30:00" "'a,b,c'",0
+, '-0 5:17' 10/31/2010 "9/4/2008 9:29:00" " xxx ",1
+1.625,'0 12:00',,,xyzzy,1
+])
+AT_DATA([save.pspp], [dnl
+SET DECIMAL=DOT.
+DATA LIST LIST NOTABLE FILE="data.txt"
+    /number(F8.3) time(DTIME10) date(ADATE10) datetime(DATETIME20) string(A8)
+     filter(F1.0).
+MISSING VALUES number(0) time('0 12:00') string('xyzzy').
+FILTER BY filter.
+SAVE /OUTFILE="data.sav" /UNSELECTED=DELETE.
+])
+AT_DATA([get.pspp], [dnl
+GET FILE='data.sav'.
+LIST.
+])
+AT_CHECK([pspp -O format=csv save.pspp])
+AT_CHECK([pspp -O format=csv get.pspp], [0], [dnl
+Table: Data List
+number,time,date,datetime,string,filter
+.   ,-0 05:17,10/31/2010,09-APR-2008 09:29:00,xxx    ,1
+1.625,0 12:00:00,.,.,xyzzy   ,1
+])
+AT_CLEANUP

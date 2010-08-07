@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,6 +72,7 @@ void proc_discard_output (struct dataset *ds);
 bool proc_execute (struct dataset *ds);
 time_t time_of_last_procedure (struct dataset *ds);
 
+struct casereader *proc_open_filtering (struct dataset *, bool filter);
 struct casereader *proc_open (struct dataset *);
 bool proc_is_open (const struct dataset *);
 bool proc_commit (struct dataset *);

@@ -419,6 +419,7 @@ EXTRA_DIST += \
 TESTSUITE_AT = \
 	tests/data/calendar.at \
 	tests/language/data-io/data-list.at \
+	tests/language/data-io/save.at \
 	tests/language/dictionary/mrsets.at \
 	tests/language/expressions/evaluate.at \
 	tests/language/stats/aggregate.at \

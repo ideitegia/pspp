@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -105,7 +105,6 @@ parse_output_proc (struct lexer *lexer, struct dataset *ds,
                    enum writer_type writer_type)
 {
   bool retain_unselected;
-  struct variable *saved_filter_variable;
   struct casewriter *output;
   bool ok;
 
@@ -114,15 +113,9 @@ parse_output_proc (struct lexer *lexer, struct dataset *ds,
   if (output == NULL)
     return CMD_CASCADING_FAILURE;
 
-  saved_filter_variable = dict_get_filter (dataset_dict (ds));
-  if (retain_unselected)
-    dict_set_filter (dataset_dict (ds), NULL);
-
-  casereader_transfer (proc_open (ds), output);
+  casereader_transfer (proc_open_filtering (ds, !retain_unselected), output);
   ok = casewriter_destroy (output);
   ok = proc_commit (ds) && ok;
-
-  dict_set_filter (dataset_dict (ds), saved_filter_variable);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }

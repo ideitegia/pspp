@@ -163,10 +163,14 @@ proc_execute (struct dataset *ds)
 
 static const struct casereader_class proc_casereader_class;
 
-/* Opens dataset DS for reading cases with proc_read.
+/* Opens dataset DS for reading cases with proc_read.  If FILTER is true, then
+   cases filtered out with FILTER BY will not be included in the casereader
+   (which is usually desirable).  If FILTER is false, all cases will be
+   included regardless of FILTER BY settings.
+
    proc_commit must be called when done. */
 struct casereader *
-proc_open (struct dataset *ds)
+proc_open_filtering (struct dataset *ds, bool filter)
 {
   struct casereader *reader;
 
@@ -179,7 +183,8 @@ proc_open (struct dataset *ds)
 
   /* Finish up the collection of transformations. */
   add_case_limit_trns (ds);
-  add_filter_trns (ds);
+  if (filter)
+    add_filter_trns (ds);
   trns_chain_finalize (ds->cur_trns_chain);
 
   /* Make permanent_dict refer to the dictionary right before
@@ -235,6 +240,14 @@ proc_open (struct dataset *ds)
                                          &proc_casereader_class, ds);
   ds->shim = casereader_shim_insert (reader);
   return reader;
+}
+
+/* Opens dataset DS for reading cases with proc_read.
+   proc_commit must be called when done. */
+struct casereader *
+proc_open (struct dataset *ds)
+{
+  return proc_open_filtering (ds, true);
 }
 
 /* Returns true if a procedure is in progress, that is, if
