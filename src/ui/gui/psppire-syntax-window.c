@@ -21,6 +21,10 @@
 #include "executor.h"
 #include "helper.h"
 
+#include <gtksourceview/gtksourcebuffer.h>
+#include <gtksourceview/gtksourcelanguage.h>
+#include <gtksourceview/gtksourcelanguagemanager.h>
+
 #include <libpspp/message.h>
 #include <stdlib.h>
 
@@ -102,6 +106,26 @@ psppire_syntax_window_finalize (GObject *object)
 static void
 psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
 {
+  GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default ();
+
+  const gchar * const *existing_paths =  gtk_source_language_manager_get_search_path (lm);
+
+  const gchar **new_paths = g_strdupv (existing_paths);
+
+  int n = g_strv_length (existing_paths);
+
+  new_paths = g_realloc (new_paths, (n+1) * sizeof (*new_paths));
+  new_paths[n] = g_strdup (PKGDATADIR);
+  new_paths[n+1] = NULL;
+
+  lm = gtk_source_language_manager_new ();
+  gtk_source_language_manager_set_search_path (lm, new_paths);
+
+  class->lan = gtk_source_language_manager_get_language (lm, "pspp");
+
+  if (class->lan == NULL)
+    g_warning ("pspp.lang file not found.  Syntax highlighting will not be available.");
+
   parent_class = g_type_class_peek_parent (class);
 }
 
@@ -110,7 +134,6 @@ static void
 psppire_syntax_window_base_init (PsppireSyntaxWindowClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
-
   object_class->finalize = psppire_syntax_window_finalize;
 }
 
@@ -395,9 +418,25 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   GtkWidget *menubar = get_widget_assert (xml, "menubar");
   GtkWidget *sw = get_widget_assert (xml, "scrolledwindow8");
 
-
   GtkWidget *text_view = get_widget_assert (xml, "syntax_text_view");
-  window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
+
+  PsppireSyntaxWindowClass *class
+    = PSPPIRE_SYNTAX_WINDOW_CLASS (G_OBJECT_GET_CLASS (window));
+
+  if (class->lan)
+    window->buffer = GTK_TEXT_BUFFER (gtk_source_buffer_new_with_language (class->lan));
+  else
+    window->buffer = GTK_TEXT_BUFFER (gtk_source_buffer_new (NULL));
+
+  gtk_text_view_set_buffer (GTK_TEXT_VIEW (text_view), window->buffer);
+
+  g_object_set (text_view,
+		"show-line-numbers", TRUE,
+		"show-line-marks", TRUE,
+		"auto-indent", TRUE,
+		"indent-width", 4,
+		"highlight-current-line", TRUE,
+		NULL);
   window->lexer = lex_create (the_source_stream);
 
   window->sb = get_widget_assert (xml, "statusbar2");

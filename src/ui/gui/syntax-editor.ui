@@ -186,7 +186,7 @@
     <property name="shadow_type">GTK_SHADOW_IN</property>
     <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
     <child>
-      <object class="GtkTextView" id="syntax_text_view">
+      <object class="GtkSourceView" id="syntax_text_view">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="editable">True</property>

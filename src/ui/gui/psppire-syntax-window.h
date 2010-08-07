@@ -25,12 +25,15 @@
 #include "psppire-window.h"
 #include <gtk/gtk.h>
 
+#include <gtksourceview/gtksourcelanguage.h>
+#include <gtksourceview/gtksourcelanguagemanager.h>
+
 G_BEGIN_DECLS
 
 #define PSPPIRE_SYNTAX_WINDOW_TYPE            (psppire_syntax_window_get_type ())
 #define PSPPIRE_SYNTAX_WINDOW(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPPIRE_SYNTAX_WINDOW_TYPE, PsppireSyntaxWindow))
 #define PSPPIRE_SYNTAX_WINDOW_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), \
-    PSPPIRE_SYNTAX_WINDOW_TYPE, PsppireSyntax_WindowClass))
+    PSPPIRE_SYNTAX_WINDOW_TYPE, PsppireSyntaxWindowClass))
 #define PSPPIRE_IS_SYNTAX_WINDOW(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
     PSPPIRE_SYNTAX_WINDOW_TYPE))
 #define PSPPIRE_IS_SYNTAX_WINDOW_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), \
@@ -57,6 +60,8 @@ struct _PsppireSyntaxWindowClass
 {
   PsppireWindowClass parent_class;
 
+
+  GtkSourceLanguage *lan ;
 };
 
 GType      psppire_syntax_window_get_type        (void);

@@ -41,7 +41,7 @@ EXTRA_DIST += \
 if HAVE_GUI
 bin_PROGRAMS += src/ui/gui/psppire 
 
-src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
+src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GTKSOURCEVIEW_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
 
 
 src_ui_gui_psppire_LDFLAGS = \
@@ -63,6 +63,7 @@ src_ui_gui_psppire_LDADD = \
 	src/libpspp.la \
 	src/libpspp-core.la \
 	$(GTK_LIBS) \
+	$(GTKSOURCEVIEW_LIBS) \
 	$(CAIRO_LIBS) \
 	$(LIBINTL)
 
@@ -73,6 +74,9 @@ themedir = $(DESTDIR)$(datadir)/icons/hicolor
 context = apps
 
 
+install-lang:
+	$(INSTALL) $(top_srcdir)/src/ui/gui/pspp.lang $(pkgdatadir)
+	
 install-icons:
 	for size in 16x16 ; do \
 	  $(MKDIR_P) $(themedir)/$$size/$(context) ; \
@@ -80,7 +84,7 @@ install-icons:
 	done 
 	gtk-update-icon-cache --ignore-theme-index $(themedir)
 
-INSTALL_DATA_HOOKS += install-icons
+INSTALL_DATA_HOOKS += install-icons install-lang
 
 uninstall-icons:
 	for size in 16x16 ; do \
@@ -92,6 +96,7 @@ UNINSTALL_DATA_HOOKS += uninstall-icons
 
 dist_src_ui_gui_psppire_DATA = \
 	$(UI_FILES) \
+	$(top_srcdir)/src/ui/gui/pspp.lang \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
 	$(top_srcdir)/src/ui/gui/icons/goto-variable.png\
