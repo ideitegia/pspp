@@ -85,6 +85,8 @@ struct aggregate
 
   GtkWidget *sorted_button;
   GtkWidget *needs_sort_button;
+
+  GtkWidget *pane;
 };
 
 
@@ -445,6 +447,20 @@ on_acr_change (const struct aggregate *agg, GtkTreeView *tv)
 }
 
 
+/* Set the pane to 50% of its maximum size */
+static void
+set_initial_pos (GtkPaned *pane)
+{
+  int max_pos;
+  g_object_get (pane, 
+		"max-position", &max_pos,
+		NULL);
+
+  gtk_paned_set_position (pane, max_pos / 2);
+}
+
+
+
 /* Pops up the Aggregate dialog box */
 void
 aggregate_dialog (PsppireDataWindow *dw)
@@ -467,6 +483,8 @@ aggregate_dialog (PsppireDataWindow *dw)
   source = get_widget_assert   (fd.xml, "dict-view");
   break_selector = get_widget_assert   (fd.xml, "break-selector");
 
+  fd.pane = get_widget_assert (fd.xml, "hbox1");
+  
   fd.break_variables = get_widget_assert (fd.xml, "psppire-var-view1");
   fd.filename_radiobutton = get_widget_assert (fd.xml, "filename-radiobutton");
   fd.filename_button = get_widget_assert (fd.xml, "filename-button");
@@ -534,6 +552,10 @@ aggregate_dialog (PsppireDataWindow *dw)
   g_signal_connect_swapped (fd.summary_sv_entry, "changed", G_CALLBACK (update_acr),  &fd);  
   g_signal_connect_swapped (fd.summary_arg1_entry, "changed", G_CALLBACK (update_acr),  &fd);  
   g_signal_connect_swapped (fd.summary_arg2_entry, "changed", G_CALLBACK (update_acr),  &fd);  
+
+
+  g_signal_connect (fd.pane, "realize", G_CALLBACK (set_initial_pos),  &fd);  
+
 
   g_signal_connect_swapped (fd.function_combo, "changed",
 			    G_CALLBACK (update_arguments),  &fd);
