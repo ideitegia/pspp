@@ -290,6 +290,8 @@ paste_syntax_to_window (const gchar *syntax)
 {
   static GtkWidget *the_syntax_pasteboard = NULL;
 
+  GtkTextBuffer *buffer = NULL;
+
   if ( NULL == the_syntax_pasteboard)
     {
       the_syntax_pasteboard = psppire_syntax_window_new ();
@@ -297,11 +299,12 @@ paste_syntax_to_window (const gchar *syntax)
 			&the_syntax_pasteboard);
     }
 
-  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (the_syntax_pasteboard)->buffer,
-				    syntax, -1);
+  buffer = GTK_TEXT_BUFFER (PSPPIRE_SYNTAX_WINDOW (the_syntax_pasteboard)->buffer);
 
-  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (the_syntax_pasteboard)->buffer,
-				    "\n", 1);
+  gtk_text_buffer_begin_user_action (buffer);
+  gtk_text_buffer_insert_at_cursor (buffer, syntax, -1);
+  gtk_text_buffer_insert_at_cursor (buffer, "\n", 1);
+  gtk_text_buffer_end_user_action (buffer);
 
   gtk_widget_show (the_syntax_pasteboard);
 }
