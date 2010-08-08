@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -471,7 +471,7 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
             }
           *field = ds_ss (tmp);
         }
-      *last_column = dfm_column_start (reader);
+      *last_column = *first_column + (ss_length (line) - ss_length (p));
 
       /* Skip trailing soft separator and a single hard separator
          if present. */
@@ -484,7 +484,8 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
     {
       /* Regular field. */
       ss_get_chars (&p, ss_cspan (p, ds_ss (&parser->any_sep)), field);
-      *last_column = dfm_column_start (reader);
+      *last_column = *first_column + ss_length (*field);
+
       if (!ss_ltrim (&p, parser->soft_seps) || ss_is_empty (p)
           || ss_find_char (parser->hard_seps, p.string[0]) != SIZE_MAX)
         {

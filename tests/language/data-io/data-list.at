@@ -4,7 +4,7 @@ AT_SETUP([DATA LIST LIST with explicit delimiters])
 AT_DATA([data-list.pspp], [dnl
 data list list ('|','X') /A B C D.
 begin data.
-1|23X45|2.03
+1|23X45|2.03x
 2X22|34|23|
 3|34|34X34
 end data.
@@ -19,9 +19,11 @@ B,F8.0
 C,F8.0
 D,F8.0
 
+"data-list.pspp:3: warning: (columns 9-13, F field) Number followed by garbage."
+
 Table: Data List
 A,B,C,D
-1.00,23.00,45.00,2.03
+1.00,23.00,45.00,.  @&t@
 2.00,22.00,34.00,23.00
 3.00,34.00,34.00,34.00
 ])
@@ -32,7 +34,7 @@ AT_DATA([data-list.pspp], [dnl
 data list free skip=1/A B C D.
 begin data.
 # This record is ignored.
-,1,2,3
+,1,2,x
 ,4,,5
 6
 7,
@@ -48,9 +50,11 @@ end data.
 list.
 ])
 AT_CHECK([pspp -O format=csv data-list.pspp], [0], [dnl
+"data-list.pspp:4: warning: (column 6, F field) Field contents are not numeric."
+
 Table: Data List
 A,B,C,D
-.  ,1.00,2.00,3.00
+.  ,1.00,2.00,.  @&t@
 .  ,4.00,.  ,5.00
 6.00,7.00,8.00,9.00
 .00,1.00,.  ,.  @&t@
@@ -115,10 +119,10 @@ data list fixed notable
 begin data.
 07-22-2007
 10-06-2007
-321
+x
 07-14-1789
 08-26-1789
-4
+xy
 01-01-1972
 12-31-1999
 682
@@ -126,10 +130,14 @@ end data.
 list.
 ])
 AT_CHECK([pspp -O format=csv data-list.pspp], [0], [dnl
+"data-list.pspp:8: warning: (columns 1-3, F field) Field contents are not numeric."
+
+"data-list.pspp:11: warning: (columns 1-3, F field) Field contents are not numeric."
+
 Table: Data List
 start,end,count
-07/22/2007,10/06/2007,321
-07/14/1789,08/26/1789,4
+07/22/2007,10/06/2007,.
+07/14/1789,08/26/1789,.
 01/01/1972,12/31/1999,682
 ])
 AT_CLEANUP
