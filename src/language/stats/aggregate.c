@@ -637,12 +637,16 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
                 struct fmt_spec f;
 		v->src = NULL;
 		destvar = dict_create_var (agr->dict, dest[i], 0);
-                if (func_index == N && dict_get_weight (dict) != NULL)
-                  f = fmt_for_output (FMT_F, 8, 2);
-                else
-                  f = function->format;
-                var_set_both_formats (destvar, &f);
-	      }
+		if (destvar != NULL)
+		  {
+		    if ((func_index == N || func_index == NMISS)
+			&& dict_get_weight (dict) != NULL)
+		      f = fmt_for_output (FMT_F, 8, 2);
+		    else
+		      f = function->format;
+		    var_set_both_formats (destvar, &f);
+		  }
+	    }
 
 	    if (!destvar)
 	      {

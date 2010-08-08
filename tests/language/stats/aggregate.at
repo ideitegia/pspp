@@ -249,3 +249,43 @@ x,cn,y,sum,mean,median
 ])
 
 AT_CLEANUP
+
+
+AT_SETUP([AGGREGATE buggy duplicate variables])
+dnl Test for a bug which crashed when duplicated
+dnl variables were attempted.
+AT_DATA([dup-variables.sps],
+  [DATA LIST NOTABLE LIST /x * .
+begin data
+1
+1
+1
+1
+2
+2
+2
+3
+3
+3
+3
+3
+3
+end data.
+
+AGGREGATE OUTFILE=* MODE=ADDVARIABLES
+	/BREAK= x
+	/N_BREAK = N.
+
+AGGREGATE OUTFILE=* MODE=ADDVARIABLES
+	/BREAK= x
+	/N_BREAK = N.
+])
+
+AT_CHECK([pspp -O format=csv dup-variables.sps], [1],
+["dup-variables.sps:24: error: AGGREGATE: Variable name N_BREAK is not unique within the aggregate file dictionary, which contains the aggregate variables and the break variables."
+
+dup-variables.sps:24: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+
+
+AT_CLEANUP
