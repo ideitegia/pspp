@@ -16,7 +16,6 @@ dist_TESTS = \
 	tests/command/bignum.sh \
 	tests/command/count.sh \
 	tests/command/correlation.sh \
-	tests/command/data-list.sh \
 	tests/command/do-if.sh \
 	tests/command/do-repeat.sh \
 	tests/command/erase.sh \
@@ -419,6 +418,7 @@ EXTRA_DIST += \
 
 TESTSUITE_AT = \
 	tests/data/calendar.at \
+	tests/language/data-io/data-list.at \
 	tests/language/dictionary/mrsets.at \
 	tests/language/expressions/evaluate.at \
 	tests/language/stats/aggregate.at \
