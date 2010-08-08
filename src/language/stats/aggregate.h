@@ -30,6 +30,16 @@ enum agr_src_vars
     AGR_SV_OPT
   };
 
+/* Aggregation functions. */
+enum
+  {
+    SUM, MEAN, MEDIAN, SD, MAX, MIN, PGT, PLT, PIN, POUT, FGT, FLT, FIN,
+    FOUT, N, NU, NMISS, NUMISS, FIRST, LAST,
+
+    FUNC = 0x1f, /* Function mask. */
+    FSTRING = 1<<5, /* String function bit. */
+  };
+
 /* Attributes of an aggregation function. */
 struct agr_func
   {
