@@ -11,6 +11,7 @@ portable files.
 * GET DATA::                    Read from foreign files.
 * IMPORT::                      Read from a portable file.
 * SAVE::                        Write to a system file.
+* SAVE TRANSLATE::              Write data in foreign file formats.
 * SYSFILE INFO::                Display system file dictionary.
 * XEXPORT::                     Write to a portable file, as a transformation.
 * XSAVE::                       Write to a system file, as a transformation.
@@ -719,6 +720,140 @@ versions are otherwise identical.
 The NAMES and MAP subcommands are currently ignored.
 
 @cmd{SAVE} causes the data to be read.  It is a procedure.
+
+@node SAVE TRANSLATE
+@section SAVE TRANSLATE
+@vindex SAVE TRANSLATE
+
+@display
+SAVE TRANSLATE
+        /OUTFILE=@{'file-name',file_handle@}
+        /TYPE=@{CSV,TAB@}
+        [/REPLACE]
+        [/MISSING=@{IGNORE,RECODE@}]
+
+        [/DROP=var_list]
+        [/KEEP=var_list]
+        [/RENAME=(src_names=target_names)@dots{}]
+        [/UNSELECTED=@{RETAIN,DELETE@}]
+        [/MAP]
+
+        @dots{}additional subcommands depending on TYPE@dots{}
+@end display
+
+The @cmd{SAVE TRANSLATE} command is used to save data into various
+formats understood by other applications.
+
+The OUTFILE and TYPE subcommands are mandatory.  OUTFILE specifies the
+file to be written, as a string file name or a file handle
+(@pxref{File Handles}).  TYPE determines the type of the file or
+source to read.  It must be one of the following:
+
+@table @asis
+@item CSV
+Comma-separated value format,
+
+@item TAB
+Tab-delimited format.
+@end table
+
+By default, SAVE TRANSLATE will not overwrite an existing file.  Use
+REPLACE to force an existing file to be overwritten.
+
+With MISSING=IGNORE, the default, SAVE TRANSLATE treats user-missing
+values as if they were not missing.  Specify MISSING=RECODE to output
+numeric user-missing values like system-missing values and string
+user-missing values as all spaces.
+
+By default, all the variables in the active file dictionary are saved
+to the system file, but DROP or KEEP can select a subset of variable
+to save.  The RENAME subcommand can also be used to change the names
+under which variables are saved.  UNSELECTED determines whether cases
+filtered out by the FILTER command are written to the output file.
+These subcommands have the same syntax and meaning as on the
+@cmd{SAVE} command (@pxref{SAVE}).
+
+Each supported file type has additional subcommands, explained in
+separate sections below.
+
+@cmd{SAVE TRANSLATE} causes the data to be read.  It is a procedure.
+
+@menu
+* SAVE TRANSLATE /TYPE=CSV and TYPE=TAB::
+@end menu
+
+@node SAVE TRANSLATE /TYPE=CSV and TYPE=TAB
+@subsection Writing Comma- and Tab-Separated Data Files
+
+@display
+SAVE TRANSLATE
+        /OUTFILE=@{'file-name',file_handle@}
+        /TYPE=CSV
+        [/REPLACE]
+        [/MISSING=@{IGNORE,RECODE@}]
+
+        [/DROP=var_list]
+        [/KEEP=var_list]
+        [/RENAME=(src_names=target_names)@dots{}]
+        [/UNSELECTED=@{RETAIN,DELETE@}]
+
+        [/FIELDNAMES]
+        [/CELLS=@{VALUES,LABELS@}]
+        [/TEXTOPTIONS DELIMITER='delimiter']
+        [/TEXTOPTIONS QUALIFIER='qualifier']
+        [/TEXTOPTIONS DECIMAL=@{DOT,COMMA@}]
+        [/TEXTOPTIONS FORMAT=@{PLAIN,VARIABLE@}]
+@end display
+
+The SAVE TRANSLATE command with TYPE=CSV or TYPE=TAB writes data in a
+comma- or tab-separated value format similar to that described by
+RFC@tie{}4180.  Each variable becomes one output column, and each case
+becomes one line of output.  If FIELDNAMES is specified, an additional
+line at the top of the output file lists variable names.
+
+The CELLS and TEXTOPTIONS FORMAT settings determine how values are
+written to the output file:
+
+@table @asis
+@item CELLS=VALUES FORMAT=PLAIN (the default settings)
+Writes variables to the output in ``plain'' formats that ignore the
+details of variable formats.  Numeric values are written as plain
+decimal numbers with enough digits to indicate their exact values in
+machine representation.  Numeric values include @samp{e} followed by
+an exponent if the exponent value would be less than -4 or greater
+than 16.  Dates are written in MM/DD/YYYY format and times in HH:MM:SS
+format.  WKDAY and MONTH values are written as decimal numbers.
+
+Numeric values use, by default, the decimal point character set with
+SET DECIMAL (@pxref{SET DECIMAL}).  Use DECIMAL=DOT or DECIMAL=COMMA
+to force a particular decimal point character.
+
+@item CELLS=VALUES FORMAT=VARIABLE
+Writes variables using their print formats.  Leading and trailing
+spaces are removed from numeric values, and trailing spaces are
+removed from string values.
+
+@item CELLS=LABEL FORMAT=PLAIN
+@itemx CELLS=LABEL FORMAT=VARIABLE
+Writes value labels where they exist, and otherwise writes the values
+themselves as described above.
+@end table
+
+Regardless of CELLS and TEXTOPTIONS FORMAT, numeric system-missing
+values are output as a single space.
+
+For TYPE=TAB, tab characters delimit values.  For TYPE=CSV, the
+TEXTOPTIONS DELIMITER and DECIMAL settings determine the character
+that separate values within a line.  If DELIMITER is specified, then
+the specified string separate values.  If DELIMITER is not specified,
+then the default is a comma with DECIMAL=DOT or a semicolon with
+DECIMAL=COMMA.  If DECIMAL is not given either, it is implied by the
+decimal point character set with SET DECIMAL (@pxref{SET DECIMAL}).
+
+The TEXTOPTIONS QUALIFIER setting specifies a character that is output
+before and after a value that contains the delimiter character or the
+qualifier character.  The default is a double quote (@samp{@@}).  A
+qualifier character that appears within a value is doubled.
 
 @node SYSFILE INFO
 @section SYSFILE INFO

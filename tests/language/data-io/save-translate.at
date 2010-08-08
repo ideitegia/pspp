@@ -1,0 +1,92 @@
+AT_BANNER([SAVE TRANSLATE /TYPE=CSV])
+
+m4_define([PREPARE_SAVE_TRANSLATE_CSV], [dnl
+AT_KEYWORDS([SAVE TRANSLATE])
+AT_DATA([data.txt], [dnl
+0 '1 9:30:05' 1/2/2003 "25/8/1995 15:30:00" "'a,b,c'",0
+, '-0 5:17' 10/31/2010 "9/4/2008 9:29:00" " xxx ",1
+1.625,'0 12:00',,,xyzzy,1
+])
+AT_DATA([save-translate.pspp], [dnl
+SET DECIMAL=DOT.
+DATA LIST LIST NOTABLE FILE="data.txt"
+    /number(F8.3) time(DTIME10) date(ADATE10) datetime(DATETIME20) string(A8)
+     filter(F1.0).
+MISSING VALUES number(0) time('0 12:00') string('xyzzy').
+FILTER BY filter.
+SAVE TRANSLATE /OUTFILE="data.csv" /TYPE=m4_if([$2], [], [CSV], [$2])
+    $1.
+])
+AT_CHECK([pspp -O format=csv save-translate.pspp], [0])
+])
+
+AT_SETUP([CSV output -- defaults])
+PREPARE_SAVE_TRANSLATE_CSV
+AT_CHECK([cat data.csv], [0], [dnl
+0,33:30:05,01/02/2003,08/25/1995 15:30:00,"'a,b,c'",0
+ ,-05:17:00,10/31/2010,04/09/2008 09:29:00, xxx,1
+1.625,12:00:00, , ,xyzzy,1
+])
+AT_CLEANUP
+
+AT_SETUP([CSV output -- recode missing, delete unselected])
+PREPARE_SAVE_TRANSLATE_CSV([/MISSING=RECODE /UNSELECTED=DELETE])
+AT_CHECK([cat data.csv], [0], [dnl
+ ,-05:17:00,10/31/2010,04/09/2008 09:29:00, xxx,1
+1.625, , , ,,1
+])
+AT_CLEANUP
+
+AT_SETUP([CSV output -- var names, formats])
+PREPARE_SAVE_TRANSLATE_CSV(
+  [/FIELDNAMES /TEXTOPTIONS FORMAT=VARIABLE /UNSELECTED=RETAIN])
+AT_CHECK([cat data.csv], [0], [dnl
+number,time,date,datetime,string,filter
+.000,1 09:30:05,01/02/2003,25-AUG-1995 15:30:00,"'a,b,c'",0
+ ,-0 05:17,10/31/2010,09-APR-2008 09:29:00, xxx,1
+1.625,0 12:00:00, , ,xyzzy,1
+])
+AT_CLEANUP
+
+AT_SETUP([CSV output -- comma as decimal point])
+PREPARE_SAVE_TRANSLATE_CSV([/FIELDNAMES /TEXTOPTIONS DECIMAL=COMMA])
+AT_CHECK([cat data.csv], [0], [dnl
+number;time;date;datetime;string;filter
+0;33:30:05;01/02/2003;08/25/1995 15:30:00;'a,b,c';0
+ ;-05:17:00;10/31/2010;04/09/2008 09:29:00; xxx;1
+1,625;12:00:00; ; ;xyzzy;1
+])
+AT_CLEANUP
+
+AT_SETUP([CSV output -- custom delimiter, qualifier])
+PREPARE_SAVE_TRANSLATE_CSV(
+  [/FIELDNAMES /TEXTOPTIONS DELIMITER=':' QUALIFIER="'"])
+AT_CHECK([cat data.csv], [0], [dnl
+number:time:date:datetime:string:filter
+0:'33:30:05':01/02/2003:'08/25/1995 15:30:00':'''a,b,c''':0
+ :'-05:17:00':10/31/2010:'04/09/2008 09:29:00': xxx:1
+1.625:'12:00:00': : :xyzzy:1
+])
+AT_CLEANUP
+
+AT_SETUP([CSV output -- KEEP, RENAME])
+PREPARE_SAVE_TRANSLATE_CSV(
+  [/FIELDNAMES /KEEP=time string /RENAME string=name /UNSELECTED=DELETE])
+AT_CHECK([cat data.csv], [0], [dnl
+time,name
+-05:17:00, xxx
+12:00:00,xyzzy
+])
+AT_CLEANUP
+
+AT_BANNER([SAVE TRANSLATE /TYPE=TAB])
+
+AT_SETUP([TAB output])
+PREPARE_SAVE_TRANSLATE_CSV([/FIELDNAMES], [TAB])
+AT_CHECK([cat data.csv], [0], [dnl
+number	time	date	datetime	string	filter
+0	33:30:05	01/02/2003	08/25/1995 15:30:00	'a,b,c'	0
+ 	-05:17:00	10/31/2010	04/09/2008 09:29:00	 xxx	1
+1.625	12:00:00	 	 	xyzzy	1
+])
+AT_CLEANUP

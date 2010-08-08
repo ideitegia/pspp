@@ -22,6 +22,7 @@ language_data_io_sources = \
 	src/language/data-io/placement-parser.h \
 	src/language/data-io/print-space.c \
 	src/language/data-io/print.c \
+	src/language/data-io/save-translate.c \
 	src/language/data-io/save.c \
 	src/language/data-io/trim.c \
 	src/language/data-io/trim.h
