@@ -27,6 +27,8 @@
 
 #include <gtksourceview/gtksourcelanguage.h>
 #include <gtksourceview/gtksourcelanguagemanager.h>
+#include <gtksourceview/gtksourcebuffer.h>
+#include <gtksourceview/gtksourceprintcompositor.h>
 
 G_BEGIN_DECLS
 
@@ -50,10 +52,13 @@ struct _PsppireSyntaxWindow
 
   /* <private> */
 
-  GtkTextBuffer *buffer;  /* The buffer which contains the text */
+  GtkSourceBuffer *buffer;  /* The buffer which contains the text */
   struct lexer *lexer;    /* Lexer to parse syntax */
   GtkWidget *sb;
   guint text_context;
+
+  GtkPrintSettings *print_settings;
+  GtkSourcePrintCompositor *compositor;
 };
 
 struct _PsppireSyntaxWindowClass

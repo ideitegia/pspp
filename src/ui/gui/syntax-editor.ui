@@ -59,6 +59,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="file_print">
+            <property name="name">file_print</property>
+            <property name="stock-id">gtk-print</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="file_quit">
             <property name="stock-id">gtk-quit</property>
             <property name="name">file_quit</property>
@@ -152,6 +158,8 @@
           </menu>
           <menuitem action="file_save"/>
           <menuitem action="file_save_as"/>
+          <separator/>
+          <menuitem action="file_print"/>
           <separator/>
           <menuitem action="file_quit"/>
         </menu>
