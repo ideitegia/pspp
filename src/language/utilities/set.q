@@ -484,6 +484,10 @@ stc_custom_format (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
   lex_match (lexer, '=');
   if (!parse_format_specifier (lexer, &fmt))
     return 0;
+
+  if (!fmt_check_output (&fmt))
+    return 0;
+  
   if (fmt_is_string (fmt.type))
     {
       char str[FMT_STRING_LEN_MAX + 1];
