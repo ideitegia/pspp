@@ -1,0 +1,22 @@
+AT_BANNER([SET])
+
+# This crashed older versions of PSPP (bug #30682).
+AT_SETUP([SET FORMAT to invalid output format])
+AT_DATA([set.pspp], [dnl
+DATA LIST LIST NOTABLE /x.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+SET FORMAT F41.
+DESCRIPTIVES /x.
+])
+AT_CHECK([pspp -O format=csv set.pspp], [1], [dnl
+"set.pspp:7: error: SET: Output format F41.0 specifies width 41, but F requires a width between 1 and 40."
+
+Table: Valid cases = 3; cases with missing value(s) = 0.
+Variable,N,Mean,Std Dev,Minimum,Maximum
+x,3,2.00,1.00,1.00,3.00
+])
+AT_CLEANUP

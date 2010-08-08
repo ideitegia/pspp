@@ -431,6 +431,7 @@ TESTSUITE_AT = \
 	tests/language/stats/flip.at \
 	tests/language/stats/frequencies.at \
 	tests/language/stats/oneway.at \
+	tests/language/utilities/set.at \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/recode.at \
 	tests/math/moments.at \
