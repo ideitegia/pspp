@@ -76,10 +76,12 @@ struct contrasts_node
   bool bad_count; /* True if the number of coefficients does not equal the number of groups */
 };
 
-struct oneway 
+struct oneway_spec
 {
   size_t n_vars;
   const struct variable **vars;
+
+  const struct dictionary *dict;
 
   const struct variable *indep_var;
 
@@ -88,6 +90,12 @@ struct oneway
   enum missing_type missing_type;
   enum mv_class exclude;
 
+  /* List of contrasts */
+  struct ll_list contrast_list;
+};
+
+struct oneway_workspace
+{
   /* The number of distinct values of the independent variable, when all
      missing values are disregarded */
   int actual_number_of_groups;
@@ -95,33 +103,27 @@ struct oneway
   /* A  hash table containing all the distinct values of the independent
      variable */
   struct hsh_table *group_hash;
-
-  /* List of contrasts */
-  struct ll_list contrast_list;
 };
 
 /* Routines to show the output tables */
-static void show_anova_table (const struct oneway *);
-static void show_descriptives (const struct oneway *, const struct dictionary *dict);
-static void show_homogeneity (const struct oneway *);
+static void show_anova_table (const struct oneway_spec *);
+static void show_descriptives (const struct oneway_spec *, const struct dictionary *dict);
+static void show_homogeneity (const struct oneway_spec *);
 
-static void output_oneway (const struct oneway *, const struct dictionary *dict);
-static void run_oneway (struct oneway *cmd, struct casereader *input, const struct dataset *ds);
+static void output_oneway (const struct oneway_spec *, struct oneway_workspace *ws);
+static void run_oneway (const struct oneway_spec *cmd, struct casereader *input, const struct dataset *ds);
 
 int
 cmd_oneway (struct lexer *lexer, struct dataset *ds)
 {
-  const struct dictionary *dict = dataset_dict (ds);
-  
-  struct oneway oneway ;
+  struct oneway_spec oneway ;
   oneway.n_vars = 0;
   oneway.vars = NULL;
   oneway.indep_var = NULL;
   oneway.stats = 0;
   oneway.missing_type = MISS_ANALYSIS;
   oneway.exclude = MV_ANY;
-  oneway.actual_number_of_groups = 0;
-  oneway.group_hash = NULL;
+  oneway.dict = dataset_dict (ds);  
 
   ll_init (&oneway.contrast_list);
 
@@ -135,14 +137,14 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
       lex_match (lexer, '=');
     }
 
-  if (!parse_variables_const (lexer, dict,
+  if (!parse_variables_const (lexer, oneway.dict,
 			      &oneway.vars, &oneway.n_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     goto error;
 
   lex_force_match (lexer, T_BY);
 
-  oneway.indep_var = parse_variable_const (lexer, dict);
+  oneway.indep_var = parse_variable_const (lexer, oneway.dict);
 
   while (lex_token (lexer) != '.')
     {
@@ -237,7 +239,7 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
     struct casereader *group;
     bool ok;
 
-    grouper = casegrouper_create_splits (proc_open (ds), dict);
+    grouper = casegrouper_create_splits (proc_open (ds), oneway.dict);
     while (casegrouper_get_next_group (grouper, &group))
       run_oneway (&oneway, group, ds);
     ok = casegrouper_destroy (grouper);
@@ -277,12 +279,12 @@ free_double (void *value_, const void *aux UNUSED)
   free (value);
 }
 
-static void postcalc (const struct oneway *cmd);
-static void  precalc (const struct oneway *cmd);
+static void postcalc (const struct oneway_spec *cmd);
+static void  precalc (const struct oneway_spec *cmd);
 
 
 static void
-run_oneway (struct oneway *cmd,
+run_oneway (const struct oneway_spec *cmd,
             struct casereader *input,
             const struct dataset *ds)
 {
@@ -290,6 +292,8 @@ run_oneway (struct oneway *cmd,
   struct dictionary *dict = dataset_dict (ds);
   struct casereader *reader;
   struct ccase *c;
+
+  struct oneway_workspace ws;
 
   c = casereader_peek (input, 0);
   if (c == NULL)
@@ -302,7 +306,7 @@ run_oneway (struct oneway *cmd,
 
   taint = taint_clone (casereader_get_taint (input));
 
-  cmd->group_hash = hsh_create (4,
+  ws.group_hash = hsh_create (4,
 				  compare_double_3way,
 				  do_hash_double,
 				  free_double,
@@ -325,7 +329,7 @@ run_oneway (struct oneway *cmd,
       const double weight = dict_get_case_weight (dict, c, NULL);
 
       const union value *indep_val = case_data (c, cmd->indep_var);
-      void **p = hsh_probe (cmd->group_hash, &indep_val->f);
+      void **p = hsh_probe (ws.group_hash, &indep_val->f);
       if (*p == NULL)
         {
           double *value = *p = xmalloc (sizeof *value);
@@ -398,17 +402,17 @@ run_oneway (struct oneway *cmd,
 
   casereader_destroy (input);
 
-  cmd->actual_number_of_groups = hsh_count (cmd->group_hash);
+  ws.actual_number_of_groups = hsh_count (ws.group_hash);
 
   if (!taint_has_tainted_successor (taint))
-    output_oneway (cmd, dict);
+    output_oneway (cmd, &ws);
 
   taint_destroy (taint);
 }
 
 /* Pre calculations */
 static void
-precalc (const struct oneway *cmd)
+precalc (const struct oneway_spec *cmd)
 {
   size_t i = 0;
 
@@ -436,7 +440,7 @@ precalc (const struct oneway *cmd)
 
 /* Post calculations for the ONEWAY command */
 static void
-postcalc (const struct oneway *cmd)
+postcalc (const struct oneway_spec *cmd)
 {
   size_t i = 0;
 
@@ -475,11 +479,11 @@ postcalc (const struct oneway *cmd)
     }
 }
 
-static void show_contrast_coeffs (const struct oneway *cmd);
-static void show_contrast_tests (const struct oneway *cmd);
+static void show_contrast_coeffs (const struct oneway_spec *cmd, struct oneway_workspace *ws);
+static void show_contrast_tests (const struct oneway_spec *cmd, struct oneway_workspace *ws);
 
 static void
-output_oneway (const struct oneway *cmd, const struct dictionary *dict)
+output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
 {
   size_t i = 0;
 
@@ -492,7 +496,7 @@ output_oneway (const struct oneway *cmd, const struct dictionary *dict)
       struct ll_list *cl = &coeff_list->coefficient_list;
       ++i;
 
-      if (ll_count (cl) != cmd->actual_number_of_groups)
+      if (ll_count (cl) != ws->actual_number_of_groups)
 	{
 	  msg (SW,
 	       _("Number of contrast coefficients must equal the number of groups"));
@@ -508,7 +512,7 @@ output_oneway (const struct oneway *cmd, const struct dictionary *dict)
     }
 
   if (cmd->stats & STATS_DESCRIPTIVES)
-    show_descriptives (cmd, dict);
+    show_descriptives (cmd, cmd->dict);
 
   if (cmd->stats & STATS_HOMOGENEITY)
     show_homogeneity (cmd);
@@ -518,8 +522,8 @@ output_oneway (const struct oneway *cmd, const struct dictionary *dict)
 
   if (ll_count (&cmd->contrast_list) > 0)
     {
-      show_contrast_coeffs (cmd);
-      show_contrast_tests (cmd);
+      show_contrast_coeffs (cmd, ws);
+      show_contrast_tests (cmd, ws);
     }
 
 
@@ -531,13 +535,13 @@ output_oneway (const struct oneway *cmd, const struct dictionary *dict)
       hsh_destroy (group_hash);
     }
 
-  hsh_destroy (cmd->group_hash);
+  hsh_destroy (ws->group_hash);
 }
 
 
 /* Show the ANOVA table */
 static void
-show_anova_table (const struct oneway *cmd)
+show_anova_table (const struct oneway_spec *cmd)
 {
   size_t i;
   int n_cols =7;
@@ -635,7 +639,7 @@ show_anova_table (const struct oneway *cmd)
 
 /* Show the descriptives table */
 static void
-show_descriptives (const struct oneway *cmd, const struct dictionary *dict)
+show_descriptives (const struct oneway_spec *cmd, const struct dictionary *dict)
 {
   size_t v;
   int n_cols = 10;
@@ -790,7 +794,7 @@ show_descriptives (const struct oneway *cmd, const struct dictionary *dict)
 
 /* Show the homogeneity table */
 static void
-show_homogeneity (const struct oneway *cmd)
+show_homogeneity (const struct oneway_spec *cmd)
 {
   size_t v;
   int n_cols = 5;
@@ -850,13 +854,13 @@ show_homogeneity (const struct oneway *cmd)
 
 /* Show the contrast coefficients table */
 static void
-show_contrast_coeffs (const struct oneway *cmd)
+show_contrast_coeffs (const struct oneway_spec *cmd, struct oneway_workspace *ws)
 {
   int c_num = 0;
   struct ll *cli;
 
   int n_contrasts = ll_count (&cmd->contrast_list);
-  int n_cols = 2 + cmd->actual_number_of_groups;
+  int n_cols = 2 + ws->actual_number_of_groups;
   int n_rows = 2 + n_contrasts;
 
   void *const *group_values;
@@ -898,7 +902,7 @@ show_contrast_coeffs (const struct oneway *cmd)
   tab_joint_text (t, 2, 0, n_cols - 1, 0, TAB_CENTER | TAT_TITLE,
 		  var_to_string (cmd->indep_var));
 
-  group_values = hsh_sort (cmd->group_hash);
+  group_values = hsh_sort (ws->group_hash);
 
   for ( cli = ll_head (&cmd->contrast_list);
 	cli != ll_null (&cmd->contrast_list);
@@ -911,7 +915,7 @@ show_contrast_coeffs (const struct oneway *cmd)
       tab_text_format (t, 1, c_num + 2, TAB_CENTER, "%d", c_num + 1);
 
       for (count = 0;
-	   count < hsh_count (cmd->group_hash) && coeffi != ll_null (&cn->coefficient_list);
+	   count < hsh_count (ws->group_hash) && coeffi != ll_null (&cn->coefficient_list);
 	   ++count)
 	{
 	  double *group_value_p;
@@ -949,7 +953,7 @@ show_contrast_coeffs (const struct oneway *cmd)
 
 /* Show the results of the contrast tests */
 static void
-show_contrast_tests (const struct oneway *cmd)
+show_contrast_tests (const struct oneway_spec *cmd, struct oneway_workspace *ws)
 {
   int n_contrasts = ll_count (&cmd->contrast_list);
   size_t v;
