@@ -29,7 +29,6 @@
 #include <stdlib.h>
 
 #include "psppire.h"
-#include "psppire-syntax-window.h"
 
 #include "psppire-data-window.h"
 #include "psppire-window-register.h"
@@ -429,6 +428,11 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
     window->buffer = GTK_TEXT_BUFFER (gtk_source_buffer_new (NULL));
 
   gtk_text_view_set_buffer (GTK_TEXT_VIEW (text_view), window->buffer);
+
+  g_object_set (window->buffer,
+		"highlight-matching-brackets", TRUE,
+		NULL);
+
 
   g_object_set (text_view,
 		"show-line-numbers", TRUE,
