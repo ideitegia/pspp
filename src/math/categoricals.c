@@ -152,7 +152,7 @@ categoricals_dump (const struct categoricals *cat)
 
   printf ("\nReverse variable map:\n");
 
-  for (v = 0 ; v < cat->n_cats_total - cat->n_vars; ++v)
+  for (v = 0 ; v < cat->n_cats_total; ++v)
     printf ("%d ", cat->reverse_variable_map[v]);
   printf ("\n");
 }
@@ -283,7 +283,7 @@ categoricals_done (struct categoricals *cat)
   int v;
   int idx = 0;
   cat->reverse_variable_map = pool_calloc (cat->pool,
-					   cat->n_cats_total - cat->n_vars,
+					   cat->n_cats_total,
 					   sizeof *cat->reverse_variable_map);
   
   for (v = 0 ; v < cat->n_vp; ++v)
@@ -304,9 +304,8 @@ categoricals_done (struct categoricals *cat)
 	}
 
       /* Populate the reverse variable map.
-	 This implementation considers the first value of each categorical variable
-	 as the basis.  Therefore, this loop starts from 1 instead of 0 */
-      for (i = 1; i < vp->n_cats; ++i)
+       */
+      for (i = 0; i < vp->n_cats; ++i)
 	cat->reverse_variable_map[idx++] = v;
     }
 
@@ -319,7 +318,7 @@ reverse_variable_lookup (const struct categoricals *cat, int subscript)
 {
   assert (cat->reverse_variable_map);
   assert (subscript >= 0);
-  assert (subscript < cat->n_cats_total - cat->n_vars);
+  assert (subscript < cat->n_cats_total);
 
   return cat->reverse_variable_map[subscript];
 }
