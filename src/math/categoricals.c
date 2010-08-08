@@ -181,7 +181,7 @@ lookup_value (const struct hmap *map, const struct variable *var, const union va
 
 
 struct categoricals *
-categoricals_create (const struct variable **v, size_t n_vars,
+categoricals_create (const struct variable *const *v, size_t n_vars,
 		     const struct variable *wv, enum mv_class exclude)
 {
   size_t i;

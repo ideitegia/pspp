@@ -68,7 +68,7 @@ struct covariance
 {
   /* The variables for which the covariance matrix is to be calculated. */
   size_t n_vars;
-  const struct variable **vars;
+  const struct variable *const *vars;
 
   /* Categorical variables. */
   struct categoricals *categoricals;
@@ -131,7 +131,7 @@ covariance_moments (const struct covariance *cov, int m)
 /* Create a covariance struct.
  */
 struct covariance *
-covariance_1pass_create (size_t n_vars, const struct variable **vars,
+covariance_1pass_create (size_t n_vars, const struct variable *const *vars,
 			 const struct variable *weight, enum mv_class exclude)
 {
   size_t i;
@@ -170,8 +170,8 @@ covariance_1pass_create (size_t n_vars, const struct variable **vars,
   until then.
  */
 struct covariance *
-covariance_2pass_create (size_t n_vars, const struct variable **vars,
-			 size_t n_catvars, const struct variable **catvars, 
+covariance_2pass_create (size_t n_vars, const struct variable *const *vars,
+			 size_t n_catvars, const struct variable *const *catvars, 
 			 const struct variable *wv, enum mv_class exclude)
 {
   size_t i;
@@ -698,6 +698,14 @@ covariance_calculate_unnormalized (struct covariance *cov)
     }
 }
 
+/* Function to access the categoricals used by COV
+   The return value is owned by the COV
+*/
+const struct categoricals *
+covariance_get_categoricals (const struct covariance *cov)
+{
+  return cov->categoricals;
+}
 
 
 /* Destroy the COV object */

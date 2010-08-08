@@ -27,7 +27,7 @@ struct ccase;
 
 union value ;
 
-struct categoricals *categoricals_create (const struct variable **v, size_t n_vars,
+struct categoricals *categoricals_create (const struct variable *const *v, size_t n_vars,
 					  const struct variable *wv, enum mv_class exclude);
 
 void categoricals_destroy (struct categoricals *);
