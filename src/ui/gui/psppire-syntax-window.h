@@ -59,6 +59,8 @@ struct _PsppireSyntaxWindow
 
   GtkPrintSettings *print_settings;
   GtkSourcePrintCompositor *compositor;
+  GtkAction *undo_menuitem;
+  GtkAction *redo_menuitem;
 };
 
 struct _PsppireSyntaxWindowClass
@@ -73,7 +75,8 @@ GType      psppire_syntax_window_get_type        (void);
 GtkWidget* psppire_syntax_window_new             (void);
 
 void create_syntax_window (void);
-void open_syntax_window (const char *file_name);
+void open_new_syntax_window (const char *file_name);
+
 
 G_END_DECLS
 

@@ -77,27 +77,39 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="cut2">
+          <object class="GtkAction" id="edit_cut">
             <property name="stock-id">gtk-cut</property>
-            <property name="name">cut2</property>
+            <property name="name">cut</property>
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="copy2">
+          <object class="GtkAction" id="edit_copy">
             <property name="stock-id">gtk-copy</property>
-            <property name="name">copy2</property>
+            <property name="name">copy</property>
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="paste2">
+          <object class="GtkAction" id="edit_paste">
             <property name="stock-id">gtk-paste</property>
-            <property name="name">paste2</property>
+            <property name="name">paste</property>
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="delete1">
+          <object class="GtkAction" id="edit_delete">
             <property name="stock-id">gtk-delete</property>
-            <property name="name">delete1</property>
+            <property name="name">delete</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_undo">
+            <property name="stock-id">gtk-undo</property>
+            <property name="name">edit_undo</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_redo">
+            <property name="stock-id">gtk-redo</property>
+            <property name="name">edit_redo</property>
           </object>
         </child>
         <child>
@@ -164,10 +176,13 @@
           <menuitem action="file_quit"/>
         </menu>
         <menu action="menuitem7">
-          <menuitem action="cut2"/>
-          <menuitem action="copy2"/>
-          <menuitem action="paste2"/>
-          <menuitem action="delete1"/>
+          <menuitem action="edit_cut"/>
+          <menuitem action="edit_copy"/>
+          <menuitem action="edit_paste"/>
+          <menuitem action="edit_delete"/>
+          <separator/>
+          <menuitem action="edit_undo"/>
+          <menuitem action="edit_redo"/>
         </menu>
         <menu action="run1">
           <menuitem action="run_all"/>

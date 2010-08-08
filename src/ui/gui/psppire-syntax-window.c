@@ -376,6 +376,21 @@ on_quit (GtkMenuItem *menuitem, gpointer    user_data)
 }
 
 
+static void
+load_and_show_syntax_window (GtkWidget *se, const gchar *filename)
+{
+  gboolean ok;
+
+  gtk_source_buffer_begin_not_undoable_action (PSPPIRE_SYNTAX_WINDOW (se)->buffer);
+  ok = psppire_window_load (PSPPIRE_WINDOW (se), filename);
+  gtk_source_buffer_end_not_undoable_action (PSPPIRE_SYNTAX_WINDOW (se)->buffer);
+
+  if (ok )
+    gtk_widget_show (se);
+  else
+    gtk_widget_destroy (se);
+}
+
 void
 create_syntax_window (void)
 {
@@ -384,21 +399,15 @@ create_syntax_window (void)
 }
 
 void
-open_syntax_window (const char *file_name)
+open_new_syntax_window (const char *file_name)
 {
   GtkWidget *se = psppire_syntax_window_new ();
 
-  if ( psppire_window_load (PSPPIRE_WINDOW (se), file_name) )
-    gtk_widget_show (se);
-  else
-    gtk_widget_destroy (se);
+  if ( file_name)
+    load_and_show_syntax_window (se, file_name);
 }
 
-static void
-on_text_changed (GtkTextBuffer *buffer, PsppireSyntaxWindow *window)
-{
-  gtk_statusbar_pop (GTK_STATUSBAR (window->sb), window->text_context);
-}
+
 
 static void psppire_syntax_window_print (PsppireSyntaxWindow *window);
 
@@ -410,6 +419,17 @@ on_modified_changed (GtkTextBuffer *buffer, PsppireWindow *window)
 }
 
 extern struct source_stream *the_source_stream ;
+
+static void undo_redo_update (PsppireSyntaxWindow *window);
+static void undo_last_edit (PsppireSyntaxWindow *window);
+static void redo_last_edit (PsppireSyntaxWindow *window);
+
+static void
+on_text_changed (GtkTextBuffer *buffer, PsppireSyntaxWindow *window)
+{
+  gtk_statusbar_pop (GTK_STATUSBAR (window->sb), window->text_context);
+  undo_redo_update (window);
+}
 
 static void
 psppire_syntax_window_init (PsppireSyntaxWindow *window)
@@ -426,6 +446,8 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
     = PSPPIRE_SYNTAX_WINDOW_CLASS (G_OBJECT_GET_CLASS (window));
 
   window->print_settings = NULL;
+  window->undo_menuitem = get_action_assert (xml, "edit_undo");
+  window->redo_menuitem = get_action_assert (xml, "edit_redo");
 
   if (class->lan)
     window->buffer = gtk_source_buffer_new_with_language (class->lan);
@@ -458,6 +480,19 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_signal_connect_swapped (get_action_assert (xml, "file_print"), "activate",
                             G_CALLBACK (psppire_syntax_window_print), window);
+
+
+  g_signal_connect_swapped (window->undo_menuitem,
+			    "activate",
+                            G_CALLBACK (undo_last_edit),
+			    window);
+
+  g_signal_connect_swapped (window->redo_menuitem,
+			    "activate",
+                            G_CALLBACK (redo_last_edit),
+			    window);
+
+  undo_redo_update (window);
 
   connect_help (xml);
 
@@ -627,6 +662,32 @@ psppire_syntax_window_iface_init (PsppireWindowIface *iface)
 {
   iface->save = syntax_save;
   iface->load = syntax_load;
+}
+
+
+
+static void
+undo_redo_update (PsppireSyntaxWindow *window)
+{
+  gtk_action_set_sensitive (window->undo_menuitem,
+			    gtk_source_buffer_can_undo (window->buffer));
+
+  gtk_action_set_sensitive (window->redo_menuitem,
+			    gtk_source_buffer_can_redo (window->buffer));
+}
+
+static void
+undo_last_edit (PsppireSyntaxWindow *window)
+{
+  gtk_source_buffer_undo (window->buffer);
+  undo_redo_update (window);
+}
+
+static void
+redo_last_edit (PsppireSyntaxWindow *window)
+{
+  gtk_source_buffer_redo (window->buffer);
+  undo_redo_update (window);
 }
 
 

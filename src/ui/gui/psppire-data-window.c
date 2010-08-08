@@ -465,7 +465,7 @@ open_window (PsppireWindow *de)
 	if (any_reader_may_open (sysname))
 	  psppire_window_load (de, name);
 	else
-	  open_syntax_window (name);
+	  open_new_syntax_window (name);
 
 	g_free (sysname);
 	g_free (name);
@@ -853,8 +853,6 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 {
   gchar *file;
 
-  GtkWidget *se ;
-
   gchar *uri =
     gtk_recent_chooser_get_current_uri (GTK_RECENT_CHOOSER (menushell));
 
@@ -862,15 +860,11 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 
   g_free (uri);
 
-  se = psppire_syntax_window_new ();
-
-  if ( psppire_window_load (PSPPIRE_WINDOW (se), file) ) 
-    gtk_widget_show (se);
-  else
-    gtk_widget_destroy (se);
+  open_new_syntax_window (file);
 
   g_free (file);
 }
+
 
 
 static void
