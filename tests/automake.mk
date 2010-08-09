@@ -11,7 +11,6 @@ TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
 	tests/command/bignum.sh \
-	tests/command/count.sh \
 	tests/command/correlation.sh \
 	tests/command/do-if.sh \
 	tests/command/do-repeat.sh \
@@ -433,6 +432,7 @@ TESTSUITE_AT = \
 	tests/language/stats/oneway.at \
 	tests/language/utilities/set.at \
 	tests/language/xforms/compute.at \
+	tests/language/xforms/count.at \
 	tests/language/xforms/recode.at \
 	tests/math/moments.at \
 	tests/output/render.at \

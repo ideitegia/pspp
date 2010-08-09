@@ -1,0 +1,69 @@
+AT_BANNER([COUNT])
+
+AT_SETUP([COUNT -- numeric data])
+AT_DATA([count.sps], [dnl
+DATA LIST LIST /x * y *.
+BEGIN DATA.
+1 2
+2 3
+4 5
+2 2
+5 6
+END DATA.
+
+COUNT c=x y (2).
+
+LIST.
+])
+AT_CHECK([pspp -O format=csv count.sps], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+y,F8.0
+
+Table: Data List
+x,y,c
+1.00,2.00,1.00
+2.00,3.00,1.00
+4.00,5.00,.00
+2.00,2.00,2.00
+5.00,6.00,.00
+])
+AT_CLEANUP
+
+AT_SETUP([COUNT -- string data])
+AT_DATA([count.sps], [dnl
+TITLE 'Test COUNT transformation'.
+
+DATA LIST /v1 to v2 1-4(a).
+BEGIN DATA.
+1234
+321 
+2 13
+4121
+1104
+03 4
+0193
+END DATA.
+COUNT c=v1 to v2('2',' 4','1').
+LIST.
+])
+AT_CHECK([pspp -O format=csv count.sps], [0], [dnl
+Title: Test COUNT transformation
+
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+v1,1,1-  2,A2
+v2,1,3-  4,A2
+
+Table: Data List
+v1,v2,c
+12,34,.00
+32,1 ,1.00
+2 ,13,1.00
+41,21,.00
+11,04,.00
+03,4,1.00
+01,93,.00
+])
+AT_CLEANUP
