@@ -111,13 +111,10 @@ psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
   GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default ();
 
   const gchar * const *existing_paths =  gtk_source_language_manager_get_search_path (lm);
+  gchar **new_paths = g_strdupv ((gchar **)existing_paths);
+  int n = g_strv_length ((gchar **) existing_paths);
 
-  const gchar **new_paths = g_strdupv (existing_paths);
-
-  int n = g_strv_length (existing_paths);
-
-  new_paths = g_realloc (new_paths, (n+1) * sizeof (*new_paths));
-
+  new_paths = g_realloc (new_paths, (n + 1) * sizeof (*new_paths));
   new_paths[n] = g_strdup (relocate (PKGDATADIR));
   new_paths[n+1] = NULL;
 
@@ -130,6 +127,8 @@ psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
     g_warning ("pspp.lang file not found.  Syntax highlighting will not be available.");
 
   parent_class = g_type_class_peek_parent (class);
+
+  g_strfreev (new_paths);
 }
 
 
