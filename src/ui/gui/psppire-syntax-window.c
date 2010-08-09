@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include "relocatable.h"
+
 #include <gtk/gtksignal.h>
 #include <gtk/gtkbox.h>
 #include "executor.h"
@@ -115,7 +117,8 @@ psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
   int n = g_strv_length (existing_paths);
 
   new_paths = g_realloc (new_paths, (n+1) * sizeof (*new_paths));
-  new_paths[n] = g_strdup (PKGDATADIR);
+
+  new_paths[n] = g_strdup (relocate (PKGDATADIR));
   new_paths[n+1] = NULL;
 
   lm = gtk_source_language_manager_new ();
