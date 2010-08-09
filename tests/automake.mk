@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/beg-data.sh \
 	tests/command/bignum.sh \
 	tests/command/count.sh \
 	tests/command/correlation.sh \
@@ -418,6 +417,7 @@ TESTSUITE_AT = \
 	tests/data/calendar.at \
 	tests/language/data-io/add-files.at \
 	tests/language/data-io/data-list.at \
+	tests/language/data-io/data-reader.at \
 	tests/language/data-io/save.at \
 	tests/language/data-io/save-translate.at \
 	tests/language/dictionary/attributes.at \

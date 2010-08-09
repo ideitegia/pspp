@@ -1,0 +1,64 @@
+AT_BANNER([BEGIN DATA])
+
+# BEGIN DATA can run as a command in itself, or it can appear as part
+# of the first procedure.  First, test it after a procedure.
+AT_SETUP([BEGIN DATA as part of a procedure])
+AT_DATA([begin-data.sps], [dnl
+TITLE 'Test BEGIN DATA ... END DATA'.
+
+DATA LIST /a b 1-2.
+LIST.
+BEGIN DATA.
+12
+34
+56
+78
+90
+END DATA.
+])
+AT_CHECK([pspp -O format=csv begin-data.sps], [0], [dnl
+Title: Test BEGIN DATA ... END DATA
+
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+a,1,1-  1,F1.0
+b,1,2-  2,F1.0
+
+Table: Data List
+a,b
+1,2
+3,4
+5,6
+7,8
+9,0
+])
+AT_CLEANUP
+
+# Also test BEGIN DATA as an independent command.
+AT_SETUP([BEGIN DATA as an independent command])
+AT_DATA([begin-data.sps], [dnl
+data list /A B 1-2.
+begin data.
+09
+87
+65
+43
+21
+end data.
+list.
+])
+AT_CHECK([pspp -O format=csv begin-data.sps], [0], [dnl
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+A,1,1-  1,F1.0
+B,1,2-  2,F1.0
+
+Table: Data List
+A,B
+0,9
+8,7
+6,5
+4,3
+2,1
+])
+AT_CLEANUP
