@@ -1,0 +1,110 @@
+m4_define([CHECK_ADD_FILES],
+  [AT_SETUP([ADD FILES -- $1 $2 with $3])
+   AT_DATA([a.data], [dnl
+1aB
+8aM
+3aE
+5aG
+0aA
+5aH
+6aI
+7aJ
+2aD
+7aK
+1aC
+7aL
+4aF
+])
+   AT_DATA([b.data], [dnl
+1bN
+3bO
+4bP
+6bQ
+7bR
+9bS
+])
+   m4_if([$2], [sav],
+     [AT_DATA([save-a.sps], [dnl
+DATA LIST NOTABLE FILE='a.data' /a b c 1-3 (A).
+SAVE OUTFILE='a.sav'.
+])
+      AT_CHECK([pspp -O format=csv save-a.sps])])
+   m4_if([$3], [sav],
+     [AT_DATA([save-b.sps], [dnl
+DATA LIST NOTABLE FILE='b.data' /a b c 1-3 (A).
+SAVE OUTFILE='b.sav'.
+])
+      AT_CHECK([pspp -O format=csv save-b.sps])])
+   m4_if([$1], [interleave],
+          [m4_pushdef([BY], [[/BY a /FIRST=first /LAST=last]])
+	   m4_pushdef([SORT], [[/SORT]])],
+	  [m4_pushdef([BY], [])
+	   m4_pushdef([SORT], [])])
+   AT_DATA([add-files.sps], [dnl
+m4_if([$2], [sav], [], [DATA LIST NOTABLE FILE='a.data' /a b c 1-3 (A).])
+m4_if([$3], [sav], [], [DATA LIST NOTABLE FILE='b.data' /a b c 1-3 (A).])
+ADD FILES
+    m4_if([$2], [sav], [FILE='a.sav'], [FILE=*]) /IN=InA SORT
+    m4_if([$3], [sav], [FILE='b.sav'], [FILE=*]) /IN=InB /RENAME c=d
+    BY[].
+LIST.
+])
+   m4_popdef([BY])
+   m4_popdef([SORT])
+   AT_CHECK([pspp -O format=csv add-files.sps], [0],
+[m4_if([$1], [interleave], [dnl
+Table: Data List
+a,b,c,d,InA,InB,first,last
+0,a,A,,1,0,1,1
+1,a,B,,1,0,1,0
+1,a,C,,1,0,0,0
+1,b,,N,0,1,0,1
+2,a,D,,1,0,1,1
+3,a,E,,1,0,1,0
+3,b,,O,0,1,0,1
+4,a,F,,1,0,1,0
+4,b,,P,0,1,0,1
+5,a,G,,1,0,1,0
+5,a,H,,1,0,0,1
+6,a,I,,1,0,1,0
+6,b,,Q,0,1,0,1
+7,a,J,,1,0,1,0
+7,a,K,,1,0,0,0
+7,a,L,,1,0,0,0
+7,b,,R,0,1,0,1
+8,a,M,,1,0,1,1
+9,b,,S,0,1,1,1
+], [dnl
+Table: Data List
+a,b,c,d,InA,InB
+1,a,B,,1,0
+8,a,M,,1,0
+3,a,E,,1,0
+5,a,G,,1,0
+0,a,A,,1,0
+5,a,H,,1,0
+6,a,I,,1,0
+7,a,J,,1,0
+2,a,D,,1,0
+7,a,K,,1,0
+1,a,C,,1,0
+7,a,L,,1,0
+4,a,F,,1,0
+1,b,,N,0,1
+3,b,,O,0,1
+4,b,,P,0,1
+6,b,,Q,0,1
+7,b,,R,0,1
+9,b,,S,0,1
+])])
+AT_CLEANUP
+])
+
+AT_BANNER([ADD FILES])
+
+CHECK_ADD_FILES([interleave], [sav], [sav])
+CHECK_ADD_FILES([interleave], [sav], [inline])
+CHECK_ADD_FILES([interleave], [inline], [sav])
+CHECK_ADD_FILES([concatenate], [sav], [sav])
+CHECK_ADD_FILES([concatenate], [sav], [inline])
+CHECK_ADD_FILES([concatenate], [inline], [sav])
