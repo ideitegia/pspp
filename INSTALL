@@ -55,6 +55,10 @@ use the GUI, you must run `configure' with --without-gui.
 
     * GTK+ (http://www.gtk.org/), version 2.12.0 or later.
 
+    * GtkSourceView (http://projects.gnome.org/gtksourceview/) 
+      version 2.2 or later.
+
+
 To cross-compile PSPP, you will likely need to set the
 PKG_CONFIG_LIBDIR environment variable to point to an
 appropriate pkg-config for the cross-compilation environment.
