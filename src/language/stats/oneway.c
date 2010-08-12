@@ -181,13 +181,13 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 
           while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
 	    {
-	      union value val;
-	      if ( parse_value (lexer, &val, 0))
+	      if ( lex_is_number (lexer))
 		{
 		  struct coeff_node *cc = xmalloc (sizeof *cc);
-		  cc->coeff = val.f;
+		  cc->coeff = lex_number (lexer);
 
 		  ll_push_tail (coefficient_list, &cc->ll);
+		  lex_get (lexer);
 		}
 	      else
 		{
@@ -928,8 +928,7 @@ show_contrast_coeffs (const struct oneway_spec *cmd, struct oneway_workspace *ws
 	  group_value.f = *group_value_p;
 	  var_append_value_name (cmd->indep_var, &group_value, &vstr);
 
-	  tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE,
-		    ds_cstr (&vstr));
+	  tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE, ds_cstr (&vstr));
 
 	  ds_destroy (&vstr);
 
