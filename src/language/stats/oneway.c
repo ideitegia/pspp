@@ -20,6 +20,11 @@
 #include <data/casegrouper.h>
 #include <data/casereader.h>
 
+#include <math/covariance.h>
+#include <math/categoricals.h>
+#include <gsl/gsl_matrix.h>
+#include <linreg/sweep.h>
+
 #include <libpspp/ll.h>
 
 #include <language/lexer/lexer.h>
@@ -94,6 +99,21 @@ struct oneway_spec
   struct ll_list contrast_list;
 };
 
+
+/* Workspace variable for each dependent variable */
+struct per_var_ws
+{
+  struct covariance *cov;
+
+  double sst;
+  double sse;
+  double ssa;
+
+  int n_groups;
+
+  double cc;
+};
+
 struct oneway_workspace
 {
   /* The number of distinct values of the independent variable, when all
@@ -103,10 +123,12 @@ struct oneway_workspace
   /* A  hash table containing all the distinct values of the independent
      variable */
   struct hsh_table *group_hash;
+
+  struct per_var_ws *vws;
 };
 
 /* Routines to show the output tables */
-static void show_anova_table (const struct oneway_spec *);
+static void show_anova_table (const struct oneway_spec *, const struct oneway_workspace *);
 static void show_descriptives (const struct oneway_spec *, const struct dictionary *dict);
 static void show_homogeneity (const struct oneway_spec *);
 
@@ -288,12 +310,24 @@ run_oneway (const struct oneway_spec *cmd,
             struct casereader *input,
             const struct dataset *ds)
 {
+  int v;
   struct taint *taint;
   struct dictionary *dict = dataset_dict (ds);
   struct casereader *reader;
   struct ccase *c;
+  const struct variable *wv = dict_get_weight (dict);
 
   struct oneway_workspace ws;
+
+  ws.vws = xmalloc (cmd->n_vars * sizeof (*ws.vws));
+
+  for (v = 0; v < cmd->n_vars; ++v)
+    {
+      ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
+					       1, &cmd->indep_var,
+					       wv, cmd->exclude);
+      ws.vws[v].cc = 0;
+    }
 
   c = casereader_peek (input, 0);
   if (c == NULL)
@@ -322,6 +356,7 @@ run_oneway (const struct oneway_spec *cmd,
   input = casereader_create_filter_weight (input, dict, NULL, NULL);
 
   reader = casereader_clone (input);
+
   for (; (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       size_t i;
@@ -338,6 +373,13 @@ run_oneway (const struct oneway_spec *cmd,
 
       for (i = 0; i < cmd->n_vars; ++i)
 	{
+	  {
+	    struct per_var_ws *pvw = &ws.vws[i];
+
+	    pvw->cc += weight;
+	    covariance_accumulate_pass1 (pvw->cov, c);
+	  }
+
 	  const struct variable *v = cmd->vars[i];
 
 	  const union value *val = case_data (c, v);
@@ -393,6 +435,34 @@ run_oneway (const struct oneway_spec *cmd,
 
     }
   casereader_destroy (reader);
+  reader = casereader_clone (input);
+  for ( ; (c = casereader_read (reader) ); case_unref (c))
+    {
+      int i;
+      for (i = 0; i < cmd->n_vars; ++i)
+	{
+	  struct per_var_ws *pvw = &ws.vws[i];
+	  covariance_accumulate_pass2 (pvw->cov, c);
+	}
+    }
+  casereader_destroy (reader);
+
+  for (v = 0; v < cmd->n_vars; ++v)
+    {
+      struct per_var_ws *pvw = &ws.vws[v];
+      gsl_matrix *cm = covariance_calculate_unnormalized (pvw->cov);
+      const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
+
+      pvw->sst = gsl_matrix_get (cm, 0, 0);
+
+      reg_sweep (cm, 0);
+
+      pvw->sse = gsl_matrix_get (cm, 0, 0);
+
+      pvw->ssa = pvw->sst - pvw->sse;
+
+      pvw->n_groups = categoricals_total (cats);
+    }
 
   postcalc (cmd);
 
@@ -517,7 +587,7 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
   if (cmd->stats & STATS_HOMOGENEITY)
     show_homogeneity (cmd);
 
-  show_anova_table (cmd);
+  show_anova_table (cmd, ws);
 
 
   if (ll_count (&cmd->contrast_list) > 0)
@@ -541,7 +611,7 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
 
 /* Show the ANOVA table */
 static void
-show_anova_table (const struct oneway_spec *cmd)
+show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   size_t i;
   int n_cols =7;
@@ -570,21 +640,13 @@ show_anova_table (const struct oneway_spec *cmd)
 
   for (i = 0; i < cmd->n_vars; ++i)
     {
-      struct group_statistics *totals = &group_proc_get (cmd->vars[i])->ugs;
-      struct hsh_table *group_hash = group_proc_get (cmd->vars[i])->group_hash;
-      struct hsh_iterator g;
-      struct group_statistics *gs;
-      double ssa = 0;
+      const struct per_var_ws *pvw = &ws->vws[i];
+      struct group_proc *gp = group_proc_get (cmd->vars[i]);
+      const double df1 = pvw->n_groups - 1;
+      const double df2 = pvw->cc - pvw->n_groups;
+      const double msa = pvw->ssa / df1;
+
       const char *s = var_to_string (cmd->vars[i]);
-
-      for (gs =  hsh_first (group_hash, &g);
-	   gs != 0;
-	   gs = hsh_next (group_hash, &g))
-	{
-	  ssa += pow2 (gs->sum) / gs->n;
-	}
-
-      ssa -= pow2 (totals->sum) / totals->n;
 
       tab_text (t, 0, i * 3 + 1, TAB_LEFT | TAT_TITLE, s);
       tab_text (t, 1, i * 3 + 1, TAB_LEFT | TAT_TITLE, _("Between Groups"));
@@ -594,43 +656,34 @@ show_anova_table (const struct oneway_spec *cmd)
       if (i > 0)
 	tab_hline (t, TAL_1, 0, n_cols - 1, i * 3 + 1);
 
+
+      gp->mse  = (pvw->sst - pvw->ssa) / df2;
+
+      /* Sums of Squares */
+      tab_double (t, 2, i * 3 + 1, 0, pvw->ssa, NULL);
+      tab_double (t, 2, i * 3 + 3, 0, pvw->sst, NULL);
+      tab_double (t, 2, i * 3 + 2, 0, pvw->sse, NULL);
+
+
+      /* Degrees of freedom */
+      tab_fixed (t, 3, i * 3 + 1, 0, df1, 4, 0);
+      tab_fixed (t, 3, i * 3 + 2, 0, df2, 4, 0);
+      tab_fixed (t, 3, i * 3 + 3, 0, pvw->cc - 1, 4, 0);
+
+      /* Mean Squares */
+      tab_double (t, 4, i * 3 + 1, TAB_RIGHT, msa, NULL);
+      tab_double (t, 4, i * 3 + 2, TAB_RIGHT, gp->mse, NULL);
+
       {
-        struct group_proc *gp = group_proc_get (cmd->vars[i]);
-	const double sst = totals->ssq - pow2 (totals->sum) / totals->n;
-	const double df1 = gp->n_groups - 1;
-	const double df2 = totals->n - gp->n_groups;
-	const double msa = ssa / df1;
+	const double F = msa / gp->mse ;
 
-	gp->mse  = (sst - ssa) / df2;
+	/* The F value */
+	tab_double (t, 5, i * 3 + 1, 0,  F, NULL);
 
-
-	/* Sums of Squares */
-	tab_double (t, 2, i * 3 + 1, 0, ssa, NULL);
-	tab_double (t, 2, i * 3 + 3, 0, sst, NULL);
-	tab_double (t, 2, i * 3 + 2, 0, sst - ssa, NULL);
-
-
-	/* Degrees of freedom */
-	tab_fixed (t, 3, i * 3 + 1, 0, df1, 4, 0);
-	tab_fixed (t, 3, i * 3 + 2, 0, df2, 4, 0);
-	tab_fixed (t, 3, i * 3 + 3, 0, totals->n - 1, 4, 0);
-
-	/* Mean Squares */
-	tab_double (t, 4, i * 3 + 1, TAB_RIGHT, msa, NULL);
-	tab_double (t, 4, i * 3 + 2, TAB_RIGHT, gp->mse, NULL);
-
-	{
-	  const double F = msa / gp->mse ;
-
-	  /* The F value */
-	  tab_double (t, 5, i * 3 + 1, 0,  F, NULL);
-
-	  /* The significance */
-	  tab_double (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q (F, df1, df2), NULL);
-	}
+	/* The significance */
+	tab_double (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q (F, df1, df2), NULL);
       }
     }
-
 
   tab_title (t, _("ANOVA"));
   tab_submit (t);
