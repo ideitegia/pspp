@@ -86,8 +86,6 @@ struct oneway_spec
   size_t n_vars;
   const struct variable **vars;
 
-  const struct dictionary *dict;
-
   const struct variable *indep_var;
 
   enum statistics stats;
@@ -97,6 +95,9 @@ struct oneway_spec
 
   /* List of contrasts */
   struct ll_list contrast_list;
+
+  /* The weight variable */
+  const struct variable *wv;
 };
 
 
@@ -129,7 +130,7 @@ struct oneway_workspace
 
 /* Routines to show the output tables */
 static void show_anova_table (const struct oneway_spec *, const struct oneway_workspace *);
-static void show_descriptives (const struct oneway_spec *, const struct dictionary *dict);
+static void show_descriptives (const struct oneway_spec *);
 static void show_homogeneity (const struct oneway_spec *);
 
 static void output_oneway (const struct oneway_spec *, struct oneway_workspace *ws);
@@ -138,6 +139,7 @@ static void run_oneway (const struct oneway_spec *cmd, struct casereader *input,
 int
 cmd_oneway (struct lexer *lexer, struct dataset *ds)
 {
+  const struct dictionary *dict = dataset_dict (ds);  
   struct oneway_spec oneway ;
   oneway.n_vars = 0;
   oneway.vars = NULL;
@@ -145,7 +147,7 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
   oneway.stats = 0;
   oneway.missing_type = MISS_ANALYSIS;
   oneway.exclude = MV_ANY;
-  oneway.dict = dataset_dict (ds);  
+  oneway.wv = dict_get_weight (dict);
 
   ll_init (&oneway.contrast_list);
 
@@ -159,14 +161,14 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
       lex_match (lexer, '=');
     }
 
-  if (!parse_variables_const (lexer, oneway.dict,
+  if (!parse_variables_const (lexer, dict,
 			      &oneway.vars, &oneway.n_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     goto error;
 
   lex_force_match (lexer, T_BY);
 
-  oneway.indep_var = parse_variable_const (lexer, oneway.dict);
+  oneway.indep_var = parse_variable_const (lexer, dict);
 
   while (lex_token (lexer) != '.')
     {
@@ -261,7 +263,9 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
     struct casereader *group;
     bool ok;
 
-    grouper = casegrouper_create_splits (proc_open (ds), oneway.dict);
+
+
+    grouper = casegrouper_create_splits (proc_open (ds), dict);
     while (casegrouper_get_next_group (grouper, &group))
       run_oneway (&oneway, group, ds);
     ok = casegrouper_destroy (grouper);
@@ -315,7 +319,7 @@ run_oneway (const struct oneway_spec *cmd,
   struct dictionary *dict = dataset_dict (ds);
   struct casereader *reader;
   struct ccase *c;
-  const struct variable *wv = dict_get_weight (dict);
+
 
   struct oneway_workspace ws;
 
@@ -325,7 +329,7 @@ run_oneway (const struct oneway_spec *cmd,
     {
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
 					       1, &cmd->indep_var,
-					       wv, cmd->exclude);
+					       cmd->wv, cmd->exclude);
       ws.vws[v].cc = 0;
     }
 
@@ -582,7 +586,7 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
     }
 
   if (cmd->stats & STATS_DESCRIPTIVES)
-    show_descriptives (cmd, cmd->dict);
+    show_descriptives (cmd);
 
   if (cmd->stats & STATS_HOMOGENEITY)
     show_homogeneity (cmd);
@@ -692,7 +696,7 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
 
 /* Show the descriptives table */
 static void
-show_descriptives (const struct oneway_spec *cmd, const struct dictionary *dict)
+show_descriptives (const struct oneway_spec *cmd)
 {
   size_t v;
   int n_cols = 10;
@@ -702,8 +706,7 @@ show_descriptives (const struct oneway_spec *cmd, const struct dictionary *dict)
   const double confidence = 0.95;
   const double q = (1.0 - confidence) / 2.0;
 
-  const struct variable *wv = dict_get_weight (dict);
-  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+  const struct fmt_spec *wfmt = cmd->wv ? var_get_print_format (cmd->wv) : & F_8_0;
 
   int n_rows = 2;
 
