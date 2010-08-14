@@ -131,7 +131,7 @@ struct oneway_workspace
 /* Routines to show the output tables */
 static void show_anova_table (const struct oneway_spec *, const struct oneway_workspace *);
 static void show_descriptives (const struct oneway_spec *);
-static void show_homogeneity (const struct oneway_spec *);
+static void show_homogeneity (const struct oneway_spec *, const struct oneway_workspace *);
 
 static void output_oneway (const struct oneway_spec *, struct oneway_workspace *ws);
 static void run_oneway (const struct oneway_spec *cmd, struct casereader *input, const struct dataset *ds);
@@ -593,7 +593,7 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
     show_descriptives (cmd);
 
   if (cmd->stats & STATS_HOMOGENEITY)
-    show_homogeneity (cmd);
+    show_homogeneity (cmd, ws);
 
   show_anova_table (cmd, ws);
 
@@ -854,7 +854,7 @@ show_descriptives (const struct oneway_spec *cmd)
 
 /* Show the homogeneity table */
 static void
-show_homogeneity (const struct oneway_spec *cmd)
+show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   size_t v;
   int n_cols = 5;
@@ -878,7 +878,6 @@ show_homogeneity (const struct oneway_spec *cmd)
   tab_hline (t, TAL_2, 0, n_cols - 1, 1);
   tab_vline (t, TAL_2, 1, 0, n_rows - 1);
 
-
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Levene Statistic"));
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("df1"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("df2"));
@@ -888,24 +887,26 @@ show_homogeneity (const struct oneway_spec *cmd)
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      double F;
+      struct per_var_ws *pvw = &ws->vws[v];
+      const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
+
       const struct variable *var = cmd->vars[v];
       const struct group_proc *gp = group_proc_get (cmd->vars[v]);
       const char *s = var_to_string (var);
-      const struct group_statistics *totals = &gp->ugs;
 
-      const double df1 = gp->n_groups - 1;
-      const double df2 = totals->n - gp->n_groups;
+      const double df1 = pvw->n_groups - 1;
+      const double df2 = pvw->cc - pvw->n_groups;
+      double F = gp->levene;
 
       tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);
 
-      F = gp->levene;
+
       tab_double (t, 1, v + 1, TAB_RIGHT, F, NULL);
       tab_fixed (t, 2, v + 1, TAB_RIGHT, df1, 8, 0);
       tab_fixed (t, 3, v + 1, TAB_RIGHT, df2, 8, 0);
 
       /* Now the significance */
-      tab_double (t, 4, v + 1, TAB_RIGHT,gsl_cdf_fdist_Q (F, df1, df2), NULL);
+      tab_double (t, 4, v + 1, TAB_RIGHT, gsl_cdf_fdist_Q (F, df1, df2), NULL);
     }
 
   tab_submit (t);
