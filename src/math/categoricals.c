@@ -34,6 +34,9 @@ struct value_node
   struct hmap_node node;      /* Node in hash map. */
   union value value;          /* The value being labeled. */
   double cc;                  /* The total of the weights of cases with this value */
+
+  void *user_data;            /* A pointer to data which the caller can store stuff */
+
   int subscript;              /* A zero based integer, unique within the variable.
 				 Can be used as an index into an array */
 };
@@ -84,6 +87,17 @@ struct categoricals
 
   /* Missing values to be excluded */
   enum mv_class exclude;
+
+
+
+  /* Function to be called on each update */
+  update_func *update;
+
+  /* Auxilliary data to be passed to update */
+  void *update_aux;
+
+  /* Function specified by the caller to create user_data */
+  user_data_create_func *user_data_create;
 };
 
 
@@ -179,10 +193,12 @@ lookup_value (const struct hmap *map, const struct variable *var, const union va
 }
 
 
-
 struct categoricals *
 categoricals_create (const struct variable *const *v, size_t n_vars,
-		     const struct variable *wv, enum mv_class exclude)
+		     const struct variable *wv, enum mv_class exclude,
+		     user_data_create_func *udf,
+		     update_func *update, void *aux
+		     )
 {
   size_t i;
   struct categoricals *cat = xmalloc (sizeof *cat);
@@ -194,6 +210,9 @@ categoricals_create (const struct variable *const *v, size_t n_vars,
   cat->reverse_variable_map = NULL;
   cat->pool = pool_create ();
   cat->exclude = exclude;
+  cat->update = update;
+  cat->update_aux = aux;
+  cat->user_data_create = udf;
 
   cat->vp = pool_calloc (cat->pool, cat->n_vp, sizeof *cat->vp);
 
@@ -246,10 +265,16 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 	    cat->n_vars++;
 
 	  node->subscript = cat->vp[i].n_cats++ ;
+
+	  if ( cat->user_data_create )
+	    node->user_data = cat->user_data_create ();
 	}
 
       node->cc += weight;
       cat->vp[i].cc += weight;
+
+      if ( cat->update)
+	cat->update (node->user_data, cat->wv, var, c, cat->update_aux);
     }
 }
 
@@ -384,4 +409,16 @@ size_t
 categoricals_get_n_variables (const struct categoricals *cat)
 {
   return cat->n_vars;
+}
+
+
+
+void *
+categoricals_get_user_data_by_subscript (const struct categoricals *cat, int subscript)
+{
+  int vindex = reverse_variable_lookup (cat, subscript);
+  const struct var_params *vp = &cat->vp[vindex];
+
+  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript];
+  return vn->user_data;
 }

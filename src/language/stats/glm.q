@@ -359,9 +359,10 @@ run_glm (struct casereader *input,
       k++;
     }
 
-  struct categoricals *cats = categoricals_create (categoricals,
-						   n_categoricals,
-						   NULL, MV_NEVER);
+  struct categoricals *cats =
+    categoricals_create (categoricals, n_categoricals,
+			 NULL, MV_NEVER,
+			 NULL, NULL, NULL);
 
   cov = covariance_2pass_create (n_numerics, numerics,
 				 cats,

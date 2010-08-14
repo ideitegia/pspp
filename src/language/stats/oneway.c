@@ -22,6 +22,7 @@
 
 #include <math/covariance.h>
 #include <math/categoricals.h>
+#include <math/moments.h>
 #include <gsl/gsl_matrix.h>
 #include <linreg/sweep.h>
 
@@ -33,8 +34,8 @@
 #include <language/command.h>
 
 #include <data/procedure.h>
+#include <data/value.h>
 #include <data/dictionary.h>
-
 
 #include <language/dictionary/split-file.h>
 #include <libpspp/hash.h>
@@ -126,11 +127,15 @@ struct oneway_workspace
   struct hsh_table *group_hash;
 
   struct per_var_ws *vws;
+
+  struct moments1 *totals;
+  double minimum;
+  double maximum;
 };
 
 /* Routines to show the output tables */
 static void show_anova_table (const struct oneway_spec *, const struct oneway_workspace *);
-static void show_descriptives (const struct oneway_spec *);
+static void show_descriptives (const struct oneway_spec *, const struct oneway_workspace *);
 static void show_homogeneity (const struct oneway_spec *, const struct oneway_workspace *);
 
 static void output_oneway (const struct oneway_spec *, struct oneway_workspace *ws);
@@ -305,9 +310,57 @@ free_double (void *value_, const void *aux UNUSED)
   free (value);
 }
 
+
+
 static void postcalc (const struct oneway_spec *cmd);
 static void  precalc (const struct oneway_spec *cmd);
 
+struct descriptive_data
+{
+  struct moments1 *mom;
+  double minimum;
+  double maximum;
+};
+
+static void *
+makeit (void)
+{
+  struct descriptive_data *dd = xmalloc (sizeof *dd);
+  dd->mom = moments1_create (MOMENT_VARIANCE);
+  dd->minimum = DBL_MAX;
+  dd->maximum = -DBL_MAX;
+
+  return dd;
+}
+
+static void 
+updateit (void *user_data, const struct variable *wv, 
+	  const struct variable *catvar, const struct ccase *c, void *aux)
+{
+  const union value *val = case_data_idx (c, 0);
+  struct descriptive_data *dd = user_data;
+  struct oneway_workspace *ws = aux;
+
+  double weight = 1.0;
+  if (wv)
+    weight = case_data (c, wv)->f;
+
+  moments1_add (dd->mom, val->f, weight);
+  moments1_add (ws->totals, val->f, weight);
+
+  if (val->f * weight < dd->minimum)
+    dd->minimum = val->f * weight;
+
+  if (val->f * weight > dd->maximum)
+    dd->maximum = val->f * weight;
+
+
+  if (val->f * weight < ws->minimum)
+    ws->minimum = val->f * weight;
+
+  if (val->f * weight > ws->maximum)
+    ws->maximum = val->f * weight;
+}
 
 static void
 run_oneway (const struct oneway_spec *cmd,
@@ -320,16 +373,21 @@ run_oneway (const struct oneway_spec *cmd,
   struct casereader *reader;
   struct ccase *c;
 
-
   struct oneway_workspace ws;
 
   ws.vws = xmalloc (cmd->n_vars * sizeof (*ws.vws));
+
+  ws.totals = moments1_create (MOMENT_VARIANCE);
+  ws.minimum = DBL_MAX;
+  ws.maximum = -DBL_MAX;
 
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
       struct categoricals *cats = categoricals_create (&cmd->indep_var, 1,
-						   cmd->wv, cmd->exclude);
+						       cmd->wv, cmd->exclude, 
+						       makeit,
+						       updateit, &ws);
 
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
 					       cats, 
@@ -474,6 +532,13 @@ run_oneway (const struct oneway_spec *cmd,
 
   postcalc (cmd);
 
+  for (v = 0; v < cmd->n_vars; ++v)
+    {
+      struct categoricals *cats = covariance_get_categoricals (ws.vws[v].cov);
+
+      categoricals_done (cats);
+    }
+
   if ( cmd->stats & STATS_HOMOGENEITY )
     levene (dict, casereader_clone (input), cmd->indep_var,
 	    cmd->n_vars, cmd->vars, cmd->exclude);
@@ -590,7 +655,7 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
     }
 
   if (cmd->stats & STATS_DESCRIPTIVES)
-    show_descriptives (cmd);
+    show_descriptives (cmd, ws);
 
   if (cmd->stats & STATS_HOMOGENEITY)
     show_homogeneity (cmd, ws);
@@ -700,7 +765,7 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
 
 /* Show the descriptives table */
 static void
-show_descriptives (const struct oneway_spec *cmd)
+show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   size_t v;
   int n_cols = 10;
@@ -710,16 +775,15 @@ show_descriptives (const struct oneway_spec *cmd)
   const double confidence = 0.95;
   const double q = (1.0 - confidence) / 2.0;
 
-  const struct fmt_spec *wfmt = cmd->wv ? var_get_print_format (cmd->wv) : & F_8_0;
+  const struct fmt_spec *wfmt = cmd->wv ? var_get_print_format (cmd->wv) : &F_8_0;
 
   int n_rows = 2;
 
-  for ( v = 0; v < cmd->n_vars; ++v )
-    n_rows += group_proc_get (cmd->vars[v])->n_groups + 1;
+  for (v = 0; v < cmd->n_vars; ++v)
+    n_rows += ws->actual_number_of_groups + 1;
 
   t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 2, 0);
-
 
   /* Put a frame around the entire box, and vertical lines inside */
   tab_box (t,
@@ -750,39 +814,41 @@ show_descriptives (const struct oneway_spec *cmd)
   tab_text (t, 8, 1, TAB_CENTER | TAT_TITLE, _("Minimum"));
   tab_text (t, 9, 1, TAB_CENTER | TAT_TITLE, _("Maximum"));
 
-
   tab_title (t, _("Descriptives"));
-
 
   row = 2;
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      double T;
-      double std_error;
-
-      struct group_proc *gp = group_proc_get (cmd->vars[v]);
-
-      struct group_statistics *gs;
-      struct group_statistics *totals = &gp->ugs;
-
       const char *s = var_to_string (cmd->vars[v]);
       const struct fmt_spec *fmt = var_get_print_format (cmd->vars[v]);
 
-      struct group_statistics *const *gs_array =
-	(struct group_statistics *const *) hsh_sort (gp->group_hash);
       int count = 0;
+
+      struct per_var_ws *pvw = &ws->vws[v];
+      const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
 
       tab_text (t, 0, row, TAB_LEFT | TAT_TITLE, s);
       if ( v > 0)
 	tab_hline (t, TAL_1, 0, n_cols - 1, row);
 
-      for (count = 0; count < hsh_count (gp->group_hash); ++count)
+      for (count = 0; count < categoricals_total (cats); ++count)
 	{
-	  struct string vstr;
-	  ds_init_empty (&vstr);
-	  gs = gs_array[count];
+	  double T;
+	  double n, mean, variance;
 
-	  var_append_value_name (cmd->indep_var, &gs->id, &vstr);
+	  const union value *gval = categoricals_get_value_by_subscript (cats, count);
+	  const struct descriptive_data *dd = categoricals_get_user_data_by_subscript (cats, count);
+
+	  moments1_calculate (dd->mom, &n, &mean, &variance, NULL, NULL);
+
+	  double std_dev = sqrt (variance);
+	  double std_error = std_dev / sqrt (n) ;
+
+	  struct string vstr;
+
+	  ds_init_empty (&vstr);
+
+	  var_append_value_name (cmd->indep_var, gval, &vstr);
 
 	  tab_text (t, 1, row + count,
 		    TAB_LEFT | TAT_TITLE,
@@ -792,61 +858,68 @@ show_descriptives (const struct oneway_spec *cmd)
 
 	  /* Now fill in the numbers ... */
 
-	  tab_fixed (t, 2, row + count, 0, gs->n, 8, 0);
+	  tab_fixed (t, 2, row + count, 0, n, 8, 0);
 
-	  tab_double (t, 3, row + count, 0, gs->mean, NULL);
+	  tab_double (t, 3, row + count, 0, mean, NULL);
 
-	  tab_double (t, 4, row + count, 0, gs->std_dev, NULL);
+	  tab_double (t, 4, row + count, 0, std_dev, NULL);
 
-	  std_error = gs->std_dev / sqrt (gs->n) ;
-	  tab_double (t, 5, row + count, 0,
-		      std_error, NULL);
+
+	  tab_double (t, 5, row + count, 0, std_error, NULL);
 
 	  /* Now the confidence interval */
 
-	  T = gsl_cdf_tdist_Qinv (q, gs->n - 1);
+	  T = gsl_cdf_tdist_Qinv (q, n - 1);
 
 	  tab_double (t, 6, row + count, 0,
-		      gs->mean - T * std_error, NULL);
+		      mean - T * std_error, NULL);
 
 	  tab_double (t, 7, row + count, 0,
-		      gs->mean + T * std_error, NULL);
+		      mean + T * std_error, NULL);
 
 	  /* Min and Max */
 
-	  tab_double (t, 8, row + count, 0,  gs->minimum, fmt);
-	  tab_double (t, 9, row + count, 0,  gs->maximum, fmt);
+	  tab_double (t, 8, row + count, 0,  dd->minimum, fmt);
+	  tab_double (t, 9, row + count, 0,  dd->maximum, fmt);
 	}
 
-      tab_text (t, 1, row + count,
-		TAB_LEFT | TAT_TITLE, _("Total"));
+      {
+	double T;
+	double n, mean, variance;
 
-      tab_double (t, 2, row + count, 0, totals->n, wfmt);
+	moments1_calculate (ws->totals, &n, &mean, &variance, NULL, NULL);
 
-      tab_double (t, 3, row + count, 0, totals->mean, NULL);
+	double std_dev = sqrt (variance);
+	double std_error = std_dev / sqrt (n) ;
 
-      tab_double (t, 4, row + count, 0, totals->std_dev, NULL);
+	tab_text (t, 1, row + count,
+		  TAB_LEFT | TAT_TITLE, _("Total"));
 
-      std_error = totals->std_dev / sqrt (totals->n) ;
+	tab_double (t, 2, row + count, 0, n, wfmt);
 
-      tab_double (t, 5, row + count, 0, std_error, NULL);
+	tab_double (t, 3, row + count, 0, mean, NULL);
 
-      /* Now the confidence interval */
+	tab_double (t, 4, row + count, 0, std_dev, NULL);
 
-      T = gsl_cdf_tdist_Qinv (q, totals->n - 1);
+	tab_double (t, 5, row + count, 0, std_error, NULL);
 
-      tab_double (t, 6, row + count, 0,
-		  totals->mean - T * std_error, NULL);
+	/* Now the confidence interval */
 
-      tab_double (t, 7, row + count, 0,
-		  totals->mean + T * std_error, NULL);
+	T = gsl_cdf_tdist_Qinv (q, n - 1);
 
-      /* Min and Max */
+	tab_double (t, 6, row + count, 0,
+		    mean - T * std_error, NULL);
 
-      tab_double (t, 8, row + count, 0,  totals->minimum, fmt);
-      tab_double (t, 9, row + count, 0,  totals->maximum, fmt);
+	tab_double (t, 7, row + count, 0,
+		    mean + T * std_error, NULL);
 
-      row += gp->n_groups + 1;
+	/* Min and Max */
+
+	tab_double (t, 8, row + count, 0,  ws->minimum, fmt);
+	tab_double (t, 9, row + count, 0,  ws->maximum, fmt);
+      }
+
+      row += categoricals_total (cats) + 1;
     }
 
   tab_submit (t);
@@ -860,12 +933,8 @@ show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *
   int n_cols = 5;
   size_t n_rows = cmd->n_vars + 1;
 
-  struct tab_table *t;
-
-
-  t = tab_create (n_cols, n_rows);
+  struct tab_table *t = tab_create (n_cols, n_rows);
   tab_headers (t, 1, 0, 1, 0);
-
 
   /* Put a frame around the entire box, and vertical lines inside */
   tab_box (t,
@@ -1034,7 +1103,6 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 
   tab_hline (t, TAL_2, 0, n_cols - 1, 1);
   tab_vline (t, TAL_2, 3, 0, n_rows - 1);
-
 
   tab_title (t, _("Contrast Tests"));
 
