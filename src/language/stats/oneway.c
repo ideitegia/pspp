@@ -923,9 +923,9 @@ show_contrast_coeffs (const struct oneway_spec *cmd, struct oneway_workspace *ws
   int n_cols = 2 + ws->actual_number_of_groups;
   int n_rows = 2 + n_contrasts;
 
-  void *const *group_values;
-
   struct tab_table *t;
+
+  const struct covariance *cov = ws->vws[0].cov ;
 
   t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 2, 0);
@@ -962,31 +962,27 @@ show_contrast_coeffs (const struct oneway_spec *cmd, struct oneway_workspace *ws
   tab_joint_text (t, 2, 0, n_cols - 1, 0, TAB_CENTER | TAT_TITLE,
 		  var_to_string (cmd->indep_var));
 
-  group_values = hsh_sort (ws->group_hash);
-
   for ( cli = ll_head (&cmd->contrast_list);
 	cli != ll_null (&cmd->contrast_list);
 	cli = ll_next (cli))
     {
       int count = 0;
       struct contrasts_node *cn = ll_data (cli, struct contrasts_node, ll);
-      struct ll *coeffi = ll_head (&cn->coefficient_list);
+      struct ll *coeffi ;
 
       tab_text_format (t, 1, c_num + 2, TAB_CENTER, "%d", c_num + 1);
 
-      for (count = 0;
-	   count < hsh_count (ws->group_hash) && coeffi != ll_null (&cn->coefficient_list);
-	   ++count)
+      for (coeffi = ll_head (&cn->coefficient_list);
+	   coeffi != ll_null (&cn->coefficient_list);
+	   ++count, coeffi = ll_next (coeffi))
 	{
-	  double *group_value_p;
-	  union value group_value;
+	  const struct categoricals *cats = covariance_get_categoricals (cov);
+	  const union value *val = categoricals_get_value_by_subscript (cats, count);
 	  struct string vstr;
 
 	  ds_init_empty (&vstr);
 
-	  group_value_p = group_values[count];
-	  group_value.f = *group_value_p;
-	  var_append_value_name (cmd->indep_var, &group_value, &vstr);
+	  var_append_value_name (cmd->indep_var, val, &vstr);
 
 	  tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE, ds_cstr (&vstr));
 
@@ -1000,8 +996,6 @@ show_contrast_coeffs (const struct oneway_spec *cmd, struct oneway_workspace *ws
 
 	      tab_text_format (t, count + 2, c_num + 2, TAB_RIGHT, "%g", coeffn->coeff);
 	    }
-
-	  coeffi = ll_next (coeffi);
 	}
       ++c_num;
     }
