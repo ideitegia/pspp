@@ -38,6 +38,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <math/covariance.h>
+#include <math/categoricals.h>
 #include <math/linreg.h>
 #include <math/moments.h>
 #include <output/tab.h>
@@ -358,7 +359,13 @@ run_glm (struct casereader *input,
       k++;
     }
 
-  cov = covariance_2pass_create (n_numerics, numerics, n_categoricals, categoricals, NULL, MV_NEVER);
+  struct categoricals *cats = categoricals_create (categoricals,
+						   n_categoricals,
+						   NULL, MV_NEVER);
+
+  cov = covariance_2pass_create (n_numerics, numerics,
+				 cats,
+				 NULL, MV_NEVER);
 
   reader = casereader_clone (input);
   reader = casereader_create_filter_missing (reader, numerics, n_numerics,

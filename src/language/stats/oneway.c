@@ -325,10 +325,14 @@ run_oneway (const struct oneway_spec *cmd,
 
   ws.vws = xmalloc (cmd->n_vars * sizeof (*ws.vws));
 
+
   for (v = 0; v < cmd->n_vars; ++v)
     {
+      struct categoricals *cats = categoricals_create (&cmd->indep_var, 1,
+						   cmd->wv, cmd->exclude);
+
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
-					       1, &cmd->indep_var,
+					       cats, 
 					       cmd->wv, cmd->exclude);
       ws.vws[v].cc = 0;
     }
