@@ -557,8 +557,8 @@ postcalc (const struct oneway_spec *cmd)
     }
 }
 
-static void show_contrast_coeffs (const struct oneway_spec *cmd, struct oneway_workspace *ws);
-static void show_contrast_tests (const struct oneway_spec *cmd, struct oneway_workspace *ws);
+static void show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspace *ws);
+static void show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspace *ws);
 
 static void
 output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
@@ -887,7 +887,7 @@ show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      struct per_var_ws *pvw = &ws->vws[v];
+      const struct per_var_ws *pvw = &ws->vws[v];
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
 
       const struct variable *var = cmd->vars[v];
@@ -915,7 +915,7 @@ show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *
 
 /* Show the contrast coefficients table */
 static void
-show_contrast_coeffs (const struct oneway_spec *cmd, struct oneway_workspace *ws)
+show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   int c_num = 0;
   struct ll *cli;
@@ -1007,7 +1007,7 @@ show_contrast_coeffs (const struct oneway_spec *cmd, struct oneway_workspace *ws
 
 /* Show the results of the contrast tests */
 static void
-show_contrast_tests (const struct oneway_spec *cmd, struct oneway_workspace *ws)
+show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   int n_contrasts = ll_count (&cmd->contrast_list);
   size_t v;
