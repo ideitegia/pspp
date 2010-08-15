@@ -362,7 +362,7 @@ run_glm (struct casereader *input,
   struct categoricals *cats =
     categoricals_create (categoricals, n_categoricals,
 			 NULL, MV_NEVER,
-			 NULL, NULL, NULL);
+			 NULL, NULL, NULL, NULL);
 
   cov = covariance_2pass_create (n_numerics, numerics,
 				 cats,

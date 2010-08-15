@@ -30,14 +30,15 @@ union value ;
 typedef void update_func (void *user_data,
 			  const struct variable *wv, 
 			  const struct variable *catvar,
-			  const struct ccase *c, void *aux);
+			  const struct ccase *c,
+			  void *aux1, void *aux2);
 
-typedef void *user_data_create_func (void);
+typedef void *user_data_create_func (void *aux1, void *aux2);
 
 struct categoricals *categoricals_create (const struct variable *const *v, size_t n_vars,
 					  const struct variable *wv, enum mv_class exclude,
 					  user_data_create_func *udf,
-					  update_func *update, void *update_aux);
+					  update_func *update, void *aux1, void *aux2);
 
 void categoricals_destroy (struct categoricals *);
 

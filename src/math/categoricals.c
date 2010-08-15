@@ -93,11 +93,14 @@ struct categoricals
   /* Function to be called on each update */
   update_func *update;
 
-  /* Auxilliary data to be passed to update */
-  void *update_aux;
 
   /* Function specified by the caller to create user_data */
   user_data_create_func *user_data_create;
+
+
+  /* Auxilliary data to be passed to update and user_data_create_func*/
+  void *aux1;
+  void *aux2;
 };
 
 
@@ -197,7 +200,7 @@ struct categoricals *
 categoricals_create (const struct variable *const *v, size_t n_vars,
 		     const struct variable *wv, enum mv_class exclude,
 		     user_data_create_func *udf,
-		     update_func *update, void *aux
+		     update_func *update, void *aux1, void *aux2
 		     )
 {
   size_t i;
@@ -211,8 +214,11 @@ categoricals_create (const struct variable *const *v, size_t n_vars,
   cat->pool = pool_create ();
   cat->exclude = exclude;
   cat->update = update;
-  cat->update_aux = aux;
   cat->user_data_create = udf;
+
+  cat->aux1 = aux1;
+  cat->aux2 = aux2;
+
 
   cat->vp = pool_calloc (cat->pool, cat->n_vp, sizeof *cat->vp);
 
@@ -266,15 +272,15 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 
 	  node->subscript = cat->vp[i].n_cats++ ;
 
-	  if ( cat->user_data_create )
-	    node->user_data = cat->user_data_create ();
+	  if (cat->user_data_create)
+	    node->user_data = cat->user_data_create (cat->aux1, cat->aux2);
 	}
 
       node->cc += weight;
       cat->vp[i].cc += weight;
 
-      if ( cat->update)
-	cat->update (node->user_data, cat->wv, var, c, cat->update_aux);
+      if (cat->update)
+	cat->update (node->user_data, cat->wv, var, c, cat->aux1, cat->aux2);
     }
 }
 

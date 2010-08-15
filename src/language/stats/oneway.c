@@ -99,6 +99,7 @@ struct oneway_spec
 
   /* The weight variable */
   const struct variable *wv;
+
 };
 
 
@@ -128,9 +129,8 @@ struct oneway_workspace
 
   struct per_var_ws *vws;
 
-  struct moments1 *totals;
-  double minimum;
-  double maximum;
+  /* An array of descriptive data.  One for each dependent variable */
+  struct descriptive_data **dd_total;
 };
 
 /* Routines to show the output tables */
@@ -268,8 +268,6 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
     struct casereader *group;
     bool ok;
 
-
-
     grouper = casegrouper_create_splits (proc_open (ds), dict);
     while (casegrouper_get_next_group (grouper, &group))
       run_oneway (&oneway, group, ds);
@@ -317,49 +315,76 @@ static void  precalc (const struct oneway_spec *cmd);
 
 struct descriptive_data
 {
+  const struct variable *var;
   struct moments1 *mom;
+
   double minimum;
   double maximum;
 };
 
-static void *
-makeit (void)
+static struct descriptive_data *
+dd_create (const struct variable *var)
 {
   struct descriptive_data *dd = xmalloc (sizeof *dd);
+
   dd->mom = moments1_create (MOMENT_VARIANCE);
   dd->minimum = DBL_MAX;
   dd->maximum = -DBL_MAX;
+  dd->var = var;
+
+  return dd;
+}
+
+
+static void *
+makeit (void *aux1, void *aux2 UNUSED)
+{
+  const struct variable *var = aux1;
+
+  struct descriptive_data *dd = dd_create (var);
 
   return dd;
 }
 
 static void 
 updateit (void *user_data, const struct variable *wv, 
-	  const struct variable *catvar, const struct ccase *c, void *aux)
+	  const struct variable *catvar UNUSED,
+	  const struct ccase *c,
+	  void *aux1, void *aux2)
 {
-  const union value *val = case_data_idx (c, 0);
   struct descriptive_data *dd = user_data;
-  struct oneway_workspace *ws = aux;
+
+  const struct variable *varp = aux1;
+
+  const union value *valx = case_data (c, varp);
+
+  struct descriptive_data *dd_total = aux2;
 
   double weight = 1.0;
   if (wv)
     weight = case_data (c, wv)->f;
 
-  moments1_add (dd->mom, val->f, weight);
-  moments1_add (ws->totals, val->f, weight);
+  moments1_add (dd->mom, valx->f, weight);
+  if (valx->f * weight < dd->minimum)
+    dd->minimum = valx->f * weight;
 
-  if (val->f * weight < dd->minimum)
-    dd->minimum = val->f * weight;
+  if (valx->f * weight > dd->maximum)
+    dd->maximum = valx->f * weight;
 
-  if (val->f * weight > dd->maximum)
-    dd->maximum = val->f * weight;
+  {
+    const struct variable *var = dd_total->var;
+    const union value *val = case_data (c, var);
 
+    moments1_add (dd_total->mom,
+		  val->f,
+		  weight);
 
-  if (val->f * weight < ws->minimum)
-    ws->minimum = val->f * weight;
+    if (val->f * weight < dd_total->minimum)
+      dd_total->minimum = val->f * weight;
 
-  if (val->f * weight > ws->maximum)
-    ws->maximum = val->f * weight;
+    if (val->f * weight > dd_total->maximum)
+      dd_total->maximum = val->f * weight;
+  }
 }
 
 static void
@@ -374,20 +399,25 @@ run_oneway (const struct oneway_spec *cmd,
   struct ccase *c;
 
   struct oneway_workspace ws;
+  
+  {
+    ws.vws = xmalloc (cmd->n_vars * sizeof (*ws.vws));
 
-  ws.vws = xmalloc (cmd->n_vars * sizeof (*ws.vws));
+    ws.dd_total = xmalloc (sizeof (struct descriptive_data) * cmd->n_vars);
 
-  ws.totals = moments1_create (MOMENT_VARIANCE);
-  ws.minimum = DBL_MAX;
-  ws.maximum = -DBL_MAX;
-
+    for (v = 0 ; v < cmd->n_vars; ++v)
+      {
+	ws.dd_total[v] = dd_create (cmd->vars[v]);
+      }
+  }
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
       struct categoricals *cats = categoricals_create (&cmd->indep_var, 1,
 						       cmd->wv, cmd->exclude, 
 						       makeit,
-						       updateit, &ws);
+						       updateit,
+						       cmd->vars[v], ws.dd_total[v]);
 
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
 					       cats, 
@@ -886,11 +916,13 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
       {
 	double T;
 	double n, mean, variance;
+	double std_dev;
+	double std_error;
 
-	moments1_calculate (ws->totals, &n, &mean, &variance, NULL, NULL);
+	moments1_calculate (ws->dd_total[v]->mom, &n, &mean, &variance, NULL, NULL);
 
-	double std_dev = sqrt (variance);
-	double std_error = std_dev / sqrt (n) ;
+	std_dev = sqrt (variance);
+	std_error = std_dev / sqrt (n) ;
 
 	tab_text (t, 1, row + count,
 		  TAB_LEFT | TAT_TITLE, _("Total"));
@@ -904,7 +936,6 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 	tab_double (t, 5, row + count, 0, std_error, NULL);
 
 	/* Now the confidence interval */
-
 	T = gsl_cdf_tdist_Qinv (q, n - 1);
 
 	tab_double (t, 6, row + count, 0,
@@ -914,9 +945,8 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 		    mean + T * std_error, NULL);
 
 	/* Min and Max */
-
-	tab_double (t, 8, row + count, 0,  ws->minimum, fmt);
-	tab_double (t, 9, row + count, 0,  ws->maximum, fmt);
+	tab_double (t, 8, row + count, 0,  ws->dd_total[v]->minimum, fmt);
+	tab_double (t, 9, row + count, 0,  ws->dd_total[v]->maximum, fmt);
       }
 
       row += categoricals_total (cats) + 1;
