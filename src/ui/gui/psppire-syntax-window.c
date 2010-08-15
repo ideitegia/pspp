@@ -114,7 +114,7 @@ psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
   gchar **new_paths = g_strdupv ((gchar **)existing_paths);
   int n = g_strv_length ((gchar **) existing_paths);
 
-  new_paths = g_realloc (new_paths, (n + 1) * sizeof (*new_paths));
+  new_paths = g_realloc (new_paths, (n + 2) * sizeof (*new_paths));
   new_paths[n] = g_strdup (relocate (PKGDATADIR));
   new_paths[n+1] = NULL;
 
