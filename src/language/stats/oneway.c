@@ -400,17 +400,13 @@ run_oneway (const struct oneway_spec *cmd,
   struct ccase *c;
 
   struct oneway_workspace ws;
-  
-  {
-    ws.vws = xmalloc (cmd->n_vars * sizeof (*ws.vws));
 
-    ws.dd_total = xmalloc (sizeof (struct descriptive_data) * cmd->n_vars);
+  ws.actual_number_of_groups = 0;
+  ws.vws = xmalloc (cmd->n_vars * sizeof (*ws.vws));
+  ws.dd_total = xmalloc (sizeof (struct descriptive_data) * cmd->n_vars);
 
-    for (v = 0 ; v < cmd->n_vars; ++v)
-      {
-	ws.dd_total[v] = dd_create (cmd->vars[v]);
-      }
-  }
+  for (v = 0 ; v < cmd->n_vars; ++v)
+    ws.dd_total[v] = dd_create (cmd->vars[v]);
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
@@ -565,11 +561,15 @@ run_oneway (const struct oneway_spec *cmd,
 
   postcalc (cmd);
 
+  
   for (v = 0; v < cmd->n_vars; ++v)
     {
       struct categoricals *cats = covariance_get_categoricals (ws.vws[v].cov);
 
       categoricals_done (cats);
+      
+      if (categoricals_total (cats) > ws.actual_number_of_groups)
+	ws.actual_number_of_groups = categoricals_total (cats);
     }
 
   if ( cmd->stats & STATS_HOMOGENEITY )
@@ -577,8 +577,6 @@ run_oneway (const struct oneway_spec *cmd,
 	    cmd->n_vars, cmd->vars, cmd->exclude);
 
   casereader_destroy (input);
-
-  ws.actual_number_of_groups = hsh_count (ws.group_hash);
 
   if (!taint_has_tainted_successor (taint))
     output_oneway (cmd, &ws);
