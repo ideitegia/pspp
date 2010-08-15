@@ -115,6 +115,7 @@ struct per_var_ws
   int n_groups;
 
   double cc;
+  double mse;
 };
 
 struct oneway_workspace
@@ -558,6 +559,8 @@ run_oneway (const struct oneway_spec *cmd,
       pvw->ssa = pvw->sst - pvw->sse;
 
       pvw->n_groups = categoricals_total (cats);
+
+      pvw->mse = (pvw->sst - pvw->ssa) / (pvw->cc - pvw->n_groups);
     }
 
   postcalc (cmd);
@@ -744,7 +747,6 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
   for (i = 0; i < cmd->n_vars; ++i)
     {
       const struct per_var_ws *pvw = &ws->vws[i];
-      struct group_proc *gp = group_proc_get (cmd->vars[i]);
       const double df1 = pvw->n_groups - 1;
       const double df2 = pvw->cc - pvw->n_groups;
       const double msa = pvw->ssa / df1;
@@ -760,8 +762,6 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
 	tab_hline (t, TAL_1, 0, n_cols - 1, i * 3 + 1);
 
 
-      gp->mse  = (pvw->sst - pvw->ssa) / df2;
-
       /* Sums of Squares */
       tab_double (t, 2, i * 3 + 1, 0, pvw->ssa, NULL);
       tab_double (t, 2, i * 3 + 3, 0, pvw->sst, NULL);
@@ -775,10 +775,10 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
 
       /* Mean Squares */
       tab_double (t, 4, i * 3 + 1, TAB_RIGHT, msa, NULL);
-      tab_double (t, 4, i * 3 + 2, TAB_RIGHT, gp->mse, NULL);
+      tab_double (t, 4, i * 3 + 2, TAB_RIGHT, pvw->mse, NULL);
 
       {
-	const double F = msa / gp->mse ;
+	const double F = msa / pvw->mse ;
 
 	/* The F value */
 	tab_double (t, 5, i * 3 + 1, 0,  F, NULL);
@@ -865,16 +865,17 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 	{
 	  double T;
 	  double n, mean, variance;
+	  double std_dev, std_error ;
+
+	  struct string vstr;
 
 	  const union value *gval = categoricals_get_value_by_subscript (cats, count);
 	  const struct descriptive_data *dd = categoricals_get_user_data_by_subscript (cats, count);
 
 	  moments1_calculate (dd->mom, &n, &mean, &variance, NULL, NULL);
 
-	  double std_dev = sqrt (variance);
-	  double std_error = std_dev / sqrt (n) ;
-
-	  struct string vstr;
+	  std_dev = sqrt (variance);
+	  std_error = std_dev / sqrt (n) ;
 
 	  ds_init_empty (&vstr);
 
@@ -1145,6 +1146,8 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
+      const struct per_var_ws *pvw = &ws->vws[v];
+      const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
       struct ll *cli;
       int i = 0;
       int lines_per_variable = 2 * n_contrasts;
@@ -1157,14 +1160,10 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 	    ++i, cli = ll_next (cli))
 	{
 	  struct contrasts_node *cn = ll_data (cli, struct contrasts_node, ll);
-	  struct ll *coeffi = ll_head (&cn->coefficient_list);
-	  int ci;
+	  struct ll *coeffi ;
+	  int ci = 0;
 	  double contrast_value = 0.0;
 	  double coef_msq = 0.0;
-	  struct group_proc *grp_data = group_proc_get (cmd->vars[v]);
-	  struct hsh_table *group_hash = grp_data->group_hash;
-
-	  void *const *group_stat_array;
 
 	  double T;
 	  double std_error_contrast;
@@ -1184,6 +1183,11 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 
 	  double df_denominator = 0.0;
 	  double df_numerator = 0.0;
+
+	  double grand_n;
+	  moments1_calculate (ws->dd_total[v]->mom, &grand_n, NULL, NULL, NULL, NULL);
+	  df = grand_n - pvw->n_groups;
+
 	  if ( i == 0 )
 	    {
 	      tab_text (t,  1, (v * lines_per_variable) + i + 1,
@@ -1206,27 +1210,28 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 	  if (cn->bad_count)
 	    continue;
 
-	  group_stat_array = hsh_sort (group_hash);
-
-	  for (ci = 0;
-	       coeffi != ll_null (&cn->coefficient_list) && 
-		 ci < hsh_count (group_hash);
+	  for (coeffi = ll_head (&cn->coefficient_list);
+	       coeffi != ll_null (&cn->coefficient_list);
 	       ++ci, coeffi = ll_next (coeffi))
 	    {
+	      double n, mean, variance;
+	      const struct descriptive_data *dd = categoricals_get_user_data_by_subscript (cats, ci);
+
+	      moments1_calculate (dd->mom, &n, &mean, &variance, NULL, NULL);
+
 	      struct coeff_node *cn = ll_data (coeffi, struct coeff_node, ll);
 	      const double coef = cn->coeff; 
-	      struct group_statistics *gs = group_stat_array[ci];
 
-	      const double winv = pow2 (gs->std_dev) / gs->n;
+	      const double winv = variance / n;
 
-	      contrast_value += coef * gs->mean;
+	      contrast_value += coef * mean;
 
-	      coef_msq += (coef * coef) / gs->n;
+	      coef_msq += (pow2 (coef)) / n;
 
-	      sec_vneq += (coef * coef) * pow2 (gs->std_dev) /gs->n;
+	      sec_vneq += (pow2 (coef)) * variance / n;
 
-	      df_numerator += (coef * coef) * winv;
-	      df_denominator += pow2((coef * coef) * winv) / (gs->n - 1);
+	      df_numerator += (pow2 (coef)) * winv;
+	      df_denominator += pow2((pow2 (coef)) * winv) / (n - 1);
 	    }
 
 	  sec_vneq = sqrt (sec_vneq);
@@ -1240,7 +1245,7 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 		      n_contrasts,
 		      TAB_RIGHT, contrast_value, NULL);
 
-	  std_error_contrast = sqrt (grp_data->mse * coef_msq);
+	  std_error_contrast = sqrt (pvw->mse * coef_msq);
 
 	  /* Std. Error */
 	  tab_double (t,  4, (v * lines_per_variable) + i + 1,
@@ -1255,7 +1260,6 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 		      TAB_RIGHT, T,
 		      NULL);
 
-	  df = grp_data->ugs.n - grp_data->n_groups;
 
 	  /* Degrees of Freedom */
 	  tab_fixed (t,  6, (v * lines_per_variable) + i + 1,
