@@ -857,13 +857,16 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
   size_t max_line_length;
   gint content_width, header_width;
   size_t i;
+  gchar *title = _("Text");
 
   make_tree_view (ia, 0, &tree_view);
 
-  column = gtk_tree_view_column_new_with_attributes (
-    "Text", ia->asst.fixed_renderer,
-    "text", TEXT_IMPORT_MODEL_COLUMN_LINE,
-    (void *) NULL);
+  column = gtk_tree_view_column_new_with_attributes 
+    (
+     title, ia->asst.fixed_renderer,
+     "text", TEXT_IMPORT_MODEL_COLUMN_LINE,
+     (void *) NULL
+     );
   gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);
 
   max_line_length = 0;
@@ -875,7 +878,7 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
 
   content_width = get_monospace_width (tree_view, ia->asst.fixed_renderer,
                                        max_line_length);
-  header_width = get_string_width (tree_view, ia->asst.prop_renderer, "Text");
+  header_width = get_string_width (tree_view, ia->asst.prop_renderer, title);
   gtk_tree_view_column_set_fixed_width (column, MAX (content_width,
                                                      header_width));
   gtk_tree_view_append_column (tree_view, column);
@@ -1909,7 +1912,7 @@ add_line_number_column (const struct import_assistant *ia,
   GtkTreeViewColumn *column;
 
   column = gtk_tree_view_column_new_with_attributes (
-    "Line", ia->asst.prop_renderer,
+						     _("Line"), ia->asst.prop_renderer,
     "text", TEXT_IMPORT_MODEL_COLUMN_LINE_NUMBER,
     (void *) NULL);
   gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);
