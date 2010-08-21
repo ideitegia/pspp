@@ -285,7 +285,7 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
 
 	  if (e)
 	    {
-	      msg (SE, _("COLUMN subcommand multiply specified."));
+              msg (SE, _("%s subcommand may be given at most once."), "COLUMN");
 	      expr_free (e);
 	      return CMD_CASCADING_FAILURE;
 	    }
