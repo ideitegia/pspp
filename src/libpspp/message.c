@@ -28,6 +28,7 @@
 
 #include <libpspp/str.h>
 #include <libpspp/version.h>
+#include <data/settings.h>
 
 #include "gl/progname.h"
 #include "gl/xalloc.h"
@@ -145,6 +146,93 @@ msg_to_string (const struct msg *m, const char *command_name)
   return ds_cstr (&s);
 }
 
+
+/* Number of messages reported, by severity level. */
+static int counts[MSG_N_SEVERITIES];
+
+/* True after the maximum number of errors or warnings has been exceeded. */
+static bool too_many_errors;
+
+/* True after the maximum number of notes has been exceeded. */
+static bool too_many_notes;
+
+/* Checks whether we've had so many errors that it's time to quit
+   processing this syntax file. */
+bool
+msg_ui_too_many_errors (void)
+{
+  return too_many_errors;
+}
+
+void
+msg_ui_reset_counts (void)
+{
+  int i;
+
+  for (i = 0; i < MSG_N_SEVERITIES; i++)
+    counts[i] = 0;
+  too_many_errors = false;
+  too_many_notes = false;
+}
+
+bool
+msg_ui_any_errors (void)
+{
+  return counts[MSG_S_ERROR] > 0;
+}
+
+static void
+submit_note (char *s)
+{
+  struct msg m;
+
+  m.category = MSG_C_GENERAL;
+  m.severity = MSG_S_NOTE;
+  m.where.file_name = NULL;
+  m.where.line_number = -1;
+  m.text = s;
+  msg_handler (&m);
+  free (s);
+}
+
+static void
+process_msg (const struct msg *m)
+{
+  int n_msgs, max_msgs;
+
+  if (too_many_errors || (too_many_notes && m->severity == MSG_S_NOTE))
+    return;
+
+  msg_handler (m);
+
+  counts[m->severity]++;
+  max_msgs = settings_get_max_messages (m->severity);
+  n_msgs = counts[m->severity];
+  if (m->severity == MSG_S_WARNING)
+    n_msgs += counts[MSG_S_ERROR];
+  if (n_msgs > max_msgs)
+    {
+      if (m->severity == MSG_S_NOTE)
+        {
+          too_many_notes = true;
+          submit_note (xasprintf (_("Notes (%d) exceed limit (%d).  "
+                                    "Suppressing further notes."),
+                                  n_msgs, max_msgs));
+        }
+      else
+        {
+          too_many_errors = true;
+          if (m->severity == MSG_S_WARNING)
+            submit_note (xasprintf (_("Warnings (%d) exceed limit (%d)."),
+                                    n_msgs, max_msgs));
+          else
+            submit_note (xasprintf (_("Errors (%d) exceed limit (%d)."),
+                                    n_msgs, max_msgs));
+        }
+    }
+}
+
+
 /* Emits M as an error message.
    Frees allocated data in M. */
 void
@@ -159,7 +247,8 @@ msg_emit (struct msg *m)
     }
 
   if (!messages_disabled)
-     msg_handler (m);
+     process_msg (m);
+
   free (m->text);
 }
 
@@ -209,3 +298,4 @@ request_bug_report_and_abort (const char *msg)
 
   _exit (EXIT_FAILURE);
 }
+
