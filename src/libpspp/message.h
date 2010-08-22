@@ -108,12 +108,14 @@ void msg_disable (void);
 void msg_push_msg_locator (const struct msg_locator *);
 void msg_pop_msg_locator (const struct msg_locator *);
 
+bool msg_ui_too_many_errors (void);
+void msg_ui_reset_counts (void);
+bool msg_ui_any_errors (void);
+void msg_ui_disable_warnings (bool);
+
 
 /* Used in panic situations only. */
 void request_bug_report_and_abort (const char *msg) NO_RETURN;
 
-bool msg_ui_too_many_errors (void);
-void msg_ui_reset_counts (void);
-bool msg_ui_any_errors (void);
 
 #endif /* message.h */

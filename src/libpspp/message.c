@@ -156,6 +156,9 @@ static bool too_many_errors;
 /* True after the maximum number of notes has been exceeded. */
 static bool too_many_notes;
 
+/* True iff warnings have been explicitly disabled (MXWARNS = 0) */
+static bool warnings_off = false;
+
 /* Checks whether we've had so many errors that it's time to quit
    processing this syntax file. */
 bool
@@ -163,6 +166,13 @@ msg_ui_too_many_errors (void)
 {
   return too_many_errors;
 }
+
+void
+msg_ui_disable_warnings (bool x)
+{
+  warnings_off = x;
+}
+
 
 void
 msg_ui_reset_counts (void)
@@ -195,12 +205,17 @@ submit_note (char *s)
   free (s);
 }
 
+
+
 static void
 process_msg (const struct msg *m)
 {
   int n_msgs, max_msgs;
 
-  if (too_many_errors || (too_many_notes && m->severity == MSG_S_NOTE))
+
+  if (too_many_errors
+      || (too_many_notes && m->severity == MSG_S_NOTE)
+      || (warnings_off && m->severity == MSG_S_WARNING) )
     return;
 
   msg_handler (m);
@@ -223,10 +238,10 @@ process_msg (const struct msg *m)
         {
           too_many_errors = true;
           if (m->severity == MSG_S_WARNING)
-            submit_note (xasprintf (_("Warnings (%d) exceed limit (%d)."),
+            submit_note (xasprintf (_("Warnings (%d) exceed limit (%d).  Syntax processing will be halted."),
                                     n_msgs, max_msgs));
           else
-            submit_note (xasprintf (_("Errors (%d) exceed limit (%d)."),
+            submit_note (xasprintf (_("Errors (%d) exceed limit (%d).  Syntax processing will be halted."),
                                     n_msgs, max_msgs));
         }
     }

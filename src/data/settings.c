@@ -364,11 +364,31 @@ settings_get_max_messages (enum msg_severity severity)
 
 /* Sets the maximum number of messages to show of the given SEVERITY before
    aborting to MAX.  (The value for MSG_S_WARNING is interpreted as maximum
-   number of warnings and errors combined.) */
+   number of warnings and errors combined.)  In addition, in the case of 
+   warnings the special value of zero indicates that no warnings are to be
+   issued. 
+*/
 void
 settings_set_max_messages (enum msg_severity severity, int max)
 {
   assert (severity < MSG_N_SEVERITIES);
+
+  if (severity == MSG_S_WARNING)
+    {
+      if ( max == 0)
+	{
+	  msg (MW,
+	       _("MXWARNS set to zero.  No further warnings will be given even when potentially problematic situations are encountered."));
+	  msg_ui_disable_warnings (true);
+	}
+      else if ( the_settings.max_messages [MSG_S_WARNING] == 0)
+	{
+	  msg_ui_disable_warnings (false);
+	  the_settings.max_messages[MSG_S_WARNING] = max;
+	  msg (MW, _("Warnings re-enabled. %d warnings will be issued before aborting syntax processing."), max);
+	}
+    }
+
   the_settings.max_messages[severity] = max;
 }
 
