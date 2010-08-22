@@ -519,11 +519,11 @@ ANY(string, string[, string]...).]],
 RANGE(number, number, number[, number, number]...)
 RANGE(string, string, string[, string, string]...).]],
   [[range(1, 2)], [error],
-   [error: DEBUG EVALUATE: RANGE(number, number, number[, number, number]...) must have even number of arguments in list.]],
+   [error: DEBUG EVALUATE: RANGE(number, number, number[, number, number]...) must have an even number of arguments in list.]],
   [[range(1, 2, 3, 4)], [error],
-   [error: DEBUG EVALUATE: RANGE(number, number, number[, number, number]...) must have even number of arguments in list.]],
+   [error: DEBUG EVALUATE: RANGE(number, number, number[, number, number]...) must have an even number of arguments in list.]],
   [[range(1, 2, 3, 4, 5, 6)], [error],
-   [error: DEBUG EVALUATE: RANGE(number, number, number[, number, number]...) must have even number of arguments in list.]],
+   [error: DEBUG EVALUATE: RANGE(number, number, number[, number, number]...) must have an even number of arguments in list.]],
   [[range('1', 2, 3)], [error],
    [error: DEBUG EVALUATE: Function invocation range(string, number, number) does not match any known function.  Candidates are:
 RANGE(number, number, number[, number, number]...)
@@ -562,11 +562,11 @@ RANGE(string, string, string[, string, string]...).]],
 RANGE(number, number, number[, number, number]...)
 RANGE(string, string, string[, string, string]...).]],
   [[range('1', '2')], [error],
-   [error: DEBUG EVALUATE: RANGE(string, string, string[, string, string]...) must have even number of arguments in list.]],
+   [error: DEBUG EVALUATE: RANGE(string, string, string[, string, string]...) must have an even number of arguments in list.]],
   [[range('1', '2', '3', '4')], [error],
-   [error: DEBUG EVALUATE: RANGE(string, string, string[, string, string]...) must have even number of arguments in list.]],
+   [error: DEBUG EVALUATE: RANGE(string, string, string[, string, string]...) must have an even number of arguments in list.]],
   [[range('1', '2', '3', '4', '5', '6')], [error],
-   [error: DEBUG EVALUATE: RANGE(string, string, string[, string, string]...) must have even number of arguments in list.]],
+   [error: DEBUG EVALUATE: RANGE(string, string, string[, string, string]...) must have an even number of arguments in list.]],
   [[range(1, '2', '3')], [error],
    [error: DEBUG EVALUATE: Function invocation range(number, string, string) does not match any known function.  Candidates are:
 RANGE(number, number, number[, number, number]...)

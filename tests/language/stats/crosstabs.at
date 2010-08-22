@@ -174,7 +174,7 @@ x,1.00,2.00,Total
 Total,2.0,2.0,4.0
 
 Table: Chi-square tests.
-Statistic,Value,df,Asymp. Sig. (2-sided)
+Statistic,Value,df,Asymp. Sig. (2-tailed)
 Pearson Chi-Square,2.00,2,.37
 Likelihood Ratio,2.77,2,.25
 Linear-by-Linear Association,.27,1,.60
@@ -234,7 +234,7 @@ Total,4.0,2.0,6.0
 ,66.7%,33.3%,100.0%
 
 Table: Chi-square tests.
-Statistic,Value,df,Asymp. Sig. (2-sided),Exact Sig. (2-sided),Exact Sig. (1-sided)
+Statistic,Value,df,Asymp. Sig. (2-tailed),Exact Sig. (2-tailed),Exact Sig. (1-tailed)
 Pearson Chi-Square,.38,1,.54,,
 Likelihood Ratio,.37,1,.54,,
 Fisher's Exact Test,,,,1.00,.60
@@ -267,7 +267,7 @@ Total,1.0,3.0,4.0
 ,25.0%,75.0%,100.0%
 
 Table: Chi-square tests.
-Statistic,Value,df,Asymp. Sig. (2-sided),Exact Sig. (2-sided),Exact Sig. (1-sided)
+Statistic,Value,df,Asymp. Sig. (2-tailed),Exact Sig. (2-tailed),Exact Sig. (1-tailed)
 Pearson Chi-Square,.44,1,.50,,
 Likelihood Ratio,.68,1,.41,,
 Fisher's Exact Test,,,,1.00,.75
