@@ -133,6 +133,110 @@ editor_execute_syntax (const PsppireSyntaxWindow *sw, GtkTextIter start,
 }
 
 
+
+
+/* Delete the currently selected text */
+static void
+on_edit_delete (PsppireSyntaxWindow *sw)
+{
+  GtkTextIter begin, end;
+  
+  if ( gtk_text_buffer_get_selection_bounds (sw->buffer, &begin, &end) )
+    gtk_text_buffer_delete (sw->buffer, &begin, &end);
+}
+
+/* The syntax editor's clipboard deals only with text */
+enum {
+  SELECT_FMT_NULL,
+  SELECT_FMT_TEXT,
+};
+
+
+/* The callback which runs when something request clipboard data */
+static void
+clipboard_get_cb (GtkClipboard     *clipboard,
+		  GtkSelectionData *selection_data,
+		  guint             info,
+		  gpointer          data)
+{
+  PsppireSyntaxWindow *sw = data;
+  g_assert (info == SELECT_FMT_TEXT);
+
+  gtk_selection_data_set (selection_data, selection_data->target,
+			  8,
+			  (const guchar *) sw->cliptext, strlen (sw->cliptext));
+
+}
+
+static void
+clipboard_clear_cb (GtkClipboard *clipboard,
+		    gpointer data)
+{
+  PsppireSyntaxWindow *sw = data;
+  g_free (sw->cliptext);
+  sw->cliptext = NULL;
+}
+
+
+static const GtkTargetEntry targets[] = {
+  { "UTF8_STRING",   0, SELECT_FMT_TEXT },
+  { "STRING",        0, SELECT_FMT_TEXT },
+  { "TEXT",          0, SELECT_FMT_TEXT },
+  { "COMPOUND_TEXT", 0, SELECT_FMT_TEXT },
+  { "text/plain;charset=utf-8", 0, SELECT_FMT_TEXT },
+  { "text/plain",    0, SELECT_FMT_TEXT },
+};
+
+
+/*
+  Store a clip containing the currently selected text.
+  Returns true iff something was set.
+  As a side effect, begin and end will be set to indicate
+  the limits of the selected text.
+*/
+static gboolean
+set_clip (PsppireSyntaxWindow *sw, GtkTextIter *begin, GtkTextIter *end)
+{
+  GtkClipboard *clipboard ;
+
+  if ( ! gtk_text_buffer_get_selection_bounds (sw->buffer, begin, end) )
+    return FALSE;
+
+  g_free (sw->cliptext);
+  sw->cliptext = gtk_text_buffer_get_text  (sw->buffer, begin, end, FALSE);
+
+  clipboard =
+    gtk_widget_get_clipboard (GTK_WIDGET (sw), GDK_SELECTION_CLIPBOARD);
+
+  if (!gtk_clipboard_set_with_owner (clipboard, targets,
+				     G_N_ELEMENTS (targets),
+				     clipboard_get_cb, clipboard_clear_cb,
+				     G_OBJECT (sw)))
+    clipboard_clear_cb (clipboard, sw);
+
+  return TRUE;
+}
+
+static void
+on_edit_cut (PsppireSyntaxWindow *sw)
+{
+  GtkTextIter begin, end;
+  
+  if ( set_clip (sw, &begin, &end))
+    gtk_text_buffer_delete (sw->buffer, &begin, &end);
+}
+
+static void
+on_edit_copy (PsppireSyntaxWindow *sw)
+{
+  GtkTextIter begin, end;
+
+  if ( ! set_clip (sw, &begin, &end))
+    return;
+}
+
+
+
 /* Parse and execute all the text in the buffer */
 static void
 on_run_all (GtkMenuItem *menuitem, gpointer user_data)
@@ -397,6 +501,9 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
 
   GtkWidget *text_view = get_widget_assert (xml, "syntax_text_view");
+
+  window->cliptext = NULL;
+
   window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
   window->lexer = lex_create (the_source_stream);
 
@@ -447,6 +554,22 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   g_signal_connect (get_action_assert (xml,"file_quit"),
 		    "activate",
 		    G_CALLBACK (on_quit),
+		    window);
+
+
+  g_signal_connect_swapped (get_action_assert (xml, "edit_delete"),
+		    "activate",
+		    G_CALLBACK (on_edit_delete),
+		    window);
+
+  g_signal_connect_swapped (get_action_assert (xml, "edit_copy"),
+		    "activate",
+		    G_CALLBACK (on_edit_copy),
+		    window);
+
+  g_signal_connect_swapped (get_action_assert (xml, "edit_cut"),
+		    "activate",
+		    G_CALLBACK (on_edit_cut),
 		    window);
 
   g_signal_connect (get_action_assert (xml,"run_all"),

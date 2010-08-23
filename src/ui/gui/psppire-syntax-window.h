@@ -51,6 +51,8 @@ struct _PsppireSyntaxWindow
   struct lexer *lexer;    /* Lexer to parse syntax */
   GtkWidget *sb;
   guint text_context;
+
+  gchar *cliptext;
 };
 
 struct _PsppireSyntaxWindowClass

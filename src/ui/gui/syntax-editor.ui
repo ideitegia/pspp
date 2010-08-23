@@ -73,25 +73,25 @@
         <child>
           <object class="GtkAction" id="edit_cut">
             <property name="stock-id">gtk-cut</property>
-            <property name="name">cut</property>
+            <property name="name">edit_cut</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_copy">
             <property name="stock-id">gtk-copy</property>
-            <property name="name">copy</property>
+            <property name="name">edit_copy</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_paste">
             <property name="stock-id">gtk-paste</property>
-            <property name="name">paste</property>
+            <property name="name">edit_paste</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_delete">
             <property name="stock-id">gtk-delete</property>
-            <property name="name">delete</property>
+            <property name="name">edit_delete</property>
           </object>
         </child>
         <child>
