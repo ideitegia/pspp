@@ -102,6 +102,15 @@ struct oneway_spec
 
 };
 
+/* Per category data */
+struct descriptive_data
+{
+  const struct variable *var;
+  struct moments1 *mom;
+
+  double minimum;
+  double maximum;
+};
 
 /* Workspace variable for each dependent variable */
 struct per_var_ws
@@ -114,7 +123,6 @@ struct per_var_ws
 
   int n_groups;
 
-  double cc;
   double mse;
 };
 
@@ -314,15 +322,6 @@ free_double (void *value_, const void *aux UNUSED)
 static void postcalc (const struct oneway_spec *cmd);
 static void  precalc (const struct oneway_spec *cmd);
 
-struct descriptive_data
-{
-  const struct variable *var;
-  struct moments1 *mom;
-
-  double minimum;
-  double maximum;
-};
-
 static struct descriptive_data *
 dd_create (const struct variable *var)
 {
@@ -348,7 +347,9 @@ makeit (void *aux1, void *aux2 UNUSED)
 }
 
 static void 
-updateit (void *user_data, const struct variable *wv, 
+updateit (void *user_data, 
+	  enum mv_class exclude,
+	  const struct variable *wv, 
 	  const struct variable *catvar UNUSED,
 	  const struct ccase *c,
 	  void *aux1, void *aux2)
@@ -358,6 +359,9 @@ updateit (void *user_data, const struct variable *wv,
   const struct variable *varp = aux1;
 
   const union value *valx = case_data (c, varp);
+
+  if ( var_is_value_missing (varp, valx, exclude))
+    return;
 
   struct descriptive_data *dd_total = aux2;
 
@@ -419,7 +423,6 @@ run_oneway (const struct oneway_spec *cmd,
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
 					       cats, 
 					       cmd->wv, cmd->exclude);
-      ws.vws[v].cc = 0;
     }
 
   c = casereader_peek (input, 0);
@@ -469,7 +472,6 @@ run_oneway (const struct oneway_spec *cmd,
 	  {
 	    struct per_var_ws *pvw = &ws.vws[i];
 
-	    pvw->cc += weight;
 	    covariance_accumulate_pass1 (pvw->cov, c);
 	  }
 
@@ -546,7 +548,12 @@ run_oneway (const struct oneway_spec *cmd,
       gsl_matrix *cm = covariance_calculate_unnormalized (pvw->cov);
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
 
+      double n;
+      moments1_calculate (ws.dd_total[v]->mom, &n, NULL, NULL, NULL, NULL);
+
       pvw->sst = gsl_matrix_get (cm, 0, 0);
+
+      //      gsl_matrix_fprintf (stdout, cm, "%g ");
 
       reg_sweep (cm, 0);
 
@@ -556,7 +563,7 @@ run_oneway (const struct oneway_spec *cmd,
 
       pvw->n_groups = categoricals_total (cats);
 
-      pvw->mse = (pvw->sst - pvw->ssa) / (pvw->cc - pvw->n_groups);
+      pvw->mse = (pvw->sst - pvw->ssa) / (n - pvw->n_groups);
     }
 
   postcalc (cmd);
@@ -693,13 +700,11 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
 
   show_anova_table (cmd, ws);
 
-
   if (ll_count (&cmd->contrast_list) > 0)
     {
       show_contrast_coeffs (cmd, ws);
       show_contrast_tests (cmd, ws);
     }
-
 
   /* Clean up */
   for (i = 0; i < cmd->n_vars; ++i )
@@ -744,9 +749,12 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
 
   for (i = 0; i < cmd->n_vars; ++i)
     {
+      double n;
+      moments1_calculate (ws->dd_total[i]->mom, &n, NULL, NULL, NULL, NULL);
+
       const struct per_var_ws *pvw = &ws->vws[i];
       const double df1 = pvw->n_groups - 1;
-      const double df2 = pvw->cc - pvw->n_groups;
+      const double df2 = n - pvw->n_groups;
       const double msa = pvw->ssa / df1;
 
       const char *s = var_to_string (cmd->vars[i]);
@@ -769,7 +777,7 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
       /* Degrees of freedom */
       tab_fixed (t, 3, i * 3 + 1, 0, df1, 4, 0);
       tab_fixed (t, 3, i * 3 + 2, 0, df2, 4, 0);
-      tab_fixed (t, 3, i * 3 + 3, 0, pvw->cc - 1, 4, 0);
+      tab_fixed (t, 3, i * 3 + 3, 0, n - 1, 4, 0);
 
       /* Mean Squares */
       tab_double (t, 4, i * 3 + 1, TAB_RIGHT, msa, NULL);
@@ -985,6 +993,9 @@ show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
+      double n;
+      moments1_calculate (ws->dd_total[v]->mom, &n, NULL, NULL, NULL, NULL);
+
       const struct per_var_ws *pvw = &ws->vws[v];
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
 
@@ -993,7 +1004,7 @@ show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *
       const char *s = var_to_string (var);
 
       const double df1 = pvw->n_groups - 1;
-      const double df2 = pvw->cc - pvw->n_groups;
+      const double df2 = n - pvw->n_groups;
       double F = gp->levene;
 
       tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);

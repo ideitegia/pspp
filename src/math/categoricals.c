@@ -88,15 +88,11 @@ struct categoricals
   /* Missing values to be excluded */
   enum mv_class exclude;
 
-
-
   /* Function to be called on each update */
   update_func *update;
 
-
   /* Function specified by the caller to create user_data */
   user_data_create_func *user_data_create;
-
 
   /* Auxilliary data to be passed to update and user_data_create_func*/
   void *aux1;
@@ -119,7 +115,7 @@ categoricals_destroy ( struct categoricals *cat)
 }
 
 
-#if 0
+#if 1
 void
 categoricals_dump (const struct categoricals *cat)
 {
@@ -280,7 +276,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       cat->vp[i].cc += weight;
 
       if (cat->update)
-	cat->update (node->user_data, cat->wv, var, c, cat->aux1, cat->aux2);
+	cat->update (node->user_data, cat->exclude, cat->wv, var, c, cat->aux1, cat->aux2);
     }
 }
 
@@ -341,6 +337,8 @@ categoricals_done (struct categoricals *cat)
     }
 
   assert (cat->n_vars <= cat->n_vp);
+
+  //  categoricals_dump (cat);
 }
 
 

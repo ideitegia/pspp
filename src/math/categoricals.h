@@ -28,6 +28,7 @@ struct ccase;
 union value ;
 
 typedef void update_func (void *user_data,
+			  enum mv_class exclude,
 			  const struct variable *wv, 
 			  const struct variable *catvar,
 			  const struct ccase *c,
