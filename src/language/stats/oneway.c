@@ -469,8 +469,12 @@ run_oneway (const struct oneway_spec *cmd,
 
       for (i = 0; i < cmd->n_vars; ++i)
 	{
+	  struct per_var_ws *pvw = &ws.vws[i];
 	  const struct variable *v = cmd->vars[i];
 	  const union value *val = case_data (c, v);
+          struct group_proc *gp = group_proc_get (cmd->vars[i]);
+	  struct hsh_table *group_hash = gp->group_hash;
+	  struct group_statistics *gs;
 
 	  if ( MISS_ANALYSIS == cmd->missing_type)
 	    {
@@ -478,16 +482,7 @@ run_oneway (const struct oneway_spec *cmd,
 		continue;
 	    }
 
-	  {
-	    struct per_var_ws *pvw = &ws.vws[i];
-
-	    covariance_accumulate_pass1 (pvw->cov, c);
-	  }
-
-          struct group_proc *gp = group_proc_get (cmd->vars[i]);
-	  struct hsh_table *group_hash = gp->group_hash;
-
-	  struct group_statistics *gs;
+	  covariance_accumulate_pass1 (pvw->cov, c);
 
 	  gs = hsh_find (group_hash, indep_val );
 
@@ -764,14 +759,16 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
   for (i = 0; i < cmd->n_vars; ++i)
     {
       double n;
+      double df1, df2;
+      double msa;
+      const char *s = var_to_string (cmd->vars[i]);
+      const struct per_var_ws *pvw = &ws->vws[i];
+
       moments1_calculate (ws->dd_total[i]->mom, &n, NULL, NULL, NULL, NULL);
 
-      const struct per_var_ws *pvw = &ws->vws[i];
-      const double df1 = pvw->n_groups - 1;
-      const double df2 = n - pvw->n_groups;
-      const double msa = pvw->ssa / df1;
-
-      const char *s = var_to_string (cmd->vars[i]);
+      df1 = pvw->n_groups - 1;
+      df2 = n - pvw->n_groups;
+      msa = pvw->ssa / df1;
 
       tab_text (t, 0, i * 3 + 1, TAB_LEFT | TAT_TITLE, s);
       tab_text (t, 1, i * 3 + 1, TAB_LEFT | TAT_TITLE, _("Between Groups"));
@@ -1008,21 +1005,22 @@ show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *
   for (v = 0; v < cmd->n_vars; ++v)
     {
       double n;
-      moments1_calculate (ws->dd_total[v]->mom, &n, NULL, NULL, NULL, NULL);
+
 
       const struct per_var_ws *pvw = &ws->vws[v];
-      const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
 
       const struct variable *var = cmd->vars[v];
       const struct group_proc *gp = group_proc_get (cmd->vars[v]);
       const char *s = var_to_string (var);
-
-      const double df1 = pvw->n_groups - 1;
-      const double df2 = n - pvw->n_groups;
+      double df1, df2;
       double F = gp->levene;
 
-      tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);
+      moments1_calculate (ws->dd_total[v]->mom, &n, NULL, NULL, NULL, NULL);
 
+      df1 = pvw->n_groups - 1;
+      df2 = n - pvw->n_groups;
+
+      tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);
 
       tab_double (t, 1, v + 1, TAB_RIGHT, F, NULL);
       tab_fixed (t, 2, v + 1, TAB_RIGHT, df1, 8, 0);
@@ -1239,13 +1237,13 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 	    {
 	      double n, mean, variance;
 	      const struct descriptive_data *dd = categoricals_get_user_data_by_subscript (cats, ci);
+	      struct coeff_node *cn = ll_data (coeffi, struct coeff_node, ll);
+	      const double coef = cn->coeff; 
+	      double winv ;
 
 	      moments1_calculate (dd->mom, &n, &mean, &variance, NULL, NULL);
 
-	      struct coeff_node *cn = ll_data (coeffi, struct coeff_node, ll);
-	      const double coef = cn->coeff; 
-
-	      const double winv = variance / n;
+	      winv = variance / n;
 
 	      contrast_value += coef * mean;
 
