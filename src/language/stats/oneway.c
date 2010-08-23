@@ -469,15 +469,20 @@ run_oneway (const struct oneway_spec *cmd,
 
       for (i = 0; i < cmd->n_vars; ++i)
 	{
+	  const struct variable *v = cmd->vars[i];
+	  const union value *val = case_data (c, v);
+
+	  if ( MISS_ANALYSIS == cmd->missing_type)
+	    {
+	      if ( var_is_value_missing (v, val, cmd->exclude))
+		continue;
+	    }
+
 	  {
 	    struct per_var_ws *pvw = &ws.vws[i];
 
 	    covariance_accumulate_pass1 (pvw->cov, c);
 	  }
-
-	  const struct variable *v = cmd->vars[i];
-
-	  const union value *val = case_data (c, v);
 
           struct group_proc *gp = group_proc_get (cmd->vars[i]);
 	  struct hsh_table *group_hash = gp->group_hash;
@@ -537,6 +542,15 @@ run_oneway (const struct oneway_spec *cmd,
       for (i = 0; i < cmd->n_vars; ++i)
 	{
 	  struct per_var_ws *pvw = &ws.vws[i];
+	  const struct variable *v = cmd->vars[i];
+	  const union value *val = case_data (c, v);
+
+	  if ( MISS_ANALYSIS == cmd->missing_type)
+	    {
+	      if ( var_is_value_missing (v, val, cmd->exclude))
+		continue;
+	    }
+
 	  covariance_accumulate_pass2 (pvw->cov, c);
 	}
     }
