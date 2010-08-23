@@ -53,6 +53,11 @@ struct _PsppireSyntaxWindow
   guint text_context;
 
   gchar *cliptext;
+
+  GtkAction *edit_cut;
+  GtkAction *edit_copy;
+  GtkAction *edit_delete;
+  GtkAction *edit_paste;
 };
 
 struct _PsppireSyntaxWindowClass

@@ -152,6 +152,16 @@ enum {
 };
 
 
+static void
+selection_changed (PsppireSyntaxWindow *sw)
+{
+  gboolean sel = gtk_text_buffer_get_has_selection (sw->buffer);
+
+  gtk_action_set_sensitive (sw->edit_copy, sel);
+  gtk_action_set_sensitive (sw->edit_cut, sel);
+  gtk_action_set_sensitive (sw->edit_delete, sel);
+}
+
 /* The callback which runs when something request clipboard data */
 static void
 clipboard_get_cb (GtkClipboard     *clipboard,
@@ -231,8 +241,7 @@ on_edit_copy (PsppireSyntaxWindow *sw)
 {
   GtkTextIter begin, end;
 
-  if ( ! set_clip (sw, &begin, &end))
-    return;
+  set_clip (sw, &begin, &end);
 }
 
 
@@ -502,7 +511,17 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   GtkWidget *text_view = get_widget_assert (xml, "syntax_text_view");
 
+
+  GtkClipboard *clipboard =
+    gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
+
+  g_signal_connect_swapped (clipboard, "owner-change", G_CALLBACK (selection_changed), window);
+
   window->cliptext = NULL;
+
+  window->edit_delete = get_action_assert (xml, "edit_delete");
+  window->edit_copy = get_action_assert (xml, "edit_copy");
+  window->edit_cut = get_action_assert (xml, "edit_cut");
 
   window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
   window->lexer = lex_create (the_source_stream);
@@ -556,18 +575,17 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    G_CALLBACK (on_quit),
 		    window);
 
-
-  g_signal_connect_swapped (get_action_assert (xml, "edit_delete"),
+  g_signal_connect_swapped (window->edit_delete,
 		    "activate",
 		    G_CALLBACK (on_edit_delete),
 		    window);
 
-  g_signal_connect_swapped (get_action_assert (xml, "edit_copy"),
+  g_signal_connect_swapped (window->edit_copy,
 		    "activate",
 		    G_CALLBACK (on_edit_copy),
 		    window);
 
-  g_signal_connect_swapped (get_action_assert (xml, "edit_cut"),
+  g_signal_connect_swapped (window->edit_cut,
 		    "activate",
 		    G_CALLBACK (on_edit_cut),
 		    window);
@@ -576,7 +594,6 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    "activate",
 		    G_CALLBACK (on_run_all),
 		    window);
-
 
   g_signal_connect (get_action_assert (xml,"run_selection"),
 		    "activate",
@@ -609,6 +626,9 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_object_unref (xml);
 }
+
+
+
 
 
 GtkWidget*
@@ -697,3 +717,6 @@ psppire_syntax_window_iface_init (PsppireWindowIface *iface)
   iface->save = syntax_save;
   iface->load = syntax_load;
 }
+
+
+
