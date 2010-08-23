@@ -145,6 +145,9 @@ on_edit_delete (PsppireSyntaxWindow *sw)
     gtk_text_buffer_delete (sw->buffer, &begin, &end);
 }
 
+
+
+
 /* The syntax editor's clipboard deals only with text */
 enum {
   SELECT_FMT_NULL,
@@ -243,6 +246,44 @@ on_edit_copy (PsppireSyntaxWindow *sw)
 
   set_clip (sw, &begin, &end);
 }
+
+
+/* A callback for when the clipboard contents have been received */
+static void
+contents_received_callback (GtkClipboard *clipboard,
+			    GtkSelectionData *sd,
+			    gpointer data)
+{
+  gchar *c;
+  PsppireSyntaxWindow *syntax_window = data;
+
+  if ( sd->length < 0 )
+    return;
+
+  if ( sd->type != gdk_atom_intern ("UTF8_STRING", FALSE))
+    return;
+
+  c = (gchar *) sd->data;
+
+  gtk_text_buffer_insert_at_cursor (syntax_window->buffer,
+				    (gchar *) sd->data,
+				    sd->length);
+
+}
+
+void
+on_edit_paste (PsppireSyntaxWindow *sw)
+{
+  GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (sw));
+  GtkClipboard *clipboard =
+    gtk_clipboard_get_for_display (display, GDK_SELECTION_CLIPBOARD);
+
+  gtk_clipboard_request_contents (clipboard,
+				  gdk_atom_intern ("UTF8_STRING", TRUE),
+				  contents_received_callback,
+				  sw);
+}
+
 
 
 
@@ -522,6 +563,9 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   window->edit_delete = get_action_assert (xml, "edit_delete");
   window->edit_copy = get_action_assert (xml, "edit_copy");
   window->edit_cut = get_action_assert (xml, "edit_cut");
+  window->edit_paste = get_action_assert (xml, "edit_paste");
+
+gtk_action_set_sensitive (window->edit_paste, TRUE);
 
   window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
   window->lexer = lex_create (the_source_stream);
@@ -588,6 +632,11 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   g_signal_connect_swapped (window->edit_cut,
 		    "activate",
 		    G_CALLBACK (on_edit_cut),
+		    window);
+
+  g_signal_connect_swapped (window->edit_paste,
+		    "activate",
+		    G_CALLBACK (on_edit_paste),
 		    window);
 
   g_signal_connect (get_action_assert (xml,"run_all"),
