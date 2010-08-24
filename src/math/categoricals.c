@@ -26,6 +26,7 @@
 #include <data/value.h>
 #include <libpspp/hmap.h>
 #include <libpspp/pool.h>
+#include <libpspp/array.h>
 
 #include <libpspp/str.h>
 
@@ -40,7 +41,6 @@ struct value_node
   int subscript;              /* A zero based integer, unique within the variable.
 				 Can be used as an index into an array */
 };
-
 
 struct var_params
 {
@@ -60,6 +60,18 @@ struct var_params
   /* Total of the weights of this variable */
   double cc; 
 };
+
+
+/* Comparison function to sort the reverse_value_map in ascending order */
+static int
+compare_value_node (const void *vn1_, const void *vn2_, const void *aux)
+{
+  const struct value_node * const *vn1 = vn1_;
+  const struct value_node * const *vn2 = vn2_;
+  const struct var_params *vp = aux;
+
+  return value_compare_3way (&(*vn1)->value, &(*vn2)->value, var_get_width (vp->var));
+}
 
 
 struct categoricals
@@ -115,7 +127,7 @@ categoricals_destroy ( struct categoricals *cat)
 }
 
 
-#if 1
+#if 0
 void
 categoricals_dump (const struct categoricals *cat)
 {
@@ -330,6 +342,10 @@ categoricals_done (struct categoricals *cat)
 	  vp->reverse_value_map[vn->subscript] = vn;
 	}
 
+      /* For some purposes (eg CONTRASTS in ONEWAY) the values need to be sorted */
+      sort (vp->reverse_value_map, vp->n_cats, sizeof (const struct value_node *),
+	    compare_value_node, vp);
+
       /* Populate the reverse variable map.
        */
       for (i = 0; i < vp->n_cats; ++i)
@@ -338,7 +354,6 @@ categoricals_done (struct categoricals *cat)
 
   assert (cat->n_vars <= cat->n_vp);
 
-  //  categoricals_dump (cat);
 }
 
 

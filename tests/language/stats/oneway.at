@@ -4,19 +4,19 @@ AT_SETUP([ONEWAY basic operation])
 AT_DATA([oneway.sps],
   [DATA LIST NOTABLE LIST /QUALITY * BRAND * .
 BEGIN DATA
+7  3
+4  3
 3 1
 2 1
 1 1
+4 2
+2 2
+3 2
+5  3
 1 1
 4 1
 5 2
 2 2
-4 2
-2 2
-3 2
-7  3
-4  3
-5  3
 3  3
 6  3
 END DATA
