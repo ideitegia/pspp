@@ -271,7 +271,7 @@ contents_received_callback (GtkClipboard *clipboard,
 
 }
 
-void
+static void
 on_edit_paste (PsppireSyntaxWindow *sw)
 {
   GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (sw));
@@ -282,6 +282,26 @@ on_edit_paste (PsppireSyntaxWindow *sw)
 				  gdk_atom_intern ("UTF8_STRING", TRUE),
 				  contents_received_callback,
 				  sw);
+}
+
+static void
+on_owner_change (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
+{
+  gint i;
+  gboolean compatible_target = FALSE;
+  PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (data);
+
+  for (i = 0 ; i < sizeof (targets) / sizeof (targets[0]) ; ++i)
+    {
+      GdkAtom atom = gdk_atom_intern (targets[i].target, TRUE);
+      if ( gtk_clipboard_wait_is_target_available (clip, atom))
+	{
+	  compatible_target = TRUE;
+	  break;
+	}
+    }
+
+  gtk_action_set_sensitive (sw->edit_paste, compatible_target);
 }
 
 
@@ -552,11 +572,12 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   GtkWidget *text_view = get_widget_assert (xml, "syntax_text_view");
 
+  GtkClipboard *clip_selection = gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_CLIPBOARD);
+  GtkClipboard *clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
 
-  GtkClipboard *clipboard =
-    gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
+  g_signal_connect_swapped (clip_primary, "owner-change", G_CALLBACK (selection_changed), window);
 
-  g_signal_connect_swapped (clipboard, "owner-change", G_CALLBACK (selection_changed), window);
+  g_signal_connect (clip_selection, "owner-change", G_CALLBACK (on_owner_change), window);
 
   window->cliptext = NULL;
 
@@ -564,8 +585,6 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   window->edit_copy = get_action_assert (xml, "edit_copy");
   window->edit_cut = get_action_assert (xml, "edit_cut");
   window->edit_paste = get_action_assert (xml, "edit_paste");
-
-gtk_action_set_sensitive (window->edit_paste, TRUE);
 
   window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
   window->lexer = lex_create (the_source_stream);
