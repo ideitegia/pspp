@@ -25,8 +25,5 @@ struct source_stream;
 void msg_ui_set_error_file (FILE *);
 void msg_ui_init (struct source_stream *);
 void msg_ui_done (void);
-bool msg_ui_too_many_errors (void);
-void msg_ui_reset_counts (void);
-bool msg_ui_any_errors (void);
 
 #endif /* msg-ui.h */

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -772,15 +772,16 @@ fmt_to_io (enum fmt_type type)
 bool
 fmt_from_io (int io, enum fmt_type *fmt_type)
 {
-  enum fmt_type type;
-
-  for (type = 0; type < FMT_NUMBER_OF_FORMATS; type++)
-    if (get_fmt_desc (type)->io == io)
-      {
-        *fmt_type = type;
-        return true;
-      }
-  return false;
+  switch (io)
+    {
+#define FMT(NAME, METHOD, IMIN, OMIN, IO, CATEGORY)     \
+    case IO:                                          \
+      *fmt_type = FMT_##NAME;                           \
+      return true;
+#include "format.def"
+    default:
+      return false;
+    }
 }
 
 /* Returns true if TYPE may be used as an input format,

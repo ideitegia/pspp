@@ -19,7 +19,7 @@
 #include <gtk/gtk.h>
 
 
-
+#include "widget-io.h"
 #include "checkbox-treeview.h"
 #include "descriptives-dialog.h"
 
@@ -720,8 +720,7 @@ close_assistant (struct import_assistant *ia, int response)
 
 /* The "intro" page of the assistant. */
 
-static void on_intro_amount_changed (GtkToggleButton *button,
-                                     struct import_assistant *);
+static void on_intro_amount_changed (struct import_assistant *);
 
 /* Initializes IA's intro substructure. */
 static void
@@ -730,20 +729,46 @@ init_intro_page (struct import_assistant *ia)
   GtkBuilder *builder = ia->asst.builder;
   struct intro_page *p = &ia->intro;
   struct string s;
+  GtkWidget *hbox_n_cases ;
+  GtkWidget *hbox_percent ;
+  GtkWidget *table ;
+
+
+  p->n_cases_spin = gtk_spin_button_new_with_range (0, INT_MAX, 100);
+
+  hbox_n_cases = widget_scanf (_("Only the first %4d cases"), &p->n_cases_spin);
+
+  table  = get_widget_assert (builder, "button-table");
+
+  gtk_table_attach_defaults (GTK_TABLE (table), hbox_n_cases,
+		    1, 2,
+		    1, 2);
+
+  p->percent_spin = gtk_spin_button_new_with_range (0, 100, 10);
+
+  hbox_percent = widget_scanf (_("Only the first %3d %% of file (approximately)"), &p->percent_spin);
+
+  gtk_table_attach_defaults (GTK_TABLE (table), hbox_percent,
+			     1, 2,
+			     2, 3);
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Intro"),
                                    GTK_ASSISTANT_PAGE_INTRO);
+
   p->all_cases_button = get_widget_assert (builder, "import-all-cases");
+
   p->n_cases_button = get_widget_assert (builder, "import-n-cases");
-  p->n_cases_spin = get_widget_assert (builder, "n-cases-spin");
+
   p->percent_button = get_widget_assert (builder, "import-percent");
-  p->percent_spin = get_widget_assert (builder, "percent-spin");
-  g_signal_connect (p->all_cases_button, "toggled",
+
+  g_signal_connect_swapped (p->all_cases_button, "toggled",
                     G_CALLBACK (on_intro_amount_changed), ia);
-  g_signal_connect (p->n_cases_button, "toggled",
+  g_signal_connect_swapped (p->n_cases_button, "toggled",
                     G_CALLBACK (on_intro_amount_changed), ia);
-  g_signal_connect (p->percent_button, "toggled",
+  g_signal_connect_swapped (p->percent_button, "toggled",
                     G_CALLBACK (on_intro_amount_changed), ia);
+
+  on_intro_amount_changed (ia);
 
   ds_init_empty (&s);
   ds_put_cstr (&s, _("This assistant will guide you through the process of "
@@ -790,8 +815,7 @@ reset_intro_page (struct import_assistant *ia)
 
 /* Called when one of the radio buttons is clicked. */
 static void
-on_intro_amount_changed (GtkToggleButton *button UNUSED,
-                         struct import_assistant *ia)
+on_intro_amount_changed (struct import_assistant *ia)
 {
   struct intro_page *p = &ia->intro;
 
@@ -799,7 +823,7 @@ on_intro_amount_changed (GtkToggleButton *button UNUSED,
                             gtk_toggle_button_get_active (
                               GTK_TOGGLE_BUTTON (p->n_cases_button)));
 
-  gtk_widget_set_sensitive (ia->intro.percent_spin,
+  gtk_widget_set_sensitive (p->percent_spin,
                             gtk_toggle_button_get_active (
                               GTK_TOGGLE_BUTTON (p->percent_button)));
 }
@@ -857,13 +881,16 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
   size_t max_line_length;
   gint content_width, header_width;
   size_t i;
+  gchar *title = _("Text");
 
   make_tree_view (ia, 0, &tree_view);
 
-  column = gtk_tree_view_column_new_with_attributes (
-    "Text", ia->asst.fixed_renderer,
-    "text", TEXT_IMPORT_MODEL_COLUMN_LINE,
-    (void *) NULL);
+  column = gtk_tree_view_column_new_with_attributes 
+    (
+     title, ia->asst.fixed_renderer,
+     "text", TEXT_IMPORT_MODEL_COLUMN_LINE,
+     (void *) NULL
+     );
   gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);
 
   max_line_length = 0;
@@ -875,7 +902,7 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
 
   content_width = get_monospace_width (tree_view, ia->asst.fixed_renderer,
                                        max_line_length);
-  header_width = get_string_width (tree_view, ia->asst.prop_renderer, "Text");
+  header_width = get_string_width (tree_view, ia->asst.prop_renderer, title);
   gtk_tree_view_column_set_fixed_width (column, MAX (content_width,
                                                      header_width));
   gtk_tree_view_append_column (tree_view, column);
@@ -1909,7 +1936,7 @@ add_line_number_column (const struct import_assistant *ia,
   GtkTreeViewColumn *column;
 
   column = gtk_tree_view_column_new_with_attributes (
-    "Line", ia->asst.prop_renderer,
+						     _("Line"), ia->asst.prop_renderer,
     "text", TEXT_IMPORT_MODEL_COLUMN_LINE_NUMBER,
     (void *) NULL);
   gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);

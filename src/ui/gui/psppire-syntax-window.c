@@ -158,6 +158,180 @@ editor_execute_syntax (const PsppireSyntaxWindow *sw, GtkTextIter start,
 }
 
 
+
+
+/* Delete the currently selected text */
+static void
+on_edit_delete (PsppireSyntaxWindow *sw)
+{
+  GtkTextIter begin, end;
+  GtkTextBuffer *buffer = GTK_TEXT_BUFFER (sw->buffer);
+  
+  if ( gtk_text_buffer_get_selection_bounds (buffer, &begin, &end) )
+    gtk_text_buffer_delete (buffer, &begin, &end);
+}
+
+
+/* The syntax editor's clipboard deals only with text */
+enum {
+  SELECT_FMT_NULL,
+  SELECT_FMT_TEXT,
+};
+
+
+static void
+selection_changed (PsppireSyntaxWindow *sw)
+{
+  gboolean sel = gtk_text_buffer_get_has_selection (GTK_TEXT_BUFFER (sw->buffer));
+
+  gtk_action_set_sensitive (sw->edit_copy, sel);
+  gtk_action_set_sensitive (sw->edit_cut, sel);
+  gtk_action_set_sensitive (sw->edit_delete, sel);
+}
+
+/* The callback which runs when something request clipboard data */
+static void
+clipboard_get_cb (GtkClipboard     *clipboard,
+		  GtkSelectionData *selection_data,
+		  guint             info,
+		  gpointer          data)
+{
+  PsppireSyntaxWindow *sw = data;
+  g_assert (info == SELECT_FMT_TEXT);
+
+  gtk_selection_data_set (selection_data, selection_data->target,
+			  8,
+			  (const guchar *) sw->cliptext, strlen (sw->cliptext));
+
+}
+
+static void
+clipboard_clear_cb (GtkClipboard *clipboard,
+		    gpointer data)
+{
+  PsppireSyntaxWindow *sw = data;
+  g_free (sw->cliptext);
+  sw->cliptext = NULL;
+}
+
+
+static const GtkTargetEntry targets[] = {
+  { "UTF8_STRING",   0, SELECT_FMT_TEXT },
+  { "STRING",        0, SELECT_FMT_TEXT },
+  { "TEXT",          0, SELECT_FMT_TEXT },
+  { "COMPOUND_TEXT", 0, SELECT_FMT_TEXT },
+  { "text/plain;charset=utf-8", 0, SELECT_FMT_TEXT },
+  { "text/plain",    0, SELECT_FMT_TEXT },
+};
+
+
+/*
+  Store a clip containing the currently selected text.
+  Returns true iff something was set.
+  As a side effect, begin and end will be set to indicate
+  the limits of the selected text.
+*/
+static gboolean
+set_clip (PsppireSyntaxWindow *sw, GtkTextIter *begin, GtkTextIter *end)
+{
+  GtkClipboard *clipboard ;
+  GtkTextBuffer *buffer = GTK_TEXT_BUFFER (sw->buffer);
+
+  if ( ! gtk_text_buffer_get_selection_bounds (buffer, begin, end) )
+    return FALSE;
+
+  g_free (sw->cliptext);
+  sw->cliptext = gtk_text_buffer_get_text  (buffer, begin, end, FALSE);
+
+  clipboard =
+    gtk_widget_get_clipboard (GTK_WIDGET (sw), GDK_SELECTION_CLIPBOARD);
+
+  if (!gtk_clipboard_set_with_owner (clipboard, targets,
+				     G_N_ELEMENTS (targets),
+				     clipboard_get_cb, clipboard_clear_cb,
+				     G_OBJECT (sw)))
+    clipboard_clear_cb (clipboard, sw);
+
+  return TRUE;
+}
+
+static void
+on_edit_cut (PsppireSyntaxWindow *sw)
+{
+  GtkTextIter begin, end;
+  
+  if ( set_clip (sw, &begin, &end))
+    gtk_text_buffer_delete (GTK_TEXT_BUFFER (sw->buffer), &begin, &end);
+}
+
+static void
+on_edit_copy (PsppireSyntaxWindow *sw)
+{
+  GtkTextIter begin, end;
+
+  set_clip (sw, &begin, &end);
+}
+
+
+/* A callback for when the clipboard contents have been received */
+static void
+contents_received_callback (GtkClipboard *clipboard,
+			    GtkSelectionData *sd,
+			    gpointer data)
+{
+  gchar *c;
+  PsppireSyntaxWindow *syntax_window = data;
+
+  if ( sd->length < 0 )
+    return;
+
+  if ( sd->type != gdk_atom_intern ("UTF8_STRING", FALSE))
+    return;
+
+  c = (gchar *) sd->data;
+
+  gtk_text_buffer_insert_at_cursor (GTK_TEXT_BUFFER (syntax_window->buffer),
+				    (gchar *) sd->data,
+				    sd->length);
+
+}
+
+static void
+on_edit_paste (PsppireSyntaxWindow *sw)
+{
+  GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (sw));
+  GtkClipboard *clipboard =
+    gtk_clipboard_get_for_display (display, GDK_SELECTION_CLIPBOARD);
+
+  gtk_clipboard_request_contents (clipboard,
+				  gdk_atom_intern ("UTF8_STRING", TRUE),
+				  contents_received_callback,
+				  sw);
+}
+
+static void
+on_owner_change (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
+{
+  gint i;
+  gboolean compatible_target = FALSE;
+  PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (data);
+
+  for (i = 0 ; i < sizeof (targets) / sizeof (targets[0]) ; ++i)
+    {
+      GdkAtom atom = gdk_atom_intern (targets[i].target, TRUE);
+      if ( gtk_clipboard_wait_is_target_available (clip, atom))
+	{
+	  compatible_target = TRUE;
+	  break;
+	}
+    }
+
+  gtk_action_set_sensitive (sw->edit_paste, compatible_target);
+}
+
+
+
+
 /* Parse and execute all the text in the buffer */
 static void
 on_run_all (GtkMenuItem *menuitem, gpointer user_data)
@@ -447,6 +621,9 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   PsppireSyntaxWindowClass *class
     = PSPPIRE_SYNTAX_WINDOW_CLASS (G_OBJECT_GET_CLASS (window));
 
+  GtkClipboard *clip_selection = gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_CLIPBOARD);
+  GtkClipboard *clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
+
   window->print_settings = NULL;
   window->undo_menuitem = get_action_assert (xml, "edit_undo");
   window->redo_menuitem = get_action_assert (xml, "edit_redo");
@@ -462,7 +639,6 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		"highlight-matching-brackets", TRUE,
 		NULL);
 
-
   g_object_set (text_view,
 		"show-line-numbers", TRUE,
 		"show-line-marks", TRUE,
@@ -470,6 +646,18 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		"indent-width", 4,
 		"highlight-current-line", TRUE,
 		NULL);
+
+  g_signal_connect_swapped (clip_primary, "owner-change", G_CALLBACK (selection_changed), window);
+
+  g_signal_connect (clip_selection, "owner-change", G_CALLBACK (on_owner_change), window);
+
+  window->cliptext = NULL;
+
+  window->edit_delete = get_action_assert (xml, "edit_delete");
+  window->edit_copy = get_action_assert (xml, "edit_copy");
+  window->edit_cut = get_action_assert (xml, "edit_cut");
+  window->edit_paste = get_action_assert (xml, "edit_paste");
+
   window->lexer = lex_create (the_source_stream);
 
   window->sb = get_widget_assert (xml, "statusbar2");
@@ -537,11 +725,30 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    G_CALLBACK (on_quit),
 		    window);
 
+  g_signal_connect_swapped (window->edit_delete,
+		    "activate",
+		    G_CALLBACK (on_edit_delete),
+		    window);
+
+  g_signal_connect_swapped (window->edit_copy,
+		    "activate",
+		    G_CALLBACK (on_edit_copy),
+		    window);
+
+  g_signal_connect_swapped (window->edit_cut,
+		    "activate",
+		    G_CALLBACK (on_edit_cut),
+		    window);
+
+  g_signal_connect_swapped (window->edit_paste,
+		    "activate",
+		    G_CALLBACK (on_edit_paste),
+		    window);
+
   g_signal_connect (get_action_assert (xml,"run_all"),
 		    "activate",
 		    G_CALLBACK (on_run_all),
 		    window);
-
 
   g_signal_connect (get_action_assert (xml,"run_selection"),
 		    "activate",
@@ -577,6 +784,9 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_object_unref (xml);
 }
+
+
+
 
 
 GtkWidget*

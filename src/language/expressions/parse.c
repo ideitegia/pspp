@@ -1085,7 +1085,7 @@ validate_function_args (const struct operation *f, int arg_cnt, int min_valid)
       && array_arg_cnt % f->array_granularity != 0)
     {
       if (f->array_granularity == 2)
-        msg (SE, _("%s must have even number of arguments in list."),
+        msg (SE, _("%s must have an even number of arguments in list."),
              f->prototype);
       else
         msg (SE, _("%s must have multiple of %d arguments in list."),

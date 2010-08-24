@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,10 +24,11 @@
 #include <string.h>
 
 #include <libpspp/compiler.h>
-#include <libpspp/hash.h>
+#include <libpspp/hmap.h>
 #include <libpspp/ll.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
+#include <libpspp/hash-functions.h>
 #include <data/file-name.h>
 #include <data/variable.h>
 #include <data/scratch-handle.h>
@@ -79,6 +80,9 @@ static struct file_handle *create_handle (const char *id,
                                           char *name, enum fh_referent);
 static void free_handle (struct file_handle *);
 static void unname_handle (struct file_handle *);
+
+/* Hash table of all active locks. */
+static struct hmap locks = HMAP_INITIALIZER (locks);
 
 /* File handle initialization routine. */
 void
@@ -373,6 +377,8 @@ fh_set_default_handle (struct file_handle *new_default_handle)
 /* Information about a file handle's readers or writers. */
 struct fh_lock
   {
+    struct hmap_node node;      /* hmap_node member. */
+
     /* Hash key. */
     enum fh_referent referent;  /* Type of underlying file. */
     union
@@ -392,14 +398,12 @@ struct fh_lock
     void *aux;                  /* Owner's auxiliary data. */
   };
 
-/* Hash table of all active locks. */
-static struct hsh_table *locks;
 
 static void make_key (struct fh_lock *, const struct file_handle *,
                       enum fh_access);
 static void free_key (struct fh_lock *);
-static int compare_fh_locks (const void *, const void *, const void *);
-static unsigned int hash_fh_lock (const void *, const void *);
+static int compare_fh_locks (const struct fh_lock *a, const struct fh_lock *b);
+static unsigned int hash_fh_lock (const struct fh_lock *lock);
 
 /* Tries to lock handle H for the given kind of ACCESS and TYPE
    of file.  Returns a pointer to a struct fh_lock if successful,
@@ -431,31 +435,36 @@ struct fh_lock *
 fh_lock (struct file_handle *h, enum fh_referent mask UNUSED,
          const char *type, enum fh_access access, bool exclusive)
 {
-  struct fh_lock key, *lock;
-  void **lockp;
+  struct fh_lock *key = NULL;
+  size_t hash ;
+  struct fh_lock *lock = NULL;
+  bool found_lock = false;
 
   assert ((fh_get_referent (h) & mask) != 0);
   assert (access == FH_ACC_READ || access == FH_ACC_WRITE);
 
-  if (locks == NULL)
-    locks = hsh_create (0, compare_fh_locks, hash_fh_lock, NULL, NULL);
+  key = xmalloc (sizeof *key);
 
-  make_key (&key, h, access);
-  lockp = hsh_probe (locks, &key);
-  if (*lockp == NULL)
+  make_key (key, h, access);
+
+  key->open_cnt = 1;
+  key->exclusive = exclusive;
+  key->type = type;
+  key->aux = NULL;
+
+  hash = hash_fh_lock (key);
+
+  HMAP_FOR_EACH_WITH_HASH (lock, struct fh_lock, node, hash, &locks)
     {
-      lock = *lockp = xmalloc (sizeof *lock);
-      *lock = key;
-      lock->open_cnt = 1;
-      lock->exclusive = exclusive;
-      lock->type = type;
-      lock->aux = NULL;
+      if ( 0 == compare_fh_locks (lock, key))
+	{
+	  found_lock = true;
+	  break;
+	}
     }
-  else
-    {
-      free_key (&key);
 
-      lock = *lockp;
+  if ( found_lock )
+    {
       if (strcmp (lock->type, type))
         {
           if (access == FH_ACC_READ)
@@ -475,9 +484,27 @@ fh_lock (struct file_handle *h, enum fh_referent mask UNUSED,
           return NULL;
         }
       lock->open_cnt++;
+      
+      free_key (key);
+      free (key);
+
+      return lock;
     }
 
-  return lock;
+  hmap_insert (&locks, &key->node, hash);
+  found_lock = false;
+  HMAP_FOR_EACH_WITH_HASH (lock, struct fh_lock, node, hash, &locks)
+    {
+      if ( 0 == compare_fh_locks (lock, key))
+	{
+	  found_lock = true;
+	  break;
+	}
+    }
+
+  assert (found_lock);
+
+  return key;
 }
 
 /* Releases LOCK that was acquired with fh_lock.
@@ -499,7 +526,7 @@ fh_unlock (struct fh_lock *lock)
       assert (lock->open_cnt > 0);
       if (--lock->open_cnt == 0)
         {
-          hsh_delete (locks, lock);
+	  hmap_delete (&locks, &lock->node);
           free_key (lock);
           free (lock);
           return false;
@@ -532,10 +559,24 @@ bool
 fh_is_locked (const struct file_handle *handle, enum fh_access access)
 {
   struct fh_lock key;
-  bool is_locked;
+  const struct fh_lock *k = NULL;
+  bool is_locked = false;
+  size_t hash ;
 
   make_key (&key, handle, access);
-  is_locked = hsh_find (locks, &key) != NULL;
+
+  hash = hash_fh_lock (&key);
+
+
+  HMAP_FOR_EACH_WITH_HASH (k, struct fh_lock, node, hash, &locks)
+    {
+      if ( 0 == compare_fh_locks (k, &key))
+	{
+	  is_locked = true;
+	  break;
+	}
+    }
+
   free_key (&key);
 
   return is_locked;
@@ -569,11 +610,8 @@ free_key (struct fh_lock *lock)
 /* Compares the key fields in struct fh_lock objects A and B and
    returns a strcmp()-type result. */
 static int
-compare_fh_locks (const void *a_, const void *b_, const void *aux UNUSED)
+compare_fh_locks (const struct fh_lock *a, const struct fh_lock *b)
 {
-  const struct fh_lock *a = a_;
-  const struct fh_lock *b = b_;
-
   if (a->referent != b->referent)
     return a->referent < b->referent ? -1 : 1;
   else if (a->access != b->access)
@@ -589,9 +627,8 @@ compare_fh_locks (const void *a_, const void *b_, const void *aux UNUSED)
 
 /* Returns a hash value for LOCK. */
 static unsigned int
-hash_fh_lock (const void *lock_, const void *aux UNUSED)
+hash_fh_lock (const struct fh_lock *lock)
 {
-  const struct fh_lock *lock = lock_;
   unsigned int basis;
   if (lock->referent == FH_REF_FILE)
     basis = fn_hash_identity (lock->u.file);

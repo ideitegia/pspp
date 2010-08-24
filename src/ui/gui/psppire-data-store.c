@@ -793,7 +793,7 @@ get_column_button_label (const PsppireSheetModel *model, gint col)
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
   if ( col >= psppire_dict_get_var_cnt (ds->dict) )
-    return g_locale_to_utf8 (null_var_name, -1, 0, 0, 0);
+    return xstrdup (gettext (null_var_name));
 
   pv = psppire_dict_get_variable (ds->dict, col);
 

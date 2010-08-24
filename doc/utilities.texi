@@ -525,7 +525,11 @@ command file.  The default is 50.
 
 @item MXWARNS
 The maximum number of warnings + errors before PSPP halts processing the
-current command file.  The default is 100.
+current command file.  
+The special value of zero means that all warning situations should be ignored.
+No warnings will be issued, except a single initial warning advising the user
+that warnings will not be given.
+The default value is 100.
 
 @item PROMPT
 The command prompt.  The default is @samp{PSPP> }.

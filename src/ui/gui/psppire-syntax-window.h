@@ -61,6 +61,13 @@ struct _PsppireSyntaxWindow
   GtkSourcePrintCompositor *compositor;
   GtkAction *undo_menuitem;
   GtkAction *redo_menuitem;
+
+  gchar *cliptext;
+
+  GtkAction *edit_cut;
+  GtkAction *edit_copy;
+  GtkAction *edit_delete;
+  GtkAction *edit_paste;
 };
 
 struct _PsppireSyntaxWindowClass
