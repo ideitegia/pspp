@@ -243,7 +243,8 @@ psppire_window_class_init (PsppireWindowClass *class)
     g_param_spec_string ("filename",
 		       "File name",
 		       "The name of the file associated with this window, if any",
-			 "Untitled",
+			 /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
+			 _("Untitled"),
 			 G_PARAM_CONSTRUCT | G_PARAM_READWRITE);
 
   g_unichar_to_utf8 (0x2014, mdash);

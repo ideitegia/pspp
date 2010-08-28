@@ -1043,7 +1043,8 @@ GtkWidget*
 psppire_output_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_output_window_get_type (),
-				   "filename", "Output",
+				   /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
+				   "filename", _("Output"),
 				   "description", _("Output Viewer"),
 				   NULL));
 }
