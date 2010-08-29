@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,31 +16,18 @@
 
 #include <config.h>
 
-#include <ui/terminal/terminal.h>
+#include "ui/terminal/terminal.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include <libpspp/compiler.h>
+#include "data/settings.h"
+#include "libpspp/compiler.h"
 
-#include "error.h"
+#include "gl/error.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-static int view_width = -1;
-static int view_length = -1;
-
-/* Initializes the terminal interface by determining the size of
-   the user's terminal.  Stores a pointer to the size variables
-   in *VIEW_WIDTH_P and *VIEW_LENGTH_P. */
-void
-terminal_init (int **view_width_p, int **view_length_p)
-{
-  *view_width_p = &view_width;
-  *view_length_p = &view_length;
-  terminal_check_size ();
-}
 
 /* Code that interfaces to ncurses.  This must be at the very end
    of this file because curses.h redefines "bool" on some systems
@@ -56,6 +43,9 @@ terminal_init (int **view_width_p, int **view_length_p)
 void
 terminal_check_size (void)
 {
+  int view_width = 0;
+  int view_length = 0;
+
 #if LIBNCURSES_USABLE
   if (getenv ("TERM") != NULL)
     {
@@ -74,19 +64,13 @@ terminal_check_size (void)
     }
 #endif
 
-  if (view_width <= 0)
-    {
-      if (getenv ("COLUMNS") != NULL)
-        view_width = atoi (getenv ("COLUMNS"));
-      if (view_width <= 0)
-        view_width = 79;
-    }
+  if (view_width <= 0 && getenv ("COLUMNS") != NULL)
+    view_width = atoi (getenv ("COLUMNS"));
+  if (view_width > 0)
+    settings_set_viewwidth (view_width);
 
-  if (view_length <= 0)
-    {
-      if (getenv ("LINES") != NULL)
-        view_length = atoi (getenv ("LINES"));
-      if (view_length <= 0)
-        view_length = 24;
-    }
+  if (view_length <= 0 && getenv ("LINES") != NULL)
+    view_length = atoi (getenv ("LINES"));
+  if (view_length > 0)
+    settings_set_viewlength (view_length);
 }

@@ -79,7 +79,6 @@ static struct source_stream *the_source_stream ;
 int
 main (int argc, char **argv)
 {
-  int *view_width_p, *view_length_p;
   struct terminal_opts *terminal_opts;
   struct argv_parser *parser;
 
@@ -98,8 +97,8 @@ main (int argc, char **argv)
   the_source_stream = create_source_stream ();
   prompt_init ();
   readln_initialize ();
-  terminal_init (&view_width_p, &view_length_p);
-  settings_init (view_width_p, view_length_p);
+  settings_init ();
+  terminal_check_size ();
   random_init ();
 
   the_dataset = create_dataset ();

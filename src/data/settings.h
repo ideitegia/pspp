@@ -28,7 +28,7 @@
 struct caseproto;
 struct settings;
 
-void settings_init (int *, int *);
+void settings_init (void);
 void settings_done (void);
 
 enum float_format settings_get_input_float_format (void);

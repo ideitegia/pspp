@@ -49,8 +49,8 @@ struct settings
   /* Format of reals in output (SET WRB). */
   enum float_format output_float_format;
 
-  int *viewlength;
-  int *viewwidth;
+  int viewlength;
+  int viewwidth;
   bool safer_mode;
   bool include;
   int epoch;
@@ -83,8 +83,8 @@ static struct settings the_settings = {
   FLOAT_NATIVE_DOUBLE,          /* input_float_format */
   INTEGER_NATIVE,               /* output_integer_format */
   FLOAT_NATIVE_DOUBLE,          /* output_float_format */
-  NULL,                         /* viewlength */
-  NULL,                         /* viewwidth */
+  24,                           /* viewlength */
+  79,                           /* viewwidth */
   false,                        /* safer_mode */
   true,                         /* include */
   -1,                           /* epoch */
@@ -121,12 +121,9 @@ static struct settings the_settings = {
    SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL}
 };
 
-static void init_viewport ( int *, int *);
-
 void
-settings_init (int *width, int *length)
+settings_init (void)
 {
-  init_viewport (width, length);
   settings_set_epoch (-1);
   the_settings.styles = fmt_settings_create ();
 
@@ -203,35 +200,28 @@ settings_set_output_float_format ( enum float_format float_format)
 int
 settings_get_viewlength (void)
 {
-  return *the_settings.viewlength;
+  return the_settings.viewlength;
 }
 
 /* Sets the view length. */
 void
 settings_set_viewlength ( int viewlength_)
 {
-  *the_settings.viewlength = viewlength_;
+  the_settings.viewlength = viewlength_;
 }
 
 /* Screen width. */
 int
 settings_get_viewwidth(void)
 {
-  return *the_settings.viewwidth;
+  return the_settings.viewwidth;
 }
 
 /* Sets the screen width. */
 void
 settings_set_viewwidth ( int viewwidth_)
 {
-  *the_settings.viewwidth = viewwidth_;
-}
-
-static void
-init_viewport ( int  *width, int *length)
-{
-  the_settings.viewwidth = width;
-  the_settings.viewlength = length;
+  the_settings.viewwidth = viewwidth_;
 }
 
 /* Whether PSPP can erase and overwrite files. */

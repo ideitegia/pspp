@@ -96,7 +96,7 @@ initialize (struct source_stream *ss, const char *data_file)
   preregister_widgets ();
 
   gsl_set_error_handler_off ();
-  settings_init (&viewer_width, &viewer_length);
+  settings_init ();
   fh_init ();
 
   the_dataset = create_dataset ();
