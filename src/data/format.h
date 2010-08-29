@@ -146,8 +146,6 @@ const char *fmt_date_template (enum fmt_type) PURE_FUNCTION;
    struct fmt_number_style. */
 #define FMT_STYLE_AFFIX_MAX 16
 
-
-struct fmt_number_style *fmt_number_style_create (void);
 void fmt_number_style_destroy (struct fmt_number_style *);
 
 int fmt_affix_width (const struct fmt_number_style *);
@@ -156,8 +154,6 @@ int fmt_neg_affix_width (const struct fmt_number_style *);
 const struct fmt_number_style *fmt_get_style (const struct fmt_number_style *,      enum fmt_type);
 
 void fmt_check_style (const struct fmt_number_style *style);
-
-int fmt_grouping_char (const struct fmt_number_style *, enum fmt_type);
 
 void fmt_set_decimal (struct fmt_number_style *, char);
 
