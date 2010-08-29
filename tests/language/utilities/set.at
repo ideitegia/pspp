@@ -92,3 +92,23 @@ x,y,z
 ])
 
 AT_CLEANUP
+
+AT_BANNER([PRESERVE and RESTORE])
+
+AT_SETUP([PRESERVE of SET FORMAT])
+AT_DATA([set.pspp], [dnl
+SHOW FORMAT.
+PRESERVE.
+SET FORMAT F10.0.
+SHOW FORMAT
+RESTORE.
+SHOW FORMAT.
+])
+AT_CHECK([pspp -O format=csv set.pspp], [0], [dnl
+set.pspp:1: note: SHOW: FORMAT is F8.2.
+
+set.pspp:5: note: SHOW: FORMAT is F10.0.
+
+set.pspp:6: note: SHOW: FORMAT is F8.2.
+])
+AT_CLEANUP

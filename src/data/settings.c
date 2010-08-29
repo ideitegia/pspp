@@ -15,20 +15,23 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "settings.h"
+
+#include "data/settings.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
-#include "format.h"
-#include "value.h"
-#include "xalloc.h"
-#include <data/case.h>
-#include <libpspp/i18n.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/message.h>
 
-#include "error.h"
-#include "minmax.h"
+#include "data/case.h"
+#include "data/format.h"
+#include "data/value.h"
+#include "libpspp/i18n.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/message.h"
+
+#include "gl/error.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -119,6 +122,7 @@ static struct settings the_settings = {
    SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL}
 };
 
+/* Initializes the settings module. */
 void
 settings_init (void)
 {
@@ -128,10 +132,48 @@ settings_init (void)
   settings_set_decimal_char (get_system_decimal ());
 }
 
+/* Cleans up the settings module. */
 void
 settings_done (void)
 {
-  fmt_settings_destroy (the_settings.styles);
+  settings_destroy (&the_settings);
+}
+
+static void
+settings_copy (struct settings *dst, const struct settings *src)
+{
+  *dst = *src;
+  dst->styles = fmt_settings_clone (src->styles);
+}
+
+/* Returns a copy of the current settings. */
+struct settings *
+settings_get (void)
+{
+  struct settings *s = xmalloc (sizeof *s);
+  settings_copy (s, &the_settings);
+  return s;
+}
+
+/* Replaces the current settings by those in S.  The caller retains ownership
+   of S. */
+void
+settings_set (const struct settings *s)
+{
+  settings_destroy (&the_settings);
+  settings_copy (&the_settings, s);
+}
+
+/* Destroys S. */
+void
+settings_destroy (struct settings *s)
+{
+  if (s != NULL)
+    {
+      fmt_settings_destroy (s->styles);
+      if (s != &the_settings)
+        free (s);
+    }
 }
 
 /* Returns the floating-point format used for RB and RBHEX

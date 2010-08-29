@@ -923,6 +923,45 @@ cmd_show (struct lexer *lexer, struct dataset *ds)
 
   return CMD_SUCCESS;
 }
+
+#define MAX_SAVED_SETTINGS 5
+
+static struct settings *saved_settings[MAX_SAVED_SETTINGS];
+static int n_saved_settings;
+
+int
+cmd_preserve (struct lexer *lexer, struct dataset *ds UNUSED)
+{
+  if (n_saved_settings < MAX_SAVED_SETTINGS)
+    {
+      saved_settings[n_saved_settings++] = settings_get ();
+      return lex_end_of_command (lexer);
+    }
+  else
+    {
+      msg (SE, _("Too many PRESERVE commands without a RESTORE: at most "
+                 "%d levels of saved settings are allowed."),
+           MAX_SAVED_SETTINGS);
+      return CMD_CASCADING_FAILURE;
+    }
+}
+
+int
+cmd_restore (struct lexer *lexer, struct dataset *ds UNUSED)
+{
+  if (n_saved_settings > 0)
+    {
+      struct settings *s = saved_settings[--n_saved_settings];
+      settings_set (s);
+      settings_destroy (s);
+      return lex_end_of_command (lexer);
+    }
+  else
+    {
+      msg (SE, _("RESTORE without matching PRESERVE."));
+      return CMD_FAILURE;
+    }
+}
 
 /*
    Local Variables:
