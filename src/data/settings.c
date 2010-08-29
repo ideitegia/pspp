@@ -79,65 +79,42 @@ struct settings
 };
 
 static struct settings the_settings = {
-    /* input_integer_format */
-  INTEGER_NATIVE,
-    /* input_float_format */
-  FLOAT_NATIVE_DOUBLE,
-    /* output_integer_format */
-  INTEGER_NATIVE,
-    /* output_float_format */
-  FLOAT_NATIVE_DOUBLE,
-    /* viewlength */
-  NULL,
-    /* viewwidth */
-  NULL,
-    /* safer_mode */
-  false,
-    /* include */
-  true,
-    /* epoch */
-  -1,
-    /* route_errors_to_terminal */
-  true,
-    /* route_errors_to_listing */
-  true,
-    /* scompress */
-  true,
-    /* undefined */
-  true,
-    /* blanks */
-  SYSMIS,
-    /* max_messages */
+  INTEGER_NATIVE,               /* input_integer_format */
+  FLOAT_NATIVE_DOUBLE,          /* input_float_format */
+  INTEGER_NATIVE,               /* output_integer_format */
+  FLOAT_NATIVE_DOUBLE,          /* output_float_format */
+  NULL,                         /* viewlength */
+  NULL,                         /* viewwidth */
+  false,                        /* safer_mode */
+  true,                         /* include */
+  -1,                           /* epoch */
+  true,                         /* route_errors_to_terminal */
+  true,                         /* route_errors_to_listing */
+  true,                         /* scompress */
+  true,                         /* undefined */
+  SYSMIS,                       /* blanks */
+
+  /* max_messages */
   {
     100,                        /* MSG_S_ERROR */
     100,                        /* MSG_S_WARNING */
     100                         /* MSG_S_NOTE */
   },
-    /* printback */
-  true,
-    /* mprint */
-  true,
-    /* mxloops */
-  1,
-    /* nulline */
-  true,
-    /* endcmd */
-  '.',
-    /* workspace */
-  64L * 1024 * 1024,
-    /* default_format */
-  {FMT_F, 8, 2},
-    /* testing_mode */
-  false,
-    /* cmd_algorithm */
-  ENHANCED,
-    /* algorithm */
-  &global_algorithm,
-    /* syntax */
-  ENHANCED,
-    /* styles */
-  NULL,
-    /* output devices */
+
+  true,                         /* printback */
+  true,                         /* mprint */
+  1,                            /* mxloops */
+  true,                         /* nulline */
+  '.',                          /* endcmd */
+  64L * 1024 * 1024,            /* workspace */
+  {FMT_F, 8, 2},                /* default_format */
+  false,                        /* testing_mode */
+  ENHANCED,                     /* cmd_algorithm */
+  &global_algorithm,            /* algorithm */
+  ENHANCED,                     /* syntax */
+  NULL,                         /* styles */
+
+  /* output_routing */
   {SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL,
    SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL,
    0,
