@@ -112,6 +112,8 @@ void fmt_fix_input (struct fmt_spec *);
 void fmt_fix_output (struct fmt_spec *);
 
 /* Format types. */
+bool is_fmt_type (enum fmt_type);
+
 const char *fmt_name (enum fmt_type) PURE_FUNCTION;
 bool fmt_from_name (const char *name, enum fmt_type *);
 
@@ -150,8 +152,6 @@ void fmt_number_style_destroy (struct fmt_number_style *);
 
 int fmt_affix_width (const struct fmt_number_style *);
 int fmt_neg_affix_width (const struct fmt_number_style *);
-
-bool is_fmt_type (enum fmt_type);
 
 const struct fmt_number_style *fmt_get_style (const struct fmt_number_style *,      enum fmt_type);
 
