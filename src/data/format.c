@@ -45,7 +45,8 @@ static bool valid_width (enum fmt_type, int width, bool for_input);
 
 static int max_digits_for_bytes (int bytes);
 
-void fmt_number_style_init (struct fmt_number_style *style);
+static void fmt_number_style_init (struct fmt_number_style *);
+static void fmt_number_style_destroy (struct fmt_number_style *);
 
 
 /* Initialize the format module. */
@@ -857,9 +858,7 @@ max_digits_for_bytes (int bytes)
   return map[bytes - 1];
 }
 
-
-
-void
+static void
 fmt_number_style_init (struct fmt_number_style *style)
 {
   style->neg_prefix = ss_empty ();
@@ -872,7 +871,7 @@ fmt_number_style_init (struct fmt_number_style *style)
 
 
 /* Destroys a struct fmt_number_style. */
-void
+static void
 fmt_number_style_destroy (struct fmt_number_style *style)
 {
   if (style != NULL)
