@@ -72,22 +72,6 @@ struct fmt_spec
 /* Maximum width of any numeric format. */
 #define FMT_MAX_NUMERIC_WIDTH 40
 
-/* A numeric output style. */
-struct fmt_number_style
-  {
-    struct substring neg_prefix;      /* Negative prefix. */
-    struct substring prefix;          /* Prefix. */
-    struct substring suffix;          /* Suffix. */
-    struct substring neg_suffix;      /* Negative suffix. */
-    char decimal;                     /* Decimal point: '.' or ','. */
-    char grouping;                    /* Grouping character: ',', '.', or 0. */
-  };
-
-
-/* Initialization. */
-struct fmt_number_style * fmt_create (void);
-void fmt_done (struct fmt_number_style *);
-
 /* Constructing formats. */
 struct fmt_spec fmt_for_input (enum fmt_type, int w, int d) PURE_FUNCTION;
 struct fmt_spec fmt_for_output (enum fmt_type, int w, int d) PURE_FUNCTION;
@@ -142,6 +126,32 @@ bool fmt_from_io (int io, enum fmt_type *);
 
 const char *fmt_date_template (enum fmt_type) PURE_FUNCTION;
 
+/* Format settings.
+
+   A fmt_settings is really just a collection of one "struct fmt_number_style"
+   for each format type. */
+struct fmt_settings *fmt_settings_create (void);
+void fmt_settings_destroy (struct fmt_settings *);
+struct fmt_settings *fmt_settings_clone (const struct fmt_settings *);
+
+void fmt_settings_set_decimal (struct fmt_settings *, char);
+
+const struct fmt_number_style *fmt_settings_get_style (
+  const struct fmt_settings *, enum fmt_type);
+void fmt_settings_set_style (struct fmt_settings *, enum fmt_type,
+                             const struct fmt_number_style *);
+
+/* A numeric output style. */
+struct fmt_number_style
+  {
+    struct substring neg_prefix;      /* Negative prefix. */
+    struct substring prefix;          /* Prefix. */
+    struct substring suffix;          /* Suffix. */
+    struct substring neg_suffix;      /* Negative suffix. */
+    char decimal;                     /* Decimal point: '.' or ','. */
+    char grouping;                    /* Grouping character: ',', '.', or 0. */
+  };
+
 /* Maximum length of prefix or suffix string in
    struct fmt_number_style. */
 #define FMT_STYLE_AFFIX_MAX 16
@@ -149,11 +159,8 @@ const char *fmt_date_template (enum fmt_type) PURE_FUNCTION;
 int fmt_affix_width (const struct fmt_number_style *);
 int fmt_neg_affix_width (const struct fmt_number_style *);
 
-const struct fmt_number_style *fmt_get_style (const struct fmt_number_style *,      enum fmt_type);
-
 void fmt_check_style (const struct fmt_number_style *style);
 
-void fmt_set_decimal (struct fmt_number_style *, char);
 
 extern const struct fmt_spec F_8_0 ;
 
