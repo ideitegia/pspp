@@ -33,8 +33,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static int global_algorithm = ENHANCED;
-
 struct settings
 {
   /* Integer format used for IB and PIB input. */
@@ -70,7 +68,7 @@ struct settings
   bool testing_mode;
 
   int cmd_algorithm;
-  int *algorithm;
+  int global_algorithm;
   int syntax;
 
   struct fmt_settings *styles;
@@ -110,7 +108,7 @@ static struct settings the_settings = {
   {FMT_F, 8, 2},                /* default_format */
   false,                        /* testing_mode */
   ENHANCED,                     /* cmd_algorithm */
-  &global_algorithm,            /* algorithm */
+  ENHANCED,                     /* global_algorithm */
   ENHANCED,                     /* syntax */
   NULL,                         /* styles */
 
@@ -478,14 +476,14 @@ settings_set_testing_mode ( bool testing_mode)
 enum behavior_mode
 settings_get_algorithm (void)
 {
-  return *the_settings.algorithm;
+  return the_settings.cmd_algorithm;
 }
 
 /* Set the algorithm option globally. */
 void
 settings_set_algorithm (enum behavior_mode mode)
 {
-  global_algorithm = mode;
+  the_settings.global_algorithm = the_settings.cmd_algorithm = mode;
 }
 
 /* Set the algorithm option for this command only */
@@ -493,14 +491,13 @@ void
 settings_set_cmd_algorithm ( enum behavior_mode mode)
 {
   the_settings.cmd_algorithm = mode;
-  the_settings.algorithm = &the_settings.cmd_algorithm;
 }
 
 /* Unset the algorithm option for this command */
 void
 unset_cmd_algorithm (void)
 {
-  the_settings.algorithm = &global_algorithm;
+  the_settings.cmd_algorithm = the_settings.global_algorithm;
 }
 
 /* Get the current syntax setting */
