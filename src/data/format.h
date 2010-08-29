@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -82,9 +82,6 @@ struct fmt_number_style
     char decimal;                     /* Decimal point: '.' or ','. */
     char grouping;                    /* Grouping character: ',', '.', or 0. */
   };
-
-
-extern struct fmt_number_style *the_styles ;
 
 
 /* Initialization. */
