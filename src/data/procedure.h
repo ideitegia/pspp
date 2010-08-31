@@ -47,10 +47,6 @@ bool proc_cancel_temporary_transformations (struct dataset *ds);
 
 /* Procedures. */
 
-struct dictionary ;
-typedef void  replace_source_callback (struct casereader *);
-typedef void  replace_dictionary_callback (struct dictionary *);
-
 typedef void transformation_change_callback_func (bool non_empty, void *aux);
 
 struct dataset * create_dataset (void);
