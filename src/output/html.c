@@ -116,7 +116,7 @@ html_create (const char *file_name, enum settings_output_devices device_type,
   fputs ("<META http-equiv=\"Content-Style-Type\" content=\"text/css\">\n",
          html->file);
   fputs ("<META HTTP-EQUIV=\"Content-Type\" "
-         "CONTENT=\"text/html; charset=ISO-8859-1\">\n", html->file);
+         "CONTENT=\"text/html; charset=utf-8\">\n", html->file);
   fputs ("<STYLE>\n"
          "<!--\n"
          "body {\n"
