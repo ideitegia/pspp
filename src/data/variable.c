@@ -506,8 +506,8 @@ alloc_value_labels (struct variable *v)
 }
 
 /* Attempts to add a value label with the given VALUE and LABEL
-   to V.  Returns true if successful, false if VALUE has an
-   existing label or if V is a long string variable. */
+   to V.  Returns true if successful, false otherwise (probably
+   due to an existing label). */
 bool
 var_add_value_label (struct variable *v,
                      const union value *value, const char *label)
@@ -518,7 +518,7 @@ var_add_value_label (struct variable *v,
 
 /* Adds or replaces a value label with the given VALUE and LABEL
    to V.
-   Has no effect if V is a long string variable. */
+*/
 void
 var_replace_value_label (struct variable *v,
                          const union value *value, const char *label)
