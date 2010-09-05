@@ -28,6 +28,7 @@
 #include "language/lexer/lexer.h"
 #include "language/lexer/variable-parser.h"
 #include "libpspp/array.h"
+#include "libpspp/i18n.h"
 #include "libpspp/compiler.h"
 #include "libpspp/hash-functions.h"
 #include "libpspp/hmap.h"
@@ -36,6 +37,7 @@
 #include "libpspp/str.h"
 
 #include "gl/xalloc.h"
+#include "gl/vasnprintf.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -85,6 +87,7 @@ int
 cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 {
   struct autorecode_pgm *arc = NULL;
+  struct dictionary *dict = dataset_dict (ds);
 
   const struct variable **src_vars = NULL;
   char **dst_names = NULL;
@@ -103,7 +106,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
   /* Parse variable lists. */
   lex_match_id (lexer, "VARIABLES");
   lex_match (lexer, '=');
-  if (!parse_variables_const (lexer, dataset_dict (ds), &src_vars, &n_srcs,
+  if (!parse_variables_const (lexer, dict, &src_vars, &n_srcs,
                               PV_NO_DUPLICATE))
     goto error;
   if (!lex_force_match_id (lexer, "INTO"))
@@ -123,7 +126,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
     {
       const char *name = dst_names[i];
 
-      if (dict_lookup_var (dataset_dict (ds), name) != NULL)
+      if (dict_lookup_var (dict, name) != NULL)
         {
           msg (SE, _("Target variable %s duplicates existing variable %s."),
                name, name);
@@ -190,7 +193,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       size_t j;
 
       /* Create destination variable. */
-      spec->dst = dict_create_var_assert (dataset_dict (ds), dst_names[i], 0);
+      spec->dst = dict_create_var_assert (dict, dst_names[i], 0);
 
       /* Create array of pointers to items. */
       n_items = hmap_count (&spec->items);
@@ -206,7 +209,40 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 
       /* Assign recoded values in sorted order. */
       for (j = 0; j < n_items; j++)
-        items[j]->to = direction == ASCENDING ? j + 1 : n_items - j;
+	{
+	  const union value *from = &items[j]->from;
+	  size_t len;
+	  char *recoded_value  = NULL;
+	  char *c;
+
+	  union value to_val;
+	  value_init (&to_val, 0);
+
+	  items[j]->to = direction == ASCENDING ? j + 1 : n_items - j;
+	  
+	  to_val.f = items[j]->to;
+
+	  /* Add value labels to the destination variable which indicate
+	     the source value from whence the new value comes. */
+
+	  if (src_width > 0)
+	    recoded_value = 
+	      recode_string (UTF8, dict_get_encoding (dict), (char *) value_str (from, src_width), src_width);
+	  else
+	    recoded_value = asnprintf (NULL, &len, "%g", from->f);
+	  
+	  /* Remove trailing whitespace */
+	  for (c = recoded_value; *c != '\0'; c++)
+	    if ( *c == ' ')
+	      {
+		*c = '\0';
+		break;
+	      }
+
+	  var_add_value_label (spec->dst, &to_val, recoded_value);
+	  value_destroy (&to_val, 0);
+	  free (recoded_value);
+	}
 
       /* Free array. */
       free (items);
