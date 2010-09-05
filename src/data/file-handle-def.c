@@ -26,7 +26,6 @@
 #include "libpspp/compiler.h"
 #include "libpspp/hmap.h"
 #include "libpspp/i18n.h"
-#include "libpspp/ll.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "libpspp/hash-functions.h"
@@ -42,7 +41,7 @@
 /* File handle. */
 struct file_handle
   {
-    struct ll ll;               /* Element in global list. */
+    struct hmap_node name_node; /* Element in named_handles hmap. */
     size_t ref_cnt;             /* Number of references. */
     char *id;                   /* Identifier token, NULL if none. */
     char *name;                 /* User-friendly identifying name. */
@@ -61,14 +60,8 @@ struct file_handle
     struct scratch_handle *sh;  /* Scratch file data. */
   };
 
-static struct file_handle *
-file_handle_from_ll (struct ll *ll)
-{
-  return ll_data (ll, struct file_handle, ll);
-}
-
-/* List of all named handles. */
-static struct ll_list named_handles;
+/* All "struct file_handle"s with nonnull 'id' member. */
+static struct hmap named_handles = HMAP_INITIALIZER (named_handles);
 
 /* Default file handle for DATA LIST, REREAD, REPEATING DATA
    commands. */
@@ -89,7 +82,6 @@ static struct hmap locks = HMAP_INITIALIZER (locks);
 void
 fh_init (void)
 {
-  ll_init (&named_handles);
   inline_file = create_handle ("INLINE", xstrdup ("INLINE"), FH_REF_INLINE);
   inline_file->record_width = 80;
   inline_file->tab_width = 8;
@@ -99,8 +91,11 @@ fh_init (void)
 void
 fh_done (void)
 {
-  while (!ll_is_empty (&named_handles))
-    unname_handle (file_handle_from_ll (ll_head (&named_handles)));
+  struct file_handle *handle, *next;
+
+  HMAP_FOR_EACH_SAFE (handle, next,
+                      struct file_handle, name_node, &named_handles)
+    unname_handle (handle);
 }
 
 /* Free HANDLE and remove it from the global list. */
@@ -109,7 +104,7 @@ free_handle (struct file_handle *handle)
 {
   /* Remove handle from global list. */
   if (handle->id != NULL)
-    ll_remove (&handle->ll);
+    hmap_delete (&named_handles, &handle->name_node);
 
   /* Free data. */
   free (handle->id);
@@ -128,7 +123,7 @@ unname_handle (struct file_handle *handle)
   assert (handle->id != NULL);
   free (handle->id);
   handle->id = NULL;
-  ll_remove (&handle->ll);
+  hmap_delete (&named_handles, &handle->name_node);
 
   /* Drop the reference held by the named_handles table. */
   fh_unref (handle);
@@ -177,7 +172,8 @@ fh_from_id (const char *id)
 {
   struct file_handle *handle;
 
-  ll_for_each (handle, struct file_handle, ll, &named_handles)
+  HMAP_FOR_EACH_WITH_HASH (handle, struct file_handle, name_node,
+                           hash_case_string (id, 0), &named_handles)
     if (!strcasecmp (id, handle->id))
       {
         handle->ref_cnt++;
@@ -206,7 +202,8 @@ create_handle (const char *id, char *handle_name, enum fh_referent referent)
   if (id != NULL)
     {
       assert (fh_from_id (id) == NULL);
-      ll_push_tail (&named_handles, &handle->ll);
+      hmap_insert (&named_handles, &handle->name_node,
+                   hash_case_string (handle->id, 0));
       handle->ref_cnt++;
     }
 
