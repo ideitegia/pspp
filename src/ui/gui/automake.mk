@@ -19,6 +19,7 @@ UI_FILES = \
 	src/ui/gui/psppire.ui \
 	src/ui/gui/rank.ui \
 	src/ui/gui/sort.ui \
+	src/ui/gui/split-file.ui \
 	src/ui/gui/recode.ui \
 	src/ui/gui/regression.ui \
 	src/ui/gui/reliability.ui \

@@ -176,7 +176,7 @@ split_file_dialog (PsppireDataWindow *de)
   GtkWidget *selector ;
   GtkWidget *on_off   ;
 
-  sfd.xml = builder_new ("psppire.ui");
+  sfd.xml = builder_new ("split-file.ui");
 
   dialog = get_widget_assert   (sfd.xml, "split-file-dialog");
   source = get_widget_assert   (sfd.xml, "split-file-dict-treeview");
