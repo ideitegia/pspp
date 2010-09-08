@@ -52,7 +52,7 @@
 gchar *
 value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format)
 {
-  gchar *s = 0;
+  gchar *s = NULL;
 
   s = data_out (&v, dict_get_encoding (dict->dict),  &format);
   g_strchug (s);

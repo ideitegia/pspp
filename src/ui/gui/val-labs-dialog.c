@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005, 2009, 2011  Free Software Foundation
+   Copyright (C) 2005, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -192,7 +192,7 @@ val_labs_ok (GtkWidget *w, gpointer data)
 
   val_labs_destroy (dialog->labs);
 
-  dialog->labs = 0;
+  dialog->labs = NULL;
 
   gtk_widget_hide (dialog->window);
 
@@ -206,7 +206,7 @@ val_labs_cancel (struct val_labs_dialog *dialog)
 {
   val_labs_destroy (dialog->labs);
 
-  dialog->labs = 0;
+  dialog->labs = NULL;
 
   gtk_widget_hide (dialog->window);
 }
@@ -461,7 +461,7 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
   g_signal_connect (dialog->add_button, "clicked",
 		   G_CALLBACK (on_add), dialog);
 
-  dialog->labs = 0;
+  dialog->labs = NULL;
 
   g_object_unref (xml);
 

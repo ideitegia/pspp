@@ -55,7 +55,7 @@ label_to_string (const struct variable *var)
 static void
 populate_text (PsppireDictView *treeview, gpointer data)
 {
-  gchar *text = 0;
+  gchar *text = NULL;
   GString *gstring;
   PsppireDict *dict;
 

@@ -69,7 +69,7 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 
 	  if ( mv_has_value (miss))
 	    {
-	      gchar *ss = 0;
+	      gchar *ss = NULL;
 
 	      ss = value_to_text (*mv_get_value (miss, 0), dict, *fmt);
 
