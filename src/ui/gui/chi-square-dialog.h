@@ -17,7 +17,6 @@
 #ifndef __CHI_SQUARE_DIALOG_H
 #define __CHI_SQUARE_DIALOG_H
 
-#include <gtk/gtk.h>
 #include "psppire-data-window.h"
 
 void chisquare_dialog (PsppireDataWindow * data);

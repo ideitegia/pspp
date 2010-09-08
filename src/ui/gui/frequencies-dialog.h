@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
 #ifndef __FREQUENCIES_DIALOG_H
 #define __FREQUENCIES_DIALOG_H
 
-
-#include <gtk/gtk.h>
 #include "psppire-data-window.h"
 
 void frequencies_dialog (PsppireDataWindow * data);

@@ -17,8 +17,6 @@
 #ifndef __AGGREGATE_DIALOG_H
 #define __AGGREGATE_DIALOG_H
 
-
-#include <gtk/gtk.h>
 #include "psppire-data-window.h"
 
 void aggregate_dialog (PsppireDataWindow * data);

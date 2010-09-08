@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009  Free Software Foundation
+   Copyright (C) 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
 #ifndef __FACTOR_DIALOG_H
 #define __FACTOR_DIALOG_H
 
-
-#include <gtk/gtk.h>
 #include "psppire-data-window.h"
 
 void factor_dialog (PsppireDataWindow * data);
