@@ -17,12 +17,7 @@
 #include <config.h>
 
 
-#include <gtk/gtkstock.h>
-#include <gtk/gtkmessagedialog.h>
-#include <gtk/gtksignal.h>
-#include <gtk/gtkwindow.h>
-#include <gtk/gtkcheckmenuitem.h>
-#include <gtk/gtkmain.h>
+#include <gtk/gtk.h>
 
 #include <stdlib.h>
 #include <xalloc.h>

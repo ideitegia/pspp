@@ -18,7 +18,7 @@
 #include <glib-object.h>
 #include <glib.h>
 
-#include <gtk/gtkwindow.h>
+#include <gtk/gtk.h>
 
 #ifndef __PSPPIRE_CONF_H__
 #define __PSPPIRE_CONF_H__

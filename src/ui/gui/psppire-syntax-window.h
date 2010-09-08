@@ -20,10 +20,8 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gtk/gtkaction.h>
-#include <gtk/gtktextbuffer.h>
-#include "psppire-window.h"
 #include <gtk/gtk.h>
+#include "psppire-window.h"
 
 G_BEGIN_DECLS
 

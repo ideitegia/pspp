@@ -16,8 +16,7 @@
 
 #include <config.h>
 
-#include <gtk/gtksignal.h>
-#include <gtk/gtkbox.h>
+#include <gtk/gtk.h>
 #include "executor.h"
 #include "helper.h"
 

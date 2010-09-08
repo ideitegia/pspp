@@ -31,7 +31,7 @@
 #include <data/casereader-provider.h>
 #include <libpspp/message.h>
 #include "psppire-syntax-window.h"
-#include <gtk/gtkbuilder.h>
+#include <gtk/gtk.h>
 #include <libpspp/i18n.h>
 
 #include <ctype.h>

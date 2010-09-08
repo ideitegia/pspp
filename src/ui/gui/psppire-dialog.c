@@ -18,8 +18,6 @@
 #include <config.h>
 
 #include <gtk/gtk.h>
-#include <gtk/gtksignal.h>
-#include <gtk/gtkbuildable.h>
 #include "psppire-dialog.h"
 #include "psppire-buttonbox.h"
 #include "psppire-selector.h"

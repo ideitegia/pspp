@@ -15,7 +15,6 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <gtk/gtksignal.h>
 #include <gtk/gtk.h>
 #include <gtk-contrib/gtkextra-sheet.h>
 #include "psppire-data-editor.h"
