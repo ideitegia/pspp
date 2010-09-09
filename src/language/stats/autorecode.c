@@ -57,7 +57,7 @@ struct arc_spec
   {
     const struct variable *src;	/* Source variable. */
     struct variable *dst;	/* Target variable. */
-    struct hmap items;          /* Hash table of "struct arc_item"s. */
+    struct hmap *items;         /* Hash table of "struct arc_item"s. */
   };
 
 /* Descending or ascending sort order. */
@@ -69,10 +69,13 @@ enum arc_direction
 
 /* AUTORECODE data. */
 struct autorecode_pgm
-  {
-    struct arc_spec *specs;
-    size_t n_specs;
-  };
+{
+  struct arc_spec *specs;
+  size_t n_specs;
+
+  /* Hash table of "struct arc_item"s. */
+  struct hmap *global_items;
+};
 
 static trns_proc_func autorecode_trns_proc;
 static trns_free_func autorecode_trns_free;
@@ -94,14 +97,17 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
   size_t n_srcs = 0;
   size_t n_dsts = 0;
 
-  enum arc_direction direction;
-  bool print;
+  enum arc_direction direction = ASCENDING;
+  bool print = true;
 
   struct casereader *input;
   struct ccase *c;
 
   size_t i;
   bool ok;
+
+  /* Create procedure. */
+  arc = xzalloc (sizeof *arc);
 
   /* Parse variable lists. */
   lex_match_id (lexer, "VARIABLES");
@@ -135,30 +141,44 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
     }
 
   /* Parse options. */
-  direction = ASCENDING;
-  print = false;
   while (lex_match (lexer, '/'))
-    if (lex_match_id (lexer, "DESCENDING"))
-      direction = DESCENDING;
-    else if (lex_match_id (lexer, "PRINT"))
-      print = true;
+    {
+      if (lex_match_id (lexer, "DESCENDING"))
+	direction = DESCENDING;
+      else if (lex_match_id (lexer, "PRINT"))
+	print = true;
+      else if (lex_match_id (lexer, "GROUP"))
+	{
+	  arc->global_items = xmalloc (sizeof (*arc->global_items));
+	  hmap_init (arc->global_items);
+	}
+    }
+
   if (lex_token (lexer) != '.')
     {
       lex_error (lexer, _("expecting end of command"));
       goto error;
     }
 
-  /* Create procedure. */
-  arc = xmalloc (sizeof *arc);
   arc->specs = xmalloc (n_dsts * sizeof *arc->specs);
   arc->n_specs = n_dsts;
+
   for (i = 0; i < n_dsts; i++)
     {
       struct arc_spec *spec = &arc->specs[i];
 
       spec->src = src_vars[i];
-      hmap_init (&spec->items);
+      if (arc->global_items)
+	{
+	  spec->items = arc->global_items;
+	}
+      else
+	{
+	  spec->items = xmalloc (sizeof (*spec->items));
+	  hmap_init (spec->items);
+	}
     }
+
 
   /* Execute procedure. */
   input = proc_open (ds);
@@ -176,7 +196,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
           {
             item = xmalloc (sizeof *item);
             value_clone (&item->from, value, width);
-            hmap_insert (&spec->items, &item->hmap_node, hash);
+            hmap_insert (spec->items, &item->hmap_node, hash);
           }
       }
   ok = casereader_destroy (input);
@@ -196,12 +216,13 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       spec->dst = dict_create_var_assert (dict, dst_names[i], 0);
 
       /* Create array of pointers to items. */
-      n_items = hmap_count (&spec->items);
+      n_items = hmap_count (spec->items);
       items = xmalloc (n_items * sizeof *items);
       j = 0;
-      HMAP_FOR_EACH (item, struct arc_item, hmap_node, &spec->items)
+      HMAP_FOR_EACH (item, struct arc_item, hmap_node, spec->items)
         items[j++] = item;
-      assert (j == n_items);
+      if (!arc->global_items)
+	assert (j == n_items);
 
       /* Sort array by value. */
       src_width = var_get_width (spec->src);
@@ -226,8 +247,11 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 	     the source value from whence the new value comes. */
 
 	  if (src_width > 0)
-	    recoded_value = 
-	      recode_string (UTF8, dict_get_encoding (dict), (char *) value_str (from, src_width), src_width);
+	    {
+	      const char *str = (const char *) value_str (from, src_width);
+
+	      recoded_value = recode_string (UTF8, dict_get_encoding (dict), str, src_width);
+	    }
 	  else
 	    recoded_value = asnprintf (NULL, &len, "%g", from->f);
 	  
@@ -273,15 +297,32 @@ arc_free (struct autorecode_pgm *arc)
           int width = var_get_width (spec->src);
           struct arc_item *item, *next;
 
-          HMAP_FOR_EACH_SAFE (item, next, struct arc_item, hmap_node,
-                              &spec->items)
-            {
-              value_destroy (&item->from, width);
-              hmap_delete (&spec->items, &item->hmap_node);
-              free (item);
-            }
-          hmap_destroy (&spec->items);
+	  HMAP_FOR_EACH_SAFE (item, next, struct arc_item, hmap_node,
+			      spec->items)
+	    {
+	      value_destroy (&item->from, width);
+	      hmap_delete (spec->items, &item->hmap_node);
+	      free (item);
+	    }
         }
+
+      if (arc->global_items)
+	{
+	  free (arc->global_items);
+	}
+      else
+	{
+	  for (i = 0; i < arc->n_specs; i++)
+	    {
+	      struct arc_spec *spec = &arc->specs[i];
+	      if (spec->items)
+		{
+		  hmap_destroy (spec->items);
+		  free (spec->items);
+		}
+	    }
+	}
+
       free (arc->specs);
       free (arc);
     }
@@ -293,8 +334,7 @@ find_arc_item (struct arc_spec *spec, const union value *value,
 {
   struct arc_item *item;
 
-  HMAP_FOR_EACH_WITH_HASH (item, struct arc_item, hmap_node, hash,
-                           &spec->items)
+  HMAP_FOR_EACH_WITH_HASH (item, struct arc_item, hmap_node, hash, spec->items)
     if (value_equal (value, &item->from, var_get_width (spec->src)))
       return item;
   return NULL;

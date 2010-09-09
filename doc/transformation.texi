@@ -219,8 +219,9 @@ settings (@pxref{SPLIT FILE}).
 
 @display
 AUTORECODE VARIABLES=src_vars INTO dest_vars
-        /DESCENDING
-        /PRINT
+        [ /DESCENDING ]
+        [ /PRINT ]
+        [ /GROUP ]
 @end display
 
 The @cmd{AUTORECODE} procedure considers the @var{n} values that a variable
@@ -240,6 +241,10 @@ to be recoded to decreasing values of its target variable (@var{n} down
 to 1), specify DESCENDING.
 
 PRINT is currently ignored.
+
+The GROUP subcommand is relevant only if more than one variable is to be
+recoded.   It causes a single mapping between source and target values to
+be used, instead of one map per variable.
 
 @cmd{AUTORECODE} is a procedure.  It causes the data to be read.
 
