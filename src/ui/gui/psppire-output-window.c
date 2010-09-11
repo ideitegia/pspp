@@ -109,7 +109,8 @@ psppire_output_window_dispose (GObject *obj)
   viewer->items = NULL;
   viewer->n_items = viewer->allocated_items = 0;
 
-  g_object_unref (viewer->print_settings);
+  if (viewer->print_settings != NULL)
+    g_object_unref (viewer->print_settings);
 
   /* Chain up to the parent class */
   G_OBJECT_CLASS (parent_class)->dispose (obj);
