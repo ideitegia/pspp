@@ -404,7 +404,7 @@ expr_date_sum (double date, double quantity, struct substring unit_name,
 }
 
 int
-compare_string (const struct substring *a, const struct substring *b)
+compare_string_3way (const struct substring *a, const struct substring *b)
 {
   size_t i;
 

@@ -63,12 +63,12 @@ boolean operator LT (a, b) = a < b;
 boolean operator NE (a, b) = a != b;
 
 // String relational operators.
-boolean operator EQ_STRING (string a, string b) = compare_string (&a, &b) == 0;
-boolean operator GE_STRING (string a, string b) = compare_string (&a, &b) >= 0;
-boolean operator GT_STRING (string a, string b) = compare_string (&a, &b) > 0;
-boolean operator LE_STRING (string a, string b) = compare_string (&a, &b) <= 0;
-boolean operator LT_STRING (string a, string b) = compare_string (&a, &b) < 0;
-boolean operator NE_STRING (string a, string b) = compare_string (&a, &b) != 0;
+boolean operator EQ_STRING (string a, string b) = compare_string_3way (&a, &b) == 0;
+boolean operator GE_STRING (string a, string b) = compare_string_3way (&a, &b) >= 0;
+boolean operator GT_STRING (string a, string b) = compare_string_3way (&a, &b) > 0;
+boolean operator LE_STRING (string a, string b) = compare_string_3way (&a, &b) <= 0;
+boolean operator LT_STRING (string a, string b) = compare_string_3way (&a, &b) < 0;
+boolean operator NE_STRING (string a, string b) = compare_string_3way (&a, &b) != 0;
 
 // Unary functions.
 function ABS (x) = fabs (x);
@@ -118,7 +118,7 @@ boolean function ANY (string x, string a[n])
   size_t i;
 
   for (i = 0; i < n; i++)
-    if (!compare_string (&x, &a[i]))
+    if (!compare_string_3way (&x, &a[i]))
       return 1.;
   return 0.;
 }
@@ -154,7 +154,7 @@ string function MAX (string a[n])
 
   max = &a[0];
   for (i = 1; i < n; i++)
-    if (compare_string (&a[i], max) > 0)
+    if (compare_string_3way (&a[i], max) > 0)
       max = &a[i];
   return *max;
 }
@@ -185,7 +185,7 @@ string function MIN (string a[n])
 
   min = &a[0];
   for (i = 1; i < n; i++)
-    if (compare_string (&a[i], min) < 0)
+    if (compare_string_3way (&a[i], min) < 0)
       min = &a[i];
   return *min;
 }
@@ -238,7 +238,7 @@ boolean function RANGE (string x, string a[n*2])
     {
       struct substring *w = &a[2 * i];
       struct substring *y = &a[2 * i + 1];
-      if (compare_string (w, &x) <= 0 && compare_string (&x, y) <= 0)
+      if (compare_string_3way (w, &x) <= 0 && compare_string_3way (&x, y) <= 0)
         return 1.;
     }
   return 0.;
