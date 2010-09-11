@@ -137,8 +137,8 @@ if [ $? -ne 1 ] ; then fail ; fi
 activity="compare errors"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/errs
 diff -b $TEMPDIR/errs - << EOF
-$TEMPDIR/rank.sh.sps:15: error: RANK: Syntax error expecting \`(' at end of command.
-$TEMPDIR/rank.sh.sps:19: error: RANK: Syntax error expecting integer at \`d'.
+$TEMPDIR/rank.sh.sps:15: error: RANK: Syntax error at end of command:  expecting \`('.
+$TEMPDIR/rank.sh.sps:19: error: RANK: Syntax error at \`d':  expecting integer.
 $TEMPDIR/rank.sh.sps:25: error: RANK: Variable x already exists.
 $TEMPDIR/rank.sh.sps:30: error: RANK: Too many variables in INTO clause.
 EOF

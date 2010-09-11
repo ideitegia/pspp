@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -440,31 +440,34 @@ lex_sbc_missing (struct lexer *lexer, const char *sbc)
 void
 lex_error (struct lexer *lexer, const char *message, ...)
 {
-  char *token_rep;
-  char where[128];
+  struct string s;
 
-  token_rep = lex_token_representation (lexer);
+  ds_init_empty (&s);
+
   if (lexer->token == T_STOP)
-    strcpy (where, "end of file");
+    ds_put_cstr (&s, _("Syntax error at end of file"));
   else if (lexer->token == '.')
-    strcpy (where, "end of command");
+    ds_put_cstr (&s, _("Syntax error at end of command"));
   else
-    snprintf (where, sizeof where, "`%s'", token_rep);
-  free (token_rep);
+    {
+      char *token_rep = lex_token_representation (lexer);
+      ds_put_format (&s, _("Syntax error at `%s'"), token_rep);
+      free (token_rep);
+    }
 
   if (message)
     {
-      char buf[1024];
       va_list args;
 
-      va_start (args, message);
-      vsnprintf (buf, 1024, message, args);
-      va_end (args);
+      ds_put_cstr (&s, ": ");
 
-      msg (SE, _("Syntax error %s at %s."), buf, where);
+      va_start (args, message);
+      ds_put_vformat (&s, message, args);
+      va_end (args);
     }
-  else
-    msg (SE, _("Syntax error at %s."), where);
+
+  msg (SE, "%s.", ds_cstr (&s));
+  ds_destroy (&s);
 }
 
 /* Checks that we're at end of command.

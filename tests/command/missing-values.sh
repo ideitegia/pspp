@@ -127,7 +127,7 @@ activity="compare error messages"
 diff -u -w $TEMPDIR/errs - <<EOF
 $TEMPDIR/missing-values.stat:35: error: MISSING VALUES: Missing values provided are too long to assign to variable of width 3.
 $TEMPDIR/missing-values.stat:38: error: MISSING VALUES: Truncating missing value to maximum acceptable length (8 bytes).
-$TEMPDIR/missing-values.stat:41: error: MISSING VALUES: Syntax error expecting string at \`THRU'.
+$TEMPDIR/missing-values.stat:41: error: MISSING VALUES: Syntax error at \`THRU': expecting string.
 $TEMPDIR/missing-values.stat:41: error: MISSING VALUES: THRU is not a variable name.
 $TEMPDIR/missing-values.stat:44: error: MISSING VALUES: Cannot mix numeric variables (e.g. num1) and string variables (e.g. str1) within a single list.
 EOF

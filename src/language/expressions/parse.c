@@ -892,7 +892,7 @@ parse_primary (struct lexer *lexer, struct expression *e)
       }
 
     default:
-      lex_error (lexer, _("in expression"));
+      lex_error (lexer, NULL);
       return NULL;
     }
 }
