@@ -140,3 +140,39 @@ x,y,a,b
 ])
 
 AT_CLEANUP
+
+
+
+AT_SETUP([AUTORECODE group - string variables])
+AT_DATA([strings.sps],
+[data list notable list /x (a8) y (a16).
+begin data.
+fred bert
+charlie "         "
+delta echo
+"      " windows
+" "  nothing
+end data.
+
+
+autorecode x y into a b
+	/group.
+
+delete variables x y.
+
+list.
+
+])
+
+AT_CHECK([pspp -O format=csv strings.sps], [0],
+[Table: Data List
+a,b
+7.00,3.00
+4.00,1.00
+5.00,6.00
+2.00,9.00
+2.00,8.00
+])
+
+AT_CLEANUP
+

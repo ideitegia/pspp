@@ -49,6 +49,8 @@ struct arc_item
   {
     struct hmap_node hmap_node; /* Element in "struct arc_spec" hash table. */
     union value from;           /* Original value. */
+    int width;                  /* Width of the original value */
+
     double to;			/* Recoded value. */
   };
 
@@ -80,9 +82,9 @@ struct autorecode_pgm
 static trns_proc_func autorecode_trns_proc;
 static trns_free_func autorecode_trns_free;
 
-static int compare_arc_items (const void *, const void *, const void *width);
+static int compare_arc_items (const void *, const void *, const void *aux);
 static void arc_free (struct autorecode_pgm *);
-static struct arc_item *find_arc_item (struct arc_spec *, const union value *,
+static struct arc_item *find_arc_item (const struct arc_spec *, const union value *,
                                        size_t hash);
 
 /* Performs the AUTORECODE procedure. */
@@ -195,6 +197,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
         if (item == NULL)
           {
             item = xmalloc (sizeof *item);
+	    item->width = width;
             value_clone (&item->from, value, width);
             hmap_insert (spec->items, &item->hmap_node, hash);
           }
@@ -209,7 +212,6 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       struct arc_item **items;
       struct arc_item *item;
       size_t n_items;
-      int src_width;
       size_t j;
 
       /* Create destination variable. */
@@ -221,12 +223,11 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       j = 0;
       HMAP_FOR_EACH (item, struct arc_item, hmap_node, spec->items)
         items[j++] = item;
-      if (!arc->global_items)
-	assert (j == n_items);
+
+      assert (j == n_items);
 
       /* Sort array by value. */
-      src_width = var_get_width (spec->src);
-      sort (items, n_items, sizeof *items, compare_arc_items, &src_width);
+      sort (items, n_items, sizeof *items, compare_arc_items, NULL);
 
       /* Assign recoded values in sorted order. */
       for (j = 0; j < n_items; j++)
@@ -235,7 +236,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 	  size_t len;
 	  char *recoded_value  = NULL;
 	  char *c;
-
+	  const int src_width = items[j]->width;
 	  union value to_val;
 	  value_init (&to_val, 0);
 
@@ -245,7 +246,6 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 
 	  /* Add value labels to the destination variable which indicate
 	     the source value from whence the new value comes. */
-
 	  if (src_width > 0)
 	    {
 	      const char *str = (const char *) value_str (from, src_width);
@@ -329,7 +329,7 @@ arc_free (struct autorecode_pgm *arc)
 }
 
 static struct arc_item *
-find_arc_item (struct arc_spec *spec, const union value *value,
+find_arc_item (const struct arc_spec *spec, const union value *value,
                size_t hash)
 {
   struct arc_item *item;
@@ -341,13 +341,24 @@ find_arc_item (struct arc_spec *spec, const union value *value,
 }
 
 static int
-compare_arc_items (const void *a_, const void *b_, const void *width_)
+compare_arc_items (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const struct arc_item *const *a = a_;
   const struct arc_item *const *b = b_;
-  const int *width = width_;
+  int width_a = (*a)->width;
+  int width_b = (*b)->width;
 
-  return value_compare_3way (&(*a)->from, &(*b)->from, *width);
+  if ( width_a == width_b)
+    return value_compare_3way (&(*a)->from, &(*b)->from, width_a);
+
+  if ( width_a == 0 && width_b != 0)
+    return -1;
+
+  if ( width_b == 0 && width_a != 0)
+    return +1;
+
+  return buf_compare_rpad ((const char *) value_str (&(*a)->from, width_a), width_a,
+			   (const char *) value_str (&(*b)->from, width_b), width_b);
 }
 
 static int
@@ -360,7 +371,7 @@ autorecode_trns_proc (void *arc_, struct ccase **c,
   *c = case_unshare (*c);
   for (i = 0; i < arc->n_specs; i++)
     {
-      struct arc_spec *spec = &arc->specs[i];
+      const struct arc_spec *spec = &arc->specs[i];
       int width = var_get_width (spec->src);
       const union value *value = case_data (*c, spec->src);
       struct arc_item *item;
