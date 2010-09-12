@@ -142,7 +142,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
           if (lex_is_number (lexer))
             width = 0;
-          else if (lex_token (lexer) == T_STRING)
+          else if (lex_is_string (lexer))
             width = ds_length (lex_tokstr (lexer));
           else
             {

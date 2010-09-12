@@ -1534,7 +1534,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
           else if (s->value == VAL_STRING)
             {
               dump (1, "if (lex_token (lexer) != T_ID "
-                    "&& lex_token (lexer) != T_STRING)");
+                    "&& !lex_is_string (lexer))");
               dump (1, "{");
               dump (0, "msg (SE, _(\"%s specifier of %s subcommand "
                     "requires a string argument.\"));",

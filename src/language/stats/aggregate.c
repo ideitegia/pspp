@@ -432,7 +432,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 
 
 
-	  if (lex_token (lexer) == T_STRING)
+	  if (lex_is_string (lexer))
 	    {
 	      struct string label;
 	      ds_init_string (&label, lex_tokstr (lexer));
@@ -499,7 +499,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 		int type;
 
 		lex_match (lexer, ',');
-		if (lex_token (lexer) == T_STRING)
+		if (lex_is_string (lexer))
 		  {
 		    arg[i].c = ds_xstrdup (lex_tokstr (lexer));
 		    type = VAL_STRING;

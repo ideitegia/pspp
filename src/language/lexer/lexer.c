@@ -603,7 +603,7 @@ lex_force_match (struct lexer *lexer, int t)
 bool
 lex_force_string (struct lexer *lexer)
 {
-  if (lexer->token == T_STRING)
+  if (lex_is_string (lexer))
     return true;
   else
     {

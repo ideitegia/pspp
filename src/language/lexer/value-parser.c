@@ -100,7 +100,7 @@ parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
       lex_get (lexer);
       return true;
     }
-  else if (lex_token (lexer) == T_STRING && format != NULL)
+  else if (lex_is_string (lexer) && format != NULL)
     {
       union value v;
       assert (! (fmt_get_category (*format) & ( FMT_CAT_STRING )));

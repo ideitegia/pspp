@@ -195,7 +195,7 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
 	count = parse_ids (lexer, dict, macro, block->pool);
       else if (lex_is_number (lexer))
 	count = parse_numbers (lexer, macro, block->pool);
-      else if (lex_token (lexer) == T_STRING)
+      else if (lex_is_string (lexer))
 	count = parse_strings (lexer, macro, block->pool);
       else
 	{
@@ -476,7 +476,7 @@ parse_strings (struct lexer *lexer, struct repeat_macro *macro, struct pool *poo
     {
       char *string;
 
-      if (lex_token (lexer) != T_STRING)
+      if (!lex_force_string (lexer))
 	{
 	  msg (SE, _("String expected."));
 	  return 0;

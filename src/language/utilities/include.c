@@ -178,7 +178,7 @@ parse_insert (struct lexer *lexer, char **filename)
     lex_match (lexer, '=');
 
   /* File name can be identifier or string. */
-  if (lex_token (lexer) != T_ID && lex_token (lexer) != T_STRING)
+  if (lex_token (lexer) != T_ID && !lex_is_string (lexer))
     {
       lex_error (lexer, _("expecting file name"));
       return CMD_FAILURE;

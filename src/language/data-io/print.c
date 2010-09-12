@@ -252,7 +252,7 @@ parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns
       if (!parse_record_placement (lexer, &record, &column))
         return false;
 
-      if (lex_token (lexer) == T_STRING)
+      if (lex_is_string (lexer))
 	ok = parse_string_argument (lexer, trns, record, &column);
       else
 	ok = parse_variable_argument (lexer, dict, trns, tmp_pool, &record, &column,

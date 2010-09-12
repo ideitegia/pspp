@@ -141,7 +141,7 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
         return CMD_FAILURE;
 
       ds_init_empty (&command);
-      while (lex_token (lexer) == T_STRING)
+      while (lex_is_string (lexer))
         {
           if (!ds_is_empty (&command))
             ds_put_char (&command, '\n');

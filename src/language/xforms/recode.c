@@ -390,7 +390,7 @@ parse_map_out (struct lexer *lexer, struct pool *pool, struct map_out *out)
     }
   else if (lex_match_id (lexer, "SYSMIS"))
     set_map_out_num (out, SYSMIS);
-  else if (lex_token (lexer) == T_STRING)
+  else if (lex_is_string (lexer))
     {
       set_map_out_str (out, pool, lex_tokstr (lexer));
       lex_get (lexer);

@@ -509,7 +509,7 @@ stc_custom_journal (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_s
     journal_enable ();
   else if (lex_match_id (lexer, "OFF") || lex_match_id (lexer, "NO"))
     journal_disable ();
-  else if (lex_token (lexer) == T_STRING || lex_token (lexer) == T_ID)
+  else if (lex_is_string (lexer) || lex_token (lexer) == T_ID)
     {
       journal_set_file_name (ds_cstr (lex_tokstr (lexer)));
       lex_get (lexer);
