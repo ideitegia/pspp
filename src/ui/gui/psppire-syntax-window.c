@@ -575,10 +575,6 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   GtkClipboard *clip_selection = gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_CLIPBOARD);
   GtkClipboard *clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
 
-  g_signal_connect_swapped (clip_primary, "owner-change", G_CALLBACK (selection_changed), window);
-
-  g_signal_connect (clip_selection, "owner-change", G_CALLBACK (on_owner_change), window);
-
   window->cliptext = NULL;
 
   window->edit_delete = get_action_assert (xml, "edit_delete");
@@ -592,10 +588,17 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   window->sb = get_widget_assert (xml, "statusbar2");
   window->text_context = gtk_statusbar_get_context_id (GTK_STATUSBAR (window->sb), "Text Context");
 
-  g_signal_connect (window->buffer, "changed", G_CALLBACK (on_text_changed), window);
+  g_signal_connect (window->buffer, "changed", 
+		    G_CALLBACK (on_text_changed), window);
 
-  g_signal_connect (window->buffer, "modified-changed",
+  g_signal_connect (window->buffer, "modified-changed", 
 		    G_CALLBACK (on_modified_changed), window);
+
+  g_signal_connect_swapped (clip_primary, "owner-change", 
+			    G_CALLBACK (selection_changed), window);
+
+  g_signal_connect (clip_selection, "owner-change", 
+		    G_CALLBACK (on_owner_change), window);
 
   connect_help (xml);
 
@@ -606,7 +609,6 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   g_object_ref (sw);
 
   g_object_ref (window->sb);
-
 
   gtk_box_pack_start (GTK_BOX (box), menubar, FALSE, TRUE, 0);
   gtk_box_pack_start (GTK_BOX (box), sw, TRUE, TRUE, 0);
