@@ -453,14 +453,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	  goto error;
 	}
 
-      exclude = MV_ANY;
-
       ds_assign_string (&function_name, lex_tokstr (lexer));
-
-      ds_chomp (&function_name, '.');
-
-      if (lex_tokid(lexer)[strlen (lex_tokid (lexer)) - 1] == '.')
-        exclude = MV_SYSTEM;
+      exclude = ds_chomp (&function_name, '.') ? MV_SYSTEM : MV_ANY;
 
       for (function = agr_func_tab; function->name; function++)
 	if (!strcasecmp (function->name, ds_cstr (&function_name)))
