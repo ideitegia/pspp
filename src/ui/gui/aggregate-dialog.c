@@ -214,7 +214,7 @@ populate_combo_model (GtkComboBox *cb)
 
       gtk_list_store_append (list, &iter);
       gtk_list_store_set (list, &iter,
-                          COMBO_MODEL_COL_DESC, s,
+                          COMBO_MODEL_COL_DESC, gettext (s),
 			  COMBO_MODEL_COL_SYNTAX, af->name,
 			  COMBO_MODEL_COL_SRC_VARS, af->src_vars,
 			  COMBO_MODEL_COL_ARITY, af->n_args,
