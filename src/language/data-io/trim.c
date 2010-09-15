@@ -88,8 +88,8 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
 	  msg (SE, _("Cannot rename %s as %s because there already exists "
 		     "a variable named %s.  To rename variables with "
 		     "overlapping names, use a single RENAME subcommand "
-		     "such as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, "
-		     "\"/RENAME (A B C=B C A)\"."),
+		     "such as `/RENAME (A=B)(B=C)(C=A)', or equivalently, "
+		     "`/RENAME (A B C=B C A)'."),
                var_get_name (v), lex_tokid (lexer), lex_tokid (lexer));
 	  return 0;
 	}

@@ -63,7 +63,7 @@ msglog_create (const char *file_name)
   file = fn_open (file_name, "w");
   if (file == NULL)
     {
-      error (0, errno, _("error opening output file \"%s\""), file_name);
+      error (0, errno, _("error opening output file `%s'"), file_name);
       return NULL;
     }
 

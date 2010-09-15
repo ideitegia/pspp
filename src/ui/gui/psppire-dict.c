@@ -867,7 +867,7 @@ psppire_dict_dump (const PsppireDict *dict)
     {
       const struct variable *v = psppire_dict_get_variable (dict, i);
       int di = var_get_dict_index (v);
-      g_print ("\"%s\" idx=%d, fv=%d\n",
+      g_print ("`%s' idx=%d, fv=%d\n",
 	       var_get_name(v),
 	       di,
 	       var_get_case_index(v));

@@ -53,7 +53,7 @@ try_detect (const char *file_name, bool (*detect) (FILE *))
   file = fn_open (file_name, "rb");
   if (file == NULL)
     {
-      msg (ME, _("An error occurred while opening \"%s\": %s."),
+      msg (ME, _("An error occurred while opening `%s': %s."),
            file_name, strerror (errno));
       return IO_ERROR;
     }
@@ -98,7 +98,7 @@ any_reader_open (struct file_handle *handle, struct dictionary **dict)
         else if (result == YES)
           return pfm_open_reader (handle, dict, NULL);
 
-        msg (SE, _("\"%s\" is not a system or portable file."),
+        msg (SE, _("`%s' is not a system or portable file."),
              fh_get_file_name (handle));
         return NULL;
       }

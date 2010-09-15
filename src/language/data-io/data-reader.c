@@ -146,7 +146,7 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
       r->file = fn_open (fh_get_file_name (fh), "rb");
       if (r->file == NULL)
         {
-          msg (ME, _("Could not open \"%s\" for reading as a data file: %s."),
+          msg (ME, _("Could not open `%s' for reading as a data file: %s."),
                fh_get_file_name (r->fh), strerror (errno));
           fh_unlock (r->lock);
           fh_unref (fh);

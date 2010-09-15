@@ -436,7 +436,7 @@ save_editor_to_file (PsppireSyntaxWindow *se,
   if ( result )
     {
       char *fn = g_filename_display_name (filename);
-      gchar *msg = g_strdup_printf (_("Saved file \"%s\""), fn);
+      gchar *msg = g_strdup_printf (_("Saved file `%s'"), fn);
       g_free (fn);
       gtk_statusbar_push (GTK_STATUSBAR (se->sb), se->text_context, msg);
       gtk_text_buffer_set_modified (buffer, FALSE);

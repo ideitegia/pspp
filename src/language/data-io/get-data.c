@@ -219,7 +219,6 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	}
       else
 	{
-	  printf ("Unknown data file type \"\%s\"\n", lex_tokid (lexer));
 	  goto error;
 	}
       lex_get (lexer);

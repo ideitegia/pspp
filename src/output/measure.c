@@ -245,7 +245,7 @@ read_paper_conf (const char *file_name, int *h, int *v)
   file = fopen (file_name, "r");
   if (file == NULL)
     {
-      error (0, errno, _("error opening input file \"%s\""), file_name);
+      error (0, errno, _("error opening input file `%s'"), file_name);
       return false;
     }
 
@@ -256,7 +256,7 @@ read_paper_conf (const char *file_name, int *h, int *v)
       if (!ds_read_config_line (&line, &line_number, file))
 	{
 	  if (ferror (file))
-	    error (0, errno, _("error reading file \"%s\""), file_name);
+	    error (0, errno, _("error reading file `%s'"), file_name);
 	  break;
 	}
 
@@ -273,7 +273,7 @@ read_paper_conf (const char *file_name, int *h, int *v)
 
   fclose (file);
   ds_destroy (&line);
-  error (0, 0, _("paper size file \"%s\" does not state a paper size"),
+  error (0, 0, _("paper size file `%s' does not state a paper size"),
          file_name);
   return false;
 }

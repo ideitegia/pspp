@@ -1249,7 +1249,7 @@ dump_token (struct lexer *lexer)
       break;
 
     case T_STRING:
-      fprintf (stderr, "STRING\t\"%s\"\n", ds_cstr (&lexer->tokstr));
+      fprintf (stderr, "STRING\t`%s'\n", ds_cstr (&lexer->tokstr));
       break;
 
     case T_STOP:

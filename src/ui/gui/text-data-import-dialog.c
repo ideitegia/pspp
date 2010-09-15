@@ -458,7 +458,7 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   stream = fopen (file->file_name, "r");
   if (stream == NULL)
     {
-      msg (ME, _("Could not open \"%s\": %s"),
+      msg (ME, _("Could not open `%s': %s"),
            file->file_name, strerror (errno));
       return false;
     }
@@ -474,10 +474,10 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
           if (feof (stream))
             break;
           else if (ferror (stream))
-            msg (ME, _("Error reading \"%s\": %s"),
+            msg (ME, _("Error reading `%s': %s"),
                  file->file_name, strerror (errno));
           else
-            msg (ME, _("Failed to read \"%s\", because it contains a line "
+            msg (ME, _("Failed to read `%s', because it contains a line "
                        "over %d bytes long and therefore appears not to be "
                        "a text file."),
                  file->file_name, MAX_LINE_LEN);
@@ -491,7 +491,7 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
 
   if (file->line_cnt == 0)
     {
-      msg (ME, _("\"%s\" is empty."), file->file_name);
+      msg (ME, _("`%s' is empty."), file->file_name);
       fclose (stream);
       destroy_file (ia);
       return false;
@@ -1783,7 +1783,7 @@ parse_field (struct import_assistant *ia,
         {
           char fmt_string[FMT_STRING_LEN_MAX + 1];
           fmt_to_string (in, fmt_string);
-          tooltip = xasprintf (_("Field content \"%.*s\" cannot be parsed in "
+          tooltip = xasprintf (_("Field content `%.*s' cannot be parsed in "
                                  "format %s."),
                                (int) field.length, field.string,
                                fmt_string);

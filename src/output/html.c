@@ -103,7 +103,7 @@ html_create (const char *file_name, enum settings_output_devices device_type,
   html->file = fn_open (html->file_name, "w");
   if (html->file == NULL)
     {
-      error (0, errno, _("error opening output file \"%s\""), html->file_name);
+      error (0, errno, _("error opening output file `%s'"), html->file_name);
       goto error;
     }
 
@@ -112,7 +112,7 @@ html_create (const char *file_name, enum settings_output_devices device_type,
   fputs ("<HTML>\n", html->file);
   fputs ("<HEAD>\n", html->file);
   print_title_tag (html->file, "TITLE", _("PSPP Output"));
-  fprintf (html->file, "<META NAME=\"generator\" CONTENT=\"%s\">\n", version);
+  fprintf (html->file, "<META NAME=\"generator\" CONTENT=`%s'>\n", version);
   fputs ("<META http-equiv=\"Content-Style-Type\" content=\"text/css\">\n",
          html->file);
   fputs ("<META HTTP-EQUIV=\"Content-Type\" "
@@ -253,7 +253,7 @@ html_submit (struct output_driver *driver,
                                      html->chart_cnt++);
       if (file_name != NULL)
         {
-          fprintf (html->file, "<IMG SRC=\"%s\"/>", file_name);
+          fprintf (html->file, "<IMG SRC=`%s'/>", file_name);
           free (file_name);
         }
     }

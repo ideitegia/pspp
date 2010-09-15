@@ -84,7 +84,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
 diff -c $TEMPDIR/pspp.csv - <<EOF
-"Table: Reading 1 record from ""$top_srcdir/tests/weighting.data""."
+Table: Reading 1 record from \`$top_srcdir/tests/weighting.data'.
 Variable,Record,Columns,Format
 AVAR,1,1-  5,F5.0
 BVAR,1,6- 10,F5.0

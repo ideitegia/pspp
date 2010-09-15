@@ -297,7 +297,7 @@ psppire_var_view_get_variable (PsppireVarView *vv, gint column, GtkTreeIter *ite
   if ( G_VALUE_TYPE (&value) == PSPPIRE_VAR_PTR_TYPE)
     var = g_value_get_boxed (&value);
   else
-    g_critical ("Unsupported type \"%s\", in variable name treeview.",
+    g_critical ("Unsupported type `%s', in variable name treeview.",
 		G_VALUE_TYPE_NAME (&value));
 
   g_value_unset (&value);

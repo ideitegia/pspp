@@ -618,13 +618,13 @@ show_cce (const struct dataset *ds UNUSED)
 static char *
 show_decimals (const struct dataset *ds UNUSED)
 {
-  return xasprintf ("\"%c\"", settings_get_decimal_char (FMT_F));
+  return xasprintf ("`%c'", settings_get_decimal_char (FMT_F));
 }
 
 static char *
 show_endcmd (const struct dataset *ds UNUSED)
 {
-  return xasprintf ("\"%c\"", settings_get_endcmd ());
+  return xasprintf ("`%c'", settings_get_endcmd ());
 }
 
 static char *

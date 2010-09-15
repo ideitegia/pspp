@@ -357,7 +357,7 @@ ascii_flush (struct output_driver *driver)
       ascii_close_page (a);
 
       if (fn_close (a->file_name, a->file) != 0)
-        error (0, errno, _("ascii: closing output file \"%s\""),
+        error (0, errno, _("ascii: closing output file `%s'"),
                a->file_name);
       a->file = NULL;
     }
@@ -803,7 +803,7 @@ ascii_open_page (struct ascii_driver *a)
         }
       else
         {
-          error (0, errno, _("ascii: opening output file \"%s\""),
+          error (0, errno, _("ascii: opening output file `%s'"),
                  a->file_name);
           a->error = true;
           return false;

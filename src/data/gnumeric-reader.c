@@ -361,7 +361,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
   if ( NULL == gz)
     {
-      msg (ME, _("Error opening \"%s\" for reading as a Gnumeric file: %s."),
+      msg (ME, _("Error opening `%s' for reading as a Gnumeric file: %s."),
            gri->file_name, strerror (errno));
 
       goto error;
@@ -381,7 +381,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 			       &r->start_col, &r->start_row,
 			       &r->stop_col, &r->stop_row))
 	{
-	  msg (SE, _("Invalid cell range \"%s\""),
+	  msg (SE, _("Invalid cell range `%s'"),
 	       gri->cell_range);
 	  goto error;
 	}
@@ -525,7 +525,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
   if ( n_var_specs ==  0 )
     {
-      msg (MW, _("Selected sheet or range of spreadsheet \"%s\" is empty."),
+      msg (MW, _("Selected sheet or range of spreadsheet `%s' is empty."),
            gri->file_name);
       goto error;
     }

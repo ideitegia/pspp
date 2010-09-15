@@ -157,7 +157,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
                               &w->file, NULL);
   if (w->rf == NULL)
     {
-      msg (ME, _("Error opening \"%s\" for writing as a portable file: %s."),
+      msg (ME, _("Error opening `%s' for writing as a portable file: %s."),
            fh_get_file_name (fh), strerror (errno));
       goto error;
     }
@@ -502,7 +502,7 @@ close_writer (struct pfm_writer *w)
         ok = false;
 
       if (!ok)
-        msg (ME, _("An I/O error occurred writing portable file \"%s\"."),
+        msg (ME, _("An I/O error occurred writing portable file `%s'."),
              fh_get_file_name (w->fh));
 
       if (ok ? !replace_file_commit (w->rf) : !replace_file_abort (w->rf))

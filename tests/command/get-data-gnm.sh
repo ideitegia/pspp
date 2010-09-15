@@ -202,9 +202,9 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output 2"
 diff -c $TEMPDIR/pspp.csv - <<EOF
-"warning: Selected sheet or range of spreadsheet ""$TEMPDIR/Book1.gnumeric"" is empty."
+warning: Selected sheet or range of spreadsheet \`$TEMPDIR/Book1.gnumeric' is empty.
 
-"warning: Selected sheet or range of spreadsheet ""$TEMPDIR/Book1.gnumeric"" is empty."
+warning: Selected sheet or range of spreadsheet \`$TEMPDIR/Book1.gnumeric' is empty.
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

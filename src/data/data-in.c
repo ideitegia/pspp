@@ -873,7 +873,7 @@ parse_trailer (struct data_in *i)
   if (ss_is_empty (i->input))
     return true;
 
-  data_warning (i, _("Trailing garbage \"%.*s\" following date."),
+  data_warning (i, _("Trailing garbage `%.*s' following date."),
               (int) ss_length (i->input), ss_data (i->input));
   return false;
 }

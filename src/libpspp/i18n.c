@@ -79,7 +79,7 @@ create_iconv (const char* tocode, const char* fromcode)
       const int err = errno;
       fprintf (stderr,
                "Warning: "
-               "cannot create a converter for \"%s\" to \"%s\": %s\n",
+               "cannot create a converter for `%s' to `%s': %s\n",
                fromcode, tocode, strerror (err));
     }
 

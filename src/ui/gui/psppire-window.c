@@ -466,7 +466,7 @@ psppire_window_query_save (PsppireWindow *se)
 			    GTK_DIALOG_MODAL,
 			    GTK_MESSAGE_WARNING,
 			    GTK_BUTTONS_NONE,
-			    _("Save the changes to \"%s\" before closing?"),
+			    _("Save the changes to `%s' before closing?"),
 			    fn);
   g_free (fn);
 

@@ -70,7 +70,7 @@ dfm_open_writer (struct file_handle *fh)
                               &w->file, NULL);
   if (w->rf == NULL)
     {
-      msg (ME, _("An error occurred while opening \"%s\" for writing "
+      msg (ME, _("An error occurred while opening `%s' for writing "
                  "as a data file: %s."),
            fh_get_file_name (w->fh), strerror (errno));
       dfm_close_writer (w);
@@ -187,7 +187,7 @@ dfm_close_writer (struct dfm_writer *w)
       ok = !dfm_write_error (w) && !fn_close (file_name, w->file);
 
       if (!ok)
-        msg (ME, _("I/O error occurred writing data file \"%s\"."), file_name);
+        msg (ME, _("I/O error occurred writing data file `%s'."), file_name);
 
       if (ok ? !replace_file_commit (w->rf) : !replace_file_abort (w->rf))
         ok = false;

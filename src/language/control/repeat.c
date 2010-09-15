@@ -169,12 +169,12 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
       if (!lex_force_id (lexer))
 	return false;
       if (dict_lookup_var (dict, lex_tokid (lexer)))
-        msg (SW, _("Dummy variable name \"%s\" hides dictionary "
-                   "variable \"%s\"."),
+        msg (SW, _("Dummy variable name `%s' hides dictionary "
+                   "variable `%s'."),
              lex_tokid (lexer), lex_tokid (lexer));
       if (find_macro (block, ss_cstr (lex_tokid (lexer))))
 	  {
-	    msg (SE, _("Dummy variable name \"%s\" is given twice."),
+	    msg (SE, _("Dummy variable name `%s' is given twice."),
 		 lex_tokid (lexer));
 	    return false;
 	  }
@@ -220,8 +220,8 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
 	}
       else if (block->loop_cnt != count)
 	{
-	  msg (SE, _("Dummy variable \"%.*s\" had %d "
-                     "substitutions, so \"%.*s\" must also, but %d "
+	  msg (SE, _("Dummy variable `%.*s' had %d "
+                     "substitutions, so `%.*s' must also, but %d "
                      "were specified."),
 	       (int) ss_length (first_name), ss_data (first_name),
                block->loop_cnt,

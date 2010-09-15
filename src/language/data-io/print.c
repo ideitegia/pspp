@@ -412,7 +412,7 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
       switch (spec->type)
         {
         case PRT_LITERAL:
-          tab_text_format (t, 0, row, TAB_LEFT | TAB_FIX, "\"%.*s\"",
+          tab_text_format (t, 0, row, TAB_LEFT | TAB_FIX, "`%.*s'",
                            (int) ds_length (&spec->string),
                            ds_data (&spec->string));
           width = ds_length (&spec->string);
