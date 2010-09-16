@@ -186,7 +186,6 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
             {
               name = data_out_pool (value, dict_get_encoding (flip->dict), var_get_write_format (flip->new_names_var),
 		 flip->pool);
-	
             }
           var_names_add (flip->pool, &flip->new_names, name);
         }
@@ -261,7 +260,6 @@ make_new_var (struct dictionary *dict, const char *name_)
           *cp = '_';
       }
   *cp = '\0';
-  str_uppercase (name);
 
   /* Use the mangled name, if it is available, or add numeric
      extensions until we find one that is. */
