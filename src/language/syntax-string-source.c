@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical interface for PSPP.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -100,20 +100,12 @@ read_single_line (struct getl_interface *i,
   return true;
 }
 
-struct getl_interface *
-create_syntax_string_source (const char *format, ...)
+static struct syntax_string_source *
+create_syntax_string_source__ (void)
 {
-  va_list args;
-
   struct syntax_string_source *sss = xzalloc (sizeof *sss);
 
   sss->posn = 0;
-
-  ds_init_empty (&sss->buffer);
-
-  va_start (args, format);
-  ds_put_vformat (&sss->buffer, format, args);
-  va_end (args);
 
   sss->parent.interactive = always_false;
   sss->parent.close = do_close;
@@ -122,6 +114,30 @@ create_syntax_string_source (const char *format, ...)
   sss->parent.name = name;
   sss->parent.location = location;
 
+  return sss;
+}
+
+struct getl_interface *
+create_syntax_string_source (const char *s)
+{
+  struct syntax_string_source *sss = create_syntax_string_source__ ();
+  ds_init_cstr (&sss->buffer, s);
+  return &sss->parent;
+}
+
+struct getl_interface *
+create_syntax_format_source (const char *format, ...)
+{
+  struct syntax_string_source *sss;
+  va_list args;
+
+  sss = create_syntax_string_source__ ();
+
+  ds_init_empty (&sss->buffer);
+
+  va_start (args, format);
+  ds_put_vformat (&sss->buffer, format, args);
+  va_end (args);
 
   return &sss->parent;
 }
