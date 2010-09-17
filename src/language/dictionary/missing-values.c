@@ -51,11 +51,8 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
       if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         goto done;
 
-      if (!lex_match (lexer, '('))
-        {
-          lex_error (lexer, _("expecting `('"));
-          goto done;
-        }
+      if (!lex_force_match (lexer, '('))
+        goto done;
 
       for (i = 0; i < nv; i++)
         var_clear_missing_values (v[i]);

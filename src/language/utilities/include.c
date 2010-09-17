@@ -91,8 +91,8 @@ cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
 	    syntax_mode = GETL_BATCH;
 	  else
 	    {
-	      lex_error(lexer,
-			_("Expecting BATCH or INTERACTIVE after SYNTAX."));
+	      lex_error (lexer, _("expecting %s or %s after %s"),
+                         "BATCH", "INTERACTIVE", "SYNTAX");
 	      return CMD_FAILURE;
 	    }
 	}
@@ -109,7 +109,8 @@ cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
 	    }
 	  else
 	    {
-	      lex_error (lexer, _("Expecting YES or NO after CD."));
+	      lex_error (lexer, _("expecting %s or %s after %s"),
+                         "YES", "NO", "CD");
 	      return CMD_FAILURE;
 	    }
 	}
@@ -126,7 +127,8 @@ cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
 	    }
 	  else
 	    {
-	      lex_error (lexer, _("Expecting CONTINUE or STOP after ERROR."));
+	      lex_error (lexer, _("expecting %s or %s after %s"),
+                         "CONTINUE", "STOP", "ERROR");
 	      return CMD_FAILURE;
 	    }
 	}

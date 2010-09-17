@@ -222,7 +222,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 	  lex_match (lexer, '=');
 	  if (!lex_match_id (lexer, "COLUMNWISE"))
 	    {
-	      lex_error (lexer, _("while expecting COLUMNWISE"));
+	      lex_error (lexer, _("expecting %s"), "COLUMNWISE");
               goto error;
 	    }
 	  agr.missing = COLUMNWISE;
@@ -231,7 +231,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
         copy_documents = true;
       else if (lex_match_id (lexer, "PRESORTED"))
         presorted = true;
-      else if (lex_match_id (lexer, "BREAK"))
+      else if (lex_force_match_id (lexer, "BREAK"))
 	{
           int i;
 
@@ -249,10 +249,8 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
           break;
 	}
       else
-        {
-          lex_error (lexer, _("expecting BREAK"));
-          goto error;
-        }
+        goto error;
+
     }
   if (presorted && saw_direction)
     msg (SW, _("When PRESORTED is specified, specifying sorting directions "
@@ -474,7 +472,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	{
 	  if (function->src_vars == AGR_SV_YES)
 	    {
-	      lex_error (lexer, _("expecting `('"));
+              lex_force_match (lexer, '(');
 	      goto error;
 	    }
 	}
@@ -530,11 +528,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	      }
 
 	  /* Trailing rparen. */
-	  if (!lex_match (lexer, ')'))
-	    {
-	      lex_error (lexer, _("expecting `)'"));
-	      goto error;
-	    }
+	  if (!lex_force_match (lexer, ')'))
+            goto error;
 
 	  /* Now check that the number of source variables match
 	     the number of target variables.  If we check earlier

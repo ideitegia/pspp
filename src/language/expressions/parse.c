@@ -886,11 +886,8 @@ parse_primary (struct lexer *lexer, struct expression *e)
         union any_node *node;
 	lex_get (lexer);
 	node = parse_or (lexer, e);
-	if (node != NULL && !lex_match (lexer, ')'))
-	  {
-	    lex_error (lexer, _("expecting `)'"));
-            return NULL;
-	  }
+	if (node != NULL && !lex_force_match (lexer, ')'))
+          return NULL;
         return node;
       }
 

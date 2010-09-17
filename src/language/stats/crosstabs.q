@@ -406,7 +406,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds,
 	{
 	  if (n_by < 2)
 	    {
-	      lex_error (lexer, _("expecting BY"));
+              lex_force_match (lexer, T_BY);
 	      goto done;
 	    }
 	  else
@@ -482,12 +482,8 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
                                    | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
 	return 0;
 
-      if (lex_token (lexer) != '(')
-	{
-	  lex_error (lexer, "expecting `('");
+      if (!lex_force_match (lexer, '('))
 	  goto lossage;
-	}
-      lex_get (lexer);
 
       if (!lex_force_int (lexer))
 	goto lossage;
@@ -507,12 +503,8 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
 	}
       lex_get (lexer);
 
-      if (lex_token (lexer) != ')')
-	{
-	  lex_error (lexer, "expecting `)'");
-	  goto lossage;
-	}
-      lex_get (lexer);
+      if (!lex_force_match (lexer, ')'))
+        goto lossage;
 
       for (i = orig_nv; i < proc->n_variables; i++)
         {
