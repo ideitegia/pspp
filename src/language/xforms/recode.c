@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -373,7 +373,8 @@ set_map_in_str (struct map_in *in, struct pool *pool,
   in->type = MAP_SINGLE;
   value_init_pool (pool, &in->x, width);
   value_copy_buf_rpad (&in->x, width,
-                       ds_data (string), ds_length (string), ' ');
+                       CHAR_CAST_BUG (uint8_t *, ds_data (string)),
+                       ds_length (string), ' ');
 }
 
 /* Parses a mapping output value into OUT, allocating memory from
@@ -629,8 +630,9 @@ find_src_string (struct recode_trns *trns, const uint8_t *value,
             union value uv;
 
             msg_disable ();
-            match = data_in (ss_buffer (value, width), LEGACY_NATIVE,
-                             FMT_F, 0, 0, 0, trns->dst_dict,  &uv, 0);
+            match = data_in (ss_buffer (CHAR_CAST_BUG (char *, value), width),
+                             LEGACY_NATIVE, FMT_F, 0, 0, 0, trns->dst_dict,
+                             &uv, 0);
             msg_enable ();
             out->value.f = uv.f;
             break;

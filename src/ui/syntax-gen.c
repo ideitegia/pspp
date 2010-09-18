@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,13 +21,14 @@
 #include <ctype.h>
 #include <mbchar.h>
 
-#include <data/data-in.h>
-#include <data/data-out.h>
-#include <data/format.h>
-#include <data/value.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/data-in.h"
+#include "data/data-out.h"
+#include "data/format.h"
+#include "data/value.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
 /* Appends to OUTPUT a pair of hex digits for each byte in IN. */
 static void
@@ -197,7 +198,10 @@ syntax_gen_value (struct string *output, const union value *value, int width,
   if (width == 0)
     syntax_gen_number (output, value->f, format);
   else
-    syntax_gen_string (output, ss_buffer (value_str (value, width), width));
+    {
+      char *s = CHAR_CAST_BUG (char *, value_str (value, width));
+      syntax_gen_string (output, ss_buffer (s, width));
+    }
 }
 
 /* Appends <low> THRU <high> to OUTPUT.  If LOW is LOWEST, then

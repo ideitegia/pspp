@@ -961,7 +961,8 @@ absorb_miss no_opt string operator VEC_ELEM_STR (idx)
   if (idx >= 1 && idx <= vector_get_var_cnt (v))
     {
       struct variable *var = vector_get_var (v, (size_t) idx - 1);
-      return copy_string (e, case_str (c, var), var_get_width (var));
+      return copy_string (e, CHAR_CAST_BUG (char *, case_str (c, var)),
+                          var_get_width (var));
     }
   else
     {
@@ -1029,7 +1030,8 @@ no_opt perm_only string function LAG (str_var v, pos_int n_before)
 {
   const struct ccase *c = lagged_case (ds, n_before);
   if (c != NULL)
-    return copy_string (e, case_str (c, v), var_get_width (v));
+    return copy_string (e, CHAR_CAST_BUG (char *, case_str (c, v)),
+                        var_get_width (v));
   else
     return empty_string;
 }
@@ -1040,7 +1042,8 @@ no_opt perm_only string function LAG (str_var v)
 {
   const struct ccase *c = lagged_case (ds, 1);
   if (c != NULL)
-    return copy_string (e, case_str (c, v), var_get_width (v));
+    return copy_string (e, CHAR_CAST_BUG (char *, case_str (c, v)),
+                        var_get_width (v));
   else
     return empty_string;
 }

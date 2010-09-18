@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,14 +15,18 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
 #include "value-parser.h"
+
 #include <stdbool.h>
-#include <data/data-in.h>
-#include <libpspp/message.h>
-#include "lexer.h"
-#include <libpspp/str.h>
-#include <data/value.h>
-#include <data/format.h>
+
+#include "data/data-in.h"
+#include "data/format.h"
+#include "data/value.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -133,12 +137,13 @@ parse_value (struct lexer *lexer, union value *v, int width)
 	return false;
       v->f = lex_tokval (lexer);
     }
-  else
+  else if (lex_force_string (lexer))
     {
-      if (!lex_force_string (lexer))
-	return false;
-      value_copy_str_rpad (v, width, ds_cstr (lex_tokstr (lexer)), ' ');
+      const char *s = ds_cstr (lex_tokstr (lexer));
+      value_copy_str_rpad (v, width, CHAR_CAST_BUG (const uint8_t *, s), ' ');
     }
+  else
+    return false;
 
   lex_get (lexer);
 

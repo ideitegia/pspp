@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 #define LIBPSPP_CAST_H 1
 
 #include <stddef.h>
+#include "gl/verify.h"
 
 /* Expands to a void expression that checks that POINTER is an
    expression whose type is a qualified or unqualified version of
@@ -82,6 +83,28 @@
 #define CONST_CAST(TYPE, POINTER)                       \
         (CHECK_POINTER_HAS_TYPE (POINTER, TYPE),        \
          (TYPE) (POINTER))
+
+/* Casts POINTER to TYPE.  Yields a compiler diagnostic if either TYPE or
+   POINTER is not a pointer to character type.
+
+   PSPP uses "unsigned char" (actually uint8_t) in "union value" and "char"
+   elsewhere to emphasize that data in union value usually requires reencoding
+   when transferred to and from other string types.  These macros suppress the
+   warning when implicitly converting between pointers to different character
+   types, so their use normally marks a bug that should eventually be fixed.
+   However, until these bugs are fixed, suppressing the warnings is much less
+   annoying.
+
+   Use CHAR_CAST_BUG if you think there is a bug to be fixed, or if you have
+   not yet carefully examined the situation, or if you are not sure.
+   Use CHAR_CAST if you are convinced that this is actually a correct cast. */
+#define CHAR_CAST(TYPE, POINTER)                                \
+        ((void) verify_true (sizeof (*(POINTER)) == 1),         \
+         (void) (sizeof (*(POINTER) + 1)),                      \
+         (void) verify_true (sizeof (*(TYPE) NULL) == 1),       \
+         (void) (sizeof (*(TYPE) NULL + 1)),                    \
+         (TYPE) (POINTER))
+#define CHAR_CAST_BUG(TYPE, POINTER) CHAR_CAST(TYPE, POINTER)
 
 /* Given POINTER, a pointer to the given MEMBER within structure
    STRUCT, returns the address of the STRUCT. */
