@@ -74,8 +74,6 @@ typedef bool data_in_parser_func (struct data_in *);
         static data_in_parser_func parse_##METHOD;
 #include "format.def"
 
-static void vdata_warning (const struct data_in *, const char *, va_list)
-     PRINTF_FORMAT (2, 0);
 static void data_warning (const struct data_in *, const char *, ...)
      PRINTF_FORMAT (2, 3);
 
@@ -1019,19 +1017,6 @@ parse_weekday (struct data_in *i, long *weekday)
 
 /* Date & time formats. */
 
-/* Helper function for passing to
-   calendar_gregorian_to_offset. */
-static void
-calendar_error (void *i_, const char *format, ...)
-{
-  struct data_in *i = i_;
-  va_list args;
-
-  va_start (args, format);
-  vdata_warning (i, format, args);
-  va_end (args);
-}
-
 /* Parses WKDAY format. */
 static bool
 parse_WKDAY (struct data_in *i)
@@ -1162,10 +1147,16 @@ parse_date (struct data_in *i)
 
   if (year != INT_MIN)
     {
-      double ofs = calendar_gregorian_to_offset (year, month, day,
-                                                 calendar_error, i);
+      char *error;
+      double ofs;
+
+      ofs = calendar_gregorian_to_offset (year, month, day, &error);
       if (ofs == SYSMIS)
-        return false;
+        {
+          data_warning (i, "%s", error);
+          free (error);
+          return false;
+        }
       date = (yday - 1 + ofs) * 60. * 60. * 24.;
     }
   else
@@ -1177,18 +1168,21 @@ parse_date (struct data_in *i)
 
 /* Utility functions. */
 
-/* Outputs FORMAT with the given ARGS as a warning for input
-   I. */
+/* Outputs FORMAT with as a warning for input I. */
 static void
-vdata_warning (const struct data_in *i, const char *format, va_list args)
+data_warning (const struct data_in *i, const char *format, ...)
 {
+  va_list args;
   struct msg m;
   struct string text;
 
   ds_init_empty (&text);
   ds_put_char (&text, '(');
   ds_put_format (&text, _("%s field) "), fmt_name (i->format));
+
+  va_start (args, format);
   ds_put_vformat (&text, format, args);
+  va_end (args);
 
   m.category = MSG_C_DATA;
   m.severity = MSG_S_WARNING;
@@ -1199,18 +1193,6 @@ vdata_warning (const struct data_in *i, const char *format, va_list args)
   m.where.last_column = i->last_column;
 
   msg_emit (&m);
-}
-
-/* Outputs FORMAT with the given ARGS as a warning for input
-   I. */
-static void
-data_warning (const struct data_in *i, const char *format, ...)
-{
-  va_list args;
-
-  va_start (args, format);
-  vdata_warning (i, format, args);
-  va_end (args);
 }
 
 /* Apply implied decimal places to output. */

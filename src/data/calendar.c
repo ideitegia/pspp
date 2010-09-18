@@ -52,8 +52,7 @@ raw_gregorian_to_offset (int y, int m, int d)
    Gregorian calendar.  Returns SYSMIS for dates before 14 Oct
    1582. */
 double
-calendar_gregorian_to_offset (int y, int m, int d,
-                              calendar_error_func *error, void *aux)
+calendar_gregorian_to_offset (int y, int m, int d, char **errorp)
 {
   /* Normalize year. */
   if (y >= 0 && y < 100)
@@ -78,7 +77,9 @@ calendar_gregorian_to_offset (int y, int m, int d,
         }
       else
         {
-          error (aux, _("Month %d is not in acceptable range of 0 to 13."), m);
+          if (errorp != NULL)
+            *errorp = xasprintf (_("Month %d is not in acceptable range of "
+                                   "0 to 13."), m);
           return SYSMIS;
         }
     }
@@ -86,19 +87,24 @@ calendar_gregorian_to_offset (int y, int m, int d,
   /* Normalize day. */
   if (d < 0 || d > 31)
     {
-      error (aux, _("Day %d is not in acceptable range of 0 to 31."), d);
+      if (errorp != NULL)
+        *errorp = xasprintf (_("Day %d is not in acceptable range of "
+                               "0 to 31."), d);
       return SYSMIS;
     }
 
   /* Validate date. */
   if (y < 1582 || (y == 1582 && (m < 10 || (m == 10 && d < 15))))
     {
-      error (aux, _("Date %04d-%d-%d is before the earliest acceptable "
-                    "date of 1582-10-15."), y, m, d);
+      if (errorp != NULL)
+        *errorp = xasprintf (_("Date %04d-%d-%d is before the earliest "
+                               "acceptable date of 1582-10-15."), y, m, d);
       return SYSMIS;
     }
 
   /* Calculate offset. */
+  if (errorp != NULL)
+    *errorp = NULL;
   return raw_gregorian_to_offset (y, m, d);
 }
 

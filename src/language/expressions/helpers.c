@@ -24,31 +24,14 @@
 
 const struct substring empty_string = {NULL, 0};
 
-static void
-expr_error (void *aux UNUSED, const char *format, ...)
-{
-  struct msg m;
-  va_list args;
-
-  m.category = MSG_C_SYNTAX;
-  m.severity = MSG_S_ERROR;
-  va_start (args, format);
-  m.text = xvasprintf (format, args);
-  m.where.file_name = NULL;
-  m.where.line_number = 0;
-  m.where.first_column = 0;
-  m.where.last_column = 0;
-  va_end (args);
-
-  msg_emit (&m);
-}
-
 double
 expr_ymd_to_ofs (double year, double month, double day)
 {
   int y = year;
   int m = month;
   int d = day;
+  char *error;
+  double ofs;
 
   if (y != year || m != month || d != day)
     {
@@ -57,7 +40,13 @@ expr_ymd_to_ofs (double year, double month, double day)
       return SYSMIS;
     }
 
-  return calendar_gregorian_to_offset (y, m, d, expr_error, NULL);
+  ofs = calendar_gregorian_to_offset (y, m, d, &error);
+  if (error != NULL)
+    {
+      msg (SE, "%s", error);
+      free (error);
+    }
+  return ofs;
 }
 
 double
@@ -348,6 +337,7 @@ add_months (double date, int months, enum date_sum_method method)
 {
   int y, m, d, yd;
   double output;
+  char *error;
 
   calendar_offset_to_gregorian (date / DAY_S, &y, &m, &d, &yd);
   y += months / 12;
@@ -367,9 +357,14 @@ add_months (double date, int months, enum date_sum_method method)
   if (method == SUM_CLOSEST && d > calendar_days_in_month (y, m))
     d = calendar_days_in_month (y, m);
 
-  output = calendar_gregorian_to_offset (y, m, d, expr_error, NULL);
+  output = calendar_gregorian_to_offset (y, m, d, &error);
   if (output != SYSMIS)
     output = (output * DAY_S) + fmod (date, DAY_S);
+  else
+    {
+      msg (SE, "%s", error);
+      free (error);
+    }
   return output;
 }
 
