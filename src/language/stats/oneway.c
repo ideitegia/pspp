@@ -360,14 +360,14 @@ updateit (void *user_data,
 
   const union value *valx = case_data (c, varp);
 
+  struct descriptive_data *dd_total = aux2;
+
+  double weight;
+
   if ( var_is_value_missing (varp, valx, exclude))
     return;
 
-  struct descriptive_data *dd_total = aux2;
-
-  double weight = 1.0;
-  if (wv)
-    weight = case_data (c, wv)->f;
+  weight = wv != NULL ? case_data (c, wv)->f : 1.0;
 
   moments1_add (dd->mom, valx->f, weight);
   if (valx->f * weight < dd->minimum)
