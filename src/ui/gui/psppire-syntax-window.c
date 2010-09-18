@@ -721,7 +721,7 @@ error_dialog (GtkWindow *w, const gchar *filename,  GError *err)
 			    GTK_DIALOG_DESTROY_WITH_PARENT,
 			    GTK_MESSAGE_ERROR,
 			    GTK_BUTTONS_CLOSE,
-			    _("Cannot load syntax file '%s'"),
+			    _("Cannot load syntax file `%s'"),
 			    fn);
 
   g_free (fn);

@@ -1052,8 +1052,8 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
           mrset->type = MRSET_MC;
           if (!text_match (text, ' '))
             {
-              sys_warn (r, _("Missing space following 'C' at offset %zu "
-                             "in MRSETS record"), text_pos (text));
+              sys_warn (r, _("Missing space following `%c' at offset %zu "
+                             "in MRSETS record"), 'C', text_pos (text));
               break;
             }
         }
@@ -1070,8 +1070,8 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
           mrset->cat_source = MRSET_COUNTEDVALUES;
           if (!text_match (text, ' '))
             {
-              sys_warn (r, _("Missing space following 'E' at offset %zu "
-                             "in MRSETS record"), text_pos (text));
+              sys_warn (r, _("Missing space following `%c' at offset %zu "
+                             "in MRSETS record"), 'E',  text_pos (text));
               break;
             }
 
@@ -1080,12 +1080,12 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
             mrset->label_from_var_label = true;
           else if (strcmp (number, "1"))
             sys_warn (r, _("Unexpected label source value `%s' "
-                           "following 'E' at offset %zu in MRSETS record"),
+                           "following `E' at offset %zu in MRSETS record"),
                       number, text_pos (text));
         }
       else
         {
-          sys_warn (r, _("Missing 'C', 'D', or 'E' at offset %zu "
+          sys_warn (r, _("Missing `C', `D', or `E' at offset %zu "
                          "in MRSETS record."),
                     text_pos (text));
           break;
