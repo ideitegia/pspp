@@ -145,7 +145,7 @@ startup_option_callback (int id, void *show_splash_)
     case OPT_VERSION:
       version_etc (stdout, "psppire", PACKAGE_NAME, PACKAGE_VERSION,
                    "Ben Pfaff", "John Darrington", "Jason Stover",
-                   (char *) NULL);
+                   NULL);
       exit (EXIT_SUCCESS);
 
     case OPT_NO_SPLASH:

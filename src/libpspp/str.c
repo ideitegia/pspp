@@ -1465,7 +1465,9 @@ ds_relocate (struct string *st)
     {
       ds_clear (st);
       ds_put_cstr (st, rel);
-      free ((char *) rel);
+      /* The documentation for relocate says that casting away const
+	and then freeing is appropriate ... */
+      free (CONST_CAST (char *, rel));
     }
 }
 

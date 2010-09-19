@@ -273,7 +273,7 @@ terminal_option_callback (int id, void *to_)
     case OPT_VERSION:
       version_etc (stdout, "pspp", PACKAGE_NAME, PACKAGE_VERSION,
                    "Ben Pfaff", "John Darrington", "Jason Stover",
-                   (char *) NULL);
+                   NULL);
       exit (EXIT_SUCCESS);
 
     default:

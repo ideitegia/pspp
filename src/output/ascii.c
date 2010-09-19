@@ -184,7 +184,7 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
                             "bold", EMPH_BOLD,
                             "underline", EMPH_UNDERLINE,
                             "none", EMPH_NONE,
-                            (char *) NULL);
+                            NULL);
 
   a->chart_file_name = parse_chart_file_name (opt (d, o, "charts", file_name));
 

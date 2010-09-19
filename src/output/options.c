@@ -145,7 +145,7 @@ parse_boolean (struct driver_option *o)
    O has no user-specified value, then O's default value is treated the same
    way.  If the default value still does not match, parse_enum() returns 0.
 
-   Example: parse_enum (o, "a", 1, "b", 2, (char *) NULL) returns 1 if O's
+   Example: parse_enum (o, "a", 1, "b", 2, NULL) returns 1 if O's
    value if "a", 2 if O's value is "b".
 
    Destroys O. */

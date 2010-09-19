@@ -225,11 +225,11 @@ st_upper (const char *s)
 /* Returns the address of the first non-whitespace character in S, or
    the address of the null terminator if none. */
 static char *
-skip_ws (const char *s)
+skip_ws (char *s)
 {
   while (isspace ((unsigned char) *s))
     s++;
-  return (char *) s;
+  return s;
 }
 
 /* Read one line from the input file into buf.  Lines having special
