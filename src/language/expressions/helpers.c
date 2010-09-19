@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@ expr_error (void *aux UNUSED, const char *format, ...)
   m.text = xvasprintf (format, args);
   m.where.file_name = NULL;
   m.where.line_number = 0;
+  m.where.first_column = 0;
+  m.where.last_column = 0;
   va_end (args);
 
   msg_emit (&m);

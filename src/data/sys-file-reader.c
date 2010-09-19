@@ -2298,6 +2298,8 @@ sys_msg (struct sfm_reader *r, int class, const char *format, va_list args)
   m.severity = msg_class_to_severity (class);
   m.where.file_name = NULL;
   m.where.line_number = 0;
+  m.where.first_column = 0;
+  m.where.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);

@@ -72,6 +72,8 @@ struct msg_locator
   {
     char *file_name;           /* File name (NULL if none). */
     int line_number;           /* Line number (0 if none). */
+    int first_column;          /* 1-based column number (0 if none). */
+    int last_column;           /* 1-based exclusive last column (0 if none). */
   };
 
 /* A message. */

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1187,15 +1187,6 @@ vdata_warning (const struct data_in *i, const char *format, va_list args)
 
   ds_init_empty (&text);
   ds_put_char (&text, '(');
-  if (i->first_column != 0)
-    {
-      if (i->first_column == i->last_column - 1)
-        ds_put_format (&text, _("column %d"), i->first_column);
-      else
-        ds_put_format (&text, _("columns %d-%d"),
-                       i->first_column, i->last_column - 1);
-      ds_put_cstr (&text, ", ");
-    }
   ds_put_format (&text, _("%s field) "), fmt_name (i->format));
   ds_put_vformat (&text, format, args);
 
@@ -1204,6 +1195,8 @@ vdata_warning (const struct data_in *i, const char *format, va_list args)
   m.text = ds_cstr (&text);
   m.where.file_name = NULL;
   m.where.line_number = 0;
+  m.where.first_column = i->first_column;
+  m.where.last_column = i->last_column;
 
   msg_emit (&m);
 }

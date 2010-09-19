@@ -45,11 +45,11 @@ list.
 ])
 
 AT_CHECK([pspp -O format=csv set.pspp], [0], [dnl
-"set.pspp:5: warning: (column 3, F field) Field contents are not numeric."
+set.pspp:5.3: warning: Data for variable y is not valid as format F: Field contents are not numeric.
 
-"set.pspp:6: warning: (column 3, F field) Field contents are not numeric."
+set.pspp:6.3: warning: Data for variable y is not valid as format F: Field contents are not numeric.
 
-"set.pspp:7: warning: (column 1, F field) Field contents are not numeric."
+set.pspp:7.1: warning: Data for variable x is not valid as format F: Field contents are not numeric.
 
 note: Warnings (3) exceed limit (2).  Syntax processing will be halted.
 ])

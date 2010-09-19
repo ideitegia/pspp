@@ -105,6 +105,8 @@ error (struct pfm_reader *r, const char *msg, ...)
   m.severity = MSG_S_ERROR;
   m.where.file_name = NULL;
   m.where.line_number = 0;
+  m.where.first_column = 0;
+  m.where.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);
@@ -134,6 +136,8 @@ warning (struct pfm_reader *r, const char *msg, ...)
   m.severity = MSG_S_WARNING;
   m.where.file_name = NULL;
   m.where.line_number = 0;
+  m.where.first_column = 0;
+  m.where.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);
