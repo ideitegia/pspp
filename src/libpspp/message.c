@@ -57,6 +57,8 @@ msg (enum msg_class class, const char *format, ...)
   m.severity = msg_class_to_severity (class);
   va_start (args, format);
   m.text = xvasprintf (format, args);
+  m.where.file_name = NULL;
+  m.where.line_number = 0;
   va_end (args);
 
   msg_emit (&m);
@@ -118,7 +120,7 @@ msg_to_string (const struct msg *m, const char *command_name)
     {
       if (m->where.file_name)
         ds_put_format (&s, "%s:", m->where.file_name);
-      if (m->where.line_number != -1)
+      if (m->where.line_number > 0)
         ds_put_format (&s, "%d:", m->where.line_number);
       ds_put_char (&s, ' ');
     }
@@ -199,7 +201,7 @@ submit_note (char *s)
   m.category = MSG_C_GENERAL;
   m.severity = MSG_S_NOTE;
   m.where.file_name = NULL;
-  m.where.line_number = -1;
+  m.where.line_number = 0;
   m.text = s;
   msg_handler (&m);
   free (s);
@@ -258,7 +260,7 @@ msg_emit (struct msg *m)
   else
     {
       m->where.file_name = NULL;
-      m->where.line_number = -1;
+      m->where.line_number = 0;
     }
 
   if (!messages_disabled)

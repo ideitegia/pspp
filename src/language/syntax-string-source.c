@@ -54,7 +54,7 @@ name (const struct getl_interface *i UNUSED)
 static int
 location (const struct getl_interface *i UNUSED)
 {
-  return -1;
+  return 0;
 }
 
 

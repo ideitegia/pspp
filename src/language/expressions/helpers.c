@@ -34,6 +34,8 @@ expr_error (void *aux UNUSED, const char *format, ...)
   m.severity = MSG_S_ERROR;
   va_start (args, format);
   m.text = xvasprintf (format, args);
+  m.where.file_name = NULL;
+  m.where.line_number = 0;
   va_end (args);
 
   msg_emit (&m);

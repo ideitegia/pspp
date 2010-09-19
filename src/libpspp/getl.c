@@ -212,18 +212,18 @@ getl_source_name (const struct source_stream *ss)
   return s->interface->name (s->interface);
 }
 
-/* Returns the location within the current source, or -1 if there is
-   no current source */
+/* Returns the line number within the current source, or 0 if there is no
+   current source. */
 int
 getl_source_location (const struct source_stream *ss)
 {
   const struct getl_source *s = current_source (ss);
 
   if ( ll_is_empty (&ss->sources) )
-    return -1;
+    return 0;
 
   if ( !s->interface->location )
-    return -1;
+    return 0;
 
   return s->interface->location (s->interface);
 }

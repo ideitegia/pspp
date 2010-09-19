@@ -1203,7 +1203,7 @@ vdata_warning (const struct data_in *i, const char *format, va_list args)
   m.severity = MSG_S_WARNING;
   m.text = ds_cstr (&text);
   m.where.file_name = NULL;
-  m.where.line_number = -1;
+  m.where.line_number = 0;
 
   msg_emit (&m);
 }

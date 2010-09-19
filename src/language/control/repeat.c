@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -618,10 +618,10 @@ do_repeat_name (const struct getl_interface *interface)
 }
 
 /* Returns the line number in the source file from which the
-   previous line was originally obtained, or -1 if none. */
+   previous line was originally obtained, or 0 if none. */
 static int
 do_repeat_location (const struct getl_interface *interface)
 {
   struct repeat_line *line = current_line (interface);
-  return line ? line->line_number : -1;
+  return line ? line->line_number : 0;
 }
