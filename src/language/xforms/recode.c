@@ -20,24 +20,25 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/data-in.h>
-#include <data/format.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/value-parser.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
+#include "data/case.h"
+#include "data/data-in.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -680,7 +681,7 @@ recode_trns_proc (void *trns_, struct ccase **c, casenumber case_idx UNUSED)
         }
       else
         {
-          char *dst = case_str_rw (*c, dst_var);
+          char *dst = CHAR_CAST_BUG (char *, case_str_rw (*c, dst_var));
           if (out != NULL)
             {
               if (!out->copy_input)
