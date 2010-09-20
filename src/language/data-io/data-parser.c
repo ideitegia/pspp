@@ -531,13 +531,18 @@ parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
       line = dfm_get_record (reader);
 
       for (; f < &parser->fields[parser->field_cnt] && f->record == row; f++)
-        data_in (ss_substr (line, f->first_column - 1,
-                            f->format.w),
-                 encoding, f->format.type, f->format.d,
-                 f->first_column, f->first_column + f->format.w,
-		 parser->dict,
-                 case_data_rw_idx (c, f->case_idx),
-                 fmt_var_width (&f->format));
+        {
+          struct substring s = ss_substr (line, f->first_column - 1,
+                                          f->format.w);
+          union value *value = case_data_rw_idx (c, f->case_idx);
+
+          data_in (s, encoding, f->format.type,
+                   f->first_column, f->first_column + f->format.w,
+                   parser->dict, value, fmt_var_width (&f->format));
+
+          data_in_imply_decimals (s, encoding, f->format.type, f->format.d,
+                                  value);
+        }
 
       dfm_forward_record (reader);
     }
@@ -577,8 +582,7 @@ parse_delimited_span (const struct data_parser *parser,
 	    }
 	}
 
-      data_in (s, encoding, f->format.type, 0,
-               first_column, last_column,
+      data_in (s, encoding, f->format.type, first_column, last_column,
 	       parser->dict,
                case_data_rw_idx (c, f->case_idx),
                fmt_var_width (&f->format));
@@ -619,8 +623,7 @@ parse_delimited_no_span (const struct data_parser *parser,
           goto exit;
 	}
 
-      data_in (s, encoding, f->format.type, 0,
-               first_column, last_column,
+      data_in (s, encoding, f->format.type, first_column, last_column,
 	       parser->dict,
                case_data_rw_idx (c, f->case_idx),
                fmt_var_width (&f->format));

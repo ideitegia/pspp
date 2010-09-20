@@ -632,7 +632,7 @@ find_src_string (struct recode_trns *trns, const uint8_t *value,
 
             msg_disable ();
             match = data_in (ss_buffer (CHAR_CAST_BUG (char *, value), width),
-                             LEGACY_NATIVE, FMT_F, 0, 0, 0, trns->dst_dict,
+                             LEGACY_NATIVE, FMT_F, 0, 0, trns->dst_dict,
                              &uv, 0);
             msg_enable ();
             out->value.f = uv.f;

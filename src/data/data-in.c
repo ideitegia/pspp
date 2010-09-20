@@ -20,34 +20,34 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <math.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <limits.h>
 
 #include "calendar.h"
+#include "dictionary.h"
+#include "format.h"
 #include "identifier.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/legacy-encoding.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 #include "settings.h"
 #include "value.h"
-#include "format.h"
-#include "dictionary.h"
 
-#include <libpspp/assertion.h>
-#include <libpspp/legacy-encoding.h>
-#include <libpspp/i18n.h>
-#include <libpspp/compiler.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-#include "c-ctype.h"
-#include "c-strtod.h"
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/c-ctype.h"
+#include "gl/c-strtod.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -58,7 +58,6 @@ struct data_in
     const char *src_enc;        /* Encoding of source. */
     struct substring input;     /* Source. */
     enum fmt_type format;       /* Input format. */
-    int implied_decimals;       /* Number of implied decimal places. */
 
     union value *output;        /* Destination. */
     int width;                  /* Output width. */
@@ -77,7 +76,6 @@ typedef bool data_in_parser_func (struct data_in *);
 static void data_warning (const struct data_in *, const char *, ...)
      PRINTF_FORMAT (2, 3);
 
-static void apply_implied_decimals (struct data_in *);
 static void default_result (struct data_in *);
 static bool trim_spaces_and_check_missing (struct data_in *);
 
@@ -90,24 +88,11 @@ static int hexit_value (int c);
    otherwise the string width).
    Iff FORMAT is a string format, then DICT must be a pointer
    to the dictionary associated with OUTPUT.  Otherwise, DICT
-   may be null.
-
-   If no decimal point is included in a numeric format, then
-   IMPLIED_DECIMALS decimal places are implied.  Specify 0 if no
-   decimal places should be implied.
-
-   If FIRST_COLUMN and LAST_COLUMN are nonzero, then they should
-   be the 1-based column number of the first and
-   one-past-the-last-character in INPUT, for use in error
-   messages.  (LAST_COLUMN cannot always be calculated from
-   FIRST_COLUMN plus the length of the input because of the
-   possibility of escaped quotes in strings, etc.) */
+   may be null. */
 bool
 data_in (struct substring input, const char *encoding,
-         enum fmt_type format, int implied_decimals,
-         int first_column, int last_column,
-	 const struct dictionary *dict,
-	 union value *output, int width)
+         enum fmt_type format, int first_column, int last_column,
+         const struct dictionary *dict, union value *output, int width)
 {
   static data_in_parser_func *const handlers[FMT_NUMBER_OF_FORMATS] =
     {
@@ -123,7 +108,6 @@ data_in (struct substring input, const char *encoding,
   assert ((width != 0) == fmt_is_string (format));
 
   i.format = format;
-  i.implied_decimals = implied_decimals;
 
   i.output = output;
   i.width = width;
@@ -166,6 +150,98 @@ data_in (struct substring input, const char *encoding,
   return ok;
 }
 
+static bool
+number_has_implied_decimals (const char *s, enum fmt_type type)
+{
+  int decimal = settings_get_style (type)->decimal;
+  bool got_digit = false;
+  for (;;)
+    {
+      switch (*s)
+        {
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+          got_digit = true;
+          break;
+
+        case '+': case '-':
+          if (got_digit)
+            return false;
+          break;
+
+        case 'e': case 'E': case 'd': case 'D':
+          return false;
+
+        case '.': case ',':
+          if (*s == decimal)
+            return false;
+          break;
+
+        case '\0':
+          return true;
+
+        default:
+          break;
+        }
+
+      s++;
+    }
+}
+
+static bool
+has_implied_decimals (struct substring input, const char *encoding,
+                      enum fmt_type format)
+{
+  bool retval;
+  char *s;
+
+  switch (format)
+    {
+    case FMT_F:
+    case FMT_COMMA:
+    case FMT_DOT:
+    case FMT_DOLLAR:
+    case FMT_PCT:
+    case FMT_E:
+    case FMT_Z:
+      break;
+
+    case FMT_N:
+    case FMT_IB:
+    case FMT_PIB:
+    case FMT_P:
+    case FMT_PK:
+      return true;
+
+    default:
+      return false;
+    }
+
+  s = recode_string (LEGACY_NATIVE, encoding,
+                     ss_data (input), ss_length (input));
+  retval = (format == FMT_Z
+            ? strchr (s, '.') == NULL
+            : number_has_implied_decimals (s, format));
+  free (s);
+
+  return retval;
+}
+
+/* In some cases, when no decimal point is explicitly included in numeric
+   input, its position is implied by the number of decimal places in the input
+   format.  In such a case, this function may be called just after data_in().
+   Its arguments are a subset of that function's arguments plus D, the number
+   of decimal places associated with FORMAT.
+
+   If it is appropriate, this function modifies the numeric value in OUTPUT. */
+void
+data_in_imply_decimals (struct substring input, const char *encoding,
+                        enum fmt_type format, int d, union value *output)
+{
+  if (d > 0 && output->f != SYSMIS
+      && has_implied_decimals (input, encoding, format))
+    output->f /= pow (10., d);
+}
 
 /* Format parsers. */
 
@@ -303,8 +379,6 @@ parse_number (struct data_in *i)
   else
     {
       errno = save_errno;
-      if (!explicit_decimals)
-        apply_implied_decimals (i);
     }
 
   ds_destroy (&tmp);
@@ -328,7 +402,6 @@ parse_N (struct data_in *i)
       i->output->f = i->output->f * 10.0 + (c - '0');
     }
 
-  apply_implied_decimals (i);
   return true;
 }
 
@@ -484,11 +557,7 @@ parse_Z (struct data_in *i)
         }
     }
   else
-    {
-      errno = save_errno;
-      if (!got_dot)
-        apply_implied_decimals (i);
-    }
+    errno = save_errno;
 
   ds_destroy (&tmp);
   return true;
@@ -515,8 +584,6 @@ parse_IB (struct data_in *i)
       i->output->f = -(double) -value;
     }
 
-  apply_implied_decimals (i);
-
   return true;
 }
 
@@ -526,8 +593,6 @@ parse_PIB (struct data_in *i)
 {
   i->output->f = integer_get (settings_get_input_integer_format (), ss_data (i->input),
                               MIN (8, ss_length (i->input)));
-
-  apply_implied_decimals (i);
 
   return true;
 }
@@ -568,8 +633,6 @@ parse_P (struct data_in *i)
   else if (low_nibble == 0xb || low_nibble == 0xd)
     i->output->f = -i->output->f;
 
-  apply_implied_decimals (i);
-
   return true;
 }
 
@@ -590,8 +653,6 @@ parse_PK (struct data_in *i)
         }
       i->output->f = (100 * i->output->f) + (10 * high_nibble) + low_nibble;
     }
-
-  apply_implied_decimals (i);
 
   return true;
 }
@@ -1165,6 +1226,7 @@ parse_date (struct data_in *i)
 
   return true;
 }
+
 
 /* Utility functions. */
 
@@ -1193,14 +1255,6 @@ data_warning (const struct data_in *i, const char *format, ...)
   m.where.last_column = i->last_column;
 
   msg_emit (&m);
-}
-
-/* Apply implied decimal places to output. */
-static void
-apply_implied_decimals (struct data_in *i)
-{
-  if (i->implied_decimals > 0)
-    i->output->f /= pow (10., i->implied_decimals);
 }
 
 /* Sets the default result for I.
