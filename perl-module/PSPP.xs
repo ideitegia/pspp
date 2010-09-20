@@ -655,9 +655,8 @@ CODE:
       {
 	struct substring ss = ss_cstr (SvPV_nolen (sv));
 	if ( ! data_in (ss, LEGACY_NATIVE, ifmt->type, 0, 0,
-			sfi->dict,
-			case_data_rw (c, v),
-			var_get_width (v)) )
+ 	       	        case_data_rw (c, v), var_get_width (v),
+			dict_get_encoding (sfi->dict)))
 	  {
 	    RETVAL = 0;
 	    goto finish;

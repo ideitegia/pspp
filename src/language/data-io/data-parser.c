@@ -509,7 +509,8 @@ static bool
 parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
              struct ccase *c)
 {
-  const char *encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *input_encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *output_encoding = dict_get_encoding (parser->dict);
   struct field *f;
   int row;
 
@@ -536,12 +537,12 @@ parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
                                           f->format.w);
           union value *value = case_data_rw_idx (c, f->case_idx);
 
-          data_in (s, encoding, f->format.type,
+          data_in (s, input_encoding, f->format.type,
                    f->first_column, f->first_column + f->format.w,
-                   parser->dict, value, fmt_var_width (&f->format));
+                   value, fmt_var_width (&f->format), output_encoding);
 
-          data_in_imply_decimals (s, encoding, f->format.type, f->format.d,
-                                  value);
+          data_in_imply_decimals (s, input_encoding, f->format.type,
+                                  f->format.d, value);
         }
 
       dfm_forward_record (reader);
@@ -557,7 +558,8 @@ static bool
 parse_delimited_span (const struct data_parser *parser,
                       struct dfm_reader *reader, struct ccase *c)
 {
-  const char *encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *input_encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *output_encoding = dict_get_encoding (parser->dict);
   struct string tmp = DS_EMPTY_INITIALIZER;
   struct field *f;
 
@@ -582,10 +584,9 @@ parse_delimited_span (const struct data_parser *parser,
 	    }
 	}
 
-      data_in (s, encoding, f->format.type, first_column, last_column,
-	       parser->dict,
+      data_in (s, input_encoding, f->format.type, first_column, last_column,
                case_data_rw_idx (c, f->case_idx),
-               fmt_var_width (&f->format));
+               fmt_var_width (&f->format), output_encoding);
     }
   ds_destroy (&tmp);
   return true;
@@ -598,7 +599,8 @@ static bool
 parse_delimited_no_span (const struct data_parser *parser,
                          struct dfm_reader *reader, struct ccase *c)
 {
-  const char *encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *input_encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *output_encoding = dict_get_encoding (parser->dict);
   struct string tmp = DS_EMPTY_INITIALIZER;
   struct substring s;
   struct field *f, *end;
@@ -623,10 +625,9 @@ parse_delimited_no_span (const struct data_parser *parser,
           goto exit;
 	}
 
-      data_in (s, encoding, f->format.type, first_column, last_column,
-	       parser->dict,
+      data_in (s, input_encoding, f->format.type, first_column, last_column,
                case_data_rw_idx (c, f->case_idx),
-               fmt_var_width (&f->format));
+               fmt_var_width (&f->format), output_encoding);
     }
 
   s = dfm_get_record (reader);

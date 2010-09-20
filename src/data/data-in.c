@@ -79,17 +79,16 @@ static bool trim_spaces_and_check_missing (struct data_in *);
 static int hexit_value (int c);
 
 /* Parses the characters in INPUT, which are encoded in the given
-   ENCODING, according to FORMAT.  Stores the parsed
-   representation in OUTPUT, which the caller must have
-   initialized with the given WIDTH (0 for a numeric field,
-   otherwise the string width).
-   Iff FORMAT is a string format, then DICT must be a pointer
-   to the dictionary associated with OUTPUT.  Otherwise, DICT
-   may be null. */
+   INPUT_ENCODING, according to FORMAT.
+
+   Stores the parsed representation in OUTPUT, which the caller must have
+   initialized with the given WIDTH (0 for a numeric field, otherwise the
+   string width).  If FORMAT is FMT_A, then OUTPUT_ENCODING must specify the
+   correct encoding for OUTPUT (normally obtained via dict_get_encoding()). */
 bool
-data_in (struct substring input, const char *encoding,
+data_in (struct substring input, const char *input_encoding,
          enum fmt_type format, int first_column, int last_column,
-         const struct dictionary *dict, union value *output, int width)
+         union value *output, int width, const char *output_encoding)
 {
   static data_in_parser_func *const handlers[FMT_NUMBER_OF_FORMATS] =
     {
@@ -146,13 +145,14 @@ data_in (struct substring input, const char *encoding,
       else
         {
           /* Use the final output encoding. */
-          dest_encoding = dict_get_encoding (dict);
+          dest_encoding = output_encoding;
         }
     }
 
   if (dest_encoding != NULL)
     {
-      i.input = recode_substring_pool (dest_encoding, encoding, input, NULL);
+      i.input = recode_substring_pool (dest_encoding, input_encoding, input,
+                                       NULL);
       s = i.input.string;
     }
   else
@@ -209,7 +209,7 @@ number_has_implied_decimals (const char *s, enum fmt_type type)
 }
 
 static bool
-has_implied_decimals (struct substring input, const char *encoding,
+has_implied_decimals (struct substring input, const char *input_encoding,
                       enum fmt_type format)
 {
   bool retval;
@@ -237,7 +237,7 @@ has_implied_decimals (struct substring input, const char *encoding,
       return false;
     }
 
-  s = recode_string (LEGACY_NATIVE, encoding,
+  s = recode_string (LEGACY_NATIVE, input_encoding,
                      ss_data (input), ss_length (input));
   retval = (format == FMT_Z
             ? strchr (s, '.') == NULL
@@ -255,11 +255,11 @@ has_implied_decimals (struct substring input, const char *encoding,
 
    If it is appropriate, this function modifies the numeric value in OUTPUT. */
 void
-data_in_imply_decimals (struct substring input, const char *encoding,
+data_in_imply_decimals (struct substring input, const char *input_encoding,
                         enum fmt_type format, int d, union value *output)
 {
   if (d > 0 && output->f != SYSMIS
-      && has_implied_decimals (input, encoding, format))
+      && has_implied_decimals (input, input_encoding, format))
     output->f /= pow (10., d);
 }
 

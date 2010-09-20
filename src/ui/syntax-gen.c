@@ -155,7 +155,7 @@ syntax_gen_number (struct string *output,
       msg_disable ();
       /* FIXME: UTF8 encoded strings will fail here */
       ok = data_in (ss_cstr (s), LEGACY_NATIVE,
-                    format->type, 0, 0, NULL, &v_out, 0);
+                    format->type, 0, 0, &v_out, 0, NULL);
       msg_enable ();
       if (ok && v_out.f == number)
         {

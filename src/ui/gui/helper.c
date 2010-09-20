@@ -98,7 +98,8 @@ text_to_value (const gchar *text,
 
   value_init (val, width);
   msg_disable ();
-  data_in (ss_cstr (text), UTF8, format->type, 0, 0, dict->dict, val, width);
+  data_in (ss_cstr (text), UTF8, format->type, 0, 0, val, width,
+           dict_get_encoding (dict->dict));
   msg_enable ();
 
   return val;

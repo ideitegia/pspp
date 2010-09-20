@@ -581,7 +581,7 @@ string function RTRIM (string s, string c)
 function NUMBER (string s, ni_format f)
 {
   union value out;
-  data_in (ss_head (s, f->w), LEGACY_NATIVE, f->type, 0, 0, NULL, &out, 0);
+  data_in (ss_head (s, f->w), LEGACY_NATIVE, f->type, 0, 0, &out, 0, NULL);
   data_in_imply_decimals (s, LEGACY_NATIVE, f->type, f->d, &out);
   return out.f;
 }

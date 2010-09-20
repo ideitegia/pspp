@@ -105,7 +105,7 @@ parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
       union value v;
       assert (! (fmt_get_category (*format) & ( FMT_CAT_STRING )));
       data_in (ds_ss (lex_tokstr (lexer)), LEGACY_NATIVE, *format, 0, 0,
-               NULL, &v, 0);
+               &v, 0, NULL);
       lex_get (lexer);
       *x = v.f;
       if (*x == SYSMIS)

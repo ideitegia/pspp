@@ -25,10 +25,9 @@
 union value;
 struct dictionary;
 
-bool data_in (struct substring input, const char *encoding,
-               enum fmt_type, int first_column, int last_column,
-               const struct dictionary *dict,
-               union value *output, int width);
+bool data_in (struct substring input, const char *input_encoding,
+              enum fmt_type, int first_column, int last_column,
+              union value *output, int width, const char *output_encoding);
 
 void data_in_imply_decimals (struct substring input, const char *encoding,
                              enum fmt_type format, int d, union value *output);

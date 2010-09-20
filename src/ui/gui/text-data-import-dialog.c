@@ -1777,8 +1777,8 @@ parse_field (struct import_assistant *ia,
     {
       msg_disable ();
 
-      if (!data_in (field, LEGACY_NATIVE, in->type, 0, 0, ia->formats.dict,
-                    &val, var_get_width (var)))
+      if (!data_in (field, LEGACY_NATIVE, in->type, 0, 0, &val,
+                    var_get_width (var), dict_get_encoding (ia->formats.dict)))
         {
           char fmt_string[FMT_STRING_LEN_MAX + 1];
           fmt_to_string (in, fmt_string);

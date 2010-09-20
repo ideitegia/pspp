@@ -159,6 +159,7 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
       /* Create destination variables, if needed.
          This must be the final step; otherwise we'd have to
          delete destination variables on failure. */
+      trns->dst_dict = dataset_dict (ds);
       if (trns->src_vars != trns->dst_vars)
 	create_dst_vars (trns, dataset_dict (ds));
 
@@ -545,8 +546,6 @@ create_dst_vars (struct recode_trns *trns, struct dictionary *dict)
 {
   size_t i;
 
-  trns->dst_dict = dict;
-
   for (i = 0; i < trns->var_cnt; i++)
     {
       const struct variable **var = &trns->dst_vars[i];
@@ -608,8 +607,9 @@ static const struct map_out *
 find_src_string (struct recode_trns *trns, const uint8_t *value,
                  const struct variable *src_var)
 {
-  struct mapping *m;
+  const char *encoding = dict_get_encoding (trns->dst_dict);
   int width = var_get_width (src_var);
+  struct mapping *m;
 
   for (m = trns->mappings; m < trns->mappings + trns->map_cnt; m++)
     {
@@ -632,8 +632,7 @@ find_src_string (struct recode_trns *trns, const uint8_t *value,
 
             msg_disable ();
             match = data_in (ss_buffer (CHAR_CAST_BUG (char *, value), width),
-                             LEGACY_NATIVE, FMT_F, 0, 0, trns->dst_dict,
-                             &uv, 0);
+                             LEGACY_NATIVE, FMT_F, 0, 0, &uv, 0, encoding);
             msg_enable ();
             out->value.f = uv.f;
             break;
