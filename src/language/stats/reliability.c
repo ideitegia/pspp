@@ -129,14 +129,14 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 
   reliability.total_start = 0;
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "VARIABLES"))
     {
       goto error;
     }
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (!parse_variables_const (lexer, dict, &reliability.variables, &reliability.n_variables,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
@@ -166,14 +166,14 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 
 
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "SCALE"))
 	{
 	  struct const_var_set *vs;
-	  if ( ! lex_force_match (lexer, '('))
+	  if ( ! lex_force_match (lexer, T_LPAREN))
 	    goto error;
 
 	  if ( ! lex_force_string (lexer) ) 
@@ -183,10 +183,10 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 
 	  lex_get (lexer);
 
-	  if ( ! lex_force_match (lexer, ')'))
+	  if ( ! lex_force_match (lexer, T_RPAREN))
 	    goto error;
 
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 
 	  vs = const_var_set_create_from_array (reliability.variables, reliability.n_variables);
 
@@ -201,7 +201,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "MODEL"))
 	{
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 	  if (lex_match_id (lexer, "ALPHA"))
 	    {
 	      reliability.model = MODEL_ALPHA;
@@ -211,12 +211,12 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	      reliability.model = MODEL_SPLIT;
 	      reliability.split_point = -1;
 
-	      if ( lex_match (lexer, '('))
+	      if ( lex_match (lexer, T_LPAREN))
 		{
 		  lex_force_num (lexer);
 		  reliability.split_point = lex_number (lexer);
 		  lex_get (lexer);
-		  lex_force_match (lexer, ')');
+		  lex_force_match (lexer, T_RPAREN);
 		}
 	    }
 	  else
@@ -224,7 +224,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "SUMMARY"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 	  if (lex_match_id (lexer, "TOTAL"))
 	    {
 	      reliability.summary |= SUMMARY_TOTAL;
@@ -238,8 +238,8 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{

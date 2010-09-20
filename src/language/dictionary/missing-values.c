@@ -43,20 +43,20 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
   int retval = CMD_FAILURE;
   bool deferred_errors = false;
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       size_t i;
 
       if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         goto done;
 
-      if (!lex_force_match (lexer, '('))
+      if (!lex_force_match (lexer, T_LPAREN))
         goto done;
 
       for (i = 0; i < nv; i++)
         var_clear_missing_values (v[i]);
 
-      if (!lex_match (lexer, ')'))
+      if (!lex_match (lexer, T_RPAREN))
         {
           struct missing_values mv;
 
@@ -74,7 +74,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
           if (var_is_numeric (v[0]))
             {
               mv_init (&mv, 0);
-              while (!lex_match (lexer, ')'))
+              while (!lex_match (lexer, T_RPAREN))
                 {
                   enum fmt_type type = var_get_print_format (v[0])->type;
                   double x, y;
@@ -89,13 +89,13 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                   if (!ok)
                     deferred_errors = true;
 
-                  lex_match (lexer, ',');
+                  lex_match (lexer, T_COMMA);
                 }
             }
           else
             {
               mv_init (&mv, MV_MAX_STRING);
-              while (!lex_match (lexer, ')'))
+              while (!lex_match (lexer, T_RPAREN))
                 {
                   uint8_t value[MV_MAX_STRING];
                   size_t length;
@@ -121,7 +121,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                     deferred_errors = true;
 
                   lex_get (lexer);
-                  lex_match (lexer, ',');
+                  lex_match (lexer, T_COMMA);
                 }
             }
 
@@ -141,7 +141,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
           mv_destroy (&mv);
         }
 
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
       free (v);
       v = NULL;
     }

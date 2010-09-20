@@ -173,7 +173,7 @@ do_parse_command (struct lexer *lexer,
       result = CMD_EOF;
       goto finish;
     }
-  else if (lex_token (lexer) == '.')
+  else if (lex_token (lexer) == T_ENDCMD)
     {
       /* Null commands can result from extra empty lines. */
       result = CMD_SUCCESS;
@@ -270,8 +270,8 @@ parse_command_name (struct lexer *lexer)
   struct string s;
 
   if (lex_token (lexer) == T_EXP
-      || lex_token (lexer) == '*'
-      || lex_token (lexer) == '[')
+      || lex_token (lexer) == T_ASTERISK
+      || lex_token (lexer) == T_LBRACK)
     {
       static const struct command c = { S_ANY, 0, "COMMENT", cmd_comment };
       return &c;
@@ -282,7 +282,7 @@ parse_command_name (struct lexer *lexer)
   ds_init_empty (&s);
   for (;;)
     {
-      if (lex_token (lexer) == '-')
+      if (lex_token (lexer) == T_DASH)
         ds_put_byte (&s, '-');
       else if (lex_token (lexer) == T_ID)
         {
@@ -510,7 +510,7 @@ cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
 
   if (!lex_force_match_id (lexer, "FILE"))
     return CMD_FAILURE;
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
 

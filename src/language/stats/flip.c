@@ -109,23 +109,23 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   flip->error = false;
   flip->dict = dict;
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   if (lex_match_id (lexer, "VARIABLES"))
     {
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
       if (!parse_variables_const (lexer, dict, &vars, &flip->n_vars,
                                   PV_NO_DUPLICATE))
 	goto error;
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
     }
   else
     dict_get_vars (dict, &vars, &flip->n_vars, DC_SYSTEM);
   pool_register (flip->pool, free, vars);
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   if (lex_match_id (lexer, "NEWNAMES"))
     {
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
       flip->new_names_var = parse_variable (lexer, dict);
       if (!flip->new_names_var)
         goto error;

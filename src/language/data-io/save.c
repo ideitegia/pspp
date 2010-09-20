@@ -183,7 +183,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   case_map_prepare_dict (dict);
   dict_delete_scratch_vars (dict);
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   for (;;)
     {
       if (lex_match_id (lexer, "OUTFILE"))
@@ -194,7 +194,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
               goto error;
             }
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
 	  handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
 	  if (handle == NULL)
@@ -206,7 +206,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
         {
           bool cw;
 
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "READONLY"))
             cw = false;
           else if (lex_match_id (lexer, "WRITEABLE"))
@@ -221,7 +221,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
         }
       else if (command_type == PROC_CMD && lex_match_id (lexer, "UNSELECTED"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "RETAIN"))
             *retain_unselected = true;
           else if (lex_match_id (lexer, "DELETE"))
@@ -241,7 +241,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
       else if (writer_type == SYSFILE_WRITER
                && lex_match_id (lexer, "VERSION"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (!lex_force_int (lexer))
             goto error;
           sysfile_opts.version = lex_integer (lexer);
@@ -249,7 +249,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
 	}
       else if (writer_type == PORFILE_WRITER && lex_match_id (lexer, "TYPE"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "COMMUNICATIONS"))
             porfile_opts.type = PFM_COMM;
           else if (lex_match_id (lexer, "TAPE"))
@@ -262,7 +262,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
         }
       else if (writer_type == PORFILE_WRITER && lex_match_id (lexer, "DIGITS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (!lex_force_int (lexer))
             goto error;
           porfile_opts.digits = lex_integer (lexer);
@@ -271,7 +271,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
       else if (!parse_dict_trim (lexer, dict))
         goto error;
 
-      if (!lex_match (lexer, '/'))
+      if (!lex_match (lexer, T_SLASH))
 	break;
     }
   if (lex_end_of_command (lexer) != CMD_SUCCESS)

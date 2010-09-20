@@ -74,7 +74,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   int r, i;
 
   lex_match_id (lexer, "FILE");
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   h = fh_parse (lexer, FH_REF_FILE);
   if (!h)
@@ -246,11 +246,11 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
                 break;
               }
 
-          lex_match (lexer, '/');
+          lex_match (lexer, T_SLASH);
           lex_match_id (lexer, "VARIABLES");
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 
-          if (lex_token (lexer) != '.')
+          if (lex_token (lexer) != T_ENDCMD)
             {
               if (!parse_variables_const (lexer, dataset_dict (ds), &vl, &n,
                                           PV_NONE))

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ parse_fp (struct lexer *lexer, struct fp *fp)
       size_t length;
 
       if (!parse_float_format (lexer, &fp->format)
-          || !lex_force_match (lexer, '(')
+          || !lex_force_match (lexer, T_LPAREN)
           || !lex_force_string (lexer))
         return false;
 
@@ -140,7 +140,7 @@ parse_fp (struct lexer *lexer, struct fp *fp)
         }
 
       lex_get (lexer);
-      if (!lex_force_match (lexer, ')'))
+      if (!lex_force_match (lexer, T_RPAREN))
         return false;
     }
   else
@@ -250,14 +250,14 @@ cmd_debug_float_format (struct lexer *lexer, struct dataset *ds UNUSED)
       if (!parse_fp (lexer, &fp[fp_cnt++]))
         return CMD_FAILURE;
 
-      if (lex_token (lexer) == '.' && fp_cnt > 1)
+      if (lex_token (lexer) == T_ENDCMD && fp_cnt > 1)
         break;
-      else if (!lex_force_match (lexer, '='))
+      else if (!lex_force_match (lexer, T_EQUALS))
         return CMD_FAILURE;
 
       if (fp_cnt == 1)
         {
-          if (lex_match (lexer, '='))
+          if (lex_match (lexer, T_EQUALS))
             bijective = true;
           else if (lex_match (lexer, T_GT))
             bijective = false;
@@ -269,7 +269,7 @@ cmd_debug_float_format (struct lexer *lexer, struct dataset *ds UNUSED)
         }
       else
         {
-          if ((bijective && !lex_force_match (lexer, '='))
+          if ((bijective && !lex_force_match (lexer, T_EQUALS))
               || (!bijective && !lex_force_match (lexer, T_GT)))
             return CMD_FAILURE;
         }

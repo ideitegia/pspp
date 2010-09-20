@@ -84,7 +84,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
   case_map_prepare_dict (dict);
   dict_delete_scratch_vars (dict);
 
-  while (lex_match (lexer, '/'))
+  while (lex_match (lexer, T_SLASH))
     {
       if (lex_match_id (lexer, "OUTFILE"))
 	{
@@ -94,7 +94,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
               goto error;
             }
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
 	  handle = fh_parse (lexer, FH_REF_FILE);
 	  if (handle == NULL)
@@ -108,7 +108,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
               goto error;
             }
 
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "CSV"))
             type = CSV_FILE;
           else if (lex_match_id (lexer, "TAB"))
@@ -125,7 +125,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
         include_var_names = true;
       else if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "IGNORE"))
             recode_user_missing = false;
           else if (lex_match_id (lexer, "RECODE"))
@@ -138,7 +138,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
         }
       else if (lex_match_id (lexer, "CELLS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "VALUES"))
             use_value_labels = false;
           else if (lex_match_id (lexer, "LABELS"))
@@ -151,12 +151,12 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
         }
       else if (lex_match_id (lexer, "TEXTOPTIONS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           for (;;)
             {
               if (lex_match_id (lexer, "DELIMITER"))
                 {
-                  lex_match (lexer, '=');
+                  lex_match (lexer, T_EQUALS);
                   if (!lex_force_string (lexer))
                     goto error;
                   if (ds_length (lex_tokstr (lexer)) != 1)
@@ -170,7 +170,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                 }
               else if (lex_match_id (lexer, "QUALIFIER"))
                 {
-                  lex_match (lexer, '=');
+                  lex_match (lexer, T_EQUALS);
                   if (!lex_force_string (lexer))
                     goto error;
                   if (ds_length (lex_tokstr (lexer)) != 1)
@@ -184,7 +184,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                 }
               else if (lex_match_id (lexer, "DECIMAL"))
                 {
-                  lex_match (lexer, '=');
+                  lex_match (lexer, T_EQUALS);
                   if (lex_match_id (lexer, "DOT"))
                     decimal = '.';
                   else if (lex_match_id (lexer, "COMMA"))
@@ -198,7 +198,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                 }
               else if (lex_match_id (lexer, "FORMAT"))
                 {
-                  lex_match (lexer, '=');
+                  lex_match (lexer, T_EQUALS);
                   if (lex_match_id (lexer, "PLAIN"))
                     use_print_formats = false;
                   else if (lex_match_id (lexer, "VARIABLE"))
@@ -216,7 +216,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
         }
       else if (lex_match_id (lexer, "UNSELECTED"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "RETAIN"))
             retain_unselected = true;
           else if (lex_match_id (lexer, "DELETE"))

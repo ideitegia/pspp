@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ cmd_variable_attribute (struct lexer *lexer, struct dataset *ds)
       bool ok;
 
       if (!lex_force_match_id (lexer, "VARIABLES")
-          || !lex_force_match (lexer, '=')
+          || !lex_force_match (lexer, T_EQUALS)
           || !parse_variables (lexer, dataset_dict (ds), &vars, &n_vars,
                                PV_NONE))
         return CMD_FAILURE;
@@ -70,7 +70,7 @@ cmd_variable_attribute (struct lexer *lexer, struct dataset *ds)
       if (!ok)
         return CMD_FAILURE;
     }
-  while (lex_match (lexer, '/'));
+  while (lex_match (lexer, T_SLASH));
 
   return lex_end_of_command (lexer);
 }
@@ -80,7 +80,7 @@ match_subcommand (struct lexer *lexer, const char *keyword)
 {
   if (lex_token (lexer) == T_ID
       && lex_id_match (ss_cstr (lex_tokid (lexer)), ss_cstr (keyword))
-      && lex_look_ahead (lexer) == '=') 
+      && lex_look_ahead (lexer) == T_EQUALS)
     {
       lex_get (lexer);          /* Skip keyword. */
       lex_get (lexer);          /* Skip '='. */
@@ -99,7 +99,7 @@ parse_attribute_name (struct lexer *lexer, char name[VAR_NAME_LEN + 1],
   strcpy (name, lex_tokid (lexer));
   lex_get (lexer);
 
-  if (lex_match (lexer, '[')) 
+  if (lex_match (lexer, T_LBRACK))
     {
       if (!lex_force_int (lexer))
         return false;
@@ -110,7 +110,7 @@ parse_attribute_name (struct lexer *lexer, char name[VAR_NAME_LEN + 1],
         }
       *index = lex_integer (lexer);
       lex_get (lexer);
-      if (!lex_force_match (lexer, ']'))
+      if (!lex_force_match (lexer, T_RBRACK))
         return false;
     }
   else
@@ -126,7 +126,7 @@ add_attribute (struct lexer *lexer, struct attrset **sets, size_t n)
   char *value;
 
   if (!parse_attribute_name (lexer, name, &index)
-      || !lex_force_match (lexer, '(')
+      || !lex_force_match (lexer, T_LPAREN)
       || !lex_force_string (lexer))
     return false;
   value = ds_cstr (lex_tokstr (lexer));
@@ -143,7 +143,7 @@ add_attribute (struct lexer *lexer, struct attrset **sets, size_t n)
     }
 
   lex_get (lexer);
-  return lex_force_match (lexer, ')');
+  return lex_force_match (lexer, T_RPAREN);
 }
 
 static bool
@@ -195,6 +195,6 @@ parse_attributes (struct lexer *lexer, struct attrset **sets, size_t n)
             : delete_attribute (lexer, sets, n)))
         return CMD_FAILURE;
     }
-  while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD);
   return CMD_SUCCESS;
 }

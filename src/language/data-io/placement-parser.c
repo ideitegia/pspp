@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ parse_var_placements (struct lexer *lexer, struct pool *pool, size_t var_cnt, bo
   assert (var_cnt > 0);
   if (lex_is_number (lexer))
     return fixed_parse_columns (lexer, pool, var_cnt, for_input, formats, format_cnt);
-  else if (lex_match (lexer, '('))
+  else if (lex_match (lexer, T_LPAREN))
     {
       size_t assignment_cnt;
       size_t i;
@@ -123,14 +123,14 @@ fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, boo
     }
 
   /* Format specifier. */
-  if (lex_match (lexer, '('))
+  if (lex_match (lexer, T_LPAREN))
     {
       /* Get format type. */
       if (lex_token (lexer) == T_ID)
 	{
 	  if (!parse_format_specifier_name (lexer, &format.type))
             return false;
-	  lex_match (lexer, ',');
+	  lex_match (lexer, T_COMMA);
 	}
       else
 	format.type = FMT_F;
@@ -144,7 +144,7 @@ fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, boo
       else
 	format.d = 0;
 
-      if (!lex_force_match (lexer, ')'))
+      if (!lex_force_match (lexer, T_RPAREN))
 	return false;
     }
   else
@@ -173,7 +173,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
   size_t formats_used = 0;
 
   *formats = NULL;
-  while (!lex_match (lexer, ')'))
+  while (!lex_match (lexer, T_RPAREN))
     {
       struct fmt_spec f;
       struct fmt_spec *new_formats;
@@ -191,7 +191,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
 	count = 1;
 
       /* Parse format specifier. */
-      if (lex_match (lexer, '('))
+      if (lex_match (lexer, T_LPAREN))
         {
           /* Call ourselves recursively to handle parentheses. */
           if (!fixed_parse_fortran (lexer, pool, for_input,
@@ -202,7 +202,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
         {
           new_formats = &f;
           new_format_cnt = 1;
-          if (lex_match (lexer, '/'))
+          if (lex_match (lexer, T_SLASH))
             f.type = PRS_TYPE_NEW_REC;
           else
             {
@@ -253,7 +253,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
           formats_used += new_format_cnt;
         }
 
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
     }
 
   *format_cnt = formats_used;
@@ -335,7 +335,7 @@ parse_column_range (struct lexer *lexer, int base,
 
   /* Last column. */
   lex_negative_to_dash (lexer);
-  if (lex_match (lexer, '-'))
+  if (lex_match (lexer, T_DASH))
     {
       if (!parse_column (lexer, base, last_column))
         return false;
@@ -369,7 +369,7 @@ parse_column_range (struct lexer *lexer, int base,
 bool
 parse_record_placement (struct lexer *lexer, int *record, int *column)
 {
-  while (lex_match (lexer, '/'))
+  while (lex_match (lexer, T_SLASH))
     {
       if (lex_is_integer (lexer))
         {

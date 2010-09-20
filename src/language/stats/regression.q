@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -752,7 +752,7 @@ regression_custom_variables (struct lexer *lexer, struct dataset *ds,
 {
   const struct dictionary *dict = dataset_dict (ds);
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if ((lex_token (lexer) != T_ID
        || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)

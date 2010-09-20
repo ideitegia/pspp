@@ -336,7 +336,7 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
 
       if (pv_opts & PV_SINGLE)
         break;
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
     }
   while (lex_token (lexer) == T_ALL
          || (lex_token (lexer) == T_ID && var_set_lookup_var (vs, lex_tokid (lexer)) != NULL));
@@ -511,7 +511,7 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names,
 	  (*names)[nvar++] = xstrdup (name1);
 	}
 
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
 
       if (pv_opts & PV_SINGLE)
 	break;

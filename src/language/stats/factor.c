@@ -788,14 +788,14 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 
   factor.wv = dict_get_weight (dict);
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "VARIABLES"))
     {
       goto error;
     }
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (!parse_variables_const (lexer, dict, &factor.vars, &factor.n_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
@@ -804,14 +804,14 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
   if (factor.n_vars < 2)
     msg (MW, _("Factor analysis on a single variable is not useful."));
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "PLOT"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "EIGEN"))
 		{
@@ -831,8 +831,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "METHOD"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "COVARIANCE"))
 		{
@@ -851,8 +851,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "ROTATION"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      /* VARIMAX and DEFAULT are defaults */
 	      if (lex_match_id (lexer, "VARIMAX") || lex_match_id (lexer, "DEFAULT"))
@@ -880,57 +880,57 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "CRITERIA"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "FACTORS"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_int (lexer);
 		      factor.n_factors = lex_integer (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "MINEIGEN"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_num (lexer);
 		      factor.min_eigen = lex_number (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "ECONVERGE"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_num (lexer);
 		      factor.econverge = lex_number (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "RCONVERGE"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_num (lexer);
 		      factor.rconverge = lex_number (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "ITERATE"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_int (lexer);
 		      factor.iterations = lex_integer (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "DEFAULT"))
@@ -949,8 +949,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
       else if (lex_match_id (lexer, "EXTRACTION"))
 	{
 	  extraction_seen = true;
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "PAF"))
 		{
@@ -977,8 +977,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "FORMAT"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "SORT"))
 		{
@@ -986,12 +986,12 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		}
 	      else if (lex_match_id (lexer, "BLANK"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_num (lexer);
 		      factor.blank = lex_number (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "DEFAULT"))
@@ -1009,8 +1009,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
       else if (lex_match_id (lexer, "PRINT"))
 	{
 	  factor.print = 0;
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               if (lex_match_id (lexer, "UNIVARIATE"))
 		{
@@ -1083,8 +1083,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{

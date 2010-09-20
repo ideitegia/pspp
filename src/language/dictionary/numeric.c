@@ -53,7 +53,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	return CMD_FAILURE;
 
       /* Get the optional format specification. */
-      if (lex_match (lexer, '('))
+      if (lex_match (lexer, T_LPAREN))
 	{
 	  if (!parse_format_specifier (lexer, &f))
 	    goto fail;
@@ -69,7 +69,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	      goto fail;
 	    }
 
-	  if (!lex_match (lexer, ')'))
+	  if (!lex_match (lexer, T_RPAREN))
 	    {
 	      msg (SE, _("`)' expected after output format."));
 	      goto fail;
@@ -96,7 +96,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	free (v[i]);
       free (v);
     }
-  while (lex_match (lexer, '/'));
+  while (lex_match (lexer, T_SLASH));
 
   return lex_end_of_command (lexer);
 
@@ -130,9 +130,9 @@ cmd_string (struct lexer *lexer, struct dataset *ds)
       if (!parse_DATA_LIST_vars (lexer, &v, &nv, PV_NO_DUPLICATE))
 	return CMD_FAILURE;
 
-      if (!lex_force_match (lexer, '(')
+      if (!lex_force_match (lexer, T_LPAREN)
           || !parse_format_specifier (lexer, &f)
-          || !lex_force_match (lexer, ')'))
+          || !lex_force_match (lexer, T_RPAREN))
 	goto fail;
       if (!fmt_is_string (f.type))
 	{
@@ -162,7 +162,7 @@ cmd_string (struct lexer *lexer, struct dataset *ds)
 	free (v[i]);
       free (v);
     }
-  while (lex_match (lexer, '/'));
+  while (lex_match (lexer, T_SLASH));
 
   return lex_end_of_command (lexer);
 

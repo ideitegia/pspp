@@ -500,7 +500,7 @@ match_operator (struct lexer *lexer, const struct operator ops[], size_t op_cnt,
 
   for (op = ops; op < ops + op_cnt; op++)
     {
-      if (op->token == '-')
+      if (op->token == T_DASH)
         lex_negative_to_dash (lexer);
       if (lex_match (lexer, op->token))
         {
@@ -665,7 +665,7 @@ parse_rel (struct lexer *lexer, struct expression *e)
       {
         static const struct operator ops[] =
           {
-            { '=', OP_EQ, "numeric equality (`=')" },
+            { T_EQUALS, OP_EQ, "numeric equality (`=')" },
             { T_EQ, OP_EQ, "numeric equality (`EQ')" },
             { T_GE, OP_GE, "numeric greater-than-or-equal-to (`>=')" },
             { T_GT, OP_GT, "numeric greater than (`>')" },
@@ -683,7 +683,7 @@ parse_rel (struct lexer *lexer, struct expression *e)
       {
         static const struct operator ops[] =
           {
-            { '=', OP_EQ_STRING, "string equality (`=')" },
+            { T_EQUALS, OP_EQ_STRING, "string equality (`=')" },
             { T_EQ, OP_EQ_STRING, "string equality (`EQ')" },
             { T_GE, OP_GE_STRING, "string greater-than-or-equal-to (`>=')" },
             { T_GT, OP_GT_STRING, "string greater than (`>')" },
@@ -708,8 +708,8 @@ parse_add (struct lexer *lexer, struct expression *e)
 {
   static const struct operator ops[] =
     {
-      { '+', OP_ADD, "addition (`+')" },
-      { '-', OP_SUB, "subtraction (`-')" },
+      { T_PLUS, OP_ADD, "addition (`+')" },
+      { T_DASH, OP_SUB, "subtraction (`-')" },
     };
 
   return parse_binary_operators (lexer, e, parse_mul (lexer, e),
@@ -723,8 +723,8 @@ parse_mul (struct lexer *lexer, struct expression *e)
 {
   static const struct operator ops[] =
     {
-      { '*', OP_MUL, "multiplication (`*')" },
-      { '/', OP_DIV, "division (`/')" },
+      { T_ASTERISK, OP_MUL, "multiplication (`*')" },
+      { T_SLASH, OP_DIV, "division (`/')" },
     };
 
   return parse_binary_operators (lexer, e, parse_neg (lexer, e),
@@ -736,7 +736,7 @@ parse_mul (struct lexer *lexer, struct expression *e)
 static union any_node *
 parse_neg (struct lexer *lexer, struct expression *e)
 {
-  static const struct operator op = { '-', OP_NEG, "negation (`-')" };
+  static const struct operator op = { T_DASH, OP_NEG, "negation (`-')" };
   return parse_inverting_unary_operator (lexer, e, &op, parse_exp);
 }
 
@@ -824,7 +824,7 @@ parse_primary (struct lexer *lexer, struct expression *e)
   switch (lex_token (lexer))
     {
     case T_ID:
-      if (lex_look_ahead (lexer) == '(')
+      if (lex_look_ahead (lexer) == T_LPAREN)
         {
           /* An identifier followed by a left parenthesis may be
              a vector element reference.  If not, it's a function
@@ -881,12 +881,12 @@ parse_primary (struct lexer *lexer, struct expression *e)
 	return node;
       }
 
-    case '(':
+    case T_LPAREN:
       {
         union any_node *node;
 	lex_get (lexer);
 	node = parse_or (lexer, e);
-	if (node != NULL && !lex_force_match (lexer, ')'))
+	if (node != NULL && !lex_force_match (lexer, T_RPAREN))
           return NULL;
         return node;
       }
@@ -913,12 +913,12 @@ parse_vector_element (struct lexer *lexer, struct expression *e)
   /* Skip left parenthesis token.
      The caller must have verified that the lookahead is a left
      parenthesis. */
-  assert (lex_token (lexer) == '(');
+  assert (lex_token (lexer) == T_LPAREN);
   lex_get (lexer);
 
   element = parse_or (lexer, e);
   if (!type_coercion (e, OP_number, &element, "vector indexing")
-      || !lex_match (lexer, ')'))
+      || !lex_match (lexer, T_RPAREN))
     return NULL;
 
   return expr_allocate_binary (e, (vector_get_type (vector) == VAL_NUMERIC
@@ -1207,7 +1207,7 @@ parse_function (struct lexer *lexer, struct expression *e)
     }
 
   lex_get (lexer);
-  if (!lex_force_match (lexer, '('))
+  if (!lex_force_match (lexer, T_LPAREN))
     {
       ds_destroy (&func_name);
       return NULL;
@@ -1215,11 +1215,11 @@ parse_function (struct lexer *lexer, struct expression *e)
 
   args = NULL;
   arg_cnt = arg_cap = 0;
-  if (lex_token (lexer) != ')')
+  if (lex_token (lexer) != T_RPAREN)
     for (;;)
       {
         if (lex_token (lexer) == T_ID
-            && toupper (lex_look_ahead (lexer)) == 'T')
+            && toupper (lex_look_ahead (lexer)) == T_ID)
           {
             const struct variable **vars;
             size_t var_cnt;
@@ -1240,9 +1240,9 @@ parse_function (struct lexer *lexer, struct expression *e)
 
             add_arg (&args, &arg_cnt, &arg_cap, arg);
           }
-        if (lex_match (lexer, ')'))
+        if (lex_match (lexer, T_RPAREN))
           break;
-        else if (!lex_match (lexer, ','))
+        else if (!lex_match (lexer, T_COMMA))
           {
             lex_error (lexer, _("expecting `,' or `)' invoking %s function"),
                        first->name);

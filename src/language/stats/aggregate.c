@@ -175,11 +175,11 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
   subcase_init_empty (&agr.sort);
 
   /* OUTFILE subcommand must be first. */
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   if (!lex_force_match_id (lexer, "OUTFILE"))
     goto error;
-  lex_match (lexer, '=');
-  if (!lex_match (lexer, '*'))
+  lex_match (lexer, T_EQUALS);
+  if (!lex_match (lexer, T_ASTERISK))
     {
       out_file = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
       if (out_file == NULL)
@@ -188,7 +188,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 
   if (out_file == NULL && lex_match_id (lexer, "MODE"))
     {
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
       if (lex_match_id (lexer, "ADDVARIABLES"))
 	{
 	  agr.add_variables = true;
@@ -215,11 +215,11 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
   /* Read most of the subcommands. */
   for (;;)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "MISSING"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (!lex_match_id (lexer, "COLUMNWISE"))
 	    {
 	      lex_error (lexer, _("expecting %s"), "COLUMNWISE");
@@ -235,7 +235,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 	{
           int i;
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (!parse_sort_criteria (lexer, dict, &agr.sort, &agr.break_vars,
                                     &saw_direction))
             goto error;
@@ -258,7 +258,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
                "the same way as the input data."));
 
   /* Read in the aggregate functions. */
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   if (!parse_aggregate_functions (lexer, dict, &agr))
     goto error;
 
@@ -412,7 +412,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
       ds_init_empty (&function_name);
 
       /* Parse the list of target variables. */
-      while (!lex_match (lexer, '='))
+      while (!lex_match (lexer, T_EQUALS))
 	{
 	  size_t n_dest_prev = n_dest;
 
@@ -468,11 +468,11 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
       lex_get (lexer);
 
       /* Check for leading lparen. */
-      if (!lex_match (lexer, '('))
+      if (!lex_match (lexer, T_LPAREN))
 	{
 	  if (function->src_vars == AGR_SV_YES)
 	    {
-              lex_force_match (lexer, '(');
+              lex_force_match (lexer, T_LPAREN);
 	      goto error;
 	    }
 	}
@@ -498,7 +498,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	      {
 		int type;
 
-		lex_match (lexer, ',');
+		lex_match (lexer, T_COMMA);
 		if (lex_is_string (lexer))
 		  {
 		    arg[i].c = ds_xstrdup (lex_tokstr (lexer));
@@ -528,7 +528,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	      }
 
 	  /* Trailing rparen. */
-	  if (!lex_force_match (lexer, ')'))
+	  if (!lex_force_match (lexer, T_RPAREN))
             goto error;
 
 	  /* Now check that the number of source variables match
@@ -670,9 +670,9 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
       free (dest);
       free (dest_label);
 
-      if (!lex_match (lexer, '/'))
+      if (!lex_match (lexer, T_SLASH))
 	{
-	  if (lex_token (lexer) == '.')
+	  if (lex_token (lexer) == T_ENDCMD)
 	    return true;
 
 	  lex_error (lexer, "expecting end of command");

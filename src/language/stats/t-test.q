@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -275,7 +275,7 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds,
   int n_values;
   int width;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   proc->indep_var = parse_variable (lexer, dataset_dict (ds));
   if (proc->indep_var == NULL)
@@ -287,19 +287,19 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds,
   value_init (&proc->g_value[0], width);
   value_init (&proc->g_value[1], width);
 
-  if (!lex_match (lexer, '('))
+  if (!lex_match (lexer, T_LPAREN))
     n_values = 0;
   else
     {
       if (!parse_value (lexer, &proc->g_value[0], width))
         return 0;
-      lex_match (lexer, ',');
-      if (lex_match (lexer, ')'))
+      lex_match (lexer, T_COMMA);
+      if (lex_match (lexer, T_RPAREN))
         n_values = 1;
       else
         {
           if (!parse_value (lexer, &proc->g_value[1], width)
-              || !lex_force_match (lexer, ')'))
+              || !lex_force_match (lexer, T_RPAREN))
             return 0;
           n_values = 2;
         }
@@ -355,7 +355,7 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds,
   size_t n_total_pairs;
   size_t i, j;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (!parse_variables_const (lexer, dataset_dict (ds), &vars1, &n_vars1,
                               PV_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH))
@@ -370,9 +370,9 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds,
           return 0;
         }
 
-      if (lex_match (lexer, '(')
+      if (lex_match (lexer, T_LPAREN)
           && lex_match_id (lexer, "PAIRED")
-          && lex_match (lexer, ')'))
+          && lex_match (lexer, T_RPAREN))
         {
           paired = true;
           if (n_vars1 != n_vars2)

@@ -281,7 +281,7 @@ dnl Make sure >= token can't be split:
   [['asdfj   ' ne 'asdf'], [true]],
 dnl <> token can't be split:
   [[1 < > 1], [error],
-   [error: DEBUG EVALUATE: Syntax error at `GT'.]],
+   [error: DEBUG EVALUATE: Syntax error at `>'.]],
 dnl # ~= token can't be split:
   [[1 ~ = 1], [error],
    [error: DEBUG EVALUATE: Syntax error at `NOT': expecting end of command.]])

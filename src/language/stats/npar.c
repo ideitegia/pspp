@@ -224,7 +224,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
 	}
       else if (lex_match_hyphenated_word (lexer, "CHISQUARE"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->chisquare++;
           switch (npar_chisquare (lexer, ds, nps))
             {
@@ -241,7 +241,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
         }
       else if (lex_match_hyphenated_word (lexer, "BINOMIAL"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->binomial++;
           switch (npar_binomial (lexer, ds, nps))
             {
@@ -259,7 +259,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
       else if (lex_match_hyphenated_word (lexer, "K-W") ||
 	       lex_match_hyphenated_word (lexer, "KRUSKAL-WALLIS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->kruskal_wallis++;
           switch (npar_kruskal_wallis (lexer, ds, nps))
             {
@@ -294,7 +294,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
         }
       else if (lex_match_hyphenated_word (lexer, "WILCOXON"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->wilcoxon++;
           switch (npar_wilcoxon (lexer, ds, nps))
             {
@@ -311,7 +311,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
         }
       else if (lex_match_hyphenated_word (lexer, "SIGN"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->sign++;
           switch (npar_sign (lexer, ds, nps))
             {
@@ -328,14 +328,14 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
         }
       else if (lex_match_hyphenated_word (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->missing++;
           if (npt->missing > 1)
             {
               msg (SE, _("The %s subcommand may be given only once."), "MISSING");
               goto lossage;
             }
-          while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+          while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
             {
               if (lex_match_hyphenated_word (lexer, "ANALYSIS"))
                 npt->miss = MISS_ANALYSIS;
@@ -350,12 +350,12 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
                   lex_error (lexer, NULL);
                   goto lossage;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
         }
       else if (lex_match_hyphenated_word (lexer, "METHOD"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->method++;
           if (npt->method > 1)
             {
@@ -377,9 +377,9 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
         }
       else if (lex_match_hyphenated_word (lexer, "STATISTICS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->statistics++;
-          while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+          while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
             {
               if (lex_match_hyphenated_word (lexer, "DESCRIPTIVES"))
                 npt->a_statistics[NPAR_ST_DESCRIPTIVES] = 1;
@@ -392,22 +392,22 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
                   lex_error (lexer, NULL);
                   goto lossage;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
         }
       else if ( settings_get_syntax () != COMPATIBLE && lex_match_id (lexer, "ALGORITHM"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "COMPATIBLE"))
             settings_set_cmd_algorithm (COMPATIBLE);
           else if (lex_match_id (lexer, "ENHANCED"))
             settings_set_cmd_algorithm (ENHANCED);
           }
-        if (!lex_match (lexer, '/'))
+        if (!lex_match (lexer, T_SLASH))
           break;
       }
 
-    if (lex_token (lexer) != '.')
+    if (lex_token (lexer) != T_ENDCMD)
       {
         lex_error (lexer, _("expecting end of command"));
         goto lossage;
@@ -734,13 +734,13 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 
   cstp->ranged = false;
 
-  if ( lex_match (lexer, '('))
+  if ( lex_match (lexer, T_LPAREN))
     {
       cstp->ranged = true;
       if ( ! lex_force_num (lexer)) return 0;
       cstp->lo = lex_integer (lexer);
       lex_get (lexer);
-      lex_force_match (lexer, ',');
+      lex_force_match (lexer, T_COMMA);
       if (! lex_force_num (lexer) ) return 0;
       cstp->hi = lex_integer (lexer);
       if ( cstp->lo >= cstp->hi )
@@ -752,16 +752,16 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 	  return 0;
 	}
       lex_get (lexer);
-      if (! lex_force_match (lexer, ')')) return 0;
+      if (! lex_force_match (lexer, T_RPAREN)) return 0;
     }
 
   cstp->n_expected = 0;
   cstp->expected = NULL;
-  if ( lex_match (lexer, '/') )
+  if ( lex_match (lexer, T_SLASH) )
     {
       if ( lex_match_id (lexer, "EXPECTED") )
 	{
-	  lex_force_match (lexer, '=');
+	  lex_force_match (lexer, T_EQUALS);
 	  if ( ! lex_match_id (lexer, "EQUAL") )
 	    {
 	      double f;
@@ -778,7 +778,7 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 		      f = lex_number (lexer);
 		      lex_get (lexer);
 		    }
-		  lex_match (lexer, ',');
+		  lex_match (lexer, T_COMMA);
 
 		  cstp->n_expected += n;
 		  cstp->expected = pool_realloc (specs->pool,
@@ -794,7 +794,7 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 	    }
 	}
       else
-	lex_put_back (lexer, '/');
+	lex_put_back (lexer, T_SLASH);
     }
 
   if ( cstp->ranged && cstp->n_expected > 0 &&
@@ -834,33 +834,33 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
 
   btp->p = 0.5;
 
-  if ( lex_match (lexer, '(') )
+  if ( lex_match (lexer, T_LPAREN) )
     {
       if ( lex_force_num (lexer) )
 	{
 	  btp->p = lex_number (lexer);
 	  lex_get (lexer);
-	  lex_force_match (lexer, ')');
+	  lex_force_match (lexer, T_RPAREN);
 	}
       else
 	return 0;
     }
   else
     /* Kludge: q2c swallows the '=' so put it back here  */
-     lex_put_back (lexer, '=');
+     lex_put_back (lexer, T_EQUALS);
 
-  if (lex_match (lexer, '=') )
+  if (lex_match (lexer, T_EQUALS) )
     {
       if (parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
 				      &tp->vars, &tp->n_vars,
 				      PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
 	{
-	  if (lex_match (lexer, '('))
+	  if (lex_match (lexer, T_LPAREN))
 	    {
 	      lex_force_num (lexer);
 	      btp->category1 = lex_number (lexer);
       	      lex_get (lexer);
-	      if ( lex_match (lexer, ','))
+	      if ( lex_match (lexer, T_COMMA))
 		{
 		  if ( ! lex_force_num (lexer) ) return 2;
 		  btp->category2 = lex_number (lexer);
@@ -871,7 +871,7 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
       		  btp->cutpoint = btp->category1;
 		}
 
-	      lex_force_match (lexer, ')');
+	      lex_force_match (lexer, T_RPAREN);
 	    }
 	}
       else
@@ -930,8 +930,8 @@ parse_two_sample_related_test (struct lexer *lexer,
 					PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
 	return false;
 
-      paired = (lex_match (lexer, '(') &&
-		lex_match_id (lexer, "PAIRED") && lex_match (lexer, ')'));
+      paired = (lex_match (lexer, T_LPAREN) &&
+		lex_match_id (lexer, "PAIRED") && lex_match (lexer, T_RPAREN));
     }
 
 
@@ -1025,7 +1025,7 @@ parse_n_sample_related_test (struct lexer *lexer,
 
   nst->indep_var = parse_variable_const (lexer, dict);
 
-  if ( ! lex_force_match (lexer, '('))
+  if ( ! lex_force_match (lexer, T_LPAREN))
     return false;
 
   value_init (&nst->val1, var_get_width (nst->indep_var));
@@ -1035,7 +1035,7 @@ parse_n_sample_related_test (struct lexer *lexer,
       return false;
     }
 
-  lex_match (lexer, ',');
+  lex_match (lexer, T_COMMA);
 
   value_init (&nst->val2, var_get_width (nst->indep_var));
   if ( ! parse_value (lexer, &nst->val2, var_get_width (nst->indep_var)))
@@ -1044,7 +1044,7 @@ parse_n_sample_related_test (struct lexer *lexer,
       return false;
     }
 
-  if ( ! lex_force_match (lexer, ')'))
+  if ( ! lex_force_match (lexer, T_RPAREN))
     return false;
 
   return true;
@@ -1216,14 +1216,14 @@ npar_method (struct lexer *lexer,  struct npar_specs *specs)
 	{
 	  specs->timer = 5.0;
 
-	  if ( lex_match (lexer, '('))
+	  if ( lex_match (lexer, T_LPAREN))
 	    {
 	      if ( lex_force_num (lexer) )
 		{
 		  specs->timer = lex_number (lexer);
 		  lex_get (lexer);
 		}
-	      lex_force_match (lexer, ')');
+	      lex_force_match (lexer, T_RPAREN);
 	    }
 	}
     }

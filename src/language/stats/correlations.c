@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -341,13 +341,13 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
   opts.statistics = 0;
 
   /* Parse CORRELATIONS. */
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
       if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               if (lex_match_id (lexer, "PAIRWISE"))
                 opts.missing_type = CORR_PAIRWISE;
@@ -363,13 +363,13 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
                   lex_error (lexer, NULL);
                   goto error;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
         }
       else if (lex_match_id (lexer, "PRINT"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if ( lex_match_id (lexer, "TWOTAIL"))
 		opts.tails = 2;
@@ -385,13 +385,13 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
 		  goto error;
 		}
 
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
 	    }
 	}
       else if (lex_match_id (lexer, "STATISTICS"))
 	{
-	  lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+	  lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if ( lex_match_id (lexer, "DESCRIPTIVES"))
 		opts.statistics = STATS_DESCRIPTIVES;
@@ -408,14 +408,14 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
 		  goto error;
 		}
 
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
 	    }
 	}
       else
 	{
 	  if (lex_match_id (lexer, "VARIABLES"))
 	    {
-	      lex_match (lexer, '=');
+	      lex_match (lexer, T_EQUALS);
 	    }
 
 	  corr = xrealloc (corr, sizeof (*corr) * (n_corrs + 1));

@@ -129,15 +129,15 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
       return CMD_FAILURE;
     }
 
-  if (lex_token (lexer) == '.')
+  if (lex_token (lexer) == T_ENDCMD)
     return shell () ? CMD_SUCCESS : CMD_FAILURE;
   else if (lex_match_id (lexer, "COMMAND"))
     {
       struct string command;
       bool ok;
 
-      lex_match (lexer, '=');
-      if (!lex_force_match (lexer, '['))
+      lex_match (lexer, T_EQUALS);
+      if (!lex_force_match (lexer, T_LBRACK))
         return CMD_FAILURE;
 
       ds_init_empty (&command);
@@ -148,7 +148,7 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
           ds_put_substring (&command, ds_ss (lex_tokstr (lexer)));
           lex_get (lexer);
         }
-      if (!lex_force_match (lexer, ']'))
+      if (!lex_force_match (lexer, T_RBRACK))
         {
           ds_destroy (&command);
           return CMD_FAILURE;

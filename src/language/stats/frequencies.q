@@ -618,7 +618,7 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds,
   size_t n_vars;
   size_t i;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_token (lexer) != T_ALL
       && (lex_token (lexer) != T_ID
           || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
@@ -662,7 +662,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 {
   struct frq_proc *frq = frq_;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if ((lex_token (lexer) == T_ID && dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
       || lex_token (lexer) == T_ID)
     for (;;)
@@ -680,7 +680,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 	if (!parse_variables_const (lexer, dataset_dict (ds), &v, &n,
                               PV_NO_DUPLICATE | PV_NUMERIC))
 	  return 0;
-	if (lex_match (lexer, '('))
+	if (lex_match (lexer, T_LPAREN))
 	  {
 	    nl = ml = 0;
 	    dl = NULL;
@@ -693,11 +693,11 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 		  }
 		dl[nl++] = lex_tokval (lexer);
 		lex_get (lexer);
-		lex_match (lexer, ',');
+		lex_match (lexer, T_COMMA);
 	      }
 	    /* Note that nl might still be 0 and dl might still be
 	       NULL.  That's okay. */
-	    if (!lex_match (lexer, ')'))
+	    if (!lex_match (lexer, T_RPAREN))
 	      {
 		free (v);
 		msg (SE, _("`)' expected after GROUPED interval list."));
@@ -737,12 +737,12 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
           }
 
 	free (v);
-	if (!lex_match (lexer, '/'))
+	if (!lex_match (lexer, T_SLASH))
 	  break;
 	if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
             && lex_token (lexer) != T_ALL)
 	  {
-	    lex_put_back (lexer, '/');
+	    lex_put_back (lexer, T_SLASH);
 	    break;
 	  }
       }

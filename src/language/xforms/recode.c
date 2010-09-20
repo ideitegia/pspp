@@ -167,7 +167,7 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
       add_transformation (ds,
 			  recode_trns_proc, recode_trns_free, trns);
     }
-  while (lex_match (lexer, '/'));
+  while (lex_match (lexer, T_SLASH));
 
   return lex_end_of_command (lexer);
 }
@@ -211,7 +211,7 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
   trns->map_cnt = 0;
   map_allocated = 0;
   have_dst_type = false;
-  if (!lex_force_match (lexer, '('))
+  if (!lex_force_match (lexer, T_LPAREN))
     return false;
   do
     {
@@ -234,9 +234,9 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
                                  trns->src_type, trns->max_src_width))
                 return false;
               add_mapping (trns, &map_allocated, &in);
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
-          while (!lex_match (lexer, '='));
+          while (!lex_match (lexer, T_EQUALS));
 
           if (!parse_map_out (lexer, trns->pool, &out))
             return false;
@@ -276,10 +276,10 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
       trns->dst_type = dst_type;
       have_dst_type = true;
 
-      if (!lex_force_match (lexer, ')'))
+      if (!lex_force_match (lexer, T_RPAREN))
         return false;
     }
-  while (lex_match (lexer, '('));
+  while (lex_match (lexer, T_LPAREN));
 
   return true;
 }

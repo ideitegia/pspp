@@ -47,7 +47,7 @@ cmd_mrsets (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  while (lex_match (lexer, '/'))
+  while (lex_match (lexer, T_SLASH))
     {
       bool ok;
 
@@ -87,11 +87,11 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
 
   labelsource_varlabel = false;
   has_value = false;
-  while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match_id (lexer, "NAME"))
         {
-          if (!lex_force_match (lexer, '=') || !lex_force_id (lexer))
+          if (!lex_force_match (lexer, T_EQUALS) || !lex_force_id (lexer))
             goto error;
           if (lex_tokid (lexer)[0] != '$')
             {
@@ -107,7 +107,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
         }
       else if (lex_match_id (lexer, "VARIABLES"))
         {
-          if (!lex_force_match (lexer, '='))
+          if (!lex_force_match (lexer, T_EQUALS))
             goto error;
 
           free (mrset->vars);
@@ -125,7 +125,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
         }
       else if (lex_match_id (lexer, "LABEL"))
         {
-          if (!lex_force_match (lexer, '=') || !lex_force_string (lexer))
+          if (!lex_force_match (lexer, T_EQUALS) || !lex_force_string (lexer))
             goto error;
 
           free (mrset->label);
@@ -134,7 +134,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
         }
       else if (type == MRSET_MD && lex_match_id (lexer, "LABELSOURCE"))
         {
-          if (!lex_force_match (lexer, '=')
+          if (!lex_force_match (lexer, T_EQUALS)
               || !lex_force_match_id (lexer, "VARLABEL"))
             goto error;
 
@@ -142,7 +142,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
         }
       else if (type == MRSET_MD && lex_match_id (lexer, "VALUE"))
         {
-          if (!lex_force_match (lexer, '='))
+          if (!lex_force_match (lexer, T_EQUALS))
             goto error;
 
           has_value = true;
@@ -182,7 +182,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
         }
       else if (type == MRSET_MD && lex_match_id (lexer, "CATEGORYLABELS"))
         {
-          if (!lex_force_match (lexer, '='))
+          if (!lex_force_match (lexer, T_EQUALS))
             goto error;
 
           if (lex_match_id (lexer, "VARLABELS"))
@@ -469,13 +469,14 @@ static bool
 parse_mrset_names (struct lexer *lexer, struct dictionary *dict,
                    struct stringi_set *mrset_names)
 {
-  if (!lex_force_match_id (lexer, "NAME") || !lex_force_match (lexer, '='))
+  if (!lex_force_match_id (lexer, "NAME")
+      || !lex_force_match (lexer, T_EQUALS))
     return false;
 
   stringi_set_init (mrset_names);
-  if (lex_match (lexer, '['))
+  if (lex_match (lexer, T_LBRACK))
     {
-      while (!lex_match (lexer, ']'))
+      while (!lex_match (lexer, T_RBRACK))
         {
           if (!lex_force_id (lexer))
             return false;

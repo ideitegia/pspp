@@ -150,11 +150,11 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
   tmp_pool = pool_create_subpool (trns->pool);
 
   /* Parse the command options. */
-  while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match_id (lexer, "OUTFILE"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
 	  fh = fh_parse (lexer, FH_REF_FILE);
 	  if (fh == NULL)
@@ -162,13 +162,13 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
 	}
       else if (lex_match_id (lexer, "RECORDS"))
 	{
-	  lex_match (lexer, '=');
-	  lex_match (lexer, '(');
+	  lex_match (lexer, T_EQUALS);
+	  lex_match (lexer, T_LPAREN);
 	  if (!lex_force_int (lexer))
 	    goto error;
 	  trns->record_cnt = lex_integer (lexer);
 	  lex_get (lexer);
-	  lex_match (lexer, ')');
+	  lex_match (lexer, T_RPAREN);
 	}
       else if (lex_match_id (lexer, "TABLE"))
 	print_table = true;
@@ -239,13 +239,13 @@ parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns
   int record = 0;
   int column = 1;
 
-  if (lex_token (lexer) == '.')
+  if (lex_token (lexer) == T_ENDCMD)
     {
       trns->record_cnt = 1;
       return true;
     }
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       bool ok;
 
@@ -260,7 +260,7 @@ parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns
       if (!ok)
 	return 0;
 
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
     }
 
   if (trns->record_cnt != 0 && trns->record_cnt != record)
@@ -323,7 +323,7 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
 			     &vars, &var_cnt, PV_DUPLICATE))
     return false;
 
-  if (lex_is_number (lexer) || lex_token (lexer) == '(')
+  if (lex_is_number (lexer) || lex_token (lexer) == T_LPAREN)
     {
       if (!parse_var_placements (lexer, tmp_pool, var_cnt, false,
                                  &formats, &format_cnt))
@@ -334,7 +334,7 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
     {
       size_t i;
 
-      lex_match (lexer, '*');
+      lex_match (lexer, T_ASTERISK);
 
       formats = pool_nmalloc (tmp_pool, var_cnt, sizeof *formats);
       format_cnt = var_cnt;

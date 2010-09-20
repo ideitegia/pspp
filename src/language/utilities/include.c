@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -80,11 +80,11 @@ cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
 
   lex_get (lexer);
 
-  while ( '.' != lex_token (lexer))
+  while ( T_ENDCMD != lex_token (lexer))
     {
       if (lex_match_id (lexer, "SYNTAX"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if ( lex_match_id (lexer, "INTERACTIVE") )
 	    syntax_mode = GETL_INTERACTIVE;
 	  else if ( lex_match_id (lexer, "BATCH"))
@@ -98,7 +98,7 @@ cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
 	}
       else if (lex_match_id (lexer, "CD"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if ( lex_match_id (lexer, "YES") )
 	    {
 	      cd = true;
@@ -116,7 +116,7 @@ cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
 	}
       else if (lex_match_id (lexer, "ERROR"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if ( lex_match_id (lexer, "CONTINUE") )
 	    {
 	      error_mode = ERRMODE_CONTINUE;
@@ -175,7 +175,7 @@ parse_insert (struct lexer *lexer, char **filename)
 
   /* Skip optional FILE=. */
   if (lex_match_id (lexer, "FILE"))
-    lex_match (lexer, '=');
+    lex_match (lexer, T_EQUALS);
 
   /* File name can be identifier or string. */
   if (lex_token (lexer) != T_ID && !lex_is_string (lexer))

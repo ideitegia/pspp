@@ -52,10 +52,7 @@ cmd_subtitle (struct lexer *lexer, struct dataset *ds UNUSED)
 static int
 parse_title (struct lexer *lexer, enum text_item_type type)
 {
-  int c;
-
-  c = lex_look_ahead (lexer);
-  if (c == '"' || c == '\'')
+  if (lex_look_ahead (lexer) == T_STRING)
     {
       lex_get (lexer);
       if (!lex_force_string (lexer))

@@ -384,7 +384,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds,
 	  dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     return 2;
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (proc->variables != NULL)
     var_set = const_var_set_create_from_array (proc->variables,
@@ -473,7 +473,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
       return 0;
     }
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   for (;;)
     {
@@ -488,7 +488,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
                                    | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
 	return 0;
 
-      if (!lex_force_match (lexer, '('))
+      if (!lex_force_match (lexer, T_LPAREN))
 	  goto lossage;
 
       if (!lex_force_int (lexer))
@@ -496,7 +496,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
       min = lex_integer (lexer);
       lex_get (lexer);
 
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
 
       if (!lex_force_int (lexer))
 	goto lossage;
@@ -509,7 +509,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
 	}
       lex_get (lexer);
 
-      if (!lex_force_match (lexer, ')'))
+      if (!lex_force_match (lexer, T_RPAREN))
         goto lossage;
 
       for (i = orig_nv; i < proc->n_variables; i++)
@@ -521,7 +521,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
           var_attach_aux (proc->variables[i], vr, var_dtor_free);
 	}
 
-      if (lex_token (lexer) == '/')
+      if (lex_token (lexer) == T_SLASH)
 	break;
     }
 

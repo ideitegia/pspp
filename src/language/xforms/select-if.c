@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ cmd_select_if (struct lexer *lexer, struct dataset *ds)
   if (!e)
     return CMD_CASCADING_FAILURE;
 
-  if (lex_token (lexer) != '.')
+  if (lex_token (lexer) != T_ENDCMD)
     {
       expr_free (e);
       lex_error (lexer, _("expecting end of command"));
@@ -95,7 +95,7 @@ cmd_filter (struct lexer *lexer, struct dataset *ds)
   struct dictionary *dict = dataset_dict (ds);
   if (lex_match_id (lexer, "OFF"))
     dict_set_filter (dict, NULL);
-  else if (lex_token (lexer) == '.')
+  else if (lex_token (lexer) == T_ENDCMD)
     {
       msg (SW, _("Syntax error expecting OFF or BY.  "
                  "Turning off case filtering."));

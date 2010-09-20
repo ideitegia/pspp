@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -80,12 +80,12 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
           vectors[vector_cnt++] = pool_strdup (pool, lex_tokid (lexer));
 
 	  lex_get (lexer);
-	  lex_match (lexer, ',');
+	  lex_match (lexer, T_COMMA);
 	}
 
       /* Now that we have the names it's time to check for the short
          or long forms. */
-      if (lex_match (lexer, '='))
+      if (lex_match (lexer, T_EQUALS))
 	{
 	  /* Long form. */
           struct variable **v;
@@ -104,7 +104,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
 
           dict_create_vector (dict, vectors[0], v, nv);
 	}
-      else if (lex_match (lexer, '('))
+      else if (lex_match (lexer, T_LPAREN))
 	{
           /* Short form. */
           struct fmt_spec format;
@@ -118,7 +118,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
           var_cnt = 0;
           format = fmt_for_output (FMT_F, 8, 2);
           seen_format = false;
-          while (!lex_match (lexer, ')'))
+          while (!lex_match (lexer, T_RPAREN))
             {
               if (lex_is_integer (lexer) && var_cnt == 0)
                 {
@@ -143,7 +143,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
                   lex_error (lexer, NULL);
                   goto fail;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
           if (var_cnt == 0)
             {
@@ -195,7 +195,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
 	  goto fail;
 	}
     }
-  while (lex_match (lexer, '/'));
+  while (lex_match (lexer, T_SLASH));
 
   pool_destroy (pool);
   return lex_end_of_command (lexer);

@@ -40,7 +40,7 @@ read_values (struct lexer *lexer, double **values, double **weights, size_t *cnt
       double value = lex_tokval (lexer);
       double weight = 1.;
       lex_get (lexer);
-      if (lex_match (lexer, '*'))
+      if (lex_match (lexer, T_ASTERISK))
         {
           if (!lex_is_number (lexer))
             {
@@ -79,9 +79,9 @@ cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED)
 
   if (lex_match_id (lexer, "ONEPASS"))
     two_pass = 0;
-  if (lex_token (lexer) != '/')
+  if (lex_token (lexer) != T_SLASH)
     {
-      lex_force_match (lexer, '/');
+      lex_force_match (lexer, T_SLASH);
       goto done;
     }
   lex_get (lexer);

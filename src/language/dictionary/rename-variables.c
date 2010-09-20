@@ -53,7 +53,7 @@ cmd_rename_variables (struct lexer *lexer, struct dataset *ds)
       size_t prev_nv_1 = rename_cnt;
       size_t prev_nv_2 = rename_cnt;
 
-      if (!lex_match (lexer, '('))
+      if (!lex_match (lexer, T_LPAREN))
 	{
 	  msg (SE, _("`(' expected."));
 	  goto lossage;
@@ -61,7 +61,7 @@ cmd_rename_variables (struct lexer *lexer, struct dataset *ds)
       if (!parse_variables (lexer, dataset_dict (ds), &rename_vars, &rename_cnt,
 			    PV_APPEND | PV_NO_DUPLICATE))
 	goto lossage;
-      if (!lex_match (lexer, '='))
+      if (!lex_match (lexer, T_EQUALS))
 	{
 	  msg (SE, _("`=' expected between lists of new and old variable names."));
 	  goto lossage;
@@ -82,13 +82,13 @@ cmd_rename_variables (struct lexer *lexer, struct dataset *ds)
 	  rename_new_names = NULL;
 	  goto lossage;
 	}
-      if (!lex_match (lexer, ')'))
+      if (!lex_match (lexer, T_RPAREN))
 	{
 	  msg (SE, _("`)' expected after variable names."));
 	  goto lossage;
 	}
     }
-  while (lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_ENDCMD);
 
   if (!dict_rename_vars (dataset_dict (ds),
                          rename_vars, rename_new_names, rename_cnt,

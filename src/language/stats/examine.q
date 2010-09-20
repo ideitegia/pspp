@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -587,9 +587,9 @@ static int
 xmn_custom_percentiles (struct lexer *lexer, struct dataset *ds UNUSED,
 			struct cmd_examine *p UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
-  lex_match (lexer, '(');
+  lex_match (lexer, T_LPAREN);
 
   while ( lex_is_number (lexer) )
     {
@@ -597,11 +597,11 @@ xmn_custom_percentiles (struct lexer *lexer, struct dataset *ds UNUSED,
 
       lex_get (lexer);
 
-      lex_match (lexer, ',') ;
+      lex_match (lexer, T_COMMA) ;
     }
-  lex_match (lexer, ')');
+  lex_match (lexer, T_RPAREN);
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if ( lex_match_id (lexer, "HAVERAGE"))
     percentile_algorithm = PC_HAVERAGE;
@@ -673,7 +673,7 @@ xmn_custom_variables (struct lexer *lexer, struct dataset *ds,
 		      void *aux UNUSED)
 {
   const struct dictionary *dict = dataset_dict (ds);
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if ( (lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
        && lex_token (lexer) != T_ALL)
@@ -748,9 +748,9 @@ examine_parse_independent_vars (struct lexer *lexer,
   else
     ll_push_tail (&factor_list, &sf->ll);
 
-  lex_match (lexer, ',');
+  lex_match (lexer, T_COMMA);
 
-  if ( lex_token (lexer) == '.' || lex_token (lexer) == '/' )
+  if ( lex_token (lexer) == T_ENDCMD || lex_token (lexer) == T_SLASH )
     return 1;
 
   success =  examine_parse_independent_vars (lexer, dict, cmd);

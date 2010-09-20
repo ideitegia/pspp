@@ -1491,12 +1491,12 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	    {
 	      if (s->optvalue)
 		{
-		  dump (1, "if (lex_match (lexer, '('))");
+		  dump (1, "if (lex_match (lexer, T_LPAREN))");
 		  dump (1, "{");
 		}
 	      else
 		{
-		  dump (1, "if (!lex_match (lexer, '('))");
+		  dump (1, "if (!lex_match (lexer, T_RPAREN))");
 		  dump (1, "{");
 		  dump (0, "msg (SE, _(\"`(' expected after %s "
 			"specifier of %s subcommand.\"));",
@@ -1575,7 +1575,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 
 	  if (s->valtype == VT_PAREN)
 	    {
-	      dump (1, "if (!lex_match (lexer, ')'))");
+	      dump (1, "if (!lex_match (lexer, T_RPAREN))");
 	      dump (1, "{");
 	      dump (0, "msg (SE, _(\"`)' expected after argument for "
 		    "%s specifier of %s.\"));",
@@ -1611,7 +1611,7 @@ dump_subcommand (const subcommand *sbc)
     {
       int count;
 
-      dump (1, "while (lex_token (lexer) != '/' && lex_token (lexer) != '.')");
+      dump (1, "while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)");
       dump (1, "{");
 
       {
@@ -1669,7 +1669,7 @@ dump_subcommand (const subcommand *sbc)
 	  }
       }
 
-      dump (0, "lex_match (lexer, ',');");
+      dump (0, "lex_match (lexer, T_COMMA);");
       dump (-1, "}");
       outdent ();
     }
@@ -1755,11 +1755,11 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_PINT)
     {
-      dump (0, "lex_match (lexer, '(');");
+      dump (0, "lex_match (lexer, T_LPAREN);");
       dump (1, "if (!lex_force_int (lexer))");
       dump (0, "goto lossage;");
       dump (-1, "p->n_%s = lex_integer (lexer);", st_lower (sbc->name));
-      dump (0, "lex_match (lexer, ')');");
+      dump (0, "lex_match (lexer, T_RPAREN);");
     }
   else if (sbc->type == SBC_DBL_LIST || sbc->type == SBC_INT_LIST)
     {
@@ -1769,9 +1769,9 @@ dump_subcommand (const subcommand *sbc)
       dump (0, "goto lossage;");
       dump (-1,"}");
 
-      dump (1, "while (lex_token (lexer) != '/' && lex_token (lexer) != '.')");
+      dump (1, "while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)");
       dump (1, "{");
-      dump (0, "lex_match (lexer, ',');");
+      dump (0, "lex_match (lexer, T_COMMA);");
       dump (0, "if (!lex_force_num (lexer))");
       dump (1, "{");
       dump (0, "goto lossage;");
@@ -1834,12 +1834,12 @@ dump_parser (int persistent)
       if (def->type == SBC_VARLIST)
 	dump (1, "if (lex_token (lexer) == T_ID "
               "&& dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL "
-	      "&& lex_look_ahead (lexer) != '=')");
+	      "&& lex_look_ahead (lexer) != T_EQUALS)");
       else
 	{
 	  dump (0, "if ((lex_token (lexer) == T_ID "
                 "&& dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) "
-		"&& lex_look_ahead () != '=')");
+		"&& lex_look_ahead () != T_EQUALS)");
 	  dump (1, "     || token == T_ALL)");
 	}
       dump (1, "{");
@@ -1883,7 +1883,7 @@ dump_parser (int persistent)
 	f = 1;
 	dump (1, "{");
 
-	dump (0, "lex_match (lexer, '=');");
+	dump (0, "lex_match (lexer, T_EQUALS);");
 	dump (0, "p->sbc_%s++;", st_lower (sbc->name));
 	if (sbc->arity != ARITY_MANY)
 	  {
@@ -1906,7 +1906,7 @@ dump_parser (int persistent)
   dump(1,"else if ( settings_get_syntax () != COMPATIBLE && lex_match_id(lexer, \"ALGORITHM\"))");
   dump(1,"{");
 
-  dump (0, "lex_match (lexer, '=');");
+  dump (0, "lex_match (lexer, T_EQUALS);");
 
   dump(1,"if (lex_match_id(lexer, \"COMPATIBLE\"))");
   dump(0,"settings_set_cmd_algorithm (COMPATIBLE);");
@@ -1919,12 +1919,12 @@ dump_parser (int persistent)
 
 
 
-  dump (1, "if (!lex_match (lexer, '/'))");
+  dump (1, "if (!lex_match (lexer, T_SLASH))");
   dump (0, "break;");
   dump (-2, "}");
   outdent ();
   dump_blank_line (0);
-  dump (1, "if (lex_token (lexer) != '.')");
+  dump (1, "if (lex_token (lexer) != T_ENDCMD)");
   dump (1, "{");
   dump (0, "lex_error (lexer, _(\"expecting end of command\"));");
   dump (0, "goto lossage;");

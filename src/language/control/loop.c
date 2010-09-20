@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -103,7 +103,7 @@ cmd_loop (struct lexer *lexer, struct dataset *ds)
   bool ok = true;
 
   loop = create_loop_trns (ds);
-  while (lex_token (lexer) != '.' && ok)
+  while (lex_token (lexer) != T_ENDCMD && ok)
     {
       if (lex_match_id (lexer, "IF"))
         ok = parse_if_clause (lexer, loop, &loop->loop_condition);
@@ -232,7 +232,7 @@ parse_index_clause (struct dataset *ds, struct lexer *lexer,
     }
   lex_get (lexer);
 
-  if (!lex_force_match (lexer, '='))
+  if (!lex_force_match (lexer, T_EQUALS))
     return false;
 
   loop->first_expr = expr_parse_pool (lexer, loop->pool,

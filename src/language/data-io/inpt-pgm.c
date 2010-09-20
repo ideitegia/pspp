@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -104,7 +104,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   bool saw_END_CASE = false;
 
   proc_discard_active_file (ds);
-  if (lex_token (lexer) != '.')
+  if (lex_token (lexer) != T_ENDCMD)
     return lex_end_of_command (lexer);
 
   inp = xmalloc (sizeof *inp);
@@ -244,7 +244,7 @@ int
 cmd_end_case (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   assert (in_input_program ());
-  if (lex_token (lexer) == '.')
+  if (lex_token (lexer) == T_ENDCMD)
     return CMD_END_CASE;
   return lex_end_of_command (lexer);
 }
@@ -276,11 +276,11 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
 
   fh = fh_get_default_handle ();
   e = NULL;
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match_id (lexer, "COLUMN"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
 	  if (e)
 	    {
@@ -295,7 +295,7 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "FILE"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           fh_unref (fh);
           fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)

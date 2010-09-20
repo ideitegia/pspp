@@ -72,15 +72,15 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
 
   int group;
 
-  lex_match (lexer, '=');
-  if (lex_token (lexer) != '(')
+  lex_match (lexer, T_EQUALS);
+  if (lex_token (lexer) != T_LPAREN)
     {
       struct variable *v;
 
       v = parse_variable (lexer, dict);
       if (v == NULL)
 	return 0;
-      if (!lex_force_match (lexer, '=')
+      if (!lex_force_match (lexer, T_EQUALS)
 	  || !lex_force_id (lexer))
 	return 0;
       if (dict_lookup_var (dict, lex_tokid (lexer)) != NULL)
@@ -103,13 +103,13 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
   v = NULL;
   new_names = 0;
   group = 1;
-  while (lex_match (lexer, '('))
+  while (lex_match (lexer, T_LPAREN))
     {
       size_t old_nv = nv;
 
       if (!parse_variables (lexer, dict, &v, &nv, PV_NO_DUPLICATE | PV_APPEND))
 	goto done;
-      if (!lex_match (lexer, '='))
+      if (!lex_match (lexer, T_EQUALS))
 	{
 	  msg (SE, _("`=' expected after variable list."));
 	  goto done;
@@ -125,7 +125,7 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
 	       nv - old_nv, nn - old_nv, group);
 	  goto done;
 	}
-      if (!lex_force_match (lexer, ')'))
+      if (!lex_force_match (lexer, T_RPAREN))
 	goto done;
       group++;
     }
@@ -155,7 +155,7 @@ parse_dict_drop (struct lexer *lexer, struct dictionary *dict)
   struct variable **v;
   size_t nv;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
     return false;
   dict_delete_vars (dict, v, nv);
@@ -179,7 +179,7 @@ parse_dict_keep (struct lexer *lexer, struct dictionary *dict)
   size_t nv;
   size_t i;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
     return false;
 

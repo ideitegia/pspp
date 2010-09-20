@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ bool lex_is_string (struct lexer *);
 
 
 /* Token matching functions. */
-bool lex_match (struct lexer *, int);
+bool lex_match (struct lexer *, enum token_type);
 bool lex_match_id (struct lexer *, const char *);
 bool lex_match_id_n (struct lexer *, const char *, size_t n);
 bool lex_match_int (struct lexer *, int);
@@ -59,7 +59,7 @@ bool lex_match_hyphenated_word (struct lexer *lexer, const char *s);
 
 
 /* Forcible matching functions. */
-bool lex_force_match (struct lexer *, int);
+bool lex_force_match (struct lexer *, enum token_type);
 bool lex_force_match_id (struct lexer *, const char *);
 bool lex_force_int (struct lexer *);
 bool lex_force_num (struct lexer *);
@@ -67,8 +67,8 @@ bool lex_force_id (struct lexer *);
 bool lex_force_string (struct lexer *);
 
 /* Weird token functions. */
-int lex_look_ahead (struct lexer *);
-void lex_put_back (struct lexer *, int);
+enum token_type lex_look_ahead (struct lexer *);
+void lex_put_back (struct lexer *, enum token_type);
 void lex_put_back_id (struct lexer *, const char *tokid);
 
 /* Weird line processing functions. */
@@ -87,11 +87,11 @@ bool lex_get_line (struct lexer *);
 bool lex_get_line_raw (struct lexer *);
 
 /* Token names. */
-const char *lex_token_name (int);
+const char *lex_token_name (enum token_type);
 char *lex_token_representation (struct lexer *);
 
 /* Token accessors */
-int lex_token (const struct lexer *);
+enum token_type lex_token (const struct lexer *);
 double lex_tokval (const struct lexer *);
 const char *lex_tokid (const struct lexer *);
 const struct string *lex_tokstr (const struct lexer *);

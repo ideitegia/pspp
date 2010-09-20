@@ -90,7 +90,7 @@ cmd_compute (struct lexer *lexer, struct dataset *ds)
   if (lvalue == NULL)
     goto fail;
 
-  if (!lex_force_match (lexer, '='))
+  if (!lex_force_match (lexer, T_EQUALS))
     goto fail;
   compute->rvalue = parse_rvalue (lexer, lvalue, ds);
   if (compute->rvalue == NULL)
@@ -246,7 +246,7 @@ cmd_if (struct lexer *lexer, struct dataset *ds)
     goto fail;
 
   /* Rvalue expression. */
-  if (!lex_force_match (lexer, '='))
+  if (!lex_force_match (lexer, T_EQUALS))
     goto fail;
   compute->rvalue = parse_rvalue (lexer, lvalue, ds);
   if (compute->rvalue == NULL)
@@ -346,7 +346,7 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_id (lexer))
     goto lossage;
 
-  if (lex_look_ahead (lexer) == '(')
+  if (lex_look_ahead (lexer) == T_LPAREN)
     {
       /* Vector. */
       lvalue->vector = dict_lookup_vector (dict, lex_tokid (lexer));
@@ -358,12 +358,12 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
 
       /* Vector element. */
       lex_get (lexer);
-      if (!lex_force_match (lexer, '('))
+      if (!lex_force_match (lexer, T_LPAREN))
 	goto lossage;
       lvalue->element = expr_parse (lexer, ds, EXPR_NUMBER);
       if (lvalue->element == NULL)
         goto lossage;
-      if (!lex_force_match (lexer, ')'))
+      if (!lex_force_match (lexer, T_RPAREN))
         goto lossage;
     }
   else

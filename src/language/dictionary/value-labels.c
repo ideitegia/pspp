@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,9 +64,9 @@ do_value_labels (struct lexer *lexer, const struct dictionary *dict, bool erase)
   size_t var_cnt;         /* Number of variables. */
   int parse_err=0;        /* true if error parsing variables */
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       parse_err = !parse_variables (lexer, dict, &vars, &var_cnt,
 				    PV_SAME_WIDTH);
@@ -77,11 +77,11 @@ do_value_labels (struct lexer *lexer, const struct dictionary *dict, bool erase)
 	}
       if (erase)
         erase_labels (vars, var_cnt);
-      while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+      while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
 	if (!get_label (lexer, vars, var_cnt))
           goto lossage;
 
-      if (lex_token (lexer) != '/')
+      if (lex_token (lexer) != T_SLASH)
 	{
           free (vars);
           break;
@@ -133,7 +133,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
           value_destroy (&value, width);
           return 0;
         }
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
 
       /* Set label. */
       if (lex_token (lexer) != T_ID && !lex_force_string (lexer))
@@ -157,9 +157,9 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
       value_destroy (&value, width);
 
       lex_get (lexer);
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
     }
-  while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD);
 
   return 1;
 }

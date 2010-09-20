@@ -75,11 +75,11 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 
   for (;;)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "FILE") || lex_is_string (lexer))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
           fh_unref (fh);
 	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
@@ -88,7 +88,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 	}
       else if (type == IMPORT_CMD && lex_match_id (lexer, "TYPE"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
 	  if (lex_match_id (lexer, "COMM"))
 	    type = PFM_COMM;
@@ -116,9 +116,9 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 
   case_map_prepare_dict (dict);
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
       if (!parse_dict_trim (lexer, dict))
         goto error;
     }

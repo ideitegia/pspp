@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ parse_sort_criteria (struct lexer *lexer, const struct dictionary *dict,
         goto error;
 
       /* Sort direction. */
-      if (lex_match (lexer, '('))
+      if (lex_match (lexer, T_LPAREN))
 	{
 	  if (lex_match_id (lexer, "D") || lex_match_id (lexer, "DOWN"))
 	    direction = SC_DESCEND;
@@ -74,7 +74,7 @@ parse_sort_criteria (struct lexer *lexer, const struct dictionary *dict,
 	      msg (SE, _("`A' or `D' expected inside parentheses."));
               goto error;
 	    }
-	  if (!lex_match (lexer, ')'))
+	  if (!lex_match (lexer, T_RPAREN))
 	    {
 	      msg (SE, _("`)' expected."));
               goto error;

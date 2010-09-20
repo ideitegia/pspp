@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -214,12 +214,12 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
   dsc->show_stats = dsc->calc_stats = DEFAULT_STATS;
 
   /* Parse DESCRIPTIVES. */
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               if (lex_match_id (lexer, "VARIABLE"))
                 dsc->missing_type = DSC_VARIABLE;
@@ -232,15 +232,15 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                   lex_error (lexer, NULL);
                   goto error;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
         }
       else if (lex_match_id (lexer, "SAVE"))
         save_z_scores = 1;
       else if (lex_match_id (lexer, "FORMAT"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               if (lex_match_id (lexer, "LABELS"))
                 dsc->show_var_labels = 1;
@@ -259,14 +259,14 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                   lex_error (lexer, NULL);
                   goto error;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
         }
       else if (lex_match_id (lexer, "STATISTICS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           dsc->show_stats = 0;
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               if (lex_match (lexer, T_ALL))
                 dsc->show_stats |= (1ul << DSC_N_STATS) - 1;
@@ -274,14 +274,14 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                 dsc->show_stats |= DEFAULT_STATS;
               else
 		dsc->show_stats |= 1ul << (match_statistic (lexer));
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
           if (dsc->show_stats == 0)
             dsc->show_stats = DEFAULT_STATS;
         }
       else if (lex_match_id (lexer, "SORT"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "NAME"))
             dsc->sort_by_stat = DSC_NAME;
           else
@@ -290,7 +290,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
 	      if (dsc->sort_by_stat == DSC_NONE )
 		dsc->sort_by_stat = DSC_MEAN;
 	    }
-          if (lex_match (lexer, '('))
+          if (lex_match (lexer, T_LPAREN))
             {
               if (lex_match_id (lexer, "A"))
                 dsc->sort_ascending = 1;
@@ -298,18 +298,18 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                 dsc->sort_ascending = 0;
               else
                 lex_error (lexer, NULL);
-              lex_force_match (lexer, ')');
+              lex_force_match (lexer, T_RPAREN);
             }
         }
       else if (var_cnt == 0)
         {
-          if (lex_look_ahead (lexer) == '=')
+          if (lex_look_ahead (lexer) == T_EQUALS)
             {
               lex_match_id (lexer, "VARIABLES");
-              lex_match (lexer, '=');
+              lex_match (lexer, T_EQUALS);
             }
 
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               int i;
 
@@ -327,7 +327,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                 }
               dsc->var_cnt = var_cnt;
 
-              if (lex_match (lexer, '('))
+              if (lex_match (lexer, T_LPAREN))
                 {
                   if (lex_token (lexer) != T_ID)
                     {
@@ -343,7 +343,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                     msg (SE, _("Z-score variable name %s would be"
                                " a duplicate variable name."), lex_tokid (lexer));
                   lex_get (lexer);
-                  if (!lex_force_match (lexer, ')'))
+                  if (!lex_force_match (lexer, T_RPAREN))
 		    goto error;
                 }
             }
@@ -354,7 +354,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
           goto error;
         }
 
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
     }
   if (var_cnt == 0)
     {

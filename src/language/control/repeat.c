@@ -187,7 +187,7 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
 
       /* Skip equals sign. */
       lex_get (lexer);
-      if (!lex_force_match (lexer, '='))
+      if (!lex_force_match (lexer, T_EQUALS))
 	return false;
 
       /* Get the details of the variable's possible values. */
@@ -204,7 +204,7 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
 	}
       if (count == 0)
 	return false;
-      if (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+      if (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
         {
           lex_error (lexer, NULL);
           return false;
@@ -230,9 +230,9 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
 	  return false;
 	}
 
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
     }
-  while (lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_ENDCMD);
 
   return true;
 }
@@ -458,9 +458,9 @@ parse_numbers (struct lexer *lexer, struct repeat_macro *macro,
         add_replacement (ss_cstr (pool_asprintf (pool, "%g", i)),
                          macro, pool, &used, &allocated);
 
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
     }
-  while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD);
 
   return used;
 }
@@ -490,9 +490,9 @@ parse_strings (struct lexer *lexer, struct repeat_macro *macro, struct pool *poo
       add_replacement (ss_cstr (string), macro, pool, &used, &allocated);
 
       lex_get (lexer);
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
     }
-  while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD);
 
   return used;
 }

@@ -42,10 +42,10 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   char  *fn = 0;
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
 
   if (lex_match_id (lexer, "FILE"))
-    lex_match (lexer, '=');
+    lex_match (lexer, T_EQUALS);
 
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
@@ -54,12 +54,12 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
   lex_force_match (lexer, T_STRING);
 
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
 
   if ( ! lex_match_id (lexer, "PERMISSIONS"))
     goto error;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if ( lex_match_id (lexer, "READONLY"))
     {

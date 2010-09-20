@@ -92,11 +92,11 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   table = -1;                /* Print table if nonzero, -1=undecided. */
   has_type = false;
 
-  while (lex_token (lexer) != '/')
+  while (lex_token (lexer) != T_SLASH)
     {
       if (lex_match_id (lexer, "FILE"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           fh_unref (fh);
 	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
@@ -104,7 +104,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "ENCODING"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (!lex_force_string (lexer))
 	    goto error;
 
@@ -114,17 +114,17 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "RECORDS"))
 	{
-	  lex_match (lexer, '=');
-	  lex_match (lexer, '(');
+	  lex_match (lexer, T_EQUALS);
+	  lex_match (lexer, T_LPAREN);
 	  if (!lex_force_int (lexer))
 	    goto error;
           data_parser_set_records (parser, lex_integer (lexer));
 	  lex_get (lexer);
-	  lex_match (lexer, ')');
+	  lex_match (lexer, T_RPAREN);
 	}
       else if (lex_match_id (lexer, "SKIP"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (!lex_force_int (lexer))
 	    goto error;
           data_parser_set_skip (parser, lex_integer (lexer));
@@ -144,7 +144,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	      goto error;
 	    }
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (!lex_force_id (lexer))
 	    goto error;
 	  end = dict_lookup_var (dict, lex_tokid (lexer));
@@ -186,11 +186,11 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 
           if (data_parser_get_type (parser) == DP_DELIMITED)
             {
-              if (lex_match (lexer, '('))
+              if (lex_match (lexer, T_LPAREN))
                 {
                   struct string delims = DS_EMPTY_INITIALIZER;
 
-                  while (!lex_match (lexer, ')'))
+                  while (!lex_match (lexer, T_RPAREN))
                     {
                       int delim;
 
@@ -210,7 +210,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
                         }
                       ds_put_byte (&delims, delim);
 
-                      lex_match (lexer, ',');
+                      lex_match (lexer, T_COMMA);
                     }
 
                   data_parser_set_empty_line_has_field (parser, true);
@@ -321,7 +321,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
   int record = 0;
   int column = 1;
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       char **names;
       size_t name_cnt, name_idx;
@@ -415,7 +415,7 @@ parse_free (struct lexer *lexer, struct dictionary *dict,
             struct pool *tmp_pool, struct data_parser *parser)
 {
   lex_get (lexer);
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       struct fmt_spec input, output;
       char **name;
@@ -426,11 +426,11 @@ parse_free (struct lexer *lexer, struct dictionary *dict,
 				      &name, &name_cnt, PV_NONE))
 	return false;
 
-      if (lex_match (lexer, '('))
+      if (lex_match (lexer, T_LPAREN))
 	{
 	  if (!parse_format_specifier (lexer, &input)
               || !fmt_check_input (&input)
-              || !lex_force_match (lexer, ')'))
+              || !lex_force_match (lexer, T_RPAREN))
             return NULL;
 
           /* As a special case, N format is treated as F format
@@ -442,7 +442,7 @@ parse_free (struct lexer *lexer, struct dictionary *dict,
 	}
       else
 	{
-	  lex_match (lexer, '*');
+	  lex_match (lexer, T_ASTERISK);
           input = fmt_for_input (FMT_F, 8, 0);
 	  output = *settings_get_format ();
 	}

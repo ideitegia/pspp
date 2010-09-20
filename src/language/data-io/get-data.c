@@ -47,12 +47,12 @@ static int parse_get_psql (struct lexer *lexer, struct dataset *);
 int
 cmd_get_data (struct lexer *lexer, struct dataset *ds)
 {
-  lex_force_match (lexer, '/');
+  lex_force_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "TYPE"))
     return CMD_FAILURE;
 
-  lex_force_match (lexer, '=');
+  lex_force_match (lexer, T_EQUALS);
 
   if (lex_match_id (lexer, "GNM"))
     return parse_get_gnm (lexer, ds);
@@ -75,12 +75,12 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
   psql.bsize = -1;
   ds_init_empty (&psql.sql);
 
-  lex_force_match (lexer, '/');
+  lex_force_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "CONNECT"))
     goto error;
 
-  lex_force_match (lexer, '=');
+  lex_force_match (lexer, T_EQUALS);
 
   if (!lex_force_string (lexer))
     goto error;
@@ -89,17 +89,17 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
 
   lex_get (lexer);
 
-  while (lex_match (lexer, '/') )
+  while (lex_match (lexer, T_SLASH) )
     {
       if ( lex_match_id (lexer, "ASSUMEDSTRWIDTH"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  psql.str_width = lex_integer (lexer);
 	  lex_get (lexer);
 	}
       else if ( lex_match_id (lexer, "BSIZE"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  psql.bsize = lex_integer (lexer);
 	  lex_get (lexer);
 	}
@@ -109,7 +109,7 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "SQL"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if ( ! lex_force_string (lexer) )
 	    goto error;
 
@@ -143,12 +143,12 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 {
   struct gnumeric_read_info gri  = {NULL, NULL, NULL, 1, true, -1};
 
-  lex_force_match (lexer, '/');
+  lex_force_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "FILE"))
     goto error;
 
-  lex_force_match (lexer, '=');
+  lex_force_match (lexer, T_EQUALS);
 
   if (!lex_force_string (lexer))
     goto error;
@@ -157,16 +157,16 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 
   lex_get (lexer);
 
-  while (lex_match (lexer, '/') )
+  while (lex_match (lexer, T_SLASH) )
     {
       if ( lex_match_id (lexer, "ASSUMEDSTRWIDTH"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  gri.asw = lex_integer (lexer);
 	}
       else if (lex_match_id (lexer, "SHEET"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (lex_match_id (lexer, "NAME"))
 	    {
 	      if ( ! lex_force_string (lexer) )
@@ -184,7 +184,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "CELLRANGE"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
 	  if (lex_match_id (lexer, "FULL"))
 	    {
@@ -203,7 +203,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "READNAMES"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
 	  if ( lex_match_id (lexer, "ON"))
 	    {
@@ -278,11 +278,11 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
   enum data_parser_type type;
   bool has_type;
 
-  lex_force_match (lexer, '/');
+  lex_force_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "FILE"))
     goto error;
-  lex_force_match (lexer, '=');
+  lex_force_match (lexer, T_EQUALS);
   fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
   if (fh == NULL)
     goto error;
@@ -296,14 +296,14 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
 
   for (;;)
     {
-      if (!lex_force_match (lexer, '/'))
+      if (!lex_force_match (lexer, T_SLASH))
         goto error;
 
       if (lex_match_id (lexer, "ARRANGEMENT"))
         {
           bool ok;
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "FIXED"))
             ok = set_type (parser, "ARRANGEMENT=FIXED", DP_FIXED, &has_type);
           else if (lex_match_id (lexer, "DELIMITED"))
@@ -319,7 +319,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
         }
       else if (lex_match_id (lexer, "FIRSTCASE"))
         {
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (!lex_force_int (lexer))
             goto error;
           if (lex_integer (lexer) < 1)
@@ -334,7 +334,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
         {
           if (!set_type (parser, "DELCASE", DP_DELIMITED, &has_type))
             goto error;
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "LINE"))
             data_parser_set_span (parser, false);
           else if (lex_match_id (lexer, "VARIABLES"))
@@ -357,7 +357,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
         {
           if (!set_type (parser, "FIXCASE", DP_FIXED, &has_type))
             goto error;
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (!lex_force_int (lexer))
             goto error;
           if (lex_integer (lexer) < 1)
@@ -370,7 +370,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
         }
       else if (lex_match_id (lexer, "IMPORTCASES"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match (lexer, T_ALL))
             {
               data_parser_set_case_limit (parser, -1);
@@ -410,7 +410,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
 
           if (!set_type (parser, "DELIMITERS", DP_DELIMITED, &has_type))
             goto error;
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 
           if (!lex_force_string (lexer))
             goto error;
@@ -435,7 +435,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
         {
           if (!set_type (parser, "QUALIFIERS", DP_DELIMITED, &has_type))
             goto error;
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 
           if (!lex_force_string (lexer))
             goto error;
@@ -462,7 +462,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
           goto error;
         }
     }
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
 
   record = 1;
@@ -474,7 +474,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
       int fc, lc;
       struct variable *v;
 
-      while (type == DP_FIXED && lex_match (lexer, '/'))
+      while (type == DP_FIXED && lex_match (lexer, T_SLASH))
         {
           if (!lex_force_int (lexer))
             goto error;
@@ -539,7 +539,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
         data_parser_add_fixed_field (parser, &input, var_get_case_index (v),
                                      name, record, fc);
     }
-  while (lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_ENDCMD);
 
   reader = dfm_open_reader (fh, lexer);
   if (reader == NULL)

@@ -164,13 +164,13 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
   ll_init (&oneway.contrast_list);
 
   
-  if ( lex_match (lexer, '/'))
+  if ( lex_match (lexer, T_SLASH))
     {
       if (!lex_force_match_id (lexer, "VARIABLES"))
 	{
 	  goto error;
 	}
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
     }
 
   if (!parse_variables_const (lexer, dict,
@@ -182,14 +182,14 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 
   oneway.indep_var = parse_variable_const (lexer, dict);
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "STATISTICS"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "DESCRIPTIVES"))
 		{
@@ -211,11 +211,11 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 	  struct contrasts_node *cl = xzalloc (sizeof *cl);
 
 	  struct ll_list *coefficient_list = &cl->coefficient_list;
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 
 	  ll_init (coefficient_list);
 
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if ( lex_is_number (lexer))
 		{
@@ -236,8 +236,8 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{

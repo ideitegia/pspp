@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -796,7 +796,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 static int
 rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
@@ -932,13 +932,13 @@ rank_custom_ntiles (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cm
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  if ( lex_force_match (lexer, '(') )
+  if ( lex_force_match (lexer, T_LPAREN) )
     {
       if ( lex_force_int (lexer) )
 	{
 	  k_ntiles = lex_integer (lexer);
 	  lex_get (lexer);
-	  lex_force_match (lexer, ')');
+	  lex_force_match (lexer, T_RPAREN);
 	}
       else
 	return 0;

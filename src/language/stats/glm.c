@@ -112,14 +112,14 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   struct const_var_set *factors = const_var_set_create_from_array (glm.factor_vars, glm.n_factor_vars);
 
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{
@@ -138,8 +138,8 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "INTERCEPT"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{
@@ -160,7 +160,7 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
         {
 	  size_t n_des;
 	  const struct variable **des;
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 
 	  parse_const_var_set_vars (lexer, factors, &des, &n_des, 0);
 	}

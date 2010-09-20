@@ -23,13 +23,26 @@
 #include "libpspp/str.h"
 
 /* Token types. */
-enum
+enum token_type
   {
-    T_ID = 256, /* Identifier. */
+    T_ID = 1,   /* Identifier. */
     T_POS_NUM,	/* Positive number. */
     T_NEG_NUM,	/* Negative number. */
     T_STRING,	/* Quoted string. */
     T_STOP,	/* End of input. */
+
+    T_ENDCMD,   /* End of command (e.g. '.'). */
+
+    T_PLUS,     /* + */
+    T_DASH,     /* - */
+    T_ASTERISK, /* * */
+    T_SLASH,    /* / */
+    T_EQUALS,   /* = */
+    T_LPAREN,   /* ( */
+    T_RPAREN,   /* ) */
+    T_LBRACK,   /* [ */
+    T_RBRACK,   /* ] */
+    T_COMMA,    /* , */
 
     T_AND,	/* AND */
     T_OR,	/* OR */
@@ -51,7 +64,7 @@ enum
   };
 
 /* Tokens. */
-bool lex_is_keyword (int token);
+bool lex_is_keyword (enum token_type);
 
 /* Recognizing identifiers. */
 bool lex_is_id1 (char);
@@ -68,6 +81,6 @@ bool lex_id_match_n (struct substring keyword, struct substring token,
 int lex_id_to_token (struct substring);
 
 /* Identifier names. */
-const char *lex_id_name (int);
+const char *lex_id_name (enum token_type);
 
 #endif /* !data/identifier.h */

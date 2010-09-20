@@ -173,7 +173,7 @@ static const size_t keyword_cnt = sizeof keywords / sizeof *keywords;
 
 /* Returns true if TOKEN is representable as a keyword. */
 bool
-lex_is_keyword (int token)
+lex_is_keyword (enum token_type token)
 {
   const struct keyword *kw;
   for (kw = keywords; kw < &keywords[keyword_cnt]; kw++)
@@ -200,7 +200,7 @@ lex_id_to_token (struct substring id)
 
 /* Returns the name for the given keyword token type. */
 const char *
-lex_id_name (int token)
+lex_id_name (enum token_type token)
 {
   const struct keyword *kw;
 

@@ -178,7 +178,7 @@ read_inline_record (struct dfm_reader *r)
     {
       r->flags |= DFM_SAW_BEGIN_DATA;
 
-      while (lex_token (r->lexer) == '.')
+      while (lex_token (r->lexer) == T_ENDCMD)
         lex_get (r->lexer);
       if (!lex_force_match_id (r->lexer, "BEGIN") || !lex_force_match_id (r->lexer, "DATA"))
         return false;

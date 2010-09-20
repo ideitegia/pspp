@@ -170,7 +170,7 @@ combine_files (enum comb_command_type command,
 
   dict_set_case_limit (proc.dict, dict_get_case_limit (dataset_dict (ds)));
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   for (;;)
     {
       struct comb_file *file;
@@ -185,7 +185,7 @@ combine_files (enum comb_command_type command,
         }
       else
         break;
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
 
       if (proc.n_files >= allocated_files)
         proc.files = x2nrealloc (proc.files, &allocated_files,
@@ -203,7 +203,7 @@ combine_files (enum comb_command_type command,
       file->in_name[0] = '\0';
       file->in_var = NULL;
 
-      if (lex_match (lexer, '*'))
+      if (lex_match (lexer, T_ASTERISK))
         {
           if (!proc_has_active_file (ds))
             {
@@ -230,7 +230,7 @@ combine_files (enum comb_command_type command,
             goto error;
         }
 
-      while (lex_match (lexer, '/'))
+      while (lex_match (lexer, T_SLASH))
         if (lex_match_id (lexer, "RENAME"))
           {
             if (!parse_dict_rename (lexer, file->dict))
@@ -238,7 +238,7 @@ combine_files (enum comb_command_type command,
           }
         else if (lex_match_id (lexer, "IN"))
           {
-            lex_match (lexer, '=');
+            lex_match (lexer, T_EQUALS);
             if (lex_token (lexer) != T_ID)
               {
                 lex_error (lexer, NULL);
@@ -263,7 +263,7 @@ combine_files (enum comb_command_type command,
       merge_dictionary (proc.dict, file);
     }
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match (lexer, T_BY))
 	{
@@ -278,7 +278,7 @@ combine_files (enum comb_command_type command,
 	    }
           saw_by = true;
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (!parse_sort_criteria (lexer, proc.dict, &proc.by_vars,
                                     &by_vars, NULL))
 	    goto error;
@@ -322,7 +322,7 @@ combine_files (enum comb_command_type command,
               goto error;
             }
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (!lex_force_id (lexer))
             goto error;
           strcpy (first_name, lex_tokid (lexer));
@@ -336,7 +336,7 @@ combine_files (enum comb_command_type command,
               goto error;
             }
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (!lex_force_id (lexer))
             goto error;
           strcpy (last_name, lex_tokid (lexer));
@@ -362,7 +362,7 @@ combine_files (enum comb_command_type command,
 	  goto error;
 	}
 
-      if (!lex_match (lexer, '/') && lex_token (lexer) != '.')
+      if (!lex_match (lexer, T_SLASH) && lex_token (lexer) != T_ENDCMD)
         {
           lex_end_of_command (lexer);
           goto error;

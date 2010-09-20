@@ -271,7 +271,7 @@ set_output_routing (struct lexer *lexer, enum settings_output_type type)
 {
   enum settings_output_devices devices;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "ON") || lex_match_id (lexer, "BOTH"))
     devices = SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL;
   else if (lex_match_id (lexer, "TERMINAL"))
@@ -299,7 +299,7 @@ stc_custom_blanks (struct lexer *lexer,
 		   struct dataset *ds UNUSED,
 		   struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "SYSMIS"))
     {
       lex_get (lexer);
@@ -322,7 +322,7 @@ stc_custom_epoch (struct lexer *lexer,
 		  struct dataset *ds UNUSED,
 		  struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "AUTOMATIC"))
     settings_set_epoch (-1);
   else if (lex_is_integer (lexer))
@@ -357,7 +357,7 @@ stc_custom_length (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
 {
   int page_length;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "NONE"))
     page_length = -1;
   else
@@ -385,7 +385,7 @@ stc_custom_locale (struct lexer *lexer, struct dataset *ds UNUSED,
 {
   const struct string *s;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if ( !lex_force_string (lexer))
     return 0;
@@ -436,7 +436,7 @@ stc_custom_results (struct lexer *lexer, struct dataset *ds UNUSED,
 static int
 stc_custom_seed (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "RANDOM"))
     set_rng (time (0));
   else
@@ -453,7 +453,7 @@ stc_custom_seed (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set 
 static int
 stc_custom_width (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "NARROW"))
     settings_set_viewwidth (79);
   else if (lex_match_id (lexer, "WIDE"))
@@ -481,7 +481,7 @@ stc_custom_format (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
 {
   struct fmt_spec fmt;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!parse_format_specifier (lexer, &fmt))
     return 0;
 
@@ -504,7 +504,7 @@ stc_custom_format (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
 static int
 stc_custom_journal (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "ON") || lex_match_id (lexer, "YES"))
     journal_enable ();
   else if (lex_match_id (lexer, "OFF") || lex_match_id (lexer, "NO"))
@@ -877,7 +877,7 @@ show_copying (const struct dataset *ds UNUSED)
 int
 cmd_show (struct lexer *lexer, struct dataset *ds)
 {
-  if (lex_token (lexer) == '.')
+  if (lex_token (lexer) == T_ENDCMD)
     {
       show_all (ds);
       return CMD_SUCCESS;
@@ -917,9 +917,9 @@ cmd_show (struct lexer *lexer, struct dataset *ds)
           return CMD_FAILURE;
         }
 
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
     }
-  while (lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_ENDCMD);
 
   return CMD_SUCCESS;
 }

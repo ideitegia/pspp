@@ -125,7 +125,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
         optimize = 0;
       else if (lex_match_id (lexer, "POSTFIX"))
         dump_postfix = 1;
-      else if (lex_match (lexer, '('))
+      else if (lex_match (lexer, T_LPAREN))
         {
           char name[VAR_NAME_LEN + 1];
           struct variable *v;
@@ -137,7 +137,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
           strcpy (name, lex_tokid (lexer));
 
           lex_get (lexer);
-          if (!lex_force_match (lexer, '='))
+          if (!lex_force_match (lexer, T_EQUALS))
             goto done;
 
           if (lex_is_number (lexer))
@@ -172,15 +172,15 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
           if (!parse_value (lexer, case_data_rw (c, v), var_get_width (v)))
             NOT_REACHED ();
 
-          if (!lex_force_match (lexer, ')'))
+          if (!lex_force_match (lexer, T_RPAREN))
             goto done;
         }
       else
         break;
     }
-  if (lex_token (lexer) != '/')
+  if (lex_token (lexer) != T_SLASH)
     {
-      lex_force_match (lexer, '/');
+      lex_force_match (lexer, T_SLASH);
       goto done;
     }
 

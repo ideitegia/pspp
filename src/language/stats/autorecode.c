@@ -113,13 +113,13 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 
   /* Parse variable lists. */
   lex_match_id (lexer, "VARIABLES");
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!parse_variables_const (lexer, dict, &src_vars, &n_srcs,
                               PV_NO_DUPLICATE))
     goto error;
   if (!lex_force_match_id (lexer, "INTO"))
     goto error;
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!parse_DATA_LIST_vars (lexer, &dst_names, &n_dsts, PV_NO_DUPLICATE))
     goto error;
   if (n_dsts != n_srcs)
@@ -143,7 +143,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
     }
 
   /* Parse options. */
-  while (lex_match (lexer, '/'))
+  while (lex_match (lexer, T_SLASH))
     {
       if (lex_match_id (lexer, "DESCENDING"))
 	direction = DESCENDING;
@@ -156,7 +156,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
-  if (lex_token (lexer) != '.')
+  if (lex_token (lexer) != T_ENDCMD)
     {
       lex_error (lexer, _("expecting end of command"));
       goto error;
