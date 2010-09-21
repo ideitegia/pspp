@@ -98,6 +98,54 @@ recode_string (const char *to, const char *from,
 }
 
 
+/* Uses CONV to convert the INBYTES starting at IP into the OUTBYTES starting
+   at OP, and appends a null terminator to the output.
+
+   Returns true if successful, false if the output buffer is too small. */
+static bool
+try_recode (iconv_t conv,
+            const char *ip, size_t inbytes,
+            char *op, size_t outbytes)
+{
+  /* FIXME: Need to ensure that this char is valid in the target encoding */
+  const char fallbackchar = '?';
+
+  /* Put the converter into the initial shift state, in case there was any
+     state information left over from its last usage. */
+  iconv (conv, NULL, 0, NULL, 0);
+
+  while (iconv (conv, (ICONV_CONST char **) &ip, &inbytes,
+                &op, &outbytes) == -1)
+    switch (errno)
+      {
+      case EILSEQ:
+      case EINVAL:
+        if (outbytes == 0)
+          return false;
+
+        *op++ = fallbackchar;
+        outbytes--;
+        ip++;
+        inbytes--;
+        break;
+
+      case E2BIG:
+        return false;
+
+      default:
+        /* should never happen */
+        fprintf (stderr, "Character conversion error: %s\n", strerror (errno));
+        NOT_REACHED ();
+        break;
+      }
+
+  if (outbytes == 0)
+    return false;
+
+  *op = '\0';
+  return true;
+}
+
 /* Converts the string TEXT, which should be encoded in FROM-encoding, to a
    dynamically allocated string in TO-encoding.  Any characters which cannot be
    converted will be represented by '?'.
@@ -114,17 +162,8 @@ char *
 recode_string_pool (const char *to, const char *from,
                     const char *text, int length, struct pool *pool)
 {
-  char *outbuf = 0;
   size_t outbufferlength;
-  size_t result;
-  char *ip;
-  char *op ;
-  size_t inbytes = 0;
-  size_t outbytes ;
   iconv_t conv ;
-
-  /* FIXME: Need to ensure that this char is valid in the target encoding */
-  const char fallbackchar = '?';
 
   if ( text == NULL )
     return NULL;
@@ -143,77 +182,17 @@ recode_string_pool (const char *to, const char *from,
   if ( (iconv_t) -1 == conv )
     return xstrdup (text);
 
-  /* Put the converter into the initial shift state, in case there was any
-     state information left over from its last usage. */
-  iconv (conv, NULL, 0, NULL, 0);
-
   for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
     if ( outbufferlength > length)
-      break;
-
-  ip = text;
-
-  outbuf = pool_malloc (pool, outbufferlength);
-  op = outbuf;
-
-  outbytes = outbufferlength;
-  inbytes = length;
-
-
-  do {
-    result = iconv (conv, (ICONV_CONST char **) &ip, &inbytes,
-		   &op, &outbytes);
-
-    if ( -1 == result )
       {
-	int the_error = errno;
-
-	switch (the_error)
-	  {
-	  case EILSEQ:
-	  case EINVAL:
-	    if ( outbytes > 0 )
-	      {
-		*op++ = fallbackchar;
-		outbytes--;
-		text++;
-		inbytes--;
-		break;
-	      }
-	    /* Fall through */
-	  case E2BIG:
-            iconv (conv, NULL, 0, NULL, 0);
-	    pool_free (pool, outbuf);
-	    outbufferlength <<= 1;
-	    outbuf = pool_malloc (pool, outbufferlength);
-	    op = outbuf;
-	    outbytes = outbufferlength;
-	    inbytes = length;
-	    ip = text;
-	    break;
-	  default:
-	    /* should never happen */
-            fprintf (stderr, "Character conversion error: %s\n",
-                     strerror (the_error));
-	    NOT_REACHED ();
-	    break;
-	  }
+        char *output = pool_malloc (pool, outbufferlength);
+        if (try_recode (conv, text, length, output, outbufferlength))
+          return output;
+        pool_free (pool, output);
       }
-  } while ( -1 == result );
 
-  if (outbytes == 0 )
-    {
-      char *const oldaddr = outbuf;
-      outbuf = pool_realloc (pool, outbuf, outbufferlength + 1);
-
-      op += (outbuf - oldaddr) ;
-    }
-
-  *op = '\0';
-
-  return outbuf;
+  NOT_REACHED ();
 }
-
 
 void
 i18n_init (void)
