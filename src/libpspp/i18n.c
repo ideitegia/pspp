@@ -142,6 +142,10 @@ recode_string_pool (const char *to, const char *from,
   if ( (iconv_t) -1 == conv )
     return xstrdup (text);
 
+  /* Put the converter into the initial shift state, in case there was any
+     state information left over from its last usage. */
+  iconv (conv, NULL, 0, NULL, 0);
+
   for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
     if ( outbufferlength > length)
       break;
@@ -176,6 +180,7 @@ recode_string_pool (const char *to, const char *from,
 	      }
 	    /* Fall through */
 	  case E2BIG:
+            iconv (conv, NULL, 0, NULL, 0);
 	    pool_free (pool, outbuf);
 	    outbufferlength <<= 1;
 	    outbuf = pool_malloc (pool, outbufferlength);
