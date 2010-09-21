@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -87,8 +87,9 @@ create_iconv (const char* tocode, const char* fromcode)
 }
 
 
-/* Similar to recode_string_pool, but allocates the returned value on the heap instead of 
-   in a pool.  It is the caller's responsibility to free the returned value. */
+/* Similar to recode_string_pool, but allocates the returned value on the heap
+   instead of in a pool.  It is the caller's responsibility to free the
+   returned value. */
 char *
 recode_string (const char *to, const char *from,
 	       const char *text, int length)
@@ -97,23 +98,21 @@ recode_string (const char *to, const char *from,
 }
 
 
-/* 
-Converts the string TEXT, which should be encoded in FROM-encoding, to a
-dynamically allocated string in TO-encoding.   Any characters which cannot
-be converted will be represented by '?'.
+/* Converts the string TEXT, which should be encoded in FROM-encoding, to a
+   dynamically allocated string in TO-encoding.  Any characters which cannot be
+   converted will be represented by '?'.
 
-LENGTH should be the length of the string or -1, if null terminated.
+   LENGTH should be the length of the string or -1, if null terminated.
 
-The returned string will be allocated on POOL.
+   The returned string will be allocated on POOL.
 
-This function's behaviour differs from that of g_convert_with_fallback provided
-by GLib.  The GLib function will fail (returns NULL) if any part of the input
-string is not valid in the declared input encoding.  This function however perseveres
-even in the presence of badly encoded input.
-*/
+   This function's behaviour differs from that of g_convert_with_fallback
+   provided by GLib.  The GLib function will fail (returns NULL) if any part of
+   the input string is not valid in the declared input encoding.  This function
+   however perseveres even in the presence of badly encoded input. */
 char *
 recode_string_pool (const char *to, const char *from,
-	       const char *text, int length, struct pool *pool)
+                    const char *text, int length, struct pool *pool)
 {
   char *outbuf = 0;
   size_t outbufferlength;
@@ -187,7 +186,8 @@ recode_string_pool (const char *to, const char *from,
 	    break;
 	  default:
 	    /* should never happen */
-            fprintf (stderr, "Character conversion error: %s\n", strerror (the_error));
+            fprintf (stderr, "Character conversion error: %s\n",
+                     strerror (the_error));
 	    NOT_REACHED ();
 	    break;
 	  }
