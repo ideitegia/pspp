@@ -117,6 +117,7 @@ recode_string_pool (const char *to, const char *from,
   char *outbuf = 0;
   size_t outbufferlength;
   size_t result;
+  char *ip;
   char *op ;
   size_t inbytes = 0;
   size_t outbytes ;
@@ -150,6 +151,8 @@ recode_string_pool (const char *to, const char *from,
     if ( outbufferlength > length)
       break;
 
+  ip = text;
+
   outbuf = pool_malloc (pool, outbufferlength);
   op = outbuf;
 
@@ -158,8 +161,7 @@ recode_string_pool (const char *to, const char *from,
 
 
   do {
-    const char *ip = text;
-    result = iconv (conv, (ICONV_CONST char **) &text, &inbytes,
+    result = iconv (conv, (ICONV_CONST char **) &ip, &inbytes,
 		   &op, &outbytes);
 
     if ( -1 == result )
@@ -187,7 +189,7 @@ recode_string_pool (const char *to, const char *from,
 	    op = outbuf;
 	    outbytes = outbufferlength;
 	    inbytes = length;
-	    text = ip;
+	    ip = text;
 	    break;
 	  default:
 	    /* should never happen */
