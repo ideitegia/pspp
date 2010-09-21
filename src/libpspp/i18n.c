@@ -137,6 +137,11 @@ recode_string_pool (const char *to, const char *from,
   if (from == NULL)
     from = default_encoding;
 
+  conv = create_iconv (to, from);
+
+  if ( (iconv_t) -1 == conv )
+    return xstrdup (text);
+
   for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
     if ( outbufferlength > length)
       break;
@@ -147,11 +152,6 @@ recode_string_pool (const char *to, const char *from,
   outbytes = outbufferlength;
   inbytes = length;
 
-
-  conv = create_iconv (to, from);
-
-  if ( (iconv_t) -1 == conv )
-	return xstrdup (text);
 
   do {
     const char *ip = text;
