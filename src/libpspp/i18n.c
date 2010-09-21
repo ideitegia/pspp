@@ -118,11 +118,16 @@ try_recode (iconv_t conv,
                 &op, &outbytes) == -1)
     switch (errno)
       {
-      case EILSEQ:
       case EINVAL:
+        if (outbytes < 2)
+          return false;
+        *op++ = fallbackchar;
+        *op++ = '\0';
+        return true;
+
+      case EILSEQ:
         if (outbytes == 0)
           return false;
-
         *op++ = fallbackchar;
         outbytes--;
         ip++;
