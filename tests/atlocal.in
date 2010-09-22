@@ -3,3 +3,4 @@ PERL='@PERL@'
 CHARSETALIASDIR="$abs_top_builddir/gl"
 export CHARSETALIASDIR
 WITH_PERL_MODULE='@WITH_PERL_MODULE@'
+host='@host@'

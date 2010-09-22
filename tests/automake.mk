@@ -169,6 +169,7 @@ check_PROGRAMS += \
 	$(nodist_TESTS) \
 	tests/data/datasheet-test \
 	tests/formats/inexactify \
+	tests/libpspp/i18n-test \
 	tests/libpspp/sparse-xarray-test \
 	tests/output/render-test
 
@@ -218,6 +219,9 @@ tests_libpspp_hmapx_test_SOURCES = \
 	tests/libpspp/hmapx-test.c
 tests_libpspp_hmapx_test_LDADD = gl/libgl.la $(LIBINTL)
 tests_libpspp_hmapx_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_i18n_test_SOURCES = tests/libpspp/i18n-test.c
+tests_libpspp_i18n_test_LDADD = src/libpspp/libpspp.la gl/libgl.la $(LIBINTL) 
 
 tests_libpspp_abt_test_SOURCES = \
 	src/libpspp/abt.c \
@@ -434,6 +438,7 @@ TESTSUITE_AT = \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/count.at \
 	tests/language/xforms/recode.at \
+	tests/libpspp/i18n.at \
 	tests/math/moments.at \
 	tests/output/render.at \
 	tests/output/charts.at \
@@ -451,7 +456,7 @@ $(srcdir)/tests/testsuite.at: tests/testsuite.in Makefile
 
 CHECK_LOCAL += tests_check
 tests_check: tests/atconfig tests/atlocal $(TESTSUITE)
-	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/output:src/ui/terminal $(TESTSUITEFLAGS)
+	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/libpspp:tests/output:src/ui/terminal $(TESTSUITEFLAGS)
 
 CLEAN_LOCAL += tests_clean
 tests_clean:

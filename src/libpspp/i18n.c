@@ -15,31 +15,29 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <xalloc.h>
+
+#include "libpspp/i18n.h"
+
 #include <assert.h>
-#include <locale.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <libintl.h>
-#include <iconv.h>
 #include <errno.h>
-#include <relocatable.h>
-#include "assertion.h"
-#include "hmapx.h"
-#include "hash-functions.h"
-#include "pool.h"
-
-#include "i18n.h"
-
-#include "version.h"
-
-#include <localcharset.h>
-#include "xstrndup.h"
-
-#if HAVE_NL_LANGINFO
+#include <iconv.h>
 #include <langinfo.h>
-#endif
+#include <libintl.h>
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "libpspp/assertion.h"
+#include "libpspp/hmapx.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/pool.h"
+#include "libpspp/version.h"
+
+#include "gl/localcharset.h"
+#include "gl/xalloc.h"
+#include "gl/relocatable.h"
+#include "gl/xstrndup.h"
 
 struct converter
  {

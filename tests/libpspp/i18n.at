@@ -1,0 +1,44 @@
+AT_BANNER([i18n routines])
+
+# CHECK_I18N([TITLE], [FROM-CODING], [TO-CODING], [FROM-TEXT], [TO-TEXT])
+#
+# Converts FROM-TEXT from FROM-CODING to TO-CODING and checks that the result
+# is TO-TEXT.  The "printf" program is applied to both FROM-TEXT and TO-TEXT
+# to allow for backslash-escapes.  (Be aware that hex escapes are not portable;
+# use octal escapes instead.)
+m4_define([CHECK_I18N],
+  [AT_SETUP([convert $1])
+   AT_KEYWORDS([i18n])
+
+   dnl Skip the test if this host doesn't know the source and target encodings.
+   AT_CHECK(
+     [case "$host" in
+        *-*-linux* | *-*-*-gnu*)
+          dnl GNU/Linux always has the encodings we want.  We can't ask
+	  dnl config.charset about them because it has a special case here
+	  dnl too and won't tell us.
+	  ;;
+	*)
+          $SHELL $top_srcdir/gl/config.charset "$host" | grep '$2' || exit 77
+          $SHELL $top_srcdir/gl/config.charset "$host" | grep '$3' || exit 77
+          ;;
+      esac
+     ], [0], [ignore])
+   AT_CHECK_UNQUOTED([i18n-test '$2' '$3' `printf '$4'`], [0], [`printf '$5'`
+])
+   AT_CLEANUP])
+     
+CHECK_I18N([reflexively], [ASCII], [ASCII], [abc], [abc])
+CHECK_I18N([without any change], [ASCII], [UTF-8], [abc], [abc])
+
+CHECK_I18N([from ISO-8859-1 to UTF-8], [ISO-8859-1], [UTF-8],
+           [\242], [\302\242])
+CHECK_I18N([from UTF-8 to ISO-8859-1], [UTF-8], [ISO-8859-1],
+           [\302\242], [\242])
+
+# 0xc0 == 0300 is invalid in UTF-8
+CHECK_I18N([invalid UTF-8 to ISO-8859-1], [UTF-8], [ISO-8859-1],
+           [xy\300z], [xy?z])
+# 0xc2 == 0302 is the first byte of a 2-byte UTF-8 sequence
+CHECK_I18N([truncated UTF-8 to ISO-8559-1], [UTF-8], [ISO-8859-1],
+           [xy\302], [xy?])
