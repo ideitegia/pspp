@@ -435,7 +435,7 @@ $(srcdir)/tests/testsuite.at: tests/testsuite.in Makefile
 
 
 CHECK_LOCAL += tests_check
-tests_check: tests/atconfig tests/atlocal $(TESTSUITE)
+tests_check: tests/atconfig tests/atlocal $(TESTSUITE) $(check_PROGRAMS)
 	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/libpspp:tests/output:src/ui/terminal $(TESTSUITEFLAGS)
 
 CLEAN_LOCAL += tests_clean
