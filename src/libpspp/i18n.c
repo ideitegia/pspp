@@ -300,7 +300,7 @@ i18n_done (void)
 bool
 valid_encoding (const char *enc)
 {
-  iconv_t conv = iconv_open ("UTF8", enc);
+  iconv_t conv = iconv_open (UTF8, enc);
 
   if ( conv == (iconv_t) -1)
     return false;
