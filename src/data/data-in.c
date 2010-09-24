@@ -55,7 +55,6 @@
 /* Information about parsing one data field. */
 struct data_in
   {
-    const char *src_enc;        /* Encoding of source. */
     struct substring input;     /* Source. */
     enum fmt_type format;       /* Input format. */
 
@@ -65,8 +64,6 @@ struct data_in
     int first_column; 		/* First column of field; 0 if inapplicable. */
     int last_column; 		/* Last column. */
   };
-
-
 
 typedef bool data_in_parser_func (struct data_in *);
 #define FMT(NAME, METHOD, IMIN, OMIN, IO, CATEGORY) \
@@ -102,7 +99,9 @@ data_in (struct substring input, const char *encoding,
 
   struct data_in i;
 
-  char *s = NULL;
+  enum fmt_category cat;
+  const char *dest_encoding;
+  char *s;
   bool ok;
 
   assert ((width != 0) == fmt_is_string (format));
@@ -114,7 +113,6 @@ data_in (struct substring input, const char *encoding,
 
   i.first_column = first_column;
   i.last_column = last_column;
-  i.src_enc = encoding;
 
   if (ss_is_empty (input))
     {
@@ -122,24 +120,45 @@ data_in (struct substring input, const char *encoding,
       return true;
     }
 
-  if (fmt_get_category (format) & ( FMT_CAT_BINARY | FMT_CAT_HEXADECIMAL | FMT_CAT_LEGACY))
+  cat = fmt_get_category (format);
+  if (cat & (FMT_CAT_BASIC | FMT_CAT_HEXADECIMAL
+             | FMT_CAT_DATE | FMT_CAT_TIME | FMT_CAT_DATE_COMPONENT))
     {
-      i.input = input;
+      /* We're going to parse these into numbers.  For this purpose we want to
+         deal with them in the local "C" encoding.  Any character not in that
+         encoding wouldn't be valid anyhow. */
+      dest_encoding = LEGACY_NATIVE;
+    }
+  else if (cat & (FMT_CAT_BINARY | FMT_CAT_LEGACY))
+    {
+      /* Don't recode these binary formats at all, since they are not text. */
+      dest_encoding = NULL;
     }
   else
     {
-      const char *dest_encoding;
-
-      if ( dict == NULL)
-	{
-	  assert (0 == (fmt_get_category (format) & (FMT_CAT_BINARY | FMT_CAT_STRING)));
-	  dest_encoding = LEGACY_NATIVE;
-	}
+      assert (cat == FMT_CAT_STRING);
+      if (format == FMT_AHEX)
+        {
+          /* We want the hex digits in the local "C" encoding, even though the
+             result may not be in that encoding. */
+          dest_encoding = LEGACY_NATIVE;
+        }
       else
-	dest_encoding = dict_get_encoding (dict);
+        {
+          /* Use the final output encoding. */
+          dest_encoding = dict_get_encoding (dict);
+        }
+    }
 
-      s = recode_string (dest_encoding, i.src_enc, ss_data (input), ss_length (input));
-      i.input = ss_cstr (s);
+  if (dest_encoding != NULL)
+    {
+      i.input = recode_substring_pool (dest_encoding, encoding, input, NULL);
+      s = i.input.string;
+    }
+  else
+    {
+      i.input = input;
+      s = NULL;
     }
 
   ok = handlers[i.format] (&i);
@@ -147,6 +166,7 @@ data_in (struct substring input, const char *encoding,
     default_result (&i);
 
   free (s);
+
   return ok;
 }
 
@@ -710,11 +730,6 @@ parse_AHEX (struct data_in *i)
           return false;
         }
 
-      if (0 != strcmp (i->src_enc, LEGACY_NATIVE))
-        {
-          hi = legacy_to_native (i->src_enc, hi);
-          lo = legacy_to_native (i->src_enc, lo);
-        }
       if (!c_isxdigit (hi) || !c_isxdigit (lo))
 	{
 	  data_warning (i, _("Field must contain only hex digits."));
