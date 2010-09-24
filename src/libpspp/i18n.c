@@ -32,6 +32,7 @@
 #include "libpspp/hmapx.h"
 #include "libpspp/hash-functions.h"
 #include "libpspp/pool.h"
+#include "libpspp/str.h"
 #include "libpspp/version.h"
 
 #include "gl/localcharset.h"
@@ -99,14 +100,16 @@ recode_string (const char *to, const char *from,
 /* Uses CONV to convert the INBYTES starting at IP into the OUTBYTES starting
    at OP, and appends a null terminator to the output.
 
-   Returns true if successful, false if the output buffer is too small. */
-static bool
+   Returns the output length if successful, -1 if the output buffer is too
+   small. */
+static ssize_t
 try_recode (iconv_t conv,
             const char *ip, size_t inbytes,
-            char *op, size_t outbytes)
+            char *op_, size_t outbytes)
 {
   /* FIXME: Need to ensure that this char is valid in the target encoding */
   const char fallbackchar = '?';
+  char *op = op_;
 
   /* Put the converter into the initial shift state, in case there was any
      state information left over from its last usage. */
@@ -118,14 +121,14 @@ try_recode (iconv_t conv,
       {
       case EINVAL:
         if (outbytes < 2)
-          return false;
+          return -1;
         *op++ = fallbackchar;
-        *op++ = '\0';
-        return true;
+        *op = '\0';
+        return op - op_;
 
       case EILSEQ:
         if (outbytes == 0)
-          return false;
+          return -1;
         *op++ = fallbackchar;
         outbytes--;
         ip++;
@@ -133,7 +136,7 @@ try_recode (iconv_t conv,
         break;
 
       case E2BIG:
-        return false;
+        return -1;
 
       default:
         /* should never happen */
@@ -143,10 +146,10 @@ try_recode (iconv_t conv,
       }
 
   if (outbytes == 0)
-    return false;
+    return -1;
 
   *op = '\0';
-  return true;
+  return op - op_;
 }
 
 /* Converts the string TEXT, which should be encoded in FROM-encoding, to a
@@ -165,14 +168,34 @@ char *
 recode_string_pool (const char *to, const char *from,
                     const char *text, int length, struct pool *pool)
 {
-  size_t outbufferlength;
-  iconv_t conv ;
+  struct substring out;
 
   if ( text == NULL )
     return NULL;
 
   if ( length == -1 )
-     length = strlen(text);
+     length = strlen (text);
+
+  out = recode_substring_pool (to, from, ss_buffer (text, length), pool);
+  return out.string;
+}
+
+/* Converts the string TEXT, which should be encoded in FROM-encoding, to a
+   dynamically allocated string in TO-encoding.  Any characters which cannot be
+   converted will be represented by '?'.
+
+   The returned string will be null-terminated and allocated on POOL.
+
+   This function's behaviour differs from that of g_convert_with_fallback
+   provided by GLib.  The GLib function will fail (returns NULL) if any part of
+   the input string is not valid in the declared input encoding.  This function
+   however perseveres even in the presence of badly encoded input. */
+struct substring
+recode_substring_pool (const char *to, const char *from,
+                       struct substring text, struct pool *pool)
+{
+  size_t outbufferlength;
+  iconv_t conv ;
 
   if (to == NULL)
     to = default_encoding;
@@ -183,14 +206,20 @@ recode_string_pool (const char *to, const char *from,
   conv = create_iconv (to, from);
 
   if ( (iconv_t) -1 == conv )
-    return xstrdup (text);
+    {
+      struct substring out;
+      ss_alloc_substring (&out, text);
+      return out;
+    }
 
   for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
-    if ( outbufferlength > length)
+    if ( outbufferlength > text.length)
       {
         char *output = pool_malloc (pool, outbufferlength);
-        if (try_recode (conv, text, length, output, outbufferlength))
-          return output;
+        ssize_t output_len = try_recode (conv, text.string, text.length,
+                                         output, outbufferlength);
+        if (output_len >= 0)
+          return ss_buffer (output, output_len);
         pool_free (pool, output);
       }
 
