@@ -959,8 +959,8 @@ psppire_data_store_data_in (PsppireDataStore *ds, casenumber casenum, gint idx,
                         FALSE);
   value_init (&value, width);
   ok = (datasheet_get_value (ds->datasheet, casenum, idx, &value)
-        && data_in (input, UTF8, fmt->type, 0, 0, &value, width,
-                    dict_get_encoding (dict->dict))
+        && data_in_msg (input, UTF8, fmt->type, &value, width,
+                        dict_get_encoding (dict->dict))
         && datasheet_put_value (ds->datasheet, casenum, idx, &value));
   value_destroy (&value, width);
 

@@ -395,7 +395,6 @@ data_parser_parse (struct data_parser *parser, struct dfm_reader *reader,
       && dfm_get_percent_read (reader) >= parser->percent_cases)
     return false;
 
-  dfm_push (reader);
   if (parser->type == DP_DELIMITED)
     {
       if (parser->span)
@@ -405,7 +404,6 @@ data_parser_parse (struct data_parser *parser, struct dfm_reader *reader,
     }
   else
     retval = parse_fixed (parser, reader, c);
-  dfm_pop (reader);
 
   return retval;
 }
@@ -502,6 +500,25 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
   return true;
 }
 
+static void
+parse_error (const struct dfm_reader *reader, const struct field *field,
+             int first_column, int last_column, char *error)
+{
+  struct msg m;
+
+  m.category = MSG_C_DATA;
+  m.severity = MSG_S_WARNING;
+  m.where.file_name = CONST_CAST (char *, dfm_get_file_name (reader));
+  m.where.line_number = dfm_get_line_number (reader);
+  m.where.first_column = first_column;
+  m.where.last_column = last_column;
+  m.text = xasprintf (_("Data for variable %s is not valid as format %s: %s"),
+                      field->name, fmt_name (field->format.type), error);
+  msg_emit (&m);
+
+  free (error);
+}
+
 /* Reads a case from READER into C, parsing it according to
    fixed-format syntax rules in PARSER.
    Returns true if successful, false at end of file or on I/O error. */
@@ -536,13 +553,16 @@ parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
           struct substring s = ss_substr (line, f->first_column - 1,
                                           f->format.w);
           union value *value = case_data_rw_idx (c, f->case_idx);
+          char *error = data_in (s, input_encoding, f->format.type,
+                                 value, fmt_var_width (&f->format),
+                                 output_encoding);
 
-          data_in (s, input_encoding, f->format.type,
-                   f->first_column, f->first_column + f->format.w,
-                   value, fmt_var_width (&f->format), output_encoding);
-
-          data_in_imply_decimals (s, input_encoding, f->format.type,
-                                  f->format.d, value);
+          if (error == NULL)
+            data_in_imply_decimals (s, input_encoding, f->format.type,
+                                    f->format.d, value);
+          else
+            parse_error (reader, f, f->first_column,
+                         f->first_column + f->format.w, error);
         }
 
       dfm_forward_record (reader);
@@ -567,6 +587,7 @@ parse_delimited_span (const struct data_parser *parser,
     {
       struct substring s;
       int first_column, last_column;
+      char *error;
 
       /* Cut out a field and read in a new record if necessary. */
       while (!cut_field (parser, reader,
@@ -584,9 +605,11 @@ parse_delimited_span (const struct data_parser *parser,
 	    }
 	}
 
-      data_in (s, input_encoding, f->format.type, first_column, last_column,
-               case_data_rw_idx (c, f->case_idx),
-               fmt_var_width (&f->format), output_encoding);
+      error = data_in (s, input_encoding, f->format.type,
+                       case_data_rw_idx (c, f->case_idx),
+                       fmt_var_width (&f->format), output_encoding);
+      if (error != NULL)
+        parse_error (reader, f, first_column, last_column, error);
     }
   ds_destroy (&tmp);
   return true;
@@ -612,6 +635,8 @@ parse_delimited_no_span (const struct data_parser *parser,
   for (f = parser->fields; f < end; f++)
     {
       int first_column, last_column;
+      char *error;
+
       if (!cut_field (parser, reader, &first_column, &last_column, &tmp, &s))
 	{
 	  if (f < end - 1 && settings_get_undefined ())
@@ -625,9 +650,11 @@ parse_delimited_no_span (const struct data_parser *parser,
           goto exit;
 	}
 
-      data_in (s, input_encoding, f->format.type, first_column, last_column,
-               case_data_rw_idx (c, f->case_idx),
-               fmt_var_width (&f->format), output_encoding);
+      error = data_in (s, input_encoding, f->format.type,
+                       case_data_rw_idx (c, f->case_idx),
+                       fmt_var_width (&f->format), output_encoding);
+      if (error != NULL)
+        parse_error (reader, f, first_column, last_column, error);
     }
 
   s = dfm_get_record (reader);

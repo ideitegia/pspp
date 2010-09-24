@@ -654,9 +654,16 @@ CODE:
     if ( ifmt )
       {
 	struct substring ss = ss_cstr (SvPV_nolen (sv));
-	if ( ! data_in (ss, LEGACY_NATIVE, ifmt->type, 0, 0,
- 	       	        case_data_rw (c, v), var_get_width (v),
-			dict_get_encoding (sfi->dict)))
+	char *error;
+	bool ok;
+
+	error = data_in (ss, LEGACY_NATIVE, ifmt->type,
+ 	       	         case_data_rw (c, v), var_get_width (v),
+			 dict_get_encoding (sfi->dict));
+        ok = error == NULL;
+        free (error);
+
+	if ( !ok )
 	  {
 	    RETVAL = 0;
 	    goto finish;

@@ -271,7 +271,7 @@ process_msg (const struct msg *m)
 void
 msg_emit (struct msg *m)
 {
-  if ( s_stream )
+  if ( s_stream && m->where.file_name == NULL )
     {
       struct msg_locator loc;
 

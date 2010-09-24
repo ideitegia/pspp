@@ -1775,19 +1775,19 @@ parse_field (struct import_assistant *ia,
   tooltip = NULL;
   if (field.string != NULL)
     {
-      msg_disable ();
+      char *error;
 
-      if (!data_in (field, LEGACY_NATIVE, in->type, 0, 0, &val,
-                    var_get_width (var), dict_get_encoding (ia->formats.dict)))
+      error = data_in (field, LEGACY_NATIVE, in->type, &val,
+                       var_get_width (var),
+                       dict_get_encoding (ia->formats.dict));
+      if (error != NULL)
         {
-          char fmt_string[FMT_STRING_LEN_MAX + 1];
-          fmt_to_string (in, fmt_string);
-          tooltip = xasprintf (_("Field content `%.*s' cannot be parsed in "
-                                 "format %s."),
+          tooltip = xasprintf (_("Cannot parse field content `%.*s' as "
+                                 "format %s: %s"),
                                (int) field.length, field.string,
-                               fmt_string);
+                               fmt_name (in->type), error);
+          free (error);
         }
-      msg_enable ();
     }
   else
     {

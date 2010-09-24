@@ -147,16 +147,18 @@ syntax_gen_number (struct string *output,
           & (FMT_CAT_DATE | FMT_CAT_TIME | FMT_CAT_DATE_COMPONENT)))
     {
       union value v_in, v_out;
-      char *s;
+      char *s, *error;
       bool ok;
 
       v_in.f = number;
       s = data_out (&v_in, "FIXME",  format);
-      msg_disable ();
+
       /* FIXME: UTF8 encoded strings will fail here */
-      ok = data_in (ss_cstr (s), LEGACY_NATIVE,
-                    format->type, 0, 0, &v_out, 0, NULL);
-      msg_enable ();
+      error = data_in (ss_cstr (s), LEGACY_NATIVE,
+                       format->type, &v_out, 0, NULL);
+      ok = error == NULL;
+      free (error);
+
       if (ok && v_out.f == number)
         {
           syntax_gen_string (output, ss_cstr (s));

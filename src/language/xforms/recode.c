@@ -629,11 +629,13 @@ find_src_string (struct recode_trns *trns, const uint8_t *value,
         case MAP_CONVERT:
           {
             union value uv;
+            char *error;
 
-            msg_disable ();
-            match = data_in (ss_buffer (CHAR_CAST_BUG (char *, value), width),
-                             LEGACY_NATIVE, FMT_F, 0, 0, &uv, 0, encoding);
-            msg_enable ();
+            error = data_in (ss_buffer (CHAR_CAST_BUG (char *, value), width),
+                             LEGACY_NATIVE, FMT_F, &uv, 0, encoding);
+            match = error == NULL;
+            free (error);
+
             out->value.f = uv.f;
             break;
           }

@@ -581,8 +581,19 @@ string function RTRIM (string s, string c)
 function NUMBER (string s, ni_format f)
 {
   union value out;
-  data_in (ss_head (s, f->w), LEGACY_NATIVE, f->type, 0, 0, &out, 0, NULL);
+  char *error;
+
+  if (s.length > f->w)
+    s.length = f->w;
+  error = data_in (s, LEGACY_NATIVE, f->type, &out, 0, NULL);
+  if (error == NULL)
   data_in_imply_decimals (s, LEGACY_NATIVE, f->type, f->d, &out);
+  else
+    {
+      msg (SE, "Cannot parse \"%.*s\" as format %s: %s",
+           (int) s.length, s.string, fmt_name (f->type), error);
+      free (error);
+    }
   return out.f;
 }
 

@@ -407,7 +407,7 @@ flip_casereader_read (struct casereader *reader, void *flip_)
   c = case_create (casereader_get_proto (reader));
   encoding = dict_get_encoding (flip->dict);
   data_in (ss_cstr (flip->old_names.names[flip->cases_read]), encoding,
-           FMT_A, 0, 0, case_data_rw_idx (c, 0), 8, encoding);
+           FMT_A, case_data_rw_idx (c, 0), 8, encoding);
 
   for (i = 0; i < flip->n_cases; i++)
     {
