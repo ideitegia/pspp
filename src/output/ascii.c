@@ -22,27 +22,28 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <data/file-name.h>
-#include <data/settings.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/start-date.h>
-#include <libpspp/string-map.h>
-#include <libpspp/version.h>
-#include <output/cairo.h>
-#include <output/chart-item-provider.h>
-#include <output/message-item.h>
-#include <output/options.h>
-#include <output/tab.h>
-#include <output/text-item.h>
-#include <output/driver-provider.h>
-#include <output/render.h>
-#include <output/table-item.h>
+#include "data/file-name.h"
+#include "data/settings.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/start-date.h"
+#include "libpspp/string-map.h"
+#include "libpspp/version.h"
+#include "output/cairo.h"
+#include "output/chart-item-provider.h"
+#include "output/driver-provider.h"
+#include "output/message-item.h"
+#include "output/options.h"
+#include "output/render.h"
+#include "output/tab.h"
+#include "output/table-item.h"
+#include "output/text-item.h"
 
-#include "error.h"
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -184,7 +185,7 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
                             "bold", EMPH_BOLD,
                             "underline", EMPH_UNDERLINE,
                             "none", EMPH_NONE,
-                            NULL);
+                            NULL_SENTINEL);
 
   a->chart_file_name = parse_chart_file_name (opt (d, o, "charts", file_name));
 

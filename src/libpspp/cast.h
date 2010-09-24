@@ -112,4 +112,11 @@
         (CHECK_POINTER_COMPATIBILITY (&((STRUCT *) 0)->MEMBER, POINTER), \
          (STRUCT *) ((char *) (POINTER) - offsetof (STRUCT, MEMBER)))
 
+/* A null pointer constant suitable for use in a varargs parameter list.
+
+   This is useful because a literal 0 may not have the same width as a null
+   pointer.  NULL by itself is also insufficient because in C it may expand to
+   simply 0. */
+#define NULL_SENTINEL ((void *) NULL)
+
 #endif /* libpspp/cast.h */

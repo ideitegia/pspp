@@ -28,6 +28,7 @@
 #include "language/syntax-file.h"
 #include "libpspp/argv-parser.h"
 #include "libpspp/assertion.h"
+#include "libpspp/cast.h"
 #include "libpspp/compiler.h"
 #include "libpspp/getl.h"
 #include "libpspp/llx.h"
@@ -273,7 +274,7 @@ terminal_option_callback (int id, void *to_)
     case OPT_VERSION:
       version_etc (stdout, "pspp", PACKAGE_NAME, PACKAGE_VERSION,
                    "Ben Pfaff", "John Darrington", "Jason Stover",
-                   NULL);
+                   NULL_SENTINEL);
       exit (EXIT_SUCCESS);
 
     default:
