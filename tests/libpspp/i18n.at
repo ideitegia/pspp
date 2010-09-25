@@ -42,3 +42,9 @@ CHECK_I18N([invalid UTF-8 to ISO-8859-1], [UTF-8], [ISO-8859-1],
 # 0xc2 == 0302 is the first byte of a 2-byte UTF-8 sequence
 CHECK_I18N([truncated UTF-8 to ISO-8559-1], [UTF-8], [ISO-8859-1],
            [xy\302], [xy?])
+
+dnl The input to this test is 7 bytes long and the expected output is 9 bytes.
+dnl So it should exercise the E2BIG case 
+CHECK_I18N([from ISO-8859-1 to UTF-8 with overflow], [ISO-8859-1], [UTF-8],
+           [Tsch\374\337!], [Tsch\303\274\303\237!])
+
