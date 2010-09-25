@@ -1,0 +1,10 @@
+AT_BANNER([range map library])
+
+m4_define([CHECK_RANGE_MAP],
+  [AT_SETUP([range-map -- $1])
+   AT_CHECK([range-map-test $1])
+   AT_CLEANUP])
+
+CHECK_RANGE_MAP([insert])
+CHECK_RANGE_MAP([delete-contiguous])
+CHECK_RANGE_MAP([delete-gaps])
