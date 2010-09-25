@@ -1,0 +1,21 @@
+AT_BANNER([string set library])
+
+m4_define([CHECK_STRING_SET],
+  [AT_SETUP([string set -- $1])
+   AT_KEYWORDS([string-set])
+   AT_CHECK([string-set-test $1])
+   AT_CLEANUP])
+
+CHECK_STRING_SET([insert-any-remove-any])
+CHECK_STRING_SET([insert-any-remove-same])
+CHECK_STRING_SET([insert-any-remove-reverse])
+CHECK_STRING_SET([random-sequence])
+CHECK_STRING_SET([insert-ordered])
+CHECK_STRING_SET([union])
+CHECK_STRING_SET([union-and-intersection])
+CHECK_STRING_SET([intersect])
+CHECK_STRING_SET([subtract])
+CHECK_STRING_SET([swap])
+CHECK_STRING_SET([clear])
+CHECK_STRING_SET([clone])
+CHECK_STRING_SET([destroy-null])
