@@ -1,0 +1,5 @@
+AT_BANNER([string library])
+
+AT_SETUP([26-adic string formatting])
+AT_CHECK([str-test format-26adic])
+AT_CLEANUP
