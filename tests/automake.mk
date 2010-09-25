@@ -146,7 +146,6 @@ dist_TESTS += tests/command/get-data-psql.sh
 endif
 
 nodist_TESTS = \
-	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
 	tests/libpspp/range-map-test \
 	tests/libpspp/range-set-test \
@@ -170,6 +169,7 @@ check_PROGRAMS += \
 	tests/libpspp/hmap-test \
 	tests/libpspp/hmapx-test \
 	tests/libpspp/i18n-test \
+	tests/libpspp/ll-test \
 	tests/libpspp/sparse-xarray-test \
 	tests/output/render-test
 
@@ -424,6 +424,7 @@ TESTSUITE_AT = \
 	tests/libpspp/hmap.at \
 	tests/libpspp/hmapx.at \
 	tests/libpspp/i18n.at \
+	tests/libpspp/ll.at \
 	tests/math/moments.at \
 	tests/output/render.at \
 	tests/output/charts.at \
