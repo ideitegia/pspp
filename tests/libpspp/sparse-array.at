@@ -1,0 +1,30 @@
+AT_BANNER([sparse array library])
+
+m4_define([CHECK_SPARSE_ARRAY],
+  [AT_SETUP([sparse array -- $1])
+   AT_KEYWORDS([sparse-array])
+   AT_CHECK([sparse-array-test $1])
+   AT_CLEANUP])
+
+CHECK_SPARSE_ARRAY([random-insert-delete])
+
+AT_SETUP([sparse array -- insert and delete with strides])
+AT_KEYWORDS([sparse-array])
+AT_CHECK([sparse-array-test insert-delete-strides], [0], [dnl
+1
+2
+4
+16
+64
+4096
+262144
+16777216
+3
+5
+17
+67
+4099
+262147
+16777259
+])
+AT_CLEANUP
