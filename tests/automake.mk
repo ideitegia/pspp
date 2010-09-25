@@ -145,9 +145,6 @@ if PSQL_SUPPORT
 dist_TESTS += tests/command/get-data-psql.sh 
 endif
 
-nodist_TESTS = \
-	tests/libpspp/tower-test
-
 TESTS = $(dist_TESTS) $(nodist_TESTS)
 
 check_PROGRAMS += \
@@ -171,6 +168,7 @@ check_PROGRAMS += \
 	tests/libpspp/stringi-map-test \
 	tests/libpspp/string-set-test \
 	tests/libpspp/stringi-set-test \
+	tests/libpspp/tower-test \
 	tests/output/render-test
 
 tests_data_datasheet_test_SOURCES = \
@@ -434,6 +432,7 @@ TESTSUITE_AT = \
 	tests/libpspp/stringi-map.at \
 	tests/libpspp/string-set.at \
 	tests/libpspp/stringi-set.at \
+	tests/libpspp/tower.at \
 	tests/math/moments.at \
 	tests/output/render.at \
 	tests/output/charts.at \

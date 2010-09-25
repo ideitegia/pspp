@@ -1,0 +1,12 @@
+AT_BANNER([tower library])
+
+m4_define([CHECK_TOWER],
+  [AT_SETUP([tower -- $1])
+   AT_CHECK([tower-test $1])
+   AT_CLEANUP])
+
+CHECK_TOWER([insert])
+CHECK_TOWER([delete])
+CHECK_TOWER([resize])
+CHECK_TOWER([splice-out])
+CHECK_TOWER([splice-in])
