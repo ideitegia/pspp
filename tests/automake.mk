@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/correlation.sh \
 	tests/command/do-if.sh \
 	tests/command/do-repeat.sh \
 	tests/command/erase.sh \
@@ -406,6 +405,7 @@ TESTSUITE_AT = \
 	tests/language/expressions/evaluate.at \
 	tests/language/stats/aggregate.at \
 	tests/language/stats/autorecode.at \
+	tests/language/stats/correlations.at \
 	tests/language/stats/crosstabs.at \
 	tests/language/stats/descriptives.at \
 	tests/language/stats/factor.at \
