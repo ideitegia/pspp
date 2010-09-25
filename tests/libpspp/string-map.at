@@ -1,0 +1,22 @@
+AT_BANNER([string map library])
+
+m4_define([CHECK_STRING_MAP],
+  [AT_SETUP([string map -- $1])
+   AT_KEYWORDS([string-map])
+   AT_CHECK([string-map-test $1])
+   AT_CLEANUP])
+
+CHECK_STRING_MAP([insert-any-remove-any])
+CHECK_STRING_MAP([insert-any-remove-same])
+CHECK_STRING_MAP([insert-any-remove-reverse])
+CHECK_STRING_MAP([random-sequence])
+CHECK_STRING_MAP([replace])
+CHECK_STRING_MAP([insert-ordered])
+CHECK_STRING_MAP([clear])
+CHECK_STRING_MAP([clone])
+CHECK_STRING_MAP([swap])
+CHECK_STRING_MAP([node-swap-value])
+CHECK_STRING_MAP([insert-map])
+CHECK_STRING_MAP([replace-map])
+CHECK_STRING_MAP([get-keys-and-values])
+CHECK_STRING_MAP([destroy-null])
