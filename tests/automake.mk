@@ -146,7 +146,6 @@ dist_TESTS += tests/command/get-data-psql.sh
 endif
 
 nodist_TESTS = \
-	tests/libpspp/bt-test \
 	tests/libpspp/heap-test \
 	tests/libpspp/hmap-test \
 	tests/libpspp/hmapx-test \
@@ -169,6 +168,7 @@ check_PROGRAMS += \
 	tests/data/datasheet-test \
 	tests/formats/inexactify \
 	tests/libpspp/abt-test \
+	tests/libpspp/bt-test \
 	tests/libpspp/i18n-test \
 	tests/libpspp/sparse-xarray-test \
 	tests/output/render-test
@@ -419,6 +419,7 @@ TESTSUITE_AT = \
 	tests/language/xforms/count.at \
 	tests/language/xforms/recode.at \
 	tests/libpspp/abt.at \
+	tests/libpspp/bt.at \
 	tests/libpspp/i18n.at \
 	tests/math/moments.at \
 	tests/output/render.at \
