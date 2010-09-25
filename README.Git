@@ -34,11 +34,15 @@ This version of PSPP should work with the Gnulib commit shown below.
 Gnulib does not maintain a stable API or ABI, so it is possible that
 PSPP will not work with older or newer versions of Gnulib.
 
-    commit b3c3b08eab509ef08c9303b05375088575f8cc1b
-    Author: Karl Berry <karl@freefriends.org>
-    Date:   Wed Jun 16 17:30:50 2010 -0700
 
-	update from texinfo
+  commit 52a32bbd66601d12627e104cd82d9b9094d942c3
+  Author: Bruno Haible <bruno@clisp.org>
+  Date:   Fri Sep 24 14:36:26 2010 +0200
+
+      unistr/u8-strchr: Fix a test failure on i586 glibc systems.
+    
+      * tests/unistr/test-strchr.h (test_strchr): Disable an invalid check.
+
 
 To clone Gnulib into a directory named "gnulib" using Git, and then
 check out this particular commit, run these commands:
