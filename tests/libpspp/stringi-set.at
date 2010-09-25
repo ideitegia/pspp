@@ -1,0 +1,21 @@
+AT_BANNER([case-insensitive string set library])
+
+m4_define([CHECK_STRINGI_SET],
+  [AT_SETUP([case-insensitive string set -- $1])
+   AT_KEYWORDS([stringi-set])
+   AT_CHECK([stringi-set-test $1])
+   AT_CLEANUP])
+
+CHECK_STRINGI_SET([insert-any-remove-any])
+CHECK_STRINGI_SET([insert-any-remove-same])
+CHECK_STRINGI_SET([insert-any-remove-reverse])
+CHECK_STRINGI_SET([random-sequence])
+CHECK_STRINGI_SET([insert-ordered])
+CHECK_STRINGI_SET([union])
+CHECK_STRINGI_SET([union-and-intersection])
+CHECK_STRINGI_SET([intersect])
+CHECK_STRINGI_SET([subtract])
+CHECK_STRINGI_SET([swap])
+CHECK_STRINGI_SET([clear])
+CHECK_STRINGI_SET([clone])
+CHECK_STRINGI_SET([destroy-null])
