@@ -1,0 +1,27 @@
+AT_BANNER([ERASE])
+
+AT_SETUP([ERASE -- safer mode])
+AT_DATA([foobar], [contents
+])
+AT_DATA([erase.sps], [dnl
+set safer on
+
+erase FILE='foobar'.
+])
+AT_CHECK([pspp -O format=csv erase.sps], [1], [dnl
+erase.sps:3: error: ERASE: This command not allowed when the SAFER option is set.
+])
+AT_CHECK([cat foobar], [0], [contents
+])
+AT_CLEANUP
+
+AT_SETUP([ERASE -- not safer mode])
+AT_DATA([foobar], [contents
+])
+AT_CHECK([test -e foobar])
+AT_DATA([erase.sps], [dnl
+erase FILE='foobar'.
+])
+AT_CHECK([pspp -O format=csv erase.sps])
+AT_CHECK([test ! -e foobar])
+AT_CLEANUP

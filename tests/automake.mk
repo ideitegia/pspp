@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/erase.sh \
 	tests/command/examine.sh \
 	tests/command/examine-extremes.sh \
 	tests/command/examine-percentiles.sh \
@@ -392,6 +391,7 @@ EXTRA_DIST += \
 TESTSUITE_AT = \
 	tests/data/calendar.at \
 	tests/data/data-in.at \
+	tests/language/command.at \
 	tests/language/control/do-if.at \
 	tests/language/control/do-repeat.at \
 	tests/language/data-io/add-files.at \
