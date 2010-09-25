@@ -1,0 +1,12 @@
+AT_BANNER([Heap library])
+
+m4_define([CHECK_HEAP],
+  [AT_SETUP([heap -- $1])
+   AT_CHECK([heap-test $1])
+   AT_CLEANUP])
+
+CHECK_HEAP([insert-no-dups-delete-min])
+CHECK_HEAP([insert-with-dups-delete-min])
+CHECK_HEAP([insert-no-dups-delete-random])
+CHECK_HEAP([inc-dec])
+CHECK_HEAP([random-insert-delete])

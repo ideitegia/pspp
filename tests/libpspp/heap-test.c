@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,9 +39,6 @@
 
 #include "xalloc.h"
 
-/* Currently running test. */
-static const char *test_name;
-
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
@@ -57,8 +54,7 @@ check_func (bool ok, int line)
 {
   if (!ok)
     {
-      printf ("Check failed in %s test at %s, line %d\n",
-              test_name, __FILE__, line);
+      fprintf (stderr, "%s:%d: check failed\n", __FILE__, line);
       check_die ();
     }
 }
@@ -649,28 +645,74 @@ test_random_insert_delete (void)
 
 /* Main program. */
 
-/* Runs TEST_FUNCTION and prints a message about NAME. */
-static void
-run_test (void (*test_function) (void), const char *name)
-{
-  test_name = name;
-  putchar ('.');
-  fflush (stdout);
-  test_function ();
-}
+struct test
+  {
+    const char *name;
+    const char *description;
+    void (*function) (void);
+  };
+
+static const struct test tests[] =
+  {
+    {
+      "insert-no-dups-delete-min",
+      "insert (no dups), delete minimum values",
+      test_insert_no_dups_delete_min
+    },
+    {
+      "insert-with-dups-delete-min",
+      "insert with dups, delete minimum values",
+      test_insert_with_dups_delete_min
+    },
+    {
+      "insert-no-dups-delete-random",
+      "insert (no dups), delete in random order",
+      test_insert_no_dups_delete_random
+    },
+    {
+      "inc-dec",
+      "increase and decrease values",
+      test_inc_dec
+    },
+    {
+      "random-insert-delete",
+      "random insertions and deletions",
+      test_random_insert_delete
+    }
+  };
+
+enum { N_TESTS = sizeof tests / sizeof *tests };
 
 int
-main (void)
+main (int argc, char *argv[])
 {
-  run_test (test_insert_no_dups_delete_min,
-            "insert (no dups), delete minimum values");
-  run_test (test_insert_with_dups_delete_min,
-            "insert with dups, delete minimum values");
-  run_test (test_insert_no_dups_delete_random,
-            "insert (no dups), delete in random order");
-  run_test (test_inc_dec, "increase and decrease values");
-  run_test (test_random_insert_delete, "random insertions and deletions");
-  putchar ('\n');
+  int i;
 
-  return 0;
+  if (argc != 2)
+    {
+      fprintf (stderr, "exactly one argument required; use --help for help\n");
+      return EXIT_FAILURE;
+    }
+  else if (!strcmp (argv[1], "--help"))
+    {
+      printf ("%s: test heap library\n"
+              "usage: %s TEST-NAME\n"
+              "where TEST-NAME is one of the following:\n",
+              argv[0], argv[0]);
+      for (i = 0; i < N_TESTS; i++)
+        printf ("  %s\n    %s\n", tests[i].name, tests[i].description);
+      return 0;
+    }
+  else
+    {
+      for (i = 0; i < N_TESTS; i++)
+        if (!strcmp (argv[1], tests[i].name))
+          {
+            tests[i].function ();
+            return 0;
+          }
+
+      fprintf (stderr, "unknown test %s; use --help for help\n", argv[1]);
+      return EXIT_FAILURE;
+    }
 }
