@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/do-if.sh \
 	tests/command/do-repeat.sh \
 	tests/command/erase.sh \
 	tests/command/examine.sh \
@@ -395,6 +394,7 @@ EXTRA_DIST += \
 TESTSUITE_AT = \
 	tests/data/calendar.at \
 	tests/data/data-in.at \
+	tests/language/control/do-if.at \
 	tests/language/data-io/add-files.at \
 	tests/language/data-io/data-list.at \
 	tests/language/data-io/data-reader.at \
