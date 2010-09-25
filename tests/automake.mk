@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/do-repeat.sh \
 	tests/command/erase.sh \
 	tests/command/examine.sh \
 	tests/command/examine-extremes.sh \
@@ -94,7 +93,6 @@ dist_TESTS = \
 	tests/bugs/compression.sh \
 	tests/bugs/curtailed.sh \
 	tests/bugs/data-crash.sh \
-	tests/bugs/empty-do-repeat.sh \
 	tests/bugs/get.sh \
 	tests/bugs/examine-crash.sh \
 	tests/bugs/examine-crash2.sh \
@@ -395,6 +393,7 @@ TESTSUITE_AT = \
 	tests/data/calendar.at \
 	tests/data/data-in.at \
 	tests/language/control/do-if.at \
+	tests/language/control/do-repeat.at \
 	tests/language/data-io/add-files.at \
 	tests/language/data-io/data-list.at \
 	tests/language/data-io/data-reader.at \
