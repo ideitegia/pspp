@@ -1,0 +1,14 @@
+AT_BANNER([Augmented binary tree (ABT) library])
+
+m4_define([CHECK_ABT],
+  [AT_SETUP([ABT -- $1])
+   AT_CHECK([abt-test $1])
+   AT_CLEANUP])
+
+CHECK_ABT([insert-any-remove-any])
+CHECK_ABT([insert-any-remove-same])
+CHECK_ABT([insert-any-remove-reverse])
+CHECK_ABT([random-sequence])
+CHECK_ABT([insert-ordered])
+CHECK_ABT([moved])
+CHECK_ABT([changed])
