@@ -43,9 +43,6 @@
 #include "libpspp/string-set.h"
 #include "libpspp/stringi-set.h"
 
-/* Currently running test. */
-static const char *test_name;
-
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
@@ -61,8 +58,7 @@ check_func (bool ok, int line)
 {
   if (!ok)
     {
-      printf ("Check failed in %s test at %s, line %d\n",
-              test_name, __FILE__, line);
+      fprintf (stderr, "%s:%d: check failed\n", __FILE__, line);
       check_die ();
     }
 }
@@ -921,39 +917,120 @@ test_destroy_null (void)
 
 /* Main program. */
 
-/* Runs TEST_FUNCTION and prints a message about NAME. */
-static void
-run_test (void (*test_function) (void), const char *name)
-{
-  test_name = name;
-  putchar ('.');
-  fflush (stdout);
-  test_function ();
-}
+struct test
+  {
+    const char *name;
+    const char *description;
+    void (*function) (void);
+  };
+
+static const struct test tests[] =
+  {
+    {
+      "insert-any-remove-any",
+      "insert any order, delete any order",
+      test_insert_any_remove_any
+    },
+    {
+      "insert-any-remove-same",
+      "insert any order, delete same order",
+      test_insert_any_remove_same
+    },
+    {
+      "insert-any-remove-reverse",
+      "insert any order, delete reverse order",
+      test_insert_any_remove_reverse
+    },
+    {
+      "random-sequence",
+      "insert and delete in random sequence",
+      test_random_sequence
+    },
+    {
+      "replace",
+      "insert and replace in random sequence",
+      test_replace
+    },
+    {
+      "insert-ordered",
+      "insert in ascending order",
+      test_insert_ordered
+    },
+    {
+      "clear",
+      "clear",
+      test_clear
+    },
+    {
+      "clone",
+      "clone",
+      test_clone
+    },
+    {
+      "swap",
+      "swap",
+      test_swap
+    },
+    {
+      "node-swap-value",
+      "node_swap_value",
+      test_node_swap_value
+    },
+    {
+      "insert-map",
+      "insert_map",
+      test_insert_map
+    },
+    {
+      "replace-map",
+      "replace_map",
+      test_replace_map
+    },
+    {
+      "get-keys-and-values",
+      "get keys and values",
+      test_get_keys_and_values
+    },
+    {
+      "destroy-null",
+      "destroying null table",
+      test_destroy_null
+    },
+  };
+
+enum { N_TESTS = sizeof tests / sizeof *tests };
 
 int
-main (void)
+main (int argc, char *argv[])
 {
-  run_test (test_insert_any_remove_any, "insert any order, delete any order");
-  run_test (test_insert_any_remove_same,
-            "insert any order, delete same order");
-  run_test (test_insert_any_remove_reverse,
-            "insert any order, delete reverse order");
-  run_test (test_random_sequence, "insert and delete in random sequence");
-  run_test (test_replace, "insert and replace in random sequence");
-  run_test (test_insert_ordered, "insert in ascending order");
-  run_test (test_clear, "clear");
-  run_test (test_clone, "clone");
-  run_test (test_swap, "swap");
-  run_test (test_node_swap_value, "node_swap_value");
-  run_test (test_insert_map, "insert_map");
-  run_test (test_replace_map, "replace_map");
-  run_test (test_get_keys_and_values, "get keys and values");
-  run_test (test_destroy_null, "destroying null table");
+  int i;
 
-  putchar ('\n');
+  if (argc != 2)
+    {
+      fprintf (stderr, "exactly one argument required; use --help for help\n");
+      return EXIT_FAILURE;
+    }
+  else if (!strcmp (argv[1], "--help"))
+    {
+      printf ("%s: test case-insensitive string map library\n"
+              "usage: %s TEST-NAME\n"
+              "where TEST-NAME is one of the following:\n",
+              argv[0], argv[0]);
+      for (i = 0; i < N_TESTS; i++)
+        printf ("  %s\n    %s\n", tests[i].name, tests[i].description);
+      return 0;
+    }
+  else
+    {
+      for (i = 0; i < N_TESTS; i++)
+        if (!strcmp (argv[1], tests[i].name))
+          {
+            tests[i].function ();
+            free_strings ();
+            return 0;
+          }
 
-  free_strings ();
-
-  return 0;
+      fprintf (stderr, "unknown test %s; use --help for help\n", argv[1]);
+      return EXIT_FAILURE;
+    }
 }
