@@ -99,9 +99,6 @@
 
 #include <libpspp/compiler.h>
 
-/* Currently running test. */
-static const char *test_name;
-
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
@@ -117,8 +114,7 @@ check_func (bool ok, int line)
 {
   if (!ok)
     {
-      printf ("Check failed in %s test at %s, line %d\n",
-              test_name, __FILE__, line);
+      fprintf (stderr, "%s:%d: check failed\n", __FILE__, line);
       check_die ();
     }
 }
@@ -667,8 +663,9 @@ test_insert_ordered (int max_elems, hash_function *hash)
   int i;
 
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 3
-  return;
-#endif  /* GCC 4.3 */
+  /* This tells the Autotest framework that the test was skipped. */
+  exit (77);
+#endif
 
   hmap_init (&hmap);
   elements = xnmalloc (max_elems, sizeof *elements);
@@ -743,8 +740,9 @@ test_moved (int max_elems, hash_function *hash)
   int i, j;
 
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 3
-  return;
-#endif  /* GCC 4.3 */
+  /* This tells the Autotest framework that the test was skipped. */
+  exit (77);
+#endif
 
   hmap_init (&hmap);
   e[0] = xnmalloc (max_elems, sizeof *e[0]);
@@ -882,8 +880,9 @@ test_swap (int max_elems, hash_function *hash)
   int i;
 
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 3
-  return;
-#endif  /* GCC 4.3 */
+  /* This tells the Autotest framework that the test was skipped. */
+  exit (77);
+#endif
 
   hmap_init (&a);
   hmap_init (&b);
@@ -927,8 +926,9 @@ test_clear (void)
   int cnt;
 
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 3
-  return;
-#endif  /* GCC 4.3 */
+  /* This tells the Autotest framework that the test was skipped. */
+  exit (77);
+#endif
 
   elements = xnmalloc (max_elems, sizeof *elements);
   values = xnmalloc (max_elems, sizeof *values);
@@ -974,83 +974,181 @@ test_shrink_empty (void)
 
 /* Main program. */
 
-/* Runs TEST_FUNCTION and prints a message about NAME. */
-static void
-run_test (void (*test_function) (void), const char *name)
-{
-  test_name = name;
-  putchar ('.');
-  fflush (stdout);
-  test_function ();
-}
+struct test
+  {
+    const char *name;
+    const char *description;
+    void (*function) (void);
+  };
+
+static const struct test tests[] =
+  {
+    {
+      "insert-any-remove-any-random-hash",
+      "insert any order, delete any order (random hash)",
+      test_insert_any_remove_any_random_hash
+    },
+    {
+      "insert-any-remove-any-identity-hash",
+      "insert any order, delete any order (identity hash)",
+      test_insert_any_remove_any_identity_hash
+    },
+    {
+      "insert-any-remove-any-constant-hash",
+      "insert any order, delete any order (constant hash)",
+      test_insert_any_remove_any_constant_hash
+    },
+
+    {
+      "insert-any-remove-same-random-hash",
+      "insert any order, delete same order (random hash)",
+      test_insert_any_remove_same_random_hash
+    },
+    {
+      "insert-any-remove-same-identity-hash",
+      "insert any order, delete same order (identity hash)",
+      test_insert_any_remove_same_identity_hash
+    },
+    {
+      "insert-any-remove-same-constant-hash",
+      "insert any order, delete same order (constant hash)",
+      test_insert_any_remove_same_constant_hash
+    },
+
+    {
+      "insert-any-remove-reverse-random-hash",
+      "insert any order, delete reverse order (random hash)",
+      test_insert_any_remove_reverse_random_hash
+    },
+    {
+      "insert-any-remove-reverse-identity-hash",
+      "insert any order, delete reverse order (identity hash)",
+      test_insert_any_remove_reverse_identity_hash
+    },
+    {
+      "insert-any-remove-reverse-constant-hash",
+      "insert any order, delete reverse order (constant hash)",
+      test_insert_any_remove_reverse_constant_hash
+    },
+
+    {
+      "random-sequence-random-hash",
+      "insert and delete in random sequence (random hash)",
+      test_random_sequence_random_hash
+    },
+    {
+      "random-sequence-identity-hash",
+      "insert and delete in random sequence (identity hash)",
+      test_random_sequence_identity_hash
+    },
+    {
+      "random-sequence-constant-hash",
+      "insert and delete in random sequence (constant hash)",
+      test_random_sequence_constant_hash
+    },
+
+    {
+      "insert-ordered-random-hash",
+      "insert in ascending order (random hash)",
+      test_insert_ordered_random_hash
+    },
+    {
+      "insert-ordered-identity-hash",
+      "insert in ascending order (identity hash)",
+      test_insert_ordered_identity_hash
+    },
+    {
+      "insert-ordered-constant-hash",
+      "insert in ascending order (constant hash)",
+      test_insert_ordered_constant_hash
+    },
+
+    {
+      "moved-random-hash",
+      "move elements around in memory (random hash)",
+      test_moved_random_hash
+    },
+    {
+      "moved-identity-hash",
+      "move elements around in memory (identity hash)",
+      test_moved_identity_hash
+    },
+    {
+      "moved-constant-hash",
+      "move elements around in memory (constant hash)",
+      test_moved_constant_hash
+    },
+
+    {
+      "changed-random-hash",
+      "change key data in nodes (random hash)",
+      test_changed_random_hash
+    },
+    {
+      "changed-identity-hash",
+      "change key data in nodes (identity hash)",
+      test_changed_identity_hash
+    },
+    {
+      "changed-constant-hash",
+      "change key data in nodes (constant hash)",
+      test_changed_constant_hash
+    },
+
+    {
+      "swap-random-hash",
+      "test swapping tables",
+      test_swap_random_hash
+    },
+    {
+      "clear",
+      "test clearing hash table",
+      test_clear
+    },
+    {
+      "destroy-null",
+      "test destroying null table",
+      test_destroy_null
+    },
+    {
+      "shrink-empty",
+      "test shrinking an empty table",
+      test_shrink_empty
+    },
+  };
+
+enum { N_TESTS = sizeof tests / sizeof *tests };
 
 int
-main (void)
+main (int argc, char *argv[])
 {
-  run_test (test_insert_any_remove_any_random_hash,
-            "insert any order, delete any order (random hash)");
-  run_test (test_insert_any_remove_any_identity_hash,
-            "insert any order, delete any order (identity hash)");
-  run_test (test_insert_any_remove_any_constant_hash,
-            "insert any order, delete any order (constant hash)");
+  int i;
 
-  run_test (test_insert_any_remove_same_random_hash,
-            "insert any order, delete same order (random hash)");
-  run_test (test_insert_any_remove_same_identity_hash,
-            "insert any order, delete same order (identity hash)");
-  run_test (test_insert_any_remove_same_constant_hash,
-            "insert any order, delete same order (constant hash)");
+  if (argc != 2)
+    {
+      fprintf (stderr, "exactly one argument required; use --help for help\n");
+      return EXIT_FAILURE;
+    }
+  else if (!strcmp (argv[1], "--help"))
+    {
+      printf ("%s: test hash map\n"
+              "usage: %s TEST-NAME\n"
+              "where TEST-NAME is one of the following:\n",
+              argv[0], argv[0]);
+      for (i = 0; i < N_TESTS; i++)
+        printf ("  %s\n    %s\n", tests[i].name, tests[i].description);
+      return 0;
+    }
+  else
+    {
+      for (i = 0; i < N_TESTS; i++)
+        if (!strcmp (argv[1], tests[i].name))
+          {
+            tests[i].function ();
+            return 0;
+          }
 
-  run_test (test_insert_any_remove_reverse_random_hash,
-            "insert any order, delete reverse order (random hash)");
-  run_test (test_insert_any_remove_reverse_identity_hash,
-            "insert any order, delete reverse order (identity hash)");
-  run_test (test_insert_any_remove_reverse_constant_hash,
-            "insert any order, delete reverse order (constant hash)");
-
-  run_test (test_random_sequence_random_hash,
-            "insert and delete in random sequence (random hash)");
-  run_test (test_random_sequence_identity_hash,
-            "insert and delete in random sequence (identity hash)");
-  run_test (test_random_sequence_constant_hash,
-            "insert and delete in random sequence (constant hash)");
-
-  run_test (test_insert_ordered_random_hash,
-            "insert in ascending order (random hash)");
-  run_test (test_insert_ordered_identity_hash,
-            "insert in ascending order (identity hash)");
-  run_test (test_insert_ordered_constant_hash,
-            "insert in ascending order (constant hash)");
-
-  run_test (test_moved_random_hash,
-            "move elements around in memory (random hash)");
-  run_test (test_moved_identity_hash,
-            "move elements around in memory (identity hash)");
-  run_test (test_moved_constant_hash,
-            "move elements around in memory (constant hash)");
-
-  run_test (test_changed_random_hash,
-            "change key data in nodes (random hash)");
-  run_test (test_changed_identity_hash,
-            "change key data in nodes (identity hash)");
-  run_test (test_changed_constant_hash,
-            "change key data in nodes (constant hash)");
-
-  run_test (test_swap_random_hash, "test swapping tables");
-
-  run_test (test_clear, "test clearing hash table");
-
-  run_test (test_destroy_null, "test destroying null table");
-  run_test (test_shrink_empty, "test shrinking an empty table");
-
-  putchar ('\n');
-
-#if __GNUC__ == 4 && __GNUC_MINOR__ == 3
-  /* We skipped some of the tests, so return a value that
-     Automake will interpret as "skipped", instead of one that
-     means success. */
-  return 77;
-#else
-  return 0;
-#endif
+      fprintf (stderr, "unknown test %s; use --help for help\n", argv[1]);
+      return EXIT_FAILURE;
+    }
 }
