@@ -10,9 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/examine.sh \
-	tests/command/examine-extremes.sh \
-	tests/command/examine-percentiles.sh \
 	tests/command/file-label.sh \
 	tests/command/file-handle.sh \
 	tests/command/filter.sh \
@@ -93,12 +90,6 @@ dist_TESTS = \
 	tests/bugs/curtailed.sh \
 	tests/bugs/data-crash.sh \
 	tests/bugs/get.sh \
-	tests/bugs/examine-crash.sh \
-	tests/bugs/examine-crash2.sh \
-	tests/bugs/examine-crash3.sh \
-	tests/bugs/examine-1sample.sh \
-	tests/bugs/examine-missing.sh \
-	tests/bugs/examine-missing2.sh \
 	tests/bugs/get-no-file.sh \
 	tests/bugs/if_crash.sh \
 	tests/bugs/input-crash.sh \
@@ -407,6 +398,7 @@ TESTSUITE_AT = \
 	tests/language/stats/correlations.at \
 	tests/language/stats/crosstabs.at \
 	tests/language/stats/descriptives.at \
+	tests/language/stats/examine.at \
 	tests/language/stats/factor.at \
 	tests/language/stats/flip.at \
 	tests/language/stats/frequencies.at \
