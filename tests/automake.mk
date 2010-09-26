@@ -10,9 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/get-data-txt.sh \
-	tests/command/get-data-txt-examples.sh \
-	tests/command/get-data-txt-importcases.sh \
 	tests/command/import-export.sh \
 	tests/command/insert.sh \
 	tests/command/lag.sh \
@@ -386,6 +383,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/data-list.at \
 	tests/language/data-io/data-reader.at \
 	tests/language/data-io/file-handle.at \
+	tests/language/data-io/get-data.at \
 	tests/language/data-io/save.at \
 	tests/language/data-io/save-translate.at \
 	tests/language/dictionary/attributes.at \
