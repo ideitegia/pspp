@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/file-label.sh \
 	tests/command/file-handle.sh \
 	tests/command/filter.sh \
 	tests/command/get-data-txt.sh \
@@ -404,6 +403,7 @@ TESTSUITE_AT = \
 	tests/language/stats/frequencies.at \
 	tests/language/stats/oneway.at \
 	tests/language/utilities/set.at \
+	tests/language/utilities/title.at \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/count.at \
 	tests/language/xforms/recode.at \
