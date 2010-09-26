@@ -100,9 +100,40 @@ psppire_syntax_window_finalize (GObject *object)
 
 
 static void
+psppire_syntax_window_dispose (GObject *obj)
+{
+  PsppireSyntaxWindow *sw = (PsppireSyntaxWindow *)obj;
+
+  GtkClipboard *clip_selection;
+  GtkClipboard *clip_primary;
+
+  if (sw->dispose_has_run)
+    return;
+
+  clip_selection = gtk_widget_get_clipboard (GTK_WIDGET (sw), GDK_SELECTION_CLIPBOARD);
+  clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (sw), GDK_SELECTION_PRIMARY);
+
+  g_signal_handler_disconnect (clip_primary, sw->sel_handler);
+
+  g_signal_handler_disconnect (clip_selection, sw->ps_handler);
+
+  /* Make sure dispose does not run twice. */
+  sw->dispose_has_run = TRUE;
+
+  /* Chain up to the parent class */
+  G_OBJECT_CLASS (parent_class)->dispose (obj);
+}
+
+
+
+static void
 psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
 {
+  GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+
   parent_class = g_type_class_peek_parent (class);
+
+  gobject_class->dispose = psppire_syntax_window_dispose;
 }
 
 
@@ -284,8 +315,12 @@ on_edit_paste (PsppireSyntaxWindow *sw)
 				  sw);
 }
 
+
+/* Check to see if CLIP holds a target which we know how to paste,
+   and set the sensitivity of the Paste action accordingly.
+ */
 static void
-on_owner_change (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
+set_paste_sensitivity (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
 {
   gint i;
   gboolean compatible_target = FALSE;
@@ -576,6 +611,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   GtkClipboard *clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
 
   window->cliptext = NULL;
+  window->dispose_has_run = FALSE;
 
   window->edit_delete = get_action_assert (xml, "edit_delete");
   window->edit_copy = get_action_assert (xml, "edit_copy");
@@ -594,11 +630,11 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   g_signal_connect (window->buffer, "modified-changed", 
 		    G_CALLBACK (on_modified_changed), window);
 
-  g_signal_connect_swapped (clip_primary, "owner-change", 
-			    G_CALLBACK (selection_changed), window);
+  window->sel_handler = g_signal_connect_swapped (clip_primary, "owner-change", 
+						   G_CALLBACK (selection_changed), window);
 
-  g_signal_connect (clip_selection, "owner-change", 
-		    G_CALLBACK (on_owner_change), window);
+  window->ps_handler = g_signal_connect (clip_selection, "owner-change", 
+					  G_CALLBACK (set_paste_sensitivity), window);
 
   connect_help (xml);
 
@@ -788,6 +824,4 @@ psppire_syntax_window_iface_init (PsppireWindowIface *iface)
   iface->save = syntax_save;
   iface->load = syntax_load;
 }
-
-
 
