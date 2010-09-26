@@ -116,10 +116,6 @@ dist_TESTS = \
 	tests/expressions/variables.sh \
 	tests/expressions/vectors.sh
 
-if GNM_SUPPORT
-dist_TESTS += tests/command/get-data-gnm.sh 
-endif
-
 if PSQL_SUPPORT
 dist_TESTS += tests/command/get-data-psql.sh 
 endif
@@ -319,7 +315,6 @@ tests_output_render_test_LDADD = \
 
 EXTRA_DIST += \
 	$(dist_TESTS) \
-        tests/Book1.gnm.unzipped \
 	tests/weighting.data tests/data-list.data tests/list.data \
 	tests/no_case_size.sav \
 	tests/coverage.sh tests/test_template \
@@ -350,7 +345,8 @@ EXTRA_DIST += \
 	tests/formats/num-out-cmp.pl \
 	tests/formats/num-out-compare.pl \
 	tests/formats/num-out-decmp.pl \
-	tests/formats/num-out.pl
+	tests/formats/num-out.pl \
+        tests/language/data-io/Book1.gnm.unzipped
 
 CLEANFILES += *.save pspp.* foo*
 

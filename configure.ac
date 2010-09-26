@@ -201,7 +201,7 @@ if test $HAVE_LIBXML2 = yes && test $HAVE_ZLIB = yes; then
 else
   GNM_SUPPORT=no
 fi
-AM_CONDITIONAL([GNM_SUPPORT], [test $GNM_SUPPORT = yes])
+AC_SUBST([GNM_SUPPORT])
 
 dnl ODT support requires libxml2.
 if test $HAVE_LIBXML2 = yes; then
