@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/import-export.sh \
 	tests/command/insert.sh \
 	tests/command/lag.sh \
 	tests/command/line-ends.sh \
