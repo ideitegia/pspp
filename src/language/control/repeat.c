@@ -306,7 +306,10 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
 
       /* Retrieve an input line and make a copy of it. */
       if (!lex_get_line_raw (lexer))
-        return false;
+        {
+          msg (SE, _("DO REPEAT without END REPEAT."));
+          return false;
+        }
       ds_init_string (&text, lex_entire_line_ds (lexer));
 
       /* Record file name. */
