@@ -862,6 +862,8 @@ lex_get_line_raw (struct lexer *lexer)
       const char *line = ds_cstr (&lexer->line_buffer);
       text_item_submit (text_item_create (TEXT_ITEM_SYNTAX, line));
     }
+  else
+    lexer->prog = NULL;
   return ok;
 }
 
@@ -874,10 +876,7 @@ lex_get_line (struct lexer *lexer)
   bool line_starts_command;
 
   if (!lex_get_line_raw (lexer))
-    {
-      lexer->prog = NULL;
-      return false;
-    }
+    return false;
 
   lex_preprocess_line (&lexer->line_buffer,
 		       lex_current_syntax_mode (lexer),
