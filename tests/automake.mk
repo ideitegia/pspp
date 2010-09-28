@@ -379,7 +379,8 @@ TESTSUITE_AT = \
 	tests/language/data-io/data-list.at \
 	tests/language/data-io/data-reader.at \
 	tests/language/data-io/file-handle.at \
-	tests/language/data-io/get-data.at \
+	tests/language/data-io/get-data-gnm.at \
+	tests/language/data-io/get-data-txt.at \
 	tests/language/data-io/save.at \
 	tests/language/data-io/save-translate.at \
 	tests/language/dictionary/attributes.at \
