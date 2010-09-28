@@ -47,3 +47,21 @@ AT_CHECK([pspp -o pspp.csv do-repeat.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
 ])
 AT_CLEANUP
+
+dnl This program tests for a bug that crashed PSPP when END REPEAT
+dnl was missing.  See bug #31016.
+AT_SETUP([DO REPEAT -- missing END REPEAT])
+AT_DATA([do-repeat.sps], [dnl
+DATA LIST NOTABLE /x 1.
+DO REPEAT y = 1 TO 10.
+])
+AT_CHECK([pspp -o pspp.csv do-repeat.sps], [1], [dnl
+error: DO REPEAT: DO REPEAT without END REPEAT.
+error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+AT_CHECK([cat pspp.csv], [0], [dnl
+error: DO REPEAT: DO REPEAT without END REPEAT.
+
+error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+AT_CLEANUP
