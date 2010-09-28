@@ -147,19 +147,22 @@ if test x"$with_libpq" != x"no" && test -n "$PG_CONFIG" ; then
      LDFLAGS=$save_LDFLAGS])
 
   if test $pspp_cv_have_libpq = yes; then
+    PSQL_SUPPORT=yes
     AC_DEFINE([PSQL_SUPPORT], [1],
       [Define to 1 if building in support for reading from postgres
        databases.])
   else
+    PSQL_SUPPORT=no
     PG_CONFIG=
     PG_CFLAGS=
     PG_LDFLAGS=
     PG_LIBS=
   fi
 else
+  PSQL_SUPPORT=no
   pspp_cv_have_libpq=no
 fi
-AM_CONDITIONAL(PSQL_SUPPORT, test $pspp_cv_have_libpq = yes)
+AC_SUBST([PSQL_SUPPORT])
 
 dnl Check for libxml2
 PKG_CHECK_MODULES(

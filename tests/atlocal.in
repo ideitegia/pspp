@@ -7,3 +7,11 @@ host='@host@'
 GNM_SUPPORT='@GNM_SUPPORT@'
 GZIP=
 export GZIP
+
+PSQL_SUPPORT='@PSQL_SUPPORT@'
+if test "$PSQL_SUPPORT" = yes; then
+    : ${PG_CONFIG:='@PG_CONFIG@'}
+    : ${PG_DBASE:=pspptest}
+    : ${PG_PORT:=6543}
+    : ${PG_PATH:=`$PG_CONFIG --bindir`}
+fi

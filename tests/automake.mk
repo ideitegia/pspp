@@ -116,10 +116,6 @@ dist_TESTS = \
 	tests/expressions/variables.sh \
 	tests/expressions/vectors.sh
 
-if PSQL_SUPPORT
-dist_TESTS += tests/command/get-data-psql.sh 
-endif
-
 TESTS = $(dist_TESTS) $(nodist_TESTS)
 
 check_PROGRAMS += \
@@ -380,6 +376,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/data-reader.at \
 	tests/language/data-io/file-handle.at \
 	tests/language/data-io/get-data-gnm.at \
+	tests/language/data-io/get-data-psql.at \
 	tests/language/data-io/get-data-txt.at \
 	tests/language/data-io/save.at \
 	tests/language/data-io/save-translate.at \
