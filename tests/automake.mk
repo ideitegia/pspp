@@ -358,6 +358,7 @@ EXTRA_DIST += tests/OChangeLog
 # Autotest testsuite
 
 EXTRA_DIST += \
+	tests/testsuite.in \
 	$(TESTSUITE_AT) \
 	$(TESTSUITE) \
 	tests/atlocal.in \
