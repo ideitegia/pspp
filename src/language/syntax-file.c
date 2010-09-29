@@ -85,17 +85,8 @@ read_syntax_file (struct getl_interface *s,
   struct syntax_file_source *sfs = UP_CAST (s, struct syntax_file_source,
                                             parent);
 
-  /* Open file, if not yet opened. */
   if (sfs->syntax_file == NULL)
-    {
-      sfs->syntax_file = fn_open (sfs->fn, "r");
-
-      if (sfs->syntax_file == NULL)
-        {
-          msg (ME, _("Opening `%s': %s."), sfs->fn, strerror (errno));
-          return false;
-        }
-    }
+    return false;
 
   /* Read line from file and remove new-line.
      Skip initial "#! /usr/bin/pspp" line. */
@@ -142,6 +133,9 @@ create_syntax_file_source (const char *fn)
   struct syntax_file_source *ss = xzalloc (sizeof (*ss));
 
   ss->fn = xstrdup (fn);
+  ss->syntax_file = fn_open (ss->fn, "r");
+  if (ss->syntax_file == NULL)
+    msg (ME, _("Opening `%s': %s."), ss->fn, strerror (errno));
 
   ss->parent.interactive = always_false;
   ss->parent.read = read_syntax_file ;
