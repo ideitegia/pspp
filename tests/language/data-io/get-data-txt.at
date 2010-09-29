@@ -1,4 +1,4 @@
-at_BANNER([GET DATA /TYPE=TXT])
+AT_BANNER([GET DATA /TYPE=TXT])
 
 dnl These tests exercise features of GET DATA /TYPE=TXT that
 dnl it has in common with DATA LIST, using tests drawn from
