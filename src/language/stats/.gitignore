@@ -1,7 +1,6 @@
 crosstabs.c
 examine.c
 frequencies.c
-glm.c
 npar.c
 rank.c
 regression.c

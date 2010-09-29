@@ -6,7 +6,6 @@ src_language_stats_built_sources = \
 	src/language/stats/crosstabs.c \
 	src/language/stats/examine.c \
 	src/language/stats/frequencies.c \
-	src/language/stats/glm.c \
 	src/language/stats/npar.c \
 	src/language/stats/rank.c \
 	src/language/stats/regression.c \
@@ -30,6 +29,7 @@ language_stats_sources = \
 	src/language/stats/flip.c \
 	src/language/stats/freq.c \
 	src/language/stats/freq.h \
+	src/language/stats/glm.c \
 	src/language/stats/npar-summary.c \
 	src/language/stats/npar-summary.h \
 	src/language/stats/oneway.c \
