@@ -120,10 +120,11 @@ m4_define([INIT_PSQL],
 
 m4_define([CLEANUP_PSQL], [pg_ctl stop -W -o "-k `pwd` -h ''"])
 
-AT_SETUP([GET DATA /TYPE=PSQL -- ordinary query])
+AT_SETUP([GET DATA /TYPE=PSQL])
 INIT_PSQL
-AT_CAPTURE_FILE([get-data.sps])
-AT_CHECK([cat > get-data.sps <<EOF
+
+dnl Test with an ordinary query.
+AT_CHECK([cat > ordinary-query.sps <<EOF
 GET DATA /TYPE=psql 
 	/CONNECT="host=$PGHOST port=$PGPORT dbname=$PG_DBASE"
 	/UNENCRYPTED
@@ -134,7 +135,7 @@ DISPLAY DICTIONARY.
 LIST.
 EOF
 ])
-AT_CHECK([pspp -o pspp.csv get-data.sps])
+AT_CHECK([pspp -o pspp.csv ordinary-query.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
 Variable,Description,,Position
 bool,Format: F8.2,,1
@@ -232,12 +233,9 @@ bool,bytea,char,int8,int2,int4,numeric,text,oid,float4,float8,money,pbchar,varch
 .  ,20,,.  ,.  ,.  ,.          ,,.  ,.  ,.  ,.  ,,,.,.,.,.,.,.,.,.  @&t@
 1.00,31,b       ,1.00,1.00,1.00,6.553500E+004,that-long-text  ,.00,1.00,1.00,$1.23,b       ,B       ,10-JAN-1963,1:05:02,10-JAN-1963 23:58:00,10-JAN-1963 22:58:00,12 01:03:04,25,1:05:02,-7.00
 ])
-AT_CLEANUP
 
-AT_SETUP([GET DATA /TYPE=PSQL -- empty result set])
-INIT_PSQL
-AT_CAPTURE_FILE([get-data.sps])
-AT_CHECK([cat > get-data.sps <<EOF
+dnl Test query with empty result set.
+AT_CHECK([cat > empty-result.sps <<EOF
 GET DATA /TYPE=psql 
 	/CONNECT="host=$PGHOST port=$PGPORT dbname=$PG_DBASE"
 	/UNENCRYPTED
@@ -248,7 +246,7 @@ DISPLAY DICTIONARY.
 LIST.
 EOF
 ])
-AT_CHECK([pspp -o pspp.csv get-data.sps])
+AT_CHECK([pspp -o pspp.csv empty-result.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
 Variable,Description,,Position
 a,Format: F8.2,,1
@@ -264,12 +262,9 @@ c,Format: E40.2,,3
 ,Display Alignment: Right,,
 ,Display Width: 8,,
 ])
-AT_CLEANUP
 
-AT_SETUP([GET DATA /TYPE=PSQL -- large result set])
-INIT_PSQL
-AT_CAPTURE_FILE([get-data.sps])
-AT_CHECK([cat > get-data.sps <<EOF
+dnl Test query with large result set.
+AT_CHECK([cat > large-result.sps <<EOF
 GET DATA /TYPE=psql 
 	/CONNECT="host=$PGHOST port=$PGPORT dbname=$PG_DBASE"
 	/UNENCRYPTED
@@ -293,7 +288,7 @@ N OF CASES 6.
 LIST.
 EOF
 ])
-AT_CHECK([pspp -o pspp.csv get-data.sps])
+AT_CHECK([pspp -o pspp.csv large-result.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
 Table: Data List
 x,diff
@@ -313,12 +308,9 @@ x,diff
 996.00,1.00
 995.00,1.00
 ])
-AT_CLEANUP
 
 dnl Check for a bug caused by having string variables in the database,
 dnl all of which are null.
-AT_SETUP([GET DATA /TYPE=PSQL -- all-null string])
-INIT_PSQL
 AT_DATA([all-null-string.sql],
   [-- a table which has a text field containing only null, or zero
    -- length entries.
