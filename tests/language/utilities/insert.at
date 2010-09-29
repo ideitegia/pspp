@@ -1,0 +1,163 @@
+AT_BANNER([INSERT])
+
+dnl Create a file "batch.sps" that is valid syntax only in batch mode.
+m4_define([CREATE_BATCH_SPS], 
+  [AT_DATA([batch.sps], [dnl
+input program.
++  loop #i = 1 to 5.
++    compute z = #i
++    end case.
++  end loop
+end file.
+end input program.
+])])
+
+AT_SETUP([INSERT SYNTAX=INTERACTIVE])
+CREATE_BATCH_SPS
+AT_DATA([insert.sps], [dnl
+INSERT 
+  FILE='batch.sps'
+  SYNTAX=INTERACTIVE.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv insert.sps], [1], [dnl
+batch.sps:2: error: INPUT PROGRAM: Syntax error at `+': expecting command name.
+batch.sps:3: error: INPUT PROGRAM: Syntax error at `+': expecting command name.
+batch.sps:5: error: INPUT PROGRAM: Syntax error at `+': expecting command name.
+batch.sps:7: error: Input program did not create any variables.
+insert.sps:4: error: LIST: LIST is allowed only after the active file has been defined.
+])
+AT_CLEANUP
+
+AT_SETUP([INSERT SYNTAX=BATCH])
+CREATE_BATCH_SPS
+AT_DATA([insert.sps], [dnl
+INSERT 
+  FILE='batch.sps'
+  SYNTAX=BATCH.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv insert.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+z
+1.00
+2.00
+3.00
+4.00
+5.00
+])
+AT_CLEANUP
+
+AT_SETUP([INSERT CD=NO])
+AT_DATA([insert.sps], [INSERT FILE='Dir1/foo.sps'.
+LIST.
+])
+mkdir Dir1
+AT_DATA([Dir1/foo.sps], [INSERT FILE='bar.sps' CD=NO.
+])
+AT_DATA([Dir1/bar.sps],
+  [DATA LIST LIST /x *.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+])
+AT_CHECK([pspp -o pspp.csv insert.sps], [1], [dnl
+Dir1/foo.sps:1: error: INSERT: Can't find `bar.sps' in include file search path.
+insert.sps:2: error: LIST: LIST is allowed only after the active file has been defined.
+])
+AT_CLEANUP
+
+AT_SETUP([INSERT CD=YES])
+AT_DATA([insert.sps], [INSERT FILE='Dir1/foo.sps' CD=YES.
+LIST.
+])
+mkdir Dir1
+AT_DATA([Dir1/foo.sps], [INSERT FILE='bar.sps'.
+])
+AT_DATA([Dir1/bar.sps],
+  [DATA LIST LIST /x *.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+])
+AT_CHECK([pspp -o pspp.csv insert.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+
+Table: Data List
+x
+1.00
+2.00
+3.00
+])
+AT_CLEANUP
+
+m4_define([CREATE_ERROR_SPS],
+  [AT_DATA([error.sps], [dnl
+DATA LIST NOTABLE LIST /x *.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+
+* The following line is erroneous
+
+DISPLAY AKSDJ.
+])])
+
+AT_SETUP([INSERT ERROR=STOP])
+CREATE_ERROR_SPS
+AT_DATA([insert.sps], [INSERT FILE='error.sps' ERROR=STOP.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv insert.sps], [1], [dnl
+error.sps:10: error: DISPLAY: AKSDJ is not a variable name.
+warning: Error encountered while ERROR=STOP is effective.
+error.sps:10: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+AT_CLEANUP
+
+AT_SETUP([INSERT ERROR=CONTINUE])
+CREATE_ERROR_SPS
+AT_DATA([insert.sps], [INSERT FILE='error.sps' ERROR=CONTINUE.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv insert.sps], [1], [dnl
+error.sps:10: error: DISPLAY: AKSDJ is not a variable name.
+])
+AT_CHECK([cat pspp.csv], [0], [dnl
+error.sps:10: error: DISPLAY: AKSDJ is not a variable name.
+
+Table: Data List
+x
+1.00
+2.00
+3.00
+])
+AT_CLEANUP
+
+dnl Test for regression against bug #24569 in which PSPP crashed
+dnl upon attempt to insert a nonexistent file.
+AT_SETUP([INSERT nonexistent file])
+AT_DATA([insert.sps], [dnl
+INSERT 
+  FILE='nonexistent'
+  ERROR=CONTINUE.
+  .
+
+LIST.
+])
+AT_CHECK([pspp -O format=csv insert.sps], [1], [dnl
+insert.sps:3: error: INSERT: Can't find `nonexistent' in include file search path.
+
+insert.sps:6: error: LIST: LIST is allowed only after the active file has been defined.
+])
+AT_CLEANUP

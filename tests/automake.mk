@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/insert.sh \
 	tests/command/lag.sh \
 	tests/command/line-ends.sh \
 	tests/command/list.sh \
@@ -393,6 +392,7 @@ TESTSUITE_AT = \
 	tests/language/stats/flip.at \
 	tests/language/stats/frequencies.at \
 	tests/language/stats/oneway.at \
+	tests/language/utilities/insert.at \
 	tests/language/utilities/set.at \
 	tests/language/utilities/title.at \
 	tests/language/xforms/compute.at \
