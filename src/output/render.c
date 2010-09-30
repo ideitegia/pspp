@@ -778,6 +778,7 @@ render_page_unref (struct render_page *page)
 {
   if (page != NULL && --page->ref_cnt == 0)
     {
+      int i;
       struct render_overflow *overflow, *next;
 
       HMAP_FOR_EACH_SAFE (overflow, next, struct render_overflow, node,
@@ -786,8 +787,13 @@ render_page_unref (struct render_page *page)
       hmap_destroy (&page->overflows);
 
       table_unref (page->table);
-      free (page->cp[H]);
-      free (page->cp[V]);
+      
+      for (i = 0; i < TABLE_N_AXES; ++i)
+	{
+	  free (page->join_crossing[i]);
+	  free (page->cp[i]);
+	}
+
       free (page);
     }
 }
@@ -1393,4 +1399,3 @@ insert_overflow (struct render_page_selection *s,
 
   return of;
 }
-
