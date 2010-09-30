@@ -100,6 +100,7 @@ casegrouper_get_next_group (struct casegrouper *grouper,
           case_unref (casereader_read (grouper->reader));
           casewriter_write (writer, tmp);
         }
+      case_unref (tmp);
       case_unref (group_case);
 
       *reader = casewriter_make_reader (writer);
