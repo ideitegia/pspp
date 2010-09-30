@@ -199,3 +199,29 @@ x,y
 9,0
 ])
 AT_CLEANUP
+
+dnl Test that PSPP accepts LF and CR LF as line ends, but
+dnl treats isolated CR as linear whitespace.
+AT_SETUP([DATA LIST with various line-ends])
+AT_DATA([data-list.sps], [dnl
+data list list notable file='input.txt'/a b c.
+list.
+])
+printf '1 2 3\n4 5 6\r\n7\r8\r9\r\n10 11 12\n13 14 15 \r\n16\r\r17\r18\n' > input.txt
+dnl Make sure that input.txt actually received the data that we expect.
+dnl It might not have, if we're running on a system that translates \n
+dnl into some other sequence.
+AT_CHECK([cksum input.txt], [0], [1732021750 50 input.txt
+])
+AT_CHECK([pspp -o pspp.csv data-list.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+a,b,c
+1.00,2.00,3.00
+4.00,5.00,6.00
+7.00,8.00,9.00
+10.00,11.00,12.00
+13.00,14.00,15.00
+16.00,17.00,18.00
+])
+AT_CLEANUP
