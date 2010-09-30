@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/list.sh \
 	tests/command/loop.sh \
 	tests/command/longvars.sh \
 	tests/command/match-files.sh \
@@ -83,7 +82,6 @@ dist_TESTS = \
 	tests/bugs/get-no-file.sh \
 	tests/bugs/if_crash.sh \
 	tests/bugs/input-crash.sh \
-	tests/bugs/list-overflow.sh \
 	tests/bugs/match-files-scratch.sh \
 	tests/bugs/multipass.sh \
 	tests/bugs/overwrite-input-file.sh \
@@ -306,7 +304,7 @@ tests_output_render_test_LDADD = \
 
 EXTRA_DIST += \
 	$(dist_TESTS) \
-	tests/weighting.data tests/data-list.data tests/list.data \
+	tests/weighting.data tests/data-list.data \
 	tests/no_case_size.sav \
 	tests/coverage.sh tests/test_template \
 	tests/v13.sav tests/v14.sav \
@@ -374,6 +372,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/get-data-gnm.at \
 	tests/language/data-io/get-data-psql.at \
 	tests/language/data-io/get-data-txt.at \
+	tests/language/data-io/list.at \
 	tests/language/data-io/save.at \
 	tests/language/data-io/save-translate.at \
 	tests/language/dictionary/attributes.at \
