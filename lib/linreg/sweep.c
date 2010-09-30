@@ -169,8 +169,8 @@ reg_sweep (gsl_matrix * A, int last_col)
 		  }
 	    }
 	  gsl_matrix_free (B);
-	  return GSL_SUCCESS;
 	  free (ordered_cols);
+	  return GSL_SUCCESS;
 	}
       return GSL_ENOTSQR;
     }
