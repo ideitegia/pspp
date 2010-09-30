@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/lag.sh \
 	tests/command/line-ends.sh \
 	tests/command/list.sh \
 	tests/command/loop.sh \
@@ -85,7 +84,6 @@ dist_TESTS = \
 	tests/bugs/get-no-file.sh \
 	tests/bugs/if_crash.sh \
 	tests/bugs/input-crash.sh \
-	tests/bugs/lag_crash.sh \
 	tests/bugs/list-overflow.sh \
 	tests/bugs/match-files-scratch.sh \
 	tests/bugs/multipass.sh \
