@@ -178,6 +178,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
   ok = proc_commit (ds) && ok;
 
   subcase_destroy (&sc);
+  free (cmd.v_variables);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
