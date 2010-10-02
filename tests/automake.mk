@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/n_of_cases.sh \
 	tests/command/npar-binomial.sh \
 	tests/command/npar-chisquare.sh \
 	tests/command/npar-wilcoxon.sh \
