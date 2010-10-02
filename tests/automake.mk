@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/match-files.sh \
 	tests/command/missing-values.sh \
 	tests/command/no_case_size.sh \
 	tests/command/n_of_cases.sh \
@@ -80,7 +79,6 @@ dist_TESTS = \
 	tests/bugs/get-no-file.sh \
 	tests/bugs/if_crash.sh \
 	tests/bugs/input-crash.sh \
-	tests/bugs/match-files-scratch.sh \
 	tests/bugs/multipass.sh \
 	tests/bugs/overwrite-input-file.sh \
 	tests/bugs/overwrite-special-file.sh \
@@ -372,6 +370,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/get-data-psql.at \
 	tests/language/data-io/get-data-txt.at \
 	tests/language/data-io/list.at \
+	tests/language/data-io/match-files.at \
 	tests/language/data-io/save.at \
 	tests/language/data-io/save-translate.at \
 	tests/language/dictionary/attributes.at \
