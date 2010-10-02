@@ -117,7 +117,7 @@ void msg_ui_disable_warnings (bool);
 
 
 /* Used in panic situations only. */
-void request_bug_report_and_abort (const char *msg) NO_RETURN;
+void request_bug_report (const char *msg);
 
 
 #endif /* message.h */

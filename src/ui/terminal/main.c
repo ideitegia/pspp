@@ -155,20 +155,27 @@ fpu_init (void)
 void
 bug_handler(int sig)
 {
+  /* Reset SIG to its default handling so that if it happens again we won't
+     recurse. */
+  signal (sig, SIG_DFL);
+
 #if DEBUGGING
   connect_debugger ();
 #endif
   switch (sig)
     {
     case SIGABRT:
-      request_bug_report_and_abort("Assertion Failure/Abort");
+      request_bug_report("Assertion Failure/Abort");
     case SIGFPE:
-      request_bug_report_and_abort("Floating Point Exception");
+      request_bug_report("Floating Point Exception");
     case SIGSEGV:
-      request_bug_report_and_abort("Segmentation Violation");
+      request_bug_report("Segmentation Violation");
     default:
-      request_bug_report_and_abort("Unknown");
+      request_bug_report("Unknown");
     }
+
+  /* Re-raise the signal so that we terminate with the correct status. */
+  raise (sig);
 }
 
 /* Clean up PSPP in preparation for termination.  */

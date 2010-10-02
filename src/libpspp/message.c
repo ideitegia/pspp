@@ -312,7 +312,7 @@ msg_enable (void)
 /* Private functions. */
 
 void
-request_bug_report_and_abort (const char *msg)
+request_bug_report (const char *msg)
 {
   fprintf (stderr, "******************************************************\n");
   fprintf (stderr, "You have discovered a bug in PSPP.  Please report this\n");
@@ -334,7 +334,5 @@ request_bug_report_and_abort (const char *msg)
 #endif
            );
   fprintf (stderr, "******************************************************\n");
-
-  _exit (EXIT_FAILURE);
 }
 
