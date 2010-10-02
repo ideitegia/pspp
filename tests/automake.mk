@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/missing-values.sh \
 	tests/command/no_case_size.sh \
 	tests/command/n_of_cases.sh \
 	tests/command/npar-binomial.sh \
@@ -300,7 +299,7 @@ tests_output_render_test_LDADD = \
 
 EXTRA_DIST += \
 	$(dist_TESTS) \
-	tests/weighting.data tests/data-list.data \
+	tests/weighting.data \
 	tests/no_case_size.sav \
 	tests/coverage.sh tests/test_template \
 	tests/v13.sav tests/v14.sav \
@@ -374,6 +373,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/save.at \
 	tests/language/data-io/save-translate.at \
 	tests/language/dictionary/attributes.at \
+	tests/language/dictionary/missing-values.at \
 	tests/language/dictionary/mrsets.at \
 	tests/language/expressions/evaluate.at \
 	tests/language/lexer/variable-parser.at \
