@@ -330,7 +330,7 @@ void
 dict_get_vars (const struct dictionary *d, const struct variable ***vars,
                size_t *cnt, enum dict_class exclude)
 {
-  dict_get_vars_mutable (d, (struct variable ***) vars, cnt, exclude);
+  dict_get_vars_mutable (d, CONST_CAST (struct variable ***, vars), cnt, exclude);
 }
 
 /* Sets *VARS to an array of pointers to variables in D and *CNT

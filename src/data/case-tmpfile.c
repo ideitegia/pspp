@@ -52,7 +52,7 @@ width_to_n_bytes (int width)
 static void *
 value_to_data (const union value *value_, int width)
 {
-  union value *value = (union value *) value_;
+  union value *value = CONST_CAST (union value *, value_);
   assert (sizeof value->f == sizeof (double));
   if (width == 0)
     return &value->f;

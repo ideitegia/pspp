@@ -1212,7 +1212,7 @@ render_page_select (const struct render_page *page, enum table_axis axis,
   if (z0 == page->h[a][0] && p0 == 0
       && z1 == page->n[a] - page->h[a][1] && p1 == 0)
     {
-      struct render_page *page_rw = (struct render_page *) page;
+      struct render_page *page_rw = CONST_CAST (struct render_page *, page);
       page_rw->ref_cnt++;
       return page_rw;
     }

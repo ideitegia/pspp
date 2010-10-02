@@ -181,9 +181,9 @@ struct gnumeric_reader
 
 static void process_node (struct gnumeric_reader *r);
 
-#define _xml(X) (const xmlChar *)(X)
+#define _xml(X) (CHAR_CAST (const xmlChar *, X))
 
-#define _xmlchar_to_int(X) atoi((const char *)X)
+#define _xmlchar_to_int(X) (atoi(CHAR_CAST (const char *, X)))
 
 static void
 gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
@@ -328,7 +328,7 @@ convert_xml_string_to_value (struct ccase *c, const struct variable *var,
     value_copy_str_rpad (v, var_get_width (var), xv, ' ');
   else
     {
-      const char *text = (const char *) xv;
+      const char *text = CHAR_CAST (const char *, xv);
       char *endptr;
 
       errno = 0;
@@ -459,7 +459,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
       if ( r->node_type == XML_READER_TYPE_TEXT )
 	{
 	  xmlChar *value = xmlTextReaderValue (r->xtr);
-	  const char *text  = (const char *) value;
+	  const char *text  = CHAR_CAST (const char *, value);
 
 	  if ( r->row < r->start_row)
 	    {
@@ -499,7 +499,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
   /* Create the dictionary and populate it */
   *dict = r->dict = dict_create ();
 
-  dict_set_encoding (r->dict, (const char *) xmlTextReaderConstEncoding (r->xtr));
+  dict_set_encoding (r->dict, CHAR_CAST (const char *, xmlTextReaderConstEncoding (r->xtr)));
 
   for (i = 0 ; i < n_var_specs ; ++i )
     {
