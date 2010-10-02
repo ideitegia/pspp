@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/npar-binomial.sh \
 	tests/command/npar-chisquare.sh \
 	tests/command/npar-wilcoxon.sh \
 	tests/command/npar-sign.sh \
@@ -384,6 +383,7 @@ TESTSUITE_AT = \
 	tests/language/stats/factor.at \
 	tests/language/stats/flip.at \
 	tests/language/stats/frequencies.at \
+	tests/language/stats/npar.at \
 	tests/language/stats/oneway.at \
 	tests/language/utilities/insert.at \
 	tests/language/utilities/set.at \

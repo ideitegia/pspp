@@ -1,0 +1,276 @@
+AT_BANNER([NPAR TESTS])
+
+AT_SETUP([NPAR TESTS BINOMIAL, P < 0.5; N1/N2 < 1])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x * w *.
+BEGIN DATA.
+1   6
+2   15
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.3) = x
+	.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1.000,6.000,.286,.300,.551
+,Group2,2.000,15.000,.714,,
+,Total,,21.000,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P < 0.5; N1/N2 > 1])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x (F8.0) w (F8.0).
+BEGIN DATA.
+1   7
+2   6
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.4) = x
+	.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,7,.538,.400,.229
+,Group2,2,6,.462,,
+,Total,,13,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P < 0.5; N1/N2 = 1])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x (F8.0) w (F8.0).
+BEGIN DATA.
+1   8
+2   8
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.4) = x
+	.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,8,.500,.400,.284
+,Group2,2,8,.500,,
+,Total,,16,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P > 0.5; N1/N2 < 1])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x (F8.0) w (F8.0).
+BEGIN DATA.
+1   11
+2   12
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.6) = x
+	.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,11,.478,.600,.164
+,Group2,2,12,.522,,
+,Total,,23,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P > 0.5; N1/N2 > 1])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x (F8.0) w (F8.0).
+BEGIN DATA.
+1   11
+2   9
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.6) = x.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,11,.550,.600,.404
+,Group2,2,9,.450,,
+,Total,,20,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P > 0.5; N1/N2 = 1])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x (F8.0) w (F8.0).
+BEGIN DATA.
+1   11
+2   11
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.6) = x.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (1-tailed)
+x,Group1,1,11,.500,.600,.228
+,Group2,2,11,.500,,
+,Total,,22,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P = 0.5; N1/N2 < 1])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x (F8.0) w (F8.0).
+BEGIN DATA.
+1   8
+2   15
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL = x
+	.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,1,8,.348,.500,.210
+,Group2,2,15,.652,,
+,Total,,23,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P = 0.5; N1/N2 > 1])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x (F8.0) w (F8.0).
+BEGIN DATA.
+1   12
+2   6
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.5) = x.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,1,12,.667,.500,.238
+,Group2,2,6,.333,,
+,Total,,18,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P = 0.5; N1/N2 = 1])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x (F8.0) w (F8.0).
+BEGIN DATA.
+1   10
+2   10
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.5) = x
+	.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,1,10,.500,.500,1.000
+,Group2,2,10,.500,,
+,Total,,20,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P = 0.5; N1/N2 = 1 Cutpoint])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x * w *.
+BEGIN DATA.
+9    3
+10   7
+11   16
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.5) = x (10)
+	.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,<= 10,10.000,.385,.500,.327
+,Group2,,16.000,.615,,
+,Total,,26.000,1.000,,
+])
+AT_CLEANUP
+
+AT_SETUP([NPAR TESTS BINOMIAL, P = 0.5; N1/N2 = 1 Named values])
+AT_DATA([npar.sps], [dnl
+SET FORMAT F8.3.
+
+DATA LIST LIST NOTABLE /x * w *.
+BEGIN DATA.
+10   10
+15   45
+20   13
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.5) = x (10, 20)
+	.
+])
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Binomial Test
+,,Category,N,Observed Prop.,Test Prop.,Exact Sig. (2-tailed)
+x,Group1,10.000,10.000,.435,.500,.678
+,Group2,20.000,13.000,.565,,
+,Total,,23.000,1.000,,
+])
+AT_CLEANUP
+
