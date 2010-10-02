@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/loop.sh \
 	tests/command/longvars.sh \
 	tests/command/match-files.sh \
 	tests/command/missing-values.sh \
@@ -365,6 +364,7 @@ TESTSUITE_AT = \
 	tests/language/command.at \
 	tests/language/control/do-if.at \
 	tests/language/control/do-repeat.at \
+	tests/language/control/loop.at \
 	tests/language/data-io/add-files.at \
 	tests/language/data-io/data-list.at \
 	tests/language/data-io/data-reader.at \

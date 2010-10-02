@@ -1,0 +1,248 @@
+AT_BANNER([LOOP])
+
+m4_define([LOOP_DATA], [dnl
+data list notable /x 1 y 2 z 3.
+begin data.
+121
+252
+393
+404
+end data.
+])
+
+AT_SETUP([LOOP with index])
+AT_DATA([loop.sps], [dnl
+LOOP_DATA
+loop #i=x to y by z.
+print /#i.
+end loop.
+print/'--------'.
+execute.
+])
+AT_CHECK([pspp -o pspp.csv loop.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+1.00 @&t@
+
+2.00 @&t@
+
+--------
+
+2.00 @&t@
+
+4.00 @&t@
+
+--------
+
+3.00 @&t@
+
+6.00 @&t@
+
+9.00 @&t@
+
+--------
+
+--------
+])
+AT_CLEANUP
+
+AT_SETUP([LOOP with IF condition])
+AT_DATA([loop.sps], [dnl
+LOOP_DATA
+compute #j=x.
+loop if #j <= y.
+print /#j.
+compute #j = #j + z.
+end loop.
+print/'--------'.
+execute.
+])
+AT_CHECK([pspp -o pspp.csv loop.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+1.00 @&t@
+
+2.00 @&t@
+
+--------
+
+2.00 @&t@
+
+4.00 @&t@
+
+--------
+
+3.00 @&t@
+
+6.00 @&t@
+
+9.00 @&t@
+
+--------
+
+--------
+])
+AT_CLEANUP
+
+AT_SETUP([LOOP with END IF condition])
+AT_DATA([loop.sps], [dnl
+LOOP_DATA
+compute #k=x.
+loop.
+print /#k.
+compute #k = #k + z.
+end loop if #k > y.
+print/'--------'.
+execute.
+])
+AT_CHECK([pspp -o pspp.csv loop.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+1.00 @&t@
+
+2.00 @&t@
+
+--------
+
+2.00 @&t@
+
+4.00 @&t@
+
+--------
+
+3.00 @&t@
+
+6.00 @&t@
+
+9.00 @&t@
+
+--------
+
+4.00 @&t@
+
+--------
+])
+AT_CLEANUP
+
+AT_SETUP([LOOP with index and IF based on index])
+AT_DATA([loop.sps], [dnl
+LOOP_DATA
+loop #m=x to y by z if #m < 4.
+print /#m.
+end loop.
+print/'--------'.
+execute.
+])
+AT_CHECK([pspp -o pspp.csv loop.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+1.00 @&t@
+
+2.00 @&t@
+
+--------
+
+2.00 @&t@
+
+--------
+
+3.00 @&t@
+
+--------
+
+--------
+])
+AT_CLEANUP
+
+AT_SETUP([LOOP with index and END IF based on index])
+AT_DATA([loop.sps], [dnl
+LOOP_DATA
+loop #n=x to y by z.
+print /#n.
+end loop if #n >= 4.
+print/'--------'.
+execute.
+])
+AT_CHECK([pspp -o pspp.csv loop.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+1.00 @&t@
+
+2.00 @&t@
+
+--------
+
+2.00 @&t@
+
+4.00 @&t@
+
+--------
+
+3.00 @&t@
+
+6.00 @&t@
+
+--------
+
+--------
+])
+AT_CLEANUP
+
+AT_SETUP([LOOP with index and IF and END IF based on index])
+AT_DATA([loop.sps], [dnl
+LOOP_DATA
+loop #o=x to y by z if mod(#o,2) = 0.
+print /#o.
+end loop if #o >= 4.
+print/'--------'.
+execute.
+])
+AT_CHECK([pspp -o pspp.csv loop.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+--------
+
+2.00 @&t@
+
+4.00 @&t@
+
+--------
+
+--------
+
+--------
+])
+AT_CLEANUP
+
+AT_SETUP([LOOP with no conditions])
+AT_DATA([loop.sps], [dnl
+LOOP_DATA
+set mxloops = 2.
+compute #p = x.
+loop.
+print /#p.
+compute #p = #p + z.
+do if #p >= y.
+break.
+end if.
+end loop.
+print/'--------'.
+execute.
+])
+AT_CHECK([pspp -o pspp.csv loop.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+1.00 @&t@
+
+--------
+
+2.00 @&t@
+
+4.00 @&t@
+
+--------
+
+3.00 @&t@
+
+6.00 @&t@
+
+--------
+
+4.00 @&t@
+
+--------
+])
+AT_CLEANUP
