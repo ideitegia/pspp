@@ -166,12 +166,16 @@ bug_handler(int sig)
     {
     case SIGABRT:
       request_bug_report("Assertion Failure/Abort");
+      break;
     case SIGFPE:
       request_bug_report("Floating Point Exception");
+      break;
     case SIGSEGV:
       request_bug_report("Segmentation Violation");
+      break;
     default:
       request_bug_report("Unknown");
+      break;
     }
 
   /* Re-raise the signal so that we terminate with the correct status. */
