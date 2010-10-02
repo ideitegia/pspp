@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/no_case_size.sh \
 	tests/command/n_of_cases.sh \
 	tests/command/npar-binomial.sh \
 	tests/command/npar-chisquare.sh \
@@ -300,7 +299,6 @@ tests_output_render_test_LDADD = \
 EXTRA_DIST += \
 	$(dist_TESTS) \
 	tests/weighting.data \
-	tests/no_case_size.sav \
 	tests/coverage.sh tests/test_template \
 	tests/v13.sav tests/v14.sav \
 	tests/expressions/randist/beta.out \
@@ -357,6 +355,7 @@ EXTRA_DIST += \
 TESTSUITE_AT = \
 	tests/data/calendar.at \
 	tests/data/data-in.at \
+	tests/data/sys-file.at \
 	tests/language/command.at \
 	tests/language/control/do-if.at \
 	tests/language/control/do-repeat.at \

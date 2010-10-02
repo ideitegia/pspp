@@ -1,0 +1,60 @@
+AT_BANNER([system files])
+
+# Test that system files can be read properly, even when the case_size
+# header value is -1 (Some 3rd party products do this).
+AT_SETUP([system files with -1 case_size])
+AT_DATA([save.sps], [dnl
+DATA LIST LIST NOTABLE /cont (A32) size pop count.
+VAR LABEL
+    cont 'continents of the world'
+    size 'sq km'
+    pop 'population'
+    count 'number of countries'.
+SAVE OUTFILE='cont.sav'.
+BEGIN DATA.
+Asia, 44579000, 3.7E+009, 44.00
+Africa, 30065000, 7.8E+008, 53.00
+"North America", 24256000, 4.8E+008, 23.00
+"South America", 17819000, 3.4E+008, 12.00
+Antarctica, 13209000, .00, .00
+Europe, 9938000, 7.3E+008, 46.00
+Australia/Oceania, 7687000, 31000000, 14.00
+END DATA.
+])
+AT_CHECK([pspp -O format=csv save.sps])
+AT_CHECK([test -f cont.sav])
+
+dnl case_size is a 4-byte field at offset 68.
+dnl Make a new copy with its value changed to -1.
+AT_CHECK(
+  [(dd if=cont.sav bs=1 count=68;
+    printf '\377\377\377\377';
+    dd if=cont.sav bs=1 skip=72) > cont2.sav], [0], [], [ignore])
+AT_CHECK([cmp cont.sav cont2.sav], [1],
+  [cont.sav cont2.sav differ: char 69, line 1
+])
+
+AT_DATA([get.sps], [dnl
+GET FILE='cont2.sav'.
+DISPLAY LABELS.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv get.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Label,,Position
+cont,continents of the world,,1
+size,sq km,,2
+pop,population,,3
+count,number of countries,,4
+
+Table: Data List
+cont,size,pop,count
+Asia                            ,44579000,3.7E+009,44.00
+Africa                          ,30065000,7.8E+008,53.00
+North America                   ,24256000,4.8E+008,23.00
+South America                   ,17819000,3.4E+008,12.00
+Antarctica                      ,13209000,.00,.00
+Europe                          ,9938000,7.3E+008,46.00
+Australia/Oceania               ,7687000,31000000,14.00
+])
+AT_CLEANUP
