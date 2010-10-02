@@ -1,5 +1,5 @@
 # British translations for PSPP
-# Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2008, 2010 Free Software Foundation, Inc.
 # This file is distributed under the same licence as the PSPP package.
 #
 msgid ""
@@ -68,12 +68,12 @@ msgstr ""
 #: src/data/any-reader.c:56
 #, c-format
 msgid "An error occurred while opening `%s': %s."
-msgstr ""
+msgstr "An error occurred while opening ‘%s’: %s."
 
 #: src/data/any-reader.c:101
 #, c-format
 msgid "`%s' is not a system or portable file."
-msgstr ""
+msgstr "‘%s’ is not a system or portable file."
 
 #: src/data/any-reader.c:107 src/data/any-writer.c:63
 msgid "The inline file is not allowed here."
@@ -109,12 +109,12 @@ msgstr ""
 #: src/data/csv-file-writer.c:161 src/data/sys-file-writer.c:218
 #, c-format
 msgid "Error opening `%s' for writing as a system file: %s."
-msgstr ""
+msgstr "Error opening ‘%s’ for writing as a system file: %s."
 
 #: src/data/csv-file-writer.c:462
 #, c-format
 msgid "An I/O error occurred writing CSV file `%s'."
-msgstr ""
+msgstr "An I/O error occurred writing CSV file ‘%s’."
 
 #: src/data/data-in.c:274 src/data/data-in.c:464
 msgid "Field contents are not numeric."
@@ -181,7 +181,7 @@ msgstr ""
 #: src/data/data-in.c:876
 #, c-format
 msgid "Trailing garbage `%.*s' following date."
-msgstr ""
+msgstr "Trailing garbage ‘%.*s’ following date."
 
 #: src/data/data-in.c:892
 msgid "Julian day must have exactly three digits."
@@ -222,7 +222,7 @@ msgstr ""
 #: src/data/data-in.c:1152
 #, c-format
 msgid "`%c' expected in date field."
-msgstr ""
+msgstr "‘%c’ expected in date field."
 
 #: src/data/data-in.c:1193
 #, c-format
@@ -290,7 +290,7 @@ msgstr ""
 #: src/data/file-name.c:168
 #, c-format
 msgid "Not opening pipe file `%s' because SAFER option set."
-msgstr ""
+msgstr "Not opening pipe file ‘%s’ because SAFER option set."
 
 #: src/data/format.c:314
 msgid "Input format"
@@ -393,12 +393,12 @@ msgstr ""
 #: src/data/gnumeric-reader.c:364
 #, c-format
 msgid "Error opening `%s' for reading as a Gnumeric file: %s."
-msgstr ""
+msgstr "Error opening ‘%s’ for reading as a Gnumeric file: %s."
 
 #: src/data/gnumeric-reader.c:384
 #, c-format
 msgid "Invalid cell range `%s'"
-msgstr ""
+msgstr "Invalid cell range ‘%s’"
 
 #: src/data/gnumeric-reader.c:516 src/data/psql-reader.c:187
 #, c-format
@@ -408,7 +408,7 @@ msgstr ""
 #: src/data/gnumeric-reader.c:528
 #, c-format
 msgid "Selected sheet or range of spreadsheet `%s' is empty."
-msgstr ""
+msgstr "Selected sheet or range of spreadsheet ‘%s’ is empty."
 
 #: src/data/make-file.c:71
 #, c-format
@@ -458,7 +458,7 @@ msgstr ""
 #: src/data/por-file-reader.c:155
 #, c-format
 msgid "Error closing portable file `%s': %s."
-msgstr ""
+msgstr "Error closing portable file ‘%s’: %s."
 
 #: src/data/por-file-reader.c:207
 msgid "unexpected end of file"
@@ -560,7 +560,7 @@ msgstr ""
 #: src/data/por-file-reader.c:680
 #, c-format
 msgid "Invalid variable name `%s' in position %d."
-msgstr ""
+msgstr "Invalid variable name ‘%s’ in position %d."
 
 #: src/data/por-file-reader.c:684 src/data/sys-file-reader.c:605
 #, c-format
@@ -601,12 +601,12 @@ msgstr ""
 #: src/data/por-file-writer.c:160
 #, c-format
 msgid "Error opening `%s' for writing as a portable file: %s."
-msgstr ""
+msgstr "Error opening ‘%s’ for writing as a portable file: %s."
 
 #: src/data/por-file-writer.c:505
 #, c-format
 msgid "An I/O error occurred writing portable file `%s'."
-msgstr ""
+msgstr "An I/O error occurred writing portable file ‘%s’."
 
 #: src/data/psql-reader.c:46
 msgid ""
@@ -687,7 +687,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:225
 #, c-format
 msgid "Recoded variable name duplicates an existing `%s' within system file."
-msgstr ""
+msgstr "Recoded variable name duplicates an existing ‘%s’ within system file."
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
@@ -698,7 +698,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:296
 #, c-format
 msgid "Error opening `%s' for reading as a system file: %s."
-msgstr ""
+msgstr "Error opening ‘%s’ for reading as a system file: %s."
 
 #: src/data/sys-file-reader.c:335 tests/dissect-sysfile.c:155
 msgid "Misplaced type 4 record."
@@ -717,7 +717,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:427
 #, c-format
 msgid "Error closing system file `%s': %s."
-msgstr ""
+msgstr "Error closing system file ‘%s’: %s."
 
 #: src/data/sys-file-reader.c:492 src/data/sys-file-reader.c:502
 #: tests/dissect-sysfile.c:203 tests/dissect-sysfile.c:213
@@ -735,12 +735,12 @@ msgstr ""
 #: src/data/sys-file-reader.c:601
 #, c-format
 msgid "Invalid variable name `%s'."
-msgstr ""
+msgstr "Invalid variable name ‘%s’."
 
 #: src/data/sys-file-reader.c:609
 #, c-format
 msgid "Duplicate variable name `%s' within system file."
-msgstr ""
+msgstr "Duplicate variable name ‘%s’ within system file."
 
 #: src/data/sys-file-reader.c:617 tests/dissect-sysfile.c:357
 msgid "Variable label indicator field is not 0 or 1."
@@ -904,12 +904,12 @@ msgstr ""
 #: src/data/sys-file-reader.c:1271
 #, c-format
 msgid "Long variable mapping from %s to invalid variable name `%s'."
-msgstr ""
+msgstr "Long variable mapping from %s to invalid variable name ‘%s’."
 
 #: src/data/sys-file-reader.c:1281
 #, c-format
 msgid "Duplicate long variable name `%s' within system file."
-msgstr ""
+msgstr "Duplicate long variable name ‘%s’ within system file."
 
 #: src/data/sys-file-reader.c:1334
 #, c-format
@@ -974,7 +974,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:1505 src/data/sys-file-reader.c:1686
 #, c-format
 msgid "Duplicate value label for `%.*s' on %s."
-msgstr ""
+msgstr "Duplicate value label for ‘%.*s’ on %s."
 
 #: src/data/sys-file-reader.c:1543
 #, c-format
@@ -1096,7 +1096,7 @@ msgstr ""
 #: src/data/sys-file-writer.c:985
 #, c-format
 msgid "An I/O error occurred writing system file `%s'."
-msgstr ""
+msgstr "An I/O error occurred writing system file ‘%s’."
 
 #: src/data/variable.c:206
 #, c-format
@@ -1108,7 +1108,7 @@ msgstr ""
 #: src/data/variable.c:218
 #, c-format
 msgid "Character `%c' (in %s) may not appear in a variable name."
-msgstr ""
+msgstr "Character ‘%c’ (in %s) may not appear in a variable name."
 
 #: src/data/variable.c:244
 msgid "Variable name cannot be empty string."
@@ -1122,22 +1122,22 @@ msgstr ""
 #: src/data/variable.c:258
 #, c-format
 msgid "`%s' may not be used as a variable name because it is a reserved word."
-msgstr ""
+msgstr "‘%s’ may not be used as a variable name because it is a reserved word."
 
 #: src/language/syntax-file.c:95
 #, c-format
 msgid "Opening `%s': %s."
-msgstr ""
+msgstr "Opening ‘%s’: %s."
 
 #: src/language/syntax-file.c:109
 #, c-format
 msgid "Reading `%s': %s."
-msgstr ""
+msgstr "Reading ‘%s’: %s."
 
 #: src/language/syntax-file.c:126
 #, c-format
 msgid "Closing `%s': %s."
-msgstr ""
+msgstr "Closing ‘%s’: %s."
 
 #: src/language/command.c:205 src/language/expressions/parse.c:1273
 #: src/language/utilities/set.q:213
@@ -1248,7 +1248,7 @@ msgstr ""
 #: src/language/command.c:780
 #, c-format
 msgid "Error removing `%s': %s."
-msgstr ""
+msgstr "Error removing ‘%s’: %s."
 
 #: src/language/command.c:830
 #, c-format
@@ -1276,7 +1276,7 @@ msgstr ""
 #: src/language/lexer/lexer.c:390
 #, c-format
 msgid "Bad character in input: `%s'."
-msgstr ""
+msgstr "Bad character in input: ‘%s’."
 
 #: src/language/lexer/lexer.c:427
 #, c-format
@@ -1306,7 +1306,7 @@ msgstr ""
 #: src/language/lexer/lexer.c:601 src/language/lexer/lexer.c:618
 #, c-format
 msgid "expecting `%s'"
-msgstr ""
+msgstr "expecting ‘%s’"
 
 #: src/language/lexer/lexer.c:632
 msgid "expecting string"
@@ -1344,7 +1344,7 @@ msgstr ""
 #: src/language/lexer/lexer.c:1114
 #, c-format
 msgid "`%c' is not a valid %s digit."
-msgstr ""
+msgstr "‘%c’ is not a valid %s digit."
 
 #: src/language/lexer/lexer.c:1148
 msgid "Unterminated string constant."
@@ -1356,7 +1356,7 @@ msgstr ""
 
 #: src/language/lexer/lexer.c:1210
 msgid "String expected following `+'."
-msgstr ""
+msgstr "String expected following ‘+’."
 
 #: src/language/lexer/format-parser.c:88
 msgid "expecting valid format specifier"
@@ -1367,7 +1367,7 @@ msgstr ""
 #: src/language/data-io/placement-parser.c:226
 #, c-format
 msgid "Unknown format type `%s'."
-msgstr ""
+msgstr "Unknown format type ‘%s’."
 
 #: src/language/lexer/format-parser.c:121
 msgid "expecting format type"
@@ -1589,12 +1589,12 @@ msgstr ""
 #: src/language/control/repeat.c:172
 #, c-format
 msgid "Dummy variable name `%s' hides dictionary variable `%s'."
-msgstr ""
+msgstr "Dummy variable name ‘%s’ hides dictionary variable ‘%s’."
 
 #: src/language/control/repeat.c:177
 #, c-format
 msgid "Dummy variable name `%s' is given twice."
-msgstr ""
+msgstr "Dummy variable name ‘%s’ is given twice."
 
 #: src/language/control/repeat.c:223
 #, c-format
@@ -1655,16 +1655,16 @@ msgstr ""
 
 #: src/language/dictionary/formats.c:90
 msgid "`(' expected after variable list."
-msgstr ""
+msgstr "‘(’ expected after variable list."
 
 #: src/language/dictionary/formats.c:100 src/language/dictionary/numeric.c:74
 msgid "`)' expected after output format."
-msgstr ""
+msgstr "‘)’ expected after output format."
 
 #: src/language/dictionary/missing-values.c:56
 #: src/language/stats/aggregate.c:483
 msgid "expecting `('"
-msgstr ""
+msgstr "expecting ‘(’"
 
 #: src/language/dictionary/missing-values.c:72
 #, c-format
@@ -1704,11 +1704,11 @@ msgstr ""
 #: src/language/dictionary/modify-variables.c:189
 #, c-format
 msgid "`(' expected on %s subcommand."
-msgstr ""
+msgstr "‘(’ expected on %s subcommand."
 
 #: src/language/dictionary/modify-variables.c:158
 msgid "`)' expected following variable names on REORDER subcommand."
-msgstr ""
+msgstr "‘)’ expected following variable names on REORDER subcommand."
 
 #: src/language/dictionary/modify-variables.c:198
 msgid ""
@@ -1726,7 +1726,7 @@ msgstr ""
 
 #: src/language/dictionary/modify-variables.c:218
 msgid "`)' expected after variable lists on RENAME subcommand."
-msgstr ""
+msgstr "‘)’ expected after variable lists on RENAME subcommand."
 
 #: src/language/dictionary/modify-variables.c:232
 msgid ""
@@ -1751,7 +1751,7 @@ msgstr ""
 
 #: src/language/dictionary/modify-variables.c:311
 msgid "`/' or `.' expected."
-msgstr ""
+msgstr "‘/’ or ‘.’ expected."
 
 #: src/language/dictionary/mrsets.c:98
 #, c-format
@@ -1933,15 +1933,15 @@ msgstr ""
 
 #: src/language/dictionary/rename-variables.c:58
 msgid "`(' expected."
-msgstr ""
+msgstr "‘(’ expected."
 
 #: src/language/dictionary/rename-variables.c:66
 msgid "`=' expected between lists of new and old variable names."
-msgstr ""
+msgstr "‘=’ expected between lists of new and old variable names."
 
 #: src/language/dictionary/rename-variables.c:87
 msgid "`)' expected after variable names."
-msgstr ""
+msgstr "‘)’ expected after variable names."
 
 #: src/language/dictionary/rename-variables.c:97
 #, c-format
@@ -2281,7 +2281,7 @@ msgstr ""
 #: src/language/utilities/include.c:136
 #, c-format
 msgid "Unexpected token: `%s'."
-msgstr ""
+msgstr "Unexpected token: ‘%s’."
 
 #: src/language/utilities/include.c:181
 msgid "expecting file name"
@@ -2290,12 +2290,12 @@ msgstr ""
 #: src/language/utilities/include.c:193
 #, c-format
 msgid "Can't find `%s' in include file search path."
-msgstr ""
+msgstr "Can’t find ‘%s’ in include file search path."
 
 #: src/language/utilities/include.c:201
 #, c-format
 msgid "Unable to open `%s': %s."
-msgstr ""
+msgstr "Unable to open ‘%s’: %s."
 
 #: src/language/utilities/permissions.c:73
 #, c-format
@@ -2428,7 +2428,7 @@ msgstr ""
 
 #: src/language/stats/aggregate.c:541 src/language/expressions/parse.c:891
 msgid "expecting `)'"
-msgstr ""
+msgstr "expecting ‘)’"
 
 #: src/language/stats/aggregate.c:553
 #, c-format
@@ -2729,11 +2729,11 @@ msgstr ""
 
 #: src/language/stats/sort-criteria.c:74
 msgid "`A' or `D' expected inside parentheses."
-msgstr ""
+msgstr "‘A’ or ‘D’ expected inside parentheses."
 
 #: src/language/stats/sort-criteria.c:79
 msgid "`)' expected."
-msgstr ""
+msgstr "‘)’ expected."
 
 #: src/language/stats/sort-criteria.c:92
 #, c-format
@@ -3441,7 +3441,7 @@ msgstr ""
 #: src/language/data-io/data-reader.c:149
 #, c-format
 msgid "Could not open `%s' for reading as a data file: %s."
-msgstr ""
+msgstr "Could not open ‘%s’ for reading as a data file: %s."
 
 #: src/language/data-io/data-reader.c:191
 msgid ""
@@ -3502,12 +3502,12 @@ msgstr ""
 #: src/language/data-io/data-writer.c:73
 #, c-format
 msgid "An error occurred while opening `%s' for writing as a data file: %s."
-msgstr ""
+msgstr "An error occurred while opening ‘%s’ for writing as a data file: %s."
 
 #: src/language/data-io/data-writer.c:190
 #, c-format
 msgid "I/O error occurred writing data file `%s'."
-msgstr ""
+msgstr "I/O error occurred writing data file ‘%s’."
 
 #: src/language/data-io/get-data.c:64
 #, c-format
@@ -3657,7 +3657,7 @@ msgstr ""
 #: src/language/data-io/save-translate.c:248
 #, c-format
 msgid "Output file `%s' exists but REPLACE was not specified."
-msgstr ""
+msgstr "Output file ‘%s’ exists but REPLACE was not specified."
 
 #: src/language/data-io/trim.c:88
 #, c-format
@@ -3669,7 +3669,7 @@ msgstr ""
 
 #: src/language/data-io/trim.c:114
 msgid "`=' expected after variable list."
-msgstr ""
+msgstr "‘=’ expected after variable list."
 
 #: src/language/data-io/trim.c:122
 #, c-format
@@ -3850,7 +3850,7 @@ msgstr ""
 #: src/language/expressions/parse.c:1250
 #, c-format
 msgid "expecting `,' or `)' invoking %s function"
-msgstr ""
+msgstr "expecting ‘,’ or ‘)’ invoking %s function"
 
 #: src/language/expressions/parse.c:1270
 #, c-format
@@ -3947,7 +3947,7 @@ msgstr ""
 #: src/output/ascii.c:278
 #, c-format
 msgid "%s: %s must be positive integer or `auto'"
-msgstr ""
+msgstr "%s: %s must be positive integer or ‘auto’"
 
 #: src/output/ascii.c:311
 #, c-format
@@ -3959,7 +3959,7 @@ msgstr ""
 #: src/output/ascii.c:360
 #, c-format
 msgid "ascii: closing output file `%s'"
-msgstr ""
+msgstr "ascii: closing output file ‘%s’"
 
 #: src/output/ascii.c:503
 #, c-format
@@ -3969,7 +3969,7 @@ msgstr ""
 #: src/output/ascii.c:806
 #, c-format
 msgid "ascii: opening output file `%s'"
-msgstr ""
+msgstr "ascii: opening output file ‘%s’"
 
 #: src/output/ascii.c:913
 #, c-format
@@ -3980,7 +3980,7 @@ msgstr ""
 #: src/output/msglog.c:66
 #, c-format
 msgid "error opening output file `%s'"
-msgstr ""
+msgstr "error opening output file ‘%s’"
 
 #. TRANSLATORS: Don't translate the words `terminal' or `listing'.
 #: src/output/driver.c:331
@@ -3992,7 +3992,7 @@ msgstr ""
 #: src/output/driver.c:344
 #, c-format
 msgid "%s: unknown option `%s'"
-msgstr ""
+msgstr "%s: unknown option ‘%s’"
 
 #: src/output/html.c:114
 msgid "PSPP Output"
@@ -4001,67 +4001,67 @@ msgstr ""
 #: src/output/journal.c:67
 #, c-format
 msgid "error writing output file `%s'"
-msgstr ""
+msgstr "error writing output file ‘%s’"
 
 #: src/output/measure.c:65
 #, c-format
 msgid "`%s' is not a valid length."
-msgstr ""
+msgstr "‘%s’ is not a valid length."
 
 #: src/output/measure.c:93
 #, c-format
 msgid "syntax error in paper size `%s'"
-msgstr ""
+msgstr "syntax error in paper size ‘%s’"
 
 #: src/output/measure.c:230
 #, c-format
 msgid "unknown paper type `%.*s'"
-msgstr ""
+msgstr "unknown paper type ‘%.*s’"
 
 #: src/output/measure.c:248
 #, c-format
 msgid "error opening input file `%s'"
-msgstr ""
+msgstr "error opening input file ‘%s’"
 
 #: src/output/measure.c:259
 #, c-format
 msgid "error reading file `%s'"
-msgstr ""
+msgstr "error reading file ‘%s’"
 
 #: src/output/measure.c:276
 #, c-format
 msgid "paper size file `%s' does not state a paper size"
-msgstr ""
+msgstr "paper size file ‘%s’ does not state a paper size"
 
 #: src/output/options.c:113
 #, c-format
 msgid "%s: `%s' is `%s' but a Boolean value is required"
-msgstr ""
+msgstr "%s: ‘%s’ is ‘%s’ but a Boolean value is required"
 
 #: src/output/options.c:188
 #, c-format
 msgid "%s: `%s' is `%s' but one of the following is required: %s"
-msgstr ""
+msgstr "%s: ‘%s’ is ‘%s’ but one of the following is required: %s"
 
 #: src/output/options.c:232
 #, c-format
 msgid "%s: `%s' is `%s' but a nonnegative integer is required"
-msgstr ""
+msgstr "%s: ‘%s’ is ‘%s’ but a nonnegative integer is required"
 
 #: src/output/options.c:236
 #, c-format
 msgid "%s: `%s' is `%s' but a positive integer is required"
-msgstr ""
+msgstr "%s: ‘%s’ is ‘%s’ but a positive integer is required"
 
 #: src/output/options.c:239
 #, c-format
 msgid "%s: `%s' is `%s' but an integer is required"
-msgstr ""
+msgstr "%s: ‘%s’ is ‘%s’ but an integer is required"
 
 #: src/output/options.c:242
 #, c-format
 msgid "%s: `%s' is `%s' but an integer greater than %d is required"
-msgstr ""
+msgstr "%s: ‘%s’ is ‘%s’ but an integer greater than %d is required"
 
 #: src/output/options.c:247
 #, c-format
@@ -4071,7 +4071,7 @@ msgstr ""
 #: src/output/options.c:326
 #, c-format
 msgid "%s: `%s' is `%s' but a file name that contains `#' is required."
-msgstr ""
+msgstr "%s: ‘%s’ is ‘%s’ but a file name that contains ‘#’ is required."
 
 #: src/output/tab.c:206
 #, c-format
@@ -4092,12 +4092,12 @@ msgstr ""
 #: src/output/cairo.c:193
 #, c-format
 msgid "`%s': bad font specification"
-msgstr ""
+msgstr "‘%s’: bad font specification"
 
 #: src/output/cairo.c:357
 #, c-format
 msgid "error opening output file `%s': %s"
-msgstr ""
+msgstr "error opening output file ‘%s’: %s"
 
 #: src/output/cairo.c:374
 #, c-format
@@ -4121,7 +4121,7 @@ msgstr ""
 #: src/output/cairo.c:1041
 #, c-format
 msgid "error writing output file `%s': %s"
-msgstr ""
+msgstr "error writing output file ‘%s’: %s"
 
 #: src/output/charts/np-plot-cairo.c:37
 #, c-format
@@ -4172,11 +4172,11 @@ msgstr ""
 
 #: src/ui/source-init-opts.c:80
 msgid "Algorithm must be either `compatible' or `enhanced'."
-msgstr ""
+msgstr "Algorithm must be either ‘compatible’ or ‘enhanced’."
 
 #: src/ui/source-init-opts.c:107
 msgid "Syntax must be either `compatible' or `enhanced'."
-msgstr ""
+msgstr "Syntax must be either ‘compatible’ or ‘enhanced’."
 
 #: src/ui/terminal/main.c:127
 msgid ""
@@ -4187,12 +4187,12 @@ msgstr ""
 #: src/ui/terminal/terminal.c:62
 #, c-format
 msgid "could not access definition for terminal `%s'"
-msgstr ""
+msgstr "could not access definition for terminal ‘%s’"
 
 #: src/ui/terminal/terminal-opts.c:121
 #, c-format
 msgid "%s: output option missing `='"
-msgstr ""
+msgstr "%s: output option missing ‘=’"
 
 #: src/ui/terminal/terminal-opts.c:128
 #, c-format
@@ -4595,7 +4595,7 @@ msgstr ""
 #: src/ui/gui/psppire-syntax-window.c:439
 #, c-format
 msgid "Saved file `%s'"
-msgstr ""
+msgstr "Saved file ‘%s’"
 
 #: src/ui/gui/psppire-syntax-window.c:458
 msgid "Save Syntax"
@@ -4684,7 +4684,7 @@ msgstr ""
 #: src/ui/gui/psppire-window.c:469
 #, c-format
 msgid "Save the changes to `%s' before closing?"
-msgstr ""
+msgstr "Save the changes to ‘%s’ before closing?"
 
 #: src/ui/gui/psppire-window.c:476
 #, c-format
@@ -4755,12 +4755,12 @@ msgstr ""
 #: src/ui/gui/text-data-import-dialog.c:461
 #, c-format
 msgid "Could not open `%s': %s"
-msgstr ""
+msgstr "Could not open ‘%s’: %s"
 
 #: src/ui/gui/text-data-import-dialog.c:477
 #, c-format
 msgid "Error reading `%s': %s"
-msgstr ""
+msgstr "Error reading ‘%s’: %s"
 
 #: src/ui/gui/text-data-import-dialog.c:480
 #, c-format
@@ -4772,7 +4772,7 @@ msgstr ""
 #: src/ui/gui/text-data-import-dialog.c:494
 #, c-format
 msgid "`%s' is empty."
-msgstr ""
+msgstr "‘%s’ is empty."
 
 #: src/ui/gui/text-data-import-dialog.c:539
 msgid "Import Delimited Text Data"
@@ -4841,7 +4841,7 @@ msgstr ""
 #: src/ui/gui/text-data-import-dialog.c:1786
 #, c-format
 msgid "Field content `%.*s' cannot be parsed in format %s."
-msgstr ""
+msgstr "Field content ‘%.*s’ cannot be parsed in format %s."
 
 #: src/ui/gui/text-data-import-dialog.c:1939
 msgid "Line"
@@ -5305,7 +5305,7 @@ msgstr ""
 
 #: src/language/stats/frequencies.q:703
 msgid "`)' expected after GROUPED interval list."
-msgstr ""
+msgstr "‘)’ expected after GROUPED interval list."
 
 #: src/language/stats/frequencies.q:723
 #, c-format
@@ -7246,42 +7246,3 @@ msgstr ""
 #: src/ui/gui/syntax-editor.ui:129
 msgid "To End"
 msgstr ""
-
-#~ msgid "cannot initialize output driver `%s' of class `%s'"
-#~ msgstr "cannot initialise output driver `%s' of class `%s'"
-
-#~ msgid "Options affecting syntax and behavior:"
-#~ msgstr "Options affecting syntax and behaviour:"
-
-#~ msgid ""
-#~ "   This program is free software: you can redistribute it and/or modify\n"
-#~ "   it under the terms of the GNU General Public License as published by\n"
-#~ "   the Free Software Foundation, either version 3 of the License, or\n"
-#~ "   (at your option) any later version.\n"
-#~ "\n"
-#~ "   This program is distributed in the hope that it will be useful,\n"
-#~ "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-#~ "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-#~ "   GNU General Public License for more details.\n"
-#~ "\n"
-#~ "   You should have received a copy of the GNU General Public License\n"
-#~ "   along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
-#~ msgstr ""
-#~ "\"   This program is free software: you can redistribute it and/or modify"
-#~ "\\n\"\n"
-#~ "\"   it under the terms of the GNU General Public License as published by"
-#~ "\\n\"\n"
-#~ "\"   the Free Software Foundation, either version 3 of the Licence, or\\n"
-#~ "\"\n"
-#~ "\"   (at your option) any later version.\\n\"\n"
-#~ "\"\\n\"\n"
-#~ "\"   This program is distributed in the hope that it will be useful,\\n"
-#~ "\"\n"
-#~ "\"   but WITHOUT ANY WARRANTY; without even the implied warranty of\\n\"\n"
-#~ "\"   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n\"\n"
-#~ "\"   GNU General Public License for more details.\\n\"\n"
-#~ "\"\\n\"\n"
-#~ "\"   You should have received a copy of the GNU General Public License\\n"
-#~ "\"\n"
-#~ "\"   along with this program.  If not, see <http://www.gnu.org/licenses/>."
-#~ "\\n\"\n"
