@@ -1,0 +1,50 @@
+AT_BANNER([Variable parser])
+
+dnl This program tests that both long and short variable names are parsed OK.
+dnl It use CROSSTABS, since its TABLES subcommand exercises the array var set 
+dnl feature.
+AT_SETUP([Long variable names])
+AT_DATA([longvars.sps], [dnl
+DATA LIST LIST /AlphaBetaGamma * B * X * Yabbadabbadoo * .
+BEGIN DATA.
+2 3 4 5
+END DATA.
+
+LIST.
+
+CROSSTABS 
+	VARIABLES X (1,7) Yabbadabbadoo (1,7) 
+	/TABLES X BY Yabbadabbadoo.
+])
+AT_CHECK([pspp -o pspp.csv longvars.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+AlphaBetaGamma,F8.0
+B,F8.0
+X,F8.0
+Yabbadabbadoo,F8.0
+
+Table: Data List
+AlphaBetaGamma,B,X,Yabbadabbadoo
+2.00,3.00,4.00,5.00
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X * Yabbadabbadoo,1,100.0%,0,0.0%,1,100.0%
+
+Table: X * Yabbadabbadoo [[count]].
+,Yabbadabbadoo,,,,,,,
+X,1.00,2.00,3.00,4.00,5.00,6.00,7.00,Total
+1.00,.0,.0,.0,.0,.0,.0,.0,.0
+2.00,.0,.0,.0,.0,.0,.0,.0,.0
+3.00,.0,.0,.0,.0,.0,.0,.0,.0
+4.00,.0,.0,.0,.0,1.0,.0,.0,1.0
+5.00,.0,.0,.0,.0,.0,.0,.0,.0
+6.00,.0,.0,.0,.0,.0,.0,.0,.0
+7.00,.0,.0,.0,.0,.0,.0,.0,.0
+Total,.0,.0,.0,.0,1.0,.0,.0,1.0
+])
+AT_CLEANUP

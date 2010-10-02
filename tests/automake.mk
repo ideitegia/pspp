@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/longvars.sh \
 	tests/command/match-files.sh \
 	tests/command/missing-values.sh \
 	tests/command/no_case_size.sh \
@@ -378,6 +377,7 @@ TESTSUITE_AT = \
 	tests/language/dictionary/attributes.at \
 	tests/language/dictionary/mrsets.at \
 	tests/language/expressions/evaluate.at \
+	tests/language/lexer/variable-parser.at \
 	tests/language/stats/aggregate.at \
 	tests/language/stats/autorecode.at \
 	tests/language/stats/correlations.at \
