@@ -131,8 +131,6 @@ order_stats_accumulate (struct order_stats **os, size_t nos,
       if ( var_is_value_missing (var, case_data (cx, var), exclude))
 	continue;
 
-      case_unref (prev_cx);
-
       if ( prev_value == -DBL_MAX || prev_value == this_value)
 	c_i += weight;
 
@@ -142,6 +140,7 @@ order_stats_accumulate (struct order_stats **os, size_t nos,
 	  c_i = weight;
 	}
 
+      case_unref (prev_cx);
       cc_i += weight;
       prev_value = this_value;
       prev_cx = case_ref (cx);

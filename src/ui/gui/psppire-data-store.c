@@ -879,7 +879,7 @@ psppire_data_store_insert_case (PsppireDataStore *ds,
   g_return_val_if_fail (ds, FALSE);
   g_return_val_if_fail (ds->datasheet, FALSE);
 
-  case_ref (cc);
+  cc = case_ref (cc);
   result = datasheet_insert_rows (ds->datasheet, posn, &cc, 1);
 
   if ( result )

@@ -91,8 +91,8 @@ casegrouper_get_next_group (struct casegrouper *grouper,
 
       writer = autopaging_writer_create (
         casereader_get_proto (grouper->reader));
-      case_ref (group_case);
-      casewriter_write (writer, group_case);
+
+      casewriter_write (writer, case_ref (group_case));
 
       while ((tmp = casereader_peek (grouper->reader, 0)) != NULL
              && grouper->same_group (group_case, tmp, grouper->aux))
