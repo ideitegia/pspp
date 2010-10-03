@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.7.5\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2010-10-03 13:10+0200\n"
+"POT-Creation-Date: 2010-10-03 14:00+0200\n"
 "PO-Revision-Date: 2010-09-15 08:17+0900\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -729,6 +729,11 @@ msgid ""
 msgstr ""
 "Compression bias is not the usual value of 100, or system file uses \n"
 "unrecognised floating-point format."
+
+#: src/data/sys-file-reader.c:598
+#, c-format
+msgid "Variable name begins with invalid character `%c'."
+msgstr "Variable name begins with invalid character ‘%c’."
 
 #: src/data/sys-file-reader.c:601
 #, c-format
@@ -4672,6 +4677,11 @@ msgstr ""
 msgid "Custom"
 msgstr ""
 
+#: src/ui/gui/psppire-var-store.c:755
+#, c-format
+msgid "{%s,`%s'}_"
+msgstr "{%s,‘%s’}_"
+
 #: src/ui/gui/psppire-window.c:97
 #, c-format
 msgid "%s %s PSPPIRE %s"
@@ -4852,6 +4862,11 @@ msgstr ""
 #, c-format
 msgid "Confidence Interval: %2d %%"
 msgstr ""
+
+#: src/ui/gui/val-labs-dialog.c:515
+#, c-format
+msgid "%s = `%s'"
+msgstr "%s = ‘%s’"
 
 #: src/ui/gui/variable-info-dialog.c:77
 #, c-format

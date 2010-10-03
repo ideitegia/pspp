@@ -595,7 +595,7 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
 
   /* Check variable name. */
   if (name[0] == '$' || name[0] == '#')
-    sys_error (r, "Variable name begins with invalid character `%c'.",
+    sys_error (r, _("Variable name begins with invalid character `%c'."),
                name[0]);
   if (!var_is_plausible_name (name, false))
     sys_error (r, _("Invalid variable name `%s'."), name);
