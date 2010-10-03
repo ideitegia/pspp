@@ -501,6 +501,7 @@ uniquify (const struct ccase *c, void *aux)
   
   dir = value_compare_3way (case_data (next_case, cdr->key),
 			    current_value, key_width);
+  case_unref (next_case);
   if ( dir != 0 )
     {
       /* Insist that the data are sorted */
