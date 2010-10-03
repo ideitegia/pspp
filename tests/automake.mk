@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/permissions.sh \
 	tests/command/print.sh \
 	tests/command/print-strings.sh \
 	tests/command/rank.sh \
@@ -383,6 +382,7 @@ TESTSUITE_AT = \
 	tests/language/stats/npar.at \
 	tests/language/stats/oneway.at \
 	tests/language/utilities/insert.at \
+	tests/language/utilities/permissions.at \
 	tests/language/utilities/set.at \
 	tests/language/utilities/title.at \
 	tests/language/xforms/compute.at \
