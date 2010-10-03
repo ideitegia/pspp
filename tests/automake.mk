@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/npar-sign.sh \
 	tests/command/permissions.sh \
 	tests/command/print.sh \
 	tests/command/print-strings.sh \

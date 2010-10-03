@@ -588,3 +588,44 @@ Exact Sig. (2-tailed),.89
 Exact Sig. (1-tailed),.45
 ])
 AT_CLEANUP
+
+AT_SETUP([NPAR TESTS SIGN])
+AT_DATA([npar.sps], [dnl
+set format = F9.3.
+
+data list notable list /age * height rank *.
+begin data.
+10 12 11
+12 13 13 
+13 14 12
+12 12 10
+9   9 10
+10.3 10.2 12
+end data.
+
+npar tests
+	/sign=age height WITH height rank (PAIRED)
+	/MISSING ANALYSIS
+	/METHOD=EXACT
+	.
+])
+AT_CHECK([pspp -o pspp.csv npar.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Frequencies
+,,N
+height - age,Negative Differences,1
+,Positive Differences,3
+,Ties,2
+,Total,6
+rank - height,Negative Differences,3
+,Positive Differences,2
+,Ties,1
+,Total,6
+
+Table: Test Statistics
+,height - age,rank - height
+Exact Sig. (2-tailed),.625,1.000
+Exact Sig. (1-tailed),.312,.500
+Point Probability,.250,.312
+])
+AT_CLEANUP
