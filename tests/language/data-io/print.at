@@ -1,0 +1,225 @@
+AT_BANNER([PRINT and WRITE])
+
+dnl These tests check unusual aspects of the PRINT and WRITE
+dnl transformations:
+dnl
+dnl   - PRINT puts spaces between variables, unless a format
+dnl     is specified explicitly.
+dnl
+dnl   - WRITE doesn't put space between variables.
+dnl
+dnl   - PRINT to an external file prefixes each line with a space.
+dnl
+dnl   - PRINT EJECT to an external file indicates a formfeed by a "1"
+dnl     in the first column.
+dnl
+dnl   - WRITE writes out spaces for system-missing values, not a period.
+dnl
+dnl   - When no output is specified, an empty record is output.
+
+AT_SETUP([PRINT numeric variables])
+AT_DATA([print.sps], [dnl
+data list notable /x y 1-2.
+begin data.
+12
+34
+ 6
+7
+90
+end data.
+
+print /x y.
+print eject /x y 1-2.
+print /x '-' y.
+print.
+
+execute.
+])
+AT_CHECK([pspp -O format=csv print.sps], [0], [dnl
+1 2 @&t@
+
+
+
+12
+
+1 -2 @&t@
+
+
+
+3 4 @&t@
+
+
+
+34
+
+3 -4 @&t@
+
+
+
+. 6 @&t@
+
+
+
+.6
+
+. -6 @&t@
+
+
+
+7 . @&t@
+
+
+
+7.
+
+7 -. @&t@
+
+
+
+9 0 @&t@
+
+
+
+90
+
+9 -0 @&t@
+
+
+])
+AT_CLEANUP
+
+AT_SETUP([PRINT string variables])
+AT_DATA([print.sps], [dnl
+DATA LIST FREE /s8 (a8) s10 (a10) vl255 (a255) vl258 (a258).
+BEGIN DATA.
+12345678
+AaaaaaaaaZ
+AbbbbMaryHadALittleLambbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbZ
+AccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccZ
+87654321
+AnnnnnnnnZ
+AmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmZ
+AoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooWhyIsItSoZ
+END DATA.
+
+print
+	outfile='print.txt'
+	/s10 * vl255 * vl258 *.
+
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv print.sps])
+AT_CHECK([cat print.txt], [0], [dnl
+ AaaaaaaaaZ AbbbbMaryHadALittleLambbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbZ AccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccZ @&t@
+ AnnnnnnnnZ AmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmZ AoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooWhyIsItSoZ @&t@
+])
+AT_CLEANUP
+
+AT_SETUP([PRINT to file])
+AT_DATA([print.sps], [dnl
+data list notable /x y 1-2.
+begin data.
+12
+34
+ 6
+7
+90
+end data.
+
+print outfile='print.out' /x y.
+print eject outfile='print.out' /x y (f1,f1).
+print outfile='print.out' /x '-' y.
+print outfile='print.out'.
+
+execute.
+])
+AT_CHECK([pspp -O format=csv print.sps])
+AT_CHECK([cat print.out], [0], [dnl
+ 1 2 @&t@
+112
+ 1 -2 @&t@
+ @&t@
+ 3 4 @&t@
+134
+ 3 -4 @&t@
+ @&t@
+ . 6 @&t@
+1.6
+ . -6 @&t@
+ @&t@
+ 7 . @&t@
+17.
+ 7 -. @&t@
+ @&t@
+ 9 0 @&t@
+190
+ 9 -0 @&t@
+ @&t@
+])
+AT_CLEANUP
+
+dnl Tests for a bug which crashed when deallocating after a bad PRINT
+dnl command.
+AT_SETUP([PRINT crash bug])
+AT_DATA([print.sps], [dnl
+DATA LIST LIST NOTABLE /a * b *.
+BEGIN DATA.
+1 2
+3 4
+END DATA.
+
+PRINT F8.2
+LIST.
+])
+AT_CHECK([pspp -O format=csv print.sps], [1], [dnl
+print.sps:7: error: PRINT: Syntax error at `F8.2': expecting a valid subcommand.
+
+Table: Data List
+a,b
+1.00,2.00
+3.00,4.00
+])
+AT_CLEANUP
+
+AT_SETUP([WRITE to file])
+AT_DATA([write.sps], [dnl
+data list notable /x y 1-2.
+begin data.
+12
+34
+ 6
+7
+90
+end data.
+
+write outfile='write.out' /x y.
+write outfile='write.out' /x y (2(f1)).
+write outfile='write.out' /x '-' y.
+write outfile='write.out'.
+
+execute.
+])
+AT_CHECK([pspp -O format=csv write.sps])
+AT_CHECK([cat write.out], [0], [dnl
+12
+12
+1-2
+
+34
+34
+3-4
+
+ 6
+ 6
+ -6
+
+7 @&t@
+7 @&t@
+7- @&t@
+
+90
+90
+9-0
+
+])
+AT_CLEANUP

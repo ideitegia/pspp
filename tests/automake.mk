@@ -10,8 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/print.sh \
-	tests/command/print-strings.sh \
 	tests/command/rank.sh \
 	tests/command/rename.sh \
 	tests/command/regression.sh \
@@ -87,7 +85,6 @@ dist_TESTS = \
 	tests/bugs/unwritable-dir.sh \
 	tests/bugs/val-labs.sh \
 	tests/bugs/val-labs-trailing-slash.sh \
-	tests/bugs/print-crash.sh \
 	tests/bugs/keep-all.sh \
 	tests/data/datasheet-test.sh \
 	tests/libpspp/sparse-xarray-test.sh \
@@ -363,6 +360,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/get-data-txt.at \
 	tests/language/data-io/list.at \
 	tests/language/data-io/match-files.at \
+	tests/language/data-io/print.at \
 	tests/language/data-io/save.at \
 	tests/language/data-io/save-translate.at \
 	tests/language/dictionary/attributes.at \
