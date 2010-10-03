@@ -689,8 +689,8 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count)
 
           if (!text_match (text, ' '))
             {
-              sys_warn (r, _("Missing space following `E' at offset %zu "
-                             "in MRSETS record"), text_pos (text));
+              sys_warn (r, _("Missing space following `%c' at offset %zu "
+                             "in MRSETS record"), 'E', text_pos (text));
               break;
             }
 

@@ -1631,7 +1631,7 @@ show_correlation_matrix (const struct cmd_factor *factor, const struct idata *id
       if (factor->print & PRINT_SIG)
 	{
 	  const double y = heading_rows + y_pos_sig * factor->n_vars;
-	  tab_text (t, 0, y, TAT_TITLE, _("Sig. 1-tailed"));
+	  tab_text (t, 0, y, TAT_TITLE, _("Sig. (1-tailed)"));
 
 	  for (i = 0; i < factor->n_vars; ++i)
 	    {

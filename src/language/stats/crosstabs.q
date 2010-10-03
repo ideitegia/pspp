@@ -1207,10 +1207,10 @@ create_chisq_table (struct pivot_table *pt)
   tab_text (chisq, 2, 0, TAB_RIGHT | TAT_TITLE, _("df"));
   tab_text (chisq, 3, 0, TAB_RIGHT | TAT_TITLE,
             _("Asymp. Sig. (2-tailed)"));
-  tab_text (chisq, 4, 0, TAB_RIGHT | TAT_TITLE,
-            _("Exact Sig. (2-tailed)"));
-  tab_text (chisq, 5, 0, TAB_RIGHT | TAT_TITLE,
-            _("Exact Sig. (1-tailed)"));
+  tab_text_format (chisq, 4, 0, TAB_RIGHT | TAT_TITLE,
+            _("Exact Sig. (%d-tailed)"), 2);
+  tab_text_format (chisq, 5, 0, TAB_RIGHT | TAT_TITLE,
+            _("Exact Sig. (%d-tailed)"), 1);
   tab_offset (chisq, 0, 1);
 
   return chisq;
