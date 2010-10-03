@@ -117,7 +117,7 @@ html_create (const char *file_name, enum settings_output_devices device_type,
          html->file);
   fputs ("<META HTTP-EQUIV=\"Content-Type\" "
          "CONTENT=\"text/html; charset=utf-8\">\n", html->file);
-  fputs ("<STYLE>\n"
+  fputs ("<STYLE TYPE=\"text/css\">\n"
          "<!--\n"
          "body {\n"
          "  background: white;\n"
@@ -253,7 +253,9 @@ html_submit (struct output_driver *driver,
                                      html->chart_cnt++);
       if (file_name != NULL)
         {
-          fprintf (html->file, "<IMG SRC=\"%s\"/>", file_name);
+	  const char *title = chart_item_get_title (chart_item);
+          fprintf (html->file, "<IMG SRC=\"%s\" ALT=\"Chart: %s\">",
+		   file_name, title ? title : _("No description"));
           free (file_name);
         }
     }
@@ -418,16 +420,16 @@ html_output_table (struct html_driver *html, struct table_item *item)
 
           alignment = cell.options & TAB_ALIGNMENT;
           if (alignment != TAB_LEFT)
-            fprintf (html->file, " ALIGN=%s",
+            fprintf (html->file, " ALIGN=\"%s\"",
                      alignment == TAB_RIGHT ? "RIGHT" : "CENTER");
 
           colspan = table_cell_colspan (&cell);
           if (colspan > 1)
-            fprintf (html->file, " COLSPAN=%d", colspan);
+            fprintf (html->file, " COLSPAN=\"%d\"", colspan);
 
           rowspan = table_cell_rowspan (&cell);
           if (rowspan > 1)
-            fprintf (html->file, " ROWSPAN=%d", rowspan);
+            fprintf (html->file, " ROWSPAN=\"%d\"", rowspan);
 
           /* Cell borders. */
           n_borders = 0;
