@@ -176,3 +176,33 @@ a,b
 
 AT_CLEANUP
 
+
+dnl Tests for a crash which happened when the /GROUP subcommand
+dnl appeared with string variables of different widths.
+AT_SETUP([AUTORECODE group vs. strings])
+AT_DATA([ar-strings.sps],
+  [data list notable list /a (a12) b (a6).
+begin data.
+one    nine
+two    ten
+three  eleven 
+four   nought
+end data.
+
+autorecode a b into x y 
+	/group.
+
+list.
+])
+
+AT_CHECK([pspp -O format=csv ar-strings.sps], [0],
+[dnl
+Table: Data List
+a,b,x,y
+one         ,nine  ,5.00,3.00
+two         ,ten   ,8.00,6.00
+three       ,eleven,7.00,1.00
+four        ,nought,2.00,4.00
+])
+
+AT_CLEANUP

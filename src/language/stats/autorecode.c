@@ -294,13 +294,12 @@ arc_free (struct autorecode_pgm *arc)
       for (i = 0; i < arc->n_specs; i++)
         {
           struct arc_spec *spec = &arc->specs[i];
-          int width = var_get_width (spec->src);
           struct arc_item *item, *next;
 
 	  HMAP_FOR_EACH_SAFE (item, next, struct arc_item, hmap_node,
 			      spec->items)
 	    {
-	      value_destroy (&item->from, width);
+	      value_destroy (&item->from, item->width);
 	      hmap_delete (spec->items, &item->hmap_node);
 	      free (item);
 	    }
