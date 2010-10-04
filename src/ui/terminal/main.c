@@ -28,6 +28,7 @@
 #if HAVE_IEEEFP_H
 #include <ieeefp.h>
 #endif
+#include <unistd.h>
 
 #include "data/dictionary.h"
 #include "data/file-handle-def.h"
@@ -39,6 +40,7 @@
 #include "language/command.h"
 #include "language/lexer/lexer.h"
 #include "language/prompt.h"
+#include "language/syntax-file.h"
 #include "libpspp/argv-parser.h"
 #include "libpspp/compiler.h"
 #include "libpspp/getl.h"
@@ -66,6 +68,8 @@ static struct dataset * the_dataset = NULL;
 static struct lexer *the_lexer;
 static struct source_stream *the_source_stream ;
 
+static void add_syntax_file (struct source_stream *, enum syntax_mode,
+                             const char *file_name);
 static void bug_handler(int sig);
 static void fpu_init (void);
 static void clean_up (void);
@@ -76,6 +80,8 @@ main (int argc, char **argv)
 {
   struct terminal_opts *terminal_opts;
   struct argv_parser *parser;
+  enum syntax_mode syntax_mode;
+  bool process_statrc;
 
   set_program_name (argv[0]);
 
@@ -99,7 +105,7 @@ main (int argc, char **argv)
   the_dataset = create_dataset ();
 
   parser = argv_parser_create ();
-  terminal_opts = terminal_opts_init (parser, the_source_stream);
+  terminal_opts = terminal_opts_init (parser, &syntax_mode, &process_statrc);
   source_init_register_argv_parser (parser, the_source_stream);
   if (!argv_parser_run (parser, argc, argv))
     exit (EXIT_FAILURE);
@@ -108,8 +114,28 @@ main (int argc, char **argv)
 
   msg_ui_init (the_source_stream);
 
-  the_lexer = lex_create (the_source_stream);
+  /* Add syntax files to source stream. */
+  if (process_statrc)
+    {
+      char *rc = fn_search_path ("rc", getl_include_path (the_source_stream));
+      if (rc != NULL)
+        {
+          add_syntax_file (the_source_stream, GETL_BATCH, rc);
+          free (rc);
+        }
+    }
+  if (optind < argc)
+    {
+      int i;
 
+      for (i = optind; i < argc; i++)
+        add_syntax_file (the_source_stream, syntax_mode, argv[i]);
+    }
+  else
+    add_syntax_file (the_source_stream, syntax_mode, "-");
+
+  /* Parse and execute syntax. */
+  the_lexer = lex_create (the_source_stream);
   for (;;)
     {
       int result = cmd_parse (the_lexer, the_dataset);
@@ -198,4 +224,16 @@ clean_up (void)
       msg_ui_done ();
       i18n_done ();
     }
+}
+
+static void
+add_syntax_file (struct source_stream *ss, enum syntax_mode syntax_mode,
+                 const char *file_name)
+{
+  struct getl_interface *source;
+
+  source = (!strcmp (file_name, "-") && isatty (STDIN_FILENO)
+           ? create_readln_source ()
+           : create_syntax_file_source (file_name));
+  getl_append_source (ss, source, syntax_mode, ERRMODE_CONTINUE);
 }

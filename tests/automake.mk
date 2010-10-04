@@ -407,6 +407,7 @@ TESTSUITE_AT = \
 	tests/math/moments.at \
 	tests/output/render.at \
 	tests/output/charts.at \
+	tests/ui/terminal/main.at \
 	tests/perl-module.at
 
 TESTSUITE = $(srcdir)/tests/testsuite

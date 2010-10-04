@@ -1,0 +1,7 @@
+AT_BANNER([PSPP terminal UI])
+
+AT_SETUP([nonexistent syntax file crash])
+AT_CHECK([pspp nonexistent], [1], 
+  [error: Opening `nonexistent': No such file or directory.
+])
+AT_CLEANUP
