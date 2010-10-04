@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/sample.sh \
 	tests/command/sort.sh \
 	tests/command/sysfiles.sh \
 	tests/command/sysfiles-old.sh \
@@ -384,6 +383,7 @@ TESTSUITE_AT = \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/count.at \
 	tests/language/xforms/recode.at \
+	tests/language/xforms/sample.at \
 	tests/language/xforms/select-if.at \
 	tests/libpspp/abt.at \
 	tests/libpspp/bt.at \
