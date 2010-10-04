@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/rename.sh \
 	tests/command/regression.sh \
 	tests/command/regression-qr.sh \
 	tests/command/reliability.sh \
@@ -365,6 +364,7 @@ TESTSUITE_AT = \
 	tests/language/dictionary/attributes.at \
 	tests/language/dictionary/missing-values.at \
 	tests/language/dictionary/mrsets.at \
+	tests/language/dictionary/rename-variables.at \
 	tests/language/expressions/evaluate.at \
 	tests/language/lexer/variable-parser.at \
 	tests/language/stats/aggregate.at \
