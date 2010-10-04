@@ -1,0 +1,166 @@
+AT_BANNER([ROC])
+
+AT_SETUP([ROC, free distribution])
+AT_DATA([roc.sps], [dnl
+set format F10.3.
+data list notable list /x * y * w * a *.
+begin data.
+1 1 2  1
+1 2 28 0
+2 3 4  1
+2 4 14 0
+3 5 10 1
+. . 1  0
+3 1 5  0
+4 2 14 1
+4 3 2  0
+5 4 20 1
+5 4 20 .
+5 5 1  0
+end data.
+
+weight by w.
+
+roc x by a (1)
+	/plot = none
+	/print = se coordinates
+	/criteria = testpos(large) distribution(free) ci(99)
+	/missing = exclude .
+])
+AT_CHECK([pspp -o pspp.csv roc.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Case Summary
+,Valid N (listwise),
+a,Unweighted,Weighted
+Positive,5,50.000
+Negative,5,50.000
+
+Table: Area Under the Curve (x)
+,,,Asymp. 99% Confidence Interval,
+Area,Std. Error,Asymptotic Sig.,Lower Bound,Upper Bound
+.910,.030,.000,.839,.981
+
+Table: Coordinates of the Curve (x)
+Positive if greater than or equal to,Sensitivity,1 - Specificity
+.000,1.000,1.000
+1.500,.960,.440
+2.500,.880,.160
+3.500,.680,.060
+4.500,.400,.020
+6.000,.000,.000
+])
+AT_CLEANUP
+
+AT_SETUP([ROC, negative exponential distribution])
+AT_DATA([roc.sps], [dnl
+set format F10.3.
+data list notable list /x * y * w * a *.
+begin data.
+1 1 2  1
+1 2 28 0
+2 3 4  1
+2 4 14 0
+3 5 10 1
+. . 1  0
+3 1 5  0
+4 2 14 1
+4 3 2  0
+5 4 20 1
+5 4 20 .
+5 5 1  0
+end data.
+
+weight by w.
+
+roc x y by a (1)
+	/plot = curve(reference)
+        /print = se coordinates
+	/criteria = testpos(large) distribution(negexpo) ci(95)
+	/missing = exclude .
+])
+AT_CHECK([pspp -o pspp.csv roc.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Case Summary
+,Valid N (listwise),
+a,Unweighted,Weighted
+Positive,5,50.000
+Negative,5,50.000
+
+Table: Area Under the Curve
+,,,,Asymp. 95% Confidence Interval,
+Variable under test,Area,Std. Error,Asymptotic Sig.,Lower Bound,Upper Bound
+x,.910,.030,.000,.860,.960
+y,.697,.052,.001,.611,.783
+
+Table: Coordinates of the Curve
+Test variable,Positive if greater than or equal to,Sensitivity,1 - Specificity
+x,.000,1.000,1.000
+,1.500,.960,.440
+,2.500,.880,.160
+,3.500,.680,.060
+,4.500,.400,.020
+,6.000,.000,.000
+y,.000,1.000,1.000
+,1.500,.960,.900
+,2.500,.680,.340
+,3.000,.600,.340
+,3.500,.600,.300
+,4.500,.200,.020
+,6.000,.000,.000
+])
+AT_CLEANUP
+
+AT_SETUP([ROC, with anomaly])
+AT_DATA([roc.sps], [dnl
+set format F10.3.
+data list notable list /x * a * comment (a20).
+begin data.
+0  1 ""
+0  0 ""
+1  1 ""
+1  0 ""
+2  1 ""
+2  0 ""
+5  1 ""
+5  0 ""
+10 1 ""
+10 0 ""
+15 1 ""
+15 0 ""
+20 1 ""
+20 1 ""
+22 0 "here and"
+22 0 "here is the anomoly"
+25 1 ""
+25 0 ""
+30 1 ""
+30 0 ""
+35 1 ""
+35 0 ""
+38 1 ""
+38 0 ""
+39 1 ""
+39 0 ""
+40 1 ""
+40 0 ""
+end data.
+
+roc x by a (1)
+	/plot = none
+	print = se 
+	.
+])
+AT_CHECK([pspp -o pspp.csv roc.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Case Summary
+,Valid N (listwise),
+a,Unweighted,Weighted
+Positive,14,14.000
+Negative,14,14.000
+
+Table: Area Under the Curve (x)
+,,,Asymp. 95% Confidence Interval,
+Area,Std. Error,Asymptotic Sig.,Lower Bound,Upper Bound
+.490,.111,.927,.307,.673
+])
+AT_CLEANUP
