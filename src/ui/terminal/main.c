@@ -61,19 +61,14 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-
-static void fpu_init (void);
-static void clean_up (void);
-
-/* If a segfault happens, issue a message to that effect and halt */
-void bug_handler(int sig);
-
-/* Handle quit/term/int signals */
-void interrupt_handler(int sig);
 static struct dataset * the_dataset = NULL;
 
 static struct lexer *the_lexer;
 static struct source_stream *the_source_stream ;
+
+static void bug_handler(int sig);
+static void fpu_init (void);
+static void clean_up (void);
 
 /* Program entry point. */
 int
@@ -136,7 +131,6 @@ main (int argc, char **argv)
   clean_up ();
   return msg_ui_any_errors ();
 }
-
 
 static void
 fpu_init (void)
@@ -152,7 +146,7 @@ fpu_init (void)
 }
 
 /* If a segfault happens, issue a message to that effect and halt */
-void
+static void
 bug_handler(int sig)
 {
   /* Reset SIG to its default handling so that if it happens again we won't
