@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/rank.sh \
 	tests/command/rename.sh \
 	tests/command/regression.sh \
 	tests/command/regression-qr.sh \
@@ -379,6 +378,7 @@ TESTSUITE_AT = \
 	tests/language/stats/frequencies.at \
 	tests/language/stats/npar.at \
 	tests/language/stats/oneway.at \
+	tests/language/stats/rank.at \
 	tests/language/utilities/insert.at \
 	tests/language/utilities/permissions.at \
 	tests/language/utilities/set.at \
