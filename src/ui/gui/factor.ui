@@ -17,6 +17,14 @@
       </row>
     </data>
   </object>
+  <object class="GtkLabel" id="bug-workaround1">
+    <property name="sensitive">False</property>
+    <property name="label" translatable="yes">Principal Components Analysis</property>
+  </object>
+  <object class="GtkLabel" id="bug-workaround2">
+    <property name="sensitive">False</property>
+    <property name="label" translatable="yes">Principal Axis Factoring</property>
+  </object>
   <object class="PsppireDialog" id="factor-dialog">
     <property name="title" translatable="yes">Factor Analysis</property>
     <property name="modal">True</property>
