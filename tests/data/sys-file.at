@@ -1,8 +1,46 @@
 AT_BANNER([system files])
 
+# Also tests that long variable names are preserved by SAVE and GET.
+AT_SETUP([write and read numeric data])
+AT_KEYWORDS([SAVE GET system file])
+AT_DATA([sysfile.sps], [dnl
+DATA LIST LIST NOTABLE / variable001 * variable002 * variable003 * variable004 * .
+BEGIN DATA.
+    1.00     1.00    1.0     2.00
+    1.00     1.00    2.0    30.00
+    1.00     2.00    1.0     8.00
+    1.00     2.00    2.0    20.00
+    2.00     1.00    1.0     2.00
+    2.00     1.00    2.0    22.00
+    2.00     2.00    1.0     1.00
+    2.00     2.00    2.0     3.00
+END DATA.
+
+SAVE /OUTFILE='foo.sav'.
+
+GET /FILE='foo.sav'.
+
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv sysfile.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+variable001,variable002,variable003,variable004
+1.00,1.00,1.00,2.00
+1.00,1.00,2.00,30.00
+1.00,2.00,1.00,8.00
+1.00,2.00,2.00,20.00
+2.00,1.00,1.00,2.00
+2.00,1.00,2.00,22.00
+2.00,2.00,1.00,1.00
+2.00,2.00,2.00,3.00
+])
+AT_CLEANUP
+
 # Test that system files can be read properly, even when the case_size
 # header value is -1 (Some 3rd party products do this).
 AT_SETUP([system files with -1 case_size])
+AT_KEYWORDS([SAVE GET])
 AT_DATA([save.sps], [dnl
 DATA LIST LIST NOTABLE /cont (A32) size pop count.
 VAR LABEL
@@ -57,4 +95,43 @@ Antarctica                      ,13209000,.00,.00
 Europe                          ,9938000,7.3E+008,46.00
 Australia/Oceania               ,7687000,31000000,14.00
 ])
+AT_CLEANUP
+
+AT_SETUP([write v2 system file])
+AT_KEYWORDS([SAVE])
+AT_DATA([sysfile.sps], [dnl
+DATA LIST LIST NOTABLE / X * variable001 * variable002 * variable003 * .
+BEGIN DATA.
+    1.00     1.00    1.0     2.00
+    1.00     1.00    2.0    30.00
+    1.00     2.00    1.0     8.00
+    1.00     2.00    2.0    20.00
+    2.00     1.00    1.0     2.00
+    2.00     1.00    2.0    22.00
+    2.00     2.00    1.0     1.00
+    2.00     2.00    2.0     3.00
+END DATA.
+
+SAVE /OUTFILE='foo.sav'
+     /VERSION=2
+     .
+
+GET /FILE='foo.sav'.
+
+LIST.
+])
+AT_CHECK([pspp -O format=csv sysfile.sps], [0], [dnl
+Table: Data List
+x,variable,variab_a,variab_b
+1.00,1.00,1.00,2.00
+1.00,1.00,2.00,30.00
+1.00,2.00,1.00,8.00
+1.00,2.00,2.00,20.00
+2.00,1.00,1.00,2.00
+2.00,1.00,2.00,22.00
+2.00,2.00,1.00,1.00
+2.00,2.00,2.00,3.00
+])
+dnl Ensure that the written file has no long name table
+AT_CHECK([grep 'X=X' foo.sav], [1], [ignore-nolog])
 AT_CLEANUP
