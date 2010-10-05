@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/sysfiles-old.sh \
 	tests/command/sysfile-info.sh \
 	tests/command/split-file.sh \
 	tests/command/t-test-1-indep-val.sh \
