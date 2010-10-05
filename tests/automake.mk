@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/split-file.sh \
 	tests/command/t-test-1-indep-val.sh \
 	tests/command/t-test-1-sample-missing-anal.sh \
 	tests/command/t-test-1-sample-missing-list.sh \
@@ -355,6 +354,7 @@ TESTSUITE_AT = \
 	tests/language/dictionary/missing-values.at \
 	tests/language/dictionary/mrsets.at \
 	tests/language/dictionary/rename-variables.at \
+	tests/language/dictionary/split-file.at \
 	tests/language/dictionary/sys-file-info.at \
 	tests/language/expressions/evaluate.at \
 	tests/language/lexer/variable-parser.at \
