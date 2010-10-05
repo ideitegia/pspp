@@ -10,16 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/t-test-1-indep-val.sh \
-	tests/command/t-test-1-sample-missing-anal.sh \
-	tests/command/t-test-1-sample-missing-list.sh \
-	tests/command/t-test-1s.sh \
-	tests/command/t-test-groups.sh \
-	tests/command/t-test-indep-missing-anal.sh \
-	tests/command/t-test-indep-missing-list.sh \
-	tests/command/t-test-paired-missing-anal.sh \
-	tests/command/t-test-paired-missing-list.sh \
-	tests/command/t-test-pairs.sh \
 	tests/command/trimmed-mean.sh \
 	tests/command/tabs.sh \
 	tests/command/update.sh \
@@ -62,12 +52,6 @@ dist_TESTS = \
 	tests/bugs/random.sh \
 	tests/bugs/shbang.sh \
 	tests/bugs/signals.sh \
-	tests/bugs/t-test-with-temp.sh \
-	tests/bugs/t-test.sh \
-	tests/bugs/t-test-alpha.sh \
-	tests/bugs/t-test-alpha2.sh \
-	tests/bugs/t-test-alpha3.sh \
-	tests/bugs/t-test-paired.sh \
 	tests/bugs/temporary.sh \
 	tests/bugs/unwritable-dir.sh \
 	tests/bugs/val-labs.sh \
@@ -374,6 +358,7 @@ TESTSUITE_AT = \
 	tests/language/stats/reliability.at \
 	tests/language/stats/roc.at \
 	tests/language/stats/sort-cases.at \
+	tests/language/stats/t-test.at \
 	tests/language/utilities/insert.at \
 	tests/language/utilities/permissions.at \
 	tests/language/utilities/set.at \
