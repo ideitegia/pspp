@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/sort.sh \
 	tests/command/sysfiles.sh \
 	tests/command/sysfiles-old.sh \
 	tests/command/sysfile-info.sh \
@@ -376,6 +375,7 @@ TESTSUITE_AT = \
 	tests/language/stats/regression.at \
 	tests/language/stats/reliability.at \
 	tests/language/stats/roc.at \
+	tests/language/stats/sort-cases.at \
 	tests/language/utilities/insert.at \
 	tests/language/utilities/permissions.at \
 	tests/language/utilities/set.at \

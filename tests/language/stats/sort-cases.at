@@ -1,0 +1,82 @@
+AT_BANNER([SORT CASES])
+
+m4_divert_push([PREPARE_TESTS])
+[sort_cases_gen_data () {
+  cat > gen-data.pl <<'EOF'
+use strict;
+use warnings;
+
+# Generate shuffled data.
+my (@data);
+for my $i (0...$ARGV[0] - 1) {
+    push (@data, ($i) x $ARGV[1]);
+}
+fisher_yates_shuffle (\@data);
+
+# Output shuffled data.
+my (@shuffled) = map ([$data[$_], $_], 0...$#data);
+open (SHUFFLED, ">data.txt");
+print SHUFFLED "$data[$_] $_\n" foreach 0...$#data;
+
+# Output sorted data.
+my (@sorted) = sort { $a->[0] <=> $b->[0] || $a->[1] <=> $b->[1] } @shuffled;
+open (SORTED, ">expout");
+printf SORTED " %8d %8d \n", $_->[0], $_->[1] foreach @sorted;
+
+# From perlfaq4.
+sub fisher_yates_shuffle {
+    my $deck = shift;  # $deck is a reference to an array
+    my $i = @$deck;
+    while ($i--) {
+	my $j = int rand ($i+1);
+	@$deck[$i,$j] = @$deck[$j,$i];
+    }
+}
+EOF
+  $PERL gen-data.pl "$@"]
+}
+m4_divert_pop([PREPARE_TESTS])
+
+m4_define([SORT_CASES_TEST], 
+  [AT_SETUP([sort m4_eval([$1 * $2]) cases[]m4_if([$2], [1], [], [ ($1 unique)])[]m4_if([$3], [], [], [ with $3 buffers])])
+   AT_KEYWORDS([SORT CASES])
+   AT_CHECK([sort_cases_gen_data $1 $2 $3])
+   AT_CAPTURE_FILE([data.txt])
+   AT_CAPTURE_FILE([output.txt])
+   AT_CAPTURE_FILE([sort-cases.sps])
+   AT_DATA([sort-cases.sps], [dnl
+DATA LIST LIST NOTABLE FILE='data.txt'/x y (F8).
+SORT BY x[]m4_if([$3], [], [], [/BUFFERS=$3]).
+PRINT OUTFILE='output.txt'/x y.
+EXECUTE.
+])
+   AT_CHECK([pspp --testing-mode -o pspp.csv sort-cases.sps])
+   AT_CHECK([cat output.txt], [0], [expout])
+   AT_CLEANUP])
+
+SORT_CASES_TEST(100, 5, 2)
+SORT_CASES_TEST(100, 5, 3)
+SORT_CASES_TEST(100, 5, 4)
+SORT_CASES_TEST(100, 5, 5)
+SORT_CASES_TEST(100, 5, 10)
+SORT_CASES_TEST(100, 5, 50)
+SORT_CASES_TEST(100, 5, 100)
+SORT_CASES_TEST(100, 5)
+
+SORT_CASES_TEST(100, 10, 2)
+SORT_CASES_TEST(100, 10, 3)
+SORT_CASES_TEST(100, 10, 5)
+SORT_CASES_TEST(100, 10)
+
+SORT_CASES_TEST(1000, 5, 5)
+SORT_CASES_TEST(1000, 5, 50)
+SORT_CASES_TEST(1000, 5)
+
+SORT_CASES_TEST(100, 100, 3)
+SORT_CASES_TEST(100, 100, 5)
+SORT_CASES_TEST(100, 100)
+
+SORT_CASES_TEST(10000, 5, 500)
+
+SORT_CASES_TEST(50000, 1)
+
