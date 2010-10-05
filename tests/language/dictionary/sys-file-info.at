@@ -1,0 +1,46 @@
+AT_BANNER([SYSFILE INFO])
+
+AT_SETUP([SYSFILE INFO])
+AT_DATA([sysfile-info.sps], [dnl
+DATA LIST LIST /x * name (a10) .
+BEGIN DATA
+1 one
+2 two
+3 three
+END DATA.
+SAVE OUTFILE='pro.sav'.
+
+sysfile info file='pro.sav'.
+])
+AT_CHECK([pspp -o pspp.csv sysfile-info.sps])
+AT_CHECK(
+  [sed -e '/^Created:,/d' \
+       -e '/^Endian:,/d' \
+       -e '/^Integer Format:,/d' \
+       -e '/^Real Format:,/d' pspp.csv],
+  [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+name,A10
+
+File:,pro.sav
+Label:,No label.
+Variables:,2
+Cases:,3
+Type:,System File
+Weight:,Not weighted.
+Mode:,Compression on.
+Charset:,Unknown
+
+Variable,Description,,Position
+x,Format: F8.2,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+name,Format: A10,,2
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 10,,
+])
+AT_CLEANUP
