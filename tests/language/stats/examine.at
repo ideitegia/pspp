@@ -377,6 +377,55 @@ AT_CHECK([pspp -o pspp.csv examine.sps])
 dnl Ignore output -- this is just a no-crash check.
 AT_CLEANUP
 
+dnl Tests the trimmed mean calculation in the case
+dnl where the data is weighted towards the centre.
+AT_SETUP([EXAMINE -- trimmed mean])
+AT_DATA([examine.sps], [dnl
+DATA LIST LIST /X * C *.
+BEGIN DATA.
+1 1
+2 49
+3 2
+END DATA.
+
+WEIGHT BY c.
+
+EXAMINE
+	x
+	/STATISTICS=DESCRIPTIVES
+	.
+])
+AT_CHECK([pspp -o pspp.csv examine.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+X,F8.0
+C,F8.0
+
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X,52.00,100%,.00,0%,52.00,100%
+
+Table: Descriptives
+,,,Statistic,Std. Error
+X,Mean,,2.02,.03
+,95% Confidence Interval for Mean,Lower Bound,1.95,
+,,Upper Bound,2.09,
+,5% Trimmed Mean,,2.00,
+,Median,,2.00,
+,Variance,,.06,
+,Std. Deviation,,.24,
+,Minimum,,1.00,
+,Maximum,,3.00,
+,Range,,2.00,
+,Interquartile Range,,.00,
+,Skewness,,1.19,.33
+,Kurtosis,,15.73,.65
+])
+AT_CLEANUP
+
 AT_SETUP([EXAMINE -- crash bug])
 AT_DATA([examine.sps], [dnl
 data list list /a * x * y *.

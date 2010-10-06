@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/trimmed-mean.sh \
 	tests/command/tabs.sh \
 	tests/command/update.sh \
 	tests/command/use.sh \
