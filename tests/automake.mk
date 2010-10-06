@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/tabs.sh \
 	tests/command/update.sh \
 	tests/command/use.sh \
 	tests/command/variable-display.sh \

@@ -225,3 +225,33 @@ a,b,c
 16.00,17.00,18.00
 ])
 AT_CLEANUP
+
+AT_SETUP([DATA LIST properly expands tabs in input])
+AT_DATA([data-list.sps], [dnl
+data list notable /X 1-50 (a).
+begin data.
+	1	12	123	1234	12345    .
+end data.
+print /x.
+print outfile='print.txt' /x.
+write outfile='write.txt' /x.
+execute.
+])
+AT_CHECK([sed -n '/12345/l' data-list.sps], [0], [dnl
+\t1\t12\t123\t1234\t12345    .$
+])
+AT_CHECK([pspp -o pspp.csv data-list.sps])
+dnl The CSV driver drops leading spaces so they don't appear here:
+AT_CHECK([cat pspp.csv], [0], [dnl
+1       12      123     1234    12345    . @&t@
+])
+dnl But they do appear in print.txt.  The PRINT command also puts a space
+dnl at the beginning of the line and after the variable:
+AT_CHECK([cat print.txt], [0], [dnl
+         1       12      123     1234    12345    . @&t@
+])
+dnl WRITE doesn't add spaces at the beginning or end of lines:
+AT_CHECK([cat write.txt], [0], [dnl
+        1       12      123     1234    12345    .
+])
+AT_CLEANUP
