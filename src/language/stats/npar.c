@@ -222,7 +222,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
           npt->missing++;
           if (npt->missing > 1)
             {
-              msg (SE, _ ("MISSING subcommand may be given only once."));
+              msg (SE, _ ("The %s subcommand may be given only once."), "MISSING");
               goto lossage;
             }
           while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
@@ -249,7 +249,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
           npt->method++;
           if (npt->method > 1)
             {
-              msg (SE, _ ("METHOD subcommand may be given only once."));
+              msg (SE, _ ("The %s subcommand may be given only once."), "METHOD");
               goto lossage;
             }
           switch (npar_method (lexer, nps))
