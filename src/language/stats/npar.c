@@ -56,12 +56,6 @@ enum missing_type
     MISS_LISTWISE,
   };
 
-enum
-  {
-    NPAR_INCLUDE,
-    NPAR_EXCLUDE
-  };
-
 /* Array indices for STATISTICS subcommand. */
 enum
   {
@@ -89,7 +83,6 @@ struct cmd_npar_tests
     /* MISSING subcommand. */
     int missing;
     long miss;
-    long incl;
 
     /* METHOD subcommand. */
     int method;
@@ -141,7 +134,6 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
   npt->sign = 0;
   npt->missing = 0;
   npt->miss = MISS_ANALYSIS;
-  npt->incl = NPAR_EXCLUDE;
   npt->method = 0;
   npt->statistics = 0;
   memset (npt->a_statistics, 0, sizeof npt->a_statistics);
@@ -231,9 +223,9 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               else if (lex_match_hyphenated_word (lexer, "LISTWISE"))
                 npt->miss = MISS_LISTWISE;
               else if (lex_match_hyphenated_word (lexer, "INCLUDE"))
-                npt->incl = NPAR_INCLUDE;
+                nps->filter = MV_SYSTEM;
               else if (lex_match_hyphenated_word (lexer, "EXCLUDE"))
-                npt->incl = NPAR_EXCLUDE;
+                nps->filter = MV_ANY;
               else
                 {
                   lex_error (lexer, NULL);
@@ -370,6 +362,7 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
   struct casereader *input, *group;
 
   npar_specs.pool = pool_create ();
+  npar_specs.filter = MV_ANY;
 
   var_hash = const_hsh_create_pool (npar_specs.pool, 0,
 				    compare_vars_by_name, hash_var_by_name,
@@ -416,8 +409,6 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
 	    }
 	}
     }
-
-  npar_specs.filter = cmd.incl == NPAR_EXCLUDE ? MV_ANY : MV_SYSTEM;
 
   input = proc_open (ds);
   if ( cmd.miss == MISS_LISTWISE )
