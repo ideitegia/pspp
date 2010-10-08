@@ -49,12 +49,11 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-struct dataset;
 /* Settings for subcommand specifiers. */
-enum
+enum missing_type
   {
-    NPAR_ANALYSIS,
-    NPAR_LISTWISE,
+    MISS_ANALYSIS,
+    MISS_LISTWISE,
   };
 
 enum
@@ -141,7 +140,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
   npt->wilcoxon = 0;
   npt->sign = 0;
   npt->missing = 0;
-  npt->miss = NPAR_ANALYSIS;
+  npt->miss = MISS_ANALYSIS;
   npt->incl = NPAR_EXCLUDE;
   npt->method = 0;
   npt->statistics = 0;
@@ -228,9 +227,9 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
           while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
             {
               if (lex_match_hyphenated_word (lexer, "ANALYSIS"))
-                npt->miss = NPAR_ANALYSIS;
+                npt->miss = MISS_ANALYSIS;
               else if (lex_match_hyphenated_word (lexer, "LISTWISE"))
-                npt->miss = NPAR_LISTWISE;
+                npt->miss = MISS_LISTWISE;
               else if (lex_match_hyphenated_word (lexer, "INCLUDE"))
                 npt->incl = NPAR_INCLUDE;
               else if (lex_match_hyphenated_word (lexer, "EXCLUDE"))
@@ -421,7 +420,7 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
   npar_specs.filter = cmd.incl == NPAR_EXCLUDE ? MV_ANY : MV_SYSTEM;
 
   input = proc_open (ds);
-  if ( cmd.miss == NPAR_LISTWISE )
+  if ( cmd.miss == MISS_LISTWISE )
     {
       input = casereader_create_filter_missing (input,
 						npar_specs.vv,
