@@ -22,8 +22,6 @@
 
 #include <gsl/gsl_cdf.h>
 #include <math.h>
-#include <signal.h>
-#include <unistd.h>
 
 #include <data/casereader.h>
 #include <data/casewriter.h>
@@ -32,15 +30,12 @@
 #include <data/procedure.h>
 #include <data/subcase.h>
 #include <data/variable.h>
-#include <gsl/gsl_cdf.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <math/sort.h>
 #include <math/wilcoxon-sig.h>
 #include <output/tab.h>
-#include <signal.h>
-#include <unistd.h>
 
 #include "minmax.h"
 #include "xalloc.h"
