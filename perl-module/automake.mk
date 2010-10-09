@@ -36,7 +36,7 @@ module-make: perl-module/Makefile
 
 ALL_LOCAL += perl_module_tarball
 perl_module_tarball: $(module_sources) src/libpspp-core.la
-	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
+	@if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
 	 for f in $(module_sources); do \
 	  destdir=`dirname $$f` ;\
 	  mkdir -p $$destdir ;\
