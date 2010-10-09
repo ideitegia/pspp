@@ -68,27 +68,20 @@ enum
 /* NPAR TESTS structure. */
 struct cmd_npar_tests
   {
-    /* CHISQUARE subcommand. */
+    /* Count variables indicating how many
+       of the subcommands have been given. */
     int chisquare;
-
-    /* BINOMIAL subcommand. */
     int binomial;
-
-    /* WILCOXON subcommand. */
     int wilcoxon;
-
-    /* SIGN subcommand. */
     int sign;
-
-    /* MISSING subcommand. */
     int missing;
+    int method;
+    int statistics;
+
+    /* How missing values should be treated */
     long miss;
 
-    /* METHOD subcommand. */
-    int method;
-
-    /* STATISTICS subcommand. */
-    int statistics;
+    /* Which statistics have been requested */
     int a_statistics[NPAR_ST_count];
   };
 
@@ -726,6 +719,7 @@ parse_two_sample_related_test (struct lexer *lexer,
   return true;
 }
 
+
 static int
 npar_wilcoxon (struct lexer *lexer,
 	       struct dataset *ds,
@@ -772,17 +766,19 @@ npar_sign (struct lexer *lexer, struct dataset *ds,
   return 1;
 }
 
+
 /* Insert the variables for TEST into VAR_HASH */
 static void
 one_sample_insert_variables (const struct npar_test *test,
 			     struct const_hsh_table *var_hash)
 {
   int i;
-  struct one_sample_test *ost = UP_CAST (test, struct one_sample_test, parent);
+  const struct one_sample_test *ost = UP_CAST (test, const struct one_sample_test, parent);
 
   for ( i = 0 ; i < ost->n_vars ; ++i )
     const_hsh_insert (var_hash, ost->vars[i]);
 }
+
 
 static void
 two_sample_insert_variables (const struct npar_test *test,
@@ -790,7 +786,7 @@ two_sample_insert_variables (const struct npar_test *test,
 {
   int i;
 
-  const struct two_sample_test *tst = (const struct two_sample_test *) test;
+  const struct two_sample_test *tst = UP_CAST (test, const struct two_sample_test, parent);
 
   for ( i = 0 ; i < tst->n_pairs ; ++i )
     {
