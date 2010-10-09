@@ -33,6 +33,7 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
+#include <language/lexer/value-parser.h>
 #include <language/stats/binomial.h>
 #include <language/stats/chisquare.h>
 #include <language/stats/wilcoxon.h>
@@ -301,6 +302,11 @@ static void one_sample_insert_variables (const struct npar_test *test,
 
 static void two_sample_insert_variables (const struct npar_test *test,
 					 struct const_hsh_table *variables);
+
+
+static void n_sample_insert_variables (const struct npar_test *test,
+					 struct const_hsh_table *variables);
+
 
 
 static void
@@ -720,6 +726,52 @@ parse_two_sample_related_test (struct lexer *lexer,
 }
 
 
+static bool
+parse_n_sample_related_test (struct lexer *lexer,
+			     const struct dictionary *dict,
+			     struct n_sample_test *nst,
+			     struct pool *pool
+			     )
+{
+  union value val1, val2;
+
+  if (!parse_variables_const_pool (lexer, pool,
+				   dict,
+				   &nst->vars, &nst->n_vars,
+				   PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
+    return false;
+
+  if ( ! lex_force_match (lexer, T_BY))
+    return false;
+
+  nst->indep_var = parse_variable_const (lexer, dict);
+
+  if ( ! lex_force_match (lexer, '('))
+    return false;
+
+  value_init (&val1, var_get_width (nst->indep_var));
+  if ( ! parse_value (lexer, &val1, var_get_width (nst->indep_var)))
+    {
+      value_destroy (&val1, var_get_width (nst->indep_var));
+      return false;
+    }
+
+  if ( ! lex_force_match (lexer, ','))
+    return false;
+
+  value_init (&val2, var_get_width (nst->indep_var));
+  if ( ! parse_value (lexer, &val2, var_get_width (nst->indep_var)))
+    {
+      value_destroy (&val2, var_get_width (nst->indep_var));
+      return false;
+    }
+
+  if ( ! lex_force_match (lexer, ')'))
+    return false;
+
+  return true;
+}
+
 static int
 npar_wilcoxon (struct lexer *lexer,
 	       struct dataset *ds,
@@ -766,7 +818,6 @@ npar_sign (struct lexer *lexer, struct dataset *ds,
   return 1;
 }
 
-
 /* Insert the variables for TEST into VAR_HASH */
 static void
 one_sample_insert_variables (const struct npar_test *test,
@@ -795,6 +846,19 @@ two_sample_insert_variables (const struct npar_test *test,
       const_hsh_insert (var_hash, (*pair)[0]);
       const_hsh_insert (var_hash, (*pair)[1]);
     }
+}
+
+static void 
+n_sample_insert_variables (const struct npar_test *test,
+			   struct const_hsh_table *var_hash)
+{
+  int i;
+  const struct n_sample_test *tst = UP_CAST (test, const struct n_sample_test, parent);
+
+  for ( i = 0 ; i < tst->n_vars ; ++i )
+    const_hsh_insert (var_hash, tst->vars[i]);
+
+  const_hsh_insert (var_hash, tst->indep_var);
 }
 
 static int

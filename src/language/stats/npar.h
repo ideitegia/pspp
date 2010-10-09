@@ -45,6 +45,7 @@ struct npar_test
 			    struct const_hsh_table *);
 };
 
+
 struct one_sample_test
 {
   struct npar_test parent;
@@ -59,5 +60,14 @@ struct two_sample_test
   size_t n_pairs;
 };
 
+
+struct n_sample_test
+{
+  struct npar_test parent;
+  const struct variable **vars;
+  size_t n_vars;
+
+  const struct variable *indep_var;
+};
 
 #endif
