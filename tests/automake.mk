@@ -392,12 +392,12 @@ TESTSUITE_AT = \
 TESTSUITE = $(srcdir)/tests/testsuite
 DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
 
-$(srcdir)/tests/testsuite.at: tests/testsuite.in Makefile
+$(srcdir)/tests/testsuite.at: tests/testsuite.in tests/automake.mk
 	cp $< $@
 	for t in $(TESTSUITE_AT); do \
 	  echo "m4_include([$$t])" >> $@ ;\
 	done
-
+EXTRA_DIST += tests/testsuite.at
 
 CHECK_LOCAL += tests_check
 tests_check: tests/atconfig tests/atlocal $(TESTSUITE) $(check_PROGRAMS)
