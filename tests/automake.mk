@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/use.sh \
 	tests/command/variable-display.sh \
 	tests/command/vector.sh \
 	tests/command/very-long-strings.sh \
@@ -357,6 +356,7 @@ TESTSUITE_AT = \
 	tests/language/stats/roc.at \
 	tests/language/stats/sort-cases.at \
 	tests/language/stats/t-test.at \
+	tests/language/utilities/date.at \
 	tests/language/utilities/insert.at \
 	tests/language/utilities/permissions.at \
 	tests/language/utilities/set.at \

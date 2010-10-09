@@ -1,0 +1,36 @@
+AT_BANNER([USE])
+
+AT_SETUP([USE ALL])
+AT_DATA([use.sps], [dnl
+data list notable /X 1-2.
+begin data.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+end data.
+use all.
+list.
+])
+AT_CHECK([pspp -o pspp.csv use.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+X
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+])
+AT_CLEANUP
