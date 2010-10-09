@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/update.sh \
 	tests/command/use.sh \
 	tests/command/variable-display.sh \
 	tests/command/vector.sh \
@@ -332,6 +331,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/print.at \
 	tests/language/data-io/save.at \
 	tests/language/data-io/save-translate.at \
+	tests/language/data-io/update.at \
 	tests/language/dictionary/attributes.at \
 	tests/language/dictionary/missing-values.at \
 	tests/language/dictionary/mrsets.at \

@@ -1,0 +1,74 @@
+m4_define([CHECK_UPDATE],
+  [AT_SETUP([UPDATE $1 with $2])
+   AT_DATA([a.data], [dnl
+1aB
+8aM
+3aE
+5aG
+0aA
+5aH
+6aI
+7aJ
+2aD
+7aK
+1aC
+7aL
+4aF
+])
+   AT_DATA([b.data], [dnl
+1bN
+3bO
+4bP
+6bQ
+7bR
+9bS
+])
+   m4_if([$1], [sav],
+     [AT_DATA([save-a.sps], [dnl
+DATA LIST NOTABLE FILE='a.data' /a b c 1-3 (A).
+SAVE OUTFILE='a.sav'.
+])
+      AT_CHECK([pspp -O format=csv save-a.sps])])
+   m4_if([$2], [sav],
+     [AT_DATA([save-b.sps], [dnl
+DATA LIST NOTABLE FILE='b.data' /a b c 1-3 (A).
+SAVE OUTFILE='b.sav'.
+])
+      AT_CHECK([pspp -O format=csv save-b.sps])])
+   AT_DATA([update.sps], [dnl
+m4_if([$1], [sav], [], [DATA LIST NOTABLE FILE='a.data' /a b c 1-3 (A).])
+m4_if([$2], [sav], [], [DATA LIST NOTABLE FILE='b.data' /a b c 1-3 (A).])
+UPDATE
+    m4_if([$1], [sav], [FILE='a.sav'], [FILE=*]) /IN=InA /SORT
+    m4_if([$2], [sav], [FILE='b.sav'], [FILE=*]) /IN=InB /RENAME c=d
+    BY a.
+LIST.
+])
+   AT_CHECK([pspp -O format=csv update.sps], [0], [dnl
+update.sps:6: warning: UPDATE: Encountered 3 sets of duplicate cases in the master file.
+
+Table: Data List
+a,b,c,d,InA,InB
+0,a,A,,1,0
+1,b,B,N,1,1
+1,a,C,,1,0
+2,a,D,,1,0
+3,b,E,O,1,1
+4,b,F,P,1,1
+5,a,G,,1,0
+5,a,H,,1,0
+6,b,I,Q,1,1
+7,b,J,R,1,1
+7,a,K,,1,0
+7,a,L,,1,0
+8,a,M,,1,0
+9,b,,S,0,1
+])
+AT_CLEANUP
+])
+
+AT_BANNER([UPDATE])
+
+CHECK_UPDATE([sav], [sav])
+CHECK_UPDATE([sav], [inline])
+CHECK_UPDATE([inline], [sav])
