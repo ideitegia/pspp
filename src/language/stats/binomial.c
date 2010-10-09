@@ -88,15 +88,15 @@ calculate_binomial_internal (double n1, double n2, double p)
 static bool
 do_binomial (const struct dictionary *dict,
 	     struct casereader *input,
-	     const struct binomial_test *bst,
+	     const struct one_sample_test *ost,
 	     struct freq *cat1,
 	     struct freq *cat2,
              enum mv_class exclude
 	     )
 {
+  const struct binomial_test *bst = UP_CAST (ost, const struct binomial_test, parent);
   bool warn = true;
 
-  const struct one_sample_test *ost = (const struct one_sample_test *) bst;
   struct ccase *c;
 
   for (; (c = casereader_read (input)) != NULL; case_unref (c))
@@ -155,8 +155,8 @@ binomial_execute (const struct dataset *ds,
 {
   int v;
   const struct dictionary *dict = dataset_dict (ds);
-  const struct binomial_test *bst = (const struct binomial_test *) test;
-  const struct one_sample_test *ost = (const struct one_sample_test*) test;
+  const struct one_sample_test *ost = UP_CAST (test, const struct one_sample_test, parent);
+  const struct binomial_test *bst = UP_CAST (ost, const struct binomial_test, parent);
 
   struct freq *cat[2];
   int i;
@@ -179,7 +179,7 @@ binomial_execute (const struct dataset *ds,
         }
     }
 
-  if (do_binomial (dataset_dict (ds), input, bst, cat[0], cat[1], exclude))
+  if (do_binomial (dataset_dict (ds), input, ost, cat[0], cat[1], exclude))
     {
       const struct variable *wvar = dict_get_weight (dict);
       const struct fmt_spec *wfmt = wvar ?

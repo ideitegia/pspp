@@ -80,6 +80,7 @@ output_frequency_table (const struct two_sample_test *t2s,
       ds_put_cstr (&pair_name, " - ");
       ds_put_cstr (&pair_name, var_to_string ((*vp)[1]));
 
+
       tab_text (table, 0, 1 + i * 4, TAB_LEFT, ds_cstr (&pair_name));
 
       ds_destroy (&pair_name);
@@ -168,7 +169,7 @@ sign_execute (const struct dataset *ds,
   int i;
   bool warn = true;
   const struct dictionary *dict = dataset_dict (ds);
-  const struct two_sample_test *t2s = (const struct two_sample_test *) test;
+  const struct two_sample_test *t2s = UP_CAST (test, const struct two_sample_test, parent);
   struct ccase *c;
 
   struct sign_test_params *stp = xcalloc (sizeof *stp, t2s->n_pairs);
