@@ -166,6 +166,8 @@ MODULE = PSPP
 
 MODULE = PSPP		PACKAGE = PSPP
 
+PROTOTYPES: ENABLE
+
 void
 onBoot (ver)
  const char *ver
