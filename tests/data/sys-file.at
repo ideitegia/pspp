@@ -37,6 +37,29 @@ variable001,variable002,variable003,variable004
 ])
 AT_CLEANUP
 
+AT_SETUP([nonempty case_map doesn't crash])
+AT_DATA([save.sps], [dnl
+INPUT PROGRAM.
+    COMPUTE #I = 1.
+    COMPUTE X = #I + 1.
+    END CASE.
+    END FILE.
+END INPUT PROGRAM.
+
+SAVE OUTFILE='tiny.sav'.
+])
+AT_CHECK([pspp -O format=csv save.sps])
+AT_DATA([get.sps], [dnl
+GET FILE='tiny.sav'.
+LIST.
+])
+AT_CHECK([pspp -O format=csv get.sps], [0], [dnl
+Table: Data List
+X
+2.00
+])
+AT_CLEANUP
+
 # Test that system files can be read properly, even when the case_size
 # header value is -1 (Some 3rd party products do this).
 AT_SETUP([system files with -1 case_size])
