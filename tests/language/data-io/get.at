@@ -1,0 +1,64 @@
+AT_BANNER([GET])
+
+dnl Tests for a bug which caused the second procedure
+dnl after GET to have corrupt input.
+AT_SETUP([GET data works in multiple procedures])
+AT_DATA([get.sps], [dnl
+DATA LIST LIST NOTABLE /LOCATION * EDITOR * SHELL * FREQ * .
+BEGIN DATA.
+    1.00     1.00    1.0     2.00
+    1.00     1.00    2.0    30.00
+    1.00     2.00    1.0     8.00
+    1.00     2.00    2.0    20.00
+    2.00     1.00    1.0     2.00
+    2.00     1.00    2.0    22.00
+    2.00     2.00    1.0     1.00
+    2.00     2.00    2.0     3.00
+END DATA.
+
+SAVE /OUTFILE='foo.sav'.
+
+GET /FILE='foo.sav'.
+
+* This one's ok
+LIST.
+
+* But this one get rubbish
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv get.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+LOCATION,EDITOR,SHELL,FREQ
+1.00,1.00,1.00,2.00
+1.00,1.00,2.00,30.00
+1.00,2.00,1.00,8.00
+1.00,2.00,2.00,20.00
+2.00,1.00,1.00,2.00
+2.00,1.00,2.00,22.00
+2.00,2.00,1.00,1.00
+2.00,2.00,2.00,3.00
+
+Table: Data List
+LOCATION,EDITOR,SHELL,FREQ
+1.00,1.00,1.00,2.00
+1.00,1.00,2.00,30.00
+1.00,2.00,1.00,8.00
+1.00,2.00,2.00,20.00
+2.00,1.00,1.00,2.00
+2.00,1.00,2.00,22.00
+2.00,2.00,1.00,1.00
+2.00,2.00,2.00,3.00
+])
+AT_CLEANUP
+
+dnl Tests for a bug that crashed when GET specified a nonexistent file.
+AT_SETUP([GET nonexistent file doesn't crash])
+dnl We use stdin here, because the bug seems to manifest itself only in 
+dnl interactive mode.
+AT_CHECK([echo "GET /FILE='nonexistent.sav'." | pspp -O format=csv], [1], [dnl
+error: An error occurred while opening `nonexistent.sav': No such file or directory.
+
+-:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+AT_CLEANUP

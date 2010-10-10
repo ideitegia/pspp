@@ -31,8 +31,6 @@ dist_TESTS = \
 	tests/bugs/compression.sh \
 	tests/bugs/curtailed.sh \
 	tests/bugs/data-crash.sh \
-	tests/bugs/get.sh \
-	tests/bugs/get-no-file.sh \
 	tests/bugs/if_crash.sh \
 	tests/bugs/input-crash.sh \
 	tests/bugs/multipass.sh \
@@ -317,6 +315,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/get-data-gnm.at \
 	tests/language/data-io/get-data-psql.at \
 	tests/language/data-io/get-data-txt.at \
+	tests/language/data-io/get.at \
 	tests/language/data-io/list.at \
 	tests/language/data-io/match-files.at \
 	tests/language/data-io/print.at \
