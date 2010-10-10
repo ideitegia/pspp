@@ -11,7 +11,6 @@ TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
 	tests/command/very-long-strings.sh \
-	tests/command/weight.sh \
 	tests/formats/bcd-in.sh \
 	tests/formats/binhex-out.sh \
 	tests/formats/date-in.sh \
@@ -254,7 +253,6 @@ tests_output_render_test_LDADD = \
 
 EXTRA_DIST += \
 	$(dist_TESTS) \
-	tests/weighting.data \
 	tests/coverage.sh tests/test_template \
 	tests/v13.sav tests/v14.sav \
 	tests/expressions/randist/beta.out \
@@ -337,6 +335,7 @@ TESTSUITE_AT = \
 	tests/language/dictionary/sys-file-info.at \
 	tests/language/dictionary/variable-display.at \
 	tests/language/dictionary/vector.at \
+	tests/language/dictionary/weight.at \
 	tests/language/expressions/evaluate.at \
 	tests/language/lexer/variable-parser.at \
 	tests/language/stats/aggregate.at \

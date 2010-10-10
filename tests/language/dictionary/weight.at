@@ -1,84 +1,71 @@
-#!/bin/sh
+AT_BANNER([WEIGHT])
 
-# This program tests the WEIGHT command
-
-TEMPDIR=/tmp/pspp-tst-$$
-TESTFILE=$TEMPDIR/`basename $0`.sps
-
-# ensure that top_builddir  are absolute
-if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
-if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
-top_builddir=`cd $top_builddir; pwd`
-PSPP=$top_builddir/src/ui/terminal/pspp$EXEEXT
-
-# ensure that top_srcdir is absolute
-top_srcdir=`cd $top_srcdir; pwd`
-
-STAT_CONFIG_PATH=$top_srcdir/config
-export STAT_CONFIG_PATH
-
-LANG=C
-export LANG
-
-
-cleanup()
-{
-     if [ x"$PSPP_TEST_NO_CLEANUP" != x ] ; then 
-	echo "NOT cleaning $TEMPDIR"
-	return ; 
-     fi
-     cd /
-     rm -rf $TEMPDIR
-}
-
-
-fail()
-{
-    echo $activity
-    echo FAILED
-    cleanup;
-    exit 1;
-}
-
-
-no_result()
-{
-    echo $activity
-    echo NO RESULT;
-    cleanup;
-    exit 2;
-}
-
-pass()
-{
-    cleanup;
-    exit 0;
-}
-
-mkdir -p $TEMPDIR
-
-cd $TEMPDIR
-
-activity="create program"
-cat > $TESTFILE << EOF
+AT_SETUP([WEIGHT])
+AT_DATA([weight.txt], [dnl
+   18    1
+   19    7
+   20   26
+   21   76
+   22   57
+   23   58
+   24   38
+   25   38
+   26   30
+   27   21
+   28   23
+   29   24
+   30   23
+   31   14
+   32   21
+   33   21
+   34   14
+   35   14
+   36   17
+   37   11
+   38   16
+   39   14
+   40   15
+   41   14
+   42   14
+   43    8
+   44   15
+   45   10
+   46   12
+   47   13
+   48   13
+   49    5
+   50    5
+   51    3
+   52    7
+   53    6
+   54    2
+   55    2
+   56    2
+   57    3
+   58    1
+   59    3
+   61    1
+   62    3
+   63    1
+   64    1
+   65    2
+   70    1
+   78    1
+   79    1
+   80    1
+   94    1
+])
+AT_DATA([weight.sps], [dnl
 SET FORMAT F8.3.
-data list file='$top_srcdir/tests/weighting.data'/AVAR 1-5 BVAR 6-10.
+data list file='weight.txt'/AVAR 1-5 BVAR 6-10.
 weight by BVAR.
 
 descriptives AVAR /statistics all /format serial.
 frequencies AVAR /statistics all.
-
-EOF
-if [ $? -ne 0 ] ; then no_result ; fi
-
-
-activity="run program"
-$SUPERVISOR $PSPP -o pspp.csv $TESTFILE
-if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="compare results"
-diff -c $TEMPDIR/pspp.csv - <<EOF
-Table: Reading 1 record from \`$top_srcdir/tests/weighting.data'.
+])
+AT_CHECK([pspp -o pspp.csv weight.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading 1 record from `weight.txt'.
 Variable,Record,Columns,Format
 AVAR,1,1-  5,F5.0
 BVAR,1,6- 10,F5.0
@@ -160,8 +147,5 @@ Minimum,,18.000
 Maximum,,94.000
 Sum,,23006.00
 Percentiles,50 (Median),29
-EOF
-if [ $? -ne 0 ] ; then fail ; fi
-
-
-pass;
+])
+AT_CLEANUP
