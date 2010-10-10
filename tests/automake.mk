@@ -28,7 +28,6 @@ dist_TESTS = \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
 	tests/bugs/comment-at-eof.sh \
-	tests/bugs/compression.sh \
 	tests/bugs/curtailed.sh \
 	tests/bugs/data-crash.sh \
 	tests/bugs/if_crash.sh \

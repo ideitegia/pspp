@@ -37,7 +37,36 @@ variable001,variable002,variable003,variable004
 ])
 AT_CLEANUP
 
+AT_SETUP([write and read compressed files])
+AT_KEYWORDS([SAVE GET system file])
+AT_DATA([sysfile.sps], [dnl
+DATA LIST LIST NOTABLE /x * y (a200).
+BEGIN DATA.
+1.2 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+.   yyyyyyyyyyyyyyy
+0   ddddddddddddddddddddddddddddddd
+101 z
+END DATA.
+
+SAVE OUTFILE='com.sav' /COMPRESS .
+
+GET FILE='com.sav'.
+
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv sysfile.sps])
+dnl Make sure file really was compressd.
+AT_CHECK([dd if=com.sav bs=1 skip=72 count=4 2> /dev/null | od | sed '1q' > com.txt])
+dnl Allow big- or little-endian format.
+AT_CHECK(
+  [(echo '0000000 000000 000001' | diff com.txt -) ||
+   (echo '0000000 000001 000000' | diff com.txt -)], [0],
+  [ignore])
+AT_CAPTURE_FILE([com.txt])
+AT_CLEANUP
+
 AT_SETUP([nonempty case_map doesn't crash])
+AT_KEYWORDS([SAVE system file])
 AT_DATA([save.sps], [dnl
 INPUT PROGRAM.
     COMPUTE #I = 1.
