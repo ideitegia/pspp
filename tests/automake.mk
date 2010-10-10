@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/shbang.sh \
 	tests/bugs/signals.sh \
 	tests/bugs/temporary.sh \
 	tests/bugs/unwritable-dir.sh \
@@ -325,6 +324,7 @@ TESTSUITE_AT = \
 	tests/language/dictionary/weight.at \
 	tests/language/expressions/evaluate.at \
 	tests/language/expressions/parse.at \
+	tests/language/lexer/lexer.at \
 	tests/language/lexer/q2c.at \
 	tests/language/lexer/variable-parser.at \
 	tests/language/stats/aggregate.at \
