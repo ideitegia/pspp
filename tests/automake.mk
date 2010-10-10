@@ -27,8 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/big-input.sh \
-	tests/bugs/big-input-2.sh \
 	tests/bugs/case-map.sh \
 	tests/bugs/comment-at-eof.sh \
 	tests/bugs/compression.sh \
