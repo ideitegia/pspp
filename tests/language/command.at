@@ -77,3 +77,14 @@ x
 15.00
 ])
 AT_CLEANUP
+
+AT_BANNER([COMMENT])
+
+dnl Tests for a bug wherein a comment just before end-of-file caused an
+dnl infinite loop.
+AT_SETUP([COMMENT at end of file])
+AT_DATA([comment.sps], [dnl
+COMMENT this is a comment at end of file.
+])
+AT_CHECK([pspp -O format=csv comment.sps])
+AT_CLEANUP

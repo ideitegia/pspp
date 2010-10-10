@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/comment-at-eof.sh \
 	tests/bugs/curtailed.sh \
 	tests/bugs/if_crash.sh \
 	tests/bugs/input-crash.sh \
