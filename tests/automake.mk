@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/very-long-strings.sh \
 	tests/formats/bcd-in.sh \
 	tests/formats/binhex-out.sh \
 	tests/formats/date-in.sh \
@@ -254,7 +253,7 @@ tests_output_render_test_LDADD = \
 EXTRA_DIST += \
 	$(dist_TESTS) \
 	tests/coverage.sh tests/test_template \
-	tests/v13.sav tests/v14.sav \
+	tests/data/v13.sav tests/data/v14.sav \
 	tests/expressions/randist/beta.out \
 	tests/expressions/randist/cauchy.out \
 	tests/expressions/randist/chisq.out \
