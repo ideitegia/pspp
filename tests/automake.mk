@@ -29,7 +29,6 @@ dist_TESTS = \
 	tests/formats/360.sh \
 	tests/bugs/curtailed.sh \
 	tests/bugs/if_crash.sh \
-	tests/bugs/input-crash.sh \
 	tests/bugs/multipass.sh \
 	tests/bugs/overwrite-input-file.sh \
 	tests/bugs/overwrite-special-file.sh \
@@ -313,6 +312,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/get-data-psql.at \
 	tests/language/data-io/get-data-txt.at \
 	tests/language/data-io/get.at \
+	tests/language/data-io/inpt-pgm.at \
 	tests/language/data-io/list.at \
 	tests/language/data-io/match-files.at \
 	tests/language/data-io/print.at \
