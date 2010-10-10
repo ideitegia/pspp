@@ -223,3 +223,53 @@ AT_CHECK([cat write.out], [0], [dnl
 
 ])
 AT_CLEANUP
+
+AT_SETUP([PRINT overwrites file])
+AT_DATA([output.txt], [abcdef
+])
+AT_DATA([print.sps], [dnl
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+5
+END DATA.
+PRINT OUTFILE='output.txt'/x.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv print.sps])
+AT_CHECK([cat output.txt], [0], [ 5 @&t@
+])
+AT_CLEANUP
+
+AT_SETUP([PRINT overwrites file atomically])
+AT_DATA([output.txt], [abcdef
+])
+AT_DATA([print.sps],
+[[DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+5
+END DATA.
+PRINT OUTFILE='output.txt'/x.
+HOST COMMAND=['kill -TERM $PPID'].
+]])
+AT_CHECK([pspp -O format=csv print.sps], [143], [], [ignore])
+AT_CHECK([cat output.txt], [0], [abcdef
+])
+AT_CHECK(
+  [for file in *.tmp*; do if test -e $file; then echo $file; exit 1; fi; done])
+AT_CLEANUP
+
+AT_SETUP([PRINT to same file being read])
+AT_DATA([data.txt], [5
+])
+AT_DATA([print.sps], [dnl
+DATA LIST FILE='data.txt' NOTABLE/x 1.
+COMPUTE y = x + 1.
+PRINT OUTFILE='data.txt'/y.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv print.sps])
+AT_CHECK([cat data.txt], [0], [     6.00 @&t@
+])
+AT_CHECK(
+  [for file in *.tmp*; do if test -e $file; then echo $file; exit 1; fi; done])
+AT_CLEANUP

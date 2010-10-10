@@ -65,6 +65,71 @@ AT_CHECK(
 AT_CAPTURE_FILE([com.txt])
 AT_CLEANUP
 
+AT_SETUP([overwriting system file])
+AT_DATA([output.sav], [abcdef
+])
+cp output.sav output.sav.backup
+AT_DATA([sysfile.sps], [dnl
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+5
+END DATA.
+SAVE OUTFILE='output.sav'.
+])
+AT_CHECK([pspp -O format=csv sysfile.sps])
+AT_CHECK([cmp output.sav output.sav.backup], [1], [ignore])
+AT_CLEANUP
+
+AT_SETUP([overwriting system file atomically])
+AT_DATA([output.sav], [abcdef
+])
+cp output.sav output.sav.backup
+AT_DATA([sysfile.sps],
+[[DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+5
+END DATA.
+XSAVE OUTFILE='output.sav'.
+HOST COMMAND=['kill -TERM $PPID'].
+]])
+AT_CHECK([pspp -O format=csv sysfile.sps], [143], [], [ignore])
+AT_CHECK([cmp output.sav output.sav.backup])
+AT_CHECK(
+  [for file in *.tmp*; do if test -e $file; then echo $file; exit 1; fi; done])
+AT_CLEANUP
+
+
+AT_SETUP([write to same system file being read])
+AT_DATA([save.sps], [dnl
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+3
+END DATA.
+SAVE OUTFILE='data.sav'.
+])
+AT_CHECK([pspp -O format=csv save.sps])
+AT_CHECK([test -s data.sav])
+AT_CHECK(
+  [for file in *.tmp*; do if test -e $file; then echo $file; exit 1; fi; done])
+AT_DATA([save2.sps], [dnl
+GET FILE='data.sav'.
+COMPUTE y = x * 3.
+SAVE OUTFILE='data.sav'.
+])
+AT_CHECK([pspp -O format=csv save2.sps])
+AT_CHECK(
+  [for file in *.tmp*; do if test -e $file; then echo $file; exit 1; fi; done])
+AT_DATA([save3.sps], [dnl
+GET FILE='data.sav'.
+LIST.
+])
+AT_CHECK([pspp -O format=csv save3.sps], [0], [dnl
+Table: Data List
+X,Y
+3,9.00
+])
+AT_CLEANUP
+
 AT_SETUP([nonempty case_map doesn't crash])
 AT_KEYWORDS([SAVE system file])
 AT_DATA([save.sps], [dnl

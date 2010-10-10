@@ -1,0 +1,65 @@
+AT_BANNER([portable files])
+
+AT_SETUP([overwriting portable file])
+AT_DATA([output.por], [abcdef
+])
+cp output.por output.por.backup
+AT_DATA([porfile.sps], [dnl
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+5
+END DATA.
+EXPORT OUTFILE='output.por'.
+])
+AT_CHECK([pspp -O format=csv porfile.sps])
+AT_CHECK([cmp output.por output.por.backup], [1], [ignore])
+AT_CLEANUP
+
+AT_SETUP([overwriting portable file atomically])
+AT_DATA([output.por], [abcdef
+])
+cp output.por output.por.backup
+AT_DATA([porfile.sps],
+[[DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+5
+END DATA.
+XEXPORT OUTFILE='output.por'.
+HOST COMMAND=['kill -TERM $PPID'].
+]])
+AT_CHECK([pspp -O format=csv porfile.sps], [143], [], [ignore])
+AT_CHECK([cmp output.por output.por.backup])
+AT_CHECK(
+  [for file in *.tmp*; do if test -e $file; then echo $file; exit 1; fi; done])
+AT_CLEANUP
+
+AT_SETUP([write to same portable file being read])
+AT_DATA([export.sps], [dnl
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+2
+END DATA.
+EXPORT OUTFILE='data.por'.
+])
+AT_CHECK([pspp -O format=csv export.sps])
+AT_CHECK([test -s data.por])
+AT_CHECK(
+  [for file in *.tmp*; do if test -e $file; then echo $file; exit 1; fi; done])
+AT_DATA([export2.sps], [dnl
+IMPORT FILE='data.por'.
+COMPUTE y = x * 2.
+EXPORT OUTFILE='data.por'.
+])
+AT_CHECK([pspp -O format=csv export2.sps])
+AT_CHECK(
+  [for file in *.tmp*; do if test -e $file; then echo $file; exit 1; fi; done])
+AT_DATA([export3.sps], [dnl
+IMPORT FILE='data.por'.
+LIST.
+])
+AT_CHECK([pspp -O format=csv export3.sps], [0], [dnl
+Table: Data List
+X,Y
+2,4.00
+])
+AT_CLEANUP
