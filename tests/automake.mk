@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/multipass.sh \
 	tests/bugs/overwrite-input-file.sh \
 	tests/bugs/overwrite-special-file.sh \
 	tests/bugs/shbang.sh \
