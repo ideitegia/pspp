@@ -32,7 +32,6 @@ dist_TESTS = \
 	tests/bugs/multipass.sh \
 	tests/bugs/overwrite-input-file.sh \
 	tests/bugs/overwrite-special-file.sh \
-	tests/bugs/random.sh \
 	tests/bugs/shbang.sh \
 	tests/bugs/signals.sh \
 	tests/bugs/temporary.sh \

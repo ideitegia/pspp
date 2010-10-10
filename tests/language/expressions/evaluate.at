@@ -1899,3 +1899,46 @@ x,F8.0
 hello
 ])
 AT_CLEANUP
+
+dnl Tests for a bug which caused UNIFORM(x) to always return zero.
+AT_SETUP([UNIFORM function])
+AT_DATA([uniform.sps], [dnl
+set seed=10.
+input program.
++ loop #i = 1 to 20.
++    do repeat response=R1.
++       compute response = uniform(10).
++    end repeat.
++    end case.
++ end loop.
++ end file.
+end input program.
+
+list.
+])
+AT_CHECK([pspp -o pspp.csv uniform.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+R1
+7.71
+2.99
+.21
+4.95
+6.34
+4.43
+7.49
+8.32
+4.99
+5.83
+2.25
+.25
+1.98
+7.09
+7.61
+2.66
+1.69
+2.64
+.88
+1.50
+])
+AT_CLEANUP
