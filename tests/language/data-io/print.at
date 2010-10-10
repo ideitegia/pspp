@@ -273,3 +273,32 @@ AT_CHECK([cat data.txt], [0], [     6.00 @&t@
 AT_CHECK(
   [for file in *.tmp*; do if test -e $file; then echo $file; exit 1; fi; done])
 AT_CLEANUP
+
+AT_SETUP([PRINT to special file])
+AT_SKIP_IF([test ! -c /dev/null])
+AT_CHECK([ln -s /dev/null foo.out || exit 77])
+AT_SKIP_IF([test ! -c foo.out])
+AT_DATA([print.sps], [dnl
+DATA LIST NOTABLE /x 1.
+BEGIN DATA.
+1
+2
+3
+4
+5
+END DATA.
+PRINT OUTFILE='foo.out'/x.
+PRINT OUTFILE='foo2.out'/x.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv print.sps])
+AT_CHECK([cat foo2.out], [0], [dnl
+ 1 @&t@
+ 2 @&t@
+ 3 @&t@
+ 4 @&t@
+ 5 @&t@
+])
+ls -l foo.out foo2.out
+AT_CHECK([test -c foo.out])
+AT_CLEANUP
