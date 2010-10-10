@@ -29,7 +29,6 @@ dist_TESTS = \
 	tests/formats/360.sh \
 	tests/bugs/comment-at-eof.sh \
 	tests/bugs/curtailed.sh \
-	tests/bugs/data-crash.sh \
 	tests/bugs/if_crash.sh \
 	tests/bugs/input-crash.sh \
 	tests/bugs/multipass.sh \
