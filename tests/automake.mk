@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/curtailed.sh \
 	tests/bugs/if_crash.sh \
 	tests/bugs/multipass.sh \
 	tests/bugs/overwrite-input-file.sh \
@@ -328,6 +327,7 @@ TESTSUITE_AT = \
 	tests/language/dictionary/vector.at \
 	tests/language/dictionary/weight.at \
 	tests/language/expressions/evaluate.at \
+	tests/language/lexer/q2c.at \
 	tests/language/lexer/variable-parser.at \
 	tests/language/stats/aggregate.at \
 	tests/language/stats/autorecode.at \
