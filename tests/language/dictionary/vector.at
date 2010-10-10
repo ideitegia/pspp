@@ -1,0 +1,78 @@
+AT_BANNER([VECTOR])
+
+AT_SETUP([VECTOR short form])
+AT_DATA([vector.sps], [dnl
+data list notable/x 1.
+vector v(4).
+display vector.
+])
+AT_CHECK([pspp -o pspp.csv vector.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Vector,Position,Variable,Print Format
+v,1,v1,F8.2
+,2,v2,F8.2
+,3,v3,F8.2
+,4,v4,F8.2
+])
+AT_CLEANUP
+
+AT_SETUP([VECTOR short form with format specification])
+AT_DATA([vector.sps], [dnl
+data list notable/x 1.
+vector #vec(4, comma10.2).
+display vector.
+])
+AT_CHECK([pspp -o pspp.csv vector.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Vector,Position,Variable,Print Format
+#vec,1,#vec1,COMMA10.2
+,2,#vec2,COMMA10.2
+,3,#vec3,COMMA10.2
+,4,#vec4,COMMA10.2
+])
+AT_CLEANUP
+
+AT_SETUP([VECTOR short form in INPUT PROGRAM])
+AT_DATA([vector.sps], [dnl
+input program.
+vector x(5).
+data list notable/x5 x2 x3 x1 x4 1-5.
+end input program.
+display vector.
+])
+AT_CHECK([pspp -o pspp.csv vector.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Vector,Position,Variable,Print Format
+x,1,x1,F8.2
+,2,x2,F8.2
+,3,x3,F8.2
+,4,x4,F8.2
+,5,x5,F8.2
+])
+AT_CLEANUP
+
+AT_SETUP([VECTOR long form])
+AT_DATA([vector.sps], [dnl
+data list notable/u w x y z 1-5.
+vector a=u to y.
+vector b=x to z.
+vector c=all.
+display vector.
+])
+AT_CHECK([pspp -o pspp.csv vector.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Vector,Position,Variable,Print Format
+a,1,u,F1.0
+,2,w,F1.0
+,3,x,F1.0
+,4,y,F1.0
+b,1,x,F1.0
+,2,y,F1.0
+,3,z,F1.0
+c,1,u,F1.0
+,2,w,F1.0
+,3,x,F1.0
+,4,y,F1.0
+,5,z,F1.0
+])
+AT_CLEANUP

@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/command/vector.sh \
 	tests/command/very-long-strings.sh \
 	tests/command/weight.sh \
 	tests/formats/bcd-in.sh \
@@ -337,6 +336,7 @@ TESTSUITE_AT = \
 	tests/language/dictionary/split-file.at \
 	tests/language/dictionary/sys-file-info.at \
 	tests/language/dictionary/variable-display.at \
+	tests/language/dictionary/vector.at \
 	tests/language/expressions/evaluate.at \
 	tests/language/lexer/variable-parser.at \
 	tests/language/stats/aggregate.at \
