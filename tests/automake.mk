@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/data/datasheet-test.sh \
 	tests/libpspp/sparse-xarray-test.sh \
 	tests/output/paper-size.sh \
 	tests/expressions/randist.sh \
@@ -286,6 +285,7 @@ EXTRA_DIST += \
 TESTSUITE_AT = \
 	tests/data/calendar.at \
 	tests/data/data-in.at \
+	tests/data/datasheet-test.at \
 	tests/data/por-file.at \
 	tests/data/sys-file.at \
 	tests/language/command.at \
@@ -386,7 +386,7 @@ EXTRA_DIST += tests/testsuite.at
 
 CHECK_LOCAL += tests_check
 tests_check: tests/atconfig tests/atlocal $(TESTSUITE) $(check_PROGRAMS)
-	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/libpspp:tests/output:src/ui/terminal $(TESTSUITEFLAGS)
+	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/data:tests/libpspp:tests/output:src/ui/terminal $(TESTSUITEFLAGS)
 
 CLEAN_LOCAL += tests_clean
 tests_clean:

@@ -7,6 +7,7 @@ host='@host@'
 GNM_SUPPORT='@GNM_SUPPORT@'
 GZIP=
 export GZIP
+EXEEXT='@EXEEXT@'
 
 PSQL_SUPPORT='@PSQL_SUPPORT@'
 if test "$PSQL_SUPPORT" = yes; then
