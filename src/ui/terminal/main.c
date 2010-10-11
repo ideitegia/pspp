@@ -72,7 +72,6 @@ static void add_syntax_file (struct source_stream *, enum syntax_mode,
                              const char *file_name);
 static void bug_handler(int sig);
 static void fpu_init (void);
-static void clean_up (void);
 
 /* Program entry point. */
 int
@@ -153,7 +152,19 @@ main (int argc, char **argv)
     }
 
 
-  clean_up ();
+  destroy_dataset (the_dataset);
+
+  random_done ();
+  settings_done ();
+  fh_done ();
+  lex_destroy (the_lexer);
+  destroy_source_stream (the_source_stream);
+  prompt_done ();
+  readln_uninitialize ();
+  output_close ();
+  msg_ui_done ();
+  i18n_done ();
+
   return msg_ui_any_errors ();
 }
 
@@ -199,30 +210,6 @@ bug_handler(int sig)
 
   /* Re-raise the signal so that we terminate with the correct status. */
   raise (sig);
-}
-
-/* Clean up PSPP in preparation for termination.  */
-static void
-clean_up (void)
-{
-  static bool terminating = false;
-  if (!terminating)
-    {
-      terminating = true;
-
-      destroy_dataset (the_dataset);
-
-      random_done ();
-      settings_done ();
-      fh_done ();
-      lex_destroy (the_lexer);
-      destroy_source_stream (the_source_stream);
-      prompt_done ();
-      readln_uninitialize ();
-      output_close ();
-      msg_ui_done ();
-      i18n_done ();
-    }
 }
 
 static void
