@@ -1,0 +1,28 @@
+AT_BANNER([output drivers])
+
+m4_define([OUTPUT_UNWRITABLE_DIR],
+  [AT_SETUP([output $1 to unwritable directory])
+   mkdir unwritable
+   chmod u-w unwritable
+   AT_SKIP_IF([: > unwritable/test])
+   AT_DATA([unwritable.sps], [dnl
+data list /x 1.
+begin data.
+1
+2
+3
+end data.
+frequencies x/histogram.
+])
+   dnl PSPP will fail to create the output file.  Currently this doesn't cause
+   dnl PSPP's exit status to be nonzero, although this is arguably incorrect.
+   dnl At any rate, PSPP should not crash.
+   AT_CHECK([cd unwritable && pspp -o pspp.$1 ../unwritable.sps], [0],
+            [ignore], [ignore])
+   AT_CLEANUP])
+
+OUTPUT_UNWRITABLE_DIR([csv])
+OUTPUT_UNWRITABLE_DIR([html])
+OUTPUT_UNWRITABLE_DIR([odt])
+OUTPUT_UNWRITABLE_DIR([pdf])
+OUTPUT_UNWRITABLE_DIR([txt])

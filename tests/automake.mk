@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/unwritable-dir.sh \
 	tests/bugs/val-labs.sh \
 	tests/bugs/val-labs-trailing-slash.sh \
 	tests/bugs/keep-all.sh \
@@ -371,8 +370,9 @@ TESTSUITE_AT = \
 	tests/libpspp/stringi-set.at \
 	tests/libpspp/tower.at \
 	tests/math/moments.at \
-	tests/output/render.at \
 	tests/output/charts.at \
+	tests/output/output.at \
+	tests/output/render.at \
 	tests/ui/terminal/main.at \
 	tests/perl-module.at
 
