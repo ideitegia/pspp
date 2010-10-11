@@ -88,7 +88,6 @@ main (int argc, char **argv)
   signal (SIGABRT, bug_handler);
   signal (SIGSEGV, bug_handler);
   signal (SIGFPE, bug_handler);
-  at_fatal_signal (clean_up);
 
   i18n_init ();
   fpu_init ();
