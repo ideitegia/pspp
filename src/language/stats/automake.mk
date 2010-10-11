@@ -20,16 +20,15 @@ language_stats_sources = \
 	src/language/stats/chisquare.h \
 	src/language/stats/correlations.c \
 	src/language/stats/descriptives.c \
-	src/language/stats/npar.h \
-	src/language/stats/sort-cases.c \
-	src/language/stats/sort-criteria.c \
-	src/language/stats/sort-criteria.h \
 	src/language/stats/factor.c \
 	src/language/stats/flip.c \
 	src/language/stats/freq.c \
 	src/language/stats/freq.h \
 	src/language/stats/glm.c \
+	src/language/stats/kruskal-wallis.c \
+	src/language/stats/kruskal-wallis.h \
 	src/language/stats/npar.c \
+	src/language/stats/npar.h \
 	src/language/stats/npar-summary.c \
 	src/language/stats/npar-summary.h \
 	src/language/stats/oneway.c \
@@ -38,6 +37,9 @@ language_stats_sources = \
 	src/language/stats/roc.h \
 	src/language/stats/sign.c \
 	src/language/stats/sign.h \
+	src/language/stats/sort-cases.c \
+	src/language/stats/sort-criteria.c \
+	src/language/stats/sort-criteria.h \
 	src/language/stats/wilcoxon.c \
 	src/language/stats/wilcoxon.h
 

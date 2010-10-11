@@ -36,6 +36,7 @@
 #include <language/lexer/value-parser.h>
 #include <language/stats/binomial.h>
 #include <language/stats/chisquare.h>
+#include <language/stats/kruskal-wallis.h>
 #include <language/stats/wilcoxon.h>
 #include <language/stats/sign.h>
 #include <libpspp/assertion.h>
@@ -169,7 +170,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "K-S") ||
+      else if (lex_match_hyphenated_word (lexer, "K-W") ||
 	       lex_match_hyphenated_word (lexer, "KRUSKAL-WALLIS"))
         {
           lex_match (lexer, '=');
@@ -753,8 +754,6 @@ parse_n_sample_related_test (struct lexer *lexer,
 			     struct pool *pool
 			     )
 {
-  union value val1, val2;
-
   if (!parse_variables_const_pool (lexer, pool,
 				   dict,
 				   &nst->vars, &nst->n_vars,
@@ -769,20 +768,20 @@ parse_n_sample_related_test (struct lexer *lexer,
   if ( ! lex_force_match (lexer, '('))
     return false;
 
-  value_init (&val1, var_get_width (nst->indep_var));
-  if ( ! parse_value (lexer, &val1, var_get_width (nst->indep_var)))
+  value_init (&nst->val1, var_get_width (nst->indep_var));
+  if ( ! parse_value (lexer, &nst->val1, var_get_width (nst->indep_var)))
     {
-      value_destroy (&val1, var_get_width (nst->indep_var));
+      value_destroy (&nst->val1, var_get_width (nst->indep_var));
       return false;
     }
 
   if ( ! lex_force_match (lexer, ','))
     return false;
 
-  value_init (&val2, var_get_width (nst->indep_var));
-  if ( ! parse_value (lexer, &val2, var_get_width (nst->indep_var)))
+  value_init (&nst->val2, var_get_width (nst->indep_var));
+  if ( ! parse_value (lexer, &nst->val2, var_get_width (nst->indep_var)))
     {
-      value_destroy (&val2, var_get_width (nst->indep_var));
+      value_destroy (&nst->val2, var_get_width (nst->indep_var));
       return false;
     }
 
@@ -847,7 +846,7 @@ npar_kruskal_wallis (struct lexer *lexer, struct dataset *ds,
 
   nt->insert_variables = n_sample_insert_variables;
 
-  //  nt->execute = kruskall_wallis_execute;
+  nt->execute = kruskal_wallis_execute;
 
   if (!parse_n_sample_related_test (lexer, dataset_dict (ds),
 				      tp, specs->pool) )
@@ -880,7 +879,6 @@ two_sample_insert_variables (const struct npar_test *test,
 			     struct const_hsh_table *var_hash)
 {
   int i;
-
   const struct two_sample_test *tst = UP_CAST (test, const struct two_sample_test, parent);
 
   for ( i = 0 ; i < tst->n_pairs ; ++i )

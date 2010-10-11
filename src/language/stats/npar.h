@@ -20,9 +20,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <data/missing-values.h>
-
-#include <stddef.h>
-#include <data/missing-values.h>
+#include <data/value.h>
 
 typedef const struct variable *variable_pair[2];
 
@@ -67,6 +65,7 @@ struct n_sample_test
   const struct variable **vars;
   size_t n_vars;
 
+  union value val1, val2;
   const struct variable *indep_var;
 };
 
