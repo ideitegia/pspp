@@ -125,7 +125,7 @@ LIST.
 ])
 AT_CHECK([pspp -O format=csv save3.sps], [0], [dnl
 Table: Data List
-X,Y
+x,y
 3,9.00
 ])
 AT_CLEANUP
