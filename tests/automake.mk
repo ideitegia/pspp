@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/temporary.sh \
 	tests/bugs/unwritable-dir.sh \
 	tests/bugs/val-labs.sh \
 	tests/bugs/val-labs-trailing-slash.sh \
@@ -297,6 +296,7 @@ TESTSUITE_AT = \
 	tests/language/control/do-if.at \
 	tests/language/control/do-repeat.at \
 	tests/language/control/loop.at \
+	tests/language/control/temporary.at \
 	tests/language/data-io/add-files.at \
 	tests/language/data-io/data-list.at \
 	tests/language/data-io/data-reader.at \
