@@ -27,8 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/val-labs.sh \
-	tests/bugs/val-labs-trailing-slash.sh \
 	tests/bugs/keep-all.sh \
 	tests/data/datasheet-test.sh \
 	tests/libpspp/sparse-xarray-test.sh \
@@ -317,6 +315,7 @@ TESTSUITE_AT = \
 	tests/language/dictionary/rename-variables.at \
 	tests/language/dictionary/split-file.at \
 	tests/language/dictionary/sys-file-info.at \
+	tests/language/dictionary/value-labels.at \
 	tests/language/dictionary/variable-display.at \
 	tests/language/dictionary/vector.at \
 	tests/language/dictionary/weight.at \
