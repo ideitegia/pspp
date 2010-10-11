@@ -62,3 +62,33 @@ error: An error occurred while opening `nonexistent.sav': No such file or direct
 -:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 AT_CLEANUP
+
+dnl Tests for bug #15766 (/KEEP subcommand on SAVE doesn't
+dnl fully support ALL) and underlying problems.
+m4_define([GET_KEEP_ALL],
+  [AT_SETUP([GET with /KEEP=ALL crashes -- $1])
+   AT_DATA([get.sps], [dnl
+DATA LIST LIST NOTABLE 
+	/a b c d e f g h i j k l m n o p q r s t u v w x y z (F2.0).
+BEGIN DATA.
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+END DATA.
+LIST.
+SAVE OUTFILE='test.sav'/$1.
+GET FILE='test.sav'/KEEP=x y z all.
+LIST.
+])
+   AT_CHECK([pspp -o pspp.csv get.sps])
+   AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
+
+Table: Data List
+x,y,z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w
+24,25,26,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23
+])
+   AT_CLEANUP])
+GET_KEEP_ALL([uncompressed])
+GET_KEEP_ALL([compressed])
+

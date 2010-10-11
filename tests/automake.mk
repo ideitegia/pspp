@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/bugs/keep-all.sh \
 	tests/data/datasheet-test.sh \
 	tests/libpspp/sparse-xarray-test.sh \
 	tests/output/paper-size.sh \
