@@ -1,0 +1,83 @@
+AT_BANNER([sparse external arrays])
+
+m4_divert_push([PREPARE_TESTS])
+[sparse_xarray_queue_limit () {
+  # Each on-disk sparse_xarray eats up a file descriptor, so for the
+  # tests that involve on-disk sparse_xarrays we need to limit the
+  # maximum length of the queue.  Figure out how many file descriptors
+  # we can let the test program open at once.
+  OPEN_MAX=`getconf OPEN_MAX 2>/dev/null`
+  case $OPEN_MAX in
+    [0-9]*)
+      # Divide by 2 because some fds are used by other code.
+      queue_limit=`expr $OPEN_MAX / 2` 
+      ;;
+    undefined) 
+      # Assume that any system with a dynamic fd limit has a large limit.
+      queue_limit=500 
+      ;;
+    *)
+      case `uname -m 2>/dev/null` in
+	CYGWIN*)
+	  # Cygwin claims a 256-fd limit as OPEN_MAX in <limits.h>.
+	  queue_limit=128
+	  ;;
+	MINGW*)
+	  # The following email claims that Mingw should have a
+	  # 2048-fd limit:
+	  # http://www.mail-archive.com/squid-users@squid-cache.org/msg35249.html
+	  queue_limit=1024
+	  ;;
+	*)
+	  # This seems fairly conservative these days.
+	  queue_limit=50
+	  ;;
+      esac
+      ;;
+  esac
+  echo "$queue_limit"
+}]
+m4_divert_pop([PREPARE_TESTS])
+
+AT_SETUP([in-memory sparse_xarray])
+dnl --values=3 would be a slightly better test but takes much longer.
+AT_CHECK([sparse-xarray-test$EXEEXT \
+	    --verbosity=0 --queue-limit=`sparse_xarray_queue_limit` \
+	    --columns=3 --max-rows=3 --max-memory-rows=3 --values=2],
+  [0], [ignore], [ignore])
+AT_CLEANUP
+
+m4_define([SPARSE_XARRAY_ON_DISK],
+  [AT_SETUP([on-disk sparse_xarray])
+   AT_CHECK([sparse-xarray-test$EXEEXT \
+	       --verbosity=0 --queue-limit=`sparse_xarray_queue_limit` \
+               --columns=2 --max-rows=3 --max-memory-rows=$1 --values=2],
+     [0], [ignore], [ignore])
+   AT_CLEANUP])
+SPARSE_XARRAY_ON_DISK([0])
+SPARSE_XARRAY_ON_DISK([1])
+SPARSE_XARRAY_ON_DISK([2])
+
+AT_SETUP([copying between in-memory sparse_xarrays])
+AT_KEYWORDS([sparse_xarray])
+AT_CHECK([sparse-xarray-test$EXEEXT \
+	    --verbosity=0 --queue-limit=`sparse_xarray_queue_limit` \
+ 	    --columns=2 --max-rows=2 --max-memory-rows=2 --values=2 \
+	    --xarrays=2 --no-write-rows --no-copy-columns],
+  [0], [ignore], [ignore])
+AT_CLEANUP
+
+m4_define([SPARSE_XARRAY_COPY_DISK],
+  [AT_SETUP([copying between on-disk sparse_xarrays])
+   AT_KEYWORDS([sparse_xarray])
+   limit=`sparse_xarray_queue_limit`
+   AT_CHECK([sparse-xarray-test$EXEEXT \
+               --verbosity=0 --queue-limit=`expr $limit / 2` \
+	       --columns=1 --max-rows=2 --max-memory-rows=$max_memory_rows \
+	       --values=2 --xarrays=2 --no-write-rows --no-copy-columns],
+            [0], [ignore], [ignore])
+   AT_CLEANUP])
+dnl These parameters are ridiculously low, but it's necessary
+dnl unless we want the tests to take a very long time.
+SPARSE_XARRAY_COPY_DISK([0])
+SPARSE_XARRAY_COPY_DISK([1])

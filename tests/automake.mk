@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/libpspp/sparse-xarray-test.sh \
 	tests/output/paper-size.sh \
 	tests/expressions/randist.sh \
 	tests/expressions/valuelabel.sh \
@@ -361,6 +360,7 @@ TESTSUITE_AT = \
 	tests/libpspp/range-map.at \
 	tests/libpspp/range-set.at \
 	tests/libpspp/sparse-array.at \
+	tests/libpspp/sparse-xarray-test.at \
 	tests/libpspp/str.at \
 	tests/libpspp/string-map.at \
 	tests/libpspp/stringi-map.at \
