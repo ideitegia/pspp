@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/expressions/variables.sh \
 	tests/expressions/vectors.sh
 
 TESTS = $(dist_TESTS) $(nodist_TESTS)
