@@ -203,6 +203,17 @@ kruskal_wallis_execute (const struct dataset *ds,
   show_ranks_box (nst, kw, total_n_groups);
   show_sig_box (nst, kw);
 
+  for (i = 0 ; i < nst->n_vars; ++i)
+    {
+      struct rank_entry *mre, *next;
+      HMAP_FOR_EACH_SAFE (mre, next, struct rank_entry, node, &kw[i].map)
+	{
+	  hmap_delete (&kw[i].map, &mre->node);
+	  free (mre);
+	}
+      hmap_destroy (&kw[i].map);
+    }
+
   free (kw);
 }
 
