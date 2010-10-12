@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/output/paper-size.sh \
 	tests/expressions/randist.sh \
 	tests/expressions/valuelabel.sh \
 	tests/expressions/variables.sh \
@@ -370,6 +369,7 @@ TESTSUITE_AT = \
 	tests/math/moments.at \
 	tests/output/charts.at \
 	tests/output/output.at \
+	tests/output/paper-size.at \
 	tests/output/render.at \
 	tests/ui/terminal/main.at \
 	tests/perl-module.at
