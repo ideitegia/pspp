@@ -1942,3 +1942,47 @@ R1
 1.50
 ])
 AT_CLEANUP
+
+AT_SETUP([VALUELABEL function])
+AT_DATA([valuelabel.sps], [dnl
+DATA LIST notable /n 1 s 2(a).
+VALUE LABELS /n 0 'Very dissatisfied'
+                1 'Dissatisfied'
+		1.5 'Slightly Peeved'
+                2 'Neutral'
+                3 'Satisfied'
+                4 'Very satisfied'.
+VALUE LABELS /s 'a' 'Wouldn''t buy again'
+                'b' 'Unhappy'
+                'c' 'Bored'
+                'd' 'Satiated'
+                'e' 'Elated'.
+STRING nlabel slabel(a10).
+COMPUTE nlabel = VALUELABEL(n).
+COMPUTE slabel = VALUELABEL(s).
+LIST.
+BEGIN DATA.
+
+0a
+1b
+2c
+3d
+4e
+5f
+6g
+END DATA.
+])
+AT_CHECK([pspp -o pspp.csv valuelabel.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+n,s,nlabel,slabel
+.,,,
+0,a,Very dissa,Wouldn't b
+1,b,Dissatisfi,Unhappy   @&t@
+2,c,Neutral   ,Bored     @&t@
+3,d,Satisfied ,Satiated  @&t@
+4,e,Very satis,Elated    @&t@
+5,f,,
+6,g,,
+])
+AT_CLEANUP
