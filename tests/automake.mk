@@ -27,7 +27,6 @@ dist_TESTS = \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh \
-	tests/expressions/randist.sh \
 	tests/expressions/valuelabel.sh \
 	tests/expressions/variables.sh \
 	tests/expressions/vectors.sh
@@ -229,23 +228,6 @@ EXTRA_DIST += \
 	$(dist_TESTS) \
 	tests/coverage.sh tests/test_template \
 	tests/data/v13.sav tests/data/v14.sav \
-	tests/expressions/randist/beta.out \
-	tests/expressions/randist/cauchy.out \
-	tests/expressions/randist/chisq.out \
-	tests/expressions/randist/exp.out \
-	tests/expressions/randist/f.out \
-	tests/expressions/randist/gamma.out \
-	tests/expressions/randist/laplace.out \
-	tests/expressions/randist/lnormal.out \
-	tests/expressions/randist/logistic.out \
-	tests/expressions/randist/normal.out \
-	tests/expressions/randist/pareto.out \
-	tests/expressions/randist/compare.pl \
-	tests/expressions/randist/randist.pl \
-	tests/expressions/randist/randist.txt \
-	tests/expressions/randist/t.out \
-	tests/expressions/randist/uniform.out \
-	tests/expressions/randist/weibull.out \
 	tests/formats/bcd-in.expected.cmp.gz \
 	tests/formats/binhex-out.expected.gz \
 	tests/formats/ib-in.expected.cmp.gz \
@@ -367,6 +349,7 @@ TESTSUITE_AT = \
 	tests/libpspp/stringi-set.at \
 	tests/libpspp/tower.at \
 	tests/math/moments.at \
+	tests/math/randist.at \
 	tests/output/charts.at \
 	tests/output/output.at \
 	tests/output/paper-size.at \
