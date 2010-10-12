@@ -2035,3 +2035,31 @@ N1,N2,N3,N4,N5,P1,P2,P3,P4,P5,MC,VC,S1,S2,S3,S4,S5,M1,M2,M3,M4,M5,V1,V2,V3,V4,V5
 6,7,8,9,.,6,7,8,9,.,1,4,0,0,0,0,1,0,0,0,0,1,6,7,8,9,.
 ])
 AT_CLEANUP
+
+AT_SETUP([vectors in expressions])
+AT_DATA([vectors.sps], [dnl
+DATA LIST NOTABLE /N1 TO N5 1-5.
+MISSING VALUES N1 TO N5 (3 THRU 5, 1).
+BEGIN DATA.
+12345
+6789 
+END DATA.
+
+VECTOR N=N1 TO N5.
+VECTOR X(5).
+LOOP I=1 TO 5.
+COMPUTE X(I)=N(I) + 1.
+END LOOP.
+
+FORMATS ALL (F2).
+
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv vectors.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+N1,N2,N3,N4,N5,X1,X2,X3,X4,X5,I
+1,2,3,4,5,.,3,.,.,.,5
+6,7,8,9,.,7,8,9,10,.,5
+])
+AT_CLEANUP
