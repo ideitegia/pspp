@@ -127,7 +127,8 @@ kruskal_wallis_execute (const struct dataset *ds,
   input = casereader_create_filter_weight (input, dict, &warn, NULL);
 
   /* Remove all those cases which are outside the range (val1, val2) */
-  input = casereader_create_filter_func (input, include_func, NULL, nst, NULL);
+  input = casereader_create_filter_func (input, include_func, NULL, 
+	CONST_CAST (struct n_sample_test *, nst), NULL);
 
   proto = casereader_get_proto (input);
   rank_idx = caseproto_get_n_widths (proto);
@@ -226,6 +227,7 @@ kruskal_wallis_execute (const struct dataset *ds,
 static void
 show_ranks_box (const struct n_sample_test *nst, const struct kw *kw, int n_groups)
 {
+  int row;
   int i;
   const int row_headers = 2;
   const int column_headers = 1;
@@ -255,16 +257,16 @@ show_ranks_box (const struct n_sample_test *nst, const struct kw *kw, int n_grou
   tab_vline (table, TAL_2, row_headers, 0, tab_nr (table) - 1);
 
 
-  int x = column_headers;
+  row = column_headers;
   for (i = 0 ; i < nst->n_vars ; ++i)
     {
       int tot = 0;
       const struct rank_entry *re;
 
       if (i > 0)
-	tab_hline (table, TAL_1, 0, tab_nc (table) -1, x);
+	tab_hline (table, TAL_1, 0, tab_nc (table) -1, row);
       
-      tab_text (table,  0, x,
+      tab_text (table,  0, row,
 		TAT_TITLE, var_to_string (nst->vars[i]));
 
       HMAP_FOR_EACH (re, const struct rank_entry, node, &kw[i].map)
@@ -274,17 +276,17 @@ show_ranks_box (const struct n_sample_test *nst, const struct kw *kw, int n_grou
 
 	  var_append_value_name (nst->indep_var, &re->group, &str);
 
-	  tab_text   (table, 1, x, TAB_LEFT, ds_cstr (&str));
-	  tab_double (table, 2, x, TAB_LEFT, re->n, &F_8_0);
-	  tab_double (table, 3, x, TAB_LEFT, re->sum_of_ranks / re->n, 0);
+	  tab_text   (table, 1, row, TAB_LEFT, ds_cstr (&str));
+	  tab_double (table, 2, row, TAB_LEFT, re->n, &F_8_0);
+	  tab_double (table, 3, row, TAB_LEFT, re->sum_of_ranks / re->n, 0);
 
 	  tot += re->n;
-	  x++;
+	  row++;
 	  ds_destroy (&str);
 	}
-      tab_double (table, 2, x, TAB_LEFT,
+      tab_double (table, 2, row, TAB_LEFT,
 		  tot, &F_8_0);
-      tab_text (table, 1, x++, TAB_LEFT, _("Total"));
+      tab_text (table, 1, row++, TAB_LEFT, _("Total"));
     }
 
   tab_submit (table);
