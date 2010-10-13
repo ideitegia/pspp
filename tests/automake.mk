@@ -11,7 +11,6 @@ TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
 	tests/formats/date-in.sh \
-	tests/formats/format-guesser.sh \
 	tests/formats/ib-in.sh \
 	tests/formats/legacy-in.sh \
 	tests/formats/month-in.sh \
@@ -261,6 +260,7 @@ TESTSUITE_AT = \
 	tests/data/data-in.at \
 	tests/data/data-out.at \
 	tests/data/datasheet-test.at \
+	tests/data/format-guesser.at \
 	tests/data/por-file.at \
 	tests/data/sys-file.at \
 	tests/language/command.at \
