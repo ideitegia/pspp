@@ -7,6 +7,10 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
 Changes from 0.7.3 to 0.7.5:
 
+ * NPAR TESTS now supports the /KRUSKAL-WALLIS subcommand.
+
+ * AUTORECODE now supports the /GROUP subcommand.
+
  * The MRSETS command is now implemented.
 
  * SAVE TRANSLATE is now implemented, with initial support for saving
