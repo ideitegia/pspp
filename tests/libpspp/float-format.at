@@ -1,65 +1,7 @@
-#! /bin/sh
+AT_BANNER([floating point formats])
 
-# Tests floating-point format conversions.
-
-TEMPDIR=/tmp/pspp-tst-$$
-
-# ensure that top_builddir  are absolute
-if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
-if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
-top_builddir=`cd $top_builddir; pwd`
-PSPP=$top_builddir/src/ui/terminal/pspp$EXEEXT
-
-# ensure that top_srcdir is absolute
-top_srcdir=`cd $top_srcdir; pwd`
-
-STAT_CONFIG_PATH=$top_srcdir/config
-export STAT_CONFIG_PATH
-
-
-cleanup()
-{
-     if [ x"$PSPP_TEST_NO_CLEANUP" != x ] ; then 
-	echo "NOT cleaning $TEMPDIR" 
-	return ; 
-     fi
-     cd /
-     rm -rf $TEMPDIR
-}
-
-
-fail()
-{
-    echo $activity
-    echo FAILED
-    cleanup;
-    exit 1;
-}
-
-
-no_result()
-{
-    echo $activity
-    echo NO RESULT;
-    cleanup;
-    exit 2;
-}
-
-pass()
-{
-    cleanup;
-    exit 0;
-}
-
-mkdir -p $TEMPDIR
-
-cd $TEMPDIR
-activity="create test program"
-sed -e 's/#.*//' \
-    -e 's/^[ 	]*//' \
-    -e 's/[ 	]*$//' \
-    -e 's/^\(..*\)$/DEBUG FLOAT FORMAT \1./' \
-    > $TEMPDIR/float-format.pspp <<'EOF'
+AT_SETUP([floating point format conversions])
+AT_DATA([float-format.txt], [dnl
 # Each of the tests below checks that conversion between
 # floating-point formats works correctly.  Comparisons that use ==
 # require that conversion from any format on the line to any other
@@ -145,11 +87,11 @@ x('.fffffffffffff8p1024') => idb(x'7fefffffffffffff')
             x('.1p-256') == zl(x'0010000000000000') == idb(x'2fb0000000000000')
  x('.ffffffffffffffp248') == zl(x'7effffffffffffff')
  x('.ffffffffffffffp248') => idb(x'4f70000000000000')	# Loses precision.
-EOF
-if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="run program"
-$SUPERVISOR $PSPP --testing-mode -o pspp.csv $TEMPDIR/float-format.pspp
-if [ $? -ne 0 ] ; then fail ; fi
-
-pass
+])
+AT_CHECK(
+  [sed 's/#.*//
+s/^[ 	]*//
+s/[ 	]*$//
+s/^\(..*\)$/DEBUG FLOAT FORMAT \1./' < float-format.txt > float-format.sps])
+AT_CHECK([pspp --testing-mode -O format=csv float-format.sps])
+AT_CLEANUP

@@ -11,7 +11,6 @@ TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
 	tests/formats/date-in.sh \
-	tests/formats/float-format.sh \
 	tests/formats/format-guesser.sh \
 	tests/formats/ib-in.sh \
 	tests/formats/legacy-in.sh \
@@ -328,6 +327,7 @@ TESTSUITE_AT = \
 	tests/language/xforms/select-if.at \
 	tests/libpspp/abt.at \
 	tests/libpspp/bt.at \
+	tests/libpspp/float-format.at \
 	tests/libpspp/heap.at \
 	tests/libpspp/hmap.at \
 	tests/libpspp/hmapx.at \
