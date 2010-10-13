@@ -11,7 +11,6 @@ TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
 	tests/formats/date-in.sh \
-	tests/formats/date-out.sh \
 	tests/formats/float-format.sh \
 	tests/formats/format-guesser.sh \
 	tests/formats/ib-in.sh \
