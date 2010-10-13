@@ -14,7 +14,6 @@ dist_TESTS = \
 	tests/formats/ib-in.sh \
 	tests/formats/legacy-in.sh \
 	tests/formats/month-in.sh \
-	tests/formats/month-out.sh \
 	tests/formats/num-in.sh \
 	tests/formats/num-out.sh \
 	tests/formats/time-in.sh \

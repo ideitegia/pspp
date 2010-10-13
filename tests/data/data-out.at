@@ -642,3 +642,958 @@ AT_CHECK([cat bad-date.out], [0], [dnl
  28-MAY-**** 05:20:00.00000
 ])
 AT_CLEANUP
+
+AT_SETUP([MONTH output])
+AT_DATA([month-out.sps], [dnl
+set mxerr=1000000.
+set mxwarns=10000000.
+data list notable/x 1-10.
+begin data.
+
+0
+0.5
+0.9
+1
+2
+3
+4
+4.1
+4.5
+4.9
+5
+6
+7
+7.1
+7.5
+7.9
+8
+9
+10
+11
+12
+13
+end data.
+print outfile='month-out.out'/x(month3).
+print outfile='month-out.out'/x(month4).
+print outfile='month-out.out'/x(month5).
+print outfile='month-out.out'/x(month6).
+print outfile='month-out.out'/x(month7).
+print outfile='month-out.out'/x(month8).
+print outfile='month-out.out'/x(month9).
+print outfile='month-out.out'/x(month10).
+print outfile='month-out.out'/x(month11).
+print outfile='month-out.out'/x(month12).
+print outfile='month-out.out'/x(month13).
+print outfile='month-out.out'/x(month14).
+print outfile='month-out.out'/x(month15).
+print outfile='month-out.out'/x(month16).
+print outfile='month-out.out'/x(month17).
+print outfile='month-out.out'/x(month18).
+print outfile='month-out.out'/x(month19).
+print outfile='month-out.out'/x(month20).
+print outfile='month-out.out'/x(month21).
+print outfile='month-out.out'/x(month22).
+print outfile='month-out.out'/x(month23).
+print outfile='month-out.out'/x(month24).
+print outfile='month-out.out'/x(month25).
+print outfile='month-out.out'/x(month26).
+print outfile='month-out.out'/x(month27).
+print outfile='month-out.out'/x(month28).
+print outfile='month-out.out'/x(month29).
+print outfile='month-out.out'/x(month30).
+print outfile='month-out.out'/x(month31).
+print outfile='month-out.out'/x(month32).
+print outfile='month-out.out'/x(month33).
+print outfile='month-out.out'/x(month34).
+print outfile='month-out.out'/x(month35).
+print outfile='month-out.out'/x(month36).
+print outfile='month-out.out'/x(month37).
+print outfile='month-out.out'/x(month38).
+print outfile='month-out.out'/x(month39).
+print outfile='month-out.out'/x(month40).
+execute.
+])
+AT_CHECK([pspp -O format=csv month-out.sps], [1], [stdout])
+AT_CHECK([sed '/^$/d' stdout | sort | uniq -c], [0], [dnl
+     38 error: Month number 0.000000 is not between 1 and 12.
+     38 error: Month number 0.500000 is not between 1 and 12.
+     38 error: Month number 0.900000 is not between 1 and 12.
+     38 error: Month number 13.000000 is not between 1 and 12.
+])
+AT_CHECK([cat month-out.out], [0], [dnl
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+ JAN
+ JANU
+ JANUA
+ JANUAR
+ JANUARY
+ JANUARY @&t@
+ JANUARY  @&t@
+ JANUARY   @&t@
+ JANUARY    @&t@
+ JANUARY     @&t@
+ JANUARY      @&t@
+ JANUARY       @&t@
+ JANUARY        @&t@
+ JANUARY         @&t@
+ JANUARY          @&t@
+ JANUARY           @&t@
+ JANUARY            @&t@
+ JANUARY             @&t@
+ JANUARY              @&t@
+ JANUARY               @&t@
+ JANUARY                @&t@
+ JANUARY                 @&t@
+ JANUARY                  @&t@
+ JANUARY                   @&t@
+ JANUARY                    @&t@
+ JANUARY                     @&t@
+ JANUARY                      @&t@
+ JANUARY                       @&t@
+ JANUARY                        @&t@
+ JANUARY                         @&t@
+ JANUARY                          @&t@
+ JANUARY                           @&t@
+ JANUARY                            @&t@
+ JANUARY                             @&t@
+ JANUARY                              @&t@
+ JANUARY                               @&t@
+ JANUARY                                @&t@
+ JANUARY                                 @&t@
+ FEB
+ FEBR
+ FEBRU
+ FEBRUA
+ FEBRUAR
+ FEBRUARY
+ FEBRUARY @&t@
+ FEBRUARY  @&t@
+ FEBRUARY   @&t@
+ FEBRUARY    @&t@
+ FEBRUARY     @&t@
+ FEBRUARY      @&t@
+ FEBRUARY       @&t@
+ FEBRUARY        @&t@
+ FEBRUARY         @&t@
+ FEBRUARY          @&t@
+ FEBRUARY           @&t@
+ FEBRUARY            @&t@
+ FEBRUARY             @&t@
+ FEBRUARY              @&t@
+ FEBRUARY               @&t@
+ FEBRUARY                @&t@
+ FEBRUARY                 @&t@
+ FEBRUARY                  @&t@
+ FEBRUARY                   @&t@
+ FEBRUARY                    @&t@
+ FEBRUARY                     @&t@
+ FEBRUARY                      @&t@
+ FEBRUARY                       @&t@
+ FEBRUARY                        @&t@
+ FEBRUARY                         @&t@
+ FEBRUARY                          @&t@
+ FEBRUARY                           @&t@
+ FEBRUARY                            @&t@
+ FEBRUARY                             @&t@
+ FEBRUARY                              @&t@
+ FEBRUARY                               @&t@
+ FEBRUARY                                @&t@
+ MAR
+ MARC
+ MARCH
+ MARCH @&t@
+ MARCH  @&t@
+ MARCH   @&t@
+ MARCH    @&t@
+ MARCH     @&t@
+ MARCH      @&t@
+ MARCH       @&t@
+ MARCH        @&t@
+ MARCH         @&t@
+ MARCH          @&t@
+ MARCH           @&t@
+ MARCH            @&t@
+ MARCH             @&t@
+ MARCH              @&t@
+ MARCH               @&t@
+ MARCH                @&t@
+ MARCH                 @&t@
+ MARCH                  @&t@
+ MARCH                   @&t@
+ MARCH                    @&t@
+ MARCH                     @&t@
+ MARCH                      @&t@
+ MARCH                       @&t@
+ MARCH                        @&t@
+ MARCH                         @&t@
+ MARCH                          @&t@
+ MARCH                           @&t@
+ MARCH                            @&t@
+ MARCH                             @&t@
+ MARCH                              @&t@
+ MARCH                               @&t@
+ MARCH                                @&t@
+ MARCH                                 @&t@
+ MARCH                                  @&t@
+ MARCH                                   @&t@
+ APR
+ APRI
+ APRIL
+ APRIL @&t@
+ APRIL  @&t@
+ APRIL   @&t@
+ APRIL    @&t@
+ APRIL     @&t@
+ APRIL      @&t@
+ APRIL       @&t@
+ APRIL        @&t@
+ APRIL         @&t@
+ APRIL          @&t@
+ APRIL           @&t@
+ APRIL            @&t@
+ APRIL             @&t@
+ APRIL              @&t@
+ APRIL               @&t@
+ APRIL                @&t@
+ APRIL                 @&t@
+ APRIL                  @&t@
+ APRIL                   @&t@
+ APRIL                    @&t@
+ APRIL                     @&t@
+ APRIL                      @&t@
+ APRIL                       @&t@
+ APRIL                        @&t@
+ APRIL                         @&t@
+ APRIL                          @&t@
+ APRIL                           @&t@
+ APRIL                            @&t@
+ APRIL                             @&t@
+ APRIL                              @&t@
+ APRIL                               @&t@
+ APRIL                                @&t@
+ APRIL                                 @&t@
+ APRIL                                  @&t@
+ APRIL                                   @&t@
+ APR
+ APRI
+ APRIL
+ APRIL @&t@
+ APRIL  @&t@
+ APRIL   @&t@
+ APRIL    @&t@
+ APRIL     @&t@
+ APRIL      @&t@
+ APRIL       @&t@
+ APRIL        @&t@
+ APRIL         @&t@
+ APRIL          @&t@
+ APRIL           @&t@
+ APRIL            @&t@
+ APRIL             @&t@
+ APRIL              @&t@
+ APRIL               @&t@
+ APRIL                @&t@
+ APRIL                 @&t@
+ APRIL                  @&t@
+ APRIL                   @&t@
+ APRIL                    @&t@
+ APRIL                     @&t@
+ APRIL                      @&t@
+ APRIL                       @&t@
+ APRIL                        @&t@
+ APRIL                         @&t@
+ APRIL                          @&t@
+ APRIL                           @&t@
+ APRIL                            @&t@
+ APRIL                             @&t@
+ APRIL                              @&t@
+ APRIL                               @&t@
+ APRIL                                @&t@
+ APRIL                                 @&t@
+ APRIL                                  @&t@
+ APRIL                                   @&t@
+ APR
+ APRI
+ APRIL
+ APRIL @&t@
+ APRIL  @&t@
+ APRIL   @&t@
+ APRIL    @&t@
+ APRIL     @&t@
+ APRIL      @&t@
+ APRIL       @&t@
+ APRIL        @&t@
+ APRIL         @&t@
+ APRIL          @&t@
+ APRIL           @&t@
+ APRIL            @&t@
+ APRIL             @&t@
+ APRIL              @&t@
+ APRIL               @&t@
+ APRIL                @&t@
+ APRIL                 @&t@
+ APRIL                  @&t@
+ APRIL                   @&t@
+ APRIL                    @&t@
+ APRIL                     @&t@
+ APRIL                      @&t@
+ APRIL                       @&t@
+ APRIL                        @&t@
+ APRIL                         @&t@
+ APRIL                          @&t@
+ APRIL                           @&t@
+ APRIL                            @&t@
+ APRIL                             @&t@
+ APRIL                              @&t@
+ APRIL                               @&t@
+ APRIL                                @&t@
+ APRIL                                 @&t@
+ APRIL                                  @&t@
+ APRIL                                   @&t@
+ APR
+ APRI
+ APRIL
+ APRIL @&t@
+ APRIL  @&t@
+ APRIL   @&t@
+ APRIL    @&t@
+ APRIL     @&t@
+ APRIL      @&t@
+ APRIL       @&t@
+ APRIL        @&t@
+ APRIL         @&t@
+ APRIL          @&t@
+ APRIL           @&t@
+ APRIL            @&t@
+ APRIL             @&t@
+ APRIL              @&t@
+ APRIL               @&t@
+ APRIL                @&t@
+ APRIL                 @&t@
+ APRIL                  @&t@
+ APRIL                   @&t@
+ APRIL                    @&t@
+ APRIL                     @&t@
+ APRIL                      @&t@
+ APRIL                       @&t@
+ APRIL                        @&t@
+ APRIL                         @&t@
+ APRIL                          @&t@
+ APRIL                           @&t@
+ APRIL                            @&t@
+ APRIL                             @&t@
+ APRIL                              @&t@
+ APRIL                               @&t@
+ APRIL                                @&t@
+ APRIL                                 @&t@
+ APRIL                                  @&t@
+ APRIL                                   @&t@
+ MAY
+ MAY @&t@
+ MAY  @&t@
+ MAY   @&t@
+ MAY    @&t@
+ MAY     @&t@
+ MAY      @&t@
+ MAY       @&t@
+ MAY        @&t@
+ MAY         @&t@
+ MAY          @&t@
+ MAY           @&t@
+ MAY            @&t@
+ MAY             @&t@
+ MAY              @&t@
+ MAY               @&t@
+ MAY                @&t@
+ MAY                 @&t@
+ MAY                  @&t@
+ MAY                   @&t@
+ MAY                    @&t@
+ MAY                     @&t@
+ MAY                      @&t@
+ MAY                       @&t@
+ MAY                        @&t@
+ MAY                         @&t@
+ MAY                          @&t@
+ MAY                           @&t@
+ MAY                            @&t@
+ MAY                             @&t@
+ MAY                              @&t@
+ MAY                               @&t@
+ MAY                                @&t@
+ MAY                                 @&t@
+ MAY                                  @&t@
+ MAY                                   @&t@
+ MAY                                    @&t@
+ MAY                                     @&t@
+ JUN
+ JUNE
+ JUNE @&t@
+ JUNE  @&t@
+ JUNE   @&t@
+ JUNE    @&t@
+ JUNE     @&t@
+ JUNE      @&t@
+ JUNE       @&t@
+ JUNE        @&t@
+ JUNE         @&t@
+ JUNE          @&t@
+ JUNE           @&t@
+ JUNE            @&t@
+ JUNE             @&t@
+ JUNE              @&t@
+ JUNE               @&t@
+ JUNE                @&t@
+ JUNE                 @&t@
+ JUNE                  @&t@
+ JUNE                   @&t@
+ JUNE                    @&t@
+ JUNE                     @&t@
+ JUNE                      @&t@
+ JUNE                       @&t@
+ JUNE                        @&t@
+ JUNE                         @&t@
+ JUNE                          @&t@
+ JUNE                           @&t@
+ JUNE                            @&t@
+ JUNE                             @&t@
+ JUNE                              @&t@
+ JUNE                               @&t@
+ JUNE                                @&t@
+ JUNE                                 @&t@
+ JUNE                                  @&t@
+ JUNE                                   @&t@
+ JUNE                                    @&t@
+ JUL
+ JULY
+ JULY @&t@
+ JULY  @&t@
+ JULY   @&t@
+ JULY    @&t@
+ JULY     @&t@
+ JULY      @&t@
+ JULY       @&t@
+ JULY        @&t@
+ JULY         @&t@
+ JULY          @&t@
+ JULY           @&t@
+ JULY            @&t@
+ JULY             @&t@
+ JULY              @&t@
+ JULY               @&t@
+ JULY                @&t@
+ JULY                 @&t@
+ JULY                  @&t@
+ JULY                   @&t@
+ JULY                    @&t@
+ JULY                     @&t@
+ JULY                      @&t@
+ JULY                       @&t@
+ JULY                        @&t@
+ JULY                         @&t@
+ JULY                          @&t@
+ JULY                           @&t@
+ JULY                            @&t@
+ JULY                             @&t@
+ JULY                              @&t@
+ JULY                               @&t@
+ JULY                                @&t@
+ JULY                                 @&t@
+ JULY                                  @&t@
+ JULY                                   @&t@
+ JULY                                    @&t@
+ JUL
+ JULY
+ JULY @&t@
+ JULY  @&t@
+ JULY   @&t@
+ JULY    @&t@
+ JULY     @&t@
+ JULY      @&t@
+ JULY       @&t@
+ JULY        @&t@
+ JULY         @&t@
+ JULY          @&t@
+ JULY           @&t@
+ JULY            @&t@
+ JULY             @&t@
+ JULY              @&t@
+ JULY               @&t@
+ JULY                @&t@
+ JULY                 @&t@
+ JULY                  @&t@
+ JULY                   @&t@
+ JULY                    @&t@
+ JULY                     @&t@
+ JULY                      @&t@
+ JULY                       @&t@
+ JULY                        @&t@
+ JULY                         @&t@
+ JULY                          @&t@
+ JULY                           @&t@
+ JULY                            @&t@
+ JULY                             @&t@
+ JULY                              @&t@
+ JULY                               @&t@
+ JULY                                @&t@
+ JULY                                 @&t@
+ JULY                                  @&t@
+ JULY                                   @&t@
+ JULY                                    @&t@
+ JUL
+ JULY
+ JULY @&t@
+ JULY  @&t@
+ JULY   @&t@
+ JULY    @&t@
+ JULY     @&t@
+ JULY      @&t@
+ JULY       @&t@
+ JULY        @&t@
+ JULY         @&t@
+ JULY          @&t@
+ JULY           @&t@
+ JULY            @&t@
+ JULY             @&t@
+ JULY              @&t@
+ JULY               @&t@
+ JULY                @&t@
+ JULY                 @&t@
+ JULY                  @&t@
+ JULY                   @&t@
+ JULY                    @&t@
+ JULY                     @&t@
+ JULY                      @&t@
+ JULY                       @&t@
+ JULY                        @&t@
+ JULY                         @&t@
+ JULY                          @&t@
+ JULY                           @&t@
+ JULY                            @&t@
+ JULY                             @&t@
+ JULY                              @&t@
+ JULY                               @&t@
+ JULY                                @&t@
+ JULY                                 @&t@
+ JULY                                  @&t@
+ JULY                                   @&t@
+ JULY                                    @&t@
+ JUL
+ JULY
+ JULY @&t@
+ JULY  @&t@
+ JULY   @&t@
+ JULY    @&t@
+ JULY     @&t@
+ JULY      @&t@
+ JULY       @&t@
+ JULY        @&t@
+ JULY         @&t@
+ JULY          @&t@
+ JULY           @&t@
+ JULY            @&t@
+ JULY             @&t@
+ JULY              @&t@
+ JULY               @&t@
+ JULY                @&t@
+ JULY                 @&t@
+ JULY                  @&t@
+ JULY                   @&t@
+ JULY                    @&t@
+ JULY                     @&t@
+ JULY                      @&t@
+ JULY                       @&t@
+ JULY                        @&t@
+ JULY                         @&t@
+ JULY                          @&t@
+ JULY                           @&t@
+ JULY                            @&t@
+ JULY                             @&t@
+ JULY                              @&t@
+ JULY                               @&t@
+ JULY                                @&t@
+ JULY                                 @&t@
+ JULY                                  @&t@
+ JULY                                   @&t@
+ JULY                                    @&t@
+ AUG
+ AUGU
+ AUGUS
+ AUGUST
+ AUGUST @&t@
+ AUGUST  @&t@
+ AUGUST   @&t@
+ AUGUST    @&t@
+ AUGUST     @&t@
+ AUGUST      @&t@
+ AUGUST       @&t@
+ AUGUST        @&t@
+ AUGUST         @&t@
+ AUGUST          @&t@
+ AUGUST           @&t@
+ AUGUST            @&t@
+ AUGUST             @&t@
+ AUGUST              @&t@
+ AUGUST               @&t@
+ AUGUST                @&t@
+ AUGUST                 @&t@
+ AUGUST                  @&t@
+ AUGUST                   @&t@
+ AUGUST                    @&t@
+ AUGUST                     @&t@
+ AUGUST                      @&t@
+ AUGUST                       @&t@
+ AUGUST                        @&t@
+ AUGUST                         @&t@
+ AUGUST                          @&t@
+ AUGUST                           @&t@
+ AUGUST                            @&t@
+ AUGUST                             @&t@
+ AUGUST                              @&t@
+ AUGUST                               @&t@
+ AUGUST                                @&t@
+ AUGUST                                 @&t@
+ AUGUST                                  @&t@
+ SEP
+ SEPT
+ SEPTE
+ SEPTEM
+ SEPTEMB
+ SEPTEMBE
+ SEPTEMBER
+ SEPTEMBER @&t@
+ SEPTEMBER  @&t@
+ SEPTEMBER   @&t@
+ SEPTEMBER    @&t@
+ SEPTEMBER     @&t@
+ SEPTEMBER      @&t@
+ SEPTEMBER       @&t@
+ SEPTEMBER        @&t@
+ SEPTEMBER         @&t@
+ SEPTEMBER          @&t@
+ SEPTEMBER           @&t@
+ SEPTEMBER            @&t@
+ SEPTEMBER             @&t@
+ SEPTEMBER              @&t@
+ SEPTEMBER               @&t@
+ SEPTEMBER                @&t@
+ SEPTEMBER                 @&t@
+ SEPTEMBER                  @&t@
+ SEPTEMBER                   @&t@
+ SEPTEMBER                    @&t@
+ SEPTEMBER                     @&t@
+ SEPTEMBER                      @&t@
+ SEPTEMBER                       @&t@
+ SEPTEMBER                        @&t@
+ SEPTEMBER                         @&t@
+ SEPTEMBER                          @&t@
+ SEPTEMBER                           @&t@
+ SEPTEMBER                            @&t@
+ SEPTEMBER                             @&t@
+ SEPTEMBER                              @&t@
+ SEPTEMBER                               @&t@
+ OCT
+ OCTO
+ OCTOB
+ OCTOBE
+ OCTOBER
+ OCTOBER @&t@
+ OCTOBER  @&t@
+ OCTOBER   @&t@
+ OCTOBER    @&t@
+ OCTOBER     @&t@
+ OCTOBER      @&t@
+ OCTOBER       @&t@
+ OCTOBER        @&t@
+ OCTOBER         @&t@
+ OCTOBER          @&t@
+ OCTOBER           @&t@
+ OCTOBER            @&t@
+ OCTOBER             @&t@
+ OCTOBER              @&t@
+ OCTOBER               @&t@
+ OCTOBER                @&t@
+ OCTOBER                 @&t@
+ OCTOBER                  @&t@
+ OCTOBER                   @&t@
+ OCTOBER                    @&t@
+ OCTOBER                     @&t@
+ OCTOBER                      @&t@
+ OCTOBER                       @&t@
+ OCTOBER                        @&t@
+ OCTOBER                         @&t@
+ OCTOBER                          @&t@
+ OCTOBER                           @&t@
+ OCTOBER                            @&t@
+ OCTOBER                             @&t@
+ OCTOBER                              @&t@
+ OCTOBER                               @&t@
+ OCTOBER                                @&t@
+ OCTOBER                                 @&t@
+ NOV
+ NOVE
+ NOVEM
+ NOVEMB
+ NOVEMBE
+ NOVEMBER
+ NOVEMBER @&t@
+ NOVEMBER  @&t@
+ NOVEMBER   @&t@
+ NOVEMBER    @&t@
+ NOVEMBER     @&t@
+ NOVEMBER      @&t@
+ NOVEMBER       @&t@
+ NOVEMBER        @&t@
+ NOVEMBER         @&t@
+ NOVEMBER          @&t@
+ NOVEMBER           @&t@
+ NOVEMBER            @&t@
+ NOVEMBER             @&t@
+ NOVEMBER              @&t@
+ NOVEMBER               @&t@
+ NOVEMBER                @&t@
+ NOVEMBER                 @&t@
+ NOVEMBER                  @&t@
+ NOVEMBER                   @&t@
+ NOVEMBER                    @&t@
+ NOVEMBER                     @&t@
+ NOVEMBER                      @&t@
+ NOVEMBER                       @&t@
+ NOVEMBER                        @&t@
+ NOVEMBER                         @&t@
+ NOVEMBER                          @&t@
+ NOVEMBER                           @&t@
+ NOVEMBER                            @&t@
+ NOVEMBER                             @&t@
+ NOVEMBER                              @&t@
+ NOVEMBER                               @&t@
+ NOVEMBER                                @&t@
+ DEC
+ DECE
+ DECEM
+ DECEMB
+ DECEMBE
+ DECEMBER
+ DECEMBER @&t@
+ DECEMBER  @&t@
+ DECEMBER   @&t@
+ DECEMBER    @&t@
+ DECEMBER     @&t@
+ DECEMBER      @&t@
+ DECEMBER       @&t@
+ DECEMBER        @&t@
+ DECEMBER         @&t@
+ DECEMBER          @&t@
+ DECEMBER           @&t@
+ DECEMBER            @&t@
+ DECEMBER             @&t@
+ DECEMBER              @&t@
+ DECEMBER               @&t@
+ DECEMBER                @&t@
+ DECEMBER                 @&t@
+ DECEMBER                  @&t@
+ DECEMBER                   @&t@
+ DECEMBER                    @&t@
+ DECEMBER                     @&t@
+ DECEMBER                      @&t@
+ DECEMBER                       @&t@
+ DECEMBER                        @&t@
+ DECEMBER                         @&t@
+ DECEMBER                          @&t@
+ DECEMBER                           @&t@
+ DECEMBER                            @&t@
+ DECEMBER                             @&t@
+ DECEMBER                              @&t@
+ DECEMBER                               @&t@
+ DECEMBER                                @&t@
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+])
+AT_CLEANUP
