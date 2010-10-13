@@ -17,7 +17,6 @@ dist_TESTS = \
 	tests/formats/num-in.sh \
 	tests/formats/num-out.sh \
 	tests/formats/time-in.sh \
-	tests/formats/time-out.sh \
 	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/formats/360.sh
