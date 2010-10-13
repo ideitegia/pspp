@@ -14674,3 +14674,746 @@ AT_CHECK([cat month-out.out], [0], [dnl
                                         .
 ])
 AT_CLEANUP
+
+AT_SETUP([WKDAY output])
+AT_DATA([wkday-out.sps], [dnl
+set mxwarns=10000000.
+set mxerrs=10000000.
+data list notable/x 1-10.
+begin data.
+
+0
+0.5
+0.9
+1
+2
+3
+4
+4.1
+4.5
+4.9
+5
+6
+7
+7.1
+7.5
+7.9
+8
+end data.
+do repeat format=wkday2 to wkday40.
+print outfile='wkday-out.out'/x(format).
+end repeat.
+execute.
+])
+AT_CHECK([pspp -O format=csv wkday-out.sps], [1], [stdout])
+AT_CHECK([sed '/^$/d' stdout | sort | uniq -c], [0], [dnl
+     39 error: Weekday number 0.000000 is not between 1 and 7.
+     39 error: Weekday number 0.500000 is not between 1 and 7.
+     39 error: Weekday number 0.900000 is not between 1 and 7.
+     39 error: Weekday number 8.000000 is not between 1 and 7.
+])
+AT_CHECK([cat wkday-out.out], [0], [dnl
+  .
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+  .
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+  .
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+  .
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+ SU
+ SUN
+ SUND
+ SUNDA
+ SUNDAY
+ SUNDAY @&t@
+ SUNDAY  @&t@
+ SUNDAY   @&t@
+ SUNDAY    @&t@
+ SUNDAY     @&t@
+ SUNDAY      @&t@
+ SUNDAY       @&t@
+ SUNDAY        @&t@
+ SUNDAY         @&t@
+ SUNDAY          @&t@
+ SUNDAY           @&t@
+ SUNDAY            @&t@
+ SUNDAY             @&t@
+ SUNDAY              @&t@
+ SUNDAY               @&t@
+ SUNDAY                @&t@
+ SUNDAY                 @&t@
+ SUNDAY                  @&t@
+ SUNDAY                   @&t@
+ SUNDAY                    @&t@
+ SUNDAY                     @&t@
+ SUNDAY                      @&t@
+ SUNDAY                       @&t@
+ SUNDAY                        @&t@
+ SUNDAY                         @&t@
+ SUNDAY                          @&t@
+ SUNDAY                           @&t@
+ SUNDAY                            @&t@
+ SUNDAY                             @&t@
+ SUNDAY                              @&t@
+ SUNDAY                               @&t@
+ SUNDAY                                @&t@
+ SUNDAY                                 @&t@
+ SUNDAY                                  @&t@
+ MO
+ MON
+ MOND
+ MONDA
+ MONDAY
+ MONDAY @&t@
+ MONDAY  @&t@
+ MONDAY   @&t@
+ MONDAY    @&t@
+ MONDAY     @&t@
+ MONDAY      @&t@
+ MONDAY       @&t@
+ MONDAY        @&t@
+ MONDAY         @&t@
+ MONDAY          @&t@
+ MONDAY           @&t@
+ MONDAY            @&t@
+ MONDAY             @&t@
+ MONDAY              @&t@
+ MONDAY               @&t@
+ MONDAY                @&t@
+ MONDAY                 @&t@
+ MONDAY                  @&t@
+ MONDAY                   @&t@
+ MONDAY                    @&t@
+ MONDAY                     @&t@
+ MONDAY                      @&t@
+ MONDAY                       @&t@
+ MONDAY                        @&t@
+ MONDAY                         @&t@
+ MONDAY                          @&t@
+ MONDAY                           @&t@
+ MONDAY                            @&t@
+ MONDAY                             @&t@
+ MONDAY                              @&t@
+ MONDAY                               @&t@
+ MONDAY                                @&t@
+ MONDAY                                 @&t@
+ MONDAY                                  @&t@
+ TU
+ TUE
+ TUES
+ TUESD
+ TUESDA
+ TUESDAY
+ TUESDAY @&t@
+ TUESDAY  @&t@
+ TUESDAY   @&t@
+ TUESDAY    @&t@
+ TUESDAY     @&t@
+ TUESDAY      @&t@
+ TUESDAY       @&t@
+ TUESDAY        @&t@
+ TUESDAY         @&t@
+ TUESDAY          @&t@
+ TUESDAY           @&t@
+ TUESDAY            @&t@
+ TUESDAY             @&t@
+ TUESDAY              @&t@
+ TUESDAY               @&t@
+ TUESDAY                @&t@
+ TUESDAY                 @&t@
+ TUESDAY                  @&t@
+ TUESDAY                   @&t@
+ TUESDAY                    @&t@
+ TUESDAY                     @&t@
+ TUESDAY                      @&t@
+ TUESDAY                       @&t@
+ TUESDAY                        @&t@
+ TUESDAY                         @&t@
+ TUESDAY                          @&t@
+ TUESDAY                           @&t@
+ TUESDAY                            @&t@
+ TUESDAY                             @&t@
+ TUESDAY                              @&t@
+ TUESDAY                               @&t@
+ TUESDAY                                @&t@
+ TUESDAY                                 @&t@
+ WE
+ WED
+ WEDN
+ WEDNE
+ WEDNES
+ WEDNESD
+ WEDNESDA
+ WEDNESDAY
+ WEDNESDAY @&t@
+ WEDNESDAY  @&t@
+ WEDNESDAY   @&t@
+ WEDNESDAY    @&t@
+ WEDNESDAY     @&t@
+ WEDNESDAY      @&t@
+ WEDNESDAY       @&t@
+ WEDNESDAY        @&t@
+ WEDNESDAY         @&t@
+ WEDNESDAY          @&t@
+ WEDNESDAY           @&t@
+ WEDNESDAY            @&t@
+ WEDNESDAY             @&t@
+ WEDNESDAY              @&t@
+ WEDNESDAY               @&t@
+ WEDNESDAY                @&t@
+ WEDNESDAY                 @&t@
+ WEDNESDAY                  @&t@
+ WEDNESDAY                   @&t@
+ WEDNESDAY                    @&t@
+ WEDNESDAY                     @&t@
+ WEDNESDAY                      @&t@
+ WEDNESDAY                       @&t@
+ WEDNESDAY                        @&t@
+ WEDNESDAY                         @&t@
+ WEDNESDAY                          @&t@
+ WEDNESDAY                           @&t@
+ WEDNESDAY                            @&t@
+ WEDNESDAY                             @&t@
+ WEDNESDAY                              @&t@
+ WEDNESDAY                               @&t@
+ WE
+ WED
+ WEDN
+ WEDNE
+ WEDNES
+ WEDNESD
+ WEDNESDA
+ WEDNESDAY
+ WEDNESDAY @&t@
+ WEDNESDAY  @&t@
+ WEDNESDAY   @&t@
+ WEDNESDAY    @&t@
+ WEDNESDAY     @&t@
+ WEDNESDAY      @&t@
+ WEDNESDAY       @&t@
+ WEDNESDAY        @&t@
+ WEDNESDAY         @&t@
+ WEDNESDAY          @&t@
+ WEDNESDAY           @&t@
+ WEDNESDAY            @&t@
+ WEDNESDAY             @&t@
+ WEDNESDAY              @&t@
+ WEDNESDAY               @&t@
+ WEDNESDAY                @&t@
+ WEDNESDAY                 @&t@
+ WEDNESDAY                  @&t@
+ WEDNESDAY                   @&t@
+ WEDNESDAY                    @&t@
+ WEDNESDAY                     @&t@
+ WEDNESDAY                      @&t@
+ WEDNESDAY                       @&t@
+ WEDNESDAY                        @&t@
+ WEDNESDAY                         @&t@
+ WEDNESDAY                          @&t@
+ WEDNESDAY                           @&t@
+ WEDNESDAY                            @&t@
+ WEDNESDAY                             @&t@
+ WEDNESDAY                              @&t@
+ WEDNESDAY                               @&t@
+ WE
+ WED
+ WEDN
+ WEDNE
+ WEDNES
+ WEDNESD
+ WEDNESDA
+ WEDNESDAY
+ WEDNESDAY @&t@
+ WEDNESDAY  @&t@
+ WEDNESDAY   @&t@
+ WEDNESDAY    @&t@
+ WEDNESDAY     @&t@
+ WEDNESDAY      @&t@
+ WEDNESDAY       @&t@
+ WEDNESDAY        @&t@
+ WEDNESDAY         @&t@
+ WEDNESDAY          @&t@
+ WEDNESDAY           @&t@
+ WEDNESDAY            @&t@
+ WEDNESDAY             @&t@
+ WEDNESDAY              @&t@
+ WEDNESDAY               @&t@
+ WEDNESDAY                @&t@
+ WEDNESDAY                 @&t@
+ WEDNESDAY                  @&t@
+ WEDNESDAY                   @&t@
+ WEDNESDAY                    @&t@
+ WEDNESDAY                     @&t@
+ WEDNESDAY                      @&t@
+ WEDNESDAY                       @&t@
+ WEDNESDAY                        @&t@
+ WEDNESDAY                         @&t@
+ WEDNESDAY                          @&t@
+ WEDNESDAY                           @&t@
+ WEDNESDAY                            @&t@
+ WEDNESDAY                             @&t@
+ WEDNESDAY                              @&t@
+ WEDNESDAY                               @&t@
+ WE
+ WED
+ WEDN
+ WEDNE
+ WEDNES
+ WEDNESD
+ WEDNESDA
+ WEDNESDAY
+ WEDNESDAY @&t@
+ WEDNESDAY  @&t@
+ WEDNESDAY   @&t@
+ WEDNESDAY    @&t@
+ WEDNESDAY     @&t@
+ WEDNESDAY      @&t@
+ WEDNESDAY       @&t@
+ WEDNESDAY        @&t@
+ WEDNESDAY         @&t@
+ WEDNESDAY          @&t@
+ WEDNESDAY           @&t@
+ WEDNESDAY            @&t@
+ WEDNESDAY             @&t@
+ WEDNESDAY              @&t@
+ WEDNESDAY               @&t@
+ WEDNESDAY                @&t@
+ WEDNESDAY                 @&t@
+ WEDNESDAY                  @&t@
+ WEDNESDAY                   @&t@
+ WEDNESDAY                    @&t@
+ WEDNESDAY                     @&t@
+ WEDNESDAY                      @&t@
+ WEDNESDAY                       @&t@
+ WEDNESDAY                        @&t@
+ WEDNESDAY                         @&t@
+ WEDNESDAY                          @&t@
+ WEDNESDAY                           @&t@
+ WEDNESDAY                            @&t@
+ WEDNESDAY                             @&t@
+ WEDNESDAY                              @&t@
+ WEDNESDAY                               @&t@
+ TH
+ THU
+ THUR
+ THURS
+ THURSD
+ THURSDA
+ THURSDAY
+ THURSDAY @&t@
+ THURSDAY  @&t@
+ THURSDAY   @&t@
+ THURSDAY    @&t@
+ THURSDAY     @&t@
+ THURSDAY      @&t@
+ THURSDAY       @&t@
+ THURSDAY        @&t@
+ THURSDAY         @&t@
+ THURSDAY          @&t@
+ THURSDAY           @&t@
+ THURSDAY            @&t@
+ THURSDAY             @&t@
+ THURSDAY              @&t@
+ THURSDAY               @&t@
+ THURSDAY                @&t@
+ THURSDAY                 @&t@
+ THURSDAY                  @&t@
+ THURSDAY                   @&t@
+ THURSDAY                    @&t@
+ THURSDAY                     @&t@
+ THURSDAY                      @&t@
+ THURSDAY                       @&t@
+ THURSDAY                        @&t@
+ THURSDAY                         @&t@
+ THURSDAY                          @&t@
+ THURSDAY                           @&t@
+ THURSDAY                            @&t@
+ THURSDAY                             @&t@
+ THURSDAY                              @&t@
+ THURSDAY                               @&t@
+ THURSDAY                                @&t@
+ FR
+ FRI
+ FRID
+ FRIDA
+ FRIDAY
+ FRIDAY @&t@
+ FRIDAY  @&t@
+ FRIDAY   @&t@
+ FRIDAY    @&t@
+ FRIDAY     @&t@
+ FRIDAY      @&t@
+ FRIDAY       @&t@
+ FRIDAY        @&t@
+ FRIDAY         @&t@
+ FRIDAY          @&t@
+ FRIDAY           @&t@
+ FRIDAY            @&t@
+ FRIDAY             @&t@
+ FRIDAY              @&t@
+ FRIDAY               @&t@
+ FRIDAY                @&t@
+ FRIDAY                 @&t@
+ FRIDAY                  @&t@
+ FRIDAY                   @&t@
+ FRIDAY                    @&t@
+ FRIDAY                     @&t@
+ FRIDAY                      @&t@
+ FRIDAY                       @&t@
+ FRIDAY                        @&t@
+ FRIDAY                         @&t@
+ FRIDAY                          @&t@
+ FRIDAY                           @&t@
+ FRIDAY                            @&t@
+ FRIDAY                             @&t@
+ FRIDAY                              @&t@
+ FRIDAY                               @&t@
+ FRIDAY                                @&t@
+ FRIDAY                                 @&t@
+ FRIDAY                                  @&t@
+ SA
+ SAT
+ SATU
+ SATUR
+ SATURD
+ SATURDA
+ SATURDAY
+ SATURDAY @&t@
+ SATURDAY  @&t@
+ SATURDAY   @&t@
+ SATURDAY    @&t@
+ SATURDAY     @&t@
+ SATURDAY      @&t@
+ SATURDAY       @&t@
+ SATURDAY        @&t@
+ SATURDAY         @&t@
+ SATURDAY          @&t@
+ SATURDAY           @&t@
+ SATURDAY            @&t@
+ SATURDAY             @&t@
+ SATURDAY              @&t@
+ SATURDAY               @&t@
+ SATURDAY                @&t@
+ SATURDAY                 @&t@
+ SATURDAY                  @&t@
+ SATURDAY                   @&t@
+ SATURDAY                    @&t@
+ SATURDAY                     @&t@
+ SATURDAY                      @&t@
+ SATURDAY                       @&t@
+ SATURDAY                        @&t@
+ SATURDAY                         @&t@
+ SATURDAY                          @&t@
+ SATURDAY                           @&t@
+ SATURDAY                            @&t@
+ SATURDAY                             @&t@
+ SATURDAY                              @&t@
+ SATURDAY                               @&t@
+ SATURDAY                                @&t@
+ SA
+ SAT
+ SATU
+ SATUR
+ SATURD
+ SATURDA
+ SATURDAY
+ SATURDAY @&t@
+ SATURDAY  @&t@
+ SATURDAY   @&t@
+ SATURDAY    @&t@
+ SATURDAY     @&t@
+ SATURDAY      @&t@
+ SATURDAY       @&t@
+ SATURDAY        @&t@
+ SATURDAY         @&t@
+ SATURDAY          @&t@
+ SATURDAY           @&t@
+ SATURDAY            @&t@
+ SATURDAY             @&t@
+ SATURDAY              @&t@
+ SATURDAY               @&t@
+ SATURDAY                @&t@
+ SATURDAY                 @&t@
+ SATURDAY                  @&t@
+ SATURDAY                   @&t@
+ SATURDAY                    @&t@
+ SATURDAY                     @&t@
+ SATURDAY                      @&t@
+ SATURDAY                       @&t@
+ SATURDAY                        @&t@
+ SATURDAY                         @&t@
+ SATURDAY                          @&t@
+ SATURDAY                           @&t@
+ SATURDAY                            @&t@
+ SATURDAY                             @&t@
+ SATURDAY                              @&t@
+ SATURDAY                               @&t@
+ SATURDAY                                @&t@
+ SA
+ SAT
+ SATU
+ SATUR
+ SATURD
+ SATURDA
+ SATURDAY
+ SATURDAY @&t@
+ SATURDAY  @&t@
+ SATURDAY   @&t@
+ SATURDAY    @&t@
+ SATURDAY     @&t@
+ SATURDAY      @&t@
+ SATURDAY       @&t@
+ SATURDAY        @&t@
+ SATURDAY         @&t@
+ SATURDAY          @&t@
+ SATURDAY           @&t@
+ SATURDAY            @&t@
+ SATURDAY             @&t@
+ SATURDAY              @&t@
+ SATURDAY               @&t@
+ SATURDAY                @&t@
+ SATURDAY                 @&t@
+ SATURDAY                  @&t@
+ SATURDAY                   @&t@
+ SATURDAY                    @&t@
+ SATURDAY                     @&t@
+ SATURDAY                      @&t@
+ SATURDAY                       @&t@
+ SATURDAY                        @&t@
+ SATURDAY                         @&t@
+ SATURDAY                          @&t@
+ SATURDAY                           @&t@
+ SATURDAY                            @&t@
+ SATURDAY                             @&t@
+ SATURDAY                              @&t@
+ SATURDAY                               @&t@
+ SATURDAY                                @&t@
+ SA
+ SAT
+ SATU
+ SATUR
+ SATURD
+ SATURDA
+ SATURDAY
+ SATURDAY @&t@
+ SATURDAY  @&t@
+ SATURDAY   @&t@
+ SATURDAY    @&t@
+ SATURDAY     @&t@
+ SATURDAY      @&t@
+ SATURDAY       @&t@
+ SATURDAY        @&t@
+ SATURDAY         @&t@
+ SATURDAY          @&t@
+ SATURDAY           @&t@
+ SATURDAY            @&t@
+ SATURDAY             @&t@
+ SATURDAY              @&t@
+ SATURDAY               @&t@
+ SATURDAY                @&t@
+ SATURDAY                 @&t@
+ SATURDAY                  @&t@
+ SATURDAY                   @&t@
+ SATURDAY                    @&t@
+ SATURDAY                     @&t@
+ SATURDAY                      @&t@
+ SATURDAY                       @&t@
+ SATURDAY                        @&t@
+ SATURDAY                         @&t@
+ SATURDAY                          @&t@
+ SATURDAY                           @&t@
+ SATURDAY                            @&t@
+ SATURDAY                             @&t@
+ SATURDAY                              @&t@
+ SATURDAY                               @&t@
+ SATURDAY                                @&t@
+  .
+   .
+    .
+     .
+      .
+       .
+        .
+         .
+          .
+           .
+            .
+             .
+              .
+               .
+                .
+                 .
+                  .
+                   .
+                    .
+                     .
+                      .
+                       .
+                        .
+                         .
+                          .
+                           .
+                            .
+                             .
+                              .
+                               .
+                                .
+                                 .
+                                  .
+                                   .
+                                    .
+                                     .
+                                      .
+                                       .
+                                        .
+])
+AT_CLEANUP
