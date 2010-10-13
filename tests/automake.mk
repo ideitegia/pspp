@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/formats/binhex-out.sh \
 	tests/formats/date-in.sh \
 	tests/formats/date-out.sh \
 	tests/formats/float-format.sh \
@@ -262,6 +261,7 @@ EXTRA_DIST += \
 TESTSUITE_AT = \
 	tests/data/calendar.at \
 	tests/data/data-in.at \
+	tests/data/data-out.at \
 	tests/data/datasheet-test.at \
 	tests/data/por-file.at \
 	tests/data/sys-file.at \
