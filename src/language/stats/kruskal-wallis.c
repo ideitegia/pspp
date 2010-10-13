@@ -41,6 +41,7 @@
 #include "xalloc.h"
 
 
+/* Returns true iff the independent variable lies in the range [nst->val1, nst->val2] */
 static bool
 include_func (const struct ccase *c, void *aux)
 {
@@ -65,6 +66,7 @@ struct rank_entry
   double n;
 };
 
+/* Return the entry with the key GROUP or null if there is no such entry */
 static struct rank_entry *
 find_rank_entry (const struct hmap *map, const union value *group, size_t width)
 {
@@ -80,6 +82,7 @@ find_rank_entry (const struct hmap *map, const union value *group, size_t width)
   return re;
 }
 
+/* Calculates the adjustment necessary for tie compensation */
 static void
 distinct_callback (double v UNUSED, casenumber t, double w UNUSED, void *aux)
 {
@@ -181,6 +184,7 @@ kruskal_wallis_execute (const struct dataset *ds,
 
       casereader_destroy (rr);
 
+      /* Calculate the value of h */
       {
 	struct rank_entry *mre;
 	double n = 0.0;
@@ -204,6 +208,7 @@ kruskal_wallis_execute (const struct dataset *ds,
   show_ranks_box (nst, kw, total_n_groups);
   show_sig_box (nst, kw);
 
+  /* Cleanup allocated memory */
   for (i = 0 ; i < nst->n_vars; ++i)
     {
       struct rank_entry *mre, *next;
