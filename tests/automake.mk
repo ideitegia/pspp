@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/formats/bcd-in.sh \
 	tests/formats/binhex-out.sh \
 	tests/formats/date-in.sh \
 	tests/formats/date-out.sh \
@@ -224,8 +223,9 @@ tests_output_render_test_LDADD = \
 EXTRA_DIST += \
 	$(dist_TESTS) \
 	tests/coverage.sh tests/test_template \
-	tests/data/v13.sav tests/data/v14.sav \
-	tests/formats/bcd-in.expected.cmp.gz \
+	tests/data/bcd-in.expected.cmp.gz \
+	tests/data/v13.sav \
+	tests/data/v14.sav \
 	tests/formats/binhex-out.expected.gz \
 	tests/formats/ib-in.expected.cmp.gz \
 	tests/formats/legacy-in.expected.cmp.gz \
