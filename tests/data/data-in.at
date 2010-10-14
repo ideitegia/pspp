@@ -202,3 +202,162 @@ AT_CHECK([cat wkday.out], [0], [dnl
   .  .  .  .  .  .  .  .  . @&t@
 ])
 AT_CLEANUP
+
+AT_SETUP([MONTH input format])
+AT_DATA([month.sps], [dnl
+DATA LIST NOTABLE /month3 1-3 (MONTH)
+		   month4 1-4 (MONTH)
+		   month5 1-5 (MONTH)
+		   month6 1-6 (MONTH)
+		   month7 1-7 (MONTH)
+		   month8 1-8 (MONTH)
+		   month9 1-9 (MONTH)
+		   month10 1-10 (MONTH).
+BEGIN DATA.
+
+.
+i
+ii
+iii
+iiii
+iv
+v
+vi
+vii
+viii
+ix
+viiii
+x
+xi
+xii
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+january
+JANAURY
+February
+fEbraury
+MArch
+marhc
+apRIL
+may
+june
+july
+august
+september
+october
+november
+decmeber
+december
+END DATA.
+FORMATS ALL (MONTH3).
+PRINT OUTFILE='month.out'/ALL.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv month.sps], [0], [dnl
+month.sps:15.1-4: warning: Data for variable month4 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:15.1-5: warning: Data for variable month5 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:15.1-6: warning: Data for variable month6 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:15.1-7: warning: Data for variable month7 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:15.1-8: warning: Data for variable month8 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:15.1-9: warning: Data for variable month9 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:15.1-10: warning: Data for variable month10 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:26.1-3: warning: Data for variable month3 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:26.1-4: warning: Data for variable month4 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:26.1-5: warning: Data for variable month5 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:26.1-6: warning: Data for variable month6 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:26.1-7: warning: Data for variable month7 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:26.1-8: warning: Data for variable month8 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:26.1-9: warning: Data for variable month9 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:26.1-10: warning: Data for variable month10 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:39.1-3: warning: Data for variable month3 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:39.1-4: warning: Data for variable month4 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:39.1-5: warning: Data for variable month5 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:39.1-6: warning: Data for variable month6 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:39.1-7: warning: Data for variable month7 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:39.1-8: warning: Data for variable month8 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:39.1-9: warning: Data for variable month9 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+
+month.sps:39.1-10: warning: Data for variable month10 is not valid as format MONTH: Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names.
+])
+AT_CHECK([cat month.out], [0], [dnl
+   .   .   .   .   .   .   .   . @&t@
+   .   .   .   .   .   .   .   . @&t@
+ JAN JAN JAN JAN JAN JAN JAN JAN @&t@
+ FEB FEB FEB FEB FEB FEB FEB FEB @&t@
+ MAR MAR MAR MAR MAR MAR MAR MAR @&t@
+ MAR   .   .   .   .   .   .   . @&t@
+ APR APR APR APR APR APR APR APR @&t@
+ MAY MAY MAY MAY MAY MAY MAY MAY @&t@
+ JUN JUN JUN JUN JUN JUN JUN JUN @&t@
+ JUL JUL JUL JUL JUL JUL JUL JUL @&t@
+ JUL AUG AUG AUG AUG AUG AUG AUG @&t@
+ SEP SEP SEP SEP SEP SEP SEP SEP @&t@
+ JUL AUG AUG AUG AUG AUG AUG AUG @&t@
+ OCT OCT OCT OCT OCT OCT OCT OCT @&t@
+ NOV NOV NOV NOV NOV NOV NOV NOV @&t@
+ DEC DEC DEC DEC DEC DEC DEC DEC @&t@
+   .   .   .   .   .   .   .   . @&t@
+ JAN JAN JAN JAN JAN JAN JAN JAN @&t@
+ FEB FEB FEB FEB FEB FEB FEB FEB @&t@
+ MAR MAR MAR MAR MAR MAR MAR MAR @&t@
+ APR APR APR APR APR APR APR APR @&t@
+ MAY MAY MAY MAY MAY MAY MAY MAY @&t@
+ JUN JUN JUN JUN JUN JUN JUN JUN @&t@
+ JUL JUL JUL JUL JUL JUL JUL JUL @&t@
+ AUG AUG AUG AUG AUG AUG AUG AUG @&t@
+ SEP SEP SEP SEP SEP SEP SEP SEP @&t@
+ OCT OCT OCT OCT OCT OCT OCT OCT @&t@
+ NOV NOV NOV NOV NOV NOV NOV NOV @&t@
+ DEC DEC DEC DEC DEC DEC DEC DEC @&t@
+   .   .   .   .   .   .   .   . @&t@
+ JAN JAN JAN JAN JAN JAN JAN JAN @&t@
+ JAN JAN JAN JAN JAN JAN JAN JAN @&t@
+ FEB FEB FEB FEB FEB FEB FEB FEB @&t@
+ FEB FEB FEB FEB FEB FEB FEB FEB @&t@
+ MAR MAR MAR MAR MAR MAR MAR MAR @&t@
+ MAR MAR MAR MAR MAR MAR MAR MAR @&t@
+ APR APR APR APR APR APR APR APR @&t@
+ MAY MAY MAY MAY MAY MAY MAY MAY @&t@
+ JUN JUN JUN JUN JUN JUN JUN JUN @&t@
+ JUL JUL JUL JUL JUL JUL JUL JUL @&t@
+ AUG AUG AUG AUG AUG AUG AUG AUG @&t@
+ SEP SEP SEP SEP SEP SEP SEP SEP @&t@
+ OCT OCT OCT OCT OCT OCT OCT OCT @&t@
+ NOV NOV NOV NOV NOV NOV NOV NOV @&t@
+ DEC DEC DEC DEC DEC DEC DEC DEC @&t@
+ DEC DEC DEC DEC DEC DEC DEC DEC @&t@
+])
+AT_CLEANUP
