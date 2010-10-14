@@ -1,5 +1,159 @@
 AT_BANNER([data input (data-in)])
 
+m4_divert_push([PREPARE_TESTS])
+data_in_prng () {
+  cat > my-rand.pl <<'EOF'
+# This random number generator and the test for it below are drawn
+# from Park and Miller, "Random Number Generators: Good Ones are Hard
+# to Come By", Communications of the ACM 31:10 (October 1988).  It is
+# documented to function properly on systems with a 46-bit or longer
+# real significand, which includes systems that have 64-bit IEEE reals
+# (with 53-bit significand).  The test should catch any systems for
+# which this is not true, in any case.
+
+our ($seed) = 1;
+sub my_rand {
+  my ($modulo) = @_;
+  my ($a) = 16807;
+  my ($m) = 2147483647;
+  my ($tmp) = $a * $seed;
+  $seed = $tmp - $m * int ($tmp / $m);
+  return $seed % $modulo;
+}
+EOF
+  cat > test-my-rand.pl <<'EOF'
+#! /usr/bin/perl
+use strict;
+use warnings;
+do 'my-rand.pl';
+my_rand (1) foreach 1...10000;
+our $seed;
+die $seed if $seed != 1043618065;
+EOF
+}
+m4_divert_pop([PREPARE_TESTS])
+
+AT_SETUP([numeric input formats])
+AT_KEYWORDS([data-in])
+data_in_prng
+AT_CHECK([$PERL test-my-rand.pl])
+AT_DATA([num-in.pl],
+[[#! /usr/bin/perl
+
+use POSIX;
+use strict;
+use warnings;
+
+do 'my-rand.pl';
+
+for my $number (0, 1, .5, .015625, 123) {
+    my ($base_exp) = floor ($number ? log10 ($number) : 0);
+    for my $offset (-3...3) {
+	my ($exponent) = $base_exp + $offset;
+	my ($fraction) = $number / 10**$offset;
+
+	permute_zeros ($fraction, $exponent);
+    }
+}
+
+sub permute_zeros {
+    my ($fraction, $exponent) = @_;
+
+    my ($frac_rep) = sprintf ("%f", $fraction);
+    my ($leading_zeros) = length (($frac_rep =~ /^(0*)/)[0]);
+    my ($trailing_zeros) = length (($frac_rep =~ /(\.?0*)$/)[0]);
+    for my $i (0...$leading_zeros) {
+	for my $j (0...$trailing_zeros) {
+	    my ($trimmed) = substr ($frac_rep, $i,
+				    length ($frac_rep) - $i - $j);
+	    next if $trimmed eq '.' || $trimmed eq '';
+
+	    permute_commas ($trimmed, $exponent);
+	}
+    }
+}
+
+sub permute_commas {
+    my ($frac_rep, $exponent) = @_;
+    permute_dot_comma ($frac_rep, $exponent);
+    my ($pos) = int (my_rand (length ($frac_rep) + 1));
+    $frac_rep = substr ($frac_rep, 0, $pos) . "," . substr ($frac_rep, $pos);
+    permute_dot_comma ($frac_rep, $exponent);
+}
+
+sub permute_dot_comma {
+    my ($frac_rep, $exponent) = @_;
+    permute_exponent_syntax ($frac_rep, $exponent);
+    if ($frac_rep =~ /[,.]/) {
+	$frac_rep =~ tr/.,/,./;
+	permute_exponent_syntax ($frac_rep, $exponent);
+    }
+}
+
+sub permute_exponent_syntax {
+    my ($frac_rep, $exponent) = @_;
+    my (@exp_reps);
+    if ($exponent == 0) {
+	@exp_reps = pick ('', 'e0', 'e-0', 'e+0', '-0', '+0');
+    } elsif ($exponent > 0) {
+	@exp_reps = pick ("e$exponent", "e+$exponent", "+$exponent");
+    } else {
+	my ($abs_exp) = -$exponent;
+	@exp_reps = pick ("e-$abs_exp", , "e-$abs_exp", "-$abs_exp");
+    }
+    permute_sign_and_affix ($frac_rep, $_) foreach @exp_reps;
+}
+
+sub permute_sign_and_affix {
+    my ($frac_rep, $exp_rep) = @_;
+    for my $prefix (pick ('', '$'),
+		    pick ('-', '-$', '$-', '$-$'),
+		    pick ('+', '+$', '$+', '$+$')) {
+	for my $suffix ('', '%') {
+	    permute_spaces ("$prefix$frac_rep$exp_rep$suffix");
+	}
+    }
+}
+
+sub permute_spaces {
+    my ($s) = @_;
+    $s =~ s/([-+\$e%])/ $1 /g;
+    my (@fields) = split (' ', $s);
+    print join ('', @fields), "\n";
+
+    if ($#fields > 0) {
+	my ($pos) = int (my_rand ($#fields)) + 1;
+	print join ('', @fields[0...$pos - 1]);
+	print " ";
+	print join ('', @fields[$pos...$#fields]);
+	print "\n";
+    }
+}
+
+sub pick {
+    return $_[int (my_rand ($#_ + 1))];
+}
+]])
+AT_CHECK([$PERL num-in.pl > num-in.data])
+AT_DATA([num-in.sps], [dnl
+SET ERRORS=NONE.
+SET MXERRS=10000000.
+SET MXWARNS=10000000.
+DATA LIST FILE='num-in.data' NOTABLE/
+	f 1-40 (f)
+	comma 1-40 (comma)
+	dot 1-40 (dot)
+	dollar 1-40 (dollar)
+	pct 1-40 (pct)
+	e 1-40 (e).
+PRINT OUTFILE='num-in.out'/all (6f10.4).
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv num-in.sps])
+AT_CHECK([gzip -cd < $top_srcdir/tests/data/num-in.expected.gz > expout])
+AT_CHECK([cat num-in.out], [0], [expout])
+AT_CLEANUP
+
 dnl Some very old version of PSPP crashed reading big numbers,
 dnl so this checks for regressions.
 AT_SETUP([reading big numbers])

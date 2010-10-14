@@ -11,7 +11,6 @@ TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
 	tests/formats/date-in.sh \
-	tests/formats/num-in.sh \
 	tests/formats/num-out.sh \
 	tests/formats/time-in.sh \
 	tests/formats/360.sh
@@ -216,9 +215,9 @@ EXTRA_DIST += \
 	tests/data/binhex-in.expected.cmp.gz \
 	tests/data/binhex-out.expected.gz \
 	tests/data/legacy-in.expected.cmp.gz \
+	tests/data/num-in.expected.gz \
 	tests/data/v13.sav \
 	tests/data/v14.sav \
-	tests/formats/num-in.expected.gz \
 	tests/formats/num-out.expected.cmp.gz \
 	tests/formats/num-out-cmp.pl \
 	tests/formats/num-out-compare.pl \
