@@ -11,7 +11,6 @@ TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
 	tests/formats/date-in.sh \
-	tests/formats/ib-in.sh \
 	tests/formats/month-in.sh \
 	tests/formats/num-in.sh \
 	tests/formats/num-out.sh \
@@ -216,11 +215,11 @@ EXTRA_DIST += \
 	$(dist_TESTS) \
 	tests/coverage.sh tests/test_template \
 	tests/data/bcd-in.expected.cmp.gz \
+	tests/data/binhex-in.expected.cmp.gz \
 	tests/data/binhex-out.expected.gz \
 	tests/data/legacy-in.expected.cmp.gz \
 	tests/data/v13.sav \
 	tests/data/v14.sav \
-	tests/formats/ib-in.expected.cmp.gz \
 	tests/formats/num-in.expected.gz \
 	tests/formats/num-out.expected.cmp.gz \
 	tests/formats/num-out-cmp.pl \
