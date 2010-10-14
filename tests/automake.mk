@@ -15,7 +15,6 @@ dist_TESTS = \
 	tests/formats/num-in.sh \
 	tests/formats/num-out.sh \
 	tests/formats/time-in.sh \
-	tests/formats/wkday-in.sh \
 	tests/formats/360.sh
 
 TESTS = $(dist_TESTS) $(nodist_TESTS)

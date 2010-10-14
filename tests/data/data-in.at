@@ -142,3 +142,63 @@ AT_CHECK([gzip -cd < $top_srcdir/tests/data/legacy-in.expected.cmp.gz | \
 AT_CHECK([pspp -O format=csv legacy-in.sps])
 AT_CHECK([cat legacy-in.out], [0], [expout])
 AT_CLEANUP
+
+AT_SETUP([WKDAY input format])
+AT_DATA([wkday.sps], [dnl
+DATA LIST NOTABLE /wkday2 1-2 (wkday)
+		   wkday3 1-3 (wkday)
+		   wkday4 1-4 (wkday)
+		   wkday5 1-5 (wkday)
+		   wkday6 1-6 (wkday)
+		   wkday7 1-7 (wkday)
+		   wkday8 1-8 (wkday)
+		   wkday9 1-9 (wkday)
+		   wkday10 1-10 (wkday).
+BEGIN DATA.
+
+.
+monady
+tuseday
+WEDENSDAY
+Thurdsay
+fRidya
+SAturady
+sudnay
+sturday
+END DATA.
+FORMATS ALL (WKDAY2).
+PRINT OUTFILE='wkday.out'/ALL.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv wkday.sps], [0], [dnl
+wkday.sps:20.1-2: warning: Data for variable wkday2 is not valid as format WKDAY: Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified.
+
+wkday.sps:20.1-3: warning: Data for variable wkday3 is not valid as format WKDAY: Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified.
+
+wkday.sps:20.1-4: warning: Data for variable wkday4 is not valid as format WKDAY: Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified.
+
+wkday.sps:20.1-5: warning: Data for variable wkday5 is not valid as format WKDAY: Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified.
+
+wkday.sps:20.1-6: warning: Data for variable wkday6 is not valid as format WKDAY: Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified.
+
+wkday.sps:20.1-7: warning: Data for variable wkday7 is not valid as format WKDAY: Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified.
+
+wkday.sps:20.1-8: warning: Data for variable wkday8 is not valid as format WKDAY: Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified.
+
+wkday.sps:20.1-9: warning: Data for variable wkday9 is not valid as format WKDAY: Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified.
+
+wkday.sps:20.1-10: warning: Data for variable wkday10 is not valid as format WKDAY: Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified.
+])
+AT_CHECK([cat wkday.out], [0], [dnl
+  .  .  .  .  .  .  .  .  . @&t@
+  .  .  .  .  .  .  .  .  . @&t@
+ MO MO MO MO MO MO MO MO MO @&t@
+ TU TU TU TU TU TU TU TU TU @&t@
+ WE WE WE WE WE WE WE WE WE @&t@
+ TH TH TH TH TH TH TH TH TH @&t@
+ FR FR FR FR FR FR FR FR FR @&t@
+ SA SA SA SA SA SA SA SA SA @&t@
+ SU SU SU SU SU SU SU SU SU @&t@
+  .  .  .  .  .  .  .  .  . @&t@
+])
+AT_CLEANUP
