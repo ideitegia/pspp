@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/formats/date-in.sh \
 	tests/formats/num-out.sh \
 	tests/formats/time-in.sh \
 	tests/formats/360.sh
