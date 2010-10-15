@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/formats/num-out.sh \
 	tests/formats/time-in.sh \
 	tests/formats/360.sh
 
@@ -19,7 +18,7 @@ TESTS = $(dist_TESTS) $(nodist_TESTS)
 check_PROGRAMS += \
 	$(nodist_TESTS) \
 	tests/data/datasheet-test \
-	tests/formats/inexactify \
+	tests/data/inexactify \
 	tests/libpspp/abt-test \
 	tests/libpspp/bt-test \
 	tests/libpspp/heap-test \
@@ -188,7 +187,7 @@ tests_libpspp_sparse_xarray_test_SOURCES = \
 tests_libpspp_sparse_xarray_test_LDADD = gl/libgl.la $(LIBINTL) 
 tests_libpspp_sparse_xarray_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
-tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
+tests_data_inexactify_SOURCES = tests/data/inexactify.c
 
 noinst_PROGRAMS += tests/dissect-sysfile
 tests_dissect_sysfile_SOURCES = \
@@ -215,13 +214,10 @@ EXTRA_DIST += \
 	tests/data/binhex-out.expected.gz \
 	tests/data/legacy-in.expected.cmp.gz \
 	tests/data/num-in.expected.gz \
+	tests/data/num-out-cmp.pl \
+	tests/data/num-out.expected.cmp.gz \
 	tests/data/v13.sav \
 	tests/data/v14.sav \
-	tests/formats/num-out.expected.cmp.gz \
-	tests/formats/num-out-cmp.pl \
-	tests/formats/num-out-compare.pl \
-	tests/formats/num-out-decmp.pl \
-	tests/formats/num-out.pl \
         tests/language/data-io/Book1.gnm.unzipped
 
 CLEANFILES += *.save pspp.* foo*
