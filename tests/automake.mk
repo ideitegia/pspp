@@ -1,18 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-TESTS_ENVIRONMENT = top_srcdir='$(top_srcdir)' top_builddir='$(top_builddir)'
-TESTS_ENVIRONMENT += PERL='$(PERL)'
-
-# Allow locale_charset to find charset.alias before running "make install".
-TESTS_ENVIRONMENT += CHARSETALIASDIR='$(abs_top_builddir)/gl'
-
-TESTS_ENVIRONMENT += LC_ALL=C
-TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
-
-TESTS = $(dist_TESTS) $(nodist_TESTS)
-
 check_PROGRAMS += \
-	$(nodist_TESTS) \
 	tests/data/datasheet-test \
 	tests/data/inexactify \
 	tests/libpspp/abt-test \
@@ -203,8 +191,7 @@ tests_output_render_test_LDADD = \
 	$(LIBINTL)
 
 EXTRA_DIST += \
-	$(dist_TESTS) \
-	tests/coverage.sh tests/test_template \
+	tests/coverage.sh \
 	tests/data/bcd-in.expected.cmp.gz \
 	tests/data/binhex-in.expected.cmp.gz \
 	tests/data/binhex-out.expected.gz \
@@ -217,14 +204,6 @@ EXTRA_DIST += \
         tests/language/data-io/Book1.gnm.unzipped
 
 CLEANFILES += *.save pspp.* foo*
-
-check-for-export-var-val:
-	@if grep -q 'export .*=' $(dist_TESTS) ; then \
-	 echo 'One or more tests contain non-portable "export VAR=val" syntax' ; \
-	 false ; \
-	fi
-
-DIST_HOOKS += check-for-export-var-val
 
 EXTRA_DIST += tests/OChangeLog
 
