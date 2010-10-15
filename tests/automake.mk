@@ -10,7 +10,6 @@ TESTS_ENVIRONMENT += LC_ALL=C
 TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
 
 dist_TESTS = \
-	tests/formats/time-in.sh \
 	tests/formats/360.sh
 
 TESTS = $(dist_TESTS) $(nodist_TESTS)
