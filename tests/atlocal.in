@@ -21,3 +21,6 @@ export CHARSETALIASDIR
 
 GZIP=
 export GZIP
+
+HOME=/nonexistent		# Kluge to make PSPP ignore $HOME/.pspprc.
+export HOME
