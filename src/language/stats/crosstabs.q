@@ -49,7 +49,7 @@
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
-#include <libpspp/hash.h>
+#include <libpspp/hash-functions.h>
 #include <libpspp/hmap.h>
 #include <libpspp/hmapx.h>
 #include <libpspp/message.h>
