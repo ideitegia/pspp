@@ -23,6 +23,7 @@
 #include <math.h>
 
 #include "xalloc.h"
+
 #include <data/case.h>
 #include <data/casegrouper.h>
 #include <data/casereader.h>
@@ -30,6 +31,14 @@
 #include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
+#include <libpspp/assertion.h>
+#include <libpspp/cast.h>
+#include <libpspp/hmapx.h>
+#include <libpspp/hash-functions.h>
+#include <libpspp/message.h>
+#include <libpspp/pool.h>
+#include <libpspp/str.h>
+#include <libpspp/taint.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
@@ -39,13 +48,6 @@
 #include <language/stats/kruskal-wallis.h>
 #include <language/stats/wilcoxon.h>
 #include <language/stats/sign.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/hash.h>
-#include <libpspp/message.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
-#include <libpspp/taint.h>
 #include <math/moments.h>
 
 #include "gettext.h"
@@ -228,7 +230,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
           npt->missing++;
           if (npt->missing > 1)
             {
-              msg (SE, _ ("The %s subcommand may be given only once."), "MISSING");
+              msg (SE, _("The %s subcommand may be given only once."), "MISSING");
               goto lossage;
             }
           while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
@@ -255,7 +257,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
           npt->method++;
           if (npt->method > 1)
             {
-              msg (SE, _ ("The %s subcommand may be given only once."), "METHOD");
+              msg (SE, _("The %s subcommand may be given only once."), "METHOD");
               goto lossage;
             }
           switch (npar_method (lexer, nps))
@@ -305,7 +307,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
 
     if (lex_token (lexer) != '.')
       {
-        lex_error (lexer, _ ("expecting end of command"));
+        lex_error (lexer, _("expecting end of command"));
         goto lossage;
       }
 
@@ -316,19 +318,14 @@ lossage:
 }
 
 
-
-
 static void one_sample_insert_variables (const struct npar_test *test,
-					 struct const_hsh_table *variables);
+					 struct hmapx *);
 
 static void two_sample_insert_variables (const struct npar_test *test,
-					 struct const_hsh_table *variables);
-
+					 struct hmapx *);
 
 static void n_sample_insert_variables (const struct npar_test *test,
-					 struct const_hsh_table *variables);
-
-
+				       struct hmapx *);
 
 static void
 npar_execute (struct casereader *input,
@@ -343,7 +340,7 @@ npar_execute (struct casereader *input,
       const struct npar_test *test = specs->test[t];
       if ( NULL == test->execute )
 	{
-	  msg (SW, _ ("NPAR subcommand not currently implemented."));
+	  msg (SW, _("NPAR subcommand not currently implemented."));
 	  continue;
 	}
       test->execute (ds, casereader_clone (input), specs->filter, test, specs->exact, specs->timer);
@@ -369,7 +366,6 @@ npar_execute (struct casereader *input,
   casereader_destroy (input);
 }
 
-
 int
 cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
 {
@@ -377,16 +373,15 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
   bool ok;
   int i;
   struct npar_specs npar_specs = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  struct const_hsh_table *var_hash;
   struct casegrouper *grouper;
   struct casereader *input, *group;
+  struct hmapx var_map = HMAPX_INITIALIZER (var_map);
+
 
   npar_specs.pool = pool_create ();
   npar_specs.filter = MV_ANY;
-
-  var_hash = const_hsh_create_pool (npar_specs.pool, 0,
-				    compare_vars_by_name, hash_var_by_name,
-				    NULL, NULL);
+  npar_specs.n_vars = -1;
+  npar_specs.vv = NULL;
 
   if ( ! parse_npar_tests (lexer, ds, &cmd, &npar_specs) )
     {
@@ -397,11 +392,24 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
   for (i = 0; i < npar_specs.n_tests; ++i )
     {
       const struct npar_test *test = npar_specs.test[i];
-      test->insert_variables (test, var_hash);
+      test->insert_variables (test, &var_map);
     }
 
-  npar_specs.vv = (const struct variable **) const_hsh_sort (var_hash);
-  npar_specs.n_vars = const_hsh_count (var_hash);
+  {
+    struct hmapx_node *node;
+    struct variable *var;
+    npar_specs.n_vars = 0;
+
+    HMAPX_FOR_EACH (var, node, &var_map)
+      {
+	npar_specs.n_vars ++;
+	npar_specs.vv = pool_nrealloc (npar_specs.pool, npar_specs.vv, npar_specs.n_vars, sizeof (*npar_specs.vv));
+	npar_specs.vv[npar_specs.n_vars - 1] = var;
+      }
+  }
+
+  qsort (npar_specs.vv, npar_specs.n_vars, sizeof (*npar_specs.vv), 
+	 compare_var_ptrs_by_name);
 
   if ( cmd.statistics )
     {
@@ -447,9 +455,8 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;
 
-  const_hsh_destroy (var_hash);
-
   pool_destroy (npar_specs.pool);
+  hmapx_destroy (&var_map);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
@@ -486,7 +493,7 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
       if ( cstp->lo >= cstp->hi )
 	{
 	  msg (ME,
-	      _ ("The specified value of HI (%d) is "
+	      _("The specified value of HI (%d) is "
 		"lower than the specified value of LO (%d)"),
 	      cstp->hi, cstp->lo);
 	  return 0;
@@ -541,7 +548,7 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
        cstp->n_expected != cstp->hi - cstp->lo + 1 )
     {
       msg (ME,
-	  _ ("%d expected values were given, but the specified "
+	  _("%d expected values were given, but the specified "
 	    "range (%d-%d) requires exactly %d values."),
 	  cstp->n_expected, cstp->lo, cstp->hi,
 	  cstp->hi - cstp->lo +1);
@@ -680,7 +687,7 @@ parse_two_sample_related_test (struct lexer *lexer,
       if (paired)
 	{
 	  if ( n_vlist1 != n_vlist2)
-	    msg (SE, _ ("PAIRED was specified but the number of variables "
+	    msg (SE, _("PAIRED was specified but the number of variables "
 		       "preceding WITH (%zu) did not match the number "
 		       "following (%zu)."), n_vlist1, n_vlist2);
 
@@ -861,22 +868,38 @@ npar_kruskal_wallis (struct lexer *lexer, struct dataset *ds,
   return 1;
 }
 
-/* Insert the variables for TEST into VAR_HASH */
+static void
+insert_variable_into_map (struct hmapx *var_map, const struct variable *var)
+{
+  size_t hash = hash_pointer (var, 0);
+  struct hmapx_node *node;
+  const struct variable *v = NULL;
+      
+  HMAPX_FOR_EACH_WITH_HASH (v, node, hash, var_map)
+    {
+      if ( v == var)
+	return ;
+    }
+
+  hmapx_insert (var_map, CONST_CAST (struct variable *, var), hash);
+}
+
+/* Insert the variables for TEST into VAR_MAP */
 static void
 one_sample_insert_variables (const struct npar_test *test,
-			     struct const_hsh_table *var_hash)
+			     struct hmapx *var_map)
 {
   int i;
   const struct one_sample_test *ost = UP_CAST (test, const struct one_sample_test, parent);
 
   for ( i = 0 ; i < ost->n_vars ; ++i )
-    const_hsh_insert (var_hash, ost->vars[i]);
+    insert_variable_into_map (var_map, ost->vars[i]);
 }
 
 
 static void
 two_sample_insert_variables (const struct npar_test *test,
-			     struct const_hsh_table *var_hash)
+			     struct hmapx *var_map)
 {
   int i;
   const struct two_sample_test *tst = UP_CAST (test, const struct two_sample_test, parent);
@@ -885,23 +908,24 @@ two_sample_insert_variables (const struct npar_test *test,
     {
       variable_pair *pair = &tst->pairs[i];
 
-      const_hsh_insert (var_hash, (*pair)[0]);
-      const_hsh_insert (var_hash, (*pair)[1]);
+      insert_variable_into_map (var_map, (*pair)[0]);
+      insert_variable_into_map (var_map, (*pair)[1]);
     }
 }
 
 static void 
 n_sample_insert_variables (const struct npar_test *test,
-			   struct const_hsh_table *var_hash)
+			   struct hmapx *var_map)
 {
   int i;
   const struct n_sample_test *tst = UP_CAST (test, const struct n_sample_test, parent);
 
   for ( i = 0 ; i < tst->n_vars ; ++i )
-    const_hsh_insert (var_hash, tst->vars[i]);
+    insert_variable_into_map (var_map, tst->vars[i]);
 
-  const_hsh_insert (var_hash, tst->indep_var);
+  insert_variable_into_map (var_map, tst->indep_var);
 }
+
 
 static int
 npar_method (struct lexer *lexer,  struct npar_specs *specs)

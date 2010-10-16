@@ -36,18 +36,18 @@ npar_summary_calc_descriptives (struct descriptives *desc,
 				struct casereader *input,
 				const struct dictionary *dict,
 				const struct variable *const *vv,
-				int n_vars UNUSED,
+				int n_vars,
                                 enum mv_class filter)
 {
   int i = 0;
-  while (*vv)
+  for (i = 0 ; i < n_vars; ++i)
     {
       double minimum = DBL_MAX;
       double maximum = -DBL_MAX;
       double var;
       struct moments1 *moments = moments1_create (MOMENT_VARIANCE);
       struct ccase *c;
-      const struct variable *v = *vv++;
+      const struct variable *v = vv[i];
       struct casereader *pass;
 
       pass = casereader_clone (input);
@@ -78,9 +78,8 @@ npar_summary_calc_descriptives (struct descriptives *desc,
 
       desc[i].min = minimum;
       desc[i].max = maximum;
-
-      i++;
     }
+
   casereader_destroy (input);
 }
 

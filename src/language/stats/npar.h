@@ -24,11 +24,11 @@
 
 typedef const struct variable *variable_pair[2];
 
-struct hsh_table;
-struct const_hsh_table;
+struct hmapx;
 struct casefilter;
 struct casereader;
 struct dataset;
+
 
 struct npar_test
 {
@@ -40,7 +40,7 @@ struct npar_test
 		   double);
 
   void (*insert_variables) (const struct npar_test *,
-			    struct const_hsh_table *);
+			    struct hmapx *);
 };
 
 
