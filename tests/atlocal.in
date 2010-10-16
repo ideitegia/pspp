@@ -1,13 +1,11 @@
 # -*- shell-script -*-
+
+# Variables used internally by the testsuite.
+EXEEXT='@EXEEXT@'
+GNM_SUPPORT='@GNM_SUPPORT@'
 PERL='@PERL@'
-CHARSETALIASDIR="$abs_top_builddir/gl"
-export CHARSETALIASDIR
 WITH_PERL_MODULE='@WITH_PERL_MODULE@'
 host='@host@'
-GNM_SUPPORT='@GNM_SUPPORT@'
-GZIP=
-export GZIP
-EXEEXT='@EXEEXT@'
 
 PSQL_SUPPORT='@PSQL_SUPPORT@'
 if test "$PSQL_SUPPORT" = yes; then
@@ -16,3 +14,10 @@ if test "$PSQL_SUPPORT" = yes; then
     : ${PG_PORT:=6543}
     : ${PG_PATH:=`$PG_CONFIG --bindir`}
 fi
+
+# Variables used by programs invoked by the testsuite.
+CHARSETALIASDIR="$abs_top_builddir/gl"
+export CHARSETALIASDIR
+
+GZIP=
+export GZIP
