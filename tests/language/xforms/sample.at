@@ -1,0 +1,36 @@
+AT_BANNER([SAMPLE])
+
+AT_SETUP([SAMPLE])
+AT_DATA([sample.sps], [dnl
+set seed=3
+
+data list notable /A 1-2.
+begin data.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+end data.
+sample .5.
+list.
+])
+AT_CHECK([pspp -o pspp.csv sample.sps])
+AT_CAPTURE_FILE([pspp.csv])
+AT_CHECK(
+  [n=0
+   while read line; do
+     n=`expr $n + 1`
+     case $line in # (
+       "Table: Data List" | A | [[0-9]] | 10) ;; # (
+       *) echo $line; exit 1;
+     esac
+   done < pspp.csv
+   if test $n -ge 11; then exit 1; fi
+  ])
+AT_CLEANUP

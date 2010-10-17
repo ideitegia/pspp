@@ -77,7 +77,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
     {
       lex_match (lexer, '/');
 
-      if (lex_match_id (lexer, "FILE") || lex_token (lexer) == T_STRING)
+      if (lex_match_id (lexer, "FILE") || lex_is_string (lexer))
 	{
 	  lex_match (lexer, '=');
 

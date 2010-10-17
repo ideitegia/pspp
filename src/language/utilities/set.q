@@ -509,7 +509,7 @@ stc_custom_journal (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_s
     journal_enable ();
   else if (lex_match_id (lexer, "OFF") || lex_match_id (lexer, "NO"))
     journal_disable ();
-  else if (lex_token (lexer) == T_STRING || lex_token (lexer) == T_ID)
+  else if (lex_is_string (lexer) || lex_token (lexer) == T_ID)
     {
       journal_set_file_name (ds_cstr (lex_tokstr (lexer)));
       lex_get (lexer);
@@ -618,13 +618,13 @@ show_cce (const struct dataset *ds UNUSED)
 static char *
 show_decimals (const struct dataset *ds UNUSED)
 {
-  return xasprintf ("\"%c\"", settings_get_decimal_char (FMT_F));
+  return xasprintf ("`%c'", settings_get_decimal_char (FMT_F));
 }
 
 static char *
 show_endcmd (const struct dataset *ds UNUSED)
 {
-  return xasprintf ("\"%c\"", settings_get_endcmd ());
+  return xasprintf ("`%c'", settings_get_endcmd ());
 }
 
 static char *
@@ -922,6 +922,45 @@ cmd_show (struct lexer *lexer, struct dataset *ds)
   while (lex_token (lexer) != '.');
 
   return CMD_SUCCESS;
+}
+
+#define MAX_SAVED_SETTINGS 5
+
+static struct settings *saved_settings[MAX_SAVED_SETTINGS];
+static int n_saved_settings;
+
+int
+cmd_preserve (struct lexer *lexer, struct dataset *ds UNUSED)
+{
+  if (n_saved_settings < MAX_SAVED_SETTINGS)
+    {
+      saved_settings[n_saved_settings++] = settings_get ();
+      return lex_end_of_command (lexer);
+    }
+  else
+    {
+      msg (SE, _("Too many PRESERVE commands without a RESTORE: at most "
+                 "%d levels of saved settings are allowed."),
+           MAX_SAVED_SETTINGS);
+      return CMD_CASCADING_FAILURE;
+    }
+}
+
+int
+cmd_restore (struct lexer *lexer, struct dataset *ds UNUSED)
+{
+  if (n_saved_settings > 0)
+    {
+      struct settings *s = saved_settings[--n_saved_settings];
+      settings_set (s);
+      settings_destroy (s);
+      return lex_end_of_command (lexer);
+    }
+  else
+    {
+      msg (SE, _("RESTORE without matching PRESERVE."));
+      return CMD_FAILURE;
+    }
 }
 
 /*

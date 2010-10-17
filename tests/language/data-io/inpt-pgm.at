@@ -1,0 +1,37 @@
+AT_BANNER([INPUT PROGRAM])
+
+dnl Tests for a bug which caused a crash when 
+dnl reading invalid INPUT PROGRAM syntax.
+AT_SETUP([INPUT PROGRAM invalid syntax crash])
+AT_DATA([input-program.sps], [dnl
+INPUT PROGRAM.
+DATA LIST NOTABLE /a 1-9.
+BEGIN DATA
+123456789
+END DATA.
+END INPUT PROGRAM.
+])
+AT_CHECK([pspp -O format=csv input-program.sps], [1], [dnl
+input-program.sps:3: error: BEGIN DATA: BEGIN DATA is not allowed inside INPUT PROGRAM.
+
+input-program.sps:4: error: Syntax error at `123456789': expecting command name.
+
+input-program.sps:5: error: Unknown command END DATA.
+])
+AT_CLEANUP
+
+dnl Tests for bug #21108, a crash when 
+dnl reading invalid INPUT PROGRAM syntax.
+AT_SETUP([INPUT PROGRAM invalid syntax crash])
+AT_DATA([input-program.sps], [dnl
+INPUT PROGRAM.
+DATA LIST LIST NOTABLE /x.
+END FILE.
+END INPUT PROGRAM.
+
+DESCRIPTIVES x.
+])
+AT_CHECK([pspp -O format=csv input-program.sps], [1], [dnl
+error: DESCRIPTIVES: Syntax error at end of file: expecting `BEGIN'.
+])
+AT_CLEANUP

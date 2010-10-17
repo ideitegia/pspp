@@ -1,0 +1,23 @@
+AT_BANNER([q2c])
+
+AT_SETUP([q2c enforces mandatory subcommands])
+AT_DATA([q2c.sps], [dnl
+DATA LIST LIST NOTABLE /x *.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+
+EXAMINE.
+ONEWAY.
+CROSSTABS.
+])
+AT_CHECK([pspp -O format=csv q2c.sps], [1], [dnl
+q2c.sps:8: error: EXAMINE: VARIABLES subcommand must be given.
+
+q2c.sps:9: error: ONEWAY: Syntax error at end of command: expecting variable name.
+
+q2c.sps:10: error: CROSSTABS: TABLES subcommand must be given.
+])
+AT_CLEANUP

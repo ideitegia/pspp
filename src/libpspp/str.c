@@ -30,6 +30,7 @@
 #include <relocatable.h>
 #include "minmax.h"
 #include "xalloc.h"
+#include "xmemdup0.h"
 #include "xsize.h"
 
 /* Reverses the order of NBYTES bytes at address P, thus converting
@@ -379,14 +380,13 @@ ss_tail (struct substring ss, size_t cnt)
     return ss;
 }
 
-/* Makes a malloc()'d copy of the contents of OLD
+/* Makes a malloc()'d, null-terminated copy of the contents of OLD
    and stores it in NEW. */
 void
 ss_alloc_substring (struct substring *new, struct substring old)
 {
-  new->string = xmalloc (old.length);
+  new->string = xmemdup0 (old.string, old.length);
   new->length = old.length;
-  memcpy (new->string, old.string, old.length);
 }
 
 /* Allocates room for a CNT-character string in NEW. */
@@ -1465,7 +1465,9 @@ ds_relocate (struct string *st)
     {
       ds_clear (st);
       ds_put_cstr (st, rel);
-      free ((char *) rel);
+      /* The documentation for relocate says that casting away const
+	and then freeing is appropriate ... */
+      free (CONST_CAST (char *, rel));
     }
 }
 

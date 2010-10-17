@@ -327,8 +327,9 @@ output_driver_create (struct string_map *options)
     device_type = SETTINGS_DEVICE_LISTING;
   else
     {
+      /* TRANSLATORS: Don't translate the words `terminal' or `listing'. */
       error (0, 0, _("%s is not a valid device type (the choices are "
-                     "\"terminal\" and \"listing\")"), device_string);
+                     "`terminal' and `listing')"), device_string);
       device_type = default_device_type (file_name);
     }
 
@@ -340,7 +341,7 @@ output_driver_create (struct string_map *options)
       const char *key;
 
       STRING_MAP_FOR_EACH_KEY (key, node, options)
-        error (0, 0, _("%s: unknown option \"%s\""), file_name, key);
+        error (0, 0, _("%s: unknown option `%s'"), file_name, key);
     }
   string_map_clear (options);
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,9 +40,6 @@
 
 #include "xalloc.h"
 
-/* Currently running test. */
-static const char *test_name;
-
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
@@ -58,8 +55,7 @@ check_func (bool ok, int line)
 {
   if (!ok)
     {
-      printf ("Check failed in %s test at %s, line %d\n",
-              test_name, __FILE__, line);
+      fprintf (stderr, "%s:%d: check failed\n", __FILE__, line);
       check_die ();
     }
 }
@@ -462,26 +458,79 @@ test_destroy_null (void)
 
 /* Main program. */
 
-/* Runs TEST_FUNCTION and prints a message about NAME. */
-static void
-run_test (void (*test_function) (void), const char *name)
-{
-  test_name = name;
-  putchar ('.');
-  fflush (stdout);
-  test_function ();
-}
+struct test
+  {
+    const char *name;
+    const char *description;
+    void (*function) (void);
+  };
+
+static const struct test tests[] =
+  {
+    {
+      "insert",
+      "insert",
+      test_insert
+    },
+    {
+      "delete",
+      "delete",
+      test_delete
+    },
+    {
+      "allocate",
+      "allocate",
+      test_allocate
+    },
+    {
+      "allocate-fully",
+      "allocate_fully",
+      test_allocate_fully
+    },
+    {
+      "pool",
+      "pool",
+      test_pool
+    },
+    {
+      "destroy-null",
+      "destroy null",
+      test_destroy_null
+    },
+  };
+
+enum { N_TESTS = sizeof tests / sizeof *tests };
 
 int
-main (void)
+main (int argc, char *argv[])
 {
-  run_test (test_insert, "insert");
-  run_test (test_delete, "delete");
-  run_test (test_allocate, "allocate");
-  run_test (test_allocate_fully, "allocate_fully");
-  run_test (test_pool, "pool");
-  run_test (test_destroy_null, "destroy null");
-  putchar ('\n');
+  int i;
 
-  return 0;
+  if (argc != 2)
+    {
+      fprintf (stderr, "exactly one argument required; use --help for help\n");
+      return EXIT_FAILURE;
+    }
+  else if (!strcmp (argv[1], "--help"))
+    {
+      printf ("%s: test range set library\n"
+              "usage: %s TEST-NAME\n"
+              "where TEST-NAME is one of the following:\n",
+              argv[0], argv[0]);
+      for (i = 0; i < N_TESTS; i++)
+        printf ("  %s\n    %s\n", tests[i].name, tests[i].description);
+      return 0;
+    }
+  else
+    {
+      for (i = 0; i < N_TESTS; i++)
+        if (!strcmp (argv[1], tests[i].name))
+          {
+            tests[i].function ();
+            return 0;
+          }
+
+      fprintf (stderr, "unknown test %s; use --help for help\n", argv[1]);
+      return EXIT_FAILURE;
+    }
 }

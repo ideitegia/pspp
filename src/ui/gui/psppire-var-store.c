@@ -279,7 +279,7 @@ static void
 psppire_var_store_init (PsppireVarStore *var_store)
 {
   if ( ! gdk_color_parse (DISABLED_COLOR, &var_store->disabled))
-	g_critical ("Could not parse color \"%s\"", DISABLED_COLOR);
+	g_critical ("Could not parse color `%s'", DISABLED_COLOR);
 
   var_store->dictionary = NULL;
   var_store->format_type = PSPPIRE_VAR_STORE_OUTPUT_FORMATS;
@@ -685,7 +685,7 @@ text_for_column (PsppireVarStore *vs,
 	  default:
             {
               char str[FMT_STRING_LEN_MAX + 1];
-              g_warning ("Unknown format: \"%s\"\n",
+              g_warning ("Unknown format: `%s'\n",
                         fmt_to_string (write_spec, str));
             }
 	    break;
@@ -752,7 +752,7 @@ text_for_column (PsppireVarStore *vs,
 	    {
 	      gchar *const vstr = value_to_text (vl->value, dict, *write_spec);
 
-	      return g_strdup_printf ( "{%s,\"%s\"}_", vstr, val_lab_get_label (vl));
+	      return g_strdup_printf (_("{%s,`%s'}_"), vstr, val_lab_get_label (vl));
 	    }
 	  }
       }

@@ -1,5 +1,26 @@
 # -*- shell-script -*-
+
+# Variables used internally by the testsuite.
+EXEEXT='@EXEEXT@'
+GNM_SUPPORT='@GNM_SUPPORT@'
 PERL='@PERL@'
+WITH_PERL_MODULE='@WITH_PERL_MODULE@'
+host='@host@'
+
+PSQL_SUPPORT='@PSQL_SUPPORT@'
+if test "$PSQL_SUPPORT" = yes; then
+    : ${PG_CONFIG:='@PG_CONFIG@'}
+    : ${PG_DBASE:=pspptest}
+    : ${PG_PORT:=6543}
+    : ${PG_PATH:=`$PG_CONFIG --bindir`}
+fi
+
+# Variables used by programs invoked by the testsuite.
 CHARSETALIASDIR="$abs_top_builddir/gl"
 export CHARSETALIASDIR
-WITH_PERL_MODULE='@WITH_PERL_MODULE@'
+
+GZIP=
+export GZIP
+
+HOME=/nonexistent		# Kluge to make PSPP ignore $HOME/.pspprc.
+export HOME

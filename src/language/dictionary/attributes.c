@@ -186,7 +186,7 @@ parse_attributes (struct lexer *lexer, struct attrset **sets, size_t n)
         command = DELETE;
       else if (command == UNKNOWN)
         {
-          lex_error (lexer, _("expecting ATTRIBUTE= or DELETE="));
+          lex_error (lexer, _("expecting %s or %s"), "ATTRIBUTE=", "DELETE=");
           return CMD_FAILURE;
         }
 

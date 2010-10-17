@@ -135,7 +135,7 @@ case_unshare (struct ccase *c)
 static inline struct ccase *
 case_ref (const struct ccase *c_)
 {
-  struct ccase *c = (struct ccase *) c_;
+  struct ccase *c = CONST_CAST (struct ccase *, c_);
   c->ref_cnt++;
   return c;
 }

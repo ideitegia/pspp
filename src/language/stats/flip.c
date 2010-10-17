@@ -186,7 +186,6 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
             {
               name = data_out_pool (value, dict_get_encoding (flip->dict), var_get_write_format (flip->new_names_var),
 		 flip->pool);
-	
             }
           var_names_add (flip->pool, &flip->new_names, name);
         }
@@ -261,7 +260,6 @@ make_new_var (struct dictionary *dict, const char *name_)
           *cp = '_';
       }
   *cp = '\0';
-  str_uppercase (name);
 
   /* Use the mangled name, if it is available, or add numeric
      extensions until we find one that is. */
@@ -399,6 +397,7 @@ static struct ccase *
 flip_casereader_read (struct casereader *reader, void *flip_)
 {
   struct flip_pgm *flip = flip_;
+  const char *encoding;
   struct ccase *c;
   size_t i;
 
@@ -406,12 +405,10 @@ flip_casereader_read (struct casereader *reader, void *flip_)
     return false;
 
   c = case_create (casereader_get_proto (reader));
-  data_in (ss_cstr (flip->old_names.names[flip->cases_read]), dict_get_encoding (flip->dict), 
-	FMT_A, 0,
-	0, 0,
-	flip->dict, 
-	case_data_rw_idx (c, 0), 8);
-	
+  encoding = dict_get_encoding (flip->dict);
+  data_in (ss_cstr (flip->old_names.names[flip->cases_read]), encoding,
+           FMT_A, case_data_rw_idx (c, 0), 8, encoding);
+
   for (i = 0; i < flip->n_cases; i++)
     {
       double in;

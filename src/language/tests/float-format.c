@@ -136,7 +136,7 @@ parse_fp (struct lexer *lexer, struct fp *fp)
               msg (SE, _("Hexadecimal floating constant too long."));
               return false;
             }
-          strncpy ((char *) fp->data, ds_cstr (lex_tokstr (lexer)), sizeof fp->data);
+          strncpy (CHAR_CAST_BUG (char *,fp->data), ds_cstr (lex_tokstr (lexer)), sizeof fp->data);
         }
 
       lex_get (lexer);

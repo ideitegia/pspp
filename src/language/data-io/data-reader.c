@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2004, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-2004, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -146,7 +146,7 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
       r->file = fn_open (fh_get_file_name (fh), "rb");
       if (r->file == NULL)
         {
-          msg (ME, _("Could not open \"%s\" for reading as a data file: %s."),
+          msg (ME, _("Could not open `%s' for reading as a data file: %s."),
                fh_get_file_name (r->fh), strerror (errno));
           fh_unlock (r->lock);
           fh_unref (fh);
@@ -677,20 +677,16 @@ dfm_get_column (const struct dfm_reader *r, const char *p)
   return ds_pointer_to_position (&r->line, p) + 1;
 }
 
-/* Pushes the file name and line number on the fn/ln stack. */
-void
-dfm_push (struct dfm_reader *r)
+const char *
+dfm_get_file_name (const struct dfm_reader *r)
 {
-  if (r->fh != fh_inline_file ())
-    msg_push_msg_locator (&r->where);
+  return fh_get_referent (r->fh) == FH_REF_FILE ? r->where.file_name : NULL;
 }
 
-/* Pops the file name and line number from the fn/ln stack. */
-void
-dfm_pop (struct dfm_reader *r)
+int
+dfm_get_line_number (const struct dfm_reader *r)
 {
-  if (r->fh != fh_inline_file ())
-    msg_pop_msg_locator (&r->where);
+  return fh_get_referent (r->fh) == FH_REF_FILE ? r->where.line_number : -1;
 }
 
 /* BEGIN DATA...END DATA procedure. */

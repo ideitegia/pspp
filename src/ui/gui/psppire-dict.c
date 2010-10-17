@@ -32,6 +32,10 @@
 #include "ui/gui/psppire-marshal.h"
 #include "ui/gui/psppire-var-ptr.h"
 
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 enum  {
   BACKEND_CHANGED,
 
@@ -352,7 +356,14 @@ auto_generate_var_name (PsppireDict *dict)
   gint d = 0;
   static gchar name[10];
 
-  while (g_snprintf (name, 10, "VAR%05d",d++),
+  /* TRANSLATORS: This string must be a valid variable name.  That means:
+     - The string must be at most 64 bytes (not characters) long.
+     - The string may not contain whitespace.
+     - The first character may not be '$'
+     - The first character may not be a digit
+     - The final charactor may not be '.' or '_'
+   */
+  while (g_snprintf (name, 10, _("VAR%05d"), d++),
 	 psppire_dict_lookup_var (dict, name))
     ;
 
@@ -856,7 +867,7 @@ psppire_dict_dump (const PsppireDict *dict)
     {
       const struct variable *v = psppire_dict_get_variable (dict, i);
       int di = var_get_dict_index (v);
-      g_print ("\"%s\" idx=%d, fv=%d\n",
+      g_print ("`%s' idx=%d, fv=%d\n",
 	       var_get_name(v),
 	       di,
 	       var_get_case_index(v));

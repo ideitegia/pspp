@@ -169,7 +169,9 @@ static struct casewriter_class sort_casewriter_class =
   };
 
 /* Reads all the cases from INPUT.  Sorts the cases according to
-   ORDERING.  Returns the sorted cases in a new casereader. */
+   ORDERING.  Returns the sorted cases in a new casereader.
+   INPUT is destroyed by this function.
+ */
 struct casereader *
 sort_execute (struct casereader *input, const struct subcase *ordering)
 {
@@ -181,7 +183,7 @@ sort_execute (struct casereader *input, const struct subcase *ordering)
 
 /* Reads all the cases from INPUT.  Sorts the cases in ascending
    order according to VARIABLE.  Returns the sorted cases in a
-   new casereader. */
+   new casereader.  INPUT is destroyed by this function. */
 struct casereader *
 sort_execute_1var (struct casereader *input, const struct variable *var)
 {

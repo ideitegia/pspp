@@ -27,8 +27,19 @@ struct ccase;
 
 union value ;
 
-struct categoricals *categoricals_create (const struct variable **v, size_t n_vars,
-					  const struct variable *wv, enum mv_class exclude);
+typedef void update_func (void *user_data,
+			  enum mv_class exclude,
+			  const struct variable *wv, 
+			  const struct variable *catvar,
+			  const struct ccase *c,
+			  void *aux1, void *aux2);
+
+typedef void *user_data_create_func (void *aux1, void *aux2);
+
+struct categoricals *categoricals_create (const struct variable *const *v, size_t n_vars,
+					  const struct variable *wv, enum mv_class exclude,
+					  user_data_create_func *udf,
+					  update_func *update, void *aux1, void *aux2);
 
 void categoricals_destroy (struct categoricals *);
 
@@ -62,6 +73,8 @@ double categoricals_get_sum_by_subscript (const struct categoricals *cat, int su
 
 double categoricals_get_binary_by_subscript (const struct categoricals *cat, int subscript,
 					     const struct ccase *c);
+
+void * categoricals_get_user_data_by_subscript (const struct categoricals *cat, int subscript);
 
 
 

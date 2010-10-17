@@ -206,9 +206,8 @@ range_subdialog (GtkButton *b, gpointer data)
 					"range-dialog-last");
 
 
-  gtk_spin_button_set_range (GTK_SPIN_BUTTON (last), 1, n_cases);
-
-  gtk_spin_button_set_range (GTK_SPIN_BUTTON (first), 1, n_cases);
+  gtk_spin_button_set_range (GTK_SPIN_BUTTON (last),  1,  n_cases);
+  gtk_spin_button_set_range (GTK_SPIN_BUTTON (first), 1,  n_cases);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog),
 				GTK_WINDOW (parent_dialog));
@@ -375,7 +374,118 @@ select_cases_dialog (PsppireDataWindow *de)
 
 
 static gchar *
-generate_syntax (const struct select_cases_dialog *scd)
+generate_syntax_filter (const struct select_cases_dialog *scd)
+{
+  gchar *text = NULL;
+  GString *string = g_string_new ("");
+
+  const gchar filter[]="filter_$";
+  const gchar key[]="case_$";
+
+  if ( gtk_toggle_button_get_active
+       (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
+					      "radiobutton-range"))))
+    {
+      GtkSpinButton *first =
+	GTK_SPIN_BUTTON (get_widget_assert (scd->xml,
+					   "range-dialog-first"));
+
+      GtkSpinButton *last =
+	GTK_SPIN_BUTTON (get_widget_assert (scd->xml,
+					   "range-dialog-last"));
+
+      g_string_append_printf (string,
+			      "COMPUTE filter_$ = ($CASENUM >= %ld "
+			       "AND $CASENUM <= %ld).\n",
+			      (long) gtk_spin_button_get_value (first),
+			      (long) gtk_spin_button_get_value (last)
+			      );
+
+      g_string_append (string, "EXECUTE.\n");
+    }
+  else if ( gtk_toggle_button_get_active
+       (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
+					      "radiobutton-sample"))))
+    {
+      GtkWidget *random_sample =
+	get_widget_assert (scd->xml,
+			   "radiobutton-sample-percent");
+
+      if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (random_sample)))
+	{
+	  const double percentage =
+	    gtk_spin_button_get_value (GTK_SPIN_BUTTON (scd->spinbutton));
+
+	  g_string_append_printf (string,
+				  "COMPUTE %s = RV.UNIFORM (0,1) < %g.\n",
+				  filter,
+				  percentage / 100.0 );
+	}
+      else
+	{
+	  const gint n_cases =
+	    gtk_spin_button_get_value (GTK_SPIN_BUTTON (scd->spinbutton1));
+	  const gint from_n_cases =
+	    gtk_spin_button_get_value (GTK_SPIN_BUTTON (scd->spinbutton2));
+
+
+	  const gchar ranvar[]="rv_$";
+
+	  g_string_append_printf (string,
+				  "COMPUTE %s = $CASENUM.\n", key);
+
+	  g_string_append_printf (string,
+				  "COMPUTE %s = %s > %d.\n",
+				  filter, key, from_n_cases);
+
+	  g_string_append_printf (string,
+				  "COMPUTE %s = RV.UNIFORM (0, 1).\n",
+				  ranvar);
+
+	  g_string_append_printf (string,
+				  "SORT BY %s, %s.\n",
+				  filter, ranvar);
+
+	  g_string_append (string, "EXECUTE.\n");
+				  
+
+	  g_string_append_printf (string,
+				  "COMPUTE %s = $CASENUM.\n",
+				  filter );
+
+	  g_string_append_printf (string,
+				  "COMPUTE %s = %s <= %d\n",
+				  filter,
+				  filter,
+				  n_cases );
+
+	  g_string_append (string, "EXECUTE.\n");
+
+
+	  g_string_append_printf (string,
+				  "SORT BY %s.\n",
+				  key);
+
+	  g_string_append_printf (string,
+				  "DELETE VARIABLES %s, %s.\n",
+				  key, ranvar);
+
+	}
+
+      g_string_append (string, "EXECUTE.\n");
+
+    }
+
+
+  g_string_append_printf  (string, "FILTER BY %s.\n", filter);
+
+  text  = string->str;
+  g_string_free (string, FALSE);
+  return text;
+}
+
+static gchar *
+generate_syntax_delete (const struct select_cases_dialog *scd)
 {
   gchar *text = NULL;
   GString *string = NULL;
@@ -455,23 +565,38 @@ generate_syntax (const struct select_cases_dialog *scd)
   g_string_append (string, "\n");
 
 
-  /* Are we filtering or deleting ? */
-  if ( gtk_toggle_button_get_active
-       (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
-					      "radiobutton-delete"))))
-    {
-      g_string_append (string, "EXECUTE.\n");
-
-      if ( gtk_toggle_button_get_active
-	   (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
-						  "radiobutton-range"))))
-	{
-	  g_string_append (string, "DELETE VARIABLES filter_$.\n");
-	}
-    }
-
 
   text  = string->str;
   g_string_free (string, FALSE);
   return text;
 }
+
+
+static gchar *
+generate_syntax (const struct select_cases_dialog *scd)
+{
+  /* In the simple case, all we need to do is cancel any existing filter */
+  if ( gtk_toggle_button_get_active
+       (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
+					      "radiobutton-all"))))
+    {
+      return g_strdup ("FILTER OFF.\n");
+    }
+
+
+  /* Are we filtering or deleting ? */
+  if ( gtk_toggle_button_get_active
+       (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
+					      "radiobutton-delete"))))
+    {
+      return generate_syntax_delete (scd);
+    }
+  else
+    {
+      return generate_syntax_filter (scd);
+    }
+
+}
+
+
+

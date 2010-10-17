@@ -30,6 +30,10 @@
 #include "psppire-var-store.h"
 #include <libpspp/i18n.h>
 
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 struct val_labs_dialog
 {
   GtkWidget *window;
@@ -508,7 +512,7 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 	value_to_text (vl->value, dialog->dict,
 		      *var_get_write_format (dialog->pv));
 
-      gchar *const text = g_strdup_printf ("%s = \"%s\"",
+      gchar *const text = g_strdup_printf (_("%s = `%s'"),
 					   vstr, val_lab_get_label (vl));
 
       gtk_list_store_append (list_store, &iter);

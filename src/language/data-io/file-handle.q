@@ -200,7 +200,7 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
     handle = fh_inline_file ();
   else
     {
-      if (lex_token (lexer) != T_ID && lex_token (lexer) != T_STRING)
+      if (lex_token (lexer) != T_ID && !lex_is_string (lexer))
         {
           lex_error (lexer, _("expecting a file name or handle name"));
           return NULL;

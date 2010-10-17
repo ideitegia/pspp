@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,27 +24,14 @@
 
 const struct substring empty_string = {NULL, 0};
 
-static void
-expr_error (void *aux UNUSED, const char *format, ...)
-{
-  struct msg m;
-  va_list args;
-
-  m.category = MSG_C_SYNTAX;
-  m.severity = MSG_S_ERROR;
-  va_start (args, format);
-  m.text = xvasprintf (format, args);
-  va_end (args);
-
-  msg_emit (&m);
-}
-
 double
 expr_ymd_to_ofs (double year, double month, double day)
 {
   int y = year;
   int m = month;
   int d = day;
+  char *error;
+  double ofs;
 
   if (y != year || m != month || d != day)
     {
@@ -53,7 +40,13 @@ expr_ymd_to_ofs (double year, double month, double day)
       return SYSMIS;
     }
 
-  return calendar_gregorian_to_offset (y, m, d, expr_error, NULL);
+  ofs = calendar_gregorian_to_offset (y, m, d, &error);
+  if (error != NULL)
+    {
+      msg (SE, "%s", error);
+      free (error);
+    }
+  return ofs;
 }
 
 double
@@ -179,9 +172,11 @@ recognize_unit (struct substring name, enum date_unit *unit)
         return true;
       }
 
-  msg (SE, _("Unrecognized date unit \"%.*s\".  "
-             "Valid date units are \"years\", \"quarters\", \"months\", "
-             "\"weeks\", \"days\", \"hours\", \"minutes\", and \"seconds\"."),
+  /* TRANSLATORS: Don't translate the the actual unit names `weeks', `days' etc
+	They must remain in their original English. */
+  msg (SE, _("Unrecognized date unit `%.*s'.  "
+             "Valid date units are `years', `quarters', `months', "
+             "`weeks', `days', `hours', `minutes', and `seconds'."),
        (int) ss_length (name), ss_data (name));
   return false;
 }
@@ -330,7 +325,7 @@ recognize_method (struct substring method_name, enum date_sum_method *method)
   else
     {
       msg (SE, _("Invalid DATESUM method.  "
-                 "Valid choices are \"closest\" and \"rollover\"."));
+                 "Valid choices are `closest' and `rollover'."));
       return false;
     }
 }
@@ -342,6 +337,7 @@ add_months (double date, int months, enum date_sum_method method)
 {
   int y, m, d, yd;
   double output;
+  char *error;
 
   calendar_offset_to_gregorian (date / DAY_S, &y, &m, &d, &yd);
   y += months / 12;
@@ -361,9 +357,14 @@ add_months (double date, int months, enum date_sum_method method)
   if (method == SUM_CLOSEST && d > calendar_days_in_month (y, m))
     d = calendar_days_in_month (y, m);
 
-  output = calendar_gregorian_to_offset (y, m, d, expr_error, NULL);
+  output = calendar_gregorian_to_offset (y, m, d, &error);
   if (output != SYSMIS)
     output = (output * DAY_S) + fmod (date, DAY_S);
+  else
+    {
+      msg (SE, "%s", error);
+      free (error);
+    }
   return output;
 }
 
@@ -404,7 +405,7 @@ expr_date_sum (double date, double quantity, struct substring unit_name,
 }
 
 int
-compare_string (const struct substring *a, const struct substring *b)
+compare_string_3way (const struct substring *a, const struct substring *b)
 {
   size_t i;
 

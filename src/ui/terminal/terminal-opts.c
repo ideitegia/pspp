@@ -19,15 +19,14 @@
 #include "terminal-opts.h"
 
 #include <stdbool.h>
-#include <xalloc.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "data/settings.h"
 #include "data/file-name.h"
 #include "language/syntax-file.h"
 #include "libpspp/argv-parser.h"
 #include "libpspp/assertion.h"
+#include "libpspp/cast.h"
 #include "libpspp/compiler.h"
 #include "libpspp/getl.h"
 #include "libpspp/llx.h"
@@ -46,6 +45,7 @@
 #include "gl/progname.h"
 #include "gl/version-etc.h"
 #include "gl/xmemdup0.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -53,13 +53,12 @@
 
 struct terminal_opts
   {
-    struct source_stream *source_stream;
-    enum syntax_mode syntax_mode;
+    enum syntax_mode *syntax_mode;
     struct string_map options;  /* Output driver options. */
     bool has_output_driver;
     bool has_terminal_driver;
     bool has_error_file;
-    bool process_statrc;
+    bool *process_statrc;
   };
 
 enum
@@ -259,11 +258,11 @@ terminal_option_callback (int id, void *to_)
       break;
 
     case OPT_INTERACTIVE:
-      to->syntax_mode = GETL_INTERACTIVE;
+      *to->syntax_mode = GETL_INTERACTIVE;
       break;
 
     case OPT_NO_STATRC:
-      to->process_statrc = false;
+      *to->process_statrc = false;
       break;
 
     case OPT_HELP:
@@ -273,7 +272,7 @@ terminal_option_callback (int id, void *to_)
     case OPT_VERSION:
       version_etc (stdout, "pspp", PACKAGE_NAME, PACKAGE_VERSION,
                    "Ben Pfaff", "John Darrington", "Jason Stover",
-                   (char *) NULL);
+                   NULL_SENTINEL);
       exit (EXIT_SUCCESS);
 
     default:
@@ -282,60 +281,29 @@ terminal_option_callback (int id, void *to_)
 }
 
 struct terminal_opts *
-terminal_opts_init (struct argv_parser *ap, struct source_stream *ss)
+terminal_opts_init (struct argv_parser *ap,
+                    enum syntax_mode *syntax_mode, bool *process_statrc)
 {
   struct terminal_opts *to;
 
+  *syntax_mode = GETL_BATCH;
+  *process_statrc = true;
+
   to = xzalloc (sizeof *to);
-  to->source_stream = ss;
-  to->syntax_mode = GETL_BATCH;
+  to->syntax_mode = syntax_mode;
   string_map_init (&to->options);
   to->has_output_driver = false;
   to->has_error_file = false;
-  to->process_statrc = true;
+  to->process_statrc = process_statrc;
 
   argv_parser_add_options (ap, terminal_argv_options, N_TERMINAL_OPTIONS,
                            terminal_option_callback, to);
   return to;
 }
 
-static void
-add_syntax_file (struct terminal_opts *to, const char *file_name)
-{
-  if (!strcmp (file_name, "-") && isatty (STDIN_FILENO))
-    getl_append_source (to->source_stream, create_readln_source (),
-                        GETL_INTERACTIVE, ERRMODE_CONTINUE);
-  else
-    getl_append_source (to->source_stream,
-                        create_syntax_file_source (file_name),
-                        to->syntax_mode, ERRMODE_CONTINUE);
-}
-
 void
 terminal_opts_done (struct terminal_opts *to, int argc, char *argv[])
 {
-  if (to->process_statrc)
-    {
-      char *rc = fn_search_path ("rc", getl_include_path (to->source_stream));
-      if (rc != NULL)
-        {
-          getl_append_source (to->source_stream,
-                              create_syntax_file_source (rc), GETL_BATCH,
-                              ERRMODE_CONTINUE);
-          free (rc);
-        }
-    }
-
-  if (optind < argc)
-    {
-      int i;
-
-      for (i = optind; i < argc; i++)
-        add_syntax_file (to, argv[i]);
-    }
-  else
-    add_syntax_file (to, "-");
-
   register_output_driver (to);
   if (!to->has_output_driver)
     {

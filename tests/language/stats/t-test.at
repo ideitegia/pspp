@@ -1,0 +1,746 @@
+AT_BANNER([T-TEST])
+
+AT_SETUP([T-TEST /PAIRS])
+AT_DATA([t-test.sps], [dnl
+data list list /ID * A * B *.
+begin data.
+1 2.0 3.0
+2 1.0 2.0
+3 2.0 4.5
+4 2.0 4.5
+5 3.0 6.0
+end data.
+
+t-test /PAIRS a with b (PAIRED).
+])
+AT_CHECK([pspp -o pspp.csv t-test.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+ID,F8.0
+A,F8.0
+B,F8.0
+
+Table: Paired Sample Statistics
+,,Mean,N,Std. Deviation,S.E. Mean
+Pair 0,A,2.00,5,.71,.32
+,B,4.00,5,1.54,.69
+
+Table: Paired Samples Correlations
+,,N,Correlation,Sig.
+Pair 0,A & B,5,.92,.03
+
+Table: Paired Samples Test
+,,Paired Differences,,,,,,,
+,,,,,95% Confidence Interval of the Difference,,,,
+,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
+Pair 0,A - B,-2.00,.94,.42,-3.16,-.84,-4.78,4,.01
+])
+AT_CLEANUP
+
+AT_SETUP([T-TEST /PAIRS with per-analysis missing values])
+AT_DATA([ref.sps], [dnl
+data list list /id * a * b * c * d *.
+begin data.
+1 2.0 3.0 4.0 4.0
+2 1.0 2.0 5.1 3.9
+3 2.0 4.5 5.2 3.8
+4 2.0 4.5 5.3 3.7
+56 3.0 6.0 5.9 3.6
+end data.
+
+t-test /PAIRS a c with b d (PAIRED). 
+])
+AT_DATA([expout], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+id,F8.0
+a,F8.0
+b,F8.0
+c,F8.0
+d,F8.0
+
+Table: Paired Sample Statistics
+,,Mean,N,Std. Deviation,S.E. Mean
+Pair 0,a,2.00,5,.71,.32
+,b,4.00,5,1.54,.69
+Pair 1,c,5.10,5,.69,.31
+,d,3.80,5,.16,.07
+
+Table: Paired Samples Correlations
+,,N,Correlation,Sig.
+Pair 0,a & b,5,.92,.03
+Pair 1,c & d,5,-.92,.03
+
+Table: Paired Samples Test
+,,Paired Differences,,,,,,,
+,,,,,95% Confidence Interval of the Difference,,,,
+,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
+Pair 0,a - b,-2.00,.94,.42,-3.16,-.84,-4.78,4,.01
+Pair 1,c - d,1.30,.84,.37,.26,2.34,3.47,4,.03
+])
+AT_CHECK([pspp -o ref.csv ref.sps])
+AT_CHECK([cat ref.csv], [0], [expout])
+AT_DATA([missing.sps], [dnl
+data list list /id * a * b * c * d *.
+begin data.
+1 2.0 3.0 4.0 4.0 
+2 1.0 2.0 5.1 3.9
+3 2.0 4.5 5.2 3.8
+4 2.0 4.5 5.3 3.7
+5 3.0 6.0 5.9 .
+6 3.0  .  5.9 3.6
+end data.
+
+
+t-test /MISSING=analysis /PAIRS a c with b d (PAIRED). 
+])
+AT_CHECK([pspp -o missing.csv missing.sps])
+AT_CHECK([cat missing.csv], [0], [expout])
+AT_CLEANUP
+
+AT_SETUP([T-TEST /PAIRS with listwise missing values])
+AT_DATA([ref.sps], [dnl
+data list list /id * a * b * c * d *.
+begin data.
+1 2.0 3.0 4.0 4.0
+2 1.0 2.0 5.1 3.9
+3 2.0 4.5 5.2 3.8
+4 2.0 4.5 5.3 3.7
+5 3.0 6.0 5.9 3.6
+end data.
+
+t-test /PAIRS a b with c d (PAIRED). 
+])
+AT_DATA([expout], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+id,F8.0
+a,F8.0
+b,F8.0
+c,F8.0
+d,F8.0
+
+Table: Paired Sample Statistics
+,,Mean,N,Std. Deviation,S.E. Mean
+Pair 0,a,2.00,5,.71,.32
+,c,5.10,5,.69,.31
+Pair 1,b,4.00,5,1.54,.69
+,d,3.80,5,.16,.07
+
+Table: Paired Samples Correlations
+,,N,Correlation,Sig.
+Pair 0,a & c,5,.41,.49
+Pair 1,b & d,5,-.87,.05
+
+Table: Paired Samples Test
+,,Paired Differences,,,,,,,
+,,,,,95% Confidence Interval of the Difference,,,,
+,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
+Pair 0,a - c,-3.10,.76,.34,-4.04,-2.16,-9.14,4,.00
+Pair 1,b - d,.20,1.68,.75,-1.89,2.29,.27,4,.80
+])
+AT_CHECK([pspp -o ref.csv ref.sps])
+AT_CHECK([cat ref.csv], [0], [expout])
+AT_DATA([missing.sps], [dnl
+data list list /id * a * b * c * d *.
+begin data.
+1 2.0 3.0 4.0 4.0 
+2 1.0 2.0 5.1 3.9
+3 2.0 4.5 5.2 3.8
+4 2.0 4.5 5.3 3.7
+5 3.0 6.0 5.9 3.6
+6 3.0 6.0 5.9  .
+end data.
+
+
+t-test /MISSING=listwise /PAIRS a b with c d (PAIRED). 
+])
+AT_CHECK([pspp -o missing.csv missing.sps])
+AT_CHECK([cat missing.csv], [0], [expout])
+AT_CLEANUP
+
+dnl Tests for a bug in the paired samples T test.
+dnl Thanks to Mike Griffiths for reporting this problem.
+AT_SETUP([T-TEST /PAIRS bug])
+AT_DATA([t-test.sps], [dnl
+set format f8.3.
+data list list /A * B *.
+begin data.
+11 2
+1  1
+1  1
+end data.
+
+t-test pairs = a with b (paired).
+])
+AT_CHECK([pspp -o pspp.csv t-test.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+A,F8.0
+B,F8.0
+
+Table: Paired Sample Statistics
+,,Mean,N,Std. Deviation,S.E. Mean
+Pair 0,A,4.333,3,5.774,3.333
+,B,1.333,3,.577,.333
+
+Table: Paired Samples Correlations
+,,N,Correlation,Sig.
+Pair 0,A & B,3,1.000,.000
+
+Table: Paired Samples Test
+,,Paired Differences,,,,,,,
+,,,,,95% Confidence Interval of the Difference,,,,
+,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
+Pair 0,A - B,3.000,5.196,3.000,-9.908,15.908,1.000,2,.423
+])
+AT_CLEANUP
+
+AT_SETUP([T-TEST /GROUPS])
+AT_DATA([t-test.sps], [dnl
+data list list /ID * INDEP * DEP1 * DEP2 *.
+begin data.
+1  1.1 1 3
+2  1.1 2 4
+3  1.1 2 4 
+4  1.1 2 4 
+5  1.1 3 5
+6  2.1 3 1
+7  2.1 4 2
+8  2.1 4 2
+9  2.1 4 2
+10 2.1 5 3
+11 3.1 2 2
+end data.
+
+* Note that the last case should be IGNORED since it doesn't have a
+  dependent variable of either 1.1 or 2.1.
+
+t-test /GROUPS=indep(1.1,2.1) /var=dep1 dep2.
+])
+AT_CHECK([pspp -o pspp.csv t-test.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+ID,F8.0
+INDEP,F8.0
+DEP1,F8.0
+DEP2,F8.0
+
+Table: Group Statistics
+,INDEP,N,Mean,Std. Deviation,S.E. Mean
+DEP1,1.1,5,2.00,.71,.32
+,2.1,5,4.00,.71,.32
+DEP2,1.1,5,4.00,.71,.32
+,2.1,5,2.00,.71,.32
+
+Table: Independent Samples Test
+,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
+,,,,,,,,,95% Confidence Interval of the Difference,
+,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
+DEP1,Equal variances assumed,.00,1.00,-4.47,8.00,.00,-2.00,.45,-3.03,-.97
+,Equal variances not assumed,,,-4.47,8.00,.00,-2.00,.45,-3.03,-.97
+DEP2,Equal variances assumed,.00,1.00,4.47,8.00,.00,2.00,.45,.97,3.03
+,Equal variances not assumed,,,4.47,8.00,.00,2.00,.45,.97,3.03
+])
+AT_CLEANUP
+
+AT_SETUP([T-TEST /GROUPS with one value for independent variable])
+AT_DATA([t-test.sps], [dnl
+data list list /INDEP * DEP *.
+begin data.
+       1        6
+       1        6
+       1        7
+       1        6
+       1       13
+       1        4
+       1        7
+       1        9
+       1        7
+       1       12
+       1       11
+       2       11
+       2        9
+       2        8
+       2        4
+       2       16
+       2        9
+       2        9
+       2        5
+       2        4
+       2       10
+       2       14
+end data.
+t-test /groups=indep(1.514) /var=dep.
+])
+AT_CHECK([pspp -o pspp.csv t-test.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+INDEP,F8.0
+DEP,F8.0
+
+Table: Group Statistics
+,INDEP,N,Mean,Std. Deviation,S.E. Mean
+DEP,>=1.514,11,9.00,3.82,1.15
+,<1.514,11,8.00,2.86,.86
+
+Table: Independent Samples Test
+,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
+,,,,,,,,,95% Confidence Interval of the Difference,
+,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
+DEP,Equal variances assumed,.17,.68,-.69,20.00,.50,-1.00,1.44,-4.00,2.00
+,Equal variances not assumed,,,-.69,18.54,.50,-1.00,1.44,-4.02,2.02
+])
+AT_CLEANUP
+
+AT_SETUP([T-TEST /GROUPS with per-analysis missing values])
+AT_DATA([ref.sps], [dnl
+data list list /id * indep * dep1 * dep2 *.
+begin data.
+1  1.0 3.5 6
+2  1.0 2.0 5
+3  1.0 2.0 4
+4  2.0 3.5 3
+56 2.0 3.0 1
+end data.
+
+t-test /group=indep /var=dep1, dep2.
+])
+AT_DATA([expout], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+id,F8.0
+indep,F8.0
+dep1,F8.0
+dep2,F8.0
+
+Table: Group Statistics
+,indep,N,Mean,Std. Deviation,S.E. Mean
+dep1,1,3,2.50,.87,.50
+,2,2,3.25,.35,.25
+dep2,1,3,5.00,1.00,.58
+,2,2,2.00,1.41,1.00
+
+Table: Independent Samples Test
+,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
+,,,,,,,,,95% Confidence Interval of the Difference,
+,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
+dep1,Equal variances assumed,3.75,.15,-1.12,3.00,.35,-.75,.56,-2.53,1.03
+,Equal variances not assumed,,,-1.34,2.78,.28,-.75,.56,-2.61,1.11
+dep2,Equal variances assumed,.60,.50,2.85,3.00,.07,3.00,1.15,-.67,6.67
+,Equal variances not assumed,,,2.60,1.68,.14,3.00,1.15,-2.98,8.98
+])
+AT_CHECK([pspp -o ref.csv ref.sps])
+AT_CHECK([cat ref.csv], [0], [expout])
+AT_DATA([missing.sps], [dnl
+data list list /id * indep * dep1 * dep2.
+begin data.
+1 1.0 3.5 6
+2 1.0 2.0 5
+3 1.0 2.0 4
+4 2.0 3.5 3
+5 2.0 3.0 .
+6 2.0 .   1
+7  .  3.1 5
+end data.
+
+* Note that if the independent variable is missing, then it's implicitly 
+* listwise missing.
+
+t-test /missing=analysis /group=indep /var=dep1 dep2.
+])
+AT_CHECK([pspp -o missing.csv missing.sps])
+AT_CHECK([cat missing.csv], [0], [expout])
+AT_CLEANUP
+
+AT_SETUP([T-TEST /GROUPS with listwise missing values])
+AT_DATA([ref.sps], [dnl
+data list list /id * indep * dep1 * dep2.
+begin data.
+1 1.0 3.5 6
+2 1.0 2.0 5
+3 1.0 2.0 4
+4 2.0 3.5 3
+5 2.0 3.0 2
+6 2.0 4.0 1
+end data.
+
+t-test /group=indep /var=dep1 dep2.
+])
+AT_DATA([expout], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+id,F8.0
+indep,F8.0
+dep1,F8.0
+dep2,F8.0
+
+Table: Group Statistics
+,indep,N,Mean,Std. Deviation,S.E. Mean
+dep1,1,3,2.50,.87,.50
+,2,3,3.50,.50,.29
+dep2,1,3,5.00,1.00,.58
+,2,3,2.00,1.00,.58
+
+Table: Independent Samples Test
+,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
+,,,,,,,,,95% Confidence Interval of the Difference,
+,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
+dep1,Equal variances assumed,2.00,.23,-1.73,4.00,.16,-1.00,.58,-2.60,.60
+,Equal variances not assumed,,,-1.73,3.20,.18,-1.00,.58,-2.77,.77
+dep2,Equal variances assumed,.00,1.00,3.67,4.00,.02,3.00,.82,.73,5.27
+,Equal variances not assumed,,,3.67,4.00,.02,3.00,.82,.73,5.27
+])
+AT_CHECK([pspp -o ref.csv ref.sps])
+AT_CHECK([cat ref.csv], [0], [expout])
+AT_DATA([missing.sps], [dnl
+data list list /id * indep * dep1 * dep2 *.
+begin data.
+1 1.0 3.5 6
+2 1.0 2.0 5
+3 1.0 2.0 4
+4 2.0 3.5 3
+5 2.0 3.0 2
+6 2.0 4.0 1
+7 2.0 .   0
+end data.
+
+t-test /missing=listwise,exclude /group=indep /var=dep1, dep2.
+])
+AT_CHECK([pspp -o missing.csv missing.sps])
+AT_CHECK([cat missing.csv], [0], [expout])
+AT_CLEANUP
+
+AT_SETUP([T-TEST /TESTVAL])
+AT_DATA([t-test.sps], [dnl
+data list list /ID * ABC *.
+begin data.
+1 3.5
+2 2.0
+3 2.0
+4 3.5
+5 3.0
+6 4.0
+end data.
+
+t-test /testval=2.0 /var=abc.
+])
+AT_CHECK([pspp -o pspp.csv t-test.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+ID,F8.0
+ABC,F8.0
+
+Table: One-Sample Statistics
+,N,Mean,Std. Deviation,S.E. Mean
+ABC,6,3.00,.84,.34
+
+Table: One-Sample Test
+,Test Value = 2.000000,,,,,
+,,,,,95% Confidence Interval of the Difference,
+,t,df,Sig. (2-tailed),Mean Difference,Lower,Upper
+ABC,2.93,5,.03,1.00,.12,1.88
+])
+AT_CLEANUP
+
+AT_SETUP([T-TEST /TESTVAL with per-analysis missing values])
+AT_DATA([ref.sps], [dnl
+data list list /id * x1 * x2.
+begin data.
+1 3.5 34
+2 2.0 10
+3 2.0 23
+4 3.5 98
+5 3.0 23
+67 4.0 8
+end data.
+
+t-test /testval=3.0 /var=x1 x2.
+])
+AT_DATA([expout], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+id,F8.0
+x1,F8.0
+x2,F8.0
+
+Table: One-Sample Statistics
+,N,Mean,Std. Deviation,S.E. Mean
+x1,6,3.00,.84,.34
+x2,6,32.67,33.40,13.64
+
+Table: One-Sample Test
+,Test Value = 3.000000,,,,,
+,,,,,95% Confidence Interval of the Difference,
+,t,df,Sig. (2-tailed),Mean Difference,Lower,Upper
+x1,.00,5,1.00,.00,-.88,.88
+x2,2.18,5,.08,29.67,-5.39,64.72
+])
+AT_CHECK([pspp -o ref.csv ref.sps])
+AT_CHECK([cat ref.csv], [0], [expout])
+AT_DATA([missing.sps], [dnl
+data list list /id * x1 * x2.
+begin data.
+1 3.5 34
+2 2.0 10
+3 2.0 23
+4 3.5 98
+5 3.0 23
+6 4.0 .
+7  .  8
+end data.
+
+t-test /missing=analysis /testval=3.0 /var=x1 x2.
+])
+AT_CHECK([pspp -o missing.csv missing.sps])
+AT_CHECK([cat missing.csv], [0], [expout])
+AT_CLEANUP
+
+AT_SETUP([T-TEST /TESTVAL with listwise missing values])
+AT_DATA([ref.sps], [dnl
+data list list /id * x1 * x2.
+begin data.
+1 3.5 34
+2 2.0 10
+3 2.0 23
+4 3.5 98
+5 3.0 23
+end data.
+
+t-test /testval=3.0 /var=x1 x2.
+])
+AT_DATA([expout], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+id,F8.0
+x1,F8.0
+x2,F8.0
+
+Table: One-Sample Statistics
+,N,Mean,Std. Deviation,S.E. Mean
+x1,5,2.80,.76,.34
+x2,5,37.60,34.82,15.57
+
+Table: One-Sample Test
+,Test Value = 3.000000,,,,,
+,,,,,95% Confidence Interval of the Difference,
+,t,df,Sig. (2-tailed),Mean Difference,Lower,Upper
+x1,-.59,4,.59,-.20,-1.14,.74
+x2,2.22,4,.09,34.60,-8.63,77.83
+])
+AT_CHECK([pspp -o ref.csv ref.sps])
+AT_CHECK([cat ref.csv], [0], [expout])
+AT_DATA([missing.sps], [dnl
+data list list /id * x1 * x2.
+begin data.
+1 3.5 34
+2 2.0 10
+3 2.0 23
+4 3.5 98
+5 3.0 23
+6 4.0 99
+end data.
+
+MISSING VALUES x2(99).
+
+t-test /missing=listwise /testval=3.0 /var=x1 x2.
+])
+AT_CHECK([pspp -o missing.csv missing.sps])
+AT_CHECK([cat missing.csv], [0], [expout])
+AT_CLEANUP
+
+AT_SETUP([T-TEST wih TEMPORARY transformation])
+AT_DATA([ref.sps], [dnl
+data list list /ind * x * .
+begin data.
+1 3.5
+1 2.0
+1 2.0
+2 3.5
+2 3.0
+2 4.0
+end data.
+
+t-test /groups=ind(1,2) /var x.
+])
+AT_DATA([expout], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+ind,F8.0
+x,F8.0
+
+Table: Group Statistics
+,ind,N,Mean,Std. Deviation,S.E. Mean
+x,1,3,2.50,.87,.50
+,2,3,3.50,.50,.29
+
+Table: Independent Samples Test
+,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
+,,,,,,,,,95% Confidence Interval of the Difference,
+,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
+x,Equal variances assumed,2.00,.23,-1.73,4.00,.16,-1.00,.58,-2.60,.60
+,Equal variances not assumed,,,-1.73,3.20,.18,-1.00,.58,-2.77,.77
+])
+AT_CHECK([pspp -o ref.csv ref.sps])
+AT_CHECK([cat ref.csv], [0], [expout])
+AT_DATA([temporary.sps], [dnl
+data list list /ind * x * .
+begin data.
+1 3.5
+1 2.0
+1 2.0
+2 3.5
+2 3.0
+2 4.0
+2 9.0
+end data.
+
+TEMPORARY.
+SELECT IF x < 7.
+
+t-test /groups=ind(1,2) /var x.
+])
+AT_CHECK([pspp -o temporary.csv temporary.sps])
+AT_CHECK([cat temporary.csv], [0], [expout])
+AT_CLEANUP
+
+dnl Tests for a bug which caused T-TEST to crash when given invalid syntax.
+AT_SETUP([T-TEST invalid syntax])
+AT_DATA([t-test.sps], [dnl
+DATA LIST LIST NOTABLE /id * a * .
+BEGIN DATA.
+1 3.5
+2 2.0
+3 2.0
+4 3.5
+5 3.0
+6 4.0
+END DATA.
+
+T-TEST /testval=2.0 .
+T-TEST /groups=id(3) .
+])
+AT_CHECK([pspp -O format=csv t-test.sps], [1], [dnl
+t-test.sps:11: error: T-TEST: One or more VARIABLES must be specified.
+
+t-test.sps:12: error: T-TEST: One or more VARIABLES must be specified.
+])
+AT_CLEANUP
+
+dnl Tests for bug #11227, exhibited when the independent variable is a string.
+AT_SETUP([T-TEST string variable])
+AT_DATA([t-test.sps], [dnl
+data list list /ID * INDEP (a1) DEP1 * DEP2 *.
+begin data.
+1  'a' 1 3
+2  'a' 2 4
+3  'a' 2 4 
+4  'a' 2 4 
+5  'a' 3 5
+6  'b' 3 1
+7  'b' 4 2
+8  'b' 4 2
+9  'b' 4 2
+10 'b' 5 3
+11 'c' 2 2
+end data.
+
+
+t-test /GROUPS=indep('a','b') /var=dep1 dep2.
+])
+AT_CHECK([pspp -o pspp.csv t-test.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+ID,F8.0
+INDEP,A1
+DEP1,F8.0
+DEP2,F8.0
+
+Table: Group Statistics
+,INDEP,N,Mean,Std. Deviation,S.E. Mean
+DEP1,a,5,2.00,.71,.32
+,b,5,4.00,.71,.32
+DEP2,a,5,4.00,.71,.32
+,b,5,2.00,.71,.32
+
+Table: Independent Samples Test
+,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
+,,,,,,,,,95% Confidence Interval of the Difference,
+,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
+DEP1,Equal variances assumed,.00,1.00,-4.47,8.00,.00,-2.00,.45,-3.03,-.97
+,Equal variances not assumed,,,-4.47,8.00,.00,-2.00,.45,-3.03,-.97
+DEP2,Equal variances assumed,.00,1.00,4.47,8.00,.00,2.00,.45,.97,3.03
+,Equal variances not assumed,,,4.47,8.00,.00,2.00,.45,.97,3.03
+])
+AT_CLEANUP
+
+AT_SETUP([T-TEST string variable, only one value])
+AT_DATA([t-test.sps], [dnl
+data list list notable /id * indep (a1) dep1 * dep2 *.
+begin data.
+1  'a' 1 3
+2  'a' 2 4
+3  'a' 2 4 
+4  'a' 2 4 
+5  'a' 3 5
+6  'b' 3 1
+7  'b' 4 2
+8  'b' 4 2
+9  'b' 4 2
+10 'b' 5 3
+11 'c' 2 2
+end data.
+
+
+t-test /GROUPS=indep('a') /var=dep1 dep2.
+])
+AT_CHECK([pspp -O format=csv t-test.sps], [1], [dnl
+"t-test.sps:17: error: T-TEST: When applying GROUPS to a string variable, two values must be specified."
+])
+AT_CLEANUP
+
+dnl Tests for a bug which didn't properly compare string values.
+AT_SETUP([T-TEST string variable comparison bug])
+AT_DATA([t-test.sps], [dnl
+data list list /x * gv (a8).
+begin data.
+3   One
+2   One
+3   One
+2   One
+3   One
+4   Two
+3.5 Two
+3.0 Two
+end data.
+
+t-test group=gv('One', 'Two')
+	/variables = x.
+])
+AT_CHECK([pspp -o pspp.csv t-test.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+gv,A8
+
+Table: Group Statistics
+,gv,N,Mean,Std. Deviation,S.E. Mean
+x,One     ,5,2.60,.55,.24
+,Two     ,3,3.50,.50,.29
+
+Table: Independent Samples Test
+,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
+,,,,,,,,,95% Confidence Interval of the Difference,
+,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
+x,Equal variances assumed,1.13,.33,-2.32,6.00,.06,-.90,.38,-1.83,.03
+,Equal variances not assumed,,,-2.38,4.70,.07,-.90,.38,-1.89,.09
+])
+AT_CLEANUP
+

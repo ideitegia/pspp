@@ -1,0 +1,137 @@
+AT_BANNER([format guesser])
+
+AT_SETUP([format guesser])
+AT_DATA([format-guesser.txt], [dnl
+# No data.
+=> F8.2
+"" => F8.2
+"." => F8.2
+
+# Numeric formats.
+"1.2" => F3.1
+"$1.2" => DOLLAR4.1
+"1.2%" => PCT4.1
+"$1.2%" => A5
+"1e5" => E3.0
+"1e+5" => E4.0
+"1+5" => E3.0
+"1-5" => E3.0
+"1.2e5" => E5.1
+"1.3e+5" => E6.1
+"1.4+5" => E5.1
+"1e" => A2
+"1e+" => A3
+"1+" => A2
+"1-" => A2
+"1.5-5" => E5.1
+"1,123" => COMMA5.0         # Is , is grouping or decimal? Assume grouping.
+"1.123" => F5.3		    # Ditto.
+"1,12" => F4.2		    # Not a group of 3, so last delim must be decimal.
+"1.12" => F4.2		    # Ditto.
+"1,1234" => F6.4	    # Not a group of 3, so last delim must be decimal.
+"1.1234" => F6.4	    # Ditto.
+"$1.234" => DOLLAR6.3       # Dollar sign means decimal has to be '.'.
+"$1,234" => DOLLAR6.0       # Ditto.
+"1.234%" => PCT6.3          # Percent sign means decimal has to be '.'.
+"1,234%" => PCT6.0          # Ditto.
+"1,123.456" => COMMA9.3	    # Both '.' and ',', so last delim must be decimal.
+"1.123,456" => DOT9.3	    # Ditto.
+"1,123,456.45" => COMMA12.2 # Ditto.
+"1.123.456,45" => DOT12.2   # Ditto.
+"1,123,456" => COMMA9.0	    # Ditto.
+"1.123.456" => DOT9.0	    # Ditto.
+
+# Date and time formats.
+"01-OCT-1978" => DATE11
+"01-x-1978" => EDATE9		# Roman numeral for month.
+"01-13-99" => ADATE8
+"1-13-99" => ADATE7 (ADATE8)
+"13-01-99" => EDATE8
+"13-1-99" => EDATE7 (EDATE8)
+"32-1-1" => SDATE6 (SDATE8)
+"1q01" => QYR4
+"1Q01" => QYR4
+"1 q 01" => QYR6
+"1 Q 01" => QYR6
+"1q2001" => QYR6
+"1Q2001" => QYR6
+"1 q 2001" => QYR8
+"1 Q 2001" => QYR8
+"oct 05" => MOYR6
+"oct 2005" => MOYR8
+"1-1-01 1:2" => A10 		# Minute needs at least two digits.
+"1-1-01 1:02" => DATETIME11.0 (DATETIME17.0)
+"1-1-01 1:02:3" => A13		# Second needs at least two digits.
+"1-1-01 1:02:03" => DATETIME20.0
+"1-1-01 1:02:03.1" => DATETIME20.1 (DATETIME22.1)
+"1-1-01 +1:02:03.1" => DATETIME20.1 (DATETIME22.1)
+"1-1-01 -1:02:03.1" => DATETIME20.1 (DATETIME22.1)
+"1:30" => TIME4.0 (TIME5.0)
+"1:30:05" => TIME8.0
+"-1:30" => TIME5.0
+"+1:30" => TIME5.0
+"-1:30:15" => TIME8.0
+"+1:30:15" => TIME8.0
+"-1:30:15.5" => TIME10.1
+"+1:30:15.75" => TIME11.2
+"1 1:30" => DTIME6.0 (DTIME8.0)
+"+1 1:30" => DTIME7.0 (DTIME8.0)
+"-1 1:30" => DTIME7.0 (DTIME8.0)
+"-1-13-99" => A8
+"+1-13-99" => A8
+"1+13+99" => A7
+"1:00:01.03" => TIME10.2 (TIME11.2)
+"12 1:00:01.3" => DTIME12.1 (DTIME13.1)
+"jan" => MONTH3
+"Feb" => MONTH3
+"MAR" => MONTH3
+"i" => A1			# Not detected as MONTH format.
+"v" => A1
+"ix" => A2
+"x" => A1
+"january" => MONTH7
+"janaury" => MONTH7		# Only first three letters are significant.
+"february" => MONTH8
+"febraury" => MONTH8
+"march" => MONTH5
+"marhc" => MONTH5
+"april" => MONTH5
+"may" => MONTH3
+"june" => MONTH4
+"july" => MONTH4
+"august" => MONTH6
+"september" => MONTH9
+"october" => MONTH7
+"november" => MONTH8
+"decmeber" => MONTH8
+"december" => MONTH8
+"monady" => WKDAY6
+"tuseday" => WKDAY7
+"wedensday" => WKDAY9
+"thurdsay" => WKDAY8
+"fridya" => WKDAY6
+"saturady" => WKDAY8
+"sudnay" => WKDAY6
+
+# Ambiguous; bias in favor of more sensible DD/MM/YY format:
+"1/1/1978" => EDATE8
+"01/01/01" => EDATE8
+
+# Several ambiguous dates can be clarified by one unambiguous example:
+"1/1/1978" "1/2/1978" "1/3/1978" "1/13/1978" => ADATE9 # MM/DD/YY
+"01/01/01" "02/01/01" "03/01/01" "13/01/01" => EDATE8  # DD/MM/YY
+"01/01/01" "02/01/01" "03/01/01" "2013/01/01" => SDATE10 # YY/MM/DD
+])
+AT_CHECK([[(echo "SET DECIMAL=DOT."
+           sed -e 's/#.*//
+s/[ 	]*$//
+/^$/d
+s,^\(.*\)=> \(.*\)$,DEBUG FORMAT GUESSER \1.,') \
+           < format-guesser.txt > format-guesser.sps]])
+AT_CHECK([pspp --testing-mode -O format=csv format-guesser.sps],
+  [0], [], [stderr])
+AT_CHECK([[sed -e 's/#.*//
+s/[ 	]*$//
+/^$/d' < format-guesser.txt > expout]])
+AT_CHECK([cat stderr], [0], [expout])
+AT_CLEANUP

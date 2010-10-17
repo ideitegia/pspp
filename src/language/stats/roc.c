@@ -397,19 +397,18 @@ struct roc_state
    WEIGHT is the value of a single count.
  */
 static struct casereader *
-accumulate_counts (struct casereader *cutpoint_rdr, 
+accumulate_counts (struct casereader *input,
 		   double result, double weight, 
 		   bool (*pos_cond) (double, double),
 		   int true_index, int false_index)
 {
-  const struct caseproto *proto = casereader_get_proto (cutpoint_rdr);
+  const struct caseproto *proto = casereader_get_proto (input);
   struct casewriter *w =
     autopaging_writer_create (proto);
-  struct casereader *r = casereader_clone (cutpoint_rdr);
   struct ccase *cpc;
   double prev_cp = SYSMIS;
 
-  for ( ; (cpc = casereader_read (r) ); case_unref (cpc))
+  for ( ; (cpc = casereader_read (input) ); case_unref (cpc))
     {
       struct ccase *new_case;
       const double cp = case_data_idx (cpc, ROC_CUTPOINT)->f;
@@ -431,7 +430,7 @@ accumulate_counts (struct casereader *cutpoint_rdr,
 
       casewriter_write (w, new_case);
     }
-  casereader_destroy (r);
+  casereader_destroy (input);
 
   return casewriter_make_reader (w);
 }
@@ -529,8 +528,11 @@ process_group (const struct variable *var, struct casereader *reader,
       casereader_destroy (r2);
     }
 
+  
   casereader_destroy (r1);
   casereader_destroy (rclone);
+
+  caseproto_unref (proto);
 
   return casewriter_make_reader (wtr);
 }
@@ -628,24 +630,29 @@ prepare_cutpoints (struct cmd_roc *roc, struct roc_state *rs, struct casereader 
   int i;
   struct casereader *r = casereader_clone (input);
   struct ccase *c;
-  struct caseproto *proto = caseproto_create ();
 
-  struct subcase ordering;
-  subcase_init (&ordering, ROC_CUTPOINT, 0, SC_ASCEND);
+  {
+    struct caseproto *proto = caseproto_create ();
+    struct subcase ordering;
+    subcase_init (&ordering, ROC_CUTPOINT, 0, SC_ASCEND);
 
-  proto = caseproto_add_width (proto, 0); /* cutpoint */
-  proto = caseproto_add_width (proto, 0); /* ROC_TP */
-  proto = caseproto_add_width (proto, 0); /* ROC_FN */
-  proto = caseproto_add_width (proto, 0); /* ROC_TN */
-  proto = caseproto_add_width (proto, 0); /* ROC_FP */
+    proto = caseproto_add_width (proto, 0); /* cutpoint */
+    proto = caseproto_add_width (proto, 0); /* ROC_TP */
+    proto = caseproto_add_width (proto, 0); /* ROC_FN */
+    proto = caseproto_add_width (proto, 0); /* ROC_TN */
+    proto = caseproto_add_width (proto, 0); /* ROC_FP */
 
-  for (i = 0 ; i < roc->n_vars; ++i)
-    {
-      rs[i].cutpoint_wtr = sort_create_writer (&ordering, proto);
-      rs[i].prev_result = SYSMIS;
-      rs[i].max = -DBL_MAX;
-      rs[i].min = DBL_MAX;
-    }
+    for (i = 0 ; i < roc->n_vars; ++i)
+      {
+	rs[i].cutpoint_wtr = sort_create_writer (&ordering, proto);
+	rs[i].prev_result = SYSMIS;
+	rs[i].max = -DBL_MAX;
+	rs[i].min = DBL_MAX;
+      }
+
+    caseproto_unref (proto);
+    subcase_destroy (&ordering);
+  }
 
   for (; (c = casereader_read (r)) != NULL; case_unref (c))
     {
@@ -692,7 +699,7 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
   struct casereader *negatives = NULL;
   struct casereader *positives = NULL;
 
-  struct caseproto *n_proto = caseproto_create ();
+  struct caseproto *n_proto = NULL;
 
   struct subcase up_ordering;
   struct subcase down_ordering;
@@ -743,14 +750,13 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
       struct ccase *c;
 
       struct ccase *cpos;
-      struct casereader *n_neg ;
+      struct casereader *n_neg_reader ;
       const struct variable *var = roc->vars[i];
 
       struct casereader *neg ;
       struct casereader *pos = casereader_clone (positives);
 
-
-      struct casereader *n_pos =
+      struct casereader *n_pos_reader =
 	process_positive_group (var, pos, dict, &rs[i]);
 
       if ( negatives == NULL)
@@ -760,18 +766,17 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
 
       neg = casereader_clone (negatives);
 
-      n_neg = process_negative_group (var, neg, dict, &rs[i]);
-
+      n_neg_reader = process_negative_group (var, neg, dict, &rs[i]);
 
       /* Merge the n_pos and n_neg casereaders */
       w = sort_create_writer (&up_ordering, n_proto);
-      for ( ; (cpos = casereader_read (n_pos) ); case_unref (cpos))
+      for ( ; (cpos = casereader_read (n_pos_reader) ); case_unref (cpos))
 	{
 	  struct ccase *pos_case = case_create (n_proto);
 	  struct ccase *cneg;
 	  const double jpos = case_data_idx (cpos, VALUE)->f;
 
-	  while ((cneg = casereader_read (n_neg)))
+	  while ((cneg = casereader_read (n_neg_reader)))
 	    {
 	      struct ccase *nc = case_create (n_proto);
 
@@ -801,6 +806,9 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
 	  casewriter_write (w, pos_case);
 	}
 
+      casereader_destroy (n_pos_reader);
+      casereader_destroy (n_neg_reader);
+
 /* These aren't used anymore */
 #undef N_EQ
 #undef N_PRED
@@ -828,6 +836,7 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
 	    prev_pos_gt = n_pos_gt;
 	  }
 
+	casereader_destroy (r);
 	r = casewriter_make_reader (w);
       }
 
@@ -852,6 +861,7 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
 	    prev_neg_lt = n_neg_lt;
 	  }
 
+	casereader_destroy (r);
 	r = casewriter_make_reader (w);
       }
 
@@ -859,7 +869,7 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
 	struct ccase *prev_case = NULL;
 	for ( ; (c = casereader_read (r) ); case_unref (c))
 	  {
-	    const struct ccase *next_case = casereader_peek (r, 0);
+	    struct ccase *next_case = casereader_peek (r, 0);
 
 	    const double j = case_data_idx (c, VALUE)->f;
 	    double n_pos_eq = case_data_idx (c, N_POS_EQ)->f;
@@ -893,9 +903,12 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
 
 	      }
 
+	    case_unref (next_case);
 	    case_unref (prev_case);
 	    prev_case = case_clone (c);
 	  }
+	casereader_destroy (r);
+	case_unref (prev_case);
 
 	rs[i].auc /=  rs[i].n1 * rs[i].n2; 
 	if ( roc->invert ) 
@@ -917,7 +930,14 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
   casereader_destroy (positives);
   casereader_destroy (negatives);
 
+  caseproto_unref (n_proto);
+  subcase_destroy (&up_ordering);
+  subcase_destroy (&down_ordering);
+
   output_roc (rs, roc);
+ 
+  for (i = 0 ; i < roc->n_vars; ++i)
+    casereader_destroy (rs[i].cutpoint_rdr);
 
   free (rs);
 }

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,8 +49,8 @@ size_t dfm_column_start (const struct dfm_reader *);
 size_t dfm_columns_past_end (const struct dfm_reader *);
 size_t dfm_get_column (const struct dfm_reader *, const char *);
 
-/* File stack. */
-void dfm_push (struct dfm_reader *);
-void dfm_pop (struct dfm_reader *);
+/* Information. */
+const char *dfm_get_file_name (const struct dfm_reader *);
+int dfm_get_line_number (const struct dfm_reader *);
 
 #endif /* data-reader.h */

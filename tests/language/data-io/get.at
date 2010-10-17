@@ -1,0 +1,94 @@
+AT_BANNER([GET])
+
+dnl Tests for a bug which caused the second procedure
+dnl after GET to have corrupt input.
+AT_SETUP([GET data works in multiple procedures])
+AT_DATA([get.sps], [dnl
+DATA LIST LIST NOTABLE /LOCATION * EDITOR * SHELL * FREQ * .
+BEGIN DATA.
+    1.00     1.00    1.0     2.00
+    1.00     1.00    2.0    30.00
+    1.00     2.00    1.0     8.00
+    1.00     2.00    2.0    20.00
+    2.00     1.00    1.0     2.00
+    2.00     1.00    2.0    22.00
+    2.00     2.00    1.0     1.00
+    2.00     2.00    2.0     3.00
+END DATA.
+
+SAVE /OUTFILE='foo.sav'.
+
+GET /FILE='foo.sav'.
+
+* This one's ok
+LIST.
+
+* But this one get rubbish
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv get.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+LOCATION,EDITOR,SHELL,FREQ
+1.00,1.00,1.00,2.00
+1.00,1.00,2.00,30.00
+1.00,2.00,1.00,8.00
+1.00,2.00,2.00,20.00
+2.00,1.00,1.00,2.00
+2.00,1.00,2.00,22.00
+2.00,2.00,1.00,1.00
+2.00,2.00,2.00,3.00
+
+Table: Data List
+LOCATION,EDITOR,SHELL,FREQ
+1.00,1.00,1.00,2.00
+1.00,1.00,2.00,30.00
+1.00,2.00,1.00,8.00
+1.00,2.00,2.00,20.00
+2.00,1.00,1.00,2.00
+2.00,1.00,2.00,22.00
+2.00,2.00,1.00,1.00
+2.00,2.00,2.00,3.00
+])
+AT_CLEANUP
+
+dnl Tests for a bug that crashed when GET specified a nonexistent file.
+AT_SETUP([GET nonexistent file doesn't crash])
+dnl We use stdin here, because the bug seems to manifest itself only in 
+dnl interactive mode.
+AT_CHECK([echo "GET /FILE='nonexistent.sav'." | pspp -O format=csv], [1], [dnl
+error: An error occurred while opening `nonexistent.sav': No such file or directory.
+
+-:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+AT_CLEANUP
+
+dnl Tests for bug #15766 (/KEEP subcommand on SAVE doesn't
+dnl fully support ALL) and underlying problems.
+m4_define([GET_KEEP_ALL],
+  [AT_SETUP([GET with /KEEP=ALL crashes -- $1])
+   AT_DATA([get.sps], [dnl
+DATA LIST LIST NOTABLE 
+	/a b c d e f g h i j k l m n o p q r s t u v w x y z (F2.0).
+BEGIN DATA.
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+END DATA.
+LIST.
+SAVE OUTFILE='test.sav'/$1.
+GET FILE='test.sav'/KEEP=x y z all.
+LIST.
+])
+   AT_CHECK([pspp -o pspp.csv get.sps])
+   AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
+
+Table: Data List
+x,y,z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w
+24,25,26,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23
+])
+   AT_CLEANUP])
+GET_KEEP_ALL([uncompressed])
+GET_KEEP_ALL([compressed])
+

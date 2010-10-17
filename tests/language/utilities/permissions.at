@@ -1,0 +1,25 @@
+AT_BANNER([PERMISSIONS])
+
+AT_SETUP([PERMISSIONS])
+AT_DATA([foobar], [Hello
+])
+
+chmod 666 foobar
+AT_CHECK([ls -l foobar], [0], [stdout])
+AT_CHECK([sed 's/^\(..........\).*/\1/' stdout], [0], [-rw-rw-rw-
+])
+
+AT_DATA([permissions.sps], [PERMISSIONS /FILE='foobar' PERMISSIONS=READONLY.
+])
+AT_CHECK([pspp -O format=csv permissions.sps])
+AT_CHECK([ls -l foobar], [0], [stdout])
+AT_CHECK([sed 's/^\(..........\).*/\1/' stdout], [0], [-r--r--r--
+])
+
+AT_DATA([permissions.sps], [PERMISSIONS /FILE='foobar' PERMISSIONS=WRITEABLE.
+])
+AT_CHECK([pspp -O format=csv permissions.sps])
+AT_CHECK([ls -l foobar], [0], [stdout])
+AT_CHECK([sed 's/^\(..........\).*/\1/' stdout], [0], [-rw-r--r--
+])
+AT_CLEANUP

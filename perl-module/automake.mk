@@ -31,12 +31,12 @@ perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz: $(module_sources) perl-module/
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
 
 PHONY += module-make
-module-make: perl-module/Makefile src/libpspp-core.la
+module-make: perl-module/Makefile
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
 ALL_LOCAL += perl_module_tarball
-perl_module_tarball: $(module_sources)
-	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
+perl_module_tarball: $(module_sources) src/libpspp-core.la
+	@if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
 	 for f in $(module_sources); do \
 	  destdir=`dirname $$f` ;\
 	  mkdir -p $$destdir ;\

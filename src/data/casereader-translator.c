@@ -490,7 +490,7 @@ uniquify (const struct ccase *c, void *aux)
   const union value *current_value = case_data (c, cdr->key);
   const int key_width = var_get_width (cdr->key);
   const double weight = cdr->weight ? case_data (c, cdr->weight)->f : 1.0;
-  const struct ccase *next_case = casereader_peek (cdr->clone, cdr->n + 1);
+  struct ccase *next_case = casereader_peek (cdr->clone, cdr->n + 1);
   int dir = 0;
 
   cdr->n ++;
@@ -501,6 +501,7 @@ uniquify (const struct ccase *c, void *aux)
   
   dir = value_compare_3way (case_data (next_case, cdr->key),
 			    current_value, key_width);
+  case_unref (next_case);
   if ( dir != 0 )
     {
       /* Insist that the data are sorted */

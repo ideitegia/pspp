@@ -96,7 +96,7 @@ initialize (struct source_stream *ss, const char *data_file)
   preregister_widgets ();
 
   gsl_set_error_handler_off ();
-  settings_init (&viewer_width, &viewer_length);
+  settings_init ();
   fh_init ();
 
   the_dataset = create_dataset ();
@@ -268,7 +268,7 @@ load_data_file (const char *arg)
       utf8 = g_locale_to_utf8 (arg, -1, NULL, &written, &err);
       if ( NULL == utf8)
         {
-          g_warning ("Cannot convert filename from local encoding \"%s\" to UTF-8: %s",
+          g_warning ("Cannot convert filename from local encoding `%s' to UTF-8: %s",
                      local_encoding,
                      err->message);
           g_clear_error (&err);

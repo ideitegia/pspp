@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,13 +21,14 @@
 #include <ctype.h>
 #include <mbchar.h>
 
-#include <data/data-in.h>
-#include <data/data-out.h>
-#include <data/format.h>
-#include <data/value.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/data-in.h"
+#include "data/data-out.h"
+#include "data/format.h"
+#include "data/value.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
 /* Appends to OUTPUT a pair of hex digits for each byte in IN. */
 static void
@@ -146,16 +147,18 @@ syntax_gen_number (struct string *output,
           & (FMT_CAT_DATE | FMT_CAT_TIME | FMT_CAT_DATE_COMPONENT)))
     {
       union value v_in, v_out;
-      char *s;
+      char *s, *error;
       bool ok;
 
       v_in.f = number;
       s = data_out (&v_in, "FIXME",  format);
-      msg_disable ();
+
       /* FIXME: UTF8 encoded strings will fail here */
-      ok = data_in (ss_cstr (s), LEGACY_NATIVE,
-                    format->type, false, 0, 0, NULL, &v_out, 0);
-      msg_enable ();
+      error = data_in (ss_cstr (s), LEGACY_NATIVE,
+                       format->type, &v_out, 0, NULL);
+      ok = error == NULL;
+      free (error);
+
       if (ok && v_out.f == number)
         {
           syntax_gen_string (output, ss_cstr (s));
@@ -197,7 +200,10 @@ syntax_gen_value (struct string *output, const union value *value, int width,
   if (width == 0)
     syntax_gen_number (output, value->f, format);
   else
-    syntax_gen_string (output, ss_buffer (value_str (value, width), width));
+    {
+      char *s = CHAR_CAST_BUG (char *, value_str (value, width));
+      syntax_gen_string (output, ss_buffer (s, width));
+    }
 }
 
 /* Appends <low> THRU <high> to OUTPUT.  If LOW is LOWEST, then

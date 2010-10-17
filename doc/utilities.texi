@@ -25,6 +25,7 @@ encountered in the input.
 * INCLUDE::                     Include a file within the current one.
 * INSERT::                      Insert a file within the current one.
 * PERMISSIONS::                 Change permissions on a file.
+* PRESERVE and RESTORE::        Saving settings and restoring them later.
 * SET::                         Adjust PSPP runtime parameters.
 * SHOW::                        Display runtime parameters.
 * SUBTITLE::                    Provide a document subtitle.
@@ -211,12 +212,19 @@ control to the operating system.
 
 @display
 HOST.
+HOST COMMAND=['command'...].
 @end display
 
 @cmd{HOST} suspends the current PSPP session and temporarily returns control 
 to the operating system.
 This command cannot be used if the SAFER setting is active.
 
+If the COMMAND subcommand is specified, as a sequence of shell
+commands as quoted strings within square brackets, then PSPP executes
+them together in a single subshell.
+
+If no subcommands are specified, then PSPP invokes an interactive
+subshell.
 
 @node INCLUDE
 @section INCLUDE
@@ -307,6 +315,22 @@ writeable by you; the permissions afforded to others will be
 unchanged.
 This command cannot be used if the SAFER setting is active.
 
+
+@node PRESERVE and RESTORE
+@section PRESERVE and RESTORE
+@vindex PRESERVE
+@vindex RESTORE
+
+@display
+PRESERVE.
+@dots{}
+RESTORE.
+@end display
+
+@cmd{PRESERVE} saves all of the settings that @cmd{SET} (@pxref{SET})
+can adjust.  A later @cmd{RESTORE} command restores those settings.
+
+@cmd{PRESERVE} can be nested up to five levels deep.
 
 @node SET
 @section SET

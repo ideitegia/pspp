@@ -46,9 +46,8 @@ cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
       if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
-      if (lex_token (lexer) != T_STRING)
+      if (!lex_force_string (lexer))
 	{
-	  msg (SE, _("String expected for variable label."));
 	  free (v);
 	  return CMD_FAILURE;
 	}

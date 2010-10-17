@@ -49,7 +49,7 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#define _xml(X) (const xmlChar *)(X)
+#define _xml(X) (CHAR_CAST (const xmlChar *, X))
 
 struct odt_driver
 {

@@ -252,7 +252,7 @@ parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns
       if (!parse_record_placement (lexer, &record, &column))
         return false;
 
-      if (lex_token (lexer) == T_STRING)
+      if (lex_is_string (lexer))
 	ok = parse_string_argument (lexer, trns, record, &column);
       else
 	ok = parse_variable_argument (lexer, dict, trns, tmp_pool, &record, &column,
@@ -412,7 +412,7 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
       switch (spec->type)
         {
         case PRT_LITERAL:
-          tab_text_format (t, 0, row, TAB_LEFT | TAB_FIX, "\"%.*s\"",
+          tab_text_format (t, 0, row, TAB_LEFT | TAB_FIX, "`%.*s'",
                            (int) ds_length (&spec->string),
                            ds_data (&spec->string));
           width = ds_length (&spec->string);

@@ -616,7 +616,7 @@ static union any_node *
 parse_or (struct lexer *lexer, struct expression *e)
 {
   static const struct operator op =
-    { T_OR, OP_OR, "logical disjunction (\"OR\")" };
+    { T_OR, OP_OR, "logical disjunction (`OR')" };
 
   return parse_binary_operators (lexer, e, parse_and (lexer, e), &op, 1, parse_and, NULL);
 }
@@ -626,7 +626,7 @@ static union any_node *
 parse_and (struct lexer *lexer, struct expression *e)
 {
   static const struct operator op =
-    { T_AND, OP_AND, "logical conjunction (\"AND\")" };
+    { T_AND, OP_AND, "logical conjunction (`AND')" };
 
   return parse_binary_operators (lexer, e, parse_not (lexer, e),
 				 &op, 1, parse_not, NULL);
@@ -637,7 +637,7 @@ static union any_node *
 parse_not (struct lexer *lexer, struct expression *e)
 {
   static const struct operator op
-    = { T_NOT, OP_NOT, "logical negation (\"NOT\")" };
+    = { T_NOT, OP_NOT, "logical negation (`NOT')" };
   return parse_inverting_unary_operator (lexer, e, &op, parse_rel);
 }
 
@@ -646,12 +646,12 @@ static union any_node *
 parse_rel (struct lexer *lexer, struct expression *e)
 {
   const char *chain_warning =
-    _("Chaining relational operators (e.g. \"a < b < c\") will "
+    _("Chaining relational operators (e.g. `a < b < c') will "
       "not produce the mathematically expected result.  "
       "Use the AND logical operator to fix the problem "
-      "(e.g. \"a < b AND b < c\").  "
+      "(e.g. `a < b AND b < c').  "
       "If chaining is really intended, parentheses will disable "
-      "this warning (e.g. \"(a < b) < c\".)");
+      "this warning (e.g. `(a < b) < c'.)");
 
   union any_node *node = parse_add (lexer, e);
 
@@ -665,13 +665,13 @@ parse_rel (struct lexer *lexer, struct expression *e)
       {
         static const struct operator ops[] =
           {
-            { '=', OP_EQ, "numeric equality (\"=\")" },
-            { T_EQ, OP_EQ, "numeric equality (\"EQ\")" },
-            { T_GE, OP_GE, "numeric greater-than-or-equal-to (\">=\")" },
-            { T_GT, OP_GT, "numeric greater than (\">\")" },
-            { T_LE, OP_LE, "numeric less-than-or-equal-to (\"<=\")" },
-            { T_LT, OP_LT, "numeric less than (\"<\")" },
-            { T_NE, OP_NE, "numeric inequality (\"<>\")" },
+            { '=', OP_EQ, "numeric equality (`=')" },
+            { T_EQ, OP_EQ, "numeric equality (`EQ')" },
+            { T_GE, OP_GE, "numeric greater-than-or-equal-to (`>=')" },
+            { T_GT, OP_GT, "numeric greater than (`>')" },
+            { T_LE, OP_LE, "numeric less-than-or-equal-to (`<=')" },
+            { T_LT, OP_LT, "numeric less than (`<')" },
+            { T_NE, OP_NE, "numeric inequality (`<>')" },
           };
 
         return parse_binary_operators (lexer, e, node, ops,
@@ -683,13 +683,13 @@ parse_rel (struct lexer *lexer, struct expression *e)
       {
         static const struct operator ops[] =
           {
-            { '=', OP_EQ_STRING, "string equality (\"=\")" },
-            { T_EQ, OP_EQ_STRING, "string equality (\"EQ\")" },
-            { T_GE, OP_GE_STRING, "string greater-than-or-equal-to (\">=\")" },
-            { T_GT, OP_GT_STRING, "string greater than (\">\")" },
-            { T_LE, OP_LE_STRING, "string less-than-or-equal-to (\"<=\")" },
-            { T_LT, OP_LT_STRING, "string less than (\"<\")" },
-            { T_NE, OP_NE_STRING, "string inequality (\"<>\")" },
+            { '=', OP_EQ_STRING, "string equality (`=')" },
+            { T_EQ, OP_EQ_STRING, "string equality (`EQ')" },
+            { T_GE, OP_GE_STRING, "string greater-than-or-equal-to (`>=')" },
+            { T_GT, OP_GT_STRING, "string greater than (`>')" },
+            { T_LE, OP_LE_STRING, "string less-than-or-equal-to (`<=')" },
+            { T_LT, OP_LT_STRING, "string less than (`<')" },
+            { T_NE, OP_NE_STRING, "string inequality (`<>')" },
           };
 
         return parse_binary_operators (lexer, e, node, ops,
@@ -708,8 +708,8 @@ parse_add (struct lexer *lexer, struct expression *e)
 {
   static const struct operator ops[] =
     {
-      { '+', OP_ADD, "addition (\"+\")" },
-      { '-', OP_SUB, "subtraction (\"-\")" },
+      { '+', OP_ADD, "addition (`+')" },
+      { '-', OP_SUB, "subtraction (`-')" },
     };
 
   return parse_binary_operators (lexer, e, parse_mul (lexer, e),
@@ -723,8 +723,8 @@ parse_mul (struct lexer *lexer, struct expression *e)
 {
   static const struct operator ops[] =
     {
-      { '*', OP_MUL, "multiplication (\"*\")" },
-      { '/', OP_DIV, "division (\"/\")" },
+      { '*', OP_MUL, "multiplication (`*')" },
+      { '/', OP_DIV, "division (`/')" },
     };
 
   return parse_binary_operators (lexer, e, parse_neg (lexer, e),
@@ -736,7 +736,7 @@ parse_mul (struct lexer *lexer, struct expression *e)
 static union any_node *
 parse_neg (struct lexer *lexer, struct expression *e)
 {
-  static const struct operator op = { '-', OP_NEG, "negation (\"-\")" };
+  static const struct operator op = { '-', OP_NEG, "negation (`-')" };
   return parse_inverting_unary_operator (lexer, e, &op, parse_exp);
 }
 
@@ -744,12 +744,12 @@ static union any_node *
 parse_exp (struct lexer *lexer, struct expression *e)
 {
   static const struct operator op =
-    { T_EXP, OP_POW, "exponentiation (\"**\")" };
+    { T_EXP, OP_POW, "exponentiation (`**')" };
 
   const char *chain_warning =
-    _("The exponentiation operator (\"**\") is left-associative, "
+    _("The exponentiation operator (`**') is left-associative, "
       "even though right-associative semantics are more useful.  "
-      "That is, \"a**b**c\" equals \"(a**b)**c\", not as \"a**(b**c)\".  "
+      "That is, `a**b**c' equals `(a**b)**c', not as `a**(b**c)'.  "
       "To disable this warning, insert parentheses.");
 
   return parse_binary_operators (lexer, e, parse_primary (lexer, e), &op, 1,
@@ -886,16 +886,13 @@ parse_primary (struct lexer *lexer, struct expression *e)
         union any_node *node;
 	lex_get (lexer);
 	node = parse_or (lexer, e);
-	if (node != NULL && !lex_match (lexer, ')'))
-	  {
-	    lex_error (lexer, _("expecting `)'"));
-            return NULL;
-	  }
+	if (node != NULL && !lex_force_match (lexer, ')'))
+          return NULL;
         return node;
       }
 
     default:
-      lex_error (lexer, _("in expression"));
+      lex_error (lexer, NULL);
       return NULL;
     }
 }

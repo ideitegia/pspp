@@ -26,13 +26,14 @@
 struct covariance;
 struct variable;
 struct ccase ;
+struct categoricals;
 
-struct covariance * covariance_1pass_create (size_t n_vars, const struct variable **vars, 
+struct covariance * covariance_1pass_create (size_t n_vars, const struct variable *const *vars, 
 					     const struct variable *wv, enum mv_class excl);
 
 struct covariance *
-covariance_2pass_create (size_t n_vars, const struct variable **vars,
-			 size_t n_catvars, const struct variable **catvars, 
+covariance_2pass_create (size_t n_vars, const struct variable *const *vars,
+			 struct categoricals *cats,
 			 const struct variable *wv, enum mv_class excl);
 
 void covariance_accumulate (struct covariance *, const struct ccase *);
@@ -45,5 +46,7 @@ const gsl_matrix * covariance_calculate_unnormalized (struct covariance *);
 void covariance_destroy (struct covariance *cov);
 
 const gsl_matrix *covariance_moments (const struct covariance *cov, int m);
+
+const struct categoricals * covariance_get_categoricals (const struct covariance *cov);
 
 #endif

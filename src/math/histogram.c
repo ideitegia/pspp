@@ -65,7 +65,7 @@ histogram_create (int bins, double min, double max)
 
   int n =  ceil (max / (bin_width_2) ) ;
 
-  assert (max > min);
+  assert (max >= min);
 
   if ( ! (n % 2 ) ) n++;
   upper_limit = n * bin_width_2;

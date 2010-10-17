@@ -196,7 +196,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 
                       if (lex_match_id (lexer, "TAB"))
                         delim = '\t';
-                      else if (lex_token (lexer) == T_STRING
+                      else if (lex_is_string (lexer)
                                && ds_length (lex_tokstr (lexer)) == 1)
                         {
                           delim = ds_first (lex_tokstr (lexer));

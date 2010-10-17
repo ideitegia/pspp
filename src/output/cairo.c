@@ -190,7 +190,7 @@ parse_font (struct output_driver *d, struct string_map *options,
   desc = pango_font_description_from_string (string);
   if (desc == NULL)
     {
-      error (0, 0, _("\"%s\": bad font specification"), string);
+      error (0, 0, _("`%s': bad font specification"), string);
 
       /* Fall back to DEFAULT_VALUE, which had better be a valid font
          description. */
@@ -354,7 +354,7 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
   status = cairo_surface_status (surface);
   if (status != CAIRO_STATUS_SUCCESS)
     {
-      error (0, 0, _("error opening output file \"%s\": %s"),
+      error (0, 0, _("error opening output file `%s': %s"),
              file_name, cairo_status_to_string (status));
       cairo_surface_destroy (surface);
       goto error;
@@ -1038,7 +1038,7 @@ xr_draw_png_chart (const struct chart_item *item,
 
   status = cairo_surface_write_to_png (surface, file_name);
   if (status != CAIRO_STATUS_SUCCESS)
-    error (0, 0, _("error writing output file \"%s\": %s"),
+    error (0, 0, _("error writing output file `%s': %s"),
            file_name, cairo_status_to_string (status));
 
   cairo_destroy (cr);

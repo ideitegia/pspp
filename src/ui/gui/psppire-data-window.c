@@ -365,7 +365,7 @@ load_file (PsppireWindow *de, const gchar *file_name)
 
   g_free (native_file_name);
 
-  sss = create_syntax_string_source ("GET FILE=%s.",
+  sss = create_syntax_format_source ("GET FILE=%s.",
 				     ds_cstr (&filename));
 
   ds_destroy (&filename);
@@ -530,12 +530,12 @@ save_file (PsppireWindow *w)
 
   if ( de->save_as_portable )
     {
-      sss = create_syntax_string_source ("EXPORT OUTFILE=%s.",
+      sss = create_syntax_format_source ("EXPORT OUTFILE=%s.",
 					 ds_cstr (&filename));
     }
   else
     {
-      sss = create_syntax_string_source ("SAVE OUTFILE=%s.",
+      sss = create_syntax_format_source ("SAVE OUTFILE=%s.",
 					 ds_cstr (&filename));
     }
 
@@ -589,7 +589,7 @@ sysfile_info (PsppireDataWindow *de)
 
       g_free (native_file_name);
 
-      sss = create_syntax_string_source ("SYSFILE INFO %s.",
+      sss = create_syntax_format_source ("SYSFILE INFO %s.",
 					 ds_cstr (&filename));
       execute_syntax (sss);
     }
@@ -1261,6 +1261,8 @@ GtkWidget*
 psppire_data_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_data_window_get_type (),
+				   /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
+				   "filename", _("PSPP-data"),
 				   "description", _("Data Editor"),
 				   NULL));
 }

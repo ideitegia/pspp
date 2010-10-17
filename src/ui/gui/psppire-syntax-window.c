@@ -106,8 +106,37 @@ psppire_syntax_window_finalize (GObject *object)
 
 
 static void
+psppire_syntax_window_dispose (GObject *obj)
+{
+  PsppireSyntaxWindow *sw = (PsppireSyntaxWindow *)obj;
+
+  GtkClipboard *clip_selection;
+  GtkClipboard *clip_primary;
+
+  if (sw->dispose_has_run)
+    return;
+
+  clip_selection = gtk_widget_get_clipboard (GTK_WIDGET (sw), GDK_SELECTION_CLIPBOARD);
+  clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (sw), GDK_SELECTION_PRIMARY);
+
+  g_signal_handler_disconnect (clip_primary, sw->sel_handler);
+
+  g_signal_handler_disconnect (clip_selection, sw->ps_handler);
+
+  /* Make sure dispose does not run twice. */
+  sw->dispose_has_run = TRUE;
+
+  /* Chain up to the parent class */
+  G_OBJECT_CLASS (parent_class)->dispose (obj);
+}
+
+
+
+static void
 psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
 {
+  GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+
   GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default ();
 
   const gchar * const *existing_paths =  gtk_source_language_manager_get_search_path (lm);
@@ -129,6 +158,10 @@ psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
   parent_class = g_type_class_peek_parent (class);
 
   g_strfreev (new_paths);
+
+  parent_class = g_type_class_peek_parent (class);
+
+  gobject_class->dispose = psppire_syntax_window_dispose;
 }
 
 
@@ -309,8 +342,12 @@ on_edit_paste (PsppireSyntaxWindow *sw)
 				  sw);
 }
 
+
+/* Check to see if CLIP holds a target which we know how to paste,
+   and set the sensitivity of the Paste action accordingly.
+ */
 static void
-on_owner_change (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
+set_paste_sensitivity (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
 {
   gint i;
   gboolean compatible_target = FALSE;
@@ -461,7 +498,7 @@ save_editor_to_file (PsppireSyntaxWindow *se,
   if ( result )
     {
       char *fn = g_filename_display_name (filename);
-      gchar *msg = g_strdup_printf (_("Saved file \"%s\""), fn);
+      gchar *msg = g_strdup_printf (_("Saved file `%s'"), fn);
       g_free (fn);
       gtk_statusbar_push (GTK_STATUSBAR (se->sb), se->text_context, msg);
       gtk_text_buffer_set_modified (buffer, FALSE);
@@ -624,6 +661,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   GtkClipboard *clip_selection = gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_CLIPBOARD);
   GtkClipboard *clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
 
+
   window->print_settings = NULL;
   window->undo_menuitem = get_action_assert (xml, "edit_undo");
   window->redo_menuitem = get_action_assert (xml, "edit_redo");
@@ -647,11 +685,8 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		"highlight-current-line", TRUE,
 		NULL);
 
-  g_signal_connect_swapped (clip_primary, "owner-change", G_CALLBACK (selection_changed), window);
-
-  g_signal_connect (clip_selection, "owner-change", G_CALLBACK (on_owner_change), window);
-
   window->cliptext = NULL;
+  window->dispose_has_run = FALSE;
 
   window->edit_delete = get_action_assert (xml, "edit_delete");
   window->edit_copy = get_action_assert (xml, "edit_copy");
@@ -663,9 +698,10 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   window->sb = get_widget_assert (xml, "statusbar2");
   window->text_context = gtk_statusbar_get_context_id (GTK_STATUSBAR (window->sb), "Text Context");
 
-  g_signal_connect (window->buffer, "changed", G_CALLBACK (on_text_changed), window);
+  g_signal_connect (window->buffer, "changed", 
+		    G_CALLBACK (on_text_changed), window);
 
-  g_signal_connect (window->buffer, "modified-changed",
+  g_signal_connect (window->buffer, "modified-changed", 
 		    G_CALLBACK (on_modified_changed), window);
 
   g_signal_connect_swapped (get_action_assert (xml, "file_print"), "activate",
@@ -684,6 +720,12 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   undo_redo_update (window);
 
+  window->sel_handler = g_signal_connect_swapped (clip_primary, "owner-change", 
+						   G_CALLBACK (selection_changed), window);
+
+  window->ps_handler = g_signal_connect (clip_selection, "owner-change", 
+					  G_CALLBACK (set_paste_sensitivity), window);
+
   connect_help (xml);
 
   gtk_container_add (GTK_CONTAINER (window), box);
@@ -693,7 +735,6 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   g_object_ref (sw);
 
   g_object_ref (window->sb);
-
 
   gtk_box_pack_start (GTK_BOX (box), menubar, FALSE, TRUE, 0);
   gtk_box_pack_start (GTK_BOX (box), sw, TRUE, TRUE, 0);
@@ -793,7 +834,8 @@ GtkWidget*
 psppire_syntax_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_syntax_window_get_type (),
-				   "filename", "Syntax",
+				   /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
+				   "filename", _("Syntax"),
 				   "description", _("Syntax Editor"),
 				   NULL));
 }
@@ -808,7 +850,7 @@ error_dialog (GtkWindow *w, const gchar *filename,  GError *err)
 			    GTK_DIALOG_DESTROY_WITH_PARENT,
 			    GTK_MESSAGE_ERROR,
 			    GTK_BUTTONS_CLOSE,
-			    _("Cannot load syntax file '%s'"),
+			    _("Cannot load syntax file `%s'"),
 			    fn);
 
   g_free (fn);
@@ -875,6 +917,7 @@ psppire_syntax_window_iface_init (PsppireWindowIface *iface)
   iface->save = syntax_save;
   iface->load = syntax_load;
 }
+
 
 
 

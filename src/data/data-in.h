@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,19 +18,22 @@
 #define DATA_DATA_IN_H 1
 
 #include <stdbool.h>
-#include <libpspp/legacy-encoding.h>
-#include <libpspp/float-format.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/str.h>
-#include <data/format.h>
+#include "data/format.h"
+#include "libpspp/legacy-encoding.h"
+#include "libpspp/str.h"
 
-enum fmt_type;
 union value;
 struct dictionary;
-bool data_in (struct substring input, const char *encoding,
-              enum fmt_type, int implied_decimals,
-              int first_column, int last_column,
-	      const struct dictionary *dict,
-              union value *output, int width);
+
+char *data_in (struct substring input, const char *input_encoding,
+               enum fmt_type, 
+               union value *output, int width, const char *output_encoding);
+
+bool data_in_msg (struct substring input, const char *input_encoding,
+                  enum fmt_type,
+                  union value *output, int width, const char *output_encoding);
+
+void data_in_imply_decimals (struct substring input, const char *encoding,
+                             enum fmt_type format, int d, union value *output);
 
 #endif /* data/data-in.h */

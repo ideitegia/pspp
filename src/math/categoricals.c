@@ -26,6 +26,7 @@
 #include <data/value.h>
 #include <libpspp/hmap.h>
 #include <libpspp/pool.h>
+#include <libpspp/array.h>
 
 #include <libpspp/str.h>
 
@@ -34,10 +35,12 @@ struct value_node
   struct hmap_node node;      /* Node in hash map. */
   union value value;          /* The value being labeled. */
   double cc;                  /* The total of the weights of cases with this value */
+
+  void *user_data;            /* A pointer to data which the caller can store stuff */
+
   int subscript;              /* A zero based integer, unique within the variable.
 				 Can be used as an index into an array */
 };
-
 
 struct var_params
 {
@@ -57,6 +60,18 @@ struct var_params
   /* Total of the weights of this variable */
   double cc; 
 };
+
+
+/* Comparison function to sort the reverse_value_map in ascending order */
+static int
+compare_value_node (const void *vn1_, const void *vn2_, const void *aux)
+{
+  const struct value_node * const *vn1 = vn1_;
+  const struct value_node * const *vn2 = vn2_;
+  const struct var_params *vp = aux;
+
+  return value_compare_3way (&(*vn1)->value, &(*vn2)->value, var_get_width (vp->var));
+}
 
 
 struct categoricals
@@ -84,6 +99,16 @@ struct categoricals
 
   /* Missing values to be excluded */
   enum mv_class exclude;
+
+  /* Function to be called on each update */
+  update_func *update;
+
+  /* Function specified by the caller to create user_data */
+  user_data_create_func *user_data_create;
+
+  /* Auxilliary data to be passed to update and user_data_create_func*/
+  void *aux1;
+  void *aux2;
 };
 
 
@@ -152,7 +177,7 @@ categoricals_dump (const struct categoricals *cat)
 
   printf ("\nReverse variable map:\n");
 
-  for (v = 0 ; v < cat->n_cats_total - cat->n_vars; ++v)
+  for (v = 0 ; v < cat->n_cats_total; ++v)
     printf ("%d ", cat->reverse_variable_map[v]);
   printf ("\n");
 }
@@ -179,10 +204,12 @@ lookup_value (const struct hmap *map, const struct variable *var, const union va
 }
 
 
-
 struct categoricals *
-categoricals_create (const struct variable **v, size_t n_vars,
-		     const struct variable *wv, enum mv_class exclude)
+categoricals_create (const struct variable *const *v, size_t n_vars,
+		     const struct variable *wv, enum mv_class exclude,
+		     user_data_create_func *udf,
+		     update_func *update, void *aux1, void *aux2
+		     )
 {
   size_t i;
   struct categoricals *cat = xmalloc (sizeof *cat);
@@ -194,6 +221,12 @@ categoricals_create (const struct variable **v, size_t n_vars,
   cat->reverse_variable_map = NULL;
   cat->pool = pool_create ();
   cat->exclude = exclude;
+  cat->update = update;
+  cat->user_data_create = udf;
+
+  cat->aux1 = aux1;
+  cat->aux2 = aux2;
+
 
   cat->vp = pool_calloc (cat->pool, cat->n_vp, sizeof *cat->vp);
 
@@ -246,10 +279,16 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 	    cat->n_vars++;
 
 	  node->subscript = cat->vp[i].n_cats++ ;
+
+	  if (cat->user_data_create)
+	    node->user_data = cat->user_data_create (cat->aux1, cat->aux2);
 	}
 
       node->cc += weight;
       cat->vp[i].cc += weight;
+
+      if (cat->update)
+	cat->update (node->user_data, cat->exclude, cat->wv, var, c, cat->aux1, cat->aux2);
     }
 }
 
@@ -283,7 +322,7 @@ categoricals_done (struct categoricals *cat)
   int v;
   int idx = 0;
   cat->reverse_variable_map = pool_calloc (cat->pool,
-					   cat->n_cats_total - cat->n_vars,
+					   cat->n_cats_total,
 					   sizeof *cat->reverse_variable_map);
   
   for (v = 0 ; v < cat->n_vp; ++v)
@@ -303,14 +342,18 @@ categoricals_done (struct categoricals *cat)
 	  vp->reverse_value_map[vn->subscript] = vn;
 	}
 
+      /* For some purposes (eg CONTRASTS in ONEWAY) the values need to be sorted */
+      sort (vp->reverse_value_map, vp->n_cats, sizeof (const struct value_node *),
+	    compare_value_node, vp);
+
       /* Populate the reverse variable map.
-	 This implementation considers the first value of each categorical variable
-	 as the basis.  Therefore, this loop starts from 1 instead of 0 */
-      for (i = 1; i < vp->n_cats; ++i)
+       */
+      for (i = 0; i < vp->n_cats; ++i)
 	cat->reverse_variable_map[idx++] = v;
     }
 
   assert (cat->n_vars <= cat->n_vp);
+
 }
 
 
@@ -319,7 +362,7 @@ reverse_variable_lookup (const struct categoricals *cat, int subscript)
 {
   assert (cat->reverse_variable_map);
   assert (subscript >= 0);
-  assert (subscript < cat->n_cats_total - cat->n_vars);
+  assert (subscript < cat->n_cats_total);
 
   return cat->reverse_variable_map[subscript];
 }
@@ -385,4 +428,16 @@ size_t
 categoricals_get_n_variables (const struct categoricals *cat)
 {
   return cat->n_vars;
+}
+
+
+
+void *
+categoricals_get_user_data_by_subscript (const struct categoricals *cat, int subscript)
+{
+  int vindex = reverse_variable_lookup (cat, subscript);
+  const struct var_params *vp = &cat->vp[vindex];
+
+  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript];
+  return vn->user_data;
 }

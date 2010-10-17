@@ -273,7 +273,7 @@ static bool casereader_filter_missing_destroy (void *);
    when the filtering casereader is destroyed. */
 struct casereader *
 casereader_create_filter_missing (struct casereader *reader,
-                                  const struct variable **vars, size_t var_cnt,
+                                  const struct variable *const*vars, size_t var_cnt,
                                   enum mv_class class,
 				  casenumber *n_missing,
                                   struct casewriter *exclude)

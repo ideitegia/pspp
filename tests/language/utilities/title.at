@@ -1,0 +1,145 @@
+AT_BANNER([TITLE and related commands])
+
+AT_SETUP([FILE LABEL and (ADD) DOCUMENT])
+AT_DATA([file-label.sps], [dnl
+/* Set up a dummy active file in memory.
+data list /X 1 Y 2.
+begin data.
+16
+27
+38
+49
+50
+end data.
+
+/* Add value labels for some further testing of value labels.
+value labels x y 1 'first label' 2 'second label' 3 'third label'.
+add value labels x 1 'first label mark two'.
+
+/* Add a file label and a few documents.
+file label This is a test file label.
+document First line of a document
+Second line of a document
+The last line should end with a period: .
+
+
+/* Display the documents.
+display documents.
+display file label.
+
+ADD DOCUMENT 'Line one' 'Line two'.
+
+/* Save the active file then get it and display the documents again.
+save /OUTFILE='foo.save'.
+get /FILE='foo.save'.
+display documents.
+display file label.
+
+/* There is an interesting interaction that occurs if the 'execute'
+/* command below.  What happens is that an error message is output
+/* at the next 'save' command that 'foo.save' is already open for
+/* input.  This is because the 'get' hasn't been executed yet and
+/* therefore PSPP would be reading from and writing to the same
+/* file at once, which is obviously a Bad Thing.  But 'execute'
+/* here clears up that potential problem.
+execute.
+
+/* Add another (shorter) document and try again.
+document There should be another document now.
+display documents.
+
+/* Save and get.
+save /OUTFILE='foo.save'.
+get /FILE='foo.save'.
+display documents.
+display file label.
+
+/* Done.
+])
+AT_CHECK([pspp -o pspp.csv file-label.sps])
+dnl Filter out the dates/times
+AT_CHECK([[sed 's/(Entered [^)]*)/(Entered <date>)/' pspp.csv]], [0], [dnl
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+X,1,1-  1,F1.0
+Y,1,2-  2,F1.0
+
+Documents in the active file:
+
+document First line of a document
+
+Second line of a document
+
+The last line should end with a period: .
+
+(Entered <date>)
+
+File label:
+
+This is a test file label
+
+Documents in the active file:
+
+document First line of a document
+
+Second line of a document
+
+The last line should end with a period: .
+
+(Entered <date>)
+
+Line one
+
+Line two
+
+(Entered <date>)
+
+File label:
+
+This is a test file label
+
+Documents in the active file:
+
+document First line of a document
+
+Second line of a document
+
+The last line should end with a period: .
+
+(Entered <date>)
+
+Line one
+
+Line two
+
+(Entered <date>)
+
+document There should be another document now.
+
+(Entered <date>)
+
+Documents in the active file:
+
+document First line of a document
+
+Second line of a document
+
+The last line should end with a period: .
+
+(Entered <date>)
+
+Line one
+
+Line two
+
+(Entered <date>)
+
+document There should be another document now.
+
+(Entered <date>)
+
+File label:
+
+This is a test file label
+])
+AT_CLEANUP

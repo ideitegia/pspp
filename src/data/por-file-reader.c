@@ -105,6 +105,8 @@ error (struct pfm_reader *r, const char *msg, ...)
   m.severity = MSG_S_ERROR;
   m.where.file_name = NULL;
   m.where.line_number = 0;
+  m.where.first_column = 0;
+  m.where.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);
@@ -134,6 +136,8 @@ warning (struct pfm_reader *r, const char *msg, ...)
   m.severity = MSG_S_WARNING;
   m.where.file_name = NULL;
   m.where.line_number = 0;
+  m.where.first_column = 0;
+  m.where.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);
@@ -152,7 +156,7 @@ close_reader (struct pfm_reader *r)
     {
       if (fn_close (fh_get_file_name (r->fh), r->file) == EOF)
         {
-          msg (ME, _("Error closing portable file \"%s\": %s."),
+          msg (ME, _("Error closing portable file `%s': %s."),
                fh_get_file_name (r->fh), strerror (errno));
           r->ok = false;
         }
@@ -271,7 +275,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->file = fn_open (fh_get_file_name (r->fh), "rb");
   if (r->file == NULL)
     {
-      msg (ME, _("An error occurred while opening \"%s\" for reading "
+      msg (ME, _("An error occurred while opening `%s' for reading "
                  "as a portable file: %s."),
            fh_get_file_name (r->fh), strerror (errno));
       goto error;

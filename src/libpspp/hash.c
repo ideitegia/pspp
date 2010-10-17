@@ -542,7 +542,7 @@ hsh_dump (struct hsh_table *h)
   void **entry = h->entries;
   int i;
 
-  printf (_("hash table:"));
+  printf ("hash table:");
   for (i = 0; i < h->size; i++)
     printf (" %p", *entry++);
   printf ("\n");

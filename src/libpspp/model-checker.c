@@ -707,7 +707,7 @@ mc_parser_option_callback (int id, void *mc_options_)
         mc_options_set_strategy (options, MC_RANDOM);
       else
         error (1, 0,
-               "strategy must be \"broad\", \"deep\", or \"random\"");
+               "strategy must be `broad', `deep', or `random'");
       break;
 
     case OPT_MAX_DEPTH:
@@ -756,8 +756,8 @@ mc_parser_option_callback (int id, void *mc_options_)
       else if (!strcmp (optarg, "random"))
         mc_options_set_queue_limit_strategy (options, MC_DROP_RANDOM);
       else
-        error (1, 0, "--queue-drop argument must be \"newest\", "
-               "\"oldest\", or \"random\"");
+        error (1, 0, "--queue-drop argument must be `newest' "
+               "`oldest' or `random'");
       break;
 
     case OPT_SEED:

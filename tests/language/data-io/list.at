@@ -1,0 +1,186 @@
+AT_BANNER([LIST])
+
+AT_SETUP([LIST plain cases])
+AT_DATA([data.txt], [dnl
+   18    1
+   19    7
+   20   26
+   21   76
+   22   57
+   23   58
+   24   38
+   25   38
+   26   30
+   27   21
+   28   23
+])
+AT_DATA([list.sps], [dnl
+DATA LIST FILE='data.txt'/avar 1-5 bvar 6-10.
+WEIGHT BY bvar.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv list.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading 1 record from `data.txt'.
+Variable,Record,Columns,Format
+avar,1,1-  5,F5.0
+bvar,1,6- 10,F5.0
+
+Table: Data List
+avar,bvar
+18,1
+19,7
+20,26
+21,76
+22,57
+23,58
+24,38
+25,38
+26,30
+27,21
+28,23
+])
+AT_CLEANUP
+
+AT_SETUP([LIST numbered cases])
+AT_DATA([data.txt], [dnl
+   18    1
+   19    7
+   20   26
+   21   76
+   22   57
+   23   58
+   24   38
+   25   38
+   26   30
+   27   21
+   28   23
+])
+AT_DATA([list.sps], [dnl
+DATA LIST FILE='data.txt'/avar 1-5 bvar 6-10.
+WEIGHT BY bvar.
+LIST/FORMAT NUMBERED.
+])
+AT_CHECK([pspp -o pspp.csv list.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading 1 record from `data.txt'.
+Variable,Record,Columns,Format
+avar,1,1-  5,F5.0
+bvar,1,6- 10,F5.0
+
+Table: Data List
+Case Number,avar,bvar
+1,18,1
+2,19,7
+3,20,26
+4,21,76
+5,22,57
+6,23,58
+7,24,38
+8,25,38
+9,26,30
+10,27,21
+11,28,23
+])
+AT_CLEANUP
+
+AT_SETUP([LIST lots of variables])
+AT_DATA([data.txt], [dnl
+767532466348513789073483106409
+888693089424177542378334186760
+492611507909187152726427852242
+819848892023195875879332001491
+452777898709563729845541516650
+239961967077732760663525115073
+])
+AT_DATA([list.sps], [dnl
+DATA LIST FILE='data.txt' NOTABLE/x01 to x30 1-30.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv list.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+x01,x02,x03,x04,x05,x06,x07,x08,x09,x10,x11,x12,x13,x14,x15,x16,x17,x18,x19,x20,x21,x22,x23,x24,x25,x26,x27,x28,x29,x30
+7,6,7,5,3,2,4,6,6,3,4,8,5,1,3,7,8,9,0,7,3,4,8,3,1,0,6,4,0,9
+8,8,8,6,9,3,0,8,9,4,2,4,1,7,7,5,4,2,3,7,8,3,3,4,1,8,6,7,6,0
+4,9,2,6,1,1,5,0,7,9,0,9,1,8,7,1,5,2,7,2,6,4,2,7,8,5,2,2,4,2
+8,1,9,8,4,8,8,9,2,0,2,3,1,9,5,8,7,5,8,7,9,3,3,2,0,0,1,4,9,1
+4,5,2,7,7,7,8,9,8,7,0,9,5,6,3,7,2,9,8,4,5,5,4,1,5,1,6,6,5,0
+2,3,9,9,6,1,9,6,7,0,7,7,7,3,2,7,6,0,6,6,3,5,2,5,1,1,5,0,7,3
+])
+AT_CLEANUP
+
+AT_SETUP([LIST selected cases])
+AT_DATA([data.txt], [dnl
+7675324663
+8886930894
+4926115079
+8198488920
+4527778987
+2399619670
+1667799691
+1623914684
+3681393233
+6418731145
+2284534083
+6617637452
+9865713582
+1163234537
+9981663637
+6821567746
+0952774952
+1641790193
+3763182871
+2046820753
+7970620091
+4841176017
+6949973797
+1396285996
+0700489524
+])
+AT_DATA([list.sps], [dnl
+DATA LIST FILE='data.txt' NOTABLE/x0 to x9 1-10.
+LIST /CASES=FROM 1 TO 25 BY 5.
+])
+AT_CHECK([pspp -o pspp.csv list.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+x0,x1,x2,x3,x4,x5,x6,x7,x8,x9
+7,6,7,5,3,2,4,6,6,3
+2,3,9,9,6,1,9,6,7,0
+2,2,8,4,5,3,4,0,8,3
+6,8,2,1,5,6,7,7,4,6
+7,9,7,0,6,2,0,0,9,1
+])
+AT_CLEANUP
+
+dnl This program tests for a bug which caused a buffer overflow
+dnl when the list command attempted to write very long strings.
+AT_SETUP([LIST very long string])
+AT_DATA([list.sps], [dnl
+INPUT PROGRAM.
+STRING foo (a2000).
++ COMPUTE foo=CONCAT(RPAD('A',1999, 'x'), 'Z').
+END CASE.
+END FILE.
+END INPUT PROGRAM.
+
+EXECUTE.
+
+DISPLAY VARIABLES.
+
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv list.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,,Position
+foo,Format: A2000,,1
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 32,,
+
+Table: Data List
+foo
+AxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxZ
+])
+AT_CLEANUP

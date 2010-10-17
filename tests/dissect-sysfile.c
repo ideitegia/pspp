@@ -127,7 +127,7 @@ main (int argc, char *argv[])
       r.file_name = argv[i];
       r.file = fopen (r.file_name, "rb");
       if (r.file == NULL)
-        error (EXIT_FAILURE, errno, "error opening \"%s\"", r.file_name);
+        error (EXIT_FAILURE, errno, "error opening `%s'", r.file_name);
       r.n_variable_records = 0;
       r.n_variables = 0;
       r.n_var_widths = 0;
@@ -689,8 +689,8 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count)
 
           if (!text_match (text, ' '))
             {
-              sys_warn (r, _("Missing space following 'E' at offset %zu "
-                             "in MRSETS record"), text_pos (text));
+              sys_warn (r, _("Missing space following `%c' at offset %zu "
+                             "in MRSETS record"), 'E', text_pos (text));
               break;
             }
 
@@ -698,14 +698,14 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count)
           if (!strcmp (number, "11"))
             label_from_var_label = true;
           else if (strcmp (number, "1"))
-            sys_warn (r, _("Unexpected label source value \"%s\" "
-                           "following 'E' at offset %zu in MRSETS record"),
+            sys_warn (r, _("Unexpected label source value `%s' "
+                           "following `E' at offset %zu in MRSETS record"),
                       number, text_pos (text));
 
         }
       else
         {
-          sys_warn (r, "missing 'C', 'D', or 'E' at offset %zu "
+          sys_warn (r, "missing `C', `D', or `E' at offset %zu "
                     "in mrsets record", text_pos (text));
           break;
         }

@@ -1,0 +1,47 @@
+AT_BANNER([VALUE LABELS])
+
+dnl Tests for a bug which caused VALUE LABELS to 
+dnl crash when given invalid syntax.
+AT_SETUP([VALUE LABELS invalid syntax bug])
+AT_DATA([value-labels.sps], [dnl
+DATA LIST LIST NOTABLE /a * pref * .
+BEGIN DATA.
+    1.00     1.00    
+    1.00     2.00    
+    2.00     1.00    
+    2.00     2.00    
+END DATA.
+
+VALUE LABELS /var=a 'label for a'.
+])
+AT_CHECK([pspp -O format=csv value-labels.sps], [1], [dnl
+value-labels.sps:9: error: VALUE LABELS: var is not a variable name.
+])
+AT_CLEANUP
+
+# Tests for a bug which caused a crash if VALUE LABELS had a trailing /.
+AT_SETUP([VALUE LABELS trailing `/' bug])
+AT_DATA([value-labels.sps], [dnl
+DATA LIST LIST NOTABLE /X * .
+BEGIN DATA.
+1 
+2
+3
+4
+END DATA.
+
+
+VALUE LABELS X 1 'one' 2 'two' 3 'three'/
+
+
+LIST VARIABLES=X.
+])
+AT_CHECK([pspp -O format=csv value-labels.sps], [0], [dnl
+Table: Data List
+X
+1.00
+2.00
+3.00
+4.00
+])
+AT_CLEANUP

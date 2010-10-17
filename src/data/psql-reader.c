@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -286,8 +286,7 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
 	}
     }
 
-  r->postgres_epoch =
-    calendar_gregorian_to_offset (2000, 1, 1, NULL, NULL);
+  r->postgres_epoch = calendar_gregorian_to_offset (2000, 1, 1, NULL);
 
 
   /* Create the dictionary and populate it */
@@ -838,7 +837,7 @@ set_value (struct psql_reader *r)
 	    case VARCHAROID:
 	    case BPCHAROID:
 	    case BYTEAOID:
-	      memcpy (value_str_rw (val, var_width), (char *) vptr,
+	      memcpy (value_str_rw (val, var_width), vptr,
                       MIN (length, var_width));
 	      break;
 

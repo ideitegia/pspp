@@ -577,7 +577,7 @@ parse_display (struct lexer *lexer, struct dictionary *dict)
           if (mrset->width == 0)
             ds_put_format (&details, "%.0f\n", mrset->counted.f);
           else
-            ds_put_format (&details, "\"%.*s\"\n", mrset->width,
+            ds_put_format (&details, "`%.*s'\n", mrset->width,
                            value_str (&mrset->counted, mrset->width));
           ds_put_format (&details, "%s: %s\n", _("Category label source"),
                          (mrset->cat_source == MRSET_VARLABELS

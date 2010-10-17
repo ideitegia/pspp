@@ -1,0 +1,23 @@
+AT_BANNER([expression parsing])
+
+AT_SETUP([parse expression with unknown variable crash])
+AT_DATA([parse.sps], [dnl
+INPUT PROGRAM.
+LOOP c=1 to 10.
+COMPUTE var1=NORMAL(100).
+END CASE.
+END LOOP.
+END FILE.
+END INPUT PROGRAM.
+
+
+IF ( y > 0 ) .
+COMPUTE x=y.
+END IF.
+])
+AT_CHECK([pspp -O format=csv parse.sps], [1], [dnl
+parse.sps:10: error: IF: Unknown identifier y.
+
+parse.sps:10: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+AT_CLEANUP

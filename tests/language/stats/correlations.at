@@ -1,0 +1,118 @@
+AT_BANNER([CORRELATIONS])
+
+AT_SETUP([CORRELATIONS -- unweighted])
+AT_DATA([correlations.sps], [dnl
+set format = F11.3.
+data list notable list /foo * bar * wiz * bang *.
+begin data.
+1   0   3   1
+3   9 -50   5
+3   4   3 203
+4  -9   0  -4
+98 78 104   2
+3  50 -49 200
+.   4   4   4
+5   3   0   .
+end data.
+
+correlations 
+	variables = foo bar wiz bang
+	/print nosig
+	/missing = listwise
+	.
+
+correlations 
+	variables = bar wiz
+	/print nosig
+	/missing = listwise
+	.
+
+correlations 
+	variables = foo bar wiz bang
+	/print nosig
+	/missing = pairwise
+	.
+])
+AT_CHECK([pspp -o pspp.csv correlations.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Correlations
+,,foo,bar,wiz,bang
+foo,Pearson Correlation,1.000,.802,.890,-.308
+,Sig. (2-tailed),,.055,.017,.553
+bar,Pearson Correlation,.802,1.000,.519,.118
+,Sig. (2-tailed),.055,,.291,.824
+wiz,Pearson Correlation,.890,.519,1.000,-.344
+,Sig. (2-tailed),.017,.291,,.505
+bang,Pearson Correlation,-.308,.118,-.344,1.000
+,Sig. (2-tailed),.553,.824,.505,
+
+Table: Correlations
+,,bar,wiz
+bar,Pearson Correlation,1.000,.497
+,Sig. (2-tailed),,.210
+wiz,Pearson Correlation,.497,1.000
+,Sig. (2-tailed),.210,
+
+Table: Correlations
+,,foo,bar,wiz,bang
+foo,Pearson Correlation,1.000,.805,.883,-.308
+,Sig. (2-tailed),,.029,.008,.553
+,N,7,7,7,6
+bar,Pearson Correlation,.805,1.000,.497,.164
+,Sig. (2-tailed),.029,,.210,.725
+,N,7,8,8,7
+wiz,Pearson Correlation,.883,.497,1.000,-.337
+,Sig. (2-tailed),.008,.210,,.460
+,N,7,8,8,7
+bang,Pearson Correlation,-.308,.164,-.337,1.000
+,Sig. (2-tailed),.553,.725,.460,
+,N,6,7,7,7
+])
+AT_CLEANUP
+
+AT_SETUP([CORRELATIONS -- weighted])
+AT_DATA([correlations1.sps], [dnl
+set format = F11.3.
+data list notable list /foo * bar * wiz * bang * w *.
+begin data.
+1   0   3   1  1
+3   9 -50   5  2
+3   4   3 203  1
+4  -9   0  -4  1
+98 78 104   2  3
+3  50 -49 200  1
+end data.
+
+weight by w.
+
+correlations 
+	variables = foo bar wiz bang
+	/statistics=descriptives xprod
+	.
+])
+AT_DATA([correlations2.sps], [dnl
+set format = F11.3.
+data list notable list /foo * bar * wiz * bang * w *.
+begin data.
+1   0   3   1  1
+3   9 -50   5  1
+3   9 -50   5  1
+3   4   3 203  1
+4  -9   0  -4  1
+98 78 104   2  1
+98 78 104   2  1
+98 78 104   2  1
+3  50 -49 200  1
+end data.
+
+weight by w.
+
+correlations 
+	variables = foo bar wiz bang
+	/statistics=descriptives xprod
+	.
+])
+AT_CHECK([pspp -O format=csv correlations1.sps], [0], [stdout])
+mv stdout expout
+AT_CHECK([pspp -O format=csv correlations2.sps], [0], [expout])
+AT_CLEANUP

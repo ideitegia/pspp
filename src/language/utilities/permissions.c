@@ -47,6 +47,9 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
   if (lex_match_id (lexer, "FILE"))
     lex_match (lexer, '=');
 
+  if (!lex_force_string (lexer))
+    return CMD_FAILURE;
+
   fn = ds_xstrdup (lex_tokstr (lexer));
   lex_force_match (lexer, T_STRING);
 

@@ -7,5 +7,5 @@ implemented.
 @cindex unimplemented commands
 @cindex commands, unimplemented
 
-@include doc/ni.texi
+@include ni.texi
 

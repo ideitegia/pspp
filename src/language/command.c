@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,34 +16,26 @@
 
 #include <config.h>
 
-#include <language/command.h>
+#include "language/command.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
-#include <unistd.h>
-#if HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
-#if HAVE_READLINE
-#include <readline/readline.h>
-#endif
 
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/variable.h>
-#include <language/lexer/lexer.h>
-#include <language/prompt.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <libpspp/getl.h>
-#include <output/text-item.h>
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/procedure.h"
+#include "data/settings.h"
+#include "data/variable.h"
+#include "language/lexer/lexer.h"
+#include "language/prompt.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "libpspp/getl.h"
+#include "output/text-item.h"
 
 #include "xalloc.h"
 #include "xmalloca.h"
@@ -783,124 +775,6 @@ cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
     }
 
   return CMD_SUCCESS;
-}
-
-#if HAVE_FORK && HAVE_EXECL
-/* Spawn an interactive shell process. */
-static bool
-shell (void)
-{
-  int pid;
-
-  pid = fork ();
-  switch (pid)
-    {
-    case 0:
-      {
-	const char *shell_fn;
-	char *shell_process;
-
-	{
-	  int i;
-
-	  for (i = 3; i < 20; i++)
-	    close (i);
-	}
-
-	shell_fn = getenv ("SHELL");
-	if (shell_fn == NULL)
-	  shell_fn = "/bin/sh";
-
-	{
-	  const char *cp = strrchr (shell_fn, '/');
-	  cp = cp ? &cp[1] : shell_fn;
-	  shell_process = xmalloca (strlen (cp) + 8);
-	  strcpy (shell_process, "-");
-	  strcat (shell_process, cp);
-	  if (strcmp (cp, "sh"))
-	    shell_process[0] = '+';
-	}
-
-	execl (shell_fn, shell_process, NULL);
-
-	_exit (1);
-      }
-
-    case -1:
-      msg (SE, _("Couldn't fork: %s."), strerror (errno));
-      return false;
-
-    default:
-      assert (pid > 0);
-      while (wait (NULL) != pid)
-	;
-      return true;
-    }
-}
-#else /* !(HAVE_FORK && HAVE_EXECL) */
-/* Don't know how to spawn an interactive shell. */
-static bool
-shell (void)
-{
-  msg (SE, _("Interactive shell not supported on this platform."));
-  return false;
-}
-#endif
-
-/* Executes the specified COMMAND in a subshell.  Returns true if
-   successful, false otherwise. */
-static bool
-run_command (const char *command)
-{
-  if (system (NULL) == 0)
-    {
-      msg (SE, _("Command shell not supported on this platform."));
-      return false;
-    }
-
-  /* Execute the command. */
-  if (system (command) == -1)
-    msg (SE, _("Error executing command: %s."), strerror (errno));
-
-  return true;
-}
-
-/* Parses, performs the HOST command. */
-int
-cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
-{
-  int look_ahead;
-
-  if (settings_get_safer_mode ())
-    {
-      msg (SE, _("This command not allowed when the SAFER option is set."));
-      return CMD_FAILURE;
-    }
-
-  look_ahead = lex_look_ahead (lexer);
-  if (look_ahead == '.')
-    {
-      lex_get (lexer);
-      return shell () ? CMD_SUCCESS : CMD_FAILURE;
-    }
-  else if (look_ahead == '\'' || look_ahead == '"')
-    {
-      bool ok;
-
-      lex_get (lexer);
-      if (!lex_force_string (lexer))
-        NOT_REACHED ();
-      ok = run_command (ds_cstr (lex_tokstr (lexer)));
-
-      lex_get (lexer);
-      return ok ? lex_end_of_command (lexer) : CMD_FAILURE;
-    }
-  else
-    {
-      bool ok = run_command (lex_rest_of_line (lexer));
-      lex_discard_line (lexer);
-      return ok ? CMD_SUCCESS : CMD_FAILURE;
-    }
 }
 
 /* Parses, performs the NEW FILE command. */

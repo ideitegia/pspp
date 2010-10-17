@@ -681,6 +681,7 @@ is used.
 @menu
 * BINOMIAL::                Binomial Test
 * CHISQUARE::               Chisquare Test
+* KRUSKAL-WALLIS::          Kruskal-Wallis Test
 * WILCOXON::                Wilcoxon Signed Ranks Test
 * SIGN::                    The Sign Test
 @end menu
@@ -761,6 +762,32 @@ The frequencies given are proportions, not absolute frequencies.  The
 sum of the frequencies need not be 1.
 If no /EXPECTED subcommand is given, then then equal frequencies 
 are expected.
+
+
+@node KRUSKAL-WALLIS
+@subsection Kruskal-Wallis Test
+@comment  node-name,  next,  previous,  up
+@vindex KRUSKAL-WALLIS
+@vindex K-W
+@cindex Kruskal-Wallis test
+
+@display
+     [ /KRUSKAL-WALLIS = varlist BY var (lower, upper) ]
+@end display
+
+The Kruskal-Wallis test is used to compare data from an 
+arbitrary number of populations.  It does not assume normality.
+The data to be compared are specified by @var{varlist}.
+The categorical variable determining the groups to which the
+data belongs is given by @var{var}. The limits @var{lower} and
+@var{upper} specify the valid range of @var{var}. Any cases for
+which @var{var} falls outside [@var{lower}, @var{upper}] will be
+ignored.
+
+The mean rank of each group as well as the chi-squared value and significance
+of the test will be printed.
+The abbreviated subcommand  K-W may be used in place of KRUSKAL-WALLIS.
+
 
 @node WILCOXON
 @subsection Wilcoxon Matched Pairs Signed Ranks Test

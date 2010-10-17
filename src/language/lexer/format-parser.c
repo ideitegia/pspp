@@ -104,7 +104,7 @@ parse_format_specifier (struct lexer *lexer, struct fmt_spec *format)
 
   if (!fmt_from_name (type, &format->type))
     {
-      msg (SE, _("Unknown format type \"%s\"."), type);
+      msg (SE, _("Unknown format type `%s'."), type);
       return false;
     }
 
@@ -123,7 +123,7 @@ parse_format_specifier_name (struct lexer *lexer, enum fmt_type *type)
     }
   if (!fmt_from_name (ds_cstr (lex_tokstr (lexer)), type))
     {
-      msg (SE, _("Unknown format type \"%s\"."), ds_cstr (lex_tokstr (lexer)));
+      msg (SE, _("Unknown format type `%s'."), ds_cstr (lex_tokstr (lexer)));
       return false;
     }
   lex_get (lexer);

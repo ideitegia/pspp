@@ -57,6 +57,10 @@ msg (enum msg_class class, const char *format, ...)
   m.severity = msg_class_to_severity (class);
   va_start (args, format);
   m.text = xvasprintf (format, args);
+  m.where.file_name = NULL;
+  m.where.line_number = 0;
+  m.where.first_column = 0;
+  m.where.last_column = 0;
   va_end (args);
 
   msg_emit (&m);
@@ -114,13 +118,25 @@ msg_to_string (const struct msg *m, const char *command_name)
   ds_init_empty (&s);
 
   if (m->category != MSG_C_GENERAL
-      && (m->where.file_name || m->where.line_number != -1))
+      && (m->where.file_name
+          || m->where.line_number > 0
+          || m->where.first_column > 0))
     {
       if (m->where.file_name)
-        ds_put_format (&s, "%s:", m->where.file_name);
-      if (m->where.line_number != -1)
-        ds_put_format (&s, "%d:", m->where.line_number);
-      ds_put_char (&s, ' ');
+        ds_put_format (&s, "%s", m->where.file_name);
+      if (m->where.line_number > 0)
+        {
+          if (!ds_is_empty (&s))
+            ds_put_char (&s, ':');
+          ds_put_format (&s, "%d", m->where.line_number);
+        }
+      if (m->where.first_column > 0)
+        {
+          ds_put_format (&s, ".%d", m->where.first_column);
+          if (m->where.last_column > m->where.first_column + 1)
+            ds_put_format (&s, "-%d", m->where.last_column - 1);
+        }
+      ds_put_cstr (&s, ": ");
     }
 
   switch (m->severity)
@@ -199,7 +215,9 @@ submit_note (char *s)
   m.category = MSG_C_GENERAL;
   m.severity = MSG_S_NOTE;
   m.where.file_name = NULL;
-  m.where.line_number = -1;
+  m.where.line_number = 0;
+  m.where.first_column = 0;
+  m.where.last_column = 0;
   m.text = s;
   msg_handler (&m);
   free (s);
@@ -253,12 +271,18 @@ process_msg (const struct msg *m)
 void
 msg_emit (struct msg *m)
 {
-  if ( s_stream )
-    get_msg_location (s_stream, &m->where);
+  if ( s_stream && m->where.file_name == NULL )
+    {
+      struct msg_locator loc;
+
+      get_msg_location (s_stream, &loc);
+      m->where.file_name = loc.file_name;
+      m->where.line_number = loc.line_number;
+    }
   else
     {
       m->where.file_name = NULL;
-      m->where.line_number = -1;
+      m->where.line_number = 0;
     }
 
   if (!messages_disabled)
@@ -288,7 +312,7 @@ msg_enable (void)
 /* Private functions. */
 
 void
-request_bug_report_and_abort (const char *msg)
+request_bug_report (const char *msg)
 {
   fprintf (stderr, "******************************************************\n");
   fprintf (stderr, "You have discovered a bug in PSPP.  Please report this\n");
@@ -310,7 +334,5 @@ request_bug_report_and_abort (const char *msg)
 #endif
            );
   fprintf (stderr, "******************************************************\n");
-
-  _exit (EXIT_FAILURE);
 }
 

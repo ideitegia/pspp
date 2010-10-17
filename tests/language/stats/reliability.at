@@ -1,0 +1,249 @@
+AT_BANNER([RELIABILITY])
+
+AT_SETUP([RELIABILITY])
+AT_DATA([reliability.sps], [dnl
+data list notable list  /var1 *
+	var2  *
+	var6  *
+	var7  *
+	var8  *
+	var9  *
+	var11 *
+	var12 *
+	var15 *
+	var16 *
+	var17 *
+	var19 *
+	.
+
+begin data.
+6 7 7 5 7 7 7 7 7 7 6 6
+6 7 7 6 7 6 7 5 6 5 7 7
+6 6 7 6 5 3 6 4 5 6 4 5
+4 6 5 6 6 5 4 3 5 6 5 6
+5 6 5 5 6 5 4 4 6 6 5 5
+6 6 7 6 6 5 6 5 6 6 5 6
+5 6 6 5 6 5 5 4 6 5 5 5
+5 7 7 7 7 7 6 5 7 7 7 7
+6 6 6 5 5 7 6 5 6 6 5 6
+. . . . . . . . . . . .
+6 6 5 5 5 6 6 4 6 5 5 5
+7 7 7 6 7 6 7 6 6 6 7 6
+4 7 6 6 6 5 5 4 4 5 5 6
+5 6 3 5 4 1 4 6 2 3 3 2
+3 6 6 5 6 2 4 2 2 4 4 5
+6 6 7 5 6 5 7 6 5 6 6 5
+6 5 6 6 5 6 6 6 6 4 5 5
+5 7 7 . 6 6 6 5 6 6 6 6
+5 7 5 5 4 6 7 6 5 4 6 5
+7 7 7 6 7 7 7 6 7 7 7 6
+3 6 5 6 5 7 7 3 4 7 5 7
+6 7 7 6 5 6 5 5 6 6 6 6
+5 5 6 5 5 5 5 4 5 5 5 6
+6 6 7 4 5 6 6 6 6 5 5 6
+6 5 6 6 4 4 5 4 5 6 4 5
+5 6 7 6 6 7 7 5 6 6 6 5
+5 6 5 7 4 6 6 5 7 7 5 6
+. . . . . . . . . . . .
+7 6 6 5 6 6 7 6 6 5 5 6
+6 6 7 7 7 7 7 6 7 6 6 7
+7 5 5 . 5 . 7 3 5 4 5 3
+7 6 7 5 4 5 7 5 7 5 5 6
+6 5 6 6 6 5 5 5 5 6 5 6
+7 7 7 7 7 7 7 7 5 6 7 7
+. . . . . . . . . . . .
+5 5 6 7 5 6 6 4 6 6 6 5
+6 6 5 7 5 6 7 5 6 5 4 6
+7 6 7 6 7 5 6 7 7 6 6 6
+5 6 5 6 5 6 7 2 5 7 3 7
+6 6 5 6 5 6 6 6 6 6 5 6
+7 6 7 6 6 6 6 6 6 7 6 7
+7 7 6 5 6 6 7 7 7 4 6 5
+3 7 7 6 6 7 7 7 6 6 6 4
+3 5 3 4 3 3 3 3 3 3 3 5
+5 7 7 7 5 7 6 2 6 7 6 7
+7 7 7 7 7 7 7 6 7 7 7 6
+6 5 7 4 4 4 5 6 5 5 4 5
+4 7 7 4 4 3 6 3 5 3 4 5
+7 7 7 7 7 7 7 7 7 7 7 5
+3 6 5 5 4 5 4 4 5 5 3 5
+6 7 6 6 6 7 7 6 6 6 7 6
+2 5 4 6 3 2 2 2 2 7 2 2
+4 6 6 5 5 5 6 5 5 6 6 5
+5 7 4 5 6 6 6 5 6 6 5 6
+5 7 7 5 6 5 6 5 5 4 5 4
+4 5 6 5 6 4 5 5 5 4 5 5
+7 6 6 5 5 6 7 5 6 5 7 6
+5 6 6 5 4 5 5 3 4 5 5 5
+5 7 6 4 4 5 6 5 6 4 4 6
+6 6 6 6 5 7 7 6 5 5 6 6
+6 6 7 6 7 6 6 5 6 7 6 5
+7 6 7 6 7 6 7 7 5 5 6 6
+5 6 6 5 5 5 6 5 6 7 7 5
+5 6 6 5 6 5 6 6 6 6 6 6
+5 5 5 5 6 4 5 3 4 7 6 5
+5 7 7 6 6 6 6 5 6 7 6 7
+6 6 7 7 7 5 6 5 5 5 5 4
+2 7 5 4 6 5 5 2 5 6 4 6
+6 7 7 5 6 6 7 6 6 7 5 7
+5 6 7 6 6 3 5 7 6 6 5 6
+6 6 6 3 5 5 5 6 6 6 4 5
+4 7 7 4 7 4 5 5 5 7 4 4
+. . . . . . . . . . . .
+6 6 7 6 7 6 7 7 6 7 7 6
+. . . . . . . . . . . .
+5 6 5 7 6 5 6 6 5 6 4 6
+5 5 5 5 4 5 5 5 7 5 5 5
+6 6 6 4 5 4 6 6 6 4 5 4
+6 5 7 4 6 4 6 5 6 6 6 3
+5 7 6 5 5 5 5 5 6 7 6 6
+5 5 7 7 5 5 6 6 5 5 5 7
+5 6 7 6 7 5 6 4 6 7 6 7
+4 5 5 5 6 5 6 5 6 6 5 6
+6 5 5 5 6 3 4 5 5 4 5 3
+6 6 6 5 5 5 4 3 4 5 5 5
+6 7 7 6 2 3 6 6 6 5 7 7
+6 7 5 5 6 6 6 5 6 6 6 6
+6 7 7 6 7 7 7 5 5 6 6 6
+6 6 6 6 7 6 6 7 6 6 6 6
+5 6 6 6 3 5 6 6 5 5 4 6
+4 6 5 6 6 5 6 5 6 6 5 5
+6 4 6 5 4 6 7 4 5 6 5 5
+6 7 6 4 6 5 7 6 7 7 6 5
+6 7 7 6 7 6 7 7 7 6 6 6
+6 6 6 4 5 6 7 7 5 6 4 4
+3 3 5 3 3 1 5 6 3 2 3 3
+7 7 5 6 6 7 7 6 7 7 7 7
+5 6 6 6 7 5 4 5 4 7 6 7
+3 6 5 4 3 3 3 5 5 6 3 4
+5 7 6 4 6 5 5 6 6 7 5 6
+5 7 6 6 6 6 6 5 6 7 7 6
+7 7 5 6 7 7 7 7 6 5 7 7
+6 7 6 6 5 6 7 7 6 5 6 6
+6 7 7 7 7 6 6 7 6 7 7 7
+4 6 4 7 3 6 5 5 4 3 5 6
+5 5 7 5 4 6 7 5 4 6 6 5
+5 5 6 4 6 5 7 6 5 5 5 6
+. . . . . . . . . . . .
+. . . . . . . . . . . .
+5 7 7 5 6 6 7 7 6 6 6 7
+6 7 7 1 2 1 7 7 5 5 5 2
+. . . . . . . . . . . .
+3 7 4 6 4 7 4 6 4 7 4 7
+5 7 3 5 5 6 7 5 4 7 7 4
+4 7 7 5 4 6 7 7 6 5 4 4
+6 6 2 2 6 4 6 5 5 1 5 2
+5 5 6 4 5 4 6 5 5 6 5 5
+. . . . . . . . . . . .
+5 7 6 6 6 6 6 6 5 6 6 6
+6 6 6 5 6 6 6 6 7 5 6 7
+3 6 3 3 5 3 3 5 3 5 7 4
+4 4 6 3 3 3 4 3 4 2 3 6
+5 7 7 6 5 4 7 5 7 7 3 7
+4 5 4 4 4 4 3 3 3 4 3 3
+6 7 7 5 6 6 7 5 4 5 5 5
+3 5 3 3 1 3 4 3 4 7 6 7
+4 5 4 4 4 3 4 5 6 6 4 5
+5 6 3 4 5 3 5 3 4 5 6 4
+5 5 5 6 6 6 6 4 5 6 6 5
+6 7 7 2 2 6 7 7 7 7 5 7
+5 7 7 4 6 5 7 5 5 5 6 6
+6 6 7 7 5 5 5 7 6 7 7 7
+6 5 7 3 6 5 6 5 5 6 5 4
+5 7 6 5 6 6 6 5 6 5 5 6
+4 5 5 5 6 3 5 3 3 6 5 5
+. . . . . . . . . . . .
+5 6 6 4 4 4 5 3 5 5 2 6
+5 6 7 5 5 6 6 5 5 6 6 6
+6 7 7 6 4 7 7 6 7 5 6 7
+6 6 5 4 5 2 7 6 6 5 6 6
+2 2 2 2 2 2 3 2 3 1 1 2
+end data.
+
+RELIABILITY
+  /VARIABLES=var2 var8 var15 var17 var6
+  /SCALE('Everything') var6 var8 var15 var17
+  /MODEL=ALPHA.
+
+RELIABILITY
+  /VARIABLES=var6 var8 var15 var17
+  /SCALE('Nothing') ALL
+  /MODEL=SPLIT(2)
+ .
+
+RELIABILITY
+  /VARIABLES=var2 var6 var8 var15 var17 var19
+  /SCALE('Totals') var6 var8 var15 var17 
+  /SUMMARY = total
+ .
+
+
+RELIABILITY
+  /VARIABLES=var6 var8 var15 var17 
+  .
+])
+AT_CHECK([pspp -o pspp.csv reliability.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Scale: Everything
+
+Table: Case Processing Summary
+,,N,%
+Cases,Valid,131,92.91
+,Excluded,10,7.09
+,Total,141,100.00
+
+Table: Reliability Statistics
+Cronbach's Alpha,N of Items
+.75,4
+
+Scale: Nothing
+
+Table: Case Processing Summary
+,,N,%
+Cases,Valid,131,92.91
+,Excluded,10,7.09
+,Total,141,100.00
+
+Table: Reliability Statistics
+Cronbach's Alpha,Part 1,Value,.55
+,,N of Items,2
+,Part 2,Value,.63
+,,N of Items,2
+,Total N of Items,,4
+Correlation Between Forms,,,.61
+Spearman-Brown Coefficient,Equal Length,,.75
+,Unequal Length,,.75
+Guttman Split-Half Coefficient,,,.75
+
+Scale: Totals
+
+Table: Case Processing Summary
+,,N,%
+Cases,Valid,131,92.91
+,Excluded,10,7.09
+,Total,141,100.00
+
+Table: Reliability Statistics
+Cronbach's Alpha,N of Items
+.75,4
+
+Table: Item-Total Statistics
+,Scale Mean if Item Deleted,Scale Variance if Item Deleted,Corrected Item-Total Correlation,Cronbach's Alpha if Item Deleted
+var6,15.97,8.43,.51,.71
+var8,16.56,7.86,.53,.70
+var15,16.47,8.45,.56,.68
+var17,16.60,8.00,.57,.67
+
+Scale: ANY
+
+Table: Case Processing Summary
+,,N,%
+Cases,Valid,131,92.91
+,Excluded,10,7.09
+,Total,141,100.00
+
+Table: Reliability Statistics
+Cronbach's Alpha,N of Items
+.75,4
+])
+AT_CLEANUP

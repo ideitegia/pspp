@@ -293,7 +293,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->file = fn_open (fh_get_file_name (fh), "rb");
   if (r->file == NULL)
     {
-      msg (ME, _("Error opening \"%s\" for reading as a system file: %s."),
+      msg (ME, _("Error opening `%s' for reading as a system file: %s."),
            fh_get_file_name (r->fh), strerror (errno));
       goto error;
     }
@@ -424,7 +424,7 @@ close_reader (struct sfm_reader *r)
     {
       if (fn_close (fh_get_file_name (r->fh), r->file) == EOF)
         {
-          msg (ME, _("Error closing system file \"%s\": %s."),
+          msg (ME, _("Error closing system file `%s': %s."),
                fh_get_file_name (r->fh), strerror (errno));
           r->error = true;
         }
@@ -595,7 +595,7 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
 
   /* Check variable name. */
   if (name[0] == '$' || name[0] == '#')
-    sys_error (r, "Variable name begins with invalid character `%c'.",
+    sys_error (r, _("Variable name begins with invalid character `%c'."),
                name[0]);
   if (!var_is_plausible_name (name, false))
     sys_error (r, _("Invalid variable name `%s'."), name);
@@ -1052,8 +1052,8 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
           mrset->type = MRSET_MC;
           if (!text_match (text, ' '))
             {
-              sys_warn (r, _("Missing space following 'C' at offset %zu "
-                             "in MRSETS record"), text_pos (text));
+              sys_warn (r, _("Missing space following `%c' at offset %zu "
+                             "in MRSETS record"), 'C', text_pos (text));
               break;
             }
         }
@@ -1070,8 +1070,8 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
           mrset->cat_source = MRSET_COUNTEDVALUES;
           if (!text_match (text, ' '))
             {
-              sys_warn (r, _("Missing space following 'E' at offset %zu "
-                             "in MRSETS record"), text_pos (text));
+              sys_warn (r, _("Missing space following `%c' at offset %zu "
+                             "in MRSETS record"), 'E',  text_pos (text));
               break;
             }
 
@@ -1079,13 +1079,13 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
           if (!strcmp (number, "11"))
             mrset->label_from_var_label = true;
           else if (strcmp (number, "1"))
-            sys_warn (r, _("Unexpected label source value \"%s\" "
-                           "following 'E' at offset %zu in MRSETS record"),
+            sys_warn (r, _("Unexpected label source value `%s' "
+                           "following `E' at offset %zu in MRSETS record"),
                       number, text_pos (text));
         }
       else
         {
-          sys_warn (r, _("Missing 'C', 'D', or 'E' at offset %zu "
+          sys_warn (r, _("Missing `C', `D', or `E' at offset %zu "
                          "in MRSETS record."),
                     text_pos (text));
           break;
@@ -1502,7 +1502,7 @@ read_value_labels (struct sfm_reader *r,
                 sys_warn (r, _("Duplicate value label for %g on %s."),
                           label->value.f, var_get_name (v));
               else
-                sys_warn (r, _("Duplicate value label for \"%.*s\" on %s."),
+                sys_warn (r, _("Duplicate value label for `%.*s' on %s."),
                           max_width, value_str (&label->value, max_width),
                           var_get_name (v));
             }
@@ -1683,7 +1683,7 @@ read_long_string_value_labels (struct sfm_reader *r,
             }
 
           if (!skip && !var_add_value_label (v, &value, label))
-            sys_warn (r, _("Duplicate value label for \"%.*s\" on %s."),
+            sys_warn (r, _("Duplicate value label for `%.*s' on %s."),
                       width, value_str (&value, width), var_get_name (v));
         }
     }
@@ -2290,7 +2290,7 @@ sys_msg (struct sfm_reader *r, int class, const char *format, va_list args)
   struct string text;
 
   ds_init_empty (&text);
-  ds_put_format (&text, "\"%s\" near offset 0x%llx: ",
+  ds_put_format (&text, "`%s' near offset 0x%llx: ",
                  fh_get_file_name (r->fh), (long long int) ftello (r->file));
   ds_put_vformat (&text, format, args);
 
@@ -2298,6 +2298,8 @@ sys_msg (struct sfm_reader *r, int class, const char *format, va_list args)
   m.severity = msg_class_to_severity (class);
   m.where.file_name = NULL;
   m.where.line_number = 0;
+  m.where.first_column = 0;
+  m.where.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);

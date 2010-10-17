@@ -45,11 +45,11 @@ list.
 ])
 
 AT_CHECK([pspp -O format=csv set.pspp], [0], [dnl
-"set.pspp:5: warning: (column 3, F field) Field contents are not numeric."
+set.pspp:5.3: warning: Data for variable y is not valid as format F: Field contents are not numeric.
 
-"set.pspp:6: warning: (column 3, F field) Field contents are not numeric."
+set.pspp:6.3: warning: Data for variable y is not valid as format F: Field contents are not numeric.
 
-"set.pspp:7: warning: (column 1, F field) Field contents are not numeric."
+set.pspp:7.1: warning: Data for variable x is not valid as format F: Field contents are not numeric.
 
 note: Warnings (3) exceed limit (2).  Syntax processing will be halted.
 ])
@@ -91,4 +91,24 @@ x,y,z
 .  ,.  ,4.00
 ])
 
+AT_CLEANUP
+
+AT_BANNER([PRESERVE and RESTORE])
+
+AT_SETUP([PRESERVE of SET FORMAT])
+AT_DATA([set.pspp], [dnl
+SHOW FORMAT.
+PRESERVE.
+SET FORMAT F10.0.
+SHOW FORMAT
+RESTORE.
+SHOW FORMAT.
+])
+AT_CHECK([pspp -O format=csv set.pspp], [0], [dnl
+set.pspp:1: note: SHOW: FORMAT is F8.2.
+
+set.pspp:5: note: SHOW: FORMAT is F10.0.
+
+set.pspp:6: note: SHOW: FORMAT is F8.2.
+])
 AT_CLEANUP

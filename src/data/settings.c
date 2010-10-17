@@ -15,25 +15,26 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "settings.h"
+
+#include "data/settings.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
-#include "format.h"
-#include "value.h"
-#include "xalloc.h"
-#include <data/case.h>
-#include <libpspp/i18n.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/message.h>
 
-#include "error.h"
-#include "minmax.h"
+#include "data/case.h"
+#include "data/format.h"
+#include "data/value.h"
+#include "libpspp/i18n.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/message.h"
+
+#include "gl/error.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-static int global_algorithm = ENHANCED;
 
 struct settings
 {
@@ -49,8 +50,8 @@ struct settings
   /* Format of reals in output (SET WRB). */
   enum float_format output_float_format;
 
-  int *viewlength;
-  int *viewwidth;
+  int viewlength;
+  int viewwidth;
   bool safer_mode;
   bool include;
   int epoch;
@@ -70,96 +71,109 @@ struct settings
   bool testing_mode;
 
   int cmd_algorithm;
-  int *algorithm;
+  int global_algorithm;
   int syntax;
 
-  struct fmt_number_style *styles;
+  struct fmt_settings *styles;
 
   enum settings_output_devices output_routing[SETTINGS_N_OUTPUT_TYPES];
 };
 
 static struct settings the_settings = {
-    /* input_integer_format */
-  INTEGER_NATIVE,
-    /* input_float_format */
-  FLOAT_NATIVE_DOUBLE,
-    /* output_integer_format */
-  INTEGER_NATIVE,
-    /* output_float_format */
-  FLOAT_NATIVE_DOUBLE,
-    /* viewlength */
-  NULL,
-    /* viewwidth */
-  NULL,
-    /* safer_mode */
-  false,
-    /* include */
-  true,
-    /* epoch */
-  -1,
-    /* route_errors_to_terminal */
-  true,
-    /* route_errors_to_listing */
-  true,
-    /* scompress */
-  true,
-    /* undefined */
-  true,
-    /* blanks */
-  SYSMIS,
-    /* max_messages */
+  INTEGER_NATIVE,               /* input_integer_format */
+  FLOAT_NATIVE_DOUBLE,          /* input_float_format */
+  INTEGER_NATIVE,               /* output_integer_format */
+  FLOAT_NATIVE_DOUBLE,          /* output_float_format */
+  24,                           /* viewlength */
+  79,                           /* viewwidth */
+  false,                        /* safer_mode */
+  true,                         /* include */
+  -1,                           /* epoch */
+  true,                         /* route_errors_to_terminal */
+  true,                         /* route_errors_to_listing */
+  true,                         /* scompress */
+  true,                         /* undefined */
+  SYSMIS,                       /* blanks */
+
+  /* max_messages */
   {
     100,                        /* MSG_S_ERROR */
     100,                        /* MSG_S_WARNING */
     100                         /* MSG_S_NOTE */
   },
-    /* printback */
-  true,
-    /* mprint */
-  true,
-    /* mxloops */
-  1,
-    /* nulline */
-  true,
-    /* endcmd */
-  '.',
-    /* workspace */
-  64L * 1024 * 1024,
-    /* default_format */
-  {FMT_F, 8, 2},
-    /* testing_mode */
-  false,
-    /* cmd_algorithm */
-  ENHANCED,
-    /* algorithm */
-  &global_algorithm,
-    /* syntax */
-  ENHANCED,
-    /* styles */
-  NULL,
-    /* output devices */
+
+  true,                         /* printback */
+  true,                         /* mprint */
+  1,                            /* mxloops */
+  true,                         /* nulline */
+  '.',                          /* endcmd */
+  64L * 1024 * 1024,            /* workspace */
+  {FMT_F, 8, 2},                /* default_format */
+  false,                        /* testing_mode */
+  ENHANCED,                     /* cmd_algorithm */
+  ENHANCED,                     /* global_algorithm */
+  ENHANCED,                     /* syntax */
+  NULL,                         /* styles */
+
+  /* output_routing */
   {SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL,
    SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL,
    0,
    SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL}
 };
 
-static void init_viewport ( int *, int *);
-
+/* Initializes the settings module. */
 void
-settings_init (int *width, int *length)
+settings_init (void)
 {
-  init_viewport (width, length);
   settings_set_epoch (-1);
-  the_settings.styles = fmt_create ();
+  the_settings.styles = fmt_settings_create ();
 
   settings_set_decimal_char (get_system_decimal ());
 }
 
+/* Cleans up the settings module. */
 void
 settings_done (void)
 {
-  fmt_done (the_settings.styles);
+  settings_destroy (&the_settings);
+}
+
+static void
+settings_copy (struct settings *dst, const struct settings *src)
+{
+  *dst = *src;
+  dst->styles = fmt_settings_clone (src->styles);
+}
+
+/* Returns a copy of the current settings. */
+struct settings *
+settings_get (void)
+{
+  struct settings *s = xmalloc (sizeof *s);
+  settings_copy (s, &the_settings);
+  return s;
+}
+
+/* Replaces the current settings by those in S.  The caller retains ownership
+   of S. */
+void
+settings_set (const struct settings *s)
+{
+  settings_destroy (&the_settings);
+  settings_copy (&the_settings, s);
+}
+
+/* Destroys S. */
+void
+settings_destroy (struct settings *s)
+{
+  if (s != NULL)
+    {
+      fmt_settings_destroy (s->styles);
+      if (s != &the_settings)
+        free (s);
+    }
 }
 
 /* Returns the floating-point format used for RB and RBHEX
@@ -226,35 +240,28 @@ settings_set_output_float_format ( enum float_format float_format)
 int
 settings_get_viewlength (void)
 {
-  return *the_settings.viewlength;
+  return the_settings.viewlength;
 }
 
 /* Sets the view length. */
 void
 settings_set_viewlength ( int viewlength_)
 {
-  *the_settings.viewlength = viewlength_;
+  the_settings.viewlength = viewlength_;
 }
 
 /* Screen width. */
 int
 settings_get_viewwidth(void)
 {
-  return *the_settings.viewwidth;
+  return the_settings.viewwidth;
 }
 
 /* Sets the screen width. */
 void
 settings_set_viewwidth ( int viewwidth_)
 {
-  *the_settings.viewwidth = viewwidth_;
-}
-
-static void
-init_viewport ( int  *width, int *length)
-{
-  the_settings.viewwidth = width;
-  the_settings.viewlength = length;
+  the_settings.viewwidth = viewwidth_;
 }
 
 /* Whether PSPP can erase and overwrite files. */
@@ -511,14 +518,14 @@ settings_set_testing_mode ( bool testing_mode)
 enum behavior_mode
 settings_get_algorithm (void)
 {
-  return *the_settings.algorithm;
+  return the_settings.cmd_algorithm;
 }
 
 /* Set the algorithm option globally. */
 void
 settings_set_algorithm (enum behavior_mode mode)
 {
-  global_algorithm = mode;
+  the_settings.global_algorithm = the_settings.cmd_algorithm = mode;
 }
 
 /* Set the algorithm option for this command only */
@@ -526,14 +533,13 @@ void
 settings_set_cmd_algorithm ( enum behavior_mode mode)
 {
   the_settings.cmd_algorithm = mode;
-  the_settings.algorithm = &the_settings.cmd_algorithm;
 }
 
 /* Unset the algorithm option for this command */
 void
 unset_cmd_algorithm (void)
 {
-  the_settings.algorithm = &global_algorithm;
+  the_settings.cmd_algorithm = the_settings.global_algorithm;
 }
 
 /* Get the current syntax setting */
@@ -589,41 +595,46 @@ find_cc_separators (const char *cc_string, struct fmt_number_style *cc)
   return true;
 }
 
-/* Extracts a token from IN into a newly allocated AFFIX.  Tokens
-   are delimited by GROUPING.  The token is truncated to at most
-   FMT_STYLE_AFFIX_MAX characters.  Returns the first character
-   following the token. */
+/* Extracts a token from IN into AFFIX, using BUFFER for storage.  BUFFER must
+   have at least FMT_STYLE_AFFIX_MAX + 1 bytes of space.  Tokens are delimited
+   by GROUPING.  The token is truncated to at most FMT_STYLE_AFFIX_MAX bytes,
+   followed by a null terminator.  Returns the first character following the
+   token. */
 static const char *
-extract_cc_token (const char *in, int grouping, struct substring *affix)
+extract_cc_token (const char *in, int grouping, struct substring *affix,
+                  char buffer[FMT_STYLE_AFFIX_MAX + 1])
 {
   size_t ofs = 0;
-  ss_alloc_uninit (affix, FMT_STYLE_AFFIX_MAX);
+
   for (; *in != '\0' && *in != grouping; in++)
     {
       if (*in == '\'' && in[1] == grouping)
         in++;
       if (ofs < FMT_STYLE_AFFIX_MAX)
-        ss_data (*affix)[ofs++] = *in;
+        buffer[ofs++] = *in;
     }
-  affix->length = ofs;
+  *affix = ss_buffer (buffer, ofs);
 
   if (*in == grouping)
     in++;
   return in;
 }
 
-
 /* Sets custom currency specifier CC having name CC_NAME ('A' through
    'E') to correspond to the settings in CC_STRING. */
 bool
 settings_set_cc (const char *cc_string, enum fmt_type type)
 {
-  struct fmt_number_style *cc = &the_settings.styles[type];
+  char a[FMT_STYLE_AFFIX_MAX + 1];
+  char b[FMT_STYLE_AFFIX_MAX + 1];
+  char c[FMT_STYLE_AFFIX_MAX + 1];
+  char d[FMT_STYLE_AFFIX_MAX + 1];
+  struct fmt_number_style cc;
 
   assert (fmt_get_category (type) == FMT_CAT_CUSTOM);
 
   /* Determine separators. */
-  if (!find_cc_separators (cc_string, cc))
+  if (!find_cc_separators (cc_string, &cc))
     {
       msg (SE, _("%s: Custom currency string `%s' does not contain "
                  "exactly three periods or commas (or it contains both)."),
@@ -631,12 +642,12 @@ settings_set_cc (const char *cc_string, enum fmt_type type)
       return false;
     }
 
-  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_prefix);
-  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->prefix);
-  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->suffix);
-  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_suffix);
+  cc_string = extract_cc_token (cc_string, cc.grouping, &cc.neg_prefix, a);
+  cc_string = extract_cc_token (cc_string, cc.grouping, &cc.prefix, b);
+  cc_string = extract_cc_token (cc_string, cc.grouping, &cc.suffix, c);
+  cc_string = extract_cc_token (cc_string, cc.grouping, &cc.neg_suffix, d);
 
-  fmt_check_style (cc);
+  fmt_settings_set_style (the_settings.styles, type, &cc);
 
   return true;
 }
@@ -645,16 +656,14 @@ settings_set_cc (const char *cc_string, enum fmt_type type)
 int
 settings_get_decimal_char (enum fmt_type type)
 {
-  return fmt_get_style (the_settings.styles, type)->decimal;
+  return fmt_settings_get_style (the_settings.styles, type)->decimal;
 }
 
 void
 settings_set_decimal_char (char decimal)
 {
-  fmt_set_decimal (the_settings.styles, decimal);
+  fmt_settings_set_decimal (the_settings.styles, decimal);
 }
-
-
 
 /* Returns the number formatting style associated with the given
    format TYPE. */
@@ -662,9 +671,8 @@ const struct fmt_number_style *
 settings_get_style (enum fmt_type type)
 {
   assert (is_fmt_type (type));
-  return &the_settings.styles[type];
+  return fmt_settings_get_style (the_settings.styles, type);
 }
-
 
 /* Returns a string of the form "$#,###.##" according to FMT,
    which must be of type FMT_DOLLAR.  The caller must free the
@@ -672,14 +680,13 @@ settings_get_style (enum fmt_type type)
 char *
 settings_dollar_template (const struct fmt_spec *fmt)
 {
-  const struct fmt_number_style *styles = the_settings.styles;
   struct string str = DS_EMPTY_INITIALIZER;
   int c;
   const struct fmt_number_style *fns ;
 
   assert (fmt->type == FMT_DOLLAR);
 
-  fns = fmt_get_style (styles, fmt->type);
+  fns = fmt_settings_get_style (the_settings.styles, fmt->type);
 
   ds_put_char (&str, '$');
   for (c = MAX (fmt->w - fmt->d - 1, 0); c > 0; )

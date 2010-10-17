@@ -109,7 +109,8 @@ psppire_output_window_dispose (GObject *obj)
   viewer->items = NULL;
   viewer->n_items = viewer->allocated_items = 0;
 
-  g_object_unref (viewer->print_settings);
+  if (viewer->print_settings != NULL)
+    g_object_unref (viewer->print_settings);
 
   /* Chain up to the parent class */
   G_OBJECT_CLASS (parent_class)->dispose (obj);
@@ -1043,7 +1044,8 @@ GtkWidget*
 psppire_output_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_output_window_get_type (),
-				   "filename", "Output",
+				   /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
+				   "filename", _("Output"),
 				   "description", _("Output Viewer"),
 				   NULL));
 }

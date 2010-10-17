@@ -23,6 +23,7 @@
 
 #include "libpspp/argv-parser.h"
 #include "libpspp/assertion.h"
+#include "libpspp/cast.h"
 #include "libpspp/getl.h"
 #include "libpspp/version.h"
 #include "libpspp/copyleft.h"
@@ -145,7 +146,7 @@ startup_option_callback (int id, void *show_splash_)
     case OPT_VERSION:
       version_etc (stdout, "psppire", PACKAGE_NAME, PACKAGE_VERSION,
                    "Ben Pfaff", "John Darrington", "Jason Stover",
-                   (char *) NULL);
+                   NULL_SENTINEL);
       exit (EXIT_SUCCESS);
 
     case OPT_NO_SPLASH:

@@ -49,7 +49,7 @@
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
-#include <libpspp/hash.h>
+#include <libpspp/hash-functions.h>
 #include <libpspp/hmap.h>
 #include <libpspp/hmapx.h>
 #include <libpspp/message.h>
@@ -406,7 +406,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds,
 	{
 	  if (n_by < 2)
 	    {
-	      lex_error (lexer, _("expecting BY"));
+              lex_force_match (lexer, T_BY);
 	      goto done;
 	    }
 	  else
@@ -482,12 +482,8 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
                                    | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
 	return 0;
 
-      if (lex_token (lexer) != '(')
-	{
-	  lex_error (lexer, "expecting `('");
+      if (!lex_force_match (lexer, '('))
 	  goto lossage;
-	}
-      lex_get (lexer);
 
       if (!lex_force_int (lexer))
 	goto lossage;
@@ -507,12 +503,8 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
 	}
       lex_get (lexer);
 
-      if (lex_token (lexer) != ')')
-	{
-	  lex_error (lexer, "expecting `)'");
-	  goto lossage;
-	}
-      lex_get (lexer);
+      if (!lex_force_match (lexer, ')'))
+        goto lossage;
 
       for (i = orig_nv; i < proc->n_variables; i++)
         {
@@ -1215,10 +1207,10 @@ create_chisq_table (struct pivot_table *pt)
   tab_text (chisq, 2, 0, TAB_RIGHT | TAT_TITLE, _("df"));
   tab_text (chisq, 3, 0, TAB_RIGHT | TAT_TITLE,
             _("Asymp. Sig. (2-tailed)"));
-  tab_text (chisq, 4, 0, TAB_RIGHT | TAT_TITLE,
-            _("Exact Sig. (2-tailed)"));
-  tab_text (chisq, 5, 0, TAB_RIGHT | TAT_TITLE,
-            _("Exact Sig. (1-tailed)"));
+  tab_text_format (chisq, 4, 0, TAB_RIGHT | TAT_TITLE,
+            _("Exact Sig. (%d-tailed)"), 2);
+  tab_text_format (chisq, 5, 0, TAB_RIGHT | TAT_TITLE,
+            _("Exact Sig. (%d-tailed)"), 1);
   tab_offset (chisq, 0, 1);
 
   return chisq;

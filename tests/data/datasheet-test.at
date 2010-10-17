@@ -1,0 +1,16 @@
+AT_BANNER([datasheet])
+
+m4_define([DATASHEET_TEST],
+  [AT_SETUP([$1x$2, $3 backing rows, backing widths $4])
+   AT_KEYWORDS([datasheet])
+   AT_CHECK(
+     [datasheet-test$EXEEXT --verbosity=0 --max-rows=$1 --max-columns=$2 \
+   			    --backing-rows=$3 --backing-widths=$4],
+     [0], [ignore], [ignore])
+   AT_CLEANUP])
+
+DATASHEET_TEST([3], [3], [0], [])
+DATASHEET_TEST([3], [3], [3], [0,0,0])
+DATASHEET_TEST([3], [3], [3], [0])
+DATASHEET_TEST([3], [3], [3], [5])
+DATASHEET_TEST([3], [3], [1], [0,9,0])

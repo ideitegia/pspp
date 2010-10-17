@@ -68,7 +68,7 @@ struct covariance
 {
   /* The variables for which the covariance matrix is to be calculated. */
   size_t n_vars;
-  const struct variable **vars;
+  const struct variable *const *vars;
 
   /* Categorical variables. */
   struct categoricals *categoricals;
@@ -131,7 +131,7 @@ covariance_moments (const struct covariance *cov, int m)
 /* Create a covariance struct.
  */
 struct covariance *
-covariance_1pass_create (size_t n_vars, const struct variable **vars,
+covariance_1pass_create (size_t n_vars, const struct variable *const *vars,
 			 const struct variable *weight, enum mv_class exclude)
 {
   size_t i;
@@ -170,8 +170,8 @@ covariance_1pass_create (size_t n_vars, const struct variable **vars,
   until then.
  */
 struct covariance *
-covariance_2pass_create (size_t n_vars, const struct variable **vars,
-			 size_t n_catvars, const struct variable **catvars, 
+covariance_2pass_create (size_t n_vars, const struct variable *const *vars,
+			 struct categoricals *cats,
 			 const struct variable *wv, enum mv_class exclude)
 {
   size_t i;
@@ -197,7 +197,7 @@ covariance_2pass_create (size_t n_vars, const struct variable **vars,
   cov->n_cm = -1;
   cov->cm = NULL;
 
-  cov->categoricals = categoricals_create (catvars, n_catvars, wv, exclude);
+  cov->categoricals = cats;
 
   return cov;
 }
@@ -296,7 +296,8 @@ covariance_accumulate_pass1 (struct covariance *cov, const struct ccase *c)
       cov->state = 1;
     }
 
-  categoricals_update (cov->categoricals, c);
+  if (cov->categoricals)
+    categoricals_update (cov->categoricals, c);
 
   for (i = 0 ; i < cov->dim; ++i)
     {
@@ -342,8 +343,11 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
       assert (cov->state == 1);
       cov->state = 2;
 
-      cov->dim = cov->n_vars +
-	categoricals_total (cov->categoricals) - categoricals_get_n_variables (cov->categoricals);
+      cov->dim = cov->n_vars;
+      
+      if (cov->categoricals)
+	cov->dim += categoricals_total (cov->categoricals) 
+	  - categoricals_get_n_variables (cov->categoricals);
 
       cov->n_cm = (cov->dim * (cov->dim - 1)  ) / 2;
       cov->cm = xcalloc (sizeof *cov->cm, cov->n_cm);
@@ -355,7 +359,8 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
 	  cov->moments[i] = resize_matrix (cov->moments[i], cov->dim);
 	}
 
-      categoricals_done (cov->categoricals);
+      if (cov->categoricals)
+	categoricals_done (cov->categoricals);
 
       /* Populate the moments matrices with the categorical value elements */
       for (i = cov->n_vars; i < cov->dim; ++i)
@@ -698,6 +703,14 @@ covariance_calculate_unnormalized (struct covariance *cov)
     }
 }
 
+/* Function to access the categoricals used by COV
+   The return value is owned by the COV
+*/
+const struct categoricals *
+covariance_get_categoricals (const struct covariance *cov)
+{
+  return cov->categoricals;
+}
 
 
 /* Destroy the COV object */

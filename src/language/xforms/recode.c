@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,24 +20,25 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/data-in.h>
-#include <data/format.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/value-parser.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
+#include "data/case.h"
+#include "data/data-in.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -158,6 +159,7 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
       /* Create destination variables, if needed.
          This must be the final step; otherwise we'd have to
          delete destination variables on failure. */
+      trns->dst_dict = dataset_dict (ds);
       if (trns->src_vars != trns->dst_vars)
 	create_dst_vars (trns, dataset_dict (ds));
 
@@ -373,7 +375,8 @@ set_map_in_str (struct map_in *in, struct pool *pool,
   in->type = MAP_SINGLE;
   value_init_pool (pool, &in->x, width);
   value_copy_buf_rpad (&in->x, width,
-                       ds_data (string), ds_length (string), ' ');
+                       CHAR_CAST_BUG (uint8_t *, ds_data (string)),
+                       ds_length (string), ' ');
 }
 
 /* Parses a mapping output value into OUT, allocating memory from
@@ -388,7 +391,7 @@ parse_map_out (struct lexer *lexer, struct pool *pool, struct map_out *out)
     }
   else if (lex_match_id (lexer, "SYSMIS"))
     set_map_out_num (out, SYSMIS);
-  else if (lex_token (lexer) == T_STRING)
+  else if (lex_is_string (lexer))
     {
       set_map_out_str (out, pool, lex_tokstr (lexer));
       lex_get (lexer);
@@ -543,8 +546,6 @@ create_dst_vars (struct recode_trns *trns, struct dictionary *dict)
 {
   size_t i;
 
-  trns->dst_dict = dict;
-
   for (i = 0; i < trns->var_cnt; i++)
     {
       const struct variable **var = &trns->dst_vars[i];
@@ -606,8 +607,9 @@ static const struct map_out *
 find_src_string (struct recode_trns *trns, const uint8_t *value,
                  const struct variable *src_var)
 {
-  struct mapping *m;
+  const char *encoding = dict_get_encoding (trns->dst_dict);
   int width = var_get_width (src_var);
+  struct mapping *m;
 
   for (m = trns->mappings; m < trns->mappings + trns->map_cnt; m++)
     {
@@ -627,11 +629,13 @@ find_src_string (struct recode_trns *trns, const uint8_t *value,
         case MAP_CONVERT:
           {
             union value uv;
+            char *error;
 
-            msg_disable ();
-            match = data_in (ss_buffer (value, width), LEGACY_NATIVE,
-                             FMT_F, 0, 0, 0, trns->dst_dict,  &uv, 0);
-            msg_enable ();
+            error = data_in (ss_buffer (CHAR_CAST_BUG (char *, value), width),
+                             LEGACY_NATIVE, FMT_F, &uv, 0, encoding);
+            match = error == NULL;
+            free (error);
+
             out->value.f = uv.f;
             break;
           }
@@ -678,7 +682,7 @@ recode_trns_proc (void *trns_, struct ccase **c, casenumber case_idx UNUSED)
         }
       else
         {
-          char *dst = case_str_rw (*c, dst_var);
+          char *dst = CHAR_CAST_BUG (char *, case_str_rw (*c, dst_var));
           if (out != NULL)
             {
               if (!out->copy_input)

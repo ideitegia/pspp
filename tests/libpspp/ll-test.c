@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,9 +43,6 @@
 #define UNUSED
 #endif
 
-/* Currently running test. */
-static const char *test_name;
-
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
@@ -61,8 +58,7 @@ check_func (bool ok, int line)
 {
   if (!ok)
     {
-      printf ("Check failed in %s test at %s, line %d\n",
-              test_name, __FILE__, line);
+      fprintf (stderr, "%s:%d: check failed\n", __FILE__, line);
       check_die ();
     }
 }
@@ -1972,56 +1968,199 @@ test_partition (void)
 
 /* Main program. */
 
-/* Runs TEST_FUNCTION and prints a message about NAME. */
-static void
-run_test (void (*test_function) (void), const char *name)
-{
-  test_name = name;
-  putchar ('.');
-  fflush (stdout);
-  test_function ();
-}
+struct test
+  {
+    const char *name;
+    const char *description;
+    void (*function) (void);
+  };
+
+static const struct test tests[] =
+  {
+    {
+      "push-pop",
+      "push/pop",
+      test_push_pop
+    },
+    {
+      "insert-remove",
+      "insert/remove",
+      test_insert_remove
+    },
+    {
+      "swap",
+      "swap",
+      test_swap
+    },
+    {
+      "swap-range",
+      "swap_range",
+      test_swap_range
+    },
+    {
+      "remove-range",
+      "remove_range",
+      test_remove_range
+    },
+    {
+      "remove-equal",
+      "remove_equal",
+      test_remove_equal
+    },
+    {
+      "remove-if",
+      "remove_if",
+      test_remove_if
+    },
+    {
+      "moved",
+      "moved",
+      test_moved
+    },
+    {
+      "find-equal",
+      "find_equal",
+      test_find_equal
+    },
+    {
+      "find-if",
+      "find_if",
+      test_find_if
+    },
+    {
+      "find-adjacent-equal",
+      "find_adjacent_equal",
+      test_find_adjacent_equal
+    },
+    {
+      "count-range",
+      "count_range",
+      test_count_range
+    },
+    {
+      "count-equal",
+      "count_equal",
+      test_count_equal
+    },
+    {
+      "count-if",
+      "count_if",
+      test_count_if
+    },
+    {
+      "min-max",
+      "min/max",
+      test_min_max
+    },
+    {
+      "lexicographical-compare-3way",
+      "lexicographical_compare_3way",
+      test_lexicographical_compare_3way
+    },
+    {
+      "apply",
+      "apply",
+      test_apply
+    },
+    {
+      "reverse",
+      "reverse",
+      test_reverse
+    },
+    {
+      "permutations-no-dups",
+      "permutations (no dups)",
+      test_permutations_no_dups
+    },
+    {
+      "permutations-with-dups",
+      "permutations (with dups)",
+      test_permutations_with_dups
+    },
+    {
+      "merge-no-dups",
+      "merge (no dups)",
+      test_merge_no_dups
+    },
+    {
+      "merge-with-dups",
+      "merge (with dups)",
+      test_merge_with_dups
+    },
+    {
+      "sort-exhaustive",
+      "sort (exhaustive)",
+      test_sort_exhaustive
+    },
+    {
+      "sort-stable",
+      "sort (stability)",
+      test_sort_stable
+    },
+    {
+      "sort-subset",
+      "sort (subset)",
+      test_sort_subset
+    },
+    {
+      "sort-big",
+      "sort (big)",
+      test_sort_big
+    },
+    {
+      "unique",
+      "unique",
+      test_unique
+    },
+    {
+      "sort-unique",
+      "sort_unique",
+      test_sort_unique
+    },
+    {
+      "insert-ordered",
+      "insert_ordered",
+      test_insert_ordered
+    },
+    {
+      "partition",
+      "partition",
+      test_partition
+    },
+  };
+
+enum { N_TESTS = sizeof tests / sizeof *tests };
 
 int
-main (void)
+main (int argc, char *argv[])
 {
-  run_test (test_push_pop, "push/pop");
-  run_test (test_insert_remove, "insert/remove");
-  run_test (test_swap, "swap");
-  run_test (test_swap_range, "swap_range");
-  run_test (test_remove_range, "remove_range");
-  run_test (test_remove_equal, "remove_equal");
-  run_test (test_remove_if, "remove_if");
-  run_test (test_moved, "moved");
-  run_test (test_find_equal, "find_equal");
-  run_test (test_find_if, "find_if");
-  run_test (test_find_adjacent_equal, "find_adjacent_equal");
-  run_test (test_count_range, "count_range");
-  run_test (test_count_equal, "count_equal");
-  run_test (test_count_if, "count_if");
-  run_test (test_min_max, "min/max");
-  run_test (test_lexicographical_compare_3way, "lexicographical_compare_3way");
-  run_test (test_apply, "apply");
-  run_test (test_reverse, "reverse");
-  run_test (test_permutations_no_dups, "permutations (no dups)");
-  run_test (test_permutations_with_dups, "permutations (with dups)");
-  run_test (test_merge_no_dups, "merge (no dups)");
-  run_test (test_merge_with_dups, "merge (with dups)");
-  run_test (test_sort_exhaustive, "sort (exhaustive)");
-  run_test (test_sort_stable, "sort (stability)");
-  run_test (test_sort_subset, "sort (subset)");
-  run_test (test_sort_big, "sort (big)");
-  run_test (test_unique, "unique");
-  run_test (test_sort_unique, "sort_unique");
-  run_test (test_insert_ordered, "insert_ordered");
-  run_test (test_partition, "partition");
-  putchar ('\n');
+  int i;
 
-  return 0;
+  if (argc != 2)
+    {
+      fprintf (stderr, "exactly one argument required; use --help for help\n");
+      return EXIT_FAILURE;
+    }
+  else if (!strcmp (argv[1], "--help"))
+    {
+      printf ("%s: test doubly linked list (ll) library\n"
+              "usage: %s TEST-NAME\n"
+              "where TEST-NAME is one of the following:\n",
+              argv[0], argv[0]);
+      for (i = 0; i < N_TESTS; i++)
+        printf ("  %s\n    %s\n", tests[i].name, tests[i].description);
+      return 0;
+    }
+  else
+    {
+      for (i = 0; i < N_TESTS; i++)
+        if (!strcmp (argv[1], tests[i].name))
+          {
+            tests[i].function ();
+            return 0;
+          }
+
+      fprintf (stderr, "unknown test %s; use --help for help\n", argv[1]);
+      return EXIT_FAILURE;
+    }
 }
-
-/*
-  Local Variables:
-  compile-command: "gcc -Wall -Wstrict-prototypes -Wmissing-prototypes ll.c ll-test.c -o ll-test -g"
-  End:
- */

@@ -1,0 +1,67 @@
+AT_BANNER([DO REPEAT])
+
+AT_SETUP([DO REPEAT -- ordinary])
+AT_DATA([do-repeat.sps], [dnl
+DATA LIST NOTABLE /a 1.
+BEGIN DATA.
+0
+END DATA.
+
+DO REPEAT h = h0 TO h3 / x = 0 TO 3 / y = 8, 7.5, 6, 5.
+	COMPUTE h = x + y.
+END REPEAT.
+
+VECTOR v(6).
+COMPUTE #idx = 0.
+DO REPEAT i = 1 TO 2.
+	DO REPEAT j = 3 TO 5.
+		COMPUTE #x = i + j.
+		COMPUTE #idx = #idx + 1.
+		COMPUTE v(#idx) = #x.
+	END REPEAT.
+END REPEAT.
+
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv do-repeat.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+a,h0,h1,h2,h3,v1,v2,v3,v4,v5,v6
+0,8.00,8.50,8.00,8.00,4.00,5.00,6.00,5.00,6.00,7.00
+])
+AT_CLEANUP
+
+dnl This program tests for a bug that crashed PSPP given an empty DO
+dnl REPEAT...END REPEAT block.  See bug #18407.
+AT_SETUP([DO REPEAT -- empty])
+AT_DATA([do-repeat.sps], [dnl
+DATA LIST NOTABLE /a 1.
+BEGIN DATA.
+0
+END DATA.
+
+DO REPEAT h = a.
+END REPEAT.
+])
+AT_CHECK([pspp -o pspp.csv do-repeat.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+])
+AT_CLEANUP
+
+dnl This program tests for a bug that crashed PSPP when END REPEAT
+dnl was missing.  See bug #31016.
+AT_SETUP([DO REPEAT -- missing END REPEAT])
+AT_DATA([do-repeat.sps], [dnl
+DATA LIST NOTABLE /x 1.
+DO REPEAT y = 1 TO 10.
+])
+AT_CHECK([pspp -o pspp.csv do-repeat.sps], [1], [dnl
+error: DO REPEAT: DO REPEAT without END REPEAT.
+error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+AT_CHECK([cat pspp.csv], [0], [dnl
+error: DO REPEAT: DO REPEAT without END REPEAT.
+
+error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+AT_CLEANUP

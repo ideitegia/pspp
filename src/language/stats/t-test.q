@@ -1401,6 +1401,23 @@ group_calc (const struct dictionary *dict, struct t_test_proc *proc,
   return 0;
 }
 
+
+static bool
+is_criteria_value (const struct ccase *c, void *aux)
+{
+  const struct t_test_proc *proc = aux;
+  const union value *val = case_data (c, proc->indep_var);
+  int width = var_get_width (proc->indep_var);
+
+  if ( value_equal (val, &proc->g_value[0], width))
+    return true;
+
+  if ( value_equal (val, &proc->g_value[1], width))
+    return true;
+
+  return false;
+}
+
 static void
 calculate (struct t_test_proc *proc,
            struct casereader *input, const struct dataset *ds)
@@ -1410,7 +1427,7 @@ calculate (struct t_test_proc *proc,
   struct trbox test_results_box;
   struct taint *taint;
   struct ccase *c;
-
+  int i;
   c = casereader_peek (input, 0);
   if (c == NULL)
     {
@@ -1439,8 +1456,20 @@ calculate (struct t_test_proc *proc,
       break;
     case T_IND_SAMPLES:
       group_calc (dict, proc, casereader_clone (input));
-      levene (dict, input, proc->indep_var, proc->n_vars, proc->vars,
-              proc->exclude);
+
+      for (i = 0; i < proc->n_vars; ++i)
+	{
+	  struct group_proc *grp_data = group_proc_get (proc->vars[i]);
+
+	  if ( proc->criterion == CMP_EQ )
+	    {
+	      input = casereader_create_filter_func (input, is_criteria_value, NULL,
+						     proc, 
+						     NULL);
+	    }
+
+	  grp_data->levene = levene ( input, proc->indep_var, proc->vars[i], dict_get_weight (dict), proc->exclude);
+	}
       break;
     default:
       NOT_REACHED ();

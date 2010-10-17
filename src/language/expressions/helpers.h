@@ -48,7 +48,7 @@ static inline double check_errno (double x)
 
 extern const struct substring empty_string;
 
-int compare_string (const struct substring *, const struct substring *);
+int compare_string_3way (const struct substring *, const struct substring *);
 
 double expr_ymd_to_date (double year, double month, double day);
 double expr_ymd_to_ofs (double year, double month, double day);

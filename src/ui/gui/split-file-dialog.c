@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,7 +49,6 @@ struct split_file_dialog
      upon which the file should be split */
   GtkTreeView *tv;
 
-
   PsppireSelector *selector;
 };
 
@@ -60,9 +59,6 @@ generate_syntax (const struct split_file_dialog *sfd)
   gchar *text;
   GtkWidget *off = get_widget_assert (sfd->xml, "split-radiobutton0");
 
-  GtkWidget *vars =
-    get_widget_assert (sfd->xml, "split-file-grouping-vars");
-
   GString *string = g_string_new ("SPLIT FILE OFF.");
 
   if ( ! gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (off)))
@@ -70,7 +66,7 @@ generate_syntax (const struct split_file_dialog *sfd)
       GString * varlist = g_string_sized_new (80);
       GtkWidget *sort = get_widget_assert (sfd->xml, "split-radiobutton3");
       GtkWidget *layered = get_widget_assert (sfd->xml, "split-radiobutton1");
-      gint n_vars = psppire_var_view_append_names (PSPPIRE_VAR_VIEW (vars), 0, varlist);
+      gint n_vars = psppire_var_view_append_names (PSPPIRE_VAR_VIEW (sfd->tv), 0, varlist);
 
       if ( n_vars > 0 )
 	{
@@ -135,7 +131,6 @@ refresh (PsppireDialog *dialog, struct split_file_dialog *d)
 
   gint n_vars = dict_get_split_cnt (d->dict->dict);
 
-
   gtk_list_store_clear (GTK_LIST_STORE (liststore));
 
   if ( n_vars == 0 )
@@ -148,10 +143,11 @@ refresh (PsppireDialog *dialog, struct split_file_dialog *d)
 
       for (i = 0 ; i < n_vars; ++i )
 	{
-	  gint idx = var_get_dict_index (vars[i]);
-
 	  gtk_list_store_append (GTK_LIST_STORE (liststore), &iter);
-	  gtk_list_store_set (GTK_LIST_STORE (liststore), &iter, 0, idx, -1);
+
+	  gtk_list_store_set (GTK_LIST_STORE (liststore), &iter,
+			      0, vars[i],
+			      -1);
 	}
 
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(on), TRUE);
@@ -172,24 +168,23 @@ split_file_dialog (PsppireDataWindow *de)
 
   GtkWidget *dialog   ;
   GtkWidget *source   ;
-  GtkWidget *dest     ;
   GtkWidget *selector ;
   GtkWidget *on_off   ;
 
-  sfd.xml = builder_new ("psppire.ui");
+  sfd.xml = builder_new ("split-file.ui");
 
   dialog = get_widget_assert   (sfd.xml, "split-file-dialog");
   source = get_widget_assert   (sfd.xml, "split-file-dict-treeview");
-  dest =   get_widget_assert   (sfd.xml, "split-file-grouping-vars");
   selector = get_widget_assert (sfd.xml, "split-file-selector");
   on_off = get_widget_assert   (sfd.xml, "split-radiobutton0");
+
+  sfd.tv = GTK_TREE_VIEW (get_widget_assert (sfd.xml, "split-file-grouping-vars"));
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   g_object_get (vs, "dictionary", &sfd.dict, NULL);
-  sfd.tv = GTK_TREE_VIEW (dest);
-  sfd.selector  = PSPPIRE_SELECTOR (
-				    get_widget_assert   (sfd.xml, "split-file-selector"));
+
+  sfd.selector = PSPPIRE_SELECTOR (get_widget_assert (sfd.xml, "split-file-selector"));
 
   g_object_set (source, "model", sfd.dict, NULL);
 

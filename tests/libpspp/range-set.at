@@ -1,0 +1,13 @@
+AT_BANNER([range set library])
+
+m4_define([CHECK_RANGE_SET],
+  [AT_SETUP([range-set -- $1])
+   AT_CHECK([range-set-test $1])
+   AT_CLEANUP])
+
+CHECK_RANGE_SET([insert])
+CHECK_RANGE_SET([delete])
+CHECK_RANGE_SET([allocate])
+CHECK_RANGE_SET([allocate-fully])
+CHECK_RANGE_SET([pool])
+CHECK_RANGE_SET([destroy-null])

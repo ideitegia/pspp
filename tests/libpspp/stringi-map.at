@@ -1,0 +1,22 @@
+AT_BANNER([case-insensitive string map library])
+
+m4_define([CHECK_STRINGI_MAP],
+  [AT_SETUP([case-insensitive string map -- $1])
+   AT_KEYWORDS([stringi-map])
+   AT_CHECK([stringi-map-test $1])
+   AT_CLEANUP])
+
+CHECK_STRINGI_MAP([insert-any-remove-any])
+CHECK_STRINGI_MAP([insert-any-remove-same])
+CHECK_STRINGI_MAP([insert-any-remove-reverse])
+CHECK_STRINGI_MAP([random-sequence])
+CHECK_STRINGI_MAP([replace])
+CHECK_STRINGI_MAP([insert-ordered])
+CHECK_STRINGI_MAP([clear])
+CHECK_STRINGI_MAP([clone])
+CHECK_STRINGI_MAP([swap])
+CHECK_STRINGI_MAP([node-swap-value])
+CHECK_STRINGI_MAP([insert-map])
+CHECK_STRINGI_MAP([replace-map])
+CHECK_STRINGI_MAP([get-keys-and-values])
+CHECK_STRINGI_MAP([destroy-null])

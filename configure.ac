@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
 AC_PREREQ(2.63)
-AC_INIT([GNU PSPP], [0.7.5], [bug-gnu-pspp@gnu.org], [pspp])
+AC_INIT([GNU PSPP], [0.7.6], [bug-gnu-pspp@gnu.org], [pspp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_TESTDIR([tests])
@@ -150,19 +150,22 @@ if test x"$with_libpq" != x"no" && test -n "$PG_CONFIG" ; then
      LDFLAGS=$save_LDFLAGS])
 
   if test $pspp_cv_have_libpq = yes; then
+    PSQL_SUPPORT=yes
     AC_DEFINE([PSQL_SUPPORT], [1],
       [Define to 1 if building in support for reading from postgres
        databases.])
   else
+    PSQL_SUPPORT=no
     PG_CONFIG=
     PG_CFLAGS=
     PG_LDFLAGS=
     PG_LIBS=
   fi
 else
+  PSQL_SUPPORT=no
   pspp_cv_have_libpq=no
 fi
-AM_CONDITIONAL(PSQL_SUPPORT, test $pspp_cv_have_libpq = yes)
+AC_SUBST([PSQL_SUPPORT])
 
 dnl Check for libxml2
 PKG_CHECK_MODULES(
@@ -204,7 +207,7 @@ if test $HAVE_LIBXML2 = yes && test $HAVE_ZLIB = yes; then
 else
   GNM_SUPPORT=no
 fi
-AM_CONDITIONAL([GNM_SUPPORT], [test $GNM_SUPPORT = yes])
+AC_SUBST([GNM_SUPPORT])
 
 dnl ODT support requires libxml2.
 if test $HAVE_LIBXML2 = yes; then
@@ -239,7 +242,9 @@ AC_SUBST([WITH_PERL_MODULE])
 AM_CONDITIONAL(WITH_PERL_MODULE, test $WITH_PERL_MODULE = yes)
 
 AC_SEARCH_LIBS([cblas_dsdot], [gslcblas],,[PSPP_REQUIRED_PREREQ([libgslcblas])])
-PKG_CHECK_MODULES([GSL], [gsl >= 1.12], [], [PSPP_REQUIRED_PREREQ([gsl 2.0 version 1.12 or later])])
+PKG_CHECK_MODULES([GSL], [gsl >= 1.12], [],
+			 AC_SEARCH_LIBS([gsl_linalg_cholesky_invert], [gsl],,[PSPP_REQUIRED_PREREQ([gsl 2.0 version 1.12 or later])]))
+
 
 PSPP_GSL_NEEDS_FGNU89_INLINE
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -173,10 +173,11 @@ compute_str (void *compute_, struct ccase **c, casenumber case_num)
   if (compute->test == NULL
       || expr_evaluate_num (compute->test, *c, case_num) == 1.0)
     {
+      char *s;
+
       *c = case_unshare (*c);
-      expr_evaluate_str (compute->rvalue, *c, case_num,
-                         case_str_rw (*c, compute->variable),
-                         compute->width);
+      s = CHAR_CAST_BUG (char *, case_str_rw (*c, compute->variable));
+      expr_evaluate_str (compute->rvalue, *c, case_num, s, compute->width);
     }
 
   return TRNS_CONTINUE;
@@ -216,7 +217,8 @@ compute_str_vec (void *compute_, struct ccase **c, casenumber case_num)
       vr = vector_get_var (compute->vector, rindx - 1);
       *c = case_unshare (*c);
       expr_evaluate_str (compute->rvalue, *c, case_num,
-                         case_str_rw (*c, vr), var_get_width (vr));
+                         CHAR_CAST_BUG (char *, case_str_rw (*c, vr)),
+                         var_get_width (vr));
     }
 
   return TRNS_CONTINUE;

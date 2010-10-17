@@ -38,11 +38,11 @@ CHECK_EXPR_EVAL([coercion to/from Boolean],
   [[1 OR $false], [true]],
   [[1 OR $sysmis], [true]],
   [[2 OR $sysmis], [sysmis],
-   [error: DEBUG EVALUATE: An operand of the logical disjunction ("OR") operator was found to have a value other than 0 (false), 1 (true), or the system-missing value.  The result was forced to 0.]],
+   [error: DEBUG EVALUATE: An operand of the logical disjunction (`OR') operator was found to have a value other than 0 (false), 1 (true), or the system-missing value.  The result was forced to 0.]],
   [[2 AND $sysmis], [false],
-   [error: DEBUG EVALUATE: An operand of the logical conjunction ("AND") operator was found to have a value other than 0 (false), 1 (true), or the system-missing value.  The result was forced to 0.]],
+   [error: DEBUG EVALUATE: An operand of the logical conjunction (`AND') operator was found to have a value other than 0 (false), 1 (true), or the system-missing value.  The result was forced to 0.]],
   [['string' AND $sysmis], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying logical conjunction ("AND") operator: cannot convert string to boolean.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying logical conjunction (`AND') operator: cannot convert string to boolean.]],
   [[0 AND $sysmis], [false]],
   [[(1>2) + 1], [1.00]],
   [[$true + $false], [1.00]])
@@ -53,19 +53,19 @@ CHECK_EXPR_EVAL([addition and subtraction],
   [[$sysmis + 1], [sysmis]],
   [[7676 + $sysmis], [sysmis]],
   [[('foo') + 5], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying addition ("+") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying addition (`+') operator: cannot convert string to number.]],
   dnl Arithmetic concatenation requires CONCAT:
   [[('foo') + ('bar')], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying addition ("+") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying addition (`+') operator: cannot convert string to number.]],
   dnl Lexical concatenation succeeds:
   [['foo' + 'bar'], ["foobar"]],
   [[1 +3 - 2 +4 -5], [1.00]],
   [[1 - $true], [0.00]],
   [[$true - 4/3], [-0.33]],
   [['string' - 1e10], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying subtraction ("-") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying subtraction (`-') operator: cannot convert string to number.]],
   [[9.5 - ''], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying subtraction ("-") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying subtraction (`-') operator: cannot convert string to number.]],
   [[1 - 2], [-1.00]],
   [[52 -23], [29.00]])
 
@@ -85,7 +85,7 @@ CHECK_EXPR_EVAL([exponentiation],
   [[2**8], [256.00]],
   [[(2**3)**4], [4096.00]],
   [[2**3**4], [4096.00],
-   [warning: DEBUG EVALUATE: The exponentiation operator ("**") is left-associative, even though right-associative semantics are more useful.  That is, "a**b**c" equals "(a**b)**c", not as "a**(b**c)".  To disable this warning, insert parentheses.]])
+   [warning: DEBUG EVALUATE: The exponentiation operator (`**') is left-associative, even though right-associative semantics are more useful.  That is, `a**b**c' equals `(a**b)**c', not as `a**(b**c)'.  To disable this warning, insert parentheses.]])
 
 CHECK_EXPR_EVAL([unary minus],
   [[2+-3], [-1.00]],
@@ -141,14 +141,14 @@ CHECK_EXPR_EVAL([NOT truth table],
   [[not $false], [true]],
   [[not 0], [true]],
   [[not 2.5], [true],
-   [error: DEBUG EVALUATE: An operand of the logical negation ("NOT") operator was found to have a value other than 0 (false), 1 (true), or the system-missing value.  The result was forced to 0.]],
+   [error: DEBUG EVALUATE: An operand of the logical negation (`NOT') operator was found to have a value other than 0 (false), 1 (true), or the system-missing value.  The result was forced to 0.]],
   [[not $true], [false]],
   [[not 1], [false]],
   [[not $sysmis], [sysmis]],
   [[~ $false], [true]],
   [[~ 0], [true]],
   [[~ 2.5], [true],
-   [error: DEBUG EVALUATE: An operand of the logical negation ("NOT") operator was found to have a value other than 0 (false), 1 (true), or the system-missing value.  The result was forced to 0.]],
+   [error: DEBUG EVALUATE: An operand of the logical negation (`NOT') operator was found to have a value other than 0 (false), 1 (true), or the system-missing value.  The result was forced to 0.]],
   [[~ $true], [false]],
   [[~ 1], [false]],
   [[~ $sysmis], [sysmis]])
@@ -159,13 +159,13 @@ CHECK_EXPR_EVAL([= <= <],
   [[1 eq 2], [false]],
   [[2 = 3], [false]],
   [[1 eq 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric equality ("EQ") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric equality (`EQ') operator: cannot convert string to number.]],
   [[5 eq 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric equality ("EQ") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric equality (`EQ') operator: cannot convert string to number.]],
   [['baz' = 10], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string equality ("=") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string equality (`=') operator: cannot convert number to string.]],
   [['quux' = 5.55], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string equality ("=") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string equality (`=') operator: cannot convert number to string.]],
   [['foobar' = 'foobar'], [true]],
   [['quux' = 'bar'], [false]],
   [['bar   ' = 'bar'], [true]],
@@ -174,12 +174,12 @@ CHECK_EXPR_EVAL([= <= <],
 dnl Check precedence:
   [[1 + 2 = 3], [true]],
   [[1 >= 2 = 2 ge 3], [false],
-   [warning: DEBUG EVALUATE: Chaining relational operators (e.g. "a < b < c") will not produce the mathematically expected result.  Use the AND logical operator to fix the problem (e.g. "a < b AND b < c").  If chaining is really intended, parentheses will disable this warning (e.g. "(a < b) < c".)]],
+   [warning: DEBUG EVALUATE: Chaining relational operators (e.g. `a < b < c') will not produce the mathematically expected result.  Use the AND logical operator to fix the problem (e.g. `a < b AND b < c').  If chaining is really intended, parentheses will disable this warning (e.g. `(a < b) < c'.)]],
 dnl Mathematically true:
   [[3 ne 2 ~= 1], [false],
-   [warning: DEBUG EVALUATE: Chaining relational operators (e.g. "a < b < c") will not produce the mathematically expected result.  Use the AND logical operator to fix the problem (e.g. "a < b AND b < c").  If chaining is really intended, parentheses will disable this warning (e.g. "(a < b) < c".)]],
+   [warning: DEBUG EVALUATE: Chaining relational operators (e.g. `a < b < c') will not produce the mathematically expected result.  Use the AND logical operator to fix the problem (e.g. `a < b AND b < c').  If chaining is really intended, parentheses will disable this warning (e.g. `(a < b) < c'.)]],
   [[3 > 2 > 1], [false],
-   [warning: DEBUG EVALUATE: Chaining relational operators (e.g. "a < b < c") will not produce the mathematically expected result.  Use the AND logical operator to fix the problem (e.g. "a < b AND b < c").  If chaining is really intended, parentheses will disable this warning (e.g. "(a < b) < c".)]],
+   [warning: DEBUG EVALUATE: Chaining relational operators (e.g. `a < b < c') will not produce the mathematically expected result.  Use the AND logical operator to fix the problem (e.g. `a < b AND b < c').  If chaining is really intended, parentheses will disable this warning (e.g. `(a < b) < c'.)]],
 
   [[1 <= 2], [true]],
   [[2.5 <= 1.5], [false]],
@@ -188,15 +188,15 @@ dnl Mathematically true:
   [[2 le 2], [true]],
 dnl Make sure <= token can't be split:
   [[2 < = 2], [error],
-   [error: DEBUG EVALUATE: Syntax error in expression at `='.]],
+   [error: DEBUG EVALUATE: Syntax error at `='.]],
   [[1 <= 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric less-than-or-equal-to ("<=") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric less-than-or-equal-to (`<=') operator: cannot convert string to number.]],
   [[5 <= 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric less-than-or-equal-to ("<=") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric less-than-or-equal-to (`<=') operator: cannot convert string to number.]],
   [['baz' <= 10], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string less-than-or-equal-to ("<=") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string less-than-or-equal-to (`<=') operator: cannot convert number to string.]],
   [['quux' <= 5.55], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string less-than-or-equal-to ("<=") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string less-than-or-equal-to (`<=') operator: cannot convert number to string.]],
   [['0123' <= '0123'], [true]],
   [['0123' <= '0124'], [true]],
   [['0124' le '0123'], [false]],
@@ -208,13 +208,13 @@ dnl Make sure <= token can't be split:
   [[3.5 lt 4], [true]],
   [[4 lt 3.5], [false]],
   [[1 lt 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric less than ("<") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric less than (`<') operator: cannot convert string to number.]],
   [[5 lt 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric less than ("<") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric less than (`<') operator: cannot convert string to number.]],
   [['baz' < 10], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string less than ("<") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string less than (`<') operator: cannot convert number to string.]],
   [['quux' < 5.55], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string less than ("<") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string less than (`<') operator: cannot convert number to string.]],
   [['0123' lt '0123'], [false]],
   [['0123' < '0124'], [true]],
   [['0124' lt '0123'], [false]],
@@ -229,15 +229,15 @@ CHECK_EXPR_EVAL([>= > <>],
   [[2 ge 2], [true]],
 dnl Make sure >= token can't be split:
   [[2 > = 2], [error],
-   [error: DEBUG EVALUATE: Syntax error in expression at `='.]],
+   [error: DEBUG EVALUATE: Syntax error at `='.]],
   [[1 >= 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric greater-than-or-equal-to (">=") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric greater-than-or-equal-to (`>=') operator: cannot convert string to number.]],
   [[5 ge 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric greater-than-or-equal-to (">=") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric greater-than-or-equal-to (`>=') operator: cannot convert string to number.]],
   [['baz' ge 10], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string greater-than-or-equal-to (">=") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string greater-than-or-equal-to (`>=') operator: cannot convert number to string.]],
   [['quux' >= 5.55], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string greater-than-or-equal-to (">=") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string greater-than-or-equal-to (`>=') operator: cannot convert number to string.]],
   [['0123' ge '0123'], [true]],
   [['0123' >= '0124'], [false]],
   [['0124' >= '0123'], [true]],
@@ -249,13 +249,13 @@ dnl Make sure >= token can't be split:
   [[3.5 gt 4], [false]],
   [[4 gt 3.5], [true]],
   [[1 gt 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric greater than (">") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric greater than (`>') operator: cannot convert string to number.]],
   [[5 gt 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric greater than (">") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric greater than (`>') operator: cannot convert string to number.]],
   [['baz' > 10], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string greater than (">") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string greater than (`>') operator: cannot convert number to string.]],
   [['quux' > 5.55], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string greater than (">") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string greater than (`>') operator: cannot convert number to string.]],
   [['0123' gt '0123'], [false]],
   [['0123' > '0124'], [false]],
   [['0124' gt '0123'], [true]],
@@ -267,13 +267,13 @@ dnl Make sure >= token can't be split:
   [[1 <> 2], [true]],
   [[2 ne 3], [true]],
   [[1 ~= 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric inequality ("<>") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric inequality (`<>') operator: cannot convert string to number.]],
   [[5 <> 'foobar'], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying numeric inequality ("<>") operator: cannot convert string to number.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying numeric inequality (`<>') operator: cannot convert string to number.]],
   [['baz' ne 10], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string inequality ("<>") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string inequality (`<>') operator: cannot convert number to string.]],
   [['quux' ~= 5.55], [error],
-   [error: DEBUG EVALUATE: Type mismatch while applying string inequality ("<>") operator: cannot convert number to string.]],
+   [error: DEBUG EVALUATE: Type mismatch while applying string inequality (`<>') operator: cannot convert number to string.]],
   [['foobar' <> 'foobar'], [false]],
   [['quux' ne 'bar'], [true]],
   [['bar   ' <> 'bar'], [false]],
@@ -281,10 +281,10 @@ dnl Make sure >= token can't be split:
   [['asdfj   ' ne 'asdf'], [true]],
 dnl <> token can't be split:
   [[1 < > 1], [error],
-   [error: DEBUG EVALUATE: Syntax error in expression at `GT'.]],
+   [error: DEBUG EVALUATE: Syntax error at `GT'.]],
 dnl # ~= token can't be split:
   [[1 ~ = 1], [error],
-   [error: DEBUG EVALUATE: Syntax error expecting end of command at `NOT'.]])
+   [error: DEBUG EVALUATE: Syntax error at `NOT': expecting end of command.]])
 
 CHECK_EXPR_EVAL([exp lg10 ln sqrt abs mod mod10 rnd trunc],
   [[exp(10)], [22026.47]],
@@ -1843,3 +1843,223 @@ dnl Tests correctness of generic optimizations in optimize_tree().
   [[mod(0, x)], [0.00], [], [(X = 5.00)]],
   [[x ** 1], [5.00], [], [(X = 5.00)]],
   [[x ** 2], [25.00], [], [(X = 5.00)]])
+
+AT_SETUP([LAG function])
+AT_DATA([lag.sps], [dnl
+data list /W 1.
+begin data.
+1
+2
+3
+4
+5
+end data.
+
+compute X=lag(w,1).
+compute Y=lag(x).
+compute Z=lag(w,2).
+list.
+])
+AT_CHECK([pspp -o pspp.csv lag.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading 1 record from INLINE.
+Variable,Record,Columns,Format
+W,1,1-  1,F1.0
+
+Table: Data List
+W,X,Y,Z
+1,.  ,.  ,.  @&t@
+2,1.00,.  ,.  @&t@
+3,2.00,1.00,1.00
+4,3.00,2.00,2.00
+5,4.00,3.00,3.00
+])
+AT_CLEANUP
+
+AT_SETUP([LAG crash bug])
+AT_DATA([lag.sps], [dnl
+DATA LIST LIST /x.
+BEGIN DATA
+1 
+2 
+END DATA.
+
+DO IF (x <> LAG(x) ).
+	ECHO 'hello'.
+END IF.
+
+EXECUTE.
+])
+AT_CHECK([pspp -o pspp.csv lag.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+
+hello
+])
+AT_CLEANUP
+
+dnl Tests for a bug which caused UNIFORM(x) to always return zero.
+AT_SETUP([UNIFORM function])
+AT_DATA([uniform.sps], [dnl
+set seed=10.
+input program.
++ loop #i = 1 to 20.
++    do repeat response=R1.
++       compute response = uniform(10).
++    end repeat.
++    end case.
++ end loop.
++ end file.
+end input program.
+
+list.
+])
+AT_CHECK([pspp -o pspp.csv uniform.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+R1
+7.71
+2.99
+.21
+4.95
+6.34
+4.43
+7.49
+8.32
+4.99
+5.83
+2.25
+.25
+1.98
+7.09
+7.61
+2.66
+1.69
+2.64
+.88
+1.50
+])
+AT_CLEANUP
+
+AT_SETUP([VALUELABEL function])
+AT_DATA([valuelabel.sps], [dnl
+DATA LIST notable /n 1 s 2(a).
+VALUE LABELS /n 0 'Very dissatisfied'
+                1 'Dissatisfied'
+		1.5 'Slightly Peeved'
+                2 'Neutral'
+                3 'Satisfied'
+                4 'Very satisfied'.
+VALUE LABELS /s 'a' 'Wouldn''t buy again'
+                'b' 'Unhappy'
+                'c' 'Bored'
+                'd' 'Satiated'
+                'e' 'Elated'.
+STRING nlabel slabel(a10).
+COMPUTE nlabel = VALUELABEL(n).
+COMPUTE slabel = VALUELABEL(s).
+LIST.
+BEGIN DATA.
+
+0a
+1b
+2c
+3d
+4e
+5f
+6g
+END DATA.
+])
+AT_CHECK([pspp -o pspp.csv valuelabel.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+n,s,nlabel,slabel
+.,,,
+0,a,Very dissa,Wouldn't b
+1,b,Dissatisfi,Unhappy   @&t@
+2,c,Neutral   ,Bored     @&t@
+3,d,Satisfied ,Satiated  @&t@
+4,e,Very satis,Elated    @&t@
+5,f,,
+6,g,,
+])
+AT_CLEANUP
+
+AT_SETUP([variables in expressions])
+AT_DATA([variables.sps], [dnl
+DATA LIST NOTABLE/N1 TO N5 1-5.
+MISSING VALUES N1 TO N5 (3 THRU 5, 1).
+BEGIN DATA.
+12345
+6789 
+END DATA.
+
+COMPUTE P1=N1.
+COMPUTE P2=N2.
+COMPUTE P3=N3.
+COMPUTE P4=N4.
+COMPUTE P5=N5.
+
+COMPUTE MC=NMISS(N1 TO N5).
+COMPUTE VC=NVALID(N1 TO N5).
+
+COMPUTE S1=SYSMIS(N1).
+COMPUTE S2=SYSMIS(N2).
+COMPUTE S3=SYSMIS(N3).
+COMPUTE S4=SYSMIS(N4).
+COMPUTE S5=SYSMIS(N5).
+
+COMPUTE M1=MISSING(N1).
+COMPUTE M2=MISSING(N2).
+COMPUTE M3=MISSING(N3).
+COMPUTE M4=MISSING(N4).
+COMPUTE M5=MISSING(N5).
+
+COMPUTE V1=VALUE(N1).
+COMPUTE V2=VALUE(N2).
+COMPUTE V3=VALUE(N3).
+COMPUTE V4=VALUE(N4).
+COMPUTE V5=VALUE(N5).
+
+FORMATS ALL (F1).
+
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv variables.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+N1,N2,N3,N4,N5,P1,P2,P3,P4,P5,MC,VC,S1,S2,S3,S4,S5,M1,M2,M3,M4,M5,V1,V2,V3,V4,V5
+1,2,3,4,5,.,2,.,.,.,4,1,0,0,0,0,0,1,0,1,1,1,1,2,3,4,5
+6,7,8,9,.,6,7,8,9,.,1,4,0,0,0,0,1,0,0,0,0,1,6,7,8,9,.
+])
+AT_CLEANUP
+
+AT_SETUP([vectors in expressions])
+AT_DATA([vectors.sps], [dnl
+DATA LIST NOTABLE /N1 TO N5 1-5.
+MISSING VALUES N1 TO N5 (3 THRU 5, 1).
+BEGIN DATA.
+12345
+6789 
+END DATA.
+
+VECTOR N=N1 TO N5.
+VECTOR X(5).
+LOOP I=1 TO 5.
+COMPUTE X(I)=N(I) + 1.
+END LOOP.
+
+FORMATS ALL (F2).
+
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv vectors.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+N1,N2,N3,N4,N5,X1,X2,X3,X4,X5,I
+1,2,3,4,5,.,3,.,.,.,5
+6,7,8,9,.,7,8,9,10,.,5
+])
+AT_CLEANUP

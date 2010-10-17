@@ -1,6 +1,6 @@
 @alias prompt = sansserif
 
-@include doc/tut.texi
+@include tut.texi
 
 @node Using PSPP
 @chapter Using PSPP

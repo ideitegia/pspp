@@ -223,7 +223,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
                 {
                   if (!fmt_from_name (type, &f.type))
                     {
-                      msg (SE, _("Unknown format type \"%s\"."), type);
+                      msg (SE, _("Unknown format type `%s'."), type);
                       return false;
                     }
                   if (!fmt_check (&f, for_input))

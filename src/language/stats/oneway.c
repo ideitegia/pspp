@@ -19,6 +19,17 @@
 #include <data/case.h>
 #include <data/casegrouper.h>
 #include <data/casereader.h>
+#include <data/dictionary.h>
+#include <data/procedure.h>
+#include <data/value.h>
+
+
+#include <math/covariance.h>
+#include <math/categoricals.h>
+#include <math/levene.h>
+#include <math/moments.h>
+#include <gsl/gsl_matrix.h>
+#include <linreg/sweep.h>
 
 #include <libpspp/ll.h>
 
@@ -27,15 +38,9 @@
 #include <language/lexer/value-parser.h>
 #include <language/command.h>
 
-#include <data/procedure.h>
-#include <data/dictionary.h>
-
 
 #include <language/dictionary/split-file.h>
-#include <libpspp/hash.h>
 #include <libpspp/taint.h>
-#include <math/group-proc.h>
-#include <math/levene.h>
 #include <libpspp/misc.h>
 
 #include <output/tab.h>
@@ -48,6 +53,7 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+
 
 enum missing_type
   {
@@ -76,7 +82,7 @@ struct contrasts_node
   bool bad_count; /* True if the number of coefficients does not equal the number of groups */
 };
 
-struct oneway 
+struct oneway_spec
 {
   size_t n_vars;
   const struct variable **vars;
@@ -88,40 +94,72 @@ struct oneway
   enum missing_type missing_type;
   enum mv_class exclude;
 
+  /* List of contrasts */
+  struct ll_list contrast_list;
+
+  /* The weight variable */
+  const struct variable *wv;
+
+};
+
+/* Per category data */
+struct descriptive_data
+{
+  const struct variable *var;
+  struct moments1 *mom;
+
+  double minimum;
+  double maximum;
+};
+
+/* Workspace variable for each dependent variable */
+struct per_var_ws
+{
+  struct categoricals *cat;
+  struct covariance *cov;
+
+  double sst;
+  double sse;
+  double ssa;
+
+  int n_groups;
+
+  double mse;
+  double levene_w;
+};
+
+struct oneway_workspace
+{
   /* The number of distinct values of the independent variable, when all
      missing values are disregarded */
   int actual_number_of_groups;
 
-  /* A  hash table containing all the distinct values of the independent
-     variable */
-  struct hsh_table *group_hash;
+  struct per_var_ws *vws;
 
-  /* List of contrasts */
-  struct ll_list contrast_list;
+  /* An array of descriptive data.  One for each dependent variable */
+  struct descriptive_data **dd_total;
 };
 
 /* Routines to show the output tables */
-static void show_anova_table (const struct oneway *);
-static void show_descriptives (const struct oneway *, const struct dictionary *dict);
-static void show_homogeneity (const struct oneway *);
+static void show_anova_table (const struct oneway_spec *, const struct oneway_workspace *);
+static void show_descriptives (const struct oneway_spec *, const struct oneway_workspace *);
+static void show_homogeneity (const struct oneway_spec *, const struct oneway_workspace *);
 
-static void output_oneway (const struct oneway *, const struct dictionary *dict);
-static void run_oneway (struct oneway *cmd, struct casereader *input, const struct dataset *ds);
+static void output_oneway (const struct oneway_spec *, struct oneway_workspace *ws);
+static void run_oneway (const struct oneway_spec *cmd, struct casereader *input, const struct dataset *ds);
 
 int
 cmd_oneway (struct lexer *lexer, struct dataset *ds)
 {
-  const struct dictionary *dict = dataset_dict (ds);
-  
-  struct oneway oneway ;
+  const struct dictionary *dict = dataset_dict (ds);  
+  struct oneway_spec oneway ;
   oneway.n_vars = 0;
   oneway.vars = NULL;
   oneway.indep_var = NULL;
   oneway.stats = 0;
   oneway.missing_type = MISS_ANALYSIS;
   oneway.exclude = MV_ANY;
-  oneway.actual_number_of_groups = 0;
-  oneway.group_hash = NULL;
+  oneway.wv = dict_get_weight (dict);
 
   ll_init (&oneway.contrast_list);
 
@@ -179,13 +217,13 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 
           while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
 	    {
-	      union value val;
-	      if ( parse_value (lexer, &val, 0))
+	      if ( lex_is_number (lexer))
 		{
 		  struct coeff_node *cc = xmalloc (sizeof *cc);
-		  cc->coeff = val.f;
+		  cc->coeff = lex_number (lexer);
 
 		  ll_push_tail (coefficient_list, &cc->ll);
+		  lex_get (lexer);
 		}
 	      else
 		{
@@ -255,60 +293,126 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 
 
 
-static int
-compare_double_3way (const void *a_, const void *b_, const void *aux UNUSED)
-{
-  const double *a = a_;
-  const double *b = b_;
-  return *a < *b ? -1 : *a > *b;
-}
 
-static unsigned
-do_hash_double (const void *value_, const void *aux UNUSED)
+static struct descriptive_data *
+dd_create (const struct variable *var)
 {
-  const double *value = value_;
-  return hash_double (*value, 0);
+  struct descriptive_data *dd = xmalloc (sizeof *dd);
+
+  dd->mom = moments1_create (MOMENT_VARIANCE);
+  dd->minimum = DBL_MAX;
+  dd->maximum = -DBL_MAX;
+  dd->var = var;
+
+  return dd;
 }
 
 static void
-free_double (void *value_, const void *aux UNUSED)
+dd_destroy (struct descriptive_data *dd)
 {
-  double *value = value_;
-  free (value);
+  moments1_destroy (dd->mom);
+  free (dd);
 }
 
-static void postcalc (const struct oneway *cmd);
-static void  precalc (const struct oneway *cmd);
+static void *
+makeit (void *aux1, void *aux2 UNUSED)
+{
+  const struct variable *var = aux1;
 
+  struct descriptive_data *dd = dd_create (var);
+
+  return dd;
+}
+
+static void 
+updateit (void *user_data, 
+	  enum mv_class exclude,
+	  const struct variable *wv, 
+	  const struct variable *catvar UNUSED,
+	  const struct ccase *c,
+	  void *aux1, void *aux2)
+{
+  struct descriptive_data *dd = user_data;
+
+  const struct variable *varp = aux1;
+
+  const union value *valx = case_data (c, varp);
+
+  struct descriptive_data *dd_total = aux2;
+
+  double weight;
+
+  if ( var_is_value_missing (varp, valx, exclude))
+    return;
+
+  weight = wv != NULL ? case_data (c, wv)->f : 1.0;
+
+  moments1_add (dd->mom, valx->f, weight);
+  if (valx->f < dd->minimum)
+    dd->minimum = valx->f;
+
+  if (valx->f > dd->maximum)
+    dd->maximum = valx->f;
+
+  {
+    const struct variable *var = dd_total->var;
+    const union value *val = case_data (c, var);
+
+    moments1_add (dd_total->mom,
+		  val->f,
+		  weight);
+
+    if (val->f < dd_total->minimum)
+      dd_total->minimum = val->f;
+
+    if (val->f > dd_total->maximum)
+      dd_total->maximum = val->f;
+  }
+}
 
 static void
-run_oneway (struct oneway *cmd,
+run_oneway (const struct oneway_spec *cmd,
             struct casereader *input,
             const struct dataset *ds)
 {
+  int v;
   struct taint *taint;
   struct dictionary *dict = dataset_dict (ds);
   struct casereader *reader;
   struct ccase *c;
 
+  struct oneway_workspace ws;
+
+  ws.actual_number_of_groups = 0;
+  ws.vws = xzalloc (cmd->n_vars * sizeof (*ws.vws));
+  ws.dd_total = xmalloc (sizeof (struct descriptive_data) * cmd->n_vars);
+
+  for (v = 0 ; v < cmd->n_vars; ++v)
+    ws.dd_total[v] = dd_create (cmd->vars[v]);
+
+  for (v = 0; v < cmd->n_vars; ++v)
+    {
+      ws.vws[v].cat = categoricals_create (&cmd->indep_var, 1,
+						       cmd->wv, cmd->exclude, 
+						       makeit,
+						       updateit,
+						       cmd->vars[v], ws.dd_total[v]);
+
+      ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
+					       ws.vws[v].cat, 
+					       cmd->wv, cmd->exclude);
+    }
+
   c = casereader_peek (input, 0);
   if (c == NULL)
     {
       casereader_destroy (input);
-      return;
+      goto finish;
     }
   output_split_file_values (ds, c);
   case_unref (c);
 
   taint = taint_clone (casereader_get_taint (input));
-
-  cmd->group_hash = hsh_create (4,
-				  compare_double_3way,
-				  do_hash_double,
-				  free_double,
-				  cmd->indep_var);
-
-  precalc (cmd);
 
   input = casereader_create_filter_missing (input, &cmd->indep_var, 1,
                                             cmd->exclude, NULL, NULL);
@@ -317,169 +421,115 @@ run_oneway (struct oneway *cmd,
                                               cmd->exclude, NULL, NULL);
   input = casereader_create_filter_weight (input, dict, NULL, NULL);
 
+
+  if (cmd->stats & STATS_HOMOGENEITY)
+    for (v = 0; v < cmd->n_vars; ++v)
+      {
+	struct per_var_ws *pvw = &ws.vws[v];
+
+	pvw->levene_w = levene (input, cmd->indep_var, cmd->vars[v], cmd->wv, cmd->exclude);
+      }
+
   reader = casereader_clone (input);
+
   for (; (c = casereader_read (reader)) != NULL; case_unref (c))
     {
-      size_t i;
-
-      const double weight = dict_get_case_weight (dict, c, NULL);
-
-      const union value *indep_val = case_data (c, cmd->indep_var);
-      void **p = hsh_probe (cmd->group_hash, &indep_val->f);
-      if (*p == NULL)
-        {
-          double *value = *p = xmalloc (sizeof *value);
-          *value = indep_val->f;
-        }
+      int i;
 
       for (i = 0; i < cmd->n_vars; ++i)
 	{
+	  struct per_var_ws *pvw = &ws.vws[i];
 	  const struct variable *v = cmd->vars[i];
-
 	  const union value *val = case_data (c, v);
 
-          struct group_proc *gp = group_proc_get (cmd->vars[i]);
-	  struct hsh_table *group_hash = gp->group_hash;
-
-	  struct group_statistics *gs;
-
-	  gs = hsh_find (group_hash, indep_val );
-
-	  if ( ! gs )
+	  if ( MISS_ANALYSIS == cmd->missing_type)
 	    {
-	      gs = xmalloc (sizeof *gs);
-	      gs->id = *indep_val;
-	      gs->sum = 0;
-	      gs->n = 0;
-	      gs->ssq = 0;
-	      gs->sum_diff = 0;
-	      gs->minimum = DBL_MAX;
-	      gs->maximum = -DBL_MAX;
-
-	      hsh_insert ( group_hash, gs );
+	      if ( var_is_value_missing (v, val, cmd->exclude))
+		continue;
 	    }
 
-	  if (!var_is_value_missing (v, val, cmd->exclude))
-	    {
-	      struct group_statistics *totals = &gp->ugs;
-
-	      totals->n += weight;
-	      totals->sum += weight * val->f;
-	      totals->ssq += weight * pow2 (val->f);
-
-	      if ( val->f * weight  < totals->minimum )
-		totals->minimum = val->f * weight;
-
-	      if ( val->f * weight  > totals->maximum )
-		totals->maximum = val->f * weight;
-
-	      gs->n += weight;
-	      gs->sum += weight * val->f;
-	      gs->ssq += weight * pow2 (val->f);
-
-	      if ( val->f * weight  < gs->minimum )
-		gs->minimum = val->f * weight;
-
-	      if ( val->f * weight  > gs->maximum )
-		gs->maximum = val->f * weight;
-	    }
-
-	  gp->n_groups = hsh_count (group_hash );
+	  covariance_accumulate_pass1 (pvw->cov, c);
 	}
+    }
+  casereader_destroy (reader);
+  reader = casereader_clone (input);
+  for ( ; (c = casereader_read (reader) ); case_unref (c))
+    {
+      int i;
+      for (i = 0; i < cmd->n_vars; ++i)
+	{
+	  struct per_var_ws *pvw = &ws.vws[i];
+	  const struct variable *v = cmd->vars[i];
+	  const union value *val = case_data (c, v);
 
+	  if ( MISS_ANALYSIS == cmd->missing_type)
+	    {
+	      if ( var_is_value_missing (v, val, cmd->exclude))
+		continue;
+	    }
+
+	  covariance_accumulate_pass2 (pvw->cov, c);
+	}
     }
   casereader_destroy (reader);
 
-  postcalc (cmd);
+  for (v = 0; v < cmd->n_vars; ++v)
+    {
+      struct per_var_ws *pvw = &ws.vws[v];
+      gsl_matrix *cm = covariance_calculate_unnormalized (pvw->cov);
+      const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
 
-  if ( cmd->stats & STATS_HOMOGENEITY )
-    levene (dict, casereader_clone (input), cmd->indep_var,
-	    cmd->n_vars, cmd->vars, cmd->exclude);
+      double n;
+      moments1_calculate (ws.dd_total[v]->mom, &n, NULL, NULL, NULL, NULL);
+
+      pvw->sst = gsl_matrix_get (cm, 0, 0);
+
+      //      gsl_matrix_fprintf (stdout, cm, "%g ");
+
+      reg_sweep (cm, 0);
+
+      pvw->sse = gsl_matrix_get (cm, 0, 0);
+
+      pvw->ssa = pvw->sst - pvw->sse;
+
+      pvw->n_groups = categoricals_total (cats);
+
+      pvw->mse = (pvw->sst - pvw->ssa) / (n - pvw->n_groups);
+    }
+
+  for (v = 0; v < cmd->n_vars; ++v)
+    {
+      struct categoricals *cats = covariance_get_categoricals (ws.vws[v].cov);
+
+      categoricals_done (cats);
+      
+      if (categoricals_total (cats) > ws.actual_number_of_groups)
+	ws.actual_number_of_groups = categoricals_total (cats);
+    }
 
   casereader_destroy (input);
 
-  cmd->actual_number_of_groups = hsh_count (cmd->group_hash);
-
   if (!taint_has_tainted_successor (taint))
-    output_oneway (cmd, dict);
+    output_oneway (cmd, &ws);
 
   taint_destroy (taint);
-}
 
-/* Pre calculations */
-static void
-precalc (const struct oneway *cmd)
-{
-  size_t i = 0;
-
-  for (i = 0; i < cmd->n_vars; ++i)
+ finish:
+  for (v = 0; v < cmd->n_vars; ++v)
     {
-      struct group_proc *gp = group_proc_get (cmd->vars[i]);
-      struct group_statistics *totals = &gp->ugs;
-
-      /* Create a hash for each of the dependent variables.
-	 The hash contains a group_statistics structure,
-	 and is keyed by value of the independent variable */
-
-      gp->group_hash = hsh_create (4, compare_group, hash_group,
-				   (hsh_free_func *) free_group,
-				   cmd->indep_var);
-
-      totals->sum = 0;
-      totals->n = 0;
-      totals->ssq = 0;
-      totals->sum_diff = 0;
-      totals->maximum = -DBL_MAX;
-      totals->minimum = DBL_MAX;
+      covariance_destroy (ws.vws[v].cov);
+      dd_destroy (ws.dd_total[v]);
     }
+  free (ws.vws);
+  free (ws.dd_total);
+
 }
 
-/* Post calculations for the ONEWAY command */
-static void
-postcalc (const struct oneway *cmd)
-{
-  size_t i = 0;
-
-  for (i = 0; i < cmd->n_vars; ++i)
-    {
-      struct group_proc *gp = group_proc_get (cmd->vars[i]);
-      struct hsh_table *group_hash = gp->group_hash;
-      struct group_statistics *totals = &gp->ugs;
-
-      struct hsh_iterator g;
-      struct group_statistics *gs;
-
-      for (gs =  hsh_first (group_hash, &g);
-	   gs != 0;
-	   gs = hsh_next (group_hash, &g))
-	{
-	  gs->mean = gs->sum / gs->n;
-	  gs->s_std_dev = sqrt (gs->ssq / gs->n - pow2 (gs->mean));
-
-	  gs->std_dev = sqrt (
-			      gs->n / (gs->n - 1) *
-			      ( gs->ssq / gs->n - pow2 (gs->mean))
-			      );
-
-	  gs->se_mean = gs->std_dev / sqrt (gs->n);
-	  gs->mean_diff = gs->sum_diff / gs->n;
-	}
-
-      totals->mean = totals->sum / totals->n;
-      totals->std_dev = sqrt (
-			      totals->n / (totals->n - 1) *
-			      (totals->ssq / totals->n - pow2 (totals->mean))
-			      );
-
-      totals->se_mean = totals->std_dev / sqrt (totals->n);
-    }
-}
-
-static void show_contrast_coeffs (const struct oneway *cmd);
-static void show_contrast_tests (const struct oneway *cmd);
+static void show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspace *ws);
+static void show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspace *ws);
 
 static void
-output_oneway (const struct oneway *cmd, const struct dictionary *dict)
+output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
 {
   size_t i = 0;
 
@@ -492,7 +542,7 @@ output_oneway (const struct oneway *cmd, const struct dictionary *dict)
       struct ll_list *cl = &coeff_list->coefficient_list;
       ++i;
 
-      if (ll_count (cl) != cmd->actual_number_of_groups)
+      if (ll_count (cl) != ws->actual_number_of_groups)
 	{
 	  msg (SW,
 	       _("Number of contrast coefficients must equal the number of groups"));
@@ -508,36 +558,24 @@ output_oneway (const struct oneway *cmd, const struct dictionary *dict)
     }
 
   if (cmd->stats & STATS_DESCRIPTIVES)
-    show_descriptives (cmd, dict);
+    show_descriptives (cmd, ws);
 
   if (cmd->stats & STATS_HOMOGENEITY)
-    show_homogeneity (cmd);
+    show_homogeneity (cmd, ws);
 
-  show_anova_table (cmd);
-
+  show_anova_table (cmd, ws);
 
   if (ll_count (&cmd->contrast_list) > 0)
     {
-      show_contrast_coeffs (cmd);
-      show_contrast_tests (cmd);
+      show_contrast_coeffs (cmd, ws);
+      show_contrast_tests (cmd, ws);
     }
-
-
-  /* Clean up */
-  for (i = 0; i < cmd->n_vars; ++i )
-    {
-      struct hsh_table *group_hash = group_proc_get (cmd->vars[i])->group_hash;
-
-      hsh_destroy (group_hash);
-    }
-
-  hsh_destroy (cmd->group_hash);
 }
 
 
 /* Show the ANOVA table */
 static void
-show_anova_table (const struct oneway *cmd)
+show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   size_t i;
   int n_cols =7;
@@ -566,21 +604,17 @@ show_anova_table (const struct oneway *cmd)
 
   for (i = 0; i < cmd->n_vars; ++i)
     {
-      struct group_statistics *totals = &group_proc_get (cmd->vars[i])->ugs;
-      struct hsh_table *group_hash = group_proc_get (cmd->vars[i])->group_hash;
-      struct hsh_iterator g;
-      struct group_statistics *gs;
-      double ssa = 0;
+      double n;
+      double df1, df2;
+      double msa;
       const char *s = var_to_string (cmd->vars[i]);
+      const struct per_var_ws *pvw = &ws->vws[i];
 
-      for (gs =  hsh_first (group_hash, &g);
-	   gs != 0;
-	   gs = hsh_next (group_hash, &g))
-	{
-	  ssa += pow2 (gs->sum) / gs->n;
-	}
+      moments1_calculate (ws->dd_total[i]->mom, &n, NULL, NULL, NULL, NULL);
 
-      ssa -= pow2 (totals->sum) / totals->n;
+      df1 = pvw->n_groups - 1;
+      df2 = n - pvw->n_groups;
+      msa = pvw->ssa / df1;
 
       tab_text (t, 0, i * 3 + 1, TAB_LEFT | TAT_TITLE, s);
       tab_text (t, 1, i * 3 + 1, TAB_LEFT | TAT_TITLE, _("Between Groups"));
@@ -590,43 +624,32 @@ show_anova_table (const struct oneway *cmd)
       if (i > 0)
 	tab_hline (t, TAL_1, 0, n_cols - 1, i * 3 + 1);
 
+
+      /* Sums of Squares */
+      tab_double (t, 2, i * 3 + 1, 0, pvw->ssa, NULL);
+      tab_double (t, 2, i * 3 + 3, 0, pvw->sst, NULL);
+      tab_double (t, 2, i * 3 + 2, 0, pvw->sse, NULL);
+
+
+      /* Degrees of freedom */
+      tab_fixed (t, 3, i * 3 + 1, 0, df1, 4, 0);
+      tab_fixed (t, 3, i * 3 + 2, 0, df2, 4, 0);
+      tab_fixed (t, 3, i * 3 + 3, 0, n - 1, 4, 0);
+
+      /* Mean Squares */
+      tab_double (t, 4, i * 3 + 1, TAB_RIGHT, msa, NULL);
+      tab_double (t, 4, i * 3 + 2, TAB_RIGHT, pvw->mse, NULL);
+
       {
-        struct group_proc *gp = group_proc_get (cmd->vars[i]);
-	const double sst = totals->ssq - pow2 (totals->sum) / totals->n;
-	const double df1 = gp->n_groups - 1;
-	const double df2 = totals->n - gp->n_groups;
-	const double msa = ssa / df1;
+	const double F = msa / pvw->mse ;
 
-	gp->mse  = (sst - ssa) / df2;
+	/* The F value */
+	tab_double (t, 5, i * 3 + 1, 0,  F, NULL);
 
-
-	/* Sums of Squares */
-	tab_double (t, 2, i * 3 + 1, 0, ssa, NULL);
-	tab_double (t, 2, i * 3 + 3, 0, sst, NULL);
-	tab_double (t, 2, i * 3 + 2, 0, sst - ssa, NULL);
-
-
-	/* Degrees of freedom */
-	tab_fixed (t, 3, i * 3 + 1, 0, df1, 4, 0);
-	tab_fixed (t, 3, i * 3 + 2, 0, df2, 4, 0);
-	tab_fixed (t, 3, i * 3 + 3, 0, totals->n - 1, 4, 0);
-
-	/* Mean Squares */
-	tab_double (t, 4, i * 3 + 1, TAB_RIGHT, msa, NULL);
-	tab_double (t, 4, i * 3 + 2, TAB_RIGHT, gp->mse, NULL);
-
-	{
-	  const double F = msa / gp->mse ;
-
-	  /* The F value */
-	  tab_double (t, 5, i * 3 + 1, 0,  F, NULL);
-
-	  /* The significance */
-	  tab_double (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q (F, df1, df2), NULL);
-	}
+	/* The significance */
+	tab_double (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q (F, df1, df2), NULL);
       }
     }
-
 
   tab_title (t, _("ANOVA"));
   tab_submit (t);
@@ -635,7 +658,7 @@ show_anova_table (const struct oneway *cmd)
 
 /* Show the descriptives table */
 static void
-show_descriptives (const struct oneway *cmd, const struct dictionary *dict)
+show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   size_t v;
   int n_cols = 10;
@@ -645,17 +668,15 @@ show_descriptives (const struct oneway *cmd, const struct dictionary *dict)
   const double confidence = 0.95;
   const double q = (1.0 - confidence) / 2.0;
 
-  const struct variable *wv = dict_get_weight (dict);
-  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+  const struct fmt_spec *wfmt = cmd->wv ? var_get_print_format (cmd->wv) : &F_8_0;
 
   int n_rows = 2;
 
-  for ( v = 0; v < cmd->n_vars; ++v )
-    n_rows += group_proc_get (cmd->vars[v])->n_groups + 1;
+  for (v = 0; v < cmd->n_vars; ++v)
+    n_rows += ws->actual_number_of_groups + 1;
 
   t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 2, 0);
-
 
   /* Put a frame around the entire box, and vertical lines inside */
   tab_box (t,
@@ -686,39 +707,42 @@ show_descriptives (const struct oneway *cmd, const struct dictionary *dict)
   tab_text (t, 8, 1, TAB_CENTER | TAT_TITLE, _("Minimum"));
   tab_text (t, 9, 1, TAB_CENTER | TAT_TITLE, _("Maximum"));
 
-
   tab_title (t, _("Descriptives"));
-
 
   row = 2;
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      double T;
-      double std_error;
-
-      struct group_proc *gp = group_proc_get (cmd->vars[v]);
-
-      struct group_statistics *gs;
-      struct group_statistics *totals = &gp->ugs;
-
       const char *s = var_to_string (cmd->vars[v]);
       const struct fmt_spec *fmt = var_get_print_format (cmd->vars[v]);
 
-      struct group_statistics *const *gs_array =
-	(struct group_statistics *const *) hsh_sort (gp->group_hash);
       int count = 0;
+
+      struct per_var_ws *pvw = &ws->vws[v];
+      const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
 
       tab_text (t, 0, row, TAB_LEFT | TAT_TITLE, s);
       if ( v > 0)
 	tab_hline (t, TAL_1, 0, n_cols - 1, row);
 
-      for (count = 0; count < hsh_count (gp->group_hash); ++count)
+      for (count = 0; count < categoricals_total (cats); ++count)
 	{
-	  struct string vstr;
-	  ds_init_empty (&vstr);
-	  gs = gs_array[count];
+	  double T;
+	  double n, mean, variance;
+	  double std_dev, std_error ;
 
-	  var_append_value_name (cmd->indep_var, &gs->id, &vstr);
+	  struct string vstr;
+
+	  const union value *gval = categoricals_get_value_by_subscript (cats, count);
+	  const struct descriptive_data *dd = categoricals_get_user_data_by_subscript (cats, count);
+
+	  moments1_calculate (dd->mom, &n, &mean, &variance, NULL, NULL);
+
+	  std_dev = sqrt (variance);
+	  std_error = std_dev / sqrt (n) ;
+
+	  ds_init_empty (&vstr);
+
+	  var_append_value_name (cmd->indep_var, gval, &vstr);
 
 	  tab_text (t, 1, row + count,
 		    TAB_LEFT | TAT_TITLE,
@@ -728,61 +752,68 @@ show_descriptives (const struct oneway *cmd, const struct dictionary *dict)
 
 	  /* Now fill in the numbers ... */
 
-	  tab_fixed (t, 2, row + count, 0, gs->n, 8, 0);
+	  tab_double (t, 2, row + count, 0, n, wfmt);
 
-	  tab_double (t, 3, row + count, 0, gs->mean, NULL);
+	  tab_double (t, 3, row + count, 0, mean, NULL);
 
-	  tab_double (t, 4, row + count, 0, gs->std_dev, NULL);
+	  tab_double (t, 4, row + count, 0, std_dev, NULL);
 
-	  std_error = gs->std_dev / sqrt (gs->n) ;
-	  tab_double (t, 5, row + count, 0,
-		      std_error, NULL);
+
+	  tab_double (t, 5, row + count, 0, std_error, NULL);
 
 	  /* Now the confidence interval */
 
-	  T = gsl_cdf_tdist_Qinv (q, gs->n - 1);
+	  T = gsl_cdf_tdist_Qinv (q, n - 1);
 
 	  tab_double (t, 6, row + count, 0,
-		      gs->mean - T * std_error, NULL);
+		      mean - T * std_error, NULL);
 
 	  tab_double (t, 7, row + count, 0,
-		      gs->mean + T * std_error, NULL);
+		      mean + T * std_error, NULL);
 
 	  /* Min and Max */
 
-	  tab_double (t, 8, row + count, 0,  gs->minimum, fmt);
-	  tab_double (t, 9, row + count, 0,  gs->maximum, fmt);
+	  tab_double (t, 8, row + count, 0,  dd->minimum, fmt);
+	  tab_double (t, 9, row + count, 0,  dd->maximum, fmt);
 	}
 
-      tab_text (t, 1, row + count,
-		TAB_LEFT | TAT_TITLE, _("Total"));
+      {
+	double T;
+	double n, mean, variance;
+	double std_dev;
+	double std_error;
 
-      tab_double (t, 2, row + count, 0, totals->n, wfmt);
+	moments1_calculate (ws->dd_total[v]->mom, &n, &mean, &variance, NULL, NULL);
 
-      tab_double (t, 3, row + count, 0, totals->mean, NULL);
+	std_dev = sqrt (variance);
+	std_error = std_dev / sqrt (n) ;
 
-      tab_double (t, 4, row + count, 0, totals->std_dev, NULL);
+	tab_text (t, 1, row + count,
+		  TAB_LEFT | TAT_TITLE, _("Total"));
 
-      std_error = totals->std_dev / sqrt (totals->n) ;
+	tab_double (t, 2, row + count, 0, n, wfmt);
 
-      tab_double (t, 5, row + count, 0, std_error, NULL);
+	tab_double (t, 3, row + count, 0, mean, NULL);
 
-      /* Now the confidence interval */
+	tab_double (t, 4, row + count, 0, std_dev, NULL);
 
-      T = gsl_cdf_tdist_Qinv (q, totals->n - 1);
+	tab_double (t, 5, row + count, 0, std_error, NULL);
 
-      tab_double (t, 6, row + count, 0,
-		  totals->mean - T * std_error, NULL);
+	/* Now the confidence interval */
+	T = gsl_cdf_tdist_Qinv (q, n - 1);
 
-      tab_double (t, 7, row + count, 0,
-		  totals->mean + T * std_error, NULL);
+	tab_double (t, 6, row + count, 0,
+		    mean - T * std_error, NULL);
 
-      /* Min and Max */
+	tab_double (t, 7, row + count, 0,
+		    mean + T * std_error, NULL);
 
-      tab_double (t, 8, row + count, 0,  totals->minimum, fmt);
-      tab_double (t, 9, row + count, 0,  totals->maximum, fmt);
+	/* Min and Max */
+	tab_double (t, 8, row + count, 0,  ws->dd_total[v]->minimum, fmt);
+	tab_double (t, 9, row + count, 0,  ws->dd_total[v]->maximum, fmt);
+      }
 
-      row += gp->n_groups + 1;
+      row += categoricals_total (cats) + 1;
     }
 
   tab_submit (t);
@@ -790,18 +821,14 @@ show_descriptives (const struct oneway *cmd, const struct dictionary *dict)
 
 /* Show the homogeneity table */
 static void
-show_homogeneity (const struct oneway *cmd)
+show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   size_t v;
   int n_cols = 5;
   size_t n_rows = cmd->n_vars + 1;
 
-  struct tab_table *t;
-
-
-  t = tab_create (n_cols, n_rows);
+  struct tab_table *t = tab_create (n_cols, n_rows);
   tab_headers (t, 1, 0, 1, 0);
-
 
   /* Put a frame around the entire box, and vertical lines inside */
   tab_box (t,
@@ -814,7 +841,6 @@ show_homogeneity (const struct oneway *cmd)
   tab_hline (t, TAL_2, 0, n_cols - 1, 1);
   tab_vline (t, TAL_2, 1, 0, n_rows - 1);
 
-
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Levene Statistic"));
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("df1"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("df2"));
@@ -824,24 +850,27 @@ show_homogeneity (const struct oneway *cmd)
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      double F;
-      const struct variable *var = cmd->vars[v];
-      const struct group_proc *gp = group_proc_get (cmd->vars[v]);
-      const char *s = var_to_string (var);
-      const struct group_statistics *totals = &gp->ugs;
+      double n;
+      const struct per_var_ws *pvw = &ws->vws[v];
+      double F = pvw->levene_w;
 
-      const double df1 = gp->n_groups - 1;
-      const double df2 = totals->n - gp->n_groups;
+      const struct variable *var = cmd->vars[v];
+      const char *s = var_to_string (var);
+      double df1, df2;
+
+      moments1_calculate (ws->dd_total[v]->mom, &n, NULL, NULL, NULL, NULL);
+
+      df1 = pvw->n_groups - 1;
+      df2 = n - pvw->n_groups;
 
       tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);
 
-      F = gp->levene;
       tab_double (t, 1, v + 1, TAB_RIGHT, F, NULL);
       tab_fixed (t, 2, v + 1, TAB_RIGHT, df1, 8, 0);
       tab_fixed (t, 3, v + 1, TAB_RIGHT, df2, 8, 0);
 
       /* Now the significance */
-      tab_double (t, 4, v + 1, TAB_RIGHT,gsl_cdf_fdist_Q (F, df1, df2), NULL);
+      tab_double (t, 4, v + 1, TAB_RIGHT, gsl_cdf_fdist_Q (F, df1, df2), NULL);
     }
 
   tab_submit (t);
@@ -850,18 +879,18 @@ show_homogeneity (const struct oneway *cmd)
 
 /* Show the contrast coefficients table */
 static void
-show_contrast_coeffs (const struct oneway *cmd)
+show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   int c_num = 0;
   struct ll *cli;
 
   int n_contrasts = ll_count (&cmd->contrast_list);
-  int n_cols = 2 + cmd->actual_number_of_groups;
+  int n_cols = 2 + ws->actual_number_of_groups;
   int n_rows = 2 + n_contrasts;
 
-  void *const *group_values;
-
   struct tab_table *t;
+
+  const struct covariance *cov = ws->vws[0].cov ;
 
   t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 2, 0);
@@ -898,34 +927,29 @@ show_contrast_coeffs (const struct oneway *cmd)
   tab_joint_text (t, 2, 0, n_cols - 1, 0, TAB_CENTER | TAT_TITLE,
 		  var_to_string (cmd->indep_var));
 
-  group_values = hsh_sort (cmd->group_hash);
-
   for ( cli = ll_head (&cmd->contrast_list);
 	cli != ll_null (&cmd->contrast_list);
 	cli = ll_next (cli))
     {
       int count = 0;
       struct contrasts_node *cn = ll_data (cli, struct contrasts_node, ll);
-      struct ll *coeffi = ll_head (&cn->coefficient_list);
+      struct ll *coeffi ;
 
       tab_text_format (t, 1, c_num + 2, TAB_CENTER, "%d", c_num + 1);
 
-      for (count = 0;
-	   count < hsh_count (cmd->group_hash) && coeffi != ll_null (&cn->coefficient_list);
-	   ++count)
+      for (coeffi = ll_head (&cn->coefficient_list);
+	   coeffi != ll_null (&cn->coefficient_list);
+	   ++count, coeffi = ll_next (coeffi))
 	{
-	  double *group_value_p;
-	  union value group_value;
+	  const struct categoricals *cats = covariance_get_categoricals (cov);
+	  const union value *val = categoricals_get_value_by_subscript (cats, count);
 	  struct string vstr;
 
 	  ds_init_empty (&vstr);
 
-	  group_value_p = group_values[count];
-	  group_value.f = *group_value_p;
-	  var_append_value_name (cmd->indep_var, &group_value, &vstr);
+	  var_append_value_name (cmd->indep_var, val, &vstr);
 
-	  tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE,
-		    ds_cstr (&vstr));
+	  tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE, ds_cstr (&vstr));
 
 	  ds_destroy (&vstr);
 
@@ -937,8 +961,6 @@ show_contrast_coeffs (const struct oneway *cmd)
 
 	      tab_text_format (t, count + 2, c_num + 2, TAB_RIGHT, "%g", coeffn->coeff);
 	    }
-
-	  coeffi = ll_next (coeffi);
 	}
       ++c_num;
     }
@@ -949,7 +971,7 @@ show_contrast_coeffs (const struct oneway *cmd)
 
 /* Show the results of the contrast tests */
 static void
-show_contrast_tests (const struct oneway *cmd)
+show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspace *ws)
 {
   int n_contrasts = ll_count (&cmd->contrast_list);
   size_t v;
@@ -977,7 +999,6 @@ show_contrast_tests (const struct oneway *cmd)
   tab_hline (t, TAL_2, 0, n_cols - 1, 1);
   tab_vline (t, TAL_2, 3, 0, n_rows - 1);
 
-
   tab_title (t, _("Contrast Tests"));
 
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("Contrast"));
@@ -989,6 +1010,8 @@ show_contrast_tests (const struct oneway *cmd)
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
+      const struct per_var_ws *pvw = &ws->vws[v];
+      const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
       struct ll *cli;
       int i = 0;
       int lines_per_variable = 2 * n_contrasts;
@@ -1001,14 +1024,10 @@ show_contrast_tests (const struct oneway *cmd)
 	    ++i, cli = ll_next (cli))
 	{
 	  struct contrasts_node *cn = ll_data (cli, struct contrasts_node, ll);
-	  struct ll *coeffi = ll_head (&cn->coefficient_list);
-	  int ci;
+	  struct ll *coeffi ;
+	  int ci = 0;
 	  double contrast_value = 0.0;
 	  double coef_msq = 0.0;
-	  struct group_proc *grp_data = group_proc_get (cmd->vars[v]);
-	  struct hsh_table *group_hash = grp_data->group_hash;
-
-	  void *const *group_stat_array;
 
 	  double T;
 	  double std_error_contrast;
@@ -1028,6 +1047,11 @@ show_contrast_tests (const struct oneway *cmd)
 
 	  double df_denominator = 0.0;
 	  double df_numerator = 0.0;
+
+	  double grand_n;
+	  moments1_calculate (ws->dd_total[v]->mom, &grand_n, NULL, NULL, NULL, NULL);
+	  df = grand_n - pvw->n_groups;
+
 	  if ( i == 0 )
 	    {
 	      tab_text (t,  1, (v * lines_per_variable) + i + 1,
@@ -1050,27 +1074,28 @@ show_contrast_tests (const struct oneway *cmd)
 	  if (cn->bad_count)
 	    continue;
 
-	  group_stat_array = hsh_sort (group_hash);
-
-	  for (ci = 0;
-	       coeffi != ll_null (&cn->coefficient_list) && 
-		 ci < hsh_count (group_hash);
+	  for (coeffi = ll_head (&cn->coefficient_list);
+	       coeffi != ll_null (&cn->coefficient_list);
 	       ++ci, coeffi = ll_next (coeffi))
 	    {
+	      double n, mean, variance;
+	      const struct descriptive_data *dd = categoricals_get_user_data_by_subscript (cats, ci);
 	      struct coeff_node *cn = ll_data (coeffi, struct coeff_node, ll);
 	      const double coef = cn->coeff; 
-	      struct group_statistics *gs = group_stat_array[ci];
+	      double winv ;
 
-	      const double winv = pow2 (gs->std_dev) / gs->n;
+	      moments1_calculate (dd->mom, &n, &mean, &variance, NULL, NULL);
 
-	      contrast_value += coef * gs->mean;
+	      winv = variance / n;
 
-	      coef_msq += (coef * coef) / gs->n;
+	      contrast_value += coef * mean;
 
-	      sec_vneq += (coef * coef) * pow2 (gs->std_dev) /gs->n;
+	      coef_msq += (pow2 (coef)) / n;
 
-	      df_numerator += (coef * coef) * winv;
-	      df_denominator += pow2((coef * coef) * winv) / (gs->n - 1);
+	      sec_vneq += (pow2 (coef)) * variance / n;
+
+	      df_numerator += (pow2 (coef)) * winv;
+	      df_denominator += pow2((pow2 (coef)) * winv) / (n - 1);
 	    }
 
 	  sec_vneq = sqrt (sec_vneq);
@@ -1084,7 +1109,7 @@ show_contrast_tests (const struct oneway *cmd)
 		      n_contrasts,
 		      TAB_RIGHT, contrast_value, NULL);
 
-	  std_error_contrast = sqrt (grp_data->mse * coef_msq);
+	  std_error_contrast = sqrt (pvw->mse * coef_msq);
 
 	  /* Std. Error */
 	  tab_double (t,  4, (v * lines_per_variable) + i + 1,
@@ -1099,7 +1124,6 @@ show_contrast_tests (const struct oneway *cmd)
 		      TAB_RIGHT, T,
 		      NULL);
 
-	  df = grp_data->ugs.n - grp_data->n_groups;
 
 	  /* Degrees of Freedom */
 	  tab_fixed (t,  6, (v * lines_per_variable) + i + 1,

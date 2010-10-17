@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -169,12 +169,12 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
       if (!lex_force_id (lexer))
 	return false;
       if (dict_lookup_var (dict, lex_tokid (lexer)))
-        msg (SW, _("Dummy variable name \"%s\" hides dictionary "
-                   "variable \"%s\"."),
+        msg (SW, _("Dummy variable name `%s' hides dictionary "
+                   "variable `%s'."),
              lex_tokid (lexer), lex_tokid (lexer));
       if (find_macro (block, ss_cstr (lex_tokid (lexer))))
 	  {
-	    msg (SE, _("Dummy variable name \"%s\" is given twice."),
+	    msg (SE, _("Dummy variable name `%s' is given twice."),
 		 lex_tokid (lexer));
 	    return false;
 	  }
@@ -195,7 +195,7 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
 	count = parse_ids (lexer, dict, macro, block->pool);
       else if (lex_is_number (lexer))
 	count = parse_numbers (lexer, macro, block->pool);
-      else if (lex_token (lexer) == T_STRING)
+      else if (lex_is_string (lexer))
 	count = parse_strings (lexer, macro, block->pool);
       else
 	{
@@ -220,8 +220,8 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
 	}
       else if (block->loop_cnt != count)
 	{
-	  msg (SE, _("Dummy variable \"%.*s\" had %d "
-                     "substitutions, so \"%.*s\" must also, but %d "
+	  msg (SE, _("Dummy variable `%.*s' had %d "
+                     "substitutions, so `%.*s' must also, but %d "
                      "were specified."),
 	       (int) ss_length (first_name), ss_data (first_name),
                block->loop_cnt,
@@ -306,7 +306,10 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
 
       /* Retrieve an input line and make a copy of it. */
       if (!lex_get_line_raw (lexer))
-        return false;
+        {
+          msg (SE, _("DO REPEAT without END REPEAT."));
+          return false;
+        }
       ds_init_string (&text, lex_entire_line_ds (lexer));
 
       /* Record file name. */
@@ -476,7 +479,7 @@ parse_strings (struct lexer *lexer, struct repeat_macro *macro, struct pool *poo
     {
       char *string;
 
-      if (lex_token (lexer) != T_STRING)
+      if (!lex_force_string (lexer))
 	{
 	  msg (SE, _("String expected."));
 	  return 0;
@@ -618,10 +621,10 @@ do_repeat_name (const struct getl_interface *interface)
 }
 
 /* Returns the line number in the source file from which the
-   previous line was originally obtained, or -1 if none. */
+   previous line was originally obtained, or 0 if none. */
 static int
 do_repeat_location (const struct getl_interface *interface)
 {
   struct repeat_line *line = current_line (interface);
-  return line ? line->line_number : -1;
+  return line ? line->line_number : 0;
 }

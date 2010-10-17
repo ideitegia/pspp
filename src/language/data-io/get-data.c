@@ -219,7 +219,6 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	}
       else
 	{
-	  printf ("Unknown data file type \"\%s\"\n", lex_tokid (lexer));
 	  goto error;
 	}
       lex_get (lexer);
@@ -459,7 +458,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
         break;
       else
         {
-          lex_error (lexer, _("expecting VARIABLES"));
+          lex_error (lexer, _("expecting %s"), "VARIABLES");
           goto error;
         }
     }

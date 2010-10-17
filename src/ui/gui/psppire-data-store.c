@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2008, 2009  Free Software Foundation
+   Copyright (C) 2006, 2008, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -879,7 +879,7 @@ psppire_data_store_insert_case (PsppireDataStore *ds,
   g_return_val_if_fail (ds, FALSE);
   g_return_val_if_fail (ds->datasheet, FALSE);
 
-  case_ref (cc);
+  cc = case_ref (cc);
   result = datasheet_insert_rows (ds->datasheet, posn, &cc, 1);
 
   if ( result )
@@ -959,8 +959,8 @@ psppire_data_store_data_in (PsppireDataStore *ds, casenumber casenum, gint idx,
                         FALSE);
   value_init (&value, width);
   ok = (datasheet_get_value (ds->datasheet, casenum, idx, &value)
-        && data_in (input, UTF8, fmt->type, 0, 0, 0,
-		    dict->dict, &value, width)
+        && data_in_msg (input, UTF8, fmt->type, &value, width,
+                        dict_get_encoding (dict->dict))
         && datasheet_put_value (ds->datasheet, casenum, idx, &value));
   value_destroy (&value, width);
 

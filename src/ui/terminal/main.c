@@ -28,6 +28,7 @@
 #if HAVE_IEEEFP_H
 #include <ieeefp.h>
 #endif
+#include <unistd.h>
 
 #include "data/dictionary.h"
 #include "data/file-handle-def.h"
@@ -39,6 +40,7 @@
 #include "language/command.h"
 #include "language/lexer/lexer.h"
 #include "language/prompt.h"
+#include "language/syntax-file.h"
 #include "libpspp/argv-parser.h"
 #include "libpspp/compiler.h"
 #include "libpspp/getl.h"
@@ -61,34 +63,30 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-
-static void fpu_init (void);
-static void clean_up (void);
-
-/* If a segfault happens, issue a message to that effect and halt */
-void bug_handler(int sig);
-
-/* Handle quit/term/int signals */
-void interrupt_handler(int sig);
 static struct dataset * the_dataset = NULL;
 
 static struct lexer *the_lexer;
 static struct source_stream *the_source_stream ;
 
+static void add_syntax_file (struct source_stream *, enum syntax_mode,
+                             const char *file_name);
+static void bug_handler(int sig);
+static void fpu_init (void);
+
 /* Program entry point. */
 int
 main (int argc, char **argv)
 {
-  int *view_width_p, *view_length_p;
   struct terminal_opts *terminal_opts;
   struct argv_parser *parser;
+  enum syntax_mode syntax_mode;
+  bool process_statrc;
 
   set_program_name (argv[0]);
 
   signal (SIGABRT, bug_handler);
   signal (SIGSEGV, bug_handler);
   signal (SIGFPE, bug_handler);
-  at_fatal_signal (clean_up);
 
   i18n_init ();
   fpu_init ();
@@ -98,14 +96,14 @@ main (int argc, char **argv)
   the_source_stream = create_source_stream ();
   prompt_init ();
   readln_initialize ();
-  terminal_init (&view_width_p, &view_length_p);
-  settings_init (view_width_p, view_length_p);
+  settings_init ();
+  terminal_check_size ();
   random_init ();
 
   the_dataset = create_dataset ();
 
   parser = argv_parser_create ();
-  terminal_opts = terminal_opts_init (parser, the_source_stream);
+  terminal_opts = terminal_opts_init (parser, &syntax_mode, &process_statrc);
   source_init_register_argv_parser (parser, the_source_stream);
   if (!argv_parser_run (parser, argc, argv))
     exit (EXIT_FAILURE);
@@ -114,8 +112,28 @@ main (int argc, char **argv)
 
   msg_ui_init (the_source_stream);
 
-  the_lexer = lex_create (the_source_stream);
+  /* Add syntax files to source stream. */
+  if (process_statrc)
+    {
+      char *rc = fn_search_path ("rc", getl_include_path (the_source_stream));
+      if (rc != NULL)
+        {
+          add_syntax_file (the_source_stream, GETL_BATCH, rc);
+          free (rc);
+        }
+    }
+  if (optind < argc)
+    {
+      int i;
 
+      for (i = optind; i < argc; i++)
+        add_syntax_file (the_source_stream, syntax_mode, argv[i]);
+    }
+  else
+    add_syntax_file (the_source_stream, syntax_mode, "-");
+
+  /* Parse and execute syntax. */
+  the_lexer = lex_create (the_source_stream);
   for (;;)
     {
       int result = cmd_parse (the_lexer, the_dataset);
@@ -134,10 +152,21 @@ main (int argc, char **argv)
     }
 
 
-  clean_up ();
+  destroy_dataset (the_dataset);
+
+  random_done ();
+  settings_done ();
+  fh_done ();
+  lex_destroy (the_lexer);
+  destroy_source_stream (the_source_stream);
+  prompt_done ();
+  readln_uninitialize ();
+  output_close ();
+  msg_ui_done ();
+  i18n_done ();
+
   return msg_ui_any_errors ();
 }
-
 
 static void
 fpu_init (void)
@@ -153,45 +182,44 @@ fpu_init (void)
 }
 
 /* If a segfault happens, issue a message to that effect and halt */
-void
+static void
 bug_handler(int sig)
 {
+  /* Reset SIG to its default handling so that if it happens again we won't
+     recurse. */
+  signal (sig, SIG_DFL);
+
 #if DEBUGGING
   connect_debugger ();
 #endif
   switch (sig)
     {
     case SIGABRT:
-      request_bug_report_and_abort("Assertion Failure/Abort");
+      request_bug_report("Assertion Failure/Abort");
+      break;
     case SIGFPE:
-      request_bug_report_and_abort("Floating Point Exception");
+      request_bug_report("Floating Point Exception");
+      break;
     case SIGSEGV:
-      request_bug_report_and_abort("Segmentation Violation");
+      request_bug_report("Segmentation Violation");
+      break;
     default:
-      request_bug_report_and_abort("Unknown");
+      request_bug_report("Unknown");
+      break;
     }
+
+  /* Re-raise the signal so that we terminate with the correct status. */
+  raise (sig);
 }
 
-/* Clean up PSPP in preparation for termination.  */
 static void
-clean_up (void)
+add_syntax_file (struct source_stream *ss, enum syntax_mode syntax_mode,
+                 const char *file_name)
 {
-  static bool terminating = false;
-  if (!terminating)
-    {
-      terminating = true;
+  struct getl_interface *source;
 
-      destroy_dataset (the_dataset);
-
-      random_done ();
-      settings_done ();
-      fh_done ();
-      lex_destroy (the_lexer);
-      destroy_source_stream (the_source_stream);
-      prompt_done ();
-      readln_uninitialize ();
-      output_close ();
-      msg_ui_done ();
-      i18n_done ();
-    }
+  source = (!strcmp (file_name, "-") && isatty (STDIN_FILENO)
+           ? create_readln_source ()
+           : create_syntax_file_source (file_name));
+  getl_append_source (ss, source, syntax_mode, ERRMODE_CONTINUE);
 }

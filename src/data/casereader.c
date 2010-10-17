@@ -331,7 +331,7 @@ casereader_advance (struct casereader *reader, casenumber n)
 
 
 /* Copies all the cases in READER to WRITER, propagating errors
-   appropriately. */
+   appropriately. READER is destroyed by this function */
 void
 casereader_transfer (struct casereader *reader, struct casewriter *writer)
 {

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -70,8 +70,10 @@ msg_class_from_category_and_severity (enum msg_category category,
 /* A file location.  */
 struct msg_locator
   {
-    char *file_name;		/* File name. */
-    int line_number;            /* Line number. */
+    char *file_name;           /* File name (NULL if none). */
+    int line_number;           /* Line number (0 if none). */
+    int first_column;          /* 1-based column number (0 if none). */
+    int last_column;           /* 1-based exclusive last column (0 if none). */
   };
 
 /* A message. */
@@ -115,7 +117,7 @@ void msg_ui_disable_warnings (bool);
 
 
 /* Used in panic situations only. */
-void request_bug_report_and_abort (const char *msg) NO_RETURN;
+void request_bug_report (const char *msg);
 
 
 #endif /* message.h */

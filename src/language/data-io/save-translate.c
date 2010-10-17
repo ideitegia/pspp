@@ -245,7 +245,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
     }
   else if (!replace && fn_exists (fh_get_file_name (handle)))
     {
-      msg (SE, _("Output file \"%s\" exists but REPLACE was not specified."),
+      msg (SE, _("Output file `%s' exists but REPLACE was not specified."),
            fh_get_file_name (handle));
       goto error;
     }

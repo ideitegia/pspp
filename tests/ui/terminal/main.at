@@ -1,0 +1,38 @@
+AT_BANNER([PSPP terminal UI])
+
+AT_SETUP([nonexistent syntax file crash])
+AT_CHECK([pspp nonexistent], [1], 
+  [error: Opening `nonexistent': No such file or directory.
+])
+AT_CLEANUP
+
+AT_SETUP([SIGTERM yields clean shutdown])
+AT_DATA([main.sps], [dnl
+INPUT PROGRAM.
+COMPUTE x = x + 1.
+DO IF x = 10000.
+END CASE.
+ELSE IF x < 0.
+END FILE.
+END IF.
+END INPUT PROGRAM.
+EXECUTE.
+])
+AT_CHECK([pspp main.sps & sleep 1; kill $!; wait $!], [143], [], [ignore])
+AT_CLEANUP
+
+AT_SETUP([SIGSEGV yields error report])
+AT_CHECK([[echo 'host command=["kill -SEGV $PPID"].' | pspp -O format=csv]],
+  [139], [], [stderr])
+AT_DATA([expout], [dnl
+******************************************************
+You have discovered a bug in PSPP.  Please report this
+to bug-gnu-pspp@gnu.org.  Please include this entire
+message, *plus* several lines of output just above it.
+For the best chance at having the bug fixed, also
+include the syntax file that triggered it and a sample
+of any data file used for input.
+proximate cause:     Segmentation Violation
+])
+AT_CHECK([sed '/proximate/q' < stderr], [0], [expout])
+AT_CLEANUP

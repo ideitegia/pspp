@@ -68,6 +68,11 @@ struct _PsppireSyntaxWindow
   GtkAction *edit_copy;
   GtkAction *edit_delete;
   GtkAction *edit_paste;
+
+  gulong ps_handler;
+  gulong sel_handler;
+
+  gboolean dispose_has_run;
 };
 
 struct _PsppireSyntaxWindowClass

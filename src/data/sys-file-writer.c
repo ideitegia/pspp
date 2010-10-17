@@ -215,7 +215,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
                               &w->file, NULL);
   if (w->rf == NULL)
     {
-      msg (ME, _("Error opening \"%s\" for writing as a system file: %s."),
+      msg (ME, _("Error opening `%s' for writing as a system file: %s."),
            fh_get_file_name (fh), strerror (errno));
       goto error;
     }
@@ -982,7 +982,7 @@ close_writer (struct sfm_writer *w)
         ok = false;
 
       if (!ok)
-        msg (ME, _("An I/O error occurred writing system file \"%s\"."),
+        msg (ME, _("An I/O error occurred writing system file `%s'."),
              fh_get_file_name (w->fh));
 
       if (ok ? !replace_file_commit (w->rf) : !replace_file_abort (w->rf))

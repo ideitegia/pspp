@@ -37,7 +37,10 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-
+struct fmt_settings
+  {
+    struct fmt_number_style styles[FMT_NUMBER_OF_FORMATS];
+  };
 
 bool is_fmt_type (enum fmt_type);
 
@@ -45,35 +48,111 @@ static bool valid_width (enum fmt_type, int width, bool for_input);
 
 static int max_digits_for_bytes (int bytes);
 
-void fmt_number_style_init (struct fmt_number_style *style);
+static void fmt_number_style_init (struct fmt_number_style *);
+static void fmt_number_style_clone (struct fmt_number_style *,
+                                    const struct fmt_number_style *);
+static void fmt_number_style_destroy (struct fmt_number_style *);
 
-
-/* Initialize the format module. */
-struct fmt_number_style *
-fmt_create (void)
+/* Creates and returns a new struct fmt_settings with default format styles. */
+struct fmt_settings *
+fmt_settings_create (void)
 {
-  struct fmt_number_style *styles =
-    xcalloc (FMT_NUMBER_OF_FORMATS, sizeof (*styles));
-
+  struct fmt_settings *settings;
   int t;
+
+  settings = xzalloc (sizeof *settings);
   for (t = 0 ; t < FMT_NUMBER_OF_FORMATS ; ++t )
-    fmt_number_style_init (&styles[t]);
+    fmt_number_style_init (&settings->styles[t]);
+  fmt_settings_set_decimal (settings, '.');
 
-  fmt_set_decimal (styles, '.');
-
-  return styles;
+  return settings;
 }
 
-
-/* Deinitialize the format module. */
+/* Destroys SETTINGS. */
 void
-fmt_done (struct fmt_number_style *styles)
+fmt_settings_destroy (struct fmt_settings *settings)
 {
-  int t;
-  for (t = 0 ; t < FMT_NUMBER_OF_FORMATS ; ++t )
-    fmt_number_style_destroy (&styles[t]);
+  if (settings != NULL)
+    {
+      int t;
 
-  free (styles);
+      for (t = 0 ; t < FMT_NUMBER_OF_FORMATS ; ++t )
+        fmt_number_style_destroy (&settings->styles[t]);
+
+      free (settings->styles);
+    }
+}
+
+/* Returns a copy of SETTINGS. */
+struct fmt_settings *
+fmt_settings_clone (const struct fmt_settings *old)
+{
+  struct fmt_settings *new;
+  int t;
+
+  new = xmalloc (sizeof *new);
+  for (t = 0 ; t < FMT_NUMBER_OF_FORMATS ; ++t )
+    fmt_number_style_clone (&new->styles[t], &old->styles[t]);
+
+  return new;
+}
+
+/* Returns the number formatting style associated with the given
+   format TYPE. */
+const struct fmt_number_style *
+fmt_settings_get_style (const struct fmt_settings *settings,
+                        enum fmt_type type)
+{
+  assert (is_fmt_type (type));
+  return &settings->styles[type];
+}
+
+void
+fmt_settings_set_style (struct fmt_settings *settings, enum fmt_type type,
+                        const struct fmt_number_style *style)
+{
+  fmt_check_style (style);
+  fmt_number_style_destroy (&settings->styles[type]);
+  fmt_number_style_clone (&settings->styles[type], style);
+}
+
+/* Sets the number style for TYPE to have the given standard
+   PREFIX and SUFFIX, "-" as prefix suffix, an empty negative
+   suffix, DECIMAL as the decimal point character, and GROUPING
+   as the grouping character. */
+static void
+set_style (struct fmt_settings *settings, enum fmt_type type,
+           const char *prefix, const char *suffix,
+           char decimal, char grouping)
+{
+  struct fmt_number_style *style;
+
+  assert (is_fmt_type (type));
+
+  style = &settings->styles[type];
+
+  fmt_number_style_destroy (style);
+
+  ss_alloc_substring (&style->neg_prefix, ss_cstr ("-"));
+  ss_alloc_substring (&style->prefix, ss_cstr (prefix));
+  ss_alloc_substring (&style->suffix, ss_cstr (suffix));
+  style->decimal = decimal;
+  style->grouping = grouping;
+}
+
+/* Sets the decimal point character for SETTINGS to DECIMAL. */
+void
+fmt_settings_set_decimal (struct fmt_settings *settings, char decimal)
+{
+  int grouping = decimal == '.' ? ',' : '.';
+  assert (decimal == '.' || decimal == ',');
+
+  set_style (settings, FMT_F, "", "", decimal, 0);
+  set_style (settings, FMT_E, "", "", decimal, 0);
+  set_style (settings, FMT_COMMA, "", "", decimal, grouping);
+  set_style (settings, FMT_DOT, "", "", grouping, decimal);
+  set_style (settings, FMT_DOLLAR, "$", "", decimal, grouping);
+  set_style (settings, FMT_PCT, "", "%", decimal, 0);
 }
 
 /* Returns an input format specification with type TYPE, width W,
@@ -857,9 +936,7 @@ max_digits_for_bytes (int bytes)
   return map[bytes - 1];
 }
 
-
-
-void
+static void
 fmt_number_style_init (struct fmt_number_style *style)
 {
   style->neg_prefix = ss_empty ();
@@ -870,9 +947,20 @@ fmt_number_style_init (struct fmt_number_style *style)
   style->grouping = 0;
 }
 
+static void
+fmt_number_style_clone (struct fmt_number_style *new,
+                        const struct fmt_number_style *old)
+{
+  ss_alloc_substring (&new->neg_prefix, old->neg_prefix);
+  ss_alloc_substring (&new->prefix, old->prefix);
+  ss_alloc_substring (&new->suffix, old->suffix);
+  ss_alloc_substring (&new->neg_suffix, old->neg_suffix);
+  new->decimal = old->decimal;
+  new->grouping = old->grouping;
+}
 
 /* Destroys a struct fmt_number_style. */
-void
+static void
 fmt_number_style_destroy (struct fmt_number_style *style)
 {
   if (style != NULL)
@@ -883,16 +971,6 @@ fmt_number_style_destroy (struct fmt_number_style *style)
       ss_dealloc (&style->neg_suffix);
     }
 }
-
-/* Returns the number formatting style associated with the given
-   format TYPE. */
-const struct fmt_number_style *
-fmt_get_style (const struct fmt_number_style *styles, enum fmt_type type)
-{
-  assert (is_fmt_type (type));
-  return &styles[type];
-}
-
 
 /* Checks that style is STYLE sane */
 void
@@ -925,46 +1003,6 @@ fmt_neg_affix_width (const struct fmt_number_style *style)
   return ss_length (style->neg_prefix) + ss_length (style->neg_suffix);
 }
 
-
-/* Sets the number style for TYPE to have the given standard
-   PREFIX and SUFFIX, "-" as prefix suffix, an empty negative
-   suffix, DECIMAL as the decimal point character, and GROUPING
-   as the grouping character. */
-static void
-set_style (struct fmt_number_style *styles, enum fmt_type type,
-           const char *prefix, const char *suffix,
-           char decimal, char grouping)
-{
-  struct fmt_number_style *style;
-
-  assert (is_fmt_type (type));
-
-  style = &styles[type] ;
-
-  fmt_number_style_destroy (style);
-
-  ss_alloc_substring (&style->neg_prefix, ss_cstr ("-"));
-  ss_alloc_substring (&style->prefix, ss_cstr (prefix));
-  ss_alloc_substring (&style->suffix, ss_cstr (suffix));
-  style->decimal = decimal;
-  style->grouping = grouping;
-}
-
-/* Sets the decimal point character to DECIMAL. */
-void
-fmt_set_decimal (struct fmt_number_style *styles, char decimal)
-{
-  int grouping = decimal == '.' ? ',' : '.';
-  assert (decimal == '.' || decimal == ',');
-
-  set_style (styles, FMT_F, "", "", decimal, 0);
-  set_style (styles, FMT_E, "", "", decimal, 0);
-  set_style (styles, FMT_COMMA, "", "", decimal, grouping);
-  set_style (styles, FMT_DOT, "", "", grouping, decimal);
-  set_style (styles, FMT_DOLLAR, "$", "", decimal, grouping);
-  set_style (styles, FMT_PCT, "", "%", decimal, 0);
-}
-
 /* Returns the struct fmt_desc for the given format TYPE. */
 static const struct fmt_desc *
 get_fmt_desc (enum fmt_type type)

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ casereader_select (struct casereader *subreader,
     {
       struct casereader_select *cs = xmalloc (sizeof *cs);
       cs->by = by;
-      cs->i = 0;
+      cs->i = by - 1;
       return casereader_create_filter_func (subreader,
                                             casereader_select_include,
                                             casereader_select_destroy,

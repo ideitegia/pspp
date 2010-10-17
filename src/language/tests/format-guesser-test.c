@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ cmd_debug_format_guesser (struct lexer *lexer, struct dataset *ds UNUSED)
   char format_string[FMT_STRING_LEN_MAX + 1];
 
   g = fmt_guesser_create ();
-  while (lex_token (lexer) == T_STRING)
+  while (lex_is_string (lexer))
     {
       fprintf (stderr, "\"%s\" ", ds_cstr (lex_tokstr (lexer)));
       fmt_guesser_add (g, ds_ss (lex_tokstr (lexer)));

@@ -19,7 +19,7 @@ WriteMakefile(
     PREREQ_PM         => {POSIX=>0}, 
     PM                => {"lib/PSPP.pm", "\$(INST_LIBDIR)/PSPP.pm"},
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/PSPP.pm', # retrieve abstract from module
+      (ABSTRACT       => 'Perl extension to PSPP',
        AUTHOR         => 'John Darrington <john@darrington.wattle.id.au>') : ()),
     INC       => "-I $Locations{SourceDir}  -I $Locations{SourceDir}/src -I $Locations{SourceDir}/gl -I $Locations{BuildDir}/gl -I $Locations{BuildDir}", 
     MYEXTLIB  => "$Locations{BuildDir}/src/.libs/libpspp-core.\$(SO)",

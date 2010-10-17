@@ -1,0 +1,15 @@
+AT_BANNER([Balanced tree (BT) library])
+
+m4_define([CHECK_BT],
+  [AT_SETUP([BT -- $1])
+   AT_CHECK([bt-test $1])
+   AT_CLEANUP])
+
+CHECK_BT([insert-any-remove-any])
+CHECK_BT([insert-any-remove-same])
+CHECK_BT([insert-any-remove-reverse])
+CHECK_BT([random-sequence])
+CHECK_BT([insert-ordered])
+CHECK_BT([find-ge-le])
+CHECK_BT([moved])
+CHECK_BT([changed])

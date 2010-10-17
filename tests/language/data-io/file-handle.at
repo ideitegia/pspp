@@ -1,0 +1,28 @@
+AT_BANNER([FILE HANDLE])
+
+AT_SETUP([FILE HANDLE])
+AT_DATA([wiggle.txt], [dnl
+1
+2
+5
+109
+])
+AT_DATA([file-handle.sps], [dnl
+FILE HANDLE myhandle /NAME='wiggle.txt'.
+DATA LIST LIST FILE=myhandle /x *.
+LIST.
+])
+AT_CHECK([pspp -O format=csv file-handle.sps], [0], [dnl
+Table: Reading free-form data from myhandle.
+Variable,Format
+x,F8.0
+
+Table: Data List
+x
+1.00
+2.00
+5.00
+109.00
+])
+AT_CLEANUP
+

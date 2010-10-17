@@ -1,10 +1,7 @@
 #ifndef CALENDAR_H
 #define CALENDAR_H 1
 
-typedef void calendar_error_func (void *aux, const char *, ...);
-
-double calendar_gregorian_to_offset (int y, int m, int d,
-                                     calendar_error_func *, void *aux);
+double calendar_gregorian_to_offset (int y, int m, int d, char **errorp);
 void calendar_offset_to_gregorian (int ofs, int *y, int *m, int *d, int *yd);
 int calendar_offset_to_year (int ofs);
 int calendar_offset_to_month (int ofs);

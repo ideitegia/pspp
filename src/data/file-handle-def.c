@@ -233,7 +233,7 @@ fh_create_file (const char *id, const char *file_name,
   char *handle_name;
   struct file_handle *handle;
 
-  handle_name = id != NULL ? xstrdup (id) : xasprintf ("\"%s\"", file_name);
+  handle_name = id != NULL ? xstrdup (id) : xasprintf ("`%s'", file_name);
   handle = create_handle (id, handle_name, FH_REF_FILE);
   handle->file_name = xstrdup (file_name);
   handle->mode = properties->mode;

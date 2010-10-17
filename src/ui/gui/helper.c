@@ -97,11 +97,8 @@ text_to_value (const gchar *text,
     }
 
   value_init (val, width);
-  msg_disable ();
-  data_in (ss_cstr (text), UTF8, format->type, 0, 0, 0,
-		dict->dict,
-                val, width);
-  msg_enable ();
+  free (data_in (ss_cstr (text), UTF8, format->type, val, width,
+                 dict_get_encoding (dict->dict)));
 
   return val;
 }
@@ -132,10 +129,10 @@ get_object_assert (GtkBuilder *builder, const gchar *name, GType type)
   o = gtk_builder_get_object (builder, name);
 
   if ( !o )
-    g_critical ("Object \"%s\" could not be found\n", name);
+    g_critical ("Object `%s' could not be found\n", name);
   else if ( ! g_type_is_a (G_OBJECT_TYPE (o), type))
    {
-     g_critical ("Object \"%s\" was expected to have type %s, but in fact has type %s", 
+     g_critical ("Object `%s' was expected to have type %s, but in fact has type %s", 
 	name, g_type_name (type), G_OBJECT_TYPE_NAME (o));
    }
 

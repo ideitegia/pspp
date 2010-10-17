@@ -43,11 +43,11 @@ doc_pspp_dev_TEXINFOS = doc/version-dev.texi \
 EXTRA_DIST += doc/pspp.man \
 	doc/get-commands.pl
 
-doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
+$(srcdir)/doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 	@$(MKDIR_P)  doc
 	$(PERL) $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
 
-doc/tut.texi:
+$(srcdir)/doc/tut.texi:
 	@$(MKDIR_P) doc
 	echo "@set example-dir $(examplesdir)" > $@
 

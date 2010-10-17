@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,11 +40,6 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-
-#define DUMP_TOKENS 0
-
-
-
 struct lexer
 {
   struct string line_buffer;
@@ -83,10 +78,6 @@ enum string_type
   };
 
 static int parse_string (struct lexer *, enum string_type);
-
-#if DUMP_TOKENS
-static void dump_token (struct lexer *);
-#endif
 
 /* Initialization. */
 
@@ -180,9 +171,6 @@ lex_get (struct lexer *lexer)
       if (lexer->put_token)
         {
           restore_token (lexer);
-#if DUMP_TOKENS
-	  dump_token (lexer);
-#endif
           return;
         }
 
@@ -199,27 +187,18 @@ lex_get (struct lexer *lexer)
 	    {
 	      lexer->dot = 0;
 	      lexer->token = '.';
-#if DUMP_TOKENS
-	      dump_token (lexer);
-#endif
 	      return;
 	    }
 	  else if (!lex_get_line (lexer))
 	    {
 	      lexer->prog = NULL;
 	      lexer->token = T_STOP;
-#if DUMP_TOKENS
-	      dump_token (lexer);
-#endif
 	      return;
 	    }
 
 	  if (lexer->put_token)
 	    {
               restore_token (lexer);
-#if DUMP_TOKENS
-	      dump_token (lexer);
-#endif
 	      return;
 	    }
 	}
@@ -394,10 +373,6 @@ lex_get (struct lexer *lexer)
         }
       break;
     }
-
-#if DUMP_TOKENS
-  dump_token (lexer);
-#endif
 }
 
 /* Parses an identifier at the current position into tokid and
@@ -440,31 +415,34 @@ lex_sbc_missing (struct lexer *lexer, const char *sbc)
 void
 lex_error (struct lexer *lexer, const char *message, ...)
 {
-  char *token_rep;
-  char where[128];
+  struct string s;
 
-  token_rep = lex_token_representation (lexer);
+  ds_init_empty (&s);
+
   if (lexer->token == T_STOP)
-    strcpy (where, "end of file");
+    ds_put_cstr (&s, _("Syntax error at end of file"));
   else if (lexer->token == '.')
-    strcpy (where, "end of command");
+    ds_put_cstr (&s, _("Syntax error at end of command"));
   else
-    snprintf (where, sizeof where, "`%s'", token_rep);
-  free (token_rep);
+    {
+      char *token_rep = lex_token_representation (lexer);
+      ds_put_format (&s, _("Syntax error at `%s'"), token_rep);
+      free (token_rep);
+    }
 
   if (message)
     {
-      char buf[1024];
       va_list args;
 
-      va_start (args, message);
-      vsnprintf (buf, 1024, message, args);
-      va_end (args);
+      ds_put_cstr (&s, ": ");
 
-      msg (SE, _("Syntax error %s at %s."), buf, where);
+      va_start (args, message);
+      ds_put_vformat (&s, message, args);
+      va_end (args);
     }
-  else
-    msg (SE, _("Syntax error at %s."), where);
+
+  msg (SE, "%s.", ds_cstr (&s));
+  ds_destroy (&s);
 }
 
 /* Checks that we're at end of command.
@@ -625,7 +603,7 @@ lex_force_match (struct lexer *lexer, int t)
 bool
 lex_force_string (struct lexer *lexer)
 {
-  if (lexer->token == T_STRING)
+  if (lex_is_string (lexer))
     return true;
   else
     {
@@ -884,6 +862,8 @@ lex_get_line_raw (struct lexer *lexer)
       const char *line = ds_cstr (&lexer->line_buffer);
       text_item_submit (text_item_create (TEXT_ITEM_SYNTAX, line));
     }
+  else
+    lexer->prog = NULL;
   return ok;
 }
 
@@ -896,10 +876,7 @@ lex_get_line (struct lexer *lexer)
   bool line_starts_command;
 
   if (!lex_get_line_raw (lexer))
-    {
-      lexer->prog = NULL;
-      return false;
-    }
+    return false;
 
   lex_preprocess_line (&lexer->line_buffer,
 		       lex_current_syntax_mode (lexer),
@@ -1221,60 +1198,6 @@ finish:
   return T_STRING;
 }
 
-#if DUMP_TOKENS
-/* Reads one token from the lexer and writes a textual representation
-   on stdout for debugging purposes. */
-static void
-dump_token (struct lexer *lexer)
-{
-  {
-    const char *curfn;
-    int curln;
-
-    curln = getl_source_location (lexer->ss);
-    curfn = getl_source_name (lexer->ss);
-    if (curfn)
-      fprintf (stderr, "%s:%d\t", curfn, curln);
-  }
-
-  switch (lexer->token)
-    {
-    case T_ID:
-      fprintf (stderr, "ID\t%s\n", lexer->tokid);
-      break;
-
-    case T_POS_NUM:
-    case T_NEG_NUM:
-      fprintf (stderr, "NUM\t%f\n", lexer->tokval);
-      break;
-
-    case T_STRING:
-      fprintf (stderr, "STRING\t\"%s\"\n", ds_cstr (&lexer->tokstr));
-      break;
-
-    case T_STOP:
-      fprintf (stderr, "STOP\n");
-      break;
-
-    case T_EXP:
-      fprintf (stderr, "MISC\tEXP\"");
-      break;
-
-    case 0:
-      fprintf (stderr, "MISC\tEOF\n");
-      break;
-
-    default:
-      if (lex_is_keyword (lexer->token))
-	fprintf (stderr, "KEYWORD\t%s\n", lex_token_name (lexer->token));
-      else
-	fprintf (stderr, "PUNCT\t%c\n", lexer->token);
-      break;
-    }
-}
-#endif /* DUMP_TOKENS */
-
-
 /* Token Accessor Functions */
 
 int

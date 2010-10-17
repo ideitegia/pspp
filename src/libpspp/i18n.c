@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,31 +15,30 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <xalloc.h>
+
+#include "libpspp/i18n.h"
+
 #include <assert.h>
-#include <locale.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <libintl.h>
-#include <iconv.h>
 #include <errno.h>
-#include <relocatable.h>
-#include "assertion.h"
-#include "hmapx.h"
-#include "hash-functions.h"
-#include "pool.h"
-
-#include "i18n.h"
-
-#include "version.h"
-
-#include <localcharset.h>
-#include "xstrndup.h"
-
-#if HAVE_NL_LANGINFO
+#include <iconv.h>
 #include <langinfo.h>
-#endif
+#include <libintl.h>
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "libpspp/assertion.h"
+#include "libpspp/hmapx.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+#include "libpspp/version.h"
+
+#include "gl/localcharset.h"
+#include "gl/xalloc.h"
+#include "gl/relocatable.h"
+#include "gl/xstrndup.h"
 
 struct converter
  {
@@ -79,7 +78,7 @@ create_iconv (const char* tocode, const char* fromcode)
       const int err = errno;
       fprintf (stderr,
                "Warning: "
-               "cannot create a converter for \"%s\" to \"%s\": %s\n",
+               "cannot create a converter for `%s' to `%s': %s\n",
                fromcode, tocode, strerror (err));
     }
 
@@ -87,8 +86,9 @@ create_iconv (const char* tocode, const char* fromcode)
 }
 
 
-/* Similar to recode_string_pool, but allocates the returned value on the heap instead of 
-   in a pool.  It is the caller's responsibility to free the returned value. */
+/* Similar to recode_string_pool, but allocates the returned value on the heap
+   instead of in a pool.  It is the caller's responsibility to free the
+   returned value. */
 char *
 recode_string (const char *to, const char *from,
 	       const char *text, int length)
@@ -97,40 +97,105 @@ recode_string (const char *to, const char *from,
 }
 
 
-/* 
-Converts the string TEXT, which should be encoded in FROM-encoding, to a
-dynamically allocated string in TO-encoding.   Any characters which cannot
-be converted will be represented by '?'.
+/* Uses CONV to convert the INBYTES starting at IP into the OUTBYTES starting
+   at OP, and appends a null terminator to the output.
 
-LENGTH should be the length of the string or -1, if null terminated.
-
-The returned string will be allocated on POOL.
-
-This function's behaviour differs from that of g_convert_with_fallback provided
-by GLib.  The GLib function will fail (returns NULL) if any part of the input
-string is not valid in the declared input encoding.  This function however perseveres
-even in the presence of badly encoded input.
-*/
-char *
-recode_string_pool (const char *to, const char *from,
-	       const char *text, int length, struct pool *pool)
+   Returns the output length if successful, -1 if the output buffer is too
+   small. */
+static ssize_t
+try_recode (iconv_t conv,
+            const char *ip, size_t inbytes,
+            char *op_, size_t outbytes)
 {
-  char *outbuf = 0;
-  size_t outbufferlength;
-  size_t result;
-  char *op ;
-  size_t inbytes = 0;
-  size_t outbytes ;
-  iconv_t conv ;
-
   /* FIXME: Need to ensure that this char is valid in the target encoding */
   const char fallbackchar = '?';
+  char *op = op_;
+
+  /* Put the converter into the initial shift state, in case there was any
+     state information left over from its last usage. */
+  iconv (conv, NULL, 0, NULL, 0);
+
+  while (iconv (conv, (ICONV_CONST char **) &ip, &inbytes,
+                &op, &outbytes) == -1)
+    switch (errno)
+      {
+      case EINVAL:
+        if (outbytes < 2)
+          return -1;
+        *op++ = fallbackchar;
+        *op = '\0';
+        return op - op_;
+
+      case EILSEQ:
+        if (outbytes == 0)
+          return -1;
+        *op++ = fallbackchar;
+        outbytes--;
+        ip++;
+        inbytes--;
+        break;
+
+      case E2BIG:
+        return -1;
+
+      default:
+        /* should never happen */
+        fprintf (stderr, "Character conversion error: %s\n", strerror (errno));
+        NOT_REACHED ();
+        break;
+      }
+
+  if (outbytes == 0)
+    return -1;
+
+  *op = '\0';
+  return op - op_;
+}
+
+/* Converts the string TEXT, which should be encoded in FROM-encoding, to a
+   dynamically allocated string in TO-encoding.  Any characters which cannot be
+   converted will be represented by '?'.
+
+   LENGTH should be the length of the string or -1, if null terminated.
+
+   The returned string will be allocated on POOL.
+
+   This function's behaviour differs from that of g_convert_with_fallback
+   provided by GLib.  The GLib function will fail (returns NULL) if any part of
+   the input string is not valid in the declared input encoding.  This function
+   however perseveres even in the presence of badly encoded input. */
+char *
+recode_string_pool (const char *to, const char *from,
+                    const char *text, int length, struct pool *pool)
+{
+  struct substring out;
 
   if ( text == NULL )
     return NULL;
 
   if ( length == -1 )
-     length = strlen(text);
+     length = strlen (text);
+
+  out = recode_substring_pool (to, from, ss_buffer (text, length), pool);
+  return out.string;
+}
+
+/* Converts the string TEXT, which should be encoded in FROM-encoding, to a
+   dynamically allocated string in TO-encoding.  Any characters which cannot be
+   converted will be represented by '?'.
+
+   The returned string will be null-terminated and allocated on POOL.
+
+   This function's behaviour differs from that of g_convert_with_fallback
+   provided by GLib.  The GLib function will fail (returns NULL) if any part of
+   the input string is not valid in the declared input encoding.  This function
+   however perseveres even in the presence of badly encoded input. */
+struct substring
+recode_substring_pool (const char *to, const char *from,
+                       struct substring text, struct pool *pool)
+{
+  size_t outbufferlength;
+  iconv_t conv ;
 
   if (to == NULL)
     to = default_encoding;
@@ -138,75 +203,28 @@ recode_string_pool (const char *to, const char *from,
   if (from == NULL)
     from = default_encoding;
 
-  for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
-    if ( outbufferlength > length)
-      break;
-
-  outbuf = pool_malloc (pool, outbufferlength);
-  op = outbuf;
-
-  outbytes = outbufferlength;
-  inbytes = length;
-
-
   conv = create_iconv (to, from);
 
   if ( (iconv_t) -1 == conv )
-	return xstrdup (text);
-
-  do {
-    const char *ip = text;
-    result = iconv (conv, (ICONV_CONST char **) &text, &inbytes,
-		   &op, &outbytes);
-
-    if ( -1 == result )
-      {
-	int the_error = errno;
-
-	switch (the_error)
-	  {
-	  case EILSEQ:
-	  case EINVAL:
-	    if ( outbytes > 0 )
-	      {
-		*op++ = fallbackchar;
-		outbytes--;
-		text++;
-		inbytes--;
-		break;
-	      }
-	    /* Fall through */
-	  case E2BIG:
-	    pool_free (pool, outbuf);
-	    outbufferlength <<= 1;
-	    outbuf = pool_malloc (pool, outbufferlength);
-	    op = outbuf;
-	    outbytes = outbufferlength;
-	    inbytes = length;
-	    text = ip;
-	    break;
-	  default:
-	    /* should never happen */
-            fprintf (stderr, "Character conversion error: %s\n", strerror (the_error));
-	    NOT_REACHED ();
-	    break;
-	  }
-      }
-  } while ( -1 == result );
-
-  if (outbytes == 0 )
     {
-      char *const oldaddr = outbuf;
-      outbuf = pool_realloc (pool, outbuf, outbufferlength + 1);
-
-      op += (outbuf - oldaddr) ;
+      struct substring out;
+      ss_alloc_substring (&out, text);
+      return out;
     }
 
-  *op = '\0';
+  for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
+    if ( outbufferlength > text.length)
+      {
+        char *output = pool_malloc (pool, outbufferlength);
+        ssize_t output_len = try_recode (conv, text.string, text.length,
+                                         output, outbufferlength);
+        if (output_len >= 0)
+          return ss_buffer (output, output_len);
+        pool_free (pool, output);
+      }
 
-  return outbuf;
+  NOT_REACHED ();
 }
-
 
 void
 i18n_init (void)
@@ -311,7 +329,7 @@ i18n_done (void)
 bool
 valid_encoding (const char *enc)
 {
-  iconv_t conv = iconv_open ("UTF8", enc);
+  iconv_t conv = iconv_open (UTF8, enc);
 
   if ( conv == (iconv_t) -1)
     return false;

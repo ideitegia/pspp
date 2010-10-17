@@ -222,7 +222,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 	  lex_match (lexer, '=');
 	  if (!lex_match_id (lexer, "COLUMNWISE"))
 	    {
-	      lex_error (lexer, _("while expecting COLUMNWISE"));
+	      lex_error (lexer, _("expecting %s"), "COLUMNWISE");
               goto error;
 	    }
 	  agr.missing = COLUMNWISE;
@@ -231,7 +231,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
         copy_documents = true;
       else if (lex_match_id (lexer, "PRESORTED"))
         presorted = true;
-      else if (lex_match_id (lexer, "BREAK"))
+      else if (lex_force_match_id (lexer, "BREAK"))
 	{
           int i;
 
@@ -249,10 +249,8 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
           break;
 	}
       else
-        {
-          lex_error (lexer, _("expecting BREAK"));
-          goto error;
-        }
+        goto error;
+
     }
   if (presorted && saw_direction)
     msg (SW, _("When PRESORTED is specified, specifying sorting directions "
@@ -434,7 +432,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 
 
 
-	  if (lex_token (lexer) == T_STRING)
+	  if (lex_is_string (lexer))
 	    {
 	      struct string label;
 	      ds_init_string (&label, lex_tokstr (lexer));
@@ -453,14 +451,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	  goto error;
 	}
 
-      exclude = MV_ANY;
-
       ds_assign_string (&function_name, lex_tokstr (lexer));
-
-      ds_chomp (&function_name, '.');
-
-      if (lex_tokid(lexer)[strlen (lex_tokid (lexer)) - 1] == '.')
-        exclude = MV_SYSTEM;
+      exclude = ds_chomp (&function_name, '.') ? MV_SYSTEM : MV_ANY;
 
       for (function = agr_func_tab; function->name; function++)
 	if (!strcasecmp (function->name, ds_cstr (&function_name)))
@@ -480,7 +472,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	{
 	  if (function->src_vars == AGR_SV_YES)
 	    {
-	      lex_error (lexer, _("expecting `('"));
+              lex_force_match (lexer, '(');
 	      goto error;
 	    }
 	}
@@ -507,7 +499,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 		int type;
 
 		lex_match (lexer, ',');
-		if (lex_token (lexer) == T_STRING)
+		if (lex_is_string (lexer))
 		  {
 		    arg[i].c = ds_xstrdup (lex_tokstr (lexer));
 		    type = VAL_STRING;
@@ -536,11 +528,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	      }
 
 	  /* Trailing rparen. */
-	  if (!lex_match (lexer, ')'))
-	    {
-	      lex_error (lexer, _("expecting `)'"));
-	      goto error;
-	    }
+	  if (!lex_force_match (lexer, ')'))
+            goto error;
 
 	  /* Now check that the number of source variables match
 	     the number of target variables.  If we check earlier

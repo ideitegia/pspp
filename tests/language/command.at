@@ -1,0 +1,90 @@
+AT_BANNER([command parser])
+
+dnl Tests for a bug which crashed pspp when given certain invalid input.
+AT_SETUP([command parser crash bug])
+AT_DATA([command.sps], [dnl
+DATA rubbish.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv command.sps], [1], [dnl
+command.sps:1: error: Unknown command DATA RUBBISH.
+
+command.sps:2: error: EXECUTE: EXECUTE is allowed only after the active file has been defined.
+])
+AT_CLEANUP
+
+AT_BANNER([ERASE])
+
+AT_SETUP([ERASE -- safer mode])
+AT_DATA([foobar], [contents
+])
+AT_DATA([erase.sps], [dnl
+set safer on
+
+erase FILE='foobar'.
+])
+AT_CHECK([pspp -O format=csv erase.sps], [1], [dnl
+erase.sps:3: error: ERASE: This command not allowed when the SAFER option is set.
+])
+AT_CHECK([cat foobar], [0], [contents
+])
+AT_CLEANUP
+
+AT_SETUP([ERASE -- not safer mode])
+AT_DATA([foobar], [contents
+])
+AT_CHECK([test -e foobar])
+AT_DATA([erase.sps], [dnl
+erase FILE='foobar'.
+])
+AT_CHECK([pspp -O format=csv erase.sps])
+AT_CHECK([test ! -e foobar])
+AT_CLEANUP
+
+AT_BANNER([N OF CASES])
+
+AT_SETUP([N OF CASES])
+AT_DATA([n-of-cases.sps], [dnl
+INPUT PROGRAM.
+LOOP #i = 1 TO 100.
+COMPUTE x=#i.
+END CASE.
+END LOOP.
+END FILE.
+END INPUT PROGRAM.
+
+N OF CASES 15.
+
+LIST.
+])
+AT_CHECK([pspp -O format=csv n-of-cases.sps], [0], [dnl
+Table: Data List
+x
+1.00
+2.00
+3.00
+4.00
+5.00
+6.00
+7.00
+8.00
+9.00
+10.00
+11.00
+12.00
+13.00
+14.00
+15.00
+])
+AT_CLEANUP
+
+AT_BANNER([COMMENT])
+
+dnl Tests for a bug wherein a comment just before end-of-file caused an
+dnl infinite loop.
+AT_SETUP([COMMENT at end of file])
+AT_DATA([comment.sps], [dnl
+COMMENT this is a comment at end of file.
+])
+AT_CHECK([pspp -O format=csv comment.sps])
+AT_CLEANUP

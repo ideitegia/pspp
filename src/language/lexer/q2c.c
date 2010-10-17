@@ -225,11 +225,11 @@ st_upper (const char *s)
 /* Returns the address of the first non-whitespace character in S, or
    the address of the null terminator if none. */
 static char *
-skip_ws (const char *s)
+skip_ws (char *s)
 {
   while (isspace ((unsigned char) *s))
     s++;
-  return (char *) s;
+  return s;
 }
 
 /* Read one line from the input file into buf.  Lines having special
@@ -1534,7 +1534,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
           else if (s->value == VAL_STRING)
             {
               dump (1, "if (lex_token (lexer) != T_ID "
-                    "&& lex_token (lexer) != T_STRING)");
+                    "&& !lex_is_string (lexer))");
               dump (1, "{");
               dump (0, "msg (SE, _(\"%s specifier of %s subcommand "
                     "requires a string argument.\"));",
