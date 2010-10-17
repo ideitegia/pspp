@@ -402,7 +402,7 @@ stc_custom_locale (struct lexer *lexer, struct dataset *ds UNUSED,
     }
   else
     {
-      msg (ME, _("%s is not a recognised encoding or locale name"),
+      msg (ME, _("%s is not a recognized encoding or locale name"),
 	   ds_cstr (s));
       return 0;
     }

@@ -305,7 +305,7 @@
                         <child type="label">
                           <object class="GtkLabel" id="label3">
                             <property name="visible">True</property>
-                            <property name="label" translatable="yes">Analyse</property>
+                            <property name="label" translatable="yes">Analyze</property>
                             <property name="use_markup">True</property>
                           </object>
                         </child>
@@ -329,7 +329,7 @@
                                 <property name="layout_style">spread</property>
                                 <child>
                                   <object class="GtkCheckButton" id="unrotated-button">
-                                    <property name="label" translatable="yes">Unrotatated factor solution</property>
+                                    <property name="label" translatable="yes">Unrotated factor solution</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>

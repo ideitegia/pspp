@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.7.6\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2010-10-17 16:50+0200\n"
+"POT-Creation-Date: 2010-10-17 22:08+0200\n"
 "PO-Revision-Date: 2010-10-17 16:51+0200\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -3086,7 +3086,7 @@ msgid "Does not assume equal"
 msgstr ""
 
 #: src/language/stats/reliability.c:146
-msgid "Reliabilty on a single variable is not useful."
+msgid "Reliability on a single variable is not useful."
 msgstr ""
 
 #: src/language/stats/reliability.c:506 src/language/stats/examine.q:1159
@@ -3509,8 +3509,8 @@ msgstr "Could not open ‘%s’ for reading as a data file: %s."
 #: src/language/data-io/data-reader.c:191
 msgid ""
 "Unexpected end-of-file while reading data in BEGIN DATA.  This probably "
-"indicates a missing or misformatted END DATA command.  END DATA must appear "
-"by itself on a single line with exactly one space between words."
+"indicates a missing or miss-formatted END DATA command.  END DATA must "
+"appear by itself on a single line with exactly one space between words."
 msgstr ""
 
 #: src/language/data-io/data-reader.c:216
@@ -4999,7 +4999,7 @@ msgstr ""
 
 #: src/language/utilities/set.q:405
 #, c-format
-msgid "%s is not a recognised encoding or locale name"
+msgid "%s is not a recognized encoding or locale name"
 msgstr ""
 
 #: src/language/utilities/set.q:467
@@ -6054,11 +6054,11 @@ msgid "Covariance matrix"
 msgstr ""
 
 #: src/ui/gui/factor.ui:308
-msgid "Analyse"
-msgstr ""
+msgid "Analyze"
+msgstr "Analyse"
 
 #: src/ui/gui/factor.ui:332
-msgid "Unrotatated factor solution"
+msgid "Unrotated factor solution"
 msgstr ""
 
 #: src/ui/gui/factor.ui:346

@@ -143,7 +143,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
     goto error;
 
   if (reliability.n_variables < 2)
-    msg (MW, _("Reliabilty on a single variable is not useful."));
+    msg (MW, _("Reliability on a single variable is not useful."));
 
 
     {
