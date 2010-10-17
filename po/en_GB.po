@@ -4,12 +4,13 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PSPP 0.7.5\n"
+"Project-Id-Version: PSPP 0.7.6\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2010-10-03 14:00+0200\n"
-"PO-Revision-Date: 2010-09-15 08:17+0900\n"
+"POT-Creation-Date: 2010-10-17 16:50+0200\n"
+"PO-Revision-Date: 2010-10-17 16:51+0200\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1283,7 +1284,8 @@ msgid "Syntax error at `%s'"
 msgstr "Syntax error at ‘%s’"
 
 #: src/language/lexer/lexer.c:457 src/language/xforms/select-if.c:60
-#: src/language/stats/autorecode.c:161 src/language/data-io/print-space.c:73
+#: src/language/stats/autorecode.c:161 src/language/stats/npar.c:310
+#: src/language/data-io/print-space.c:73
 msgid "expecting end of command"
 msgstr ""
 
@@ -1459,8 +1461,8 @@ msgstr ""
 #: src/language/xforms/compute.c:149 src/language/xforms/compute.c:204
 #, c-format
 msgid ""
-"When executing COMPUTE: SYSMIS is not a valid value as an index into vector %"
-"s."
+"When executing COMPUTE: SYSMIS is not a valid value as an index into vector "
+"%s."
 msgstr ""
 
 #: src/language/xforms/compute.c:153 src/language/xforms/compute.c:211
@@ -1712,8 +1714,8 @@ msgstr ""
 #: src/language/dictionary/rename-variables.c:76
 #, c-format
 msgid ""
-"Differing number of variables in old name list (%zu) and in new name list (%"
-"zu)."
+"Differing number of variables in old name list (%zu) and in new name list "
+"(%zu)."
 msgstr ""
 
 #: src/language/dictionary/modify-variables.c:218
@@ -1826,8 +1828,8 @@ msgstr ""
 #: src/language/dictionary/mrsets.c:427
 #, c-format
 msgid ""
-"Variables specified on MCGROUP should have the same categories, but %s and %"
-"s (and possibly others) in multiple category group %s have different value "
+"Variables specified on MCGROUP should have the same categories, but %s and "
+"%s (and possibly others) in multiple category group %s have different value "
 "labels for value %s."
 msgstr ""
 
@@ -2003,7 +2005,7 @@ msgid "IBM 390 Hex Long."
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:119 src/ui/gui/descriptives.ui:85
-#: src/ui/gui/factor.ui:173 src/ui/gui/recode.ui:960
+#: src/ui/gui/factor.ui:181 src/ui/gui/recode.ui:960
 msgid "Variables:"
 msgstr ""
 
@@ -2426,8 +2428,8 @@ msgstr ""
 #: src/language/stats/aggregate.c:542
 #, c-format
 msgid ""
-"Number of source variables (%zu) does not match number of target variables (%"
-"zu)."
+"Number of source variables (%zu) does not match number of target variables "
+"(%zu)."
 msgstr ""
 
 #: src/language/stats/aggregate.c:558
@@ -2473,13 +2475,13 @@ msgstr ""
 
 #: src/language/stats/binomial.c:222 src/language/stats/chisquare.c:177
 #: src/language/stats/chisquare.c:236 src/language/stats/factor.c:1464
-#: src/language/stats/glm.c:343 src/language/stats/oneway.c:776
-#: src/language/stats/oneway.c:946 src/language/stats/reliability.c:538
-#: src/language/stats/sign.c:92 src/language/stats/wilcoxon.c:260
-#: src/ui/gui/crosstabs-dialog.c:60 src/language/stats/crosstabs.q:815
-#: src/language/stats/crosstabs.q:1143 src/language/stats/crosstabs.q:1522
-#: src/language/stats/examine.q:1105 src/language/stats/frequencies.q:871
-#: src/language/stats/regression.q:291
+#: src/language/stats/glm.c:343 src/language/stats/kruskal-wallis.c:294
+#: src/language/stats/oneway.c:622 src/language/stats/oneway.c:792
+#: src/language/stats/reliability.c:538 src/language/stats/sign.c:93
+#: src/language/stats/wilcoxon.c:255 src/ui/gui/crosstabs-dialog.c:60
+#: src/language/stats/crosstabs.q:815 src/language/stats/crosstabs.q:1143
+#: src/language/stats/crosstabs.q:1522 src/language/stats/examine.q:1105
+#: src/language/stats/frequencies.q:871 src/language/stats/regression.q:291
 msgid "Total"
 msgstr ""
 
@@ -2489,13 +2491,14 @@ msgid "Category"
 msgstr ""
 
 #: src/language/stats/binomial.c:256 src/language/stats/correlations.c:119
-#: src/language/stats/correlations.c:227 src/language/stats/npar-summary.c:121
-#: src/language/stats/oneway.c:846 src/language/stats/reliability.c:541
-#: src/language/stats/sign.c:72 src/language/stats/wilcoxon.c:243
-#: src/language/stats/crosstabs.q:822 src/language/stats/examine.q:1176
-#: src/language/stats/frequencies.q:1034 src/language/stats/t-test.q:505
-#: src/language/stats/t-test.q:525 src/language/stats/t-test.q:625
-#: src/language/stats/t-test.q:1101
+#: src/language/stats/correlations.c:227
+#: src/language/stats/kruskal-wallis.c:259
+#: src/language/stats/npar-summary.c:120 src/language/stats/oneway.c:692
+#: src/language/stats/reliability.c:541 src/language/stats/sign.c:72
+#: src/language/stats/wilcoxon.c:238 src/language/stats/crosstabs.q:822
+#: src/language/stats/examine.q:1176 src/language/stats/frequencies.q:1034
+#: src/language/stats/t-test.q:505 src/language/stats/t-test.q:525
+#: src/language/stats/t-test.q:625 src/language/stats/t-test.q:1101
 msgid "N"
 msgstr ""
 
@@ -2538,35 +2541,35 @@ msgstr ""
 msgid "Frequencies"
 msgstr ""
 
-#: src/language/stats/chisquare.c:249 src/language/stats/sign.c:111
-#: src/language/stats/wilcoxon.c:309
+#: src/language/stats/chisquare.c:249 src/language/stats/kruskal-wallis.c:312
+#: src/language/stats/sign.c:112 src/language/stats/wilcoxon.c:304
 msgid "Test Statistics"
 msgstr ""
 
-#: src/language/stats/chisquare.c:263
+#: src/language/stats/chisquare.c:263 src/language/stats/kruskal-wallis.c:315
 msgid "Chi-Square"
 msgstr ""
 
 #: src/language/stats/chisquare.c:264 src/language/stats/glm.c:308
-#: src/language/stats/oneway.c:753 src/language/stats/oneway.c:1165
-#: src/language/stats/crosstabs.q:1207 src/language/stats/regression.q:284
-#: src/language/stats/t-test.q:752 src/language/stats/t-test.q:923
-#: src/language/stats/t-test.q:1010
+#: src/language/stats/kruskal-wallis.c:318 src/language/stats/oneway.c:599
+#: src/language/stats/oneway.c:1008 src/language/stats/crosstabs.q:1207
+#: src/language/stats/regression.q:284 src/language/stats/t-test.q:752
+#: src/language/stats/t-test.q:923 src/language/stats/t-test.q:1010
 msgid "df"
 msgstr ""
 
-#: src/language/stats/chisquare.c:265
+#: src/language/stats/chisquare.c:265 src/language/stats/kruskal-wallis.c:321
 msgid "Asymp. Sig."
 msgstr ""
 
 #: src/language/stats/correlations.c:96 src/language/stats/factor.c:1728
-#: src/language/stats/npar-summary.c:107
+#: src/language/stats/npar-summary.c:106
 msgid "Descriptive Statistics"
 msgstr ""
 
 #: src/language/stats/correlations.c:117 src/language/stats/descriptives.c:101
-#: src/language/stats/factor.c:1749 src/language/stats/npar-summary.c:124
-#: src/language/stats/oneway.c:847 src/ui/gui/descriptives-dialog.c:40
+#: src/language/stats/factor.c:1749 src/language/stats/npar-summary.c:123
+#: src/language/stats/oneway.c:693 src/ui/gui/descriptives-dialog.c:40
 #: src/ui/gui/frequencies-dialog.c:41 src/language/stats/examine.q:1444
 #: src/language/stats/frequencies.q:105 src/language/stats/t-test.q:506
 #: src/language/stats/t-test.q:526 src/language/stats/t-test.q:624
@@ -2575,7 +2578,7 @@ msgid "Mean"
 msgstr ""
 
 #: src/language/stats/correlations.c:118 src/language/stats/factor.c:1750
-#: src/language/stats/npar-summary.c:127 src/language/stats/oneway.c:848
+#: src/language/stats/npar-summary.c:126 src/language/stats/oneway.c:694
 #: src/language/stats/examine.q:1479 src/language/stats/t-test.q:507
 #: src/language/stats/t-test.q:527 src/language/stats/t-test.q:626
 #: src/language/stats/t-test.q:918
@@ -2590,7 +2593,7 @@ msgstr ""
 msgid "Pearson Correlation"
 msgstr ""
 
-#: src/language/stats/correlations.c:218 src/language/stats/oneway.c:1166
+#: src/language/stats/correlations.c:218 src/language/stats/oneway.c:1009
 #: src/language/stats/t-test.q:753 src/language/stats/t-test.q:924
 #: src/language/stats/t-test.q:1011
 msgid "Sig. (2-tailed)"
@@ -2655,15 +2658,15 @@ msgstr ""
 msgid "Range"
 msgstr ""
 
-#: src/language/stats/descriptives.c:110 src/language/stats/npar-summary.c:130
-#: src/language/stats/oneway.c:861 src/ui/gui/descriptives-dialog.c:42
+#: src/language/stats/descriptives.c:110 src/language/stats/npar-summary.c:129
+#: src/language/stats/oneway.c:707 src/ui/gui/descriptives-dialog.c:42
 #: src/ui/gui/frequencies-dialog.c:43 src/language/stats/examine.q:1484
 #: src/language/stats/frequencies.q:116
 msgid "Minimum"
 msgstr ""
 
-#: src/language/stats/descriptives.c:111 src/language/stats/npar-summary.c:133
-#: src/language/stats/oneway.c:862 src/ui/gui/descriptives-dialog.c:43
+#: src/language/stats/descriptives.c:111 src/language/stats/npar-summary.c:132
+#: src/language/stats/oneway.c:708 src/ui/gui/descriptives-dialog.c:43
 #: src/ui/gui/frequencies-dialog.c:44 src/language/stats/examine.q:1489
 #: src/language/stats/frequencies.q:117
 msgid "Maximum"
@@ -2717,23 +2720,6 @@ msgstr ""
 #: src/language/stats/descriptives.c:913
 #, c-format
 msgid "Valid cases = %g; cases with missing value(s) = %g."
-msgstr ""
-
-#: src/language/stats/sort-cases.c:64
-msgid "Buffer limit must be at least 2."
-msgstr ""
-
-#: src/language/stats/sort-criteria.c:74
-msgid "`A' or `D' expected inside parentheses."
-msgstr "‘A’ or ‘D’ expected inside parentheses."
-
-#: src/language/stats/sort-criteria.c:79
-msgid "`)' expected."
-msgstr "‘)’ expected."
-
-#: src/language/stats/sort-criteria.c:92
-#, c-format
-msgid "Variable %s specified twice in sort criteria."
 msgstr ""
 
 #: src/language/stats/factor.c:805
@@ -2911,12 +2897,12 @@ msgstr ""
 msgid "Type %s Sum of Squares"
 msgstr ""
 
-#: src/language/stats/glm.c:309 src/language/stats/oneway.c:754
+#: src/language/stats/glm.c:309 src/language/stats/oneway.c:600
 #: src/language/stats/regression.q:285
 msgid "Mean Square"
 msgstr ""
 
-#: src/language/stats/glm.c:310 src/language/stats/oneway.c:755
+#: src/language/stats/glm.c:310 src/language/stats/oneway.c:601
 #: src/language/stats/regression.q:286 src/language/stats/t-test.q:749
 msgid "F"
 msgstr ""
@@ -2942,123 +2928,160 @@ msgstr ""
 msgid "Corrected Total"
 msgstr ""
 
-#: src/language/stats/npar-summary.c:140 src/language/stats/examine.q:1996
+#: src/language/stats/kruskal-wallis.c:244 src/language/stats/wilcoxon.c:225
+msgid "Ranks"
+msgstr ""
+
+#: src/language/stats/kruskal-wallis.c:258 src/language/stats/wilcoxon.c:239
+msgid "Mean Rank"
+msgstr ""
+
+#: src/language/stats/npar.c:233 src/language/stats/npar.c:260
+#, c-format
+msgid "The %s subcommand may be given only once."
+msgstr ""
+
+#: src/language/stats/npar.c:343
+msgid "NPAR subcommand not currently implemented."
+msgstr ""
+
+#: src/language/stats/npar.c:496
+#, c-format
+msgid ""
+"The specified value of HI (%d) is lower than the specified value of LO (%d)"
+msgstr ""
+
+#: src/language/stats/npar.c:551
+#, c-format
+msgid ""
+"%d expected values were given, but the specified range (%d-%d) requires "
+"exactly %d values."
+msgstr ""
+
+#: src/language/stats/npar.c:690 src/language/stats/t-test.q:380
+#, c-format
+msgid ""
+"PAIRED was specified but the number of variables preceding WITH (%zu) did "
+"not match the number following (%zu)."
+msgstr ""
+
+#: src/language/stats/npar-summary.c:139 src/language/stats/examine.q:1996
 #: src/language/stats/examine.q:2013 src/language/stats/frequencies.q:1050
 #: src/ui/gui/examine.ui:345
 msgid "Percentiles"
 msgstr ""
 
-#: src/language/stats/npar-summary.c:144
+#: src/language/stats/npar-summary.c:143
 msgid "25th"
 msgstr ""
 
-#: src/language/stats/npar-summary.c:147
+#: src/language/stats/npar-summary.c:146
 msgid "50th (Median)"
 msgstr ""
 
-#: src/language/stats/npar-summary.c:150
+#: src/language/stats/npar-summary.c:149
 msgid "75th"
 msgstr ""
 
-#: src/language/stats/oneway.c:692
+#: src/language/stats/oneway.c:548
 msgid "Number of contrast coefficients must equal the number of groups"
 msgstr ""
 
-#: src/language/stats/oneway.c:701
+#: src/language/stats/oneway.c:557
 #, c-format
 msgid "Coefficients for contrast %zu do not total zero"
 msgstr ""
 
-#: src/language/stats/oneway.c:752 src/language/stats/regression.q:283
+#: src/language/stats/oneway.c:598 src/language/stats/regression.q:283
 msgid "Sum of Squares"
 msgstr ""
 
-#: src/language/stats/oneway.c:756 src/language/stats/oneway.c:1001
+#: src/language/stats/oneway.c:602 src/language/stats/oneway.c:847
 #: src/language/stats/regression.q:201 src/language/stats/regression.q:287
 msgid "Significance"
 msgstr ""
 
-#: src/language/stats/oneway.c:774
+#: src/language/stats/oneway.c:620
 msgid "Between Groups"
 msgstr ""
 
-#: src/language/stats/oneway.c:775
+#: src/language/stats/oneway.c:621
 msgid "Within Groups"
 msgstr ""
 
-#: src/language/stats/oneway.c:808 src/language/stats/regression.q:312
+#: src/language/stats/oneway.c:654 src/language/stats/regression.q:312
 msgid "ANOVA"
 msgstr ""
 
-#: src/language/stats/oneway.c:849 src/language/stats/oneway.c:1163
+#: src/language/stats/oneway.c:695 src/language/stats/oneway.c:1006
 #: src/language/stats/roc.c:975 src/language/stats/examine.q:1641
 #: src/language/stats/regression.q:198
 msgid "Std. Error"
 msgstr ""
 
-#: src/language/stats/oneway.c:855 src/language/stats/examine.q:1449
+#: src/language/stats/oneway.c:701 src/language/stats/examine.q:1449
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/language/stats/oneway.c:858 src/language/stats/roc.c:978
+#: src/language/stats/oneway.c:704 src/language/stats/roc.c:978
 #: src/language/stats/examine.q:1455
 msgid "Lower Bound"
 msgstr ""
 
-#: src/language/stats/oneway.c:859 src/language/stats/roc.c:979
+#: src/language/stats/oneway.c:705 src/language/stats/roc.c:979
 #: src/language/stats/examine.q:1460
 msgid "Upper Bound"
 msgstr ""
 
-#: src/language/stats/oneway.c:864 src/language/stats/examine.q:1635
+#: src/language/stats/oneway.c:710 src/language/stats/examine.q:1635
 #: src/ui/gui/descriptives.ui:8 src/ui/gui/examine.ui:319
 msgid "Descriptives"
 msgstr ""
 
-#: src/language/stats/oneway.c:998
+#: src/language/stats/oneway.c:844
 msgid "Levene Statistic"
 msgstr ""
 
-#: src/language/stats/oneway.c:999
+#: src/language/stats/oneway.c:845
 msgid "df1"
 msgstr ""
 
-#: src/language/stats/oneway.c:1000
+#: src/language/stats/oneway.c:846
 msgid "df2"
 msgstr ""
 
-#: src/language/stats/oneway.c:1003
+#: src/language/stats/oneway.c:849
 msgid "Test of Homogeneity of Variances"
 msgstr ""
 
-#: src/language/stats/oneway.c:1079
+#: src/language/stats/oneway.c:922
 msgid "Contrast Coefficients"
 msgstr ""
 
-#: src/language/stats/oneway.c:1081 src/language/stats/oneway.c:1161
+#: src/language/stats/oneway.c:924 src/language/stats/oneway.c:1004
 msgid "Contrast"
 msgstr ""
 
-#: src/language/stats/oneway.c:1159
+#: src/language/stats/oneway.c:1002
 msgid "Contrast Tests"
 msgstr ""
 
-#: src/language/stats/oneway.c:1162
+#: src/language/stats/oneway.c:1005
 msgid "Value of Contrast"
 msgstr ""
 
-#: src/language/stats/oneway.c:1164 src/language/stats/regression.q:200
+#: src/language/stats/oneway.c:1007 src/language/stats/regression.q:200
 #: src/language/stats/t-test.q:751 src/language/stats/t-test.q:922
 #: src/language/stats/t-test.q:1009
 msgid "t"
 msgstr ""
 
-#: src/language/stats/oneway.c:1216
+#: src/language/stats/oneway.c:1059
 msgid "Assume equal variances"
 msgstr ""
 
-#: src/language/stats/oneway.c:1220
+#: src/language/stats/oneway.c:1063
 msgid "Does not assume equal"
 msgstr ""
 
@@ -3228,55 +3251,64 @@ msgstr ""
 msgid "1 - Specificity"
 msgstr ""
 
-#: src/language/stats/sign.c:89
+#: src/language/stats/sign.c:90
 msgid "Negative Differences"
 msgstr ""
 
-#: src/language/stats/sign.c:90
+#: src/language/stats/sign.c:91
 msgid "Positive Differences"
 msgstr ""
 
-#: src/language/stats/sign.c:91 src/language/stats/wilcoxon.c:259
+#: src/language/stats/sign.c:92 src/language/stats/wilcoxon.c:254
 msgid "Ties"
 msgstr ""
 
-#: src/language/stats/sign.c:130 src/language/stats/wilcoxon.c:327
+#: src/language/stats/sign.c:131 src/language/stats/wilcoxon.c:322
 msgid "Exact Sig. (2-tailed)"
 msgstr ""
 
-#: src/language/stats/sign.c:133 src/language/stats/wilcoxon.c:328
+#: src/language/stats/sign.c:134 src/language/stats/wilcoxon.c:323
 msgid "Exact Sig. (1-tailed)"
 msgstr ""
 
-#: src/language/stats/sign.c:136 src/language/stats/wilcoxon.c:331
+#: src/language/stats/sign.c:137 src/language/stats/wilcoxon.c:326
 msgid "Point Probability"
 msgstr ""
 
-#: src/language/stats/wilcoxon.c:230
-msgid "Ranks"
+#: src/language/stats/sort-cases.c:64
+msgid "Buffer limit must be at least 2."
 msgstr ""
 
-#: src/language/stats/wilcoxon.c:244
-msgid "Mean Rank"
+#: src/language/stats/sort-criteria.c:74
+msgid "`A' or `D' expected inside parentheses."
+msgstr "‘A’ or ‘D’ expected inside parentheses."
+
+#: src/language/stats/sort-criteria.c:79
+msgid "`)' expected."
+msgstr "‘)’ expected."
+
+#: src/language/stats/sort-criteria.c:92
+#, c-format
+msgid "Variable %s specified twice in sort criteria."
 msgstr ""
 
-#: src/language/stats/wilcoxon.c:245
+#: src/language/stats/wilcoxon.c:240
 msgid "Sum of Ranks"
 msgstr ""
 
-#: src/language/stats/wilcoxon.c:257
+#: src/language/stats/wilcoxon.c:252
 msgid "Negative Ranks"
 msgstr ""
 
-#: src/language/stats/wilcoxon.c:258
+#: src/language/stats/wilcoxon.c:253
 msgid "Positive Ranks"
 msgstr ""
 
-#: src/language/stats/wilcoxon.c:322
+#: src/language/stats/wilcoxon.c:317
 msgid "Z"
 msgstr ""
 
-#: src/language/stats/wilcoxon.c:323 src/language/stats/crosstabs.q:1209
+#: src/language/stats/wilcoxon.c:318 src/language/stats/crosstabs.q:1209
 msgid "Asymp. Sig. (2-tailed)"
 msgstr ""
 
@@ -4004,6 +4036,10 @@ msgstr "%s: unknown option ‘%s’"
 msgid "PSPP Output"
 msgstr ""
 
+#: src/output/html.c:258
+msgid "No description"
+msgstr ""
+
 #: src/output/journal.c:67
 #, c-format
 msgid "error writing output file `%s'"
@@ -4184,7 +4220,7 @@ msgstr "Algorithm must be either ‘compatible’ or ‘enhanced’."
 msgid "Syntax must be either `compatible' or `enhanced'."
 msgstr "Syntax must be either ‘compatible’ or ‘enhanced’."
 
-#: src/ui/terminal/main.c:127
+#: src/ui/terminal/main.c:146
 msgid ""
 "Stopping syntax file processing here to avoid a cascade of dependent command "
 "failures."
@@ -4195,17 +4231,17 @@ msgstr ""
 msgid "could not access definition for terminal `%s'"
 msgstr "could not access definition for terminal ‘%s’"
 
-#: src/ui/terminal/terminal-opts.c:122
+#: src/ui/terminal/terminal-opts.c:120
 #, c-format
 msgid "%s: output option missing `='"
 msgstr "%s: output option missing ‘=’"
 
-#: src/ui/terminal/terminal-opts.c:129
+#: src/ui/terminal/terminal-opts.c:127
 #, c-format
 msgid "%s: output option specified more than once"
 msgstr ""
 
-#: src/ui/terminal/terminal-opts.c:189
+#: src/ui/terminal/terminal-opts.c:187
 #, c-format
 msgid ""
 "PSPP, a program for statistical analysis of sample data.\n"
@@ -5360,30 +5396,6 @@ msgstr ""
 msgid "Omitting pie chart for %s, which has over 50 unique values."
 msgstr ""
 
-#: src/language/stats/npar.q:111
-msgid "NPAR subcommand not currently implemented."
-msgstr ""
-
-#: src/language/stats/npar.q:256
-#, c-format
-msgid ""
-"The specified value of HI (%d) is lower than the specified value of LO (%d)"
-msgstr ""
-
-#: src/language/stats/npar.q:311
-#, c-format
-msgid ""
-"%d expected values were given, but the specified range (%d-%d) requires "
-"exactly %d values."
-msgstr ""
-
-#: src/language/stats/npar.q:453 src/language/stats/t-test.q:380
-#, c-format
-msgid ""
-"PAIRED was specified but the number of variables preceding WITH (%zu) did "
-"not match the number following (%zu)."
-msgstr ""
-
 #: src/language/stats/rank.q:220
 #, c-format
 msgid "%s of %s by %s"
@@ -6001,91 +6013,99 @@ msgstr ""
 msgid "Goto Case Number:"
 msgstr ""
 
-#: src/ui/gui/factor.ui:21
+#: src/ui/gui/factor.ui:22
+msgid "Principal Components Analysis"
+msgstr ""
+
+#: src/ui/gui/factor.ui:26
+msgid "Principal Axis Factoring"
+msgstr ""
+
+#: src/ui/gui/factor.ui:29
 msgid "Factor Analysis"
 msgstr ""
 
-#: src/ui/gui/factor.ui:47
+#: src/ui/gui/factor.ui:55
 msgid "_Descriptives..."
 msgstr ""
 
-#: src/ui/gui/factor.ui:60
+#: src/ui/gui/factor.ui:68
 msgid "_Extraction..."
 msgstr ""
 
-#: src/ui/gui/factor.ui:74
+#: src/ui/gui/factor.ui:82
 msgid "_Rotations..."
 msgstr ""
 
-#: src/ui/gui/factor.ui:192
+#: src/ui/gui/factor.ui:200
 msgid "Factor Analysis: Extraction"
 msgstr ""
 
-#: src/ui/gui/factor.ui:216
+#: src/ui/gui/factor.ui:224
 msgid "Method: "
 msgstr ""
 
-#: src/ui/gui/factor.ui:266
+#: src/ui/gui/factor.ui:274
 msgid "Correlation matrix"
 msgstr ""
 
-#: src/ui/gui/factor.ui:280
+#: src/ui/gui/factor.ui:288
 msgid "Covariance matrix"
 msgstr ""
 
-#: src/ui/gui/factor.ui:300
+#: src/ui/gui/factor.ui:308
 msgid "Analyse"
 msgstr ""
 
-#: src/ui/gui/factor.ui:324
+#: src/ui/gui/factor.ui:332
 msgid "Unrotatated factor solution"
 msgstr ""
 
-#: src/ui/gui/factor.ui:338
+#: src/ui/gui/factor.ui:346
 msgid "Scree plot"
 msgstr ""
 
-#: src/ui/gui/factor.ui:357 src/ui/gui/roc.ui:286
+#: src/ui/gui/factor.ui:365 src/ui/gui/roc.ui:286
 msgid "Display"
 msgstr ""
 
-#: src/ui/gui/factor.ui:430
+#: src/ui/gui/factor.ui:438
 msgid "Number of factors:"
 msgstr ""
 
-#: src/ui/gui/factor.ui:460
+#: src/ui/gui/factor.ui:468
 msgid "Extract"
 msgstr ""
 
-#: src/ui/gui/factor.ui:475 src/ui/gui/factor.ui:665
+#: src/ui/gui/factor.ui:483 src/ui/gui/factor.ui:673
 msgid "Maximum iterations for convergence:"
 msgstr ""
 
-#: src/ui/gui/factor.ui:538
+#: src/ui/gui/factor.ui:546
 msgid "Factor Analysis: Rotation"
 msgstr ""
 
-#: src/ui/gui/factor.ui:571
+#: src/ui/gui/factor.ui:579
 msgid "_None"
 msgstr ""
 
-#: src/ui/gui/factor.ui:582
+#: src/ui/gui/factor.ui:590
 msgid "_Varimax"
 msgstr ""
 
-#: src/ui/gui/factor.ui:598
+#: src/ui/gui/factor.ui:606
 msgid "_Quartimax"
 msgstr ""
 
-#: src/ui/gui/factor.ui:614
+#: src/ui/gui/factor.ui:622
 msgid "_Equimax"
 msgstr ""
 
-#: src/ui/gui/factor.ui:637
+#: src/ui/gui/factor.ui:645
 msgid "Method"
 msgstr ""
 
-#: src/ui/gui/factor.ui:648
+#: src/ui/gui/factor.ui:656
 msgid "_Display rotated solution"
 msgstr ""
 
