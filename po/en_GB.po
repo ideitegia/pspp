@@ -504,7 +504,7 @@ msgstr ""
 #: src/data/por-file-reader.c:543
 #, c-format
 msgid "Unrecognized version code `%c'."
-msgstr "Unrecognised version code `%c'."
+msgstr "Unrecognised version code ‘%c’."
 
 #: src/data/por-file-reader.c:552
 #, c-format
@@ -807,6 +807,9 @@ msgid ""
 "Unrecognized record type 7, subtype %d.  Please send a copy of this file, "
 "and the syntax which created it to %s"
 msgstr ""
+"Unrecognised record type 7, subtype %d.  Please send a copy of this file, "
+"and the syntax which created it to %s"
+
 
 #: src/data/sys-file-reader.c:919 tests/dissect-sysfile.c:595
 #, c-format
@@ -1737,7 +1740,7 @@ msgstr ""
 #: src/language/dictionary/modify-variables.c:301
 #, c-format
 msgid "Unrecognized subcommand name `%s'."
-msgstr "Unrecognised subcommand name `%s'."
+msgstr "Unrecognised subcommand name ‘%s’."
 
 #: src/language/dictionary/modify-variables.c:303
 msgid "Subcommand name expected."
@@ -3725,7 +3728,7 @@ msgid ""
 "variables on right side (%zu), in parenthesized group %d of RENAME "
 "subcommand."
 msgstr ""
-"Number of variables on left side of `=' (%zu) does not match number of \n"
+"Number of variables on left side of ‘=’ (%zu) does not match number of \n"
 "variables on right side (%zu), in parenthesised group %d of RENAME \n"
 "subcommand."
 
@@ -3791,8 +3794,8 @@ msgid ""
 "Unrecognized date unit `%.*s'.  Valid date units are `years', `quarters', "
 "`months', `weeks', `days', `hours', `minutes', and `seconds'."
 msgstr ""
-"Unrecognised date unit `%.*s'.  Valid date units are `years', `quarters', "
-"`months', `weeks', `days', `hours', `minutes', and `seconds'."
+"Unrecognised date unit ‘%.*s’.  Valid date units are ‘years’, ‘quarters’, "
+"‘months’, ‘weeks’, ‘days’, ‘hours’, ‘minutes’, and ‘seconds’."
 
 #: src/language/expressions/helpers.c:327
 msgid "Invalid DATESUM method.  Valid choices are `closest' and `rollover'."
@@ -5000,7 +5003,7 @@ msgstr ""
 #: src/language/utilities/set.q:405
 #, c-format
 msgid "%s is not a recognized encoding or locale name"
-msgstr ""
+msgstr "%s is not a recognised encoding or locale name"
 
 #: src/language/utilities/set.q:467
 msgid "WIDTH must be at least 40."
