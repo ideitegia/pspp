@@ -6,17 +6,17 @@ AT_DATA([oneway.sps],
 BEGIN DATA
 7  3
 4  3
-3 1
-2 1
-1 1
-4 2
-2 2
-3 2
+3  1
+2  1
+1  1
+4  2
+2  2
+3  2
 5  3
-1 1
-4 1
-5 2
-2 2
+1  1
+4  1
+5  2
+2  2
 3  3
 6  3
 END DATA
@@ -475,5 +475,79 @@ z,Assume equal variances,1,-9.70,8.07,1.20,20,.24
 ,Does not assume equal,1,-9.70,9.57,-1.01,3.64,1.63
 ,,2,11.73,14.53,.81,9.88,.44
 ])
+
+AT_CLEANUP
+
+
+
+dnl Tests that everything treats weights properly
+AT_SETUP([ONEWAY vs. weights])
+
+AT_DATA([oneway-unweighted.sps],
+[DATA LIST NOTABLE LIST /QUALITY * BRAND * W *.
+BEGIN DATA
+3  1   1
+2  1   1
+1  1   1
+1  1   1
+4  1   1
+5  2   1
+2  2   1
+4  2   1
+4  2   1
+4  2   1
+2  2   1
+2  2   1
+3  2   1
+7  3   1
+4  3   1
+5  3   1
+5  3   1
+3  3   1
+6  3   1
+END DATA.
+
+WEIGHT BY W.
+
+ONEWAY
+	quality BY brand
+	/STATISTICS descriptives homogeneity
+	.
+])
+
+AT_CHECK([pspp -o pspp-unweighted.csv oneway-unweighted.sps], [0], [ignore], [ignore])
+
+AT_DATA([oneway-weighted.sps],
+[DATA LIST NOTABLE LIST /QUALITY * BRAND * W *.
+BEGIN DATA
+3  1   1
+2  1   1
+1  1   2
+4  1   1
+5  2   1
+2  2   1
+4  2   3
+2  2   2
+3  2   1
+7  3   1
+4  3   1
+5  3   2
+3  3   1
+6  3   1
+END DATA.
+
+WEIGHT BY W.
+
+ONEWAY
+	quality BY brand
+	/STATISTICS descriptives homogeneity
+	.
+])
+
+AT_CHECK([pspp -o pspp-weighted.csv oneway-weighted.sps], [0], [ignore], [ignore])
+
+
+AT_CHECK([diff pspp-weighted.csv pspp-unweighted.csv], [0])
+
 
 AT_CLEANUP

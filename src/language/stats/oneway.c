@@ -370,11 +370,11 @@ updateit (void *user_data,
   weight = wv != NULL ? case_data (c, wv)->f : 1.0;
 
   moments1_add (dd->mom, valx->f, weight);
-  if (valx->f * weight < dd->minimum)
-    dd->minimum = valx->f * weight;
+  if (valx->f < dd->minimum)
+    dd->minimum = valx->f;
 
-  if (valx->f * weight > dd->maximum)
-    dd->maximum = valx->f * weight;
+  if (valx->f > dd->maximum)
+    dd->maximum = valx->f;
 
   {
     const struct variable *var = dd_total->var;
@@ -384,11 +384,11 @@ updateit (void *user_data,
 		  val->f,
 		  weight);
 
-    if (val->f * weight < dd_total->minimum)
-      dd_total->minimum = val->f * weight;
+    if (val->f < dd_total->minimum)
+      dd_total->minimum = val->f;
 
-    if (val->f * weight > dd_total->maximum)
-      dd_total->maximum = val->f * weight;
+    if (val->f > dd_total->maximum)
+      dd_total->maximum = val->f;
   }
 }
 
@@ -508,21 +508,21 @@ run_oneway (const struct oneway_spec *cmd,
 	      totals->sum += weight * val->f;
 	      totals->ssq += weight * pow2 (val->f);
 
-	      if ( val->f * weight  < totals->minimum )
-		totals->minimum = val->f * weight;
+	      if ( val->f < totals->minimum )
+		totals->minimum = val->f;
 
-	      if ( val->f * weight  > totals->maximum )
-		totals->maximum = val->f * weight;
+	      if ( val->f > totals->maximum )
+		totals->maximum = val->f;
 
 	      gs->n += weight;
 	      gs->sum += weight * val->f;
 	      gs->ssq += weight * pow2 (val->f);
 
-	      if ( val->f * weight  < gs->minimum )
-		gs->minimum = val->f * weight;
+	      if ( val->f < gs->minimum )
+		gs->minimum = val->f;
 
-	      if ( val->f * weight  > gs->maximum )
-		gs->maximum = val->f * weight;
+	      if ( val->f > gs->maximum )
+		gs->maximum = val->f;
 	    }
 
 	  gp->n_groups = hsh_count (group_hash );
@@ -906,7 +906,7 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 
 	  /* Now fill in the numbers ... */
 
-	  tab_fixed (t, 2, row + count, 0, n, 8, 0);
+	  tab_double (t, 2, row + count, 0, n, wfmt);
 
 	  tab_double (t, 3, row + count, 0, mean, NULL);
 
