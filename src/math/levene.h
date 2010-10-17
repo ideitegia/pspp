@@ -17,29 +17,15 @@
 #if !levene_h
 #define levene_h 1
 
-#include <data/casereader.h>
-#include <data/missing-values.h>
-#include <data/variable.h>
-
-/* Calculate the Levene statistic
-
-The independent variable :   v_indep;
-
-Number of dependent variables :   n_dep;
-
-The dependent variables :   v_dep;
-
-*/
+struct casereader;
+struct variable;
 
 
-struct dictionary ;
-struct casefilter ;
+enum mv_class;
 
-void  levene(const struct dictionary *dict, struct casereader *,
-	     const struct variable *v_indep, size_t n_dep,
-	     const struct variable **v_dep,
-	     enum mv_class exclude);
+double
+levene (struct casereader *rx, const struct variable *gvar,
+	const struct variable *var, const struct variable *wv,  enum mv_class exclude );
 
 
-
-#endif /* levene_h */
+#endif

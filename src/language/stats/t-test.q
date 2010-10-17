@@ -1439,8 +1439,13 @@ calculate (struct t_test_proc *proc,
       break;
     case T_IND_SAMPLES:
       group_calc (dict, proc, casereader_clone (input));
-      levene (dict, input, proc->indep_var, proc->n_vars, proc->vars,
-              proc->exclude);
+      int i;
+      for (i = 0; i < proc->n_vars; ++i)
+	{
+	  struct group_proc *grp_data = group_proc_get (proc->vars[i]);
+
+	  grp_data->levene = levene ( input, proc->indep_var, proc->vars[i], dict_get_weight (dict), proc->exclude);
+	}
       break;
     default:
       NOT_REACHED ();
