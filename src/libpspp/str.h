@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@
 /* Miscellaneous. */
 
 void buf_reverse (char *, size_t);
-char *buf_find_reverse (const char *, size_t, const char *, size_t);
 int buf_compare_case (const char *, const char *, size_t);
 int buf_compare_rpad (const char *, size_t, const char *, size_t);
 void buf_copy_lpad (char *, size_t, const char *, size_t, char pad);
@@ -48,8 +47,6 @@ void str_uppercase (char *);
 void str_lowercase (char *);
 
 bool str_format_26adic (unsigned long int number, char buffer[], size_t);
-
-char *spprintf (char *dst, const char *format, ...);
 
 void *mempset (void *, int, size_t);
 

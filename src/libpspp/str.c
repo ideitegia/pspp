@@ -50,19 +50,6 @@ buf_reverse (char *p, size_t nbytes)
     }
 }
 
-/* Finds the last NEEDLE of length NEEDLE_LEN in a HAYSTACK of length
-   HAYSTACK_LEN.  Returns a pointer to the needle found. */
-char *
-buf_find_reverse (const char *haystack, size_t haystack_len,
-                 const char *needle, size_t needle_len)
-{
-  int i;
-  for (i = haystack_len - needle_len; i >= 0; i--)
-    if (!memcmp (needle, &haystack[i], needle_len))
-      return (char *) &haystack[i];
-  return 0;
-}
-
 /* Compares the SIZE bytes in A to those in B, disregarding case,
    and returns a strcmp()-type result. */
 int
@@ -293,21 +280,6 @@ str_format_26adic (unsigned long int number, char buffer[], size_t size)
 
   buf_reverse (buffer, length);
   return true;
-}
-
-/* Formats FORMAT into DST, as with sprintf(), and returns the
-   address of the terminating null written to DST. */
-char *
-spprintf (char *dst, const char *format, ...)
-{
-  va_list args;
-  int count;
-
-  va_start (args, format);
-  count = vsprintf (dst, format, args);
-  va_end (args);
-
-  return dst + count;
 }
 
 /* Sets the SIZE bytes starting at BLOCK to C,
