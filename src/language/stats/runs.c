@@ -186,12 +186,15 @@ runs_execute (const struct dataset *ds,
 	    subcase_init_var (&sc, var, SC_ASCEND);
 	    writer = sort_create_writer (&sc, casereader_get_proto (reader));
 
- 	    for (; (c = casereader_read (reader)); case_unref (c))
+ 	    for (; (c = casereader_read (reader)); )
 	      {
 		const union value *val = case_data (c, var);
 		const double w = weight ? case_data (c, weight)->f: 1.0;
 		if ( var_is_value_missing (var, val, exclude))
-		  continue;
+		  {
+		    case_unref (c);
+		    continue;
+		  }
 
 		cc += w;
 		casewriter_write (writer, c);
