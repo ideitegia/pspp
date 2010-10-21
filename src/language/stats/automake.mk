@@ -35,6 +35,8 @@ language_stats_sources = \
 	src/language/stats/reliability.c \
 	src/language/stats/roc.c \
 	src/language/stats/roc.h \
+	src/language/stats/runs.h \
+	src/language/stats/runs.c \
 	src/language/stats/sign.c \
 	src/language/stats/sign.h \
 	src/language/stats/sort-cases.c \

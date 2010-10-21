@@ -7,7 +7,7 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
 Changes from 0.7.3 to 0.7.6:
 
- * NPAR TESTS now supports the /KRUSKAL-WALLIS subcommand.
+ * NPAR TESTS now supports the /KRUSKAL-WALLIS and /RUNS subcommands.
 
  * AUTORECODE now supports the /GROUP subcommand.
 

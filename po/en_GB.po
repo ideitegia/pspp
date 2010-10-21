@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.7.6\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2010-10-17 22:08+0200\n"
+"POT-Creation-Date: 2010-10-21 19:40+0200\n"
 "PO-Revision-Date: 2010-10-17 16:51+0200\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -810,7 +810,6 @@ msgstr ""
 "Unrecognised record type 7, subtype %d.  Please send a copy of this file, "
 "and the syntax which created it to %s"
 
-
 #: src/data/sys-file-reader.c:919 tests/dissect-sysfile.c:595
 #, c-format
 msgid "Bad size (%zu) or count (%zu) field on record type 7, subtype 3."
@@ -1287,7 +1286,7 @@ msgid "Syntax error at `%s'"
 msgstr "Syntax error at ‘%s’"
 
 #: src/language/lexer/lexer.c:457 src/language/xforms/select-if.c:60
-#: src/language/stats/autorecode.c:161 src/language/stats/npar.c:310
+#: src/language/stats/autorecode.c:161 src/language/stats/npar.c:332
 #: src/language/data-io/print-space.c:73
 msgid "expecting end of command"
 msgstr ""
@@ -1347,18 +1346,18 @@ msgstr ""
 msgid "String expected following `+'."
 msgstr "String expected following ‘+’."
 
-#: src/language/lexer/format-parser.c:88
+#: src/language/lexer/format-parser.c:79
 msgid "expecting valid format specifier"
 msgstr ""
 
-#: src/language/lexer/format-parser.c:107
-#: src/language/lexer/format-parser.c:126
+#: src/language/lexer/format-parser.c:118
+#: src/language/lexer/format-parser.c:138
 #: src/language/data-io/placement-parser.c:226
 #, c-format
 msgid "Unknown format type `%s'."
 msgstr "Unknown format type ‘%s’."
 
-#: src/language/lexer/format-parser.c:121
+#: src/language/lexer/format-parser.c:133
 msgid "expecting format type"
 msgstr ""
 
@@ -2939,29 +2938,33 @@ msgstr ""
 msgid "Mean Rank"
 msgstr ""
 
-#: src/language/stats/npar.c:233 src/language/stats/npar.c:260
+#: src/language/stats/npar.c:255 src/language/stats/npar.c:282
 #, c-format
 msgid "The %s subcommand may be given only once."
 msgstr ""
 
-#: src/language/stats/npar.c:343
+#: src/language/stats/npar.c:365
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
 
-#: src/language/stats/npar.c:496
+#: src/language/stats/npar.c:519
+msgid "Expecting MEAN, MEDIAN, MODE or number"
+msgstr ""
+
+#: src/language/stats/npar.c:577
 #, c-format
 msgid ""
 "The specified value of HI (%d) is lower than the specified value of LO (%d)"
 msgstr ""
 
-#: src/language/stats/npar.c:551
+#: src/language/stats/npar.c:632
 #, c-format
 msgid ""
 "%d expected values were given, but the specified range (%d-%d) requires "
 "exactly %d values."
 msgstr ""
 
-#: src/language/stats/npar.c:690 src/language/stats/t-test.q:380
+#: src/language/stats/npar.c:771 src/language/stats/t-test.q:380
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%zu) did "
@@ -3254,6 +3257,59 @@ msgstr ""
 msgid "1 - Specificity"
 msgstr ""
 
+#: src/language/stats/runs.c:166
+#, c-format
+msgid ""
+"Multiple modes exist for varible `%s'.  Using %g as the threshold value."
+msgstr ""
+"Multiple modes exist for varible ‘%s’.  Using %g as the threshold value."
+
+#: src/language/stats/runs.c:315
+msgid "Runs Test"
+msgstr ""
+
+#: src/language/stats/runs.c:360
+#, fuzzy
+msgid "Test Value "
+msgstr "Cases ≥ Test Value"
+
+#: src/language/stats/runs.c:364
+msgid "Test Value (mode)"
+msgstr ""
+
+#: src/language/stats/runs.c:368
+msgid "Test Value (mean)"
+msgstr ""
+
+#: src/language/stats/runs.c:372
+msgid "Test Value (median)"
+msgstr ""
+
+#: src/language/stats/runs.c:377
+msgid "Cases < Test Value"
+msgstr ""
+
+#: src/language/stats/runs.c:380
+msgid "Cases >= Test Value"
+msgstr "Cases ≥ Test Value"
+
+#: src/language/stats/runs.c:383
+msgid "Total Cases"
+msgstr ""
+
+#: src/language/stats/runs.c:386
+msgid "Number of Runs"
+msgstr ""
+
+#: src/language/stats/runs.c:389 src/language/stats/wilcoxon.c:317
+msgid "Z"
+msgstr ""
+
+#: src/language/stats/runs.c:392 src/language/stats/wilcoxon.c:318
+#: src/language/stats/crosstabs.q:1209
+msgid "Asymp. Sig. (2-tailed)"
+msgstr ""
+
 #: src/language/stats/sign.c:90
 msgid "Negative Differences"
 msgstr ""
@@ -3305,14 +3361,6 @@ msgstr ""
 
 #: src/language/stats/wilcoxon.c:253
 msgid "Positive Ranks"
-msgstr ""
-
-#: src/language/stats/wilcoxon.c:317
-msgid "Z"
-msgstr ""
-
-#: src/language/stats/wilcoxon.c:318 src/language/stats/crosstabs.q:1209
-msgid "Asymp. Sig. (2-tailed)"
 msgstr ""
 
 #: src/language/data-io/combine-files.c:210

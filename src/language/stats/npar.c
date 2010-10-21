@@ -45,6 +45,7 @@
 #include <language/lexer/value-parser.h>
 #include <language/stats/binomial.h>
 #include <language/stats/chisquare.h>
+#include <language/stats/runs.h>
 #include <language/stats/kruskal-wallis.h>
 #include <language/stats/wilcoxon.h>
 #include <language/stats/sign.h>
@@ -78,6 +79,7 @@ struct cmd_npar_tests
     int binomial;
     int wilcoxon;
     int sign;
+    int runs;
     int kruskal_wallis;
     int missing;
     int method;
@@ -114,6 +116,8 @@ struct npar_specs
 /* Prototype for custom subcommands of NPAR TESTS. */
 static int npar_chisquare (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_binomial (struct lexer *, struct dataset *,  struct npar_specs *);
+static int npar_runs (struct lexer *lexer, struct dataset *, struct npar_specs *);
+
 static int npar_wilcoxon (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_sign (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_kruskal_wallis (struct lexer *, struct dataset *, struct npar_specs *);
@@ -130,6 +134,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
   npt->chisquare = 0;
   npt->binomial = 0;
   npt->wilcoxon = 0;
+  npt->runs = 0;
   npt->sign = 0;
   npt->missing = 0;
   npt->miss = MISS_ANALYSIS;
@@ -138,7 +143,24 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
   memset (npt->a_statistics, 0, sizeof npt->a_statistics);
   for (;;)
     {
-      if (lex_match_hyphenated_word (lexer, "CHISQUARE"))
+      if (lex_match_hyphenated_word (lexer, "RUNS"))
+	{
+          npt->runs++;
+          switch (npar_runs (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+
+	}
+      else if (lex_match_hyphenated_word (lexer, "CHISQUARE"))
         {
           lex_match (lexer, '=');
           npt->chisquare++;
@@ -462,12 +484,71 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
 }
 
 static int
+npar_runs (struct lexer *lexer, struct dataset *ds,
+	   struct npar_specs *specs)
+{
+  struct runs_test *rt = pool_alloc (specs->pool, sizeof (*rt));
+  struct one_sample_test *tp = &rt->parent;
+  struct npar_test *nt = &tp->parent;
+
+  nt->execute = runs_execute;
+  nt->insert_variables = one_sample_insert_variables;
+
+  if ( lex_force_match (lexer, '(') )
+    {
+      if ( lex_match_id (lexer, "MEAN"))
+	{
+	  rt->cp_mode = CP_MEAN;
+	}
+      else if (lex_match_id (lexer, "MEDIAN"))
+	{
+	  rt->cp_mode = CP_MEDIAN;
+	}
+      else if (lex_match_id (lexer, "MODE"))
+	{
+	  rt->cp_mode = CP_MODE;
+	}
+      else if (lex_is_number (lexer))
+	{
+	  rt->cutpoint = lex_number (lexer);
+	  rt->cp_mode = CP_CUSTOM;
+	  lex_get (lexer);
+	}
+      else
+	{
+	  lex_error (lexer, _("Expecting MEAN, MEDIAN, MODE or number"));
+	  return 0;
+	}
+		  
+      lex_force_match (lexer, ')');
+      lex_force_match (lexer, '=');
+      if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
+				  &tp->vars, &tp->n_vars,
+				  PV_NO_SCRATCH | PV_NO_DUPLICATE | PV_NUMERIC))
+	{
+	  return 2;
+	}
+    }
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
+
+
+static int
 npar_chisquare (struct lexer *lexer, struct dataset *ds,
 		struct npar_specs *specs)
 {
   struct chisquare_test *cstp = pool_alloc (specs->pool, sizeof (*cstp));
   struct one_sample_test *tp = &cstp->parent;
   struct npar_test *nt = &tp->parent;
+
 
   nt->execute = chisquare_execute;
   nt->insert_variables = one_sample_insert_variables;
