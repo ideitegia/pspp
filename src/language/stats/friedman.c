@@ -171,6 +171,7 @@ friedman_execute (const struct dataset *ds,
 	fr.rank_sum[v] += row[v].x;
 
     }
+  casereader_destroy (input);
   free (row);
 
 
