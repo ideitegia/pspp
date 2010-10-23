@@ -113,6 +113,10 @@ friedman_execute (const struct dataset *ds,
     }
 
   input = casereader_create_filter_weight (input, dict, &warn, NULL);
+  input = casereader_create_filter_missing (input,
+					    ft->vars, ft->n_vars,
+					    exclude, 0, 0);
+
   for (; (c = casereader_read (input)); case_unref (c))
     {
       double prev_x = SYSMIS;
@@ -201,9 +205,6 @@ friedman_execute (const struct dataset *ds,
 static void
 show_ranks_box (const struct one_sample_test *ost, const struct friedman *fr)
 {
-  const struct variable *weight = dict_get_weight (fr->dict);
-  const struct fmt_spec *wfmt = weight ? var_get_print_format (weight) : &F_8_0;
-
   int i;
   const int row_headers = 1;
   const int column_headers = 1;
@@ -234,7 +235,7 @@ show_ranks_box (const struct one_sample_test *ost, const struct friedman *fr)
 		TAB_LEFT, var_to_string (ost->vars[i]));
 
       tab_double (table, 1, row_headers + i,
-		  0, fr->rank_sum[i] / fr->cc, wfmt);
+		  0, fr->rank_sum[i] / fr->cc, 0);
     }
 
   tab_submit (table);
