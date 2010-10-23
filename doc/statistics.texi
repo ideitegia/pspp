@@ -683,9 +683,9 @@ is used.
 * CHISQUARE::               Chisquare Test
 * FRIEDMAN::                Friedman Test
 * KRUSKAL-WALLIS::          Kruskal-Wallis Test
-* WILCOXON::                Wilcoxon Signed Ranks Test
 * RUNS::                    Runs Test
 * SIGN::                    The Sign Test
+* WILCOXON::                Wilcoxon Signed Ranks Test
 @end menu
 
 
@@ -803,33 +803,6 @@ of the test will be printed.
 The abbreviated subcommand  K-W may be used in place of KRUSKAL-WALLIS.
 
 
-@node WILCOXON
-@subsection Wilcoxon Matched Pairs Signed Ranks Test
-@comment  node-name,  next,  previous,  up
-@vindex WILCOXON
-@cindex wilcoxon matched pairs signed ranks test
-
-@display
-     [ /WILCOXON varlist [ WITH varlist [ (PAIRED) ]]]
-@end display
-
-The /WILCOXON subcommand tests for differences between medians of the 
-variables listed.
-The test does not make any assumptions about the variances of the samples.
-It does however assume that the distribution is symetrical.
-
-If the @code{WITH} keyword is omitted, then tests for all
-combinations of the listed variables are performed.
-If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword
-is also given, then the number of variables preceding @code{WITH}
-must be the same as the number following it.
-In this case, tests for each respective pair of variables are
-performed.
-If the @code{WITH} keyword is given, but the
-@code{(PAIRED)} keyword is omitted, then tests for each combination
-of variable preceding @code{WITH} against variable following
-@code{WITH} are performed.
-
 @node RUNS
 @subsection Runs Test
 @vindex RUNS
@@ -863,6 +836,33 @@ The /SIGN subcommand tests for differences between medians of the
 variables listed.
 The test does not make any assumptions about the
 distribution of the data.
+
+If the @code{WITH} keyword is omitted, then tests for all
+combinations of the listed variables are performed.
+If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword
+is also given, then the number of variables preceding @code{WITH}
+must be the same as the number following it.
+In this case, tests for each respective pair of variables are
+performed.
+If the @code{WITH} keyword is given, but the
+@code{(PAIRED)} keyword is omitted, then tests for each combination
+of variable preceding @code{WITH} against variable following
+@code{WITH} are performed.
+
+@node WILCOXON
+@subsection Wilcoxon Matched Pairs Signed Ranks Test
+@comment  node-name,  next,  previous,  up
+@vindex WILCOXON
+@cindex wilcoxon matched pairs signed ranks test
+
+@display
+     [ /WILCOXON varlist [ WITH varlist [ (PAIRED) ]]]
+@end display
+
+The /WILCOXON subcommand tests for differences between medians of the 
+variables listed.
+The test does not make any assumptions about the variances of the samples.
+It does however assume that the distribution is symetrical.
 
 If the @code{WITH} keyword is omitted, then tests for all
 combinations of the listed variables are performed.
