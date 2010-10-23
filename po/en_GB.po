@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.7.6\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2010-10-21 19:40+0200\n"
+"POT-Creation-Date: 2010-10-23 10:53+0200\n"
 "PO-Revision-Date: 2010-10-17 16:51+0200\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -1286,7 +1286,7 @@ msgid "Syntax error at `%s'"
 msgstr "Syntax error at ‘%s’"
 
 #: src/language/lexer/lexer.c:457 src/language/xforms/select-if.c:60
-#: src/language/stats/autorecode.c:161 src/language/stats/npar.c:332
+#: src/language/stats/autorecode.c:161 src/language/stats/npar.c:350
 #: src/language/data-io/print-space.c:73
 msgid "expecting end of command"
 msgstr ""
@@ -2493,7 +2493,7 @@ msgid "Category"
 msgstr ""
 
 #: src/language/stats/binomial.c:256 src/language/stats/correlations.c:119
-#: src/language/stats/correlations.c:227
+#: src/language/stats/correlations.c:227 src/language/stats/friedman.c:260
 #: src/language/stats/kruskal-wallis.c:259
 #: src/language/stats/npar-summary.c:120 src/language/stats/oneway.c:692
 #: src/language/stats/reliability.c:541 src/language/stats/sign.c:72
@@ -2543,24 +2543,28 @@ msgstr ""
 msgid "Frequencies"
 msgstr ""
 
-#: src/language/stats/chisquare.c:249 src/language/stats/kruskal-wallis.c:312
-#: src/language/stats/sign.c:112 src/language/stats/wilcoxon.c:304
+#: src/language/stats/chisquare.c:249 src/language/stats/friedman.c:257
+#: src/language/stats/kruskal-wallis.c:312 src/language/stats/sign.c:112
+#: src/language/stats/wilcoxon.c:304
 msgid "Test Statistics"
 msgstr ""
 
-#: src/language/stats/chisquare.c:263 src/language/stats/kruskal-wallis.c:315
+#: src/language/stats/chisquare.c:263 src/language/stats/friedman.c:263
+#: src/language/stats/kruskal-wallis.c:315
 msgid "Chi-Square"
 msgstr ""
 
-#: src/language/stats/chisquare.c:264 src/language/stats/glm.c:308
-#: src/language/stats/kruskal-wallis.c:318 src/language/stats/oneway.c:599
-#: src/language/stats/oneway.c:1008 src/language/stats/crosstabs.q:1207
-#: src/language/stats/regression.q:284 src/language/stats/t-test.q:752
-#: src/language/stats/t-test.q:923 src/language/stats/t-test.q:1010
+#: src/language/stats/chisquare.c:264 src/language/stats/friedman.c:266
+#: src/language/stats/glm.c:308 src/language/stats/kruskal-wallis.c:318
+#: src/language/stats/oneway.c:599 src/language/stats/oneway.c:1008
+#: src/language/stats/crosstabs.q:1207 src/language/stats/regression.q:284
+#: src/language/stats/t-test.q:752 src/language/stats/t-test.q:923
+#: src/language/stats/t-test.q:1010
 msgid "df"
 msgstr ""
 
-#: src/language/stats/chisquare.c:265 src/language/stats/kruskal-wallis.c:321
+#: src/language/stats/chisquare.c:265 src/language/stats/friedman.c:269
+#: src/language/stats/kruskal-wallis.c:321
 msgid "Asymp. Sig."
 msgstr ""
 
@@ -2834,6 +2838,16 @@ msgstr ""
 msgid "Rotated Factor Matrix"
 msgstr ""
 
+#: src/language/stats/friedman.c:214 src/language/stats/kruskal-wallis.c:244
+#: src/language/stats/wilcoxon.c:225
+msgid "Ranks"
+msgstr ""
+
+#: src/language/stats/friedman.c:225 src/language/stats/kruskal-wallis.c:258
+#: src/language/stats/wilcoxon.c:239
+msgid "Mean Rank"
+msgstr ""
+
 #: src/language/stats/flip.c:98
 msgid ""
 "FLIP ignores TEMPORARY.  Temporary transformations will be made permanent."
@@ -2930,41 +2944,33 @@ msgstr ""
 msgid "Corrected Total"
 msgstr ""
 
-#: src/language/stats/kruskal-wallis.c:244 src/language/stats/wilcoxon.c:225
-msgid "Ranks"
-msgstr ""
-
-#: src/language/stats/kruskal-wallis.c:258 src/language/stats/wilcoxon.c:239
-msgid "Mean Rank"
-msgstr ""
-
-#: src/language/stats/npar.c:255 src/language/stats/npar.c:282
+#: src/language/stats/npar.c:273 src/language/stats/npar.c:300
 #, c-format
 msgid "The %s subcommand may be given only once."
 msgstr ""
 
-#: src/language/stats/npar.c:365
+#: src/language/stats/npar.c:383
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
 
-#: src/language/stats/npar.c:519
+#: src/language/stats/npar.c:537
 msgid "Expecting MEAN, MEDIAN, MODE or number"
 msgstr ""
 
-#: src/language/stats/npar.c:577
+#: src/language/stats/npar.c:624
 #, c-format
 msgid ""
 "The specified value of HI (%d) is lower than the specified value of LO (%d)"
 msgstr ""
 
-#: src/language/stats/npar.c:632
+#: src/language/stats/npar.c:679
 #, c-format
 msgid ""
 "%d expected values were given, but the specified range (%d-%d) requires "
 "exactly %d values."
 msgstr ""
 
-#: src/language/stats/npar.c:771 src/language/stats/t-test.q:380
+#: src/language/stats/npar.c:818 src/language/stats/t-test.q:380
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%zu) did "
@@ -3257,55 +3263,54 @@ msgstr ""
 msgid "1 - Specificity"
 msgstr ""
 
-#: src/language/stats/runs.c:166
+#: src/language/stats/runs.c:168
 #, c-format
 msgid ""
 "Multiple modes exist for varible `%s'.  Using %g as the threshold value."
 msgstr ""
 "Multiple modes exist for varible ‘%s’.  Using %g as the threshold value."
 
-#: src/language/stats/runs.c:315
+#: src/language/stats/runs.c:324
 msgid "Runs Test"
 msgstr ""
 
-#: src/language/stats/runs.c:360
-#, fuzzy
-msgid "Test Value "
-msgstr "Cases ≥ Test Value"
+#: src/language/stats/runs.c:369
+msgid "Test Value"
+msgstr ""
 
-#: src/language/stats/runs.c:364
+#: src/language/stats/runs.c:373
 msgid "Test Value (mode)"
 msgstr ""
 
-#: src/language/stats/runs.c:368
+#: src/language/stats/runs.c:377
 msgid "Test Value (mean)"
 msgstr ""
 
-#: src/language/stats/runs.c:372
+#: src/language/stats/runs.c:381
 msgid "Test Value (median)"
 msgstr ""
 
-#: src/language/stats/runs.c:377
+#: src/language/stats/runs.c:386
 msgid "Cases < Test Value"
 msgstr ""
 
-#: src/language/stats/runs.c:380
+#: src/language/stats/runs.c:389
 msgid "Cases >= Test Value"
 msgstr "Cases ≥ Test Value"
 
-#: src/language/stats/runs.c:383
+#: src/language/stats/runs.c:392
 msgid "Total Cases"
 msgstr ""
 
-#: src/language/stats/runs.c:386
+#: src/language/stats/runs.c:395
 msgid "Number of Runs"
 msgstr ""
 
-#: src/language/stats/runs.c:389 src/language/stats/wilcoxon.c:317
+#: src/language/stats/runs.c:398 src/language/stats/wilcoxon.c:317
 msgid "Z"
 msgstr ""
 
-#: src/language/stats/runs.c:392 src/language/stats/wilcoxon.c:318
+#: src/language/stats/runs.c:401 src/language/stats/wilcoxon.c:318
 #: src/language/stats/crosstabs.q:1209
 msgid "Asymp. Sig. (2-tailed)"
 msgstr ""
