@@ -157,7 +157,7 @@ friedman_execute (const struct dataset *ds,
 	      if ( run_length > 0)
 		{
 		  double t = run_length + 1;
-		  sigma_t += pow3 (t) - t;
+		  sigma_t += w * (pow3 (t) - t);
 		}
 	      run_length = 0;
 	    }
@@ -166,14 +166,13 @@ friedman_execute (const struct dataset *ds,
       if ( run_length > 0)
 	{
 	  double t = run_length + 1;
-	  sigma_t += pow3 (t) - t;
+	  sigma_t += w * (pow3 (t) - t );
 	}
 
       qsort (row, ft->n_vars, sizeof *row, cmp_posn);
 
       for (v = 0; v < ft->n_vars; ++v)
-	fr.rank_sum[v] += row[v].x;
-
+	fr.rank_sum[v] += row[v].x * w;
     }
   casereader_destroy (input);
   free (row);
