@@ -681,6 +681,7 @@ is used.
 @menu
 * BINOMIAL::                Binomial Test
 * CHISQUARE::               Chisquare Test
+* FRIEDMAN::                Friedman Test
 * KRUSKAL-WALLIS::          Kruskal-Wallis Test
 * WILCOXON::                Wilcoxon Signed Ranks Test
 * RUNS::                    Runs Test
@@ -765,9 +766,21 @@ If no /EXPECTED subcommand is given, then then equal frequencies
 are expected.
 
 
+@node FRIEDMAN
+@subsection Friedman Test
+@vindex FRIEDMAN
+@cindex Friedman test
+
+@display
+     [ /FRIEDMAN = varlist ]
+@end display
+
+The Friedman test is used to test for differences between repeated measures when there is no indication that the distributions are normally distributed.
+
+A list of variables which contain the measured data must be given.  The procedure prints the sum of ranks for each variable, the test statistic and its significance.
+
 @node KRUSKAL-WALLIS
 @subsection Kruskal-Wallis Test
-@comment  node-name,  next,  previous,  up
 @vindex KRUSKAL-WALLIS
 @vindex K-W
 @cindex Kruskal-Wallis test
