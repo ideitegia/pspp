@@ -366,7 +366,7 @@ show_runs_result (const struct runs_test *rt, const struct run_state *rs, const 
     {
     case CP_CUSTOM:
       tab_text (table,  0, column_headers ,
-		TAT_TITLE | TAB_LEFT , _("Test Value "));
+		TAT_TITLE | TAB_LEFT , _("Test Value"));
       break;
     case CP_MODE:
       tab_text (table,  0, column_headers ,
