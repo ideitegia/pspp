@@ -17,7 +17,6 @@
 #include <config.h>
 
 #include <gsl/gsl_cdf.h>
-#include <libpspp/message.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

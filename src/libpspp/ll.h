@@ -52,8 +52,6 @@
 #include <stddef.h>
 #include <libpspp/cast.h>
 
-#include <libpspp/cast.h>
-
 /* Embedded, circular doubly linked list.
 
    Each list contains a single "null" element that separates the

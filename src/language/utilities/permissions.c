@@ -15,7 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <libpspp/message.h>
+
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>

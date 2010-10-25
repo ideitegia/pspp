@@ -17,20 +17,21 @@
 #include <config.h>
 #include <gtk/gtk.h>
 
-#include "variable-info-dialog.h"
-#include "var-display.h"
 #include <data/variable.h>
 #include <data/format.h>
 #include <data/value-labels.h>
-#include "psppire-data-window.h"
-#include "psppire-dialog.h"
-#include "psppire-var-store.h"
-#include "psppire-dictview.h"
-#include "helper.h"
-
 #include <language/syntax-string-source.h>
 #include <libpspp/i18n.h>
+
+#include "variable-info-dialog.h"
+#include "var-display.h"
+
+#include "psppire-data-window.h"
+#include "psppire-dialog.h"
+#include "psppire-dictview.h"
+#include "psppire-var-store.h"
 #include "helper.h"
+
 
 
 #include <gettext.h>

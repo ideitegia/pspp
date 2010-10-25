@@ -29,7 +29,6 @@
 #include <language/lexer/value-parser.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/message.h>
-#include <libpspp/message.h>
 #include <libpspp/str.h>
 
 #include "gettext.h"

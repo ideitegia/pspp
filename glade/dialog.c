@@ -4,7 +4,6 @@
 #include "psppire-dialog.h"
 #include <string.h>
 #include <assert.h>
-#include <string.h>
 #include <gladeui/glade.h>
 
 

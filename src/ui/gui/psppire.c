@@ -16,8 +16,6 @@
 
 #include <config.h>
 
-#include "ui/gui/psppire.h"
-
 #include <assert.h>
 #include <gsl/gsl_errno.h>
 #include <gtk/gtk.h>
@@ -32,15 +30,19 @@
 #include "data/procedure.h"
 #include "data/settings.h"
 #include "data/sys-file-reader.h"
+
 #include "language/lexer/lexer.h"
 #include "language/syntax-string-source.h"
+
 #include "libpspp/getl.h"
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/version.h"
+
 #include "output/driver.h"
 #include "output/journal.h"
 #include "output/message-item.h"
+
 #include "ui/gui/dict-display.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/psppire-data-store.h"

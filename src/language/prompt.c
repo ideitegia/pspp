@@ -29,7 +29,6 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
-#include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <libpspp/version.h>
 #include <output/tab.h>

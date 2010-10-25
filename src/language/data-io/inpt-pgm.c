@@ -16,7 +16,6 @@
 
 #include <config.h>
 
-#include <language/data-io/inpt-pgm.h>
 
 #include <float.h>
 #include <stdlib.h>
@@ -31,11 +30,11 @@
 #include <language/command.h>
 #include <language/data-io/data-reader.h>
 #include <language/data-io/file-handle.h>
+#include <language/data-io/inpt-pgm.h>
 #include <language/expressions/public.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
-#include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>

@@ -15,13 +15,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
 #include <limits.h>
-#include <language/data-io/file-handle.h>
-#include <libpspp/message.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <data/file-name.h>
 #include <language/command.h>
+#include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>

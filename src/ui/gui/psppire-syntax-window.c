@@ -21,19 +21,16 @@
 #include "executor.h"
 #include "helper.h"
 
+#include <language/lexer/lexer.h>
 #include <libpspp/message.h>
 #include <stdlib.h>
 
+#include "help-menu.h"
 #include "psppire.h"
-#include "psppire-syntax-window.h"
-
 #include "psppire-data-window.h"
 #include "psppire-window-register.h"
-#include "psppire.h"
-#include "help-menu.h"
 #include "psppire-syntax-window.h"
 #include "syntax-editor-source.h"
-#include <language/lexer/lexer.h>
 
 #include "xalloc.h"
 

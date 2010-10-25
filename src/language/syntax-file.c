@@ -31,7 +31,6 @@
 #include <libpspp/assertion.h>
 #include <libpspp/cast.h>
 #include <libpspp/message.h>
-#include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <libpspp/version.h>
 #include <output/tab.h>

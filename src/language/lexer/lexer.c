@@ -15,8 +15,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
 #include "lexer.h"
-#include <libpspp/message.h>
 #include <c-ctype.h>
 #include <c-strtod.h>
 #include <errno.h>
@@ -25,11 +25,11 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <libpspp/assertion.h>
 #include <language/command.h>
-#include <libpspp/message.h>
 #include <data/settings.h>
+#include <libpspp/assertion.h>
 #include <libpspp/getl.h>
+#include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <output/journal.h>
 #include <output/text-item.h>

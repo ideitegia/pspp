@@ -36,7 +36,6 @@
 #include <language/lexer/variable-parser.h>
 #include <libpspp/array.h>
 #include <libpspp/message.h>
-#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <output/tab.h>
 
