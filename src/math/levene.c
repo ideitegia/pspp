@@ -113,6 +113,7 @@ levene (struct casereader *rx, const struct variable *gvar,
   r = casereader_clone (rx);
   for (; (c = casereader_read (r)) != NULL; case_unref (c))
     {
+      struct lev *l = NULL;
       const union value *target = case_data (c, gvar);
       int width = var_get_width (gvar);
       const double x = case_data (c, var)->f;
@@ -121,8 +122,7 @@ levene (struct casereader *rx, const struct variable *gvar,
       if (var_is_value_missing (var, case_data (c, var), exclude))
 	continue;
 
-      struct lev *l = find_group (&map, target, width);
-
+      l = find_group (&map, target, width);
       assert (l);
       
       l->z_mean += fabs (x - l->t_bar) * weight;
@@ -144,6 +144,7 @@ levene (struct casereader *rx, const struct variable *gvar,
   for (; (c = casereader_read (r)) != NULL; case_unref (c))
     {
       double z;
+      struct lev *l;
       const union value *target = case_data (c, gvar);
       int width = var_get_width (gvar);
       const double x = case_data (c, var)->f;
@@ -152,10 +153,10 @@ levene (struct casereader *rx, const struct variable *gvar,
       if (var_is_value_missing (var, case_data (c, var), exclude))
 	continue;
 
-      struct lev *l = find_group (&map, target, width);
+      l = find_group (&map, target, width);
       assert (l);
-      z = fabs (x - l->t_bar);
 
+      z = fabs (x - l->t_bar);
       denominator += pow2 (z - l->z_mean) * weight;
     }
   casereader_destroy (r);
@@ -164,7 +165,7 @@ levene (struct casereader *rx, const struct variable *gvar,
 
   {
     double grand_n = 0.0;
-    struct hmap_node *next;
+    struct lev *next;
     struct lev *l;
     HMAP_FOR_EACH_SAFE (l, next, struct lev, node, &map)
       {
