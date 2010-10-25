@@ -31,6 +31,7 @@
 #include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
+#include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <libpspp/cast.h>
 #include <libpspp/hmapx.h>
@@ -448,8 +449,8 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
       }
   }
 
-  qsort (npar_specs.vv, npar_specs.n_vars, sizeof (*npar_specs.vv), 
-	 compare_var_ptrs_by_name);
+  sort (npar_specs.vv, npar_specs.n_vars, sizeof (*npar_specs.vv), 
+	 compare_var_ptrs_by_name, NULL);
 
   if ( cmd.statistics )
     {
