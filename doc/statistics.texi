@@ -683,6 +683,7 @@ is used.
 * CHISQUARE::               Chisquare Test
 * FRIEDMAN::                Friedman Test
 * KRUSKAL-WALLIS::          Kruskal-Wallis Test
+* MANN-WHITNEY::            Mann Whitney U Test
 * RUNS::                    Runs Test
 * SIGN::                    The Sign Test
 * WILCOXON::                Wilcoxon Signed Ranks Test
@@ -801,6 +802,28 @@ ignored.
 The mean rank of each group as well as the chi-squared value and significance
 of the test will be printed.
 The abbreviated subcommand  K-W may be used in place of KRUSKAL-WALLIS.
+
+
+@node MANN-WHITNEY
+@subsection Mann-Whitney U Test
+@vindex MANN-WHITNEY
+@vindex M-W
+@cindex Mann-Whitney U test
+@cindex U, Mann-Whitney U
+
+@display
+     [ /MANN-WHITNEY = varlist BY var (group1, group2) ]
+@end display
+
+The Mann-Whitney subcommand is used to test whether two groups of data come from different populations.
+The variables to be tested should be specified in @var{varlist} and the grouping variable, that determines to which group the test variables belong, in @var{var}.
+@var{Var} may be either a string or an alpha variable.
+@var{Group1} and @var{group2} specify the
+two values of @var{var} which determine the groups of the test data.
+Cases for which the @var{var} value is neither @var{group1} or @var{group2} will be ignored.
+
+The value of the Mann-Whitney U statistic, the Wilcoxon W, and the significance will be printed.
+The abbreviated subcommand  M-W may be used in place of MANN-WHITNEY.
 
 
 @node RUNS
