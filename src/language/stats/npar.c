@@ -49,6 +49,7 @@
 #include <language/stats/runs.h>
 #include <language/stats/friedman.h>
 #include <language/stats/kruskal-wallis.h>
+#include <language/stats/mann-whitney.h>
 #include <language/stats/wilcoxon.h>
 #include <language/stats/sign.h>
 #include <math/moments.h>
@@ -84,6 +85,7 @@ struct cmd_npar_tests
     int runs;
     int friedman;
     int kruskal_wallis;
+    int mann_whitney;
     int missing;
     int method;
     int statistics;
@@ -124,6 +126,7 @@ static int npar_friedman (struct lexer *, struct dataset *, struct npar_specs *)
 static int npar_wilcoxon (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_sign (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_kruskal_wallis (struct lexer *, struct dataset *, struct npar_specs *);
+static int npar_mann_whitney (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_method (struct lexer *, struct npar_specs *);
 
 /* Command parsing functions. */
@@ -134,12 +137,14 @@ static int
 parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests *npt,
 		  struct npar_specs *nps)
 {
-  npt->chisquare = 0;
   npt->binomial = 0;
-  npt->wilcoxon = 0;
-  npt->runs = 0;
+  npt->chisquare = 0;
   npt->friedman = 0;
+  npt->kruskal_wallis = 0;
+  npt->mann_whitney = 0;
+  npt->runs = 0;
   npt->sign = 0;
+  npt->wilcoxon = 0;
   npt->missing = 0;
   npt->miss = MISS_ANALYSIS;
   npt->method = 0;
@@ -219,6 +224,24 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
           lex_match (lexer, '=');
           npt->kruskal_wallis++;
           switch (npar_kruskal_wallis (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+        }
+      else if (lex_match_hyphenated_word (lexer, "M-W") ||
+	       lex_match_hyphenated_word (lexer, "MANN-WHITNEY"))
+        {
+          lex_match (lexer, '=');
+          npt->mann_whitney++;
+          switch (npar_mann_whitney (lexer, ds, nps))
             {
             case 0:
               goto lossage;
@@ -911,8 +934,7 @@ parse_n_sample_related_test (struct lexer *lexer,
       return false;
     }
 
-  if ( ! lex_force_match (lexer, ','))
-    return false;
+  lex_match (lexer, ',');
 
   value_init (&nst->val2, var_get_width (nst->indep_var));
   if ( ! parse_value (lexer, &nst->val2, var_get_width (nst->indep_var)))
@@ -950,6 +972,32 @@ npar_wilcoxon (struct lexer *lexer,
 
   return 1;
 }
+
+
+static int
+npar_mann_whitney (struct lexer *lexer,
+	       struct dataset *ds,
+	       struct npar_specs *specs )
+{
+  struct n_sample_test *tp = pool_alloc (specs->pool, sizeof (*tp));
+  struct npar_test *nt = &tp->parent;
+
+  nt->insert_variables = n_sample_insert_variables;
+  nt->execute = mann_whitney_execute;
+
+  if (!parse_n_sample_related_test (lexer, dataset_dict (ds),
+				    tp, specs->pool) )
+    return 0;
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
+
 
 static int
 npar_sign (struct lexer *lexer, struct dataset *ds,
