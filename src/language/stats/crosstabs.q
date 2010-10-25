@@ -198,6 +198,8 @@ struct crosstabs_proc
 
     /* STATISTICS. */
     unsigned int statistics;    /* Bit k is 1 if statistic k is requested. */
+
+    bool descending;            /* True if descending sort order is requested. */
   };
 
 static bool should_tabulate_case (const struct pivot_table *,
@@ -229,6 +231,7 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
   proc.n_variables = 0;
   proc.pivots = NULL;
   proc.n_pivots = 0;
+  proc.descending = false;
   proc.weight_format = wv ? *var_get_print_format (wv) : F_8_0;
 
   if (!parse_crosstabs (lexer, ds, &cmd, &proc))
@@ -238,6 +241,9 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
     }
 
   proc.mode = proc.n_variables ? INTEGER : GENERAL;
+
+
+  proc.descending = cmd.val == CRS_DVALUE;
 
   /* CELLS. */
   if (!cmd.sbc_cells)
@@ -640,8 +646,11 @@ static int compare_table_entry_vars_3way (const struct table_entry *a,
                                           int idx0, int idx1);
 static int compare_table_entry_3way (const void *ap_, const void *bp_,
                                      const void *pt_);
+static int compare_table_entry_3way_inv (const void *ap_, const void *bp_,
+                                     const void *pt_);
+
 static void enum_var_values (const struct pivot_table *, int var_idx,
-                             union value **valuesp, int *n_values);
+                             union value **valuesp, int *n_values, bool descending);
 static void output_pivot_table (struct crosstabs_proc *,
                                 struct pivot_table *);
 static void make_pivot_table_subset (struct pivot_table *pt,
@@ -669,7 +678,8 @@ postcalc (struct crosstabs_proc *proc)
       hmap_destroy (&pt->data);
 
       sort (pt->entries, pt->n_entries, sizeof *pt->entries,
-            compare_table_entry_3way, pt);
+            proc->descending ? compare_table_entry_3way_inv : compare_table_entry_3way,
+	    pt);
     }
 
   make_summary_table (proc);
@@ -777,6 +787,13 @@ compare_table_entry_3way (const void *ap_, const void *bp_, const void *pt_)
     return cmp;
 
   return compare_table_entry_var_3way (a, b, pt, COL_VAR);
+}
+
+/* Inverted version of compare_table_entry_3way */
+static int
+compare_table_entry_3way_inv (const void *ap_, const void *bp_, const void *pt_)
+{
+  return -compare_table_entry_3way (ap_, bp_, pt_);
 }
 
 static int
@@ -905,7 +922,7 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   struct tab_table *direct = NULL; /* Directional measures table. */
   size_t row0, row1;
 
-  enum_var_values (pt, COL_VAR, &pt->cols, &pt->n_cols);
+  enum_var_values (pt, COL_VAR, &pt->cols, &pt->n_cols, proc->descending);
 
   if (proc->cells)
     table = create_crosstab_table (proc, pt);
@@ -931,7 +948,7 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
       make_pivot_table_subset (pt, row0, row1, &x);
 
       /* Find all the row variable values. */
-      enum_var_values (&x, ROW_VAR, &x.rows, &x.n_rows);
+      enum_var_values (&x, ROW_VAR, &x.rows, &x.n_rows, proc->descending);
 
       if (size_overflow_p (xtimes (xtimes (x.n_rows, x.n_cols),
                                    sizeof (double))))
@@ -1377,6 +1394,14 @@ compare_value_3way (const void *a_, const void *b_, const void *width_)
   return value_compare_3way (a, b, *width);
 }
 
+/* Inverted version of the above */
+static int
+compare_value_3way_inv (const void *a_, const void *b_, const void *width_)
+{
+  return -compare_value_3way (a_, b_, width_);
+}
+
+
 /* Given an array of ENTRY_CNT table_entry structures starting at
    ENTRIES, creates a sorted list of the values that the variable
    with index VAR_IDX takes on.  The values are returned as a
@@ -1385,7 +1410,7 @@ compare_value_3way (const void *a_, const void *b_, const void *width_)
    */
 static void
 enum_var_values (const struct pivot_table *pt, int var_idx,
-                 union value **valuesp, int *n_values)
+                 union value **valuesp, int *n_values, bool descending)
 {
   const struct variable *var = pt->vars[var_idx];
   struct var_range *range = get_var_range (var);
@@ -1429,7 +1454,9 @@ enum_var_values (const struct pivot_table *pt, int var_idx,
         values[i++] = *iter;
       hmapx_destroy (&set);
 
-      sort (values, *n_values, sizeof *values, compare_value_3way, &width);
+      sort (values, *n_values, sizeof *values,
+	    descending ? compare_value_3way_inv : compare_value_3way,
+	    &width);
     }
 }
 
