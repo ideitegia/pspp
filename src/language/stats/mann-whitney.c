@@ -121,11 +121,11 @@ mann_whitney_execute (const struct dataset *ds,
 	mwv->u += mwv->n[0] * (mwv->n[0] + 1) / 2.0;
 	mwv->u -= mwv->rank_sum[0];
 
-	mwv->w = mwv->rank_sum[0];
+	mwv->w = mwv->rank_sum[1];
 	if ( mwv->u > mwv->n[0] * mwv->n[1] / 2.0)
 	  {
 	    mwv->u =  mwv->n[0] * mwv->n[1] - mwv->u;
-	    mwv->w = mwv->rank_sum[1];
+	    mwv->w = mwv->rank_sum[0];
 	  }
 	mwv->z = mwv->u - mwv->n[0] * mwv->n[1] / 2.0;
 	n = mwv->n[0] + mwv->n[1];
