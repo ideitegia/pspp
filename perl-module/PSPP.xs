@@ -34,6 +34,7 @@
 #include "minmax.h"
 #include <libpspp/message.h>
 #include <libpspp/version.h>
+#include <libpspp/i18n.h>
 #include <gl/xalloc.h>
 #include <data/dictionary.h>
 #include <data/case.h>
@@ -591,7 +592,7 @@ CODE:
  struct file_handle *fh =
   fh_create_file (NULL, name, fh_default_properties () );
  struct sysfile_info *sfi = xmalloc (sizeof (*sfi));
- dict_set_encoding (dict, "UTF-8");
+ dict_set_encoding (dict, UTF8);
  sfi->writer = sfm_open_writer (fh, dict, opts);
  sfi->dict = dict;
  sfi->opened = true;
@@ -659,7 +660,7 @@ CODE:
 	char *error;
 	bool ok;
 
-	error = data_in (ss, LEGACY_NATIVE, ifmt->type,
+	error = data_in (ss, SvUTF8(sv) ? UTF8: "iso-8859-1", ifmt->type,
  	       	         case_data_rw (c, v), var_get_width (v),
 			 dict_get_encoding (sfi->dict));
         ok = error == NULL;
