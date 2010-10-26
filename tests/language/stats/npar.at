@@ -920,3 +920,63 @@ Asymp. Sig.,.0053
 ])
 
 AT_CLEANUP
+
+
+
+AT_SETUP([NPAR TESTS Mann-Whitney])
+AT_DATA([npar-mann-whitney.sps], [dnl
+SET FORMAT     = F11.4
+
+data list notable list /height * sex (f1.0).
+begin data.
+201 1            
+84 1            
+83 1            
+94 1            
+88 0            
+99 0            
+55 0            
+69 0            
+86 1            
+79 1            
+91 0            
+201 0            
+88 1            
+85 1            
+82 1            
+88 0            
+75 0            
+99 0            
+81 0            
+72 1            
+89 1            
+92 1            
+80 0            
+82 0            
+76 0            
+65 0            
+85 0            
+76 1            
+145 1            
+24 1            
+end data.
+
+NPAR TESTS 
+     /M-W = height BY sex (0,1).
+])
+
+AT_CHECK([pspp -o pspp.csv npar-mann-whitney.sps])
+
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Ranks
+,N,,,Mean Rank,,Sum of Ranks,
+,0,1,Total,0,1,0,1
+height,15.0000,15.0000,30.0000,14.5333,16.4667,218.0000,247.0000
+
+Table: Test Statistics
+,Mann-Whitney U,Wilcoxon W,Z,Asymp. Sig. (2-tailed)
+height,98.0000,218.0000,-.6020,.5472
+])
+
+
+AT_CLEANUP
