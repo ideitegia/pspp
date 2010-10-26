@@ -159,6 +159,10 @@ release.
      root permissions.  If you cannot get root permissions, see
      "Installation Names", below.
 
+     Please note:  The `make install' target does NOT install the perl
+     module (see below).  To install the perl module, you must change to
+     the `perl-module' directory and manually run `make install' there.
+
   5. You can remove the program binaries and object files from the
      source code directory by typing `make clean'.  To also remove the
      files that `configure' created (so you can compile the package for
