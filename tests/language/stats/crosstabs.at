@@ -378,3 +378,26 @@ x,2.00,1.00,Total
 Total,4.0,2.0,6.0
 ]])
 AT_CLEANUP
+
+# Bug #31260.
+AT_SETUP([CROSSTABS crash when all cases missing])
+AT_DATA([crosstabs.sps], [dnl
+DATA LIST LIST NOTABLE /X1 X2.
+BEGIN DATA.
+1 1
+END DATA.
+
+MISSING VALUES x2 (1).
+
+CROSSTABS /TABLES= X1 by X2.
+])
+AT_CHECK([pspp -O format=csv crosstabs.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X1 * X2,0,0.0%,1,100.0%,1,100.0%
+
+crosstabs.sps:8: warning: CROSSTABS: Crosstabulation X1 * X2 contained no non-missing cases.
+])
+AT_CLEANUP

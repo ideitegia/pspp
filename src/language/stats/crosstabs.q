@@ -908,9 +908,7 @@ static void table_value_missing (struct crosstabs_proc *proc,
 static void delete_missing (struct pivot_table *);
 static void build_matrix (struct pivot_table *);
 
-/* Output pivot table beginning at PB and continuing until PE,
-   exclusive.  For efficiency, *MATP is a pointer to a matrix that can
-   hold *MAXROWS entries. */
+/* Output pivot table PT in the context of PROC. */
 static void
 output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
 {
@@ -923,6 +921,24 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   size_t row0, row1;
 
   enum_var_values (pt, COL_VAR, &pt->cols, &pt->n_cols, proc->descending);
+
+  if (pt->n_cols == 0)
+    {
+      struct string vars;
+      int i;
+
+      ds_init_cstr (&vars, var_get_name (pt->vars[0]));
+      for (i = 1; i < pt->n_vars; i++)
+        ds_put_format (&vars, " * %s", var_get_name (pt->vars[i]));
+
+      /* TRANSLATORS: The %s here describes a crosstabulation.  It takes the
+         form "var1 * var2 * var3 * ...".  */
+      msg (SW, _("Crosstabulation %s contained no non-missing cases."),
+           ds_cstr (&vars));
+
+      ds_destroy (&vars);
+      return;
+    }
 
   if (proc->cells)
     table = create_crosstab_table (proc, pt);
