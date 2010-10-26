@@ -45,7 +45,6 @@ struct mw
   double rank_sum[2];
   double n[2];
 
-
   double u;  /* The Mann-Whitney U statistic */
   double w;  /* The Wilcoxon Rank Sum W statistic */
   double z;  
@@ -161,6 +160,13 @@ show_ranks_box (const struct n_sample_test *nst, const struct mw *mwv)
   struct tab_table *table =
     tab_create (row_headers + 7, column_headers + nst->n_vars);
 
+  struct string g1str, g2str;;
+  ds_init_empty (&g1str);
+  var_append_value_name (nst->indep_var, &nst->val1, &g1str);
+
+  ds_init_empty (&g2str);
+  var_append_value_name (nst->indep_var, &nst->val2, &g2str);
+
   tab_headers (table, row_headers, 0, column_headers, 0);
 
   tab_title (table, _("Ranks"));
@@ -178,23 +184,26 @@ show_ranks_box (const struct n_sample_test *nst, const struct mw *mwv)
 
   tab_hline (table, TAL_1, row_headers, tab_nc (table) -1, 1);
 
-  tab_text (table, 1, 1, TAT_TITLE | TAB_CENTER, _("group1"));
-  tab_text (table, 2, 1, TAT_TITLE | TAB_CENTER, _("group2"));
+  tab_text (table, 1, 1, TAT_TITLE | TAB_CENTER, ds_cstr (&g1str));
+  tab_text (table, 2, 1, TAT_TITLE | TAB_CENTER, ds_cstr (&g2str));
   tab_text (table, 3, 1, TAT_TITLE | TAB_CENTER, _("Total"));
   tab_joint_text (table, 1, 0, 3, 0,
 		  TAT_TITLE | TAB_CENTER, _("N"));
   tab_vline (table, TAL_2, 4, 0, tab_nr (table) - 1);
 
-  tab_text (table, 4, 1, TAT_TITLE | TAB_CENTER, _("group1"));
-  tab_text (table, 5, 1, TAT_TITLE | TAB_CENTER, _("group2"));
+  tab_text (table, 4, 1, TAT_TITLE | TAB_CENTER, ds_cstr (&g1str));
+  tab_text (table, 5, 1, TAT_TITLE | TAB_CENTER, ds_cstr (&g2str));
   tab_joint_text (table, 4, 0, 5, 0,
 		  TAT_TITLE | TAB_CENTER, _("Mean Rank"));
   tab_vline (table, TAL_2, 6, 0, tab_nr (table) - 1);
 
-  tab_text (table, 6, 1, TAT_TITLE | TAB_CENTER, _("group1"));
-  tab_text (table, 7, 1, TAT_TITLE | TAB_CENTER, _("group2"));
+  tab_text (table, 6, 1, TAT_TITLE | TAB_CENTER, ds_cstr (&g1str));
+  tab_text (table, 7, 1, TAT_TITLE | TAB_CENTER, ds_cstr (&g2str));
   tab_joint_text (table, 6, 0, 7, 0,
 		  TAT_TITLE | TAB_CENTER, _("Sum of Ranks"));
+
+  ds_destroy (&g1str);
+  ds_destroy (&g2str);
 
   for (i = 0 ; i < nst->n_vars ; ++i)
     {
