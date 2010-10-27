@@ -840,6 +840,20 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
         *height = h;
     }
 }
+
+static void
+xr_draw_title (struct xr_driver *xr, const char *title, int title_height)
+{
+  struct table_cell cell;
+  int bb[TABLE_N_AXES][2];
+
+  xr_init_caption_cell (title, &cell);
+  bb[H][0] = 0;
+  bb[H][1] = xr->width;
+  bb[V][0] = 0;
+  bb[V][1] = title_height;
+  xr_draw_cell (xr, &cell, bb, bb);
+}
 
 struct output_driver_factory pdf_driver_factory = { "pdf", xr_pdf_create };
 struct output_driver_factory ps_driver_factory = { "ps", xr_ps_create };
@@ -966,7 +980,15 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
       struct xr_driver *xr = r->xr;
 
       xr_set_cairo (xr, cr);
-      xr->y = 0;
+
+      if (r->title_height > 0)
+        {
+          xr->y = 0;
+          xr_draw_title (xr, table_item_get_caption (to_table_item (r->item)),
+                         r->title_height);
+        }
+
+      xr->y = r->title_height;
       render_page_draw_region (r->page,
                                x * 1024, y * 1024, w * 1024, h * 1024);
     }
@@ -1090,18 +1112,9 @@ xr_table_render (struct xr_render_fsm *fsm, struct xr_driver *xr)
       if (ts->caption_height)
         {
           if (xr->cairo)
-            {
-              struct table_cell cell;
-              int bb[TABLE_N_AXES][2];
+            xr_draw_title (xr, table_item_get_caption (ts->table_item),
+                           ts->caption_height);
 
-              xr_init_caption_cell (table_item_get_caption (ts->table_item),
-                                    &cell);
-              bb[H][0] = 0;
-              bb[H][1] = xr->width;
-              bb[V][0] = 0;
-              bb[V][1] = ts->caption_height;
-              xr_draw_cell (xr, &cell, bb, bb);
-            }
           xr->y += ts->caption_height;
           ts->caption_height = 0;
         }
