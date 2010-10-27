@@ -149,6 +149,7 @@ struct psppire_output_driver
     struct output_driver driver;
     PsppireOutputWindow *viewer;
     struct xr_driver *xr;
+    int font_height;
   };
 
 static struct output_driver_class psppire_output_class;
@@ -222,8 +223,10 @@ psppire_output_submit (struct output_driver *this,
     {
       const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
       struct string_map options = STRING_MAP_INITIALIZER (options);
+      struct text_item *text_item;
       PangoFontDescription *font_desc;
       char *font_name;
+      int font_width;
 
       /* Use GTK+ default font as proportional font. */
       font_name = pango_font_description_to_string (style->font_desc);
@@ -252,7 +255,15 @@ psppire_output_submit (struct output_driver *this,
       pod->xr = xr_driver_create (cr, &options);
 
       string_map_destroy (&options);
+
+      text_item = text_item_create (TEXT_ITEM_PARAGRAPH, "X");
+      r = xr_rendering_create (pod->xr, text_item_super (text_item), cr);
+      xr_rendering_measure (r, &font_width, &pod->font_height);
+      /* xr_rendering_destroy (r); */
+      text_item_unref (text_item);
     }
+  else
+    pod->viewer->y += pod->font_height / 2;
 
   r = xr_rendering_create (pod->xr, item, cr);
   if (r == NULL)
