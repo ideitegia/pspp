@@ -21,6 +21,8 @@
 #include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "data/file-name.h"
 #include "data/settings.h"
@@ -786,6 +788,14 @@ ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
 
 /* ascii_close_page () and support routines. */
 
+static struct ascii_driver *the_driver;
+
+static void
+winch_handler (int signum UNUSED)
+{
+  update_page_size (the_driver, false);
+}
+
 static bool
 ascii_open_page (struct ascii_driver *a)
 {
@@ -799,6 +809,18 @@ ascii_open_page (struct ascii_driver *a)
       a->file = fn_open (a->file_name, a->append ? "a" : "w");
       if (a->file != NULL)
         {
+	  if ( isatty (fileno (a->file)))
+	    {
+	      struct sigaction action;
+	      sigemptyset (&action.sa_mask);
+	      action.sa_flags = 0;
+	      action.sa_handler = winch_handler;
+	      the_driver = a;
+	      a->auto_width = true;
+	      a->auto_length = true;
+	      sigaction (SIGWINCH, &action, NULL);
+	    }
+
           if (a->init != NULL)
             fputs (a->init, a->file);
         }
