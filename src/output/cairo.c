@@ -857,13 +857,12 @@ static const struct output_driver_class cairo_driver_class =
 
 struct xr_rendering
   {
+    struct output_item *item;
+
     /* Table items. */
     struct render_page *page;
     struct xr_driver *xr;
     int title_height;
-
-    /* Chart items. */
-    struct chart_item *chart;
   };
 
 #define CHART_WIDTH 500
@@ -926,6 +925,7 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
   else if (is_table_item (item))
     {
       r = xzalloc (sizeof *r);
+      r->item = output_item_ref (item);
       r->xr = xr;
       xr_set_cairo (xr, cr);
       r->page = xr_render_table_item (xr, to_table_item (item),
@@ -934,7 +934,7 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
   else if (is_chart_item (item))
     {
       r = xzalloc (sizeof *r);
-      r->chart = to_chart_item (output_item_ref (item));
+      r->item = output_item_ref (item);
     }
 
   return r;
@@ -943,7 +943,7 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
 void
 xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
 {
-  if (r->chart == NULL)
+  if (is_table_item (r->item))
     {
       *w = render_page_get_size (r->page, H) / 1024;
       *h = (render_page_get_size (r->page, V) + r->title_height) / 1024;
@@ -961,7 +961,7 @@ void
 xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
                    int x, int y, int w, int h)
 {
-  if (r->chart == NULL)
+  if (is_table_item (r->item))
     {
       struct xr_driver *xr = r->xr;
 
@@ -971,7 +971,8 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
                                x * 1024, y * 1024, w * 1024, h * 1024);
     }
   else
-    xr_draw_chart (r->chart, cr, 0, 0, CHART_WIDTH, CHART_HEIGHT);
+    xr_draw_chart (to_chart_item (r->item), cr,
+                   0, 0, CHART_WIDTH, CHART_HEIGHT);
 }
 
 void
