@@ -980,3 +980,49 @@ height,98.0000,218.0000,-.6020,.5472
 
 
 AT_CLEANUP
+
+
+AT_SETUP([NPAR TESTS Cochran])
+AT_DATA([npar-cochran.sps], [dnl
+set format f11.3.
+
+data list notable list /v1 * v2 * v3 * v4 * v5 * v6 * v7 *.
+begin data.
+2 1 1 2 1 1 2 
+2 2 2 2 1 1 1  
+1 1 2 2 1 1 2  
+2 2 2 2 1 1 2 
+2 1 2 1 1 2 1 
+1 2 2 1 1 1 1 
+1 2 2 2 2 2 2 
+2 2 1 2 1 1 1 
+1 2 1 2 1 1 2 
+end data.     
+
+npar tests 
+	/cochran = v1 to v7 .
+
+])
+
+AT_CHECK([pspp -o pspp.csv npar-cochran.sps])
+
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Frequencies
+,Value,
+,Success (2),Failure (1)
+v1,5,4
+v2,6,3
+v3,6,3
+v4,7,2
+v5,1,8
+v6,2,7
+v7,5,4
+
+Table: Test Statistics
+N,9
+Cochran's Q,12.735
+df,6
+Asymp. Sig.,.047
+])
+
+AT_CLEANUP
