@@ -681,6 +681,7 @@ is used.
 @menu
 * BINOMIAL::                Binomial Test
 * CHISQUARE::               Chisquare Test
+* COCHRAN::                 Cochran Q Test
 * FRIEDMAN::                Friedman Test
 * KRUSKAL-WALLIS::          Kruskal-Wallis Test
 * MANN-WHITNEY::            Mann Whitney U Test
@@ -766,6 +767,21 @@ sum of the frequencies need not be 1.
 If no /EXPECTED subcommand is given, then then equal frequencies 
 are expected.
 
+
+@node COCHRAN
+@subsection Cochran Q Test
+@vindex Cochran
+@cindex Cochran Q test
+@cindex Q, Cochran Q
+
+@display
+     [ /COCHRAN = varlist ]
+@end display
+
+The Cochran Q test is used to test for differences between three or more groups.
+The data for @var{varlist} in all cases must assume exactly two distinct values (other than missing values). 
+
+The value of Q will be displayed and its Asymptotic significance based on a chi-square distribution.
 
 @node FRIEDMAN
 @subsection Friedman Test
