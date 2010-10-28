@@ -46,6 +46,7 @@
 #include <language/lexer/value-parser.h>
 #include <language/stats/binomial.h>
 #include <language/stats/chisquare.h>
+#include <language/stats/cochran.h>
 #include <language/stats/runs.h>
 #include <language/stats/friedman.h>
 #include <language/stats/kruskal-wallis.h>
@@ -79,6 +80,7 @@ struct cmd_npar_tests
     /* Count variables indicating how many
        of the subcommands have been given. */
     int chisquare;
+    int cochran;
     int binomial;
     int wilcoxon;
     int sign;
@@ -123,6 +125,7 @@ static int npar_chisquare (struct lexer *, struct dataset *, struct npar_specs *
 static int npar_binomial (struct lexer *, struct dataset *,  struct npar_specs *);
 static int npar_runs (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_friedman (struct lexer *, struct dataset *, struct npar_specs *);
+static int npar_cochran (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_wilcoxon (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_sign (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_kruskal_wallis (struct lexer *, struct dataset *, struct npar_specs *);
@@ -139,6 +142,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
 {
   npt->binomial = 0;
   npt->chisquare = 0;
+  npt->cochran = 0;
   npt->friedman = 0;
   npt->kruskal_wallis = 0;
   npt->mann_whitney = 0;
@@ -152,7 +156,23 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
   memset (npt->a_statistics, 0, sizeof npt->a_statistics);
   for (;;)
     {
-      if (lex_match_hyphenated_word (lexer, "FRIEDMAN"))
+      if (lex_match_hyphenated_word (lexer, "COCHRAN"))
+	{
+          npt->cochran++;
+          switch (npar_cochran (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+	}
+      else if (lex_match_hyphenated_word (lexer, "FRIEDMAN"))
 	{
           npt->friedman++;
           switch (npar_friedman (lexer, ds, nps))
@@ -590,6 +610,35 @@ npar_friedman (struct lexer *lexer, struct dataset *ds,
   struct npar_test *nt = &ft->parent;
 
   nt->execute = friedman_execute;
+  nt->insert_variables = one_sample_insert_variables;
+
+  lex_match (lexer, '=');
+
+  if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
+				   &ft->vars, &ft->n_vars,
+				   PV_NO_SCRATCH | PV_NO_DUPLICATE | PV_NUMERIC))
+    {
+      return 2;
+    }
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
+
+static int
+npar_cochran (struct lexer *lexer, struct dataset *ds,
+	       struct npar_specs *specs)
+{
+  struct one_sample_test *ft = pool_alloc (specs->pool, sizeof (*ft)); 
+  struct npar_test *nt = &ft->parent;
+
+  nt->execute = cochran_execute;
   nt->insert_variables = one_sample_insert_variables;
 
   lex_match (lexer, '=');
