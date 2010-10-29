@@ -288,6 +288,16 @@ PSPP_READLINE
 dnl Checks for header files.
 AC_CHECK_HEADERS([sys/wait.h fpu_control.h ieeefp.h fenv.h pwd.h])
 
+dnl Some systems dont have SIGWINCH
+AC_CHECK_DECLS([SIGWINCH], [], [],
+          [#include <signal.h>
+          /* NetBSD declares sys_siglist in unistd.h.  */
+          #ifdef HAVE_UNISTD_H
+          # include <unistd.h>
+          #endif
+          ])
+
+
 # For gnulib.
 gl_INIT
 

@@ -788,6 +788,8 @@ ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
 
 /* ascii_close_page () and support routines. */
 
+
+#if HAVE_DECL_SIGWINCH
 static struct ascii_driver *the_driver;
 
 static void
@@ -795,6 +797,7 @@ winch_handler (int signum UNUSED)
 {
   update_page_size (the_driver, false);
 }
+#endif
 
 static bool
 ascii_open_page (struct ascii_driver *a)
@@ -809,6 +812,7 @@ ascii_open_page (struct ascii_driver *a)
       a->file = fn_open (a->file_name, a->append ? "a" : "w");
       if (a->file != NULL)
         {
+#if HAVE_DECL_SIGWINCH
 	  if ( isatty (fileno (a->file)))
 	    {
 	      struct sigaction action;
@@ -820,7 +824,7 @@ ascii_open_page (struct ascii_driver *a)
 	      a->auto_length = true;
 	      sigaction (SIGWINCH, &action, NULL);
 	    }
-
+#endif
           if (a->init != NULL)
             fputs (a->init, a->file);
         }
