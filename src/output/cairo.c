@@ -471,16 +471,21 @@ xr_init_caption_cell (const char *caption, struct table_cell *cell)
 
 static struct render_page *
 xr_render_table_item (struct xr_driver *xr, const struct table_item *item,
-                      int *caption_heightp)
+                      int *caption_widthp, int *caption_heightp)
 {
   const char *caption = table_item_get_caption (item);
 
   if (caption != NULL)
     {
       /* XXX doesn't do well with very large captions */
+      int min_width, max_width;
       struct table_cell cell;
+
       xr_init_caption_cell (caption, &cell);
-      *caption_heightp = xr_measure_cell_height (xr, &cell, xr->width);
+
+      xr_measure_cell_width (xr, &cell, &min_width, &max_width);
+      *caption_widthp = MIN (max_width, xr->width);
+      *caption_heightp = xr_measure_cell_height (xr, &cell, *caption_widthp);
     }
   else
     *caption_heightp = 0;
@@ -842,14 +847,15 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
 }
 
 static void
-xr_draw_title (struct xr_driver *xr, const char *title, int title_height)
+xr_draw_title (struct xr_driver *xr, const char *title,
+               int title_width, int title_height)
 {
   struct table_cell cell;
   int bb[TABLE_N_AXES][2];
 
   xr_init_caption_cell (title, &cell);
   bb[H][0] = 0;
-  bb[H][1] = xr->width;
+  bb[H][1] = title_width;
   bb[V][0] = 0;
   bb[V][1] = title_height;
   xr_draw_cell (xr, &cell, bb, bb);
@@ -876,6 +882,7 @@ struct xr_rendering
     /* Table items. */
     struct render_page *page;
     struct xr_driver *xr;
+    int title_width;
     int title_height;
   };
 
@@ -943,7 +950,7 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
       r->xr = xr;
       xr_set_cairo (xr, cr);
       r->page = xr_render_table_item (xr, to_table_item (item),
-                                      &r->title_height);
+                                      &r->title_width, &r->title_height);
     }
   else if (is_chart_item (item))
     {
@@ -959,7 +966,9 @@ xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
 {
   if (is_table_item (r->item))
     {
-      *w = render_page_get_size (r->page, H) / 1024;
+      int w0 = render_page_get_size (r->page, H);
+      int w1 = r->title_width;
+      *w = MAX (w0, w1) / 1024;
       *h = (render_page_get_size (r->page, V) + r->title_height) / 1024;
     }
   else
@@ -985,7 +994,7 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
         {
           xr->y = 0;
           xr_draw_title (xr, table_item_get_caption (to_table_item (r->item)),
-                         r->title_height);
+                         r->title_width, r->title_height);
         }
 
       xr->y = r->title_height;
@@ -1113,7 +1122,7 @@ xr_table_render (struct xr_render_fsm *fsm, struct xr_driver *xr)
         {
           if (xr->cairo)
             xr_draw_title (xr, table_item_get_caption (ts->table_item),
-                           ts->caption_height);
+                           xr->width, ts->caption_height);
 
           xr->y += ts->caption_height;
           ts->caption_height = 0;
@@ -1142,6 +1151,7 @@ xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
 {
   struct xr_table_state *ts;
   struct render_page *page;
+  int caption_width;
 
   ts = xmalloc (sizeof *ts);
   ts->fsm.render = xr_table_render;
@@ -1151,7 +1161,8 @@ xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
   if (xr->y > 0)
     xr->y += xr->char_height;
 
-  page = xr_render_table_item (xr, table_item, &ts->caption_height);
+  page = xr_render_table_item (xr, table_item,
+                               &caption_width, &ts->caption_height);
   xr->params->size[V] = xr->length - ts->caption_height;
 
   render_break_init (&ts->x_break, page, H);
