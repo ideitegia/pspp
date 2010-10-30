@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -94,6 +94,8 @@ execute_syntax (struct getl_interface *sss)
   getl_abort_noninteractive (the_source_stream);
 
   lex_destroy (lexer);
+
+  proc_execute (the_dataset);
 
   psppire_dict_replace_dictionary (the_data_store->dict,
 				   dataset_dict (the_dataset));
