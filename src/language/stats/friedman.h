@@ -23,12 +23,21 @@
 
 
 
+struct friedman_test
+{
+  struct one_sample_test parent;
+
+  /* Calculate and display the Kendall W statistic */
+  bool kendalls_w;
+};
+
+
 void friedman_execute (const struct dataset *ds,
-			struct casereader *input,
-                        enum mv_class exclude,
-			const struct npar_test *test,
-			bool,
-		   double);
+		       struct casereader *input,
+		       enum mv_class exclude,
+		       const struct npar_test *test,
+		       bool,
+		       double);
 
 
 #endif

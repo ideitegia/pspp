@@ -41,6 +41,7 @@ struct friedman
   double *rank_sum;
   double cc;
   double chi_sq;
+  double w;
   const struct dictionary *dict;
 };
 
@@ -49,7 +50,6 @@ static void show_ranks_box (const struct one_sample_test *ost,
 
 static void show_sig_box (const struct one_sample_test *ost,
 			  const struct friedman *fr);
-
 
 struct datum
 {
@@ -83,11 +83,11 @@ cmp_posn (const void *a_, const void *b_)
 
 void
 friedman_execute (const struct dataset *ds,
-	      struct casereader *input,
-	      enum mv_class exclude,
-	      const struct npar_test *test,
-	      bool exact UNUSED,
-	      double timer UNUSED)
+		  struct casereader *input,
+		  enum mv_class exclude,
+		  const struct npar_test *test,
+		  bool exact UNUSED,
+		  double timer UNUSED)
 {
   double numerator = 0.0;
   double denominator = 0.0;
@@ -96,17 +96,18 @@ friedman_execute (const struct dataset *ds,
   const struct dictionary *dict = dataset_dict (ds);
   const struct variable *weight = dict_get_weight (dict);
 
-  struct one_sample_test *ft = UP_CAST (test, struct one_sample_test, parent);
+  struct one_sample_test *ost = UP_CAST (test, struct one_sample_test, parent);
+  struct friedman_test *ft = UP_CAST (ost, struct friedman_test, parent);
   bool warn = true;
 
   double sigma_t = 0.0;	
-  struct datum *row = xcalloc (ft->n_vars, sizeof *row);
-
+  struct datum *row = xcalloc (ost->n_vars, sizeof *row);
+  double rsq;
   struct friedman fr;
-  fr.rank_sum = xcalloc (ft->n_vars, sizeof *fr.rank_sum);
+  fr.rank_sum = xcalloc (ost->n_vars, sizeof *fr.rank_sum);
   fr.cc = 0.0;
   fr.dict = dict;
-  for (v = 0; v < ft->n_vars; ++v)
+  for (v = 0; v < ost->n_vars; ++v)
     {
       row[v].posn = v;
       fr.rank_sum[v] = 0.0;
@@ -114,7 +115,7 @@ friedman_execute (const struct dataset *ds,
 
   input = casereader_create_filter_weight (input, dict, &warn, NULL);
   input = casereader_create_filter_missing (input,
-					    ft->vars, ft->n_vars,
+					    ost->vars, ost->n_vars,
 					    exclude, 0, 0);
 
   for (; (c = casereader_read (input)); case_unref (c))
@@ -126,15 +127,15 @@ friedman_execute (const struct dataset *ds,
 
       fr.cc += w;
 
-      for (v = 0; v < ft->n_vars; ++v)
+      for (v = 0; v < ost->n_vars; ++v)
 	{
-	  const struct variable *var = ft->vars[v];
+	  const struct variable *var = ost->vars[v];
 	  const union value *val = case_data (c, var);
 	  row[v].x = val->f;
 	}
 
-      qsort (row, ft->n_vars, sizeof *row, cmp_x);
-      for (v = 0; v < ft->n_vars; ++v)
+      qsort (row, ost->n_vars, sizeof *row, cmp_x);
+      for (v = 0; v < ost->n_vars; ++v)
 	{
 	  double x = row[v].x;
 	  /* Replace value by the Rank */
@@ -169,30 +170,41 @@ friedman_execute (const struct dataset *ds,
 	  sigma_t += w * (pow3 (t) - t );
 	}
 
-      qsort (row, ft->n_vars, sizeof *row, cmp_posn);
+      qsort (row, ost->n_vars, sizeof *row, cmp_posn);
 
-      for (v = 0; v < ft->n_vars; ++v)
+      for (v = 0; v < ost->n_vars; ++v)
 	fr.rank_sum[v] += row[v].x * w;
     }
   casereader_destroy (input);
   free (row);
 
 
-  for (v = 0; v < ft->n_vars; ++v)
+  for (v = 0; v < ost->n_vars; ++v)
     {
       numerator += pow2 (fr.rank_sum[v]);
     }
 
-  numerator *= 12.0 / (fr.cc * ft->n_vars * ( ft->n_vars + 1));
-  numerator -= 3 * fr.cc * ( ft->n_vars + 1);
+  rsq = numerator;
 
-  denominator = 1 - sigma_t / ( fr.cc * ft->n_vars * ( pow2 (ft->n_vars) - 1));
+  numerator *= 12.0 / (fr.cc * ost->n_vars * ( ost->n_vars + 1));
+  numerator -= 3 * fr.cc * ( ost->n_vars + 1);
+
+  denominator = 1 - sigma_t / ( fr.cc * ost->n_vars * ( pow2 (ost->n_vars) - 1));
 
   fr.chi_sq = numerator / denominator;
 
-  show_ranks_box (ft, &fr);
+  if ( ft->kendalls_w)
+    {
+      fr.w = 12 * rsq ;
+      fr.w -= 3 * pow2 (fr.cc) *
+	ost->n_vars * pow2 (ost->n_vars + 1);
 
-  show_sig_box (ft, &fr);
+      fr.w /= pow2 (fr.cc) * (pow3 (ost->n_vars) - ost->n_vars)
+	- fr.cc * sigma_t;
+    }
+
+  show_ranks_box (ost, &fr);
+  show_sig_box (ost, &fr);
 
   free (fr.rank_sum);
 }
@@ -244,28 +256,35 @@ show_ranks_box (const struct one_sample_test *ost, const struct friedman *fr)
 static void
 show_sig_box (const struct one_sample_test *ost, const struct friedman *fr)
 {
+  const struct friedman_test *ft = UP_CAST (ost, const struct friedman_test, parent);
+  
+  int row = 0;
   const struct variable *weight = dict_get_weight (fr->dict);
   const struct fmt_spec *wfmt = weight ? var_get_print_format (weight) : &F_8_0;
 
   const int row_headers = 1;
   const int column_headers = 0;
   struct tab_table *table =
-    tab_create (row_headers + 1, column_headers + 4);
+    tab_create (row_headers + 1, column_headers + (ft->kendalls_w ? 5 : 4));
 
   tab_headers (table, row_headers, 0, column_headers, 0);
 
   tab_title (table, _("Test Statistics"));
 
-  tab_text (table,  0, column_headers,
+  tab_text (table,  0, column_headers + row++,
 	    TAT_TITLE | TAB_LEFT , _("N"));
 
-  tab_text (table,  0, 1 + column_headers,
+  if ( ft->kendalls_w)
+    tab_text (table,  0, column_headers + row++,
+	      TAT_TITLE | TAB_LEFT , _("Kendall's W"));
+
+  tab_text (table,  0, column_headers + row++,
 	    TAT_TITLE | TAB_LEFT , _("Chi-Square"));
 
-  tab_text (table,  0, 2 + column_headers,
+  tab_text (table,  0, column_headers + row++,
 	    TAT_TITLE | TAB_LEFT, _("df"));
 
-  tab_text (table,  0, 3 + column_headers,
+  tab_text (table,  0, column_headers + row++,
 	    TAT_TITLE | TAB_LEFT, _("Asymp. Sig."));
 
   /* Box around the table */
@@ -276,16 +295,21 @@ show_sig_box (const struct one_sample_test *ost, const struct friedman *fr)
   tab_hline (table, TAL_2, 0, tab_nc (table) -1, column_headers);
   tab_vline (table, TAL_2, row_headers, 0, tab_nr (table) - 1);
 
-  tab_double (table, 1, column_headers, 
+  row = 0;
+  tab_double (table, 1, column_headers + row++, 
 	      0, fr->cc, wfmt);
 
-  tab_double (table, 1, column_headers + 1, 
+  if (ft->kendalls_w)
+    tab_double (table, 1, column_headers + row++, 
+		0, fr->w, 0);
+
+  tab_double (table, 1, column_headers + row++, 
 	      0, fr->chi_sq, 0);
 
-  tab_double (table, 1, column_headers + 2, 
+  tab_double (table, 1, column_headers + row++, 
 	      0, ost->n_vars - 1, &F_8_0);
 
-  tab_double (table, 1, column_headers + 3, 
+  tab_double (table, 1, column_headers + row++, 
 	      0, gsl_cdf_chisq_Q (fr->chi_sq, ost->n_vars - 1), 
 	      0);
 

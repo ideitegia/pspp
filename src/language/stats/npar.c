@@ -86,6 +86,7 @@ struct cmd_npar_tests
     int sign;
     int runs;
     int friedman;
+    int kendall;
     int kruskal_wallis;
     int mann_whitney;
     int missing;
@@ -125,6 +126,7 @@ static int npar_chisquare (struct lexer *, struct dataset *, struct npar_specs *
 static int npar_binomial (struct lexer *, struct dataset *,  struct npar_specs *);
 static int npar_runs (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_friedman (struct lexer *, struct dataset *, struct npar_specs *);
+static int npar_kendall (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_cochran (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_wilcoxon (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_sign (struct lexer *, struct dataset *, struct npar_specs *);
@@ -176,6 +178,22 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
 	{
           npt->friedman++;
           switch (npar_friedman (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+	}
+      else if (lex_match_hyphenated_word (lexer, "KENDALL"))
+	{
+          npt->kendall++;
+          switch (npar_kendall (lexer, ds, nps))
             {
             case 0:
               goto lossage;
@@ -606,16 +624,18 @@ static int
 npar_friedman (struct lexer *lexer, struct dataset *ds,
 	       struct npar_specs *specs)
 {
-  struct one_sample_test *ft = pool_alloc (specs->pool, sizeof (*ft)); 
-  struct npar_test *nt = &ft->parent;
+  struct friedman_test *ft = pool_alloc (specs->pool, sizeof (*ft)); 
+  struct one_sample_test *ost = &ft->parent;
+  struct npar_test *nt = &ost->parent;
 
+  ft->kendalls_w = false;
   nt->execute = friedman_execute;
   nt->insert_variables = one_sample_insert_variables;
 
   lex_match (lexer, '=');
 
   if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
-				   &ft->vars, &ft->n_vars,
+				   &ost->vars, &ost->n_vars,
 				   PV_NO_SCRATCH | PV_NO_DUPLICATE | PV_NUMERIC))
     {
       return 2;
@@ -630,6 +650,38 @@ npar_friedman (struct lexer *lexer, struct dataset *ds,
 
   return 1;
 }
+
+static int
+npar_kendall (struct lexer *lexer, struct dataset *ds,
+	       struct npar_specs *specs)
+{
+  struct friedman_test *kt = pool_alloc (specs->pool, sizeof (*kt)); 
+  struct one_sample_test *ost = &kt->parent;
+  struct npar_test *nt = &ost->parent;
+
+  kt->kendalls_w = true;
+  nt->execute = friedman_execute;
+  nt->insert_variables = one_sample_insert_variables;
+
+  lex_match (lexer, '=');
+
+  if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
+				   &ost->vars, &ost->n_vars,
+				   PV_NO_SCRATCH | PV_NO_DUPLICATE | PV_NUMERIC))
+    {
+      return 2;
+    }
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
+
 
 static int
 npar_cochran (struct lexer *lexer, struct dataset *ds,

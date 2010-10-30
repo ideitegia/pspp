@@ -683,6 +683,7 @@ is used.
 * CHISQUARE::               Chisquare Test
 * COCHRAN::                 Cochran Q Test
 * FRIEDMAN::                Friedman Test
+* KENDALL::                 Kendall's W Test
 * KRUSKAL-WALLIS::          Kruskal-Wallis Test
 * MANN-WHITNEY::            Mann Whitney U Test
 * RUNS::                    Runs Test
@@ -795,6 +796,23 @@ The value of Q will be displayed and its Asymptotic significance based on a chi-
 The Friedman test is used to test for differences between repeated measures when there is no indication that the distributions are normally distributed.
 
 A list of variables which contain the measured data must be given.  The procedure prints the sum of ranks for each variable, the test statistic and its significance.
+
+@node KENDALL
+@subsection Kendall's W Test
+@vindex KENDALL
+@cindex Kendall's W test
+@cindex coefficient of concordance
+
+@display
+     [ /KENDALL = varlist ]
+@end display
+
+The Kendall test investigates whether an arbitrary number of related samples come from the 
+same population.
+It is identical to the Friedman test except that the additional statistic W, Kendall's Coefficient of Concordance is printed.
+It has the range [0,1] --- a value of zero indicates no agreement between the samples whereas a value of
+unity indicates complete agreement.
+
 
 @node KRUSKAL-WALLIS
 @subsection Kruskal-Wallis Test
