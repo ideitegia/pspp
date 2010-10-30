@@ -98,7 +98,7 @@ generate_syntax (const struct k_related_dialog *krd)
 
   if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (krd->kendal)))
     {
-      g_string_append (string, "\n\t/KENDAL = ");
+      g_string_append (string, "\n\t/KENDALL = ");
       psppire_var_view_append_names (PSPPIRE_VAR_VIEW (krd->var_view), 0, string);
     }
 
