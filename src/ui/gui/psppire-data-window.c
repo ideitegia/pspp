@@ -37,6 +37,7 @@
 #include "ui/gui/factor-dialog.h"
 #include "ui/gui/find-dialog.h"
 #include "ui/gui/frequencies-dialog.h"
+#include "ui/gui/k-related-dialog.h"
 #include "ui/gui/goto-case-dialog.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/oneway-anova-dialog.h"
@@ -1132,6 +1133,8 @@ psppire_data_window_init (PsppireDataWindow *de)
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
 
   connect_action (de, "binomial", G_CALLBACK (binomial_dialog));
+
+  connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));
  
 
   {
