@@ -22,7 +22,6 @@ language_stats_sources = \
 	src/language/stats/flip.c \
 	src/language/stats/freq.c src/language/stats/freq.h \
 	src/language/stats/friedman.c src/language/stats/friedman.h \
-	src/language/stats/glm.c \
 	src/language/stats/kruskal-wallis.c src/language/stats/kruskal-wallis.h \
 	src/language/stats/mann-whitney.c src/language/stats/mann-whitney.h \
 	src/language/stats/npar.c src/language/stats/npar.h \
@@ -35,6 +34,8 @@ language_stats_sources = \
 	src/language/stats/sort-cases.c \
 	src/language/stats/sort-criteria.c src/language/stats/sort-criteria.h \
 	src/language/stats/wilcoxon.c src/language/stats/wilcoxon.h
+
+EXTRA_DIST += src/language/stats/glm.c
 
 all_q_sources += $(src_language_stats_built_sources:.c=.q)
 EXTRA_DIST += $(src_language_stats_built_sources:.c=.q)
