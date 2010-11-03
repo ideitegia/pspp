@@ -14009,11 +14009,12 @@ print outfile='month-out.out'/x(month40).
 execute.
 ])
 AT_CHECK([pspp -O format=csv month-out.sps], [1], [stdout])
-AT_CHECK([sed '/^$/d' stdout | sort | uniq -c], [0], [dnl
-     38 error: Month number 0.000000 is not between 1 and 12.
-     38 error: Month number 0.500000 is not between 1 and 12.
-     38 error: Month number 0.900000 is not between 1 and 12.
-     38 error: Month number 13.000000 is not between 1 and 12.
+AT_CHECK([[sed '/^$/d' stdout | sort | uniq -c | sed 's/^[ 	]*//']], [0],
+[dnl
+38 error: Month number 0.000000 is not between 1 and 12.
+38 error: Month number 0.500000 is not between 1 and 12.
+38 error: Month number 0.900000 is not between 1 and 12.
+38 error: Month number 13.000000 is not between 1 and 12.
 ])
 AT_CHECK([cat month-out.out], [0], [dnl
    .
@@ -14924,11 +14925,12 @@ end repeat.
 execute.
 ])
 AT_CHECK([pspp -O format=csv wkday-out.sps], [1], [stdout])
-AT_CHECK([sed '/^$/d' stdout | sort | uniq -c], [0], [dnl
-     39 error: Weekday number 0.000000 is not between 1 and 7.
-     39 error: Weekday number 0.500000 is not between 1 and 7.
-     39 error: Weekday number 0.900000 is not between 1 and 7.
-     39 error: Weekday number 8.000000 is not between 1 and 7.
+AT_CHECK([[sed '/^$/d' stdout | sort | uniq -c | sed 's/^[ 	]*//']], [0],
+[dnl
+39 error: Weekday number 0.000000 is not between 1 and 7.
+39 error: Weekday number 0.500000 is not between 1 and 7.
+39 error: Weekday number 0.900000 is not between 1 and 7.
+39 error: Weekday number 8.000000 is not between 1 and 7.
 ])
 AT_CHECK([cat wkday-out.out], [0], [dnl
   .
