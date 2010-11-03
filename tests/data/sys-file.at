@@ -55,14 +55,13 @@ GET FILE='com.sav'.
 LIST.
 ])
 AT_CHECK([pspp -o pspp.csv sysfile.sps])
-dnl Make sure file really was compressd.
-AT_CHECK([dd if=com.sav bs=1 skip=72 count=4 2> /dev/null | od | sed '1q' > com.txt])
-dnl Allow big- or little-endian format.
+dnl Make sure file really was compressd, allowing big- or little-endian format.
+AT_CHECK([dd if=com.sav bs=1 skip=72 count=4 2> /dev/null > com.sav.subset])
+od com.sav.subset
 AT_CHECK(
-  [(echo '0000000 000000 000001' | diff com.txt -) ||
-   (echo '0000000 000001 000000' | diff com.txt -)], [0],
+  [(printf '\000\000\000\001' | cmp -l com.sav.subset -) ||
+   (printf '\001\000\000\000' | cmp -l com.sav.subset -)], [0],
   [ignore])
-AT_CAPTURE_FILE([com.txt])
 AT_CLEANUP
 
 AT_SETUP([overwriting system file])
