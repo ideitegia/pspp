@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -534,7 +534,9 @@ scan_in_use_reverse (struct leaf_node *leaf, unsigned int idx)
   for (;;)
     {
       int ofs = idx % LONG_BITS;
-      unsigned long int in_use = leaf->in_use[idx / LONG_BITS] << (31 - ofs);
+      unsigned long int in_use;
+
+      in_use = leaf->in_use[idx / LONG_BITS] << (LONG_BITS - 1 - ofs);
       if (in_use)
         return idx - count_leading_zeros (in_use);
       if (idx < LONG_BITS)
