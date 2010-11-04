@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.7.6\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2010-10-16 13:02-0700\n"
-"PO-Revision-Date: 2010-10-31 23:39+0100\n"
+"PO-Revision-Date: 2010-11-03 23:47+0100\n"
 "Last-Translator: Francisco J. Miguel Quesada <Miguel.Quesada@uab.cat>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
 "MIME-Version: 1.0\n"
@@ -3257,9 +3257,9 @@ msgid "Quoted string extends beyond end of line."
 msgstr "La cadena entre cometes s'estén més enllà del final de línia."
 
 #: src/language/data-io/data-parser.c:515
-#, fuzzy, c-format
+#, c-format
 msgid "Data for variable %s is not valid as format %s: %s"
-msgstr "Dades per a la variable %s no son valides com a format %s"
+msgstr "Les dades per a la variable %s no son vàlides com a format %s: %s"
 
 #: src/language/data-io/data-parser.c:544
 #, c-format
