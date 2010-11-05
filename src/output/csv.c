@@ -43,7 +43,8 @@ struct csv_driver
   {
     struct output_driver driver;
 
-    char *separator;            /* Comma or tab. */
+    char *separator;            /* Field separator (usually comma or tab). */
+    char *quote_set;            /* Characters that force quoting. */
     char *file_name;            /* Output file name. */
     char *command_name;         /* Current command. */
     FILE *file;                 /* Output file. */
@@ -78,6 +79,7 @@ csv_create (const char *file_name, enum settings_output_devices device_type,
   output_driver_init (&csv->driver, &csv_driver_class, file_name, device_type);
 
   csv->separator = parse_string (opt (d, o, "separator", ","));
+  csv->quote_set = xasprintf ("\"\n\r\t%s", csv->separator);
   csv->file_name = xstrdup (file_name);
   csv->file = fn_open (csv->file_name, "w");
   csv->n_items = 0;
@@ -101,6 +103,7 @@ csv_destroy (struct output_driver *driver)
     fn_close (csv->file_name, csv->file);
 
   free (csv->separator);
+  free (csv->quote_set);
   free (csv->file_name);
   free (csv);
 }
@@ -114,34 +117,34 @@ csv_flush (struct output_driver *driver)
 }
 
 static void
-csv_output_field (FILE *file, const char *field)
+csv_output_field (struct csv_driver *csv, const char *field)
 {
   while (*field == ' ')
     field++;
 
-  if (field[strcspn (field, "\"\n\r,\t")])
+  if (field[strcspn (field, csv->quote_set)])
     {
       const char *p;
 
-      putc ('"', file);
+      putc ('"', csv->file);
       for (p = field; *p != '\0'; p++)
         {
           if (*p == '"')
-            putc ('"', file);
-          putc (*p, file);
+            putc ('"', csv->file);
+          putc (*p, csv->file);
         }
-      putc ('"', file);
+      putc ('"', csv->file);
     }
   else
-    fputs (field, file);
+    fputs (field, csv->file);
 }
 
 static void
-csv_output_field_format (FILE *file, const char *format, ...)
+csv_output_field_format (struct csv_driver *csv, const char *format, ...)
   PRINTF_FORMAT (2, 3);
 
 static void
-csv_output_field_format (FILE *file, const char *format, ...)
+csv_output_field_format (struct csv_driver *csv, const char *format, ...)
 {
   va_list args;
   char *s;
@@ -150,7 +153,7 @@ csv_output_field_format (FILE *file, const char *format, ...)
   s = xvasprintf (format, args);
   va_end (args);
 
-  csv_output_field (file, s);
+  csv_output_field (csv, s);
   free (s);
 }
 
@@ -180,7 +183,7 @@ csv_submit (struct output_driver *driver,
 
       if (caption != NULL)
         {
-          csv_output_field_format (csv->file, "Table: %s", caption);
+          csv_output_field_format (csv, "Table: %s", caption);
           putc ('\n', csv->file);
         }
 
@@ -196,9 +199,9 @@ csv_submit (struct output_driver *driver,
                 fputs (csv->separator, csv->file);
 
               if (x != cell.d[TABLE_HORZ][0] || y != cell.d[TABLE_VERT][0])
-                csv_output_field (csv->file, "");
+                csv_output_field (csv, "");
               else
-                csv_output_field (csv->file, cell.contents);
+                csv_output_field (csv, cell.contents);
 
               table_cell_free (&cell);
             }
@@ -219,15 +222,15 @@ csv_submit (struct output_driver *driver,
       switch (type)
         {
         case TEXT_ITEM_TITLE:
-          csv_output_field_format (csv->file, "Title: %s", text);
+          csv_output_field_format (csv, "Title: %s", text);
           break;
 
         case TEXT_ITEM_SUBTITLE:
-          csv_output_field_format (csv->file, "Subtitle: %s", text);
+          csv_output_field_format (csv, "Subtitle: %s", text);
           break;
 
         default:
-          csv_output_field (csv->file, text);
+          csv_output_field (csv, text);
           break;
         }
       putc ('\n', csv->file);
@@ -238,7 +241,7 @@ csv_submit (struct output_driver *driver,
       const struct msg *msg = message_item_get_msg (message_item);
       char *s = msg_to_string (msg, csv->command_name);
       csv_put_separator (csv);
-      csv_output_field (csv->file, s);
+      csv_output_field (csv, s);
       free (s);
       putc ('\n', csv->file);
     }
