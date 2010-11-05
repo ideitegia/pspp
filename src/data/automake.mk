@@ -95,6 +95,7 @@ src_data_libdata_la_SOURCES = \
 	src/data/short-names.h \
 	src/data/subcase.c \
 	src/data/subcase.h \
+	src/data/sys-file-encoding.c \
 	src/data/sys-file-private.c \
 	src/data/sys-file-private.h \
 	src/data/sys-file-reader.c \
@@ -114,4 +115,6 @@ src_data_libdata_la_SOURCES = \
 	src/data/vector.c \
 	src/data/vector.h
 
-EXTRA_DIST += src/data/OChangeLog
+EXTRA_DIST += \
+	src/data/OChangeLog \
+	src/data/sys-file-encoding.pl
