@@ -17,6 +17,7 @@
 /* Utility commands acceptable anywhere. */
 DEF_CMD (S_ANY, F_ENHANCED, "CLOSE FILE HANDLE", cmd_close_file_handle)
 DEF_CMD (S_ANY, F_KEEP_FINAL_TOKEN, "COMMENT", cmd_comment)
+DEF_CMD (S_ANY, 0, "CACHE", cmd_cache)
 DEF_CMD (S_ANY, 0, "CD", cmd_cd)
 DEF_CMD (S_ANY, 0, "ECHO", cmd_echo)
 DEF_CMD (S_ANY, 0, "ERASE", cmd_erase)

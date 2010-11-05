@@ -5,6 +5,7 @@ src_language_utilities_built_sources = \
 	src/language/utilities/set.c
 
 language_utilities_sources = \
+	src/language/utilities/cache.c \
 	src/language/utilities/cd.c \
 	src/language/utilities/date.c \
 	src/language/utilities/echo.c \

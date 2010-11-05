@@ -10,6 +10,7 @@ encountered in the input.
 
 @menu
 * ADD DOCUMENT::                Add documentary text to the active file.
+* CACHE::                       Ignored for compatibility.
 * CD::                          Change the current directory.
 * COMMENT::                     Document your syntax file.
 * DOCUMENT::                    Document the active file.
@@ -51,6 +52,16 @@ DOCUMENTS}.
 
 Each line of documentary text must be enclosed in quotation marks, and 
 may not be more than 80 bytes long. @xref{DOCUMENT}.
+
+@node CACHE
+@section CACHE
+@vindex CACHE
+
+@display
+CACHE.
+@end display
+
+This command is accepted, for compatibility, but it has no effect.
 
 @node CD
 @section CD

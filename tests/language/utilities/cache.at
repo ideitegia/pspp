@@ -1,0 +1,8 @@
+AT_BANNER([CACHE])
+
+AT_SETUP([CACHE])
+AT_DATA([cache.sps], [dnl
+CACHE.
+])
+AT_CHECK([pspp -O format=csv cache.sps])
+AT_CLEANUP
