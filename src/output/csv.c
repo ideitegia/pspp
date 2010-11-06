@@ -44,6 +44,7 @@ struct csv_driver
     struct output_driver driver;
 
     char *separator;            /* Field separator (usually comma or tab). */
+    int quote;                  /* Quote character (usually ' or ") or 0. */
     char *quote_set;            /* Characters that force quoting. */
     bool captions;              /* Print table captions? */
 
@@ -75,13 +76,17 @@ csv_create (const char *file_name, enum settings_output_devices device_type,
 {
   struct output_driver *d;
   struct csv_driver *csv;
+  char *quote;
 
   csv = xzalloc (sizeof *csv);
   d = &csv->driver;
   output_driver_init (&csv->driver, &csv_driver_class, file_name, device_type);
 
   csv->separator = parse_string (opt (d, o, "separator", ","));
-  csv->quote_set = xasprintf ("\"\n\r\t%s", csv->separator);
+  quote = parse_string (opt (d, o, "quote", "\""));
+  csv->quote = quote[0];
+  free (quote);
+  csv->quote_set = xasprintf ("\n\r\t%s%c", csv->separator, csv->quote);
   csv->captions = parse_boolean (opt (d, o, "captions", "true"));
   csv->file_name = xstrdup (file_name);
   csv->file = fn_open (csv->file_name, "w");
@@ -125,18 +130,18 @@ csv_output_field (struct csv_driver *csv, const char *field)
   while (*field == ' ')
     field++;
 
-  if (field[strcspn (field, csv->quote_set)])
+  if (csv->quote && field[strcspn (field, csv->quote_set)])
     {
       const char *p;
 
-      putc ('"', csv->file);
+      putc (csv->quote, csv->file);
       for (p = field; *p != '\0'; p++)
         {
-          if (*p == '"')
-            putc ('"', csv->file);
+          if (*p == csv->quote)
+            putc (csv->quote, csv->file);
           putc (*p, csv->file);
         }
-      putc ('"', csv->file);
+      putc (csv->quote, csv->file);
     }
   else
     fputs (field, csv->file);

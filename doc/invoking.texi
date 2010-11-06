@@ -382,6 +382,14 @@ given on @option{-o} does not end in @file{.csv}.
 Sets the character used to separate fields.  Default: a comma
 (@samp{,}).
 
+@item -O quote=@var{qualifier}
+Sets @var{qualifier} as the character used to quote fields that
+contain white space, the separator (or any of the characters in the
+separator, if it contains more than one character), or the quote
+character itself.  If @var{qualifier} is longer than one character,
+only the first character is used; if @var{qualifier} is the empty
+string, then fields are never quoted.
+
 @item -O captions=@var{boolean}
 Whether table captions should be printed.  Default: @code{on}.
 @end table
