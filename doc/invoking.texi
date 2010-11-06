@@ -379,8 +379,11 @@ Specify the output format.  This is only necessary if the file name
 given on @option{-o} does not end in @file{.csv}.
 
 @item -O separator=@var{field-separator}
-Sets the character used to separate fields.  The default is a comma
+Sets the character used to separate fields.  Default: a comma
 (@samp{,}).
+
+@item -O captions=@var{boolean}
+Whether table captions should be printed.  Default: @code{on}.
 @end table
 
 The CSV format used is an extension to that specified in RFC 4180:
@@ -390,8 +393,9 @@ The CSV format used is an extension to that specified in RFC 4180:
 Each table row is output on a separate line, and each column is output
 as a field.  The contents of a cell that spans multiple rows or
 columns is output only for the top-left row and column; the rest are
-output as empty fields.  When a table has a caption, it is output just
-above the table as a single field prefixed by @samp{Table:}.
+output as empty fields.  When a table has a caption and captions are
+enabled, the caption is output just above the table as a single field
+prefixed by @samp{Table:}.
 
 @item Text
 Text in output is printed as a field on a line by itself.  The TITLE

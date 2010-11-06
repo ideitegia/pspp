@@ -45,6 +45,8 @@ struct csv_driver
 
     char *separator;            /* Field separator (usually comma or tab). */
     char *quote_set;            /* Characters that force quoting. */
+    bool captions;              /* Print table captions? */
+
     char *file_name;            /* Output file name. */
     char *command_name;         /* Current command. */
     FILE *file;                 /* Output file. */
@@ -80,6 +82,7 @@ csv_create (const char *file_name, enum settings_output_devices device_type,
 
   csv->separator = parse_string (opt (d, o, "separator", ","));
   csv->quote_set = xasprintf ("\"\n\r\t%s", csv->separator);
+  csv->captions = parse_boolean (opt (d, o, "captions", "true"));
   csv->file_name = xstrdup (file_name);
   csv->file = fn_open (csv->file_name, "w");
   csv->n_items = 0;
@@ -181,7 +184,7 @@ csv_submit (struct output_driver *driver,
 
       csv_put_separator (csv);
 
-      if (caption != NULL)
+      if (csv->captions && caption != NULL)
         {
           csv_output_field_format (csv, "Table: %s", caption);
           putc ('\n', csv->file);
