@@ -414,9 +414,9 @@ ONEWAY x y z by g
 	/CONTRAST 2 -9 7  0
 	.
 ])
-
-
-AT_CHECK([pspp -O format=csv multivar.sps], [0], 
+AT_CHECK([pspp -o pspp.csv multivar.sps])
+dnl Some machines return 3.88 instead of 3.87 below (see bug #31611).
+AT_CHECK([sed 's/^,Within Groups,3.88/,Within Groups,3.87/' pspp.csv], [0],
 [Table: Descriptives
 ,,,,,,95% Confidence Interval for Mean,,,
 ,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
