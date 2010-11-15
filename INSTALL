@@ -85,8 +85,14 @@ The following packages are optional.
       later.  Installing Texinfo will allow you to build PSPP
       documentation in PostScript or PDF format.
 
-    * libpq, from Postgresql (http://postgresql.org). This enables PSPP 
-      to read Postgresql databases.
+    * libpq, from Postgresql (http://postgresql.org).  This enables PSPP 
+      to read Postgresql databases.  The tests for the Postgresql
+      interface, but not the Postgresql interface itself, requires the
+      Postgresql server to be installed.
+
+    * The Text::Diff module for Perl (http://cpan.org).  This enables
+      PSPP to test the Perl module more thoroughly.  It is not needed
+      to build or use the Perl module.
 
 Basic Installation
 ==================
