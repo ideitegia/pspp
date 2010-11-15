@@ -685,7 +685,8 @@ CODE:
    union value *val = case_data_rw (c, v);
    value_set_missing (val, var_get_width (v));
  }
- RETVAL = casewriter_write (sfi->writer, c);
+ casewriter_write (sfi->writer, c);
+ RETVAL = 1;
  finish:
  free (vv);
 OUTPUT:
