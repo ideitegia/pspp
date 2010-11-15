@@ -13,6 +13,17 @@ if test "$PSQL_SUPPORT" = yes; then
     : ${PG_DBASE:=pspptest}
     : ${PG_PORT:=6543}
     : ${PG_PATH:=`$PG_CONFIG --bindir`}
+
+    # PSQL_SUPPORT indicates that PSPP was built against the PostgreSQL client
+    # library, but it does not mean that the PostgreSQL utilities are
+    # installed.  So check for them and turn off PSQL_SUPPORT if they are not
+    # available.
+    if (PATH=$PG_PATH:$PATH; export PATH; initdb --version) >/dev/null 2>&1
+    then
+	:
+    else
+	PSQL_SUPPORT=no
+    fi
 fi
 
 # Variables used by programs invoked by the testsuite.
