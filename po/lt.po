@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.7.6\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2010-10-16 13:02-0700\n"
-"PO-Revision-Date: 2010-11-05 16:28+0200\n"
+"PO-Revision-Date: 2010-11-16 16:28+0200\n"
 "Last-Translator: Mindaugas Baranauskas <embar@super.lt>\n"
 "Language-Team: Lithuanian <komp_lt@konferencijos.lt>\n"
 "MIME-Version: 1.0\n"
@@ -3964,7 +3964,7 @@ msgstr "Dažnis"
 
 #: src/output/charts/roc-chart-cairo.c:36 src/ui/gui/roc.ui:7
 msgid "ROC Curve"
-msgstr "ROC kreivė"
+msgstr "OChK kreivė"
 
 #: src/output/charts/scree-cairo.c:36
 msgid "Scree Plot"
@@ -7329,7 +7329,7 @@ msgstr "Iki galo"
 #~ msgstr "Įrašyti kaip"
 
 #~ msgid "This is beta status software.  Please report bugs to bug-gnu-pspp@gnu.org"
-#~ msgstr "Tai tik bandomoji programinė įranga. Apie rastas klaidas praneškiteel. pašto adresu bug-gnu-pspp@gnu.org"
+#~ msgstr "Tai tik bandomoji programinė įranga. Apie rastas klaidas praneškite el. pašto adresu bug-gnu-pspp@gnu.org"
 
 #~ msgid "WEIGHT is off."
 #~ msgstr "SVĖRIMAS išjungtas."
