@@ -38,7 +38,7 @@ Table: ANOVA
 
 Table: Coefficients
 ,,B,Std. Error,Beta,t,Significance
-,(Constant),2.19,2.36,.00,.93,.52
+,(Constant),2.19,2.36,.00,.93,.38
 ,v0,1.81,1.05,.17,1.72,.12
 ,v1,-3.43,.33,-1.03,-10.33,.00
 ,,,,,,
@@ -1585,7 +1585,7 @@ Table: ANOVA
 
 Table: Coefficients
 ,,B,Std. Error,Beta,t,Significance
-,(Constant),1.24,.42,.00,2.95,.21
+,(Constant),1.24,.42,.00,2.95,.00
 ,v1,1.37,.72,.05,1.89,.06
 ,,,,,,
 ])

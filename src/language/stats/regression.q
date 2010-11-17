@@ -206,7 +206,7 @@ reg_stats_coeff (linreg * c, void *aux_)
   tab_double (t, 4, 1, 0, 0.0, NULL);
   t_stat = linreg_intercept (c) / std_err;
   tab_double (t, 5, 1, 0, t_stat, NULL);
-  pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), 1.0);
+  pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), (double) (linreg_n_obs (c) - linreg_n_coeffs (c)));
   tab_double (t, 6, 1, 0, pval, NULL);
   for (j = 0; j < linreg_n_coeffs (c); j++)
     {
