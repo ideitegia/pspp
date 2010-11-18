@@ -338,7 +338,7 @@ apply_dict (const struct dictionary *dict, struct string *s)
               const struct val_lab *vl = labels[i];
               ds_put_cstr (s, "\n  ");
               syntax_gen_value (s, &vl->value, width, format);
-              ds_put_char (s, ' ');
+              ds_put_byte (s, ' ');
               syntax_gen_string (s, ss_cstr (val_lab_get_label (vl)));
             }
           free (labels);
@@ -398,9 +398,9 @@ generate_syntax (const struct import_assistant *ia)
   if (ia->first_line.skip_lines > 0)
     ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line.skip_lines + 1);
   ds_put_cstr (&s, "  /DELIMITERS=\"");
-  if (ds_find_char (&ia->separators.separators, '\t') != SIZE_MAX)
+  if (ds_find_byte (&ia->separators.separators, '\t') != SIZE_MAX)
     ds_put_cstr (&s, "\\t");
-  if (ds_find_char (&ia->separators.separators, '\\') != SIZE_MAX)
+  if (ds_find_byte (&ia->separators.separators, '\\') != SIZE_MAX)
     ds_put_cstr (&s, "\\\\");
   for (i = 0; i < ds_length (&ia->separators.separators); i++)
     {
@@ -408,7 +408,7 @@ generate_syntax (const struct import_assistant *ia)
       if (c == '"')
         ds_put_cstr (&s, "\"\"");
       else if (c != '\t' && c != '\\')
-        ds_put_char (&s, c);
+        ds_put_byte (&s, c);
     }
   ds_put_cstr (&s, "\"\n");
   if (!ds_is_empty (&ia->separators.quotes))
@@ -1169,7 +1169,7 @@ split_fields (struct import_assistant *ia)
   clear_fields (ia);
 
   /* Is space in the set of separators? */
-  space_sep = ss_find_char (ds_ss (&s->separators), ' ') != SIZE_MAX;
+  space_sep = ss_find_byte (ds_ss (&s->separators), ' ') != SIZE_MAX;
 
   /* Split all the lines, not just those from
      ia->first_line.skip_lines on, so that we split the line that
@@ -1196,9 +1196,9 @@ split_fields (struct import_assistant *ia)
               field = text;
             }
           else if (!ds_is_empty (&s->quotes)
-                   && ds_find_char (&s->quotes, text.string[0]) != SIZE_MAX)
+                   && ds_find_byte (&s->quotes, text.string[0]) != SIZE_MAX)
             {
-              int quote = ss_get_char (&text);
+              int quote = ss_get_byte (&text);
               if (!s->escape)
                 ss_get_until (&text, quote, &field);
               else
@@ -1207,18 +1207,18 @@ split_fields (struct import_assistant *ia)
                   int c;
 
                   ds_init_empty (&s);
-                  while ((c = ss_get_char (&text)) != EOF)
+                  while ((c = ss_get_byte (&text)) != EOF)
                     if (c != quote)
-                      ds_put_char (&s, c);
-                    else if (ss_match_char (&text, quote))
-                      ds_put_char (&s, quote);
+                      ds_put_byte (&s, c);
+                    else if (ss_match_byte (&text, quote))
+                      ds_put_byte (&s, quote);
                     else
                       break;
                   field = ds_ss (&s);
                 }
             }
           else
-            ss_get_chars (&text, ss_cspan (text, ds_ss (&s->separators)),
+            ss_get_bytes (&text, ss_cspan (text, ds_ss (&s->separators)),
                           &field);
 
           if (column_idx >= s->column_cnt)
@@ -1243,7 +1243,7 @@ split_fields (struct import_assistant *ia)
             ss_ltrim (&text, ss_cstr (" "));
           if (ss_is_empty (text))
             break;
-          if (ss_find_char (ds_ss (&s->separators), ss_first (text))
+          if (ss_find_byte (ds_ss (&s->separators), ss_first (text))
               != SIZE_MAX)
             ss_advance (&text, 1);
         }
@@ -1331,7 +1331,7 @@ find_commonest_chars (unsigned long int histogram[UCHAR_MAX + 1],
   if (max_count > 0)
     {
       ds_clear (result);
-      ds_put_char (result, max);
+      ds_put_byte (result, max);
     }
   else
     ds_assign_cstr (result, def);
@@ -1387,7 +1387,7 @@ set_separators (struct import_assistant *ia)
             }
         }
 
-      ds_put_char (&custom, c);
+      ds_put_byte (&custom, c);
     next:;
     }
 
@@ -1430,7 +1430,7 @@ get_separators (struct import_assistant *ia)
       const struct separator *sep = &separators[i];
       GtkWidget *button = get_widget_assert (ia->asst.builder, sep->name);
       if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button)))
-        ds_put_char (&s->separators, sep->c);
+        ds_put_byte (&s->separators, sep->c);
     }
 
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (s->custom_cb)))
@@ -1952,8 +1952,8 @@ get_monospace_width (GtkTreeView *treeview, GtkCellRenderer *renderer,
   gint width;
 
   ds_init_empty (&s);
-  ds_put_char_multiple (&s, '0', char_cnt);
-  ds_put_char (&s, ' ');
+  ds_put_byte_multiple (&s, '0', char_cnt);
+  ds_put_byte (&s, ' ');
   width = get_string_width (treeview, renderer, ds_cstr (&s));
   ds_destroy (&s);
 

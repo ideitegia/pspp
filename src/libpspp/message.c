@@ -127,7 +127,7 @@ msg_to_string (const struct msg *m, const char *command_name)
       if (m->where.line_number > 0)
         {
           if (!ds_is_empty (&s))
-            ds_put_char (&s, ':');
+            ds_put_byte (&s, ':');
           ds_put_format (&s, "%d", m->where.line_number);
         }
       if (m->where.first_column > 0)

@@ -38,8 +38,8 @@ syntax_gen_hex_digits (struct string *output, struct substring in)
   for (i = 0; i < in.length; i++)
     {
       unsigned char c = in.string[i];
-      ds_put_char (output, "0123456789ABCDEF"[c >> 4]);
-      ds_put_char (output, "0123456789ABCDEF"[c & 0xf]);
+      ds_put_byte (output, "0123456789ABCDEF"[c >> 4]);
+      ds_put_byte (output, "0123456789ABCDEF"[c & 0xf]);
     }
 }
 
@@ -59,13 +59,13 @@ has_control_chars (struct substring in)
 static bool
 has_single_quote (struct substring str)
 {
-  return (SIZE_MAX != ss_find_char (str, '\''));
+  return (SIZE_MAX != ss_find_byte (str, '\''));
 }
 
 static bool
 has_double_quote (struct substring str)
 {
-  return (SIZE_MAX != ss_find_char (str, '"'));
+  return (SIZE_MAX != ss_find_byte (str, '"'));
 }
 
 /* Appends to OUTPUT valid PSPP syntax for a quoted string that
@@ -84,7 +84,7 @@ syntax_gen_string (struct string *output, struct substring in)
     {
       ds_put_cstr (output, "X'");
       syntax_gen_hex_digits (output, in);
-      ds_put_char (output, '\'');
+      ds_put_byte (output, '\'');
     }
   else
     {
@@ -99,15 +99,15 @@ syntax_gen_string (struct string *output, struct substring in)
       assert (is_basic ('\''));
 
       quote = has_double_quote (in) && !has_single_quote (in) ? '\'' : '"';
-      ds_put_char (output, quote);
+      ds_put_byte (output, quote);
       for (i = 0; i < in.length; i++)
         {
           char c = in.string[i];
           if (c == quote)
-            ds_put_char (output, quote);
-          ds_put_char (output, c);
+            ds_put_byte (output, quote);
+          ds_put_byte (output, c);
         }
-      ds_put_char (output, quote);
+      ds_put_byte (output, quote);
     }
 }
 
@@ -286,7 +286,7 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
           }
 
         case '%':
-          ds_put_char (output, '%');
+          ds_put_byte (output, '%');
           break;
 
         default:

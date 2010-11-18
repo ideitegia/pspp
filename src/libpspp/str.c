@@ -23,15 +23,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <libpspp/cast.h>
-#include <libpspp/message.h>
-#include <libpspp/pool.h>
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "libpspp/pool.h"
 
-#include <relocatable.h>
-#include "minmax.h"
-#include "xalloc.h"
-#include "xmemdup0.h"
-#include "xsize.h"
+#include "gl/relocatable.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
+#include "gl/xmemdup0.h"
+#include "gl/xsize.h"
 
 /* Reverses the order of NBYTES bytes at address P, thus converting
    between little- and big-endian byte orders.  */
@@ -181,8 +181,8 @@ buf_copy_rpad (char *dst, size_t dst_size,
 
 /* Copies string SRC to string DST, which is in a buffer DST_SIZE
    bytes long.
-   Truncates DST to DST_SIZE - 1 characters or right-pads with
-   spaces to DST_SIZE - 1 characters if necessary. */
+   Truncates DST to DST_SIZE - 1 bytes or right-pads with
+   spaces to DST_SIZE - 1 bytes if necessary. */
 void
 str_copy_rpad (char *dst, size_t dst_size, const char *src)
 {
@@ -201,7 +201,7 @@ str_copy_rpad (char *dst, size_t dst_size, const char *src)
 }
 
 /* Copies SRC to DST, which is in a buffer DST_SIZE bytes long.
-   Truncates DST to DST_SIZE - 1 characters, if necessary. */
+   Truncates DST to DST_SIZE - 1 bytes, if necessary. */
 void
 str_copy_trunc (char *dst, size_t dst_size, const char *src)
 {
@@ -218,7 +218,7 @@ str_copy_trunc (char *dst, size_t dst_size, const char *src)
 
 /* Copies buffer SRC, of SRC_LEN bytes,
    to DST, which is in a buffer DST_SIZE bytes long.
-   Truncates DST to DST_SIZE - 1 characters, if necessary. */
+   Truncates DST to DST_SIZE - 1 bytes, if necessary. */
 void
 str_copy_buf_trunc (char *dst, size_t dst_size,
                     const char *src, size_t src_size)
@@ -231,7 +231,7 @@ str_copy_buf_trunc (char *dst, size_t dst_size,
   dst[dst_len] = '\0';
 }
 
-/* Converts each character in S to uppercase. */
+/* Converts each byte in S to uppercase. */
 void
 str_uppercase (char *s)
 {
@@ -239,7 +239,7 @@ str_uppercase (char *s)
     *s = toupper ((unsigned char) *s);
 }
 
-/* Converts each character in S to lowercase. */
+/* Converts each byte in S to lowercase. */
 void
 str_lowercase (char *s)
 {
@@ -293,7 +293,7 @@ mempset (void *block, int c, size_t size)
 
 /* Substrings. */
 
-/* Returns a substring whose contents are the CNT characters
+/* Returns a substring whose contents are the CNT bytes
    starting at the (0-based) position START in SS. */
 struct substring
 ss_substr (struct substring ss, size_t start, size_t cnt)
@@ -305,14 +305,14 @@ ss_substr (struct substring ss, size_t start, size_t cnt)
 }
 
 /* Returns a substring whose contents are the first CNT
-   characters in SS. */
+   bytes in SS. */
 struct substring
 ss_head (struct substring ss, size_t cnt)
 {
   return ss_buffer (ss.string, MIN (cnt, ss.length));
 }
 
-/* Returns a substring whose contents are the last CNT characters
+/* Returns a substring whose contents are the last CNT bytes
    in SS. */
 struct substring
 ss_tail (struct substring ss, size_t cnt)
@@ -332,7 +332,7 @@ ss_alloc_substring (struct substring *new, struct substring old)
   new->length = old.length;
 }
 
-/* Allocates room for a CNT-character string in NEW. */
+/* Allocates room for a CNT-byte string in NEW. */
 void
 ss_alloc_uninit (struct substring *new, size_t cnt)
 {
@@ -351,7 +351,7 @@ ss_alloc_substring_pool (struct substring *new, struct substring old,
   memcpy (new->string, old.string, old.length);
 }
 
-/* Allocates room for a CNT-character string in NEW in POOL. */
+/* Allocates room for a CNT-byte string in NEW in POOL. */
 void
 ss_alloc_uninit_pool (struct substring *new, size_t cnt, struct pool *pool)
 {
@@ -366,7 +366,7 @@ ss_dealloc (struct substring *ss)
   free (ss->string);
 }
 
-/* Truncates SS to at most CNT characters in length. */
+/* Truncates SS to at most CNT bytes in length. */
 void
 ss_truncate (struct substring *ss, size_t cnt)
 {
@@ -374,22 +374,22 @@ ss_truncate (struct substring *ss, size_t cnt)
     ss->length = cnt;
 }
 
-/* Removes trailing characters in TRIM_SET from SS.
-   Returns number of characters removed. */
+/* Removes trailing bytes in TRIM_SET from SS.
+   Returns number of bytes removed. */
 size_t
 ss_rtrim (struct substring *ss, struct substring trim_set)
 {
   size_t cnt = 0;
   while (cnt < ss->length
-         && ss_find_char (trim_set,
+         && ss_find_byte (trim_set,
                           ss->string[ss->length - cnt - 1]) != SIZE_MAX)
     cnt++;
   ss->length -= cnt;
   return cnt;
 }
 
-/* Removes leading characters in TRIM_SET from SS.
-   Returns number of characters removed. */
+/* Removes leading bytes in TRIM_SET from SS.
+   Returns number of bytes removed. */
 size_t
 ss_ltrim (struct substring *ss, struct substring trim_set)
 {
@@ -398,7 +398,7 @@ ss_ltrim (struct substring *ss, struct substring trim_set)
   return cnt;
 }
 
-/* Trims leading and trailing characters in TRIM_SET from SS. */
+/* Trims leading and trailing bytes in TRIM_SET from SS. */
 void
 ss_trim (struct substring *ss, struct substring trim_set)
 {
@@ -406,7 +406,7 @@ ss_trim (struct substring *ss, struct substring trim_set)
   ss_rtrim (ss, trim_set);
 }
 
-/* If the last character in SS is C, removes it and returns true.
+/* If the last byte in SS is C, removes it and returns true.
    Otherwise, returns false without changing the string. */
 bool
 ss_chomp (struct substring *ss, char c)
@@ -466,12 +466,12 @@ ss_tokenize (struct substring ss, struct substring delimiters,
 {
   ss_advance (&ss, *save_idx);
   *save_idx += ss_ltrim (&ss, delimiters);
-  ss_get_chars (&ss, ss_cspan (ss, delimiters), token);
+  ss_get_bytes (&ss, ss_cspan (ss, delimiters), token);
   *save_idx += ss_length (*token) + 1;
   return ss_length (*token) > 0;
 }
 
-/* Removes the first CNT characters from SS. */
+/* Removes the first CNT bytes from SS. */
 void
 ss_advance (struct substring *ss, size_t cnt)
 {
@@ -481,10 +481,10 @@ ss_advance (struct substring *ss, size_t cnt)
   ss->length -= cnt;
 }
 
-/* If the first character in SS is C, removes it and returns true.
+/* If the first byte in SS is C, removes it and returns true.
    Otherwise, returns false without changing the string. */
 bool
-ss_match_char (struct substring *ss, char c)
+ss_match_byte (struct substring *ss, char c)
 {
   if (ss_first (*ss) == c)
     {
@@ -496,11 +496,11 @@ ss_match_char (struct substring *ss, char c)
     return false;
 }
 
-/* If the first character in SS is in MATCH, removes it and
-   returns the character that was removed.
+/* If the first byte in SS is in MATCH, removes it and
+   returns the byte that was removed.
    Otherwise, returns EOF without changing the string. */
 int
-ss_match_char_in (struct substring *ss, struct substring match)
+ss_match_byte_in (struct substring *ss, struct substring match)
 {
   int c = EOF;
   if (ss->length > 0
@@ -528,10 +528,10 @@ ss_match_string (struct substring *ss, const struct substring target)
     return false;
 }
 
-/* Removes the first character from SS and returns it.
+/* Removes the first byte from SS and returns it.
    If SS is empty, returns EOF without modifying SS. */
 int
-ss_get_char (struct substring *ss)
+ss_get_byte (struct substring *ss)
 {
   int c = ss_first (*ss);
   if (c != EOF)
@@ -543,21 +543,21 @@ ss_get_char (struct substring *ss)
 }
 
 /* Stores the prefix of SS up to the first DELIMITER in OUT (if
-   any).  Trims those same characters from SS.  DELIMITER is
+   any).  Trims those same bytes from SS.  DELIMITER is
    removed from SS but not made part of OUT.  Returns true if
    DELIMITER was found (and removed), false otherwise. */
 bool
 ss_get_until (struct substring *ss, char delimiter, struct substring *out)
 {
-  ss_get_chars (ss, ss_cspan (*ss, ss_buffer (&delimiter, 1)), out);
-  return ss_match_char (ss, delimiter);
+  ss_get_bytes (ss, ss_cspan (*ss, ss_buffer (&delimiter, 1)), out);
+  return ss_match_byte (ss, delimiter);
 }
 
-/* Stores the first CNT characters in SS in OUT (or fewer, if SS
-   is shorter than CNT characters).  Trims the same characters
+/* Stores the first CNT bytes in SS in OUT (or fewer, if SS
+   is shorter than CNT bytes).  Trims the same bytes
    from the beginning of SS.  Returns CNT. */
 size_t
-ss_get_chars (struct substring *ss, size_t cnt, struct substring *out)
+ss_get_bytes (struct substring *ss, size_t cnt, struct substring *out)
 {
   *out = ss_head (*ss, cnt);
   ss_advance (ss, cnt);
@@ -566,7 +566,7 @@ ss_get_chars (struct substring *ss, size_t cnt, struct substring *out)
 
 /* Parses and removes an optionally signed decimal integer from
    the beginning of SS.  Returns 0 if an error occurred,
-   otherwise the number of characters removed from SS.  Stores
+   otherwise the number of bytes removed from SS.  Stores
    the integer's value into *VALUE. */
 size_t
 ss_get_long (struct substring *ss, long *value)
@@ -594,7 +594,7 @@ ss_get_long (struct substring *ss, long *value)
   return 0;
 }
 
-/* Returns true if SS is empty (contains no characters),
+/* Returns true if SS is empty (has length 0 bytes),
    false otherwise. */
 bool
 ss_is_empty (struct substring ss)
@@ -602,28 +602,28 @@ ss_is_empty (struct substring ss)
   return ss.length == 0;
 }
 
-/* Returns the number of characters in SS. */
+/* Returns the number of bytes in SS. */
 size_t
 ss_length (struct substring ss)
 {
   return ss.length;
 }
 
-/* Returns a pointer to the characters in SS. */
+/* Returns a pointer to the bytes in SS. */
 char *
 ss_data (struct substring ss)
 {
   return ss.string;
 }
 
-/* Returns a pointer just past the last character in SS. */
+/* Returns a pointer just past the last byte in SS. */
 char *
 ss_end (struct substring ss)
 {
   return ss.string + ss.length;
 }
 
-/* Returns the character in position IDX in SS, as a value in the
+/* Returns the byte in position IDX in SS, as a value in the
    range of unsigned char.  Returns EOF if IDX is out of the
    range of indexes for SS. */
 int
@@ -632,7 +632,7 @@ ss_at (struct substring ss, size_t idx)
   return idx < ss.length ? (unsigned char) ss.string[idx] : EOF;
 }
 
-/* Returns the first character in SS as a value in the range of
+/* Returns the first byte in SS as a value in the range of
    unsigned char.  Returns EOF if SS is the empty string. */
 int
 ss_first (struct substring ss)
@@ -640,7 +640,7 @@ ss_first (struct substring ss)
   return ss_at (ss, 0);
 }
 
-/* Returns the last character in SS as a value in the range of
+/* Returns the last byte in SS as a value in the range of
    unsigned char.  Returns EOF if SS is the empty string. */
 int
 ss_last (struct substring ss)
@@ -648,26 +648,26 @@ ss_last (struct substring ss)
   return ss.length > 0 ? (unsigned char) ss.string[ss.length - 1] : EOF;
 }
 
-/* Returns the number of contiguous characters at the beginning
+/* Returns the number of contiguous bytes at the beginning
    of SS that are in SKIP_SET. */
 size_t
 ss_span (struct substring ss, struct substring skip_set)
 {
   size_t i;
   for (i = 0; i < ss.length; i++)
-    if (ss_find_char (skip_set, ss.string[i]) == SIZE_MAX)
+    if (ss_find_byte (skip_set, ss.string[i]) == SIZE_MAX)
       break;
   return i;
 }
 
-/* Returns the number of contiguous characters at the beginning
+/* Returns the number of contiguous bytes at the beginning
    of SS that are not in SKIP_SET. */
 size_t
 ss_cspan (struct substring ss, struct substring stop_set)
 {
   size_t i;
   for (i = 0; i < ss.length; i++)
-    if (ss_find_char (stop_set, ss.string[i]) != SIZE_MAX)
+    if (ss_find_byte (stop_set, ss.string[i]) != SIZE_MAX)
       break;
   return i;
 }
@@ -675,7 +675,7 @@ ss_cspan (struct substring ss, struct substring stop_set)
 /* Returns the offset in SS of the first instance of C,
    or SIZE_MAX if C does not occur in SS. */
 size_t
-ss_find_char (struct substring ss, char c)
+ss_find_byte (struct substring ss, char c)
 {
   const char *p = memchr (ss.string, c, ss.length);
   return p != NULL ? p - ss.string : SIZE_MAX;
@@ -720,7 +720,7 @@ ss_equals_case (struct substring a, struct substring b)
   return a.length == b.length && !memcasecmp (a.string, b.string, a.length);
 }
 
-/* Returns the position in SS that the character at P occupies.
+/* Returns the position in SS that the byte at P occupies.
    P must point within SS or one past its end. */
 size_t
 ss_pointer_to_position (struct substring ss, const char *p)
@@ -859,20 +859,20 @@ ds_ss (const struct string *st)
   return st->ss;
 }
 
-/* Returns a substring that contains CNT characters from ST
+/* Returns a substring that contains CNT bytes from ST
    starting at position START.
 
    If START is greater than or equal to the length of ST, then
    the substring will be the empty string.  If START + CNT
    exceeds the length of ST, then the substring will only be
-   ds_length(ST) - START characters long. */
+   ds_length(ST) - START bytes long. */
 struct substring
 ds_substr (const struct string *st, size_t start, size_t cnt)
 {
   return ss_substr (ds_ss (st), start, cnt);
 }
 
-/* Returns a substring that contains the first CNT characters in
+/* Returns a substring that contains the first CNT bytes in
    ST.  If CNT exceeds the length of ST, then the substring will
    contain all of ST. */
 struct substring
@@ -881,7 +881,7 @@ ds_head (const struct string *st, size_t cnt)
   return ss_head (ds_ss (st), cnt);
 }
 
-/* Returns a substring that contains the last CNT characters in
+/* Returns a substring that contains the last CNT bytes in
    ST.  If CNT exceeds the length of ST, then the substring will
    contain all of ST. */
 struct substring
@@ -890,7 +890,7 @@ ds_tail (const struct string *st, size_t cnt)
   return ss_tail (ds_ss (st), cnt);
 }
 
-/* Ensures that ST can hold at least MIN_CAPACITY characters plus a null
+/* Ensures that ST can hold at least MIN_CAPACITY bytes plus a null
    terminator. */
 void
 ds_extend (struct string *st, size_t min_capacity)
@@ -916,23 +916,23 @@ ds_shrink (struct string *st)
     }
 }
 
-/* Truncates ST to at most LENGTH characters long. */
+/* Truncates ST to at most LENGTH bytes long. */
 void
 ds_truncate (struct string *st, size_t length)
 {
   ss_truncate (&st->ss, length);
 }
 
-/* Removes trailing characters in TRIM_SET from ST.
-   Returns number of characters removed. */
+/* Removes trailing bytes in TRIM_SET from ST.
+   Returns number of bytes removed. */
 size_t
 ds_rtrim (struct string *st, struct substring trim_set)
 {
   return ss_rtrim (&st->ss, trim_set);
 }
 
-/* Removes leading characters in TRIM_SET from ST.
-   Returns number of characters removed. */
+/* Removes leading bytes in TRIM_SET from ST.
+   Returns number of bytes removed. */
 size_t
 ds_ltrim (struct string *st, struct substring trim_set)
 {
@@ -942,8 +942,8 @@ ds_ltrim (struct string *st, struct substring trim_set)
   return cnt;
 }
 
-/* Trims leading and trailing characters in TRIM_SET from ST.
-   Returns number of charactesr removed. */
+/* Trims leading and trailing bytes in TRIM_SET from ST.
+   Returns number of bytes removed. */
 size_t
 ds_trim (struct string *st, struct substring trim_set)
 {
@@ -951,7 +951,7 @@ ds_trim (struct string *st, struct substring trim_set)
   return cnt + ds_ltrim (st, trim_set);
 }
 
-/* If the last character in ST is C, removes it and returns true.
+/* If the last byte in ST is C, removes it and returns true.
    Otherwise, returns false without modifying ST. */
 bool
 ds_chomp (struct string *st, char c)
@@ -994,17 +994,17 @@ ds_tokenize (const struct string *st, struct substring delimiters,
 }
 
 /* Pad ST on the right with copies of PAD until ST is at least
-   LENGTH characters in size.  If ST is initially LENGTH
-   characters or longer, this is a no-op. */
+   LENGTH bytes in size.  If ST is initially LENGTH
+   bytes or longer, this is a no-op. */
 void
 ds_rpad (struct string *st, size_t length, char pad)
 {
   if (length > st->ss.length)
-    ds_put_char_multiple (st, pad, length - st->ss.length);
+    ds_put_byte_multiple (st, pad, length - st->ss.length);
 }
 
 /* Sets the length of ST to exactly NEW_LENGTH,
-   either by truncating characters from the end,
+   either by truncating bytes from the end,
    or by padding on the right with PAD. */
 void
 ds_set_length (struct string *st, size_t new_length, char pad)
@@ -1015,7 +1015,7 @@ ds_set_length (struct string *st, size_t new_length, char pad)
     st->ss.length = new_length;
 }
 
-/* Removes N characters from ST starting at offset START. */
+/* Removes N bytes from ST starting at offset START. */
 void
 ds_remove (struct string *st, size_t start, size_t n)
 {
@@ -1023,12 +1023,12 @@ ds_remove (struct string *st, size_t start, size_t n)
     {
       if (st->ss.length - start <= n)
         {
-          /* All characters at or beyond START are deleted. */
+          /* All bytes at or beyond START are deleted. */
           st->ss.length = start;
         }
       else
         {
-          /* Some characters remain and must be shifted into
+          /* Some bytes remain and must be shifted into
              position. */
           memmove (st->ss.string + st->ss.length,
                    st->ss.string + st->ss.length + n,
@@ -1038,7 +1038,7 @@ ds_remove (struct string *st, size_t start, size_t n)
     }
   else
     {
-      /* There are no characters to delete or no characters at or
+      /* There are no bytes to delete or no bytes at or
          beyond START, hence deletion is a no-op. */
     }
 }
@@ -1065,7 +1065,7 @@ ds_data (const struct string *st)
 }
 
 /* Returns a pointer to the null terminator ST.
-   This might not be an actual null character unless ds_c_str() has
+   This might not be an actual null byte unless ds_c_str() has
    been called since the last modification to ST. */
 char *
 ds_end (const struct string *st)
@@ -1073,7 +1073,7 @@ ds_end (const struct string *st)
   return ss_end (ds_ss (st));
 }
 
-/* Returns the character in position IDX in ST, as a value in the
+/* Returns the byte in position IDX in ST, as a value in the
    range of unsigned char.  Returns EOF if IDX is out of the
    range of indexes for ST. */
 int
@@ -1082,7 +1082,7 @@ ds_at (const struct string *st, size_t idx)
   return ss_at (ds_ss (st), idx);
 }
 
-/* Returns the first character in ST as a value in the range of
+/* Returns the first byte in ST as a value in the range of
    unsigned char.  Returns EOF if ST is the empty string. */
 int
 ds_first (const struct string *st)
@@ -1090,7 +1090,7 @@ ds_first (const struct string *st)
   return ss_first (ds_ss (st));
 }
 
-/* Returns the last character in ST as a value in the range of
+/* Returns the last byte in ST as a value in the range of
    unsigned char.  Returns EOF if ST is the empty string. */
 int
 ds_last (const struct string *st)
@@ -1098,7 +1098,7 @@ ds_last (const struct string *st)
   return ss_last (ds_ss (st));
 }
 
-/* Returns the number of consecutive characters at the beginning
+/* Returns the number of consecutive bytes at the beginning
    of ST that are in SKIP_SET. */
 size_t
 ds_span (const struct string *st, struct substring skip_set)
@@ -1106,7 +1106,7 @@ ds_span (const struct string *st, struct substring skip_set)
   return ss_span (ds_ss (st), skip_set);
 }
 
-/* Returns the number of consecutive characters at the beginning
+/* Returns the number of consecutive bytes at the beginning
    of ST that are not in STOP_SET.  */
 size_t
 ds_cspan (const struct string *st, struct substring stop_set)
@@ -1114,13 +1114,13 @@ ds_cspan (const struct string *st, struct substring stop_set)
   return ss_cspan (ds_ss (st), stop_set);
 }
 
-/* Returns the position of the first occurrence of character C in
+/* Returns the position of the first occurrence of byte C in
    ST at or after position OFS, or SIZE_MAX if there is no such
    occurrence. */
 size_t
-ds_find_char (const struct string *st, char c)
+ds_find_byte (const struct string *st, char c)
 {
-  return ss_find_char (ds_ss (st), c);
+  return ss_find_byte (ds_ss (st), c);
 }
 
 /* Compares A and B and returns a strcmp()-type comparison
@@ -1131,7 +1131,7 @@ ds_compare (const struct string *a, const struct string *b)
   return ss_compare (ds_ss (a), ds_ss (b));
 }
 
-/* Returns the position in ST that the character at P occupies.
+/* Returns the position in ST that the byte at P occupies.
    P must point within ST or one past its end. */
 size_t
 ds_pointer_to_position (const struct string *st, const char *p)
@@ -1176,16 +1176,15 @@ ds_steal_cstr (struct string *st)
   return s;
 }
 
-/* Reads characters from STREAM and appends them to ST, stopping
-   after MAX_LENGTH characters, after appending a newline, or
+/* Reads bytes from STREAM and appends them to ST, stopping
+   after MAX_LENGTH bytes, after appending a newline, or
    after an I/O error or end of file was encountered, whichever
-   comes first.  Returns true if at least one character was added
-   to ST, false if no characters were read before an I/O error or
+   comes first.  Returns true if at least one byte was added
+   to ST, false if no bytes were read before an I/O error or
    end of file (or if MAX_LENGTH was 0).
 
    This function treats LF and CR LF sequences as new-line,
-   translating each of them to a single '\n' new-line character
-   in ST. */
+   translating each of them to a single '\n' in ST. */
 bool
 ds_read_line (struct string *st, FILE *stream, size_t max_length)
 {
@@ -1200,7 +1199,7 @@ ds_read_line (struct string *st, FILE *stream, size_t max_length)
           return length > 0;
 
         case '\n':
-          ds_put_char (st, c);
+          ds_put_byte (st, c);
           return true;
 
         case '\r':
@@ -1208,13 +1207,13 @@ ds_read_line (struct string *st, FILE *stream, size_t max_length)
           if (c == '\n')
             {
               /* CR followed by LF is special: translate to \n. */
-              ds_put_char (st, '\n');
+              ds_put_byte (st, '\n');
               return true;
             }
           else
             {
               /* CR followed by anything else is just CR. */
-              ds_put_char (st, '\r');
+              ds_put_byte (st, '\r');
               if (c == EOF)
                 return true;
               ungetc (c, stream);
@@ -1222,7 +1221,7 @@ ds_read_line (struct string *st, FILE *stream, size_t max_length)
           break;
 
         default:
-          ds_put_char (st, c);
+          ds_put_byte (st, c);
         }
     }
 
@@ -1381,16 +1380,16 @@ ds_put_vformat (struct string *st, const char *format, va_list args_)
     }
 }
 
-/* Appends character CH to ST. */
+/* Appends byte CH to ST. */
 void
-ds_put_char (struct string *st, int ch)
+ds_put_byte (struct string *st, int ch)
 {
   ds_put_uninit (st, 1)[0] = ch;
 }
 
-/* Appends CNT copies of character CH to ST. */
+/* Appends CNT copies of byte CH to ST. */
 void
-ds_put_char_multiple (struct string *st, int ch, size_t cnt)
+ds_put_byte_multiple (struct string *st, int ch, size_t cnt)
 {
   memset (ds_put_uninit (st, cnt), ch, cnt);
 }

@@ -1262,7 +1262,7 @@ dict_set_documents (struct dictionary *d, const char *documents)
      final line with spaces. */
   remainder = ds_length (&d->documents) % DOC_LINE_LENGTH;
   if (remainder != 0)
-    ds_put_char_multiple (&d->documents, ' ', DOC_LINE_LENGTH - remainder);
+    ds_put_byte_multiple (&d->documents, ' ', DOC_LINE_LENGTH - remainder);
 }
 
 /* Drops the documents from dictionary D. */

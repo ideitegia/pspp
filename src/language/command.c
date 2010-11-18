@@ -483,7 +483,7 @@ unknown_command_error (struct lexer *lexer, char *const words[], size_t word_cnt
       for (i = 0; i < word_cnt; i++)
         {
           if (i != 0)
-            ds_put_char (&s, ' ');
+            ds_put_byte (&s, ' ');
           ds_put_cstr (&s, words[i]);
         }
 

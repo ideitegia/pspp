@@ -556,7 +556,7 @@ dfm_expand_tabs (struct dfm_reader *r)
   if (r->fh != fh_inline_file ()
       && (fh_get_mode (r->fh) != FH_MODE_TEXT
           || fh_get_tab_width (r->fh) == 0
-          || ds_find_char (&r->line, '\t') == SIZE_MAX))
+          || ds_find_byte (&r->line, '\t') == SIZE_MAX))
     return;
 
   /* Expand tabs from r->line into r->scratch, and figure out
@@ -573,11 +573,11 @@ dfm_expand_tabs (struct dfm_reader *r)
 
       c = ds_data (&r->line)[ofs];
       if (c != '\t')
-        ds_put_char (&r->scratch, c);
+        ds_put_byte (&r->scratch, c);
       else
         {
           do
-            ds_put_char (&r->scratch, ' ');
+            ds_put_byte (&r->scratch, ' ');
           while (ds_length (&r->scratch) % tab_width != 0);
         }
     }

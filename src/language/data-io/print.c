@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -459,7 +459,7 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
   struct prt_out_spec *spec;
 
   ds_clear (&trns->line);
-  ds_put_char (&trns->line, ' ');
+  ds_put_byte (&trns->line, ' ');
   ll_for_each (spec, struct prt_out_spec, ll, &trns->specs)
     {
       flush_records (trns, spec->record, &eject, &record);
@@ -474,7 +474,7 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
           else
             memset (output, encoded_space, spec->format.w);
           if (spec->add_space)
-            ds_put_char (&trns->line, encoded_space);
+            ds_put_byte (&trns->line, encoded_space);
         }
       else
         {

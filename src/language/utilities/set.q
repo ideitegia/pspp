@@ -558,12 +558,12 @@ format_cc (struct string *out, struct substring in, char grouping)
 {
   while (!ss_is_empty (in))
     {
-      char c = ss_get_char (&in);
+      char c = ss_get_byte (&in);
       if (c == grouping || c == '\'')
-        ds_put_char (out, '\'');
+        ds_put_byte (out, '\'');
       else if (c == '"')
-        ds_put_char (out, '"');
-      ds_put_char (out, c);
+        ds_put_byte (out, '"');
+      ds_put_byte (out, c);
     }
 }
 
@@ -575,11 +575,11 @@ show_cc (enum fmt_type type)
 
   ds_init_empty (&out);
   format_cc (&out, cc->neg_prefix, cc->grouping);
-  ds_put_char (&out, cc->grouping);
+  ds_put_byte (&out, cc->grouping);
   format_cc (&out, cc->prefix, cc->grouping);
-  ds_put_char (&out, cc->grouping);
+  ds_put_byte (&out, cc->grouping);
   format_cc (&out, cc->suffix, cc->grouping);
-  ds_put_char (&out, cc->grouping);
+  ds_put_byte (&out, cc->grouping);
   format_cc (&out, cc->neg_suffix, cc->grouping);
 
   return ds_cstr (&out);

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -304,12 +304,12 @@ add_numeric (struct fmt_guesser *g, struct substring s)
   int c;
 
   /* Skip leading "$" and optional following white space. */
-  has_dollar = ss_match_char (&s, '$');
+  has_dollar = ss_match_byte (&s, '$');
   if (has_dollar)
     ss_ltrim (&s, ss_cstr (CC_SPACES));
 
   /* Skip optional sign. */
-  ss_match_char_in (&s, ss_cstr ("+-"));
+  ss_match_byte_in (&s, ss_cstr ("+-"));
 
   /* Skip digits punctuated by commas and dots.  We don't know
      whether the decimal point is a comma or a dot, so for now we
@@ -348,10 +348,10 @@ add_numeric (struct fmt_guesser *g, struct substring s)
     }
 
   /* Skip the optional exponent. */
-  has_exp = ss_match_char_in (&s, ss_cstr ("eEdD")) != EOF;
-  has_exp_sign = ss_match_char_in (&s, ss_cstr ("-+")) != EOF;
+  has_exp = ss_match_byte_in (&s, ss_cstr ("eEdD")) != EOF;
+  has_exp_sign = ss_match_byte_in (&s, ss_cstr ("-+")) != EOF;
   if (has_exp_sign)
-    ss_match_char (&s, ' ');
+    ss_match_byte (&s, ' ');
   exp_digits = ss_ltrim (&s, ss_cstr (CC_DIGITS));
   if ((has_exp || has_exp_sign) && !exp_digits)
     {
@@ -361,7 +361,7 @@ add_numeric (struct fmt_guesser *g, struct substring s)
     }
 
   /* Skip optional '%'. */
-  has_percent = ss_match_char (&s, '%');
+  has_percent = ss_match_byte (&s, '%');
   if (has_dollar && has_percent)
     {
       /* A valid number cannot have both '$' and '%'. */
@@ -635,7 +635,7 @@ parse_date_token (struct substring *s, enum date_token tokens_seen,
         ss_advance (s, 1);
         token = recognize_identifier_token (s);
         if (token)
-          ss_match_char_in (s, ss_cstr (CC_SPACES));
+          ss_match_byte_in (s, ss_cstr (CC_SPACES));
         else
           token = DT_DELIM | DT_SPACE;
         return token;
@@ -666,7 +666,7 @@ parse_date_number (struct substring *s, enum date_token tokens_seen,
   size_t digit_cnt = ss_get_long (s, &value);
   enum date_token token = 0;
 
-  if (ss_match_char (s, settings_get_decimal_char (FMT_F))
+  if (ss_match_byte (s, settings_get_decimal_char (FMT_F))
       && tokens_seen & DT_COLON
       && value <= 59)
     {

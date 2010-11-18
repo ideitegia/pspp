@@ -688,20 +688,20 @@ settings_dollar_template (const struct fmt_spec *fmt)
 
   fns = fmt_settings_get_style (the_settings.styles, fmt->type);
 
-  ds_put_char (&str, '$');
+  ds_put_byte (&str, '$');
   for (c = MAX (fmt->w - fmt->d - 1, 0); c > 0; )
     {
-      ds_put_char (&str, '#');
+      ds_put_byte (&str, '#');
       if (--c % 4 == 0 && c > 0)
         {
-          ds_put_char (&str, fns->grouping);
+          ds_put_byte (&str, fns->grouping);
           --c;
         }
     }
   if (fmt->d > 0)
     {
-      ds_put_char (&str, fns->decimal);
-      ds_put_char_multiple (&str, '#', fmt->d);
+      ds_put_byte (&str, fns->decimal);
+      ds_put_byte_multiple (&str, '#', fmt->d);
     }
 
   return ds_cstr (&str);

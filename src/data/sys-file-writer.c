@@ -572,10 +572,10 @@ put_attrset (struct string *string, const struct attrset *attrs)
       size_t j;
 
       ds_put_cstr (string, attribute_get_name (attr));
-      ds_put_char (string, '(');
+      ds_put_byte (string, '(');
       for (j = 0; j < n_values; j++) 
         ds_put_format (string, "'%s'\n", attribute_get_value (attr, j));
-      ds_put_char (string, ')');
+      ds_put_byte (string, ')');
     }
 }
 
@@ -615,7 +615,7 @@ write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
       if (attrset_count (attrs)) 
         {
           if (n_attrsets++)
-            ds_put_char (&s, '/');
+            ds_put_byte (&s, '/');
           ds_put_format (&s, "%s:", var_get_short_name (v, 0));
           put_attrset (&s, attrs);
         }
@@ -658,7 +658,7 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
           if (mrset->cat_source == MRSET_COUNTEDVALUES)
             ds_put_format (&s, "E %d ", mrset->label_from_var_label ? 11 : 1);
           else
-            ds_put_char (&s, 'D');
+            ds_put_byte (&s, 'D');
 
           if (mrset->width == 0)
             counted = xasprintf ("%.0f", mrset->counted.f);
@@ -669,15 +669,15 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
           free (counted);
         }
       else
-        ds_put_char (&s, 'C');
-      ds_put_char (&s, ' ');
+        ds_put_byte (&s, 'C');
+      ds_put_byte (&s, ' ');
 
       label = mrset->label && !mrset->label_from_var_label ? mrset->label : "";
       ds_put_format (&s, "%zu %s", strlen (label), label);
 
       for (j = 0; j < mrset->n_vars; j++)
         ds_put_format (&s, " %s", var_get_short_name (mrset->vars[j], 0));
-      ds_put_char (&s, '\n');
+      ds_put_byte (&s, '\n');
     }
   write_attribute_record (w, &s, 7);
   ds_destroy (&s);
@@ -843,7 +843,7 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
       char *longname = recode_string (dict_get_encoding (dict), UTF8, var_get_name (v), -1);
 
       if (i)
-        ds_put_char (&map, '\t');
+        ds_put_byte (&map, '\t');
       ds_put_format (&map, "%s=%s",
                      var_get_short_name (v, 0), longname);
       free (longname);

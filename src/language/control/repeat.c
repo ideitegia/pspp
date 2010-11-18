@@ -259,7 +259,7 @@ recognize_keyword (struct substring *line, const char *keyword)
 {
   struct substring id;
   ss_ltrim (line, ss_cstr (CC_SPACES));
-  ss_get_chars (line, lex_id_get_length (*line), &id);
+  ss_get_bytes (line, lex_id_get_length (*line), &id);
   return lex_id_match (ss_cstr (keyword), id);
 }
 
@@ -541,18 +541,18 @@ do_repeat_filter (struct getl_interface *interface, struct string *line)
 
       if (in_quote || in_apos || !lex_is_id1 (c))
         {
-          ds_put_char (&output, c);
+          ds_put_byte (&output, c);
           ss_advance (&input, 1);
         }
       else
         {
           struct substring id;
-          ss_get_chars (&input, lex_id_get_length (input), &id);
+          ss_get_bytes (&input, lex_id_get_length (input), &id);
           ds_put_substring (&output, find_substitution (block, id));
         }
     }
   if (dot)
-    ds_put_char (&output, settings_get_endcmd ());
+    ds_put_byte (&output, settings_get_endcmd ());
 
   ds_swap (line, &output);
   ds_destroy (&output);

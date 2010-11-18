@@ -83,7 +83,7 @@ read_single_line (struct getl_interface *i,
   if ( sss->posn == -1)
     return false;
 
-  next = ss_find_char (ds_substr (&sss->buffer,
+  next = ss_find_byte (ds_substr (&sss->buffer,
 				  sss->posn, -1), '\n');
 
   ds_assign_substring (line,

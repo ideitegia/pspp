@@ -144,7 +144,7 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
       while (lex_is_string (lexer))
         {
           if (!ds_is_empty (&command))
-            ds_put_char (&command, '\n');
+            ds_put_byte (&command, '\n');
           ds_put_substring (&command, ds_ss (lex_tokstr (lexer)));
           lex_get (lexer);
         }

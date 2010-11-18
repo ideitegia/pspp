@@ -420,11 +420,11 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
             ds_put_cstr (&hard_seps, "\t");
           if (ss_match_string (&s, ss_cstr ("\\\\")))
             ds_put_cstr (&hard_seps, "\\");
-          while ((c = ss_get_char (&s)) != EOF)
+          while ((c = ss_get_byte (&s)) != EOF)
             if (c == ' ')
               soft_seps = " ";
             else
-              ds_put_char (&hard_seps, c);
+              ds_put_byte (&hard_seps, c);
           data_parser_set_soft_delimiters (parser, ss_cstr (soft_seps));
           data_parser_set_hard_delimiters (parser, ds_ss (&hard_seps));
           ds_destroy (&hard_seps);

@@ -224,7 +224,7 @@ lex_get (struct lexer *lexer)
 	       negative numbers into two tokens. */
 	    if (*lexer->prog == '-')
 	      {
-		ds_put_char (&lexer->tokstr, *lexer->prog++);
+		ds_put_byte (&lexer->tokstr, *lexer->prog++);
 		while (c_isspace ((unsigned char) *lexer->prog))
 		  lexer->prog++;
 
@@ -240,20 +240,20 @@ lex_get (struct lexer *lexer)
 
 	    /* Parse the number, copying it into tokstr. */
 	    while (c_isdigit ((unsigned char) *lexer->prog))
-	      ds_put_char (&lexer->tokstr, *lexer->prog++);
+	      ds_put_byte (&lexer->tokstr, *lexer->prog++);
 	    if (*lexer->prog == '.')
 	      {
-		ds_put_char (&lexer->tokstr, *lexer->prog++);
+		ds_put_byte (&lexer->tokstr, *lexer->prog++);
 		while (c_isdigit ((unsigned char) *lexer->prog))
-		  ds_put_char (&lexer->tokstr, *lexer->prog++);
+		  ds_put_byte (&lexer->tokstr, *lexer->prog++);
 	      }
 	    if (*lexer->prog == 'e' || *lexer->prog == 'E')
 	      {
-		ds_put_char (&lexer->tokstr, *lexer->prog++);
+		ds_put_byte (&lexer->tokstr, *lexer->prog++);
 		if (*lexer->prog == '+' || *lexer->prog == '-')
-		  ds_put_char (&lexer->tokstr, *lexer->prog++);
+		  ds_put_byte (&lexer->tokstr, *lexer->prog++);
 		while (c_isdigit ((unsigned char) *lexer->prog))
-		  ds_put_char (&lexer->tokstr, *lexer->prog++);
+		  ds_put_byte (&lexer->tokstr, *lexer->prog++);
 	      }
 
 	    /* Parse as floating point. */
@@ -265,7 +265,7 @@ lex_get (struct lexer *lexer)
 		lexer->tokval = 0.0;
 
 		ds_clear (&lexer->tokstr);
-		ds_put_char (&lexer->tokstr, '0');
+		ds_put_byte (&lexer->tokstr, '0');
 	      }
 
 	    break;
@@ -1135,7 +1135,7 @@ parse_string (struct lexer *lexer, enum string_type type)
 		break;
 	    }
 
-	  ds_put_char (&lexer->tokstr, *lexer->prog++);
+	  ds_put_byte (&lexer->tokstr, *lexer->prog++);
 	}
       lexer->prog++;
 

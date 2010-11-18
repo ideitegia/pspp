@@ -102,11 +102,11 @@ bool ss_separate (struct substring src, struct substring delimiters,
 bool ss_tokenize (struct substring src, struct substring delimiters,
                   size_t *save_idx, struct substring *token);
 void ss_advance (struct substring *, size_t);
-bool ss_match_char (struct substring *, char);
-int ss_match_char_in (struct substring *, struct substring);
+bool ss_match_byte (struct substring *, char);
+int ss_match_byte_in (struct substring *, struct substring);
 bool ss_match_string (struct substring *, const struct substring);
-int ss_get_char (struct substring *);
-size_t ss_get_chars (struct substring *, size_t cnt, struct substring *);
+int ss_get_byte (struct substring *);
+size_t ss_get_bytes (struct substring *, size_t cnt, struct substring *);
 bool ss_get_until (struct substring *, char delimiter, struct substring *);
 size_t ss_get_long (struct substring *, long *);
 
@@ -120,7 +120,7 @@ int ss_first (struct substring);
 int ss_last (struct substring);
 size_t ss_span (struct substring, struct substring skip_set);
 size_t ss_cspan (struct substring, struct substring stop_set);
-size_t ss_find_char (struct substring, char);
+size_t ss_find_byte (struct substring, char);
 int ss_compare (struct substring, struct substring);
 int ss_compare_case (struct substring, struct substring);
 int ss_equals (struct substring, struct substring);
@@ -193,7 +193,7 @@ int ds_first (const struct string *);
 int ds_last (const struct string *);
 size_t ds_span (const struct string *, struct substring skip_set);
 size_t ds_cspan (const struct string *, struct substring stop_set);
-size_t ds_find_char (const struct string *, char);
+size_t ds_find_byte (const struct string *, char);
 int ds_compare (const struct string *, const struct string *);
 size_t ds_pointer_to_position (const struct string *, const char *);
 char *ds_xstrdup (const struct string *);
@@ -208,8 +208,8 @@ bool ds_read_config_line (struct string *, int *line_number, FILE *);
 bool ds_read_stream (struct string *, size_t size, size_t cnt, FILE *stream);
 
 /* Append. */
-void ds_put_char (struct string *, int ch);
-void ds_put_char_multiple (struct string *, int ch, size_t);
+void ds_put_byte (struct string *, int ch);
+void ds_put_byte_multiple (struct string *, int ch, size_t);
 void ds_put_cstr (struct string *, const char *);
 void ds_put_substring (struct string *, struct substring);
 void ds_put_vformat (struct string *st, const char *, va_list)

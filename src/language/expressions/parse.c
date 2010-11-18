@@ -1149,7 +1149,7 @@ put_invocation (struct string *s,
         ds_put_cstr (s, ", ");
       ds_put_cstr (s, operations[expr_node_returns (args[i])].prototype);
     }
-  ds_put_char (s, ')');
+  ds_put_byte (s, ')');
 }
 
 static void
@@ -1176,7 +1176,7 @@ no_match (const char *func_name,
       for (f = first; f < last; f++)
         ds_put_format (&s, "\n%s", f->prototype);
     }
-  ds_put_char (&s, '.');
+  ds_put_byte (&s, '.');
 
   msg (SE, "%s", ds_cstr (&s));
 

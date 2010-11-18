@@ -450,19 +450,19 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
     }
 
   *first_column = dfm_column_start (reader);
-  if (ss_find_char (parser->quotes, ss_first (p)) != SIZE_MAX)
+  if (ss_find_byte (parser->quotes, ss_first (p)) != SIZE_MAX)
     {
       /* Quoted field. */
-      int quote = ss_get_char (&p);
+      int quote = ss_get_byte (&p);
       if (!ss_get_until (&p, quote, field))
         msg (SW, _("Quoted string extends beyond end of line."));
       if (parser->quote_escape && ss_first (p) == quote)
         {
           ds_assign_substring (tmp, *field);
-          while (ss_match_char (&p, quote))
+          while (ss_match_byte (&p, quote))
             {
               struct substring ss;
-              ds_put_char (tmp, quote);
+              ds_put_byte (tmp, quote);
               if (!ss_get_until (&p, quote, &ss))
                 msg (SW, _("Quoted string extends beyond end of line."));
               ds_put_substring (tmp, ss);
@@ -475,17 +475,17 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
          if present. */
       ss_ltrim (&p, parser->soft_seps);
       if (!ss_is_empty (p)
-          && ss_find_char (parser->hard_seps, ss_first (p)) != SIZE_MAX)
+          && ss_find_byte (parser->hard_seps, ss_first (p)) != SIZE_MAX)
         ss_advance (&p, 1);
     }
   else
     {
       /* Regular field. */
-      ss_get_chars (&p, ss_cspan (p, ds_ss (&parser->any_sep)), field);
+      ss_get_bytes (&p, ss_cspan (p, ds_ss (&parser->any_sep)), field);
       *last_column = *first_column + ss_length (*field);
 
       if (!ss_ltrim (&p, parser->soft_seps) || ss_is_empty (p)
-          || ss_find_char (parser->hard_seps, p.string[0]) != SIZE_MAX)
+          || ss_find_byte (parser->hard_seps, p.string[0]) != SIZE_MAX)
         {
           /* Advance past a trailing hard separator,
              regardless of whether one actually existed.  If

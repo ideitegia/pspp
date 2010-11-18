@@ -901,7 +901,7 @@ static void
 output_title_line (FILE *out, int width, const char *left, const char *right)
 {
   struct string s = DS_EMPTY_INITIALIZER;
-  ds_put_char_multiple (&s, ' ', width);
+  ds_put_byte_multiple (&s, ' ', width);
   if (left != NULL)
     {
       size_t length = MIN (strlen (left), width);
@@ -912,7 +912,7 @@ output_title_line (FILE *out, int width, const char *left, const char *right)
       size_t length = MIN (strlen (right), width);
       memcpy (ds_end (&s) - length, right, length);
     }
-  ds_put_char (&s, '\n');
+  ds_put_byte (&s, '\n');
   fputs (ds_cstr (&s), out);
   ds_destroy (&s);
 }

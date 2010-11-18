@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -47,12 +47,12 @@ parse_abstract_format_specifier__ (struct lexer *lexer,
 
   /* Extract pieces. */
   s = ds_ss (lex_tokstr (lexer));
-  ss_get_chars (&s, ss_span (s, ss_cstr (CC_LETTERS)), &type_ss);
-  ss_get_chars (&s, ss_span (s, ss_cstr (CC_DIGITS)), &width_ss);
-  if (ss_match_char (&s, '.'))
+  ss_get_bytes (&s, ss_span (s, ss_cstr (CC_LETTERS)), &type_ss);
+  ss_get_bytes (&s, ss_span (s, ss_cstr (CC_DIGITS)), &width_ss);
+  if (ss_match_byte (&s, '.'))
     {
       has_decimals = true;
-      ss_get_chars (&s, ss_span (s, ss_cstr (CC_DIGITS)), &decimals_ss);
+      ss_get_bytes (&s, ss_span (s, ss_cstr (CC_DIGITS)), &decimals_ss);
     }
   else
     has_decimals = false;
