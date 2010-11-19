@@ -2,7 +2,10 @@
 
 
 language_lexer_sources = \
-	src/language/lexer/lexer.c  src/language/lexer/lexer.h \
+	src/language/lexer/command-name.c \
+	src/language/lexer/command-name.h \
+	src/language/lexer/lexer.c \
+	src/language/lexer/lexer.h \
 	src/language/lexer/subcommand-list.c  \
 	src/language/lexer/subcommand-list.h \
 	src/language/lexer/format-parser.c \

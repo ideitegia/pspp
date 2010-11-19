@@ -3,6 +3,7 @@
 check_PROGRAMS += \
 	tests/data/datasheet-test \
 	tests/data/inexactify \
+	tests/language/lexer/command-name-test \
 	tests/libpspp/abt-test \
 	tests/libpspp/bt-test \
 	tests/libpspp/heap-test \
@@ -181,6 +182,17 @@ tests_dissect_sysfile_SOURCES = \
 tests_dissect_sysfile_LDADD = gl/libgl.la $(LIBINTL) 
 tests_dissect_sysfile_CPPFLAGS = $(AM_CPPFLAGS) -DINSTALLDIR=\"$(bindir)\"
 
+check_PROGRAMS += tests/language/lexer/command-name-test
+tests_language_lexer_command_name_test_SOURCES = \
+	src/data/identifier.c \
+	src/language/lexer/command-name.c \
+	tests/language/lexer/command-name-test.c
+tests_language_lexer_command_name_test_LDADD = \
+	src/libpspp/libpspp.la \
+	gl/libgl.la \
+	$(LIBINTL) 
+tests_language_lexer_command_name_test_CFLAGS = $(AM_CFLAGS)
+
 check_PROGRAMS += tests/output/render-test
 tests_output_render_test_SOURCES = tests/output/render-test.c
 tests_output_render_test_LDADD = \
@@ -257,6 +269,7 @@ TESTSUITE_AT = \
 	tests/language/dictionary/weight.at \
 	tests/language/expressions/evaluate.at \
 	tests/language/expressions/parse.at \
+	tests/language/lexer/command-name.at \
 	tests/language/lexer/lexer.at \
 	tests/language/lexer/q2c.at \
 	tests/language/lexer/variable-parser.at \
@@ -328,7 +341,7 @@ EXTRA_DIST += tests/testsuite.at
 
 CHECK_LOCAL += tests_check
 tests_check: tests/atconfig tests/atlocal $(TESTSUITE) $(check_PROGRAMS)
-	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/data:tests/libpspp:tests/output:src/ui/terminal $(TESTSUITEFLAGS)
+	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/data:tests/language/lexer:tests/libpspp:tests/output:src/ui/terminal $(TESTSUITEFLAGS)
 
 CLEAN_LOCAL += tests_clean
 tests_clean:
@@ -337,7 +350,7 @@ tests_clean:
 AUTOM4TE = $(SHELL) $(srcdir)/build-aux/missing --run autom4te
 AUTOTEST = $(AUTOM4TE) --language=autotest
 $(TESTSUITE): package.m4 $(srcdir)/tests/testsuite.at $(TESTSUITE_AT) 
-	$(AUTOTEST) -I '$(srcdir)' -o $@.tmp $@.at
+	$(AUTOTEST) -I '$(srcdir)' $@.at | sed 's/@<00A0>@/ /g' > $@.tmp
 	mv $@.tmp $@
 
 # The `:;' works around a Bash 3.2 bug when the output is not writeable.

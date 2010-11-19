@@ -590,7 +590,7 @@ function NUMBER (string s, ni_format f)
   data_in_imply_decimals (s, LEGACY_NATIVE, f->type, f->d, &out);
   else
     {
-      msg (SE, "Cannot parse \"%.*s\" as format %s: %s",
+      msg (SE, "Cannot parse `%.*s' as format %s: %s",
            (int) s.length, s.string, fmt_name (f->type), error);
       free (error);
     }
