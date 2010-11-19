@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2005, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2005, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,33 +20,82 @@
 */
 
 #include <config.h>
-#include "identifier.h"
 
+#include "data/identifier.h"
 
 #include <assert.h>
 #include <string.h>
-#include <libpspp/assertion.h>
+#include <unictype.h>
+
+#include "libpspp/assertion.h"
+
+#include "gl/c-ctype.h"
 
 /* Recognizing identifiers. */
 
-/* Returns true if C may be the first character in an
+static bool
+is_ascii_id1 (unsigned char c)
+{
+  return c_isalpha (c) || c == '@' || c == '#' || c == '$';
+}
+
+static bool
+is_ascii_idn (unsigned char c)
+{
+  return is_ascii_id1 (c) || isdigit (c) || c == '.' || c == '_';
+}
+
+/* Returns true if C may be the first byte in an identifier in the current
+   locale.
+
+   (PSPP is transitioning to using Unicode internally for syntax, so please
+   use lex_uc_is_id1() instead, if possible.) */
+bool
+lex_is_id1 (char c)
+{
+  return is_ascii_id1 (c) || (unsigned char) c >= 128;
+}
+
+/* Returns true if C may be a byte in an identifier other than the first.
+
+   (PSPP is transitioning to using Unicode internally for syntax, so please
+   use lex_uc_is_idn() instead, if possible.) */
+bool
+lex_is_idn (char c)
+{
+  return is_ascii_idn (c) || (unsigned char) c >= 128;
+}
+
+/* Returns true if Unicode code point UC may be the first character in an
    identifier in the current locale. */
 bool
-lex_is_id1 (char c_)
+lex_uc_is_id1 (ucs4_t uc)
 {
-  unsigned char c = c_;
-  return isalpha (c) || c == '@' || c == '#' || c == '$' || c >= 128;
+  return is_ascii_id1 (uc) || (uc >= 0x80 && uc_is_property_id_start (uc));
 }
 
-
-/* Returns true if C may be a character in an identifier other
-   than the first. */
+/* Returns true if Unicode code point UC may be a character in an identifier
+   other than the first. */
 bool
-lex_is_idn (char c_)
+lex_uc_is_idn (ucs4_t uc)
 {
-  unsigned char c = c_;
-  return lex_is_id1 (c) || isdigit (c) || c == '.' || c == '_';
+  return (is_ascii_id1 (uc) || isdigit (uc) || uc == '.' || uc == '_'
+          || (uc >= 0x80 && uc_is_property_id_continue (uc)));
 }
+
+/* Returns true if Unicode code point UC is a space that separates tokens. */
+bool
+lex_uc_is_space (ucs4_t uc)
+{
+  /* These are all of the Unicode characters in category Zs, Zl, or Zp.  */
+  return (uc == ' ' || (uc <= 0x000d && uc >= 0x0009)
+          || (uc >= 0x80
+              && (uc == 0xa0 || uc == 0x85 || uc == 0x1680 || uc == 0x180e
+                  || (uc >= 0x2000 && uc <= 0x200a)
+                  || uc == 0x2028 || uc == 0x2029 || uc == 0x202f
+                  || uc == 0x205f || uc == 0x3000)));
+}
+
 
 /* Returns the length of the longest prefix of STRING that forms
    a valid identifier.  Returns zero if STRING does not begin
@@ -71,7 +120,10 @@ lex_id_get_length (struct substring string)
 
    Keywords match if one of the following is true: KEYWORD and
    TOKEN are identical, or TOKEN is at least 3 characters long
-   and those characters are identical to KEYWORD. */
+   and those characters are identical to KEYWORD.  (Letters that
+   differ only in case are considered identical.)
+
+   KEYWORD must be ASCII, but TOKEN may be ASCII or UTF-8. */
 bool
 lex_id_match (struct substring keyword, struct substring token)
 {
@@ -79,7 +131,9 @@ lex_id_match (struct substring keyword, struct substring token)
 }
 
 /* Returns true if TOKEN is a case-insensitive match for at least
-   the first N characters of KEYWORD. */
+   the first N characters of KEYWORD.
+
+   KEYWORD must be ASCII, but TOKEN may be ASCII or UTF-8. */
 bool
 lex_id_match_n (struct substring keyword, struct substring token, size_t n)
 {

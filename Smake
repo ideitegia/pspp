@@ -70,6 +70,8 @@ GNULIB_MODULES = \
 	trunc \
 	unilbrk/ulc-width-linebreaks \
 	unistd \
+	unictype/property-id-continue \
+	unictype/property-id-start \
 	unistr/u8-cpy \
 	unistr/u8-mbtouc \
 	unistr/u8-strlen \

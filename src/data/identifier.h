@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
 
 #include <ctype.h>
 #include <stdbool.h>
-#include <sys/types.h>
-#include <libpspp/str.h>
+#include <unitypes.h>
+#include "libpspp/str.h"
 
 /* Token types. */
 enum
@@ -56,6 +56,9 @@ bool lex_is_keyword (int token);
 /* Recognizing identifiers. */
 bool lex_is_id1 (char);
 bool lex_is_idn (char);
+bool lex_uc_is_id1 (ucs4_t);
+bool lex_uc_is_idn (ucs4_t);
+bool lex_uc_is_space (ucs4_t);
 size_t lex_id_get_length (struct substring);
 
 /* Comparing identifiers. */
