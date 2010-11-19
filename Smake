@@ -71,8 +71,10 @@ GNULIB_MODULES = \
 	unilbrk/ulc-width-linebreaks \
 	unistd \
 	unistr/u8-cpy \
+	unistr/u8-mbtouc \
 	unistr/u8-strlen \
 	unistr/u8-strncat \
+	unitypes \
 	unlocked-io \
 	vasprintf-posix \
 	version-etc \

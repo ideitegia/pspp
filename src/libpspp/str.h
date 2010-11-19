@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <unitypes.h>
 
 #include "compiler.h"
 #include "memcasecmp.h"
@@ -127,6 +128,13 @@ int ss_equals (struct substring, struct substring);
 int ss_equals_case (struct substring, struct substring);
 size_t ss_pointer_to_position (struct substring, const char *);
 char *ss_xstrdup (struct substring);
+
+/* UTF-8. */
+ucs4_t ss_first_mb (struct substring);
+int ss_first_mblen (struct substring);
+ucs4_t ss_get_mb (struct substring *);
+ucs4_t ss_at_mb (struct substring, size_t ofs);
+int ss_at_mblen (struct substring, size_t ofs);
 
 /* Variable length strings. */
 

@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistr.h>
 
 #include "libpspp/cast.h"
 #include "libpspp/message.h"
@@ -739,6 +740,81 @@ ss_xstrdup (struct substring ss)
   memcpy (s, ss.string, ss.length);
   s[ss.length] = '\0';
   return s;
+}
+/* UTF-8. */
+
+/* Returns the character represented by the UTF-8 sequence at the start of S.
+   The return value is either a Unicode code point in the range 0 to 0x10ffff,
+   or UINT32_MAX if S is empty. */
+ucs4_t
+ss_first_mb (struct substring s)
+{
+  return ss_at_mb (s, 0);
+}
+
+/* Returns the number of bytes in the UTF-8 character at the beginning of S.
+
+   The return value is 0 if S is empty, otherwise between 1 and 4. */
+int
+ss_first_mblen (struct substring s)
+{
+  return ss_at_mblen (s, 0);
+}
+
+/* Advances S past the UTF-8 character at its beginning.  Returns the Unicode
+   code point that was skipped (in the range 0 to 0x10ffff), or UINT32_MAX if S
+   was not modified because it was initially empty. */
+ucs4_t
+ss_get_mb (struct substring *s)
+{
+  if (s->length > 0)
+    {
+      ucs4_t uc;
+      int n;
+
+      n = u8_mbtouc (&uc, CHAR_CAST (const uint8_t *, s->string), s->length);
+      s->string += n;
+      s->length -= n;
+      return uc;
+    }
+  else
+    return UINT32_MAX;
+}
+
+/* Returns the character represented by the UTF-8 sequence starting OFS bytes
+   into S.  The return value is either a Unicode code point in the range 0 to
+   0x10ffff, or UINT32_MAX if OFS is past the last byte in S.
+
+   (Returns 0xfffd if OFS points into the middle, not the beginning, of a UTF-8
+   sequence.)  */
+ucs4_t
+ss_at_mb (struct substring s, size_t ofs)
+{
+  if (s.length > ofs)
+    {
+      ucs4_t uc;
+      u8_mbtouc (&uc, CHAR_CAST (const uint8_t *, s.string + ofs),
+                 s.length - ofs);
+      return uc;
+    }
+  else
+    return UINT32_MAX;
+}
+
+/* Returns the number of bytes represented by the UTF-8 sequence starting OFS
+   bytes into S.  The return value is 0 if OFS is past the last byte in S,
+   otherwise between 1 and 4. */
+int
+ss_at_mblen (struct substring s, size_t ofs)
+{
+  if (s.length > ofs)
+    {
+      ucs4_t uc;
+      return u8_mbtouc (&uc, CHAR_CAST (const uint8_t *, s.string + ofs),
+                        s.length - ofs);
+    }
+  else
+    return 0;
 }
 
 /* Initializes ST as an empty string. */
