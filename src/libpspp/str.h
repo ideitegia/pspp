@@ -72,9 +72,9 @@ struct substring
 /* Constructors.
    These functions do not allocate any memory, so the substrings
    they create should not normally be destroyed. */
-struct substring ss_empty (void);
-struct substring ss_cstr (const char *);
-struct substring ss_buffer (const char *, size_t);
+static inline struct substring ss_empty (void);
+static inline struct substring ss_cstr (const char *);
+static inline struct substring ss_buffer (const char *, size_t);
 struct substring ss_substr (struct substring, size_t start, size_t);
 struct substring ss_head (struct substring, size_t);
 struct substring ss_tail (struct substring, size_t);
@@ -226,6 +226,33 @@ void ds_relocate (struct string *st);
 void u8_buf_copy_rpad (uint8_t *dst, size_t dst_size,
 		       const uint8_t *src, size_t src_size,
 		       char pad);
+
+struct substring
+ss_empty (void)
+{
+  struct substring ss;
+  ss.string = NULL;
+  ss.length = 0;
+  return ss;
+}
 
+/* Returns a substring whose contents are the given C-style
+   string CSTR. */
+static inline struct substring
+ss_cstr (const char *cstr)
+{
+  return ss_buffer (cstr, strlen (cstr));
+}
+
+/* Returns a substring whose contents are the CNT characters in
+   BUFFER. */
+static inline struct substring
+ss_buffer (const char *buffer, size_t cnt)
+{
+  struct substring ss;
+  ss.string = (char *) buffer;
+  ss.length = cnt;
+  return ss;
+}
 
 #endif /* str_h */

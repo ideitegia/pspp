@@ -293,35 +293,6 @@ mempset (void *block, int c, size_t size)
 
 /* Substrings. */
 
-/* Returns an empty substring. */
-struct substring
-ss_empty (void)
-{
-  struct substring ss;
-  ss.string = NULL;
-  ss.length = 0;
-  return ss;
-}
-
-/* Returns a substring whose contents are the given C-style
-   string CSTR. */
-struct substring
-ss_cstr (const char *cstr)
-{
-  return ss_buffer (cstr, strlen (cstr));
-}
-
-/* Returns a substring whose contents are the CNT characters in
-   BUFFER. */
-struct substring
-ss_buffer (const char *buffer, size_t cnt)
-{
-  struct substring ss;
-  ss.string = (char *) buffer;
-  ss.length = cnt;
-  return ss;
-}
-
 /* Returns a substring whose contents are the CNT characters
    starting at the (0-based) position START in SS. */
 struct substring
