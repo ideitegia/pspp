@@ -334,14 +334,14 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                       lex_error (lexer, NULL);
                       goto error;
                     }
-                  if (try_name (dict, dsc, lex_tokid (lexer)))
+                  if (try_name (dict, dsc, lex_tokcstr (lexer)))
                     {
-                      strcpy (dsc->vars[dsc->var_cnt - 1].z_name, lex_tokid (lexer));
+                      strcpy (dsc->vars[dsc->var_cnt - 1].z_name, lex_tokcstr (lexer));
                       z_cnt++;
                     }
                   else
                     msg (SE, _("Z-score variable name %s would be"
-                               " a duplicate variable name."), lex_tokid (lexer));
+                               " a duplicate variable name."), lex_tokcstr (lexer));
                   lex_get (lexer);
                   if (!lex_force_match (lexer, T_RPAREN))
 		    goto error;

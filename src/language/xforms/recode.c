@@ -116,12 +116,12 @@ static bool parse_map_in (struct lexer *lexer, struct map_in *, struct pool *,
 static void set_map_in_generic (struct map_in *, enum map_in_type);
 static void set_map_in_num (struct map_in *, enum map_in_type, double, double);
 static void set_map_in_str (struct map_in *, struct pool *,
-                            const struct string *, size_t width);
+                            struct substring, size_t width);
 
 static bool parse_map_out (struct lexer *lexer, struct pool *, struct map_out *);
 static void set_map_out_num (struct map_out *, double);
 static void set_map_out_str (struct map_out *, struct pool *,
-                             const struct string *);
+                             struct substring);
 
 static void enlarge_dst_widths (struct recode_trns *);
 static void create_dst_vars (struct recode_trns *, struct dictionary *);
@@ -318,10 +318,10 @@ parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
         return false;
       else 
 	{
-	  set_map_in_str (in, pool, lex_tokstr (lexer), max_src_width);
+	  set_map_in_str (in, pool, lex_tokss (lexer), max_src_width);
 	  lex_get (lexer);
 	  if (lex_token (lexer) == T_ID
-	      && lex_id_match (ss_cstr ("THRU"), ss_cstr (lex_tokid (lexer))))
+	      && lex_id_match (ss_cstr ("THRU"), lex_tokss (lexer)))
 	    {
 	      msg (SE, _("THRU is not allowed with string variables."));
 	      return false;
@@ -370,13 +370,13 @@ set_map_in_num (struct map_in *in, enum map_in_type type, double x, double y)
    right to WIDTH characters long. */
 static void
 set_map_in_str (struct map_in *in, struct pool *pool,
-                const struct string *string, size_t width)
+                struct substring string, size_t width)
 {
   in->type = MAP_SINGLE;
   value_init_pool (pool, &in->x, width);
   value_copy_buf_rpad (&in->x, width,
-                       CHAR_CAST_BUG (uint8_t *, ds_data (string)),
-                       ds_length (string), ' ');
+                       CHAR_CAST_BUG (uint8_t *, ss_data (string)),
+                       ss_length (string), ' ');
 }
 
 /* Parses a mapping output value into OUT, allocating memory from
@@ -393,7 +393,7 @@ parse_map_out (struct lexer *lexer, struct pool *pool, struct map_out *out)
     set_map_out_num (out, SYSMIS);
   else if (lex_is_string (lexer))
     {
-      set_map_out_str (out, pool, lex_tokstr (lexer));
+      set_map_out_str (out, pool, lex_tokss (lexer));
       lex_get (lexer);
     }
   else if (lex_match_id (lexer, "COPY")) 
@@ -421,10 +421,10 @@ set_map_out_num (struct map_out *out, double value)
 /* Sets OUT as a string mapping output with the given VALUE. */
 static void
 set_map_out_str (struct map_out *out, struct pool *pool,
-                 const struct string *value)
+                 const struct substring value)
 {
-  const char *string = ds_data (value);
-  size_t length = ds_length (value);
+  const char *string = ss_data (value);
+  size_t length = ss_length (value);
 
   if (length == 0)
     {

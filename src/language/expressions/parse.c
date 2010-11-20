@@ -824,7 +824,7 @@ parse_sysvar (struct lexer *lexer, struct expression *e)
     return expr_allocate_number (e, settings_get_viewwidth ());
   else
     {
-      msg (SE, _("Unknown system variable %s."), lex_tokid (lexer));
+      msg (SE, _("Unknown system variable %s."), lex_tokcstr (lexer));
       return NULL;
     }
 }
@@ -841,17 +841,17 @@ parse_primary (struct lexer *lexer, struct expression *e)
           /* An identifier followed by a left parenthesis may be
              a vector element reference.  If not, it's a function
              call. */
-          if (e->ds != NULL && dict_lookup_vector (dataset_dict (e->ds), lex_tokid (lexer)) != NULL)
+          if (e->ds != NULL && dict_lookup_vector (dataset_dict (e->ds), lex_tokcstr (lexer)) != NULL)
             return parse_vector_element (lexer, e);
           else
             return parse_function (lexer, e);
         }
-      else if (lex_tokid (lexer)[0] == '$')
+      else if (lex_tokcstr (lexer)[0] == '$')
         {
           /* $ at the beginning indicates a system variable. */
           return parse_sysvar (lexer, e);
         }
-      else if (e->ds != NULL && dict_lookup_var (dataset_dict (e->ds), lex_tokid (lexer)))
+      else if (e->ds != NULL && dict_lookup_var (dataset_dict (e->ds), lex_tokcstr (lexer)))
         {
           /* It looks like a user variable.
              (It could be a format specifier, but we'll assume
@@ -872,7 +872,7 @@ parse_primary (struct lexer *lexer, struct expression *e)
             return expr_allocate_format (e, &fmt);
 
           /* All attempts failed. */
-          msg (SE, _("Unknown identifier %s."), lex_tokid (lexer));
+          msg (SE, _("Unknown identifier %s."), lex_tokcstr (lexer));
           return NULL;
         }
       break;
@@ -888,7 +888,7 @@ parse_primary (struct lexer *lexer, struct expression *e)
     case T_STRING:
       {
         union any_node *node = expr_allocate_string_buffer (
-          e, ds_cstr (lex_tokstr (lexer) ), ds_length (lex_tokstr (lexer) ));
+          e, lex_tokcstr (lexer), ss_length (lex_tokss (lexer)));
 	lex_get (lexer);
 	return node;
       }
@@ -918,7 +918,7 @@ parse_vector_element (struct lexer *lexer, struct expression *e)
   /* Find vector, skip token.
      The caller must already have verified that the current token
      is the name of a vector. */
-  vector = dict_lookup_vector (dataset_dict (e->ds), lex_tokid (lexer));
+  vector = dict_lookup_vector (dataset_dict (e->ds), lex_tokcstr (lexer));
   assert (vector != NULL);
   lex_get (lexer);
 
@@ -1209,11 +1209,11 @@ parse_function (struct lexer *lexer, struct expression *e)
 
   union any_node *n;
 
-  ds_init_string (&func_name, lex_tokstr (lexer));
-  min_valid = extract_min_valid (ds_cstr (lex_tokstr (lexer)));
-  if (!lookup_function (ds_cstr (lex_tokstr (lexer)), &first, &last))
+  ds_init_substring (&func_name, lex_tokss (lexer));
+  min_valid = extract_min_valid (lex_tokcstr (lexer));
+  if (!lookup_function (lex_tokcstr (lexer), &first, &last))
     {
-      msg (SE, _("No function or vector named %s."), ds_cstr (lex_tokstr (lexer)));
+      msg (SE, _("No function or vector named %s."), lex_tokcstr (lexer));
       ds_destroy (&func_name);
       return NULL;
     }

@@ -142,7 +142,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
           return 0;
         }
 
-      ds_init_string (&label, lex_tokstr (lexer));
+      ds_init_substring (&label, lex_tokss (lexer));
 
       if (ds_length (&label) > 60)
 	{

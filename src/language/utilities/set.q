@@ -383,27 +383,26 @@ static int
 stc_custom_locale (struct lexer *lexer, struct dataset *ds UNUSED,
 		   struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  const struct string *s;
+  const char *s;
 
   lex_match (lexer, T_EQUALS);
 
   if ( !lex_force_string (lexer))
     return 0;
 
-  s = lex_tokstr (lexer);
+  s = lex_tokcstr (lexer);
 
   /* First try this string as an encoding name */
-  if ( valid_encoding (ds_cstr (s)))
-    set_default_encoding (ds_cstr (s));
+  if ( valid_encoding (s))
+    set_default_encoding (s);
 
   /* Now try as a locale name (or alias) */
-  else if (set_encoding_from_locale (ds_cstr (s)))
+  else if (set_encoding_from_locale (s))
     {
     }
   else
     {
-      msg (ME, _("%s is not a recognized encoding or locale name"),
-	   ds_cstr (s));
+      msg (ME, _("%s is not a recognized encoding or locale name"), s);
       return 0;
     }
 
@@ -511,7 +510,7 @@ stc_custom_journal (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_s
     journal_disable ();
   else if (lex_is_string (lexer) || lex_token (lexer) == T_ID)
     {
-      journal_set_file_name (ds_cstr (lex_tokstr (lexer)));
+      journal_set_file_name (lex_tokcstr (lexer));
       lex_get (lexer);
     }
   else

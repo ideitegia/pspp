@@ -277,7 +277,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
       else if (lex_match_hyphenated_word (lexer, "M-W") ||
 	       lex_match_hyphenated_word (lexer, "MANN-WHITNEY"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->mann_whitney++;
           switch (npar_mann_whitney (lexer, ds, nps))
             {
@@ -574,7 +574,7 @@ npar_runs (struct lexer *lexer, struct dataset *ds,
   nt->execute = runs_execute;
   nt->insert_variables = one_sample_insert_variables;
 
-  if ( lex_force_match (lexer, '(') )
+  if ( lex_force_match (lexer, T_LPAREN) )
     {
       if ( lex_match_id (lexer, "MEAN"))
 	{
@@ -600,8 +600,8 @@ npar_runs (struct lexer *lexer, struct dataset *ds,
 	  return 0;
 	}
 		  
-      lex_force_match (lexer, ')');
-      lex_force_match (lexer, '=');
+      lex_force_match (lexer, T_RPAREN);
+      lex_force_match (lexer, T_EQUALS);
       if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
 				  &tp->vars, &tp->n_vars,
 				  PV_NO_SCRATCH | PV_NO_DUPLICATE | PV_NUMERIC))
@@ -632,7 +632,7 @@ npar_friedman (struct lexer *lexer, struct dataset *ds,
   nt->execute = friedman_execute;
   nt->insert_variables = one_sample_insert_variables;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
 				   &ost->vars, &ost->n_vars,
@@ -663,7 +663,7 @@ npar_kendall (struct lexer *lexer, struct dataset *ds,
   nt->execute = friedman_execute;
   nt->insert_variables = one_sample_insert_variables;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
 				   &ost->vars, &ost->n_vars,
@@ -693,7 +693,7 @@ npar_cochran (struct lexer *lexer, struct dataset *ds,
   nt->execute = cochran_execute;
   nt->insert_variables = one_sample_insert_variables;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
 				   &ft->vars, &ft->n_vars,
@@ -772,7 +772,7 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 		  n = 1;
 		  f = lex_number (lexer);
 		  lex_get (lexer);
-		  if ( lex_match (lexer, '*'))
+		  if ( lex_match (lexer, T_ASTERISK))
 		    {
 		      n = f;
 		      f = lex_number (lexer);

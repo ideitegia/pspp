@@ -116,7 +116,7 @@ parse_fp (struct lexer *lexer, struct fp *fp)
           || !lex_force_string (lexer))
         return false;
 
-      length = ds_length (lex_tokstr (lexer));
+      length = ss_length (lex_tokss (lexer));
       if (fp->format != FLOAT_HEX)
         {
           if (length != float_get_size (fp->format))
@@ -127,7 +127,7 @@ parse_fp (struct lexer *lexer, struct fp *fp)
               return false;
             }
           assert (length <= sizeof fp->data);
-          memcpy (fp->data, ds_data (lex_tokstr (lexer)), length);
+          memcpy (fp->data, ss_data (lex_tokss (lexer)), length);
         }
       else
         {
@@ -136,7 +136,7 @@ parse_fp (struct lexer *lexer, struct fp *fp)
               msg (SE, _("Hexadecimal floating constant too long."));
               return false;
             }
-          strncpy (CHAR_CAST_BUG (char *,fp->data), ds_cstr (lex_tokstr (lexer)), sizeof fp->data);
+          strncpy (CHAR_CAST_BUG (char *,fp->data), lex_tokcstr (lexer), sizeof fp->data);
         }
 
       lex_get (lexer);

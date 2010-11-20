@@ -288,7 +288,7 @@ parse_command_name (struct lexer *lexer)
         {
           if (!ds_is_empty (&s) && ds_last (&s) != '-')
             ds_put_byte (&s, ' ');
-          ds_put_cstr (&s, lex_tokid (lexer));
+          ds_put_cstr (&s, lex_tokcstr (lexer));
         }
       else if (lex_is_integer (lexer) && lex_integer (lexer) >= 0)
         {
@@ -514,10 +514,10 @@ cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
 
-  if (remove (ds_cstr (lex_tokstr (lexer))) == -1)
+  if (remove (lex_tokcstr (lexer)) == -1)
     {
       msg (SW, _("Error removing `%s': %s."),
-	   ds_cstr (lex_tokstr (lexer)), strerror (errno));
+           lex_tokcstr (lexer), strerror (errno));
       return CMD_FAILURE;
     }
 

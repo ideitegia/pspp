@@ -1542,7 +1542,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	      dump (0, "goto lossage;");
 	      dump (-1, "}");
               dump (-1, "free (p->%s%s);", sbc->prefix, st_lower (s->valname));
-              dump (0, "p->%s%s = xstrdup (ds_cstr (lex_tokstr (lexer)));",
+              dump (0, "p->%s%s = ss_xstrdup (ss_tokss (lexer));",
                     sbc->prefix, st_lower (s->valname));
             }
           else
@@ -1705,7 +1705,7 @@ dump_subcommand (const subcommand *sbc)
       outdent ();
       if (sbc->restriction)
 	{
-	  dump (0, "x = ds_length (lex_tokstr (lexer));");
+	  dump (0, "x = ss_length (lex_tokss (lexer));");
 	  dump (1, "if (!(%s))", sbc->restriction);
 	  dump (1, "{");
 	  dump (0, "msg (SE, _(\"String for %s must be %s.\"));",
@@ -1715,7 +1715,7 @@ dump_subcommand (const subcommand *sbc)
 	  outdent ();
 	}
       dump (0, "free(p->s_%s);", st_lower(sbc->name) );
-      dump (0, "p->s_%s = ds_xstrdup (lex_tokstr (lexer));",
+      dump (0, "p->s_%s = ss_xstrdup (lex_tokss (lexer));",
 	    st_lower (sbc->name));
       dump (0, "lex_get (lexer);");
       if (sbc->restriction)
@@ -1833,13 +1833,13 @@ dump_parser (int persistent)
     {
       if (def->type == SBC_VARLIST)
 	dump (1, "if (lex_token (lexer) == T_ID "
-              "&& dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL "
-	      "&& lex_look_ahead (lexer) != T_EQUALS)");
+              "&& dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) != NULL "
+	      "&& lex_look_ahead (lexer) != '=')");
       else
 	{
 	  dump (0, "if ((lex_token (lexer) == T_ID "
-                "&& dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) "
-		"&& lex_look_ahead () != T_EQUALS)");
+                "&& dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) "
+		"&& lex_look_ahead () != '=')");
 	  dump (1, "     || token == T_ALL)");
 	}
       dump (1, "{");

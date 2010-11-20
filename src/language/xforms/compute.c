@@ -349,10 +349,10 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
   if (lex_look_ahead (lexer) == T_LPAREN)
     {
       /* Vector. */
-      lvalue->vector = dict_lookup_vector (dict, lex_tokid (lexer));
+      lvalue->vector = dict_lookup_vector (dict, lex_tokcstr (lexer));
       if (lvalue->vector == NULL)
 	{
-	  msg (SE, _("There is no vector named %s."), lex_tokid (lexer));
+	  msg (SE, _("There is no vector named %s."), lex_tokcstr (lexer));
           goto lossage;
 	}
 
@@ -369,7 +369,7 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
   else
     {
       /* Variable name. */
-      const char *var_name = lex_tokid (lexer);
+      const char *var_name = lex_tokcstr (lexer);
       lvalue->variable = dict_lookup_var (dict, var_name);
       if (lvalue->variable == NULL)
         {

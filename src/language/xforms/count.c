@@ -114,7 +114,7 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
       /* Get destination variable, or at least its name. */
       if (!lex_force_id (lexer))
 	goto fail;
-      dv->var = dict_lookup_var (dataset_dict (ds), lex_tokid (lexer));
+      dv->var = dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer));
       if (dv->var != NULL)
         {
           if (var_is_alpha (dv->var))
@@ -124,7 +124,7 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
             }
         }
       else
-        dv->name = pool_strdup (trns->pool, lex_tokid (lexer));
+        dv->name = pool_strdup (trns->pool, lex_tokcstr (lexer));
 
       lex_get (lexer);
       if (!lex_force_match (lexer, T_EQUALS))
@@ -253,7 +253,7 @@ parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *
 	return false;
       cur = &crit->values.str[crit->value_cnt++];
       *cur = pool_alloc (pool, len + 1);
-      str_copy_rpad (*cur, len + 1, ds_cstr (lex_tokstr (lexer)));
+      str_copy_rpad (*cur, len + 1, lex_tokcstr (lexer));
       lex_get (lexer);
 
       lex_match (lexer, T_COMMA);

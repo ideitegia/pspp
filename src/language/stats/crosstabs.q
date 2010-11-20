@@ -381,7 +381,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds,
   /* Ensure that this is a TABLES subcommand. */
   if (!lex_match_id (lexer, "TABLES")
       && (lex_token (lexer) != T_ID ||
-	  dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
+	  dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     return 2;
   lex_match (lexer, T_EQUALS);

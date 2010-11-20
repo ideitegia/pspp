@@ -280,7 +280,7 @@ parse_string_argument (struct lexer *lexer, struct print_trns *trns, int record,
   spec->type = PRT_LITERAL;
   spec->record = record;
   spec->first_column = *column;
-  ds_init_string (&spec->string, lex_tokstr (lexer));
+  ds_init_substring (&spec->string, lex_tokss (lexer));
   ds_register_pool (&spec->string, trns->pool);
   lex_get (lexer);
 

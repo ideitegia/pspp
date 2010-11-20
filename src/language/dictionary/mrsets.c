@@ -93,16 +93,16 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
         {
           if (!lex_force_match (lexer, T_EQUALS) || !lex_force_id (lexer))
             goto error;
-          if (lex_tokid (lexer)[0] != '$')
+          if (lex_tokcstr (lexer)[0] != '$')
             {
               msg (SE, _("%s is not a valid name for a multiple response "
                          "set.  Multiple response set names must begin with "
-                         "`$'."), lex_tokid (lexer));
+                         "`$'."), lex_tokcstr (lexer));
               goto error;
             }
 
           free (mrset->name);
-          mrset->name = xstrdup (lex_tokid (lexer));
+          mrset->name = xstrdup (lex_tokcstr (lexer));
           lex_get (lexer);
         }
       else if (lex_match_id (lexer, "VARIABLES"))
@@ -129,7 +129,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
             goto error;
 
           free (mrset->label);
-          mrset->label = ds_xstrdup (lex_tokstr (lexer));
+          mrset->label = ss_xstrdup (lex_tokss (lexer));
           lex_get (lexer);
         }
       else if (type == MRSET_MD && lex_match_id (lexer, "LABELSOURCE"))
@@ -159,7 +159,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
             }
           else if (lex_is_string (lexer))
             {
-              const char *s = ds_cstr (lex_tokstr (lexer));
+              const char *s = lex_tokcstr (lexer);
               int width;
 
               /* Trim off trailing spaces, but don't trim the string until
@@ -480,14 +480,14 @@ parse_mrset_names (struct lexer *lexer, struct dictionary *dict,
         {
           if (!lex_force_id (lexer))
             return false;
-          if (dict_lookup_mrset (dict, lex_tokid (lexer)) == NULL)
+          if (dict_lookup_mrset (dict, lex_tokcstr (lexer)) == NULL)
             {
               msg (SE, _("No multiple response set named %s."),
-                   lex_tokid (lexer));
+                   lex_tokcstr (lexer));
               stringi_set_destroy (mrset_names);
               return false;
             }
-          stringi_set_insert (mrset_names, lex_tokid (lexer));
+          stringi_set_insert (mrset_names, lex_tokcstr (lexer));
           lex_get (lexer);
         }
     }

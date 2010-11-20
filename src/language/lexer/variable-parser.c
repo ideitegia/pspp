@@ -65,14 +65,14 @@ parse_vs_variable_idx (struct lexer *lexer, const struct var_set *vs,
       lex_error (lexer, _("expecting variable name"));
       return false;
     }
-  else if (var_set_lookup_var_idx (vs, lex_tokid (lexer), idx))
+  else if (var_set_lookup_var_idx (vs, lex_tokcstr (lexer), idx))
     {
       lex_get (lexer);
       return true;
     }
   else
     {
-      msg (SE, _("%s is not a variable name."), lex_tokid (lexer));
+      msg (SE, _("%s is not a variable name."), lex_tokcstr (lexer));
       return false;
     }
 }
@@ -339,7 +339,7 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
       lex_match (lexer, T_COMMA);
     }
   while (lex_token (lexer) == T_ALL
-         || (lex_token (lexer) == T_ID && var_set_lookup_var (vs, lex_tokid (lexer)) != NULL));
+         || (lex_token (lexer) == T_ID && var_set_lookup_var (vs, lex_tokcstr (lexer)) != NULL));
 
   if (*nv == 0)
     goto fail;
@@ -444,13 +444,13 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names,
 	  lex_error (lexer, "expecting variable name");
 	  goto fail;
 	}
-      if (dict_class_from_id (lex_tokid (lexer)) == DC_SCRATCH
+      if (dict_class_from_id (lex_tokcstr (lexer)) == DC_SCRATCH
           && (pv_opts & PV_NO_SCRATCH))
 	{
 	  msg (SE, _("Scratch variables not allowed here."));
 	  goto fail;
 	}
-      strcpy (name1, lex_tokid (lexer));
+      strcpy (name1, lex_tokcstr (lexer));
       lex_get (lexer);
       if (lex_token (lexer) == T_TO)
 	{
@@ -460,7 +460,7 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names,
 	      lex_error (lexer, "expecting variable name");
 	      goto fail;
 	    }
-	  strcpy (name2, lex_tokid (lexer));
+	  strcpy (name2, lex_tokcstr (lexer));
 	  lex_get (lexer);
 
 	  if (!extract_num (name1, root1, &n1, &d1)
@@ -588,7 +588,7 @@ parse_mixed_vars (struct lexer *lexer, const struct dictionary *dict,
     }
   while (lex_token (lexer) == T_ID || lex_token (lexer) == T_ALL)
     {
-      if (lex_token (lexer) == T_ALL || dict_lookup_var (dict, lex_tokid (lexer)) != NULL)
+      if (lex_token (lexer) == T_ALL || dict_lookup_var (dict, lex_tokcstr (lexer)) != NULL)
 	{
 	  struct variable **v;
 	  size_t nv;

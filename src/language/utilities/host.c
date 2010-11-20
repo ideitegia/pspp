@@ -145,7 +145,7 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
         {
           if (!ds_is_empty (&command))
             ds_put_byte (&command, '\n');
-          ds_put_substring (&command, ds_ss (lex_tokstr (lexer)));
+          ds_put_substring (&command, lex_tokss (lexer));
           lex_get (lexer);
         }
       if (!lex_force_match (lexer, T_RBRACK))

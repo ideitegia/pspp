@@ -168,21 +168,19 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
       /* Get a stand-in variable name and make sure it's unique. */
       if (!lex_force_id (lexer))
 	return false;
-      if (dict_lookup_var (dict, lex_tokid (lexer)))
-        msg (SW, _("Dummy variable name `%s' hides dictionary "
-                   "variable `%s'."),
-             lex_tokid (lexer), lex_tokid (lexer));
-      if (find_macro (block, ss_cstr (lex_tokid (lexer))))
+      if (dict_lookup_var (dict, lex_tokcstr (lexer)))
+        msg (SW, _("Dummy variable name `%s' hides dictionary variable `%s'."),
+             lex_tokcstr (lexer), lex_tokcstr (lexer));
+      if (find_macro (block, lex_tokss (lexer)))
 	  {
 	    msg (SE, _("Dummy variable name `%s' is given twice."),
-		 lex_tokid (lexer));
+		 lex_tokcstr (lexer));
 	    return false;
 	  }
 
       /* Make a new macro. */
       macro = pool_alloc (block->pool, sizeof *macro);
-      ss_alloc_substring_pool (&macro->name, ss_cstr (lex_tokid (lexer)),
-                               block->pool);
+      ss_alloc_substring_pool (&macro->name, lex_tokss (lexer), block->pool);
       ll_push_tail (&block->macros, &macro->ll);
 
       /* Skip equals sign. */

@@ -621,7 +621,7 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds,
   lex_match (lexer, T_EQUALS);
   if (lex_token (lexer) != T_ALL
       && (lex_token (lexer) != T_ID
-          || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
+          || dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) == NULL))
     return 2;
 
   /* Get list of current variables, to avoid duplicates. */
@@ -663,7 +663,8 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
   struct frq_proc *frq = frq_;
 
   lex_match (lexer, T_EQUALS);
-  if ((lex_token (lexer) == T_ID && dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
+  if ((lex_token (lexer) == T_ID
+       && dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) != NULL)
       || lex_token (lexer) == T_ID)
     for (;;)
       {
@@ -739,7 +740,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 	free (v);
 	if (!lex_match (lexer, T_SLASH))
 	  break;
-	if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
+	if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) != NULL)
             && lex_token (lexer) != T_ALL)
 	  {
 	    lex_put_back (lexer, T_SLASH);

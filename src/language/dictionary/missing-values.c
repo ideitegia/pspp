@@ -106,7 +106,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                       break;
                     }
 
-                  length = ds_length (lex_tokstr (lexer));
+                  length = ss_length (lex_tokss (lexer));
                   if (length > MV_MAX_STRING)
                     {
                       msg (SE, _("Truncating missing value to maximum "
@@ -115,7 +115,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                       length = MV_MAX_STRING;
                     }
                   memset (value, ' ', MV_MAX_STRING);
-                  memcpy (value, ds_data (lex_tokstr (lexer)), length);
+                  memcpy (value, ss_data (lex_tokss (lexer)), length);
 
                   if (!mv_add_str (&mv, value))
                     deferred_errors = true;

@@ -34,7 +34,7 @@ cmd_echo (struct lexer *lexer, struct dataset *ds UNUSED)
 
   tab = tab_create(1, 1);
 
-  tab_text(tab, 0, 0, 0, ds_cstr (lex_tokstr (lexer)));
+  tab_text (tab, 0, 0, 0, lex_tokcstr (lexer));
 
   tab_submit(tab);
 

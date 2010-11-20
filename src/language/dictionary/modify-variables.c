@@ -300,7 +300,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
       else
 	{
 	  if (lex_token (lexer) == T_ID)
-	    msg (SE, _("Unrecognized subcommand name `%s'."), lex_tokid (lexer));
+	    msg (SE, _("Unrecognized subcommand name `%s'."), lex_tokcstr (lexer));
 	  else
 	    msg (SE, _("Subcommand name expected."));
 	  goto done;

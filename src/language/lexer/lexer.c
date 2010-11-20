@@ -49,11 +49,7 @@ struct lexer
   int token;      /* Current token. */
   double tokval;  /* T_POS_NUM, T_NEG_NUM: the token's value. */
 
-  char tokid [VAR_NAME_LEN + 1];   /* T_ID: the identifier. */
-
-  struct string tokstr;   /* T_ID, T_STRING: token string value.
-  			    For T_ID, this is not truncated as is
-  			    tokid. */
+  struct string tokstr;   /* T_ID, T_STRING: token string value. */
 
   char *prog; /* Pointer to next token in line_buffer. */
   bool dot;   /* True only if this line ends with a terminal dot. */
@@ -138,7 +134,6 @@ restore_token (struct lexer *lexer)
   assert (lexer->put_token != 0);
   lexer->token = lexer->put_token;
   ds_assign_string (&lexer->tokstr, &lexer->put_tokstr);
-  str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
   lexer->tokval = lexer->put_tokval;
   lexer->put_token = 0;
 }
@@ -405,8 +400,7 @@ lex_get (struct lexer *lexer)
     }
 }
 
-/* Parses an identifier at the current position into tokid and
-   tokstr.
+/* Parses an identifier at the current position into tokstr.
    Returns the correct token type. */
 static int
 parse_id (struct lexer *lexer)
@@ -420,7 +414,6 @@ parse_id (struct lexer *lexer)
   lexer->prog += ss_length (id);
 
   ds_assign_substring (&lexer->tokstr, id);
-  str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
   return lex_id_to_token (id);
 }
 
@@ -571,7 +564,7 @@ bool
 lex_match_id_n (struct lexer *lexer, const char *s, size_t n)
 {
   if (lexer->token == T_ID
-      && lex_id_match_n (ss_cstr (s), ss_cstr (lexer->tokid), n))
+      && lex_id_match_n (ss_cstr (s), lex_tokss (lexer), n))
     {
       lex_get (lexer);
       return true;
@@ -798,7 +791,6 @@ lex_put_back_id (struct lexer *lexer, const char *id)
   save_token (lexer);
   lexer->token = T_ID;
   ds_assign_cstr (&lexer->tokstr, id);
-  str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
 }
 
 /* Weird line processing functions. */
@@ -1082,36 +1074,37 @@ lex_token_representation (struct lexer *lexer)
     case T_ID:
     case T_POS_NUM:
     case T_NEG_NUM:
-      return ds_xstrdup (&lexer->tokstr);
+      return ss_xstrdup (lex_tokss (lexer));
 
     case T_STRING:
       {
+        struct substring ss;
 	int hexstring = 0;
 	char *sp, *dp;
 
-	for (sp = ds_cstr (&lexer->tokstr); sp < ds_end (&lexer->tokstr); sp++)
+        ss = lex_tokss (lexer);
+	for (sp = ss_data (ss); sp < ss_end (ss); sp++)
 	  if (!c_isprint ((unsigned char) *sp))
 	    {
 	      hexstring = 1;
 	      break;
 	    }
 
-	token_rep = xmalloc (2 + ds_length (&lexer->tokstr) * 2 + 1 + 1);
+	token_rep = xmalloc (2 + ss_length (ss) * 2 + 1 + 1);
 
 	dp = token_rep;
 	if (hexstring)
 	  *dp++ = 'X';
 	*dp++ = '\'';
 
-	if (!hexstring)
-	  for (sp = ds_cstr (&lexer->tokstr); *sp; )
+        for (sp = ss_data (ss); sp < ss_end (ss); sp++)
+          if (!hexstring)
 	    {
 	      if (*sp == '\'')
 		*dp++ = '\'';
-	      *dp++ = (unsigned char) *sp++;
+	      *dp++ = (unsigned char) *sp;
 	    }
-	else
-	  for (sp = ds_cstr (&lexer->tokstr); sp < ds_end (&lexer->tokstr); sp++)
+          else
 	    {
 	      *dp++ = (((unsigned char) *sp) >> 4)["0123456789ABCDEF"];
 	      *dp++ = (((unsigned char) *sp) & 15)["0123456789ABCDEF"];
@@ -1344,16 +1337,22 @@ lex_tokval (const struct lexer *lexer)
   return lexer->tokval;
 }
 
+/* Returns the null-terminated string value associated with LEXER's current
+   token.  For a T_ID token, this is the identifier, and for a T_STRING token,
+   this is the string.  For other tokens the value is undefined. */
 const char *
-lex_tokid (const struct lexer *lexer)
+lex_tokcstr (const struct lexer *lexer)
 {
-  return lexer->tokid;
+  return ds_cstr (&lexer->tokstr);
 }
 
-const struct string *
-lex_tokstr (const struct lexer *lexer)
+/* Returns the string value associated with LEXER's current token.  For a T_ID
+   token, this is the identifier, and for a T_STRING token, this is the string.
+   For other tokens the value is undefined. */
+struct substring
+lex_tokss (const struct lexer *lexer)
 {
-  return &lexer->tokstr;
+  return ds_ss (&lexer->tokstr);
 }
 
 /* If the lexer is positioned at the (pseudo)identifier S, which
@@ -1368,7 +1367,7 @@ lex_match_hyphenated_word (struct lexer *lexer, const char *s)
   if (hyphen == NULL)
     return lex_match_id (lexer, s);
   else if (lexer->token != T_ID
-	   || !lex_id_match (ss_buffer (s, hyphen - s), ss_cstr (lexer->tokid))
+	   || !lex_id_match (ss_buffer (s, hyphen - s), lex_tokss (lexer))
 	   || lex_look_ahead (lexer) != T_DASH)
     return false;
   else

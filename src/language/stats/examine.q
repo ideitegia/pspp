@@ -675,7 +675,7 @@ xmn_custom_variables (struct lexer *lexer, struct dataset *ds,
   const struct dictionary *dict = dataset_dict (ds);
   lex_match (lexer, T_EQUALS);
 
-  if ( (lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+  if ( (lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokcstr (lexer)) == NULL)
        && lex_token (lexer) != T_ALL)
     {
       return 2;
@@ -719,7 +719,7 @@ examine_parse_independent_vars (struct lexer *lexer,
   ll_init (&sf->result_list);
 
   if ( (lex_token (lexer) != T_ID ||
-	dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+	dict_lookup_var (dict, lex_tokcstr (lexer)) == NULL)
        && lex_token (lexer) != T_ALL)
     {
       free ( sf ) ;
@@ -734,7 +734,7 @@ examine_parse_independent_vars (struct lexer *lexer,
       lex_match (lexer, T_BY);
 
       if ( (lex_token (lexer) != T_ID ||
-	    dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+	    dict_lookup_var (dict, lex_tokcstr (lexer)) == NULL)
 	   && lex_token (lexer) != T_ALL)
 	{
 	  free (sf);

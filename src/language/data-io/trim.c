@@ -83,18 +83,18 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
       if (!lex_force_match (lexer, T_EQUALS)
 	  || !lex_force_id (lexer))
 	return 0;
-      if (dict_lookup_var (dict, lex_tokid (lexer)) != NULL)
+      if (dict_lookup_var (dict, lex_tokcstr (lexer)) != NULL)
 	{
 	  msg (SE, _("Cannot rename %s as %s because there already exists "
 		     "a variable named %s.  To rename variables with "
 		     "overlapping names, use a single RENAME subcommand "
 		     "such as `/RENAME (A=B)(B=C)(C=A)', or equivalently, "
 		     "`/RENAME (A B C=B C A)'."),
-               var_get_name (v), lex_tokid (lexer), lex_tokid (lexer));
+               var_get_name (v), lex_tokcstr (lexer), lex_tokcstr (lexer));
 	  return 0;
 	}
 
-      dict_rename_var (dict, v, lex_tokid (lexer));
+      dict_rename_var (dict, v, lex_tokcstr (lexer));
       lex_get (lexer);
       return 1;
     }

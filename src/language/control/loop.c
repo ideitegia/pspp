@@ -221,13 +221,13 @@ parse_index_clause (struct dataset *ds, struct lexer *lexer,
       return false;
     }
 
-  loop->index_var = dict_lookup_var (dataset_dict (ds), lex_tokid (lexer));
+  loop->index_var = dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer));
   if (loop->index_var != NULL)
     *created_index_var = false;
   else
     {
       loop->index_var = dict_create_var_assert (dataset_dict (ds),
-                                                lex_tokid (lexer), 0);
+                                                lex_tokcstr (lexer), 0);
       *created_index_var = true;
     }
   lex_get (lexer);

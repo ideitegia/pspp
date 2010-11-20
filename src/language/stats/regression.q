@@ -755,7 +755,7 @@ regression_custom_variables (struct lexer *lexer, struct dataset *ds,
   lex_match (lexer, T_EQUALS);
 
   if ((lex_token (lexer) != T_ID
-       || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+       || dict_lookup_var (dict, lex_tokcstr (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     return 2;
 

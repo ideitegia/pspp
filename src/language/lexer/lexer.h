@@ -93,8 +93,8 @@ char *lex_token_representation (struct lexer *);
 /* Token accessors */
 enum token_type lex_token (const struct lexer *);
 double lex_tokval (const struct lexer *);
-const char *lex_tokid (const struct lexer *);
-const struct string *lex_tokstr (const struct lexer *);
+const char *lex_tokcstr (const struct lexer *);
+struct substring lex_tokss (const struct lexer *);
 
 /* Really weird functions. */
 void lex_skip_comment (struct lexer *);

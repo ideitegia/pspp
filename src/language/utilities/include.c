@@ -170,7 +170,7 @@ cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
 static int
 parse_insert (struct lexer *lexer, char **filename)
 {
-  char *target_fn;
+  const char *target_fn;
   char *relative_filename;
 
   /* Skip optional FILE=. */
@@ -184,7 +184,7 @@ parse_insert (struct lexer *lexer, char **filename)
       return CMD_FAILURE;
     }
 
-  target_fn = ds_cstr (lex_tokstr (lexer));
+  target_fn = lex_tokcstr (lexer);
 
   relative_filename =
     fn_search_path (target_fn,

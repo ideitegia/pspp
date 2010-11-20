@@ -50,7 +50,7 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
 
-  fn = ds_xstrdup (lex_tokstr (lexer));
+  fn = ss_xstrdup (lex_tokss (lexer));
   lex_force_match (lexer, T_STRING);
 
 

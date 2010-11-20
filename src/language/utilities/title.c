@@ -57,7 +57,7 @@ parse_title (struct lexer *lexer, enum text_item_type type)
       lex_get (lexer);
       if (!lex_force_string (lexer))
 	return CMD_FAILURE;
-      set_title (ds_cstr (lex_tokstr (lexer)), type);
+      set_title (lex_tokcstr (lexer), type);
       lex_get (lexer);
       return lex_end_of_command (lexer);
     }
@@ -149,7 +149,7 @@ cmd_add_documents (struct lexer *lexer, struct dataset *ds)
 
   while ( lex_is_string (lexer))
     {
-      dict_add_document_line (dict, ds_cstr (lex_tokstr (lexer)));
+      dict_add_document_line (dict, lex_tokcstr (lexer));
       lex_get (lexer);
     }
 

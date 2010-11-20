@@ -159,13 +159,13 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                   lex_match (lexer, T_EQUALS);
                   if (!lex_force_string (lexer))
                     goto error;
-                  if (ds_length (lex_tokstr (lexer)) != 1)
+                  if (ss_length (lex_tokss (lexer)) != 1)
                     {
                       msg (SE, _("The %s string must contain exactly one "
                                  "character."), "DELIMITER");
                       goto error;
                     }
-                  delimiter = ds_first (lex_tokstr (lexer));
+                  delimiter = ss_first (lex_tokss (lexer));
                   lex_get (lexer);
                 }
               else if (lex_match_id (lexer, "QUALIFIER"))
@@ -173,13 +173,13 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                   lex_match (lexer, T_EQUALS);
                   if (!lex_force_string (lexer))
                     goto error;
-                  if (ds_length (lex_tokstr (lexer)) != 1)
+                  if (ss_length (lex_tokss (lexer)) != 1)
                     {
                       msg (SE, _("The %s string must contain exactly one "
                                  "character."), "QUALIFIER");
                       goto error;
                     }
-                  qualifier = ds_first (lex_tokstr (lexer));
+                  qualifier = ss_first (lex_tokss (lexer));
                   lex_get (lexer);
                 }
               else if (lex_match_id (lexer, "DECIMAL"))

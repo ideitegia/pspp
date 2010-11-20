@@ -35,8 +35,8 @@ cmd_debug_format_guesser (struct lexer *lexer, struct dataset *ds UNUSED)
   g = fmt_guesser_create ();
   while (lex_is_string (lexer))
     {
-      fprintf (stderr, "\"%s\" ", ds_cstr (lex_tokstr (lexer)));
-      fmt_guesser_add (g, ds_ss (lex_tokstr (lexer)));
+      fprintf (stderr, "\"%s\" ", lex_tokcstr (lexer));
+      fmt_guesser_add (g, lex_tokss (lexer));
       lex_get (lexer);
     }
 

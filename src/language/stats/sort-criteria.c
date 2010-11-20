@@ -94,7 +94,7 @@ parse_sort_criteria (struct lexer *lexer, const struct dictionary *dict,
         }
     }
   while (lex_token (lexer) == T_ID
-         && dict_lookup_var (dict, lex_tokid (lexer)) != NULL);
+         && dict_lookup_var (dict, lex_tokcstr (lexer)) != NULL);
 
   free (local_vars);
   return true;

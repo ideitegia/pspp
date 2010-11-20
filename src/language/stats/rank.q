@@ -798,7 +798,7 @@ rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank 
 {
   lex_match (lexer, T_EQUALS);
 
-  if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
+  if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
       return 2;
 
@@ -808,7 +808,7 @@ rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank 
 
   if ( lex_match (lexer, T_BY)  )
     {
-      if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
+      if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) == NULL))
 	{
 	  return 2;
 	}
@@ -847,9 +847,9 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
       while( lex_token (lexer) == T_ID )
 	{
 
-	  if ( dict_lookup_var (dict, lex_tokid (lexer)) != NULL )
+	  if ( dict_lookup_var (dict, lex_tokcstr (lexer)) != NULL )
 	    {
-	      msg(SE, _("Variable %s already exists."), lex_tokid (lexer));
+	      msg(SE, _("Variable %s already exists."), lex_tokcstr (lexer));
 	      return 0;
 	    }
 	  if ( var_count >= subcase_get_n_fields (&sc) )
@@ -858,7 +858,7 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
 	      return 0;
 	    }
 
-	  destvar = create_rank_variable (dict, f, src_vars[var_count], lex_tokid (lexer));
+	  destvar = create_rank_variable (dict, f, src_vars[var_count], lex_tokcstr (lexer));
 	  rank_specs[n_rank_specs - 1].destvars[var_count] = destvar ;
 
 	  lex_get (lexer);

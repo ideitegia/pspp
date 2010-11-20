@@ -251,7 +251,7 @@ combine_files (enum comb_command_type command,
                            "TABLE."));
                 goto error;
               }
-            strcpy (file->in_name, lex_tokid (lexer));
+            strcpy (file->in_name, lex_tokcstr (lexer));
             lex_get (lexer);
           }
         else if (lex_match_id (lexer, "SORT"))
@@ -325,7 +325,7 @@ combine_files (enum comb_command_type command,
 	  lex_match (lexer, T_EQUALS);
           if (!lex_force_id (lexer))
             goto error;
-          strcpy (first_name, lex_tokid (lexer));
+          strcpy (first_name, lex_tokcstr (lexer));
           lex_get (lexer);
         }
       else if (command != COMB_UPDATE && lex_match_id (lexer, "LAST"))
@@ -339,7 +339,7 @@ combine_files (enum comb_command_type command,
 	  lex_match (lexer, T_EQUALS);
           if (!lex_force_id (lexer))
             goto error;
-          strcpy (last_name, lex_tokid (lexer));
+          strcpy (last_name, lex_tokcstr (lexer));
           lex_get (lexer);
         }
       else if (lex_match_id (lexer, "MAP"))

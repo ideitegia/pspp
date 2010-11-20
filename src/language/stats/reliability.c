@@ -179,7 +179,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	  if ( ! lex_force_string (lexer) ) 
 	    goto error;
 
-	  ds_init_string (&reliability.scale_name, lex_tokstr (lexer));
+	  ds_init_substring (&reliability.scale_name, lex_tokss (lexer));
 
 	  lex_get (lexer);
 

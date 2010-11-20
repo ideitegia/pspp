@@ -52,7 +52,7 @@ cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 	  return CMD_FAILURE;
 	}
 
-      ds_init_string (&label, lex_tokstr (lexer) );
+      ds_init_substring (&label, lex_tokss (lexer));
       if (ds_length (&label) > 255)
 	{
 	  msg (SW, _("Truncating variable label to 255 characters."));

@@ -435,7 +435,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	  if (lex_is_string (lexer))
 	    {
 	      struct string label;
-	      ds_init_string (&label, lex_tokstr (lexer));
+	      ds_init_substring (&label, lex_tokss (lexer));
 
 	      ds_truncate (&label, 255);
 	      dest_label[n_dest - 1] = ds_xstrdup (&label);
@@ -451,7 +451,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	  goto error;
 	}
 
-      ds_assign_string (&function_name, lex_tokstr (lexer));
+      ds_assign_substring (&function_name, lex_tokss (lexer));
       exclude = ds_chomp (&function_name, '.') ? MV_SYSTEM : MV_ANY;
 
       for (function = agr_func_tab; function->name; function++)
@@ -501,7 +501,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 		lex_match (lexer, T_COMMA);
 		if (lex_is_string (lexer))
 		  {
-		    arg[i].c = ds_xstrdup (lex_tokstr (lexer));
+		    arg[i].c = ss_xstrdup (lex_tokss (lexer));
 		    type = VAL_STRING;
 		  }
 		else if (lex_is_number (lexer))

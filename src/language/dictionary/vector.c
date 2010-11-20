@@ -59,25 +59,25 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
 	{
           size_t i;
 
-	  if (dict_lookup_vector (dict, lex_tokid (lexer)))
+	  if (dict_lookup_vector (dict, lex_tokcstr (lexer)))
 	    {
 	      msg (SE, _("A vector named %s already exists."),
-                   lex_tokid (lexer));
+                   lex_tokcstr (lexer));
 	      goto fail;
 	    }
 
           for (i = 0; i < vector_cnt; i++)
-            if (!strcasecmp (vectors[i], lex_tokid (lexer)))
+            if (!strcasecmp (vectors[i], lex_tokcstr (lexer)))
 	      {
 		msg (SE, _("Vector name %s is given twice."),
-                     lex_tokid (lexer));
+                     lex_tokcstr (lexer));
 		goto fail;
 	      }
 
           if (vector_cnt == vector_cap)
             vectors = pool_2nrealloc (pool,
                                        vectors, &vector_cap, sizeof *vectors);
-          vectors[vector_cnt++] = pool_strdup (pool, lex_tokid (lexer));
+          vectors[vector_cnt++] = pool_strdup (pool, lex_tokcstr (lexer));
 
 	  lex_get (lexer);
 	  lex_match (lexer, T_COMMA);

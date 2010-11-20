@@ -61,7 +61,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
   else if (lex_match_id (lexer, "PSQL"))
     return parse_get_psql (lexer, ds);
 
-  msg (SE, _("Unsupported TYPE %s"), lex_tokid (lexer));
+  msg (SE, _("Unsupported TYPE %s"), lex_tokcstr (lexer));
   return CMD_FAILURE;
 }
 
@@ -85,7 +85,7 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_string (lexer))
     goto error;
 
-  psql.conninfo = xstrdup (ds_cstr (lex_tokstr (lexer)));
+  psql.conninfo = ss_xstrdup (lex_tokss (lexer));
 
   lex_get (lexer);
 
@@ -113,7 +113,7 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
 	  if ( ! lex_force_string (lexer) )
 	    goto error;
 
-	  ds_put_substring (&psql.sql,  lex_tokstr (lexer)->ss);
+	  ds_put_substring (&psql.sql, lex_tokss (lexer));
 	  lex_get (lexer);
 	}
      }
@@ -153,7 +153,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_string (lexer))
     goto error;
 
-  gri.file_name = xstrdup (ds_cstr (lex_tokstr (lexer)));
+  gri.file_name = ss_xstrdup (lex_tokss (lexer));
 
   lex_get (lexer);
 
@@ -172,7 +172,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	      if ( ! lex_force_string (lexer) )
 		goto error;
 
-	      gri.sheet_name = xstrdup (ds_cstr (lex_tokstr (lexer)));
+	      gri.sheet_name = ss_xstrdup (lex_tokss (lexer));
 	      gri.sheet_index = -1;
 	    }
 	  else if (lex_match_id (lexer, "INDEX"))
@@ -196,7 +196,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	      if ( ! lex_force_string (lexer) )
 		goto error;
 
-	      gri.cell_range = xstrdup (ds_cstr (lex_tokstr (lexer)));
+	      gri.cell_range = ss_xstrdup (lex_tokss (lexer));
 	    }
 	  else
 	    goto error;
@@ -219,6 +219,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	}
       else
 	{
+	  printf ("Unknown data file type `%s'\n", lex_tokcstr (lexer));
 	  goto error;
 	}
       lex_get (lexer);
@@ -415,7 +416,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
           if (!lex_force_string (lexer))
             goto error;
 
-          s = ds_ss (lex_tokstr (lexer));
+          s = lex_tokss (lexer);
           if (ss_match_string (&s, ss_cstr ("\\t")))
             ds_put_cstr (&hard_seps, "\t");
           if (ss_match_string (&s, ss_cstr ("\\\\")))
@@ -441,14 +442,14 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
             goto error;
 
           if (settings_get_syntax () == COMPATIBLE
-              && ds_length (lex_tokstr (lexer)) != 1)
+              && ss_length (lex_tokss (lexer)) != 1)
             {
               msg (SE, _("In compatible syntax mode, the QUALIFIER string "
                          "must contain exactly one character."));
               goto error;
             }
 
-          data_parser_set_quotes (parser, ds_ss (lex_tokstr (lexer)));
+          data_parser_set_quotes (parser, lex_tokss (lexer));
           lex_get (lexer);
         }
       else if (settings_get_syntax () == ENHANCED
@@ -501,7 +502,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
 
       if (!lex_force_id (lexer))
         goto error;
-      strcpy (name, lex_tokid (lexer));
+      strcpy (name, lex_tokcstr (lexer));
       lex_get (lexer);
 
       if (type == DP_DELIMITED)

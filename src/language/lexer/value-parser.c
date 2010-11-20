@@ -106,7 +106,7 @@ parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
 
       assert (fmt_get_category (*format) != FMT_CAT_STRING);
 
-      if (!data_in_msg (ds_ss (lex_tokstr (lexer)), LEGACY_NATIVE,
+      if (!data_in_msg (lex_tokss (lexer), LEGACY_NATIVE,
                         *format, &v, 0, NULL))
         return false;
 
@@ -143,7 +143,12 @@ parse_value (struct lexer *lexer, union value *v, int width)
     }
   else if (lex_force_string (lexer))
     {
-      const char *s = ds_cstr (lex_tokstr (lexer));
+      const char *s;
+
+      if (!lex_force_string (lexer))
+	return false;
+
+      s = lex_tokcstr (lexer);
       value_copy_str_rpad (v, width, CHAR_CAST_BUG (const uint8_t *, s), ' ');
     }
   else

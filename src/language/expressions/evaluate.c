@@ -134,7 +134,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
           if (!lex_force_id (lexer))
             goto done;
-          strcpy (name, lex_tokid (lexer));
+          strcpy (name, lex_tokcstr (lexer));
 
           lex_get (lexer);
           if (!lex_force_match (lexer, T_EQUALS))
@@ -143,7 +143,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
           if (lex_is_number (lexer))
             width = 0;
           else if (lex_is_string (lexer))
-            width = ds_length (lex_tokstr (lexer));
+            width = ss_length (lex_tokss (lexer));
           else
             {
               lex_error (lexer, _("expecting number or string"));

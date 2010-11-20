@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ cmd_debug_paper_size (struct lexer *lexer, struct dataset *ds UNUSED)
 
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
-  paper_size = ds_cstr (lex_tokstr (lexer));
+  paper_size = lex_tokcstr (lexer);
 
   printf ("\"%s\" => ", paper_size);
   if (measure_paper (paper_size, &h, &v))

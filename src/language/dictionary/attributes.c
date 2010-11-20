@@ -79,7 +79,7 @@ static bool
 match_subcommand (struct lexer *lexer, const char *keyword) 
 {
   if (lex_token (lexer) == T_ID
-      && lex_id_match (ss_cstr (lex_tokid (lexer)), ss_cstr (keyword))
+      && lex_id_match (lex_tokss (lexer), ss_cstr (keyword))
       && lex_look_ahead (lexer) == T_EQUALS)
     {
       lex_get (lexer);          /* Skip keyword. */
@@ -96,7 +96,7 @@ parse_attribute_name (struct lexer *lexer, char name[VAR_NAME_LEN + 1],
 {
   if (!lex_force_id (lexer))
     return false;
-  strcpy (name, lex_tokid (lexer));
+  strcpy (name, lex_tokcstr (lexer));
   lex_get (lexer);
 
   if (lex_match (lexer, T_LBRACK))
@@ -122,14 +122,14 @@ static bool
 add_attribute (struct lexer *lexer, struct attrset **sets, size_t n) 
 {
   char name[VAR_NAME_LEN + 1];
+  const char *value;
   size_t index, i;
-  char *value;
 
   if (!parse_attribute_name (lexer, name, &index)
       || !lex_force_match (lexer, T_LPAREN)
       || !lex_force_string (lexer))
     return false;
-  value = ds_cstr (lex_tokstr (lexer));
+  value = lex_tokcstr (lexer);
 
   for (i = 0; i < n; i++)
     {

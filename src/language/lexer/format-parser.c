@@ -46,7 +46,7 @@ parse_abstract_format_specifier__ (struct lexer *lexer,
     goto error;
 
   /* Extract pieces. */
-  s = ds_ss (lex_tokstr (lexer));
+  s = ss_cstr (lex_tokcstr (lexer));
   ss_get_bytes (&s, ss_span (s, ss_cstr (CC_LETTERS)), &type_ss);
   ss_get_bytes (&s, ss_span (s, ss_cstr (CC_DIGITS)), &width_ss);
   if (ss_match_byte (&s, '.'))
@@ -133,9 +133,9 @@ parse_format_specifier_name (struct lexer *lexer, enum fmt_type *type)
       lex_error (lexer, _("expecting format type"));
       return false;
     }
-  if (!fmt_from_name (ds_cstr (lex_tokstr (lexer)), type))
+  if (!fmt_from_name (lex_tokcstr (lexer), type))
     {
-      msg (SE, _("Unknown format type `%s'."), ds_cstr (lex_tokstr (lexer)));
+      msg (SE, _("Unknown format type `%s'."), lex_tokcstr (lexer));
       return false;
     }
   lex_get (lexer);
