@@ -35,50 +35,28 @@
 
 #include "xalloc.h"
 
-/* Current prompts in each style. */
-static char *prompts[PROMPT_CNT];
-
 /* Current prompting style. */
 static enum prompt_style current_style;
-
-/* Initializes prompts. */
-void
-prompt_init (void)
-{
-  prompts[PROMPT_FIRST] = xstrdup ("PSPP> ");
-  prompts[PROMPT_LATER] = xstrdup ("    > ");
-  prompts[PROMPT_DATA] = xstrdup ("data> ");
-  current_style = PROMPT_FIRST;
-}
-
-/* Frees prompts. */
-void
-prompt_done (void)
-{
-  int i;
-
-  for (i = 0; i < PROMPT_CNT; i++)
-    {
-      free (prompts[i]);
-      prompts[i] = NULL;
-    }
-}
 
 /* Gets the command prompt for the given STYLE. */
 const char *
 prompt_get (enum prompt_style style)
 {
-  assert (style < PROMPT_CNT);
-  return prompts[style];
-}
+  switch (style)
+    {
+    case PROMPT_FIRST:
+      return "PSPP> ";
 
-/* Sets the given STYLE's prompt to STRING. */
-void
-prompt_set (enum prompt_style style, const char *string)
-{
-  assert (style < PROMPT_CNT);
-  free (prompts[style]);
-  prompts[style] = xstrdup (string);
+    case PROMPT_LATER:
+      return "    > ";
+
+    case PROMPT_DATA:
+      return "data> ";
+
+    case PROMPT_CNT:
+      NOT_REACHED ();
+    }
+  NOT_REACHED ();
 }
 
 /* Sets STYLE as the current prompt style. */

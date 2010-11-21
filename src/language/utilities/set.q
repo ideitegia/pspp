@@ -32,7 +32,6 @@
 #include <language/command.h>
 #include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
-#include <language/prompt.h>
 #include <libpspp/compiler.h>
 #include <libpspp/copyleft.h>
 #include <libpspp/float-format.h>
@@ -70,9 +69,7 @@ int tgetnum (const char *);
      cce=string;
      compression=compress:on/off;
      cpi=integer "x>0" "%s must be greater than 0";
-     cprompt=string;
      decimal=dec:dot/comma;
-     dprompt=string;
      epoch=custom;
      errors=custom;
      format=custom;
@@ -97,7 +94,6 @@ int tgetnum (const char *);
      mxmemory=integer;
      mxwarns=integer;
      printback=custom;
-     prompt=string;
      results=custom;
      rib=rib:msbfirst/lsbfirst/vax/native;
      rrb=rrb:native/isl/isb/idl/idb/vf/vd/vg/zs/zl;
@@ -145,13 +141,6 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
     settings_set_cc ( cmd.s_ccd, FMT_CCD);
   if (cmd.sbc_cce)
     settings_set_cc ( cmd.s_cce, FMT_CCE);
-
-  if (cmd.sbc_prompt)
-    prompt_set (PROMPT_FIRST, cmd.s_prompt);
-  if (cmd.sbc_cprompt)
-    prompt_set (PROMPT_LATER, cmd.s_cprompt);
-  if (cmd.sbc_dprompt)
-    prompt_set (PROMPT_DATA, cmd.s_dprompt);
 
   if (cmd.sbc_decimal)
     settings_set_decimal_char (cmd.dec == STC_DOT ? '.' : ',');

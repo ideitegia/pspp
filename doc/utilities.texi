@@ -359,11 +359,8 @@ SET
         /RRB=@{NATIVE,ISL,ISB,IDL,IDB,VF,VD,VG,ZS,ZL@}
 
 (interaction)
-        /CPROMPT='cprompt_string'
-        /DPROMPT='dprompt_string'
         /MXERRS=max_errs
         /MXWARNS=max_warnings
-        /PROMPT='prompt'
         /WORKSPACE=workspace_size
 
 (program execution)
@@ -530,13 +527,6 @@ Interaction subcommands affect the way that PSPP interacts with an
 online user.  The interaction subcommands are
 
 @table @asis
-@item CPROMPT
-The command continuation prompt.  The default is @samp{    > }.
-
-@item DPROMPT
-Prompt used when expecting data input within @cmd{BEGIN DATA} (@pxref{BEGIN
-DATA}).  The default is @samp{data> }.
-
 @item MXERRS
 The maximum number of errors before PSPP halts processing of the current
 command file.  The default is 50.
@@ -548,9 +538,6 @@ The special value of zero means that all warning situations should be ignored.
 No warnings will be issued, except a single initial warning advising the user
 that warnings will not be given.
 The default value is 100.
-
-@item PROMPT
-The command prompt.  The default is @samp{PSPP> }.
 @end table
 
 Program execution subcommands control the way that PSPP commands

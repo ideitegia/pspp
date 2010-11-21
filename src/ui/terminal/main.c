@@ -39,7 +39,6 @@
 #include "gsl/gsl_errno.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
-#include "language/prompt.h"
 #include "language/syntax-file.h"
 #include "libpspp/argv-parser.h"
 #include "libpspp/compiler.h"
@@ -94,7 +93,6 @@ main (int argc, char **argv)
 
   fh_init ();
   the_source_stream = create_source_stream ();
-  prompt_init ();
   readln_initialize ();
   settings_init ();
   terminal_check_size ();
@@ -159,7 +157,6 @@ main (int argc, char **argv)
   fh_done ();
   lex_destroy (the_lexer);
   destroy_source_stream (the_source_stream);
-  prompt_done ();
   readln_uninitialize ();
   output_close ();
   msg_ui_done ();

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,15 +27,9 @@ enum prompt_style
     PROMPT_CNT
   };
 
-
-void prompt_init (void);
-void prompt_done (void);
-
 enum prompt_style prompt_get_style (void);
-
-const char *prompt_get (enum prompt_style);
-void prompt_set (enum prompt_style, const char *);
 void prompt_set_style (enum prompt_style);
 
+const char *prompt_get (enum prompt_style);
 
 #endif /* PROMPT_H */
