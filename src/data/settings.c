@@ -64,8 +64,6 @@ struct settings
   bool printback;
   bool mprint;
   int mxloops;
-  bool nulline;
-  char endcmd;
   size_t workspace;
   struct fmt_spec default_format;
   bool testing_mode;
@@ -105,8 +103,6 @@ static struct settings the_settings = {
   true,                         /* printback */
   true,                         /* mprint */
   1,                            /* mxloops */
-  true,                         /* nulline */
-  '.',                          /* endcmd */
   64L * 1024 * 1024,            /* workspace */
   {FMT_F, 8, 2},                /* default_format */
   false,                        /* testing_mode */
@@ -427,34 +423,6 @@ void
 settings_set_mxloops ( int mxloops)
 {
   the_settings.mxloops = mxloops;
-}
-
-/* Whether a blank line is a command terminator. */
-bool
-settings_get_nulline (void)
-{
-  return the_settings.nulline;
-}
-
-/* Set whether a blank line is a command terminator. */
-void
-settings_set_nulline ( bool nulline)
-{
-  the_settings.nulline = nulline;
-}
-
-/* The character used to terminate commands. */
-char
-settings_get_endcmd (void)
-{
-  return the_settings.endcmd;
-}
-
-/* Set the character used to terminate commands. */
-void
-settings_set_endcmd ( char endcmd)
-{
-  the_settings.endcmd = endcmd;
 }
 
 /* Approximate maximum amount of memory to use for cases, in

@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2010-10-16 13:05:30 blp>
+Time-stamp: <2010-11-21 11:14:27 blp>
 Copyright (C) 1996-9, 2000, 2008, 2009, 2010 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -19,6 +19,9 @@ Changes from 0.7.3 to 0.7.6:
  * The PRESERVE and RESTORE commands are now implemented.
 
  * The HOST command has been updated to use more modern syntax.
+
+ * The SET and SHOW commands no longer support the ENDCMD and NULLINE
+   subcommands.  The defaults are now the only supported values.
 
 Changes from 0.7.2 to 0.7.3:
 

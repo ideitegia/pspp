@@ -147,11 +147,6 @@ punctuator only as the last character on a line (except white space).
 When it is the last non-space character on a line, a period is not
 treated as part of another token, even if it would otherwise be part
 of, e.g.@:, an identifier or a floating-point number.
-
-Actually, the character that ends a command can be changed with
-@cmd{SET}'s ENDCMD subcommand (@pxref{SET}), but we do not recommend
-doing so.  Throughout the remainder of this manual we will assume that
-the default setting is in effect.
 @end table
 
 @node Commands
@@ -179,9 +174,7 @@ by a forward slash (@samp{/}).
 There are multiple ways to mark the end of a command.  The most common
 way is to end the last line of the command with a period (@samp{.}) as
 described in the previous section (@pxref{Tokens}).  A blank line, or
-one that consists only of white space or comments, also ends a command
-by default, although you can use the NULLINE subcommand of @cmd{SET}
-to disable this feature (@pxref{SET}).
+one that consists only of white space or comments, also ends a command.
 
 @node Syntax Variants
 @section Variants of syntax.

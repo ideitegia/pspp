@@ -73,7 +73,6 @@ int tgetnum (const char *);
      cprompt=string;
      decimal=dec:dot/comma;
      dprompt=string;
-     endcmd=string "x==1" "one character long";
      epoch=custom;
      errors=custom;
      format=custom;
@@ -97,7 +96,6 @@ int tgetnum (const char *);
      mxloops=integer "x >=1" "%s must be at least 1";
      mxmemory=integer;
      mxwarns=integer;
-     nulline=null:on/off;
      printback=custom;
      prompt=string;
      results=custom;
@@ -158,16 +156,12 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
   if (cmd.sbc_decimal)
     settings_set_decimal_char (cmd.dec == STC_DOT ? '.' : ',');
 
-  if (cmd.sbc_endcmd)
-    settings_set_endcmd (cmd.s_endcmd[0]);
   if (cmd.sbc_include)
     settings_set_include (cmd.inc == STC_ON);
   if (cmd.sbc_mxerrs)
     settings_set_max_messages (MSG_S_ERROR, cmd.n_mxerrs[0]);
   if (cmd.sbc_mxwarns)
     settings_set_max_messages (MSG_S_WARNING, cmd.n_mxwarns[0]);
-  if (cmd.sbc_nulline)
-    settings_set_nulline (cmd.null == STC_ON);
   if (cmd.sbc_rib)
     settings_set_input_integer_format (stc_to_integer_format (cmd.rib));
   if (cmd.sbc_rrb)
@@ -621,12 +615,6 @@ show_decimals (const struct dataset *ds UNUSED)
 }
 
 static char *
-show_endcmd (const struct dataset *ds UNUSED)
-{
-  return xasprintf ("`%c'", settings_get_endcmd ());
-}
-
-static char *
 show_errors (const struct dataset *ds UNUSED)
 {
   return show_output_routing (SETTINGS_OUTPUT_ERROR);
@@ -810,7 +798,6 @@ const struct show_sbc show_table[] =
     {"CCD", show_ccd},
     {"CCE", show_cce},
     {"DECIMALS", show_decimals},
-    {"ENDCMD", show_endcmd},
     {"ERRORS", show_errors},
     {"FORMAT", show_format},
     {"LENGTH", show_length},

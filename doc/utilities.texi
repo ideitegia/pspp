@@ -358,10 +358,6 @@ SET
         /RIB=@{NATIVE,MSBFIRST,LSBFIRST,VAX@}
         /RRB=@{NATIVE,ISL,ISB,IDL,IDB,VF,VD,VG,ZS,ZL@}
 
-(program input)
-        /ENDCMD='.'
-        /NULLINE=@{ON,OFF@}
-
 (interaction)
         /CPROMPT='cprompt_string'
         /DPROMPT='dprompt_string'
@@ -528,19 +524,6 @@ Z architecture also supports IEEE 754 floating point.  The ZS and ZL
 formats are only for use with very old input files.
 @end table
 The default is NATIVE.
-@end table
-
-Program input subcommands affect the way that programs are parsed when
-they are typed interactively or run from a command file.  They are
-
-@table @asis
-@item ENDCMD
-This is a single character indicating the end of a command.  The default
-is @samp{.}.  Don't change this.
-
-@item NULLINE
-Whether a blank line is interpreted as ending the current command.  The
-default is ON.
 @end table
 
 Interaction subcommands affect the way that PSPP interacts with an
@@ -807,7 +790,6 @@ SHOW
         [CCE]
         [COPYING]
         [DECIMALS]
-        [ENDCMD]
         [FORMAT]
         [LENGTH]
         [MXERRS]

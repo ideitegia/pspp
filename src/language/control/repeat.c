@@ -527,7 +527,7 @@ do_repeat_filter (struct getl_interface *interface, struct string *line)
 
   /* Strip trailing whitespace, check for & remove terminal dot. */
   ds_rtrim (line, ss_cstr (CC_SPACES));
-  dot = ds_chomp (line, settings_get_endcmd ());
+  dot = ds_chomp (line, '.');
   input = ds_ss (line);
   in_apos = in_quote = false;
   while ((c = ss_first (input)) != EOF)
@@ -550,7 +550,7 @@ do_repeat_filter (struct getl_interface *interface, struct string *line)
         }
     }
   if (dot)
-    ds_put_byte (&output, settings_get_endcmd ());
+    ds_put_byte (&output, '.');
 
   ds_swap (line, &output);
   ds_destroy (&output);

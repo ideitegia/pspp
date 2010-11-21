@@ -917,8 +917,7 @@ lex_preprocess_line (struct string *line,
 {
   strip_comments (line);
   ds_rtrim (line, ss_cstr (CC_SPACES));
-  *line_ends_command = (ds_chomp (line, settings_get_endcmd ())
-                        || (ds_is_empty (line) && settings_get_nulline ()));
+  *line_ends_command = ds_chomp (line, '.') || ds_is_empty (line);
   *line_starts_command = false;
   if (syntax == GETL_BATCH)
     {
