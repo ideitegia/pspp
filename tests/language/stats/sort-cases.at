@@ -46,7 +46,7 @@ m4_define([SORT_CASES_TEST],
    AT_CAPTURE_FILE([sort-cases.sps])
    AT_DATA([sort-cases.sps], [dnl
 DATA LIST LIST NOTABLE FILE='data.txt'/x y (F8).
-SORT BY x[]m4_if([$3], [], [], [/BUFFERS=$3]).
+SORT CASES BY x[]m4_if([$3], [], [], [/BUFFERS=$3]).
 PRINT OUTFILE='output.txt'/x y.
 EXECUTE.
 ])
