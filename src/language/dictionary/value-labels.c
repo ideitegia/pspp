@@ -121,6 +121,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
   /* Parse all the labels and add them to the variables. */
   do
     {
+      enum { MAX_LABEL_LEN = 255 };
       int width = var_get_width (vars[0]);
       union value value;
       struct string label;
@@ -144,10 +145,10 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
 
       ds_init_substring (&label, lex_tokss (lexer));
 
-      if (ds_length (&label) > 60)
+      if (ds_length (&label) > MAX_LABEL_LEN)
 	{
-	  msg (SW, _("Truncating value label to 60 characters."));
-	  ds_truncate (&label, 60);
+	  msg (SW, _("Truncating value label to %d bytes."), MAX_LABEL_LEN);
+	  ds_truncate (&label, MAX_LABEL_LEN);
 	}
 
       for (i = 0; i < var_cnt; i++)
