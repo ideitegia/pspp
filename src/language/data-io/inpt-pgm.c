@@ -52,15 +52,6 @@ enum cmd_result_extensions
   };
 
 /* Indicates how a `union value' should be initialized. */
-enum value_init_type
-  {
-    INP_NUMERIC = 01,		/* Numeric. */
-    INP_STRING = 0,		/* String. */
-
-    INP_INIT_ONCE = 02,		/* Initialize only once. */
-    INP_REINIT = 0,		/* Reinitialize for each iteration. */
-  };
-
 struct input_program_pgm
   {
     struct trns_chain *trns_chain;
