@@ -282,8 +282,8 @@ on_delete (GtkWindow *window, GdkEvent *e, GtkWindow **addr)
   return FALSE;
 }
 
-void
-paste_syntax_to_window (const gchar *syntax)
+char *
+paste_syntax_to_window (gchar *syntax)
 {
   static GtkWidget *the_syntax_pasteboard = NULL;
 
@@ -304,6 +304,8 @@ paste_syntax_to_window (const gchar *syntax)
   gtk_text_buffer_end_user_action (buffer);
 
   gtk_widget_show (the_syntax_pasteboard);
+
+  return syntax;
 }
 
 

@@ -18,8 +18,6 @@
 
 #include "chi-square-dialog.h"
 
-#include <language/syntax-string-source.h>
-
 #include "psppire-dialog.h"
 #include "psppire-var-view.h"
 #include "psppire-acr.h"
@@ -230,21 +228,10 @@ chisquare_dialog (PsppireDataWindow *dw)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      {
-	gchar *syntax = generate_syntax (&csd);
-
-	struct getl_interface *sss = create_syntax_string_source (syntax);
-	execute_syntax (sss);
-
-	g_free (syntax);
-      }
+      g_free (execute_syntax_string (generate_syntax (&csd)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	gchar *syntax = generate_syntax (&csd);
-	paste_syntax_to_window (syntax);
-	g_free (syntax);
-      }
+      g_free (paste_syntax_to_window (generate_syntax (&csd)));
       break;
     default:
       break;

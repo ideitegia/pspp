@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@
 #include <libpspp/i18n.h>
 
 #include <language/expressions/public.h>
-#include <language/syntax-string-source.h>
 #include "executor.h"
 
 static void function_list_populate (GtkTreeView *tv);
@@ -435,23 +434,10 @@ compute_dialog (PsppireDataWindow *de)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      {
-	gchar *syntax = generate_syntax (&scd);
-
-	struct getl_interface *sss = create_syntax_string_source (syntax);
-	execute_syntax (sss);
-
-	g_free (syntax);
-      }
+      g_free (execute_syntax_string (generate_syntax (&scd)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	gchar *syntax = generate_syntax (&scd);
-
-	paste_syntax_to_window (syntax);
-
-	g_free (syntax);
-      }
+      g_free (paste_syntax_to_window (generate_syntax (&scd)));
       break;
     default:
       break;

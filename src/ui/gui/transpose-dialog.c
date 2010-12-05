@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2010  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@
 #include "executor.h"
 #include "psppire-data-window.h"
 #include "dict-display.h"
-#include <language/syntax-string-source.h>
 #include "helper.h"
 
 #include "dialog-common.h"
@@ -111,14 +110,7 @@ transpose_dialog (PsppireDataWindow *de)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      {
-	gchar *syntax = generate_syntax (dict, xml);
-
-	struct getl_interface *sss = create_syntax_string_source (syntax);
-	execute_syntax (sss);
-
-	g_free (syntax);
-      }
+      g_free (execute_syntax_string (generate_syntax (dict, xml)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
       {

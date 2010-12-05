@@ -134,7 +134,7 @@ initialize (struct source_stream *ss, const char *data_file)
   if (data_file != NULL)
     load_data_file (data_file);
 
-  execute_syntax (create_syntax_string_source (""));
+  execute_const_syntax_string ("");
 
   gtk_widget_show (the_data_window);
 }

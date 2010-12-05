@@ -187,9 +187,7 @@ set_cut_copy_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
 static void
 execute (void)
 {
-  struct getl_interface *sss = create_syntax_string_source ("EXECUTE.");
-
-  execute_syntax (sss);
+  execute_const_syntax_string ("EXECUTE.");
 }
 
 static void
@@ -503,9 +501,9 @@ save_file (PsppireWindow *w)
   gchar *native_file_name = NULL;
   gchar *file_name = NULL;
   GString *fnx;
-  struct getl_interface *sss;
   struct string filename ;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (w);
+  gchar *syntax;
 
   g_object_get (w, "filename", &file_name, NULL);
 
@@ -529,20 +527,13 @@ save_file (PsppireWindow *w)
   syntax_gen_string (&filename, ss_cstr (native_file_name));
   g_free (native_file_name);
 
-  if ( de->save_as_portable )
-    {
-      sss = create_syntax_format_source ("EXPORT OUTFILE=%s.",
-					 ds_cstr (&filename));
-    }
-  else
-    {
-      sss = create_syntax_format_source ("SAVE OUTFILE=%s.",
-					 ds_cstr (&filename));
-    }
+  syntax = g_strdup_printf ("%s OUTFILE=%s.",
+                            de->save_as_portable ? "EXPORT" : "SAVE",
+                            ds_cstr (&filename));
 
   ds_destroy (&filename);
 
-  execute_syntax (sss);
+  g_free (execute_syntax_string (syntax));
 }
 
 
@@ -562,11 +553,7 @@ on_insert_variable (PsppireDataWindow *dw)
 static void
 display_dict (PsppireDataWindow *de)
 {
-
-  struct getl_interface *sss =
-    create_syntax_string_source ("DISPLAY DICTIONARY.");
-
-  execute_syntax (sss);
+  execute_const_syntax_string ("DISPLAY DICTIONARY.");
 }
 
 static void
@@ -577,12 +564,13 @@ sysfile_info (PsppireDataWindow *de)
   if  ( GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog)))
     {
       struct string filename;
-      struct getl_interface *sss;
       gchar *file_name =
 	gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
       gchar *native_file_name =
 	convert_glib_filename_to_system_filename (file_name, NULL);
+
+      gchar *syntax;
 
       ds_init_empty (&filename);
 
@@ -590,9 +578,8 @@ sysfile_info (PsppireDataWindow *de)
 
       g_free (native_file_name);
 
-      sss = create_syntax_format_source ("SYSFILE INFO %s.",
-					 ds_cstr (&filename));
-      execute_syntax (sss);
+      syntax = g_strdup_printf ("SYSFILE INFO %s.", ds_cstr (&filename));
+      g_free (execute_syntax_string (syntax));
     }
 
   gtk_widget_destroy (dialog);
@@ -703,11 +690,7 @@ data_save (PsppireWindow *de)
 static void
 new_file (PsppireDataWindow *de)
 {
-  struct getl_interface *sss =
-    create_syntax_string_source ("NEW FILE.");
-
-  execute_syntax (sss);
-
+  execute_const_syntax_string ("NEW FILE.");
   psppire_window_set_filename (PSPPIRE_WINDOW (de), NULL);
 }
 

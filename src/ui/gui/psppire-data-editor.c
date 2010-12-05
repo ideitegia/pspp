@@ -21,7 +21,6 @@
 #include "psppire-data-editor.h"
 #include "psppire-var-sheet.h"
 
-#include <language/syntax-string-source.h>
 #include "psppire-data-store.h"
 #include <libpspp/i18n.h>
 #include <ui/gui/sheet/psppire-axis.h>
@@ -1249,21 +1248,13 @@ popup_cases_menu (PsppireSheet *sheet, gint row,
 static void
 do_sort (PsppireDataStore *ds, int var, gboolean descend)
 {
-  GString *string = g_string_new ("SORT CASES BY ");
-
   const struct variable *v =
     psppire_dict_get_variable (ds->dict, var);
+  gchar *syntax;
 
-  g_string_append_printf (string, "%s", var_get_name (v));
-
-  if ( descend )
-    g_string_append (string, " (D)");
-
-  g_string_append (string, ".");
-
-  execute_syntax (create_syntax_string_source (string->str));
-
-  g_string_free (string, TRUE);
+  syntax = g_strdup_printf ("SORT CASES BY %s%s.",
+                            var_get_name (v), descend ? " (D)" : "");
+  g_free (execute_syntax_string (syntax));
 }
 
 

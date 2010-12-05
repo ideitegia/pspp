@@ -16,15 +16,18 @@
 
 #include <config.h>
 
-#include "executor.h"
-#include "psppire-data-store.h"
-#include <data/lazy-casereader.h>
-#include <data/procedure.h>
-#include <libpspp/getl.h>
-#include <language/lexer/lexer.h>
-#include <language/command.h>
-#include <output/driver.h>
-#include "psppire-output-window.h"
+#include "ui/gui/executor.h"
+
+#include "data/lazy-casereader.h"
+#include "data/procedure.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/syntax-string-source.h"
+#include "libpspp/cast.h"
+#include "libpspp/getl.h"
+#include "output/driver.h"
+#include "ui/gui/psppire-data-store.h"
+#include "ui/gui/psppire-output-window.h"
 
 extern struct dataset *the_dataset;
 extern struct source_stream *the_source_stream;
@@ -107,4 +110,20 @@ execute_syntax (struct getl_interface *sss)
   output_flush ();
 
   return retval;
+}
+
+/* Executes null-terminated string SYNTAX as syntax.
+   Returns SYNTAX. */
+gchar *
+execute_syntax_string (gchar *syntax)
+{
+  execute_const_syntax_string (syntax);
+  return syntax;
+}
+
+/* Executes null-terminated string SYNTAX as syntax. */
+void
+execute_const_syntax_string (const gchar *syntax)
+{
+  execute_syntax (create_syntax_string_source (syntax));
 }

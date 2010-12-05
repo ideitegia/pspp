@@ -17,7 +17,6 @@
 #include <config.h>
 
 #include "dialog-common.h"
-#include <language/syntax-string-source.h>
 
 #include <language/stats/aggregate.h>
 
@@ -591,22 +590,10 @@ aggregate_dialog (PsppireDataWindow *dw)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      {
-	gchar *syntax = generate_syntax (&fd);
-
-	struct getl_interface *sss = create_syntax_string_source (syntax);
-	execute_syntax (sss);
-
-	g_free (syntax);
-      }
+      g_free (execute_syntax_string (generate_syntax (&fd)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	gchar *syntax = generate_syntax (&fd);
-        paste_syntax_to_window (syntax);
-
-	g_free (syntax);
-      }
+      g_free (paste_syntax_to_window (generate_syntax (&fd)));
       break;
     default:
       break;

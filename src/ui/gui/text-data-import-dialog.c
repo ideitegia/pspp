@@ -16,39 +16,37 @@
 
 #include <config.h>
 
-#include <gtk/gtk.h>
-
-
-#include "widget-io.h"
-#include "checkbox-treeview.h"
-#include "descriptives-dialog.h"
+#include "ui/gui/text-data-import-dialog.h"
 
 #include <errno.h>
-
 #include <gtk-contrib/psppire-sheet.h>
+#include <gtk/gtk.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include <data/data-in.h>
-#include <data/data-out.h>
-#include <data/format-guesser.h>
-#include <data/value-labels.h>
-#include <language/data-io/data-parser.h>
-#include <language/syntax-string-source.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <ui/syntax-gen.h>
-#include <ui/gui/psppire-data-window.h>
-#include <ui/gui/dialog-common.h>
-#include <ui/gui/helper.h>
-#include <ui/gui/psppire-dialog.h>
-#include <ui/gui/psppire-var-sheet.h>
-#include <ui/gui/psppire-var-store.h>
-#include "executor.h"
+#include "data/data-in.h"
+#include "data/data-out.h"
+#include "data/format-guesser.h"
+#include "data/value-labels.h"
+#include "language/data-io/data-parser.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "ui/gui/checkbox-treeview.h"
+#include "ui/gui/descriptives-dialog.h"
+#include "ui/gui/dialog-common.h"
+#include "ui/gui/executor.h"
+#include "ui/gui/helper.h"
+#include "ui/gui/psppire-data-window.h"
+#include "ui/gui/psppire-dialog.h"
+#include "ui/gui/psppire-var-sheet.h"
+#include "ui/gui/psppire-var-store.h"
+#include "ui/gui/widget-io.h"
+#include "ui/syntax-gen.h"
 
-#include "error.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -259,18 +257,10 @@ text_data_import_assistant (GtkWindow *parent_window)
   switch (ia->asst.response)
     {
     case GTK_RESPONSE_APPLY:
-      {
-	char *syntax = generate_syntax (ia);
-	execute_syntax (create_syntax_string_source (syntax));
-	free (syntax);
-      }
+      free (execute_syntax_string (generate_syntax (ia)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	char *syntax = generate_syntax (ia);
-        paste_syntax_to_window (syntax);
-	free (syntax);
-      }
+      free (paste_syntax_to_window (generate_syntax (ia)));
       break;
     default:
       break;

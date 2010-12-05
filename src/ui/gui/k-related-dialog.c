@@ -18,8 +18,6 @@
 
 #include "k-related-dialog.h"
 
-#include <language/syntax-string-source.h>
-
 #include "psppire-dialog.h"
 #include "psppire-var-view.h"
 #include "psppire-acr.h"
@@ -162,21 +160,10 @@ k_related_dialog (PsppireDataWindow *dw)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      {
-	gchar *syntax = generate_syntax (&krd);
-
-	struct getl_interface *sss = create_syntax_string_source (syntax);
-	execute_syntax (sss);
-
-	g_free (syntax);
-      }
+      g_free (execute_syntax_string (generate_syntax (&krd)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	gchar *syntax = generate_syntax (&krd);
-	paste_syntax_to_window (syntax);
-	g_free (syntax);
-      }
+      g_free (paste_syntax_to_window (generate_syntax (&krd)));
       break;
     default:
       break;

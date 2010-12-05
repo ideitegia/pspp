@@ -29,7 +29,7 @@
 
 #include "gl/configmake.h"
 
-void paste_syntax_to_window (const gchar *syntax);
+gchar *paste_syntax_to_window (gchar *syntax);
 
 struct fmt_spec;
 
