@@ -158,7 +158,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
   memset (npt->a_statistics, 0, sizeof npt->a_statistics);
   for (;;)
     {
-      if (lex_match_hyphenated_word (lexer, "COCHRAN"))
+      if (lex_match_id (lexer, "COCHRAN"))
 	{
           npt->cochran++;
           switch (npar_cochran (lexer, ds, nps))
@@ -174,7 +174,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
 	}
-      else if (lex_match_hyphenated_word (lexer, "FRIEDMAN"))
+      else if (lex_match_id (lexer, "FRIEDMAN"))
 	{
           npt->friedman++;
           switch (npar_friedman (lexer, ds, nps))
@@ -190,7 +190,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
 	}
-      else if (lex_match_hyphenated_word (lexer, "KENDALL"))
+      else if (lex_match_id (lexer, "KENDALL"))
 	{
           npt->kendall++;
           switch (npar_kendall (lexer, ds, nps))
@@ -206,7 +206,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
 	}
-      else if (lex_match_hyphenated_word (lexer, "RUNS"))
+      else if (lex_match_id (lexer, "RUNS"))
 	{
           npt->runs++;
           switch (npar_runs (lexer, ds, nps))
@@ -222,7 +222,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
 	}
-      else if (lex_match_hyphenated_word (lexer, "CHISQUARE"))
+      else if (lex_match_id (lexer, "CHISQUARE"))
         {
           lex_match (lexer, T_EQUALS);
           npt->chisquare++;
@@ -239,7 +239,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "BINOMIAL"))
+      else if (lex_match_id (lexer, "BINOMIAL"))
         {
           lex_match (lexer, T_EQUALS);
           npt->binomial++;
@@ -292,7 +292,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "WILCOXON"))
+      else if (lex_match_id (lexer, "WILCOXON"))
         {
           lex_match (lexer, T_EQUALS);
           npt->wilcoxon++;
@@ -309,7 +309,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "SIGN"))
+      else if (lex_match_id (lexer, "SIGN"))
         {
           lex_match (lexer, T_EQUALS);
           npt->sign++;
@@ -326,7 +326,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "MISSING"))
+      else if (lex_match_id (lexer, "MISSING"))
         {
           lex_match (lexer, T_EQUALS);
           npt->missing++;
@@ -337,13 +337,13 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
             }
           while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
             {
-              if (lex_match_hyphenated_word (lexer, "ANALYSIS"))
+              if (lex_match_id (lexer, "ANALYSIS"))
                 npt->miss = MISS_ANALYSIS;
-              else if (lex_match_hyphenated_word (lexer, "LISTWISE"))
+              else if (lex_match_id (lexer, "LISTWISE"))
                 npt->miss = MISS_LISTWISE;
-              else if (lex_match_hyphenated_word (lexer, "INCLUDE"))
+              else if (lex_match_id (lexer, "INCLUDE"))
                 nps->filter = MV_SYSTEM;
-              else if (lex_match_hyphenated_word (lexer, "EXCLUDE"))
+              else if (lex_match_id (lexer, "EXCLUDE"))
                 nps->filter = MV_ANY;
               else
                 {
@@ -353,7 +353,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               lex_match (lexer, T_COMMA);
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "METHOD"))
+      else if (lex_match_id (lexer, "METHOD"))
         {
           lex_match (lexer, T_EQUALS);
           npt->method++;
@@ -375,15 +375,15 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "STATISTICS"))
+      else if (lex_match_id (lexer, "STATISTICS"))
         {
           lex_match (lexer, T_EQUALS);
           npt->statistics++;
           while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
             {
-              if (lex_match_hyphenated_word (lexer, "DESCRIPTIVES"))
+              if (lex_match_id (lexer, "DESCRIPTIVES"))
                 npt->a_statistics[NPAR_ST_DESCRIPTIVES] = 1;
-              else if (lex_match_hyphenated_word (lexer, "QUARTILES"))
+              else if (lex_match_id (lexer, "QUARTILES"))
                 npt->a_statistics[NPAR_ST_QUARTILES] = 1;
               else if (lex_match (lexer, T_ALL))
                 npt->a_statistics[NPAR_ST_ALL] = 1;
