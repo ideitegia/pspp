@@ -1422,12 +1422,14 @@ make_match (const char *t)
 	    "|| lex_match_id (lexer, \"FALSE\"))");
   else if (isdigit ((unsigned char) t[0]))
     sprintf (s, "lex_match_int (lexer, %s)", t);
-  else
+  else if (strchr (t, hyphen_proxy))
     {
       char *c = unmunge (t);
       sprintf (s, "lex_match_hyphenated_word (lexer, \"%s\")", c);
       free (c);
     }
+  else
+    sprintf (s, "lex_match_id (lexer, \"%s\")", t);
 
   return s;
 }
