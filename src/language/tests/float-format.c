@@ -197,9 +197,8 @@ mismatch (const struct fp *from, const struct fp *to, char *result,
       make_printable (to->format, to->data, to_size, expected,
                       sizeof expected);
       make_printable (to->format, result, to_size, actual, sizeof actual);
-      msg (SE,
-           _("%s conversion of %s from %s to %s should have produced %s "
-             "but actually produced %s."),
+      msg (SE, "%s conversion of %s from %s to %s should have produced %s "
+           "but actually produced %s.",
            conversion_type,
            original, get_float_format_name (from->format),
            get_float_format_name (to->format), expected,
@@ -244,7 +243,7 @@ cmd_debug_float_format (struct lexer *lexer, struct dataset *ds UNUSED)
     {
       if (fp_cnt >= sizeof fp / sizeof *fp)
         {
-          msg (SE, _("Too many values in single command."));
+          msg (SE, "Too many values in single command.");
           return CMD_FAILURE;
         }
       if (!parse_fp (lexer, &fp[fp_cnt++]))
