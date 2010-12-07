@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2011 Free Sonftware Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Sonftware Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -67,6 +67,7 @@ struct text_item
   };
 
 struct text_item *text_item_create (enum text_item_type, const char *text);
+struct text_item *text_item_create_nocopy (enum text_item_type, char *text);
 struct text_item *text_item_create_format (enum text_item_type,
                                            const char *format, ...)
   PRINTF_FORMAT (2, 3);

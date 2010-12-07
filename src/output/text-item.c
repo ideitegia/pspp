@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,8 +32,10 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static struct text_item *
-allocate_text_item (enum text_item_type type, char *text)
+/* Creates and returns a new text item containing TEXT and the specified TYPE.
+   The new text item takes ownership of TEXT. */
+struct text_item *
+text_item_create_nocopy (enum text_item_type type, char *text)
 {
   struct text_item *item = xmalloc (sizeof *item);
   output_item_init (&item->output_item, &text_item_class);
@@ -47,7 +49,7 @@ allocate_text_item (enum text_item_type type, char *text)
 struct text_item *
 text_item_create (enum text_item_type type, const char *text)
 {
-  return allocate_text_item (type, xstrdup (text));
+  return text_item_create_nocopy (type, xstrdup (text));
 }
 
 /* Creates and returns a new text item containing a copy of FORMAT, which is
@@ -60,7 +62,7 @@ text_item_create_format (enum text_item_type type, const char *format, ...)
   va_list args;
 
   va_start (args, format);
-  item = allocate_text_item (type, xvasprintf (format, args));
+  item = text_item_create_nocopy (type, xvasprintf (format, args));
   va_end (args);
 
   return item;
