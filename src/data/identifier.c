@@ -31,6 +31,22 @@
 
 #include "gl/c-ctype.h"
 
+/* Tokens. */
+
+const char *
+token_type_to_string (enum token_type type)
+{
+  switch (type)
+    {
+#define TOKEN_TYPE(TYPE) case T_##TYPE: return #TYPE;
+      TOKEN_TYPES
+#undef TOKEN_TYPE
+    case TOKEN_N_TYPES:
+    default:
+      return "unknown token type";
+    }
+}
+
 /* Recognizing identifiers. */
 
 static bool

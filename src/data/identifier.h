@@ -22,46 +22,53 @@
 #include <unitypes.h>
 #include "libpspp/str.h"
 
+#define TOKEN_TYPES                                                     \
+    TOKEN_TYPE(ID)                         /* Identifier. */            \
+    TOKEN_TYPE(POS_NUM)                    /* Positive number. */       \
+    TOKEN_TYPE(NEG_NUM)                    /* Negative number. */       \
+    TOKEN_TYPE(STRING)                     /* Quoted string. */         \
+    TOKEN_TYPE(STOP)                       /* End of input. */          \
+                                                                        \
+    TOKEN_TYPE(ENDCMD)                     /* . */                      \
+    TOKEN_TYPE(PLUS)                       /* + */                      \
+    TOKEN_TYPE(DASH)                       /* - */                      \
+    TOKEN_TYPE(ASTERISK)                   /* * */                      \
+    TOKEN_TYPE(SLASH)                      /* / */                      \
+    TOKEN_TYPE(EQUALS)                     /* = */                      \
+    TOKEN_TYPE(LPAREN)                     /* ( */                      \
+    TOKEN_TYPE(RPAREN)                     /* ) */                      \
+    TOKEN_TYPE(LBRACK)                     /* [ */                      \
+    TOKEN_TYPE(RBRACK)                     /* ] */                      \
+    TOKEN_TYPE(COMMA)                      /* , */                      \
+                                                                        \
+    TOKEN_TYPE(AND)                        /* AND */                    \
+    TOKEN_TYPE(OR)                         /* OR */                     \
+    TOKEN_TYPE(NOT)                        /* NOT */                    \
+                                                                        \
+    TOKEN_TYPE(EQ)                         /* EQ */                     \
+    TOKEN_TYPE(GE)                         /* GE or >= */               \
+    TOKEN_TYPE(GT)                         /* GT or > */                \
+    TOKEN_TYPE(LE)                         /* LE or <= */               \
+    TOKEN_TYPE(LT)                         /* LT or < */                \
+    TOKEN_TYPE(NE)                         /* NE or ~= */               \
+                                                                        \
+    TOKEN_TYPE(ALL)                        /* ALL */                    \
+    TOKEN_TYPE(BY)                         /* BY */                     \
+    TOKEN_TYPE(TO)                         /* TO */                     \
+    TOKEN_TYPE(WITH)                       /* WITH */                   \
+                                                                        \
+    TOKEN_TYPE(EXP)                        /* ** */
+
 /* Token types. */
 enum token_type
   {
-    T_ID = 1,   /* Identifier. */
-    T_POS_NUM,	/* Positive number. */
-    T_NEG_NUM,	/* Negative number. */
-    T_STRING,	/* Quoted string. */
-    T_STOP,	/* End of input. */
-
-    T_ENDCMD,   /* End of command (e.g. '.'). */
-
-    T_PLUS,     /* + */
-    T_DASH,     /* - */
-    T_ASTERISK, /* * */
-    T_SLASH,    /* / */
-    T_EQUALS,   /* = */
-    T_LPAREN,   /* ( */
-    T_RPAREN,   /* ) */
-    T_LBRACK,   /* [ */
-    T_RBRACK,   /* ] */
-    T_COMMA,    /* , */
-
-    T_AND,	/* AND */
-    T_OR,	/* OR */
-    T_NOT,	/* NOT */
-
-    T_EQ,	/* EQ */
-    T_GE,	/* GE or >= */
-    T_GT,	/* GT or > */
-    T_LE,	/* LE or <= */
-    T_LT,	/* LT or < */
-    T_NE,	/* NE or ~= */
-
-    T_ALL,	/* ALL */
-    T_BY,	/* BY */
-    T_TO,	/* TO */
-    T_WITH,	/* WITH */
-
-    T_EXP,	/* ** */
+#define TOKEN_TYPE(TYPE) T_##TYPE,
+    TOKEN_TYPES
+    TOKEN_N_TYPES
+#undef TOKEN_TYPE
   };
+
+const char *token_type_to_string (enum token_type);
 
 /* Tokens. */
 bool lex_is_keyword (enum token_type);
