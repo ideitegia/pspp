@@ -229,17 +229,13 @@ recode_substring_pool (const char *to, const char *from,
 void
 i18n_init (void)
 {
-#if ENABLE_NLS
   setlocale (LC_CTYPE, "");
-#ifdef LC_MESSAGES
   setlocale (LC_MESSAGES, "");
-#endif
 #if HAVE_LC_PAPER
   setlocale (LC_PAPER, "");
 #endif
   bindtextdomain (PACKAGE, relocate(locale_dir));
   textdomain (PACKAGE);
-#endif /* ENABLE_NLS */
 
   assert (default_encoding == NULL);
   default_encoding = xstrdup (locale_charset ());
