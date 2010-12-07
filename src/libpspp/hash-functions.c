@@ -102,13 +102,12 @@ hash_string (const char *s, unsigned int basis)
   return hash_bytes (s, strlen (s), basis);
 }
 
-/* Returns a hash value for null-terminated string S, with
-   lowercase and uppercase letters treated as equal, starting
-   from BASIS. */
+/* Returns a hash value for the N bytes at S, with lowercase and uppercase
+   letters treated as equal, starting from BASIS. */
 unsigned int
-hash_case_string (const char *s, unsigned int basis)
+hash_case_bytes (const void *s_, size_t n, unsigned int basis)
 {
-  size_t n = strlen (s);
+  const char *s = s_;
   uint32_t a, b, c;
   uint32_t tmp[3];
   int i;
@@ -139,6 +138,15 @@ hash_case_string (const char *s, unsigned int basis)
 
   HASH_FINAL (a, b, c);
   return c;
+}
+
+/* Returns a hash value for null-terminated string S, with
+   lowercase and uppercase letters treated as equal, starting
+   from BASIS. */
+unsigned int
+hash_case_string (const char *s, unsigned int basis)
+{
+  return hash_case_bytes (s, strlen (s), basis);
 }
 
 /* Returns a hash value for integer X, starting from BASIS. */
