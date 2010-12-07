@@ -85,6 +85,7 @@ struct substring ss_tail (struct substring, size_t);
 struct pool;
 void ss_alloc_substring (struct substring *, struct substring);
 void ss_alloc_uninit (struct substring *, size_t);
+void ss_realloc (struct substring *, size_t);
 void ss_alloc_substring_pool (struct substring *, struct substring,
                               struct pool *);
 void ss_alloc_uninit_pool (struct substring *, size_t, struct pool *);

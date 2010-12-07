@@ -341,6 +341,12 @@ ss_alloc_uninit (struct substring *new, size_t cnt)
   new->length = cnt;
 }
 
+void
+ss_realloc (struct substring *ss, size_t size)
+{
+  ss->string = xrealloc (ss->string, size);
+}
+
 /* Makes a pool_alloc_unaligned()'d copy of the contents of OLD
    in POOL, and stores it in NEW. */
 void
