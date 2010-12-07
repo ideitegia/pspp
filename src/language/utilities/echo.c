@@ -15,28 +15,24 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <language/lexer/lexer.h>
-#include <language/command.h>
-#include <output/tab.h>
 
-#include "xalloc.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "output/text-item.h"
+
+#include "gl/xalloc.h"
 
 /* Echos a string to the output stream */
 int
 cmd_echo (struct lexer *lexer, struct dataset *ds UNUSED)
 {
-  struct tab_table *tab;
-
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
 
-  tab = tab_create(1, 1);
-
-  tab_text (tab, 0, 0, 0, lex_tokcstr (lexer));
-
-  tab_submit(tab);
+  text_item_submit (text_item_create (TEXT_ITEM_ECHO, lex_tokcstr (lexer)));
+  lex_get (lexer);
 
   return CMD_SUCCESS;
 }
