@@ -143,12 +143,7 @@ parse_value (struct lexer *lexer, union value *v, int width)
     }
   else if (lex_force_string (lexer))
     {
-      const char *s;
-
-      if (!lex_force_string (lexer))
-	return false;
-
-      s = lex_tokcstr (lexer);
+      const char *s = lex_tokcstr (lexer);
       value_copy_str_rpad (v, width, CHAR_CAST_BUG (const uint8_t *, s), ' ');
     }
   else
