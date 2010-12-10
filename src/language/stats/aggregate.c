@@ -91,27 +91,27 @@ struct agr_var
 /* Attributes of aggregation functions. */
 const struct agr_func agr_func_tab[] =
   {
-    {"SUM",     N_("Sum of values"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
-    {"MEAN",	N_("Mean average"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
-    {"MEDIAN",	N_("Median average"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
-    {"SD",      N_("Standard deviation"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
-    {"MAX",     N_("Maximum value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
-    {"MIN",     N_("Minimum value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
-    {"PGT",     N_("Percentage greater than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"PLT",     N_("Percentage less than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"PIN",     N_("Percentage included in range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"POUT",    N_("Percentage excluded from range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"FGT",     N_("Fraction greater than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"FLT",     N_("Fraction less than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"FIN",     N_("Fraction included in range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"FOUT",    N_("Fraction excluded from range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"N",       N_("Number of cases"), AGR_SV_NO, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"NU",      N_("Number of cases (unweighted)"), AGR_SV_OPT, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"NMISS",   N_("Number of missing values"), AGR_SV_YES, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"SUM",     N_("Sum of values"),                         AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"MEAN",	N_("Mean average"),                          AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"MEDIAN",	N_("Median average"),                        AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"SD",      N_("Standard deviation"),                    AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"MAX",     N_("Maximum value"),                         AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {"MIN",     N_("Minimum value"),                         AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {"PGT",     N_("Percentage greater than"),               AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"PLT",     N_("Percentage less than"),                  AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"PIN",     N_("Percentage included in range"),          AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"POUT",    N_("Percentage excluded from range"),        AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"FGT",     N_("Fraction greater than"),                 AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FLT",     N_("Fraction less than"),                    AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FIN",     N_("Fraction included in range"),            AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FOUT",    N_("Fraction excluded from range"),          AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"N",       N_("Number of cases"),                       AGR_SV_NO,  0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NU",      N_("Number of cases (unweighted)"),          AGR_SV_OPT, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NMISS",   N_("Number of missing values"),              AGR_SV_YES, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
     {"NUMISS",  N_("Number of missing values (unweighted)"), AGR_SV_YES, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"FIRST",   N_("First non-missing value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
-    {"LAST",    N_("Last non-missing value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
-    {NULL,      NULL, AGR_SV_NO, 0, -1,          {-1, -1, -1}},
+    {"FIRST",   N_("First non-missing value"),               AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {"LAST",    N_("Last non-missing value"),                AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {NULL,      NULL,                                        AGR_SV_NO,  0, -1,          {-1, -1, -1}},
   };
 
 /* Missing value types. */
@@ -434,6 +434,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 
 	  if (lex_is_string (lexer))
 	    {
+              /* XXX check re-encoded length */
 	      struct string label;
 	      ds_init_substring (&label, lex_tokss (lexer));
 
