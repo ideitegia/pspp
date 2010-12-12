@@ -1033,7 +1033,7 @@ lookup_function (const char *name,
 }
 
 static int
-extract_min_valid (char *s)
+extract_min_valid (const char *s)
 {
   char *p = strrchr (s, '.');
   if (p == NULL
