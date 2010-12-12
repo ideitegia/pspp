@@ -501,7 +501,7 @@ run_oneway (const struct oneway_spec *cmd,
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      struct categoricals *cats = covariance_get_categoricals (ws.vws[v].cov);
+      const struct categoricals *cats = covariance_get_categoricals (ws.vws[v].cov);
 
       categoricals_done (cats);
       

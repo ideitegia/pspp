@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -311,7 +311,7 @@ categoricals_total (const struct categoricals *cat)
 /* This function must be called *before* any call to categoricals_get_*_by subscript an
  *after* all calls to categoricals_update */
 void
-categoricals_done (struct categoricals *cat)
+categoricals_done (const struct categoricals *cat_)
 {
   /* Implementation Note: Whilst this function is O(n) in cat->n_cats_total, in most
      uses it will be more efficient that using a tree based structure, since it
@@ -319,6 +319,7 @@ categoricals_done (struct categoricals *cat)
 
      1 call of O(n) + 10^9 calls of O(1) is better than 10^9 calls of O(log n).
   */
+  struct categoricals *cat = CONST_CAST (struct categoricals *, cat_);
   int v;
   int idx = 0;
   cat->reverse_variable_map = pool_calloc (cat->pool,

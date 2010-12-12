@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ size_t categoricals_total (const struct categoricals *cat);
 */
 size_t categoricals_get_n_variables (const struct categoricals *cat);
 
-void categoricals_done (struct categoricals *cat);
+void categoricals_done (const struct categoricals *cat);
 
 const struct variable * categoricals_get_variable_by_subscript (const struct categoricals *cat, int subscript);
 
