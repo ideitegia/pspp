@@ -61,7 +61,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
   else if (lex_match_id (lexer, "PSQL"))
     return parse_get_psql (lexer, ds);
 
-  msg (SE, _("Unsupported TYPE %s"), lex_tokcstr (lexer));
+  msg (SE, _("Unsupported TYPE %s."), lex_tokcstr (lexer));
   return CMD_FAILURE;
 }
 
