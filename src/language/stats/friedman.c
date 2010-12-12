@@ -202,6 +202,8 @@ friedman_execute (const struct dataset *ds,
       fr.w /= pow2 (fr.cc) * (pow3 (ost->n_vars) - ost->n_vars)
 	- fr.cc * sigma_t;
     }
+  else
+    fr.w = SYSMIS;
 
   show_ranks_box (ost, &fr);
   show_sig_box (ost, &fr);
