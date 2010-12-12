@@ -392,11 +392,11 @@ run_oneway (const struct oneway_spec *cmd,
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      ws.vws[v].cat = categoricals_create (&cmd->indep_var, 1,
-						       cmd->wv, cmd->exclude, 
-						       makeit,
-						       updateit,
-						       cmd->vars[v], ws.dd_total[v]);
+      ws.vws[v].cat = categoricals_create (&cmd->indep_var, 1, cmd->wv,
+                                           cmd->exclude, makeit, updateit,
+                                           CONST_CAST (struct variable *,
+                                                       cmd->vars[v]),
+                                           ws.dd_total[v]);
 
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
 					       ws.vws[v].cat, 
