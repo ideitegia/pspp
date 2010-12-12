@@ -60,7 +60,7 @@ mann_whitney_execute (const struct dataset *ds,
 		      enum mv_class exclude,
 		      const struct npar_test *test,
 		      bool exact,
-		      double timer)
+		      double timer UNUSED)
 {
   int i;
   const struct dictionary *dict = dataset_dict (ds);
