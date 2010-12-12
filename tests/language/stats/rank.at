@@ -538,6 +538,8 @@ Variables Created By RANK
 
 x into Rx(RANK of x)
 
+rank.sps:14: error: RANK: DEBUG XFORM FAIL transformation executed
+
 rank.sps:14: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 AT_CLEANUP
