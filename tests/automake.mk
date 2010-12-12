@@ -25,6 +25,8 @@ check_PROGRAMS += \
 	tests/libpspp/tower-test \
 	tests/output/render-test
 
+check-programs: $(check_PROGRAMS)
+
 tests_data_datasheet_test_SOURCES = \
 	tests/data/datasheet-test.c
 tests_data_datasheet_test_LDADD = src/libpspp-core.la $(LIBINTL) 
