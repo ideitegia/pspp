@@ -377,3 +377,12 @@ get_system_decimal (void)
   return radix_char;
 }
 
+const char *
+uc_name (ucs4_t uc, char buffer[16])
+{
+  if (uc >= 0x20 && uc < 0x7f)
+    snprintf (buffer, 16, "`%c'", uc);
+  else
+    snprintf (buffer, 16, "U+%04X", uc);
+  return buffer;
+}

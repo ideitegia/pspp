@@ -18,6 +18,7 @@
 #define I18N_H
 
 #include <stdbool.h>
+#include <unistr.h>
 
 void  i18n_done (void);
 void  i18n_init (void);
@@ -49,5 +50,6 @@ void set_default_encoding (const char *enc);
 
 bool set_encoding_from_locale (const char *loc);
 
+const char *uc_name (ucs4_t uc, char buffer[16]);
 
 #endif /* i18n.h */
