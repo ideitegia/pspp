@@ -16,18 +16,18 @@
 
 #include <config.h>
 
-#include <libpspp/float-format.h>
+#include "libpspp/float-format.h"
 
-#include "gettext.h"
 #include <inttypes.h>
+#include <limits.h>
+#include <unistr.h>
 
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-
-#define _(msgid) gettext (msgid)
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
 /* Maximum supported size of a floating-point number, in bytes. */
 #define FP_MAX_SIZE 32
@@ -93,6 +93,32 @@ get_float_format_name (enum float_format format)
   NOT_REACHED ();
 }
 
+/* Returns the integer value of (hex) digit C. */
+static int
+digit_value (int c)
+{
+  switch (c)
+    {
+    case '0': return 0;
+    case '1': return 1;
+    case '2': return 2;
+    case '3': return 3;
+    case '4': return 4;
+    case '5': return 5;
+    case '6': return 6;
+    case '7': return 7;
+    case '8': return 8;
+    case '9': return 9;
+    case 'a': case 'A': return 10;
+    case 'b': case 'B': return 11;
+    case 'c': case 'C': return 12;
+    case 'd': case 'D': return 13;
+    case 'e': case 'E': return 14;
+    case 'f': case 'F': return 15;
+    default: return INT_MAX;
+    }
+}
+
 /* Parses a number in the form FORMAT(STRING), where FORMAT is
    the name of the format and STRING gives the number's
    representation.  Also supports ordinary floating-point numbers
@@ -100,6 +126,7 @@ get_float_format_name (enum float_format format)
 static bool
 parse_fp (struct lexer *lexer, struct fp *fp)
 {
+  memset (fp, 0, sizeof *fp);
   if (lex_is_number (lexer))
     {
       double number = lex_number (lexer);
@@ -109,34 +136,47 @@ parse_fp (struct lexer *lexer, struct fp *fp)
     }
   else if (lex_token (lexer) == T_ID)
     {
-      size_t length;
+      struct substring s;
 
       if (!parse_float_format (lexer, &fp->format)
           || !lex_force_match (lexer, T_LPAREN)
           || !lex_force_string (lexer))
         return false;
 
-      length = ss_length (lex_tokss (lexer));
+      s = lex_tokss (lexer);
       if (fp->format != FLOAT_HEX)
         {
-          if (length != float_get_size (fp->format))
+          size_t i;
+
+          if (s.length != float_get_size (fp->format) * 2)
             {
-              msg (SE, _("%zu-byte string needed but %zu-byte string "
-                         "supplied."),
-                   float_get_size (fp->format), length);
+              msg (SE, "%zu-byte string needed but %zu-byte string "
+                   "supplied.", float_get_size (fp->format), s.length);
               return false;
             }
-          assert (length <= sizeof fp->data);
-          memcpy (fp->data, ss_data (lex_tokss (lexer)), length);
+          assert (s.length / 2 <= sizeof fp->data);
+          for (i = 0; i < s.length / 2; i++)
+            {
+              int hi = digit_value (s.string[i * 2]);
+              int lo = digit_value (s.string[i * 2 + 1]);
+
+              if (hi >= 16 || lo >= 16)
+                {
+                  msg (SE, "Invalid hex digit in string.");
+                  return false;
+                }
+
+              fp->data[i] = hi * 16 + lo;
+            }
         }
       else
         {
-          if (length >= sizeof fp->data)
+          if (s.length >= sizeof fp->data)
             {
-              msg (SE, _("Hexadecimal floating constant too long."));
+              msg (SE, "Hexadecimal floating constant too long.");
               return false;
             }
-          strncpy (CHAR_CAST_BUG (char *,fp->data), lex_tokcstr (lexer), sizeof fp->data);
+          memcpy (fp->data, s.string, s.length);
         }
 
       lex_get (lexer);
