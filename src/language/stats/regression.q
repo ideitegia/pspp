@@ -810,7 +810,7 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
   size_t dep_subscript;
   size_t *rows;
   const gsl_matrix *ssizes;
-  const gsl_matrix *cm;
+  gsl_matrix *cm;
   const gsl_matrix *mean_matrix;
   const gsl_matrix *ssize_matrix;
   double result = 0.0;

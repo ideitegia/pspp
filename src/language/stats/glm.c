@@ -263,6 +263,8 @@ run_glm (const struct glm_spec *cmd, struct casereader *input, const struct data
     reg_sweep (cm, 0);
 
     dump_matrix (cm);
+
+    gsl_matrix_free (cm);
   }
 
   if (!taint_has_tainted_successor (taint))

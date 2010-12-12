@@ -278,7 +278,7 @@ run_corr (struct casereader *r, const struct corr_opts *opts, const struct corr 
 {
   struct ccase *c;
   const gsl_matrix *var_matrix,  *samples_matrix, *mean_matrix;
-  const gsl_matrix *cov_matrix;
+  gsl_matrix *cov_matrix;
   gsl_matrix *corr_matrix;
   struct covariance *cov = covariance_2pass_create (corr->n_vars_total, corr->vars,
 						    NULL,
@@ -315,6 +315,7 @@ run_corr (struct casereader *r, const struct corr_opts *opts, const struct corr 
 
   covariance_destroy (cov);
   gsl_matrix_free (corr_matrix);
+  gsl_matrix_free (cov_matrix);
 }
 
 int

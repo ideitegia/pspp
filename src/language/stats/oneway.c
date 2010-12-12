@@ -495,6 +495,8 @@ run_oneway (const struct oneway_spec *cmd,
       pvw->n_groups = categoricals_total (cats);
 
       pvw->mse = (pvw->sst - pvw->ssa) / (n - pvw->n_groups);
+
+      gsl_matrix_free (cm);
     }
 
   for (v = 0; v < cmd->n_vars; ++v)

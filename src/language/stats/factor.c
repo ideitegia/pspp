@@ -175,7 +175,7 @@ struct idata
   /* Intermediate values used in calculation */
 
   const gsl_matrix *corr ;  /* The correlation matrix */
-  const gsl_matrix *cov ;   /* The covariance matrix */
+  gsl_matrix *cov ;         /* The covariance matrix */
   const gsl_matrix *n ;     /* Matrix of number of samples */
 
   gsl_vector *eval ;  /* The eigenvalues */
@@ -206,6 +206,8 @@ idata_free (struct idata *id)
   gsl_vector_free (id->msr);
   gsl_vector_free (id->eval);
   gsl_matrix_free (id->evec);
+  if (id->cov != NULL)
+    gsl_matrix_free (id->cov);
 
   free (id);
 }

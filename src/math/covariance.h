@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,8 +40,8 @@ void covariance_accumulate (struct covariance *, const struct ccase *);
 void covariance_accumulate_pass1 (struct covariance *, const struct ccase *);
 void covariance_accumulate_pass2 (struct covariance *, const struct ccase *);
 
-const gsl_matrix * covariance_calculate (struct covariance *cov);
-const gsl_matrix * covariance_calculate_unnormalized (struct covariance *);
+gsl_matrix * covariance_calculate (struct covariance *);
+gsl_matrix * covariance_calculate_unnormalized (struct covariance *);
 
 void covariance_destroy (struct covariance *cov);
 
