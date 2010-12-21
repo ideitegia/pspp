@@ -826,6 +826,7 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
   struct binomial_test *btp = pool_alloc (specs->pool, sizeof (*btp));
   struct one_sample_test *tp = &btp->parent;
   struct npar_test *nt = &tp->parent;
+  bool equals;
 
   nt->execute = binomial_execute;
   nt->insert_variables = one_sample_insert_variables;
@@ -836,6 +837,7 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
 
   if ( lex_match (lexer, T_LPAREN) )
     {
+      equals = false;
       if ( lex_force_num (lexer) )
 	{
 	  btp->p = lex_number (lexer);
@@ -846,10 +848,9 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
 	return 0;
     }
   else
-    /* Kludge: q2c swallows the '=' so put it back here  */
-     lex_put_back (lexer, T_EQUALS);
+    equals = true;
 
-  if (lex_match (lexer, T_EQUALS) )
+  if (equals || lex_match (lexer, T_EQUALS) )
     {
       if (parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
 				      &tp->vars, &tp->n_vars,
