@@ -69,7 +69,6 @@ bool lex_force_string (struct lexer *);
 /* Weird token functions. */
 enum token_type lex_look_ahead (struct lexer *);
 void lex_put_back (struct lexer *, enum token_type);
-void lex_put_back_id (struct lexer *, const char *tokid);
 
 /* Weird line processing functions. */
 const char *lex_entire_line (const struct lexer *);

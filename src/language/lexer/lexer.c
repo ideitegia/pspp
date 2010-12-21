@@ -781,17 +781,6 @@ lex_put_back (struct lexer *lexer, enum token_type t)
   save_token (lexer);
   lexer->token = t;
 }
-
-/* Makes the current token become the next token to be read; the
-   current token is set to the identifier ID. */
-void
-lex_put_back_id (struct lexer *lexer, const char *id)
-{
-  assert (lex_id_to_token (ss_cstr (id)) == T_ID);
-  save_token (lexer);
-  lexer->token = T_ID;
-  ds_assign_cstr (&lexer->tokstr, id);
-}
 
 /* Weird line processing functions. */
 
