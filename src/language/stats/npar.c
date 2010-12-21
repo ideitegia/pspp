@@ -235,6 +235,8 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
             case 2:
               lex_error (lexer, NULL);
               goto lossage;
+            case 3:
+              continue;
             default:
               NOT_REACHED ();
             }
@@ -720,7 +722,7 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
   struct chisquare_test *cstp = pool_alloc (specs->pool, sizeof (*cstp));
   struct one_sample_test *tp = &cstp->parent;
   struct npar_test *nt = &tp->parent;
-
+  int retval = 1;
 
   nt->execute = chisquare_execute;
   nt->insert_variables = one_sample_insert_variables;
@@ -794,7 +796,7 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 	    }
 	}
       else
-	lex_put_back (lexer, T_SLASH);
+        retval = 3;
     }
 
   if ( cstp->ranged && cstp->n_expected > 0 &&
@@ -815,7 +817,7 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 
   specs->test[specs->n_tests - 1] = nt;
 
-  return 1;
+  return retval;
 }
 
 
