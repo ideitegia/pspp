@@ -966,6 +966,7 @@ lex_token_name (enum token_type token)
     case T_POS_NUM:
     case T_NEG_NUM:
     case T_STRING:
+    case TOKEN_N_TYPES:
       NOT_REACHED ();
 
     case T_STOP:
