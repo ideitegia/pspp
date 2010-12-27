@@ -99,10 +99,7 @@ all:
 	test -e ChangeLog || touch ChangeLog
 	test -d m4 || mkdir m4
 	touch m4/Makefile.am
-	$(GNULIB_TOOL) --import --no-changelog --m4-base=gl/m4 \
-		--source-base=gl --lib=libgl --tests-base=tests \
-		--doc-base=gl/doc --aux-dir=build-aux --import \
-		--libtool $(GNULIB_MODULES)
+	$(MAKE) -f Smake gnulib
 	libtoolize --force --automake
 	aclocal -I m4 -I gl/m4
 	autoconf
