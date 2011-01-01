@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,13 +51,13 @@
 int
 cmd_file_handle (struct lexer *lexer, struct dataset *ds)
 {
-  char handle_name[VAR_NAME_LEN + 1];
   struct cmd_file_handle cmd;
   struct file_handle *handle;
+  char *handle_name;
 
   if (!lex_force_id (lexer))
-    return CMD_CASCADING_FAILURE;
-  str_copy_trunc (handle_name, sizeof handle_name, lex_tokcstr (lexer));
+    goto error;
+  handle_name = xstrdup (lex_tokcstr (lexer));
 
   handle = fh_from_id (handle_name);
   if (handle != NULL)
@@ -65,18 +65,18 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
       msg (SE, _("File handle %s is already defined.  "
                  "Use CLOSE FILE HANDLE before redefining a file handle."),
 	   handle_name);
-      return CMD_CASCADING_FAILURE;
+      goto error;
     }
 
   lex_get (lexer);
   if (!lex_force_match (lexer, T_SLASH))
-    return CMD_CASCADING_FAILURE;
+    goto error_free_handle_name;
 
   if (!parse_file_handle (lexer, ds, &cmd, NULL))
-    return CMD_CASCADING_FAILURE;
+    goto error_free_handle_name;
 
   if (lex_end_of_command (lexer) != CMD_SUCCESS)
-    goto lossage;
+    goto error_free_cmd;
 
   if (cmd.mode != FH_SCRATCH)
     {
@@ -85,7 +85,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
       if (cmd.s_name == NULL)
         {
           lex_sbc_missing (lexer, "NAME");
-          goto lossage;
+          goto error_free_cmd;
         }
 
       switch (cmd.mode)
@@ -118,7 +118,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
           else
             {
               msg (SE, _("RECFORM must be specified with MODE=360."));
-              goto lossage;
+              goto error_free_cmd;
             }
           break;
         default:
@@ -147,8 +147,11 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
   free_file_handle (&cmd);
   return CMD_SUCCESS;
 
- lossage:
+error_free_cmd:
   free_file_handle (&cmd);
+error_free_handle_name:
+  free (handle_name);
+error:
   return CMD_CASCADING_FAILURE;
 }
 
