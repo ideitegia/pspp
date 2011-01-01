@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include "language/lexer/variable-parser.h"
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -36,6 +37,7 @@
 #include "libpspp/str.h"
 #include "libpspp/stringi-set.h"
 
+#include "gl/c-ctype.h"
 #include "gl/xalloc.h"
 
 #include "gettext.h"
@@ -355,86 +357,98 @@ fail:
   return 0;
 }
 
-/* Extracts a numeric suffix from variable name S, copying it
-   into string R.  Sets *D to the length of R and *N to its
-   value. */
+/* Attempts to break UTF-8 encoded NAME into a root (whose contents are
+   arbitrary except that it does not end in a digit) followed by an integer
+   numeric suffix.  On success, stores the value of the suffix into *NUMBERP,
+   the number of digits in the suffix into *N_DIGITSP, and returns the number
+   of bytes in the root.  On failure, returns 0. */
 static int
-extract_num (char *s, char *r, int *n, int *d)
+extract_numeric_suffix (const char *name,
+                        unsigned long int *numberp, int *n_digitsp)
 {
-  char *cp;
+  size_t root_len, n_digits;
+  size_t i;
 
-  /* Find first digit. */
-  cp = s + strlen (s) - 1;
-  while (isdigit ((unsigned char) *cp) && cp > s)
-    cp--;
-  cp++;
+  /* Count length of root. */
+  root_len = 1;                 /* Valid identifier never starts with digit. */
+  for (i = 1; name[i] != '\0'; i++)
+    if (!c_isdigit (name[i]))
+      root_len = i + 1;
+  n_digits = i - root_len;
 
-  /* Extract root. */
-  strncpy (r, s, cp - s);
-  r[cp - s] = 0;
-
-  /* Count initial zeros. */
-  *n = *d = 0;
-  while (*cp == '0')
+  if (n_digits == 0)
     {
-      (*d)++;
-      cp++;
-    }
-
-  /* Extract value. */
-  while (isdigit ((unsigned char) *cp))
-    {
-      (*d)++;
-      *n = (*n * 10) + (*cp - '0');
-      cp++;
-    }
-
-  /* Sanity check. */
-  if (*n == 0 && *d == 0)
-    {
-      msg (SE, _("incorrect use of TO convention"));
+      msg (SE, _("`%s' cannot be used with TO because it does not end in "
+                 "a digit."), name);
       return 0;
     }
-  return 1;
+
+  *numberp = strtoull (name + root_len, NULL, 10);
+  if (*numberp == ULONG_MAX)
+    {
+      msg (SE, _("Numeric suffix on `%s' is larger than supported with TO."),
+           name);
+      return 0;
+    }
+  *n_digitsp = n_digits;
+  return root_len;
+}
+
+static bool
+add_var_name (char *name,
+              char ***names, size_t *n_vars, size_t *allocated_vars,
+              struct stringi_set *set, int pv_opts)
+{
+  if (pv_opts & PV_NO_DUPLICATE && !stringi_set_insert (set, name))
+    {
+      msg (SE, _("Variable %s appears twice in variable list."),
+           name);
+      return false;
+    }
+
+  if (*n_vars >= *allocated_vars)
+    *names = x2nrealloc (*names, allocated_vars, sizeof **names);
+  (*names)[(*n_vars)++] = name;
+  return true;
 }
 
 /* Parses a list of variable names according to the DATA LIST version
    of the TO convention.  */
 bool
-parse_DATA_LIST_vars (struct lexer *lexer, char ***names,
-                      size_t *nnames, int pv_opts)
+parse_DATA_LIST_vars (struct lexer *lexer, char ***namesp,
+                      size_t *n_varsp, int pv_opts)
 {
-  int n1, n2;
-  int d1, d2;
-  int n;
-  size_t nvar, mvar;
-  char name1[VAR_NAME_LEN + 1], name2[VAR_NAME_LEN + 1];
-  char root1[VAR_NAME_LEN + 1], root2[VAR_NAME_LEN + 1];
-  struct stringi_set set;
-  int success = 0;
+  char **names;
+  size_t n_vars;
+  size_t allocated_vars;
 
-  assert (names != NULL);
-  assert (nnames != NULL);
+  struct stringi_set set;
+
+  char *name1 = NULL;
+  char *name2 = NULL;
+  bool ok = false;
+
   assert ((pv_opts & ~(PV_APPEND | PV_SINGLE
                        | PV_NO_SCRATCH | PV_NO_DUPLICATE)) == 0);
   stringi_set_init (&set);
 
   if (pv_opts & PV_APPEND)
     {
-      nvar = mvar = *nnames;
+      n_vars = allocated_vars = *n_varsp;
+      names = *namesp;
 
       if (pv_opts & PV_NO_DUPLICATE)
         {
           size_t i;
 
-          for (i = 0; i < nvar; i++)
-            stringi_set_insert (&set, (*names)[i]);
+          for (i = 0; i < n_vars; i++)
+            stringi_set_insert (&set, names[i]);
         }
     }
   else
     {
-      nvar = mvar = 0;
-      *names = NULL;
+      n_vars = allocated_vars = 0;
+      names = NULL;
     }
 
   do
@@ -442,73 +456,75 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names,
       if (lex_token (lexer) != T_ID)
 	{
 	  lex_error (lexer, "expecting variable name");
-	  goto fail;
+	  goto exit;
 	}
       if (dict_class_from_id (lex_tokcstr (lexer)) == DC_SCRATCH
           && (pv_opts & PV_NO_SCRATCH))
 	{
 	  msg (SE, _("Scratch variables not allowed here."));
-	  goto fail;
+	  goto exit;
 	}
-      strcpy (name1, lex_tokcstr (lexer));
+      name1 = xstrdup (lex_tokcstr (lexer));
       lex_get (lexer);
       if (lex_token (lexer) == T_TO)
 	{
+          unsigned long int num1, num2;
+          int n_digits1, n_digits2;
+          int root_len1, root_len2;
+          unsigned long int number;
+
 	  lex_get (lexer);
 	  if (lex_token (lexer) != T_ID)
 	    {
 	      lex_error (lexer, "expecting variable name");
-	      goto fail;
+	      goto exit;
 	    }
-	  strcpy (name2, lex_tokcstr (lexer));
+          name2 = xstrdup (lex_tokcstr (lexer));
 	  lex_get (lexer);
 
-	  if (!extract_num (name1, root1, &n1, &d1)
-	      || !extract_num (name2, root2, &n2, &d2))
-	    goto fail;
+          root_len1 = extract_numeric_suffix (name1, &num1, &n_digits1);
+          if (root_len1 == 0)
+            goto exit;
 
-	  if (strcasecmp (root1, root2))
+          root_len2 = extract_numeric_suffix (name2, &num2, &n_digits2);
+          if (root_len2 == 0)
+	    goto exit;
+
+	  if (root_len1 != root_len2 || memcasecmp (name1, name2, root_len1))
 	    {
 	      msg (SE, _("Prefixes don't match in use of TO convention."));
-	      goto fail;
+	      goto exit;
 	    }
-	  if (n1 > n2)
+	  if (num1 > num2)
 	    {
 	      msg (SE, _("Bad bounds in use of TO convention."));
-	      goto fail;
-	    }
-	  if (d2 > d1)
-	    d2 = d1;
-
-	  if (mvar < nvar + (n2 - n1 + 1))
-	    {
-	      mvar += ROUND_UP (n2 - n1 + 1, 16);
-	      *names = xnrealloc (*names, mvar, sizeof **names);
+	      goto exit;
 	    }
 
-	  for (n = n1; n <= n2; n++)
+	  for (number = num1; number <= num2; number++)
 	    {
-              char name[VAR_NAME_LEN + 1];
-	      sprintf (name, "%s%0*d", root1, d1, n);
-
-              if (pv_opts & PV_NO_DUPLICATE && !stringi_set_insert (&set, name))
+              char *name = xasprintf ("%.*s%0*lu",
+                                      root_len1, name1,
+                                      n_digits1, number);
+              if (!add_var_name (name, &names, &n_vars, &allocated_vars,
+                                 &set, pv_opts))
                 {
-                  msg (SE, _("Variable %s appears twice in variable list."),
-                       name);
-                  goto fail;
+                  free (name);
+                  goto exit;
                 }
-	      (*names)[nvar] = xstrdup (name);
-	      nvar++;
 	    }
+
+          free (name1);
+          name1 = NULL;
+          free (name2);
+          name2 = NULL;
 	}
       else
 	{
-	  if (nvar >= mvar)
-	    {
-	      mvar += 16;
-	      *names = xnrealloc (*names, mvar, sizeof **names);
-	    }
-	  (*names)[nvar++] = xstrdup (name1);
+          if (!add_var_name (name1, &names, &n_vars, &allocated_vars,
+                             &set, pv_opts))
+            goto exit;
+          name1 = NULL;
 	}
 
       lex_match (lexer, T_COMMA);
@@ -517,21 +533,28 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names,
 	break;
     }
   while (lex_token (lexer) == T_ID);
-  success = 1;
+  ok = true;
 
-fail:
-  *nnames = nvar;
+exit:
   stringi_set_destroy (&set);
-  if (!success)
+  if (ok)
+    {
+      *namesp = names;
+      *n_varsp = n_vars;
+    }
+  else
     {
       int i;
-      for (i = 0; i < nvar; i++)
-	free ((*names)[i]);
-      free (*names);
-      *names = NULL;
-      *nnames = 0;
+      for (i = 0; i < n_vars; i++)
+	free (names[i]);
+      free (names);
+      *namesp = NULL;
+      *n_varsp = 0;
+
+      free (name1);
+      free (name2);
     }
-  return success;
+  return ok;
 }
 
 /* Registers each of the NAMES[0...NNAMES - 1] in POOL, as well
