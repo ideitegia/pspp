@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -159,18 +159,20 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
               int j;
 	      for (j = 0; j < var_cnt; j++)
 		{
-                  char name[VAR_NAME_LEN + INT_STRLEN_BOUND (int) + 1];
-		  sprintf (name, "%s%d", vectors[i], j + 1);
+                  char *name = xasprintf ("%s%d", vectors[i], j + 1);
                   if (strlen (name) > VAR_NAME_LEN)
                     {
+                      free (name);
                       msg (SE, _("%s is too long for a variable name."), name);
                       goto fail;
                     }
                   if (dict_lookup_var (dict, name))
 		    {
+                      free (name);
 		      msg (SE, _("%s is an existing variable name."), name);
 		      goto fail;
 		    }
+                  free (name);
 		}
 	    }
 
@@ -181,10 +183,10 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
               int j;
 	      for (j = 0; j < var_cnt; j++)
 		{
-                  char name[VAR_NAME_LEN + 1];
-		  sprintf (name, "%s%d", vectors[i], j + 1);
+                  char *name = xasprintf ("%s%d", vectors[i], j + 1);
 		  vars[j] = dict_create_var_assert (dict, name, 0);
                   var_set_both_formats (vars[j], &format);
+                  free (name);
 		}
               dict_create_vector_assert (dict, vectors[i], vars, var_cnt);
 	    }
