@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ struct comb_file
     bool is_sorted;             /* Is file presorted on the BY variables? */
 
     /* IN subcommand. */
-    char in_name[VAR_NAME_LEN + 1];
+    char *in_name;
     struct variable *in_var;
   };
 
@@ -147,8 +147,8 @@ combine_files (enum comb_command_type command,
   bool saw_sort = false;
   struct casereader *active_file = NULL;
 
-  char first_name[VAR_NAME_LEN + 1] = "";
-  char last_name[VAR_NAME_LEN + 1] = "";
+  char *first_name = NULL;
+  char *last_name = NULL;
 
   struct taint *taint = NULL;
 
@@ -200,7 +200,7 @@ combine_files (enum comb_command_type command,
       file->reader = NULL;
       file->data = NULL;
       file->is_sorted = true;
-      file->in_name[0] = '\0';
+      file->in_name = NULL;
       file->in_var = NULL;
 
       if (lex_match (lexer, T_ASTERISK))
@@ -245,13 +245,13 @@ combine_files (enum comb_command_type command,
                 goto error;
               }
 
-            if (file->in_name[0])
+            if (file->in_name)
               {
                 msg (SE, _("Multiple IN subcommands for a single FILE or "
                            "TABLE."));
                 goto error;
               }
-            strcpy (file->in_name, lex_tokcstr (lexer));
+            file->in_name = xstrdup (lex_tokcstr (lexer));
             lex_get (lexer);
           }
         else if (lex_match_id (lexer, "SORT"))
@@ -316,7 +316,7 @@ combine_files (enum comb_command_type command,
 	}
       else if (command != COMB_UPDATE && lex_match_id (lexer, "FIRST"))
         {
-          if (first_name[0] != '\0')
+          if (first_name != NULL)
             {
               lex_sbc_only_once ("FIRST");
               goto error;
@@ -325,12 +325,12 @@ combine_files (enum comb_command_type command,
 	  lex_match (lexer, T_EQUALS);
           if (!lex_force_id (lexer))
             goto error;
-          strcpy (first_name, lex_tokcstr (lexer));
+          first_name = xstrdup (lex_tokcstr (lexer));
           lex_get (lexer);
         }
       else if (command != COMB_UPDATE && lex_match_id (lexer, "LAST"))
         {
-          if (last_name[0] != '\0')
+          if (last_name != NULL)
             {
               lex_sbc_only_once ("LAST");
               goto error;
@@ -339,7 +339,7 @@ combine_files (enum comb_command_type command,
 	  lex_match (lexer, T_EQUALS);
           if (!lex_force_id (lexer))
             goto error;
-          strcpy (last_name, lex_tokcstr (lexer));
+          last_name = xstrdup (lex_tokcstr (lexer));
           lex_get (lexer);
         }
       else if (lex_match_id (lexer, "MAP"))
@@ -471,6 +471,9 @@ combine_files (enum comb_command_type command,
 
   free_comb_proc (&proc);
 
+  free (first_name);
+  free (last_name);
+
   return taint_destroy (taint) ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 
  error:
@@ -478,6 +481,8 @@ combine_files (enum comb_command_type command,
     proc_commit (ds);
   free_comb_proc (&proc);
   taint_destroy (taint);
+  free (first_name);
+  free (last_name);
   return CMD_CASCADING_FAILURE;
 }
 
@@ -581,18 +586,19 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
   return true;
 }
 
-/* If VAR_NAME is a non-empty string, attempts to create a
+/* If VAR_NAME is non-NULL, attempts to create a
    variable named VAR_NAME, with format F1.0, in DICT, and stores
    a pointer to the variable in *VAR.  Returns true if
    successful, false if the variable name is a duplicate (in
    which case a message saying that the variable specified on the
-   given SUBCOMMAND is a duplicate is emitted).  Also returns
-   true, without doing anything, if VAR_NAME is null or empty. */
+   given SUBCOMMAND is a duplicate is emitted).
+
+   Does nothing and returns true if VAR_NAME is null. */
 static bool
 create_flag_var (const char *subcommand, const char *var_name,
                  struct dictionary *dict, struct variable **var)
 {
-  if (var_name[0] != '\0')
+  if (var_name != NULL)
     {
       struct fmt_spec format = fmt_for_output (FMT_F, 1, 0);
       *var = dict_create_var (dict, var_name, 0);
@@ -626,6 +632,7 @@ close_all_comb_files (struct comb_proc *proc)
       dict_destroy (file->dict);
       casereader_destroy (file->reader);
       case_unref (file->data);
+      free (file->in_name);
     }
   free (proc->files);
   proc->files = NULL;
