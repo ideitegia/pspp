@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -180,15 +180,12 @@ create_var (struct psql_reader *r, const struct fmt_spec *fmt,
 {
   unsigned long int vx = 0;
   struct variable *var;
-  char name[VAR_NAME_LEN + 1];
+  char *name;
 
-  if ( ! dict_make_unique_var_name (r->dict, suggested_name, &vx, name))
-    {
-      msg (ME, _("Cannot create variable name from %s"), suggested_name);
-      return NULL;
-    }
-
+  name = dict_make_unique_var_name (r->dict, suggested_name, &vx);
   var = dict_create_var (r->dict, name, width);
+  free (name);
+
   var_set_both_formats (var, fmt);
 
   if ( col != -1)

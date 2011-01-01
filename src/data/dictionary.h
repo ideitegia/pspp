@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -84,9 +84,8 @@ void dict_rename_var (struct dictionary *, struct variable *, const char *);
 bool dict_rename_vars (struct dictionary *,
                        struct variable **, char **new_names,
                        size_t count, char **err_name);
-bool dict_make_unique_var_name (const struct dictionary *, const char *hint,
-                                unsigned long int *num_start,
-                                char name[]);
+char *dict_make_unique_var_name (const struct dictionary *, const char *hint,
+                                 unsigned long int *num_start);
 
 /* Weight variable. */
 double dict_get_case_weight (const struct dictionary *,

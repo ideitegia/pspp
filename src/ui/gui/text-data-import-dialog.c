@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1255,15 +1255,13 @@ choose_column_names (struct import_assistant *ia)
   name_row = f->variable_names && f->skip_lines ? f->skip_lines : 0;
   for (col = s->columns; col < &s->columns[s->column_cnt]; col++)
     {
-      char name[VAR_NAME_LEN + 1];
-      char *hint;
+      char *hint, *name;
 
       hint = name_row ? ss_xstrdup (col->contents[name_row - 1]) : NULL;
-      if (!dict_make_unique_var_name (dict, hint, &generated_name_count, name))
-        NOT_REACHED ();
+      name = dict_make_unique_var_name (dict, hint, &generated_name_count);
       free (hint);
 
-      col->name = xstrdup (name);
+      col->name = name;
       dict_create_var_assert (dict, name, 0);
     }
   dict_destroy (dict);
@@ -1601,7 +1599,6 @@ prepare_formats_page (struct import_assistant *ia)
   for (column_idx = 0; column_idx < s->column_cnt; column_idx++)
     {
       struct variable *modified_var;
-      char name[VAR_NAME_LEN + 1];
 
       modified_var = (column_idx < p->modified_var_cnt
                       ? p->modified_vars[column_idx] : NULL);
@@ -1610,11 +1607,11 @@ prepare_formats_page (struct import_assistant *ia)
           struct column *column = &s->columns[column_idx];
           struct variable *var;
           struct fmt_spec format;
+          char *name;
           size_t row;
 
           /* Choose variable name. */
-          if (!dict_make_unique_var_name (dict, column->name, &number, name))
-            NOT_REACHED ();
+          name = dict_make_unique_var_name (dict, column->name, &number);
 
           /* Choose variable format. */
           fmt_guesser_clear (fg);
@@ -1626,13 +1623,17 @@ prepare_formats_page (struct import_assistant *ia)
           /* Create variable. */
           var = dict_create_var_assert (dict, name, fmt_var_width (&format));
           var_set_both_formats (var, &format);
+
+          free (name);
         }
       else
         {
-          if (!dict_make_unique_var_name (dict, var_get_name (modified_var),
-                                          &number, name))
-            NOT_REACHED ();
+          char *name;
+
+          name = dict_make_unique_var_name (dict, var_get_name (modified_var),
+                                            &number);
           dict_clone_var_as_assert (dict, modified_var, name);
+          free (name);
         }
     }
   fmt_guesser_destroy (fg);

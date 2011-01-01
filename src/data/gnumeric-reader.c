@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -504,21 +504,16 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
   for (i = 0 ; i < n_var_specs ; ++i )
     {
-      char name[VAR_NAME_LEN + 1];
+      char *name;
 
       /* Probably no data exists for this variable, so allocate a
 	 default width */
       if ( var_spec[i].width == -1 )
 	var_spec[i].width = GNUMERIC_DEFAULT_WIDTH;
 
-      if  ( ! dict_make_unique_var_name (r->dict, var_spec[i].name,
-					 &vstart, name))
-	{
-	  msg (ME, _("Cannot create variable name from %s"), var_spec[i].name);
-	  goto error;
-	}
-
+      name = dict_make_unique_var_name (r->dict, var_spec[i].name, &vstart);
       dict_create_var (r->dict, name, var_spec[i].width);
+      free (name);
     }
 
   /* Create the first case, and cache it */

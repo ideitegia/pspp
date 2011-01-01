@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -842,10 +842,10 @@ var_name_is_insertable (const struct dictionary *dict, const char *name)
           && lex_id_to_token (ss_cstr (name)) == T_ID);
 }
 
-static bool
-make_hinted_name (const struct dictionary *dict, const char *hint,
-                  char name[VAR_NAME_LEN + 1])
+static char *
+make_hinted_name (const struct dictionary *dict, const char *hint)
 {
+  char name[VAR_NAME_LEN + 1];
   bool dropped = false;
   char *cp;
 
@@ -874,7 +874,7 @@ make_hinted_name (const struct dictionary *dict, const char *hint,
       unsigned long int i;
 
       if (var_name_is_insertable (dict, name))
-        return true;
+        return xstrdup (name);
 
       for (i = 0; i < ULONG_MAX; i++)
         {
@@ -889,16 +889,15 @@ make_hinted_name (const struct dictionary *dict, const char *hint,
           strcpy (&name[ofs], suffix);
 
           if (var_name_is_insertable (dict, name))
-            return true;
+            return xstrdup (name);
         }
     }
 
-  return false;
+  return NULL;
 }
 
-static bool
-make_numeric_name (const struct dictionary *dict, unsigned long int *num_start,
-                   char name[VAR_NAME_LEN + 1])
+static char *
+make_numeric_name (const struct dictionary *dict, unsigned long int *num_start)
 {
   unsigned long int number;
 
@@ -906,27 +905,24 @@ make_numeric_name (const struct dictionary *dict, unsigned long int *num_start,
        number < ULONG_MAX;
        number++)
     {
+      char name[3 + INT_STRLEN_BOUND (number) + 1];
+
       sprintf (name, "VAR%03lu", number);
       if (dict_lookup_var (dict, name) == NULL)
         {
           if (num_start != NULL)
             *num_start = number + 1;
-          return true;
+          return xstrdup (name);
         }
     }
 
-  if (num_start != NULL)
-    *num_start = ULONG_MAX;
-  return false;
+  NOT_REACHED ();
 }
 
 
-/* Attempts to devise a variable name unique within DICT.
-   Returns true if successful, in which case the new variable
-   name is stored into NAME.  Returns false if all names that can
-   be generated have already been taken.  (Returning false is
-   quite unlikely: at least ULONG_MAX unique names can be
-   generated.)
+/* Devises and returns a variable name unique within DICT.  The variable name
+   is owned by the caller, which must free it with free() when it is no longer
+   needed.
 
    HINT, if it is non-null, is used as a suggestion that will be
    modified for suitability as a variable name and for
@@ -937,14 +933,18 @@ make_numeric_name (const struct dictionary *dict, unsigned long int *num_start,
    value is used.  If NUM_START is non-null, then its value is
    used as the minimum numeric value to check, and it is updated
    to the next value to be checked.
-   */
-bool
+*/
+char *
 dict_make_unique_var_name (const struct dictionary *dict, const char *hint,
-                           unsigned long int *num_start,
-                           char name[VAR_NAME_LEN + 1])
+                           unsigned long int *num_start)
 {
-  return ((hint != NULL && make_hinted_name (dict, hint, name))
-          || make_numeric_name (dict, num_start, name));
+  if (hint != NULL)
+    {
+      char *hinted_name = make_hinted_name (dict, hint);
+      if (hinted_name != NULL)
+        return hinted_name;
+    }
+  return make_numeric_name (dict, num_start);
 }
 
 /* Returns the weighting variable in dictionary D, or a null
