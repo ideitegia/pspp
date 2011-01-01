@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
 struct variable
   {
     /* Dictionary information. */
-    char name[VAR_NAME_LEN + 1]; /* Variable name.  Mixed case. */
+    char *name;                 /* Variable name.  Mixed case. */
     int width;			/* 0 for numeric, otherwise string width. */
     struct missing_values miss; /* Missing values. */
     struct fmt_spec print;	/* Default format for PRINT. */
@@ -91,6 +91,7 @@ var_create (const char *name, int width)
 
   v = xmalloc (sizeof *v);
   v->vardict = NULL;
+  v->name = NULL;
   var_set_name (v, name);
   v->width = width;
   mv_init (&v->miss, width);
@@ -155,6 +156,7 @@ var_destroy (struct variable *v)
       var_clear_aux (v);
       val_labs_destroy (v->val_labs);
       var_clear_label (v);
+      free (v->name);
       free (v);
     }
 }
@@ -177,7 +179,8 @@ var_set_name (struct variable *v, const char *name)
   assert (!var_has_vardict (v));
   assert (var_is_plausible_name (name, false));
 
-  str_copy_trunc (v->name, sizeof v->name, name);
+  free (v->name);
+  v->name = xstrdup (name);
   dict_var_changed (v);
 }
 
