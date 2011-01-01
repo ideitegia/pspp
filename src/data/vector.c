@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006  Free Software Foundation, Inc.
+   Copyright (C) 2006, 2011  Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,19 +15,21 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "vector.h"
 
-#include "dictionary.h"
+#include "data/vector.h"
 
-#include <libpspp/assertion.h>
-#include <libpspp/str.h>
+#include <stdlib.h>
 
-#include "xalloc.h"
+#include "data/dictionary.h"
+#include "libpspp/assertion.h"
+#include "libpspp/str.h"
+
+#include "gl/xalloc.h"
 
 /* Vector of variables. */
 struct vector
   {
-    char name[VAR_NAME_LEN + 1];       /* Name. */
+    char *name;                         /* Name. */
     struct variable **vars;             /* Set of variables. */
     size_t var_cnt;                     /* Number of variables. */
   };
@@ -55,7 +57,7 @@ vector_create (const char *name,
 
   assert (var_cnt > 0);
   assert (var_is_plausible_name (name, false));
-  str_copy_trunc (vector->name, sizeof vector->name, name);
+  vector->name = xstrdup (name);
 
   vector->vars = xmemdup (vars, var_cnt * sizeof *vector->vars);
   vector->var_cnt = var_cnt;
@@ -77,7 +79,7 @@ vector_clone (const struct vector *old,
   struct vector *new = xmalloc (sizeof *new);
   size_t i;
 
-  strcpy (new->name, old->name);
+  new->name = xstrdup (old->name);
 
   new->vars = xnmalloc (old->var_cnt, sizeof *new->vars);
   new->var_cnt = old->var_cnt;
@@ -96,6 +98,7 @@ vector_clone (const struct vector *old,
 void
 vector_destroy (struct vector *vector)
 {
+  free (vector->name);
   free (vector->vars);
   free (vector);
 }
