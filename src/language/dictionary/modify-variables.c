@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -368,7 +368,7 @@ compare_variables_given_ordering (const void *a_, const void *b_,
 struct var_renaming
   {
     struct variable *var;
-    char new_name[VAR_NAME_LEN + 1];
+    const char *new_name;
   };
 
 /* A algo_compare_func that compares new_name members in struct
@@ -431,7 +431,7 @@ validate_var_modification (const struct dictionary *d,
   for (i = 0; i < keep_cnt; i++)
     {
       var_renaming[i].var = keep_vars[i];
-      strcpy (var_renaming[i].new_name, var_get_name (keep_vars[i]));
+      var_renaming[i].new_name = var_get_name (keep_vars[i]);
     }
 
   /* Rename variables in var_renaming array. */
@@ -449,7 +449,7 @@ validate_var_modification (const struct dictionary *d,
         continue;
       vr = var_renaming + (kv - keep_vars);
 
-      strcpy (vr->new_name, vm->new_names[i]);
+      vr->new_name = vm->new_names[i];
     }
 
   /* Sort var_renaming array by new names and check for
