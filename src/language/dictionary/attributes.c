@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -90,45 +90,57 @@ match_subcommand (struct lexer *lexer, const char *keyword)
     return false;
 }
 
-static bool
-parse_attribute_name (struct lexer *lexer, char name[VAR_NAME_LEN + 1],
-                      size_t *index) 
+/* Parses an attribute name optionally followed by an index inside square
+   brackets.  Returns the attribute name or NULL if there was a parse error.
+   Stores the index into *INDEX. */
+static char *
+parse_attribute_name (struct lexer *lexer, size_t *index)
 {
+  char *name;
+
   if (!lex_force_id (lexer))
-    return false;
-  strcpy (name, lex_tokcstr (lexer));
+    return NULL;
+  name = xstrdup (lex_tokcstr (lexer));
   lex_get (lexer);
 
   if (lex_match (lexer, T_LBRACK))
     {
       if (!lex_force_int (lexer))
-        return false;
+        goto error;
       if (lex_integer (lexer) < 1 || lex_integer (lexer) > 65535)
         {
           msg (SE, _("Attribute array index must be between 1 and 65535."));
-          return false;
+          goto error;
         }
       *index = lex_integer (lexer);
       lex_get (lexer);
       if (!lex_force_match (lexer, T_RBRACK))
-        return false;
+        goto error;
     }
   else
     *index = 0;
-  return true;
+  return name;
+
+error:
+  free (name);
+  return NULL;
 }
 
 static bool
 add_attribute (struct lexer *lexer, struct attrset **sets, size_t n) 
 {
-  char name[VAR_NAME_LEN + 1];
   const char *value;
   size_t index, i;
+  char *name;
 
-  if (!parse_attribute_name (lexer, name, &index)
-      || !lex_force_match (lexer, T_LPAREN)
-      || !lex_force_string (lexer))
+  name = parse_attribute_name (lexer, &index);
+  if (name == NULL)
     return false;
+  if (!lex_force_match (lexer, T_LPAREN) || !lex_force_string (lexer))
+    {
+      free (name);
+      return false;
+    }
   value = lex_tokcstr (lexer);
 
   for (i = 0; i < n; i++)
@@ -143,16 +155,18 @@ add_attribute (struct lexer *lexer, struct attrset **sets, size_t n)
     }
 
   lex_get (lexer);
+  free (name);
   return lex_force_match (lexer, T_RPAREN);
 }
 
 static bool
 delete_attribute (struct lexer *lexer, struct attrset **sets, size_t n) 
 {
-  char name[VAR_NAME_LEN + 1];
   size_t index, i;
+  char *name;
 
-  if (!parse_attribute_name (lexer, name, &index))
+  name = parse_attribute_name (lexer, &index);
+  if (name == NULL)
     return false;
 
   for (i = 0; i < n; i++) 
@@ -171,6 +185,8 @@ delete_attribute (struct lexer *lexer, struct attrset **sets, size_t n)
             }
         }
     }
+
+  free (name);
   return true;
 }
 
