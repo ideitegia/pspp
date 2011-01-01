@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -274,6 +274,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
   struct dictionary *dict = dict_create ();
   struct file_handle *fh = NULL;
   struct dfm_reader *reader = NULL;
+  char *name = NULL;
 
   int record;
   enum data_parser_type type;
@@ -465,15 +466,13 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
     }
   lex_match (lexer, T_EQUALS);
 
-
   record = 1;
   type = data_parser_get_type (parser);
   do
     {
-      char name[VAR_NAME_LEN + 1];
       struct fmt_spec input, output;
-      int fc, lc;
       struct variable *v;
+      int fc, lc;
 
       while (type == DP_FIXED && lex_match (lexer, T_SLASH))
         {
@@ -502,7 +501,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
 
       if (!lex_force_id (lexer))
         goto error;
-      strcpy (name, lex_tokcstr (lexer));
+      name = xstrdup (lex_tokcstr (lexer));
       lex_get (lexer);
 
       if (type == DP_DELIMITED)
@@ -539,6 +538,8 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
       else
         data_parser_add_fixed_field (parser, &input, var_get_case_index (v),
                                      name, record, fc);
+      free (name);
+      name = NULL;
     }
   while (lex_token (lexer) != T_ENDCMD);
 
@@ -554,5 +555,6 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
   data_parser_destroy (parser);
   dict_destroy (dict);
   fh_unref (fh);
+  free (name);
   return CMD_CASCADING_FAILURE;
 }
