@@ -709,7 +709,6 @@ var_set_lookup_var_idx (const struct var_set *vs, const char *name,
 {
   assert (vs != NULL);
   assert (name != NULL);
-  assert (strlen (name) <= VAR_NAME_LEN);
 
   return vs->lookup_var_idx (vs, name, idx);
 }
