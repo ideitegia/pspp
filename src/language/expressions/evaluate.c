@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -116,6 +116,8 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
   struct dataset *ds = NULL;
 
+  char *name = NULL;
+
   struct expression *expr;
 
   for (;;)
@@ -127,14 +129,13 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
         dump_postfix = 1;
       else if (lex_match (lexer, T_LPAREN))
         {
-          char name[VAR_NAME_LEN + 1];
           struct variable *v;
           size_t old_value_cnt;
           int width;
 
           if (!lex_force_id (lexer))
             goto done;
-          strcpy (name, lex_tokcstr (lexer));
+          name = xstrdup (lex_tokcstr (lexer));
 
           lex_get (lexer);
           if (!lex_force_match (lexer, T_EQUALS))
@@ -163,6 +164,8 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
               msg (SE, _("Duplicate variable name %s."), name);
               goto done;
             }
+          free (name);
+          name = NULL;
 
           if (c == NULL)
             c = case_create (dict_get_proto (d));
@@ -241,6 +244,8 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
     destroy_dataset (ds);
 
   case_unref (c);
+
+  free (name);
 
   return retval;
 }
