@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,7 +42,8 @@
 #include <math/moments.h>
 #include <output/tab.h>
 
-#include "xalloc.h"
+#include "gl/intprops.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -602,29 +603,19 @@ regression_trns_resid_proc (void *t_, struct ccase **c,
   return TRNS_CONTINUE;
 }
 
-/*
-   Returns false if NAME is a duplicate of any existing variable name.
-*/
-static bool
-try_name (const struct dictionary *dict, const char *name)
+static char *
+reg_get_name (const struct dictionary *dict, const char *prefix)
 {
-  if (dict_lookup_var (dict, name) != NULL)
-    return false;
+  char *name;
+  int i;
 
-  return true;
-}
-
-static void
-reg_get_name (const struct dictionary *dict, char name[VAR_NAME_LEN],
-	      const char prefix[VAR_NAME_LEN])
-{
-  int i = 1;
-
-  snprintf (name, VAR_NAME_LEN, "%s%d", prefix, i);
-  while (!try_name (dict, name))
+  /* XXX handle too-long prefixes */
+  name = xmalloc (strlen (prefix) + INT_BUFSIZE_BOUND (i) + 1);
+  for (i = 1; ; i++)
     {
-      i++;
-      snprintf (name, VAR_NAME_LEN, "%s%d", prefix, i);
+      sprintf (name, "%s%d", prefix, i);
+      if (dict_lookup_var (dict, name) == NULL)
+        return name;
     }
 }
 
@@ -634,7 +625,7 @@ reg_save_var (struct dataset *ds, const char *prefix, trns_proc_func * f,
 {
   struct dictionary *dict = dataset_dict (ds);
   static int trns_index = 1;
-  char name[VAR_NAME_LEN];
+  char *name;
   struct variable *new_var;
   struct reg_trns *t = NULL;
 
@@ -642,9 +633,11 @@ reg_save_var (struct dataset *ds, const char *prefix, trns_proc_func * f,
   t->trns_id = trns_index;
   t->n_trns = n_trns;
   t->c = c;
-  reg_get_name (dict, name, prefix);
-  new_var = dict_create_var (dict, name, 0);
-  assert (new_var != NULL);
+
+  name = reg_get_name (dict, prefix);
+  new_var = dict_create_var_assert (dict, name, 0);
+  free (name);
+
   *v = new_var;
   add_transformation (ds, f, regression_trns_free, t);
   trns_index++;
