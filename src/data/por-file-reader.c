@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,8 +42,9 @@
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/intprops.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -690,17 +691,15 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       v = dict_create_var (dict, name, width);
       if (v == NULL)
         {
-          int i;
-          for (i = 1; i < 100000; i++)
+          unsigned long int i;
+          for (i = 1; ; i++)
             {
-              char try_name[VAR_NAME_LEN + 1];
-              sprintf (try_name, "%.*s_%d", VAR_NAME_LEN - 6, name, i);
+              char try_name[8 + 1 + INT_STRLEN_BOUND (i) + 1];
+              sprintf (try_name, "%s_%lu", name, i);
               v = dict_create_var (dict, try_name, width);
               if (v != NULL)
                 break;
             }
-          if (v == NULL)
-            error (r, _("Duplicate variable name %s in position %d."), name, i);
           warning (r, _("Duplicate variable name %s in position %d renamed "
                         "to %s."), name, i, var_get_name (v));
         }
