@@ -225,7 +225,7 @@ static GtkTreeViewColumn *make_data_column (struct import_assistant *,
                                             gint column_idx);
 static GtkTreeView *create_data_tree_view (bool input, GtkContainer *parent,
                                            struct import_assistant *);
-static void escape_underscores (const char *in, char *out);
+static char *escape_underscores (const char *in);
 static void push_watch_cursor (struct import_assistant *);
 static void pop_watch_cursor (struct import_assistant *);
 
@@ -1968,17 +1968,17 @@ make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
 {
   struct variable *var = NULL;
   struct column *column = NULL;
-  char name[(VAR_NAME_LEN * 2) + 1];
   size_t char_cnt;
   gint content_width, header_width;
   GtkTreeViewColumn *tree_column;
+  char *name;
 
   if (input)
     column = &ia->separators.columns[dict_idx];
   else
     var = dict_get_var (ia->formats.dict, dict_idx);
 
-  escape_underscores (input ? column->name : var_get_name (var), name);
+  name = escape_underscores (input ? column->name : var_get_name (var));
   char_cnt = input ? column->width : var_get_print_format (var)->w;
   content_width = get_monospace_width (tree_view, ia->asst.fixed_renderer,
                                        char_cnt);
@@ -1997,6 +1997,8 @@ make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
   gtk_tree_view_column_set_sizing (tree_column, GTK_TREE_VIEW_COLUMN_FIXED);
   gtk_tree_view_column_set_fixed_width (tree_column, MAX (content_width,
                                                           header_width));
+
+  free (name);
 
   return tree_column;
 }
@@ -2028,16 +2030,22 @@ create_data_tree_view (bool input, GtkContainer *parent,
   return tree_view;
 }
 
-static void
-escape_underscores (const char *in, char *out)
+static char *
+escape_underscores (const char *in)
 {
+  char *out = xmalloc (2 * strlen (in) + 1);
+  char *p;
+
+  p = out;
   for (; *in != '\0'; in++)
     {
       if (*in == '_')
-        *out++ = '_';
-      *out++ = *in;
+        *p++ = '_';
+      *p++ = *in;
     }
-  *out = '\0';
+  *p = '\0';
+
+  return out;
 }
 
 /* TextImportModel, a GtkTreeModel implementation used by some
