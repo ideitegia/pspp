@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -122,7 +122,7 @@ static const struct dsc_statistic_info dsc_info[DSC_N_STATS] =
 struct dsc_var
   {
     const struct variable *v;         /* Variable to calculate on. */
-    char z_name[VAR_NAME_LEN + 1]; /* Name for z-score variable. */
+    char *z_name;                     /* Name for z-score variable. */
     double valid, missing;	/* Valid, missing counts. */
     struct moments *moments;    /* Moments. */
     double min, max;            /* Maximum and mimimum values. */
@@ -168,9 +168,9 @@ static void free_dsc_proc (struct dsc_proc *);
 /* Z-score functions. */
 static bool try_name (const struct dictionary *dict,
 		      struct dsc_proc *dsc, const char *name);
-static bool generate_z_varname (const struct dictionary *dict,
-				struct dsc_proc *dsc, char *z_name,
-				const char *name, int *z_cnt);
+static char *generate_z_varname (const struct dictionary *dict,
+                                 struct dsc_proc *dsc,
+                                 const char *name, int *z_cnt);
 static void dump_z_table (struct dsc_proc *);
 static void setup_z_trns (struct dsc_proc *, struct dataset *);
 
@@ -322,7 +322,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                 {
                   struct dsc_var *dv = &dsc->vars[i];
                   dv->v = vars[i];
-                  dv->z_name[0] = '\0';
+                  dv->z_name = NULL;
                   dv->moments = NULL;
                 }
               dsc->var_cnt = var_cnt;
@@ -336,7 +336,8 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                     }
                   if (try_name (dict, dsc, lex_tokcstr (lexer)))
                     {
-                      strcpy (dsc->vars[dsc->var_cnt - 1].z_name, lex_tokcstr (lexer));
+                      struct dsc_var *dsc_var = &dsc->vars[dsc->var_cnt - 1];
+                      dsc_var->z_name = xstrdup (lex_tokcstr (lexer));
                       z_cnt++;
                     }
                   else
@@ -370,14 +371,19 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
           int gen_cnt = 0;
 
           for (i = 0; i < dsc->var_cnt; i++)
-            if (dsc->vars[i].z_name[0] == 0)
-              {
-                if (!generate_z_varname (dict, dsc, dsc->vars[i].z_name,
-                                         var_get_name (dsc->vars[i].v),
-                                         &gen_cnt))
-                  goto error;
-                z_cnt++;
-              }
+            {
+              struct dsc_var *dsc_var = &dsc->vars[i];
+              if (dsc_var->z_name == NULL)
+                {
+                  const char *name = var_get_name (dsc_var->v);
+                  dsc_var->z_name = generate_z_varname (dict, dsc, name,
+                                                        &gen_cnt);
+                  if (dsc_var->z_name == NULL)
+                    goto error;
+
+                  z_cnt++;
+                }
+            }
         }
       dump_z_table (dsc);
     }
@@ -463,7 +469,11 @@ free_dsc_proc (struct dsc_proc *dsc)
     return;
 
   for (i = 0; i < dsc->var_cnt; i++)
-    moments_destroy (dsc->vars[i].moments);
+    {
+      struct dsc_var *dsc_var = &dsc->vars[i];
+      free (dsc_var->z_name);
+      moments_destroy (dsc_var->moments);
+    }
   free (dsc->vars);
   free (dsc);
 }
@@ -481,17 +491,20 @@ try_name (const struct dictionary *dict, struct dsc_proc *dsc,
   if (dict_lookup_var (dict, name) != NULL)
     return false;
   for (i = 0; i < dsc->var_cnt; i++)
-    if (!strcasecmp (dsc->vars[i].z_name, name))
-      return false;
+    {
+      struct dsc_var *dsc_var = &dsc->vars[i];
+      if (dsc_var->z_name != NULL && !strcasecmp (dsc_var->z_name, name))
+        return false;
+    }
   return true;
 }
 
 /* Generates a name for a Z-score variable based on a variable
    named VAR_NAME, given that *Z_CNT generated variable names are
-   known to already exist.  If successful, returns true and
-   copies the new name into Z_NAME.  On failure, returns false. */
-static bool
-generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc, char *z_name,
+   known to already exist.  If successful, returns the new name
+   as a dynamically allocated string.  On failure, returns NULL. */
+static char *
+generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc,
                     const char *var_name, int *z_cnt)
 {
   char name[VAR_NAME_LEN + 1];
@@ -500,10 +513,7 @@ generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc, char *z
   name[0] = 'Z';
   str_copy_trunc (name + 1, sizeof name - 1, var_name);
   if (try_name (dict, dsc, name))
-    {
-      strcpy (z_name, name);
-      return true;
-    }
+    return xstrdup (name);
 
   /* Generate a synthetic name. */
   for (;;)
@@ -523,14 +533,11 @@ generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc, char *z
 	  msg (SE, _("Ran out of generic names for Z-score variables.  "
 		     "There are only 126 generic names: ZSC001-ZSC0999, "
 		     "STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."));
-	  return false;
+	  return NULL;
 	}
 
       if (try_name (dict, dsc, name))
-	{
-	  strcpy (z_name, name);
-	  return true;
-	}
+        return xstrdup (name);
     }
   NOT_REACHED();
 }
@@ -547,7 +554,7 @@ dump_z_table (struct dsc_proc *dsc)
     size_t i;
 
     for (i = 0; i < dsc->var_cnt; i++)
-      if (dsc->vars[i].z_name[0] != '\0')
+      if (dsc->vars[i].z_name != NULL)
 	cnt++;
   }
 
@@ -563,7 +570,7 @@ dump_z_table (struct dsc_proc *dsc)
     size_t i, y;
 
     for (i = 0, y = 1; i < dsc->var_cnt; i++)
-      if (dsc->vars[i].z_name[0] != '\0')
+      if (dsc->vars[i].z_name != NULL)
 	{
 	  tab_text (t, 0, y, TAB_LEFT, var_get_name (dsc->vars[i].v));
 	  tab_text (t, 1, y++, TAB_LEFT, dsc->vars[i].z_name);
@@ -637,7 +644,7 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
   size_t cnt, i;
 
   for (cnt = i = 0; i < dsc->var_cnt; i++)
-    if (dsc->vars[i].z_name[0] != '\0')
+    if (dsc->vars[i].z_name != NULL)
       cnt++;
 
   t = xmalloc (sizeof *t);
@@ -661,7 +668,7 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
   for (cnt = i = 0; i < dsc->var_cnt; i++)
     {
       struct dsc_var *dv = &dsc->vars[i];
-      if (dv->z_name[0] != '\0')
+      if (dv->z_name != NULL)
 	{
           struct dsc_z_score *z;
 	  struct variable *dst_var;
