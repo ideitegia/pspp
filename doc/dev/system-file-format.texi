@@ -60,7 +60,8 @@ if present.
 Document record, if present.
 
 @item
-Any records not explicitly included in this list, in any order.
+Extension (type 7) records, in ascending numerical order of their
+subtypes.
 
 @item
 Dictionary termination record.
