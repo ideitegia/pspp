@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1498,7 +1498,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 		}
 	      else
 		{
-		  dump (1, "if (!lex_match (lexer, T_RPAREN))");
+		  dump (1, "if (!lex_match (lexer, T_LPAREN))");
 		  dump (1, "{");
 		  dump (0, "msg (SE, _(\"`(' expected after %s "
 			"specifier of %s subcommand.\"));",

@@ -1,4 +1,4 @@
-AT_BANNER([T-TEST])
+/AT_BANNER([T-TEST])
 
 AT_SETUP([T-TEST /PAIRS])
 AT_DATA([t-test.sps], [dnl
@@ -93,7 +93,7 @@ begin data.
 end data.
 
 
-t-test /MISSING=analysis /PAIRS a c with b d (PAIRED). 
+t-test /MISSING=analysis /PAIRS a c with b d (PAIRED) /CRITERIA=CIN(0.95). 
 ])
 AT_CHECK([pspp -o missing.csv missing.sps])
 AT_CHECK([cat missing.csv], [0], [expout])
