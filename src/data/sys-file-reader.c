@@ -744,7 +744,7 @@ parse_format_spec (struct sfm_reader *r, unsigned int s,
       else
         var_set_write_format (v, &f);
     }
-  else if (*++format_warning_cnt <= max_format_warnings)
+  else if (++*format_warning_cnt <= max_format_warnings)
     {
       char fmt_string[FMT_STRING_LEN_MAX + 1];
       sys_warn (r, _("%s variable %s has invalid %s format %s."),
