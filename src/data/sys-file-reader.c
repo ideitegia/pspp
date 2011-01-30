@@ -513,7 +513,6 @@ read_header (struct sfm_reader *r, struct dictionary *dict,
   if ( r->case_cnt > INT_MAX / 2)
     r->case_cnt = -1;
 
-
   /* Identify floating-point format and obtain compression bias. */
   read_bytes (r, raw_bias, sizeof raw_bias);
   if (float_identify (100.0, raw_bias, sizeof raw_bias, &r->float_format) == 0)
@@ -772,7 +771,9 @@ setup_weight (struct sfm_reader *r, int weight_idx,
       if (var_is_numeric (weight_var))
         dict_set_weight (dict, weight_var);
       else
-        sys_error (r, _("Weighting variable must be numeric."));
+        sys_error (r, _("Weighting variable must be numeric "
+                        "(not string variable `%s')."),
+                   var_get_name (weight_var));
     }
 }
 
@@ -940,7 +941,7 @@ read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count,
   if (float_representation != expected_float_format)
     sys_error (r, _("Floating-point representation indicated by "
                     "system file (%d) differs from expected (%d)."),
-               r->float_format, expected_float_format);
+              float_representation, expected_float_format);
 
   /* Check integer format. */
   if (r->integer_format == INTEGER_MSB_FIRST)
@@ -950,14 +951,9 @@ read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count,
   else
     NOT_REACHED ();
   if (integer_representation != expected_integer_format)
-    {
-      static const char *const endian[] = {N_("Little Endian"), N_("Big Endian")};
-      sys_warn (r, _("Integer format indicated by system file (%s) "
-                     "differs from expected (%s)."),
-                gettext (endian[integer_representation == 1]),
-                gettext (endian[expected_integer_format == 1]));
-    }
-
+    sys_warn (r, _("Integer format indicated by system file (%d) "
+                   "differs from expected (%d)."),
+              integer_representation, expected_integer_format);
 
   /*
     Record 7 (20) provides a much more reliable way of
