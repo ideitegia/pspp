@@ -1408,11 +1408,7 @@ read_value_labels (struct sfm_reader *r,
   label_cnt = read_int (r);
 
   if (size_overflow_p (xtimes (label_cnt, sizeof *labels)))
-    {
-      sys_warn (r, _("Invalid number of labels: %d.  Ignoring labels."),
-                label_cnt);
-      label_cnt = 0;
-    }
+    sys_error (r, _("Invalid number of labels %d."), label_cnt);
 
   /* Read each value/label tuple into labels[]. */
   labels = pool_nalloc (subpool, label_cnt, sizeof *labels);
