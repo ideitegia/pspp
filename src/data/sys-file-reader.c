@@ -889,7 +889,9 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
       return;
 
     default:
-      sys_warn (r, _("Unrecognized record type 7, subtype %d.  Please send a copy of this file, and the syntax which created it to %s"),
+      sys_warn (r, _("Unrecognized record type 7, subtype %d.  Please send "
+                     "a copy of this file, and the syntax which created it "
+                     "to %s."),
 		subtype, PACKAGE_BUGREPORT);
       break;
     }
@@ -1060,7 +1062,7 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
           if (!text_match (text, ' '))
             {
               sys_warn (r, _("Missing space following `%c' at offset %zu "
-                             "in MRSETS record"), 'C', text_pos (text));
+                             "in MRSETS record."), 'C', text_pos (text));
               break;
             }
         }
@@ -1078,7 +1080,7 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
           if (!text_match (text, ' '))
             {
               sys_warn (r, _("Missing space following `%c' at offset %zu "
-                             "in MRSETS record"), 'E',  text_pos (text));
+                             "in MRSETS record."), 'E',  text_pos (text));
               break;
             }
 
@@ -1087,7 +1089,7 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
             mrset->label_from_var_label = true;
           else if (strcmp (number, "1"))
             sys_warn (r, _("Unexpected label source value `%s' "
-                           "following `E' at offset %zu in MRSETS record"),
+                           "following `E' at offset %zu in MRSETS record."),
                       number, text_pos (text));
         }
       else
@@ -1339,7 +1341,7 @@ read_long_string_map (struct sfm_reader *r, size_t size, size_t count,
       if (length < 1 || length > MAX_STRING)
         {
           sys_warn (r, _("%s listed as string of invalid length %s "
-                         "in very length string record."),
+                         "in very long string record."),
                     var_get_name (var), length_s);
           continue;
         }
@@ -1369,7 +1371,7 @@ read_long_string_map (struct sfm_reader *r, size_t size, size_t count,
             var_set_short_name (var, i, var_get_short_name (seg, 0));
           if (ROUND_UP (width, 8) != ROUND_UP (alloc_width, 8))
             sys_error (r, _("Very long string with width %ld has segment %d "
-                            "of width %d (expected %d)"),
+                            "of width %d (expected %d)."),
                        length, i, width, alloc_width);
         }
       dict_delete_consecutive_vars (dict, idx + 1, segment_cnt - 1);
@@ -1547,7 +1549,7 @@ read_attributes (struct sfm_reader *r, struct text_record *text,
           value = text_get_token (text, ss_cstr ("\n"), NULL);
           if (value == NULL)
             {
-              text_warn (r, text, _("Error parsing attribute value %s[%d]"),
+              text_warn (r, text, _("Error parsing attribute value %s[%d]."),
                          key, index);
               break;
             }              
@@ -1561,7 +1563,7 @@ read_attributes (struct sfm_reader *r, struct text_record *text,
           else 
             {
               text_warn (r, text,
-                         _("Attribute value %s[%d] is not quoted: %s"),
+                         _("Attribute value %s[%d] is not quoted: %s."),
                          key, index, value);
               attribute_add_value (attr, value); 
             }
@@ -1650,7 +1652,7 @@ read_long_string_value_labels (struct sfm_reader *r,
         {
           sys_warn (r, _("Ignoring long string value record for variable %s "
                          "because the record's width (%d) does not match the "
-                         "variable's width (%d)"),
+                         "variable's width (%d)."),
                     var_name, width, var_get_width (v));
           skip_long_string_value_labels (r, n_labels);
           continue;
@@ -1948,7 +1950,7 @@ read_compressed_string (struct sfm_reader *r, uint8_t *dst)
           {
             r->corruption_warning = true;
             sys_warn (r, _("Possible compressed data corruption: "
-                           "string contains compressed integer (opcode %d)"),
+                           "string contains compressed integer (opcode %d)."),
                       opcode);
           }
       }
