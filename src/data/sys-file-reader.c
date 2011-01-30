@@ -604,9 +604,7 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
     sys_error (r, _("Bad width %d for variable %s."), width, name);
   var = dict_create_var (dict, name, width);
   if (var == NULL)
-    sys_error (r,
-               _("Duplicate variable name `%s' within system file."),
-               name);
+    sys_error (r, _("Duplicate variable name `%s'."), name);
 
   /* Set the short name the same as the long name. */
   var_set_short_name (var, 0, var_get_name (var));
@@ -1283,8 +1281,7 @@ read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count,
       if (strcasecmp (var_get_short_name (var, 0), long_name)
           && dict_lookup_var (dict, long_name) != NULL)
         {
-          sys_warn (r, _("Duplicate long variable name `%s' "
-                         "within system file."), long_name);
+          sys_warn (r, _("Duplicate long variable name `%s'."), long_name);
           continue;
         }
 
