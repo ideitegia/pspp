@@ -1047,6 +1047,13 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count,
         break;
       mrset->name = xstrdup (name);
 
+      if (mrset->name[0] != '$')
+        {
+          sys_warn (r, _("`%s' does not begin with `$' at offset %zu "
+                         "in MRSETS record."), mrset->name, text_pos (text));
+          break;
+        }
+
       if (text_match (text, 'C'))
         {
           mrset->type = MRSET_MC;
