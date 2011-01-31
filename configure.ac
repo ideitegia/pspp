@@ -303,8 +303,6 @@ gl_INIT
 
 AC_C_INLINE
 
-AC_CHECK_SIZEOF(double)
-
 AC_C_BIGENDIAN
 
 AC_CHECK_FUNCS([__setfpucw fork execl execlp isinf isnan finite getpid feholdexcept fpsetmask popen round])
