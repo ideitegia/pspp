@@ -1,0 +1,3315 @@
+AT_BANNER([system file reader - positive])
+
+AT_SETUP([variable labels and missing values])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+22; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted 
+1; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Numeric variable, variable label.
+2; 0; 1; 0; 0x050800 *2; s8 "NUM2";
+26; "Numeric variable 2's label"; i8 0 *2;
+
+dnl Numeric variable, one missing value.
+2; 0; 0; 1; 0x050800 *2; s8 "NUM3";
+1.0;
+
+dnl Numeric variable, variable label and missing value.
+2; 0; 1; 1; 0x050800 *2; s8 "NUM4";
+30; "Another numeric variable label"; i8 0 * 2;
+1.0;
+
+dnl Numeric variable, two missing values.
+2; 0; 0; 2; 0x050800 *2; s8 "NUM5"; 1.0; 2.0;
+
+dnl Numeric variable, three missing values.
+2; 0; 0; 3; 0x050800 *2; s8 "NUM6"; 1.0; 2.0; 3.0;
+
+dnl Numeric variable, range of missing values.
+2; 0; 0; -2; 0x050800 *2; s8 "NUM7"; 1.0; 3.0;
+
+dnl Numeric variables, range of missing values plus discrete value.
+2; 0; 0; -3; 0x050800 *2; s8 "NUM8"; 1.0; 3.0; 5.0;
+2; 0; 0; -3; 0x050800 *2; s8 "NUM9"; 1.0; HIGHEST; -5.0;
+2; 0; 0; -3; 0x050800 *2; s8 "NUM10"; LOWEST; 1.0; 5.0;
+
+dnl String variable, no label or missing values.
+2; 4; 0; 0; 0x010400 *2; s8 "STR1";
+
+dnl String variable, variable label.
+2; 4; 1; 0; 0x010400 *2; s8 "STR2";
+25; "String variable 2's label"; i8 0 * 3;
+
+dnl String variable, one missing value.
+2; 4; 0; 1; 0x010400 *2; s8 "STR3"; s8 "MISS";
+
+dnl String variable, variable label and missing value.
+2; 4; 1; 1; 0x010400 *2; s8 "STR4";
+29; "Another string variable label"; i8 0 * 3;
+s8 "OTHR";
+
+dnl String variable, two missing values.
+2; 4; 0; 2; 0x010400 *2; s8 "STR5"; s8 "MISS"; s8 "OTHR";
+
+dnl String variable, three missing values.
+2; 4; 0; 3; 0x010400 *2; s8 "STR6"; s8 "MISS"; s8 "OTHR"; s8 "MORE";
+
+dnl Long string variable, one missing value.
+2; 11; 0; 1; 0x010b00 *2; s8 "STR7"; "first8by";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Long string variable, value label.
+2; 25; 1; 0; 0x011900 *2; s8 "STR8"; 14; "25-byte string"; i8 0 * 2;
+( 2; -1; 0; 0; 0; 0; s8 ""; ) * 2;
+dnl Variable label fields on continuation records have been spotted in system
+dnl files created by "SPSS Power Macintosh Release 6.1".
+2; -1; 1; 0; 0; 0; s8 ""; 20; "dummy variable label";
+
+dnl Machine integer info record.
+7; 3; 4; 8; 1; 2; 3; -1; 1; 1; ENDIAN; 1252;
+
+dnl Machine floating-point info record.
+7; 4; 8; 3; SYSMIS; HIGHEST; LOWEST;
+
+dnl Character encoding record.
+7; 20; 1; 12; "windows-1252";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Data.
+1.0; 2.0; 3.0; 4.0; 5.0; 6.0; 7.0; 8.0; 9.0; 10.0;
+s8 "abcd"; s8 "efgh"; s8 "ijkl"; s8 "mnop"; s8 "qrst"; s8 "uvwx";
+s16 "yzABCDEFGHI"; s32 "JKLMNOPQRSTUVWXYZ01234567";
+])
+for variant in \
+	"be e07ee28eaf7bceca017e83e9fd46be3c" \
+	"le c357aa20227c856b8a80d1b840722da1"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+num1,Format: F8.0,,1
+num2,Numeric variable 2's label,,2
+,Format: F8.0,,
+num3,Format: F8.0,,3
+,Missing Values: 1,,
+num4,Another numeric variable label,,4
+,Format: F8.0,,
+,Missing Values: 1,,
+num5,Format: F8.0,,5
+,Missing Values: 1; 2,,
+num6,Format: F8.0,,6
+,Missing Values: 1; 2; 3,,
+num7,Format: F8.0,,7
+,Missing Values: 1 THRU 3,,
+num8,Format: F8.0,,8
+,Missing Values: 1 THRU 3; 5,,
+num9,Format: F8.0,,9
+,Missing Values: 1 THRU HIGHEST; -5,,
+num10,Format: F8.0,,10
+,Missing Values: LOWEST THRU 1; 5,,
+str1,Format: A4,,11
+str2,String variable 2's label,,12
+,Format: A4,,
+str3,Format: A4,,13
+,"Missing Values: ""MISS""",,
+str4,Another string variable label,,14
+,Format: A4,,
+,"Missing Values: ""OTHR""",,
+str5,Format: A4,,15
+,"Missing Values: ""MISS""; ""OTHR""",,
+str6,Format: A4,,16
+,"Missing Values: ""MISS""; ""OTHR""; ""MORE""",,
+str7,Format: A11,,17
+,"Missing Values: ""first8by""",,
+str8,25-byte string,,18
+,Format: A25,,
+
+Table: Data List
+num1,num2,num3,num4,num5,num6,num7,num8,num9,num10,str1,str2,str3,str4,str5,str6,str7,str8
+1,2,3,4,5,6,7,8,9,10,abcd,efgh,ijkl,mnop,qrst,uvwx,yzABCDEFGHI,JKLMNOPQRSTUVWXYZ01234567
+])
+done
+AT_CLEANUP
+
+AT_SETUP([unspecified number of variable positions])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+-1; dnl Nominal case size (unspecified)
+0; dnl Not compressed
+0; dnl Not weighted 
+1; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Numeric variable, variable label.
+2; 0; 1; 0; 0x050800 *2; s8 "NUM2";
+26; "Numeric variable 2's label"; i8 0 *2;
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Data.
+1.0; 2.0; 
+])
+for variant in \
+	"be 413e7bc80a47fcd7e4c8020e8e120060" \
+	"le d7db9120b1ff28c83aa6fe9fc405d903"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+num1,Format: F8.0,,1
+num2,Numeric variable 2's label,,2
+,Format: F8.0,,
+
+Table: Data List
+num1,num2
+1,2
+])
+done
+AT_CLEANUP
+
+AT_SETUP([wrong number of variable positions but version 13])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+-1; dnl Nominal case size (unspecified)
+0; dnl Not compressed
+0; dnl Not weighted 
+1; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Numeric variable, variable label.
+2; 0; 1; 0; 0x050800 *2; s8 "NUM2";
+26; "Numeric variable 2's label"; i8 0 *2;
+
+dnl Machine integer info record (SPSS 13).
+7; 3; 4; 8; 13; 2; 3; -1; 1; 1; ENDIAN; 1252;
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Data.
+1.0; 2.0; 
+])
+for variant in \
+	"be 3d17aae7d99538dc73c5cb42692b1038" \
+	"le 8ad1000df598617d5258f323c882d749"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+num1,Format: F8.0,,1
+num2,Numeric variable 2's label,,2
+,Format: F8.0,,
+
+Table: Data List
+num1,num2
+1,2
+])
+done
+AT_CLEANUP
+
+AT_SETUP([value labels])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+22; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted 
+1; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM3";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM4";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM5";
+
+dnl String variables.
+2; 1; 0; 0; 0x010100 *2; s8 "STR1"; dnl index 6
+2; 2; 0; 0; 0x010200 *2; s8 "STR2"; dnl index 7
+2; 3; 0; 0; 0x010300 *2; s8 "STR3"; dnl index 8
+2; 4; 0; 0; 0x010400 *2; s8 "STR4"; dnl index 9
+2; 4; 0; 0; 0x010400 *2; s8 "STR5"; dnl index 10
+2; 6; 0; 0; 0x010600 *2; s8 "STR6"; dnl index 11
+2; 7; 0; 0; 0x010700 *2; s8 "STR7"; dnl index 12
+2; 8; 0; 0; 0x010800 *2; s8 "STR8"; dnl index 13
+2; 9; 0; 0; 0x010900 *2; s8 "STR9"; dnl index 14
+2; -1; 0; 0; 0; 0; s8 "";
+2; 12; 0; 0; 0x010c00 *2; s8 "STR12"; dnl index 16
+2; -1; 0; 0; 0; 0; s8 "";
+2; 16; 0; 0; 0x011000 *2; s8 "STR16"; dnl index 18
+2; -1; 0; 0; 0; 0; s8 "";
+2; 17; 0; 0; 0x011100 *2; s8 "STR17"; dnl index 20
+( 2; -1; 0; 0; 0; 0; s8 ""; ) * 2;
+
+dnl One value label for NUM1.
+3; 1; 1.0; i8 3; s7 "one"; 4; 1; 1;
+
+dnl Two value labels for NUM2, as a single pair of type 3 and type 4 records.
+3; 2; 1.0; i8 3; s7 "one"; 2.0; i8 3; s7 "two"; 4; 1; 2;
+
+dnl Two value labels for NUM3, as two pairs of type 3 and type 4 records.
+3; 1; 3.0; i8 5; s7 "three"; 4; 1; 3;
+3; 1; 4.0; i8 4; s7 "four"; 4; 1; 3;
+
+dnl Two common value labels for NUM4 and NUM5, plus two different ones for each.
+3; 1; 5.0; i8 4; s7 "five"; 4; 1; 4;
+3; 1; 6.0; i8 3; s7 "six"; 4; 1; 5;
+3; 2; 7.0; i8 5; s7 "seven"; 8.0; i8 5; s7 "eight"; 4; 2; 4; 5;
+3; 1; 9.0; i8 4; s7 "nine"; 4; 1; 4;
+3; 1; 10.0; i8 3; s7 "ten"; 4; 1; 5;
+
+dnl One value label for STR1.
+3; 1; s8 "a"; i8 19; s23 "value label for `a'"; 4; 1; 6;
+
+dnl Two value labels for STR2, as a single pair of type 3 and type 4 records.
+3; 2;
+s8 "bc"; i8 20; s23 "value label for `bc'";
+s8 "de"; i8 20; s23 "value label for `de'";
+4; 1; 7;
+
+dnl Two value labels for STR3, as two pairs of type 3 and type 4 records.
+3; 1; s8 "fgh"; i8 21; s23 "value label for `fgh'"; 4; 1; 8;
+3; 1; s8 "ijk"; i8 21; s23 "value label for `ijk'"; 4; 1; 8;
+
+dnl Two common value labels for STR4 and STR5, plus two different ones for each.
+3; 1; s8 "lmno"; i8 22; s23 "value label for `lmno'"; 4; 1; 9;
+3; 1; s8 "pqrs"; i8 22; s23 "value label for `pqrs'"; 4; 1; 10;
+3; 2;
+s8 "tuvw"; i8 22; s23 "value label for `tuvw'";
+s8 "xyzA"; i8 22; s23 "value label for `xyzA'";
+4; 2; 9; 10;
+3; 1; s8 "BCDE"; i8 22; s23 "value label for `BCDE'"; 4; 1; 9;
+3; 1; s8 "FGHI"; i8 22; s23 "value label for `FGHI'"; 4; 1; 10;
+
+dnl One value label for STR6, STR7, STR8.
+3; 1; s8 "JKLMNO"; i8 24; s31 "value label for `JKLMNO'"; 4; 1; 11;
+3; 1; s8 "JKLMNOP"; i8 25; s31 "value label for `JKLMNOP'"; 4; 1; 12;
+3; 1; s8 "JKLMNOPQ"; i8 26; s31 "value label for `JKLMNOPQ'"; 4; 1; 13;
+
+7; 21; 1; COUNT (
+dnl One value label for STR9,
+COUNT("STR9"); 9; 1; COUNT("RSTUVWXYZ"); COUNT("value label for `RSTUVWXYZ'");
+
+dnl Two value labels for STR12.
+COUNT("STR12"); 12; 2;
+COUNT("0123456789ab"); COUNT("value label for `0123456789ab'");
+COUNT("cdefghijklmn"); COUNT("value label for `cdefghijklmn'");
+
+dnl Three value labels for STR16.
+COUNT("STR16"); 16; 3;
+COUNT("opqrstuvwxyzABCD"); COUNT("value label for `opqrstuvwxyzABCD'");
+COUNT("EFGHIJKLMNOPQRST"); COUNT("value label for `EFGHIJKLMNOPQRST'");
+COUNT("UVWXYZ0123456789"); COUNT("value label for `UVWXYZ0123456789'");
+
+dnl One value label for STR17.
+COUNT("STR17"); 17; 1;
+COUNT("abcdefghijklmnopq"); COUNT("value label for `abcdefghijklmnopq'");
+);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 1de55cc9fb523c8f9b014cdc5387c12b" \
+	"le 76a6974012df7351b591c5964c41e582"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+num1,Format: F8.0,,1
+,1,one,
+num2,Format: F8.0,,2
+,1,one,
+,2,two,
+num3,Format: F8.0,,3
+,3,three,
+,4,four,
+num4,Format: F8.0,,4
+,5,five,
+,7,seven,
+,8,eight,
+,9,nine,
+num5,Format: F8.0,,5
+,6,six,
+,7,seven,
+,8,eight,
+,10,ten,
+str1,Format: A1,,6
+,a,value label for `a',
+str2,Format: A2,,7
+,bc,value label for `bc',
+,de,value label for `de',
+str3,Format: A3,,8
+,fgh,value label for `fgh',
+,ijk,value label for `ijk',
+str4,Format: A4,,9
+,BCDE,value label for `BCDE',
+,lmno,value label for `lmno',
+,tuvw,value label for `tuvw',
+,xyzA,value label for `xyzA',
+str5,Format: A4,,10
+,FGHI,value label for `FGHI',
+,pqrs,value label for `pqrs',
+,tuvw,value label for `tuvw',
+,xyzA,value label for `xyzA',
+str6,Format: A6,,11
+,JKLMNO,value label for `JKLMNO',
+str7,Format: A7,,12
+,JKLMNOP,value label for `JKLMNOP',
+str8,Format: A8,,13
+,JKLMNOPQ,value label for `JKLMNOPQ',
+str9,Format: A9,,14
+,RSTUVWXYZ,value label for `RSTUVWXYZ',
+str12,Format: A12,,15
+,0123456789ab,value label for `0123456789ab',
+,cdefghijklmn,value label for `cdefghijklmn',
+str16,Format: A16,,16
+,EFGHIJKLMNOPQRST,value label for `EFGHIJKLMNOPQRST',
+,UVWXYZ0123456789,value label for `UVWXYZ0123456789',
+,opqrstuvwxyzABCD,value label for `opqrstuvwxyzABCD',
+str17,Format: A17,,17
+,abcdefghijklmnopq,value label for `abcdefghijklmnopq',
+])
+done
+AT_CLEANUP
+
+AT_SETUP([documents])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+1; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted 
+1; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Document record.
+6; 4;
+s80 "First line of documents";
+s80 "Second line of documents";
+s80 "";
+s80 "Last line of documents";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Data.
+1.0;
+])
+for variant in \
+	"be 8738124d7932cc8ff803142fbf38710b" \
+	"le f3ca2123ec9e8bda91c6b865ba39f506"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DOCUMENTS.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Documents in the active file:
+
+First line of documents
+
+Second line of documents
+
+
+
+Last line of documents
+
+Table: Data List
+num1
+1
+])
+done
+AT_CLEANUP
+
+AT_SETUP([multiple response sets])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+16; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted 
+0; dnl No cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl $a
+2; 0; 0; 0; 0x050800 *2; s8 "A";
+2; 0; 0; 0; 0x050800 *2; s8 "B";
+2; 0; 0; 0; 0x050800 *2; s8 "C";
+
+dnl $b
+2; 0; 0; 0; 0x050800 *2; s8 "D";
+2; 0; 0; 0; 0x050800 *2; s8 "E";
+2; 0; 0; 0; 0x050800 *2; s8 "F";
+2; 0; 0; 0; 0x050800 *2; s8 "G";
+
+dnl $c
+2; 3; 0; 0; 0x010300 *2; s8 "H";
+2; 3; 0; 0; 0x010300 *2; s8 "I";
+2; 3; 0; 0; 0x010300 *2; s8 "J";
+
+dnl $d
+2; 0; 0; 0; 0x050800 *2; s8 "K";
+2; 0; 0; 0; 0x050800 *2; s8 "L";
+2; 0; 0; 0; 0x050800 *2; s8 "M";
+
+dnl $e
+2; 6; 0; 0; 0x010600 *2; s8 "N";
+2; 6; 0; 0; 0x010600 *2; s8 "O";
+2; 6; 0; 0; 0x010600 *2; s8 "P";
+
+7; 7; 1;
+COUNT(
+  "$a=C 10 my mcgroup a b c"; i8 10;
+  "$b=D2 55 0  g e f d"; i8 10;
+  "$c=D3 Yes 10 mdgroup #2 h i j"; i8 10);
+
+7; 19; 1;
+COUNT(
+  "$d=E 1 2 34 13 third mdgroup k l m"; i8 10;
+  "$e=E 11 6 choice 0  n o p"; i8 10);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 0caa3446d7a3f6985e79fd1fcc999b10" \
+	"le 9dbeba699e4149ed836f55bad7346d67"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+MRSETS /DISPLAY NAME=ALL.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Multiple Response Sets
+Name,Variables,Details
+$a,"a
+b
+c
+","Multiple category set
+Label: my mcgroup
+"
+$b,"g
+e
+f
+d
+","Multiple dichotomy set
+Counted value: 55
+Category label source: Variable labels
+"
+$c,"h
+i
+j
+","Multiple dichotomy set
+Label: mdgroup #2
+Label source: Provided by user
+Counted value: `Yes'
+Category label source: Variable labels
+"
+$d,"k
+l
+m
+","Multiple dichotomy set
+Label: third mdgroup
+Label source: Provided by user
+Counted value: 34
+Category label source: Value labels of counted value
+"
+$e,"n
+o
+p
+","Multiple dichotomy set
+Label source: First variable label among variables
+Counted value: `choice'
+Category label source: Value labels of counted value
+"
+])
+done
+AT_CLEANUP
+
+AT_SETUP([variable display parameters, without width])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+19; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted 
+0; dnl No cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "A";
+2; 0; 0; 0; 0x050800 *2; s8 "B";
+2; 0; 0; 0; 0x050800 *2; s8 "C";
+2; 0; 0; 0; 0x050800 *2; s8 "D";
+
+dnl Short string variables.
+2; 3; 0; 0; 0x010300 *2; s8 "H";
+2; 3; 0; 0; 0x010300 *2; s8 "I";
+2; 3; 0; 0; 0x010300 *2; s8 "J";
+2; 3; 0; 0; 0x010300 *2; s8 "K";
+
+dnl Long string variables.
+2; 9; 0; 0; 0x010900 *2; s8 "L";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 10; 0; 0; 0x010a00 *2; s8 "M";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 17; 0; 0; 0x011100 *2; s8 "N";
+( 2; -1; 0; 0; 0; 0; s8 "" ) * 2;
+2; 25; 0; 0; 0x011900 *2; s8 "O";
+( 2; -1; 0; 0; 0; 0; s8 "" ) * 3;
+
+dnl Variable display parameters
+7; 11; 4; 24;
+1; 0;
+2; 0;
+3; 0;
+1; 1;
+2; 1;
+3; 1;
+1; 2;
+2; 2;
+3; 2;
+0; 0;
+0; 1;
+0; 2;
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be c130d9345080579b8862b360924edbfa" \
+	"le 6fde96f5a7c7386bff6cca049cd84d6a"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,,Position
+a,Format: F8.0,,1
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+b,Format: F8.0,,2
+,Measure: Ordinal,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+c,Format: F8.0,,3
+,Measure: Scale,,
+,Display Alignment: Left,,
+,Display Width: 8,,
+d,Format: F8.0,,4
+,Measure: Nominal,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+h,Format: A3,,5
+,Measure: Ordinal,,
+,Display Alignment: Right,,
+,Display Width: 3,,
+i,Format: A3,,6
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 3,,
+j,Format: A3,,7
+,Measure: Nominal,,
+,Display Alignment: Center,,
+,Display Width: 3,,
+k,Format: A3,,8
+,Measure: Ordinal,,
+,Display Alignment: Center,,
+,Display Width: 3,,
+l,Format: A9,,9
+,Measure: Scale,,
+,Display Alignment: Center,,
+,Display Width: 9,,
+m,Format: A10,,10
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 10,,
+n,Format: A17,,11
+,Measure: Nominal,,
+,Display Alignment: Right,,
+,Display Width: 17,,
+o,Format: A25,,12
+,Measure: Nominal,,
+,Display Alignment: Center,,
+,Display Width: 25,,
+])
+done
+AT_CLEANUP
+
+AT_SETUP([variable display parameters, with width])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+19; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted 
+0; dnl No cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "A";
+2; 0; 0; 0; 0x050800 *2; s8 "B";
+2; 0; 0; 0; 0x050800 *2; s8 "C";
+2; 0; 0; 0; 0x050800 *2; s8 "D";
+
+dnl Short string variables.
+2; 3; 0; 0; 0x010300 *2; s8 "H";
+2; 3; 0; 0; 0x010300 *2; s8 "I";
+2; 3; 0; 0; 0x010300 *2; s8 "J";
+2; 3; 0; 0; 0x010300 *2; s8 "K";
+
+dnl Long string variables.
+2; 9; 0; 0; 0x010900 *2; s8 "L";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 10; 0; 0; 0x010a00 *2; s8 "M";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 17; 0; 0; 0x011100 *2; s8 "N";
+( 2; -1; 0; 0; 0; 0; s8 "" ) * 2;
+2; 25; 0; 0; 0x011900 *2; s8 "O";
+( 2; -1; 0; 0; 0; 0; s8 "" ) * 3;
+
+dnl Variable display parameters
+7; 11; 4; 36;
+1; 1; 0;
+2; 2; 0;
+3; 3; 0;
+1; 4; 1;
+2; 5; 1;
+3; 6; 1;
+1; 7; 2;
+2; 8; 2;
+3; 9; 2;
+0; 10; 0;
+0; 11; 1;
+0; 12; 2;
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 3ace75689a0b7faa9360936bbfe26055" \
+	"le 6e93f35d19a9882eb53ffb1b067ef7cd"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,,Position
+a,Format: F8.0,,1
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 1,,
+b,Format: F8.0,,2
+,Measure: Ordinal,,
+,Display Alignment: Left,,
+,Display Width: 2,,
+c,Format: F8.0,,3
+,Measure: Scale,,
+,Display Alignment: Left,,
+,Display Width: 3,,
+d,Format: F8.0,,4
+,Measure: Nominal,,
+,Display Alignment: Right,,
+,Display Width: 4,,
+h,Format: A3,,5
+,Measure: Ordinal,,
+,Display Alignment: Right,,
+,Display Width: 5,,
+i,Format: A3,,6
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 6,,
+j,Format: A3,,7
+,Measure: Nominal,,
+,Display Alignment: Center,,
+,Display Width: 7,,
+k,Format: A3,,8
+,Measure: Ordinal,,
+,Display Alignment: Center,,
+,Display Width: 8,,
+l,Format: A9,,9
+,Measure: Scale,,
+,Display Alignment: Center,,
+,Display Width: 9,,
+m,Format: A10,,10
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 10,,
+n,Format: A17,,11
+,Measure: Nominal,,
+,Display Alignment: Right,,
+,Display Width: 11,,
+o,Format: A25,,12
+,Measure: Nominal,,
+,Display Alignment: Center,,
+,Display Width: 12,,
+])
+done
+AT_CLEANUP
+
+AT_SETUP([long variable names])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+4; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted 
+0; dnl No cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "LONGVARI";
+2; 0; 0; 0; 0x050800 *2; s8 "LONGVA_A";
+2; 0; 0; 0; 0x050800 *2; s8 "LONGVA_B";
+2; 0; 0; 0; 0x050800 *2; s8 "LONGVA_C";
+
+dnl Long variable names.
+7; 13; 1; COUNT (
+"LONGVARI=LongVariableName1"; i8 9;
+"LONGVA_A=LongVariableName2"; i8 9;
+"LONGVA_B=LongVariableName3"; i8 9;
+"LONGVA_C=LongVariableName4";
+);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be eb7a8b4055a5d880a185a566048876b3" \
+	"le dd4ecd7541320b9b51746717ef20973f"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+LongVariableName1,Format: F8.0,,1
+LongVariableName2,Format: F8.0,,2
+LongVariableName3,Format: F8.0,,3
+LongVariableName4,Format: F8.0,,4
+])
+done
+AT_CLEANUP
+
+AT_SETUP([very long strings])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+109; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted 
+1; dnl No cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl 256-byte string.
+2; 255; 0; 0; 0x01FF00 *2; s8 "STR256";
+(2; -1; 0; 0; 0; 0; s8 "") * 31;
+2; 4; 0; 0; 0x010400 *2; s8 "STR256_1";
+
+dnl 600-byte string.
+2; 255; 0; 0; 0x01FF00 *2; s8 "STR600";
+(2; -1; 0; 0; 0; 0; s8 "") * 31;
+2; 255; 0; 0; 0x01FF00 *2; s8 "STR600_1";
+(2; -1; 0; 0; 0; 0; s8 "") * 31;
+2; 96; 0; 0; 0x016000 *2; s8 "STR600_2";
+(2; -1; 0; 0; 0; 0; s8 "") * 11;
+
+dnl Very long string record.
+7; 14; 1; COUNT (
+"STR256=00256"; i8 0; i8 9;
+"STR600=00600"; i8 0; i8 9;
+);
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Data.
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#" * 4;
+"abcdefgh";
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#" * 9;
+"abcdefghijklmnopqrstuvwxyzABCDEF";
+])
+for variant in \
+	"be 40a4327805d8b59891084317248f5d4a" \
+	"le ced2584a43037b893b7feb068e2cb9d6"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+str256,Format: A256,,1
+str600,Format: A600,,2
+
+Table: Data List
+str256,str600
+abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@a,abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyz
+])
+done
+AT_CLEANUP
+
+AT_SETUP([data file and variable attributes])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+2; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted 
+0; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Variables.
+2; 0; 0; 0; 0x050800 *2; s8 "FIRSTVAR";
+2; 0; 0; 0; 0x050800 *2; s8 "SECONDVA";
+
+dnl Long variable names.
+7; 13; 1; COUNT (
+"FIRSTVAR=FirstVariable"; i8 9;
+"SECONDVA=SecondVariable"; i8 9;
+);
+
+dnl Data file attributes record.
+7; 17; 1; COUNT (
+"Attr1('Value1'"; i8 10; "''QuotedValue''"; i8 10; ")";
+"SecondAttr('123'"; i8 10; "'456'"; i8 10; ")";
+);
+
+dnl Variable attributes record.
+7; 18; 1; COUNT (
+"FirstVariable:";
+  "fred('23'"; i8 10; "'34'"; i8 10; ")";
+  "bert('123'"; i8 10; ")";
+"/SecondVariable:";
+  "xyzzy('quux'"; i8 10; ")";
+);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 955802de462daf810c0ecc81ee2320a1" \
+	"le 7fc6439aedfa00615bb1fe94d6701305"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY ATTRIBUTES.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([cat pspp.csv], [0],
+[[Variable,Description,
+FirstVariable,Custom attributes:,
+,bert,123
+,fred[1],23
+,fred[2],34
+SecondVariable,Custom attributes:,
+,xyzzy,quux
+
+Table: Custom data file attributes.
+Attribute,Value
+SecondAttr[1],123
+SecondAttr[2],456
+Attr1[1],Value1
+Attr1[2],'QuotedValue'
+]])
+done
+AT_CLEANUP
+
+AT_SETUP([compressed data])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+6; dnl Nominal case size
+1; dnl Not compressed
+0; dnl Not weighted 
+-1; dnl Unspecified number of cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR4";
+2; 8; 0; 0; 0x010800 *2; s8 "STR8";
+2; 15; 0; 0; 0x010f00 *2; s8 "STR15";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Compressed data.
+i8 1 100 254 253 254 253; i8 255 251; "abcdefgh"; s8 "0123";
+i8 253 253 253 254; i8 101 102 253 253; s8 "jklm"; s8 "nopqrstu";
+s8 "vwxyzABC"; s8 "DEFG"; s8 "HIJKLMNO";
+i8 254 253 252 0 0 0 0 0; s8 "PQRSTUVW";
+
+])
+for variant in \
+	"be c0670e436b068f45710b98f6f7d01dc5" \
+	"le 2e43a7f8861df4e714a192dfb3c8b2f4"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+num1,Format: F8.0,,1
+num2,Format: F8.0,,2
+str4,Format: A4,,3
+str8,Format: A8,,4
+str15,Format: A15,,5
+
+Table: Data List
+num1,num2,str4,str8,str15
+-99,0,,abcdefgh,0123   @&t@
+.,151,jklm,nopqrstu,vwxyzABC       @&t@
+1,2,DEFG,HIJKLMNO,PQRSTUV
+])
+done
+AT_CLEANUP
+
+AT_SETUP([compressed data, zero bias])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+6; dnl Nominal case size
+1; dnl Not compressed
+0; dnl Not weighted 
+-1; dnl Unspecified number of cases.
+0.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR4";
+2; 8; 0; 0; 0x010800 *2; s8 "STR8";
+2; 15; 0; 0; 0x010f00 *2; s8 "STR15";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Compressed data.
+i8 1 100 254 253 254 253; i8 255 251; "abcdefgh"; s8 "0123";
+i8 253 253 253 254; i8 101 102 253 253; s8 "jklm"; s8 "nopqrstu";
+s8 "vwxyzABC"; s8 "DEFG"; s8 "HIJKLMNO";
+i8 254 253 252 0 0 0 0 0; s8 "PQRSTUVW";
+
+])
+for variant in \
+	"be 2f0d25704ee497ae833213a3e4ff5e8b" \
+	"le 49f68a9e1ba02a2f7e9166686a0db9d9"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+num1,Format: F8.0,,1
+num2,Format: F8.0,,2
+str4,Format: A4,,3
+str8,Format: A8,,4
+str15,Format: A15,,5
+
+Table: Data List
+num1,num2,str4,str8,str15
+1,100,,abcdefgh,0123   @&t@
+.,251,jklm,nopqrstu,vwxyzABC       @&t@
+101,102,DEFG,HIJKLMNO,PQRSTUV
+])
+done
+AT_CLEANUP
+
+AT_SETUP([compressed data, other bias])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+6; dnl Nominal case size
+1; dnl Not compressed
+0; dnl Not weighted 
+-1; dnl Unspecified number of cases.
+50.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR4";
+2; 8; 0; 0; 0x010800 *2; s8 "STR8";
+2; 15; 0; 0; 0x010f00 *2; s8 "STR15";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Compressed data.
+i8 1 100 254 253 254 253; i8 255 251; "abcdefgh"; s8 "0123";
+i8 253 253 253 254; i8 101 102 253 253; s8 "jklm"; s8 "nopqrstu";
+s8 "vwxyzABC"; s8 "DEFG"; s8 "HIJKLMNO";
+i8 254 253 252 0 0 0 0 0; s8 "PQRSTUVW";
+
+])
+for variant in \
+	"be 668b85e3dee0797883e9933a096b8c18" \
+	"le 5e7a9c4e88cd2dbc2322943da663868e"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], 
+    [warning: `sys-file.sav' near offset 0x5c: Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format.
+])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+"warning: `sys-file.sav' near offset 0x5c: Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format."
+
+Variable,Description,,Position
+num1,Format: F8.0,,1
+num2,Format: F8.0,,2
+str4,Format: A4,,3
+str8,Format: A8,,4
+str15,Format: A15,,5
+
+Table: Data List
+num1,num2,str4,str8,str15
+-49,50,,abcdefgh,0123   @&t@
+.,201,jklm,nopqrstu,vwxyzABC       @&t@
+51,52,DEFG,HIJKLMNO,PQRSTUV
+])
+done
+AT_CLEANUP
+
+AT_BANNER([system file reader - negative])
+
+AT_SETUP([misplaced type 4 record])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Type 4 record.
+>>4<<;
+])
+for variant in \
+	"be 6e0bb549fff1fd1af333d51b8a6e0f43" \
+	"le 7b62734edcee2a1689c463f2866d11b8"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xd4: Misplaced type 4 record.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad record type])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Type 8 record (not a valid type).
+>>8<<;
+])
+for variant in \
+	"be dc8f078c23046ee7db74ec1003178a11" \
+	"le dc7f111642f0629f4370630fd092eee3"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xd4: Unrecognized record type 8.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([wrong number of variable positions])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; >>2<<; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be c57e91aa426f61813c3ad91ea3a56dda" \
+	"le 5d1a6c114b135b219473c8ad5bb44bda"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], 
+   [warning: `sys-file.sav' near offset 0xd8: File header claims 2 variable positions but 1 were read from file.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([variable name may not begin with `#'])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 >>"$UM1"<<;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be decb7ac6defa1ab3cc7a386d1843c1ae" \
+	"le 5279b6275633bac55d167faebccfdb14"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xd0: Variable name begins with invalid character `$'.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([variable name may not be reserved word])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 >>"TO"<<;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 57e6ad709668bbf538e2efee4af49916" \
+	"le 523f14b611efa380bbadf7a16ea43fed"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xd0: Invalid variable name `TO'.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([variable width must be between 0 and 255])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl String variable with invalid width 256.
+2; 256; 0; 0; 0x050800 *2; s8 "VAR1";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 170bb18589ba264a0ed2d57b41fe77e1" \
+	"le 9528b4b5936ef5630bbd3bdd60a123c3"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xd0: Bad width 256 for variable VAR1.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([duplicate variable name])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "VAR1";
+2; 0; 0; 0; 0x050800 *2; s8 "VAR1";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be d8f5fd768ab1d641f9330a4840c71343" \
+	"le f01e123d384cdaa7c2f7fc4791325ebf"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xf0: Duplicate variable name `VAR1'.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([variable label indicator not 0 or 1])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; >>2<<; 0; 0x050800 *2; s8 "VAR1";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 3c5ff8d8f146457a385ca92d3d23ca8a" \
+	"le 37e9f956d321ae57b0bf7fe2384e892b"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xd0: Variable label indicator field is not 0 or 1.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([invalid numeric missing value indicator])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; >>-1<<; 0x050800 *2; s8 "VAR1";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be d1d0d4aedf9f053452c4b1e658ade5e2" \
+	"le df697575499fe12921185a3d23a5d61d"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   ["error: `sys-file.sav' near offset 0xd0: Numeric missing value indicator field is not -3, -2, 0, 1, 2, or 3."
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([invalid string missing value indicator])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl String variable.
+2; 8; 0; >>4<<; 0x010800 *2; s8 "VAR1";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be f833033be7b102fae19159989f62faa6" \
+	"le 9704ba828bb7a36ef0262838f6b7936b"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   ["error: `sys-file.sav' near offset 0xd0: String missing value indicator field is not 0, 1, 2, or 3."
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([missing string continuation record])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl String variable.
+2; 10; 0; 0; 0x010a00 *2; s8 "VAR1";
+>>2; 0; 0; 0; 0x050800 *2; s8 "VAR2";<<
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be c8f9ad2b2acd2918055e2b78c1e0b4b8" \
+	"le 1afab4d6aee90a6fe8d2dbf229e06409"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xd8: Missing string continuation record.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([unknown variable format])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; >>0xff0800<< *2; s8 "VAR1";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be fcf94b3ff11b7e2ff50c226b609cff1e" \
+	"le 88fc97cc80d5a170e53a7cc89e204b0d"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xd0: Unknown variable format 255.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([invalid numeric variable format])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 3; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, string formats.
+2; 0; 0; 0; >>0x010800<<; >>0x021000<<; s8 "VAR1";
+
+dnl String variable, numeric formats.
+2; 4; 0; 0; >>0x050800<<; >>0x110a01<<; s8 "STR1";
+
+dnl String variable, wrong width formats.
+2; 4; 0; 0; >>0x010800<<; >>0x020400<<; s8 "STR2";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 0c36a39ec9118eb4a83f10a9483b5a37" \
+	"le 1d498d60eeb2c88e0479f113fb3ffe4b"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], 
+   [warning: `sys-file.sav' near offset 0xd0: Numeric variable VAR1 has invalid print format A8.
+
+warning: `sys-file.sav' near offset 0xd0: Numeric variable VAR1 has invalid write format AHEX16.
+
+warning: `sys-file.sav' near offset 0xf0: String variable STR1 has invalid print format F8.0.
+
+warning: `sys-file.sav' near offset 0xf0: String variable STR1 has invalid write format E10.1.
+
+warning: `sys-file.sav' near offset 0x110: String variable STR2 has invalid print format A8.
+
+warning: `sys-file.sav' near offset 0x110: String variable STR2 has invalid write format AHEX4.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([weighting variable must be numeric])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; >>2<<; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR1";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 82d30105e46c4896c24f9dcec26c4749" \
+	"le 32e235119be70050eb78bf4186a5a046"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xf4: Weighting variable must be numeric (not string variable `STR1').
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad weighting variable index])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; >>3<<; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR1";
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be cd9af924ff20bc75834aa2c696254c97" \
+	"le cbe0f2f514f5e95f27644d0b4314bc78"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0xf4: Variable index 3 not in valid range 1...2.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([variable index is long string contination])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; >>3<<; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Long string variable.
+2; 9; 0; 0; 0x010900 *2; s8 "STR1";
+(2; -1; 0; 0; 0; 0; s8 "");
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 0c395354df56ea5ff374aafcc535d633" \
+	"le d977f684ea9d4648ed40f8c6dddde9f7"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0x114: Variable index 3 refers to long string continuation.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([multiple documents records])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Two document records.
+(6; 1; s80 "One line of documents") >>* 2<<;
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Data.
+1.0;
+])
+for variant in \
+	"be 18aa3348a216ed494efe28285b348fa8" \
+	"le 19b21522bcef1dcc60af328f923f307e"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0x12c: Multiple type 6 (document) records.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+
+AT_SETUP([empty document record])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Empty document record.
+6; >>0<<;
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Data.
+1.0;
+])
+for variant in \
+	"be d8ef29c1b97f9ed226cbd938c9c49b6e" \
+	"le f6a560c5b62e2c472429d85294f36e61"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0xd8: Number of document lines (0) must be greater than 0.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([document contains null byte])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Document record.
+6; 1; >>i8 0<<; s79 "One line of documents";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Data.
+1.0;
+])
+for variant in \
+	"be 24b5f451ae2559785c1a38358c511e39" \
+	"le b7e9802506307c28343293144bd6d4f4"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0x128: Document line contains null byte.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([extension record too large])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Too-large extension record.
+7; 3; >>0xfffff000 * 2<<;
+])
+for variant in \
+	"be 5a6679dc41ac349b0b73fc430937c05c" \
+	"le d4769c7f650cfbf160e0386d0d33be04"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0xe0: Record type 7 subtype 3 too large.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([unknown extension record])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Unknown extension record type.
+7; 30; 1; 1; i8 0;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be ac8395e27677408189bcb8655e56cc0e" \
+	"le e308bfcd51f1e3c28d7379c29271f9d6"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+"warning: `sys-file.sav' near offset 0xe0: Unrecognized record type 7, subtype 30.  Please send a copy of this file, and the syntax which created it to bug-gnu-pspp@gnu.org."
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad machine integer info size])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Machine integer info record.
+7; 3; 4; >>9<<; 1; 2; 3; -1; 1; 1; ENDIAN; 1252;
+])
+for variant in \
+	"be 21ec84826886b0a266d1360f8279d769" \
+	"le 15dcba7b2b89b7d8a21ebcc872f515af"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+"error: `sys-file.sav' near offset 0x100: Bad size (4) or count (9) field on record type 7, subtype 3."
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad machine integer info float format])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Machine integer info record.
+7; 3; 4; 8; 1; 2; 3; -1; >>2<<; 1; ENDIAN; 1252;
+])
+for variant in \
+	"be d510ed28278649eee997fb6881a4c04f" \
+	"le fbf1eca561a4e243b7ae844ed1677035"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0x100: Floating-point representation indicated by system file (2) differs from expected (1).
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad machine integer info endianness])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Machine integer info record.
+7; 3; 4; 8; 1; 2; 3; -1; 1; 1; >>3<<; 1252;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 855123d16d5e1560b91d60753dad79ad 1" \
+	"le d6626b4fa2e46a91f26c2fc609b2f1e0 2"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK_UNQUOTED([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: \`sys-file.sav' near offset 0x100: Integer format indicated by system file (3) differs from expected ($[3]).
+
+Variable,Description,,Position
+num1,Format: F8.0,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+])
+done
+AT_CLEANUP
+
+
+AT_SETUP([bad machine floating-point info size])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Machine floating-point info record.
+7; 4; 8; >>4<<; SYSMIS; HIGHEST; LOWEST; 0.0;
+])
+for variant in \
+	"be 29c9a173638fbb8bb1efe1176c4d670f" \
+	"le 5cb49eb1084e5b9cd573a54705ff86a7"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0xf8: Bad size (8) or count (4) on extension 4.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([wrong special floating point values])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Machine floating-point info record.
+7; 4; 8; 3; >>0.0<<; >>1.0<<; >>2.0<<;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 1e7452d9bb0a2397bf6084a25437514e" \
+	"le f59f9a83f723cde1611869ff6d91d325"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xf8: File specifies unexpected value 0 as SYSMIS.
+
+warning: `sys-file.sav' near offset 0xf8: File specifies unexpected value 1 as HIGHEST.
+
+warning: `sys-file.sav' near offset 0xf8: File specifies unexpected value 2 as LOWEST.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad mrsets name])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("a=C");
+7; 19; 1; COUNT("xyz=D");
+
+999; 0;
+])
+for variant in \
+	"be 15a9bf44d0cd6186a60629b77079c5a5" \
+	"le 161c99aca5e7a3684df096137e72ce5b"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe3: `a' does not begin with `$' at offset 2 in MRSETS record.
+
+warning: `sys-file.sav' near offset 0xf8: `xyz' does not begin with `$' at offset 4 in MRSETS record.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([missing space after C in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=Cx");
+
+999; 0;
+])
+for variant in \
+	"be c5e5656ba3d74c3a967850f29ad89970" \
+	"le 29f110509c3d6893a7d21ae2d66aad9d"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe5: Missing space following `C' at offset 4 in MRSETS record.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([missing space after E in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=Ex");
+
+999; 0;
+])
+for variant in \
+	"be a9e1dc63e2524882a5e3d2949a2da9d4" \
+	"le ac709ca1928f65f47a8c8efdd9454b50"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe5: Missing space following `E' at offset 4 in MRSETS record.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([unexpected label source in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=E 2");
+
+999; 0;
+])
+for variant in \
+	"be 8c710e85a0a1609d0d03dec80aaf5f94" \
+	"le 4682440b82f22d4bd2ac56afb7fa3152"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe6: Unexpected label source value `2' following `E' at offset 7 in MRSETS record.
+
+warning: `sys-file.sav' near offset 0xe6: Expecting digit at offset 7 in MRSETS record.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad type character in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=");
+
+999; 0;
+])
+for variant in \
+	"be fc5e5200d8f56b9a5a713e4a95313a3b" \
+	"le 578a61e8a06b20216612f566c2050879"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+"warning: `sys-file.sav' near offset 0xe3: Missing `C', `D', or `E' at offset 3 in MRSETS record."
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad counted string length in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=Dx");
+
+999; 0;
+])
+for variant in \
+	"be 23d0e2f65c7c5f93bbedcc0f2b260c69" \
+	"le c3860c1d80e08842264948056e72c0db"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe5: Expecting digit at offset 4 in MRSETS record.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([missing space in counted string in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=D1x");
+
+999; 0;
+])
+for variant in \
+	"be c9ce001723763e0698878b7e43a887e8" \
+	"le e258a1e4491d5a1d1e7d2272ef631a22"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe6: Expecting space at offset 5 in MRSETS record.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([counted string too long in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=D4 abc");
+
+999; 0;
+])
+for variant in \
+	"be 196d1266fa0e8e315769dcbe3130e3df" \
+	"le 23df1ba7b77a26da8ce1c2cfbcaadce0"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe9: 4-byte string starting at offset 6 exceeds record length 9.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([missing space after counted string in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=D3 abcx");
+
+999; 0;
+])
+for variant in \
+	"be 86314bb0bbdfad48c10af8b8d8106d6e" \
+	"le 2b8d05ff501ca78e51f7110ce88a2364"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xea: Expecting space at offset 9 following 3-byte string.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([missing newline after variable name in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=C 0  NUM1");
+
+999; 0;
+])
+for variant in \
+	"be cea939cf3e6a5f88cb45e8fa871c5e13" \
+	"le 52135afec082f50f37eafacadbb2cd65"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xec: Missing new-line parsing variable names at offset 14 in MRSETS record.
+
+warning: `sys-file.sav' near offset 0xec: MRSET $a has only 1 variables.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([duplicate variable name in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=C 0  NUM1 NUM1"; i8 10);
+
+999; 0;
+])
+for variant in \
+	"be 4b1b5fa2dc22cf0afdd35422290b0a29" \
+	"le e4304b57976440a036f25f8dd8ac1404"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xf2: Duplicate variable name NUM1 at offset 18 in MRSETS record.
+
+warning: `sys-file.sav' near offset 0xf2: MRSET $a has only 1 variables.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([mixed variable types in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 8; 0; 0; 0x010800 *2; s8 "STR1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=C 0  NUM1 STR1"; i8 10);
+
+999; 0;
+])
+for variant in \
+	"be 0f130e967e4097823f85b8711eb20727" \
+	"le 4dc987b4303fd115f1cae9be3963acc9"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0x112: MRSET $a contains both string and numeric variables.
+
+warning: `sys-file.sav' near offset 0x112: MRSET $a has only 1 variables.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([missing newline after variable name in mrsets])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=C 0  NUM1"; i8 10);
+
+999; 0;
+])
+for variant in \
+	"be 3a891e0a467afb3d622629c70f329ada" \
+	"le 432998ec08370510411af4f5207c015e"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xed: MRSET $a has only 1 variables.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([only one variable in mrset])
+AT_KEYWORDS([sack synthetic system file negative multiple response])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Multiple response sets.
+7; 7; 1; COUNT("$a=C 0  NUM1"; i8 10);
+
+999; 0;
+])
+for variant in \
+	"be 3a891e0a467afb3d622629c70f329ada" \
+	"le 432998ec08370510411af4f5207c015e"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xed: MRSET $a has only 1 variables.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([wrong display parameter size])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Display parameters record.
+7; 11; >>8<<; 2; 1.0; 1.0;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 7c0f1ae47ae11e37d435c4abaceca226" \
+	"le c29d05a1f8f15ed2201f31f8b787aaa0"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe0: Bad size 8 on extension 11.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([wrong display parameter count])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Display parameters record.
+7; 11; 4; >>4<<; 1; 1; 2; 2;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be 372b57e73c69b05047b60bf6c596e2a1" \
+	"le 2a550d8c5ceae4de7ced77df66e49d0f"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe0: Extension 11 has bad count 4 (for 1 variables).
+])
+done
+AT_CLEANUP
+
+AT_SETUP([wrong display measurement level])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Display parameters record.
+7; 11; 4; 2; >>4<<; 0;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be d43e7616b03743339f37292dec6c2204" \
+	"le 821533c29a070cefdd8f07f4e1741d2a"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe8: Invalid variable display parameters for variable 0 (NUM1).  Default parameters substituted.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([wrong display alignment])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable, no label or missing values.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Display parameters record.
+7; 11; 4; 2; 1; >>-1<<;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be c54bc48b5767e2ec3a9ef31df790cb7c" \
+	"le a4d8b14af64221abe83adb417d110e10"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe8: Invalid variable display parameters for variable 0 (NUM1).  Default parameters substituted.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad variable name in variable/value pair])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "LONGVARI";
+
+dnl Long variable names.
+7; 13; 1; COUNT (>>"xyzzy"<<);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be b67b6e3c1900e5a9cc691055008f0447" \
+	"le 26cc52e601f830f9087a0ea2bd9527df"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe5: Dictionary record refers to unknown variable xyzzy.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([duplicate long variable name])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 4; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "LONGVARI";
+2; 0; 0; 0; 0x050800 *2; s8 "LONGVA_A";
+2; 0; 0; 0; 0x050800 *2; s8 "LONGVA_B";
+2; 0; 0; 0; 0x050800 *2; s8 "LONGVA_C";
+
+dnl Long variable names.
+7; 13; 1; COUNT (
+"LONGVARI=_Invalid"; i8 9;
+"LONGVA_A=LongVariableName"; i8 9;
+"LONGVA_B=LONGVARIABLENAME"; i8 9;
+);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 9b4b4daa00084d984efb8f889bcb727c" \
+	"le c1b1470d5cd615106e9ae507c9948d8e"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0x186: Long variable mapping from LONGVARI to invalid variable name `_Invalid'.
+
+warning: `sys-file.sav' near offset 0x186: Duplicate long variable name `LONGVARIABLENAME'.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad very long string length])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Very long string map.
+7; 14; 1; COUNT (
+"NUM1=00000"; i8 0; i8 9;
+"NUM1=00255"; i8 0; i8 9;
+"NUM1=00256"; i8 0; i8 9;
+);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 1309d8d9fb24bcf08952dce9b0f39a94" \
+	"le 94a39de88f8034001b3e467c4cc04d0f"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+warning: `sys-file.sav' near offset 0x104: NUM1 listed as string of invalid length 00000 in very long string record.
+
+"warning: `sys-file.sav' near offset 0x104: NUM1 listed in very long string record with width 00255, which requires only one segment."
+
+error: `sys-file.sav' near offset 0x104: Very long string NUM1 overflows dictionary.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad very long string segment width])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Variables.
+2; 255; 0; 0; 0x01ff00 *2; s8 "STR1";
+(2; -1; 0; 0; 0; 0; s8 "") * 31;
+2; >>9<<; 0; 0; 0x010900 *2; s8 "STR1_A";
+>>2; -1; 0; 0; 0; 0; s8 "";<<
+
+dnl Very long string map.
+7; 14; 1; COUNT (
+"STR1=00256"; i8 0; i8 9;
+);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 1d09a44a46859e6eda28e053dd4b7a8b" \
+	"le 63b9ac0b3953f3e0d5ee248ebe257794"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0x50c: Very long string with width 256 has segment 1 of width 9 (expected 4).
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([too many value labels])
+dnl Skip the test if multiplying a small number by INT32_MAX would not
+dnl cause an overflow in size_t.
+AT_SKIP_IF([test $SIZEOF_SIZE_T -gt 4])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+3; >>0x7fffffff<<;
+])
+for variant in \
+	"be 975b2668dde395ddf619977958b37412" \
+	"le 0c14aa278cfc2a4b801f91c14321f03b"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0xd8: Invalid number of labels 2147483647.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([missing type 4 record])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Value label with missing type 4 record.
+3; 1; 1.0; i8 3; s7 "one";
+
+dnl End of dictionary.
+>>999; 0<<;
+])
+for variant in \
+	"be 5e1286ac92e3f25ff98492bc5019d608" \
+	"le b33c12f776bbcaa43aa3bfdd4799e0c0"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0xec: Variable index record (type 4) does not immediately follow value label record (type 3) as it should.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([value label with no associated variables])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Value label with no variables.
+3; 1; 1.0; i8 3; s7 "one"; 4; >>0<<;
+])
+for variant in \
+	"be b0dcec30a936cbcad21c4f3d6fe10fcf" \
+	"le 3b9fdfce5c8c248048232fd6eac018e3"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0xf0: Number of variables associated with a value label (0) is not between 1 and the number of variables (1).
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([type 4 record names long string variable])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Long string variable.
+2; 9; 0; 0; 0x010900 *2; s8 "STR1";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Value label that names long string variable.
+3; 1; s8 "xyzzy"; i8 3; s7 "one"; 4; 1; >>1<<;
+])
+for variant in \
+	"be 14053a4f09de4c7c4c55281534dd66f4" \
+	"le 8a61cc994c659fd66307d2f0fd64ce20"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+error: `sys-file.sav' near offset 0x114: Value labels may not be added to long string variables (e.g. STR1) using records types 3 and 4.
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([variables for value label must all be same type])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Variables.
+2; 6; 0; 0; 0x010600 *2; s8 "STR1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Value label that names numeric and string variables.
+3; 1; s8 "xyzzy"; i8 3; s7 "one"; 4; 2; >>1; 2<<;
+])
+for variant in \
+	"be 7577c456726a88f52bbef63a8b47bf1a" \
+	"le 3ba5c6af9ad0ae5cc88f9f63e726e414"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
+"error: `sys-file.sav' near offset 0x118: Variables associated with value label are not all of identical type.  Variable STR1 is string, but variable NUM1 is numeric."
+
+sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([duplicate value labels type])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Variables.
+2; 6; 0; 0; 0x010600 *2; s8 "STR1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Duplicate value labels.
+3; 1; s8 "xyzzy"; i8 3; s7 "one"; 4; 2; >>1; 1<<;
+3; 1; 1.0; i8 3; s7 "one"; 4; 2; >>2; 2<<;
+
+dnl End of dictionary.
+999; 0;
+])
+for variant in \
+	"be ef0f5b2ebddb5a3bfcda16c93a2508f4" \
+	"le c00e27abd9a6c06bf29a108d7220435a"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0x118: Duplicate value label for `xyzzy ' on STR1.
+
+warning: `sys-file.sav' near offset 0x140: Duplicate value label for 1 on NUM1.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([missing attribute value])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Variables.
+2; 0; 0; 0; 0x050800 *2; s8 "FIRSTVAR";
+
+dnl Data file attributes record.
+7; 17; 1; COUNT (
+"Attr1("
+);
+
+dnl Variable attributes record.
+7; 18; 1; COUNT (
+"FIRSTVAR:";
+  "fred('23'"; i8 10
+);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 0fc71f5e3cdb6b7f2dd73d011d4885c2" \
+	"le e519b44715400156a2bfe648eb5cff34"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xe6: Error parsing attribute value Attr1[[1]].
+
+warning: `sys-file.sav' near offset 0x109: Error parsing attribute value fred[[2]].
+])
+done
+AT_CLEANUP
+
+AT_SETUP([unquoted attribute value])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Variables.
+2; 0; 0; 0; 0x050800 *2; s8 "FIRSTVAR";
+
+dnl Data file attributes record.
+7; 17; 1; COUNT (
+"Attr1(value"; i8 10;
+")"
+);
+
+dnl Variable attributes record.
+7; 18; 1; COUNT (
+"FIRSTVAR:";
+  "fred(23"; i8 10; ")"
+);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 33dba37c2247e63c04bb74a7b472293d" \
+	"le 041025a9d9d9e21a7fabd90ba7341934"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xed: Attribute value Attr1[[1]] is not quoted: value.
+
+warning: `sys-file.sav' near offset 0x10f: Attribute value fred[[1]] is not quoted: 23.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([bad variable name in long string value label])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 3; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 14; 0; 0; 0x010e00 *2; s8 "STR14";
+2; -1; 0; 0; 0; 0; s8 "";
+
+7; 21; 1; COUNT (
+dnl No variable named STR9.
+COUNT(>>"STR9"<<); 9;
+1; COUNT("RSTUVWXYZ"); COUNT("value label for `RSTUVWXYZ'");
+
+dnl NUM1 is numeric.
+COUNT(>>"NUM1"<<); 0;
+1; COUNT("xyz"); COUNT("value label for 1.0");
+
+dnl Wrong width for STR14.
+COUNT("STR14"); >>9<<;
+1; COUNT("RSTUVWXYZ"); COUNT("value label for `RSTUVWXYZ'");
+
+dnl Wrong width for value.
+COUNT("STR14"); 14;
+1; COUNT(>>"RSTUVWXYZ"<<); COUNT("value label for `RSTUVWXYZ'");
+
+dnl Duplicate value label.
+COUNT("STR14"); 14; 2;
+COUNT("abcdefghijklmn"); COUNT("value label for `abcdefghijklmn'");
+>>COUNT("abcdefghijklmn"); COUNT("another value label for `abcdefghijklmn'")<<;
+);
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be cf2e883dadb00e2c6404c09ea0a4e388" \
+	"le 89c340faf0a7e4a8c834f9687684c091"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0x130: Ignoring long string value record for unknown variable STR9.
+
+warning: `sys-file.sav' near offset 0x16c: Ignoring long string value record for numeric variable NUM1.
+
+warning: `sys-file.sav' near offset 0x19b: Ignoring long string value record for variable STR14 because the record's width (9) does not match the variable's width (14).
+
+"warning: `sys-file.sav' near offset 0x1dc: Ignoring long string value 0 for variable STR14, with width 14, that has bad value width 9."
+
+warning: `sys-file.sav' near offset 0x289: Duplicate value label for `abcdefghijklmn' on STR14.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([fewer data records than indicated by file header])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 0; 0; >>5<<; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl Data.
+999; 0;
+1.0; 2.0;
+3.0; 4.0;
+5.0; 6.0;
+7.0; 8.0;
+dnl Missing record here.
+])
+for variant in \
+	"be 6ee097c3934055d0c4564641636f4b5a" \
+	"le ae03fe1b888091d6938b5a436d44ac60"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+LIST.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: Error reading case from file `sys-file.sav'.
+
+Table: Data List
+num1,num2
+1,2
+3,4
+5,6
+7,8
+
+sys-file.sps:2: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([partial data record between variables])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 0; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl Data.
+999; 0;
+1.0; 2.0;
+3.0;
+])
+for variant in \
+	"be 4bcc085d7d8f0f09c6a4ba8064ffe61c" \
+	"le 7387fc5edd2740aff92c30ca688d6d9b"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+LIST.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0x110: File ends in partial case.
+
+Table: Data List
+num1,num2
+1,2
+
+sys-file.sps:2: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([partial data record within long string])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; 2; 0; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+
+dnl Numeric variables.
+2; 14; 0; 0; 0x010e00 *2; s8 "STR14";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Data.
+999; 0;
+s14 "one data item";
+s8 "partial";
+])
+for variant in \
+	"be 4a9e84f9e679afb7bb71acd0bb7eab89" \
+	"le 30752606f14ee2deec2854e8e6de4b3b"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+LIST.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0x10e: Unexpected end of file.
+
+Table: Data List
+str14
+one data item @&t@
+
+sys-file.sps:2: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([partial compressed data record])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+6; dnl Nominal case size
+1; dnl Compressed
+0; dnl Not weighted 
+-1; dnl Unspecified number of cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR4";
+2; 8; 0; 0; 0x010800 *2; s8 "STR8";
+2; 15; 0; 0; 0x010f00 *2; s8 "STR15";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl Compressed data.
+i8 1 100 254 253 254 253; i8 255 251; "abcdefgh"; s8 "0123";
+])
+for variant in \
+	"be ef01b16e2e397d979a3a7d20725ebe6d" \
+	"le 51f7a61e9bc68992469d16c55d6ecd88"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+LIST.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
+   [error: `sys-file.sav' near offset 0x190: File ends in partial case.
+
+Table: Data List
+num1,num2,str4,str8,str15
+-99,0,,abcdefgh,0123   @&t@
+
+sys-file.sps:2: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+done
+AT_CLEANUP
+

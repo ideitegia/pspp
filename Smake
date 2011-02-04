@@ -15,6 +15,7 @@ GNULIB_MODULES = \
 	count-one-bits \
 	crc \
 	crypto/md4 \
+	crypto/md5 \
 	dirname \
 	environ \
 	fatal-signal \

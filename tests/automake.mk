@@ -2,6 +2,7 @@
 
 check_PROGRAMS += \
 	tests/data/datasheet-test \
+	tests/data/sack \
 	tests/data/inexactify \
 	tests/language/lexer/command-name-test \
 	tests/libpspp/abt-test \
@@ -28,6 +29,11 @@ tests_data_datasheet_test_SOURCES = \
 	tests/data/datasheet-test.c
 tests_data_datasheet_test_LDADD = src/libpspp-core.la $(LIBINTL) 
 tests_data_datasheet_test_CFLAGS = $(AM_CFLAGS)
+
+tests_data_sack_SOURCES = \
+	tests/data/sack.c
+tests_data_sack_LDADD = src/libpspp-core.la $(LIBINTL) 
+tests_data_sack_CFLAGS = $(AM_CFLAGS)
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -236,6 +242,7 @@ TESTSUITE_AT = \
 	tests/data/datasheet-test.at \
 	tests/data/format-guesser.at \
 	tests/data/por-file.at \
+	tests/data/sys-file-reader.at \
 	tests/data/sys-file.at \
 	tests/language/command.at \
 	tests/language/control/do-if.at \
