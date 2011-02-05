@@ -208,7 +208,7 @@ recode_substring_pool (const char *to, const char *from,
   if ( (iconv_t) -1 == conv )
     {
       struct substring out;
-      ss_alloc_substring (&out, text);
+      ss_alloc_substring_pool (&out, text, pool);
       return out;
     }
 
