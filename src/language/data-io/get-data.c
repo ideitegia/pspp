@@ -163,6 +163,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	{
 	  lex_match (lexer, T_EQUALS);
 	  gri.asw = lex_integer (lexer);
+	  lex_get (lexer);
 	}
       else if (lex_match_id (lexer, "SHEET"))
 	{
@@ -174,10 +175,13 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 
 	      gri.sheet_name = ss_xstrdup (lex_tokss (lexer));
 	      gri.sheet_index = -1;
+
+	      lex_get (lexer);
 	    }
 	  else if (lex_match_id (lexer, "INDEX"))
 	    {
 	      gri.sheet_index = lex_integer (lexer);
+	      lex_get (lexer);
 	    }
 	  else
 	    goto error;
@@ -189,7 +193,6 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	  if (lex_match_id (lexer, "FULL"))
 	    {
 	      gri.cell_range = NULL;
-	      lex_put_back (lexer, T_ID);
 	    }
 	  else if (lex_match_id (lexer, "RANGE"))
 	    {
@@ -197,6 +200,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 		goto error;
 
 	      gri.cell_range = ss_xstrdup (lex_tokss (lexer));
+	      lex_get (lexer);
 	    }
 	  else
 	    goto error;
@@ -215,14 +219,12 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	    }
 	  else
 	    goto error;
-	  lex_put_back (lexer, T_ID);
 	}
       else
 	{
-	  printf ("Unknown data file type `%s'\n", lex_tokcstr (lexer));
+	  lex_error (lexer, NULL);
 	  goto error;
 	}
-      lex_get (lexer);
     }
 
   {
