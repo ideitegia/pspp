@@ -1228,12 +1228,14 @@ dict_get_label (const struct dictionary *d)
 }
 
 /* Sets D's file label to LABEL, truncating it to a maximum of 60
-   characters. */
+   characters.
+
+   Removes D's label if LABEL is null or the empty string. */
 void
 dict_set_label (struct dictionary *d, const char *label)
 {
   free (d->label);
-  d->label = label != NULL ? xstrndup (label, 60) : NULL;
+  d->label = label != NULL && label[0] != '\0' ? xstrndup (label, 60) : NULL;
 }
 
 /* Returns the documents for D, or a null pointer if D has no

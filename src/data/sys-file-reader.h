@@ -35,7 +35,7 @@ struct sfm_read_info
     enum float_format float_format;
     bool compressed;		/* 0=no, 1=yes. */
     casenumber case_cnt;        /* -1 if unknown. */
-    char product[61];		/* Product name plus a null. */
+    char product[61];		/* Product name, as ASCII string. */
 
     /* Writer's version number in X.Y.Z format.
        The version number is not always present; if not, then

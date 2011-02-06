@@ -1221,10 +1221,10 @@ DISPLAY DICTIONARY.
 LIST.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], 
-    [warning: `sys-file.sav' near offset 0x5c: Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format.
+    [warning: `sys-file.sav' near offset 0x54: Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format.
 ])
   AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
-"warning: `sys-file.sav' near offset 0x5c: Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format."
+"warning: `sys-file.sav' near offset 0x54: Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format."
 
 Variable,Description,,Position
 num1,Format: F8.0,,1
@@ -1327,7 +1327,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], 
-   [warning: `sys-file.sav' near offset 0xd8: File header claims 2 variable positions but 1 were read from file.
+   [warning: `sys-file.sav': File header claims 2 variable positions but 1 were read from file.
 ])
 done
 AT_CLEANUP
@@ -1355,7 +1355,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xd0: Variable name begins with invalid character `$'.
+   [error: `sys-file.sav' near offset 0xb4: Invalid variable name `$UM1'.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1385,7 +1385,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xd0: Invalid variable name `TO'.
+   [error: `sys-file.sav' near offset 0xb4: Invalid variable name `TO'.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1415,7 +1415,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xd0: Bad width 256 for variable VAR1.
+   [error: `sys-file.sav' near offset 0xb4: Bad width 256 for variable VAR1.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1446,7 +1446,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xf0: Duplicate variable name `VAR1'.
+   [error: `sys-file.sav' near offset 0xd4: Duplicate variable name `VAR1'.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1476,7 +1476,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xd0: Variable label indicator field is not 0 or 1.
+   [error: `sys-file.sav' near offset 0xb4: Variable label indicator field is not 0 or 1.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1506,7 +1506,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   ["error: `sys-file.sav' near offset 0xd0: Numeric missing value indicator field is not -3, -2, 0, 1, 2, or 3."
+   ["error: `sys-file.sav' near offset 0xb4: Numeric missing value indicator field is not -3, -2, 0, 1, 2, or 3."
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1536,7 +1536,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   ["error: `sys-file.sav' near offset 0xd0: String missing value indicator field is not 0, 1, 2, or 3."
+   ["error: `sys-file.sav' near offset 0xb4: String missing value indicator field is not 0, 1, 2, or 3."
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1567,7 +1567,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xd8: Missing string continuation record.
+   [error: `sys-file.sav' near offset 0xb4: Missing string continuation record.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1597,7 +1597,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xd0: Unknown variable format 255.
+   [error: `sys-file.sav' near offset 0xc0: Unknown variable format 255.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1633,17 +1633,17 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], 
-   [warning: `sys-file.sav' near offset 0xd0: Numeric variable VAR1 has invalid print format A8.
+   [warning: `sys-file.sav' near offset 0xc0: Numeric variable VAR1 has invalid print format A8.
 
-warning: `sys-file.sav' near offset 0xd0: Numeric variable VAR1 has invalid write format AHEX16.
+warning: `sys-file.sav' near offset 0xc4: Numeric variable VAR1 has invalid write format AHEX16.
 
-warning: `sys-file.sav' near offset 0xf0: String variable STR1 has invalid print format F8.0.
+warning: `sys-file.sav' near offset 0xe0: String variable STR1 has invalid print format F8.0.
 
-warning: `sys-file.sav' near offset 0xf0: String variable STR1 has invalid write format E10.1.
+warning: `sys-file.sav' near offset 0xe4: String variable STR1 has invalid write format E10.1.
 
-warning: `sys-file.sav' near offset 0x110: String variable STR2 has invalid print format A8.
+warning: `sys-file.sav' near offset 0x100: String variable STR2 has invalid print format A8.
 
-warning: `sys-file.sav' near offset 0x110: String variable STR2 has invalid write format AHEX4.
+warning: `sys-file.sav' near offset 0x104: String variable STR2 has invalid write format AHEX4.
 ])
 done
 AT_CLEANUP
@@ -1674,7 +1674,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xf4: Weighting variable must be numeric (not string variable `STR1').
+   [error: `sys-file.sav': Weighting variable must be numeric (not string variable `STR1').
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1707,7 +1707,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xf4: Variable index 3 not in valid range 1...2.
+   [error: `sys-file.sav' near offset 0x4c: Variable index 3 not in valid range 1...2.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1741,7 +1741,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0x114: Variable index 3 refers to long string continuation.
+   [error: `sys-file.sav' near offset 0x4c: Variable index 3 refers to long string continuation.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1778,7 +1778,7 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0x12c: Multiple type 6 (document) records.
+error: `sys-file.sav' near offset 0x12c: Duplicate type 6 (document) record.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1816,44 +1816,7 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0xd8: Number of document lines (0) must be greater than 0.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
-])
-done
-AT_CLEANUP
-
-AT_SETUP([document contains null byte])
-AT_KEYWORDS([sack synthetic system file negative])
-AT_DATA([sys-file.sack], [dnl
-dnl File header.
-"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
-2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
-
-dnl Numeric variable, no label or missing values.
-2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
-
-dnl Document record.
-6; 1; >>i8 0<<; s79 "One line of documents";
-
-dnl Dictionary termination record.
-999; 0;
-
-dnl Data.
-1.0;
-])
-for variant in \
-	"be 24b5f451ae2559785c1a38358c511e39" \
-	"le b7e9802506307c28343293144bd6d4f4"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
-  AT_DATA([sys-file.sps], [dnl
-GET FILE='sys-file.sav'.
-])
-  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0x128: Document line contains null byte.
+error: `sys-file.sav' near offset 0xd4: Number of document lines (0) must be greater than 0 and less than 26843545.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1884,7 +1847,7 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0xe0: Record type 7 subtype 3 too large.
+error: `sys-file.sav' near offset 0xd8: Record type 7 subtype 3 too large.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -1918,7 +1881,7 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-"warning: `sys-file.sav' near offset 0xe0: Unrecognized record type 7, subtype 30.  Please send a copy of this file, and the syntax which created it to bug-gnu-pspp@gnu.org."
+"warning: `sys-file.sav' near offset 0xd8: Unrecognized record type 7, subtype 30.  Please send a copy of this file, and the syntax which created it to bug-gnu-pspp@gnu.org."
 ])
 done
 AT_CLEANUP
@@ -1928,27 +1891,27 @@ AT_KEYWORDS([sack synthetic system file negative])
 AT_DATA([sys-file.sack], [dnl
 dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
-2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
 
 dnl Numeric variable, no label or missing values.
 2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
 
 dnl Machine integer info record.
-7; 3; 4; >>9<<; 1; 2; 3; -1; 1; 1; ENDIAN; 1252;
+7; 3; 4; >>9<<; 1; 2; 3; -1; 1; 1; ENDIAN; 1252; >>1234<<;
+
+dnl End of dictionary.
+999; 0;
 ])
 for variant in \
 	"be 21ec84826886b0a266d1360f8279d769" \
 	"le 15dcba7b2b89b7d8a21ebcc872f515af"
 do
   set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
-  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-"error: `sys-file.sav' near offset 0x100: Bad size (4) or count (9) field on record type 7, subtype 3."
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+"warning: `sys-file.sav' near offset 0xd8: Record type 7, subtype 3 has bad count 9 (expected 8)."
 ])
 done
 AT_CLEANUP
@@ -1965,18 +1928,20 @@ dnl Numeric variable, no label or missing values.
 
 dnl Machine integer info record.
 7; 3; 4; 8; 1; 2; 3; -1; >>2<<; 1; ENDIAN; 1252;
+
+dnl End of dictionary.
+999; 0;
 ])
 for variant in \
 	"be d510ed28278649eee997fb6881a4c04f" \
 	"le fbf1eca561a4e243b7ae844ed1677035"
 do
   set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0x100: Floating-point representation indicated by system file (2) differs from expected (1).
+error: `sys-file.sav' near offset 0xd8: Floating-point representation indicated by system file (2) differs from expected (1).
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -2011,7 +1976,7 @@ GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
 ])
   AT_CHECK_UNQUOTED([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: \`sys-file.sav' near offset 0x100: Integer format indicated by system file (3) differs from expected ($[3]).
+warning: \`sys-file.sav' near offset 0xd8: Integer format indicated by system file (3) differs from expected ($[3]).
 
 Variable,Description,,Position
 num1,Format: F8.0,,1
@@ -2028,27 +1993,27 @@ AT_KEYWORDS([sack synthetic system file negative])
 AT_DATA([sys-file.sack], [dnl
 dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
-2; 2; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
 
 dnl Numeric variable, no label or missing values.
 2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
 
 dnl Machine floating-point info record.
 7; 4; 8; >>4<<; SYSMIS; HIGHEST; LOWEST; 0.0;
+
+dnl End of dictionary.
+999; 0;
 ])
 for variant in \
 	"be 29c9a173638fbb8bb1efe1176c4d670f" \
 	"le 5cb49eb1084e5b9cd573a54705ff86a7"
 do
   set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
-  AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0xf8: Bad size (8) or count (4) on extension 4.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+"warning: `sys-file.sav' near offset 0xd8: Record type 7, subtype 4 has bad count 4 (expected 3)."
 ])
 done
 AT_CLEANUP
@@ -2079,11 +2044,11 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xf8: File specifies unexpected value 0 as SYSMIS.
+warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 0 as SYSMIS.
 
-warning: `sys-file.sav' near offset 0xf8: File specifies unexpected value 1 as HIGHEST.
+warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 1 as HIGHEST.
 
-warning: `sys-file.sav' near offset 0xf8: File specifies unexpected value 2 as LOWEST.
+warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 2 as LOWEST.
 ])
 done
 AT_CLEANUP
@@ -2114,9 +2079,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe3: `a' does not begin with `$' at offset 2 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: `a' does not begin with `$' at UTF-8 offset 2 in MRSETS record.
 
-warning: `sys-file.sav' near offset 0xf8: `xyz' does not begin with `$' at offset 4 in MRSETS record.
+warning: `sys-file.sav' near offset 0xeb: `xyz' does not begin with `$' at UTF-8 offset 4 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2146,7 +2111,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe5: Missing space following `C' at offset 4 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Missing space following `C' at UTF-8 offset 4 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2176,7 +2141,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe5: Missing space following `E' at offset 4 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Missing space following `E' at UTF-8 offset 4 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2206,9 +2171,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe6: Unexpected label source value `2' following `E' at offset 7 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Unexpected label source value `2' following `E' at UTF-8 offset 7 in MRSETS record.
 
-warning: `sys-file.sav' near offset 0xe6: Expecting digit at offset 7 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Expecting digit at UTF-8 offset 7 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2238,7 +2203,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-"warning: `sys-file.sav' near offset 0xe3: Missing `C', `D', or `E' at offset 3 in MRSETS record."
+"warning: `sys-file.sav' near offset 0xd8: Missing `C', `D', or `E' at UTF-8 offset 3 in MRSETS record."
 ])
 done
 AT_CLEANUP
@@ -2268,7 +2233,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe5: Expecting digit at offset 4 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Expecting digit at UTF-8 offset 4 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2298,7 +2263,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe6: Expecting space at offset 5 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Expecting space at UTF-8 offset 5 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2328,7 +2293,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe9: 4-byte string starting at offset 6 exceeds record length 9.
+warning: `sys-file.sav' near offset 0xd8: 4-byte string starting at UTF-8 offset 6 exceeds record length 9.
 ])
 done
 AT_CLEANUP
@@ -2358,7 +2323,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xea: Expecting space at offset 9 following 3-byte string.
+warning: `sys-file.sav' near offset 0xd8: Expecting space at UTF-8 offset 9 following 3-byte string.
 ])
 done
 AT_CLEANUP
@@ -2388,9 +2353,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xec: Missing new-line parsing variable names at offset 14 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Missing new-line parsing variable names at UTF-8 offset 14 in MRSETS record.
 
-warning: `sys-file.sav' near offset 0xec: MRSET $a has only 1 variables.
+warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
 ])
 done
 AT_CLEANUP
@@ -2420,9 +2385,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xf2: Duplicate variable name NUM1 at offset 18 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Duplicate variable name NUM1 at UTF-8 offset 18 in MRSETS record.
 
-warning: `sys-file.sav' near offset 0xf2: MRSET $a has only 1 variables.
+warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
 ])
 done
 AT_CLEANUP
@@ -2453,9 +2418,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0x112: MRSET $a contains both string and numeric variables.
+warning: `sys-file.sav' near offset 0xf8: MRSET $a contains both string and numeric variables.
 
-warning: `sys-file.sav' near offset 0x112: MRSET $a has only 1 variables.
+warning: `sys-file.sav' near offset 0xf8: MRSET $a has only 1 variables.
 ])
 done
 AT_CLEANUP
@@ -2485,7 +2450,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xed: MRSET $a has only 1 variables.
+warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
 ])
 done
 AT_CLEANUP
@@ -2515,7 +2480,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xed: MRSET $a has only 1 variables.
+warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
 ])
 done
 AT_CLEANUP
@@ -2546,7 +2511,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe0: Bad size 8 on extension 11.
+"warning: `sys-file.sav' near offset 0xd8: Record type 7, subtype 11 has bad size 8 (expected 4)."
 ])
 done
 AT_CLEANUP
@@ -2577,7 +2542,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe0: Extension 11 has bad count 4 (for 1 variables).
+warning: `sys-file.sav' near offset 0xd8: Extension 11 has bad count 4 (for 1 variables).
 ])
 done
 AT_CLEANUP
@@ -2608,7 +2573,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe8: Invalid variable display parameters for variable 0 (NUM1).  Default parameters substituted.
+warning: `sys-file.sav' near offset 0xd8: Invalid variable display parameters for variable 0 (NUM1).  Default parameters substituted.
 ])
 done
 AT_CLEANUP
@@ -2639,7 +2604,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe8: Invalid variable display parameters for variable 0 (NUM1).  Default parameters substituted.
+warning: `sys-file.sav' near offset 0xd8: Invalid variable display parameters for variable 0 (NUM1).  Default parameters substituted.
 ])
 done
 AT_CLEANUP
@@ -2671,7 +2636,7 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe5: Dictionary record refers to unknown variable xyzzy.
+warning: `sys-file.sav' near offset 0xde: Dictionary record refers to unknown variable xyzzy.
 ])
 done
 AT_CLEANUP
@@ -2710,9 +2675,9 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0x186: Long variable mapping from LONGVARI to invalid variable name `_Invalid'.
+warning: `sys-file.sav' near offset 0x138: Long variable mapping from LONGVARI to invalid variable name `_Invalid'.
 
-warning: `sys-file.sav' near offset 0x186: Duplicate long variable name `LONGVARIABLENAME'.
+warning: `sys-file.sav' near offset 0x138: Duplicate long variable name `LONGVARIABLENAME'.
 ])
 done
 AT_CLEANUP
@@ -2748,11 +2713,11 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-warning: `sys-file.sav' near offset 0x104: NUM1 listed as string of invalid length 00000 in very long string record.
+warning: `sys-file.sav' near offset 0xd8: NUM1 listed as string of invalid length 00000 in very long string record.
 
-"warning: `sys-file.sav' near offset 0x104: NUM1 listed in very long string record with width 00255, which requires only one segment."
+"warning: `sys-file.sav' near offset 0xd8: NUM1 listed in very long string record with width 00255, which requires only one segment."
 
-error: `sys-file.sav' near offset 0x104: Very long string NUM1 overflows dictionary.
+error: `sys-file.sav' near offset 0xd8: Very long string NUM1 overflows dictionary.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -2791,7 +2756,7 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0x50c: Very long string with width 256 has segment 1 of width 9 (expected 4).
+error: `sys-file.sav' near offset 0x4f8: Very long string with width 256 has segment 1 of width 9 (expected 4).
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -2823,7 +2788,7 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0xd8: Invalid number of labels 2147483647.
+error: `sys-file.sav' near offset 0xd4: Invalid number of labels 2147483647.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -2857,7 +2822,7 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0xec: Variable index record (type 4) does not immediately follow value label record (type 3) as it should.
+error: `sys-file.sav' near offset 0xe8: Variable index record (type 4) does not immediately follow value label record (type 3) as it should.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -2888,7 +2853,7 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0xf0: Number of variables associated with a value label (0) is not between 1 and the number of variables (1).
+error: `sys-file.sav' near offset 0xec: Number of variables associated with a value label (0) is not between 1 and the number of variables (1).
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -2908,19 +2873,21 @@ dnl Long string variable.
 
 dnl Value label that names long string variable.
 3; 1; s8 "xyzzy"; i8 3; s7 "one"; 4; 1; >>1<<;
+
+dnl End of dictionary.
+999; 0;
 ])
 for variant in \
 	"be 14053a4f09de4c7c4c55281534dd66f4" \
 	"le 8a61cc994c659fd66307d2f0fd64ce20"
 do
   set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-error: `sys-file.sav' near offset 0x114: Value labels may not be added to long string variables (e.g. STR1) using records types 3 and 4.
+error: `sys-file.sav' near offset 0xf4: Value labels may not be added to long string variables (e.g. STR1) using records types 3 and 4.
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -2940,19 +2907,21 @@ dnl Variables.
 
 dnl Value label that names numeric and string variables.
 3; 1; s8 "xyzzy"; i8 3; s7 "one"; 4; 2; >>1; 2<<;
+
+dnl End of dictionary.
+999; 0;
 ])
 for variant in \
 	"be 7577c456726a88f52bbef63a8b47bf1a" \
 	"le 3ba5c6af9ad0ae5cc88f9f63e726e414"
 do
   set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
-"error: `sys-file.sav' near offset 0x118: Variables associated with value label are not all of identical type.  Variable STR1 is string, but variable NUM1 is numeric."
+"error: `sys-file.sav' near offset 0xf4: Variables associated with value label are not all of identical type.  Variable STR1 is string, but variable NUM1 is numeric."
 
 sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
@@ -2988,9 +2957,9 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0x118: Duplicate value label for `xyzzy ' on STR1.
+warning: `sys-file.sav' near offset 0xf4: Duplicate value label for `xyzzy ' on STR1.
 
-warning: `sys-file.sav' near offset 0x140: Duplicate value label for 1 on NUM1.
+warning: `sys-file.sav' near offset 0x11c: Duplicate value label for 1 on NUM1.
 ])
 done
 AT_CLEANUP
@@ -3030,9 +2999,9 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xe6: Error parsing attribute value Attr1[[1]].
+warning: `sys-file.sav' near offset 0xdf: Error parsing attribute value Attr1[[1]].
 
-warning: `sys-file.sav' near offset 0x109: Error parsing attribute value fred[[2]].
+warning: `sys-file.sav' near offset 0x102: Error parsing attribute value fred[[2]].
 ])
 done
 AT_CLEANUP
@@ -3073,9 +3042,9 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xed: Attribute value Attr1[[1]] is not quoted: value.
+warning: `sys-file.sav' near offset 0xe4: Attribute value Attr1[[1]] is not quoted: value.
 
-warning: `sys-file.sav' near offset 0x10f: Attribute value fred[[1]] is not quoted: 23.
+warning: `sys-file.sav' near offset 0x106: Attribute value fred[[1]] is not quoted: 23.
 ])
 done
 AT_CLEANUP
@@ -3128,15 +3097,15 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0x130: Ignoring long string value record for unknown variable STR9.
+warning: `sys-file.sav' near offset 0x128: Ignoring long string value record for unknown variable STR9.
 
-warning: `sys-file.sav' near offset 0x16c: Ignoring long string value record for numeric variable NUM1.
+warning: `sys-file.sav' near offset 0x164: Ignoring long string value record for numeric variable NUM1.
 
-warning: `sys-file.sav' near offset 0x19b: Ignoring long string value record for variable STR14 because the record's width (9) does not match the variable's width (14).
+warning: `sys-file.sav' near offset 0x193: Ignoring long string value record for variable STR14 because the record's width (9) does not match the variable's width (14).
 
-"warning: `sys-file.sav' near offset 0x1dc: Ignoring long string value 0 for variable STR14, with width 14, that has bad value width 9."
+"warning: `sys-file.sav' near offset 0x1d4: Ignoring long string value 0 for variable str14, with width 14, that has bad value width 9."
 
-warning: `sys-file.sav' near offset 0x289: Duplicate value label for `abcdefghijklmn' on STR14.
+warning: `sys-file.sav' near offset 0x259: Duplicate value label for `abcdefghijklmn' on str14.
 ])
 done
 AT_CLEANUP
