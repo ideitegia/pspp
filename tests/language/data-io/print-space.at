@@ -1,0 +1,93 @@
+AT_BANNER([PRINT SPACE])
+
+AT_SETUP([PRINT SPACE without arguments])
+AT_DATA([print-space.sps], [dnl
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+1
+2
+END DATA.
+PRINT/x.
+PRINT SPACE.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv print-space.sps], [0], [dnl
+1 @&t@
+
+
+
+2 @&t@
+
+
+])
+AT_CLEANUP
+
+AT_SETUP([PRINT SPACE with number])
+AT_DATA([print-space.sps], [dnl
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+1
+2
+END DATA.
+PRINT/x.
+PRINT SPACE 2.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv print-space.sps], [0], [dnl
+1 @&t@
+
+
+
+
+
+2 @&t@
+
+
+
+
+])
+AT_CLEANUP
+
+AT_SETUP([PRINT SPACE to file])
+AT_CAPTURE_FILE([output.txt])
+AT_DATA([print-space.sps], [dnl
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+1
+2
+END DATA.
+PRINT OUTFILE='output.txt'/x.
+PRINT SPACE OUTFILE='output.txt'.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv print-space.sps])
+AT_CHECK([cat output.txt], [0], [dnl
+ 1 @&t@
+ @&t@
+ 2 @&t@
+ @&t@
+])
+AT_CLEANUP
+
+AT_SETUP([PRINT SPACE to file with number])
+AT_CAPTURE_FILE([output.txt])
+AT_DATA([print-space.sps], [dnl
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+1
+2
+END DATA.
+PRINT OUTFILE='output.txt'/x.
+PRINT SPACE OUTFILE='output.txt' 2.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv print-space.sps])
+AT_CHECK([cat output.txt], [0], [dnl
+ 1 @&t@
+ @&t@
+ @&t@
+ 2 @&t@
+ @&t@
+ @&t@
+])
+AT_CLEANUP
