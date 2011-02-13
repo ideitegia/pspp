@@ -110,6 +110,17 @@ recode_string (const char *to, const char *from,
   return recode_string_pool (to, from, text, length, NULL);
 }
 
+/* Returns the length, in bytes, of the string that a similar recode_string()
+   call would return. */
+size_t
+recode_string_len (const char *to, const char *from,
+                   const char *text, int length)
+{
+  char *s = recode_string (to, from, text, length);
+  size_t len = strlen (s);
+  free (s);
+  return len;
+}
 
 /* Uses CONV to convert the INBYTES starting at IP into the OUTBYTES starting
    at OP, and appends a null terminator to the output.

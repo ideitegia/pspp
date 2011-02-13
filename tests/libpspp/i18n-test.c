@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,8 +18,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "libpspp/i18n.h"
+
+#undef NDEBUG
+#include <assert.h>
 
 int
 main (int argc, char *argv[])
@@ -40,6 +44,7 @@ main (int argc, char *argv[])
   i18n_init ();
   s = recode_string (argv[2], argv[1], argv[3], -1);
   puts (s);
+  assert (strlen (s) == recode_string_len (argv[2], argv[1], argv[3], -1));
   free (s);
 
   return 0;
