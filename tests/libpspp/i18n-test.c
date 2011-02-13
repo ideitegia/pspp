@@ -28,24 +28,61 @@
 int
 main (int argc, char *argv[])
 {
-  char *s;
+  i18n_init ();
 
-  if (argc != 4)
+  if (argc == 5 && !strcmp (argv[1], "recode"))
     {
-      fprintf (stderr,
-               "usage: %s FROM TO STRING\n"
-               "where FROM is the source encoding,\n"
-               "      TO is the target encoding,\n"
-               "      and STRING is the text to recode.\n",
-               argv[0]);
+      const char *from = argv[2];
+      const char *to = argv[3];
+      const char *string = argv[4];
+      char *result = recode_string (to, from, string, -1);
+      puts (result);
+      assert (strlen (result) == recode_string_len (to, from, string, -1));
+      free (result);
+    }
+  else if (argc == 6 && !strcmp (argv[1], "concat"))
+    {
+      const char *head = argv[2];
+      const char *tail = argv[3];
+      const char *encoding = argv[4];
+      int max_len = atoi (argv[5]);
+      char *result;
+
+      result = utf8_encoding_concat (head, tail, encoding, max_len);
+      puts (result);
+
+      assert (strlen (result)
+              == utf8_encoding_concat_len (head, tail, encoding, max_len));
+
+      if (tail[0] == '\0')
+        {
+          char *result2 = utf8_encoding_trunc (head, encoding, max_len);
+          assert (!strcmp (result, result2));
+          assert (strlen (result2)
+                  == utf8_encoding_trunc_len (head, encoding, max_len));
+          free (result2);
+        }
+
+      free (result);
+    }
+  else
+    {
+      fprintf (stderr, "\
+usage: %s recode FROM TO STRING\n\
+where FROM is the source encoding,\n\
+      TO is the target encoding,\n\
+      and STRING is the text to recode.\n\
+\n\
+usage: %s concat HEAD TAIL ENCODING MAX_LEN\n\
+where HEAD is the first string to concatenate\n\
+      TAIL is the second string to concatenate\n\
+      ENCODING is the encoding in which to measure the result's length\n\
+      MAX_LEN is the maximum length of the result in ENCODING.\n",
+               argv[0], argv[0]);
       return EXIT_FAILURE;
     }
 
-  i18n_init ();
-  s = recode_string (argv[2], argv[1], argv[3], -1);
-  puts (s);
-  assert (strlen (s) == recode_string_len (argv[2], argv[1], argv[3], -1));
-  free (s);
+  i18n_done ();
 
   return 0;
 }

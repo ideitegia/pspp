@@ -44,6 +44,19 @@ struct substring recode_substring_pool (const char *to, const char *from,
 size_t recode_string_len (const char *to, const char *from,
                           const char *text, int len);
 
+char *utf8_encoding_trunc (const char *, const char *encoding,
+                           size_t max_len);
+size_t utf8_encoding_trunc_len (const char *, const char *encoding,
+                                size_t max_len);
+
+char *utf8_encoding_concat (const char *head, const char *tail,
+                            const char *encoding, size_t max_len);
+size_t utf8_encoding_concat_len (const char *head, const char *tail,
+                                 const char *encoding, size_t max_len);
+
+char *utf8_to_filename (const char *filename);
+char *filename_to_utf8 (const char *filename);
+
 bool valid_encoding (const char *enc);
 
 char get_system_decimal (void);

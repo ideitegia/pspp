@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unigbrk.h>
 
 #include "libpspp/assertion.h"
 #include "libpspp/hmapx.h"
@@ -35,6 +36,7 @@
 #include "libpspp/str.h"
 #include "libpspp/version.h"
 
+#include "gl/c-strcase.h"
 #include "gl/localcharset.h"
 #include "gl/xalloc.h"
 #include "gl/relocatable.h"
@@ -205,6 +207,279 @@ recode_string_pool (const char *to, const char *from,
   return out.string;
 }
 
+/* Returns the name of the encoding that should be used for file names.
+
+   This is meant to be the same encoding used by g_filename_from_uri() and
+   g_filename_to_uri() in GLib. */
+static const char *
+filename_encoding (void)
+{
+#if defined _WIN32 || defined __WIN32__
+  return "UTF-8";
+#else
+  return locale_charset ();
+#endif
+}
+
+static char *
+xconcat2 (const char *a, size_t a_len,
+          const char *b, size_t b_len)
+{
+  char *s = xmalloc (a_len + b_len + 1);
+  memcpy (s, a, a_len);
+  memcpy (s + a_len, b, b_len);
+  s[a_len + b_len] = '\0';
+  return s;
+}
+
+/* Conceptually, this function concatenates HEAD_LEN-byte string HEAD and
+   TAIL_LEN-byte string TAIL, both encoded in UTF-8, then converts them to
+   ENCODING.  If the re-encoded result is no more than MAX_LEN bytes long, then
+   it returns HEAD_LEN.  Otherwise, it drops one character[*] from the end of
+   HEAD and tries again, repeating as necessary until the concatenated result
+   fits or until HEAD_LEN reaches 0.
+
+   [*] Actually this function drops grapheme clusters instead of characters, so
+       that, e.g. a Unicode character followed by a combining accent character
+       is either completely included or completely excluded from HEAD_LEN.  See
+       UAX #29 at http://unicode.org/reports/tr29/ for more information on
+       grapheme clusters.
+
+   A null ENCODING is treated as UTF-8.
+
+   Sometimes this function has to actually construct the concatenated string to
+   measure its length.  When this happens, it sets *RESULTP to that
+   null-terminated string, allocated with malloc(), for the caller to use if it
+   needs it.  Otherwise, it sets *RESULTP to NULL.
+
+   Simple examples for encoding="UTF-8", max_len=6:
+
+       head="abc",  tail="xyz"     => 3
+       head="abcd", tail="xyz"     => 3 ("d" dropped).
+       head="abc",  tail="uvwxyz"  => 0 ("abc" dropped).
+       head="abc",  tail="tuvwxyz" => 0 ("abc" dropped).
+
+   Examples for encoding="ISO-8859-1", max_len=6:
+
+       head="éèä",  tail="xyz"     => 6
+         (each letter in head is only 1 byte in ISO-8859-1 even though they
+          each take 2 bytes in UTF-8 encoding)
+*/
+static size_t
+utf8_encoding_concat__ (const char *head, size_t head_len,
+                        const char *tail, size_t tail_len,
+                        const char *encoding, size_t max_len,
+                        char **resultp)
+{
+  *resultp = NULL;
+  if (head_len == 0)
+    return 0;
+  else if (encoding == NULL || !c_strcasecmp (encoding, "UTF-8"))
+    {
+      if (head_len + tail_len <= max_len)
+        return head_len;
+      else if (tail_len >= max_len)
+        return 0;
+      else
+        {
+          size_t copy_len;
+          size_t prev;
+          size_t ofs;
+          int mblen;
+
+          copy_len = 0;
+          for (ofs = u8_mbtouc (&prev, CHAR_CAST (const uint8_t *, head),
+                                head_len);
+               ofs <= max_len - tail_len;
+               ofs += mblen)
+            {
+              ucs4_t next;
+
+              mblen = u8_mbtouc (&next,
+                                 CHAR_CAST (const uint8_t *, head + ofs),
+                                 head_len - ofs);
+              if (uc_is_grapheme_break (prev, next))
+                copy_len = ofs;
+
+              prev = next;
+            }
+
+          return copy_len;
+        }
+    }
+  else
+    {
+      char *result;
+
+      result = (tail_len > 0
+                ? xconcat2 (head, head_len, tail, tail_len)
+                : CONST_CAST (char *, head));
+      if (recode_string_len (encoding, "UTF-8", result,
+                             head_len + tail_len) <= max_len)
+        {
+          *resultp = result != head ? result : NULL;
+          return head_len;
+        }
+      else
+        {
+          bool correct_result = false;
+          size_t copy_len;
+          size_t prev;
+          size_t ofs;
+          int mblen;
+
+          copy_len = 0;
+          for (ofs = u8_mbtouc (&prev, CHAR_CAST (const uint8_t *, head),
+                                head_len);
+               ofs <= head_len;
+               ofs += mblen)
+            {
+              ucs4_t next;
+
+              mblen = u8_mbtouc (&next,
+                                 CHAR_CAST (const uint8_t *, head + ofs),
+                                 head_len - ofs);
+              if (uc_is_grapheme_break (prev, next))
+                {
+                  if (result != head)
+                    {
+                      memcpy (result, head, ofs);
+                      memcpy (result + ofs, tail, tail_len);
+                      result[ofs + tail_len] = '\0';
+                    }
+
+                  if (recode_string_len (encoding, "UTF-8", result,
+                                         ofs + tail_len) <= max_len)
+                    {
+                      correct_result = true;
+                      copy_len = ofs;
+                    }
+                  else
+                    correct_result = false;
+                }
+
+              prev = next;
+            }
+
+          if (result != head)
+            {
+              if (correct_result)
+                *resultp = result;
+              else
+                free (result);
+            }
+
+          return copy_len;
+        }
+    }
+}
+
+/* Concatenates a prefix of HEAD with all of TAIL and returns the result as a
+   null-terminated string owned by the caller.  HEAD, TAIL, and the returned
+   string are all encoded in UTF-8.  As many characters[*] from the beginning
+   of HEAD are included as will fit within MAX_LEN bytes supposing that the
+   resulting string were to be re-encoded in ENCODING.  All of TAIL is always
+   included, even if TAIL by itself is longer than MAX_LEN in ENCODING.
+
+   [*] Actually this function drops grapheme clusters instead of characters, so
+       that, e.g. a Unicode character followed by a combining accent character
+       is either completely included or completely excluded from the returned
+       string.  See UAX #29 at http://unicode.org/reports/tr29/ for more
+       information on grapheme clusters.
+
+   A null ENCODING is treated as UTF-8.
+
+   Simple examples for encoding="UTF-8", max_len=6:
+
+       head="abc",  tail="xyz"     => "abcxyz"
+       head="abcd", tail="xyz"     => "abcxyz"
+       head="abc",  tail="uvwxyz"  => "uvwxyz"
+       head="abc",  tail="tuvwxyz" => "tuvwxyz"
+
+   Examples for encoding="ISO-8859-1", max_len=6:
+
+       head="éèä",  tail="xyz"    => "éèäxyz"
+         (each letter in HEAD is only 1 byte in ISO-8859-1 even though they
+          each take 2 bytes in UTF-8 encoding)
+*/
+char *
+utf8_encoding_concat (const char *head, const char *tail,
+                      const char *encoding, size_t max_len)
+{
+  size_t tail_len = strlen (tail);
+  size_t prefix_len;
+  char *result;
+
+  prefix_len = utf8_encoding_concat__ (head, strlen (head), tail, tail_len,
+                                       encoding, max_len, &result);
+  return (result != NULL
+          ? result
+          : xconcat2 (head, prefix_len, tail, tail_len));
+}
+
+/* Returns the length, in bytes, of the string that would be returned by
+   utf8_encoding_concat() if passed the same arguments, but the implementation
+   is often more efficient. */
+size_t
+utf8_encoding_concat_len (const char *head, const char *tail,
+                          const char *encoding, size_t max_len)
+{
+  size_t tail_len = strlen (tail);
+  size_t prefix_len;
+  char *result;
+
+  prefix_len = utf8_encoding_concat__ (head, strlen (head), tail, tail_len,
+                                       encoding, max_len, &result);
+  free (result);
+  return prefix_len + tail_len;
+}
+
+/* Returns an allocated, null-terminated string, owned by the caller,
+   containing as many characters[*] from the beginning of S that would fit
+   within MAX_LEN bytes if the returned string were to be re-encoded in
+   ENCODING.  Both S and the returned string are encoded in UTF-8.
+
+   [*] Actually this function drops grapheme clusters instead of characters, so
+       that, e.g. a Unicode character followed by a combining accent character
+       is either completely included or completely excluded from the returned
+       string.  See UAX #29 at http://unicode.org/reports/tr29/ for more
+       information on grapheme clusters.
+
+   A null ENCODING is treated as UTF-8.
+*/
+char *
+utf8_encoding_trunc (const char *s, const char *encoding, size_t max_len)
+{
+  return utf8_encoding_concat (s, "", encoding, max_len);
+}
+
+/* Returns the length, in bytes, of the string that would be returned by
+   utf8_encoding_trunc() if passed the same arguments, but the implementation
+   is often more efficient. */
+size_t
+utf8_encoding_trunc_len (const char *s, const char *encoding, size_t max_len)
+{
+  return utf8_encoding_concat_len (s, "", encoding, max_len);
+}
+
+/* Returns FILENAME converted from UTF-8 to the filename encoding.
+   On Windows the filename encoding is UTF-8; elsewhere it is based on the
+   current locale. */
+char *
+utf8_to_filename (const char *filename)
+{
+  return recode_string (filename_encoding (), "UTF-8", filename, -1);
+}
+
+/* Returns FILENAME converted from the filename encoding to UTF-8.
+   On Windows the filename encoding is UTF-8; elsewhere it is based on the
+   current locale. */
+char *
+filename_to_utf8 (const char *filename)
+{
+  return recode_string ("UTF-8", filename_encoding (), filename, -1);
+}
+
 /* Converts the string TEXT, which should be encoded in FROM-encoding, to a
    dynamically allocated string in TO-encoding.  Any characters which cannot be
    converted will be represented by '?'.
@@ -267,7 +542,6 @@ i18n_init (void)
 
   hmapx_init (&map);
 }
-
 
 const char *
 get_default_encoding (void)

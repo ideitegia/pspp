@@ -73,6 +73,7 @@ GNULIB_MODULES = \
 	unistd \
 	unictype/property-id-continue \
 	unictype/property-id-start \
+	unigbrk/uc-is-grapheme-break \
 	unistr/u8-cpy \
 	unistr/u8-mbtouc \
 	unistr/u8-strlen \
