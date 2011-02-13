@@ -37,7 +37,6 @@
 #include "libpspp/compiler.h"
 #include "libpspp/i18n.h"
 #include "libpspp/integer-format.h"
-#include "libpspp/legacy-encoding.h"
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
 #include "settings.h"

@@ -44,8 +44,6 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/integer-format.h \
 	src/libpspp/intern.c \
 	src/libpspp/intern.h \
-	src/libpspp/legacy-encoding.c \
-	src/libpspp/legacy-encoding.h \
 	src/libpspp/ll.c \
 	src/libpspp/ll.h \
 	src/libpspp/llx.c \

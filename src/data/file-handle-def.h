@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2005, 2006, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <libpspp/legacy-encoding.h>
 
 /* What a file handle refers to.
    (Ordinarily only a single value is allowed, but fh_open()
