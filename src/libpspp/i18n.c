@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -85,6 +85,20 @@ create_iconv (const char* tocode, const char* fromcode)
   return converter->conv;
 }
 
+/* Converts the single byte C from encoding FROM to TO, returning the first
+   byte of the result.
+
+   This function probably shouldn't be used at all, but some code still does
+   use it. */
+char
+recode_byte (const char *to, const char *from, char c)
+{
+  char x;
+  char *s = recode_string (to, from, &c, 1);
+  x = s[0];
+  free (s);
+  return x;
+}
 
 /* Similar to recode_string_pool, but allocates the returned value on the heap
    instead of in a pool.  It is the caller's responsibility to free the

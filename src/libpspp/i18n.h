@@ -26,6 +26,8 @@ void  i18n_init (void);
 
 struct pool;
 
+char recode_byte (const char *to, const char *from, char);
+
 char *recode_string (const char *to, const char *from,
                      const char *text, int len);
 char *recode_string_pool (const char *to, const char *from,
