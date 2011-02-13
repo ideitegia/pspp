@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ char
 legacy_to_native (const char *from, char c)
 {
   char x;
-  char *s = recode_string (LEGACY_NATIVE, from, &c, 1);
+  char *s = recode_string (C_ENCODING, from, &c, 1);
   x = s[0];
   free (s);
   return x;
@@ -34,7 +34,7 @@ char
 legacy_from_native (const char *to, char c)
 {
   char x;
-  char *s = recode_string (to, LEGACY_NATIVE, &c, 1);
+  char *s = recode_string (to, C_ENCODING, &c, 1);
   x = s[0];
   free (s);
   return x;

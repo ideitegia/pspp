@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/pool.h"
 #include "libpspp/str.h"
@@ -632,7 +633,7 @@ find_src_string (struct recode_trns *trns, const uint8_t *value,
             char *error;
 
             error = data_in (ss_buffer (CHAR_CAST_BUG (char *, value), width),
-                             LEGACY_NATIVE, FMT_F, &uv, 0, encoding);
+                             C_ENCODING, FMT_F, &uv, 0, encoding);
             match = error == NULL;
             free (error);
 

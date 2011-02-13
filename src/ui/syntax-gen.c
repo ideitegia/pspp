@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "data/value.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
@@ -156,8 +157,7 @@ syntax_gen_number (struct string *output,
       s = data_out (&v_in, "FIXME",  format);
 
       /* FIXME: UTF8 encoded strings will fail here */
-      error = data_in (ss_cstr (s), LEGACY_NATIVE,
-                       format->type, &v_out, 0, NULL);
+      error = data_in (ss_cstr (s), C_ENCODING, format->type, &v_out, 0, NULL);
       ok = error == NULL;
       free (error);
 

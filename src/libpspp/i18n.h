@@ -24,6 +24,11 @@ void  i18n_init (void);
 
 #define UTF8 "UTF-8"
 
+/* The encoding of literal strings in PSPP source code, as seen at execution
+   time.  In fact this is likely to be some extended ASCII encoding, such as
+   UTF-8 or ISO-8859-1, but ASCII is adequate for our purposes. */
+#define C_ENCODING "ASCII"
+
 struct pool;
 
 char recode_byte (const char *to, const char *from, char);

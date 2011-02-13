@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -104,10 +104,10 @@ data_out_legacy (const union value *input, const char *encoding,
   assert (fmt_check_output (format));
 
   converters[format->type] (input, format, output);
-  if (0 != strcmp (encoding, LEGACY_NATIVE)
+  if (0 != strcmp (encoding, C_ENCODING)
       && fmt_get_category (format->type) != FMT_CAT_BINARY)
     {
-      char *s  = recode_string (encoding, LEGACY_NATIVE, output, format->w );
+      char *s  = recode_string (encoding, C_ENCODING, output, format->w );
       memcpy (output, s, format->w);
       free (s);
     }

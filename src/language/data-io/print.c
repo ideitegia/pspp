@@ -454,7 +454,7 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
 {
   struct print_trns *trns = trns_;
   bool eject = trns->eject;
-  char encoded_space = recode_byte (trns->encoding, LEGACY_NATIVE, ' ');
+  char encoded_space = recode_byte (trns->encoding, C_ENCODING, ' ');
   int record = 1;
   struct prt_out_spec *spec;
 
@@ -479,11 +479,11 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
       else
         {
           ds_put_substring (&trns->line, ds_ss (&spec->string));
-          if (0 != strcmp (trns->encoding, LEGACY_NATIVE))
+          if (0 != strcmp (trns->encoding, C_ENCODING))
             {
               size_t length = ds_length (&spec->string);
               char *data = ss_data (ds_tail (&trns->line, length));
-	      char *s = recode_string (trns->encoding, LEGACY_NATIVE, data, length);
+	      char *s = recode_string (trns->encoding, C_ENCODING, data, length);
 	      memcpy (data, s, length);
 	      free (s);
             }
@@ -518,7 +518,7 @@ flush_records (struct print_trns *trns, int target_record,
           else
             leader = '1';
         }
-      line[0] = recode_byte (trns->encoding, LEGACY_NATIVE, leader);
+      line[0] = recode_byte (trns->encoding, C_ENCODING, leader);
 
       if (trns->writer == NULL)
         tab_output_text (TAB_FIX, &line[1]);

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,16 +19,7 @@
 
 #include <libpspp/compiler.h>
 
-#if 'A' == 0x41
-#define  LEGACY_NATIVE "ASCII"
-#elif 'A' == 0xc1
-#define  LEGACY_NATIVE "EBCDIC-US"
-#else
-#error Cannot detect native character set.
-#endif
-
 char legacy_to_native (const char *from, char) PURE_FUNCTION;
 char legacy_from_native (const char *to, char) PURE_FUNCTION;
-
 
 #endif /* libpspp/legacy-encoding.h */

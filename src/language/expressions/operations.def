@@ -585,9 +585,9 @@ function NUMBER (string s, ni_format f)
 
   if (s.length > f->w)
     s.length = f->w;
-  error = data_in (s, LEGACY_NATIVE, f->type, &out, 0, NULL);
+  error = data_in (s, C_ENCODING, f->type, &out, 0, NULL);
   if (error == NULL)
-    data_in_imply_decimals (s, LEGACY_NATIVE, f->type, f->d, &out);
+    data_in_imply_decimals (s, C_ENCODING, f->type, f->d, &out);
   else
     {
       msg (SE, "Cannot parse `%.*s' as format %s: %s",
@@ -607,7 +607,7 @@ absorb_miss string function STRING (x, no_format f)
   v.f = x;
 
   assert (!fmt_is_string (f->type));
-  s = data_out (&v, LEGACY_NATIVE, f);
+  s = data_out (&v, C_ENCODING, f);
   dst = alloc_string (e, strlen (s));
   strcpy (dst.string, s);
   free (s);

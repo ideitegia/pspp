@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include <data/dictionary.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
+#include <libpspp/i18n.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 #include <output/driver.h>
@@ -416,7 +417,7 @@ tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, LEGACY_NATIVE, &f, table->container);
+  s = data_out_pool (&double_value, C_ENCODING, &f, table->container);
 
   table->cc[c + r * table->cf] = s + strspn (s, " ");
   table->ct[c + r * table->cf] = opt;
@@ -458,7 +459,7 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, LEGACY_NATIVE, fmt, table->container);
+  s = data_out_pool (&double_value, C_ENCODING, fmt, table->container);
   table->cc[c + r * table->cf] = s + strspn (s, " ");
   table->ct[c + r * table->cf] = opt;
 }

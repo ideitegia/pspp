@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 
 #include <libpspp/compiler.h>
 #include <libpspp/hmap.h>
+#include <libpspp/i18n.h>
 #include <libpspp/ll.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
@@ -260,7 +261,7 @@ const struct fh_properties *
 fh_default_properties (void)
 {
   static const struct fh_properties default_properties
-    = {FH_MODE_TEXT, 1024, 4, LEGACY_NATIVE};
+    = {FH_MODE_TEXT, 1024, 4, C_ENCODING};
   return &default_properties;
 }
 
@@ -333,7 +334,7 @@ const char *
 fh_get_legacy_encoding (const struct file_handle *handle)
 {
   assert (handle->referent & (FH_REF_FILE | FH_REF_INLINE));
-  return (handle->referent == FH_REF_FILE ? handle->encoding : LEGACY_NATIVE);
+  return (handle->referent == FH_REF_FILE ? handle->encoding : C_ENCODING);
 }
 
 /* Returns the scratch file handle associated with HANDLE.

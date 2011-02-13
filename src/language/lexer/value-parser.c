@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include "data/value.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/cast.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
@@ -106,8 +107,7 @@ parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
 
       assert (fmt_get_category (*format) != FMT_CAT_STRING);
 
-      if (!data_in_msg (lex_tokss (lexer), LEGACY_NATIVE,
-                        *format, &v, 0, NULL))
+      if (!data_in_msg (lex_tokss (lexer), C_ENCODING, *format, &v, 0, NULL))
         return false;
 
       lex_get (lexer);

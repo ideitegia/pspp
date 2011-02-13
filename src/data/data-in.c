@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -116,7 +116,7 @@ data_in (struct substring input, const char *input_encoding,
       /* We're going to parse these into numbers.  For this purpose we want to
          deal with them in the local "C" encoding.  Any character not in that
          encoding wouldn't be valid anyhow. */
-      dest_encoding = LEGACY_NATIVE;
+      dest_encoding = C_ENCODING;
     }
   else if (cat & (FMT_CAT_BINARY | FMT_CAT_LEGACY))
     {
@@ -130,7 +130,7 @@ data_in (struct substring input, const char *input_encoding,
         {
           /* We want the hex digits in the local "C" encoding, even though the
              result may not be in that encoding. */
-          dest_encoding = LEGACY_NATIVE;
+          dest_encoding = C_ENCODING;
         }
       else
         {
@@ -245,7 +245,7 @@ has_implied_decimals (struct substring input, const char *input_encoding,
       return false;
     }
 
-  s = recode_string (LEGACY_NATIVE, input_encoding,
+  s = recode_string (C_ENCODING, input_encoding,
                      ss_data (input), ss_length (input));
   retval = (format == FMT_Z
             ? strchr (s, '.') == NULL

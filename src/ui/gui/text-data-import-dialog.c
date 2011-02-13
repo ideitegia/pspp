@@ -32,6 +32,7 @@
 #include "language/data-io/data-parser.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "ui/gui/checkbox-treeview.h"
 #include "ui/gui/descriptives-dialog.h"
@@ -1768,8 +1769,7 @@ parse_field (struct import_assistant *ia,
     {
       char *error;
 
-      error = data_in (field, LEGACY_NATIVE, in->type, &val,
-                       var_get_width (var),
+      error = data_in (field, C_ENCODING, in->type, &val, var_get_width (var),
                        dict_get_encoding (ia->formats.dict));
       if (error != NULL)
         {
