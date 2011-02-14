@@ -17,6 +17,7 @@ GNULIB_MODULES = \
 	crypto/md4 \
 	crypto/md5 \
 	dirname \
+	dtoastr \
 	environ \
 	fatal-signal \
 	fcntl \

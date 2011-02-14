@@ -30,6 +30,8 @@
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
+#include "gl/ftoastr.h"
+
 /* Appends to OUTPUT a pair of hex digits for each byte in IN. */
 static void
 syntax_gen_hex_digits (struct string *output, struct substring in)
@@ -172,18 +174,10 @@ syntax_gen_number (struct string *output,
     ds_put_cstr (output, "SYSMIS");
   else
     {
-      /* FIXME: This should consistently yield precisely the same
-         value as NUMBER on input, but its results for values
-         cannot be exactly represented in decimal are ugly: many
-         of them will have far more decimal digits than are
-         needed.  The free-format floating point output routine
-         from Steele and White, "How to Print Floating-Point
-         Numbers Accurately" is really what we want.  The MPFR
-         library has an implementation of this, or equivalent
-         functionality, in its mpfr_strtofr routine, but it would
-         not be nice to make PSPP depend on this.  Probably, we
-         should implement something equivalent to it. */
-      ds_put_format (output, "%.*g", DBL_DIG + 1, number);
+      char s[DBL_BUFSIZE_BOUND];
+
+      dtoastr (s, sizeof s, 0, 0, number);
+      ds_put_cstr (output, s);
     }
 }
 
