@@ -637,11 +637,6 @@ work with these global styles:
 Returns the numeric style for the given format @var{type}.
 @end deftypefun
 
-@deftypefun void fmt_check_style (const struct fmt_number_style *@var{style})
-Asserts that style is self consistent.
-@end deftypefun
-
-
 @deftypefun {const char *} fmt_name (enum fmt_type @var{type})
 Returns the name of the given format @var{type}.
 @end deftypefun

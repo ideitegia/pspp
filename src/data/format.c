@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -107,52 +107,46 @@ fmt_settings_get_style (const struct fmt_settings *settings,
   return &settings->styles[type];
 }
 
+/* Sets the number style for TYPE to have the given DECIMAL and GROUPING
+   characters, negative prefix NEG_PREFIX, prefix PREFIX, suffix SUFFIX, and
+   negative suffix NEG_SUFFIX. */
 void
 fmt_settings_set_style (struct fmt_settings *settings, enum fmt_type type,
-                        const struct fmt_number_style *style)
+                        char decimal, char grouping,
+                        const char *neg_prefix, const char *prefix,
+                        const char *suffix, const char *neg_suffix)
 {
-  fmt_check_style (style);
-  fmt_number_style_destroy (&settings->styles[type]);
-  fmt_number_style_clone (&settings->styles[type], style);
-}
+  struct fmt_number_style *style = &settings->styles[type];
 
-/* Sets the number style for TYPE to have the given standard
-   PREFIX and SUFFIX, "-" as prefix suffix, an empty negative
-   suffix, DECIMAL as the decimal point character, and GROUPING
-   as the grouping character. */
-static void
-set_style (struct fmt_settings *settings, enum fmt_type type,
-           const char *prefix, const char *suffix,
-           char decimal, char grouping)
-{
-  struct fmt_number_style *style;
-
-  assert (is_fmt_type (type));
-
-  style = &settings->styles[type];
+  assert (grouping == '.' || grouping == ',' || grouping == 0);
+  assert (decimal == '.' || decimal == ',');
+  assert (decimal != grouping);
 
   fmt_number_style_destroy (style);
 
-  ss_alloc_substring (&style->neg_prefix, ss_cstr ("-"));
+  ss_alloc_substring (&style->neg_prefix, ss_cstr (neg_prefix));
   ss_alloc_substring (&style->prefix, ss_cstr (prefix));
   ss_alloc_substring (&style->suffix, ss_cstr (suffix));
+  ss_alloc_substring (&style->neg_suffix, ss_cstr (neg_suffix));
   style->decimal = decimal;
   style->grouping = grouping;
 }
 
-/* Sets the decimal point character for SETTINGS to DECIMAL. */
+/* Sets the decimal point character for the settings in S to DECIMAL.
+
+   This has no effect on custom currency formats. */
 void
-fmt_settings_set_decimal (struct fmt_settings *settings, char decimal)
+fmt_settings_set_decimal (struct fmt_settings *s, char decimal)
 {
   int grouping = decimal == '.' ? ',' : '.';
   assert (decimal == '.' || decimal == ',');
 
-  set_style (settings, FMT_F, "", "", decimal, 0);
-  set_style (settings, FMT_E, "", "", decimal, 0);
-  set_style (settings, FMT_COMMA, "", "", decimal, grouping);
-  set_style (settings, FMT_DOT, "", "", grouping, decimal);
-  set_style (settings, FMT_DOLLAR, "$", "", decimal, grouping);
-  set_style (settings, FMT_PCT, "", "%", decimal, 0);
+  fmt_settings_set_style (s, FMT_F,      decimal,        0, "-",  "",  "", "");
+  fmt_settings_set_style (s, FMT_E,      decimal,        0, "-",  "",  "", "");
+  fmt_settings_set_style (s, FMT_COMMA,  decimal, grouping, "-",  "",  "", "");
+  fmt_settings_set_style (s, FMT_DOT,   grouping,  decimal, "-",  "",  "", "");
+  fmt_settings_set_style (s, FMT_DOLLAR, decimal, grouping, "-", "$",  "", "");
+  fmt_settings_set_style (s, FMT_PCT,    decimal,        0, "-",  "", "%", "");
 }
 
 /* Returns an input format specification with type TYPE, width W,
@@ -971,21 +965,6 @@ fmt_number_style_destroy (struct fmt_number_style *style)
       ss_dealloc (&style->neg_suffix);
     }
 }
-
-/* Checks that style is STYLE sane */
-void
-fmt_check_style (const struct fmt_number_style *style)
-{
-  assert (ss_length (style->neg_prefix) <= FMT_STYLE_AFFIX_MAX);
-  assert (ss_length (style->prefix) <= FMT_STYLE_AFFIX_MAX);
-  assert (ss_length (style->suffix) <= FMT_STYLE_AFFIX_MAX);
-  assert (ss_length (style->neg_suffix) <= FMT_STYLE_AFFIX_MAX);
-  assert (style->decimal == '.' || style->decimal == ',');
-  assert (style->grouping == '.' || style->grouping == ','
-          || style->grouping == 0);
-  assert (style->grouping != style->decimal);
-}
-
 
 /* Returns the total width of the standard prefix and suffix for
    STYLE. */

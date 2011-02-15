@@ -139,7 +139,9 @@ void fmt_settings_set_decimal (struct fmt_settings *, char);
 const struct fmt_number_style *fmt_settings_get_style (
   const struct fmt_settings *, enum fmt_type);
 void fmt_settings_set_style (struct fmt_settings *, enum fmt_type,
-                             const struct fmt_number_style *);
+                             char decimal, char grouping,
+                             const char *neg_prefix, const char *prefix,
+                             const char *suffix, const char *neg_suffix);
 
 /* A numeric output style. */
 struct fmt_number_style
@@ -152,15 +154,8 @@ struct fmt_number_style
     char grouping;                    /* Grouping character: ',', '.', or 0. */
   };
 
-/* Maximum length of prefix or suffix string in
-   struct fmt_number_style. */
-#define FMT_STYLE_AFFIX_MAX 16
-
 int fmt_affix_width (const struct fmt_number_style *);
 int fmt_neg_affix_width (const struct fmt_number_style *);
-
-void fmt_check_style (const struct fmt_number_style *style);
-
 
 extern const struct fmt_spec F_8_0 ;
 

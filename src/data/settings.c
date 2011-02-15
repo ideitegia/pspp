@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -526,11 +526,10 @@ settings_set_syntax ( enum behavior_mode mode)
 
 
 
-/* Find the grouping characters in CC_STRING and set CC's
-   grouping and decimal members appropriately.  Returns true if
-   successful, false otherwise. */
+/* Find the grouping characters in CC_STRING and sets *GROUPING and *DECIMAL
+   appropriately.  Returns true if successful, false otherwise. */
 static bool
-find_cc_separators (const char *cc_string, struct fmt_number_style *cc)
+find_cc_separators (const char *cc_string, char *decimal, char *grouping)
 {
   const char *sp;
   int comma_cnt, dot_cnt;
@@ -552,36 +551,32 @@ find_cc_separators (const char *cc_string, struct fmt_number_style *cc)
 
   if (comma_cnt == 3)
     {
-      cc->decimal = '.';
-      cc->grouping = ',';
+      *decimal = '.';
+      *grouping = ',';
     }
   else
     {
-      cc->decimal = ',';
-      cc->grouping = '.';
+      *decimal = ',';
+      *grouping = '.';
     }
   return true;
 }
 
-/* Extracts a token from IN into AFFIX, using BUFFER for storage.  BUFFER must
-   have at least FMT_STYLE_AFFIX_MAX + 1 bytes of space.  Tokens are delimited
-   by GROUPING.  The token is truncated to at most FMT_STYLE_AFFIX_MAX bytes,
-   followed by a null terminator.  Returns the first character following the
-   token. */
+/* Extracts a token from IN into a newly allocated string AFFIXP.  Tokens are
+   delimited by GROUPING.  Returns the first character following the token. */
 static const char *
-extract_cc_token (const char *in, int grouping, struct substring *affix,
-                  char buffer[FMT_STYLE_AFFIX_MAX + 1])
+extract_cc_token (const char *in, int grouping, char **affixp)
 {
-  size_t ofs = 0;
+  char *out;
 
+  out = *affixp = xmalloc (strlen (in) + 1);
   for (; *in != '\0' && *in != grouping; in++)
     {
       if (*in == '\'' && in[1] == grouping)
         in++;
-      if (ofs < FMT_STYLE_AFFIX_MAX)
-        buffer[ofs++] = *in;
+      *out++ = *in;
     }
-  *affix = ss_buffer (buffer, ofs);
+  *out = '\0';
 
   if (*in == grouping)
     in++;
@@ -593,16 +588,13 @@ extract_cc_token (const char *in, int grouping, struct substring *affix,
 bool
 settings_set_cc (const char *cc_string, enum fmt_type type)
 {
-  char a[FMT_STYLE_AFFIX_MAX + 1];
-  char b[FMT_STYLE_AFFIX_MAX + 1];
-  char c[FMT_STYLE_AFFIX_MAX + 1];
-  char d[FMT_STYLE_AFFIX_MAX + 1];
-  struct fmt_number_style cc;
+  char *neg_prefix, *prefix, *suffix, *neg_suffix;
+  char decimal, grouping;
 
   assert (fmt_get_category (type) == FMT_CAT_CUSTOM);
 
   /* Determine separators. */
-  if (!find_cc_separators (cc_string, &cc))
+  if (!find_cc_separators (cc_string, &decimal, &grouping))
     {
       msg (SE, _("%s: Custom currency string `%s' does not contain "
                  "exactly three periods or commas (or it contains both)."),
@@ -610,12 +602,18 @@ settings_set_cc (const char *cc_string, enum fmt_type type)
       return false;
     }
 
-  cc_string = extract_cc_token (cc_string, cc.grouping, &cc.neg_prefix, a);
-  cc_string = extract_cc_token (cc_string, cc.grouping, &cc.prefix, b);
-  cc_string = extract_cc_token (cc_string, cc.grouping, &cc.suffix, c);
-  cc_string = extract_cc_token (cc_string, cc.grouping, &cc.neg_suffix, d);
+  cc_string = extract_cc_token (cc_string, grouping, &neg_prefix);
+  cc_string = extract_cc_token (cc_string, grouping, &prefix);
+  cc_string = extract_cc_token (cc_string, grouping, &suffix);
+  cc_string = extract_cc_token (cc_string, grouping, &neg_suffix);
 
-  fmt_settings_set_style (the_settings.styles, type, &cc);
+  fmt_settings_set_style (the_settings.styles, type, decimal, grouping,
+                          neg_prefix, prefix, suffix, neg_suffix);
+
+  free (neg_suffix);
+  free (suffix);
+  free (prefix);
+  free (neg_prefix);
 
   return true;
 }
