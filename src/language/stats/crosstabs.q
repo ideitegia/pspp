@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1189,20 +1189,15 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   for (i = 0; i < pt->n_consts; i++)
     {
       const struct variable *var = pt->const_vars[i];
-      size_t ofs;
-      char *s = NULL;
+      char *s;
 
       ds_put_format (&title, ", %s=", var_get_name (var));
 
-      /* Insert the formatted value of the variable, then trim
-         leading spaces in what was just inserted. */
-      ofs = ds_length (&title);
+      /* Insert the formatted value of VAR without any leading spaces. */
       s = data_out (&pt->const_values[i], var_get_encoding (var),
                     var_get_print_format (var));
-      ds_put_cstr (&title, s);
+      ds_put_cstr (&title, s + strspn (s, " "));
       free (s);
-      ds_remove (&title, ofs, ss_cspan (ds_substr (&title, ofs, SIZE_MAX),
-                                        ss_cstr (" ")));
     }
 
   ds_put_cstr (&title, " [");
