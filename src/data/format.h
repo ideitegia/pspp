@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -143,15 +143,21 @@ void fmt_settings_set_style (struct fmt_settings *, enum fmt_type,
                              const char *neg_prefix, const char *prefix,
                              const char *suffix, const char *neg_suffix);
 
+/* A prefix or suffix for a numeric output format. */
+struct fmt_affix
+  {
+    char *s;                    /* String contents of affix. */
+  };
+
 /* A numeric output style. */
 struct fmt_number_style
   {
-    struct substring neg_prefix;      /* Negative prefix. */
-    struct substring prefix;          /* Prefix. */
-    struct substring suffix;          /* Suffix. */
-    struct substring neg_suffix;      /* Negative suffix. */
-    char decimal;                     /* Decimal point: '.' or ','. */
-    char grouping;                    /* Grouping character: ',', '.', or 0. */
+    struct fmt_affix neg_prefix; /* Negative prefix. */
+    struct fmt_affix prefix;     /* Prefix. */
+    struct fmt_affix suffix;     /* Suffix. */
+    struct fmt_affix neg_suffix; /* Negative suffix. */
+    char decimal;                /* Decimal point: '.' or ','. */
+    char grouping;               /* Grouping character: ',', '.', or 0. */
   };
 
 int fmt_affix_width (const struct fmt_number_style *);

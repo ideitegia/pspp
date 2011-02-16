@@ -21,18 +21,19 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include <data/identifier.h>
-#include <data/settings.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "data/identifier.h"
+#include "data/settings.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -47,6 +48,9 @@ bool is_fmt_type (enum fmt_type);
 static bool valid_width (enum fmt_type, int width, bool for_input);
 
 static int max_digits_for_bytes (int bytes);
+
+static void fmt_affix_set (struct fmt_affix *, const char *);
+static void fmt_affix_free (struct fmt_affix *);
 
 static void fmt_number_style_init (struct fmt_number_style *);
 static void fmt_number_style_clone (struct fmt_number_style *,
@@ -124,10 +128,10 @@ fmt_settings_set_style (struct fmt_settings *settings, enum fmt_type type,
 
   fmt_number_style_destroy (style);
 
-  ss_alloc_substring (&style->neg_prefix, ss_cstr (neg_prefix));
-  ss_alloc_substring (&style->prefix, ss_cstr (prefix));
-  ss_alloc_substring (&style->suffix, ss_cstr (suffix));
-  ss_alloc_substring (&style->neg_suffix, ss_cstr (neg_suffix));
+  fmt_affix_set (&style->neg_prefix, neg_prefix);
+  fmt_affix_set (&style->prefix, prefix);
+  fmt_affix_set (&style->suffix, suffix);
+  fmt_affix_set (&style->neg_suffix, neg_suffix);
   style->decimal = decimal;
   style->grouping = grouping;
 }
@@ -930,13 +934,28 @@ max_digits_for_bytes (int bytes)
   return map[bytes - 1];
 }
 
+/* Sets AFFIX's string value to S. */
+static void
+fmt_affix_set (struct fmt_affix *affix, const char *s)
+{
+  affix->s = s[0] == '\0' ? CONST_CAST (char *, "") : xstrdup (s);
+}
+
+/* Frees data in AFFIX. */
+static void
+fmt_affix_free (struct fmt_affix *affix)
+{
+  if (affix->s[0])
+    free (affix->s);
+}
+
 static void
 fmt_number_style_init (struct fmt_number_style *style)
 {
-  style->neg_prefix = ss_empty ();
-  style->prefix = ss_empty ();
-  style->suffix = ss_empty ();
-  style->neg_suffix = ss_empty ();
+  fmt_affix_set (&style->neg_prefix, "");
+  fmt_affix_set (&style->prefix, "");
+  fmt_affix_set (&style->suffix, "");
+  fmt_affix_set (&style->neg_suffix, "");
   style->decimal = '.';
   style->grouping = 0;
 }
@@ -945,10 +964,10 @@ static void
 fmt_number_style_clone (struct fmt_number_style *new,
                         const struct fmt_number_style *old)
 {
-  ss_alloc_substring (&new->neg_prefix, old->neg_prefix);
-  ss_alloc_substring (&new->prefix, old->prefix);
-  ss_alloc_substring (&new->suffix, old->suffix);
-  ss_alloc_substring (&new->neg_suffix, old->neg_suffix);
+  fmt_affix_set (&new->neg_prefix, old->neg_prefix.s);
+  fmt_affix_set (&new->prefix, old->prefix.s);
+  fmt_affix_set (&new->suffix, old->suffix.s);
+  fmt_affix_set (&new->neg_suffix, old->neg_suffix.s);
   new->decimal = old->decimal;
   new->grouping = old->grouping;
 }
@@ -959,10 +978,10 @@ fmt_number_style_destroy (struct fmt_number_style *style)
 {
   if (style != NULL)
     {
-      ss_dealloc (&style->neg_prefix);
-      ss_dealloc (&style->prefix);
-      ss_dealloc (&style->suffix);
-      ss_dealloc (&style->neg_suffix);
+      fmt_affix_free (&style->neg_prefix);
+      fmt_affix_free (&style->prefix);
+      fmt_affix_free (&style->suffix);
+      fmt_affix_free (&style->neg_suffix);
     }
 }
 
@@ -971,7 +990,7 @@ fmt_number_style_destroy (struct fmt_number_style *style)
 int
 fmt_affix_width (const struct fmt_number_style *style)
 {
-  return ss_length (style->prefix) + ss_length (style->suffix);
+  return strlen (style->prefix.s) + strlen (style->suffix.s);
 }
 
 /* Returns the total width of the negative prefix and suffix for
@@ -979,7 +998,7 @@ fmt_affix_width (const struct fmt_number_style *style)
 int
 fmt_neg_affix_width (const struct fmt_number_style *style)
 {
-  return ss_length (style->neg_prefix) + ss_length (style->neg_suffix);
+  return strlen (style->neg_prefix.s) + strlen (style->neg_suffix.s);
 }
 
 /* Returns the struct fmt_desc for the given format TYPE. */

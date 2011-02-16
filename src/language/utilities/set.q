@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -536,11 +536,11 @@ show_blanks (const struct dataset *ds UNUSED)
 }
 
 static void
-format_cc (struct string *out, struct substring in, char grouping)
+format_cc (struct string *out, const char *in, char grouping)
 {
-  while (!ss_is_empty (in))
+  while (*in != '\0')
     {
-      char c = ss_get_byte (&in);
+      char c = *in++;
       if (c == grouping || c == '\'')
         ds_put_byte (out, '\'');
       else if (c == '"')
@@ -556,13 +556,13 @@ show_cc (enum fmt_type type)
   struct string out;
 
   ds_init_empty (&out);
-  format_cc (&out, cc->neg_prefix, cc->grouping);
+  format_cc (&out, cc->neg_prefix.s, cc->grouping);
   ds_put_byte (&out, cc->grouping);
-  format_cc (&out, cc->prefix, cc->grouping);
+  format_cc (&out, cc->prefix.s, cc->grouping);
   ds_put_byte (&out, cc->grouping);
-  format_cc (&out, cc->suffix, cc->grouping);
+  format_cc (&out, cc->suffix.s, cc->grouping);
   ds_put_byte (&out, cc->grouping);
-  format_cc (&out, cc->neg_suffix, cc->grouping);
+  format_cc (&out, cc->neg_suffix.s, cc->grouping);
 
   return ds_cstr (&out);
 }

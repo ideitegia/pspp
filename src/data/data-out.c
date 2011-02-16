@@ -131,9 +131,11 @@ char *
 data_out_pool (const union value *input, const char *encoding,
 	       const struct fmt_spec *format, struct pool *pool)
 {
-  char *output = xmalloc (format->w + 1);
+  char *output;
   char *t ;
   assert (fmt_check_output (format));
+
+  output = xmalloc (format->w + 1);
 
   converters[format->type] (input, format, output);
 
@@ -600,9 +602,9 @@ output_decimal (const struct rounder *r, const struct fmt_spec *format,
          the negative suffix, plus (if negative) the negative
          prefix. */
       width = rounder_width (r, decimals, &integer_digits, &add_neg_prefix);
-      width += ss_length (style->neg_suffix);
+      width += strlen (style->neg_suffix.s);
       if (add_neg_prefix)
-        width += ss_length (style->neg_prefix);
+        width += strlen (style->neg_prefix.s);
       if (width > format->w)
         continue;
 
@@ -632,10 +634,9 @@ output_decimal (const struct rounder *r, const struct fmt_spec *format,
       if (format->w > width)
         p = mempset (p, ' ', format->w - width);
       if (add_neg_prefix)
-        p = mempcpy (p, ss_data (style->neg_prefix),
-                     ss_length (style->neg_prefix));
+        p = stpcpy (p, style->neg_prefix.s);
       if (add_affixes)
-        p = mempcpy (p, ss_data (style->prefix), ss_length (style->prefix));
+        p = stpcpy (p, style->prefix.s);
       if (!add_grouping)
         p = mempcpy (p, magnitude, integer_digits);
       else
@@ -654,12 +655,11 @@ output_decimal (const struct rounder *r, const struct fmt_spec *format,
           p = mempcpy (p, &magnitude[integer_digits + 1], decimals);
         }
       if (add_affixes)
-        p = mempcpy (p, ss_data (style->suffix), ss_length (style->suffix));
+        p = stpcpy (p, style->suffix.s);
       if (add_neg_prefix)
-        p = mempcpy (p, ss_data (style->neg_suffix),
-                     ss_length (style->neg_suffix));
+        p = stpcpy (p, style->neg_suffix.s);
       else
-        p = mempset (p, ' ', ss_length (style->neg_suffix));
+        p = mempset (p, ' ', strlen (style->neg_suffix.s));
       assert (p == output + format->w);
 
       return true;
@@ -681,9 +681,9 @@ output_scientific (double number, const struct fmt_spec *format,
   char buf[64], *p;
 
   /* Allocate minimum required space. */
-  width = 6 + ss_length (style->neg_suffix);
+  width = 6 + strlen (style->neg_suffix.s);
   if (number < 0)
-    width += ss_length (style->neg_prefix);
+    width += strlen (style->neg_prefix.s);
   if (width > format->w)
     return false;
 
@@ -706,10 +706,9 @@ output_scientific (double number, const struct fmt_spec *format,
   if (width < format->w)
     p = mempset (p, ' ', format->w - width);
   if (number < 0)
-    p = mempcpy (p, ss_data (style->neg_prefix),
-                 ss_length (style->neg_prefix));
+    p = stpcpy (p, style->neg_prefix.s);
   if (add_affixes)
-    p = mempcpy (p, ss_data (style->prefix), ss_length (style->prefix));
+    p = stpcpy (p, style->prefix.s);
   if (fraction_width > 0)
     sprintf (p, "%#.*E", fraction_width - 1, fabs (number));
   else
@@ -736,12 +735,11 @@ output_scientific (double number, const struct fmt_spec *format,
   /* Add suffixes. */
   p = strchr (p, '\0');
   if (add_affixes)
-    p = mempcpy (p, ss_data (style->suffix), ss_length (style->suffix));
+    p = stpcpy (p, style->suffix.s);
   if (number < 0)
-    p = mempcpy (p, ss_data (style->neg_suffix),
-                 ss_length (style->neg_suffix));
+    p = stpcpy (p, style->neg_suffix.s);
   else
-    p = mempset (p, ' ', ss_length (style->neg_suffix));
+    p = mempset (p, ' ', strlen (style->neg_suffix.s));
 
   assert (p == buf + format->w);
   memcpy (output, buf, format->w);

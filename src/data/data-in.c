@@ -298,9 +298,9 @@ parse_number (struct data_in *i)
   ds_extend (&tmp, 64);
 
   /* Prefix character may precede sign. */
-  if (!ss_is_empty (style->prefix))
+  if (style->prefix.s[0] != '\0')
     {
-      ss_match_byte (&i->input, ss_first (style->prefix));
+      ss_match_byte (&i->input, style->prefix.s[0]);
       ss_ltrim (&i->input, ss_cstr (CC_SPACES));
     }
 
@@ -317,9 +317,9 @@ parse_number (struct data_in *i)
     }
 
   /* Prefix character may follow sign. */
-  if (!ss_is_empty (style->prefix))
+  if (style->prefix.s[0] != '\0')
     {
-      ss_match_byte (&i->input, ss_first (style->prefix));
+      ss_match_byte (&i->input, style->prefix.s[0]);
       ss_ltrim (&i->input, ss_cstr (CC_SPACES));
     }
 
@@ -366,8 +366,8 @@ parse_number (struct data_in *i)
     }
 
   /* Suffix character. */
-  if (!ss_is_empty (style->suffix))
-    ss_match_byte (&i->input, ss_first (style->suffix));
+  if (style->suffix.s[0] != '\0')
+    ss_match_byte (&i->input, style->suffix.s[0]);
 
   if (!ss_is_empty (i->input))
     {
