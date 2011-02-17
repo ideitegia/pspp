@@ -215,11 +215,9 @@ output_Z (const union value *input, const struct fmt_spec *format,
   char buf[128];
   if (input->f == SYSMIS)
     output_missing (format, output);
-  else if (fabs (number) >= power10 (format->w)
-           || sprintf (buf, "%0*.0f", format->w,
-                       fabs (round (number))) != format->w)
-    output_overflow (format, output);
-  else
+  else if (fabs (number) < power10 (format->w)
+           && sprintf (buf, "%0*.0f", format->w,
+                       fabs (round (number))) == format->w)
     {
       if (number < 0 && strspn (buf, "0") < format->w)
         {
@@ -229,6 +227,8 @@ output_Z (const union value *input, const struct fmt_spec *format,
       memcpy (output, buf, format->w);
       output[format->w] = '\0';
     }
+  else
+    output_overflow (format, output);
 }
 
 /* Outputs P format. */
