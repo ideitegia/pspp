@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2000, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -299,7 +299,8 @@ pool_alloc (struct pool *pool, size_t amt)
 void *
 pool_alloc_unaligned (struct pool *pool, size_t amt)
 {
-  assert (pool != NULL);
+  if (pool == NULL)
+    return xmalloc (amt);
 
 #ifndef DISCRETE_BLOCKS
   /* Strings need not be aligned on any boundary, but some
