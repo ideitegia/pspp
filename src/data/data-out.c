@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistr.h>
 
 #include <data/calendar.h>
 #include <data/format.h>
@@ -31,6 +32,7 @@
 #include <data/value.h>
 
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
@@ -92,57 +94,103 @@ static data_out_converter_func *const converters[FMT_NUMBER_OF_FORMATS] =
 #include "format.def"
     };
 
-/* Similar to data_out. Additionally recodes the output from
-   native form into the given legacy character ENCODING.
-   OUTPUT must be provided by the caller and must be at least
-   FORMAT->w long. No null terminator is appended to OUTPUT.
-*/
+/* Converts the INPUT value, encoded in INPUT_ENCODING, according to format
+   specification FORMAT, appending the output to OUTPUT in OUTPUT_ENCODING.
+   However, binary formats (FMT_P, FMT_PK, FMT_IB, FMT_PIB, FMT_RB) yield the
+   binary results, which may not be properly encoded for OUTPUT_ENCODING.
+
+   VALUE must be the correct width for FORMAT, that is, its width must be
+   fmt_var_width(FORMAT).
+
+   INPUT_ENCODING can normally be obtained by calling dict_get_encoding() on
+   the dictionary with which INPUT is associated.  ENCODING is only important
+   when FORMAT's type is FMT_A. */
 void
-data_out_legacy (const union value *input, const char *encoding,
-                 const struct fmt_spec *format, char *output)
+data_out_recode (const union value *input, const char *input_encoding,
+                 const struct fmt_spec *format,
+                 struct string *output, const char *output_encoding)
 {
   assert (fmt_check_output (format));
-
-  converters[format->type] (input, format, output);
-  if (0 != strcmp (encoding, C_ENCODING)
-      && fmt_get_category (format->type) != FMT_CAT_BINARY)
+  if (format->type == FMT_A)
     {
-      char *s  = recode_string (encoding, C_ENCODING, output, format->w );
-      memcpy (output, s, format->w);
-      free (s);
+      char *in = CHAR_CAST (char *, value_str (input, format->w));
+      char *out = recode_string (output_encoding, input_encoding,
+                                 in, format->w);
+      ds_put_cstr (output, out);
+      free (out);
+    }
+  else if (fmt_get_category (format->type) == FMT_CAT_BINARY)
+    converters[format->type] (input, format,
+                              ds_put_uninit (output, format->w));
+  else
+    {
+      char *utf8_encoded = data_out (input, input_encoding, format);
+      char *output_encoded = recode_string (output_encoding, UTF8,
+                                            utf8_encoded, -1);
+      ds_put_cstr (output, output_encoded);
+      free (output_encoded);
+      free (utf8_encoded);
     }
 }
 
-/* Converts the INPUT value into a UTF8 encoded string, according
-   to format specification FORMAT. 
+static char *
+binary_to_utf8 (const char *in, struct pool *pool)
+{
+  uint8_t *out = pool_alloc_unaligned (pool, strlen (in) * 2 + 1);
+  uint8_t *p = out;
 
-   VALUE must be the correct width for FORMAT, that is, its
-   width must be fmt_var_width(FORMAT).
+  while (*in != '\0')
+    {
+      uint8_t byte = *in++;
+      int mblen = u8_uctomb (p, byte, 2);
+      assert (mblen > 0);
+      p += mblen;
+    }
+  *p = '\0';
 
-   ENCODING must be the encoding of INPUT.  Normally this can
-   be obtained by calling dict_get_encoding on the dictionary
-   with which INPUT is associated.
+  return CHAR_CAST (char *, out);
+}
 
-   The return value is dynamically allocated, and must be freed
-   by the caller.  If POOL is non-null, then the return value is
-   allocated on that pool.
-*/
+/* Converts the INPUT value into a UTF-8 encoded string, according to format
+   specification FORMAT.
+
+   VALUE must be the correct width for FORMAT, that is, its width must be
+   fmt_var_width(FORMAT).
+
+   ENCODING must be the encoding of INPUT.  Normally this can be obtained by
+   calling dict_get_encoding() on the dictionary with which INPUT is
+   associated.  ENCODING is only important when FORMAT's type is FMT_A.
+
+   The return value is dynamically allocated, and must be freed by the caller.
+   If POOL is non-null, then the return value is allocated on that pool.  */
 char *
 data_out_pool (const union value *input, const char *encoding,
 	       const struct fmt_spec *format, struct pool *pool)
 {
-  const struct fmt_number_style *style = settings_get_style (format->type);
-  char *output;
-  char *t ;
   assert (fmt_check_output (format));
+  if (format->type == FMT_A)
+    {
+      char *in = CHAR_CAST (char *, value_str (input, format->w));
+      return recode_string_pool (UTF8, encoding, in, format->w, pool);
+    }
+  else if (fmt_get_category (format->type) == FMT_CAT_BINARY)
+    {
+      char tmp[16];
 
-  output = xmalloc (format->w + style->extra_bytes + 1);
+      assert (format->w + 1 <= sizeof tmp);
+      converters[format->type] (input, format, tmp);
+      return binary_to_utf8 (tmp, pool);
+    }
+  else
+    {
+      const struct fmt_number_style *style = settings_get_style (format->type);
+      size_t size = format->w + style->extra_bytes + 1;
+      char *output;
 
-  converters[format->type] (input, format, output);
-
-  t =  recode_string_pool (UTF8, encoding, output, format->w, pool);
-  free (output);
-  return t;
+      output = pool_alloc_unaligned (pool, size);
+      converters[format->type] (input, format, output);
+      return output;
+    }
 }
 
 char *
@@ -529,11 +577,10 @@ output_MONTH (const union value *input, const struct fmt_spec *format,
 
 /* Outputs A format. */
 static void
-output_A (const union value *input, const struct fmt_spec *format,
-          char *output)
+output_A (const union value *input UNUSED,
+          const struct fmt_spec *format UNUSED, char *output UNUSED)
 {
-  memcpy (output, value_str (input, format->w), format->w);
-  output[format->w] = '\0';
+  NOT_REACHED ();
 }
 
 /* Outputs AHEX format. */
@@ -682,7 +729,7 @@ output_scientific (double number, const struct fmt_spec *format,
   int width;
   int fraction_width;
   bool add_affixes;
-  char buf[64], *p;
+  char *p;
 
   /* Allocate minimum required space. */
   width = 6 + style->neg_suffix.width;
@@ -706,7 +753,7 @@ output_scientific (double number, const struct fmt_spec *format,
   width += fraction_width;
 
   /* Format (except suffix). */
-  p = buf;
+  p = output;
   if (width < format->w)
     p = mempset (p, ' ', format->w - width);
   if (number < 0)

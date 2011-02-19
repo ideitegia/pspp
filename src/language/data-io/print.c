@@ -468,11 +468,11 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
       if (spec->type == PRT_VAR)
         {
           const union value *input = case_data (*c, spec->var);
-          char *output = ds_put_uninit (&trns->line, spec->format.w);
           if (!spec->sysmis_as_spaces || input->f != SYSMIS)
-            data_out_legacy (input, trns->encoding, &spec->format, output);
+            data_out_recode (input, var_get_encoding (spec->var),
+                             &spec->format, &trns->line, trns->encoding);
           else
-            memset (output, encoded_space, spec->format.w);
+            ds_put_byte_multiple (&trns->line, encoded_space, spec->format.w);
           if (spec->add_space)
             ds_put_byte (&trns->line, encoded_space);
         }

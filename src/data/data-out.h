@@ -22,13 +22,15 @@
 #include <libpspp/integer-format.h>
 
 struct fmt_spec;
+struct string;
 union value;
 
 char * data_out (const union value *, const char *encoding, const struct fmt_spec *);
 
 char * data_out_pool (const union value *, const char *encoding, const struct fmt_spec *, struct pool *pool);
 
-void data_out_legacy (const union value *input, const char *encoding,
-		      const struct fmt_spec *format, char *output);
+void data_out_recode (const union value *input, const char *input_encoding,
+                      const struct fmt_spec *,
+                      struct string *output, const char *output_encoding);
 
 #endif /* data-out.h */
