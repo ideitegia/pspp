@@ -78,6 +78,7 @@ GNULIB_MODULES = \
 	unistr/u8-mbtouc \
 	unistr/u8-strlen \
 	unistr/u8-strncat \
+	uniwidth/u8-strwidth \
 	unitypes \
 	unlocked-io \
 	vasprintf-posix \

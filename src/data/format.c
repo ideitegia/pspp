@@ -20,6 +20,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <uniwidth.h>
 
 #include "data/identifier.h"
 #include "data/settings.h"
@@ -113,7 +114,7 @@ fmt_settings_get_style (const struct fmt_settings *settings,
 
 /* Sets the number style for TYPE to have the given DECIMAL and GROUPING
    characters, negative prefix NEG_PREFIX, prefix PREFIX, suffix SUFFIX, and
-   negative suffix NEG_SUFFIX. */
+   negative suffix NEG_SUFFIX.  All of the strings are UTF-8 encoded. */
 void
 fmt_settings_set_style (struct fmt_settings *settings, enum fmt_type type,
                         char decimal, char grouping,
@@ -121,6 +122,7 @@ fmt_settings_set_style (struct fmt_settings *settings, enum fmt_type type,
                         const char *suffix, const char *neg_suffix)
 {
   struct fmt_number_style *style = &settings->styles[type];
+  int total_bytes, total_width;
 
   assert (grouping == '.' || grouping == ',' || grouping == 0);
   assert (decimal == '.' || decimal == ',');
@@ -134,6 +136,12 @@ fmt_settings_set_style (struct fmt_settings *settings, enum fmt_type type,
   fmt_affix_set (&style->neg_suffix, neg_suffix);
   style->decimal = decimal;
   style->grouping = grouping;
+
+  total_bytes = (strlen (neg_prefix) + strlen (prefix)
+                 + strlen (suffix) + strlen (neg_suffix));
+  total_width = (style->neg_prefix.width + style->prefix.width
+                 + style->suffix.width + style->neg_suffix.width);
+  style->extra_bytes = MAX (0, total_bytes - total_width);
 }
 
 /* Sets the decimal point character for the settings in S to DECIMAL.
@@ -934,11 +942,12 @@ max_digits_for_bytes (int bytes)
   return map[bytes - 1];
 }
 
-/* Sets AFFIX's string value to S. */
+/* Sets AFFIX's string value to S, a UTF-8 encoded string. */
 static void
 fmt_affix_set (struct fmt_affix *affix, const char *s)
 {
   affix->s = s[0] == '\0' ? CONST_CAST (char *, "") : xstrdup (s);
+  affix->width = u8_strwidth (CHAR_CAST (const uint8_t *, s), "UTF-8");
 }
 
 /* Frees data in AFFIX. */
@@ -970,6 +979,7 @@ fmt_number_style_clone (struct fmt_number_style *new,
   fmt_affix_set (&new->neg_suffix, old->neg_suffix.s);
   new->decimal = old->decimal;
   new->grouping = old->grouping;
+  new->extra_bytes = old->extra_bytes;
 }
 
 /* Destroys a struct fmt_number_style. */
@@ -985,20 +995,20 @@ fmt_number_style_destroy (struct fmt_number_style *style)
     }
 }
 
-/* Returns the total width of the standard prefix and suffix for
-   STYLE. */
+/* Returns the total width of the standard prefix and suffix for STYLE, in
+   display columns (e.g. as returned by u8_strwidth()). */
 int
 fmt_affix_width (const struct fmt_number_style *style)
 {
-  return strlen (style->prefix.s) + strlen (style->suffix.s);
+  return style->prefix.width + style->suffix.width;
 }
 
-/* Returns the total width of the negative prefix and suffix for
-   STYLE. */
+/* Returns the total width of the negative prefix and suffix for STYLE, in
+   display columns (e.g. as returned by u8_strwidth()). */
 int
 fmt_neg_affix_width (const struct fmt_number_style *style)
 {
-  return strlen (style->neg_prefix.s) + strlen (style->neg_suffix.s);
+  return style->neg_prefix.width + style->neg_suffix.width;
 }
 
 /* Returns the struct fmt_desc for the given format TYPE. */

@@ -131,11 +131,12 @@ char *
 data_out_pool (const union value *input, const char *encoding,
 	       const struct fmt_spec *format, struct pool *pool)
 {
+  const struct fmt_number_style *style = settings_get_style (format->type);
   char *output;
   char *t ;
   assert (fmt_check_output (format));
 
-  output = xmalloc (format->w + 1);
+  output = xmalloc (format->w + style->extra_bytes + 1);
 
   converters[format->type] (input, format, output);
 
@@ -602,9 +603,9 @@ output_decimal (const struct rounder *r, const struct fmt_spec *format,
          the negative suffix, plus (if negative) the negative
          prefix. */
       width = rounder_width (r, decimals, &integer_digits, &add_neg_prefix);
-      width += strlen (style->neg_suffix.s);
+      width += style->neg_suffix.width;
       if (add_neg_prefix)
-        width += strlen (style->neg_prefix.s);
+        width += style->neg_prefix.width;
       if (width > format->w)
         continue;
 
@@ -659,8 +660,11 @@ output_decimal (const struct rounder *r, const struct fmt_spec *format,
       if (add_neg_prefix)
         p = stpcpy (p, style->neg_suffix.s);
       else
-        p = mempset (p, ' ', strlen (style->neg_suffix.s));
-      assert (p == output + format->w);
+        p = mempset (p, ' ', style->neg_suffix.width);
+
+      assert (p >= output + format->w);
+      assert (p <= output + format->w + style->extra_bytes);
+      *p = '\0';
 
       return true;
     }
@@ -681,9 +685,9 @@ output_scientific (double number, const struct fmt_spec *format,
   char buf[64], *p;
 
   /* Allocate minimum required space. */
-  width = 6 + strlen (style->neg_suffix.s);
+  width = 6 + style->neg_suffix.width;
   if (number < 0)
-    width += strlen (style->neg_prefix.s);
+    width += style->neg_prefix.width;
   if (width > format->w)
     return false;
 
@@ -739,11 +743,11 @@ output_scientific (double number, const struct fmt_spec *format,
   if (number < 0)
     p = stpcpy (p, style->neg_suffix.s);
   else
-    p = mempset (p, ' ', strlen (style->neg_suffix.s));
+    p = mempset (p, ' ', style->neg_suffix.width);
 
-  assert (p == buf + format->w);
-  memcpy (output, buf, format->w);
-  output[format->w] = '\0';
+  assert (p >= output + format->w);
+  assert (p <= output + format->w + style->extra_bytes);
+  *p = '\0';
 
   return true;
 }
