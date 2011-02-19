@@ -136,7 +136,6 @@ data_out_pool (const union value *input, const char *encoding,
   assert (fmt_check_output (format));
 
   converters[format->type] (input, format, output);
-  output[format->w] = '\0';
 
   t =  recode_string_pool (UTF8, encoding, output, format->w, pool);
   free (output);
@@ -200,6 +199,8 @@ output_N (const union value *input, const struct fmt_spec *format,
       else
         output_overflow (format, output);
     }
+
+  output[format->w] = '\0';
 }
 
 /* Outputs Z format. */
@@ -223,6 +224,7 @@ output_Z (const union value *input, const struct fmt_spec *format,
           *p = "}JKLMNOPQR"[*p - '0'];
         }
       memcpy (output, buf, format->w);
+      output[format->w] = '\0';
     }
 }
 
@@ -266,6 +268,8 @@ output_IB (const union value *input, const struct fmt_spec *format,
 			     settings_get_output_integer_format (),
                              output);
     }
+
+  output[format->w] = '\0';
 }
 
 /* Outputs PIB format. */
@@ -280,6 +284,8 @@ output_PIB (const union value *input, const struct fmt_spec *format,
   else
     output_binary_integer (number, format->w,
 			   settings_get_output_integer_format (), output);
+
+  output[format->w] = '\0';
 }
 
 /* Outputs PIBHEX format. */
@@ -298,6 +304,7 @@ output_PIBHEX (const union value *input, const struct fmt_spec *format,
       output_binary_integer (number, format->w / 2, INTEGER_MSB_FIRST, tmp);
       output_hex (tmp, format->w / 2, output);
     }
+
 }
 
 /* Outputs RB format. */
@@ -307,6 +314,8 @@ output_RB (const union value *input, const struct fmt_spec *format,
 {
   double d = input->f;
   memcpy (output, &d, format->w);
+
+  output[format->w] = '\0';
 }
 
 /* Outputs RBHEX format. */
@@ -315,6 +324,7 @@ output_RBHEX (const union value *input, const struct fmt_spec *format,
               char *output)
 {
   double d = input->f;
+
   output_hex (&d, format->w / 2, output);
 }
 
@@ -451,6 +461,7 @@ output_date (const union value *input, const struct fmt_spec *format,
     }
 
   buf_copy_lpad (output, format->w, tmp, p - tmp, ' ');
+  output[format->w] = '\0';
   return;
 
  overflow:
@@ -474,13 +485,18 @@ output_WKDAY (const union value *input, const struct fmt_spec *format,
     };
 
   if (input->f >= 1 && input->f < 8)
-    buf_copy_str_rpad (output, format->w, weekdays[(int) input->f - 1], ' ');
+    {
+      buf_copy_str_rpad (output, format->w,
+                         weekdays[(int) input->f - 1], ' ');
+      output[format->w] = '\0';
+    }
   else
     {
       if (input->f != SYSMIS)
         msg (ME, _("Weekday number %f is not between 1 and 7."), input->f);
       output_missing (format, output);
     }
+
 }
 
 /* Outputs MONTH format. */
@@ -495,13 +511,17 @@ output_MONTH (const union value *input, const struct fmt_spec *format,
     };
 
   if (input->f >= 1 && input->f < 13)
-    buf_copy_str_rpad (output, format->w, months[(int) input->f - 1], ' ');
+    {
+      buf_copy_str_rpad (output, format->w, months[(int) input->f - 1], ' ');
+      output[format->w] = '\0';
+    }
   else
     {
       if (input->f != SYSMIS)
         msg (ME, _("Month number %f is not between 1 and 12."), input->f);
       output_missing (format, output);
     }
+
 }
 
 /* Outputs A format. */
@@ -510,6 +530,7 @@ output_A (const union value *input, const struct fmt_spec *format,
           char *output)
 {
   memcpy (output, value_str (input, format->w), format->w);
+  output[format->w] = '\0';
 }
 
 /* Outputs AHEX format. */
@@ -724,6 +745,7 @@ output_scientific (double number, const struct fmt_spec *format,
 
   assert (p == buf + format->w);
   memcpy (output, buf, format->w);
+  output[format->w] = '\0';
 
   return true;
 }
@@ -973,6 +995,8 @@ output_infinite (double number, const struct fmt_spec *format, char *output)
     }
   else
     output_overflow (format, output);
+
+  output[format->w] = '\0';
 }
 
 /* Formats OUTPUT as a missing value for the given FORMAT. */
@@ -990,6 +1014,8 @@ output_missing (const struct fmt_spec *format, char *output)
     }
   else
     output[format->w - 1] = '.';
+
+  output[format->w] = '\0';
 }
 
 /* Formats OUTPUT for overflow given FORMAT. */
@@ -997,6 +1023,7 @@ static void
 output_overflow (const struct fmt_spec *format, char *output)
 {
   memset (output, '*', format->w);
+  output[format->w] = '\0';
 }
 
 /* Converts the integer part of NUMBER to a packed BCD number
@@ -1011,6 +1038,8 @@ output_bcd_integer (double number, int digits, char *output)
   char decimal[64];
 
   assert (digits < sizeof decimal);
+
+  output[DIV_RND_UP (digits, 2)] = '\0';
   if (number != SYSMIS
       && number >= 0.
       && number < power10 (digits)
@@ -1060,4 +1089,5 @@ output_hex (const void *data_, size_t bytes, char *output)
       *output++ = hex_digits[data[i] >> 4];
       *output++ = hex_digits[data[i] & 15];
     }
+  *output = '\0';
 }
