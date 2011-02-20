@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -200,7 +200,7 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
       trns->encoding = dfm_writer_get_legacy_encoding (trns->writer);
     }
   else
-    trns->encoding = LEGACY_NATIVE;
+    trns->encoding = UTF8;
 
   /* Output the variable table if requested. */
   if (print_table)
