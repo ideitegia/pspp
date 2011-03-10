@@ -427,6 +427,20 @@ ss_chomp_byte (struct substring *ss, char c)
     return false;
 }
 
+/* If SS ends with SUFFIX, removes it and returns true.
+   Otherwise, returns false without changing the string. */
+bool
+ss_chomp (struct substring *ss, struct substring suffix)
+{
+  if (ss_ends_with (*ss, suffix))
+    {
+      ss->length -= suffix.length;
+      return true;
+    }
+  else
+    return false;
+}
+
 /* Divides SS into tokens separated by any of the DELIMITERS.
    Each call replaces TOKEN by the next token in SS, or by an
    empty string if no tokens remain.  Returns true if a token was
@@ -653,6 +667,15 @@ int
 ss_last (struct substring ss)
 {
   return ss.length > 0 ? (unsigned char) ss.string[ss.length - 1] : EOF;
+}
+
+/* Returns true if SS ends with SUFFIX, false otherwise. */
+bool
+ss_ends_with (struct substring ss, struct substring suffix)
+{
+  return (ss.length >= suffix.length
+          && !memcmp (&ss.string[ss.length - suffix.length], suffix.string,
+                      suffix.length));
 }
 
 /* Returns the number of contiguous bytes at the beginning
@@ -1041,6 +1064,14 @@ ds_chomp_byte (struct string *st, char c)
   return ss_chomp_byte (&st->ss, c);
 }
 
+/* If ST ends with SUFFIX, removes it and returns true.
+   Otherwise, returns false without modifying ST. */
+bool
+ds_chomp (struct string *st, struct substring suffix)
+{
+  return ss_chomp (&st->ss, suffix);
+}
+
 /* Divides ST into tokens separated by any of the DELIMITERS.
    Each call replaces TOKEN by the next token in ST, or by an
    empty string if no tokens remain.  Returns true if a token was
@@ -1178,6 +1209,13 @@ int
 ds_last (const struct string *st)
 {
   return ss_last (ds_ss (st));
+}
+
+/* Returns true if ST ends with SUFFIX, false otherwise. */
+bool
+ds_ends_with (const struct string *st, struct substring suffix)
+{
+  return ss_ends_with (st->ss, suffix);
 }
 
 /* Returns the number of consecutive bytes at the beginning

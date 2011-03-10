@@ -99,6 +99,7 @@ size_t ss_rtrim (struct substring *, struct substring trim_set);
 size_t ss_ltrim (struct substring *, struct substring trim_set);
 void ss_trim (struct substring *, struct substring trim_set);
 bool ss_chomp_byte (struct substring *, char);
+bool ss_chomp (struct substring *, struct substring);
 bool ss_separate (struct substring src, struct substring delimiters,
                   size_t *save_idx, struct substring *token);
 bool ss_tokenize (struct substring src, struct substring delimiters,
@@ -120,6 +121,7 @@ char *ss_end (struct substring);
 int ss_at (struct substring, size_t idx);
 int ss_first (struct substring);
 int ss_last (struct substring);
+bool ss_ends_with (struct substring, struct substring suffix);
 size_t ss_span (struct substring, struct substring skip_set);
 size_t ss_cspan (struct substring, struct substring stop_set);
 size_t ss_find_byte (struct substring, char);
@@ -178,6 +180,7 @@ size_t ds_rtrim (struct string *, struct substring trim_set);
 size_t ds_ltrim (struct string *, struct substring trim_set);
 size_t ds_trim (struct string *, struct substring trim_set);
 bool ds_chomp_byte (struct string *, char);
+bool ds_chomp (struct string *, struct substring);
 bool ds_separate (const struct string *src, struct substring delimiters,
                   size_t *save_idx, struct substring *token);
 bool ds_tokenize (const struct string *src, struct substring delimiters,
@@ -200,6 +203,7 @@ char *ds_end (const struct string *);
 int ds_at (const struct string *, size_t idx);
 int ds_first (const struct string *);
 int ds_last (const struct string *);
+bool ds_ends_with (const struct string *, struct substring suffix);
 size_t ds_span (const struct string *, struct substring skip_set);
 size_t ds_cspan (const struct string *, struct substring stop_set);
 size_t ds_find_byte (const struct string *, char);
