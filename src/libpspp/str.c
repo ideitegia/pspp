@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -416,7 +416,7 @@ ss_trim (struct substring *ss, struct substring trim_set)
 /* If the last byte in SS is C, removes it and returns true.
    Otherwise, returns false without changing the string. */
 bool
-ss_chomp (struct substring *ss, char c)
+ss_chomp_byte (struct substring *ss, char c)
 {
   if (ss_last (*ss) == c)
     {
@@ -1036,9 +1036,9 @@ ds_trim (struct string *st, struct substring trim_set)
 /* If the last byte in ST is C, removes it and returns true.
    Otherwise, returns false without modifying ST. */
 bool
-ds_chomp (struct string *st, char c)
+ds_chomp_byte (struct string *st, char c)
 {
-  return ss_chomp (&st->ss, c);
+  return ss_chomp_byte (&st->ss, c);
 }
 
 /* Divides ST into tokens separated by any of the DELIMITERS.
@@ -1358,7 +1358,7 @@ ds_read_config_line (struct string *st, int *line_number, FILE *stream)
       (*line_number)++;
       ds_rtrim (st, ss_cstr (CC_SPACES));
     }
-  while (ds_chomp (st, '\\'));
+  while (ds_chomp_byte (st, '\\'));
 
   remove_comment (st);
   return true;

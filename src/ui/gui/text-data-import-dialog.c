@@ -476,8 +476,8 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
           destroy_file (ia);
           return false;
         }
-      ds_chomp (line, '\n');
-      ds_chomp (line, '\r');
+      ds_chomp_byte (line, '\n');
+      ds_chomp_byte (line, '\r');
     }
 
   if (file->line_cnt == 0)

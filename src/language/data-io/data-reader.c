@@ -343,7 +343,7 @@ read_file_record (struct dfm_reader *r)
     case FH_MODE_TEXT:
       if (ds_read_line (&r->line, r->file, SIZE_MAX))
         {
-          ds_chomp (&r->line, '\n');
+          ds_chomp_byte (&r->line, '\n');
           return true;
         }
       else

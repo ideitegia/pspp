@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ void ss_truncate (struct substring *, size_t);
 size_t ss_rtrim (struct substring *, struct substring trim_set);
 size_t ss_ltrim (struct substring *, struct substring trim_set);
 void ss_trim (struct substring *, struct substring trim_set);
-bool ss_chomp (struct substring *, char);
+bool ss_chomp_byte (struct substring *, char);
 bool ss_separate (struct substring src, struct substring delimiters,
                   size_t *save_idx, struct substring *token);
 bool ss_tokenize (struct substring src, struct substring delimiters,
@@ -177,7 +177,7 @@ void ds_truncate (struct string *, size_t);
 size_t ds_rtrim (struct string *, struct substring trim_set);
 size_t ds_ltrim (struct string *, struct substring trim_set);
 size_t ds_trim (struct string *, struct substring trim_set);
-bool ds_chomp (struct string *, char);
+bool ds_chomp_byte (struct string *, char);
 bool ds_separate (const struct string *src, struct substring delimiters,
                   size_t *save_idx, struct substring *token);
 bool ds_tokenize (const struct string *src, struct substring delimiters,

@@ -453,7 +453,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	}
 
       ds_assign_substring (&function_name, lex_tokss (lexer));
-      exclude = ds_chomp (&function_name, '.') ? MV_SYSTEM : MV_ANY;
+      exclude = ds_chomp_byte (&function_name, '.') ? MV_SYSTEM : MV_ANY;
 
       for (function = agr_func_tab; function->name; function++)
 	if (!strcasecmp (function->name, ds_cstr (&function_name)))

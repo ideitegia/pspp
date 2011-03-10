@@ -95,7 +95,7 @@ read_syntax_file (struct getl_interface *s,
             msg (ME, _("Reading `%s': %s."), sfs->fn, strerror (errno));
           return false;
         }
-      ds_chomp (line, '\n');
+      ds_chomp_byte (line, '\n');
     }
   while (sfs->ln == 1 && !memcmp (ds_cstr (line), "#!", 2));
 
