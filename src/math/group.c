@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,32 +25,6 @@
 #include <libpspp/misc.h>
 
 #include "xalloc.h"
-
-/* Return -1 if the id of a is less than b; +1 if greater than and
-   0 if equal */
-int
-compare_group (const void *a_,
-		 const void *b_,
-		 const void *var)
-{
-  const struct group_statistics *a = a_;
-  const struct group_statistics *b = b_;
-  return value_compare_3way (&a->id, &b->id, var_get_width (var));
-}
-
-
-
-unsigned int
-hash_group (const void *g_, const void *var)
-{
-  unsigned id_hash;
-  const struct group_statistics *g = g_;
-
-  id_hash = value_hash (&g->id, var_get_width (var), 0);
-
-  return id_hash;
-}
-
 
 void
 free_group (struct group_statistics *v, void *aux UNUSED)

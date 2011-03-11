@@ -67,18 +67,6 @@ struct group_statistics
 
 struct variable ;
 
-/* These funcs are useful for hash tables */
-
-/* Return -1 if the id of a is less than b; +1 if greater than and
-   0 if equal */
-int  compare_group (const void *a,
-		    const void *b,
-		    const void *var);
-
-unsigned int hash_group (const void *g, const void *var);
-
 void  free_group (struct group_statistics *v, void *aux);
-
-
 
 #endif
