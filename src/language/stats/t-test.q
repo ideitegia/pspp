@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -164,6 +164,8 @@ static int compare_group_binary (const struct group_statistics *a,
 static unsigned hash_group_binary (const struct group_statistics *g,
 				   const struct t_test_proc *p);
 
+static void t_test_proc_destroy (struct t_test_proc *proc);
+
 int
 cmd_t_test (struct lexer *lexer, struct dataset *ds)
 {
@@ -189,7 +191,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
     {
       msg (SE, _("Exactly one of TESTVAL, GROUPS and PAIRS subcommands "
                  "must be specified."));
-      goto done;
+      goto error;
     }
 
   proc.mode = (cmd.sbc_testval ? T_1_SAMPLE
@@ -209,7 +211,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
       if (cmd.sbc_variables)
 	{
 	  msg (SE, _("VARIABLES subcommand may not be used with PAIRS."));
-          goto done;
+          goto error;
 	}
 
       /* Fill proc.vars with the unique variables from pairs. */
@@ -228,7 +230,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
       if (!cmd.n_variables)
         {
           msg (SE, _("One or more VARIABLES must be specified."));
-          goto done;
+          goto error;
         }
       proc.n_vars = cmd.n_variables;
       proc.vars = cmd.v_variables;
@@ -240,31 +242,33 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
   while (casegrouper_get_next_group (grouper, &group))
     calculate (&proc, group, ds);
   ok = casegrouper_destroy (grouper);
+
+  /* Free 'proc' then commit the procedure.  Must happen in this order because
+     if proc->indep_var was created by a temporary transformation then
+     committing will destroy it.  */
+  t_test_proc_destroy (&proc);
   ok = proc_commit (ds) && ok;
 
-  if (proc.mode == T_IND_SAMPLES)
-    {
-      int v;
-      /* Destroy any group statistics we created */
-      for (v = 0; v < proc.n_vars; v++)
-	{
-	  struct group_proc *grpp = group_proc_get (proc.vars[v]);
-	  hsh_destroy (grpp->group_hash);
-	}
-    }
+  return ok ? CMD_SUCCESS : CMD_FAILURE;
 
-done:
+error:
   free_t_test (&cmd);
 parse_failed:
-  if (proc.indep_var != NULL)
+  t_test_proc_destroy (&proc);
+  return CMD_FAILURE;
+}
+
+static void
+t_test_proc_destroy (struct t_test_proc *proc)
+{
+  if (proc->indep_var != NULL)
     {
-      int width = var_get_width (proc.indep_var);
-      value_destroy (&proc.g_value[0], width);
-      value_destroy (&proc.g_value[1], width);
+      int width = var_get_width (proc->indep_var);
+      value_destroy (&proc->g_value[0], width);
+      value_destroy (&proc->g_value[1], width);
     }
-  free (proc.vars);
-  free (proc.pairs);
-  return ok ? CMD_SUCCESS : CMD_FAILURE;
+  free (proc->vars);
+  free (proc->pairs);
 }
 
 static int

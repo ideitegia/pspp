@@ -32,6 +32,14 @@ free_group (struct group_statistics *v, void *aux UNUSED)
   free(v);
 }
 
+static void
+group_proc_dtor (struct variable *var)
+{
+  struct group_proc *group = var_detach_aux (var);
+
+  hsh_destroy (group->group_hash);
+  free (group);
+}
 
 struct group_proc *
 group_proc_get (const struct variable *v)
@@ -40,8 +48,8 @@ group_proc_get (const struct variable *v)
   struct group_proc *group = var_get_aux (v);
   if (group == NULL)
     {
-      group = xmalloc (sizeof (struct group_proc));
-      var_attach_aux (v, group, var_dtor_free);
+      group = xzalloc (sizeof *group);
+      var_attach_aux (v, group, group_proc_dtor);
     }
   return group;
 }
