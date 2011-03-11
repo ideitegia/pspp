@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,8 +40,7 @@ cmd_delete_variables (struct lexer *lexer, struct dataset *ds)
     msg (SE, _("DELETE VARIABLES may not be used after TEMPORARY.  "
                "Temporary transformations will be made permanent."));
 
-  if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt,
-			      PV_NONE))
+  if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt, PV_NONE))
     goto error;
   if (var_cnt == dict_get_var_cnt (dataset_dict (ds)))
     {
