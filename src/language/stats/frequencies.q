@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -922,8 +922,7 @@ calc_percentiles (const struct frq_proc *frq, const struct var_freqs *vf)
           if (rank <= tp)
             break;
 
-          if (f->count > 1
-              && (rank - (f->count - 1) > tp || f + 1 >= ft->missing))
+          if (tp + 1 < rank || f + 1 >= ft->missing)
             pc->value = f->value.f;
           else
             pc->value = calc_percentile (pc->p, W, f->value.f, f[1].value.f);

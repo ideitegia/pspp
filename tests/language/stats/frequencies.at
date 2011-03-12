@@ -419,6 +419,47 @@ Percentiles,0,1.00
 ])
 AT_CLEANUP
 
+dnl Data for this test case from Fabio Bordignon <bordignon@demos.it>.
+AT_SETUP([FREQUENCIES enhanced percentiles, weighted (3)])
+AT_DATA([frequencies.sps],
+  [DATA LIST LIST notable /X * F *.
+BEGIN DATA.
+1 7
+2 16
+3 12
+4 5
+END DATA.
+
+WEIGHT BY f.
+
+FREQUENCIES 
+	VAR=x
+	/PERCENTILES = 0 25 50 75 100.
+])
+AT_CHECK([pspp -O format=csv frequencies.sps], [0], [dnl
+Table: X
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+,1.00,7.00,17.50,17.50,17.50
+,2.00,16.00,40.00,40.00,57.50
+,3.00,12.00,30.00,30.00,87.50
+,4.00,5.00,12.50,12.50,100.00
+Total,,40.00,100.0,100.0,
+
+Table: X
+N,Valid,40.00
+,Missing,.00
+Mean,,2.38
+Std Dev,,.93
+Minimum,,1.00
+Maximum,,4.00
+Percentiles,0,1.00
+,25,2.00
+,50 (Median),2.00
+,75,3.00
+,100,4.00
+])
+AT_CLEANUP
+
 AT_SETUP([FREQUENCIES enhanced percentiles, weighted, missing values])
 AT_DATA([frequencies.sps],
   [DATA LIST LIST notable /X * F *.
