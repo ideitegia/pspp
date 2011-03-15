@@ -352,7 +352,6 @@ read_file_record (struct dfm_reader *r)
             read_error (r);
           return false;
         }
-      return true;
 
     case FH_MODE_FIXED:
       if (ds_read_stream (&r->line, 1, fh_get_record_width (r->fh), r->file))
@@ -365,7 +364,6 @@ read_file_record (struct dfm_reader *r)
             partial_record (r);
           return false;
         }
-      return true;
 
     case FH_MODE_VARIABLE:
       {
