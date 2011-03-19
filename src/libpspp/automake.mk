@@ -44,6 +44,8 @@ src_libpspp_liblibpspp_la_SOURCES = \
 	src/libpspp/integer-format.h \
 	src/libpspp/intern.c \
 	src/libpspp/intern.h \
+	src/libpspp/line-reader.c \
+	src/libpspp/line-reader.h \
 	src/libpspp/ll.c \
 	src/libpspp/ll.h \
 	src/libpspp/llx.c \

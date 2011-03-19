@@ -1,0 +1,74 @@
+AT_BANNER([line_reader])
+
+AT_SETUP([read ASCII])
+AT_KEYWORDS([line_reader])
+AT_CHECK([i18n-test supports_encodings ASCII])
+AT_CHECK([echo string | line-reader-test read - ASCII], [0], [dnl
+encoded in ASCII
+"string"
+])
+AT_CLEANUP
+
+AT_SETUP([read UTF-8])
+AT_KEYWORDS([line_reader])
+AT_CHECK([printf '\346\227\245\346\234\254\350\252\236\n' | line-reader-test read - UTF-8], [0], [dnl
+encoded in UTF-8
+"日本語"
+])
+AT_CLEANUP
+
+AT_SETUP([read EUC-JP])
+AT_KEYWORDS([line_reader])
+AT_CHECK([i18n-test supports_encodings EUC-JP])
+AT_CHECK([printf '\244\241 \244\242 \244\243 \244\244 \244\245 \244\246 \244\247 \244\250 \244\251 \244\252\n' | line-reader-test read - EUC-JP], [0], [dnl
+encoded in EUC-JP
+"ぁ あ ぃ い ぅ う ぇ え ぉ お"
+])
+AT_CLEANUP
+
+AT_SETUP([read ASCII as Auto])
+AT_KEYWORDS([line_reader])
+AT_CHECK([echo string | line-reader-test read - Auto], [0], [dnl
+encoded in ASCII (auto)
+"string"
+])
+AT_CLEANUP
+
+AT_SETUP([read UTF-8 as Auto])
+AT_KEYWORDS([line_reader])
+AT_CHECK([printf 'entr\303\251e\n' | line-reader-test read - Auto], [0], [dnl
+encoded in ASCII (auto)
+encoded in UTF-8
+"entrée"
+])
+AT_CLEANUP
+
+AT_SETUP([read ISO-8859-1 as Auto,ISO-8859-1])
+AT_KEYWORDS([line_reader])
+AT_CHECK([i18n-test supports_encodings ISO-8859-1])
+buffer_size=`line-reader-test buffer-size`
+($PERL -e "print 'x' x ($buffer_size - 2)"
+ printf '\none line\ntwo lines\nentr\351e\nfour lines\n') > input
+(printf 'encoded in ASCII (auto)\n\"'
+ $PERL -e "print 'x' x ($buffer_size - 2)"
+ printf '\"\n"one line"\n"two lines"\nencoded in ISO-8859-1\n"entr\303\251e"\n"four lines"\n') > expout
+AT_CHECK([line-reader-test read input Auto,ISO-8859-1], [0], [expout])
+AT_CLEANUP
+
+AT_SETUP([read UTF-16BE as Auto,UTF-16BE])
+AT_KEYWORDS([line_reader])
+AT_CHECK([i18n-test supports_encodings UTF-16BE])
+AT_CHECK([printf '\0e\0n\0t\0r\0\351\0e\0\n' | line-reader-test read - Auto,UTF-16BE],
+  [0], [encoded in UTF-16BE
+"entrée"
+])
+AT_CLEANUP
+
+AT_SETUP([read EUC-JP as Auto,EUC-JP])
+AT_KEYWORDS([line_reader])
+AT_CHECK([i18n-test supports_encodings EUC-JP])
+AT_CHECK([printf 'entr\217\253\261e\n' | line-reader-test read - Auto,EUC-JP],
+  [0], [encoded in EUC-JP
+"entrée"
+])
+AT_CLEANUP

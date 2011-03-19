@@ -14,6 +14,7 @@ check_PROGRAMS += \
 	tests/libpspp/hmap-test \
 	tests/libpspp/hmapx-test \
 	tests/libpspp/i18n-test \
+	tests/libpspp/line-reader-test \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
 	tests/libpspp/range-map-test \
@@ -42,6 +43,9 @@ tests_data_sack_SOURCES = \
 	tests/data/sack.c
 tests_data_sack_LDADD = src/libpspp-core.la 
 tests_data_sack_CFLAGS = $(AM_CFLAGS)
+
+tests_libpspp_line_reader_test_SOURCES = tests/libpspp/line-reader-test.c
+tests_libpspp_line_reader_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -320,6 +324,7 @@ TESTSUITE_AT = \
 	tests/libpspp/hmap.at \
 	tests/libpspp/hmapx.at \
 	tests/libpspp/i18n.at \
+	tests/libpspp/line-reader.at \
 	tests/libpspp/ll.at \
 	tests/libpspp/llx.at \
 	tests/libpspp/range-map.at \
