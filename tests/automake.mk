@@ -24,6 +24,7 @@ check_PROGRAMS += \
 	tests/libpspp/string-set-test \
 	tests/libpspp/stringi-set-test \
 	tests/libpspp/tower-test \
+	tests/libpspp/u8-istream-test \
 	tests/output/render-test
 
 check-programs: $(check_PROGRAMS)
@@ -160,6 +161,9 @@ tests_libpspp_tower_test_SOURCES = \
 	tests/libpspp/tower-test.c
 tests_libpspp_tower_test_LDADD = gl/libgl.la $(LIBINTL) 
 tests_libpspp_tower_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_u8_istream_test_SOURCES = tests/libpspp/u8-istream-test.c
+tests_libpspp_u8_istream_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
 
 tests_libpspp_sparse_array_test_SOURCES = \
 	src/libpspp/sparse-array.c \
@@ -336,6 +340,7 @@ TESTSUITE_AT = \
 	tests/libpspp/string-set.at \
 	tests/libpspp/stringi-set.at \
 	tests/libpspp/tower.at \
+	tests/libpspp/u8-istream.at \
 	tests/math/moments.at \
 	tests/math/randist.at \
 	tests/output/charts.at \

@@ -88,6 +88,8 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/temp-file.h \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
+	src/libpspp/u8-istream.c \
+	src/libpspp/u8-istream.h \
 	src/libpspp/version.h \
 	src/libpspp/zip-writer.c \
 	src/libpspp/zip-writer.h
