@@ -26,15 +26,23 @@
 #include <assert.h>
 #include <string.h>
 #include <unictype.h>
+#include <unistr.h>
 
 #include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
 
 #include "gl/c-ctype.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Tokens. */
 
+/* Returns TYPE as a string, e.g. "ID" for T_ID. */
 const char *
-token_type_to_string (enum token_type type)
+token_type_to_name (enum token_type type)
 {
   switch (type)
     {
@@ -45,6 +53,104 @@ token_type_to_string (enum token_type type)
     default:
       return "unknown token type";
     }
+}
+
+/* Returns an ASCII string that yields TOKEN if it appeared in a syntax file,
+   as a statically allocated constant string.  This function returns NULL for
+   tokens that don't have any fixed string representation, such as identifier
+   and number tokens. */
+const char *
+token_type_to_string (enum token_type token)
+{
+  switch (token)
+    {
+    case T_ID:
+    case T_POS_NUM:
+    case T_NEG_NUM:
+    case T_STRING:
+    case T_STOP:
+      return NULL;
+
+    case T_ENDCMD:
+      return ".";
+
+    case T_PLUS:
+      return "+";
+
+    case T_DASH:
+      return "-";
+
+    case T_ASTERISK:
+      return "*";
+
+    case T_SLASH:
+      return "/";
+
+    case T_EQUALS:
+      return "=";
+
+    case T_LPAREN:
+      return "(";
+
+    case T_RPAREN:
+      return ")";
+
+    case T_LBRACK:
+      return "[";
+
+    case T_RBRACK:
+      return "]";
+
+    case T_COMMA:
+      return ",";
+
+    case T_AND:
+      return "AND";
+
+    case T_OR:
+      return "OR";
+
+    case T_NOT:
+      return "NOT";
+
+    case T_EQ:
+      return "EQ";
+
+    case T_GE:
+      return ">=";
+
+    case T_GT:
+      return ">";
+
+    case T_LE:
+      return "<=";
+
+    case T_LT:
+      return "<";
+
+    case T_NE:
+      return "~=";
+
+    case T_ALL:
+      return "ALL";
+
+    case T_BY:
+      return "BY";
+
+    case T_TO:
+      return "TO";
+
+    case T_WITH:
+      return "WITH";
+
+    case T_EXP:
+      return "**";
+
+    case TOKEN_N_TYPES:
+      NOT_REACHED ();
+    }
+
+  NOT_REACHED ();
 }
 
 /* Recognizing identifiers. */
