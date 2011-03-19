@@ -10,6 +10,8 @@ language_lexer_sources = \
 	src/language/lexer/subcommand-list.h \
 	src/language/lexer/format-parser.c \
 	src/language/lexer/format-parser.h \
+	src/language/lexer/segment.c \
+	src/language/lexer/segment.h \
 	src/language/lexer/value-parser.c \
 	src/language/lexer/value-parser.h \
 	src/language/lexer/variable-parser.c \

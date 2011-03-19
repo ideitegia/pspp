@@ -5,6 +5,7 @@ check_PROGRAMS += \
 	tests/data/sack \
 	tests/data/inexactify \
 	tests/language/lexer/command-name-test \
+	tests/language/lexer/segment-test \
 	tests/libpspp/abt-test \
 	tests/libpspp/bt-test \
 	tests/libpspp/encoding-guesser-test \
@@ -210,6 +211,20 @@ tests_language_lexer_command_name_test_LDADD = \
 	$(LIBINTL) 
 tests_language_lexer_command_name_test_CFLAGS = $(AM_CFLAGS)
 
+
+check_PROGRAMS += tests/language/lexer/segment-test
+tests_language_lexer_segment_test_SOURCES = \
+	src/data/identifier.c \
+	src/language/lexer/command-name.c \
+	src/language/lexer/segment.c \
+	src/libpspp/pool.c \
+	src/libpspp/prompt.c \
+	src/libpspp/str.c \
+	src/libpspp/temp-file.c \
+	tests/language/lexer/segment-test.c
+tests_language_lexer_segment_test_LDADD = gl/libgl.la $(LIBINTL)
+tests_language_lexer_segment_test_CFLAGS = $(AM_CFLAGS)
+
 check_PROGRAMS += tests/output/render-test
 tests_output_render_test_SOURCES = tests/output/render-test.c
 tests_output_render_test_LDADD = \
@@ -291,6 +306,7 @@ TESTSUITE_AT = \
 	tests/language/lexer/command-name.at \
 	tests/language/lexer/lexer.at \
 	tests/language/lexer/q2c.at \
+	tests/language/lexer/segment.at \
 	tests/language/lexer/variable-parser.at \
 	tests/language/stats/aggregate.at \
 	tests/language/stats/autorecode.at \

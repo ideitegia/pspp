@@ -49,6 +49,7 @@ GNULIB_MODULES = \
 	printf-posix \
 	printf-safe \
 	progname \
+	read-file \
 	regex \
 	relocatable-prog \
 	rename \

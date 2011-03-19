@@ -60,6 +60,8 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/msg-locator.h \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
+	src/libpspp/prompt.c \
+	src/libpspp/prompt.h \
 	src/libpspp/range-map.c \
 	src/libpspp/range-map.h \
 	src/libpspp/range-set.c \
