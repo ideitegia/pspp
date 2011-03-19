@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include <libpspp/assertion.h>
+#include "libpspp/assertion.h"
 
 /* A deque implemented as a circular buffer. */
 struct deque

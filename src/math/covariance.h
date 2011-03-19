@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,9 @@
 #ifndef COVARIANCE_H
 #define COVARIANCE_H
 
-#include <stddef.h>
-
-#include <data/missing-values.h>
 #include <gsl/gsl_matrix.h>
+#include <stddef.h>
+#include "data/missing-values.h"
 
 struct covariance;
 struct variable;

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,17 +15,18 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <data/value.h>
 
-#include <data/val-type.h>
-#include <data/variable.h>
-#include <libpspp/hash-functions.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
-#include <gl/unistr.h>
+#include "data/value.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "data/val-type.h"
+#include "data/variable.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+#include "gl/unistr.h"
+
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 /* Copies the contents of string value SRC with width SRC_WIDTH
    to string value DST with width DST_WIDTH.  If SRC_WIDTH is

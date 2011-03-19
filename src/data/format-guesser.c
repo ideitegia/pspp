@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,19 +16,19 @@
 
 #include <config.h>
 
-#include "format-guesser.h"
+#include "data/format-guesser.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "c-ctype.h"
-#include "minmax.h"
-#include "xalloc.h"
+#include "data/format.h"
+#include "data/settings.h"
+#include "libpspp/assertion.h"
+#include "libpspp/str.h"
 
-#include <data/format.h>
-#include <data/settings.h>
-#include <libpspp/assertion.h>
-#include <libpspp/str.h>
+#include "gl/c-ctype.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 /* A token in which potential date or time fields are broken.
 

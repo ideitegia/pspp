@@ -18,12 +18,12 @@
 
 #include <stdlib.h>
 
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <language/command.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/message.h>
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/procedure.h"
+#include "language/command.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

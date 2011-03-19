@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,21 +16,21 @@
 
 #include <config.h>
 
-#include <data/caseinit.h>
+#include "data/caseinit.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <data/case.h>
-#include <data/dictionary.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <libpspp/array.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
+#include "data/case.h"
+#include "data/dictionary.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* Initializer list: a set of values to write to locations within
    a case. */

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,22 +15,24 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "sign.h"
 
-#include <data/variable.h>
-#include <libpspp/str.h>
-#include <output/tab.h>
+#include "language/stats/sign.h"
+
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
-#include "npar.h"
-#include <data/procedure.h>
-#include <data/missing-values.h>
-#include <data/dictionary.h>
-#include <data/casereader.h>
-#include <data/format.h>
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/missing-values.h"
+#include "data/procedure.h"
+#include "data/variable.h"
+#include "language/stats/npar.h"
+#include "libpspp/str.h"
+#include "output/tab.h"
+
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

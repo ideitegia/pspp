@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,15 +16,18 @@
 
 #include <config.h>
 
-#include <libpspp/assertion.h>
-#include "covariance.h"
-#include <gl/xalloc.h>
-#include "moments.h"
+#include "math/covariance.h"
+
 #include <gsl/gsl_matrix.h>
-#include <data/case.h>
-#include <data/variable.h>
-#include <libpspp/misc.h>
-#include "categoricals.h"
+
+#include "data/case.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/misc.h"
+#include "math/categoricals.h"
+#include "math/moments.h"
+
+#include "gl/xalloc.h"
 
 #define n_MOMENTS (MOMENT_VARIANCE + 1)
 

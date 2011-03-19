@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,20 +20,20 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "prompt.h"
+#include "language/prompt.h"
 
-#include <data/file-name.h>
-#include <data/settings.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <libpspp/version.h>
-#include <output/tab.h>
+#include "data/file-name.h"
+#include "data/settings.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "libpspp/version.h"
+#include "output/tab.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* Current prompting style. */
 static enum prompt_style current_style;

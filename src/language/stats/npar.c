@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis. -*-c-*-
-   Copyright (C) 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,44 +16,44 @@
 
 #include <config.h>
 
-#include <language/stats/npar.h>
-#include "npar-summary.h"
+#include "language/stats/npar.h"
 
 #include <stdlib.h>
 #include <math.h>
 
-#include "xalloc.h"
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/procedure.h"
+#include "data/settings.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "language/stats/binomial.h"
+#include "language/stats/chisquare.h"
+#include "language/stats/cochran.h"
+#include "language/stats/friedman.h"
+#include "language/stats/kruskal-wallis.h"
+#include "language/stats/mann-whitney.h"
+#include "language/stats/npar-summary.h"
+#include "language/stats/runs.h"
+#include "language/stats/sign.h"
+#include "language/stats/wilcoxon.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/hmapx.h"
+#include "libpspp/message.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+#include "libpspp/taint.h"
+#include "math/moments.h"
 
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/variable.h>
-#include <libpspp/array.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/hmapx.h>
-#include <libpspp/hash-functions.h>
-#include <libpspp/message.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
-#include <libpspp/taint.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <language/lexer/value-parser.h>
-#include <language/stats/binomial.h>
-#include <language/stats/chisquare.h>
-#include <language/stats/cochran.h>
-#include <language/stats/runs.h>
-#include <language/stats/friedman.h>
-#include <language/stats/kruskal-wallis.h>
-#include <language/stats/mann-whitney.h>
-#include <language/stats/wilcoxon.h>
-#include <language/stats/sign.h>
-#include <math/moments.h>
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

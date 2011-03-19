@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,10 +16,10 @@
 
 #include <config.h>
 
-#include <libpspp/range-map.h>
+#include "libpspp/range-map.h"
 
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
 
 static struct range_map_node *bt_to_range_map_node (const struct bt_node *);
 static int compare_range_map_nodes (const struct bt_node *,

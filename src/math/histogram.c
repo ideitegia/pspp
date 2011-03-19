@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,16 +15,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "histogram.h"
 
-#include <gl/xalloc.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
+#include "math/histogram.h"
 
 #include <gsl/gsl_histogram.h>
-#include "chart-geometry.h"
 #include <math.h>
 
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "math/chart-geometry.h"
+
+#include "gl/xalloc.h"
 
 void
 histogram_add (struct histogram *h, double y, double c)

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,14 +16,15 @@
 
 #include <config.h>
 
-#include <data/caseproto.h>
-#include <data/val-type.h>
-#include <data/value.h>
-#include <libpspp/array.h>
-#include <libpspp/assertion.h>
-#include <libpspp/pool.h>
+#include "data/caseproto.h"
 
-#include "minmax.h"
+#include "data/val-type.h"
+#include "data/value.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/pool.h"
+
+#include "gl/minmax.h"
 
 static struct caseproto *caseproto_unshare (struct caseproto *);
 static bool try_init_long_strings (const struct caseproto *,

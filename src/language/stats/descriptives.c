@@ -20,24 +20,24 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/dictionary/split-file.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/array.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/assertion.h>
-#include <math/moments.h>
-#include <output/tab.h>
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/procedure.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/dictionary/split-file.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/array.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/assertion.h"
+#include "math/moments.h"
+#include "output/tab.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

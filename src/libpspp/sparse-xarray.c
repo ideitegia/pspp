@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,22 +16,22 @@
 
 #include <config.h>
 
-#include <libpspp/sparse-xarray.h>
+#include "libpspp/sparse-xarray.h"
 
 #include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/ext-array.h>
-#include <libpspp/misc.h>
-#include <libpspp/range-set.h>
-#include <libpspp/sparse-array.h>
+#include "libpspp/assertion.h"
+#include "libpspp/ext-array.h"
+#include "libpspp/misc.h"
+#include "libpspp/range-set.h"
+#include "libpspp/sparse-array.h"
 
-#include "md4.h"
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/md4.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 /* A sparse array of arrays of bytes. */
 struct sparse_xarray

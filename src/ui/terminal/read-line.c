@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include "read-line.h"
+#include "ui/terminal/read-line.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -26,21 +26,20 @@
 #include <stdint.h>
 #endif
 
-#include "msg-ui.h"
+#include "data/file-name.h"
+#include "data/settings.h"
+#include "language/command.h"
+#include "language/prompt.h"
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "libpspp/version.h"
+#include "output/driver.h"
+#include "output/journal.h"
+#include "ui/terminal/msg-ui.h"
+#include "ui/terminal/terminal.h"
 
-#include <data/file-name.h>
-#include <data/settings.h>
-#include <language/command.h>
-#include <libpspp/cast.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <libpspp/version.h>
-#include <language/prompt.h>
-#include <output/journal.h>
-#include <output/driver.h>
-#include <ui/terminal/terminal.h>
-
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

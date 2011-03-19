@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,24 +15,27 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "private.h"
+
+#include "language/expressions/private.h"
+
 #include <math.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <libpspp/assertion.h>
-#include <data/calendar.h>
-#include <data/data-in.h>
-#include <libpspp/message.h>
-#include "evaluate.h"
-#include "helpers.h"
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include "public.h"
-#include <libpspp/str.h>
-#include <data/variable.h>
 
-#include "xalloc.h"
+#include "data/calendar.h"
+#include "data/data-in.h"
+#include "data/variable.h"
+#include "language/expressions/evaluate.h"
+#include "language/expressions/helpers.h"
+#include "language/expressions/public.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+
+#include "gl/xalloc.h"
 
 static union any_node *evaluate_tree (struct composite_node *,
                                       struct expression *);

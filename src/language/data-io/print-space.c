@@ -19,17 +19,17 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include <data/procedure.h>
-#include <data/value.h>
-#include <language/command.h>
-#include <language/data-io/data-writer.h>
-#include <language/data-io/file-handle.h>
-#include <language/expressions/public.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
-#include <output/text-item.h>
+#include "data/procedure.h"
+#include "data/value.h"
+#include "language/command.h"
+#include "language/data-io/data-writer.h"
+#include "language/data-io/file-handle.h"
+#include "language/expressions/public.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
+#include "output/text-item.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,16 +15,19 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <stdio.h>
-#include "gettext.h"
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <math/moments.h>
-#include <math.h>
-#include <stdlib.h>
-#include "xalloc.h"
-#include <libpspp/compiler.h>
 
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/compiler.h"
+#include "math/moments.h"
+
+#include "gl/xalloc.h"
+
+#include "gettext.h"
 #define _(msgid) gettext (msgid)
 
 static bool

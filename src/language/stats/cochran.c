@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,26 +16,25 @@
 
 #include <config.h>
 
-#include "cochran.h"
-#include "npar.h"
-#include <stdbool.h>
-#include <libpspp/cast.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-
-#include <data/procedure.h>
-#include <data/dictionary.h>
-#include <data/variable.h>
-#include <data/val-type.h>
-#include <data/casereader.h>
+#include "language/stats/cochran.h"
 
 #include <gsl/gsl_cdf.h>
+#include <stdbool.h>
 
-#include <data/format.h>
-#include <output/tab.h>
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/val-type.h"
+#include "data/variable.h"
+#include "language/stats/npar.h"
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "output/tab.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
 
 struct cochran
 {

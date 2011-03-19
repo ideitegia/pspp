@@ -18,23 +18,22 @@
 
 #include <stdlib.h>
 
-#include <data/gnumeric-reader.h>
-#include <data/psql-reader.h>
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/gnumeric-reader.h"
+#include "data/procedure.h"
+#include "data/psql-reader.h"
+#include "data/settings.h"
+#include "language/command.h"
+#include "language/data-io/data-parser.h"
+#include "language/data-io/data-reader.h"
+#include "language/data-io/file-handle.h"
+#include "language/data-io/placement-parser.h"
+#include "language/lexer/format-parser.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
 
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <language/command.h>
-#include <language/data-io/data-parser.h>
-#include <language/data-io/data-reader.h>
-#include <language/data-io/file-handle.h>
-#include <language/data-io/placement-parser.h>
-#include <language/lexer/format-parser.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
-
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

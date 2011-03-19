@@ -15,28 +15,28 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "variable.h"
+
+#include "data/variable.h"
 
 #include <stdlib.h>
 
-#include <data/attributes.h>
-#include <data/data-out.h>
-#include <data/format.h>
-#include <data/dictionary.h>
-#include <data/identifier.h>
-#include <data/missing-values.h>
-#include <data/value-labels.h>
-#include <data/vardict.h>
+#include "data/attributes.h"
+#include "data/data-out.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/identifier.h"
+#include "data/missing-values.h"
+#include "data/value-labels.h"
+#include "data/vardict.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include <libpspp/misc.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash-functions.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

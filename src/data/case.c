@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,19 +16,19 @@
 
 #include <config.h>
 
-#include <data/case.h>
+#include "data/case.h"
 
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
 
-#include <data/value.h>
-#include <data/variable.h>
-#include <libpspp/assertion.h>
-#include <libpspp/str.h>
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/str.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 /* Set this flag to 1 to copy cases instead of ref counting them.
    This is sometimes helpful in debugging situations. */

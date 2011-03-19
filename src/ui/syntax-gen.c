@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include <ui/syntax-gen.h>
+#include "ui/syntax-gen.h"
 
 #include <ctype.h>
 #include <mbchar.h>

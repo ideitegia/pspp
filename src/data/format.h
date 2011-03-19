@@ -20,8 +20,8 @@
 /* Display format types. */
 
 #include <stdbool.h>
-#include <libpspp/str.h>
-#include <data/val-type.h>
+#include "data/val-type.h"
+#include "libpspp/str.h"
 
 /* Format type categories.
 

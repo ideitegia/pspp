@@ -18,21 +18,21 @@
 
 #include <stdlib.h>
 
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/assertion.h>
-#include <libpspp/array.h>
-#include <libpspp/bit-vector.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "data/dictionary.h"
+#include "data/procedure.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/bit-vector.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

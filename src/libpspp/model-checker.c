@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include <libpspp/model-checker.h>
+#include "libpspp/model-checker.h"
 
 #include <limits.h>
 #include <signal.h>
@@ -26,16 +26,16 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include <libpspp/argv-parser.h>
-#include <libpspp/bit-vector.h>
-#include <libpspp/compiler.h>
-#include <libpspp/deque.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "libpspp/argv-parser.h"
+#include "libpspp/bit-vector.h"
+#include "libpspp/compiler.h"
+#include "libpspp/deque.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include "error.h"
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 /* Initializes PATH as an empty path. */
 void

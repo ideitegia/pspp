@@ -15,7 +15,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "por-file-reader.h"
+
+#include "data/por-file-reader.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -26,21 +27,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/casereader-provider.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <data/file-name.h>
-#include <data/format.h>
-#include <data/missing-values.h>
-#include <data/short-names.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
+#include "data/casereader-provider.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "data/format.h"
+#include "data/missing-values.h"
+#include "data/short-names.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
 #include "gl/intprops.h"
 #include "gl/minmax.h"

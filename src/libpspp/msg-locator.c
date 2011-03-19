@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,14 +15,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <stdlib.h>
-#include "msg-locator.h"
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/message.h>
-#include "getl.h"
 
-#include "xalloc.h"
+#include "libpspp/msg-locator.h"
+
+#include <stdlib.h>
+
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "libpspp/getl.h"
+
+#include "gl/xalloc.h"
 
 /* File locator stack. */
 static const struct msg_locator **file_loc;

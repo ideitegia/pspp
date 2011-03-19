@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
 
 #include <stdarg.h>
 #include <stddef.h>
-#include <libpspp/compiler.h>
-#include <libpspp/str.h>
+#include "libpspp/compiler.h"
+#include "libpspp/str.h"
 
 struct fmt_spec;
 struct substring;

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,21 +15,25 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "any-reader.h"
+
+#include "data/any-reader.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include "file-handle-def.h"
-#include "file-name.h"
-#include "por-file-reader.h"
-#include "sys-file-reader.h"
-#include <libpspp/str.h>
-#include "scratch-reader.h"
-#include "xalloc.h"
+
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "data/por-file-reader.h"
+#include "data/scratch-reader.h"
+#include "data/sys-file-reader.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

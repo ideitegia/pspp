@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,15 +15,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "trimmed-mean.h"
-#include <math/order-stats.h>
 
-#include <gl/xalloc.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
+#include "math/trimmed-mean.h"
+
 #include <math.h>
-#include <data/val-type.h>
 
+#include "data/val-type.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "math/order-stats.h"
+
+#include "gl/xalloc.h"
 
 static void
 acc (struct statistic *s, const struct ccase *cx UNUSED, double c, double cc, double y)

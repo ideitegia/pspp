@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include "data-out.h"
+#include "data/data-out.h"
 
 #include <ctype.h>
 #include <float.h>
@@ -26,22 +26,21 @@
 #include <time.h>
 #include <unistr.h>
 
-#include <data/calendar.h>
-#include <data/format.h>
-#include <data/settings.h>
-#include <data/value.h>
+#include "data/calendar.h"
+#include "data/format.h"
+#include "data/settings.h"
+#include "data/value.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/float-format.h"
+#include "libpspp/i18n.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/float-format.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-#include <libpspp/pool.h>
-#include <libpspp/i18n.h>
-
-#include "minmax.h"
+#include "gl/minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

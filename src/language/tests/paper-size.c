@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
 
 #include <stdio.h>
 
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/assertion.h>
-#include <libpspp/string-map.h>
-#include <output/measure.h>
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/assertion.h"
+#include "libpspp/string-map.h"
+#include "output/measure.h"
 
 /* Executes the DEBUG PAPER SIZE command. */
 int

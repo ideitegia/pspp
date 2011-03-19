@@ -18,8 +18,8 @@
 #define DATA_OUT_H 1
 
 #include <stdbool.h>
-#include <libpspp/float-format.h>
-#include <libpspp/integer-format.h>
+#include "libpspp/float-format.h"
+#include "libpspp/integer-format.h"
 
 struct fmt_spec;
 struct string;

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,12 +15,15 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "helpers.h"
+
+#include "language/expressions/helpers.h"
+
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_sf.h>
-#include <libpspp/assertion.h>
-#include <libpspp/pool.h>
-#include "private.h"
+
+#include "language/expressions/private.h"
+#include "libpspp/assertion.h"
+#include "libpspp/pool.h"
 
 const struct substring empty_string = {NULL, 0};
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #include <byteswap.h>
 #include <stdint.h>
 
-#include <libpspp/str.h>
+#include "libpspp/str.h"
 
 /* An integer format. */
 enum integer_format

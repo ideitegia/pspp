@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,35 +15,32 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <libpspp/compiler.h>
-#include <output/tab.h>
 
-#include <data/format.h>
-#include <data/case.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/variable.h>
-#include <data/value.h>
-#include <data/value-labels.h>
-
-#include <libpspp/message.h>
-#include <libpspp/assertion.h>
-
-#include "binomial.h"
-#include "freq.h"
-
-#include "xalloc.h"
-
-#include "gettext.h"
-#define _(msgid) gettext (msgid)
-
-#include <libpspp/misc.h>
+#include "language/stats/binomial.h"
 
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
 
-#include <minmax.h>
+#include "data/case.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/value-labels.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "language/stats/freq.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "output/tab.h"
+
+#include "gl/xalloc.h"
+#include "gl/minmax.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 static double calculate_binomial_internal (double n1, double n2,
 					   double p);

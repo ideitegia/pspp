@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,40 +16,32 @@
 
 #include <config.h>
 
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/value.h>
-
-
-#include <math/covariance.h>
-#include <math/categoricals.h>
-#include <math/levene.h>
-#include <math/moments.h>
-#include <gsl/gsl_matrix.h>
-#include <linreg/sweep.h>
-
-#include <libpspp/ll.h>
-
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <language/lexer/value-parser.h>
-#include <language/command.h>
-
-
-#include <language/dictionary/split-file.h>
-#include <libpspp/taint.h>
-#include <libpspp/misc.h>
-
-#include <output/tab.h>
-
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_matrix.h>
 #include <math.h>
-#include <data/format.h>
 
-#include <libpspp/message.h>
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/value.h"
+#include "language/command.h"
+#include "language/dictionary/split-file.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/ll.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/taint.h"
+#include "linreg/sweep.h"
+#include "math/categoricals.h"
+#include "math/covariance.h"
+#include "math/levene.h"
+#include "math/moments.h"
+#include "output/tab.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

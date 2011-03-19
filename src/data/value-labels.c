@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,23 +16,23 @@
 
 #include <config.h>
 
-#include "value-labels.h"
+#include "data/value-labels.h"
 
 #include <stdlib.h>
 
-#include <data/data-out.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <libpspp/array.h>
-#include <libpspp/cast.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash-functions.h>
-#include <libpspp/hmap.h>
-#include <libpspp/intern.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/data-out.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/array.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/hmap.h"
+#include "libpspp/intern.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* Creates and returns a new, empty set of value labels with the
    given WIDTH. */

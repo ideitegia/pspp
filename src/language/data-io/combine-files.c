@@ -18,28 +18,28 @@
 
 #include <stdlib.h>
 
-#include <data/any-reader.h>
-#include <data/case-matcher.h>
-#include <data/case.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/subcase.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/data-io/file-handle.h>
-#include <language/data-io/trim.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <language/stats/sort-criteria.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/taint.h>
-#include <math/sort.h>
+#include "data/any-reader.h"
+#include "data/case-matcher.h"
+#include "data/case.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/subcase.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/data-io/file-handle.h"
+#include "language/data-io/trim.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "language/stats/sort-criteria.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/taint.h"
+#include "math/sort.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

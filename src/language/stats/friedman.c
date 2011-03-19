@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis. -*-c-*-
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,20 +17,19 @@
 
 #include <config.h>
 
-#include "friedman.h"
+#include "language/stats/friedman.h"
 
 #include <gsl/gsl_cdf.h>
 #include <math.h>
 
-#include <data/format.h>
-
-#include <libpspp/misc.h>
-#include <libpspp/message.h>
-#include <data/procedure.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/variable.h>
-
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/variable.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "output/tab.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -213,7 +212,6 @@ friedman_execute (const struct dataset *ds,
 
 
 
-#include <output/tab.h>
 
 static void
 show_ranks_box (const struct one_sample_test *ost, const struct friedman *fr)

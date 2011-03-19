@@ -2128,17 +2128,19 @@ main (int argc, char *argv[])
 	  indent = 0;
 
 	  dump (0, "#include <stdlib.h>");
-	  dump (0, "#include <libpspp/assertion.h>");
-	  dump (0, "#include <libpspp/message.h>");
-	  dump (0, "#include <language/lexer/lexer.h>");
-	  dump (0, "#include <language/lexer/variable-parser.h>");
-          dump (0, "#include <data/settings.h>");
-	  dump (0, "#include <libpspp/str.h>");
-          dump (0, "#include <language/lexer/subcommand-list.h>");
-	  dump (0, "#include <data/variable.h>");
+          dump_blank_line (0);
+
+          dump (0, "#include \"data/settings.h\"");
+	  dump (0, "#include \"data/variable.h\"");
+	  dump (0, "#include \"language/lexer/lexer.h\"");
+          dump (0, "#include \"language/lexer/subcommand-list.h\"");
+	  dump (0, "#include \"language/lexer/variable-parser.h\"");
+	  dump (0, "#include \"libpspp/assertion.h\"");
+	  dump (0, "#include \"libpspp/message.h\"");
+	  dump (0, "#include \"libpspp/str.h\"");
 	  dump_blank_line (0);
 
-          dump (0, "#include \"xalloc.h\"");
+          dump (0, "#include \"gl/xalloc.h\"");
 	  dump_blank_line (0);
 
           dump (0, "#include \"gettext.h\"");

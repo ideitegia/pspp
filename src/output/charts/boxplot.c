@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,10 +17,10 @@
 
 #include <config.h>
 
-#include <output/charts/boxplot.h>
+#include "output/charts/boxplot.h"
 
-#include <math/box-whisker.h>
-#include <output/chart-item-provider.h>
+#include "math/box-whisker.h"
+#include "output/chart-item-provider.h"
 
 struct boxplot *
 boxplot_create (double y_min, double y_max, const char *title)

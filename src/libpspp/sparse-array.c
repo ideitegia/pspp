@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,18 +16,18 @@
 
 #include <config.h>
 
-#include <libpspp/sparse-array.h>
+#include "libpspp/sparse-array.h"
 
 #include <limits.h>
 #include <string.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
 
-#include "count-one-bits.h"
-#include "minmax.h"
+#include "gl/count-one-bits.h"
+#include "gl/minmax.h"
 
 /* Sparse array data structure.
 

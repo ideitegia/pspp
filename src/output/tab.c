@@ -16,31 +16,31 @@
 
 #include <config.h>
 
-#include <output/tab.h>
+#include "output/tab.h"
 
 #include <ctype.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <stdlib.h>
 
-#include <data/data-out.h>
-#include <data/format.h>
-#include <data/settings.h>
-#include <data/value.h>
-#include <data/dictionary.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/i18n.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <output/driver.h>
-#include <output/table-item.h>
-#include <output/table-provider.h>
-#include <output/text-item.h>
+#include "data/data-out.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/settings.h"
+#include "data/value.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "output/driver.h"
+#include "output/table-item.h"
+#include "output/table-provider.h"
+#include "output/text-item.h"
 
-#include "error.h"
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

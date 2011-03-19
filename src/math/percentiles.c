@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,21 +15,21 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "percentiles.h"
-#include <math/order-stats.h>
 
+#include "math/percentiles.h"
+
+#include "data/casereader.h"
+#include "data/val-type.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "math/order-stats.h"
+
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
-
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <data/val-type.h>
-#include <gl/xalloc.h>
-#include <data/variable.h>
-#include <data/casereader.h>
-
 
 const char *const ptile_alg_desc[] = {
   "",

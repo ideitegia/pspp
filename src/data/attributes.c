@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,12 +16,15 @@
 
 #include <config.h>
 
-#include <data/attributes.h>
+#include "data/attributes.h"
+
 #include <assert.h>
 #include <string.h>
-#include <libpspp/array.h>
-#include <libpspp/hash-functions.h>
-#include "xalloc.h"
+
+#include "libpspp/array.h"
+#include "libpspp/hash-functions.h"
+
+#include "gl/xalloc.h"
 
 /* A custom attribute of the sort maintained by the DATAFILE
    ATTRIBUTE and VARIABLE ATTRIBUTE commands.

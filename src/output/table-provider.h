@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997, 1998, 1999, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 #ifndef OUTPUT_TABLE_PROVIDER
 #define OUTPUT_TABLE_PROVIDER 1
 
-#include <output/table.h>
+#include "output/table.h"
 
 /* A cell in a table. */
 struct table_cell

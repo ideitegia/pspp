@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2004, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-2004, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include <language/data-io/data-reader.h>
+#include "language/data-io/data-reader.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -25,22 +25,22 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include <data/casereader.h>
-#include <data/file-handle-def.h>
-#include <data/file-name.h>
-#include <data/procedure.h>
-#include <language/command.h>
-#include <language/data-io/file-handle.h>
-#include <language/lexer/lexer.h>
-#include <language/prompt.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/casereader.h"
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "data/procedure.h"
+#include "language/command.h"
+#include "language/data-io/file-handle.h"
+#include "language/lexer/lexer.h"
+#include "language/prompt.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,13 +16,13 @@
 
 #include <config.h>
 
-#include <output/cairo-chart.h>
+#include "output/cairo-chart.h"
 
 #include <math.h>
 
-#include <output/charts/boxplot.h>
-#include <math/box-whisker.h>
-#include <math/chart-geometry.h>
+#include "math/box-whisker.h"
+#include "math/chart-geometry.h"
+#include "output/charts/boxplot.h"
 
 /* Draw an OUTLIER on the plot CH
  * at CENTRELINE

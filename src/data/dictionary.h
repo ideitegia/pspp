@@ -19,8 +19,8 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <data/case.h>
-#include <data/dict-class.h>
+#include "data/case.h"
+#include "data/dict-class.h"
 
 struct string;
 struct ccase;

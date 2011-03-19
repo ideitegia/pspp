@@ -16,23 +16,23 @@
 
 #include <config.h>
 
-#include <data/casereader-provider.h>
-#include <libpspp/message.h>
-#include <gl/xalloc.h>
-#include <data/dictionary.h>
+#include "data/psql-reader.h"
+
+#include <inttypes.h>
 #include <math.h>
 #include <stdlib.h>
 
-#include "psql-reader.h"
-#include "variable.h"
-#include "format.h"
-#include "calendar.h"
+#include "data/calendar.h"
+#include "data/casereader-provider.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/variable.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include <inttypes.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-
-#include "minmax.h"
+#include "gl/xalloc.h"
+#include "gl/minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

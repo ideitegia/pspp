@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,18 +16,18 @@
 
 #include <config.h>
 
-#include <libpspp/float-format.h>
+#include "libpspp/float-format.h"
 
+#include <byteswap.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/integer-format.h>
+#include "libpspp/assertion.h"
+#include "libpspp/integer-format.h"
 
-#include "error.h"
-#include <byteswap.h>
+#include "gl/error.h"
 
 /* Neutral intermediate representation for binary floating-point numbers. */
 struct fp

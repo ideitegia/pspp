@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,19 +16,19 @@
 
 #include <config.h>
 
+#include "math/categoricals.h"
+
 #include <stdio.h>
 
-#include "categoricals.h"
+#include "data/case.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/array.h"
+#include "libpspp/hmap.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include <gl/xalloc.h>
-#include <data/variable.h>
-#include <data/case.h>
-#include <data/value.h>
-#include <libpspp/hmap.h>
-#include <libpspp/pool.h>
-#include <libpspp/array.h>
-
-#include <libpspp/str.h>
+#include "gl/xalloc.h"
 
 struct value_node
 {

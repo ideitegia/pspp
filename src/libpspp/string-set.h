@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
    This is a convenient wrapper around a "struct hmap" for storing strings. */
 
 #include <stdbool.h>
-#include <libpspp/hmap.h>
+#include "libpspp/hmap.h"
 
 /* A node in the string set. */
 struct string_set_node

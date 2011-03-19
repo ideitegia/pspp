@@ -18,30 +18,30 @@
 
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/data-out.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <data/format.h>
-#include <language/command.h>
-#include <language/data-io/data-writer.h>
-#include <language/data-io/file-handle.h>
-#include <language/data-io/placement-parser.h>
-#include <language/lexer/format-parser.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/assertion.h>
-#include <libpspp/i18n.h>
-#include <libpspp/compiler.h>
-#include <libpspp/ll.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <output/text-item.h>
-#include <output/tab.h>
+#include "data/case.h"
+#include "data/data-out.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/data-io/data-writer.h"
+#include "language/data-io/file-handle.h"
+#include "language/data-io/placement-parser.h"
+#include "language/lexer/format-parser.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/ll.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "output/tab.h"
+#include "output/text-item.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

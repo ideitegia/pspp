@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 #ifndef GROUP_H
 #define GROUP_H
 
-#include <data/value.h>
+#include "data/value.h"
 
 /* Statistics for grouped data */
 struct group_statistics

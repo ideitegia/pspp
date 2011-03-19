@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +15,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "por-file-writer.h"
+
+#include "data/por-file-writer.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -26,26 +27,25 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include <data/case.h>
-#include <data/casewriter-provider.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <data/file-name.h>
-#include <data/format.h>
-#include <data/make-file.h>
-#include <data/missing-values.h>
-#include <data/short-names.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
+#include "data/case.h"
+#include "data/casewriter-provider.h"
+#include "data/casewriter.h"
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "data/format.h"
+#include "data/make-file.h"
+#include "data/missing-values.h"
+#include "data/short-names.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "libpspp/version.h"
 
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-#include <libpspp/version.h>
-
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

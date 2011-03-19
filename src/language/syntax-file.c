@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,36 +16,32 @@
 
 #include <config.h>
 
-#include "syntax-file.h"
+#include "language/syntax-file.h"
 
 #include <stdio.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <data/file-name.h>
-#include <data/settings.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <libpspp/version.h>
-#include <output/tab.h>
+#include "data/file-name.h"
+#include "data/settings.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/prompt.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/getl.h"
+#include "libpspp/ll.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "libpspp/version.h"
+#include "output/tab.h"
 
-#include <libpspp/ll.h>
-
-#include "prompt.h"
-
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-#include <libpspp/getl.h>
-
 
 struct syntax_file_source
   {

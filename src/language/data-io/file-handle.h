@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <data/file-handle-def.h>
+#include "data/file-handle-def.h"
 
 struct lexer ;
 struct file_handle *fh_parse (struct lexer *, enum fh_referent);

@@ -15,15 +15,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "evaluate.h"
+
+#include "language/expressions/evaluate.h"
 
 #include <ctype.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <language/expressions/helpers.h>
-#include <language/expressions/private.h>
-#include <language/lexer/value-parser.h>
-#include <libpspp/pool.h>
+
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "language/expressions/helpers.h"
+#include "language/expressions/private.h"
+#include "language/lexer/value-parser.h"
+#include "libpspp/pool.h"
 
 #include "xalloc.h"
 
@@ -102,8 +104,8 @@ expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
   buf_copy_rpad (dst, dst_size, s.string, s.length, ' ');
 }
 
-#include <language/lexer/lexer.h>
-#include <language/command.h>
+#include "language/lexer/lexer.h"
+#include "language/command.h"
 
 int
 cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)

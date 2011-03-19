@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical interface for PSPP.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,16 +17,16 @@
 
 #include <config.h>
 
-#include <libpspp/cast.h>
-#include <libpspp/getl.h>
-#include <libpspp/compiler.h>
-#include <libpspp/str.h>
+#include "language/syntax-string-source.h"
 
 #include <stdlib.h>
 
-#include "syntax-string-source.h"
+#include "libpspp/cast.h"
+#include "libpspp/getl.h"
+#include "libpspp/compiler.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 struct syntax_string_source
   {

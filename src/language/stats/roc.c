@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,26 +16,26 @@
 
 #include <config.h>
 
-#include <language/stats/roc.h>
-
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/subcase.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/value-parser.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/misc.h>
-#include <math/sort.h>
-#include <output/chart-item.h>
-#include <output/charts/roc-chart.h>
-#include <output/tab.h>
+#include "language/stats/roc.h"
 
 #include <gsl/gsl_cdf.h>
+
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/subcase.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/misc.h"
+#include "math/sort.h"
+#include "output/chart-item.h"
+#include "output/charts/roc-chart.h"
+#include "output/tab.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

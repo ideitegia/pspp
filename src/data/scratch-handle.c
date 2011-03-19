@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,10 +15,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
+#include "data/scratch-handle.h"
+
 #include <stdlib.h>
-#include <data/casereader.h>
-#include <data/scratch-handle.h>
-#include <data/dictionary.h>
+
+#include "data/casereader.h"
+#include "data/dictionary.h"
 
 /* Destroys HANDLE. */
 void

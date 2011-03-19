@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,46 +21,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <math/sort.h>
-#include <math/order-stats.h>
-#include <math/percentiles.h>
-#include <math/tukey-hinges.h>
-#include <math/box-whisker.h>
-#include <math/trimmed-mean.h>
-#include <math/extrema.h>
-#include <math/np.h>
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/subcase.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/dictionary/split-file.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-#include <math/moments.h>
-#include <output/chart-item.h>
-#include <output/charts/boxplot.h>
-#include <output/charts/np-plot.h>
-#include <output/tab.h>
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dictionary.h"
+#include "data/procedure.h"
+#include "data/subcase.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/dictionary/split-file.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "math/box-whisker.h"
+#include "math/extrema.h"
+#include "math/histogram.h"
+#include "math/moments.h"
+#include "math/np.h"
+#include "math/order-stats.h"
+#include "math/percentiles.h"
+#include "math/sort.h"
+#include "math/trimmed-mean.h"
+#include "math/tukey-hinges.h"
+#include "output/chart-item.h"
+#include "output/charts/boxplot.h"
+#include "output/charts/np-plot.h"
+#include "output/charts/plot-hist.h"
+#include "output/tab.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
 /* (headers) */
-#include <output/charts/plot-hist.h>
-#include <math/histogram.h>
 
 /* (specification)
    "EXAMINE" (xmn_):

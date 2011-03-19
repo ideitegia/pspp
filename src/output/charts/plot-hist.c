@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,12 +22,11 @@
 #include <gsl/gsl_randist.h>
 #include <assert.h>
 
-#include <output/charts/plot-hist.h>
-#include <output/chart-item-provider.h>
-
-#include <libpspp/cast.h>
-#include <math/histogram.h>
-#include <math/moments.h>
+#include "libpspp/cast.h"
+#include "math/histogram.h"
+#include "math/moments.h"
+#include "output/chart-item-provider.h"
+#include "output/charts/plot-hist.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

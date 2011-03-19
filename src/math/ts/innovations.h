@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,8 +25,9 @@
  */
 #ifndef INNOVATIONS_H
 #define INNOVATIONS_H
-#include <math/coefficient.h>
-#include <math/design-matrix.h>
+
+#include "math/coefficient.h"
+#include "math/design-matrix.h"
 
 struct innovations_estimate
 {

@@ -16,25 +16,25 @@
 
 #include <config.h>
 
-#include "file-handle-def.h"
+#include "data/file-handle-def.h"
 
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <libpspp/compiler.h>
-#include <libpspp/hmap.h>
-#include <libpspp/i18n.h>
-#include <libpspp/ll.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <libpspp/hash-functions.h>
-#include <data/file-name.h>
-#include <data/variable.h>
-#include <data/scratch-handle.h>
+#include "libpspp/compiler.h"
+#include "libpspp/hmap.h"
+#include "libpspp/i18n.h"
+#include "libpspp/ll.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "libpspp/hash-functions.h"
+#include "data/file-name.h"
+#include "data/variable.h"
+#include "data/scratch-handle.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

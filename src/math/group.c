@@ -15,16 +15,19 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <stdlib.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash.h>
-#include "group.h"
-#include "group-proc.h"
-#include <libpspp/str.h>
-#include <data/variable.h>
-#include <libpspp/misc.h>
 
-#include "xalloc.h"
+#include "math/group.h"
+
+#include <stdlib.h>
+
+#include "data/variable.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "math/group-proc.h"
+
+#include "gl/xalloc.h"
 
 void
 free_group (struct group_statistics *v, void *aux UNUSED)

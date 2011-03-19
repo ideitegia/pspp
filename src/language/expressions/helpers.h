@@ -10,24 +10,24 @@
 #include <math.h>
 #include <stdbool.h>
 
-#include <data/calendar.h>
-#include <data/case.h>
-#include <data/data-in.h>
-#include <data/data-out.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <data/vector.h>
-#include <language/expressions/public.h>
-#include <libpspp/compiler.h>
-#include <libpspp/i18n.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-#include <math/moments.h>
-#include <math/random.h>
+#include "data/calendar.h"
+#include "data/case.h"
+#include "data/data-in.h"
+#include "data/data-out.h"
+#include "data/dictionary.h"
+#include "data/procedure.h"
+#include "data/settings.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "data/vector.h"
+#include "language/expressions/public.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "math/moments.h"
+#include "math/random.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

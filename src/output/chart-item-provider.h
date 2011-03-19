@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 #ifndef OUTPUT_CHART_ITEM_PROVIDER_H
 #define OUTPUT_CHART_ITEM_PROVIDER_H 1
 
-#include <output/chart-item.h>
-#include <output/output-item.h>
+#include "output/chart-item.h"
+#include "output/output-item.h"
 
 struct chart_item_class
   {

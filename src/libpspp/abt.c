@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@
 #include <config.h>
 #endif
 
-#include <libpspp/abt.h>
-#include <libpspp/cast.h>
+#include "libpspp/abt.h"
 
 #include <stdbool.h>
 
-#include <libpspp/assertion.h>
+#include "libpspp/cast.h"
+#include "libpspp/assertion.h"
 
 static struct abt_node **down_link (struct abt *, struct abt_node *);
 static struct abt_node *skew (struct abt *, struct abt_node *);

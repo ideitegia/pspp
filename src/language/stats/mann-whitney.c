@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,20 +16,20 @@
 
 #include <config.h>
 
-#include "mann-whitney.h"
+#include "language/stats/mann-whitney.h"
 
 #include <gsl/gsl_cdf.h>
 
-#include <libpspp/cast.h>
-#include <libpspp/misc.h>
-
-#include <math/sort.h>
-#include <data/case.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/casereader.h>
-#include <data/format.h>
-#include <data/variable.h>
+#include "data/case.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/procedure.h"
+#include "data/variable.h"
+#include "libpspp/cast.h"
+#include "libpspp/misc.h"
+#include "math/sort.h"
+#include "output/tab.h"
 
 /* Calculates the adjustment necessary for tie compensation */
 static void
@@ -147,7 +147,6 @@ mann_whitney_execute (const struct dataset *ds,
 
 
 
-#include <output/tab.h>
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 

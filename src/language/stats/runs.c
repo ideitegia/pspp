@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis. -*-c-*-
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,25 +17,24 @@
 
 #include <config.h>
 
-#include "runs.h"
+#include "language/stats/runs.h"
 
 #include <gsl/gsl_cdf.h>
 #include <math.h>
 
-#include <data/format.h>
-
-#include <libpspp/misc.h>
-#include <libpspp/message.h>
-#include <data/procedure.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/casegrouper.h>
-#include <data/dictionary.h>
-#include <data/subcase.h>
-#include <data/variable.h>
-#include <math/percentiles.h>
-#include <math/sort.h>
-
+#include "data/format.h"
+#include "libpspp/misc.h"
+#include "libpspp/message.h"
+#include "data/procedure.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/casegrouper.h"
+#include "data/dictionary.h"
+#include "data/subcase.h"
+#include "data/variable.h"
+#include "math/percentiles.h"
+#include "math/sort.h"
+#include "output/tab.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -303,7 +302,6 @@ runs_execute (const struct dataset *ds,
 }
 
 
-#include <output/tab.h>
 
 static void
 show_runs_result (const struct runs_test *rt, const struct run_state *rs, const struct dictionary *dict)

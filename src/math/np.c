@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,20 +15,21 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "np.h"
+
+#include "math/np.h"
 
 #include <gsl/gsl_cdf.h>
 #include <math.h>
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/casewriter.h>
-#include <libpspp/compiler.h>
-#include <libpspp/cast.h>
-#include <libpspp/misc.h>
-#include <math/moments.h>
+#include "data/case.h"
+#include "data/casewriter.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/misc.h"
+#include "math/moments.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 static void
 destroy (struct statistic *stat)

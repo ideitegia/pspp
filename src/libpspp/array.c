@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -90,10 +90,10 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libpspp/assertion.h>
+#include "libpspp/assertion.h"
 
-#include "xalloc.h"
-#include "minmax.h"
+#include "gl/xalloc.h"
+#include "gl/minmax.h"
 
 /* Finds an element in ARRAY, which contains COUNT elements of
    SIZE bytes each, using COMPARE for comparisons.  Returns the

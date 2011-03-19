@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,13 +15,16 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "tukey-hinges.h"
-#include <math/order-stats.h>
 
-#include <gl/xalloc.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
+#include "math/tukey-hinges.h"
+
 #include <math.h>
+
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "math/order-stats.h"
+
+#include "gl/xalloc.h"
 
 void
 tukey_hinges_calculate (const struct tukey_hinges *th, double hinge[3])

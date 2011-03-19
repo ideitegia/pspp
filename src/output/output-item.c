@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,15 +16,15 @@
 
 #include <config.h>
 
-#include <output/output-item-provider.h>
+#include "output/output-item-provider.h"
 
 #include <assert.h>
 #include <stdlib.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* Increases ITEM's reference count, indicating that it has an additional
    owner.  An output item that is shared among multiple owners must not be
