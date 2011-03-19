@@ -1,0 +1,818 @@
+AT_BANNER([syntax scanning])
+m4_define([PSPP_CHECK_SCAN],
+  [AT_CHECK([scan-test $1 input], [0], [expout])])
+
+AT_SETUP([identifiers])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+a aB i5 $x @efg @@. #.# .x _z.
+abcd. abcd.
+QRSTUV./* end of line comment */
+QrStUv./* end of line comment */ @&t@
+WXYZ. /* unterminated end of line comment
+�. /* U+FFFD is not valid in an identifier
+])
+AT_DATA([expout], [dnl
+ID "a"
+SKIP
+ID "aB"
+SKIP
+ID "i5"
+SKIP
+ID "$x"
+SKIP
+ID "@efg"
+SKIP
+ID "@@."
+SKIP
+ID "#.#"
+SKIP
+UNEXPECTED_DOT
+ID "x"
+SKIP
+UNEXPECTED_CHAR 95
+ID "z"
+ENDCMD
+SKIP
+ID "abcd."
+SKIP
+ID "abcd"
+ENDCMD
+SKIP
+ID "QRSTUV"
+ENDCMD
+SKIP
+SKIP
+ID "QrStUv"
+ENDCMD
+SKIP
+SKIP
+SKIP
+ID "WXYZ"
+ENDCMD
+SKIP
+SKIP
+SKIP
+UNEXPECTED_CHAR 65533
+ENDCMD
+SKIP
+SKIP
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([reserved words])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+and or not eq ge gt le lt ne all by to with
+AND OR NOT EQ GE GT LE LT NE ALL BY TO WITH
+andx orx notx eqx gex gtx lex ltx nex allx byx tox withx
+and. with.
+])
+AT_DATA([expout], [dnl
+AND
+SKIP
+OR
+SKIP
+NOT
+SKIP
+EQ
+SKIP
+GE
+SKIP
+GT
+SKIP
+LE
+SKIP
+LT
+SKIP
+NE
+SKIP
+ALL
+SKIP
+BY
+SKIP
+TO
+SKIP
+WITH
+SKIP
+AND
+SKIP
+OR
+SKIP
+NOT
+SKIP
+EQ
+SKIP
+GE
+SKIP
+GT
+SKIP
+LE
+SKIP
+LT
+SKIP
+NE
+SKIP
+ALL
+SKIP
+BY
+SKIP
+TO
+SKIP
+WITH
+SKIP
+ID "andx"
+SKIP
+ID "orx"
+SKIP
+ID "notx"
+SKIP
+ID "eqx"
+SKIP
+ID "gex"
+SKIP
+ID "gtx"
+SKIP
+ID "lex"
+SKIP
+ID "ltx"
+SKIP
+ID "nex"
+SKIP
+ID "allx"
+SKIP
+ID "byx"
+SKIP
+ID "tox"
+SKIP
+ID "withx"
+SKIP
+ID "and."
+SKIP
+WITH
+ENDCMD
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([punctuation])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+~ & | = >= > <= < ~= <> ( ) , - + * / [[ ]] **
+~&|=>=><=<~=<>(),-+*/[[]]**
+])
+AT_DATA([expout], [dnl
+NOT
+SKIP
+AND
+SKIP
+OR
+SKIP
+EQUALS
+SKIP
+GE
+SKIP
+GT
+SKIP
+LE
+SKIP
+LT
+SKIP
+NE
+SKIP
+NE
+SKIP
+LPAREN
+SKIP
+RPAREN
+SKIP
+COMMA
+SKIP
+DASH
+SKIP
+PLUS
+SKIP
+ASTERISK
+SKIP
+SLASH
+SKIP
+LBRACK
+SKIP
+RBRACK
+SKIP
+EXP
+SKIP
+NOT
+AND
+OR
+EQUALS
+GE
+GT
+LE
+LT
+NE
+NE
+LPAREN
+RPAREN
+COMMA
+DASH
+PLUS
+ASTERISK
+SLASH
+LBRACK
+RBRACK
+EXP
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([numbers])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+0 1 01 001. 1.
+123. /* comment 1 */ /* comment 2 */
+.1 0.1 00.1 00.10
+5e1 6E-1 7e+1 6E+01 6e-03
+.3E1 .4e-1 .5E+1 .6e+01 .7E-03
+1.23e1 45.6E-1 78.9e+1 99.9E+01 11.2e-03
+. 1e e1 1e+ 1e-
+])
+AT_DATA([expout], [dnl
+POS_NUM
+SKIP
+POS_NUM 1
+SKIP
+POS_NUM 1
+SKIP
+POS_NUM 1
+SKIP
+POS_NUM 1
+ENDCMD
+SKIP
+POS_NUM 123
+ENDCMD
+SKIP
+SKIP
+SKIP
+SKIP
+SKIP
+ENDCMD
+POS_NUM 1
+SKIP
+POS_NUM 0.1
+SKIP
+POS_NUM 0.1
+SKIP
+POS_NUM 0.1
+SKIP
+POS_NUM 50
+SKIP
+POS_NUM 0.6
+SKIP
+POS_NUM 70
+SKIP
+POS_NUM 60
+SKIP
+POS_NUM 0.006
+SKIP
+ENDCMD
+POS_NUM 30
+SKIP
+POS_NUM 0.04
+SKIP
+POS_NUM 5
+SKIP
+POS_NUM 6
+SKIP
+POS_NUM 0.0007
+SKIP
+POS_NUM 12.3
+SKIP
+POS_NUM 4.56
+SKIP
+POS_NUM 789
+SKIP
+POS_NUM 999
+SKIP
+POS_NUM 0.0112
+SKIP
+ENDCMD
+SKIP
+EXPECTED_EXPONENT "1e"
+SKIP
+ID "e1"
+SKIP
+EXPECTED_EXPONENT "1e+"
+SKIP
+EXPECTED_EXPONENT "1e-"
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([strings])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+'x' "y" 'abc'
+'Don''t' "Can't" 'Won''t'
+"""quoted""" '"quoted"'
+'' "" '''' """"
+'missing end quote
+"missing double quote
+'x' + "y"
++ 'z' +
+'a' /* abc */ + "b" /*
++ 'c' +/* */"d"/* */+'e'
+'foo'
++          /* special case: + in column 0 would ordinarily start a new command
+'bar'
+'foo'
+ +
+'bar'
+'foo'
++
+
+'bar'
+
++
+x"4142"+'5152'
+"4142"+
+x'5152'
+x"4142"
++u'304a'
+"�あいうえお"
+"abc"+U"FFFD"+u'3048'+"xyz"
+])
+AT_DATA([expout], [dnl
+STRING "x"
+SKIP
+STRING "y"
+SKIP
+STRING "abc"
+SKIP
+STRING "Don't"
+SKIP
+STRING "Can't"
+SKIP
+STRING "Won't"
+SKIP
+STRING ""quoted""
+SKIP
+STRING ""quoted""
+SKIP
+STRING ""
+SKIP
+STRING ""
+SKIP
+STRING "'"
+SKIP
+STRING """
+SKIP
+EXPECTED_QUOTE
+SKIP
+EXPECTED_QUOTE
+SKIP
+STRING "xyzabcde"
+SKIP
+STRING "foobar"
+SKIP
+STRING "foobar"
+SKIP
+STRING "foo"
+SKIP
+PLUS
+SKIP
+ENDCMD
+SKIP
+STRING "bar"
+SKIP
+ENDCMD
+SKIP
+PLUS
+SKIP
+STRING "AB5152"
+SKIP
+STRING "4142QR"
+SKIP
+STRING "ABお"
+SKIP
+STRING "�あいうえお"
+SKIP
+STRING "abc�えxyz"
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([@%:@! construct])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+#! /usr/bin/pspp
+#! /usr/bin/pspp
+])
+AT_DATA([expout], [dnl
+SKIP
+SKIP
+ID "#"
+UNEXPECTED_CHAR 33
+SKIP
+SLASH
+ID "usr"
+SLASH
+ID "bin"
+SLASH
+ID "pspp"
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([* and COMMENT commands])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+* Comment commands "don't
+have to contain valid tokens.
+
+** Check ambiguity with ** token.
+****************.
+
+comment keyword works too.
+COMM also.
+com is ambiguous with COMPUTE.
+
+   * Comment need not start at left margin.
+
+* Comment ends with blank line
+
+next command.
+
+])
+AT_DATA([expout], [dnl
+SKIP
+SKIP
+SKIP
+ENDCMD
+SKIP
+ENDCMD
+SKIP
+SKIP
+ENDCMD
+SKIP
+SKIP
+ENDCMD
+SKIP
+ENDCMD
+SKIP
+SKIP
+ENDCMD
+SKIP
+SKIP
+ENDCMD
+SKIP
+ID "com"
+SKIP
+ID "is"
+SKIP
+ID "ambiguous"
+SKIP
+WITH
+SKIP
+ID "COMPUTE"
+ENDCMD
+SKIP
+ENDCMD
+SKIP
+SKIP
+SKIP
+ENDCMD
+SKIP
+ENDCMD
+SKIP
+SKIP
+SKIP
+ENDCMD
+SKIP
+ID "next"
+SKIP
+ID "command"
+ENDCMD
+SKIP
+ENDCMD
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([DOCUMENT command])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+DOCUMENT one line.
+DOC more
+    than
+        one
+            line.
+docu
+first.paragraph
+isn't parsed as tokens
+
+second paragraph.
+])
+AT_DATA([expout], [dnl
+ID "DOCUMENT"
+STRING "DOCUMENT one line."
+ENDCMD
+ENDCMD
+SKIP
+ID "DOCUMENT"
+STRING "DOC more"
+SKIP
+STRING "    than"
+SKIP
+STRING "        one"
+SKIP
+STRING "            line."
+ENDCMD
+ENDCMD
+SKIP
+ID "DOCUMENT"
+STRING "docu"
+SKIP
+STRING "first.paragraph"
+SKIP
+STRING "isn't parsed as tokens"
+SKIP
+STRING ""
+SKIP
+STRING "second paragraph."
+ENDCMD
+ENDCMD
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([TITLE, SUBTITLE, FILE LABEL commands])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+title/**/'Quoted string title'.
+tit /*
+"Quoted string on second line".
+sub "Quoted string subtitle"
+ .
+
+TITL /* Not a */ quoted string title.
+SUBT Not a quoted string /* subtitle
+
+FIL label isn't quoted.
+FILE
+  lab 'is quoted'.
+FILE /*
+/**/  lab not quoted here either
+
+])
+AT_DATA([expout], [dnl
+ID "title"
+SKIP
+STRING "Quoted string title"
+ENDCMD
+SKIP
+ID "tit"
+SKIP
+SKIP
+SKIP
+STRING "Quoted string on second line"
+ENDCMD
+SKIP
+ID "sub"
+SKIP
+STRING "Quoted string subtitle"
+SKIP
+SKIP
+ENDCMD
+SKIP
+ENDCMD
+SKIP
+ID "TITL"
+SKIP
+STRING "/* Not a */ quoted string title"
+ENDCMD
+SKIP
+ID "SUBT"
+SKIP
+STRING "Not a quoted string /* subtitle"
+SKIP
+ENDCMD
+SKIP
+ID "FIL"
+SKIP
+ID "label"
+SKIP
+STRING "isn't quoted"
+ENDCMD
+SKIP
+ID "FILE"
+SKIP
+SKIP
+ID "lab"
+SKIP
+STRING "is quoted"
+ENDCMD
+SKIP
+ID "FILE"
+SKIP
+SKIP
+SKIP
+SKIP
+SKIP
+ID "lab"
+SKIP
+STRING "not quoted here either"
+SKIP
+ENDCMD
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([BEGIN DATA command])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+begin data.
+123
+xxx
+end data.
+
+BEG /**/ DAT /*
+5 6 7 /* x
+
+end  data
+end data
+.
+])
+AT_DATA([expout], [dnl
+ID "begin"
+SKIP
+ID "data"
+ENDCMD
+SKIP
+STRING "123"
+SKIP
+STRING "xxx"
+SKIP
+ID "end"
+SKIP
+ID "data"
+ENDCMD
+SKIP
+ENDCMD
+SKIP
+ID "BEG"
+SKIP
+SKIP
+SKIP
+ID "DAT"
+SKIP
+SKIP
+SKIP
+STRING "5 6 7 /* x"
+SKIP
+STRING ""
+SKIP
+STRING "end  data"
+SKIP
+ID "end"
+SKIP
+ID "data"
+SKIP
+ENDCMD
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([DO REPEAT command])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+do repeat x=a b c
+          y=d e f.
+  do repeat a=1 thru 5.
+another command.
+second command
++ third command.
+end /* x */ /* y */ repeat print.
+end
+ repeat.
+])
+AT_DATA([expout], [dnl
+ID "do"
+SKIP
+ID "repeat"
+SKIP
+ID "x"
+EQUALS
+ID "a"
+SKIP
+ID "b"
+SKIP
+ID "c"
+SKIP
+SKIP
+ID "y"
+EQUALS
+ID "d"
+SKIP
+ID "e"
+SKIP
+ID "f"
+ENDCMD
+SKIP
+STRING "  do repeat a=1 thru 5."
+SKIP
+STRING "another command."
+SKIP
+STRING "second command"
+SKIP
+STRING "+ third command."
+SKIP
+STRING "end /* x */ /* y */ repeat print."
+SKIP
+ID "end"
+SKIP
+SKIP
+ID "repeat"
+ENDCMD
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-i])
+AT_CLEANUP
+
+AT_SETUP([batch mode])
+AT_KEYWORDS([scan])
+AT_DATA([input], [dnl
+first command
+     another line of first command
++  second command
+third command
+
+fourth command.
+   fifth command.
+])
+AT_DATA([expout], [dnl
+ID "first"
+SKIP
+ID "command"
+SKIP
+SKIP
+ID "another"
+SKIP
+ID "line"
+SKIP
+ID "of"
+SKIP
+ID "first"
+SKIP
+ID "command"
+SKIP
+ENDCMD
+SKIP
+ID "second"
+SKIP
+ID "command"
+SKIP
+ENDCMD
+ID "third"
+SKIP
+ID "command"
+SKIP
+ENDCMD
+SKIP
+ID "fourth"
+SKIP
+ID "command"
+ENDCMD
+SKIP
+SKIP
+ID "fifth"
+SKIP
+ID "command"
+ENDCMD
+SKIP
+STOP
+])
+PSPP_CHECK_SCAN([-b])
+AT_CLEANUP

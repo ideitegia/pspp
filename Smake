@@ -71,6 +71,7 @@ GNULIB_MODULES = \
 	sys_stat \
 	tempname \
 	trunc \
+	unictype/ctype-print \
 	unictype/property-id-continue \
 	unictype/property-id-start \
 	unigbrk/uc-is-grapheme-break \
