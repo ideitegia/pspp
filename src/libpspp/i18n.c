@@ -671,3 +671,52 @@ uc_name (ucs4_t uc, char buffer[16])
     snprintf (buffer, 16, "U+%04X", uc);
   return buffer;
 }
+
+bool
+get_encoding_info (struct encoding_info *e, const char *name)
+{
+  const struct substring in = SS_LITERAL_INITIALIZER (
+    "\t\n\v\f\r "
+    "!\"#$%&'()*+,-./0123456789:;<=>?@"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
+    "abcdefghijklmnopqrstuvwxyz{|}~");
+
+  struct substring out, cr, lf;
+  bool ok;
+
+  memset (e, 0, sizeof *e);
+
+  cr = recode_substring_pool (name, "UTF-8", ss_cstr ("\r"), NULL);
+  lf = recode_substring_pool (name, "UTF-8", ss_cstr ("\n"), NULL);
+  ok = cr.length >= 1 && cr.length <= MAX_UNIT && cr.length == lf.length;
+  if (!ok)
+    {
+      fprintf (stderr, "warning: encoding `%s' is not supported.\n", name);
+      ss_dealloc (&cr);
+      ss_dealloc (&lf);
+      ss_alloc_substring (&cr, ss_cstr ("\r"));
+      ss_alloc_substring (&lf, ss_cstr ("\n"));
+    }
+
+  e->unit = cr.length;
+  memcpy (e->cr, cr.string, e->unit);
+  memcpy (e->lf, lf.string, e->unit);
+
+  ss_dealloc (&cr);
+  ss_dealloc (&lf);
+
+  out = recode_substring_pool ("UTF-8", name, in, NULL);
+  e->is_ascii_compatible = ss_equals (in, out);
+  ss_dealloc (&out);
+
+  return ok;
+}
+
+bool
+is_encoding_ascii_compatible (const char *encoding)
+{
+  struct encoding_info e;
+
+  get_encoding_info (&e, encoding);
+  return e.is_ascii_compatible;
+}

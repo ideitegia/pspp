@@ -67,5 +67,72 @@ void set_default_encoding (const char *enc);
 bool set_encoding_from_locale (const char *loc);
 
 const char *uc_name (ucs4_t uc, char buffer[16]);
+
+/* Information about character encodings. */
+
+/* ISO C defines a set of characters that a C implementation must support at
+   runtime, called the C basic execution character set, which consists of the
+   following characters:
+
+       A B C D E F G H I J K L M
+       N O P Q R S T U V W X Y Z
+       a b c d e f g h i j k l m
+       n o p q r s t u v w x y z
+       0 1 2 3 4 5 6 7 8 9
+       ! " # % & ' ( ) * + , - . / :
+       ; < = > ? [ \ ] ^ _ { | } ~
+       space \a \b \r \n \t \v \f \0
+
+   The following is true of every member of the C basic execution character
+   set in all "reasonable" encodings:
+
+       1. Every member of the C basic character set is encoded.
+
+       2. Every member of the C basic character set has the same width in
+          bytes, called the "unit width".  Most encodings have a unit width of
+          1 byte, but UCS-2 and UTF-16 have a unit width of 2 bytes and UCS-4
+          and UTF-32 have a unit width of 4 bytes.
+
+       3. In a stateful encoding, the encoding of members of the C basic
+          character set does not vary with shift state.
+
+       4. When a string is read unit-by-unit, a unit that has the encoded value
+          of a member of the C basic character set, EXCEPT FOR THE DECIMAL
+          DIGITS, always represents that member.  That is, if the encoding has
+          multi-unit characters, the units that encode the C basic character
+          set are never part of a multi-unit character.
+
+          The exception for decimal digits is due to GB18030, which uses
+          decimal digits as part of multi-byte encodings.
+
+   All 8-bit and wider encodings that I have been able to find follow these
+   rules.  7-bit and narrower encodings (e.g. UTF-7) do not.  I'm not too
+   concerned about that. */
+
+#include <stdbool.h>
+
+/* Maximum width of a unit, in bytes.  UTF-32 with 4-byte units is the widest
+   that I am aware of. */
+#define MAX_UNIT 4
+
+/* Information about an encoding. */
+struct encoding_info
+  {
+    /* Encoding name.  IANA says character set names may be up to 40 US-ASCII
+       characters. */
+    char name[41];
+
+    /* True if this encoding has a unit width of 1 byte, and every character
+       used in ASCII text files has the same value in this encoding. */
+    bool is_ascii_compatible;
+
+    /* Character information. */
+    int unit;                   /* Unit width, in bytes. */
+    char cr[MAX_UNIT];          /* \r in encoding, 'unit' bytes long. */
+    char lf[MAX_UNIT];          /* \n in encoding, 'unit' bytes long. */
+  };
+
+bool get_encoding_info (struct encoding_info *, const char *name);
+bool is_encoding_ascii_compatible (const char *encoding);
 
 #endif /* i18n.h */
