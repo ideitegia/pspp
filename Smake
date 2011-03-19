@@ -70,7 +70,6 @@ GNULIB_MODULES = \
 	sys_stat \
 	tempname \
 	trunc \
-	unilbrk/ulc-width-linebreaks \
 	unistd \
 	unictype/property-id-continue \
 	unictype/property-id-start \
