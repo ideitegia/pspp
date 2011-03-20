@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -103,8 +103,7 @@ struct dataset {
 
   /* Default encoding for reading syntax files. */
   char *syntax_encoding;
-}; /* struct dataset */
-
+};
 
 static void add_case_limit_trns (struct dataset *ds);
 static void add_filter_trns (struct dataset *ds);
@@ -117,9 +116,129 @@ dataset_set_unsaved (const struct dataset *ds)
   if (ds->callback) ds->callback (ds->cb_data);
 }
 
+static void
+dict_callback (struct dictionary *d UNUSED, void *ds_)
+{
+  struct dataset *ds = ds_;
+  dataset_set_unsaved (ds);
+}
 
-/* Public functions. */
+/* Creates and returns a new dataset.  The dataset initially has an empty
+   dictionary and no data source. */
+struct dataset *
+dataset_create (void)
+{
+  struct dataset *ds;
 
+  ds = xzalloc (sizeof *ds);
+  ds->dict = dict_create ();
+  dict_set_change_callback (ds->dict, dict_callback, ds);
+  dict_set_encoding (ds->dict, get_default_encoding ());
+
+  ds->caseinit = caseinit_create ();
+  proc_cancel_all_transformations (ds);
+  ds->syntax_encoding = xstrdup ("Auto");
+  return ds;
+}
+
+/* Destroys DS. */
+void
+dataset_destroy (struct dataset *ds)
+{
+  if (ds != NULL)
+    {
+      dataset_clear (ds);
+      dict_destroy (ds->dict);
+      caseinit_destroy (ds->caseinit);
+      trns_chain_destroy (ds->permanent_trns_chain);
+
+      if ( ds->xform_callback)
+        ds->xform_callback (false, ds->xform_callback_aux);
+      free (ds->syntax_encoding);
+      free (ds);
+    }
+}
+
+/* Discards the active file dictionary, data, and transformations. */
+void
+dataset_clear (struct dataset *ds)
+{
+  assert (ds->proc_state == PROC_COMMITTED);
+
+  dict_clear (ds->dict);
+  fh_set_default_handle (NULL);
+
+  ds->n_lag = 0;
+
+  casereader_destroy (ds->source);
+  ds->source = NULL;
+
+  proc_cancel_all_transformations (ds);
+}
+
+/* Returns the dictionary within DS.  This is always nonnull, although it
+   might not contain any variables. */
+struct dictionary *
+dataset_dict (const struct dataset *ds)
+{
+  return ds->dict;
+}
+
+/* Replaces DS's dictionary by DICT, discarding any source and
+   transformations. */
+void
+dataset_set_dict (struct dataset *ds, struct dictionary *dict)
+{
+  assert (ds->proc_state == PROC_COMMITTED);
+  assert (ds->dict != dict);
+
+  dataset_clear (ds);
+
+  dict_destroy (ds->dict);
+  ds->dict = dict;
+  dict_set_change_callback (ds->dict, dict_callback, ds);
+}
+
+/* Returns the casereader that will be read when a procedure is executed on
+   DS.  This can be NULL if none has been set up yet. */
+const struct casereader *
+dataset_source (const struct dataset *ds)
+{
+  return ds->source;
+}
+
+/* Returns true if DS has a data source, false otherwise. */
+bool
+dataset_has_source (const struct dataset *ds)
+{
+  return dataset_source (ds) != NULL;
+}
+
+/* Replaces the active file's data by READER.  READER's cases must have an
+   appropriate format for DS's dictionary. */
+bool
+dataset_set_source (struct dataset *ds, struct casereader *reader)
+{
+  casereader_destroy (ds->source);
+  ds->source = reader;
+
+  caseinit_clear (ds->caseinit);
+  caseinit_mark_as_preinited (ds->caseinit, ds->dict);
+
+  return reader == NULL || !casereader_error (reader);
+}
+
+/* Returns the data source from DS and removes it from DS.  Returns a null
+   pointer if DS has no data source. */
+struct casereader *
+dataset_steal_source (struct dataset *ds)
+{
+  struct casereader *reader = ds->source;
+  ds->source = NULL;
+
+  return reader;
+}
+
 void
 dataset_set_callback (struct dataset *ds, void (*cb) (void *), void *cb_data)
 {
@@ -354,7 +473,7 @@ proc_casereader_destroy (struct casereader *reader, void *ds_)
   ds->proc_state = PROC_CLOSED;
   ds->ok = casereader_destroy (ds->source) && ds->ok;
   ds->source = NULL;
-  proc_set_active_file_data (ds, NULL);
+  dataset_set_source (ds, NULL);
 }
 
 /* Must return false if the source casereader, a transformation,
@@ -591,33 +710,6 @@ proc_cancel_all_transformations (struct dataset *ds)
 }
 
 
-static void
-dict_callback (struct dictionary *d UNUSED, void *ds_)
-{
-  struct dataset *ds = ds_;
-  dataset_set_unsaved (ds);
-}
-
-/* Initializes procedure handling. */
-struct dataset *
-create_dataset (void)
-{
-  struct dataset *ds = xzalloc (sizeof(*ds));
-  ds->dict = dict_create ();
-
-  dict_set_change_callback (ds->dict, dict_callback, ds);
-
-  dict_set_encoding (ds->dict, get_default_encoding ());
-
-  ds->caseinit = caseinit_create ();
-  proc_cancel_all_transformations (ds);
-
-  ds->syntax_encoding = xstrdup ("Auto");
-
-  return ds;
-}
-
-
 void
 dataset_add_transform_change_callback (struct dataset *ds,
 				       transformation_change_callback_func *cb,
@@ -625,22 +717,6 @@ dataset_add_transform_change_callback (struct dataset *ds,
 {
   ds->xform_callback = cb;
   ds->xform_callback_aux = aux;
-}
-
-/* Finishes up procedure handling. */
-void
-destroy_dataset (struct dataset *ds)
-{
-  proc_discard_active_file (ds);
-  dict_destroy (ds->dict);
-  caseinit_destroy (ds->caseinit);
-  trns_chain_destroy (ds->permanent_trns_chain);
-
-  if ( ds->xform_callback)
-    ds->xform_callback (false, ds->xform_callback_aux);
-
-  free (ds->syntax_encoding);
-  free (ds);
 }
 
 /* Causes output from the next procedure to be discarded, instead
@@ -651,75 +727,6 @@ proc_discard_output (struct dataset *ds)
   ds->discard_output = true;
 }
 
-/* Discards the active file dictionary, data, and
-   transformations. */
-void
-proc_discard_active_file (struct dataset *ds)
-{
-  assert (ds->proc_state == PROC_COMMITTED);
-
-  dict_clear (ds->dict);
-  fh_set_default_handle (NULL);
-
-  ds->n_lag = 0;
-
-  casereader_destroy (ds->source);
-  ds->source = NULL;
-
-  proc_cancel_all_transformations (ds);
-}
-
-/* Sets SOURCE as the source for procedure input for the next
-   procedure. */
-void
-proc_set_active_file (struct dataset *ds,
-                      struct casereader *source,
-                      struct dictionary *dict)
-{
-  assert (ds->proc_state == PROC_COMMITTED);
-  assert (ds->dict != dict);
-
-  proc_discard_active_file (ds);
-
-  dict_destroy (ds->dict);
-  ds->dict = dict;
-  dict_set_change_callback (ds->dict, dict_callback, ds);
-
-  proc_set_active_file_data (ds, source);
-}
-
-/* Replaces the active file's data by READER without replacing
-   the associated dictionary. */
-bool
-proc_set_active_file_data (struct dataset *ds, struct casereader *reader)
-{
-  casereader_destroy (ds->source);
-  ds->source = reader;
-
-  caseinit_clear (ds->caseinit);
-  caseinit_mark_as_preinited (ds->caseinit, ds->dict);
-
-  return reader == NULL || !casereader_error (reader);
-}
-
-/* Returns true if an active file data source is available, false
-   otherwise. */
-bool
-proc_has_active_file (const struct dataset *ds)
-{
-  return ds->source != NULL;
-}
-
-/* Returns the active file data source from DS, or a null pointer
-   if DS has no data source, and removes it from DS. */
-struct casereader *
-proc_extract_active_file_data (struct dataset *ds)
-{
-  struct casereader *reader = ds->source;
-  ds->source = NULL;
-
-  return reader;
-}
 
 /* Checks whether DS has a corrupted active file.  If so,
    discards it and returns false.  If not, returns true without
@@ -731,7 +738,7 @@ dataset_end_of_command (struct dataset *ds)
     {
       if (casereader_error (ds->source))
         {
-          proc_discard_active_file (ds);
+          dataset_clear (ds);
           return false;
         }
       else
@@ -815,18 +822,6 @@ filter_trns_proc (void *filter_var_,
           ? TRNS_CONTINUE : TRNS_DROP_CASE);
 }
 
-
-struct dictionary *
-dataset_dict (const struct dataset *ds)
-{
-  return ds->dict;
-}
-
-const struct casereader *
-dataset_source (const struct dataset *ds)
-{
-  return ds->source;
-}
 
 void
 dataset_need_lag (struct dataset *ds, int n_before)

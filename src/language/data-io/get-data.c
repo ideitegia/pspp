@@ -122,7 +122,10 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
     struct casereader *reader = psql_open_reader (&psql, &dict);
 
     if ( reader )
-      proc_set_active_file (ds, reader, dict);
+      {
+        dataset_set_dict (ds, dict);
+        dataset_set_source (ds, reader);
+      }
   }
 
   ds_destroy (&psql.sql);
@@ -232,7 +235,10 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
     struct casereader *reader = gnumeric_open_reader (&gri, &dict);
 
     if ( reader )
-      proc_set_active_file (ds, reader, dict);
+      {
+        dataset_set_dict (ds, dict);
+        dataset_set_source (ds, reader);
+      }
   }
 
   free (gri.file_name);

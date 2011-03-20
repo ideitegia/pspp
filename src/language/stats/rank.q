@@ -280,7 +280,7 @@ rank_cmd (struct dataset *ds, const struct subcase *sc,
         }
       ok = casegrouper_destroy (split_grouper);
       ok = proc_commit (ds) && ok;
-      ok = (proc_set_active_file_data (ds, casewriter_make_reader (output))
+      ok = (dataset_set_source (ds, casewriter_make_reader (output))
             && ok);
       if (!ok)
         break;
@@ -784,7 +784,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
     result = proc_commit (ds) && result;
 
     dict_delete_var (dataset_dict (ds), order);
-    result = proc_set_active_file_data (ds, sorted) && result;
+    result = dataset_set_source (ds, sorted) && result;
   }
 
   rank_cleanup();

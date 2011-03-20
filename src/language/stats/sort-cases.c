@@ -71,7 +71,7 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
   proc_discard_output (ds);
   output = sort_execute (proc_open (ds), &ordering);
   ok = proc_commit (ds);
-  ok = proc_set_active_file_data (ds, output) && ok;
+  ok = dataset_set_source (ds, output) && ok;
 
  done:
   min_buffers = 64;

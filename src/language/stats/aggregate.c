@@ -351,7 +351,8 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
       if (next_input == NULL)
         goto error;
 
-      proc_set_active_file (ds, next_input, agr.dict);
+      dataset_set_dict (ds, agr.dict);
+      dataset_set_source (ds, next_input);
       agr.dict = NULL;
     }
   else

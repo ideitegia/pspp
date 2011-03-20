@@ -198,7 +198,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   /* Flip the data we read. */
   if (!ok || !flip_file (flip))
     {
-      proc_discard_active_file (ds);
+      dataset_clear (ds);
       goto error;
     }
 
@@ -219,7 +219,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   reader = casereader_create_sequential (NULL, dict_get_proto (dict),
                                          flip->n_vars,
                                          &flip_casereader_class, flip);
-  proc_set_active_file_data (ds, reader);
+  dataset_set_source (ds, reader);
   return CMD_SUCCESS;
 
  error:

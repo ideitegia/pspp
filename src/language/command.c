@@ -147,7 +147,7 @@ cmd_parse (struct lexer *lexer, struct dataset *ds)
 {
   const struct dictionary *dict = dataset_dict (ds);
   return cmd_parse_in_state (lexer, ds,
-			     proc_has_active_file (ds) &&
+			     dataset_has_source (ds) &&
 			     dict_get_var_cnt (dict) > 0 ?
 			     CMD_STATE_DATA : CMD_STATE_INITIAL);
 }
@@ -541,6 +541,6 @@ cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
 int
 cmd_new_file (struct lexer *lexer UNUSED, struct dataset *ds)
 {
-  proc_discard_active_file (ds);
+  dataset_clear (ds);
   return CMD_SUCCESS;
 }

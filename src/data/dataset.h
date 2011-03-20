@@ -27,6 +27,24 @@ struct casereader;
 struct dataset;
 struct dictionary;
 
+struct dataset *dataset_create (void);
+void dataset_destroy (struct dataset *);
+
+void dataset_clear (struct dataset *);
+
+struct dictionary *dataset_dict (const struct dataset *);
+void dataset_set_dict (struct dataset *, struct dictionary *);
+
+const struct casereader *dataset_source (const struct dataset *);
+bool dataset_has_source (const struct dataset *ds);
+bool dataset_set_source (struct dataset *, struct casereader *);
+struct casereader *dataset_steal_source (struct dataset *);
+
+void dataset_set_callback (struct dataset *, void (*cb) (void *), void *);
+
+void dataset_set_default_syntax_encoding (struct dataset *, const char *);
+const char *dataset_get_default_syntax_encoding (const struct dataset *);
+
 /* Transformations. */
 
 void add_transformation (struct dataset *ds,
@@ -49,19 +67,9 @@ bool proc_cancel_temporary_transformations (struct dataset *ds);
 
 typedef void transformation_change_callback_func (bool non_empty, void *aux);
 
-struct dataset * create_dataset (void);
-
-void destroy_dataset (struct dataset *);
 
 void dataset_add_transform_change_callback (struct dataset *,
 					    transformation_change_callback_func *, void *);
-
-void proc_discard_active_file (struct dataset *);
-void proc_set_active_file (struct dataset *,
-                           struct casereader *, struct dictionary *);
-bool proc_set_active_file_data (struct dataset *, struct casereader *);
-bool proc_has_active_file (const struct dataset *ds);
-struct casereader *proc_extract_active_file_data (struct dataset *);
 
 void proc_discard_output (struct dataset *ds);
 
@@ -75,15 +83,7 @@ bool proc_commit (struct dataset *);
 
 bool dataset_end_of_command (struct dataset *);
 
-struct dictionary *dataset_dict (const struct dataset *ds);
-const struct casereader *dataset_source (const struct dataset *ds);
-
 const struct ccase *lagged_case (const struct dataset *ds, int n_before);
 void dataset_need_lag (struct dataset *ds, int n_before);
-
-void dataset_set_callback (struct dataset *ds, void (*cb) (void *), void *);
-
-void dataset_set_default_syntax_encoding (struct dataset *, const char *);
-const char *dataset_get_default_syntax_encoding (const struct dataset *);
 
 #endif /* dataset.h */

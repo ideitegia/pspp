@@ -96,7 +96,7 @@ main (int argc, char **argv)
   random_init ();
 
   lexer = lex_create ();
-  the_dataset = create_dataset ();
+  the_dataset = dataset_create ();
 
   parser = argv_parser_create ();
   terminal_opts = terminal_opts_init (parser, &syntax_mode, &process_statrc,
@@ -159,7 +159,7 @@ main (int argc, char **argv)
     }
 
 
-  destroy_dataset (the_dataset);
+  dataset_destroy (the_dataset);
 
   random_done ();
   settings_done ();

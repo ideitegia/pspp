@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2009, 2010  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ initialize (const char *data_file)
   settings_init ();
   fh_init ();
 
-  the_dataset = create_dataset ();
+  the_dataset = dataset_create ();
   psppire_set_lexer (NULL);
 
   dictionary = psppire_dict_new_from_dict (dataset_dict (the_dataset));

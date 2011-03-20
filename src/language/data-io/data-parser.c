@@ -782,7 +782,8 @@ data_parser_make_active_file (struct data_parser *parser, struct dataset *ds,
   casereader = casereader_create_sequential (NULL, r->proto,
                                              CASENUMBER_MAX,
                                              &data_parser_casereader_class, r);
-  proc_set_active_file (ds, casereader, dict);
+  dataset_set_dict (ds, dict);
+  dataset_set_source (ds, casereader);
 }
 
 static struct ccase *

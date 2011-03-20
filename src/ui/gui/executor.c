@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -67,9 +67,9 @@ execute_syntax (struct lex_reader *lex_reader)
   reader = lazy_casereader_create (proto, case_cnt,
                                    create_casereader_from_data_store,
                                    the_data_store, &lazy_serial);
-  proc_set_active_file_data (the_dataset, reader);
+  dataset_set_source (the_dataset, reader);
 
-  g_return_val_if_fail (proc_has_active_file (the_dataset), FALSE);
+  g_return_val_if_fail (dataset_has_source (the_dataset), FALSE);
 
   lexer = lex_create ();
   psppire_set_lexer (lexer);
@@ -98,7 +98,7 @@ execute_syntax (struct lex_reader *lex_reader)
   psppire_dict_replace_dictionary (the_data_store->dict,
 				   dataset_dict (the_dataset));
 
-  reader = proc_extract_active_file_data (the_dataset);
+  reader = dataset_steal_source (the_dataset);
   if (!lazy_casereader_destroy (reader, lazy_serial))
     psppire_data_store_set_reader (the_data_store, reader);
 

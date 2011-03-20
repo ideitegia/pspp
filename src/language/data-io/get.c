@@ -128,7 +128,8 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
   if (map != NULL)
     reader = case_map_create_input_translator (map, reader);
 
-  proc_set_active_file (ds, reader, dict);
+  dataset_set_dict (ds, dict);
+  dataset_set_source (ds, reader);
 
   fh_unref (fh);
   return CMD_SUCCESS;

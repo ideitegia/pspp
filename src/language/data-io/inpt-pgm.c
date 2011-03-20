@@ -92,7 +92,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   struct input_program_pgm *inp;
   bool saw_END_CASE = false;
 
-  proc_discard_active_file (ds);
+  dataset_clear (ds);
   if (!lex_match (lexer, T_ENDCMD))
     return lex_end_of_command (lexer);
 
@@ -117,7 +117,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
           if (result == CMD_EOF)
             msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
           inside_input_program = false;
-          proc_discard_active_file (ds);
+          dataset_clear (ds);
           destroy_input_program (inp);
           return result;
         }
@@ -129,7 +129,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   if (dict_get_next_value_idx (dataset_dict (ds)) == 0)
     {
       msg (SE, _("Input program did not create any variables."));
-      proc_discard_active_file (ds);
+      dataset_clear (ds);
       destroy_input_program (inp);
       return CMD_FAILURE;
     }
@@ -144,7 +144,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   caseinit_mark_for_init (inp->init, dataset_dict (ds));
   inp->proto = caseproto_ref (dict_get_proto (dataset_dict (ds)));
 
-  proc_set_active_file_data (
+  dataset_set_source (
     ds, casereader_create_sequential (NULL, inp->proto, CASENUMBER_MAX,
                                       &input_program_casereader_class, inp));
 

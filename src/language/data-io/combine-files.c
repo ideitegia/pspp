@@ -206,7 +206,7 @@ combine_files (enum comb_command_type command,
 
       if (lex_match (lexer, T_ASTERISK))
         {
-          if (!proc_has_active_file (ds))
+          if (!dataset_has_source (ds))
             {
               msg (SE, _("Cannot specify the active file since no active "
                          "file has been defined."));
@@ -466,7 +466,8 @@ combine_files (enum comb_command_type command,
   if (active_file != NULL)
     proc_commit (ds);
 
-  proc_set_active_file (ds, casewriter_make_reader (proc.output), proc.dict);
+  dataset_set_dict (ds, proc.dict);
+  dataset_set_source (ds, casewriter_make_reader (proc.output));
   proc.dict = NULL;
   proc.output = NULL;
 

@@ -155,7 +155,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
 	  if  ( ds == NULL )
 	    {
-	      ds = create_dataset ();
+	      ds = dataset_create ();
 	      d = dataset_dict (ds);
 	    }
 
@@ -242,8 +242,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
   retval = CMD_SUCCESS;
 
  done:
-  if (ds)
-    destroy_dataset (ds);
+  dataset_destroy (ds);
 
   case_unref (c);
 
