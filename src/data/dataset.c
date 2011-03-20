@@ -60,11 +60,6 @@ struct dataset {
   struct trns_chain *temporary_trns_chain;
   struct dictionary *dict;
 
-  /* Callback which occurs whenever the transformation chain(s) have
-     been modified */
-  transformation_change_callback_func *xform_callback;
-  void *xform_callback_aux;
-
   /* If true, cases are discarded instead of being written to
      sink. */
   bool discard_output;
@@ -98,12 +93,16 @@ struct dataset {
   bool ok;                      /* Error status. */
   struct casereader_shim *shim; /* Shim on proc_open() casereader. */
 
-  void (*callback) (void *); /* Callback for when the dataset changes */
+  const struct dataset_callbacks *callbacks;
   void *cb_data;
 
   /* Default encoding for reading syntax files. */
   char *syntax_encoding;
 };
+
+static void dataset_changed__ (struct dataset *);
+static void dataset_transformations_changed__ (struct dataset *,
+                                               bool non_empty);
 
 static void add_case_limit_trns (struct dataset *ds);
 static void add_filter_trns (struct dataset *ds);
@@ -111,16 +110,10 @@ static void add_filter_trns (struct dataset *ds);
 static void update_last_proc_invocation (struct dataset *ds);
 
 static void
-dataset_set_unsaved (const struct dataset *ds)
-{
-  if (ds->callback) ds->callback (ds->cb_data);
-}
-
-static void
 dict_callback (struct dictionary *d UNUSED, void *ds_)
 {
   struct dataset *ds = ds_;
-  dataset_set_unsaved (ds);
+  dataset_changed__ (ds);
 }
 
 /* Creates and returns a new dataset.  The dataset initially has an empty
@@ -151,9 +144,7 @@ dataset_destroy (struct dataset *ds)
       dict_destroy (ds->dict);
       caseinit_destroy (ds->caseinit);
       trns_chain_destroy (ds->permanent_trns_chain);
-
-      if ( ds->xform_callback)
-        ds->xform_callback (false, ds->xform_callback_aux);
+      dataset_transformations_changed__ (ds, false);
       free (ds->syntax_encoding);
       free (ds);
     }
@@ -238,11 +229,13 @@ dataset_steal_source (struct dataset *ds)
 
   return reader;
 }
-
+
 void
-dataset_set_callback (struct dataset *ds, void (*cb) (void *), void *cb_data)
+dataset_set_callbacks (struct dataset *ds,
+                       const struct dataset_callbacks *callbacks,
+                       void *cb_data)
 {
-  ds->callback = cb;
+  ds->callbacks = callbacks;
   ds->cb_data = cb_data;
 }
 
@@ -258,7 +251,7 @@ dataset_get_default_syntax_encoding (const struct dataset *ds)
 {
   return ds->syntax_encoding;
 }
-
+
 /* Returns the last time the data was read. */
 time_t
 time_of_last_procedure (struct dataset *ds)
@@ -490,7 +483,7 @@ proc_commit (struct dataset *ds)
   assert (ds->proc_state == PROC_CLOSED);
   ds->proc_state = PROC_COMMITTED;
 
-  dataset_set_unsaved (ds);
+  dataset_changed__ (ds);
 
   /* Free memory for lagged cases. */
   while (!deque_is_empty (&ds->lag))
@@ -572,9 +565,7 @@ proc_capture_transformations (struct dataset *ds)
   assert (ds->temporary_trns_chain == NULL);
   chain = ds->permanent_trns_chain;
   ds->cur_trns_chain = ds->permanent_trns_chain = trns_chain_create ();
-
-  if ( ds->xform_callback)
-    ds->xform_callback (false, ds->xform_callback_aux);
+  dataset_transformations_changed__ (ds, false);
 
   return chain;
 }
@@ -586,8 +577,7 @@ void
 add_transformation (struct dataset *ds, trns_proc_func *proc, trns_free_func *free, void *aux)
 {
   trns_chain_append (ds->cur_trns_chain, NULL, proc, free, aux);
-  if ( ds->xform_callback)
-    ds->xform_callback (true, ds->xform_callback_aux);
+  dataset_transformations_changed__ (ds, true);
 }
 
 /* Adds a transformation that processes a case with PROC and
@@ -602,9 +592,7 @@ add_transformation_with_finalizer (struct dataset *ds,
                                    trns_free_func *free, void *aux)
 {
   trns_chain_append (ds->cur_trns_chain, finalize, proc, free, aux);
-
-  if ( ds->xform_callback)
-    ds->xform_callback (true, ds->xform_callback_aux);
+  dataset_transformations_changed__ (ds, true);
 }
 
 /* Returns the index of the next transformation.
@@ -639,9 +627,7 @@ proc_start_temporary_transformations (struct dataset *ds)
 
       trns_chain_finalize (ds->permanent_trns_chain);
       ds->temporary_trns_chain = ds->cur_trns_chain = trns_chain_create ();
-
-      if ( ds->xform_callback)
-	ds->xform_callback (true, ds->xform_callback_aux);
+      dataset_transformations_changed__ (ds, true);
     }
 }
 
@@ -681,11 +667,8 @@ proc_cancel_temporary_transformations (struct dataset *ds)
 
       trns_chain_destroy (ds->temporary_trns_chain);
       ds->temporary_trns_chain = NULL;
-
-      if ( ds->xform_callback)
-	ds->xform_callback (!trns_chain_is_empty (ds->permanent_trns_chain),
-			    ds->xform_callback_aux);
-
+      dataset_transformations_changed__ (
+        ds, !trns_chain_is_empty (ds->permanent_trns_chain));
       return true;
     }
   else
@@ -703,22 +686,11 @@ proc_cancel_all_transformations (struct dataset *ds)
   ok = trns_chain_destroy (ds->temporary_trns_chain) && ok;
   ds->permanent_trns_chain = ds->cur_trns_chain = trns_chain_create ();
   ds->temporary_trns_chain = NULL;
-  if ( ds->xform_callback)
-    ds->xform_callback (false, ds->xform_callback_aux);
+  dataset_transformations_changed__ (ds, false);
 
   return ok;
 }
 
-
-void
-dataset_add_transform_change_callback (struct dataset *ds,
-				       transformation_change_callback_func *cb,
-				       void *aux)
-{
-  ds->xform_callback = cb;
-  ds->xform_callback_aux = aux;
-}
-
 /* Causes output from the next procedure to be discarded, instead
    of being preserved for use as input for the next procedure. */
 void
@@ -827,4 +799,18 @@ void
 dataset_need_lag (struct dataset *ds, int n_before)
 {
   ds->n_lag = MAX (ds->n_lag, n_before);
+}
+
+static void
+dataset_changed__ (struct dataset *ds)
+{
+  if (ds->callbacks != NULL && ds->callbacks->changed != NULL)
+    ds->callbacks->changed (ds->cb_data);
+}
+
+static void
+dataset_transformations_changed__ (struct dataset *ds, bool non_empty)
+{
+  if (ds->callbacks != NULL && ds->callbacks->transformations_changed != NULL)
+    ds->callbacks->transformations_changed (non_empty, ds->cb_data);
 }

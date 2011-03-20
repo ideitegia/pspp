@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -940,6 +940,12 @@ connect_action (PsppireDataWindow *dw, const char *action_name,
 static void
 psppire_data_window_init (PsppireDataWindow *de)
 {
+  static const struct dataset_callbacks cbs =
+    {
+      set_unsaved,                    /* changed */
+      transformation_change_callback, /* transformations_changed */
+    };
+
   PsppireVarStore *vs;
   PsppireDict *dict = NULL;
 
@@ -966,7 +972,7 @@ psppire_data_window_init (PsppireDataWindow *de)
   g_signal_connect_swapped (the_data_store, "cases-deleted",
 			    G_CALLBACK (set_unsaved), de);
 
-  dataset_set_callback (the_dataset, set_unsaved, de);
+  dataset_set_callbacks (the_dataset, &cbs, de);
 
   connect_help (de->builder);
 
@@ -987,11 +993,6 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   g_signal_connect_swapped (de->data_editor, "data-available-changed",
 			    G_CALLBACK (set_paste_menuitem_sensitivity), de);
-
-  dataset_add_transform_change_callback (the_dataset,
-					 transformation_change_callback,
-					 de);
-
 
   vs = the_var_store;
 

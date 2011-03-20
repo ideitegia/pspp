@@ -40,10 +40,24 @@ bool dataset_has_source (const struct dataset *ds);
 bool dataset_set_source (struct dataset *, struct casereader *);
 struct casereader *dataset_steal_source (struct dataset *);
 
-void dataset_set_callback (struct dataset *, void (*cb) (void *), void *);
-
 void dataset_set_default_syntax_encoding (struct dataset *, const char *);
 const char *dataset_get_default_syntax_encoding (const struct dataset *);
+
+struct dataset_callbacks
+  {
+    /* Called whenever a procedure completes execution or whenever the
+       dictionary within the dataset is modified (though not when it is
+       replaced by a new dictionary). */
+    void (*changed) (void *aux);
+
+    /* Called whenever a transformation is added or removed.  NON_EMPTY is true
+       if after the change there is at least one transformation, false if there
+       are no transformations. */
+    void (*transformations_changed) (bool non_empty, void *aux);
+  };
+
+void dataset_set_callbacks (struct dataset *, const struct dataset_callbacks *,
+                            void *aux);
 
 /* Transformations. */
 
@@ -64,12 +78,6 @@ bool proc_make_temporary_transformations_permanent (struct dataset *ds);
 bool proc_cancel_temporary_transformations (struct dataset *ds);
 
 /* Procedures. */
-
-typedef void transformation_change_callback_func (bool non_empty, void *aux);
-
-
-void dataset_add_transform_change_callback (struct dataset *,
-					    transformation_change_callback_func *, void *);
 
 void proc_discard_output (struct dataset *ds);
 
