@@ -208,14 +208,14 @@ combine_files (enum comb_command_type command,
         {
           if (!dataset_has_source (ds))
             {
-              msg (SE, _("Cannot specify the active file since no active "
-                         "file has been defined."));
+              msg (SE, _("Cannot specify the active dataset since none "
+                         "has been defined."));
               goto error;
             }
 
           if (proc_make_temporary_transformations_permanent (ds))
             msg (SE, _("This command may not be used after TEMPORARY when "
-                       "the active file is an input source.  "
+                       "the active dataset is an input source.  "
                        "Temporary transformations will be made permanent."));
 
           file->dict = dict_clone (dataset_dict (ds));
@@ -303,7 +303,8 @@ combine_files (enum comb_command_type command,
                         msg (SE, _("File %s lacks BY variable %s."),
                              fh_get_name (file->handle), name);
                       else
-                        msg (SE, _("Active file lacks BY variable %s."), name);
+                        msg (SE, _("Active dataset lacks BY variable %s."),
+                             name);
                       ok = false;
                     }
                 }

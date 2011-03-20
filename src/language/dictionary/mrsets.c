@@ -537,8 +537,8 @@ parse_display (struct lexer *lexer, struct dictionary *dict)
   if (n == 0)
     {
       if (dict_get_n_mrsets (dict) == 0)
-        msg (SN, _("The active file dictionary does not contain any multiple "
-                   "response sets."));
+        msg (SN, _("The active dataset dictionary does not contain any "
+                   "multiple response sets."));
       stringi_set_destroy (&mrset_names_set);
       return true;
     }

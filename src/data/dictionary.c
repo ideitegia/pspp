@@ -588,7 +588,7 @@ reindex_vars (struct dictionary *d, size_t from, size_t to)
 /* Deletes variable V from dictionary D and frees V.
 
    This is a very bad idea if there might be any pointers to V
-   from outside D.  In general, no variable in the active file's
+   from outside D.  In general, no variable in the active dataset's
    dictionary should be deleted when any transformations are
    active on the dictionary's dataset, because those
    transformations might reference the deleted variable.  The

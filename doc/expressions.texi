@@ -1077,7 +1077,8 @@ yields the value of that variable for the case @var{n} before the
 current one.  Results in system-missing (for numeric variables) or
 blanks (for string variables) for the first @var{n} cases.
 
-@code{LAG} obtains values from the cases that become the new active file
+@code{LAG} obtains values from the cases that become the new active
+dataset
 after a procedure executes.  Thus, @code{LAG} will not return values
 from cases dropped by transformations such as @cmd{SELECT IF}, and
 transformations like @cmd{COMPUTE} that modify data will change the

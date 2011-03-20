@@ -255,7 +255,7 @@ of Commands}, for details.
 Analyze data, writing results of analyses to the listing file.  Cause
 transformations specified earlier in the file to be performed.  In a
 more general sense, a @dfn{procedure} is any command that causes the
-active file (the data) to be read.
+active dataset (the data) to be read.
 @end table
 
 @node Order of Commands
@@ -296,7 +296,7 @@ Valid in any state.
 When executed in the initial or procedure state, causes a transition to
 the transformation state.  
 @item
-Clears the active file if executed in the procedure or transformation
+Clears the active dataset if executed in the procedure or transformation
 state.
 @end itemize
 
@@ -307,7 +307,7 @@ Invalid in INPUT PROGRAM and FILE TYPE states.
 @item
 Causes a transition to the INPUT PROGRAM state.  
 @item
-Clears the active file.
+Clears the active dataset.
 @end itemize
 
 @item @cmd{FILE TYPE}
@@ -317,7 +317,7 @@ Invalid in INPUT PROGRAM and FILE TYPE states.
 @item
 Causes a transition to the FILE TYPE state.
 @item
-Clears the active file.
+Clears the active dataset.
 @end itemize
 
 @item Other file definition commands
@@ -327,7 +327,7 @@ Invalid in INPUT PROGRAM and FILE TYPE states.
 @item
 Cause a transition to the transformation state.
 @item
-Clear the active file, except for @cmd{ADD FILES}, @cmd{MATCH FILES},
+Clear the active dataset, except for @cmd{ADD FILES}, @cmd{MATCH FILES},
 and @cmd{UPDATE}.
 @end itemize
 
@@ -530,7 +530,7 @@ System missing value, in format F1.
 
 @cindex @code{$TIME}
 @item $TIME
-Number of seconds between midnight 14 Oct 1582 and the time the active file
+Number of seconds between midnight 14 Oct 1582 and the time the active dataset
 was read, in format F20.
 
 @cindex @code{$WIDTH}
@@ -576,7 +576,7 @@ input field as a number or a string.  It might specify that the field
 contains an ordinary decimal number, a time or date, a number in binary
 or hexadecimal notation, or one of several other notations.  Input
 formats are used by commands such as @cmd{DATA LIST} that read data or
-syntax files into the PSPP active file.
+syntax files into the PSPP active dataset.
 
 Every input format corresponds to a default @dfn{output format} that
 specifies the formatting used when the value is output later.  It is
@@ -1254,7 +1254,7 @@ format is A format with half the input width.
 
 @cindex scratch variables
 Most of the time, variables don't retain their values between cases.
-Instead, either they're being read from a data file or the active file,
+Instead, either they're being read from a data file or the active dataset,
 in which case they assume the value read, or, if created with
 @cmd{COMPUTE} or
 another transformation, they're initialized to the system-missing value

@@ -2,8 +2,8 @@
 @chapter Combining Data Files
 
 This chapter describes commands that allow data from system files,
-portable file, scratch files, and the active file to be combined to
-form a new active file.  These commands can combine data files in the
+portable files, scratch files, and the active dataset to be combined to
+form a new active dataset.  These commands can combine data files in the
 following ways:
 
 @itemize
@@ -59,17 +59,17 @@ This section describes the syntactical features in common among the
 following sections describe details specific to each command.
 
 Each of these commands reads two or more input files and combines
-them.  The command's output becomes the new active file.  The input
+them.  The command's output becomes the new active dataset.  The input
 files are not changed on disk.
 
 The syntax of each command begins with a specification of the files to
 be read as input.  For each input file, specify FILE with a system,
 portable, or scratch file's name as a string or a file handle
 (@pxref{File Handles}), or specify an asterisk (@samp{*}) to use the
-active file as input.  Use of portable or scratch files on FILE is a
+active dataset as input.  Use of portable or scratch files on FILE is a
 PSPP extension.
 
-At least two FILE subcommands must be specified.  If the active file
+At least two FILE subcommands must be specified.  If the active dataset
 is used as an input source, then @cmd{TEMPORARY} must not be in
 effect.
 
@@ -95,12 +95,12 @@ When SORT is specified, PSPP sorts the input file's data on the BY
 variables before it applies it to the command.  When SORT is used, BY
 is required.  SORT is a PSPP extension.
 
-PSPP merges the dictionaries of all of the input files to form the new
-active file dictionary, like so:
+PSPP merges the dictionaries of all of the input files to form the
+dictionary of the new active dataset, like so:
 
 @itemize @bullet
 @item
-The new active file's variables are the union of all the input files'
+The variables in the new active dataset are the union of all the input files'
 variables, matched based on their name.  When a single input file
 contains a variable with a given name, the output file will contain
 exactly that variable.  When more than one input file contains a
@@ -115,18 +115,18 @@ specified input file that has a variable label for that variable, and
 similarly for value labels and missing values.
 
 @item
-The new active file's file label (@pxref{FILE LABEL}) is that of the
+The file label of the new active dataset (@pxref{FILE LABEL}) is that of the
 first specified FILE that has a file label.
 
 @item
-The new active file's documents (@pxref{DOCUMENT}) are the
+The documents in the new active dataset (@pxref{DOCUMENT}) are the
 concatenation of all the input files' documents, in the order in which
 the FILE subcommands are specified.
 
 @item
 If all of the input files are weighted on the same variable, then the
-new active file is weighted on that variable.  Otherwise, the new
-active file is not weighted.
+new active dataset is weighted on that variable.  Otherwise, the new
+active dataset is not weighted.
 @end itemize
 
 The remaining subcommands apply to the output file as a whole, rather
@@ -150,13 +150,13 @@ to specify variables to include in the output; all variables not
 listed are dropped.  DROP and KEEP are executed in left-to-right order
 and may be repeated any number of times.  DROP and KEEP do not affect
 variables created by the IN, FIRST, and LAST subcommands, which are
-always included in the new active file, but they can be used to drop
+always included in the new active dataset, but they can be used to drop
 BY variables.
 
 The FIRST and LAST subcommands are optional.  They may only be
 specified on @cmd{MATCH FILES} and @cmd{ADD FILES}, and only when BY
 is used.  FIRST and LIST each adds a numeric variable to the new
-active file, with the name given as the subcommand's argument and F1.0
+active dataset, with the name given as the subcommand's argument and F1.0
 print and write formats.  The value of the FIRST variable is 1 in the
 first output case with a given set of values for the BY variables, and
 0 in other cases.  Similarly, the LAST variable is 1 in the last case
@@ -190,7 +190,7 @@ Once per command:
 @end display
 
 @cmd{ADD FILES} adds cases from multiple input files.  The output,
-which replaces the active file, consists all of the cases in all of
+which replaces the active dataset, consists all of the cases in all of
 the input files.
 
 ADD FILES shares the bulk of its syntax with other PSPP commands for

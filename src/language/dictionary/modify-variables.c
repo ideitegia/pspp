@@ -79,7 +79,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
      this type. */
   unsigned already_encountered = 0;
 
-  /* What we're gonna do to the active file. */
+  /* What we are going to do to the active dataset. */
   struct var_modification vm;
 
   /* Return code. */

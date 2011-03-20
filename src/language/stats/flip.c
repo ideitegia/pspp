@@ -158,7 +158,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
     var_names_add (flip->pool, &flip->old_names,
                    pool_strdup (flip->pool, var_get_name (vars[i])));
 
-  /* Read the active file into a flip_sink. */
+  /* Read the active dataset into a flip_sink. */
   proc_discard_output (ds);
 
   input = proc_open (ds);

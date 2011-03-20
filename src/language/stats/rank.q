@@ -772,7 +772,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   /* Do the ranking */
   result = rank_cmd (ds, &sc, rank_specs, n_rank_specs);
 
-  /* Put the active file back in its original order.  Delete
+  /* Put the active dataset back in its original order.  Delete
      our sort key, which we don't need anymore.  */
   {
     struct casereader *sorted;

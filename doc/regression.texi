@@ -50,7 +50,7 @@ REGRESSION
         /SAVE=@{PRED, RESID@}
 @end display
 
-The @cmd{REGRESSION} procedure reads the active file and outputs
+The @cmd{REGRESSION} procedure reads the active dataset and outputs
 statistics relevant to the linear model specified by the user.
 
 The VARIABLES subcommand, which is required, specifies the list of
@@ -80,7 +80,7 @@ The covariance matrix for the estimated model coefficients.
 
 The SAVE subcommand causes PSPP to save the residuals or predicted
 values from the fitted
-model to the active file. PSPP will store the residuals in a variable
+model to the active dataset. PSPP will store the residuals in a variable
 called RES1 if no such variable exists, RES2 if RES1 already exists,
 RES3 if RES1 and RES2 already exist, etc. It will choose the name of
 the variable for the predicted values similarly, but with PRED as a
@@ -89,7 +89,7 @@ prefix.
 @node Examples
 @subsection Examples
 The following PSPP syntax will generate the default output and save the
-predicted values and residuals to the active file.
+predicted values and residuals to the active dataset.
 
 @example
 title 'Demonstrate REGRESSION procedure'.

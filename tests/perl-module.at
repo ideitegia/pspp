@@ -60,7 +60,7 @@ AT_CHECK([pspp -O format=csv dump-dict.sps], [0],
 
 My Dictionary
 
-Documents in the active file:
+Documents in the active dataset:
 
 These Documents
 
@@ -155,7 +155,7 @@ File label:
 
 This is the file label
 
-Documents in the active file:
+Documents in the active dataset:
 
 This is a document line
 
@@ -177,7 +177,7 @@ File label:
 
 This is the file label
 
-Documents in the active file:
+Documents in the active dataset:
 
 This is a document line
 

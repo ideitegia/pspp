@@ -98,7 +98,7 @@
    The value of a successor-taint is in summarizing the history
    of the taint objects derived from a common parent.  For
    example, consider a casereader that represents the active
-   file.  A statistical procedure can clone this casereader any
+   dataset.  A statistical procedure can clone this casereader any
    number of times and pass it to analysis functions, which may
    themselves in turn clone it themselves, pass it to sort or
    merge functions, etc.  Conventionally, all of these functions

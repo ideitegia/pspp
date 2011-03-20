@@ -50,9 +50,9 @@ execute_syntax (struct lex_reader *lex_reader)
   unsigned long int lazy_serial;
 
   /* When the user executes a number of snippets of syntax in a
-     row, none of which read from the active file, the GUI becomes
+     row, none of which read from the active dataset, the GUI becomes
      progressively less responsive.  The reason is that each syntax
-     execution encapsulates the active file data in another
+     execution encapsulates the active dataset data in another
      datasheet layer.  The cumulative effect of having a number of
      layers of datasheets wastes time and space.
 

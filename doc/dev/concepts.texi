@@ -1866,16 +1866,16 @@ associate data with a variable.
 
 To prevent multiple clients from attempting to use a variable's single
 auxiliary data field at the same time, we adopt the convention that
-use of auxiliary data in the active file dictionary is restricted to
+use of auxiliary data in the active dataset dictionary is restricted to
 the currently executing command.  In particular, transformations must
-not attach auxiliary data to a variable in the active file in the
-expectation that it can be used later when the active file is read and
+not attach auxiliary data to a variable in the active dataset in the
+expectation that it can be used later when the active dataset is read and
 the transformation is executed.  To help enforce this restriction,
-auxiliary data is deleted from all variables in the active file
+auxiliary data is deleted from all variables in the active dataset
 dictionary after the execution of each PSPP command.
 
 This convention for safe use of auxiliary data applies only to the
-active file dictionary.  Rules for other dictionaries may be
+active dataset dictionary.  Rules for other dictionaries may be
 established separately.
 
 Auxiliary data should be replaced by a more flexible mechanism at some
@@ -2109,10 +2109,10 @@ variables.  They also destroy the removed variables and free their
 associated storage.
 
 Deleting a variable to which there might be external pointers is a bad
-idea.  In particular, deleting variables from the active file
+idea.  In particular, deleting variables from the active dataset
 dictionary is a risky proposition, because transformations can retain
 references to arbitrary variables.  Therefore, no variable should be
-deleted from the active file dictionary when any transformations are
+deleted from the active dataset dictionary when any transformations are
 active, because those transformations might reference the variable to
 be deleted.  The safest time to delete a variable is just after a
 procedure has been executed, as done by @cmd{DELETE VARIABLES}.
@@ -2244,7 +2244,7 @@ is null, then @var{dict}'s weighting variable, if any, is cleared.
 @node Dictionary Filter Variable
 @subsection Filter Variable
 
-When the active file is read by a procedure, cases can be excluded
+When the active dataset is read by a procedure, cases can be excluded
 from analysis based on the values of a @dfn{filter variable}.
 @xref{FILTER,,,pspp, PSPP Users Guide}, for a user view of filtering.
 
@@ -2290,7 +2290,7 @@ Sets @var{dict}'s case limit to @var{limit}.
 
 The user may use the @cmd{SPLIT FILE} command (@pxref{SPLIT
 FILE,,,pspp, PSPP Users Guide}) to select a set of variables on which
-to split the active file into groups of cases to be analyzed
+to split the active dataset into groups of cases to be analyzed
 independently in each statistical procedure.  The set of split
 variables is stored as part of the dictionary, although the effect on
 data analysis is implemented by each individual statistical procedure.

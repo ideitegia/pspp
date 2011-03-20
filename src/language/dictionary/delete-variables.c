@@ -45,7 +45,8 @@ cmd_delete_variables (struct lexer *lexer, struct dataset *ds)
   if (var_cnt == dict_get_var_cnt (dataset_dict (ds)))
     {
       msg (SE, _("DELETE VARIABLES may not be used to delete all variables "
-                 "from the active file dictionary.  Use NEW FILE instead."));
+                 "from the active dataset dictionary.  "
+                 "Use NEW FILE instead."));
       goto error;
     }
 

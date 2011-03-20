@@ -195,7 +195,7 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
 	return CMD_FAILURE;
       if (dict_get_label (dataset_dict (ds)) == NULL)
 	tab_output_text (TAB_LEFT,
-			 _("The active file does not have a file label."));
+			 _("The active dataset does not have a file label."));
       else
 	{
 	  tab_output_text (TAB_LEFT | TAT_TITLE, _("File label:"));
@@ -296,14 +296,14 @@ display_documents (const struct dictionary *dict)
   const struct string_array *documents = dict_get_documents (dict);
 
   if (string_array_is_empty (documents))
-    tab_output_text (TAB_LEFT, _("The active file dictionary does not "
+    tab_output_text (TAB_LEFT, _("The active dataset dictionary does not "
                                  "contain any documents."));
   else
     {
       size_t i;
 
       tab_output_text (TAB_LEFT | TAT_TITLE,
-		       _("Documents in the active file:"));
+		       _("Documents in the active dataset:"));
       for (i = 0; i < dict_get_document_line_cnt (dict); i++)
         tab_output_text (TAB_LEFT | TAB_FIX, dict_get_document_line (dict, i));
     }

@@ -1,13 +1,13 @@
 @node Variable Attributes
 @chapter Manipulating variables
 
-The variables in the active file dictionary are important.  There are
+The variables in the active dataset dictionary are important.  There are
 several utility functions for examining and adjusting them.
 
 @menu
 * ADD VALUE LABELS::            Add value labels to variables.
 * DELETE VARIABLES::            Delete variables.
-* DISPLAY::                     Display information about the active file.
+* DISPLAY::                     Display information about the active dataset.
 * FORMATS::                     Set print and write formats.
 * LEAVE::                       Don't clear variables between cases.
 * MISSING VALUES::              Set missing values for variables.
@@ -73,13 +73,13 @@ DISPLAY [SORTED] @@ATTRIBUTES [[/VARIABLES=]var_list].
 DISPLAY [SORTED] VECTORS.
 @end display
 
-@cmd{DISPLAY} displays information about the active file.  A variety
+@cmd{DISPLAY} displays information about the active dataset.  A variety
 of different forms of information can be requested.
 
 The following keywords primarily cause information about variables to
 be displayed.  With these keywords, by default information is
-displayed about all variable in the active file, in the order that
-variables occur in the active file dictionary.  The SORTED keyword
+displayed about all variable in the active dataset, in the order that
+variables occur in the active dataset dictionary.  The SORTED keyword
 causes output to be sorted alphabetically by variable name.  The
 VARIABLES subcommand limits output to the specified variables.
 
@@ -89,7 +89,7 @@ The variables' names are displayed.
 
 @item INDEX
 The variables' names are displayed along with a value describing their
-position within the active file dictionary.
+position within the active dataset dictionary.
 
 @item LABELS
 Variable names, positions, and variable labels are displayed.
@@ -156,7 +156,7 @@ LEAVE var_list.
 reinitialized whenever a new case is processed.
 
 Normally, when a data file is processed, every variable in the active
-file is initialized to the system-missing value or spaces at the
+dataset is initialized to the system-missing value or spaces at the
 beginning of processing for each case.  When a variable has been
 specified on @cmd{LEAVE}, this is not the case.  Instead, that variable is
 initialized to 0 (not system-missing) or spaces for the first case.
@@ -241,20 +241,20 @@ MODIFY VARS
 @end display
 
 @cmd{MODIFY VARS} reorders, renames, and deletes variables in the
-active file.
+active dataset.
 
 At least one subcommand must be specified, and no subcommand may be
 specified more than once.  DROP and KEEP may not both be specified.
 
 The REORDER subcommand changes the order of variables in the active
-file.  Specify one or more lists of variable names in parentheses.  By
+dataset.  Specify one or more lists of variable names in parentheses.  By
 default, each list of variables is rearranged into the specified order.
 To put the variables into the reverse of the specified order, put
 keyword BACKWARD before the parentheses.  To put them into alphabetical
 order in the dictionary, specify keyword ALPHA before the parentheses.
 BACKWARD and ALPHA may also be combined.
 
-To rename variables in the active file, specify RENAME, an equals sign
+To rename variables in the active dataset, specify RENAME, an equals sign
 (@samp{=}), and lists of the old variable names and new variable names
 separated by another equals sign within parentheses.  There must be the
 same number of old and new variable names.  Each old variable is renamed to
@@ -262,10 +262,10 @@ the corresponding new variable name.  Multiple parenthesized groups of
 variables may be specified.
 
 The DROP subcommand deletes a specified list of variables from the
-active file.
+active dataset.
 
 The KEEP subcommand keeps the specified list of variables in the active
-file.  Any unlisted variables are deleted from the active file.
+dataset.  Any unlisted variables are deleted from the active dataset.
 
 MAP is currently ignored.
 
@@ -424,7 +424,7 @@ RENAME VARIABLES (old_names=new_names)@dots{} .
 @end display
 
 @cmd{RENAME VARIABLES} changes the names of variables in the active
-file.  Specify lists of the old variable names and new
+dataset.  Specify lists of the old variable names and new
 variable names, separated by an equals sign (@samp{=}), within
 parentheses.  There must be the same number of old and new variable
 names.  Each old variable is renamed to the corresponding new variable
@@ -491,7 +491,7 @@ VARIABLE ATTRIBUTE
 @end display
 
 @cmd{VARIABLE ATTRIBUTE} adds, modifies, or removes user-defined
-attributes associated with variables in the active file.  Custom
+attributes associated with variables in the active dataset.  Custom
 variable attributes are not interpreted by PSPP, but they are saved as
 part of system files and may be used by other software that reads
 them.
@@ -524,7 +524,7 @@ square brackets to delete a single element of an attribute array.  In
 the latter case, all the array elements numbered higher than the
 deleted element are shifted down, filling the vacated position.
 
-To associate custom attributes with the entire active file, instead of
+To associate custom attributes with the entire active dataset, instead of
 with particular variables, use @cmd{DATAFILE ATTRIBUTE} (@pxref{DATAFILE ATTRIBUTE}) instead.
 
 @cmd{VARIABLE ATTRIBUTE} takes effect immediately.  It is not affected

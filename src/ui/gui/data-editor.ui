@@ -231,7 +231,7 @@
             <property name="label" translatable="yes">_Sort Cases</property>
             <property name="name">data_sort-cases</property>
 	    <property name="stock-id">gtk-sort-ascending</property>
-	    <property name="tooltip" translatable="yes">Sort cases in the active file</property>
+	    <property name="tooltip" translatable="yes">Sort cases in the active dataset</property>
           </object>
         </child>
         <child>
@@ -253,7 +253,7 @@
           <object class="GtkAction" id="data_split-file">
             <property name="name">data_split-file</property>
             <property name="label" translatable="yes">S_plit File</property>
-	    <property name="tooltip" translatable="yes">Split the active file</property>
+	    <property name="tooltip" translatable="yes">Split the active dataset</property>
 	    <property name="stock-id">pspp-split-file</property>
           </object>
         </child>

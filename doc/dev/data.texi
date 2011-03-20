@@ -18,13 +18,13 @@ Proposed outline:
 ** Reading data
 *** Casereaders generalities
 *** Casereaders from data files
-*** Casereaders from the active file
+*** Casereaders from the active dataset
 *** Other casereaders
 ** Writing data
 *** Casewriters generally
 *** Casewriters to data files
-*** Modifying the active file
-**** Modifying cases obtained from active file casereaders has no real effect
+*** Modifying the active dataset
+**** Modifying cases obtained from active dataset casereaders has no real effect
 **** Transformations; procedures that transform
 ** Transforming data
 *** Sorting and merging

@@ -2,7 +2,7 @@ AT_BANNER([TITLE and related commands])
 
 AT_SETUP([FILE LABEL and (ADD) DOCUMENT])
 AT_DATA([file-label.sps], [dnl
-/* Set up a dummy active file in memory.
+/* Set up a dummy active dataset in memory.
 data list /X 1 Y 2.
 begin data.
 16
@@ -29,7 +29,7 @@ display file label.
 
 ADD DOCUMENT 'Line one' 'Line two'.
 
-/* Save the active file then get it and display the documents again.
+/* Save the active dataset then get it and display the documents again.
 save /OUTFILE='foo.save'.
 get /FILE='foo.save'.
 display documents.
@@ -64,7 +64,7 @@ Variable,Record,Columns,Format
 X,1,1-  1,F1.0
 Y,1,2-  2,F1.0
 
-Documents in the active file:
+Documents in the active dataset:
 
 document First line of a document
 
@@ -78,7 +78,7 @@ File label:
 
 This is a test file label
 
-Documents in the active file:
+Documents in the active dataset:
 
 document First line of a document
 
@@ -98,7 +98,7 @@ File label:
 
 This is a test file label
 
-Documents in the active file:
+Documents in the active dataset:
 
 document First line of a document
 
@@ -118,7 +118,7 @@ document There should be another document now.
 
 (Entered <date>)
 
-Documents in the active file:
+Documents in the active dataset:
 
 document First line of a document
 

@@ -22,9 +22,9 @@ LIST.
 ])
 AT_CHECK([pspp -o pspp.csv insert.sps], [1], [dnl
 batch.sps:2.1-2.4: error: INPUT PROGRAM: Syntax error at `loop': expecting end of command.
-batch.sps:3: error: COMPUTE: COMPUTE is allowed only after the active file has been defined or inside INPUT PROGRAM.
+batch.sps:3: error: COMPUTE: COMPUTE is allowed only after the active dataset has been defined or inside INPUT PROGRAM.
 batch.sps:4: error: END CASE: END CASE is allowed only inside INPUT PROGRAM.
-insert.sps:4: error: LIST: LIST is allowed only after the active file has been defined.
+insert.sps:4: error: LIST: LIST is allowed only after the active dataset has been defined.
 ])
 AT_CLEANUP
 
@@ -65,7 +65,7 @@ END DATA.
 ])
 AT_CHECK([pspp -o pspp.csv insert.sps], [1], [dnl
 Dir1/foo.sps:1: error: INSERT: Can't find `bar.sps' in include file search path.
-insert.sps:2: error: LIST: LIST is allowed only after the active file has been defined.
+insert.sps:2: error: LIST: LIST is allowed only after the active dataset has been defined.
 ])
 AT_CLEANUP
 
@@ -155,6 +155,6 @@ LIST.
 AT_CHECK([pspp -O format=csv insert.sps], [1], [dnl
 insert.sps:2: error: INSERT: Can't find `nonexistent' in include file search path.
 
-insert.sps:6: error: LIST: LIST is allowed only after the active file has been defined.
+insert.sps:6: error: LIST: LIST is allowed only after the active dataset has been defined.
 ])
 AT_CLEANUP

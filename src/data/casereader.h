@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,10 @@
 
    A casereader abstracts interfaces through which cases may be
    read.  A casereader may be a front-end for a system file, a
-   portable file, the active file in a data set, or anything else
-   on which a casereader interface has been overlaid.  Casereader
-   layering, in which a casereader acts as a filter or translator
-   on top of another casereader, is also supported.
+   portable file, a dataset, or anything else on which a
+   casereader interface has been overlaid.  Casereader layering,
+   in which a casereader acts as a filter or translator on top of
+   another casereader, is also supported.
 
    There is no central interface for obtaining casereaders: a
    casereader for reading a system file is obtained from the

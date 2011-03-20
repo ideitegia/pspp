@@ -76,8 +76,8 @@ cmd_result_is_failure (enum cmd_result result)
 /* Command processing states. */
 enum states
   {
-    S_INITIAL = 0x01,         /* Allowed before active file defined. */
-    S_DATA = 0x02,            /* Allowed after active file defined. */
+    S_INITIAL = 0x01,         /* Allowed before active dataset defined. */
+    S_DATA = 0x02,            /* Allowed after active dataset defined. */
     S_INPUT_PROGRAM = 0x04,   /* Allowed in INPUT PROGRAM. */
     S_FILE_TYPE = 0x08,       /* Allowed in FILE TYPE. */
     S_ANY = 0x0f              /* Allowed anywhere. */
@@ -363,11 +363,11 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
         {
           /* One allowed state. */
         case S_INITIAL:
-          msg (SE, _("%s is allowed only before the active file has "
+          msg (SE, _("%s is allowed only before the active dataset has "
                      "been defined."), command->name);
           break;
         case S_DATA:
-          msg (SE, _("%s is allowed only after the active file has "
+          msg (SE, _("%s is allowed only after the active dataset has "
                      "been defined."), command->name);
           break;
         case S_INPUT_PROGRAM:
@@ -382,19 +382,19 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
         case S_INITIAL | S_DATA:
           NOT_REACHED ();
         case S_INITIAL | S_INPUT_PROGRAM:
-          msg (SE, _("%s is allowed only before the active file has "
+          msg (SE, _("%s is allowed only before the active dataset has "
                      "been defined or inside INPUT PROGRAM."), command->name);
           break;
         case S_INITIAL | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only before the active file has "
+          msg (SE, _("%s is allowed only before the active dataset has "
                      "been defined or inside FILE TYPE."), command->name);
           break;
         case S_DATA | S_INPUT_PROGRAM:
-          msg (SE, _("%s is allowed only after the active file has "
+          msg (SE, _("%s is allowed only after the active dataset has "
                      "been defined or inside INPUT PROGRAM."), command->name);
           break;
         case S_DATA | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only after the active file has "
+          msg (SE, _("%s is allowed only after the active dataset has "
                      "been defined or inside FILE TYPE."), command->name);
           break;
         case S_INPUT_PROGRAM | S_FILE_TYPE:
@@ -404,12 +404,12 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
 
           /* Three allowed states. */
         case S_DATA | S_INPUT_PROGRAM | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only after the active file has "
+          msg (SE, _("%s is allowed only after the active dataset has "
                      "been defined, inside INPUT PROGRAM, or inside "
                      "FILE TYPE."), command->name);
           break;
         case S_INITIAL | S_INPUT_PROGRAM | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only before the active file has "
+          msg (SE, _("%s is allowed only before the active dataset has "
                      "been defined, inside INPUT PROGRAM, or inside "
                      "FILE TYPE."), command->name);
           break;

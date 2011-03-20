@@ -762,7 +762,7 @@ struct data_parser_casereader
 
 static const struct casereader_class data_parser_casereader_class;
 
-/* Replaces DS's active file by an input program that reads data
+/* Replaces DS's active dataset by an input program that reads data
    from READER according to the rules in PARSER, using DICT as
    the underlying dictionary.  Ownership of PARSER and READER is
    transferred to the input program, and ownership of DICT is

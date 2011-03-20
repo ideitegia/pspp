@@ -483,7 +483,7 @@ LIST.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
   AT_CHECK([cat pspp.csv], [0], [dnl
-Documents in the active file:
+Documents in the active dataset:
 
 First line of documents
 

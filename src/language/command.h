@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,8 +45,8 @@ bool cmd_result_is_failure (enum cmd_result);
 /* Command processing state. */
 enum cmd_state
   {
-    CMD_STATE_INITIAL,          /* No active file yet defined. */
-    CMD_STATE_DATA,             /* Active file has been defined. */
+    CMD_STATE_INITIAL,          /* No active dataset yet defined. */
+    CMD_STATE_DATA,             /* Active dataset has been defined. */
     CMD_STATE_INPUT_PROGRAM,    /* Inside INPUT PROGRAM. */
     CMD_STATE_FILE_TYPE         /* Inside FILE TYPE. */
   };

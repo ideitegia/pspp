@@ -150,7 +150,7 @@ dataset_destroy (struct dataset *ds)
     }
 }
 
-/* Discards the active file dictionary, data, and transformations. */
+/* Discards the active dataset's dictionary, data, and transformations. */
 void
 dataset_clear (struct dataset *ds)
 {
@@ -205,7 +205,7 @@ dataset_has_source (const struct dataset *ds)
   return dataset_source (ds) != NULL;
 }
 
-/* Replaces the active file's data by READER.  READER's cases must have an
+/* Replaces the active dataset's data by READER.  READER's cases must have an
    appropriate format for DS's dictionary. */
 bool
 dataset_set_source (struct dataset *ds, struct casereader *reader)
@@ -426,7 +426,7 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_)
           ds->lag_cases[deque_push_front (&ds->lag)] = case_ref (c);
         }
 
-      /* Write case to replacement active file. */
+      /* Write case to replacement dataset. */
       ds->cases_written++;
       if (ds->sink != NULL)
         casewriter_write (ds->sink,
@@ -459,7 +459,7 @@ proc_casereader_destroy (struct casereader *reader, void *ds_)
 
   /* Make sure transformations happen for every input case, in
      case they have side effects, and ensure that the replacement
-     active file gets all the cases it should. */
+     active dataset gets all the cases it should. */
   while ((c = casereader_read (reader)) != NULL)
     case_unref (c);
 
@@ -472,7 +472,7 @@ proc_casereader_destroy (struct casereader *reader, void *ds_)
 /* Must return false if the source casereader, a transformation,
    or the sink casewriter signaled an error.  (If a temporary
    transformation signals an error, then the return value is
-   false, but the replacement active file may still be
+   false, but the replacement active dataset may still be
    untainted.) */
 bool
 proc_commit (struct dataset *ds)
@@ -700,7 +700,7 @@ proc_discard_output (struct dataset *ds)
 }
 
 
-/* Checks whether DS has a corrupted active file.  If so,
+/* Checks whether DS has a corrupted active dataset.  If so,
    discards it and returns false.  If not, returns true without
    doing anything. */
 bool

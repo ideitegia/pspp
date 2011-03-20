@@ -275,7 +275,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 
   if (out_file == NULL)
     {
-      /* The active file will be replaced by the aggregated data,
+      /* The active dataset will be replaced by the aggregated data,
          so TEMPORARY is moot. */
       proc_cancel_temporary_transformations (ds);
       proc_discard_output (ds);

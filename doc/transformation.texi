@@ -3,7 +3,7 @@
 @cindex transformations
 
 The PSPP procedures examined in this chapter manipulate data and
-prepare the active file for later analyses.  They do not produce output,
+prepare the active dataset for later analyses.  They do not produce output,
 as a rule.
 
 @menu
@@ -14,7 +14,7 @@ as a rule.
 * FLIP::                        Exchange variables with cases.
 * IF::                          Conditionally assigning a calculated value.
 * RECODE::                      Mapping values from one set to another.
-* SORT CASES::                  Sort the active file.
+* SORT CASES::                  Sort the active dataset.
 @end menu
 
 @node AGGREGATE
@@ -40,34 +40,34 @@ The OUTFILE subcommand is required and must appear first.  Specify a
 system file, portable file, or scratch file by file name or file
 handle (@pxref{File Handles}).
 The aggregated cases are written to this file.  If @samp{*} is
-specified, then the aggregated cases replace the active file.
+specified, then the aggregated cases replace the active dataset's data.
 Use of OUTFILE to write a portable file or scratch file is a PSPP extension.
 
 If OUTFILE=@samp{*} is given, then the subcommand MODE may also be
 specified.
 The mode subcommand has two possible values: ADDVARIABLES or REPLACE.
-In REPLACE mode, the entire active file is replaced by a new file
+In REPLACE mode, the entire active dataset is replaced by a new dataset
 which contains just the break variables and the destination varibles.
 In this mode, the new file will contain as many cases as there are
 unique combinations of the break variables.
 In ADDVARIABLES mode, the destination variables will be appended to 
-the existing active file.
+the existing active dataset.
 Cases which have identical combinations of values in their break
 variables, will receive identical values for the destination variables.
-The number of cases in the active file will remain unchanged.
+The number of cases in the active dataset will remain unchanged.
 Note that if ADDVARIABLES is specified, then the data @emph{must} be
 sorted on the break variables.
 
-By default, the active file will be sorted based on the break variables
-before aggregation takes place.  If the active file is already sorted
+By default, the active dataset will be sorted based on the break variables
+before aggregation takes place.  If the active dataset is already sorted
 or otherwise grouped in terms of the break variables, specify
 PRESORTED to save time.
 PRESORTED is assumed if MODE=ADDVARIABLES is used.
 
-Specify DOCUMENT to copy the documents from the active file into the
+Specify DOCUMENT to copy the documents from the active dataset into the
 aggregate file (@pxref{DOCUMENT}).  Otherwise, the aggregate file will
 not contain any documents, even if the aggregate file replaces the
-active file.
+active dataset.
 
 Normally, only a single case (for SD and SD., two cases) need be
 non-missing in each group for the aggregate variable to be
@@ -80,7 +80,7 @@ between OUTFILE and BREAK.
 
 At least one break variable must be specified on BREAK, a
 required subcommand.  The values of these variables are used to divide
-the active file into groups to be summarized.  In addition, at least
+the active dataset into groups to be summarized.  In addition, at least
 one @var{dest_var} must be specified.
 
 One or more sets of aggregation variables must be specified.  Each set
@@ -281,7 +281,7 @@ Using @cmd{COMPUTE} to assign to a variable specified on @cmd{LEAVE}
 (@pxref{LEAVE}) resets the variable's left state.  Therefore,
 @code{LEAVE} should be specified following @cmd{COMPUTE}, not before.
 
-@cmd{COMPUTE} is a transformation.  It does not cause the active file to be
+@cmd{COMPUTE} is a transformation.  It does not cause the active dataset to be
 read.
 
 When @cmd{COMPUTE} is specified following @cmd{TEMPORARY}
@@ -400,10 +400,10 @@ DESCRIPTIVES QVALID /STATISTICS=MEAN.
 FLIP /VARIABLES=var_list /NEWNAMES=var_name.
 @end display
 
-@cmd{FLIP} transposes rows and columns in the active file.  It
+@cmd{FLIP} transposes rows and columns in the active dataset.  It
 causes cases to be swapped with variables, and vice versa.
 
-All variables in the transposed active file are numeric.  String
+All variables in the transposed active dataset are numeric.  String
 variables take on the system-missing value in the transposed file.
 
 No subcommands are required.  If specified, the VARIABLES subcommand
@@ -430,7 +430,7 @@ FLIP operation aborts.
 The resultant dictionary contains a CASE_LBL variable, a string
 variable of width 8, which stores the names of the variables in the
 dictionary before the transposition.  Variables names longer than 8
-characters are truncated.  If the active file is subsequently
+characters are truncated.  If the active dataset is subsequently
 transposed using @cmd{FLIP}, this variable can be used to recreate the
 original variable names.
 
@@ -552,7 +552,7 @@ separate them from the previous recodings.
 SORT CASES BY var_list[(@{D|A@}] [ var_list[(@{D|A@}] ] ...
 @end display
 
-@cmd{SORT CASES} sorts the active file by the values of one or more
+@cmd{SORT CASES} sorts the active dataset by the values of one or more
 variables.
 
 Specify BY and a list of variables to sort by.  By default, variables
@@ -569,7 +569,7 @@ cases.
 
 @cmd{SORT CASES} is a procedure.  It causes the data to be read.
 
-@cmd{SORT CASES} attempts to sort the entire active file in main memory.
+@cmd{SORT CASES} attempts to sort the entire active dataset in main memory.
 If workspace is exhausted, it falls back to a merge sort algorithm that
 involves creates numerous temporary files.
 

@@ -189,7 +189,7 @@ File label:
 
 This is the file label
 
-Documents in the active file:
+Documents in the active dataset:
 
 This is a document line
 

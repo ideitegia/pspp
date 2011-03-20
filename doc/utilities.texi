@@ -9,18 +9,18 @@ they take effect only once, unconditionally, at the time that they are
 encountered in the input.
 
 @menu
-* ADD DOCUMENT::                Add documentary text to the active file.
+* ADD DOCUMENT::                Add documentary text to the active dataset.
 * CACHE::                       Ignored for compatibility.
 * CD::                          Change the current directory.
 * COMMENT::                     Document your syntax file.
-* DOCUMENT::                    Document the active file.
-* DISPLAY DOCUMENTS::           Display active file documents.
-* DISPLAY FILE LABEL::          Display the active file label.
-* DROP DOCUMENTS::              Remove documents from the active file.
+* DOCUMENT::                    Document the active dataset.
+* DISPLAY DOCUMENTS::           Display active dataset documents.
+* DISPLAY FILE LABEL::          Display the active dataset label.
+* DROP DOCUMENTS::              Remove documents from the active dataset.
 * ECHO::                        Write a string to the output stream.
 * ERASE::                       Erase a file.
 * EXECUTE::                     Execute pending transformations.
-* FILE LABEL::                  Set the active file's label.
+* FILE LABEL::                  Set the active dataset's label.
 * FINISH::                      Terminate the PSPP session.
 * HOST::                        Temporarily return to the operating system.
 * INCLUDE::                     Include a file within the current one.
@@ -45,9 +45,9 @@ ADD DOCUMENT
 
 
 @cmd{ADD DOCUMENT} adds one or more lines of descriptive commentary to 
-the active file.  Documents added in this way are saved to system files.
+the active dataset.  Documents added in this way are saved to system files.
 They can be viewed using @cmd{SYSFILE INFO} or @cmd{DISPLAY
-DOCUMENTS}.  They can be removed from the active file with @cmd{DROP
+DOCUMENTS}.  They can be removed from the active dataset with @cmd{DROP
 DOCUMENTS}.
 
 Each line of documentary text must be enclosed in quotation marks, and 
@@ -103,9 +103,9 @@ DOCUMENT @var{documentary_text}.
 @end display
 
 @cmd{DOCUMENT} adds one or more lines of descriptive commentary to the
-active file.  Documents added in this way are saved to system files.
+active dataset.  Documents added in this way are saved to system files.
 They can be viewed using @cmd{SYSFILE INFO} or @cmd{DISPLAY
-DOCUMENTS}.  They can be removed from the active file with @cmd{DROP
+DOCUMENTS}.  They can be removed from the active dataset with @cmd{DROP
 DOCUMENTS}.
 
 Specify the @var{documentary text} following the DOCUMENT keyword.  
@@ -123,7 +123,7 @@ the command with a dot or a blank line. @xref{ADD DOCUMENT}.
 DISPLAY DOCUMENTS.
 @end display
 
-@cmd{DISPLAY DOCUMENTS} displays the documents in the active file.  Each
+@cmd{DISPLAY DOCUMENTS} displays the documents in the active dataset.  Each
 document is preceded by a line giving the time and date that it was
 added.  @xref{DOCUMENT}.
 
@@ -136,7 +136,7 @@ DISPLAY FILE LABEL.
 @end display
 
 @cmd{DISPLAY FILE LABEL} displays the file label contained in the
-active file,
+active dataset,
 if any.  @xref{FILE LABEL}.
 
 This command is a PSPP extension.
@@ -149,10 +149,10 @@ This command is a PSPP extension.
 DROP DOCUMENTS.
 @end display
 
-@cmd{DROP DOCUMENTS} removes all documents from the active file.
+@cmd{DROP DOCUMENTS} removes all documents from the active dataset.
 New documents can be added with @cmd{DOCUMENT} (@pxref{DOCUMENT}).
 
-@cmd{DROP DOCUMENTS} changes only the active file.  It does not modify any
+@cmd{DROP DOCUMENTS} changes only the active dataset.  It does not modify any
 system files stored on disk.
 
 @node ECHO
@@ -187,7 +187,7 @@ This command cannot be used if the SAFER setting is active.
 EXECUTE.
 @end display
 
-@cmd{EXECUTE} causes the active file to be read and all pending
+@cmd{EXECUTE} causes the active dataset to be read and all pending
 transformations to be executed.
 
 @node FILE LABEL
@@ -198,7 +198,7 @@ transformations to be executed.
 FILE LABEL file_label.
 @end display
 
-@cmd{FILE LABEL} provides a title for the active file.  This
+@cmd{FILE LABEL} provides a title for the active dataset.  This
 title will be saved into system files and portable files that are
 created during this PSPP run.
 

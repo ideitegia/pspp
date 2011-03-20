@@ -5,7 +5,7 @@ The commands in this chapter read, write, and examine system files and
 portable files.
 
 @menu
-* APPLY DICTIONARY::            Apply system file dictionary to active file.
+* APPLY DICTIONARY::            Apply system file dictionary to active dataset.
 * EXPORT::                      Write to a portable file.
 * GET::                         Read from a system file.
 * GET DATA::                    Read from foreign files.
@@ -27,39 +27,39 @@ APPLY DICTIONARY FROM=@{'file-name',file_handle@}.
 
 @cmd{APPLY DICTIONARY} applies the variable labels, value labels,
 and missing values taken from a file to corresponding
-variables in the active file.  In some cases it also updates the
+variables in the active dataset.  In some cases it also updates the
 weighting variable.
 
 Specify a system file, portable file, or scratch file with a file name
 string or as a file handle (@pxref{File Handles}).  The dictionary in the
-file will be read, but it will not replace the active file dictionary.
+file will be read, but it will not replace the active dataset dictionary.
 The file's data will not be read.
 
-Only variables with names that exist in both the active file and the
+Only variables with names that exist in both the active dataset and the
 system file are considered.  Variables with the same name but different
 types (numeric, string) will cause an error message.  Otherwise, the
 system file variables' attributes will replace those in their matching
-active file variables:
+active dataset variables:
 
 @itemize @bullet
 @item
-If a system file variable has a variable label, then it will replace the
-active file variable's variable label.  If the system file variable does
-not have a variable label, then the active file variable's variable
-label, if any, will be retained.  
+If a system file variable has a variable label, then it will replace
+the variable label of the active dataset variable.  If the system
+file variable does not have a variable label, then the active dataset
+variable's variable label, if any, will be retained.
 
 @item
 If the system file variable has custom attributes (@pxref{VARIABLE
-ATTRIBUTE}), then those attributes replace the active file variable's
+ATTRIBUTE}), then those attributes replace the active dataset variable's
 custom attributes.  If the system file variable does not have custom
-attributes, then the active file variable's custom attributes, if any,
+attributes, then the active dataset variable's custom attributes, if any,
 will be retained.
 
 @item
-If the active file variable is numeric or short string, then value
-labels and missing values, if any, will be copied to the active file
+If the active dataset variable is numeric or short string, then value
+labels and missing values, if any, will be copied to the active dataset
 variable.  If the system file variable does not have value labels or
-missing values, then those in the active file variable, if any, will not
+missing values, then those in the active dataset variable, if any, will not
 be disturbed.
 @end itemize
 
@@ -69,20 +69,19 @@ file dictionary as a whole are updated:
 @itemize @bullet
 @item
 If the system file has custom attributes (@pxref{DATAFILE ATTRIBUTE}),
-then those attributes replace the active file variable's custom
+then those attributes replace the active dataset variable's custom
 attributes.
 
 @item
-If the active file has a weighting variable (@pxref{WEIGHT}), and the
+If the active dataset has a weighting variable (@pxref{WEIGHT}), and the
 system file does not, or if the weighting variable in the system file
-does not exist in the active file, then the active file weighting
+does not exist in the active dataset, then the active dataset weighting
 variable, if any, is retained.  Otherwise, the weighting variable in
-the system file becomes the active file weighting variable.
+the system file becomes the active dataset weighting variable.
 @end itemize
 
 @cmd{APPLY DICTIONARY} takes effect immediately.  It does not read the
-active
-file.  The system file is not modified.
+active dataset.  The system file is not modified.
 
 @node EXPORT
 @section EXPORT
@@ -100,8 +99,8 @@ EXPORT
         /MAP
 @end display
 
-The @cmd{EXPORT} procedure writes the active file dictionary and data to a
-specified portable file or scratch file.
+The @cmd{EXPORT} procedure writes the active dataset's dictionary and
+data to a specified portable file or scratch file.
 
 By default, cases excluded with FILTER are written to the
 file.  These can be excluded by specifying DELETE on the UNSELECTED
@@ -128,7 +127,7 @@ portable file.  Its value is currently not used.
 
 The MAP subcommand is currently ignored.
 
-@cmd{EXPORT} is a procedure.  It causes the active file to be read.
+@cmd{EXPORT} is a procedure.  It causes the active dataset to be read.
 
 @node GET
 @section GET
@@ -142,7 +141,7 @@ GET
         /RENAME=(src_names=target_names)@dots{}
 @end display
 
-@cmd{GET} clears the current dictionary and active file and
+@cmd{GET} clears the current dictionary and active dataset and
 replaces them with the dictionary and data from a specified file.
 
 The FILE subcommand is the only required subcommand.  Specify the system
@@ -169,7 +168,7 @@ deprecated.
 
 DROP, KEEP, and RENAME are executed in left-to-right order.  
 Each may be present any number of times.  @cmd{GET} never modifies a
-file on disk.  Only the active file read from the file
+file on disk.  Only the active dataset read from the file
 is affected by these subcommands.
 
 @cmd{GET} does not cause the data to be read, only the dictionary.  The data
@@ -188,10 +187,10 @@ GET DATA
         @dots{}additional subcommands depending on TYPE@dots{}
 @end display
 
-The @cmd{GET DATA} command is used to read files and other data sources 
-created by other applications. 
-When this command is executed, the current dictionary and active file are
-replaced  with variables and data read from the specified source.
+The @cmd{GET DATA} command is used to read files and other data
+sources created by other applications.  When this command is executed,
+the current dictionary and active dataset are replaced with variables
+and data read from the specified source.
 
 The TYPE subcommand is mandatory and must be the first subcommand
 specified.  It determines the type of the file or source to read.
@@ -632,7 +631,7 @@ IMPORT
         /RENAME=(src_names=target_names)@dots{}
 @end display
 
-The @cmd{IMPORT} transformation clears the active file dictionary and
+The @cmd{IMPORT} transformation clears the active dataset dictionary and
 data and
 replaces them with a dictionary and data from a system, portable file,
 or scratch file.
@@ -670,7 +669,7 @@ SAVE
 @end display
 
 The @cmd{SAVE} procedure causes the dictionary and data in the active
-file to
+dataset to
 be written to a system file or scratch file.
 
 OUTFILE is the only required subcommand.  Specify the system file or
@@ -689,13 +688,13 @@ The PERMISSIONS subcommand specifies permissions for the new system
 file.  WRITEABLE, the default, creates the file with read and write
 permission.  READONLY creates the file for read-only access.
 
-By default, all the variables in the active file dictionary are written
+By default, all the variables in the active dataset dictionary are written
 to the system file.  The DROP subcommand can be used to specify a list
 of variables not to be written.  In contrast, KEEP specifies variables
 to be written, with all variables not specified not written.
 
 Normally variables are saved to a system file under the same names they
-have in the active file.  Use the RENAME subcommand to change these names.
+have in the active dataset.  Use the RENAME subcommand to change these names.
 Specify, within parentheses, a list of variable names followed by an
 equals sign (@samp{=}) and the names that they should be renamed to.
 Multiple parenthesized groups of variable names can be included on a
@@ -709,7 +708,7 @@ deprecated.
 
 DROP, KEEP, and RENAME are performed in left-to-right order.  They
 each may be present any number of times.  @cmd{SAVE} never modifies
-the active file.  DROP, KEEP, and RENAME only affect the system file
+the active dataset.  DROP, KEEP, and RENAME only affect the system file
 written to disk.
 
 The VERSION subcommand specifies the version of the file format. Valid
@@ -765,7 +764,7 @@ values as if they were not missing.  Specify MISSING=RECODE to output
 numeric user-missing values like system-missing values and string
 user-missing values as all spaces.
 
-By default, all the variables in the active file dictionary are saved
+By default, all the variables in the active dataset dictionary are saved
 to the system file, but DROP or KEEP can select a subset of variable
 to save.  The RENAME subcommand can also be used to change the names
 under which variables are saved.  UNSELECTED determines whether cases
@@ -869,7 +868,7 @@ displays the information in its dictionary.
 Specify a file name or file handle.  @cmd{SYSFILE INFO} reads that file as
 a system file and displays information on its dictionary.
 
-@cmd{SYSFILE INFO} does not affect the current active file.
+@cmd{SYSFILE INFO} does not affect the current active dataset.
 
 @node XEXPORT
 @section XEXPORT
@@ -886,7 +885,7 @@ XEXPORT
         /MAP
 @end display
 
-The @cmd{EXPORT} transformation writes the active file dictionary and
+The @cmd{EXPORT} transformation writes the active dataset dictionary and
 data to a specified portable file.
 
 This transformation is a PSPP extension.
@@ -921,7 +920,7 @@ XSAVE
         /MAP
 @end display
 
-The @cmd{XSAVE} transformation writes the active file dictionary and
+The @cmd{XSAVE} transformation writes the active dataset's dictionary and
 data to a system file or scratch file.  It is similar to the @cmd{SAVE}
 procedure, with two differences:
 

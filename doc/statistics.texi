@@ -38,7 +38,7 @@ DESCRIPTIVES
               @{A,D@}
 @end display
 
-The @cmd{DESCRIPTIVES} procedure reads the active file and outputs
+The @cmd{DESCRIPTIVES} procedure reads the active dataset and outputs
 descriptive
 statistics requested by the user.  In addition, it can optionally
 compute Z-scores.
