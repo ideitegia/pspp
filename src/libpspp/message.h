@@ -80,8 +80,6 @@ struct msg
     char *text;                 /* Error text. */
   };
 
-struct source_stream ;
-
 /* Initialization. */
 void msg_set_handler (void (*handler) (const struct msg *, void *lexer),
                       void *aux);
