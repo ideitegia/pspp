@@ -20,6 +20,8 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/copyleft.h \
 	src/libpspp/deque.c \
 	src/libpspp/deque.h \
+	src/libpspp/encoding-guesser.c \
+	src/libpspp/encoding-guesser.h \
 	src/libpspp/ext-array.c \
 	src/libpspp/ext-array.h \
 	src/libpspp/float-format.c \

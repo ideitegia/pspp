@@ -7,6 +7,7 @@ check_PROGRAMS += \
 	tests/language/lexer/command-name-test \
 	tests/libpspp/abt-test \
 	tests/libpspp/bt-test \
+	tests/libpspp/encoding-guesser-test \
 	tests/libpspp/heap-test \
 	tests/libpspp/hmap-test \
 	tests/libpspp/hmapx-test \
@@ -49,6 +50,10 @@ tests_libpspp_llx_test_SOURCES = \
 	tests/libpspp/llx-test.c
 tests_libpspp_llx_test_LDADD = gl/libgl.la $(LIBINTL)
 tests_libpspp_llx_test_CFLAGS = $(AM_CFLAGS)
+
+tests_libpspp_encoding_guesser_test_SOURCES = \
+	tests/libpspp/encoding-guesser-test.c
+tests_libpspp_encoding_guesser_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
 
 tests_libpspp_heap_test_SOURCES = \
 	src/libpspp/heap.c \
@@ -313,6 +318,7 @@ TESTSUITE_AT = \
 	tests/language/xforms/select-if.at \
 	tests/libpspp/abt.at \
 	tests/libpspp/bt.at \
+	tests/libpspp/encoding-guesser.at \
 	tests/libpspp/float-format.at \
 	tests/libpspp/heap.at \
 	tests/libpspp/hmap.at \

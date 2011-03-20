@@ -1,0 +1,143 @@
+AT_BANNER([encoding guesser])
+
+AT_SETUP([ASCII])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([echo string | encoding-guesser-test Auto,ISO-8859-1], [0], [ASCII
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-8])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([supports_encodings ISO-8859-1])
+AT_CHECK([printf '\346\227\245\346\234\254\350\252\236\n' | encoding-guesser-test Auto,ISO-8859-1], [0], [UTF-8
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-8 starting with ASCII])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([supports_encodings ISO-8859-1])
+AT_CHECK([printf 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\346\227\245\346\234\254\350\252\236\n' | encoding-guesser-test Auto,ISO-8859-1 32], [0], [UTF-8
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-16 with big-endian byte order mark])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf '\376\377' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-16
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-16 with little-endian byte order mark])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf '\377\376' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-16
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-16BE])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf '\0e\0n\0t\0r\0\351\0e\0\n' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-16BE
+])
+AT_CLEANUP
+
+dnl Unicode U+XX00 characters are confusing in UTF-16 because they look
+dnl likely to be of the opposite endianness, so this tests for proper handling.
+AT_SETUP([UTF-16BE starting with U+0100])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf '\1\0\0e\0n\0t\0r\0\351\0e\0\n' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-16BE
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-16LE])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf 'e\0n\0t\0r\0\351\0e\0\n\0' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-16LE
+])
+AT_CLEANUP
+
+dnl Unicode U+XX00 characters are confusing in UTF-16 because they look
+dnl likely to be of the opposite endianness, so this tests for proper handling.
+AT_SETUP([UTF-16LE starting with U+0100])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf '\0\1e\0n\0t\0r\0\351\0e\0\n\0' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-16LE
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-32 with big-endian byte order mark])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf '\0\0\376\377' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-32
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-32 with little-endian byte order mark])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf '\377\376\0\0' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-32
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-32BE])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf '\0\0\0e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-32BE
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-32LE])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([printf 'e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n\0\0\0' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-32LE
+])
+AT_CLEANUP
+
+AT_SETUP([ISO-8859-1])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([supports_encodings ISO-8859-1])
+AT_CHECK([printf 'entr\351e\n' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [ISO-8859-1
+])
+AT_CLEANUP
+
+AT_SETUP([GB-18030 with byte order mark])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([supports_encodings ISO-8859-1])
+AT_CHECK([printf '\204\061\225\063' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [GB-18030
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-EBCDIC with byte order mark])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([supports_encodings ISO-8859-1])
+AT_CHECK([printf '\335\163\146\163' | encoding-guesser-test Auto,ISO-8859-1], 
+  [0], [UTF-EBCDIC
+])
+AT_CLEANUP
+
+AT_SETUP([EUC-JP as Auto,EUC-JP])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([supports_encodings EUC-JP])
+AT_CHECK([printf '\244\241 \244\242 \244\243 \244\244 \244\245 \244\246 \244\247 \244\250 \244\251 \244\252\n' | encoding-guesser-test Auto,EUC-JP],
+  [0], [EUC-JP
+])
+AT_CLEANUP
+
+AT_SETUP([EUC-JP starting with ASCII as Auto,EUC-JP])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([supports_encodings EUC-JP])
+AT_CHECK([printf 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \244\241 \244\242 \244\243 \244\244 \244\245 \244\246 \244\247 \244\250 \244\251 \244\252\n' | encoding-guesser-test Auto,EUC-JP 32],
+  [0], [EUC-JP
+])
+AT_CLEANUP
+
+AT_SETUP([UTF-8 with character split across input buffers])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([supports_encodings ISO-8859-1])
+AT_CHECK([printf '\343\201\201\343\201\202\343\201\203\343\201\204\343\201\205\343\201\206\343\201\207\343\201\210\343\201\211\343\201\212\343\201\201\343\201\202\343\201\203\343\201\204\343\201\205\343\201\206\343\201\207\343\201\210\343\201\211\343\201\212\n' | encoding-guesser-test Auto,ISO-8859-1 32],
+  [0], [UTF-8
+])
+AT_CLEANUP
