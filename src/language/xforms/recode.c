@@ -22,9 +22,9 @@
 
 #include "data/case.h"
 #include "data/data-in.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/format.h"
-#include "data/procedure.h"
 #include "data/transformations.h"
 #include "data/variable.h"
 #include "language/command.h"

@@ -18,8 +18,8 @@
 
 #include <stdlib.h>
 
+#include "data/dataset.h"
 #include "data/format.h"
-#include "data/procedure.h"
 #include "data/dictionary.h"
 #include "data/variable.h"
 #include "language/command.h"

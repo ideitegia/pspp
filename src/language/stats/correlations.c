@@ -22,9 +22,9 @@
 
 #include "data/casegrouper.h"
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/format.h"
-#include "data/procedure.h"
 #include "data/variable.h"
 #include "language/command.h"
 #include "language/dictionary/split-file.h"

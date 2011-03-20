@@ -19,7 +19,7 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include "data/procedure.h"
+#include "data/dataset.h"
 #include "data/value.h"
 #include "language/command.h"
 #include "language/data-io/data-writer.h"

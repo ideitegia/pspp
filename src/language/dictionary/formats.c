@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "data/dataset.h"
 #include "data/format.h"
-#include "data/procedure.h"
 #include "data/variable.h"
 #include "language/command.h"
 #include "language/lexer/format-parser.h"

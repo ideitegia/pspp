@@ -19,8 +19,8 @@
 #include <stdlib.h>
 
 #include "data/case.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
-#include "data/procedure.h"
 #include "data/transformations.h"
 #include "data/variable.h"
 #include "language/command.h"

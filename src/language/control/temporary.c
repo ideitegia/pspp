@@ -19,8 +19,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include "data/dataset.h"
 #include "data/dictionary.h"
-#include "data/procedure.h"
 #include "data/transformations.h"
 #include "data/value-labels.h"
 #include "data/variable.h"

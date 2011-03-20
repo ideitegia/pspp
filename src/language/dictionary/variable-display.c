@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "data/procedure.h"
+#include "data/dataset.h"
 #include "data/variable.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"

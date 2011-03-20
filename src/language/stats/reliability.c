@@ -20,10 +20,10 @@
 
 #include "data/casegrouper.h"
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/format.h"
 #include "data/missing-values.h"
-#include "data/procedure.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
 #include "language/lexer/variable-parser.h"

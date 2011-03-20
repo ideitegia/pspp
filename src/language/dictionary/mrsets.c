@@ -17,9 +17,9 @@
 #include <config.h>
 
 #include "data/data-out.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/mrset.h"
-#include "data/procedure.h"
 #include "data/value-labels.h"
 #include "data/variable.h"
 #include "language/command.h"

@@ -23,8 +23,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "data/dataset.h"
 #include "data/dictionary.h"
-#include "data/procedure.h"
 #include "data/variable.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/assertion.h"

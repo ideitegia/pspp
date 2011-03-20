@@ -24,9 +24,9 @@
 
 #include "data/casereader.h"
 #include "data/casewriter.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/format.h"
-#include "data/procedure.h"
 #include "data/subcase.h"
 #include "data/variable.h"
 #include "libpspp/assertion.h"

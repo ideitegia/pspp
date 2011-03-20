@@ -26,9 +26,9 @@
 #include <sys/stat.h>
 
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
-#include "data/procedure.h"
 #include "language/command.h"
 #include "language/data-io/file-handle.h"
 #include "language/lexer/lexer.h"

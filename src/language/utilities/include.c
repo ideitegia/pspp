@@ -22,8 +22,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "data/dataset.h"
 #include "data/file-name.h"
-#include "data/procedure.h"
 #include "language/command.h"
 #include "language/lexer/include-path.h"
 #include "language/lexer/lexer.h"

@@ -18,10 +18,10 @@
 
 #include <stdlib.h>
 
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/format.h"
 #include "data/gnumeric-reader.h"
-#include "data/procedure.h"
 #include "data/psql-reader.h"
 #include "data/settings.h"
 #include "language/command.h"

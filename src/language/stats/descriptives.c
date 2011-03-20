@@ -22,8 +22,8 @@
 
 #include "data/casegrouper.h"
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
-#include "data/procedure.h"
 #include "data/transformations.h"
 #include "data/variable.h"
 #include "language/command.h"

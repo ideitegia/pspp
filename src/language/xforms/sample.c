@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "data/procedure.h"
+#include "data/dataset.h"
 #include "data/variable.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"

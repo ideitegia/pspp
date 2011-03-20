@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include "data/procedure.h"
+#include "data/dataset.h"
 #include "data/settings.h"
 #include "data/subcase.h"
 #include "data/variable.h"

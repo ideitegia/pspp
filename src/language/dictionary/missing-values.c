@@ -20,9 +20,9 @@
 
 #include "data/data-in.h"
 #include "data/dictionary.h"
+#include "data/dataset.h"
 #include "data/format.h"
 #include "data/missing-values.h"
-#include "data/procedure.h"
 #include "data/value.h"
 #include "data/variable.h"
 #include "language/command.h"

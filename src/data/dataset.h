@@ -86,4 +86,4 @@ void dataset_set_callback (struct dataset *ds, void (*cb) (void *), void *);
 void dataset_set_default_syntax_encoding (struct dataset *, const char *);
 const char *dataset_get_default_syntax_encoding (const struct dataset *);
 
-#endif /* procedure.h */
+#endif /* dataset.h */

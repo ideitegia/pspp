@@ -48,6 +48,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/data-in.h \
 	src/data/data-out.c \
 	src/data/data-out.h \
+	src/data/dataset.c \
+	src/data/dataset.h \
 	src/data/datasheet.c \
 	src/data/datasheet.h \
 	src/data/dict-class.c \
@@ -76,8 +78,6 @@ src_data_libdata_la_SOURCES = \
 	src/data/make-file.h \
 	src/data/mrset.c \
 	src/data/mrset.h \
-	src/data/procedure.c \
-	src/data/procedure.h \
 	src/data/por-file-reader.c \
 	src/data/por-file-reader.h \
 	src/data/por-file-writer.c \

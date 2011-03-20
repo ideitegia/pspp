@@ -23,10 +23,10 @@
 
 #include "data/casereader-provider.h"
 #include "data/data-in.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/format.h"
 #include "data/file-handle-def.h"
-#include "data/procedure.h"
 #include "data/settings.h"
 #include "language/data-io/data-reader.h"
 #include "libpspp/message.h"

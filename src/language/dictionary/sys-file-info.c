@@ -21,11 +21,11 @@
 
 #include "data/attributes.h"
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/file-handle-def.h"
 #include "data/format.h"
 #include "data/missing-values.h"
-#include "data/procedure.h"
 #include "data/sys-file-reader.h"
 #include "data/value-labels.h"
 #include "data/variable.h"

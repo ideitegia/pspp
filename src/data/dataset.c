@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include "data/procedure.h"
+#include "data/dataset.h"
 
 #include <errno.h>
 #include <stdio.h>

@@ -30,10 +30,10 @@
 #endif
 #include <unistd.h>
 
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
-#include "data/procedure.h"
 #include "data/settings.h"
 #include "data/variable.h"
 #include "gsl/gsl_errno.h"

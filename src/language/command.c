@@ -24,8 +24,8 @@
 #include <errno.h>
 
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
-#include "data/procedure.h"
 #include "data/settings.h"
 #include "data/variable.h"
 #include "language/lexer/command-name.h"

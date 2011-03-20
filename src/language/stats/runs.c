@@ -22,16 +22,16 @@
 #include <gsl/gsl_cdf.h>
 #include <math.h>
 
-#include "data/format.h"
-#include "libpspp/misc.h"
-#include "libpspp/message.h"
-#include "data/procedure.h"
+#include "data/casegrouper.h"
 #include "data/casereader.h"
 #include "data/casewriter.h"
-#include "data/casegrouper.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
+#include "data/format.h"
 #include "data/subcase.h"
 #include "data/variable.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
 #include "math/percentiles.h"
 #include "math/sort.h"
 #include "output/tab.h"

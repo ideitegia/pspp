@@ -23,11 +23,11 @@
 #include <unistd.h>
 
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/datasheet.h"
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
 #include "data/por-file-reader.h"
-#include "data/procedure.h"
 #include "data/settings.h"
 #include "data/sys-file-reader.h"
 

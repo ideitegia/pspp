@@ -23,9 +23,9 @@
 
 #include "data/case.h"
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/format.h"
-#include "data/procedure.h"
 #include "data/value-labels.h"
 #include "data/value.h"
 #include "data/variable.h"

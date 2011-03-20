@@ -18,8 +18,8 @@
 
 #include "ui/gui/executor.h"
 
+#include "data/dataset.h"
 #include "data/lazy-casereader.h"
-#include "data/procedure.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/cast.h"
