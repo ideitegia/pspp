@@ -135,7 +135,7 @@ cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED)
     }
   fprintf (stderr, "\n");
 
-  retval = lex_end_of_command (lexer);
+  retval = CMD_SUCCESS;
 
  done:
   free (values);

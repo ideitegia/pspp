@@ -36,7 +36,7 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#define VAR_NAME_LEN 64
+#define ID_MAX_LEN 64
 
 struct sfm_reader
   {
@@ -925,7 +925,7 @@ read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
   while (ftello (r->file) - start < size * count)
     {
       long long posn = ftello (r->file);
-      char var_name[VAR_NAME_LEN + 1];
+      char var_name[ID_MAX_LEN + 1];
       int var_name_len;
       int n_values;
       int width;
@@ -933,10 +933,10 @@ read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
 
       /* Read variable name. */
       var_name_len = read_int (r);
-      if (var_name_len > VAR_NAME_LEN)
+      if (var_name_len > ID_MAX_LEN)
         sys_error (r, _("Variable name length in long string value label "
                         "record (%d) exceeds %d-byte limit."),
-                   var_name_len, VAR_NAME_LEN);
+                   var_name_len, ID_MAX_LEN);
       read_string (r, var_name, var_name_len + 1);
 
       /* Read width, number of values. */

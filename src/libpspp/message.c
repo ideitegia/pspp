@@ -17,7 +17,6 @@
 #include <config.h>
 
 #include "libpspp/message.h"
-#include "libpspp/msg-locator.h"
 
 #include <assert.h>
 #include <stdarg.h>
@@ -26,10 +25,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "data/settings.h"
+#include "libpspp/cast.h"
 #include "libpspp/str.h"
 #include "libpspp/version.h"
+#include "data/settings.h"
 
+#include "gl/minmax.h"
 #include "gl/progname.h"
 #include "gl/xalloc.h"
 #include "gl/xvasprintf.h"
@@ -37,8 +38,9 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Message handler as set by msg_init(). */
-static void (*msg_handler)  (const struct msg *);
+/* Message handler as set by msg_set_handler(). */
+static void (*msg_handler)  (const struct msg *, void *aux);
+static void *msg_aux;
 
 /* Disables emitting messages if positive. */
 static int messages_disabled;
@@ -57,27 +59,19 @@ msg (enum msg_class class, const char *format, ...)
   m.severity = msg_class_to_severity (class);
   va_start (args, format);
   m.text = xvasprintf (format, args);
-  m.where.file_name = NULL;
-  m.where.line_number = 0;
-  m.where.first_column = 0;
-  m.where.last_column = 0;
+  m.file_name = NULL;
+  m.first_line = m.last_line = 0;
+  m.first_column = m.last_column = 0;
   va_end (args);
 
   msg_emit (&m);
 }
 
-static struct source_stream *s_stream;
-
 void
-msg_init (struct source_stream *ss,  void (*handler) (const struct msg *) )
+msg_set_handler (void (*handler) (const struct msg *, void *aux), void *aux)
 {
-  s_stream = ss;
   msg_handler = handler;
-}
-
-void
-msg_done (void)
-{
+  msg_aux = aux;
 }
 
 /* Working with messages. */
@@ -89,8 +83,8 @@ msg_dup (const struct msg *m)
   struct msg *new_msg;
 
   new_msg = xmemdup (m, sizeof *m);
-  if (m->where.file_name != NULL)
-    new_msg->where.file_name = xstrdup (m->where.file_name);
+  if (m->file_name != NULL)
+    new_msg->file_name = xstrdup (m->file_name);
   new_msg->text = xstrdup (m->text);
 
   return new_msg;
@@ -98,13 +92,13 @@ msg_dup (const struct msg *m)
 
 /* Frees a message created by msg_dup().
 
-   (Messages not created by msg_dup(), as well as their where.file_name
+   (Messages not created by msg_dup(), as well as their file_name
    members, are typically not dynamically allocated, so this function should
    not be used to destroy them.) */
 void
 msg_destroy (struct msg *m)
 {
-  free (m->where.file_name);
+  free (m->file_name);
   free (m->text);
   free (m);
 }
@@ -118,23 +112,56 @@ msg_to_string (const struct msg *m, const char *command_name)
   ds_init_empty (&s);
 
   if (m->category != MSG_C_GENERAL
-      && (m->where.file_name
-          || m->where.line_number > 0
-          || m->where.first_column > 0))
+      && (m->file_name || m->first_line > 0 || m->first_column > 0))
     {
-      if (m->where.file_name)
-        ds_put_format (&s, "%s", m->where.file_name);
-      if (m->where.line_number > 0)
+      int l1 = m->first_line;
+      int l2 = MAX (m->first_line, m->last_line - 1);
+      int c1 = m->first_column;
+      int c2 = MAX (m->first_column, m->last_column - 1);
+
+      if (m->file_name)
+        ds_put_format (&s, "%s", m->file_name);
+
+      if (l1 > 0)
         {
           if (!ds_is_empty (&s))
             ds_put_byte (&s, ':');
-          ds_put_format (&s, "%d", m->where.line_number);
+
+          if (l2 > l1)
+            {
+              if (c1 > 0)
+                ds_put_format (&s, "%d.%d-%d.%d", l1, c1, l2, c2);
+              else
+                ds_put_format (&s, "%d-%d", l1, l2);
+            }
+          else
+            {
+              if (c1 > 0)
+                {
+                  if (c2 > c1)
+                    {
+                      /* The GNU coding standards say to use
+                         LINENO-1.COLUMN-1-COLUMN-2 for this case, but GNU
+                         Emacs interprets COLUMN-2 as LINENO-2 if I do that.
+                         I've submitted an Emacs bug report:
+                         http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7725.
+
+                         For now, let's be compatible. */
+                      ds_put_format (&s, "%d.%d-%d.%d", l1, c1, l1, c2);
+                    }
+                  else
+                    ds_put_format (&s, "%d.%d", l1, c1);
+                }
+              else
+                ds_put_format (&s, "%d", l1);
+            }
         }
-      if (m->where.first_column > 0)
+      else if (c1 > 0)
         {
-          ds_put_format (&s, ".%d", m->where.first_column);
-          if (m->where.last_column > m->where.first_column + 1)
-            ds_put_format (&s, "-%d", m->where.last_column - 1);
+          if (c2 > c1)
+            ds_put_format (&s, ".%d-%d", c1, c2);
+          else
+            ds_put_format (&s, ".%d", c1);
         }
       ds_put_cstr (&s, ": ");
     }
@@ -214,12 +241,13 @@ submit_note (char *s)
 
   m.category = MSG_C_GENERAL;
   m.severity = MSG_S_NOTE;
-  m.where.file_name = NULL;
-  m.where.line_number = 0;
-  m.where.first_column = 0;
-  m.where.last_column = 0;
+  m.file_name = NULL;
+  m.first_line = 0;
+  m.last_line = 0;
+  m.first_column = 0;
+  m.last_column = 0;
   m.text = s;
-  msg_handler (&m);
+  msg_handler (&m, msg_aux);
   free (s);
 }
 
@@ -236,7 +264,7 @@ process_msg (const struct msg *m)
       || (warnings_off && m->severity == MSG_S_WARNING) )
     return;
 
-  msg_handler (m);
+  msg_handler (m, msg_aux);
 
   counts[m->severity]++;
   max_msgs = settings_get_max_messages (m->severity);
@@ -271,20 +299,6 @@ process_msg (const struct msg *m)
 void
 msg_emit (struct msg *m)
 {
-  if ( s_stream && m->where.file_name == NULL )
-    {
-      struct msg_locator loc;
-
-      get_msg_location (s_stream, &loc);
-      m->where.file_name = loc.file_name;
-      m->where.line_number = loc.line_number;
-    }
-  else
-    {
-      m->where.file_name = NULL;
-      m->where.line_number = 0;
-    }
-
   if (!messages_disabled)
      process_msg (m);
 

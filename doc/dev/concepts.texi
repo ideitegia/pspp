@@ -1220,12 +1220,12 @@ The following sections describe variable-related functions and macros.
 @node Variable Name
 @subsection Variable Name
 
-A variable name is a string between 1 and @code{VAR_NAME_LEN} bytes
+A variable name is a string between 1 and @code{ID_MAX_LEN} bytes
 long that satisfies the rules for PSPP identifiers
 (@pxref{Tokens,,,pspp, PSPP Users Guide}).  Variable names are
 mixed-case and treated case-insensitively.
 
-@deftypefn Macro int VAR_NAME_LEN
+@deftypefn Macro int ID_MAX_LEN
 Maximum length of a variable name, in bytes, currently 64.
 @end deftypefn
 
@@ -1246,23 +1246,6 @@ Changes the name of @var{var} to @var{new_name}, which must be a
 This function cannot be applied to a variable that is part of a
 dictionary.  Use @func{dict_rename_var} instead (@pxref{Dictionary
 Renaming Variables}).
-@end deftypefun
-
-@anchor{var_is_plausible_name}
-@deftypefun {bool} var_is_valid_name (const char *@var{name}, bool @var{issue_error})
-@deftypefunx {bool} var_is_plausible_name (const char *@var{name}, bool @var{issue_error})
-Tests @var{name} for validity or ``plausibility.''  Returns true if
-the name is acceptable, false otherwise.  If the name is not
-acceptable and @var{issue_error} is true, also issues an error message
-explaining the violation.
-
-A valid name is one that fully satisfies all of the requirements for
-variable names (@pxref{Tokens,,,pspp, PSPP Users Guide}).  A
-``plausible'' name is simply a string whose length is in the valid
-range and that is not a reserved word.  PSPP accepts plausible but
-invalid names as variable names in some contexts where the character
-encoding scheme is ambiguous, as when reading variable names from
-system files.
 @end deftypefun
 
 @deftypefun {enum dict_class} var_get_dict_class (const struct variable *@var{var})
@@ -1764,7 +1747,7 @@ To delete a variable from a dictionary and destroy it, use
 @node Variable Short Names
 @subsection Variable Short Names
 
-PSPP variable names may be up to 64 (@code{VAR_NAME_LEN}) bytes long.
+PSPP variable names may be up to 64 (@code{ID_MAX_LEN}) bytes long.
 The system and portable file formats, however, were designed when
 variable names were limited to 8 bytes in length.  Since then, the
 system file format has been augmented with an extension record that
@@ -1829,7 +1812,7 @@ been assigned a short name.
 Sets @var{var}'s short name to @var{short_name}, or removes
 @var{var}'s short name if @var{short_name} is a null pointer.  If it
 is non-null, then @var{short_name} must be a plausible name for a
-variable (@pxref{var_is_plausible_name}).  The name will be truncated
+variable.  The name will be truncated
 to 8 bytes in length and converted to all-uppercase.
 @end deftypefun
 

@@ -738,14 +738,23 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
           }
 
 	free (v);
-	if (!lex_match (lexer, T_SLASH))
-	  break;
-	if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) != NULL)
-            && lex_token (lexer) != T_ALL)
-	  {
-	    lex_put_back (lexer, T_SLASH);
-	    break;
-	  }
+        if (lex_token (lexer) != T_SLASH)
+          break;
+
+        if ((lex_next_token (lexer, 1) == T_ID
+             && dict_lookup_var (dataset_dict (ds),
+                                 lex_next_tokcstr (lexer, 1)))
+            || lex_next_token (lexer, 1) == T_ALL)
+          {
+            /* The token after the slash is a variable name.  Keep parsing. */
+            lex_get (lexer);
+          }
+        else
+          {
+            /* The token after the slash must be the start of a new
+               subcommand.  Let the caller see the slash. */
+            break;
+          }
       }
 
   return 1;

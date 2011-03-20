@@ -1425,7 +1425,7 @@ make_match (const char *t)
   else if (strchr (t, hyphen_proxy))
     {
       char *c = unmunge (t);
-      sprintf (s, "lex_match_hyphenated_word (lexer, \"%s\")", c);
+      sprintf (s, "lex_match_phrase (lexer, \"%s\")", c);
       free (c);
     }
   else
@@ -1836,12 +1836,12 @@ dump_parser (int persistent)
       if (def->type == SBC_VARLIST)
 	dump (1, "if (lex_token (lexer) == T_ID "
               "&& dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) != NULL "
-	      "&& lex_look_ahead (lexer) != '=')");
+	      "&& lex_next_token (lexer, 1) != T_EQUALS)");
       else
 	{
 	  dump (0, "if ((lex_token (lexer) == T_ID "
                 "&& dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) "
-		"&& lex_look_ahead () != '=')");
+		"&& lex_next_token (lexer, 1) != T_EQUALS)");
 	  dump (1, "     || token == T_ALL)");
 	}
       dump (1, "{");

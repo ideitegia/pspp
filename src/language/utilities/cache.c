@@ -27,8 +27,8 @@
 
 /* Parses the CACHE command. */
 int
-cmd_cache (struct lexer *lexer, struct dataset *ds UNUSED)
+cmd_cache (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 

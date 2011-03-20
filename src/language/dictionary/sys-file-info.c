@@ -37,6 +37,7 @@
 #include "libpspp/array.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
+#include "libpspp/string-array.h"
 #include "output/tab.h"
 
 #include "gl/minmax.h"
@@ -163,7 +164,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   dict_destroy (d);
 
   fh_unref (h);
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* DISPLAY utility. */
@@ -210,7 +211,7 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
       if (lex_match_id (lexer, "VECTORS"))
 	{
 	  display_vectors (dataset_dict(ds), sorted);
-	  return lex_end_of_command (lexer);
+	  return CMD_SUCCESS;
 	}
       else if (lex_match_id (lexer, "SCRATCH")) 
         {
@@ -280,7 +281,7 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
                                       flags);
     }
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 static void
@@ -292,24 +293,19 @@ display_macros (void)
 static void
 display_documents (const struct dictionary *dict)
 {
-  const char *documents = dict_get_documents (dict);
+  const struct string_array *documents = dict_get_documents (dict);
 
-  if (documents == NULL)
+  if (string_array_is_empty (documents))
     tab_output_text (TAB_LEFT, _("The active file dictionary does not "
                                  "contain any documents."));
   else
     {
-      struct string line = DS_EMPTY_INITIALIZER;
       size_t i;
 
       tab_output_text (TAB_LEFT | TAT_TITLE,
 		       _("Documents in the active file:"));
       for (i = 0; i < dict_get_document_line_cnt (dict); i++)
-        {
-          dict_get_document_line (dict, i, &line);
-          tab_output_text (TAB_LEFT | TAB_FIX, ds_cstr (&line));
-        }
-      ds_destroy (&line);
+        tab_output_text (TAB_LEFT | TAB_FIX, dict_get_document_line (dict, i));
     }
 }
 

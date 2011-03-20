@@ -20,9 +20,9 @@
 
 #include <glib.h>
 
-struct getl_interface;
+struct lex_reader;
 
-gboolean execute_syntax (struct getl_interface *sss);
+gboolean execute_syntax (struct lex_reader *);
 gchar *execute_syntax_string (gchar *syntax);
 void execute_const_syntax_string (const gchar *syntax);
 

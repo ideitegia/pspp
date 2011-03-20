@@ -1,11 +1,53 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2010-11-21 11:58:30 blp>
-Copyright (C) 1996-9, 2000, 2008, 2009, 2010 Free Software Foundation, Inc.
+Time-stamp: <2011-03-19 16:39:28 blp>
+Copyright (C) 1996-9, 2000, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
 Changes from 0.7.3 to 0.7.6:
+
+ * The "pspp" program has a new option --batch (or -b) that selects
+   "batch" syntax mode.  In previous versions of PSPP this syntax mode
+   was the default.  Now a new "auto" syntax mode is the default.  In
+   "auto" mode, PSPP interprets most syntax files correctly regardless
+   of their intended syntax mode.
+
+   See the "Syntax Variants" section in the PSPP manual for more
+   information.
+
+ * The "pspp" program has a new option --syntax-encoding that
+   specifies the encoding for syntax files listed on the command line,
+   as well as the default encoding for syntax files included with
+   INCLUDE or INSERT.  The default is to accept the system locale
+   encoding, UTF-8, UTF-16, or UTF-32, automatically detecting which
+   one the system file uses.
+
+   See the documentation for the INSERT command in the PSPP manual for
+   more information.
+
+ * The INCLUDE and INSERT commands now support the ENCODING subcommand
+   to specify the encoding for the included syntax file.
+
+ * Strings may now include arbitrary Unicode code points specified in
+   hexadecimal, using the syntax U'hhhh'.  For example, Unicode code
+   point U+1D11E, the musical G clef character, may be expressed as
+   U'1D11E'.
+
+   See the "Tokens" section in the PSPP manual for more information.
+
+ * In previous versions of PSPP, in a string expressed in hexadecimal
+   with X'hh' syntax, the hexadecimal digits expressed bytes in the
+   locale encoding.  In this version of PSPP, X'hh' syntax always
+   expresses bytes in UTF-8 encoding.
+
+   See the "Tokens" section in the PSPP manual for more information.
+
+ * The DO REPEAT command has been reimplemented.  The most prominent
+   change is that when a DO REPEAT block contains an INCLUDE or INSERT
+   command, substitutions are not applied to the included file.
+
+   See the "DO REPEAT" section in the PSPP manual for more information.
 
  * NPAR TESTS now supports the /KRUSKAL-WALLIS and /RUNS subcommands.
 

@@ -81,7 +81,8 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
       if (v == NULL)
 	return 0;
       if (!lex_force_match (lexer, T_EQUALS)
-	  || !lex_force_id (lexer))
+	  || !lex_force_id (lexer)
+          || !dict_id_is_valid (dict, lex_tokcstr (lexer), true))
 	return 0;
       if (dict_lookup_var (dict, lex_tokcstr (lexer)) != NULL)
 	{
@@ -114,7 +115,7 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
 	  msg (SE, _("`=' expected after variable list."));
 	  goto done;
 	}
-      if (!parse_DATA_LIST_vars (lexer, &new_names, &nn,
+      if (!parse_DATA_LIST_vars (lexer, dict, &new_names, &nn,
                                  PV_APPEND | PV_NO_SCRATCH | PV_NO_DUPLICATE))
 	goto done;
       if (nn != nv)

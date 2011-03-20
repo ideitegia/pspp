@@ -85,8 +85,6 @@ struct recode_trns
   {
     struct pool *pool;
 
-
-
     /* Variable types, for convenience. */
     enum val_type src_type;     /* src_vars[*] type. */
     enum val_type dst_type;     /* dst_vars[*] type. */
@@ -106,18 +104,21 @@ struct recode_trns
   };
 
 static bool parse_src_vars (struct lexer *, struct recode_trns *, const struct dictionary *dict);
-static bool parse_mappings (struct lexer *, struct recode_trns *);
+static bool parse_mappings (struct lexer *, struct recode_trns *,
+                            const char *dict_encoding);
 static bool parse_dst_vars (struct lexer *, struct recode_trns *, const struct dictionary *dict);
 
 static void add_mapping (struct recode_trns *,
                          size_t *map_allocated, const struct map_in *);
 
 static bool parse_map_in (struct lexer *lexer, struct map_in *, struct pool *,
-                          enum val_type src_type, size_t max_src_width);
+                          enum val_type src_type, size_t max_src_width,
+                          const char *dict_encoding);
 static void set_map_in_generic (struct map_in *, enum map_in_type);
 static void set_map_in_num (struct map_in *, enum map_in_type, double, double);
 static void set_map_in_str (struct map_in *, struct pool *,
-                            struct substring, size_t width);
+                            struct substring, size_t width,
+                            const char *dict_encoding);
 
 static bool parse_map_out (struct lexer *lexer, struct pool *, struct map_out *);
 static void set_map_out_num (struct map_out *, double);
@@ -138,15 +139,16 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
 {
   do
     {
+      struct dictionary *dict = dataset_dict (ds);
       struct recode_trns *trns
         = pool_create_container (struct recode_trns, pool);
 
       /* Parse source variable names,
          then input to output mappings,
          then destintation variable names. */
-      if (!parse_src_vars (lexer, trns, dataset_dict (ds) )
-          || !parse_mappings (lexer, trns)
-          || !parse_dst_vars (lexer, trns, dataset_dict (ds)))
+      if (!parse_src_vars (lexer, trns, dict)
+          || !parse_mappings (lexer, trns, dict_get_encoding (dict))
+          || !parse_dst_vars (lexer, trns, dict))
         {
           recode_trns_free (trns);
           return CMD_FAILURE;
@@ -160,9 +162,9 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
       /* Create destination variables, if needed.
          This must be the final step; otherwise we'd have to
          delete destination variables on failure. */
-      trns->dst_dict = dataset_dict (ds);
+      trns->dst_dict = dict;
       if (trns->src_vars != trns->dst_vars)
-	create_dst_vars (trns, dataset_dict (ds));
+	create_dst_vars (trns, dict);
 
       /* Done. */
       add_transformation (ds,
@@ -170,7 +172,7 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
     }
   while (lex_match (lexer, T_SLASH));
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Parses a set of variables to recode into TRNS->src_vars and
@@ -192,7 +194,8 @@ parse_src_vars (struct lexer *lexer,
    into TRNS->mappings and TRNS->map_cnt.  Sets TRNS->dst_type.
    Returns true if successful, false on parse error. */
 static bool
-parse_mappings (struct lexer *lexer, struct recode_trns *trns)
+parse_mappings (struct lexer *lexer, struct recode_trns *trns,
+                const char *dict_encoding)
 {
   size_t map_allocated;
   bool have_dst_type;
@@ -232,7 +235,8 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
               struct map_in in;
 
               if (!parse_map_in (lexer, &in, trns->pool,
-                                 trns->src_type, trns->max_src_width))
+                                 trns->src_type, trns->max_src_width,
+                                 dict_encoding))
                 return false;
               add_mapping (trns, &map_allocated, &in);
               lex_match (lexer, T_COMMA);
@@ -292,7 +296,8 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
    false on parse error. */
 static bool
 parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
-              enum val_type src_type, size_t max_src_width)
+              enum val_type src_type, size_t max_src_width,
+              const char *dict_encoding)
 {
 
   if (lex_match_id (lexer, "ELSE"))
@@ -319,7 +324,8 @@ parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
         return false;
       else 
 	{
-	  set_map_in_str (in, pool, lex_tokss (lexer), max_src_width);
+	  set_map_in_str (in, pool, lex_tokss (lexer), max_src_width,
+                          dict_encoding);
 	  lex_get (lexer);
 	  if (lex_token (lexer) == T_ID
 	      && lex_id_match (ss_cstr ("THRU"), lex_tokss (lexer)))
@@ -371,13 +377,16 @@ set_map_in_num (struct map_in *in, enum map_in_type type, double x, double y)
    right to WIDTH characters long. */
 static void
 set_map_in_str (struct map_in *in, struct pool *pool,
-                struct substring string, size_t width)
+                struct substring string, size_t width,
+                const char *dict_encoding)
 {
+  char *s = recode_string (dict_encoding, "UTF-8",
+                           ss_data (string), ss_length (string));
   in->type = MAP_SINGLE;
   value_init_pool (pool, &in->x, width);
   value_copy_buf_rpad (&in->x, width,
-                       CHAR_CAST_BUG (uint8_t *, ss_data (string)),
-                       ss_length (string), ' ');
+                       CHAR_CAST (uint8_t *, s), strlen (s), ' ');
+  free (s);
 }
 
 /* Parses a mapping output value into OUT, allocating memory from

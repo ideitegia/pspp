@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,10 +21,15 @@
 #include <stdlib.h>
 
 #include "data/dictionary.h"
+#include "data/identifier.h"
 #include "data/val-type.h"
 #include "data/variable.h"
+#include "libpspp/message.h"
 
 #include "gl/xalloc.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Creates and returns a clone of OLD.  The caller is responsible for freeing
    the new multiple response set (using mrset_destroy()). */
@@ -62,9 +67,31 @@ mrset_destroy (struct mrset *mrset)
     }
 }
 
+/* Returns true if the UTF-8 encoded NAME is a valid name for a multiple
+   response set in a dictionary encoded in DICT_ENCODING, false otherwise.  If
+   ISSUE_ERROR is true, issues an explanatory error message on failure. */
+bool
+mrset_is_valid_name (const char *name, const char *dict_encoding,
+                     bool issue_error)
+{
+  if (!id_is_valid (name, dict_encoding, issue_error))
+    return false;
+
+  if (name[0] != '$')
+    {
+      if (issue_error)
+        msg (SE, _("%s is not a valid name for a multiple response "
+                   "set.  Multiple response set names must begin with "
+                   "`$'."), name);
+      return false;
+    }
+
+  return true;
+}
+
 /* Checks various constraints on MRSET:
 
-   - MRSET has a valid name for a multiple response set (beginning with '$').
+   - MRSET's name begins with '$' and is valid as an identifier in DICT.
 
    - MRSET has a valid type.
 
@@ -85,7 +112,7 @@ mrset_ok (const struct mrset *mrset, const struct dictionary *dict)
   size_t i;
 
   if (mrset->name == NULL
-      || mrset->name[0] != '$'
+      || !mrset_is_valid_name (mrset->name, dict_get_encoding (dict), false)
       || (mrset->type != MRSET_MD && mrset->type != MRSET_MC)
       || mrset->vars == NULL
       || mrset->n_vars < 2)

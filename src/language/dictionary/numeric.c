@@ -49,7 +49,8 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	 be used. */
       struct fmt_spec f;
 
-      if (!parse_DATA_LIST_vars (lexer, &v, &nv, PV_NO_DUPLICATE))
+      if (!parse_DATA_LIST_vars (lexer, dataset_dict (ds),
+                                 &v, &nv, PV_NO_DUPLICATE))
 	return CMD_FAILURE;
 
       /* Get the optional format specification. */
@@ -98,7 +99,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
     }
   while (lex_match (lexer, T_SLASH));
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
   /* If we have an error at a point where cleanup is required,
      flow-of-control comes here. */
@@ -127,7 +128,8 @@ cmd_string (struct lexer *lexer, struct dataset *ds)
 
   do
     {
-      if (!parse_DATA_LIST_vars (lexer, &v, &nv, PV_NO_DUPLICATE))
+      if (!parse_DATA_LIST_vars (lexer, dataset_dict (ds),
+                                 &v, &nv, PV_NO_DUPLICATE))
 	return CMD_FAILURE;
 
       if (!lex_force_match (lexer, T_LPAREN)
@@ -164,7 +166,7 @@ cmd_string (struct lexer *lexer, struct dataset *ds)
     }
   while (lex_match (lexer, T_SLASH));
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
   /* If we have an error at a point where cleanup is required,
      flow-of-control comes here. */
@@ -190,5 +192,5 @@ cmd_leave (struct lexer *lexer, struct dataset *ds)
     var_set_leave (v[i], true);
   free (v);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

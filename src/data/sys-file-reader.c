@@ -33,6 +33,7 @@
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
 #include "data/format.h"
+#include "data/identifier.h"
 #include "data/missing-values.h"
 #include "data/mrset.h"
 #include "data/short-names.h"
@@ -953,7 +954,8 @@ parse_variable_records (struct sfm_reader *r, struct dictionary *dict,
                                  rec->name, 8, r->pool);
       name[strcspn (name, " ")] = '\0';
 
-      if (!var_is_valid_name (name, false) || name[0] == '$' || name[0] == '#')
+      if (!dict_id_is_valid (dict, name, false)
+          || name[0] == '$' || name[0] == '#')
         sys_error (r, rec->pos, _("Invalid variable name `%s'."), name);
 
       if (rec->width < 0 || rec->width > 255)
@@ -974,7 +976,7 @@ parse_variable_records (struct sfm_reader *r, struct dictionary *dict,
 
           utf8_label = recode_string_pool ("UTF-8", dict_encoding,
                                            rec->label, -1, r->pool);
-          var_set_label (var, utf8_label);
+          var_set_label (var, utf8_label, NULL, false);
         }
 
       /* Set missing values. */
@@ -1099,7 +1101,7 @@ parse_document (struct dictionary *dict, struct sfm_document_record *record)
       ss_rtrim (&line, ss_cstr (" "));
       line.string[line.length] = '\0';
 
-      dict_add_document_line (dict, line.string);
+      dict_add_document_line (dict, line.string, false);
 
       ss_dealloc (&line);
     }
@@ -1539,7 +1541,8 @@ parse_long_var_name_map (struct sfm_reader *r,
   while (read_variable_to_value_pair (r, dict, text, &var, &long_name))
     {
       /* Validate long name. */
-      if (!var_is_valid_name (long_name, false))
+      /* XXX need to reencode name to UTF-8 */
+      if (!dict_id_is_valid (dict, long_name, false))
         {
           sys_warn (r, record->pos,
                     _("Long variable mapping from %s to invalid "
@@ -2467,10 +2470,11 @@ sys_msg (struct sfm_reader *r, off_t offset,
 
   m.category = msg_class_to_category (class);
   m.severity = msg_class_to_severity (class);
-  m.where.file_name = NULL;
-  m.where.line_number = 0;
-  m.where.first_column = 0;
-  m.where.last_column = 0;
+  m.file_name = NULL;
+  m.first_line = 0;
+  m.last_line = 0;
+  m.first_column = 0;
+  m.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);

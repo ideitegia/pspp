@@ -33,6 +33,7 @@
 #include "language/lexer/variable-parser.h"
 #include "libpspp/array.h"
 #include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/pool.h"
@@ -785,12 +786,14 @@ parse_sysvar (struct lexer *lexer, struct expression *e)
       time_t last_proc_time = time_of_last_procedure (e->ds);
       struct tm *time;
       char temp_buf[10];
+      struct substring s;
 
       time = localtime (&last_proc_time);
       sprintf (temp_buf, "%02d %s %02d", abs (time->tm_mday) % 100,
                months[abs (time->tm_mon) % 12], abs (time->tm_year) % 100);
 
-      return expr_allocate_string_buffer (e, temp_buf, strlen (temp_buf));
+      ss_alloc_substring (&s, ss_cstr (temp_buf));
+      return expr_allocate_string (e, s);
     }
   else if (lex_match_id (lexer, "$TRUE"))
     return expr_allocate_boolean (e, 1.0);
@@ -836,7 +839,7 @@ parse_primary (struct lexer *lexer, struct expression *e)
   switch (lex_token (lexer))
     {
     case T_ID:
-      if (lex_look_ahead (lexer) == T_LPAREN)
+      if (lex_next_token (lexer, 1) == T_LPAREN)
         {
           /* An identifier followed by a left parenthesis may be
              a vector element reference.  If not, it's a function
@@ -887,8 +890,17 @@ parse_primary (struct lexer *lexer, struct expression *e)
 
     case T_STRING:
       {
-        union any_node *node = expr_allocate_string_buffer (
-          e, lex_tokcstr (lexer), ss_length (lex_tokss (lexer)));
+        const char *dict_encoding;
+        union any_node *node;
+        char *s;
+
+        dict_encoding = (e->ds != NULL
+                         ? dict_get_encoding (dataset_dict (e->ds))
+                         : "UTF-8");
+        s = recode_string (dict_encoding, "UTF-8", lex_tokcstr (lexer),
+                           ss_length (lex_tokss (lexer)));
+        node = expr_allocate_string (e, ss_cstr (s));
+
 	lex_get (lexer);
 	return node;
       }
@@ -1231,7 +1243,7 @@ parse_function (struct lexer *lexer, struct expression *e)
     for (;;)
       {
         if (lex_token (lexer) == T_ID
-            && toupper (lex_look_ahead (lexer)) == T_ID)
+            && lex_next_token (lexer, 1) == T_TO)
           {
             const struct variable **vars;
             size_t var_cnt;
@@ -1470,18 +1482,6 @@ expr_allocate_vector (struct expression *e, const struct vector *vector)
   union any_node *n = pool_alloc (e->expr_pool, sizeof n->vector);
   n->type = OP_vector;
   n->vector.v = vector;
-  return n;
-}
-
-union any_node *
-expr_allocate_string_buffer (struct expression *e,
-                             const char *string, size_t length)
-{
-  union any_node *n = pool_alloc (e->expr_pool, sizeof n->string);
-  n->type = OP_string;
-  if (length > MAX_STRING)
-    length = MAX_STRING;
-  n->string.s = copy_string (e, string, length);
   return n;
 }
 

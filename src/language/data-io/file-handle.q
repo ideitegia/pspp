@@ -54,30 +54,32 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
 {
   struct cmd_file_handle cmd;
   struct file_handle *handle;
+  enum cmd_result result;
   char *handle_name;
 
+  result = CMD_CASCADING_FAILURE;
   if (!lex_force_id (lexer))
-    goto error;
-  handle_name = xstrdup (lex_tokcstr (lexer));
+    goto exit;
 
+  handle_name = xstrdup (lex_tokcstr (lexer));
   handle = fh_from_id (handle_name);
   if (handle != NULL)
     {
       msg (SE, _("File handle %s is already defined.  "
                  "Use CLOSE FILE HANDLE before redefining a file handle."),
 	   handle_name);
-      goto error;
+      goto exit_free_handle_name;
     }
 
   lex_get (lexer);
   if (!lex_force_match (lexer, T_SLASH))
-    goto error_free_handle_name;
+    goto exit_free_handle_name;
 
   if (!parse_file_handle (lexer, ds, &cmd, NULL))
-    goto error_free_handle_name;
+    goto exit_free_handle_name;
 
   if (lex_end_of_command (lexer) != CMD_SUCCESS)
-    goto error_free_cmd;
+    goto exit_free_cmd;
 
   if (cmd.mode != FH_SCRATCH)
     {
@@ -86,7 +88,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
       if (cmd.s_name == NULL)
         {
           lex_sbc_missing (lexer, "NAME");
-          goto error_free_cmd;
+          goto exit_free_cmd;
         }
 
       switch (cmd.mode)
@@ -119,7 +121,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
           else
             {
               msg (SE, _("RECFORM must be specified with MODE=360."));
-              goto error_free_cmd;
+              goto exit_free_cmd;
             }
           break;
         default:
@@ -145,15 +147,14 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
   else
     fh_create_scratch (handle_name);
 
-  free_file_handle (&cmd);
-  return CMD_SUCCESS;
+  result = CMD_SUCCESS;
 
-error_free_cmd:
+exit_free_cmd:
   free_file_handle (&cmd);
-error_free_handle_name:
+exit_free_handle_name:
   free (handle_name);
-error:
-  return CMD_CASCADING_FAILURE;
+exit:
+  return result;
 }
 
 int

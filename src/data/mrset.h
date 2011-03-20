@@ -61,8 +61,8 @@ enum mrset_md_cat_source
 /* A multiple response set. */
 struct mrset
   {
-    char *name;                 /* Name for syntax.  Always begins with "$". */
-    char *label;                /* Human-readable label for group. */
+    char *name;                 /* UTF-8 encoded name beginning with "$". */
+    char *label;                /* Human-readable UTF-8 label for group. */
     enum mrset_type type;       /* Group type. */
     struct variable **vars;     /* Constituent variables. */
     size_t n_vars;              /* Number of constituent variables. */
@@ -76,6 +76,9 @@ struct mrset
 
 struct mrset *mrset_clone (const struct mrset *);
 void mrset_destroy (struct mrset *);
+
+bool mrset_is_valid_name (const char *name, const char *dict_encoding,
+                          bool issue_error);
 
 bool mrset_ok (const struct mrset *, const struct dictionary *);
 

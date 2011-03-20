@@ -127,14 +127,15 @@ void dict_set_label (struct dictionary *, const char *);
 /* Documents. */
 #define DOC_LINE_LENGTH 80 /* Fixed length of document lines. */
 
-const char *dict_get_documents (const struct dictionary *);
-void dict_set_documents (struct dictionary *, const char *);
+const struct string_array *dict_get_documents (const struct dictionary *);
+void dict_set_documents (struct dictionary *, const struct string_array *);
+void dict_set_documents_string (struct dictionary *, const char *);
 void dict_clear_documents (struct dictionary *);
 
-void dict_add_document_line (struct dictionary *, const char *);
+bool dict_add_document_line (struct dictionary *, const char *,
+                             bool issue_warning);
 size_t dict_get_document_line_cnt (const struct dictionary *);
-void dict_get_document_line (const struct dictionary *,
-                             size_t, struct string *);
+const char *dict_get_document_line (const struct dictionary *, size_t);
 
 /* Vectors. */
 bool dict_create_vector (struct dictionary *, const char *name,
@@ -165,6 +166,9 @@ bool dict_has_attributes (const struct dictionary *);
 /* Data encoding. */
 void dict_set_encoding (struct dictionary *d, const char *enc);
 const char *dict_get_encoding (const struct dictionary *d);
+
+bool dict_id_is_valid (const struct dictionary *, const char *id,
+                       bool issue_error);
 
 /* Internal variables. */
 struct variable *dict_create_internal_var (int case_idx, int width);

@@ -200,8 +200,8 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		       "names on RENAME subcommand."));
 		  goto done;
 		}
-	      if (!parse_DATA_LIST_vars (lexer, &vm.new_names,
-					 &prev_nv_1, PV_APPEND))
+	      if (!parse_DATA_LIST_vars (lexer, dataset_dict (ds),
+                                         &vm.new_names, &prev_nv_1, PV_APPEND))
 		goto done;
 	      if (prev_nv_1 != vm.rename_cnt)
 		{

@@ -283,8 +283,6 @@ AGGREGATE OUTFILE=* MODE=ADDVARIABLES
 
 AT_CHECK([pspp -O format=csv dup-variables.sps], [1],
 ["dup-variables.sps:24: error: AGGREGATE: Variable name N_BREAK is not unique within the aggregate file dictionary, which contains the aggregate variables and the break variables."
-
-dup-variables.sps:24: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 
 

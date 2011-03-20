@@ -25,6 +25,7 @@
 #include "data/settings.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
@@ -94,20 +95,23 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
 int
 change_permissions (const char *file_name, enum PER per)
 {
+  char *locale_file_name;
   struct stat buf;
   mode_t mode;
 
   if (settings_get_safer_mode ())
     {
       msg (SE, _("This command not allowed when the SAFER option is set."));
-      return CMD_FAILURE;
+      return 0;
     }
 
 
-  if ( -1 == stat(file_name, &buf) )
+  locale_file_name = utf8_to_filename (file_name);
+  if ( -1 == stat(locale_file_name, &buf) )
     {
       const int errnum = errno;
       msg (SE, _("Cannot stat %s: %s"), file_name, strerror(errnum));
+      free (locale_file_name);
       return 0;
     }
 
@@ -116,13 +120,16 @@ change_permissions (const char *file_name, enum PER per)
   else
     mode = buf.st_mode & ~0222;
 
-  if ( -1 == chmod(file_name, mode))
+  if ( -1 == chmod(locale_file_name, mode))
 
     {
       const int errnum = errno;
       msg (SE, _("Cannot change mode of %s: %s"), file_name, strerror(errnum));
+      free (locale_file_name);
       return 0;
     }
+
+  free (locale_file_name);
 
   return 1;
 }

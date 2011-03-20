@@ -154,7 +154,7 @@ cmd_end_loop (struct lexer *lexer, struct dataset *ds)
 
 /* Parses BREAK. */
 int
-cmd_break (struct lexer *lexer, struct dataset *ds)
+cmd_break (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   struct ctl_stmt *loop = ctl_stack_search (&loop_class);
   if (loop == NULL)
@@ -162,7 +162,7 @@ cmd_break (struct lexer *lexer, struct dataset *ds)
 
   add_transformation (ds, break_trns_proc, NULL, loop);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Closes a LOOP construct by emitting the END LOOP

@@ -34,12 +34,8 @@ struct variable *var_clone (const struct variable *);
 void var_destroy (struct variable *);
 
 /* Variable names. */
-#define VAR_NAME_LEN 64 /* Maximum length of variable name, in bytes. */
-
 const char *var_get_name (const struct variable *);
 void var_set_name (struct variable *, const char *);
-bool var_is_valid_name (const char *, bool issue_error);
-bool var_is_plausible_name (const char *name, bool issue_error);
 enum dict_class var_get_dict_class (const struct variable *);
 
 int compare_vars_by_name (const void *, const void *, const void *);
@@ -102,7 +98,8 @@ struct fmt_spec var_default_formats (int width);
 /* Variable labels. */
 const char *var_to_string (const struct variable *);
 const char *var_get_label (const struct variable *);
-void var_set_label (struct variable *, const char *);
+bool var_set_label (struct variable *, const char *label,
+                    const char *dict_encoding, bool issue_warning);
 void var_clear_label (struct variable *);
 bool var_has_label (const struct variable *);
 

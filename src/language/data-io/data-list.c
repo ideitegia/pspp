@@ -204,6 +204,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
                         }
                       else
                         {
+                          /* XXX should support multibyte UTF-8 characters */
                           lex_error (lexer, NULL);
                           ds_destroy (&delims);
                           goto error;
@@ -330,7 +331,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
 
       /* Parse everything. */
       if (!parse_record_placement (lexer, &record, &column)
-          || !parse_DATA_LIST_vars_pool (lexer, tmp_pool,
+          || !parse_DATA_LIST_vars_pool (lexer, dict, tmp_pool,
 					 &names, &name_cnt, PV_NONE)
           || !parse_var_placements (lexer, tmp_pool, name_cnt, true,
                                     &formats, &format_cnt))
@@ -422,7 +423,7 @@ parse_free (struct lexer *lexer, struct dictionary *dict,
       size_t name_cnt;
       size_t i;
 
-      if (!parse_DATA_LIST_vars_pool (lexer, tmp_pool,
+      if (!parse_DATA_LIST_vars_pool (lexer, dict, tmp_pool,
 				      &name, &name_cnt, PV_NONE))
 	return false;
 

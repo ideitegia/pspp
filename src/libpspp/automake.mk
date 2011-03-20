@@ -28,8 +28,6 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/float-format.h \
 	src/libpspp/freaderror.c \
 	src/libpspp/freaderror.h \
-	src/libpspp/getl.c \
-	src/libpspp/getl.h \
 	src/libpspp/hash-functions.c \
 	src/libpspp/hash-functions.h \
 	src/libpspp/hash.c \
@@ -56,8 +54,6 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/misc.h \
 	src/libpspp/model-checker.c \
 	src/libpspp/model-checker.h \
-	src/libpspp/msg-locator.c \
-	src/libpspp/msg-locator.h \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
 	src/libpspp/prompt.c \

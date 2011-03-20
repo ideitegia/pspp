@@ -242,7 +242,7 @@ subshell.
 @vindex INCLUDE
 
 @display
-        INCLUDE [FILE=]'file-name'.
+        INCLUDE [FILE=]'file-name' [ENCODING='encoding'].
 @end display
 
 @cmd{INCLUDE} causes the PSPP command processor to read an
@@ -253,19 +253,11 @@ stop and no more commands will be processed.
 Include files may be nested to any depth, up to the limit of available
 memory.
 
+The @cmd{INSERT} command (@pxref{INSERT}) is a more flexible
+alternative to @cmd{INCLUDE}.  An INCLUDE command acts the same as
+INSERT with ERROR=STOP CD=NO SYNTAX=BATCH specified.
 
-The @cmd{INSERT} command (@pxref{INSERT}) may be used instead of
-@cmd{INCLUDE} if you require more flexible options.
-The syntax 
-@example
-INCLUDE FILE=@var{file-name}.
-@end example
-@noindent 
-functions identically to 
-@example
-INSERT FILE=@var{file-name} ERROR=STOP CD=NO SYNTAX=BATCH.
-@end example
-
+The optional ENCODING subcommand has the same meaning as on INSERT.
 
 @node INSERT
 @section INSERT
@@ -275,7 +267,8 @@ INSERT FILE=@var{file-name} ERROR=STOP CD=NO SYNTAX=BATCH.
      INSERT [FILE=]'file-name'
         [CD=@{NO,YES@}]
         [ERROR=@{CONTINUE,STOP@}]
-        [SYNTAX=@{BATCH,INTERACTIVE@}].
+        [SYNTAX=@{BATCH,INTERACTIVE@}]
+        [ENCODING='encoding'].
 @end display
 
 @cmd{INSERT} is similar to @cmd{INCLUDE} (@pxref{INCLUDE}) 
@@ -302,6 +295,37 @@ If @samp{SYNTAX=INTERACTIVE} is specified then the syntax contained in
 the included file must conform to interactive syntax
 conventions. @xref{Syntax Variants}.
 The default setting is @samp{SYNTAX=BATCH}.
+
+ENCODING optionally specifies the character set used by the included
+file.  Its argument, which is not case-sensitive, must be in one of
+the following forms:
+
+@table @asis
+@item @code{Locale}
+The encoding used by the system locale, or as overridden by the SET
+LOCALE command (@pxref{SET}).  On Unix systems, environment variables,
+e.g.@: @env{LANG} or @env{LC_ALL}, determine the system locale.
+
+@item IANA character set name
+One of the character set names listed by IANA at
+@uref{http://www.iana.org/assignments/character-sets}.  Some examples
+are @code{ASCII} (United States), @code{ISO-8859-1} (western Europe),
+@code{EUC-JP} (Japan), and @code{windows-1252} (Windows).  Not all
+systems support all character sets.
+
+@item @code{Auto}
+@item @code{Auto,@var{encoding}}
+Automatically detects whether a syntax file is encoded in
+@var{encoding} or in a Unicode encoding such as UTF-8, UTF-16, or
+UTF-32.  The @var{encoding} may be an IANA character set name or
+@code{Locale} (the default).  Only ASCII compatible encodings can
+automatically be distinguished from UTF-8 (the most common locale
+encodings are all ASCII-compatible).
+@end table
+
+When ENCODING is not specified, the default is taken from the
+@option{--syntax-encoding} command option, if it was specified, and
+otherwise it is @code{Auto}.
 
 @node PERMISSIONS
 @section PERMISSIONS
@@ -363,7 +387,8 @@ SET
         /MXWARNS=max_warnings
         /WORKSPACE=workspace_size
 
-(program execution)
+(syntax execution)
+        /LOCALE='locale'
         /MEXPAND=@{ON,OFF@}
         /MITERATE=max_iterations
         /MNEST=max_nest
@@ -540,10 +565,20 @@ that warnings will not be given.
 The default value is 100.
 @end table
 
-Program execution subcommands control the way that PSPP commands
-execute.  The program execution subcommands are
+Syntax execution subcommands control the way that PSPP commands
+execute.  The syntax execution subcommands are
 
 @table @asis
+@item LOCALE
+Overrides the system locale for the purpose of reading and writing
+syntax and data files.  The argument should be a locale name in the
+general form @code{language_country.encoding}, where @code{language}
+and @code{country} are 2-character language and country abbreviations,
+respectively, and @code{encoding} is an IANA character set name.
+Example locales are @code{en_US.UTF-8} (UTF-8 encoded English as
+spoken in the United States) and @code{ja_JP.EUC-JP} (EUC-JP encoded
+Japanese as spoken in Japan).
+
 @item MEXPAND
 @itemx MITERATE
 @itemx MNEST

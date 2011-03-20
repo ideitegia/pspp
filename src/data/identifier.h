@@ -74,6 +74,12 @@ const char *token_type_to_string (enum token_type);
 /* Tokens. */
 bool lex_is_keyword (enum token_type);
 
+/* Validating identifiers. */
+#define ID_MAX_LEN 64          /* Maximum length of identifier, in bytes. */
+
+bool id_is_valid (const char *id, const char *dict_encoding, bool issue_error);
+bool id_is_plausible (const char *id, bool issue_error);
+
 /* Recognizing identifiers. */
 bool lex_is_id1 (char);
 bool lex_is_idn (char);
@@ -87,8 +93,5 @@ bool lex_id_match (struct substring keyword, struct substring token);
 bool lex_id_match_n (struct substring keyword, struct substring token,
                      size_t n);
 int lex_id_to_token (struct substring);
-
-/* Identifier names. */
-const char *lex_id_name (enum token_type);
 
 #endif /* !data/identifier.h */

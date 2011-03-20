@@ -16,7 +16,6 @@
 
 #include <config.h>
 
-
 #include <float.h>
 #include <stdlib.h>
 
@@ -47,8 +46,7 @@
 /* Private result codes for use within INPUT PROGRAM. */
 enum cmd_result_extensions
   {
-    CMD_END_INPUT_PROGRAM = CMD_PRIVATE_FIRST,
-    CMD_END_CASE
+    CMD_END_CASE = CMD_PRIVATE_FIRST
   };
 
 /* Indicates how a `union value' should be initialized. */
@@ -95,7 +93,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   bool saw_END_CASE = false;
 
   proc_discard_active_file (ds);
-  if (lex_token (lexer) != T_ENDCMD)
+  if (!lex_match (lexer, T_ENDCMD))
     return lex_end_of_command (lexer);
 
   inp = xmalloc (sizeof *inp);
@@ -104,12 +102,12 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   inp->proto = NULL;
 
   inside_input_program = true;
-  for (;;)
+  while (!lex_match_phrase (lexer, "END INPUT PROGRAM"))
     {
-      enum cmd_result result = cmd_parse_in_state (lexer, ds, CMD_STATE_INPUT_PROGRAM);
-      if (result == CMD_END_INPUT_PROGRAM)
-        break;
-      else if (result == CMD_END_CASE)
+      enum cmd_result result;
+
+      result = cmd_parse_in_state (lexer, ds, CMD_STATE_INPUT_PROGRAM);
+      if (result == CMD_END_CASE)
         {
           emit_END_CASE (ds, inp);
           saw_END_CASE = true;
@@ -156,8 +154,12 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
 int
 cmd_end_input_program (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
-  assert (in_input_program ());
-  return CMD_END_INPUT_PROGRAM;
+  /* Inside INPUT PROGRAM, this should get caught at the top of the loop in
+     cmd_input_program().
+
+     Outside of INPUT PROGRAM, the command parser should reject this
+     command. */
+  NOT_REACHED ();
 }
 
 /* Returns true if STATE is valid given the transformations that
@@ -237,7 +239,7 @@ cmd_end_case (struct lexer *lexer, struct dataset *ds UNUSED)
   assert (in_input_program ());
   if (lex_token (lexer) == T_ENDCMD)
     return CMD_END_CASE;
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Outputs the current case */
@@ -348,13 +350,13 @@ reread_trns_free (void *t_)
 
 /* Parses END FILE command. */
 int
-cmd_end_file (struct lexer *lexer, struct dataset *ds)
+cmd_end_file (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   assert (in_input_program ());
 
   add_transformation (ds, end_file_trns_proc, NULL, NULL);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Executes an END FILE transformation. */

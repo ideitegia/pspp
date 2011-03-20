@@ -23,10 +23,11 @@
 #include <unistd.h>
 
 #include "data/file-name.h"
+#include "data/procedure.h"
 #include "language/command.h"
+#include "language/lexer/include-path.h"
 #include "language/lexer/lexer.h"
-#include "language/syntax-file.h"
-#include "libpspp/getl.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
@@ -36,67 +37,79 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static int parse_insert (struct lexer *lexer, char **filename);
+enum variant
+  {
+    INSERT,
+    INCLUDE
+  };
 
-
-int
-cmd_include (struct lexer *lexer, struct dataset *ds UNUSED)
+static int
+do_insert (struct lexer *lexer, struct dataset *ds, enum variant variant)
 {
-  char *filename = NULL;
-  int status = parse_insert (lexer, &filename);
+  enum lex_syntax_mode syntax_mode;
+  enum lex_error_mode error_mode;
+  char *relative_name;
+  char *filename;
+  char *encoding;
+  int status;
+  bool cd;
 
-  if ( CMD_SUCCESS != status)
-    return status;
+  /* Skip optional FILE=. */
+  if (lex_match_id (lexer, "FILE"))
+    lex_match (lexer, T_EQUALS);
 
-  lex_get (lexer);
-
-  status = lex_end_of_command (lexer);
-
-  if ( status == CMD_SUCCESS)
+  /* File name can be identifier or string. */
+  if (lex_token (lexer) != T_ID && !lex_is_string (lexer))
     {
-      struct source_stream *ss = lex_get_source_stream (lexer);
-
-      assert (filename);
-      getl_include_source (ss, create_syntax_file_source (filename),
-			   GETL_BATCH, ERRMODE_STOP);
-      free (filename);
+      lex_error (lexer, _("expecting file name"));
+      return CMD_FAILURE;
     }
 
-  return status;
-}
+  relative_name = utf8_to_filename (lex_tokcstr (lexer)); 
+  filename = include_path_search (relative_name);
+  free (relative_name);
 
-
-int
-cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
-{
-  enum syntax_mode syntax_mode = GETL_INTERACTIVE;
-  enum error_mode error_mode = ERRMODE_CONTINUE;
-  char *filename = NULL;
-  int status = parse_insert (lexer, &filename);
-  bool cd = false;
-
-  if ( CMD_SUCCESS != status)
-    return status;
-
+  if ( ! filename)
+    {
+      msg (SE, _("Can't find `%s' in include file search path."),
+           lex_tokcstr (lexer));
+      return CMD_FAILURE;
+    }
   lex_get (lexer);
 
+  syntax_mode = LEX_SYNTAX_INTERACTIVE;
+  error_mode = LEX_ERROR_CONTINUE;
+  cd = false;
+  status = CMD_FAILURE;
+  encoding = xstrdup (dataset_get_default_syntax_encoding (ds));
   while ( T_ENDCMD != lex_token (lexer))
     {
-      if (lex_match_id (lexer, "SYNTAX"))
+      if (lex_match_id (lexer, "ENCODING"))
+        {
+          lex_match (lexer, T_EQUALS);
+          if (!lex_force_string (lexer))
+            goto exit;
+
+          free (encoding);
+          encoding = xstrdup (lex_tokcstr (lexer));
+        }
+      else if (variant == INSERT && lex_match_id (lexer, "SYNTAX"))
 	{
 	  lex_match (lexer, T_EQUALS);
 	  if ( lex_match_id (lexer, "INTERACTIVE") )
-	    syntax_mode = GETL_INTERACTIVE;
+	    syntax_mode = LEX_SYNTAX_INTERACTIVE;
 	  else if ( lex_match_id (lexer, "BATCH"))
-	    syntax_mode = GETL_BATCH;
+	    syntax_mode = LEX_SYNTAX_BATCH;
+	  else if ( lex_match_id (lexer, "AUTO"))
+	    syntax_mode = LEX_SYNTAX_AUTO;
 	  else
 	    {
-	      lex_error (lexer, _("expecting %s or %s after %s"),
-                         "BATCH", "INTERACTIVE", "SYNTAX");
-	      return CMD_FAILURE;
+	      lex_error (lexer, _("expecting %s, %s, or %s after %s"),
+                         "BATCH", "INTERACTIVE", "AUTO", "SYNTAX");
+	      goto exit;
 	    }
 	}
-      else if (lex_match_id (lexer, "CD"))
+      else if (variant == INSERT && lex_match_id (lexer, "CD"))
 	{
 	  lex_match (lexer, T_EQUALS);
 	  if ( lex_match_id (lexer, "YES") )
@@ -111,100 +124,71 @@ cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
 	    {
 	      lex_error (lexer, _("expecting %s or %s after %s"),
                          "YES", "NO", "CD");
-	      return CMD_FAILURE;
+	      goto exit;
 	    }
 	}
-      else if (lex_match_id (lexer, "ERROR"))
+      else if (variant == INSERT && lex_match_id (lexer, "ERROR"))
 	{
 	  lex_match (lexer, T_EQUALS);
 	  if ( lex_match_id (lexer, "CONTINUE") )
 	    {
-	      error_mode = ERRMODE_CONTINUE;
+	      error_mode = LEX_ERROR_CONTINUE;
 	    }
 	  else if ( lex_match_id (lexer, "STOP"))
 	    {
-	      error_mode = ERRMODE_STOP;
+	      error_mode = LEX_ERROR_STOP;
 	    }
 	  else
 	    {
 	      lex_error (lexer, _("expecting %s or %s after %s"),
                          "CONTINUE", "STOP", "ERROR");
-	      return CMD_FAILURE;
+	      goto exit;
 	    }
 	}
 
       else
 	{
-	  lex_error (lexer, _("Unexpected token: `%s'."),
-		     lex_token_representation (lexer));
-
-	  return CMD_FAILURE;
+	  lex_error (lexer, NULL);
+	  goto exit;
 	}
     }
-
   status = lex_end_of_command (lexer);
 
   if ( status == CMD_SUCCESS)
     {
-      struct source_stream *ss = lex_get_source_stream (lexer);
+      struct lex_reader *reader;
 
-      assert (filename);
-      getl_include_source (ss, create_syntax_file_source (filename),
-			   syntax_mode,
-			   error_mode);
+      reader = lex_reader_for_file (filename, encoding,
+                                    syntax_mode, error_mode);
+      if (reader != NULL)
+        {
+          lex_discard_rest_of_command (lexer);
+          lex_include (lexer, reader);
 
-      if ( cd )
-	{
-	  char *directory = dir_name (filename);
-	  chdir (directory);
-	  free (directory);
-	}
-
-      free (filename);
+          if ( cd )
+            {
+              char *directory = dir_name (filename);
+              chdir (directory);
+              free (directory);
+            }
+        }
     }
 
+exit:
+  free (encoding);
+  free (filename);
   return status;
 }
 
-
-static int
-parse_insert (struct lexer *lexer, char **filename)
+int
+cmd_include (struct lexer *lexer, struct dataset *ds)
 {
-  const char *target_fn;
-  char *relative_filename;
-
-  /* Skip optional FILE=. */
-  if (lex_match_id (lexer, "FILE"))
-    lex_match (lexer, T_EQUALS);
-
-  /* File name can be identifier or string. */
-  if (lex_token (lexer) != T_ID && !lex_is_string (lexer))
-    {
-      lex_error (lexer, _("expecting file name"));
-      return CMD_FAILURE;
-    }
-
-  target_fn = lex_tokcstr (lexer);
-
-  relative_filename =
-    fn_search_path (target_fn,
-		    getl_include_path (lex_get_source_stream (lexer)));
-
-  if ( ! relative_filename)
-    {
-      msg (SE, _("Can't find `%s' in include file search path."),
-	 target_fn);
-      return CMD_FAILURE;
-    }
-
-  *filename = relative_filename;
-  if (*filename == NULL) 
-    {
-      msg (SE, _("Unable to open `%s': %s."),
-           relative_filename, strerror (errno));
-      free (relative_filename);
-      return CMD_FAILURE;
-    }
-
-  return CMD_SUCCESS;
+  return do_insert (lexer, ds, INCLUDE);
 }
+
+int
+cmd_insert (struct lexer *lexer, struct dataset *ds)
+{
+  return do_insert (lexer, ds, INSERT);
+}
+

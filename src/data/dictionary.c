@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <unistr.h>
 
 #include "data/attributes.h"
 #include "data/case.h"
@@ -36,14 +37,17 @@
 #include "libpspp/compiler.h"
 #include "libpspp/hash-functions.h"
 #include "libpspp/hmap.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/pool.h"
 #include "libpspp/str.h"
+#include "libpspp/string-array.h"
 
 #include "gl/intprops.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
+#include "gl/xmemdup0.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -63,7 +67,7 @@ struct dictionary
     struct variable *filter;    /* FILTER variable. */
     casenumber case_limit;      /* Current case limit (N command). */
     char *label;		/* File label. */
-    struct string documents;    /* Documents, as a string. */
+    struct string_array documents; /* Documents. */
     struct vector **vector;     /* Vectors of variables. */
     size_t vector_cnt;          /* Number of vectors. */
     struct attrset attributes;  /* Custom attributes. */
@@ -99,6 +103,15 @@ dict_get_encoding (const struct dictionary *d)
   return d->encoding ;
 }
 
+/* Returns true if UTF-8 string ID is an acceptable identifier in DICT's
+   encoding, false otherwise.  If ISSUE_ERROR is true, issues an explanatory
+   error message on failure. */
+bool
+dict_id_is_valid (const struct dictionary *dict, const char *id,
+                  bool issue_error)
+{
+  return id_is_valid (id, dict->encoding, issue_error);
+}
 
 void
 dict_set_change_callback (struct dictionary *d,
@@ -268,7 +281,7 @@ dict_clear (struct dictionary *d)
   d->case_limit = 0;
   free (d->label);
   d->label = NULL;
-  ds_destroy (&d->documents);
+  string_array_clear (&d->documents);
   dict_clear_vectors (d);
   attrset_clear (&d->attributes);
 }
@@ -845,53 +858,66 @@ var_name_is_insertable (const struct dictionary *dict, const char *name)
 static char *
 make_hinted_name (const struct dictionary *dict, const char *hint)
 {
-  char name[VAR_NAME_LEN + 1];
+  size_t hint_len = strlen (hint);
   bool dropped = false;
-  char *cp;
+  char *root, *rp;
+  size_t ofs;
+  int mblen;
 
-  for (cp = name; *hint && cp < name + VAR_NAME_LEN; hint++)
+  /* The allocation size here is OK: characters that are copied directly fit
+     OK, and characters that are not copied directly are replaced by a single
+     '_' byte.  If u8_mbtouc() replaces bad input by 0xfffd, then that will get
+     replaced by '_' too.  */
+  root = rp = xmalloc (hint_len + 1);
+  for (ofs = 0; ofs < hint_len; ofs += mblen)
     {
-      if (cp == name
-          ? lex_is_id1 (*hint) && *hint != '$'
-          : lex_is_idn (*hint))
+      ucs4_t uc;
+
+      mblen = u8_mbtouc (&uc, CHAR_CAST (const uint8_t *, hint + ofs),
+                         hint_len - ofs);
+      if (rp == root
+          ? lex_uc_is_id1 (uc) && uc != '$'
+          : lex_uc_is_idn (uc))
         {
           if (dropped)
             {
-              *cp++ = '_';
+              *rp++ = '_';
               dropped = false;
             }
-          if (cp < name + VAR_NAME_LEN)
-            *cp++ = *hint;
+          rp += u8_uctomb (CHAR_CAST (uint8_t *, rp), uc, 6);
         }
-      else if (cp > name)
+      else if (rp != root)
         dropped = true;
     }
-  *cp = '\0';
+  *rp = '\0';
 
-  if (name[0] != '\0')
+  if (root[0] != '\0')
     {
-      size_t len = strlen (name);
       unsigned long int i;
 
-      if (var_name_is_insertable (dict, name))
-        return xstrdup (name);
+      if (var_name_is_insertable (dict, root))
+        return root;
 
       for (i = 0; i < ULONG_MAX; i++)
         {
           char suffix[INT_BUFSIZE_BOUND (i) + 1];
-          int ofs;
+          char *name;
 
           suffix[0] = '_';
           if (!str_format_26adic (i + 1, &suffix[1], sizeof suffix - 1))
             NOT_REACHED ();
 
-          ofs = MIN (VAR_NAME_LEN - strlen (suffix), len);
-          strcpy (&name[ofs], suffix);
-
+          name = utf8_encoding_concat (root, suffix, dict->encoding, 64);
           if (var_name_is_insertable (dict, name))
-            return xstrdup (name);
+            {
+              free (root);
+              return name;
+            }
+          free (name);
         }
     }
+
+  free (root);
 
   return NULL;
 }
@@ -1238,74 +1264,94 @@ dict_set_label (struct dictionary *d, const char *label)
   d->label = label != NULL && label[0] != '\0' ? xstrndup (label, 60) : NULL;
 }
 
-/* Returns the documents for D, or a null pointer if D has no
-   documents.  If the return value is nonnull, then the string
-   will be an exact multiple of DOC_LINE_LENGTH bytes in length,
-   with each segment corresponding to one line. */
-const char *
+/* Returns the documents for D, as an UTF-8 encoded string_array.  The
+   return value is always nonnull; if there are no documents then the
+   string_arary is empty.*/
+const struct string_array *
 dict_get_documents (const struct dictionary *d)
 {
-  return ds_is_empty (&d->documents) ? NULL : ds_cstr (&d->documents);
+  return &d->documents;
 }
 
-/* Sets the documents for D to DOCUMENTS, or removes D's
-   documents if DOCUMENT is a null pointer.  If DOCUMENTS is
-   nonnull, then it should be an exact multiple of
-   DOC_LINE_LENGTH bytes in length, with each segment
-   corresponding to one line. */
+/* Replaces the documents for D by NEW_DOCS, a UTF-8 encoded string_array. */
 void
-dict_set_documents (struct dictionary *d, const char *documents)
+dict_set_documents (struct dictionary *d, const struct string_array *new_docs)
 {
-  size_t remainder;
+  size_t i;
 
-  ds_assign_cstr (&d->documents, documents != NULL ? documents : "");
+  dict_clear_documents (d);
 
-  /* In case the caller didn't get it quite right, pad out the
-     final line with spaces. */
-  remainder = ds_length (&d->documents) % DOC_LINE_LENGTH;
-  if (remainder != 0)
-    ds_put_byte_multiple (&d->documents, ' ', DOC_LINE_LENGTH - remainder);
+  for (i = 0; i < new_docs->n; i++)
+    dict_add_document_line (d, new_docs->strings[i], false);
+}
+
+/* Replaces the documents for D by UTF-8 encoded string NEW_DOCS, dividing it
+   into individual lines at new-line characters.  Each line is truncated to at
+   most DOC_LINE_LENGTH bytes in D's encoding. */
+void
+dict_set_documents_string (struct dictionary *d, const char *new_docs)
+{
+  const char *s;
+
+  dict_clear_documents (d);
+  for (s = new_docs; *s != '\0'; )
+    {
+      size_t len = strcspn (s, "\n");
+      char *line = xmemdup0 (s, len);
+      dict_add_document_line (d, line, false);
+      free (line);
+
+      s += len;
+      if (*s == '\n')
+        s++;
+    }
 }
 
 /* Drops the documents from dictionary D. */
 void
 dict_clear_documents (struct dictionary *d)
 {
-  ds_clear (&d->documents);
+  string_array_clear (&d->documents);
 }
 
-/* Appends LINE to the documents in D.  LINE will be truncated or
-   padded on the right with spaces to make it exactly
-   DOC_LINE_LENGTH bytes long. */
-void
-dict_add_document_line (struct dictionary *d, const char *line)
+/* Appends the UTF-8 encoded LINE to the documents in D.  LINE will be
+   truncated so that it is no more than 80 bytes in the dictionary's
+   encoding.  If this causes some text to be lost, and ISSUE_WARNING is true,
+   then a warning will be issued. */
+bool
+dict_add_document_line (struct dictionary *d, const char *line,
+                        bool issue_warning)
 {
-  if (strlen (line) > DOC_LINE_LENGTH)
+  size_t trunc_len;
+  bool truncated;
+
+  trunc_len = utf8_encoding_trunc_len (line, d->encoding, DOC_LINE_LENGTH);
+  truncated = line[trunc_len] != '\0';
+  if (truncated && issue_warning)
     {
       /* Note to translators: "bytes" is correct, not characters */
       msg (SW, _("Truncating document line to %d bytes."), DOC_LINE_LENGTH);
     }
-  buf_copy_str_rpad (ds_put_uninit (&d->documents, DOC_LINE_LENGTH),
-                     DOC_LINE_LENGTH, line, ' ');
+
+  string_array_append_nocopy (&d->documents, xmemdup0 (line, trunc_len));
+
+  return !truncated;
 }
 
 /* Returns the number of document lines in dictionary D. */
 size_t
 dict_get_document_line_cnt (const struct dictionary *d)
 {
-  return ds_length (&d->documents) / DOC_LINE_LENGTH;
+  return d->documents.n;
 }
 
-/* Copies document line number IDX from dictionary D into
-   LINE, trimming off any trailing white space. */
-void
-dict_get_document_line (const struct dictionary *d,
-                        size_t idx, struct string *line)
+/* Returns document line number IDX in dictionary D.  The caller must not
+   modify or free the returned string. */
+const char *
+dict_get_document_line (const struct dictionary *d, size_t idx)
 {
-  assert (idx < dict_get_document_line_cnt (d));
-  ds_assign_substring (line, ds_substr (&d->documents, idx * DOC_LINE_LENGTH,
-                                        DOC_LINE_LENGTH));
-  ds_rtrim (line, ss_cstr (CC_SPACES));
+  assert (idx < d->documents.n);
+  return d->documents.strings[idx];
 }
 
 /* Creates in D a vector named NAME that contains the CNT

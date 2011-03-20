@@ -28,6 +28,7 @@
 #include "language/lexer/value-parser.h"
 #include "language/lexer/variable-parser.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/pool.h"
 #include "libpspp/str.h"
@@ -91,7 +92,9 @@ static trns_proc_func count_trns_proc;
 static trns_free_func count_trns_free;
 
 static bool parse_numeric_criteria (struct lexer *, struct pool *, struct criteria *);
-static bool parse_string_criteria (struct lexer *, struct pool *, struct criteria *);
+static bool parse_string_criteria (struct lexer *, struct pool *,
+                                   struct criteria *,
+                                   const char *dict_encoding);
 
 int
 cmd_count (struct lexer *lexer, struct dataset *ds)
@@ -133,13 +136,14 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
       crit = dv->crit = pool_alloc (trns->pool, sizeof *crit);
       for (;;)
 	{
+          struct dictionary *dict = dataset_dict (ds);
           bool ok;
 
 	  crit->next = NULL;
 	  crit->vars = NULL;
-	  if (!parse_variables_const (lexer, dataset_dict (ds), &crit->vars,
+	  if (!parse_variables_const (lexer, dict, &crit->vars,
 				      &crit->var_cnt,
-                                PV_DUPLICATE | PV_SAME_TYPE))
+                                      PV_DUPLICATE | PV_SAME_TYPE))
 	    goto fail;
           pool_register (trns->pool, free, crit->vars);
 
@@ -150,7 +154,8 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
           if (var_is_numeric (crit->vars[0]))
             ok = parse_numeric_criteria (lexer, trns->pool, crit);
           else
-            ok = parse_string_criteria (lexer, trns->pool, crit);
+            ok = parse_string_criteria (lexer, trns->pool, crit,
+                                        dict_get_encoding (dict));
 	  if (!ok)
 	    goto fail;
 
@@ -230,7 +235,8 @@ parse_numeric_criteria (struct lexer *lexer, struct pool *pool, struct criteria 
 
 /* Parses a set of string criteria values.  Returns success. */
 static bool
-parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *crit)
+parse_string_criteria (struct lexer *lexer, struct pool *pool,
+                       struct criteria *crit, const char *dict_encoding)
 {
   int len = 0;
   size_t allocated = 0;
@@ -244,6 +250,8 @@ parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *
   for (;;)
     {
       char **cur;
+      char *s;
+
       if (crit->value_cnt >= allocated)
         crit->values.str = pool_2nrealloc (pool, crit->values.str,
                                            &allocated,
@@ -251,10 +259,16 @@ parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *
 
       if (!lex_force_string (lexer))
 	return false;
+
+      s = recode_string (dict_encoding, "UTF-8", lex_tokcstr (lexer),
+                         ss_length (lex_tokss (lexer)));
+
       cur = &crit->values.str[crit->value_cnt++];
       *cur = pool_alloc (pool, len + 1);
-      str_copy_rpad (*cur, len + 1, lex_tokcstr (lexer));
+      str_copy_rpad (*cur, len + 1, s);
       lex_get (lexer);
+
+      free (s);
 
       lex_match (lexer, T_COMMA);
       if (lex_match (lexer, T_RPAREN))

@@ -105,10 +105,11 @@ error (struct pfm_reader *r, const char *msg, ...)
 
   m.category = MSG_C_GENERAL;
   m.severity = MSG_S_ERROR;
-  m.where.file_name = NULL;
-  m.where.line_number = 0;
-  m.where.first_column = 0;
-  m.where.last_column = 0;
+  m.file_name = NULL;
+  m.first_line = 0;
+  m.last_line = 0;
+  m.first_column = 0;
+  m.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);
@@ -136,10 +137,11 @@ warning (struct pfm_reader *r, const char *msg, ...)
 
   m.category = MSG_C_GENERAL;
   m.severity = MSG_S_WARNING;
-  m.where.file_name = NULL;
-  m.where.line_number = 0;
-  m.where.first_column = 0;
-  m.where.last_column = 0;
+  m.file_name = NULL;
+  m.first_line = 0;
+  m.last_line = 0;
+  m.first_column = 0;
+  m.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);
@@ -682,7 +684,8 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       for (j = 0; j < 6; j++)
         fmt[j] = read_int (r);
 
-      if (!var_is_valid_name (name, false) || *name == '#' || *name == '$')
+      if (!dict_id_is_valid (dict, name, false)
+          || *name == '#' || *name == '$')
         error (r, _("Invalid variable name `%s' in position %d."), name, i);
       str_uppercase (name);
 
@@ -742,7 +745,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
         {
           char label[256];
           read_string (r, label);
-          var_set_label (v, label);
+          var_set_label (v, label, NULL, false); /* XXX */
         }
     }
 
@@ -832,7 +835,7 @@ read_documents (struct pfm_reader *r, struct dictionary *dict)
     {
       char line[256];
       read_string (r, line);
-      dict_add_document_line (dict, line);
+      dict_add_document_line (dict, line, false);
     }
 }
 

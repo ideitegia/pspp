@@ -100,7 +100,7 @@ cmd_compute (struct lexer *lexer, struct dataset *ds)
 
   lvalue_finalize (lvalue, compute, dict);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
  fail:
   lvalue_destroy (lvalue, dict);
@@ -256,7 +256,7 @@ cmd_if (struct lexer *lexer, struct dataset *ds)
 
   lvalue_finalize (lvalue, compute, dict);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
  fail:
   lvalue_destroy (lvalue, dict);
@@ -346,7 +346,7 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_id (lexer))
     goto lossage;
 
-  if (lex_look_ahead (lexer) == T_LPAREN)
+  if (lex_next_token (lexer, 1) == T_LPAREN)
     {
       /* Vector. */
       lvalue->vector = dict_lookup_vector (dict, lex_tokcstr (lexer));

@@ -66,6 +66,7 @@ src_data_libdata_la_SOURCES = \
 	src/data/gnumeric-reader.c \
 	src/data/gnumeric-reader.h \
 	src/data/identifier.c \
+	src/data/identifier2.c \
 	src/data/identifier.h \
 	src/data/lazy-casereader.c \
 	src/data/lazy-casereader.h \

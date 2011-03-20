@@ -18,6 +18,6 @@ END IF.
 AT_CHECK([pspp -O format=csv parse.sps], [1], [dnl
 parse.sps:10: error: IF: Unknown identifier y.
 
-parse.sps:10: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+parse.sps:11: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 AT_CLEANUP

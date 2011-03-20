@@ -120,7 +120,8 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_match_id (lexer, "INTO"))
     goto error;
   lex_match (lexer, T_EQUALS);
-  if (!parse_DATA_LIST_vars (lexer, &dst_names, &n_dsts, PV_NO_DUPLICATE))
+  if (!parse_DATA_LIST_vars (lexer, dict, &dst_names, &n_dsts,
+                             PV_NO_DUPLICATE))
     goto error;
   if (n_dsts != n_srcs)
     {

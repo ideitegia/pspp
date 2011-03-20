@@ -13,10 +13,6 @@ END INPUT PROGRAM.
 ])
 AT_CHECK([pspp -O format=csv input-program.sps], [1], [dnl
 input-program.sps:3: error: BEGIN DATA: BEGIN DATA is not allowed inside INPUT PROGRAM.
-
-input-program.sps:4: error: Unknown command `123456789'.
-
-input-program.sps:5: error: Unknown command `END DATA'.
 ])
 AT_CLEANUP
 
@@ -32,6 +28,6 @@ END INPUT PROGRAM.
 DESCRIPTIVES x.
 ])
 AT_CHECK([pspp -O format=csv input-program.sps], [1], [dnl
-error: DESCRIPTIVES: Syntax error at end of file: expecting `BEGIN'.
+error: DESCRIPTIVES: Syntax error at end of input: expecting `BEGIN'.
 ])
 AT_CLEANUP

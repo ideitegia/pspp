@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -59,9 +59,11 @@ bool parse_variables_pool (struct lexer *, struct pool *, const struct dictionar
                           struct variable ***, size_t *, int opts);
 bool parse_var_set_vars (struct lexer *, const struct var_set *, struct variable ***, size_t *,
                         int opts);
-bool parse_DATA_LIST_vars (struct lexer *, char ***names, size_t *cnt, int opts);
-bool parse_DATA_LIST_vars_pool (struct lexer *, struct pool *,
-                               char ***names, size_t *cnt, int opts);
+bool parse_DATA_LIST_vars (struct lexer *, const struct dictionary *,
+                           char ***names, size_t *cnt, int opts);
+bool parse_DATA_LIST_vars_pool (struct lexer *, const struct dictionary *,
+                                struct pool *,
+                                char ***names, size_t *cnt, int opts);
 bool parse_mixed_vars (struct lexer *, const struct dictionary *dict,
 		       char ***names, size_t *cnt, int opts);
 bool parse_mixed_vars_pool (struct lexer *, const struct dictionary *dict,

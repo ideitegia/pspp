@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -88,7 +88,7 @@ struct sysreader_info
 
 /*  A message handler which writes messages to PSPP::errstr */
 static void
-message_handler (const struct msg *m)
+message_handler (const struct msg *m, void *aux)
 {
  SV *errstr = get_sv("PSPP::errstr", TRUE);
  sv_setpv (errstr, m->text);
@@ -179,7 +179,7 @@ CODE:
  assert (0 == strncmp (ver, bare_version, strlen (ver)));
 
  i18n_init ();
- msg_init (NULL, message_handler);
+ msg_set_handler (message_handler, NULL);
  settings_init (0, 0);
  fh_init ();
 
@@ -255,7 +255,7 @@ set_documents (dict, docs)
  struct dictionary *dict
  char *docs
 CODE:
- dict_set_documents (dict, docs);
+ dict_set_documents_string (dict, docs);
 
 
 void
@@ -263,7 +263,7 @@ add_document (dict, doc)
  struct dictionary *dict
  char *doc
 CODE:
- dict_add_document_line (dict, doc);
+ dict_add_document_line (dict, doc, false);
 
 
 void
@@ -326,7 +326,7 @@ pxs_dict_create_var (dict, name, ip_fmt)
 INIT:
  SV *errstr = get_sv("PSPP::errstr", TRUE);
  sv_setpv (errstr, "");
- if ( ! var_is_plausible_name (name, false))
+ if ( ! id_is_plausible (name, false))
   {
     sv_setpv (errstr, "The variable name is not valid.");
     XSRETURN_UNDEF;
@@ -376,7 +376,7 @@ set_label (var, label)
  struct variable *var;
  char *label
 CODE:
-  var_set_label (var, label);
+  var_set_label (var, label, NULL, false);
 
 
 void

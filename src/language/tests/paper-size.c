@@ -44,5 +44,5 @@ cmd_debug_paper_size (struct lexer *lexer, struct dataset *ds UNUSED)
     printf ("error\n");
   lex_get (lexer);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

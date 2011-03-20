@@ -436,10 +436,7 @@ write_documents (struct pfm_writer *w, const struct dictionary *dict)
   buf_write (w, "E", 1);
   write_int (w, line_cnt);
   for (i = 0; i < line_cnt; i++)
-    {
-      dict_get_document_line (dict, i, &line);
-      write_string (w, ds_cstr (&line));
-    }
+    write_string (w, dict_get_document_line (dict, i));
   ds_destroy (&line);
 }
 

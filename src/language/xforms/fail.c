@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,10 +38,8 @@ trns_fail (void *x UNUSED, struct ccase **c UNUSED,
 }
 
 int
-cmd_debug_xform_fail (struct lexer *lexer, struct dataset *ds)
+cmd_debug_xform_fail (struct lexer *lexer UNUSED, struct dataset *ds)
 {
-
   add_transformation (ds, trns_fail, NULL, NULL);
-
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

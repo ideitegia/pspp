@@ -50,9 +50,6 @@ static const struct output_driver_factory *factories[];
 /* Drivers currently registered with output_driver_register(). */
 static struct llx_list drivers = LLX_INITIALIZER (drivers);
 
-static struct output_item *deferred_syntax;
-static bool in_command;
-
 void
 output_close (void)
 {
@@ -72,8 +69,10 @@ output_get_supported_formats (struct string_set *formats)
     string_set_insert (formats, (*fp)->extension);
 }
 
-static void
-output_submit__ (struct output_item *item)
+/* Submits ITEM to the configured output drivers, and transfers ownership to
+   the output subsystem. */
+void
+output_submit (struct output_item *item)
 {
   struct llx *llx, *next;
 
@@ -103,53 +102,6 @@ output_submit__ (struct output_item *item)
     }
 
   output_item_unref (item);
-}
-
-static void
-flush_deferred_syntax (void)
-{
-  if (deferred_syntax != NULL)
-    {
-      output_submit__ (deferred_syntax);
-      deferred_syntax = NULL;
-    }
-}
-
-/* Submits ITEM to the configured output drivers, and transfers ownership to
-   the output subsystem. */
-void
-output_submit (struct output_item *item)
-{
-  if (is_text_item (item))
-    {
-      struct text_item *text = to_text_item (item);
-      switch (text_item_get_type (text))
-        {
-        case TEXT_ITEM_SYNTAX:
-          if (!in_command)
-            {
-              flush_deferred_syntax ();
-              deferred_syntax = item;
-              return;
-            }
-          break;
-
-        case TEXT_ITEM_COMMAND_OPEN:
-          output_submit__ (item);
-          flush_deferred_syntax ();
-          in_command = true;
-          return;
-
-        case TEXT_ITEM_COMMAND_CLOSE:
-          in_command = false;
-          break;
-
-        default:
-          break;
-        }
-    }
-
-  output_submit__ (item);
 }
 
 /* Flushes output to screen devices, so that the user can see

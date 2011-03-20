@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@ struct casereader;
 
 struct gnumeric_read_info
 {
-  char *sheet_name ;
-  char *file_name ;
-  char *cell_range ;
+  char *sheet_name ;            /* In UTF-8. */
+  char *file_name ;             /* In filename encoding. */
+  char *cell_range ;            /* In UTF-8. */
   int sheet_index ;
   bool read_names ;
   int asw ;

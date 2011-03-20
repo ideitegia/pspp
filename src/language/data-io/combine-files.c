@@ -36,6 +36,7 @@
 #include "language/stats/sort-criteria.h"
 #include "libpspp/assertion.h"
 #include "libpspp/message.h"
+#include "libpspp/string-array.h"
 #include "libpspp/taint.h"
 #include "math/sort.h"
 
@@ -491,7 +492,7 @@ static bool
 merge_dictionary (struct dictionary *const m, struct comb_file *f)
 {
   struct dictionary *d = f->dict;
-  const char *d_docs, *m_docs;
+  const struct string_array *d_docs, *m_docs;
   int i;
   const char *file_encoding;
 
@@ -525,9 +526,19 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
         dict_set_documents (m, d_docs);
       else
         {
-          char *new_docs = xasprintf ("%s%s", m_docs, d_docs);
-          dict_set_documents (m, new_docs);
-          free (new_docs);
+          struct string_array new_docs;
+          size_t i;
+
+          new_docs.n = m_docs->n + d_docs->n;
+          new_docs.strings = xmalloc (new_docs.n * sizeof *new_docs.strings);
+          for (i = 0; i < m_docs->n; i++)
+            new_docs.strings[i] = m_docs->strings[i];
+          for (i = 0; i < d_docs->n; i++)
+            new_docs.strings[m_docs->n + i] = d_docs->strings[i];
+
+          dict_set_documents (m, &new_docs);
+
+          free (new_docs.strings);
         }
     }
 
@@ -577,7 +588,7 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
           if (var_has_missing_values (dv) && !var_has_missing_values (mv))
             var_set_missing_values (mv, var_get_missing_values (dv));
           if (var_get_label (dv) && !var_get_label (mv))
-            var_set_label (mv, var_get_label (dv));
+            var_set_label (mv, var_get_label (dv), file_encoding, false);
         }
       else
         mv = dict_clone_var_assert (m, dv);

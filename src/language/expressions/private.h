@@ -187,10 +187,7 @@ union any_node *expr_allocate_number (struct expression *e, double);
 union any_node *expr_allocate_boolean (struct expression *e, double);
 union any_node *expr_allocate_integer (struct expression *e, int);
 union any_node *expr_allocate_pos_int (struct expression *e, int);
-union any_node *expr_allocate_string_buffer (struct expression *e,
-                                             const char *string, size_t length);
-union any_node *expr_allocate_string (struct expression *e,
-                                      struct substring);
+union any_node *expr_allocate_string (struct expression *e, struct substring);
 union any_node *expr_allocate_variable (struct expression *e,
                                         const struct variable *);
 union any_node *expr_allocate_format (struct expression *e,

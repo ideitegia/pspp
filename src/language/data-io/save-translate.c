@@ -159,6 +159,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                   lex_match (lexer, T_EQUALS);
                   if (!lex_force_string (lexer))
                     goto error;
+                  /* XXX should support multibyte UTF-8 delimiters */
                   if (ss_length (lex_tokss (lexer)) != 1)
                     {
                       msg (SE, _("The %s string must contain exactly one "
@@ -173,6 +174,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                   lex_match (lexer, T_EQUALS);
                   if (!lex_force_string (lexer))
                     goto error;
+                  /* XXX should support multibyte UTF-8 qualifiers */
                   if (ss_length (lex_tokss (lexer)) != 1)
                     {
                       msg (SE, _("The %s string must contain exactly one "

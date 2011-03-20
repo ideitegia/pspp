@@ -31,6 +31,7 @@
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
 #include "libpspp/hash-functions.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
@@ -132,7 +133,7 @@ var_clone (const struct variable *old_var)
   var_set_print_format (new_var, var_get_print_format (old_var));
   var_set_write_format (new_var, var_get_write_format (old_var));
   var_set_value_labels (new_var, var_get_value_labels (old_var));
-  var_set_label (new_var, var_get_label (old_var));
+  var_set_label (new_var, var_get_label (old_var), NULL, false);
   var_set_measure (new_var, var_get_measure (old_var));
   var_set_display_width (new_var, var_get_display_width (old_var));
   var_set_alignment (new_var, var_get_alignment (old_var));
@@ -163,107 +164,25 @@ var_destroy (struct variable *v)
 
 /* Variable names. */
 
-/* Return variable V's name. */
+/* Return variable V's name, as a UTF-8 encoded string. */
 const char *
 var_get_name (const struct variable *v)
 {
   return v->name;
 }
 
-/* Sets V's name to NAME.
+/* Sets V's name to NAME, a UTF-8 encoded string.
    Do not use this function for a variable in a dictionary.  Use
    dict_rename_var instead. */
 void
 var_set_name (struct variable *v, const char *name)
 {
   assert (!var_has_vardict (v));
-  assert (var_is_plausible_name (name, false));
+  assert (id_is_plausible (name, false));
 
   free (v->name);
   v->name = xstrdup (name);
   dict_var_changed (v);
-}
-
-/* Returns true if NAME is an acceptable name for a variable,
-   false otherwise.  If ISSUE_ERROR is true, issues an
-   explanatory error message on failure. */
-bool
-var_is_valid_name (const char *name, bool issue_error)
-{
-  bool plausible;
-  size_t length, i;
-
-  /* Note that strlen returns number of BYTES, not the number of
-     CHARACTERS */
-  length = strlen (name);
-
-  plausible = var_is_plausible_name(name, issue_error);
-
-  if ( ! plausible )
-    return false;
-
-
-  if (!lex_is_id1 (name[0]))
-    {
-      if (issue_error)
-        msg (SE, _("Character `%c' (in %s) may not appear "
-                   "as the first character in a variable name."),
-             name[0], name);
-      return false;
-    }
-
-
-  for (i = 0; i < length; i++)
-    {
-    if (!lex_is_idn (name[i]))
-      {
-        if (issue_error)
-          msg (SE, _("Character `%c' (in %s) may not appear in "
-                     "a variable name."),
-               name[i], name);
-        return false;
-      }
-    }
-
-  return true;
-}
-
-/* Returns true if NAME is an plausible name for a variable,
-   false otherwise.  If ISSUE_ERROR is true, issues an
-   explanatory error message on failure.
-   This function makes no use of LC_CTYPE.
-*/
-bool
-var_is_plausible_name (const char *name, bool issue_error)
-{
-  size_t length;
-
-  /* Note that strlen returns number of BYTES, not the number of
-     CHARACTERS */
-  length = strlen (name);
-  if (length < 1)
-    {
-      if (issue_error)
-        msg (SE, _("Variable name cannot be empty string."));
-      return false;
-    }
-  else if (length > VAR_NAME_LEN)
-    {
-      if (issue_error)
-        msg (SE, _("Variable name %s exceeds %d-character limit."),
-             name, (int) VAR_NAME_LEN);
-      return false;
-    }
-
-  if (lex_id_to_token (ss_cstr (name)) != T_ID)
-    {
-      if (issue_error)
-        msg (SE, _("`%s' may not be used as a variable name because it "
-                   "is a reserved word."), name);
-      return false;
-    }
-
-  return true;
 }
 
 /* Returns VAR's dictionary class. */
@@ -644,33 +563,61 @@ var_get_label (const struct variable *v)
   return v->label;
 }
 
-/* Sets V's variable label to LABEL, stripping off leading and
-   trailing white space and truncating to 255 characters.
-   If LABEL is a null pointer or if LABEL is an empty string
-   (after stripping white space), then V's variable label (if
-   any) is removed. */
-void
-var_set_label (struct variable *v, const char *label)
+/* Sets V's variable label to UTF-8 encoded string LABEL, stripping off leading
+   and trailing white space.  If LABEL is a null pointer or if LABEL is an
+   empty string (after stripping white space), then V's variable label (if any)
+   is removed.
+
+   Variable labels are limited to 255 bytes in the dictionary encoding, which
+   should be specified as DICT_ENCODING.  If LABEL fits within this limit, this
+   function returns true.  Otherwise, the variable label is set to a truncated
+   value, this function returns false and, if ISSUE_WARNING is true, issues a
+   warning.  */
+bool
+var_set_label (struct variable *v, const char *label,
+               const char *dict_encoding, bool issue_warning)
 {
+  bool truncated = false;
+
   free (v->label);
   v->label = NULL;
 
   if (label != NULL)
     {
       struct substring s = ss_cstr (label);
+      size_t trunc_len;
+
+      if (dict_encoding != NULL)
+        {
+          enum { MAX_LABEL_LEN = 255 };
+
+          trunc_len = utf8_encoding_trunc_len (label, dict_encoding,
+                                               MAX_LABEL_LEN);
+          if (ss_length (s) > trunc_len)
+            {
+              if (issue_warning)
+                msg (SW, _("Truncating variable label for variable `%s' to %d "
+                           "bytes."), var_get_name (v), MAX_LABEL_LEN);
+              ss_truncate (&s, trunc_len);
+              truncated = true;
+            }
+        }
+
       ss_trim (&s, ss_cstr (CC_SPACES));
-      ss_truncate (&s, 255);
       if (!ss_is_empty (s))
         v->label = ss_xstrdup (s);
     }
+
   dict_var_changed (v);
+
+  return truncated;
 }
 
 /* Removes any variable label from V. */
 void
 var_clear_label (struct variable *v)
 {
-  var_set_label (v, NULL);
+  var_set_label (v, NULL, NULL, false);
 }
 
 /* Returns true if V has a variable V,
@@ -839,7 +786,7 @@ var_get_short_name (const struct variable *var, size_t idx)
 void
 var_set_short_name (struct variable *var, size_t idx, const char *short_name)
 {
-  assert (short_name == NULL || var_is_plausible_name (short_name, false));
+  assert (short_name == NULL || id_is_plausible (short_name, false));
 
   /* Clear old short name numbered IDX, if any. */
   if (idx < var->short_name_cnt) 

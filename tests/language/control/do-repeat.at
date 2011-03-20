@@ -1,6 +1,95 @@
 AT_BANNER([DO REPEAT])
 
-AT_SETUP([DO REPEAT -- ordinary])
+AT_SETUP([DO REPEAT -- simple])
+AT_DATA([do-repeat.sps], [dnl
+INPUT PROGRAM.
+STRING y(A1).
+DO REPEAT xval = 1 2 3 / yval = 'a' 'b' 'c' / var = a b c.
+COMPUTE x=xval.
+COMPUTE y=yval.
+COMPUTE var=xval.
+END CASE.
+END REPEAT.
+END FILE.
+END INPUT PROGRAM.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv do-repeat.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+y,x,a,b,c
+a,1.00,1.00,.  ,.  @&t@
+b,2.00,.  ,2.00,.  @&t@
+c,3.00,.  ,.  ,3.00
+])
+AT_CLEANUP
+
+AT_SETUP([DO REPEAT -- containing BEGIN DATA])
+AT_DATA([do-repeat.sps], [dnl
+DO REPEAT offset = 1 2 3.
+DATA LIST NOTABLE /x 1-2.
+BEGIN DATA.
+10
+20
+30
+END DATA.
+COMPUTE x = x + offset.
+LIST.
+END REPEAT.
+])
+AT_CHECK([pspp -o pspp.csv do-repeat.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+x
+11
+21
+31
+
+Table: Data List
+x
+12
+22
+32
+
+Table: Data List
+x
+13
+23
+33
+])
+AT_CLEANUP
+
+AT_SETUP([DO REPEAT -- dummy vars not expanded in include files])
+AT_DATA([include.sps], [dnl
+COMPUTE y = y + x + 10.
+])
+AT_DATA([do-repeat.sps], [dnl
+INPUT PROGRAM.
+COMPUTE x = 0.
+COMPUTE y = 0.
+END CASE.
+END FILE.
+END INPUT PROGRAM.
+
+DO REPEAT x = 1 2 3.
+INCLUDE 'include.sps'.
+END REPEAT.
+
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv do-repeat.sps], [0], [dnl
+do-repeat.sps:8: warning: DO REPEAT: Dummy variable name `x' hides dictionary variable `x'.
+])
+AT_CHECK([cat pspp.csv], [0], [dnl
+do-repeat.sps:8: warning: DO REPEAT: Dummy variable name `x' hides dictionary variable `x'.
+
+Table: Data List
+x,y
+.00,30.00
+])
+AT_CLEANUP
+
+AT_SETUP([DO REPEAT -- nested])
 AT_DATA([do-repeat.sps], [dnl
 DATA LIST NOTABLE /a 1.
 BEGIN DATA.
@@ -55,13 +144,7 @@ AT_DATA([do-repeat.sps], [dnl
 DATA LIST NOTABLE /x 1.
 DO REPEAT y = 1 TO 10.
 ])
-AT_CHECK([pspp -o pspp.csv do-repeat.sps], [1], [dnl
-error: DO REPEAT: DO REPEAT without END REPEAT.
-error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
-])
-AT_CHECK([cat pspp.csv], [0], [dnl
-error: DO REPEAT: DO REPEAT without END REPEAT.
-
-error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+AT_CHECK([pspp -O format=csv do-repeat.sps], [1], [dnl
+error: DO REPEAT: Syntax error at end of input: expecting `END'.
 ])
 AT_CLEANUP

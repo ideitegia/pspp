@@ -125,5 +125,5 @@ cmd_filter (struct lexer *lexer, struct dataset *ds)
       dict_set_filter (dict, v);
     }
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

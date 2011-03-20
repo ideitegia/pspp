@@ -31,6 +31,7 @@
 #include "language/data-io/placement-parser.h"
 #include "language/lexer/format-parser.h"
 #include "language/lexer/lexer.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 
 #include "gl/xalloc.h"
@@ -152,7 +153,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_string (lexer))
     goto error;
 
-  gri.file_name = ss_xstrdup (lex_tokss (lexer));
+  gri.file_name = utf8_to_filename (lex_tokcstr (lexer));
 
   lex_get (lexer);
 
@@ -418,6 +419,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
           if (!lex_force_string (lexer))
             goto error;
 
+          /* XXX should support multibyte UTF-8 characters */
           s = lex_tokss (lexer);
           if (ss_match_string (&s, ss_cstr ("\\t")))
             ds_put_cstr (&hard_seps, "\t");
@@ -443,6 +445,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
           if (!lex_force_string (lexer))
             goto error;
 
+          /* XXX should support multibyte UTF-8 characters */
           if (settings_get_syntax () == COMPATIBLE
               && ss_length (lex_tokss (lexer)) != 1)
             {
@@ -500,7 +503,8 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
           lex_get (lexer);
         }
 
-      if (!lex_force_id (lexer))
+      if (!lex_force_id (lexer)
+          || !dict_id_is_valid (dict, lex_tokcstr (lexer), true))
         goto error;
       name = xstrdup (lex_tokcstr (lexer));
       lex_get (lexer);

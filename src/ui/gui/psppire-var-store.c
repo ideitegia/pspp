@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2009, 2010  Free Software Foundation
+   Copyright (C) 2006, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -489,7 +489,7 @@ psppire_var_store_clear (PsppireSheetModel *model,  glong row, glong col)
   switch (col)
     {
     case PSPPIRE_VAR_STORE_COL_LABEL:
-      var_set_label (pv, NULL);
+      var_clear_label (pv);
       return TRUE;
       break;
     }
@@ -588,7 +588,8 @@ psppire_var_store_set_string (PsppireSheetModel *model,
       break;
     case PSPPIRE_VAR_STORE_COL_LABEL:
       {
-	var_set_label (pv, text);
+	var_set_label (pv, text,
+                       psppire_dict_encoding (var_store->dictionary), true);
 	return TRUE;
       }
       break;

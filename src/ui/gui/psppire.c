@@ -32,9 +32,6 @@
 #include "data/sys-file-reader.h"
 
 #include "language/lexer/lexer.h"
-#include "language/syntax-string-source.h"
-
-#include "libpspp/getl.h"
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/version.h"
@@ -68,12 +65,10 @@ PsppireVarStore *the_var_store = 0;
 
 static void create_icon_factory (void);
 
-struct source_stream *the_source_stream ;
 struct dataset * the_dataset = NULL;
 
 static GtkWidget *the_data_window;
 
-static void handle_msg (const struct msg *);
 static void load_data_file (const char *);
 
 static void
@@ -89,7 +84,7 @@ replace_casereader (struct casereader *s)
 
 
 void
-initialize (struct source_stream *ss, const char *data_file)
+initialize (const char *data_file)
 {
   PsppireDict *dictionary = 0;
 
@@ -102,9 +97,7 @@ initialize (struct source_stream *ss, const char *data_file)
   fh_init ();
 
   the_dataset = create_dataset ();
-
-  the_source_stream = ss;
-  msg_init (ss, handle_msg);
+  psppire_set_lexer (NULL);
 
   dictionary = psppire_dict_new_from_dict (dataset_dict (the_dataset));
 
@@ -143,7 +136,6 @@ initialize (struct source_stream *ss, const char *data_file)
 void
 de_initialize (void)
 {
-  destroy_source_stream (the_source_stream);
   settings_done ();
   output_close ();
   i18n_done ();
@@ -300,7 +292,25 @@ load_data_file (const char *arg)
 }
 
 static void
-handle_msg (const struct msg *m)
+handle_msg (const struct msg *m_, void *lexer_)
 {
-  message_item_submit (message_item_create (m));
+  struct lexer *lexer = lexer_;
+  struct msg m = *m_;
+
+  if (lexer != NULL && m.file_name == NULL)
+    {
+      m.file_name = CONST_CAST (char *, lex_get_file_name (lexer));
+      m.first_line = lex_get_first_line_number (lexer, 0);
+      m.last_line = lex_get_last_line_number (lexer, 0);
+      m.first_column = lex_get_first_column (lexer, 0);
+      m.last_column = lex_get_last_column (lexer, 0);
+    }
+
+  message_item_submit (message_item_create (&m));
+}
+
+void
+psppire_set_lexer (struct lexer *lexer)
+{
+  msg_set_handler (handle_msg, lexer);
 }

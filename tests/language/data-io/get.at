@@ -58,8 +58,6 @@ dnl We use stdin here, because the bug seems to manifest itself only in
 dnl interactive mode.
 AT_CHECK([echo "GET /FILE='nonexistent.sav'." | pspp -O format=csv], [1], [dnl
 error: An error occurred while opening `nonexistent.sav': No such file or directory.
-
--:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 AT_CLEANUP
 

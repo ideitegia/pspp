@@ -4,6 +4,8 @@
 language_lexer_sources = \
 	src/language/lexer/command-name.c \
 	src/language/lexer/command-name.h \
+	src/language/lexer/include-path.c \
+	src/language/lexer/include-path.h \
 	src/language/lexer/lexer.c \
 	src/language/lexer/lexer.h \
 	src/language/lexer/subcommand-list.c  \

@@ -22,15 +22,12 @@
 #include "data/procedure.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
-#include "language/syntax-string-source.h"
 #include "libpspp/cast.h"
-#include "libpspp/getl.h"
 #include "output/driver.h"
 #include "ui/gui/psppire-data-store.h"
 #include "ui/gui/psppire-output-window.h"
 
 extern struct dataset *the_dataset;
-extern struct source_stream *the_source_stream;
 extern PsppireDataStore *the_data_store;
 
 /* Lazy casereader callback function used by execute_syntax. */
@@ -42,7 +39,7 @@ create_casereader_from_data_store (void *data_store_)
 }
 
 gboolean
-execute_syntax (struct getl_interface *sss)
+execute_syntax (struct lex_reader *lex_reader)
 {
   struct lexer *lexer;
   gboolean retval = TRUE;
@@ -74,9 +71,9 @@ execute_syntax (struct getl_interface *sss)
 
   g_return_val_if_fail (proc_has_active_file (the_dataset), FALSE);
 
-  lexer = lex_create (the_source_stream);
-
-  getl_append_source (the_source_stream, sss, GETL_BATCH, ERRMODE_CONTINUE);
+  lexer = lex_create ();
+  psppire_set_lexer (lexer);
+  lex_append (lexer, lex_reader);
 
   for (;;)
     {
@@ -85,8 +82,7 @@ execute_syntax (struct getl_interface *sss)
       if ( cmd_result_is_failure (result))
 	{
 	  retval = FALSE;
-	  if ( source_stream_current_error_mode (the_source_stream)
-	       == ERRMODE_STOP )
+	  if ( lex_get_error_mode (lexer) == LEX_ERROR_STOP )
 	    break;
 	}
 
@@ -94,9 +90,8 @@ execute_syntax (struct getl_interface *sss)
 	break;
     }
 
-  getl_abort_noninteractive (the_source_stream);
-
   lex_destroy (lexer);
+  psppire_set_lexer (NULL);
 
   proc_execute (the_dataset);
 
@@ -125,5 +120,5 @@ execute_syntax_string (gchar *syntax)
 void
 execute_const_syntax_string (const gchar *syntax)
 {
-  execute_syntax (create_syntax_string_source (syntax));
+  execute_syntax (lex_reader_for_string (syntax));
 }

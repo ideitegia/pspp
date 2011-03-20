@@ -107,7 +107,7 @@ parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
 
       assert (fmt_get_category (*format) != FMT_CAT_STRING);
 
-      if (!data_in_msg (lex_tokss (lexer), C_ENCODING, *format, &v, 0, NULL))
+      if (!data_in_msg (lex_tokss (lexer), "UTF-8", *format, &v, 0, NULL))
         return false;
 
       lex_get (lexer);

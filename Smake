@@ -49,6 +49,7 @@ GNULIB_MODULES = \
 	printf-posix \
 	printf-safe \
 	progname \
+	rawmemchr \
 	read-file \
 	regex \
 	relocatable-prog \
@@ -80,6 +81,7 @@ GNULIB_MODULES = \
 	unistr/u8-cpy \
 	unistr/u8-mbtouc \
 	unistr/u8-strlen \
+	unistr/u8-strmbtouc \
 	unistr/u8-strncat \
 	uniwidth/u8-strwidth \
 	unitypes \

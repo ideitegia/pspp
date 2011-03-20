@@ -47,6 +47,7 @@
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
+#include "libpspp/string-array.h"
 #include "libpspp/version.h"
 
 #include "gl/xmemdup0.h"
@@ -238,7 +239,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
       idx += sfm_width_to_octs (var_get_width (v));
     }
 
-  if (dict_get_documents (d) != NULL)
+  if (dict_get_document_line_cnt (d) > 0)
     write_documents (w, d);
 
   write_integer_info_record (w);
@@ -552,11 +553,22 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 static void
 write_documents (struct sfm_writer *w, const struct dictionary *d)
 {
-  size_t line_cnt = dict_get_document_line_cnt (d);
+  const struct string_array *docs = dict_get_documents (d);
+  const char *enc = dict_get_encoding (d);
+  size_t i;
 
   write_int (w, 6);             /* Record type. */
-  write_int (w, line_cnt);
-  write_bytes (w, dict_get_documents (d), line_cnt * DOC_LINE_LENGTH);
+  write_int (w, docs->n);
+  for (i = 0; i < docs->n; i++)
+    {
+      char *s = recode_string (enc, "UTF-8", docs->strings[i], -1);
+      size_t s_len = strlen (s);
+      size_t write_len = MIN (s_len, DOC_LINE_LENGTH);
+
+      write_bytes (w, s, write_len);
+      write_spaces (w, DOC_LINE_LENGTH - write_len);
+      free (s);
+    }
 }
 
 static void

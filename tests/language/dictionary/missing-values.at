@@ -63,7 +63,7 @@ missing-values.sps:5: error: MISSING VALUES: Missing values provided are too lon
 
 missing-values.sps:8: error: MISSING VALUES: Truncating missing value to maximum acceptable length (8 bytes).
 
-missing-values.sps:11: error: MISSING VALUES: Syntax error at `THRU': expecting string.
+missing-values.sps:11.26-11.29: error: MISSING VALUES: Syntax error at `THRU': expecting string.
 
 missing-values.sps:11: error: MISSING VALUES: THRU is not a variable name.
 

@@ -10,7 +10,12 @@ DEBUG EVALUATE m4_argn(4, check)/[]m4_car(check).
    AT_CAPTURE_FILE([evaluate.sps])
    m4_pushdef([i], [2])
    AT_CHECK([pspp --testing-mode --error-file=- --no-output evaluate.sps], 
-     [m4_if(m4_bregexp([m4_foreach([check], [m4_shift($@)], [m4_argn(3, check)])], [error:]), [-1], [0], [1])],
+     [m4_if(m4_bregexp([m4_foreach([check], [m4_shift($@)], [m4_argn(3, check)])], [error:]), [-1], [0], [1])], 
+     [stdout])
+   # Use sed to transform "file:line.column:" into plain "file:line:",
+   # because column numbers change between opt and noopt versions.
+   AT_CHECK([[sed 's/\(evaluate.sps:[0-9]\{1,\}\)\.[0-9]\{1,\}:/\1:/' stdout]],
+     [0],
      [m4_foreach([check], [m4_shift($@)],
         [m4_define([i], m4_incr(i))dnl
 m4_if(m4_argn(3, check), [], [], [evaluate.sps:[]i[]: m4_argn(3, check)
@@ -284,7 +289,7 @@ dnl <> token can't be split:
    [error: DEBUG EVALUATE: Syntax error at `>'.]],
 dnl # ~= token can't be split:
   [[1 ~ = 1], [error],
-   [error: DEBUG EVALUATE: Syntax error at `NOT': expecting end of command.]])
+   [error: DEBUG EVALUATE: Syntax error at `~': expecting end of command.]])
 
 CHECK_EXPR_EVAL([exp lg10 ln sqrt abs mod mod10 rnd trunc],
   [[exp(10)], [22026.47]],

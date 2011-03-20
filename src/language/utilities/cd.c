@@ -16,12 +16,14 @@
 
 #include <config.h>
 
+#include "language/command.h"
+
 #include <errno.h>
 #include <unistd.h>
 
-#include "language/command.h"
-#include "libpspp/message.h"
 #include "language/lexer/lexer.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -35,7 +37,7 @@ cmd_cd (struct lexer *lexer, struct dataset *ds UNUSED)
   if ( ! lex_force_string (lexer))
     goto error;
 
-  path = ss_xstrdup (lex_tokss (lexer));
+  path = utf8_to_filename (lex_tokcstr (lexer));
 
   if ( -1 == chdir (path) )
     {

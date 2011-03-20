@@ -39,14 +39,15 @@
 #include "language/lexer/variable-parser.h"
 #include "language/stats/sort-criteria.h"
 #include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/pool.h"
 #include "libpspp/str.h"
 #include "math/moments.h"
+#include "math/percentiles.h"
 #include "math/sort.h"
 #include "math/statistic.h"
-#include "math/percentiles.h"
 
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
@@ -416,7 +417,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	{
 	  size_t n_dest_prev = n_dest;
 
-	  if (!parse_DATA_LIST_vars (lexer, &dest, &n_dest,
+	  if (!parse_DATA_LIST_vars (lexer, dict, &dest, &n_dest,
                                      (PV_APPEND | PV_SINGLE | PV_NO_SCRATCH
                                       | PV_NO_DUPLICATE)))
 	    goto error;
@@ -434,14 +435,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 
 	  if (lex_is_string (lexer))
 	    {
-              /* XXX check re-encoded length */
-	      struct string label;
-	      ds_init_substring (&label, lex_tokss (lexer));
-
-	      ds_truncate (&label, 255);
-	      dest_label[n_dest - 1] = ds_xstrdup (&label);
+	      dest_label[n_dest - 1] = xstrdup (lex_tokcstr (lexer));
 	      lex_get (lexer);
-	      ds_destroy (&label);
 	    }
 	}
 
@@ -502,7 +497,9 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 		lex_match (lexer, T_COMMA);
 		if (lex_is_string (lexer))
 		  {
-		    arg[i].c = ss_xstrdup (lex_tokss (lexer));
+		    arg[i].c = recode_string (dict_get_encoding (agr->dict),
+                                              "UTF-8", lex_tokcstr (lexer),
+                                              -1);
 		    type = VAL_STRING;
 		  }
 		else if (lex_is_number (lexer))
@@ -640,7 +637,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 
 	    free (dest[i]);
 	    if (dest_label[i])
-              var_set_label (destvar, dest_label[i]);
+              var_set_label (destvar, dest_label[i],
+                             dict_get_encoding (agr->dict), true);
 
 	    v->dest = destvar;
 	  }
@@ -811,6 +809,7 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	    iter->int1 = 1;
 	    break;
 	  case MAX | FSTRING:
+            /* Need to do some kind of Unicode collation thingy here */
 	    if (memcmp (iter->string, value_str (v, src_width), src_width) < 0)
 	      memcpy (iter->string, value_str (v, src_width), src_width);
 	    iter->int1 = 1;

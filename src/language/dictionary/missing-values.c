@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include "data/data-in.h"
+#include "data/dictionary.h"
 #include "data/format.h"
 #include "data/missing-values.h"
 #include "data/procedure.h"
@@ -28,6 +29,7 @@
 #include "language/lexer/lexer.h"
 #include "language/lexer/value-parser.h"
 #include "language/lexer/variable-parser.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
@@ -37,21 +39,21 @@
 int
 cmd_missing_values (struct lexer *lexer, struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct variable **v = NULL;
   size_t nv;
 
-  int retval = CMD_FAILURE;
-  bool deferred_errors = false;
+  bool ok = true;
 
   while (lex_token (lexer) != T_ENDCMD)
     {
       size_t i;
 
-      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
-        goto done;
+      if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
+        goto error;
 
       if (!lex_force_match (lexer, T_LPAREN))
-        goto done;
+        goto error;
 
       for (i = 0; i < nv; i++)
         var_clear_missing_values (v[i]);
@@ -68,7 +70,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                 msg (SE, _("Cannot mix numeric variables (e.g. %s) and "
                            "string variables (e.g. %s) within a single list."),
                      var_get_name (n), var_get_name (s));
-                goto done;
+                goto error;
               }
 
           if (var_is_numeric (v[0]))
@@ -81,13 +83,13 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                   bool ok;
 
                   if (!parse_num_range (lexer, &x, &y, &type))
-                    goto done;
+                    goto error;
 
                   ok = (x == y
                         ? mv_add_num (&mv, x)
                         : mv_add_range (&mv, x, y));
                   if (!ok)
-                    deferred_errors = true;
+                    ok = false;
 
                   lex_match (lexer, T_COMMA);
                 }
@@ -98,27 +100,33 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
               while (!lex_match (lexer, T_RPAREN))
                 {
                   uint8_t value[MV_MAX_STRING];
+                  char *dict_mv;
                   size_t length;
 
                   if (!lex_force_string (lexer))
                     {
-                      deferred_errors = true;
+                      ok = false;
                       break;
                     }
 
-                  length = ss_length (lex_tokss (lexer));
+                  dict_mv = recode_string (dict_get_encoding (dict), "UTF-8",
+                                           lex_tokcstr (lexer),
+                                           ss_length (lex_tokss (lexer)));
+                  length = strlen (dict_mv);
                   if (length > MV_MAX_STRING)
                     {
+                      /* XXX truncate graphemes not bytes */
                       msg (SE, _("Truncating missing value to maximum "
                                  "acceptable length (%d bytes)."),
                            MV_MAX_STRING);
                       length = MV_MAX_STRING;
                     }
                   memset (value, ' ', MV_MAX_STRING);
-                  memcpy (value, ss_data (lex_tokss (lexer)), length);
+                  memcpy (value, dict_mv, length);
+                  free (dict_mv);
 
                   if (!mv_add_str (&mv, value))
-                    deferred_errors = true;
+                    ok = false;
 
                   lex_get (lexer);
                   lex_match (lexer, T_COMMA);
@@ -134,7 +142,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                   msg (SE, _("Missing values provided are too long to assign "
                              "to variable of width %d."),
                        var_get_width (v[i]));
-                  deferred_errors = true;
+                  ok = false;
                 }
             }
 
@@ -145,12 +153,12 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
       free (v);
       v = NULL;
     }
-  retval = lex_end_of_command (lexer);
 
- done:
   free (v);
-  if (deferred_errors)
-    retval = CMD_FAILURE;
-  return retval;
+  return ok ? CMD_SUCCESS : CMD_FAILURE;
+
+error:
+  free (v);
+  return CMD_FAILURE;
 }
 

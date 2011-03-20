@@ -258,8 +258,8 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "K-W") ||
-	       lex_match_hyphenated_word (lexer, "KRUSKAL-WALLIS"))
+      else if (lex_match_phrase (lexer, "K-W") ||
+	       lex_match_phrase (lexer, "KRUSKAL-WALLIS"))
         {
           lex_match (lexer, T_EQUALS);
           npt->kruskal_wallis++;
@@ -276,8 +276,8 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "M-W") ||
-	       lex_match_hyphenated_word (lexer, "MANN-WHITNEY"))
+      else if (lex_match_phrase (lexer, "M-W") ||
+	       lex_match_phrase (lexer, "MANN-WHITNEY"))
         {
           lex_match (lexer, T_EQUALS);
           npt->mann_whitney++;
@@ -759,44 +759,39 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 
   cstp->n_expected = 0;
   cstp->expected = NULL;
-  if ( lex_match (lexer, T_SLASH) )
+  if (lex_match_phrase (lexer, "/EXPECTED"))
     {
-      if ( lex_match_id (lexer, "EXPECTED") )
-	{
-	  lex_force_match (lexer, T_EQUALS);
-	  if ( ! lex_match_id (lexer, "EQUAL") )
-	    {
-	      double f;
-	      int n;
-	      while ( lex_is_number (lexer) )
-		{
-		  int i;
-		  n = 1;
-		  f = lex_number (lexer);
-		  lex_get (lexer);
-		  if ( lex_match (lexer, T_ASTERISK))
-		    {
-		      n = f;
-		      f = lex_number (lexer);
-		      lex_get (lexer);
-		    }
-		  lex_match (lexer, T_COMMA);
+      lex_force_match (lexer, T_EQUALS);
+      if ( ! lex_match_id (lexer, "EQUAL") )
+        {
+          double f;
+          int n;
+          while ( lex_is_number (lexer) )
+            {
+              int i;
+              n = 1;
+              f = lex_number (lexer);
+              lex_get (lexer);
+              if ( lex_match (lexer, T_ASTERISK))
+                {
+                  n = f;
+                  f = lex_number (lexer);
+                  lex_get (lexer);
+                }
+              lex_match (lexer, T_COMMA);
 
-		  cstp->n_expected += n;
-		  cstp->expected = pool_realloc (specs->pool,
-						 cstp->expected,
-						 sizeof (double) *
-						 cstp->n_expected);
-		  for ( i = cstp->n_expected - n ;
-			i < cstp->n_expected;
-			++i )
-		    cstp->expected[i] = f;
+              cstp->n_expected += n;
+              cstp->expected = pool_realloc (specs->pool,
+                                             cstp->expected,
+                                             sizeof (double) *
+                                             cstp->n_expected);
+              for ( i = cstp->n_expected - n ;
+                    i < cstp->n_expected;
+                    ++i )
+                cstp->expected[i] = f;
 
-		}
-	    }
-	}
-      else
-        retval = 3;
+            }
+        }
     }
 
   if ( cstp->ranged && cstp->n_expected > 0 &&
@@ -828,7 +823,7 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
   struct binomial_test *btp = pool_alloc (specs->pool, sizeof (*btp));
   struct one_sample_test *tp = &btp->parent;
   struct npar_test *nt = &tp->parent;
-  bool equals;
+  bool equals = false;
 
   nt->execute = binomial_execute;
   nt->insert_variables = one_sample_insert_variables;

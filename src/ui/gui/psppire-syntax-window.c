@@ -30,7 +30,6 @@
 #include "psppire-data-window.h"
 #include "psppire-window-register.h"
 #include "psppire-syntax-window.h"
-#include "syntax-editor-source.h"
 
 #include "xalloc.h"
 
@@ -156,8 +155,16 @@ editor_execute_syntax (const PsppireSyntaxWindow *sw, GtkTextIter start,
 		       GtkTextIter stop)
 {
   PsppireWindow *win = PSPPIRE_WINDOW (sw);
-  const gchar *name = psppire_window_get_filename (win);
-  execute_syntax (create_syntax_editor_source (sw->buffer, start, stop, name));
+  struct lex_reader *reader;
+  gchar *text;
+
+  text = gtk_text_buffer_get_text (sw->buffer, &start, &stop, FALSE);
+  reader = lex_reader_for_string (text);
+  g_free (text);
+
+  lex_reader_set_file_name (reader, psppire_window_get_filename (win));
+
+  execute_syntax (reader);
 }
 
 
@@ -590,8 +597,6 @@ on_modified_changed (GtkTextBuffer *buffer, PsppireWindow *window)
     psppire_window_set_unsaved (window);
 }
 
-extern struct source_stream *the_source_stream ;
-
 static void
 psppire_syntax_window_init (PsppireSyntaxWindow *window)
 {
@@ -616,7 +621,6 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   window->edit_paste = get_action_assert (xml, "edit_paste");
 
   window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
-  window->lexer = lex_create (the_source_stream);
 
   window->sb = get_widget_assert (xml, "statusbar2");
   window->text_context = gtk_statusbar_get_context_id (GTK_STATUSBAR (window->sb), "Text Context");

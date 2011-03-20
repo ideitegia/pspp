@@ -198,7 +198,8 @@ fraction_name(void)
 /* Create a label on DEST_VAR, describing its derivation from SRC_VAR and F */
 static void
 create_var_label (struct variable *dest_var,
-		  const struct variable *src_var, enum RANK_FUNC f)
+		  const struct variable *src_var, enum RANK_FUNC f,
+                  const char *dict_encoding)
 {
   struct string label;
   ds_init_empty (&label);
@@ -224,7 +225,7 @@ create_var_label (struct variable *dest_var,
     ds_put_format (&label, _("%s of %s"),
                    function_name[f], var_get_name (src_var));
 
-  var_set_label (dest_var, ds_cstr (&label));
+  var_set_label (dest_var, ds_cstr (&label), dict_encoding, false);
 
   ds_destroy (&label);
 }
@@ -673,15 +674,18 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
       int v;
       for ( v = 0 ; v < n_src_vars ;  v ++ )
 	{
+          struct dictionary *dict = dataset_dict (ds);
+
 	  if ( rank_specs[i].destvars[v] == NULL )
 	    {
 	      rank_specs[i].destvars[v] =
-		create_rank_variable (dataset_dict(ds), rank_specs[i].rfunc, src_vars[v], NULL);
+		create_rank_variable (dict, rank_specs[i].rfunc, src_vars[v], NULL);
 	    }
 
 	  create_var_label ( rank_specs[i].destvars[v],
 			     src_vars[v],
-			     rank_specs[i].rfunc);
+			     rank_specs[i].rfunc,
+                             dict_get_encoding (dict));
 	}
     }
 

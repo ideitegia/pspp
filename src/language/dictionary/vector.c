@@ -50,7 +50,8 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
       size_t vector_cnt, vector_cap;
 
       /* Get the name(s) of the new vector(s). */
-      if (!lex_force_id (lexer))
+      if (!lex_force_id (lexer)
+          || !dict_id_is_valid (dict, lex_tokcstr (lexer), true))
 	return CMD_CASCADING_FAILURE;
 
       vectors = NULL;
@@ -151,19 +152,17 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
               goto fail;
             }
 
-	  /* Check that none of the variables exist and that
-             their names are no more than VAR_NAME_LEN bytes
-             long. */
+	  /* Check that none of the variables exist and that their names are
+             not excessively long. */
           for (i = 0; i < vector_cnt; i++)
 	    {
               int j;
 	      for (j = 0; j < var_cnt; j++)
 		{
                   char *name = xasprintf ("%s%d", vectors[i], j + 1);
-                  if (strlen (name) > VAR_NAME_LEN)
+                  if (!dict_id_is_valid (dict, name, true))
                     {
                       free (name);
-                      msg (SE, _("%s is too long for a variable name."), name);
                       goto fail;
                     }
                   if (dict_lookup_var (dict, name))
@@ -200,7 +199,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
   while (lex_match (lexer, T_SLASH));
 
   pool_destroy (pool);
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
 fail:
   pool_destroy (pool);

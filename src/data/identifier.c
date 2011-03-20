@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2005, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2005, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,15 +23,10 @@
 
 #include "data/identifier.h"
 
-#include <assert.h>
 #include <string.h>
 #include <unictype.h>
-#include <unistr.h>
 
 #include "libpspp/assertion.h"
-#include "libpspp/cast.h"
-#include "libpspp/i18n.h"
-#include "libpspp/message.h"
 
 #include "gl/c-ctype.h"
 
@@ -318,21 +313,4 @@ lex_id_to_token (struct substring id)
     }
 
   return T_ID;
-}
-
-/* Returns the name for the given keyword token type. */
-const char *
-lex_id_name (enum token_type token)
-{
-  const struct keyword *kw;
-
-  for (kw = keywords; kw < &keywords[keyword_cnt]; kw++)
-    if (kw->token == token)
-      {
-        /* A "struct substring" is not guaranteed to be
-           null-terminated, as our caller expects, but in this
-           case it always will be. */
-        return ss_data (kw->identifier);
-      }
-  NOT_REACHED ();
 }

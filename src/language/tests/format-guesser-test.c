@@ -53,5 +53,5 @@ cmd_debug_format_guesser (struct lexer *lexer, struct dataset *ds UNUSED)
   msg_enable ();
   putc ('\n', stderr);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

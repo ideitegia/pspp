@@ -66,7 +66,8 @@ cmd_rename_variables (struct lexer *lexer, struct dataset *ds)
 	  msg (SE, _("`=' expected between lists of new and old variable names."));
 	  goto lossage;
 	}
-      if (!parse_DATA_LIST_vars (lexer, &rename_new_names, &prev_nv_1,
+      if (!parse_DATA_LIST_vars (lexer, dataset_dict (ds),
+                                 &rename_new_names, &prev_nv_1,
                                  PV_APPEND | PV_NO_DUPLICATE))
 	goto lossage;
       if (prev_nv_1 != rename_cnt)

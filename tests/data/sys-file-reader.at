@@ -1268,8 +1268,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0xd4: Misplaced type 4 record.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1298,8 +1296,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0xd4: Unrecognized record type 8.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1356,8 +1352,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0xb4: Invalid variable name `$UM1'.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1386,8 +1380,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0xb4: Invalid variable name `TO'.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1416,8 +1408,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0xb4: Bad width 256 for variable VAR1.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1447,8 +1437,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0xd4: Duplicate variable name `VAR1'.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1477,8 +1465,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0xb4: Variable label indicator field is not 0 or 1.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1507,8 +1493,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    ["error: `sys-file.sav' near offset 0xb4: Numeric missing value indicator field is not -3, -2, 0, 1, 2, or 3."
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1537,8 +1521,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    ["error: `sys-file.sav' near offset 0xb4: String missing value indicator field is not 0, 1, 2, or 3."
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1568,8 +1550,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0xb4: Missing string continuation record.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1598,8 +1578,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0xc0: Unknown variable format 255.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1675,8 +1653,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav': Weighting variable must be numeric (not string variable `STR1').
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1708,8 +1684,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0x4c: Variable index 3 not in valid range 1...2.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1742,8 +1716,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
    [error: `sys-file.sav' near offset 0x4c: Variable index 3 refers to long string continuation.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1779,8 +1751,6 @@ GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0x12c: Duplicate type 6 (document) record.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1817,8 +1787,6 @@ GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0xd4: Number of document lines (0) must be greater than 0 and less than 26843545.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1848,8 +1816,6 @@ GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0xd8: Record type 7 subtype 3 too large.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -1942,8 +1908,6 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0xd8: Floating-point representation indicated by system file (2) differs from expected (1).
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -2718,8 +2682,6 @@ warning: `sys-file.sav' near offset 0xd8: NUM1 listed as string of invalid lengt
 "warning: `sys-file.sav' near offset 0xd8: NUM1 listed in very long string record with width 00255, which requires only one segment."
 
 error: `sys-file.sav' near offset 0xd8: Very long string NUM1 overflows dictionary.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -2757,8 +2719,6 @@ GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0x4f8: Very long string with width 256 has segment 1 of width 9 (expected 4).
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -2789,8 +2749,6 @@ GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0xd4: Invalid number of labels 2147483647.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -2823,8 +2781,6 @@ GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0xe8: Variable index record (type 4) does not immediately follow value label record (type 3) as it should.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -2854,8 +2810,6 @@ GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0xec: Number of variables associated with a value label (0) is not between 1 and the number of variables (1).
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -2888,8 +2842,6 @@ GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0xf4: Value labels may not be added to long string variables (e.g. STR1) using records types 3 and 4.
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -2922,8 +2874,6 @@ GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 "error: `sys-file.sav' near offset 0xf4: Variables associated with value label are not all of identical type.  Variable STR1 is string, but variable NUM1 is numeric."
-
-sys-file.sps:1: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -3148,8 +3098,6 @@ num1,num2
 3,4
 5,6
 7,8
-
-sys-file.sps:2: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -3186,8 +3134,6 @@ LIST.
 Table: Data List
 num1,num2
 1,2
-
-sys-file.sps:2: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -3224,8 +3170,6 @@ LIST.
 Table: Data List
 str14
 one data item @&t@
-
-sys-file.sps:2: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP
@@ -3276,8 +3220,6 @@ LIST.
 Table: Data List
 num1,num2,str4,str8,str15
 -99,0,,abcdefgh,0123   @&t@
-
-sys-file.sps:2: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 done
 AT_CLEANUP

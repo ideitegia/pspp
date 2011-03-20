@@ -32,21 +32,26 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static enum cmd_result parse_attributes (struct lexer *, struct attrset **,
-                                         size_t n);
+static enum cmd_result parse_attributes (struct lexer *,
+                                         const char *dict_encoding,
+                                         struct attrset **, size_t n);
 
 /* Parses the DATAFILE ATTRIBUTE command. */
 int
 cmd_datafile_attribute (struct lexer *lexer, struct dataset *ds)
 {
-  struct attrset *set = dict_get_attributes (dataset_dict (ds));
-  return parse_attributes (lexer, &set, 1);
+  struct dictionary *dict = dataset_dict (ds);
+  struct attrset *set = dict_get_attributes (dict);
+  return parse_attributes (lexer, dict_get_encoding (dict), &set, 1);
 }
 
 /* Parses the VARIABLE ATTRIBUTE command. */
 int
 cmd_variable_attribute (struct lexer *lexer, struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
+  const char *dict_encoding = dict_get_encoding (dict);
+
   do 
     {
       struct variable **vars;
@@ -56,15 +61,14 @@ cmd_variable_attribute (struct lexer *lexer, struct dataset *ds)
 
       if (!lex_force_match_id (lexer, "VARIABLES")
           || !lex_force_match (lexer, T_EQUALS)
-          || !parse_variables (lexer, dataset_dict (ds), &vars, &n_vars,
-                               PV_NONE))
+          || !parse_variables (lexer, dict, &vars, &n_vars, PV_NONE))
         return CMD_FAILURE;
 
       sets = xmalloc (n_vars * sizeof *sets);
       for (i = 0; i < n_vars; i++)
         sets[i] = var_get_attributes (vars[i]);
 
-      ok = parse_attributes (lexer, sets, n_vars);
+      ok = parse_attributes (lexer, dict_encoding, sets, n_vars);
       free (vars);
       free (sets);
       if (!ok)
@@ -72,33 +76,21 @@ cmd_variable_attribute (struct lexer *lexer, struct dataset *ds)
     }
   while (lex_match (lexer, T_SLASH));
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
-static bool
-match_subcommand (struct lexer *lexer, const char *keyword) 
-{
-  if (lex_token (lexer) == T_ID
-      && lex_id_match (lex_tokss (lexer), ss_cstr (keyword))
-      && lex_look_ahead (lexer) == T_EQUALS)
-    {
-      lex_get (lexer);          /* Skip keyword. */
-      lex_get (lexer);          /* Skip '='. */
-      return true;
-    }
-  else
-    return false;
-}
-
-/* Parses an attribute name optionally followed by an index inside square
-   brackets.  Returns the attribute name or NULL if there was a parse error.
-   Stores the index into *INDEX. */
+/* Parses an attribute name and verifies that it is valid in DICT_ENCODING,
+   optionally followed by an index inside square brackets.  Returns the
+   attribute name or NULL if there was a parse error.  Stores the index into
+   *INDEX. */
 static char *
-parse_attribute_name (struct lexer *lexer, size_t *index)
+parse_attribute_name (struct lexer *lexer, const char *dict_encoding,
+                      size_t *index)
 {
   char *name;
 
-  if (!lex_force_id (lexer))
+  if (!lex_force_id (lexer)
+      || !id_is_valid (lex_tokcstr (lexer), dict_encoding, true))
     return NULL;
   name = xstrdup (lex_tokcstr (lexer));
   lex_get (lexer);
@@ -127,13 +119,14 @@ error:
 }
 
 static bool
-add_attribute (struct lexer *lexer, struct attrset **sets, size_t n) 
+add_attribute (struct lexer *lexer, const char *dict_encoding,
+               struct attrset **sets, size_t n) 
 {
   const char *value;
   size_t index, i;
   char *name;
 
-  name = parse_attribute_name (lexer, &index);
+  name = parse_attribute_name (lexer, dict_encoding, &index);
   if (name == NULL)
     return false;
   if (!lex_force_match (lexer, T_LPAREN) || !lex_force_string (lexer))
@@ -160,12 +153,13 @@ add_attribute (struct lexer *lexer, struct attrset **sets, size_t n)
 }
 
 static bool
-delete_attribute (struct lexer *lexer, struct attrset **sets, size_t n) 
+delete_attribute (struct lexer *lexer, const char *dict_encoding,
+                  struct attrset **sets, size_t n) 
 {
   size_t index, i;
   char *name;
 
-  name = parse_attribute_name (lexer, &index);
+  name = parse_attribute_name (lexer, dict_encoding, &index);
   if (name == NULL)
     return false;
 
@@ -191,14 +185,15 @@ delete_attribute (struct lexer *lexer, struct attrset **sets, size_t n)
 }
 
 static enum cmd_result
-parse_attributes (struct lexer *lexer, struct attrset **sets, size_t n) 
+parse_attributes (struct lexer *lexer, const char *dict_encoding,
+                  struct attrset **sets, size_t n) 
 {
   enum { UNKNOWN, ADD, DELETE } command = UNKNOWN;
   do 
     {
-      if (match_subcommand (lexer, "ATTRIBUTE"))
+      if (lex_match_phrase (lexer, "ATTRIBUTE="))
         command = ADD;
-      else if (match_subcommand (lexer, "DELETE"))
+      else if (lex_match_phrase (lexer, "DELETE="))
         command = DELETE;
       else if (command == UNKNOWN)
         {
@@ -207,8 +202,8 @@ parse_attributes (struct lexer *lexer, struct attrset **sets, size_t n)
         }
 
       if (!(command == ADD
-            ? add_attribute (lexer, sets, n)
-            : delete_attribute (lexer, sets, n)))
+            ? add_attribute (lexer, dict_encoding, sets, n)
+            : delete_attribute (lexer, dict_encoding, sets, n)))
         return CMD_FAILURE;
     }
   while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD);

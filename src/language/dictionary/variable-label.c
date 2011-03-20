@@ -19,13 +19,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "data/dictionary.h"
 #include "data/procedure.h"
 #include "data/variable.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
 #include "language/lexer/variable-parser.h"
 #include "libpspp/message.h"
-#include "libpspp/str.h"
 
 #include "gl/xalloc.h"
 
@@ -35,15 +35,17 @@
 int
 cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
+  const char *dict_encoding = dict_get_encoding (dict);
+
   do
     {
       struct variable **v;
-      struct string label;
       size_t nv;
 
       size_t i;
 
-      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
+      if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
       if (!lex_force_string (lexer))
@@ -52,15 +54,8 @@ cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 	  return CMD_FAILURE;
 	}
 
-      ds_init_substring (&label, lex_tokss (lexer));
-      if (ds_length (&label) > 255)
-	{
-	  msg (SW, _("Truncating variable label to 255 characters."));
-	  ds_truncate (&label, 255);
-	}
       for (i = 0; i < nv; i++)
-        var_set_label (v[i], ds_cstr (&label));
-      ds_destroy (&label);
+        var_set_label (v[i], lex_tokcstr (lexer), dict_encoding, i == 0);
 
       lex_get (lexer);
       while (lex_token (lexer) == T_SLASH)

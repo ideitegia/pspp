@@ -31,9 +31,10 @@
 #include "language/lexer/lexer.h"
 #include "language/lexer/variable-parser.h"
 #include "libpspp/array.h"
-#include "libpspp/compiler.h"
-#include "libpspp/message.h"
 #include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
 #include "math/moments.h"
 #include "output/tab.h"
 
@@ -303,7 +304,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
         }
       else if (var_cnt == 0)
         {
-          if (lex_look_ahead (lexer) == T_EQUALS)
+          if (lex_next_token (lexer, 1) == T_EQUALS)
             {
               lex_match_id (lexer, "VARIABLES");
               lex_match (lexer, T_EQUALS);
@@ -507,17 +508,22 @@ static char *
 generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc,
                     const char *var_name, int *z_cnt)
 {
-  char name[VAR_NAME_LEN + 1];
+  char *z_name, *trunc_name;
 
   /* Try a name based on the original variable name. */
-  name[0] = 'Z';
-  str_copy_trunc (name + 1, sizeof name - 1, var_name);
-  if (try_name (dict, dsc, name))
-    return xstrdup (name);
+  z_name = xasprintf ("Z%s", var_name);
+  trunc_name = utf8_encoding_trunc (z_name, dict_get_encoding (dict),
+                                    ID_MAX_LEN);
+  free (z_name);
+  if (try_name (dict, dsc, trunc_name))
+    return trunc_name;
+  free (trunc_name);
 
   /* Generate a synthetic name. */
   for (;;)
     {
+      char name[8];
+
       (*z_cnt)++;
 
       if (*z_cnt <= 99)
@@ -675,7 +681,8 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
 
 	  dst_var = dict_create_var_assert (dataset_dict (ds), dv->z_name, 0);
           var_set_label (dst_var, xasprintf (_("Z-score of %s"),
-                                             var_to_string (dv->v)));
+                                             var_to_string (dv->v)),
+                         dict_get_encoding (dataset_dict (ds)), false);
 
           z = &t->z_scores[cnt++];
           z->src_var = dv->v;

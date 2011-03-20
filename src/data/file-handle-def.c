@@ -220,10 +220,10 @@ fh_inline_file (void)
   return inline_file;
 }
 
-/* Creates and returns a new file handle with the given ID, which
-   may be null.  If it is non-null, it must be unique among
-   existing file identifiers.  The new handle is associated with
-   file FILE_NAME and the given PROPERTIES. */
+/* Creates and returns a new file handle with the given ID, which may be null.
+   If it is non-null, it must be a UTF-8 encoded string that is unique among
+   existing file identifiers.  The new handle is associated with file FILE_NAME
+   and the given PROPERTIES. */
 struct file_handle *
 fh_create_file (const char *id, const char *file_name,
                 const struct fh_properties *properties)

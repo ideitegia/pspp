@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -195,13 +195,7 @@ refresh (PsppireDialog *dialog, const struct comment_dialog *cd)
   gtk_text_buffer_set_text (buffer, "", 0);
 
   for ( i = 0 ; i < dict_get_document_line_cnt (cd->dict->dict); ++i )
-    {
-      struct string str;
-      ds_init_empty (&str);
-      dict_get_document_line (cd->dict->dict, i, &str);
-      add_line_to_buffer (buffer, ds_cstr (&str));
-      ds_destroy (&str);
-    }
+    add_line_to_buffer (buffer, dict_get_document_line (cd->dict->dict, i));
 }
 
 
@@ -216,11 +210,10 @@ generate_syntax (const struct comment_dialog *cd)
   GtkWidget *tv = get_widget_assert (cd->xml, "comments-textview1");
   GtkWidget *check = get_widget_assert (cd->xml, "comments-checkbutton1");
   GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (tv));
-  const char *existing_docs = dict_get_documents (cd->dict->dict);
 
   str = g_string_new ("\n* Data File Comments.\n\n");
 
-  if ( NULL != existing_docs)
+  if (dict_get_documents (cd->dict->dict) != NULL)
     g_string_append (str, "DROP DOCUMENTS.\n");
 
   g_string_append (str, "ADD DOCUMENT\n");

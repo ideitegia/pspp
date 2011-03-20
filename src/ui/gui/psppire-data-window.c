@@ -22,7 +22,7 @@
 
 #include "data/any-reader.h"
 #include "data/procedure.h"
-#include "language/syntax-string-source.h"
+#include "language/lexer/lexer.h"
 #include "libpspp/message.h"
 #include "ui/gui/help-menu.h"
 #include "ui/gui/binomial-dialog.h"
@@ -352,8 +352,9 @@ static gboolean
 load_file (PsppireWindow *de, const gchar *file_name)
 {
   gchar *native_file_name;
-  struct getl_interface *sss;
   struct string filename;
+  gchar *syntax;
+  bool ok;
 
   ds_init_empty (&filename);
 
@@ -364,15 +365,12 @@ load_file (PsppireWindow *de, const gchar *file_name)
 
   g_free (native_file_name);
 
-  sss = create_syntax_format_source ("GET FILE=%s.",
-				     ds_cstr (&filename));
-
+  syntax = g_strdup_printf ("GET FILE=%s.", ds_cstr (&filename));
   ds_destroy (&filename);
 
-  if (execute_syntax (sss) )
-    return TRUE;
-
-  return FALSE;
+  ok = execute_syntax (lex_reader_for_string (syntax));
+  g_free (syntax);
+  return ok;
 }
 
 static GtkWidget *

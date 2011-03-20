@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2011  Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011  Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "data/dictionary.h"
+#include "data/identifier.h"
 #include "libpspp/assertion.h"
 #include "libpspp/str.h"
 
@@ -46,19 +47,18 @@ check_widths (const struct vector *vector)
     assert (width == var_get_width (vector->vars[i]));
 }
 
-/* Creates and returns a new vector with the given NAME
+/* Creates and returns a new vector with the given UTF-8 encoded NAME
    that contains the VAR_CNT variables in VARS.
    All variables in VARS must have the same type and width. */
 struct vector *
-vector_create (const char *name,
-               struct variable **vars, size_t var_cnt)
+vector_create (const char *name, struct variable **vars, size_t var_cnt)
 {
   struct vector *vector = xmalloc (sizeof *vector);
 
   assert (var_cnt > 0);
-  assert (var_is_plausible_name (name, false));
-  vector->name = xstrdup (name);
+  assert (id_is_plausible (name, false));
 
+  vector->name = xstrdup (name);
   vector->vars = xmemdup (vars, var_cnt * sizeof *vector->vars);
   vector->var_cnt = var_cnt;
   check_widths (vector);
@@ -80,7 +80,6 @@ vector_clone (const struct vector *old,
   size_t i;
 
   new->name = xstrdup (old->name);
-
   new->vars = xnmalloc (old->var_cnt, sizeof *new->vars);
   new->var_cnt = old->var_cnt;
   for (i = 0; i < new->var_cnt; i++)
@@ -103,7 +102,7 @@ vector_destroy (struct vector *vector)
   free (vector);
 }
 
-/* Returns VECTOR's name. */
+/* Returns VECTOR's name, as a UTF-8 encoded string. */
 const char *
 vector_get_name (const struct vector *vector)
 {

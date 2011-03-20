@@ -415,8 +415,8 @@ add_var_name (char *name,
 /* Parses a list of variable names according to the DATA LIST version
    of the TO convention.  */
 bool
-parse_DATA_LIST_vars (struct lexer *lexer, char ***namesp,
-                      size_t *n_varsp, int pv_opts)
+parse_DATA_LIST_vars (struct lexer *lexer, const struct dictionary *dict,
+                      char ***namesp, size_t *n_varsp, int pv_opts)
 {
   char **names;
   size_t n_vars;
@@ -453,7 +453,8 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***namesp,
 
   do
     {
-      if (lex_token (lexer) != T_ID)
+      if (lex_token (lexer) != T_ID
+          || !dict_id_is_valid (dict, lex_tokcstr (lexer), true))
 	{
 	  lex_error (lexer, "expecting variable name");
 	  goto exit;
@@ -474,7 +475,8 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***namesp,
           unsigned long int number;
 
 	  lex_get (lexer);
-	  if (lex_token (lexer) != T_ID)
+	  if (lex_token (lexer) != T_ID
+              || !dict_id_is_valid (dict, lex_tokcstr (lexer), true))
 	    {
 	      lex_error (lexer, "expecting variable name");
 	      goto exit;
@@ -574,7 +576,8 @@ register_vars_pool (struct pool *pool, char **names, size_t nnames)
    parse_DATA_LIST_vars(), except that all allocations are taken
    from the given POOL. */
 bool
-parse_DATA_LIST_vars_pool (struct lexer *lexer, struct pool *pool,
+parse_DATA_LIST_vars_pool (struct lexer *lexer, const struct dictionary *dict,
+                           struct pool *pool,
                            char ***names, size_t *nnames, int pv_opts)
 {
   int retval;
@@ -585,7 +588,7 @@ parse_DATA_LIST_vars_pool (struct lexer *lexer, struct pool *pool,
      re-free it later. */
   assert (!(pv_opts & PV_APPEND));
 
-  retval = parse_DATA_LIST_vars (lexer, names, nnames, pv_opts);
+  retval = parse_DATA_LIST_vars (lexer, dict, names, nnames, pv_opts);
   if (retval)
     register_vars_pool (pool, *names, *nnames);
   return retval;
@@ -624,7 +627,7 @@ parse_mixed_vars (struct lexer *lexer, const struct dictionary *dict,
 	  free (v);
 	  *nnames += nv;
 	}
-      else if (!parse_DATA_LIST_vars (lexer, names, nnames, PV_APPEND))
+      else if (!parse_DATA_LIST_vars (lexer, dict, names, nnames, PV_APPEND))
 	goto fail;
     }
   return 1;

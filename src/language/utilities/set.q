@@ -493,7 +493,10 @@ stc_custom_journal (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_s
     journal_disable ();
   else if (lex_is_string (lexer) || lex_token (lexer) == T_ID)
     {
-      journal_set_file_name (lex_tokcstr (lexer));
+      char *filename = utf8_to_filename (lex_tokcstr (lexer));
+      journal_set_file_name (filename);
+      free (filename);
+
       lex_get (lexer);
     }
   else
@@ -905,12 +908,12 @@ static struct settings *saved_settings[MAX_SAVED_SETTINGS];
 static int n_saved_settings;
 
 int
-cmd_preserve (struct lexer *lexer, struct dataset *ds UNUSED)
+cmd_preserve (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
   if (n_saved_settings < MAX_SAVED_SETTINGS)
     {
       saved_settings[n_saved_settings++] = settings_get ();
-      return lex_end_of_command (lexer);
+      return CMD_SUCCESS;
     }
   else
     {
@@ -922,14 +925,14 @@ cmd_preserve (struct lexer *lexer, struct dataset *ds UNUSED)
 }
 
 int
-cmd_restore (struct lexer *lexer, struct dataset *ds UNUSED)
+cmd_restore (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
   if (n_saved_settings > 0)
     {
       struct settings *s = saved_settings[--n_saved_settings];
       settings_set (s);
       settings_destroy (s);
-      return lex_end_of_command (lexer);
+      return CMD_SUCCESS;
     }
   else
     {

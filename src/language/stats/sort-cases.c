@@ -78,6 +78,6 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
   max_buffers = INT_MAX;
 
   subcase_destroy (&ordering);
-  return ok ? lex_end_of_command (lexer) : CMD_CASCADING_FAILURE;
+  return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
 

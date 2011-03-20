@@ -67,30 +67,24 @@ msg_class_from_category_and_severity (enum msg_category category,
   return category * 3 + severity;
 }
 
-/* A file location.  */
-struct msg_locator
-  {
-    char *file_name;           /* File name (NULL if none). */
-    int line_number;           /* Line number (0 if none). */
-    int first_column;          /* 1-based column number (0 if none). */
-    int last_column;           /* 1-based exclusive last column (0 if none). */
-  };
-
 /* A message. */
 struct msg
   {
     enum msg_category category; /* Message category. */
     enum msg_severity severity; /* Message severity. */
-    struct msg_locator where;	/* File location, or (NULL, -1). */
+    char *file_name;            /* Name of file containing error, or NULL. */
+    int first_line;             /* 1-based line number, or 0 if none. */
+    int last_line;             /* 1-based exclusive last line (0=none). */
+    int first_column;           /* 1-based first column, or 0 if none. */
+    int last_column;            /* 1-based exclusive last column (0=none). */
     char *text;                 /* Error text. */
   };
 
 struct source_stream ;
 
 /* Initialization. */
-void msg_init (struct source_stream *, void (*handler) (const struct msg *) );
-
-void msg_done (void);
+void msg_set_handler (void (*handler) (const struct msg *, void *lexer),
+                      void *aux);
 
 /* Working with messages. */
 struct msg *msg_dup (const struct msg *);
@@ -107,9 +101,6 @@ void msg_enable (void);
 void msg_disable (void);
 
 /* Error context. */
-void msg_push_msg_locator (const struct msg_locator *);
-void msg_pop_msg_locator (const struct msg_locator *);
-
 bool msg_ui_too_many_errors (void);
 void msg_ui_reset_counts (void);
 bool msg_ui_any_errors (void);

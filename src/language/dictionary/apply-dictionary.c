@@ -79,12 +79,9 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
 	  continue;
 	}
 
-      if (var_get_label (s))
-        {
-          const char *label = var_get_label (s);
-          if (strcspn (label, " ") != strlen (label))
-            var_set_label (t, label);
-        }
+      if (var_has_label (s))
+        var_set_label (t, var_get_label (s),
+                       dict_get_encoding (dataset_dict (ds)), false);
 
       if (var_has_value_labels (s))
         {
@@ -129,5 +126,5 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
         dict_set_weight (dataset_dict (ds), new_weight);
     }
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

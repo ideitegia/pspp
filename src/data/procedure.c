@@ -101,6 +101,8 @@ struct dataset {
   void (*callback) (void *); /* Callback for when the dataset changes */
   void *cb_data;
 
+  /* Default encoding for reading syntax files. */
+  char *syntax_encoding;
 }; /* struct dataset */
 
 
@@ -125,6 +127,18 @@ dataset_set_callback (struct dataset *ds, void (*cb) (void *), void *cb_data)
   ds->cb_data = cb_data;
 }
 
+void
+dataset_set_default_syntax_encoding (struct dataset *ds, const char *encoding)
+{
+  free (ds->syntax_encoding);
+  ds->syntax_encoding = xstrdup (encoding);
+}
+
+const char *
+dataset_get_default_syntax_encoding (const struct dataset *ds)
+{
+  return ds->syntax_encoding;
+}
 
 /* Returns the last time the data was read. */
 time_t
@@ -597,6 +611,9 @@ create_dataset (void)
 
   ds->caseinit = caseinit_create ();
   proc_cancel_all_transformations (ds);
+
+  ds->syntax_encoding = xstrdup ("Auto");
+
   return ds;
 }
 
@@ -621,6 +638,8 @@ destroy_dataset (struct dataset *ds)
 
   if ( ds->xform_callback)
     ds->xform_callback (false, ds->xform_callback_aux);
+
+  free (ds->syntax_encoding);
   free (ds);
 }
 

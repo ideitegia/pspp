@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "language/lexer/variable-parser.h"
 #include "libpspp/assertion.h"
 #include "libpspp/hmap.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "libpspp/stringi-map.h"
@@ -69,7 +70,7 @@ cmd_mrsets (struct lexer *lexer, struct dataset *ds)
         return CMD_FAILURE;
     }
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 static bool
@@ -91,15 +92,10 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
     {
       if (lex_match_id (lexer, "NAME"))
         {
-          if (!lex_force_match (lexer, T_EQUALS) || !lex_force_id (lexer))
+          if (!lex_force_match (lexer, T_EQUALS) || !lex_force_id (lexer)
+              || !mrset_is_valid_name (lex_tokcstr (lexer),
+                                       dict_get_encoding (dict), true))
             goto error;
-          if (lex_tokcstr (lexer)[0] != '$')
-            {
-              msg (SE, _("%s is not a valid name for a multiple response "
-                         "set.  Multiple response set names must begin with "
-                         "`$'."), lex_tokcstr (lexer));
-              goto error;
-            }
 
           free (mrset->name);
           mrset->name = xstrdup (lex_tokcstr (lexer));
@@ -159,12 +155,15 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
             }
           else if (lex_is_string (lexer))
             {
-              const char *s = lex_tokcstr (lexer);
-              int width;
+              size_t width;
+              char *s;
+
+              s = recode_string (dict_get_encoding (dict), "UTF-8",
+                                 lex_tokcstr (lexer), -1);
+              width = strlen (s);
 
               /* Trim off trailing spaces, but don't trim the string until
                  it's empty because a width of 0 is a numeric type. */
-              width = strlen (s);
               while (width > 1 && s[width - 1] == ' ')
                 width--;
 
@@ -172,6 +171,8 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
               value_init (&mrset->counted, width);
               memcpy (value_str_rw (&mrset->counted, width), s, width);
               mrset->width = width;
+
+              free (s);
             }
           else
             {

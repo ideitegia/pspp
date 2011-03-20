@@ -508,10 +508,11 @@ parse_error (const struct dfm_reader *reader, const struct field *field,
 
   m.category = MSG_C_DATA;
   m.severity = MSG_S_WARNING;
-  m.where.file_name = CONST_CAST (char *, dfm_get_file_name (reader));
-  m.where.line_number = dfm_get_line_number (reader);
-  m.where.first_column = first_column;
-  m.where.last_column = last_column;
+  m.file_name = CONST_CAST (char *, dfm_get_file_name (reader));
+  m.first_line = dfm_get_line_number (reader);
+  m.last_line = m.first_line + 1;
+  m.first_column = first_column;
+  m.last_column = last_column;
   m.text = xasprintf (_("Data for variable %s is not valid as format %s: %s"),
                       field->name, fmt_name (field->format.type), error);
   msg_emit (&m);

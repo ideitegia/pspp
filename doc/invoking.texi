@@ -49,10 +49,12 @@ corresponding short options.
 @example
 -I, --include=@var{dir}
 -I-, --no-include
+-b, --batch
 -i, --interactive
 -r, --no-statrc
 -a, --algorithm=@{compatible|enhanced@}
 -x, --syntax=@{compatible|enhanced@}
+--syntax-encoding=@var{encoding}
 @end example
 
 @item Informational options
@@ -135,11 +137,13 @@ inserted in the include path by default.  The default include path is
 user's home directory, followed by PSPP's system configuration
 directory (usually @file{/etc/pspp} or @file{/usr/local/etc/pspp}).
 
+@item -b
+@item --batch
 @item -i
 @itemx --interactive
-This option forces syntax files to be interpreted in interactive
-mode, rather than the default batch mode.  @xref{Syntax Variants}, for
-a description of the differences.
+These options forces syntax files to be interpreted in batch mode or
+interactive mode, respectively, rather than the default ``auto'' mode.
+@xref{Syntax Variants}, for a description of the differences.
 
 @item -r
 @itemx --no-statrc
@@ -161,8 +165,14 @@ With @code{enhanced}, the default, PSPP accepts its own extensions
 beyond those compatible with the proprietary program SPSS.  With
 @code{compatible}, PSPP rejects syntax that uses these extensions.
 
-@item -?
-@itemx --help
+@item --syntax-encoding=@var{encoding}
+Specifies @var{encoding} as the encoding for syntax files named on the
+command line.  The @var{encoding} also becomes the default encoding
+for other syntax files read during the PSPP session by the
+@cmd{INCLUDE} and @cmd{INSERT} commands.  @xref{INSERT}, for the
+accepted forms of @var{encoding}.
+
+@item --help
 Prints a message describing PSPP command-line syntax and the available
 device formats, then exits.
 

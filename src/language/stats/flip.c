@@ -220,7 +220,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
                                          flip->n_vars,
                                          &flip_casereader_class, flip);
   proc_set_active_file_data (ds, reader);
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
  error:
   destroy_flip_pgm (flip);
@@ -249,7 +249,7 @@ make_new_var (struct dictionary *dict, const char *name_)
     *--cp = '\0';
 
   /* Fix invalid characters. */
-  for (cp = name; *cp && cp < name + VAR_NAME_LEN; cp++)
+  for (cp = name; *cp && cp < name + ID_MAX_LEN; cp++)
     if (cp == name)
       {
         if (!lex_is_id1 (*cp) || *cp == '$')
@@ -270,8 +270,8 @@ make_new_var (struct dictionary *dict, const char *name_)
       int i;
       for (i = 1; ; i++)
         {
-          char n[VAR_NAME_LEN + 1];
-          int ofs = MIN (VAR_NAME_LEN - 1 - intlog10 (i), len);
+          char n[ID_MAX_LEN + 1];
+          int ofs = MIN (ID_MAX_LEN - 1 - intlog10 (i), len);
           strncpy (n, name, ofs);
           sprintf (&n[ofs], "%d", i);
 

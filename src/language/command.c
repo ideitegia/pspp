@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,12 +30,11 @@
 #include "data/variable.h"
 #include "language/lexer/command-name.h"
 #include "language/lexer/lexer.h"
-#include "language/prompt.h"
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
-#include "libpspp/getl.h"
 #include "output/text-item.h"
 
 #include "xalloc.h"
@@ -89,7 +88,6 @@ enum flags
   {
     F_ENHANCED = 0x10,        /* Allowed only in enhanced syntax mode. */
     F_TESTING = 0x20,         /* Allowed only in testing mode. */
-    F_KEEP_FINAL_TOKEN = 0x40,/* Don't skip final token in command name. */
     F_ABBREV = 0x80           /* Not a candidate for name completion. */
   };
 
@@ -120,7 +118,8 @@ static void set_completion_state (enum cmd_state);
 
 /* Command parser. */
 
-static const struct command *parse_command_name (struct lexer *lexer);
+static const struct command *parse_command_name (struct lexer *,
+                                                 int *n_tokens);
 static enum cmd_result do_parse_command (struct lexer *, struct dataset *, enum cmd_state);
 
 /* Parses an entire command, from command name to terminating
@@ -163,11 +162,10 @@ do_parse_command (struct lexer *lexer,
   const struct command *command = NULL;
   enum cmd_result result;
   bool opened = false;
+  int n_tokens;
 
   /* Read the command's first token. */
-  prompt_set_style (PROMPT_FIRST);
   set_completion_state (state);
-  lex_get (lexer);
   if (lex_token (lexer) == T_STOP)
     {
       result = CMD_EOF;
@@ -180,10 +178,8 @@ do_parse_command (struct lexer *lexer,
       goto finish;
     }
 
-  prompt_set_style (PROMPT_LATER);
-
   /* Parse the command name. */
-  command = parse_command_name (lexer);
+  command = parse_command_name (lexer, &n_tokens);
   if (command == NULL)
     {
       result = CMD_FAILURE;
@@ -216,22 +212,24 @@ do_parse_command (struct lexer *lexer,
   else
     {
       /* Execute command. */
+      int i;
+
+      for (i = 0; i < n_tokens; i++)
+        lex_get (lexer);
       result = command->function (lexer, ds);
     }
 
   assert (cmd_result_is_valid (result));
 
- finish:
+finish:
   if (cmd_result_is_failure (result))
-    {
-      lex_discard_rest_of_command (lexer);
-      if (source_stream_current_error_mode (
-            lex_get_source_stream (lexer)) == ERRMODE_STOP )
-	{
-	  msg (MW, _("Error encountered while ERROR=STOP is effective."));
-	  result = CMD_CASCADING_FAILURE;
-	}
-    }
+    lex_interactive_reset (lexer);
+  else if (result == CMD_SUCCESS)
+    result = lex_end_of_command (lexer);
+
+  lex_discard_rest_of_command (lexer);
+  while (lex_token (lexer) == T_ENDCMD)
+    lex_get (lexer);
 
   if (opened)
     text_item_submit (text_item_create (TEXT_ITEM_COMMAND_CLOSE,
@@ -259,51 +257,65 @@ find_best_match (struct substring s, const struct command **matchp)
   return missing_words;
 }
 
-/* Parse the command name and return a pointer to the corresponding
-   struct command if successful.
-   If not successful, return a null pointer. */
+static bool
+parse_command_word (struct lexer *lexer, struct string *s, int n)
+{
+  bool need_space = ds_last (s) != EOF && ds_last (s) != '-';
+
+  switch (lex_next_token (lexer, n))
+    {
+    case T_DASH:
+      ds_put_byte (s, '-');
+      return true;
+
+    case T_ID:
+      if (need_space)
+        ds_put_byte (s, ' ');
+      ds_put_cstr (s, lex_next_tokcstr (lexer, n));
+      return true;
+
+    case T_POS_NUM:
+      if (lex_next_is_integer (lexer, n))
+        {
+          int integer = lex_next_integer (lexer, n);
+          if (integer >= 0)
+            {
+              if (need_space)
+                ds_put_byte (s, ' ');
+              ds_put_format (s, "%ld", lex_next_integer (lexer, n));
+              return true;
+            }
+        }
+      return false;
+
+    default:
+      return false;
+    }
+}
+
+/* Parses the command name.  On success returns a pointer to the corresponding
+   struct command and stores the number of tokens in the command name into
+   *N_TOKENS.  On failure, returns a null pointer and stores the number of
+   tokens required to determine that no command name was present into
+   *N_TOKENS. */
 static const struct command *
-parse_command_name (struct lexer *lexer)
+parse_command_name (struct lexer *lexer, int *n_tokens)
 {
   const struct command *command;
   int missing_words;
   struct string s;
-
-  if (lex_token (lexer) == T_EXP
-      || lex_token (lexer) == T_ASTERISK
-      || lex_token (lexer) == T_LBRACK)
-    {
-      static const struct command c = { S_ANY, 0, "COMMENT", cmd_comment };
-      return &c;
-    }
+  int word;
 
   command = NULL;
   missing_words = 0;
   ds_init_empty (&s);
-  for (;;)
+  word = 0;
+  while (parse_command_word (lexer, &s, word))
     {
-      if (lex_token (lexer) == T_DASH)
-        ds_put_byte (&s, '-');
-      else if (lex_token (lexer) == T_ID)
-        {
-          if (!ds_is_empty (&s) && ds_last (&s) != '-')
-            ds_put_byte (&s, ' ');
-          ds_put_cstr (&s, lex_tokcstr (lexer));
-        }
-      else if (lex_is_integer (lexer) && lex_integer (lexer) >= 0)
-        {
-          if (!ds_is_empty (&s) && ds_last (&s) != '-')
-            ds_put_byte (&s, ' ');
-          ds_put_format (&s, "%ld", lex_integer (lexer));
-        }
-      else
-        break;
-
       missing_words = find_best_match (ds_ss (&s), &command);
       if (missing_words <= 0)
         break;
-
-      lex_get (lexer);
+      word++;
     }
 
   if (command == NULL && missing_words > 0)
@@ -320,18 +332,10 @@ parse_command_name (struct lexer *lexer)
       else
         msg (SE, _("Unknown command `%s'."), ds_cstr (&s));
     }
-  else if (missing_words == 0)
-    {
-      if (!(command->flags & F_KEEP_FINAL_TOKEN))
-        lex_get (lexer);
-    }
-  else if (missing_words < 0)
-    {
-      assert (missing_words == -1);
-      assert (!(command->flags & F_KEEP_FINAL_TOKEN));
-    }
 
   ds_destroy (&s);
+
+  *n_tokens = (word + 1) + missing_words;
   return command;
 }
 
@@ -423,7 +427,8 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
         }
     }
   else if (state == CMD_STATE_INPUT_PROGRAM)
-    msg (SE, _("%s is not allowed inside %s."), command->name, "INPUT PROGRAM" );
+    msg (SE, _("%s is not allowed inside %s."),
+         command->name, "INPUT PROGRAM" );
   else if (state == CMD_STATE_FILE_TYPE)
     msg (SE, _("%s is not allowed inside %s."), command->name, "FILE TYPE");
 
@@ -485,23 +490,26 @@ cmd_n_of_cases (struct lexer *lexer, struct dataset *ds)
   if (!lex_match_id (lexer, "ESTIMATED"))
     dict_set_case_limit (dataset_dict (ds), x);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Parses, performs the EXECUTE procedure. */
 int
-cmd_execute (struct lexer *lexer, struct dataset *ds)
+cmd_execute (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   bool ok = casereader_destroy (proc_open (ds));
   if (!proc_commit (ds) || !ok)
     return CMD_CASCADING_FAILURE;
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Parses, performs the ERASE command. */
 int
 cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
 {
+  char *filename;
+  int retval;
+
   if (settings_get_safer_mode ())
     {
       msg (SE, _("This command not allowed when the SAFER option is set."));
@@ -514,29 +522,25 @@ cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
 
-  if (remove (lex_tokcstr (lexer)) == -1)
+  filename = utf8_to_filename (lex_tokcstr (lexer));
+  retval = remove (filename);
+  free (filename);
+
+  if (retval == -1)
     {
       msg (SW, _("Error removing `%s': %s."),
            lex_tokcstr (lexer), strerror (errno));
       return CMD_FAILURE;
     }
+  lex_get (lexer);
 
   return CMD_SUCCESS;
 }
 
 /* Parses, performs the NEW FILE command. */
 int
-cmd_new_file (struct lexer *lexer, struct dataset *ds)
+cmd_new_file (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   proc_discard_active_file (ds);
-
-  return lex_end_of_command (lexer);
-}
-
-/* Parses a comment. */
-int
-cmd_comment (struct lexer *lexer, struct dataset *ds UNUSED)
-{
-  lex_skip_comment (lexer);
   return CMD_SUCCESS;
 }

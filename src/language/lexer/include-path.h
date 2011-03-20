@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,16 +14,16 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef MSG_UI_H
-#define MSG_UI_H 1
+#ifndef INCLUDE_PATH_H
+#define INCLUDE_PATH_H 1
 
-#include <stdbool.h>
-#include <stdio.h>
+struct string_array;
 
-struct source_stream;
+void include_path_clear (void);
+void include_path_add (const char *dir);
+char *include_path_search (const char *base_name);
 
-void msg_ui_set_error_file (FILE *);
-void msg_ui_init (struct source_stream *);
-void msg_ui_done (void);
+const struct string_array *include_path_default (void);
+char **include_path (void);
 
-#endif /* msg-ui.h */
+#endif /* include-path.h */

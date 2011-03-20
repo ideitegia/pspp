@@ -539,8 +539,6 @@ Variables Created By RANK
 x into Rx(RANK of x)
 
 rank.sps:14: error: RANK: DEBUG XFORM FAIL transformation executed
-
-rank.sps:14: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 AT_CLEANUP
 
@@ -578,9 +576,9 @@ RANK x
  /RANK INTO foo  bar wiz.
 ])
 AT_CHECK([pspp -O format=csv rank.sps], [1], [dnl
-rank.sps:15: error: RANK: Syntax error at end of command: expecting `@{:@'.
+rank.sps:15.1: error: RANK: Syntax error at end of command: expecting `@{:@'.
 
-rank.sps:19: error: RANK: Syntax error at `d': expecting integer.
+rank.sps:19.11: error: RANK: Syntax error at `d': expecting integer.
 
 rank.sps:25: error: RANK: Variable x already exists.
 
