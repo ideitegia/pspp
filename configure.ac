@@ -32,10 +32,9 @@ AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 PSPP_CC_FOR_BUILD
 PSPP_PERL
 
-dnl Internationalization macros.
-AC_PROVIDE([AM_PO_SUBDIRS])	# PSPP provides its own po/ support.
-AM_GNU_GETTEXT([external], [need-ngettext])
-AM_GNU_GETTEXT_VERSION([0.17])
+dnl Disable automatic po/ support, because PSPP provides its own po/ support.
+AC_PROVIDE([AM_PO_SUBDIRS])
+AM_GNU_GETTEXT_NEED([need-ngettext])
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
@@ -322,6 +321,7 @@ if test x"$enable_debug" = x"yes"  ; then
 fi
 
 # iconv is required
+AM_ICONV
 if test "$am_cv_func_iconv" != "yes"; then
    PSPP_REQUIRED_PREREQ([iconv (see http://www.gnu.org/software/libiconv/)])
 fi

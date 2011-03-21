@@ -7,6 +7,7 @@ GNULIB_TOOL = $(GNULIB)/gnulib-tool
 GNULIB_MODULES = \
 	assert \
 	byteswap \
+	c-strcase \
 	c-ctype \
 	c-strtod \
 	clean-temp \
@@ -29,7 +30,7 @@ GNULIB_MODULES = \
         ftello \
 	fwriteerror \
 	getline \
-	gettext-h \
+	gettext \
 	gettimeofday \
         getopt-gnu \
 	gitlog-to-changelog \
@@ -79,10 +80,13 @@ GNULIB_MODULES = \
 	unistd \
 	unistr/u8-check \
 	unistr/u8-cpy \
+	unistr/u8-mblen \
 	unistr/u8-mbtouc \
+	unistr/u8-mbtoucr \
 	unistr/u8-strlen \
 	unistr/u8-strmbtouc \
 	unistr/u8-strncat \
+	unistr/u8-uctomb \
 	uniwidth/u8-strwidth \
 	unitypes \
 	unlocked-io \
