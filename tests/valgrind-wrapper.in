@@ -1,0 +1,38 @@
+#! /bin/sh
+
+program=`basename "$0"`
+
+new_PATH=
+save_IFS=$IFS
+IFS=:
+found=no
+for dir in $PATH; do
+    IFS=$save_IFS
+    if test "X$dir" = X; then
+	dir=.
+    fi
+    if test -x "$dir/$program"; then
+	if test $found = no; then
+	    found=yes
+	    continue
+	else
+	    if test "X$next_program" = X; then
+		next_program=$dir/$program
+	    fi
+	fi
+    fi
+done
+IFS=$save_IFS
+
+if test $found = no; then
+    echo "$0: $program not found in PATH ($PATH)" >&2
+    exit 1
+elif test "X$next_program" = X; then
+    echo "$0: $program found only once in PATH ($PATH)" >&2
+    exit 1
+fi
+
+: ${VALGRIND:=libtool --mode=execute valgrind --log-file=valgrind.%p --leak-check=full --num-callers=20}
+exec $VALGRIND $next_program "$@"
+echo "$0: $VALGRIND $wrap_program $* failed" >&2
+exit 1

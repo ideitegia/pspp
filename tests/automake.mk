@@ -384,6 +384,7 @@ TESTSUITE_AT = \
 
 TESTSUITE = $(srcdir)/tests/testsuite
 DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
+AUTOTEST_PATH = tests/data:tests/language/lexer:tests/libpspp:tests/output:src/ui/terminal
 
 $(srcdir)/tests/testsuite.at: tests/testsuite.in tests/automake.mk
 	cp $< $@
@@ -394,7 +395,7 @@ EXTRA_DIST += tests/testsuite.at
 
 CHECK_LOCAL += tests_check
 tests_check: tests/atconfig tests/atlocal $(TESTSUITE) $(check_PROGRAMS)
-	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=tests/data:tests/language/lexer:tests/libpspp:tests/output:src/ui/terminal $(TESTSUITEFLAGS)
+	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=$(AUTOTEST_PATH) $(TESTSUITEFLAGS)
 
 CLEAN_LOCAL += tests_clean
 tests_clean:
@@ -417,3 +418,27 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 	  echo 'm4_define([AT_PACKAGE_BUGREPORT], [$(PACKAGE_BUGREPORT)])' && \
 	  echo 'm4_define([AT_PACKAGE_URL],       [$(PACKAGE_URL)])'; \
 	} >'$(srcdir)/package.m4'
+
+# valgrind support for Autotest testsuite
+
+valgrind_wrappers = \
+	tests/valgrind/pspp \
+	tests/valgrind/render-test
+
+$(valgrind_wrappers): tests/valgrind-wrapper.in
+	@test -d tests/valgrind || mkdir tests/valgrind
+	sed -e 's,[@]wrap_program[@],$@,' \
+		$(top_srcdir)/tests/valgrind-wrapper.in > $@.tmp
+	chmod +x $@.tmp
+	mv $@.tmp $@
+CLEANFILES += $(valgrind_wrappers)
+EXTRA_DIST += tests/valgrind-wrapper.in
+
+VALGRIND = $(SHELL) $(abs_top_builddir)/libtool --mode=execute valgrind --log-file=valgrind.%p --leak-check=full --num-callers=20
+check-valgrind: all tests/atconfig tests/atlocal $(TESTSUITE) $(valgrind_wrappers)
+	$(SHELL) '$(TESTSUITE)' -C tests VALGRIND='$(VALGRIND)' AUTOTEST_PATH='tests/valgrind:$(AUTOTEST_PATH)' -d $(TESTSUITEFLAGS)
+	@echo
+	@echo '--------------------------------'
+	@echo 'Valgrind output is in:'
+	@echo 'tests/testsuite.dir/*/valgrind.*'
+	@echo '--------------------------------'
