@@ -44,6 +44,7 @@ GNULIB_MODULES = \
 	memcasecmp \
 	memchr \
 	mempcpy \
+	memrchr \
 	minmax \
 	mkdtemp \
 	mkstemp \
