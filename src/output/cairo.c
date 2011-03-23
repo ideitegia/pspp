@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -998,8 +998,8 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
         }
 
       xr->y = r->title_height;
-      render_page_draw_region (r->page,
-                               x * 1024, y * 1024, w * 1024, h * 1024);
+      render_page_draw_region (r->page, x * 1024, (y * 1024) - r->title_height,
+                               w * 1024, h * 1024);
     }
   else
     xr_draw_chart (to_chart_item (r->item), cr,
