@@ -422,8 +422,32 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 # valgrind support for Autotest testsuite
 
 valgrind_wrappers = \
-	tests/valgrind/pspp \
-	tests/valgrind/render-test
+	tests/valgrind/datasheet-test \
+	tests/valgrind/command-name-test \
+	tests/valgrind/scan-test \
+	tests/valgrind/segment-test \
+	tests/valgrind/abt-test \
+	tests/valgrind/bt-test \
+	tests/valgrind/encoding-guesser-test \
+	tests/valgrind/heap-test \
+	tests/valgrind/hmap-test \
+	tests/valgrind/hmapx-test \
+	tests/valgrind/i18n-test \
+	tests/valgrind/ll-test \
+	tests/valgrind/llx-test \
+	tests/valgrind/range-map-test \
+	tests/valgrind/range-set-test \
+	tests/valgrind/sparse-array-test \
+	tests/valgrind/sparse-xarray-test \
+	tests/valgrind/str-test \
+	tests/valgrind/string-map-test \
+	tests/valgrind/stringi-map-test \
+	tests/valgrind/string-set-test \
+	tests/valgrind/stringi-set-test \
+	tests/valgrind/tower-test \
+	tests/valgrind/u8-istream-test \
+	tests/valgrind/render-test \
+	tests/valgrind/pspp
 
 $(valgrind_wrappers): tests/valgrind-wrapper.in
 	@test -d tests/valgrind || mkdir tests/valgrind
