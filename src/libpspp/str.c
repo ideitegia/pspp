@@ -347,15 +347,16 @@ ss_realloc (struct substring *ss, size_t size)
   ss->string = xrealloc (ss->string, size);
 }
 
-/* Makes a pool_alloc_unaligned()'d copy of the contents of OLD
-   in POOL, and stores it in NEW. */
+/* Makes a pool_alloc_unaligned()'d, null-terminated copy of the contents of
+   OLD in POOL, and stores it in NEW. */
 void
 ss_alloc_substring_pool (struct substring *new, struct substring old,
                          struct pool *pool)
 {
-  new->string = pool_alloc_unaligned (pool, old.length);
+  new->string = pool_alloc_unaligned (pool, old.length + 1);
   new->length = old.length;
   memcpy (new->string, old.string, old.length);
+  new->string[old.length] = '\0';
 }
 
 /* Allocates room for a CNT-byte string in NEW in POOL. */
