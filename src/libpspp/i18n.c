@@ -609,7 +609,8 @@ i18n_done (void)
     {
       free (cvtr->tocode);
       free (cvtr->fromcode);
-      iconv_close (cvtr->conv);
+      if (cvtr->conv != (iconv_t) -1)
+        iconv_close (cvtr->conv);
       free (cvtr);
     }
 
