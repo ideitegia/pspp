@@ -4,7 +4,7 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
-Changes from 0.7.3 to 0.7.6:
+Changes from 0.7.3 to 0.7.7:
 
  * The "pspp" program has a new option --batch (or -b) that selects
    "batch" syntax mode.  In previous versions of PSPP this syntax mode
