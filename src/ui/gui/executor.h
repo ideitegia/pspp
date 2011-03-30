@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,11 +19,12 @@
 #define EXECUTOR_H
 
 #include <glib.h>
+#include "ui/gui/psppire-data-window.h"
 
 struct lex_reader;
 
-gboolean execute_syntax (struct lex_reader *);
-gchar *execute_syntax_string (gchar *syntax);
-void execute_const_syntax_string (const gchar *syntax);
+gboolean execute_syntax (PsppireDataWindow *, struct lex_reader *);
+gchar *execute_syntax_string (PsppireDataWindow *, gchar *syntax);
+void execute_const_syntax_string (PsppireDataWindow *, const gchar *syntax);
 
 #endif

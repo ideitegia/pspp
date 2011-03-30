@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2009, 2010  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
 #ifndef PSPPIRE_H
 #define PSPPIRE_H
 
+#include "ui/gui/psppire-data-window.h"
+
 struct lexer;
 
 void initialize (const char *data_file);
@@ -27,5 +29,6 @@ void psppire_quit (void);
 const char * output_file_name (void);
 
 void psppire_set_lexer (struct lexer *);
+PsppireDataWindow *psppire_default_data_window (void);
 
 #endif /* PSPPIRE_H */

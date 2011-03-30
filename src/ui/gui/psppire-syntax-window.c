@@ -163,7 +163,7 @@ editor_execute_syntax (const PsppireSyntaxWindow *sw, GtkTextIter start,
 
   lex_reader_set_file_name (reader, psppire_window_get_filename (win));
 
-  execute_syntax (reader);
+  execute_syntax (psppire_default_data_window (), reader);
 }
 
 

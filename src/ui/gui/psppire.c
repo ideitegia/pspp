@@ -127,7 +127,7 @@ initialize (const char *data_file)
   if (data_file != NULL)
     load_data_file (data_file);
 
-  execute_const_syntax_string ("");
+  execute_const_syntax_string (PSPPIRE_DATA_WINDOW (the_data_window), "");
 
   gtk_widget_show (the_data_window);
 }
@@ -141,6 +141,11 @@ de_initialize (void)
   i18n_done ();
 }
 
+PsppireDataWindow *
+psppire_default_data_window (void)
+{
+  return PSPPIRE_DATA_WINDOW (the_data_window);
+}
 
 static void
 func (gpointer key, gpointer value, gpointer data)

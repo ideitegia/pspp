@@ -163,7 +163,7 @@ comments_dialog (PsppireDataWindow *de)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      g_free (execute_syntax_string (generate_syntax (&cd)));
+      g_free (execute_syntax_string (de, generate_syntax (&cd)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
       g_free (paste_syntax_to_window (generate_syntax (&cd)));

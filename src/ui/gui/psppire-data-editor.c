@@ -19,6 +19,7 @@
 #include <gtk-contrib/gtkextra-sheet.h>
 #include "psppire-data-editor.h"
 #include "psppire-var-sheet.h"
+#include "psppire.h"
 
 #include "psppire-data-store.h"
 #include <libpspp/i18n.h>
@@ -1245,15 +1246,15 @@ popup_cases_menu (PsppireSheet *sheet, gint row,
 /* Sorting */
 
 static void
-do_sort (PsppireDataStore *ds, int var, gboolean descend)
+do_sort (PsppireDataEditor *de, int var, gboolean descend)
 {
-  const struct variable *v =
-    psppire_dict_get_variable (ds->dict, var);
+  const struct variable *v
+    = psppire_dict_get_variable (de->data_store->dict, var);
   gchar *syntax;
 
   syntax = g_strdup_printf ("SORT CASES BY %s%s.",
                             var_get_name (v), descend ? " (D)" : "");
-  g_free (execute_syntax_string (syntax));
+  g_free (execute_syntax_string (psppire_default_data_window (), syntax));
 }
 
 
@@ -1265,7 +1266,7 @@ psppire_data_editor_sort_ascending  (PsppireDataEditor *de)
   PsppireSheetRange range;
   psppire_sheet_get_selected_range (PSPPIRE_SHEET(de->data_sheet[0]), &range);
 
-  do_sort (de->data_store,  range.col0, FALSE);
+  do_sort (de,  range.col0, FALSE);
 }
 
 
@@ -1277,7 +1278,7 @@ psppire_data_editor_sort_descending (PsppireDataEditor *de)
   PsppireSheetRange range;
   psppire_sheet_get_selected_range (PSPPIRE_SHEET(de->data_sheet[0]), &range);
 
-  do_sort (de->data_store,  range.col0, TRUE);
+  do_sort (de,  range.col0, TRUE);
 }
 
 

@@ -39,7 +39,7 @@ create_casereader_from_data_store (void *data_store_)
 }
 
 gboolean
-execute_syntax (struct lex_reader *lex_reader)
+execute_syntax (PsppireDataWindow *window, struct lex_reader *lex_reader)
 {
   struct lexer *lexer;
   gboolean retval = TRUE;
@@ -114,15 +114,15 @@ execute_syntax (struct lex_reader *lex_reader)
 /* Executes null-terminated string SYNTAX as syntax.
    Returns SYNTAX. */
 gchar *
-execute_syntax_string (gchar *syntax)
+execute_syntax_string (PsppireDataWindow *window, gchar *syntax)
 {
-  execute_const_syntax_string (syntax);
+  execute_const_syntax_string (window, syntax);
   return syntax;
 }
 
 /* Executes null-terminated string SYNTAX as syntax. */
 void
-execute_const_syntax_string (const gchar *syntax)
+execute_const_syntax_string (PsppireDataWindow *window, const gchar *syntax)
 {
-  execute_syntax (lex_reader_for_string (syntax));
+  execute_syntax (window, lex_reader_for_string (syntax));
 }

@@ -232,8 +232,9 @@ static void pop_watch_cursor (struct import_assistant *);
 
 /* Pops up the Text Data Import assistant. */
 void
-text_data_import_assistant (GtkWindow *parent_window)
+text_data_import_assistant (PsppireDataWindow *dw)
 {
+  GtkWindow *parent_window = GTK_WINDOW (dw);
   struct import_assistant *ia;
 
   ia = xzalloc (sizeof *ia);
@@ -258,7 +259,7 @@ text_data_import_assistant (GtkWindow *parent_window)
   switch (ia->asst.response)
     {
     case GTK_RESPONSE_APPLY:
-      free (execute_syntax_string (generate_syntax (ia)));
+      free (execute_syntax_string (dw, generate_syntax (ia)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
       free (paste_syntax_to_window (generate_syntax (ia)));

@@ -156,9 +156,9 @@ set_cut_copy_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
 
 /* Run the EXECUTE command. */
 static void
-execute (void)
+execute (PsppireDataWindow *dw)
 {
-  execute_const_syntax_string ("EXECUTE.");
+  execute_const_syntax_string (dw, "EXECUTE.");
 }
 
 static void
@@ -338,7 +338,8 @@ load_file (PsppireWindow *de, const gchar *file_name)
   syntax = g_strdup_printf ("GET FILE=%s.", ds_cstr (&filename));
   ds_destroy (&filename);
 
-  ok = execute_syntax (lex_reader_for_string (syntax));
+  ok = execute_syntax (PSPPIRE_DATA_WINDOW (de),
+                       lex_reader_for_string (syntax));
   g_free (syntax);
   return ok;
 }
@@ -500,7 +501,7 @@ save_file (PsppireWindow *w)
 
   ds_destroy (&filename);
 
-  g_free (execute_syntax_string (syntax));
+  g_free (execute_syntax_string (de, syntax));
 }
 
 
@@ -520,7 +521,7 @@ on_insert_variable (PsppireDataWindow *dw)
 static void
 display_dict (PsppireDataWindow *de)
 {
-  execute_const_syntax_string ("DISPLAY DICTIONARY.");
+  execute_const_syntax_string (de, "DISPLAY DICTIONARY.");
 }
 
 static void
@@ -546,7 +547,7 @@ sysfile_info (PsppireDataWindow *de)
       g_free (utf8_file_name);
 
       syntax = g_strdup_printf ("SYSFILE INFO %s.", ds_cstr (&filename));
-      g_free (execute_syntax_string (syntax));
+      g_free (execute_syntax_string (de, syntax));
     }
 
   gtk_widget_destroy (dialog);
@@ -657,7 +658,7 @@ data_save (PsppireWindow *de)
 static void
 new_file (PsppireDataWindow *de)
 {
-  execute_const_syntax_string ("NEW FILE.");
+  execute_const_syntax_string (de, "NEW FILE.");
   psppire_window_set_filename (PSPPIRE_WINDOW (de), NULL);
 }
 

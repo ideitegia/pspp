@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010  Free Software Foundation
+   Copyright (C) 2008, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,8 +17,9 @@
 #ifndef TEXT_DATA_IMPORT_DIALOG_H
 #define TEXT_DATA_IMPORT_DIALOG_H
 
-#include <gtk/gtk.h>
+#include <glib-object.h>
+#include "ui/gui/psppire-data-window.h"
 
-void text_data_import_assistant (GtkWindow *parent_window);
+void text_data_import_assistant (PsppireDataWindow *);
 
 #endif

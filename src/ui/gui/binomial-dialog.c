@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2010  Free Software Foundation
+   Copyright (C) 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -185,7 +185,7 @@ binomial_dialog (PsppireDataWindow *dw)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      g_free (execute_syntax_string (generate_syntax (&bin_d)));
+      g_free (execute_syntax_string (dw, generate_syntax (&bin_d)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
       g_free (paste_syntax_to_window (generate_syntax (&bin_d)));

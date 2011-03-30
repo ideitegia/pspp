@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -569,7 +569,7 @@ frequencies_dialog (PsppireDataWindow *de)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      g_free (execute_syntax_string (generate_syntax (&fd)));
+      g_free (execute_syntax_string (de, generate_syntax (&fd)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
       g_free (paste_syntax_to_window (generate_syntax (&fd)));
