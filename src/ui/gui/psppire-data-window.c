@@ -69,7 +69,6 @@
 
 
 
-static void psppire_data_window_base_finalize (PsppireDataWindowClass *, gpointer);
 static void psppire_data_window_base_init     (PsppireDataWindowClass *class);
 static void psppire_data_window_class_init    (PsppireDataWindowClass *class);
 static void psppire_data_window_init          (PsppireDataWindow      *data_editor);
@@ -89,7 +88,7 @@ psppire_data_window_get_type (void)
 	{
 	  sizeof (PsppireDataWindowClass),
 	  (GBaseInitFunc) psppire_data_window_base_init,
-	  (GBaseFinalizeFunc) psppire_data_window_base_finalize,
+	  NULL,
 	  (GClassInitFunc)psppire_data_window_class_init,
 	  (GClassFinalizeFunc) NULL,
 	  NULL,
@@ -146,16 +145,6 @@ psppire_data_window_base_init (PsppireDataWindowClass *class)
 
   object_class->finalize = psppire_data_window_finalize;
 }
-
-
-
-static void
-psppire_data_window_base_finalize (PsppireDataWindowClass *class,
-				   gpointer class_data)
-{
-}
-
-
 
 
 
