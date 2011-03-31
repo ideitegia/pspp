@@ -351,19 +351,18 @@ dump_rm (GtkRecentManager *rm)
 static gboolean
 load_file (PsppireWindow *de, const gchar *file_name)
 {
-  gchar *native_file_name;
+  gchar *utf8_file_name;
   struct string filename;
   gchar *syntax;
   bool ok;
 
   ds_init_empty (&filename);
 
-  native_file_name =
-    convert_glib_filename_to_system_filename (file_name, NULL);
+  utf8_file_name = g_filename_to_utf8 (file_name, -1, NULL, NULL, NULL);
 
-  syntax_gen_string (&filename, ss_cstr (native_file_name));
+  syntax_gen_string (&filename, ss_cstr (utf8_file_name));
 
-  g_free (native_file_name);
+  g_free (utf8_file_name);
 
   syntax = g_strdup_printf ("GET FILE=%s.", ds_cstr (&filename));
   ds_destroy (&filename);
@@ -496,7 +495,7 @@ name_has_suffix (const gchar *name)
 static void
 save_file (PsppireWindow *w)
 {
-  gchar *native_file_name = NULL;
+  gchar *utf8_file_name = NULL;
   gchar *file_name = NULL;
   GString *fnx;
   struct string filename ;
@@ -517,13 +516,12 @@ save_file (PsppireWindow *w)
 
   ds_init_empty (&filename);
 
-  native_file_name =
-    convert_glib_filename_to_system_filename (fnx->str, NULL);
+  utf8_file_name = g_filename_to_utf8 (fnx->str, -1, NULL, NULL, NULL);
 
   g_string_free (fnx, TRUE);
 
-  syntax_gen_string (&filename, ss_cstr (native_file_name));
-  g_free (native_file_name);
+  syntax_gen_string (&filename, ss_cstr (utf8_file_name));
+  g_free (utf8_file_name);
 
   syntax = g_strdup_printf ("%s OUTFILE=%s.",
                             de->save_as_portable ? "EXPORT" : "SAVE",
@@ -565,16 +563,16 @@ sysfile_info (PsppireDataWindow *de)
       gchar *file_name =
 	gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-      gchar *native_file_name =
-	convert_glib_filename_to_system_filename (file_name, NULL);
+      gchar *utf8_file_name = g_filename_to_utf8 (file_name, -1, NULL, NULL,
+                                                  NULL);
 
       gchar *syntax;
 
       ds_init_empty (&filename);
 
-      syntax_gen_string (&filename, ss_cstr (native_file_name));
+      syntax_gen_string (&filename, ss_cstr (utf8_file_name));
 
-      g_free (native_file_name);
+      g_free (utf8_file_name);
 
       syntax = g_strdup_printf ("SYSFILE INFO %s.", ds_cstr (&filename));
       g_free (execute_syntax_string (syntax));
