@@ -16,7 +16,7 @@
 static const gchar none[] = N_("None");
 
 
-gchar *
+const gchar *
 measure_to_string (const struct variable *var, GError **err)
 {
   const gint measure = var_get_measure (var);
