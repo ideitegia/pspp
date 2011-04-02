@@ -872,7 +872,7 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
   size_t max_line_length;
   gint content_width, header_width;
   size_t i;
-  gchar *title = _("Text");
+  const gchar *title = _("Text");
 
   make_tree_view (ia, 0, &tree_view);
 
