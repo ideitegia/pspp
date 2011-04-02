@@ -69,13 +69,13 @@
 
 
 
-static void psppire_data_window_base_init     (PsppireDataWindowClass *class);
 static void psppire_data_window_class_init    (PsppireDataWindowClass *class);
 static void psppire_data_window_init          (PsppireDataWindow      *data_editor);
 
 
 static void psppire_data_window_iface_init (PsppireWindowIface *iface);
 
+static void psppire_data_window_dispose (GObject *object);
 
 GType
 psppire_data_window_get_type (void)
@@ -87,7 +87,7 @@ psppire_data_window_get_type (void)
       static const GTypeInfo psppire_data_window_info =
 	{
 	  sizeof (PsppireDataWindowClass),
-	  (GBaseInitFunc) psppire_data_window_base_init,
+	  NULL,
 	  NULL,
 	  (GClassInitFunc)psppire_data_window_class_init,
 	  (GClassFinalizeFunc) NULL,
@@ -120,30 +120,13 @@ psppire_data_window_get_type (void)
 static GObjectClass *parent_class ;
 
 static void
-psppire_data_window_finalize (GObject *object)
-{
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (object);
-
-  g_object_unref (de->builder);
-
-  if (G_OBJECT_CLASS (parent_class)->finalize)
-    (*G_OBJECT_CLASS (parent_class)->finalize) (object);
-}
-
-
-static void
 psppire_data_window_class_init (PsppireDataWindowClass *class)
-{
-  parent_class = g_type_class_peek_parent (class);
-}
-
-
-static void
-psppire_data_window_base_init (PsppireDataWindowClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
-  object_class->finalize = psppire_data_window_finalize;
+  parent_class = g_type_class_peek_parent (class);
+
+  object_class->dispose = psppire_data_window_dispose;
 }
 
 
@@ -1234,6 +1217,19 @@ psppire_data_window_init (PsppireDataWindow *de)
   gtk_widget_show (box);
 }
 
+static void
+psppire_data_window_dispose (GObject *object)
+{
+  PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (object);
+
+  if (dw->builder != NULL)
+    {
+      g_object_unref (dw->builder);
+      dw->builder = NULL;
+    }
+
+  G_OBJECT_CLASS (parent_class)->dispose (object);
+}
 
 GtkWidget*
 psppire_data_window_new (void)
