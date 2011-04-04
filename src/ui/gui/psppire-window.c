@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009, 2010  Free Software Foundation
+   Copyright (C) 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -87,16 +87,14 @@ uniquify (const gchar *str, int *x)
   return g_strdup_printf ("%s%d", str, (*x)++);
 }
 
-static gchar mdash[6] = {0,0,0,0,0,0};
-
 static void
 psppire_window_set_title (PsppireWindow *window)
 {
   GString *title = g_string_sized_new (80);
 
-  g_string_printf (title, _("%s %s PSPPIRE %s"),
-		   window->basename ? window->basename : "",
-		   mdash, window->description);
+  g_string_printf (title, "%s ", window->basename ? window->basename : "");
+  g_string_append_unichar (title, 0x2014); /* em dash */
+  g_string_printf (title, " PSPPIRE %s", window->description);
 
   if (window->dirty)
     g_string_prepend_c (title, '*');
@@ -246,8 +244,6 @@ psppire_window_class_init (PsppireWindowClass *class)
 			 /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
 			 _("Untitled"),
 			 G_PARAM_CONSTRUCT | G_PARAM_READWRITE);
-
-  g_unichar_to_utf8 (0x2014, mdash);
 
   object_class->set_property = psppire_window_set_property;
   object_class->get_property = psppire_window_get_property;
