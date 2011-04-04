@@ -379,14 +379,14 @@ name_has_suffix (const gchar *name)
 static void
 save_file (PsppireWindow *w)
 {
+  const gchar *file_name = NULL;
   gchar *utf8_file_name = NULL;
-  gchar *file_name = NULL;
   GString *fnx;
   struct string filename ;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (w);
   gchar *syntax;
 
-  g_object_get (w, "filename", &file_name, NULL);
+  file_name = psppire_window_get_filename (w);
 
   fnx = g_string_new (file_name);
 

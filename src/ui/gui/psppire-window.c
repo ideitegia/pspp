@@ -510,9 +510,7 @@ psppire_window_query_save (PsppireWindow *se)
 const gchar *
 psppire_window_get_filename (PsppireWindow *w)
 {
-  const gchar *name = NULL;
-  g_object_get (w, "filename", &name, NULL);
-  return name;
+  return w->filename;
 }
 
 
