@@ -304,9 +304,20 @@ menu_activate (GtkMenuItem *mi, gpointer data)
 static void
 insert_menuitem_into_menu (PsppireWindow *window, gpointer key)
 {
-  gchar *filename = g_filename_display_name (key);
-  GtkWidget *item = gtk_check_menu_item_new_with_label (filename);
+  gchar *filename;
+  GtkWidget *item;
 
+  /* Add a separator before adding the first real item.  If we add a separator
+     at any other time, sometimes GtkUIManager removes it. */
+  if (g_hash_table_size (window->menuitem_table) == 0)
+    {
+      GtkWidget *separator = gtk_separator_menu_item_new ();
+      gtk_widget_show (separator);
+      gtk_menu_shell_append (window->menu, separator);
+    }
+
+  filename = g_filename_display_name (key);
+  item = gtk_check_menu_item_new_with_label (filename);
   g_free (filename);
 
   g_signal_connect (item, "toggled", G_CALLBACK (menu_toggled), NULL);
