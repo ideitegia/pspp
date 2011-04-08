@@ -65,6 +65,7 @@ AT_CLEANUP
 
 m4_define([DATA_READER_BINARY], 
   [AT_SETUP([read and write files with $1])
+$3
    AT_DATA([input.txt], [dnl
 07-22-2007
 10-06-2007
@@ -204,13 +205,15 @@ DATA_READER_BINARY([MODE=360 /RECFORM=FIXED /LRECL=32],
        $out .= ' ' x ($lrecl - length ($out));
        length ($out) == 32 or die;
        print +a2e ($out);
-   }])
+   }],
+  [AT_CHECK([supports_encodings EBCDIC-US])])
 
 DATA_READER_BINARY([MODE=360 /RECFORM=VARIABLE],
   [for $_ (@data) {
        push (@records, pack ("n xx", length ($_) + 4) . a2e ($_));
    }
-   dump_records ();])
+   dump_records ();],
+  [AT_CHECK([supports_encodings EBCDIC-US])])
 
 DATA_READER_BINARY([MODE=360 /RECFORM=SPANNED],
   [[for my $line (@data) {
@@ -229,4 +232,5 @@ DATA_READER_BINARY([MODE=360 /RECFORM=SPANNED],
 		 pack ("nCx", length ($r[$i]) + 4, $scc) . a2e ($r[$i]));
        }
    }
-   dump_records ();]])
+   dump_records ();]],
+  [AT_CHECK([supports_encodings EBCDIC-US])])
