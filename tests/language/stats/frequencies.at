@@ -70,7 +70,7 @@ Total,,4,100.0,100.0,
 AT_CLEANUP
 
 # Tests for a bug where PSPP would crash when a FREQUENCIES command
-# was used with the HTML output driver..
+# was used with the HTML output driver.
 AT_SETUP([FREQUENCIES HTML output crash])
 AT_DATA([frequencies.sps],
   [data list free /v1 v2.
@@ -105,7 +105,7 @@ AT_CHECK([test -s pspp.html])
 AT_CLEANUP
 
 # Tests for a bug which crashed PSPP when a piechart with too many
-# segments was requested..
+# segments was requested.
 AT_SETUP([FREQUENCIES pie chart crash])
 AT_DATA([frequencies.sps],
   [data list list /x * w *.
@@ -149,8 +149,33 @@ FREQUENCIES
 ])
 AT_CLEANUP
 
+# Tests for a bug which crashed PSPP when the median and a histogram
+# were both requested.
+AT_SETUP([FREQUENCIES median with histogram crash])
+AT_DATA([frequencies.sps], [dnl
+data list list notable /x.
+begin data.
+1
+end data.
+
+frequencies /x /histogram /STATISTICS=median.
+])
+AT_CHECK([pspp -O format=csv frequencies.sps], [0], [dnl
+Table: x
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+,1.00,1,100.00,100.00,100.00
+Total,,1,100.0,100.0,
+
+Table: x
+N,Valid,1
+,Missing,0
+S.E. Kurt,,.00
+,50 (Median),1.00
+])
+AT_CLEANUP
+
 # Tests for a bug which caused FREQUENCIES following TEMPORARY to
-# crash (bug #11492)..
+# crash (bug #11492).
 AT_SETUP([FREQUENCIES crash after TEMPORARY])
 AT_DATA([frequencies.sps],
   [DATA LIST LIST /SEX (A1) X *.

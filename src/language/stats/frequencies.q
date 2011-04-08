@@ -1047,7 +1047,7 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
   tab_double (t, 2, 0, TAB_NONE, ft->valid_cases, wfmt);
   tab_double (t, 2, 1, TAB_NONE, ft->total_cases - ft->valid_cases, wfmt);
 
-  for (i = 0; i < frq->n_percentiles; i++, r++)
+  for (i = 0; i < frq->n_percentiles; i++)
     {
       struct percentile *pc = &frq->percentiles[i];
 
@@ -1065,6 +1065,7 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
         tab_fixed (t, 1, r, TAB_LEFT, pc->p * 100, 3, 0);
       tab_double (t, 2, r, TAB_NONE, pc->value,
                   var_get_print_format (vf->var));
+      r++;
     }
 
   tab_title (t, "%s", var_to_string (vf->var));
