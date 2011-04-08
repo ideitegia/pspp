@@ -3413,7 +3413,7 @@ AT_CLEANUP
 
 AT_SETUP([binary and hexadecimal input (IB, PIB, and PIBHEX formats)])
 AT_CHECK([$PERL -e 'print pack "n", $_ foreach 0...65535' > binhex-in.data])
-AT_CHECK([wc -c < binhex-in.data | sed 's/[ 	]//g'], [0], [131072
+AT_CHECK([[wc -c < binhex-in.data | sed 's/[ 	]//g']], [0], [131072
 ])
 AT_DATA([binhex-in.sps], [dnl
 SET RIB=MSBFIRST.
@@ -3434,7 +3434,7 @@ AT_CLEANUP
 
 AT_SETUP([BCD input (P and PK formats)])
 AT_CHECK([$PERL -e 'print pack "n", $_ foreach 0...65535' > bcd-in.data])
-AT_CHECK([wc -c < bcd-in.data | sed 's/[ 	]//g'], [0], [131072
+AT_CHECK([[wc -c < bcd-in.data | sed 's/[ 	]//g']], [0], [131072
 ])
 AT_DATA([bcd-in.sps], [dnl
 SET ERRORS=NONE.
@@ -3454,7 +3454,7 @@ AT_CLEANUP
 
 AT_SETUP([legacy input (N and Z formats)])
 AT_CHECK([$PERL -e 'print pack "n", $_ foreach 0...65535' > legacy-in.data])
-AT_CHECK([wc -c < legacy-in.data | sed 's/[ 	]//g'], [0], [131072
+AT_CHECK([[wc -c < legacy-in.data | sed 's/[ 	]//g']], [0], [131072
 ])
 AT_DATA([legacy-in.sps], [dnl
 SET ERRORS=NONE.
