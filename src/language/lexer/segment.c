@@ -425,7 +425,7 @@ segmenter_parse_comment_2__ (struct segmenter *s, const char *input, size_t n,
     return -1;
 
   if (uc == '+' || uc == '-' || uc == '.')
-    new_cmd = 1;
+    new_cmd = true;
   else if (!lex_uc_is_space (uc))
     switch (s->mode)
       {
@@ -442,7 +442,12 @@ segmenter_parse_comment_2__ (struct segmenter *s, const char *input, size_t n,
         if (new_cmd < 0)
           return -1;
         break;
+
+      default:
+        NOT_REACHED ();
       }
+  else
+    new_cmd = false;
 
   if (new_cmd)
     {
