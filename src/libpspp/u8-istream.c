@@ -253,7 +253,8 @@ convert_iconv (iconv_t converter,
                char **inbufp, size_t *inbytesleft,
                char **outbufp, size_t *outbytesleft)
 {
-  size_t n = iconv (converter, inbufp, inbytesleft, outbufp, outbytesleft);
+  size_t n = iconv (converter, (ICONV_CONST char **) inbufp, inbytesleft,
+                    outbufp, outbytesleft);
   return n == SIZE_MAX ? errno : 0;
 }
 
