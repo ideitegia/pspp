@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -208,9 +208,8 @@ connect_help (GtkBuilder *xml)
       GObject *o = i->data;
       if ( GTK_IS_WIDGET (o) )
 	{
-	  gchar *name = NULL;
+	  const gchar *name = gtk_buildable_get_name (GTK_BUILDABLE (o));
 	  gchar s[12] = {0};
-	  g_object_get (o, "name", &name, NULL);
 
 	  if ( name)
 	    strncpy (s, name, 11);
