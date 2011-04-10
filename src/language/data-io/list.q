@@ -130,19 +130,19 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
       struct ccase *ccase;
       struct table *t;
 
-      group = casereader_project (group, &sc);
-      if (cmd.numbering == LST_NUMBERED)
-        group = casereader_create_arithmetic_sequence (group, 1, 1);
-      group = casereader_select (group, cmd.first - 1,
-                                 (cmd.last != LONG_MAX ? cmd.last
-                                  : CASENUMBER_MAX), cmd.step);
-
       ccase = casereader_peek (group, 0);
       if (ccase != NULL)
         {
           output_split_file_values (ds, ccase);
           case_unref (ccase);
         }
+
+      group = casereader_project (group, &sc);
+      if (cmd.numbering == LST_NUMBERED)
+        group = casereader_create_arithmetic_sequence (group, 1, 1);
+      group = casereader_select (group, cmd.first - 1,
+                                 (cmd.last != LONG_MAX ? cmd.last
+                                  : CASENUMBER_MAX), cmd.step);
 
       if (cmd.numbering == LST_NUMBERED)
         {
