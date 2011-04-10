@@ -141,7 +141,7 @@ display_cell_var_name (GtkTreeViewColumn *tree_column,
 
   g_value_unset (&value);
 
-  g_object_set (cell, "text", var ? var_get_name (var) : "<unset>", NULL);
+  g_object_set (cell, "text", var ? var_get_name (var) : "", NULL);
 }
 
 
