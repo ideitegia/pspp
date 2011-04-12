@@ -24,10 +24,10 @@
 #include <stdlib.h>
 
 #include "data/data-out.h"
-#include "data/dictionary.h"
 #include "data/format.h"
 #include "data/settings.h"
 #include "data/value.h"
+#include "data/variable.h"
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
 #include "libpspp/i18n.h"
@@ -360,7 +360,7 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
    from V, displayed with format spec F. */
 void
 tab_value (struct tab_table *table, int c, int r, unsigned char opt,
-	   const union value *v, const struct dictionary *dict, 
+	   const union value *v, const struct variable *var,
 	   const struct fmt_spec *f)
 {
   char *contents;
@@ -379,7 +379,9 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
     }
 #endif
 
-  contents = data_out_pool (v, dict_get_encoding (dict), f, table->container);
+  contents = data_out_pool (v, var_get_encoding (var),
+                            f != NULL ? f : var_get_print_format (var),
+                            table->container);
 
   table->cc[c + r * table->cf] = contents;
   table->ct[c + r * table->cf] = opt;

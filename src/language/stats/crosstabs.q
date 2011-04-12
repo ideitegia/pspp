@@ -1492,7 +1492,7 @@ table_value_missing (struct crosstabs_proc *proc,
           free (s);
         }
       else
-        tab_value (table, c, r, opt, v, proc->dict, print);
+        tab_value (table, c, r, opt, v, var, print);
     }
 }
 

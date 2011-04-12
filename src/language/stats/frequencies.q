@@ -188,7 +188,6 @@ struct var_freqs
 
     /* Variable attributes. */
     int width;
-    struct fmt_spec print;
   };
 
 struct frq_proc
@@ -646,7 +645,6 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds,
       vf->n_groups = 0;
       vf->groups = NULL;
       vf->width = var_get_width (var);
-      vf->print = *var_get_print_format (var);
     }
   frq->n_vars = n_vars;
 
@@ -850,7 +848,7 @@ dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
       if (label != NULL)
         tab_text (t, 0, r, TAB_LEFT, label);
 
-      tab_value (t, 1, r, TAB_NONE, &f->value, ft->dict, &vf->print);
+      tab_value (t, 1, r, TAB_NONE, &f->value, vf->var, NULL);
       tab_double (t, 2, r, TAB_NONE, f->count, wfmt);
       tab_double (t, 3, r, TAB_NONE, percent, NULL);
       tab_double (t, 4, r, TAB_NONE, valid_percent, NULL);
@@ -867,7 +865,7 @@ dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
       if (label != NULL)
         tab_text (t, 0, r, TAB_LEFT, label);
 
-      tab_value (t, 1, r, TAB_NONE, &f->value, ft->dict, &vf->print);
+      tab_value (t, 1, r, TAB_NONE, &f->value, vf->var, NULL);
       tab_double (t, 2, r, TAB_NONE, f->count, wfmt);
       tab_double (t, 3, r, TAB_NONE,
 		     f->count / ft->total_cases * 100.0, NULL);
