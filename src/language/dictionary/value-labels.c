@@ -131,7 +131,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt,
 
       /* Set value. */
       value_init (&value, width);
-      if (!parse_value (lexer, &value, width))
+      if (!parse_value (lexer, &value, vars[0]))
         {
           value_destroy (&value, width);
           return 0;

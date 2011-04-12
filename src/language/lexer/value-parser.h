@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,9 +21,10 @@
 
 struct lexer;
 enum fmt_type;
+struct variable;
 union value;
 bool parse_num_range (struct lexer *,
                       double *x, double *y, const enum fmt_type *fmt);
-bool parse_value (struct lexer *, union value *, int width);
+bool parse_value (struct lexer *, union value *, const struct variable *);
 
 #endif /* value-parser.h */

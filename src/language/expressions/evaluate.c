@@ -174,7 +174,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
           else
             c = case_unshare_and_resize (c, dict_get_proto (d));
 
-          if (!parse_value (lexer, case_data_rw (c, v), var_get_width (v)))
+          if (!parse_value (lexer, case_data_rw (c, v), v))
             NOT_REACHED ();
 
           if (!lex_force_match (lexer, T_RPAREN))

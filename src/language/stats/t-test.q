@@ -295,14 +295,14 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds,
     n_values = 0;
   else
     {
-      if (!parse_value (lexer, &proc->g_value[0], width))
+      if (!parse_value (lexer, &proc->g_value[0], proc->indep_var))
         return 0;
       lex_match (lexer, T_COMMA);
       if (lex_match (lexer, T_RPAREN))
         n_values = 1;
       else
         {
-          if (!parse_value (lexer, &proc->g_value[1], width)
+          if (!parse_value (lexer, &proc->g_value[1], proc->indep_var)
               || !lex_force_match (lexer, T_RPAREN))
             return 0;
           n_values = 2;

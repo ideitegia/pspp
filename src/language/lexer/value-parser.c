@@ -129,18 +129,15 @@ parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
     }
 }
 
-/* Parses the current token from LEXER into value V, which must
-   already have been initialized with the specified WIDTH.
-   Returns true if successful, false otherwise. */
+/* Parses the current token from LEXER into value V, which must already have
+   been initialized with the specified VAR's WIDTH.  Returns true if
+   successful, false otherwise. */
 bool
-parse_value (struct lexer *lexer, union value *v, int width)
+parse_value (struct lexer *lexer, union value *v, const struct variable *var)
 {
+  int width = var_get_width (var);
   if (width == 0)
-    {
-      if (!lex_force_num (lexer))
-	return false;
-      v->f = lex_tokval (lexer);
-    }
+    return parse_number (lexer, &v->f, &var_get_print_format (var)->type);
   else if (lex_force_string (lexer))
     {
       const char *s = lex_tokcstr (lexer);

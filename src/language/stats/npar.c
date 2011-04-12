@@ -1027,7 +1027,7 @@ parse_n_sample_related_test (struct lexer *lexer,
     return false;
 
   value_init (&nst->val1, var_get_width (nst->indep_var));
-  if ( ! parse_value (lexer, &nst->val1, var_get_width (nst->indep_var)))
+  if ( ! parse_value (lexer, &nst->val1, nst->indep_var))
     {
       value_destroy (&nst->val1, var_get_width (nst->indep_var));
       return false;
@@ -1036,7 +1036,7 @@ parse_n_sample_related_test (struct lexer *lexer,
   lex_match (lexer, T_COMMA);
 
   value_init (&nst->val2, var_get_width (nst->indep_var));
-  if ( ! parse_value (lexer, &nst->val2, var_get_width (nst->indep_var)))
+  if ( ! parse_value (lexer, &nst->val2, nst->indep_var))
     {
       value_destroy (&nst->val2, var_get_width (nst->indep_var));
       return false;

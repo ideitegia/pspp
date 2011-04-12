@@ -113,7 +113,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
     }
 
   value_init (&roc.state_value, var_get_width (roc.state_var));
-  parse_value (lexer, &roc.state_value, var_get_width (roc.state_var));
+  parse_value (lexer, &roc.state_value, roc.state_var);
 
 
   if ( !lex_force_match (lexer, T_RPAREN))
