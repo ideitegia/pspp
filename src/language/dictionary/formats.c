@@ -73,6 +73,8 @@ internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
       int width;
       size_t i;
 
+      lex_match (lexer, T_SLASH);
+
       if (lex_token (lexer) == T_ENDCMD)
 	break;
 

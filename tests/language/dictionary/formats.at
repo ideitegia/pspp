@@ -4,9 +4,9 @@ AT_SETUP([FORMATS positive tests])
 AT_DATA([formats.sps], [dnl
 DATA LIST LIST /a b c * x (A1) y (A2) z (A3).
 DISPLAY VARIABLES.
-FORMATS a (COMMA10) b (N4).
+FORMATS /a (COMMA10) b (N4).
 DISPLAY VARIABLES.
-FORMATS c (E8.1) x (A1) y (AHEX4) z (A3).
+FORMATS c (E8.1) x (A1) /y (AHEX4) z (A3).
 DISPLAY VARIABLES.
 ])
 AT_CHECK([pspp -o pspp.csv formats.sps])
