@@ -64,7 +64,7 @@ val_lab_get_label (const struct val_lab *vl)
 struct val_labs
   {
     int width;                  /* 0=numeric, otherwise string width. */
-    struct hmap labels;         /* Hash table of `struct int_val_lab's. */
+    struct hmap labels;         /* Hash table of `struct val_lab's. */
   };
 
 /* Creating and destroying sets of value labels. */
