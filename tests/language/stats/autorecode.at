@@ -100,10 +100,10 @@ new,Format: F8.2,,3
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-,1,oojars,
-,2,oojimiflips,
-,3,thingummies,
-,4,widgets,
+,1.00,oojars,
+,2.00,oojimiflips,
+,3.00,thingummies,
+,4.00,widgets,
 ])
 
 AT_CLEANUP

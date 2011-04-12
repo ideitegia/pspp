@@ -584,18 +584,8 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
       for (i = 0; i < n_labels; i++)
         {
           const struct val_lab *vl = labels[i];
-	  char buf[MAX_STRING + 1];
 
-	  if (var_is_alpha (v))
-	    {
-              int width = var_get_width (v);
-	      memcpy (buf, value_str (&vl->value, width), width);
-	      buf[width] = 0;
-	    }
-	  else
-	    sprintf (buf, "%g", vl->value.f);
-
-	  tab_text (t, 1, r, TAB_NONE, buf);
+	  tab_value (t, 1, r, TAB_NONE, &vl->value, v, NULL);
 	  tab_text (t, 2, r, TAB_LEFT, val_lab_get_label (vl));
 	  r++;
 	}
