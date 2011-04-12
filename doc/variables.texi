@@ -127,19 +127,20 @@ FILE LABEL}.
 @vindex FORMATS
 
 @display
-FORMATS var_list (fmt_spec).
+FORMATS var_list (fmt_spec) [var_list (fmt_spec)]@dots{}.
 @end display
 
 @cmd{FORMATS} set both print and write formats for the specified
-numeric variables to the specified format specification.
+variables to the specified format specification.
 @xref{Input and Output Formats}.
 
 Specify a list of variables followed by a format specification in
 parentheses.  The print and write formats of the specified variables
-will be changed.
+will be changed.  All of the variables listed together must have
+the same type and, for string variables, the same width.
 
-Additional lists of variables and formats may be included if they are
-delimited by a slash (@samp{/}).
+Additional lists of variables and formats may be included following
+the first one.
 
 @cmd{FORMATS} takes effect immediately.  It is not affected by
 conditional and looping structures such as @cmd{DO IF} or @cmd{LOOP}.
@@ -406,11 +407,11 @@ response sets are currently used only by third party software.
 @vindex PRINT FORMATS
 
 @display
-PRINT FORMATS var_list (fmt_spec).
+PRINT FORMATS var_list (fmt_spec) [var_list (fmt_spec)]@dots{}.
 @end display
 
 @cmd{PRINT FORMATS} sets the print formats for the specified
-numeric variables to the specified format specification.
+variables to the specified format specification.
 
 Its syntax is identical to that of @cmd{FORMATS} (@pxref{FORMATS}),
 but @cmd{PRINT FORMATS} sets only print formats, not write formats.
@@ -655,11 +656,10 @@ Variables within a vector may be referenced in expressions using
 @vindex WRITE FORMATS
 
 @display
-WRITE FORMATS var_list (fmt_spec).
+WRITE FORMATS var_list (fmt_spec) [var_list (fmt_spec)]@dots{}.
 @end display
 
-@cmd{WRITE FORMATS} sets the write formats for the specified numeric
-variables
+@cmd{WRITE FORMATS} sets the write formats for the specified variables
 to the specified format specification.  Its syntax is identical to
 that of FORMATS (@pxref{FORMATS}), but @cmd{WRITE FORMATS} sets only
 write formats, not print formats.

@@ -67,23 +67,18 @@ internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
   struct variable **v;
   size_t cv;
 
-  /* Format to set the variables to. */
-  struct fmt_spec f;
-
-  /* Numeric or string. */
-  int type;
-
-  /* Counter. */
-  size_t i;
-
   for (;;)
     {
+      struct fmt_spec f;
+      int width;
+      size_t i;
+
       if (lex_token (lexer) == T_ENDCMD)
 	break;
 
-      if (!parse_variables (lexer, dataset_dict (ds), &v, &cv, PV_NUMERIC))
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &cv, PV_SAME_WIDTH))
 	return CMD_FAILURE;
-      type = var_get_type (v[0]);
+      width = var_get_width (v[0]);
 
       if (!lex_match (lexer, T_LPAREN))
 	{
@@ -92,7 +87,7 @@ internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
 	}
       if (!parse_format_specifier (lexer, &f)
           || !fmt_check_output (&f)
-          || !fmt_check_type_compat (&f, VAL_NUMERIC))
+          || !fmt_check_width_compat (&f, width))
 	goto fail;
 
       if (!lex_match (lexer, T_RPAREN))
