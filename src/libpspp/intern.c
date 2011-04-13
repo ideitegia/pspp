@@ -33,20 +33,22 @@ struct interned_string
   {
     struct hmap_node node;      /* Node in hash table. */
     size_t ref_cnt;             /* Reference count. */
+    size_t length;              /* strlen(string).  */
     char string[1];             /* Null-terminated string. */
   };
 
 /* All interned strings. */
 static struct hmap interns = HMAP_INITIALIZER (interns);
 
-/* Searches the table of interned string for  */
+/* Searches the table of interned strings for one equal to S, which has length
+   LENGTH and hash value HASH. */
 static struct interned_string *
 intern_lookup__ (const char *s, size_t length, unsigned int hash)
 {
   struct interned_string *is;
 
   HMAP_FOR_EACH_WITH_HASH (is, struct interned_string, node, hash, &interns)
-    if (!memcmp (s, is->string, length + 1))
+    if (is->length == length && !memcmp (s, is->string, length))
       return is;
 
   return NULL;
@@ -69,6 +71,7 @@ intern_new (const char *s)
       is = xmalloc (length + sizeof *is);
       hmap_insert (&interns, &is->node, hash);
       is->ref_cnt = 1;
+      is->length = length;
       memcpy (is->string, s, length + 1);
     }
   return is->string;
@@ -118,4 +121,12 @@ is_interned_string (const char *s)
   size_t length = strlen (s);
   unsigned int hash = hash_bytes (s, length, 0);
   return intern_lookup__ (s, length, hash) != NULL;
+}
+
+/* Returns the length of S, which must be an interned string returned by
+   intern_new(). */
+size_t
+intern_strlen (const char *s)
+{
+  return interned_string_from_string (s)->length;
 }
