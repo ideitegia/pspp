@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "libpspp/assertion.h"
+#include "libpspp/cast.h"
 #include "libpspp/hash-functions.h"
 #include "libpspp/hmap.h"
 
@@ -76,8 +77,7 @@ intern_new (const char *s)
 static struct interned_string *
 interned_string_from_string (const char *s)
 {
-  const size_t ofs = offsetof (struct interned_string, string);
-  struct interned_string *is = (struct interned_string *) (s - ofs);
+  struct interned_string *is = UP_CAST (s, struct interned_string, string);
   assert (is->ref_cnt > 0);
   return is;
 }
