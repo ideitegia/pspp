@@ -427,9 +427,11 @@ alloc_value_labels (struct variable *v)
     v->val_labs = val_labs_create (v->width);
 }
 
-/* Attempts to add a value label with the given VALUE and LABEL
-   to V.  Returns true if successful, false otherwise (probably
-   due to an existing label). */
+/* Attempts to add a value label with the given VALUE and UTF-8 encoded LABEL
+   to V.  Returns true if successful, false otherwise (probably due to an
+   existing label).
+
+   In LABEL, the two-byte sequence "\\n" is interpreted as a new-line. */
 bool
 var_add_value_label (struct variable *v,
                      const union value *value, const char *label)
@@ -438,9 +440,10 @@ var_add_value_label (struct variable *v,
   return val_labs_add (v->val_labs, value, label);
 }
 
-/* Adds or replaces a value label with the given VALUE and LABEL
+/* Adds or replaces a value label with the given VALUE and UTF-8 encoded LABEL
    to V.
-*/
+
+   In LABEL, the two-byte sequence "\\n" is interpreted as a new-line. */
 void
 var_replace_value_label (struct variable *v,
                          const union value *value, const char *label)
@@ -456,8 +459,8 @@ var_clear_value_labels (struct variable *v)
   var_set_value_labels (v, NULL);
 }
 
-/* Returns the label associated with VALUE for variable V,
-   or a null pointer if none. */
+/* Returns the label associated with VALUE for variable V, as a UTF-8 string in
+   a format suitable for output, or a null pointer if none. */
 const char *
 var_lookup_value_label (const struct variable *v, const union value *value)
 {

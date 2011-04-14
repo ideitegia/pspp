@@ -39,6 +39,7 @@ struct val_lab
     struct hmap_node node;      /* Node in hash map. */
     union value value;          /* The value being labeled. */
     const char *label;          /* An interned string. */
+    const char *escaped_label;  /* An interned string. */
   };
 
 /* Returns the value in VL.  The caller must not modify or free
@@ -52,12 +53,26 @@ static inline const union value *val_lab_get_value (const struct val_lab *vl)
   return &vl->value;
 }
 
-/* Returns the label in VL.  The caller must not modify or free the returned
-   value. */
+/* Returns the label in VL as a UTF-8 encoded interned string, in a format
+   appropriate for use in output.  The caller must not modify or free the
+   returned value. */
 static inline const char *
 val_lab_get_label (const struct val_lab *vl)
 {
   return vl->label;
+}
+
+/* Returns the label in VL as a UTF-8 encoded interned string.  Any new-line
+   characters in the label's usual output form are represented in the returned
+   string as the two-byte sequence "\\n".  This form is used on the VALUE
+   LABELS command, in system and portable files, and passed to val_labs_add()
+   and val_labs_replace().
+
+   The caller must not modify or free the returned value. */
+static inline const char *
+val_lab_get_escaped_label (const struct val_lab *vl)
+{
+  return vl->escaped_label;
 }
 
 /* A set of value labels. */
@@ -77,7 +92,7 @@ size_t val_labs_count (const struct val_labs *);
 /* Looking up value labels. */
 const char *val_labs_find (const struct val_labs *, const union value *);
 struct val_lab *val_labs_lookup (const struct val_labs *,
-                                       const union value *);
+                                 const union value *);
 
 /* Basic properties. */
 size_t val_labs_count (const struct val_labs *);

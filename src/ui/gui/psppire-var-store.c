@@ -753,7 +753,8 @@ text_for_column (PsppireVarStore *vs,
 	    {
 	      gchar *const vstr = value_to_text (vl->value, dict, *write_spec);
 
-	      return g_strdup_printf (_("{%s,`%s'}_"), vstr, val_lab_get_label (vl));
+	      return g_strdup_printf (_("{%s,`%s'}_"), vstr,
+                                      val_lab_get_escaped_label (vl));
 	    }
 	  }
       }

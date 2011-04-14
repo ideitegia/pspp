@@ -330,7 +330,7 @@ apply_dict (const struct dictionary *dict, struct string *s)
               ds_put_cstr (s, "\n  ");
               syntax_gen_value (s, &vl->value, width, format);
               ds_put_byte (s, ' ');
-              syntax_gen_string (s, ss_cstr (val_lab_get_label (vl)));
+              syntax_gen_string (s, ss_cstr (val_lab_get_escaped_label (vl)));
             }
           free (labels);
           ds_put_cstr (s, ".\n");

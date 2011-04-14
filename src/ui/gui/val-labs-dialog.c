@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005, 2009  Free Software Foundation
+   Copyright (C) 2005, 2009, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -261,7 +261,11 @@ get_selected_tuple (struct val_labs_dialog *dialog,
   if (valuep != NULL)
     *valuep = value;
   if (label != NULL)
-    *label = val_labs_find (dialog->labs, &value);
+    {
+      struct val_lab *vl = val_labs_lookup (dialog->labs, &value);
+      if (vl != NULL)
+        *label = val_lab_get_escaped_label (vl);
+    }
 }
 
 
@@ -512,8 +516,8 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 	value_to_text (vl->value, dialog->dict,
 		      *var_get_write_format (dialog->pv));
 
-      gchar *const text = g_strdup_printf (_("%s = `%s'"),
-					   vstr, val_lab_get_label (vl));
+      gchar *const text = g_strdup_printf (_("%s = `%s'"), vstr,
+                                           val_lab_get_escaped_label (vl));
 
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,

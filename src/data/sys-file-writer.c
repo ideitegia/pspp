@@ -532,7 +532,8 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
   for (i = 0; i < n_labels; i++)
     {
       const struct val_lab *vl = labels[i];
-      char *label = recode_string (var_get_encoding (v), UTF8, val_lab_get_label (vl), -1);
+      char *label = recode_string (var_get_encoding (v), UTF8,
+                                   val_lab_get_escaped_label (vl), -1);
       uint8_t len = MIN (strlen (label), 255);
 
       write_value (w, val_lab_get_value (vl), var_get_width (v));
@@ -782,7 +783,7 @@ write_long_string_value_labels (struct sfm_writer *w,
       size += 12 + strlen (var_get_name (var));
       for (val_lab = val_labs_first (val_labs); val_lab != NULL;
            val_lab = val_labs_next (val_labs, val_lab))
-        size += 8 + width + strlen (val_lab_get_label (val_lab));
+        size += 8 + width + strlen (val_lab_get_escaped_label (val_lab));
     }
   if (size == 0)
     return;
@@ -811,7 +812,7 @@ write_long_string_value_labels (struct sfm_writer *w,
       for (val_lab = val_labs_first (val_labs); val_lab != NULL;
            val_lab = val_labs_next (val_labs, val_lab))
         {
-          const char *label = val_lab_get_label (val_lab);
+          const char *label = val_lab_get_escaped_label (val_lab);
           size_t label_length = strlen (label);
 
           write_int (w, width);

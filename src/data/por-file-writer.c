@@ -419,7 +419,7 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
         {
           const struct val_lab *vl = labels[i];
           write_value (w, val_lab_get_value (vl), var_get_width (v));
-          write_string (w, val_lab_get_label (vl));
+          write_string (w, val_lab_get_escaped_label (vl));
         }
       free (labels);
     }

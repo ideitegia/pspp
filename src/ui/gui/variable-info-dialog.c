@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -113,7 +113,8 @@ populate_text (PsppireDictView *treeview, gpointer data)
 	  gchar *const vstr  =
 	    value_to_text (vl->value,  dict, *var_get_print_format (var));
 
-	  g_string_append_printf (gstring, _("%s %s\n"), vstr, val_lab_get_label (vl));
+	  g_string_append_printf (gstring, _("%s %s\n"),
+                                  vstr, val_lab_get_escaped_label (vl));
 
 	  g_free (vstr);
 	}

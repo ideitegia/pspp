@@ -454,6 +454,10 @@ To set up value labels for a set of variables, specify the
 variable names after a slash (@samp{/}), followed by a list of values
 and their associated labels, separated by spaces.
 
+Value labels in output are normally broken into lines automatically.
+Put @samp{\n} in a label string to force a line break at that point.
+The label may still be broken into lines at additional points.
+
 Before @cmd{VALUE LABELS} is executed, any existing value labels
 are cleared from the variables specified.  Use @cmd{ADD VALUE LABELS}
 (@pxref{ADD VALUE LABELS}) to add value labels without clearing those

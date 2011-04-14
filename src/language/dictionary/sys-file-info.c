@@ -586,7 +586,7 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
           const struct val_lab *vl = labels[i];
 
 	  tab_value (t, 1, r, TAB_NONE, &vl->value, v, NULL);
-	  tab_text (t, 2, r, TAB_LEFT, val_lab_get_label (vl));
+	  tab_text (t, 2, r, TAB_LEFT, val_lab_get_escaped_label (vl));
 	  r++;
 	}
       free (labels);

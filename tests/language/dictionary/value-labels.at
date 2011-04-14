@@ -26,6 +26,75 @@ dt,Format: DATETIME20.0,,2
 ])
 AT_CLEANUP
 
+AT_SETUP([VALUE LABELS with new-line])
+AT_DATA([value-labels.sps], [dnl
+DATA LIST LIST NOTABLE /x.
+VALUE LABELS x 1 'one' 2 'first line\nsecond line' 3 'three'.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+DISPLAY DICTIONARY.
+FREQUENCIES x/STAT=NONE.
+])
+AT_CHECK([pspp -O format=csv value-labels.sps], [0], [dnl
+Variable,Description,,Position
+x,Format: F8.2,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,1.00,one,
+,2.00,first line\nsecond line,
+,3.00,three,
+
+Table: x
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+one,1.00,1,33.33,33.33,33.33
+"first line
+second line",2.00,1,33.33,33.33,66.67
+three,3.00,1,33.33,33.33,100.00
+Total,,3,100.0,100.0,
+])
+AT_CLEANUP
+
+AT_SETUP([VALUE LABELS with new-line in system file])
+AT_DATA([save.sps], [dnl
+DATA LIST LIST NOTABLE /x.
+VALUE LABELS x 1 'one' 2 'first line\nsecond line' 3 'three'.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+SAVE OUTFILE='value-labels.sav'.
+])
+AT_CHECK([pspp -O format=csv save.sps])
+AT_DATA([get.sps], [dnl
+GET FILE='value-labels.sav'.
+DISPLAY DICTIONARY.
+FREQUENCIES x/STAT=NONE.
+])
+AT_CHECK([pspp -O format=csv get.sps], [0], [dnl
+Variable,Description,,Position
+x,Format: F8.2,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,1.00,one,
+,2.00,first line\nsecond line,
+,3.00,three,
+
+Table: x
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+one,1.00,1,33.33,33.33,33.33
+"first line
+second line",2.00,1,33.33,33.33,66.67
+three,3.00,1,33.33,33.33,100.00
+Total,,3,100.0,100.0,
+])
+AT_CLEANUP
+
 dnl Tests for a bug which caused VALUE LABELS to 
 dnl crash when given invalid syntax.
 AT_SETUP([VALUE LABELS invalid syntax bug])
