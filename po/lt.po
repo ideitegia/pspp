@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.7.7\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2011-03-24 20:36-0700\n"
-"PO-Revision-Date: 2011-04-16 17:36+0300\n"
+"PO-Revision-Date: 2011-04-16 23:01+0300\n"
 "Last-Translator: Mindaugas Baranauskas <embar@users.berlios.de>\n"
 "Language-Team: Lithuanian <komp_lt@konferencijos.lt>\n"
 "Language: lt\n"
@@ -100,7 +100,7 @@ msgstr " Data %04d-%d-%d yra anksčiau nei anksčiausia priimtina 1582-10-15."
 
 #: src/data/casereader-filter.c:221
 msgid "At least one case in the data read had a weight value that was user-missing, system-missing, zero, or negative.  These case(s) were ignored."
-msgstr ""
+msgstr "Nuskaitytuose duomenyse bent vienas atvejis turi svorio reikšmę, kuri yra naudotojo apibrėžta kaip praleista, sisteminė praleista, nulis arba neigiamas skaičius. Šie atvejai ignoruojami."
 
 #. TRANSLATORS: this fragment will be interpolated into messages in fh_lock()
 #. that identify types of files.
@@ -133,15 +133,15 @@ msgstr "Už skaičiaus yra šiukšlių."
 
 #: src/data/data-in.c:391
 msgid "Invalid numeric syntax."
-msgstr ""
+msgstr "Neteisinga skaitmeninė sintaksė."
 
 #: src/data/data-in.c:399 src/data/data-in.c:570
 msgid "Too-large number set to system-missing."
-msgstr "Skaičius per didelis, tad jis negali būti naudojamas kaip „sisteminė praleista“ reikšmė."
+msgstr "Per didelis skaičius nustatytas kaip „sisteminė praleista“ reikšmė."
 
 #: src/data/data-in.c:405 src/data/data-in.c:576
 msgid "Too-small number set to zero."
-msgstr ""
+msgstr "Per mažas skaičius nustatytas kaip nulis."
 
 #: src/data/data-in.c:425
 msgid "All characters in field must be digits."
@@ -165,11 +165,11 @@ msgstr ""
 
 #: src/data/data-in.c:643 src/data/data-in.c:649
 msgid "Invalid syntax for P field."
-msgstr ""
+msgstr "Neteisinga P lauko sintaksė."
 
 #: src/data/data-in.c:767 src/data/data-in.c:813
 msgid "Syntax error in date field."
-msgstr "Sintaksės klaida duomenų lauke."
+msgstr "Sintaksės klaida datos lauke."
 
 #: src/data/data-in.c:782
 #, c-format
@@ -178,11 +178,11 @@ msgstr "Diena (%ld) turi būti skaičius nuo 1 iki 31."
 
 #: src/data/data-in.c:827
 msgid "Delimiter expected between fields in date."
-msgstr ""
+msgstr "Tarp datos laukų tikėtasi rasti skirtuką."
 
 #: src/data/data-in.c:901
 msgid "Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names."
-msgstr ""
+msgstr "Mėnesio formatas neatpažintas. Mėnesį galite nurodyti arabiškais arba romėniškais skaitmenimis arba angliškų mėnesių pavadinimų bent trimis pirmosiomis raidėmis."
 
 #: src/data/data-in.c:928
 #, c-format
@@ -192,7 +192,7 @@ msgstr "Metai (%ld) turi būti iš intervalo nuo 1582 iki 19999."
 #: src/data/data-in.c:939
 #, c-format
 msgid "Trailing garbage `%.*s' following date."
-msgstr ""
+msgstr "Už datos yra šiukšlė „%.*s“."
 
 #: src/data/data-in.c:953
 msgid "Julian day must have exactly three digits."
@@ -215,7 +215,7 @@ msgstr "Savaitė (%ld) turi būti iš intervalo tarp 1 ir 53."
 
 #: src/data/data-in.c:1012
 msgid "Delimiter expected between fields in time."
-msgstr ""
+msgstr "Tarp laiko laukų tikėtasi rasti skirtuką."
 
 #: src/data/data-in.c:1032
 #, c-format
@@ -224,7 +224,7 @@ msgstr "Minutė (%ld) turi būti iš intervalo nuo 0 iki 59."
 
 #: src/data/data-in.c:1070
 msgid "Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified."
-msgstr ""
+msgstr "Savaitės diena neatpažinta. Turi būti nurodytos angliško pavadinimo bent dvi pirmosios raidės (mo, tu, we, th, fr, sa, su)."
 
 #: src/data/data-in.c:1196
 #, c-format
@@ -243,11 +243,11 @@ msgstr "Mėnesio numeris %f nėra tarp 1 ir 12."
 
 #: src/data/dict-class.c:52
 msgid "ordinary"
-msgstr ""
+msgstr "paprasta"
 
 #: src/data/dict-class.c:54
 msgid "system"
-msgstr "sistema"
+msgstr "sisteminė"
 
 #: src/data/dict-class.c:56
 msgid "scratch"
@@ -255,12 +255,12 @@ msgstr ""
 
 #: src/data/dictionary.c:1007
 msgid "At least one case in the data file had a weight value that was user-missing, system-missing, zero, or negative.  These case(s) were ignored."
-msgstr ""
+msgstr "Nuskaitytoje rinkmenoje bent vienas atvejis turi svorio reikšmę, kuri yra naudotojo apibrėžta kaip praleista, sisteminė praleista, nulis arba neigiamas skaičius. Šie atvejai ignoruojami."
 
 #: src/data/dictionary.c:1333
 #, c-format
 msgid "Truncating document line to %d bytes."
-msgstr ""
+msgstr "Dokumento eilutė sutrumpinta iki %d bitų(-o)."
 
 #: src/data/file-handle-def.c:469
 #, c-format
@@ -392,14 +392,13 @@ msgid "Selected sheet or range of spreadsheet `%s' is empty."
 msgstr "Pasirinktas lakštas arba skaičialentės sritis „%s“ yra tuščia."
 
 #: src/data/identifier2.c:60
-#, fuzzy, c-format
+#, c-format
 msgid "Identifier `%s' exceeds %d-byte limit."
-msgstr "Kintamojo vardas %s viršija %d simbolių ribą."
+msgstr "Identifikatorius „%s“ viršija %d bitų ribą."
 
 #: src/data/identifier2.c:84
-#, fuzzy
 msgid "Identifier cannot be empty string."
-msgstr "Kintamojo vardas negali būti tuščia eilutė."
+msgstr "Identifikatorius negali būti tuščia eilutė."
 
 #: src/data/identifier2.c:92
 #, c-format
@@ -646,7 +645,7 @@ msgstr ""
 #: src/data/psql-reader.c:448
 #, c-format
 msgid "Unsupported OID %d.  SYSMIS values will be inserted."
-msgstr ""
+msgstr "Nepalaikomas OID %d.  Bus įterptos SYSMIS reikšmės."
 
 #: src/data/scratch-reader.c:54
 #, c-format
@@ -712,9 +711,9 @@ msgid "Unrecognized record type %d."
 msgstr ""
 
 #: src/data/sys-file-reader.c:467
-#, fuzzy, c-format
+#, c-format
 msgid "Weighting variable must be numeric (not string variable `%s')."
-msgstr "Svėrimo kintamasis turi būti skaitmeninis."
+msgstr "Svėrimo kintamasis turi būti skaitmeninis (ne teksto eilutės kintamasis „%s“)."
 
 #: src/data/sys-file-reader.c:502
 #, c-format
@@ -782,9 +781,9 @@ msgid "Invalid variable name `%s'."
 msgstr "Netinkamas kintamojo vardas „%s“."
 
 #: src/data/sys-file-reader.c:967
-#, fuzzy, c-format
+#, c-format
 msgid "Duplicate variable name `%s'."
-msgstr "Kintamojo vardas %s kartojasi."
+msgstr "Kintamojo vardas „%s“ kartojasi."
 
 #: src/data/sys-file-reader.c:1038
 msgid "Missing string continuation record."
@@ -798,7 +797,7 @@ msgstr "Nežinomas kintamojo formatas %<PRIu8>."
 #: src/data/sys-file-reader.c:1077
 #, c-format
 msgid "%s variable %s has invalid %s format %s."
-msgstr ""
+msgstr "%s kintamasis %s yra netinkamo %s formato %s."
 
 #: src/data/sys-file-reader.c:1080
 msgid "print"
@@ -810,24 +809,24 @@ msgstr "įrašyti"
 
 #: src/data/sys-file-reader.c:1084
 msgid "Suppressing further invalid format warnings."
-msgstr ""
+msgstr "Tolesni įspėjimai apie netinkamą formatą nerodomi."
 
 #: src/data/sys-file-reader.c:1136
 #, c-format
 msgid "Floating-point representation indicated by system file (%d) differs from expected (%d)."
-msgstr ""
+msgstr "Slankiojo kablelio vaizdavimas, kuris nurodytas sisteminėje rinkmenoje (%d), skiriasi nuo to, kurio tikėtasi (%d)."
 
 #: src/data/sys-file-reader.c:1150
 #, c-format
 msgid "Integer format indicated by system file (%d) differs from expected (%d)."
-msgstr ""
+msgstr "Sveikojo skaičiaus formatas, kuris nurodytas sisteminę rinkmeną (%d), skiriasi nuo to, kurio tikėtasi (%d)."
 
 #: src/data/sys-file-reader.c:1211 src/data/sys-file-reader.c:1215
 #: src/data/sys-file-reader.c:1219 tests/dissect-sysfile.c:631
 #: tests/dissect-sysfile.c:636 tests/dissect-sysfile.c:641
 #, c-format
 msgid "File specifies unexpected value %g as %s."
-msgstr ""
+msgstr "Rinkmena netikėtą reikšmę %g apibrėžia kaip %s."
 
 #: src/data/sys-file-reader.c:1252
 #, c-format
@@ -855,9 +854,9 @@ msgid "Missing new-line parsing variable names at UTF-8 offset %zu in MRSETS rec
 msgstr ""
 
 #: src/data/sys-file-reader.c:1341
-#, fuzzy, c-format
+#, c-format
 msgid "Duplicate variable name %s at UTF-8 offset %zu in MRSETS record."
-msgstr "Sisteminėje rinkmenoje kintamojo vardas „%s“ kartojasi."
+msgstr ""
 
 #: src/data/sys-file-reader.c:1355
 #, c-format
@@ -885,24 +884,24 @@ msgid "Long variable mapping from %s to invalid variable name `%s'."
 msgstr ""
 
 #: src/data/sys-file-reader.c:1559
-#, fuzzy, c-format
+#, c-format
 msgid "Duplicate long variable name `%s'."
-msgstr "Kintamojo vardas %s kartojasi."
+msgstr "Ilgas kintamojo vardas „%s“ kartojasi."
 
 #: src/data/sys-file-reader.c:1592
 #, c-format
 msgid "%s listed as string of invalid length %s in very long string record."
-msgstr ""
+msgstr "%s pateiktas kaip netinkamo ilgio %s teksto eilutė labai ilgame teksto eilutės įraše."
 
 #: src/data/sys-file-reader.c:1603
 #, c-format
 msgid "%s listed in very long string record with width %s, which requires only one segment."
-msgstr ""
+msgstr "%s pateiktas labai ilgame teksto eilutės įraše, kurio plotis %s, ir kuris reikalauja tik vieno segmento."
 
 #: src/data/sys-file-reader.c:1610
 #, c-format
 msgid "Very long string %s overflows dictionary."
-msgstr ""
+msgstr "Labai ilga teksto eilutė %s netelpa žodyne."
 
 #: src/data/sys-file-reader.c:1625
 #, c-format
@@ -940,14 +939,14 @@ msgid "Variable index %d refers to long string continuation."
 msgstr ""
 
 #: src/data/sys-file-reader.c:1769
-#, fuzzy, c-format
+#, c-format
 msgid "Error parsing attribute value %s[%d]."
-msgstr "%s: klaida nagrinėjant atributo reikšmę %s[%d]"
+msgstr "Klaida nagrinėjant atributo reikšmę %s[%d]."
 
 #: src/data/sys-file-reader.c:1783
-#, fuzzy, c-format
+#, c-format
 msgid "Attribute value %s[%d] is not quoted: %s."
-msgstr "%s: Atributo reikšmė %s[%d] be kabučių: %s"
+msgstr "Atributo reikšmė %s[%d] be kabučių: %s."
 
 #: src/data/sys-file-reader.c:1836
 msgid "Long string value label record ends unexpectedly."
@@ -975,7 +974,7 @@ msgstr ""
 
 #: src/data/sys-file-reader.c:2020
 msgid "File ends in partial case."
-msgstr ""
+msgstr "Rinkmena baigiasi nepilname atvejyje."
 
 #: src/data/sys-file-reader.c:2028
 #, c-format
@@ -984,7 +983,7 @@ msgstr "klaida bandant nuskaityti atvejį iš rinkmenos „%s“."
 
 #: src/data/sys-file-reader.c:2130
 msgid "Possible compressed data corruption: compressed spaces appear in numeric field."
-msgstr ""
+msgstr "Tikėtina, kad suglaudinti duomenys yra sugadinti: skaitmeniniuose laukuose yra suglaudintų tarpų."
 
 #: src/data/sys-file-reader.c:2184
 #, c-format
@@ -994,12 +993,12 @@ msgstr ""
 #: src/data/sys-file-reader.c:2273
 #, c-format
 msgid "Suppressed %d additional related warnings."
-msgstr ""
+msgstr "Neparodyti %d papildomi susiję įspėjimai."
 
 #: src/data/sys-file-reader.c:2318 src/data/sys-file-reader.c:2335
 #, c-format
 msgid "Dictionary record refers to unknown variable %s."
-msgstr ""
+msgstr "Žodyno įrašas nurodo į nežinomą kintamąjį %s."
 
 #: src/data/sys-file-reader.c:2397
 #, c-format
@@ -1024,12 +1023,12 @@ msgstr ""
 #: src/data/sys-file-reader.c:2465
 #, c-format
 msgid "`%s' near offset 0x%llx: "
-msgstr ""
+msgstr "„%s“ šalia 0x%llx poslinkio: "
 
 #: src/data/sys-file-reader.c:2468
 #, c-format
 msgid "`%s': "
-msgstr ""
+msgstr "„%s“: "
 
 #: src/data/sys-file-reader.c:2525 tests/dissect-sysfile.c:1356
 #, c-format
@@ -1051,9 +1050,9 @@ msgid "An I/O error occurred writing system file `%s'."
 msgstr "Įvedimo/išvedimo klaida įrašant sisteminę rinkmeną „%s“."
 
 #: src/data/variable.c:599
-#, fuzzy, c-format
+#, c-format
 msgid "Truncating variable label for variable `%s' to %d bytes."
-msgstr "Kintamojo etiketė sutrumpinama iki 255 ženklų."
+msgstr "Kintamojo „%s“ etiketė sutrumpinama iki %d baitų."
 
 #: src/language/command.c:193 src/language/expressions/parse.c:1294
 #: src/language/utilities/set.q:196
@@ -1076,74 +1075,74 @@ msgid "expecting command name"
 msgstr "tikėtasi komandos vardo"
 
 #: src/language/command.c:333
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown command `%s'."
-msgstr "Nežinoma komanda %s."
+msgstr "Nežinoma komanda „%s“."
 
 #: src/language/command.c:366
-#, fuzzy, c-format
+#, c-format
 msgid "%s is allowed only before the active dataset has been defined."
-msgstr "%s leidžiamas tik prieš nurodant veikiamąją rinkmeną."
+msgstr "%s leidžiama tik prieš nurodant veikiamąjį duomenų rinkinį."
 
 #: src/language/command.c:370
-#, fuzzy, c-format
+#, c-format
 msgid "%s is allowed only after the active dataset has been defined."
-msgstr "%s leidžiamas tik nurodžius veikiamąją rinkmeną."
+msgstr "%s leidžiama tik nurodžius veikiamąjį duomenų rinkinį."
 
 #: src/language/command.c:374
 #, c-format
 msgid "%s is allowed only inside INPUT PROGRAM."
-msgstr ""
+msgstr "%s leidžiama tik INPUT PROGRAM viduje."
 
 #: src/language/command.c:378
 #, c-format
 msgid "%s is allowed only inside FILE TYPE."
-msgstr ""
+msgstr "%s leidžiama tik FILE TYPE viduje."
 
 #: src/language/command.c:385
-#, fuzzy, c-format
+#, c-format
 msgid "%s is allowed only before the active dataset has been defined or inside INPUT PROGRAM."
-msgstr "%s leidžiamas tik prieš nurodant veikiamąją rinkmeną."
+msgstr "%s leidžiama tik prieš nurodant veikiamąjį duomenų rinkinį arba INPUT PROGRAM viduje."
 
 #: src/language/command.c:389
-#, fuzzy, c-format
+#, c-format
 msgid "%s is allowed only before the active dataset has been defined or inside FILE TYPE."
-msgstr "%s leidžiamas tik prieš nurodant veikiamąją rinkmeną."
+msgstr "%s leidžiama tik prieš nurodant veikiamąjį duomenų rinkinį arba FILE TYPE viduje."
 
 #: src/language/command.c:393
-#, fuzzy, c-format
+#, c-format
 msgid "%s is allowed only after the active dataset has been defined or inside INPUT PROGRAM."
-msgstr "%s leidžiamas tik nurodžius veikiamąją rinkmeną."
+msgstr "%s leidžiama tik nurodžius veikiamąjį duomenų rinkinį arba INPUT PROGRAM viduje."
 
 #: src/language/command.c:397
-#, fuzzy, c-format
+#, c-format
 msgid "%s is allowed only after the active dataset has been defined or inside FILE TYPE."
-msgstr "%s leidžiamas tik nurodžius veikiamąją rinkmeną."
+msgstr "%s leidžiama tik nurodžius veikiamąjį duomenų rinkinį arba FILE TYPE viduje."
 
 #: src/language/command.c:401
 #, c-format
 msgid "%s is allowed only inside INPUT PROGRAM or inside FILE TYPE."
-msgstr ""
+msgstr "%s leidžiama tik INPUT PROGRAM arba FILE TYPE viduje."
 
 #: src/language/command.c:407
-#, fuzzy, c-format
+#, c-format
 msgid "%s is allowed only after the active dataset has been defined, inside INPUT PROGRAM, or inside FILE TYPE."
-msgstr "%s leidžiamas tik nurodžius veikiamąją rinkmeną."
+msgstr "%s leidžiama tik nurodžius veikiamąjį duomenų rinkinį, INPUT PROGRAM viduje arba FILE TYPE viduje."
 
 #: src/language/command.c:412
-#, fuzzy, c-format
+#, c-format
 msgid "%s is allowed only before the active dataset has been defined, inside INPUT PROGRAM, or inside FILE TYPE."
-msgstr "%s leidžiamas tik prieš nurodant veikiamąją rinkmeną."
+msgstr "%s leidžiama tik prieš nurodant veikiamąjį duomenų rinkinį, INPUT PROGRAM viduje arba FILE TYPE viduje."
 
 #: src/language/command.c:430 src/language/command.c:433
 #, c-format
 msgid "%s is not allowed inside %s."
-msgstr ""
+msgstr "%s neleidžiama %s viduje."
 
 #: src/language/command.c:515 src/language/utilities/host.c:130
 #: src/language/utilities/permissions.c:104
 msgid "This command not allowed when the SAFER option is set."
-msgstr ""
+msgstr "Ši komanda neleidžiama, jei naudojama parinktis SAFER."
 
 #: src/language/command.c:531
 #, c-format
@@ -1161,9 +1160,8 @@ msgid "missing required subcommand %s"
 msgstr "trūksta reikalingo pokomandžio %s"
 
 #: src/language/lexer/lexer.c:302
-#, fuzzy
 msgid "Syntax error at end of input"
-msgstr "Sintaksės klaida rinkmenos pabaigoje"
+msgstr "Sintaksės klaida įvedimo pabaigoje"
 
 #: src/language/lexer/lexer.c:323 src/language/xforms/select-if.c:60
 #: src/language/stats/autorecode.c:162 src/language/stats/npar.c:414
@@ -1202,9 +1200,8 @@ msgid "Syntax error at `%s'"
 msgstr "Sintaksės klaida ties %s."
 
 #: src/language/lexer/lexer.c:1199
-#, fuzzy
 msgid "Syntax error"
-msgstr "sintaksės klaida"
+msgstr "Sintaksės klaida"
 
 #: src/language/lexer/lexer.c:1358
 #, c-format
@@ -1212,19 +1209,19 @@ msgid "String of hex digits has %d characters, which is not a multiple of 2"
 msgstr ""
 
 #: src/language/lexer/lexer.c:1365
-#, fuzzy, c-format
+#, c-format
 msgid "`%c' is not a valid hex digit"
-msgstr "„%c“ nėra tinkamas %s skaitmuo."
+msgstr "„%c“ nėra tinkamas šešioliktainis skaitmuo"
 
 #: src/language/lexer/lexer.c:1370
 #, c-format
 msgid "Unicode string contains %d bytes, which is not in the valid range of 1 to 8 bytes"
-msgstr ""
+msgstr "Unikodo eilutė turi %d bitus, bet tai nepatenka į tinkamą intervalą nuo 1 iki 8 bitų"
 
 #: src/language/lexer/lexer.c:1376
-#, fuzzy, c-format
+#, c-format
 msgid "U+%04X is not a valid Unicode code point"
-msgstr "„%c“ nėra tinkamas %s skaitmuo."
+msgstr "U+%04X nėra tinkamas unikodo kodo taškas"
 
 #: src/language/lexer/lexer.c:1381
 msgid "Unterminated string constant"
@@ -1233,17 +1230,16 @@ msgstr ""
 #: src/language/lexer/lexer.c:1385
 #, c-format
 msgid "Missing exponent following `%s'"
-msgstr ""
+msgstr "Trūksta eksponentės po „%s“"
 
 #: src/language/lexer/lexer.c:1390
-#, fuzzy
 msgid "Unexpected `.' in middle of command"
-msgstr "tikėtasi komandos pabaigos"
+msgstr "Komandos viduryje netikėtai rastas „.“"
 
 #: src/language/lexer/lexer.c:1396
-#, fuzzy, c-format
+#, c-format
 msgid "Bad character %s in input"
-msgstr "Įvestyje yra neleistinas rašmuo: „%s“."
+msgstr "Įvestyje yra neleistinas rašmuo %s"
 
 #: src/language/lexer/lexer.c:1490
 #, c-format
@@ -1251,14 +1247,14 @@ msgid "Opening `%s': %s."
 msgstr "Atveriama „%s“: %s."
 
 #: src/language/lexer/lexer.c:1520
-#, fuzzy, c-format
+#, c-format
 msgid "Error reading `%s': %s."
-msgstr "Klaida bandant nuskaityti „%s“: %s"
+msgstr "Klaida skaitant „%s“: %s."
 
 #: src/language/lexer/lexer.c:1534
-#, fuzzy, c-format
+#, c-format
 msgid "Error closing `%s': %s."
-msgstr "Nepavyko pašalinti „%s“: %s."
+msgstr "Klaida užveriant „%s“: %s."
 
 #: src/language/lexer/format-parser.c:79
 msgid "expecting valid format specifier"
@@ -1283,15 +1279,15 @@ msgstr ""
 #: src/language/lexer/value-parser.c:73
 #, c-format
 msgid "Ends of range are equal (%g)."
-msgstr ""
+msgstr "Rėžio galai yra vienodi (%g)."
 
 #: src/language/lexer/value-parser.c:81
 msgid "LO or LOWEST must be part of a range."
-msgstr ""
+msgstr "LO arba LOWEST turi būti rėžio dalis."
 
 #: src/language/lexer/value-parser.c:117
 msgid "System-missing value is not valid here."
-msgstr "„Sisteminė praleista“ reikšmė čia negalioja."
+msgstr "Sisteminė praleista reikšmė čia negalioja."
 
 #: src/language/lexer/value-parser.c:125
 msgid "expecting number or data string"
@@ -1488,9 +1484,9 @@ msgid "Ranges may only have integer bounds."
 msgstr ""
 
 #: src/language/control/repeat.c:380
-#, fuzzy, c-format
+#, c-format
 msgid "%ld TO %ld is an invalid range."
-msgstr "Netinkamas rėžis %g TO %g."
+msgstr "Netinkamas rėžis %ld TO %ld."
 
 #: src/language/control/repeat.c:414
 msgid "String expected."
@@ -1913,9 +1909,8 @@ msgid "Position"
 msgstr "Pozicija"
 
 #: src/language/dictionary/sys-file-info.c:198
-#, fuzzy
 msgid "The active dataset does not have a file label."
-msgstr "Veikiamoji rinkmena neturi rinkmenos etiketės."
+msgstr "Veikiamasis duomenų rinkinys neturi rinkmenos etiketės."
 
 #: src/language/dictionary/sys-file-info.c:201
 msgid "File label:"
@@ -1934,9 +1929,8 @@ msgid "The active dataset dictionary does not contain any documents."
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:306
-#, fuzzy
 msgid "Documents in the active dataset:"
-msgstr "Veikiamosios rinkmenos dokumentai:"
+msgstr "Veikiamojo duomenų rinkinio dokumentai:"
 
 #: src/language/dictionary/sys-file-info.c:422
 msgid "Attribute"
@@ -2019,9 +2013,9 @@ msgid "Print Format"
 msgstr "Spausdinimo formatas"
 
 #: src/language/dictionary/value-labels.c:154
-#, fuzzy, c-format
+#, c-format
 msgid "Truncating value label to %d bytes."
-msgstr "Reikmės etiketė sutrumpinama iki 60 ženklų."
+msgstr "Reikmės etiketė sutrumpinama iki %d bitų."
 
 #: src/language/dictionary/vector.c:65
 #, c-format
@@ -2108,9 +2102,9 @@ msgid "Can't find `%s' in include file search path."
 msgstr ""
 
 #: src/language/utilities/include.c:107
-#, fuzzy, c-format
+#, c-format
 msgid "expecting %s, %s, or %s after %s"
-msgstr "tikėtasi %s arba %s po %s"
+msgstr "tikėtasi %s, %s arba %s po %s"
 
 #: src/language/utilities/include.c:125 src/language/utilities/include.c:143
 #, c-format
@@ -2138,7 +2132,7 @@ msgstr "Reikšmių suma"
 
 #: src/language/stats/aggregate.c:96
 msgid "Mean average"
-msgstr ""
+msgstr "Bendras vidurkis"
 
 #: src/language/stats/aggregate.c:97
 msgid "Median average"
@@ -2380,21 +2374,21 @@ msgstr "Asimt. p-reikšmė"
 
 #: src/language/stats/cochran.c:109
 msgid "More than two values encountered.  Cochran Q test will not be run."
-msgstr ""
+msgstr "Turimi daugiau nei du kintamieji. Cochran Q nebus skaičiuojamas."
 
 #: src/language/stats/cochran.c:172
 #, c-format
 msgid "Success (%g)"
-msgstr ""
+msgstr "Sėkmė (%g)"
 
 #: src/language/stats/cochran.c:173
 #, c-format
 msgid "Failure (%g)"
-msgstr ""
+msgstr "Nesėkmė (%g)"
 
 #: src/language/stats/cochran.c:214
 msgid "Cochran's Q"
-msgstr ""
+msgstr "Cochran Q"
 
 #: src/language/stats/correlations.c:97 src/language/stats/factor.c:1724
 #: src/language/stats/npar-summary.c:109
@@ -2683,7 +2677,7 @@ msgstr "klaida skaitant FLIP rinkmeną: %s."
 
 #: src/language/stats/flip.c:348
 msgid "Unexpected end of file reading FLIP file."
-msgstr ""
+msgstr "Netikėta skaitomos FLIP rinkmenos pabaiga."
 
 #: src/language/stats/flip.c:364
 #, c-format
@@ -2720,9 +2714,8 @@ msgid "Mean Rank"
 msgstr "Vidutinis rangas"
 
 #: src/language/stats/friedman.c:279
-#, fuzzy
 msgid "Kendall's W"
-msgstr "Tau-B (Kendall)"
+msgstr "Kendalo W"
 
 #: src/language/stats/mann-whitney.c:202 src/language/stats/wilcoxon.c:240
 msgid "Sum of Ranks"
@@ -2730,11 +2723,11 @@ msgstr "Rangų suma"
 
 #: src/language/stats/mann-whitney.c:264
 msgid "Mann-Whitney U"
-msgstr ""
+msgstr "Mann-Whitney U"
 
 #: src/language/stats/mann-whitney.c:265
 msgid "Wilcoxon W"
-msgstr ""
+msgstr "Wilcoxon W"
 
 #: src/language/stats/mann-whitney.c:266 src/language/stats/runs.c:396
 #: src/language/stats/wilcoxon.c:317
@@ -2767,7 +2760,7 @@ msgstr "NPAR pokomandis dar nerealizuotas."
 
 #: src/language/stats/npar.c:601
 msgid "Expecting MEAN, MEDIAN, MODE or number"
-msgstr ""
+msgstr "Tikimasi MEAN, MEDIAN, MODE arba skaičiaus"
 
 #: src/language/stats/npar.c:751
 #, c-format
@@ -2914,7 +2907,6 @@ msgid "Does not assume equal"
 msgstr "Nemanant, kad lygios"
 
 #: src/language/stats/reliability.c:141
-#, fuzzy
 msgid "Reliability on a single variable is not useful."
 msgstr "Klausimynų patikimumo skaičiavimas remiantis vienu kintamuoju nėra naudingas."
 
@@ -3086,49 +3078,40 @@ msgid "Multiple modes exist for varible `%s'.  Using %g as the threshold value."
 msgstr ""
 
 #: src/language/stats/runs.c:322
-#, fuzzy
 msgid "Runs Test"
-msgstr "Kontrastų kriterijus"
+msgstr "Serijų kriterijus"
 
 #: src/language/stats/runs.c:367
-#, fuzzy
 msgid "Test Value"
-msgstr "Kriterijaus reikšmė: "
+msgstr "Kriterijaus reikšmė"
 
 #: src/language/stats/runs.c:371
-#, fuzzy
 msgid "Test Value (mode)"
-msgstr "Kriterijaus reikšmė: "
+msgstr "Kriterijaus reikšmė (moda)"
 
 #: src/language/stats/runs.c:375
-#, fuzzy
 msgid "Test Value (mean)"
-msgstr "Kriterijaus reikšmė: "
+msgstr "Kriterijaus reikšmė (vidurkis)"
 
 #: src/language/stats/runs.c:379
-#, fuzzy
 msgid "Test Value (median)"
-msgstr "Kriterijaus reikšmė: "
+msgstr "Kriterijaus reikšmė (mediana)"
 
 #: src/language/stats/runs.c:384
-#, fuzzy
 msgid "Cases < Test Value"
-msgstr "Kriterijaus reikšmė: "
+msgstr "Atvejai < kriterijaus reikšmė"
 
 #: src/language/stats/runs.c:387
-#, fuzzy
 msgid "Cases >= Test Value"
-msgstr "Kriterijaus reikšmė: "
+msgstr "Atvejai >= kriterijaus reikšmė"
 
 #: src/language/stats/runs.c:390
-#, fuzzy
 msgid "Total Cases"
-msgstr "Rikiuoti atvejus"
+msgstr "Iš viso atvejų"
 
 #: src/language/stats/runs.c:393
-#, fuzzy
 msgid "Number of Runs"
-msgstr "Atvejų skaičius"
+msgstr "Serijų skaičius"
 
 #: src/language/stats/sign.c:92
 msgid "Negative Differences"
@@ -3172,13 +3155,12 @@ msgid "Positive Ranks"
 msgstr "Teigiami rangai"
 
 #: src/language/data-io/combine-files.c:211
-#, fuzzy
 msgid "Cannot specify the active dataset since none has been defined."
-msgstr "%s leidžiamas tik prieš nurodant veikiamąją rinkmeną."
+msgstr "Nepavyksta nurodyti aktyvaus duomenų rinkinio, nes toks nebuvo apibrėžtas."
 
 #: src/language/data-io/combine-files.c:217
 msgid "This command may not be used after TEMPORARY when the active dataset is an input source.  Temporary transformations will be made permanent."
-msgstr ""
+msgstr "Ši komanda negali būti naudojama po TEMPORARY, jei veikiamasis duomenų rinkinys yra įvedimo šaltinis. Laikinos transformacijos bus nuolat."
 
 #: src/language/data-io/combine-files.c:251
 msgid "Multiple IN subcommands for a single FILE or TABLE."
@@ -3187,22 +3169,22 @@ msgstr ""
 #: src/language/data-io/combine-files.c:303
 #, c-format
 msgid "File %s lacks BY variable %s."
-msgstr ""
+msgstr "Rinkmenai %s trūksta BY kintamojo %s."
 
 #: src/language/data-io/combine-files.c:306
 #, c-format
 msgid "Active dataset lacks BY variable %s."
-msgstr ""
+msgstr "Aktyviam duomenų rinkiniui trūksta BY kintamojo %s."
 
 #: src/language/data-io/combine-files.c:378
 msgid "The BY subcommand is required."
-msgstr ""
+msgstr "Reikalingas pokomandis BY."
 
 #: src/language/data-io/combine-files.c:383
 #: src/language/data-io/combine-files.c:388
 #, c-format
 msgid "BY is required when %s is specified."
-msgstr ""
+msgstr "Kai nurodomas %s, reikalinga BY komanda."
 
 #: src/language/data-io/combine-files.c:521
 msgid "Combining files with incompatible encodings. String data may not be represented correctly."
@@ -3211,32 +3193,32 @@ msgstr ""
 #: src/language/data-io/combine-files.c:563
 #, c-format
 msgid "Variable %s in file %s has different type or width from the same variable in earlier file."
-msgstr ""
+msgstr "Kintamasis %s rinkmenoje %s yra kitokio tipo arba kitokio ilgio negu tas pats kintamasis ankstesnėje rinkmenoje."
 
 #: src/language/data-io/combine-files.c:569
 #, c-format
 msgid "In file %s, %s is numeric."
-msgstr ""
+msgstr "%s rinkmenoje: %s yra skaitmeninis."
 
 #: src/language/data-io/combine-files.c:572
 #, c-format
 msgid "In file %s, %s is a string variable with width %d."
-msgstr ""
+msgstr "%s rinkmenoje: %s yra teksto eilutės kintamasis, kurio plotis %d."
 
 #: src/language/data-io/combine-files.c:577
 #, c-format
 msgid "In an earlier file, %s was numeric."
-msgstr ""
+msgstr "Ankstesnėje rinkmenoje: %s buvo skaitmeninis."
 
 #: src/language/data-io/combine-files.c:580
 #, c-format
 msgid "In an earlier file, %s was a string variable with width %d."
-msgstr ""
+msgstr "Ankstesnėje rinkmenoje: %s buvo teksto eilutės kintamasis, kurio plotis %d."
 
 #: src/language/data-io/combine-files.c:620
 #, c-format
 msgid "Variable name %s specified on %s subcommand duplicates an existing variable name."
-msgstr ""
+msgstr "Kintamojo vardas %s, kuris nurodytas %s pokomandyje, dubliuoja esamą kintamojo vardą."
 
 #: src/language/data-io/combine-files.c:782
 #, c-format
@@ -3245,7 +3227,7 @@ msgstr ""
 
 #: src/language/data-io/data-list.c:137
 msgid "The END subcommand may only be used within INPUT PROGRAM."
-msgstr ""
+msgstr "Pokomandis END gali būti naudojamas tik INPUT PROGRAM viduje."
 
 #: src/language/data-io/data-list.c:143
 msgid "The END subcommand may only be specified once."
@@ -3261,7 +3243,7 @@ msgstr ""
 
 #: src/language/data-io/data-list.c:255
 msgid "The END subcommand may be used only with DATA LIST FIXED."
-msgstr ""
+msgstr "Pokomandis END gali būti naudojamas tik su DATA LIST FIXED."
 
 #: src/language/data-io/data-list.c:270
 msgid "At least one variable must be specified."
@@ -3271,7 +3253,7 @@ msgstr "Turi būti nurodytas bent vienas kintamasis.q"
 #: src/language/data-io/get-data.c:540
 #, c-format
 msgid "%s is a duplicate variable name."
-msgstr ""
+msgstr "Kintamojo vardas „%s“ kartojasi."
 
 #: src/language/data-io/data-list.c:376
 #, c-format
@@ -3281,7 +3263,7 @@ msgstr "Toks kintamasis %s jau yra kitokio tipo."
 #: src/language/data-io/data-list.c:383
 #, c-format
 msgid "There is already a string variable %s of a different width."
-msgstr ""
+msgstr "Toks teksto eilutės kintamasis %s jau yra, bet kitokio pločio."
 
 #: src/language/data-io/data-list.c:391
 #, c-format
@@ -3296,7 +3278,7 @@ msgstr ""
 #: src/language/data-io/data-parser.c:516
 #, c-format
 msgid "Data for variable %s is not valid as format %s: %s"
-msgstr ""
+msgstr "Kintamojo %s duomenys neatitinka %s formato: %s"
 
 #: src/language/data-io/data-parser.c:545
 #, c-format
@@ -3375,7 +3357,7 @@ msgstr "Netikėta skaitomos rinkmenos %s pabaiga."
 #: src/language/data-io/data-reader.c:231
 #, c-format
 msgid "Unexpected end of file in partial record reading %s."
-msgstr ""
+msgstr "Netikėta rinkmenos pabaiga daliniame įraše skaitant %s."
 
 #: src/language/data-io/data-reader.c:291
 #, c-format
@@ -3403,7 +3385,7 @@ msgstr ""
 
 #: src/language/data-io/data-reader.c:522
 msgid "Attempt to read beyond END DATA."
-msgstr ""
+msgstr "Bandoma skaityti už END DATA."
 
 #: src/language/data-io/data-reader.c:706
 msgid "This command is not valid here since the current input program does not access the inline file."
@@ -3420,9 +3402,9 @@ msgid "I/O error occurred writing data file `%s'."
 msgstr "Įvedimo/išvedimo klaida įrašant duomenų rinkmeną „%s“."
 
 #: src/language/data-io/get-data.c:64
-#, fuzzy, c-format
+#, c-format
 msgid "Unsupported TYPE %s."
-msgstr "nepalaikomas TYPE (tipas) %s"
+msgstr "Nepalaikomas TYPE (tipas) %s."
 
 #: src/language/data-io/get-data.c:268
 #, c-format
@@ -3803,7 +3785,7 @@ msgstr "ascii: užveriama rezultatų rinkmena „%s“"
 #: src/output/ascii.c:506
 #, c-format
 msgid "See %s for a chart."
-msgstr ""
+msgstr "Diagrama: %s."
 
 #: src/output/ascii.c:833
 #, c-format
@@ -3825,7 +3807,7 @@ msgstr "klaida bandant atverti išvesties rinkmeną „%s“"
 #: src/output/driver.c:283
 #, c-format
 msgid "%s is not a valid device type (the choices are `terminal' and `listing')"
-msgstr ""
+msgstr "%s nėra tinkamas įrenginio tipas (tinka „terminal“ ir „listing“)"
 
 #: src/output/driver.c:296
 #, c-format
@@ -3873,47 +3855,47 @@ msgstr "klaida bandant nuskaityti rinkmeną „%s“"
 #: src/output/measure.c:276
 #, c-format
 msgid "paper size file `%s' does not state a paper size"
-msgstr ""
+msgstr "popieriaus dydžio rinkmena „%s“ neatitinka popieriaus dydžio"
 
 #: src/output/options.c:113
 #, c-format
 msgid "%s: `%s' is `%s' but a Boolean value is required"
-msgstr ""
+msgstr "%s: „%s“ yra „%s“, reikia loginės reikšmės"
 
 #: src/output/options.c:188
 #, c-format
 msgid "%s: `%s' is `%s' but one of the following is required: %s"
-msgstr ""
+msgstr "%s: „%s“ yra „%s“, bet reikia vieno iš šių: %s"
 
 #: src/output/options.c:232
 #, c-format
 msgid "%s: `%s' is `%s' but a nonnegative integer is required"
-msgstr ""
+msgstr "%s: „%s“ yra „%s“, bet reikia neneigiamo sveikojo skaičiaus"
 
 #: src/output/options.c:236
 #, c-format
 msgid "%s: `%s' is `%s' but a positive integer is required"
-msgstr ""
+msgstr "%s: „%s“ yra „%s“, bet reikia teigiamo sveikojo skaičiaus"
 
 #: src/output/options.c:239
 #, c-format
 msgid "%s: `%s' is `%s' but an integer is required"
-msgstr ""
+msgstr "%s: „%s“ yra „%s“, bet reikia sveikojo skaičiaus"
 
 #: src/output/options.c:242
 #, c-format
 msgid "%s: `%s' is `%s' but an integer greater than %d is required"
-msgstr ""
+msgstr "%s: „%s“ yra „%s“, bet reikia sveikojo skaičiaus, didesnio už %d"
 
 #: src/output/options.c:247
 #, c-format
 msgid "%s: `%s' is `%s'  but an integer between %d and %d is required"
-msgstr ""
+msgstr "%s: „%s“ yra „%s“, bet reikia sveikojo skaičiaus iš intervalo nuo %d iki %d"
 
 #: src/output/options.c:326
 #, c-format
 msgid "%s: `%s' is `%s' but a file name that contains `#' is required."
-msgstr ""
+msgstr "%s: „%s“ yra „%s“, bet reikia rinkmenos pavadinimo, turinčio „#“."
 
 #: src/output/tab.c:207
 #, c-format
@@ -4887,7 +4869,7 @@ msgid "LENGTH must be at least 1."
 msgstr "LENGTH (ilgis) turi būti bent 1."
 
 #: src/language/utilities/set.q:388
-#, fuzzy, c-format
+#, c-format
 msgid "%s is not a recognized encoding or locale name"
 msgstr "%s neatpažinta kaip koduotė ar lokalė"
 
@@ -4981,7 +4963,7 @@ msgstr "Procentai"
 #: src/language/stats/crosstabs.q:936
 #, c-format
 msgid "Crosstabulation %s contained no non-missing cases."
-msgstr ""
+msgstr "Požymių dažnių lentelėje „%s“ visi atvejai turi praleistas reikšmes."
 
 #: src/language/stats/crosstabs.q:1134
 msgid "count"
@@ -5109,15 +5091,15 @@ msgstr "Kontingencijos koeficientas"
 
 #: src/language/stats/crosstabs.q:1809
 msgid "Kendall's tau-b"
-msgstr "Tau-B (Kendall)"
+msgstr "Kendalo tau-b"
 
 #: src/language/stats/crosstabs.q:1810
 msgid "Kendall's tau-c"
-msgstr "Tau-C (Kendall)"
+msgstr "Kendalo tau-c"
 
 #: src/language/stats/crosstabs.q:1812
 msgid "Spearman Correlation"
-msgstr "Koreliacija (Spearman)"
+msgstr "Spirmano koreliacija"
 
 #: src/language/stats/crosstabs.q:1813
 msgid "Pearson's R"
@@ -5157,7 +5139,7 @@ msgstr "Neapibrėžtumo koeficientas"
 
 #: src/language/stats/crosstabs.q:1947
 msgid "Somers' d"
-msgstr "d (Somers)"
+msgstr "Somerso d"
 
 #: src/language/stats/crosstabs.q:1953
 msgid "Symmetric"
@@ -5683,15 +5665,15 @@ msgstr "Dviejų kintamųjų koreliacijos"
 
 #: src/ui/gui/correlation.ui:108
 msgid "Pearso_n"
-msgstr "Pearso_n"
+msgstr "Pirso_no"
 
 #: src/ui/gui/correlation.ui:123
 msgid "_Kendall's tau-b"
-msgstr "Tau-B (_Kendall)"
+msgstr "_Kendalo tau-b"
 
 #: src/ui/gui/correlation.ui:138
 msgid "_Spearman"
-msgstr "_Spearman"
+msgstr "_Spirmano"
 
 #: src/ui/gui/correlation.ui:158
 msgid "Correlation Coefficients"
@@ -5870,7 +5852,7 @@ msgstr "Atvejai neįtraukiami visose analizėse"
 
 #: src/ui/gui/examine.ui:419
 msgid "Exclude cases pairwise"
-msgstr ""
+msgstr "Atvejai neįtraukiami porų analizėse"
 
 #: src/ui/gui/examine.ui:434
 msgid "Repeat values"
@@ -5930,12 +5912,10 @@ msgid "Covariance matrix"
 msgstr "Kovariacijų matrica"
 
 #: src/ui/gui/factor.ui:308
-#, fuzzy
 msgid "Analyze"
-msgstr "_Analizuoti"
+msgstr "Analizuoti"
 
 #: src/ui/gui/factor.ui:332
-#, fuzzy
 msgid "Unrotated factor solution"
 msgstr "Faktorių išskyrimas be sukimo"
 
@@ -6131,30 +6111,27 @@ msgstr "<b>Skritulinė diagrama</b>"
 
 #: src/ui/gui/k-related.ui:7
 msgid "Tests for Several Related Samples"
-msgstr ""
+msgstr "Kriterijai kelioms priklausomoms (porinėms) imtims"
 
 #: src/ui/gui/k-related.ui:94
-#, fuzzy
 msgid "_Test Variables:"
-msgstr "_Kriterijaus kintamasis:"
+msgstr "_Kriterijaus kintamieji:"
 
 #: src/ui/gui/k-related.ui:122
 msgid "_Friedman"
-msgstr ""
+msgstr "_Friedman"
 
 #: src/ui/gui/k-related.ui:136
-#, fuzzy
 msgid "_Kendall's W"
-msgstr "Tau-B (_Kendall)"
+msgstr "_Kendalo W"
 
 #: src/ui/gui/k-related.ui:150
 msgid "_Cochran's Q"
-msgstr ""
+msgstr "_Cochran Q"
 
 #: src/ui/gui/k-related.ui:169
-#, fuzzy
 msgid "Test Type"
-msgstr "Kriter. prop."
+msgstr "Kriterijaus tipas"
 
 #: src/ui/gui/oneway.ui:8
 msgid "One-Way ANOVA"
@@ -6450,7 +6427,7 @@ msgstr "Konvertuoti skaitmenines eilutes į skaičius (`5' -> 5)"
 
 #: src/ui/gui/recode.ui:614
 msgid "Output variables are strings"
-msgstr "Išvedami kintamieji yra teksto eilutės "
+msgstr "Išvedami kintamieji yra teksto eilutės. "
 
 #: src/ui/gui/recode.ui:629
 msgid "Width: "
@@ -6968,9 +6945,8 @@ msgid "_Sort Cases"
 msgstr "_Rikiuoti atvejus"
 
 #: src/ui/gui/data-editor.ui:234
-#, fuzzy
 msgid "Sort cases in the active dataset"
-msgstr "Rikiuoti atvejus veikiamojoje rinkmenoje"
+msgstr "Rikiuoti veikiamojo duomenų rinkinio atvejus"
 
 #: src/ui/gui/data-editor.ui:241
 msgid "_Transpose"
@@ -6989,9 +6965,8 @@ msgid "S_plit File"
 msgstr "_Skaidyti rinkmeną"
 
 #: src/ui/gui/data-editor.ui:256
-#, fuzzy
 msgid "Split the active dataset"
-msgstr "Skaidyti veikiamąją rinkmeną"
+msgstr "Skaidyti veikiamąjį duomenų rinkinį"
 
 #: src/ui/gui/data-editor.ui:263
 msgid "Select _Cases"
@@ -7099,7 +7074,7 @@ msgstr "_Binominis"
 
 #: src/ui/gui/data-editor.ui:422
 msgid "K Related _Samples"
-msgstr ""
+msgstr "_K priklausomų imčių"
 
 #: src/ui/gui/data-editor.ui:428
 msgid "ROC Cur_ve..."
