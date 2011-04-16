@@ -301,9 +301,9 @@ AT_DATA([input], [2 2
 2*1 hij\nklm\nnop
 ])
 AT_CHECK([render-test input], [0], [dnl
-abhij
-cdklm
-efnop
+ab hij
+cd klm
+ef nop
 ])
 AT_CLEANUP
 

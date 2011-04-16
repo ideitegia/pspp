@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -455,7 +455,7 @@ measure_rule (const struct render_params *params, const struct table *table,
   enum table_axis b = !a;
   unsigned int rules;
   int d[TABLE_N_AXES];
-  int width, i;
+  int width;
 
   /* Determine all types of rules that are present, as a bitmap in 'rules'
      where rule type 't' is present if bit 2**t is set. */
@@ -466,10 +466,11 @@ measure_rule (const struct render_params *params, const struct table *table,
 
   /* Calculate maximum width of the rules that are present. */
   width = 0;
-  for (i = 0; i < N_LINES; i++)
-    if (rules & (1u << i))
-      width = MAX (width, params->line_widths[a][rule_to_render_type (i)]);
-
+  if (rules & (1u << TAL_1)
+      || (z > 0 && z < table->n[a] && rules & (1u << TAL_GAP)))
+    width = params->line_widths[a][RENDER_LINE_SINGLE];
+  if (rules & (1u << TAL_2))
+    width = MAX (width, params->line_widths[a][RENDER_LINE_DOUBLE]);
   return width;
 }
 
