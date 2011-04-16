@@ -34,7 +34,7 @@ PSPP_PERL
 
 dnl Disable automatic po/ support, because PSPP provides its own po/ support.
 AC_PROVIDE([AM_PO_SUBDIRS])
-AM_GNU_GETTEXT_NEED([need-ngettext])
+AM_GNU_GETTEXT([external], [need-ngettext])
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
