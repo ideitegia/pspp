@@ -1751,7 +1751,7 @@ display_chisq (struct pivot_table *pt, struct tab_table *chisq,
 
   calc_chisq (pt, chisq_v, df, &fisher1, &fisher2);
 
-  tab_offset (chisq, pt->n_vars - 2, -1);
+  tab_offset (chisq, pt->n_consts + pt->n_vars - 2, -1);
 
   for (i = 0; i < N_CHISQ; i++)
     {
@@ -1828,7 +1828,7 @@ display_symmetric (struct crosstabs_proc *proc, struct pivot_table *pt,
                        somers_d_v, somers_d_ase, somers_d_t))
     return;
 
-  tab_offset (sym, pt->n_vars - 2, -1);
+  tab_offset (sym, pt->n_consts + pt->n_vars - 2, -1);
 
   for (i = 0; i < N_SYMMETRIC; i++)
     {
@@ -1873,7 +1873,7 @@ display_risk (struct pivot_table *pt, struct tab_table *risk)
   if (!calc_risk (pt, risk_v, upper, lower, c))
     return;
 
-  tab_offset (risk, pt->n_vars - 2, -1);
+  tab_offset (risk, pt->n_consts + pt->n_vars - 2, -1);
 
   for (i = 0; i < 3; i++)
     {
@@ -1998,7 +1998,7 @@ display_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
   if (!calc_directional (proc, pt, direct_v, direct_ase, direct_t))
     return;
 
-  tab_offset (direct, pt->n_vars - 2, -1);
+  tab_offset (direct, pt->n_consts + pt->n_vars - 2, -1);
 
   for (i = 0; i < N_DIRECTIONAL; i++)
     {
