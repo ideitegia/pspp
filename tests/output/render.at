@@ -1779,3 +1779,34 @@ excluded.|
 ---------+
 ])
 AT_CLEANUP
+
+AT_BANNER([output rendering -- problematic procedures])
+
+dnl LIST used to put columns right up next to each other without any
+dnl intervening space, so this checks for regression.
+AT_SETUP([LIST puts space between columns])
+AT_KEYWORDS([render rendering])
+AT_DATA([list.sps], [dnl
+DATA LIST LIST NOTABLE /x y z (F1.0).
+BEGIN DATA.
+1 2 3
+4 5 6
+7 8 9
+END DATA.
+LIST.
+])
+AT_CHECK([pspp list.sps], [0], [dnl
+DATA LIST
+
+BEGIN DATA
+
+LIST
+
+Data List
+x y z
+-----
+1 2 3
+4 5 6
+7 8 9
+])
+AT_CLEANUP
