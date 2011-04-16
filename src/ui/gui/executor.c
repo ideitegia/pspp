@@ -90,9 +90,6 @@ execute_syntax (struct lex_reader *lex_reader)
 	break;
     }
 
-  lex_destroy (lexer);
-  psppire_set_lexer (NULL);
-
   proc_execute (the_dataset);
 
   psppire_dict_replace_dictionary (the_data_store->dict,
@@ -101,6 +98,13 @@ execute_syntax (struct lex_reader *lex_reader)
   reader = dataset_steal_source (the_dataset);
   if (!lazy_casereader_destroy (reader, lazy_serial))
     psppire_data_store_set_reader (the_data_store, reader);
+
+  /* Destroy the lexer only after obtaining the dataset, because the dataset
+     might depend on the lexer, if the casereader specifies inline data.  (In
+     such a case then we'll always get an error message--the inline data is
+     missing, otherwise it would have been parsed in the loop above.) */
+  lex_destroy (lexer);
+  psppire_set_lexer (NULL);
 
   output_flush ();
 
