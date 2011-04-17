@@ -570,18 +570,11 @@ static const struct output_driver_class ascii_driver_class =
     ascii_flush,
   };
 
-enum wrap_mode
-  {
-    WRAP_WORD,
-    WRAP_CHAR,
-    WRAP_WORD_CHAR
-  };
-
 static void ascii_expand_line (struct ascii_driver *, int y, int length);
 static void ascii_layout_cell (struct ascii_driver *,
                                const struct table_cell *,
                                int bb[TABLE_N_AXES][2],
-                               int clip[TABLE_N_AXES][2], enum wrap_mode wrap,
+                               int clip[TABLE_N_AXES][2],
                                int *width, int *height);
 
 static void
@@ -624,12 +617,12 @@ ascii_measure_cell_width (void *a_, const struct table_cell *cell,
   bb[V][0] = 0;
   bb[V][1] = INT_MAX;
   clip[H][0] = clip[H][1] = clip[V][0] = clip[V][1] = 0;
-  ascii_layout_cell (a, cell, bb, clip, WRAP_WORD, max_width, &h);
+  ascii_layout_cell (a, cell, bb, clip, max_width, &h);
 
   if (strchr (cell->contents, ' '))
     {
       bb[H][1] = 1;
-      ascii_layout_cell (a, cell, bb, clip, WRAP_WORD, min_width, &h);
+      ascii_layout_cell (a, cell, bb, clip, min_width, &h);
     }
   else
     *min_width = *max_width;
@@ -648,7 +641,7 @@ ascii_measure_cell_height (void *a_, const struct table_cell *cell, int width)
   bb[V][0] = 0;
   bb[V][1] = INT_MAX;
   clip[H][0] = clip[H][1] = clip[V][0] = clip[V][1] = 0;
-  ascii_layout_cell (a, cell, bb, clip, WRAP_WORD, &w, &h);
+  ascii_layout_cell (a, cell, bb, clip, &w, &h);
   return h;
 }
 
@@ -659,7 +652,7 @@ ascii_draw_cell (void *a_, const struct table_cell *cell,
   struct ascii_driver *a = a_;
   int w, h;
 
-  ascii_layout_cell (a, cell, bb, clip, WRAP_WORD, &w, &h);
+  ascii_layout_cell (a, cell, bb, clip, &w, &h);
 }
 
 /* Ensures that at least the first LENGTH characters of line Y in
@@ -738,7 +731,7 @@ text_draw (struct ascii_driver *a, const struct table_cell *cell,
 static void
 ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
                    int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2],
-                   enum wrap_mode wrap, int *width, int *height)
+                   int *width, int *height)
 {
   size_t length = strlen (cell->contents);
   int y, pos;
@@ -758,14 +751,14 @@ ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
         line_len = new_line - line;
 
       /* Word wrap. */
-      if (pos + line_len < length && wrap != WRAP_CHAR)
+      if (pos + line_len < length)
         {
           size_t space_len = line_len;
           while (space_len > 0 && !isspace ((unsigned char) line[space_len]))
             space_len--;
           if (space_len > 0)
             line_len = space_len;
-          else if (wrap == WRAP_WORD)
+          else
             {
               while (pos + line_len < length
                      && !isspace ((unsigned char) line[line_len]))
