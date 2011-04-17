@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.7.7\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2011-03-24 20:36-0700\n"
-"PO-Revision-Date: 2011-04-16 23:01+0300\n"
+"PO-Revision-Date: 2011-04-17 18:52+0300\n"
 "Last-Translator: Mindaugas Baranauskas <embar@users.berlios.de>\n"
 "Language-Team: Lithuanian <komp_lt@konferencijos.lt>\n"
 "Language: lt\n"
@@ -370,16 +370,16 @@ msgstr "teksto eilutė "
 #: src/data/format.c:431
 #, c-format
 msgid "String variable with width %d is not compatible with format %s."
-msgstr ""
+msgstr "Teksto eilutės kintamasis, kurio plotis %d, yra nesuderinamas su %s formatu."
 
 #: src/data/gnumeric-reader.c:36
 msgid "Support for Gnumeric files was not compiled into this installation of PSPP"
-msgstr ""
+msgstr "Gnumeric rinkmenų palaikymas nebuvo sukonfigūruotas šioje PSPP kompiliacijoje"
 
 #: src/data/gnumeric-reader.c:363
 #, c-format
 msgid "Error opening `%s' for reading as a Gnumeric file: %s."
-msgstr ""
+msgstr "Klaida skaitymui atveriant „%s“ kaip Gnumeric rinkmeną: %s."
 
 #: src/data/gnumeric-reader.c:383
 #, c-format
@@ -616,11 +616,11 @@ msgstr ""
 
 #: src/data/psql-reader.c:46
 msgid "Support for reading postgres databases was not compiled into this installation of PSPP"
-msgstr ""
+msgstr "Postgres duomenų bazių skaitymo palaikymas nebuvo sukonfigūruotas šioje PSPP kompiliacijoje"
 
 #: src/data/psql-reader.c:239
 msgid "Memory error whilst opening psql source"
-msgstr ""
+msgstr "Atminties klaida atveriant psql šaltinį"
 
 #: src/data/psql-reader.c:245
 #, c-format
@@ -630,17 +630,17 @@ msgstr "Klaida bandant atverti psql šaltinį: %s."
 #: src/data/psql-reader.c:260
 #, c-format
 msgid "Postgres server is version %s. Reading from versions earlier than 8.0 is not supported."
-msgstr ""
+msgstr "Postgres serverio versija yra %s. Skaitymas iš senesnių nei 8.0 versijos nepalaikomas."
 
 #: src/data/psql-reader.c:280
 msgid "Connection is unencrypted, but unencrypted connections have not been permitted."
-msgstr ""
+msgstr "Ryšys nešifruotas, bet nešifruotasis ryšys neleidžiamas."
 
 #: src/data/psql-reader.c:318 src/data/psql-reader.c:343
 #: src/data/psql-reader.c:353
 #, c-format
 msgid "Error from psql source: %s."
-msgstr ""
+msgstr "psql šaltinio klaida: %s."
 
 #: src/data/psql-reader.c:448
 #, c-format
@@ -931,7 +931,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:1724
 #, c-format
 msgid "Variable index %d not in valid range 1...%d."
-msgstr ""
+msgstr "Kintamojo indeksas %d nepriklauso tinkamam intervalui nuo 1 iki %d."
 
 #: src/data/sys-file-reader.c:1733
 #, c-format
@@ -1279,11 +1279,11 @@ msgstr ""
 #: src/language/lexer/value-parser.c:73
 #, c-format
 msgid "Ends of range are equal (%g)."
-msgstr "Rėžio galai yra vienodi (%g)."
+msgstr "Srities galai yra vienodi (%g)."
 
 #: src/language/lexer/value-parser.c:81
 msgid "LO or LOWEST must be part of a range."
-msgstr "LO arba LOWEST turi būti rėžio dalis."
+msgstr "LO arba LOWEST turi būti srities dalis."
 
 #: src/language/lexer/value-parser.c:117
 msgid "System-missing value is not valid here."
@@ -1486,7 +1486,7 @@ msgstr ""
 #: src/language/control/repeat.c:380
 #, c-format
 msgid "%ld TO %ld is an invalid range."
-msgstr "Netinkamas rėžis %ld TO %ld."
+msgstr "Netinkama sritis %ld TO %ld."
 
 #: src/language/control/repeat.c:414
 msgid "String expected."
@@ -2161,11 +2161,11 @@ msgstr "Procentinė dalis mažesnė už"
 
 #: src/language/stats/aggregate.c:103
 msgid "Percentage included in range"
-msgstr "Procentinė dalis įtraukta į rėžį"
+msgstr "Procentinė dalis įtraukta į sritį"
 
 #: src/language/stats/aggregate.c:104
 msgid "Percentage excluded from range"
-msgstr "Procentinė dalis neįtraukta į rėžį"
+msgstr "Procentinė dalis neįtraukta į sritį"
 
 #: src/language/stats/aggregate.c:105
 msgid "Fraction greater than"
@@ -2177,11 +2177,11 @@ msgstr "Trupmeninė dalis mažesnė už "
 
 #: src/language/stats/aggregate.c:107
 msgid "Fraction included in range"
-msgstr "Trupmeninė dalis įtraukta į rėžį"
+msgstr "Trupmeninė dalis įtraukta į sritį"
 
 #: src/language/stats/aggregate.c:108
 msgid "Fraction excluded from range"
-msgstr "Trupmeninė dalis neįtraukta į rėžį"
+msgstr "Trupmeninė dalis neįtraukta į sritį"
 
 #: src/language/stats/aggregate.c:109
 msgid "Number of cases"
@@ -2329,11 +2329,11 @@ msgstr ""
 
 #: src/language/stats/chisquare.c:161 src/language/stats/chisquare.c:200
 msgid "Observed N"
-msgstr "Stebėti N"
+msgstr "Stebėtų N"
 
 #: src/language/stats/chisquare.c:162 src/language/stats/chisquare.c:201
 msgid "Expected N"
-msgstr "Tikėtini N"
+msgstr "Prognozuotų N"
 
 #: src/language/stats/chisquare.c:163 src/language/stats/chisquare.c:202
 #: src/ui/gui/crosstabs-dialog.c:61 src/language/stats/regression.q:292
@@ -2484,7 +2484,7 @@ msgstr "Asim. s.pakl."
 #: src/ui/gui/frequencies-dialog.c:48 src/language/stats/examine.q:1493
 #: src/language/stats/frequencies.q:115
 msgid "Range"
-msgstr "Rėžis"
+msgstr "Sritis"
 
 #: src/language/stats/descriptives.c:111 src/language/stats/npar-summary.c:132
 #: src/language/stats/oneway.c:701 src/ui/gui/descriptives-dialog.c:41
@@ -2537,16 +2537,16 @@ msgstr "%s z-reikšmė"
 
 #: src/language/stats/descriptives.c:898
 msgid "Valid N"
-msgstr "Galiojantys N"
+msgstr "Galiojančių N"
 
 #: src/language/stats/descriptives.c:899
 msgid "Missing N"
-msgstr "Praleisti N"
+msgstr "Praleistų N"
 
 #: src/language/stats/descriptives.c:927
 #, c-format
 msgid "Valid cases = %g; cases with missing value(s) = %g."
-msgstr "Galiojantys atvejai = %g; atvejai su praleistomis reikšmėmis = %g."
+msgstr "Galiojančių atvejai = %g; atvejų su praleistomis reikšmėmis = %g."
 
 #: src/language/stats/factor.c:801
 msgid "Factor analysis on a single variable is not useful."
@@ -2715,7 +2715,7 @@ msgstr "Vidutinis rangas"
 
 #: src/language/stats/friedman.c:279
 msgid "Kendall's W"
-msgstr "Kendalo W"
+msgstr "Kendall W"
 
 #: src/language/stats/mann-whitney.c:202 src/language/stats/wilcoxon.c:240
 msgid "Sum of Ranks"
@@ -2810,7 +2810,7 @@ msgstr "Kvadratų suma"
 
 #: src/language/stats/oneway.c:594 src/language/stats/regression.q:287
 msgid "Mean Square"
-msgstr "Kvadratų vidurkis"
+msgstr "Vidutinis kvadratas"
 
 #: src/language/stats/oneway.c:595 src/language/stats/regression.q:288
 #: src/language/stats/t-test.q:753
@@ -2843,17 +2843,17 @@ msgstr "Std. paklaida"
 #: src/language/stats/oneway.c:695 src/language/stats/examine.q:1448
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
-msgstr "%g%% pasikliautinis intervalas vidurkiams"
+msgstr "%g%% pasikliautinasis intervalas vidurkiams"
 
 #: src/language/stats/oneway.c:698 src/language/stats/roc.c:978
 #: src/language/stats/examine.q:1454
 msgid "Lower Bound"
-msgstr "Apatinis rėžis"
+msgstr "Apačia"
 
 #: src/language/stats/oneway.c:699 src/language/stats/roc.c:979
 #: src/language/stats/examine.q:1459
 msgid "Upper Bound"
-msgstr "Viršutinis rėžis"
+msgstr "Viršus"
 
 #: src/language/stats/oneway.c:704 src/language/stats/examine.q:1634
 #: src/ui/gui/descriptives.ui:8 src/ui/gui/examine.ui:319
@@ -3017,7 +3017,7 @@ msgstr "Asimptotinė p-reikšmė"
 #: src/language/stats/roc.c:983
 #, c-format
 msgid "Asymp. %g%% Confidence Interval"
-msgstr "Asimp. %g%% pasikliautinis intervalas"
+msgstr "Asimp. %g%% pasikliautinasis intervalas"
 
 #: src/language/stats/roc.c:989
 msgid "Variable under test"
@@ -3037,7 +3037,7 @@ msgstr "Sverta"
 
 #: src/language/stats/roc.c:1073
 msgid "Valid N (listwise)"
-msgstr "Galiojantys N (visuose)"
+msgstr "Galiojančių N (visuose)"
 
 #: src/language/stats/roc.c:1076
 msgid "Positive"
@@ -3975,7 +3975,7 @@ msgstr "Dažnis"
 
 #: src/output/charts/roc-chart-cairo.c:36 src/ui/gui/roc.ui:7
 msgid "ROC Curve"
-msgstr "OChK kreivė"
+msgstr "Operatoriaus charakteringa kreivė"
 
 #: src/output/charts/scree-cairo.c:36
 msgid "Scree Plot"
@@ -3999,11 +3999,11 @@ msgstr ""
 
 #: src/ui/terminal/main.c:145
 msgid "Error encountered while ERROR=STOP is effective."
-msgstr ""
+msgstr "Klaida įvyko esant aktyviam ERROR=STOP."
 
 #: src/ui/terminal/main.c:151
 msgid "Stopping syntax file processing here to avoid a cascade of dependent command failures."
-msgstr ""
+msgstr "Sintaksės rinkmenos apdorojimas stabdomas tam, kad būtų išvengta klaidų susijusiose komandose."
 
 #: src/ui/terminal/terminal-opts.c:122
 #, c-format
@@ -4016,7 +4016,7 @@ msgid "%s: output option specified more than once"
 msgstr "%s: išvedimo parinktis nurodyta daugiau nei vieną kartą"
 
 #: src/ui/terminal/terminal-opts.c:171
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "PSPP, a program for statistical analysis of sample data.\n"
 "Usage: %s [OPTION]... FILE...\n"
@@ -4053,38 +4053,38 @@ msgid ""
 "\n"
 "Non-option arguments are interpreted as syntax files to execute.\n"
 msgstr ""
-"PSPP,  programa imties duomenų analizavimui.\n"
+"PSPP,  programa imties duomenų statistinei analizei.\n"
 "Naudojimas: %s [PARINKTIS]... RINKMENA...\n"
 "\n"
 "Argumentai, skirti ilgosioms parinktims, taip pat taikomi ir atitinkamoms trumposioms parinktims.\n"
 "\n"
-"Išvesties parinktys:\n"
-"  -o, --output=RINKMENA     rezultatus rašyti į RINKMENĄ\n"
-"  -O format=FORMATAS        override format for previous -o\n"
-"  -O PARINKTIS=REIKŠMĖ      set output option to customize previous -o\n"
-"  -O device={terminal|listing}  override device type for previous -o\n"
-"  -e, --error-file=FILE     append errors, warnings, and notes to FILE\n"
-"  --no-output               disable default output driver\n"
-"Supported output formats: %s\n"
+"Išvedimo parinktys:\n"
+"  -o, --output=RINKMENA     rezultatus rašyti į RINKMENĄ, formatas pagal jos pavadinimą\n"
+"  -O format=FORMATAS        naudoti formatą, nepaisant -o parinkties\n"
+"  -O PARINKTIS=REIKŠMĖ      nustatyti rezultatų išvedimo parinktį\n"
+"  -O device={terminal|listing}  naudoti įrenginio tipą aukščiau nurodytai -o\n"
+"  -e, --error-file=RINKMENA klaidas, įspėjimus, pastabas rašyti papildant RINKMENĄ\n"
+"  --no-output               uždrausti numatytąją rezultatų išvedimo tvarkyklę\n"
+"Palaikomi išvedimo formatai: %s\n"
 "\n"
-"Language options:\n"
-"  -I, --include=DIR         append DIR to search path\n"
-"  -I-, --no-include         clear search path\n"
-"  -r, --no-statrc           disable running rc file at startup\n"
+"Kalbos parinktys:\n"
+"  -I, --include=KATALOGAS   į paieškos kelią įtraukti KATALOGĄ\n"
+"  -I-, --no-include         išvalyti paieškos kelią\n"
+"  -r, --no-statrc           paleidžiant uždrausti veikiančią rc rinkmeną\n"
 "  -a, --algorithm={compatible|enhanced}\n"
-"                            set to `compatible' if you want output\n"
-"                            calculated from broken algorithms\n"
+"                            nustatykite „compatible“, jei norite rezultatų,\n"
+"                            suskaičiuotų naudojant prastesnius algoritmus\n"
 "  -x, --syntax={compatible|enhanced}\n"
-"                            set to `compatible' to disable PSPP extensions\n"
-"  -i, --interactive         interpret syntax in interactive mode\n"
+"                            rinkdamiesi „compatible“ uždrausite PSPP papildinius\n"
+"  -i, --interactive         sintaksę interpretuoti interaktyvioje veiksenoje\n"
 "  -s, --safer               neleisti nesaugių operacijų\n"
 "Numatytasis paieškos kelias:%s\n"
 "\n"
-"Informative output:\n"
+"Informacijos išvedimas:\n"
 "  -h, --help                parodyti šį pagalbos pranešimą ir išeiti\n"
 "  -V, --version             parodyti versijos informaciją ir išeiti\n"
 "\n"
-"Non-option arguments are interpreted as syntax files to execute.\n"
+"Argumentai, kurie nėra parinktys, interpretuojami kaip vykdytinos sintaksės rinkmenos.\n"
 
 #: src/ui/terminal/terminal.c:62
 #, c-format
@@ -4134,7 +4134,7 @@ msgstr "Liambda"
 
 #: src/ui/gui/crosstabs-dialog.c:44
 msgid "UC"
-msgstr "UC"
+msgstr "Neap.k."
 
 #: src/ui/gui/crosstabs-dialog.c:45
 msgid "BTau"
@@ -4258,7 +4258,7 @@ msgid "_Reference Manual"
 msgstr "Ž_inynas"
 
 #: src/ui/gui/main.c:82
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "PSPPIRE, a GUI for PSPP, a program for statistical analysis of sample data.\n"
 "Usage: %s [OPTION]... FILE\n"
@@ -4286,38 +4286,31 @@ msgid ""
 "\n"
 "A non-option argument is interpreted as a .sav or .por file to load.\n"
 msgstr ""
-"PSPP,  programa imties duomenų analizavimui.\n"
+"PSPPIRE, PSPP grafinė sąsaja, programa imties duomenų statistinei analizei.\n"
 "Naudojimas: %s [PARINKTIS]... RINKMENA...\n"
 "\n"
 "Argumentai, skirti ilgosioms parinktims, taip pat taikomi ir atitinkamoms trumposioms parinktims.\n"
 "\n"
-"Išvesties parinktys:\n"
-"  -o, --output=RINKMENA     rezultatus rašyti į RINKMENĄ\n"
-"  -O format=FORMATAS        override format for previous -o\n"
-"  -O PARINKTIS=REIKŠMĖ      set output option to customize previous -o\n"
-"  -O device={terminal|listing}  override device type for previous -o\n"
-"  -e, --error-file=FILE     append errors, warnings, and notes to FILE\n"
-"  --no-output               disable default output driver\n"
-"Supported output formats: %s\n"
+"Grafinės naudotojo sąsajos parinktys:\n"
+"  -q, --no-splash           paleidžiant nerodyti pristatymo lango\n"
 "\n"
-"Language options:\n"
-"  -I, --include=DIR         append DIR to search path\n"
-"  -I-, --no-include         clear search path\n"
-"  -r, --no-statrc           disable running rc file at startup\n"
+"%sKalbos parinktys:\n"
+"  -I, --include=KATALOGAS   į paieškos kelią įtraukti KATALOGĄ\n"
+"  -I-, --no-include         išvalyti paieškos kelią\n"
 "  -a, --algorithm={compatible|enhanced}\n"
-"                            set to `compatible' if you want output\n"
-"                            calculated from broken algorithms\n"
+"                            nustatykite „compatible“, jei norite rezultatų,\n"
+"                            suskaičiuotų naudojant prastesnius algoritmus\n"
 "  -x, --syntax={compatible|enhanced}\n"
-"                            set to `compatible' to disable PSPP extensions\n"
-"  -i, --interactive         interpret syntax in interactive mode\n"
+"                            rinkdamiesi „compatible“ uždrausite PSPP papildinius\n"
+"  -i, --interactive         sintaksę interpretuoti interaktyvioje veiksenoje\n"
 "  -s, --safer               neleisti nesaugių operacijų\n"
 "Numatytasis paieškos kelias:%s\n"
 "\n"
-"Informative output:\n"
+"Informacijos išvedimas:\n"
 "  -h, --help                parodyti šį pagalbos pranešimą ir išeiti\n"
 "  -V, --version             parodyti versijos informaciją ir išeiti\n"
 "\n"
-"Non-option arguments are interpreted as syntax files to execute.\n"
+"Argumentai, kurie nėra parinktys, interpretuojami kaip vykdytinos .sav ar .por rinkmenos.\n"
 
 #: src/ui/gui/missing-val-dialog.c:113 src/ui/gui/missing-val-dialog.c:167
 msgid "Incorrect value for variable type"
@@ -4325,7 +4318,7 @@ msgstr "Reikšmė netinka kintamojo tipui"
 
 #: src/ui/gui/missing-val-dialog.c:134 src/ui/gui/missing-val-dialog.c:143
 msgid "Incorrect range specification"
-msgstr "Klaidinga rėžio specifikacija"
+msgstr "Klaidinga srities specifikacija"
 
 #: src/ui/gui/oneway-anova-dialog.c:300
 #, c-format
@@ -4454,7 +4447,7 @@ msgstr "Tekstinės rinkmenos (*.txt)"
 
 #: src/ui/gui/psppire-output-window.c:472
 msgid "PostScript (*.ps)"
-msgstr "Postskriptinės rinkmenos ('.ps)"
+msgstr "Postskriptinės rinkmenos (*.ps)"
 
 #: src/ui/gui/psppire-output-window.c:473
 msgid "Comma-Separated Values (*.csv)"
@@ -4738,7 +4731,7 @@ msgstr "Eilutė"
 #: src/ui/gui/t-test-options.c:60
 #, c-format
 msgid "Confidence Interval: %2d %%"
-msgstr "Pasikliautinis intervalas: %2d %%"
+msgstr "Pasikliautinasis intervalas: %2d %%"
 
 #: src/ui/gui/val-labs-dialog.c:515
 #, c-format
@@ -5024,17 +5017,17 @@ msgstr "Rizikos įvertis."
 #: src/language/stats/crosstabs.q:1282
 #, c-format
 msgid "95%% Confidence Interval"
-msgstr "95%% pasikliautinis intervalas"
+msgstr "95%% pasikliautinasis intervalas"
 
 #: src/language/stats/crosstabs.q:1285 src/language/stats/t-test.q:760
 #: src/language/stats/t-test.q:924 src/language/stats/t-test.q:1017
 msgid "Lower"
-msgstr "Apatinis"
+msgstr "Apačia"
 
 #: src/language/stats/crosstabs.q:1286 src/language/stats/t-test.q:761
 #: src/language/stats/t-test.q:925 src/language/stats/t-test.q:1018
 msgid "Upper"
-msgstr "Viršutinis"
+msgstr "Viršus"
 
 #: src/language/stats/crosstabs.q:1303
 msgid "Directional measures."
@@ -5091,11 +5084,11 @@ msgstr "Kontingencijos koeficientas"
 
 #: src/language/stats/crosstabs.q:1809
 msgid "Kendall's tau-b"
-msgstr "Kendalo tau-b"
+msgstr "Kendall tau-b"
 
 #: src/language/stats/crosstabs.q:1810
 msgid "Kendall's tau-c"
-msgstr "Kendalo tau-c"
+msgstr "Kendall tau-c"
 
 #: src/language/stats/crosstabs.q:1812
 msgid "Spearman Correlation"
@@ -5139,7 +5132,7 @@ msgstr "Neapibrėžtumo koeficientas"
 
 #: src/language/stats/crosstabs.q:1947
 msgid "Somers' d"
-msgstr "Somerso d"
+msgstr "Somers d"
 
 #: src/language/stats/crosstabs.q:1953
 msgid "Symmetric"
@@ -5179,7 +5172,7 @@ msgstr "5% nupjautasis vidurkis"
 
 #: src/language/stats/examine.q:1498
 msgid "Interquartile Range"
-msgstr "Tarpkvartilinis rėžis"
+msgstr "Intervalas tarp kvartilių"
 
 #: src/language/stats/examine.q:1820
 msgid "Highest"
@@ -5326,7 +5319,7 @@ msgstr "Koreguotas R kvadratas"
 
 #: src/language/stats/regression.q:160
 msgid "Std. Error of the Estimate"
-msgstr ""
+msgstr "Įverčio std. paklaida"
 
 #: src/language/stats/regression.q:165
 msgid "Model Summary"
@@ -5442,7 +5435,7 @@ msgstr "Vidurkių skirtumo std. paklaida"
 #: src/language/stats/t-test.q:1008
 #, c-format
 msgid "%g%% Confidence Interval of the Difference"
-msgstr "Skirtumo %g%% pasikliautinis intervalas"
+msgstr "Skirtumo %g%% pasikliautinasis intervalas"
 
 #: src/language/stats/t-test.q:818
 msgid "Equal variances assumed"
@@ -5458,7 +5451,7 @@ msgstr "Kriterijus porinėms imtims"
 
 #: src/language/stats/t-test.q:911
 msgid "Paired Differences"
-msgstr "Porų skirtumai"
+msgstr "Porinių imčių skirtumai"
 
 #: src/language/stats/t-test.q:923
 msgid "Std. Error Mean"
@@ -5548,7 +5541,7 @@ msgstr "Duomenų agregavimas"
 
 #: src/ui/gui/aggregate.ui:100
 msgid "_Break variable(s)"
-msgstr "_Skaidantysis kintamasis"
+msgstr "_Skaidantieji kintamieji"
 
 #: src/ui/gui/aggregate.ui:136
 msgid "Variable Name: "
@@ -5572,7 +5565,7 @@ msgstr "2 argumentas: "
 
 #: src/ui/gui/aggregate.ui:328
 msgid "Aggregated variables"
-msgstr "Agreguotini kintamieji"
+msgstr "Agreguoti kintamieji"
 
 #: src/ui/gui/aggregate.ui:362
 msgid "_Add aggregated variables to the active dataset"
@@ -5596,7 +5589,7 @@ msgstr "R_inkmena jau surikiuota pagal skaidantįjį kintamąjį (skaidančiuosi
 
 #: src/ui/gui/aggregate.ui:487
 msgid "Sort file before a_ggregating"
-msgstr "Rikiuoti rinkmeną prieš s_ujungimą"
+msgstr "Rikiuoti rinkmeną prieš agr_egavimą"
 
 #: src/ui/gui/aggregate.ui:508
 msgid "Options for very large datasets"
@@ -5669,7 +5662,7 @@ msgstr "Pirso_no"
 
 #: src/ui/gui/correlation.ui:123
 msgid "_Kendall's tau-b"
-msgstr "_Kendalo tau-b"
+msgstr "_Kendall tau-b"
 
 #: src/ui/gui/correlation.ui:138
 msgid "_Spearman"
@@ -5767,19 +5760,19 @@ msgstr "Chi-kvadrato kriterijus"
 
 #: src/ui/gui/chi-square.ui:140
 msgid "Use _specified range"
-msgstr "Naudoti nurodytą rėžį"
+msgstr "Naudoti nurodytą sritį"
 
 #: src/ui/gui/chi-square.ui:162
 msgid "_Lower:"
-msgstr "_Apatinis:"
+msgstr "_Apačia:"
 
 #: src/ui/gui/chi-square.ui:170
 msgid "_Upper:"
-msgstr "_Viršutinis:"
+msgstr "_Viršus:"
 
 #: src/ui/gui/chi-square.ui:214
 msgid "Expected Range:"
-msgstr "Spėjamas rėžis:"
+msgstr "Prognozuojama sritis:"
 
 #: src/ui/gui/chi-square.ui:240
 msgid "All categor_ies equal"
@@ -5791,7 +5784,7 @@ msgstr "_Reikšmės"
 
 #: src/ui/gui/chi-square.ui:301
 msgid "Expected Values:"
-msgstr "Spėjamos reikšmės:"
+msgstr "Prognozuojamos reikšmės:"
 
 #: src/ui/gui/descriptives.ui:130 src/ui/gui/frequencies.ui:140
 msgid "Statistics:"
@@ -6119,15 +6112,15 @@ msgstr "_Kriterijaus kintamieji:"
 
 #: src/ui/gui/k-related.ui:122
 msgid "_Friedman"
-msgstr "_Friedman"
+msgstr "Friedman"
 
 #: src/ui/gui/k-related.ui:136
 msgid "_Kendall's W"
-msgstr "_Kendalo W"
+msgstr "Kendall W"
 
 #: src/ui/gui/k-related.ui:150
 msgid "_Cochran's Q"
-msgstr "_Cochran Q"
+msgstr "Cochran Q"
 
 #: src/ui/gui/k-related.ui:169
 msgid "Test Type"
@@ -6391,11 +6384,11 @@ msgstr "iki"
 
 #: src/ui/gui/recode.ui:275
 msgid "Range, LOWEST thru value"
-msgstr "Rėžis, nuo MAŽIAUSIOS reikšmės iki ..."
+msgstr "Sritis, nuo MAŽIAUSIOS reikšmės iki ..."
 
 #: src/ui/gui/recode.ui:289
 msgid "Range, value thru HIGHEST"
-msgstr "Rėžis, nuo reikšmės ... iki DIDŽIAUSIOS"
+msgstr "Sritis, nuo reikšmės ... iki DIDŽIAUSIOS"
 
 #: src/ui/gui/recode.ui:319
 msgid "All other values"
@@ -6403,7 +6396,7 @@ msgstr "Visos kitos reikšmės"
 
 #: src/ui/gui/recode.ui:355
 msgid "Range:"
-msgstr "Rėžis: nuo"
+msgstr "Sritis: nuo"
 
 #: src/ui/gui/recode.ui:384
 msgid "Old Value"
@@ -6523,7 +6516,7 @@ msgstr "_Brėžti įstrižainę"
 
 #: src/ui/gui/roc.ui:251
 msgid "Standard _Error and Confidence Interval"
-msgstr "_Standartinė paklaida ir pasikliautinis intervalas"
+msgstr "_Standartinė paklaida ir pasikliautinasis intervalas"
 
 #: src/ui/gui/roc.ui:266
 msgid "_Coordinate points of the ROC Curve"
@@ -6539,11 +6532,11 @@ msgstr "Naudoti filtro kintamąjį"
 
 #: src/ui/gui/select-cases.ui:255
 msgid "Based on time or case range"
-msgstr "Pagal laiką arba atvejų rėžį"
+msgstr "Pagal laiką arba atvejų sritį"
 
 #: src/ui/gui/select-cases.ui:267
 msgid "Range..."
-msgstr "Rėžis..."
+msgstr "Sritis..."
 
 #: src/ui/gui/select-cases.ui:311
 msgid "Random sample of cases"
@@ -6579,7 +6572,7 @@ msgstr "Nepasirinkti atvejai yra"
 
 #: src/ui/gui/select-cases.ui:541
 msgid "Select Cases: Range"
-msgstr "Atvejų atranka: rėžis"
+msgstr "Atvejų atranka: sritis"
 
 #: src/ui/gui/select-cases.ui:590
 msgid "First case"
@@ -6825,7 +6818,7 @@ msgstr "Di_skreti reikšmė:"
 
 #: src/ui/gui/var-sheet-dialogs.ui:888
 msgid "_Range plus one optional discrete missing value"
-msgstr "_Rėžis ir viena diskreti praleista reikšmė"
+msgstr "_Sritis ir viena diskreti praleista reikšmė"
 
 #: src/ui/gui/variable-info.ui:50
 msgid "Variable Information:"
