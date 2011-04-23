@@ -1455,6 +1455,30 @@ ds_put_uninit (struct string *st, size_t incr)
   return end;
 }
 
+/* Moves the bytes in ST following offset OFS + OLD_LEN in ST to offset OFS +
+   NEW_LEN and returns the byte at offset OFS.  The first min(OLD_LEN, NEW_LEN)
+   bytes at the returned position are unchanged; if NEW_LEN > OLD_LEN then the
+   following NEW_LEN - OLD_LEN bytes are initially indeterminate.
+
+   The intention is that the caller should write NEW_LEN bytes at the returned
+   position, to effectively replace the OLD_LEN bytes previously at that
+   position. */
+char *
+ds_splice_uninit (struct string *st,
+                  size_t ofs, size_t old_len, size_t new_len)
+{
+  if (new_len != old_len)
+    {
+      if (new_len > old_len)
+        ds_extend (st, ds_length (st) + (new_len - old_len));
+      memmove (ds_data (st) + (ofs + new_len),
+               ds_data (st) + (ofs + old_len),
+               ds_length (st) - (ofs + old_len));
+      st->ss.length += new_len - old_len;
+    }
+  return ds_data (st) + ofs;
+}
+
 /* Formats FORMAT as a printf string and appends the result to ST. */
 void
 ds_put_format (struct string *st, const char *format, ...)

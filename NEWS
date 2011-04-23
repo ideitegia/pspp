@@ -28,6 +28,10 @@ Changes from 0.7.3 to 0.7.7:
  * The INCLUDE and INSERT commands now support the ENCODING subcommand
    to specify the encoding for the included syntax file.
 
+ * The plain text output driver now properly supports multibyte UTF-8
+   characters, including double-width characters and combining
+   accents.
+
  * Strings may now include arbitrary Unicode code points specified in
    hexadecimal, using the syntax U'hhhh'.  For example, Unicode code
    point U+1D11E, the musical G clef character, may be expressed as

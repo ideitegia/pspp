@@ -378,7 +378,7 @@ AT_SETUP([2 big cells with new-lines])
 AT_KEYWORDS([render rendering])
 AT_DATA([input], [1 2
 @PSPP does not place many restrictions on ordering of commands. The main restriction is that variables must be defined before they are otherwise referenced.  This section describes the details of command ordering, but most users will have no need to refer to them. PSPP possesses five internal states, called initial, INPUT PROGRAM, FILE TYPE, transformation, and procedure states.
-@PSPP includes special support\nfor unknown numeric data values.\nMissing observations are assigned\na special value, called the\n``system-missing value''.  This\n``value'' actually indicates the\nabsence of a value; it\nmeans that the actual\nvalue is unknown.
+@PSPP includes special support\nfor unknown numeric data values.\nMissing observations are assigned\na special value, called the\n``system‑missing value''.  This\n``value'' actually indicates the\nabsence of a value; it\nmeans that the actual\nvalue is unknown.
 ])
 AT_CHECK([render-test input], [0], [dnl
 +----------------------------------------------------------+------------------+
@@ -392,7 +392,7 @@ AT_CHECK([render-test input], [0], [dnl
 |                                                          |          assigned|
 |                                                          |  a special value,|
 |                                                          |        called the|
-|                                                          |  ``system-missing|
+|                                                          |  ``system‑missing|
 |                                                          |    value''.  This|
 |                                                          |``value'' actually|
 |                                                          |     indicates the|
@@ -1712,7 +1712,7 @@ AT_DATA([input], [7 7
 @f
 @g
 @h
-6*6 @The MISSING subcommand determines the handling of missing variables.  If INCLUDE is set, then user-missing values are included in the calculations.  If NOINCLUDE is set, which is the default, user-missing values are excluded.
+6*6 @The MISSING subcommand determines the handling of missing variables.  If INCLUDE is set, then user‑missing values are included in the calculations.  If NOINCLUDE is set, which is the default, user‑missing values are excluded.
 @i
 @j
 @k
@@ -1759,7 +1759,7 @@ ndling of|
 ariables.|
 NCLUDE is|
 set, then|
-r-missing|
+r‑missing|
 alues are|
 ed in the|
 ions.  If|
@@ -1768,7 +1768,7 @@ E is set,|
 E is set,|
 ch is the|
  default,|
-r-missing|
+r‑missing|
 alues are|
 excluded.|
          |

@@ -231,6 +231,9 @@ void ds_put_format (struct string *, const char *, ...)
      PRINTF_FORMAT (2, 3);
 char *ds_put_uninit (struct string *st, size_t incr);
 
+char *ds_splice_uninit (struct string *, size_t ofs, size_t old_len,
+                        size_t new_len);
+
 /* Other */
 /* calls relocate from gnulib on ST */
 void ds_relocate (struct string *st);

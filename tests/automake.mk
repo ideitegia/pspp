@@ -376,6 +376,7 @@ TESTSUITE_AT = \
 	tests/libpspp/u8-istream.at \
 	tests/math/moments.at \
 	tests/math/randist.at \
+	tests/output/ascii.at \
 	tests/output/charts.at \
 	tests/output/output.at \
 	tests/output/paper-size.at \

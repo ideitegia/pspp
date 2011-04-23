@@ -273,6 +273,8 @@ specify @option{-o @var{file}} on the PSPP command line, optionally
 followed by options from the table below to customize the output
 format.
 
+Plain text output is encoded in UTF-8.
+
 @table @code
 @item -O format=txt
 Specify the output format.  This is only necessary if the file name
@@ -319,26 +321,11 @@ the page length.  Default: @code{0}.
 Length of the bottom margin, in lines.  PSPP subtracts this value from
 the page length.  Default: @code{0}.
 
-@item -O box[@var{line-type}]=@var{box-chars}
-Sets the characters used for lines in tables.  @var{line-type} is a
-4-digit number that indicates the type of line to change, in the order
-`right', `bottom', `left', `top'.  Each digit is 0 for ``no line'', 1
-for a single line, and 2 for a double line.  @var{box-chars} is the
-character or string of characters to use for this type of line.
-
-For example, @code{box[0101]="|"} sets @samp{|} as the character to
-use for a single-width vertical line, and @code{box[1100]="\xda"} sets
-@samp{"\xda"}, which on MS-DOS is suitable for the top-left corner of
-a box, as the character for the intersection of two single-width
-lines, one each from the right and bottom.
-
-The defaults use @samp{-}, @samp{|}, and @samp{+} for single-width
-lines and @samp{=} and @samp{#} for double-width lines.
-
-@item -O init=@var{init-string}
-If set, this string is written at the beginning of each output file.
-It can be used to initialize device features, e.g.@: to enable VT100
-line-drawing characters.
+@item -O box=@{ascii|unicode@}
+Sets the characters used for lines in tables.  The default,
+@code{ascii}, uses @samp{-}, @samp{|}, and @samp{+} for single-width
+lines and @samp{=} and @samp{#} for double-width lines.  Specify
+@code{unicode} to use Unicode box drawing characters.
 
 @item -O emphasis=@{none|bold|underline@}
 How to emphasize text.  Bold and underline emphasis are achieved with

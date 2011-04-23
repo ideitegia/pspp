@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,9 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#include <unilbrk.h>
+#include <unistr.h>
+#include <uniwidth.h>
 
 #include "data/file-name.h"
 #include "data/settings.h"
@@ -33,6 +36,7 @@
 #include "libpspp/start-date.h"
 #include "libpspp/string-map.h"
 #include "libpspp/version.h"
+#include "output/ascii.h"
 #include "output/cairo.h"
 #include "output/chart-item-provider.h"
 #include "output/driver-provider.h"
@@ -54,34 +58,81 @@
 #define H TABLE_HORZ
 #define V TABLE_VERT
 
-/* Line styles bit shifts. */
-enum
-  {
-    LNS_TOP = 0,
-    LNS_LEFT = 2,
-    LNS_BOTTOM = 4,
-    LNS_RIGHT = 6,
+#define N_BOX (RENDER_N_LINES * RENDER_N_LINES \
+               * RENDER_N_LINES * RENDER_N_LINES)
 
-    LNS_COUNT = 256
+static const ucs4_t ascii_box_chars[N_BOX] =
+  {
+    ' ', '|', '#',
+    '-', '+', '#',
+    '=', '#', '#',
+    '|', '|', '#',
+    '+', '+', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '-', '+', '#',
+    '-', '+', '#',
+    '#', '#', '#',
+    '+', '+', '#',
+    '+', '+', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '=', '#', '#',
+    '#', '#', '#',
+    '=', '#', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+    '#', '#', '#',
+  };
+
+static const ucs4_t unicode_box_chars[N_BOX] =
+  {
+    0x0020, 0x2575, 0x2551,
+    0x2574, 0x256f, 0x255c,
+    0x2550, 0x255b, 0x255d,
+    0x2577, 0x2502, 0x2551,
+    0x256e, 0x2524, 0x2562,
+    0x2555, 0x2561, 0x2563,
+    0x2551, 0x2551, 0x2551,
+    0x2556, 0x2562, 0x2562,
+    0x2557, 0x2563, 0x2563,
+    0x2576, 0x2570, 0x2559,
+    0x2500, 0x2534, 0x2568,
+    0x2550, 0x2567, 0x2569,
+    0x256d, 0x251c, 0x255f,
+    0x252c, 0x253c, 0x256a,
+    0x2564, 0x256a, 0x256c,
+    0x2553, 0x255f, 0x255f,
+    0x2565, 0x256b, 0x256b,
+    0x2566, 0x256c, 0x256c,
+    0x2550, 0x2558, 0x255a,
+    0x2550, 0x2567, 0x2569,
+    0x2550, 0x2567, 0x2569,
+    0x2552, 0x255e, 0x2560,
+    0x2564, 0x256a, 0x256c,
+    0x2564, 0x256a, 0x256c,
+    0x2554, 0x2560, 0x2560,
+    0x2566, 0x256c, 0x256c,
   };
 
 static inline int
 make_box_index (int left, int right, int top, int bottom)
 {
-  return ((left << LNS_LEFT) | (right << LNS_RIGHT)
-          | (top << LNS_TOP) | (bottom << LNS_BOTTOM));
+  return ((right * 3 + bottom) * 3 + left) * 3 + top;
 }
-
-/* Character attributes. */
-#define ATTR_EMPHASIS   0x100   /* Bold-face. */
-#define ATTR_BOX        0x200   /* Line drawing character. */
 
 /* A line of text. */
 struct ascii_line
   {
-    unsigned short *chars;      /* Characters and attributes. */
-    int n_chars;                /* Length. */
-    int allocated_chars;        /* Allocated "chars" elements. */
+    struct string s;            /* Content, in UTF-8. */
+    size_t width;               /* Display width, in character positions. */
   };
 
 /* How to emphasize text. */
@@ -113,8 +164,7 @@ struct ascii_driver
     int top_margin;		/* Top margin in lines. */
     int bottom_margin;		/* Bottom margin in lines. */
 
-    char *box[LNS_COUNT];       /* Line & box drawing characters. */
-    char *init;                 /* Device initialization string. */
+    const ucs4_t *box;          /* Line & box drawing characters. */
 
     /* Internal state. */
     char *command_name;
@@ -136,7 +186,6 @@ static void ascii_submit (struct output_driver *, const struct output_item *);
 
 static int vertical_margins (const struct ascii_driver *);
 
-static const char *get_default_box (int right, int bottom, int left, int top);
 static bool update_page_size (struct ascii_driver *, bool issue_error);
 static int parse_page_size (struct driver_option *);
 
@@ -171,10 +220,10 @@ static struct output_driver *
 ascii_create (const char *file_name, enum settings_output_devices device_type,
               struct string_map *o)
 {
+  enum { BOX_ASCII, BOX_UNICODE } box;
   struct output_driver *d;
   struct ascii_driver *a;
   int paper_length;
-  int right, bottom, left, top;
 
   a = xzalloc (sizeof *a);
   d = &a->driver;
@@ -200,20 +249,11 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
   a->auto_length = paper_length < 0;
   a->length = paper_length - vertical_margins (a);
 
-  for (right = 0; right < 4; right++)
-    for (bottom = 0; bottom < 4; bottom++)
-      for (left = 0; left < 4; left++)
-        for (top = 0; top < 4; top++)
-          {
-            int indx = make_box_index (left, right, top, bottom);
-            const char *default_value;
-            char name[16];
-
-            sprintf (name, "box[%d%d%d%d]", right, bottom, left, top);
-            default_value = get_default_box (right, bottom, left, top);
-            a->box[indx] = parse_string (opt (d, o, name, default_value));
-          }
-  a->init = parse_string (opt (d, o, "init", ""));
+  box = parse_enum (opt (d, o, "box", "ascii"),
+                    "ascii", BOX_ASCII,
+                    "unicode", BOX_UNICODE,
+                    NULL_SENTINEL);
+  a->box = box == BOX_ASCII ? ascii_box_chars : unicode_box_chars;
 
   a->command_name = NULL;
   a->title = xstrdup ("");
@@ -234,29 +274,6 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
 error:
   output_driver_destroy (d);
   return NULL;
-}
-
-static const char *
-get_default_box (int right, int bottom, int left, int top)
-{
-  switch ((top << 12) | (left << 8) | (bottom << 4) | (right << 0))
-    {
-    case 0x0000:
-      return " ";
-
-    case 0x0100: case 0x0101: case 0x0001:
-      return "-";
-
-    case 0x1000: case 0x1010: case 0x0010:
-      return "|";
-
-    case 0x0300: case 0x0303: case 0x0003:
-    case 0x0200: case 0x0202: case 0x0002:
-      return "=";
-
-    default:
-      return left > 1 || top > 1 || right > 1 || bottom > 1 ? "#" : "+";
-    }
 }
 
 static int
@@ -342,11 +359,8 @@ ascii_destroy (struct output_driver *driver)
   free (a->subtitle);
   free (a->file_name);
   free (a->chart_file_name);
-  for (i = 0; i < LNS_COUNT; i++)
-    free (a->box[i]);
-  free (a->init);
   for (i = 0; i < a->allocated_lines; i++)
-    free (a->lines[i].chars);
+    ds_destroy (&a->lines[i].s);
   free (a->lines);
   free (a);
 }
@@ -570,7 +584,8 @@ static const struct output_driver_class ascii_driver_class =
     ascii_flush,
   };
 
-static void ascii_expand_line (struct ascii_driver *, int y, int length);
+static char *ascii_reserve (struct ascii_driver *, int y, int x0, int x1,
+                            int n);
 static void ascii_layout_cell (struct ascii_driver *,
                                const struct table_cell *,
                                int bb[TABLE_N_AXES][2],
@@ -582,24 +597,31 @@ ascii_draw_line (void *a_, int bb[TABLE_N_AXES][2],
                  enum render_line_style styles[TABLE_N_AXES][2])
 {
   struct ascii_driver *a = a_;
-  unsigned short int value;
-  int x1, y1;
+  char mbchar[6];
+  int x0, x1, y1;
+  ucs4_t uc;
+  int mblen;
   int x, y;
 
   /* Clip to the page. */
   if (bb[H][0] >= a->width || bb[V][0] + a->y >= a->length)
     return;
+  x0 = bb[H][0];
   x1 = MIN (bb[H][1], a->width);
   y1 = MIN (bb[V][1] + a->y, a->length);
 
   /* Draw. */
-  value = ATTR_BOX | make_box_index (styles[V][0], styles[V][1],
-                                     styles[H][0], styles[H][1]);
+  uc = a->box[make_box_index (styles[V][0], styles[V][1],
+                              styles[H][0], styles[H][1])];
+  mblen = u8_uctomb (CHAR_CAST (uint8_t *, mbchar), uc, 6);
   for (y = bb[V][0] + a->y; y < y1; y++)
     {
-      ascii_expand_line (a, y, x1);
-      for (x = bb[H][0]; x < x1; x++)
-        a->lines[y].chars[x] = value;
+      char *p = ascii_reserve (a, y, x0, x1, mblen * (x1 - x0));
+      for (x = x0; x < x1; x++)
+        {
+          memcpy (p, mbchar, mblen);
+          p += mblen;
+        }
     }
 }
 
@@ -655,31 +677,140 @@ ascii_draw_cell (void *a_, const struct table_cell *cell,
   ascii_layout_cell (a, cell, bb, clip, &w, &h);
 }
 
-/* Ensures that at least the first LENGTH characters of line Y in
-   ascii driver A have been cleared out. */
+static int
+u8_mb_to_display (int *wp, const uint8_t *s, size_t n)
+{
+  size_t ofs;
+  ucs4_t uc;
+  int w;
+
+  ofs = u8_mbtouc (&uc, s, n);
+  if (ofs < n && s[ofs] == '\b')
+    {
+      ofs++;
+      ofs += u8_mbtouc (&uc, s + ofs, n - ofs);
+    }
+
+  w = uc_width (uc, "UTF-8");
+  if (w <= 0)
+    {
+      *wp = 0;
+      return ofs;
+    }
+
+  while (ofs < n)
+    {
+      int mblen = u8_mbtouc (&uc, s + ofs, n - ofs);
+      if (uc_width (uc, "UTF-8") > 0)
+        break;
+      ofs += mblen;
+    }
+
+  *wp = w;
+  return ofs;
+}
+
+struct ascii_pos
+  {
+    int x0;
+    int x1;
+    size_t ofs0;
+    size_t ofs1;
+  };
+
 static void
-ascii_expand_line (struct ascii_driver *a, int y, int length)
+find_ascii_pos (struct ascii_line *line, int target_x, struct ascii_pos *c)
+{
+  const uint8_t *s = CHAR_CAST (const uint8_t *, ds_cstr (&line->s));
+  size_t length = ds_length (&line->s);
+  size_t ofs;
+  int mblen;
+  int x;
+
+  x = 0;
+  for (ofs = 0; ; ofs += mblen)
+    {
+      int w;
+
+      mblen = u8_mb_to_display (&w, s + ofs, length - ofs);
+      if (x + w > target_x)
+        {
+          c->x0 = x;
+          c->x1 = x + w;
+          c->ofs0 = ofs;
+          c->ofs1 = ofs + mblen;
+          return;
+        }
+      x += w;
+    }
+}
+
+static char *
+ascii_reserve (struct ascii_driver *a, int y, int x0, int x1, int n)
 {
   struct ascii_line *line = &a->lines[y];
-  if (line->n_chars < length)
+
+  if (x0 >= line->width)
     {
-      int x;
-      if (line->allocated_chars < length)
+      /* The common case: adding new characters at the end of a line. */
+      ds_put_byte_multiple (&line->s, ' ', x0 - line->width);
+      line->width = x1;
+      return ds_put_uninit (&line->s, n);
+    }
+  else if (x0 == x1)
+    return NULL;
+  else
+    {
+      /* An unusual case: overwriting characters in the middle of a line.  We
+         don't keep any kind of mapping from bytes to display positions, so we
+         have to iterate over the whole line starting from the beginning. */
+      struct ascii_pos p0, p1;
+      char *s;
+
+      /* Find the positions of the first and last character.  We must find the
+         both characters' positions before changing the line, because that
+         would prevent finding the other character's position. */
+      find_ascii_pos (line, x0, &p0);
+      if (x1 < line->width)
+        find_ascii_pos (line, x1, &p1);
+
+      /* If a double-width character occupies both x0 - 1 and x0, then replace
+         its first character width by '?'. */
+      s = ds_data (&line->s);
+      while (p0.x0 < x0)
         {
-          line->allocated_chars = MAX (length, MIN (length * 2, a->width));
-          line->chars = xnrealloc (line->chars, line->allocated_chars,
-                                   sizeof *line->chars);
+          s[p0.ofs0++] = '?';
+          p0.x0++;
         }
-      for (x = line->n_chars; x < length; x++)
-        line->chars[x] = ' ';
-      line->n_chars = length;
+
+      if (x1 >= line->width)
+        {
+          ds_truncate (&line->s, p0.ofs0);
+          line->width = x1;
+          return ds_put_uninit (&line->s, n);
+        }
+
+      /* If a double-width character occupies both x1 - 1 and x1, then we need
+         to replace its second character width by '?'. */
+      if (p1.x0 < x1)
+        {
+          do
+            {
+              s[--p1.ofs1] = '?';
+              p1.x0++;
+            }
+          while (p1.x0 < x1);
+          return ds_splice_uninit (&line->s, p0.ofs0, p1.ofs1 - p0.ofs0, n);
+        }
+
+      return ds_splice_uninit (&line->s, p0.ofs0, p1.ofs0 - p0.ofs0, n);
     }
 }
 
 static void
-text_draw (struct ascii_driver *a, const struct table_cell *cell,
+text_draw (struct ascii_driver *a, unsigned int options,
            int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2],
-           int y, const char *string, int n)
+           int y, const uint8_t *string, int n, size_t width)
 {
   int x0 = MAX (0, clip[H][0]);
   int y0 = MAX (0, clip[V][0] + a->y);
@@ -691,96 +822,242 @@ text_draw (struct ascii_driver *a, const struct table_cell *cell,
   if (y < y0 || y >= y1)
     return;
 
-  switch (cell->options & TAB_ALIGNMENT)
+  switch (options & TAB_ALIGNMENT)
     {
     case TAB_LEFT:
       x = bb[H][0];
       break;
     case TAB_CENTER:
-      x = (bb[H][0] + bb[H][1] - n + 1) / 2;
+      x = (bb[H][0] + bb[H][1] - width + 1) / 2;
       break;
     case TAB_RIGHT:
-      x = bb[H][1] - n;
+      x = bb[H][1] - width;
       break;
     default:
       NOT_REACHED ();
     }
+  if (x >= x1)
+    return;
 
-  if (x0 > x)
+  while (x < x0)
     {
-      n -= x0 - x;
-      if (n <= 0)
+      ucs4_t uc;
+      int mblen;
+      int w;
+
+      if (n == 0)
         return;
-      string += x0 - x;
-      x = x0;
+      mblen = u8_mbtouc (&uc, string, n);
+
+      string += mblen;
+      n -= mblen;
+
+      w = uc_width (uc, "UTF-8");
+      if (w > 0)
+        {
+          x += w;
+          width -= w;
+        }
     }
-  if (x + n >= x1)
-    n = x1 - x;
+  if (n == 0)
+    return;
 
-  if (n > 0)
+  if (x + width > x1)
     {
-      int attr = cell->options & TAB_EMPH ? ATTR_EMPHASIS : 0;
-      size_t i;
+      int ofs;
 
-      ascii_expand_line (a, y, x + n);
-      for (i = 0; i < n; i++)
-        a->lines[y].chars[x + i] = string[i] | attr;
+      ofs = width = 0;
+      for (ofs = 0; ofs < n; )
+        {
+          ucs4_t uc;
+          int mblen;
+          int w;
+
+          mblen = u8_mbtouc (&uc, string + ofs, n - ofs);
+
+          w = uc_width (uc, "UTF-8");
+          if (w > 0)
+            {
+              if (width + w > x1 - x)
+                break;
+              width += w;
+            }
+          ofs += mblen;
+        }
+      n = ofs;
+      if (n == 0)
+        return;
+    }
+
+  if (!(options & TAB_EMPH) || a->emphasis == EMPH_NONE)
+    memcpy (ascii_reserve (a, y, x, x + width, n), string, n);
+  else
+    {
+      size_t n_out;
+      size_t ofs;
+      char *out;
+      int mblen;
+
+      /* First figure out how many bytes need to be inserted. */
+      n_out = n;
+      for (ofs = 0; ofs < n; ofs += mblen)
+        {
+          ucs4_t uc;
+          int w;
+
+          mblen = u8_mbtouc (&uc, string + ofs, n - ofs);
+          w = uc_width (uc, "UTF-8");
+
+          if (w > 0)
+            n_out += a->emphasis == EMPH_UNDERLINE ? 2 : 1 + mblen;
+        }
+
+      /* Then insert them. */
+      out = ascii_reserve (a, y, x, x + width, n_out);
+      for (ofs = 0; ofs < n; ofs += mblen)
+        {
+          ucs4_t uc;
+          int w;
+
+          mblen = u8_mbtouc (&uc, string + ofs, n - ofs);
+          w = uc_width (uc, "UTF-8");
+
+          if (w > 0)
+            {
+              if (a->emphasis == EMPH_UNDERLINE)
+                *out++ = '_';
+              else
+                out = mempcpy (out, string + ofs, mblen);
+              *out++ = '\b';
+            }
+          out = mempcpy (out, string + ofs, mblen);
+        }
     }
 }
 
 static void
 ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
                    int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2],
-                   int *width, int *height)
+                   int *widthp, int *heightp)
 {
-  size_t length = strlen (cell->contents);
-  int y, pos;
+  const char *text = cell->contents;
+  size_t length = strlen (text);
+  char *breaks;
+  int bb_width;
+  size_t pos;
+  int y;
 
-  *width = 0;
+  *widthp = 0;
+  *heightp = 0;
+  if (length == 0)
+    return;
+
+  text = cell->contents;
+  breaks = xmalloc (length + 1);
+  u8_possible_linebreaks (CHAR_CAST (const uint8_t *, text), length,
+                          "UTF-8", breaks);
+  breaks[length] = (breaks[length - 1] == UC_BREAK_MANDATORY
+                    ? UC_BREAK_PROHIBITED : UC_BREAK_POSSIBLE);
+
   pos = 0;
+  bb_width = bb[H][1] - bb[H][0];
   for (y = bb[V][0]; y < bb[V][1] && pos < length; y++)
     {
-      const char *line = &cell->contents[pos];
-      const char *new_line;
-      size_t line_len;
+      const uint8_t *line = CHAR_CAST (const uint8_t *, text + pos);
+      const char *b = breaks + pos;
+      size_t n = length - pos;
 
-      /* Find line length without considering word wrap. */
-      line_len = MIN (bb[H][1] - bb[H][0], length - pos);
-      new_line = memchr (line, '\n', line_len);
-      if (new_line != NULL)
-        line_len = new_line - line;
+      size_t last_break_ofs = 0;
+      int last_break_width = 0;
+      int width = 0;
+      size_t ofs;
 
-      /* Word wrap. */
-      if (pos + line_len < length)
+      for (ofs = 0; ofs < n; )
         {
-          size_t space_len = line_len;
-          while (space_len > 0 && !isspace ((unsigned char) line[space_len]))
-            space_len--;
-          if (space_len > 0)
-            line_len = space_len;
-          else
+          ucs4_t uc;
+          int mblen;
+          int w;
+
+          mblen = u8_mbtouc (&uc, line + ofs, n - ofs);
+          if (b[ofs] == UC_BREAK_MANDATORY)
+            break;
+          else if (b[ofs] == UC_BREAK_POSSIBLE)
             {
-              while (pos + line_len < length
-                     && !isspace ((unsigned char) line[line_len]))
-                line_len++;
+              last_break_ofs = ofs;
+              last_break_width = width;
+            }
+
+          w = uc_width (uc, "UTF-8");
+          if (w > 0)
+            {
+              if (width + w > bb_width)
+                {
+                  if (isspace (line[ofs]))
+                    break;
+                  else if (last_break_ofs != 0)
+                    {
+                      ofs = last_break_ofs;
+                      width = last_break_width;
+                      break;
+                    }
+                }
+              width += w;
+            }
+          ofs += mblen;
+        }
+      if (b[ofs] != UC_BREAK_MANDATORY)
+        {
+          while (ofs > 0 && isspace (line[ofs - 1]))
+            {
+              ofs--;
+              width--;
             }
         }
-      if (line_len > *width)
-        *width = line_len;
+      if (width > *widthp)
+        *widthp = width;
 
       /* Draw text. */
-      text_draw (a, cell, bb, clip, y, line, line_len);
+      text_draw (a, cell->options, bb, clip, y, line, ofs, width);
 
       /* Next line. */
-      pos += line_len;
-      if (pos < length && isspace ((unsigned char) cell->contents[pos]))
+      pos += ofs;
+      if (ofs < n && isspace (line[ofs]))
         pos++;
+
     }
-  *height = y - bb[V][0];
+  *heightp = y - bb[V][0];
+
+  free (breaks);
+}
+
+void
+ascii_test_write (struct output_driver *driver,
+                  const char *s, int x, int y, unsigned int options)
+{
+  struct ascii_driver *a = ascii_driver_cast (driver);
+  struct table_cell cell;
+  int bb[TABLE_N_AXES][2];
+  int width, height;
+
+  if (a->file == NULL && !ascii_open_page (a))
+    return;
+  a->y = 0;
+
+  memset (&cell, 0, sizeof cell);
+  cell.contents = s;
+  cell.options = options | TAB_LEFT;
+
+  bb[TABLE_HORZ][0] = x;
+  bb[TABLE_HORZ][1] = a->width;
+  bb[TABLE_VERT][0] = y;
+  bb[TABLE_VERT][1] = a->length;
+
+  ascii_layout_cell (a, &cell, bb, bb, &width, &height);
+
+  a->y = 1;
 }
 
 /* ascii_close_page () and support routines. */
-
 
 #if HAVE_DECL_SIGWINCH
 static struct ascii_driver *the_driver;
@@ -818,8 +1095,6 @@ ascii_open_page (struct ascii_driver *a)
 	      sigaction (SIGWINCH, &action, NULL);
 	    }
 #endif
-          if (a->init != NULL)
-            fputs (a->init, a->file);
         }
       else
         {
@@ -838,56 +1113,20 @@ ascii_open_page (struct ascii_driver *a)
       for (i = a->allocated_lines; i < a->length; i++)
         {
           struct ascii_line *line = &a->lines[i];
-          line->chars = NULL;
-          line->allocated_chars = 0;
+          ds_init_empty (&line->s);
+          line->width = 0;
         }
       a->allocated_lines = a->length;
     }
 
   for (i = 0; i < a->length; i++)
-    a->lines[i].n_chars = 0;
-
-  return true;
-}
-
-/* Writes LINE to A's output file.  */
-static void
-output_line (struct ascii_driver *a, const struct ascii_line *line)
-{
-  size_t length;
-  size_t i;
-
-  length = line->n_chars;
-  while (length > 0 && line->chars[length - 1] == ' ')
-    length--;
-
-  for (i = 0; i < length; i++)
     {
-      int attribute = line->chars[i] & (ATTR_BOX | ATTR_EMPHASIS);
-      int ch = line->chars[i] & ~(ATTR_BOX | ATTR_EMPHASIS);
-
-      switch (attribute)
-        {
-        case ATTR_BOX:
-          fputs (a->box[ch], a->file);
-          break;
-
-        case ATTR_EMPHASIS:
-          if (a->emphasis == EMPH_BOLD)
-            fprintf (a->file, "%c\b%c", ch, ch);
-          else if (a->emphasis == EMPH_UNDERLINE)
-            fprintf (a->file, "_\b%c", ch);
-          else
-            putc (ch, a->file);
-          break;
-
-        default:
-          putc (ch, a->file);
-          break;
-        }
+      struct ascii_line *line = &a->lines[i];
+      ds_clear (&line->s);
+      line->width = 0;
     }
 
-  putc ('\n', a->file);
+  return true;
 }
 
 static void
@@ -946,7 +1185,7 @@ ascii_close_page (struct ascii_driver *a)
     {
       struct ascii_line *line = &a->lines[y];
 
-      if (a->squeeze_blank_lines && y > 0 && line->n_chars == 0)
+      if (a->squeeze_blank_lines && y > 0 && line->width == 0)
         any_blank = true;
       else
         {
@@ -956,7 +1195,10 @@ ascii_close_page (struct ascii_driver *a)
               any_blank = false;
             }
 
-          output_line (a, line);
+          while (ds_chomp_byte (&line->s, ' '))
+            continue;
+          fwrite (ds_data (&line->s), 1, ds_length (&line->s), a->file);
+          putc ('\n', a->file);
         }
     }
   if (!a->squeeze_blank_lines)
