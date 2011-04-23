@@ -1796,12 +1796,6 @@ END DATA.
 LIST.
 ])
 AT_CHECK([pspp list.sps], [0], [dnl
-DATA LIST
-
-BEGIN DATA
-
-LIST
-
 Data List
 x y z
 -----

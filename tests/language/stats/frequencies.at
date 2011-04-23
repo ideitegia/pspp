@@ -130,9 +130,7 @@ frequencies /x /format=notable /statistics=none
 ])
 # Cannot use the CSV driver for this because it does not output charts
 # at all.
-AT_CHECK([pspp frequencies.sps], [0],
-  [DATA LIST
-
+AT_CHECK([pspp frequencies.sps], [0], [dnl
 Reading free-form data from INLINE.
 +--------+------+
 |Variable|Format|
@@ -140,12 +138,6 @@ Reading free-form data from INLINE.
 |x       |F8.0  |
 |w       |F8.0  |
 +--------+------+
-
-BEGIN DATA
-
-WEIGHT
-
-FREQUENCIES
 ])
 AT_CLEANUP
 

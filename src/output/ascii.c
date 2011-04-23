@@ -543,6 +543,7 @@ ascii_submit (struct output_driver *driver,
           a->subtitle = xstrdup (text);
           break;
 
+        case TEXT_ITEM_COMMAND_OPEN:
         case TEXT_ITEM_COMMAND_CLOSE:
           break;
 
