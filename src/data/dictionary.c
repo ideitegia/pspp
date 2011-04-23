@@ -198,6 +198,11 @@ dict_clone (const struct dictionary *s)
 
   d = dict_create ();
 
+  /* Set the new dictionary's encoding early so that string length limitations
+     are interpreted correctly. */
+  if ( s->encoding)
+    d->encoding = xstrdup (s->encoding);
+
   for (i = 0; i < s->var_cnt; i++)
     {
       struct variable *sv = s->var[i].var;
@@ -234,9 +239,6 @@ dict_clone (const struct dictionary *s)
   d->vector = xnmalloc (d->vector_cnt, sizeof *d->vector);
   for (i = 0; i < s->vector_cnt; i++)
     d->vector[i] = vector_clone (s->vector[i], s, d);
-
-  if ( s->encoding)
-    d->encoding = xstrdup (s->encoding);
 
   dict_set_attributes (d, dict_get_attributes (s));
 
