@@ -6,6 +6,7 @@ src_output_liboutput_la_CPPFLAGS = $(LIBXML2_CFLAGS) $(AM_CPPFLAGS)
 
 src_output_liboutput_la_SOURCES = \
 	src/output/ascii.c \
+	src/output/ascii.h \
 	src/output/chart-item-provider.h \
 	src/output/chart-item.c \
 	src/output/chart-item.h \
