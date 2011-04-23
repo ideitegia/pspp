@@ -270,17 +270,22 @@ str_format_26adic (unsigned long int number, char buffer[], size_t size)
   while (number-- > 0)
     {
       if (length >= size)
-        return false;
+        goto overflow;
       buffer[length++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[number % 26];
       number /= 26;
     }
 
   if (length >= size)
-    return false;
+    goto overflow;
   buffer[length] = '\0';
 
   buf_reverse (buffer, length);
   return true;
+
+overflow:
+  if (length > 0)
+    buffer[0] = '\0';
+  return false;
 }
 
 /* Sets the SIZE bytes starting at BLOCK to C,
