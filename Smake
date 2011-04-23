@@ -78,6 +78,7 @@ GNULIB_MODULES = \
 	unictype/property-id-continue \
 	unictype/property-id-start \
 	unigbrk/uc-is-grapheme-break \
+	unilbrk/u8-possible-linebreaks \
 	unistd \
 	unistr/u8-check \
 	unistr/u8-cpy \
