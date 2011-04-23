@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,6 +50,9 @@ static const struct output_driver_factory *factories[];
 /* Drivers currently registered with output_driver_register(). */
 static struct llx_list drivers = LLX_INITIALIZER (drivers);
 
+/* TEXT_ITEM_SYNTAX being accumulated until another kind of output arrives. */
+static struct string deferred_syntax = DS_EMPTY_INITIALIZER;
+
 void
 output_close (void)
 {
@@ -69,10 +72,8 @@ output_get_supported_formats (struct string_set *formats)
     string_set_insert (formats, (*fp)->extension);
 }
 
-/* Submits ITEM to the configured output drivers, and transfers ownership to
-   the output subsystem. */
-void
-output_submit (struct output_item *item)
+static void
+output_submit__ (struct output_item *item)
 {
   struct llx *llx, *next;
 
@@ -104,6 +105,40 @@ output_submit (struct output_item *item)
   output_item_unref (item);
 }
 
+static void
+flush_deferred_syntax (void)
+{
+  if (!ds_is_empty (&deferred_syntax))
+    {
+      char *syntax = ds_steal_cstr (&deferred_syntax);
+      output_submit__ (text_item_super (
+                         text_item_create_nocopy (TEXT_ITEM_SYNTAX, syntax)));
+    }
+}
+
+static bool
+is_syntax_item (const struct output_item *item)
+{
+  return (is_text_item (item)
+          && text_item_get_type (to_text_item (item)) == TEXT_ITEM_SYNTAX);
+}
+
+/* Submits ITEM to the configured output drivers, and transfers ownership to
+   the output subsystem. */
+void
+output_submit (struct output_item *item)
+{
+  if (is_syntax_item (item))
+    {
+      ds_put_cstr (&deferred_syntax, text_item_get_text (to_text_item (item)));
+      output_item_unref (item);
+      return;
+    }
+
+  flush_deferred_syntax ();
+  output_submit__ (item);
+}
+
 /* Flushes output to screen devices, so that the user can see
    output that doesn't fill up an entire page. */
 void
@@ -111,6 +146,7 @@ output_flush (void)
 {
   struct llx *llx;
 
+  flush_deferred_syntax ();
   for (llx = llx_head (&drivers); llx != llx_null (&drivers);
        llx = llx_next (llx))
     {

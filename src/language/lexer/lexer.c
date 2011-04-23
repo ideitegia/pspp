@@ -1324,6 +1324,7 @@ lex_source_get__ (const struct lex_source *src_)
       const char *newline;
       const char *line;
       size_t line_len;
+      char *syntax;
 
       line = &src->buffer[src->journal_pos - src->tail];
       newline = rawmemchr (line, '\n');
@@ -1331,8 +1332,12 @@ lex_source_get__ (const struct lex_source *src_)
       if (line_len > 0 && line[line_len - 1] == '\r')
         line_len--;
 
-      text_item_submit (text_item_create_nocopy (TEXT_ITEM_SYNTAX,
-                                                 xmemdup0 (line, line_len)));
+      syntax = malloc (line_len + 2);
+      memcpy (syntax, line, line_len);
+      syntax[line_len] = '\n';
+      syntax[line_len + 1] = '\0';
+
+      text_item_submit (text_item_create_nocopy (TEXT_ITEM_SYNTAX, syntax));
 
       src->journal_pos += newline - line + 1;
     }

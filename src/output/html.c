@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -55,8 +55,6 @@ struct html_driver
     char *command_name;
     FILE *file;
     size_t chart_cnt;
-
-    bool in_syntax;
   };
 
 static const struct output_driver_class html_driver_class;
@@ -200,11 +198,6 @@ html_destroy (struct output_driver *driver)
 
   if (html->file != NULL)
     {
-      if (html->in_syntax)
-        {
-          fprintf (html->file, "</PRE>\n");
-          html->in_syntax = false;
-        }
       fprintf (html->file,
                "</BODY>\n"
                "</HTML>\n"
@@ -217,13 +210,6 @@ html_destroy (struct output_driver *driver)
   free (html);
 }
 
-static bool
-is_syntax_item (const struct output_item *item)
-{
-  return (is_text_item (item)
-          && text_item_get_type (to_text_item (item)) == TEXT_ITEM_SYNTAX);
-}
-
 static void
 html_submit (struct output_driver *driver,
              const struct output_item *output_item)
@@ -231,12 +217,6 @@ html_submit (struct output_driver *driver,
   struct html_driver *html = html_driver_cast (driver);
 
   output_driver_track_current_command (output_item, &html->command_name);
-
-  if (html->in_syntax && !is_syntax_item (output_item))
-    {
-      fprintf (html->file, "</PRE>\n");
-      html->in_syntax = false;
-    }
 
   if (is_table_item (output_item))
     {
@@ -291,14 +271,9 @@ html_submit (struct output_driver *driver,
           break;
 
         case TEXT_ITEM_SYNTAX:
-          if (!html->in_syntax)
-            {
-              fprintf (html->file, "<PRE class=\"syntax\">");
-              html->in_syntax = true;
-            }
-          else
-            putc ('\n', html->file);
+          fprintf (html->file, "<PRE class=\"syntax\">");
           escape_string (html->file, s, strlen (s), " ");
+          fprintf (html->file, "</PRE>\n");
           break;
 
         case TEXT_ITEM_PARAGRAPH:

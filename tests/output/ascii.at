@@ -539,3 +539,47 @@ AT_CHECK([render-test --box=unicode input], [0], [dnl
 ╰─┴───╯
 ])
 AT_CLEANUP
+
+AT_SETUP([ASCII driver syntax printback])
+AT_DATA([ascii.sps], [dnl
+SET PRINTBACK=ON.
+DATA LIST LIST /x * y * a (a23).
+BEGIN DATA.
+1 11 One
+2 22 Two
+3 33 Three
+END DATA.
+
+REGRESSION
+/VARIABLES= a
+/DEPENDENT= x y
+/STATISTICS=COEFF R ANOVA.
+])
+AT_CHECK([pspp ascii.sps], [1], [dnl
+SET PRINTBACK=ON.
+
+DATA LIST LIST /x * y * a (a23).
+
+Reading free-form data from INLINE.
++--------+------+
+|Variable|Format|
+#========#======#
+|x       |F8.0  |
+|y       |F8.0  |
+|a       |A23   |
++--------+------+
+
+BEGIN DATA.
+1 11 One
+2 22 Two
+3 33 Three
+END DATA.
+
+REGRESSION
+/VARIABLES= a
+/DEPENDENT= x y
+/STATISTICS=COEFF R ANOVA.
+
+ascii.sps:12: error: REGRESSION: REGRESSION requires numeric variables.
+])
+AT_CLEANUP
