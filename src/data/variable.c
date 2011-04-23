@@ -782,10 +782,12 @@ var_get_short_name (const struct variable *var, size_t idx)
   return idx < var->short_name_cnt ? var->short_names[idx] : NULL;
 }
 
-/* Sets VAR's short name with the given IDX to SHORT_NAME,
-   truncating it to SHORT_NAME_LEN characters and converting it
-   to uppercase in the process.  Specifying a null pointer for
-   SHORT_NAME clears the specified short name. */
+/* Sets VAR's short name with the given IDX to the UTF-8 string SHORT_NAME.
+   The caller must already have checked that, in the dictionary encoding,
+   SHORT_NAME is no more than SHORT_NAME_LEN bytes long.  The new short name
+   will be converted to uppercase.
+
+   Specifying a null pointer for SHORT_NAME clears the specified short name. */
 void
 var_set_short_name (struct variable *var, size_t idx, const char *short_name)
 {
@@ -811,7 +813,7 @@ var_set_short_name (struct variable *var, size_t idx, const char *short_name)
           for (i = old_cnt; i < var->short_name_cnt; i++)
             var->short_names[i] = NULL;
         }
-      var->short_names[idx] = xstrndup (short_name, MAX_SHORT_STRING);
+      var->short_names[idx] = xstrdup (short_name);
       str_uppercase (var->short_names[idx]);
     }
 
