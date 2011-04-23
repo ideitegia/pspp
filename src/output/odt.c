@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -501,8 +501,10 @@ odt_submit (struct output_driver *driver,
     odt_submit_table (odt, to_table_item (output_item));
   else if (is_text_item (output_item))
     {
-      /* XXX apply different styles based on text_item's type.  */
-      odt_output_text (odt, text_item_get_text (to_text_item (output_item)));
+      struct text_item *text_item = to_text_item (output_item);
+
+      if (text_item_get_type (text_item) != TEXT_ITEM_COMMAND_CLOSE)
+        odt_output_text (odt, text_item_get_text (text_item));
     }
   else if (is_message_item (output_item))
     {
