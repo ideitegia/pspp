@@ -430,6 +430,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
      how the rest of the header data is to be interpreted. */
   dict = dict_create (choose_encoding (r, extensions[EXT_INTEGER],
                                        extensions[EXT_ENCODING]));
+  r->encoding = dict_get_encoding (dict);
 
   /* These records don't use variables at all. */
   if (document != NULL)
