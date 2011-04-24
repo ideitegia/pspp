@@ -132,6 +132,10 @@ static void write_int (struct sfm_writer *, int32_t);
 static inline void convert_double_to_output_format (double, uint8_t[8]);
 static void write_float (struct sfm_writer *, double);
 static void write_string (struct sfm_writer *, const char *, size_t);
+static void write_utf8_string (struct sfm_writer *, const char *encoding,
+                               const char *string, size_t width);
+static void write_utf8_record (struct sfm_writer *, const char *encoding,
+                               const struct string *content, int subtype);
 static void write_bytes (struct sfm_writer *, const void *, size_t);
 static void write_zeros (struct sfm_writer *, size_t);
 static void write_spaces (struct sfm_writer *, size_t);
@@ -383,7 +387,7 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   file_label = dict_get_label (d);
   if (file_label == NULL)
     file_label = "";
-  write_string (w, file_label, 64);
+  write_utf8_string (w, dict_get_encoding (d), file_label, 64);
 
   /* Padding. */
   write_zeros (w, 3);
@@ -431,6 +435,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   int width = var_get_width (v);
   int segment_cnt = sfm_width_to_segments (width);
   int seg0_width = sfm_segment_alloc_width (width, 0);
+  const char *encoding = var_get_encoding (v);
   struct missing_values mv;
   int i;
 
@@ -461,12 +466,12 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   /* Short name.
      The full name is in a translation table written
      separately. */
-  write_string (w, var_get_short_name (v, 0), 8);
+  write_utf8_string (w, encoding, var_get_short_name (v, 0), 8);
 
   /* Value label. */
   if (var_has_label (v))
     {
-      char *label = recode_string (var_get_encoding (v), UTF8, var_get_label (v), -1);
+      char *label = recode_string (encoding, UTF8, var_get_label (v), -1);
       size_t label_len = MIN (strlen (label), 255);
       size_t padded_len = ROUND_UP (label_len, 4);
       write_int (w, label_len);
@@ -499,7 +504,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
       write_int (w, 0);           /* No missing values. */
       write_format (w, fmt, seg_width); /* Print format. */
       write_format (w, fmt, seg_width); /* Write format. */
-      write_string (w, var_get_short_name (v, i), 8);
+      write_utf8_string (w, encoding, var_get_short_name (v, i), 8);
 
       write_variable_continuation_records (w, seg_width);
     }
@@ -593,23 +598,12 @@ put_attrset (struct string *string, const struct attrset *attrs)
 }
 
 static void
-write_attribute_record (struct sfm_writer *w, const struct string *content,
-                        int subtype) 
-{
-  write_int (w, 7);
-  write_int (w, subtype);
-  write_int (w, 1);
-  write_int (w, ds_length (content));
-  write_bytes (w, ds_data (content), ds_length (content));
-}
-
-static void
 write_data_file_attributes (struct sfm_writer *w,
                             const struct dictionary *d)
 {
   struct string s = DS_EMPTY_INITIALIZER;
   put_attrset (&s, dict_get_attributes (d));
-  write_attribute_record (w, &s, 17);
+  write_utf8_record (w, dict_get_encoding (d), &s, 17);
   ds_destroy (&s);
 }
 
@@ -633,8 +627,8 @@ write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
           put_attrset (&s, attrs);
         }
     }
-  if (n_attrsets) 
-    write_attribute_record (w, &s, 18);
+  if (n_attrsets)
+    write_utf8_record (w, dict_get_encoding (d), &s, 18);
   ds_destroy (&s);
 }
 
@@ -692,7 +686,7 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
         ds_put_format (&s, " %s", var_get_short_name (mrset->vars[j], 0));
       ds_put_byte (&s, '\n');
     }
-  write_attribute_record (w, &s, pre_v14 ? 7 : 19);
+  write_utf8_record (w, dict_get_encoding (dict), &s, pre_v14 ? 7 : 19);
   ds_destroy (&s);
 }
 
@@ -749,13 +743,7 @@ write_vls_length_table (struct sfm_writer *w,
                        var_get_short_name (v, 0), var_get_width (v), 0);
     }
   if (!ds_is_empty (&map))
-    {
-      write_int (w, 7);         /* Record type. */
-      write_int (w, 14);        /* Record subtype. */
-      write_int (w, 1);         /* Data item (char) size. */
-      write_int (w, ds_length (&map)); /* Number of data items. */
-      write_bytes (w, ds_data (&map), ds_length (&map));
-    }
+    write_utf8_record (w, dict_get_encoding (dict), &map, 14);
   ds_destroy (&map);
 }
 
@@ -774,16 +762,22 @@ write_long_string_value_labels (struct sfm_writer *w,
     {
       struct variable *var = dict_get_var (dict, i);
       const struct val_labs *val_labs = var_get_value_labels (var);
+      const char *encoding = var_get_encoding (var);
       int width = var_get_width (var);
       const struct val_lab *val_lab;
 
       if (val_labs_count (val_labs) == 0 || width < 9)
         continue;
 
-      size += 12 + strlen (var_get_name (var));
+      size += 12;
+      size += recode_string_len (encoding, "UTF-8", var_get_name (var), -1);
       for (val_lab = val_labs_first (val_labs); val_lab != NULL;
            val_lab = val_labs_next (val_labs, val_lab))
-        size += 8 + width + strlen (val_lab_get_escaped_label (val_lab));
+        {
+          size += 8 + width;
+          size += recode_string_len (encoding, "UTF-8",
+                                     val_lab_get_escaped_label (val_lab), -1);
+        }
     }
   if (size == 0)
     return;
@@ -798,28 +792,37 @@ write_long_string_value_labels (struct sfm_writer *w,
     {
       struct variable *var = dict_get_var (dict, i);
       const struct val_labs *val_labs = var_get_value_labels (var);
-      const char *var_name = var_get_name (var);
+      const char *encoding = var_get_encoding (var);
       int width = var_get_width (var);
       const struct val_lab *val_lab;
+      char *var_name;
 
       if (val_labs_count (val_labs) == 0 || width < 9)
         continue;
 
+      var_name = recode_string (encoding, "UTF-8", var_get_name (var), -1);
       write_int (w, strlen (var_name));
       write_bytes (w, var_name, strlen (var_name));
+      free (var_name);
+
       write_int (w, width);
       write_int (w, val_labs_count (val_labs));
       for (val_lab = val_labs_first (val_labs); val_lab != NULL;
            val_lab = val_labs_next (val_labs, val_lab))
         {
-          const char *label = val_lab_get_escaped_label (val_lab);
-          size_t label_length = strlen (label);
+          char *label;
+          size_t len;
 
           write_int (w, width);
           write_bytes (w, value_str (val_lab_get_value (val_lab), width),
                        width);
-          write_int (w, label_length);
-          write_bytes (w, label, label_length);
+
+          label = recode_string (var_get_encoding (var), "UTF-8",
+                                 val_lab_get_escaped_label (val_lab), -1);
+          len = strlen (label);
+          write_int (w, len);
+          write_bytes (w, label, len);
+          free (label);
         }
     }
   assert (ftello (w->file) == start + size);
@@ -837,6 +840,10 @@ write_encoding_record (struct sfm_writer *w,
   write_int (w, 7);             /* Record type. */
   write_int (w, 20);            /* Record subtype. */
   write_int (w, 1);             /* Data item (char) size. */
+
+  /* IANA says "...character set names may be up to 40 characters taken from
+     the printable characters of US-ASCII," so character set names don't need
+     to be recoded. */
   write_int (w, strlen (enc));  /* Number of data items. */
   write_string (w, enc, strlen (enc));
 }
@@ -853,21 +860,12 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *v = dict_get_var (dict, i);
-      char *longname = recode_string (dict_get_encoding (dict), UTF8, var_get_name (v), -1);
-
       if (i)
         ds_put_byte (&map, '\t');
       ds_put_format (&map, "%s=%s",
-                     var_get_short_name (v, 0), longname);
-      free (longname);
+                     var_get_short_name (v, 0), var_get_name (v));
     }
-
-  write_int (w, 7);             /* Record type. */
-  write_int (w, 13);            /* Record subtype. */
-  write_int (w, 1);             /* Data item (char) size. */
-  write_int (w, ds_length (&map)); /* Number of data items. */
-  write_bytes (w, ds_data (&map), ds_length (&map));
-
+  write_utf8_record (w, dict_get_encoding (dict), &map, 13);
   ds_destroy (&map);
 }
 
@@ -1202,9 +1200,9 @@ write_value (struct sfm_writer *w, const union value *value, int width)
     }
 }
 
-/* Writes null-terminated STRING in a field of the given WIDTH to
-   W.  If STRING is longer than WIDTH, it is truncated; if WIDTH
-   is narrowed, it is padded on the right with spaces. */
+/* Writes null-terminated STRING in a field of the given WIDTH to W.  If STRING
+   is longer than WIDTH, it is truncated; if STRING is shorter than WIDTH, it
+   is padded on the right with spaces. */
 static void
 write_string (struct sfm_writer *w, const char *string, size_t width)
 {
@@ -1213,6 +1211,35 @@ write_string (struct sfm_writer *w, const char *string, size_t width)
   write_bytes (w, string, data_bytes);
   while (pad_bytes-- > 0)
     putc (' ', w->file);
+}
+
+/* Recodes null-terminated UTF-8 encoded STRING into ENCODING, and writes the
+   recoded version in a field of the given WIDTH to W.  The string is truncated
+   or padded on the right with spaces to exactly WIDTH bytes. */
+static void
+write_utf8_string (struct sfm_writer *w, const char *encoding,
+                   const char *string, size_t width)
+{
+  char *s = recode_string (encoding, "UTF-8", string, -1);
+  write_string (w, s, width);
+  free (s);
+}
+
+/* Writes a record with type 7, subtype SUBTYPE that contains CONTENT recoded
+   from UTF-8 encoded into ENCODING. */
+static void
+write_utf8_record (struct sfm_writer *w, const char *encoding,
+                   const struct string *content, int subtype)
+{
+  struct substring s;
+
+  s = recode_substring_pool (encoding, "UTF-8", ds_ss (content), NULL);
+  write_int (w, 7);
+  write_int (w, subtype);
+  write_int (w, 1);
+  write_int (w, ss_length (s));
+  write_bytes (w, ss_data (s), ss_length (s));
+  ss_dealloc (&s);
 }
 
 /* Writes SIZE bytes of DATA to W's output file. */
