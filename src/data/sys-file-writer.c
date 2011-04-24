@@ -136,6 +136,8 @@ static void write_utf8_string (struct sfm_writer *, const char *encoding,
                                const char *string, size_t width);
 static void write_utf8_record (struct sfm_writer *, const char *encoding,
                                const struct string *content, int subtype);
+static void write_string_record (struct sfm_writer *,
+                                 const struct substring content, int subtype);
 static void write_bytes (struct sfm_writer *, const void *, size_t);
 static void write_zeros (struct sfm_writer *, size_t);
 static void write_spaces (struct sfm_writer *, size_t);
@@ -639,6 +641,7 @@ static void
 write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
               bool pre_v14)
 {
+  const char *encoding = dict_get_encoding (dict);
   struct string s = DS_EMPTY_INITIALIZER;
   size_t n_mrsets;
   size_t i;
@@ -650,14 +653,17 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
   for (i = 0; i < n_mrsets; i++)
     {
       const struct mrset *mrset = dict_get_mrset (dict, i);
-      const char *label;
+      char *name;
       size_t j;
 
       if ((mrset->type != MRSET_MD || mrset->cat_source != MRSET_COUNTEDVALUES)
           != pre_v14)
         continue;
 
-      ds_put_format (&s, "%s=", mrset->name);
+      name = recode_string (encoding, "UTF-8", mrset->name, -1);
+      ds_put_format (&s, "%s=", name);
+      free (name);
+
       if (mrset->type == MRSET_MD)
         {
           char *counted;
@@ -679,14 +685,27 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
         ds_put_byte (&s, 'C');
       ds_put_byte (&s, ' ');
 
-      label = mrset->label && !mrset->label_from_var_label ? mrset->label : "";
-      ds_put_format (&s, "%zu %s", strlen (label), label);
+      if (mrset->label && !mrset->label_from_var_label)
+        {
+          char *label = recode_string (encoding, "UTF-8", mrset->label, -1);
+          ds_put_format (&s, "%zu %s", strlen (label), label);
+          free (label);
+        }
+      else
+        ds_put_cstr (&s, "0 ");
 
       for (j = 0; j < mrset->n_vars; j++)
-        ds_put_format (&s, " %s", var_get_short_name (mrset->vars[j], 0));
+        {
+          const char *short_name_utf8 = var_get_short_name (mrset->vars[j], 0);
+          char *short_name = recode_string (encoding, "UTF-8",
+                                            short_name_utf8, -1);
+          ds_put_format (&s, " %s", short_name);
+          free (short_name);
+        }
       ds_put_byte (&s, '\n');
     }
-  write_utf8_record (w, dict_get_encoding (dict), &s, pre_v14 ? 7 : 19);
+
+  write_string_record (w, ds_ss (&s), pre_v14 ? 7 : 19);
   ds_destroy (&s);
 }
 
@@ -1234,12 +1253,21 @@ write_utf8_record (struct sfm_writer *w, const char *encoding,
   struct substring s;
 
   s = recode_substring_pool (encoding, "UTF-8", ds_ss (content), NULL);
+  write_string_record (w, s, subtype);
+  ss_dealloc (&s);
+}
+
+/* Writes a record with type 7, subtype SUBTYPE that contains the string
+   CONTENT. */
+static void
+write_string_record (struct sfm_writer *w,
+                     const struct substring content, int subtype)
+{
   write_int (w, 7);
   write_int (w, subtype);
   write_int (w, 1);
-  write_int (w, ss_length (s));
-  write_bytes (w, ss_data (s), ss_length (s));
-  ss_dealloc (&s);
+  write_int (w, ss_length (content));
+  write_bytes (w, ss_data (content), ss_length (content));
 }
 
 /* Writes SIZE bytes of DATA to W's output file. */

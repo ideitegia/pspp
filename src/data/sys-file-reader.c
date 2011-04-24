@@ -203,7 +203,8 @@ static const char *choose_encoding (
   const struct sfm_extension_record *ext_encoding);
 
 static struct text_record *open_text_record (
-  struct sfm_reader *, const struct sfm_extension_record *);
+  struct sfm_reader *, const struct sfm_extension_record *,
+  bool recode_to_utf8);
 static void close_text_record (struct sfm_reader *,
                                struct text_record *);
 static bool read_variable_to_value_pair (struct sfm_reader *,
@@ -1227,7 +1228,7 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
   struct text_record *text;
   struct mrset *mrset;
 
-  text = open_text_record (r, record);
+  text = open_text_record (r, record, false);
   for (;;)
     {
       const char *counted = NULL;
@@ -1243,12 +1244,12 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
       name = text_get_token (text, ss_cstr ("="), NULL);
       if (name == NULL)
         break;
-      mrset->name = xstrdup (name);
+      mrset->name = recode_string ("UTF-8", r->encoding, name, -1);
 
       if (mrset->name[0] != '$')
         {
           sys_warn (r, record->pos,
-                    _("`%s' does not begin with `$' at UTF-8 offset %zu "
+                    _("`%s' does not begin with `$' at offset %zu "
                       "in MRSETS record."), mrset->name, text_pos (text));
           break;
         }
@@ -1259,7 +1260,7 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
           if (!text_match (text, ' '))
             {
               sys_warn (r, record->pos,
-                        _("Missing space following `%c' at UTF-8 offset %zu "
+                        _("Missing space following `%c' at offset %zu "
                           "in MRSETS record."), 'C', text_pos (text));
               break;
             }
@@ -1278,7 +1279,7 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
           if (!text_match (text, ' '))
             {
               sys_warn (r, record->pos,
-                        _("Missing space following `%c' at UTF-8 offset %zu "
+                        _("Missing space following `%c' at offset %zu "
                           "in MRSETS record."), 'E',  text_pos (text));
               break;
             }
@@ -1289,13 +1290,13 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
           else if (strcmp (number, "1"))
             sys_warn (r, record->pos,
                       _("Unexpected label source value `%s' following `E' "
-                        "at UTF-8 offset %zu in MRSETS record."),
+                        "at offset %zu in MRSETS record."),
                       number, text_pos (text));
         }
       else
         {
           sys_warn (r, record->pos,
-                    _("Missing `C', `D', or `E' at UTF-8 offset %zu "
+                    _("Missing `C', `D', or `E' at offset %zu "
                       "in MRSETS record."),
                     text_pos (text));
           break;
@@ -1311,37 +1312,45 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
       label = text_parse_counted_string (r, text);
       if (label == NULL)
         break;
-      mrset->label = label[0] != '\0' ? xstrdup (label) : NULL;
+      if (label[0] != '\0')
+        mrset->label = recode_string ("UTF-8", r->encoding, label, -1);
 
       stringi_set_init (&var_names);
       allocated_vars = 0;
       width = INT_MAX;
       do
         {
+          const char *raw_var_name;
           struct variable *var;
-          const char *var_name;
+          char *var_name;
 
-          var_name = text_get_token (text, ss_cstr (" \n"), &delimiter);
-          if (var_name == NULL)
+          raw_var_name = text_get_token (text, ss_cstr (" \n"), &delimiter);
+          if (raw_var_name == NULL)
             {
               sys_warn (r, record->pos,
                         _("Missing new-line parsing variable names "
-                          "at UTF-8 offset %zu in MRSETS record."),
+                          "at offset %zu in MRSETS record."),
                         text_pos (text));
               break;
             }
+          var_name = recode_string ("UTF-8", r->encoding, raw_var_name, -1);
 
           var = dict_lookup_var (dict, var_name);
           if (var == NULL)
-            continue;
+            {
+              free (var_name);
+              continue;
+            }
           if (!stringi_set_insert (&var_names, var_name))
             {
               sys_warn (r, record->pos,
                         _("Duplicate variable name %s "
-                          "at UTF-8 offset %zu in MRSETS record."),
+                          "at offset %zu in MRSETS record."),
                         var_name, text_pos (text));
+              free (var_name);
               continue;
             }
+          free (var_name);
 
           if (mrset->label == NULL && mrset->label_from_var_label
               && var_has_label (var))
@@ -1536,7 +1545,7 @@ parse_long_var_name_map (struct sfm_reader *r,
      system file, this cannot create any intermediate duplicate variable names,
      because all of the new variable names are longer than any of the old
      variable names and thus there cannot be any overlaps.) */
-  text = open_text_record (r, record);
+  text = open_text_record (r, record, true);
   while (read_variable_to_value_pair (r, dict, text, &var, &long_name))
     {
       /* Validate long name. */
@@ -1575,7 +1584,7 @@ parse_long_string_map (struct sfm_reader *r,
   struct variable *var;
   char *length_s;
 
-  text = open_text_record (r, record);
+  text = open_text_record (r, record, true);
   while (read_variable_to_value_pair (r, dict, text, &var, &length_s))
     {
       size_t idx = var_get_dict_index (var);
@@ -1803,7 +1812,7 @@ parse_data_file_attributes (struct sfm_reader *r,
                             const struct sfm_extension_record *record,
                             struct dictionary *dict)
 {
-  struct text_record *text = open_text_record (r, record);
+  struct text_record *text = open_text_record (r, record, true);
   parse_attributes (r, text, dict_get_attributes (dict));
   close_text_record (r, text);
 }
@@ -1818,7 +1827,7 @@ parse_variable_attributes (struct sfm_reader *r,
   struct text_record *text;
   struct variable *var;
 
-  text = open_text_record (r, record);
+  text = open_text_record (r, record, true);
   while (text_read_variable_name (r, dict, text, ss_cstr (":"), &var))
     parse_attributes (r, text, var != NULL ? var_get_attributes (var) : NULL);
   close_text_record (r, text);
@@ -2240,15 +2249,17 @@ skip_whole_strings (struct sfm_reader *r, size_t length)
 /* State. */
 struct text_record
   {
-    struct substring buffer;    /* Record contents, in UTF-8. */
+    struct substring buffer;    /* Record contents. */
     off_t start;                /* Starting offset in file. */
     size_t pos;                 /* Current position in buffer. */
     int n_warnings;             /* Number of warnings issued or suppressed. */
+    bool recoded;               /* Recoded into UTF-8? */
   };
 
 static struct text_record *
 open_text_record (struct sfm_reader *r,
-                  const struct sfm_extension_record *record)
+                  const struct sfm_extension_record *record,
+                  bool recode_to_utf8)
 {
   struct text_record *text;
   struct substring raw;
@@ -2256,9 +2267,12 @@ open_text_record (struct sfm_reader *r,
   text = pool_alloc (r->pool, sizeof *text);
   raw = ss_buffer (record->data, record->size * record->count);
   text->start = record->pos;
-  text->buffer = recode_substring_pool ("UTF-8", r->encoding, raw, r->pool);
+  text->buffer = (recode_to_utf8
+                  ? recode_substring_pool ("UTF-8", r->encoding, raw, r->pool)
+                  : raw);
   text->pos = 0;
   text->n_warnings = 0;
+  text->recoded = recode_to_utf8;
 
   return text;
 }
@@ -2271,7 +2285,8 @@ close_text_record (struct sfm_reader *r, struct text_record *text)
   if (text->n_warnings > MAX_TEXT_WARNINGS)
     sys_warn (r, -1, _("Suppressed %d additional related warnings."),
               text->n_warnings - MAX_TEXT_WARNINGS);
-  pool_free (r->pool, ss_data (text->buffer));
+  if (text->recoded)
+    pool_free (r->pool, ss_data (text->buffer));
 }
 
 /* Reads a variable=value pair from TEXT.
@@ -2393,7 +2408,7 @@ text_parse_counted_string (struct sfm_reader *r, struct text_record *text)
   if (start == text->pos)
     {
       sys_warn (r, text->start,
-                _("Expecting digit at UTF-8 offset %zu in MRSETS record."),
+                _("Expecting digit at offset %zu in MRSETS record."),
                 text->pos);
       return NULL;
     }
@@ -2401,7 +2416,7 @@ text_parse_counted_string (struct sfm_reader *r, struct text_record *text)
   if (!text_match (text, ' '))
     {
       sys_warn (r, text->start,
-                _("Expecting space at UTF-8 offset %zu in MRSETS record."),
+                _("Expecting space at offset %zu in MRSETS record."),
                 text->pos);
       return NULL;
     }
@@ -2409,7 +2424,7 @@ text_parse_counted_string (struct sfm_reader *r, struct text_record *text)
   if (text->pos + n > text->buffer.length)
     {
       sys_warn (r, text->start,
-                _("%zu-byte string starting at UTF-8 offset %zu "
+                _("%zu-byte string starting at offset %zu "
                   "exceeds record length %zu."),
                 n, text->pos, text->buffer.length);
       return NULL;
@@ -2419,8 +2434,7 @@ text_parse_counted_string (struct sfm_reader *r, struct text_record *text)
   if (s[n] != ' ')
     {
       sys_warn (r, text->start,
-                _("Expecting space at UTF-8 offset %zu following %zu-byte "
-                  "string."),
+                _("Expecting space at offset %zu following %zu-byte string."),
                 text->pos + n, n);
       return NULL;
     }
@@ -2441,8 +2455,8 @@ text_match (struct text_record *text, char c)
     return false;
 }
 
-/* Returns the current byte offset (as convertd to UTF-8) inside the TEXT's
-   string. */
+/* Returns the current byte offset (as converted to UTF-8, if it was converted)
+   inside the TEXT's string. */
 static size_t
 text_pos (const struct text_record *text)
 {

@@ -2043,9 +2043,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: `a' does not begin with `$' at UTF-8 offset 2 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: `a' does not begin with `$' at offset 2 in MRSETS record.
 
-warning: `sys-file.sav' near offset 0xeb: `xyz' does not begin with `$' at UTF-8 offset 4 in MRSETS record.
+warning: `sys-file.sav' near offset 0xeb: `xyz' does not begin with `$' at offset 4 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2075,7 +2075,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Missing space following `C' at UTF-8 offset 4 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Missing space following `C' at offset 4 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2105,7 +2105,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Missing space following `E' at UTF-8 offset 4 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Missing space following `E' at offset 4 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2135,9 +2135,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Unexpected label source value `2' following `E' at UTF-8 offset 7 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Unexpected label source value `2' following `E' at offset 7 in MRSETS record.
 
-warning: `sys-file.sav' near offset 0xd8: Expecting digit at UTF-8 offset 7 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Expecting digit at offset 7 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2167,7 +2167,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-"warning: `sys-file.sav' near offset 0xd8: Missing `C', `D', or `E' at UTF-8 offset 3 in MRSETS record."
+"warning: `sys-file.sav' near offset 0xd8: Missing `C', `D', or `E' at offset 3 in MRSETS record."
 ])
 done
 AT_CLEANUP
@@ -2197,7 +2197,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Expecting digit at UTF-8 offset 4 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Expecting digit at offset 4 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2227,7 +2227,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Expecting space at UTF-8 offset 5 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Expecting space at offset 5 in MRSETS record.
 ])
 done
 AT_CLEANUP
@@ -2257,7 +2257,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: 4-byte string starting at UTF-8 offset 6 exceeds record length 9.
+warning: `sys-file.sav' near offset 0xd8: 4-byte string starting at offset 6 exceeds record length 9.
 ])
 done
 AT_CLEANUP
@@ -2287,7 +2287,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Expecting space at UTF-8 offset 9 following 3-byte string.
+warning: `sys-file.sav' near offset 0xd8: Expecting space at offset 9 following 3-byte string.
 ])
 done
 AT_CLEANUP
@@ -2317,7 +2317,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Missing new-line parsing variable names at UTF-8 offset 14 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Missing new-line parsing variable names at offset 14 in MRSETS record.
 
 warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
 ])
@@ -2349,7 +2349,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Duplicate variable name NUM1 at UTF-8 offset 18 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Duplicate variable name NUM1 at offset 18 in MRSETS record.
 
 warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
 ])
