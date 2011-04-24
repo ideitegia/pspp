@@ -376,7 +376,7 @@ set_label (var, label)
  struct variable *var;
  char *label
 CODE:
-  var_set_label (var, label, NULL, false);
+  var_set_label (var, label, false);
 
 
 void

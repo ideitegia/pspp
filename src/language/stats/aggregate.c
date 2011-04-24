@@ -638,8 +638,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 
 	    free (dest[i]);
 	    if (dest_label[i])
-              var_set_label (destvar, dest_label[i],
-                             dict_get_encoding (agr->dict), true);
+              var_set_label (destvar, dest_label[i], true);
 
 	    v->dest = destvar;
 	  }

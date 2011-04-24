@@ -746,7 +746,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
         {
           char label[256];
           read_string (r, label);
-          var_set_label (v, label, NULL, false); /* XXX */
+          var_set_label (v, label, false); /* XXX */
         }
     }
 

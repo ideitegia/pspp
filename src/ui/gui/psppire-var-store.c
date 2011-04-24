@@ -588,8 +588,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
       break;
     case PSPPIRE_VAR_STORE_COL_LABEL:
       {
-	var_set_label (pv, text,
-                       psppire_dict_encoding (var_store->dictionary), true);
+	var_set_label (pv, text, true);
 	return TRUE;
       }
       break;

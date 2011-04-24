@@ -680,9 +680,9 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
 	  struct variable *dst_var;
 
 	  dst_var = dict_create_var_assert (dataset_dict (ds), dv->z_name, 0);
-          var_set_label (dst_var, xasprintf (_("Z-score of %s"),
-                                             var_to_string (dv->v)),
-                         dict_get_encoding (dataset_dict (ds)), false);
+          var_set_label (dst_var,
+                         xasprintf (_("Z-score of %s"),var_to_string (dv->v)),
+                         false);
 
           z = &t->z_scores[cnt++];
           z->src_var = dv->v;

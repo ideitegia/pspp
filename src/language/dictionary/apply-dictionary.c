@@ -80,8 +80,7 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
 	}
 
       if (var_has_label (s))
-        var_set_label (t, var_get_label (s),
-                       dict_get_encoding (dataset_dict (ds)), false);
+        var_set_label (t, var_get_label (s), false);
 
       if (var_has_value_labels (s))
         {

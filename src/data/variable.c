@@ -133,7 +133,7 @@ var_clone (const struct variable *old_var)
   var_set_print_format (new_var, var_get_print_format (old_var));
   var_set_write_format (new_var, var_get_write_format (old_var));
   var_set_value_labels (new_var, var_get_value_labels (old_var));
-  var_set_label (new_var, var_get_label (old_var), NULL, false);
+  var_set_label (new_var, var_get_label (old_var), false);
   var_set_measure (new_var, var_get_measure (old_var));
   var_set_display_width (new_var, var_get_display_width (old_var));
   var_set_alignment (new_var, var_get_alignment (old_var));
@@ -571,14 +571,12 @@ var_get_label (const struct variable *v)
    empty string (after stripping white space), then V's variable label (if any)
    is removed.
 
-   Variable labels are limited to 255 bytes in the dictionary encoding, which
-   should be specified as DICT_ENCODING.  If LABEL fits within this limit, this
-   function returns true.  Otherwise, the variable label is set to a truncated
-   value, this function returns false and, if ISSUE_WARNING is true, issues a
-   warning.  */
+   Variable labels are limited to 255 bytes in V's encoding (as returned by
+   var_get_encoding()).  If LABEL fits within this limit, this function returns
+   true.  Otherwise, the variable label is set to a truncated value, this
+   function returns false and, if ISSUE_WARNING is true, issues a warning.  */
 bool
-var_set_label (struct variable *v, const char *label,
-               const char *dict_encoding, bool issue_warning)
+var_set_label (struct variable *v, const char *label, bool issue_warning)
 {
   bool truncated = false;
 
@@ -587,6 +585,7 @@ var_set_label (struct variable *v, const char *label,
 
   if (label != NULL)
     {
+      const char *dict_encoding = var_get_encoding (v);
       struct substring s = ss_cstr (label);
       size_t trunc_len;
 
@@ -620,7 +619,7 @@ var_set_label (struct variable *v, const char *label,
 void
 var_clear_label (struct variable *v)
 {
-  var_set_label (v, NULL, NULL, false);
+  var_set_label (v, NULL, false);
 }
 
 /* Returns true if V has a variable V,

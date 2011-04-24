@@ -974,7 +974,7 @@ parse_variable_records (struct sfm_reader *r, struct dictionary *dict,
 
           utf8_label = recode_string_pool ("UTF-8", dict_encoding,
                                            rec->label, -1, r->pool);
-          var_set_label (var, utf8_label, NULL, false);
+          var_set_label (var, utf8_label, false);
         }
 
       /* Set missing values. */

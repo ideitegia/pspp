@@ -582,7 +582,7 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
           if (var_has_missing_values (dv) && !var_has_missing_values (mv))
             var_set_missing_values (mv, var_get_missing_values (dv));
           if (var_get_label (dv) && !var_get_label (mv))
-            var_set_label (mv, var_get_label (dv), file_encoding, false);
+            var_set_label (mv, var_get_label (dv), false);
         }
       else
         mv = dict_clone_var_assert (m, dv);

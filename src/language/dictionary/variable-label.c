@@ -36,7 +36,6 @@ int
 cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
-  const char *dict_encoding = dict_get_encoding (dict);
 
   do
     {
@@ -55,7 +54,7 @@ cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 	}
 
       for (i = 0; i < nv; i++)
-        var_set_label (v[i], lex_tokcstr (lexer), dict_encoding, i == 0);
+        var_set_label (v[i], lex_tokcstr (lexer), i == 0);
 
       lex_get (lexer);
       while (lex_token (lexer) == T_SLASH)

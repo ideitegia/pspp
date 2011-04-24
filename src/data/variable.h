@@ -98,8 +98,7 @@ struct fmt_spec var_default_formats (int width);
 /* Variable labels. */
 const char *var_to_string (const struct variable *);
 const char *var_get_label (const struct variable *);
-bool var_set_label (struct variable *, const char *label,
-                    const char *dict_encoding, bool issue_warning);
+bool var_set_label (struct variable *, const char *label, bool issue_warning);
 void var_clear_label (struct variable *);
 bool var_has_label (const struct variable *);
 
