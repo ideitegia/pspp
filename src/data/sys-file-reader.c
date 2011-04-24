@@ -428,10 +428,8 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
 
      First, figure out the correct character encoding, because this determines
      how the rest of the header data is to be interpreted. */
-  dict = dict_create ();
-  r->encoding = choose_encoding (r, extensions[EXT_INTEGER],
-                                 extensions[EXT_ENCODING]);
-  dict_set_encoding (dict, r->encoding);
+  dict = dict_create (choose_encoding (r, extensions[EXT_INTEGER],
+                                       extensions[EXT_ENCODING]));
 
   /* These records don't use variables at all. */
   if (document != NULL)

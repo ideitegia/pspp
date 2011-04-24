@@ -26,7 +26,7 @@ struct string;
 struct ccase;
 
 /* Creating dictionaries. */
-struct dictionary *dict_create (void);
+struct dictionary *dict_create (const char *encoding);
 struct dictionary *dict_clone (const struct dictionary *);
 
 
@@ -164,7 +164,6 @@ void dict_set_attributes (struct dictionary *, const struct attrset *);
 bool dict_has_attributes (const struct dictionary *);
 
 /* Data encoding. */
-void dict_set_encoding (struct dictionary *d, const char *enc);
 const char *dict_get_encoding (const struct dictionary *d);
 
 bool dict_id_is_valid (const struct dictionary *, const char *id,

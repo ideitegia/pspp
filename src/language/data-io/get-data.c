@@ -279,7 +279,7 @@ static int
 parse_get_txt (struct lexer *lexer, struct dataset *ds)
 {
   struct data_parser *parser = NULL;
-  struct dictionary *dict = dict_create ();
+  struct dictionary *dict = dict_create (get_default_encoding ());
   struct file_handle *fh = NULL;
   struct dfm_reader *reader = NULL;
   char *name = NULL;

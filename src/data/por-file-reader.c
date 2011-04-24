@@ -38,6 +38,7 @@
 #include "data/value-labels.h"
 #include "data/variable.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/pool.h"
@@ -250,7 +251,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   struct pool *volatile pool = NULL;
   struct pfm_reader *volatile r = NULL;
 
-  *dict = dict_create ();
+  *dict = dict_create (get_default_encoding ());
 
   /* Create and initialize reader. */
   pool = pool_create ();

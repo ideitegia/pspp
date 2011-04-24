@@ -87,16 +87,6 @@ struct dictionary
 static void dict_unset_split_var (struct dictionary *, struct variable *);
 static void dict_unset_mrset_var (struct dictionary *, struct variable *);
 
-void
-dict_set_encoding (struct dictionary *d, const char *enc)
-{
-  if (enc)
-    {
-      free (d->encoding);
-      d->encoding = xstrdup (enc);
-    }
-}
-
 const char *
 dict_get_encoding (const struct dictionary *d)
 {
@@ -171,14 +161,16 @@ dict_copy_callbacks (struct dictionary *dest,
   dest->cb_data = src->cb_data;
 }
 
-/* Creates and returns a new dictionary. */
+/* Creates and returns a new dictionary with the specified ENCODING. */
 struct dictionary *
-dict_create (void)
+dict_create (const char *encoding)
 {
   struct dictionary *d = xzalloc (sizeof *d);
 
+  d->encoding = xstrdup (encoding);
   hmap_init (&d->name_map);
   attrset_init (&d->attributes);
+
   return d;
 }
 
@@ -196,7 +188,7 @@ dict_clone (const struct dictionary *s)
   struct dictionary *d;
   size_t i;
 
-  d = dict_create ();
+  d = dict_create (s->encoding);
 
   /* Set the new dictionary's encoding early so that string length limitations
      are interpreted correctly. */
@@ -1660,7 +1652,7 @@ struct variable *
 dict_create_internal_var (int case_idx, int width)
 {
   if (internal_dict == NULL)
-    internal_dict = dict_create ();
+    internal_dict = dict_create ("UTF-8");
 
   for (;;)
     {

@@ -208,7 +208,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
   if ( agr.add_variables )
     agr.dict = dict_clone (dict);
   else
-    agr.dict = dict_create ();    
+    agr.dict = dict_create (dict_get_encoding (dict));
 
   dict_set_label (agr.dict, dict_get_label (dict));
   dict_set_documents (agr.dict, dict_get_documents (dict));

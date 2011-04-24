@@ -1252,7 +1252,7 @@ choose_column_names (struct import_assistant *ia)
   struct column *col;
   size_t name_row;
 
-  dict = dict_create ();
+  dict = dict_create (get_default_encoding ());
   name_row = f->variable_names && f->skip_lines ? f->skip_lines : 0;
   for (col = s->columns; col < &s->columns[s->column_cnt]; col++)
     {
@@ -1595,7 +1595,7 @@ prepare_formats_page (struct import_assistant *ia)
 
   push_watch_cursor (ia);
 
-  dict = dict_create ();
+  dict = dict_create (get_default_encoding ());
   fg = fmt_guesser_create ();
   for (column_idx = 0; column_idx < s->column_cnt; column_idx++)
     {

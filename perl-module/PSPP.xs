@@ -223,7 +223,7 @@ MODULE = PSPP		PACKAGE = PSPP::Dict
 struct dictionary *
 pxs_dict_new()
 CODE:
- RETVAL = dict_create ();
+ RETVAL = dict_create ("UTF-8");
 OUTPUT:
  RETVAL
 
@@ -592,7 +592,6 @@ CODE:
  struct file_handle *fh =
   fh_create_file (NULL, name, fh_default_properties () );
  struct sysfile_info *sfi = xmalloc (sizeof (*sfi));
- dict_set_encoding (dict, UTF8);
  sfi->writer = sfm_open_writer (fh, dict, opts);
  sfi->dict = dict;
  sfi->opened = true;

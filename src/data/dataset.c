@@ -124,9 +124,8 @@ dataset_create (void)
   struct dataset *ds;
 
   ds = xzalloc (sizeof *ds);
-  ds->dict = dict_create ();
+  ds->dict = dict_create (get_default_encoding ());
   dict_set_change_callback (ds->dict, dict_callback, ds);
-  dict_set_encoding (ds->dict, get_default_encoding ());
 
   ds->caseinit = caseinit_create ();
   proc_cancel_all_transformations (ds);

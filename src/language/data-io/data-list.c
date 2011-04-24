@@ -42,6 +42,7 @@
 #include "language/lexer/variable-parser.h"
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/pool.h"
@@ -85,7 +86,9 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   struct pool *tmp_pool;
   bool ok;
 
-  dict = in_input_program () ? dataset_dict (ds) : dict_create ();
+  dict = (in_input_program ()
+          ? dataset_dict (ds)
+          : dict_create (get_default_encoding ()));
   parser = data_parser_create (dict);
   reader = NULL;
 
@@ -238,13 +241,9 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
     }
   type = data_parser_get_type (parser);
 
-  if (! ds_is_empty (&encoding))
-    {
-      if ( NULL == fh)
-	msg (MW, _("Encoding should not be specified for inline data. It will be ignored."));
-      else
-	dict_set_encoding (dict, ds_cstr (&encoding));
-    }
+  if (! ds_is_empty (&encoding) && NULL == fh)
+    msg (MW, _("Encoding should not be specified for inline data. It will be "
+               "ignored."));
 
   if (fh == NULL)
     fh = fh_inline_file ();

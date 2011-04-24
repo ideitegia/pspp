@@ -35,6 +35,7 @@
 #include "language/lexer/variable-parser.h"
 #include "language/stats/sort-criteria.h"
 #include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/string-array.h"
 #include "libpspp/taint.h"
@@ -160,7 +161,7 @@ combine_files (enum comb_command_type command,
 
   proc.files = NULL;
   proc.n_files = 0;
-  proc.dict = dict_create ();
+  proc.dict = dict_create (get_default_encoding ());
   proc.output = NULL;
   proc.matcher = NULL;
   subcase_init_empty (&proc.by_vars);
@@ -496,7 +497,6 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
   struct dictionary *d = f->dict;
   const struct string_array *d_docs, *m_docs;
   int i;
-  const char *file_encoding;
 
   if (dict_get_label (m) == NULL)
     dict_set_label (m, dict_get_label (d));
@@ -510,17 +510,9 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
      The correct thing to do would be to convert to an encoding
      which can cope with all the input files (eg UTF-8).
    */
-  file_encoding = dict_get_encoding (f->dict);
-  if ( file_encoding != NULL)
-    {
-      if ( dict_get_encoding (m) == NULL)
-	dict_set_encoding (m, file_encoding);
-      else if ( 0 != strcmp (file_encoding, dict_get_encoding (m)))
-	{
-	  msg (MW,
-	       _("Combining files with incompatible encodings. String data may not be represented correctly."));
-	}
-    }
+  if ( 0 != strcmp (dict_get_encoding (f->dict), dict_get_encoding (m)))
+    msg (MW, _("Combining files with incompatible encodings. String data may "
+               "not be represented correctly."));
 
   if (d_docs != NULL)
     {

@@ -27,6 +27,7 @@
 #include "data/dictionary.h"
 #include "data/format.h"
 #include "data/variable.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
@@ -229,6 +230,7 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
   int n_fields, n_tuples;
   PGresult *qres = NULL;
   casenumber n_cases = CASENUMBER_MAX;
+  const char *encoding;
 
   struct psql_reader *r = xzalloc (sizeof *r);
   struct string query ;
@@ -285,22 +287,20 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
 
   r->postgres_epoch = calendar_gregorian_to_offset (2000, 1, 1, NULL);
 
-
-  /* Create the dictionary and populate it */
-  *dict = r->dict = dict_create ();
-
   {
     const int enc = PQclientEncoding (r->conn);
 
     /* According to section 22.2 of the Postgresql manual
        a value of zero (SQL_ASCII) indicates
        "a declaration of ignorance about the encoding".
-       Accordingly, we don't set the dictionary's encoding
+       Accordingly, we use the default encoding
        if we find this value.
     */
-    if ( enc != 0 )
-      dict_set_encoding (r->dict, pg_encoding_to_char (enc));
+    encoding = enc ? pg_encoding_to_char (enc) : get_default_encoding ();
   }
+
+  /* Create the dictionary and populate it */
+  *dict = r->dict = dict_create ();
 
   /*
     select count (*) from (select * from medium) stupid_sql_standard;
