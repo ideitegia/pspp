@@ -185,9 +185,7 @@ name,Format: A20,,2
 ,Display Alignment: Left,,
 ,Display Width: 20,,
 
-File label:
-
-This is the file label
+File label: This is the file label
 
 Documents in the active dataset:
 

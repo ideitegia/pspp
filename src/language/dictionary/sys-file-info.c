@@ -197,10 +197,8 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
 	tab_output_text (TAB_LEFT,
 			 _("The active dataset does not have a file label."));
       else
-	{
-	  tab_output_text (TAB_LEFT | TAT_TITLE, _("File label:"));
-	  tab_output_text (TAB_LEFT | TAB_FIX, dict_get_label (dataset_dict (ds)));
-	}
+        tab_output_text_format (TAB_LEFT, _("File label: %s"),
+                                dict_get_label (dataset_dict (ds)));
     }
   else
     {

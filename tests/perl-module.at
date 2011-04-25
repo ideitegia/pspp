@@ -56,9 +56,7 @@ DISPLAY DICTIONARY.
 SHOW WEIGHT.
 ])
 AT_CHECK([pspp -O format=csv dump-dict.sps], [0],
-  [File label:
-
-My Dictionary
+  [File label: My Dictionary
 
 Documents in the active dataset:
 
@@ -151,9 +149,7 @@ name,Format: A20,,2
 ,Display Alignment: Left,,
 ,Display Width: 20,,
 
-File label:
-
-This is the file label
+File label: This is the file label
 
 Documents in the active dataset:
 
@@ -173,9 +169,7 @@ name,Format: A20,,2
 ,Display Alignment: Left,,
 ,Display Width: 20,,
 
-File label:
-
-This is the file label
+File label: This is the file label
 
 Documents in the active dataset:
 

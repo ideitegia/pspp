@@ -74,9 +74,7 @@ The last line should end with a period: .
 
 (Entered <date>)
 
-File label:
-
-This is a test file label
+File label: This is a test file label
 
 Documents in the active dataset:
 
@@ -94,29 +92,7 @@ Line two
 
 (Entered <date>)
 
-File label:
-
-This is a test file label
-
-Documents in the active dataset:
-
-document First line of a document
-
-Second line of a document
-
-The last line should end with a period: .
-
-(Entered <date>)
-
-Line one
-
-Line two
-
-(Entered <date>)
-
-document There should be another document now.
-
-(Entered <date>)
+File label: This is a test file label
 
 Documents in the active dataset:
 
@@ -138,8 +114,26 @@ document There should be another document now.
 
 (Entered <date>)
 
-File label:
+Documents in the active dataset:
 
-This is a test file label
+document First line of a document
+
+Second line of a document
+
+The last line should end with a period: .
+
+(Entered <date>)
+
+Line one
+
+Line two
+
+(Entered <date>)
+
+document There should be another document now.
+
+(Entered <date>)
+
+File label: This is a test file label
 ])
 AT_CLEANUP
