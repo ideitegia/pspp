@@ -579,8 +579,14 @@ parse_display (struct lexer *lexer, struct dictionary *dict)
           if (mrset->width == 0)
             ds_put_format (&details, "%.0f\n", mrset->counted.f);
           else
-            ds_put_format (&details, "`%.*s'\n", mrset->width,
-                           value_str (&mrset->counted, mrset->width));
+            {
+              const uint8_t *raw = value_str (&mrset->counted, mrset->width);
+              char *utf8 = recode_string ("UTF-8", dict_get_encoding (dict),
+                                          CHAR_CAST (const char *, raw),
+                                          mrset->width);
+              ds_put_format (&details, "`%s'\n", utf8);
+              free (utf8);
+            }
           ds_put_format (&details, "%s: %s\n", _("Category label source"),
                          (mrset->cat_source == MRSET_VARLABELS
                           ? _("Variable labels")
