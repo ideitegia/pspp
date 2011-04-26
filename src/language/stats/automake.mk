@@ -38,7 +38,6 @@ language_stats_sources = \
 	src/language/stats/npar-summary.h \
 	src/language/stats/oneway.c \
 	src/language/stats/quick-cluster.c \
-	src/language/stats/quick-cluster.h \
 	src/language/stats/reliability.c \
 	src/language/stats/roc.c \
 	src/language/stats/roc.h \
