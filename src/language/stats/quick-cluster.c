@@ -46,29 +46,27 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-/*
-Struct KMeans:
-Holds all of the information for the functions.
-int n, holds the number of observation and its default value is -1.
-We set it in kmeans_recalculate_centers in first invocation.
-*/
+/* Holds all of the information for the functions.  int n, holds the number of
+   observation and its default value is -1.  We set it in
+   kmeans_recalculate_centers in first invocation. */
 struct Kmeans
 {
-  gsl_matrix *centers;		//Centers for groups
+  gsl_matrix *centers;		/* Centers for groups. */
   gsl_vector_long *num_elements_groups;
-  int ngroups;			//Number of group. (Given by the user)
-  casenumber n;			//Number of observations. By default it is -1.
-  int m;			//Number of variables. (Given by the user)
-  int maxiter;			//Maximum number of iterations (Given by the user)
-  int lastiter;			//Show at which iteration it found the solution.
-  int trials;			//If not convergence, how many times has clustering done.
-  gsl_matrix *initial_centers;	//Initial random centers
-  const struct variable **variables;	//Variables
-  gsl_permutation *group_order;	//Handles group order for reporting
-  struct casereader *original_casereader;	//Casereader
+  int ngroups;			/* Number of group. (Given by the user) */
+  casenumber n;			/* Number of observations (default -1). */
+  int m;			/* Number of variables. (Given by the user) */
+  int maxiter;			/* Maximum iterations (Given by the user) */
+  int lastiter;			/* Iteration where it found the solution. */
+  int trials;			/* If not convergence, how many times has
+                                   clustering done. */
+  gsl_matrix *initial_centers;	/* Initial random centers. */
+  const struct variable **variables;
+  gsl_permutation *group_order;	/* Group order for reporting. */
+  struct casereader *original_casereader;
   struct caseproto *proto;
-  struct casereader *index_rdr;	//We hold the group id's for each case in this structure
-  const struct variable *wv;	//Weighting variable
+  struct casereader *index_rdr;	/* Group ids for each case. */
+  const struct variable *wv;	/* Weighting variable. */
 };
 
 static struct Kmeans *kmeans_create (struct casereader *cs,
@@ -98,10 +96,9 @@ int cmd_quick_cluster (struct lexer *lexer, struct dataset *ds);
 
 static void kmeans_destroy (struct Kmeans *kmeans);
 
-/*
-Creates and returns a struct of Kmeans with given casereader 'cs', parsed variables 'variables',
-number of cases 'n', number of variables 'm', number of clusters and amount of maximum iterations.
-*/
+/* Creates and returns a struct of Kmeans with given casereader 'cs', parsed
+   variables 'variables', number of cases 'n', number of variables 'm', number
+   of clusters and amount of maximum iterations. */
 static struct Kmeans *
 kmeans_create (struct casereader *cs, const struct variable **variables,
 	       int m, int ngroups, int maxiter)
@@ -126,7 +123,6 @@ kmeans_create (struct casereader *cs, const struct variable **variables,
   return (kmeans);
 }
 
-
 static void
 kmeans_destroy (struct Kmeans *kmeans)
 {
@@ -148,11 +144,7 @@ kmeans_destroy (struct Kmeans *kmeans)
   free (kmeans);
 }
 
-
-
-/*
-Creates random centers using randomly selected cases from the data.
-*/
+/* Creates random centers using randomly selected cases from the data. */
 static void
 kmeans_randomize_centers (struct Kmeans *kmeans)
 {
@@ -161,7 +153,6 @@ kmeans_randomize_centers (struct Kmeans *kmeans)
     {
       for (j = 0; j < kmeans->m; j++)
 	{
-	  //gsl_matrix_set(kmeans->centers,i,j, gsl_rng_uniform (kmeans->rng));
 	  if (i == j)
 	    {
 	      gsl_matrix_set (kmeans->centers, i, j, 1);
@@ -172,18 +163,16 @@ kmeans_randomize_centers (struct Kmeans *kmeans)
 	    }
 	}
     }
-/*
-If it is the first iteration, the variable kmeans->initial_centers is NULL and
-it is created once for reporting issues. In SPSS, initial centers are shown in the reports
-but in PSPP it is not shown now. I am leaving it here.
-*/
+  /* If it is the first iteration, the variable kmeans->initial_centers is NULL
+     and it is created once for reporting issues. In SPSS, initial centers are
+     shown in the reports but in PSPP it is not shown now. I am leaving it
+     here. */
   if (!kmeans->initial_centers)
     {
       kmeans->initial_centers = gsl_matrix_alloc (kmeans->ngroups, kmeans->m);
       gsl_matrix_memcpy (kmeans->initial_centers, kmeans->centers);
     }
 }
-
 
 static int
 kmeans_get_nearest_group (struct Kmeans *kmeans, struct ccase *c)
@@ -211,12 +200,7 @@ kmeans_get_nearest_group (struct Kmeans *kmeans, struct ccase *c)
   return (result);
 }
 
-
-
-
-/*
-Re-calculates the cluster centers
-*/
+/* Re-calculate the cluster centers. */
 static void
 kmeans_recalculate_centers (struct Kmeans *kmeans)
 {
@@ -263,9 +247,9 @@ kmeans_recalculate_centers (struct Kmeans *kmeans)
   if (kmeans->n == 0)
     kmeans->n = i;
 
-  //We got sum of each center but we need averages.
-  //We are dividing centers to numobs. This may be inefficient and
-  //we should check it again.
+  /* We got sum of each center but we need averages.
+     We are dividing centers to numobs. This may be inefficient and
+     we should check it again. */
   for (i = 0; i < kmeans->ngroups; i++)
     {
       casenumber numobs = kmeans->num_elements_groups->data[i];
@@ -284,13 +268,11 @@ kmeans_recalculate_centers (struct Kmeans *kmeans)
     }
 }
 
-
-/*
-The variable index in struct Kmeans holds integer values that represents the current groups of cases.
-index[n]=a shows the nth case is belong to ath cluster.
-This function calculates these indexes and returns the number of different cases of the new and old
-index variables. If last two index variables are equal, there is no any enhancement of clustering.
-*/
+/* The variable index in struct Kmeans holds integer values that represents the
+   current groups of cases.  index[n]=a shows the nth case is belong to ath
+   cluster.  This function calculates these indexes and returns the number of
+   different cases of the new and old index variables.  If last two index
+   variables are equal, there is no any enhancement of clustering. */
 static int
 kmeans_calculate_indexes_and_check_convergence (struct Kmeans *kmeans)
 {
@@ -299,15 +281,14 @@ kmeans_calculate_indexes_and_check_convergence (struct Kmeans *kmeans)
   struct ccase *c;
   struct casereader *cs = casereader_clone (kmeans->original_casereader);
 
-
-  /* A casewriter into which we will write the indexes */
+  /* A casewriter into which we will write the indexes. */
   struct casewriter *index_wtr = autopaging_writer_create (kmeans->proto);
 
   gsl_vector_long_set_all (kmeans->num_elements_groups, 0);
 
   for (; (c = casereader_read (cs)) != NULL; case_unref (c))
     {
-      /* A case to hold the new index */
+      /* A case to hold the new index. */
       struct ccase *index_case_new = case_create (kmeans->proto);
       int bestindex = kmeans_get_nearest_group (kmeans, c);
       if (kmeans->wv)
@@ -321,33 +302,33 @@ kmeans_calculate_indexes_and_check_convergence (struct Kmeans *kmeans)
       kmeans->num_elements_groups->data[bestindex] += weight;
       if (kmeans->index_rdr)
 	{
-	  /* A case from which the old index will be read */
+	  /* A case from which the old index will be read. */
 	  struct ccase *index_case_old = NULL;
 
-	  /* Read the case from the index casereader */
+	  /* Read the case from the index casereader. */
 	  index_case_old = casereader_read (kmeans->index_rdr);
 
-	  /* Set totaldiff, using the old_index */
+	  /* Set totaldiff, using the old_index. */
 	  totaldiff += abs (case_data_idx (index_case_old, 0)->f - bestindex);
 
-	  /* We have no use for the old case anymore, so unref it */
+	  /* We have no use for the old case anymore, so unref it. */
 	  case_unref (index_case_old);
 	}
       else
 	{
-	  /* If this is the first run, then assume index is zero */
+	  /* If this is the first run, then assume index is zero. */
 	  totaldiff += bestindex;
 	}
 
-      /* Set the value of the new index */
+      /* Set the value of the new inde.x */
       case_data_rw_idx (index_case_new, 0)->f = bestindex;
 
       /* and write the new index to the casewriter */
       casewriter_write (index_wtr, index_case_new);
     }
   casereader_destroy (cs);
-  /* We have now read through the entire index_rdr, so it's
-     of no use anymore */
+  /* We have now read through the entire index_rdr, so it's of no use
+     anymore. */
   casereader_destroy (kmeans->index_rdr);
 
   /* Convert the writer into a reader, ready for the next iteration to read */
@@ -355,7 +336,6 @@ kmeans_calculate_indexes_and_check_convergence (struct Kmeans *kmeans)
 
   return (totaldiff);
 }
-
 
 static void
 kmeans_order_groups (struct Kmeans *kmeans)
@@ -365,10 +345,8 @@ kmeans_order_groups (struct Kmeans *kmeans)
   gsl_sort_vector_index (kmeans->group_order, v);
 }
 
-/*
-Main algorithm.
-Does iterations, checks convergency
-*/
+/* Main algorithm.
+   Does iterations, checks convergency. */
 static void
 kmeans_cluster (struct Kmeans *kmeans)
 {
@@ -388,9 +366,8 @@ cluster:
       kmeans_recalculate_centers (kmeans);
       if (show_warning1 && kmeans->ngroups > kmeans->n)
 	{
-	  msg (MW,
-	       _
-	       ("Number of clusters may not be larger than the number of cases."));
+	  msg (MW, _("Number of clusters may not be larger than the number "
+                     "of cases."));
 	  show_warning1 = false;
 	}
       if (diffs == 0)
@@ -413,12 +390,10 @@ cluster:
 
 }
 
-
-/*
-Reports centers of clusters.
-initial parameter is optional for future use.
-if initial is true, initial cluster centers are reported. Otherwise, resulted centers are reported.
-*/
+/* Reports centers of clusters.
+   Initial parameter is optional for future use.
+   If initial is true, initial cluster centers are reported.  Otherwise,
+   resulted centers are reported. */
 static void
 quick_cluster_show_centers (struct Kmeans *kmeans, bool initial)
 {
@@ -480,10 +455,7 @@ quick_cluster_show_centers (struct Kmeans *kmeans, bool initial)
   tab_submit (t);
 }
 
-
-/*
-Reports number of cases of each single cluster.
-*/
+/* Reports number of cases of each single cluster. */
 static void
 quick_cluster_show_number_cases (struct Kmeans *kmeans)
 {
@@ -514,19 +486,16 @@ quick_cluster_show_number_cases (struct Kmeans *kmeans)
   tab_submit (t);
 }
 
-/*
-Reports
-*/
+/* Reports. */
 static void
 quick_cluster_show_results (struct Kmeans *kmeans)
 {
   kmeans_order_groups (kmeans);
-  //uncomment the line above for reporting initial centers
-  //quick_cluster_show_centers (kmeans, true);
+  /* Uncomment the line below for reporting initial centers. */
+  /* quick_cluster_show_centers (kmeans, true); */
   quick_cluster_show_centers (kmeans, false);
   quick_cluster_show_number_cases (kmeans);
 }
-
 
 int
 cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
@@ -540,16 +509,12 @@ cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
   int maxiter = 2;
   size_t p;
 
-
-
   if (!parse_variables_const (lexer, dict, &variables, &p,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     {
       msg (ME, _("Variables cannot be parsed"));
       return (CMD_FAILURE);
     }
-
-
 
   if (lex_match (lexer, T_SLASH))
     {
@@ -580,17 +545,12 @@ cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
 		    }
 		}
 	      else
-		{
-		  //further command set
-		  return (CMD_FAILURE);
-		}
+                return CMD_FAILURE;
 	    }
 	}
     }
 
-
   cs = proc_open (ds);
-
 
   kmeans = kmeans_create (cs, variables, p, groups, maxiter);
 
