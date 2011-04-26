@@ -379,3 +379,78 @@ d,Format: A32767,,4
 
 VLS_WRITE([UNCOMPRESSED])
 VLS_WRITE([COMPRESSED])
+
+dnl This test writes non-ASCII characters to most of the string fields in
+dnl a .sav file and demonstrates that they are properly read back in.
+dnl XXX mrsets tests are missing.
+AT_SETUP([system file character encoding])
+AT_CHECK([supports_encodings windows-1252])
+AT_DATA([save.sps], [dnl
+SET LOCALE='windows-1252'.
+DATA LIST LIST NOTABLE /àéîöç * roué (A9) croûton (A1000).
+FILE LABEL 'clientèle confrère cortège crèche'.
+DOCUMENT coördinate smörgåsbord
+épée séance soufflé soirée
+jalapeño vicuña.
+VALUE LABEL
+      /àéîöç 1 'éclair élan'
+      /roué 'abcdefghi' 'sauté précis'.
+VARIABLE LABEL
+      roué 'Provençal soupçon'.
+DATAFILE ATTRIBUTE
+      ATTRIBUTE=Furtwängler('kindergärtner').
+VARIABLE ATTRIBUTE
+      VARIABLES=àéîöç
+      ATTRIBUTE=Atatürk('Düsseldorf Gewürztraminer').
+BEGIN DATA.
+1 a x
+2 b y
+3 c z
+END DATA.
+SAVE OUTFILE='foo.sav'.
+])
+AT_CHECK([pspp -O format=csv save.sps])
+AT_DATA([get.sps], [dnl
+GET FILE='foo.sav'.
+DISPLAY FILE LABEL.
+DISPLAY DOCUMENTS.
+DISPLAY DICTIONARY.
+])
+AT_CHECK([pspp -o pspp.csv get.sps])
+AT_CHECK([[sed 's/(Entered [^)]*)/(Entered <date>)/' pspp.csv]], [0], [dnl
+File label: clientèle confrère cortège crèche
+
+Documents in the active dataset:
+
+DOCUMENT coördinate smörgåsbord
+
+épée séance soufflé soirée
+
+jalapeño vicuña.
+
+(Entered <date>)
+
+Variable,Description,,Position
+àéîöç,Format: F8.2,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,1.00,éclair élan,
+,Custom attributes:,,
+,Atatürk,Düsseldorf Gewürztraminer,
+roué,Provençal soupçon,,2
+,Format: A9,,
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 9,,
+,abcdefghi,sauté précis,
+croûton,Format: A1000,,3
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 32,,
+
+Table: Custom data file attributes.
+Attribute,Value
+Furtwängler,kindergärtner
+])
+AT_CLEANUP
