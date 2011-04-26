@@ -336,6 +336,7 @@ TESTSUITE_AT = \
 	tests/language/stats/frequencies.at \
 	tests/language/stats/npar.at \
 	tests/language/stats/oneway.at \
+	tests/language/stats/quick-cluster.at \
 	tests/language/stats/rank.at \
 	tests/language/stats/regression.at \
 	tests/language/stats/reliability.at \

@@ -6,6 +6,8 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
 Changes from 0.7.3 to 0.7.7:
 
+ * The QUICK CLUSTER command is now implemented.
+
  * The "pspp" program has a new option --batch (or -b) that selects
    "batch" syntax mode.  In previous versions of PSPP this syntax mode
    was the default.  Now a new "auto" syntax mode is the default.  In

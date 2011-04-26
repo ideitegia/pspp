@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -118,6 +118,7 @@ DEF_CMD (S_DATA, 0, "MODIFY VARS", cmd_modify_vars)
 DEF_CMD (S_DATA, 0, "NPAR TESTS", cmd_npar_tests)
 DEF_CMD (S_DATA, 0, "ONEWAY", cmd_oneway)
 DEF_CMD (S_DATA, 0, "PEARSON CORRELATIONS", cmd_correlation)
+DEF_CMD (S_DATA, 0, "QUICK CLUSTER", cmd_quick_cluster)
 DEF_CMD (S_DATA, 0, "RANK", cmd_rank)
 DEF_CMD (S_DATA, 0, "REGRESSION", cmd_regression)
 DEF_CMD (S_DATA, 0, "RELIABILITY", cmd_reliability)
@@ -234,7 +235,6 @@ UNIMPL_CMD ("PROBIT", "Probit analysis")
 UNIMPL_CMD ("PROCEDURE OUTPUT", "Specify output file")
 UNIMPL_CMD ("PROXIMITIES", "Pairwise similarity")
 UNIMPL_CMD ("PROXSCAL", "Multidimensional scaling of proximity data")
-UNIMPL_CMD ("QUICK CLUSTER", "Fast clustering")
 UNIMPL_CMD ("RATIO STATISTICS", "Descriptives of ratios")
 UNIMPL_CMD ("READ MODEL", "Read new model")
 UNIMPL_CMD ("RECORD TYPE", "Defines a type of record within FILE TYPE")
