@@ -16,39 +16,31 @@
 
 #include <config.h>
 
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_permutation.h>
+#include <gsl/gsl_sort_vector.h>
+#include <gsl/gsl_statistics.h>
 #include <math.h>
-
-#include <libpspp/misc.h>
-
-#include <libpspp/str.h>
-#include <libpspp/message.h>
-
-
-#include <data/dataset.h>
-#include <data/missing-values.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/casegrouper.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/case.h>
-
-#include <language/lexer/variable-parser.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-
-#include <output/tab.h>
-#include <output/text-item.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_permutation.h>
-#include <gsl/gsl_sort_vector.h>
-
-#include <math/random.h>
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/missing-values.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "math/random.h"
+#include "output/tab.h"
+#include "output/text-item.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
