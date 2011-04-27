@@ -250,10 +250,6 @@ encoding_guess_head_encoding (const char *encoding,
       || !encoding_guess_tail_is_utf8 (data, n))
     return fallback_encoding;
 
-  if (!c_strcasecmp (fallback_encoding, "UTF-8")
-      || !c_strcasecmp (fallback_encoding, "UTF8"))
-    return "UTF-8";
-
   return "ASCII";
 }
 
