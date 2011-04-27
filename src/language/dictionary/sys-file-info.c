@@ -394,7 +394,7 @@ display_attributes (struct tab_table *t, const struct attrset *set, int flags,
       for (i = 0; i < n_values; i++)
         {
           if (n_values > 1)
-            tab_text_format (t, c, r, TAB_LEFT, "%s[%d]", name, i + 1);
+            tab_text_format (t, c, r, TAB_LEFT, "%s[%zu]", name, i + 1);
           else
             tab_text (t, c, r, TAB_LEFT, name);
           tab_text (t, c + 1, r, TAB_LEFT, attribute_get_value (attr, i));

@@ -1490,7 +1490,7 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 
       c = 0;
 
-      tab_text_format (t, c++, i + heading_rows, TAB_LEFT | TAT_TITLE, _("%d"), i + 1);
+      tab_text_format (t, c++, i + heading_rows, TAB_LEFT | TAT_TITLE, _("%zu"), i + 1);
 
       i_cum += i_percent;
       e_cum += e_percent;

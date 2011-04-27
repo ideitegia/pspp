@@ -500,7 +500,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
   if (claimed_oct_cnt != -1 && claimed_oct_cnt != n_vars
       && info->version_major != 13)
     sys_warn (r, -1, _("File header claims %d variable positions but "
-                       "%d were read from file."),
+                       "%zu were read from file."),
               claimed_oct_cnt, n_vars);
 
   /* Create an index of dictionary variable widths for
@@ -779,7 +779,7 @@ read_value_label_record (struct sfm_reader *r,
   record->n_vars = read_int (r);
   if (record->n_vars < 1 || record->n_vars > n_vars)
     sys_error (r, r->pos - 4,
-               _("Number of variables associated with a value label (%d) "
+               _("Number of variables associated with a value label (%zu) "
                  "is not between 1 and the number of variables (%zu)."),
                record->n_vars, n_vars);
   record->vars = pool_nmalloc (r->pool, record->n_vars, sizeof *record->vars);
@@ -1729,7 +1729,7 @@ lookup_var_by_index (struct sfm_reader *r, off_t offset,
   if (idx < 1 || idx > n_var_recs)
     {
       sys_error (r, offset,
-                 _("Variable index %d not in valid range 1...%d."),
+                 _("Variable index %d not in valid range 1...%zu."),
                  idx, n_var_recs);
       return NULL;
     }

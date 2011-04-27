@@ -136,7 +136,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
                  properties.record_width);
           else if (cmd.n_lrecl[0] < 1 || cmd.n_lrecl[0] >= (1UL << 31))
             msg (SE, _("Record length (%ld) must be between 1 and %lu bytes.  "
-                       "Assuming %d-character records."),
+                       "Assuming %zu-character records."),
                  cmd.n_lrecl[0], (1UL << 31) - 1, properties.record_width);
           else
             properties.record_width = cmd.n_lrecl[0];

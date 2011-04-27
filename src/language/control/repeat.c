@@ -159,8 +159,8 @@ parse_specification (struct lexer *lexer, struct dictionary *dict,
         first_dv = dv;
       else if (first_dv->n_values != dv->n_values)
 	{
-	  msg (SE, _("Dummy variable `%s' had %d substitutions, so `%s' must "
-                     "also, but %d were specified."),
+	  msg (SE, _("Dummy variable `%s' had %zu substitutions, so `%s' must "
+                     "also, but %zu were specified."),
                first_dv->name, first_dv->n_values,
                dv->name, dv->n_values);
 	  goto error;
