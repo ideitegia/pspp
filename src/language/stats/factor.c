@@ -1297,7 +1297,7 @@ show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const 
     tab_title (t, _("Factor Matrix"));
   */
 
-  tab_title (t, title);
+  tab_title (t, "%s", title);
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
 
