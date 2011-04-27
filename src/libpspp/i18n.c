@@ -283,7 +283,7 @@ utf8_encoding_concat__ (const char *head, size_t head_len,
       else
         {
           size_t copy_len;
-          size_t prev;
+          ucs4_t prev;
           size_t ofs;
           int mblen;
 
@@ -324,7 +324,7 @@ utf8_encoding_concat__ (const char *head, size_t head_len,
         {
           bool correct_result = false;
           size_t copy_len;
-          size_t prev;
+          ucs4_t prev;
           size_t ofs;
           int mblen;
 
