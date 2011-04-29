@@ -66,7 +66,7 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-
+static PsppireDataWindow *the_data_window;
 
 static void psppire_data_window_class_init    (PsppireDataWindowClass *class);
 static void psppire_data_window_init          (PsppireDataWindow      *data_editor);
@@ -75,6 +75,14 @@ static void psppire_data_window_init          (PsppireDataWindow      *data_edit
 static void psppire_data_window_iface_init (PsppireWindowIface *iface);
 
 static void psppire_data_window_dispose (GObject *object);
+static void psppire_data_window_set_property (GObject         *object,
+                                              guint            prop_id,
+                                              const GValue    *value,
+                                              GParamSpec      *pspec);
+static void psppire_data_window_get_property (GObject         *object,
+                                              guint            prop_id,
+                                              GValue          *value,
+                                              GParamSpec      *pspec);
 
 GType
 psppire_data_window_get_type (void)
@@ -118,6 +126,10 @@ psppire_data_window_get_type (void)
 
 static GObjectClass *parent_class ;
 
+enum {
+    PROP_DATASET = 1
+};
+
 static void
 psppire_data_window_class_init (PsppireDataWindowClass *class)
 {
@@ -126,13 +138,16 @@ psppire_data_window_class_init (PsppireDataWindowClass *class)
   parent_class = g_type_class_peek_parent (class);
 
   object_class->dispose = psppire_data_window_dispose;
+  object_class->set_property = psppire_data_window_set_property;
+  object_class->get_property = psppire_data_window_get_property;
+
+  g_object_class_install_property (
+    object_class, PROP_DATASET,
+    g_param_spec_pointer ("dataset", "Dataset",
+                          "'struct datset *' represented by the window",
+                          G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
 }
 
-
-
-extern PsppireVarStore *the_var_store;
-extern struct dataset *the_dataset;
-extern PsppireDataStore *the_data_store ;
 
 extern GtkRecentManager *the_recent_mgr;
 
@@ -771,12 +786,12 @@ toggle_split_window (PsppireDataWindow  *de, GtkToggleAction *ta)
 
 
 static void
-file_quit (void)
+file_quit (PsppireDataWindow *de)
 {
   /* FIXME: Need to be more intelligent here.
      Give the user the opportunity to save any unsaved data.
   */
-  g_object_unref (the_data_store);
+  g_object_unref (de->data_store);
 
   psppire_quit ();
 }
@@ -907,8 +922,29 @@ connect_action (PsppireDataWindow *dw, const char *action_name,
   return action;
 }
 
+/* Initializes as much of a PsppireDataWindow as we can and must before the
+   dataset has been set.
+
+   In particular, the 'menu' member is required in case the "filename" property
+   is set before the "dataset" property: otherwise PsppireWindow will try to
+   modify the menu as part of the "filename" property_set() function and end up
+   with a Gtk-CRITICAL since 'menu' is NULL.  */
 static void
 psppire_data_window_init (PsppireDataWindow *de)
+{
+  GtkUIManager *uim;
+
+  de->builder = builder_new ("data-editor.ui");
+
+  uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
+
+  PSPPIRE_WINDOW (de)->menu =
+    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
+}
+
+static void
+psppire_data_window_finish_init (PsppireDataWindow *de,
+                                 struct dataset *ds)
 {
   static const struct dataset_callbacks cbs =
     {
@@ -916,33 +952,38 @@ psppire_data_window_init (PsppireDataWindow *de)
       transformation_change_callback, /* transformations_changed */
     };
 
-  PsppireVarStore *vs;
-  PsppireDict *dict = NULL;
+  PsppireDict *dict;
 
   GtkWidget *menubar;
   GtkWidget *hb ;
   GtkWidget *sb ;
 
   GtkWidget *box = gtk_vbox_new (FALSE, 0);
-  de->builder = builder_new ("data-editor.ui");
+
+  de->dataset = ds;
+  dict = psppire_dict_new_from_dict (dataset_dict (ds));
+  de->var_store = psppire_var_store_new (dict);
+  de->data_store = psppire_data_store_new (dict);
+  psppire_data_store_set_reader (de->data_store, NULL);
 
   menubar = get_widget_assert (de->builder, "menubar");
   hb = get_widget_assert (de->builder, "handlebox1");
   sb = get_widget_assert (de->builder, "status-bar");
 
   de->data_editor =
-    PSPPIRE_DATA_EDITOR (psppire_data_editor_new (the_var_store, the_data_store));
+    PSPPIRE_DATA_EDITOR (psppire_data_editor_new (de, de->var_store,
+                                                  de->data_store));
 
-  g_signal_connect_swapped (the_data_store, "case-changed",
+  g_signal_connect_swapped (de->data_store, "case-changed",
 			    G_CALLBACK (set_unsaved), de);
 
-  g_signal_connect_swapped (the_data_store, "case-inserted",
+  g_signal_connect_swapped (de->data_store, "case-inserted",
 			    G_CALLBACK (set_unsaved), de);
 
-  g_signal_connect_swapped (the_data_store, "cases-deleted",
+  g_signal_connect_swapped (de->data_store, "cases-deleted",
 			    G_CALLBACK (set_unsaved), de);
 
-  dataset_set_callbacks (the_dataset, &cbs, de);
+  dataset_set_callbacks (de->dataset, &cbs, de);
 
   connect_help (de->builder);
 
@@ -963,12 +1004,6 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   g_signal_connect_swapped (de->data_editor, "data-available-changed",
 			    G_CALLBACK (set_paste_menuitem_sensitivity), de);
-
-  vs = the_var_store;
-
-  g_assert(vs); /* Traps a possible bug in w32 build */
-
-  g_object_get (vs, "dictionary", &dict, NULL);
 
   g_signal_connect (dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
@@ -1183,9 +1218,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
     merge_help_menu (uim);
-    
-    PSPPIRE_WINDOW (de)->menu =
-      GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
   }
 
   {
@@ -1215,6 +1247,8 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   gtk_widget_show (GTK_WIDGET (de->data_editor));
   gtk_widget_show (box);
+
+  the_data_window = de;
 }
 
 static void
@@ -1228,17 +1262,62 @@ psppire_data_window_dispose (GObject *object)
       dw->builder = NULL;
     }
 
+  if (the_data_window == dw)
+    the_data_window = NULL;
+
   G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
-GtkWidget*
-psppire_data_window_new (void)
+static void
+psppire_data_window_set_property (GObject         *object,
+                                  guint            prop_id,
+                                  const GValue    *value,
+                                  GParamSpec      *pspec)
 {
-  return GTK_WIDGET (g_object_new (psppire_data_window_get_type (),
-				   /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
-				   "filename", _("PSPP-data"),
-				   "description", _("Data Editor"),
-				   NULL));
+  PsppireDataWindow *window = PSPPIRE_DATA_WINDOW (object);
+
+  switch (prop_id)
+    {
+    case PROP_DATASET:
+      psppire_data_window_finish_init (window, g_value_get_pointer (value));
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
+
+static void
+psppire_data_window_get_property (GObject         *object,
+                                  guint            prop_id,
+                                  GValue          *value,
+                                  GParamSpec      *pspec)
+{
+  PsppireDataWindow *window = PSPPIRE_DATA_WINDOW (object);
+
+  switch (prop_id)
+    {
+    case PROP_DATASET:
+      g_value_set_pointer (value, window->dataset);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
+
+
+GtkWidget*
+psppire_data_window_new (struct dataset *ds)
+{
+  return GTK_WIDGET (
+    g_object_new (
+      psppire_data_window_get_type (),
+      /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
+      "filename", _("PSPP-data"),
+      "description", _("Data Editor"),
+      "dataset", ds,
+      NULL));
 }
 
 
@@ -1249,3 +1328,11 @@ psppire_data_window_iface_init (PsppireWindowIface *iface)
   iface->load = load_file;
 }
 
+
+PsppireDataWindow *
+psppire_default_data_window (void)
+{
+  if (the_data_window == NULL)
+    gtk_widget_show (psppire_data_window_new (dataset_create ()));
+  return the_data_window;
+}

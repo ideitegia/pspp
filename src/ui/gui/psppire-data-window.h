@@ -26,6 +26,8 @@
 #include "ui/gui/psppire-window.h"
 #include "ui/gui/psppire-data-editor.h"
 
+struct dataset;
+
 G_BEGIN_DECLS
 
 #define PSPPIRE_DATA_WINDOW_TYPE            (psppire_data_window_get_type ())
@@ -50,6 +52,9 @@ struct _PsppireDataWindow
   PsppireDataEditor *data_editor;
   GtkBuilder *builder;
 
+  PsppireVarStore *var_store;
+  struct dataset *dataset;
+  PsppireDataStore *data_store;
 
   GtkAction *invoke_goto_dialog;
 
@@ -68,7 +73,8 @@ struct _PsppireDataWindowClass
 };
 
 GType      psppire_data_window_get_type        (void);
-GtkWidget* psppire_data_window_new             (void);
+GtkWidget* psppire_data_window_new             (struct dataset *);
+PsppireDataWindow *psppire_default_data_window (void);
 
 G_END_DECLS
 

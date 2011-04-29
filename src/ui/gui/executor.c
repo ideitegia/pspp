@@ -27,9 +27,6 @@
 #include "ui/gui/psppire-data-store.h"
 #include "ui/gui/psppire-output-window.h"
 
-extern struct dataset *the_dataset;
-extern PsppireDataStore *the_data_store;
-
 /* Lazy casereader callback function used by execute_syntax. */
 static struct casereader *
 create_casereader_from_data_store (void *data_store_)
@@ -62,14 +59,14 @@ execute_syntax (PsppireDataWindow *window, struct lex_reader *lex_reader)
      needed.  If the data store casereader is never needed, then
      it is reused the next time syntax is run, without wrapping
      it in another layer. */
-  proto = psppire_data_store_get_proto (the_data_store);
-  case_cnt = psppire_data_store_get_case_count (the_data_store);
+  proto = psppire_data_store_get_proto (window->data_store);
+  case_cnt = psppire_data_store_get_case_count (window->data_store);
   reader = lazy_casereader_create (proto, case_cnt,
                                    create_casereader_from_data_store,
-                                   the_data_store, &lazy_serial);
-  dataset_set_source (the_dataset, reader);
+                                   window->data_store, &lazy_serial);
+  dataset_set_source (window->dataset, reader);
 
-  g_return_val_if_fail (dataset_has_source (the_dataset), FALSE);
+  g_return_val_if_fail (dataset_has_source (window->dataset), FALSE);
 
   lexer = lex_create ();
   psppire_set_lexer (lexer);
@@ -77,7 +74,7 @@ execute_syntax (PsppireDataWindow *window, struct lex_reader *lex_reader)
 
   for (;;)
     {
-      enum cmd_result result = cmd_parse (lexer, the_dataset);
+      enum cmd_result result = cmd_parse (lexer, window->dataset);
 
       if ( cmd_result_is_failure (result))
 	{
@@ -90,14 +87,14 @@ execute_syntax (PsppireDataWindow *window, struct lex_reader *lex_reader)
 	break;
     }
 
-  proc_execute (the_dataset);
+  proc_execute (window->dataset);
 
-  psppire_dict_replace_dictionary (the_data_store->dict,
-				   dataset_dict (the_dataset));
+  psppire_dict_replace_dictionary (window->data_store->dict,
+				   dataset_dict (window->dataset));
 
-  reader = dataset_steal_source (the_dataset);
+  reader = dataset_steal_source (window->dataset);
   if (!lazy_casereader_destroy (reader, lazy_serial))
-    psppire_data_store_set_reader (the_data_store, reader);
+    psppire_data_store_set_reader (window->data_store, reader);
 
   /* Destroy the lexer only after obtaining the dataset, because the dataset
      might depend on the lexer, if the casereader specifies inline data.  (In

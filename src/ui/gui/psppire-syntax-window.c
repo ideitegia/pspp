@@ -17,20 +17,21 @@
 #include <config.h>
 
 #include <gtk/gtk.h>
-#include "executor.h"
-#include "helper.h"
-
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
 #include <stdlib.h>
 
-#include "help-menu.h"
-#include "psppire.h"
-#include "psppire-data-window.h"
-#include "psppire-window-register.h"
-#include "psppire-syntax-window.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
+#include "ui/gui/executor.h"
+#include "ui/gui/help-menu.h"
+#include "ui/gui/helper.h"
+#include "ui/gui/psppire-data-window.h"
+#include "ui/gui/psppire-syntax-window.h"
+#include "ui/gui/psppire-syntax-window.h"
+#include "ui/gui/psppire-window-register.h"
+#include "ui/gui/psppire.h"
+#include "ui/gui/psppire.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -165,10 +166,7 @@ editor_execute_syntax (const PsppireSyntaxWindow *sw, GtkTextIter start,
 
   execute_syntax (psppire_default_data_window (), reader);
 }
-
-
 
-
 /* Delete the currently selected text */
 static void
 on_edit_delete (PsppireSyntaxWindow *sw)

@@ -59,34 +59,19 @@
 #include "gl/xalloc.h"
 #include "gl/relocatable.h"
 
-GtkRecentManager *the_recent_mgr = 0;
-PsppireDataStore *the_data_store = 0;
-PsppireVarStore *the_var_store = 0;
+GtkRecentManager *the_recent_mgr;
 
 static void create_icon_factory (void);
-
-struct dataset * the_dataset = NULL;
-
-static GtkWidget *the_data_window;
-
-static void load_data_file (const char *);
-
-static void
-replace_casereader (struct casereader *s)
-{
-  psppire_data_store_set_reader (the_data_store, s);
-}
+static void load_data_file (PsppireDataWindow *, const char *);
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
 
-
-
 void
 initialize (const char *data_file)
 {
-  PsppireDict *dictionary = 0;
+  PsppireDataWindow *data_window;
 
   i18n_init ();
 
@@ -96,18 +81,9 @@ initialize (const char *data_file)
   settings_init ();
   fh_init ();
 
-  the_dataset = dataset_create ();
   psppire_set_lexer (NULL);
 
-  dictionary = psppire_dict_new_from_dict (dataset_dict (the_dataset));
-
   bind_textdomain_codeset (PACKAGE, "UTF-8");
-
-  /* Create the model for the var_sheet */
-  the_var_store = psppire_var_store_new (dictionary);
-
-  the_data_store = psppire_data_store_new (dictionary);
-  replace_casereader (NULL);
 
   create_icon_factory ();
 
@@ -123,13 +99,10 @@ initialize (const char *data_file)
   psppire_selector_set_default_selection_func (PSPPIRE_VAR_VIEW_TYPE, insert_source_row_into_tree_view);
   psppire_selector_set_default_selection_func (GTK_TYPE_TREE_VIEW, insert_source_row_into_tree_view);
 
-  the_data_window = psppire_data_window_new ();
+  data_window = psppire_default_data_window ();
   if (data_file != NULL)
-    load_data_file (data_file);
-
-  execute_const_syntax_string (PSPPIRE_DATA_WINDOW (the_data_window), "");
-
-  gtk_widget_show (the_data_window);
+    load_data_file (data_window, data_file);
+  execute_const_syntax_string (data_window, "");
 }
 
 
@@ -139,12 +112,6 @@ de_initialize (void)
   settings_done ();
   output_close ();
   i18n_done ();
-}
-
-PsppireDataWindow *
-psppire_default_data_window (void)
-{
-  return PSPPIRE_DATA_WINDOW (the_data_window);
 }
 
 static void
@@ -239,7 +206,7 @@ create_icon_factory (void)
 }
 
 static void
-load_data_file (const char *arg)
+load_data_file (PsppireDataWindow *window, const char *arg)
 {
   gchar *filename = NULL;
   gchar *utf8 = NULL;
@@ -291,7 +258,7 @@ load_data_file (const char *arg)
   if ( filename == NULL)
     filename = xstrdup (arg);
 
-  psppire_window_load (PSPPIRE_WINDOW (the_data_window), filename);
+  psppire_window_load (PSPPIRE_WINDOW (window), filename);
 
   g_free (filename);
 }

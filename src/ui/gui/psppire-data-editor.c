@@ -89,6 +89,7 @@ psppire_data_editor_dispose (GObject *obj)
   if (de->dispose_has_run)
     return;
 
+  g_object_unref (de->data_window);
   g_object_unref (de->data_store);
   g_object_unref (de->var_store);
 
@@ -195,6 +196,7 @@ traverse_cell_callback (PsppireSheet *sheet,
 enum
   {
     PROP_0,
+    PROP_DATA_WINDOW,
     PROP_DATA_STORE,
     PROP_VAR_STORE,
     PROP_VS_ROW_MENU,
@@ -374,6 +376,10 @@ psppire_data_editor_set_property (GObject         *object,
     case PROP_SPLIT_WINDOW:
       psppire_data_editor_split_window (de, g_value_get_boolean (value));
       break;
+    case PROP_DATA_WINDOW:
+      de->data_window = g_value_get_pointer (value);
+      g_object_ref (de->data_window);
+      break;
     case PROP_DATA_STORE:
       if ( de->data_store) g_object_unref (de->data_store);
       de->data_store = g_value_get_pointer (value);
@@ -501,6 +507,9 @@ psppire_data_editor_get_property (GObject         *object,
     case PROP_SPLIT_WINDOW:
       g_value_set_boolean (value, de->split);
       break;
+    case PROP_DATA_WINDOW:
+      g_value_set_pointer (value, de->data_window);
+      break;
     case PROP_DATA_STORE:
       g_value_set_pointer (value, de->data_store);
       break;
@@ -534,6 +543,7 @@ psppire_data_editor_get_property (GObject         *object,
 static void
 psppire_data_editor_class_init (PsppireDataEditorClass *klass)
 {
+  GParamSpec *data_window_spec ;
   GParamSpec *data_store_spec ;
   GParamSpec *var_store_spec ;
   GParamSpec *column_menu_spec;
@@ -555,6 +565,16 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
   object_class->get_property = psppire_data_editor_get_property;
 
   
+
+  data_window_spec =
+    g_param_spec_pointer ("data-window",
+			  "Data Window",
+			  "A pointer to the data window associated with this editor",
+			  G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE | G_PARAM_READABLE );
+
+  g_object_class_install_property (object_class,
+                                   PROP_DATA_WINDOW,
+                                   data_window_spec);
 
   data_store_spec =
     g_param_spec_pointer ("data-store",
@@ -1008,13 +1028,15 @@ psppire_data_editor_init (PsppireDataEditor *de)
 
 
 GtkWidget*
-psppire_data_editor_new (PsppireVarStore *var_store,
+psppire_data_editor_new (PsppireDataWindow *data_window,
+                         PsppireVarStore *var_store,
 			 PsppireDataStore *data_store)
 {
   return  g_object_new (PSPPIRE_DATA_EDITOR_TYPE,
-				     "var-store",  var_store,
-				     "data-store",  data_store,
-				     NULL);
+                        "data-window", data_window,
+                        "var-store",  var_store,
+                        "data-store",  data_store,
+                        NULL);
 }
 
 
@@ -1254,7 +1276,7 @@ do_sort (PsppireDataEditor *de, int var, gboolean descend)
 
   syntax = g_strdup_printf ("SORT CASES BY %s%s.",
                             var_get_name (v), descend ? " (D)" : "");
-  g_free (execute_syntax_string (psppire_default_data_window (), syntax));
+  g_free (execute_syntax_string (de->data_window, syntax));
 }
 
 

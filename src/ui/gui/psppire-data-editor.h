@@ -48,6 +48,7 @@ struct _PsppireDataEditor
   GtkWidget *cell_ref_entry;
   GtkWidget *datum_entry;
   GtkWidget *var_sheet;
+  struct _PsppireDataWindow *data_window;
   PsppireDataStore *data_store;
   PsppireVarStore *var_store;
 
@@ -74,7 +75,7 @@ struct _PsppireDataEditorClass
 
 
 GType          psppire_data_editor_get_type        (void);
-GtkWidget*     psppire_data_editor_new             (PsppireVarStore *, PsppireDataStore *);
+GtkWidget*     psppire_data_editor_new             (struct _PsppireDataWindow *, PsppireVarStore *, PsppireDataStore *);
 void           psppire_data_editor_clip_copy       (PsppireDataEditor *);
 void           psppire_data_editor_clip_paste      (PsppireDataEditor *);
 void           psppire_data_editor_clip_cut        (PsppireDataEditor *);
