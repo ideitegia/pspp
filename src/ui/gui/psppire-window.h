@@ -107,6 +107,8 @@ gint psppire_window_query_save (PsppireWindow *);
 
 void psppire_window_save (PsppireWindow *w);
 gboolean psppire_window_load (PsppireWindow *w, const gchar *file);
+void psppire_window_open (PsppireWindow *de);
+GtkWidget *psppire_window_file_chooser_dialog (PsppireWindow *toplevel);
 
 
 G_END_DECLS

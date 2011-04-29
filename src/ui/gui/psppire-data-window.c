@@ -19,7 +19,6 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 
-#include "data/any-reader.h"
 #include "data/dataset.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/message.h"
@@ -359,108 +358,6 @@ load_file (PsppireWindow *de, const gchar *file_name)
   return ok;
 }
 
-static GtkWidget *
-sysfile_chooser_dialog (PsppireWindow *toplevel)
-{
-  GtkWidget *dialog =
-    gtk_file_chooser_dialog_new (_("Open"),
-				 GTK_WINDOW (toplevel),
-				 GTK_FILE_CHOOSER_ACTION_OPEN,
-				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-				 GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-				 NULL);
-
-  GtkFileFilter *filter;
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Data and Syntax Files"));
-  gtk_file_filter_add_pattern (filter, "*.sav");
-  gtk_file_filter_add_pattern (filter, "*.SAV");
-  gtk_file_filter_add_pattern (filter, "*.por");
-  gtk_file_filter_add_pattern (filter, "*.POR");
-  gtk_file_filter_add_pattern (filter, "*.sps");
-  gtk_file_filter_add_pattern (filter, "*.SPS");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
-  gtk_file_filter_add_pattern (filter, "*.sav");
-  gtk_file_filter_add_pattern (filter, "*.SAV");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Portable Files (*.por) "));
-  gtk_file_filter_add_pattern (filter, "*.por");
-  gtk_file_filter_add_pattern (filter, "*.POR");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Syntax Files (*.sps) "));
-  gtk_file_filter_add_pattern (filter, "*.sps");
-  gtk_file_filter_add_pattern (filter, "*.SPS");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("All Files"));
-  gtk_file_filter_add_pattern (filter, "*");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  {
-    gchar *dir_name;
-    gchar *filename = NULL;
-    g_object_get (toplevel, "filename", &filename, NULL);
-
-    if ( ! g_path_is_absolute (filename))
-      {
-	gchar *path =
-	  g_build_filename (g_get_current_dir (), filename, NULL);
-	dir_name = g_path_get_dirname (path);
-	g_free (path);
-      }
-    else
-      {
-	dir_name = g_path_get_dirname (filename);
-      }
-    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
-					 dir_name);
-    free (dir_name);
-  }
-
-  return dialog;
-}
-
-/* Callback for the data_open action.
-   Prompts for a filename and opens it */
-static void
-open_window (PsppireWindow *de)
-{
-  GtkWidget *dialog = sysfile_chooser_dialog (de);
-
-  switch (gtk_dialog_run (GTK_DIALOG (dialog)))
-    {
-    case GTK_RESPONSE_ACCEPT:
-      {
-	gchar *name =
-	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-
-	gchar *sysname = convert_glib_filename_to_system_filename (name, NULL);
-
-	if (any_reader_may_open (sysname))
-	  psppire_window_load (de, name);
-	else
-	  open_syntax_window (name);
-
-	g_free (sysname);
-	g_free (name);
-      }
-      break;
-    default:
-      break;
-    }
-
-  gtk_widget_destroy (dialog);
-}
-
 /* Returns true if NAME has a suffix which might denote a PSPP file */
 static gboolean
 name_has_suffix (const gchar *name)
@@ -542,7 +439,7 @@ display_dict (PsppireDataWindow *de)
 static void
 sysfile_info (PsppireDataWindow *de)
 {
-  GtkWidget *dialog = sysfile_chooser_dialog (PSPPIRE_WINDOW (de));
+  GtkWidget *dialog = psppire_window_file_chooser_dialog (PSPPIRE_WINDOW (de));
 
   if  ( GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog)))
     {
@@ -1028,7 +925,7 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   connect_action (de, "file_save", G_CALLBACK (data_save));
  
-  connect_action (de, "file_open", G_CALLBACK (open_window));
+  connect_action (de, "file_open", G_CALLBACK (psppire_window_open));
 
   connect_action (de, "file_save_as", G_CALLBACK (data_save_as_dialog));
 

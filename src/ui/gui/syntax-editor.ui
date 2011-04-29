@@ -29,21 +29,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="open2">
+          <object class="GtkAction" id="file_open">
             <property name="stock-id">gtk-open</property>
-            <property name="name">open2</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="file_open_syntax">
-            <property name="name">file_open_syntax</property>
-            <property name="label" translatable="yes">_Syntax</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="file_open_data">
-            <property name="name">file_open_data</property>
-            <property name="label" translatable="yes">_Data</property>
+            <property name="name">file_open</property>
           </object>
         </child>
         <child>
@@ -150,10 +138,7 @@
             <menuitem action="file_new_syntax"/>
             <menuitem action="file_new_data"/>
           </menu>
-          <menu action="open2">
-            <menuitem action="file_open_syntax"/>
-            <menuitem action="file_open_data"/>
-          </menu>
+          <menuitem action="file_open"/>
           <menuitem action="file_save"/>
           <menuitem action="file_save_as"/>
           <separator/>

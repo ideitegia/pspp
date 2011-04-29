@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include "psppire-window.h"
 
 #include <gtk/gtk.h>
 
@@ -26,9 +27,15 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-#include "psppire-window.h"
-#include "psppire-window-register.h"
+#include "data/any-reader.h"
+#include "data/dataset.h"
+
+#include "helper.h"
 #include "psppire-conf.h"
+#include "psppire-data-window.h"
+#include "psppire-syntax-window.h"
+#include "psppire-window-register.h"
+#include "psppire.h"
 
 static void psppire_window_base_finalize (PsppireWindowClass *, gpointer);
 static void psppire_window_base_init     (PsppireWindowClass *class);
@@ -434,7 +441,6 @@ psppire_window_init (PsppireWindow *window)
 
   g_signal_connect (window, "realize",
 		    G_CALLBACK (on_realize), window);
-
 }
 
 /*
@@ -634,6 +640,123 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
   psppire_window_set_title (w);
 
   return ok;
+}
+
+GtkWidget *
+psppire_window_file_chooser_dialog (PsppireWindow *toplevel)
+{
+  GtkWidget *dialog =
+    gtk_file_chooser_dialog_new (_("Open"),
+				 GTK_WINDOW (toplevel),
+				 GTK_FILE_CHOOSER_ACTION_OPEN,
+				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+				 GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+				 NULL);
+
+  GtkFileFilter *filter;
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Data and Syntax Files"));
+  gtk_file_filter_add_pattern (filter, "*.sav");
+  gtk_file_filter_add_pattern (filter, "*.SAV");
+  gtk_file_filter_add_pattern (filter, "*.por");
+  gtk_file_filter_add_pattern (filter, "*.POR");
+  gtk_file_filter_add_pattern (filter, "*.sps");
+  gtk_file_filter_add_pattern (filter, "*.SPS");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
+  gtk_file_filter_add_pattern (filter, "*.sav");
+  gtk_file_filter_add_pattern (filter, "*.SAV");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Portable Files (*.por) "));
+  gtk_file_filter_add_pattern (filter, "*.por");
+  gtk_file_filter_add_pattern (filter, "*.POR");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Syntax Files (*.sps) "));
+  gtk_file_filter_add_pattern (filter, "*.sps");
+  gtk_file_filter_add_pattern (filter, "*.SPS");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("All Files"));
+  gtk_file_filter_add_pattern (filter, "*");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  {
+    gchar *dir_name;
+    gchar *filename = NULL;
+    g_object_get (toplevel, "filename", &filename, NULL);
+
+    if ( ! g_path_is_absolute (filename))
+      {
+	gchar *path =
+	  g_build_filename (g_get_current_dir (), filename, NULL);
+	dir_name = g_path_get_dirname (path);
+	g_free (path);
+      }
+    else
+      {
+	dir_name = g_path_get_dirname (filename);
+      }
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
+					 dir_name);
+    free (dir_name);
+  }
+
+  return dialog;
+}
+
+/* Callback for the file_open action.
+   Prompts for a filename and opens it */
+void
+psppire_window_open (PsppireWindow *de)
+{
+  GtkWidget *dialog = psppire_window_file_chooser_dialog (de);
+
+  switch (gtk_dialog_run (GTK_DIALOG (dialog)))
+    {
+    case GTK_RESPONSE_ACCEPT:
+      {
+	gchar *name =
+	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+
+	gchar *sysname = convert_glib_filename_to_system_filename (name, NULL);
+
+	if (any_reader_may_open (sysname))
+          {
+            PsppireWindow *window;
+
+#if 0
+            if (PSPPIRE_IS_DATA_WINDOW (de)
+                && psppire_data_window_is_empty (PSPPIRE_DATA_WINDOW (de)))
+              window = de;
+            else
+              window = PSPPIRE_WINDOW (psppire_data_window_new (NULL));
+#else
+            window = PSPPIRE_WINDOW (psppire_default_data_window ());
+#endif
+
+            psppire_window_load (window, name);
+            gtk_widget_show (GTK_WIDGET (window));
+          }
+	else
+	  open_syntax_window (name);
+
+	g_free (sysname);
+	g_free (name);
+      }
+      break;
+    default:
+      break;
+    }
+
+  gtk_widget_destroy (dialog);
 }
 
 
