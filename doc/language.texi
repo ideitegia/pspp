@@ -13,7 +13,7 @@ Later chapters will describe individual commands in detail.
 * Types of Commands::           Commands come in several flavors.
 * Order of Commands::           Commands combine to form syntax files.
 * Missing Observations::        Handling missing observations.
-* Variables::                   The unit of data storage.
+* Datasets::                    Data organization.
 * Files::                       Files used by PSPP.
 * File Handles::                How files are named.
 * BNF::                         How command syntax is described.
@@ -380,19 +380,29 @@ for that variable.  However, most of the time user-missing values are
 treated in the same way as the system-missing value.
 
 For more information on missing values, see the following sections:
-@ref{Variables}, @ref{MISSING VALUES}, @ref{Expressions}.  See also the
+@ref{Datasets}, @ref{MISSING VALUES}, @ref{Expressions}.  See also the
 documentation on individual procedures for information on how they
 handle missing values.
 
-@node Variables
-@section Variables
-@cindex variables
+@node Datasets
+@section Datasets
+@cindex dataset
+@cindex variable
 @cindex dictionary
 
-Variables are the basic unit of data storage in PSPP.  All the
-variables in a file taken together, apart from any associated data, are
-said to form a @dfn{dictionary}.  
-Some details of variables are described in the sections below.
+PSPP works with data organized into @dfn{datasets}.  A dataset
+consists of a set of @dfn{variables}, which taken together are said to
+form a @dfn{dictionary}, and one or more @dfn{cases}, each of which
+has one value for each variable.
+
+At any given time PSPP has exactly one distinguished dataset, called
+the @dfn{active dataset}.  Most PSPP commands work only with the
+active dataset.  In addition to the active dataset, PSPP also supports
+any number of additional open datasets.  The @cmd{DATASET} commands
+can choose a new active dataset from among those that are open, as
+well as create and destroy datasets (@pxref{DATASET}).
+
+The sections below describe variables in more detail.
 
 @menu
 * Attributes::                  Attributes of variables.
@@ -1307,14 +1317,6 @@ run.  The output files receive the tables and charts produced by
 statistical procedures.  The output files may be in any number of formats,
 depending on how PSPP is configured.
 
-@cindex active file
-@cindex file, active
-@item active file
-The active file is the ``file'' on which all PSPP procedures are
-performed.  The active file consists of a dictionary and a set of cases.
-The active file is not necessarily a disk file: it is stored in memory
-if there is room.
-
 @cindex system file
 @cindex file, system
 @item system file
@@ -1327,24 +1329,14 @@ cases.  @cmd{GET} and @cmd{SAVE} read and write system files.
 Portable files are files in a text-based format that store a dictionary
 and a set of cases.  @cmd{IMPORT} and @cmd{EXPORT} read and write
 portable files.
-
-@cindex scratch file
-@cindex file, scratch
-@item scratch file
-Scratch files consist of a dictionary and cases and may be stored in
-memory or on disk.  Most procedures that act on a system file or
-portable file can use a scratch file instead.  The contents of scratch
-files persist within a single PSPP session only.  @cmd{GET} and
-@cmd{SAVE} can be used to read and write scratch files.  Scratch files
-are a PSPP extension.
 @end table
 
 @node File Handles
 @section File Handles
 @cindex file handles
 
-A @dfn{file handle} is a reference to a data file, system file, portable
-file, or scratch file.  Most often, a file handle is specified as the
+A @dfn{file handle} is a reference to a data file, system file, or 
+portable file.  Most often, a file handle is specified as the
 name of a file as a string, that is, enclosed within @samp{'} or
 @samp{"}.
 
@@ -1365,15 +1357,6 @@ the syntax later to use a different file.  Use of @cmd{FILE HANDLE} is
 also required to read data files in binary formats.  @xref{FILE HANDLE},
 for more information.
 
-PSPP assumes that a file handle name that begins with @samp{#} refers to
-a scratch file, unless the name has already been declared on @cmd{FILE
-HANDLE} to refer to another kind of file.  A scratch file is similar to
-a system file, except that it persists only for the duration of a given
-PSPP session.  Most commands that read or write a system or portable
-file, such as @cmd{GET} and @cmd{SAVE}, also accept scratch file
-handles.  Scratch file handles may also be declared explicitly with
-@cmd{FILE HANDLE}.  Scratch files are a PSPP extension.
-
 In some circumstances, PSPP must distinguish whether a file handle
 refers to a system file or a portable file.  When this is necessary to
 read a file, e.g.@: as an input file for @cmd{GET} or @cmd{MATCH FILES},
@@ -1389,8 +1372,7 @@ file'' embedded into the syntax file between @cmd{BEGIN DATA} and
 
 The file to which a file handle refers may be reassigned on a later
 @cmd{FILE HANDLE} command if it is first closed using @cmd{CLOSE FILE
-HANDLE}.  The @cmd{CLOSE FILE HANDLE} command is also useful to free the
-storage associated with a scratch file.  @xref{CLOSE FILE HANDLE}, for
+HANDLE}.  @xref{CLOSE FILE HANDLE}, for
 more information.
 
 @node BNF

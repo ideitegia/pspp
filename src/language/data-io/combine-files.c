@@ -223,7 +223,7 @@ combine_files (enum comb_command_type command,
         }
       else
         {
-          file->handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
+          file->handle = fh_parse (lexer, FH_REF_FILE, dataset_session (ds));
           if (file->handle == NULL)
             goto error;
 

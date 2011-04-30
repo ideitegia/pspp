@@ -293,7 +293,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_match_id (lexer, "FILE"))
     goto error;
   lex_force_match (lexer, T_EQUALS);
-  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
+  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE, NULL);
   if (fh == NULL)
     goto error;
 

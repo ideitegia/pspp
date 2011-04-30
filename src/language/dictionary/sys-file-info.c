@@ -77,7 +77,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   lex_match_id (lexer, "FILE");
   lex_match (lexer, T_EQUALS);
 
-  h = fh_parse (lexer, FH_REF_FILE);
+  h = fh_parse (lexer, FH_REF_FILE, NULL);
   if (!h)
     return CMD_FAILURE;
 

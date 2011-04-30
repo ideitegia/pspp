@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,23 +14,14 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include <config.h>
+#ifndef DATASET_WRITER_H
+#define DATASET_WRITER_H 1
 
-#include "data/scratch-handle.h"
+#include <stdbool.h>
 
-#include <stdlib.h>
+struct dictionary;
+struct file_handle;
+struct casewriter *dataset_writer_open (struct file_handle *,
+                                        const struct dictionary *);
 
-#include "data/casereader.h"
-#include "data/dictionary.h"
-
-/* Destroys HANDLE. */
-void
-scratch_handle_destroy (struct scratch_handle *handle)
-{
-  if (handle != NULL)
-    {
-      dict_destroy (handle->dictionary);
-      casereader_destroy (handle->casereader);
-      free (handle);
-    }
-}
+#endif /* dataset-writer.h */

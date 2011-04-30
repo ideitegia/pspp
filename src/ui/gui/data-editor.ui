@@ -55,6 +55,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="rename_dataset">
+            <property name="name">rename_dataset</property>
+	    <property name="label" translatable="yes">_Rename Dataset...</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="file_save">
             <property name="stock-id">gtk-save</property>
             <property name="name">file_save</property>
@@ -480,6 +486,7 @@
           <separator/>
           <menuitem action="file_save"/>
           <menuitem action="file_save_as"/>
+          <menuitem action="rename_dataset"/>
           <separator/>
           <menu action="file-information">
             <menuitem action="file_information_working-file"/>

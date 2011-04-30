@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include "data/dataset.h"
+#include "data/session.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/message.h"
 #include "ui/gui/aggregate-dialog.h"
@@ -30,6 +31,7 @@
 #include "ui/gui/correlation-dialog.h"
 #include "ui/gui/crosstabs-dialog.h"
 #include "ui/gui/descriptives-dialog.h"
+#include "ui/gui/entry-dialog.h"
 #include "ui/gui/examine-dialog.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/factor-dialog.h"
@@ -61,11 +63,14 @@
 #include "ui/gui/weight-cases-dialog.h"
 #include "ui/syntax-gen.h"
 
+#include "gl/xvasprintf.h"
+
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-static PsppireDataWindow *the_data_window;
+struct session *the_session;
+struct ll_list all_data_windows = LL_INITIALIZER (all_data_windows);
 
 static void psppire_data_window_class_init    (PsppireDataWindowClass *class);
 static void psppire_data_window_init          (PsppireDataWindow      *data_editor);
@@ -466,10 +471,11 @@ sysfile_info (PsppireDataWindow *de)
 }
 
 
-/* Callback for data_save_as action. Prompt for a filename and save */
+/* PsppireWindow 'pick_filename' callback: prompt for a filename to save as. */
 static void
-data_save_as_dialog (PsppireDataWindow *de)
+data_pick_filename (PsppireWindow *window)
 {
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (window);
   GtkWidget *button_sys;
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Save"),
@@ -515,6 +521,9 @@ data_save_as_dialog (PsppireDataWindow *de)
     gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER(dialog), vbox);
   }
 
+  gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog),
+                                                  TRUE);
+
   switch (gtk_dialog_run (GTK_DIALOG (dialog)))
     {
     case GTK_RESPONSE_ACCEPT:
@@ -538,8 +547,6 @@ data_save_as_dialog (PsppireDataWindow *de)
 
 	psppire_window_set_filename (PSPPIRE_WINDOW (de), filename->str);
 
-	save_file (PSPPIRE_WINDOW (de));
-
 	g_string_free (filename, TRUE);
       }
       break;
@@ -550,31 +557,67 @@ data_save_as_dialog (PsppireDataWindow *de)
   gtk_widget_destroy (dialog);
 }
 
-
-/* Callback for data_save action.
- */
-static void
-data_save (PsppireWindow *de)
+static bool
+confirm_delete_dataset (PsppireDataWindow *de,
+                        const char *old_dataset,
+                        const char *new_dataset,
+                        const char *existing_dataset)
 {
-  const gchar *fn = psppire_window_get_filename (de);
+  GtkWidget *dialog;
+  int result;
 
-  if ( NULL != fn)
-    psppire_window_save (de);
-  else
-    data_save_as_dialog (PSPPIRE_DATA_WINDOW (de));
+  dialog = gtk_message_dialog_new (
+    GTK_WINDOW (de), 0, GTK_MESSAGE_QUESTION, GTK_BUTTONS_NONE, "%s",
+    _("Delete Existing Dataset?"));
+
+  gtk_message_dialog_format_secondary_text (
+    GTK_MESSAGE_DIALOG (dialog),
+    _("Renaming \"%s\" to \"%s\" will delete destroy the existing "
+      "dataset named \"%s\".  Are you sure that you want to do this?"),
+    old_dataset, new_dataset, existing_dataset);
+
+  gtk_dialog_add_buttons (GTK_DIALOG (dialog),
+                          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                          GTK_STOCK_DELETE, GTK_RESPONSE_OK,
+                          NULL);
+
+  g_object_set (dialog, "icon-name", "psppicon", NULL);
+
+  result = gtk_dialog_run (GTK_DIALOG (dialog));
+
+  gtk_widget_destroy (dialog);
+
+  return result == GTK_RESPONSE_OK;
 }
 
-
-/* Callback for data_new action.
-   Performs the NEW FILE command */
 static void
-new_file (PsppireDataWindow *de)
+on_rename_dataset (PsppireDataWindow *de)
 {
-  execute_const_syntax_string (de, "NEW FILE.");
-  psppire_window_set_filename (PSPPIRE_WINDOW (de), NULL);
+  struct dataset *ds = de->dataset;
+  struct session *session = dataset_session (ds);
+  const char *old_name = dataset_name (ds);
+  struct dataset *existing_dataset;
+  char *new_name;
+  char *prompt;
+
+  prompt = xasprintf (_("Please enter a new name for dataset \"%s\":"),
+                      old_name);
+  new_name = entry_dialog_run (GTK_WINDOW (de), _("Rename Dataset"), prompt,
+                               old_name);
+  free (prompt);
+
+  if (new_name == NULL)
+    return;
+
+  existing_dataset = session_lookup_dataset (session, new_name);
+  if (existing_dataset == NULL || existing_dataset == ds
+      || confirm_delete_dataset (de, old_name, new_name,
+                                 dataset_name (existing_dataset)))
+    g_free (execute_syntax_string (de, g_strdup_printf ("DATASET NAME %s.",
+                                                        new_name)));
+
+  free (new_name);
 }
-
-
 
 static void
 on_edit_paste (PsppireDataWindow  *de)
@@ -688,8 +731,6 @@ file_quit (PsppireDataWindow *de)
   /* FIXME: Need to be more intelligent here.
      Give the user the opportunity to save any unsaved data.
   */
-  g_object_unref (de->data_store);
-
   psppire_quit ();
 }
 
@@ -919,15 +960,17 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   connect_action (de, "edit_cut", G_CALLBACK (on_edit_cut));
 
-  connect_action (de, "file_new_data", G_CALLBACK (new_file));
+  connect_action (de, "file_new_data", G_CALLBACK (create_data_window));
 
   connect_action (de, "file_import-text", G_CALLBACK (text_data_import_assistant));
 
-  connect_action (de, "file_save", G_CALLBACK (data_save));
+  connect_action (de, "file_save", G_CALLBACK (psppire_window_save));
  
   connect_action (de, "file_open", G_CALLBACK (psppire_window_open));
 
-  connect_action (de, "file_save_as", G_CALLBACK (data_save_as_dialog));
+  connect_action (de, "file_save_as", G_CALLBACK (psppire_window_save_as));
+
+  connect_action (de, "rename_dataset", G_CALLBACK (on_rename_dataset));
 
   connect_action (de, "file_information_working-file", G_CALLBACK (display_dict));
 
@@ -1145,7 +1188,7 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   gtk_widget_show (GTK_WIDGET (de->data_editor));
   gtk_widget_show (box);
 
-  the_data_window = de;
+  ll_push_head (&all_data_windows, &de->ll);
 }
 
 static void
@@ -1159,10 +1202,26 @@ psppire_data_window_dispose (GObject *object)
       dw->builder = NULL;
     }
 
-  if (the_data_window == dw)
-    the_data_window = NULL;
+  if (dw->var_store)
+    {
+      g_object_unref (dw->var_store);
+      dw->var_store = NULL;
+    }
 
-  G_OBJECT_CLASS (parent_class)->dispose (object);
+  if (dw->data_store)
+    {
+      g_object_unref (dw->data_store);
+      dw->data_store = NULL;
+    }
+
+  if (dw->ll.next != NULL)
+    {
+      ll_remove (&dw->ll);
+      dw->ll.next = NULL;
+    }
+
+  if (G_OBJECT_CLASS (parent_class)->dispose)
+    G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
 static void
@@ -1203,33 +1262,89 @@ psppire_data_window_get_property (GObject         *object,
     };
 }
 
-
 GtkWidget*
 psppire_data_window_new (struct dataset *ds)
 {
-  return GTK_WIDGET (
+  GtkWidget *dw;
+
+  if (the_session == NULL)
+    the_session = session_create ();
+
+  if (ds == NULL)
+    {
+      static int n_datasets;
+      char *dataset_name;
+
+      dataset_name = xasprintf ("DataSet%d", ++n_datasets);
+      ds = dataset_create (the_session, dataset_name);
+      free (dataset_name);
+    }
+  assert (dataset_session (ds) == the_session);
+
+  dw = GTK_WIDGET (
     g_object_new (
       psppire_data_window_get_type (),
       /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
-      "filename", _("PSPP-data"),
       "description", _("Data Editor"),
       "dataset", ds,
       NULL));
+
+  if (dataset_name (ds) != NULL)
+    g_object_set (dw, "id", dataset_name (ds), (void *) NULL);
+
+  return dw;
 }
 
+bool
+psppire_data_window_is_empty (PsppireDataWindow *dw)
+{
+  return psppire_var_store_get_var_cnt (dw->var_store) == 0;
+}
 
 static void
 psppire_data_window_iface_init (PsppireWindowIface *iface)
 {
   iface->save = save_file;
+  iface->pick_filename = data_pick_filename;
   iface->load = load_file;
 }
-
 
 PsppireDataWindow *
 psppire_default_data_window (void)
 {
-  if (the_data_window == NULL)
-    gtk_widget_show (psppire_data_window_new (dataset_create ()));
-  return the_data_window;
+  if (ll_is_empty (&all_data_windows))
+    create_data_window ();
+  return ll_data (ll_head (&all_data_windows), PsppireDataWindow, ll);
+}
+
+void
+psppire_data_window_set_default (PsppireDataWindow *pdw)
+{
+  ll_remove (&pdw->ll);
+  ll_push_head (&all_data_windows, &pdw->ll);
+}
+
+void
+psppire_data_window_undefault (PsppireDataWindow *pdw)
+{
+  ll_remove (&pdw->ll);
+  ll_push_tail (&all_data_windows, &pdw->ll);
+}
+
+PsppireDataWindow *
+psppire_data_window_for_dataset (struct dataset *ds)
+{
+  PsppireDataWindow *pdw;
+
+  ll_for_each (pdw, PsppireDataWindow, ll, &all_data_windows)
+    if (pdw->dataset == ds)
+      return pdw;
+
+  return NULL;
+}
+
+void
+create_data_window (void)
+{
+  gtk_widget_show (psppire_data_window_new (NULL));
 }

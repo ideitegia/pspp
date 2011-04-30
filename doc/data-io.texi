@@ -26,6 +26,7 @@ actually be read until a procedure is executed.
 * BEGIN DATA::                  Embed data within a syntax file.
 * CLOSE FILE HANDLE::           Close a file handle.
 * DATAFILE ATTRIBUTE::          Set custom attributes on data files.
+* DATASET::                     Manage multiple datasets.
 * DATA LIST::                   Fundamental data reading command.
 * END CASE::                    Output the current case.
 * END FILE::                    Terminate the current input program.
@@ -77,12 +78,6 @@ CLOSE FILE HANDLE handle_name.
 given file.  The only specification is the name of the handle to close.
 Afterward
 @cmd{FILE HANDLE}.
-
-If the file handle name refers to a scratch file, then the storage
-associated with the scratch file in memory or on disk will be freed.
-If the scratch file is in use, e.g.@: it has been specified on a
-@cmd{GET} command whose execution has not completed, then freeing is
-delayed until it is no longer in use.
 
 The file named INLINE, which represents data entered between @cmd{BEGIN
 DATA} and @cmd{END DATA}, cannot be closed.  Attempts to close it with
@@ -136,6 +131,84 @@ with the entire active dataset, use @cmd{VARIABLE ATTRIBUTE}
 @cmd{DATAFILE ATTRIBUTE} takes effect immediately.  It is not affected
 by conditional and looping structures such as @cmd{DO IF} or
 @cmd{LOOP}.
+
+@node DATASET
+@section DATASET commands
+@vindex DATASET
+
+@display
+DATASET NAME name [WINDOW=@{ASIS,FRONT@}].
+DATASET ACTIVATE name [WINDOW=@{ASIS,FRONT@}].
+DATASET COPY name [WINDOW=@{MINIMIZED,HIDDEN,FRONT@}].
+DATASET DECLARE name [WINDOW=@{MINIMIZED,HIDDEN,FRONT@}].
+DATASET CLOSE @{name,*,ALL@}.
+DATASET DISPLAY.
+@end display
+
+The @cmd{DATASET} commands simplify use of multiple datasets within a
+PSPP session.  They allow datasets to be created and destroyed.  At
+any given time, most PSPP commands work with a single dataset, called
+the active dataset.
+
+@vindex DATASET NAME
+The DATASET NAME command gives the active dataset the specified name, or
+if it already had a name, it renames it.  If another dataset already
+had the given name, that dataset is deleted.
+
+@vindex DATASET ACTIVATE
+The DATASET ACTIVATE command selects the named dataset, which must
+already exist, as the active dataset.  Before switching the active
+dataset, any pending transformations are executed, as if @cmd{EXECUTE}
+had been specified.  If the active dataset is unnamed before
+switching, then it is deleted and becomes unavailable after switching.
+
+@vindex DATASET COPY
+The DATASET COPY command creates a new dataset with the specified
+name, whose contents are a copy of the active dataset.  Any pending
+transformations are executed, as if @cmd{EXECUTE} had been specified,
+before making the copy.  If a dataset with the given name already
+exists, it is replaced.  If the name is the name of the active
+dataset, then the active dataset becomes unnamed.
+
+@vindex DATASET DECLARE
+The DATASET DECLARE command creates a new dataset that is initially
+``empty,'' that is, it has no dictionary or data.  If a dataset with
+the given name already exists, this has no effect.  The new dataset
+can be used with commands that support output to a dataset,
+e.g. AGGREGATE (@pxref{AGGREGATE}).
+
+@vindex DATASET CLOSE
+The DATASET CLOSE command deletes a dataset.  If the active dataset is
+specified by name, or if @samp{*} is specified, then the active
+dataset becomes unnamed.  If a different dataset is specified by name,
+then it is deleted and becomes unavailable.  Specifying ALL deletes
+all datasets except for the active dataset, which becomes unnamed.
+
+@vindex DATASET DISPLAY
+The DATASET DISPLAY command lists all the currently defined datasets.
+
+Many DATASET commands accept an optional WINDOW subcommand.  In the
+PSPPIRE GUI, the value given for this subcommand influences how the
+dataset's window is displayed.  Outside the GUI, the WINDOW subcommand
+has no effect.  The valid values are:
+
+@table @asis
+@item ASIS
+Do not change how the window is displayed.  This is the default for
+DATASET NAME and DATASET ACTIVATE.
+
+@item FRONT
+Raise the dataset's window to the top.  Make it the default dataset
+for running syntax.
+
+@item MINIMIZED
+Display the window ``minimized'' to an icon.  Prefer other datasets
+for running syntax.  This is the default for DATASET COPY and DATASET
+DECLARE.
+
+@item HIDDEN
+Hide the dataset's window.  Prefer other datasets for running syntax.
+@end table
 
 @node DATA LIST
 @section DATA LIST
@@ -512,10 +585,6 @@ For binary files encoded in EBCDIC:
                 /MODE=360
                 /RECFORM=@{FIXED,VARIABLE,SPANNED@}
                 [/LRECL=rec_len]
-
-To explicitly declare a scratch handle:
-        FILE HANDLE handle_name
-                /MODE=SCRATCH
 @end display
 
 Use @cmd{FILE HANDLE} to associate a file handle name with a file and
@@ -645,13 +714,6 @@ set, which are then translated from EBCDIC to the native character
 set.  Thus, when the host's native character set is based on ASCII,
 these fields are effectively padded with character @code{X'80'}.  This
 wart is implemented for compatibility.
-
-@item
-SCRATCH mode is a PSPP extension that designates the file handle as a
-scratch file handle.
-Its use is usually unnecessary because file handle names that begin with
-@samp{#} are assumed to refer to scratch files.  @pxref{File Handles},
-for more information.
 @end itemize
 
 The NAME subcommand specifies the name of the file associated with the

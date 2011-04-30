@@ -156,7 +156,7 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
 	{
 	  lex_match (lexer, T_EQUALS);
 
-	  fh = fh_parse (lexer, FH_REF_FILE);
+	  fh = fh_parse (lexer, FH_REF_FILE, NULL);
 	  if (fh == NULL)
 	    goto error;
 	}

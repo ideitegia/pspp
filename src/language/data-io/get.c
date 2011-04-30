@@ -82,7 +82,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 	  lex_match (lexer, T_EQUALS);
 
           fh_unref (fh);
-	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
+	  fh = fh_parse (lexer, FH_REF_FILE, NULL);
 	  if (fh == NULL)
             goto error;
 	}

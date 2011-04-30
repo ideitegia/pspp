@@ -196,7 +196,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
 
 	  lex_match (lexer, T_EQUALS);
 
-	  handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
+	  handle = fh_parse (lexer, FH_REF_FILE, NULL);
 	  if (handle == NULL)
 	    goto error;
 	}

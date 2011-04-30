@@ -2,7 +2,7 @@
 @chapter Combining Data Files
 
 This chapter describes commands that allow data from system files,
-portable files, scratch files, and the active dataset to be combined to
+portable files, and open datasets to be combined to
 form a new active dataset.  These commands can combine data files in the
 following ways:
 
@@ -63,10 +63,10 @@ them.  The command's output becomes the new active dataset.  The input
 files are not changed on disk.
 
 The syntax of each command begins with a specification of the files to
-be read as input.  For each input file, specify FILE with a system,
-portable, or scratch file's name as a string or a file handle
-(@pxref{File Handles}), or specify an asterisk (@samp{*}) to use the
-active dataset as input.  Use of portable or scratch files on FILE is a
+be read as input.  For each input file, specify FILE with a system
+file or portable file's name as a string, a dataset (@pxref{Datasets})
+or file handle name, (@pxref{File Handles}), or an asterisk (@samp{*})
+to use the active dataset as input.  Use of portable files on FILE is a
 PSPP extension.
 
 At least two FILE subcommands must be specified.  If the active dataset

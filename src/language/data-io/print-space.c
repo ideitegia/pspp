@@ -56,7 +56,7 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
     {
       lex_match (lexer, T_EQUALS);
 
-      handle = fh_parse (lexer, FH_REF_FILE);
+      handle = fh_parse (lexer, FH_REF_FILE, NULL);
       if (handle == NULL)
 	return CMD_FAILURE;
     }

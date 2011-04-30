@@ -101,7 +101,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	{
 	  lex_match (lexer, T_EQUALS);
           fh_unref (fh);
-	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
+	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE, NULL);
 	  if (fh == NULL)
 	    goto error;
 	}

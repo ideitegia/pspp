@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,14 +14,14 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef SCRATCH_READER_H
-#define SCRATCH_READER_H 1
+#ifndef DATASET_READER_H
+#define DATASET_READER_H 1
 
 #include <stdbool.h>
 
 struct dictionary;
 struct file_handle;
-struct casereader *scratch_reader_open (struct file_handle *,
+struct casereader *dataset_reader_open (struct file_handle *,
                                         struct dictionary **);
 
-#endif /* scratch-reader.h */
+#endif /* dataset-reader.h */

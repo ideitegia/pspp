@@ -32,6 +32,7 @@
 #include "data/casewriter.h"
 #include "data/dictionary.h"
 #include "data/file-handle-def.h"
+#include "data/session.h"
 #include "data/transformations.h"
 #include "data/variable.h"
 #include "libpspp/deque.h"
@@ -44,6 +45,15 @@
 #include "gl/xalloc.h"
 
 struct dataset {
+  /* A dataset is usually part of a session.  Within a session its name must
+     unique.  The name must either be a valid PSPP identifier or the empty
+     string.  (It must be unique within the session even if it is the empty
+     string; that is, there may only be a single dataset within a session with
+     the empty string as its name.) */
+  struct session *session;
+  char *name;
+  enum dataset_display display;
+
   /* Cases are read from source,
      their transformation variables are initialized,
      pass through permanent_trns_chain (which transforms them into
@@ -96,8 +106,8 @@ struct dataset {
   const struct dataset_callbacks *callbacks;
   void *cb_data;
 
-  /* Default encoding for reading syntax files. */
-  char *syntax_encoding;
+  /* Uniquely distinguishes datasets. */
+  unsigned int seqno;
 };
 
 static void dataset_changed__ (struct dataset *);
@@ -116,21 +126,69 @@ dict_callback (struct dictionary *d UNUSED, void *ds_)
   dataset_changed__ (ds);
 }
 
-/* Creates and returns a new dataset.  The dataset initially has an empty
-   dictionary and no data source. */
+static void
+dataset_create_finish__ (struct dataset *ds, struct session *session)
+{
+  static unsigned int seqno;
+
+  dict_set_change_callback (ds->dict, dict_callback, ds);
+  proc_cancel_all_transformations (ds);
+  dataset_set_session (ds, session);
+  ds->seqno = ++seqno;
+}
+
+/* Creates a new dataset named NAME, adds it to SESSION, and returns it.  If
+   SESSION already contains a dataset named NAME, it is deleted and replaced.
+   The dataset initially has an empty dictionary and no data source. */
 struct dataset *
-dataset_create (void)
+dataset_create (struct session *session, const char *name)
 {
   struct dataset *ds;
 
   ds = xzalloc (sizeof *ds);
+  ds->name = xstrdup (name);
+  ds->display = DATASET_FRONT;
   ds->dict = dict_create (get_default_encoding ());
-  dict_set_change_callback (ds->dict, dict_callback, ds);
 
   ds->caseinit = caseinit_create ();
-  proc_cancel_all_transformations (ds);
-  ds->syntax_encoding = xstrdup ("Auto");
+
+  dataset_create_finish__ (ds, session);
+
   return ds;
+}
+
+/* Creates and returns a new dataset that has the same data and dictionary as
+   OLD named NAME, adds it to the same session as OLD, and returns the new
+   dataset.  If SESSION already contains a dataset named NAME, it is deleted
+   and replaced.
+
+   OLD must not have any active transformations or temporary state and must
+   not be in the middle of a procedure.
+
+   Callbacks are not cloned. */
+struct dataset *
+dataset_clone (struct dataset *old, const char *name)
+{
+  struct dataset *new;
+
+  assert (old->proc_state == PROC_COMMITTED);
+  assert (trns_chain_is_empty (old->permanent_trns_chain));
+  assert (old->permanent_dict == NULL);
+  assert (old->sink == NULL);
+  assert (old->temporary_trns_chain == NULL);
+
+  new = xzalloc (sizeof *new);
+  new->name = xstrdup (name);
+  new->display = DATASET_FRONT;
+  new->source = casereader_clone (old->source);
+  new->dict = dict_clone (old->dict);
+  new->caseinit = caseinit_clone (old->caseinit);
+  new->last_proc_invocation = old->last_proc_invocation;
+  new->ok = old->ok;
+
+  dataset_create_finish__ (new, old->session);
+
+  return new;
 }
 
 /* Destroys DS. */
@@ -139,12 +197,12 @@ dataset_destroy (struct dataset *ds)
 {
   if (ds != NULL)
     {
+      dataset_set_session (ds, NULL);
       dataset_clear (ds);
       dict_destroy (ds->dict);
       caseinit_destroy (ds->caseinit);
       trns_chain_destroy (ds->permanent_trns_chain);
       dataset_transformations_changed__ (ds, false);
-      free (ds->syntax_encoding);
       free (ds);
     }
 }
@@ -164,6 +222,55 @@ dataset_clear (struct dataset *ds)
   ds->source = NULL;
 
   proc_cancel_all_transformations (ds);
+}
+
+const char *
+dataset_name (const struct dataset *ds)
+{
+  return ds->name;
+}
+
+void
+dataset_set_name (struct dataset *ds, const char *name)
+{
+  struct session *session = ds->session;
+  bool active = false;
+
+  if (session != NULL)
+    {
+      active = session_active_dataset (session) == ds;
+      if (active)
+        session_set_active_dataset (session, NULL);
+      dataset_set_session (ds, NULL);
+    }
+
+  free (ds->name);
+  ds->name = xstrdup (name);
+
+  if (session != NULL)
+    {
+      dataset_set_session (ds, session);
+      if (active)
+        session_set_active_dataset (session, ds);
+    }
+}
+
+struct session *
+dataset_session (const struct dataset *ds)
+{
+  return ds->session;
+}
+
+void
+dataset_set_session (struct dataset *ds, struct session *session)
+{
+  if (session != ds->session)
+    {
+      if (ds->session != NULL)
+        session_remove_dataset (ds->session, ds);
+      if (session != NULL)
+        session_add_dataset (session, ds);
+    }
 }
 
 /* Returns the dictionary within DS.  This is always nonnull, although it
@@ -229,6 +336,15 @@ dataset_steal_source (struct dataset *ds)
   return reader;
 }
 
+/* Returns a number unique to DS.  It can be used to distinguish one dataset
+   from any other within a given program run, even datasets that do not exist
+   at the same time. */
+unsigned int
+dataset_seqno (const struct dataset *ds)
+{
+  return ds->seqno;
+}
+
 void
 dataset_set_callbacks (struct dataset *ds,
                        const struct dataset_callbacks *callbacks,
@@ -238,17 +354,16 @@ dataset_set_callbacks (struct dataset *ds,
   ds->cb_data = cb_data;
 }
 
-void
-dataset_set_default_syntax_encoding (struct dataset *ds, const char *encoding)
+enum dataset_display
+dataset_get_display (const struct dataset *ds)
 {
-  free (ds->syntax_encoding);
-  ds->syntax_encoding = xstrdup (encoding);
+  return ds->display;
 }
 
-const char *
-dataset_get_default_syntax_encoding (const struct dataset *ds)
+void
+dataset_set_display (struct dataset *ds, enum dataset_display display)
 {
-  return ds->syntax_encoding;
+  ds->display = display;
 }
 
 /* Returns the last time the data was read. */
@@ -812,4 +927,12 @@ dataset_transformations_changed__ (struct dataset *ds, bool non_empty)
 {
   if (ds->callbacks != NULL && ds->callbacks->transformations_changed != NULL)
     ds->callbacks->transformations_changed (non_empty, ds->cb_data);
+}
+
+/* Private interface for use by session code. */
+
+void
+dataset_set_session__ (struct dataset *ds, struct session *session)
+{
+  ds->session = session;
 }

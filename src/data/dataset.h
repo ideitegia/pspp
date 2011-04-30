@@ -21,16 +21,23 @@
 #include <stdbool.h>
 
 #include "data/transformations.h"
-#include "libpspp/compiler.h"
 
 struct casereader;
 struct dataset;
 struct dictionary;
+struct session;
 
-struct dataset *dataset_create (void);
+struct dataset *dataset_create (struct session *, const char *);
+struct dataset *dataset_clone (struct dataset *, const char *);
 void dataset_destroy (struct dataset *);
 
 void dataset_clear (struct dataset *);
+
+const char *dataset_name (const struct dataset *);
+void dataset_set_name (struct dataset *, const char *);
+
+struct session *dataset_session (const struct dataset *);
+void dataset_set_session (struct dataset *, struct session *);
 
 struct dictionary *dataset_dict (const struct dataset *);
 void dataset_set_dict (struct dataset *, struct dictionary *);
@@ -40,8 +47,7 @@ bool dataset_has_source (const struct dataset *ds);
 bool dataset_set_source (struct dataset *, struct casereader *);
 struct casereader *dataset_steal_source (struct dataset *);
 
-void dataset_set_default_syntax_encoding (struct dataset *, const char *);
-const char *dataset_get_default_syntax_encoding (const struct dataset *);
+unsigned int dataset_seqno (const struct dataset *);
 
 struct dataset_callbacks
   {
@@ -58,6 +64,17 @@ struct dataset_callbacks
 
 void dataset_set_callbacks (struct dataset *, const struct dataset_callbacks *,
                             void *aux);
+
+/* Dataset GUI window display status. */
+enum dataset_display
+  {
+    DATASET_ASIS,               /* Current state unchanged. */
+    DATASET_FRONT,              /* Display and raise to top. */
+    DATASET_MINIMIZED,          /* Display as icon. */
+    DATASET_HIDDEN              /* Do not display. */
+  };
+enum dataset_display dataset_get_display (const struct dataset *);
+void dataset_set_display (struct dataset *, enum dataset_display);
 
 /* Transformations. */
 
@@ -93,5 +110,9 @@ bool dataset_end_of_command (struct dataset *);
 
 const struct ccase *lagged_case (const struct dataset *ds, int n_before);
 void dataset_need_lag (struct dataset *ds, int n_before);
+
+/* Private interface for use by session code. */
+
+void dataset_set_session__(struct dataset *, struct session *);
 
 #endif /* dataset.h */

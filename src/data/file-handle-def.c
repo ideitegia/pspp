@@ -23,15 +23,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "data/dataset.h"
+#include "data/file-name.h"
+#include "data/variable.h"
 #include "libpspp/compiler.h"
 #include "libpspp/hmap.h"
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "libpspp/hash-functions.h"
-#include "data/file-name.h"
-#include "data/variable.h"
-#include "data/scratch-handle.h"
 
 #include "gl/xalloc.h"
 
@@ -56,8 +56,8 @@ struct file_handle
     size_t record_width;        /* Length of fixed-format records. */
     size_t tab_width;           /* Tab width, 0=do not expand tabs. */
 
-    /* FH_REF_SCRATCH only. */
-    struct scratch_handle *sh;  /* Scratch file data. */
+    /* FH_REF_DATASET only. */
+    struct dataset *ds;         /* Dataset. */
   };
 
 /* All "struct file_handle"s with nonnull 'id' member. */
@@ -110,7 +110,6 @@ free_handle (struct file_handle *handle)
   free (handle->id);
   free (handle->name);
   free (handle->file_name);
-  scratch_handle_destroy (handle->sh);
   free (handle);
 }
 
@@ -243,13 +242,19 @@ fh_create_file (const char *id, const char *file_name,
 
 /* Creates a new file handle with the given ID, which must be
    unique among existing file identifiers.  The new handle is
-   associated with a scratch file (initially empty). */
+   associated with a dataset file (initially empty). */
 struct file_handle *
-fh_create_scratch (const char *id)
+fh_create_dataset (struct dataset *ds)
 {
+  const char *name;
   struct file_handle *handle;
-  handle = create_handle (id, xstrdup (id), FH_REF_SCRATCH);
-  handle->sh = NULL;
+
+  name = dataset_name (ds);
+  if (name[0] == '\0')
+    name = _("active dataset");
+
+  handle = create_handle (NULL, xstrdup (name), FH_REF_DATASET);
+  handle->ds = ds;
   return handle;
 }
 
@@ -334,22 +339,13 @@ fh_get_legacy_encoding (const struct file_handle *handle)
   return (handle->referent == FH_REF_FILE ? handle->encoding : C_ENCODING);
 }
 
-/* Returns the scratch file handle associated with HANDLE.
-   Applicable to only FH_REF_SCRATCH files. */
-struct scratch_handle *
-fh_get_scratch_handle (const struct file_handle *handle)
+/* Returns the dataset handle associated with HANDLE.
+   Applicable to only FH_REF_DATASET files. */
+struct dataset *
+fh_get_dataset (const struct file_handle *handle)
 {
-  assert (handle->referent == FH_REF_SCRATCH);
-  return handle->sh;
-}
-
-/* Sets SH to be the scratch file handle associated with HANDLE.
-   Applicable to only FH_REF_SCRATCH files. */
-void
-fh_set_scratch_handle (struct file_handle *handle, struct scratch_handle *sh)
-{
-  assert (handle->referent == FH_REF_SCRATCH);
-  handle->sh = sh;
+  assert (handle->referent == FH_REF_DATASET);
+  return handle->ds;
 }
 
 /* Returns the current default handle. */
@@ -382,7 +378,7 @@ struct fh_lock
     union
       {
         struct file_identity *file; /* FH_REF_FILE only. */
-        unsigned int unique_id;    /* FH_REF_SCRATCH only. */
+        unsigned int unique_id;    /* FH_REF_DATASET only. */
       }
     u;
     enum fh_access access;      /* Type of file access. */
@@ -590,11 +586,8 @@ make_key (struct fh_lock *lock, const struct file_handle *h,
   lock->access = access;
   if (lock->referent == FH_REF_FILE)
     lock->u.file = fn_get_identity (fh_get_file_name (h));
-  else if (lock->referent == FH_REF_SCRATCH)
-    {
-      struct scratch_handle *sh = fh_get_scratch_handle (h);
-      lock->u.unique_id = sh != NULL ? sh->unique_id : 0;
-    }
+  else if (lock->referent == FH_REF_DATASET)
+    lock->u.unique_id = dataset_seqno (fh_get_dataset (h));
 }
 
 /* Frees the key fields in LOCK. */
@@ -616,7 +609,7 @@ compare_fh_locks (const struct fh_lock *a, const struct fh_lock *b)
     return a->access < b->access ? -1 : 1;
   else if (a->referent == FH_REF_FILE)
     return fn_compare_file_identities (a->u.file, b->u.file);
-  else if (a->referent == FH_REF_SCRATCH)
+  else if (a->referent == FH_REF_DATASET)
     return (a->u.unique_id < b->u.unique_id ? -1
             : a->u.unique_id > b->u.unique_id);
   else
@@ -630,7 +623,7 @@ hash_fh_lock (const struct fh_lock *lock)
   unsigned int basis;
   if (lock->referent == FH_REF_FILE)
     basis = fn_hash_identity (lock->u.file);
-  else if (lock->referent == FH_REF_SCRATCH)
+  else if (lock->referent == FH_REF_DATASET)
     basis = lock->u.unique_id;
   else
     basis = 0;

@@ -50,6 +50,10 @@ src_data_libdata_la_SOURCES = \
 	src/data/data-out.h \
 	src/data/dataset.c \
 	src/data/dataset.h \
+	src/data/dataset-reader.c \
+	src/data/dataset-reader.h \
+	src/data/dataset-writer.c \
+	src/data/dataset-writer.h \
 	src/data/datasheet.c \
 	src/data/datasheet.h \
 	src/data/dict-class.c \
@@ -84,12 +88,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/por-file-writer.h \
 	src/data/psql-reader.c \
 	src/data/psql-reader.h \
-	src/data/scratch-handle.c \
-	src/data/scratch-handle.h \
-	src/data/scratch-reader.c \
-	src/data/scratch-reader.h \
-	src/data/scratch-writer.c \
-	src/data/scratch-writer.h \
+	src/data/session.c \
+	src/data/session.h \
 	src/data/settings.c \
 	src/data/settings.h \
 	src/data/short-names.c \

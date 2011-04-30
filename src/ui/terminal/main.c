@@ -34,6 +34,7 @@
 #include "data/dictionary.h"
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
+#include "data/session.h"
 #include "data/settings.h"
 #include "data/variable.h"
 #include "gsl/gsl_errno.h"
@@ -53,6 +54,7 @@
 #include "ui/terminal/terminal-opts.h"
 #include "ui/terminal/terminal-reader.h"
 #include "ui/terminal/terminal.h"
+#include "ui/terminal/terminal-opts.h"
 
 #include "gl/fatal-signal.h"
 #include "gl/progname.h"
@@ -61,7 +63,7 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static struct dataset *the_dataset;
+static struct session *the_session;
 
 static void add_syntax_reader (struct lexer *, const char *file_name,
                                const char *encoding, enum lex_syntax_mode);
@@ -96,7 +98,8 @@ main (int argc, char **argv)
   random_init ();
 
   lexer = lex_create ();
-  the_dataset = dataset_create ();
+  the_session = session_create ();
+  dataset_create (the_session, "");
 
   parser = argv_parser_create ();
   terminal_opts = terminal_opts_init (parser, &syntax_mode, &process_statrc,
@@ -108,7 +111,7 @@ main (int argc, char **argv)
   argv_parser_destroy (parser);
 
   msg_set_handler (output_msg, lexer);
-  dataset_set_default_syntax_encoding (the_dataset, syntax_encoding);
+  session_set_default_syntax_encoding (the_session, syntax_encoding);
 
   /* Add syntax files to source stream. */
   if (process_statrc)
@@ -134,7 +137,7 @@ main (int argc, char **argv)
   lex_get (lexer);
   for (;;)
     {
-      int result = cmd_parse (lexer, the_dataset);
+      int result = cmd_parse (lexer, session_active_dataset (the_session));
 
       if (result == CMD_EOF || result == CMD_FINISH)
 	break;
@@ -159,7 +162,7 @@ main (int argc, char **argv)
     }
 
 
-  dataset_destroy (the_dataset);
+  session_destroy (the_session);
 
   random_done ();
   settings_done ();

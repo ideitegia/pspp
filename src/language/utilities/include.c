@@ -24,6 +24,7 @@
 
 #include "data/dataset.h"
 #include "data/file-name.h"
+#include "data/session.h"
 #include "language/command.h"
 #include "language/lexer/include-path.h"
 #include "language/lexer/lexer.h"
@@ -81,7 +82,8 @@ do_insert (struct lexer *lexer, struct dataset *ds, enum variant variant)
   error_mode = LEX_ERROR_CONTINUE;
   cd = false;
   status = CMD_FAILURE;
-  encoding = xstrdup (dataset_get_default_syntax_encoding (ds));
+  encoding = xstrdup (session_get_default_syntax_encoding (
+                        dataset_session (ds)));
   while ( T_ENDCMD != lex_token (lexer))
     {
       if (lex_match_id (lexer, "ENCODING"))

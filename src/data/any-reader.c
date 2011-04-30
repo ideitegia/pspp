@@ -24,10 +24,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "data/dataset-reader.h"
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
 #include "data/por-file-reader.h"
-#include "data/scratch-reader.h"
 #include "data/sys-file-reader.h"
 #include "libpspp/assertion.h"
 #include "libpspp/message.h"
@@ -111,8 +111,8 @@ any_reader_open (struct file_handle *handle, struct dictionary **dict)
       msg (SE, _("The inline file is not allowed here."));
       return NULL;
 
-    case FH_REF_SCRATCH:
-      return scratch_reader_open (handle, dict);
+    case FH_REF_DATASET:
+      return dataset_reader_open (handle, dict);
     }
   NOT_REACHED ();
 }

@@ -71,6 +71,11 @@ Changes from 0.7.3 to 0.7.7:
    PROMPT, CPROMPT, and DPROMPT subcommands.  The defaults are now the
    only supported values.
 
+ * The dataset commands DATASET ACTIVATE, DATASET DECLARE, DATASET
+   CLOSE, DATASET COPY, DATASET NAME, DATASET DISPLAY are now
+   implemented.  These commands replace the "scratch file" PSPP
+   extension, which is no longer supported.
+
 Changes from 0.7.2 to 0.7.3:
 
  * Charts are now produced with Cairo and Pango, instead of libplot.

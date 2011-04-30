@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ struct init_list
 /* A bitmap of the "left" status of variables. */
 enum leave_class
   {
-    LEAVE_REINIT = 0x001,       /* Reinitalize for every case. */
+    LEAVE_REINIT = 0x001,       /* Reinitialize for every case. */
     LEAVE_LEFT = 0x002          /* Keep the value from one case to the next. */
   };
 
@@ -63,6 +63,22 @@ init_list_create (struct init_list *list)
 {
   list->values = NULL;
   list->cnt = 0;
+}
+
+/* Initializes NEW as a copy of OLD. */
+static void
+init_list_clone (struct init_list *new, const struct init_list *old)
+{
+  size_t i;
+
+  new->values = xmemdup (old->values, old->cnt * sizeof *old->values);
+  new->cnt = old->cnt;
+
+  for (i = 0; i < new->cnt; i++)
+    {
+      struct init_value *iv = &new->values[i];
+      value_clone (&iv->value, &iv->value, iv->width);
+    }
 }
 
 /* Frees the storage associated with LIST. */
@@ -196,6 +212,17 @@ caseinit_create (void)
   init_list_create (&ci->reinit_values);
   init_list_create (&ci->left_values);
   return ci;
+}
+
+/* Creates and returns a copy of OLD. */
+struct caseinit *
+caseinit_clone (struct caseinit *old)
+{
+  struct caseinit *new = xmalloc (sizeof *new);
+  init_list_clone (&new->preinited_values, &old->preinited_values);
+  init_list_clone (&new->reinit_values, &old->reinit_values);
+  init_list_clone (&new->left_values, &old->left_values);
+  return new;
 }
 
 /* Clears the contents of case initializer CI. */

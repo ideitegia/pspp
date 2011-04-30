@@ -1,0 +1,302 @@
+AT_BANNER([DATASET commands])
+
+AT_SETUP([DATASET COPY])
+AT_DATA([dataset.pspp], [dnl
+DATASET NAME initial.
+DATA LIST NOTABLE /x 1.
+COMPUTE x = x + 1.
+DATASET COPY clone.
+BEGIN DATA.
+1
+2
+3
+4
+5
+END DATA.
+
+NEW FILE.
+DATA LIST NOTABLE /y 1.
+BEGIN DATA.
+6
+7
+8
+END DATA.
+LIST.
+DATASET DISPLAY.
+
+DATASET ACTIVATE clone.
+DATASET DISPLAY.
+LIST.
+
+DATASET ACTIVATE initial.
+DATASET DISPLAY.
+LIST.
+
+COMPUTE z=y.
+DATASET COPY clone.
+
+DATASET ACTIVATE clone.
+LIST.
+DATASET COPY clone.
+DATASET DISPLAY.
+
+DATASET CLOSE initial.
+DATASET DISPLAY.
+])
+AT_CHECK([pspp -O format=csv dataset.pspp], [0], [dnl
+Table: Data List
+y
+6
+7
+8
+
+Table: Open datasets.
+Dataset
+clone
+initial (active dataset)
+
+Table: Open datasets.
+Dataset
+clone (active dataset)
+initial
+
+Table: Data List
+x
+2
+3
+4
+5
+6
+
+Table: Open datasets.
+Dataset
+clone
+initial (active dataset)
+
+Table: Data List
+y
+6
+7
+8
+
+Table: Data List
+y,z
+6,6.00
+7,7.00
+8,8.00
+
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+initial
+
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+])
+AT_CLEANUP
+
+AT_SETUP([DATASET DECLARE])
+AT_DATA([dataset.pspp], [dnl
+DATASET DECLARE second.
+DATASET DISPLAY.
+DATA LIST NOTABLE/x 1.
+BEGIN DATA.
+1
+END DATA.
+LIST.
+DATASET ACTIVATE second.
+DATASET DISPLAY.
+LIST.
+])
+AT_CHECK([pspp -O format=csv dataset.pspp], [1], [dnl
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+second
+
+Table: Data List
+x
+1
+
+Table: Open datasets.
+Dataset
+second (active dataset)
+
+dataset.pspp:10: error: LIST: LIST is allowed only after the active dataset has been defined.
+])
+AT_CLEANUP
+
+AT_SETUP([DATASET NAME deletes duplicate name])
+AT_DATA([dataset.pspp], [dnl
+DATASET NAME a.
+DATASET DECLARE b.
+DATASET DECLARE c.
+DATASET DISPLAY.
+
+DATASET NAME b.
+DATASET NAME c.
+DATASET DISPLAY.
+])
+AT_CHECK([pspp -O format=csv dataset.pspp], [0], [dnl
+Table: Open datasets.
+Dataset
+a (active dataset)
+b
+c
+
+Table: Open datasets.
+Dataset
+c (active dataset)
+])
+AT_CLEANUP
+
+AT_SETUP([DATASET ACTIVATE deletes unnamed dataset])
+AT_DATA([dataset.pspp], [dnl
+DATASET DECLARE x.
+DATASET DISPLAY.
+
+DATASET ACTIVATE x.
+DATASET DISPLAY.
+])
+AT_CHECK([pspp -O format=csv dataset.pspp], [0], [dnl
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+x
+
+Table: Open datasets.
+Dataset
+x (active dataset)
+])
+AT_CLEANUP
+
+AT_SETUP([DATASET ACTIVATE executes pending transformations])
+AT_DATA([dataset.pspp], [dnl
+DATASET NAME one.
+DATASET DECLARE another.
+DATASET DISPLAY.
+
+DATA LIST NOTABLE /x 1.
+PRINT/x.
+DATASET ACTIVATE another.
+BEGIN DATA.
+1
+2
+3
+4
+5
+END DATA.
+
+LIST.
+
+DATASET ACTIVATE one.
+LIST.
+])
+AT_CHECK([pspp -O format=csv dataset.pspp], [1], [dnl
+Table: Open datasets.
+Dataset
+another
+one (active dataset)
+
+1 @&t@
+
+2 @&t@
+
+3 @&t@
+
+4 @&t@
+
+5 @&t@
+
+dataset.pspp:16: error: LIST: LIST is allowed only after the active dataset has been defined.
+
+Table: Data List
+x
+1
+2
+3
+4
+5
+])
+AT_CLEANUP
+
+AT_SETUP([DATASET CLOSE])
+AT_DATA([dataset.pspp], [dnl
+DATASET DISPLAY
+DATASET CLOSE *.
+DATASET DISPLAY.
+
+DATASET NAME this.
+DATASET DISPLAY.
+DATASET CLOSE this.
+DATASET DISPLAY.
+
+DATASET NAME this.
+DATASET DISPLAY.
+DATASET CLOSE *.
+DATASET DISPLAY.
+
+DATASET DECLARE that.
+DATASET DECLARE theother.
+DATASET DECLARE yetanother.
+DATASET DISPLAY.
+DATASET CLOSE ALL.
+DATASET DISPLAY.
+
+DATASET NAME this.
+DATASET DECLARE that.
+DATASET DECLARE theother.
+DATASET DECLARE yetanother.
+DATASET DISPLAY.
+DATASET CLOSE ALL.
+DATASET DISPLAY.
+])
+AT_CHECK([pspp -O format=csv dataset.pspp], [0], [dnl
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+
+Table: Open datasets.
+Dataset
+this (active dataset)
+
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+
+Table: Open datasets.
+Dataset
+this (active dataset)
+
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+that
+theother
+yetanother
+
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+
+Table: Open datasets.
+Dataset
+that
+theother
+this (active dataset)
+yetanother
+
+Table: Open datasets.
+Dataset
+unnamed dataset (active dataset)
+])
+AT_CLEANUP

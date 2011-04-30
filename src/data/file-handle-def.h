@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2005, 2006, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2005, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+struct dataset;
+
 /* What a file handle refers to.
    (Ordinarily only a single value is allowed, but fh_open()
    and fh_parse() take a mask.) */
@@ -27,7 +29,7 @@ enum fh_referent
   {
     FH_REF_FILE = 001,          /* Ordinary file (the most common case). */
     FH_REF_INLINE = 002,        /* The inline file. */
-    FH_REF_SCRATCH = 004        /* Temporary dataset. */
+    FH_REF_DATASET = 004        /* Dataset. */
   };
 
 /* File modes. */
@@ -63,7 +65,7 @@ void fh_done (void);
 struct file_handle *fh_create_file (const char *handle_name,
                                     const char *file_name,
                                     const struct fh_properties *);
-struct file_handle *fh_create_scratch (const char *handle_name);
+struct file_handle *fh_create_dataset (struct dataset *);
 const struct fh_properties *fh_default_properties (void);
 
 /* Reference management. */
@@ -90,9 +92,8 @@ size_t fh_get_record_width (const struct file_handle *);
 size_t fh_get_tab_width (const struct file_handle *);
 const char *fh_get_legacy_encoding (const struct file_handle *);
 
-/* Properties of FH_REF_SCRATCH file handles. */
-struct scratch_handle *fh_get_scratch_handle (const struct file_handle *);
-void fh_set_scratch_handle (struct file_handle *, struct scratch_handle *);
+/* Properties of FH_REF_DATASET file handles. */
+struct dataset *fh_get_dataset (const struct file_handle *);
 
 /* Mutual exclusion for access . */
 struct fh_lock *fh_lock (struct file_handle *, enum fh_referent mask,

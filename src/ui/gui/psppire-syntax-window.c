@@ -483,9 +483,9 @@ save_editor_to_file (PsppireSyntaxWindow *se,
 }
 
 
-/* Callback for the File->SaveAs menuitem */
+/* PsppireWindow 'pick_Filename' callback. */
 static void
-syntax_save_as (PsppireWindow *se)
+syntax_pick_filename (PsppireWindow *se)
 {
   GtkFileFilter *filter;
   gint response;
@@ -515,16 +515,9 @@ syntax_save_as (PsppireWindow *se)
 
   if ( response == GTK_RESPONSE_ACCEPT )
     {
-      GError *err = NULL;
       char *filename =
 	gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog) );
-
-      if ( ! save_editor_to_file (PSPPIRE_SYNTAX_WINDOW (se), filename, &err) )
-	{
-	  msg ( ME, "%s", err->message );
-	  g_error_free (err);
-	}
-
+      psppire_window_set_filename (se, filename);
       free (filename);
     }
 
@@ -532,23 +525,17 @@ syntax_save_as (PsppireWindow *se)
 }
 
 
-/* Callback for the File->Save menuitem */
+/* PsppireWindow 'save' callback. */
 static void
 syntax_save (PsppireWindow *se)
 {
   const gchar *filename = psppire_window_get_filename (se);
-
-  if ( filename == NULL )
-    syntax_save_as (se);
-  else
+  GError *err = NULL;
+  save_editor_to_file (PSPPIRE_SYNTAX_WINDOW (se), filename, &err);
+  if ( err )
     {
-      GError *err = NULL;
-      save_editor_to_file (PSPPIRE_SYNTAX_WINDOW (se), filename, &err);
-      if ( err )
-	{
-	  msg (ME, "%s", err->message);
-	  g_error_free (err);
-	}
+      msg (ME, "%s", err->message);
+      g_error_free (err);
     }
 }
 
@@ -652,12 +639,10 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_signal_connect_swapped (get_action_assert (xml,"file_new_syntax"), "activate", G_CALLBACK (create_syntax_window), NULL);
 
-#if 0
   g_signal_connect (get_action_assert (xml,"file_new_data"),
 		    "activate",
 		    G_CALLBACK (create_data_window),
 		    window);
-#endif
 
   g_signal_connect_swapped (get_action_assert (xml, "file_open"),
 		    "activate",
@@ -666,12 +651,12 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_signal_connect_swapped (get_action_assert (xml, "file_save"),
 		    "activate",
-		    G_CALLBACK (syntax_save),
+		    G_CALLBACK (psppire_window_save),
 		    window);
 
   g_signal_connect_swapped (get_action_assert (xml, "file_save_as"),
 		    "activate",
-		    G_CALLBACK (syntax_save_as),
+		    G_CALLBACK (psppire_window_save_as),
 		    window);
 
   g_signal_connect (get_action_assert (xml,"file_quit"),
@@ -745,7 +730,6 @@ psppire_syntax_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_syntax_window_get_type (),
 				   /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
-				   "filename", _("Syntax"),
 				   "description", _("Syntax Editor"),
 				   NULL));
 }
@@ -825,6 +809,7 @@ static void
 psppire_syntax_window_iface_init (PsppireWindowIface *iface)
 {
   iface->save = syntax_save;
+  iface->pick_filename = syntax_pick_filename;
   iface->load = syntax_load;
 }
 

@@ -30,10 +30,10 @@ and missing values taken from a file to corresponding
 variables in the active dataset.  In some cases it also updates the
 weighting variable.
 
-Specify a system file, portable file, or scratch file with a file name
-string or as a file handle (@pxref{File Handles}).  The dictionary in the
-file will be read, but it will not replace the active dataset dictionary.
-The file's data will not be read.
+Specify a system file or portable file's name, a data set name
+(@pxref{Datasets}), or a file handle name (@pxref{File Handles}).  The
+dictionary in the file will be read, but it will not replace the
+active dataset's dictionary.  The file's data will not be read.
 
 Only variables with names that exist in both the active dataset and the
 system file are considered.  Variables with the same name but different
@@ -100,7 +100,7 @@ EXPORT
 @end display
 
 The @cmd{EXPORT} procedure writes the active dataset's dictionary and
-data to a specified portable file or scratch file.
+data to a specified portable file.
 
 By default, cases excluded with FILTER are written to the
 file.  These can be excluded by specifying DELETE on the UNSELECTED
@@ -116,7 +116,7 @@ subcommand may be used to specify the number of decimal digits of
 precision to write.  DIGITS applies only to non-integers.
 
 The OUTFILE subcommand, which is the only required subcommand, specifies
-the portable file or scratch file to be written as a file name string or
+the portable file to be written as a file name string or
 a file handle (@pxref{File Handles}).
 
 DROP, KEEP, and RENAME follow the same format as the SAVE procedure
@@ -145,7 +145,7 @@ GET
 replaces them with the dictionary and data from a specified file.
 
 The FILE subcommand is the only required subcommand.  Specify the system
-file, portable file, or scratch file to be read as a string file name or
+file or portable file to be read as a string file name or
 a file handle (@pxref{File Handles}).
 
 By default, all the variables in a file are read.  The DROP
@@ -174,8 +174,7 @@ is affected by these subcommands.
 @cmd{GET} does not cause the data to be read, only the dictionary.  The data
 is read later, when a procedure is executed.
 
-Use of @cmd{GET} to read a portable file or scratch file is a PSPP
-extension.
+Use of @cmd{GET} to read a portable file is a PSPP extension.
 
 @node GET DATA
 @section GET DATA
@@ -633,8 +632,8 @@ IMPORT
 
 The @cmd{IMPORT} transformation clears the active dataset dictionary and
 data and
-replaces them with a dictionary and data from a system, portable file,
-or scratch file.
+replaces them with a dictionary and data from a system file or
+portable file.
 
 The FILE subcommand, which is the only required subcommand, specifies
 the portable file to be read as a file name string or a file handle
@@ -647,8 +646,7 @@ DROP, KEEP, and RENAME follow the syntax used by @cmd{GET} (@pxref{GET}).
 @cmd{IMPORT} does not cause the data to be read, only the dictionary.  The
 data is read later, when a procedure is executed.
 
-Use of @cmd{IMPORT} to read a system file or scratch file is a PSPP
-extension.
+Use of @cmd{IMPORT} to read a system file is a PSPP extension.
 
 @node SAVE
 @section SAVE
@@ -670,10 +668,10 @@ SAVE
 
 The @cmd{SAVE} procedure causes the dictionary and data in the active
 dataset to
-be written to a system file or scratch file.
+be written to a system file.
 
-OUTFILE is the only required subcommand.  Specify the system file or
-scratch file to be written as a string file name or a file handle
+OUTFILE is the only required subcommand.  Specify the system file
+to be written as a string file name or a file handle
 (@pxref{File Handles}).
 
 By default, cases excluded with FILTER are written to the system file.
@@ -921,7 +919,7 @@ XSAVE
 @end display
 
 The @cmd{XSAVE} transformation writes the active dataset's dictionary and
-data to a system file or scratch file.  It is similar to the @cmd{SAVE}
+data to a system file.  It is similar to the @cmd{SAVE}
 procedure, with two differences:
 
 @itemize

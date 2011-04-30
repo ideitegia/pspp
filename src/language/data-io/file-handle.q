@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "data/file-name.h"
+#include "data/session.h"
 #include "language/command.h"
 #include "language/data-io/file-handle.h"
 #include "language/lexer/lexer.h"
@@ -43,7 +44,7 @@
      name=string;
      lrecl=integer;
      tabwidth=integer "x>=0" "%s must be nonnegative";
-     mode=mode:!character/binary/image/360/scratch;
+     mode=mode:!character/binary/image/360;
      recform=recform:fixed/f/variable/v/spanned/vs.
 */
 /* (declarations) */
@@ -52,6 +53,7 @@
 int
 cmd_file_handle (struct lexer *lexer, struct dataset *ds)
 {
+  struct fh_properties properties;
   struct cmd_file_handle cmd;
   struct file_handle *handle;
   enum cmd_result result;
@@ -81,71 +83,65 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
   if (lex_end_of_command (lexer) != CMD_SUCCESS)
     goto exit_free_cmd;
 
-  if (cmd.mode != FH_SCRATCH)
+  properties = *fh_default_properties ();
+  if (cmd.s_name == NULL)
     {
-      struct fh_properties properties = *fh_default_properties ();
+      lex_sbc_missing (lexer, "NAME");
+      goto exit_free_cmd;
+    }
 
-      if (cmd.s_name == NULL)
+  switch (cmd.mode)
+    {
+    case FH_CHARACTER:
+      properties.mode = FH_MODE_TEXT;
+      if (cmd.sbc_tabwidth)
+        properties.tab_width = cmd.n_tabwidth[0];
+      break;
+    case FH_IMAGE:
+      properties.mode = FH_MODE_FIXED;
+      break;
+    case FH_BINARY:
+      properties.mode = FH_MODE_VARIABLE;
+      break;
+    case FH_360:
+      properties.encoding = "EBCDIC-US";
+      if (cmd.recform == FH_FIXED || cmd.recform == FH_F)
+        properties.mode = FH_MODE_FIXED;
+      else if (cmd.recform == FH_VARIABLE || cmd.recform == FH_V)
         {
-          lex_sbc_missing (lexer, "NAME");
+          properties.mode = FH_MODE_360_VARIABLE;
+          properties.record_width = 8192;
+        }
+      else if (cmd.recform == FH_SPANNED || cmd.recform == FH_VS)
+        {
+          properties.mode = FH_MODE_360_SPANNED;
+          properties.record_width = 8192;
+        }
+      else
+        {
+          msg (SE, _("RECFORM must be specified with MODE=360."));
           goto exit_free_cmd;
         }
-
-      switch (cmd.mode)
-        {
-        case FH_CHARACTER:
-          properties.mode = FH_MODE_TEXT;
-          if (cmd.sbc_tabwidth)
-            properties.tab_width = cmd.n_tabwidth[0];
-          break;
-        case FH_IMAGE:
-          properties.mode = FH_MODE_FIXED;
-          break;
-        case FH_BINARY:
-          properties.mode = FH_MODE_VARIABLE;
-          break;
-        case FH_360:
-          properties.encoding = "EBCDIC-US";
-          if (cmd.recform == FH_FIXED || cmd.recform == FH_F)
-            properties.mode = FH_MODE_FIXED;
-          else if (cmd.recform == FH_VARIABLE || cmd.recform == FH_V)
-            {
-              properties.mode = FH_MODE_360_VARIABLE;
-              properties.record_width = 8192;
-            }
-          else if (cmd.recform == FH_SPANNED || cmd.recform == FH_VS)
-            {
-              properties.mode = FH_MODE_360_SPANNED;
-              properties.record_width = 8192;
-            }
-          else
-            {
-              msg (SE, _("RECFORM must be specified with MODE=360."));
-              goto exit_free_cmd;
-            }
-          break;
-        default:
-          NOT_REACHED ();
-        }
-
-      if (properties.mode == FH_MODE_FIXED || cmd.n_lrecl[0] != LONG_MIN)
-        {
-          if (cmd.n_lrecl[0] == LONG_MIN)
-            msg (SE, _("The specified file mode requires LRECL.  "
-                       "Assuming %zu-character records."),
-                 properties.record_width);
-          else if (cmd.n_lrecl[0] < 1 || cmd.n_lrecl[0] >= (1UL << 31))
-            msg (SE, _("Record length (%ld) must be between 1 and %lu bytes.  "
-                       "Assuming %zu-character records."),
-                 cmd.n_lrecl[0], (1UL << 31) - 1, properties.record_width);
-          else
-            properties.record_width = cmd.n_lrecl[0];
-        }
-
-      fh_create_file (handle_name, cmd.s_name, &properties);
+      break;
+    default:
+      NOT_REACHED ();
     }
-  else
-    fh_create_scratch (handle_name);
+
+  if (properties.mode == FH_MODE_FIXED || cmd.n_lrecl[0] != LONG_MIN)
+    {
+      if (cmd.n_lrecl[0] == LONG_MIN)
+        msg (SE, _("The specified file mode requires LRECL.  "
+                   "Assuming %zu-character records."),
+             properties.record_width);
+      else if (cmd.n_lrecl[0] < 1 || cmd.n_lrecl[0] >= (1UL << 31))
+        msg (SE, _("Record length (%ld) must be between 1 and %lu bytes.  "
+                   "Assuming %zu-character records."),
+             cmd.n_lrecl[0], (1UL << 31) - 1, properties.record_width);
+      else
+        properties.record_width = cmd.n_lrecl[0];
+    }
+
+  fh_create_file (handle_name, cmd.s_name, &properties);
 
   result = CMD_SUCCESS;
 
@@ -182,24 +178,46 @@ referent_name (enum fh_referent referent)
       return _("file");
     case FH_REF_INLINE:
       return _("inline file");
-    case FH_REF_SCRATCH:
-      return _("scratch file");
+    case FH_REF_DATASET:
+      return _("dataset");
     default:
       NOT_REACHED ();
     }
 }
 
-/* Parses a file handle name, which may be a file name as a string
-   or a file handle name as an identifier.  The allowed types of
-   file handle are restricted to those in REFERENT_MASK.  Returns
-   the file handle when successful, a null pointer on failure.
+/* Parses a file handle name:
 
-   The caller is responsible for fh_unref()'ing the returned
-   file handle when it is no longer needed. */
+      - If SESSION is nonnull, then the parsed syntax may be the name of a
+        dataset within SESSION.  Dataset names take precedence over file handle
+        names.
+
+      - If REFERENT_MASK includes FH_REF_FILE, the parsed syntax may be a file
+        name as a string or a file handle name as an identifier.
+
+      - If REFERENT_MASK includes FH_REF_INLINE, the parsed syntax may be the
+        identifier INLINE to represent inline data.
+
+   Returns the file handle when successful, a null pointer on failure.
+
+   The caller is responsible for fh_unref()'ing the returned file handle when
+   it is no longer needed. */
 struct file_handle *
-fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
+fh_parse (struct lexer *lexer, enum fh_referent referent_mask,
+          struct session *session)
 {
   struct file_handle *handle;
+
+  if (session != NULL && lex_token (lexer) == T_ID)
+    {
+      struct dataset *ds;
+
+      ds = session_lookup_dataset (session, lex_tokcstr (lexer));
+      if (ds != NULL)
+        {
+          lex_get (lexer);
+          return fh_create_dataset (ds);
+        }
+    }
 
   if (lex_match_id (lexer, "INLINE"))
     handle = fh_inline_file ();
@@ -215,14 +233,8 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
       if (lex_token (lexer) == T_ID)
         handle = fh_from_id (lex_tokcstr (lexer));
       if (handle == NULL)
-        {
-          if (lex_token (lexer) != T_ID || lex_tokcstr (lexer)[0] != '#'
-              || settings_get_syntax () != ENHANCED)
             handle = fh_create_file (NULL, lex_tokcstr (lexer),
                                      fh_default_properties ());
-          else
-            handle = fh_create_scratch (lex_tokcstr (lexer));
-        }
       lex_get (lexer);
     }
 

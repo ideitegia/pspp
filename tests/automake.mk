@@ -293,6 +293,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/add-files.at \
 	tests/language/data-io/data-list.at \
 	tests/language/data-io/data-reader.at \
+	tests/language/data-io/dataset.at \
 	tests/language/data-io/file-handle.at \
 	tests/language/data-io/get-data-gnm.at \
 	tests/language/data-io/get-data-psql.at \

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,15 +16,15 @@
 
 #include <config.h>
 
-#include "data/scratch-reader.h"
+#include "data/dataset-reader.h"
 
 #include <stdlib.h>
 
 #include "data/case.h"
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/file-handle-def.h"
-#include "data/scratch-handle.h"
 #include "libpspp/assertion.h"
 #include "libpspp/message.h"
 
@@ -33,31 +33,30 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Opens FH, which must have referent type FH_REF_SCRATCH, and
-   returns a scratch_reader for it, or a null pointer on
-   failure.  Stores the dictionary for the scratch file into
-   *DICT. */
+/* Opens FH, which must have referent type FH_REF_DATASET, and returns a
+   dataset_reader for it, or a null pointer on failure.  Stores a copy of the
+   dictionary for the dataset file into *DICT.  The caller takes ownership of
+   the casereader and the dictionary.  */
 struct casereader *
-scratch_reader_open (struct file_handle *fh, struct dictionary **dict)
+dataset_reader_open (struct file_handle *fh, struct dictionary **dict)
 {
-  struct scratch_handle *sh;
+  struct dataset *ds;
 
   /* We don't bother doing fh_lock or fh_ref on the file handle,
      as there's no advantage in this case, and doing these would
      require us to keep track of the "struct file_handle" and
      "struct fh_lock" and undo our work later. */
-  assert (fh_get_referent (fh) == FH_REF_SCRATCH);
+  assert (fh_get_referent (fh) == FH_REF_DATASET);
 
-  sh = fh_get_scratch_handle (fh);
-  if (sh == NULL || sh->casereader == NULL)
+  ds = fh_get_dataset (fh);
+  if (ds == NULL || !dataset_has_source (ds))
     {
-      msg (SE, _("Scratch file handle %s has not yet been written, "
-                 "using SAVE or another procedure, so it cannot yet "
-                 "be used for reading."),
+      msg (SE, _("Cannot read from dataset %s because no dictionary or data "
+                 "has been written to it yet."),
            fh_get_name (fh));
       return NULL;
     }
 
-  *dict = dict_clone (sh->dictionary);
-  return casereader_clone (sh->casereader);
+  *dict = dict_clone (dataset_dict (ds));
+  return casereader_clone (dataset_source (ds));
 }

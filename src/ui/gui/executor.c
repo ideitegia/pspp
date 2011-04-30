@@ -20,6 +20,7 @@
 
 #include "data/dataset.h"
 #include "data/lazy-casereader.h"
+#include "data/session.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/cast.h"
@@ -35,38 +36,80 @@ create_casereader_from_data_store (void *data_store_)
   return psppire_data_store_get_reader (data_store);
 }
 
+static void
+new_pdw_cb (struct dataset *ds, void *aux UNUSED)
+{
+  PsppireDataWindow *pdw = psppire_data_window_for_dataset (ds);
+  if (pdw == NULL)
+    pdw = PSPPIRE_DATA_WINDOW (psppire_data_window_new (ds));
+
+  switch (dataset_get_display (ds))
+    {
+    case DATASET_ASIS:
+      break;
+
+    case DATASET_FRONT:
+      gtk_widget_show (GTK_WIDGET (pdw));
+      gtk_window_deiconify (GTK_WINDOW (pdw));
+      gdk_window_raise (gtk_widget_get_window (GTK_WIDGET (pdw)));
+      psppire_data_window_set_default (pdw);
+      break;
+
+    case DATASET_MINIMIZED:
+      gtk_window_iconify (GTK_WINDOW (pdw));
+      gtk_widget_show (GTK_WIDGET (pdw));
+      psppire_data_window_undefault (pdw);
+      break;
+
+    case DATASET_HIDDEN:
+      gtk_widget_hide (GTK_WIDGET (pdw));
+      psppire_data_window_undefault (pdw);
+      break;
+    }
+  dataset_set_display (ds, DATASET_ASIS);
+}
+
 gboolean
 execute_syntax (PsppireDataWindow *window, struct lex_reader *lex_reader)
 {
   struct lexer *lexer;
   gboolean retval = TRUE;
 
-  struct casereader *reader;
-  const struct caseproto *proto;
-  casenumber case_cnt;
-  unsigned long int lazy_serial;
+  PsppireDataWindow *pdw, *next_pdw;
 
-  /* When the user executes a number of snippets of syntax in a
-     row, none of which read from the active dataset, the GUI becomes
-     progressively less responsive.  The reason is that each syntax
-     execution encapsulates the active dataset data in another
-     datasheet layer.  The cumulative effect of having a number of
-     layers of datasheets wastes time and space.
+  ll_for_each (pdw, PsppireDataWindow, ll, &all_data_windows)
+    {
+      const struct caseproto *proto;
+      struct casereader *reader;
+      casenumber case_cnt;
 
-     To solve the problem, we use a "lazy casereader", a wrapper
-     around the casereader obtained from the data store, that
-     only actually instantiates that casereader when it is
-     needed.  If the data store casereader is never needed, then
-     it is reused the next time syntax is run, without wrapping
-     it in another layer. */
-  proto = psppire_data_store_get_proto (window->data_store);
-  case_cnt = psppire_data_store_get_case_count (window->data_store);
-  reader = lazy_casereader_create (proto, case_cnt,
-                                   create_casereader_from_data_store,
-                                   window->data_store, &lazy_serial);
-  dataset_set_source (window->dataset, reader);
+      /* When the user executes a number of snippets of syntax in a
+         row, none of which read from the active dataset, the GUI becomes
+         progressively less responsive.  The reason is that each syntax
+         execution encapsulates the active dataset data in another
+         datasheet layer.  The cumulative effect of having a number of
+         layers of datasheets wastes time and space.
 
-  g_return_val_if_fail (dataset_has_source (window->dataset), FALSE);
+         To solve the problem, we use a "lazy casereader", a wrapper
+         around the casereader obtained from the data store, that
+         only actually instantiates that casereader when it is
+         needed.  If the data store casereader is never needed, then
+         it is reused the next time syntax is run, without wrapping
+         it in another layer. */
+      proto = psppire_data_store_get_proto (pdw->data_store);
+      case_cnt = psppire_data_store_get_case_count (pdw->data_store);
+      reader = lazy_casereader_create (proto, case_cnt,
+                                       create_casereader_from_data_store,
+                                       pdw->data_store, &pdw->lazy_serial);
+      dataset_set_source (pdw->dataset, reader);
+
+      if (pdw == window)
+        session_set_active_dataset (the_session, pdw->dataset);
+
+      g_return_val_if_fail (dataset_has_source (pdw->dataset), FALSE);
+
+      pdw->dataset_seqno = dataset_seqno (pdw->dataset);
+    }
 
   lexer = lex_create ();
   psppire_set_lexer (lexer);
@@ -74,7 +117,8 @@ execute_syntax (PsppireDataWindow *window, struct lex_reader *lex_reader)
 
   for (;;)
     {
-      enum cmd_result result = cmd_parse (lexer, window->dataset);
+      struct dataset *ds = session_active_dataset (the_session);
+      enum cmd_result result = cmd_parse (lexer, ds);
 
       if ( cmd_result_is_failure (result))
 	{
@@ -87,14 +131,33 @@ execute_syntax (PsppireDataWindow *window, struct lex_reader *lex_reader)
 	break;
     }
 
-  proc_execute (window->dataset);
+  ll_for_each_safe (pdw, next_pdw, PsppireDataWindow, ll, &all_data_windows)
+    {
+      struct dataset *ds;
 
-  psppire_dict_replace_dictionary (window->data_store->dict,
-				   dataset_dict (window->dataset));
+      ds = session_get_dataset_by_seqno (the_session, pdw->dataset_seqno);
+      if (ds != NULL)
+        {
+          struct casereader *reader;
 
-  reader = dataset_steal_source (window->dataset);
-  if (!lazy_casereader_destroy (reader, lazy_serial))
-    psppire_data_store_set_reader (window->data_store, reader);
+          pdw->dataset = ds;
+          proc_execute (pdw->dataset);
+
+          psppire_dict_replace_dictionary (pdw->data_store->dict,
+                                           dataset_dict (pdw->dataset));
+
+          reader = dataset_steal_source (pdw->dataset);
+          if (!lazy_casereader_destroy (reader, pdw->lazy_serial))
+            psppire_data_store_set_reader (pdw->data_store, reader);
+
+          g_object_set (G_OBJECT (pdw), "id", dataset_name (pdw->dataset),
+                        (void *) NULL);
+        }
+      else
+        gtk_widget_destroy (GTK_WIDGET (pdw));
+    }
+
+  session_for_each_dataset (the_session, new_pdw_cb, NULL);
 
   /* Destroy the lexer only after obtaining the dataset, because the dataset
      might depend on the lexer, if the casereader specifies inline data.  (In

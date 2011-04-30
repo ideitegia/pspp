@@ -182,7 +182,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
   lex_match (lexer, T_EQUALS);
   if (!lex_match (lexer, T_ASTERISK))
     {
-      out_file = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
+      out_file = fh_parse (lexer, FH_REF_FILE, dataset_session (ds));
       if (out_file == NULL)
         goto error;
     }

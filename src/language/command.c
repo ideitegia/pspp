@@ -26,6 +26,7 @@
 #include "data/casereader.h"
 #include "data/dataset.h"
 #include "data/dictionary.h"
+#include "data/session.h"
 #include "data/settings.h"
 #include "data/variable.h"
 #include "language/lexer/command-name.h"
@@ -129,10 +130,12 @@ enum cmd_result
 cmd_parse_in_state (struct lexer *lexer, struct dataset *ds,
 		    enum cmd_state state)
 {
+  struct session *session = dataset_session (ds);
   int result;
 
   result = do_parse_command (lexer, ds, state);
 
+  ds = session_active_dataset (session);
   assert (!proc_is_open (ds));
   unset_cmd_algorithm ();
   dict_clear_aux (dataset_dict (ds));

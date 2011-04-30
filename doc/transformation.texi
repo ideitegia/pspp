@@ -37,11 +37,12 @@ variables called @dfn{break variables}.  Several functions are available
 for summarizing case contents.
 
 The OUTFILE subcommand is required and must appear first.  Specify a
-system file, portable file, or scratch file by file name or file
-handle (@pxref{File Handles}).
+system file or portable file by file name or file
+handle (@pxref{File Handles}), or a dataset by its name
+(@pxref{Datasets}).
 The aggregated cases are written to this file.  If @samp{*} is
 specified, then the aggregated cases replace the active dataset's data.
-Use of OUTFILE to write a portable file or scratch file is a PSPP extension.
+Use of OUTFILE to write a portable file is a PSPP extension.
 
 If OUTFILE=@samp{*} is given, then the subcommand MODE may also be
 specified.

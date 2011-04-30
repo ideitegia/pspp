@@ -181,7 +181,9 @@ dict_create (const char *encoding)
    dictionary.  If the new dictionary won't be used to access
    cases produced with the old dictionary, then the new
    dictionary's case indexes should be compacted with
-   dict_compact_values to save space. */
+   dict_compact_values to save space.
+
+   Callbacks are not cloned. */
 struct dictionary *
 dict_clone (const struct dictionary *s)
 {

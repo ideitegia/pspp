@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ struct ccase;
 
 /* Creation and destruction. */
 struct caseinit *caseinit_create (void);
+struct caseinit *caseinit_clone (struct caseinit *);
 void caseinit_clear (struct caseinit *);
 void caseinit_destroy (struct caseinit *);
 

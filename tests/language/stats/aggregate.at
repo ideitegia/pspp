@@ -4,7 +4,7 @@ dnl CHECK_AGGREGATE(OUTFILE, SORT, MISSING)
 dnl
 dnl Checks the AGGREGATE procedure with the specified combination of:
 dnl
-dnl - OUTFILE: One of "scratch", "active", or "external" according to
+dnl - OUTFILE: One of "dataset", "active", or "external" according to
 dnl   where AGGREGATE's output should be directed.
 dnl 
 dnl - SORT: Either "presorted" or "unsorted" according to whether
@@ -33,11 +33,12 @@ m4_define([CHECK_AGGREGATE], [
     [DATA LIST NOTABLE FILE='aggregate.data' /G N 1-2 S 3(a) W 4.
 WEIGHT BY w.
 MISSING VALUES n(4) s('4').
+m4_if([$1], [dataset], [DATASET DECLARE aggregate.])
 m4_if([$2], [presorted], [SORT CASES BY g.])
 AGGREGATE dnl
 m4_if([$1], [active], [OUTFILE=*],
       [$1], [external], [OUTFILE='aggregate.sys'],
-      [outfile=@%:@AGGREGATE]) dnl
+      [outfile=aggregate]) dnl
 m4_if([$2], [presorted], [/PRESORTED]) dnl
 m4_if([$3], [columnwise], [/MISSING=COLUMNWISE])
 	/DOCUMENT
@@ -119,7 +120,7 @@ m4_if([$3], [columnwise], [/MISSING=COLUMNWISE])
 	/NSUM = sum(n)
 	/NSUMI = sum.(n).
 m4_if([$1], [external], [GET FILE='aggregate.sys'.],
-      [$1], [scratch], [GET FILE=@%:@AGGREGATE.])
+      [$1], [dataset], [DATASET ACTIVATE aggregate.])
 LIST.
 ])
   AT_CHECK([pspp -O format=csv aggregate.sps], [0], [stdout])
@@ -157,10 +158,10 @@ G,N,NI,NU,NUI,NFGT2,NFGT2I,SFGT2,SFGT2I,NFIN23,NFIN23I,SFIN23,SFIN23I,NFLT2,NFLT
 ])])
   AT_CLEANUP])
 
-CHECK_AGGREGATE([scratch], [presorted], [itemwise])
-CHECK_AGGREGATE([scratch], [presorted], [columnwise])
-CHECK_AGGREGATE([scratch], [unsorted], [itemwise])
-CHECK_AGGREGATE([scratch], [unsorted], [columnwise])
+CHECK_AGGREGATE([dataset], [presorted], [itemwise])
+CHECK_AGGREGATE([dataset], [presorted], [columnwise])
+CHECK_AGGREGATE([dataset], [unsorted], [itemwise])
+CHECK_AGGREGATE([dataset], [unsorted], [columnwise])
 CHECK_AGGREGATE([active], [presorted], [itemwise])
 CHECK_AGGREGATE([active], [presorted], [columnwise])
 CHECK_AGGREGATE([active], [unsorted], [itemwise])
@@ -284,6 +285,5 @@ AGGREGATE OUTFILE=* MODE=ADDVARIABLES
 AT_CHECK([pspp -O format=csv dup-variables.sps], [1],
 ["dup-variables.sps:24: error: AGGREGATE: Variable name N_BREAK is not unique within the aggregate file dictionary, which contains the aggregate variables and the break variables."
 ])
-
 
 AT_CLEANUP

@@ -13,6 +13,7 @@ language_data_io_sources = \
 	src/language/data-io/data-reader.h \
 	src/language/data-io/data-writer.c \
 	src/language/data-io/data-writer.h \
+	src/language/data-io/dataset.c \
 	src/language/data-io/file-handle.h \
 	src/language/data-io/get-data.c \
 	src/language/data-io/get.c \

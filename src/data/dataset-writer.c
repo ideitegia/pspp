@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include "data/scratch-writer.h"
+#include "data/dataset-writer.h"
 
 #include <stdlib.h>
 
@@ -25,9 +25,9 @@
 #include "data/casereader.h"
 #include "data/casewriter-provider.h"
 #include "data/casewriter.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/file-handle-def.h"
-#include "data/scratch-handle.h"
 #include "data/variable.h"
 #include "libpspp/compiler.h"
 #include "libpspp/taint.h"
@@ -36,41 +36,41 @@
 
 #define N_(msgid) (msgid)
 
-/* A scratch file writer. */
-struct scratch_writer
+/* A dataset file writer. */
+struct dataset_writer
   {
-    struct file_handle *fh;             /* Underlying file handle. */
+    struct dataset *ds;                 /* Underlying dataset. */
     struct fh_lock *lock;               /* Exclusive access to file handle. */
     struct dictionary *dict;            /* Dictionary for subwriter. */
     struct case_map *compactor;         /* Compacts into dictionary. */
     struct casewriter *subwriter;       /* Data output. */
   };
 
-static const struct casewriter_class scratch_writer_casewriter_class;
+static const struct casewriter_class dataset_writer_casewriter_class;
 
-/* Opens FH, which must have referent type FH_REF_SCRATCH, and
-   returns a scratch_writer for it, or a null pointer on
-   failure.  Cases stored in the scratch_writer will be expected
+/* Opens FH, which must have referent type FH_REF_DATASET, and
+   returns a dataset_writer for it, or a null pointer on
+   failure.  Cases stored in the dataset_writer will be expected
    to be drawn from DICTIONARY. */
 struct casewriter *
-scratch_writer_open (struct file_handle *fh,
+dataset_writer_open (struct file_handle *fh,
                      const struct dictionary *dictionary)
 {
-  struct scratch_writer *writer;
+  struct dataset_writer *writer;
   struct casewriter *casewriter;
   struct fh_lock *lock;
 
   /* Get exclusive write access to handle. */
   /* TRANSLATORS: this fragment will be interpolated into
      messages in fh_lock() that identify types of files. */
-  lock = fh_lock (fh, FH_REF_SCRATCH, N_("scratch file"), FH_ACC_WRITE, true);
+  lock = fh_lock (fh, FH_REF_DATASET, N_("dataset"), FH_ACC_WRITE, true);
   if (lock == NULL)
     return NULL;
 
   /* Create writer. */
   writer = xmalloc (sizeof *writer);
   writer->lock = lock;
-  writer->fh = fh_ref (fh);
+  writer->ds = fh_get_dataset (fh);
 
   writer->dict = dict_clone (dictionary);
   dict_delete_scratch_vars (writer->dict);
@@ -85,7 +85,7 @@ scratch_writer_open (struct file_handle *fh,
   writer->subwriter = autopaging_writer_create (dict_get_proto (writer->dict));
 
   casewriter = casewriter_create (dict_get_proto (writer->dict),
-                                  &scratch_writer_casewriter_class, writer);
+                                  &dataset_writer_casewriter_class, writer);
   taint_propagate (casewriter_get_taint (writer->subwriter),
                    casewriter_get_taint (casewriter));
   return casewriter;
@@ -93,35 +93,24 @@ scratch_writer_open (struct file_handle *fh,
 
 /* Writes case C to WRITER. */
 static void
-scratch_writer_casewriter_write (struct casewriter *w UNUSED, void *writer_,
+dataset_writer_casewriter_write (struct casewriter *w UNUSED, void *writer_,
                                  struct ccase *c)
 {
-  struct scratch_writer *writer = writer_;
+  struct dataset_writer *writer = writer_;
   casewriter_write (writer->subwriter,
                     case_map_execute (writer->compactor, c));
 }
 
 /* Closes WRITER. */
 static void
-scratch_writer_casewriter_destroy (struct casewriter *w UNUSED, void *writer_)
+dataset_writer_casewriter_destroy (struct casewriter *w UNUSED, void *writer_)
 {
-  static unsigned int next_unique_id = 0x12345678;
-
-  struct scratch_writer *writer = writer_;
+  struct dataset_writer *writer = writer_;
   struct casereader *reader = casewriter_make_reader (writer->subwriter);
   if (!casereader_error (reader))
     {
-      /* Destroy previous contents of handle. */
-      struct scratch_handle *sh = fh_get_scratch_handle (writer->fh);
-      if (sh != NULL)
-        scratch_handle_destroy (sh);
-
-      /* Create new contents. */
-      sh = xmalloc (sizeof *sh);
-      sh->unique_id = ++next_unique_id;
-      sh->dictionary = writer->dict;
-      sh->casereader = reader;
-      fh_set_scratch_handle (writer->fh, sh);
+      dataset_set_dict (writer->ds, writer->dict);
+      dataset_set_source (writer->ds, reader);
     }
   else
     {
@@ -130,13 +119,12 @@ scratch_writer_casewriter_destroy (struct casewriter *w UNUSED, void *writer_)
     }
 
   fh_unlock (writer->lock);
-  fh_unref (writer->fh);
   free (writer);
 }
 
-static const struct casewriter_class scratch_writer_casewriter_class =
+static const struct casewriter_class dataset_writer_casewriter_class =
   {
-    scratch_writer_casewriter_write,
-    scratch_writer_casewriter_destroy,
+    dataset_writer_casewriter_write,
+    dataset_writer_casewriter_destroy,
     NULL,
   };
