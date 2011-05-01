@@ -10,6 +10,7 @@ UI_FILES = \
 	src/ui/gui/crosstabs.ui \
 	src/ui/gui/chi-square.ui \
 	src/ui/gui/descriptives.ui \
+	src/ui/gui/entry-dialog.ui \
 	src/ui/gui/examine.ui \
 	src/ui/gui/goto-case.ui \
 	src/ui/gui/factor.ui \
@@ -144,6 +145,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.h \
 	src/ui/gui/dict-display.c \
+	src/ui/gui/entry-dialog.c \
+	src/ui/gui/entry-dialog.h \
 	src/ui/gui/examine-dialog.c \
 	src/ui/gui/examine-dialog.h \
 	src/ui/gui/executor.c \
