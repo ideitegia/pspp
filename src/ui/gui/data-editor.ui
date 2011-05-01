@@ -219,15 +219,16 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="view_data">
+          <object class="GtkRadioAction" id="view_data">
             <property name="name">view_data</property>
             <property name="label" translatable="yes">_Data</property>
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="view_variables">
+          <object class="GtkRadioAction" id="view_variables">
             <property name="name">view_variables</property>
             <property name="label" translatable="yes">_Variables</property>
+	    <property name="group">view_data</property>
           </object>
         </child>
         <child>

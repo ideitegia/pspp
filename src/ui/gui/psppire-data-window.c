@@ -815,15 +815,14 @@ on_switch_sheet (GtkNotebook *notebook,
   switch (page_num)
     {
     case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
-      gtk_widget_hide (view_variables);
-      gtk_widget_show (view_data);
+      gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (view_variables),
+                                      TRUE);
       gtk_action_set_sensitive (de->insert_variable, TRUE);
       gtk_action_set_sensitive (de->insert_case, FALSE);
       gtk_action_set_sensitive (de->invoke_goto_dialog, FALSE);
       break;
     case PSPPIRE_DATA_EDITOR_DATA_VIEW:
-      gtk_widget_show (view_variables);
-      gtk_widget_hide (view_data);
+      gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (view_data), TRUE);
       gtk_action_set_sensitive (de->invoke_goto_dialog, TRUE);
       gtk_action_set_sensitive (de->insert_case, TRUE);
       break;
