@@ -32,6 +32,7 @@
           <object class="GtkAction" id="file_open">
             <property name="stock-id">gtk-open</property>
             <property name="name">file_open</property>
+            <property name="label" translatable="yes">_Open...</property>
           </object>
         </child>
         <child>
@@ -44,6 +45,7 @@
           <object class="GtkAction" id="file_save_as">
             <property name="stock-id">gtk-save-as</property>
             <property name="name">file_save_as</property>
+            <property name="label" translatable="yes">Save _As...</property>
           </object>
         </child>
         <child>
