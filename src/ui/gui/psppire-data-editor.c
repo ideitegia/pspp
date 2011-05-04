@@ -225,6 +225,13 @@ new_data_callback (PsppireDataStore *ds, gpointer data)
       psppire_axis_clear (de->vaxis[i]);
       psppire_axis_append_n (de->vaxis[i], n_cases, DEFAULT_ROW_HEIGHT);
     }
+
+  /* All of the data (potentially) changed, so unselect any selected cell(s) in
+     the data sheets.  If we don't do this, then the sheet remembers the value
+     that was in the selected cell and stores it back, wiping out whatever
+     value there is in the new data.  Bug #30502. */
+  for (i = 0; i < 4; i++)
+    psppire_sheet_unselect_range (PSPPIRE_SHEET (de->data_sheet[i]));
 }
 
 static void
