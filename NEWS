@@ -4,9 +4,101 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
-Changes from 0.7.3 to 0.7.7:
+Changes from 0.6.2 to 0.7.7:
 
- * The QUICK CLUSTER command is now implemented.
+ * New commands:
+
+   - ADD FILES
+   - CORRELATIONS
+   - DATAFILE ATTRIBUTES
+   - DATASET ACTIVATE
+   - DATASET CLOSE
+   - DATASET COPY
+   - DATASET DECLARE
+   - DATASET DISPLAY
+   - DATASET NAME
+   - MATCH FILES
+   - MRSETS
+   - PRESERVE and RESTORE
+   - QUICK CLUSTER
+   - RELIABILITY
+   - ROC
+   - SAVE TRANSLATE to CSV and tab-delimited files
+   - UPDATE
+   - VARIABLE ATTRIBUTES
+
+ * Changes to existing commands:
+
+   - AUTORECODE has a new GROUP subcommand.
+
+   - CROSSTABS has been re-implemented to fix numerous bugs.
+
+   - DO REPEAT command has been reimplemented.  Now, when DO REPEAT
+     contains an INCLUDE or INSERT command, substitutions are not
+     applied to the included file.
+
+   - HOST has been updated to use more modern syntax.
+
+   - INCLUDE and INSERT have a new ENCODING subcommand.
+
+   - MISSING VALUES can now assign missing values to long string
+     variables.
+
+   - NPAR TESTS has new KRUSKAL-WALLIS, SIGN, WILCOXON, and RUNS
+     subcommands.
+
+   - SET and SHOW no longer have ENDCMD, NULLINE, PROMPT, CPROMPT, and
+     DPROMPT subcommands.  The defaults are now fixed values.
+
+   - VALUE LABELS can now assign value labels to long string
+     variables.
+
+ * Other language changes:
+
+   - The new DATASET commands replace the "scratch file" PSPP
+     extension, which is no longer supported.
+
+   - Strings may now include arbitrary Unicode code points specified
+     in hexadecimal, using the syntax U'hhhh'.  For example, Unicode
+     code point U+1D11E, the musical G clef character, may be
+     expressed as U'1D11E'.
+
+     See the "Tokens" section in the PSPP manual for more information.
+
+   - In previous versions of PSPP, in a string expressed in
+     hexadecimal with X'hh' syntax, the hexadecimal digits expressed
+     bytes in the locale encoding.  In this version of PSPP, X'hh'
+     syntax always expresses bytes in UTF-8 encoding.
+
+     See the "Tokens" section in the PSPP manual for more information.
+
+ * PSPPIRE graphical user interface improvements:
+
+   - Added support for non-ASCII characters in strings, labels and
+     variable names.
+
+   - A "Split Window" function is available, which makes it easier to
+     see different parts of a large data file.
+
+   - Data files can now be opened by specifing their name as the first
+     argument.  This means that on a properly configured desktop, double
+     clicking on an icon will open the file.
+
+ * Output changes:
+
+   - The new "cairo" output driver supports output in PostScript, PDF,
+     and SVG formats.  Its functionality is a superset of that of the
+     "postscript" driver, which has been removed.  You must have Cairo
+     and Pango installed to build the "cairo" driver.
+
+   - Charts are now produced with Cairo and Pango, instead of libplot.
+     Without them, the new graphing features will not work.  If you do
+     not have Cairo and Pango installed, you must run `configure' with
+     --without-cairo.
+
+   - The plain text output driver now properly supports multibyte UTF-8
+     characters, including double-width characters and combining
+     accents.
 
  * The "pspp" program has a new option --batch (or -b) that selects
    "batch" syntax mode.  In previous versions of PSPP this syntax mode
@@ -27,117 +119,12 @@ Changes from 0.7.3 to 0.7.7:
    See the documentation for the INSERT command in the PSPP manual for
    more information.
 
- * The INCLUDE and INSERT commands now support the ENCODING subcommand
-   to specify the encoding for the included syntax file.
+ * A new Perl module allows Perl programs to read and write PSPP
+   system files.
 
- * The plain text output driver now properly supports multibyte UTF-8
-   characters, including double-width characters and combining
-   accents.
-
- * Strings may now include arbitrary Unicode code points specified in
-   hexadecimal, using the syntax U'hhhh'.  For example, Unicode code
-   point U+1D11E, the musical G clef character, may be expressed as
-   U'1D11E'.
-
-   See the "Tokens" section in the PSPP manual for more information.
-
- * In previous versions of PSPP, in a string expressed in hexadecimal
-   with X'hh' syntax, the hexadecimal digits expressed bytes in the
-   locale encoding.  In this version of PSPP, X'hh' syntax always
-   expresses bytes in UTF-8 encoding.
-
-   See the "Tokens" section in the PSPP manual for more information.
-
- * The DO REPEAT command has been reimplemented.  The most prominent
-   change is that when a DO REPEAT block contains an INCLUDE or INSERT
-   command, substitutions are not applied to the included file.
-
-   See the "DO REPEAT" section in the PSPP manual for more information.
-
- * NPAR TESTS now supports the /KRUSKAL-WALLIS and /RUNS subcommands.
-
- * AUTORECODE now supports the /GROUP subcommand.
-
- * The MRSETS command is now implemented.
-
- * SAVE TRANSLATE is now implemented, with initial support for saving
-   data in comma-separated value and tab-delimited formats.
-
- * The PRESERVE and RESTORE commands are now implemented.
-
- * The HOST command has been updated to use more modern syntax.
-
- * The SET and SHOW commands no longer support the ENDCMD, NULLINE,
-   PROMPT, CPROMPT, and DPROMPT subcommands.  The defaults are now the
-   only supported values.
-
- * The dataset commands DATASET ACTIVATE, DATASET DECLARE, DATASET
-   CLOSE, DATASET COPY, DATASET NAME, DATASET DISPLAY are now
-   implemented.  These commands replace the "scratch file" PSPP
-   extension, which is no longer supported.
-
-Changes from 0.7.2 to 0.7.3:
-
- * Charts are now produced with Cairo and Pango, instead of libplot.
-   Without them, the new graphing features will not work.  If you do
-   not have Cairo and Pango installed, you must run `configure' with
-   --without-cairo.
-
- * The new "cairo" output driver supports output in PostScript, PDF,
-   and SVG formats.  Its functionality is a superset of that of the
-   "postscript" driver, which has been removed.  You must have Cairo
-   and Pango installed to build the "cairo" driver.
-
-Changes from 0.7.1 to 0.7.2:
-
- * Updated Perl module interface.
-
- * Value labels for long string variables are now supported.
-
- * Missing values for long string variables are now supported.
-
-Changes from 0.7.0 to 0.7.1:
-
- *  Added a perl module to facilitate reading and writing of pspp system 
-    files from perl programs.
-
-Changes from 0.6.2-pre6 to 0.7.0:
-
-  * Custom variable and data file attributes are now supported.
-    Commands VARIABLE ATTRIBUTE and DATAFILE ATTRIBUTE have been added
-    for setting and clear attributes.  Support for attributes has also
-    been added to commands that read and write system files, such as
-    SAVE and GET, as well as to the DISPLAY command.
-
-  * Numererous improvements to the Graphical User Interface have
-    made.  Notable improvements include:
-
-    - Non-Ascii characters in strings, labels and variable names are
-      now supported.
-
-    - A "Split Window" function is available, which makes it easier to
-      see different parts of a large data file.
-
-    - Data files can now be opened by specifing their name as the first
-      argument.  This means that on a properly configured desktop, double
-      clicking on an icon will open the file.
-    
-
-  * New statistical procedures:
-    - CORRELATIONS
-    - ROC
-    - RELIABILITY
-
-    NPAR TESTS now supports the WILCOXON and SIGN subcommands.
-
-    The CROSSTABS command has been completely re-implemented to fix numerous bugs.
-
-  * Three new commands to combine data files have been added: MATCH FILES,
-   UPDATE and  ADD FILES.
-
-  * A tutorial chapter has been added to the user manual.
-
-Changes from 0.6.1 to 0.6.2
+ * A tutorial chapter has been added to the user manual.
+
+Changes from 0.6.1 to 0.6.2:
 
   * New translations:
 
