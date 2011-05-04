@@ -297,10 +297,10 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
        if we find this value.
     */
     encoding = enc ? pg_encoding_to_char (enc) : get_default_encoding ();
-  }
 
-  /* Create the dictionary and populate it */
-  *dict = r->dict = dict_create ();
+    /* Create the dictionary and populate it */
+    *dict = r->dict = dict_create (encoding);
+  }
 
   /*
     select count (*) from (select * from medium) stupid_sql_standard;
