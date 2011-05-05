@@ -78,8 +78,9 @@ intern_new (const char *s)
 }
 
 static struct interned_string *
-interned_string_from_string (const char *s)
+interned_string_from_string (const char *s_)
 {
+  char (*s)[1] = (char (*)[1]) s_;
   struct interned_string *is = UP_CAST (s, struct interned_string, string);
   assert (is->ref_cnt > 0);
   return is;
