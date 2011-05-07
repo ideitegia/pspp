@@ -62,6 +62,7 @@
 
 GtkRecentManager *the_recent_mgr;
 
+static void inject_renamed_icons (void);
 static void create_icon_factory (void);
 static void load_data_file (PsppireDataWindow *, const char *);
 
@@ -86,6 +87,7 @@ initialize (const char *data_file)
 
   bind_textdomain_codeset (PACKAGE, "UTF-8");
 
+  inject_renamed_icons ();
   create_icon_factory ();
 
   psppire_output_window_setup ();
@@ -133,6 +135,46 @@ psppire_quit (void)
   gtk_main_quit ();
 }
 
+static void
+inject_renamed_icon (const char *icon, const char *substitute)
+{
+  GtkIconTheme *theme = gtk_icon_theme_get_default ();
+  if (!gtk_icon_theme_has_icon (theme, icon)
+      && gtk_icon_theme_has_icon (theme, substitute))
+    {
+      gint *sizes = gtk_icon_theme_get_icon_sizes (theme, substitute);
+      gint *p;
+
+      for (p = sizes; *p != 0; p++)
+        {
+          gint size = *p;
+          GdkPixbuf *pb;
+
+          pb = gtk_icon_theme_load_icon (theme, substitute, size, 0, NULL);
+          if (pb != NULL)
+            {
+              GdkPixbuf *copy = gdk_pixbuf_copy (pb);
+              if (copy != NULL)
+                gtk_icon_theme_add_builtin_icon (icon, size, copy);
+            }
+        }
+    }
+}
+
+/* Avoid a bug in GTK+ 2.22 that can cause a segfault at startup time.  Earlier
+   and later versions of GTK+ do not have the bug.  Bug #31511.
+
+   Based on this patch against Inkscape:
+   https://launchpadlibrarian.net/60175914/copy_renamed_icons.patch */
+static void
+inject_renamed_icons (void)
+{
+  if (gtk_major_version == 2 && gtk_minor_version == 22)
+    {
+      inject_renamed_icon ("gtk-file", "document-x-generic");
+      inject_renamed_icon ("gtk-directory", "folder");
+    }
+}
 
 struct icon_info
 {
