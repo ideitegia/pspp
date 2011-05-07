@@ -80,6 +80,8 @@ if test "$with_cairo" != no && test "$with_gui" != "no"; then
   if test "x$GLIB_GENMARSHAL" = x; then
     PSPP_REQUIRED_PREREQ([glib-genmarshal (or use --without-gui)])
   fi
+
+  gl_NEXT_HEADERS([gtk/gtk.h])
 fi
 
 dnl Checks needed for psql reader

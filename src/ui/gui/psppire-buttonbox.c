@@ -81,26 +81,6 @@ set_default (PsppireButtonBox *bb)
       }
 }
 
-#if !GTK_CHECK_VERSION(2,20,0)
-/**
- * gtk_widget_get_realized:
- * @widget: a #GtkWidget
- *
- * Determines whether @widget is realized.
- *
- * Return value: %TRUE if @widget is realized, %FALSE otherwise
- *
- * Since: 2.20
- **/
-static inline gboolean
-gtk_widget_get_realized (GtkWidget *widget)
-{
-  g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
-
-  return (GTK_WIDGET_FLAGS (widget) & GTK_REALIZED) != 0;
-}
-#endif  /* gtk < 2.20 */
-
 static void
 psppire_buttonbox_set_property (GObject         *object,
                                 guint            prop_id,
