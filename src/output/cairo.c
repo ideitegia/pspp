@@ -919,7 +919,7 @@ xr_rendering_create_text (struct xr_driver *xr, const char *text, cairo_t *cr)
   struct table_item *table_item;
   struct xr_rendering *r;
 
-  table_item = table_item_create (table_from_string (0, text), NULL);
+  table_item = table_item_create (table_from_string (TAB_LEFT, text), NULL);
   r = xr_rendering_create (xr, &table_item->output_item, cr);
   table_item_unref (table_item);
 
