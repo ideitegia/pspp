@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -242,7 +242,7 @@ gtk_vbutton_box_size_allocate (GtkWidget     *widget,
       child = children->data;
       children = children->next;
 
-      if (GTK_WIDGET_VISIBLE (child->widget))
+      if (gtk_widget_get_visible (child->widget))
 	{
 	  child_allocation.width = child_width;
 	  child_allocation.height = child_height;

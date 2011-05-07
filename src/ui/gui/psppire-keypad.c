@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -217,7 +217,7 @@ key_release_callback (GtkWidget   *widget,
 		      GdkEventKey *event,
 		      gpointer     user_data)
 {
-  if ( ! (GTK_WIDGET_FLAGS (widget) & GTK_HAS_FOCUS) )
+  if ( ! gtk_widget_has_focus (widget))
     return FALSE;
 
   switch (event->keyval)

@@ -431,7 +431,7 @@ _psppire_button_box_child_requisition (GtkWidget *widget,
       child = children->data;
       children = children->next;
 
-      if (GTK_WIDGET_VISIBLE (child->widget))
+      if (gtk_widget_get_visible (child->widget))
 	{
 	  nchildren += 1;
 	  gtk_widget_size_request (child->widget, &child_requisition);

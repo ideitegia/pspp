@@ -1882,7 +1882,7 @@ get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
      to make the data related to the tool tips part of a GObject
      that only gets destroyed when all references are released,
      but this solution appears to be effective too. */
-  if (!GTK_WIDGET_MAPPED (widget))
+  if (!gtk_widget_get_mapped (widget))
     return FALSE;
 
   gtk_tree_view_convert_widget_to_bin_window_coords (tree_view,

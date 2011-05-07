@@ -298,7 +298,7 @@ configure_event_callback (GtkDialog *dialog,
 
   PsppireConf *conf = psppire_conf_new ();
 
-  if ( ! GTK_WIDGET_MAPPED (dialog))
+  if ( ! gtk_widget_get_mapped (GTK_WIDGET (dialog)))
     return FALSE;
 
   base = gtk_buildable_get_name (GTK_BUILDABLE (dialog));

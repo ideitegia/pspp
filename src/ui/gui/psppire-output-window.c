@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -483,7 +483,7 @@ on_combo_change (GtkFileChooser *chooser)
   int x = 0; 
   gchar *fn = gtk_file_chooser_get_filename (chooser);
 
-  if (combo &&  GTK_WIDGET_REALIZED (combo))
+  if (combo &&  gtk_widget_get_realized (combo))
     x = gtk_combo_box_get_active (GTK_COMBO_BOX (combo));
 
   if (fn == NULL)
@@ -519,7 +519,7 @@ on_file_chooser_change (GObject *w, GParamSpec *pspec, gpointer data)
   GtkFileChooser *chooser = data;
   const gchar *name = g_param_spec_get_name (pspec);
 
-  if ( ! GTK_WIDGET_REALIZED (chooser))
+  if ( ! gtk_widget_get_realized (GTK_WIDGET (chooser)))
     return;
 
   /* Ignore this one.  It causes recursion. */
