@@ -203,6 +203,7 @@ dataset_destroy (struct dataset *ds)
       caseinit_destroy (ds->caseinit);
       trns_chain_destroy (ds->permanent_trns_chain);
       dataset_transformations_changed__ (ds, false);
+      free (ds->name);
       free (ds);
     }
 }
