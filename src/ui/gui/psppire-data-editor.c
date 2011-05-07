@@ -230,8 +230,8 @@ new_data_callback (PsppireDataStore *ds, gpointer data)
      the data sheets.  If we don't do this, then the sheet remembers the value
      that was in the selected cell and stores it back, wiping out whatever
      value there is in the new data.  Bug #30502. */
-  for (i = 0; i < 4; i++)
-    psppire_sheet_unselect_range (PSPPIRE_SHEET (de->data_sheet[i]));
+  if (de->data_sheet[0] != NULL)
+    psppire_sheet_unselect_range (PSPPIRE_SHEET (de->data_sheet[0]));
 }
 
 static void
