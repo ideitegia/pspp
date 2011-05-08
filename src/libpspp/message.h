@@ -39,6 +39,8 @@ enum msg_severity
     MSG_N_SEVERITIES
   };
 
+const char *msg_severity_to_string (enum msg_severity);
+
 /* Combination of a category and a severity for convenience. */
 enum msg_class
   {

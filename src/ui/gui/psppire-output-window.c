@@ -29,6 +29,7 @@
 #include "output/cairo.h"
 #include "output/chart-item.h"
 #include "output/driver-provider.h"
+#include "output/message-item.h"
 #include "output/output-item.h"
 #include "output/tab.h"
 #include "output/table-item.h"
@@ -305,6 +306,13 @@ psppire_output_submit (struct output_driver *this,
       ds_clear (&title);
       if (is_text_item (item))
         ds_put_cstr (&title, text_item_get_text (to_text_item (item)));
+      else if (is_message_item (item))
+        {
+          const struct message_item *msg_item = to_message_item (item);
+          const struct msg *msg = message_item_get_msg (msg_item);
+          ds_put_format (&title, "%s: %s", _("Message"),
+                         msg_severity_to_string (msg->severity));
+        }
       else if (is_table_item (item))
         {
           const char *caption = table_item_get_caption (to_table_item (item));

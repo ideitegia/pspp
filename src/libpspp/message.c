@@ -76,6 +76,21 @@ msg_set_handler (void (*handler) (const struct msg *, void *aux), void *aux)
 
 /* Working with messages. */
 
+const char *
+msg_severity_to_string (enum msg_severity severity)
+{
+  switch (severity)
+    {
+    case MSG_S_ERROR:
+      return _("error");
+    case MSG_S_WARNING:
+      return _("warning");
+    case MSG_S_NOTE:
+    default:
+      return _("note");
+    }
+}
+
 /* Duplicate a message */
 struct msg *
 msg_dup (const struct msg *m)
@@ -106,7 +121,6 @@ msg_destroy (struct msg *m)
 char *
 msg_to_string (const struct msg *m, const char *command_name)
 {
-  const char *label;
   struct string s;
 
   ds_init_empty (&s);
@@ -166,20 +180,7 @@ msg_to_string (const struct msg *m, const char *command_name)
       ds_put_cstr (&s, ": ");
     }
 
-  switch (m->severity)
-    {
-    case MSG_S_ERROR:
-      label = _("error");
-      break;
-    case MSG_S_WARNING:
-      label = _("warning");
-      break;
-    case MSG_S_NOTE:
-    default:
-      label = _("note");
-      break;
-    }
-  ds_put_format (&s, "%s: ", label);
+  ds_put_format (&s, "%s: ", msg_severity_to_string (m->severity));
 
   if (m->category == MSG_C_SYNTAX && command_name != NULL)
     ds_put_format (&s, "%s: ", command_name);
