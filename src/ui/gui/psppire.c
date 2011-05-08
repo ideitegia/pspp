@@ -105,7 +105,6 @@ initialize (const char *data_file)
   data_window = psppire_default_data_window ();
   if (data_file != NULL)
     load_data_file (data_window, data_file);
-  execute_const_syntax_string (data_window, "");
 }
 
 
