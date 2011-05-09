@@ -826,15 +826,11 @@ psppire_window_open (PsppireWindow *de)
           {
             PsppireWindow *window;
 
-#if 0
             if (PSPPIRE_IS_DATA_WINDOW (de)
                 && psppire_data_window_is_empty (PSPPIRE_DATA_WINDOW (de)))
               window = de;
             else
               window = PSPPIRE_WINDOW (psppire_data_window_new (NULL));
-#else
-            window = PSPPIRE_WINDOW (psppire_default_data_window ());
-#endif
 
             psppire_window_load (window, name);
             gtk_widget_show (GTK_WIDGET (window));
