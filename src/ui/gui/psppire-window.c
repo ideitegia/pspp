@@ -731,8 +731,6 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
   else
     delete_recent (file, the_recent_mgr);
 
-  psppire_window_set_title (w);
-
   return ok;
 }
 
