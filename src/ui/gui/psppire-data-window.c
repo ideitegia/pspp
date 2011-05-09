@@ -748,7 +748,7 @@ on_recent_data_select (GtkMenuShell *menushell,
 
   g_free (uri);
 
-  psppire_window_load (window, file);
+  open_data_window (window, file);
 
   g_free (file);
 }
@@ -1346,4 +1346,19 @@ void
 create_data_window (void)
 {
   gtk_widget_show (psppire_data_window_new (NULL));
+}
+
+void
+open_data_window (PsppireWindow *victim, const char *file_name)
+{
+  GtkWidget *window;
+
+  if (PSPPIRE_IS_DATA_WINDOW (victim)
+      && psppire_data_window_is_empty (PSPPIRE_DATA_WINDOW (victim)))
+    window = GTK_WIDGET (victim);
+  else
+    window = psppire_data_window_new (NULL);
+
+  psppire_window_load (PSPPIRE_WINDOW (window), file_name);
+  gtk_widget_show (window);
 }

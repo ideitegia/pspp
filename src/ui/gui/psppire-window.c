@@ -821,18 +821,7 @@ psppire_window_open (PsppireWindow *de)
 	gchar *sysname = convert_glib_filename_to_system_filename (name, NULL);
 
 	if (any_reader_may_open (sysname))
-          {
-            PsppireWindow *window;
-
-            if (PSPPIRE_IS_DATA_WINDOW (de)
-                && psppire_data_window_is_empty (PSPPIRE_DATA_WINDOW (de)))
-              window = de;
-            else
-              window = PSPPIRE_WINDOW (psppire_data_window_new (NULL));
-
-            psppire_window_load (window, name);
-            gtk_widget_show (GTK_WIDGET (window));
-          }
+          open_data_window (de, name);
 	else
 	  open_syntax_window (name);
 
