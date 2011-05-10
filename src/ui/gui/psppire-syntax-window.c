@@ -729,7 +729,6 @@ GtkWidget*
 psppire_syntax_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_syntax_window_get_type (),
-				   /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
 				   "description", _("Syntax Editor"),
 				   NULL));
 }
