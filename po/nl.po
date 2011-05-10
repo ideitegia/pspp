@@ -32,7 +32,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.7.8\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2011-05-04 06:57-0700\n"
-"PO-Revision-Date: 2011-05-06 12:55+0200\n"
+"PO-Revision-Date: 2011-05-10 23:41+0200\n"
 "Last-Translator: Harry Thijssen <pspp@sjpaes.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
@@ -849,34 +849,34 @@ msgid "File specifies unexpected value %g as %s."
 msgstr "Bestand specificeert onverwachte waarde %g als %s."
 
 #: src/data/sys-file-reader.c:1252
-#, fuzzy, c-format
+#, c-format
 msgid "`%s' does not begin with `$' at offset %zu in MRSETS record."
-msgstr "`%s' begint niet met  `$' op UTF-8 offset %zu in MRSETS record."
+msgstr "`%s' begint niet met  `$' op offset %zu in MRSETS record."
 
 #: src/data/sys-file-reader.c:1263 src/data/sys-file-reader.c:1282
-#, fuzzy, c-format
+#, c-format
 msgid "Missing space following `%c' at offset %zu in MRSETS record."
-msgstr "Ontbrekende spatie achter `%c' op offset %zu in MRSETS record"
+msgstr "Ontbrekende spatie achter `%c' op offset %zu in MRSETS record."
 
 #: src/data/sys-file-reader.c:1292
-#, fuzzy, c-format
+#, c-format
 msgid "Unexpected label source value `%s' following `E' at offset %zu in MRSETS record."
-msgstr "Onverwachte labelbron waarde `%s' achter `E' op offset %zu in MRSETS record"
+msgstr "Onverwachte labelbron waarde `%s' achter `E' op offset %zu in MRSETS "
 
 #: src/data/sys-file-reader.c:1299
-#, fuzzy, c-format
+#, c-format
 msgid "Missing `C', `D', or `E' at offset %zu in MRSETS record."
 msgstr "Ontbrekende `C', `D', of `E' op offset %zu in MRSETS record."
 
 #: src/data/sys-file-reader.c:1331
-#, fuzzy, c-format
+#, c-format
 msgid "Missing new-line parsing variable names at offset %zu in MRSETS record."
-msgstr "Mis nieuwe-regel bij het ontleden van variabele namen op UTF-8 offset %zu in MRSETS record."
+msgstr "Mis nieuwe-regel bij het ontleden van variabelennamen op offset %zu in MRSETS record."
 
 #: src/data/sys-file-reader.c:1347
-#, fuzzy, c-format
+#, c-format
 msgid "Duplicate variable name %s at offset %zu in MRSETS record."
-msgstr "Dubbele variabelenaam %s op offset %zu in MRSETS record."
+msgstr "Dubbele variabelennaam %s op offset %zu in MRSETS record."
 
 #: src/data/sys-file-reader.c:1363
 #, c-format
@@ -1021,24 +1021,24 @@ msgid "Dictionary record refers to unknown variable %s."
 msgstr "Bibliotheek record refereert aan onbekende variabele %s."
 
 #: src/data/sys-file-reader.c:2411
-#, fuzzy, c-format
+#, c-format
 msgid "Expecting digit at offset %zu in MRSETS record."
-msgstr "Verwacht cijfer op UTF-8 offset %zu in MRSETS record."
+msgstr "Verwacht cijfer op offset %zu in MRSETS record."
 
 #: src/data/sys-file-reader.c:2419
-#, fuzzy, c-format
+#, c-format
 msgid "Expecting space at offset %zu in MRSETS record."
-msgstr "Verwacht spatie op UTF-8 offset %zu in MRSETS record."
+msgstr "Verwacht spatie op offset %zu in MRSETS record."
 
 #: src/data/sys-file-reader.c:2427
-#, fuzzy, c-format
+#, c-format
 msgid "%zu-byte string starting at offset %zu exceeds record length %zu."
-msgstr "%zu-byte tekenreeks beginnend op UTF-8 offset %zu overschrijdt record lengte %zu."
+msgstr "%zu-byte tekenreeks beginnend op offset %zu overschrijdt record lengte %zu."
 
 #: src/data/sys-file-reader.c:2437
-#, fuzzy, c-format
+#, c-format
 msgid "Expecting space at offset %zu following %zu-byte string."
-msgstr "Verwacht spatie op UTF-8 offset %zu achter %zu-byte tekenreeks."
+msgstr "Verwacht spatie op offset %zu achter %zu-byte tekenreeks."
 
 #: src/data/sys-file-reader.c:2478
 #, c-format
@@ -1495,9 +1495,9 @@ msgid "Dummy variable name `%s' is given twice."
 msgstr "Dummy-variabelennaam '%s' is twee keer opgegeven."
 
 #: src/language/control/repeat.c:162
-#, fuzzy, c-format
+#, c-format
 msgid "Dummy variable `%s' had %zu substitutions, so `%s' must also, but %zu were specified."
-msgstr "Dummy variabele `%s'  heeft %d vervangingen, dus `%s'  moet dat ook, maar %d zijn er gespecificeerd."
+msgstr "Dummy variabele `%s'  heeft %zu vervangingen, dus `%s'  moet dat ook, maar %zu zijn er gespecificeerd."
 
 #: src/language/control/repeat.c:366
 msgid "Ranges may only have integer bounds."
@@ -1933,9 +1933,9 @@ msgid "The active dataset does not have a file label."
 msgstr "De actieve dataset heeft geen bestandslabel."
 
 #: src/language/dictionary/sys-file-info.c:200
-#, fuzzy, c-format
+#, c-format
 msgid "File label: %s"
-msgstr "Bestandlabel:"
+msgstr "Bestandlabel: %s"
 
 #: src/language/dictionary/sys-file-info.c:274
 msgid "No variables to display."
@@ -2949,9 +2949,8 @@ msgid "Cluster"
 msgstr ""
 
 #: src/language/stats/quick-cluster.c:470
-#, fuzzy
 msgid "Number of Cases in each Cluster"
-msgstr "Aantal missende waardes"
+msgstr "Aantal cases in elke cluster"
 
 #: src/language/stats/quick-cluster.c:484 src/language/stats/reliability.c:527
 #: src/language/stats/crosstabs.q:830 src/language/stats/examine.q:1102
@@ -2960,9 +2959,8 @@ msgid "Valid"
 msgstr "Geldig"
 
 #: src/language/stats/quick-cluster.c:515
-#, fuzzy
 msgid "Variables cannot be parsed"
-msgstr "Variabelelabels"
+msgstr "Variabelen kunnen niet ontleed worden"
 
 #: src/language/stats/reliability.c:141
 msgid "Reliability on a single variable is not useful."
@@ -3453,23 +3451,21 @@ msgid "I/O error occurred writing data file `%s'."
 msgstr "I/O fout opgetreden tijdens schrijven gegevensbestand '%s'."
 
 #: src/language/data-io/dataset.c:63
-#, fuzzy, c-format
+#, c-format
 msgid "There is no dataset named %s."
-msgstr "Er is geen vector genaamd %s."
+msgstr "Er is geen dataset genaamd %s."
 
 #: src/language/data-io/dataset.c:257
-#, fuzzy
 msgid "Dataset"
-msgstr "_Gegevens"
+msgstr "Dataset"
 
 #: src/language/data-io/dataset.c:265
 msgid "unnamed dataset"
 msgstr ""
 
 #: src/language/data-io/dataset.c:269
-#, fuzzy
 msgid "(active dataset)"
-msgstr "Splits de actieve dataset"
+msgstr "(actieve dataset)"
 
 #: src/language/data-io/get-data.c:64
 #, c-format
@@ -3531,7 +3527,7 @@ msgstr "Aantal gespecificeerde variabelen (%zu) verschilt van aantal variabele f
 
 #: src/language/data-io/placement-parser.c:96
 msgid "SPSS-like or Fortran-like format specification expected after variable names."
-msgstr "SPSS-achtig of Fortran-achtig format-specificatie verwacht na variabele naam."
+msgstr "SPSS-achtig of Fortran-achtig format-specificatie verwacht na variabelennaam."
 
 #: src/language/data-io/placement-parser.c:118
 #, c-format
@@ -4399,7 +4395,7 @@ msgstr "Overdraagbaar bestand"
 
 #: src/ui/gui/psppire-data-window.c:571
 msgid "Delete Existing Dataset?"
-msgstr ""
+msgstr "Verwijder bestaande dataset?"
 
 #: src/ui/gui/psppire-data-window.c:575
 #, c-format
@@ -4409,11 +4405,11 @@ msgstr ""
 #: src/ui/gui/psppire-data-window.c:603
 #, c-format
 msgid "Please enter a new name for dataset \"%s\":"
-msgstr ""
+msgstr "Voer aub een nieuwe naam voor de dateset \"%s\" in:"
 
 #: src/ui/gui/psppire-data-window.c:605
 msgid "Rename Dataset"
-msgstr ""
+msgstr "Hernoem dataset"
 
 #: src/ui/gui/psppire-data-window.c:684
 msgid "Font Selection"
@@ -4957,7 +4953,7 @@ msgstr "Percentage"
 #: src/language/stats/crosstabs.q:936
 #, c-format
 msgid "Crosstabulation %s contained no non-missing cases."
-msgstr ""
+msgstr "Kruistabulatie %s bevat geen non-missing cases."
 
 #: src/language/stats/crosstabs.q:1134
 msgid "count"
@@ -5073,7 +5069,7 @@ msgstr "Interval by Interval"
 
 #: src/language/stats/crosstabs.q:1801
 msgid "Measure of Agreement"
-msgstr ""
+msgstr "Mate van overeenkomst"
 
 #: src/language/stats/crosstabs.q:1807
 msgid "Cramer's V"
@@ -5495,9 +5491,9 @@ msgid "The specified file mode requires LRECL.  Assuming %zu-character records."
 msgstr "De gespecificeerd bestandsmodus vereist LRECL. Records van %zu-teken worden verondersteld."
 
 #: src/language/data-io/file-handle.q:137
-#, fuzzy, c-format
+#, c-format
 msgid "Record length (%ld) must be between 1 and %lu bytes.  Assuming %zu-character records."
-msgstr "Recordlengte (%ld) moet tussen 1 en %lu bytes zijn. Records van %d tekens worden verondersteld."
+msgstr "Recordlengte (%ld) moet tussen 1 en %lu bytes zijn. Records van %zu tekens worden verondersteld."
 
 #: src/language/data-io/file-handle.q:178
 msgid "file"
@@ -5546,11 +5542,11 @@ msgstr "_Break variabele(n)"
 
 #: src/ui/gui/aggregate.ui:136
 msgid "Variable Name: "
-msgstr "Variabelenaam: "
+msgstr "Variabelennaam: "
 
 #: src/ui/gui/aggregate.ui:161
 msgid "Variable Label: "
-msgstr "Variabelelabels: "
+msgstr "Variabelenlabels: "
 
 #: src/ui/gui/aggregate.ui:190
 msgid "Function: "
@@ -5963,7 +5959,7 @@ msgstr "_Toon geroteerde oplossing"
 
 #: src/ui/gui/find.ui:8
 msgid "Find Case"
-msgstr "Vind case"
+msgstr "Zoek case"
 
 #: src/ui/gui/find.ui:88
 msgid "Variable:"
@@ -6501,11 +6497,11 @@ msgstr "Testvariabele:"
 
 #: src/ui/gui/roc.ui:147
 msgid "_State Variable:"
-msgstr ""
+msgstr "_Status variabele:"
 
 #: src/ui/gui/roc.ui:172
 msgid "_Value of state variable:"
-msgstr ""
+msgstr "Waarde van status variabele:"
 
 #: src/ui/gui/roc.ui:209
 msgid "ROC C_urve"
@@ -6513,7 +6509,7 @@ msgstr "ROC C_urve"
 
 #: src/ui/gui/roc.ui:227
 msgid "_With diagonal reference line"
-msgstr ""
+msgstr "Met diagonale referentie lijn"
 
 #: src/ui/gui/roc.ui:251
 msgid "Standard _Error and Confidence Interval"
@@ -6849,11 +6845,11 @@ msgstr "Gescheiden tekstgegevens _importeren..."
 
 #: src/ui/gui/data-editor.ui:61
 msgid "_Rename Dataset..."
-msgstr ""
+msgstr "Hernoem Dataset..."
 
 #: src/ui/gui/data-editor.ui:74 src/ui/gui/syntax-editor.ui:48
 msgid "Save _As..."
-msgstr "Opslaan _Als..."
+msgstr "Opslaan _als..."
 
 #: src/ui/gui/data-editor.ui:80
 msgid "D_isplay Data File Information"
@@ -6899,7 +6895,7 @@ msgstr "Creëer een nieuwe case op de huidige positie"
 
 #: src/ui/gui/data-editor.ui:138
 msgid "Go To Case..."
-msgstr "Ga Naar Case..."
+msgstr "Ga naar case..."
 
 #: src/ui/gui/data-editor.ui:140
 msgid "Jump to a case in the data sheet"
@@ -6923,11 +6919,11 @@ msgstr "Verwijder de cases op de geselecteerde positie(s)"
 
 #: src/ui/gui/data-editor.ui:183
 msgid "_Find..."
-msgstr ""
+msgstr "Zoek..."
 
 #: src/ui/gui/data-editor.ui:189
 msgid "_View"
-msgstr "Beel_d"
+msgstr "Beeld"
 
 #: src/ui/gui/data-editor.ui:196
 msgid "_Status Bar"
@@ -6955,7 +6951,7 @@ msgstr "_Variabelen"
 
 #: src/ui/gui/data-editor.ui:242
 msgid "_Sort Cases..."
-msgstr "_Sorteer Cases..."
+msgstr "_Sorteer cases..."
 
 #: src/ui/gui/data-editor.ui:245
 msgid "Sort cases in the active dataset"
@@ -6975,7 +6971,7 @@ msgstr "_Aggregeer..."
 
 #: src/ui/gui/data-editor.ui:266
 msgid "S_plit File..."
-msgstr "S_plits Bestand..."
+msgstr "S_plits bestand..."
 
 #: src/ui/gui/data-editor.ui:267
 msgid "Split the active dataset"
@@ -6983,11 +6979,11 @@ msgstr "Splits de actieve dataset"
 
 #: src/ui/gui/data-editor.ui:274
 msgid "Select _Cases..."
-msgstr "Selecteer _Cases..."
+msgstr "Selecteer _cases..."
 
 #: src/ui/gui/data-editor.ui:280
 msgid "_Weight Cases..."
-msgstr "_Weeg Cases..."
+msgstr "_Weeg cases..."
 
 #: src/ui/gui/data-editor.ui:281
 msgid "Weight cases by variable"
@@ -7003,19 +6999,19 @@ msgstr "_Berekenen..."
 
 #: src/ui/gui/data-editor.ui:300
 msgid "Ran_k Cases..."
-msgstr "Rangschi_k Cases..."
+msgstr "Rangschi_k cases..."
 
 #: src/ui/gui/data-editor.ui:306
 msgid "Recode into _Same Variables..."
-msgstr "Hercodeer in _Zelfde Variabelen..."
+msgstr "Hercodeer in _zelfde variabelen..."
 
 #: src/ui/gui/data-editor.ui:312
 msgid "Recode into _Different Variables..."
-msgstr "Hercodeer in _Andere Variabelen..."
+msgstr "Hercodeer in _andere variabelen..."
 
 #: src/ui/gui/data-editor.ui:318
 msgid "_Run Pending Transforms"
-msgstr "_uitvoeren uitstaande Transformaties"
+msgstr "_Uitvoeren uitstaande transformaties"
 
 #: src/ui/gui/data-editor.ui:325
 msgid "_Analyze"
@@ -7071,7 +7067,7 @@ msgstr "Betrouwbaarheid..."
 
 #: src/ui/gui/data-editor.ui:409
 msgid "Linear _Regression..."
-msgstr "Lineare _Regressie..."
+msgstr "Lineare _regressie..."
 
 #: src/ui/gui/data-editor.ui:415
 msgid "_Non-Parametric Statistics"
@@ -7107,7 +7103,7 @@ msgstr "Spring naar variabele"
 
 #: src/ui/gui/data-editor.ui:459
 msgid "Data File _Comments..."
-msgstr "Gegevensbestand _Commentaren..."
+msgstr "Gegevensbestand _commentaren..."
 
 #: src/ui/gui/data-editor.ui:465 src/ui/gui/output-viewer.ui:47
 #: src/ui/gui/syntax-editor.ui:125
@@ -7149,7 +7145,7 @@ msgstr "Splitsbestand statusgebied"
 
 #: src/ui/gui/output-viewer.ui:16
 msgid "_Print..."
-msgstr ""
+msgstr "Afdrukken..."
 
 #: src/ui/gui/output-viewer.ui:23
 msgid "_Export..."
