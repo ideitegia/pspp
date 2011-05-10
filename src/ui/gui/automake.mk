@@ -66,9 +66,7 @@ src_ui_gui_psppire_LDADD = \
 	src/libpspp.la \
 	src/libpspp-core.la \
 	$(GTK_LIBS) \
-	$(CAIRO_LIBS) \
-	$(LIBICONV) \
-	$(LIBINTL)
+	$(CAIRO_LIBS)
 
 src_ui_gui_psppiredir = $(pkgdatadir)
 

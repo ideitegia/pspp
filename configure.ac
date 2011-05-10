@@ -35,11 +35,11 @@ PSPP_PERL
 dnl Disable automatic po/ support, because PSPP provides its own po/ support.
 AC_PROVIDE([AM_PO_SUBDIRS])
 AM_GNU_GETTEXT([external], [need-ngettext])
+LIBS="$LTLIBINTL $LIBS"
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
 AC_SEARCH_LIBS([sin], [m])
-AC_SEARCH_LIBS([dcgettext], [intl])
 PSPP_LC_PAPER
 
 
@@ -327,6 +327,7 @@ AM_ICONV
 if test "$am_cv_func_iconv" != "yes"; then
    PSPP_REQUIRED_PREREQ([iconv (see http://www.gnu.org/software/libiconv/)])
 fi
+LIBS="$LTLIBICONV $LIBS"
 
 dnl Required by the gnulib 'relocatable-prog' module.
 dnl See doc/relocatable-maint.texi in the gnulib tree for details.

@@ -45,6 +45,7 @@ INSTALL_DATA_HOOKS =
 UNINSTALL_DATA_HOOKS =
 PHONY =
 SUFFIXES = .q
+LDADD = gl/libgl.la
 
 generate-changelog:
 	if test -d $(top_srcdir)/.git; then			\
