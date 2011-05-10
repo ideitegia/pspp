@@ -152,9 +152,6 @@ psppire_data_window_class_init (PsppireDataWindowClass *class)
                           G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
 }
 
-
-extern GtkRecentManager *the_recent_mgr;
-
 static void
 set_paste_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
 {
@@ -1073,11 +1070,11 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
       gtk_ui_manager_get_widget (uim,"/ui/menubar/file/file_recent-files");
 
 
-    GtkWidget *menu_data =
-      gtk_recent_chooser_menu_new_for_manager (the_recent_mgr);
+    GtkWidget *menu_data = gtk_recent_chooser_menu_new_for_manager (
+      gtk_recent_manager_get_default ());
 
-    GtkWidget *menu_files =
-      gtk_recent_chooser_menu_new_for_manager (the_recent_mgr);
+    GtkWidget *menu_files = gtk_recent_chooser_menu_new_for_manager (
+      gtk_recent_manager_get_default ());
 
     {
       GtkRecentFilter *filter = gtk_recent_filter_new ();

@@ -60,8 +60,6 @@
 #include "gl/xalloc.h"
 #include "gl/relocatable.h"
 
-GtkRecentManager *the_recent_mgr;
-
 static void inject_renamed_icons (void);
 static void create_icon_factory (void);
 static void load_data_file (PsppireDataWindow *, const char *);
@@ -94,9 +92,6 @@ initialize (const char *data_file)
 
   journal_enable ();
   textdomain (PACKAGE);
-
-
-  the_recent_mgr = gtk_recent_manager_get_default ();
 
   psppire_selector_set_default_selection_func (GTK_TYPE_ENTRY, insert_source_row_into_entry);
   psppire_selector_set_default_selection_func (PSPPIRE_VAR_VIEW_TYPE, insert_source_row_into_tree_view);

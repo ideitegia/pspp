@@ -703,10 +703,9 @@ psppire_window_save_as (PsppireWindow *w)
     }
 }
 
-extern GtkRecentManager *the_recent_mgr;
 
-static void add_most_recent (const char *file_name, GtkRecentManager *rm);
-static void delete_recent (const char *file_name, GtkRecentManager *rm);
+static void add_most_recent (const char *file_name);
+static void delete_recent (const char *file_name);
 
 gboolean
 psppire_window_load (PsppireWindow *w, const gchar *file)
@@ -725,11 +724,11 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
   if ( ok )
     {
       psppire_window_set_filename (w, file);
-      add_most_recent (file, the_recent_mgr);
+      add_most_recent (file);
       w->dirty = FALSE;
     }
   else
-    delete_recent (file, the_recent_mgr);
+    delete_recent (file);
 
   return ok;
 }
@@ -841,12 +840,12 @@ psppire_window_open (PsppireWindow *de)
    If it's already in the list, it moves it to the top
 */
 static void
-add_most_recent (const char *file_name, GtkRecentManager *rm)
+add_most_recent (const char *file_name)
 {
   gchar *uri = g_filename_to_uri  (file_name, NULL, NULL);
 
   if ( uri )
-    gtk_recent_manager_add_item (rm, uri);
+    gtk_recent_manager_add_item (gtk_recent_manager_get_default (), uri);
 
   g_free (uri);
 }
@@ -857,12 +856,12 @@ add_most_recent (const char *file_name, GtkRecentManager *rm)
    If FILE_NAME exists in the recent list, then  delete it.
  */
 static void
-delete_recent (const char *file_name, GtkRecentManager *rm)
+delete_recent (const char *file_name)
 {
   gchar *uri = g_filename_to_uri  (file_name, NULL, NULL);
 
   if ( uri )
-    gtk_recent_manager_remove_item (rm, uri, NULL);
+    gtk_recent_manager_remove_item (gtk_recent_manager_get_default (), uri, NULL);
 
   g_free (uri);
 }
