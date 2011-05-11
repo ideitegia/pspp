@@ -22,16 +22,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/val-type.h>
-#include <libpspp/compiler.h>
-#include <libpspp/float-format.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/misc.h>
+#include "data/val-type.h"
+#include "libpspp/compiler.h"
+#include "libpspp/float-format.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/misc.h"
 
-#include "error.h"
-#include "minmax.h"
-#include "progname.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/minmax.h"
+#include "gl/progname.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
