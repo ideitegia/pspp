@@ -18,11 +18,13 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <getopt.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "data/val-type.h"
+#include "libpspp/cast.h"
 #include "libpspp/compiler.h"
 #include "libpspp/float-format.h"
 #include "libpspp/integer-format.h"
@@ -31,6 +33,7 @@
 #include "gl/error.h"
 #include "gl/minmax.h"
 #include "gl/progname.h"
+#include "gl/version-etc.h"
 #include "gl/xalloc.h"
 
 #define ID_MAX_LEN 64
@@ -79,7 +82,7 @@ static void read_long_string_value_labels (struct sfm_reader *r,
                                            size_t size, size_t count);
 static void read_unknown_extension (struct sfm_reader *,
                                     size_t size, size_t count);
-static void read_compressed_data (struct sfm_reader *);
+static void read_compressed_data (struct sfm_reader *, int max_cases);
 
 static struct text_record *open_text_record (
   struct sfm_reader *, size_t size);
@@ -91,7 +94,7 @@ static bool text_match (struct text_record *text, int c);
 static const char *text_parse_counted_string (struct text_record *);
 static size_t text_pos (const struct text_record *);
 
-static void usage (int exit_code);
+static void usage (void);
 static void sys_warn (struct sfm_reader *, const char *, ...)
      PRINTF_FORMAT (2, 3);
 static void sys_error (struct sfm_reader *, const char *, ...)
@@ -110,14 +113,53 @@ static void trim_spaces (char *);
 int
 main (int argc, char *argv[])
 {
+  int max_cases = 0;
   struct sfm_reader r;
   int i;
 
   set_program_name (argv[0]);
-  if (argc < 2)
-    usage (EXIT_FAILURE);
 
-  for (i = 1; i < argc; i++) 
+  for (;;)
+    {
+      static const struct option long_options[] =
+        {
+          { "data",    optional_argument, NULL, 'd' },
+          { "help",    no_argument,       NULL, 'h' },
+          { "version", no_argument,       NULL, 'v' },
+          { NULL,      0,                 NULL, 0 },
+        };
+
+      int c;
+
+      c = getopt_long (argc, argv, "d::hv", long_options, NULL);
+      if (c == -1)
+        break;
+
+      switch (c)
+        {
+        case 'd':
+          max_cases = optarg ? atoi (optarg) : INT_MAX;
+          break;
+
+        case 'v':
+          version_etc (stdout, "pspp-dump-sav", PACKAGE_NAME, PACKAGE_VERSION,
+                       "Ben Pfaff", "John Darrington", NULL_SENTINEL);
+          exit (EXIT_SUCCESS);
+
+        case 'h':
+          usage ();
+          exit (EXIT_SUCCESS);
+
+        default:
+          exit (EXIT_FAILURE);
+        }
+    }
+
+  if (optind == argc)
+    error (1, 0, "at least one non-option argument is required; "
+           "use --help for help");
+
+  for (i = optind; i < argc; i++)
     {
       int rec_type;
 
@@ -132,7 +174,7 @@ main (int argc, char *argv[])
       r.var_widths = 0;
       r.compressed = false;
 
-      if (argc > 2)
+      if (argc - optind > 1)
         printf ("Reading \"%s\":\n", r.file_name);
       
       read_header (&r);
@@ -168,8 +210,8 @@ main (int argc, char *argv[])
               (long long int) ftello (r.file),
               (long long int) ftello (r.file) + 4);
 
-      if (r.compressed)
-        read_compressed_data (&r);
+      if (r.compressed && max_cases > 0)
+        read_compressed_data (&r, max_cases);
 
       fclose (r.file);
     }
@@ -1062,7 +1104,7 @@ read_variable_attributes (struct sfm_reader *r, size_t size, size_t count)
 }
 
 static void
-read_compressed_data (struct sfm_reader *r)
+read_compressed_data (struct sfm_reader *r, int max_cases)
 {
   enum { N_OPCODES = 8 };
   uint8_t opcodes[N_OPCODES];
@@ -1077,7 +1119,7 @@ read_compressed_data (struct sfm_reader *r)
   opcode_idx = N_OPCODES;
   opcode_ofs = 0;
   case_num = 0;
-  for (case_num = 0; ; case_num++)
+  for (case_num = 0; case_num < max_cases; case_num++)
     {
       printf ("%08llx: case %d's uncompressible data begins\n",
               (long long int) ftello (r->file), case_num);
@@ -1290,12 +1332,18 @@ text_pos (const struct text_record *text)
 }
 
 static void
-usage (int exit_code)
+usage (void)
 {
-  printf ("usage: %s SYSFILE...\n"
-          "where each SYSFILE is the name of a system file\n",
-          program_name);
-  exit (exit_code);
+  printf ("\
+%s, a utility for dissecting system files.\n\
+Usage: %s [OPTION]... SYSFILE...\n\
+where each SYSFILE is the name of a system file.\n\
+\n\
+Options:\n\
+  --data[=MAXCASES]   print (up to MAXCASES cases of) compressed data\n\
+  --help              display this help and exit\n\
+  --version           output version information and exit\n",
+          program_name, program_name);
 }
 
 /* Displays a corruption message. */
