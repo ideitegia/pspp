@@ -33,9 +33,6 @@
 #include "gl/progname.h"
 #include "gl/xalloc.h"
 
-#include "gettext.h"
-#define _(msgid) gettext (msgid)
-
 #define ID_MAX_LEN 64
 
 struct sfm_reader
@@ -152,7 +149,7 @@ main (int argc, char *argv[])
               break;
 
             case 4:
-              sys_error (&r, _("Misplaced type 4 record."));
+              sys_error (&r, "Misplaced type 4 record.");
 
             case 6:
               read_document_record (&r);
@@ -163,7 +160,7 @@ main (int argc, char *argv[])
               break;
 
             default:
-              sys_error (&r, _("Unrecognized record type %d."), rec_type);
+              sys_error (&r, "Unrecognized record type %d.", rec_type);
             }
         }
       printf ("%08llx: end-of-dictionary record "
@@ -200,7 +197,7 @@ read_header (struct sfm_reader *r)
   read_string (r, eye_catcher, sizeof eye_catcher);
 
   if (strcmp ("$FL2", rec_type) != 0)
-    sys_error (r, _("This is not an SPSS system file."));
+    sys_error (r, "This is not an SPSS system file.");
 
   /* Identify integer format. */
   read_bytes (r, raw_layout_code, sizeof raw_layout_code);
@@ -210,7 +207,7 @@ read_header (struct sfm_reader *r)
                              &r->integer_format))
       || (r->integer_format != INTEGER_MSB_FIRST
           && r->integer_format != INTEGER_LSB_FIRST))
-    sys_error (r, _("This is not an SPSS system file."));
+    sys_error (r, "This is not an SPSS system file.");
   layout_code = integer_get (r->integer_format,
                              raw_layout_code, sizeof raw_layout_code);
 
@@ -225,9 +222,8 @@ read_header (struct sfm_reader *r)
   read_bytes (r, raw_bias, sizeof raw_bias);
   if (float_identify (100.0, raw_bias, sizeof raw_bias, &r->float_format) == 0)
     {
-      sys_warn (r, _("Compression bias is not the usual "
-                     "value of 100, or system file uses unrecognized "
-                     "floating-point format."));
+      sys_warn (r, "Compression bias is not the usual value of 100, or system "
+                "file uses unrecognized floating-point format.");
       if (r->integer_format == INTEGER_MSB_FIRST)
         r->float_format = FLOAT_IEEE_DOUBLE_BE;
       else
@@ -354,7 +350,7 @@ read_variable_record (struct sfm_reader *r)
 
   /* Get variable label, if any. */
   if (has_variable_label != 0 && has_variable_label != 1)
-    sys_error (r, _("Variable label indicator field is not 0 or 1."));
+    sys_error (r, "Variable label indicator field is not 0 or 1.");
   if (has_variable_label == 1)
     {
       long long int offset = ftello (r->file);
@@ -385,8 +381,8 @@ read_variable_record (struct sfm_reader *r)
         {
           if (missing_value_code < -3 || missing_value_code > 3
               || missing_value_code == -1)
-            sys_error (r, _("Numeric missing value indicator field is not "
-                            "-3, -2, 0, 1, 2, or 3."));
+            sys_error (r, "Numeric missing value indicator field is not "
+                       "-3, -2, 0, 1, 2, or 3.");
           if (missing_value_code < 0)
             {
               double low = read_float (r);
@@ -400,8 +396,8 @@ read_variable_record (struct sfm_reader *r)
       else if (width > 0)
         {
           if (missing_value_code < 1 || missing_value_code > 3)
-            sys_error (r, _("String missing value indicator field is not "
-                            "0, 1, 2, or 3."));
+            sys_error (r, "String missing value indicator field is not "
+                       "0, 1, 2, or 3.");
           for (i = 0; i < missing_value_code; i++)
             {
               char string[9];
@@ -466,8 +462,8 @@ read_value_label_record (struct sfm_reader *r)
 
   /* Read record type of type 4 record. */
   if (read_int (r) != 4)
-    sys_error (r, _("Variable index record (type 4) does not immediately "
-                    "follow value label record (type 3) as it should."));
+    sys_error (r, "Variable index record (type 4) does not immediately "
+               "follow value label record (type 3) as it should.");
 
   /* Read number of variables associated with value label from type 4
      record. */
@@ -569,7 +565,7 @@ read_extension_record (struct sfm_reader *r)
       return;
 
     default:
-      sys_warn (r, _("Unrecognized record type 7, subtype %d."), subtype);
+      sys_warn (r, "Unrecognized record type 7, subtype %d.", subtype);
       read_unknown_extension (r, size, count);
       return;
     }
@@ -592,9 +588,8 @@ read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count)
 
   printf ("%08llx: machine integer info\n", offset);
   if (size != 4 || count != 8)
-    sys_error (r, _("Bad size (%zu) or count (%zu) field on record type 7, "
-                    "subtype 3."),
-                size, count);
+    sys_error (r, "Bad size (%zu) or count (%zu) field on record type 7, "
+               "subtype 3.", size, count);
 
   printf ("\tVersion: %d.%d.%d\n",
           version_major, version_minor, version_revision);
@@ -623,22 +618,22 @@ read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
 
   printf ("%08llx: machine float info\n", offset);
   if (size != 8 || count != 3)
-    sys_error (r, _("Bad size (%zu) or count (%zu) on extension 4."),
+    sys_error (r, "Bad size (%zu) or count (%zu) on extension 4.",
                size, count);
 
   printf ("\tsysmis: %g\n", sysmis);
   if (sysmis != SYSMIS)
-    sys_warn (r, _("File specifies unexpected value %g as %s."),
+    sys_warn (r, "File specifies unexpected value %g as %s.",
               sysmis, "SYSMIS");
 
   printf ("\thighest: %g\n", highest);
   if (highest != HIGHEST)
-    sys_warn (r, _("File specifies unexpected value %g as %s."),
+    sys_warn (r, "File specifies unexpected value %g as %s.",
               highest, "HIGHEST");
 
   printf ("\tlowest: %g\n", lowest);
   if (lowest != LOWEST)
-    sys_warn (r, _("File specifies unexpected value %g as %s."),
+    sys_warn (r, "File specifies unexpected value %g as %s.",
               lowest, "LOWEST");
 }
 
@@ -689,8 +684,8 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count)
 
           if (!text_match (text, ' '))
             {
-              sys_warn (r, _("Missing space following `%c' at offset %zu "
-                             "in MRSETS record"), 'E', text_pos (text));
+              sys_warn (r, "Missing space following `%c' at offset %zu "
+                        "in MRSETS record", 'E', text_pos (text));
               break;
             }
 
@@ -698,8 +693,8 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count)
           if (!strcmp (number, "11"))
             label_from_var_label = true;
           else if (strcmp (number, "1"))
-            sys_warn (r, _("Unexpected label source value `%s' "
-                           "following `E' at offset %zu in MRSETS record"),
+            sys_warn (r, "Unexpected label source value `%s' "
+                      "following `E' at offset %zu in MRSETS record",
                       number, text_pos (text));
 
         }
@@ -756,7 +751,7 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count)
           (long long int) ftello (r->file));
   if (size != 4)
     {
-      sys_warn (r, _("Bad size %zu on extension 11."), size);
+      sys_warn (r, "Bad size %zu on extension 11.", size);
       skip_bytes (r, size * count);
       return;
     }
@@ -768,7 +763,7 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count)
     includes_width = false;
   else
     {
-      sys_warn (r, _("Extension 11 has bad count %zu (for %zu variables)."),
+      sys_warn (r, "Extension 11 has bad count %zu (for %zu variables.",
                 count, n_vars);
       skip_bytes (r, size * count);
       return;
@@ -848,13 +843,13 @@ read_attributes (struct sfm_reader *r, struct text_record *text,
           const char *value = text_tokenize (text, '\n');
           if (value == NULL) 
             {
-              sys_warn (r, _("%s: Error parsing attribute value %s[%d]"),
+              sys_warn (r, "%s: Error parsing attribute value %s[%d]",
                         variable, key, index);
               return false;
             }
           if (strlen (value) < 2
               || value[0] != '\'' || value[strlen (value) - 1] != '\'')
-            sys_warn (r, _("%s: Attribute value %s[%d] is not quoted: %s"),
+            sys_warn (r, "%s: Attribute value %s[%d] is not quoted: %s",
                       variable, key, index, value);
           else
             printf ("\t%s: %s[%d] = \"%.*s\"\n",
@@ -878,13 +873,13 @@ read_ncases64 (struct sfm_reader *r, size_t size, size_t count)
 
   if (size != 8)
     {
-      sys_warn (r, _("Bad size %zu for extended number of cases."), size);
+      sys_warn (r, "Bad size %zu for extended number of cases.", size);
       skip_bytes (r, size * count);
       return;
     }
   if (count != 2)
     {
-      sys_warn (r, _("Bad count %zu for extended number of cases."), size);
+      sys_warn (r, "Bad count %zu for extended number of cases.", size);
       skip_bytes (r, size * count);
       return;
     }
@@ -934,8 +929,8 @@ read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
       /* Read variable name. */
       var_name_len = read_int (r);
       if (var_name_len > ID_MAX_LEN)
-        sys_error (r, _("Variable name length in long string value label "
-                        "record (%d) exceeds %d-byte limit."),
+        sys_error (r, "Variable name length in long string value label "
+                   "record (%d) exceeds %d-byte limit.",
                    var_name_len, ID_MAX_LEN);
       read_string (r, var_name, var_name_len + 1);
 
@@ -1353,9 +1348,9 @@ read_bytes_internal (struct sfm_reader *r, bool eof_is_ok,
   if (bytes_read == byte_cnt)
     return true;
   else if (ferror (r->file))
-    sys_error (r, _("System error: %s."), strerror (errno));
+    sys_error (r, "System error: %s.", strerror (errno));
   else if (!eof_is_ok || bytes_read != 0)
-    sys_error (r, _("Unexpected end of file."));
+    sys_error (r, "Unexpected end of file.");
   else
     return false;
 }
