@@ -177,13 +177,6 @@ tests_libpspp_sparse_xarray_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_data_inexactify_SOURCES = tests/data/inexactify.c
 
-noinst_PROGRAMS += tests/dissect-sysfile
-tests_dissect_sysfile_SOURCES = \
-	src/libpspp/integer-format.c \
-	src/libpspp/float-format.c \
-	tests/dissect-sysfile.c
-tests_dissect_sysfile_CPPFLAGS = $(AM_CPPFLAGS) -DINSTALLDIR=\"$(bindir)\"
-
 check_PROGRAMS += tests/language/lexer/command-name-test
 tests_language_lexer_command_name_test_SOURCES = \
 	src/data/identifier.c \
