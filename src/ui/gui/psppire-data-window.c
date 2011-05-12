@@ -63,6 +63,7 @@
 #include "ui/gui/weight-cases-dialog.h"
 #include "ui/syntax-gen.h"
 
+#include "gl/c-strcase.h"
 #include "gl/xvasprintf.h"
 
 #include <gettext.h>
@@ -334,6 +335,26 @@ dump_rm (GtkRecentManager *rm)
 }
 #endif
 
+static gboolean
+name_has_por_suffix (const gchar *name)
+{
+  size_t length = strlen (name);
+  return length > 4 && !c_strcasecmp (&name[length - 4], ".por");
+}
+
+static gboolean
+name_has_sav_suffix (const gchar *name)
+{
+  size_t length = strlen (name);
+  return length > 4 && !c_strcasecmp (&name[length - 4], ".sav");
+}
+
+/* Returns true if NAME has a suffix which might denote a PSPP file */
+static gboolean
+name_has_suffix (const gchar *name)
+{
+  return name_has_por_suffix (name) || name_has_sav_suffix (name);
+}
 
 static gboolean
 load_file (PsppireWindow *de, const gchar *file_name)
@@ -360,21 +381,6 @@ load_file (PsppireWindow *de, const gchar *file_name)
   return ok;
 }
 
-/* Returns true if NAME has a suffix which might denote a PSPP file */
-static gboolean
-name_has_suffix (const gchar *name)
-{
-  if ( g_str_has_suffix (name, ".sav"))
-    return TRUE;
-  if ( g_str_has_suffix (name, ".SAV"))
-    return TRUE;
-  if ( g_str_has_suffix (name, ".por"))
-    return TRUE;
-  if ( g_str_has_suffix (name, ".POR"))
-    return TRUE;
-
-  return FALSE;
-}
 
 
 /* Save DE to file */
