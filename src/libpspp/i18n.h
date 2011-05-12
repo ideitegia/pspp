@@ -134,5 +134,6 @@ struct encoding_info
 
 bool get_encoding_info (struct encoding_info *, const char *name);
 bool is_encoding_ascii_compatible (const char *encoding);
+bool is_encoding_supported (const char *encoding);
 
 #endif /* i18n.h */

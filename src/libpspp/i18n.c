@@ -47,14 +47,15 @@ struct converter
     char *tocode;
     char *fromcode;
     iconv_t conv;
+    int error;
   };
 
 static char *default_encoding;
 static struct hmapx map;
 
 /* A wrapper around iconv_open */
-static iconv_t
-create_iconv (const char* tocode, const char* fromcode)
+static struct converter *
+create_iconv__ (const char* tocode, const char* fromcode)
 {
   size_t hash;
   struct hmapx_node *node;
@@ -65,23 +66,34 @@ create_iconv (const char* tocode, const char* fromcode)
   HMAPX_FOR_EACH_WITH_HASH (converter, node, hash, &map)
     if (!strcmp (tocode, converter->tocode)
         && !strcmp (fromcode, converter->fromcode))
-      return converter->conv;
+      return converter;
 
   converter = xmalloc (sizeof *converter);
   converter->tocode = xstrdup (tocode);
   converter->fromcode = xstrdup (fromcode);
   converter->conv = iconv_open (tocode, fromcode);
+  converter->error = converter->conv == (iconv_t) -1 ? errno : 0;
   hmapx_insert (&map, converter, hash);
+
+  return converter;
+}
+
+static iconv_t
+create_iconv (const char* tocode, const char* fromcode)
+{
+  struct converter *converter;
+
+  converter = create_iconv__ (tocode, fromcode);
 
   /* I don't think it's safe to translate this string or to use messaging
      as the converters have not yet been set up */
-  if ( (iconv_t) -1 == converter->conv && 0 != strcmp (tocode, fromcode))
+  if (converter->error && strcmp (tocode, fromcode))
     {
-      const int err = errno;
       fprintf (stderr,
                "Warning: "
                "cannot create a converter for `%s' to `%s': %s\n",
-               fromcode, tocode, strerror (err));
+               fromcode, tocode, strerror (converter->error));
+      converter->error = 0;
     }
 
   return converter->conv;
@@ -720,4 +732,13 @@ is_encoding_ascii_compatible (const char *encoding)
 
   get_encoding_info (&e, encoding);
   return e.is_ascii_compatible;
+}
+
+/* Returns true if iconv can convert ENCODING to and from UTF-8,
+   otherwise false. */
+bool
+is_encoding_supported (const char *encoding)
+{
+  return (create_iconv__ ("UTF-8", encoding)->conv != (iconv_t) -1
+          && create_iconv__ (encoding, "UTF-8")->conv != (iconv_t) -1);
 }
