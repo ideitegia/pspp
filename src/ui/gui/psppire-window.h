@@ -114,6 +114,7 @@ gboolean psppire_window_load (PsppireWindow *w, const gchar *file);
 void psppire_window_open (PsppireWindow *de);
 GtkWidget *psppire_window_file_chooser_dialog (PsppireWindow *toplevel);
 
+void add_most_recent (const char *file_name, const char *mime_type);
 
 G_END_DECLS
 

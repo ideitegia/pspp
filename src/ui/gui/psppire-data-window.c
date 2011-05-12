@@ -23,6 +23,7 @@
 #include "data/session.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/message.h"
+#include "libpspp/str.h"
 #include "ui/gui/aggregate-dialog.h"
 #include "ui/gui/binomial-dialog.h"
 #include "ui/gui/chi-square-dialog.h"
@@ -64,6 +65,7 @@
 #include "ui/syntax-gen.h"
 
 #include "gl/c-strcase.h"
+#include "gl/c-strcasestr.h"
 #include "gl/xvasprintf.h"
 
 #include <gettext.h>
@@ -359,8 +361,9 @@ name_has_suffix (const gchar *name)
 static gboolean
 load_file (PsppireWindow *de, const gchar *file_name)
 {
-  gchar *utf8_file_name;
   struct string filename;
+  gchar *utf8_file_name;
+  const char *mime_type;
   gchar *syntax;
   bool ok;
 
@@ -378,10 +381,14 @@ load_file (PsppireWindow *de, const gchar *file_name)
   ok = execute_syntax (PSPPIRE_DATA_WINDOW (de),
                        lex_reader_for_string (syntax));
   g_free (syntax);
+
+  mime_type = (name_has_por_suffix (file_name)
+               ? "application/x-spss-por"
+               : "application/x-spss-sav");
+  add_most_recent (ds_cstr (&filename), mime_type);
+
   return ok;
 }
-
-
 
 /* Save DE to file */
 static void
@@ -756,21 +763,63 @@ on_recent_data_select (GtkMenuShell *menushell,
   g_free (file);
 }
 
+static char *
+charset_from_mime_type (const char *mime_type)
+{
+  const char *charset;
+  struct string s;
+  const char *p;
+
+  if (mime_type == NULL)
+    return NULL;
+
+  charset = c_strcasestr (mime_type, "charset=");
+  if (charset == NULL)
+    return NULL;
+
+  ds_init_empty (&s);
+  p = charset + 8;
+  if (*p == '"')
+    {
+      /* Parse a "quoted-string" as defined by RFC 822. */
+      for (p++; *p != '\0' && *p != '"'; p++)
+        {
+          if (*p != '\\')
+            ds_put_byte (&s, *p);
+          else if (*++p != '\0')
+            ds_put_byte (&s, *p);
+        }
+    }
+  else
+    {
+      /* Parse a "token" as defined by RFC 2045. */
+      while (*p > 32 && *p < 127 && strchr ("()<>@,;:\\\"/[]?=", *p) == NULL)
+        ds_put_byte (&s, *p++);
+    }
+  if (!ds_is_empty (&s))
+    return ds_steal_cstr (&s);
+
+  ds_destroy (&s);
+  return NULL;
+}
+
 static void
 on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 {
+  GtkRecentInfo *item;
+  char *encoding;
+  GtkWidget *se;
   gchar *file;
 
-  GtkWidget *se ;
+  /* Get the file name and its encoding. */
+  item = gtk_recent_chooser_get_current_item (GTK_RECENT_CHOOSER (menushell));
+  file = g_filename_from_uri (gtk_recent_info_get_uri (item), NULL, NULL);
+  encoding = charset_from_mime_type (gtk_recent_info_get_mime_type (item));
+  gtk_recent_info_unref (item);
 
-  gchar *uri =
-    gtk_recent_chooser_get_current_uri (GTK_RECENT_CHOOSER (menushell));
+  se = psppire_syntax_window_new (encoding);
 
-  file = g_filename_from_uri (uri, NULL, NULL);
-
-  g_free (uri);
-
-  se = psppire_syntax_window_new (NULL);
+  free (encoding);
 
   if ( psppire_window_load (PSPPIRE_WINDOW (se), file) ) 
     gtk_widget_show (se);

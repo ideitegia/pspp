@@ -867,6 +867,7 @@ syntax_load (PsppireWindow *window, const gchar *filename)
   GtkTextIter iter;
   PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (window);
   gchar *encoding;
+  char *mime_type;
 
   /* FIXME: What if it's a very big file ? */
   if ( ! g_file_get_contents (filename, &text_locale, &len_locale, &err) )
@@ -896,6 +897,10 @@ syntax_load (PsppireWindow *window, const gchar *filename)
   gtk_text_buffer_set_modified (sw->buffer, FALSE);
 
   free (text_utf8);
+
+  mime_type = xasprintf ("text/x-spss-syntax; charset=%s", sw->encoding);
+  add_most_recent (filename, mime_type);
+  free (mime_type);
 
   return TRUE;
 }

@@ -692,8 +692,6 @@ psppire_window_save_as (PsppireWindow *w)
     }
 }
 
-
-static void add_most_recent (const char *file_name);
 static void delete_recent (const char *file_name);
 
 gboolean
@@ -713,7 +711,6 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
   if ( ok )
     {
       psppire_window_set_filename (w, file);
-      add_most_recent (file);
       w->dirty = FALSE;
     }
   else
@@ -832,16 +829,31 @@ psppire_window_open (PsppireWindow *de)
 }
 
 
-/* Puts FILE_NAME into the recent list.
-   If it's already in the list, it moves it to the top
-*/
-static void
-add_most_recent (const char *file_name)
+/* Puts FILE_NAME (encoded in the glib file name encoding) into the recent list
+   with associated MIME_TYPE.  If it's already in the list, it moves it to the
+   top. */
+void
+add_most_recent (const char *file_name, const char *mime_type)
 {
   gchar *uri = g_filename_to_uri  (file_name, NULL, NULL);
 
   if ( uri )
-    gtk_recent_manager_add_item (gtk_recent_manager_get_default (), uri);
+    {
+      GtkRecentData recent_data;
+
+      recent_data.display_name = NULL;
+      recent_data.description = NULL;
+      recent_data.mime_type = CONST_CAST (gchar *, mime_type);
+      recent_data.app_name = CONST_CAST (gchar *, g_get_application_name ());
+      recent_data.app_exec = g_strjoin (" ", g_get_prgname (), "%u", NULL);
+      recent_data.groups = NULL;
+      recent_data.is_private = FALSE;
+
+      gtk_recent_manager_add_full (gtk_recent_manager_get_default (),
+                                   uri, &recent_data);
+
+      g_free (recent_data.app_exec);
+    }
 
   g_free (uri);
 }
