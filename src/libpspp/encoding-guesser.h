@@ -115,6 +115,10 @@ bool encoding_guess_tail_is_utf8 (const void *, size_t);
 const char *encoding_guess_tail_encoding (const char *encoding,
                                           const void *, size_t);
 
+/* Guessing from entire file contents. */
+const char *encoding_guess_whole_file (const char *encoding,
+                                       const void *, size_t);
+
 /* Returns true if C is a byte that might appear in an ASCII text file,
    false otherwise. */
 static inline bool

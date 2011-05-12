@@ -283,3 +283,30 @@ encoding_guess_tail_is_utf8 (const void *data, size_t n)
           : is_all_utf8_text (data, n));
 }
 
+/* Attempts to guess the encoding of a text file based on ENCODING, an encoding
+   name in one of the forms described at the top of encoding-guesser.h, and the
+   SIZE byts in DATA, which contains the entire contents of the file.  Returns
+   the guessed encoding, which might be ENCODING itself or a suffix of it or a
+   statically allocated string.
+
+   Encoding autodetection only takes place if ENCODING actually specifies
+   autodetection.  See encoding-guesser.h for details. */
+const char *
+encoding_guess_whole_file (const char *encoding, const void *text, size_t size)
+{
+  const char *guess;
+
+  guess = encoding_guess_head_encoding (encoding, text, size);
+  if (!strcmp (guess, "ASCII") && encoding_guess_encoding_is_auto (encoding))
+    {
+      size_t ofs = encoding_guess_count_ascii (text, size);
+      if (ofs < size)
+        return encoding_guess_tail_encoding (encoding,
+                                             (const char *) text + ofs,
+                                             size - ofs);
+      else
+        return encoding_guess_parse_encoding (encoding);
+    }
+  else
+    return guess;
+}
