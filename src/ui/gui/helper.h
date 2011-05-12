@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2009, 2010  Free Software Foundation
+   Copyright (C) 2004, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,20 @@
 gchar *paste_syntax_to_window (gchar *syntax);
 
 struct fmt_spec;
+
+/* Returns a new GParamSpec for a string.  An attempt to store the empty string
+   in the parameter will be silently translated into storing a null pointer. */
+static inline GParamSpec *
+null_if_empty_param (const gchar *name, const gchar *nick,
+                     const gchar *blurb, const gchar *default_value,
+                     GParamFlags flags)
+{
+  GParamSpec *param;
+
+  param = g_param_spec_string (name, nick, blurb, default_value, flags);
+  ((GParamSpecString *) param)->null_fold_if_empty = TRUE;
+  return param;
+}
 
 
 /* Formats a value according to FORMAT

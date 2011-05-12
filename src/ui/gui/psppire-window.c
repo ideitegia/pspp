@@ -271,18 +271,6 @@ psppire_window_finalize (GObject *object)
     G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
-static GParamSpec *
-null_if_empty_param (const gchar *name, const gchar *nick,
-                     const gchar *blurb, const gchar *default_value,
-                     GParamFlags flags)
-{
-  GParamSpec *param;
-
-  param = g_param_spec_string (name, nick, blurb, default_value, flags);
-  ((GParamSpecString *) param)->null_fold_if_empty = TRUE;
-  return param;
-}
-
 static void
 psppire_window_class_init (PsppireWindowClass *class)
 {
