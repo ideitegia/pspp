@@ -456,7 +456,7 @@ set_initial_pos (GtkPaned *pane)
 		"max-position", &max_pos,
 		NULL);
 
-  gtk_paned_set_position (pane, max_pos / 2);
+  gtk_paned_set_position (pane, max_pos);
 }
 
 
