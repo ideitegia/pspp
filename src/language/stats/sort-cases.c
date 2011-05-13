@@ -69,7 +69,7 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
     }
 
   proc_discard_output (ds);
-  output = sort_execute (proc_open (ds), &ordering);
+  output = sort_execute (proc_open_filtering (ds, false), &ordering);
   ok = proc_commit (ds);
   ok = dataset_set_source (ds, output) && ok;
 
