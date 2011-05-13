@@ -8,6 +8,7 @@ GNULIB_MODULES = \
 	assert \
 	byteswap \
 	c-strcase \
+	c-strcasestr \
 	c-ctype \
 	c-strtod \
 	clean-temp \

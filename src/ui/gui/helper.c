@@ -290,7 +290,7 @@ paste_syntax_to_window (gchar *syntax)
 
   if ( NULL == the_syntax_pasteboard)
     {
-      the_syntax_pasteboard = psppire_syntax_window_new ();
+      the_syntax_pasteboard = psppire_syntax_window_new (NULL);
       g_signal_connect (the_syntax_pasteboard, "delete-event", G_CALLBACK (on_delete),
 			&the_syntax_pasteboard);
     }

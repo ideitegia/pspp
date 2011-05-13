@@ -20,18 +20,23 @@
 #include <stdlib.h>
 
 #include "language/lexer/lexer.h"
+#include "libpspp/encoding-guesser.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/help-menu.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/psppire-data-window.h"
+#include "ui/gui/psppire-encoding-selector.h"
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-window-register.h"
 #include "ui/gui/psppire.h"
 #include "ui/gui/psppire.h"
 
+#include "gl/localcharset.h"
 #include "gl/xalloc.h"
+#include "gl/xvasprintf.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -45,6 +50,53 @@ static void psppire_syntax_window_init          (PsppireSyntaxWindow      *synta
 
 static void psppire_syntax_window_iface_init (PsppireWindowIface *iface);
 
+
+/* Properties */
+enum
+{
+  PROP_0,
+  PROP_ENCODING
+};
+
+static void
+psppire_syntax_window_set_property (GObject         *object,
+                                    guint            prop_id,
+                                    const GValue    *value,
+                                    GParamSpec      *pspec)
+{
+  PsppireSyntaxWindow *window = PSPPIRE_SYNTAX_WINDOW (object);
+
+  switch (prop_id)
+    {
+    case PROP_ENCODING:
+      g_free (window->encoding);
+      window->encoding = g_value_dup_string (value);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
+
+
+static void
+psppire_syntax_window_get_property (GObject         *object,
+                                    guint            prop_id,
+                                    GValue          *value,
+                                    GParamSpec      *pspec)
+{
+  PsppireSyntaxWindow *window = PSPPIRE_SYNTAX_WINDOW (object);
+
+  switch (prop_id)
+    {
+    case PROP_ENCODING:
+      g_value_set_string (value, window->encoding);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
 
 GType
 psppire_syntax_window_get_type (void)
@@ -106,6 +158,9 @@ psppire_syntax_window_dispose (GObject *obj)
   if (sw->dispose_has_run)
     return;
 
+  g_free (sw->encoding);
+  sw->encoding = NULL;
+
   clip_selection = gtk_widget_get_clipboard (GTK_WIDGET (sw), GDK_SELECTION_CLIPBOARD);
   clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (sw), GDK_SELECTION_PRIMARY);
 
@@ -127,9 +182,22 @@ psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (class);
 
+  GParamSpec *encoding_spec =
+    null_if_empty_param ("encoding",
+                         "Character encoding",
+                         "IANA character encoding in this syntax file",
+			 NULL,
+			 G_PARAM_CONSTRUCT | G_PARAM_READWRITE);
+
   parent_class = g_type_class_peek_parent (class);
 
+  gobject_class->set_property = psppire_syntax_window_set_property;
+  gobject_class->get_property = psppire_syntax_window_get_property;
   gobject_class->dispose = psppire_syntax_window_dispose;
+
+  g_object_class_install_property (gobject_class,
+                                   PROP_ENCODING,
+                                   encoding_spec);
 }
 
 
@@ -451,6 +519,7 @@ save_editor_to_file (PsppireSyntaxWindow *se,
 		     GError **err)
 {
   GtkTextBuffer *buffer = se->buffer;
+  struct substring text_locale;
   gboolean result ;
   GtkTextIter start, stop;
   gchar *text;
@@ -465,8 +534,13 @@ save_editor_to_file (PsppireSyntaxWindow *se,
 
   text = gtk_text_buffer_get_text (buffer, &start, &stop, FALSE);
 
-  result =  g_file_set_contents (suffixedname, text, -1, err);
+  text_locale = recode_substring_pool (se->encoding, "UTF-8", ss_cstr (text),
+                                       NULL);
 
+  result =  g_file_set_contents (suffixedname, ss_data (text_locale),
+                                 ss_length (text_locale), err);
+
+  ss_dealloc (&text_locale);
   g_free (suffixedname);
 
   if ( result )
@@ -485,8 +559,10 @@ save_editor_to_file (PsppireSyntaxWindow *se,
 
 /* PsppireWindow 'pick_Filename' callback. */
 static void
-syntax_pick_filename (PsppireWindow *se)
+syntax_pick_filename (PsppireWindow *window)
 {
+  PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (window);
+  const char *default_encoding;
   GtkFileFilter *filter;
   gint response;
 
@@ -511,14 +587,30 @@ syntax_pick_filename (PsppireWindow *se)
 
   gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog),
 						  TRUE);
+
+  default_encoding = se->encoding != NULL ? se->encoding : locale_charset ();
+  gtk_file_chooser_set_extra_widget (
+    GTK_FILE_CHOOSER (dialog),
+    psppire_encoding_selector_new (default_encoding, false));
+
   response = gtk_dialog_run (GTK_DIALOG (dialog));
 
   if ( response == GTK_RESPONSE_ACCEPT )
     {
-      char *filename =
-	gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog) );
-      psppire_window_set_filename (se, filename);
+      gchar *encoding;
+      char *filename;
+
+      filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog) );
+      psppire_window_set_filename (window, filename);
       free (filename);
+
+      encoding = psppire_encoding_selector_get_encoding (
+        gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (dialog)));
+      if (encoding != NULL)
+        {
+          g_free (se->encoding);
+          se->encoding = encoding;
+        }
     }
 
   gtk_widget_destroy (dialog);
@@ -553,14 +645,14 @@ on_quit (GtkMenuItem *menuitem, gpointer    user_data)
 void
 create_syntax_window (void)
 {
-  GtkWidget *w = psppire_syntax_window_new ();
+  GtkWidget *w = psppire_syntax_window_new (NULL);
   gtk_widget_show (w);
 }
 
 void
-open_syntax_window (const char *file_name)
+open_syntax_window (const char *file_name, const gchar *encoding)
 {
-  GtkWidget *se = psppire_syntax_window_new ();
+  GtkWidget *se = psppire_syntax_window_new (encoding);
 
   if ( psppire_window_load (PSPPIRE_WINDOW (se), file_name) )
     gtk_widget_show (se);
@@ -595,6 +687,8 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   GtkClipboard *clip_selection = gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_CLIPBOARD);
   GtkClipboard *clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
+
+  window->encoding = NULL;
 
   window->cliptext = NULL;
   window->dispose_has_run = FALSE;
@@ -726,10 +820,11 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
 
 GtkWidget*
-psppire_syntax_window_new (void)
+psppire_syntax_window_new (const char *encoding)
 {
   return GTK_WIDGET (g_object_new (psppire_syntax_window_get_type (),
 				   "description", _("Syntax Editor"),
+                                   "encoding", encoding,
 				   NULL));
 }
 
@@ -771,6 +866,7 @@ syntax_load (PsppireWindow *window, const gchar *filename)
   gsize len_utf8 = -1;
   GtkTextIter iter;
   PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (window);
+  gchar *encoding;
 
   /* FIXME: What if it's a very big file ? */
   if ( ! g_file_get_contents (filename, &text_locale, &len_locale, &err) )
@@ -780,16 +876,18 @@ syntax_load (PsppireWindow *window, const gchar *filename)
       return FALSE;
     }
 
-  text_utf8 = g_locale_to_utf8 (text_locale, len_locale, NULL, &len_utf8, &err);
+  /* Determine the file's encoding and update sw->encoding.  (The ordering is
+     important here because encoding_guess_whole_file() often returns its
+     argument instead of a copy of it.) */
+  encoding = g_strdup (encoding_guess_whole_file (sw->encoding, text_locale,
+                                                  len_locale));
+  g_free (sw->encoding);
+  sw->encoding = encoding;
 
+  text_utf8 = recode_substring_pool ("UTF-8", encoding,
+                                     ss_buffer (text_locale, len_locale),
+                                     NULL).string;
   free (text_locale);
-
-  if ( text_utf8 == NULL )
-    {
-      error_dialog (GTK_WINDOW (window), filename, err);
-      g_clear_error (&err);
-      return FALSE;
-    }
 
   gtk_text_buffer_get_iter_at_line (sw->buffer, &iter, 0);
 

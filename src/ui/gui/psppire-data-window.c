@@ -770,7 +770,7 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 
   g_free (uri);
 
-  se = psppire_syntax_window_new ();
+  se = psppire_syntax_window_new (NULL);
 
   if ( psppire_window_load (PSPPIRE_WINDOW (se), file) ) 
     gtk_widget_show (se);

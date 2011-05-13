@@ -33,6 +33,7 @@
 #include "helper.h"
 #include "psppire-conf.h"
 #include "psppire-data-window.h"
+#include "psppire-encoding-selector.h"
 #include "psppire-syntax-window.h"
 #include "psppire-window-register.h"
 #include "psppire.h"
@@ -788,6 +789,9 @@ psppire_window_file_chooser_dialog (PsppireWindow *toplevel)
       free (dir_name);
     }
 
+  gtk_file_chooser_set_extra_widget (
+    GTK_FILE_CHOOSER (dialog), psppire_encoding_selector_new ("Auto", true));
+
   return dialog;
 }
 
@@ -807,11 +811,15 @@ psppire_window_open (PsppireWindow *de)
 
 	gchar *sysname = convert_glib_filename_to_system_filename (name, NULL);
 
+        gchar *encoding = psppire_encoding_selector_get_encoding (
+          gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (dialog)));
+
 	if (any_reader_may_open (sysname))
           open_data_window (de, name);
 	else
-	  open_syntax_window (name);
+	  open_syntax_window (name, encoding);
 
+        g_free (encoding);
 	g_free (sysname);
 	g_free (name);
       }

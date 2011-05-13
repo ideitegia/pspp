@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010  Free Software Foundation
+   Copyright (C) 2008, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,6 +45,8 @@ struct _PsppireSyntaxWindow
 
   /* <private> */
 
+  gchar *encoding;              /* File's encoding. */
+
   GtkTextBuffer *buffer;  /* The buffer which contains the text */
   GtkWidget *sb;
   guint text_context;
@@ -69,10 +71,10 @@ struct _PsppireSyntaxWindowClass
 };
 
 GType      psppire_syntax_window_get_type        (void);
-GtkWidget* psppire_syntax_window_new             (void);
+GtkWidget* psppire_syntax_window_new             (const char *encoding);
 
 void create_syntax_window (void);
-void open_syntax_window (const char *file_name);
+void open_syntax_window (const char *file_name, const char *encoding);
 
 G_END_DECLS
 

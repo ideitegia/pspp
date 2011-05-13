@@ -185,6 +185,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dict.h \
 	src/ui/gui/psppire-dictview.c \
 	src/ui/gui/psppire-dictview.h \
+	src/ui/gui/psppire-encoding-selector.c \
+	src/ui/gui/psppire-encoding-selector.h \
 	src/ui/gui/psppire-hbuttonbox.h \
 	src/ui/gui/psppire-keypad.h \
 	src/ui/gui/psppire-output-window.c \
