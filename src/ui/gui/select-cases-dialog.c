@@ -366,7 +366,7 @@ generate_syntax_filter (const struct select_cases_dialog *scd)
   gchar *text = NULL;
   GString *string = g_string_new ("");
 
-  const gchar filter[]="filter_$";
+  const gchar *filter = "filter_$";
   const gchar key[]="case_$";
 
   if ( gtk_toggle_button_get_active
@@ -461,6 +461,13 @@ generate_syntax_filter (const struct select_cases_dialog *scd)
 
       g_string_append (string, "EXECUTE.\n");
 
+    }
+  else
+    {
+      GtkEntry *entry =
+	GTK_ENTRY (get_widget_assert (scd->xml,
+				      "filter-variable-entry"));
+      filter = gtk_entry_get_text (entry);
     }
 
 
