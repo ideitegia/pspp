@@ -303,4 +303,5 @@ src/ui/gui/include/gtk/gtk.h: src/ui/gui/include/gtk/gtk.in.h
 	      < $(srcdir)/src/ui/gui/include/gtk/gtk.in.h; \
 	} > $@-t && \
 	mv $@-t $@
+CLEANFILES += src/ui/gui/include/gtk/gtk.h
 EXTRA_DIST += src/ui/gui/include/gtk/gtk.in.h
