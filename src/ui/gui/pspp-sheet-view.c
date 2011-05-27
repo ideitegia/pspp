@@ -186,10 +186,6 @@ static gboolean pspp_sheet_view_button_release       (GtkWidget        *widget,
 						    GdkEventButton   *event);
 static gboolean pspp_sheet_view_grab_broken          (GtkWidget          *widget,
 						    GdkEventGrabBroken *event);
-#if 0
-static gboolean pspp_sheet_view_configure            (GtkWidget         *widget,
-						    GdkEventConfigure *event);
-#endif
 
 static void     pspp_sheet_view_set_focus_child      (GtkContainer     *container,
 						    GtkWidget        *child);
@@ -696,13 +692,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 							     P_("Width, in pixels, of the tree view lines"),
 							     0, G_MAXINT, 1,
 							     GTK_PARAM_READABLE));
-
-  gtk_widget_class_install_style_property (widget_class,
-					   g_param_spec_string ("grid-line-pattern",
-								P_("Grid line pattern"),
-								P_("Dash pattern used to draw the tree view grid lines"),
-								"\1\1",
-								GTK_PARAM_READABLE));
 
   gtk_widget_class_install_style_property (widget_class,
 					   g_param_spec_string ("tree-line-pattern",
@@ -2515,20 +2504,6 @@ pspp_sheet_view_grab_broken (GtkWidget          *widget,
   return TRUE;
 }
 
-#if 0
-static gboolean
-pspp_sheet_view_configure (GtkWidget *widget,
-			 GdkEventConfigure *event)
-{
-  PsppSheetView *tree_view;
-
-  tree_view = PSPP_SHEET_VIEW (widget);
-  tree_view->priv->search_position_func (tree_view, tree_view->priv->search_window);
-
-  return FALSE;
-}
-#endif
-
 /* GtkWidget::motion_event function set.
  */
 
@@ -3485,10 +3460,13 @@ pspp_sheet_view_draw_grid_lines (PsppSheetView    *tree_view,
   GList *list = tree_view->priv->columns;
   gint i = 0;
   gint current_x = 0;
+  gint height;
 
   if (tree_view->priv->grid_lines != PSPP_SHEET_VIEW_GRID_LINES_VERTICAL
       && tree_view->priv->grid_lines != PSPP_SHEET_VIEW_GRID_LINES_BOTH)
     return;
+
+  gdk_drawable_get_size (event->window, NULL, &height);
 
   /* Only draw the lines for visible rows and columns */
   for (list = tree_view->priv->columns; list; list = list->next, i++)
@@ -3507,7 +3485,7 @@ pspp_sheet_view_draw_grid_lines (PsppSheetView    *tree_view,
       gdk_draw_line (event->window,
 		     tree_view->priv->grid_line_gc,
 		     current_x - 1, 0,
-		     current_x - 1, tree_view->priv->height);
+		     current_x - 1, height);
     }
 }
 
@@ -11880,22 +11858,13 @@ pspp_sheet_view_set_grid_lines (PsppSheetView           *tree_view,
 	  !priv->grid_line_gc)
 	{
 	  gint line_width;
-	  gint8 *dash_list;
 
 	  gtk_widget_style_get (widget,
 				"grid-line-width", &line_width,
-				"grid-line-pattern", (gchar *)&dash_list,
 				NULL);
       
 	  priv->grid_line_gc = gdk_gc_new (widget->window);
 	  gdk_gc_copy (priv->grid_line_gc, widget->style->black_gc);
-	  
-	  gdk_gc_set_line_attributes (priv->grid_line_gc, line_width,
-				      GDK_LINE_ON_OFF_DASH,
-				      GDK_CAP_BUTT, GDK_JOIN_MITER);
-	  gdk_gc_set_dashes (priv->grid_line_gc, 0, dash_list, 2);
-
-	  g_free (dash_list);
 	}      
     }
 
