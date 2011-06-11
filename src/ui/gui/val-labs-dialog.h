@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005  Free Software Foundation
+   Copyright (C) 2005, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 struct val_labs;
 
 
-struct val_labs_dialog * val_labs_dialog_create (GtkWindow *, PsppireVarStore *);
+struct val_labs_dialog * val_labs_dialog_create (GtkWindow *);
 
 void val_labs_dialog_show (struct val_labs_dialog *);
 

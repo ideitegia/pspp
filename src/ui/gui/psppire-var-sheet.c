@@ -387,8 +387,6 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	vs->missing_val_dialog->pv =
 	  psppire_var_store_get_var (var_store, row);
 
-	vs->missing_val_dialog->dict = var_store->dictionary;
-
 	g_signal_connect_swapped (customEntry,
 				  "clicked",
 				  G_CALLBACK (missing_val_dialog_show),
@@ -483,12 +481,10 @@ psppire_var_sheet_realize (GtkWidget *w)
 
   GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (vs));
 
-  vs->val_labs_dialog = val_labs_dialog_create (GTK_WINDOW (toplevel),
-						PSPPIRE_VAR_STORE (psppire_sheet_get_model (PSPPIRE_SHEET (vs))));
+  vs->val_labs_dialog = val_labs_dialog_create (GTK_WINDOW (toplevel));
 
   vs->missing_val_dialog = missing_val_dialog_create (GTK_WINDOW (toplevel));
-  vs->var_type_dialog = var_type_dialog_create (GTK_WINDOW (toplevel),
-						PSPPIRE_VAR_STORE (psppire_sheet_get_model (PSPPIRE_SHEET (vs))));
+  vs->var_type_dialog = var_type_dialog_create (GTK_WINDOW (toplevel));
 
   /* Chain up to the parent class */
   GTK_WIDGET_CLASS (parent_class)->realize (w);

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005  Free Software Foundation
+   Copyright (C) 2005, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -47,10 +47,6 @@ struct var_type_dialog
   /* Variable to be updated */
   struct variable *pv;
   
-  /* The variable store to which this dialog relates */
-  PsppireVarStore *vs;
-  
-
   /* Local copy of format specifier */
   struct fmt_spec fmt_l;
 
@@ -88,7 +84,7 @@ struct var_type_dialog
 };
 
 
-struct var_type_dialog * var_type_dialog_create (GtkWindow *, PsppireVarStore *vs);
+struct var_type_dialog * var_type_dialog_create (GtkWindow *);
 
 void var_type_dialog_show (struct var_type_dialog *dialog);
 

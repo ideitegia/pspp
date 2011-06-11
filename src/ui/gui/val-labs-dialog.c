@@ -38,9 +38,6 @@ struct val_labs_dialog
 {
   GtkWidget *window;
 
-  PsppireVarStore *var_store;
-  PsppireDict *dict;
-
   /* The variable to be updated */
   struct variable *pv;
 
@@ -385,7 +382,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 /* Create a new dialog box
    (there should  normally be only one)*/
 struct val_labs_dialog *
-val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
+val_labs_dialog_create (GtkWindow *toplevel)
 {
   GtkTreeViewColumn *column;
 
@@ -395,8 +392,6 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
 
   struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
 
-  dialog->var_store = var_store;
-  g_object_get (var_store, "dictionary", &dialog->dict, NULL);
   dialog->window = get_widget_assert (xml,"val_labs_dialog");
   dialog->value_entry = get_widget_assert (xml,"value_entry");
   dialog->label_entry = get_widget_assert (xml,"label_entry");

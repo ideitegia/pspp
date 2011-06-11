@@ -317,14 +317,12 @@ set_format_type_from_treeview (GtkTreeView *treeview, gpointer data)
 
 /* Create the structure */
 struct var_type_dialog *
-var_type_dialog_create (GtkWindow *toplevel, PsppireVarStore *vs)
+var_type_dialog_create (GtkWindow *toplevel)
 {
   gint i;
   struct var_type_dialog *dialog = g_malloc (sizeof (struct var_type_dialog));
 
   GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
-
-  dialog->vs = vs;
 
   dialog->window = get_widget_assert (xml,"var_type_dialog");
   dialog->active_button = -1;
