@@ -55,7 +55,6 @@ gchar * value_to_text (union value v, const PsppireDict *dict, struct fmt_spec f
 
 union value *
 text_to_value (const gchar *text,
-	       const PsppireDict *dict,
 	       const struct variable *var,
 	       union value *);
 

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005, 2006, 2009  Free Software Foundation
+   Copyright (C) 2005, 2006, 2009, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	      continue;
 	    }
 
-	  if ( text_to_value (text, dialog->dict, dialog->pv, &v))
+	  if ( text_to_value (text, dialog->pv, &v))
 	    {
 	      nvals++;
 	      mv_add_value (&dialog->mvl, &v);
@@ -125,9 +125,9 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       const gchar *low_text = gtk_entry_get_text (GTK_ENTRY (dialog->low));
       const gchar *high_text = gtk_entry_get_text (GTK_ENTRY (dialog->high));
 
-      if ( text_to_value (low_text, dialog->dict, dialog->pv, &low_val)
+      if ( text_to_value (low_text, dialog->pv, &low_val)
 	   &&
-	   text_to_value (high_text, dialog->dict, dialog->pv, &high_val))
+	   text_to_value (high_text, dialog->pv, &high_val))
 	{
 	  if ( low_val.f > high_val.f )
 	    {
@@ -160,7 +160,6 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	{
 	  union value discrete_val;
 	  if ( !text_to_value (discrete_text, 
-			       dialog->dict,
 			       dialog->pv,
 			       &discrete_val))
 	    {

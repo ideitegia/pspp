@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009  Free Software Foundation
+   Copyright (C) 2007, 2009, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -592,7 +592,7 @@ value_comparator_create (const struct variable *var, const PsppireDict *dict, co
   cmptr->destroy = cmptr_value_destroy;
   cmptr->dict = dict;
 
-  text_to_value (target, dict, var, &vc->pattern);
+  text_to_value (target, var, &vc->pattern);
 
   return cmptr;
 }

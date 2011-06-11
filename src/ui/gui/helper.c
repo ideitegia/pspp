@@ -65,14 +65,12 @@ value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format)
 
    VAL will be initialised and filled by this function.
    It is the caller's responsibility to destroy VAL when no longer needed.
-   VAR and DICT must be the variable and dictionary with which VAL
-   is associated.
+   VAR must be the variable with which VAL is associated.
 
    On success, VAL is returned, NULL otherwise.
 */
 union value *
 text_to_value (const gchar *text,
-	       const PsppireDict *dict,
 	       const struct variable *var,
 	       union value *val)
 {
@@ -98,7 +96,7 @@ text_to_value (const gchar *text,
 
   value_init (val, width);
   free (data_in (ss_cstr (text), UTF8, format->type, val, width,
-                 dict_get_encoding (dict->dict)));
+                 var_get_encoding (var)));
 
   return val;
 }

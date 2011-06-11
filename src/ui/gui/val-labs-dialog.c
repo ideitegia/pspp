@@ -77,7 +77,6 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
   text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text,
-		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -150,7 +149,6 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
 
   union value v;
   text_to_value (text,
-		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -282,7 +280,6 @@ on_change (GtkWidget *w, gpointer data)
   union value v;
 
   text_to_value (val_text,
-		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -308,7 +305,6 @@ on_add (GtkWidget *w, gpointer data)
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text,
-		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
