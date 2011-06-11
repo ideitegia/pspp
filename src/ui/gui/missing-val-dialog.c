@@ -283,7 +283,7 @@ missing_val_dialog_create (GtkWindow *toplevel)
 void
 missing_val_dialog_show (struct missing_val_dialog *dialog)
 {
-  const struct fmt_spec *write_spec ;
+  const struct fmt_spec *format ;
 
   gint i;
   g_return_if_fail (dialog);
@@ -291,7 +291,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 
   mv_copy (&dialog->mvl, var_get_missing_values (dialog->pv));
 
-  write_spec = var_get_write_format (dialog->pv);
+  format = var_get_print_format (dialog->pv);
 
   /* Blank all entry boxes and make them insensitive */
   gtk_entry_set_text (GTK_ENTRY (dialog->low), "");
@@ -319,8 +319,8 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       mv_get_range (&dialog->mvl, &low.f, &high.f);
 
 
-      low_text = value_to_text (low, dialog->dict, *write_spec);
-      high_text = value_to_text (high, dialog->dict,  *write_spec);
+      low_text = value_to_text (low, dialog->dict, *format);
+      high_text = value_to_text (high, dialog->dict,  *format);
 
       gtk_entry_set_text (GTK_ENTRY (dialog->low), low_text);
       gtk_entry_set_text (GTK_ENTRY (dialog->high), high_text);
@@ -330,7 +330,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       if ( mv_has_value (&dialog->mvl))
 	{
 	  gchar *text;
-	  text = value_to_text (*mv_get_value (&dialog->mvl, 0), dialog->dict, *write_spec);
+	  text = value_to_text (*mv_get_value (&dialog->mvl, 0), dialog->dict, *format);
 	  gtk_entry_set_text (GTK_ENTRY (dialog->discrete), text);
 	  g_free (text);
 	}
@@ -352,7 +352,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 	      gchar *text ;
 
 	      text = value_to_text (*mv_get_value (&dialog->mvl, i), dialog->dict,
-                                    *write_spec);
+                                    *format);
 	      gtk_entry_set_text (GTK_ENTRY (dialog->mv[i]), text);
 	      g_free (text);
 	    }

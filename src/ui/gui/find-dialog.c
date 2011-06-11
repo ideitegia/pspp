@@ -498,7 +498,7 @@ string_value_compare (const struct comparator *cmptr,
   g_return_val_if_fail (width > 0, false);
   assert ( ! (cmptr->flags & STR_CMP_LABELS));
 
-  text = value_to_text (*val, cmptr->dict, *var_get_write_format (cmptr->var));
+  text = value_to_text (*val, cmptr->dict, *var_get_print_format (cmptr->var));
 
   if ( cmptr->flags & STR_CMP_SUBSTR)
     found =  (NULL != g_strstr_len (text, width, ssc->pattern));
@@ -527,7 +527,7 @@ regexp_value_compare (const struct comparator *cmptr,
 
   g_return_val_if_fail (width > 0, false);
 
-  text = value_to_text (*val, cmptr->dict, *var_get_write_format (cmptr->var));
+  text = value_to_text (*val, cmptr->dict, *var_get_print_format (cmptr->var));
   /* We must remove trailing whitespace, otherwise $ will not match where
      one would expect */
   g_strchomp (text);

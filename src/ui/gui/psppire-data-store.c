@@ -621,7 +621,7 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
         }
     }
 
-  fp = var_get_write_format (pv);
+  fp = var_get_print_format (pv);
 
   text = data_out (&v, dict_get_encoding (dict), fp);
 
@@ -679,7 +679,7 @@ psppire_data_store_set_string (PsppireDataStore *store,
 
   psppire_data_store_data_in (store, row,
 			      var_get_case_index (pv), ss_cstr (text),
-			      var_get_write_format (pv));
+			      var_get_print_format (pv));
 
   psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (store), row, col, row, col);
 

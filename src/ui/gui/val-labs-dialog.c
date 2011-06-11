@@ -356,7 +356,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
   gchar *text;
 
   get_selected_tuple (dialog, &value, &label);
-  text = value_to_text (value, dialog->dict, *var_get_write_format (dialog->pv));
+  text = value_to_text (value, dialog->dict, *var_get_print_format (dialog->pv));
 
   g_signal_handler_block (GTK_ENTRY (dialog->value_entry),
 			 dialog->value_handler_id);
@@ -510,7 +510,7 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 
       gchar *const vstr  =
 	value_to_text (vl->value, dialog->dict,
-		      *var_get_write_format (dialog->pv));
+		      *var_get_print_format (dialog->pv));
 
       gchar *const text = g_strdup_printf (_("%s = `%s'"), vstr,
                                            val_lab_get_escaped_label (vl));

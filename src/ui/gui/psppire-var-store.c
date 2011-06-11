@@ -550,7 +550,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
             bool for_input
               = var_store->format_type == PSPPIRE_VAR_STORE_INPUT_FORMATS;
 	    struct fmt_spec fmt ;
-	    fmt = *var_get_write_format (pv);
+	    fmt = *var_get_print_format (pv);
 	    if ( width < fmt_min_width (fmt.type, for_input)
 		 ||
 		 width > fmt_max_width (fmt.type, for_input))
@@ -573,7 +573,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
 	struct fmt_spec fmt;
 	if ( ! text) return FALSE;
 	decimals = atoi (text);
-	fmt = *var_get_write_format (pv);
+	fmt = *var_get_print_format (pv);
 	if ( decimals >
 	     fmt_max_decimals (fmt.type,
                                fmt.w,
@@ -631,7 +631,7 @@ text_for_column (PsppireVarStore *vs,
   enum {VT_NUMERIC, VT_COMMA, VT_DOT, VT_SCIENTIFIC, VT_DATE, VT_DOLLAR,
 	VT_CUSTOM, VT_STRING};
 
-  const struct fmt_spec *write_spec = var_get_write_format (pv);
+  const struct fmt_spec *format = var_get_print_format (pv);
 
   switch (c)
     {
@@ -640,7 +640,7 @@ text_for_column (PsppireVarStore *vs,
       break;
     case PSPPIRE_VAR_STORE_COL_TYPE:
       {
-	switch ( write_spec->type )
+	switch ( format->type )
 	  {
 	  case FMT_F:
 	    return xstrdup (gettext (type_label[VT_NUMERIC]));
@@ -686,7 +686,7 @@ text_for_column (PsppireVarStore *vs,
             {
               char str[FMT_STRING_LEN_MAX + 1];
               g_warning ("Unknown format: `%s'\n",
-                        fmt_to_string (write_spec, str));
+                        fmt_to_string (format, str));
             }
 	    break;
 	  }
@@ -696,7 +696,7 @@ text_for_column (PsppireVarStore *vs,
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new (10);
-	g_string_printf (gstr, _("%d"), write_spec->w);
+	g_string_printf (gstr, _("%d"), format->w);
 	s = g_locale_to_utf8 (gstr->str, gstr->len, 0, 0, err);
 	g_string_free (gstr, TRUE);
 	return s;
@@ -706,7 +706,7 @@ text_for_column (PsppireVarStore *vs,
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new (10);
-	g_string_printf (gstr, _("%d"), write_spec->d);
+	g_string_printf (gstr, _("%d"), format->d);
 	s = g_locale_to_utf8 (gstr->str, gstr->len, 0, 0, err);
 	g_string_free (gstr, TRUE);
 	return s;
@@ -750,7 +750,7 @@ text_for_column (PsppireVarStore *vs,
 	    g_assert (vl);
 
 	    {
-	      gchar *const vstr = value_to_text (vl->value, dict, *write_spec);
+	      gchar *const vstr = value_to_text (vl->value, dict, *format);
 
 	      return g_strdup_printf (_("{%s,`%s'}_"), vstr,
                                       val_lab_get_escaped_label (vl));

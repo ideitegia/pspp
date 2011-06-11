@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -433,7 +433,7 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 		const gint current_value  = g_strtod (s, NULL);
 		GtkObject *adj ;
 
-		const struct fmt_spec *fmt = var_get_write_format (var);
+		const struct fmt_spec *fmt = var_get_print_format (var);
 		switch (column)
 		  {
 		  case PSPPIRE_VAR_STORE_COL_WIDTH:
