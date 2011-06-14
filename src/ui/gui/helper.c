@@ -47,13 +47,26 @@
 
 #include <gettext.h>
 
-/* Formats a value according to VAR's print format.
-   The returned string must be freed when no longer required. */
+/* Formats a value according to VAR's print format and strips white space
+   appropriately for VAR's type.  That is, if VAR is numeric, strips leading
+   white space (because numbers are right-justified within their fields), and
+   if VAR is string, strips trailing white space (because spaces pad out string
+   values on the right).
+
+   Returns an allocated string.  The returned string must be freed when no
+   longer required. */
 gchar *
 value_to_text (union value v, const struct variable *var)
 {
-  gchar *s = data_out (&v, var_get_encoding (var), var_get_print_format (var));
-  return g_strchug (s);
+  gchar *s;
+
+  s = data_out (&v, var_get_encoding (var), var_get_print_format (var));
+  if (var_is_numeric (var))
+    g_strchug (s);
+  else
+    g_strchomp (s);
+
+  return s;
 }
 
 
