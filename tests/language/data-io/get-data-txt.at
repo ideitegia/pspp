@@ -113,7 +113,7 @@ AT_CLEANUP
 AT_SETUP([GET DATA /TYPE=TXT with multiple records per case])
 AT_DATA([get-data.sps], [dnl
 get data /type=txt /file=inline /arrangement=fixed /fixcase=3 /variables=
-	/1 start 0-19 adate
+	/1 start 0-19 adate8
 	/2 end 0-19 adate
 	/3 count 0-2 f.
 begin data.
@@ -133,9 +133,9 @@ AT_CHECK([pspp -o pspp.csv get-data.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
 Table: Data List
 start,end,count
-07/22/2007,10/06/2007,321
-07/14/1789,08/26/1789,4
-01/01/1972,12/31/1999,682
+07/22/07,10/06/2007,321
+********,08/26/1789,4
+01/01/72,12/31/1999,682
 ])
 AT_CLEANUP
 

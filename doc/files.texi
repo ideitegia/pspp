@@ -583,8 +583,9 @@ value is 1.
 The VARIABLES subcommand, which is required, specifies the positions
 at which each variable can be found.  For each variable, specify its
 name, followed by its start and end column separated by @samp{-}
-(e.g.@: @samp{0-9}), followed by the input format type (e.g.@:
-@samp{F}).  For this command, columns are numbered starting from 0 at
+(e.g.@: @samp{0-9}), followed by an input format type (e.g.@:
+@samp{F}) or a full format specification (e.g.@: @samp{DOLLAR12.2}).
+For this command, columns are numbered starting from 0 at
 the left column.  Introduce the variables in the second and later
 lines of a case by a slash followed by the number of the line within
 the case, e.g.@: @samp{/2} for the second line.
