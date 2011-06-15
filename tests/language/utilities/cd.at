@@ -1,0 +1,13 @@
+AT_BANNER([CD])
+
+AT_SETUP([CD])
+mkdir subdir
+AT_DATA([cd.sps], [dnl
+cd 'subdir'.
+host command=[['pwd > mydir']].
+])
+AT_CHECK([pspp -O format=csv cd.sps])
+AT_CAPTURE_FILE([subdir/mydir])
+AT_CHECK([sed 's,.*/,,' subdir/mydir], [0], [subdir
+])
+AT_CLEANUP

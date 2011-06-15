@@ -48,6 +48,7 @@ cmd_cd (struct lexer *lexer, struct dataset *ds UNUSED)
     }
 
   free (path);
+  lex_get (lexer);
 
   return CMD_SUCCESS;
 

@@ -316,6 +316,7 @@ TESTSUITE_AT = \
 	tests/language/stats/sort-cases.at \
 	tests/language/stats/t-test.at \
 	tests/language/utilities/cache.at \
+	tests/language/utilities/cd.at \
 	tests/language/utilities/date.at \
 	tests/language/utilities/insert.at \
 	tests/language/utilities/permissions.at \
