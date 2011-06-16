@@ -387,20 +387,20 @@ AT_SETUP([system file character encoding])
 AT_CHECK([supports_encodings windows-1252])
 AT_DATA([save.sps], [dnl
 SET LOCALE='windows-1252'.
-DATA LIST LIST NOTABLE /àéîöç * roué (A9) croûton (A1000).
+DATA LIST LIST NOTABLE /àéîöçxyzabc * roué (A9) croûton (A1000).
 FILE LABEL 'clientèle confrère cortège crèche'.
 DOCUMENT coördinate smörgåsbord
 épée séance soufflé soirée
 jalapeño vicuña.
 VALUE LABEL
-      /àéîöç 1 'éclair élan'
+      /àéîöçxyzabc 1 'éclair élan'
       /roué 'abcdefghi' 'sauté précis'.
 VARIABLE LABEL
       roué 'Provençal soupçon'.
 DATAFILE ATTRIBUTE
       ATTRIBUTE=Furtwängler('kindergärtner').
 VARIABLE ATTRIBUTE
-      VARIABLES=àéîöç
+      VARIABLES=àéîöçxyzabc
       ATTRIBUTE=Atatürk('Düsseldorf Gewürztraminer').
 BEGIN DATA.
 1 a x
@@ -431,7 +431,7 @@ jalapeño vicuña.
 (Entered <date>)
 
 Variable,Description,,Position
-àéîöç,Format: F8.2,,1
+àéîöçxyzabc,Format: F8.2,,1
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,

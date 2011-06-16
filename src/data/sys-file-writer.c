@@ -625,7 +625,7 @@ write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
         {
           if (n_attrsets++)
             ds_put_byte (&s, '/');
-          ds_put_format (&s, "%s:", var_get_short_name (v, 0));
+          ds_put_format (&s, "%s:", var_get_name (v));
           put_attrset (&s, attrs);
         }
     }
