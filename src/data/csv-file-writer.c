@@ -122,9 +122,7 @@ csv_writer_open (struct file_handle *fh, const struct dictionary *dict,
 
   w->opts = *opts;
 
-  w->encoding = (dict_get_encoding (dict)
-                 ? xstrdup (dict_get_encoding (dict))
-                 : NULL);
+  w->encoding = xstrdup (dict_get_encoding (dict));
 
   w->n_csv_vars = dict_get_var_cnt (dict);
   w->csv_vars = xnmalloc (w->n_csv_vars, sizeof *w->csv_vars);

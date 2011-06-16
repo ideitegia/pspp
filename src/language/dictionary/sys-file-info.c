@@ -138,8 +138,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 
 
   tab_text (t, 0, 10, TAB_LEFT, _("Charset:"));
-  tab_text (t, 1, 10, TAB_LEFT,
-            dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
+  tab_text (t, 1, 10, TAB_LEFT, dict_get_encoding (d));
 
 
   tab_submit (t);

@@ -87,6 +87,8 @@ struct dictionary
 static void dict_unset_split_var (struct dictionary *, struct variable *);
 static void dict_unset_mrset_var (struct dictionary *, struct variable *);
 
+/* Returns the encoding for data in dictionary D.  The return value is a
+   nonnull string that contains an IANA character set name. */
 const char *
 dict_get_encoding (const struct dictionary *d)
 {
@@ -194,8 +196,7 @@ dict_clone (const struct dictionary *s)
 
   /* Set the new dictionary's encoding early so that string length limitations
      are interpreted correctly. */
-  if ( s->encoding)
-    d->encoding = xstrdup (s->encoding);
+  d->encoding = xstrdup (s->encoding);
 
   for (i = 0; i < s->var_cnt; i++)
     {
