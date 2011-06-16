@@ -851,20 +851,19 @@ static void
 write_encoding_record (struct sfm_writer *w,
 		       const struct dictionary *d)
 {
-  const char *enc = dict_get_encoding (d);
+  if (dict_get_encoding (d) != NULL)
+    {
+      /* IANA says "...character set names may be up to 40 characters taken
+         from the printable characters of US-ASCII," so character set names
+         don't need to be recoded to be in UTF-8.
 
-  if ( NULL == enc)
-    return;
-
-  write_int (w, 7);             /* Record type. */
-  write_int (w, 20);            /* Record subtype. */
-  write_int (w, 1);             /* Data item (char) size. */
-
-  /* IANA says "...character set names may be up to 40 characters taken from
-     the printable characters of US-ASCII," so character set names don't need
-     to be recoded. */
-  write_int (w, strlen (enc));  /* Number of data items. */
-  write_string (w, enc, strlen (enc));
+         We convert encoding names to uppercase because SPSS writes encoding
+         names in uppercase. */
+      char *encoding = xstrdup (dict_get_encoding (d));
+      str_uppercase (encoding);
+      write_string_record (w, ss_cstr (encoding), 20);
+      free (encoding);
+    }
 }
 
 
