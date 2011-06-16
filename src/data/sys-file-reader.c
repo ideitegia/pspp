@@ -1167,6 +1167,7 @@ choose_encoding (struct sfm_reader *r,
   if (ext_integer)
     {
       int codepage = parse_int (r, ext_integer->data, 7 * 4);
+      const char *encoding;
 
       switch (codepage)
         {
@@ -1184,14 +1185,11 @@ choose_encoding (struct sfm_reader *r,
         case 4:
           return "MS_KANJI";
 
-        case 65000:
-          return "UTF-7";
-
-        case 65001:
-          return "UTF-8";
-
         default:
-          return pool_asprintf (r->pool, "CP%d", codepage);
+          encoding = sys_get_encoding_from_codepage (codepage);
+          if (encoding != NULL)
+            return encoding;
+          break;
         }
     }
 

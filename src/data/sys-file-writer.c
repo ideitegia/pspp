@@ -100,7 +100,8 @@ static void write_header (struct sfm_writer *, const struct dictionary *);
 static void write_variable (struct sfm_writer *, const struct variable *);
 static void write_value_labels (struct sfm_writer *, struct variable *,
                                 int idx);
-static void write_integer_info_record (struct sfm_writer *);
+static void write_integer_info_record (struct sfm_writer *,
+                                       const struct dictionary *);
 static void write_float_info_record (struct sfm_writer *);
 
 static void write_longvar_table (struct sfm_writer *w,
@@ -248,7 +249,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   if (dict_get_document_line_cnt (d) > 0)
     write_documents (w, d);
 
-  write_integer_info_record (w);
+  write_integer_info_record (w, d);
   write_float_info_record (w);
 
   write_mrsets (w, d, true);
@@ -885,10 +886,12 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
 
 /* Write integer information record. */
 static void
-write_integer_info_record (struct sfm_writer *w)
+write_integer_info_record (struct sfm_writer *w,
+                           const struct dictionary *d)
 {
   int version_component[3];
   int float_format;
+  int codepage;
 
   /* Parse the version string. */
   memset (version_component, 0, sizeof version_component);
@@ -906,6 +909,16 @@ write_integer_info_record (struct sfm_writer *w)
   else
     abort ();
 
+  /* Choose codepage. */
+  codepage = sys_get_codepage_from_encoding (dict_get_encoding (d));
+  if (codepage == 0)
+    {
+      /* Default to "7-bit ASCII" if the codepage number is unknown, because
+         many files use this codepage number regardless of their actual
+         encoding. */
+      codepage = 2;
+    }
+
   /* Write record. */
   write_int (w, 7);             /* Record type. */
   write_int (w, 3);             /* Record subtype. */
@@ -918,7 +931,7 @@ write_integer_info_record (struct sfm_writer *w)
   write_int (w, float_format);
   write_int (w, 1);           /* Compression code. */
   write_int (w, INTEGER_NATIVE == INTEGER_MSB_FIRST ? 1 : 2);
-  write_int (w, 2);           /* 7-bit ASCII. */
+  write_int (w, codepage);
 }
 
 /* Write floating-point information record. */
