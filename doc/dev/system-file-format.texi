@@ -676,7 +676,8 @@ following:
 
 @itemize @bullet
 @item
-The set's name (an identifier that begins with @samp{$}).
+The set's name (an identifier that begins with @samp{$}), in mixed
+upper and lower case.
 
 @item
 An equals sign (@samp{=}).
@@ -717,8 +718,8 @@ written if LABELSOURCE=VARLABEL was specified.
 A space.
 
 @item
-The names of the variables in the set, each separated from the
-previous by a single space.
+The short names of the variables in the set, converted to lowercase,
+each separated from the previous by a single space.
 
 @item
 A line feed (byte 0x0a).
