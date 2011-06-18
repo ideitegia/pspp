@@ -583,7 +583,7 @@ var_set_label (struct variable *v, const char *label, bool issue_warning)
   free (v->label);
   v->label = NULL;
 
-  if (label != NULL)
+  if (label != NULL && label[strspn (label, CC_SPACES)])
     {
       const char *dict_encoding = var_get_encoding (v);
       struct substring s = ss_cstr (label);
@@ -605,8 +605,6 @@ var_set_label (struct variable *v, const char *label, bool issue_warning)
             }
         }
 
-      ss_trim (&s, ss_cstr (CC_SPACES));
-      if (!ss_is_empty (s))
         v->label = ss_xstrdup (s);
     }
 
