@@ -98,8 +98,8 @@ static const struct casewriter_class sys_file_casewriter_class;
 
 static void write_header (struct sfm_writer *, const struct dictionary *);
 static void write_variable (struct sfm_writer *, const struct variable *);
-static void write_value_labels (struct sfm_writer *, struct variable *,
-                                int idx);
+static void write_value_labels (struct sfm_writer *,
+                                const struct dictionary *);
 static void write_integer_info_record (struct sfm_writer *,
                                        const struct dictionary *);
 static void write_float_info_record (struct sfm_writer *);
@@ -178,7 +178,6 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 {
   struct sfm_writer *w;
   mode_t mode;
-  int idx;
   int i;
 
   /* Check version. */
@@ -236,15 +235,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   for (i = 0; i < dict_get_var_cnt (d); i++)
     write_variable (w, dict_get_var (d, i));
 
-  /* Write out value labels. */
-  idx = 0;
-  for (i = 0; i < dict_get_var_cnt (d); i++)
-    {
-      struct variable *v = dict_get_var (d, i);
-
-      write_value_labels (w, v, idx);
-      idx += sfm_width_to_octs (var_get_width (v));
-    }
+  write_value_labels (w, d);
 
   if (dict_get_document_line_cnt (d) > 0)
     write_documents (w, d);
@@ -515,47 +506,117 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   mv_destroy (&mv);
 }
 
-/* Writes the value labels for variable V having system file
-   variable index IDX to system file W.
+/* Writes the value labels to system file W.
 
    Value labels for long string variables are written separately,
    by write_long_string_value_labels. */
 static void
-write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
+write_value_labels (struct sfm_writer *w, const struct dictionary *d)
 {
-  const struct val_labs *val_labs;
-  const struct val_lab **labels;
-  size_t n_labels;
-  size_t i;
-
-  val_labs = var_get_value_labels (v);
-  n_labels = val_labs_count (val_labs);
-  if (n_labels == 0 || var_get_width (v) > 8)
-    return;
-
-  /* Value label record. */
-  write_int (w, 3);             /* Record type. */
-  write_int (w, val_labs_count (val_labs));
-  labels = val_labs_sorted (val_labs);
-  for (i = 0; i < n_labels; i++)
+  struct label_set
     {
-      const struct val_lab *vl = labels[i];
-      char *label = recode_string (var_get_encoding (v), UTF8,
-                                   val_lab_get_escaped_label (vl), -1);
-      uint8_t len = MIN (strlen (label), 255);
+      struct hmap_node hmap_node;
+      const struct val_labs *val_labs;
+      int *indexes;
+      size_t n_indexes, allocated_indexes;
+    };
 
-      write_value (w, val_lab_get_value (vl), var_get_width (v));
-      write_bytes (w, &len, 1);
-      write_bytes (w, label, len);
-      write_zeros (w, REM_RND_UP (len + 1, 8));
-      free (label);
+  size_t n_sets, allocated_sets;
+  struct label_set **sets;
+  struct hmap same_sets;
+  size_t i;
+  int idx;
+
+  n_sets = allocated_sets = 0;
+  sets = NULL;
+  hmap_init (&same_sets);
+
+  idx = 0;
+  for (i = 0; i < dict_get_var_cnt (d); i++)
+    {
+      struct variable *v = dict_get_var (d, i);
+
+      if (var_has_value_labels (v) && var_get_width (v) <= 8)
+        {
+          const struct val_labs *val_labs = var_get_value_labels (v);
+          unsigned int hash = val_labs_hash (val_labs, 0);
+          struct label_set *set;
+
+          HMAP_FOR_EACH_WITH_HASH (set, struct label_set, hmap_node,
+                                   hash, &same_sets)
+            {
+              if (val_labs_equal (set->val_labs, val_labs))
+                {
+                  if (set->n_indexes >= set->allocated_indexes)
+                    set->indexes = x2nrealloc (set->indexes,
+                                               &set->allocated_indexes,
+                                               sizeof *set->indexes);
+                  set->indexes[set->n_indexes++] = idx;
+                  goto next_var;
+                }
+            }
+
+          set = xmalloc (sizeof *set);
+          set->val_labs = val_labs;
+          set->indexes = xmalloc (sizeof *set->indexes);
+          set->indexes[0] = idx;
+          set->n_indexes = 1;
+          set->allocated_indexes = 1;
+          hmap_insert (&same_sets, &set->hmap_node, hash);
+
+          if (n_sets >= allocated_sets)
+            sets = x2nrealloc (sets, &allocated_sets, sizeof *sets);
+          sets[n_sets++] = set;
+        }
+
+    next_var:
+      idx += sfm_width_to_octs (var_get_width (v));
     }
-  free (labels);
 
-  /* Value label variable record. */
-  write_int (w, 4);             /* Record type. */
-  write_int (w, 1);             /* Number of variables. */
-  write_int (w, idx + 1);       /* Variable's dictionary index. */
+  for (i = 0; i < n_sets; i++)
+    {
+      const struct label_set *set = sets[i];
+      const struct val_labs *val_labs = set->val_labs;
+      size_t n_labels = val_labs_count (val_labs);
+      int width = val_labs_get_width (val_labs);
+      const struct val_lab **labels;
+      size_t j;
+
+      /* Value label record. */
+      write_int (w, 3);             /* Record type. */
+      write_int (w, n_labels);
+      labels = val_labs_sorted (val_labs);
+      for (j = 0; j < n_labels; j++)
+        {
+          const struct val_lab *vl = labels[j];
+          char *label = recode_string (dict_get_encoding (d), UTF8,
+                                       val_lab_get_escaped_label (vl), -1);
+          uint8_t len = MIN (strlen (label), 255);
+
+          write_value (w, val_lab_get_value (vl), width);
+          write_bytes (w, &len, 1);
+          write_bytes (w, label, len);
+          write_zeros (w, REM_RND_UP (len + 1, 8));
+          free (label);
+        }
+      free (labels);
+
+      /* Value label variable record. */
+      write_int (w, 4);              /* Record type. */
+      write_int (w, set->n_indexes);
+      for (j = 0; j < set->n_indexes; j++)
+        write_int (w, set->indexes[j] + 1);
+    }
+
+  for (i = 0; i < n_sets; i++)
+    {
+      struct label_set *set = sets[i];
+
+      free (set->indexes);
+      free (set);
+    }
+  free (sets);
+  hmap_destroy (&same_sets);
 }
 
 /* Writes record type 6, document record. */

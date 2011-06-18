@@ -234,18 +234,27 @@ val_labs_find (const struct val_labs *vls, const union value *value)
 /* Searches VLS for a value label for VALUE.  If successful,
    returns the value label; otherwise, returns a null pointer.
    Returns a null pointer if VLS is null. */
+static struct val_lab *
+val_labs_lookup__ (const struct val_labs *vls, const union value *value,
+                   unsigned int hash)
+{
+  struct val_lab *label;
+
+  HMAP_FOR_EACH_WITH_HASH (label, struct val_lab, node, hash, &vls->labels)
+    if (value_equal (&label->value, value, vls->width))
+      return label;
+
+  return NULL;
+}
+
+/* Searches VLS for a value label for VALUE.  If successful,
+   returns the value label; otherwise, returns a null pointer.
+   Returns a null pointer if VLS is null. */
 struct val_lab *
 val_labs_lookup (const struct val_labs *vls, const union value *value)
 {
-  if (vls != NULL)
-    {
-      struct val_lab *label;
-      HMAP_FOR_EACH_WITH_HASH (label, struct val_lab, node,
-                               value_hash (value, vls->width, 0), &vls->labels)
-        if (value_equal (&label->value, value, vls->width))
-          return label;
-    }
-  return NULL;
+  return (vls == NULL ? NULL
+          : val_labs_lookup__ (vls, value, value_hash (value, vls->width, 0)));
 }
 
 /* Returns the first value label in VLS, in arbitrary order, or a
@@ -300,4 +309,40 @@ val_labs_sorted (const struct val_labs *vls)
     }
   else
     return NULL;
+}
+
+/* Returns a hash value that represents all of the labels in VLS, starting from
+   BASIS. */
+unsigned int
+val_labs_hash (const struct val_labs *vls, unsigned int basis)
+{
+  const struct val_lab *label;
+  unsigned int hash;
+
+  hash = hash_int (val_labs_count (vls), basis);
+  HMAP_FOR_EACH (label, struct val_lab, node, &vls->labels)
+    hash ^= value_hash (&label->value, vls->width,
+                        hash_string (label->label, basis));
+  return hash;
+}
+
+/* Returns true if A and B contain the same values with the same labels,
+   false if they differ in some way. */
+bool
+val_labs_equal (const struct val_labs *a, const struct val_labs *b)
+{
+  const struct val_lab *label;
+
+  if (val_labs_count (a) != val_labs_count (b) || a->width != b->width)
+    return false;
+
+  HMAP_FOR_EACH (label, struct val_lab, node, &a->labels)
+    {
+      struct val_lab *label2 = val_labs_lookup__ (b, &label->value,
+                                                  label->node.hash);
+      if (!label2 || label->label != label2->label)
+        return false;
+    }
+
+  return true;
 }
