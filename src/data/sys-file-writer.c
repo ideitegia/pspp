@@ -707,7 +707,8 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
       ds_put_byte (&s, '\n');
     }
 
-  write_string_record (w, ds_ss (&s), pre_v14 ? 7 : 19);
+  if (!ds_is_empty (&s))
+    write_string_record (w, ds_ss (&s), pre_v14 ? 7 : 19);
   ds_destroy (&s);
 }
 
