@@ -47,17 +47,13 @@
 
 #include <gettext.h>
 
-/* Formats a value according to FORMAT
-   The returned string must be freed when no longer required */
+/* Formats a value according to VAR's print format.
+   The returned string must be freed when no longer required. */
 gchar *
-value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format)
+value_to_text (union value v, const struct variable *var)
 {
-  gchar *s = NULL;
-
-  s = data_out (&v, dict_get_encoding (dict->dict),  &format);
-  g_strchug (s);
-
-  return s;
+  gchar *s = data_out (&v, var_get_encoding (var), var_get_print_format (var));
+  return g_strchug (s);
 }
 
 

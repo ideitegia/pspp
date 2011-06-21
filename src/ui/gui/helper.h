@@ -48,9 +48,7 @@ null_if_empty_param (const gchar *name, const gchar *nick,
 }
 
 
-/* Formats a value according to FORMAT
-   The returned string must be freed when no longer required */
-gchar * value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format);
+gchar * value_to_text (union value v, const struct variable *);
 
 
 union value *

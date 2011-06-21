@@ -21,18 +21,15 @@
 #include <config.h>
 
 #include <gtk/gtk.h>
-
 #include <stdlib.h>
 #include <string.h>
 
-#include "var-type-dialog.h"
-
-#include "helper.h"
-
-#include <data/variable.h>
-#include <data/settings.h>
-#include <libpspp/message.h>
-
+#include "data/data-out.h"
+#include "data/settings.h"
+#include "data/variable.h"
+#include "libpspp/message.h"
+#include "ui/gui/helper.h"
+#include "ui/gui/var-type-dialog.h"
 
 struct tgs
 {
@@ -262,12 +259,12 @@ preview_custom (GtkWidget *w, gpointer data)
       union value v;
       v.f = 1234.56;
 
-      sample_text = value_to_text (v, dialog->vs->dictionary, dialog->fmt_l);
+      sample_text = g_strchug (data_out (&v, NULL, &dialog->fmt_l));
       gtk_label_set_text (GTK_LABEL (dialog->label_psample), sample_text);
       g_free (sample_text);
 
       v.f = -v.f;
-      sample_text = value_to_text (v, dialog->vs->dictionary, dialog->fmt_l);
+      sample_text = g_strchug (data_out (&v, NULL, &dialog->fmt_l));
       gtk_label_set_text (GTK_LABEL (dialog->label_nsample), sample_text);
       g_free (sample_text);
     }

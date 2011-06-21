@@ -750,7 +750,7 @@ text_for_column (PsppireVarStore *vs,
 	    g_assert (vl);
 
 	    {
-	      gchar *const vstr = value_to_text (vl->value, dict, *format);
+	      gchar *const vstr = value_to_text (vl->value, pv);
 
 	      return g_strdup_printf (_("{%s,`%s'}_"), vstr,
                                       val_lab_get_escaped_label (vl));

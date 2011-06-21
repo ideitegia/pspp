@@ -109,8 +109,7 @@ populate_text (PsppireDictView *treeview, gpointer data)
       for (i = 0; i < n_labels; i++)
         {
           const struct val_lab *vl = labels[i];
-	  gchar *const vstr  =
-	    value_to_text (vl->value,  dict, *var_get_print_format (var));
+	  gchar *const vstr  = value_to_text (vl->value,  var);
 
 	  g_string_append_printf (gstring, _("%s %s\n"),
                                   vstr, val_lab_get_escaped_label (vl));

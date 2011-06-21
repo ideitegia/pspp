@@ -29,7 +29,6 @@ measure_to_string (const struct variable *var, GError **err)
 gchar *
 missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GError **err)
 {
-  const struct fmt_spec *fmt =  var_get_print_format (pv);
   gchar *s;
   const struct missing_values *miss = var_get_missing_values (pv);
   if ( mv_is_empty (miss))
@@ -44,7 +43,7 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 	  gint i;
 	  for (i = 0 ; i < n; ++i )
 	    {
-	      mv[i] = value_to_text (*mv_get_value (miss, i), dict, *fmt);
+	      mv[i] = value_to_text (*mv_get_value (miss, i), pv);
 	      if ( i > 0 )
 		g_string_append (gstr, ", ");
 	      g_string_append (gstr, mv[i]);
@@ -60,8 +59,8 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 	  union value low, high;
 	  mv_get_range (miss, &low.f, &high.f);
 
-	  l = value_to_text (low, dict, *fmt);
-	  h = value_to_text (high, dict,*fmt);
+	  l = value_to_text (low, pv);
+	  h = value_to_text (high, pv);
 
 	  g_string_printf (gstr, "%s - %s", l, h);
 	  g_free (l);
@@ -71,7 +70,7 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 	    {
 	      gchar *ss = NULL;
 
-	      ss = value_to_text (*mv_get_value (miss, 0), dict, *fmt);
+	      ss = value_to_text (*mv_get_value (miss, 0), pv);
 
 	      g_string_append (gstr, ", ");
 	      g_string_append (gstr, ss);
