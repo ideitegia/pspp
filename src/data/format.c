@@ -912,6 +912,56 @@ fmt_date_template (enum fmt_type type)
     }
 }
 
+/* Returns a string representing the format TYPE for use in a GUI dialog. */
+const char *
+fmt_gui_name (enum fmt_type type)
+{
+  switch (type)
+    {
+    case FMT_F:
+      return _("Numeric");
+
+    case FMT_COMMA:
+      return _("Comma");
+
+    case FMT_DOT:
+      return _("Dot");
+
+    case FMT_E:
+      return _("Scientific");
+
+    case FMT_DATE:
+    case FMT_EDATE:
+    case FMT_SDATE:
+    case FMT_ADATE:
+    case FMT_JDATE:
+    case FMT_QYR:
+    case FMT_MOYR:
+    case FMT_WKYR:
+    case FMT_DATETIME:
+    case FMT_TIME:
+    case FMT_DTIME:
+    case FMT_WKDAY:
+    case FMT_MONTH:
+      return _("Date");
+
+    case FMT_DOLLAR:
+      return _("Dollar");
+
+    case FMT_CCA:
+    case FMT_CCB:
+    case FMT_CCC:
+    case FMT_CCD:
+    case FMT_CCE:
+      return _("Custom");
+
+    case FMT_A:
+      return _("String");
+
+    default:
+      return fmt_name (type);
+    }
+}
 
 /* Returns true if TYPE is a valid format type,
    false otherwise. */

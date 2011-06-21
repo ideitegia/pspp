@@ -636,6 +636,26 @@ measure_is_valid (enum measure m)
   return m == MEASURE_NOMINAL || m == MEASURE_ORDINAL || m == MEASURE_SCALE;
 }
 
+/* Returns a string version of measurement level M, for display to a user. */
+const char *
+measure_to_string (enum measure m)
+{
+  switch (m)
+    {
+    case MEASURE_NOMINAL:
+      return _("Nominal");
+
+    case MEASURE_ORDINAL:
+      return _("Ordinal");
+
+    case MEASURE_SCALE:
+      return _("Scale");
+
+    default:
+      return "Invalid";
+    }
+}
+
 /* Returns V's measurement level. */
 enum measure
 var_get_measure (const struct variable *v)
@@ -698,6 +718,26 @@ bool
 alignment_is_valid (enum alignment a)
 {
   return a == ALIGN_LEFT || a == ALIGN_RIGHT || a == ALIGN_CENTRE;
+}
+
+/* Returns a string version of alignment A, for display to a user. */
+const char *
+alignment_to_string (enum alignment a)
+{
+  switch (a)
+    {
+    case ALIGN_LEFT:
+      return _("Left");
+
+    case ALIGN_RIGHT:
+      return _("Right");
+
+    case ALIGN_CENTRE:
+      return _("Center");
+
+    default:
+      return "Invalid";
+    }
 }
 
 /* Returns V's display alignment, which applies only to GUIs. */

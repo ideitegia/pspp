@@ -125,6 +125,7 @@ int fmt_to_io (enum fmt_type) PURE_FUNCTION;
 bool fmt_from_io (int io, enum fmt_type *);
 
 const char *fmt_date_template (enum fmt_type) PURE_FUNCTION;
+const char *fmt_gui_name (enum fmt_type);
 
 /* Format settings.
 

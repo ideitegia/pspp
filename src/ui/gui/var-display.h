@@ -30,6 +30,5 @@ extern const gchar *const alignments[n_ALIGNMENTS + 1];
 extern const gchar *const measures[n_MEASURES + 1];
 
 gchar *missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GError **err);
-const gchar *measure_to_string (const struct variable *var, GError **err);
 
 #endif

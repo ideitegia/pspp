@@ -616,20 +616,6 @@ text_for_column (PsppireVarStore *vs,
 		 const struct variable *pv, gint c, GError **err)
 {
   PsppireDict *dict = vs->dictionary;
-  static const gchar *const type_label[] =
-    {
-      N_("Numeric"),
-      N_("Comma"),
-      N_("Dot"),
-      N_("Scientific"),
-      N_("Date"),
-      N_("Dollar"),
-      N_("Custom"),
-      N_("String")
-    };
-
-  enum {VT_NUMERIC, VT_COMMA, VT_DOT, VT_SCIENTIFIC, VT_DATE, VT_DOLLAR,
-	VT_CUSTOM, VT_STRING};
 
   const struct fmt_spec *format = var_get_print_format (pv);
 
@@ -639,58 +625,7 @@ text_for_column (PsppireVarStore *vs,
       return xstrdup (var_get_name (pv));
       break;
     case PSPPIRE_VAR_STORE_COL_TYPE:
-      {
-	switch ( format->type )
-	  {
-	  case FMT_F:
-	    return xstrdup (gettext (type_label[VT_NUMERIC]));
-	    break;
-	  case FMT_COMMA:
-	    return xstrdup (gettext (type_label[VT_COMMA]));
-	    break;
-	  case FMT_DOT:
-	    return xstrdup (gettext (type_label[VT_DOT]));
-	    break;
-	  case FMT_E:
-	    return xstrdup (gettext (type_label[VT_SCIENTIFIC]));
-	    break;
-	  case FMT_DATE:
-	  case FMT_EDATE:
-	  case FMT_SDATE:
-	  case FMT_ADATE:
-	  case FMT_JDATE:
-	  case FMT_QYR:
-	  case FMT_MOYR:
-	  case FMT_WKYR:
-	  case FMT_DATETIME:
-	  case FMT_TIME:
-	  case FMT_DTIME:
-	  case FMT_WKDAY:
-	  case FMT_MONTH:
-	    return xstrdup (gettext (type_label[VT_DATE]));
-	    break;
-	  case FMT_DOLLAR:
-	    return xstrdup (gettext (type_label[VT_DOLLAR]));
-	    break;
-	  case FMT_CCA:
-	  case FMT_CCB:
-	  case FMT_CCC:
-	  case FMT_CCD:
-	  case FMT_CCE:
-	    return xstrdup (gettext (type_label[VT_CUSTOM]));
-	    break;
-	  case FMT_A:
-	    return xstrdup (gettext (type_label[VT_STRING]));
-	    break;
-	  default:
-            {
-              char str[FMT_STRING_LEN_MAX + 1];
-              g_warning ("Unknown format: `%s'\n",
-                        fmt_to_string (format, str));
-            }
-	    break;
-	  }
-      }
+      return xstrdup (fmt_gui_name (format->type));
       break;
     case PSPPIRE_VAR_STORE_COL_WIDTH:
       {
@@ -763,12 +698,12 @@ text_for_column (PsppireVarStore *vs,
 	const gint align = var_get_alignment (pv);
 
 	g_assert (align < n_ALIGNMENTS);
-	return xstrdup (gettext (alignments[align]));
+	return xstrdup (alignment_to_string (align));
       }
       break;
     case PSPPIRE_VAR_STORE_COL_MEASURE:
       {
-	return xstrdup (measure_to_string (pv, err));
+	return xstrdup (measure_to_string (var_get_measure (pv)));
       }
       break;
     }

@@ -112,6 +112,8 @@ enum measure
   };
 
 bool measure_is_valid (enum measure);
+const char *measure_to_string (enum measure);
+
 enum measure var_get_measure (const struct variable *);
 void var_set_measure (struct variable *, enum measure);
 
@@ -128,11 +130,12 @@ enum alignment
   {
     ALIGN_LEFT = 0,
     ALIGN_RIGHT = 1,
-    ALIGN_CENTRE = 2,
-    n_ALIGN
+    ALIGN_CENTRE = 2
   };
 
 bool alignment_is_valid (enum alignment);
+const char *alignment_to_string (enum alignment);
+
 enum alignment var_get_alignment (const struct variable *);
 void var_set_alignment (struct variable *, enum alignment);
 

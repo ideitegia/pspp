@@ -16,16 +16,6 @@
 static const gchar none[] = N_("None");
 
 
-const gchar *
-measure_to_string (const struct variable *var, GError **err)
-{
-  const gint measure = var_get_measure (var);
-
-  g_assert (measure < n_MEASURES);
-  return gettext (measures[measure]);
-}
-
-
 gchar *
 missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GError **err)
 {
