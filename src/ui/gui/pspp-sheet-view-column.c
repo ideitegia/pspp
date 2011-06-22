@@ -72,6 +72,7 @@ enum
 enum
 {
   CLICKED,
+  QUERY_TOOLTIP,
   LAST_SIGNAL
 };
 
@@ -199,6 +200,16 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
                   NULL, NULL,
                   g_cclosure_marshal_VOID__VOID,
                   G_TYPE_NONE, 0);
+
+  tree_column_signals[QUERY_TOOLTIP] =
+    g_signal_new ("query-tooltip",
+                  G_OBJECT_CLASS_TYPE (object_class),
+                  G_SIGNAL_RUN_LAST,
+                  0,
+                  g_signal_accumulator_true_handled, NULL,
+                  psppire_marshal_BOOLEAN__OBJECT,
+                  G_TYPE_BOOLEAN, 1,
+                  GTK_TYPE_TOOLTIP);
 
   g_object_class_install_property (object_class,
                                    PROP_VISIBLE,
@@ -812,6 +823,22 @@ pspp_sheet_view_column_clear_attributes_by_info (PsppSheetViewColumn *tree_colum
     _pspp_sheet_view_column_cell_set_dirty (tree_column);
 }
 
+static gboolean
+on_query_tooltip (GtkWidget  *widget,
+                  gint        x,
+                  gint        y,
+                  gboolean    keyboard_mode,
+                  GtkTooltip *tooltip,
+                  gpointer    user_data)
+{
+  PsppSheetViewColumn *tree_column = user_data;
+  gboolean handled;
+
+  g_signal_emit (tree_column, tree_column_signals[QUERY_TOOLTIP], 0,
+                 tooltip, &handled);
+  return handled;
+}
+
 /* Helper functions
  */
 
@@ -845,6 +872,10 @@ pspp_sheet_view_column_create_button (PsppSheetViewColumn *tree_column)
   g_signal_connect (tree_column->button, "clicked",
 		    G_CALLBACK (pspp_sheet_view_column_button_clicked),
 		    tree_column);
+
+  g_signal_connect (tree_column->button, "query-tooltip",
+                    G_CALLBACK (on_query_tooltip), tree_column);
+  g_object_set (tree_column->button, "has-tooltip", TRUE, NULL);
 
   tree_column->alignment = gtk_alignment_new (tree_column->xalign, 0.5, 0.0, 0.0);
 
