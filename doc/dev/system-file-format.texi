@@ -391,6 +391,11 @@ Format types are defined as follows:
 @end multitable
 @end quotation
 
+A few system files have been observed in the wild with invalid
+@code{write} fields, in particular with value 0.  Readers should
+probably treat invalid @code{print} or @code{write} fields as some
+default format.
+
 @node Value Labels Records
 @section Value Labels Records
 

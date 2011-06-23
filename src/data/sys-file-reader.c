@@ -1052,16 +1052,15 @@ parse_format_spec (struct sfm_reader *r, off_t pos, unsigned int format,
   uint8_t w = format >> 8;
   uint8_t d = format;
   struct fmt_spec f;
-
   bool ok;
 
-  if (!fmt_from_io (raw_type, &f.type))
-    sys_error (r, pos, _("Unknown variable format %"PRIu8"."), raw_type);
   f.w = w;
   f.d = d;
 
   msg_disable ();
-  ok = fmt_check_output (&f) && fmt_check_width_compat (&f, var_get_width (v));
+  ok = (fmt_from_io (raw_type, &f.type)
+        && fmt_check_output (&f)
+        && fmt_check_width_compat (&f, var_get_width (v)));
   msg_enable ();
 
   if (ok)
@@ -1071,14 +1070,20 @@ parse_format_spec (struct sfm_reader *r, off_t pos, unsigned int format,
       else
         var_set_write_format (v, &f);
     }
+  else if (format == 0)
+    {
+      /* Actually observed in the wild.  No point in warning about it. */
+    }
   else if (++*n_warnings <= max_warnings)
     {
-      char fmt_string[FMT_STRING_LEN_MAX + 1];
-      sys_warn (r, pos, _("%s variable %s has invalid %s format %s."),
-                var_is_numeric (v) ? _("Numeric") : _("String"),
-                var_get_name (v),
-                which == PRINT_FORMAT ? _("print") : _("write"),
-                fmt_to_string (&f, fmt_string));
+      if (which == PRINT_FORMAT)
+        sys_warn (r, pos, _("Variable %s with width %d has invalid print "
+                            "format 0x%x."),
+                  var_get_name (v), var_get_width (v), format);
+      else
+        sys_warn (r, pos, _("Variable %s with width %d has invalid write "
+                            "format 0x%x."),
+                  var_get_name (v), var_get_width (v), format);
 
       if (*n_warnings == max_warnings)
         sys_warn (r, -1, _("Suppressing further invalid format warnings."));

@@ -1612,40 +1612,17 @@ do
 done
 AT_CLEANUP
 
-AT_SETUP([unknown variable format])
+AT_SETUP([invalid variable format])
 AT_KEYWORDS([sack synthetic system file negative])
 AT_DATA([sys-file.sack], [dnl
 dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
-2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+2; 4; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
 
-dnl Numeric variable.
-2; 0; 0; 0; >>0xff0800<< *2; s8 "VAR1";
-
-dnl End of dictionary.
-999; 0;
-])
-for variant in \
-	"be fcf94b3ff11b7e2ff50c226b609cff1e" \
-	"le 88fc97cc80d5a170e53a7cc89e204b0d"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
-  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
-])
-  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xc0: Unknown variable format 255.
-])
-done
-AT_CLEANUP
-
-AT_SETUP([invalid numeric variable format])
-AT_KEYWORDS([sack synthetic system file negative])
-AT_DATA([sys-file.sack], [dnl
-dnl File header.
-"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
-2; 3; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+dnl Numeric variable, invalid format types.
+dnl No warning is issued for type 0 because it has been observed in real
+dnl system files.
+2; 0; 0; 0; >>0xff0800; 0<<; s8 "NUM1";
 
 dnl Numeric variable, string formats.
 2; 0; 0; 0; >>0x010800<<; >>0x021000<<; s8 "VAR1";
@@ -1660,26 +1637,28 @@ dnl End of dictionary.
 999; 0;
 ])
 for variant in \
-	"be 0c36a39ec9118eb4a83f10a9483b5a37" \
-	"le 1d498d60eeb2c88e0479f113fb3ffe4b"
+	"be c6ef5d8fded46443aba89adfafe15cad" \
+	"le fccaf1764c973892f2d5adbcc2c36fb7"
 do
   set $variant
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
 ])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
-  AT_CHECK([pspp -O format=csv sys-file.sps], [0], 
-   [warning: `sys-file.sav' near offset 0xc0: Numeric variable VAR1 has invalid print format A8.
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav' near offset 0xc0: Variable NUM1 with width 0 has invalid print format 0xff0800.
 
-warning: `sys-file.sav' near offset 0xc4: Numeric variable VAR1 has invalid write format AHEX16.
+warning: `sys-file.sav' near offset 0xe0: Variable VAR1 with width 0 has invalid print format 0x10800.
 
-warning: `sys-file.sav' near offset 0xe0: String variable STR1 has invalid print format F8.0.
+warning: `sys-file.sav' near offset 0xe4: Variable VAR1 with width 0 has invalid write format 0x21000.
 
-warning: `sys-file.sav' near offset 0xe4: String variable STR1 has invalid write format E10.1.
+warning: `sys-file.sav' near offset 0x100: Variable STR1 with width 4 has invalid print format 0x50800.
 
-warning: `sys-file.sav' near offset 0x100: String variable STR2 has invalid print format A8.
+warning: `sys-file.sav' near offset 0x104: Variable STR1 with width 4 has invalid write format 0x110a01.
 
-warning: `sys-file.sav' near offset 0x104: String variable STR2 has invalid write format AHEX4.
+warning: `sys-file.sav' near offset 0x120: Variable STR2 with width 4 has invalid print format 0x10800.
+
+warning: `sys-file.sav' near offset 0x124: Variable STR2 with width 4 has invalid write format 0x20400.
 ])
 done
 AT_CLEANUP
