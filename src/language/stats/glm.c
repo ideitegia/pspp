@@ -58,6 +58,13 @@ struct glm_spec
   /* The weight variable */
   const struct variable *wv;
 
+  /* 
+     Sums of squares due to different variables. Element 0 is the SSE
+     for the entire model. For i > 0, element i is the SS due to
+     variable i.
+   */
+  gsl_vector * ssq;
+
   bool intercept;
 };
 
@@ -67,8 +74,8 @@ struct glm_workspace
   struct moments *totals;
 };
 
-static void output_glm (const struct glm_spec *, const struct glm_workspace *ws);
-static void run_glm (const struct glm_spec *cmd, struct casereader *input, const struct dataset *ds);
+static void output_glm (struct glm_spec *, const struct glm_workspace *ws);
+static void run_glm (struct glm_spec *cmd, struct casereader *input, const struct dataset *ds);
 
 int
 cmd_glm (struct lexer *lexer, struct dataset *ds)
@@ -183,10 +190,86 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   return CMD_FAILURE;
 }
 
+static void get_ssq (struct covariance *, gsl_vector *, struct glm_spec *);
+
+static bool
+not_dropped (size_t j, size_t * dropped, size_t n_dropped)
+{
+  size_t i;
+
+  for (i = 0; i < n_dropped; i++)
+    {
+      if (j == dropped [i])
+	return false;
+    }
+  return true;
+}
+
+static void
+get_ssq (struct covariance * cov, gsl_vector * ssq, struct glm_spec * cmd)
+{
+  const struct variable **vars;
+  gsl_matrix * small_cov = NULL;
+  gsl_matrix * cm = covariance_calculate_unnormalized (cov);
+  size_t i;
+  size_t j;
+  size_t k;
+  size_t n;
+  size_t m;
+  size_t * dropped;
+  size_t n_dropped;
+
+  dropped = xcalloc (covariance_dim (cov), sizeof (*dropped));
+  vars = xcalloc (covariance_dim (cov), sizeof (*vars));
+  covariance_get_var_indices (cov, vars);
+
+  for (k = 0; k < cmd->n_factor_vars; k++)
+    {
+      n_dropped = 0;
+      for (i = 1; i < covariance_dim (cov); i++)
+	{
+	  if (vars [i] == cmd->factor_vars [k])
+	    {
+	      dropped [n_dropped++] = i;
+	    }
+	}
+      small_cov = gsl_matrix_alloc (cm->size1 - n_dropped, cm->size2 - n_dropped);
+      gsl_matrix_set (small_cov, 0, 0, gsl_matrix_get (cm, 0, 0));
+      n = 0;
+      m = 0;
+      for (i = 0; i < cm->size1; i++)
+	{
+	  if (not_dropped (i, dropped, n_dropped))
+	    {
+	      m = 0;
+	      for (j = 0; j < cm->size2; j++)
+		{
+		  if (not_dropped (j, dropped, n_dropped))
+		    {
+		      gsl_matrix_set (small_cov, n, m, gsl_matrix_get (cm, i, j));
+		      m++;
+		    }
+		}
+	      n++;
+	    }
+	}
+      reg_sweep (small_cov, 0);
+      gsl_vector_set (ssq, k + 1, 
+		      gsl_matrix_get (small_cov, 0, 0)
+		      - gsl_vector_get (ssq, 0));
+      gsl_matrix_free (small_cov);
+    }
+
+  free (dropped);
+  free (vars);
+  gsl_matrix_free (cm);
+
+}
+
 static  void dump_matrix (const gsl_matrix *m);
 
 static void
-run_glm (const struct glm_spec *cmd, struct casereader *input, const struct dataset *ds)
+run_glm (struct glm_spec *cmd, struct casereader *input, const struct dataset *ds)
 {
   int v;
   struct taint *taint;
@@ -255,6 +338,14 @@ run_glm (const struct glm_spec *cmd, struct casereader *input, const struct data
 
     reg_sweep (cm, 0);
 
+    /*
+      Store the overall SSE.
+     */
+    cmd->ssq = gsl_vector_alloc (cm->size1);
+    gsl_vector_set (cmd->ssq, 0, gsl_matrix_get (cm, 0, 0));
+    get_ssq (cov, cmd->ssq, cmd);
+
+    gsl_vector_free (cmd->ssq);
     dump_matrix (cm);
 
     gsl_matrix_free (cm);
@@ -267,7 +358,7 @@ run_glm (const struct glm_spec *cmd, struct casereader *input, const struct data
 }
 
 static void
-output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
+output_glm (struct glm_spec *cmd, const struct glm_workspace *ws)
 {
   const struct fmt_spec *wfmt = cmd->wv ? var_get_print_format (cmd->wv) : &F_8_0;
 
