@@ -106,6 +106,7 @@ struct _PsppSheetViewColumn
   guint GSEAL (reorderable)         : 1;
   guint GSEAL (use_resized_width)   : 1;
   guint GSEAL (expand)              : 1;
+  guint GSEAL (quick_edit)          : 1;
 };
 
 struct _PsppSheetViewColumnClass
@@ -193,6 +194,10 @@ gfloat                  pspp_sheet_view_column_get_alignment       (PsppSheetVie
 void                    pspp_sheet_view_column_set_reorderable     (PsppSheetViewColumn       *tree_column,
 								  gboolean                 reorderable);
 gboolean                pspp_sheet_view_column_get_reorderable     (PsppSheetViewColumn       *tree_column);
+
+void                    pspp_sheet_view_column_set_quick_edit     (PsppSheetViewColumn       *tree_column,
+								  gboolean                 quick_edit);
+gboolean                pspp_sheet_view_column_get_quick_edit     (PsppSheetViewColumn       *tree_column);
 
 
 

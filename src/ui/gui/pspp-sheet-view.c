@@ -2158,8 +2158,9 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 	  else
 	    anchor = NULL;
 
-	  if ((anchor && !gtk_tree_path_compare (anchor, path))
-	      || !_pspp_sheet_view_column_has_editable_cell (column))
+	  if (pspp_sheet_view_column_get_quick_edit (column)
+              || (anchor && !gtk_tree_path_compare (anchor, path))
+              || !_pspp_sheet_view_column_has_editable_cell (column))
 	    {
 	      GtkCellEditable *cell_editable = NULL;
 
@@ -2473,6 +2474,18 @@ pspp_sheet_view_button_release (GtkWidget      *widget,
 			      GdkEventButton *event)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
+
+  if (tree_view->priv->edited_column &&
+      tree_view->priv->edited_column->editable_widget)
+    {
+      /* When a column is in quick-edit mode, the initial button press that
+       * starts editing implicitly grabs the pointer, so that the corresponding
+       * release doesn't get passed along to the GtkWidget created by the
+       * press.  Pass the release along explicitly. */
+      gtk_widget_event (GTK_WIDGET (tree_view->priv->edited_column->editable_widget),
+                        (GdkEvent *) event);
+      return FALSE;
+    }
 
   if (PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_IN_COLUMN_DRAG))
     return pspp_sheet_view_button_release_drag_column (widget, event);

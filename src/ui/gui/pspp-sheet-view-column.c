@@ -66,7 +66,8 @@ enum
   PROP_REORDERABLE,
   PROP_SORT_INDICATOR,
   PROP_SORT_ORDER,
-  PROP_SORT_COLUMN_ID
+  PROP_SORT_COLUMN_ID,
+  PROP_QUICK_EDIT
 };
 
 enum
@@ -361,6 +362,14 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
                                                      G_MAXINT,
                                                      -1,
                                                      GTK_PARAM_READWRITE));
+
+  g_object_class_install_property (object_class,
+                                   PROP_QUICK_EDIT,
+                                   g_param_spec_boolean ("quick-edit",
+                                                         P_("Quick edit"),
+                                                         P_("If true, editing starts upon the first click in the column.  If false, the first click selects the column and a second click is needed to begin editing.  This has no effect on cells that are not editable."),
+                                                         TRUE,
+                                                         GTK_PARAM_READWRITE));
 }
 
 static void
@@ -411,6 +420,7 @@ pspp_sheet_view_column_init (PsppSheetViewColumn *tree_column)
   tree_column->fixed_width = 1;
   tree_column->use_resized_width = FALSE;
   tree_column->title = g_strdup ("");
+  tree_column->quick_edit = TRUE;
 }
 
 static void
@@ -530,7 +540,12 @@ pspp_sheet_view_column_set_property (GObject         *object,
       pspp_sheet_view_column_set_sort_column_id (tree_column,
                                                g_value_get_int (value));
       break;
-      
+
+    case PROP_QUICK_EDIT:
+      pspp_sheet_view_column_set_quick_edit (tree_column,
+                                             g_value_get_boolean (value));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -628,7 +643,12 @@ pspp_sheet_view_column_get_property (GObject         *object,
       g_value_set_int (value,
                        pspp_sheet_view_column_get_sort_column_id (tree_column));
       break;
-      
+
+    case PROP_QUICK_EDIT:
+      g_value_set_boolean (value,
+                           pspp_sheet_view_column_get_quick_edit (tree_column));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -2325,6 +2345,45 @@ pspp_sheet_view_column_get_reorderable (PsppSheetViewColumn *tree_column)
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), FALSE);
 
   return tree_column->reorderable;
+}
+
+/**
+ * pspp_sheet_view_column_set_quick_edit:
+ * @tree_column: A #PsppSheetViewColumn
+ * @quick_edit: If true, editing starts upon the first click in the column.  If
+ * false, the first click selects the column and a second click is needed to
+ * begin editing.  This has no effect on cells that are not editable.
+ **/
+void
+pspp_sheet_view_column_set_quick_edit (PsppSheetViewColumn *tree_column,
+				      gboolean           quick_edit)
+{
+  g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
+
+  quick_edit = !!quick_edit;
+  if (tree_column->quick_edit != quick_edit)
+    {
+      tree_column->quick_edit = (quick_edit?TRUE:FALSE);
+      g_object_notify (G_OBJECT (tree_column), "quick-edit");
+    }
+}
+
+/**
+ * pspp_sheet_view_column_get_quick_edit:
+ * @tree_column: A #PsppSheetViewColumn
+ *
+ * Returns %TRUE if editing starts upon the first click in the column.  Returns
+ * %FALSE, the first click selects the column and a second click is needed to
+ * begin editing.  This is not meaningful for cells that are not editable.
+ *
+ * Return value: %TRUE if editing starts upon the first click.
+ **/
+gboolean
+pspp_sheet_view_column_get_quick_edit (PsppSheetViewColumn *tree_column)
+{
+  g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), FALSE);
+
+  return tree_column->quick_edit;
 }
 
 
