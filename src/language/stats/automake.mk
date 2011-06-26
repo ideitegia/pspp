@@ -28,6 +28,7 @@ language_stats_sources = \
 	src/language/stats/freq.h \
 	src/language/stats/friedman.c \
 	src/language/stats/friedman.h \
+	src/language/stats/glm.c \
 	src/language/stats/kruskal-wallis.c \
 	src/language/stats/kruskal-wallis.h \
 	src/language/stats/mann-whitney.c \

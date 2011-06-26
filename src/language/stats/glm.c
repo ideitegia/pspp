@@ -58,13 +58,6 @@ struct glm_spec
   /* The weight variable */
   const struct variable *wv;
 
-  /* 
-     Sums of squares due to different variables. Element 0 is the SSE
-     for the entire model. For i > 0, element i is the SS due to
-     variable i.
-   */
-  gsl_vector * ssq;
-
   bool intercept;
 };
 
@@ -72,16 +65,28 @@ struct glm_workspace
 {
   double total_ssq;
   struct moments *totals;
+
+  struct categoricals *cats;
+
+  /* 
+     Sums of squares due to different variables. Element 0 is the SSE
+     for the entire model. For i > 0, element i is the SS due to
+     variable i.
+   */
+  gsl_vector *ssq;
 };
 
-static void output_glm (struct glm_spec *, const struct glm_workspace *ws);
-static void run_glm (struct glm_spec *cmd, struct casereader *input, const struct dataset *ds);
+static void output_glm (const struct glm_spec *,
+			const struct glm_workspace *ws);
+static void run_glm (struct glm_spec *cmd, struct casereader *input,
+		     const struct dataset *ds);
 
 int
 cmd_glm (struct lexer *lexer, struct dataset *ds)
 {
-  const struct dictionary *dict = dataset_dict (ds);  
-  struct glm_spec glm ;
+  struct const_var_set *factors = NULL;
+  const struct dictionary *dict = dataset_dict (ds);
+  struct glm_spec glm;
   glm.n_dep_vars = 0;
   glm.n_factor_vars = 0;
   glm.dep_vars = NULL;
@@ -90,7 +95,7 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   glm.intercept = true;
   glm.wv = dict_get_weight (dict);
 
-  
+
   if (!parse_variables_const (lexer, dict,
 			      &glm.dep_vars, &glm.n_dep_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
@@ -103,24 +108,25 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     goto error;
 
-  if ( glm.n_dep_vars > 1)
+  if (glm.n_dep_vars > 1)
     {
       msg (ME, _("Multivariate analysis is not yet implemented"));
       return CMD_FAILURE;
     }
 
-  struct const_var_set *factors = const_var_set_create_from_array (glm.factor_vars, glm.n_factor_vars);
-
+  factors =
+    const_var_set_create_from_array (glm.factor_vars, glm.n_factor_vars);
 
   while (lex_token (lexer) != T_ENDCMD)
     {
       lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "MISSING"))
-        {
-          lex_match (lexer, T_EQUALS);
-          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
-            {
+	{
+	  lex_match (lexer, T_EQUALS);
+	  while (lex_token (lexer) != T_ENDCMD
+		 && lex_token (lexer) != T_SLASH)
+	    {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{
 		  glm.exclude = MV_SYSTEM;
@@ -131,16 +137,17 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 		}
 	      else
 		{
-                  lex_error (lexer, NULL);
+		  lex_error (lexer, NULL);
 		  goto error;
 		}
 	    }
 	}
       else if (lex_match_id (lexer, "INTERCEPT"))
-        {
-          lex_match (lexer, T_EQUALS);
-          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
-            {
+	{
+	  lex_match (lexer, T_EQUALS);
+	  while (lex_token (lexer) != T_ENDCMD
+		 && lex_token (lexer) != T_SLASH)
+	    {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{
 		  glm.intercept = true;
@@ -151,19 +158,21 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 		}
 	      else
 		{
-                  lex_error (lexer, NULL);
+		  lex_error (lexer, NULL);
 		  goto error;
 		}
 	    }
 	}
+#if 0
       else if (lex_match_id (lexer, "DESIGN"))
-        {
+	{
 	  size_t n_des;
 	  const struct variable **des;
-          lex_match (lexer, T_EQUALS);
+	  lex_match (lexer, T_EQUALS);
 
 	  parse_const_var_set_vars (lexer, factors, &des, &n_des, 0);
 	}
+#endif
       else
 	{
 	  lex_error (lexer, NULL);
@@ -184,13 +193,23 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
     ok = proc_commit (ds) && ok;
   }
 
+  const_var_set_destroy (factors);
+  free (glm.factor_vars);
+  free (glm.dep_vars);
+
   return CMD_SUCCESS;
 
- error:
+error:
+
+  const_var_set_destroy (factors);
+  free (glm.factor_vars);
+  free (glm.dep_vars);
+
   return CMD_FAILURE;
 }
 
-static void get_ssq (struct covariance *, gsl_vector *, struct glm_spec *);
+static void get_ssq (struct covariance *, gsl_vector *,
+		     const struct glm_spec *);
 
 static bool
 not_dropped (size_t j, size_t * dropped, size_t n_dropped)
@@ -199,24 +218,24 @@ not_dropped (size_t j, size_t * dropped, size_t n_dropped)
 
   for (i = 0; i < n_dropped; i++)
     {
-      if (j == dropped [i])
+      if (j == dropped[i])
 	return false;
     }
   return true;
 }
 
 static void
-get_ssq (struct covariance * cov, gsl_vector * ssq, struct glm_spec * cmd)
+get_ssq (struct covariance *cov, gsl_vector * ssq, const struct glm_spec *cmd)
 {
   const struct variable **vars;
-  gsl_matrix * small_cov = NULL;
-  gsl_matrix * cm = covariance_calculate_unnormalized (cov);
+  gsl_matrix *small_cov = NULL;
+  gsl_matrix *cm = covariance_calculate_unnormalized (cov);
   size_t i;
   size_t j;
   size_t k;
   size_t n;
   size_t m;
-  size_t * dropped;
+  size_t *dropped;
   size_t n_dropped;
 
   dropped = xcalloc (covariance_dim (cov), sizeof (*dropped));
@@ -228,12 +247,13 @@ get_ssq (struct covariance * cov, gsl_vector * ssq, struct glm_spec * cmd)
       n_dropped = 0;
       for (i = 1; i < covariance_dim (cov); i++)
 	{
-	  if (vars [i] == cmd->factor_vars [k])
+	  if (vars[i] == cmd->factor_vars[k])
 	    {
-	      dropped [n_dropped++] = i;
+	      dropped[n_dropped++] = i;
 	    }
 	}
-      small_cov = gsl_matrix_alloc (cm->size1 - n_dropped, cm->size2 - n_dropped);
+      small_cov =
+	gsl_matrix_alloc (cm->size1 - n_dropped, cm->size2 - n_dropped);
       gsl_matrix_set (small_cov, 0, 0, gsl_matrix_get (cm, 0, 0));
       n = 0;
       m = 0;
@@ -246,7 +266,8 @@ get_ssq (struct covariance * cov, gsl_vector * ssq, struct glm_spec * cmd)
 		{
 		  if (not_dropped (j, dropped, n_dropped))
 		    {
-		      gsl_matrix_set (small_cov, n, m, gsl_matrix_get (cm, i, j));
+		      gsl_matrix_set (small_cov, n, m,
+				      gsl_matrix_get (cm, i, j));
 		      m++;
 		    }
 		}
@@ -254,7 +275,7 @@ get_ssq (struct covariance * cov, gsl_vector * ssq, struct glm_spec * cmd)
 	    }
 	}
       reg_sweep (small_cov, 0);
-      gsl_vector_set (ssq, k + 1, 
+      gsl_vector_set (ssq, k + 1,
 		      gsl_matrix_get (small_cov, 0, 0)
 		      - gsl_vector_get (ssq, 0));
       gsl_matrix_free (small_cov);
@@ -263,14 +284,15 @@ get_ssq (struct covariance * cov, gsl_vector * ssq, struct glm_spec * cmd)
   free (dropped);
   free (vars);
   gsl_matrix_free (cm);
-
 }
 
-static  void dump_matrix (const gsl_matrix *m);
+//static  void dump_matrix (const gsl_matrix *m);
 
 static void
-run_glm (struct glm_spec *cmd, struct casereader *input, const struct dataset *ds)
+run_glm (struct glm_spec *cmd, struct casereader *input,
+	 const struct dataset *ds)
 {
+  bool warn_bad_weight = true;
   int v;
   struct taint *taint;
   struct dictionary *dict = dataset_dict (ds);
@@ -278,15 +300,13 @@ run_glm (struct glm_spec *cmd, struct casereader *input, const struct dataset *d
   struct ccase *c;
 
   struct glm_workspace ws;
+  struct covariance *cov;
+  ws.cats = categoricals_create (cmd->factor_vars, cmd->n_factor_vars,
+				 cmd->wv, cmd->exclude,
+				 NULL, NULL, NULL, NULL);
 
-  struct categoricals *cats = categoricals_create (cmd->factor_vars, cmd->n_factor_vars,
-						   cmd->wv, cmd->exclude, 
-						   NULL, NULL,
-						   NULL, NULL);
-  
-  struct covariance *cov = covariance_2pass_create (cmd->n_dep_vars, cmd->dep_vars,
-					       cats, 
-					       cmd->wv, cmd->exclude);
+  cov = covariance_2pass_create (cmd->n_dep_vars, cmd->dep_vars,
+				 ws.cats, cmd->wv, cmd->exclude);
 
 
   c = casereader_peek (input, 0);
@@ -302,28 +322,29 @@ run_glm (struct glm_spec *cmd, struct casereader *input, const struct dataset *d
 
   ws.totals = moments_create (MOMENT_VARIANCE);
 
-  bool warn_bad_weight = true;
   for (reader = casereader_clone (input);
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       double weight = dict_get_case_weight (dict, c, &warn_bad_weight);
 
-      for ( v = 0; v < cmd->n_dep_vars; ++v)
-	moments_pass_one (ws.totals, case_data (c, cmd->dep_vars[v])->f, weight);
+      for (v = 0; v < cmd->n_dep_vars; ++v)
+	moments_pass_one (ws.totals, case_data (c, cmd->dep_vars[v])->f,
+			  weight);
 
       covariance_accumulate_pass1 (cov, c);
     }
   casereader_destroy (reader);
 
-  categoricals_done (cats);
+  categoricals_done (ws.cats);
 
-  for (reader = casereader_clone (input);
+  for (reader = input;
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       double weight = dict_get_case_weight (dict, c, &warn_bad_weight);
 
-      for ( v = 0; v < cmd->n_dep_vars; ++v)
-	moments_pass_two (ws.totals, case_data (c, cmd->dep_vars[v])->f, weight);
+      for (v = 0; v < cmd->n_dep_vars; ++v)
+	moments_pass_two (ws.totals, case_data (c, cmd->dep_vars[v])->f,
+			  weight);
 
       covariance_accumulate_pass2 (cov, c);
     }
@@ -332,21 +353,19 @@ run_glm (struct glm_spec *cmd, struct casereader *input, const struct dataset *d
   {
     gsl_matrix *cm = covariance_calculate_unnormalized (cov);
 
-    dump_matrix (cm);
+    //    dump_matrix (cm);
 
     ws.total_ssq = gsl_matrix_get (cm, 0, 0);
 
     reg_sweep (cm, 0);
 
     /*
-      Store the overall SSE.
+       Store the overall SSE.
      */
-    cmd->ssq = gsl_vector_alloc (cm->size1);
-    gsl_vector_set (cmd->ssq, 0, gsl_matrix_get (cm, 0, 0));
-    get_ssq (cov, cmd->ssq, cmd);
-
-    gsl_vector_free (cmd->ssq);
-    dump_matrix (cm);
+    ws.ssq = gsl_vector_alloc (cm->size1);
+    gsl_vector_set (ws.ssq, 0, gsl_matrix_get (cm, 0, 0));
+    get_ssq (cov, ws.ssq, cmd);
+    //    dump_matrix (cm);
 
     gsl_matrix_free (cm);
   }
@@ -354,19 +373,29 @@ run_glm (struct glm_spec *cmd, struct casereader *input, const struct dataset *d
   if (!taint_has_tainted_successor (taint))
     output_glm (cmd, &ws);
 
+  gsl_vector_free (ws.ssq);
+
+  covariance_destroy (cov);
+  moments_destroy (ws.totals);
+
   taint_destroy (taint);
 }
 
 static void
-output_glm (struct glm_spec *cmd, const struct glm_workspace *ws)
+output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
 {
-  const struct fmt_spec *wfmt = cmd->wv ? var_get_print_format (cmd->wv) : &F_8_0;
+  const struct fmt_spec *wfmt =
+    cmd->wv ? var_get_print_format (cmd->wv) : &F_8_0;
+
+  double n_total, mean;
+  double df_corr = 0.0;
+  double mse = 0;
 
   int f;
   int r;
   const int heading_columns = 1;
   const int heading_rows = 1;
-  struct tab_table *t ;
+  struct tab_table *t;
 
   const int nc = 6;
   int nr = heading_rows + 4 + cmd->n_factor_vars;
@@ -378,11 +407,7 @@ output_glm (struct glm_spec *cmd, const struct glm_workspace *ws)
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
 
-  tab_box (t,
-	   TAL_2, TAL_2,
-	   -1, TAL_1,
-	   0, 0,
-	   nc - 1, nr - 1);
+  tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, nc - 1, nr - 1);
 
   tab_hline (t, TAL_2, 0, nc - 1, heading_rows);
   tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
@@ -390,42 +415,92 @@ output_glm (struct glm_spec *cmd, const struct glm_workspace *ws)
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Source"));
 
   /* TRANSLATORS: The parameter is a roman numeral */
-  tab_text_format (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Type %s Sum of Squares"), "III");
+  tab_text_format (t, 1, 0, TAB_CENTER | TAT_TITLE,
+		   _("Type %s Sum of Squares"), "III");
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("df"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean Square"));
   tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("F"));
   tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("Sig."));
 
-  r = heading_rows;
-  tab_text (t, 0, r++, TAB_LEFT | TAT_TITLE, _("Corrected Model"));
+  moments_calculate (ws->totals, &n_total, &mean, NULL, NULL, NULL);
 
-  double intercept, n_total;
+  if (cmd->intercept)
+    df_corr += 1.0;
+
+  for (f = 0; f < cmd->n_factor_vars; ++f)
+    df_corr += categoricals_n_count (ws->cats, f) - 1.0;
+
+  mse = gsl_vector_get (ws->ssq, 0) / (n_total - df_corr);
+
+  r = heading_rows;
+  tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Corrected Model"));
+
+  r++;
+
   if (cmd->intercept)
     {
-      double mean;
-      moments_calculate (ws->totals, &n_total, &mean, NULL, NULL, NULL);
-      intercept = pow2 (mean * n_total) / n_total;
-
+      const double intercept = pow2 (mean * n_total) / n_total;
+      const double df = 1.0;
+      const double F = intercept / df / mse;
       tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Intercept"));
       tab_double (t, 1, r, 0, intercept, NULL);
       tab_double (t, 2, r, 0, 1.00, wfmt);
-
-      tab_double (t, 3, r, 0, intercept / 1.0 , NULL);
+      tab_double (t, 3, r, 0, intercept / df, NULL);
+      tab_double (t, 4, r, 0, F, NULL);
+      tab_double (t, 5, r, 0, gsl_cdf_fdist_Q (F, df, n_total - df_corr),
+		  NULL);
       r++;
     }
 
   for (f = 0; f < cmd->n_factor_vars; ++f)
     {
-      tab_text (t, 0, r++, TAB_LEFT | TAT_TITLE,
+      const double df = categoricals_n_count (ws->cats, f) - 1.0;
+      const double ssq = gsl_vector_get (ws->ssq, f + 1);
+      const double F = ssq / df / mse;
+      tab_text (t, 0, r, TAB_LEFT | TAT_TITLE,
 		var_to_string (cmd->factor_vars[f]));
+
+      tab_double (t, 1, r, 0, ssq, NULL);
+      tab_double (t, 2, r, 0, df, wfmt);
+      tab_double (t, 3, r, 0, ssq / df, NULL);
+      tab_double (t, 4, r, 0, F, NULL);
+
+      tab_double (t, 5, r, 0, gsl_cdf_fdist_Q (F, df, n_total - df_corr),
+		  NULL);
+
+
+      r++;
     }
 
-  tab_text (t, 0, r++, TAB_LEFT | TAT_TITLE, _("Error"));
+  {
+    /* Corrected Model */
+    const double df = df_corr - 1.0;
+    const double ssq = ws->total_ssq - gsl_vector_get (ws->ssq, 0);
+    const double F = ssq / df / mse;
+    tab_double (t, 1, heading_rows, 0, ssq, NULL);
+    tab_double (t, 2, heading_rows, 0, df, wfmt);
+    tab_double (t, 3, heading_rows, 0, ssq / df, NULL);
+    tab_double (t, 4, heading_rows, 0, F, NULL);
+
+    tab_double (t, 5, heading_rows, 0,
+		gsl_cdf_fdist_Q (F, df, n_total - df_corr), NULL);
+  }
+
+  {
+    const double df = n_total - df_corr;
+    const double ssq = gsl_vector_get (ws->ssq, 0);
+    const double mse = ssq / df;
+    tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Error"));
+    tab_double (t, 1, r, 0, ssq, NULL);
+    tab_double (t, 2, r, 0, df, wfmt);
+    tab_double (t, 3, r++, 0, mse, NULL);
+  }
 
   if (cmd->intercept)
     {
-      double ssq = intercept + ws->total_ssq;
-      double mse = ssq / n_total;
+      const double intercept = pow2 (mean * n_total) / n_total;
+      const double ssq = intercept + ws->total_ssq;
+
       tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Total"));
       tab_double (t, 1, r, 0, ssq, NULL);
       tab_double (t, 2, r, 0, n_total, wfmt);
@@ -435,14 +510,16 @@ output_glm (struct glm_spec *cmd, const struct glm_workspace *ws)
 
   tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Corrected Total"));
 
+
   tab_double (t, 1, r, 0, ws->total_ssq, NULL);
   tab_double (t, 2, r, 0, n_total - 1.0, wfmt);
 
   tab_submit (t);
 }
 
-static 
-void dump_matrix (const gsl_matrix *m)
+#if 0
+static void
+dump_matrix (const gsl_matrix * m)
 {
   size_t i, j;
   for (i = 0; i < m->size1; ++i)
@@ -456,3 +533,4 @@ void dump_matrix (const gsl_matrix *m)
     }
   printf ("\n");
 }
+#endif
