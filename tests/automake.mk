@@ -306,6 +306,7 @@ TESTSUITE_AT = \
 	tests/language/stats/factor.at \
 	tests/language/stats/flip.at \
 	tests/language/stats/frequencies.at \
+	tests/language/stats/glm.at \
 	tests/language/stats/npar.at \
 	tests/language/stats/oneway.at \
 	tests/language/stats/quick-cluster.at \

@@ -53,12 +53,24 @@ struct glm_spec
   size_t n_factor_vars;
   const struct variable **factor_vars;
 
+  /* In the current implementation, design_vars will
+     normally be the same as factor_vars.
+     This will change once interactions, nested variables
+     and repeated measures become involved.
+  */
+  size_t n_design_vars;
+  const struct variable **design_vars;
+
   enum mv_class exclude;
 
   /* The weight variable */
   const struct variable *wv;
 
+  const struct dictionary *dict;
+
   bool intercept;
+
+  double alpha;
 };
 
 struct glm_workspace
@@ -81,29 +93,36 @@ static void output_glm (const struct glm_spec *,
 static void run_glm (struct glm_spec *cmd, struct casereader *input,
 		     const struct dataset *ds);
 
+
+static bool parse_design_spec (struct lexer *lexer, struct glm_spec *glm);
+
+
 int
 cmd_glm (struct lexer *lexer, struct dataset *ds)
 {
   struct const_var_set *factors = NULL;
-  const struct dictionary *dict = dataset_dict (ds);
   struct glm_spec glm;
+  bool design = false;
+  glm.dict = dataset_dict (ds);
   glm.n_dep_vars = 0;
   glm.n_factor_vars = 0;
+  glm.n_design_vars = 0;
   glm.dep_vars = NULL;
   glm.factor_vars = NULL;
+  glm.design_vars = NULL;
   glm.exclude = MV_ANY;
   glm.intercept = true;
-  glm.wv = dict_get_weight (dict);
+  glm.wv = dict_get_weight (glm.dict);
+  glm.alpha = 0.05;
 
-
-  if (!parse_variables_const (lexer, dict,
+  if (!parse_variables_const (lexer, glm.dict,
 			      &glm.dep_vars, &glm.n_dep_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     goto error;
 
   lex_force_match (lexer, T_BY);
 
-  if (!parse_variables_const (lexer, dict,
+  if (!parse_variables_const (lexer, glm.dict,
 			      &glm.factor_vars, &glm.n_factor_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     goto error;
@@ -163,16 +182,84 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 		}
 	    }
 	}
-#if 0
+      else if (lex_match_id (lexer, "CRITERIA"))
+	{
+	  lex_match (lexer, T_EQUALS);
+	  if (lex_match_id (lexer, "ALPHA"))
+	    {
+	      if (lex_force_match (lexer, T_LPAREN))
+		{
+		  if (! lex_force_num (lexer))
+		    {
+		      lex_error (lexer, NULL);
+		      goto error;
+		    }
+		  
+		  glm.alpha = lex_number (lexer);
+		  lex_get (lexer);
+		  if ( ! lex_force_match (lexer, T_RPAREN))
+		    {
+		      lex_error (lexer, NULL);
+		      goto error;
+		    }
+		}
+	    }
+	  else
+	    {
+	      lex_error (lexer, NULL);
+	      goto error;
+	    }
+	}
+      else if (lex_match_id (lexer, "METHOD"))
+	{
+	  lex_match (lexer, T_EQUALS);
+	  if ( !lex_force_match_id (lexer, "SSTYPE"))
+	    {
+	      lex_error (lexer, NULL);
+	      goto error;
+	    }
+
+	  if ( ! lex_force_match (lexer, T_LPAREN))
+	    {
+	      lex_error (lexer, NULL);
+	      goto error;
+	    }
+
+	  if ( ! lex_force_int (lexer))
+	    {
+	      lex_error (lexer, NULL);
+	      goto error;
+	    }
+
+	  if (3 != lex_integer (lexer))
+	    {
+	      msg (ME, _("Only type 3 sum of squares are currently implemented"));
+	      goto error;
+	    }
+
+	  lex_get (lexer);
+
+	  if ( ! lex_force_match (lexer, T_RPAREN))
+	    {
+	      lex_error (lexer, NULL);
+	      goto error;
+	    }
+	}
       else if (lex_match_id (lexer, "DESIGN"))
 	{
-	  size_t n_des;
-	  const struct variable **des;
 	  lex_match (lexer, T_EQUALS);
 
-	  parse_const_var_set_vars (lexer, factors, &des, &n_des, 0);
+	  if (! parse_design_spec (lexer, &glm))
+	    goto error;
+	  
+	  if ( glm.n_design_vars == 0)
+	    {
+	      msg (ME, _("One or more design  variables must be given"));
+	      goto error;
+	    }
+	  
+	  design = true;
 	}
-#endif
       else
 	{
 	  lex_error (lexer, NULL);
@@ -180,13 +267,18 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
+  if ( ! design )
+    {
+      lex_error (lexer, _("/DESIGN is mandatory in GLM"));
+      goto error;
+    }
 
   {
     struct casegrouper *grouper;
     struct casereader *group;
     bool ok;
 
-    grouper = casegrouper_create_splits (proc_open (ds), dict);
+    grouper = casegrouper_create_splits (proc_open (ds), glm.dict);
     while (casegrouper_get_next_group (grouper, &group))
       run_glm (&glm, group, ds);
     ok = casegrouper_destroy (grouper);
@@ -195,7 +287,9 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 
   const_var_set_destroy (factors);
   free (glm.factor_vars);
+  free (glm.design_vars);
   free (glm.dep_vars);
+
 
   return CMD_SUCCESS;
 
@@ -203,6 +297,7 @@ error:
 
   const_var_set_destroy (factors);
   free (glm.factor_vars);
+  free (glm.design_vars);
   free (glm.dep_vars);
 
   return CMD_FAILURE;
@@ -242,12 +337,12 @@ get_ssq (struct covariance *cov, gsl_vector * ssq, const struct glm_spec *cmd)
   vars = xcalloc (covariance_dim (cov), sizeof (*vars));
   covariance_get_var_indices (cov, vars);
 
-  for (k = 0; k < cmd->n_factor_vars; k++)
+  for (k = 0; k < cmd->n_design_vars; k++)
     {
       n_dropped = 0;
       for (i = 1; i < covariance_dim (cov); i++)
 	{
-	  if (vars[i] == cmd->factor_vars[k])
+	  if (vars[i] == cmd->design_vars[k])
 	    {
 	      dropped[n_dropped++] = i;
 	    }
@@ -301,7 +396,7 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
 
   struct glm_workspace ws;
   struct covariance *cov;
-  ws.cats = categoricals_create (cmd->factor_vars, cmd->n_factor_vars,
+  ws.cats = categoricals_create (cmd->design_vars, cmd->n_design_vars,
 				 cmd->wv, cmd->exclude,
 				 NULL, NULL, NULL, NULL);
 
@@ -398,7 +493,7 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   struct tab_table *t;
 
   const int nc = 6;
-  int nr = heading_rows + 4 + cmd->n_factor_vars;
+  int nr = heading_rows + 4 + cmd->n_design_vars;
   if (cmd->intercept)
     nr++;
 
@@ -427,7 +522,7 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   if (cmd->intercept)
     df_corr += 1.0;
 
-  for (f = 0; f < cmd->n_factor_vars; ++f)
+  for (f = 0; f < cmd->n_design_vars; ++f)
     df_corr += categoricals_n_count (ws->cats, f) - 1.0;
 
   mse = gsl_vector_get (ws->ssq, 0) / (n_total - df_corr);
@@ -452,13 +547,13 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
       r++;
     }
 
-  for (f = 0; f < cmd->n_factor_vars; ++f)
+  for (f = 0; f < cmd->n_design_vars; ++f)
     {
       const double df = categoricals_n_count (ws->cats, f) - 1.0;
       const double ssq = gsl_vector_get (ws->ssq, f + 1);
       const double F = ssq / df / mse;
       tab_text (t, 0, r, TAB_LEFT | TAT_TITLE,
-		var_to_string (cmd->factor_vars[f]));
+		var_to_string (cmd->design_vars[f]));
 
       tab_double (t, 1, r, 0, ssq, NULL);
       tab_double (t, 2, r, 0, df, wfmt);
@@ -534,3 +629,82 @@ dump_matrix (const gsl_matrix * m)
   printf ("\n");
 }
 #endif
+
+
+
+
+/* Match a variable.
+   If the match succeeds, the variable will be placed in VAR.
+   Returns true if successful */
+static bool
+lex_match_variable (struct lexer *lexer, const struct glm_spec *glm, const struct variable **var)
+{
+  if (lex_token (lexer) !=  T_ID)
+    return false;
+
+  *var = parse_variable_const  (lexer, glm->dict);
+
+  if ( *var == NULL)
+    return false;
+  return true;
+}
+
+/* An interaction is a variable followed by {*, BY} followed by an interaction */
+static bool
+parse_design_interaction (struct lexer *lexer, struct glm_spec *glm)
+{
+  const struct variable *v = NULL;
+  if (! lex_match_variable (lexer, glm, &v))
+    return false;
+
+  if ( lex_match (lexer, T_ASTERISK) || lex_match (lexer, T_BY))
+    {
+      lex_error (lexer, "Interactions are not yet implemented"); return false;
+      return parse_design_interaction (lexer, glm);
+    }
+
+  glm->n_design_vars++;
+  glm->design_vars = xrealloc (glm->design_vars, sizeof (*glm->design_vars) * glm->n_design_vars);
+  glm->design_vars[glm->n_design_vars - 1] = v;
+
+  return true;
+}
+
+/* A design term is a varible OR an interaction */
+static bool
+parse_design_term (struct lexer *lexer, struct glm_spec *glm)
+{
+  const struct variable *v = NULL;
+  if (parse_design_interaction (lexer, glm))
+    return true;
+
+  /* FIXME: This should accept nexted variables */
+  if ( lex_match_variable (lexer, glm, &v))
+    {
+      return true;
+    }
+
+  return false;
+}
+
+
+
+/* Parse a complete DESIGN specification.
+   A design spec is a design term, optionally followed by a comma,
+   and another design spec.
+*/
+static bool
+parse_design_spec (struct lexer *lexer, struct glm_spec *glm)
+{
+  /* Kludge: Return success if end of design spec */
+  if  (lex_token (lexer) == T_ENDCMD || lex_token (lexer) == T_SLASH)
+    return true;
+
+  if ( ! parse_design_term (lexer, glm))
+    return false;
+
+  lex_match (lexer, T_COMMA);
+
+  return parse_design_spec (lexer, glm);
+}
+

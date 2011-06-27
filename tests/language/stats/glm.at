@@ -1,0 +1,72 @@
+AT_BANNER([GLM procedure])
+
+AT_SETUP([GLM latin square design])
+
+dnl This example comes from :
+dnl  http://ssnds.uwo.ca/statsexamples/spssanova/latinsquareresults.html
+AT_DATA([latin.sps], [dnl
+set format = F20.3.
+data list notable  fixed /a 1 b 3 c 5 y 7-10(2).
+begin data.
+1 1 6  3.5
+1 2 2  8.9
+1 3 3  9.6
+1 4 4 10.5
+1 5 5  3.1
+1 6 1  5.9
+2 1 2  4.2
+2 2 6  1.9
+2 3 5  3.7
+2 4 3 10.2
+2 5 1  7.2
+2 6 4  7.6
+3 1 1  6.7
+3 2 4  5.8
+3 3 6 -2.7
+3 4 2  4.6
+3 5 3  4.0
+3 6 5 -0.7
+4 1 4  6.6
+4 2 1  4.5
+4 3 2  3.7
+4 4 5  3.7
+4 5 6 -3.3
+4 6 3  3.0
+5 1 3  4.1
+5 2 5  2.4
+5 3 4  6.0
+5 4 1  5.1
+5 5 2  3.5
+5 6 6  4.0
+6 1 5  3.8
+6 2 3  5.8
+6 3 1  7.0
+6 4 6  3.8
+6 5 4  5.0
+6 6 2  8.6
+end data.
+
+variable labels a 'Factor A' b 'Factor B' c 'Factor C' y 'Criterion'.
+
+glm y by   b a c
+  /method=sstype(3)
+  /intercept=include
+  /criteria=alpha(.05)
+  /design = a b c
+  .
+])
+
+AT_CHECK([pspp -O format=csv latin.sps], [0], [dnl
+Table: Tests of Between-Subjects Effects
+Source,Type III Sum of Squares,df,Mean Square,F,Sig.
+Corrected Model,263.064,15,17.538,5.269,.000
+Intercept,815.103,1,815.103,244.910,.000
+Factor A,78.869,5,15.774,4.739,.005
+Factor B,28.599,5,5.720,1.719,.176
+Factor C,155.596,5,31.119,9.350,.000
+Error,66.563,20,3.328,,
+Total,1144.730,36,,,
+Corrected Total,329.627,35,,,
+])
+
+AT_CLEANUP

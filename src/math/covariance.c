@@ -744,7 +744,7 @@ covariance_dim (const struct covariance * cov)
   row (and column) i of the covariance matrix.
  */
 void
-covariance_get_var_indices (const struct covariance *cov, struct variable **vars)
+covariance_get_var_indices (const struct covariance *cov, const struct variable **vars)
 {
   int i;
   for (i = 0; i < cov->n_vars; i++)

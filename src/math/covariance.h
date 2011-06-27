@@ -48,6 +48,6 @@ const gsl_matrix *covariance_moments (const struct covariance *cov, int m);
 
 const struct categoricals * covariance_get_categoricals (const struct covariance *cov);
 
-void covariance_get_var_indices (const struct covariance *cov, struct variable **vars);
+void covariance_get_var_indices (const struct covariance *cov, const struct variable **vars);
 size_t covariance_dim (const struct covariance * cov);
 #endif
