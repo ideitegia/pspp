@@ -726,8 +726,8 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 
 	  struct string vstr;
 
-	  const union value *gval = categoricals_get_value_by_subscript (cats, count);
-	  const struct descriptive_data *dd = categoricals_get_user_data_by_subscript (cats, count);
+	  const union value *gval = categoricals_get_value_by_category (cats, count);
+	  const struct descriptive_data *dd = categoricals_get_user_data_by_category (cats, count);
 
 	  moments1_calculate (dd->mom, &n, &mean, &variance, NULL, NULL);
 
@@ -936,7 +936,7 @@ show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspa
 	   ++count, coeffi = ll_next (coeffi))
 	{
 	  const struct categoricals *cats = covariance_get_categoricals (cov);
-	  const union value *val = categoricals_get_value_by_subscript (cats, count);
+	  const union value *val = categoricals_get_value_by_category (cats, count);
 	  struct string vstr;
 
 	  ds_init_empty (&vstr);
@@ -1073,7 +1073,7 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 	       ++ci, coeffi = ll_next (coeffi))
 	    {
 	      double n, mean, variance;
-	      const struct descriptive_data *dd = categoricals_get_user_data_by_subscript (cats, ci);
+	      const struct descriptive_data *dd = categoricals_get_user_data_by_category (cats, ci);
 	      struct coeff_node *cn = ll_data (coeffi, struct coeff_node, ll);
 	      const double coef = cn->coeff; 
 	      double winv ;

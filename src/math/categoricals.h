@@ -61,11 +61,21 @@ size_t categoricals_total (const struct categoricals *cat);
 */
 size_t categoricals_get_n_variables (const struct categoricals *cat);
 
+
+/*
+  Must be called (once) before any call to the *_by_subscript or *_by_category
+  functions, but AFTER any calls to categoricals_update 
+*/
 void categoricals_done (const struct categoricals *cat);
 
-const struct variable * categoricals_get_variable_by_subscript (const struct categoricals *cat, int subscript);
 
-const union value * categoricals_get_value_by_subscript (const struct categoricals *cat, int subscript);
+/*
+  The *_by_subscript functions use the short map.
+  Their intended use is by covariance matrix routines, where normally 1 less than 
+  the total number of distinct values of each categorical variable should
+  be considered.
+ */
+const struct variable * categoricals_get_variable_by_subscript (const struct categoricals *cat, int subscript);
 
 double categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscript);
 
@@ -74,9 +84,13 @@ double categoricals_get_sum_by_subscript (const struct categoricals *cat, int su
 double categoricals_get_binary_by_subscript (const struct categoricals *cat, int subscript,
 					     const struct ccase *c);
 
-void * categoricals_get_user_data_by_subscript (const struct categoricals *cat, int subscript);
 
+/* These use the long map.  Useful for descriptive statistics. */
 
+/* Return the value corresponding to the N'th category */
+const union value * categoricals_get_value_by_category (const struct categoricals *cat, int n);
+
+void * categoricals_get_user_data_by_category (const struct categoricals *cat, int category);
 
 
 

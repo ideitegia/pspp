@@ -49,7 +49,8 @@ struct var_params
 
   const struct variable *var;
 
-  int base_subscript;
+  int base_subscript_short;
+  int base_subscript_long;
 
   /* The number of distinct values of this variable */
   int n_cats;
@@ -90,8 +91,13 @@ struct categoricals
      In the absence of missing values, this will be equal to N_VP */
   size_t n_vars;
 
-  /* A map to enable the lookup of variables indexed by subscript */
-  int *reverse_variable_map;
+  /* A map to enable the lookup of variables indexed by subscript.
+     This map considers only the N - 1 of the N variables.
+   */
+  int *reverse_variable_map_short;
+
+  /* Like the above, but uses all N variables */
+  int *reverse_variable_map_long;
 
   size_t n_cats_total;
 
@@ -141,7 +147,7 @@ categoricals_dump (const struct categoricals *cat)
       int x;
      
       printf ("\n%s (%d)  CC=%g n_cats=%d:\n", 
-	      var_get_name (vp->var), vp->base_subscript, vp->cc, vp->n_cats);
+	      var_get_name (vp->var), vp->base_subscript_long, vp->cc, vp->n_cats);
 
       printf ("Reverse map\n");
       for (x = 0 ; x < vp->n_cats; ++x)
@@ -175,10 +181,14 @@ categoricals_dump (const struct categoricals *cat)
   printf ("Number of non-empty categorical variables: %d\n", cat->n_vars);
   printf ("Total number of categories: %d\n", cat->n_cats_total);
 
-  printf ("\nReverse variable map:\n");
-
+  printf ("\nReverse variable map (short):\n");
   for (v = 0 ; v < cat->n_cats_total - cat->n_vars; ++v)
-    printf ("%d ", cat->reverse_variable_map[v]);
+    printf ("%d ", cat->reverse_variable_map_short[v]);
+
+  printf ("\nReverse variable map (long):\n");
+  for (v = 0 ; v < cat->n_cats_total; ++v)
+    printf ("%d ", cat->reverse_variable_map_long[v]);
+
   printf ("\n");
 }
 #endif
@@ -218,7 +228,8 @@ categoricals_create (const struct variable *const *v, size_t n_vars,
   cat->wv = wv;
   cat->n_cats_total = 0;
   cat->n_vars = 0;
-  cat->reverse_variable_map = NULL;
+  cat->reverse_variable_map_short = NULL;
+  cat->reverse_variable_map_long = NULL;
   cat->pool = pool_create ();
   cat->exclude = exclude;
   cat->update = update;
@@ -248,7 +259,8 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
   
   const double weight = cat->wv ? case_data (c, cat->wv)->f : 1.0;
 
-  assert (NULL == cat->reverse_variable_map);
+  assert (NULL == cat->reverse_variable_map_short);
+  assert (NULL == cat->reverse_variable_map_long);
 
   for (i = 0 ; i < cat->n_vp; ++i)
     {
@@ -308,7 +320,7 @@ categoricals_total (const struct categoricals *cat)
 }
 
 
-/* This function must be called *before* any call to categoricals_get_*_by subscript an
+/* This function must be called *before* any call to categoricals_get_*_by subscript and
  *after* all calls to categoricals_update */
 void
 categoricals_done (const struct categoricals *cat_)
@@ -321,10 +333,15 @@ categoricals_done (const struct categoricals *cat_)
   */
   struct categoricals *cat = CONST_CAST (struct categoricals *, cat_);
   int v;
-  int idx = 0;
-  cat->reverse_variable_map = pool_calloc (cat->pool,
-					   cat->n_cats_total - cat->n_vars,
-					   sizeof *cat->reverse_variable_map);
+  int idx_short = 0;
+  int idx_long = 0;
+  cat->reverse_variable_map_short = pool_calloc (cat->pool,
+						 cat->n_cats_total - cat->n_vars,
+						 sizeof *cat->reverse_variable_map_short);
+
+  cat->reverse_variable_map_long = pool_calloc (cat->pool,
+						cat->n_cats_total,
+						sizeof *cat->reverse_variable_map_long);
   
   for (v = 0 ; v < cat->n_vp; ++v)
     {
@@ -335,7 +352,8 @@ categoricals_done (const struct categoricals *cat_)
 
       vp->reverse_value_map = pool_calloc (cat->pool, n_cats_total, sizeof *vp->reverse_value_map);
 
-      vp->base_subscript = idx;
+      vp->base_subscript_short = idx_short;
+      vp->base_subscript_long = idx_long;
 
       for (node = hmap_first (&vp->map); node; node = hmap_next (&vp->map, node))
 	{
@@ -347,10 +365,12 @@ categoricals_done (const struct categoricals *cat_)
       sort (vp->reverse_value_map, vp->n_cats, sizeof (const struct value_node *),
 	    compare_value_node, vp);
 
-      /* Populate the reverse variable map.
-       */
+      /* Populate the reverse variable maps. */
       for (i = 0; i < vp->n_cats - 1; ++i)
-	cat->reverse_variable_map[idx++] = v;
+	cat->reverse_variable_map_short[idx_short++] = v;
+
+      for (i = 0; i < vp->n_cats; ++i)
+	cat->reverse_variable_map_long[idx_long++] = v;
     }
 
   assert (cat->n_vars <= cat->n_vp);
@@ -358,32 +378,43 @@ categoricals_done (const struct categoricals *cat_)
 
 
 static int
-reverse_variable_lookup (const struct categoricals *cat, int subscript)
+reverse_variable_lookup_short (const struct categoricals *cat, int subscript)
 {
-  assert (cat->reverse_variable_map);
+  assert (cat->reverse_variable_map_short);
   assert (subscript >= 0);
   assert (subscript < cat->n_cats_total - cat->n_vars);
 
-  return cat->reverse_variable_map[subscript];
+  return cat->reverse_variable_map_short[subscript];
 }
+
+static int
+reverse_variable_lookup_long (const struct categoricals *cat, int subscript)
+{
+  assert (cat->reverse_variable_map_long);
+  assert (subscript >= 0);
+  assert (subscript < cat->n_cats_total);
+
+  return cat->reverse_variable_map_long[subscript];
+}
+
 
 
 /* Return the categorical variable corresponding to SUBSCRIPT */
 const struct variable *
 categoricals_get_variable_by_subscript (const struct categoricals *cat, int subscript)
 {
-  int index = reverse_variable_lookup (cat, subscript);
+  int index = reverse_variable_lookup_short (cat, subscript);
 
   return cat->vp[index].var;
 }
 
 /* Return the value corresponding to SUBSCRIPT */
-const union value *
+static const union value *
 categoricals_get_value_by_subscript (const struct categoricals *cat, int subscript)
 {
-  int vindex = reverse_variable_lookup (cat, subscript);
+  int vindex = reverse_variable_lookup_short (cat, subscript);
   const struct var_params *vp = &cat->vp[vindex];
-  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript];
+  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_short];
 
   return &vn->value;
 }
@@ -392,7 +423,7 @@ categoricals_get_value_by_subscript (const struct categoricals *cat, int subscri
 double
 categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscript)
 {
-  int vindex = reverse_variable_lookup (cat, subscript);
+  int vindex = reverse_variable_lookup_short (cat, subscript);
   const struct var_params *vp = &cat->vp[vindex];
 
   return vp->cc;
@@ -401,10 +432,10 @@ categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscr
 double
 categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript)
 {
-  int vindex = reverse_variable_lookup (cat, subscript);
+  int vindex = reverse_variable_lookup_short (cat, subscript);
   const struct var_params *vp = &cat->vp[vindex];
 
-  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript];
+  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_short];
   return vn->cc;
 }
 
@@ -432,12 +463,24 @@ categoricals_get_n_variables (const struct categoricals *cat)
 
 
 
-void *
-categoricals_get_user_data_by_subscript (const struct categoricals *cat, int subscript)
+/* Return the value corresponding to SUBSCRIPT */
+const union value *
+categoricals_get_value_by_category (const struct categoricals *cat, int subscript)
 {
-  int vindex = reverse_variable_lookup (cat, subscript);
+  int vindex = reverse_variable_lookup_long (cat, subscript);
+  const struct var_params *vp = &cat->vp[vindex];
+  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_long];
+
+  return &vn->value;
+}
+
+
+void *
+categoricals_get_user_data_by_category (const struct categoricals *cat, int subscript)
+{
+  int vindex = reverse_variable_lookup_long (cat, subscript);
   const struct var_params *vp = &cat->vp[vindex];
 
-  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript];
+  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_long];
   return vn->user_data;
 }
