@@ -43,6 +43,7 @@
 #include <string.h>
 
 #include "ui/gui/psppire-marshal.h"
+#include "ui/gui/pspp-sheet-selection.h"
 
 #define P_(STRING) STRING
 #define GTK_PARAM_READABLE G_PARAM_READABLE|G_PARAM_STATIC_NAME|G_PARAM_STATIC_NICK|G_PARAM_STATIC_BLURB
@@ -67,13 +68,18 @@ enum
   PROP_SORT_INDICATOR,
   PROP_SORT_ORDER,
   PROP_SORT_COLUMN_ID,
-  PROP_QUICK_EDIT
+  PROP_QUICK_EDIT,
+  PROP_SELECTED,
+  PROP_SELECTABLE,
+  PROP_ROW_HEAD
 };
 
 enum
 {
   CLICKED,
   QUERY_TOOLTIP,
+  POPUP_MENU,
+  BUTTON_PRESS_EVENT,
   LAST_SIGNAL
 };
 
@@ -141,9 +147,14 @@ static gint pspp_sheet_view_column_button_event                  (GtkWidget     
 								gpointer                 data);
 static void pspp_sheet_view_column_button_clicked                (GtkWidget               *widget,
 								gpointer                 data);
+static void pspp_sheet_view_column_button_popup_menu (GtkWidget *widget,
+                                                      gpointer data);
 static gboolean pspp_sheet_view_column_mnemonic_activate         (GtkWidget *widget,
 					                        gboolean   group_cycling,
 								gpointer   data);
+static gboolean on_pspp_sheet_view_column_button_clicked (PsppSheetViewColumn *);
+static gboolean on_pspp_sheet_view_column_button_press_event (PsppSheetViewColumn *,
+                                                              GdkEventButton *);
 
 /* Property handlers */
 static void pspp_sheet_view_model_sort_column_changed            (GtkTreeSortable         *sortable,
@@ -187,7 +198,8 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
 
   object_class = (GObjectClass*) class;
 
-  class->clicked = NULL;
+  class->clicked = on_pspp_sheet_view_column_button_clicked;
+  class->button_press_event = on_pspp_sheet_view_column_button_press_event;
 
   object_class->finalize = pspp_sheet_view_column_finalize;
   object_class->set_property = pspp_sheet_view_column_set_property;
@@ -198,6 +210,15 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
                   G_OBJECT_CLASS_TYPE (object_class),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (PsppSheetViewColumnClass, clicked),
+                  g_signal_accumulator_true_handled, NULL,
+                  psppire_marshal_BOOLEAN__VOID,
+                  G_TYPE_BOOLEAN, 0);
+
+  tree_column_signals[POPUP_MENU] =
+    g_signal_new ("popup-menu",
+                  G_OBJECT_CLASS_TYPE (object_class),
+                  G_SIGNAL_RUN_LAST,
+                  0,
                   NULL, NULL,
                   g_cclosure_marshal_VOID__VOID,
                   G_TYPE_NONE, 0);
@@ -211,6 +232,16 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
                   psppire_marshal_BOOLEAN__OBJECT,
                   G_TYPE_BOOLEAN, 1,
                   GTK_TYPE_TOOLTIP);
+
+  tree_column_signals[BUTTON_PRESS_EVENT] =
+    g_signal_new ("button-press-event",
+                  G_OBJECT_CLASS_TYPE (object_class),
+                  G_SIGNAL_RUN_FIRST | G_SIGNAL_RUN_LAST,
+                  G_STRUCT_OFFSET (PsppSheetViewColumnClass, button_press_event),
+                  g_signal_accumulator_true_handled, NULL,
+                  psppire_marshal_BOOLEAN__BOXED,
+                  G_TYPE_BOOLEAN, 1,
+                  GDK_TYPE_EVENT | G_SIGNAL_TYPE_STATIC_SCOPE);
 
   g_object_class_install_property (object_class,
                                    PROP_VISIBLE,
@@ -370,6 +401,30 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
                                                          P_("If true, editing starts upon the first click in the column.  If false, the first click selects the column and a second click is needed to begin editing.  This has no effect on cells that are not editable."),
                                                          TRUE,
                                                          GTK_PARAM_READWRITE));
+
+  g_object_class_install_property (object_class,
+                                   PROP_SELECTED,
+                                   g_param_spec_boolean ("selected",
+                                                         P_("Selected"),
+                                                         P_("If true, this column is selected as part of a rectangular selection."),
+                                                         FALSE,
+                                                         GTK_PARAM_READWRITE));
+
+  g_object_class_install_property (object_class,
+                                   PROP_SELECTABLE,
+                                   g_param_spec_boolean ("selectable",
+                                                         P_("Selectable"),
+                                                         P_("If true, this column may be selected as part of a rectangular selection."),
+                                                         TRUE,
+                                                         GTK_PARAM_READWRITE));
+
+  g_object_class_install_property (object_class,
+                                   PROP_ROW_HEAD,
+                                   g_param_spec_boolean ("row-head",
+                                                         P_("Row head"),
+                                                         P_("If true, this column is a \"row head\", equivalent to a column head.  If rectangular selection is enabled, then shift+click and control+click in the column select row ranges and toggle row selection, respectively.  The column should ordinarily include a button cell; clicking on the button will select the row (and deselect all other rows)."),
+                                                         FALSE,
+                                                         GTK_PARAM_READWRITE));
 }
 
 static void
@@ -409,6 +464,9 @@ pspp_sheet_view_column_init (PsppSheetViewColumn *tree_column)
   tree_column->expand = FALSE;
   tree_column->clickable = FALSE;
   tree_column->dirty = TRUE;
+  tree_column->selected = FALSE;
+  tree_column->selectable = TRUE;
+  tree_column->row_head = FALSE;
   tree_column->sort_order = GTK_SORT_ASCENDING;
   tree_column->show_sort_indicator = FALSE;
   tree_column->property_changed_signal = 0;
@@ -546,6 +604,21 @@ pspp_sheet_view_column_set_property (GObject         *object,
                                              g_value_get_boolean (value));
       break;
 
+    case PROP_SELECTED:
+      pspp_sheet_view_column_set_selected (tree_column,
+                                             g_value_get_boolean (value));
+      break;
+
+    case PROP_SELECTABLE:
+      pspp_sheet_view_column_set_selectable (tree_column,
+                                             g_value_get_boolean (value));
+      break;
+
+    case PROP_ROW_HEAD:
+      pspp_sheet_view_column_set_row_head (tree_column,
+                                             g_value_get_boolean (value));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -647,6 +720,21 @@ pspp_sheet_view_column_get_property (GObject         *object,
     case PROP_QUICK_EDIT:
       g_value_set_boolean (value,
                            pspp_sheet_view_column_get_quick_edit (tree_column));
+      break;
+
+    case PROP_SELECTED:
+      g_value_set_boolean (value,
+                           pspp_sheet_view_column_get_selected (tree_column));
+      break;
+
+    case PROP_SELECTABLE:
+      g_value_set_boolean (value,
+                           pspp_sheet_view_column_get_selectable (tree_column));
+      break;
+
+    case PROP_ROW_HEAD:
+      g_value_set_boolean (value,
+                           pspp_sheet_view_column_get_row_head (tree_column));
       break;
 
     default:
@@ -859,6 +947,19 @@ on_query_tooltip (GtkWidget  *widget,
   return handled;
 }
 
+static gboolean
+on_button_pressed (GtkWidget *widget, GdkEventButton *event,
+                   gpointer user_data)
+{
+  PsppSheetViewColumn *tree_column = user_data;
+  gboolean handled;
+
+  /* XXX See "Implement GtkWidget::popup_menu" in GTK+ reference manual. */
+  g_signal_emit (tree_column, tree_column_signals[BUTTON_PRESS_EVENT],
+                 0, event, &handled);
+  return handled;
+}
+
 /* Helper functions
  */
 
@@ -892,6 +993,11 @@ pspp_sheet_view_column_create_button (PsppSheetViewColumn *tree_column)
   g_signal_connect (tree_column->button, "clicked",
 		    G_CALLBACK (pspp_sheet_view_column_button_clicked),
 		    tree_column);
+  g_signal_connect (tree_column->button, "popup-menu",
+		    G_CALLBACK (pspp_sheet_view_column_button_popup_menu),
+		    tree_column);
+  g_signal_connect (tree_column->button, "button-press-event",
+                    G_CALLBACK (on_button_pressed), tree_column);
 
   g_signal_connect (tree_column->button, "query-tooltip",
                     G_CALLBACK (on_query_tooltip), tree_column);
@@ -1150,9 +1256,6 @@ pspp_sheet_view_column_button_event (GtkWidget *widget,
     {
       switch (event->type)
 	{
-	case GDK_BUTTON_PRESS:
-	case GDK_2BUTTON_PRESS:
-	case GDK_3BUTTON_PRESS:
 	case GDK_MOTION_NOTIFY:
 	case GDK_BUTTON_RELEASE:
 	case GDK_ENTER_NOTIFY:
@@ -1165,11 +1268,126 @@ pspp_sheet_view_column_button_event (GtkWidget *widget,
   return FALSE;
 }
 
+static gboolean
+all_rows_selected (PsppSheetView *sheet_view)
+{
+  PsppSheetSelection *selection = sheet_view->priv->selection;
+  gint n_rows, n_selected_rows;
+
+  n_rows = sheet_view->priv->row_count;
+  n_selected_rows = pspp_sheet_selection_count_selected_rows (selection);
+
+  return n_rows > 0 && n_selected_rows >= n_rows;
+}
+
+static gboolean
+on_pspp_sheet_view_column_button_press_event (PsppSheetViewColumn *column,
+                                              GdkEventButton *event)
+{
+  PsppSheetView *sheet_view = PSPP_SHEET_VIEW (column->tree_view);
+  PsppSheetSelection *selection;
+  GSignalInvocationHint *hint;
+  guint modifiers;
+
+  /* We only want to run first, not last, but combining that with return type
+     `gboolean' makes GObject warn, so just ignore the run_last call. */
+  hint = g_signal_get_invocation_hint (column);
+  g_return_val_if_fail (hint != NULL, FALSE);
+  if (hint->run_type != G_SIGNAL_RUN_FIRST)
+    return FALSE;
+
+  g_return_val_if_fail (sheet_view != NULL, FALSE);
+
+  selection = sheet_view->priv->selection;
+  g_return_val_if_fail (selection != NULL, FALSE);
+
+  if (pspp_sheet_selection_get_mode (selection) != PSPP_SHEET_SELECTION_RECTANGLE)
+    return FALSE;
+
+  modifiers = event->state & gtk_accelerator_get_default_mod_mask ();
+  if (event->type == GDK_BUTTON_PRESS && event->button == 3)
+    {
+      if (pspp_sheet_selection_count_selected_columns (selection) <= 1
+          || !all_rows_selected (sheet_view))
+        {
+          pspp_sheet_selection_select_all (selection);
+          pspp_sheet_selection_unselect_all_columns (selection);
+          pspp_sheet_selection_select_column (selection, column);
+          sheet_view->priv->anchor_column = column;
+        }
+      return FALSE;
+    }
+  else if (event->type == GDK_BUTTON_PRESS && event->button == 1
+           && modifiers == GDK_CONTROL_MASK)
+    {
+      gboolean is_selected;
+
+      if (!all_rows_selected (sheet_view))
+        {
+          pspp_sheet_selection_select_all (selection);
+          pspp_sheet_selection_unselect_all_columns (selection);
+        }
+      sheet_view->priv->anchor_column = column;
+
+      is_selected = pspp_sheet_view_column_get_selected (column);
+      pspp_sheet_view_column_set_selected (column, !is_selected);
+
+      return TRUE;
+    }
+  else if (event->type == GDK_BUTTON_PRESS && event->button == 1
+           && modifiers == GDK_SHIFT_MASK)
+    {
+      if (!all_rows_selected (sheet_view))
+        {
+          pspp_sheet_selection_select_all (selection);
+          pspp_sheet_selection_unselect_all_columns (selection);
+          sheet_view->priv->anchor_column = column;
+        }
+      else if (sheet_view->priv->anchor_column == NULL)
+        sheet_view->priv->anchor_column = column;
+
+      pspp_sheet_selection_unselect_all_columns (selection);
+      pspp_sheet_selection_select_column_range (selection,
+                                                sheet_view->priv->anchor_column,
+                                                column);
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+static gboolean
+on_pspp_sheet_view_column_button_clicked (PsppSheetViewColumn *column)
+{
+  PsppSheetSelection *selection;
+  PsppSheetView *sheet_view;
+
+  sheet_view = PSPP_SHEET_VIEW (pspp_sheet_view_column_get_tree_view (column));
+  selection = pspp_sheet_view_get_selection (sheet_view);
+  if (pspp_sheet_selection_get_mode (selection) == PSPP_SHEET_SELECTION_RECTANGLE)
+    {
+      pspp_sheet_selection_select_all (selection);
+      pspp_sheet_selection_unselect_all_columns (selection);
+      pspp_sheet_selection_select_column (selection, column);
+      sheet_view->priv->anchor_column = column;
+      return TRUE;
+    }
+  return FALSE;
+}
 
 static void
 pspp_sheet_view_column_button_clicked (GtkWidget *widget, gpointer data)
 {
-  g_signal_emit_by_name (data, "clicked");
+  PsppSheetViewColumn *column = data;
+  gboolean handled;
+
+  g_signal_emit (column, tree_column_signals[CLICKED], 0, &handled);
+}
+
+static void
+pspp_sheet_view_column_button_popup_menu (GtkWidget *widget, gpointer data)
+{
+  g_signal_emit_by_name (data, "popup-menu");
 }
 
 static gboolean
@@ -2384,6 +2602,132 @@ pspp_sheet_view_column_get_quick_edit (PsppSheetViewColumn *tree_column)
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), FALSE);
 
   return tree_column->quick_edit;
+}
+
+
+/**
+ * pspp_sheet_view_column_set_selected:
+ * @tree_column: A #PsppSheetViewColumn
+ * @selected: If true, the column is selected as part of a rectangular
+ * selection.
+ **/
+void
+pspp_sheet_view_column_set_selected (PsppSheetViewColumn *tree_column,
+				      gboolean           selected)
+{
+  g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
+
+  selected = !!selected;
+  if (tree_column->selected != selected)
+    {
+      PsppSheetSelection *selection;
+      PsppSheetView *sheet_view;
+
+      if (tree_column->tree_view != NULL)
+        gtk_widget_queue_draw (GTK_WIDGET (tree_column->tree_view));
+      tree_column->selected = (selected?TRUE:FALSE);
+      g_object_notify (G_OBJECT (tree_column), "selected");
+
+      sheet_view = PSPP_SHEET_VIEW (pspp_sheet_view_column_get_tree_view (
+                                      tree_column));
+      selection = pspp_sheet_view_get_selection (sheet_view);
+      _pspp_sheet_selection_emit_changed (selection);
+    }
+}
+
+/**
+ * pspp_sheet_view_column_get_selected:
+ * @tree_column: A #PsppSheetViewColumn
+ *
+ * Returns %TRUE if the column is selected as part of a rectangular
+ * selection.
+ *
+ * Return value: %TRUE if the column is selected as part of a rectangular
+ * selection.
+ **/
+gboolean
+pspp_sheet_view_column_get_selected (PsppSheetViewColumn *tree_column)
+{
+  g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), FALSE);
+
+  return tree_column->selected;
+}
+
+/**
+ * pspp_sheet_view_column_set_selectable:
+ * @tree_column: A #PsppSheetViewColumn
+ * @selectable: If true, the column may be selected as part of a rectangular
+ * selection.
+ **/
+void
+pspp_sheet_view_column_set_selectable (PsppSheetViewColumn *tree_column,
+				      gboolean           selectable)
+{
+  g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
+
+  selectable = !!selectable;
+  if (tree_column->selectable != selectable)
+    {
+      if (tree_column->tree_view != NULL)
+        gtk_widget_queue_draw (GTK_WIDGET (tree_column->tree_view));
+      tree_column->selectable = (selectable?TRUE:FALSE);
+      g_object_notify (G_OBJECT (tree_column), "selectable");
+    }
+}
+
+/**
+ * pspp_sheet_view_column_get_selectable:
+ * @tree_column: A #PsppSheetViewColumn
+ *
+ * Returns %TRUE if the column may be selected as part of a rectangular
+ * selection.
+ *
+ * Return value: %TRUE if the column may be selected as part of a rectangular
+ * selection.
+ **/
+gboolean
+pspp_sheet_view_column_get_selectable (PsppSheetViewColumn *tree_column)
+{
+  g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), FALSE);
+
+  return tree_column->selectable;
+}
+
+
+/**
+ * pspp_sheet_view_column_set_row_head:
+ * @tree_column: A #PsppSheetViewColumn
+ * @row_head: If true, the column is a "row head", analogous to a column head.
+ * See the description of the row-head property for more information.
+ **/
+void
+pspp_sheet_view_column_set_row_head (PsppSheetViewColumn *tree_column,
+				      gboolean           row_head)
+{
+  g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
+
+  row_head = !!row_head;
+  if (tree_column->row_head != row_head)
+    {
+      tree_column->row_head = (row_head?TRUE:FALSE);
+      g_object_notify (G_OBJECT (tree_column), "row_head");
+    }
+}
+
+/**
+ * pspp_sheet_view_column_get_row_head:
+ * @tree_column: A #PsppSheetViewColumn
+ *
+ * Returns %TRUE if the column is a row head.
+ *
+ * Return value: %TRUE if the column is a row head.
+ **/
+gboolean
+pspp_sheet_view_column_get_row_head (PsppSheetViewColumn *tree_column)
+{
+  g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), FALSE);
+
+  return tree_column->row_head;
 }
 
 

@@ -84,7 +84,7 @@ pspp_sheet_selection_class_init (PsppSheetSelectionClass *class)
 static void
 pspp_sheet_selection_init (PsppSheetSelection *selection)
 {
-  selection->type = GTK_SELECTION_SINGLE;
+  selection->type = PSPP_SHEET_SELECTION_SINGLE;
 }
 
 static void
@@ -158,28 +158,27 @@ _pspp_sheet_selection_set_tree_view (PsppSheetSelection *selection,
  * @type: The selection mode
  *
  * Sets the selection mode of the @selection.  If the previous type was
- * #GTK_SELECTION_MULTIPLE, then the anchor is kept selected, if it was
- * previously selected.
+ * #PSPP_SHEET_SELECTION_MULTIPLE or #PSPP_SHEET_SELECTION_RECTANGLE, then the
+ * anchor is kept selected, if it was previously selected.
  **/
 void
 pspp_sheet_selection_set_mode (PsppSheetSelection *selection,
-			     GtkSelectionMode  type)
+			     PsppSheetSelectionMode  type)
 {
   g_return_if_fail (PSPP_IS_SHEET_SELECTION (selection));
 
   if (selection->type == type)
     return;
 
-  
-  if (type == GTK_SELECTION_NONE)
+  if (type == PSPP_SHEET_SELECTION_NONE)
     {
       pspp_sheet_selection_unselect_all (selection);
 
       gtk_tree_row_reference_free (selection->tree_view->priv->anchor);
       selection->tree_view->priv->anchor = NULL;
     }
-  else if (type == GTK_SELECTION_SINGLE ||
-	   type == GTK_SELECTION_BROWSE)
+  else if (type == PSPP_SHEET_SELECTION_SINGLE ||
+	   type == PSPP_SHEET_SELECTION_BROWSE)
     {
       int node = -1;
       gint selected = FALSE;
@@ -214,6 +213,8 @@ pspp_sheet_selection_set_mode (PsppSheetSelection *selection,
 	gtk_tree_path_free (anchor_path);
     }
 
+  /* XXX unselect all columns when switching to/from rectangular selection? */
+
   selection->type = type;
 }
 
@@ -226,10 +227,10 @@ pspp_sheet_selection_set_mode (PsppSheetSelection *selection,
  *
  * Return value: the current selection mode
  **/
-GtkSelectionMode
+PsppSheetSelectionMode
 pspp_sheet_selection_get_mode (PsppSheetSelection *selection)
 {
-  g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), GTK_SELECTION_SINGLE);
+  g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), PSPP_SHEET_SELECTION_SINGLE);
 
   return selection->type;
 }
@@ -257,10 +258,11 @@ pspp_sheet_selection_get_tree_view (PsppSheetSelection *selection)
  * @iter: (allow-none): The #GtkTreeIter, or NULL.
  *
  * Sets @iter to the currently selected node if @selection is set to
- * #GTK_SELECTION_SINGLE or #GTK_SELECTION_BROWSE.  @iter may be NULL if you
- * just want to test if @selection has any selected nodes.  @model is filled
- * with the current model as a convenience.  This function will not work if you
- * use @selection is #GTK_SELECTION_MULTIPLE.
+ * #PSPP_SHEET_SELECTION_SINGLE or #PSPP_SHEET_SELECTION_BROWSE.  @iter may be
+ * NULL if you just want to test if @selection has any selected nodes.  @model
+ * is filled with the current model as a convenience.  This function will not
+ * work if @selection's mode is #PSPP_SHEET_SELECTION_MULTIPLE or
+ * #PSPP_SHEET_SELECTION_RECTANGLE.
  *
  * Return value: TRUE, if there is a selected node.
  **/
@@ -274,7 +276,9 @@ pspp_sheet_selection_get_selected (PsppSheetSelection  *selection,
   gboolean retval;
 
   g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), FALSE);
-  g_return_val_if_fail (selection->type != GTK_SELECTION_MULTIPLE, FALSE);
+  g_return_val_if_fail (selection->type != PSPP_SHEET_SELECTION_MULTIPLE &&
+                        selection->type != PSPP_SHEET_SELECTION_RECTANGLE,
+                        FALSE);
   g_return_val_if_fail (selection->tree_view != NULL, FALSE);
 
   /* Clear the iter */
@@ -359,9 +363,10 @@ pspp_sheet_selection_get_selected_rows (PsppSheetSelection   *selection,
   if (selection->tree_view->priv->row_count == 0)
     return NULL;
 
-  if (selection->type == GTK_SELECTION_NONE)
+  if (selection->type == PSPP_SHEET_SELECTION_NONE)
     return NULL;
-  else if (selection->type != GTK_SELECTION_MULTIPLE)
+  else if (selection->type != PSPP_SHEET_SELECTION_MULTIPLE &&
+           selection->type != PSPP_SHEET_SELECTION_RECTANGLE)
     {
       GtkTreeIter iter;
 
@@ -413,8 +418,8 @@ pspp_sheet_selection_count_selected_rows (PsppSheetSelection *selection)
   if (selection->tree_view->priv->row_count == 0)
     return 0;
 
-  if (selection->type == GTK_SELECTION_SINGLE ||
-      selection->type == GTK_SELECTION_BROWSE)
+  if (selection->type == PSPP_SHEET_SELECTION_SINGLE ||
+      selection->type == PSPP_SHEET_SELECTION_BROWSE)
     {
       if (pspp_sheet_selection_get_selected (selection, NULL, NULL))
 	return 1;
@@ -469,8 +474,8 @@ pspp_sheet_selection_selected_foreach (PsppSheetSelection            *selection,
       selection->tree_view->priv->row_count == 0)
     return;
 
-  if (selection->type == GTK_SELECTION_SINGLE ||
-      selection->type == GTK_SELECTION_BROWSE)
+  if (selection->type == PSPP_SHEET_SELECTION_SINGLE ||
+      selection->type == PSPP_SHEET_SELECTION_BROWSE)
     {
       if (gtk_tree_row_reference_valid (selection->tree_view->priv->anchor))
 	{
@@ -555,7 +560,8 @@ pspp_sheet_selection_select_path (PsppSheetSelection *selection,
   if (node < 0 || pspp_sheet_view_node_is_selected (selection->tree_view, node)) 
     return;
 
-  if (selection->type == GTK_SELECTION_MULTIPLE)
+  if (selection->type == PSPP_SHEET_SELECTION_MULTIPLE ||
+      selection->type == PSPP_SHEET_SELECTION_RECTANGLE)
     mode = GTK_TREE_SELECT_MODE_TOGGLE;
 
   _pspp_sheet_selection_internal_select_node (selection,
@@ -737,6 +743,7 @@ pspp_sheet_selection_real_select_all (PsppSheetSelection *selection)
     return FALSE;
 
   range_tower_set1 (selection->tree_view->priv->selected, 0, row_count);
+  pspp_sheet_selection_select_all_columns (selection);
 
   /* XXX we could invalidate individual visible rows instead */
   gdk_window_invalidate_rect (selection->tree_view->priv->bin_window, NULL, TRUE);
@@ -748,8 +755,8 @@ pspp_sheet_selection_real_select_all (PsppSheetSelection *selection)
  * pspp_sheet_selection_select_all:
  * @selection: A #PsppSheetSelection.
  *
- * Selects all the nodes. @selection must be set to #GTK_SELECTION_MULTIPLE
- * mode.
+ * Selects all the nodes and column. @selection must be set to
+ * #PSPP_SHEET_SELECTION_MULTIPLE or  #PSPP_SHEET_SELECTION_RECTANGLE mode.
  **/
 void
 pspp_sheet_selection_select_all (PsppSheetSelection *selection)
@@ -760,7 +767,8 @@ pspp_sheet_selection_select_all (PsppSheetSelection *selection)
   if (selection->tree_view->priv->row_count == 0 || selection->tree_view->priv->model == NULL)
     return;
 
-  g_return_if_fail (selection->type == GTK_SELECTION_MULTIPLE);
+  g_return_if_fail (selection->type == PSPP_SHEET_SELECTION_MULTIPLE ||
+                    selection->type == PSPP_SHEET_SELECTION_RECTANGLE);
 
   if (pspp_sheet_selection_real_select_all (selection))
     g_signal_emit (selection, tree_selection_signals[CHANGED], 0);
@@ -769,8 +777,8 @@ pspp_sheet_selection_select_all (PsppSheetSelection *selection)
 static gint
 pspp_sheet_selection_real_unselect_all (PsppSheetSelection *selection)
 {
-  if (selection->type == GTK_SELECTION_SINGLE ||
-      selection->type == GTK_SELECTION_BROWSE)
+  if (selection->type == PSPP_SHEET_SELECTION_SINGLE ||
+      selection->type == PSPP_SHEET_SELECTION_BROWSE)
     {
       int node = -1;
       GtkTreePath *anchor_path;
@@ -808,6 +816,7 @@ pspp_sheet_selection_real_unselect_all (PsppSheetSelection *selection)
   else
     {
       range_tower_set0 (selection->tree_view->priv->selected, 0, ULONG_MAX);
+      pspp_sheet_selection_unselect_all_columns (selection);
 
       /* XXX we could invalidate individual visible rows instead */
       gdk_window_invalidate_rect (selection->tree_view->priv->bin_window, NULL, TRUE);
@@ -820,7 +829,7 @@ pspp_sheet_selection_real_unselect_all (PsppSheetSelection *selection)
  * pspp_sheet_selection_unselect_all:
  * @selection: A #PsppSheetSelection.
  *
- * Unselects all the nodes.
+ * Unselects all the nodes and columns.
  **/
 void
 pspp_sheet_selection_unselect_all (PsppSheetSelection *selection)
@@ -921,7 +930,8 @@ pspp_sheet_selection_real_modify_range (PsppSheetSelection *selection,
  * @end_path: The final node of the range.
  *
  * Selects a range of nodes, determined by @start_path and @end_path inclusive.
- * @selection must be set to #GTK_SELECTION_MULTIPLE mode. 
+ * @selection must be set to #PSPP_SHEET_SELECTION_MULTIPLE or
+ * #PSPP_SHEET_SELECTION_RECTANGLE mode.
  **/
 void
 pspp_sheet_selection_select_range (PsppSheetSelection *selection,
@@ -930,7 +940,8 @@ pspp_sheet_selection_select_range (PsppSheetSelection *selection,
 {
   g_return_if_fail (PSPP_IS_SHEET_SELECTION (selection));
   g_return_if_fail (selection->tree_view != NULL);
-  g_return_if_fail (selection->type == GTK_SELECTION_MULTIPLE);
+  g_return_if_fail (selection->type == PSPP_SHEET_SELECTION_MULTIPLE ||
+                    selection->type == PSPP_SHEET_SELECTION_RECTANGLE);
   g_return_if_fail (selection->tree_view->priv->model != NULL);
 
   if (pspp_sheet_selection_real_modify_range (selection, RANGE_SELECT, start_path, end_path))
@@ -996,22 +1007,22 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
   gint dirty = FALSE;
   GtkTreePath *anchor_path = NULL;
 
-  if (selection->type == GTK_SELECTION_NONE)
+  if (selection->type == PSPP_SHEET_SELECTION_NONE)
     return;
 
   if (selection->tree_view->priv->anchor)
     anchor_path = gtk_tree_row_reference_get_path (selection->tree_view->priv->anchor);
 
-  if (selection->type == GTK_SELECTION_SINGLE ||
-      selection->type == GTK_SELECTION_BROWSE)
+  if (selection->type == PSPP_SHEET_SELECTION_SINGLE ||
+      selection->type == PSPP_SHEET_SELECTION_BROWSE)
     {
       /* just unselect */
-      if (selection->type == GTK_SELECTION_BROWSE && override_browse_mode)
+      if (selection->type == PSPP_SHEET_SELECTION_BROWSE && override_browse_mode)
         {
 	  dirty = pspp_sheet_selection_real_unselect_all (selection);
 	}
       /* Did we try to select the same node again? */
-      else if (selection->type == GTK_SELECTION_SINGLE &&
+      else if (selection->type == PSPP_SHEET_SELECTION_SINGLE &&
 	       anchor_path && gtk_tree_path_compare (path, anchor_path) == 0)
 	{
 	  if ((mode & GTK_TREE_SELECT_MODE_TOGGLE) == GTK_TREE_SELECT_MODE_TOGGLE)
@@ -1056,7 +1067,8 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
 	    }
 	}
     }
-  else if (selection->type == GTK_SELECTION_MULTIPLE)
+  else if (selection->type == PSPP_SHEET_SELECTION_MULTIPLE ||
+           selection->type == PSPP_SHEET_SELECTION_RECTANGLE)
     {
       if ((mode & GTK_TREE_SELECT_MODE_EXTEND) == GTK_TREE_SELECT_MODE_EXTEND
           && (anchor_path == NULL))
@@ -1146,4 +1158,146 @@ pspp_sheet_selection_real_select_node (PsppSheetSelection *selection,
     }
 
   return FALSE;
+}
+
+void
+pspp_sheet_selection_unselect_all_columns (PsppSheetSelection *selection)
+{
+  PsppSheetView *sheet_view = selection->tree_view;
+  gboolean changed;
+  GList *list;
+
+  changed = FALSE;
+  for (list = sheet_view->priv->columns; list; list = list->next)
+    {
+      PsppSheetViewColumn *column = list->data;
+      if (column->selected)
+        {
+          column->selected = FALSE;
+          changed = TRUE;
+        }
+    }
+  if (changed && selection->type == PSPP_SHEET_SELECTION_RECTANGLE)
+    {
+      gtk_widget_queue_draw (GTK_WIDGET (selection->tree_view));
+      _pspp_sheet_selection_emit_changed (selection);
+    }
+}
+
+GList *
+pspp_sheet_selection_get_selected_columns (PsppSheetSelection *selection)
+{
+  PsppSheetView *sheet_view = selection->tree_view;
+  GList *selected_columns = NULL;
+  GList *iter;
+
+  g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), NULL);
+  g_return_val_if_fail (selection->tree_view != NULL, NULL);
+
+  if (selection->type != PSPP_SHEET_SELECTION_RECTANGLE)
+    return NULL;
+
+  for (iter = sheet_view->priv->columns; iter; iter = iter->next)
+    {
+      PsppSheetViewColumn *column = iter->data;
+      if (column->selected)
+        selected_columns = g_list_prepend (selected_columns, column);
+    }
+  return g_list_reverse (selected_columns);
+}
+
+gint
+pspp_sheet_selection_count_selected_columns (PsppSheetSelection *selection)
+{
+  PsppSheetView *sheet_view = selection->tree_view;
+  GList *list;
+  gint n;
+
+  n = 0;
+  for (list = sheet_view->priv->columns; list; list = list->next)
+    {
+      PsppSheetViewColumn *column = list->data;
+      if (column->selected)
+        n++;
+    }
+  return n;
+}
+
+void
+pspp_sheet_selection_select_all_columns (PsppSheetSelection *selection)
+{
+  PsppSheetView *sheet_view = selection->tree_view;
+  gboolean changed;
+  GList *list;
+
+  changed = FALSE;
+  for (list = sheet_view->priv->columns; list; list = list->next)
+    {
+      PsppSheetViewColumn *column = list->data;
+      if (!column->selected && column->selectable)
+        {
+          /* XXX should use pspp_sheet_view_column_set_selected() here (and
+             elsewhere) but we want to call
+             _pspp_sheet_selection_emit_changed() only once for all the
+             columns. */
+          column->selected = TRUE;
+          changed = TRUE;
+        }
+    }
+  if (changed && selection->type == PSPP_SHEET_SELECTION_RECTANGLE)
+    {
+      _pspp_sheet_selection_emit_changed (selection);
+      gtk_widget_queue_draw (GTK_WIDGET (selection->tree_view));
+    }
+}
+
+void
+pspp_sheet_selection_select_column (PsppSheetSelection        *selection,
+                                    PsppSheetViewColumn       *column)
+{
+  if (!column->selected && column->selectable)
+    {
+      column->selected = TRUE;
+      if (selection->type == PSPP_SHEET_SELECTION_RECTANGLE)
+        {
+          _pspp_sheet_selection_emit_changed (selection);
+          gtk_widget_queue_draw (GTK_WIDGET (selection->tree_view));
+        }
+    }
+}
+
+void
+pspp_sheet_selection_select_column_range  (PsppSheetSelection        *selection,
+                                           PsppSheetViewColumn       *first,
+                                           PsppSheetViewColumn       *last)
+{
+  PsppSheetView *sheet_view = selection->tree_view;
+  gboolean in_range;
+  gboolean changed;
+  GList *list;
+
+  in_range = FALSE;
+  changed = FALSE;
+  for (list = sheet_view->priv->columns; list; list = list->next)
+    {
+      PsppSheetViewColumn *column = list->data;
+      gboolean c0 = column == first;
+      gboolean c1 = column == last;
+
+      if (in_range || c0 || c1)
+        {
+          if (!column->selected && column->selectable)
+            {
+              column->selected = TRUE;
+              changed = TRUE;
+            }
+        }
+
+      in_range = in_range ^ c0 ^ c1;
+    }
+  if (changed && selection->type == PSPP_SHEET_SELECTION_RECTANGLE)
+    {
+      _pspp_sheet_selection_emit_changed (selection);
+      gtk_widget_queue_draw (GTK_WIDGET (selection->tree_view));
+    }
 }

@@ -48,6 +48,19 @@ G_BEGIN_DECLS
 #define PSPP_IS_SHEET_SELECTION_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass), PSPP_TYPE_SHEET_SELECTION))
 #define PSPP_SHEET_SELECTION_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS ((obj), PSPP_TYPE_SHEET_SELECTION, PsppSheetSelectionClass))
 
+typedef enum
+  {
+    /* Same as GtkSelectionMode. */
+    PSPP_SHEET_SELECTION_NONE = GTK_SELECTION_NONE,
+    PSPP_SHEET_SELECTION_SINGLE = GTK_SELECTION_SINGLE,
+    PSPP_SHEET_SELECTION_BROWSE = GTK_SELECTION_BROWSE,
+    PSPP_SHEET_SELECTION_MULTIPLE = GTK_SELECTION_MULTIPLE,
+
+    /* PsppSheetView extension. */
+    PSPP_SHEET_SELECTION_RECTANGLE = 10
+  }
+PsppSheetSelectionMode;
+
 typedef gboolean (* PsppSheetSelectionFunc)    (PsppSheetSelection  *selection,
 					      GtkTreeModel      *model,
 					      GtkTreePath       *path,
@@ -65,7 +78,7 @@ struct _PsppSheetSelection
   /*< private >*/
 
   PsppSheetView *GSEAL (tree_view);
-  GtkSelectionMode GSEAL (type);
+  PsppSheetSelectionMode GSEAL (type);
 };
 
 struct _PsppSheetSelectionClass
@@ -85,8 +98,8 @@ struct _PsppSheetSelectionClass
 GType            pspp_sheet_selection_get_type            (void) G_GNUC_CONST;
 
 void             pspp_sheet_selection_set_mode            (PsppSheetSelection            *selection,
-							 GtkSelectionMode             type);
-GtkSelectionMode pspp_sheet_selection_get_mode        (PsppSheetSelection            *selection);
+							 PsppSheetSelectionMode             type);
+PsppSheetSelectionMode pspp_sheet_selection_get_mode        (PsppSheetSelection            *selection);
 void             pspp_sheet_selection_set_select_function (PsppSheetSelection            *selection,
 							 PsppSheetSelectionFunc         func,
 							 gpointer                     data,
@@ -96,8 +109,9 @@ PsppSheetView*     pspp_sheet_selection_get_tree_view       (PsppSheetSelection 
 
 PsppSheetSelectionFunc pspp_sheet_selection_get_select_function (PsppSheetSelection        *selection);
 
-/* Only meaningful if GTK_SELECTION_SINGLE or GTK_SELECTION_BROWSE is set */
-/* Use selected_foreach or get_selected_rows for GTK_SELECTION_MULTIPLE */
+/* Only meaningful if PSPP_SHEET_SELECTION_SINGLE or PSPP_SHEET_SELECTION_BROWSE is set */
+/* Use selected_foreach or get_selected_rows for
+   PSPP_SHEET_SELECTION_MULTIPLE */
 gboolean         pspp_sheet_selection_get_selected        (PsppSheetSelection            *selection,
 							 GtkTreeModel               **model,
 							 GtkTreeIter                 *iter);
@@ -127,7 +141,18 @@ void             pspp_sheet_selection_select_range        (PsppSheetSelection   
 void             pspp_sheet_selection_unselect_range      (PsppSheetSelection            *selection,
                                                          GtkTreePath                 *start_path,
 							 GtkTreePath                 *end_path);
+struct range_set *pspp_sheet_selection_get_range_set (PsppSheetSelection *selection);
 
+
+GList *          pspp_sheet_selection_get_selected_columns (PsppSheetSelection            *selection);
+gint             pspp_sheet_selection_count_selected_columns (PsppSheetSelection            *selection);
+void             pspp_sheet_selection_select_all_columns (PsppSheetSelection        *selection);
+void             pspp_sheet_selection_unselect_all_columns (PsppSheetSelection        *selection);
+void             pspp_sheet_selection_select_column        (PsppSheetSelection        *selection,
+                                                            PsppSheetViewColumn       *column);
+void             pspp_sheet_selection_select_column_range  (PsppSheetSelection        *selection,
+                                                            PsppSheetViewColumn       *first,
+                                                            PsppSheetViewColumn       *last);
 
 G_END_DECLS
 

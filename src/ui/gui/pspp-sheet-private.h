@@ -164,6 +164,7 @@ struct _PsppSheetViewPrivate
   gint n_columns;
   GList *columns;
   gint header_height;
+  gint n_selected_columns;
 
   PsppSheetViewColumnDropFunc column_drop_func;
   gpointer column_drop_func_data;
@@ -211,6 +212,9 @@ struct _PsppSheetViewPrivate
   int rubber_band_start_node;
 
   int rubber_band_end_node;
+
+  /* Rectangular selection. */
+  PsppSheetViewColumn *anchor_column; /* XXX needs to be a weak pointer? */
 
   /* fixed height */
   gint fixed_height;

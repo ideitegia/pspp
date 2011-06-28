@@ -40,7 +40,6 @@
 
 G_BEGIN_DECLS
 
-
 #define PSPP_TYPE_SHEET_VIEW_COLUMN	     (pspp_sheet_view_column_get_type ())
 #define PSPP_SHEET_VIEW_COLUMN(obj)	     (G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPP_TYPE_SHEET_VIEW_COLUMN, PsppSheetViewColumn))
 #define PSPP_SHEET_VIEW_COLUMN_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), PSPP_TYPE_SHEET_VIEW_COLUMN, PsppSheetViewColumnClass))
@@ -107,13 +106,18 @@ struct _PsppSheetViewColumn
   guint GSEAL (use_resized_width)   : 1;
   guint GSEAL (expand)              : 1;
   guint GSEAL (quick_edit)          : 1;
+  guint GSEAL (selected)            : 1;
+  guint GSEAL (selectable)          : 1;
+  guint GSEAL (row_head)            : 1;
 };
 
 struct _PsppSheetViewColumnClass
 {
   GtkObjectClass parent_class;
 
-  void (*clicked) (PsppSheetViewColumn *tree_column);
+  gboolean (*clicked) (PsppSheetViewColumn *tree_column);
+  gboolean (*button_press_event) (PsppSheetViewColumn *,
+                                  GdkEventButton *);
 
   /* Padding for future expansion */
   void (*_gtk_reserved1) (void);
@@ -198,6 +202,16 @@ gboolean                pspp_sheet_view_column_get_reorderable     (PsppSheetVie
 void                    pspp_sheet_view_column_set_quick_edit     (PsppSheetViewColumn       *tree_column,
 								  gboolean                 quick_edit);
 gboolean                pspp_sheet_view_column_get_quick_edit     (PsppSheetViewColumn       *tree_column);
+void                    pspp_sheet_view_column_set_selected     (PsppSheetViewColumn       *tree_column,
+								  gboolean                 selected);
+gboolean                pspp_sheet_view_column_get_selected     (PsppSheetViewColumn       *tree_column);
+
+void                    pspp_sheet_view_column_set_selectable     (PsppSheetViewColumn       *tree_column,
+								  gboolean                 selectable);
+gboolean                pspp_sheet_view_column_get_selectable     (PsppSheetViewColumn       *tree_column);
+void                    pspp_sheet_view_column_set_row_head     (PsppSheetViewColumn       *tree_column,
+								  gboolean                 row_head);
+gboolean                pspp_sheet_view_column_get_row_head     (PsppSheetViewColumn       *tree_column);
 
 
 
