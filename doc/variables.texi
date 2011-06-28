@@ -276,25 +276,6 @@ not.
 @cmd{MODIFY VARS} may not be specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}).
 
-@node NUMERIC
-@section NUMERIC
-@vindex NUMERIC
-
-@display
-NUMERIC /var_list [(fmt_spec)].
-@end display
-
-@cmd{NUMERIC} explicitly declares new numeric variables, optionally
-setting their output formats.
-
-Specify a slash (@samp{/}), followed by the names of the new numeric
-variables.  If you wish to set their output formats, follow their names
-by an output format specification in parentheses (@pxref{Input and Output
-Formats}); otherwise, the default is F8.2.
-
-Variables created with @cmd{NUMERIC} are initialized to the
-system-missing value.
-
 @node MRSETS
 @section MRSETS
 @vindex MRSETS
@@ -401,6 +382,25 @@ response sets.  Its syntax is the same as the DELETE subcommand.
 Multiple response sets are saved to and read from system files by,
 e.g., the @cmd{SAVE} and @cmd{GET} command.  Otherwise, multiple
 response sets are currently used only by third party software.
+
+@node NUMERIC
+@section NUMERIC
+@vindex NUMERIC
+
+@display
+NUMERIC /var_list [(fmt_spec)].
+@end display
+
+@cmd{NUMERIC} explicitly declares new numeric variables, optionally
+setting their output formats.
+
+Specify a slash (@samp{/}), followed by the names of the new numeric
+variables.  If you wish to set their output formats, follow their names
+by an output format specification in parentheses (@pxref{Input and Output
+Formats}); otherwise, the default is F8.2.
+
+Variables created with @cmd{NUMERIC} are initialized to the
+system-missing value.
 
 @node PRINT FORMATS
 @section PRINT FORMATS
