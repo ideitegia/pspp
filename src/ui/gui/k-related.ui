@@ -94,6 +94,7 @@
                     <property name="label" translatable="yes">_Test Variables:</property>
                     <property name="use_markup">True</property>
                     <property name="use_underline">True</property>
+                    <property name="mnemonic_widget">variables-treeview</property>
                   </object>
                 </child>
               </object>
@@ -123,6 +124,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
+                        <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
                       <packing>
@@ -137,6 +139,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
+                        <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
                       <packing>
@@ -151,6 +154,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
+                        <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
                       <packing>
