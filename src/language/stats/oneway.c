@@ -37,6 +37,7 @@
 #include "libpspp/misc.h"
 #include "libpspp/taint.h"
 #include "linreg/sweep.h"
+#include "tukey/tukey.h"
 #include "math/categoricals.h"
 #include "math/covariance.h"
 #include "math/levene.h"
@@ -45,7 +46,35 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
 
+/* Workspace variable for each dependent variable */
+struct per_var_ws
+{
+  struct categoricals *cat;
+  struct covariance *cov;
+  struct levene *nl;
+
+  double n;
+
+  double sst;
+  double sse;
+  double ssa;
+
+  int n_groups;
+
+  double mse;
+};
+
+/* Per category data */
+struct descriptive_data
+{
+  const struct variable *var;
+  struct moments1 *mom;
+
+  double minimum;
+  double maximum;
+};
 
 enum missing_type
   {
@@ -70,8 +99,28 @@ struct contrasts_node
 {
   struct ll ll; 
   struct ll_list coefficient_list;
+};
 
-  bool bad_count; /* True if the number of coefficients does not equal the number of groups */
+
+struct oneway_spec;
+
+typedef double df_func (const struct per_var_ws *pvw, const struct moments1 *mom_i, const struct moments1 *mom_j);
+typedef double ts_func (int k, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err);
+typedef double p1tail_func (double ts, double df1, double df2);
+
+typedef double pinv_func (double std_err, double alpha, double df, int k, const struct moments1 *mom_i, const struct moments1 *mom_j);
+
+
+struct posthoc
+{
+  const char *syntax;
+  const char *label;
+
+  df_func *dff;
+  ts_func *tsf;
+  p1tail_func *p1f;
+
+  pinv_func *pinv;
 };
 
 struct oneway_spec
@@ -91,33 +140,206 @@ struct oneway_spec
 
   /* The weight variable */
   const struct variable *wv;
+
+  /* The confidence level for multiple comparisons */
+  double alpha;
+
+  int *posthoc;
+  int n_posthoc;
 };
 
-/* Per category data */
-struct descriptive_data
+static double
+df_common (const struct per_var_ws *pvw, const struct moments1 *mom_i UNUSED, const struct moments1 *mom_j UNUSED)
 {
-  const struct variable *var;
-  struct moments1 *mom;
+  return  pvw->n - pvw->n_groups;
+}
 
-  double minimum;
-  double maximum;
-};
-
-/* Workspace variable for each dependent variable */
-struct per_var_ws
+static double
+df_individual (const struct per_var_ws *pvw UNUSED, const struct moments1 *mom_i, const struct moments1 *mom_j)
 {
-  struct categoricals *cat;
-  struct covariance *cov;
-  struct levene *nl;
+  double n_i, var_i;
+  double n_j, var_j;
+  double nom,denom;
 
-  double sst;
-  double sse;
-  double ssa;
+  moments1_calculate (mom_i, &n_i, NULL, &var_i, 0, 0);  
+  moments1_calculate (mom_j, &n_j, NULL, &var_j, 0, 0);
 
-  int n_groups;
+  nom = pow2 (var_i/n_i + var_j/n_j);
+  denom = pow2 (var_i/n_i) / (n_i - 1) + pow2 (var_j/n_j) / (n_j - 1);
 
-  double mse;
-};
+  return nom / denom;
+}
+
+static double lsd_pinv (double std_err, double alpha, double df, int k UNUSED, const struct moments1 *mom_i UNUSED, const struct moments1 *mom_j UNUSED)
+{
+  return std_err * gsl_cdf_tdist_Pinv (1.0 - alpha / 2.0, df);
+}
+
+static double bonferroni_pinv (double std_err, double alpha, double df, int k, const struct moments1 *mom_i UNUSED, const struct moments1 *mom_j UNUSED)
+{
+  const int m = k * (k - 1) / 2;
+  return std_err * gsl_cdf_tdist_Pinv (1.0 - alpha / (2.0 * m), df);
+}
+
+static double sidak_pinv (double std_err, double alpha, double df, int k, const struct moments1 *mom_i, const struct moments1 *mom_j)
+{
+  const double m = k * (k - 1) / 2;
+  double lp = 1.0 - exp (log (1.0 - alpha) / m ) ;
+  return std_err * gsl_cdf_tdist_Pinv (1.0 - lp / 2.0, df);
+}
+
+static double tukey_pinv (double std_err, double alpha, double df, int k, const struct moments1 *mom_i UNUSED, const struct moments1 *mom_j UNUSED)
+{
+  return std_err / sqrt (2.0)  * qtukey (1 - alpha, 1.0, k, df, 1, 0);
+}
+
+static double scheffe_pinv (double std_err, double alpha, double df, int k, const struct moments1 *mom_i UNUSED, const struct moments1 *mom_j UNUSED)
+{
+  double x = (k - 1) * gsl_cdf_fdist_Pinv (1.0 - alpha, k - 1, df);
+  return std_err * sqrt (x);
+}
+
+static double gh_pinv (double std_err UNUSED, double alpha, double df, int k, const struct moments1 *mom_i, const struct moments1 *mom_j)
+{
+  double n_i, mean_i, var_i;
+  double n_j, mean_j, var_j;
+  double m;
+
+  moments1_calculate (mom_i, &n_i, &mean_i, &var_i, 0, 0);  
+  moments1_calculate (mom_j, &n_j, &mean_j, &var_j, 0, 0);
+
+  m = sqrt ((var_i/n_i + var_j/n_j) / 2.0);
+
+  return m * qtukey (1 - alpha, 1.0, k, df, 1, 0);
+}
+
+
+static double 
+multiple_comparison_sig (double std_err,
+				       const struct per_var_ws *pvw,
+				       const struct descriptive_data *dd_i, const struct descriptive_data *dd_j,
+				       const struct posthoc *ph)
+{
+  int k = pvw->n_groups;
+  double df = ph->dff (pvw, dd_i->mom, dd_j->mom);
+  double ts = ph->tsf (k, dd_i->mom, dd_j->mom, std_err);
+  return  ph->p1f (ts, k - 1, df);
+}
+
+static double 
+mc_half_range (const struct oneway_spec *cmd, const struct per_var_ws *pvw, double std_err, const struct descriptive_data *dd_i, const struct descriptive_data *dd_j, const struct posthoc *ph)
+{
+  int k = pvw->n_groups;
+  double df = ph->dff (pvw, dd_i->mom, dd_j->mom);
+
+  return ph->pinv (std_err, cmd->alpha, df, k, dd_i->mom, dd_j->mom);
+}
+
+static double tukey_1tailsig (double ts, double df1, double df2)
+{
+  double twotailedsig = 1.0 - ptukey (ts, 1.0, df1 + 1, df2, 1, 0);
+
+  return twotailedsig / 2.0;
+}
+
+static double lsd_1tailsig (double ts, double df1 UNUSED, double df2)
+{
+  return ts < 0 ? gsl_cdf_tdist_P (ts, df2) : gsl_cdf_tdist_Q (ts, df2);
+}
+
+static double sidak_1tailsig (double ts, double df1, double df2)
+{
+  double ex = (df1 + 1.0) * df1 / 2.0;
+  double lsd_sig = 2 * lsd_1tailsig (ts, df1, df2);
+
+  return 0.5 * (1.0 - pow (1.0 - lsd_sig, ex));
+}
+
+static double bonferroni_1tailsig (double ts, double df1, double df2)
+{
+  const int m = (df1 + 1) * df1 / 2;
+
+  double p = ts < 0 ? gsl_cdf_tdist_P (ts, df2) : gsl_cdf_tdist_Q (ts, df2);
+  p *= m;
+
+  return p > 0.5 ? 0.5 : p;
+}
+
+static double scheffe_1tailsig (double ts, double df1, double df2)
+{
+  return 0.5 * gsl_cdf_fdist_Q (ts, df1, df2);
+}
+
+
+static double tukey_test_stat (int k, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
+{
+  double n_i, mean_i, var_i;
+  double n_j, mean_j, var_j;
+
+  moments1_calculate (mom_i, &n_i, &mean_i, &var_i, 0, 0);  
+  moments1_calculate (mom_j, &n_j, &mean_j, &var_j, 0, 0);
+
+  double ts =  (mean_i - mean_j) / std_err;
+  ts = fabs (ts) * sqrt (2.0);
+
+  return ts;
+}
+
+static double lsd_test_stat (int k, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
+{
+  double n_i, mean_i, var_i;
+  double n_j, mean_j, var_j;
+
+  moments1_calculate (mom_i, &n_i, &mean_i, &var_i, 0, 0);  
+  moments1_calculate (mom_j, &n_j, &mean_j, &var_j, 0, 0);
+
+  return (mean_i - mean_j) / std_err;
+}
+
+static double scheffe_test_stat (int k, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
+{
+  double n_i, mean_i, var_i;
+  double n_j, mean_j, var_j;
+
+  moments1_calculate (mom_i, &n_i, &mean_i, &var_i, 0, 0);  
+  moments1_calculate (mom_j, &n_j, &mean_j, &var_j, 0, 0);
+
+  double t = (mean_i - mean_j) / std_err;
+  t = pow2 (t);
+  t /= k - 1;
+
+  return t;
+}
+
+static double gh_test_stat (int k, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
+{
+  double n_i, mean_i, var_i;
+  double n_j, mean_j, var_j;
+
+  moments1_calculate (mom_i, &n_i, &mean_i, &var_i, 0, 0);  
+  moments1_calculate (mom_j, &n_j, &mean_j, &var_j, 0, 0);
+
+  double thing = var_i / n_i + var_j / n_j;
+  thing /= 2.0;
+  thing = sqrt (thing);
+
+  double ts = (mean_i - mean_j) / thing;
+
+  return fabs (ts);
+}
+
+
+
+static const struct posthoc ph_tests [] = 
+  {
+    { "LSD",        N_("LSD"),          df_common, lsd_test_stat,     lsd_1tailsig,          lsd_pinv},
+    { "TUKEY",      N_("Tukey HSD"),    df_common, tukey_test_stat,   tukey_1tailsig,        tukey_pinv},
+    { "BONFERRONI", N_("Bonferroni"),   df_common, lsd_test_stat,     bonferroni_1tailsig,   bonferroni_pinv},
+    { "SCHEFFE",    N_("Scheffé"),      df_common, scheffe_test_stat, scheffe_1tailsig,      scheffe_pinv},
+    { "GH",         N_("Games-Howell"), df_individual, gh_test_stat,  tukey_1tailsig,        gh_pinv},
+    { "SIDAK",      N_("Šidák"),        df_common, lsd_test_stat,     sidak_1tailsig,        sidak_pinv}
+  };
+
 
 struct oneway_workspace
 {
@@ -151,6 +373,9 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
   oneway.missing_type = MISS_ANALYSIS;
   oneway.exclude = MV_ANY;
   oneway.wv = dict_get_weight (dict);
+  oneway.alpha = 0.05;
+  oneway.posthoc = NULL;
+  oneway.n_posthoc = 0;
 
   ll_init (&oneway.contrast_list);
 
@@ -194,6 +419,45 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 		{
 		  lex_error (lexer, NULL);
 		  goto error;
+		}
+	    }
+	}
+      else if (lex_match_id (lexer, "POSTHOC"))
+	{
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
+	    {
+	      int p;
+	      bool method = false;
+	      for (p = 0 ; p < sizeof (ph_tests) / sizeof (struct posthoc); ++p)
+		{
+		  if (lex_match_id (lexer, ph_tests[p].syntax))
+		    {
+		      oneway.n_posthoc++;
+		      oneway.posthoc = xrealloc (oneway.posthoc, sizeof (*oneway.posthoc) * oneway.n_posthoc);
+		      oneway.posthoc[oneway.n_posthoc - 1] = p;
+		      method = true;
+		      break;
+		    }
+		}
+	      if ( method == false)
+		{
+		  if (lex_match_id (lexer, "ALPHA"))
+		    {
+		      if ( !lex_force_match (lexer, T_LPAREN))
+			goto error;
+		      lex_force_num (lexer);
+		      oneway.alpha = lex_number (lexer);
+		      lex_get (lexer);
+		      if ( !lex_force_match (lexer, T_RPAREN))
+			goto error;
+		    }
+		  else
+		    {
+		      msg (SE, _("The post hoc analysis method %s is not supported."), lex_tokcstr (lexer));
+		      lex_error (lexer, NULL);
+		      goto error;
+		    }
 		}
 	    }
 	}
@@ -490,8 +754,7 @@ run_oneway (const struct oneway_spec *cmd,
       gsl_matrix *cm = covariance_calculate_unnormalized (pvw->cov);
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
 
-      double n;
-      moments1_calculate (ws.dd_total[v]->mom, &n, NULL, NULL, NULL, NULL);
+      moments1_calculate (ws.dd_total[v]->mom, &pvw->n, NULL, NULL, NULL, NULL);
 
       pvw->sst = gsl_matrix_get (cm, 0, 0);
 
@@ -503,7 +766,7 @@ run_oneway (const struct oneway_spec *cmd,
 
       pvw->n_groups = categoricals_total (cats);
 
-      pvw->mse = (pvw->sst - pvw->ssa) / (n - pvw->n_groups);
+      pvw->mse = (pvw->sst - pvw->ssa) / (pvw->n - pvw->n_groups);
 
       gsl_matrix_free (cm);
     }
@@ -538,6 +801,7 @@ run_oneway (const struct oneway_spec *cmd,
 
 static void show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspace *ws);
 static void show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspace *ws);
+static void show_comparisons (const struct oneway_spec *cmd, const struct oneway_workspace *ws, int depvar);
 
 static void
 output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
@@ -546,7 +810,8 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
 
   /* Check the sanity of the given contrast values */
   struct contrasts_node *coeff_list  = NULL;
-  ll_for_each (coeff_list, struct contrasts_node, ll, &cmd->contrast_list)
+  struct contrasts_node *coeff_next  = NULL;
+  ll_for_each_safe (coeff_list, coeff_next, struct contrasts_node, ll, &cmd->contrast_list)
     {
       struct coeff_node *cn = NULL;
       double sum = 0;
@@ -556,8 +821,10 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
       if (ll_count (cl) != ws->actual_number_of_groups)
 	{
 	  msg (SW,
-	       _("Number of contrast coefficients must equal the number of groups"));
-	  coeff_list->bad_count = true;
+	       _("In contrast list %zu, the number of coefficients (%d) does not equal the number of groups (%d). This contrast list will be ignored."),
+	       i, ll_count (cl), ws->actual_number_of_groups);
+
+	  ll_remove (&coeff_list->ll);
 	  continue;
 	}
 
@@ -580,6 +847,13 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
     {
       show_contrast_coeffs (cmd, ws);
       show_contrast_tests (cmd, ws);
+    }
+
+  if ( cmd->posthoc )
+    {
+      int v;
+      for (v = 0 ; v < cmd->n_vars; ++v)
+	show_comparisons (cmd, ws, v);
     }
 }
 
@@ -954,6 +1228,7 @@ show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspa
 	{
 	  const struct categoricals *cats = covariance_get_categoricals (cov);
 	  const union value *val = categoricals_get_value_by_category (cats, count);
+	  struct coeff_node *coeffn = ll_data (coeffi, struct coeff_node, ll);
 	  struct string vstr;
 
 	  ds_init_empty (&vstr);
@@ -964,14 +1239,7 @@ show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspa
 
 	  ds_destroy (&vstr);
 
-	  if (cn->bad_count)
-	    tab_text (t, count + 2, c_num + 2, TAB_RIGHT, "?" );
-	  else
-	    {
-	      struct coeff_node *coeffn = ll_data (coeffi, struct coeff_node, ll);
-
-	      tab_text_format (t, count + 2, c_num + 2, TAB_RIGHT, "%g", coeffn->coeff);
-	    }
+	  tab_text_format (t, count + 2, c_num + 2, TAB_RIGHT, "%g", coeffn->coeff);
 	}
       ++c_num;
     }
@@ -1082,9 +1350,6 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
                            (v * lines_per_variable) + i + 1 + n_contrasts,
                            TAB_CENTER | TAT_TITLE, "%d", i + 1);
 
-	  if (cn->bad_count)
-	    continue;
-
 	  for (coeffi = ll_head (&cn->coefficient_list);
 	       coeffi != ll_null (&cn->coefficient_list);
 	       ++ci, coeffi = ll_next (coeffi))
@@ -1182,3 +1447,124 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 }
 
 
+
+static void
+show_comparisons (const struct oneway_spec *cmd, const struct oneway_workspace *ws, int v)
+{
+  const int n_cols = 8;
+  const int heading_rows = 2;
+  const int heading_cols = 3;
+
+  int p;
+  int r = heading_rows ;
+
+  const struct per_var_ws *pvw = &ws->vws[v];
+  const struct categoricals *cat = pvw->cat;
+  const int n_rows = heading_rows + cmd->n_posthoc * pvw->n_groups * (pvw->n_groups - 1);
+
+  struct tab_table *t = tab_create (n_cols, n_rows);
+
+  tab_headers (t, heading_cols, 0, heading_rows, 0);
+
+  /* Put a frame around the entire box, and vertical lines inside */
+  tab_box (t,
+	   TAL_2, TAL_2,
+	   -1, -1,
+	   0, 0,
+	   n_cols - 1, n_rows - 1);
+
+  tab_box (t,
+	   -1, -1,
+	   -1, TAL_1,
+	   heading_cols, 0,
+	   n_cols - 1, n_rows - 1);
+
+  tab_vline (t, TAL_2, heading_cols, 0, n_rows - 1);
+
+  tab_title (t, _("Multiple Comparisons"));
+
+  tab_text_format (t,  1, 1, TAB_LEFT | TAT_TITLE, _("(I) %s"), var_to_string (cmd->indep_var));
+  tab_text_format (t,  2, 1, TAB_LEFT | TAT_TITLE, _("(J) %s"), var_to_string (cmd->indep_var));
+  tab_text (t,  3, 0, TAB_CENTER | TAT_TITLE, _("Mean Difference"));
+  tab_text (t,  3, 1, TAB_CENTER | TAT_TITLE, _("(I - J)"));
+  tab_text (t,  4, 1, TAB_CENTER | TAT_TITLE, _("Std. Error"));
+  tab_text (t,  5, 1, TAB_CENTER | TAT_TITLE, _("Sig."));
+
+  tab_joint_text_format (t, 6, 0, 7, 0, TAB_CENTER | TAT_TITLE,
+                         _("%g%% Confidence Interval"),
+                         (1 - cmd->alpha) * 100.0);
+
+  tab_text (t,  6, 1, TAB_CENTER | TAT_TITLE, _("Lower Bound"));
+  tab_text (t,  7, 1, TAB_CENTER | TAT_TITLE, _("Upper Bound"));
+
+
+  for (p = 0; p < cmd->n_posthoc; ++p)
+    {
+      int i;
+      const struct posthoc *ph = &ph_tests[cmd->posthoc[p]];
+
+      tab_hline (t, TAL_2, 0, n_cols - 1, r);
+
+      tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, gettext (ph->label));
+
+      for (i = 0; i < pvw->n_groups ; ++i)
+	{
+	  double weight_i, mean_i, var_i;
+	  int rx = 0;
+	  struct string vstr;
+	  int j;
+	  struct descriptive_data *dd_i = categoricals_get_user_data_by_category (cat, i);
+	  const union value *gval = categoricals_get_value_by_category (cat, i);
+
+	  ds_init_empty (&vstr);
+	  var_append_value_name (cmd->indep_var, gval, &vstr);
+
+	  if ( i != 0)
+	    tab_hline (t, TAL_1, 1, n_cols - 1, r);
+	  tab_text (t, 1, r, TAB_LEFT | TAT_TITLE, ds_cstr (&vstr));
+
+	  moments1_calculate (dd_i->mom, &weight_i, &mean_i, &var_i, 0, 0);
+
+	  for (j = 0 ; j < pvw->n_groups; ++j)
+	    {
+	      double weight_j, mean_j, var_j;
+	      double half_range;
+	      struct descriptive_data *dd_j = categoricals_get_user_data_by_category (cat, j);
+	      if (j == i)
+		continue;
+
+	      ds_clear (&vstr);
+	      gval = categoricals_get_value_by_category (cat, j);
+	      var_append_value_name (cmd->indep_var, gval, &vstr);
+	      tab_text (t, 2, r + rx, TAB_LEFT | TAT_TITLE, ds_cstr (&vstr));
+
+	      moments1_calculate (dd_j->mom, &weight_j, &mean_j, &var_j, 0, 0);
+
+	      tab_double  (t, 3, r + rx, 0, mean_i - mean_j, 0);
+
+	      double std_err = pvw->mse;
+	      std_err *= weight_i + weight_j;
+	      std_err /= weight_i * weight_j;
+	      std_err = sqrt (std_err);
+
+	      tab_double  (t, 4, r + rx, 0, std_err, 0);
+	  
+	      tab_double (t, 5, r + rx, 0, 2 * multiple_comparison_sig (std_err, pvw, dd_i, dd_j, ph), 0);
+
+	      half_range = mc_half_range (cmd, pvw, std_err, dd_i, dd_j, ph);
+
+	      tab_double (t, 6, r + rx, 0,
+			   (mean_i - mean_j) - half_range, 0 );
+
+	      tab_double (t, 7, r + rx, 0,
+			   (mean_i - mean_j) + half_range, 0 );
+
+	      rx++;
+	    }
+	  ds_destroy (&vstr);
+	  r += pvw->n_groups - 1;
+	}
+    }
+
+  tab_submit (t);
+}

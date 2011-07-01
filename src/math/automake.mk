@@ -4,7 +4,8 @@
 noinst_LTLIBRARIES += src/math/libpspp-math.la
 
 src_math_libpspp_math_la_LIBADD = \
-	lib/linreg/liblinreg.la
+	lib/linreg/liblinreg.la \
+	lib/tukey/libtukey.la
 
 src_math_libpspp_math_la_SOURCES = \
 	src/math/chart-geometry.c \

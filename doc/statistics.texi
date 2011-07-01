@@ -1101,7 +1101,7 @@ ONEWAY
         /MISSING=@{ANALYSIS,LISTWISE@} @{EXCLUDE,INCLUDE@}
         /CONTRAST= value1 [, value2] ... [,valueN]
         /STATISTICS=@{DESCRIPTIVES,HOMOGENEITY@}
-
+        /POSTHOC=@{BONFERRONI, GH, LSD, SCHEFFE, SIDAK, TUKEY, ALPHA ([value])@}
 @end display
 
 The @cmd{ONEWAY} procedure performs a one-way analysis of variance of
@@ -1145,6 +1145,29 @@ A setting of EXCLUDE means that variables whose values are
 user-missing are to be excluded from the analysis. A setting of
 INCLUDE means they are to be included.  The default is EXCLUDE.
 
+Using the @code{POSTHOC} subcommand you can perform multiple
+pairwise comparisons on the data. The following comparison methods
+are available:
+@itemize
+@item LSD
+Least Significant Difference.
+@item TUKEY
+Tukey Honestly Significant Difference.
+@item BONFERRONI
+Bonferroni test.
+@item SCHEFFE
+Scheff@'e's test.
+@item SIDAK
+Sidak test.
+@item GH
+The Games-Howell test.
+@end itemize
+
+@noindent
+The optional syntax @code{ALPHA(@var{value})} is used to indicate
+that @var{value} should be used as the
+confidence level for which the posthoc tests will be performed.
+The default is 0.05.
 
 @node RANK
 @comment  node-name,  next,  previous,  up

@@ -44,6 +44,8 @@ Changes from 0.6.2 to 0.7.8:
    - MISSING VALUES can now assign missing values to long string
      variables.
 
+   - ONEWAY: the POSTHOC subcommand is now implemented.
+
    - The following new subcommands to NPAR TESTS have been implemented:
      COCHRAN, FRIEDMAN, KENDALL, KRUSKAL-WALLIS, MANN-WHITNEY, MCNEMAR,
      SIGN, WILCOXON, and RUNS
