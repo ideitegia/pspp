@@ -11,6 +11,7 @@
 #include "psppire-acr.h"
 #include "psppire-dictview.h"
 #include "psppire-var-view.h"
+#include "psppire-val-chooser.h"
 
 
 /* Any custom widgets which are to be used in GtkBuilder ui files
@@ -19,6 +20,7 @@
 void
 preregister_widgets (void)
 {
+  psppire_val_chooser_get_type ();
   psppire_dialog_get_type ();
   psppire_selector_get_type ();
   psppire_vbutton_box_get_type ();

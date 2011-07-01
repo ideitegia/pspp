@@ -38,6 +38,8 @@
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
 
+#include "psppire-val-chooser.h"
+
 #include <ui/syntax-gen.h>
 
 #include "psppire-acr.h"
@@ -145,163 +147,11 @@ new_value_get_type (void)
 
 
 
-
-/* A boxed type representing a value, or a range of values which may
-   potentially be replaced by something */
-
-enum old_value_type
- {
-   OV_NUMERIC,
-   OV_STRING,
-   OV_SYSMIS,
-   OV_MISSING,
-   OV_RANGE,
-   OV_LOW_UP,
-   OV_HIGH_DOWN,
-   OV_ELSE
- };
-
-struct old_value
- {
-   enum old_value_type type;
-   union {
-     double v;
-     gchar *s;
-     double range[2];
-   } v;
- };
-
-
-static struct old_value *
-old_value_copy (struct old_value *ov)
-{
-  struct old_value *copy = g_memdup (ov, sizeof (*copy));
-
-  if ( ov->type == OV_STRING )
-    copy->v.s = g_strdup (ov->v.s);
-
-  return copy;
-}
-
-
-static void
-old_value_free (struct old_value *ov)
-{
-  if (ov->type == OV_STRING)
-    g_free (ov->v.s);
-  g_free (ov);
-}
-
-static void
-old_value_to_string (const GValue *src, GValue *dest)
-{
-  const struct old_value *ov = g_value_get_boxed (src);
-
-  switch (ov->type)
-    {
-    case OV_NUMERIC:
-      {
-	gchar *text = g_strdup_printf ("%g", ov->v.v);
-	g_value_set_string (dest, text);
-	g_free (text);
-      }
-      break;
-    case OV_STRING:
-      g_value_set_string (dest, ov->v.s);
-      break;
-    case OV_MISSING:
-      g_value_set_string (dest, "MISSING");
-      break;
-    case OV_SYSMIS:
-      g_value_set_string (dest, "SYSMIS");
-      break;
-    case OV_ELSE:
-      g_value_set_string (dest, "ELSE");
-      break;
-    case OV_RANGE:
-      {
-	gchar *text;
-	char en_dash[6] = {0,0,0,0,0,0};
-
-	g_unichar_to_utf8 (0x2013, en_dash);
-
-	text = g_strdup_printf ("%g %s %g",
-				       ov->v.range[0],
-				       en_dash,
-				       ov->v.range[1]);
-	g_value_set_string (dest, text);
-	g_free (text);
-      }
-      break;
-    case OV_LOW_UP:
-      {
-	gchar *text;
-	char en_dash[6] = {0,0,0,0,0,0};
-
-	g_unichar_to_utf8 (0x2013, en_dash);
-
-	text = g_strdup_printf ("LOWEST %s %g",
-				en_dash,
-				ov->v.range[1]);
-
-	g_value_set_string (dest, text);
-	g_free (text);
-      }
-      break;
-    case OV_HIGH_DOWN:
-      {
-	gchar *text;
-	char en_dash[6] = {0,0,0,0,0,0};
-
-	g_unichar_to_utf8 (0x2013, en_dash);
-
-	text = g_strdup_printf ("%g %s HIGHEST",
-				ov->v.range[0],
-				en_dash);
-
-	g_value_set_string (dest, text);
-	g_free (text);
-      }
-      break;
-    default:
-      g_warning ("Invalid type in old recode value");
-      g_value_set_string (dest, "???");
-      break;
-    };
-}
-
-static GType
-old_value_get_type (void)
-{
-  static GType t = 0;
-
-  if (t == 0 )
-    {
-      t = g_boxed_type_register_static  ("psppire-recode-old-values",
-					 (GBoxedCopyFunc) old_value_copy,
-					 (GBoxedFreeFunc) old_value_free);
-
-      g_value_register_transform_func     (t, G_TYPE_STRING,
-					   old_value_to_string);
-    }
-
-  return t;
-}
-
-
-
 enum
   {
     BUTTON_NEW_VALUE,
     BUTTON_NEW_COPY,
     BUTTON_NEW_SYSMIS,
-    BUTTON_OLD_VALUE,
-    BUTTON_OLD_SYSMIS,
-    BUTTON_OLD_MISSING,
-    BUTTON_OLD_RANGE,
-    BUTTON_OLD_LOW_UP,
-    BUTTON_OLD_HIGH_DOWN,
-    BUTTON_OLD_ELSE,
     n_BUTTONS
   };
 
@@ -320,13 +170,9 @@ struct recode_dialog
   GtkWidget *convert_button;
   GtkWidget *new_copy_label;
 
-  GtkWidget *ov_value_entry;
   GtkWidget *new_value_entry;
 
-  GtkWidget *ov_range_lower_entry;
-  GtkWidget *ov_range_upper_entry;
-  GtkWidget *ov_low_up_entry;
-  GtkWidget *ov_high_down_entry;
+  GtkWidget *old_value_chooser;
 
   GtkListStore *value_map;
 
@@ -416,11 +262,6 @@ dialog_state_valid (gpointer data)
 static void
 on_old_new_show (struct recode_dialog *rd)
 {
-  gtk_toggle_button_set_active
-    (GTK_TOGGLE_BUTTON (rd->toggle[BUTTON_OLD_VALUE]), TRUE);
-
-  g_signal_emit_by_name (rd->toggle[BUTTON_OLD_VALUE], "toggled");
-
   gtk_toggle_button_set_active
     (GTK_TOGGLE_BUTTON (rd->toggle[BUTTON_NEW_VALUE]), TRUE);
 
@@ -545,101 +386,7 @@ on_acr_selection_change (GtkTreeSelection *selection, gpointer data)
       g_value_unset (&nv_value);
     }
 
-  if ( ov )
-    {
-    switch (ov->type)
-      {
-      case OV_STRING:
-	  gtk_toggle_button_set_active
-	    (GTK_TOGGLE_BUTTON (rd->toggle [BUTTON_OLD_VALUE]), TRUE);
-
-	  gtk_entry_set_text (GTK_ENTRY (rd->ov_value_entry), ov->v.s);
-	break;
-
-      case OV_NUMERIC:
-	{
-	  gchar *str;
-
-	  gtk_toggle_button_set_active
-	    (GTK_TOGGLE_BUTTON (rd->toggle [BUTTON_OLD_VALUE]), TRUE);
-
-	  str = num_to_string (ov->v.v);
-
-	  gtk_entry_set_text (GTK_ENTRY (rd->ov_value_entry), str);
-
-	  g_free (str);
-	}
-	break;
-
-      case OV_SYSMIS:
-	gtk_toggle_button_set_active
-	  (GTK_TOGGLE_BUTTON (rd->toggle [BUTTON_OLD_SYSMIS]), TRUE);
-	break;
-
-      case OV_MISSING:
-	gtk_toggle_button_set_active
-	  (GTK_TOGGLE_BUTTON (rd->toggle [BUTTON_OLD_MISSING]), TRUE);
-	break;
-
-      case OV_RANGE:
-	{
-	  gchar *str;
-
-	  gtk_toggle_button_set_active
-	    (GTK_TOGGLE_BUTTON (rd->toggle [BUTTON_OLD_RANGE]), TRUE);
-
-	  str = num_to_string (ov->v.range[0]);
-
-	  gtk_entry_set_text (GTK_ENTRY (rd->ov_range_lower_entry), str);
-
-	  g_free (str);
-
-
-	  str = num_to_string (ov->v.range[1]);
-
-	  gtk_entry_set_text (GTK_ENTRY (rd->ov_range_upper_entry), str);
-
-	  g_free (str);
-	}
-	break;
-
-      case OV_LOW_UP:
-	{
-	  gchar *str = num_to_string (ov->v.range[1]);
-
-	  gtk_toggle_button_set_active
-	    (GTK_TOGGLE_BUTTON (rd->toggle [BUTTON_OLD_LOW_UP]), TRUE);
-
-	  gtk_entry_set_text (GTK_ENTRY (rd->ov_low_up_entry), str);
-
-	  g_free (str);
-	}
-	break;
-
-      case OV_HIGH_DOWN:
-	{
-	  gchar *str = num_to_string (ov->v.range[0]);
-
-	  gtk_toggle_button_set_active
-	    (GTK_TOGGLE_BUTTON (rd->toggle [BUTTON_OLD_HIGH_DOWN]), TRUE);
-
-	  gtk_entry_set_text (GTK_ENTRY (rd->ov_high_down_entry), str);
-
-	  g_free (str);
-	}
-	break;
-
-      case OV_ELSE:
-	gtk_toggle_button_set_active
-	  (GTK_TOGGLE_BUTTON (rd->toggle [BUTTON_OLD_ELSE]), TRUE);
-	break;
-
-      default:
-	g_warning ("Unknown old value type");
-	break;
-      };
-    g_value_unset (&ov_value);
-    }
+  psppire_val_chooser_set_status (PSPPIRE_VAL_CHOOSER (rd->old_value_chooser), ov);
 }
 
 /* Name-Label pair */
@@ -929,10 +676,6 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
       g_signal_connect (rd.change_button, "clicked",
 			G_CALLBACK (on_change_clicked),  &rd);
 
-#if 0
-      g_signal_connect (model, "row-inserted",
-			G_CALLBACK (select_something), &rd);
-#endif
     }
 
   psppire_selector_set_allow (PSPPIRE_SELECTOR (selector), homogeneous_types);
@@ -944,24 +687,14 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
     rd.convert_button           = get_widget_assert (builder, "checkbutton2");
 
-    rd.ov_range_lower_entry = get_widget_assert (builder, "entry5");
-    rd.ov_range_upper_entry  = get_widget_assert (builder, "entry3");
-    rd.ov_low_up_entry       = get_widget_assert (builder, "entry6");
-    rd.ov_high_down_entry    = get_widget_assert (builder, "entry7");
+    rd.old_value_chooser = get_widget_assert (builder, "val-chooser");
 
     rd.new_value_entry = get_widget_assert (builder, "entry1");
-    rd.ov_value_entry  = get_widget_assert (builder, "entry2");
+
 
     rd.toggle[BUTTON_NEW_VALUE]  = get_widget_assert (builder, "radiobutton1");
     rd.toggle[BUTTON_NEW_SYSMIS] = get_widget_assert (builder, "radiobutton2");
     rd.toggle[BUTTON_NEW_COPY]   = get_widget_assert (builder, "radiobutton3");
-    rd.toggle[BUTTON_OLD_VALUE]  = get_widget_assert (builder, "radiobutton4");
-    rd.toggle[BUTTON_OLD_SYSMIS] = get_widget_assert (builder, "radiobutton6");
-    rd.toggle[BUTTON_OLD_MISSING]= get_widget_assert (builder, "radiobutton7");
-    rd.toggle[BUTTON_OLD_RANGE]  = get_widget_assert (builder, "radiobutton8");
-    rd.toggle[BUTTON_OLD_LOW_UP] = get_widget_assert (builder, "radiobutton10");
-    rd.toggle[BUTTON_OLD_HIGH_DOWN] = get_widget_assert (builder, "radiobutton5");
-    rd.toggle[BUTTON_OLD_ELSE]   = get_widget_assert (builder, "radiobutton11");
 
     rd.new_copy_label = get_widget_assert (builder, "label3");
     rd.strings_box    = get_widget_assert (builder, "table3");
@@ -1018,23 +751,6 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
     g_signal_connect (rd.toggle[BUTTON_NEW_VALUE], "toggled",
 		      G_CALLBACK (toggle_sensitivity), rd.new_value_entry);
 
-    g_signal_connect (rd.toggle[BUTTON_OLD_VALUE], "toggled",
-		      G_CALLBACK (toggle_sensitivity), rd.ov_value_entry);
-
-    g_signal_connect (rd.toggle[BUTTON_OLD_RANGE], "toggled",
-		      G_CALLBACK (toggle_sensitivity),
-		      get_widget_assert (builder, "entry3"));
-
-    g_signal_connect (rd.toggle[BUTTON_OLD_RANGE], "toggled",
-		      G_CALLBACK (toggle_sensitivity),
-		      get_widget_assert (builder, "entry5"));
-
-    g_signal_connect (rd.toggle[BUTTON_OLD_LOW_UP], "toggled",
-		      G_CALLBACK (toggle_sensitivity), rd.ov_low_up_entry);
-
-    g_signal_connect (rd.toggle[BUTTON_OLD_HIGH_DOWN], "toggled",
-		      G_CALLBACK (toggle_sensitivity), rd.ov_high_down_entry);
-
     g_signal_connect (rd.string_button, "toggled",
 		      G_CALLBACK (toggle_sensitivity), rd.width_entry);
 
@@ -1081,70 +797,11 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 static gboolean
 set_old_value (GValue *val, const struct recode_dialog *rd)
 {
-  const gchar *text = NULL;
+  PsppireValChooser *vc = PSPPIRE_VAL_CHOOSER (rd->old_value_chooser);
+
   struct old_value ov;
-  if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON
-				     (rd->toggle [BUTTON_OLD_VALUE])))
-    {
-      text = gtk_entry_get_text (GTK_ENTRY (rd->ov_value_entry));
-      if ( rd->input_var_is_string )
-	{
-	  ov.type = OV_STRING;
-	  ov.v.s = g_strdup (text);
-	}
-      else
-	{
-	  ov.type = OV_NUMERIC;
-	  ov.v.v = g_strtod (text, 0);
-	}
-    }
-  else if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON
-					  (rd->toggle [BUTTON_OLD_MISSING])))
-    {
-      ov.type = OV_MISSING;
-    }
-  else if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON
-					  (rd->toggle [BUTTON_OLD_SYSMIS])))
-    {
-      ov.type = OV_SYSMIS;
-    }
-  else if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON
-					  (rd->toggle [BUTTON_OLD_ELSE])))
-    {
-      ov.type = OV_ELSE;
-    }
-  else if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON
-					  (rd->toggle [BUTTON_OLD_RANGE])))
-    {
-      const gchar *text;
-      text = gtk_entry_get_text (GTK_ENTRY (rd->ov_range_lower_entry));
 
-      ov.type = OV_RANGE;
-      ov.v.range[0] = g_strtod (text, 0);
-
-      text = gtk_entry_get_text (GTK_ENTRY (rd->ov_range_upper_entry));
-      ov.v.range[1] = g_strtod (text, 0);
-    }
-  else if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON
-					  (rd->toggle [BUTTON_OLD_LOW_UP])))
-    {
-      const gchar *text =
-	gtk_entry_get_text (GTK_ENTRY (rd->ov_low_up_entry));
-
-      ov.type = OV_LOW_UP;
-      ov.v.range[1] = g_strtod (text, 0);
-    }
-  else if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON
-					  (rd->toggle [BUTTON_OLD_HIGH_DOWN])))
-    {
-      const gchar *text =
-	gtk_entry_get_text (GTK_ENTRY (rd->ov_high_down_entry));
-
-      ov.type = OV_HIGH_DOWN;
-      ov.v.range[0] = g_strtod (text, 0);
-    }
-  else
-    return FALSE;
+  psppire_val_chooser_get_status (vc, &ov);
 
   g_value_init (val, old_value_get_type ());
   g_value_set_boxed (val, &ov);
@@ -1255,14 +912,8 @@ run_old_and_new_dialog (struct recode_dialog *rd)
 
     rd->input_var_is_string = var_is_alpha (v);
 
-    gtk_widget_set_sensitive (rd->toggle [BUTTON_OLD_SYSMIS],
-			      var_is_numeric (v));
-    gtk_widget_set_sensitive (rd->toggle [BUTTON_OLD_RANGE],
-			      var_is_numeric (v));
-    gtk_widget_set_sensitive (rd->toggle [BUTTON_OLD_LOW_UP],
-			      var_is_numeric (v));
-    gtk_widget_set_sensitive (rd->toggle [BUTTON_OLD_HIGH_DOWN],
-			      var_is_numeric (v));
+    g_object_set (rd->old_value_chooser, "is-string", rd->input_var_is_string, NULL);
+
     gtk_widget_set_sensitive (rd->toggle [BUTTON_NEW_SYSMIS],
 			      var_is_numeric (v));
 
@@ -1317,54 +968,6 @@ new_value_append_syntax (GString *str, const struct new_value *nv)
       break;
     }
 }
-
-
-/* Generate a syntax fragment for NV and append it to STR */
-static void
-old_value_append_syntax (GString *str, const struct old_value *ov)
-{
-  switch (ov->type)
-    {
-    case OV_NUMERIC:
-      g_string_append_printf (str, "%g", ov->v.v);
-      break;
-    case OV_STRING:
-      {
-	struct string ds = DS_EMPTY_INITIALIZER;
-	syntax_gen_string (&ds, ss_cstr (ov->v.s));
-	g_string_append (str, ds_cstr (&ds));
-	ds_destroy (&ds);
-      }
-      break;
-    case OV_MISSING:
-      g_string_append (str, "MISSING");
-      break;
-    case OV_SYSMIS:
-      g_string_append (str, "SYSMIS");
-      break;
-    case OV_ELSE:
-      g_string_append (str, "ELSE");
-      break;
-    case OV_RANGE:
-      g_string_append_printf (str, "%g THRU %g",
-			      ov->v.range[0],
-			      ov->v.range[1]);
-      break;
-    case OV_LOW_UP:
-      g_string_append_printf (str, "LOWEST THRU %g",
-			      ov->v.range[1]);
-      break;
-    case OV_HIGH_DOWN:
-      g_string_append_printf (str, "%g THRU HIGHEST",
-			      ov->v.range[0]);
-      break;
-    default:
-      g_warning ("Invalid type in old recode value");
-      g_string_append (str, "???");
-      break;
-    };
-}
-
 
 
 static char *

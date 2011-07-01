@@ -198,6 +198,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-select-dest.h \
 	src/ui/gui/psppire-syntax-window.c \
 	src/ui/gui/psppire-syntax-window.h \
+	src/ui/gui/psppire-val-chooser.c \
+	src/ui/gui/psppire-val-chooser.h \
 	src/ui/gui/psppire-var-ptr.c \
 	src/ui/gui/psppire-var-ptr.h \
 	src/ui/gui/psppire-var-sheet.c \
