@@ -1093,3 +1093,58 @@ Asymp. Sig.,.001
 ])
 
 AT_CLEANUP
+
+
+
+AT_SETUP([NPAR TESTS McNemar])
+
+AT_DATA([mcnemar.sps], [dnl
+set format = F12.3.
+data list notable list /v1 * v2 * junk *.
+begin data.
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 1 0
+0 1 0
+0 1 0
+0 1 0
+0 1 1
+0 1 1
+0 1 1
+0 1 1
+0 1 1
+1 0 1
+1 0 1
+1 1 1
+1 1 1
+1 1 0
+1 1 0
+1 1 1
+end data.
+
+npar tests 
+     /mcnemar = v1 WITH v2 junk.
+])
+
+AT_CHECK([pspp -O format=csv mcnemar.sps], [0], [dnl
+Table: v1 & v2
+v1,v2,
+,.000,1.000
+.000,4,9
+1.000,2,5
+
+Table: v1 & junk
+v1,junk,
+,.000,1.000
+.000,8,5
+1.000,2,5
+
+Table: Test Statistics
+,N,Exact Sig. (2-tailed),Exact Sig. (1-tailed),Point Probability
+v1 & v2,20,.065,.033,.027
+v1 & junk,20,.453,.227,.164
+])
+
+AT_CLEANUP

@@ -32,6 +32,8 @@ language_stats_sources = \
 	src/language/stats/kruskal-wallis.h \
 	src/language/stats/mann-whitney.c \
 	src/language/stats/mann-whitney.h \
+	src/language/stats/mcnemar.c \
+	src/language/stats/mcnemar.h \
 	src/language/stats/npar.c  \
 	src/language/stats/npar.h \
 	src/language/stats/npar-summary.c \

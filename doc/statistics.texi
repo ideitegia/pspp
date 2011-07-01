@@ -686,6 +686,7 @@ is used.
 * KENDALL::                 Kendall's W Test
 * KRUSKAL-WALLIS::          Kruskal-Wallis Test
 * MANN-WHITNEY::            Mann Whitney U Test
+* MCNEMAR::                 McNemar Test
 * RUNS::                    Runs Test
 * SIGN::                    The Sign Test
 * WILCOXON::                Wilcoxon Signed Ranks Test
@@ -859,6 +860,33 @@ Cases for which the @var{var} value is neither @var{group1} or @var{group2} will
 The value of the Mann-Whitney U statistic, the Wilcoxon W, and the significance will be printed.
 The abbreviated subcommand  M-W may be used in place of MANN-WHITNEY.
 
+@node MCNEMAR
+@subsection McNemar Test
+@vindex MCNEMAR
+@cindex McNemar test
+
+@display
+     [ /MCNEMAR varlist [ WITH varlist [ (PAIRED) ]]]
+@end display
+
+Use McNemar's test to analyse the significance of the difference between
+pairs of correlated proportions.
+
+If the @code{WITH} keyword is omitted, then tests for all
+combinations of the listed variables are performed.
+If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword
+is also given, then the number of variables preceding @code{WITH}
+must be the same as the number following it.
+In this case, tests for each respective pair of variables are
+performed.
+If the @code{WITH} keyword is given, but the
+@code{(PAIRED)} keyword is omitted, then tests for each combination
+of variable preceding @code{WITH} against variable following
+@code{WITH} are performed.
+
+The data in each variable must be dichotomous.  If there are more
+than two distinct variables an error will occur and the test will
+not be run.
 
 @node RUNS
 @subsection Runs Test
