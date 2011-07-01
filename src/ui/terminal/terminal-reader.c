@@ -153,6 +153,36 @@ terminal_reader_create (void)
   return &r->reader;
 }
 
+
+
+static const char *
+readline_prompt (enum prompt_style style)
+{
+  switch (style)
+    {
+    case PROMPT_FIRST:
+      return "PSPP> ";
+
+    case PROMPT_LATER:
+      return "    > ";
+
+    case PROMPT_DATA:
+      return "data> ";
+
+    case PROMPT_COMMENT:
+      return "comment> ";
+
+    case PROMPT_DOCUMENT:
+      return "document> ";
+
+    case PROMPT_DO_REPEAT:
+      return "DO REPEAT> ";
+    }
+
+  NOT_REACHED ();
+}
+
+
 #if HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -187,33 +217,6 @@ readline_done (void)
     write_history (history_file);
   clear_history ();
   free (history_file);
-}
-
-static const char *
-readline_prompt (enum prompt_style style)
-{
-  switch (style)
-    {
-    case PROMPT_FIRST:
-      return "PSPP> ";
-
-    case PROMPT_LATER:
-      return "    > ";
-
-    case PROMPT_DATA:
-      return "data> ";
-
-    case PROMPT_COMMENT:
-      return "comment> ";
-
-    case PROMPT_DOCUMENT:
-      return "document> ";
-
-    case PROMPT_DO_REPEAT:
-      return "DO REPEAT> ";
-    }
-
-  NOT_REACHED ();
 }
 
 static struct substring
@@ -295,7 +298,7 @@ readline_done (void)
 static struct substring
 readline_read (enum prompt_style style)
 {
-  const char *prompt = prompt_get (style);
+  const char *prompt = readline_prompt (style);
   struct string line;
 
   fputs (prompt, stdout);
