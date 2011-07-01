@@ -417,7 +417,6 @@
   </object>
   <object class="GtkWindow" id="val_labs_dialog">
     <property name="title" translatable="yes">Value Labels</property>
-    <property name="resizable">False</property>
     <property name="modal">True</property>
     <property name="type_hint">dialog</property>
     <property name="skip_taskbar_hint">True</property>
@@ -462,7 +461,6 @@
                         <property name="right_attach">2</property>
                         <property name="top_attach">1</property>
                         <property name="bottom_attach">2</property>
-                        <property name="x_options">GTK_FILL</property>
                         <property name="y_options">GTK_FILL</property>
                       </packing>
                     </child>
@@ -545,6 +543,7 @@
                       <object class="GtkVButtonBox" id="vbuttonbox2">
                         <property name="visible">True</property>
                         <property name="border_width">5</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkButton" id="val_labs_add">
                             <property name="label">gtk-add</property>
@@ -621,6 +620,7 @@
           <object class="GtkVButtonBox" id="vbuttonbox3">
             <property name="visible">True</property>
             <property name="border_width">5</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">5</property>
             <property name="layout_style">start</property>
             <child>
