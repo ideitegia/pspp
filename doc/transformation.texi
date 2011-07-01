@@ -223,6 +223,7 @@ AUTORECODE VARIABLES=src_vars INTO dest_vars
         [ /DESCENDING ]
         [ /PRINT ]
         [ /GROUP ]
+        [ /BLANK = @{VALID, MISSING@} ]
 @end display
 
 The @cmd{AUTORECODE} procedure considers the @var{n} values that a variable
@@ -246,6 +247,11 @@ PRINT is currently ignored.
 The GROUP subcommand is relevant only if more than one variable is to be
 recoded.   It causes a single mapping between source and target values to
 be used, instead of one map per variable.
+
+If /BLANK=MISSING is given, then string variables which contain only 
+whitespace are recoded as SYSMIS.  If /BLANK=VALID is given then they
+will be allocated a value like any other.  /BLANK is not relevant
+to numeric values. /BLANK=VALID is the default.
 
 @cmd{AUTORECODE} is a procedure.  It causes the data to be read.
 

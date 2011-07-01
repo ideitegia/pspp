@@ -43,6 +43,7 @@ GNULIB_MODULES = \
 	inttostr \
 	localcharset \
         mbchar \
+        mbiter \
 	memcasecmp \
 	memchr \
 	mempcpy \
