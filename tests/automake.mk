@@ -244,7 +244,8 @@ EXTRA_DIST += \
 	tests/data/num-out.expected.cmp.gz \
 	tests/data/v13.sav \
 	tests/data/v14.sav \
-        tests/language/data-io/Book1.gnm.unzipped
+        tests/language/data-io/Book1.gnm.unzipped \
+        tests/language/data-io/test.ods
 
 CLEANFILES += *.save pspp.* foo*
 
@@ -279,7 +280,7 @@ TESTSUITE_AT = \
 	tests/language/data-io/data-reader.at \
 	tests/language/data-io/dataset.at \
 	tests/language/data-io/file-handle.at \
-	tests/language/data-io/get-data-gnm.at \
+	tests/language/data-io/get-data-spreadsheet.at \
 	tests/language/data-io/get-data-psql.at \
 	tests/language/data-io/get-data-txt.at \
 	tests/language/data-io/get.at \

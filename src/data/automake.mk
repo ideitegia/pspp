@@ -82,6 +82,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/make-file.h \
 	src/data/mrset.c \
 	src/data/mrset.h \
+	src/data/ods-reader.c \
+	src/data/ods-reader.h \
 	src/data/por-file-reader.c \
 	src/data/por-file-reader.h \
 	src/data/por-file-writer.c \
@@ -94,6 +96,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/settings.h \
 	src/data/short-names.c \
 	src/data/short-names.h \
+	src/data/spreadsheet-reader.c \
+	src/data/spreadsheet-reader.h \
 	src/data/subcase.c \
 	src/data/subcase.h \
 	src/data/sys-file-encoding.c \

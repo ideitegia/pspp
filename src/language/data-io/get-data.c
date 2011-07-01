@@ -18,10 +18,14 @@
 
 #include <stdlib.h>
 
+#include <string.h>
+
 #include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/format.h"
 #include "data/gnumeric-reader.h"
+#include "data/ods-reader.h"
+#include "data/spreadsheet-reader.h"
 #include "data/psql-reader.h"
 #include "data/settings.h"
 #include "language/command.h"
@@ -40,13 +44,16 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) (msgid)
 
-static int parse_get_gnm (struct lexer *lexer, struct dataset *);
+static struct spreadsheet_read_info *parse_spreadsheet (struct lexer *lexer);
+static void destroy_spreadsheet_read_info (struct spreadsheet_read_info *);
+
 static int parse_get_txt (struct lexer *lexer, struct dataset *);
 static int parse_get_psql (struct lexer *lexer, struct dataset *);
 
 int
 cmd_get_data (struct lexer *lexer, struct dataset *ds)
 {
+  char *tok = NULL;
   lex_force_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "TYPE"))
@@ -54,14 +61,44 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 
   lex_force_match (lexer, T_EQUALS);
 
-  if (lex_match_id (lexer, "GNM"))
-    return parse_get_gnm (lexer, ds);
-  else if (lex_match_id (lexer, "TXT"))
-    return parse_get_txt (lexer, ds);
+  tok = strdup (lex_tokcstr (lexer));
+  if (lex_match_id (lexer, "TXT"))
+    {
+      return parse_get_txt (lexer, ds);
+    }
   else if (lex_match_id (lexer, "PSQL"))
-    return parse_get_psql (lexer, ds);
+    {
+      return parse_get_psql (lexer, ds);
+    }
+  else if (lex_match_id (lexer, "GNM") || 
+      lex_match_id (lexer, "ODS"))
+    {
+      struct casereader *reader = NULL;
+      struct dictionary *dict = NULL;
+      struct spreadsheet_read_info *sri = parse_spreadsheet (lexer);
+      if (NULL == sri)
+	goto error;
 
-  msg (SE, _("Unsupported TYPE %s."), lex_tokcstr (lexer));
+      if ( 0 == strncasecmp (tok, "GNM", 3))
+	reader = gnumeric_open_reader (sri, &dict);
+      else if (0 == strncasecmp (tok, "ODS", 3))
+	reader = ods_open_reader (sri, &dict);
+
+      if (reader)
+	{
+	  dataset_set_dict (ds, dict);
+	  dataset_set_source (ds, reader);
+	  destroy_spreadsheet_read_info (sri);
+	  free (tok);
+	  return CMD_SUCCESS;
+	}
+      destroy_spreadsheet_read_info (sri);
+    }
+  else
+    msg (SE, _("Unsupported TYPE %s."), tok);
+
+ error:
+  free (tok);
   return CMD_FAILURE;
 }
 
@@ -141,10 +178,13 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
   return CMD_FAILURE;
 }
 
-static int
-parse_get_gnm (struct lexer *lexer, struct dataset *ds)
+static struct spreadsheet_read_info *
+parse_spreadsheet (struct lexer *lexer)
 {
-  struct gnumeric_read_info gri  = {NULL, NULL, NULL, 1, true, -1};
+  struct spreadsheet_read_info *sri = xzalloc (sizeof *sri);
+  sri->sheet_index = 1;
+  sri->read_names = true;
+  sri->asw = -1;
 
   lex_force_match (lexer, T_SLASH);
 
@@ -156,7 +196,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_string (lexer))
     goto error;
 
-  gri.file_name = utf8_to_filename (lex_tokcstr (lexer));
+  sri->file_name = utf8_to_filename (lex_tokcstr (lexer));
 
   lex_get (lexer);
 
@@ -165,7 +205,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
       if ( lex_match_id (lexer, "ASSUMEDSTRWIDTH"))
 	{
 	  lex_match (lexer, T_EQUALS);
-	  gri.asw = lex_integer (lexer);
+	  sri->asw = lex_integer (lexer);
 	  lex_get (lexer);
 	}
       else if (lex_match_id (lexer, "SHEET"))
@@ -176,14 +216,14 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	      if ( ! lex_force_string (lexer) )
 		goto error;
 
-	      gri.sheet_name = ss_xstrdup (lex_tokss (lexer));
-	      gri.sheet_index = -1;
+	      sri->sheet_name = ss_xstrdup (lex_tokss (lexer));
+	      sri->sheet_index = -1;
 
 	      lex_get (lexer);
 	    }
 	  else if (lex_match_id (lexer, "INDEX"))
 	    {
-	      gri.sheet_index = lex_integer (lexer);
+	      sri->sheet_index = lex_integer (lexer);
 	      lex_get (lexer);
 	    }
 	  else
@@ -195,14 +235,14 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 
 	  if (lex_match_id (lexer, "FULL"))
 	    {
-	      gri.cell_range = NULL;
+	      sri->cell_range = NULL;
 	    }
 	  else if (lex_match_id (lexer, "RANGE"))
 	    {
 	      if ( ! lex_force_string (lexer) )
 		goto error;
 
-	      gri.cell_range = ss_xstrdup (lex_tokss (lexer));
+	      sri->cell_range = ss_xstrdup (lex_tokss (lexer));
 	      lex_get (lexer);
 	    }
 	  else
@@ -214,11 +254,11 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 
 	  if ( lex_match_id (lexer, "ON"))
 	    {
-	      gri.read_names = true;
+	      sri->read_names = true;
 	    }
 	  else if (lex_match_id (lexer, "OFF"))
 	    {
-	      gri.read_names = false;
+	      sri->read_names = false;
 	    }
 	  else
 	    goto error;
@@ -230,29 +270,13 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
-  {
-    struct dictionary *dict = NULL;
-    struct casereader *reader = gnumeric_open_reader (&gri, &dict);
-
-    if ( reader )
-      {
-        dataset_set_dict (ds, dict);
-        dataset_set_source (ds, reader);
-      }
-  }
-
-  free (gri.file_name);
-  free (gri.sheet_name);
-  free (gri.cell_range);
-  return CMD_SUCCESS;
+  return sri;
 
  error:
-
-  free (gri.file_name);
-  free (gri.sheet_name);
-  free (gri.cell_range);
-  return CMD_FAILURE;
+  destroy_spreadsheet_read_info (sri);
+  return NULL;
 }
+
 
 static bool
 set_type (struct data_parser *parser, const char *subcommand,
@@ -595,4 +619,17 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
   fh_unref (fh);
   free (name);
   return CMD_CASCADING_FAILURE;
+}
+
+
+static void 
+destroy_spreadsheet_read_info (struct spreadsheet_read_info *sri)
+{
+  if ( NULL == sri)
+    return;
+
+  free (sri->sheet_name);
+  free (sri->cell_range);
+  free (sri->file_name);
+  free (sri);
 }

@@ -182,7 +182,7 @@ Use of @cmd{GET} to read a portable file is a PSPP extension.
 
 @display
 GET DATA
-        /TYPE=@{GNM,PSQL,TXT@}
+        /TYPE=@{GNM,ODS,PSQL,TXT@}
         @dots{}additional subcommands depending on TYPE@dots{}
 @end display
 
@@ -199,6 +199,9 @@ PSPP currently supports the following file types:
 @item GNM
 Spreadsheet files created by Gnumeric (@url{http://gnumeric.org}).
 
+@item ODS
+Spreadsheet files in OpenDocument format.
+
 @item PSQL
 Relations from PostgreSQL databases (@url{http://postgresql.org}).
 
@@ -210,16 +213,16 @@ Each supported file type has additional subcommands, explained in
 separate sections below.
 
 @menu
-* GET DATA /TYPE=GNM::
-* GET DATA /TYPE=PSQL::
-* GET DATA /TYPE=TXT::
+* GET DATA /TYPE=GNM/ODS::     Spreadsheets
+* GET DATA /TYPE=PSQL::        Databases
+* GET DATA /TYPE=TXT::         Delimited Text Files
 @end menu
 
-@node GET DATA /TYPE=GNM
-@subsection Gnumeric Spreadsheet Files
+@node GET DATA /TYPE=GNM/ODS
+@subsection Spreadsheet Files
 
 @display
-GET DATA /TYPE=GNM
+GET DATA /TYPE=@{GNM, ODS@}
         /FILE=@{'file-name'@}
         /SHEET=@{NAME 'sheet-name', INDEX n@}
         /CELLRANGE=@{RANGE 'range', FULL@}
@@ -228,21 +231,25 @@ GET DATA /TYPE=GNM
 @end display
 
 @cindex Gnumeric
+@cindex OpenDocument
 @cindex spreadsheet files
-To use GET DATA to read a spreadsheet file created by Gnumeric
-(@url{http://gnumeric.org}), specify TYPE=GNM to indicate the file's
-format and use FILE to indicate the Gnumeric file to be read.  All
-other subcommands are optional.
+
+Gnumeric spreadsheets (@url{http://gnumeric.org}), and spreadsheets
+in OpenDocument format
+(@url{http://libreplanet.org/wiki/Group:OpenDocument/Software})
+can be read using the GET DATA command.
+Use the TYPE subcommand to indicate the file's format.  
+/TYPE=GNM indicates Gnumeric files,
+/TYPE=ODS indicates OpenDocument.
+The FILE subcommand is mandatory.
+Use it to specify the name file to be read. 
+All other subcommands are optional.
 
 The format of each variable is determined by the format of the spreadsheet 
 cell containing the first datum for the variable.
 If this cell is of string (text) format, then the width of the variable is
 determined from the length of the string it contains, unless the 
 ASSUMEDVARWIDTH subcommand is given.
-
-
-The FILE subcommand is mandatory. Specify the name of the file
-to be read.
 
 The SHEET subcommand specifies the sheet within the spreadsheet file to read.
 There are two forms of the SHEET subcommand.
@@ -266,8 +273,8 @@ If no CELLRANGE subcommand is given, then the entire sheet is read.
 
 If @samp{/READNAMES=ON} is specified, then the contents of cells of
 the first row are used as the names of the variables in which to store
-the data from subsequent rows. 
-If the READNAMES command is omitted, or if @samp{/READNAMES=OFF} is
+the data from subsequent rows.  This is the default.
+If @samp{/READNAMES=OFF} is
 used, then the variables  receive automatically assigned names.
 
 The ASSUMEDVARWIDTH subcommand specifies the maximum width of string

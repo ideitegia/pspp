@@ -196,24 +196,30 @@ AC_DEFINE(
   [crc32], [gl_crc32],
   [Avoid making zlib call gnulib's crc32() instead of its own.])
 
-dnl Gnumeric support requires libxml2 and zlib.
+dnl Gnumeric and OpenDocument (read) support requires libxml2 and zlib.
 if test $HAVE_LIBXML2 = yes && test $HAVE_ZLIB = yes; then
   GNM_SUPPORT=yes
+  ODF_READ_SUPPORT=yes
   AC_DEFINE(
     [GNM_SUPPORT], [1],
     [Define to 1 if building in support for reading Gnumeric files.])
+  AC_DEFINE(
+    [ODF_READ_SUPPORT], [1],
+    [Define to 1 if building in support for reading OpenDocument files.])
 else
   GNM_SUPPORT=no
+  ODF_READ_SUPPORT=no
 fi
 AC_SUBST([GNM_SUPPORT])
+AC_SUBST([ODF_READ_SUPPORT])
 
-dnl ODT support requires libxml2.
+dnl ODF support requires libxml2 (zlib is optional).
 if test $HAVE_LIBXML2 = yes; then
   AC_DEFINE(
-    [ODT_SUPPORT], [1],
-    [Define to 1 if building in support for writing ODT files.])
+    [ODF_WRITE_SUPPORT], [1],
+    [Define to 1 if building in support for writing OpenDocument files.])
 fi
-AM_CONDITIONAL([ODT_SUPPORT], [test $HAVE_LIBXML2 = yes])
+AM_CONDITIONAL([ODF_WRITE_SUPPORT], [test $HAVE_LIBXML2 = yes])
 
 AC_ARG_WITH(
   gui_tools,

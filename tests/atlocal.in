@@ -3,6 +3,7 @@
 # Variables used internally by the testsuite.
 EXEEXT='@EXEEXT@'
 GNM_SUPPORT='@GNM_SUPPORT@'
+ODF_READ_SUPPORT='@ODF_READ_SUPPORT@'
 PERL='@PERL@'
 WITH_PERL_MODULE='@WITH_PERL_MODULE@'
 host='@host@'

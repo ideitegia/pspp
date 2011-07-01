@@ -14,8 +14,6 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-
-
 #include <config.h>
 
 #include "libpspp/message.h"
@@ -27,13 +25,14 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) (msgid)
 
+#include "spreadsheet-reader.h"
 
 #if !GNM_SUPPORT
 
 struct casereader *
-gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
+gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
 {
-  msg (ME, _("Support for Gnumeric files was not compiled into this installation of PSPP"));
+  msg (ME, _("Support for %s files was not compiled into this installation of PSPP"), "Gnumeric");
 
   return NULL;
 }
@@ -59,9 +58,6 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
 #include "gl/xalloc.h"
 
-/* Default width of string variables. */
-#define GNUMERIC_DEFAULT_WIDTH 8
-
 static void gnm_file_casereader_destroy (struct casereader *, void *);
 
 static struct ccase *gnm_file_casereader_read (struct casereader *, void *);
@@ -73,73 +69,6 @@ static const struct casereader_class gnm_file_casereader_class =
     NULL,
     NULL,
   };
-
-/* Convert a string, which is an integer encoded in base26
-   IE, A=0, B=1, ... Z=25 to the integer it represents.
-   ... except that in this scheme, digits with an exponent
-   greater than 1 are implicitly incremented by 1, so
-   AA  = 0 + 1*26, AB = 1 + 1*26,
-   ABC = 2 + 2*26 + 1*26^2 ....
-*/
-static int
-pseudo_base26 (const char *str)
-{
-  int i;
-  int multiplier = 1;
-  int result = 0;
-  int len = strlen (str);
-
-  for ( i = len - 1 ; i >= 0; --i)
-    {
-      int mantissa = (str[i] - 'A');
-
-      if ( mantissa < 0 || mantissa > 25 )
-	return -1;
-
-      if ( i != len - 1)
-	mantissa++;
-
-      result += mantissa * multiplier;
-
-      multiplier *= 26;
-    }
-
-  return result;
-}
-
-
-
-/* Convert a cell reference in the form "A1:B2", to
-   integers.  A1 means column zero, row zero.
-   B1 means column 1 row 0. AA1 means column 26, row 0.
-*/
-static bool
-convert_cell_ref (const char *ref,
-		  int *col0, int *row0,
-		  int *coli, int *rowi)
-{
-  char startcol[5];
-  char stopcol [5];
-
-  int startrow;
-  int stoprow;
-
-  int n = sscanf (ref, "%4[a-zA-Z]%d:%4[a-zA-Z]%d",
-	      startcol, &startrow,
-	      stopcol, &stoprow);
-  if ( n != 4)
-    return false;
-
-  str_uppercase (startcol);
-  *col0 = pseudo_base26 (startcol);
-  str_uppercase (stopcol);
-  *coli = pseudo_base26 (stopcol);
-  *row0 = startrow - 1;
-  *rowi = stoprow - 1 ;
-
-  return true;
-}
-
 
 enum reader_state
   {
@@ -180,9 +109,6 @@ struct gnumeric_reader
 
 static void process_node (struct gnumeric_reader *r);
 
-#define _xml(X) (CHAR_CAST (const xmlChar *, X))
-
-#define _xmlchar_to_int(X) (atoi(CHAR_CAST (const char *, X)))
 
 static void
 gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
@@ -345,7 +271,7 @@ struct var_spec
 };
 
 struct casereader *
-gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
+gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
 {
   unsigned long int vstart = 0;
   int ret;
@@ -473,7 +399,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
 	      if (-1 ==  var_spec [idx].width )
 		var_spec [idx].width = (gri->asw == -1) ?
-		  ROUND_UP (strlen(text), GNUMERIC_DEFAULT_WIDTH) : gri->asw;
+		  ROUND_UP (strlen(text), SPREADSHEET_DEFAULT_WIDTH) : gri->asw;
 	    }
 
 	  free (value);
@@ -506,7 +432,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
       /* Probably no data exists for this variable, so allocate a
 	 default width */
       if ( var_spec[i].width == -1 )
-	var_spec[i].width = GNUMERIC_DEFAULT_WIDTH;
+	var_spec[i].width = SPREADSHEET_DEFAULT_WIDTH;
 
       name = dict_make_unique_var_name (r->dict, var_spec[i].name, &vstart);
       dict_create_var (r->dict, name, var_spec[i].width);

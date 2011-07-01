@@ -1,10 +1,23 @@
-AT_BANNER([GET DATA /TYPE=GNM])
 
-AT_SETUP([GET DATA /TYPE=GNM with CELLRANGE])
-AT_SKIP_IF([test "$GNM_SUPPORT" = no])
-AT_CHECK([gzip -c $top_srcdir/tests/language/data-io/Book1.gnm.unzipped > Book1.gnumeric])
+m4_define([SPREADSHEET_TEST_PREP],[dnl
+ m4_if($1,[GNM],[dnl
+    AT_CHECK([gzip -c $top_srcdir/tests/language/data-io/Book1.gnm.unzipped > Book1.gnumeric])dnl
+    m4_define([testsheet],[Book1.gnumeric])dnl
+    AT_SKIP_IF([test n$GNM_SUPPORT != nyes])dnl
+    ]) dnl
+ m4_if($1,[ODS],[dnl
+    AT_CHECK([cp $top_srcdir/tests/language/data-io/test.ods test.ods])dnl
+    m4_define([testsheet],[test.ods])dnl
+    AT_SKIP_IF([test n$ODF_READ_SUPPORT != nyes])dnl
+    ])dnl
+])
+
+m4_define([CHECK_SPREADSHEET_READER],
+ [dnl
+AT_SETUP([GET DATA /TYPE=$1 with CELLRANGE])
+SPREADSHEET_TEST_PREP($1)
 AT_DATA([get-data.sps], [dnl
-GET DATA /TYPE=gnm /FILE='Book1.gnumeric'  /READNAMES=off /SHEET=name 'This' /CELLRANGE=range 'g9:i13' .
+GET DATA /TYPE=$1 /FILE='testsheet'  /READNAMES=off /SHEET=name 'This' /CELLRANGE=range 'g9:i13' .
 DISPLAY VARIABLES.
 LIST.
 ])
@@ -34,11 +47,10 @@ VAR001,VAR002,VAR003
 ])
 AT_CLEANUP
 
-AT_SETUP([GET DATA /TYPE=GNM with CELLRANGE and READNAMES])
-AT_SKIP_IF([test "$GNM_SUPPORT" = no])
-AT_CHECK([gzip -c $top_srcdir/tests/language/data-io/Book1.gnm.unzipped > Book1.gnumeric])
+AT_SETUP([GET DATA /TYPE=$1 with CELLRANGE and READNAMES])
+SPREADSHEET_TEST_PREP($1)
 AT_DATA([get-data.sps], [dnl
-GET DATA /TYPE=gnm /FILE='Book1.gnumeric'  /READNAMES=on /SHEET=name 'This' /CELLRANGE=range 'g8:i13' .
+GET DATA /TYPE=$1 /FILE='testsheet'  /READNAMES=on /SHEET=name 'This' /CELLRANGE=range 'g8:i13' .
 DISPLAY VARIABLES.
 LIST.
 ])
@@ -68,11 +80,10 @@ V1,V2,VAR001
 ])
 AT_CLEANUP
 
-AT_SETUP([GET DATA /TYPE=GNM without CELLRANGE])
-AT_SKIP_IF([test "$GNM_SUPPORT" = no])
-AT_CHECK([gzip -c $top_srcdir/tests/language/data-io/Book1.gnm.unzipped > Book1.gnumeric])
+AT_SETUP([GET DATA /TYPE=$1 without CELLRANGE])
+SPREADSHEET_TEST_PREP($1)
 AT_DATA([get-data.sps], [dnl
-GET DATA /TYPE=gnm /FILE='Book1.gnumeric' /SHEET=index 3.
+GET DATA /TYPE=$1 /FILE='testsheet' /SHEET=index 3.
 DISPLAY VARIABLES.
 LIST.
 ])
@@ -101,12 +112,11 @@ dick    ,3.00,-34.09
 ])
 AT_CLEANUP
 
-AT_SETUP([GET DATA /TYPE=GNM with missing data])
-AT_SKIP_IF([test "$GNM_SUPPORT" = no])
-AT_CHECK([gzip -c $top_srcdir/tests/language/data-io/Book1.gnm.unzipped > Book1.gnumeric])
+AT_SETUP([GET DATA /TYPE=$1 with missing data])
+SPREADSHEET_TEST_PREP($1)
 AT_DATA([get-data.sps], [dnl
 * This sheet has no data in one of its variables
-GET DATA /TYPE=gnm /FILE='Book1.gnumeric' /READNAMES=on /SHEET=index 5.
+GET DATA /TYPE=$1 /FILE='testsheet' /READNAMES=on /SHEET=index 5.
 DISPLAY VARIABLES.
 LIST.
 ])
@@ -137,26 +147,35 @@ vone,vtwo,vthree,v4
 ])
 AT_CLEANUP
 
-AT_SETUP([GET DATA /TYPE=GNM with empty sheet])
-AT_SKIP_IF([test "$GNM_SUPPORT" = no])
-AT_CHECK([gzip -c $top_srcdir/tests/language/data-io/Book1.gnm.unzipped > Book1.gnumeric])
+AT_SETUP([GET DATA /TYPE=$1 with empty sheet])
+SPREADSHEET_TEST_PREP($1)
 AT_DATA([get-data.sps], [dnl
 * This sheet is empty
-GET DATA /TYPE=gnm /FILE='Book1.gnumeric' /SHEET=name 'Empty'.
+GET DATA /TYPE=$1 /FILE='testsheet' /SHEET=name 'Empty'.
 ])
 AT_CHECK([pspp -o pspp.csv get-data.sps], [0], [dnl
-warning: Selected sheet or range of spreadsheet `Book1.gnumeric' is empty.
+warning: Selected sheet or range of spreadsheet `testsheet' is empty.
 ])
 AT_CLEANUP
 
-AT_SETUP([GET DATA /TYPE=GNM with nonexistent sheet])
-AT_SKIP_IF([test "$GNM_SUPPORT" = no])
-AT_CHECK([gzip -c $top_srcdir/tests/language/data-io/Book1.gnm.unzipped > Book1.gnumeric])
+AT_SETUP([GET DATA /TYPE=$1 with nonexistent sheet])
+SPREADSHEET_TEST_PREP($1)
 AT_DATA([get-data.sps], [dnl
 * This sheet doesnt exist.
-GET DATA /TYPE=gnm /FILE='Book1.gnumeric' /SHEET=name 'foobarxx'.
+GET DATA /TYPE=$1 /FILE='testsheet' /SHEET=name 'foobarxx'.
 ])
 AT_CHECK([pspp -o pspp.csv get-data.sps], [0], [dnl
-warning: Selected sheet or range of spreadsheet `Book1.gnumeric' is empty.
+warning: Selected sheet or range of spreadsheet `testsheet' is empty.
 ])
 AT_CLEANUP
+])
+
+
+AT_BANNER([GET DATA Spreadsheet /TYPE=GNM])
+
+CHECK_SPREADSHEET_READER([GNM])
+
+AT_BANNER([GET DATA Spreadsheet /TYPE=ODS])
+
+CHECK_SPREADSHEET_READER([ODS])
+
