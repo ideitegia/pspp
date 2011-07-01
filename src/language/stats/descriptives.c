@@ -578,7 +578,7 @@ dump_z_table (struct dsc_proc *dsc)
     for (i = 0, y = 1; i < dsc->var_cnt; i++)
       if (dsc->vars[i].z_name != NULL)
 	{
-	  tab_text (t, 0, y, TAB_LEFT, var_get_name (dsc->vars[i].v));
+	  tab_text (t, 0, y, TAB_LEFT, var_to_string (dsc->vars[i].v));
 	  tab_text (t, 1, y++, TAB_LEFT, dsc->vars[i].z_name);
 	}
   }
@@ -914,7 +914,7 @@ display (struct dsc_proc *dsc)
       size_t j;
 
       nc = 0;
-      tab_text (t, nc++, i + 1, TAB_LEFT, var_get_name (dv->v));
+      tab_text (t, nc++, i + 1, TAB_LEFT, var_to_string (dv->v));
       tab_text_format (t, nc++, i + 1, 0, "%g", dv->valid);
       if (dsc->format == DSC_SERIAL)
 	tab_text_format (t, nc++, i + 1, 0, "%g", dv->missing);
