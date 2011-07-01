@@ -38,7 +38,6 @@
 #include "psppire-window-register.h"
 #include "psppire.h"
 
-static void psppire_window_base_finalize (PsppireWindowClass *, gpointer);
 static void psppire_window_base_init     (PsppireWindowClass *class);
 static void psppire_window_class_init    (PsppireWindowClass *class);
 static void psppire_window_init          (PsppireWindow      *window);
@@ -57,7 +56,7 @@ psppire_window_get_type (void)
       {
 	sizeof (PsppireWindowClass),
 	(GBaseInitFunc) psppire_window_base_init,
-        (GBaseFinalizeFunc) psppire_window_base_finalize,
+        (GBaseFinalizeFunc) NULL,
 	(GClassInitFunc) psppire_window_class_init,
 	(GClassFinalizeFunc) NULL,
 	NULL,
@@ -84,12 +83,6 @@ enum
   PROP_ID
 };
 
-
-gchar *
-uniquify (const gchar *str, int *x)
-{
-  return g_strdup_printf ("%s%d", str, (*x)++);
-}
 
 static void
 psppire_window_set_title (PsppireWindow *window)
@@ -327,12 +320,6 @@ psppire_window_base_init (PsppireWindowClass *class)
 }
 
 
-
-static void
-psppire_window_base_finalize (PsppireWindowClass *class,
-				gpointer class_data)
-{
-}
 
 static void
 menu_toggled (GtkCheckMenuItem *mi, gpointer data)
