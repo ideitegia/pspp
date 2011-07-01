@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,9 +23,9 @@
 #include "data/case.h"
 #include "data/casegrouper.h"
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/format.h"
-#include "data/procedure.h"
 #include "data/settings.h"
 #include "data/value-labels.h"
 #include "data/variable.h"
@@ -188,7 +188,6 @@ struct var_freqs
 
     /* Variable attributes. */
     int width;
-    struct fmt_spec print;
   };
 
 struct frq_proc
@@ -618,10 +617,10 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds,
   size_t n_vars;
   size_t i;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_token (lexer) != T_ALL
       && (lex_token (lexer) != T_ID
-          || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
+          || dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) == NULL))
     return 2;
 
   /* Get list of current variables, to avoid duplicates. */
@@ -646,7 +645,6 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds,
       vf->n_groups = 0;
       vf->groups = NULL;
       vf->width = var_get_width (var);
-      vf->print = *var_get_print_format (var);
     }
   frq->n_vars = n_vars;
 
@@ -662,8 +660,9 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 {
   struct frq_proc *frq = frq_;
 
-  lex_match (lexer, '=');
-  if ((lex_token (lexer) == T_ID && dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
+  lex_match (lexer, T_EQUALS);
+  if ((lex_token (lexer) == T_ID
+       && dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) != NULL)
       || lex_token (lexer) == T_ID)
     for (;;)
       {
@@ -680,7 +679,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 	if (!parse_variables_const (lexer, dataset_dict (ds), &v, &n,
                               PV_NO_DUPLICATE | PV_NUMERIC))
 	  return 0;
-	if (lex_match (lexer, '('))
+	if (lex_match (lexer, T_LPAREN))
 	  {
 	    nl = ml = 0;
 	    dl = NULL;
@@ -693,11 +692,11 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 		  }
 		dl[nl++] = lex_tokval (lexer);
 		lex_get (lexer);
-		lex_match (lexer, ',');
+		lex_match (lexer, T_COMMA);
 	      }
 	    /* Note that nl might still be 0 and dl might still be
 	       NULL.  That's okay. */
-	    if (!lex_match (lexer, ')'))
+	    if (!lex_match (lexer, T_RPAREN))
 	      {
 		free (v);
 		msg (SE, _("`)' expected after GROUPED interval list."));
@@ -737,14 +736,23 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
           }
 
 	free (v);
-	if (!lex_match (lexer, '/'))
-	  break;
-	if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
-            && lex_token (lexer) != T_ALL)
-	  {
-	    lex_put_back (lexer, '/');
-	    break;
-	  }
+        if (lex_token (lexer) != T_SLASH)
+          break;
+
+        if ((lex_next_token (lexer, 1) == T_ID
+             && dict_lookup_var (dataset_dict (ds),
+                                 lex_next_tokcstr (lexer, 1)))
+            || lex_next_token (lexer, 1) == T_ALL)
+          {
+            /* The token after the slash is a variable name.  Keep parsing. */
+            lex_get (lexer);
+          }
+        else
+          {
+            /* The token after the slash must be the start of a new
+               subcommand.  Let the caller see the slash. */
+            break;
+          }
       }
 
   return 1;
@@ -840,7 +848,7 @@ dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
       if (label != NULL)
         tab_text (t, 0, r, TAB_LEFT, label);
 
-      tab_value (t, 1, r, TAB_NONE, &f->value, ft->dict, &vf->print);
+      tab_value (t, 1, r, TAB_NONE, &f->value, vf->var, NULL);
       tab_double (t, 2, r, TAB_NONE, f->count, wfmt);
       tab_double (t, 3, r, TAB_NONE, percent, NULL);
       tab_double (t, 4, r, TAB_NONE, valid_percent, NULL);
@@ -857,7 +865,7 @@ dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
       if (label != NULL)
         tab_text (t, 0, r, TAB_LEFT, label);
 
-      tab_value (t, 1, r, TAB_NONE, &f->value, ft->dict, &vf->print);
+      tab_value (t, 1, r, TAB_NONE, &f->value, vf->var, NULL);
       tab_double (t, 2, r, TAB_NONE, f->count, wfmt);
       tab_double (t, 3, r, TAB_NONE,
 		     f->count / ft->total_cases * 100.0, NULL);
@@ -921,8 +929,7 @@ calc_percentiles (const struct frq_proc *frq, const struct var_freqs *vf)
           if (rank <= tp)
             break;
 
-          if (f->count > 1
-              && (rank - (f->count - 1) > tp || f + 1 >= ft->missing))
+          if (tp + 1 < rank || f + 1 >= ft->missing)
             pc->value = f->value.f;
           else
             pc->value = calc_percentile (pc->p, W, f->value.f, f[1].value.f);
@@ -1038,7 +1045,7 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
   tab_double (t, 2, 0, TAB_NONE, ft->valid_cases, wfmt);
   tab_double (t, 2, 1, TAB_NONE, ft->total_cases - ft->valid_cases, wfmt);
 
-  for (i = 0; i < frq->n_percentiles; i++, r++)
+  for (i = 0; i < frq->n_percentiles; i++)
     {
       struct percentile *pc = &frq->percentiles[i];
 
@@ -1056,6 +1063,7 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
         tab_fixed (t, 1, r, TAB_LEFT, pc->p * 100, 3, 0);
       tab_double (t, 2, r, TAB_NONE, pc->value,
                   var_get_print_format (vf->var));
+      r++;
     }
 
   tab_title (t, "%s", var_to_string (vf->var));

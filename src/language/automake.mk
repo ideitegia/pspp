@@ -14,12 +14,6 @@ noinst_LTLIBRARIES +=  src/language/liblanguage.la
 
 
 src_language_liblanguage_la_SOURCES = \
-	src/language/syntax-file.c \
-	src/language/syntax-file.h \
-	src/language/syntax-string-source.c \
-	src/language/syntax-string-source.h \
-	src/language/prompt.c \
-	src/language/prompt.h \
 	src/language/command.c \
 	src/language/command.h \
 	src/language/command.def \

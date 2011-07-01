@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,17 +24,18 @@
 #include <errno.h>
 
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
-#include "data/procedure.h"
+#include "data/session.h"
 #include "data/settings.h"
 #include "data/variable.h"
+#include "language/lexer/command-name.h"
 #include "language/lexer/lexer.h"
-#include "language/prompt.h"
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
-#include "libpspp/getl.h"
 #include "output/text-item.h"
 
 #include "xalloc.h"
@@ -76,8 +77,8 @@ cmd_result_is_failure (enum cmd_result result)
 /* Command processing states. */
 enum states
   {
-    S_INITIAL = 0x01,         /* Allowed before active file defined. */
-    S_DATA = 0x02,            /* Allowed after active file defined. */
+    S_INITIAL = 0x01,         /* Allowed before active dataset defined. */
+    S_DATA = 0x02,            /* Allowed after active dataset defined. */
     S_INPUT_PROGRAM = 0x04,   /* Allowed in INPUT PROGRAM. */
     S_FILE_TYPE = 0x08,       /* Allowed in FILE TYPE. */
     S_ANY = 0x0f              /* Allowed anywhere. */
@@ -88,7 +89,6 @@ enum flags
   {
     F_ENHANCED = 0x10,        /* Allowed only in enhanced syntax mode. */
     F_TESTING = 0x20,         /* Allowed only in testing mode. */
-    F_KEEP_FINAL_TOKEN = 0x40,/* Don't skip final token in command name. */
     F_ABBREV = 0x80           /* Not a candidate for name completion. */
   };
 
@@ -115,12 +115,12 @@ static const size_t command_cnt = sizeof commands / sizeof *commands;
 
 static bool in_correct_state (const struct command *, enum cmd_state);
 static bool report_state_mismatch (const struct command *, enum cmd_state);
-static const struct command *find_command (const char *name);
 static void set_completion_state (enum cmd_state);
 
 /* Command parser. */
 
-static const struct command *parse_command_name (struct lexer *lexer);
+static const struct command *parse_command_name (struct lexer *,
+                                                 int *n_tokens);
 static enum cmd_result do_parse_command (struct lexer *, struct dataset *, enum cmd_state);
 
 /* Parses an entire command, from command name to terminating
@@ -130,10 +130,12 @@ enum cmd_result
 cmd_parse_in_state (struct lexer *lexer, struct dataset *ds,
 		    enum cmd_state state)
 {
+  struct session *session = dataset_session (ds);
   int result;
 
   result = do_parse_command (lexer, ds, state);
 
+  ds = session_active_dataset (session);
   assert (!proc_is_open (ds));
   unset_cmd_algorithm ();
   dict_clear_aux (dataset_dict (ds));
@@ -148,7 +150,7 @@ cmd_parse (struct lexer *lexer, struct dataset *ds)
 {
   const struct dictionary *dict = dataset_dict (ds);
   return cmd_parse_in_state (lexer, ds,
-			     proc_has_active_file (ds) &&
+			     dataset_has_source (ds) &&
 			     dict_get_var_cnt (dict) > 0 ?
 			     CMD_STATE_DATA : CMD_STATE_INITIAL);
 }
@@ -163,27 +165,24 @@ do_parse_command (struct lexer *lexer,
   const struct command *command = NULL;
   enum cmd_result result;
   bool opened = false;
+  int n_tokens;
 
   /* Read the command's first token. */
-  prompt_set_style (PROMPT_FIRST);
   set_completion_state (state);
-  lex_get (lexer);
   if (lex_token (lexer) == T_STOP)
     {
       result = CMD_EOF;
       goto finish;
     }
-  else if (lex_token (lexer) == '.')
+  else if (lex_token (lexer) == T_ENDCMD)
     {
       /* Null commands can result from extra empty lines. */
       result = CMD_SUCCESS;
       goto finish;
     }
 
-  prompt_set_style (PROMPT_LATER);
-
   /* Parse the command name. */
-  command = parse_command_name (lexer);
+  command = parse_command_name (lexer, &n_tokens);
   if (command == NULL)
     {
       result = CMD_FAILURE;
@@ -216,22 +215,24 @@ do_parse_command (struct lexer *lexer,
   else
     {
       /* Execute command. */
+      int i;
+
+      for (i = 0; i < n_tokens; i++)
+        lex_get (lexer);
       result = command->function (lexer, ds);
     }
 
   assert (cmd_result_is_valid (result));
 
- finish:
+finish:
   if (cmd_result_is_failure (result))
-    {
-      lex_discard_rest_of_command (lexer);
-      if (source_stream_current_error_mode (
-            lex_get_source_stream (lexer)) == ERRMODE_STOP )
-	{
-	  msg (MW, _("Error encountered while ERROR=STOP is effective."));
-	  result = CMD_CASCADING_FAILURE;
-	}
-    }
+    lex_interactive_reset (lexer);
+  else if (result == CMD_SUCCESS)
+    result = lex_end_of_command (lexer);
+
+  lex_discard_rest_of_command (lexer);
+  while (lex_token (lexer) == T_ENDCMD)
+    lex_get (lexer);
 
   if (opened)
     text_item_submit (text_item_create (TEXT_ITEM_COMMAND_CLOSE,
@@ -240,352 +241,105 @@ do_parse_command (struct lexer *lexer,
   return result;
 }
 
-static size_t
-match_strings (const char *a, size_t a_len,
-               const char *b, size_t b_len)
-{
-  size_t match_len = 0;
-
-  while (a_len > 0 && b_len > 0)
-    {
-      /* Mismatch always returns zero. */
-      if (toupper ((unsigned char) *a++) != toupper ((unsigned char) *b++))
-        return 0;
-
-      /* Advance. */
-      a_len--;
-      b_len--;
-      match_len++;
-    }
-
-  return match_len;
-}
-
-/* Returns the first character in the first word in STRING,
-   storing the word's length in *WORD_LEN.  If no words remain,
-   returns a null pointer and stores 0 in *WORD_LEN.  Words are
-   sequences of alphanumeric characters or single
-   non-alphanumeric characters.  Words are delimited by
-   spaces. */
-static const char *
-find_word (const char *string, size_t *word_len)
-{
-  /* Skip whitespace and asterisks. */
-  while (isspace ((unsigned char) *string))
-    string++;
-
-  /* End of string? */
-  if (*string == '\0')
-    {
-      *word_len = 0;
-      return NULL;
-    }
-
-  /* Special one-character word? */
-  if (!isalnum ((unsigned char) *string))
-    {
-      *word_len = 1;
-      return string;
-    }
-
-  /* Alphanumeric word. */
-  *word_len = 1;
-  while (isalnum ((unsigned char) string[*word_len]))
-    (*word_len)++;
-
-  return string;
-}
-
-/* Returns true if strings A and B can be confused based on
-   their first three letters. */
-static bool
-conflicting_3char_prefixes (const char *a, const char *b)
-{
-  size_t aw_len, bw_len;
-  const char *aw, *bw;
-
-  aw = find_word (a, &aw_len);
-  bw = find_word (b, &bw_len);
-  assert (aw != NULL && bw != NULL);
-
-  /* Words that are the same don't conflict. */
-  if (aw_len == bw_len && !buf_compare_case (aw, bw, aw_len))
-    return false;
-
-  /* Words that are otherwise the same in the first three letters
-     do conflict. */
-  return ((aw_len > 3 && bw_len > 3)
-          || (aw_len == 3 && bw_len > 3)
-          || (bw_len == 3 && aw_len > 3)) && !buf_compare_case (aw, bw, 3);
-}
-
-/* Returns true if CMD can be confused with another command
-   based on the first three letters of its first word. */
-static bool
-conflicting_3char_prefix_command (const struct command *cmd)
-{
-  assert (cmd >= commands && cmd < commands + command_cnt);
-
-  return ((cmd > commands
-           && conflicting_3char_prefixes (cmd[-1].name, cmd[0].name))
-          || (cmd < commands + command_cnt
-              && conflicting_3char_prefixes (cmd[0].name, cmd[1].name)));
-}
-
-/* Ways that a set of words can match a command name. */
-enum command_match
-  {
-    MISMATCH,           /* Not a match. */
-    PARTIAL_MATCH,      /* The words begin the command name. */
-    COMPLETE_MATCH      /* The words are the command name. */
-  };
-
-/* Figures out how well the WORD_CNT words in WORDS match CMD,
-   and returns the appropriate enum value.  If WORDS are a
-   partial match for CMD and the next word in CMD is a dash, then
-   *DASH_POSSIBLE is set to 1 if DASH_POSSIBLE is non-null;
-   otherwise, *DASH_POSSIBLE is unchanged. */
-static enum command_match
-cmd_match_words (const struct command *cmd,
-                 char *const words[], size_t word_cnt,
-                 int *dash_possible)
-{
-  const char *word;
-  size_t word_len;
-  size_t word_idx;
-
-  for (word = find_word (cmd->name, &word_len), word_idx = 0;
-       word != NULL && word_idx < word_cnt;
-       word = find_word (word + word_len, &word_len), word_idx++)
-    if (word_len != strlen (words[word_idx])
-        || buf_compare_case (word, words[word_idx], word_len))
-      {
-        size_t match_chars = match_strings (word, word_len,
-                                            words[word_idx],
-                                            strlen (words[word_idx]));
-        if (match_chars == 0)
-          {
-            /* Mismatch. */
-            return MISMATCH;
-          }
-        else if (match_chars == 1 || match_chars == 2)
-          {
-            /* One- and two-character abbreviations are not
-               acceptable. */
-            return MISMATCH;
-          }
-        else if (match_chars == 3)
-          {
-            /* Three-character abbreviations are acceptable
-               in the first word of a command if there are
-               no name conflicts.  They are always
-               acceptable after the first word. */
-            if (word_idx == 0 && conflicting_3char_prefix_command (cmd))
-              return MISMATCH;
-          }
-        else /* match_chars > 3 */
-          {
-            /* Four-character and longer abbreviations are
-               always acceptable.  */
-          }
-      }
-
-  if (word == NULL && word_idx == word_cnt)
-    {
-      /* cmd->name = "FOO BAR", words[] = {"FOO", "BAR"}. */
-      return COMPLETE_MATCH;
-    }
-  else if (word == NULL)
-    {
-      /* cmd->name = "FOO BAR", words[] = {"FOO", "BAR", "BAZ"}. */
-      return MISMATCH;
-    }
-  else
-    {
-      /* cmd->name = "FOO BAR BAZ", words[] = {"FOO", "BAR"}. */
-      if (word[0] == '-' && dash_possible != NULL)
-        *dash_possible = 1;
-      return PARTIAL_MATCH;
-    }
-}
-
-/* Returns the number of commands for which the WORD_CNT words in
-   WORDS are a partial or complete match.  If some partial match
-   has a dash as the next word, then *DASH_POSSIBLE is set to 1,
-   otherwise it is set to 0. */
 static int
-count_matching_commands (char *const words[], size_t word_cnt,
-                         int *dash_possible)
+find_best_match (struct substring s, const struct command **matchp)
 {
   const struct command *cmd;
-  int cmd_match_count;
+  struct command_matcher cm;
+  int missing_words;
 
-  cmd_match_count = 0;
-  *dash_possible = 0;
-  for (cmd = commands; cmd < commands + command_cnt; cmd++)
-    if (cmd_match_words (cmd, words, word_cnt, dash_possible) != MISMATCH)
-      cmd_match_count++;
+  command_matcher_init (&cm, s);
+  for (cmd = commands; cmd < &commands[command_cnt]; cmd++)
+    command_matcher_add (&cm, ss_cstr (cmd->name), CONST_CAST (void *, cmd));
 
-  return cmd_match_count;
+  *matchp = command_matcher_get_match (&cm);
+  missing_words = command_matcher_get_missing_words (&cm);
+
+  command_matcher_destroy (&cm);
+
+  return missing_words;
 }
 
-/* Returns the command for which the WORD_CNT words in WORDS are
-   a complete match.  Returns a null pointer if no such command
-   exists. */
-static const struct command *
-get_complete_match (char *const words[], size_t word_cnt)
+static bool
+parse_command_word (struct lexer *lexer, struct string *s, int n)
 {
-  const struct command *cmd;
+  bool need_space = ds_last (s) != EOF && ds_last (s) != '-';
 
-  for (cmd = commands; cmd < commands + command_cnt; cmd++)
-    if (cmd_match_words (cmd, words, word_cnt, NULL) == COMPLETE_MATCH)
-      return cmd;
-
-  return NULL;
-}
-
-/* Returns the command with the given exact NAME.
-   Aborts if no such command exists. */
-static const struct command *
-find_command (const char *name)
-{
-  const struct command *cmd;
-
-  for (cmd = commands; cmd < commands + command_cnt; cmd++)
-    if (!strcmp (cmd->name, name))
-      return cmd;
-  NOT_REACHED ();
-}
-
-/* Frees the WORD_CNT words in WORDS. */
-static void
-free_words (char *words[], size_t word_cnt)
-{
-  size_t idx;
-
-  for (idx = 0; idx < word_cnt; idx++)
-    free (words[idx]);
-}
-
-/* Flags an error that the command whose name is given by the
-   WORD_CNT words in WORDS is unknown. */
-static void
-unknown_command_error (struct lexer *lexer, char *const words[], size_t word_cnt)
-{
-  if (word_cnt == 0)
-    lex_error (lexer, _("expecting command name"));
-  else
+  switch (lex_next_token (lexer, n))
     {
-      struct string s;
-      size_t i;
+    case T_DASH:
+      ds_put_byte (s, '-');
+      return true;
 
-      ds_init_empty (&s);
-      for (i = 0; i < word_cnt; i++)
+    case T_ID:
+      if (need_space)
+        ds_put_byte (s, ' ');
+      ds_put_cstr (s, lex_next_tokcstr (lexer, n));
+      return true;
+
+    case T_POS_NUM:
+      if (lex_next_is_integer (lexer, n))
         {
-          if (i != 0)
-            ds_put_char (&s, ' ');
-          ds_put_cstr (&s, words[i]);
-        }
-
-      msg (SE, _("Unknown command %s."), ds_cstr (&s));
-
-      ds_destroy (&s);
-    }
-}
-
-/* Parse the command name and return a pointer to the corresponding
-   struct command if successful.
-   If not successful, return a null pointer. */
-static const struct command *
-parse_command_name (struct lexer *lexer)
-{
-  char *words[16];
-  int word_cnt;
-  int complete_word_cnt;
-  int dash_possible;
-
-  if (lex_token (lexer) == T_EXP ||
-		  lex_token (lexer) == '*' || lex_token (lexer) == '[')
-    return find_command ("COMMENT");
-
-  dash_possible = 0;
-  word_cnt = complete_word_cnt = 0;
-  while (lex_token (lexer) == T_ID || (dash_possible && lex_token (lexer) == '-'))
-    {
-      int cmd_match_cnt;
-
-      assert (word_cnt < sizeof words / sizeof *words);
-      if (lex_token (lexer) == T_ID)
-        {
-          words[word_cnt] = ds_xstrdup (lex_tokstr (lexer));
-          str_uppercase (words[word_cnt]);
-        }
-      else if (lex_token (lexer) == '-')
-        words[word_cnt] = xstrdup ("-");
-      word_cnt++;
-
-      cmd_match_cnt = count_matching_commands (words, word_cnt,
-                                               &dash_possible);
-      if (cmd_match_cnt == 0)
-        break;
-      else if (cmd_match_cnt == 1)
-        {
-          const struct command *command = get_complete_match (words, word_cnt);
-          if (command != NULL)
+          int integer = lex_next_integer (lexer, n);
+          if (integer >= 0)
             {
-              if (!(command->flags & F_KEEP_FINAL_TOKEN))
-                lex_get (lexer);
-              free_words (words, word_cnt);
-              return command;
+              if (need_space)
+                ds_put_byte (s, ' ');
+              ds_put_format (s, "%ld", lex_next_integer (lexer, n));
+              return true;
             }
         }
-      else /* cmd_match_cnt > 1 */
-        {
-          /* Do we have a complete command name so far? */
-          if (get_complete_match (words, word_cnt) != NULL)
-            complete_word_cnt = word_cnt;
-        }
-      lex_get (lexer);
-    }
+      return false;
 
-  /* If we saw a complete command name earlier, drop back to
-     it. */
-  if (complete_word_cnt)
+    default:
+      return false;
+    }
+}
+
+/* Parses the command name.  On success returns a pointer to the corresponding
+   struct command and stores the number of tokens in the command name into
+   *N_TOKENS.  On failure, returns a null pointer and stores the number of
+   tokens required to determine that no command name was present into
+   *N_TOKENS. */
+static const struct command *
+parse_command_name (struct lexer *lexer, int *n_tokens)
+{
+  const struct command *command;
+  int missing_words;
+  struct string s;
+  int word;
+
+  command = NULL;
+  missing_words = 0;
+  ds_init_empty (&s);
+  word = 0;
+  while (parse_command_word (lexer, &s, word))
     {
-      int pushback_word_cnt;
-      const struct command *command;
-
-      /* Get the command. */
-      command = get_complete_match (words, complete_word_cnt);
-      assert (command != NULL);
-
-      /* Figure out how many words we want to keep.
-         We normally want to swallow the entire command. */
-      pushback_word_cnt = complete_word_cnt + 1;
-      if (command->flags & F_KEEP_FINAL_TOKEN)
-        pushback_word_cnt--;
-
-      /* FIXME: We only support one-token pushback. */
-      assert (pushback_word_cnt + 1 >= word_cnt);
-
-      while (word_cnt > pushback_word_cnt)
-        {
-          word_cnt--;
-          if (strcmp (words[word_cnt], "-"))
-            lex_put_back_id (lexer, words[word_cnt]);
-          else
-            lex_put_back (lexer, '-');
-          free (words[word_cnt]);
-        }
-
-      free_words (words, word_cnt);
-      return command;
+      missing_words = find_best_match (ds_ss (&s), &command);
+      if (missing_words <= 0)
+        break;
+      word++;
     }
 
-  /* We didn't get a valid command name. */
-  unknown_command_error (lexer, words, word_cnt);
-  free_words (words, word_cnt);
-  return NULL;
+  if (command == NULL && missing_words > 0)
+    {
+      ds_put_cstr (&s, " .");
+      missing_words = find_best_match (ds_ss (&s), &command);
+      ds_truncate (&s, ds_length (&s) - 2);
+    }
+
+  if (command == NULL)
+    {
+      if (ds_is_empty (&s))
+        lex_error (lexer, _("expecting command name"));
+      else
+        msg (SE, _("Unknown command `%s'."), ds_cstr (&s));
+    }
+
+  ds_destroy (&s);
+
+  *n_tokens = (word + 1) + missing_words;
+  return command;
 }
 
 /* Returns true if COMMAND is allowed in STATE,
@@ -612,11 +366,11 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
         {
           /* One allowed state. */
         case S_INITIAL:
-          msg (SE, _("%s is allowed only before the active file has "
+          msg (SE, _("%s is allowed only before the active dataset has "
                      "been defined."), command->name);
           break;
         case S_DATA:
-          msg (SE, _("%s is allowed only after the active file has "
+          msg (SE, _("%s is allowed only after the active dataset has "
                      "been defined."), command->name);
           break;
         case S_INPUT_PROGRAM:
@@ -631,19 +385,19 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
         case S_INITIAL | S_DATA:
           NOT_REACHED ();
         case S_INITIAL | S_INPUT_PROGRAM:
-          msg (SE, _("%s is allowed only before the active file has "
+          msg (SE, _("%s is allowed only before the active dataset has "
                      "been defined or inside INPUT PROGRAM."), command->name);
           break;
         case S_INITIAL | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only before the active file has "
+          msg (SE, _("%s is allowed only before the active dataset has "
                      "been defined or inside FILE TYPE."), command->name);
           break;
         case S_DATA | S_INPUT_PROGRAM:
-          msg (SE, _("%s is allowed only after the active file has "
+          msg (SE, _("%s is allowed only after the active dataset has "
                      "been defined or inside INPUT PROGRAM."), command->name);
           break;
         case S_DATA | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only after the active file has "
+          msg (SE, _("%s is allowed only after the active dataset has "
                      "been defined or inside FILE TYPE."), command->name);
           break;
         case S_INPUT_PROGRAM | S_FILE_TYPE:
@@ -653,12 +407,12 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
 
           /* Three allowed states. */
         case S_DATA | S_INPUT_PROGRAM | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only after the active file has "
+          msg (SE, _("%s is allowed only after the active dataset has "
                      "been defined, inside INPUT PROGRAM, or inside "
                      "FILE TYPE."), command->name);
           break;
         case S_INITIAL | S_INPUT_PROGRAM | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only before the active file has "
+          msg (SE, _("%s is allowed only before the active dataset has "
                      "been defined, inside INPUT PROGRAM, or inside "
                      "FILE TYPE."), command->name);
           break;
@@ -676,7 +430,8 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
         }
     }
   else if (state == CMD_STATE_INPUT_PROGRAM)
-    msg (SE, _("%s is not allowed inside %s."), command->name, "INPUT PROGRAM" );
+    msg (SE, _("%s is not allowed inside %s."),
+         command->name, "INPUT PROGRAM" );
   else if (state == CMD_STATE_FILE_TYPE)
     msg (SE, _("%s is not allowed inside %s."), command->name, "FILE TYPE");
 
@@ -738,23 +493,26 @@ cmd_n_of_cases (struct lexer *lexer, struct dataset *ds)
   if (!lex_match_id (lexer, "ESTIMATED"))
     dict_set_case_limit (dataset_dict (ds), x);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Parses, performs the EXECUTE procedure. */
 int
-cmd_execute (struct lexer *lexer, struct dataset *ds)
+cmd_execute (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   bool ok = casereader_destroy (proc_open (ds));
   if (!proc_commit (ds) || !ok)
     return CMD_CASCADING_FAILURE;
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Parses, performs the ERASE command. */
 int
 cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
 {
+  char *filename;
+  int retval;
+
   if (settings_get_safer_mode ())
     {
       msg (SE, _("This command not allowed when the SAFER option is set."));
@@ -763,33 +521,29 @@ cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
 
   if (!lex_force_match_id (lexer, "FILE"))
     return CMD_FAILURE;
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
 
-  if (remove (ds_cstr (lex_tokstr (lexer))) == -1)
+  filename = utf8_to_filename (lex_tokcstr (lexer));
+  retval = remove (filename);
+  free (filename);
+
+  if (retval == -1)
     {
       msg (SW, _("Error removing `%s': %s."),
-	   ds_cstr (lex_tokstr (lexer)), strerror (errno));
+           lex_tokcstr (lexer), strerror (errno));
       return CMD_FAILURE;
     }
+  lex_get (lexer);
 
   return CMD_SUCCESS;
 }
 
 /* Parses, performs the NEW FILE command. */
 int
-cmd_new_file (struct lexer *lexer, struct dataset *ds)
+cmd_new_file (struct lexer *lexer UNUSED, struct dataset *ds)
 {
-  proc_discard_active_file (ds);
-
-  return lex_end_of_command (lexer);
-}
-
-/* Parses a comment. */
-int
-cmd_comment (struct lexer *lexer, struct dataset *ds UNUSED)
-{
-  lex_skip_comment (lexer);
+  dataset_clear (ds);
   return CMD_SUCCESS;
 }

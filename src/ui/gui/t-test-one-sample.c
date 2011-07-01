@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@
 #include "executor.h"
 
 #include "t-test-options.h"
-#include <language/syntax-string-source.h>
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -166,23 +165,10 @@ t_test_one_sample_dialog (PsppireDataWindow *de)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      {
-	gchar *syntax = generate_syntax (&tt_d);
-
-	struct getl_interface *sss = create_syntax_string_source (syntax);
-	execute_syntax (sss);
-
-	g_free (syntax);
-      }
+      g_free (execute_syntax_string (de, generate_syntax (&tt_d)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	gchar *syntax = generate_syntax (&tt_d);
-
-        paste_syntax_to_window (syntax);
-
-	g_free (syntax);
-      }
+      g_free (paste_syntax_to_window (generate_syntax (&tt_d)));
       break;
     default:
       break;

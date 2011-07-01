@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.7.6\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2010-10-17 16:50+0200\n"
+"POT-Creation-Date: 2010-10-23 10:53+0200\n"
 "PO-Revision-Date: 2010-10-17 16:51+0200\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -504,7 +504,7 @@ msgstr ""
 #: src/data/por-file-reader.c:543
 #, c-format
 msgid "Unrecognized version code `%c'."
-msgstr "Unrecognised version code `%c'."
+msgstr "Unrecognised version code ‘%c’."
 
 #: src/data/por-file-reader.c:552
 #, c-format
@@ -807,6 +807,8 @@ msgid ""
 "Unrecognized record type 7, subtype %d.  Please send a copy of this file, "
 "and the syntax which created it to %s"
 msgstr ""
+"Unrecognised record type 7, subtype %d.  Please send a copy of this file, "
+"and the syntax which created it to %s"
 
 #: src/data/sys-file-reader.c:919 tests/dissect-sysfile.c:595
 #, c-format
@@ -1284,7 +1286,7 @@ msgid "Syntax error at `%s'"
 msgstr "Syntax error at ‘%s’"
 
 #: src/language/lexer/lexer.c:457 src/language/xforms/select-if.c:60
-#: src/language/stats/autorecode.c:161 src/language/stats/npar.c:310
+#: src/language/stats/autorecode.c:161 src/language/stats/npar.c:350
 #: src/language/data-io/print-space.c:73
 msgid "expecting end of command"
 msgstr ""
@@ -1344,18 +1346,18 @@ msgstr ""
 msgid "String expected following `+'."
 msgstr "String expected following ‘+’."
 
-#: src/language/lexer/format-parser.c:88
+#: src/language/lexer/format-parser.c:79
 msgid "expecting valid format specifier"
 msgstr ""
 
-#: src/language/lexer/format-parser.c:107
-#: src/language/lexer/format-parser.c:126
+#: src/language/lexer/format-parser.c:118
+#: src/language/lexer/format-parser.c:138
 #: src/language/data-io/placement-parser.c:226
 #, c-format
 msgid "Unknown format type `%s'."
 msgstr "Unknown format type ‘%s’."
 
-#: src/language/lexer/format-parser.c:121
+#: src/language/lexer/format-parser.c:133
 msgid "expecting format type"
 msgstr ""
 
@@ -1737,7 +1739,7 @@ msgstr ""
 #: src/language/dictionary/modify-variables.c:301
 #, c-format
 msgid "Unrecognized subcommand name `%s'."
-msgstr "Unrecognised subcommand name `%s'."
+msgstr "Unrecognised subcommand name ‘%s’."
 
 #: src/language/dictionary/modify-variables.c:303
 msgid "Subcommand name expected."
@@ -2491,7 +2493,7 @@ msgid "Category"
 msgstr ""
 
 #: src/language/stats/binomial.c:256 src/language/stats/correlations.c:119
-#: src/language/stats/correlations.c:227
+#: src/language/stats/correlations.c:227 src/language/stats/friedman.c:260
 #: src/language/stats/kruskal-wallis.c:259
 #: src/language/stats/npar-summary.c:120 src/language/stats/oneway.c:692
 #: src/language/stats/reliability.c:541 src/language/stats/sign.c:72
@@ -2541,24 +2543,28 @@ msgstr ""
 msgid "Frequencies"
 msgstr ""
 
-#: src/language/stats/chisquare.c:249 src/language/stats/kruskal-wallis.c:312
-#: src/language/stats/sign.c:112 src/language/stats/wilcoxon.c:304
+#: src/language/stats/chisquare.c:249 src/language/stats/friedman.c:257
+#: src/language/stats/kruskal-wallis.c:312 src/language/stats/sign.c:112
+#: src/language/stats/wilcoxon.c:304
 msgid "Test Statistics"
 msgstr ""
 
-#: src/language/stats/chisquare.c:263 src/language/stats/kruskal-wallis.c:315
+#: src/language/stats/chisquare.c:263 src/language/stats/friedman.c:263
+#: src/language/stats/kruskal-wallis.c:315
 msgid "Chi-Square"
 msgstr ""
 
-#: src/language/stats/chisquare.c:264 src/language/stats/glm.c:308
-#: src/language/stats/kruskal-wallis.c:318 src/language/stats/oneway.c:599
-#: src/language/stats/oneway.c:1008 src/language/stats/crosstabs.q:1207
-#: src/language/stats/regression.q:284 src/language/stats/t-test.q:752
-#: src/language/stats/t-test.q:923 src/language/stats/t-test.q:1010
+#: src/language/stats/chisquare.c:264 src/language/stats/friedman.c:266
+#: src/language/stats/glm.c:308 src/language/stats/kruskal-wallis.c:318
+#: src/language/stats/oneway.c:599 src/language/stats/oneway.c:1008
+#: src/language/stats/crosstabs.q:1207 src/language/stats/regression.q:284
+#: src/language/stats/t-test.q:752 src/language/stats/t-test.q:923
+#: src/language/stats/t-test.q:1010
 msgid "df"
 msgstr ""
 
-#: src/language/stats/chisquare.c:265 src/language/stats/kruskal-wallis.c:321
+#: src/language/stats/chisquare.c:265 src/language/stats/friedman.c:269
+#: src/language/stats/kruskal-wallis.c:321
 msgid "Asymp. Sig."
 msgstr ""
 
@@ -2832,6 +2838,16 @@ msgstr ""
 msgid "Rotated Factor Matrix"
 msgstr ""
 
+#: src/language/stats/friedman.c:214 src/language/stats/kruskal-wallis.c:244
+#: src/language/stats/wilcoxon.c:225
+msgid "Ranks"
+msgstr ""
+
+#: src/language/stats/friedman.c:225 src/language/stats/kruskal-wallis.c:258
+#: src/language/stats/wilcoxon.c:239
+msgid "Mean Rank"
+msgstr ""
+
 #: src/language/stats/flip.c:98
 msgid ""
 "FLIP ignores TEMPORARY.  Temporary transformations will be made permanent."
@@ -2928,37 +2944,33 @@ msgstr ""
 msgid "Corrected Total"
 msgstr ""
 
-#: src/language/stats/kruskal-wallis.c:244 src/language/stats/wilcoxon.c:225
-msgid "Ranks"
-msgstr ""
-
-#: src/language/stats/kruskal-wallis.c:258 src/language/stats/wilcoxon.c:239
-msgid "Mean Rank"
-msgstr ""
-
-#: src/language/stats/npar.c:233 src/language/stats/npar.c:260
+#: src/language/stats/npar.c:273 src/language/stats/npar.c:300
 #, c-format
 msgid "The %s subcommand may be given only once."
 msgstr ""
 
-#: src/language/stats/npar.c:343
+#: src/language/stats/npar.c:383
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
 
-#: src/language/stats/npar.c:496
+#: src/language/stats/npar.c:537
+msgid "Expecting MEAN, MEDIAN, MODE or number"
+msgstr ""
+
+#: src/language/stats/npar.c:624
 #, c-format
 msgid ""
 "The specified value of HI (%d) is lower than the specified value of LO (%d)"
 msgstr ""
 
-#: src/language/stats/npar.c:551
+#: src/language/stats/npar.c:679
 #, c-format
 msgid ""
 "%d expected values were given, but the specified range (%d-%d) requires "
 "exactly %d values."
 msgstr ""
 
-#: src/language/stats/npar.c:690 src/language/stats/t-test.q:380
+#: src/language/stats/npar.c:818 src/language/stats/t-test.q:380
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%zu) did "
@@ -3086,7 +3098,7 @@ msgid "Does not assume equal"
 msgstr ""
 
 #: src/language/stats/reliability.c:146
-msgid "Reliabilty on a single variable is not useful."
+msgid "Reliability on a single variable is not useful."
 msgstr ""
 
 #: src/language/stats/reliability.c:506 src/language/stats/examine.q:1159
@@ -3251,6 +3263,58 @@ msgstr ""
 msgid "1 - Specificity"
 msgstr ""
 
+#: src/language/stats/runs.c:168
+#, c-format
+msgid ""
+"Multiple modes exist for varible `%s'.  Using %g as the threshold value."
+msgstr ""
+"Multiple modes exist for varible ‘%s’.  Using %g as the threshold value."
+
+#: src/language/stats/runs.c:324
+msgid "Runs Test"
+msgstr ""
+
+#: src/language/stats/runs.c:369
+msgid "Test Value"
+msgstr ""
+
+#: src/language/stats/runs.c:373
+msgid "Test Value (mode)"
+msgstr ""
+
+#: src/language/stats/runs.c:377
+msgid "Test Value (mean)"
+msgstr ""
+
+#: src/language/stats/runs.c:381
+msgid "Test Value (median)"
+msgstr ""
+
+#: src/language/stats/runs.c:386
+msgid "Cases < Test Value"
+msgstr ""
+
+#: src/language/stats/runs.c:389
+msgid "Cases >= Test Value"
+msgstr "Cases ≥ Test Value"
+
+#: src/language/stats/runs.c:392
+msgid "Total Cases"
+msgstr ""
+
+#: src/language/stats/runs.c:395
+msgid "Number of Runs"
+msgstr ""
+
+#: src/language/stats/runs.c:398 src/language/stats/wilcoxon.c:317
+msgid "Z"
+msgstr ""
+
+#: src/language/stats/runs.c:401 src/language/stats/wilcoxon.c:318
+#: src/language/stats/crosstabs.q:1209
+msgid "Asymp. Sig. (2-tailed)"
+msgstr ""
+
 #: src/language/stats/sign.c:90
 msgid "Negative Differences"
 msgstr ""
@@ -3302,14 +3366,6 @@ msgstr ""
 
 #: src/language/stats/wilcoxon.c:253
 msgid "Positive Ranks"
-msgstr ""
-
-#: src/language/stats/wilcoxon.c:317
-msgid "Z"
-msgstr ""
-
-#: src/language/stats/wilcoxon.c:318 src/language/stats/crosstabs.q:1209
-msgid "Asymp. Sig. (2-tailed)"
 msgstr ""
 
 #: src/language/data-io/combine-files.c:210
@@ -3509,8 +3565,8 @@ msgstr "Could not open ‘%s’ for reading as a data file: %s."
 #: src/language/data-io/data-reader.c:191
 msgid ""
 "Unexpected end-of-file while reading data in BEGIN DATA.  This probably "
-"indicates a missing or misformatted END DATA command.  END DATA must appear "
-"by itself on a single line with exactly one space between words."
+"indicates a missing or miss-formatted END DATA command.  END DATA must "
+"appear by itself on a single line with exactly one space between words."
 msgstr ""
 
 #: src/language/data-io/data-reader.c:216
@@ -3725,7 +3781,7 @@ msgid ""
 "variables on right side (%zu), in parenthesized group %d of RENAME "
 "subcommand."
 msgstr ""
-"Number of variables on left side of `=' (%zu) does not match number of \n"
+"Number of variables on left side of ‘=’ (%zu) does not match number of \n"
 "variables on right side (%zu), in parenthesised group %d of RENAME \n"
 "subcommand."
 
@@ -3791,8 +3847,8 @@ msgid ""
 "Unrecognized date unit `%.*s'.  Valid date units are `years', `quarters', "
 "`months', `weeks', `days', `hours', `minutes', and `seconds'."
 msgstr ""
-"Unrecognised date unit `%.*s'.  Valid date units are `years', `quarters', "
-"`months', `weeks', `days', `hours', `minutes', and `seconds'."
+"Unrecognised date unit ‘%.*s’.  Valid date units are ‘years’, ‘quarters’, "
+"‘months’, ‘weeks’, ‘days’, ‘hours’, ‘minutes’, and ‘seconds’."
 
 #: src/language/expressions/helpers.c:327
 msgid "Invalid DATESUM method.  Valid choices are `closest' and `rollover'."
@@ -4999,8 +5055,8 @@ msgstr ""
 
 #: src/language/utilities/set.q:405
 #, c-format
-msgid "%s is not a recognised encoding or locale name"
-msgstr ""
+msgid "%s is not a recognized encoding or locale name"
+msgstr "%s is not a recognised encoding or locale name"
 
 #: src/language/utilities/set.q:467
 msgid "WIDTH must be at least 40."
@@ -6054,11 +6110,11 @@ msgid "Covariance matrix"
 msgstr ""
 
 #: src/ui/gui/factor.ui:308
-msgid "Analyse"
-msgstr ""
+msgid "Analyze"
+msgstr "Analyse"
 
 #: src/ui/gui/factor.ui:332
-msgid "Unrotatated factor solution"
+msgid "Unrotated factor solution"
 msgstr ""
 
 #: src/ui/gui/factor.ui:346

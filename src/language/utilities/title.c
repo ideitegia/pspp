@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,17 +19,17 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
-#include <libpspp/start-date.h>
-#include <libpspp/version.h>
-#include <output/text-item.h>
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
+#include "libpspp/start-date.h"
+#include "libpspp/version.h"
+#include "output/text-item.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -52,23 +52,10 @@ cmd_subtitle (struct lexer *lexer, struct dataset *ds UNUSED)
 static int
 parse_title (struct lexer *lexer, enum text_item_type type)
 {
-  int c;
-
-  c = lex_look_ahead (lexer);
-  if (c == '"' || c == '\'')
-    {
-      lex_get (lexer);
-      if (!lex_force_string (lexer))
-	return CMD_FAILURE;
-      set_title (ds_cstr (lex_tokstr (lexer)), type);
-      lex_get (lexer);
-      return lex_end_of_command (lexer);
-    }
-  else
-    {
-      set_title (lex_rest_of_line (lexer), type);
-      lex_discard_line (lexer);
-    }
+  if (!lex_force_string (lexer))
+    return CMD_FAILURE;
+  set_title (lex_tokcstr (lexer), type);
+  lex_get (lexer);
   return CMD_SUCCESS;
 }
 
@@ -82,26 +69,13 @@ set_title (const char *title, enum text_item_type type)
 int
 cmd_file_label (struct lexer *lexer, struct dataset *ds)
 {
-  const char *label;
+  if (!lex_force_string (lexer))
+    return CMD_FAILURE;
 
-  label = lex_rest_of_line (lexer);
-  lex_discard_line (lexer);
-  while (isspace ((unsigned char) *label))
-    label++;
-
-  dict_set_label (dataset_dict (ds), label);
+  dict_set_label (dataset_dict (ds), lex_tokcstr (lexer));
+  lex_get (lexer);
 
   return CMD_SUCCESS;
-}
-
-/* Add entry date line to DICT's documents. */
-static void
-add_document_trailer (struct dictionary *dict)
-{
-  char buf[64];
-
-  sprintf (buf, _("   (Entered %s)"), get_start_date ());
-  dict_add_document_line (dict, buf);
 }
 
 /* Performs the DOCUMENT command. */
@@ -109,54 +83,35 @@ int
 cmd_document (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
-  struct string line = DS_EMPTY_INITIALIZER;
-  bool end_dot;
+  char *trailer;
 
-  do
+  if (!lex_force_string (lexer))
+    return CMD_FAILURE;
+
+  while (lex_is_string (lexer))
     {
-      end_dot = lex_end_dot (lexer);
-      ds_assign_string (&line, lex_entire_line_ds (lexer));
-      if (end_dot)
-        ds_put_char (&line, '.');
-      dict_add_document_line (dict, ds_cstr (&line));
-
-      lex_discard_line (lexer);
-      lex_get_line (lexer);
+      dict_add_document_line (dict, lex_tokcstr (lexer), true);
+      lex_get (lexer);
     }
-  while (!end_dot);
 
-  add_document_trailer (dict);
-  ds_destroy (&line);
+  trailer = xasprintf (_("   (Entered %s)"), get_start_date ());
+  dict_add_document_line (dict, trailer, true);
+  free (trailer);
 
   return CMD_SUCCESS;
 }
-
-/* Performs the DROP DOCUMENTS command. */
-int
-cmd_drop_documents (struct lexer *lexer, struct dataset *ds)
-{
-  dict_clear_documents (dataset_dict (ds));
-
-  return lex_end_of_command (lexer);
-}
-
 
 /* Performs the ADD DOCUMENTS command. */
 int
 cmd_add_documents (struct lexer *lexer, struct dataset *ds)
 {
-  struct dictionary *dict = dataset_dict (ds);
+  return cmd_document (lexer, ds);
+}
 
-  if ( ! lex_force_string (lexer) )
-    return CMD_FAILURE;
-
-  while ( lex_is_string (lexer))
-    {
-      dict_add_document_line (dict, ds_cstr (lex_tokstr (lexer)));
-      lex_get (lexer);
-    }
-
-  add_document_trailer (dict);
-
-  return lex_end_of_command (lexer) ;
+/* Performs the DROP DOCUMENTS command. */
+int
+cmd_drop_documents (struct lexer *lexer UNUSED, struct dataset *ds)
+{
+  dict_clear_documents (dataset_dict (ds));
+  return CMD_SUCCESS;
 }

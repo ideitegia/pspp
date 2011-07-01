@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,12 +19,11 @@
 
 #include <assert.h>
 #include <stddef.h>
-#include <libpspp/str.h>
 
-#include "public.h"
-#include "operations.h"
-
-#include <data/format.h>
+#include "data/format.h"
+#include "language/expressions/operations.h"
+#include "language/expressions/public.h"
+#include "libpspp/str.h"
 
 enum operation_flags
   {
@@ -188,10 +187,7 @@ union any_node *expr_allocate_number (struct expression *e, double);
 union any_node *expr_allocate_boolean (struct expression *e, double);
 union any_node *expr_allocate_integer (struct expression *e, int);
 union any_node *expr_allocate_pos_int (struct expression *e, int);
-union any_node *expr_allocate_string_buffer (struct expression *e,
-                                             const char *string, size_t length);
-union any_node *expr_allocate_string (struct expression *e,
-                                      struct substring);
+union any_node *expr_allocate_string (struct expression *e, struct substring);
 union any_node *expr_allocate_variable (struct expression *e,
                                         const struct variable *);
 union any_node *expr_allocate_format (struct expression *e,

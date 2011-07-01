@@ -21,13 +21,14 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 
+#include "language/lexer/include-path.h"
 #include "libpspp/argv-parser.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
-#include "libpspp/getl.h"
-#include "libpspp/version.h"
 #include "libpspp/copyleft.h"
 #include "libpspp/str.h"
+#include "libpspp/string-array.h"
+#include "libpspp/version.h"
 #include "ui/source-init-opts.h"
 
 #include "gl/configmake.h"
@@ -58,28 +59,10 @@ static const struct argv_option startup_options[N_STARTUP_OPTIONS] =
     {"no-splash", 'q', no_argument, OPT_NO_SPLASH}
   };
 
-static char *
-get_default_include_path (void)
-{
-  struct source_stream *ss;
-  struct string dst;
-  char **path;
-  size_t i;
-
-  ss = create_source_stream ();
-  path = getl_include_path (ss);
-  ds_init_empty (&dst);
-  for (i = 0; path[i] != NULL; i++)
-    ds_put_format (&dst, " %s", path[i]);
-  destroy_source_stream (ss);
-
-  return ds_steal_cstr (&dst);
-}
-
 static void
 usage (void)
 {
-  char *default_include_path = get_default_include_path ();
+  char *inc_path = string_array_join (include_path_default (), " ");
   GOptionGroup *gtk_options;
   GOptionContext *ctx;
   gchar *gtk_help_base, *gtk_help;
@@ -116,16 +99,16 @@ Language options:\n\
                             set to `compatible' to disable PSPP extensions\n\
   -i, --interactive         interpret syntax in interactive mode\n\
   -s, --safer               don't allow some unsafe operations\n\
-Default search path:%s\n\
+Default search path: %s\n\
 \n\
 Informative output:\n\
   -h, --help                display this help and exit\n\
   -V, --version             output version information and exit\n\
 \n\
 A non-option argument is interpreted as a .sav or .por file to load.\n"),
-          program_name, gtk_help, default_include_path);
+          program_name, gtk_help, inc_path);
 
-  free (default_include_path);
+  free (inc_path);
   g_free (gtk_help_base);
 
   emit_bug_reporting_address ();
@@ -202,7 +185,6 @@ quit_one_loop (gpointer data)
 
 struct initialisation_parameters
 {
-  struct source_stream *ss;
   const char *data_file;
   GtkWidget *splash_window;
 };
@@ -212,7 +194,7 @@ static gboolean
 run_inner_loop (gpointer data)
 {
   struct initialisation_parameters *ip = data;
-  initialize (ip->ss, ip->data_file);
+  initialize (ip->data_file);
 
   g_timeout_add (500, hide_splash_window, ip->splash_window);
 
@@ -240,7 +222,6 @@ main (int argc, char *argv[])
   struct initialisation_parameters init_p;
   gboolean show_splash = TRUE;
   struct argv_parser *parser;
-  struct source_stream *ss;
   const gchar *vers;
 
   set_program_name (argv[0]);
@@ -264,7 +245,6 @@ main (int argc, char *argv[])
     }
 
 
-  ss = create_source_stream ();
   /* Parse our own options. 
      This must come BEFORE gdk_init otherwise options such as 
      --help --version which ought to work without an X server, won't.
@@ -272,7 +252,7 @@ main (int argc, char *argv[])
   parser = argv_parser_create ();
   argv_parser_add_options (parser, startup_options, N_STARTUP_OPTIONS,
                            startup_option_callback, &show_splash);
-  source_init_register_argv_parser (parser, ss);
+  source_init_register_argv_parser (parser);
   if (!argv_parser_run (parser, argc, argv))
     exit (EXIT_FAILURE);
   argv_parser_destroy (parser);
@@ -283,7 +263,6 @@ main (int argc, char *argv[])
   gdk_init (&argc, &argv);
 
   init_p.splash_window = create_splash_window ();
-  init_p.ss = ss;
   init_p.data_file = optind < argc ? argv[optind] : NULL;
 
   if ( show_splash )

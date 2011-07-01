@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "output/cairo.h"
 #include "output/chart-item.h"
 #include "output/driver-provider.h"
+#include "output/message-item.h"
 #include "output/output-item.h"
 #include "output/tab.h"
 #include "output/table-item.h"
@@ -149,6 +150,7 @@ struct psppire_output_driver
     struct output_driver driver;
     PsppireOutputWindow *viewer;
     struct xr_driver *xr;
+    int font_height;
   };
 
 static struct output_driver_class psppire_output_class;
@@ -222,8 +224,10 @@ psppire_output_submit (struct output_driver *this,
     {
       const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
       struct string_map options = STRING_MAP_INITIALIZER (options);
+      struct text_item *text_item;
       PangoFontDescription *font_desc;
       char *font_name;
+      int font_width;
 
       /* Use GTK+ default font as proportional font. */
       font_name = pango_font_description_to_string (style->font_desc);
@@ -252,7 +256,15 @@ psppire_output_submit (struct output_driver *this,
       pod->xr = xr_driver_create (cr, &options);
 
       string_map_destroy (&options);
+
+      text_item = text_item_create (TEXT_ITEM_PARAGRAPH, "X");
+      r = xr_rendering_create (pod->xr, text_item_super (text_item), cr);
+      xr_rendering_measure (r, &font_width, &pod->font_height);
+      /* xr_rendering_destroy (r); */
+      text_item_unref (text_item);
     }
+  else
+    pod->viewer->y += pod->font_height / 2;
 
   r = xr_rendering_create (pod->xr, item, cr);
   if (r == NULL)
@@ -294,6 +306,13 @@ psppire_output_submit (struct output_driver *this,
       ds_clear (&title);
       if (is_text_item (item))
         ds_put_cstr (&title, text_item_get_text (to_text_item (item)));
+      else if (is_message_item (item))
+        {
+          const struct message_item *msg_item = to_message_item (item);
+          const struct msg *msg = message_item_get_msg (msg_item);
+          ds_put_format (&title, "%s: %s", _("Message"),
+                         msg_severity_to_string (msg->severity));
+        }
       else if (is_table_item (item))
         {
           const char *caption = table_item_get_caption (to_table_item (item));
@@ -472,7 +491,7 @@ on_combo_change (GtkFileChooser *chooser)
   int x = 0; 
   gchar *fn = gtk_file_chooser_get_filename (chooser);
 
-  if (combo &&  GTK_WIDGET_REALIZED (combo))
+  if (combo &&  gtk_widget_get_realized (combo))
     x = gtk_combo_box_get_active (GTK_COMBO_BOX (combo));
 
   if (fn == NULL)
@@ -508,7 +527,7 @@ on_file_chooser_change (GObject *w, GParamSpec *pspec, gpointer data)
   GtkFileChooser *chooser = data;
   const gchar *name = g_param_spec_get_name (pspec);
 
-  if ( ! GTK_WIDGET_REALIZED (chooser))
+  if ( ! gtk_widget_get_realized (GTK_WIDGET (chooser)))
     return;
 
   /* Ignore this one.  It causes recursion. */

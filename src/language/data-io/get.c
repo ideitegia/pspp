@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,22 +18,22 @@
 
 #include <stdlib.h>
 
-#include <data/any-reader.h>
-#include <data/case.h>
-#include <data/case-map.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/por-file-writer.h>
-#include <data/procedure.h>
-#include <language/command.h>
-#include <language/data-io/file-handle.h>
-#include <language/data-io/trim.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/compiler.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "data/any-reader.h"
+#include "data/case-map.h"
+#include "data/case.h"
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/por-file-writer.h"
+#include "language/command.h"
+#include "language/data-io/file-handle.h"
+#include "language/data-io/trim.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/compiler.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -75,20 +75,20 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 
   for (;;)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "FILE") || lex_is_string (lexer))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
           fh_unref (fh);
-	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
+	  fh = fh_parse (lexer, FH_REF_FILE, NULL);
 	  if (fh == NULL)
             goto error;
 	}
       else if (type == IMPORT_CMD && lex_match_id (lexer, "TYPE"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
 	  if (lex_match_id (lexer, "COMM"))
 	    type = PFM_COMM;
@@ -116,9 +116,9 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 
   case_map_prepare_dict (dict);
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
       if (!parse_dict_trim (lexer, dict))
         goto error;
     }
@@ -128,7 +128,8 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
   if (map != NULL)
     reader = case_map_create_input_translator (map, reader);
 
-  proc_set_active_file (ds, reader, dict);
+  dataset_set_dict (ds, dict);
+  dataset_set_source (ds, reader);
 
   fh_unref (fh);
   return CMD_SUCCESS;

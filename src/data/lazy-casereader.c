@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,16 +16,16 @@
 
 #include <config.h>
 
-#include <data/lazy-casereader.h>
+#include "data/lazy-casereader.h"
 
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/casereader.h>
-#include <data/casereader-provider.h>
-#include <libpspp/assertion.h>
+#include "data/case.h"
+#include "data/casereader.h"
+#include "data/casereader-provider.h"
+#include "libpspp/assertion.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* A lazy casereader's auxiliary data. */
 struct lazy_casereader

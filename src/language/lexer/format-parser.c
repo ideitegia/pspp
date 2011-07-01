@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,35 +16,27 @@
 
 #include <config.h>
 
-#include "format-parser.h"
+#include "language/lexer/format-parser.h"
 
 #include <ctype.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "lexer.h"
-#include <data/format.h>
-#include <data/variable.h>
-#include <language/lexer/format-parser.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "data/format.h"
+#include "data/variable.h"
+#include "language/lexer/format-parser.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Parses a token taking the form of a format specifier and
-   returns true only if successful.  Emits an error message on
-   failure.  Stores a null-terminated string representing the
-   format type in TYPE, and the width and number of decimal
-   places in *WIDTH and *DECIMALS.
-
-   TYPE is not checked as to whether it is really the name of a
-   format.  Both width and decimals are considered optional.  If
-   missing, *WIDTH or *DECIMALS or both will be set to 0. */
-bool
-parse_abstract_format_specifier (struct lexer *lexer, char type[FMT_TYPE_LEN_MAX + 1],
-                                 int *width, int *decimals)
+static bool
+parse_abstract_format_specifier__ (struct lexer *lexer,
+                                   char type[FMT_TYPE_LEN_MAX + 1],
+                                   int *width, int *decimals)
 {
   struct substring s;
   struct substring type_ss, width_ss, decimals_ss;
@@ -54,13 +46,13 @@ parse_abstract_format_specifier (struct lexer *lexer, char type[FMT_TYPE_LEN_MAX
     goto error;
 
   /* Extract pieces. */
-  s = ds_ss (lex_tokstr (lexer));
-  ss_get_chars (&s, ss_span (s, ss_cstr (CC_LETTERS)), &type_ss);
-  ss_get_chars (&s, ss_span (s, ss_cstr (CC_DIGITS)), &width_ss);
-  if (ss_match_char (&s, '.'))
+  s = ss_cstr (lex_tokcstr (lexer));
+  ss_get_bytes (&s, ss_span (s, ss_cstr (CC_LETTERS)), &type_ss);
+  ss_get_bytes (&s, ss_span (s, ss_cstr (CC_DIGITS)), &width_ss);
+  if (ss_match_byte (&s, '.'))
     {
       has_decimals = true;
-      ss_get_chars (&s, ss_span (s, ss_cstr (CC_DIGITS)), &decimals_ss);
+      ss_get_bytes (&s, ss_span (s, ss_cstr (CC_DIGITS)), &decimals_ss);
     }
   else
     has_decimals = false;
@@ -81,12 +73,31 @@ parse_abstract_format_specifier (struct lexer *lexer, char type[FMT_TYPE_LEN_MAX
   *width = strtol (ss_data (width_ss), NULL, 10);
   *decimals = has_decimals ? strtol (ss_data (decimals_ss), NULL, 10) : 0;
 
-  lex_get (lexer);
   return true;
 
- error:
+error:
   lex_error (lexer, _("expecting valid format specifier"));
   return false;
+}
+
+/* Parses a token taking the form of a format specifier and
+   returns true only if successful.  Emits an error message on
+   failure.  Stores a null-terminated string representing the
+   format type in TYPE, and the width and number of decimal
+   places in *WIDTH and *DECIMALS.
+
+   TYPE is not checked as to whether it is really the name of a
+   format.  Both width and decimals are considered optional.  If
+   missing, *WIDTH or *DECIMALS or both will be set to 0. */
+bool
+parse_abstract_format_specifier (struct lexer *lexer,
+                                 char type[FMT_TYPE_LEN_MAX + 1],
+                                 int *width, int *decimals)
+{
+  bool ok = parse_abstract_format_specifier__ (lexer, type, width, decimals);
+  if (ok)
+    lex_get (lexer);
+  return ok;
 }
 
 /* Parses a format specifier from the token stream and returns
@@ -99,7 +110,7 @@ parse_format_specifier (struct lexer *lexer, struct fmt_spec *format)
 {
   char type[FMT_TYPE_LEN_MAX + 1];
 
-  if (!parse_abstract_format_specifier (lexer, type, &format->w, &format->d))
+  if (!parse_abstract_format_specifier__ (lexer, type, &format->w, &format->d))
     return false;
 
   if (!fmt_from_name (type, &format->type))
@@ -108,6 +119,7 @@ parse_format_specifier (struct lexer *lexer, struct fmt_spec *format)
       return false;
     }
 
+  lex_get (lexer);
   return true;
 }
 
@@ -121,9 +133,9 @@ parse_format_specifier_name (struct lexer *lexer, enum fmt_type *type)
       lex_error (lexer, _("expecting format type"));
       return false;
     }
-  if (!fmt_from_name (ds_cstr (lex_tokstr (lexer)), type))
+  if (!fmt_from_name (lex_tokcstr (lexer), type))
     {
-      msg (SE, _("Unknown format type `%s'."), ds_cstr (lex_tokstr (lexer)));
+      msg (SE, _("Unknown format type `%s'."), lex_tokcstr (lexer));
       return false;
     }
   lex_get (lexer);

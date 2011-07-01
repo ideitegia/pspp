@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005, 2006, 2009  Free Software Foundation
+   Copyright (C) 2005, 2006, 2009, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	      continue;
 	    }
 
-	  if ( text_to_value (text, dialog->dict, dialog->pv, &v))
+	  if ( text_to_value (text, dialog->pv, &v))
 	    {
 	      nvals++;
 	      mv_add_value (&dialog->mvl, &v);
@@ -125,9 +125,9 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       const gchar *low_text = gtk_entry_get_text (GTK_ENTRY (dialog->low));
       const gchar *high_text = gtk_entry_get_text (GTK_ENTRY (dialog->high));
 
-      if ( text_to_value (low_text, dialog->dict, dialog->pv, &low_val)
+      if ( text_to_value (low_text, dialog->pv, &low_val)
 	   &&
-	   text_to_value (high_text, dialog->dict, dialog->pv, &high_val))
+	   text_to_value (high_text, dialog->pv, &high_val))
 	{
 	  if ( low_val.f > high_val.f )
 	    {
@@ -160,7 +160,6 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	{
 	  union value discrete_val;
 	  if ( !text_to_value (discrete_text, 
-			       dialog->dict,
 			       dialog->pv,
 			       &discrete_val))
 	    {
@@ -284,15 +283,11 @@ missing_val_dialog_create (GtkWindow *toplevel)
 void
 missing_val_dialog_show (struct missing_val_dialog *dialog)
 {
-  const struct fmt_spec *write_spec ;
-
   gint i;
   g_return_if_fail (dialog);
   g_return_if_fail (dialog->pv);
 
   mv_copy (&dialog->mvl, var_get_missing_values (dialog->pv));
-
-  write_spec = var_get_write_format (dialog->pv);
 
   /* Blank all entry boxes and make them insensitive */
   gtk_entry_set_text (GTK_ENTRY (dialog->low), "");
@@ -320,8 +315,8 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       mv_get_range (&dialog->mvl, &low.f, &high.f);
 
 
-      low_text = value_to_text (low, dialog->dict, *write_spec);
-      high_text = value_to_text (high, dialog->dict,  *write_spec);
+      low_text = value_to_text (low, dialog->pv);
+      high_text = value_to_text (high, dialog->pv);
 
       gtk_entry_set_text (GTK_ENTRY (dialog->low), low_text);
       gtk_entry_set_text (GTK_ENTRY (dialog->high), high_text);
@@ -331,7 +326,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       if ( mv_has_value (&dialog->mvl))
 	{
 	  gchar *text;
-	  text = value_to_text (*mv_get_value (&dialog->mvl, 0), dialog->dict, *write_spec);
+	  text = value_to_text (*mv_get_value (&dialog->mvl, 0), dialog->pv);
 	  gtk_entry_set_text (GTK_ENTRY (dialog->discrete), text);
 	  g_free (text);
 	}
@@ -352,8 +347,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 	    {
 	      gchar *text ;
 
-	      text = value_to_text (*mv_get_value (&dialog->mvl, i), dialog->dict,
-                                    *write_spec);
+	      text = value_to_text (*mv_get_value (&dialog->mvl, i), dialog->pv);
 	      gtk_entry_set_text (GTK_ENTRY (dialog->mv[i]), text);
 	      g_free (text);
 	    }

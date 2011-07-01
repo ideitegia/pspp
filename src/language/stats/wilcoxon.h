@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
 
 #include <stddef.h>
 #include <stdbool.h>
-#include <language/stats/npar.h>
-#include <data/case.h>
 
+#include "data/case.h"
+#include "language/stats/npar.h"
 
 struct rank_sum
 {

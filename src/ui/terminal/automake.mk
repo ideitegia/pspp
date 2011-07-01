@@ -3,16 +3,13 @@
 noinst_LTLIBRARIES += src/ui/terminal/libui.la
 
 src_ui_terminal_libui_la_SOURCES = \
-	src/ui/terminal/read-line.c \
-	src/ui/terminal/read-line.h \
 	src/ui/terminal/main.c \
-	src/ui/terminal/msg-ui.c \
-	src/ui/terminal/msg-ui.h \
-	src/ui/terminal/terminal.c \
-	src/ui/terminal/terminal.h \
 	src/ui/terminal/terminal-opts.c \
-	src/ui/terminal/terminal-opts.h	
-
+	src/ui/terminal/terminal-opts.h	\
+	src/ui/terminal/terminal-reader.c \
+	src/ui/terminal/terminal-reader.h \
+	src/ui/terminal/terminal.c \
+	src/ui/terminal/terminal.h
 
 src_ui_terminal_libui_la_CFLAGS = $(NCURSES_CFLAGS)
 
@@ -27,8 +24,7 @@ src_ui_terminal_pspp_LDADD = \
 	src/libpspp-core.la \
 	$(CAIRO_LIBS) \
 	$(NCURSES_LIBS) \
-	$(LIBICONV) \
-	$(LIBINTL) $(LIBREADLINE)
+	$(LIBREADLINE)
 
 
 src_ui_terminal_pspp_LDFLAGS = $(PSPP_LDFLAGS) $(PG_LDFLAGS)

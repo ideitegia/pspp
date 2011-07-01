@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis. -*-c-*-
-   Copyright (C) 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,39 +16,44 @@
 
 #include <config.h>
 
-#include <language/stats/npar.h>
-#include "npar-summary.h"
+#include "language/stats/npar.h"
 
 #include <stdlib.h>
 #include <math.h>
 
-#include "xalloc.h"
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/settings.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "language/stats/binomial.h"
+#include "language/stats/chisquare.h"
+#include "language/stats/cochran.h"
+#include "language/stats/friedman.h"
+#include "language/stats/kruskal-wallis.h"
+#include "language/stats/mann-whitney.h"
+#include "language/stats/npar-summary.h"
+#include "language/stats/runs.h"
+#include "language/stats/sign.h"
+#include "language/stats/wilcoxon.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/hmapx.h"
+#include "libpspp/message.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+#include "libpspp/taint.h"
+#include "math/moments.h"
 
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/variable.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/hmapx.h>
-#include <libpspp/hash-functions.h>
-#include <libpspp/message.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
-#include <libpspp/taint.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <language/lexer/value-parser.h>
-#include <language/stats/binomial.h>
-#include <language/stats/chisquare.h>
-#include <language/stats/kruskal-wallis.h>
-#include <language/stats/wilcoxon.h>
-#include <language/stats/sign.h>
-#include <math/moments.h>
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -75,10 +80,15 @@ struct cmd_npar_tests
     /* Count variables indicating how many
        of the subcommands have been given. */
     int chisquare;
+    int cochran;
     int binomial;
     int wilcoxon;
     int sign;
+    int runs;
+    int friedman;
+    int kendall;
     int kruskal_wallis;
+    int mann_whitney;
     int missing;
     int method;
     int statistics;
@@ -114,9 +124,14 @@ struct npar_specs
 /* Prototype for custom subcommands of NPAR TESTS. */
 static int npar_chisquare (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_binomial (struct lexer *, struct dataset *,  struct npar_specs *);
+static int npar_runs (struct lexer *, struct dataset *, struct npar_specs *);
+static int npar_friedman (struct lexer *, struct dataset *, struct npar_specs *);
+static int npar_kendall (struct lexer *, struct dataset *, struct npar_specs *);
+static int npar_cochran (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_wilcoxon (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_sign (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_kruskal_wallis (struct lexer *, struct dataset *, struct npar_specs *);
+static int npar_mann_whitney (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_method (struct lexer *, struct npar_specs *);
 
 /* Command parsing functions. */
@@ -127,10 +142,15 @@ static int
 parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests *npt,
 		  struct npar_specs *nps)
 {
-  npt->chisquare = 0;
   npt->binomial = 0;
-  npt->wilcoxon = 0;
+  npt->chisquare = 0;
+  npt->cochran = 0;
+  npt->friedman = 0;
+  npt->kruskal_wallis = 0;
+  npt->mann_whitney = 0;
+  npt->runs = 0;
   npt->sign = 0;
+  npt->wilcoxon = 0;
   npt->missing = 0;
   npt->miss = MISS_ANALYSIS;
   npt->method = 0;
@@ -138,11 +158,10 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
   memset (npt->a_statistics, 0, sizeof npt->a_statistics);
   for (;;)
     {
-      if (lex_match_hyphenated_word (lexer, "CHISQUARE"))
-        {
-          lex_match (lexer, '=');
-          npt->chisquare++;
-          switch (npar_chisquare (lexer, ds, nps))
+      if (lex_match_id (lexer, "COCHRAN"))
+	{
+          npt->cochran++;
+          switch (npar_cochran (lexer, ds, nps))
             {
             case 0:
               goto lossage;
@@ -154,10 +173,77 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
             default:
               NOT_REACHED ();
             }
-        }
-      else if (lex_match_hyphenated_word (lexer, "BINOMIAL"))
+	}
+      else if (lex_match_id (lexer, "FRIEDMAN"))
+	{
+          npt->friedman++;
+          switch (npar_friedman (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+	}
+      else if (lex_match_id (lexer, "KENDALL"))
+	{
+          npt->kendall++;
+          switch (npar_kendall (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+	}
+      else if (lex_match_id (lexer, "RUNS"))
+	{
+          npt->runs++;
+          switch (npar_runs (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+	}
+      else if (lex_match_id (lexer, "CHISQUARE"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
+          npt->chisquare++;
+          switch (npar_chisquare (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            case 3:
+              continue;
+            default:
+              NOT_REACHED ();
+            }
+        }
+      else if (lex_match_id (lexer, "BINOMIAL"))
+        {
+          lex_match (lexer, T_EQUALS);
           npt->binomial++;
           switch (npar_binomial (lexer, ds, nps))
             {
@@ -172,10 +258,10 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "K-W") ||
-	       lex_match_hyphenated_word (lexer, "KRUSKAL-WALLIS"))
+      else if (lex_match_phrase (lexer, "K-W") ||
+	       lex_match_phrase (lexer, "KRUSKAL-WALLIS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->kruskal_wallis++;
           switch (npar_kruskal_wallis (lexer, ds, nps))
             {
@@ -190,9 +276,27 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "WILCOXON"))
+      else if (lex_match_phrase (lexer, "M-W") ||
+	       lex_match_phrase (lexer, "MANN-WHITNEY"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
+          npt->mann_whitney++;
+          switch (npar_mann_whitney (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+        }
+      else if (lex_match_id (lexer, "WILCOXON"))
+        {
+          lex_match (lexer, T_EQUALS);
           npt->wilcoxon++;
           switch (npar_wilcoxon (lexer, ds, nps))
             {
@@ -207,9 +311,9 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "SIGN"))
+      else if (lex_match_id (lexer, "SIGN"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->sign++;
           switch (npar_sign (lexer, ds, nps))
             {
@@ -224,36 +328,36 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "MISSING"))
+      else if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->missing++;
           if (npt->missing > 1)
             {
               msg (SE, _("The %s subcommand may be given only once."), "MISSING");
               goto lossage;
             }
-          while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+          while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
             {
-              if (lex_match_hyphenated_word (lexer, "ANALYSIS"))
+              if (lex_match_id (lexer, "ANALYSIS"))
                 npt->miss = MISS_ANALYSIS;
-              else if (lex_match_hyphenated_word (lexer, "LISTWISE"))
+              else if (lex_match_id (lexer, "LISTWISE"))
                 npt->miss = MISS_LISTWISE;
-              else if (lex_match_hyphenated_word (lexer, "INCLUDE"))
+              else if (lex_match_id (lexer, "INCLUDE"))
                 nps->filter = MV_SYSTEM;
-              else if (lex_match_hyphenated_word (lexer, "EXCLUDE"))
+              else if (lex_match_id (lexer, "EXCLUDE"))
                 nps->filter = MV_ANY;
               else
                 {
                   lex_error (lexer, NULL);
                   goto lossage;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "METHOD"))
+      else if (lex_match_id (lexer, "METHOD"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->method++;
           if (npt->method > 1)
             {
@@ -273,15 +377,15 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
               NOT_REACHED ();
             }
         }
-      else if (lex_match_hyphenated_word (lexer, "STATISTICS"))
+      else if (lex_match_id (lexer, "STATISTICS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           npt->statistics++;
-          while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+          while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
             {
-              if (lex_match_hyphenated_word (lexer, "DESCRIPTIVES"))
+              if (lex_match_id (lexer, "DESCRIPTIVES"))
                 npt->a_statistics[NPAR_ST_DESCRIPTIVES] = 1;
-              else if (lex_match_hyphenated_word (lexer, "QUARTILES"))
+              else if (lex_match_id (lexer, "QUARTILES"))
                 npt->a_statistics[NPAR_ST_QUARTILES] = 1;
               else if (lex_match (lexer, T_ALL))
                 npt->a_statistics[NPAR_ST_ALL] = 1;
@@ -290,22 +394,22 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
                   lex_error (lexer, NULL);
                   goto lossage;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
         }
       else if ( settings_get_syntax () != COMPATIBLE && lex_match_id (lexer, "ALGORITHM"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "COMPATIBLE"))
             settings_set_cmd_algorithm (COMPATIBLE);
           else if (lex_match_id (lexer, "ENHANCED"))
             settings_set_cmd_algorithm (ENHANCED);
           }
-        if (!lex_match (lexer, '/'))
+        if (!lex_match (lexer, T_SLASH))
           break;
       }
 
-    if (lex_token (lexer) != '.')
+    if (lex_token (lexer) != T_ENDCMD)
       {
         lex_error (lexer, _("expecting end of command"));
         goto lossage;
@@ -408,8 +512,8 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
       }
   }
 
-  qsort (npar_specs.vv, npar_specs.n_vars, sizeof (*npar_specs.vv), 
-	 compare_var_ptrs_by_name);
+  sort (npar_specs.vv, npar_specs.n_vars, sizeof (*npar_specs.vv), 
+	 compare_var_ptrs_by_name, NULL);
 
   if ( cmd.statistics )
     {
@@ -462,12 +566,163 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
 }
 
 static int
+npar_runs (struct lexer *lexer, struct dataset *ds,
+	   struct npar_specs *specs)
+{
+  struct runs_test *rt = pool_alloc (specs->pool, sizeof (*rt));
+  struct one_sample_test *tp = &rt->parent;
+  struct npar_test *nt = &tp->parent;
+
+  nt->execute = runs_execute;
+  nt->insert_variables = one_sample_insert_variables;
+
+  if ( lex_force_match (lexer, T_LPAREN) )
+    {
+      if ( lex_match_id (lexer, "MEAN"))
+	{
+	  rt->cp_mode = CP_MEAN;
+	}
+      else if (lex_match_id (lexer, "MEDIAN"))
+	{
+	  rt->cp_mode = CP_MEDIAN;
+	}
+      else if (lex_match_id (lexer, "MODE"))
+	{
+	  rt->cp_mode = CP_MODE;
+	}
+      else if (lex_is_number (lexer))
+	{
+	  rt->cutpoint = lex_number (lexer);
+	  rt->cp_mode = CP_CUSTOM;
+	  lex_get (lexer);
+	}
+      else
+	{
+	  lex_error (lexer, _("Expecting MEAN, MEDIAN, MODE or number"));
+	  return 0;
+	}
+		  
+      lex_force_match (lexer, T_RPAREN);
+      lex_force_match (lexer, T_EQUALS);
+      if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
+				  &tp->vars, &tp->n_vars,
+				  PV_NO_SCRATCH | PV_NO_DUPLICATE | PV_NUMERIC))
+	{
+	  return 2;
+	}
+    }
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
+
+static int
+npar_friedman (struct lexer *lexer, struct dataset *ds,
+	       struct npar_specs *specs)
+{
+  struct friedman_test *ft = pool_alloc (specs->pool, sizeof (*ft)); 
+  struct one_sample_test *ost = &ft->parent;
+  struct npar_test *nt = &ost->parent;
+
+  ft->kendalls_w = false;
+  nt->execute = friedman_execute;
+  nt->insert_variables = one_sample_insert_variables;
+
+  lex_match (lexer, T_EQUALS);
+
+  if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
+				   &ost->vars, &ost->n_vars,
+				   PV_NO_SCRATCH | PV_NO_DUPLICATE | PV_NUMERIC))
+    {
+      return 2;
+    }
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
+
+static int
+npar_kendall (struct lexer *lexer, struct dataset *ds,
+	       struct npar_specs *specs)
+{
+  struct friedman_test *kt = pool_alloc (specs->pool, sizeof (*kt)); 
+  struct one_sample_test *ost = &kt->parent;
+  struct npar_test *nt = &ost->parent;
+
+  kt->kendalls_w = true;
+  nt->execute = friedman_execute;
+  nt->insert_variables = one_sample_insert_variables;
+
+  lex_match (lexer, T_EQUALS);
+
+  if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
+				   &ost->vars, &ost->n_vars,
+				   PV_NO_SCRATCH | PV_NO_DUPLICATE | PV_NUMERIC))
+    {
+      return 2;
+    }
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
+
+
+static int
+npar_cochran (struct lexer *lexer, struct dataset *ds,
+	       struct npar_specs *specs)
+{
+  struct one_sample_test *ft = pool_alloc (specs->pool, sizeof (*ft)); 
+  struct npar_test *nt = &ft->parent;
+
+  nt->execute = cochran_execute;
+  nt->insert_variables = one_sample_insert_variables;
+
+  lex_match (lexer, T_EQUALS);
+
+  if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
+				   &ft->vars, &ft->n_vars,
+				   PV_NO_SCRATCH | PV_NO_DUPLICATE | PV_NUMERIC))
+    {
+      return 2;
+    }
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
+
+
+static int
 npar_chisquare (struct lexer *lexer, struct dataset *ds,
 		struct npar_specs *specs)
 {
   struct chisquare_test *cstp = pool_alloc (specs->pool, sizeof (*cstp));
   struct one_sample_test *tp = &cstp->parent;
   struct npar_test *nt = &tp->parent;
+  int retval = 1;
 
   nt->execute = chisquare_execute;
   nt->insert_variables = one_sample_insert_variables;
@@ -481,13 +736,13 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 
   cstp->ranged = false;
 
-  if ( lex_match (lexer, '('))
+  if ( lex_match (lexer, T_LPAREN))
     {
       cstp->ranged = true;
       if ( ! lex_force_num (lexer)) return 0;
       cstp->lo = lex_integer (lexer);
       lex_get (lexer);
-      lex_force_match (lexer, ',');
+      lex_force_match (lexer, T_COMMA);
       if (! lex_force_num (lexer) ) return 0;
       cstp->hi = lex_integer (lexer);
       if ( cstp->lo >= cstp->hi )
@@ -499,49 +754,44 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 	  return 0;
 	}
       lex_get (lexer);
-      if (! lex_force_match (lexer, ')')) return 0;
+      if (! lex_force_match (lexer, T_RPAREN)) return 0;
     }
 
   cstp->n_expected = 0;
   cstp->expected = NULL;
-  if ( lex_match (lexer, '/') )
+  if (lex_match_phrase (lexer, "/EXPECTED"))
     {
-      if ( lex_match_id (lexer, "EXPECTED") )
-	{
-	  lex_force_match (lexer, '=');
-	  if ( ! lex_match_id (lexer, "EQUAL") )
-	    {
-	      double f;
-	      int n;
-	      while ( lex_is_number (lexer) )
-		{
-		  int i;
-		  n = 1;
-		  f = lex_number (lexer);
-		  lex_get (lexer);
-		  if ( lex_match (lexer, '*'))
-		    {
-		      n = f;
-		      f = lex_number (lexer);
-		      lex_get (lexer);
-		    }
-		  lex_match (lexer, ',');
+      lex_force_match (lexer, T_EQUALS);
+      if ( ! lex_match_id (lexer, "EQUAL") )
+        {
+          double f;
+          int n;
+          while ( lex_is_number (lexer) )
+            {
+              int i;
+              n = 1;
+              f = lex_number (lexer);
+              lex_get (lexer);
+              if ( lex_match (lexer, T_ASTERISK))
+                {
+                  n = f;
+                  f = lex_number (lexer);
+                  lex_get (lexer);
+                }
+              lex_match (lexer, T_COMMA);
 
-		  cstp->n_expected += n;
-		  cstp->expected = pool_realloc (specs->pool,
-						 cstp->expected,
-						 sizeof (double) *
-						 cstp->n_expected);
-		  for ( i = cstp->n_expected - n ;
-			i < cstp->n_expected;
-			++i )
-		    cstp->expected[i] = f;
+              cstp->n_expected += n;
+              cstp->expected = pool_realloc (specs->pool,
+                                             cstp->expected,
+                                             sizeof (double) *
+                                             cstp->n_expected);
+              for ( i = cstp->n_expected - n ;
+                    i < cstp->n_expected;
+                    ++i )
+                cstp->expected[i] = f;
 
-		}
-	    }
-	}
-      else
-	lex_put_back (lexer, '/');
+            }
+        }
     }
 
   if ( cstp->ranged && cstp->n_expected > 0 &&
@@ -562,7 +812,7 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
 
   specs->test[specs->n_tests - 1] = nt;
 
-  return 1;
+  return retval;
 }
 
 
@@ -573,6 +823,7 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
   struct binomial_test *btp = pool_alloc (specs->pool, sizeof (*btp));
   struct one_sample_test *tp = &btp->parent;
   struct npar_test *nt = &tp->parent;
+  bool equals = false;
 
   nt->execute = binomial_execute;
   nt->insert_variables = one_sample_insert_variables;
@@ -581,33 +832,33 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
 
   btp->p = 0.5;
 
-  if ( lex_match (lexer, '(') )
+  if ( lex_match (lexer, T_LPAREN) )
     {
+      equals = false;
       if ( lex_force_num (lexer) )
 	{
 	  btp->p = lex_number (lexer);
 	  lex_get (lexer);
-	  lex_force_match (lexer, ')');
+	  lex_force_match (lexer, T_RPAREN);
 	}
       else
 	return 0;
     }
   else
-    /* Kludge: q2c swallows the '=' so put it back here  */
-     lex_put_back (lexer, '=');
+    equals = true;
 
-  if (lex_match (lexer, '=') )
+  if (equals || lex_match (lexer, T_EQUALS) )
     {
       if (parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
 				      &tp->vars, &tp->n_vars,
 				      PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
 	{
-	  if (lex_match (lexer, '('))
+	  if (lex_match (lexer, T_LPAREN))
 	    {
 	      lex_force_num (lexer);
 	      btp->category1 = lex_number (lexer);
       	      lex_get (lexer);
-	      if ( lex_match (lexer, ','))
+	      if ( lex_match (lexer, T_COMMA))
 		{
 		  if ( ! lex_force_num (lexer) ) return 2;
 		  btp->category2 = lex_number (lexer);
@@ -618,7 +869,7 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
       		  btp->cutpoint = btp->category1;
 		}
 
-	      lex_force_match (lexer, ')');
+	      lex_force_match (lexer, T_RPAREN);
 	    }
 	}
       else
@@ -677,8 +928,8 @@ parse_two_sample_related_test (struct lexer *lexer,
 					PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
 	return false;
 
-      paired = (lex_match (lexer, '(') &&
-		lex_match_id (lexer, "PAIRED") && lex_match (lexer, ')'));
+      paired = (lex_match (lexer, T_LPAREN) &&
+		lex_match_id (lexer, "PAIRED") && lex_match (lexer, T_RPAREN));
     }
 
 
@@ -772,27 +1023,26 @@ parse_n_sample_related_test (struct lexer *lexer,
 
   nst->indep_var = parse_variable_const (lexer, dict);
 
-  if ( ! lex_force_match (lexer, '('))
+  if ( ! lex_force_match (lexer, T_LPAREN))
     return false;
 
   value_init (&nst->val1, var_get_width (nst->indep_var));
-  if ( ! parse_value (lexer, &nst->val1, var_get_width (nst->indep_var)))
+  if ( ! parse_value (lexer, &nst->val1, nst->indep_var))
     {
       value_destroy (&nst->val1, var_get_width (nst->indep_var));
       return false;
     }
 
-  if ( ! lex_force_match (lexer, ','))
-    return false;
+  lex_match (lexer, T_COMMA);
 
   value_init (&nst->val2, var_get_width (nst->indep_var));
-  if ( ! parse_value (lexer, &nst->val2, var_get_width (nst->indep_var)))
+  if ( ! parse_value (lexer, &nst->val2, nst->indep_var))
     {
       value_destroy (&nst->val2, var_get_width (nst->indep_var));
       return false;
     }
 
-  if ( ! lex_force_match (lexer, ')'))
+  if ( ! lex_force_match (lexer, T_RPAREN))
     return false;
 
   return true;
@@ -821,6 +1071,32 @@ npar_wilcoxon (struct lexer *lexer,
 
   return 1;
 }
+
+
+static int
+npar_mann_whitney (struct lexer *lexer,
+	       struct dataset *ds,
+	       struct npar_specs *specs )
+{
+  struct n_sample_test *tp = pool_alloc (specs->pool, sizeof (*tp));
+  struct npar_test *nt = &tp->parent;
+
+  nt->insert_variables = n_sample_insert_variables;
+  nt->execute = mann_whitney_execute;
+
+  if (!parse_n_sample_related_test (lexer, dataset_dict (ds),
+				    tp, specs->pool) )
+    return 0;
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
+
 
 static int
 npar_sign (struct lexer *lexer, struct dataset *ds,
@@ -938,14 +1214,14 @@ npar_method (struct lexer *lexer,  struct npar_specs *specs)
 	{
 	  specs->timer = 5.0;
 
-	  if ( lex_match (lexer, '('))
+	  if ( lex_match (lexer, T_LPAREN))
 	    {
 	      if ( lex_force_num (lexer) )
 		{
 		  specs->timer = lex_number (lexer);
 		  lex_get (lexer);
 		}
-	      lex_force_match (lexer, ')');
+	      lex_force_match (lexer, T_RPAREN);
 	    }
 	}
     }

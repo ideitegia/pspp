@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,29 +22,30 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/casereader.h>
-#include <data/casereader-provider.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/short-names.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/array.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
-#include <data/data-in.h>
-#include <data/data-out.h>
-#include "intprops.h"
-#include "minmax.h"
-#include "xalloc.h"
+#include "data/case.h"
+#include "data/casereader.h"
+#include "data/casereader-provider.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/settings.h"
+#include "data/short-names.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+#include "data/data-in.h"
+#include "data/data-out.h"
+
+#include "gl/intprops.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -109,23 +110,23 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   flip->error = false;
   flip->dict = dict;
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   if (lex_match_id (lexer, "VARIABLES"))
     {
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
       if (!parse_variables_const (lexer, dict, &vars, &flip->n_vars,
                                   PV_NO_DUPLICATE))
 	goto error;
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
     }
   else
     dict_get_vars (dict, &vars, &flip->n_vars, DC_SYSTEM);
   pool_register (flip->pool, free, vars);
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   if (lex_match_id (lexer, "NEWNAMES"))
     {
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
       flip->new_names_var = parse_variable (lexer, dict);
       if (!flip->new_names_var)
         goto error;
@@ -157,7 +158,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
     var_names_add (flip->pool, &flip->old_names,
                    pool_strdup (flip->pool, var_get_name (vars[i])));
 
-  /* Read the active file into a flip_sink. */
+  /* Read the active dataset into a flip_sink. */
   proc_discard_output (ds);
 
   input = proc_open (ds);
@@ -197,7 +198,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   /* Flip the data we read. */
   if (!ok || !flip_file (flip))
     {
-      proc_discard_active_file (ds);
+      dataset_clear (ds);
       goto error;
     }
 
@@ -209,7 +210,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
       make_new_var (dict, flip->new_names.names[i]);
     else
       {
-        char s[VAR_NAME_LEN + 1];
+        char s[3 + INT_STRLEN_BOUND (i) + 1];
         sprintf (s, "VAR%03zu", i);
         dict_create_var_assert (dict, s, 0);
       }
@@ -218,8 +219,8 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   reader = casereader_create_sequential (NULL, dict_get_proto (dict),
                                          flip->n_vars,
                                          &flip_casereader_class, flip);
-  proc_set_active_file_data (ds, reader);
-  return lex_end_of_command (lexer);
+  dataset_set_source (ds, reader);
+  return CMD_SUCCESS;
 
  error:
   destroy_flip_pgm (flip);
@@ -248,7 +249,7 @@ make_new_var (struct dictionary *dict, const char *name_)
     *--cp = '\0';
 
   /* Fix invalid characters. */
-  for (cp = name; *cp && cp < name + VAR_NAME_LEN; cp++)
+  for (cp = name; *cp && cp < name + ID_MAX_LEN; cp++)
     if (cp == name)
       {
         if (!lex_is_id1 (*cp) || *cp == '$')
@@ -269,8 +270,8 @@ make_new_var (struct dictionary *dict, const char *name_)
       int i;
       for (i = 1; ; i++)
         {
-          char n[VAR_NAME_LEN + 1];
-          int ofs = MIN (VAR_NAME_LEN - 1 - intlog10 (i), len);
+          char n[ID_MAX_LEN + 1];
+          int ofs = MIN (ID_MAX_LEN - 1 - intlog10 (i), len);
           strncpy (n, name, ofs);
           sprintf (&n[ofs], "%d", i);
 

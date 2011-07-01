@@ -19,14 +19,16 @@
 #define UI_TERMINAL_TERMINAL_OPTS_H 1
 
 #include <stdbool.h>
-#include "libpspp/getl.h"
+#include "language/lexer/lexer.h"
 
 struct argv_parser;
+struct lexer;
 struct terminal_opts;
 
 struct terminal_opts *terminal_opts_init (struct argv_parser *,
-                                          enum syntax_mode *,
-                                          bool *process_statrc);
+                                          enum lex_syntax_mode *,
+                                          bool *process_statrc,
+                                          char **syntax_encoding);
 void terminal_opts_done (struct terminal_opts *, int argc, char *argv[]);
 
 #endif /* ui/terminal/terminal-opts.h */

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,34 +33,34 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/data-out.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/dictionary/split-file.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/array.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash-functions.h>
-#include <libpspp/hmap.h>
-#include <libpspp/hmapx.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
-#include <output/tab.h>
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/data-out.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/dictionary/split-file.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/hmap.h"
+#include "libpspp/hmapx.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+#include "output/tab.h"
 
-#include "minmax.h"
-#include "xalloc.h"
-#include "xsize.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
+#include "gl/xsize.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -198,6 +198,8 @@ struct crosstabs_proc
 
     /* STATISTICS. */
     unsigned int statistics;    /* Bit k is 1 if statistic k is requested. */
+
+    bool descending;            /* True if descending sort order is requested. */
   };
 
 static bool should_tabulate_case (const struct pivot_table *,
@@ -229,6 +231,7 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
   proc.n_variables = 0;
   proc.pivots = NULL;
   proc.n_pivots = 0;
+  proc.descending = false;
   proc.weight_format = wv ? *var_get_print_format (wv) : F_8_0;
 
   if (!parse_crosstabs (lexer, ds, &cmd, &proc))
@@ -238,6 +241,9 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
     }
 
   proc.mode = proc.n_variables ? INTEGER : GENERAL;
+
+
+  proc.descending = cmd.val == CRS_DVALUE;
 
   /* CELLS. */
   if (!cmd.sbc_cells)
@@ -375,10 +381,10 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds,
   /* Ensure that this is a TABLES subcommand. */
   if (!lex_match_id (lexer, "TABLES")
       && (lex_token (lexer) != T_ID ||
-	  dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
+	  dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     return 2;
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (proc->variables != NULL)
     var_set = const_var_set_create_from_array (proc->variables,
@@ -467,7 +473,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
       return 0;
     }
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   for (;;)
     {
@@ -482,7 +488,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
                                    | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
 	return 0;
 
-      if (!lex_force_match (lexer, '('))
+      if (!lex_force_match (lexer, T_LPAREN))
 	  goto lossage;
 
       if (!lex_force_int (lexer))
@@ -490,7 +496,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
       min = lex_integer (lexer);
       lex_get (lexer);
 
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
 
       if (!lex_force_int (lexer))
 	goto lossage;
@@ -503,7 +509,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
 	}
       lex_get (lexer);
 
-      if (!lex_force_match (lexer, ')'))
+      if (!lex_force_match (lexer, T_RPAREN))
         goto lossage;
 
       for (i = orig_nv; i < proc->n_variables; i++)
@@ -515,7 +521,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
           var_attach_aux (proc->variables[i], vr, var_dtor_free);
 	}
 
-      if (lex_token (lexer) == '/')
+      if (lex_token (lexer) == T_SLASH)
 	break;
     }
 
@@ -640,8 +646,11 @@ static int compare_table_entry_vars_3way (const struct table_entry *a,
                                           int idx0, int idx1);
 static int compare_table_entry_3way (const void *ap_, const void *bp_,
                                      const void *pt_);
+static int compare_table_entry_3way_inv (const void *ap_, const void *bp_,
+                                     const void *pt_);
+
 static void enum_var_values (const struct pivot_table *, int var_idx,
-                             union value **valuesp, int *n_values);
+                             union value **valuesp, int *n_values, bool descending);
 static void output_pivot_table (struct crosstabs_proc *,
                                 struct pivot_table *);
 static void make_pivot_table_subset (struct pivot_table *pt,
@@ -669,7 +678,8 @@ postcalc (struct crosstabs_proc *proc)
       hmap_destroy (&pt->data);
 
       sort (pt->entries, pt->n_entries, sizeof *pt->entries,
-            compare_table_entry_3way, pt);
+            proc->descending ? compare_table_entry_3way_inv : compare_table_entry_3way,
+	    pt);
     }
 
   make_summary_table (proc);
@@ -777,6 +787,13 @@ compare_table_entry_3way (const void *ap_, const void *bp_, const void *pt_)
     return cmp;
 
   return compare_table_entry_var_3way (a, b, pt, COL_VAR);
+}
+
+/* Inverted version of compare_table_entry_3way */
+static int
+compare_table_entry_3way_inv (const void *ap_, const void *bp_, const void *pt_)
+{
+  return -compare_table_entry_3way (ap_, bp_, pt_);
 }
 
 static int
@@ -891,9 +908,7 @@ static void table_value_missing (struct crosstabs_proc *proc,
 static void delete_missing (struct pivot_table *);
 static void build_matrix (struct pivot_table *);
 
-/* Output pivot table beginning at PB and continuing until PE,
-   exclusive.  For efficiency, *MATP is a pointer to a matrix that can
-   hold *MAXROWS entries. */
+/* Output pivot table PT in the context of PROC. */
 static void
 output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
 {
@@ -905,7 +920,25 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   struct tab_table *direct = NULL; /* Directional measures table. */
   size_t row0, row1;
 
-  enum_var_values (pt, COL_VAR, &pt->cols, &pt->n_cols);
+  enum_var_values (pt, COL_VAR, &pt->cols, &pt->n_cols, proc->descending);
+
+  if (pt->n_cols == 0)
+    {
+      struct string vars;
+      int i;
+
+      ds_init_cstr (&vars, var_get_name (pt->vars[0]));
+      for (i = 1; i < pt->n_vars; i++)
+        ds_put_format (&vars, " * %s", var_get_name (pt->vars[i]));
+
+      /* TRANSLATORS: The %s here describes a crosstabulation.  It takes the
+         form "var1 * var2 * var3 * ...".  */
+      msg (SW, _("Crosstabulation %s contained no non-missing cases."),
+           ds_cstr (&vars));
+
+      ds_destroy (&vars);
+      return;
+    }
 
   if (proc->cells)
     table = create_crosstab_table (proc, pt);
@@ -931,7 +964,7 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
       make_pivot_table_subset (pt, row0, row1, &x);
 
       /* Find all the row variable values. */
-      enum_var_values (&x, ROW_VAR, &x.rows, &x.n_rows);
+      enum_var_values (&x, ROW_VAR, &x.rows, &x.n_rows, proc->descending);
 
       if (size_overflow_p (xtimes (xtimes (x.n_rows, x.n_cols),
                                    sizeof (double))))
@@ -1156,20 +1189,15 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   for (i = 0; i < pt->n_consts; i++)
     {
       const struct variable *var = pt->const_vars[i];
-      size_t ofs;
-      char *s = NULL;
+      char *s;
 
       ds_put_format (&title, ", %s=", var_get_name (var));
 
-      /* Insert the formatted value of the variable, then trim
-         leading spaces in what was just inserted. */
-      ofs = ds_length (&title);
+      /* Insert the formatted value of VAR without any leading spaces. */
       s = data_out (&pt->const_values[i], var_get_encoding (var),
                     var_get_print_format (var));
-      ds_put_cstr (&title, s);
+      ds_put_cstr (&title, s + strspn (s, " "));
       free (s);
-      ds_remove (&title, ofs, ss_cspan (ds_substr (&title, ofs, SIZE_MAX),
-                                        ss_cstr (" ")));
     }
 
   ds_put_cstr (&title, " [");
@@ -1377,6 +1405,14 @@ compare_value_3way (const void *a_, const void *b_, const void *width_)
   return value_compare_3way (a, b, *width);
 }
 
+/* Inverted version of the above */
+static int
+compare_value_3way_inv (const void *a_, const void *b_, const void *width_)
+{
+  return -compare_value_3way (a_, b_, width_);
+}
+
+
 /* Given an array of ENTRY_CNT table_entry structures starting at
    ENTRIES, creates a sorted list of the values that the variable
    with index VAR_IDX takes on.  The values are returned as a
@@ -1385,7 +1421,7 @@ compare_value_3way (const void *a_, const void *b_, const void *width_)
    */
 static void
 enum_var_values (const struct pivot_table *pt, int var_idx,
-                 union value **valuesp, int *n_values)
+                 union value **valuesp, int *n_values, bool descending)
 {
   const struct variable *var = pt->vars[var_idx];
   struct var_range *range = get_var_range (var);
@@ -1429,7 +1465,9 @@ enum_var_values (const struct pivot_table *pt, int var_idx,
         values[i++] = *iter;
       hmapx_destroy (&set);
 
-      sort (values, *n_values, sizeof *values, compare_value_3way, &width);
+      sort (values, *n_values, sizeof *values,
+	    descending ? compare_value_3way_inv : compare_value_3way,
+	    &width);
     }
 }
 
@@ -1454,7 +1492,7 @@ table_value_missing (struct crosstabs_proc *proc,
           free (s);
         }
       else
-        tab_value (table, c, r, opt, v, proc->dict, print);
+        tab_value (table, c, r, opt, v, var, print);
     }
 }
 
@@ -1713,7 +1751,7 @@ display_chisq (struct pivot_table *pt, struct tab_table *chisq,
 
   calc_chisq (pt, chisq_v, df, &fisher1, &fisher2);
 
-  tab_offset (chisq, pt->n_vars - 2, -1);
+  tab_offset (chisq, pt->n_consts + pt->n_vars - 2, -1);
 
   for (i = 0; i < N_CHISQ; i++)
     {
@@ -1790,7 +1828,7 @@ display_symmetric (struct crosstabs_proc *proc, struct pivot_table *pt,
                        somers_d_v, somers_d_ase, somers_d_t))
     return;
 
-  tab_offset (sym, pt->n_vars - 2, -1);
+  tab_offset (sym, pt->n_consts + pt->n_vars - 2, -1);
 
   for (i = 0; i < N_SYMMETRIC; i++)
     {
@@ -1835,7 +1873,7 @@ display_risk (struct pivot_table *pt, struct tab_table *risk)
   if (!calc_risk (pt, risk_v, upper, lower, c))
     return;
 
-  tab_offset (risk, pt->n_vars - 2, -1);
+  tab_offset (risk, pt->n_consts + pt->n_vars - 2, -1);
 
   for (i = 0; i < 3; i++)
     {
@@ -1960,7 +1998,7 @@ display_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
   if (!calc_directional (proc, pt, direct_v, direct_ase, direct_t))
     return;
 
-  tab_offset (direct, pt->n_vars - 2, -1);
+  tab_offset (direct, pt->n_consts + pt->n_vars - 2, -1);
 
   for (i = 0; i < N_DIRECTIONAL; i++)
     {

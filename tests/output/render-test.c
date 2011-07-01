@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
 #include "libpspp/string-map.h"
+#include "output/ascii.h"
 #include "output/driver.h"
 #include "output/tab.h"
 #include "output/table-item.h"
@@ -37,14 +38,26 @@
 /* --transpose: Transpose the table before outputting? */
 static int transpose;
 
+/* --emphasis: ASCII driver emphasis option. */
+static char *emphasis;
+
+/* --box: ASCII driver box option. */
+static char *box;
+
+/* --draw-mode: special ASCII driver test mode. */
+static int draw_mode;
+
+/* ASCII driver, for ASCII driver test mode. */
+static struct output_driver *ascii_driver;
+
 static const char *parse_options (int argc, char **argv);
 static void usage (void) NO_RETURN;
 static struct table *read_table (FILE *);
+static void draw (FILE *);
 
 int
 main (int argc, char **argv)
 {
-  struct table *table;
   const char *input_file_name;
   FILE *input;
 
@@ -59,14 +72,24 @@ main (int argc, char **argv)
       if (input == NULL)
         error (1, errno, "%s: open failed", input_file_name);
     }
-  table = read_table (input);
+
+  if (!draw_mode)
+    {
+      struct table *table;
+
+      table = read_table (input);
+
+      if (transpose)
+        table = table_transpose (table);
+
+      table_item_submit (table_item_create (table, NULL));
+    }
+  else
+    draw (input);
+
   if (input != stdin)
     fclose (input);
 
-  if (transpose)
-    table = table_transpose (table);
-
-  table_item_submit (table_item_create (table, NULL));
   output_close ();
 
   return 0;
@@ -85,14 +108,21 @@ configure_drivers (int width, int length)
                             xasprintf ("%d", width));
   string_map_insert_nocopy (&options, xstrdup ("length"),
                             xasprintf ("%d", length));
+  if (emphasis != NULL)
+    string_map_insert (&options, "emphasis", emphasis);
+  if (box != NULL)
+    string_map_insert (&options, "box", box);
 
   /* Render to stdout. */
   string_map_clone (&tmp, &options);
-  driver = output_driver_create (&tmp);
+  ascii_driver = driver = output_driver_create (&tmp);
   if (driver == NULL)
     exit (EXIT_FAILURE);
   output_driver_register (driver);
   string_map_destroy (&tmp);
+
+  if (draw_mode)
+    return;
 
   /* Render to render.txt. */
   string_map_replace (&options, "output-file", "render.txt");
@@ -116,6 +146,12 @@ configure_drivers (int width, int length)
   output_driver_register (driver);
 #endif
 
+  string_map_insert (&options, "output-file", "render.odt");
+  driver = output_driver_create (&options);
+  if (driver == NULL)
+    exit (EXIT_FAILURE);
+  output_driver_register (driver);
+
   string_map_destroy (&options);
 }
 
@@ -130,6 +166,8 @@ parse_options (int argc, char **argv)
       enum {
         OPT_WIDTH = UCHAR_MAX + 1,
         OPT_LENGTH,
+        OPT_EMPHASIS,
+        OPT_BOX,
         OPT_HELP
       };
       static const struct option options[] =
@@ -137,6 +175,9 @@ parse_options (int argc, char **argv)
           {"width", required_argument, NULL, OPT_WIDTH},
           {"length", required_argument, NULL, OPT_LENGTH},
           {"transpose", no_argument, &transpose, 1},
+          {"emphasis", required_argument, NULL, OPT_EMPHASIS},
+          {"box", required_argument, NULL, OPT_BOX},
+          {"draw-mode", no_argument, &draw_mode, 1},
           {"help", no_argument, NULL, OPT_HELP},
           {NULL, 0, NULL, 0},
         };
@@ -153,6 +194,14 @@ parse_options (int argc, char **argv)
 
         case OPT_LENGTH:
           length = atoi (optarg);
+          break;
+
+        case OPT_EMPHASIS:
+          emphasis = optarg;
+          break;
+
+        case OPT_BOX:
+          box = optarg;
           break;
 
         case OPT_HELP:
@@ -185,7 +234,8 @@ usage (void)
   printf ("%s, to test rendering of PSPP tables\n"
           "usage: %s [OPTIONS] INPUT\n"
           "\nOptions:\n"
-          "  --driver=NAME:CLASS:DEVICE:OPTIONS  set output driver\n",
+          "  --width=WIDTH   set page width in characters\n"
+          "  --length=LINE   set page length in lines\n",
           program_name, program_name);
   exit (EXIT_SUCCESS);
 }
@@ -297,4 +347,27 @@ read_table (FILE *stream)
     error (1, 0, "unread data at end of input");
 
   return &tab->table;
+}
+
+static void
+draw (FILE *stream)
+{
+  char buffer[1024];
+  int line = 0;
+
+  while (fgets (buffer, sizeof buffer, stream))
+    {
+      char text[sizeof buffer];
+      int emph;
+      int x, y;
+
+      line++;
+      if (strchr ("#\r\n", buffer[0]))
+        continue;
+
+      if (sscanf (buffer, "%d %d %d %[^\n]", &x, &y, &emph, text) != 4)
+        error (1, 0, "line %d has invalid format", line);
+
+      ascii_test_write (ascii_driver, text, x, y, emph ? TAB_EMPH : 0);
+    }
 }

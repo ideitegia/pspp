@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,9 @@
 #ifndef COVARIANCE_H
 #define COVARIANCE_H
 
-#include <stddef.h>
-
-#include <data/missing-values.h>
 #include <gsl/gsl_matrix.h>
+#include <stddef.h>
+#include "data/missing-values.h"
 
 struct covariance;
 struct variable;
@@ -40,8 +39,8 @@ void covariance_accumulate (struct covariance *, const struct ccase *);
 void covariance_accumulate_pass1 (struct covariance *, const struct ccase *);
 void covariance_accumulate_pass2 (struct covariance *, const struct ccase *);
 
-const gsl_matrix * covariance_calculate (struct covariance *cov);
-const gsl_matrix * covariance_calculate_unnormalized (struct covariance *);
+gsl_matrix * covariance_calculate (struct covariance *);
+gsl_matrix * covariance_calculate_unnormalized (struct covariance *);
 
 void covariance_destroy (struct covariance *cov);
 
@@ -49,4 +48,6 @@ const gsl_matrix *covariance_moments (const struct covariance *cov, int m);
 
 const struct categoricals * covariance_get_categoricals (const struct covariance *cov);
 
+void covariance_get_var_indices (const struct covariance *cov, struct variable **vars);
+size_t covariance_dim (const struct covariance * cov);
 #endif

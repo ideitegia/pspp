@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -56,6 +56,8 @@ create_temp_file (void)
 
   file_name = xasprintf ("%s/%d", temp_dir->dir_name, idx++);
   stream = fopen_temp (file_name, "wb+");
+  if (stream != NULL)
+    setvbuf (stream, NULL, _IOFBF, 65536);
   free (file_name);
 
   return stream;

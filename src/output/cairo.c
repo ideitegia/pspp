@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -471,16 +471,21 @@ xr_init_caption_cell (const char *caption, struct table_cell *cell)
 
 static struct render_page *
 xr_render_table_item (struct xr_driver *xr, const struct table_item *item,
-                      int *caption_heightp)
+                      int *caption_widthp, int *caption_heightp)
 {
   const char *caption = table_item_get_caption (item);
 
   if (caption != NULL)
     {
       /* XXX doesn't do well with very large captions */
+      int min_width, max_width;
       struct table_cell cell;
+
       xr_init_caption_cell (caption, &cell);
-      *caption_heightp = xr_measure_cell_height (xr, &cell, xr->width);
+
+      xr_measure_cell_width (xr, &cell, &min_width, &max_width);
+      *caption_widthp = MIN (max_width, xr->width);
+      *caption_heightp = xr_measure_cell_height (xr, &cell, *caption_widthp);
     }
   else
     *caption_heightp = 0;
@@ -840,6 +845,21 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
         *height = h;
     }
 }
+
+static void
+xr_draw_title (struct xr_driver *xr, const char *title,
+               int title_width, int title_height)
+{
+  struct table_cell cell;
+  int bb[TABLE_N_AXES][2];
+
+  xr_init_caption_cell (title, &cell);
+  bb[H][0] = 0;
+  bb[H][1] = title_width;
+  bb[V][0] = 0;
+  bb[V][1] = title_height;
+  xr_draw_cell (xr, &cell, bb, bb);
+}
 
 struct output_driver_factory pdf_driver_factory = { "pdf", xr_pdf_create };
 struct output_driver_factory ps_driver_factory = { "ps", xr_ps_create };
@@ -857,13 +877,13 @@ static const struct output_driver_class cairo_driver_class =
 
 struct xr_rendering
   {
+    struct output_item *item;
+
     /* Table items. */
     struct render_page *page;
     struct xr_driver *xr;
+    int title_width;
     int title_height;
-
-    /* Chart items. */
-    struct chart_item *chart;
   };
 
 #define CHART_WIDTH 500
@@ -899,7 +919,7 @@ xr_rendering_create_text (struct xr_driver *xr, const char *text, cairo_t *cr)
   struct table_item *table_item;
   struct xr_rendering *r;
 
-  table_item = table_item_create (table_from_string (0, text), NULL);
+  table_item = table_item_create (table_from_string (TAB_LEFT, text), NULL);
   r = xr_rendering_create (xr, &table_item->output_item, cr);
   table_item_unref (table_item);
 
@@ -926,15 +946,16 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
   else if (is_table_item (item))
     {
       r = xzalloc (sizeof *r);
+      r->item = output_item_ref (item);
       r->xr = xr;
       xr_set_cairo (xr, cr);
       r->page = xr_render_table_item (xr, to_table_item (item),
-                                      &r->title_height);
+                                      &r->title_width, &r->title_height);
     }
   else if (is_chart_item (item))
     {
       r = xzalloc (sizeof *r);
-      r->chart = to_chart_item (output_item_ref (item));
+      r->item = output_item_ref (item);
     }
 
   return r;
@@ -943,9 +964,11 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
 void
 xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
 {
-  if (r->chart == NULL)
+  if (is_table_item (r->item))
     {
-      *w = render_page_get_size (r->page, H) / 1024;
+      int w0 = render_page_get_size (r->page, H);
+      int w1 = r->title_width;
+      *w = MAX (w0, w1) / 1024;
       *h = (render_page_get_size (r->page, V) + r->title_height) / 1024;
     }
   else
@@ -961,17 +984,26 @@ void
 xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
                    int x, int y, int w, int h)
 {
-  if (r->chart == NULL)
+  if (is_table_item (r->item))
     {
       struct xr_driver *xr = r->xr;
 
       xr_set_cairo (xr, cr);
-      xr->y = 0;
-      render_page_draw_region (r->page,
-                               x * 1024, y * 1024, w * 1024, h * 1024);
+
+      if (r->title_height > 0)
+        {
+          xr->y = 0;
+          xr_draw_title (xr, table_item_get_caption (to_table_item (r->item)),
+                         r->title_width, r->title_height);
+        }
+
+      xr->y = r->title_height;
+      render_page_draw_region (r->page, x * 1024, (y * 1024) - r->title_height,
+                               w * 1024, h * 1024);
     }
   else
-    xr_draw_chart (r->chart, cr, 0, 0, CHART_WIDTH, CHART_HEIGHT);
+    xr_draw_chart (to_chart_item (r->item), cr,
+                   0, 0, CHART_WIDTH, CHART_HEIGHT);
 }
 
 void
@@ -1089,18 +1121,9 @@ xr_table_render (struct xr_render_fsm *fsm, struct xr_driver *xr)
       if (ts->caption_height)
         {
           if (xr->cairo)
-            {
-              struct table_cell cell;
-              int bb[TABLE_N_AXES][2];
+            xr_draw_title (xr, table_item_get_caption (ts->table_item),
+                           xr->width, ts->caption_height);
 
-              xr_init_caption_cell (table_item_get_caption (ts->table_item),
-                                    &cell);
-              bb[H][0] = 0;
-              bb[H][1] = xr->width;
-              bb[V][0] = 0;
-              bb[V][1] = ts->caption_height;
-              xr_draw_cell (xr, &cell, bb, bb);
-            }
           xr->y += ts->caption_height;
           ts->caption_height = 0;
         }
@@ -1128,6 +1151,7 @@ xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
 {
   struct xr_table_state *ts;
   struct render_page *page;
+  int caption_width;
 
   ts = xmalloc (sizeof *ts);
   ts->fsm.render = xr_table_render;
@@ -1137,7 +1161,8 @@ xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
   if (xr->y > 0)
     xr->y += xr->char_height;
 
-  page = xr_render_table_item (xr, table_item, &ts->caption_height);
+  page = xr_render_table_item (xr, table_item,
+                               &caption_width, &ts->caption_height);
   xr->params->size[V] = xr->length - ts->caption_height;
 
   render_break_init (&ts->x_break, page, H);

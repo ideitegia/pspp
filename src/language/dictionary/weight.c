@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,14 +18,14 @@
 
 #include <stdio.h>
 
-#include <data/procedure.h>
-#include <data/dictionary.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -58,5 +58,5 @@ cmd_weight (struct lexer *lexer, struct dataset *ds)
       dict_set_weight (dict, v);
     }
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

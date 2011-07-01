@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
 AC_PREREQ(2.63)
-AC_INIT([GNU PSPP], [0.7.6], [bug-gnu-pspp@gnu.org], [pspp])
+AC_INIT([GNU PSPP], [0.7.8], [bug-gnu-pspp@gnu.org], [pspp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_TESTDIR([tests])
@@ -32,15 +32,14 @@ AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 PSPP_CC_FOR_BUILD
 PSPP_PERL
 
-dnl Internationalization macros.
-AC_PROVIDE([AM_PO_SUBDIRS])	# PSPP provides its own po/ support.
+dnl Disable automatic po/ support, because PSPP provides its own po/ support.
+AC_PROVIDE([AM_PO_SUBDIRS])
 AM_GNU_GETTEXT([external], [need-ngettext])
-AM_GNU_GETTEXT_VERSION([0.17])
+LIBS="$LIBINTL $LIBS"
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
 AC_SEARCH_LIBS([sin], [m])
-AC_SEARCH_LIBS([dcgettext], [intl])
 PSPP_LC_PAPER
 
 
@@ -84,6 +83,8 @@ if test "$with_cairo" != no && test "$with_gui" != "no"; then
   if test "x$GLIB_GENMARSHAL" = x; then
     PSPP_REQUIRED_PREREQ([glib-genmarshal (or use --without-gui)])
   fi
+
+  gl_NEXT_HEADERS([gtk/gtk.h])
 fi
 
 dnl Checks needed for psql reader
@@ -291,12 +292,24 @@ PSPP_READLINE
 dnl Checks for header files.
 AC_CHECK_HEADERS([sys/wait.h fpu_control.h ieeefp.h fenv.h pwd.h])
 
+dnl Some systems dont have SIGWINCH
+AC_CHECK_DECLS([SIGWINCH], [], [],
+          [#include <signal.h>
+          /* NetBSD declares sys_siglist in unistd.h.  */
+          #ifdef HAVE_UNISTD_H
+          # include <unistd.h>
+          #endif
+          ])
+
+
 # For gnulib.
 gl_INIT
 
 AC_C_INLINE
 
-AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF([size_t])
+SIZEOF_SIZE_T=$ac_cv_sizeof_size_t
+AC_SUBST([SIZEOF_SIZE_T])
 
 AC_C_BIGENDIAN
 
@@ -313,9 +326,11 @@ if test x"$enable_debug" = x"yes"  ; then
 fi
 
 # iconv is required
+AM_ICONV
 if test "$am_cv_func_iconv" != "yes"; then
    PSPP_REQUIRED_PREREQ([iconv (see http://www.gnu.org/software/libiconv/)])
 fi
+LIBS="$LIBICONV $LIBS"
 
 dnl Required by the gnulib 'relocatable-prog' module.
 dnl See doc/relocatable-maint.texi in the gnulib tree for details.

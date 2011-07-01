@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,16 +20,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/procedure.h>
-#include <data/variable.h>
-#include <data/format.h>
-#include <language/command.h>
-#include <language/lexer/format-parser.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "data/dataset.h"
+#include "data/format.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/format-parser.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -67,35 +67,32 @@ internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
   struct variable **v;
   size_t cv;
 
-  /* Format to set the variables to. */
-  struct fmt_spec f;
-
-  /* Numeric or string. */
-  int type;
-
-  /* Counter. */
-  size_t i;
-
   for (;;)
     {
-      if (lex_token (lexer) == '.')
+      struct fmt_spec f;
+      int width;
+      size_t i;
+
+      lex_match (lexer, T_SLASH);
+
+      if (lex_token (lexer) == T_ENDCMD)
 	break;
 
-      if (!parse_variables (lexer, dataset_dict (ds), &v, &cv, PV_NUMERIC))
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &cv, PV_SAME_WIDTH))
 	return CMD_FAILURE;
-      type = var_get_type (v[0]);
+      width = var_get_width (v[0]);
 
-      if (!lex_match (lexer, '('))
+      if (!lex_match (lexer, T_LPAREN))
 	{
 	  msg (SE, _("`(' expected after variable list."));
 	  goto fail;
 	}
       if (!parse_format_specifier (lexer, &f)
           || !fmt_check_output (&f)
-          || !fmt_check_type_compat (&f, VAL_NUMERIC))
+          || !fmt_check_width_compat (&f, width))
 	goto fail;
 
-      if (!lex_match (lexer, ')'))
+      if (!lex_match (lexer, T_RPAREN))
 	{
 	  msg (SE, _("`)' expected after output format."));
 	  goto fail;

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,51 +17,50 @@
 #include <config.h>
 
 #include <gsl/gsl_cdf.h>
-#include <libpspp/message.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <math/sort.h>
-#include <math/order-stats.h>
-#include <math/percentiles.h>
-#include <math/tukey-hinges.h>
-#include <math/box-whisker.h>
-#include <math/trimmed-mean.h>
-#include <math/extrema.h>
-#include <math/np.h>
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/subcase.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/dictionary/split-file.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-#include <math/moments.h>
-#include <output/chart-item.h>
-#include <output/charts/boxplot.h>
-#include <output/charts/np-plot.h>
-#include <output/tab.h>
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/subcase.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/dictionary/split-file.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "math/box-whisker.h"
+#include "math/extrema.h"
+#include "math/histogram.h"
+#include "math/moments.h"
+#include "math/np.h"
+#include "math/order-stats.h"
+#include "math/percentiles.h"
+#include "math/sort.h"
+#include "math/trimmed-mean.h"
+#include "math/tukey-hinges.h"
+#include "output/chart-item.h"
+#include "output/charts/boxplot.h"
+#include "output/charts/np-plot.h"
+#include "output/charts/plot-hist.h"
+#include "output/tab.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
 /* (headers) */
-#include <output/charts/plot-hist.h>
-#include <math/histogram.h>
 
 /* (specification)
    "EXAMINE" (xmn_):
@@ -588,9 +587,9 @@ static int
 xmn_custom_percentiles (struct lexer *lexer, struct dataset *ds UNUSED,
 			struct cmd_examine *p UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
-  lex_match (lexer, '(');
+  lex_match (lexer, T_LPAREN);
 
   while ( lex_is_number (lexer) )
     {
@@ -598,11 +597,11 @@ xmn_custom_percentiles (struct lexer *lexer, struct dataset *ds UNUSED,
 
       lex_get (lexer);
 
-      lex_match (lexer, ',') ;
+      lex_match (lexer, T_COMMA) ;
     }
-  lex_match (lexer, ')');
+  lex_match (lexer, T_RPAREN);
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if ( lex_match_id (lexer, "HAVERAGE"))
     percentile_algorithm = PC_HAVERAGE;
@@ -674,9 +673,9 @@ xmn_custom_variables (struct lexer *lexer, struct dataset *ds,
 		      void *aux UNUSED)
 {
   const struct dictionary *dict = dataset_dict (ds);
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
-  if ( (lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+  if ( (lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokcstr (lexer)) == NULL)
        && lex_token (lexer) != T_ALL)
     {
       return 2;
@@ -720,7 +719,7 @@ examine_parse_independent_vars (struct lexer *lexer,
   ll_init (&sf->result_list);
 
   if ( (lex_token (lexer) != T_ID ||
-	dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+	dict_lookup_var (dict, lex_tokcstr (lexer)) == NULL)
        && lex_token (lexer) != T_ALL)
     {
       free ( sf ) ;
@@ -735,7 +734,7 @@ examine_parse_independent_vars (struct lexer *lexer,
       lex_match (lexer, T_BY);
 
       if ( (lex_token (lexer) != T_ID ||
-	    dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+	    dict_lookup_var (dict, lex_tokcstr (lexer)) == NULL)
 	   && lex_token (lexer) != T_ALL)
 	{
 	  free (sf);
@@ -749,9 +748,9 @@ examine_parse_independent_vars (struct lexer *lexer,
   else
     ll_push_tail (&factor_list, &sf->ll);
 
-  lex_match (lexer, ',');
+  lex_match (lexer, T_COMMA);
 
-  if ( lex_token (lexer) == '.' || lex_token (lexer) == '/' )
+  if ( lex_token (lexer) == T_ENDCMD || lex_token (lexer) == T_SLASH )
     return 1;
 
   success =  examine_parse_independent_vars (lexer, dict, cmd);

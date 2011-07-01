@@ -15,18 +15,18 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <stdbool.h>
-#include "hash.h"
-#include "message.h"
+
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+
 #include "array.h"
 #include "compiler.h"
+#include "hash.h"
 #include "misc.h"
-#include "str.h"
 #include "pool.h"
+#include "str.h"
 
 #include "xalloc.h"
 

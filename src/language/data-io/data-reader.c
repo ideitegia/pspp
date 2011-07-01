@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2004, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-2004, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include <language/data-io/data-reader.h>
+#include "language/data-io/data-reader.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -25,22 +25,21 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include <data/casereader.h>
-#include <data/file-handle-def.h>
-#include <data/file-name.h>
-#include <data/procedure.h>
-#include <language/command.h>
-#include <language/data-io/file-handle.h>
-#include <language/lexer/lexer.h>
-#include <language/prompt.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "language/command.h"
+#include "language/data-io/file-handle.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -53,6 +52,7 @@ enum dfm_reader_flags
     DFM_SAW_BEGIN_DATA = 004,   /* For inline_file only, whether we've
                                    already read a BEGIN DATA line. */
     DFM_TABS_EXPANDED = 010,    /* Tabs have been expanded. */
+    DFM_CONSUME = 020           /* read_inline_record() should get a token? */
   };
 
 /* Data file reader. */
@@ -60,7 +60,7 @@ struct dfm_reader
   {
     struct file_handle *fh;     /* File handle. */
     struct fh_lock *lock;       /* Mutual exclusion lock for file. */
-    struct msg_locator where;   /* Current location in data file. */
+    int line_number;            /* Current line or record number. */
     struct string line;         /* Current line. */
     struct string scratch;      /* Extra line buffer. */
     enum dfm_reader_flags flags; /* Zero or more of DFM_*. */
@@ -141,8 +141,7 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
   if (fh_get_referent (fh) != FH_REF_INLINE)
     {
       struct stat s;
-      r->where.file_name = CONST_CAST (char *, fh_get_file_name (fh));
-      r->where.line_number = 0;
+      r->line_number = 0;
       r->file = fn_open (fh_get_file_name (fh), "rb");
       if (r->file == NULL)
         {
@@ -177,33 +176,37 @@ read_inline_record (struct dfm_reader *r)
   if ((r->flags & DFM_SAW_BEGIN_DATA) == 0)
     {
       r->flags |= DFM_SAW_BEGIN_DATA;
+      r->flags &= ~DFM_CONSUME;
 
-      while (lex_token (r->lexer) == '.')
+      while (lex_token (r->lexer) == T_ENDCMD)
         lex_get (r->lexer);
-      if (!lex_force_match_id (r->lexer, "BEGIN") || !lex_force_match_id (r->lexer, "DATA"))
+
+      if (!lex_force_match_id (r->lexer, "BEGIN")
+          || !lex_force_match_id (r->lexer, "DATA"))
         return false;
-      prompt_set_style (PROMPT_DATA);
+
+      lex_match (r->lexer, T_ENDCMD);
     }
 
-  if (!lex_get_line_raw (r->lexer))
+  if (r->flags & DFM_CONSUME)
+    lex_get (r->lexer);
+
+  if (!lex_is_string (r->lexer))
     {
-      lex_discard_line (r->lexer);
-      msg (SE, _("Unexpected end-of-file while reading data in BEGIN "
-                 "DATA.  This probably indicates "
-                 "a missing or misformatted END DATA command.  "
-                 "END DATA must appear by itself on a single line "
-                 "with exactly one space between words."));
+      if (!lex_match_id (r->lexer, "END") || !lex_match_id (r->lexer, "DATA"))
+        {
+          msg (SE, _("Missing END DATA while reading inline data.  "
+                     "This probably indicates a missing or incorrectly "
+                     "formatted END DATA command.  END DATA must appear "
+                     "by itself on a single line with exactly one space "
+                     "between words."));
+          lex_discard_rest_of_command (r->lexer);
+        }
       return false;
     }
 
-  if (ds_length (lex_entire_line_ds (r->lexer) ) >= 8
-      && !strncasecmp (lex_entire_line (r->lexer), "end data", 8))
-    {
-      lex_discard_line (r->lexer);
-      return false;
-    }
-
-  ds_assign_string (&r->line, lex_entire_line_ds (r->lexer) );
+  ds_assign_substring (&r->line, lex_tokss (r->lexer));
+  r->flags |= DFM_CONSUME;
 
   return true;
 }
@@ -343,7 +346,7 @@ read_file_record (struct dfm_reader *r)
     case FH_MODE_TEXT:
       if (ds_read_line (&r->line, r->file, SIZE_MAX))
         {
-          ds_chomp (&r->line, '\n');
+          ds_chomp_byte (&r->line, '\n');
           return true;
         }
       else
@@ -352,7 +355,6 @@ read_file_record (struct dfm_reader *r)
             read_error (r);
           return false;
         }
-      return true;
 
     case FH_MODE_FIXED:
       if (ds_read_stream (&r->line, 1, fh_get_record_width (r->fh), r->file))
@@ -365,7 +367,6 @@ read_file_record (struct dfm_reader *r)
             partial_record (r);
           return false;
         }
-      return true;
 
     case FH_MODE_VARIABLE:
       {
@@ -482,7 +483,7 @@ read_record (struct dfm_reader *r)
     {
       bool ok = read_file_record (r);
       if (ok)
-        r->where.line_number++;
+        r->line_number++;
       return ok;
     }
   else
@@ -556,7 +557,7 @@ dfm_expand_tabs (struct dfm_reader *r)
   if (r->fh != fh_inline_file ()
       && (fh_get_mode (r->fh) != FH_MODE_TEXT
           || fh_get_tab_width (r->fh) == 0
-          || ds_find_char (&r->line, '\t') == SIZE_MAX))
+          || ds_find_byte (&r->line, '\t') == SIZE_MAX))
     return;
 
   /* Expand tabs from r->line into r->scratch, and figure out
@@ -573,11 +574,11 @@ dfm_expand_tabs (struct dfm_reader *r)
 
       c = ds_data (&r->line)[ofs];
       if (c != '\t')
-        ds_put_char (&r->scratch, c);
+        ds_put_byte (&r->scratch, c);
       else
         {
           do
-            ds_put_char (&r->scratch, ' ');
+            ds_put_byte (&r->scratch, ' ');
           while (ds_length (&r->scratch) % tab_width != 0);
         }
     }
@@ -680,13 +681,15 @@ dfm_get_column (const struct dfm_reader *r, const char *p)
 const char *
 dfm_get_file_name (const struct dfm_reader *r)
 {
-  return fh_get_referent (r->fh) == FH_REF_FILE ? r->where.file_name : NULL;
+  return (fh_get_referent (r->fh) == FH_REF_FILE
+          ? fh_get_file_name (r->fh)
+          : NULL);
 }
 
 int
 dfm_get_line_number (const struct dfm_reader *r)
 {
-  return fh_get_referent (r->fh) == FH_REF_FILE ? r->where.line_number : -1;
+  return fh_get_referent (r->fh) == FH_REF_FILE ? r->line_number : -1;
 }
 
 /* BEGIN DATA...END DATA procedure. */
@@ -704,13 +707,14 @@ cmd_begin_data (struct lexer *lexer, struct dataset *ds)
                  "input program does not access the inline file."));
       return CMD_CASCADING_FAILURE;
     }
+  lex_match (lexer, T_ENDCMD);
 
   /* Open inline file. */
   r = dfm_open_reader (fh_inline_file (), lexer);
   r->flags |= DFM_SAW_BEGIN_DATA;
+  r->flags &= ~DFM_CONSUME;
 
   /* Input procedure reads from inline file. */
-  prompt_set_style (PROMPT_DATA);
   casereader_destroy (proc_open (ds));
   ok = proc_commit (ds);
   dfm_close_reader (r);

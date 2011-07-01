@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,12 +17,12 @@
 /* Case initializer.
 
    The procedure code has to resize cases provided by the active
-   file data source, to provide room for any other variables that
+   dataset data source, to provide room for any other variables that
    should go in the case, fill in the values of "left" variables,
    and initialize the values of other non-left variable to zero
    or spaces.  Then, when we're done with that case, we have to
    save the values of "left" variables to copy into the next case
-   read from the active file.
+   read from the active dataset.
 
    The caseinit data structure provides a little help for
    tracking what data to initialize or to copy from case to
@@ -36,6 +36,7 @@ struct ccase;
 
 /* Creation and destruction. */
 struct caseinit *caseinit_create (void);
+struct caseinit *caseinit_clone (struct caseinit *);
 void caseinit_clear (struct caseinit *);
 void caseinit_destroy (struct caseinit *);
 

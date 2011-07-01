@@ -17,7 +17,8 @@ AT_CHECK(
   [sed -e '/^Created:,/d' \
        -e '/^Endian:,/d' \
        -e '/^Integer Format:,/d' \
-       -e '/^Real Format:,/d' pspp.csv],
+       -e '/^Real Format:,/d' \
+       -e '/^Charset:,/d' pspp.csv],
   [0], [dnl
 Table: Reading free-form data from INLINE.
 Variable,Format
@@ -31,7 +32,6 @@ Cases:,3
 Type:,System File
 Weight:,Not weighted.
 Mode:,Compression on.
-Charset:,Unknown
 
 Variable,Description,,Position
 x,Format: F8.2,,1

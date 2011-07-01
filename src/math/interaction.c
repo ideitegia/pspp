@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,14 +30,18 @@
  */
 
 #include <config.h>
+
+#include "math/interaction.h"
+
 #include <assert.h>
-#include <data/dictionary.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <gl/unistr.h>
-#include <math/interaction.h>
 #include <string.h>
-#include <xalloc.h>
+#include <unistr.h>
+
+#include "data/dictionary.h"
+#include "data/value.h"
+#include "data/variable.h"
+
+#include "gl/xalloc.h"
 
 struct interaction_variable
 {

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
+#include "libpspp/string-array.h"
 #include "libpspp/version.h"
 
 #include "gl/xmemdup0.h"
@@ -97,9 +98,10 @@ static const struct casewriter_class sys_file_casewriter_class;
 
 static void write_header (struct sfm_writer *, const struct dictionary *);
 static void write_variable (struct sfm_writer *, const struct variable *);
-static void write_value_labels (struct sfm_writer *, struct variable *,
-                                int idx);
-static void write_integer_info_record (struct sfm_writer *);
+static void write_value_labels (struct sfm_writer *,
+                                const struct dictionary *);
+static void write_integer_info_record (struct sfm_writer *,
+                                       const struct dictionary *);
 static void write_float_info_record (struct sfm_writer *);
 
 static void write_longvar_table (struct sfm_writer *w,
@@ -131,6 +133,12 @@ static void write_int (struct sfm_writer *, int32_t);
 static inline void convert_double_to_output_format (double, uint8_t[8]);
 static void write_float (struct sfm_writer *, double);
 static void write_string (struct sfm_writer *, const char *, size_t);
+static void write_utf8_string (struct sfm_writer *, const char *encoding,
+                               const char *string, size_t width);
+static void write_utf8_record (struct sfm_writer *, const char *encoding,
+                               const struct string *content, int subtype);
+static void write_string_record (struct sfm_writer *,
+                                 const struct substring content, int subtype);
 static void write_bytes (struct sfm_writer *, const void *, size_t);
 static void write_zeros (struct sfm_writer *, size_t);
 static void write_spaces (struct sfm_writer *, size_t);
@@ -170,7 +178,6 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 {
   struct sfm_writer *w;
   mode_t mode;
-  int idx;
   int i;
 
   /* Check version. */
@@ -228,20 +235,12 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   for (i = 0; i < dict_get_var_cnt (d); i++)
     write_variable (w, dict_get_var (d, i));
 
-  /* Write out value labels. */
-  idx = 0;
-  for (i = 0; i < dict_get_var_cnt (d); i++)
-    {
-      struct variable *v = dict_get_var (d, i);
+  write_value_labels (w, d);
 
-      write_value_labels (w, v, idx);
-      idx += sfm_width_to_octs (var_get_width (v));
-    }
-
-  if (dict_get_documents (d) != NULL)
+  if (dict_get_document_line_cnt (d) > 0)
     write_documents (w, d);
 
-  write_integer_info_record (w);
+  write_integer_info_record (w, d);
   write_float_info_record (w);
 
   write_mrsets (w, d, true);
@@ -382,7 +381,7 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   file_label = dict_get_label (d);
   if (file_label == NULL)
     file_label = "";
-  write_string (w, file_label, 64);
+  write_utf8_string (w, dict_get_encoding (d), file_label, 64);
 
   /* Padding. */
   write_zeros (w, 3);
@@ -430,6 +429,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   int width = var_get_width (v);
   int segment_cnt = sfm_width_to_segments (width);
   int seg0_width = sfm_segment_alloc_width (width, 0);
+  const char *encoding = var_get_encoding (v);
   struct missing_values mv;
   int i;
 
@@ -460,12 +460,12 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   /* Short name.
      The full name is in a translation table written
      separately. */
-  write_string (w, var_get_short_name (v, 0), 8);
+  write_utf8_string (w, encoding, var_get_short_name (v, 0), 8);
 
   /* Value label. */
   if (var_has_label (v))
     {
-      char *label = recode_string (var_get_encoding (v), UTF8, var_get_label (v), -1);
+      char *label = recode_string (encoding, UTF8, var_get_label (v), -1);
       size_t label_len = MIN (strlen (label), 255);
       size_t padded_len = ROUND_UP (label_len, 4);
       write_int (w, label_len);
@@ -498,7 +498,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
       write_int (w, 0);           /* No missing values. */
       write_format (w, fmt, seg_width); /* Print format. */
       write_format (w, fmt, seg_width); /* Write format. */
-      write_string (w, var_get_short_name (v, i), 8);
+      write_utf8_string (w, encoding, var_get_short_name (v, i), 8);
 
       write_variable_continuation_records (w, seg_width);
     }
@@ -506,57 +506,139 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   mv_destroy (&mv);
 }
 
-/* Writes the value labels for variable V having system file
-   variable index IDX to system file W.
+/* Writes the value labels to system file W.
 
    Value labels for long string variables are written separately,
    by write_long_string_value_labels. */
 static void
-write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
+write_value_labels (struct sfm_writer *w, const struct dictionary *d)
 {
-  const struct val_labs *val_labs;
-  const struct val_lab **labels;
-  size_t n_labels;
-  size_t i;
-
-  val_labs = var_get_value_labels (v);
-  n_labels = val_labs_count (val_labs);
-  if (n_labels == 0 || var_get_width (v) > 8)
-    return;
-
-  /* Value label record. */
-  write_int (w, 3);             /* Record type. */
-  write_int (w, val_labs_count (val_labs));
-  labels = val_labs_sorted (val_labs);
-  for (i = 0; i < n_labels; i++)
+  struct label_set
     {
-      const struct val_lab *vl = labels[i];
-      char *label = recode_string (var_get_encoding (v), UTF8, val_lab_get_label (vl), -1);
-      uint8_t len = MIN (strlen (label), 255);
+      struct hmap_node hmap_node;
+      const struct val_labs *val_labs;
+      int *indexes;
+      size_t n_indexes, allocated_indexes;
+    };
 
-      write_value (w, val_lab_get_value (vl), var_get_width (v));
-      write_bytes (w, &len, 1);
-      write_bytes (w, label, len);
-      write_zeros (w, REM_RND_UP (len + 1, 8));
-      free (label);
+  size_t n_sets, allocated_sets;
+  struct label_set **sets;
+  struct hmap same_sets;
+  size_t i;
+  int idx;
+
+  n_sets = allocated_sets = 0;
+  sets = NULL;
+  hmap_init (&same_sets);
+
+  idx = 0;
+  for (i = 0; i < dict_get_var_cnt (d); i++)
+    {
+      struct variable *v = dict_get_var (d, i);
+
+      if (var_has_value_labels (v) && var_get_width (v) <= 8)
+        {
+          const struct val_labs *val_labs = var_get_value_labels (v);
+          unsigned int hash = val_labs_hash (val_labs, 0);
+          struct label_set *set;
+
+          HMAP_FOR_EACH_WITH_HASH (set, struct label_set, hmap_node,
+                                   hash, &same_sets)
+            {
+              if (val_labs_equal (set->val_labs, val_labs))
+                {
+                  if (set->n_indexes >= set->allocated_indexes)
+                    set->indexes = x2nrealloc (set->indexes,
+                                               &set->allocated_indexes,
+                                               sizeof *set->indexes);
+                  set->indexes[set->n_indexes++] = idx;
+                  goto next_var;
+                }
+            }
+
+          set = xmalloc (sizeof *set);
+          set->val_labs = val_labs;
+          set->indexes = xmalloc (sizeof *set->indexes);
+          set->indexes[0] = idx;
+          set->n_indexes = 1;
+          set->allocated_indexes = 1;
+          hmap_insert (&same_sets, &set->hmap_node, hash);
+
+          if (n_sets >= allocated_sets)
+            sets = x2nrealloc (sets, &allocated_sets, sizeof *sets);
+          sets[n_sets++] = set;
+        }
+
+    next_var:
+      idx += sfm_width_to_octs (var_get_width (v));
     }
-  free (labels);
 
-  /* Value label variable record. */
-  write_int (w, 4);             /* Record type. */
-  write_int (w, 1);             /* Number of variables. */
-  write_int (w, idx + 1);       /* Variable's dictionary index. */
+  for (i = 0; i < n_sets; i++)
+    {
+      const struct label_set *set = sets[i];
+      const struct val_labs *val_labs = set->val_labs;
+      size_t n_labels = val_labs_count (val_labs);
+      int width = val_labs_get_width (val_labs);
+      const struct val_lab **labels;
+      size_t j;
+
+      /* Value label record. */
+      write_int (w, 3);             /* Record type. */
+      write_int (w, n_labels);
+      labels = val_labs_sorted (val_labs);
+      for (j = 0; j < n_labels; j++)
+        {
+          const struct val_lab *vl = labels[j];
+          char *label = recode_string (dict_get_encoding (d), UTF8,
+                                       val_lab_get_escaped_label (vl), -1);
+          uint8_t len = MIN (strlen (label), 255);
+
+          write_value (w, val_lab_get_value (vl), width);
+          write_bytes (w, &len, 1);
+          write_bytes (w, label, len);
+          write_zeros (w, REM_RND_UP (len + 1, 8));
+          free (label);
+        }
+      free (labels);
+
+      /* Value label variable record. */
+      write_int (w, 4);              /* Record type. */
+      write_int (w, set->n_indexes);
+      for (j = 0; j < set->n_indexes; j++)
+        write_int (w, set->indexes[j] + 1);
+    }
+
+  for (i = 0; i < n_sets; i++)
+    {
+      struct label_set *set = sets[i];
+
+      free (set->indexes);
+      free (set);
+    }
+  free (sets);
+  hmap_destroy (&same_sets);
 }
 
 /* Writes record type 6, document record. */
 static void
 write_documents (struct sfm_writer *w, const struct dictionary *d)
 {
-  size_t line_cnt = dict_get_document_line_cnt (d);
+  const struct string_array *docs = dict_get_documents (d);
+  const char *enc = dict_get_encoding (d);
+  size_t i;
 
   write_int (w, 6);             /* Record type. */
-  write_int (w, line_cnt);
-  write_bytes (w, dict_get_documents (d), line_cnt * DOC_LINE_LENGTH);
+  write_int (w, docs->n);
+  for (i = 0; i < docs->n; i++)
+    {
+      char *s = recode_string (enc, "UTF-8", docs->strings[i], -1);
+      size_t s_len = strlen (s);
+      size_t write_len = MIN (s_len, DOC_LINE_LENGTH);
+
+      write_bytes (w, s, write_len);
+      write_spaces (w, DOC_LINE_LENGTH - write_len);
+      free (s);
+    }
 }
 
 static void
@@ -572,22 +654,11 @@ put_attrset (struct string *string, const struct attrset *attrs)
       size_t j;
 
       ds_put_cstr (string, attribute_get_name (attr));
-      ds_put_char (string, '(');
+      ds_put_byte (string, '(');
       for (j = 0; j < n_values; j++) 
         ds_put_format (string, "'%s'\n", attribute_get_value (attr, j));
-      ds_put_char (string, ')');
+      ds_put_byte (string, ')');
     }
-}
-
-static void
-write_attribute_record (struct sfm_writer *w, const struct string *content,
-                        int subtype) 
-{
-  write_int (w, 7);
-  write_int (w, subtype);
-  write_int (w, 1);
-  write_int (w, ds_length (content));
-  write_bytes (w, ds_data (content), ds_length (content));
 }
 
 static void
@@ -596,7 +667,7 @@ write_data_file_attributes (struct sfm_writer *w,
 {
   struct string s = DS_EMPTY_INITIALIZER;
   put_attrset (&s, dict_get_attributes (d));
-  write_attribute_record (w, &s, 17);
+  write_utf8_record (w, dict_get_encoding (d), &s, 17);
   ds_destroy (&s);
 }
 
@@ -615,13 +686,13 @@ write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
       if (attrset_count (attrs)) 
         {
           if (n_attrsets++)
-            ds_put_char (&s, '/');
-          ds_put_format (&s, "%s:", var_get_short_name (v, 0));
+            ds_put_byte (&s, '/');
+          ds_put_format (&s, "%s:", var_get_name (v));
           put_attrset (&s, attrs);
         }
     }
-  if (n_attrsets) 
-    write_attribute_record (w, &s, 18);
+  if (n_attrsets)
+    write_utf8_record (w, dict_get_encoding (d), &s, 18);
   ds_destroy (&s);
 }
 
@@ -632,6 +703,7 @@ static void
 write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
               bool pre_v14)
 {
+  const char *encoding = dict_get_encoding (dict);
   struct string s = DS_EMPTY_INITIALIZER;
   size_t n_mrsets;
   size_t i;
@@ -643,14 +715,17 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
   for (i = 0; i < n_mrsets; i++)
     {
       const struct mrset *mrset = dict_get_mrset (dict, i);
-      const char *label;
+      char *name;
       size_t j;
 
       if ((mrset->type != MRSET_MD || mrset->cat_source != MRSET_COUNTEDVALUES)
           != pre_v14)
         continue;
 
-      ds_put_format (&s, "%s=", mrset->name);
+      name = recode_string (encoding, "UTF-8", mrset->name, -1);
+      ds_put_format (&s, "%s=", name);
+      free (name);
+
       if (mrset->type == MRSET_MD)
         {
           char *counted;
@@ -658,7 +733,7 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
           if (mrset->cat_source == MRSET_COUNTEDVALUES)
             ds_put_format (&s, "E %d ", mrset->label_from_var_label ? 11 : 1);
           else
-            ds_put_char (&s, 'D');
+            ds_put_byte (&s, 'D');
 
           if (mrset->width == 0)
             counted = xasprintf ("%.0f", mrset->counted.f);
@@ -669,17 +744,32 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
           free (counted);
         }
       else
-        ds_put_char (&s, 'C');
-      ds_put_char (&s, ' ');
+        ds_put_byte (&s, 'C');
+      ds_put_byte (&s, ' ');
 
-      label = mrset->label && !mrset->label_from_var_label ? mrset->label : "";
-      ds_put_format (&s, "%zu %s", strlen (label), label);
+      if (mrset->label && !mrset->label_from_var_label)
+        {
+          char *label = recode_string (encoding, "UTF-8", mrset->label, -1);
+          ds_put_format (&s, "%zu %s", strlen (label), label);
+          free (label);
+        }
+      else
+        ds_put_cstr (&s, "0 ");
 
       for (j = 0; j < mrset->n_vars; j++)
-        ds_put_format (&s, " %s", var_get_short_name (mrset->vars[j], 0));
-      ds_put_char (&s, '\n');
+        {
+          const char *short_name_utf8 = var_get_short_name (mrset->vars[j], 0);
+          char *short_name = recode_string (encoding, "UTF-8",
+                                            short_name_utf8, -1);
+          str_lowercase (short_name);
+          ds_put_format (&s, " %s", short_name);
+          free (short_name);
+        }
+      ds_put_byte (&s, '\n');
     }
-  write_attribute_record (w, &s, 7);
+
+  if (!ds_is_empty (&s))
+    write_string_record (w, ds_ss (&s), pre_v14 ? 7 : 19);
   ds_destroy (&s);
 }
 
@@ -736,13 +826,7 @@ write_vls_length_table (struct sfm_writer *w,
                        var_get_short_name (v, 0), var_get_width (v), 0);
     }
   if (!ds_is_empty (&map))
-    {
-      write_int (w, 7);         /* Record type. */
-      write_int (w, 14);        /* Record subtype. */
-      write_int (w, 1);         /* Data item (char) size. */
-      write_int (w, ds_length (&map)); /* Number of data items. */
-      write_bytes (w, ds_data (&map), ds_length (&map));
-    }
+    write_utf8_record (w, dict_get_encoding (dict), &map, 14);
   ds_destroy (&map);
 }
 
@@ -761,16 +845,22 @@ write_long_string_value_labels (struct sfm_writer *w,
     {
       struct variable *var = dict_get_var (dict, i);
       const struct val_labs *val_labs = var_get_value_labels (var);
+      const char *encoding = var_get_encoding (var);
       int width = var_get_width (var);
       const struct val_lab *val_lab;
 
       if (val_labs_count (val_labs) == 0 || width < 9)
         continue;
 
-      size += 12 + strlen (var_get_name (var));
+      size += 12;
+      size += recode_string_len (encoding, "UTF-8", var_get_name (var), -1);
       for (val_lab = val_labs_first (val_labs); val_lab != NULL;
            val_lab = val_labs_next (val_labs, val_lab))
-        size += 8 + width + strlen (val_lab_get_label (val_lab));
+        {
+          size += 8 + width;
+          size += recode_string_len (encoding, "UTF-8",
+                                     val_lab_get_escaped_label (val_lab), -1);
+        }
     }
   if (size == 0)
     return;
@@ -785,28 +875,37 @@ write_long_string_value_labels (struct sfm_writer *w,
     {
       struct variable *var = dict_get_var (dict, i);
       const struct val_labs *val_labs = var_get_value_labels (var);
-      const char *var_name = var_get_name (var);
+      const char *encoding = var_get_encoding (var);
       int width = var_get_width (var);
       const struct val_lab *val_lab;
+      char *var_name;
 
       if (val_labs_count (val_labs) == 0 || width < 9)
         continue;
 
+      var_name = recode_string (encoding, "UTF-8", var_get_name (var), -1);
       write_int (w, strlen (var_name));
       write_bytes (w, var_name, strlen (var_name));
+      free (var_name);
+
       write_int (w, width);
       write_int (w, val_labs_count (val_labs));
       for (val_lab = val_labs_first (val_labs); val_lab != NULL;
            val_lab = val_labs_next (val_labs, val_lab))
         {
-          const char *label = val_lab_get_label (val_lab);
-          size_t label_length = strlen (label);
+          char *label;
+          size_t len;
 
           write_int (w, width);
           write_bytes (w, value_str (val_lab_get_value (val_lab), width),
                        width);
-          write_int (w, label_length);
-          write_bytes (w, label, label_length);
+
+          label = recode_string (var_get_encoding (var), "UTF-8",
+                                 val_lab_get_escaped_label (val_lab), -1);
+          len = strlen (label);
+          write_int (w, len);
+          write_bytes (w, label, len);
+          free (label);
         }
     }
   assert (ftello (w->file) == start + size);
@@ -816,18 +915,17 @@ static void
 write_encoding_record (struct sfm_writer *w,
 		       const struct dictionary *d)
 {
-  const char *enc = dict_get_encoding (d);
+  /* IANA says "...character set names may be up to 40 characters taken
+     from the printable characters of US-ASCII," so character set names
+     don't need to be recoded to be in UTF-8.
 
-  if ( NULL == enc)
-    return;
-
-  write_int (w, 7);             /* Record type. */
-  write_int (w, 20);            /* Record subtype. */
-  write_int (w, 1);             /* Data item (char) size. */
-  write_int (w, strlen (enc));  /* Number of data items. */
-  write_string (w, enc, strlen (enc));
+     We convert encoding names to uppercase because SPSS writes encoding
+     names in uppercase. */
+  char *encoding = xstrdup (dict_get_encoding (d));
+  str_uppercase (encoding);
+  write_string_record (w, ss_cstr (encoding), 20);
+  free (encoding);
 }
-
 
 /* Writes the long variable name table. */
 static void
@@ -840,30 +938,23 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *v = dict_get_var (dict, i);
-      char *longname = recode_string (dict_get_encoding (dict), UTF8, var_get_name (v), -1);
-
       if (i)
-        ds_put_char (&map, '\t');
+        ds_put_byte (&map, '\t');
       ds_put_format (&map, "%s=%s",
-                     var_get_short_name (v, 0), longname);
-      free (longname);
+                     var_get_short_name (v, 0), var_get_name (v));
     }
-
-  write_int (w, 7);             /* Record type. */
-  write_int (w, 13);            /* Record subtype. */
-  write_int (w, 1);             /* Data item (char) size. */
-  write_int (w, ds_length (&map)); /* Number of data items. */
-  write_bytes (w, ds_data (&map), ds_length (&map));
-
+  write_utf8_record (w, dict_get_encoding (dict), &map, 13);
   ds_destroy (&map);
 }
 
 /* Write integer information record. */
 static void
-write_integer_info_record (struct sfm_writer *w)
+write_integer_info_record (struct sfm_writer *w,
+                           const struct dictionary *d)
 {
   int version_component[3];
   int float_format;
+  int codepage;
 
   /* Parse the version string. */
   memset (version_component, 0, sizeof version_component);
@@ -881,6 +972,16 @@ write_integer_info_record (struct sfm_writer *w)
   else
     abort ();
 
+  /* Choose codepage. */
+  codepage = sys_get_codepage_from_encoding (dict_get_encoding (d));
+  if (codepage == 0)
+    {
+      /* Default to "7-bit ASCII" if the codepage number is unknown, because
+         many files use this codepage number regardless of their actual
+         encoding. */
+      codepage = 2;
+    }
+
   /* Write record. */
   write_int (w, 7);             /* Record type. */
   write_int (w, 3);             /* Record subtype. */
@@ -893,7 +994,7 @@ write_integer_info_record (struct sfm_writer *w)
   write_int (w, float_format);
   write_int (w, 1);           /* Compression code. */
   write_int (w, INTEGER_NATIVE == INTEGER_MSB_FIRST ? 1 : 2);
-  write_int (w, 2);           /* 7-bit ASCII. */
+  write_int (w, codepage);
 }
 
 /* Write floating-point information record. */
@@ -1189,9 +1290,9 @@ write_value (struct sfm_writer *w, const union value *value, int width)
     }
 }
 
-/* Writes null-terminated STRING in a field of the given WIDTH to
-   W.  If STRING is longer than WIDTH, it is truncated; if WIDTH
-   is narrowed, it is padded on the right with spaces. */
+/* Writes null-terminated STRING in a field of the given WIDTH to W.  If STRING
+   is longer than WIDTH, it is truncated; if STRING is shorter than WIDTH, it
+   is padded on the right with spaces. */
 static void
 write_string (struct sfm_writer *w, const char *string, size_t width)
 {
@@ -1200,6 +1301,44 @@ write_string (struct sfm_writer *w, const char *string, size_t width)
   write_bytes (w, string, data_bytes);
   while (pad_bytes-- > 0)
     putc (' ', w->file);
+}
+
+/* Recodes null-terminated UTF-8 encoded STRING into ENCODING, and writes the
+   recoded version in a field of the given WIDTH to W.  The string is truncated
+   or padded on the right with spaces to exactly WIDTH bytes. */
+static void
+write_utf8_string (struct sfm_writer *w, const char *encoding,
+                   const char *string, size_t width)
+{
+  char *s = recode_string (encoding, "UTF-8", string, -1);
+  write_string (w, s, width);
+  free (s);
+}
+
+/* Writes a record with type 7, subtype SUBTYPE that contains CONTENT recoded
+   from UTF-8 encoded into ENCODING. */
+static void
+write_utf8_record (struct sfm_writer *w, const char *encoding,
+                   const struct string *content, int subtype)
+{
+  struct substring s;
+
+  s = recode_substring_pool (encoding, "UTF-8", ds_ss (content), NULL);
+  write_string_record (w, s, subtype);
+  ss_dealloc (&s);
+}
+
+/* Writes a record with type 7, subtype SUBTYPE that contains the string
+   CONTENT. */
+static void
+write_string_record (struct sfm_writer *w,
+                     const struct substring content, int subtype)
+{
+  write_int (w, 7);
+  write_int (w, subtype);
+  write_int (w, 1);
+  write_int (w, ss_length (content));
+  write_bytes (w, ss_data (content), ss_length (content));
 }
 
 /* Writes SIZE bytes of DATA to W's output file. */

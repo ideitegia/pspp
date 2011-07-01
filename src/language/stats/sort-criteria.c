@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,16 +16,16 @@
 
 #include <config.h>
 
-#include <language/stats/sort-criteria.h>
+#include "language/stats/sort-criteria.h"
 
 #include <stdlib.h>
 
-#include <data/dictionary.h>
-#include <data/subcase.h>
-#include <data/variable.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/message.h>
+#include "data/dictionary.h"
+#include "data/subcase.h"
+#include "data/variable.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -63,7 +63,7 @@ parse_sort_criteria (struct lexer *lexer, const struct dictionary *dict,
         goto error;
 
       /* Sort direction. */
-      if (lex_match (lexer, '('))
+      if (lex_match (lexer, T_LPAREN))
 	{
 	  if (lex_match_id (lexer, "D") || lex_match_id (lexer, "DOWN"))
 	    direction = SC_DESCEND;
@@ -74,7 +74,7 @@ parse_sort_criteria (struct lexer *lexer, const struct dictionary *dict,
 	      msg (SE, _("`A' or `D' expected inside parentheses."));
               goto error;
 	    }
-	  if (!lex_match (lexer, ')'))
+	  if (!lex_match (lexer, T_RPAREN))
 	    {
 	      msg (SE, _("`)' expected."));
               goto error;
@@ -94,7 +94,7 @@ parse_sort_criteria (struct lexer *lexer, const struct dictionary *dict,
         }
     }
   while (lex_token (lexer) == T_ID
-         && dict_lookup_var (dict, lex_tokid (lexer)) != NULL);
+         && dict_lookup_var (dict, lex_tokcstr (lexer)) != NULL);
 
   free (local_vars);
   return true;

@@ -6,8 +6,7 @@ language_control_sources = \
 	src/language/control/control-stack.h \
 	src/language/control/do-if.c \
 	src/language/control/loop.c \
-	src/language/control/temporary.c \
 	src/language/control/repeat.c \
-	src/language/control/repeat.h
+	src/language/control/temporary.c
 
 EXTRA_DIST += src/language/control/OChangeLog

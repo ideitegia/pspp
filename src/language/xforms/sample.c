@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009-2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,16 +21,16 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <data/procedure.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <math/random.h>
+#include "data/dataset.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "math/random.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -111,7 +111,7 @@ cmd_sample (struct lexer *lexer, struct dataset *ds)
   trns->frac = frac;
   add_transformation (ds, sample_trns_proc, sample_trns_free, trns);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Executes a SAMPLE transformation. */

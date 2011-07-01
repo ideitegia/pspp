@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
 
 #include <config.h>
 
-#include <output/table-provider.h>
+#include "output/table-provider.h"
 
-#include <data/casereader.h>
-#include <data/data-out.h>
-#include <data/format.h>
-#include <libpspp/i18n.h>
+#include "data/casereader.h"
+#include "data/data-out.h"
+#include "data/format.h"
+#include "libpspp/i18n.h"
 
 #include "gl/xalloc.h"
 
@@ -142,7 +142,10 @@ table_casereader_get_rule (const struct table *t, enum table_axis axis,
                            int x UNUSED, int y)
 {
   struct table_casereader *tc = table_casereader_cast (t);
-  return axis == TABLE_VERT && tc->heading != NULL && y == 1 ? TAL_1 : TAL_0;
+  if (axis == TABLE_VERT)
+    return tc->heading != NULL && y == 1 ? TAL_1 : TAL_0;
+  else
+    return TAL_GAP;
 }
 
 static const struct table_class table_casereader_class =

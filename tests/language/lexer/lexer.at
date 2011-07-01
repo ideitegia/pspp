@@ -18,3 +18,46 @@ a
 2.00
 ])
 AT_CLEANUP
+
+AT_SETUP([lexer properly reports scan errors])
+AT_DATA([lexer.sps], [dnl
+x'123'
+x'1x'
+u''
+u'012345678'
+u'd800'
+u'110000'
+'foo
+'very long unterminated string that be ellipsized in its error message
+1e .x
+`
+�
+])
+AT_CHECK([pspp -O format=csv lexer.sps], [1], [dnl
+"lexer.sps:1.1-1.6: error: Syntax error at `x'123'': String of hex digits has 3 characters, which is not a multiple of 2."
+
+lexer.sps:2.1-2.5: error: Syntax error at `x'1x'': `x' is not a valid hex digit.
+
+"lexer.sps:3.1-3.3: error: Syntax error at `u''': Unicode string contains 0 bytes, which is not in the valid range of 1 to 8 bytes."
+
+"lexer.sps:4.1-4.12: error: Syntax error at `u'012345678'': Unicode string contains 9 bytes, which is not in the valid range of 1 to 8 bytes."
+
+lexer.sps:5.1-5.7: error: Syntax error at `u'd800'': U+D800 is not a valid Unicode code point.
+
+lexer.sps:6.1-6.9: error: Syntax error at `u'110000'': U+110000 is not a valid Unicode code point.
+
+lexer.sps:7.1-7.4: error: Syntax error at `'foo': Unterminated string constant.
+
+lexer.sps:8.1-8.70: error: Syntax error at `'very long unterminated string that be ellipsized in its err...': Unterminated string constant.
+
+lexer.sps:9.1-9.2: error: Syntax error at `1e': Missing exponent following `1e'.
+
+lexer.sps:9.4: error: Syntax error at `.': Unexpected `.' in middle of command.
+
+lexer.sps:9: error: Unknown command `x'.
+
+lexer.sps:10.1: error: Syntax error at ``': Bad character ``' in input.
+
+lexer.sps:11.1: error: Syntax error at `�': Bad character U+FFFD in input.
+])
+AT_CLEANUP

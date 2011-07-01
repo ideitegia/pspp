@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2009, 2010  Free Software Foundation
+   Copyright (C) 2006, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -489,7 +489,7 @@ psppire_var_store_clear (PsppireSheetModel *model,  glong row, glong col)
   switch (col)
     {
     case PSPPIRE_VAR_STORE_COL_LABEL:
-      var_set_label (pv, NULL);
+      var_clear_label (pv);
       return TRUE;
       break;
     }
@@ -550,7 +550,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
             bool for_input
               = var_store->format_type == PSPPIRE_VAR_STORE_INPUT_FORMATS;
 	    struct fmt_spec fmt ;
-	    fmt = *var_get_write_format (pv);
+	    fmt = *var_get_print_format (pv);
 	    if ( width < fmt_min_width (fmt.type, for_input)
 		 ||
 		 width > fmt_max_width (fmt.type, for_input))
@@ -573,7 +573,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
 	struct fmt_spec fmt;
 	if ( ! text) return FALSE;
 	decimals = atoi (text);
-	fmt = *var_get_write_format (pv);
+	fmt = *var_get_print_format (pv);
 	if ( decimals >
 	     fmt_max_decimals (fmt.type,
                                fmt.w,
@@ -588,7 +588,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
       break;
     case PSPPIRE_VAR_STORE_COL_LABEL:
       {
-	var_set_label (pv, text);
+	var_set_label (pv, text, true);
 	return TRUE;
       }
       break;
@@ -616,22 +616,8 @@ text_for_column (PsppireVarStore *vs,
 		 const struct variable *pv, gint c, GError **err)
 {
   PsppireDict *dict = vs->dictionary;
-  static const gchar *const type_label[] =
-    {
-      N_("Numeric"),
-      N_("Comma"),
-      N_("Dot"),
-      N_("Scientific"),
-      N_("Date"),
-      N_("Dollar"),
-      N_("Custom"),
-      N_("String")
-    };
 
-  enum {VT_NUMERIC, VT_COMMA, VT_DOT, VT_SCIENTIFIC, VT_DATE, VT_DOLLAR,
-	VT_CUSTOM, VT_STRING};
-
-  const struct fmt_spec *write_spec = var_get_write_format (pv);
+  const struct fmt_spec *format = var_get_print_format (pv);
 
   switch (c)
     {
@@ -639,64 +625,13 @@ text_for_column (PsppireVarStore *vs,
       return xstrdup (var_get_name (pv));
       break;
     case PSPPIRE_VAR_STORE_COL_TYPE:
-      {
-	switch ( write_spec->type )
-	  {
-	  case FMT_F:
-	    return xstrdup (gettext (type_label[VT_NUMERIC]));
-	    break;
-	  case FMT_COMMA:
-	    return xstrdup (gettext (type_label[VT_COMMA]));
-	    break;
-	  case FMT_DOT:
-	    return xstrdup (gettext (type_label[VT_DOT]));
-	    break;
-	  case FMT_E:
-	    return xstrdup (gettext (type_label[VT_SCIENTIFIC]));
-	    break;
-	  case FMT_DATE:
-	  case FMT_EDATE:
-	  case FMT_SDATE:
-	  case FMT_ADATE:
-	  case FMT_JDATE:
-	  case FMT_QYR:
-	  case FMT_MOYR:
-	  case FMT_WKYR:
-	  case FMT_DATETIME:
-	  case FMT_TIME:
-	  case FMT_DTIME:
-	  case FMT_WKDAY:
-	  case FMT_MONTH:
-	    return xstrdup (gettext (type_label[VT_DATE]));
-	    break;
-	  case FMT_DOLLAR:
-	    return xstrdup (gettext (type_label[VT_DOLLAR]));
-	    break;
-	  case FMT_CCA:
-	  case FMT_CCB:
-	  case FMT_CCC:
-	  case FMT_CCD:
-	  case FMT_CCE:
-	    return xstrdup (gettext (type_label[VT_CUSTOM]));
-	    break;
-	  case FMT_A:
-	    return xstrdup (gettext (type_label[VT_STRING]));
-	    break;
-	  default:
-            {
-              char str[FMT_STRING_LEN_MAX + 1];
-              g_warning ("Unknown format: `%s'\n",
-                        fmt_to_string (write_spec, str));
-            }
-	    break;
-	  }
-      }
+      return xstrdup (fmt_gui_name (format->type));
       break;
     case PSPPIRE_VAR_STORE_COL_WIDTH:
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new (10);
-	g_string_printf (gstr, _("%d"), write_spec->w);
+	g_string_printf (gstr, _("%d"), format->w);
 	s = g_locale_to_utf8 (gstr->str, gstr->len, 0, 0, err);
 	g_string_free (gstr, TRUE);
 	return s;
@@ -706,7 +641,7 @@ text_for_column (PsppireVarStore *vs,
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new (10);
-	g_string_printf (gstr, _("%d"), write_spec->d);
+	g_string_printf (gstr, _("%d"), format->d);
 	s = g_locale_to_utf8 (gstr->str, gstr->len, 0, 0, err);
 	g_string_free (gstr, TRUE);
 	return s;
@@ -750,9 +685,10 @@ text_for_column (PsppireVarStore *vs,
 	    g_assert (vl);
 
 	    {
-	      gchar *const vstr = value_to_text (vl->value, dict, *write_spec);
+	      gchar *const vstr = value_to_text (vl->value, pv);
 
-	      return g_strdup_printf (_("{%s,`%s'}_"), vstr, val_lab_get_label (vl));
+	      return g_strdup_printf (_("{%s,`%s'}_"), vstr,
+                                      val_lab_get_escaped_label (vl));
 	    }
 	  }
       }
@@ -762,12 +698,12 @@ text_for_column (PsppireVarStore *vs,
 	const gint align = var_get_alignment (pv);
 
 	g_assert (align < n_ALIGNMENTS);
-	return xstrdup (gettext (alignments[align]));
+	return xstrdup (alignment_to_string (align));
       }
       break;
     case PSPPIRE_VAR_STORE_COL_MEASURE:
       {
-	return xstrdup (measure_to_string (pv, err));
+	return xstrdup (measure_to_string (var_get_measure (pv)));
       }
       break;
     }

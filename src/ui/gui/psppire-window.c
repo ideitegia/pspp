@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009, 2010  Free Software Foundation
+   Copyright (C) 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,13 +16,9 @@
 
 #include <config.h>
 
+#include "psppire-window.h"
 
-#include <gtk/gtkstock.h>
-#include <gtk/gtkmessagedialog.h>
-#include <gtk/gtksignal.h>
-#include <gtk/gtkwindow.h>
-#include <gtk/gtkcheckmenuitem.h>
-#include <gtk/gtkmain.h>
+#include <gtk/gtk.h>
 
 #include <stdlib.h>
 #include <xalloc.h>
@@ -31,9 +27,16 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-#include "psppire-window.h"
-#include "psppire-window-register.h"
+#include "data/any-reader.h"
+#include "data/dataset.h"
+
+#include "helper.h"
 #include "psppire-conf.h"
+#include "psppire-data-window.h"
+#include "psppire-encoding-selector.h"
+#include "psppire-syntax-window.h"
+#include "psppire-window-register.h"
+#include "psppire.h"
 
 static void psppire_window_base_finalize (PsppireWindowClass *, gpointer);
 static void psppire_window_base_init     (PsppireWindowClass *class);
@@ -77,7 +80,8 @@ enum
 {
   PROP_0,
   PROP_FILENAME,
-  PROP_DESCRIPTION
+  PROP_DESCRIPTION,
+  PROP_ID
 };
 
 
@@ -87,23 +91,85 @@ uniquify (const gchar *str, int *x)
   return g_strdup_printf ("%s%d", str, (*x)++);
 }
 
-static gchar mdash[6] = {0,0,0,0,0,0};
-
 static void
 psppire_window_set_title (PsppireWindow *window)
 {
   GString *title = g_string_sized_new (80);
 
-  g_string_printf (title, _("%s %s PSPPIRE %s"),
-		   window->basename ? window->basename : "",
-		   mdash, window->description);
-
   if (window->dirty)
-    g_string_prepend_c (title, '*');
+    g_string_append_c (title, '*');
+
+  if (window->basename || window->id)
+    {
+      if (window->basename)
+        g_string_append_printf (title, "%s ", window->basename);
+
+      if (window->id != '\0')
+        g_string_append_printf (title, "[%s] ", window->id);
+
+      g_string_append_unichar (title, 0x2014); /* em dash */
+      g_string_append_c (title, ' '); /* em dash */
+    }
+
+  g_string_append_printf (title, "PSPPIRE %s", window->description);
 
   gtk_window_set_title (GTK_WINDOW (window), title->str);
 
   g_string_free (title, TRUE);
+}
+
+static void
+psppire_window_update_list_name (PsppireWindow *window)
+{
+  PsppireWindowRegister *reg = psppire_window_register_new ();
+  GString *candidate = g_string_sized_new (80);
+  int n;
+
+  n = 1;
+  do
+    {
+      /* Compose a name. */
+      g_string_truncate (candidate, 0);
+      if (window->filename)
+        {
+          gchar *display_filename = g_filename_display_name (window->filename);
+          g_string_append (candidate, display_filename);
+          g_free (display_filename);
+
+          if (window->id)
+            g_string_append_printf (candidate, " [%s]", window->id);
+        }
+      else if (window->id)
+        g_string_append_printf (candidate, "[%s]", window->id);
+      else
+        g_string_append (candidate, window->description);
+
+      if (n++ > 1)
+        g_string_append_printf (candidate, " #%d", n);
+
+      if (window->list_name && !strcmp (candidate->str, window->list_name))
+        {
+          /* Keep the existing name. */
+          g_string_free (candidate, TRUE);
+          return;
+        }
+    }
+  while (psppire_window_register_lookup (reg, candidate->str));
+
+  if (window->list_name)
+    psppire_window_register_remove (reg, window->list_name);
+
+  g_free (window->list_name);
+  window->list_name = g_string_free (candidate, FALSE);
+
+  psppire_window_register_insert (reg, window, window->list_name);
+}
+
+static void
+psppire_window_name_changed (PsppireWindow *window)
+{
+  psppire_window_set_title (window);
+  psppire_window_update_list_name (window);
 }
 
 static void
@@ -117,50 +183,24 @@ psppire_window_set_property (GObject         *object,
   switch (prop_id)
     {
     case PROP_DESCRIPTION:
+      g_free (window->description);
       window->description = g_value_dup_string (value);
       psppire_window_set_title (window);
       break;
     case PROP_FILENAME:
-      {
-	PsppireWindowRegister *reg = psppire_window_register_new ();
-
-	gchar *candidate_name ;
-
-	{
-	  const gchar *name = g_value_get_string (value);
-	  int x = 0;
-	  GValue def = {0};
-	  g_value_init (&def, pspec->value_type);
-
-	  if ( NULL == name)
-	    {
-	      g_param_value_set_default (pspec, &def);
-	      name = g_value_get_string (&def);
-	    }
-
-	  candidate_name = xstrdup (name);
-
-	  while ( psppire_window_register_lookup (reg, candidate_name))
-	    {
-	      free (candidate_name);
-	      candidate_name = uniquify (name, &x);
-	    }
-
-	  window->basename = g_filename_display_basename (candidate_name);
-
-	  g_value_unset (&def);
-	}
-
-	psppire_window_set_title (window);
-
-	if ( window->name)
-	  psppire_window_register_remove (reg, window->name);
-
-	free (window->name);
-	window->name = candidate_name;
-
-	psppire_window_register_insert (reg, window, window->name);
-      }
+      g_free (window->filename);
+      window->filename = g_value_dup_string (value);
+      g_free (window->basename);
+      window->basename = (window->filename
+                          ? g_filename_display_basename (window->filename)
+                          : NULL);
+      psppire_window_name_changed (window);
+      break;
+      break;
+    case PROP_ID:
+      g_free (window->id);
+      window->id = g_value_dup_string (value);
+      psppire_window_name_changed (window);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -180,10 +220,13 @@ psppire_window_get_property (GObject         *object,
   switch (prop_id)
     {
     case PROP_FILENAME:
-      g_value_set_string (value, window->name);
+      g_value_set_string (value, window->filename);
       break;
     case PROP_DESCRIPTION:
       g_value_set_string (value, window->description);
+      break;
+    case PROP_ID:
+      g_value_set_string (value, window->id);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -210,9 +253,12 @@ psppire_window_finalize (GObject *object)
 
   PsppireWindowRegister *reg = psppire_window_register_new ();
 
-  psppire_window_register_remove (reg, window->name);
-  free (window->name);
-  free (window->description);
+  psppire_window_register_remove (reg, window->list_name);
+  g_free (window->filename);
+  g_free (window->basename);
+  g_free (window->id);
+  g_free (window->description);
+  g_free (window->list_name);
 
   g_signal_handler_disconnect (psppire_window_register_new (),
 			       window->remove_handler);
@@ -226,28 +272,32 @@ psppire_window_finalize (GObject *object)
     G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
-
 static void
 psppire_window_class_init (PsppireWindowClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
   GParamSpec *description_spec =
-    g_param_spec_string ("description",
+    null_if_empty_param ("description",
 		       "Description",
 		       "A string describing the usage of the window",
-			 "??????", /*Should be overridden by derived classes */
+			 NULL, /*Should be overridden by derived classes */
 		       G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
 
   GParamSpec *filename_spec =
-    g_param_spec_string ("filename",
+    null_if_empty_param ("filename",
 		       "File name",
 		       "The name of the file associated with this window, if any",
-			 /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
-			 _("Untitled"),
+			 NULL,
 			 G_PARAM_CONSTRUCT | G_PARAM_READWRITE);
 
-  g_unichar_to_utf8 (0x2014, mdash);
+  GParamSpec *id_spec =
+    null_if_empty_param ("id",
+                         "Identifier",
+                         "The PSPP language identifier for the data associated "
+                         "with this window (e.g. dataset name)",
+			 NULL,
+			 G_PARAM_CONSTRUCT | G_PARAM_READWRITE);
 
   object_class->set_property = psppire_window_set_property;
   object_class->get_property = psppire_window_get_property;
@@ -259,6 +309,10 @@ psppire_window_class_init (PsppireWindowClass *class)
   g_object_class_install_property (object_class,
                                    PROP_FILENAME,
                                    filename_spec);
+
+  g_object_class_install_property (object_class,
+                                   PROP_ID,
+                                   id_spec);
 
   parent_class = g_type_class_peek_parent (class);
 }
@@ -304,9 +358,20 @@ menu_activate (GtkMenuItem *mi, gpointer data)
 static void
 insert_menuitem_into_menu (PsppireWindow *window, gpointer key)
 {
-  gchar *filename = g_filename_display_name (key);
-  GtkWidget *item = gtk_check_menu_item_new_with_label (filename);
+  gchar *filename;
+  GtkWidget *item;
 
+  /* Add a separator before adding the first real item.  If we add a separator
+     at any other time, sometimes GtkUIManager removes it. */
+  if (g_hash_table_size (window->menuitem_table) == 0)
+    {
+      GtkWidget *separator = gtk_separator_menu_item_new ();
+      gtk_widget_show (separator);
+      gtk_menu_shell_append (window->menu, separator);
+    }
+
+  filename = g_filename_display_name (key);
+  item = gtk_check_menu_item_new_with_label (filename);
   g_free (filename);
 
   g_signal_connect (item, "toggled", G_CALLBACK (menu_toggled), NULL);
@@ -389,6 +454,11 @@ on_delete (PsppireWindow *w, GdkEvent *event, gpointer user_data)
 	  break;
 	case GTK_RESPONSE_APPLY:
 	  psppire_window_save (w);
+          if (w->dirty)
+            {
+              /* Save failed, or user exited Save As dialog with Cancel. */
+              return TRUE;
+            }
 	  break;
 	case GTK_RESPONSE_REJECT:
 	  break;
@@ -405,9 +475,12 @@ on_delete (PsppireWindow *w, GdkEvent *event, gpointer user_data)
 static void
 psppire_window_init (PsppireWindow *window)
 {
-  window->name = NULL;
   window->menu = NULL;
-  window->description = xstrdup ("");
+  window->filename = NULL;
+  window->basename = NULL;
+  window->id = NULL;
+  window->description = NULL;
+  window->list_name = NULL;
 
   window->menuitem_table  = g_hash_table_new (g_str_hash, g_str_equal);
 
@@ -432,7 +505,6 @@ psppire_window_init (PsppireWindow *window)
 
   g_signal_connect (window, "realize",
 		    G_CALLBACK (on_realize), window);
-
 }
 
 /*
@@ -442,33 +514,30 @@ psppire_window_init (PsppireWindow *window)
 gint
 psppire_window_query_save (PsppireWindow *se)
 {
-  gchar *fn;
   gint response;
   GtkWidget *dialog;
   GtkWidget *cancel_button;
 
-  const gchar *description;
-  const gchar *filename = psppire_window_get_filename (se);
+  gchar *description;
 
   GTimeVal time;
 
   g_get_current_time (&time);
 
-  g_object_get (se, "description", &description, NULL);
-
-  g_return_val_if_fail (filename != NULL, GTK_RESPONSE_NONE);
-
-
-  fn = g_filename_display_basename (filename);
-
+  if (se->filename)
+    description = g_filename_display_basename (se->filename);
+  else if (se->id)
+    description = g_strdup (se->id);
+  else
+    description = g_strdup (se->description);
   dialog =
     gtk_message_dialog_new (GTK_WINDOW (se),
 			    GTK_DIALOG_MODAL,
 			    GTK_MESSAGE_WARNING,
 			    GTK_BUTTONS_NONE,
 			    _("Save the changes to `%s' before closing?"),
-			    fn);
-  g_free (fn);
+			    description);
+  g_free (description);
 
   g_object_set (dialog, "icon-name", "psppicon", NULL);
 
@@ -498,16 +567,15 @@ psppire_window_query_save (PsppireWindow *se)
 }
 
 
-
+/* The return value is encoded in the glib filename encoding. */
 const gchar *
 psppire_window_get_filename (PsppireWindow *w)
 {
-  const gchar *name = NULL;
-  g_object_get (w, "filename", &name, NULL);
-  return name;
+  return w->filename;
 }
 
 
+/* FILENAME must be encoded in the glib filename encoding. */
 void
 psppire_window_set_filename (PsppireWindow *w, const gchar *filename)
 {
@@ -589,22 +657,42 @@ psppire_window_save (PsppireWindow *w)
 {
   PsppireWindowIface *i = PSPPIRE_WINDOW_MODEL_GET_IFACE (w);
 
-  g_assert (PSPPIRE_IS_WINDOW_MODEL (w));
-
   g_assert (i);
-
   g_return_if_fail (i->save);
 
-  i->save (w);
-
-  w->dirty = FALSE;
-  psppire_window_set_title (w);
+  if (w->filename == NULL)
+    psppire_window_save_as (w);
+  else
+    {
+      i->save (w);
+      w->dirty = FALSE;
+      psppire_window_set_title (w);
+    }
 }
 
-extern GtkRecentManager *the_recent_mgr;
+void
+psppire_window_save_as (PsppireWindow *w)
+{
+  PsppireWindowIface *i = PSPPIRE_WINDOW_MODEL_GET_IFACE (w);
+  gchar *old_filename;
 
-static void add_most_recent (const char *file_name, GtkRecentManager *rm);
-static void delete_recent (const char *file_name, GtkRecentManager *rm);
+  g_assert (i);
+  g_return_if_fail (i->pick_filename);
+
+  old_filename = w->filename;
+  w->filename = NULL;
+
+  i->pick_filename (w);
+  if (w->filename == NULL)
+    w->filename = old_filename;
+  else
+    {
+      g_free (old_filename);
+      psppire_window_save (w);
+    }
+}
+
+static void delete_recent (const char *file_name);
 
 gboolean
 psppire_window_load (PsppireWindow *w, const gchar *file)
@@ -623,28 +711,149 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
   if ( ok )
     {
       psppire_window_set_filename (w, file);
-      add_most_recent (file, the_recent_mgr);
       w->dirty = FALSE;
     }
   else
-    delete_recent (file, the_recent_mgr);
-
-  psppire_window_set_title (w);
+    delete_recent (file);
 
   return ok;
 }
 
+GtkWidget *
+psppire_window_file_chooser_dialog (PsppireWindow *toplevel)
+{
+  GtkWidget *dialog =
+    gtk_file_chooser_dialog_new (_("Open"),
+				 GTK_WINDOW (toplevel),
+				 GTK_FILE_CHOOSER_ACTION_OPEN,
+				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+				 GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+				 NULL);
 
-/* Puts FILE_NAME into the recent list.
-   If it's already in the list, it moves it to the top
-*/
-static void
-add_most_recent (const char *file_name, GtkRecentManager *rm)
+  GtkFileFilter *filter;
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Data and Syntax Files"));
+  gtk_file_filter_add_pattern (filter, "*.sav");
+  gtk_file_filter_add_pattern (filter, "*.SAV");
+  gtk_file_filter_add_pattern (filter, "*.por");
+  gtk_file_filter_add_pattern (filter, "*.POR");
+  gtk_file_filter_add_pattern (filter, "*.sps");
+  gtk_file_filter_add_pattern (filter, "*.SPS");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
+  gtk_file_filter_add_pattern (filter, "*.sav");
+  gtk_file_filter_add_pattern (filter, "*.SAV");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Portable Files (*.por) "));
+  gtk_file_filter_add_pattern (filter, "*.por");
+  gtk_file_filter_add_pattern (filter, "*.POR");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Syntax Files (*.sps) "));
+  gtk_file_filter_add_pattern (filter, "*.sps");
+  gtk_file_filter_add_pattern (filter, "*.SPS");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("All Files"));
+  gtk_file_filter_add_pattern (filter, "*");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  if (toplevel->filename)
+    {
+      const gchar *filename = toplevel->filename;
+      gchar *dir_name;
+
+      if ( ! g_path_is_absolute (filename))
+        {
+          gchar *path =
+            g_build_filename (g_get_current_dir (), filename, NULL);
+          dir_name = g_path_get_dirname (path);
+          g_free (path);
+        }
+      else
+        {
+          dir_name = g_path_get_dirname (filename);
+        }
+      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
+                                           dir_name);
+      free (dir_name);
+    }
+
+  gtk_file_chooser_set_extra_widget (
+    GTK_FILE_CHOOSER (dialog), psppire_encoding_selector_new ("Auto", true));
+
+  return dialog;
+}
+
+/* Callback for the file_open action.
+   Prompts for a filename and opens it */
+void
+psppire_window_open (PsppireWindow *de)
+{
+  GtkWidget *dialog = psppire_window_file_chooser_dialog (de);
+
+  switch (gtk_dialog_run (GTK_DIALOG (dialog)))
+    {
+    case GTK_RESPONSE_ACCEPT:
+      {
+	gchar *name =
+	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+
+	gchar *sysname = convert_glib_filename_to_system_filename (name, NULL);
+
+        gchar *encoding = psppire_encoding_selector_get_encoding (
+          gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (dialog)));
+
+	if (any_reader_may_open (sysname))
+          open_data_window (de, name);
+	else
+	  open_syntax_window (name, encoding);
+
+        g_free (encoding);
+	g_free (sysname);
+	g_free (name);
+      }
+      break;
+    default:
+      break;
+    }
+
+  gtk_widget_destroy (dialog);
+}
+
+
+/* Puts FILE_NAME (encoded in the glib file name encoding) into the recent list
+   with associated MIME_TYPE.  If it's already in the list, it moves it to the
+   top. */
+void
+add_most_recent (const char *file_name, const char *mime_type)
 {
   gchar *uri = g_filename_to_uri  (file_name, NULL, NULL);
 
   if ( uri )
-    gtk_recent_manager_add_item (rm, uri);
+    {
+      GtkRecentData recent_data;
+
+      recent_data.display_name = NULL;
+      recent_data.description = NULL;
+      recent_data.mime_type = CONST_CAST (gchar *, mime_type);
+      recent_data.app_name = CONST_CAST (gchar *, g_get_application_name ());
+      recent_data.app_exec = g_strjoin (" ", g_get_prgname (), "%u", NULL);
+      recent_data.groups = NULL;
+      recent_data.is_private = FALSE;
+
+      gtk_recent_manager_add_full (gtk_recent_manager_get_default (),
+                                   uri, &recent_data);
+
+      g_free (recent_data.app_exec);
+    }
 
   g_free (uri);
 }
@@ -655,12 +864,12 @@ add_most_recent (const char *file_name, GtkRecentManager *rm)
    If FILE_NAME exists in the recent list, then  delete it.
  */
 static void
-delete_recent (const char *file_name, GtkRecentManager *rm)
+delete_recent (const char *file_name)
 {
   gchar *uri = g_filename_to_uri  (file_name, NULL, NULL);
 
   if ( uri )
-    gtk_recent_manager_remove_item (rm, uri, NULL);
+    gtk_recent_manager_remove_item (gtk_recent_manager_get_default (), uri, NULL);
 
   g_free (uri);
 }

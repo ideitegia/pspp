@@ -1,5 +1,5 @@
 /* Pspp - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,23 +22,22 @@
 #include <gsl/gsl_cdf.h>
 #include <math.h>
 
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/subcase.h>
-#include <data/variable.h>
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/subcase.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/hmap.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "math/sort.h"
+#include "output/tab.h"
 
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/hmap.h>
-#include <math/sort.h>
-
-
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 
 /* Returns true iff the independent variable lies in the range [nst->val1, nst->val2] */
@@ -224,7 +223,6 @@ kruskal_wallis_execute (const struct dataset *ds,
 }
 
 
-#include <output/tab.h>
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 

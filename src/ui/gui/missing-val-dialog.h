@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005  Free Software Foundation
+   Copyright (C) 2005, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,9 +31,6 @@ struct missing_val_dialog
 
   /* The variable whose missing values are to be updated */
   struct variable *pv;
-
-  /* The dictionary to which that value belongs */
-  PsppireDict *dict;
 
   /* local copy */
   struct missing_values mvl;

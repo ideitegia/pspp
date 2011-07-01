@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,13 +16,13 @@
 
 #include <config.h>
 
-#include <libpspp/tower.h>
+#include "libpspp/tower.h"
 
 #include <limits.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
-#include <libpspp/compiler.h>
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
 
 static struct tower_node *abt_to_tower_node (const struct abt_node *);
 static struct tower_node *first_node (const struct tower *);

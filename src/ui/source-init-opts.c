@@ -26,11 +26,10 @@
 #include "data/por-file-reader.h"
 #include "data/settings.h"
 #include "data/sys-file-reader.h"
-#include "language/syntax-file.h"
-#include "language/syntax-string-source.h"
+#include "language/lexer/include-path.h"
+#include "language/lexer/lexer.h"
 #include "libpspp/assertion.h"
 #include "libpspp/argv-parser.h"
-#include "libpspp/getl.h"
 #include "libpspp/llx.h"
 #include "libpspp/message.h"
 #include "ui/syntax-gen.h"
@@ -62,10 +61,8 @@ static const struct argv_option source_init_options[N_SOURCE_INIT_OPTIONS] =
   };
 
 static void
-source_init_option_callback (int id, void *ss_)
+source_init_option_callback (int id, void *aux UNUSED)
 {
-  struct source_stream *ss = ss_;
-
   switch (id)
     {
     case OPT_ALGORITHM:
@@ -82,13 +79,13 @@ source_init_option_callback (int id, void *ss_)
 
     case OPT_INCLUDE:
       if (!strcmp (optarg, "-"))
-	getl_clear_include_path (ss);
+        include_path_clear ();
       else
-	getl_add_include_dir (ss, optarg);
+        include_path_add (optarg);
       break;
 
     case OPT_NO_INCLUDE:
-      getl_clear_include_path (ss);
+      include_path_clear ();
       break;
 
     case OPT_SAFER:
@@ -113,9 +110,8 @@ source_init_option_callback (int id, void *ss_)
 }
 
 void
-source_init_register_argv_parser (struct argv_parser *ap,
-                                  struct source_stream *ss)
+source_init_register_argv_parser (struct argv_parser *ap)
 {
   argv_parser_add_options (ap, source_init_options, N_SOURCE_INIT_OPTIONS,
-                           source_init_option_callback, ss);
+                           source_init_option_callback, NULL);
 }

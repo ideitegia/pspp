@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,29 +19,29 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include <data/attributes.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <data/format.h>
-#include <data/missing-values.h>
-#include <data/procedure.h>
-#include <data/sys-file-reader.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <data/vector.h>
-#include <language/command.h>
-#include <language/data-io/file-handle.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/array.h>
-#include <libpspp/message.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <output/tab.h>
+#include "data/attributes.h"
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/format.h"
+#include "data/missing-values.h"
+#include "data/sys-file-reader.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "data/vector.h"
+#include "language/command.h"
+#include "language/data-io/file-handle.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/array.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/string-array.h"
+#include "output/tab.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -75,9 +75,9 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   int r, i;
 
   lex_match_id (lexer, "FILE");
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
-  h = fh_parse (lexer, FH_REF_FILE);
+  h = fh_parse (lexer, FH_REF_FILE, NULL);
   if (!h)
     return CMD_FAILURE;
 
@@ -138,8 +138,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 
 
   tab_text (t, 0, 10, TAB_LEFT, _("Charset:"));
-  tab_text (t, 1, 10, TAB_LEFT,
-            dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
+  tab_text (t, 1, 10, TAB_LEFT, dict_get_encoding (d));
 
 
   tab_submit (t);
@@ -164,7 +163,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   dict_destroy (d);
 
   fh_unref (h);
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* DISPLAY utility. */
@@ -195,12 +194,10 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
 	return CMD_FAILURE;
       if (dict_get_label (dataset_dict (ds)) == NULL)
 	tab_output_text (TAB_LEFT,
-			 _("The active file does not have a file label."));
+			 _("The active dataset does not have a file label."));
       else
-	{
-	  tab_output_text (TAB_LEFT | TAT_TITLE, _("File label:"));
-	  tab_output_text (TAB_LEFT | TAB_FIX, dict_get_label (dataset_dict (ds)));
-	}
+        tab_output_text_format (TAB_LEFT, _("File label: %s"),
+                                dict_get_label (dataset_dict (ds)));
     }
   else
     {
@@ -211,7 +208,7 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
       if (lex_match_id (lexer, "VECTORS"))
 	{
 	  display_vectors (dataset_dict(ds), sorted);
-	  return lex_end_of_command (lexer);
+	  return CMD_SUCCESS;
 	}
       else if (lex_match_id (lexer, "SCRATCH")) 
         {
@@ -247,11 +244,11 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
                 break;
               }
 
-          lex_match (lexer, '/');
+          lex_match (lexer, T_SLASH);
           lex_match_id (lexer, "VARIABLES");
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 
-          if (lex_token (lexer) != '.')
+          if (lex_token (lexer) != T_ENDCMD)
             {
               if (!parse_variables_const (lexer, dataset_dict (ds), &vl, &n,
                                           PV_NONE))
@@ -281,7 +278,7 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
                                       flags);
     }
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 static void
@@ -293,24 +290,19 @@ display_macros (void)
 static void
 display_documents (const struct dictionary *dict)
 {
-  const char *documents = dict_get_documents (dict);
+  const struct string_array *documents = dict_get_documents (dict);
 
-  if (documents == NULL)
-    tab_output_text (TAB_LEFT, _("The active file dictionary does not "
+  if (string_array_is_empty (documents))
+    tab_output_text (TAB_LEFT, _("The active dataset dictionary does not "
                                  "contain any documents."));
   else
     {
-      struct string line = DS_EMPTY_INITIALIZER;
       size_t i;
 
       tab_output_text (TAB_LEFT | TAT_TITLE,
-		       _("Documents in the active file:"));
+		       _("Documents in the active dataset:"));
       for (i = 0; i < dict_get_document_line_cnt (dict); i++)
-        {
-          dict_get_document_line (dict, i, &line);
-          tab_output_text (TAB_LEFT | TAB_FIX, ds_cstr (&line));
-        }
-      ds_destroy (&line);
+        tab_output_text (TAB_LEFT | TAB_FIX, dict_get_document_line (dict, i));
     }
 }
 
@@ -401,7 +393,7 @@ display_attributes (struct tab_table *t, const struct attrset *set, int flags,
       for (i = 0; i < n_values; i++)
         {
           if (n_values > 1)
-            tab_text_format (t, c, r, TAB_LEFT, "%s[%d]", name, i + 1);
+            tab_text_format (t, c, r, TAB_LEFT, "%s[%zu]", name, i + 1);
           else
             tab_text (t, c, r, TAB_LEFT, name);
           tab_text (t, c + 1, r, TAB_LEFT, attribute_get_value (attr, i));
@@ -589,19 +581,9 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
       for (i = 0; i < n_labels; i++)
         {
           const struct val_lab *vl = labels[i];
-	  char buf[MAX_STRING + 1];
 
-	  if (var_is_alpha (v))
-	    {
-              int width = var_get_width (v);
-	      memcpy (buf, value_str (&vl->value, width), width);
-	      buf[width] = 0;
-	    }
-	  else
-	    sprintf (buf, "%g", vl->value.f);
-
-	  tab_text (t, 1, r, TAB_NONE, buf);
-	  tab_text (t, 2, r, TAB_LEFT, val_lab_get_label (vl));
+	  tab_value (t, 1, r, TAB_NONE, &vl->value, v, NULL);
+	  tab_text (t, 2, r, TAB_LEFT, val_lab_get_escaped_label (vl));
 	  r++;
 	}
       free (labels);

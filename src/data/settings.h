@@ -92,12 +92,6 @@ void settings_set_mprint (bool);
 int settings_get_mxloops (void);
 void settings_set_mxloops ( int);
 
-bool settings_get_nulline (void);
-void settings_set_nulline (bool);
-
-char settings_get_endcmd (void);
-void settings_set_endcmd (char);
-
 size_t settings_get_workspace (void);
 size_t settings_get_workspace_cases (const struct caseproto *);
 void settings_set_workspace (size_t);

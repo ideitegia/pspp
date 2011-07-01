@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2005, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2005, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,33 +20,199 @@
 */
 
 #include <config.h>
-#include "identifier.h"
 
+#include "data/identifier.h"
 
-#include <assert.h>
 #include <string.h>
-#include <libpspp/assertion.h>
+#include <unictype.h>
+
+#include "libpspp/assertion.h"
+
+#include "gl/c-ctype.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
+/* Tokens. */
+
+/* Returns TYPE as a string, e.g. "ID" for T_ID. */
+const char *
+token_type_to_name (enum token_type type)
+{
+  switch (type)
+    {
+#define TOKEN_TYPE(TYPE) case T_##TYPE: return #TYPE;
+      TOKEN_TYPES
+#undef TOKEN_TYPE
+    case TOKEN_N_TYPES:
+    default:
+      return "unknown token type";
+    }
+}
+
+/* Returns an ASCII string that yields TOKEN if it appeared in a syntax file,
+   as a statically allocated constant string.  This function returns NULL for
+   tokens that don't have any fixed string representation, such as identifier
+   and number tokens. */
+const char *
+token_type_to_string (enum token_type token)
+{
+  switch (token)
+    {
+    case T_ID:
+    case T_POS_NUM:
+    case T_NEG_NUM:
+    case T_STRING:
+    case T_STOP:
+      return NULL;
+
+    case T_ENDCMD:
+      return ".";
+
+    case T_PLUS:
+      return "+";
+
+    case T_DASH:
+      return "-";
+
+    case T_ASTERISK:
+      return "*";
+
+    case T_SLASH:
+      return "/";
+
+    case T_EQUALS:
+      return "=";
+
+    case T_LPAREN:
+      return "(";
+
+    case T_RPAREN:
+      return ")";
+
+    case T_LBRACK:
+      return "[";
+
+    case T_RBRACK:
+      return "]";
+
+    case T_COMMA:
+      return ",";
+
+    case T_AND:
+      return "AND";
+
+    case T_OR:
+      return "OR";
+
+    case T_NOT:
+      return "NOT";
+
+    case T_EQ:
+      return "EQ";
+
+    case T_GE:
+      return ">=";
+
+    case T_GT:
+      return ">";
+
+    case T_LE:
+      return "<=";
+
+    case T_LT:
+      return "<";
+
+    case T_NE:
+      return "~=";
+
+    case T_ALL:
+      return "ALL";
+
+    case T_BY:
+      return "BY";
+
+    case T_TO:
+      return "TO";
+
+    case T_WITH:
+      return "WITH";
+
+    case T_EXP:
+      return "**";
+
+    case TOKEN_N_TYPES:
+      NOT_REACHED ();
+    }
+
+  NOT_REACHED ();
+}
 
 /* Recognizing identifiers. */
 
-/* Returns true if C may be the first character in an
+static bool
+is_ascii_id1 (unsigned char c)
+{
+  return c_isalpha (c) || c == '@' || c == '#' || c == '$';
+}
+
+static bool
+is_ascii_idn (unsigned char c)
+{
+  return is_ascii_id1 (c) || isdigit (c) || c == '.' || c == '_';
+}
+
+/* Returns true if C may be the first byte in an identifier in the current
+   locale.
+
+   (PSPP is transitioning to using Unicode internally for syntax, so please
+   use lex_uc_is_id1() instead, if possible.) */
+bool
+lex_is_id1 (char c)
+{
+  return is_ascii_id1 (c) || (unsigned char) c >= 128;
+}
+
+/* Returns true if C may be a byte in an identifier other than the first.
+
+   (PSPP is transitioning to using Unicode internally for syntax, so please
+   use lex_uc_is_idn() instead, if possible.) */
+bool
+lex_is_idn (char c)
+{
+  return is_ascii_idn (c) || (unsigned char) c >= 128;
+}
+
+/* Returns true if Unicode code point UC may be the first character in an
    identifier in the current locale. */
 bool
-lex_is_id1 (char c_)
+lex_uc_is_id1 (ucs4_t uc)
 {
-  unsigned char c = c_;
-  return isalpha (c) || c == '@' || c == '#' || c == '$' || c >= 128;
+  return is_ascii_id1 (uc) || (uc >= 0x80 && uc_is_property_id_start (uc));
 }
 
-
-/* Returns true if C may be a character in an identifier other
-   than the first. */
+/* Returns true if Unicode code point UC may be a character in an identifier
+   other than the first. */
 bool
-lex_is_idn (char c_)
+lex_uc_is_idn (ucs4_t uc)
 {
-  unsigned char c = c_;
-  return lex_is_id1 (c) || isdigit (c) || c == '.' || c == '_';
+  return (is_ascii_id1 (uc) || isdigit (uc) || uc == '.' || uc == '_'
+          || (uc >= 0x80 && uc_is_property_id_continue (uc)));
 }
+
+/* Returns true if Unicode code point UC is a space that separates tokens. */
+bool
+lex_uc_is_space (ucs4_t uc)
+{
+  /* These are all of the Unicode characters in category Zs, Zl, or Zp.  */
+  return (uc == ' ' || (uc <= 0x000d && uc >= 0x0009)
+          || (uc >= 0x80
+              && (uc == 0xa0 || uc == 0x85 || uc == 0x1680 || uc == 0x180e
+                  || (uc >= 0x2000 && uc <= 0x200a)
+                  || uc == 0x2028 || uc == 0x2029 || uc == 0x202f
+                  || uc == 0x205f || uc == 0x3000)));
+}
+
 
 /* Returns the length of the longest prefix of STRING that forms
    a valid identifier.  Returns zero if STRING does not begin
@@ -71,7 +237,10 @@ lex_id_get_length (struct substring string)
 
    Keywords match if one of the following is true: KEYWORD and
    TOKEN are identical, or TOKEN is at least 3 characters long
-   and those characters are identical to KEYWORD. */
+   and those characters are identical to KEYWORD.  (Letters that
+   differ only in case are considered identical.)
+
+   KEYWORD must be ASCII, but TOKEN may be ASCII or UTF-8. */
 bool
 lex_id_match (struct substring keyword, struct substring token)
 {
@@ -79,7 +248,9 @@ lex_id_match (struct substring keyword, struct substring token)
 }
 
 /* Returns true if TOKEN is a case-insensitive match for at least
-   the first N characters of KEYWORD. */
+   the first N characters of KEYWORD.
+
+   KEYWORD must be ASCII, but TOKEN may be ASCII or UTF-8. */
 bool
 lex_id_match_n (struct substring keyword, struct substring token, size_t n)
 {
@@ -119,7 +290,7 @@ static const size_t keyword_cnt = sizeof keywords / sizeof *keywords;
 
 /* Returns true if TOKEN is representable as a keyword. */
 bool
-lex_is_keyword (int token)
+lex_is_keyword (enum token_type token)
 {
   const struct keyword *kw;
   for (kw = keywords; kw < &keywords[keyword_cnt]; kw++)
@@ -142,21 +313,4 @@ lex_id_to_token (struct substring id)
     }
 
   return T_ID;
-}
-
-/* Returns the name for the given keyword token type. */
-const char *
-lex_id_name (int token)
-{
-  const struct keyword *kw;
-
-  for (kw = keywords; kw < &keywords[keyword_cnt]; kw++)
-    if (kw->token == token)
-      {
-        /* A "struct substring" is not guaranteed to be
-           null-terminated, as our caller expects, but in this
-           case it always will be. */
-        return ss_data (kw->identifier);
-      }
-  NOT_REACHED ();
 }

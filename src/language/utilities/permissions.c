@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,18 +15,20 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <libpspp/message.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
+
 #include <errno.h>
-#include <data/settings.h>
-#include <language/command.h>
-#include <libpspp/message.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "data/settings.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -42,24 +44,24 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   char  *fn = 0;
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
 
   if (lex_match_id (lexer, "FILE"))
-    lex_match (lexer, '=');
+    lex_match (lexer, T_EQUALS);
 
   if (!lex_force_string (lexer))
     return CMD_FAILURE;
 
-  fn = ds_xstrdup (lex_tokstr (lexer));
+  fn = ss_xstrdup (lex_tokss (lexer));
   lex_force_match (lexer, T_STRING);
 
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
 
   if ( ! lex_match_id (lexer, "PERMISSIONS"))
     goto error;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if ( lex_match_id (lexer, "READONLY"))
     {
@@ -93,20 +95,23 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
 int
 change_permissions (const char *file_name, enum PER per)
 {
+  char *locale_file_name;
   struct stat buf;
   mode_t mode;
 
   if (settings_get_safer_mode ())
     {
       msg (SE, _("This command not allowed when the SAFER option is set."));
-      return CMD_FAILURE;
+      return 0;
     }
 
 
-  if ( -1 == stat(file_name, &buf) )
+  locale_file_name = utf8_to_filename (file_name);
+  if ( -1 == stat(locale_file_name, &buf) )
     {
       const int errnum = errno;
       msg (SE, _("Cannot stat %s: %s"), file_name, strerror(errnum));
+      free (locale_file_name);
       return 0;
     }
 
@@ -115,13 +120,16 @@ change_permissions (const char *file_name, enum PER per)
   else
     mode = buf.st_mode & ~0222;
 
-  if ( -1 == chmod(file_name, mode))
+  if ( -1 == chmod(locale_file_name, mode))
 
     {
       const int errnum = errno;
       msg (SE, _("Cannot change mode of %s: %s"), file_name, strerror(errnum));
+      free (locale_file_name);
       return 0;
     }
+
+  free (locale_file_name);
 
   return 1;
 }

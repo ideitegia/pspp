@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,15 +19,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/procedure.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -35,15 +35,16 @@
 int
 cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
+
   do
     {
       struct variable **v;
-      struct string label;
       size_t nv;
 
       size_t i;
 
-      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
+      if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
       if (!lex_force_string (lexer))
@@ -52,22 +53,15 @@ cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 	  return CMD_FAILURE;
 	}
 
-      ds_init_string (&label, lex_tokstr (lexer) );
-      if (ds_length (&label) > 255)
-	{
-	  msg (SW, _("Truncating variable label to 255 characters."));
-	  ds_truncate (&label, 255);
-	}
       for (i = 0; i < nv; i++)
-        var_set_label (v[i], ds_cstr (&label));
-      ds_destroy (&label);
+        var_set_label (v[i], lex_tokcstr (lexer), i == 0);
 
       lex_get (lexer);
-      while (lex_token (lexer) == '/')
+      while (lex_token (lexer) == T_SLASH)
 	lex_get (lexer);
       free (v);
     }
-  while (lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_ENDCMD);
   return CMD_SUCCESS;
 }
 

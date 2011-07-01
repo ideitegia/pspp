@@ -20,18 +20,18 @@
 
 #include "data/case.h"
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
-#include "data/procedure.h"
 #include "data/transformations.h"
 #include "data/variable.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
 #include "language/lexer/variable-parser.h"
 #include "libpspp/array.h"
-#include "libpspp/i18n.h"
 #include "libpspp/compiler.h"
 #include "libpspp/hash-functions.h"
 #include "libpspp/hmap.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/pool.h"
 #include "libpspp/str.h"
@@ -113,14 +113,15 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 
   /* Parse variable lists. */
   lex_match_id (lexer, "VARIABLES");
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!parse_variables_const (lexer, dict, &src_vars, &n_srcs,
                               PV_NO_DUPLICATE))
     goto error;
   if (!lex_force_match_id (lexer, "INTO"))
     goto error;
-  lex_match (lexer, '=');
-  if (!parse_DATA_LIST_vars (lexer, &dst_names, &n_dsts, PV_NO_DUPLICATE))
+  lex_match (lexer, T_EQUALS);
+  if (!parse_DATA_LIST_vars (lexer, dict, &dst_names, &n_dsts,
+                             PV_NO_DUPLICATE))
     goto error;
   if (n_dsts != n_srcs)
     {
@@ -143,7 +144,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
     }
 
   /* Parse options. */
-  while (lex_match (lexer, '/'))
+  while (lex_match (lexer, T_SLASH))
     {
       if (lex_match_id (lexer, "DESCENDING"))
 	direction = DESCENDING;
@@ -156,7 +157,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
-  if (lex_token (lexer) != '.')
+  if (lex_token (lexer) != T_ENDCMD)
     {
       lex_error (lexer, _("expecting end of command"));
       goto error;

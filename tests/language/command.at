@@ -7,9 +7,9 @@ DATA rubbish.
 EXECUTE.
 ])
 AT_CHECK([pspp -O format=csv command.sps], [1], [dnl
-command.sps:1: error: Unknown command DATA RUBBISH.
+command.sps:1: error: Unknown command `DATA rubbish'.
 
-command.sps:2: error: EXECUTE: EXECUTE is allowed only after the active file has been defined.
+command.sps:2: error: EXECUTE: EXECUTE is allowed only after the active dataset has been defined.
 ])
 AT_CLEANUP
 

@@ -1,0 +1,234 @@
+AT_BANNER([command name matching])
+
+AT_SETUP([single words])
+AT_KEYWORDS([command name matching])
+AT_CHECK([command-name-test DESCRIPTIVES , DESCRIPTIVESX DESCRIPTIVES descr Des DEX DE '' 'DESCRIPTIVES MORE' 'DESCRIPTIVES@<00A0>@MORE'],
+  [0], [dnl
+string="DESCRIPTIVESX":
+	command="DESCRIPTIVES" match=no
+match: none, missing_words=0
+
+string="DESCRIPTIVES":
+	command="DESCRIPTIVES" match=yes exact=yes missing_words=0
+match: DESCRIPTIVES, missing_words=0
+
+string="descr":
+	command="DESCRIPTIVES" match=yes exact=no missing_words=0
+match: DESCRIPTIVES, missing_words=0
+
+string="Des":
+	command="DESCRIPTIVES" match=yes exact=no missing_words=0
+match: DESCRIPTIVES, missing_words=0
+
+string="DEX":
+	command="DESCRIPTIVES" match=no
+match: none, missing_words=0
+
+string="DE":
+	command="DESCRIPTIVES" match=no
+match: none, missing_words=0
+
+string="":
+	command="DESCRIPTIVES" match=yes exact=yes missing_words=1
+match: none, missing_words=1
+
+string="DESCRIPTIVES MORE":
+	command="DESCRIPTIVES" match=yes exact=yes missing_words=-1
+match: DESCRIPTIVES, missing_words=-1
+
+string="DESCRIPTIVES@<00A0>@MORE":
+	command="DESCRIPTIVES" match=yes exact=yes missing_words=-1
+match: DESCRIPTIVES, missing_words=-1
+])
+AT_CLEANUP
+
+AT_SETUP([two words without prefix match])
+AT_KEYWORDS([command name matching])
+AT_CHECK([command-name-test 'DO IF' 'DO REPEAT' , 'DO@<00A0>@IF' 'DO REPEAT' 'DO REP' 'DO OTHER' 'D IF' 'DO I' DO],
+  [0], [dnl
+string="DO@<00A0>@IF":
+	command="DO IF" match=yes exact=yes missing_words=0
+	command="DO REPEAT" match=no
+match: DO IF, missing_words=0
+
+string="DO REPEAT":
+	command="DO IF" match=no
+	command="DO REPEAT" match=yes exact=yes missing_words=0
+match: DO REPEAT, missing_words=0
+
+string="DO REP":
+	command="DO IF" match=no
+	command="DO REPEAT" match=yes exact=no missing_words=0
+match: DO REPEAT, missing_words=0
+
+string="DO OTHER":
+	command="DO IF" match=no
+	command="DO REPEAT" match=no
+match: none, missing_words=0
+
+string="D IF":
+	command="DO IF" match=no
+	command="DO REPEAT" match=no
+match: none, missing_words=0
+
+string="DO I":
+	command="DO IF" match=no
+	command="DO REPEAT" match=no
+match: none, missing_words=0
+
+string="DO":
+	command="DO IF" match=yes exact=yes missing_words=1
+	command="DO REPEAT" match=yes exact=yes missing_words=1
+match: none, missing_words=1
+])
+AT_CLEANUP
+
+AT_SETUP([two words with prefix match])
+AT_KEYWORDS([command name matching])
+AT_CHECK([command-name-test GET 'GET DATA' , GET 'GET TYPE' 'GET DAT' 'GET DATA'],
+  [0], [dnl
+string="GET":
+	command="GET" match=yes exact=yes missing_words=0
+	command="GET DATA" match=yes exact=yes missing_words=1
+match: none, missing_words=1
+
+string="GET TYPE":
+	command="GET" match=yes exact=yes missing_words=-1
+	command="GET DATA" match=no
+match: GET, missing_words=-1
+
+string="GET DAT":
+	command="GET" match=yes exact=yes missing_words=-1
+	command="GET DATA" match=yes exact=no missing_words=0
+match: GET DATA, missing_words=0
+
+string="GET DATA":
+	command="GET" match=yes exact=yes missing_words=-1
+	command="GET DATA" match=yes exact=yes missing_words=0
+match: GET DATA, missing_words=0
+])
+AT_CLEANUP
+
+AT_SETUP([ambiguous single-word names])
+AT_KEYWORDS([command name matching])
+AT_CHECK([command-name-test CASEPLOT CASESTOVARS , CAS Case CaseP CaseS], [0],
+  [dnl
+string="CAS":
+	command="CASEPLOT" match=yes exact=no missing_words=0
+	command="CASESTOVARS" match=yes exact=no missing_words=0
+match: none, missing_words=0
+
+string="Case":
+	command="CASEPLOT" match=yes exact=no missing_words=0
+	command="CASESTOVARS" match=yes exact=no missing_words=0
+match: none, missing_words=0
+
+string="CaseP":
+	command="CASEPLOT" match=yes exact=no missing_words=0
+	command="CASESTOVARS" match=no
+match: CASEPLOT, missing_words=0
+
+string="CaseS":
+	command="CASEPLOT" match=no
+	command="CASESTOVARS" match=yes exact=no missing_words=0
+match: CASESTOVARS, missing_words=0
+])
+AT_CLEANUP
+
+AT_SETUP([ambiguous two-word names])
+AT_KEYWORDS([command name matching])
+AT_CHECK([command-name-test VARCOMP VARSTOCASES 'VARIABLE ATTRIBUTE' , VAR VARC VARS VARI 'VAR@<00A0>@ATT'],
+  [0], [dnl
+string="VAR":
+	command="VARCOMP" match=yes exact=no missing_words=0
+	command="VARSTOCASES" match=yes exact=no missing_words=0
+	command="VARIABLE ATTRIBUTE" match=yes exact=no missing_words=1
+match: none, missing_words=1
+
+string="VARC":
+	command="VARCOMP" match=yes exact=no missing_words=0
+	command="VARSTOCASES" match=no
+	command="VARIABLE ATTRIBUTE" match=no
+match: VARCOMP, missing_words=0
+
+string="VARS":
+	command="VARCOMP" match=no
+	command="VARSTOCASES" match=yes exact=no missing_words=0
+	command="VARIABLE ATTRIBUTE" match=no
+match: VARSTOCASES, missing_words=0
+
+string="VARI":
+	command="VARCOMP" match=no
+	command="VARSTOCASES" match=no
+	command="VARIABLE ATTRIBUTE" match=yes exact=no missing_words=1
+match: none, missing_words=1
+
+string="VAR@<00A0>@ATT":
+	command="VARCOMP" match=yes exact=no missing_words=-1
+	command="VARSTOCASES" match=yes exact=no missing_words=-1
+	command="VARIABLE ATTRIBUTE" match=yes exact=no missing_words=0
+match: VARIABLE ATTRIBUTE, missing_words=0
+])
+AT_CLEANUP
+
+AT_SETUP([numbers and punctuation])
+AT_KEYWORDS([command name matching])
+AT_CHECK([command-name-test T-TEST 2SLS LIST , T-TEST 'T - Test' 2SLS '2 SLS' List],
+  [0], [dnl
+string="T-TEST":
+	command="T-TEST" match=yes exact=yes missing_words=0
+	command="2SLS" match=no
+	command="LIST" match=no
+match: T-TEST, missing_words=0
+
+string="T - Test":
+	command="T-TEST" match=yes exact=yes missing_words=0
+	command="2SLS" match=no
+	command="LIST" match=no
+match: T-TEST, missing_words=0
+
+string="2SLS":
+	command="T-TEST" match=no
+	command="2SLS" match=yes exact=yes missing_words=0
+	command="LIST" match=no
+match: 2SLS, missing_words=0
+
+string="2 SLS":
+	command="T-TEST" match=no
+	command="2SLS" match=yes exact=yes missing_words=0
+	command="LIST" match=no
+match: 2SLS, missing_words=0
+
+string="List":
+	command="T-TEST" match=no
+	command="2SLS" match=no
+	command="LIST" match=yes exact=yes missing_words=0
+match: LIST, missing_words=0
+])
+AT_CLEANUP
+
+AT_SETUP([off by more than one word])
+AT_KEYWORDS([command name matching])
+AT_CHECK([command-name-test 'a@<00A0>@b c' , a 'a b' 'a b c' 'a@<00A0>@b c d' 'a b c@<00A0>@d e'],
+  [0], [dnl
+string="a":
+	command="a@<00A0>@b c" match=yes exact=yes missing_words=2
+match: none, missing_words=1
+
+string="a b":
+	command="a@<00A0>@b c" match=yes exact=yes missing_words=1
+match: none, missing_words=1
+
+string="a b c":
+	command="a@<00A0>@b c" match=yes exact=yes missing_words=0
+match: a@<00A0>@b c, missing_words=0
+
+string="a@<00A0>@b c d":
+	command="a@<00A0>@b c" match=yes exact=yes missing_words=-1
+match: a@<00A0>@b c, missing_words=-1
+
+string="a b c@<00A0>@d e":
+	command="a@<00A0>@b c" match=yes exact=yes missing_words=-2
+match: a@<00A0>@b c, missing_words=-2
+])
+AT_CLEANUP

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,27 +21,26 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <data/data-in.h>
-#include <data/data-out.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/format-parser.h>
-#include <language/lexer/lexer.h>
-#include <language/prompt.h>
-#include <libpspp/compiler.h>
-#include <libpspp/copyleft.h>
-#include <libpspp/float-format.h>
-#include <libpspp/integer-format.h>
-#include <libpspp/message.h>
-#include <libpspp/i18n.h>
-#include <math/random.h>
-#include <output/driver.h>
-#include <output/journal.h>
+#include "data/data-in.h"
+#include "data/data-out.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/settings.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/format-parser.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/compiler.h"
+#include "libpspp/copyleft.h"
+#include "libpspp/float-format.h"
+#include "libpspp/i18n.h"
+#include "libpspp/integer-format.h"
+#include "libpspp/message.h"
+#include "math/random.h"
+#include "output/driver.h"
+#include "output/journal.h"
 
 #if HAVE_LIBTERMCAP
 #if HAVE_TERMCAP_H
@@ -70,10 +69,7 @@ int tgetnum (const char *);
      cce=string;
      compression=compress:on/off;
      cpi=integer "x>0" "%s must be greater than 0";
-     cprompt=string;
      decimal=dec:dot/comma;
-     dprompt=string;
-     endcmd=string "x==1" "one character long";
      epoch=custom;
      errors=custom;
      format=custom;
@@ -97,9 +93,7 @@ int tgetnum (const char *);
      mxloops=integer "x >=1" "%s must be at least 1";
      mxmemory=integer;
      mxwarns=integer;
-     nulline=null:on/off;
      printback=custom;
-     prompt=string;
      results=custom;
      rib=rib:msbfirst/lsbfirst/vax/native;
      rrb=rrb:native/isl/isb/idl/idb/vf/vd/vg/zs/zl;
@@ -148,26 +142,15 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
   if (cmd.sbc_cce)
     settings_set_cc ( cmd.s_cce, FMT_CCE);
 
-  if (cmd.sbc_prompt)
-    prompt_set (PROMPT_FIRST, cmd.s_prompt);
-  if (cmd.sbc_cprompt)
-    prompt_set (PROMPT_LATER, cmd.s_cprompt);
-  if (cmd.sbc_dprompt)
-    prompt_set (PROMPT_DATA, cmd.s_dprompt);
-
   if (cmd.sbc_decimal)
     settings_set_decimal_char (cmd.dec == STC_DOT ? '.' : ',');
 
-  if (cmd.sbc_endcmd)
-    settings_set_endcmd (cmd.s_endcmd[0]);
   if (cmd.sbc_include)
     settings_set_include (cmd.inc == STC_ON);
   if (cmd.sbc_mxerrs)
     settings_set_max_messages (MSG_S_ERROR, cmd.n_mxerrs[0]);
   if (cmd.sbc_mxwarns)
     settings_set_max_messages (MSG_S_WARNING, cmd.n_mxwarns[0]);
-  if (cmd.sbc_nulline)
-    settings_set_nulline (cmd.null == STC_ON);
   if (cmd.sbc_rib)
     settings_set_input_integer_format (stc_to_integer_format (cmd.rib));
   if (cmd.sbc_rrb)
@@ -271,7 +254,7 @@ set_output_routing (struct lexer *lexer, enum settings_output_type type)
 {
   enum settings_output_devices devices;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "ON") || lex_match_id (lexer, "BOTH"))
     devices = SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL;
   else if (lex_match_id (lexer, "TERMINAL"))
@@ -299,7 +282,7 @@ stc_custom_blanks (struct lexer *lexer,
 		   struct dataset *ds UNUSED,
 		   struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "SYSMIS"))
     {
       lex_get (lexer);
@@ -322,7 +305,7 @@ stc_custom_epoch (struct lexer *lexer,
 		  struct dataset *ds UNUSED,
 		  struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "AUTOMATIC"))
     settings_set_epoch (-1);
   else if (lex_is_integer (lexer))
@@ -357,7 +340,7 @@ stc_custom_length (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
 {
   int page_length;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "NONE"))
     page_length = -1;
   else
@@ -383,27 +366,26 @@ static int
 stc_custom_locale (struct lexer *lexer, struct dataset *ds UNUSED,
 		   struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  const struct string *s;
+  const char *s;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if ( !lex_force_string (lexer))
     return 0;
 
-  s = lex_tokstr (lexer);
+  s = lex_tokcstr (lexer);
 
   /* First try this string as an encoding name */
-  if ( valid_encoding (ds_cstr (s)))
-    set_default_encoding (ds_cstr (s));
+  if ( valid_encoding (s))
+    set_default_encoding (s);
 
   /* Now try as a locale name (or alias) */
-  else if (set_encoding_from_locale (ds_cstr (s)))
+  else if (set_encoding_from_locale (s))
     {
     }
   else
     {
-      msg (ME, _("%s is not a recognised encoding or locale name"),
-	   ds_cstr (s));
+      msg (ME, _("%s is not a recognized encoding or locale name"), s);
       return 0;
     }
 
@@ -436,7 +418,7 @@ stc_custom_results (struct lexer *lexer, struct dataset *ds UNUSED,
 static int
 stc_custom_seed (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "RANDOM"))
     set_rng (time (0));
   else
@@ -453,7 +435,7 @@ stc_custom_seed (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set 
 static int
 stc_custom_width (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "NARROW"))
     settings_set_viewwidth (79);
   else if (lex_match_id (lexer, "WIDE"))
@@ -481,7 +463,7 @@ stc_custom_format (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
 {
   struct fmt_spec fmt;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!parse_format_specifier (lexer, &fmt))
     return 0;
 
@@ -504,14 +486,17 @@ stc_custom_format (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
 static int
 stc_custom_journal (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (lex_match_id (lexer, "ON") || lex_match_id (lexer, "YES"))
     journal_enable ();
   else if (lex_match_id (lexer, "OFF") || lex_match_id (lexer, "NO"))
     journal_disable ();
   else if (lex_is_string (lexer) || lex_token (lexer) == T_ID)
     {
-      journal_set_file_name (ds_cstr (lex_tokstr (lexer)));
+      char *filename = utf8_to_filename (lex_tokcstr (lexer));
+      journal_set_file_name (filename);
+      free (filename);
+
       lex_get (lexer);
     }
   else
@@ -554,16 +539,16 @@ show_blanks (const struct dataset *ds UNUSED)
 }
 
 static void
-format_cc (struct string *out, struct substring in, char grouping)
+format_cc (struct string *out, const char *in, char grouping)
 {
-  while (!ss_is_empty (in))
+  while (*in != '\0')
     {
-      char c = ss_get_char (&in);
+      char c = *in++;
       if (c == grouping || c == '\'')
-        ds_put_char (out, '\'');
+        ds_put_byte (out, '\'');
       else if (c == '"')
-        ds_put_char (out, '"');
-      ds_put_char (out, c);
+        ds_put_byte (out, '"');
+      ds_put_byte (out, c);
     }
 }
 
@@ -574,13 +559,13 @@ show_cc (enum fmt_type type)
   struct string out;
 
   ds_init_empty (&out);
-  format_cc (&out, cc->neg_prefix, cc->grouping);
-  ds_put_char (&out, cc->grouping);
-  format_cc (&out, cc->prefix, cc->grouping);
-  ds_put_char (&out, cc->grouping);
-  format_cc (&out, cc->suffix, cc->grouping);
-  ds_put_char (&out, cc->grouping);
-  format_cc (&out, cc->neg_suffix, cc->grouping);
+  format_cc (&out, cc->neg_prefix.s, cc->grouping);
+  ds_put_byte (&out, cc->grouping);
+  format_cc (&out, cc->prefix.s, cc->grouping);
+  ds_put_byte (&out, cc->grouping);
+  format_cc (&out, cc->suffix.s, cc->grouping);
+  ds_put_byte (&out, cc->grouping);
+  format_cc (&out, cc->neg_suffix.s, cc->grouping);
 
   return ds_cstr (&out);
 }
@@ -619,12 +604,6 @@ static char *
 show_decimals (const struct dataset *ds UNUSED)
 {
   return xasprintf ("`%c'", settings_get_decimal_char (FMT_F));
-}
-
-static char *
-show_endcmd (const struct dataset *ds UNUSED)
-{
-  return xasprintf ("`%c'", settings_get_endcmd ());
 }
 
 static char *
@@ -811,7 +790,6 @@ const struct show_sbc show_table[] =
     {"CCD", show_ccd},
     {"CCE", show_cce},
     {"DECIMALS", show_decimals},
-    {"ENDCMD", show_endcmd},
     {"ERRORS", show_errors},
     {"FORMAT", show_format},
     {"LENGTH", show_length},
@@ -877,7 +855,7 @@ show_copying (const struct dataset *ds UNUSED)
 int
 cmd_show (struct lexer *lexer, struct dataset *ds)
 {
-  if (lex_token (lexer) == '.')
+  if (lex_token (lexer) == T_ENDCMD)
     {
       show_all (ds);
       return CMD_SUCCESS;
@@ -917,9 +895,9 @@ cmd_show (struct lexer *lexer, struct dataset *ds)
           return CMD_FAILURE;
         }
 
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
     }
-  while (lex_token (lexer) != '.');
+  while (lex_token (lexer) != T_ENDCMD);
 
   return CMD_SUCCESS;
 }
@@ -930,12 +908,12 @@ static struct settings *saved_settings[MAX_SAVED_SETTINGS];
 static int n_saved_settings;
 
 int
-cmd_preserve (struct lexer *lexer, struct dataset *ds UNUSED)
+cmd_preserve (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
   if (n_saved_settings < MAX_SAVED_SETTINGS)
     {
       saved_settings[n_saved_settings++] = settings_get ();
-      return lex_end_of_command (lexer);
+      return CMD_SUCCESS;
     }
   else
     {
@@ -947,14 +925,14 @@ cmd_preserve (struct lexer *lexer, struct dataset *ds UNUSED)
 }
 
 int
-cmd_restore (struct lexer *lexer, struct dataset *ds UNUSED)
+cmd_restore (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
   if (n_saved_settings > 0)
     {
       struct settings *s = saved_settings[--n_saved_settings];
       settings_set (s);
       settings_destroy (s);
-      return lex_end_of_command (lexer);
+      return CMD_SUCCESS;
     }
   else
     {

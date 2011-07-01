@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,22 +18,22 @@
 
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/value-parser.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/message.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
+#include "data/case.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -92,7 +92,9 @@ static trns_proc_func count_trns_proc;
 static trns_free_func count_trns_free;
 
 static bool parse_numeric_criteria (struct lexer *, struct pool *, struct criteria *);
-static bool parse_string_criteria (struct lexer *, struct pool *, struct criteria *);
+static bool parse_string_criteria (struct lexer *, struct pool *,
+                                   struct criteria *,
+                                   const char *dict_encoding);
 
 int
 cmd_count (struct lexer *lexer, struct dataset *ds)
@@ -115,7 +117,7 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
       /* Get destination variable, or at least its name. */
       if (!lex_force_id (lexer))
 	goto fail;
-      dv->var = dict_lookup_var (dataset_dict (ds), lex_tokid (lexer));
+      dv->var = dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer));
       if (dv->var != NULL)
         {
           if (var_is_alpha (dv->var))
@@ -125,46 +127,48 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
             }
         }
       else
-        dv->name = pool_strdup (trns->pool, lex_tokid (lexer));
+        dv->name = pool_strdup (trns->pool, lex_tokcstr (lexer));
 
       lex_get (lexer);
-      if (!lex_force_match (lexer, '='))
+      if (!lex_force_match (lexer, T_EQUALS))
 	goto fail;
 
       crit = dv->crit = pool_alloc (trns->pool, sizeof *crit);
       for (;;)
 	{
+          struct dictionary *dict = dataset_dict (ds);
           bool ok;
 
 	  crit->next = NULL;
 	  crit->vars = NULL;
-	  if (!parse_variables_const (lexer, dataset_dict (ds), &crit->vars,
+	  if (!parse_variables_const (lexer, dict, &crit->vars,
 				      &crit->var_cnt,
-                                PV_DUPLICATE | PV_SAME_TYPE))
+                                      PV_DUPLICATE | PV_SAME_TYPE))
 	    goto fail;
           pool_register (trns->pool, free, crit->vars);
 
-	  if (!lex_force_match (lexer, '('))
+	  if (!lex_force_match (lexer, T_LPAREN))
 	    goto fail;
 
           crit->value_cnt = 0;
           if (var_is_numeric (crit->vars[0]))
             ok = parse_numeric_criteria (lexer, trns->pool, crit);
           else
-            ok = parse_string_criteria (lexer, trns->pool, crit);
+            ok = parse_string_criteria (lexer, trns->pool, crit,
+                                        dict_get_encoding (dict));
 	  if (!ok)
 	    goto fail;
 
-	  if (lex_token (lexer) == '/' || lex_token (lexer) == '.')
+	  if (lex_token (lexer) == T_SLASH || lex_token (lexer) == T_ENDCMD)
 	    break;
 
 	  crit = crit->next = pool_alloc (trns->pool, sizeof *crit);
 	}
 
-      if (lex_token (lexer) == '.')
+      if (lex_token (lexer) == T_ENDCMD)
 	break;
 
-      if (!lex_force_match (lexer, '/'))
+      if (!lex_force_match (lexer, T_SLASH))
 	goto fail;
       dv = dv->next = pool_alloc (trns->pool, sizeof *dv);
     }
@@ -222,8 +226,8 @@ parse_numeric_criteria (struct lexer *lexer, struct pool *pool, struct criteria 
       else
         return false;
 
-      lex_match (lexer, ',');
-      if (lex_match (lexer, ')'))
+      lex_match (lexer, T_COMMA);
+      if (lex_match (lexer, T_RPAREN))
 	break;
     }
   return true;
@@ -231,7 +235,8 @@ parse_numeric_criteria (struct lexer *lexer, struct pool *pool, struct criteria 
 
 /* Parses a set of string criteria values.  Returns success. */
 static bool
-parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *crit)
+parse_string_criteria (struct lexer *lexer, struct pool *pool,
+                       struct criteria *crit, const char *dict_encoding)
 {
   int len = 0;
   size_t allocated = 0;
@@ -245,6 +250,8 @@ parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *
   for (;;)
     {
       char **cur;
+      char *s;
+
       if (crit->value_cnt >= allocated)
         crit->values.str = pool_2nrealloc (pool, crit->values.str,
                                            &allocated,
@@ -252,13 +259,19 @@ parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *
 
       if (!lex_force_string (lexer))
 	return false;
+
+      s = recode_string (dict_encoding, "UTF-8", lex_tokcstr (lexer),
+                         ss_length (lex_tokss (lexer)));
+
       cur = &crit->values.str[crit->value_cnt++];
       *cur = pool_alloc (pool, len + 1);
-      str_copy_rpad (*cur, len + 1, ds_cstr (lex_tokstr (lexer)));
+      str_copy_rpad (*cur, len + 1, s);
       lex_get (lexer);
 
-      lex_match (lexer, ',');
-      if (lex_match (lexer, ')'))
+      free (s);
+
+      lex_match (lexer, T_COMMA);
+      if (lex_match (lexer, T_RPAREN))
 	break;
     }
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006  Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011  Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 #define DATA_VECTOR_H 1
 
 #include <stddef.h>
-#include <data/variable.h>
+#include "data/variable.h"
 
 struct dictionary;
 
@@ -33,6 +33,8 @@ const char *vector_get_name (const struct vector *);
 enum val_type vector_get_type (const struct vector *);
 struct variable *vector_get_var (const struct vector *, size_t idx);
 size_t vector_get_var_cnt (const struct vector *);
+
+bool vector_is_valid_name (const char *name, bool issue_error);
 
 int compare_vector_ptrs_by_name (const void *a_, const void *b_);
 

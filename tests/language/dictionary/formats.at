@@ -1,0 +1,80 @@
+AT_BANNER([FORMATS])
+
+AT_SETUP([FORMATS positive tests])
+AT_DATA([formats.sps], [dnl
+DATA LIST LIST /a b c * x (A1) y (A2) z (A3).
+DISPLAY VARIABLES.
+FORMATS /a (COMMA10) b (N4).
+DISPLAY VARIABLES.
+FORMATS c (E8.1) x (A1) /y (AHEX4) z (A3).
+DISPLAY VARIABLES.
+])
+AT_CHECK([pspp -o pspp.csv formats.sps])
+AT_CHECK([grep -E -v 'Measure|Display' pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+a,F8.0
+b,F8.0
+c,F8.0
+x,A1
+y,A2
+z,A3
+
+Variable,Description,,Position
+a,Format: F8.2,,1
+b,Format: F8.2,,2
+c,Format: F8.2,,3
+x,Format: A1,,4
+y,Format: A2,,5
+z,Format: A3,,6
+
+Variable,Description,,Position
+a,Format: COMMA10.0,,1
+b,Format: N4.0,,2
+c,Format: F8.2,,3
+x,Format: A1,,4
+y,Format: A2,,5
+z,Format: A3,,6
+
+Variable,Description,,Position
+a,Format: COMMA10.0,,1
+b,Format: N4.0,,2
+c,Format: E8.1,,3
+x,Format: A1,,4
+y,Format: AHEX4,,5
+z,Format: A3,,6
+])
+AT_CLEANUP
+
+AT_SETUP([FORMATS negative tests])
+AT_DATA([formats.sps], [dnl
+DATA LIST LIST /a b c * x (A1) y (A2) z (A3).
+FORMATS a (E6.1).
+FORMATS a y (F4).
+FORMATS x (A2).
+FORMATS y (AHEX2).
+FORMATS x y (A2).
+])
+AT_CHECK([pspp -O format=csv formats.sps], [1], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+a,F8.0
+b,F8.0
+c,F8.0
+x,A1
+y,A2
+z,A3
+
+"formats.sps:2: error: FORMATS: Output format E6.1 specifies 1 decimal place, but the given width does not allow for any decimals."
+
+formats.sps:3: error: FORMATS: a and y are not the same type.  All variables in this variable list must be of the same type.  y will be omitted from the list.
+
+formats.sps:4: error: FORMATS: String variable with width 1 is not compatible with format A2.
+
+formats.sps:5: error: FORMATS: String variable with width 2 is not compatible with format AHEX2.
+
+formats.sps:6: error: FORMATS: x and y are string variables with different widths.  All variables in this variable list must have the same width.  y will be omitted from the list.
+
+formats.sps:6: error: FORMATS: String variable with width 1 is not compatible with format A2.
+])
+AT_CLEANUP

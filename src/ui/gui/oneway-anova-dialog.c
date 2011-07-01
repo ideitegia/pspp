@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@
 #include "psppire-selector.h"
 #include "dict-display.h"
 
-#include <language/syntax-string-source.h>
 #include "executor.h"
 
 
@@ -211,22 +210,10 @@ oneway_anova_dialog (PsppireDataWindow *de)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      {
-	gchar *syntax = generate_syntax (&ow);
-
-	struct getl_interface *sss = create_syntax_string_source (syntax);
-	execute_syntax (sss);
-
-	g_free (syntax);
-      }
+      g_free (execute_syntax_string (de, generate_syntax (&ow)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	gchar *syntax = generate_syntax (&ow);
-        paste_syntax_to_window (syntax);
-
-	g_free (syntax);
-      }
+      g_free (paste_syntax_to_window (generate_syntax (&ow)));
       break;
     default:
       break;

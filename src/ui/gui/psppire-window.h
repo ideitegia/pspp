@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,10 +21,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gtk/gtkwindow.h>
-#include <gtk/gtkaction.h>
-#include <gtk/gtkmenushell.h>
-#include <gtk/gtkrecentmanager.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
@@ -63,9 +60,11 @@ struct _PsppireWindow
   GtkWindow parent;
 
   /* <private> */
-  gchar *name;
-  gchar *description;
-  gchar *basename;
+  gchar *filename;             /* File name, in file name encoding, or NULL. */
+  gchar *basename;             /* Last component of filename, in UTF-8 */
+  gchar *id;                   /* Dataset name, or NULL.  */
+  gchar *description;          /* e.g. "Data Editor" */
+  gchar *list_name;            /* Name for "Windows" menu list. */
 
   GHashTable *menuitem_table;
   GtkMenuShell *menu;
@@ -89,6 +88,7 @@ struct _PsppireWindowIface
   GTypeInterface g_iface;
 
   void (*save) (PsppireWindow *w);
+  void (*pick_filename) (PsppireWindow *);
   gboolean (*load) (PsppireWindow *w, const gchar *);
 };
 
@@ -109,8 +109,12 @@ gboolean psppire_window_get_unsaved (PsppireWindow *);
 gint psppire_window_query_save (PsppireWindow *);
 
 void psppire_window_save (PsppireWindow *w);
+void psppire_window_save_as (PsppireWindow *w);
 gboolean psppire_window_load (PsppireWindow *w, const gchar *file);
+void psppire_window_open (PsppireWindow *de);
+GtkWidget *psppire_window_file_chooser_dialog (PsppireWindow *toplevel);
 
+void add_most_recent (const char *file_name, const char *mime_type);
 
 G_END_DECLS
 

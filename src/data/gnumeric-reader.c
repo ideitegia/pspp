@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,10 @@
 
 #include <config.h>
 
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
 
-#include "minmax.h"
+#include "gl/minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -40,25 +40,24 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
 #else
 
-#include <data/casereader-provider.h>
-#include <errno.h>
-#include <libpspp/str.h>
-#include <libpspp/i18n.h>
-#include <data/dictionary.h>
-#include <data/variable.h>
-#include <xalloc.h>
+#include "data/gnumeric-reader.h"
 
+#include <assert.h>
+#include <stdbool.h>
 #include <errno.h>
 #include <libxml/xmlreader.h>
 #include <zlib.h>
-#include <stdbool.h>
 
-#include <data/case.h>
-#include <data/value.h>
+#include "data/case.h"
+#include "data/casereader-provider.h"
+#include "data/dictionary.h"
+#include "data/identifier.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/i18n.h"
+#include "libpspp/str.h"
 
-#include "gnumeric-reader.h"
-#include <data/identifier.h>
-#include <assert.h>
+#include "gl/xalloc.h"
 
 /* Default width of string variables. */
 #define GNUMERIC_DEFAULT_WIDTH 8
@@ -497,27 +496,21 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
 
   /* Create the dictionary and populate it */
-  *dict = r->dict = dict_create ();
-
-  dict_set_encoding (r->dict, CHAR_CAST (const char *, xmlTextReaderConstEncoding (r->xtr)));
+  *dict = r->dict = dict_create (
+    CHAR_CAST (const char *, xmlTextReaderConstEncoding (r->xtr)));
 
   for (i = 0 ; i < n_var_specs ; ++i )
     {
-      char name[VAR_NAME_LEN + 1];
+      char *name;
 
       /* Probably no data exists for this variable, so allocate a
 	 default width */
       if ( var_spec[i].width == -1 )
 	var_spec[i].width = GNUMERIC_DEFAULT_WIDTH;
 
-      if  ( ! dict_make_unique_var_name (r->dict, var_spec[i].name,
-					 &vstart, name))
-	{
-	  msg (ME, _("Cannot create variable name from %s"), var_spec[i].name);
-	  goto error;
-	}
-
+      name = dict_make_unique_var_name (r->dict, var_spec[i].name, &vstart);
       dict_create_var (r->dict, name, var_spec[i].width);
+      free (name);
     }
 
   /* Create the first case, and cache it */

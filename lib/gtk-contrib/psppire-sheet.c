@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2006, 2008, 2009 Free Software Foundation
+  Copyright (C) 2006, 2008, 2009, 2011 Free Software Foundation
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -2721,13 +2721,17 @@ psppire_sheet_select_range (PsppireSheet *sheet, const PsppireSheetRange *range)
 void
 psppire_sheet_unselect_range (PsppireSheet *sheet)
 {
-  GdkRectangle area;
   sheet->select_status = PSPPIRE_SHEET_NORMAL;
 
-  rectangle_from_range (sheet, &sheet->range, &area);
-  area.x++;
-  area.y++;
-  gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);	
+  if (sheet->sheet_window != NULL)
+    {
+      GdkRectangle area;
+
+      rectangle_from_range (sheet, &sheet->range, &area);
+      area.x++;
+      area.y++;
+      gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);
+    }
 
   g_signal_emit (sheet, sheet_signals [SELECT_COLUMN], 0, -1);
   g_signal_emit (sheet, sheet_signals [SELECT_ROW], 0, -1);  

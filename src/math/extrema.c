@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,13 +15,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "extrema.h"
-#include <xalloc.h>
-#include <data/case.h>
-#include <data/val-type.h>
-#include <libpspp/compiler.h>
-#include <libpspp/ll.h>
+
+#include "math/extrema.h"
+
 #include <stdlib.h>
+
+#include "data/case.h"
+#include "data/val-type.h"
+#include "libpspp/compiler.h"
+#include "libpspp/ll.h"
+
+#include "gl/xalloc.h"
 
 struct extrema
 {

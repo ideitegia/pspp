@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H. Stover.
+   Copyright (C) 2005, 2011 Free Software Foundation, Inc. Written by Jason H. Stover.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,10 +16,11 @@
 
 #ifndef LINREG_H
 #define LINREG_H
-#include <stdbool.h>
+
 #include <gsl/gsl_math.h>
-#include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_vector.h>
+#include <stdbool.h>
 
 enum
 {

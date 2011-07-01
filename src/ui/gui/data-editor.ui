@@ -45,13 +45,20 @@
           <object class="GtkAction" id="file_open">
             <property name="stock-id">gtk-open</property>
             <property name="name">file_open</property>
+            <property name="label" translatable="yes">_Open...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_import-text">
             <property name="name">file_import-text</property>
-            <property name="label" translatable="yes">_Import Delimited Text Data</property>
+            <property name="label" translatable="yes">_Import Delimited Text Data...</property>
 	    <property name="stock-id">gtk-convert</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="rename_dataset">
+            <property name="name">rename_dataset</property>
+	    <property name="label" translatable="yes">_Rename Dataset...</property>
           </object>
         </child>
         <child>
@@ -64,6 +71,7 @@
           <object class="GtkAction" id="file_save_as">
             <property name="stock-id">gtk-save-as</property>
             <property name="name">file_save_as</property>
+            <property name="label" translatable="yes">Save _As...</property>
           </object>
         </child>
         <child>
@@ -82,7 +90,7 @@
         <child>
           <object class="GtkAction" id="file_information_external-file">
             <property name="name">file_information_external-file</property>
-            <property name="label" translatable="yes">External File</property>
+            <property name="label" translatable="yes">External File...</property>
           </object>
         </child>
         <child>
@@ -127,7 +135,7 @@
         </child>
         <child>
           <object class="GtkAction" id="edit_goto-case">
-            <property name="label" translatable="yes">Go To Case</property>
+            <property name="label" translatable="yes">Go To Case...</property>
             <property name="name">edit_goto-case</property>
             <property name="tooltip" translatable="yes">Jump to a case in the data sheet</property>
 	    <property name="stock-id">gtk-jump-to</property>
@@ -172,6 +180,7 @@
           <object class="GtkAction" id="edit_find">
             <property name="stock-id">gtk-find</property>
             <property name="name">edit_find</property>
+            <property name="label" translatable="yes">_Find...</property>
           </object>
         </child>
         <child>
@@ -191,6 +200,7 @@
           <object class="GtkAction" id="view_fonts">
             <property name="name">view_fonts</property>
             <property name="stock-id">gtk-select-font</property>
+            <property name="label" translatable="yes">_Font...</property>
           </object>
         </child>
         <child>
@@ -209,15 +219,16 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="view_data">
+          <object class="GtkRadioAction" id="view_data">
             <property name="name">view_data</property>
             <property name="label" translatable="yes">_Data</property>
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="view_variables">
+          <object class="GtkRadioAction" id="view_variables">
             <property name="name">view_variables</property>
             <property name="label" translatable="yes">_Variables</property>
+	    <property name="group">view_data</property>
           </object>
         </child>
         <child>
@@ -228,17 +239,17 @@
         </child>
         <child>
           <object class="GtkAction" id="data_sort-cases">
-            <property name="label" translatable="yes">_Sort Cases</property>
+            <property name="label" translatable="yes">_Sort Cases...</property>
             <property name="name">data_sort-cases</property>
 	    <property name="stock-id">gtk-sort-ascending</property>
-	    <property name="tooltip" translatable="yes">Sort cases in the active file</property>
+	    <property name="tooltip" translatable="yes">Sort cases in the active dataset</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="data_transpose">
 	    <property name="stock-id">pspp-transpose</property>
             <property name="name">data_transpose</property>
-            <property name="label" translatable="yes">_Transpose</property>
+            <property name="label" translatable="yes">_Transpose...</property>
 	    <property name="tooltip" translatable="yes">Transpose the cases with the variables</property>
           </object>
         </child>
@@ -246,27 +257,27 @@
           <object class="GtkAction" id="data_aggregate">
 	    <property name="stock-id">pspp-aggregate</property>
             <property name="name">data_aggregate</property>
-            <property name="label" translatable="yes">_Aggregate</property>
+            <property name="label" translatable="yes">_Aggregate...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="data_split-file">
             <property name="name">data_split-file</property>
-            <property name="label" translatable="yes">S_plit File</property>
-	    <property name="tooltip" translatable="yes">Split the active file</property>
+            <property name="label" translatable="yes">S_plit File...</property>
+	    <property name="tooltip" translatable="yes">Split the active dataset</property>
 	    <property name="stock-id">pspp-split-file</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="data_select-cases">
             <property name="name">data_select-cases</property>
-            <property name="label" translatable="yes">Select _Cases</property>
+            <property name="label" translatable="yes">Select _Cases...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="data_weight-cases">
             <property name="name">data_weight-cases</property>
-            <property name="label" translatable="yes">_Weight Cases</property>
+            <property name="label" translatable="yes">_Weight Cases...</property>
 	    <property name="tooltip" translatable="yes">Weight cases by variable</property>
 	    <property name="stock-id">pspp-weight-cases</property>
           </object>
@@ -280,25 +291,25 @@
         <child>
           <object class="GtkAction" id="transform_compute">
             <property name="name">transform_compute</property>
-            <property name="label" translatable="yes">_Compute</property>
+            <property name="label" translatable="yes">_Compute...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="transform_rank">
             <property name="name">transform_rank</property>
-            <property name="label" translatable="yes">Ran_k Cases</property>
+            <property name="label" translatable="yes">Ran_k Cases...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="transform_recode-same">
             <property name="name">transform_recode-same</property>
-            <property name="label" translatable="yes">Recode into _Same Variables</property>
+            <property name="label" translatable="yes">Recode into _Same Variables...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="transform_recode-different">
             <property name="name">transform_recode-different</property>
-            <property name="label" translatable="yes">Recode into _Different Variables</property>
+            <property name="label" translatable="yes">Recode into _Different Variables...</property>
           </object>
         </child>
         <child>
@@ -323,25 +334,25 @@
         <child>
           <object class="GtkAction" id="analyze_frequencies">
             <property name="name">analyze_frequencies</property>
-            <property name="label" translatable="yes">_Frequencies</property>
+            <property name="label" translatable="yes">_Frequencies...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="analyze_descriptives">
             <property name="name">analyze_descriptives</property>
-            <property name="label" translatable="yes">_Descriptives</property>
+            <property name="label" translatable="yes">_Descriptives...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="analyze_explore">
             <property name="name">analyze_explore</property>
-            <property name="label" translatable="yes">_Explore</property>
+            <property name="label" translatable="yes">_Explore...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="crosstabs">
             <property name="name">crosstabs</property>
-            <property name="label" translatable="yes">_Crosstabs</property>
+            <property name="label" translatable="yes">_Crosstabs...</property>
           </object>
         </child>
         <child>
@@ -353,25 +364,25 @@
         <child>
           <object class="GtkAction" id="one-sample-t-test">
             <property name="name">one-sample-t-test</property>
-            <property name="label" translatable="yes">_One Sample T Test</property>
+            <property name="label" translatable="yes">_One Sample T Test...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="indep-t-test">
             <property name="name">indep-t-test</property>
-            <property name="label" translatable="yes">_Independent Samples T Test</property>
+            <property name="label" translatable="yes">_Independent Samples T Test...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="paired-t-test">
             <property name="name">paired-t-test</property>
-            <property name="label" translatable="yes">_Paired Samples T Test</property>
+            <property name="label" translatable="yes">_Paired Samples T Test...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="oneway-anova">
             <property name="name">oneway-anova</property>
-            <property name="label" translatable="yes">One Way _ANOVA</property>
+            <property name="label" translatable="yes">One Way _ANOVA...</property>
           </object>
         </child>
         <child>
@@ -383,19 +394,19 @@
         <child>
           <object class="GtkAction" id="factor-analysis">
             <property name="name">factor-analysis</property>
-            <property name="label" translatable="yes">Factor _Analysis</property>
+            <property name="label" translatable="yes">Factor _Analysis...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="reliability">
             <property name="name">reliability</property>
-            <property name="label" translatable="yes">Re_liability</property>
+            <property name="label" translatable="yes">Re_liability...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="linear-regression">
             <property name="name">linear-regression</property>
-            <property name="label" translatable="yes">Linear _Regression</property>
+            <property name="label" translatable="yes">Linear _Regression...</property>
           </object>
         </child>
         <child>
@@ -407,13 +418,19 @@
         <child>
           <object class="GtkAction" id="chi-square">
             <property name="name">chi-square</property>
-            <property name="label" translatable="yes">_Chi-Square</property>
+            <property name="label" translatable="yes">_Chi-Square...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="binomial">
             <property name="name">binomial</property>
-            <property name="label" translatable="yes">_Binomial</property>
+            <property name="label" translatable="yes">_Binomial...</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="k-related-samples">
+            <property name="name">"k-related-samples"></property>
+            <property name="label" translatable="yes">K Related _Samples...</property>
           </object>
         </child>
         <child>
@@ -431,7 +448,7 @@
         <child>
           <object class="GtkAction" id="utilities_variables">
             <property name="name">utilities_variables</property>
-            <property name="label" translatable="yes">_Variables</property>
+            <property name="label" translatable="yes">_Variables...</property>
 	    <property name="tooltip" translatable="yes">Jump to variable</property>
 	    <property name="stock-id">pspp-goto-variable</property>
           </object>
@@ -439,7 +456,7 @@
         <child>
           <object class="GtkAction" id="utilities_comments">
             <property name="name">utilities_comments</property>
-            <property name="label" translatable="yes">Data File _Comments</property>
+            <property name="label" translatable="yes">Data File _Comments...</property>
           </object>
         </child>
         <child>
@@ -474,6 +491,7 @@
           <separator/>
           <menuitem action="file_save"/>
           <menuitem action="file_save_as"/>
+          <menuitem action="rename_dataset"/>
           <separator/>
           <menu action="file-information">
             <menuitem action="file_information_working-file"/>
@@ -546,6 +564,7 @@
           <menu action="non-parametrics">
             <menuitem action="chi-square"/>
             <menuitem action="binomial"/>
+            <menuitem action="k-related-samples"/>
           </menu>
           <menuitem action="roc-curve"/>
         </menu>

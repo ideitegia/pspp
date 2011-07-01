@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2010  Free Software Foundation
+   Copyright (C) 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 #include <config.h>
 
 #include "dialog-common.h"
-#include <language/syntax-string-source.h>
 
 #include <language/stats/aggregate.h>
 
@@ -457,7 +456,7 @@ set_initial_pos (GtkPaned *pane)
 		"max-position", &max_pos,
 		NULL);
 
-  gtk_paned_set_position (pane, max_pos / 2);
+  gtk_paned_set_position (pane, max_pos);
 }
 
 
@@ -591,22 +590,10 @@ aggregate_dialog (PsppireDataWindow *dw)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      {
-	gchar *syntax = generate_syntax (&fd);
-
-	struct getl_interface *sss = create_syntax_string_source (syntax);
-	execute_syntax (sss);
-
-	g_free (syntax);
-      }
+      g_free (execute_syntax_string (dw, generate_syntax (&fd)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	gchar *syntax = generate_syntax (&fd);
-        paste_syntax_to_window (syntax);
-
-	g_free (syntax);
-      }
+      g_free (paste_syntax_to_window (generate_syntax (&fd)));
       break;
     default:
       break;

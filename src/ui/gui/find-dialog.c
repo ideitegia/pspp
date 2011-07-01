@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009  Free Software Foundation
+   Copyright (C) 2007, 2009, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -423,7 +423,6 @@ struct comparator
 {
   const struct variable *var;
   enum string_cmp_flags flags;
-  const PsppireDict *dict;
 
   bool (*compare) (const struct comparator *,
 		   const union value *);
@@ -498,7 +497,7 @@ string_value_compare (const struct comparator *cmptr,
   g_return_val_if_fail (width > 0, false);
   assert ( ! (cmptr->flags & STR_CMP_LABELS));
 
-  text = value_to_text (*val, cmptr->dict, *var_get_write_format (cmptr->var));
+  text = value_to_text (*val, cmptr->var);
 
   if ( cmptr->flags & STR_CMP_SUBSTR)
     found =  (NULL != g_strstr_len (text, width, ssc->pattern));
@@ -527,7 +526,7 @@ regexp_value_compare (const struct comparator *cmptr,
 
   g_return_val_if_fail (width > 0, false);
 
-  text = value_to_text (*val, cmptr->dict, *var_get_write_format (cmptr->var));
+  text = value_to_text (*val, cmptr->var);
   /* We must remove trailing whitespace, otherwise $ will not match where
      one would expect */
   g_strchomp (text);
@@ -581,7 +580,7 @@ cmptr_value_destroy (struct comparator *cmptr)
 
 
 static struct comparator *
-value_comparator_create (const struct variable *var, const PsppireDict *dict, const char *target)
+value_comparator_create (const struct variable *var, const char *target)
 {
   struct value_comparator *vc = xzalloc (sizeof (*vc));
   struct comparator *cmptr = &vc->parent;
@@ -590,16 +589,14 @@ value_comparator_create (const struct variable *var, const PsppireDict *dict, co
   cmptr->var = var;
   cmptr->compare  = value_compare ;
   cmptr->destroy = cmptr_value_destroy;
-  cmptr->dict = dict;
 
-  text_to_value (target, dict, var, &vc->pattern);
+  text_to_value (target, var, &vc->pattern);
 
   return cmptr;
 }
 
 static struct comparator *
-string_comparator_create (const struct variable *var, const PsppireDict *dict, 
-			  const char *target,
+string_comparator_create (const struct variable *var, const char *target,
 			  enum string_cmp_flags flags)
 {
   struct string_comparator *ssc = xzalloc (sizeof (*ssc));
@@ -607,7 +604,6 @@ string_comparator_create (const struct variable *var, const PsppireDict *dict,
 
   cmptr->flags = flags;
   cmptr->var = var;
-  cmptr->dict = dict;
 
   if ( flags & STR_CMP_LABELS)
     cmptr->compare = string_label_compare;
@@ -621,7 +617,7 @@ string_comparator_create (const struct variable *var, const PsppireDict *dict,
 
 
 static struct comparator *
-regexp_comparator_create (const struct variable *var, const PsppireDict *dict, const char *target,
+regexp_comparator_create (const struct variable *var, const char *target,
 			  enum string_cmp_flags flags)
 {
   int code;
@@ -630,7 +626,6 @@ regexp_comparator_create (const struct variable *var, const PsppireDict *dict, c
 
   cmptr->flags = flags;
   cmptr->var = var;
-  cmptr->dict = dict;
   cmptr->compare  = (flags & STR_CMP_LABELS)
     ? regexp_label_compare : regexp_value_compare ;
 
@@ -680,16 +675,16 @@ comparator_destroy (struct comparator *cmptr)
 
 
 static struct comparator *
-comparator_factory (const struct variable *var, const PsppireDict *dict, const char *str,
+comparator_factory (const struct variable *var, const char *str,
 		    enum string_cmp_flags flags)
 {
   if ( flags & STR_CMP_REGEXP )
-    return regexp_comparator_create (var, dict, str, flags);
+    return regexp_comparator_create (var, str, flags);
 
   if ( flags & (STR_CMP_SUBSTR | STR_CMP_LABELS) )
-    return string_comparator_create (var, dict, str, flags);
+    return string_comparator_create (var, str, flags);
 
-  return value_comparator_create (var, dict, str);
+  return value_comparator_create (var, str);
 }
 
 
@@ -735,7 +730,7 @@ find_value (const struct find_dialog *fd, casenumber current_row,
     casenumber i;
     const struct casenum_iterator *ip = get_iteration_params (fd);
     struct comparator *cmptr =
-      comparator_factory (var, fd->dict, target_string, flags);
+      comparator_factory (var, target_string, flags);
 
     value_init (&val, width);
     if ( ! cmptr)

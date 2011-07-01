@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
 /* Display format types. */
 
 #include <stdbool.h>
-#include <libpspp/str.h>
-#include <data/val-type.h>
+#include "data/val-type.h"
+#include "libpspp/str.h"
 
 /* Format type categories.
 
@@ -125,6 +125,7 @@ int fmt_to_io (enum fmt_type) PURE_FUNCTION;
 bool fmt_from_io (int io, enum fmt_type *);
 
 const char *fmt_date_template (enum fmt_type) PURE_FUNCTION;
+const char *fmt_gui_name (enum fmt_type);
 
 /* Format settings.
 
@@ -139,28 +140,39 @@ void fmt_settings_set_decimal (struct fmt_settings *, char);
 const struct fmt_number_style *fmt_settings_get_style (
   const struct fmt_settings *, enum fmt_type);
 void fmt_settings_set_style (struct fmt_settings *, enum fmt_type,
-                             const struct fmt_number_style *);
+                             char decimal, char grouping,
+                             const char *neg_prefix, const char *prefix,
+                             const char *suffix, const char *neg_suffix);
 
+/* A prefix or suffix for a numeric output format. */
+struct fmt_affix
+  {
+    char *s;                    /* String contents of affix, in UTF-8. */
+    int width;                  /* Display width in columns (see wcwidth()). */
+  };
+
 /* A numeric output style. */
 struct fmt_number_style
   {
-    struct substring neg_prefix;      /* Negative prefix. */
-    struct substring prefix;          /* Prefix. */
-    struct substring suffix;          /* Suffix. */
-    struct substring neg_suffix;      /* Negative suffix. */
-    char decimal;                     /* Decimal point: '.' or ','. */
-    char grouping;                    /* Grouping character: ',', '.', or 0. */
-  };
+    struct fmt_affix neg_prefix; /* Negative prefix. */
+    struct fmt_affix prefix;     /* Prefix. */
+    struct fmt_affix suffix;     /* Suffix. */
+    struct fmt_affix neg_suffix; /* Negative suffix. */
+    char decimal;                /* Decimal point: '.' or ','. */
+    char grouping;               /* Grouping character: ',', '.', or 0. */
 
-/* Maximum length of prefix or suffix string in
-   struct fmt_number_style. */
-#define FMT_STYLE_AFFIX_MAX 16
+    /* A fmt_affix may require more bytes than its display width; for example,
+       U+00A5 (¥) is 3 bytes in UTF-8 but occupies only one display column.
+       This member is the sum of the number of bytes required by all of the
+       fmt_affix members in this struct, minus their display widths.  Thus, it
+       can be used to size memory allocations: for example, the formatted
+       result of CCA20.5 requires no more than (20 + extra_bytes) bytes in
+       UTF-8. */
+    int extra_bytes;
+  };
 
 int fmt_affix_width (const struct fmt_number_style *);
 int fmt_neg_affix_width (const struct fmt_number_style *);
-
-void fmt_check_style (const struct fmt_number_style *style);
-
 
 extern const struct fmt_spec F_8_0 ;
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,21 +15,23 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
 #include <limits.h>
-#include <language/data-io/file-handle.h>
-#include <libpspp/message.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <data/file-name.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <data/variable.h>
-#include <data/file-handle-def.h>
 
-#include "xalloc.h"
+#include "data/file-name.h"
+#include "data/session.h"
+#include "language/command.h"
+#include "language/data-io/file-handle.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "data/variable.h"
+#include "data/file-handle-def.h"
+
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -42,7 +44,7 @@
      name=string;
      lrecl=integer;
      tabwidth=integer "x>=0" "%s must be nonnegative";
-     mode=mode:!character/binary/image/360/scratch;
+     mode=mode:!character/binary/image/360;
      recform=recform:fixed/f/variable/v/spanned/vs.
 */
 /* (declarations) */
@@ -51,105 +53,104 @@
 int
 cmd_file_handle (struct lexer *lexer, struct dataset *ds)
 {
-  char handle_name[VAR_NAME_LEN + 1];
+  struct fh_properties properties;
   struct cmd_file_handle cmd;
   struct file_handle *handle;
+  enum cmd_result result;
+  char *handle_name;
 
+  result = CMD_CASCADING_FAILURE;
   if (!lex_force_id (lexer))
-    return CMD_CASCADING_FAILURE;
-  str_copy_trunc (handle_name, sizeof handle_name, lex_tokid (lexer));
+    goto exit;
 
+  handle_name = xstrdup (lex_tokcstr (lexer));
   handle = fh_from_id (handle_name);
   if (handle != NULL)
     {
       msg (SE, _("File handle %s is already defined.  "
                  "Use CLOSE FILE HANDLE before redefining a file handle."),
 	   handle_name);
-      return CMD_CASCADING_FAILURE;
+      goto exit_free_handle_name;
     }
 
   lex_get (lexer);
-  if (!lex_force_match (lexer, '/'))
-    return CMD_CASCADING_FAILURE;
+  if (!lex_force_match (lexer, T_SLASH))
+    goto exit_free_handle_name;
 
   if (!parse_file_handle (lexer, ds, &cmd, NULL))
-    return CMD_CASCADING_FAILURE;
+    goto exit_free_handle_name;
 
   if (lex_end_of_command (lexer) != CMD_SUCCESS)
-    goto lossage;
+    goto exit_free_cmd;
 
-  if (cmd.mode != FH_SCRATCH)
+  properties = *fh_default_properties ();
+  if (cmd.s_name == NULL)
     {
-      struct fh_properties properties = *fh_default_properties ();
-
-      if (cmd.s_name == NULL)
-        {
-          lex_sbc_missing (lexer, "NAME");
-          goto lossage;
-        }
-
-      switch (cmd.mode)
-        {
-        case FH_CHARACTER:
-          properties.mode = FH_MODE_TEXT;
-          if (cmd.sbc_tabwidth)
-            properties.tab_width = cmd.n_tabwidth[0];
-          break;
-        case FH_IMAGE:
-          properties.mode = FH_MODE_FIXED;
-          break;
-        case FH_BINARY:
-          properties.mode = FH_MODE_VARIABLE;
-          break;
-        case FH_360:
-          properties.encoding = "EBCDIC-US";
-          if (cmd.recform == FH_FIXED || cmd.recform == FH_F)
-            properties.mode = FH_MODE_FIXED;
-          else if (cmd.recform == FH_VARIABLE || cmd.recform == FH_V)
-            {
-              properties.mode = FH_MODE_360_VARIABLE;
-              properties.record_width = 8192;
-            }
-          else if (cmd.recform == FH_SPANNED || cmd.recform == FH_VS)
-            {
-              properties.mode = FH_MODE_360_SPANNED;
-              properties.record_width = 8192;
-            }
-          else
-            {
-              msg (SE, _("RECFORM must be specified with MODE=360."));
-              goto lossage;
-            }
-          break;
-        default:
-          NOT_REACHED ();
-        }
-
-      if (properties.mode == FH_MODE_FIXED || cmd.n_lrecl[0] != LONG_MIN)
-        {
-          if (cmd.n_lrecl[0] == LONG_MIN)
-            msg (SE, _("The specified file mode requires LRECL.  "
-                       "Assuming %zu-character records."),
-                 properties.record_width);
-          else if (cmd.n_lrecl[0] < 1 || cmd.n_lrecl[0] >= (1UL << 31))
-            msg (SE, _("Record length (%ld) must be between 1 and %lu bytes.  "
-                       "Assuming %d-character records."),
-                 cmd.n_lrecl[0], (1UL << 31) - 1, properties.record_width);
-          else
-            properties.record_width = cmd.n_lrecl[0];
-        }
-
-      fh_create_file (handle_name, cmd.s_name, &properties);
+      lex_sbc_missing (lexer, "NAME");
+      goto exit_free_cmd;
     }
-  else
-    fh_create_scratch (handle_name);
 
-  free_file_handle (&cmd);
-  return CMD_SUCCESS;
+  switch (cmd.mode)
+    {
+    case FH_CHARACTER:
+      properties.mode = FH_MODE_TEXT;
+      if (cmd.sbc_tabwidth)
+        properties.tab_width = cmd.n_tabwidth[0];
+      break;
+    case FH_IMAGE:
+      properties.mode = FH_MODE_FIXED;
+      break;
+    case FH_BINARY:
+      properties.mode = FH_MODE_VARIABLE;
+      break;
+    case FH_360:
+      properties.encoding = "EBCDIC-US";
+      if (cmd.recform == FH_FIXED || cmd.recform == FH_F)
+        properties.mode = FH_MODE_FIXED;
+      else if (cmd.recform == FH_VARIABLE || cmd.recform == FH_V)
+        {
+          properties.mode = FH_MODE_360_VARIABLE;
+          properties.record_width = 8192;
+        }
+      else if (cmd.recform == FH_SPANNED || cmd.recform == FH_VS)
+        {
+          properties.mode = FH_MODE_360_SPANNED;
+          properties.record_width = 8192;
+        }
+      else
+        {
+          msg (SE, _("RECFORM must be specified with MODE=360."));
+          goto exit_free_cmd;
+        }
+      break;
+    default:
+      NOT_REACHED ();
+    }
 
- lossage:
+  if (properties.mode == FH_MODE_FIXED || cmd.n_lrecl[0] != LONG_MIN)
+    {
+      if (cmd.n_lrecl[0] == LONG_MIN)
+        msg (SE, _("The specified file mode requires LRECL.  "
+                   "Assuming %zu-character records."),
+             properties.record_width);
+      else if (cmd.n_lrecl[0] < 1 || cmd.n_lrecl[0] >= (1UL << 31))
+        msg (SE, _("Record length (%ld) must be between 1 and %lu bytes.  "
+                   "Assuming %zu-character records."),
+             cmd.n_lrecl[0], (1UL << 31) - 1, properties.record_width);
+      else
+        properties.record_width = cmd.n_lrecl[0];
+    }
+
+  fh_create_file (handle_name, cmd.s_name, &properties);
+
+  result = CMD_SUCCESS;
+
+exit_free_cmd:
   free_file_handle (&cmd);
-  return CMD_CASCADING_FAILURE;
+exit_free_handle_name:
+  free (handle_name);
+exit:
+  return result;
 }
 
 int
@@ -159,7 +160,7 @@ cmd_close_file_handle (struct lexer *lexer, struct dataset *ds UNUSED)
 
   if (!lex_force_id (lexer))
     return CMD_CASCADING_FAILURE;
-  handle = fh_from_id (lex_tokid (lexer));
+  handle = fh_from_id (lex_tokcstr (lexer));
   if (handle == NULL)
     return CMD_CASCADING_FAILURE;
 
@@ -177,24 +178,46 @@ referent_name (enum fh_referent referent)
       return _("file");
     case FH_REF_INLINE:
       return _("inline file");
-    case FH_REF_SCRATCH:
-      return _("scratch file");
+    case FH_REF_DATASET:
+      return _("dataset");
     default:
       NOT_REACHED ();
     }
 }
 
-/* Parses a file handle name, which may be a file name as a string
-   or a file handle name as an identifier.  The allowed types of
-   file handle are restricted to those in REFERENT_MASK.  Returns
-   the file handle when successful, a null pointer on failure.
+/* Parses a file handle name:
 
-   The caller is responsible for fh_unref()'ing the returned
-   file handle when it is no longer needed. */
+      - If SESSION is nonnull, then the parsed syntax may be the name of a
+        dataset within SESSION.  Dataset names take precedence over file handle
+        names.
+
+      - If REFERENT_MASK includes FH_REF_FILE, the parsed syntax may be a file
+        name as a string or a file handle name as an identifier.
+
+      - If REFERENT_MASK includes FH_REF_INLINE, the parsed syntax may be the
+        identifier INLINE to represent inline data.
+
+   Returns the file handle when successful, a null pointer on failure.
+
+   The caller is responsible for fh_unref()'ing the returned file handle when
+   it is no longer needed. */
 struct file_handle *
-fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
+fh_parse (struct lexer *lexer, enum fh_referent referent_mask,
+          struct session *session)
 {
   struct file_handle *handle;
+
+  if (session != NULL && lex_token (lexer) == T_ID)
+    {
+      struct dataset *ds;
+
+      ds = session_lookup_dataset (session, lex_tokcstr (lexer));
+      if (ds != NULL)
+        {
+          lex_get (lexer);
+          return fh_create_dataset (ds);
+        }
+    }
 
   if (lex_match_id (lexer, "INLINE"))
     handle = fh_inline_file ();
@@ -208,15 +231,10 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
 
       handle = NULL;
       if (lex_token (lexer) == T_ID)
-        handle = fh_from_id (lex_tokid (lexer));
+        handle = fh_from_id (lex_tokcstr (lexer));
       if (handle == NULL)
-        {
-          if (lex_token (lexer) != T_ID || lex_tokid (lexer)[0] != '#' || settings_get_syntax () != ENHANCED)
-            handle = fh_create_file (NULL, ds_cstr (lex_tokstr (lexer)),
+            handle = fh_create_file (NULL, lex_tokcstr (lexer),
                                      fh_default_properties ());
-          else
-            handle = fh_create_scratch (lex_tokid (lexer));
-        }
       lex_get (lexer);
     }
 

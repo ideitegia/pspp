@@ -48,6 +48,12 @@ src_data_libdata_la_SOURCES = \
 	src/data/data-in.h \
 	src/data/data-out.c \
 	src/data/data-out.h \
+	src/data/dataset.c \
+	src/data/dataset.h \
+	src/data/dataset-reader.c \
+	src/data/dataset-reader.h \
+	src/data/dataset-writer.c \
+	src/data/dataset-writer.h \
 	src/data/datasheet.c \
 	src/data/datasheet.h \
 	src/data/dict-class.c \
@@ -66,6 +72,7 @@ src_data_libdata_la_SOURCES = \
 	src/data/gnumeric-reader.c \
 	src/data/gnumeric-reader.h \
 	src/data/identifier.c \
+	src/data/identifier2.c \
 	src/data/identifier.h \
 	src/data/lazy-casereader.c \
 	src/data/lazy-casereader.h \
@@ -75,26 +82,21 @@ src_data_libdata_la_SOURCES = \
 	src/data/make-file.h \
 	src/data/mrset.c \
 	src/data/mrset.h \
-	src/data/procedure.c \
-	src/data/procedure.h \
 	src/data/por-file-reader.c \
 	src/data/por-file-reader.h \
 	src/data/por-file-writer.c \
 	src/data/por-file-writer.h \
 	src/data/psql-reader.c \
 	src/data/psql-reader.h \
-	src/data/scratch-handle.c \
-	src/data/scratch-handle.h \
-	src/data/scratch-reader.c \
-	src/data/scratch-reader.h \
-	src/data/scratch-writer.c \
-	src/data/scratch-writer.h \
+	src/data/session.c \
+	src/data/session.h \
 	src/data/settings.c \
 	src/data/settings.h \
 	src/data/short-names.c \
 	src/data/short-names.h \
 	src/data/subcase.c \
 	src/data/subcase.h \
+	src/data/sys-file-encoding.c \
 	src/data/sys-file-private.c \
 	src/data/sys-file-private.h \
 	src/data/sys-file-reader.c \
@@ -114,4 +116,6 @@ src_data_libdata_la_SOURCES = \
 	src/data/vector.c \
 	src/data/vector.h
 
-EXTRA_DIST += src/data/OChangeLog
+EXTRA_DIST += \
+	src/data/OChangeLog \
+	src/data/sys-file-encoding.pl

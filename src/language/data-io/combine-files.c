@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,28 +18,30 @@
 
 #include <stdlib.h>
 
-#include <data/any-reader.h>
-#include <data/case-matcher.h>
-#include <data/case.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/subcase.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/data-io/file-handle.h>
-#include <language/data-io/trim.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <language/stats/sort-criteria.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/taint.h>
-#include <math/sort.h>
+#include "data/any-reader.h"
+#include "data/case-matcher.h"
+#include "data/case.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/subcase.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/data-io/file-handle.h"
+#include "language/data-io/trim.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "language/stats/sort-criteria.h"
+#include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/string-array.h"
+#include "libpspp/taint.h"
+#include "math/sort.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -78,7 +80,7 @@ struct comb_file
     bool is_sorted;             /* Is file presorted on the BY variables? */
 
     /* IN subcommand. */
-    char in_name[VAR_NAME_LEN + 1];
+    char *in_name;
     struct variable *in_var;
   };
 
@@ -147,8 +149,8 @@ combine_files (enum comb_command_type command,
   bool saw_sort = false;
   struct casereader *active_file = NULL;
 
-  char first_name[VAR_NAME_LEN + 1] = "";
-  char last_name[VAR_NAME_LEN + 1] = "";
+  char *first_name = NULL;
+  char *last_name = NULL;
 
   struct taint *taint = NULL;
 
@@ -159,7 +161,7 @@ combine_files (enum comb_command_type command,
 
   proc.files = NULL;
   proc.n_files = 0;
-  proc.dict = dict_create ();
+  proc.dict = dict_create (get_default_encoding ());
   proc.output = NULL;
   proc.matcher = NULL;
   subcase_init_empty (&proc.by_vars);
@@ -170,7 +172,7 @@ combine_files (enum comb_command_type command,
 
   dict_set_case_limit (proc.dict, dict_get_case_limit (dataset_dict (ds)));
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   for (;;)
     {
       struct comb_file *file;
@@ -185,7 +187,7 @@ combine_files (enum comb_command_type command,
         }
       else
         break;
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
 
       if (proc.n_files >= allocated_files)
         proc.files = x2nrealloc (proc.files, &allocated_files,
@@ -200,28 +202,28 @@ combine_files (enum comb_command_type command,
       file->reader = NULL;
       file->data = NULL;
       file->is_sorted = true;
-      file->in_name[0] = '\0';
+      file->in_name = NULL;
       file->in_var = NULL;
 
-      if (lex_match (lexer, '*'))
+      if (lex_match (lexer, T_ASTERISK))
         {
-          if (!proc_has_active_file (ds))
+          if (!dataset_has_source (ds))
             {
-              msg (SE, _("Cannot specify the active file since no active "
-                         "file has been defined."));
+              msg (SE, _("Cannot specify the active dataset since none "
+                         "has been defined."));
               goto error;
             }
 
           if (proc_make_temporary_transformations_permanent (ds))
             msg (SE, _("This command may not be used after TEMPORARY when "
-                       "the active file is an input source.  "
+                       "the active dataset is an input source.  "
                        "Temporary transformations will be made permanent."));
 
           file->dict = dict_clone (dataset_dict (ds));
         }
       else
         {
-          file->handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
+          file->handle = fh_parse (lexer, FH_REF_FILE, dataset_session (ds));
           if (file->handle == NULL)
             goto error;
 
@@ -230,7 +232,7 @@ combine_files (enum comb_command_type command,
             goto error;
         }
 
-      while (lex_match (lexer, '/'))
+      while (lex_match (lexer, T_SLASH))
         if (lex_match_id (lexer, "RENAME"))
           {
             if (!parse_dict_rename (lexer, file->dict))
@@ -238,20 +240,20 @@ combine_files (enum comb_command_type command,
           }
         else if (lex_match_id (lexer, "IN"))
           {
-            lex_match (lexer, '=');
+            lex_match (lexer, T_EQUALS);
             if (lex_token (lexer) != T_ID)
               {
                 lex_error (lexer, NULL);
                 goto error;
               }
 
-            if (file->in_name[0])
+            if (file->in_name)
               {
                 msg (SE, _("Multiple IN subcommands for a single FILE or "
                            "TABLE."));
                 goto error;
               }
-            strcpy (file->in_name, lex_tokid (lexer));
+            file->in_name = xstrdup (lex_tokcstr (lexer));
             lex_get (lexer);
           }
         else if (lex_match_id (lexer, "SORT"))
@@ -263,7 +265,7 @@ combine_files (enum comb_command_type command,
       merge_dictionary (proc.dict, file);
     }
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match (lexer, T_BY))
 	{
@@ -278,7 +280,7 @@ combine_files (enum comb_command_type command,
 	    }
           saw_by = true;
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (!parse_sort_criteria (lexer, proc.dict, &proc.by_vars,
                                     &by_vars, NULL))
 	    goto error;
@@ -302,7 +304,8 @@ combine_files (enum comb_command_type command,
                         msg (SE, _("File %s lacks BY variable %s."),
                              fh_get_name (file->handle), name);
                       else
-                        msg (SE, _("Active file lacks BY variable %s."), name);
+                        msg (SE, _("Active dataset lacks BY variable %s."),
+                             name);
                       ok = false;
                     }
                 }
@@ -316,30 +319,30 @@ combine_files (enum comb_command_type command,
 	}
       else if (command != COMB_UPDATE && lex_match_id (lexer, "FIRST"))
         {
-          if (first_name[0] != '\0')
+          if (first_name != NULL)
             {
               lex_sbc_only_once ("FIRST");
               goto error;
             }
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (!lex_force_id (lexer))
             goto error;
-          strcpy (first_name, lex_tokid (lexer));
+          first_name = xstrdup (lex_tokcstr (lexer));
           lex_get (lexer);
         }
       else if (command != COMB_UPDATE && lex_match_id (lexer, "LAST"))
         {
-          if (last_name[0] != '\0')
+          if (last_name != NULL)
             {
               lex_sbc_only_once ("LAST");
               goto error;
             }
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (!lex_force_id (lexer))
             goto error;
-          strcpy (last_name, lex_tokid (lexer));
+          last_name = xstrdup (lex_tokcstr (lexer));
           lex_get (lexer);
         }
       else if (lex_match_id (lexer, "MAP"))
@@ -362,7 +365,7 @@ combine_files (enum comb_command_type command,
 	  goto error;
 	}
 
-      if (!lex_match (lexer, '/') && lex_token (lexer) != '.')
+      if (!lex_match (lexer, T_SLASH) && lex_token (lexer) != T_ENDCMD)
         {
           lex_end_of_command (lexer);
           goto error;
@@ -465,11 +468,15 @@ combine_files (enum comb_command_type command,
   if (active_file != NULL)
     proc_commit (ds);
 
-  proc_set_active_file (ds, casewriter_make_reader (proc.output), proc.dict);
+  dataset_set_dict (ds, proc.dict);
+  dataset_set_source (ds, casewriter_make_reader (proc.output));
   proc.dict = NULL;
   proc.output = NULL;
 
   free_comb_proc (&proc);
+
+  free (first_name);
+  free (last_name);
 
   return taint_destroy (taint) ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 
@@ -478,6 +485,8 @@ combine_files (enum comb_command_type command,
     proc_commit (ds);
   free_comb_proc (&proc);
   taint_destroy (taint);
+  free (first_name);
+  free (last_name);
   return CMD_CASCADING_FAILURE;
 }
 
@@ -486,9 +495,8 @@ static bool
 merge_dictionary (struct dictionary *const m, struct comb_file *f)
 {
   struct dictionary *d = f->dict;
-  const char *d_docs, *m_docs;
+  const struct string_array *d_docs, *m_docs;
   int i;
-  const char *file_encoding;
 
   if (dict_get_label (m) == NULL)
     dict_set_label (m, dict_get_label (d));
@@ -502,17 +510,9 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
      The correct thing to do would be to convert to an encoding
      which can cope with all the input files (eg UTF-8).
    */
-  file_encoding = dict_get_encoding (f->dict);
-  if ( file_encoding != NULL)
-    {
-      if ( dict_get_encoding (m) == NULL)
-	dict_set_encoding (m, file_encoding);
-      else if ( 0 != strcmp (file_encoding, dict_get_encoding (m)))
-	{
-	  msg (MW,
-	       _("Combining files with incompatible encodings. String data may not be represented correctly."));
-	}
-    }
+  if ( 0 != strcmp (dict_get_encoding (f->dict), dict_get_encoding (m)))
+    msg (MW, _("Combining files with incompatible encodings. String data may "
+               "not be represented correctly."));
 
   if (d_docs != NULL)
     {
@@ -520,9 +520,19 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
         dict_set_documents (m, d_docs);
       else
         {
-          char *new_docs = xasprintf ("%s%s", m_docs, d_docs);
-          dict_set_documents (m, new_docs);
-          free (new_docs);
+          struct string_array new_docs;
+          size_t i;
+
+          new_docs.n = m_docs->n + d_docs->n;
+          new_docs.strings = xmalloc (new_docs.n * sizeof *new_docs.strings);
+          for (i = 0; i < m_docs->n; i++)
+            new_docs.strings[i] = m_docs->strings[i];
+          for (i = 0; i < d_docs->n; i++)
+            new_docs.strings[m_docs->n + i] = d_docs->strings[i];
+
+          dict_set_documents (m, &new_docs);
+
+          free (new_docs.strings);
         }
     }
 
@@ -572,7 +582,7 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
           if (var_has_missing_values (dv) && !var_has_missing_values (mv))
             var_set_missing_values (mv, var_get_missing_values (dv));
           if (var_get_label (dv) && !var_get_label (mv))
-            var_set_label (mv, var_get_label (dv));
+            var_set_label (mv, var_get_label (dv), false);
         }
       else
         mv = dict_clone_var_assert (m, dv);
@@ -581,18 +591,19 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
   return true;
 }
 
-/* If VAR_NAME is a non-empty string, attempts to create a
+/* If VAR_NAME is non-NULL, attempts to create a
    variable named VAR_NAME, with format F1.0, in DICT, and stores
    a pointer to the variable in *VAR.  Returns true if
    successful, false if the variable name is a duplicate (in
    which case a message saying that the variable specified on the
-   given SUBCOMMAND is a duplicate is emitted).  Also returns
-   true, without doing anything, if VAR_NAME is null or empty. */
+   given SUBCOMMAND is a duplicate is emitted).
+
+   Does nothing and returns true if VAR_NAME is null. */
 static bool
 create_flag_var (const char *subcommand, const char *var_name,
                  struct dictionary *dict, struct variable **var)
 {
-  if (var_name[0] != '\0')
+  if (var_name != NULL)
     {
       struct fmt_spec format = fmt_for_output (FMT_F, 1, 0);
       *var = dict_create_var (dict, var_name, 0);
@@ -626,6 +637,7 @@ close_all_comb_files (struct comb_proc *proc)
       dict_destroy (file->dict);
       casereader_destroy (file->reader);
       case_unref (file->data);
+      free (file->in_name);
     }
   free (proc->files);
   proc->files = NULL;

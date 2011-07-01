@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005, 2007  Free Software Foundation
+   Copyright (C) 2005, 2007, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -55,8 +55,7 @@
 
 #include <config.h>
 
-#include <gtk/gtksignal.h>
-#include <gtk/gtkentry.h>
+#include <gtk/gtk.h>
 #include "customentry.h"
 
 
@@ -107,7 +106,7 @@ psppire_custom_entry_get_type (void)
 static void
 psppire_custom_entry_map (GtkWidget *widget)
 {
-  if (GTK_WIDGET_REALIZED (widget) && !GTK_WIDGET_MAPPED (widget))
+  if (gtk_widget_get_realized (widget) && !gtk_widget_get_mapped (widget))
     {
       GTK_WIDGET_CLASS (parent_class)->map (widget);
       gdk_window_show (PSPPIRE_CUSTOM_ENTRY (widget)->panel);
@@ -117,7 +116,7 @@ psppire_custom_entry_map (GtkWidget *widget)
 static void
 psppire_custom_entry_unmap (GtkWidget *widget)
 {
-  if (GTK_WIDGET_MAPPED (widget))
+  if (gtk_widget_get_mapped (widget))
     {
       gdk_window_hide (PSPPIRE_CUSTOM_ENTRY (widget)->panel);
       GTK_WIDGET_CLASS (parent_class)->unmap (widget);
@@ -233,7 +232,7 @@ psppire_custom_entry_redraw (PsppireCustomEntry *custom_entry)
 
   widget = GTK_WIDGET (custom_entry);
 
-  if (GTK_WIDGET_DRAWABLE (widget))
+  if (gtk_widget_is_drawable (widget))
     {
       gtk_widget_queue_draw (widget);
 
@@ -254,7 +253,7 @@ psppire_custom_entry_expose (GtkWidget      *widget,
   g_return_val_if_fail (PSPPIRE_IS_CUSTOM_ENTRY (widget), FALSE);
   g_return_val_if_fail (event != NULL, FALSE);
 
-  if (GTK_WIDGET_DRAWABLE (widget))
+  if (gtk_widget_is_drawable (widget))
     {
       gboolean is_editable;
       GtkShadowType shadow_type;
@@ -369,7 +368,7 @@ psppire_custom_entry_button_press (GtkWidget *widget,
   if (event->window == ce->panel)
     {
       gboolean is_editable ;
-      if (!GTK_WIDGET_HAS_FOCUS (widget))
+      if (!gtk_widget_has_focus (widget))
 	gtk_widget_grab_focus (widget);
 
       g_object_get (ce, "editable", &is_editable, NULL);
@@ -426,7 +425,7 @@ psppire_custom_entry_size_allocate (GtkWidget     *widget,
 
   GTK_WIDGET_CLASS (parent_class)->size_allocate (widget, &entry_allocation);
 
-  if (GTK_WIDGET_REALIZED (widget))
+  if (gtk_widget_get_realized (widget))
     {
       gdk_window_move_resize (PSPPIRE_CUSTOM_ENTRY (widget)->panel,
 			      panel_allocation.x,

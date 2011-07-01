@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,19 +18,19 @@
 
 #include <stdlib.h>
 
-#include <data/any-reader.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <data/missing-values.h>
-#include <data/procedure.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/data-io/file-handle.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/any-reader.h"
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/missing-values.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/data-io/file-handle.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -48,9 +48,9 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
   int i;
 
   lex_match_id (lexer, "FROM");
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
-  handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
+  handle = fh_parse (lexer, FH_REF_FILE, dataset_session (ds));
   if (!handle)
     return CMD_FAILURE;
   reader = any_reader_open (handle, &dict);
@@ -79,12 +79,8 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
 	  continue;
 	}
 
-      if (var_get_label (s))
-        {
-          const char *label = var_get_label (s);
-          if (strcspn (label, " ") != strlen (label))
-            var_set_label (t, label);
-        }
+      if (var_has_label (s))
+        var_set_label (t, var_get_label (s), false);
 
       if (var_has_value_labels (s))
         {
@@ -129,5 +125,5 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
         dict_set_weight (dataset_dict (ds), new_weight);
     }
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

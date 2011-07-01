@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,40 +16,41 @@
 
 #include <config.h>
 
+#include "language/stats/aggregate.h"
+
 #include <stdlib.h>
 
-#include <data/any-writer.h>
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/subcase.h>
-#include <data/sys-file-writer.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/data-io/file-handle.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <language/stats/sort-criteria.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
-#include <math/moments.h>
-#include <math/sort.h>
-#include <math/statistic.h>
-#include <math/percentiles.h>
+#include "data/any-writer.h"
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/format.h"
+#include "data/settings.h"
+#include "data/subcase.h"
+#include "data/sys-file-writer.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/data-io/file-handle.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "language/stats/sort-criteria.h"
+#include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
+#include "math/moments.h"
+#include "math/percentiles.h"
+#include "math/sort.h"
+#include "math/statistic.h"
 
-#include "aggregate.h"
-
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -91,27 +92,27 @@ struct agr_var
 /* Attributes of aggregation functions. */
 const struct agr_func agr_func_tab[] =
   {
-    {"SUM",     N_("Sum of values"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
-    {"MEAN",	N_("Mean average"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
-    {"MEDIAN",	N_("Median average"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
-    {"SD",      N_("Standard deviation"), AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
-    {"MAX",     N_("Maximum value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
-    {"MIN",     N_("Minimum value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
-    {"PGT",     N_("Percentage greater than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"PLT",     N_("Percentage less than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"PIN",     N_("Percentage included in range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"POUT",    N_("Percentage excluded from range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
-    {"FGT",     N_("Fraction greater than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"FLT",     N_("Fraction less than"), AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"FIN",     N_("Fraction included in range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"FOUT",    N_("Fraction excluded from range"), AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
-    {"N",       N_("Number of cases"), AGR_SV_NO, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"NU",      N_("Number of cases (unweighted)"), AGR_SV_OPT, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"NMISS",   N_("Number of missing values"), AGR_SV_YES, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"SUM",     N_("Sum of values"),                         AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"MEAN",	N_("Mean average"),                          AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"MEDIAN",	N_("Median average"),                        AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"SD",      N_("Standard deviation"),                    AGR_SV_YES, 0, -1,          {FMT_F, 8, 2}},
+    {"MAX",     N_("Maximum value"),                         AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {"MIN",     N_("Minimum value"),                         AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {"PGT",     N_("Percentage greater than"),               AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"PLT",     N_("Percentage less than"),                  AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"PIN",     N_("Percentage included in range"),          AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"POUT",    N_("Percentage excluded from range"),        AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"FGT",     N_("Fraction greater than"),                 AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FLT",     N_("Fraction less than"),                    AGR_SV_YES, 1, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FIN",     N_("Fraction included in range"),            AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FOUT",    N_("Fraction excluded from range"),          AGR_SV_YES, 2, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"N",       N_("Number of cases"),                       AGR_SV_NO,  0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NU",      N_("Number of cases (unweighted)"),          AGR_SV_OPT, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NMISS",   N_("Number of missing values"),              AGR_SV_YES, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
     {"NUMISS",  N_("Number of missing values (unweighted)"), AGR_SV_YES, 0, VAL_NUMERIC, {FMT_F, 7, 0}},
-    {"FIRST",   N_("First non-missing value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
-    {"LAST",    N_("Last non-missing value"), AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
-    {NULL,      NULL, AGR_SV_NO, 0, -1,          {-1, -1, -1}},
+    {"FIRST",   N_("First non-missing value"),               AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {"LAST",    N_("Last non-missing value"),                AGR_SV_YES, 0, VAL_STRING,  {-1, -1, -1}},
+    {NULL,      NULL,                                        AGR_SV_NO,  0, -1,          {-1, -1, -1}},
   };
 
 /* Missing value types. */
@@ -175,20 +176,20 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
   subcase_init_empty (&agr.sort);
 
   /* OUTFILE subcommand must be first. */
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   if (!lex_force_match_id (lexer, "OUTFILE"))
     goto error;
-  lex_match (lexer, '=');
-  if (!lex_match (lexer, '*'))
+  lex_match (lexer, T_EQUALS);
+  if (!lex_match (lexer, T_ASTERISK))
     {
-      out_file = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
+      out_file = fh_parse (lexer, FH_REF_FILE, dataset_session (ds));
       if (out_file == NULL)
         goto error;
     }
 
   if (out_file == NULL && lex_match_id (lexer, "MODE"))
     {
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
       if (lex_match_id (lexer, "ADDVARIABLES"))
 	{
 	  agr.add_variables = true;
@@ -207,7 +208,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
   if ( agr.add_variables )
     agr.dict = dict_clone (dict);
   else
-    agr.dict = dict_create ();    
+    agr.dict = dict_create (dict_get_encoding (dict));
 
   dict_set_label (agr.dict, dict_get_label (dict));
   dict_set_documents (agr.dict, dict_get_documents (dict));
@@ -215,11 +216,11 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
   /* Read most of the subcommands. */
   for (;;)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "MISSING"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (!lex_match_id (lexer, "COLUMNWISE"))
 	    {
 	      lex_error (lexer, _("expecting %s"), "COLUMNWISE");
@@ -235,7 +236,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 	{
           int i;
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           if (!parse_sort_criteria (lexer, dict, &agr.sort, &agr.break_vars,
                                     &saw_direction))
             goto error;
@@ -258,7 +259,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
                "the same way as the input data."));
 
   /* Read in the aggregate functions. */
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   if (!parse_aggregate_functions (lexer, dict, &agr))
     goto error;
 
@@ -274,7 +275,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 
   if (out_file == NULL)
     {
-      /* The active file will be replaced by the aggregated data,
+      /* The active dataset will be replaced by the aggregated data,
          so TEMPORARY is moot. */
       proc_cancel_temporary_transformations (ds);
       proc_discard_output (ds);
@@ -350,7 +351,8 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
       if (next_input == NULL)
         goto error;
 
-      proc_set_active_file (ds, next_input, agr.dict);
+      dataset_set_dict (ds, agr.dict);
+      dataset_set_source (ds, next_input);
       agr.dict = NULL;
     }
   else
@@ -412,11 +414,11 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
       ds_init_empty (&function_name);
 
       /* Parse the list of target variables. */
-      while (!lex_match (lexer, '='))
+      while (!lex_match (lexer, T_EQUALS))
 	{
 	  size_t n_dest_prev = n_dest;
 
-	  if (!parse_DATA_LIST_vars (lexer, &dest, &n_dest,
+	  if (!parse_DATA_LIST_vars (lexer, dict, &dest, &n_dest,
                                      (PV_APPEND | PV_SINGLE | PV_NO_SCRATCH
                                       | PV_NO_DUPLICATE)))
 	    goto error;
@@ -434,13 +436,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 
 	  if (lex_is_string (lexer))
 	    {
-	      struct string label;
-	      ds_init_string (&label, lex_tokstr (lexer));
-
-	      ds_truncate (&label, 255);
-	      dest_label[n_dest - 1] = ds_xstrdup (&label);
+	      dest_label[n_dest - 1] = xstrdup (lex_tokcstr (lexer));
 	      lex_get (lexer);
-	      ds_destroy (&label);
 	    }
 	}
 
@@ -451,8 +448,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	  goto error;
 	}
 
-      ds_assign_string (&function_name, lex_tokstr (lexer));
-      exclude = ds_chomp (&function_name, '.') ? MV_SYSTEM : MV_ANY;
+      ds_assign_substring (&function_name, lex_tokss (lexer));
+      exclude = ds_chomp_byte (&function_name, '.') ? MV_SYSTEM : MV_ANY;
 
       for (function = agr_func_tab; function->name; function++)
 	if (!strcasecmp (function->name, ds_cstr (&function_name)))
@@ -468,11 +465,11 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
       lex_get (lexer);
 
       /* Check for leading lparen. */
-      if (!lex_match (lexer, '('))
+      if (!lex_match (lexer, T_LPAREN))
 	{
 	  if (function->src_vars == AGR_SV_YES)
 	    {
-              lex_force_match (lexer, '(');
+              lex_force_match (lexer, T_LPAREN);
 	      goto error;
 	    }
 	}
@@ -498,10 +495,12 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	      {
 		int type;
 
-		lex_match (lexer, ',');
+		lex_match (lexer, T_COMMA);
 		if (lex_is_string (lexer))
 		  {
-		    arg[i].c = ds_xstrdup (lex_tokstr (lexer));
+		    arg[i].c = recode_string (dict_get_encoding (agr->dict),
+                                              "UTF-8", lex_tokcstr (lexer),
+                                              -1);
 		    type = VAL_STRING;
 		  }
 		else if (lex_is_number (lexer))
@@ -528,7 +527,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 	      }
 
 	  /* Trailing rparen. */
-	  if (!lex_force_match (lexer, ')'))
+	  if (!lex_force_match (lexer, T_RPAREN))
             goto error;
 
 	  /* Now check that the number of source variables match
@@ -639,7 +638,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 
 	    free (dest[i]);
 	    if (dest_label[i])
-              var_set_label (destvar, dest_label[i]);
+              var_set_label (destvar, dest_label[i], true);
 
 	    v->dest = destvar;
 	  }
@@ -670,9 +669,9 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
       free (dest);
       free (dest_label);
 
-      if (!lex_match (lexer, '/'))
+      if (!lex_match (lexer, T_SLASH))
 	{
-	  if (lex_token (lexer) == '.')
+	  if (lex_token (lexer) == T_ENDCMD)
 	    return true;
 
 	  lex_error (lexer, "expecting end of command");
@@ -810,6 +809,7 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	    iter->int1 = 1;
 	    break;
 	  case MAX | FSTRING:
+            /* Need to do some kind of Unicode collation thingy here */
 	    if (memcmp (iter->string, value_str (v, src_width), src_width) < 0)
 	      memcpy (iter->string, value_str (v, src_width), src_width);
 	    iter->int1 = 1;

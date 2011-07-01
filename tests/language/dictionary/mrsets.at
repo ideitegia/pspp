@@ -185,7 +185,7 @@ d
 ","Multiple category set
 "
 
-mrsets.sps:50: note: MRSETS: The active file dictionary does not contain any multiple response sets.
+mrsets.sps:50: note: MRSETS: The active dataset dictionary does not contain any multiple response sets.
 ])
 AT_CLEANUP
 

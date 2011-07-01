@@ -21,6 +21,7 @@
 
 unsigned int hash_bytes (const void *, size_t, unsigned int basis);
 unsigned int hash_string (const char *, unsigned int basis);
+unsigned int hash_case_bytes (const void *, size_t, unsigned int basis);
 unsigned int hash_case_string (const char *, unsigned int basis);
 unsigned int hash_int (int, unsigned int basis);
 unsigned int hash_double (double, unsigned int basis);

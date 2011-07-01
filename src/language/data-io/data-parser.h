@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
 /* Abstraction of a DATA LIST or GET DATA TYPE=TXT data parser. */
 
 #include <stdbool.h>
-#include <data/case.h>
-#include <libpspp/str.h>
+#include "data/case.h"
+#include "libpspp/str.h"
 
 struct dataset;
 struct dfm_reader;

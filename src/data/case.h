@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,8 +21,9 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <libpspp/compiler.h>
-#include <data/caseproto.h>
+
+#include "libpspp/compiler.h"
+#include "data/caseproto.h"
 
 struct variable;
 
@@ -61,7 +62,7 @@ struct ccase *case_try_create (const struct caseproto *) MALLOC_LIKE;
 struct ccase *case_clone (const struct ccase *) MALLOC_LIKE;
 
 static inline struct ccase *case_unshare (struct ccase *) WARN_UNUSED_RESULT;
-static inline struct ccase *case_ref (const struct ccase *);
+struct ccase *case_ref (const struct ccase *) WARN_UNUSED_RESULT;
 static inline void case_unref (struct ccase *);
 static inline bool case_is_shared (const struct ccase *);
 
@@ -127,16 +128,6 @@ case_unshare (struct ccase *c)
 {
   if (case_is_shared (c))
     c = case_unshare__ (c);
-  return c;
-}
-
-/* Increments case C's reference count and returns C.  Afterward,
-   case C is shared among its reference count holders. */
-static inline struct ccase *
-case_ref (const struct ccase *c_)
-{
-  struct ccase *c = CONST_CAST (struct ccase *, c_);
-  c->ref_cnt++;
   return c;
 }
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,9 +30,11 @@
 #include "language/lexer/lexer.h"
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
+#include "gl/localcharset.h"
 #include "gl/xalloc.h"
 #include "gl/xmalloca.h"
 
@@ -129,35 +131,41 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
       return CMD_FAILURE;
     }
 
-  if (lex_token (lexer) == '.')
+  if (lex_token (lexer) == T_ENDCMD)
     return shell () ? CMD_SUCCESS : CMD_FAILURE;
   else if (lex_match_id (lexer, "COMMAND"))
     {
       struct string command;
+      char *locale_command;
       bool ok;
 
-      lex_match (lexer, '=');
-      if (!lex_force_match (lexer, '['))
+      lex_match (lexer, T_EQUALS);
+      if (!lex_force_match (lexer, T_LBRACK))
         return CMD_FAILURE;
 
       ds_init_empty (&command);
       while (lex_is_string (lexer))
         {
           if (!ds_is_empty (&command))
-            ds_put_char (&command, '\n');
-          ds_put_substring (&command, ds_ss (lex_tokstr (lexer)));
+            ds_put_byte (&command, '\n');
+          ds_put_substring (&command, lex_tokss (lexer));
           lex_get (lexer);
         }
-      if (!lex_force_match (lexer, ']'))
+      if (!lex_force_match (lexer, T_RBRACK))
         {
           ds_destroy (&command);
           return CMD_FAILURE;
         }
 
-      ok = run_command (ds_cstr (&command));
+      locale_command = recode_string (locale_charset (), "UTF-8",
+                                      ds_cstr (&command),
+                                      ds_length (&command));
       ds_destroy (&command);
 
-      return ok ? lex_end_of_command (lexer) : CMD_FAILURE;
+      ok = run_command (locale_command);
+      free (locale_command);
+
+      return ok ? CMD_SUCCESS : CMD_FAILURE;
     }
   else
     {

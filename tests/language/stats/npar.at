@@ -610,7 +610,9 @@ npar tests
 	.
 ])
 AT_CHECK([pspp -o pspp.csv npar.sps])
-AT_CHECK([cat pspp.csv], [0], [dnl
+dnl Some machines return .313 instead of .312 for the Point Probability
+dnl (see bug #31611).
+AT_CHECK([sed 's/\.313$/.312/' pspp.csv], [0], [dnl
 Table: Frequencies
 ,,N
 height - age,Negative Differences,1
@@ -787,6 +789,307 @@ Table: Test Statistics
 Chi-Square,,6.406,6.406,
 df,,2,2,
 Asymp. Sig.,,.041,.041,
+])
+
+AT_CLEANUP
+
+
+
+AT_SETUP([NPAR TESTS Runs])
+AT_DATA([npar-runs.sps], [dnl
+set format F11.4.
+data list notable list /score * w *.
+begin data
+4     6
+.     4
+4     3 
+3    20 
+2    29 
+1    42 
+6    18 
+5     7 
+6    78 
+5    10 
+6    46 
+5     5 
+6    17 
+5     1 
+6    11 
+4     2 
+3     7 
+2     6 
+1    10 
+4    13 
+3    22 
+3    11 
+2    24 
+1    18 
+4     4 
+3    12 
+2    10 
+1    25 
+4     4 
+3     7 
+2     3 
+1     4 
+4     2 
+3     3 
+2     2 
+1     4 
+end data.
+
+weight by w.
+
+npar tests
+	/runs (MEDIAN) = score
+	/runs (MEAN) = score
+	/runs (MODE) = score 
+	.
+])
+
+AT_CHECK([pspp -o pspp.csv npar-runs.sps])
+
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Runs Test
+,score
+Test Value (median),3.0000
+Cases < Test Value,177.0000
+Cases >= Test Value,309.0000
+Total Cases,486.0000
+Number of Runs,12
+Z,-20.9931
+Asymp. Sig. (2-tailed),.0000
+
+Table: Runs Test
+,score
+Test Value (mean),3.6379
+Cases < Test Value,259.0000
+Cases >= Test Value,227.0000
+Total Cases,486.0000
+Number of Runs,12
+Z,-21.0650
+Asymp. Sig. (2-tailed),.0000
+
+Table: Runs Test
+,score
+Test Value (mode),6.0000
+Cases < Test Value,316.0000
+Cases >= Test Value,170.0000
+Total Cases,486.0000
+Number of Runs,11
+Z,-21.0742
+Asymp. Sig. (2-tailed),.0000
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([NPAR TESTS Friedman])
+AT_DATA([npar-friedman.sps], [dnl
+set format F15.4.
+data list notable list /x * y * z.
+begin data
+9.5 6.5	8.1
+8.0 6.0	6.0
+7.0 6.5	4.2
+9.5 5.0	7.3
+9.0 7.0 6.2
+8.5 6.9	6.5
+7.5 8.0	6.5
+6.0 8.0	3.1
+5.0 6.0	4.9
+7.5 7.5	6.2
+end data.
+
+npar tests
+     /friedman = x y z.
+])
+
+AT_CHECK([pspp -o pspp.csv npar-friedman.sps])
+
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Ranks
+,Mean Rank
+x,2.6500
+y,2.1000
+z,1.2500
+
+Table: Test Statistics
+N,10
+Chi-Square,10.4737
+df,2
+Asymp. Sig.,.0053
+])
+
+AT_CLEANUP
+
+
+
+AT_SETUP([NPAR TESTS Mann-Whitney])
+AT_DATA([npar-mann-whitney.sps], [dnl
+SET FORMAT     = F11.4
+
+data list notable list /height * sex (f1.0).
+begin data.
+201 1            
+84 1            
+83 1            
+94 1            
+88 0            
+99 0            
+55 0            
+69 0            
+86 1            
+79 1            
+91 0            
+201 0            
+88 1            
+85 1            
+82 1            
+88 0            
+75 0            
+99 0            
+81 0            
+72 1            
+89 1            
+92 1            
+80 0            
+82 0            
+76 0            
+65 0            
+85 0            
+76 1            
+145 1            
+24 1            
+end data.
+
+NPAR TESTS 
+     /M-W = height BY sex (0,1).
+])
+
+AT_CHECK([pspp -o pspp.csv npar-mann-whitney.sps])
+
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Ranks
+,N,,,Mean Rank,,Sum of Ranks,
+,0,1,Total,0,1,0,1
+height,15.0000,15.0000,30.0000,14.5333,16.4667,218.0000,247.0000
+
+Table: Test Statistics
+,Mann-Whitney U,Wilcoxon W,Z,Asymp. Sig. (2-tailed)
+height,98.0000,218.0000,-.6020,.5472
+])
+
+
+AT_CLEANUP
+
+
+AT_SETUP([NPAR TESTS Cochran])
+AT_DATA([npar-cochran.sps], [dnl
+set format f11.3.
+
+data list notable list /v1 * v2 * v3 * v4 * v5 * v6 * v7 *.
+begin data.
+2 1 1 2 1 1 2 
+2 2 2 2 1 1 1  
+1 1 2 2 1 1 2  
+2 2 2 2 1 1 2 
+2 1 2 1 1 2 1 
+1 2 2 1 1 1 1 
+1 2 2 2 2 2 2 
+2 2 1 2 1 1 1 
+1 2 1 2 1 1 2 
+end data.     
+
+npar tests 
+	/cochran = v1 to v7 .
+
+])
+
+AT_CHECK([pspp -o pspp.csv npar-cochran.sps])
+
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Frequencies
+,Value,
+,Success (2),Failure (1)
+v1,5,4
+v2,6,3
+v3,6,3
+v4,7,2
+v5,1,8
+v6,2,7
+v7,5,4
+
+Table: Test Statistics
+N,9
+Cochran's Q,12.735
+df,6
+Asymp. Sig.,.047
+])
+
+AT_CLEANUP
+
+
+
+AT_SETUP([NPAR TESTS Kendall])
+AT_DATA([npar-kendall.sps], [dnl
+SET FORMAT F14.3.
+
+data list notable list /v1 * v2 * v3
+begin data.
+ 7  7  2 
+ 5  6  5 
+ 8  6  4 
+ 5  7  4 
+ 5  4  4 
+ 8  6  5 
+ 6  3  5 
+ 7  6  5 
+ 8  5  5
+ .  2  2 
+ 5  4  5 
+ 3  4  4 
+ 5  1  2 
+ 5  2  1 
+ 7  6  5 
+ 6  3  4 
+ 6  6  6 
+ 5  4  5 
+ 4  3  4 
+ 9  1  1 
+ 6  2  1 
+ 3  7  8 
+ 6  3  4 
+ 4  4  4 
+ 5  4  3 
+ 6  5  2 
+ 4  4  8 
+ 4  6  4 
+ 6  5  5 
+ 7  8  6 
+ 5  3  5 
+end data.
+
+npar tests
+	/kendall = all
+	.
+])
+
+AT_CHECK([pspp -o pspp.csv npar-kendall.sps])
+
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Ranks
+,Mean Rank
+v1,2.500
+v2,1.817
+v3,1.683
+
+Table: Test Statistics
+N,30
+Kendall's W,.233
+Chi-Square,13.960
+df,2
+Asymp. Sig.,.001
 ])
 
 AT_CLEANUP

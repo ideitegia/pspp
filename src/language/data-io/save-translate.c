@@ -22,10 +22,10 @@
 #include "data/casereader.h"
 #include "data/casewriter.h"
 #include "data/csv-file-writer.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/file-name.h"
 #include "data/format.h"
-#include "data/procedure.h"
 #include "data/settings.h"
 #include "language/command.h"
 #include "language/data-io/file-handle.h"
@@ -84,7 +84,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
   case_map_prepare_dict (dict);
   dict_delete_scratch_vars (dict);
 
-  while (lex_match (lexer, '/'))
+  while (lex_match (lexer, T_SLASH))
     {
       if (lex_match_id (lexer, "OUTFILE"))
 	{
@@ -94,9 +94,9 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
               goto error;
             }
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
-	  handle = fh_parse (lexer, FH_REF_FILE);
+	  handle = fh_parse (lexer, FH_REF_FILE, NULL);
 	  if (handle == NULL)
 	    goto error;
 	}
@@ -108,7 +108,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
               goto error;
             }
 
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "CSV"))
             type = CSV_FILE;
           else if (lex_match_id (lexer, "TAB"))
@@ -125,7 +125,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
         include_var_names = true;
       else if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "IGNORE"))
             recode_user_missing = false;
           else if (lex_match_id (lexer, "RECODE"))
@@ -138,7 +138,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
         }
       else if (lex_match_id (lexer, "CELLS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "VALUES"))
             use_value_labels = false;
           else if (lex_match_id (lexer, "LABELS"))
@@ -151,40 +151,42 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
         }
       else if (lex_match_id (lexer, "TEXTOPTIONS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           for (;;)
             {
               if (lex_match_id (lexer, "DELIMITER"))
                 {
-                  lex_match (lexer, '=');
+                  lex_match (lexer, T_EQUALS);
                   if (!lex_force_string (lexer))
                     goto error;
-                  if (ds_length (lex_tokstr (lexer)) != 1)
+                  /* XXX should support multibyte UTF-8 delimiters */
+                  if (ss_length (lex_tokss (lexer)) != 1)
                     {
                       msg (SE, _("The %s string must contain exactly one "
                                  "character."), "DELIMITER");
                       goto error;
                     }
-                  delimiter = ds_first (lex_tokstr (lexer));
+                  delimiter = ss_first (lex_tokss (lexer));
                   lex_get (lexer);
                 }
               else if (lex_match_id (lexer, "QUALIFIER"))
                 {
-                  lex_match (lexer, '=');
+                  lex_match (lexer, T_EQUALS);
                   if (!lex_force_string (lexer))
                     goto error;
-                  if (ds_length (lex_tokstr (lexer)) != 1)
+                  /* XXX should support multibyte UTF-8 qualifiers */
+                  if (ss_length (lex_tokss (lexer)) != 1)
                     {
                       msg (SE, _("The %s string must contain exactly one "
                                  "character."), "QUALIFIER");
                       goto error;
                     }
-                  qualifier = ds_first (lex_tokstr (lexer));
+                  qualifier = ss_first (lex_tokss (lexer));
                   lex_get (lexer);
                 }
               else if (lex_match_id (lexer, "DECIMAL"))
                 {
-                  lex_match (lexer, '=');
+                  lex_match (lexer, T_EQUALS);
                   if (lex_match_id (lexer, "DOT"))
                     decimal = '.';
                   else if (lex_match_id (lexer, "COMMA"))
@@ -198,7 +200,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                 }
               else if (lex_match_id (lexer, "FORMAT"))
                 {
-                  lex_match (lexer, '=');
+                  lex_match (lexer, T_EQUALS);
                   if (lex_match_id (lexer, "PLAIN"))
                     use_print_formats = false;
                   else if (lex_match_id (lexer, "VARIABLE"))
@@ -216,7 +218,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
         }
       else if (lex_match_id (lexer, "UNSELECTED"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "RETAIN"))
             retain_unselected = true;
           else if (lex_match_id (lexer, "DELETE"))

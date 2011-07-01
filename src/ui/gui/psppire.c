@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2009, 2010  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
 
 #include <config.h>
 
-#include "ui/gui/psppire.h"
-
 #include <assert.h>
 #include <gsl/gsl_errno.h>
 #include <gtk/gtk.h>
@@ -25,33 +23,35 @@
 #include <unistd.h>
 
 #include "data/casereader.h"
+#include "data/dataset.h"
 #include "data/datasheet.h"
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
 #include "data/por-file-reader.h"
-#include "data/procedure.h"
+#include "data/session.h"
 #include "data/settings.h"
 #include "data/sys-file-reader.h"
+
 #include "language/lexer/lexer.h"
-#include "language/syntax-string-source.h"
-#include "libpspp/getl.h"
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/version.h"
+
 #include "output/driver.h"
 #include "output/journal.h"
 #include "output/message-item.h"
+
 #include "ui/gui/dict-display.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/psppire-data-store.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dict.h"
+#include "ui/gui/psppire.h"
 #include "ui/gui/psppire-output-window.h"
 #include "ui/gui/psppire-selector.h"
 #include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-var-view.h"
 #include "ui/gui/psppire-window-register.h"
-#include "ui/gui/psppire.h"
 #include "ui/gui/widgets.h"
 #include "ui/source-init-opts.h"
 #include "ui/syntax-gen.h"
@@ -60,36 +60,18 @@
 #include "gl/xalloc.h"
 #include "gl/relocatable.h"
 
-GtkRecentManager *the_recent_mgr = 0;
-PsppireDataStore *the_data_store = 0;
-PsppireVarStore *the_var_store = 0;
-
+static void inject_renamed_icons (void);
 static void create_icon_factory (void);
-
-struct source_stream *the_source_stream ;
-struct dataset * the_dataset = NULL;
-
-static GtkWidget *the_data_window;
-
-static void handle_msg (const struct msg *);
-static void load_data_file (const char *);
-
-static void
-replace_casereader (struct casereader *s)
-{
-  psppire_data_store_set_reader (the_data_store, s);
-}
+static void load_data_file (PsppireDataWindow *, const char *);
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
 
-
-
 void
-initialize (struct source_stream *ss, const char *data_file)
+initialize (const char *data_file)
 {
-  PsppireDict *dictionary = 0;
+  PsppireDataWindow *data_window;
 
   i18n_init ();
 
@@ -99,21 +81,11 @@ initialize (struct source_stream *ss, const char *data_file)
   settings_init ();
   fh_init ();
 
-  the_dataset = create_dataset ();
-
-  the_source_stream = ss;
-  msg_init (ss, handle_msg);
-
-  dictionary = psppire_dict_new_from_dict (dataset_dict (the_dataset));
+  psppire_set_lexer (NULL);
 
   bind_textdomain_codeset (PACKAGE, "UTF-8");
 
-  /* Create the model for the var_sheet */
-  the_var_store = psppire_var_store_new (dictionary);
-
-  the_data_store = psppire_data_store_new (dictionary);
-  replace_casereader (NULL);
-
+  inject_renamed_icons ();
   create_icon_factory ();
 
   psppire_output_window_setup ();
@@ -121,32 +93,23 @@ initialize (struct source_stream *ss, const char *data_file)
   journal_enable ();
   textdomain (PACKAGE);
 
-
-  the_recent_mgr = gtk_recent_manager_get_default ();
-
   psppire_selector_set_default_selection_func (GTK_TYPE_ENTRY, insert_source_row_into_entry);
   psppire_selector_set_default_selection_func (PSPPIRE_VAR_VIEW_TYPE, insert_source_row_into_tree_view);
   psppire_selector_set_default_selection_func (GTK_TYPE_TREE_VIEW, insert_source_row_into_tree_view);
 
-  the_data_window = psppire_data_window_new ();
+  data_window = psppire_default_data_window ();
   if (data_file != NULL)
-    load_data_file (data_file);
-
-  execute_syntax (create_syntax_string_source (""));
-
-  gtk_widget_show (the_data_window);
+    load_data_file (data_window, data_file);
 }
 
 
 void
 de_initialize (void)
 {
-  destroy_source_stream (the_source_stream);
   settings_done ();
   output_close ();
   i18n_done ();
 }
-
 
 static void
 func (gpointer key, gpointer value, gpointer data)
@@ -166,6 +129,46 @@ psppire_quit (void)
   gtk_main_quit ();
 }
 
+static void
+inject_renamed_icon (const char *icon, const char *substitute)
+{
+  GtkIconTheme *theme = gtk_icon_theme_get_default ();
+  if (!gtk_icon_theme_has_icon (theme, icon)
+      && gtk_icon_theme_has_icon (theme, substitute))
+    {
+      gint *sizes = gtk_icon_theme_get_icon_sizes (theme, substitute);
+      gint *p;
+
+      for (p = sizes; *p != 0; p++)
+        {
+          gint size = *p;
+          GdkPixbuf *pb;
+
+          pb = gtk_icon_theme_load_icon (theme, substitute, size, 0, NULL);
+          if (pb != NULL)
+            {
+              GdkPixbuf *copy = gdk_pixbuf_copy (pb);
+              if (copy != NULL)
+                gtk_icon_theme_add_builtin_icon (icon, size, copy);
+            }
+        }
+    }
+}
+
+/* Avoid a bug in GTK+ 2.22 that can cause a segfault at startup time.  Earlier
+   and later versions of GTK+ do not have the bug.  Bug #31511.
+
+   Based on this patch against Inkscape:
+   https://launchpadlibrarian.net/60175914/copy_renamed_icons.patch */
+static void
+inject_renamed_icons (void)
+{
+  if (gtk_major_version == 2 && gtk_minor_version == 22)
+    {
+      inject_renamed_icon ("gtk-file", "document-x-generic");
+      inject_renamed_icon ("gtk-directory", "folder");
+    }
+}
 
 struct icon_info
 {
@@ -240,7 +243,7 @@ create_icon_factory (void)
 }
 
 static void
-load_data_file (const char *arg)
+load_data_file (PsppireDataWindow *window, const char *arg)
 {
   gchar *filename = NULL;
   gchar *utf8 = NULL;
@@ -292,13 +295,31 @@ load_data_file (const char *arg)
   if ( filename == NULL)
     filename = xstrdup (arg);
 
-  psppire_window_load (PSPPIRE_WINDOW (the_data_window), filename);
+  psppire_window_load (PSPPIRE_WINDOW (window), filename);
 
   g_free (filename);
 }
 
 static void
-handle_msg (const struct msg *m)
+handle_msg (const struct msg *m_, void *lexer_)
 {
-  message_item_submit (message_item_create (m));
+  struct lexer *lexer = lexer_;
+  struct msg m = *m_;
+
+  if (lexer != NULL && m.file_name == NULL)
+    {
+      m.file_name = CONST_CAST (char *, lex_get_file_name (lexer));
+      m.first_line = lex_get_first_line_number (lexer, 0);
+      m.last_line = lex_get_last_line_number (lexer, 0);
+      m.first_column = lex_get_first_column (lexer, 0);
+      m.last_column = lex_get_last_column (lexer, 0);
+    }
+
+  message_item_submit (message_item_create (&m));
+}
+
+void
+psppire_set_lexer (struct lexer *lexer)
+{
+  msg_set_handler (handle_msg, lexer);
 }

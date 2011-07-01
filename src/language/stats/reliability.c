@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,26 +18,21 @@
 
 #include <math.h>
 
-#include <libpspp/misc.h>
-
-#include <libpspp/str.h>
-#include <libpspp/message.h>
-
-
-#include <data/procedure.h>
-#include <data/missing-values.h>
-#include <data/casereader.h>
-#include <data/casegrouper.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-
-#include <language/lexer/variable-parser.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-
-#include <math/moments.h>
-#include <output/tab.h>
-#include <output/text-item.h>
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/missing-values.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "math/moments.h"
+#include "output/tab.h"
+#include "output/text-item.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -129,21 +124,21 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 
   reliability.total_start = 0;
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "VARIABLES"))
     {
       goto error;
     }
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (!parse_variables_const (lexer, dict, &reliability.variables, &reliability.n_variables,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     goto error;
 
   if (reliability.n_variables < 2)
-    msg (MW, _("Reliabilty on a single variable is not useful."));
+    msg (MW, _("Reliability on a single variable is not useful."));
 
 
     {
@@ -166,27 +161,27 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 
 
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "SCALE"))
 	{
 	  struct const_var_set *vs;
-	  if ( ! lex_force_match (lexer, '('))
+	  if ( ! lex_force_match (lexer, T_LPAREN))
 	    goto error;
 
 	  if ( ! lex_force_string (lexer) ) 
 	    goto error;
 
-	  ds_init_string (&reliability.scale_name, lex_tokstr (lexer));
+	  ds_init_substring (&reliability.scale_name, lex_tokss (lexer));
 
 	  lex_get (lexer);
 
-	  if ( ! lex_force_match (lexer, ')'))
+	  if ( ! lex_force_match (lexer, T_RPAREN))
 	    goto error;
 
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 
 	  vs = const_var_set_create_from_array (reliability.variables, reliability.n_variables);
 
@@ -201,7 +196,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "MODEL"))
 	{
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 	  if (lex_match_id (lexer, "ALPHA"))
 	    {
 	      reliability.model = MODEL_ALPHA;
@@ -211,12 +206,12 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	      reliability.model = MODEL_SPLIT;
 	      reliability.split_point = -1;
 
-	      if ( lex_match (lexer, '('))
+	      if ( lex_match (lexer, T_LPAREN))
 		{
 		  lex_force_num (lexer);
 		  reliability.split_point = lex_number (lexer);
 		  lex_get (lexer);
-		  lex_force_match (lexer, ')');
+		  lex_force_match (lexer, T_RPAREN);
 		}
 	    }
 	  else
@@ -224,7 +219,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "SUMMARY"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 	  if (lex_match_id (lexer, "TOTAL"))
 	    {
 	      reliability.summary |= SUMMARY_TOTAL;
@@ -238,8 +233,8 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{

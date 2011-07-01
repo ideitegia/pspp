@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -59,5 +59,18 @@ int sfm_width_to_segments (int width);
 
 int sfm_segment_effective_offset (int width, int segment);
 int sfm_segment_alloc_width (int width, int segment);
+
+/* A mapping between an encoding name and a Windows codepage. */
+struct sys_encoding
+  {
+    int number;
+    const char *name;
+  };
+
+extern struct sys_encoding sys_codepage_number_to_name[];
+extern struct sys_encoding sys_codepage_name_to_number[];
+
+int sys_get_codepage_from_encoding (const char *);
+const char *sys_get_encoding_from_codepage (int);
 
 #endif /* data/sys-file-private.h */

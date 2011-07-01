@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2010 Free Software Foundation, Inc. 
+   Copyright (C) 2005, 2010, 2011 Free Software Foundation, Inc. 
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,17 +15,21 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
+#include "math/linreg.h"
+
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_cblas.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_fit.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_multifit.h>
-#include <linreg/sweep.h>
-#include <math/linreg.h>
-#include <src/data/variable.h>
-#include <src/data/value.h>
-#include <gl/xalloc.h>
+
+#include "data/value.h"
+#include "data/variable.h"
+#include "linreg/sweep.h"
+
+#include "gl/xalloc.h"
 
 /*
   Find the least-squares estimate of b for the linear model:

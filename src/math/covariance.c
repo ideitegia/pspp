@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,15 +16,18 @@
 
 #include <config.h>
 
-#include <libpspp/assertion.h>
-#include "covariance.h"
-#include <gl/xalloc.h>
-#include "moments.h"
+#include "math/covariance.h"
+
 #include <gsl/gsl_matrix.h>
-#include <data/case.h>
-#include <data/variable.h>
-#include <libpspp/misc.h>
-#include "categoricals.h"
+
+#include "data/case.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/misc.h"
+#include "math/categoricals.h"
+#include "math/moments.h"
+
+#include "gl/xalloc.h"
 
 #define n_MOMENTS (MOMENT_VARIANCE + 1)
 
@@ -529,7 +532,7 @@ cm_to_gsl (struct covariance *cov)
 }
 
 
-static const gsl_matrix *
+static gsl_matrix *
 covariance_calculate_double_pass (struct covariance *cov)
 {
   size_t i, j;
@@ -553,7 +556,7 @@ covariance_calculate_double_pass (struct covariance *cov)
   return  cm_to_gsl (cov);
 }
 
-static const gsl_matrix *
+static gsl_matrix *
 covariance_calculate_single_pass (struct covariance *cov)
 {
   size_t i, j;
@@ -598,12 +601,12 @@ covariance_calculate_single_pass (struct covariance *cov)
 }
 
 
-/* 
-   Return a pointer to gsl_matrix containing the pairwise covariances.
-   The matrix remains owned by the COV object, and must not be freed.
-   Call this function only after all data have been accumulated.
-*/
-const gsl_matrix *
+/* Return a pointer to gsl_matrix containing the pairwise covariances.  The
+   caller owns the returned matrix and must free it when it is no longer
+   needed.
+
+   Call this function only after all data have been accumulated.  */
+gsl_matrix *
 covariance_calculate (struct covariance *cov)
 {
   if ( cov->state <= 0 )
@@ -625,7 +628,7 @@ covariance_calculate (struct covariance *cov)
 /*
   Covariance computed without dividing by the sample size.
  */
-static const gsl_matrix *
+static gsl_matrix *
 covariance_calculate_double_pass_unnormalized (struct covariance *cov)
 {
   size_t i, j;
@@ -647,7 +650,7 @@ covariance_calculate_double_pass_unnormalized (struct covariance *cov)
   return  cm_to_gsl (cov);
 }
 
-static const gsl_matrix *
+static gsl_matrix *
 covariance_calculate_single_pass_unnormalized (struct covariance *cov)
 {
   size_t i, j;
@@ -679,12 +682,12 @@ covariance_calculate_single_pass_unnormalized (struct covariance *cov)
 }
 
 
-/* 
-   Return a pointer to gsl_matrix containing the pairwise covariances.
-   The matrix remains owned by the COV object, and must not be freed.
-   Call this function only after all data have been accumulated.
-*/
-const gsl_matrix *
+/* Return a pointer to gsl_matrix containing the pairwise covariances.  The
+   caller owns the returned matrix and must free it when it is no longer
+   needed.
+
+   Call this function only after all data have been accumulated.  */
+gsl_matrix *
 covariance_calculate_unnormalized (struct covariance *cov)
 {
   if ( cov->state <= 0 )
@@ -727,4 +730,29 @@ covariance_destroy (struct covariance *cov)
   free (cov->moments);
   free (cov->cm);
   free (cov);
+}
+
+size_t
+covariance_dim (const struct covariance * cov)
+{
+  return (cov->dim);
+}
+
+/*
+  Returns an array of variables corresponding to rows of the covariance matrix.
+  In other words, element i of the array is the variable corresponding to 
+  row (and column) i of the covariance matrix.
+ */
+void
+covariance_get_var_indices (const struct covariance *cov, struct variable **vars)
+{
+  int i;
+  for (i = 0; i < cov->n_vars; i++)
+    {
+      vars[i] = cov->vars[i];
+    }
+  for (i = cov->n_vars; i < cov->dim; i++)
+    {
+      vars[i] = categoricals_get_variable_by_subscript (cov->categoricals, i - cov->n_vars);
+    }
 }

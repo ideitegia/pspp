@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-    Copyright (C) 2005, 2006, 2010  Free Software Foundation
+    Copyright (C) 2005, 2006, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,18 +21,15 @@
 #include <config.h>
 
 #include <gtk/gtk.h>
-
 #include <stdlib.h>
 #include <string.h>
 
-#include "var-type-dialog.h"
-
-#include "helper.h"
-
-#include <data/variable.h>
-#include <data/settings.h>
-#include <libpspp/message.h>
-
+#include "data/data-out.h"
+#include "data/settings.h"
+#include "data/variable.h"
+#include "libpspp/message.h"
+#include "ui/gui/helper.h"
+#include "ui/gui/var-type-dialog.h"
 
 struct tgs
 {
@@ -125,7 +122,7 @@ static void update_width_decimals (const struct var_type_dialog *dialog);
 static void
 set_local_width_decimals (struct var_type_dialog *dialog)
 {
-  dialog->fmt_l = * var_get_write_format (dialog->pv);
+  dialog->fmt_l = * var_get_print_format (dialog->pv);
 
   switch (dialog->active_button)
     {
@@ -262,12 +259,12 @@ preview_custom (GtkWidget *w, gpointer data)
       union value v;
       v.f = 1234.56;
 
-      sample_text = value_to_text (v, dialog->vs->dictionary, dialog->fmt_l);
+      sample_text = g_strchug (data_out (&v, NULL, &dialog->fmt_l));
       gtk_label_set_text (GTK_LABEL (dialog->label_psample), sample_text);
       g_free (sample_text);
 
       v.f = -v.f;
-      sample_text = value_to_text (v, dialog->vs->dictionary, dialog->fmt_l);
+      sample_text = g_strchug (data_out (&v, NULL, &dialog->fmt_l));
       gtk_label_set_text (GTK_LABEL (dialog->label_nsample), sample_text);
       g_free (sample_text);
     }
@@ -320,14 +317,12 @@ set_format_type_from_treeview (GtkTreeView *treeview, gpointer data)
 
 /* Create the structure */
 struct var_type_dialog *
-var_type_dialog_create (GtkWindow *toplevel, PsppireVarStore *vs)
+var_type_dialog_create (GtkWindow *toplevel)
 {
   gint i;
   struct var_type_dialog *dialog = g_malloc (sizeof (struct var_type_dialog));
 
   GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
-
-  dialog->vs = vs;
 
   dialog->window = get_widget_assert (xml,"var_type_dialog");
   dialog->active_button = -1;
@@ -664,21 +659,21 @@ select_treeview_from_format_type (GtkTreeView *treeview,
 static void
 var_type_dialog_set_state (struct var_type_dialog *dialog)
 {
-  const struct fmt_spec *write_spec ;
+  const struct fmt_spec *format ;
   GString *str = g_string_new ("");
 
   g_assert (dialog);
   g_assert (dialog->pv);
 
   /* Populate width and decimals */
-  write_spec = var_get_write_format (dialog->pv);
+  format = var_get_print_format (dialog->pv);
 
-  g_string_printf (str, "%d", write_spec->d);
+  g_string_printf (str, "%d", format->d);
 
   gtk_entry_set_text (GTK_ENTRY (dialog->entry_decimals),
 		     str->str);
 
-  g_string_printf (str, "%d", write_spec->w);
+  g_string_printf (str, "%d", format->w);
 
   gtk_entry_set_text (GTK_ENTRY (dialog->entry_width),
 		     str->str);
@@ -686,7 +681,7 @@ var_type_dialog_set_state (struct var_type_dialog *dialog)
   g_string_free (str, TRUE);
 
   /* Populate the radio button states */
-  switch (write_spec->type)
+  switch (format->type)
     {
     case FMT_F:
       var_type_dialog_set_active_button (dialog, BUTTON_NUMERIC);
@@ -709,7 +704,7 @@ var_type_dialog_set_state (struct var_type_dialog *dialog)
       var_type_dialog_set_active_button (dialog, BUTTON_DOLLAR);
       gtk_widget_show_all (dialog->width_decimals);
 
-      select_treeview_from_format (dialog->dollar_treeview, write_spec);
+      select_treeview_from_format (dialog->dollar_treeview, format);
       break;
     case FMT_DATE:
     case FMT_EDATE:
@@ -727,7 +722,7 @@ var_type_dialog_set_state (struct var_type_dialog *dialog)
       var_type_dialog_set_active_button (dialog, BUTTON_DATE);
       gtk_widget_hide (dialog->width_decimals);
       gtk_widget_show (dialog->date_format_list);
-      select_treeview_from_format (dialog->date_format_treeview, write_spec);
+      select_treeview_from_format (dialog->date_format_treeview, format);
       break;
     case FMT_CCA:
     case FMT_CCB:
@@ -736,7 +731,7 @@ var_type_dialog_set_state (struct var_type_dialog *dialog)
     case FMT_CCE:
       var_type_dialog_set_active_button (dialog, BUTTON_CUSTOM);
       select_treeview_from_format_type (dialog->custom_treeview,
-				       write_spec->type);
+				       format->type);
       gtk_widget_show_all (dialog->width_decimals);
       break;
     default:

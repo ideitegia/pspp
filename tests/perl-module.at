@@ -56,11 +56,9 @@ DISPLAY DICTIONARY.
 SHOW WEIGHT.
 ])
 AT_CHECK([pspp -O format=csv dump-dict.sps], [0],
-  [File label:
+  [File label: My Dictionary
 
-My Dictionary
-
-Documents in the active file:
+Documents in the active dataset:
 
 These Documents
 
@@ -151,11 +149,9 @@ name,Format: A20,,2
 ,Display Alignment: Left,,
 ,Display Width: 20,,
 
-File label:
+File label: This is the file label
 
-This is the file label
-
-Documents in the active file:
+Documents in the active dataset:
 
 This is a document line
 
@@ -173,11 +169,9 @@ name,Format: A20,,2
 ,Display Alignment: Left,,
 ,Display Width: 20,,
 
-File label:
+File label: This is the file label
 
-This is the file label
-
-Documents in the active file:
+Documents in the active dataset:
 
 This is a document line
 
@@ -704,6 +698,8 @@ AT_CLEANUP
 
 AT_SETUP([Perl Pspp.t])
 AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
+# Skip this test if Perl's Text::Diff module is not installed.
+AT_CHECK([perl -MText::Diff -e '' || exit 77])
 AT_CHECK([RUN_PERL_MODULE $abs_top_builddir/perl-module/t/Pspp.t], [0],
   [[1..36
 ok 1 - use PSPP;

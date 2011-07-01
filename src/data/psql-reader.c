@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,23 +16,24 @@
 
 #include <config.h>
 
-#include <data/casereader-provider.h>
-#include <libpspp/message.h>
-#include <gl/xalloc.h>
-#include <data/dictionary.h>
+#include "data/psql-reader.h"
+
+#include <inttypes.h>
 #include <math.h>
 #include <stdlib.h>
 
-#include "psql-reader.h"
-#include "variable.h"
-#include "format.h"
-#include "calendar.h"
+#include "data/calendar.h"
+#include "data/casereader-provider.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/variable.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include <inttypes.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-
-#include "minmax.h"
+#include "gl/xalloc.h"
+#include "gl/minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -180,15 +181,12 @@ create_var (struct psql_reader *r, const struct fmt_spec *fmt,
 {
   unsigned long int vx = 0;
   struct variable *var;
-  char name[VAR_NAME_LEN + 1];
+  char *name;
 
-  if ( ! dict_make_unique_var_name (r->dict, suggested_name, &vx, name))
-    {
-      msg (ME, _("Cannot create variable name from %s"), suggested_name);
-      return NULL;
-    }
-
+  name = dict_make_unique_var_name (r->dict, suggested_name, &vx);
   var = dict_create_var (r->dict, name, width);
+  free (name);
+
   var_set_both_formats (var, fmt);
 
   if ( col != -1)
@@ -232,6 +230,7 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
   int n_fields, n_tuples;
   PGresult *qres = NULL;
   casenumber n_cases = CASENUMBER_MAX;
+  const char *encoding;
 
   struct psql_reader *r = xzalloc (sizeof *r);
   struct string query ;
@@ -288,21 +287,19 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
 
   r->postgres_epoch = calendar_gregorian_to_offset (2000, 1, 1, NULL);
 
-
-  /* Create the dictionary and populate it */
-  *dict = r->dict = dict_create ();
-
   {
     const int enc = PQclientEncoding (r->conn);
 
     /* According to section 22.2 of the Postgresql manual
        a value of zero (SQL_ASCII) indicates
        "a declaration of ignorance about the encoding".
-       Accordingly, we don't set the dictionary's encoding
+       Accordingly, we use the default encoding
        if we find this value.
     */
-    if ( enc != 0 )
-      dict_set_encoding (r->dict, pg_encoding_to_char (enc));
+    encoding = enc ? pg_encoding_to_char (enc) : get_default_encoding ();
+
+    /* Create the dictionary and populate it */
+    *dict = r->dict = dict_create (encoding);
   }
 
   /*

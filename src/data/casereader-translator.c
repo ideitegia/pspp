@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,15 +15,16 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <data/val-type.h>
-#include <data/casereader.h>
+
 #include <stdlib.h>
 
-#include <data/variable.h>
-#include <data/casereader-provider.h>
-#include <libpspp/taint.h>
+#include "data/casereader-provider.h"
+#include "data/casereader.h"
+#include "data/val-type.h"
+#include "data/variable.h"
+#include "libpspp/taint.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* Casereader that applies a user-supplied function to translate
    each case into another in an arbitrary fashion. */

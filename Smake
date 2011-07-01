@@ -7,6 +7,8 @@ GNULIB_TOOL = $(GNULIB)/gnulib-tool
 GNULIB_MODULES = \
 	assert \
 	byteswap \
+	c-strcase \
+	c-strcasestr \
 	c-ctype \
 	c-strtod \
 	clean-temp \
@@ -15,7 +17,9 @@ GNULIB_MODULES = \
 	count-one-bits \
 	crc \
 	crypto/md4 \
+	crypto/md5 \
 	dirname \
+	dtoastr \
 	environ \
 	fatal-signal \
 	fcntl \
@@ -27,10 +31,11 @@ GNULIB_MODULES = \
         ftello \
 	fwriteerror \
 	getline \
-	gettext-h \
+	gettext \
 	gettimeofday \
         getopt-gnu \
 	gitlog-to-changelog \
+	include_next \
 	isfinite \
 	isinf \
 	isnan \
@@ -41,12 +46,15 @@ GNULIB_MODULES = \
 	memcasecmp \
 	memchr \
 	mempcpy \
+	memrchr \
 	minmax \
 	mkdtemp \
 	mkstemp \
 	printf-posix \
 	printf-safe \
 	progname \
+	rawmemchr \
+	read-file \
 	regex \
 	relocatable-prog \
 	rename \
@@ -68,11 +76,23 @@ GNULIB_MODULES = \
 	sys_stat \
 	tempname \
 	trunc \
-	unilbrk/ulc-width-linebreaks \
+	unictype/ctype-print \
+	unictype/property-id-continue \
+	unictype/property-id-start \
+	unigbrk/uc-is-grapheme-break \
+	unilbrk/u8-possible-linebreaks \
 	unistd \
+	unistr/u8-check \
 	unistr/u8-cpy \
+	unistr/u8-mblen \
+	unistr/u8-mbtouc \
+	unistr/u8-mbtoucr \
 	unistr/u8-strlen \
+	unistr/u8-strmbtouc \
 	unistr/u8-strncat \
+	unistr/u8-uctomb \
+	uniwidth/u8-strwidth \
+	unitypes \
 	unlocked-io \
 	vasprintf-posix \
 	version-etc \
@@ -94,15 +114,19 @@ all:
 	test -e ChangeLog || touch ChangeLog
 	test -d m4 || mkdir m4
 	touch m4/Makefile.am
-	$(GNULIB_TOOL) --import --no-changelog --m4-base=gl/m4 \
-		--source-base=gl --lib=libgl --tests-base=tests \
-		--doc-base=gl/doc --aux-dir=build-aux --import \
-		--libtool $(GNULIB_MODULES)
+	$(MAKE) -f Smake gnulib
 	libtoolize --force --automake
 	aclocal -I m4 -I gl/m4
 	autoconf
 	autoheader
 	automake --add-missing --copy --no-force
+
+gnulib:
+	$(GNULIB_TOOL) --add-import --no-changelog --m4-base=gl/m4 \
+		--source-base=gl --lib=libgl --tests-base=tests \
+		--doc-base=gl/doc --aux-dir=build-aux --import \
+		--libtool $(GNULIB_MODULES)
+
 
 gettextize:
 	test -d m4 || mkdir m4

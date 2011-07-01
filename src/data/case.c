@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,19 +16,27 @@
 
 #include <config.h>
 
-#include <data/case.h>
+#include "data/case.h"
 
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
 
-#include <data/value.h>
-#include <data/variable.h>
-#include <libpspp/assertion.h>
-#include <libpspp/str.h>
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/str.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
+
+/* Set this flag to 1 to copy cases instead of ref counting them.
+   This is sometimes helpful in debugging situations. */
+#define DEBUG_CASEREFS 0
+
+#if DEBUG_CASEREFS
+#warning "Caseref debug enabled.  CASES ARE NOT BEING SHARED!!"
+#endif
 
 static size_t case_size (const struct caseproto *);
 static bool variable_matches_case (const struct ccase *,
@@ -78,6 +86,19 @@ struct ccase *
 case_clone (const struct ccase *c)
 {
   return case_unshare (case_ref (c));
+}
+
+/* Increments case C's reference count and returns C.  Afterward,
+   case C is shared among its reference count holders. */
+struct ccase *
+case_ref (const struct ccase *c_)
+{
+  struct ccase *c = CONST_CAST (struct ccase *, c_);
+  c->ref_cnt++;
+#if DEBUG_CASEREFS
+  c = case_unshare__ (c);
+#endif
+  return c;
 }
 
 /* Returns an estimate of the number of bytes of memory that

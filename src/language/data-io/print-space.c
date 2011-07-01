@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,17 +19,17 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include <data/procedure.h>
-#include <data/value.h>
-#include <language/command.h>
-#include <language/data-io/data-writer.h>
-#include <language/data-io/file-handle.h>
-#include <language/expressions/public.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
-#include <output/text-item.h>
+#include "data/dataset.h"
+#include "data/value.h"
+#include "language/command.h"
+#include "language/data-io/data-writer.h"
+#include "language/data-io/file-handle.h"
+#include "language/expressions/public.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
+#include "output/text-item.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -54,20 +54,19 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
 
   if (lex_match_id (lexer, "OUTFILE"))
     {
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
 
-      handle = fh_parse (lexer, FH_REF_FILE);
+      handle = fh_parse (lexer, FH_REF_FILE, NULL);
       if (handle == NULL)
 	return CMD_FAILURE;
-      lex_get (lexer);
     }
   else
     handle = NULL;
 
-  if (lex_token (lexer) != '.')
+  if (lex_token (lexer) != T_ENDCMD)
     {
       expr = expr_parse (lexer, ds, EXPR_NUMBER);
-      if (lex_token (lexer) != '.')
+      if (lex_token (lexer) != T_ENDCMD)
 	{
 	  expr_free (expr);
 	  lex_error (lexer, _("expecting end of command"));

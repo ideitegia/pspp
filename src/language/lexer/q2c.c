@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1422,12 +1422,14 @@ make_match (const char *t)
 	    "|| lex_match_id (lexer, \"FALSE\"))");
   else if (isdigit ((unsigned char) t[0]))
     sprintf (s, "lex_match_int (lexer, %s)", t);
-  else
+  else if (strchr (t, hyphen_proxy))
     {
       char *c = unmunge (t);
-      sprintf (s, "lex_match_hyphenated_word (lexer, \"%s\")", c);
+      sprintf (s, "lex_match_phrase (lexer, \"%s\")", c);
       free (c);
     }
+  else
+    sprintf (s, "lex_match_id (lexer, \"%s\")", t);
 
   return s;
 }
@@ -1491,12 +1493,12 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	    {
 	      if (s->optvalue)
 		{
-		  dump (1, "if (lex_match (lexer, '('))");
+		  dump (1, "if (lex_match (lexer, T_LPAREN))");
 		  dump (1, "{");
 		}
 	      else
 		{
-		  dump (1, "if (!lex_match (lexer, '('))");
+		  dump (1, "if (!lex_match (lexer, T_LPAREN))");
 		  dump (1, "{");
 		  dump (0, "msg (SE, _(\"`(' expected after %s "
 			"specifier of %s subcommand.\"));",
@@ -1542,7 +1544,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	      dump (0, "goto lossage;");
 	      dump (-1, "}");
               dump (-1, "free (p->%s%s);", sbc->prefix, st_lower (s->valname));
-              dump (0, "p->%s%s = xstrdup (ds_cstr (lex_tokstr (lexer)));",
+              dump (0, "p->%s%s = ss_xstrdup (ss_tokss (lexer));",
                     sbc->prefix, st_lower (s->valname));
             }
           else
@@ -1575,7 +1577,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 
 	  if (s->valtype == VT_PAREN)
 	    {
-	      dump (1, "if (!lex_match (lexer, ')'))");
+	      dump (1, "if (!lex_match (lexer, T_RPAREN))");
 	      dump (1, "{");
 	      dump (0, "msg (SE, _(\"`)' expected after argument for "
 		    "%s specifier of %s.\"));",
@@ -1611,7 +1613,7 @@ dump_subcommand (const subcommand *sbc)
     {
       int count;
 
-      dump (1, "while (lex_token (lexer) != '/' && lex_token (lexer) != '.')");
+      dump (1, "while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)");
       dump (1, "{");
 
       {
@@ -1669,7 +1671,7 @@ dump_subcommand (const subcommand *sbc)
 	  }
       }
 
-      dump (0, "lex_match (lexer, ',');");
+      dump (0, "lex_match (lexer, T_COMMA);");
       dump (-1, "}");
       outdent ();
     }
@@ -1705,7 +1707,7 @@ dump_subcommand (const subcommand *sbc)
       outdent ();
       if (sbc->restriction)
 	{
-	  dump (0, "x = ds_length (lex_tokstr (lexer));");
+	  dump (0, "x = ss_length (lex_tokss (lexer));");
 	  dump (1, "if (!(%s))", sbc->restriction);
 	  dump (1, "{");
 	  dump (0, "msg (SE, _(\"String for %s must be %s.\"));",
@@ -1715,7 +1717,7 @@ dump_subcommand (const subcommand *sbc)
 	  outdent ();
 	}
       dump (0, "free(p->s_%s);", st_lower(sbc->name) );
-      dump (0, "p->s_%s = ds_xstrdup (lex_tokstr (lexer));",
+      dump (0, "p->s_%s = ss_xstrdup (lex_tokss (lexer));",
 	    st_lower (sbc->name));
       dump (0, "lex_get (lexer);");
       if (sbc->restriction)
@@ -1755,11 +1757,11 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_PINT)
     {
-      dump (0, "lex_match (lexer, '(');");
+      dump (0, "lex_match (lexer, T_LPAREN);");
       dump (1, "if (!lex_force_int (lexer))");
       dump (0, "goto lossage;");
       dump (-1, "p->n_%s = lex_integer (lexer);", st_lower (sbc->name));
-      dump (0, "lex_match (lexer, ')');");
+      dump (0, "lex_match (lexer, T_RPAREN);");
     }
   else if (sbc->type == SBC_DBL_LIST || sbc->type == SBC_INT_LIST)
     {
@@ -1769,9 +1771,9 @@ dump_subcommand (const subcommand *sbc)
       dump (0, "goto lossage;");
       dump (-1,"}");
 
-      dump (1, "while (lex_token (lexer) != '/' && lex_token (lexer) != '.')");
+      dump (1, "while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)");
       dump (1, "{");
-      dump (0, "lex_match (lexer, ',');");
+      dump (0, "lex_match (lexer, T_COMMA);");
       dump (0, "if (!lex_force_num (lexer))");
       dump (1, "{");
       dump (0, "goto lossage;");
@@ -1833,13 +1835,13 @@ dump_parser (int persistent)
     {
       if (def->type == SBC_VARLIST)
 	dump (1, "if (lex_token (lexer) == T_ID "
-              "&& dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL "
-	      "&& lex_look_ahead (lexer) != '=')");
+              "&& dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) != NULL "
+	      "&& lex_next_token (lexer, 1) != T_EQUALS)");
       else
 	{
 	  dump (0, "if ((lex_token (lexer) == T_ID "
-                "&& dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) "
-		"&& lex_look_ahead () != '=')");
+                "&& dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) "
+		"&& lex_next_token (lexer, 1) != T_EQUALS)");
 	  dump (1, "     || token == T_ALL)");
 	}
       dump (1, "{");
@@ -1883,7 +1885,7 @@ dump_parser (int persistent)
 	f = 1;
 	dump (1, "{");
 
-	dump (0, "lex_match (lexer, '=');");
+	dump (0, "lex_match (lexer, T_EQUALS);");
 	dump (0, "p->sbc_%s++;", st_lower (sbc->name));
 	if (sbc->arity != ARITY_MANY)
 	  {
@@ -1906,7 +1908,7 @@ dump_parser (int persistent)
   dump(1,"else if ( settings_get_syntax () != COMPATIBLE && lex_match_id(lexer, \"ALGORITHM\"))");
   dump(1,"{");
 
-  dump (0, "lex_match (lexer, '=');");
+  dump (0, "lex_match (lexer, T_EQUALS);");
 
   dump(1,"if (lex_match_id(lexer, \"COMPATIBLE\"))");
   dump(0,"settings_set_cmd_algorithm (COMPATIBLE);");
@@ -1919,12 +1921,12 @@ dump_parser (int persistent)
 
 
 
-  dump (1, "if (!lex_match (lexer, '/'))");
+  dump (1, "if (!lex_match (lexer, T_SLASH))");
   dump (0, "break;");
   dump (-2, "}");
   outdent ();
   dump_blank_line (0);
-  dump (1, "if (lex_token (lexer) != '.')");
+  dump (1, "if (lex_token (lexer) != T_ENDCMD)");
   dump (1, "{");
   dump (0, "lex_error (lexer, _(\"expecting end of command\"));");
   dump (0, "goto lossage;");
@@ -2126,17 +2128,19 @@ main (int argc, char *argv[])
 	  indent = 0;
 
 	  dump (0, "#include <stdlib.h>");
-	  dump (0, "#include <libpspp/assertion.h>");
-	  dump (0, "#include <libpspp/message.h>");
-	  dump (0, "#include <language/lexer/lexer.h>");
-	  dump (0, "#include <language/lexer/variable-parser.h>");
-          dump (0, "#include <data/settings.h>");
-	  dump (0, "#include <libpspp/str.h>");
-          dump (0, "#include <language/lexer/subcommand-list.h>");
-	  dump (0, "#include <data/variable.h>");
+          dump_blank_line (0);
+
+          dump (0, "#include \"data/settings.h\"");
+	  dump (0, "#include \"data/variable.h\"");
+	  dump (0, "#include \"language/lexer/lexer.h\"");
+          dump (0, "#include \"language/lexer/subcommand-list.h\"");
+	  dump (0, "#include \"language/lexer/variable-parser.h\"");
+	  dump (0, "#include \"libpspp/assertion.h\"");
+	  dump (0, "#include \"libpspp/message.h\"");
+	  dump (0, "#include \"libpspp/str.h\"");
 	  dump_blank_line (0);
 
-          dump (0, "#include \"xalloc.h\"");
+          dump (0, "#include \"gl/xalloc.h\"");
 	  dump_blank_line (0);
 
           dump (0, "#include \"gettext.h\"");

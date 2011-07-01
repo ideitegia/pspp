@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,11 +15,15 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <language/command.h>
-#include <libpspp/message.h>
+
+#include "language/command.h"
+
 #include <errno.h>
-#include <language/lexer/lexer.h>
 #include <unistd.h>
+
+#include "language/lexer/lexer.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -33,7 +37,7 @@ cmd_cd (struct lexer *lexer, struct dataset *ds UNUSED)
   if ( ! lex_force_string (lexer))
     goto error;
 
-  path = ds_xstrdup (lex_tokstr (lexer));
+  path = utf8_to_filename (lex_tokcstr (lexer));
 
   if ( -1 == chdir (path) )
     {
@@ -44,6 +48,7 @@ cmd_cd (struct lexer *lexer, struct dataset *ds UNUSED)
     }
 
   free (path);
+  lex_get (lexer);
 
   return CMD_SUCCESS;
 

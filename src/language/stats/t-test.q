@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,34 +22,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/dictionary/split-file.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/value-parser.h>
-#include <libpspp/array.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
-#include <libpspp/taint.h>
-#include <math/group-proc.h>
-#include <math/levene.h>
-#include <math/correlation.h>
-#include <output/tab.h>
-#include <data/format.h>
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/dictionary/split-file.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "libpspp/taint.h"
+#include "math/correlation.h"
+#include "math/group-proc.h"
+#include "math/levene.h"
+#include "output/tab.h"
 
-#include "minmax.h"
-#include "xalloc.h"
-#include "xmemdup0.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
+#include "gl/xmemdup0.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -164,6 +164,8 @@ static int compare_group_binary (const struct group_statistics *a,
 static unsigned hash_group_binary (const struct group_statistics *g,
 				   const struct t_test_proc *p);
 
+static void t_test_proc_destroy (struct t_test_proc *proc);
+
 int
 cmd_t_test (struct lexer *lexer, struct dataset *ds)
 {
@@ -189,7 +191,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
     {
       msg (SE, _("Exactly one of TESTVAL, GROUPS and PAIRS subcommands "
                  "must be specified."));
-      goto done;
+      goto error;
     }
 
   proc.mode = (cmd.sbc_testval ? T_1_SAMPLE
@@ -209,7 +211,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
       if (cmd.sbc_variables)
 	{
 	  msg (SE, _("VARIABLES subcommand may not be used with PAIRS."));
-          goto done;
+          goto error;
 	}
 
       /* Fill proc.vars with the unique variables from pairs. */
@@ -228,7 +230,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
       if (!cmd.n_variables)
         {
           msg (SE, _("One or more VARIABLES must be specified."));
-          goto done;
+          goto error;
         }
       proc.n_vars = cmd.n_variables;
       proc.vars = cmd.v_variables;
@@ -240,31 +242,33 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
   while (casegrouper_get_next_group (grouper, &group))
     calculate (&proc, group, ds);
   ok = casegrouper_destroy (grouper);
+
+  /* Free 'proc' then commit the procedure.  Must happen in this order because
+     if proc->indep_var was created by a temporary transformation then
+     committing will destroy it.  */
+  t_test_proc_destroy (&proc);
   ok = proc_commit (ds) && ok;
 
-  if (proc.mode == T_IND_SAMPLES)
-    {
-      int v;
-      /* Destroy any group statistics we created */
-      for (v = 0; v < proc.n_vars; v++)
-	{
-	  struct group_proc *grpp = group_proc_get (proc.vars[v]);
-	  hsh_destroy (grpp->group_hash);
-	}
-    }
+  return ok ? CMD_SUCCESS : CMD_FAILURE;
 
-done:
+error:
   free_t_test (&cmd);
 parse_failed:
-  if (proc.indep_var != NULL)
+  t_test_proc_destroy (&proc);
+  return CMD_FAILURE;
+}
+
+static void
+t_test_proc_destroy (struct t_test_proc *proc)
+{
+  if (proc->indep_var != NULL)
     {
-      int width = var_get_width (proc.indep_var);
-      value_destroy (&proc.g_value[0], width);
-      value_destroy (&proc.g_value[1], width);
+      int width = var_get_width (proc->indep_var);
+      value_destroy (&proc->g_value[0], width);
+      value_destroy (&proc->g_value[1], width);
     }
-  free (proc.vars);
-  free (proc.pairs);
-  return ok ? CMD_SUCCESS : CMD_FAILURE;
+  free (proc->vars);
+  free (proc->pairs);
 }
 
 static int
@@ -275,7 +279,7 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds,
   int n_values;
   int width;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   proc->indep_var = parse_variable (lexer, dataset_dict (ds));
   if (proc->indep_var == NULL)
@@ -287,19 +291,19 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds,
   value_init (&proc->g_value[0], width);
   value_init (&proc->g_value[1], width);
 
-  if (!lex_match (lexer, '('))
+  if (!lex_match (lexer, T_LPAREN))
     n_values = 0;
   else
     {
-      if (!parse_value (lexer, &proc->g_value[0], width))
+      if (!parse_value (lexer, &proc->g_value[0], proc->indep_var))
         return 0;
-      lex_match (lexer, ',');
-      if (lex_match (lexer, ')'))
+      lex_match (lexer, T_COMMA);
+      if (lex_match (lexer, T_RPAREN))
         n_values = 1;
       else
         {
-          if (!parse_value (lexer, &proc->g_value[1], width)
-              || !lex_force_match (lexer, ')'))
+          if (!parse_value (lexer, &proc->g_value[1], proc->indep_var)
+              || !lex_force_match (lexer, T_RPAREN))
             return 0;
           n_values = 2;
         }
@@ -355,7 +359,7 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds,
   size_t n_total_pairs;
   size_t i, j;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (!parse_variables_const (lexer, dataset_dict (ds), &vars1, &n_vars1,
                               PV_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH))
@@ -370,9 +374,9 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds,
           return 0;
         }
 
-      if (lex_match (lexer, '(')
+      if (lex_match (lexer, T_LPAREN)
           && lex_match_id (lexer, "PAIRED")
-          && lex_match (lexer, ')'))
+          && lex_match (lexer, T_RPAREN))
         {
           paired = true;
           if (n_vars1 != n_vars2)

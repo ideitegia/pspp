@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include <ui/syntax-gen.h>
+#include "ui/syntax-gen.h"
 
 #include <ctype.h>
 #include <mbchar.h>
@@ -27,8 +27,11 @@
 #include "data/value.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
+
+#include "gl/ftoastr.h"
 
 /* Appends to OUTPUT a pair of hex digits for each byte in IN. */
 static void
@@ -38,8 +41,8 @@ syntax_gen_hex_digits (struct string *output, struct substring in)
   for (i = 0; i < in.length; i++)
     {
       unsigned char c = in.string[i];
-      ds_put_char (output, "0123456789ABCDEF"[c >> 4]);
-      ds_put_char (output, "0123456789ABCDEF"[c & 0xf]);
+      ds_put_byte (output, "0123456789ABCDEF"[c >> 4]);
+      ds_put_byte (output, "0123456789ABCDEF"[c & 0xf]);
     }
 }
 
@@ -59,13 +62,13 @@ has_control_chars (struct substring in)
 static bool
 has_single_quote (struct substring str)
 {
-  return (SIZE_MAX != ss_find_char (str, '\''));
+  return (SIZE_MAX != ss_find_byte (str, '\''));
 }
 
 static bool
 has_double_quote (struct substring str)
 {
-  return (SIZE_MAX != ss_find_char (str, '"'));
+  return (SIZE_MAX != ss_find_byte (str, '"'));
 }
 
 /* Appends to OUTPUT valid PSPP syntax for a quoted string that
@@ -84,7 +87,7 @@ syntax_gen_string (struct string *output, struct substring in)
     {
       ds_put_cstr (output, "X'");
       syntax_gen_hex_digits (output, in);
-      ds_put_char (output, '\'');
+      ds_put_byte (output, '\'');
     }
   else
     {
@@ -99,15 +102,15 @@ syntax_gen_string (struct string *output, struct substring in)
       assert (is_basic ('\''));
 
       quote = has_double_quote (in) && !has_single_quote (in) ? '\'' : '"';
-      ds_put_char (output, quote);
+      ds_put_byte (output, quote);
       for (i = 0; i < in.length; i++)
         {
           char c = in.string[i];
           if (c == quote)
-            ds_put_char (output, quote);
-          ds_put_char (output, c);
+            ds_put_byte (output, quote);
+          ds_put_byte (output, c);
         }
-      ds_put_char (output, quote);
+      ds_put_byte (output, quote);
     }
 }
 
@@ -154,8 +157,7 @@ syntax_gen_number (struct string *output,
       s = data_out (&v_in, "FIXME",  format);
 
       /* FIXME: UTF8 encoded strings will fail here */
-      error = data_in (ss_cstr (s), LEGACY_NATIVE,
-                       format->type, &v_out, 0, NULL);
+      error = data_in (ss_cstr (s), C_ENCODING, format->type, &v_out, 0, NULL);
       ok = error == NULL;
       free (error);
 
@@ -172,18 +174,10 @@ syntax_gen_number (struct string *output,
     ds_put_cstr (output, "SYSMIS");
   else
     {
-      /* FIXME: This should consistently yield precisely the same
-         value as NUMBER on input, but its results for values
-         cannot be exactly represented in decimal are ugly: many
-         of them will have far more decimal digits than are
-         needed.  The free-format floating point output routine
-         from Steele and White, "How to Print Floating-Point
-         Numbers Accurately" is really what we want.  The MPFR
-         library has an implementation of this, or equivalent
-         functionality, in its mpfr_strtofr routine, but it would
-         not be nice to make PSPP depend on this.  Probably, we
-         should implement something equivalent to it. */
-      ds_put_format (output, "%.*g", DBL_DIG + 1, number);
+      char s[DBL_BUFSIZE_BOUND];
+
+      dtoastr (s, sizeof s, 0, 0, number);
+      ds_put_cstr (output, s);
     }
 }
 
@@ -286,7 +280,7 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
           }
 
         case '%':
-          ds_put_char (output, '%');
+          ds_put_byte (output, '%');
           break;
 
         default:

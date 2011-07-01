@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,30 +18,30 @@
 
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/data-out.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <data/format.h>
-#include <language/command.h>
-#include <language/data-io/data-writer.h>
-#include <language/data-io/file-handle.h>
-#include <language/data-io/placement-parser.h>
-#include <language/lexer/format-parser.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/assertion.h>
-#include <libpspp/i18n.h>
-#include <libpspp/compiler.h>
-#include <libpspp/ll.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <output/text-item.h>
-#include <output/tab.h>
+#include "data/case.h"
+#include "data/dataset.h"
+#include "data/data-out.h"
+#include "data/format.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/data-io/data-writer.h"
+#include "language/data-io/file-handle.h"
+#include "language/data-io/placement-parser.h"
+#include "language/lexer/format-parser.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/ll.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "output/tab.h"
+#include "output/text-item.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -150,25 +150,25 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
   tmp_pool = pool_create_subpool (trns->pool);
 
   /* Parse the command options. */
-  while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match_id (lexer, "OUTFILE"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
-	  fh = fh_parse (lexer, FH_REF_FILE);
+	  fh = fh_parse (lexer, FH_REF_FILE, NULL);
 	  if (fh == NULL)
 	    goto error;
 	}
       else if (lex_match_id (lexer, "RECORDS"))
 	{
-	  lex_match (lexer, '=');
-	  lex_match (lexer, '(');
+	  lex_match (lexer, T_EQUALS);
+	  lex_match (lexer, T_LPAREN);
 	  if (!lex_force_int (lexer))
 	    goto error;
 	  trns->record_cnt = lex_integer (lexer);
 	  lex_get (lexer);
-	  lex_match (lexer, ')');
+	  lex_match (lexer, T_RPAREN);
 	}
       else if (lex_match_id (lexer, "TABLE"))
 	print_table = true;
@@ -200,7 +200,7 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
       trns->encoding = dfm_writer_get_legacy_encoding (trns->writer);
     }
   else
-    trns->encoding = LEGACY_NATIVE;
+    trns->encoding = UTF8;
 
   /* Output the variable table if requested. */
   if (print_table)
@@ -239,13 +239,13 @@ parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns
   int record = 0;
   int column = 1;
 
-  if (lex_token (lexer) == '.')
+  if (lex_token (lexer) == T_ENDCMD)
     {
       trns->record_cnt = 1;
       return true;
     }
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       bool ok;
 
@@ -260,7 +260,7 @@ parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns
       if (!ok)
 	return 0;
 
-      lex_match (lexer, ',');
+      lex_match (lexer, T_COMMA);
     }
 
   if (trns->record_cnt != 0 && trns->record_cnt != record)
@@ -280,7 +280,7 @@ parse_string_argument (struct lexer *lexer, struct print_trns *trns, int record,
   spec->type = PRT_LITERAL;
   spec->record = record;
   spec->first_column = *column;
-  ds_init_string (&spec->string, lex_tokstr (lexer));
+  ds_init_substring (&spec->string, lex_tokss (lexer));
   ds_register_pool (&spec->string, trns->pool);
   lex_get (lexer);
 
@@ -323,7 +323,7 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
 			     &vars, &var_cnt, PV_DUPLICATE))
     return false;
 
-  if (lex_is_number (lexer) || lex_token (lexer) == '(')
+  if (lex_is_number (lexer) || lex_token (lexer) == T_LPAREN)
     {
       if (!parse_var_placements (lexer, tmp_pool, var_cnt, false,
                                  &formats, &format_cnt))
@@ -334,7 +334,7 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
     {
       size_t i;
 
-      lex_match (lexer, '*');
+      lex_match (lexer, T_ASTERISK);
 
       formats = pool_nmalloc (tmp_pool, var_cnt, sizeof *formats);
       format_cnt = var_cnt;
@@ -454,12 +454,12 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
 {
   struct print_trns *trns = trns_;
   bool eject = trns->eject;
-  char encoded_space = legacy_from_native (trns->encoding, ' ');
+  char encoded_space = recode_byte (trns->encoding, C_ENCODING, ' ');
   int record = 1;
   struct prt_out_spec *spec;
 
   ds_clear (&trns->line);
-  ds_put_char (&trns->line, ' ');
+  ds_put_byte (&trns->line, ' ');
   ll_for_each (spec, struct prt_out_spec, ll, &trns->specs)
     {
       flush_records (trns, spec->record, &eject, &record);
@@ -468,22 +468,22 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
       if (spec->type == PRT_VAR)
         {
           const union value *input = case_data (*c, spec->var);
-          char *output = ds_put_uninit (&trns->line, spec->format.w);
           if (!spec->sysmis_as_spaces || input->f != SYSMIS)
-            data_out_legacy (input, trns->encoding, &spec->format, output);
+            data_out_recode (input, var_get_encoding (spec->var),
+                             &spec->format, &trns->line, trns->encoding);
           else
-            memset (output, encoded_space, spec->format.w);
+            ds_put_byte_multiple (&trns->line, encoded_space, spec->format.w);
           if (spec->add_space)
-            ds_put_char (&trns->line, encoded_space);
+            ds_put_byte (&trns->line, encoded_space);
         }
       else
         {
           ds_put_substring (&trns->line, ds_ss (&spec->string));
-          if (0 != strcmp (trns->encoding, LEGACY_NATIVE))
+          if (0 != strcmp (trns->encoding, C_ENCODING))
             {
               size_t length = ds_length (&spec->string);
               char *data = ss_data (ds_tail (&trns->line, length));
-	      char *s = recode_string (trns->encoding, LEGACY_NATIVE, data, length);
+	      char *s = recode_string (trns->encoding, C_ENCODING, data, length);
 	      memcpy (data, s, length);
 	      free (s);
             }
@@ -518,7 +518,7 @@ flush_records (struct print_trns *trns, int target_record,
           else
             leader = '1';
         }
-      line[0] = legacy_from_native (trns->encoding, leader);
+      line[0] = recode_byte (trns->encoding, C_ENCODING, leader);
 
       if (trns->writer == NULL)
         tab_output_text (TAB_FIX, &line[1]);

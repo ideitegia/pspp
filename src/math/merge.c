@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,17 +19,17 @@
    performance regression. */
 #include <config.h>
 
-#include <math/merge.h>
+#include "math/merge.h"
 
-#include <data/case.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/subcase.h>
-#include <libpspp/array.h>
-#include <libpspp/assertion.h>
-#include <libpspp/taint.h>
+#include "data/case.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/subcase.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/taint.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #define MAX_MERGE_ORDER 7
 

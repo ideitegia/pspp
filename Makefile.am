@@ -45,6 +45,7 @@ INSTALL_DATA_HOOKS =
 UNINSTALL_DATA_HOOKS =
 PHONY =
 SUFFIXES = .q
+LDADD = gl/libgl.la
 
 generate-changelog:
 	if test -d $(top_srcdir)/.git; then			\
@@ -62,6 +63,7 @@ include $(top_srcdir)/lib/automake.mk
 include $(top_srcdir)/doc/automake.mk
 include $(top_srcdir)/examples/automake.mk
 include $(top_srcdir)/src/automake.mk
+include $(top_srcdir)/utilities/automake.mk
 
 include $(top_srcdir)/tests/automake.mk
 

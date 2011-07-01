@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,26 +16,26 @@
 
 #include <config.h>
 
-#include <language/stats/roc.h>
-
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/subcase.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/value-parser.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/misc.h>
-#include <math/sort.h>
-#include <output/chart-item.h>
-#include <output/charts/roc-chart.h>
-#include <output/tab.h>
+#include "language/stats/roc.h"
 
 #include <gsl/gsl_cdf.h>
+
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/subcase.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/misc.h"
+#include "math/sort.h"
+#include "output/chart-item.h"
+#include "output/charts/roc-chart.h"
+#include "output/tab.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -95,7 +95,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
   roc.dict = dataset_dict (ds);
   roc.state_var = NULL;
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   if (!parse_variables_const (lexer, dict, &roc.vars, &roc.n_vars,
 			      PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
     goto error;
@@ -107,28 +107,28 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 
   roc.state_var = parse_variable (lexer, dict);
 
-  if ( !lex_force_match (lexer, '('))
+  if ( !lex_force_match (lexer, T_LPAREN))
     {
       goto error;
     }
 
   value_init (&roc.state_value, var_get_width (roc.state_var));
-  parse_value (lexer, &roc.state_value, var_get_width (roc.state_var));
+  parse_value (lexer, &roc.state_value, roc.state_var);
 
 
-  if ( !lex_force_match (lexer, ')'))
+  if ( !lex_force_match (lexer, T_RPAREN))
     {
       goto error;
     }
 
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
       if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{
@@ -147,15 +147,15 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "PLOT"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (lex_match_id (lexer, "CURVE"))
 	    {
 	      roc.curve = true;
-	      if (lex_match (lexer, '('))
+	      if (lex_match (lexer, T_LPAREN))
 		{
 		  roc.reference = true;
 		  lex_force_match_id (lexer, "REFERENCE");
-		  lex_force_match (lexer, ')');
+		  lex_force_match (lexer, T_RPAREN);
 		}
 	    }
 	  else if (lex_match_id (lexer, "NONE"))
@@ -170,8 +170,8 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "PRINT"))
 	{
-	  lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+	  lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "SE"))
 		{
@@ -190,12 +190,12 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "CRITERIA"))
 	{
-	  lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+	  lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "CUTOFF"))
 		{
-		  lex_force_match (lexer, '(');
+		  lex_force_match (lexer, T_LPAREN);
 		  if (lex_match_id (lexer, "INCLUDE"))
 		    {
 		      roc.exclude = MV_SYSTEM;
@@ -209,11 +209,11 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 		      lex_error (lexer, NULL);
 		      goto error;
 		    }
-		  lex_force_match (lexer, ')');
+		  lex_force_match (lexer, T_RPAREN);
 		}
 	      else if (lex_match_id (lexer, "TESTPOS"))
 		{
-		  lex_force_match (lexer, '(');
+		  lex_force_match (lexer, T_LPAREN);
 		  if (lex_match_id (lexer, "LARGE"))
 		    {
 		      roc.invert = false;
@@ -227,19 +227,19 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 		      lex_error (lexer, NULL);
 		      goto error;
 		    }
-		  lex_force_match (lexer, ')');
+		  lex_force_match (lexer, T_RPAREN);
 		}
 	      else if (lex_match_id (lexer, "CI"))
 		{
-		  lex_force_match (lexer, '(');
+		  lex_force_match (lexer, T_LPAREN);
 		  lex_force_num (lexer);
 		  roc.ci = lex_number (lexer);
 		  lex_get (lexer);
-		  lex_force_match (lexer, ')');
+		  lex_force_match (lexer, T_RPAREN);
 		}
 	      else if (lex_match_id (lexer, "DISTRIBUTION"))
 		{
-		  lex_force_match (lexer, '(');
+		  lex_force_match (lexer, T_LPAREN);
 		  if (lex_match_id (lexer, "FREE"))
 		    {
 		      roc.bi_neg_exp = false;
@@ -253,7 +253,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 		      lex_error (lexer, NULL);
 		      goto error;
 		    }
-		  lex_force_match (lexer, ')');
+		  lex_force_match (lexer, T_RPAREN);
 		}
 	      else
 		{

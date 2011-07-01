@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,22 +23,23 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include "helpers.h"
-#include <data/case.h>
-#include <data/dictionary.h>
-#include <data/settings.h>
-#include <data/variable.h>
-#include <language/lexer/format-parser.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/array.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
+#include "data/case.h"
+#include "data/dictionary.h"
+#include "data/settings.h"
+#include "data/variable.h"
+#include "language/expressions/helpers.h"
+#include "language/lexer/format-parser.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* Declarations. */
 
@@ -499,16 +500,14 @@ match_operator (struct lexer *lexer, const struct operator ops[], size_t op_cnt,
   const struct operator *op;
 
   for (op = ops; op < ops + op_cnt; op++)
-    {
-      if (op->token == '-')
-        lex_negative_to_dash (lexer);
-      if (lex_match (lexer, op->token))
-        {
-          if (operator != NULL)
-            *operator = op;
-          return true;
-        }
-    }
+    if (lex_token (lexer) == op->token)
+      {
+        if (op->token != T_NEG_NUM)
+          lex_get (lexer);
+        if (operator != NULL)
+          *operator = op;
+        return true;
+      }
   if (operator != NULL)
     *operator = NULL;
   return false;
@@ -665,7 +664,7 @@ parse_rel (struct lexer *lexer, struct expression *e)
       {
         static const struct operator ops[] =
           {
-            { '=', OP_EQ, "numeric equality (`=')" },
+            { T_EQUALS, OP_EQ, "numeric equality (`=')" },
             { T_EQ, OP_EQ, "numeric equality (`EQ')" },
             { T_GE, OP_GE, "numeric greater-than-or-equal-to (`>=')" },
             { T_GT, OP_GT, "numeric greater than (`>')" },
@@ -683,7 +682,7 @@ parse_rel (struct lexer *lexer, struct expression *e)
       {
         static const struct operator ops[] =
           {
-            { '=', OP_EQ_STRING, "string equality (`=')" },
+            { T_EQUALS, OP_EQ_STRING, "string equality (`=')" },
             { T_EQ, OP_EQ_STRING, "string equality (`EQ')" },
             { T_GE, OP_GE_STRING, "string greater-than-or-equal-to (`>=')" },
             { T_GT, OP_GT_STRING, "string greater than (`>')" },
@@ -708,8 +707,9 @@ parse_add (struct lexer *lexer, struct expression *e)
 {
   static const struct operator ops[] =
     {
-      { '+', OP_ADD, "addition (`+')" },
-      { '-', OP_SUB, "subtraction (`-')" },
+      { T_PLUS, OP_ADD, "addition (`+')" },
+      { T_DASH, OP_SUB, "subtraction (`-')" },
+      { T_NEG_NUM, OP_ADD, "subtraction (`-')" },
     };
 
   return parse_binary_operators (lexer, e, parse_mul (lexer, e),
@@ -723,8 +723,8 @@ parse_mul (struct lexer *lexer, struct expression *e)
 {
   static const struct operator ops[] =
     {
-      { '*', OP_MUL, "multiplication (`*')" },
-      { '/', OP_DIV, "division (`/')" },
+      { T_ASTERISK, OP_MUL, "multiplication (`*')" },
+      { T_SLASH, OP_DIV, "division (`/')" },
     };
 
   return parse_binary_operators (lexer, e, parse_neg (lexer, e),
@@ -736,7 +736,7 @@ parse_mul (struct lexer *lexer, struct expression *e)
 static union any_node *
 parse_neg (struct lexer *lexer, struct expression *e)
 {
-  static const struct operator op = { '-', OP_NEG, "negation (`-')" };
+  static const struct operator op = { T_DASH, OP_NEG, "negation (`-')" };
   return parse_inverting_unary_operator (lexer, e, &op, parse_exp);
 }
 
@@ -752,8 +752,21 @@ parse_exp (struct lexer *lexer, struct expression *e)
       "That is, `a**b**c' equals `(a**b)**c', not as `a**(b**c)'.  "
       "To disable this warning, insert parentheses.");
 
-  return parse_binary_operators (lexer, e, parse_primary (lexer, e), &op, 1,
-                                 parse_primary, chain_warning);
+  union any_node *lhs, *node;
+  bool negative = false;
+
+  if (lex_token (lexer) == T_NEG_NUM)
+    {
+      lhs = expr_allocate_number (e, -lex_tokval (lexer));
+      negative = true;
+      lex_get (lexer);
+    }
+  else
+    lhs = parse_primary (lexer, e);
+
+  node = parse_binary_operators (lexer, e, lhs, &op, 1,
+                                  parse_primary, chain_warning);
+  return negative ? expr_allocate_unary (e, OP_NEG, node) : node;
 }
 
 /* Parses system variables. */
@@ -773,12 +786,14 @@ parse_sysvar (struct lexer *lexer, struct expression *e)
       time_t last_proc_time = time_of_last_procedure (e->ds);
       struct tm *time;
       char temp_buf[10];
+      struct substring s;
 
       time = localtime (&last_proc_time);
       sprintf (temp_buf, "%02d %s %02d", abs (time->tm_mday) % 100,
                months[abs (time->tm_mon) % 12], abs (time->tm_year) % 100);
 
-      return expr_allocate_string_buffer (e, temp_buf, strlen (temp_buf));
+      ss_alloc_substring (&s, ss_cstr (temp_buf));
+      return expr_allocate_string (e, s);
     }
   else if (lex_match_id (lexer, "$TRUE"))
     return expr_allocate_boolean (e, 1.0);
@@ -812,7 +827,7 @@ parse_sysvar (struct lexer *lexer, struct expression *e)
     return expr_allocate_number (e, settings_get_viewwidth ());
   else
     {
-      msg (SE, _("Unknown system variable %s."), lex_tokid (lexer));
+      msg (SE, _("Unknown system variable %s."), lex_tokcstr (lexer));
       return NULL;
     }
 }
@@ -824,22 +839,22 @@ parse_primary (struct lexer *lexer, struct expression *e)
   switch (lex_token (lexer))
     {
     case T_ID:
-      if (lex_look_ahead (lexer) == '(')
+      if (lex_next_token (lexer, 1) == T_LPAREN)
         {
           /* An identifier followed by a left parenthesis may be
              a vector element reference.  If not, it's a function
              call. */
-          if (e->ds != NULL && dict_lookup_vector (dataset_dict (e->ds), lex_tokid (lexer)) != NULL)
+          if (e->ds != NULL && dict_lookup_vector (dataset_dict (e->ds), lex_tokcstr (lexer)) != NULL)
             return parse_vector_element (lexer, e);
           else
             return parse_function (lexer, e);
         }
-      else if (lex_tokid (lexer)[0] == '$')
+      else if (lex_tokcstr (lexer)[0] == '$')
         {
           /* $ at the beginning indicates a system variable. */
           return parse_sysvar (lexer, e);
         }
-      else if (e->ds != NULL && dict_lookup_var (dataset_dict (e->ds), lex_tokid (lexer)))
+      else if (e->ds != NULL && dict_lookup_var (dataset_dict (e->ds), lex_tokcstr (lexer)))
         {
           /* It looks like a user variable.
              (It could be a format specifier, but we'll assume
@@ -860,7 +875,7 @@ parse_primary (struct lexer *lexer, struct expression *e)
             return expr_allocate_format (e, &fmt);
 
           /* All attempts failed. */
-          msg (SE, _("Unknown identifier %s."), lex_tokid (lexer));
+          msg (SE, _("Unknown identifier %s."), lex_tokcstr (lexer));
           return NULL;
         }
       break;
@@ -875,18 +890,27 @@ parse_primary (struct lexer *lexer, struct expression *e)
 
     case T_STRING:
       {
-        union any_node *node = expr_allocate_string_buffer (
-          e, ds_cstr (lex_tokstr (lexer) ), ds_length (lex_tokstr (lexer) ));
+        const char *dict_encoding;
+        union any_node *node;
+        char *s;
+
+        dict_encoding = (e->ds != NULL
+                         ? dict_get_encoding (dataset_dict (e->ds))
+                         : "UTF-8");
+        s = recode_string (dict_encoding, "UTF-8", lex_tokcstr (lexer),
+                           ss_length (lex_tokss (lexer)));
+        node = expr_allocate_string (e, ss_cstr (s));
+
 	lex_get (lexer);
 	return node;
       }
 
-    case '(':
+    case T_LPAREN:
       {
         union any_node *node;
 	lex_get (lexer);
 	node = parse_or (lexer, e);
-	if (node != NULL && !lex_force_match (lexer, ')'))
+	if (node != NULL && !lex_force_match (lexer, T_RPAREN))
           return NULL;
         return node;
       }
@@ -906,19 +930,19 @@ parse_vector_element (struct lexer *lexer, struct expression *e)
   /* Find vector, skip token.
      The caller must already have verified that the current token
      is the name of a vector. */
-  vector = dict_lookup_vector (dataset_dict (e->ds), lex_tokid (lexer));
+  vector = dict_lookup_vector (dataset_dict (e->ds), lex_tokcstr (lexer));
   assert (vector != NULL);
   lex_get (lexer);
 
   /* Skip left parenthesis token.
      The caller must have verified that the lookahead is a left
      parenthesis. */
-  assert (lex_token (lexer) == '(');
+  assert (lex_token (lexer) == T_LPAREN);
   lex_get (lexer);
 
   element = parse_or (lexer, e);
   if (!type_coercion (e, OP_number, &element, "vector indexing")
-      || !lex_match (lexer, ')'))
+      || !lex_match (lexer, T_RPAREN))
     return NULL;
 
   return expr_allocate_binary (e, (vector_get_type (vector) == VAL_NUMERIC
@@ -1021,7 +1045,7 @@ lookup_function (const char *name,
 }
 
 static int
-extract_min_valid (char *s)
+extract_min_valid (const char *s)
 {
   char *p = strrchr (s, '.');
   if (p == NULL
@@ -1149,7 +1173,7 @@ put_invocation (struct string *s,
         ds_put_cstr (s, ", ");
       ds_put_cstr (s, operations[expr_node_returns (args[i])].prototype);
     }
-  ds_put_char (s, ')');
+  ds_put_byte (s, ')');
 }
 
 static void
@@ -1176,7 +1200,7 @@ no_match (const char *func_name,
       for (f = first; f < last; f++)
         ds_put_format (&s, "\n%s", f->prototype);
     }
-  ds_put_char (&s, '.');
+  ds_put_byte (&s, '.');
 
   msg (SE, "%s", ds_cstr (&s));
 
@@ -1197,17 +1221,17 @@ parse_function (struct lexer *lexer, struct expression *e)
 
   union any_node *n;
 
-  ds_init_string (&func_name, lex_tokstr (lexer));
-  min_valid = extract_min_valid (ds_cstr (lex_tokstr (lexer)));
-  if (!lookup_function (ds_cstr (lex_tokstr (lexer)), &first, &last))
+  ds_init_substring (&func_name, lex_tokss (lexer));
+  min_valid = extract_min_valid (lex_tokcstr (lexer));
+  if (!lookup_function (lex_tokcstr (lexer), &first, &last))
     {
-      msg (SE, _("No function or vector named %s."), ds_cstr (lex_tokstr (lexer)));
+      msg (SE, _("No function or vector named %s."), lex_tokcstr (lexer));
       ds_destroy (&func_name);
       return NULL;
     }
 
   lex_get (lexer);
-  if (!lex_force_match (lexer, '('))
+  if (!lex_force_match (lexer, T_LPAREN))
     {
       ds_destroy (&func_name);
       return NULL;
@@ -1215,11 +1239,11 @@ parse_function (struct lexer *lexer, struct expression *e)
 
   args = NULL;
   arg_cnt = arg_cap = 0;
-  if (lex_token (lexer) != ')')
+  if (lex_token (lexer) != T_RPAREN)
     for (;;)
       {
         if (lex_token (lexer) == T_ID
-            && toupper (lex_look_ahead (lexer)) == 'T')
+            && lex_next_token (lexer, 1) == T_TO)
           {
             const struct variable **vars;
             size_t var_cnt;
@@ -1240,9 +1264,9 @@ parse_function (struct lexer *lexer, struct expression *e)
 
             add_arg (&args, &arg_cnt, &arg_cap, arg);
           }
-        if (lex_match (lexer, ')'))
+        if (lex_match (lexer, T_RPAREN))
           break;
-        else if (!lex_match (lexer, ','))
+        else if (!lex_match (lexer, T_COMMA))
           {
             lex_error (lexer, _("expecting `,' or `)' invoking %s function"),
                        first->name);
@@ -1458,18 +1482,6 @@ expr_allocate_vector (struct expression *e, const struct vector *vector)
   union any_node *n = pool_alloc (e->expr_pool, sizeof n->vector);
   n->type = OP_vector;
   n->vector.v = vector;
-  return n;
-}
-
-union any_node *
-expr_allocate_string_buffer (struct expression *e,
-                             const char *string, size_t length)
-{
-  union any_node *n = pool_alloc (e->expr_pool, sizeof n->string);
-  n->type = OP_string;
-  if (length > MAX_STRING)
-    length = MAX_STRING;
-  n->string.s = copy_string (e, string, length);
   return n;
 }
 

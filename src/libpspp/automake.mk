@@ -20,14 +20,14 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/copyleft.h \
 	src/libpspp/deque.c \
 	src/libpspp/deque.h \
+	src/libpspp/encoding-guesser.c \
+	src/libpspp/encoding-guesser.h \
 	src/libpspp/ext-array.c \
 	src/libpspp/ext-array.h \
 	src/libpspp/float-format.c \
 	src/libpspp/float-format.h \
 	src/libpspp/freaderror.c \
 	src/libpspp/freaderror.h \
-	src/libpspp/getl.c \
-	src/libpspp/getl.h \
 	src/libpspp/hash-functions.c \
 	src/libpspp/hash-functions.h \
 	src/libpspp/hash.c \
@@ -44,8 +44,6 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/integer-format.h \
 	src/libpspp/intern.c \
 	src/libpspp/intern.h \
-	src/libpspp/legacy-encoding.c \
-	src/libpspp/legacy-encoding.h \
 	src/libpspp/ll.c \
 	src/libpspp/ll.h \
 	src/libpspp/llx.c \
@@ -56,10 +54,10 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/misc.h \
 	src/libpspp/model-checker.c \
 	src/libpspp/model-checker.h \
-	src/libpspp/msg-locator.c \
-	src/libpspp/msg-locator.h \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
+	src/libpspp/prompt.c \
+	src/libpspp/prompt.h \
 	src/libpspp/range-map.c \
 	src/libpspp/range-map.h \
 	src/libpspp/range-set.c \
@@ -88,6 +86,8 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/temp-file.h \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
+	src/libpspp/u8-istream.c \
+	src/libpspp/u8-istream.h \
 	src/libpspp/version.h \
 	src/libpspp/zip-writer.c \
 	src/libpspp/zip-writer.h

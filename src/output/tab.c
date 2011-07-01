@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,30 +16,31 @@
 
 #include <config.h>
 
-#include <output/tab.h>
+#include "output/tab.h"
 
 #include <ctype.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <stdlib.h>
 
-#include <data/data-out.h>
-#include <data/format.h>
-#include <data/settings.h>
-#include <data/value.h>
-#include <data/dictionary.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <output/driver.h>
-#include <output/table-item.h>
-#include <output/table-provider.h>
-#include <output/text-item.h>
+#include "data/data-out.h"
+#include "data/format.h"
+#include "data/settings.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "output/driver.h"
+#include "output/table-item.h"
+#include "output/table-provider.h"
+#include "output/text-item.h"
 
-#include "error.h"
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -359,7 +360,7 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
    from V, displayed with format spec F. */
 void
 tab_value (struct tab_table *table, int c, int r, unsigned char opt,
-	   const union value *v, const struct dictionary *dict, 
+	   const union value *v, const struct variable *var,
 	   const struct fmt_spec *f)
 {
   char *contents;
@@ -378,7 +379,9 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
     }
 #endif
 
-  contents = data_out_pool (v, dict_get_encoding (dict), f, table->container);
+  contents = data_out_pool (v, var_get_encoding (var),
+                            f != NULL ? f : var_get_print_format (var),
+                            table->container);
 
   table->cc[c + r * table->cf] = contents;
   table->ct[c + r * table->cf] = opt;
@@ -416,7 +419,7 @@ tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, LEGACY_NATIVE, &f, table->container);
+  s = data_out_pool (&double_value, C_ENCODING, &f, table->container);
 
   table->cc[c + r * table->cf] = s + strspn (s, " ");
   table->ct[c + r * table->cf] = opt;
@@ -458,7 +461,7 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, LEGACY_NATIVE, fmt, table->container);
+  s = data_out_pool (&double_value, C_ENCODING, fmt, table->container);
   table->cc[c + r * table->cf] = s + strspn (s, " ");
   table->ct[c + r * table->cf] = opt;
 }

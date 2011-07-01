@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,8 @@
 #ifndef FORMAT_GUESSER_H
 #define FORMAT_GUESSER_H 1
 
-#include <libpspp/str.h>
+#include "libpspp/str.h"
+
 struct fmt_spec;
 
 struct fmt_guesser *fmt_guesser_create (void);

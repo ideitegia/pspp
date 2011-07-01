@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,20 +17,20 @@
 #include <config.h>
 #include <gtk/gtk.h>
 
-#include "variable-info-dialog.h"
-#include "var-display.h"
 #include <data/variable.h>
 #include <data/format.h>
 #include <data/value-labels.h>
+#include <libpspp/i18n.h>
+
+#include "variable-info-dialog.h"
+#include "var-display.h"
+
 #include "psppire-data-window.h"
 #include "psppire-dialog.h"
-#include "psppire-var-store.h"
 #include "psppire-dictview.h"
+#include "psppire-var-store.h"
 #include "helper.h"
 
-#include <language/syntax-string-source.h>
-#include <libpspp/i18n.h>
-#include "helper.h"
 
 
 #include <gettext.h>
@@ -55,7 +55,7 @@ label_to_string (const struct variable *var)
 static void
 populate_text (PsppireDictView *treeview, gpointer data)
 {
-  gchar *text = 0;
+  gchar *text = NULL;
   GString *gstring;
   PsppireDict *dict;
 
@@ -89,9 +89,8 @@ populate_text (PsppireDictView *treeview, gpointer data)
 			  text);
   g_free (text);
 
-  text = measure_to_string (var, NULL);
   g_string_append_printf (gstring, _("Measurement Level: %s\n"),
-			  text);
+			  measure_to_string (var_get_measure (var)));
 
 
   /* Value Labels */
@@ -110,10 +109,10 @@ populate_text (PsppireDictView *treeview, gpointer data)
       for (i = 0; i < n_labels; i++)
         {
           const struct val_lab *vl = labels[i];
-	  gchar *const vstr  =
-	    value_to_text (vl->value,  dict, *var_get_print_format (var));
+	  gchar *const vstr  = value_to_text (vl->value,  var);
 
-	  g_string_append_printf (gstring, _("%s %s\n"), vstr, val_lab_get_label (vl));
+	  g_string_append_printf (gstring, _("%s %s\n"),
+                                  vstr, val_lab_get_escaped_label (vl));
 
 	  g_free (vstr);
 	}

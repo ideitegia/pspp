@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,31 +16,29 @@
 
 #include <config.h>
 
-#include <language/data-io/inpt-pgm.h>
-
 #include <float.h>
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/caseinit.h>
-#include <data/casereader-provider.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/data-io/data-reader.h>
-#include <language/data-io/file-handle.h>
-#include <language/expressions/public.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "data/case.h"
+#include "data/caseinit.h"
+#include "data/casereader-provider.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/data-io/data-reader.h"
+#include "language/data-io/file-handle.h"
+#include "language/data-io/inpt-pgm.h"
+#include "language/expressions/public.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -48,20 +46,10 @@
 /* Private result codes for use within INPUT PROGRAM. */
 enum cmd_result_extensions
   {
-    CMD_END_INPUT_PROGRAM = CMD_PRIVATE_FIRST,
-    CMD_END_CASE
+    CMD_END_CASE = CMD_PRIVATE_FIRST
   };
 
 /* Indicates how a `union value' should be initialized. */
-enum value_init_type
-  {
-    INP_NUMERIC = 01,		/* Numeric. */
-    INP_STRING = 0,		/* String. */
-
-    INP_INIT_ONCE = 02,		/* Initialize only once. */
-    INP_REINIT = 0,		/* Reinitialize for each iteration. */
-  };
-
 struct input_program_pgm
   {
     struct trns_chain *trns_chain;
@@ -104,8 +92,8 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   struct input_program_pgm *inp;
   bool saw_END_CASE = false;
 
-  proc_discard_active_file (ds);
-  if (lex_token (lexer) != '.')
+  dataset_clear (ds);
+  if (!lex_match (lexer, T_ENDCMD))
     return lex_end_of_command (lexer);
 
   inp = xmalloc (sizeof *inp);
@@ -114,12 +102,12 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   inp->proto = NULL;
 
   inside_input_program = true;
-  for (;;)
+  while (!lex_match_phrase (lexer, "END INPUT PROGRAM"))
     {
-      enum cmd_result result = cmd_parse_in_state (lexer, ds, CMD_STATE_INPUT_PROGRAM);
-      if (result == CMD_END_INPUT_PROGRAM)
-        break;
-      else if (result == CMD_END_CASE)
+      enum cmd_result result;
+
+      result = cmd_parse_in_state (lexer, ds, CMD_STATE_INPUT_PROGRAM);
+      if (result == CMD_END_CASE)
         {
           emit_END_CASE (ds, inp);
           saw_END_CASE = true;
@@ -129,7 +117,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
           if (result == CMD_EOF)
             msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
           inside_input_program = false;
-          proc_discard_active_file (ds);
+          dataset_clear (ds);
           destroy_input_program (inp);
           return result;
         }
@@ -141,7 +129,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   if (dict_get_next_value_idx (dataset_dict (ds)) == 0)
     {
       msg (SE, _("Input program did not create any variables."));
-      proc_discard_active_file (ds);
+      dataset_clear (ds);
       destroy_input_program (inp);
       return CMD_FAILURE;
     }
@@ -156,7 +144,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   caseinit_mark_for_init (inp->init, dataset_dict (ds));
   inp->proto = caseproto_ref (dict_get_proto (dataset_dict (ds)));
 
-  proc_set_active_file_data (
+  dataset_set_source (
     ds, casereader_create_sequential (NULL, inp->proto, CASENUMBER_MAX,
                                       &input_program_casereader_class, inp));
 
@@ -166,8 +154,12 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
 int
 cmd_end_input_program (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
-  assert (in_input_program ());
-  return CMD_END_INPUT_PROGRAM;
+  /* Inside INPUT PROGRAM, this should get caught at the top of the loop in
+     cmd_input_program().
+
+     Outside of INPUT PROGRAM, the command parser should reject this
+     command. */
+  NOT_REACHED ();
 }
 
 /* Returns true if STATE is valid given the transformations that
@@ -245,9 +237,9 @@ int
 cmd_end_case (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   assert (in_input_program ());
-  if (lex_token (lexer) == '.')
+  if (lex_token (lexer) == T_ENDCMD)
     return CMD_END_CASE;
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Outputs the current case */
@@ -277,11 +269,11 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
 
   fh = fh_get_default_handle ();
   e = NULL;
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match_id (lexer, "COLUMN"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 
 	  if (e)
 	    {
@@ -296,9 +288,9 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "FILE"))
 	{
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
           fh_unref (fh);
-          fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
+          fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE, NULL);
 	  if (fh == NULL)
 	    {
 	      expr_free (e);
@@ -358,13 +350,13 @@ reread_trns_free (void *t_)
 
 /* Parses END FILE command. */
 int
-cmd_end_file (struct lexer *lexer, struct dataset *ds)
+cmd_end_file (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   assert (in_input_program ());
 
   add_transformation (ds, end_file_trns_proc, NULL, NULL);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Executes an END FILE transformation. */

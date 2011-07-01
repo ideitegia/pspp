@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,14 +16,14 @@
 
 #include <config.h>
 
-#include <libpspp/argv-parser.h>
+#include "libpspp/argv-parser.h"
 
 #include <limits.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/str.h>
+#include "libpspp/assertion.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 struct argv_option_plus
   {
@@ -128,11 +128,11 @@ argv_parser_run (struct argv_parser *ap, int argc, char **argv)
           if (shortopt_ptrs[c] == NULL)
             {
               shortopt_ptrs[c] = aop;
-              ds_put_char (&shortopts, aop->base.short_name);
+              ds_put_byte (&shortopts, aop->base.short_name);
               if (aop->base.has_arg != no_argument)
-                ds_put_char (&shortopts, ':');
+                ds_put_byte (&shortopts, ':');
               if (aop->base.has_arg == optional_argument)
-                ds_put_char (&shortopts, ':');
+                ds_put_byte (&shortopts, ':');
             }
           else
             {

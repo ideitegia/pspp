@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,13 +15,12 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <gtk/gtksignal.h>
 #include <gtk/gtk.h>
 #include <gtk-contrib/gtkextra-sheet.h>
 #include "psppire-data-editor.h"
 #include "psppire-var-sheet.h"
+#include "psppire.h"
 
-#include <language/syntax-string-source.h>
 #include "psppire-data-store.h"
 #include <libpspp/i18n.h>
 #include <ui/gui/sheet/psppire-axis.h>
@@ -90,6 +89,7 @@ psppire_data_editor_dispose (GObject *obj)
   if (de->dispose_has_run)
     return;
 
+  g_object_unref (de->data_window);
   g_object_unref (de->data_store);
   g_object_unref (de->var_store);
 
@@ -196,6 +196,7 @@ traverse_cell_callback (PsppireSheet *sheet,
 enum
   {
     PROP_0,
+    PROP_DATA_WINDOW,
     PROP_DATA_STORE,
     PROP_VAR_STORE,
     PROP_VS_ROW_MENU,
@@ -224,6 +225,13 @@ new_data_callback (PsppireDataStore *ds, gpointer data)
       psppire_axis_clear (de->vaxis[i]);
       psppire_axis_append_n (de->vaxis[i], n_cases, DEFAULT_ROW_HEIGHT);
     }
+
+  /* All of the data (potentially) changed, so unselect any selected cell(s) in
+     the data sheets.  If we don't do this, then the sheet remembers the value
+     that was in the selected cell and stores it back, wiping out whatever
+     value there is in the new data.  Bug #30502. */
+  if (de->data_sheet[0] != NULL)
+    psppire_sheet_unselect_range (PSPPIRE_SHEET (de->data_sheet[0]));
 }
 
 static void
@@ -375,6 +383,10 @@ psppire_data_editor_set_property (GObject         *object,
     case PROP_SPLIT_WINDOW:
       psppire_data_editor_split_window (de, g_value_get_boolean (value));
       break;
+    case PROP_DATA_WINDOW:
+      de->data_window = g_value_get_pointer (value);
+      g_object_ref (de->data_window);
+      break;
     case PROP_DATA_STORE:
       if ( de->data_store) g_object_unref (de->data_store);
       de->data_store = g_value_get_pointer (value);
@@ -502,6 +514,9 @@ psppire_data_editor_get_property (GObject         *object,
     case PROP_SPLIT_WINDOW:
       g_value_set_boolean (value, de->split);
       break;
+    case PROP_DATA_WINDOW:
+      g_value_set_pointer (value, de->data_window);
+      break;
     case PROP_DATA_STORE:
       g_value_set_pointer (value, de->data_store);
       break;
@@ -535,6 +550,7 @@ psppire_data_editor_get_property (GObject         *object,
 static void
 psppire_data_editor_class_init (PsppireDataEditorClass *klass)
 {
+  GParamSpec *data_window_spec ;
   GParamSpec *data_store_spec ;
   GParamSpec *var_store_spec ;
   GParamSpec *column_menu_spec;
@@ -556,6 +572,16 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
   object_class->get_property = psppire_data_editor_get_property;
 
   
+
+  data_window_spec =
+    g_param_spec_pointer ("data-window",
+			  "Data Window",
+			  "A pointer to the data window associated with this editor",
+			  G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE | G_PARAM_READABLE );
+
+  g_object_class_install_property (object_class,
+                                   PROP_DATA_WINDOW,
+                                   data_window_spec);
 
   data_store_spec =
     g_param_spec_pointer ("data-store",
@@ -1009,13 +1035,15 @@ psppire_data_editor_init (PsppireDataEditor *de)
 
 
 GtkWidget*
-psppire_data_editor_new (PsppireVarStore *var_store,
+psppire_data_editor_new (PsppireDataWindow *data_window,
+                         PsppireVarStore *var_store,
 			 PsppireDataStore *data_store)
 {
   return  g_object_new (PSPPIRE_DATA_EDITOR_TYPE,
-				     "var-store",  var_store,
-				     "data-store",  data_store,
-				     NULL);
+                        "data-window", data_window,
+                        "var-store",  var_store,
+                        "data-store",  data_store,
+                        NULL);
 }
 
 
@@ -1247,23 +1275,15 @@ popup_cases_menu (PsppireSheet *sheet, gint row,
 /* Sorting */
 
 static void
-do_sort (PsppireDataStore *ds, int var, gboolean descend)
+do_sort (PsppireDataEditor *de, int var, gboolean descend)
 {
-  GString *string = g_string_new ("SORT CASES BY ");
+  const struct variable *v
+    = psppire_dict_get_variable (de->data_store->dict, var);
+  gchar *syntax;
 
-  const struct variable *v =
-    psppire_dict_get_variable (ds->dict, var);
-
-  g_string_append_printf (string, "%s", var_get_name (v));
-
-  if ( descend )
-    g_string_append (string, " (D)");
-
-  g_string_append (string, ".");
-
-  execute_syntax (create_syntax_string_source (string->str));
-
-  g_string_free (string, TRUE);
+  syntax = g_strdup_printf ("SORT CASES BY %s%s.",
+                            var_get_name (v), descend ? " (D)" : "");
+  g_free (execute_syntax_string (de->data_window, syntax));
 }
 
 
@@ -1275,7 +1295,7 @@ psppire_data_editor_sort_ascending  (PsppireDataEditor *de)
   PsppireSheetRange range;
   psppire_sheet_get_selected_range (PSPPIRE_SHEET(de->data_sheet[0]), &range);
 
-  do_sort (de->data_store,  range.col0, FALSE);
+  do_sort (de,  range.col0, FALSE);
 }
 
 
@@ -1287,7 +1307,7 @@ psppire_data_editor_sort_descending (PsppireDataEditor *de)
   PsppireSheetRange range;
   psppire_sheet_get_selected_range (PSPPIRE_SHEET(de->data_sheet[0]), &range);
 
-  do_sort (de->data_store,  range.col0, TRUE);
+  do_sort (de,  range.col0, TRUE);
 }
 
 
@@ -1621,8 +1641,7 @@ data_sheet_set_clip (PsppireSheet *sheet)
     }
 
   /* Construct clip dictionary. */
-  clip_dict = dict_create ();
-  dict_set_encoding (clip_dict, dict_get_encoding (ds->dict->dict));
+  clip_dict = dict_create (dict_get_encoding (ds->dict->dict));
   for (i = col0; i <= coli; i++)
     dict_clone_var_assert (clip_dict, dict_get_var (ds->dict->dict, i));
 

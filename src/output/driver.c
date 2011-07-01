@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,8 +50,8 @@ static const struct output_driver_factory *factories[];
 /* Drivers currently registered with output_driver_register(). */
 static struct llx_list drivers = LLX_INITIALIZER (drivers);
 
-static struct output_item *deferred_syntax;
-static bool in_command;
+/* TEXT_ITEM_SYNTAX being accumulated until another kind of output arrives. */
+static struct string deferred_syntax = DS_EMPTY_INITIALIZER;
 
 void
 output_close (void)
@@ -108,11 +108,19 @@ output_submit__ (struct output_item *item)
 static void
 flush_deferred_syntax (void)
 {
-  if (deferred_syntax != NULL)
+  if (!ds_is_empty (&deferred_syntax))
     {
-      output_submit__ (deferred_syntax);
-      deferred_syntax = NULL;
+      char *syntax = ds_steal_cstr (&deferred_syntax);
+      output_submit__ (text_item_super (
+                         text_item_create_nocopy (TEXT_ITEM_SYNTAX, syntax)));
     }
+}
+
+static bool
+is_syntax_item (const struct output_item *item)
+{
+  return (is_text_item (item)
+          && text_item_get_type (to_text_item (item)) == TEXT_ITEM_SYNTAX);
 }
 
 /* Submits ITEM to the configured output drivers, and transfers ownership to
@@ -120,35 +128,14 @@ flush_deferred_syntax (void)
 void
 output_submit (struct output_item *item)
 {
-  if (is_text_item (item))
+  if (is_syntax_item (item))
     {
-      struct text_item *text = to_text_item (item);
-      switch (text_item_get_type (text))
-        {
-        case TEXT_ITEM_SYNTAX:
-          if (!in_command)
-            {
-              flush_deferred_syntax ();
-              deferred_syntax = item;
-              return;
-            }
-          break;
-
-        case TEXT_ITEM_COMMAND_OPEN:
-          output_submit__ (item);
-          flush_deferred_syntax ();
-          in_command = true;
-          return;
-
-        case TEXT_ITEM_COMMAND_CLOSE:
-          in_command = false;
-          break;
-
-        default:
-          break;
-        }
+      ds_put_cstr (&deferred_syntax, text_item_get_text (to_text_item (item)));
+      output_item_unref (item);
+      return;
     }
 
+  flush_deferred_syntax ();
   output_submit__ (item);
 }
 
@@ -159,6 +146,7 @@ output_flush (void)
 {
   struct llx *llx;
 
+  flush_deferred_syntax ();
   for (llx = llx_head (&drivers); llx != llx_null (&drivers);
        llx = llx_next (llx))
     {

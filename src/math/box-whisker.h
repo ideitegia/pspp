@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,9 +18,9 @@
 #define __MATH_BOX_WHISKER_H__
 
 #include <stddef.h>
-#include <libpspp/ll.h>
-#include <libpspp/str.h>
-#include "order-stats.h"
+#include "libpspp/ll.h"
+#include "libpspp/str.h"
+#include "math/order-stats.h"
 
 /* This module calculates the statistics typically displayed by box-plots.
    However, there's no reason not to use it for other purposes too.

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,28 +15,29 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "variable.h"
+
+#include "data/variable.h"
 
 #include <stdlib.h>
 
-#include <data/attributes.h>
-#include <data/data-out.h>
-#include <data/format.h>
-#include <data/dictionary.h>
-#include <data/identifier.h>
-#include <data/missing-values.h>
-#include <data/value-labels.h>
-#include <data/vardict.h>
+#include "data/attributes.h"
+#include "data/data-out.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/identifier.h"
+#include "data/missing-values.h"
+#include "data/value-labels.h"
+#include "data/vardict.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include <libpspp/misc.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash-functions.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -45,7 +46,7 @@
 struct variable
   {
     /* Dictionary information. */
-    char name[VAR_NAME_LEN + 1]; /* Variable name.  Mixed case. */
+    char *name;                 /* Variable name.  Mixed case. */
     int width;			/* 0 for numeric, otherwise string width. */
     struct missing_values miss; /* Missing values. */
     struct fmt_spec print;	/* Default format for PRINT. */
@@ -91,6 +92,7 @@ var_create (const char *name, int width)
 
   v = xmalloc (sizeof *v);
   v->vardict = NULL;
+  v->name = NULL;
   var_set_name (v, name);
   v->width = width;
   mv_init (&v->miss, width);
@@ -131,7 +133,7 @@ var_clone (const struct variable *old_var)
   var_set_print_format (new_var, var_get_print_format (old_var));
   var_set_write_format (new_var, var_get_write_format (old_var));
   var_set_value_labels (new_var, var_get_value_labels (old_var));
-  var_set_label (new_var, var_get_label (old_var));
+  var_set_label (new_var, var_get_label (old_var), false);
   var_set_measure (new_var, var_get_measure (old_var));
   var_set_display_width (new_var, var_get_display_width (old_var));
   var_set_alignment (new_var, var_get_alignment (old_var));
@@ -155,112 +157,32 @@ var_destroy (struct variable *v)
       var_clear_aux (v);
       val_labs_destroy (v->val_labs);
       var_clear_label (v);
+      free (v->name);
       free (v);
     }
 }
 
 /* Variable names. */
 
-/* Return variable V's name. */
+/* Return variable V's name, as a UTF-8 encoded string. */
 const char *
 var_get_name (const struct variable *v)
 {
   return v->name;
 }
 
-/* Sets V's name to NAME.
+/* Sets V's name to NAME, a UTF-8 encoded string.
    Do not use this function for a variable in a dictionary.  Use
    dict_rename_var instead. */
 void
 var_set_name (struct variable *v, const char *name)
 {
   assert (!var_has_vardict (v));
-  assert (var_is_plausible_name (name, false));
+  assert (id_is_plausible (name, false));
 
-  str_copy_trunc (v->name, sizeof v->name, name);
+  free (v->name);
+  v->name = xstrdup (name);
   dict_var_changed (v);
-}
-
-/* Returns true if NAME is an acceptable name for a variable,
-   false otherwise.  If ISSUE_ERROR is true, issues an
-   explanatory error message on failure. */
-bool
-var_is_valid_name (const char *name, bool issue_error)
-{
-  bool plausible;
-  size_t length, i;
-
-  /* Note that strlen returns number of BYTES, not the number of
-     CHARACTERS */
-  length = strlen (name);
-
-  plausible = var_is_plausible_name(name, issue_error);
-
-  if ( ! plausible )
-    return false;
-
-
-  if (!lex_is_id1 (name[0]))
-    {
-      if (issue_error)
-        msg (SE, _("Character `%c' (in %s) may not appear "
-                   "as the first character in a variable name."),
-             name[0], name);
-      return false;
-    }
-
-
-  for (i = 0; i < length; i++)
-    {
-    if (!lex_is_idn (name[i]))
-      {
-        if (issue_error)
-          msg (SE, _("Character `%c' (in %s) may not appear in "
-                     "a variable name."),
-               name[i], name);
-        return false;
-      }
-    }
-
-  return true;
-}
-
-/* Returns true if NAME is an plausible name for a variable,
-   false otherwise.  If ISSUE_ERROR is true, issues an
-   explanatory error message on failure.
-   This function makes no use of LC_CTYPE.
-*/
-bool
-var_is_plausible_name (const char *name, bool issue_error)
-{
-  size_t length;
-
-  /* Note that strlen returns number of BYTES, not the number of
-     CHARACTERS */
-  length = strlen (name);
-  if (length < 1)
-    {
-      if (issue_error)
-        msg (SE, _("Variable name cannot be empty string."));
-      return false;
-    }
-  else if (length > VAR_NAME_LEN)
-    {
-      if (issue_error)
-        msg (SE, _("Variable name %s exceeds %d-character limit."),
-             name, (int) VAR_NAME_LEN);
-      return false;
-    }
-
-  if (lex_id_to_token (ss_cstr (name)) != T_ID)
-    {
-      if (issue_error)
-        msg (SE, _("`%s' may not be used as a variable name because it "
-                   "is a reserved word."), name);
-      return false;
-    }
-
-  return true;
 }
 
 /* Returns VAR's dictionary class. */
@@ -505,9 +427,11 @@ alloc_value_labels (struct variable *v)
     v->val_labs = val_labs_create (v->width);
 }
 
-/* Attempts to add a value label with the given VALUE and LABEL
-   to V.  Returns true if successful, false otherwise (probably
-   due to an existing label). */
+/* Attempts to add a value label with the given VALUE and UTF-8 encoded LABEL
+   to V.  Returns true if successful, false otherwise (probably due to an
+   existing label).
+
+   In LABEL, the two-byte sequence "\\n" is interpreted as a new-line. */
 bool
 var_add_value_label (struct variable *v,
                      const union value *value, const char *label)
@@ -516,9 +440,10 @@ var_add_value_label (struct variable *v,
   return val_labs_add (v->val_labs, value, label);
 }
 
-/* Adds or replaces a value label with the given VALUE and LABEL
+/* Adds or replaces a value label with the given VALUE and UTF-8 encoded LABEL
    to V.
-*/
+
+   In LABEL, the two-byte sequence "\\n" is interpreted as a new-line. */
 void
 var_replace_value_label (struct variable *v,
                          const union value *value, const char *label)
@@ -534,8 +459,8 @@ var_clear_value_labels (struct variable *v)
   var_set_value_labels (v, NULL);
 }
 
-/* Returns the label associated with VALUE for variable V,
-   or a null pointer if none. */
+/* Returns the label associated with VALUE for variable V, as a UTF-8 string in
+   a format suitable for output, or a null pointer if none. */
 const char *
 var_lookup_value_label (const struct variable *v, const union value *value)
 {
@@ -641,33 +566,58 @@ var_get_label (const struct variable *v)
   return v->label;
 }
 
-/* Sets V's variable label to LABEL, stripping off leading and
-   trailing white space and truncating to 255 characters.
-   If LABEL is a null pointer or if LABEL is an empty string
-   (after stripping white space), then V's variable label (if
-   any) is removed. */
-void
-var_set_label (struct variable *v, const char *label)
+/* Sets V's variable label to UTF-8 encoded string LABEL, stripping off leading
+   and trailing white space.  If LABEL is a null pointer or if LABEL is an
+   empty string (after stripping white space), then V's variable label (if any)
+   is removed.
+
+   Variable labels are limited to 255 bytes in V's encoding (as returned by
+   var_get_encoding()).  If LABEL fits within this limit, this function returns
+   true.  Otherwise, the variable label is set to a truncated value, this
+   function returns false and, if ISSUE_WARNING is true, issues a warning.  */
+bool
+var_set_label (struct variable *v, const char *label, bool issue_warning)
 {
+  bool truncated = false;
+
   free (v->label);
   v->label = NULL;
 
-  if (label != NULL)
+  if (label != NULL && label[strspn (label, CC_SPACES)])
     {
+      const char *dict_encoding = var_get_encoding (v);
       struct substring s = ss_cstr (label);
-      ss_trim (&s, ss_cstr (CC_SPACES));
-      ss_truncate (&s, 255);
-      if (!ss_is_empty (s))
+      size_t trunc_len;
+
+      if (dict_encoding != NULL)
+        {
+          enum { MAX_LABEL_LEN = 255 };
+
+          trunc_len = utf8_encoding_trunc_len (label, dict_encoding,
+                                               MAX_LABEL_LEN);
+          if (ss_length (s) > trunc_len)
+            {
+              if (issue_warning)
+                msg (SW, _("Truncating variable label for variable `%s' to %d "
+                           "bytes."), var_get_name (v), MAX_LABEL_LEN);
+              ss_truncate (&s, trunc_len);
+              truncated = true;
+            }
+        }
+
         v->label = ss_xstrdup (s);
     }
+
   dict_var_changed (v);
+
+  return truncated;
 }
 
 /* Removes any variable label from V. */
 void
 var_clear_label (struct variable *v)
 {
-  var_set_label (v, NULL);
+  var_set_label (v, NULL, false);
 }
 
 /* Returns true if V has a variable V,
@@ -684,6 +634,26 @@ bool
 measure_is_valid (enum measure m)
 {
   return m == MEASURE_NOMINAL || m == MEASURE_ORDINAL || m == MEASURE_SCALE;
+}
+
+/* Returns a string version of measurement level M, for display to a user. */
+const char *
+measure_to_string (enum measure m)
+{
+  switch (m)
+    {
+    case MEASURE_NOMINAL:
+      return _("Nominal");
+
+    case MEASURE_ORDINAL:
+      return _("Ordinal");
+
+    case MEASURE_SCALE:
+      return _("Scale");
+
+    default:
+      return "Invalid";
+    }
 }
 
 /* Returns V's measurement level. */
@@ -748,6 +718,26 @@ bool
 alignment_is_valid (enum alignment a)
 {
   return a == ALIGN_LEFT || a == ALIGN_RIGHT || a == ALIGN_CENTRE;
+}
+
+/* Returns a string version of alignment A, for display to a user. */
+const char *
+alignment_to_string (enum alignment a)
+{
+  switch (a)
+    {
+    case ALIGN_LEFT:
+      return _("Left");
+
+    case ALIGN_RIGHT:
+      return _("Right");
+
+    case ALIGN_CENTRE:
+      return _("Center");
+
+    default:
+      return "Invalid";
+    }
 }
 
 /* Returns V's display alignment, which applies only to GUIs. */
@@ -829,14 +819,16 @@ var_get_short_name (const struct variable *var, size_t idx)
   return idx < var->short_name_cnt ? var->short_names[idx] : NULL;
 }
 
-/* Sets VAR's short name with the given IDX to SHORT_NAME,
-   truncating it to SHORT_NAME_LEN characters and converting it
-   to uppercase in the process.  Specifying a null pointer for
-   SHORT_NAME clears the specified short name. */
+/* Sets VAR's short name with the given IDX to the UTF-8 string SHORT_NAME.
+   The caller must already have checked that, in the dictionary encoding,
+   SHORT_NAME is no more than SHORT_NAME_LEN bytes long.  The new short name
+   will be converted to uppercase.
+
+   Specifying a null pointer for SHORT_NAME clears the specified short name. */
 void
 var_set_short_name (struct variable *var, size_t idx, const char *short_name)
 {
-  assert (short_name == NULL || var_is_plausible_name (short_name, false));
+  assert (short_name == NULL || id_is_plausible (short_name, false));
 
   /* Clear old short name numbered IDX, if any. */
   if (idx < var->short_name_cnt) 
@@ -858,7 +850,7 @@ var_set_short_name (struct variable *var, size_t idx, const char *short_name)
           for (i = old_cnt; i < var->short_name_cnt; i++)
             var->short_names[i] = NULL;
         }
-      var->short_names[idx] = xstrndup (short_name, MAX_SHORT_STRING);
+      var->short_names[idx] = xstrdup (short_name);
       str_uppercase (var->short_names[idx]);
     }
 

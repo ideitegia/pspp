@@ -49,10 +49,12 @@ corresponding short options.
 @example
 -I, --include=@var{dir}
 -I-, --no-include
+-b, --batch
 -i, --interactive
 -r, --no-statrc
 -a, --algorithm=@{compatible|enhanced@}
 -x, --syntax=@{compatible|enhanced@}
+--syntax-encoding=@var{encoding}
 @end example
 
 @item Informational options
@@ -135,11 +137,13 @@ inserted in the include path by default.  The default include path is
 user's home directory, followed by PSPP's system configuration
 directory (usually @file{/etc/pspp} or @file{/usr/local/etc/pspp}).
 
+@item -b
+@item --batch
 @item -i
 @itemx --interactive
-This option forces syntax files to be interpreted in interactive
-mode, rather than the default batch mode.  @xref{Syntax Variants}, for
-a description of the differences.
+These options forces syntax files to be interpreted in batch mode or
+interactive mode, respectively, rather than the default ``auto'' mode.
+@xref{Syntax Variants}, for a description of the differences.
 
 @item -r
 @itemx --no-statrc
@@ -161,8 +165,14 @@ With @code{enhanced}, the default, PSPP accepts its own extensions
 beyond those compatible with the proprietary program SPSS.  With
 @code{compatible}, PSPP rejects syntax that uses these extensions.
 
-@item -?
-@itemx --help
+@item --syntax-encoding=@var{encoding}
+Specifies @var{encoding} as the encoding for syntax files named on the
+command line.  The @var{encoding} also becomes the default encoding
+for other syntax files read during the PSPP session by the
+@cmd{INCLUDE} and @cmd{INSERT} commands.  @xref{INSERT}, for the
+accepted forms of @var{encoding}.
+
+@item --help
 Prints a message describing PSPP command-line syntax and the available
 device formats, then exits.
 
@@ -263,6 +273,8 @@ specify @option{-o @var{file}} on the PSPP command line, optionally
 followed by options from the table below to customize the output
 format.
 
+Plain text output is encoded in UTF-8.
+
 @table @code
 @item -O format=txt
 Specify the output format.  This is only necessary if the file name
@@ -309,26 +321,11 @@ the page length.  Default: @code{0}.
 Length of the bottom margin, in lines.  PSPP subtracts this value from
 the page length.  Default: @code{0}.
 
-@item -O box[@var{line-type}]=@var{box-chars}
-Sets the characters used for lines in tables.  @var{line-type} is a
-4-digit number that indicates the type of line to change, in the order
-`right', `bottom', `left', `top'.  Each digit is 0 for ``no line'', 1
-for a single line, and 2 for a double line.  @var{box-chars} is the
-character or string of characters to use for this type of line.
-
-For example, @code{box[0101]="|"} sets @samp{|} as the character to
-use for a single-width vertical line, and @code{box[1100]="\xda"} sets
-@samp{"\xda"}, which on MS-DOS is suitable for the top-left corner of
-a box, as the character for the intersection of two single-width
-lines, one each from the right and bottom.
-
-The defaults use @samp{-}, @samp{|}, and @samp{+} for single-width
-lines and @samp{=} and @samp{#} for double-width lines.
-
-@item -O init=@var{init-string}
-If set, this string is written at the beginning of each output file.
-It can be used to initialize device features, e.g.@: to enable VT100
-line-drawing characters.
+@item -O box=@{ascii|unicode@}
+Sets the characters used for lines in tables.  The default,
+@code{ascii}, uses @samp{-}, @samp{|}, and @samp{+} for single-width
+lines and @samp{=} and @samp{#} for double-width lines.  Specify
+@code{unicode} to use Unicode box drawing characters.
 
 @item -O emphasis=@{none|bold|underline@}
 How to emphasize text.  Bold and underline emphasis are achieved with
@@ -379,8 +376,19 @@ Specify the output format.  This is only necessary if the file name
 given on @option{-o} does not end in @file{.csv}.
 
 @item -O separator=@var{field-separator}
-Sets the character used to separate fields.  The default is a comma
+Sets the character used to separate fields.  Default: a comma
 (@samp{,}).
+
+@item -O quote=@var{qualifier}
+Sets @var{qualifier} as the character used to quote fields that
+contain white space, the separator (or any of the characters in the
+separator, if it contains more than one character), or the quote
+character itself.  If @var{qualifier} is longer than one character,
+only the first character is used; if @var{qualifier} is the empty
+string, then fields are never quoted.
+
+@item -O captions=@var{boolean}
+Whether table captions should be printed.  Default: @code{on}.
 @end table
 
 The CSV format used is an extension to that specified in RFC 4180:
@@ -390,8 +398,9 @@ The CSV format used is an extension to that specified in RFC 4180:
 Each table row is output on a separate line, and each column is output
 as a field.  The contents of a cell that spans multiple rows or
 columns is output only for the top-left row and column; the rest are
-output as empty fields.  When a table has a caption, it is output just
-above the table as a single field prefixed by @samp{Table:}.
+output as empty fields.  When a table has a caption and captions are
+enabled, the caption is output just above the table as a single field
+prefixed by @samp{Table:}.
 
 @item Text
 Text in output is printed as a field on a line by itself.  The TITLE

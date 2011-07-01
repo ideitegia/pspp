@@ -17,7 +17,6 @@
 #ifndef __BINOMIAL_DIALOG_H
 #define __BINOMIAL_DIALOG_H
 
-#include <gtk/gtk.h>
 #include "psppire-data-window.h"
 
 void binomial_dialog (PsppireDataWindow * data);

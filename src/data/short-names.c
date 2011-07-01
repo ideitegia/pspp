@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,46 +23,13 @@
 #include "data/variable.h"
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "libpspp/stringi-set.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-/* Sets V's short name to BASE, followed by a suffix of the form
-   _A, _B, _C, ..., _AA, _AB, etc. according to the value of
-   SUFFIX_NUMBER.  Truncates BASE as necessary to fit. */
-static void
-set_var_short_name_suffix (struct variable *v, size_t i,
-                           const char *base, int suffix_number)
-{
-  char suffix[SHORT_NAME_LEN + 1];
-  char short_name[SHORT_NAME_LEN + 1];
-  int len, ofs;
-
-  assert (suffix_number >= 0);
-
-  /* Set base name. */
-  var_set_short_name (v, i, base);
-
-  /* Compose suffix. */
-  suffix[0] = '_';
-  if (!str_format_26adic (suffix_number, &suffix[1], sizeof suffix - 1))
-    msg (SE, _("Variable suffix too large."));
-  len = strlen (suffix);
-
-  /* Append suffix to V's short name. */
-  str_copy_trunc (short_name, sizeof short_name, base);
-  if (strlen (short_name) + len > SHORT_NAME_LEN)
-    ofs = SHORT_NAME_LEN - len;
-  else
-    ofs = strlen (short_name);
-  strcpy (short_name + ofs, suffix);
-
-  /* Set name. */
-  var_set_short_name (v, i, short_name);
-}
 
 static void
 claim_short_name (struct variable *v, size_t i,
@@ -86,13 +53,28 @@ assign_short_name (struct variable *v, size_t i,
 
   for (trial = 0; ; trial++)
     {
-      if (trial == 0)
-        var_set_short_name (v, i, var_get_name (v));
-      else
-        set_var_short_name_suffix (v, i, var_get_name (v), trial);
+      char suffix[SHORT_NAME_LEN + 1];
+      char *short_name;
 
-      if (stringi_set_insert (short_names, var_get_short_name (v, i)))
-        break;
+      /* Compose suffix. */
+      if (trial == 0)
+        suffix[0] = '\0';
+      else
+        {
+          suffix[0] = '_';
+          str_format_26adic (trial, &suffix[1], sizeof suffix - 1);
+        }
+
+      /* Set name. */
+      short_name = utf8_encoding_concat (var_get_name (v), suffix,
+                                         var_get_encoding (v), SHORT_NAME_LEN);
+      if (stringi_set_insert (short_names, short_name))
+        {
+          var_set_short_name (v, i, short_name);
+          free (short_name);
+          return;
+        }
+      free (short_name);
     }
 }
 
@@ -136,7 +118,8 @@ short_names_assign (struct dictionary *d)
     {
       struct variable *v = dict_get_var (d, i);
       const char *name = var_get_name (v);
-      if (strlen (name) <= SHORT_NAME_LEN)
+      int len = recode_string_len (var_get_encoding (v), "UTF-8", name, -1);
+      if (len <= SHORT_NAME_LEN)
         var_set_short_name (v, 0, name);
     }
 

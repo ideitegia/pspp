@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,8 +18,6 @@
 #include <config.h>
 
 #include <gtk/gtk.h>
-#include <gtk/gtksignal.h>
-#include <gtk/gtkbuildable.h>
 #include "psppire-dialog.h"
 #include "psppire-buttonbox.h"
 #include "psppire-selector.h"
@@ -296,14 +294,14 @@ static gboolean
 configure_event_callback (GtkDialog *dialog,
 			  GdkEvent *event, gpointer data)
 {
-  gchar *base = NULL;
+  const gchar *base;
 
   PsppireConf *conf = psppire_conf_new ();
 
-  if ( ! GTK_WIDGET_MAPPED (dialog))
+  if ( ! gtk_widget_get_mapped (GTK_WIDGET (dialog)))
     return FALSE;
 
-  g_object_get (dialog, "name", &base, NULL);
+  base = gtk_buildable_get_name (GTK_BUILDABLE (dialog));
 
   psppire_conf_save_window_geometry (conf, base, GTK_WINDOW (dialog));
 
@@ -316,9 +314,7 @@ on_realize (GtkWindow *dialog, gpointer data)
 {
   PsppireConf *conf = psppire_conf_new ();
 
-  const gchar *base = NULL;
-
-  g_object_get (dialog, "name", &base, NULL);
+  const gchar *base = gtk_buildable_get_name (GTK_BUILDABLE (dialog));
 
   psppire_conf_set_window_geometry (conf, base, dialog);
 }

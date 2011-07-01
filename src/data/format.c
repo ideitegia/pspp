@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,19 +20,21 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <uniwidth.h>
 
-#include <data/identifier.h>
-#include <data/settings.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "data/identifier.h"
+#include "data/settings.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -47,6 +49,9 @@ bool is_fmt_type (enum fmt_type);
 static bool valid_width (enum fmt_type, int width, bool for_input);
 
 static int max_digits_for_bytes (int bytes);
+
+static void fmt_affix_set (struct fmt_affix *, const char *);
+static void fmt_affix_free (struct fmt_affix *);
 
 static void fmt_number_style_init (struct fmt_number_style *);
 static void fmt_number_style_clone (struct fmt_number_style *,
@@ -107,52 +112,53 @@ fmt_settings_get_style (const struct fmt_settings *settings,
   return &settings->styles[type];
 }
 
+/* Sets the number style for TYPE to have the given DECIMAL and GROUPING
+   characters, negative prefix NEG_PREFIX, prefix PREFIX, suffix SUFFIX, and
+   negative suffix NEG_SUFFIX.  All of the strings are UTF-8 encoded. */
 void
 fmt_settings_set_style (struct fmt_settings *settings, enum fmt_type type,
-                        const struct fmt_number_style *style)
+                        char decimal, char grouping,
+                        const char *neg_prefix, const char *prefix,
+                        const char *suffix, const char *neg_suffix)
 {
-  fmt_check_style (style);
-  fmt_number_style_destroy (&settings->styles[type]);
-  fmt_number_style_clone (&settings->styles[type], style);
-}
+  struct fmt_number_style *style = &settings->styles[type];
+  int total_bytes, total_width;
 
-/* Sets the number style for TYPE to have the given standard
-   PREFIX and SUFFIX, "-" as prefix suffix, an empty negative
-   suffix, DECIMAL as the decimal point character, and GROUPING
-   as the grouping character. */
-static void
-set_style (struct fmt_settings *settings, enum fmt_type type,
-           const char *prefix, const char *suffix,
-           char decimal, char grouping)
-{
-  struct fmt_number_style *style;
-
-  assert (is_fmt_type (type));
-
-  style = &settings->styles[type];
+  assert (grouping == '.' || grouping == ',' || grouping == 0);
+  assert (decimal == '.' || decimal == ',');
+  assert (decimal != grouping);
 
   fmt_number_style_destroy (style);
 
-  ss_alloc_substring (&style->neg_prefix, ss_cstr ("-"));
-  ss_alloc_substring (&style->prefix, ss_cstr (prefix));
-  ss_alloc_substring (&style->suffix, ss_cstr (suffix));
+  fmt_affix_set (&style->neg_prefix, neg_prefix);
+  fmt_affix_set (&style->prefix, prefix);
+  fmt_affix_set (&style->suffix, suffix);
+  fmt_affix_set (&style->neg_suffix, neg_suffix);
   style->decimal = decimal;
   style->grouping = grouping;
+
+  total_bytes = (strlen (neg_prefix) + strlen (prefix)
+                 + strlen (suffix) + strlen (neg_suffix));
+  total_width = (style->neg_prefix.width + style->prefix.width
+                 + style->suffix.width + style->neg_suffix.width);
+  style->extra_bytes = MAX (0, total_bytes - total_width);
 }
 
-/* Sets the decimal point character for SETTINGS to DECIMAL. */
+/* Sets the decimal point character for the settings in S to DECIMAL.
+
+   This has no effect on custom currency formats. */
 void
-fmt_settings_set_decimal (struct fmt_settings *settings, char decimal)
+fmt_settings_set_decimal (struct fmt_settings *s, char decimal)
 {
   int grouping = decimal == '.' ? ',' : '.';
   assert (decimal == '.' || decimal == ',');
 
-  set_style (settings, FMT_F, "", "", decimal, 0);
-  set_style (settings, FMT_E, "", "", decimal, 0);
-  set_style (settings, FMT_COMMA, "", "", decimal, grouping);
-  set_style (settings, FMT_DOT, "", "", grouping, decimal);
-  set_style (settings, FMT_DOLLAR, "$", "", decimal, grouping);
-  set_style (settings, FMT_PCT, "", "%", decimal, 0);
+  fmt_settings_set_style (s, FMT_F,      decimal,        0, "-",  "",  "", "");
+  fmt_settings_set_style (s, FMT_E,      decimal,        0, "-",  "",  "", "");
+  fmt_settings_set_style (s, FMT_COMMA,  decimal, grouping, "-",  "",  "", "");
+  fmt_settings_set_style (s, FMT_DOT,   grouping,  decimal, "-",  "",  "", "");
+  fmt_settings_set_style (s, FMT_DOLLAR, decimal, grouping, "-", "$",  "", "");
+  fmt_settings_set_style (s, FMT_PCT,    decimal,        0, "-",  "", "%", "");
 }
 
 /* Returns an input format specification with type TYPE, width W,
@@ -906,6 +912,56 @@ fmt_date_template (enum fmt_type type)
     }
 }
 
+/* Returns a string representing the format TYPE for use in a GUI dialog. */
+const char *
+fmt_gui_name (enum fmt_type type)
+{
+  switch (type)
+    {
+    case FMT_F:
+      return _("Numeric");
+
+    case FMT_COMMA:
+      return _("Comma");
+
+    case FMT_DOT:
+      return _("Dot");
+
+    case FMT_E:
+      return _("Scientific");
+
+    case FMT_DATE:
+    case FMT_EDATE:
+    case FMT_SDATE:
+    case FMT_ADATE:
+    case FMT_JDATE:
+    case FMT_QYR:
+    case FMT_MOYR:
+    case FMT_WKYR:
+    case FMT_DATETIME:
+    case FMT_TIME:
+    case FMT_DTIME:
+    case FMT_WKDAY:
+    case FMT_MONTH:
+      return _("Date");
+
+    case FMT_DOLLAR:
+      return _("Dollar");
+
+    case FMT_CCA:
+    case FMT_CCB:
+    case FMT_CCC:
+    case FMT_CCD:
+    case FMT_CCE:
+      return _("Custom");
+
+    case FMT_A:
+      return _("String");
+
+    default:
+      return fmt_name (type);
+    }
+}
 
 /* Returns true if TYPE is a valid format type,
    false otherwise. */
@@ -936,13 +992,29 @@ max_digits_for_bytes (int bytes)
   return map[bytes - 1];
 }
 
+/* Sets AFFIX's string value to S, a UTF-8 encoded string. */
+static void
+fmt_affix_set (struct fmt_affix *affix, const char *s)
+{
+  affix->s = s[0] == '\0' ? CONST_CAST (char *, "") : xstrdup (s);
+  affix->width = u8_strwidth (CHAR_CAST (const uint8_t *, s), "UTF-8");
+}
+
+/* Frees data in AFFIX. */
+static void
+fmt_affix_free (struct fmt_affix *affix)
+{
+  if (affix->s[0])
+    free (affix->s);
+}
+
 static void
 fmt_number_style_init (struct fmt_number_style *style)
 {
-  style->neg_prefix = ss_empty ();
-  style->prefix = ss_empty ();
-  style->suffix = ss_empty ();
-  style->neg_suffix = ss_empty ();
+  fmt_affix_set (&style->neg_prefix, "");
+  fmt_affix_set (&style->prefix, "");
+  fmt_affix_set (&style->suffix, "");
+  fmt_affix_set (&style->neg_suffix, "");
   style->decimal = '.';
   style->grouping = 0;
 }
@@ -951,12 +1023,13 @@ static void
 fmt_number_style_clone (struct fmt_number_style *new,
                         const struct fmt_number_style *old)
 {
-  ss_alloc_substring (&new->neg_prefix, old->neg_prefix);
-  ss_alloc_substring (&new->prefix, old->prefix);
-  ss_alloc_substring (&new->suffix, old->suffix);
-  ss_alloc_substring (&new->neg_suffix, old->neg_suffix);
+  fmt_affix_set (&new->neg_prefix, old->neg_prefix.s);
+  fmt_affix_set (&new->prefix, old->prefix.s);
+  fmt_affix_set (&new->suffix, old->suffix.s);
+  fmt_affix_set (&new->neg_suffix, old->neg_suffix.s);
   new->decimal = old->decimal;
   new->grouping = old->grouping;
+  new->extra_bytes = old->extra_bytes;
 }
 
 /* Destroys a struct fmt_number_style. */
@@ -965,42 +1038,27 @@ fmt_number_style_destroy (struct fmt_number_style *style)
 {
   if (style != NULL)
     {
-      ss_dealloc (&style->neg_prefix);
-      ss_dealloc (&style->prefix);
-      ss_dealloc (&style->suffix);
-      ss_dealloc (&style->neg_suffix);
+      fmt_affix_free (&style->neg_prefix);
+      fmt_affix_free (&style->prefix);
+      fmt_affix_free (&style->suffix);
+      fmt_affix_free (&style->neg_suffix);
     }
 }
 
-/* Checks that style is STYLE sane */
-void
-fmt_check_style (const struct fmt_number_style *style)
-{
-  assert (ss_length (style->neg_prefix) <= FMT_STYLE_AFFIX_MAX);
-  assert (ss_length (style->prefix) <= FMT_STYLE_AFFIX_MAX);
-  assert (ss_length (style->suffix) <= FMT_STYLE_AFFIX_MAX);
-  assert (ss_length (style->neg_suffix) <= FMT_STYLE_AFFIX_MAX);
-  assert (style->decimal == '.' || style->decimal == ',');
-  assert (style->grouping == '.' || style->grouping == ','
-          || style->grouping == 0);
-  assert (style->grouping != style->decimal);
-}
-
-
-/* Returns the total width of the standard prefix and suffix for
-   STYLE. */
+/* Returns the total width of the standard prefix and suffix for STYLE, in
+   display columns (e.g. as returned by u8_strwidth()). */
 int
 fmt_affix_width (const struct fmt_number_style *style)
 {
-  return ss_length (style->prefix) + ss_length (style->suffix);
+  return style->prefix.width + style->suffix.width;
 }
 
-/* Returns the total width of the negative prefix and suffix for
-   STYLE. */
+/* Returns the total width of the negative prefix and suffix for STYLE, in
+   display columns (e.g. as returned by u8_strwidth()). */
 int
 fmt_neg_affix_width (const struct fmt_number_style *style)
 {
-  return ss_length (style->neg_prefix) + ss_length (style->neg_suffix);
+  return style->neg_prefix.width + style->neg_suffix.width;
 }
 
 /* Returns the struct fmt_desc for the given format TYPE. */

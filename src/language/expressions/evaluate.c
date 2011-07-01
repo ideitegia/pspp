@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,15 +15,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "evaluate.h"
+
+#include "language/expressions/evaluate.h"
 
 #include <ctype.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <language/expressions/helpers.h>
-#include <language/expressions/private.h>
-#include <language/lexer/value-parser.h>
-#include <libpspp/pool.h>
+
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "language/expressions/helpers.h"
+#include "language/expressions/private.h"
+#include "language/lexer/value-parser.h"
+#include "libpspp/pool.h"
 
 #include "xalloc.h"
 
@@ -102,8 +104,8 @@ expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
   buf_copy_rpad (dst, dst_size, s.string, s.length, ' ');
 }
 
-#include <language/lexer/lexer.h>
-#include <language/command.h>
+#include "language/lexer/lexer.h"
+#include "language/command.h"
 
 int
 cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
@@ -116,6 +118,8 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
   struct dataset *ds = NULL;
 
+  char *name = NULL;
+
   struct expression *expr;
 
   for (;;)
@@ -125,25 +129,24 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
         optimize = 0;
       else if (lex_match_id (lexer, "POSTFIX"))
         dump_postfix = 1;
-      else if (lex_match (lexer, '('))
+      else if (lex_match (lexer, T_LPAREN))
         {
-          char name[VAR_NAME_LEN + 1];
           struct variable *v;
           size_t old_value_cnt;
           int width;
 
           if (!lex_force_id (lexer))
             goto done;
-          strcpy (name, lex_tokid (lexer));
+          name = xstrdup (lex_tokcstr (lexer));
 
           lex_get (lexer);
-          if (!lex_force_match (lexer, '='))
+          if (!lex_force_match (lexer, T_EQUALS))
             goto done;
 
           if (lex_is_number (lexer))
             width = 0;
           else if (lex_is_string (lexer))
-            width = ds_length (lex_tokstr (lexer));
+            width = ss_length (lex_tokss (lexer));
           else
             {
               lex_error (lexer, _("expecting number or string"));
@@ -152,7 +155,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
 	  if  ( ds == NULL )
 	    {
-	      ds = create_dataset ();
+	      ds = dataset_create (NULL, "");
 	      d = dataset_dict (ds);
 	    }
 
@@ -163,24 +166,26 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
               msg (SE, _("Duplicate variable name %s."), name);
               goto done;
             }
+          free (name);
+          name = NULL;
 
           if (c == NULL)
             c = case_create (dict_get_proto (d));
           else
             c = case_unshare_and_resize (c, dict_get_proto (d));
 
-          if (!parse_value (lexer, case_data_rw (c, v), var_get_width (v)))
+          if (!parse_value (lexer, case_data_rw (c, v), v))
             NOT_REACHED ();
 
-          if (!lex_force_match (lexer, ')'))
+          if (!lex_force_match (lexer, T_RPAREN))
             goto done;
         }
       else
         break;
     }
-  if (lex_token (lexer) != '/')
+  if (lex_token (lexer) != T_SLASH)
     {
-      lex_force_match (lexer, '/');
+      lex_force_match (lexer, T_SLASH);
       goto done;
     }
 
@@ -237,10 +242,11 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
   retval = CMD_SUCCESS;
 
  done:
-  if (ds)
-    destroy_dataset (ds);
+  dataset_destroy (ds);
 
   case_unref (c);
+
+  free (name);
 
   return retval;
 }

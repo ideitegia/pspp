@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@
 #include "dict-display.h"
 #include "dialog-common.h"
 #include "widget-io.h"
-#include <language/syntax-string-source.h>
 #include "helper.h"
 #include <xalloc.h>
 
@@ -348,22 +347,10 @@ select_cases_dialog (PsppireDataWindow *de)
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      {
-	gchar *syntax = generate_syntax (&scd);
-
-	struct getl_interface *sss = create_syntax_string_source (syntax);
-	execute_syntax (sss);
-
-	g_free (syntax);
-      }
+      g_free (execute_syntax_string (de, generate_syntax (&scd)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	gchar *syntax = generate_syntax (&scd);
-        paste_syntax_to_window (syntax);
-
-	g_free (syntax);
-      }
+      g_free (paste_syntax_to_window (generate_syntax (&scd)));
       break;
     default:
       break;
@@ -379,7 +366,7 @@ generate_syntax_filter (const struct select_cases_dialog *scd)
   gchar *text = NULL;
   GString *string = g_string_new ("");
 
-  const gchar filter[]="filter_$";
+  const gchar *filter = "filter_$";
   const gchar key[]="case_$";
 
   if ( gtk_toggle_button_get_active
@@ -474,6 +461,13 @@ generate_syntax_filter (const struct select_cases_dialog *scd)
 
       g_string_append (string, "EXECUTE.\n");
 
+    }
+  else
+    {
+      GtkEntry *entry =
+	GTK_ENTRY (get_widget_assert (scd->xml,
+				      "filter-variable-entry"));
+      filter = gtk_entry_get_text (entry);
     }
 
 

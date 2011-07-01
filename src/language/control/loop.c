@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009-2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,24 +16,24 @@
 
 #include <config.h>
 
-#include "control-stack.h"
+#include "language/control/control-stack.h"
 
-#include <data/case.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/expressions/public.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
+#include "data/case.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/settings.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/expressions/public.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -103,7 +103,7 @@ cmd_loop (struct lexer *lexer, struct dataset *ds)
   bool ok = true;
 
   loop = create_loop_trns (ds);
-  while (lex_token (lexer) != '.' && ok)
+  while (lex_token (lexer) != T_ENDCMD && ok)
     {
       if (lex_match_id (lexer, "IF"))
         ok = parse_if_clause (lexer, loop, &loop->loop_condition);
@@ -154,7 +154,7 @@ cmd_end_loop (struct lexer *lexer, struct dataset *ds)
 
 /* Parses BREAK. */
 int
-cmd_break (struct lexer *lexer, struct dataset *ds)
+cmd_break (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   struct ctl_stmt *loop = ctl_stack_search (&loop_class);
   if (loop == NULL)
@@ -162,7 +162,7 @@ cmd_break (struct lexer *lexer, struct dataset *ds)
 
   add_transformation (ds, break_trns_proc, NULL, loop);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Closes a LOOP construct by emitting the END LOOP
@@ -221,18 +221,18 @@ parse_index_clause (struct dataset *ds, struct lexer *lexer,
       return false;
     }
 
-  loop->index_var = dict_lookup_var (dataset_dict (ds), lex_tokid (lexer));
+  loop->index_var = dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer));
   if (loop->index_var != NULL)
     *created_index_var = false;
   else
     {
       loop->index_var = dict_create_var_assert (dataset_dict (ds),
-                                                lex_tokid (lexer), 0);
+                                                lex_tokcstr (lexer), 0);
       *created_index_var = true;
     }
   lex_get (lexer);
 
-  if (!lex_force_match (lexer, '='))
+  if (!lex_force_match (lexer, T_EQUALS))
     return false;
 
   loop->first_expr = expr_parse_pool (lexer, loop->pool,

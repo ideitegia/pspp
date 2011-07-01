@@ -13,7 +13,7 @@ Later chapters will describe individual commands in detail.
 * Types of Commands::           Commands come in several flavors.
 * Order of Commands::           Commands combine to form syntax files.
 * Missing Observations::        Handling missing observations.
-* Variables::                   The unit of data storage.
+* Datasets::                    Data organization.
 * Files::                       Files used by PSPP.
 * File Handles::                How files are named.
 * BNF::                         How command syntax is described.
@@ -111,26 +111,29 @@ character used for quoting in the string, double it, e.g.@:
 significant inside strings.
 
 Strings can be concatenated using @samp{+}, so that @samp{"a" + 'b' +
-'c'} is equivalent to @samp{'abc'}.  Concatenation is useful for
-splitting a single string across multiple source lines.
+'c'} is equivalent to @samp{'abc'}.  So that a long string may be
+broken across lines, a line break may precede or follow, or both
+precede and follow, the @samp{+}.  (However, an entirely blank line
+preceding or following the @samp{+} is interpreted as ending the
+current command.)
 
-Strings may also be expressed as hexadecimal, octal, or binary
-character values by prefixing the initial quote character by @samp{X},
-@samp{O}, or @samp{B} or their lowercase equivalents.  Each pair,
-triplet, or octet of characters, according to the radix, is
-transformed into a single character with the given value.  If there is
-an incomplete group of characters, the missing final digits are
-assumed to be @samp{0}.  These forms of strings are nonportable
-because numeric values are associated with different characters by
-different operating systems.  Therefore, their use should be confined
-to syntax files that will not be widely distributed.
+Strings may also be expressed as hexadecimal character values by
+prefixing the initial quote character by @samp{x} or @samp{X}.
+Regardless of the syntax file or active dataset's encoding, the
+hexadecimal digits in the string are interpreted as Unicode characters
+in UTF-8 encoding.
 
-@cindex characters, reserved
-@cindex 0
-@cindex white space
-The character with value 00 is reserved for
-internal use by PSPP.  Its use in strings causes an error and
-replacement by a space character.
+Individual Unicode code points may also be expressed by specifying the
+hexadecimal code point number in single or double quotes preceded by
+@samp{u} or @samp{U}.  For example, Unicode code point U+1D11E, the
+musical G clef character, could be expressed as @code{U'1D11E'}.
+Invalid Unicode code points (above U+10FFFF or in between U+D800 and
+U+DFFF) are not allowed.
+
+When strings are concatenated with @samp{+}, each segment's prefix is
+considered individually.  For example, @code{'The G clef symbol is:' +
+u"1d11e" + "."} inserts a G clef symbol in the middle of an otherwise
+plain text string.
 
 @item Punctuators and Operators
 @cindex punctuators
@@ -147,11 +150,6 @@ punctuator only as the last character on a line (except white space).
 When it is the last non-space character on a line, a period is not
 treated as part of another token, even if it would otherwise be part
 of, e.g.@:, an identifier or a floating-point number.
-
-Actually, the character that ends a command can be changed with
-@cmd{SET}'s ENDCMD subcommand (@pxref{SET}), but we do not recommend
-doing so.  Throughout the remainder of this manual we will assume that
-the default setting is in effect.
 @end table
 
 @node Commands
@@ -179,38 +177,43 @@ by a forward slash (@samp{/}).
 There are multiple ways to mark the end of a command.  The most common
 way is to end the last line of the command with a period (@samp{.}) as
 described in the previous section (@pxref{Tokens}).  A blank line, or
-one that consists only of white space or comments, also ends a command
-by default, although you can use the NULLINE subcommand of @cmd{SET}
-to disable this feature (@pxref{SET}).
+one that consists only of white space or comments, also ends a command.
 
 @node Syntax Variants
-@section Variants of syntax.
+@section Syntax Variants
 
 @cindex Batch syntax
 @cindex Interactive syntax
 
-There are two variants of command syntax, @i{viz}: @dfn{batch} mode and
-@dfn{interactive} mode.
-Batch mode is the default when reading commands from a file.
-Interactive mode is the default when commands are typed at a prompt
-by a user.
-Certain commands, such as @cmd{INSERT} (@pxref{INSERT}), may explicitly
-change the syntax mode. 
+There are three variants of command syntax, which vary only in how
+they detect the end of one command and the start of the next.
 
-In batch mode, any line that contains a non-space character
-in the leftmost column begins a new command. 
-Thus, each command consists of a flush-left line followed by any
-number of lines indented from the left margin. 
-In this mode, a plus or minus sign (@samp{+}, @samp{@minus{}}) as the
-first character in a line is ignored and causes that line to begin a
-new command, which allows for visual indentation of a command without
-that command being considered part of the previous command. 
-The period terminating the end of a command is optional but recommended.
+In @dfn{interactive mode}, which is the default for syntax typed at a
+command prompt, a period as the last non-blank character on a line
+ends a command.  A blank line also ends a command.
 
-In interactive mode, each command must be terminated with a period
-or by a blank line.
-The use of @samp{+} and @samp{@minus{}} as continuation characters is not
-permitted.
+In @dfn{batch mode}, an end-of-line period or a blank line also ends a
+command.  Additionally, it treats any line that has a non-blank
+character in the leftmost column as beginning a new command.  Thus, in
+batch mode the second and subsequent lines in a command must be
+indented.
+
+Regardless of the syntax mode, a plus sign, minus sign, or period in
+the leftmost column of a line is ignored and causes that line to begin
+a new command.  This is most useful in batch mode, in which the first
+line of a new command could not otherwise be indented, but it is
+accepted regardless of syntax mode.
+
+The default mode for reading commands from a file is @dfn{auto mode}.
+It is the same as batch mode, except that a line with a non-blank in
+the leftmost column only starts a new command if that line begins with
+the name of a PSPP command.  This correctly interprets most valid PSPP
+syntax files regardless of the syntax mode for which they are
+intended.
+
+The @option{--interactive} (or @option{-i}) or @option{--batch} (or
+@option{-b}) options set the syntax mode for files listed on the PSPP
+command line.  @xref{Main Options}, for more details.
 
 @node Types of Commands
 @section Types of Commands
@@ -252,7 +255,7 @@ of Commands}, for details.
 Analyze data, writing results of analyses to the listing file.  Cause
 transformations specified earlier in the file to be performed.  In a
 more general sense, a @dfn{procedure} is any command that causes the
-active file (the data) to be read.
+active dataset (the data) to be read.
 @end table
 
 @node Order of Commands
@@ -293,7 +296,7 @@ Valid in any state.
 When executed in the initial or procedure state, causes a transition to
 the transformation state.  
 @item
-Clears the active file if executed in the procedure or transformation
+Clears the active dataset if executed in the procedure or transformation
 state.
 @end itemize
 
@@ -304,7 +307,7 @@ Invalid in INPUT PROGRAM and FILE TYPE states.
 @item
 Causes a transition to the INPUT PROGRAM state.  
 @item
-Clears the active file.
+Clears the active dataset.
 @end itemize
 
 @item @cmd{FILE TYPE}
@@ -314,7 +317,7 @@ Invalid in INPUT PROGRAM and FILE TYPE states.
 @item
 Causes a transition to the FILE TYPE state.
 @item
-Clears the active file.
+Clears the active dataset.
 @end itemize
 
 @item Other file definition commands
@@ -324,7 +327,7 @@ Invalid in INPUT PROGRAM and FILE TYPE states.
 @item
 Cause a transition to the transformation state.
 @item
-Clear the active file, except for @cmd{ADD FILES}, @cmd{MATCH FILES},
+Clear the active dataset, except for @cmd{ADD FILES}, @cmd{MATCH FILES},
 and @cmd{UPDATE}.
 @end itemize
 
@@ -377,19 +380,29 @@ for that variable.  However, most of the time user-missing values are
 treated in the same way as the system-missing value.
 
 For more information on missing values, see the following sections:
-@ref{Variables}, @ref{MISSING VALUES}, @ref{Expressions}.  See also the
+@ref{Datasets}, @ref{MISSING VALUES}, @ref{Expressions}.  See also the
 documentation on individual procedures for information on how they
 handle missing values.
 
-@node Variables
-@section Variables
-@cindex variables
+@node Datasets
+@section Datasets
+@cindex dataset
+@cindex variable
 @cindex dictionary
 
-Variables are the basic unit of data storage in PSPP.  All the
-variables in a file taken together, apart from any associated data, are
-said to form a @dfn{dictionary}.  
-Some details of variables are described in the sections below.
+PSPP works with data organized into @dfn{datasets}.  A dataset
+consists of a set of @dfn{variables}, which taken together are said to
+form a @dfn{dictionary}, and one or more @dfn{cases}, each of which
+has one value for each variable.
+
+At any given time PSPP has exactly one distinguished dataset, called
+the @dfn{active dataset}.  Most PSPP commands work only with the
+active dataset.  In addition to the active dataset, PSPP also supports
+any number of additional open datasets.  The @cmd{DATASET} commands
+can choose a new active dataset from among those that are open, as
+well as create and destroy datasets (@pxref{DATASET}).
+
+The sections below describe variables in more detail.
 
 @menu
 * Attributes::                  Attributes of variables.
@@ -527,7 +540,7 @@ System missing value, in format F1.
 
 @cindex @code{$TIME}
 @item $TIME
-Number of seconds between midnight 14 Oct 1582 and the time the active file
+Number of seconds between midnight 14 Oct 1582 and the time the active dataset
 was read, in format F20.
 
 @cindex @code{$WIDTH}
@@ -573,7 +586,7 @@ input field as a number or a string.  It might specify that the field
 contains an ordinary decimal number, a time or date, a number in binary
 or hexadecimal notation, or one of several other notations.  Input
 formats are used by commands such as @cmd{DATA LIST} that read data or
-syntax files into the PSPP active file.
+syntax files into the PSPP active dataset.
 
 Every input format corresponds to a default @dfn{output format} that
 specifies the formatting used when the value is output later.  It is
@@ -1251,7 +1264,7 @@ format is A format with half the input width.
 
 @cindex scratch variables
 Most of the time, variables don't retain their values between cases.
-Instead, either they're being read from a data file or the active file,
+Instead, either they're being read from a data file or the active dataset,
 in which case they assume the value read, or, if created with
 @cmd{COMPUTE} or
 another transformation, they're initialized to the system-missing value
@@ -1304,14 +1317,6 @@ run.  The output files receive the tables and charts produced by
 statistical procedures.  The output files may be in any number of formats,
 depending on how PSPP is configured.
 
-@cindex active file
-@cindex file, active
-@item active file
-The active file is the ``file'' on which all PSPP procedures are
-performed.  The active file consists of a dictionary and a set of cases.
-The active file is not necessarily a disk file: it is stored in memory
-if there is room.
-
 @cindex system file
 @cindex file, system
 @item system file
@@ -1324,24 +1329,14 @@ cases.  @cmd{GET} and @cmd{SAVE} read and write system files.
 Portable files are files in a text-based format that store a dictionary
 and a set of cases.  @cmd{IMPORT} and @cmd{EXPORT} read and write
 portable files.
-
-@cindex scratch file
-@cindex file, scratch
-@item scratch file
-Scratch files consist of a dictionary and cases and may be stored in
-memory or on disk.  Most procedures that act on a system file or
-portable file can use a scratch file instead.  The contents of scratch
-files persist within a single PSPP session only.  @cmd{GET} and
-@cmd{SAVE} can be used to read and write scratch files.  Scratch files
-are a PSPP extension.
 @end table
 
 @node File Handles
 @section File Handles
 @cindex file handles
 
-A @dfn{file handle} is a reference to a data file, system file, portable
-file, or scratch file.  Most often, a file handle is specified as the
+A @dfn{file handle} is a reference to a data file, system file, or 
+portable file.  Most often, a file handle is specified as the
 name of a file as a string, that is, enclosed within @samp{'} or
 @samp{"}.
 
@@ -1362,15 +1357,6 @@ the syntax later to use a different file.  Use of @cmd{FILE HANDLE} is
 also required to read data files in binary formats.  @xref{FILE HANDLE},
 for more information.
 
-PSPP assumes that a file handle name that begins with @samp{#} refers to
-a scratch file, unless the name has already been declared on @cmd{FILE
-HANDLE} to refer to another kind of file.  A scratch file is similar to
-a system file, except that it persists only for the duration of a given
-PSPP session.  Most commands that read or write a system or portable
-file, such as @cmd{GET} and @cmd{SAVE}, also accept scratch file
-handles.  Scratch file handles may also be declared explicitly with
-@cmd{FILE HANDLE}.  Scratch files are a PSPP extension.
-
 In some circumstances, PSPP must distinguish whether a file handle
 refers to a system file or a portable file.  When this is necessary to
 read a file, e.g.@: as an input file for @cmd{GET} or @cmd{MATCH FILES},
@@ -1386,8 +1372,7 @@ file'' embedded into the syntax file between @cmd{BEGIN DATA} and
 
 The file to which a file handle refers may be reassigned on a later
 @cmd{FILE HANDLE} command if it is first closed using @cmd{CLOSE FILE
-HANDLE}.  The @cmd{CLOSE FILE HANDLE} command is also useful to free the
-storage associated with a scratch file.  @xref{CLOSE FILE HANDLE}, for
+HANDLE}.  @xref{CLOSE FILE HANDLE}, for
 more information.
 
 @node BNF

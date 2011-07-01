@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <data/case.h>
-#include <libpspp/float-format.h>
-#include <libpspp/integer-format.h>
+#include "data/case.h"
+#include "libpspp/float-format.h"
+#include "libpspp/integer-format.h"
 
 /* Reading system files. */
 
@@ -35,7 +35,7 @@ struct sfm_read_info
     enum float_format float_format;
     bool compressed;		/* 0=no, 1=yes. */
     casenumber case_cnt;        /* -1 if unknown. */
-    char product[61];		/* Product name plus a null. */
+    char product[61];		/* Product name, as ASCII string. */
 
     /* Writer's version number in X.Y.Z format.
        The version number is not always present; if not, then

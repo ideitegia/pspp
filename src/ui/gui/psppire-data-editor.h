@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gtk/gtknotebook.h>
+#include <gtk/gtk.h>
 
 #include <ui/gui/sheet/psppire-axis.h>
 #include "psppire-var-store.h"
@@ -48,6 +48,7 @@ struct _PsppireDataEditor
   GtkWidget *cell_ref_entry;
   GtkWidget *datum_entry;
   GtkWidget *var_sheet;
+  struct _PsppireDataWindow *data_window;
   PsppireDataStore *data_store;
   PsppireVarStore *var_store;
 
@@ -74,7 +75,7 @@ struct _PsppireDataEditorClass
 
 
 GType          psppire_data_editor_get_type        (void);
-GtkWidget*     psppire_data_editor_new             (PsppireVarStore *, PsppireDataStore *);
+GtkWidget*     psppire_data_editor_new             (struct _PsppireDataWindow *, PsppireVarStore *, PsppireDataStore *);
 void           psppire_data_editor_clip_copy       (PsppireDataEditor *);
 void           psppire_data_editor_clip_paste      (PsppireDataEditor *);
 void           psppire_data_editor_clip_cut        (PsppireDataEditor *);

@@ -2,11 +2,11 @@
 @chapter Selecting data for analysis
 
 This chapter documents PSPP commands that temporarily or permanently
-select data records from the active file for analysis.
+select data records from the active dataset for analysis.
 
 @menu
 * FILTER::                      Exclude cases based on a variable.
-* N OF CASES::                  Limit the size of the active file.
+* N OF CASES::                  Limit the size of the active dataset.
 * SAMPLE::                      Select a specified proportion of cases.
 * SELECT IF::                   Permanently delete selected cases.
 * SPLIT FILE::                  Do multiple analyses with one command.
@@ -61,14 +61,14 @@ only the next procedure (@pxref{TEMPORARY}).  Otherwise, cases beyond
 the limit specified are not processed by any later procedure.
 
 If the limit specified on @cmd{N OF CASES} is greater than the number
-of cases in the active file, it has no effect.
+of cases in the active dataset, it has no effect.
 
 When @cmd{N OF CASES} is used along with @cmd{SAMPLE} or @cmd{SELECT
 IF}, the case limit is applied to the cases obtained after sampling or
 case selection, regardless of how @cmd{N OF CASES} is placed relative
 to @cmd{SAMPLE} or @cmd{SELECT IF} in the command file.  Thus, the
 commands @code{N OF CASES 100} and @code{SAMPLE .5} will both randomly
-sample approximately half of the active file's cases, then select the
+sample approximately half of the active dataset's cases, then select the
 first 100 of those sampled, regardless of their order in the command
 file.
 
@@ -87,11 +87,11 @@ SAMPLE num1 [FROM num2].
 
 @cmd{SAMPLE} randomly samples a proportion of the cases in the active
 file.  Unless it follows @cmd{TEMPORARY}, it operates as a
-transformation, permanently removing cases from the active file.
+transformation, permanently removing cases from the active dataset.
 
 The proportion to sample can be expressed as a single number between 0
 and 1.  If @code{k} is the number specified, and @code{N} is the number
-of currently-selected cases in the active file, then after
+of currently-selected cases in the active dataset, then after
 @code{SAMPLE @var{k}.}, approximately @code{k*N} cases will be
 selected.
 
@@ -101,16 +101,16 @@ The proportion to sample can also be specified in the style @code{SAMPLE
 @enumerate
 @item
 If @var{N} is equal to the number of currently-selected cases in the
-active file, exactly @var{m} cases will be selected.
+active dataset, exactly @var{m} cases will be selected.
 
 @item
 If @var{N} is greater than the number of currently-selected cases in the
-active file, an equivalent proportion of cases will be selected.
+active dataset, an equivalent proportion of cases will be selected.
 
 @item
 If @var{N} is less than the number of currently-selected cases in the
 active, exactly @var{m} cases will be selected @emph{from the first
-@var{N} cases in the active file.}
+@var{N} cases in the active dataset.}
 @end enumerate
 
 @cmd{SAMPLE} and @cmd{SELECT IF} are performed in
@@ -136,7 +136,7 @@ SELECT IF expression.
 
 @cmd{SELECT IF} selects cases for analysis based on the value of a
 boolean expression.  Cases not selected are permanently eliminated
-from the active file, unless @cmd{TEMPORARY} is in effect
+from the active dataset, unless @cmd{TEMPORARY} is in effect
 (@pxref{TEMPORARY}).
 
 Specify a boolean expression (@pxref{Expressions}).  If the value of the
@@ -180,7 +180,7 @@ using a variable where like values are not adjacent in the working file,
 you should first sort the data by that variable (@pxref{SORT CASES}).
 
 Specify OFF to disable @cmd{SPLIT FILE} and resume analysis of the
-entire active file as a single group of data.
+entire active dataset as a single group of data.
 
 When @cmd{SPLIT FILE} is specified after @cmd{TEMPORARY}, it affects only
 the next procedure (@pxref{TEMPORARY}).
@@ -196,7 +196,7 @@ TEMPORARY.
 @cmd{TEMPORARY} is used to make the effects of transformations
 following its execution temporary.  These transformations will
 affect only the execution of the next procedure or procedure-like
-command.  Their effects will not be saved to the active file.
+command.  Their effects will not be saved to the active dataset.
 
 The only specification on @cmd{TEMPORARY} is the command name.
 
@@ -239,7 +239,7 @@ WEIGHT OFF.
 @end display
 
 @cmd{WEIGHT} assigns cases varying weights,
-changing the frequency distribution of the active file.  Execution of
+changing the frequency distribution of the active dataset.  Execution of
 @cmd{WEIGHT} is delayed until data have been read.
 
 If a variable name is specified, @cmd{WEIGHT} causes the values of that
@@ -262,5 +262,5 @@ values are not treated specially.
 When @cmd{WEIGHT} is specified after @cmd{TEMPORARY}, it affects only
 the next procedure (@pxref{TEMPORARY}).
 
-@cmd{WEIGHT} does not cause cases in the active file to be replicated in
-memory.
+@cmd{WEIGHT} does not cause cases in the active dataset to be
+replicated in memory.

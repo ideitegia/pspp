@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,42 +15,19 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
+#include "math/group.h"
+
 #include <stdlib.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash.h>
-#include "group.h"
-#include "group-proc.h"
-#include <libpspp/str.h>
-#include <data/variable.h>
-#include <libpspp/misc.h>
 
-#include "xalloc.h"
+#include "data/variable.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "math/group-proc.h"
 
-/* Return -1 if the id of a is less than b; +1 if greater than and
-   0 if equal */
-int
-compare_group (const void *a_,
-		 const void *b_,
-		 const void *var)
-{
-  const struct group_statistics *a = a_;
-  const struct group_statistics *b = b_;
-  return value_compare_3way (&a->id, &b->id, var_get_width (var));
-}
-
-
-
-unsigned int
-hash_group (const void *g_, const void *var)
-{
-  unsigned id_hash;
-  const struct group_statistics *g = g_;
-
-  id_hash = value_hash (&g->id, var_get_width (var), 0);
-
-  return id_hash;
-}
-
+#include "gl/xalloc.h"
 
 void
 free_group (struct group_statistics *v, void *aux UNUSED)
@@ -58,6 +35,14 @@ free_group (struct group_statistics *v, void *aux UNUSED)
   free(v);
 }
 
+static void
+group_proc_dtor (struct variable *var)
+{
+  struct group_proc *group = var_detach_aux (var);
+
+  hsh_destroy (group->group_hash);
+  free (group);
+}
 
 struct group_proc *
 group_proc_get (const struct variable *v)
@@ -66,8 +51,8 @@ group_proc_get (const struct variable *v)
   struct group_proc *group = var_get_aux (v);
   if (group == NULL)
     {
-      group = xmalloc (sizeof (struct group_proc));
-      var_attach_aux (v, group, var_dtor_free);
+      group = xzalloc (sizeof *group);
+      var_attach_aux (v, group, group_proc_dtor);
     }
   return group;
 }

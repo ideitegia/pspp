@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,20 +19,20 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <data/vector.h>
-#include <language/command.h>
-#include <language/expressions/public.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "data/case.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "data/vector.h"
+#include "language/command.h"
+#include "language/expressions/public.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -90,7 +90,7 @@ cmd_compute (struct lexer *lexer, struct dataset *ds)
   if (lvalue == NULL)
     goto fail;
 
-  if (!lex_force_match (lexer, '='))
+  if (!lex_force_match (lexer, T_EQUALS))
     goto fail;
   compute->rvalue = parse_rvalue (lexer, lvalue, ds);
   if (compute->rvalue == NULL)
@@ -100,7 +100,7 @@ cmd_compute (struct lexer *lexer, struct dataset *ds)
 
   lvalue_finalize (lvalue, compute, dict);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
  fail:
   lvalue_destroy (lvalue, dict);
@@ -246,7 +246,7 @@ cmd_if (struct lexer *lexer, struct dataset *ds)
     goto fail;
 
   /* Rvalue expression. */
-  if (!lex_force_match (lexer, '='))
+  if (!lex_force_match (lexer, T_EQUALS))
     goto fail;
   compute->rvalue = parse_rvalue (lexer, lvalue, ds);
   if (compute->rvalue == NULL)
@@ -256,7 +256,7 @@ cmd_if (struct lexer *lexer, struct dataset *ds)
 
   lvalue_finalize (lvalue, compute, dict);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
  fail:
   lvalue_destroy (lvalue, dict);
@@ -346,30 +346,30 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_id (lexer))
     goto lossage;
 
-  if (lex_look_ahead (lexer) == '(')
+  if (lex_next_token (lexer, 1) == T_LPAREN)
     {
       /* Vector. */
-      lvalue->vector = dict_lookup_vector (dict, lex_tokid (lexer));
+      lvalue->vector = dict_lookup_vector (dict, lex_tokcstr (lexer));
       if (lvalue->vector == NULL)
 	{
-	  msg (SE, _("There is no vector named %s."), lex_tokid (lexer));
+	  msg (SE, _("There is no vector named %s."), lex_tokcstr (lexer));
           goto lossage;
 	}
 
       /* Vector element. */
       lex_get (lexer);
-      if (!lex_force_match (lexer, '('))
+      if (!lex_force_match (lexer, T_LPAREN))
 	goto lossage;
       lvalue->element = expr_parse (lexer, ds, EXPR_NUMBER);
       if (lvalue->element == NULL)
         goto lossage;
-      if (!lex_force_match (lexer, ')'))
+      if (!lex_force_match (lexer, T_RPAREN))
         goto lossage;
     }
   else
     {
       /* Variable name. */
-      const char *var_name = lex_tokid (lexer);
+      const char *var_name = lex_tokcstr (lexer);
       lvalue->variable = dict_lookup_var (dict, var_name);
       if (lvalue->variable == NULL)
         {

@@ -1,10 +1,14 @@
 #include <config.h>
-#include "control-stack.h"
+
+#include "language/control/control-stack.h"
+
 #include <assert.h>
 #include <stdlib.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include "xalloc.h"
+
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

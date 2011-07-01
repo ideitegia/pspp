@@ -89,8 +89,14 @@ The following packages are optional.
       later.  Installing Texinfo will allow you to build PSPP
       documentation in PostScript or PDF format.
 
-    * libpq, from Postgresql (http://postgresql.org). This enables PSPP 
-      to read Postgresql databases.
+    * libpq, from Postgresql (http://postgresql.org).  This enables PSPP 
+      to read Postgresql databases.  The tests for the Postgresql
+      interface, but not the Postgresql interface itself, requires the
+      Postgresql server to be installed.
+
+    * The Text::Diff module for Perl (http://cpan.org).  This enables
+      PSPP to test the Perl module more thoroughly.  It is not needed
+      to build or use the Perl module.
 
 Basic Installation
 ==================
@@ -162,6 +168,10 @@ release.
      do this.  The "su" and "sudo" commands are common ways to obtain
      root permissions.  If you cannot get root permissions, see
      "Installation Names", below.
+
+     Please note:  The `make install' target does NOT install the perl
+     module (see below).  To install the perl module, you must change to
+     the `perl-module' directory and manually run `make install' there.
 
   5. You can remove the program binaries and object files from the
      source code directory by typing `make clean'.  To also remove the

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,6 +45,8 @@
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
+#include "gl/ftoastr.h"
+#include "gl/minmax.h"
 #include "gl/unlocked-io.h"
 #include "gl/xalloc.h"
 
@@ -120,9 +122,7 @@ csv_writer_open (struct file_handle *fh, const struct dictionary *dict,
 
   w->opts = *opts;
 
-  w->encoding = (dict_get_encoding (dict)
-                 ? xstrdup (dict_get_encoding (dict))
-                 : NULL);
+  w->encoding = xstrdup (dict_get_encoding (dict));
 
   w->n_csv_vars = dict_get_var_cnt (dict);
   w->csv_vars = xnmalloc (w->n_csv_vars, sizeof *w->csv_vars);
@@ -280,7 +280,7 @@ csv_write_var__ (struct csv_writer *w, const struct csv_var *cv,
     csv_output_format (w, cv, value);
   else
     {
-      char s[128];
+      char s[MAX (DBL_STRLEN_BOUND, 128)];
 
       switch (cv->format.type)
         {
@@ -306,7 +306,7 @@ csv_write_var__ (struct csv_writer *w, const struct csv_var *cv,
         case FMT_RBHEX:
         case FMT_WKDAY:
         case FMT_MONTH:
-          snprintf (s, sizeof s, "%.*g", DBL_DIG + 1, value->f);
+          dtoastr (s, sizeof s, 0, 0, value->f);
           if (w->opts.decimal != '.')
             {
               char *cp = strchr (s, '.');

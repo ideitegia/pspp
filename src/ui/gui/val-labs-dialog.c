@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005, 2009  Free Software Foundation
+   Copyright (C) 2005, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,9 +38,6 @@ struct val_labs_dialog
 {
   GtkWidget *window;
 
-  PsppireVarStore *var_store;
-  PsppireDict *dict;
-
   /* The variable to be updated */
   struct variable *pv;
 
@@ -77,7 +74,6 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
   text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text,
-		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -150,7 +146,6 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
 
   union value v;
   text_to_value (text,
-		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -192,7 +187,7 @@ val_labs_ok (GtkWidget *w, gpointer data)
 
   val_labs_destroy (dialog->labs);
 
-  dialog->labs = 0;
+  dialog->labs = NULL;
 
   gtk_widget_hide (dialog->window);
 
@@ -206,7 +201,7 @@ val_labs_cancel (struct val_labs_dialog *dialog)
 {
   val_labs_destroy (dialog->labs);
 
-  dialog->labs = 0;
+  dialog->labs = NULL;
 
   gtk_widget_hide (dialog->window);
 }
@@ -261,7 +256,11 @@ get_selected_tuple (struct val_labs_dialog *dialog,
   if (valuep != NULL)
     *valuep = value;
   if (label != NULL)
-    *label = val_labs_find (dialog->labs, &value);
+    {
+      struct val_lab *vl = val_labs_lookup (dialog->labs, &value);
+      if (vl != NULL)
+        *label = val_lab_get_escaped_label (vl);
+    }
 }
 
 
@@ -278,7 +277,6 @@ on_change (GtkWidget *w, gpointer data)
   union value v;
 
   text_to_value (val_text,
-		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -304,7 +302,6 @@ on_add (GtkWidget *w, gpointer data)
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text,
-		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -356,7 +353,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
   gchar *text;
 
   get_selected_tuple (dialog, &value, &label);
-  text = value_to_text (value, dialog->dict, *var_get_write_format (dialog->pv));
+  text = value_to_text (value, dialog->pv);
 
   g_signal_handler_block (GTK_ENTRY (dialog->value_entry),
 			 dialog->value_handler_id);
@@ -385,7 +382,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 /* Create a new dialog box
    (there should  normally be only one)*/
 struct val_labs_dialog *
-val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
+val_labs_dialog_create (GtkWindow *toplevel)
 {
   GtkTreeViewColumn *column;
 
@@ -395,8 +392,6 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
 
   struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
 
-  dialog->var_store = var_store;
-  g_object_get (var_store, "dictionary", &dialog->dict, NULL);
   dialog->window = get_widget_assert (xml,"val_labs_dialog");
   dialog->value_entry = get_widget_assert (xml,"value_entry");
   dialog->label_entry = get_widget_assert (xml,"label_entry");
@@ -457,7 +452,7 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
   g_signal_connect (dialog->add_button, "clicked",
 		   G_CALLBACK (on_add), dialog);
 
-  dialog->labs = 0;
+  dialog->labs = NULL;
 
   g_object_unref (xml);
 
@@ -509,11 +504,10 @@ repopulate_dialog (struct val_labs_dialog *dialog)
       const struct val_lab *vl = labels[i];
 
       gchar *const vstr  =
-	value_to_text (vl->value, dialog->dict,
-		      *var_get_write_format (dialog->pv));
+	value_to_text (vl->value, dialog->pv);
 
-      gchar *const text = g_strdup_printf (_("%s = `%s'"),
-					   vstr, val_lab_get_label (vl));
+      gchar *const text = g_strdup_printf (_("%s = `%s'"), vstr,
+                                           val_lab_get_escaped_label (vl));
 
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,

@@ -72,7 +72,7 @@ sub run_pspp_syntax_cmp
   ok ($d->get_var_cnt () == 0);
 
   $d->set_label ("My Dictionary");
-  $d->set_documents ("These Documents");
+  $d->add_document ("These Documents");
 
   # Tests for variable creation
 
@@ -130,7 +130,7 @@ sub run_pspp_syntax_cmp
 			  )
 			 );
 
-  $d->set_documents ("This should not appear");
+  $d->add_document ("This should not appear");
   $d->clear_documents ();
   $d->add_document ("This is a document line");
 
@@ -185,11 +185,9 @@ name,Format: A20,,2
 ,Display Alignment: Left,,
 ,Display Width: 20,,
 
-File label:
+File label: This is the file label
 
-This is the file label
-
-Documents in the active file:
+Documents in the active dataset:
 
 This is a document line
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +15,9 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <libpspp/hash-functions.h>
+
+#include "libpspp/hash-functions.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <math.h>
@@ -100,13 +102,12 @@ hash_string (const char *s, unsigned int basis)
   return hash_bytes (s, strlen (s), basis);
 }
 
-/* Returns a hash value for null-terminated string S, with
-   lowercase and uppercase letters treated as equal, starting
-   from BASIS. */
+/* Returns a hash value for the N bytes at S, with lowercase and uppercase
+   letters treated as equal, starting from BASIS. */
 unsigned int
-hash_case_string (const char *s, unsigned int basis)
+hash_case_bytes (const void *s_, size_t n, unsigned int basis)
 {
-  size_t n = strlen (s);
+  const char *s = s_;
   uint32_t a, b, c;
   uint32_t tmp[3];
   int i;
@@ -139,6 +140,15 @@ hash_case_string (const char *s, unsigned int basis)
   return c;
 }
 
+/* Returns a hash value for null-terminated string S, with
+   lowercase and uppercase letters treated as equal, starting
+   from BASIS. */
+unsigned int
+hash_case_string (const char *s, unsigned int basis)
+{
+  return hash_case_bytes (s, strlen (s), basis);
+}
+
 /* Returns a hash value for integer X, starting from BASIS. */
 unsigned int
 hash_int (int x, unsigned int basis)
@@ -157,20 +167,21 @@ hash_int (int x, unsigned int basis)
 unsigned int
 hash_double (double d, unsigned int basis)
 {
-#if SIZEOF_DOUBLE == 8
-  uint32_t tmp[2];
-  uint32_t a, b, c;
+  if (sizeof (double) == 8)
+    {
+      uint32_t tmp[2];
+      uint32_t a, b, c;
 
-  a = b = c = 0xdeadbeef + 8 + basis;
+      a = b = c = 0xdeadbeef + 8 + basis;
 
-  memcpy (tmp, &d, 8);
-  a += tmp[0];
-  b += tmp[1];
-  HASH_FINAL (a, b, c);
-  return c;
-#else /* SIZEOF_DOUBLE != 8 */
-  return hash_bytes (&d, sizeof d, basis);
-#endif /* SIZEOF_DOUBLE != 8 */
+      memcpy (tmp, &d, 8);
+      a += tmp[0];
+      b += tmp[1];
+      HASH_FINAL (a, b, c);
+      return c;
+    }
+  else
+    return hash_bytes (&d, sizeof d, basis);
 }
 
 /* Returns a hash value for pointer P, starting from BASIS. */

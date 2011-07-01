@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,8 +50,8 @@
 #define LIBPSPP_TOWER_H
 
 #include <stdbool.h>
-#include <libpspp/abt.h>
-#include <libpspp/cast.h>
+#include "libpspp/abt.h"
+#include "libpspp/cast.h"
 
 /* Returns the data structure corresponding to the given NODE,
    assuming that NODE is embedded as the given MEMBER name in

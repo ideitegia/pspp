@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,28 +16,28 @@
 
 #include <config.h>
 
-#include <data/datasheet.h>
+#include "data/datasheet.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#include <data/casereader-provider.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/lazy-casereader.h>
-#include <data/settings.h>
-#include <libpspp/array.h>
-#include <libpspp/assertion.h>
-#include <libpspp/misc.h>
-#include <libpspp/range-map.h>
-#include <libpspp/range-set.h>
-#include <libpspp/sparse-xarray.h>
-#include <libpspp/taint.h>
-#include <libpspp/tower.h>
+#include "data/casereader-provider.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/lazy-casereader.h"
+#include "data/settings.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/misc.h"
+#include "libpspp/range-map.h"
+#include "libpspp/range-set.h"
+#include "libpspp/sparse-xarray.h"
+#include "libpspp/taint.h"
+#include "libpspp/tower.h"
 
-#include "minmax.h"
-#include "md4.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/md4.h"
+#include "gl/xalloc.h"
 
 struct column;
 
@@ -360,6 +360,8 @@ datasheet_insert_column (struct datasheet *ds,
 {
   struct column *col;
 
+  assert (before <= ds->n_columns);
+
   ds->columns = xnrealloc (ds->columns,
                            ds->n_columns + 1, sizeof *ds->columns);
   insert_element (ds->columns, ds->n_columns, sizeof *ds->columns, before);
@@ -382,6 +384,8 @@ datasheet_insert_column (struct datasheet *ds,
 void
 datasheet_delete_columns (struct datasheet *ds, size_t start, size_t n)
 {
+  assert (start + n <= ds->n_columns);
+
   if (n > 0)
     {
       size_t i;
@@ -411,6 +415,9 @@ datasheet_move_columns (struct datasheet *ds,
                         size_t old_start, size_t new_start,
                         size_t n)
 {
+  assert (old_start + n <= ds->n_columns);
+  assert (new_start + n <= ds->n_columns);
+
   move_range (ds->columns, ds->n_columns, sizeof *ds->columns,
               old_start, new_start, n);
 

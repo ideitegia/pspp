@@ -129,6 +129,7 @@ m4_define([RENDER_8X8_2],
 AT_BANNER([output rendering -- no page breaking])
 
 AT_SETUP([single cell])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [1 1
 abc
 ])
@@ -137,6 +138,7 @@ AT_CHECK([render-test input], [0], [abc
 AT_CLEANUP
 
 AT_SETUP([single cell with border])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [1 1
 @abc
 ])
@@ -148,6 +150,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([joined columns])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [2 2
 1*2 @abcdefg
 @hij
@@ -163,6 +166,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([3x3, joined rows and columns])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [3 3
 1*2 @abc
 2*1 @d\ne\nf
@@ -182,6 +186,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([6x6, joined rows and columns])
+AT_KEYWORDS([render rendering])
 RENDER_WEAVE_6X6
 AT_CHECK([render-test input], [0], [dnl
 +-+---+-+-+-+
@@ -201,6 +206,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([3 rows with many joined cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [3 19
 m4_foreach([x], [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s], [x
@@ -219,6 +225,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([3 columns with many joined cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [3 19
 m4_foreach([x], [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s], [x
@@ -270,6 +277,7 @@ s|cd|20|
 AT_CLEANUP
 
 AT_SETUP([joined rows])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [2 2
 2*1 @ab\ncd\nef
 @hij
@@ -284,7 +292,38 @@ AT_CHECK([render-test input], [0], [dnl
 ])
 AT_CLEANUP
 
+dnl This checks for bug #31346, a segmentation fault that surfaced
+dnl when two or more rows  had no unspanned cells and no rules.
+AT_SETUP([joined rows only, no rules])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [2 2
+2*1 ab\ncd\nef
+2*1 hij\nklm\nnop
+])
+AT_CHECK([render-test input], [0], [dnl
+ab hij
+cd klm
+ef nop
+])
+AT_CLEANUP
+
+AT_SETUP([joined columns only, no rules])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [2 2
+1*2 abc\ndef
+1*2 hij\nklm\nnop
+])
+AT_CHECK([render-test input], [0], [dnl
+abc
+def
+hij
+klm
+nop
+])
+AT_CLEANUP
+
 AT_SETUP([5 big narrow cells])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [1 5
 @This cell has a lot of text but its minimum width is pretty narrow.
 @This cell also has a lot of text but its minimum width is pretty narrow.
@@ -305,6 +344,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([9 big narrow cells])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [1 9
 @This cell has a lot of text but its minimum width is pretty narrow.
 @This cell also has a lot of text but its minimum width is pretty narrow.
@@ -335,9 +375,10 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([2 big cells with new-lines])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [1 2
 @PSPP does not place many restrictions on ordering of commands. The main restriction is that variables must be defined before they are otherwise referenced.  This section describes the details of command ordering, but most users will have no need to refer to them. PSPP possesses five internal states, called initial, INPUT PROGRAM, FILE TYPE, transformation, and procedure states.
-@PSPP includes special support\nfor unknown numeric data values.\nMissing observations are assigned\na special value, called the\n``system-missing value''.  This\n``value'' actually indicates the\nabsence of a value; it\nmeans that the actual\nvalue is unknown.
+@PSPP includes special support\nfor unknown numeric data values.\nMissing observations are assigned\na special value, called the\n``system‑missing value''.  This\n``value'' actually indicates the\nabsence of a value; it\nmeans that the actual\nvalue is unknown.
 ])
 AT_CHECK([render-test input], [0], [dnl
 +----------------------------------------------------------+------------------+
@@ -351,7 +392,7 @@ AT_CHECK([render-test input], [0], [dnl
 |                                                          |          assigned|
 |                                                          |  a special value,|
 |                                                          |        called the|
-|                                                          |  ``system-missing|
+|                                                          |  ``system‑missing|
 |                                                          |    value''.  This|
 |                                                          |``value'' actually|
 |                                                          |     indicates the|
@@ -365,6 +406,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([8x8 with many 2x2 joins])
+AT_KEYWORDS([render rendering])
 RENDER_8X8_2
 AT_CHECK([render-test input], [0],[dnl
 +---+---+----+----+
@@ -395,6 +437,7 @@ AT_CLEANUP
 AT_BANNER([output rendering -- horizontal page breaks])
 
 AT_SETUP([breaking row of many small cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [1 50
 m4_for([x], [1], [50], [1], [@x
@@ -411,6 +454,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking row of many small cells, with headers])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [1 54 2 2
 @ha
@@ -436,6 +480,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking row of many medium-size cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [1 50
 m4_for([x], [1], [50], [1], [@cell x
@@ -464,6 +509,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking row of many medium-size cells, with headers])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [1 52 1 1
 header1
@@ -500,6 +546,7 @@ header1|cell|cell|header2
 AT_CLEANUP
 
 AT_SETUP([breaking row of many big narrow cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [1 50
 m4_for([x], [1], [50], [1], [@This is cell x in a series of 50.
@@ -558,6 +605,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking 2 rows of many small cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [2 50
 m4_for([x], [1], [100], [1], [@x
@@ -578,6 +626,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking 3 rows with many joined cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [3 49
 m4_foreach([var], [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,dnl
@@ -604,6 +653,7 @@ AT_CHECK([render-test input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([horz break 6x6, joined rows and columns])
+AT_KEYWORDS([render rendering])
 RENDER_WEAVE_6X6
 AT_CHECK([render-test --width=6 input], [0], [dnl
 +-+--
@@ -651,6 +701,7 @@ yz|s|
 AT_CLEANUP
 
 AT_SETUP([horz break 6x6, joined rows and columns, left header])
+AT_KEYWORDS([render rendering])
 RENDER_WEAVE_6X6([1 0 0 0])
 AT_CHECK([render-test --width=10 input], [0], [dnl
 +-+---+-+
@@ -684,6 +735,7 @@ AT_CHECK([render-test --width=10 input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([horz break 6x6, joined rows and columns, right header])
+AT_KEYWORDS([render rendering])
 RENDER_WEAVE_6X6([0 1 0 0])
 AT_CHECK([render-test --width=10 input], [0], [dnl
 +-+---+-+
@@ -717,6 +769,7 @@ op|h|q|
 AT_CLEANUP
 
 AT_SETUP([breaking joined cells too wide for page])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [4 6
 1*6 @abc def ghi jkl
 1*3 @mno pqr
@@ -759,6 +812,7 @@ AT_CHECK([render-test --width=10 input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking joined cells much too wide for page])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [4 6
 1*6 @abc def ghi jkl
 1*3 @mno pqr
@@ -813,6 +867,7 @@ qr|
 AT_CLEANUP
 
 AT_SETUP([breaking cell too wide for page, no border])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [1 1
 abcdefghijklmnopqrstuvwxyz
@@ -831,6 +886,7 @@ yz
 AT_CLEANUP
 
 AT_SETUP([breaking cell too wide for page, with border])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [1 1
 @abcdefghijklmnopqrstuvwxyz
@@ -867,6 +923,7 @@ xyz|
 AT_CLEANUP
 
 AT_SETUP([horz break 8x8 with many 2x2 joins])
+AT_KEYWORDS([render rendering])
 RENDER_8X8_2
 AT_CHECK([render-test --width=8 input], [0],[dnl
 +---+--
@@ -945,6 +1002,7 @@ AT_CLEANUP
 AT_BANNER([output rendering -- vertical page breaks])
 
 AT_SETUP([breaking column of many small cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [20 1
 m4_for([x], [1], [20], [1], [@x
@@ -1003,6 +1061,7 @@ AT_CHECK([render-test --length=10 input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking column of many small cells, with headers])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [17 1 0 0 1 1
 @a
@@ -1067,6 +1126,7 @@ AT_CHECK([render-test --length=13 input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([disabling too-big headers])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [17 1 0 0 1 1
 @a
@@ -1121,6 +1181,7 @@ AT_CHECK([render-test --length=10 input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking column of many medium-size cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [20 1
 m4_for([x], [1], [20], [1], [@top x\ncell x\nbottom x
@@ -1229,6 +1290,7 @@ AT_CHECK([render-test --length 10 input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking 3 columns with many joined cells])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [3 19
 m4_foreach([x], [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s], [x
@@ -1298,6 +1360,7 @@ s|cd|20|
 AT_CLEANUP
 
 AT_SETUP([vert break 6x6, joined rows and columns])
+AT_KEYWORDS([render rendering])
 RENDER_WEAVE_6X6
 AT_CHECK([render-test --length=6 input], [0], [dnl
 +-+---+-+-+-+
@@ -1321,6 +1384,7 @@ AT_CHECK([render-test --length=6 input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking joined cells too tall for page])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [4 6
 1*6 @abc\ndef\nghi\njkl\nmno\npqr\nstu\nvwx\nyzA\nBCD\nEFG
 1*3 @HIJ\nKLM\nOPQ\nRST\nUVW
@@ -1357,6 +1421,7 @@ AT_CHECK([render-test --transpose --length=6 input], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([breaking cell too tall for page, no border])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [1 1
 abc defg hij klmn opq rstu vwx yz ABCDE FGH I JK LMNOP QR STU VWXYZ
@@ -1381,6 +1446,7 @@ QR STU
 AT_CLEANUP
 
 AT_SETUP([breaking cell too tall for page, with border])
+AT_KEYWORDS([render rendering])
 AT_CAPTURE_FILE([input])
 AT_DATA([input], [1 1
 @abc defg hij klmn opq rstu vwx yz ABCDE FGH I JK LMNOP QR STU VWXYZ
@@ -1418,6 +1484,7 @@ AT_CLEANUP
 AT_BANNER([output rendering -- double page breaks])
 
 AT_SETUP([double break 6x6, joined rows and columns])
+AT_KEYWORDS([render rendering])
 RENDER_WEAVE_6X6
 AT_CHECK([render-test --width=6 --length=6 input], [0], [dnl
 +-+--
@@ -1477,6 +1544,7 @@ yz|s|
 AT_CLEANUP
 
 AT_SETUP([double break 8x8, with joins, left and right headers])
+AT_KEYWORDS([render rendering])
 RENDER_8X8([1 1 0 0])
 AT_CHECK([render-test input --width=14 --length=14], [0], [dnl
 +-+-+-+-+-+-+
@@ -1522,6 +1590,7 @@ AT_CHECK([render-test input --width=14 --length=14], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([double break 8x8, with joins, top and bottom headers])
+AT_KEYWORDS([render rendering])
 RENDER_8X8([0 0 1 1])
 AT_CHECK([render-test input --width=14 --length=14], [0], [dnl
 +-+-+-+-+-+-+
@@ -1577,6 +1646,7 @@ fg|h|
 AT_CLEANUP
 
 AT_SETUP([double break 8x8, with joins, all headers])
+AT_KEYWORDS([render rendering])
 RENDER_8X8([1 1 1 1])
 AT_CHECK([render-test input --width=14 --length=14], [0], [dnl
 +-+-+-+-+-+-+
@@ -1632,6 +1702,7 @@ AT_CHECK([render-test input --width=14 --length=14], [0], [dnl
 AT_CLEANUP
 
 AT_SETUP([double break joined cells too big for page])
+AT_KEYWORDS([render rendering])
 AT_DATA([input], [7 7
 @a
 @b
@@ -1641,7 +1712,7 @@ AT_DATA([input], [7 7
 @f
 @g
 @h
-6*6 @The MISSING subcommand determines the handling of missing variables.  If INCLUDE is set, then user-missing values are included in the calculations.  If NOINCLUDE is set, which is the default, user-missing values are excluded.
+6*6 @The MISSING subcommand determines the handling of missing variables.  If INCLUDE is set, then user‑missing values are included in the calculations.  If NOINCLUDE is set, which is the default, user‑missing values are excluded.
 @i
 @j
 @k
@@ -1688,7 +1759,7 @@ ndling of|
 ariables.|
 NCLUDE is|
 set, then|
-r-missing|
+r‑missing|
 alues are|
 ed in the|
 ions.  If|
@@ -1697,7 +1768,7 @@ E is set,|
 E is set,|
 ch is the|
  default,|
-r-missing|
+r‑missing|
 alues are|
 excluded.|
          |
@@ -1706,5 +1777,30 @@ excluded.|
          |
          |
 ---------+
+])
+AT_CLEANUP
+
+AT_BANNER([output rendering -- problematic procedures])
+
+dnl LIST used to put columns right up next to each other without any
+dnl intervening space, so this checks for regression.
+AT_SETUP([LIST puts space between columns])
+AT_KEYWORDS([render rendering])
+AT_DATA([list.sps], [dnl
+DATA LIST LIST NOTABLE /x y z (F1.0).
+BEGIN DATA.
+1 2 3
+4 5 6
+7 8 9
+END DATA.
+LIST.
+])
+AT_CHECK([pspp list.sps], [0], [dnl
+Data List
+x y z
+-----
+1 2 3
+4 5 6
+7 8 9
 ])
 AT_CLEANUP

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,13 +15,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "order-stats.h"
-#include <libpspp/assertion.h>
-#include <data/val-type.h>
-#include <gl/xalloc.h>
-#include <data/variable.h>
-#include <data/casereader.h>
+
+#include "math/order-stats.h"
+
 #include <string.h>
+
+#include "data/casereader.h"
+#include "data/val-type.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+
+#include "gl/xalloc.h"
 
 #if 0
 

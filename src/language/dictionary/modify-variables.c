@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,21 +18,21 @@
 
 #include <stdlib.h>
 
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/assertion.h>
-#include <libpspp/array.h>
-#include <libpspp/bit-vector.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/str.h>
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/bit-vector.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -79,7 +79,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
      this type. */
   unsigned already_encountered = 0;
 
-  /* What we're gonna do to the active file. */
+  /* What we are going to do to the active dataset. */
   struct var_modification vm;
 
   /* Return code. */
@@ -100,7 +100,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
   vm.drop_cnt = 0;
 
   /* Parse each subcommand. */
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
   for (;;)
     {
       if (lex_match_id (lexer, "REORDER"))
@@ -115,7 +115,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	    }
 	  already_encountered |= 1;
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  do
 	    {
               struct ordering ordering;
@@ -129,7 +129,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	      else if (lex_match_id (lexer, "ALPHA"))
 		ordering.positional = 0;
 
-	      if (lex_match (lexer, T_ALL) || lex_token (lexer) == '/' || lex_token (lexer) == '.')
+	      if (lex_match (lexer, T_ALL) || lex_token (lexer) == T_SLASH || lex_token (lexer) == T_ENDCMD)
 		{
 		  if (prev_nv != 0)
 		    {
@@ -141,7 +141,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		}
 	      else
 		{
-		  if (!lex_match (lexer, '('))
+		  if (!lex_match (lexer, T_LPAREN))
 		    {
 		      msg (SE, _("`(' expected on %s subcommand."), "REORDER");
 		      free (v);
@@ -153,7 +153,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		      free (v);
 		      goto done;
 		    }
-		  if (!lex_match (lexer, ')'))
+		  if (!lex_match (lexer, T_RPAREN))
 		    {
 		      msg (SE, _("`)' expected following variable names on "
 			   "REORDER subcommand."));
@@ -164,7 +164,8 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	      sort (&v[prev_nv], nv - prev_nv, sizeof *v,
                     compare_variables_given_ordering, &ordering);
 	    }
-	  while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
+	  while (lex_token (lexer) != T_SLASH
+                 && lex_token (lexer) != T_ENDCMD);
 
 	  vm.reorder_vars = v;
           vm.reorder_cnt = nv;
@@ -178,13 +179,13 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	    }
 	  already_encountered |= 2;
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  do
 	    {
 	      size_t prev_nv_1 = vm.rename_cnt;
 	      size_t prev_nv_2 = vm.rename_cnt;
 
-	      if (!lex_match (lexer, '('))
+	      if (!lex_match (lexer, T_LPAREN))
 		{
 		  msg (SE, _("`(' expected on %s subcommand."), "RENAME");
 		  goto done;
@@ -193,14 +194,14 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 				    &vm.rename_vars, &vm.rename_cnt,
 				    PV_APPEND | PV_NO_DUPLICATE))
 		goto done;
-	      if (!lex_match (lexer, '='))
+	      if (!lex_match (lexer, T_EQUALS))
 		{
 		  msg (SE, _("`=' expected between lists of new and old variable "
 		       "names on RENAME subcommand."));
 		  goto done;
 		}
-	      if (!parse_DATA_LIST_vars (lexer, &vm.new_names,
-					 &prev_nv_1, PV_APPEND))
+	      if (!parse_DATA_LIST_vars (lexer, dataset_dict (ds),
+                                         &vm.new_names, &prev_nv_1, PV_APPEND))
 		goto done;
 	      if (prev_nv_1 != vm.rename_cnt)
 		{
@@ -213,14 +214,15 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		  vm.new_names = NULL;
 		  goto done;
 		}
-	      if (!lex_match (lexer, ')'))
+	      if (!lex_match (lexer, T_RPAREN))
 		{
 		  msg (SE, _("`)' expected after variable lists on RENAME "
 		       "subcommand."));
 		  goto done;
 		}
 	    }
-	  while (lex_token (lexer) != '.' && lex_token (lexer) != '/');
+	  while (lex_token (lexer) != T_ENDCMD
+                 && lex_token (lexer) != T_SLASH);
 	}
       else if (lex_match_id (lexer, "KEEP"))
 	{
@@ -235,7 +237,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	    }
 	  already_encountered |= 4;
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (!parse_variables (lexer, dataset_dict (ds), &keep_vars, &keep_cnt, PV_NONE))
 	    goto done;
 
@@ -279,7 +281,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	    }
 	  already_encountered |= 4;
 
-	  lex_match (lexer, '=');
+	  lex_match (lexer, T_EQUALS);
 	  if (!parse_variables (lexer, dataset_dict (ds), &drop_vars, &drop_cnt, PV_NONE))
 	    goto done;
           vm.drop_vars = drop_vars;
@@ -298,15 +300,15 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
       else
 	{
 	  if (lex_token (lexer) == T_ID)
-	    msg (SE, _("Unrecognized subcommand name `%s'."), lex_tokid (lexer));
+	    msg (SE, _("Unrecognized subcommand name `%s'."), lex_tokcstr (lexer));
 	  else
 	    msg (SE, _("Subcommand name expected."));
 	  goto done;
 	}
 
-      if (lex_token (lexer) == '.')
+      if (lex_token (lexer) == T_ENDCMD)
 	break;
-      if (lex_token (lexer) != '/')
+      if (lex_token (lexer) != T_SLASH)
 	{
 	  msg (SE, _("`/' or `.' expected."));
 	  goto done;
@@ -366,7 +368,7 @@ compare_variables_given_ordering (const void *a_, const void *b_,
 struct var_renaming
   {
     struct variable *var;
-    char new_name[VAR_NAME_LEN + 1];
+    const char *new_name;
   };
 
 /* A algo_compare_func that compares new_name members in struct
@@ -429,7 +431,7 @@ validate_var_modification (const struct dictionary *d,
   for (i = 0; i < keep_cnt; i++)
     {
       var_renaming[i].var = keep_vars[i];
-      strcpy (var_renaming[i].new_name, var_get_name (keep_vars[i]));
+      var_renaming[i].new_name = var_get_name (keep_vars[i]);
     }
 
   /* Rename variables in var_renaming array. */
@@ -447,7 +449,7 @@ validate_var_modification (const struct dictionary *d,
         continue;
       vr = var_renaming + (kv - keep_vars);
 
-      strcpy (vr->new_name, vm->new_names[i]);
+      vr->new_name = vm->new_names[i];
     }
 
   /* Sort var_renaming array by new names and check for

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
 
 #include <config.h>
 
-
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_matrix.h>
@@ -24,30 +23,25 @@
 #include <gsl/gsl_blas.h> 
 #include <gsl/gsl_sort_vector.h>
 
-#include <math/covariance.h>
-
-#include <math/correlation.h>
-#include <math/moments.h>
-#include <data/procedure.h>
-#include <language/lexer/variable-parser.h>
-#include <language/lexer/value-parser.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/subcase.h>
-
-#include <libpspp/misc.h>
-#include <libpspp/message.h>
-
-#include <output/tab.h>
-
-#include <output/charts/scree.h>
-#include <output/chart-item.h>
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/subcase.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "math/correlation.h"
+#include "math/covariance.h"
+#include "math/moments.h"
+#include "output/chart-item.h"
+#include "output/charts/scree.h"
+#include "output/tab.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -175,7 +169,7 @@ struct idata
   /* Intermediate values used in calculation */
 
   const gsl_matrix *corr ;  /* The correlation matrix */
-  const gsl_matrix *cov ;   /* The covariance matrix */
+  gsl_matrix *cov ;         /* The covariance matrix */
   const gsl_matrix *n ;     /* Matrix of number of samples */
 
   gsl_vector *eval ;  /* The eigenvalues */
@@ -206,6 +200,8 @@ idata_free (struct idata *id)
   gsl_vector_free (id->msr);
   gsl_vector_free (id->eval);
   gsl_matrix_free (id->evec);
+  if (id->cov != NULL)
+    gsl_matrix_free (id->cov);
 
   free (id);
 }
@@ -788,14 +784,14 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 
   factor.wv = dict_get_weight (dict);
 
-  lex_match (lexer, '/');
+  lex_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "VARIABLES"))
     {
       goto error;
     }
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
   if (!parse_variables_const (lexer, dict, &factor.vars, &factor.n_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
@@ -804,14 +800,14 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
   if (factor.n_vars < 2)
     msg (MW, _("Factor analysis on a single variable is not useful."));
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "PLOT"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "EIGEN"))
 		{
@@ -831,8 +827,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "METHOD"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "COVARIANCE"))
 		{
@@ -851,8 +847,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "ROTATION"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      /* VARIMAX and DEFAULT are defaults */
 	      if (lex_match_id (lexer, "VARIMAX") || lex_match_id (lexer, "DEFAULT"))
@@ -880,57 +876,57 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "CRITERIA"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "FACTORS"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_int (lexer);
 		      factor.n_factors = lex_integer (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "MINEIGEN"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_num (lexer);
 		      factor.min_eigen = lex_number (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "ECONVERGE"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_num (lexer);
 		      factor.econverge = lex_number (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "RCONVERGE"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_num (lexer);
 		      factor.rconverge = lex_number (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "ITERATE"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_int (lexer);
 		      factor.iterations = lex_integer (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "DEFAULT"))
@@ -949,8 +945,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
       else if (lex_match_id (lexer, "EXTRACTION"))
 	{
 	  extraction_seen = true;
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "PAF"))
 		{
@@ -977,8 +973,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "FORMAT"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "SORT"))
 		{
@@ -986,12 +982,12 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		}
 	      else if (lex_match_id (lexer, "BLANK"))
 		{
-		  if ( lex_force_match (lexer, '('))
+		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_num (lexer);
 		      factor.blank = lex_number (lexer);
 		      lex_get (lexer);
-		      lex_force_match (lexer, ')');
+		      lex_force_match (lexer, T_RPAREN);
 		    }
 		}
 	      else if (lex_match_id (lexer, "DEFAULT"))
@@ -1009,8 +1005,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
       else if (lex_match_id (lexer, "PRINT"))
 	{
 	  factor.print = 0;
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               if (lex_match_id (lexer, "UNIVARIATE"))
 		{
@@ -1083,8 +1079,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{
@@ -1301,7 +1297,7 @@ show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const 
     tab_title (t, _("Factor Matrix"));
   */
 
-  tab_title (t, title);
+  tab_title (t, "%s", title);
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
 
@@ -1494,7 +1490,7 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 
       c = 0;
 
-      tab_text_format (t, c++, i + heading_rows, TAB_LEFT | TAT_TITLE, _("%d"), i + 1);
+      tab_text_format (t, c++, i + heading_rows, TAB_LEFT | TAT_TITLE, _("%zu"), i + 1);
 
       i_cum += i_percent;
       e_cum += e_percent;

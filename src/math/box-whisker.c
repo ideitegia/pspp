@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,18 +15,22 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
 #include "box-whisker.h"
-#include "order-stats.h"
-#include "tukey-hinges.h"
-#include <gl/xalloc.h>
-#include <libpspp/assertion.h>
-#include <libpspp/cast.h>
+
 #include <math.h>
 #include <float.h>
-#include <data/val-type.h>
-#include <libpspp/str.h>
-#include <data/case.h>
-#include <data/variable.h>
+
+#include "data/case.h"
+#include "data/val-type.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/str.h"
+#include "math/order-stats.h"
+#include "math/tukey-hinges.h"
+
+#include "gl/xalloc.h"
 
 static void
 destroy (struct statistic *s)

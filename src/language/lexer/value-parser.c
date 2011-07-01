@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include "data/value.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/cast.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
@@ -106,8 +107,7 @@ parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
 
       assert (fmt_get_category (*format) != FMT_CAT_STRING);
 
-      if (!data_in_msg (ds_ss (lex_tokstr (lexer)), LEGACY_NATIVE,
-                        *format, &v, 0, NULL))
+      if (!data_in_msg (lex_tokss (lexer), "UTF-8", *format, &v, 0, NULL))
         return false;
 
       lex_get (lexer);
@@ -129,21 +129,18 @@ parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
     }
 }
 
-/* Parses the current token from LEXER into value V, which must
-   already have been initialized with the specified WIDTH.
-   Returns true if successful, false otherwise. */
+/* Parses the current token from LEXER into value V, which must already have
+   been initialized with the specified VAR's WIDTH.  Returns true if
+   successful, false otherwise. */
 bool
-parse_value (struct lexer *lexer, union value *v, int width)
+parse_value (struct lexer *lexer, union value *v, const struct variable *var)
 {
+  int width = var_get_width (var);
   if (width == 0)
-    {
-      if (!lex_force_num (lexer))
-	return false;
-      v->f = lex_tokval (lexer);
-    }
+    return parse_number (lexer, &v->f, &var_get_print_format (var)->type);
   else if (lex_force_string (lexer))
     {
-      const char *s = ds_cstr (lex_tokstr (lexer));
+      const char *s = lex_tokcstr (lexer);
       value_copy_str_rpad (v, width, CHAR_CAST_BUG (const uint8_t *, s), ' ');
     }
   else

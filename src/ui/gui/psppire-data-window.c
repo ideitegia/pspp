@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,29 +16,32 @@
 
 #include <config.h>
 
-#include <gtk/gtksignal.h>
-#include <gtk/gtkbox.h>
+#include <gtk/gtk.h>
 #include <stdlib.h>
 
-#include "data/any-reader.h"
-#include "data/procedure.h"
-#include "language/syntax-string-source.h"
+#include "data/dataset.h"
+#include "data/session.h"
+#include "language/lexer/lexer.h"
 #include "libpspp/message.h"
-#include "ui/gui/help-menu.h"
+#include "libpspp/str.h"
+#include "ui/gui/aggregate-dialog.h"
 #include "ui/gui/binomial-dialog.h"
+#include "ui/gui/chi-square-dialog.h"
 #include "ui/gui/comments-dialog.h"
 #include "ui/gui/compute-dialog.h"
 #include "ui/gui/correlation-dialog.h"
-#include "ui/gui/chi-square-dialog.h"
 #include "ui/gui/crosstabs-dialog.h"
 #include "ui/gui/descriptives-dialog.h"
+#include "ui/gui/entry-dialog.h"
 #include "ui/gui/examine-dialog.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/factor-dialog.h"
 #include "ui/gui/find-dialog.h"
 #include "ui/gui/frequencies-dialog.h"
 #include "ui/gui/goto-case-dialog.h"
+#include "ui/gui/help-menu.h"
 #include "ui/gui/helper.h"
+#include "ui/gui/k-related-dialog.h"
 #include "ui/gui/oneway-anova-dialog.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-syntax-window.h"
@@ -57,25 +60,36 @@
 #include "ui/gui/t-test-paired-samples.h"
 #include "ui/gui/text-data-import-dialog.h"
 #include "ui/gui/transpose-dialog.h"
-#include "ui/gui/aggregate-dialog.h"
 #include "ui/gui/variable-info-dialog.h"
 #include "ui/gui/weight-cases-dialog.h"
 #include "ui/syntax-gen.h"
+
+#include "gl/c-strcase.h"
+#include "gl/c-strcasestr.h"
+#include "gl/xvasprintf.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+struct session *the_session;
+struct ll_list all_data_windows = LL_INITIALIZER (all_data_windows);
 
-
-static void psppire_data_window_base_finalize (PsppireDataWindowClass *, gpointer);
-static void psppire_data_window_base_init     (PsppireDataWindowClass *class);
 static void psppire_data_window_class_init    (PsppireDataWindowClass *class);
 static void psppire_data_window_init          (PsppireDataWindow      *data_editor);
 
 
 static void psppire_data_window_iface_init (PsppireWindowIface *iface);
 
+static void psppire_data_window_dispose (GObject *object);
+static void psppire_data_window_set_property (GObject         *object,
+                                              guint            prop_id,
+                                              const GValue    *value,
+                                              GParamSpec      *pspec);
+static void psppire_data_window_get_property (GObject         *object,
+                                              guint            prop_id,
+                                              GValue          *value,
+                                              GParamSpec      *pspec);
 
 GType
 psppire_data_window_get_type (void)
@@ -87,8 +101,8 @@ psppire_data_window_get_type (void)
       static const GTypeInfo psppire_data_window_info =
 	{
 	  sizeof (PsppireDataWindowClass),
-	  (GBaseInitFunc) psppire_data_window_base_init,
-	  (GBaseFinalizeFunc) psppire_data_window_base_finalize,
+	  NULL,
+	  NULL,
 	  (GClassInitFunc)psppire_data_window_class_init,
 	  (GClassFinalizeFunc) NULL,
 	  NULL,
@@ -119,51 +133,28 @@ psppire_data_window_get_type (void)
 
 static GObjectClass *parent_class ;
 
-static void
-psppire_data_window_finalize (GObject *object)
-{
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (object);
-
-  g_object_unref (de->builder);
-
-  if (G_OBJECT_CLASS (parent_class)->finalize)
-    (*G_OBJECT_CLASS (parent_class)->finalize) (object);
-}
-
+enum {
+    PROP_DATASET = 1
+};
 
 static void
 psppire_data_window_class_init (PsppireDataWindowClass *class)
 {
-  parent_class = g_type_class_peek_parent (class);
-}
-
-
-static void
-psppire_data_window_base_init (PsppireDataWindowClass *class)
-{
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
-  object_class->finalize = psppire_data_window_finalize;
+  parent_class = g_type_class_peek_parent (class);
+
+  object_class->dispose = psppire_data_window_dispose;
+  object_class->set_property = psppire_data_window_set_property;
+  object_class->get_property = psppire_data_window_get_property;
+
+  g_object_class_install_property (
+    object_class, PROP_DATASET,
+    g_param_spec_pointer ("dataset", "Dataset",
+                          "'struct datset *' represented by the window",
+                          G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
 }
-
-
-
-static void
-psppire_data_window_base_finalize (PsppireDataWindowClass *class,
-				   gpointer class_data)
-{
-}
-
-
 
-
-
-extern PsppireVarStore *the_var_store;
-extern struct dataset *the_dataset;
-extern PsppireDataStore *the_data_store ;
-
-extern GtkRecentManager *the_recent_mgr;
-
 static void
 set_paste_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
 {
@@ -184,11 +175,9 @@ set_cut_copy_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
 
 /* Run the EXECUTE command. */
 static void
-execute (void)
+execute (PsppireDataWindow *dw)
 {
-  struct getl_interface *sss = create_syntax_string_source ("EXECUTE.");
-
-  execute_syntax (sss);
+  execute_const_syntax_string (dw, "EXECUTE.");
 }
 
 static void
@@ -348,165 +337,71 @@ dump_rm (GtkRecentManager *rm)
 }
 #endif
 
+static gboolean
+name_has_por_suffix (const gchar *name)
+{
+  size_t length = strlen (name);
+  return length > 4 && !c_strcasecmp (&name[length - 4], ".por");
+}
 
 static gboolean
-load_file (PsppireWindow *de, const gchar *file_name)
+name_has_sav_suffix (const gchar *name)
 {
-  gchar *native_file_name;
-  struct getl_interface *sss;
-  struct string filename;
-
-  ds_init_empty (&filename);
-
-  native_file_name =
-    convert_glib_filename_to_system_filename (file_name, NULL);
-
-  syntax_gen_string (&filename, ss_cstr (native_file_name));
-
-  g_free (native_file_name);
-
-  sss = create_syntax_format_source ("GET FILE=%s.",
-				     ds_cstr (&filename));
-
-  ds_destroy (&filename);
-
-  if (execute_syntax (sss) )
-    return TRUE;
-
-  return FALSE;
-}
-
-static GtkWidget *
-sysfile_chooser_dialog (PsppireWindow *toplevel)
-{
-  GtkWidget *dialog =
-    gtk_file_chooser_dialog_new (_("Open"),
-				 GTK_WINDOW (toplevel),
-				 GTK_FILE_CHOOSER_ACTION_OPEN,
-				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-				 GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-				 NULL);
-
-  GtkFileFilter *filter;
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Data and Syntax Files"));
-  gtk_file_filter_add_pattern (filter, "*.sav");
-  gtk_file_filter_add_pattern (filter, "*.SAV");
-  gtk_file_filter_add_pattern (filter, "*.por");
-  gtk_file_filter_add_pattern (filter, "*.POR");
-  gtk_file_filter_add_pattern (filter, "*.sps");
-  gtk_file_filter_add_pattern (filter, "*.SPS");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
-  gtk_file_filter_add_pattern (filter, "*.sav");
-  gtk_file_filter_add_pattern (filter, "*.SAV");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Portable Files (*.por) "));
-  gtk_file_filter_add_pattern (filter, "*.por");
-  gtk_file_filter_add_pattern (filter, "*.POR");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Syntax Files (*.sps) "));
-  gtk_file_filter_add_pattern (filter, "*.sps");
-  gtk_file_filter_add_pattern (filter, "*.SPS");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("All Files"));
-  gtk_file_filter_add_pattern (filter, "*");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  {
-    gchar *dir_name;
-    gchar *filename = NULL;
-    g_object_get (toplevel, "filename", &filename, NULL);
-
-    if ( ! g_path_is_absolute (filename))
-      {
-	gchar *path =
-	  g_build_filename (g_get_current_dir (), filename, NULL);
-	dir_name = g_path_get_dirname (path);
-	g_free (path);
-      }
-    else
-      {
-	dir_name = g_path_get_dirname (filename);
-      }
-    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
-					 dir_name);
-    free (dir_name);
-  }
-
-  return dialog;
-}
-
-/* Callback for the data_open action.
-   Prompts for a filename and opens it */
-static void
-open_window (PsppireWindow *de)
-{
-  GtkWidget *dialog = sysfile_chooser_dialog (de);
-
-  switch (gtk_dialog_run (GTK_DIALOG (dialog)))
-    {
-    case GTK_RESPONSE_ACCEPT:
-      {
-	gchar *name =
-	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-
-	gchar *sysname = convert_glib_filename_to_system_filename (name, NULL);
-
-	if (any_reader_may_open (sysname))
-	  psppire_window_load (de, name);
-	else
-	  open_new_syntax_window (name);
-
-	g_free (sysname);
-	g_free (name);
-      }
-      break;
-    default:
-      break;
-    }
-
-  gtk_widget_destroy (dialog);
+  size_t length = strlen (name);
+  return length > 4 && !c_strcasecmp (&name[length - 4], ".sav");
 }
 
 /* Returns true if NAME has a suffix which might denote a PSPP file */
 static gboolean
 name_has_suffix (const gchar *name)
 {
-  if ( g_str_has_suffix (name, ".sav"))
-    return TRUE;
-  if ( g_str_has_suffix (name, ".SAV"))
-    return TRUE;
-  if ( g_str_has_suffix (name, ".por"))
-    return TRUE;
-  if ( g_str_has_suffix (name, ".POR"))
-    return TRUE;
-
-  return FALSE;
+  return name_has_por_suffix (name) || name_has_sav_suffix (name);
 }
 
+static gboolean
+load_file (PsppireWindow *de, const gchar *file_name)
+{
+  struct string filename;
+  gchar *utf8_file_name;
+  const char *mime_type;
+  gchar *syntax;
+  bool ok;
+
+  ds_init_empty (&filename);
+
+  utf8_file_name = g_filename_to_utf8 (file_name, -1, NULL, NULL, NULL);
+
+  syntax_gen_string (&filename, ss_cstr (utf8_file_name));
+
+  g_free (utf8_file_name);
+
+  syntax = g_strdup_printf ("GET FILE=%s.", ds_cstr (&filename));
+  ds_destroy (&filename);
+
+  ok = execute_syntax (PSPPIRE_DATA_WINDOW (de),
+                       lex_reader_for_string (syntax));
+  g_free (syntax);
+
+  mime_type = (name_has_por_suffix (file_name)
+               ? "application/x-spss-por"
+               : "application/x-spss-sav");
+  add_most_recent (ds_cstr (&filename), mime_type);
+
+  return ok;
+}
 
 /* Save DE to file */
 static void
 save_file (PsppireWindow *w)
 {
-  gchar *native_file_name = NULL;
-  gchar *file_name = NULL;
+  const gchar *file_name = NULL;
+  gchar *utf8_file_name = NULL;
   GString *fnx;
-  struct getl_interface *sss;
   struct string filename ;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (w);
+  gchar *syntax;
 
-  g_object_get (w, "filename", &file_name, NULL);
+  file_name = psppire_window_get_filename (w);
 
   fnx = g_string_new (file_name);
 
@@ -520,28 +415,20 @@ save_file (PsppireWindow *w)
 
   ds_init_empty (&filename);
 
-  native_file_name =
-    convert_glib_filename_to_system_filename (fnx->str, NULL);
+  utf8_file_name = g_filename_to_utf8 (fnx->str, -1, NULL, NULL, NULL);
 
   g_string_free (fnx, TRUE);
 
-  syntax_gen_string (&filename, ss_cstr (native_file_name));
-  g_free (native_file_name);
+  syntax_gen_string (&filename, ss_cstr (utf8_file_name));
+  g_free (utf8_file_name);
 
-  if ( de->save_as_portable )
-    {
-      sss = create_syntax_format_source ("EXPORT OUTFILE=%s.",
-					 ds_cstr (&filename));
-    }
-  else
-    {
-      sss = create_syntax_format_source ("SAVE OUTFILE=%s.",
-					 ds_cstr (&filename));
-    }
+  syntax = g_strdup_printf ("%s OUTFILE=%s.",
+                            de->save_as_portable ? "EXPORT" : "SAVE",
+                            ds_cstr (&filename));
 
   ds_destroy (&filename);
 
-  execute_syntax (sss);
+  g_free (execute_syntax_string (de, syntax));
 }
 
 
@@ -561,47 +448,44 @@ on_insert_variable (PsppireDataWindow *dw)
 static void
 display_dict (PsppireDataWindow *de)
 {
-
-  struct getl_interface *sss =
-    create_syntax_string_source ("DISPLAY DICTIONARY.");
-
-  execute_syntax (sss);
+  execute_const_syntax_string (de, "DISPLAY DICTIONARY.");
 }
 
 static void
 sysfile_info (PsppireDataWindow *de)
 {
-  GtkWidget *dialog = sysfile_chooser_dialog (PSPPIRE_WINDOW (de));
+  GtkWidget *dialog = psppire_window_file_chooser_dialog (PSPPIRE_WINDOW (de));
 
   if  ( GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog)))
     {
       struct string filename;
-      struct getl_interface *sss;
       gchar *file_name =
 	gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-      gchar *native_file_name =
-	convert_glib_filename_to_system_filename (file_name, NULL);
+      gchar *utf8_file_name = g_filename_to_utf8 (file_name, -1, NULL, NULL,
+                                                  NULL);
+
+      gchar *syntax;
 
       ds_init_empty (&filename);
 
-      syntax_gen_string (&filename, ss_cstr (native_file_name));
+      syntax_gen_string (&filename, ss_cstr (utf8_file_name));
 
-      g_free (native_file_name);
+      g_free (utf8_file_name);
 
-      sss = create_syntax_format_source ("SYSFILE INFO %s.",
-					 ds_cstr (&filename));
-      execute_syntax (sss);
+      syntax = g_strdup_printf ("SYSFILE INFO %s.", ds_cstr (&filename));
+      g_free (execute_syntax_string (de, syntax));
     }
 
   gtk_widget_destroy (dialog);
 }
 
 
-/* Callback for data_save_as action. Prompt for a filename and save */
+/* PsppireWindow 'pick_filename' callback: prompt for a filename to save as. */
 static void
-data_save_as_dialog (PsppireDataWindow *de)
+data_pick_filename (PsppireWindow *window)
 {
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (window);
   GtkWidget *button_sys;
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Save"),
@@ -647,6 +531,9 @@ data_save_as_dialog (PsppireDataWindow *de)
     gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER(dialog), vbox);
   }
 
+  gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog),
+                                                  TRUE);
+
   switch (gtk_dialog_run (GTK_DIALOG (dialog)))
     {
     case GTK_RESPONSE_ACCEPT:
@@ -670,8 +557,6 @@ data_save_as_dialog (PsppireDataWindow *de)
 
 	psppire_window_set_filename (PSPPIRE_WINDOW (de), filename->str);
 
-	save_file (PSPPIRE_WINDOW (de));
-
 	g_string_free (filename, TRUE);
       }
       break;
@@ -682,35 +567,67 @@ data_save_as_dialog (PsppireDataWindow *de)
   gtk_widget_destroy (dialog);
 }
 
-
-/* Callback for data_save action.
- */
-static void
-data_save (PsppireWindow *de)
+static bool
+confirm_delete_dataset (PsppireDataWindow *de,
+                        const char *old_dataset,
+                        const char *new_dataset,
+                        const char *existing_dataset)
 {
-  const gchar *fn = psppire_window_get_filename (de);
+  GtkWidget *dialog;
+  int result;
 
-  if ( NULL != fn)
-    psppire_window_save (de);
-  else
-    data_save_as_dialog (PSPPIRE_DATA_WINDOW (de));
+  dialog = gtk_message_dialog_new (
+    GTK_WINDOW (de), 0, GTK_MESSAGE_QUESTION, GTK_BUTTONS_NONE, "%s",
+    _("Delete Existing Dataset?"));
+
+  gtk_message_dialog_format_secondary_text (
+    GTK_MESSAGE_DIALOG (dialog),
+    _("Renaming \"%s\" to \"%s\" will delete destroy the existing "
+      "dataset named \"%s\".  Are you sure that you want to do this?"),
+    old_dataset, new_dataset, existing_dataset);
+
+  gtk_dialog_add_buttons (GTK_DIALOG (dialog),
+                          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                          GTK_STOCK_DELETE, GTK_RESPONSE_OK,
+                          NULL);
+
+  g_object_set (dialog, "icon-name", "psppicon", NULL);
+
+  result = gtk_dialog_run (GTK_DIALOG (dialog));
+
+  gtk_widget_destroy (dialog);
+
+  return result == GTK_RESPONSE_OK;
 }
 
-
-/* Callback for data_new action.
-   Performs the NEW FILE command */
 static void
-new_file (PsppireDataWindow *de)
+on_rename_dataset (PsppireDataWindow *de)
 {
-  struct getl_interface *sss =
-    create_syntax_string_source ("NEW FILE.");
+  struct dataset *ds = de->dataset;
+  struct session *session = dataset_session (ds);
+  const char *old_name = dataset_name (ds);
+  struct dataset *existing_dataset;
+  char *new_name;
+  char *prompt;
 
-  execute_syntax (sss);
+  prompt = xasprintf (_("Please enter a new name for dataset \"%s\":"),
+                      old_name);
+  new_name = entry_dialog_run (GTK_WINDOW (de), _("Rename Dataset"), prompt,
+                               old_name);
+  free (prompt);
 
-  psppire_window_set_filename (PSPPIRE_WINDOW (de), NULL);
+  if (new_name == NULL)
+    return;
+
+  existing_dataset = session_lookup_dataset (session, new_name);
+  if (existing_dataset == NULL || existing_dataset == ds
+      || confirm_delete_dataset (de, old_name, new_name,
+                                 dataset_name (existing_dataset)))
+    g_free (execute_syntax_string (de, g_strdup_printf ("DATASET NAME %s.",
+                                                        new_name)));
+
+  free (new_name);
 }
-
-
 
 static void
 on_edit_paste (PsppireDataWindow  *de)
@@ -819,13 +736,11 @@ toggle_split_window (PsppireDataWindow  *de, GtkToggleAction *ta)
 
 
 static void
-file_quit (void)
+file_quit (PsppireDataWindow *de)
 {
   /* FIXME: Need to be more intelligent here.
      Give the user the opportunity to save any unsaved data.
   */
-  g_object_unref (the_data_store);
-
   psppire_quit ();
 }
 
@@ -843,24 +758,73 @@ on_recent_data_select (GtkMenuShell *menushell,
 
   g_free (uri);
 
-  psppire_window_load (window, file);
+  open_data_window (window, file);
 
   g_free (file);
+}
+
+static char *
+charset_from_mime_type (const char *mime_type)
+{
+  const char *charset;
+  struct string s;
+  const char *p;
+
+  if (mime_type == NULL)
+    return NULL;
+
+  charset = c_strcasestr (mime_type, "charset=");
+  if (charset == NULL)
+    return NULL;
+
+  ds_init_empty (&s);
+  p = charset + 8;
+  if (*p == '"')
+    {
+      /* Parse a "quoted-string" as defined by RFC 822. */
+      for (p++; *p != '\0' && *p != '"'; p++)
+        {
+          if (*p != '\\')
+            ds_put_byte (&s, *p);
+          else if (*++p != '\0')
+            ds_put_byte (&s, *p);
+        }
+    }
+  else
+    {
+      /* Parse a "token" as defined by RFC 2045. */
+      while (*p > 32 && *p < 127 && strchr ("()<>@,;:\\\"/[]?=", *p) == NULL)
+        ds_put_byte (&s, *p++);
+    }
+  if (!ds_is_empty (&s))
+    return ds_steal_cstr (&s);
+
+  ds_destroy (&s);
+  return NULL;
 }
 
 static void
 on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 {
+  GtkRecentInfo *item;
+  char *encoding;
+  GtkWidget *se;
   gchar *file;
 
-  gchar *uri =
-    gtk_recent_chooser_get_current_uri (GTK_RECENT_CHOOSER (menushell));
+  /* Get the file name and its encoding. */
+  item = gtk_recent_chooser_get_current_item (GTK_RECENT_CHOOSER (menushell));
+  file = g_filename_from_uri (gtk_recent_info_get_uri (item), NULL, NULL);
+  encoding = charset_from_mime_type (gtk_recent_info_get_mime_type (item));
+  gtk_recent_info_unref (item);
 
-  file = g_filename_from_uri (uri, NULL, NULL);
+  se = psppire_syntax_window_new (encoding);
 
-  g_free (uri);
+  free (encoding);
 
-  open_new_syntax_window (file);
+  if ( psppire_window_load (PSPPIRE_WINDOW (se), file) ) 
+    gtk_widget_show (se);
+  else
+    gtk_widget_destroy (se);
 
   g_free (file);
 }
@@ -904,15 +868,14 @@ on_switch_sheet (GtkNotebook *notebook,
   switch (page_num)
     {
     case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
-      gtk_widget_hide (view_variables);
-      gtk_widget_show (view_data);
+      gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (view_variables),
+                                      TRUE);
       gtk_action_set_sensitive (de->insert_variable, TRUE);
       gtk_action_set_sensitive (de->insert_case, FALSE);
       gtk_action_set_sensitive (de->invoke_goto_dialog, FALSE);
       break;
     case PSPPIRE_DATA_EDITOR_DATA_VIEW:
-      gtk_widget_show (view_variables);
-      gtk_widget_hide (view_data);
+      gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (view_data), TRUE);
       gtk_action_set_sensitive (de->invoke_goto_dialog, TRUE);
       gtk_action_set_sensitive (de->insert_case, TRUE);
       break;
@@ -949,36 +912,68 @@ connect_action (PsppireDataWindow *dw, const char *action_name,
   return action;
 }
 
+/* Initializes as much of a PsppireDataWindow as we can and must before the
+   dataset has been set.
+
+   In particular, the 'menu' member is required in case the "filename" property
+   is set before the "dataset" property: otherwise PsppireWindow will try to
+   modify the menu as part of the "filename" property_set() function and end up
+   with a Gtk-CRITICAL since 'menu' is NULL.  */
 static void
 psppire_data_window_init (PsppireDataWindow *de)
 {
-  PsppireVarStore *vs;
-  PsppireDict *dict = NULL;
+  GtkUIManager *uim;
+
+  de->builder = builder_new ("data-editor.ui");
+
+  uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
+
+  PSPPIRE_WINDOW (de)->menu =
+    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
+}
+
+static void
+psppire_data_window_finish_init (PsppireDataWindow *de,
+                                 struct dataset *ds)
+{
+  static const struct dataset_callbacks cbs =
+    {
+      set_unsaved,                    /* changed */
+      transformation_change_callback, /* transformations_changed */
+    };
+
+  PsppireDict *dict;
 
   GtkWidget *menubar;
   GtkWidget *hb ;
   GtkWidget *sb ;
 
   GtkWidget *box = gtk_vbox_new (FALSE, 0);
-  de->builder = builder_new ("data-editor.ui");
+
+  de->dataset = ds;
+  dict = psppire_dict_new_from_dict (dataset_dict (ds));
+  de->var_store = psppire_var_store_new (dict);
+  de->data_store = psppire_data_store_new (dict);
+  psppire_data_store_set_reader (de->data_store, NULL);
 
   menubar = get_widget_assert (de->builder, "menubar");
   hb = get_widget_assert (de->builder, "handlebox1");
   sb = get_widget_assert (de->builder, "status-bar");
 
   de->data_editor =
-    PSPPIRE_DATA_EDITOR (psppire_data_editor_new (the_var_store, the_data_store));
+    PSPPIRE_DATA_EDITOR (psppire_data_editor_new (de, de->var_store,
+                                                  de->data_store));
 
-  g_signal_connect_swapped (the_data_store, "case-changed",
+  g_signal_connect_swapped (de->data_store, "case-changed",
 			    G_CALLBACK (set_unsaved), de);
 
-  g_signal_connect_swapped (the_data_store, "case-inserted",
+  g_signal_connect_swapped (de->data_store, "case-inserted",
 			    G_CALLBACK (set_unsaved), de);
 
-  g_signal_connect_swapped (the_data_store, "cases-deleted",
+  g_signal_connect_swapped (de->data_store, "cases-deleted",
 			    G_CALLBACK (set_unsaved), de);
 
-  dataset_set_callback (the_dataset, set_unsaved, de);
+  dataset_set_callbacks (de->dataset, &cbs, de);
 
   connect_help (de->builder);
 
@@ -1000,17 +995,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   g_signal_connect_swapped (de->data_editor, "data-available-changed",
 			    G_CALLBACK (set_paste_menuitem_sensitivity), de);
 
-  dataset_add_transform_change_callback (the_dataset,
-					 transformation_change_callback,
-					 de);
-
-
-  vs = the_var_store;
-
-  g_assert(vs); /* Traps a possible bug in w32 build */
-
-  g_object_get (vs, "dictionary", &dict, NULL);
-
   g_signal_connect (dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
 		    de);
@@ -1028,15 +1012,17 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   connect_action (de, "edit_cut", G_CALLBACK (on_edit_cut));
 
-  connect_action (de, "file_new_data", G_CALLBACK (new_file));
+  connect_action (de, "file_new_data", G_CALLBACK (create_data_window));
 
   connect_action (de, "file_import-text", G_CALLBACK (text_data_import_assistant));
 
-  connect_action (de, "file_save", G_CALLBACK (data_save));
+  connect_action (de, "file_save", G_CALLBACK (psppire_window_save));
  
-  connect_action (de, "file_open", G_CALLBACK (open_window));
+  connect_action (de, "file_open", G_CALLBACK (psppire_window_open));
 
-  connect_action (de, "file_save_as", G_CALLBACK (data_save_as_dialog));
+  connect_action (de, "file_save_as", G_CALLBACK (psppire_window_save_as));
+
+  connect_action (de, "rename_dataset", G_CALLBACK (on_rename_dataset));
 
   connect_action (de, "file_information_working-file", G_CALLBACK (display_dict));
 
@@ -1126,6 +1112,8 @@ psppire_data_window_init (PsppireDataWindow *de)
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
 
   connect_action (de, "binomial", G_CALLBACK (binomial_dialog));
+
+  connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));
  
 
   {
@@ -1138,11 +1126,11 @@ psppire_data_window_init (PsppireDataWindow *de)
       gtk_ui_manager_get_widget (uim,"/ui/menubar/file/file_recent-files");
 
 
-    GtkWidget *menu_data =
-      gtk_recent_chooser_menu_new_for_manager (the_recent_mgr);
+    GtkWidget *menu_data = gtk_recent_chooser_menu_new_for_manager (
+      gtk_recent_manager_get_default ());
 
-    GtkWidget *menu_files =
-      gtk_recent_chooser_menu_new_for_manager (the_recent_mgr);
+    GtkWidget *menu_files = gtk_recent_chooser_menu_new_for_manager (
+      gtk_recent_manager_get_default ());
 
     {
       GtkRecentFilter *filter = gtk_recent_filter_new ();
@@ -1222,9 +1210,6 @@ psppire_data_window_init (PsppireDataWindow *de)
     GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
     merge_help_menu (uim);
-    
-    PSPPIRE_WINDOW (de)->menu =
-      GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
   }
 
   {
@@ -1254,24 +1239,179 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   gtk_widget_show (GTK_WIDGET (de->data_editor));
   gtk_widget_show (box);
+
+  ll_push_head (&all_data_windows, &de->ll);
 }
 
+static void
+psppire_data_window_dispose (GObject *object)
+{
+  PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (object);
+
+  if (dw->builder != NULL)
+    {
+      g_object_unref (dw->builder);
+      dw->builder = NULL;
+    }
+
+  if (dw->var_store)
+    {
+      g_object_unref (dw->var_store);
+      dw->var_store = NULL;
+    }
+
+  if (dw->data_store)
+    {
+      g_object_unref (dw->data_store);
+      dw->data_store = NULL;
+    }
+
+  if (dw->ll.next != NULL)
+    {
+      ll_remove (&dw->ll);
+      dw->ll.next = NULL;
+    }
+
+  if (G_OBJECT_CLASS (parent_class)->dispose)
+    G_OBJECT_CLASS (parent_class)->dispose (object);
+}
+
+static void
+psppire_data_window_set_property (GObject         *object,
+                                  guint            prop_id,
+                                  const GValue    *value,
+                                  GParamSpec      *pspec)
+{
+  PsppireDataWindow *window = PSPPIRE_DATA_WINDOW (object);
+
+  switch (prop_id)
+    {
+    case PROP_DATASET:
+      psppire_data_window_finish_init (window, g_value_get_pointer (value));
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
+
+static void
+psppire_data_window_get_property (GObject         *object,
+                                  guint            prop_id,
+                                  GValue          *value,
+                                  GParamSpec      *pspec)
+{
+  PsppireDataWindow *window = PSPPIRE_DATA_WINDOW (object);
+
+  switch (prop_id)
+    {
+    case PROP_DATASET:
+      g_value_set_pointer (value, window->dataset);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
 
 GtkWidget*
-psppire_data_window_new (void)
+psppire_data_window_new (struct dataset *ds)
 {
-  return GTK_WIDGET (g_object_new (psppire_data_window_get_type (),
-				   /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
-				   "filename", _("PSPP-data"),
-				   "description", _("Data Editor"),
-				   NULL));
+  GtkWidget *dw;
+
+  if (the_session == NULL)
+    the_session = session_create ();
+
+  if (ds == NULL)
+    {
+      static int n_datasets;
+      char *dataset_name;
+
+      dataset_name = xasprintf ("DataSet%d", ++n_datasets);
+      ds = dataset_create (the_session, dataset_name);
+      free (dataset_name);
+    }
+  assert (dataset_session (ds) == the_session);
+
+  dw = GTK_WIDGET (
+    g_object_new (
+      psppire_data_window_get_type (),
+      /* TRANSLATORS: This will form a filename.  Please avoid whitespace. */
+      "description", _("Data Editor"),
+      "dataset", ds,
+      NULL));
+
+  if (dataset_name (ds) != NULL)
+    g_object_set (dw, "id", dataset_name (ds), (void *) NULL);
+
+  return dw;
 }
 
+bool
+psppire_data_window_is_empty (PsppireDataWindow *dw)
+{
+  return psppire_var_store_get_var_cnt (dw->var_store) == 0;
+}
 
 static void
 psppire_data_window_iface_init (PsppireWindowIface *iface)
 {
   iface->save = save_file;
+  iface->pick_filename = data_pick_filename;
   iface->load = load_file;
 }
+
+PsppireDataWindow *
+psppire_default_data_window (void)
+{
+  if (ll_is_empty (&all_data_windows))
+    create_data_window ();
+  return ll_data (ll_head (&all_data_windows), PsppireDataWindow, ll);
+}
 
+void
+psppire_data_window_set_default (PsppireDataWindow *pdw)
+{
+  ll_remove (&pdw->ll);
+  ll_push_head (&all_data_windows, &pdw->ll);
+}
+
+void
+psppire_data_window_undefault (PsppireDataWindow *pdw)
+{
+  ll_remove (&pdw->ll);
+  ll_push_tail (&all_data_windows, &pdw->ll);
+}
+
+PsppireDataWindow *
+psppire_data_window_for_dataset (struct dataset *ds)
+{
+  PsppireDataWindow *pdw;
+
+  ll_for_each (pdw, PsppireDataWindow, ll, &all_data_windows)
+    if (pdw->dataset == ds)
+      return pdw;
+
+  return NULL;
+}
+
+void
+create_data_window (void)
+{
+  gtk_widget_show (psppire_data_window_new (NULL));
+}
+
+void
+open_data_window (PsppireWindow *victim, const char *file_name)
+{
+  GtkWidget *window;
+
+  if (PSPPIRE_IS_DATA_WINDOW (victim)
+      && psppire_data_window_is_empty (PSPPIRE_DATA_WINDOW (victim)))
+    window = GTK_WIDGET (victim);
+  else
+    window = psppire_data_window_new (NULL);
+
+  psppire_window_load (PSPPIRE_WINDOW (window), file_name);
+  gtk_widget_show (window);
+}

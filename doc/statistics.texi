@@ -38,7 +38,7 @@ DESCRIPTIVES
               @{A,D@}
 @end display
 
-The @cmd{DESCRIPTIVES} procedure reads the active file and outputs
+The @cmd{DESCRIPTIVES} procedure reads the active dataset and outputs
 descriptive
 statistics requested by the user.  In addition, it can optionally
 compute Z-scores.
@@ -681,9 +681,14 @@ is used.
 @menu
 * BINOMIAL::                Binomial Test
 * CHISQUARE::               Chisquare Test
+* COCHRAN::                 Cochran Q Test
+* FRIEDMAN::                Friedman Test
+* KENDALL::                 Kendall's W Test
 * KRUSKAL-WALLIS::          Kruskal-Wallis Test
-* WILCOXON::                Wilcoxon Signed Ranks Test
+* MANN-WHITNEY::            Mann Whitney U Test
+* RUNS::                    Runs Test
 * SIGN::                    The Sign Test
+* WILCOXON::                Wilcoxon Signed Ranks Test
 @end menu
 
 
@@ -764,9 +769,53 @@ If no /EXPECTED subcommand is given, then then equal frequencies
 are expected.
 
 
+@node COCHRAN
+@subsection Cochran Q Test
+@vindex Cochran
+@cindex Cochran Q test
+@cindex Q, Cochran Q
+
+@display
+     [ /COCHRAN = varlist ]
+@end display
+
+The Cochran Q test is used to test for differences between three or more groups.
+The data for @var{varlist} in all cases must assume exactly two distinct values (other than missing values). 
+
+The value of Q will be displayed and its Asymptotic significance based on a chi-square distribution.
+
+@node FRIEDMAN
+@subsection Friedman Test
+@vindex FRIEDMAN
+@cindex Friedman test
+
+@display
+     [ /FRIEDMAN = varlist ]
+@end display
+
+The Friedman test is used to test for differences between repeated measures when there is no indication that the distributions are normally distributed.
+
+A list of variables which contain the measured data must be given.  The procedure prints the sum of ranks for each variable, the test statistic and its significance.
+
+@node KENDALL
+@subsection Kendall's W Test
+@vindex KENDALL
+@cindex Kendall's W test
+@cindex coefficient of concordance
+
+@display
+     [ /KENDALL = varlist ]
+@end display
+
+The Kendall test investigates whether an arbitrary number of related samples come from the 
+same population.
+It is identical to the Friedman test except that the additional statistic W, Kendall's Coefficient of Concordance is printed.
+It has the range [0,1] --- a value of zero indicates no agreement between the samples whereas a value of
+unity indicates complete agreement.
+
+
 @node KRUSKAL-WALLIS
 @subsection Kruskal-Wallis Test
-@comment  node-name,  next,  previous,  up
 @vindex KRUSKAL-WALLIS
 @vindex K-W
 @cindex Kruskal-Wallis test
@@ -789,33 +838,47 @@ of the test will be printed.
 The abbreviated subcommand  K-W may be used in place of KRUSKAL-WALLIS.
 
 
-@node WILCOXON
-@subsection Wilcoxon Matched Pairs Signed Ranks Test
-@comment  node-name,  next,  previous,  up
-@vindex WILCOXON
-@cindex wilcoxon matched pairs signed ranks test
+@node MANN-WHITNEY
+@subsection Mann-Whitney U Test
+@vindex MANN-WHITNEY
+@vindex M-W
+@cindex Mann-Whitney U test
+@cindex U, Mann-Whitney U
 
 @display
-     [ /WILCOXON varlist [ WITH varlist [ (PAIRED) ]]]
+     [ /MANN-WHITNEY = varlist BY var (group1, group2) ]
 @end display
 
-The /WILCOXON subcommand tests for differences between medians of the 
-variables listed.
-The test does not make any assumptions about the variances of the samples.
-It does however assume that the distribution is symetrical.
+The Mann-Whitney subcommand is used to test whether two groups of data come from different populations.
+The variables to be tested should be specified in @var{varlist} and the grouping variable, that determines to which group the test variables belong, in @var{var}.
+@var{Var} may be either a string or an alpha variable.
+@var{Group1} and @var{group2} specify the
+two values of @var{var} which determine the groups of the test data.
+Cases for which the @var{var} value is neither @var{group1} or @var{group2} will be ignored.
 
-If the @code{WITH} keyword is omitted, then tests for all
-combinations of the listed variables are performed.
-If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword
-is also given, then the number of variables preceding @code{WITH}
-must be the same as the number following it.
-In this case, tests for each respective pair of variables are
-performed.
-If the @code{WITH} keyword is given, but the
-@code{(PAIRED)} keyword is omitted, then tests for each combination
-of variable preceding @code{WITH} against variable following
-@code{WITH} are performed.
+The value of the Mann-Whitney U statistic, the Wilcoxon W, and the significance will be printed.
+The abbreviated subcommand  M-W may be used in place of MANN-WHITNEY.
 
+
+@node RUNS
+@subsection Runs Test
+@vindex RUNS
+@cindex runs test
+
+@display 
+     [ /RUNS (@{MEAN, MEDIAN, MODE, value@}) varlist ]
+@end display
+
+The /RUNS subcommand tests whether a data sequence is randomly ordered.
+
+It works by examining the number of times a variable's value crosses a given threshold. 
+The desired threshold must be specified within parentheses.
+It may either be specified as a number or as one of MEAN, MEDIAN or MODE.
+Following the threshold specification comes the list of variables whose values are to be
+tested.
+
+The subcommand shows the number of runs, the asymptotic significance based on the
+length of the data.
 
 @node SIGN
 @subsection Sign Test
@@ -830,6 +893,33 @@ The /SIGN subcommand tests for differences between medians of the
 variables listed.
 The test does not make any assumptions about the
 distribution of the data.
+
+If the @code{WITH} keyword is omitted, then tests for all
+combinations of the listed variables are performed.
+If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword
+is also given, then the number of variables preceding @code{WITH}
+must be the same as the number following it.
+In this case, tests for each respective pair of variables are
+performed.
+If the @code{WITH} keyword is given, but the
+@code{(PAIRED)} keyword is omitted, then tests for each combination
+of variable preceding @code{WITH} against variable following
+@code{WITH} are performed.
+
+@node WILCOXON
+@subsection Wilcoxon Matched Pairs Signed Ranks Test
+@comment  node-name,  next,  previous,  up
+@vindex WILCOXON
+@cindex wilcoxon matched pairs signed ranks test
+
+@display
+     [ /WILCOXON varlist [ WITH varlist [ (PAIRED) ]]]
+@end display
+
+The /WILCOXON subcommand tests for differences between medians of the 
+variables listed.
+The test does not make any assumptions about the variances of the samples.
+It does however assume that the distribution is symetrical.
 
 If the @code{WITH} keyword is omitted, then tests for all
 combinations of the listed variables are performed.

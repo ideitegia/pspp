@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,19 +16,19 @@
 
 #include <config.h>
 
-#include <data/case-map.h>
+#include "data/case-map.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/variable.h>
-#include <data/case.h>
-#include <libpspp/assertion.h>
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dictionary.h"
+#include "data/variable.h"
+#include "data/case.h"
+#include "libpspp/assertion.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* A case map. */
 struct case_map

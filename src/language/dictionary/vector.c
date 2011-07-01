@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,22 +18,22 @@
 
 #include <stdlib.h>
 
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/dictionary.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/lexer/format-parser.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
+#include "data/dataset.h"
+#include "data/format.h"
+#include "data/dictionary.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/lexer/format-parser.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include "intprops.h"
-#include "xalloc.h"
+#include "gl/intprops.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -50,7 +50,8 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
       size_t vector_cnt, vector_cap;
 
       /* Get the name(s) of the new vector(s). */
-      if (!lex_force_id (lexer))
+      if (!lex_force_id (lexer)
+          || !dict_id_is_valid (dict, lex_tokcstr (lexer), true))
 	return CMD_CASCADING_FAILURE;
 
       vectors = NULL;
@@ -59,33 +60,33 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
 	{
           size_t i;
 
-	  if (dict_lookup_vector (dict, lex_tokid (lexer)))
+	  if (dict_lookup_vector (dict, lex_tokcstr (lexer)))
 	    {
 	      msg (SE, _("A vector named %s already exists."),
-                   lex_tokid (lexer));
+                   lex_tokcstr (lexer));
 	      goto fail;
 	    }
 
           for (i = 0; i < vector_cnt; i++)
-            if (!strcasecmp (vectors[i], lex_tokid (lexer)))
+            if (!strcasecmp (vectors[i], lex_tokcstr (lexer)))
 	      {
 		msg (SE, _("Vector name %s is given twice."),
-                     lex_tokid (lexer));
+                     lex_tokcstr (lexer));
 		goto fail;
 	      }
 
           if (vector_cnt == vector_cap)
             vectors = pool_2nrealloc (pool,
                                        vectors, &vector_cap, sizeof *vectors);
-          vectors[vector_cnt++] = pool_strdup (pool, lex_tokid (lexer));
+          vectors[vector_cnt++] = pool_strdup (pool, lex_tokcstr (lexer));
 
 	  lex_get (lexer);
-	  lex_match (lexer, ',');
+	  lex_match (lexer, T_COMMA);
 	}
 
       /* Now that we have the names it's time to check for the short
          or long forms. */
-      if (lex_match (lexer, '='))
+      if (lex_match (lexer, T_EQUALS))
 	{
 	  /* Long form. */
           struct variable **v;
@@ -104,7 +105,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
 
           dict_create_vector (dict, vectors[0], v, nv);
 	}
-      else if (lex_match (lexer, '('))
+      else if (lex_match (lexer, T_LPAREN))
 	{
           /* Short form. */
           struct fmt_spec format;
@@ -118,7 +119,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
           var_cnt = 0;
           format = fmt_for_output (FMT_F, 8, 2);
           seen_format = false;
-          while (!lex_match (lexer, ')'))
+          while (!lex_match (lexer, T_RPAREN))
             {
               if (lex_is_integer (lexer) && var_cnt == 0)
                 {
@@ -143,7 +144,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
                   lex_error (lexer, NULL);
                   goto fail;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
           if (var_cnt == 0)
             {
@@ -151,26 +152,26 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
               goto fail;
             }
 
-	  /* Check that none of the variables exist and that
-             their names are no more than VAR_NAME_LEN bytes
-             long. */
+	  /* Check that none of the variables exist and that their names are
+             not excessively long. */
           for (i = 0; i < vector_cnt; i++)
 	    {
               int j;
 	      for (j = 0; j < var_cnt; j++)
 		{
-                  char name[VAR_NAME_LEN + INT_STRLEN_BOUND (int) + 1];
-		  sprintf (name, "%s%d", vectors[i], j + 1);
-                  if (strlen (name) > VAR_NAME_LEN)
+                  char *name = xasprintf ("%s%d", vectors[i], j + 1);
+                  if (!dict_id_is_valid (dict, name, true))
                     {
-                      msg (SE, _("%s is too long for a variable name."), name);
+                      free (name);
                       goto fail;
                     }
                   if (dict_lookup_var (dict, name))
 		    {
+                      free (name);
 		      msg (SE, _("%s is an existing variable name."), name);
 		      goto fail;
 		    }
+                  free (name);
 		}
 	    }
 
@@ -181,10 +182,10 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
               int j;
 	      for (j = 0; j < var_cnt; j++)
 		{
-                  char name[VAR_NAME_LEN + 1];
-		  sprintf (name, "%s%d", vectors[i], j + 1);
+                  char *name = xasprintf ("%s%d", vectors[i], j + 1);
 		  vars[j] = dict_create_var_assert (dict, name, 0);
                   var_set_both_formats (vars[j], &format);
+                  free (name);
 		}
               dict_create_vector_assert (dict, vectors[i], vars, var_cnt);
 	    }
@@ -195,10 +196,10 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
 	  goto fail;
 	}
     }
-  while (lex_match (lexer, '/'));
+  while (lex_match (lexer, T_SLASH));
 
   pool_destroy (pool);
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
 fail:
   pool_destroy (pool);

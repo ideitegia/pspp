@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include <data/casereader-provider.h>
 #include <libpspp/message.h>
 #include "psppire-syntax-window.h"
-#include <gtk/gtkbuilder.h>
+#include <gtk/gtk.h>
 #include <libpspp/i18n.h>
 
 #include <ctype.h>
@@ -47,15 +47,24 @@
 
 #include <gettext.h>
 
-/* Formats a value according to FORMAT
-   The returned string must be freed when no longer required */
-gchar *
-value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format)
-{
-  gchar *s = 0;
+/* Formats a value according to VAR's print format and strips white space
+   appropriately for VAR's type.  That is, if VAR is numeric, strips leading
+   white space (because numbers are right-justified within their fields), and
+   if VAR is string, strips trailing white space (because spaces pad out string
+   values on the right).
 
-  s = data_out (&v, dict_get_encoding (dict->dict),  &format);
-  g_strchug (s);
+   Returns an allocated string.  The returned string must be freed when no
+   longer required. */
+gchar *
+value_to_text (union value v, const struct variable *var)
+{
+  gchar *s;
+
+  s = data_out (&v, var_get_encoding (var), var_get_print_format (var));
+  if (var_is_numeric (var))
+    g_strchug (s);
+  else
+    g_strchomp (s);
 
   return s;
 }
@@ -65,14 +74,12 @@ value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format)
 
    VAL will be initialised and filled by this function.
    It is the caller's responsibility to destroy VAL when no longer needed.
-   VAR and DICT must be the variable and dictionary with which VAL
-   is associated.
+   VAR must be the variable with which VAL is associated.
 
    On success, VAL is returned, NULL otherwise.
 */
 union value *
 text_to_value (const gchar *text,
-	       const PsppireDict *dict,
 	       const struct variable *var,
 	       union value *val)
 {
@@ -98,7 +105,7 @@ text_to_value (const gchar *text,
 
   value_init (val, width);
   free (data_in (ss_cstr (text), UTF8, format->type, val, width,
-                 dict_get_encoding (dict->dict)));
+                 var_get_encoding (var)));
 
   return val;
 }
@@ -208,9 +215,8 @@ connect_help (GtkBuilder *xml)
       GObject *o = i->data;
       if ( GTK_IS_WIDGET (o) )
 	{
-	  gchar *name = NULL;
+	  const gchar *name = gtk_buildable_get_name (GTK_BUILDABLE (o));
 	  gchar s[12] = {0};
-	  g_object_get (o, "name", &name, NULL);
 
 	  if ( name)
 	    strncpy (s, name, 11);
@@ -282,8 +288,8 @@ on_delete (GtkWindow *window, GdkEvent *e, GtkWindow **addr)
   return FALSE;
 }
 
-void
-paste_syntax_to_window (const gchar *syntax)
+char *
+paste_syntax_to_window (gchar *syntax)
 {
   static GtkWidget *the_syntax_pasteboard = NULL;
 
@@ -291,7 +297,7 @@ paste_syntax_to_window (const gchar *syntax)
 
   if ( NULL == the_syntax_pasteboard)
     {
-      the_syntax_pasteboard = psppire_syntax_window_new ();
+      the_syntax_pasteboard = psppire_syntax_window_new (NULL);
       g_signal_connect (the_syntax_pasteboard, "delete-event", G_CALLBACK (on_delete),
 			&the_syntax_pasteboard);
     }
@@ -304,6 +310,8 @@ paste_syntax_to_window (const gchar *syntax)
   gtk_text_buffer_end_user_action (buffer);
 
   gtk_widget_show (the_syntax_pasteboard);
+
+  return syntax;
 }
 
 

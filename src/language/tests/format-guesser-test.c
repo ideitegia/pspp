@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
 
 #include <stdio.h>
 
-#include <data/format.h>
-#include <data/format-guesser.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
+#include "data/format.h"
+#include "data/format-guesser.h"
+#include "language/command.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/message.h"
 
 /* Executes the DEBUG FORMAT GUESSER command. */
 int
@@ -35,8 +35,8 @@ cmd_debug_format_guesser (struct lexer *lexer, struct dataset *ds UNUSED)
   g = fmt_guesser_create ();
   while (lex_is_string (lexer))
     {
-      fprintf (stderr, "\"%s\" ", ds_cstr (lex_tokstr (lexer)));
-      fmt_guesser_add (g, ds_ss (lex_tokstr (lexer)));
+      fprintf (stderr, "\"%s\" ", lex_tokcstr (lexer));
+      fmt_guesser_add (g, lex_tokss (lexer));
       lex_get (lexer);
     }
 
@@ -53,5 +53,5 @@ cmd_debug_format_guesser (struct lexer *lexer, struct dataset *ds UNUSED)
   msg_enable ();
   putc ('\n', stderr);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

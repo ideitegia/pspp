@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,10 +21,11 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gtk/gtkaction.h>
-#include "psppire-window.h"
-#include "psppire-data-editor.h"
 #include <gtk/gtk.h>
+
+#include "libpspp/ll.h"
+#include "ui/gui/psppire-window.h"
+#include "ui/gui/psppire-data-editor.h"
 
 G_BEGIN_DECLS
 
@@ -50,6 +51,9 @@ struct _PsppireDataWindow
   PsppireDataEditor *data_editor;
   GtkBuilder *builder;
 
+  PsppireVarStore *var_store;
+  struct dataset *dataset;
+  PsppireDataStore *data_store;
 
   GtkAction *invoke_goto_dialog;
 
@@ -60,6 +64,10 @@ struct _PsppireDataWindow
 
 
   gboolean save_as_portable;
+
+  struct ll ll;                 /* In global 'all_data_windows' list. */
+  unsigned long int lazy_serial;
+  unsigned int dataset_seqno;
 };
 
 struct _PsppireDataWindowClass
@@ -67,8 +75,21 @@ struct _PsppireDataWindowClass
   PsppireWindowClass parent_class;
 };
 
+extern struct session *the_session;
+extern struct ll_list all_data_windows;
+
 GType      psppire_data_window_get_type        (void);
-GtkWidget* psppire_data_window_new             (void);
+GtkWidget* psppire_data_window_new             (struct dataset *);
+
+PsppireDataWindow *psppire_default_data_window (void);
+void psppire_data_window_set_default (PsppireDataWindow *);
+void psppire_data_window_undefault (PsppireDataWindow *);
+
+PsppireDataWindow *psppire_data_window_for_dataset (struct dataset *);
+
+bool psppire_data_window_is_empty (PsppireDataWindow *);
+void create_data_window (void);
+void open_data_window (PsppireWindow *victim, const char *file_name);
 
 G_END_DECLS
 

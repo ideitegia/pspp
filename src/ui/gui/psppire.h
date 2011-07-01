@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2009, 2010  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,13 +17,15 @@
 #ifndef PSPPIRE_H
 #define PSPPIRE_H
 
-struct source_stream;
+struct lexer;
 
-void initialize (struct source_stream *, const char *data_file);
+void initialize (const char *data_file);
 void de_initialize (void);
 
 void psppire_quit (void);
 
 const char * output_file_name (void);
+
+void psppire_set_lexer (struct lexer *);
 
 #endif /* PSPPIRE_H */

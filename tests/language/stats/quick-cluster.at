@@ -1,0 +1,74 @@
+AT_BANNER([QUICK CLUSTER])
+
+AT_SETUP([QUICK CLUSTER with small data set])
+AT_DATA([quick-cluster.sps], [dnl
+DATA LIST LIST /x y z.
+BEGIN DATA.
+22,2930,4099
+17,3350,4749
+22,2640,3799
+20, 3250,4816
+15,4080,7827
+4,5,4
+5,6,5
+6,7,6
+7,8,7
+8,9,8
+9,10,9
+END DATA.
+QUICK CLUSTER x y z
+  /CRITERIA=CLUSTER(2) MXITER(20).
+])
+AT_CHECK([pspp -o pspp.csv quick-cluster.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+y,F8.0
+z,F8.0
+
+Table: Final Cluster Centers
+,Cluster,
+,,
+,1,2
+,,
+x,6.50,19.20
+y,7.50,3250.00
+z,6.50,5058.00
+
+Table: Number of Cases in each Cluster
+Cluster,1,6
+,2,5
+Valid,,11
+])
+AT_CLEANUP
+
+AT_SETUP([QUICK CLUSTER with large data set])
+AT_DATA([quick-cluster.sps], [dnl
+input program.
+loop #i = 1 to 500000.
+compute x = 3.
+end case.
+end loop.
+end file.
+end input program.
+QUICK CLUSTER x /CRITERIA = CLUSTER(4) MXITER (100).
+])
+AT_CHECK([pspp -o pspp.csv quick-cluster.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Final Cluster Centers
+,Cluster,,,
+,,,,
+,1,2,3,4
+,,,,
+x,.00,.00,.00,3.00
+
+Table: Number of Cases in each Cluster
+Cluster,1,0
+,2,0
+,3,0
+,4,500000
+Valid,,500000
+])
+AT_CLEANUP
+

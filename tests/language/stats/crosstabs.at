@@ -299,7 +299,7 @@ END DATA.
 LIST.
 
 
-CROSSTABS TABLES  x by y by z.
+CROSSTABS TABLES  x BY y BY z/STATISTICS=ALL.
 ]])
 AT_CHECK([pspp -O format=csv crosstabs.sps], [0],
   [[Table: Reading 1 record from INLINE.
@@ -340,5 +340,125 @@ Total,,4.0,1.0,5.0
 ,6,1.0,.0,1.0
 ,9,1.0,.0,1.0
 Total,,3.0,1.0,4.0
+
+Table: Chi-square tests.
+z,Statistic,Value,df,Asymp. Sig. (2-tailed)
+1,Pearson Chi-Square,5.00,4,.29
+,Likelihood Ratio,5.00,4,.29
+,Linear-by-Linear Association,.01,1,.94
+,N of Valid Cases,5,,
+2,Pearson Chi-Square,4.00,3,.26
+,Likelihood Ratio,4.50,3,.21
+,Linear-by-Linear Association,1.58,1,.21
+,N of Valid Cases,4,,
+
+Table: Symmetric measures.
+z,Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+1,Nominal by Nominal,Phi,1.00,,,
+,,Cramer's V,1.00,,,
+,,Contingency Coefficient,.71,,,
+,Ordinal by Ordinal,Kendall's tau-b,.00,.32,.00,
+,,Kendall's tau-c,.00,.32,.00,
+,,Gamma,.00,.50,.00,
+,,Spearman Correlation,.00,.22,.00,
+,Interval by Interval,Pearson's R,.04,.22,.18,
+,N of Valid Cases,,5,,,
+2,Nominal by Nominal,Phi,1.00,,,
+,,Cramer's V,1.00,,,
+,,Contingency Coefficient,.71,,,
+,Ordinal by Ordinal,Kendall's tau-b,-.71,.20,-1.73,
+,,Kendall's tau-c,-.75,.43,-1.73,
+,,Gamma,-1.00,.00,-1.73,
+,,Spearman Correlation,-.77,.17,-6.77,
+,Interval by Interval,Pearson's R,-.73,.18,-5.49,
+,N of Valid Cases,,4,,,
+
+Table: Directional measures.
+z,Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+1,Nominal by Nominal,Lambda,Symmetric,.40,.28,1.02,
+,,,x Dependent,.25,NaN,1.12,
+,,,y Dependent,1.00,NaN,1.12,
+,,Goodman and Kruskal tau,x Dependent,.25,,,
+,,,y Dependent,1.00,,,
+,,Uncertainty Coefficient,Symmetric,.47,.18,1.51,
+,,,x Dependent,.31,.15,2.02,
+,,,y Dependent,1.00,.00,2.02,
+,Ordinal by Ordinal,Somers' d,Symmetric,.00,.09,.00,
+,,,x Dependent,.00,.50,.00,
+,,,y Dependent,.00,.20,.00,
+,Nominal by Interval,Eta,x Dependent,.04,,,
+,,,y Dependent,1.00,,,
+2,Nominal by Nominal,Lambda,Symmetric,.50,.25,1.51,
+,,,x Dependent,.33,NaN,1.15,
+,,,y Dependent,1.00,NaN,1.15,
+,,Goodman and Kruskal tau,x Dependent,.33,,,
+,,,y Dependent,1.00,,,
+,,Uncertainty Coefficient,Symmetric,.58,.17,1.56,
+,,,x Dependent,.41,.17,2.36,
+,,,y Dependent,1.00,.00,2.36,
+,Ordinal by Ordinal,Somers' d,Symmetric,-.67,.04,-1.73,
+,,,x Dependent,-1.00,.00,-1.73,
+,,,y Dependent,-.50,.29,-1.73,
+,Nominal by Interval,Eta,x Dependent,.73,,,
+,,,y Dependent,1.00,,,
 ]])
+AT_CLEANUP
+
+
+
+AT_SETUP([CROSSTABS descending sort order])
+AT_DATA([crosstabs-descending.sps],
+  [[DATA LIST NOTABLE LIST /x * y *.
+BEGIN DATA.
+2 2
+2 2
+3 1
+4 1
+3 2
+3 2
+END DATA.
+
+CROSSTABS
+        /TABLES= x BY y
+	/FORMAT = DVALUE.
+]])
+
+AT_CHECK([pspp -O format=csv crosstabs-descending.sps], [0],
+  [[Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,6,100.0%,0,0.0%,6,100.0%
+
+Table: x * y [count].
+,y,,
+x,2.00,1.00,Total
+4.00,.0,1.0,1.0
+3.00,2.0,1.0,3.0
+2.00,2.0,.0,2.0
+Total,4.0,2.0,6.0
+]])
+AT_CLEANUP
+
+# Bug #31260.
+AT_SETUP([CROSSTABS crash when all cases missing])
+AT_DATA([crosstabs.sps], [dnl
+DATA LIST LIST NOTABLE /X1 X2.
+BEGIN DATA.
+1 1
+END DATA.
+
+MISSING VALUES x2 (1).
+
+CROSSTABS /TABLES= X1 by X2.
+])
+AT_CHECK([pspp -O format=csv crosstabs.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+X1 * X2,0,0.0%,1,100.0%,1,100.0%
+
+crosstabs.sps:8: warning: CROSSTABS: Crosstabulation X1 * X2 contained no non-missing cases.
+])
 AT_CLEANUP

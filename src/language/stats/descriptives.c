@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,24 +20,25 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/dictionary/split-file.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/array.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/assertion.h>
-#include <math/moments.h>
-#include <output/tab.h>
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/transformations.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/dictionary/split-file.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/array.h"
+#include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "math/moments.h"
+#include "output/tab.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -122,7 +123,7 @@ static const struct dsc_statistic_info dsc_info[DSC_N_STATS] =
 struct dsc_var
   {
     const struct variable *v;         /* Variable to calculate on. */
-    char z_name[VAR_NAME_LEN + 1]; /* Name for z-score variable. */
+    char *z_name;                     /* Name for z-score variable. */
     double valid, missing;	/* Valid, missing counts. */
     struct moments *moments;    /* Moments. */
     double min, max;            /* Maximum and mimimum values. */
@@ -168,9 +169,9 @@ static void free_dsc_proc (struct dsc_proc *);
 /* Z-score functions. */
 static bool try_name (const struct dictionary *dict,
 		      struct dsc_proc *dsc, const char *name);
-static bool generate_z_varname (const struct dictionary *dict,
-				struct dsc_proc *dsc, char *z_name,
-				const char *name, int *z_cnt);
+static char *generate_z_varname (const struct dictionary *dict,
+                                 struct dsc_proc *dsc,
+                                 const char *name, int *z_cnt);
 static void dump_z_table (struct dsc_proc *);
 static void setup_z_trns (struct dsc_proc *, struct dataset *);
 
@@ -214,12 +215,12 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
   dsc->show_stats = dsc->calc_stats = DEFAULT_STATS;
 
   /* Parse DESCRIPTIVES. */
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               if (lex_match_id (lexer, "VARIABLE"))
                 dsc->missing_type = DSC_VARIABLE;
@@ -232,15 +233,15 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                   lex_error (lexer, NULL);
                   goto error;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
         }
       else if (lex_match_id (lexer, "SAVE"))
         save_z_scores = 1;
       else if (lex_match_id (lexer, "FORMAT"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               if (lex_match_id (lexer, "LABELS"))
                 dsc->show_var_labels = 1;
@@ -259,14 +260,14 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                   lex_error (lexer, NULL);
                   goto error;
                 }
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
         }
       else if (lex_match_id (lexer, "STATISTICS"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           dsc->show_stats = 0;
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               if (lex_match (lexer, T_ALL))
                 dsc->show_stats |= (1ul << DSC_N_STATS) - 1;
@@ -274,14 +275,14 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                 dsc->show_stats |= DEFAULT_STATS;
               else
 		dsc->show_stats |= 1ul << (match_statistic (lexer));
-              lex_match (lexer, ',');
+              lex_match (lexer, T_COMMA);
             }
           if (dsc->show_stats == 0)
             dsc->show_stats = DEFAULT_STATS;
         }
       else if (lex_match_id (lexer, "SORT"))
         {
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
           if (lex_match_id (lexer, "NAME"))
             dsc->sort_by_stat = DSC_NAME;
           else
@@ -290,7 +291,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
 	      if (dsc->sort_by_stat == DSC_NONE )
 		dsc->sort_by_stat = DSC_MEAN;
 	    }
-          if (lex_match (lexer, '('))
+          if (lex_match (lexer, T_LPAREN))
             {
               if (lex_match_id (lexer, "A"))
                 dsc->sort_ascending = 1;
@@ -298,18 +299,18 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                 dsc->sort_ascending = 0;
               else
                 lex_error (lexer, NULL);
-              lex_force_match (lexer, ')');
+              lex_force_match (lexer, T_RPAREN);
             }
         }
       else if (var_cnt == 0)
         {
-          if (lex_look_ahead (lexer) == '=')
+          if (lex_next_token (lexer, 1) == T_EQUALS)
             {
               lex_match_id (lexer, "VARIABLES");
-              lex_match (lexer, '=');
+              lex_match (lexer, T_EQUALS);
             }
 
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
               int i;
 
@@ -322,28 +323,29 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                 {
                   struct dsc_var *dv = &dsc->vars[i];
                   dv->v = vars[i];
-                  dv->z_name[0] = '\0';
+                  dv->z_name = NULL;
                   dv->moments = NULL;
                 }
               dsc->var_cnt = var_cnt;
 
-              if (lex_match (lexer, '('))
+              if (lex_match (lexer, T_LPAREN))
                 {
                   if (lex_token (lexer) != T_ID)
                     {
                       lex_error (lexer, NULL);
                       goto error;
                     }
-                  if (try_name (dict, dsc, lex_tokid (lexer)))
+                  if (try_name (dict, dsc, lex_tokcstr (lexer)))
                     {
-                      strcpy (dsc->vars[dsc->var_cnt - 1].z_name, lex_tokid (lexer));
+                      struct dsc_var *dsc_var = &dsc->vars[dsc->var_cnt - 1];
+                      dsc_var->z_name = xstrdup (lex_tokcstr (lexer));
                       z_cnt++;
                     }
                   else
                     msg (SE, _("Z-score variable name %s would be"
-                               " a duplicate variable name."), lex_tokid (lexer));
+                               " a duplicate variable name."), lex_tokcstr (lexer));
                   lex_get (lexer);
-                  if (!lex_force_match (lexer, ')'))
+                  if (!lex_force_match (lexer, T_RPAREN))
 		    goto error;
                 }
             }
@@ -354,7 +356,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
           goto error;
         }
 
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
     }
   if (var_cnt == 0)
     {
@@ -370,14 +372,19 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
           int gen_cnt = 0;
 
           for (i = 0; i < dsc->var_cnt; i++)
-            if (dsc->vars[i].z_name[0] == 0)
-              {
-                if (!generate_z_varname (dict, dsc, dsc->vars[i].z_name,
-                                         var_get_name (dsc->vars[i].v),
-                                         &gen_cnt))
-                  goto error;
-                z_cnt++;
-              }
+            {
+              struct dsc_var *dsc_var = &dsc->vars[i];
+              if (dsc_var->z_name == NULL)
+                {
+                  const char *name = var_get_name (dsc_var->v);
+                  dsc_var->z_name = generate_z_varname (dict, dsc, name,
+                                                        &gen_cnt);
+                  if (dsc_var->z_name == NULL)
+                    goto error;
+
+                  z_cnt++;
+                }
+            }
         }
       dump_z_table (dsc);
     }
@@ -463,7 +470,11 @@ free_dsc_proc (struct dsc_proc *dsc)
     return;
 
   for (i = 0; i < dsc->var_cnt; i++)
-    moments_destroy (dsc->vars[i].moments);
+    {
+      struct dsc_var *dsc_var = &dsc->vars[i];
+      free (dsc_var->z_name);
+      moments_destroy (dsc_var->moments);
+    }
   free (dsc->vars);
   free (dsc);
 }
@@ -481,33 +492,38 @@ try_name (const struct dictionary *dict, struct dsc_proc *dsc,
   if (dict_lookup_var (dict, name) != NULL)
     return false;
   for (i = 0; i < dsc->var_cnt; i++)
-    if (!strcasecmp (dsc->vars[i].z_name, name))
-      return false;
+    {
+      struct dsc_var *dsc_var = &dsc->vars[i];
+      if (dsc_var->z_name != NULL && !strcasecmp (dsc_var->z_name, name))
+        return false;
+    }
   return true;
 }
 
 /* Generates a name for a Z-score variable based on a variable
    named VAR_NAME, given that *Z_CNT generated variable names are
-   known to already exist.  If successful, returns true and
-   copies the new name into Z_NAME.  On failure, returns false. */
-static bool
-generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc, char *z_name,
+   known to already exist.  If successful, returns the new name
+   as a dynamically allocated string.  On failure, returns NULL. */
+static char *
+generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc,
                     const char *var_name, int *z_cnt)
 {
-  char name[VAR_NAME_LEN + 1];
+  char *z_name, *trunc_name;
 
   /* Try a name based on the original variable name. */
-  name[0] = 'Z';
-  str_copy_trunc (name + 1, sizeof name - 1, var_name);
-  if (try_name (dict, dsc, name))
-    {
-      strcpy (z_name, name);
-      return true;
-    }
+  z_name = xasprintf ("Z%s", var_name);
+  trunc_name = utf8_encoding_trunc (z_name, dict_get_encoding (dict),
+                                    ID_MAX_LEN);
+  free (z_name);
+  if (try_name (dict, dsc, trunc_name))
+    return trunc_name;
+  free (trunc_name);
 
   /* Generate a synthetic name. */
   for (;;)
     {
+      char name[8];
+
       (*z_cnt)++;
 
       if (*z_cnt <= 99)
@@ -523,14 +539,11 @@ generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc, char *z
 	  msg (SE, _("Ran out of generic names for Z-score variables.  "
 		     "There are only 126 generic names: ZSC001-ZSC0999, "
 		     "STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."));
-	  return false;
+	  return NULL;
 	}
 
       if (try_name (dict, dsc, name))
-	{
-	  strcpy (z_name, name);
-	  return true;
-	}
+        return xstrdup (name);
     }
   NOT_REACHED();
 }
@@ -547,7 +560,7 @@ dump_z_table (struct dsc_proc *dsc)
     size_t i;
 
     for (i = 0; i < dsc->var_cnt; i++)
-      if (dsc->vars[i].z_name[0] != '\0')
+      if (dsc->vars[i].z_name != NULL)
 	cnt++;
   }
 
@@ -563,7 +576,7 @@ dump_z_table (struct dsc_proc *dsc)
     size_t i, y;
 
     for (i = 0, y = 1; i < dsc->var_cnt; i++)
-      if (dsc->vars[i].z_name[0] != '\0')
+      if (dsc->vars[i].z_name != NULL)
 	{
 	  tab_text (t, 0, y, TAB_LEFT, var_get_name (dsc->vars[i].v));
 	  tab_text (t, 1, y++, TAB_LEFT, dsc->vars[i].z_name);
@@ -637,7 +650,7 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
   size_t cnt, i;
 
   for (cnt = i = 0; i < dsc->var_cnt; i++)
-    if (dsc->vars[i].z_name[0] != '\0')
+    if (dsc->vars[i].z_name != NULL)
       cnt++;
 
   t = xmalloc (sizeof *t);
@@ -661,14 +674,15 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
   for (cnt = i = 0; i < dsc->var_cnt; i++)
     {
       struct dsc_var *dv = &dsc->vars[i];
-      if (dv->z_name[0] != '\0')
+      if (dv->z_name != NULL)
 	{
           struct dsc_z_score *z;
 	  struct variable *dst_var;
 
 	  dst_var = dict_create_var_assert (dataset_dict (ds), dv->z_name, 0);
-          var_set_label (dst_var, xasprintf (_("Z-score of %s"),
-                                             var_to_string (dv->v)));
+          var_set_label (dst_var,
+                         xasprintf (_("Z-score of %s"),var_to_string (dv->v)),
+                         false);
 
           z = &t->z_scores[cnt++];
           z->src_var = dv->v;

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997, 1998, 1999, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@
          the table code here.
 */
 
-#include <libpspp/compiler.h>
-#include <output/table.h>
+#include "libpspp/compiler.h"
+#include "output/table.h"
 
 /* A table. */
 struct tab_table
@@ -111,7 +111,7 @@ struct fmt_spec;
 struct dictionary;
 union value;
 void tab_value (struct tab_table *, int c, int r, unsigned char opt,
-		const union value *, const struct dictionary *dict,
+		const union value *, const struct variable *,
 		const struct fmt_spec *);
 
 void tab_fixed (struct tab_table *, int c, int r, unsigned char opt,

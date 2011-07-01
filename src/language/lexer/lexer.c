@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,383 +15,257 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "lexer.h"
-#include <libpspp/message.h>
-#include <c-ctype.h>
-#include <c-strtod.h>
+
+#include "language/lexer/lexer.h"
+
 #include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <math.h>
 #include <stdarg.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <libpspp/assertion.h>
-#include <language/command.h>
-#include <libpspp/message.h>
-#include <data/settings.h>
-#include <libpspp/getl.h>
-#include <libpspp/str.h>
-#include <output/journal.h>
-#include <output/text-item.h>
+#include <string.h>
+#include <unictype.h>
+#include <unistd.h>
+#include <unistr.h>
+#include <uniwidth.h>
 
-#include "xalloc.h"
+#include "data/file-name.h"
+#include "language/command.h"
+#include "language/lexer/scan.h"
+#include "language/lexer/segment.h"
+#include "language/lexer/token.h"
+#include "libpspp/assertion.h"
+#include "libpspp/cast.h"
+#include "libpspp/deque.h"
+#include "libpspp/i18n.h"
+#include "libpspp/ll.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/str.h"
+#include "libpspp/u8-istream.h"
+#include "output/journal.h"
+#include "output/text-item.h"
+
+#include "gl/c-ctype.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
+#include "gl/xmemdup0.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-struct lexer
-{
-  struct string line_buffer;
-
-  struct source_stream *ss;
-
-  int token;      /* Current token. */
-  double tokval;  /* T_POS_NUM, T_NEG_NUM: the token's value. */
-
-  char tokid [VAR_NAME_LEN + 1];   /* T_ID: the identifier. */
-
-  struct string tokstr;   /* T_ID, T_STRING: token string value.
-  			    For T_ID, this is not truncated as is
-  			    tokid. */
-
-  char *prog; /* Pointer to next token in line_buffer. */
-  bool dot;   /* True only if this line ends with a terminal dot. */
-
-  int put_token ; /* If nonzero, next token returned by lex_get().
-  		    Used only in exceptional circumstances. */
-
-  struct string put_tokstr;
-  double put_tokval;
-};
-
-
-static int parse_id (struct lexer *);
-
-/* How a string represents its contents. */
-enum string_type
+/* A token within a lex_source. */
+struct lex_token
   {
-    CHARACTER_STRING,   /* Characters. */
-    BINARY_STRING,      /* Binary digits. */
-    OCTAL_STRING,       /* Octal digits. */
-    HEX_STRING          /* Hexadecimal digits. */
+    /* The regular token information. */
+    struct token token;
+
+    /* Location of token in terms of the lex_source's buffer.
+       src->tail <= line_pos <= token_pos <= src->head. */
+    size_t token_pos;           /* Start of token. */
+    size_t token_len;           /* Length of source for token in bytes. */
+    size_t line_pos;            /* Start of line containing token_pos. */
+    int first_line;             /* Line number at token_pos. */
   };
 
-static int parse_string (struct lexer *, enum string_type);
+/* A source of tokens, corresponding to a syntax file.
+
+   This is conceptually a lex_reader wrapped with everything needed to convert
+   its UTF-8 bytes into tokens. */
+struct lex_source
+  {
+    struct ll ll;               /* In lexer's list of sources. */
+    struct lex_reader *reader;
+    struct segmenter segmenter;
+    bool eof;                   /* True if T_STOP was read from 'reader'. */
+
+    /* Buffer of UTF-8 bytes. */
+    char *buffer;
+    size_t allocated;           /* Number of bytes allocated. */
+    size_t tail;                /* &buffer[0] offset into UTF-8 source. */
+    size_t head;                /* &buffer[head - tail] offset into source. */
+
+    /* Positions in source file, tail <= pos <= head for each member here. */
+    size_t journal_pos;         /* First byte not yet output to journal. */
+    size_t seg_pos;             /* First byte not yet scanned as token. */
+    size_t line_pos;            /* First byte of line containing seg_pos. */
+
+    int n_newlines;             /* Number of new-lines up to seg_pos. */
+    bool suppress_next_newline;
+
+    /* Tokens. */
+    struct deque deque;         /* Indexes into 'tokens'. */
+    struct lex_token *tokens;   /* Lookahead tokens for parser. */
+  };
+
+static struct lex_source *lex_source_create (struct lex_reader *);
+static void lex_source_destroy (struct lex_source *);
+
+/* Lexer. */
+struct lexer
+  {
+    struct ll_list sources;     /* Contains "struct lex_source"s. */
+  };
+
+static struct lex_source *lex_source__ (const struct lexer *);
+static const struct lex_token *lex_next__ (const struct lexer *, int n);
+static void lex_source_push_endcmd__ (struct lex_source *);
+
+static void lex_source_pop__ (struct lex_source *);
+static bool lex_source_get__ (const struct lex_source *);
+static void lex_source_error_valist (struct lex_source *, int n0, int n1,
+                                     const char *format, va_list)
+   PRINTF_FORMAT (4, 0);
+static const struct lex_token *lex_source_next__ (const struct lex_source *,
+                                                  int n);
 
-/* Initialization. */
-
-/* Initializes the lexer. */
-struct lexer *
-lex_create (struct source_stream *ss)
+/* Initializes READER with the specified CLASS and otherwise some reasonable
+   defaults.  The caller should fill in the others members as desired. */
+void
+lex_reader_init (struct lex_reader *reader,
+                 const struct lex_reader_class *class)
 {
-  struct lexer *lexer = xzalloc (sizeof (*lexer));
+  reader->class = class;
+  reader->syntax = LEX_SYNTAX_AUTO;
+  reader->error = LEX_ERROR_INTERACTIVE;
+  reader->file_name = NULL;
+  reader->line_number = 0;
+}
 
-  ds_init_empty (&lexer->tokstr);
-  ds_init_empty (&lexer->put_tokstr);
-  ds_init_empty (&lexer->line_buffer);
-  lexer->ss = ss;
-
+/* Frees any file name already in READER and replaces it by a copy of
+   FILE_NAME, or if FILE_NAME is null then clears any existing name. */
+void
+lex_reader_set_file_name (struct lex_reader *reader, const char *file_name)
+{
+  free (reader->file_name);
+  reader->file_name = file_name != NULL ? xstrdup (file_name) : NULL;
+}
+
+/* Creates and returns a new lexer. */
+struct lexer *
+lex_create (void)
+{
+  struct lexer *lexer = xzalloc (sizeof *lexer);
+  ll_init (&lexer->sources);
   return lexer;
 }
 
-struct source_stream *
-lex_get_source_stream (const struct lexer *lex)
-{
-  return lex->ss;
-}
-
-enum syntax_mode
-lex_current_syntax_mode (const struct lexer *lex)
-{
-  return source_stream_current_syntax_mode (lex->ss);
-}
-
-enum error_mode
-lex_current_error_mode (const struct lexer *lex)
-{
-  return source_stream_current_error_mode (lex->ss);
-}
-
-
+/* Destroys LEXER. */
 void
 lex_destroy (struct lexer *lexer)
 {
-  if ( NULL != lexer )
+  if (lexer != NULL)
     {
-      ds_destroy (&lexer->put_tokstr);
-      ds_destroy (&lexer->tokstr);
-      ds_destroy (&lexer->line_buffer);
+      struct lex_source *source, *next;
 
+      ll_for_each_safe (source, next, struct lex_source, ll, &lexer->sources)
+        lex_source_destroy (source);
       free (lexer);
     }
 }
 
+/* Inserts READER into LEXER so that the next token read by LEXER comes from
+   READER.  Before the caller, LEXER must either be empty or at a T_ENDCMD
+   token. */
+void
+lex_include (struct lexer *lexer, struct lex_reader *reader)
+{
+  assert (ll_is_empty (&lexer->sources) || lex_token (lexer) == T_ENDCMD);
+  ll_push_head (&lexer->sources, &lex_source_create (reader)->ll);
+}
+
+/* Appends READER to LEXER, so that it will be read after all other current
+   readers have already been read. */
+void
+lex_append (struct lexer *lexer, struct lex_reader *reader)
+{
+  ll_push_tail (&lexer->sources, &lex_source_create (reader)->ll);
+}
 
-/* Common functions. */
+/* Advacning. */
 
-/* Copies put_token, lexer->put_tokstr, put_tokval into token, tokstr,
-   tokval, respectively, and sets tokid appropriately. */
-static void
-restore_token (struct lexer *lexer)
+static struct lex_token *
+lex_push_token__ (struct lex_source *src)
 {
-  assert (lexer->put_token != 0);
-  lexer->token = lexer->put_token;
-  ds_assign_string (&lexer->tokstr, &lexer->put_tokstr);
-  str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
-  lexer->tokval = lexer->put_tokval;
-  lexer->put_token = 0;
+  struct lex_token *token;
+
+  if (deque_is_full (&src->deque))
+    src->tokens = deque_expand (&src->deque, src->tokens, sizeof *src->tokens);
+
+  token = &src->tokens[deque_push_front (&src->deque)];
+  token_init (&token->token);
+  return token;
 }
 
-/* Copies token, tokstr, lexer->tokval into lexer->put_token, put_tokstr,
-   put_lexer->tokval respectively. */
 static void
-save_token (struct lexer *lexer)
+lex_source_pop__ (struct lex_source *src)
 {
-  lexer->put_token = lexer->token;
-  ds_assign_string (&lexer->put_tokstr, &lexer->tokstr);
-  lexer->put_tokval = lexer->tokval;
+  token_destroy (&src->tokens[deque_pop_back (&src->deque)].token);
 }
 
-/* Parses a single token, setting appropriate global variables to
-   indicate the token's attributes. */
+static void
+lex_source_pop_front (struct lex_source *src)
+{
+  token_destroy (&src->tokens[deque_pop_front (&src->deque)].token);
+}
+
+/* Advances LEXER to the next token, consuming the current token. */
 void
 lex_get (struct lexer *lexer)
 {
-  /* Find a token. */
-  for (;;)
-    {
-      if (NULL == lexer->prog && ! lex_get_line (lexer) )
-	{
-	  lexer->token = T_STOP;
-	  return;
-	}
+  struct lex_source *src;
 
-      /* If a token was pushed ahead, return it. */
-      if (lexer->put_token)
-        {
-          restore_token (lexer);
+  src = lex_source__ (lexer);
+  if (src == NULL)
+    return;
+
+  if (!deque_is_empty (&src->deque))
+    lex_source_pop__ (src);
+
+  while (deque_is_empty (&src->deque))
+    if (!lex_source_get__ (src))
+      {
+        lex_source_destroy (src);
+        src = lex_source__ (lexer);
+        if (src == NULL)
           return;
-        }
+      }
+}
+
+/* Issuing errors. */
 
-      for (;;)
-        {
-          /* Skip whitespace. */
-	  while (c_isspace ((unsigned char) *lexer->prog))
-	    lexer->prog++;
+/* Prints a syntax error message containing the current token and
+   given message MESSAGE (if non-null). */
+void
+lex_error (struct lexer *lexer, const char *format, ...)
+{
+  va_list args;
 
-	  if (*lexer->prog)
-	    break;
-
-	  if (lexer->dot)
-	    {
-	      lexer->dot = 0;
-	      lexer->token = '.';
-	      return;
-	    }
-	  else if (!lex_get_line (lexer))
-	    {
-	      lexer->prog = NULL;
-	      lexer->token = T_STOP;
-	      return;
-	    }
-
-	  if (lexer->put_token)
-	    {
-              restore_token (lexer);
-	      return;
-	    }
-	}
-
-
-      /* Actually parse the token. */
-      ds_clear (&lexer->tokstr);
-
-      switch (*lexer->prog)
-	{
-	case '-': case '.':
-	case '0': case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7': case '8': case '9':
-	  {
-	    char *tail;
-
-	    /* `-' can introduce a negative number, or it can be a
-	       token by itself.  If it is not followed by a digit or a
-	       decimal point, it is definitely not a number.
-	       Otherwise, it might be either, but most of the time we
-	       want it as a number.  When the syntax calls for a `-'
-	       token, lex_negative_to_dash() must be used to break
-	       negative numbers into two tokens. */
-	    if (*lexer->prog == '-')
-	      {
-		ds_put_char (&lexer->tokstr, *lexer->prog++);
-		while (c_isspace ((unsigned char) *lexer->prog))
-		  lexer->prog++;
-
-		if (!c_isdigit ((unsigned char) *lexer->prog) && *lexer->prog != '.')
-		  {
-		    lexer->token = '-';
-		    break;
-		  }
-                lexer->token = T_NEG_NUM;
-	      }
-            else
-              lexer->token = T_POS_NUM;
-
-	    /* Parse the number, copying it into tokstr. */
-	    while (c_isdigit ((unsigned char) *lexer->prog))
-	      ds_put_char (&lexer->tokstr, *lexer->prog++);
-	    if (*lexer->prog == '.')
-	      {
-		ds_put_char (&lexer->tokstr, *lexer->prog++);
-		while (c_isdigit ((unsigned char) *lexer->prog))
-		  ds_put_char (&lexer->tokstr, *lexer->prog++);
-	      }
-	    if (*lexer->prog == 'e' || *lexer->prog == 'E')
-	      {
-		ds_put_char (&lexer->tokstr, *lexer->prog++);
-		if (*lexer->prog == '+' || *lexer->prog == '-')
-		  ds_put_char (&lexer->tokstr, *lexer->prog++);
-		while (c_isdigit ((unsigned char) *lexer->prog))
-		  ds_put_char (&lexer->tokstr, *lexer->prog++);
-	      }
-
-	    /* Parse as floating point. */
-	    lexer->tokval = c_strtod (ds_cstr (&lexer->tokstr), &tail);
-	    if (*tail)
-	      {
-		msg (SE, _("%s does not form a valid number."),
-		     ds_cstr (&lexer->tokstr));
-		lexer->tokval = 0.0;
-
-		ds_clear (&lexer->tokstr);
-		ds_put_char (&lexer->tokstr, '0');
-	      }
-
-	    break;
-	  }
-
-	case '\'': case '"':
-	  lexer->token = parse_string (lexer, CHARACTER_STRING);
-	  break;
-
-	case '(': case ')': case ',': case '=': case '+': case '/':
-        case '[': case ']':
-	  lexer->token = *lexer->prog++;
-	  break;
-
-	case '*':
-	  if (*++lexer->prog == '*')
-	    {
-	      lexer->prog++;
-	      lexer->token = T_EXP;
-	    }
-	  else
-	    lexer->token = '*';
-	  break;
-
-	case '<':
-	  if (*++lexer->prog == '=')
-	    {
-	      lexer->prog++;
-	      lexer->token = T_LE;
-	    }
-	  else if (*lexer->prog == '>')
-	    {
-	      lexer->prog++;
-	      lexer->token = T_NE;
-	    }
-	  else
-	    lexer->token = T_LT;
-	  break;
-
-	case '>':
-	  if (*++lexer->prog == '=')
-	    {
-	      lexer->prog++;
-	      lexer->token = T_GE;
-	    }
-	  else
-	    lexer->token = T_GT;
-	  break;
-
-	case '~':
-	  if (*++lexer->prog == '=')
-	    {
-	      lexer->prog++;
-	      lexer->token = T_NE;
-	    }
-	  else
-	    lexer->token = T_NOT;
-	  break;
-
-	case '&':
-	  lexer->prog++;
-	  lexer->token = T_AND;
-	  break;
-
-	case '|':
-	  lexer->prog++;
-	  lexer->token = T_OR;
-	  break;
-
-        case 'b': case 'B':
-          if (lexer->prog[1] == '\'' || lexer->prog[1] == '"')
-            lexer->token = parse_string (lexer, BINARY_STRING);
-          else
-            lexer->token = parse_id (lexer);
-          break;
-
-        case 'o': case 'O':
-          if (lexer->prog[1] == '\'' || lexer->prog[1] == '"')
-            lexer->token = parse_string (lexer, OCTAL_STRING);
-          else
-            lexer->token = parse_id (lexer);
-          break;
-
-        case 'x': case 'X':
-          if (lexer->prog[1] == '\'' || lexer->prog[1] == '"')
-            lexer->token = parse_string (lexer, HEX_STRING);
-          else
-            lexer->token = parse_id (lexer);
-          break;
-
-	default:
-          if (lex_is_id1 (*lexer->prog))
-            {
-              lexer->token = parse_id (lexer);
-              break;
-            }
-          else
-            {
-              unsigned char c = *lexer->prog++;
-              char *c_name = xasprintf (c_isgraph (c) ? "%c" : "\\%o", c);
-              msg (SE, _("Bad character in input: `%s'."), c_name);
-              free (c_name);
-              continue;
-            }
-        }
-      break;
-    }
+  va_start (args, format);
+  lex_next_error_valist (lexer, 0, 0, format, args);
+  va_end (args);
 }
 
-/* Parses an identifier at the current position into tokid and
-   tokstr.
-   Returns the correct token type. */
-static int
-parse_id (struct lexer *lexer)
+/* Prints a syntax error message containing the current token and
+   given message MESSAGE (if non-null). */
+void
+lex_error_valist (struct lexer *lexer, const char *format, va_list args)
 {
-  struct substring rest_of_line
-    = ss_substr (ds_ss (&lexer->line_buffer),
-                 ds_pointer_to_position (&lexer->line_buffer, lexer->prog),
-                 SIZE_MAX);
-  struct substring id = ss_head (rest_of_line,
-                                 lex_id_get_length (rest_of_line));
-  lexer->prog += ss_length (id);
+  lex_next_error_valist (lexer, 0, 0, format, args);
+}
 
-  ds_assign_substring (&lexer->tokstr, id);
-  str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
-  return lex_id_to_token (id);
+/* Prints a syntax error message containing the current token and
+   given message MESSAGE (if non-null). */
+void
+lex_next_error (struct lexer *lexer, int n0, int n1, const char *format, ...)
+{
+  va_list args;
+
+  va_start (args, format);
+  lex_next_error_valist (lexer, n0, n1, format, args);
+  va_end (args);
 }
 
 /* Reports an error to the effect that subcommand SBC may only be
@@ -413,36 +287,28 @@ lex_sbc_missing (struct lexer *lexer, const char *sbc)
 /* Prints a syntax error message containing the current token and
    given message MESSAGE (if non-null). */
 void
-lex_error (struct lexer *lexer, const char *message, ...)
+lex_next_error_valist (struct lexer *lexer, int n0, int n1,
+                       const char *format, va_list args)
 {
-  struct string s;
+  struct lex_source *src = lex_source__ (lexer);
 
-  ds_init_empty (&s);
-
-  if (lexer->token == T_STOP)
-    ds_put_cstr (&s, _("Syntax error at end of file"));
-  else if (lexer->token == '.')
-    ds_put_cstr (&s, _("Syntax error at end of command"));
+  if (src != NULL)
+    lex_source_error_valist (src, n0, n1, format, args);
   else
     {
-      char *token_rep = lex_token_representation (lexer);
-      ds_put_format (&s, _("Syntax error at `%s'"), token_rep);
-      free (token_rep);
+      struct string s;
+
+      ds_init_empty (&s);
+      ds_put_format (&s, _("Syntax error at end of input"));
+      if (format != NULL)
+        {
+          ds_put_cstr (&s, ": ");
+          ds_put_vformat (&s, format, args);
+        }
+      ds_put_byte (&s, '.');
+      msg (SE, "%s", ds_cstr (&s));
+      ds_destroy (&s);
     }
-
-  if (message)
-    {
-      va_list args;
-
-      ds_put_cstr (&s, ": ");
-
-      va_start (args, message);
-      ds_put_vformat (&s, message, args);
-      va_end (args);
-    }
-
-  msg (SE, "%s.", ds_cstr (&s));
-  ds_destroy (&s);
 }
 
 /* Checks that we're at end of command.
@@ -452,7 +318,7 @@ lex_error (struct lexer *lexer, const char *message, ...)
 int
 lex_end_of_command (struct lexer *lexer)
 {
-  if (lexer->token != '.')
+  if (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_STOP)
     {
       lex_error (lexer, _("expecting end of command"));
       return CMD_FAILURE;
@@ -467,35 +333,29 @@ lex_end_of_command (struct lexer *lexer)
 bool
 lex_is_number (struct lexer *lexer)
 {
-  return lexer->token == T_POS_NUM || lexer->token == T_NEG_NUM;
+  return lex_next_is_number (lexer, 0);
 }
-
 
 /* Returns true if the current token is a string. */
 bool
 lex_is_string (struct lexer *lexer)
 {
-  return lexer->token == T_STRING;
+  return lex_next_is_string (lexer, 0);
 }
-
 
 /* Returns the value of the current token, which must be a
    floating point number. */
 double
 lex_number (struct lexer *lexer)
 {
-  assert (lex_is_number (lexer));
-  return lexer->tokval;
+  return lex_next_number (lexer, 0);
 }
 
 /* Returns true iff the current token is an integer. */
 bool
 lex_is_integer (struct lexer *lexer)
 {
-  return (lex_is_number (lexer)
-	  && lexer->tokval > LONG_MIN
-	  && lexer->tokval <= LONG_MAX
-	  && floor (lexer->tokval) == lexer->tokval);
+  return lex_next_is_integer (lexer, 0);
 }
 
 /* Returns the value of the current token, which must be an
@@ -503,18 +363,70 @@ lex_is_integer (struct lexer *lexer)
 long
 lex_integer (struct lexer *lexer)
 {
-  assert (lex_is_integer (lexer));
-  return lexer->tokval;
+  return lex_next_integer (lexer, 0);
+}
+
+/* Token testing functions with lookahead.
+
+   A value of 0 for N as an argument to any of these functions refers to the
+   current token.  Lookahead is limited to the current command.  Any N greater
+   than the number of tokens remaining in the current command will be treated
+   as referring to a T_ENDCMD token. */
+
+/* Returns true if the token N ahead of the current token is a number. */
+bool
+lex_next_is_number (struct lexer *lexer, int n)
+{
+  enum token_type next_token = lex_next_token (lexer, n);
+  return next_token == T_POS_NUM || next_token == T_NEG_NUM;
+}
+
+/* Returns true if the token N ahead of the current token is a string. */
+bool
+lex_next_is_string (struct lexer *lexer, int n)
+{
+  return lex_next_token (lexer, n) == T_STRING;
+}
+
+/* Returns the value of the token N ahead of the current token, which must be a
+   floating point number. */
+double
+lex_next_number (struct lexer *lexer, int n)
+{
+  assert (lex_next_is_number (lexer, n));
+  return lex_next_tokval (lexer, n);
+}
+
+/* Returns true if the token N ahead of the current token is an integer. */
+bool
+lex_next_is_integer (struct lexer *lexer, int n)
+{
+  double value;
+
+  if (!lex_next_is_number (lexer, n))
+    return false;
+
+  value = lex_next_tokval (lexer, n);
+  return value > LONG_MIN && value <= LONG_MAX && floor (value) == value;
+}
+
+/* Returns the value of the token N ahead of the current token, which must be
+   an integer. */
+long
+lex_next_integer (struct lexer *lexer, int n)
+{
+  assert (lex_next_is_integer (lexer, n));
+  return lex_next_tokval (lexer, n);
 }
 
 /* Token matching functions. */
 
-/* If TOK is the current token, skips it and returns true
+/* If the current token has the specified TYPE, skips it and returns true.
    Otherwise, returns false. */
 bool
-lex_match (struct lexer *lexer, int t)
+lex_match (struct lexer *lexer, enum token_type type)
 {
-  if (lexer->token == t)
+  if (lex_token (lexer) == type)
     {
       lex_get (lexer);
       return true;
@@ -523,25 +435,26 @@ lex_match (struct lexer *lexer, int t)
     return false;
 }
 
-/* If the current token is the identifier S, skips it and returns
-   true.  The identifier may be abbreviated to its first three
-   letters.
-   Otherwise, returns false. */
+/* If the current token matches IDENTIFIER, skips it and returns true.
+   IDENTIFIER may be abbreviated to its first three letters.  Otherwise,
+   returns false.
+
+   IDENTIFIER must be an ASCII string. */
 bool
-lex_match_id (struct lexer *lexer, const char *s)
+lex_match_id (struct lexer *lexer, const char *identifier)
 {
-  return lex_match_id_n (lexer, s, 3);
+  return lex_match_id_n (lexer, identifier, 3);
 }
 
-/* If the current token is the identifier S, skips it and returns
-   true.  The identifier may be abbreviated to its first N
-   letters.
-   Otherwise, returns false. */
+/* If the current token is IDENTIFIER, skips it and returns true.  IDENTIFIER
+   may be abbreviated to its first N letters.  Otherwise, returns false.
+
+   IDENTIFIER must be an ASCII string. */
 bool
-lex_match_id_n (struct lexer *lexer, const char *s, size_t n)
+lex_match_id_n (struct lexer *lexer, const char *identifier, size_t n)
 {
-  if (lexer->token == T_ID
-      && lex_id_match_n (ss_cstr (s), ss_cstr (lexer->tokid), n))
+  if (lex_token (lexer) == T_ID
+      && lex_id_match_n (ss_cstr (identifier), lex_tokss (lexer), n))
     {
       lex_get (lexer);
       return true;
@@ -550,8 +463,8 @@ lex_match_id_n (struct lexer *lexer, const char *s, size_t n)
     return false;
 }
 
-/* If the current token is integer N, skips it and returns true.
-   Otherwise, returns false. */
+/* If the current token is integer X, skips it and returns true.  Otherwise,
+   returns false. */
 bool
 lex_match_int (struct lexer *lexer, int x)
 {
@@ -566,39 +479,41 @@ lex_match_int (struct lexer *lexer, int x)
 
 /* Forced matches. */
 
-/* If this token is identifier S, fetches the next token and returns
-   nonzero.
-   Otherwise, reports an error and returns zero. */
+/* If this token is IDENTIFIER, skips it and returns true.  IDENTIFIER may be
+   abbreviated to its first 3 letters.  Otherwise, reports an error and returns
+   false.
+
+   IDENTIFIER must be an ASCII string. */
 bool
-lex_force_match_id (struct lexer *lexer, const char *s)
+lex_force_match_id (struct lexer *lexer, const char *identifier)
 {
-  if (lex_match_id (lexer, s))
+  if (lex_match_id (lexer, identifier))
     return true;
   else
     {
-      lex_error (lexer, _("expecting `%s'"), s);
+      lex_error (lexer, _("expecting `%s'"), identifier);
       return false;
     }
 }
 
-/* If the current token is T, skips the token.  Otherwise, reports an
-   error and returns from the current function with return value false. */
+/* If the current token has the specified TYPE, skips it and returns true.
+   Otherwise, reports an error and returns false. */
 bool
-lex_force_match (struct lexer *lexer, int t)
+lex_force_match (struct lexer *lexer, enum token_type type)
 {
-  if (lexer->token == t)
+  if (lex_token (lexer) == type)
     {
       lex_get (lexer);
       return true;
     }
   else
     {
-      lex_error (lexer, _("expecting `%s'"), lex_token_name (t));
+      lex_error (lexer, _("expecting `%s'"), token_type_to_string (type));
       return false;
     }
 }
 
-/* If this token is a string, does nothing and returns true.
+/* If the current token is a string, does nothing and returns true.
    Otherwise, reports an error and returns false. */
 bool
 lex_force_string (struct lexer *lexer)
@@ -612,7 +527,7 @@ lex_force_string (struct lexer *lexer)
     }
 }
 
-/* If this token is an integer, does nothing and returns true.
+/* If the current token is an integer, does nothing and returns true.
    Otherwise, reports an error and returns false. */
 bool
 lex_force_int (struct lexer *lexer)
@@ -626,7 +541,7 @@ lex_force_int (struct lexer *lexer)
     }
 }
 
-/* If this token is a number, does nothing and returns true.
+/* If the current token is a number, does nothing and returns true.
    Otherwise, reports an error and returns false. */
 bool
 lex_force_num (struct lexer *lexer)
@@ -638,613 +553,1086 @@ lex_force_num (struct lexer *lexer)
   return false;
 }
 
-/* If this token is an identifier, does nothing and returns true.
+/* If the current token is an identifier, does nothing and returns true.
    Otherwise, reports an error and returns false. */
 bool
 lex_force_id (struct lexer *lexer)
 {
-  if (lexer->token == T_ID)
+  if (lex_token (lexer) == T_ID)
     return true;
 
   lex_error (lexer, _("expecting identifier"));
   return false;
 }
-
-/* Weird token functions. */
-
-/* Returns the first character of the next token, except that if the
-   next token is not an identifier, the character returned will not be
-   a character that can begin an identifier.  Specifically, the
-   hexstring lead-in X' causes lookahead() to return '.  Note that an
-   alphanumeric return value doesn't guarantee an ID token, it could
-   also be a reserved-word token. */
-int
-lex_look_ahead (struct lexer *lexer)
-{
-  if (lexer->put_token)
-    return lexer->put_token;
-
-  for (;;)
-    {
-      if (NULL == lexer->prog && ! lex_get_line (lexer) )
-        return 0;
-
-      for (;;)
-	{
-	  while (c_isspace ((unsigned char) *lexer->prog))
-	    lexer->prog++;
-	  if (*lexer->prog)
-	    break;
-
-	  if (lexer->dot)
-	    return '.';
-	  else if (!lex_get_line (lexer))
-            return 0;
-
-	  if (lexer->put_token)
-	    return lexer->put_token;
-	}
-
-      if ((toupper ((unsigned char) *lexer->prog) == 'X'
-	   || toupper ((unsigned char) *lexer->prog) == 'B'
-           || toupper ((unsigned char) *lexer->prog) == 'O')
-	  && (lexer->prog[1] == '\'' || lexer->prog[1] == '"'))
-	return '\'';
-
-      return *lexer->prog;
-    }
-}
-
-/* Makes the current token become the next token to be read; the
-   current token is set to T. */
-void
-lex_put_back (struct lexer *lexer, int t)
-{
-  save_token (lexer);
-  lexer->token = t;
-}
-
-/* Makes the current token become the next token to be read; the
-   current token is set to the identifier ID. */
-void
-lex_put_back_id (struct lexer *lexer, const char *id)
-{
-  assert (lex_id_to_token (ss_cstr (id)) == T_ID);
-  save_token (lexer);
-  lexer->token = T_ID;
-  ds_assign_cstr (&lexer->tokstr, id);
-  str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
-}
 
-/* Weird line processing functions. */
+/* Token accessors. */
 
-/* Returns the entire contents of the current line. */
-const char *
-lex_entire_line (const struct lexer *lexer)
-{
-  return ds_cstr (&lexer->line_buffer);
-}
-
-const struct string *
-lex_entire_line_ds (const struct lexer *lexer)
-{
-  return &lexer->line_buffer;
-}
-
-/* As lex_entire_line(), but only returns the part of the current line
-   that hasn't already been tokenized. */
-const char *
-lex_rest_of_line (const struct lexer *lexer)
-{
-  return lexer->prog;
-}
-
-/* Returns true if the current line ends in a terminal dot,
-   false otherwise. */
-bool
-lex_end_dot (const struct lexer *lexer)
-{
-  return lexer->dot;
-}
-
-/* Causes the rest of the current input line to be ignored for
-   tokenization purposes. */
-void
-lex_discard_line (struct lexer *lexer)
-{
-  ds_cstr (&lexer->line_buffer);  /* Ensures ds_end points to something valid */
-  lexer->prog = ds_end (&lexer->line_buffer);
-  lexer->dot = false;
-  lexer->put_token = 0;
-}
-
-
-/* Discards the rest of the current command.
-   When we're reading commands from a file, we skip tokens until
-   a terminal dot or EOF.
-   When we're reading commands interactively from the user,
-   that's just discarding the current line, because presumably
-   the user doesn't want to finish typing a command that will be
-   ignored anyway. */
-void
-lex_discard_rest_of_command (struct lexer *lexer)
-{
-  if (!getl_is_interactive (lexer->ss))
-    {
-      while (lexer->token != T_STOP && lexer->token != '.')
-	lex_get (lexer);
-    }
-  else
-    lex_discard_line (lexer);
-}
-
-/* Weird line reading functions. */
-
-/* Remove C-style comments in STRING, begun by slash-star and
-   terminated by star-slash or newline. */
-static void
-strip_comments (struct string *string)
-{
-  char *cp;
-  int quote;
-  bool in_comment;
-
-  in_comment = false;
-  quote = EOF;
-  for (cp = ds_cstr (string); *cp; )
-    {
-      /* If we're not in a comment, check for quote marks. */
-      if (!in_comment)
-        {
-          if (*cp == quote)
-            quote = EOF;
-          else if (*cp == '\'' || *cp == '"')
-            quote = *cp;
-        }
-
-      /* If we're not inside a quotation, check for comment. */
-      if (quote == EOF)
-        {
-          if (cp[0] == '/' && cp[1] == '*')
-            {
-              in_comment = true;
-              *cp++ = ' ';
-              *cp++ = ' ';
-              continue;
-            }
-          else if (in_comment && cp[0] == '*' && cp[1] == '/')
-            {
-              in_comment = false;
-              *cp++ = ' ';
-              *cp++ = ' ';
-              continue;
-            }
-        }
-
-      /* Check commenting. */
-      if (in_comment)
-        *cp = ' ';
-      cp++;
-    }
-}
-
-/* Prepares LINE, which is subject to the given SYNTAX rules, for
-   tokenization by stripping comments and determining whether it
-   is the beginning or end of a command and storing into
-   *LINE_STARTS_COMMAND and *LINE_ENDS_COMMAND appropriately. */
-void
-lex_preprocess_line (struct string *line,
-                     enum syntax_mode syntax,
-                     bool *line_starts_command,
-                     bool *line_ends_command)
-{
-  strip_comments (line);
-  ds_rtrim (line, ss_cstr (CC_SPACES));
-  *line_ends_command = (ds_chomp (line, settings_get_endcmd ())
-                        || (ds_is_empty (line) && settings_get_nulline ()));
-  *line_starts_command = false;
-  if (syntax == GETL_BATCH)
-    {
-      int first = ds_first (line);
-      *line_starts_command = !c_isspace (first);
-      if (first == '+' || first == '-')
-        *ds_data (line) = ' ';
-    }
-}
-
-/* Reads a line, without performing any preprocessing. */
-bool
-lex_get_line_raw (struct lexer *lexer)
-{
-  bool ok = getl_read_line (lexer->ss, &lexer->line_buffer);
-  if (ok)
-    {
-      const char *line = ds_cstr (&lexer->line_buffer);
-      text_item_submit (text_item_create (TEXT_ITEM_SYNTAX, line));
-    }
-  else
-    lexer->prog = NULL;
-  return ok;
-}
-
-/* Reads a line for use by the tokenizer, and preprocesses it by
-   removing comments, stripping trailing whitespace and the
-   terminal dot, and removing leading indentors. */
-bool
-lex_get_line (struct lexer *lexer)
-{
-  bool line_starts_command;
-
-  if (!lex_get_line_raw (lexer))
-    return false;
-
-  lex_preprocess_line (&lexer->line_buffer,
-		       lex_current_syntax_mode (lexer),
-                       &line_starts_command, &lexer->dot);
-
-  if (line_starts_command)
-    lexer->put_token = '.';
-
-  lexer->prog = ds_cstr (&lexer->line_buffer);
-  return true;
-}
-
-/* Token names. */
-
-/* Returns the name of a token. */
-const char *
-lex_token_name (int token)
-{
-  if (lex_is_keyword (token))
-    return lex_id_name (token);
-  else if (token < 256)
-    {
-      static char t[256][2];
-      char *s = t[token];
-      s[0] = token;
-      s[1] = '\0';
-      return s;
-    }
-  else
-    NOT_REACHED ();
-}
-
-/* Returns an ASCII representation of the current token as a
-   malloc()'d string. */
-char *
-lex_token_representation (struct lexer *lexer)
-{
-  char *token_rep;
-
-  switch (lexer->token)
-    {
-    case T_ID:
-    case T_POS_NUM:
-    case T_NEG_NUM:
-      return ds_xstrdup (&lexer->tokstr);
-      break;
-
-    case T_STRING:
-      {
-	int hexstring = 0;
-	char *sp, *dp;
-
-	for (sp = ds_cstr (&lexer->tokstr); sp < ds_end (&lexer->tokstr); sp++)
-	  if (!c_isprint ((unsigned char) *sp))
-	    {
-	      hexstring = 1;
-	      break;
-	    }
-
-	token_rep = xmalloc (2 + ds_length (&lexer->tokstr) * 2 + 1 + 1);
-
-	dp = token_rep;
-	if (hexstring)
-	  *dp++ = 'X';
-	*dp++ = '\'';
-
-	if (!hexstring)
-	  for (sp = ds_cstr (&lexer->tokstr); *sp; )
-	    {
-	      if (*sp == '\'')
-		*dp++ = '\'';
-	      *dp++ = (unsigned char) *sp++;
-	    }
-	else
-	  for (sp = ds_cstr (&lexer->tokstr); sp < ds_end (&lexer->tokstr); sp++)
-	    {
-	      *dp++ = (((unsigned char) *sp) >> 4)["0123456789ABCDEF"];
-	      *dp++ = (((unsigned char) *sp) & 15)["0123456789ABCDEF"];
-	    }
-	*dp++ = '\'';
-	*dp = '\0';
-
-	return token_rep;
-      }
-    break;
-
-    case T_STOP:
-      token_rep = xmalloc (1);
-      *token_rep = '\0';
-      return token_rep;
-
-    case T_EXP:
-      return xstrdup ("**");
-
-    default:
-      return xstrdup (lex_token_name (lexer->token));
-    }
-
-  NOT_REACHED ();
-}
-
-/* Really weird functions. */
-
-/* Most of the time, a `-' is a lead-in to a negative number.  But
-   sometimes it's actually part of the syntax.  If a dash can be part
-   of syntax then this function is called to rip it off of a
-   number. */
-void
-lex_negative_to_dash (struct lexer *lexer)
-{
-  if (lexer->token == T_NEG_NUM)
-    {
-      lexer->token = T_POS_NUM;
-      lexer->tokval = -lexer->tokval;
-      ds_assign_substring (&lexer->tokstr, ds_substr (&lexer->tokstr, 1, SIZE_MAX));
-      save_token (lexer);
-      lexer->token = '-';
-    }
-}
-
-/* Skip a COMMENT command. */
-void
-lex_skip_comment (struct lexer *lexer)
-{
-  for (;;)
-    {
-      if (!lex_get_line (lexer))
-        {
-          lexer->put_token = T_STOP;
-	  lexer->prog = NULL;
-          return;
-        }
-
-      if (lexer->put_token == '.')
-	break;
-
-      ds_cstr (&lexer->line_buffer); /* Ensures ds_end will point to a valid char */
-      lexer->prog = ds_end (&lexer->line_buffer);
-      if (lexer->dot)
-	break;
-    }
-}
-
-/* Private functions. */
-
-/* When invoked, tokstr contains a string of binary, octal, or
-   hex digits, according to TYPE.  The string is converted to
-   characters having the specified values. */
-static void
-convert_numeric_string_to_char_string (struct lexer *lexer,
-				       enum string_type type)
-{
-  const char *base_name;
-  int base;
-  int chars_per_byte;
-  size_t byte_cnt;
-  size_t i;
-  char *p;
-
-  switch (type)
-    {
-    case BINARY_STRING:
-      base_name = _("binary");
-      base = 2;
-      chars_per_byte = 8;
-      break;
-    case OCTAL_STRING:
-      base_name = _("octal");
-      base = 8;
-      chars_per_byte = 3;
-      break;
-    case HEX_STRING:
-      base_name = _("hex");
-      base = 16;
-      chars_per_byte = 2;
-      break;
-    default:
-      NOT_REACHED ();
-    }
-
-  byte_cnt = ds_length (&lexer->tokstr) / chars_per_byte;
-  if (ds_length (&lexer->tokstr) % chars_per_byte)
-    msg (SE, _("String of %s digits has %zu characters, which is not a "
-	       "multiple of %d."),
-	 base_name, ds_length (&lexer->tokstr), chars_per_byte);
-
-  p = ds_cstr (&lexer->tokstr);
-  for (i = 0; i < byte_cnt; i++)
-    {
-      int value;
-      int j;
-
-      value = 0;
-      for (j = 0; j < chars_per_byte; j++, p++)
-	{
-	  int v;
-
-	  if (*p >= '0' && *p <= '9')
-	    v = *p - '0';
-	  else
-	    {
-	      static const char alpha[] = "abcdef";
-	      const char *q = strchr (alpha, tolower ((unsigned char) *p));
-
-	      if (q)
-		v = q - alpha + 10;
-	      else
-		v = base;
-	    }
-
-	  if (v >= base)
-	    msg (SE, _("`%c' is not a valid %s digit."), *p, base_name);
-
-	  value = value * base + v;
-	}
-
-      ds_cstr (&lexer->tokstr)[i] = (unsigned char) value;
-    }
-
-  ds_truncate (&lexer->tokstr, byte_cnt);
-}
-
-/* Parses a string from the input buffer into tokstr.  The input
-   buffer pointer lexer->prog must point to the initial single or double
-   quote.  TYPE indicates the type of string to be parsed.
-   Returns token type. */
-static int
-parse_string (struct lexer *lexer, enum string_type type)
-{
-  if (type != CHARACTER_STRING)
-    lexer->prog++;
-
-  /* Accumulate the entire string, joining sections indicated by +
-     signs. */
-  for (;;)
-    {
-      /* Single or double quote. */
-      int c = *lexer->prog++;
-
-      /* Accumulate section. */
-      for (;;)
-	{
-	  /* Check end of line. */
-	  if (*lexer->prog == '\0')
-	    {
-	      msg (SE, _("Unterminated string constant."));
-	      goto finish;
-	    }
-
-	  /* Double quote characters to embed them in strings. */
-	  if (*lexer->prog == c)
-	    {
-	      if (lexer->prog[1] == c)
-		lexer->prog++;
-	      else
-		break;
-	    }
-
-	  ds_put_char (&lexer->tokstr, *lexer->prog++);
-	}
-      lexer->prog++;
-
-      /* Skip whitespace after final quote mark. */
-      if (lexer->prog == NULL)
-	break;
-      for (;;)
-	{
-	  while (c_isspace ((unsigned char) *lexer->prog))
-	    lexer->prog++;
-	  if (*lexer->prog)
-	    break;
-
-	  if (lexer->dot)
-	    goto finish;
-
-	  if (!lex_get_line (lexer))
-            goto finish;
-	}
-
-      /* Skip plus sign. */
-      if (*lexer->prog != '+')
-	break;
-      lexer->prog++;
-
-      /* Skip whitespace after plus sign. */
-      if (lexer->prog == NULL)
-	break;
-      for (;;)
-	{
-	  while (c_isspace ((unsigned char) *lexer->prog))
-	    lexer->prog++;
-	  if (*lexer->prog)
-	    break;
-
-	  if (lexer->dot)
-	    goto finish;
-
-	  if (!lex_get_line (lexer))
-            {
-              msg (SE, _("Unexpected end of file in string concatenation."));
-              goto finish;
-            }
-	}
-
-      /* Ensure that a valid string follows. */
-      if (*lexer->prog != '\'' && *lexer->prog != '"')
-	{
-	  msg (SE, _("String expected following `+'."));
-	  goto finish;
-	}
-    }
-
-  /* We come here when we've finished concatenating all the string sections
-     into one large string. */
-finish:
-  if (type != CHARACTER_STRING)
-    convert_numeric_string_to_char_string (lexer, type);
-
-  return T_STRING;
-}
-
-/* Token Accessor Functions */
-
-int
+/* Returns the type of LEXER's current token. */
+enum token_type
 lex_token (const struct lexer *lexer)
 {
-  return lexer->token;
+  return lex_next_token (lexer, 0);
 }
 
+/* Returns the number in LEXER's current token.
+
+   Only T_NEG_NUM and T_POS_NUM tokens have meaningful values.  For other
+   tokens this function will always return zero. */
 double
 lex_tokval (const struct lexer *lexer)
 {
-  return lexer->tokval;
+  return lex_next_tokval (lexer, 0);
 }
 
+/* Returns the null-terminated string in LEXER's current token, UTF-8 encoded.
+
+   Only T_ID and T_STRING tokens have meaningful strings.  For other tokens
+   this functions this function will always return NULL.
+
+   The UTF-8 encoding of the returned string is correct for variable names and
+   other identifiers.  Use filename_to_utf8() to use it as a filename.  Use
+   data_in() to use it in a "union value".  */
 const char *
-lex_tokid (const struct lexer *lexer)
+lex_tokcstr (const struct lexer *lexer)
 {
-  return lexer->tokid;
+  return lex_next_tokcstr (lexer, 0);
 }
 
-const struct string *
-lex_tokstr (const struct lexer *lexer)
-{
-  return &lexer->tokstr;
-}
+/* Returns the string in LEXER's current token, UTF-8 encoded.  The string is
+   null-terminated (but the null terminator is not included in the returned
+   substring's 'length').
 
-/* If the lexer is positioned at the (pseudo)identifier S, which
-   may contain a hyphen ('-'), skips it and returns true.  Each
-   half of the identifier may be abbreviated to its first three
-   letters.
-   Otherwise, returns false. */
-bool
-lex_match_hyphenated_word (struct lexer *lexer, const char *s)
+   Only T_ID and T_STRING tokens have meaningful strings.  For other tokens
+   this functions this function will always return NULL.
+
+   The UTF-8 encoding of the returned string is correct for variable names and
+   other identifiers.  Use filename_to_utf8() to use it as a filename.  Use
+   data_in() to use it in a "union value".  */
+struct substring
+lex_tokss (const struct lexer *lexer)
 {
-  const char *hyphen = strchr (s, '-');
-  if (hyphen == NULL)
-    return lex_match_id (lexer, s);
-  else if (lexer->token != T_ID
-	   || !lex_id_match (ss_buffer (s, hyphen - s), ss_cstr (lexer->tokid))
-	   || lex_look_ahead (lexer) != '-')
-    return false;
+  return lex_next_tokss (lexer, 0);
+}
+
+/* Looking ahead.
+
+   A value of 0 for N as an argument to any of these functions refers to the
+   current token.  Lookahead is limited to the current command.  Any N greater
+   than the number of tokens remaining in the current command will be treated
+   as referring to a T_ENDCMD token. */
+
+static const struct lex_token *
+lex_next__ (const struct lexer *lexer_, int n)
+{
+  struct lexer *lexer = CONST_CAST (struct lexer *, lexer_);
+  struct lex_source *src = lex_source__ (lexer);
+
+  if (src != NULL)
+    return lex_source_next__ (src, n);
   else
     {
-      lex_get (lexer);
-      lex_force_match (lexer, '-');
-      lex_force_match_id (lexer, hyphen + 1);
-      return true;
+      static const struct lex_token stop_token =
+        { TOKEN_INITIALIZER (T_STOP, 0.0, ""), 0, 0, 0, 0 };
+
+      return &stop_token;
     }
 }
 
+static const struct lex_token *
+lex_source_next__ (const struct lex_source *src, int n)
+{
+  while (deque_count (&src->deque) <= n)
+    {
+      if (!deque_is_empty (&src->deque))
+        {
+          struct lex_token *front;
+
+          front = &src->tokens[deque_front (&src->deque, 0)];
+          if (front->token.type == T_STOP || front->token.type == T_ENDCMD)
+            return front;
+        }
+
+      lex_source_get__ (src);
+    }
+
+  return &src->tokens[deque_back (&src->deque, n)];
+}
+
+/* Returns the "struct token" of the token N after the current one in LEXER.
+   The returned pointer can be invalidated by pretty much any succeeding call
+   into the lexer, although the string pointer within the returned token is
+   only invalidated by consuming the token (e.g. with lex_get()). */
+const struct token *
+lex_next (const struct lexer *lexer, int n)
+{
+  return &lex_next__ (lexer, n)->token;
+}
+
+/* Returns the type of the token N after the current one in LEXER. */
+enum token_type
+lex_next_token (const struct lexer *lexer, int n)
+{
+  return lex_next (lexer, n)->type;
+}
+
+/* Returns the number in the tokn N after the current one in LEXER.
+
+   Only T_NEG_NUM and T_POS_NUM tokens have meaningful values.  For other
+   tokens this function will always return zero. */
+double
+lex_next_tokval (const struct lexer *lexer, int n)
+{
+  const struct token *token = lex_next (lexer, n);
+  return token->number;
+}
+
+/* Returns the null-terminated string in the token N after the current one, in
+   UTF-8 encoding.
+
+   Only T_ID and T_STRING tokens have meaningful strings.  For other tokens
+   this functions this function will always return NULL.
+
+   The UTF-8 encoding of the returned string is correct for variable names and
+   other identifiers.  Use filename_to_utf8() to use it as a filename.  Use
+   data_in() to use it in a "union value".  */
+const char *
+lex_next_tokcstr (const struct lexer *lexer, int n)
+{
+  return lex_next_tokss (lexer, n).string;
+}
+
+/* Returns the string in the token N after the current one, in UTF-8 encoding.
+   The string is null-terminated (but the null terminator is not included in
+   the returned substring's 'length').
+
+   Only T_ID and T_STRING tokens have meaningful strings.  For other tokens
+   this functions this function will always return NULL.
+
+   The UTF-8 encoding of the returned string is correct for variable names and
+   other identifiers.  Use filename_to_utf8() to use it as a filename.  Use
+   data_in() to use it in a "union value".  */
+struct substring
+lex_next_tokss (const struct lexer *lexer, int n)
+{
+  return lex_next (lexer, n)->string;
+}
+
+/* If LEXER is positioned at the (pseudo)identifier S, skips it and returns
+   true.  Otherwise, returns false.
+
+   S may consist of an arbitrary number of identifiers, integers, and
+   punctuation e.g. "KRUSKAL-WALLIS", "2SLS", or "END INPUT PROGRAM".
+   Identifiers may be abbreviated to their first three letters.  Currently only
+   hyphens, slashes, and equals signs are supported as punctuation (but it
+   would be easy to add more).
+
+   S must be an ASCII string. */
+bool
+lex_match_phrase (struct lexer *lexer, const char *s)
+{
+  int tok_idx;
+
+  for (tok_idx = 0; ; tok_idx++)
+    {
+      enum token_type token;
+      unsigned char c;
+
+      while (c_isspace (*s))
+        s++;
+
+      c = *s;
+      if (c == '\0')
+        {
+          int i;
+
+          for (i = 0; i < tok_idx; i++)
+            lex_get (lexer);
+          return true;
+        }
+
+      token = lex_next_token (lexer, tok_idx);
+      switch (c)
+        {
+        case '-':
+          if (token != T_DASH)
+            return false;
+          s++;
+          break;
+
+        case '/':
+          if (token != T_SLASH)
+            return false;
+          s++;
+          break;
+
+        case '=':
+          if (token != T_EQUALS)
+            return false;
+          s++;
+          break;
+
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+          {
+            unsigned int value;
+
+            if (token != T_POS_NUM)
+              return false;
+
+            value = 0;
+            do
+              {
+                value = value * 10 + (*s++ - '0');
+              }
+            while (c_isdigit (*s));
+
+            if (lex_next_tokval (lexer, tok_idx) != value)
+              return false;
+          }
+          break;
+
+        default:
+          if (lex_is_id1 (c))
+            {
+              int len;
+
+              if (token != T_ID)
+                return false;
+
+              len = lex_id_get_length (ss_cstr (s));
+              if (!lex_id_match (ss_buffer (s, len),
+                                 lex_next_tokss (lexer, tok_idx)))
+                return false;
+
+              s += len;
+            }
+          else
+            NOT_REACHED ();
+        }
+    }
+}
+
+static int
+lex_source_get_first_line_number (const struct lex_source *src, int n)
+{
+  return lex_source_next__ (src, n)->first_line;
+}
+
+static int
+count_newlines (char *s, size_t length)
+{
+  int n_newlines = 0;
+  char *newline;
+
+  while ((newline = memchr (s, '\n', length)) != NULL)
+    {
+      n_newlines++;
+      length -= (newline + 1) - s;
+      s = newline + 1;
+    }
+
+  return n_newlines;
+}
+
+static int
+lex_source_get_last_line_number (const struct lex_source *src, int n)
+{
+  const struct lex_token *token = lex_source_next__ (src, n);
+
+  if (token->first_line == 0)
+    return 0;
+  else
+    {
+      char *token_str = &src->buffer[token->token_pos - src->tail];
+      return token->first_line + count_newlines (token_str, token->token_len) + 1;
+    }
+}
+
+static int
+count_columns (const char *s_, size_t length)
+{
+  const uint8_t *s = CHAR_CAST (const uint8_t *, s_);
+  int columns;
+  size_t ofs;
+  int mblen;
+
+  columns = 0;
+  for (ofs = 0; ofs < length; ofs += mblen)
+    {
+      ucs4_t uc;
+
+      mblen = u8_mbtouc (&uc, s + ofs, length - ofs);
+      if (uc != '\t')
+        {
+          int width = uc_width (uc, "UTF-8");
+          if (width > 0)
+            columns += width;
+        }
+      else
+        columns = ROUND_UP (columns + 1, 8);
+    }
+
+  return columns + 1;
+}
+
+static int
+lex_source_get_first_column (const struct lex_source *src, int n)
+{
+  const struct lex_token *token = lex_source_next__ (src, n);
+  return count_columns (&src->buffer[token->line_pos - src->tail],
+                        token->token_pos - token->line_pos);
+}
+
+static int
+lex_source_get_last_column (const struct lex_source *src, int n)
+{
+  const struct lex_token *token = lex_source_next__ (src, n);
+  char *start, *end, *newline;
+
+  start = &src->buffer[token->line_pos - src->tail];
+  end = &src->buffer[(token->token_pos + token->token_len) - src->tail];
+  newline = memrchr (start, '\n', end - start);
+  if (newline != NULL)
+    start = newline + 1;
+  return count_columns (start, end - start);
+}
+
+/* Returns the 1-based line number of the start of the syntax that represents
+   the token N after the current one in LEXER.  Returns 0 for a T_STOP token or
+   if the token is drawn from a source that does not have line numbers. */
+int
+lex_get_first_line_number (const struct lexer *lexer, int n)
+{
+  const struct lex_source *src = lex_source__ (lexer);
+  return src != NULL ? lex_source_get_first_line_number (src, n) : 0;
+}
+
+/* Returns the 1-based line number of the end of the syntax that represents the
+   token N after the current one in LEXER, plus 1.  Returns 0 for a T_STOP
+   token or if the token is drawn from a source that does not have line
+   numbers.
+
+   Most of the time, a single token is wholly within a single line of syntax,
+   but there are two exceptions: a T_STRING token can be made up of multiple
+   segments on adjacent lines connected with "+" punctuators, and a T_NEG_NUM
+   token can consist of a "-" on one line followed by the number on the next.
+ */
+int
+lex_get_last_line_number (const struct lexer *lexer, int n)
+{
+  const struct lex_source *src = lex_source__ (lexer);
+  return src != NULL ? lex_source_get_last_line_number (src, n) : 0;
+}
+
+/* Returns the 1-based column number of the start of the syntax that represents
+   the token N after the current one in LEXER.  Returns 0 for a T_STOP
+   token.
+
+   Column numbers are measured according to the width of characters as shown in
+   a typical fixed-width font, in which CJK characters have width 2 and
+   combining characters have width 0.  */
+int
+lex_get_first_column (const struct lexer *lexer, int n)
+{
+  const struct lex_source *src = lex_source__ (lexer);
+  return src != NULL ? lex_source_get_first_column (src, n) : 0;
+}
+
+/* Returns the 1-based column number of the end of the syntax that represents
+   the token N after the current one in LEXER, plus 1.  Returns 0 for a T_STOP
+   token.
+
+   Column numbers are measured according to the width of characters as shown in
+   a typical fixed-width font, in which CJK characters have width 2 and
+   combining characters have width 0.  */
+int
+lex_get_last_column (const struct lexer *lexer, int n)
+{
+  const struct lex_source *src = lex_source__ (lexer);
+  return src != NULL ? lex_source_get_last_column (src, n) : 0;
+}
+
+/* Returns the name of the syntax file from which the current command is drawn.
+   Returns NULL for a T_STOP token or if the command's source does not have
+   line numbers.
+
+   There is no version of this function that takes an N argument because
+   lookahead only works to the end of a command and any given command is always
+   within a single syntax file. */
+const char *
+lex_get_file_name (const struct lexer *lexer)
+{
+  struct lex_source *src = lex_source__ (lexer);
+  return src == NULL ? NULL : src->reader->file_name;
+}
+
+/* Returns the syntax mode for the syntax file from which the current drawn is
+   drawn.  Returns LEX_SYNTAX_AUTO for a T_STOP token or if the command's
+   source does not have line numbers.
+
+   There is no version of this function that takes an N argument because
+   lookahead only works to the end of a command and any given command is always
+   within a single syntax file. */
+enum lex_syntax_mode
+lex_get_syntax_mode (const struct lexer *lexer)
+{
+  struct lex_source *src = lex_source__ (lexer);
+  return src == NULL ? LEX_SYNTAX_AUTO : src->reader->syntax;
+}
+
+/* Returns the error mode for the syntax file from which the current drawn is
+   drawn.  Returns LEX_ERROR_INTERACTIVE for a T_STOP token or if the command's
+   source does not have line numbers.
+
+   There is no version of this function that takes an N argument because
+   lookahead only works to the end of a command and any given command is always
+   within a single syntax file. */
+enum lex_error_mode
+lex_get_error_mode (const struct lexer *lexer)
+{
+  struct lex_source *src = lex_source__ (lexer);
+  return src == NULL ? LEX_ERROR_INTERACTIVE : src->reader->error;
+}
+
+/* If the source that LEXER is currently reading has error mode
+   LEX_ERROR_INTERACTIVE, discards all buffered input and tokens, so that the
+   next token to be read comes directly from whatever is next read from the
+   stream.
+
+   It makes sense to call this function after encountering an error in a
+   command entered on the console, because usually the user would prefer not to
+   have cascading errors. */
+void
+lex_interactive_reset (struct lexer *lexer)
+{
+  struct lex_source *src = lex_source__ (lexer);
+  if (src != NULL && src->reader->error == LEX_ERROR_INTERACTIVE)
+    {
+      src->head = src->tail = 0;
+      src->journal_pos = src->seg_pos = src->line_pos = 0;
+      src->n_newlines = 0;
+      src->suppress_next_newline = false;
+      segmenter_init (&src->segmenter, segmenter_get_mode (&src->segmenter));
+      while (!deque_is_empty (&src->deque))
+        lex_source_pop__ (src);
+      lex_source_push_endcmd__ (src);
+    }
+}
+
+/* Advances past any tokens in LEXER up to a T_ENDCMD or T_STOP. */
+void
+lex_discard_rest_of_command (struct lexer *lexer)
+{
+  while (lex_token (lexer) != T_STOP && lex_token (lexer) != T_ENDCMD)
+    lex_get (lexer);
+}
+
+/* Discards all lookahead tokens in LEXER, then discards all input sources
+   until it encounters one with error mode LEX_ERROR_INTERACTIVE or until it
+   runs out of input sources. */
+void
+lex_discard_noninteractive (struct lexer *lexer)
+{
+  struct lex_source *src = lex_source__ (lexer);
+
+  if (src != NULL)
+    {
+      while (!deque_is_empty (&src->deque))
+        lex_source_pop__ (src);
+
+      for (; src != NULL && src->reader->error != LEX_ERROR_INTERACTIVE;
+           src = lex_source__ (lexer))
+        lex_source_destroy (src);
+    }
+}
+
+static size_t
+lex_source_max_tail__ (const struct lex_source *src)
+{
+  const struct lex_token *token;
+  size_t max_tail;
+
+  assert (src->seg_pos >= src->line_pos);
+  max_tail = MIN (src->journal_pos, src->line_pos);
+
+  /* Use the oldest token also.  (We know that src->deque cannot be empty
+     because we are in the process of adding a new token, which is already
+     initialized enough to use here.) */
+  token = &src->tokens[deque_back (&src->deque, 0)];
+  assert (token->token_pos >= token->line_pos);
+  max_tail = MIN (max_tail, token->line_pos);
+
+  return max_tail;
+}
+
+static void
+lex_source_expand__ (struct lex_source *src)
+{
+  if (src->head - src->tail >= src->allocated)
+    {
+      size_t max_tail = lex_source_max_tail__ (src);
+      if (max_tail > src->tail)
+        {
+          /* Advance the tail, freeing up room at the head. */
+          memmove (src->buffer, src->buffer + (max_tail - src->tail),
+                   src->head - max_tail);
+          src->tail = max_tail;
+        }
+      else
+        {
+          /* Buffer is completely full.  Expand it. */
+          src->buffer = x2realloc (src->buffer, &src->allocated);
+        }
+    }
+  else
+    {
+      /* There's space available at the head of the buffer.  Nothing to do. */
+    }
+}
+
+static void
+lex_source_read__ (struct lex_source *src)
+{
+  do
+    {
+      size_t head_ofs;
+      size_t n;
+
+      lex_source_expand__ (src);
+
+      head_ofs = src->head - src->tail;
+      n = src->reader->class->read (src->reader, &src->buffer[head_ofs],
+                                    src->allocated - head_ofs,
+                                    segmenter_get_prompt (&src->segmenter));
+      if (n == 0)
+        {
+          /* End of input.
+
+             Ensure that the input always ends in a new-line followed by a null
+             byte, as required by the segmenter library. */
+
+          if (src->head == src->tail
+              || src->buffer[src->head - src->tail - 1] != '\n')
+            src->buffer[src->head++ - src->tail] = '\n';
+
+          lex_source_expand__ (src);
+          src->buffer[src->head++ - src->tail] = '\0';
+
+          return;
+        }
+
+      src->head += n;
+    }
+  while (!memchr (&src->buffer[src->seg_pos - src->tail], '\n',
+                  src->head - src->seg_pos));
+}
+
+static struct lex_source *
+lex_source__ (const struct lexer *lexer)
+{
+  return (ll_is_empty (&lexer->sources) ? NULL
+          : ll_data (ll_head (&lexer->sources), struct lex_source, ll));
+}
+
+static struct substring
+lex_source_get_syntax__ (const struct lex_source *src, int n0, int n1)
+{
+  const struct lex_token *token0 = lex_source_next__ (src, n0);
+  const struct lex_token *token1 = lex_source_next__ (src, MAX (n0, n1));
+  size_t start = token0->token_pos;
+  size_t end = token1->token_pos + token1->token_len;
+
+  return ss_buffer (&src->buffer[start - src->tail], end - start);
+}
+
+static void
+lex_ellipsize__ (struct substring in, char *out, size_t out_size)
+{
+  size_t out_maxlen;
+  size_t out_len;
+  int mblen;
+
+  assert (out_size >= 16);
+  out_maxlen = out_size - (in.length >= out_size ? 3 : 0) - 1;
+  for (out_len = 0; out_len < in.length; out_len += mblen)
+    {
+      if (in.string[out_len] == '\n'
+          || (in.string[out_len] == '\r'
+              && out_len + 1 < in.length
+              && in.string[out_len + 1] == '\n'))
+        break;
+
+      mblen = u8_mblen (CHAR_CAST (const uint8_t *, in.string + out_len),
+                        in.length - out_len);
+      if (out_len + mblen > out_maxlen)
+        break;
+    }
+
+  memcpy (out, in.string, out_len);
+  strcpy (&out[out_len], out_len < in.length ? "..." : "");
+}
+
+static void
+lex_source_error_valist (struct lex_source *src, int n0, int n1,
+                         const char *format, va_list args)
+{
+  const struct lex_token *token;
+  struct string s;
+  struct msg m;
+
+  ds_init_empty (&s);
+
+  token = lex_source_next__ (src, n0);
+  if (token->token.type == T_ENDCMD)
+    ds_put_cstr (&s, _("Syntax error at end of command"));
+  else
+    {
+      struct substring syntax = lex_source_get_syntax__ (src, n0, n1);
+      if (!ss_is_empty (syntax))
+        {
+          char syntax_cstr[64];
+
+          lex_ellipsize__ (syntax, syntax_cstr, sizeof syntax_cstr);
+          ds_put_format (&s, _("Syntax error at `%s'"), syntax_cstr);
+        }
+      else
+        ds_put_cstr (&s, _("Syntax error"));
+    }
+
+  if (format)
+    {
+      ds_put_cstr (&s, ": ");
+      ds_put_vformat (&s, format, args);
+    }
+  ds_put_byte (&s, '.');
+
+  m.category = MSG_C_SYNTAX;
+  m.severity = MSG_S_ERROR;
+  m.file_name = src->reader->file_name;
+  m.first_line = lex_source_get_first_line_number (src, n0);
+  m.last_line = lex_source_get_last_line_number (src, n1);
+  m.first_column = lex_source_get_first_column (src, n0);
+  m.last_column = lex_source_get_last_column (src, n1);
+  m.text = ds_steal_cstr (&s);
+  msg_emit (&m);
+}
+
+static void PRINTF_FORMAT (2, 3)
+lex_get_error (struct lex_source *src, const char *format, ...)
+{
+  va_list args;
+  int n;
+
+  va_start (args, format);
+
+  n = deque_count (&src->deque) - 1;
+  lex_source_error_valist (src, n, n, format, args);
+  lex_source_pop_front (src);
+
+  va_end (args);
+}
+
+static bool
+lex_source_get__ (const struct lex_source *src_)
+{
+  struct lex_source *src = CONST_CAST (struct lex_source *, src_);
+
+  struct state
+    {
+      struct segmenter segmenter;
+      enum segment_type last_segment;
+      int newlines;
+      size_t line_pos;
+      size_t seg_pos;
+    };
+
+  struct state state, saved;
+  enum scan_result result;
+  struct scanner scanner;
+  struct lex_token *token;
+  int n_lines;
+  int i;
+
+  if (src->eof)
+    return false;
+
+  state.segmenter = src->segmenter;
+  state.newlines = 0;
+  state.seg_pos = src->seg_pos;
+  state.line_pos = src->line_pos;
+  saved = state;
+
+  token = lex_push_token__ (src);
+  scanner_init (&scanner, &token->token);
+  token->line_pos = src->line_pos;
+  token->token_pos = src->seg_pos;
+  if (src->reader->line_number > 0)
+    token->first_line = src->reader->line_number + src->n_newlines;
+  else
+    token->first_line = 0;
+
+  for (;;)
+    {
+      enum segment_type type;
+      const char *segment;
+      size_t seg_maxlen;
+      int seg_len;
+
+      segment = &src->buffer[state.seg_pos - src->tail];
+      seg_maxlen = src->head - state.seg_pos;
+      seg_len = segmenter_push (&state.segmenter, segment, seg_maxlen, &type);
+      if (seg_len < 0)
+        {
+          lex_source_read__ (src);
+          continue;
+        }
+
+      state.last_segment = type;
+      state.seg_pos += seg_len;
+      if (type == SEG_NEWLINE)
+        {
+          state.newlines++;
+          state.line_pos = state.seg_pos;
+        }
+
+      result = scanner_push (&scanner, type, ss_buffer (segment, seg_len),
+                             &token->token);
+      if (result == SCAN_SAVE)
+        saved = state;
+      else if (result == SCAN_BACK)
+        {
+          state = saved;
+          break;
+        }
+      else if (result == SCAN_DONE)
+        break;
+    }
+
+  n_lines = state.newlines;
+  if (state.last_segment == SEG_END_COMMAND && !src->suppress_next_newline)
+    {
+      n_lines++;
+      src->suppress_next_newline = true;
+    }
+  else if (n_lines > 0 && src->suppress_next_newline)
+    {
+      n_lines--;
+      src->suppress_next_newline = false;
+    }
+  for (i = 0; i < n_lines; i++)
+    {
+      const char *newline;
+      const char *line;
+      size_t line_len;
+      char *syntax;
+
+      line = &src->buffer[src->journal_pos - src->tail];
+      newline = rawmemchr (line, '\n');
+      line_len = newline - line;
+      if (line_len > 0 && line[line_len - 1] == '\r')
+        line_len--;
+
+      syntax = malloc (line_len + 2);
+      memcpy (syntax, line, line_len);
+      syntax[line_len] = '\n';
+      syntax[line_len + 1] = '\0';
+
+      text_item_submit (text_item_create_nocopy (TEXT_ITEM_SYNTAX, syntax));
+
+      src->journal_pos += newline - line + 1;
+    }
+
+  token->token_len = state.seg_pos - src->seg_pos;
+
+  src->segmenter = state.segmenter;
+  src->seg_pos = state.seg_pos;
+  src->line_pos = state.line_pos;
+  src->n_newlines += state.newlines;
+
+  switch (token->token.type)
+    {
+    default:
+      break;
+
+    case T_STOP:
+      token->token.type = T_ENDCMD;
+      src->eof = true;
+      break;
+
+    case SCAN_BAD_HEX_LENGTH:
+      lex_get_error (src, _("String of hex digits has %d characters, which "
+                            "is not a multiple of 2"),
+                     (int) token->token.number);
+      break;
+
+    case SCAN_BAD_HEX_DIGIT:
+    case SCAN_BAD_UNICODE_DIGIT:
+      lex_get_error (src, _("`%c' is not a valid hex digit"),
+                     (int) token->token.number);
+      break;
+
+    case SCAN_BAD_UNICODE_LENGTH:
+      lex_get_error (src, _("Unicode string contains %d bytes, which is "
+                            "not in the valid range of 1 to 8 bytes"),
+                     (int) token->token.number);
+      break;
+
+    case SCAN_BAD_UNICODE_CODE_POINT:
+      lex_get_error (src, _("U+%04X is not a valid Unicode code point"),
+                     (int) token->token.number);
+      break;
+
+    case SCAN_EXPECTED_QUOTE:
+      lex_get_error (src, _("Unterminated string constant"));
+      break;
+
+    case SCAN_EXPECTED_EXPONENT:
+      lex_get_error (src, _("Missing exponent following `%s'"),
+                     token->token.string.string);
+      break;
+
+    case SCAN_UNEXPECTED_DOT:
+      lex_get_error (src, _("Unexpected `.' in middle of command"));
+      break;
+
+    case SCAN_UNEXPECTED_CHAR:
+      {
+        char c_name[16];
+        lex_get_error (src, _("Bad character %s in input"),
+                       uc_name (token->token.number, c_name));
+      }
+      break;
+
+    case SCAN_SKIP:
+      lex_source_pop_front (src);
+      break;
+    }
+
+  return true;
+}
+
+static void
+lex_source_push_endcmd__ (struct lex_source *src)
+{
+  struct lex_token *token = lex_push_token__ (src);
+  token->token.type = T_ENDCMD;
+  token->token_pos = 0;
+  token->token_len = 0;
+  token->line_pos = 0;
+  token->first_line = 0;
+}
+
+static struct lex_source *
+lex_source_create (struct lex_reader *reader)
+{
+  struct lex_source *src;
+  enum segmenter_mode mode;
+
+  src = xzalloc (sizeof *src);
+  src->reader = reader;
+
+  if (reader->syntax == LEX_SYNTAX_AUTO)
+    mode = SEG_MODE_AUTO;
+  else if (reader->syntax == LEX_SYNTAX_INTERACTIVE)
+    mode = SEG_MODE_INTERACTIVE;
+  else if (reader->syntax == LEX_SYNTAX_BATCH)
+    mode = SEG_MODE_BATCH;
+  else
+    NOT_REACHED ();
+  segmenter_init (&src->segmenter, mode);
+
+  src->tokens = deque_init (&src->deque, 4, sizeof *src->tokens);
+
+  lex_source_push_endcmd__ (src);
+
+  return src;
+}
+
+static void
+lex_source_destroy (struct lex_source *src)
+{
+  char *file_name = src->reader->file_name;
+  if (src->reader->class->close != NULL)
+    src->reader->class->close (src->reader);
+  free (file_name);
+  free (src->buffer);
+  while (!deque_is_empty (&src->deque))
+    lex_source_pop__ (src);
+  free (src->tokens);
+  ll_remove (&src->ll);
+  free (src);
+}
+
+struct lex_file_reader
+  {
+    struct lex_reader reader;
+    struct u8_istream *istream;
+    char *file_name;
+  };
+
+static struct lex_reader_class lex_file_reader_class;
+
+/* Creates and returns a new lex_reader that will read from file FILE_NAME (or
+   from stdin if FILE_NAME is "-").  The file is expected to be encoded with
+   ENCODING, which should take one of the forms accepted by
+   u8_istream_for_file().  SYNTAX and ERROR become the syntax mode and error
+   mode of the new reader, respectively.
+
+   Returns a null pointer if FILE_NAME cannot be opened. */
+struct lex_reader *
+lex_reader_for_file (const char *file_name, const char *encoding,
+                     enum lex_syntax_mode syntax,
+                     enum lex_error_mode error)
+{
+  struct lex_file_reader *r;
+  struct u8_istream *istream;
+
+  istream = (!strcmp(file_name, "-")
+             ? u8_istream_for_fd (encoding, STDIN_FILENO)
+             : u8_istream_for_file (encoding, file_name, O_RDONLY));
+  if (istream == NULL)
+    {
+      msg (ME, _("Opening `%s': %s."), file_name, strerror (errno));
+      return NULL;
+    }
+
+  r = xmalloc (sizeof *r);
+  lex_reader_init (&r->reader, &lex_file_reader_class);
+  r->reader.syntax = syntax;
+  r->reader.error = error;
+  r->reader.file_name = xstrdup (file_name);
+  r->reader.line_number = 1;
+  r->istream = istream;
+  r->file_name = xstrdup (file_name);
+
+  return &r->reader;
+}
+
+static struct lex_file_reader *
+lex_file_reader_cast (struct lex_reader *r)
+{
+  return UP_CAST (r, struct lex_file_reader, reader);
+}
+
+static size_t
+lex_file_read (struct lex_reader *r_, char *buf, size_t n,
+               enum prompt_style prompt_style UNUSED)
+{
+  struct lex_file_reader *r = lex_file_reader_cast (r_);
+  ssize_t n_read = u8_istream_read (r->istream, buf, n);
+  if (n_read < 0)
+    {
+      msg (ME, _("Error reading `%s': %s."), r->file_name, strerror (errno));
+      return 0;
+    }
+  return n_read;
+}
+
+static void
+lex_file_close (struct lex_reader *r_)
+{
+  struct lex_file_reader *r = lex_file_reader_cast (r_);
+
+  if (u8_istream_fileno (r->istream) != STDIN_FILENO)
+    {
+      if (u8_istream_close (r->istream) != 0)
+        msg (ME, _("Error closing `%s': %s."), r->file_name, strerror (errno));
+    }
+  else
+    u8_istream_free (r->istream);
+
+  free (r->file_name);
+  free (r);
+}
+
+static struct lex_reader_class lex_file_reader_class =
+  {
+    lex_file_read,
+    lex_file_close
+  };
+
+struct lex_string_reader
+  {
+    struct lex_reader reader;
+    struct substring s;
+    size_t offset;
+  };
+
+static struct lex_reader_class lex_string_reader_class;
+
+/* Creates and returns a new lex_reader for the contents of S, which must be
+   encoded in UTF-8.  The new reader takes ownership of S and will free it
+   with ss_dealloc() when it is closed. */
+struct lex_reader *
+lex_reader_for_substring_nocopy (struct substring s)
+{
+  struct lex_string_reader *r;
+
+  r = xmalloc (sizeof *r);
+  lex_reader_init (&r->reader, &lex_string_reader_class);
+  r->reader.syntax = LEX_SYNTAX_INTERACTIVE;
+  r->s = s;
+  r->offset = 0;
+
+  return &r->reader;
+}
+
+/* Creates and returns a new lex_reader for a copy of null-terminated string S,
+   which must be encoded in UTF-8.  The caller retains ownership of S. */
+struct lex_reader *
+lex_reader_for_string (const char *s)
+{
+  struct substring ss;
+  ss_alloc_substring (&ss, ss_cstr (s));
+  return lex_reader_for_substring_nocopy (ss);
+}
+
+/* Formats FORMAT as a printf()-like format string and creates and returns a
+   new lex_reader for the formatted result.  */
+struct lex_reader *
+lex_reader_for_format (const char *format, ...)
+{
+  struct lex_reader *r;
+  va_list args;
+
+  va_start (args, format);
+  r = lex_reader_for_substring_nocopy (ss_cstr (xvasprintf (format, args)));
+  va_end (args);
+
+  return r;
+}
+
+static struct lex_string_reader *
+lex_string_reader_cast (struct lex_reader *r)
+{
+  return UP_CAST (r, struct lex_string_reader, reader);
+}
+
+static size_t
+lex_string_read (struct lex_reader *r_, char *buf, size_t n,
+                 enum prompt_style prompt_style UNUSED)
+{
+  struct lex_string_reader *r = lex_string_reader_cast (r_);
+  size_t chunk;
+
+  chunk = MIN (n, r->s.length - r->offset);
+  memcpy (buf, r->s.string + r->offset, chunk);
+  r->offset += chunk;
+
+  return chunk;
+}
+
+static void
+lex_string_close (struct lex_reader *r_)
+{
+  struct lex_string_reader *r = lex_string_reader_cast (r_);
+
+  ss_dealloc (&r->s);
+  free (r);
+}
+
+static struct lex_reader_class lex_string_reader_class =
+  {
+    lex_string_read,
+    lex_string_close
+  };

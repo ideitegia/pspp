@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@
 #include "libpspp/compiler.h"
 #include "libpspp/i18n.h"
 #include "libpspp/integer-format.h"
-#include "libpspp/legacy-encoding.h"
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
 #include "settings.h"
@@ -116,7 +115,7 @@ data_in (struct substring input, const char *input_encoding,
       /* We're going to parse these into numbers.  For this purpose we want to
          deal with them in the local "C" encoding.  Any character not in that
          encoding wouldn't be valid anyhow. */
-      dest_encoding = LEGACY_NATIVE;
+      dest_encoding = C_ENCODING;
     }
   else if (cat & (FMT_CAT_BINARY | FMT_CAT_LEGACY))
     {
@@ -130,7 +129,7 @@ data_in (struct substring input, const char *input_encoding,
         {
           /* We want the hex digits in the local "C" encoding, even though the
              result may not be in that encoding. */
-          dest_encoding = LEGACY_NATIVE;
+          dest_encoding = C_ENCODING;
         }
       else
         {
@@ -245,7 +244,7 @@ has_implied_decimals (struct substring input, const char *input_encoding,
       return false;
     }
 
-  s = recode_string (LEGACY_NATIVE, input_encoding,
+  s = recode_string (C_ENCODING, input_encoding,
                      ss_data (input), ss_length (input));
   retval = (format == FMT_Z
             ? strchr (s, '.') == NULL
@@ -299,46 +298,46 @@ parse_number (struct data_in *i)
   ds_extend (&tmp, 64);
 
   /* Prefix character may precede sign. */
-  if (!ss_is_empty (style->prefix))
+  if (style->prefix.s[0] != '\0')
     {
-      ss_match_char (&i->input, ss_first (style->prefix));
+      ss_match_byte (&i->input, style->prefix.s[0]);
       ss_ltrim (&i->input, ss_cstr (CC_SPACES));
     }
 
   /* Sign. */
-  if (ss_match_char (&i->input, '-'))
+  if (ss_match_byte (&i->input, '-'))
     {
-      ds_put_char (&tmp, '-');
+      ds_put_byte (&tmp, '-');
       ss_ltrim (&i->input, ss_cstr (CC_SPACES));
     }
   else
     {
-      ss_match_char (&i->input, '+');
+      ss_match_byte (&i->input, '+');
       ss_ltrim (&i->input, ss_cstr (CC_SPACES));
     }
 
   /* Prefix character may follow sign. */
-  if (!ss_is_empty (style->prefix))
+  if (style->prefix.s[0] != '\0')
     {
-      ss_match_char (&i->input, ss_first (style->prefix));
+      ss_match_byte (&i->input, style->prefix.s[0]);
       ss_ltrim (&i->input, ss_cstr (CC_SPACES));
     }
 
   /* Digits before decimal point. */
   while (c_isdigit (ss_first (i->input)))
     {
-      ds_put_char (&tmp, ss_get_char (&i->input));
+      ds_put_byte (&tmp, ss_get_byte (&i->input));
       if (style->grouping != 0)
-        ss_match_char (&i->input, style->grouping);
+        ss_match_byte (&i->input, style->grouping);
     }
 
   /* Decimal point and following digits. */
-  if (ss_match_char (&i->input, style->decimal))
+  if (ss_match_byte (&i->input, style->decimal))
     {
       explicit_decimals = true;
-      ds_put_char (&tmp, '.');
+      ds_put_byte (&tmp, '.');
       while (c_isdigit (ss_first (i->input)))
-        ds_put_char (&tmp, ss_get_char (&i->input));
+        ds_put_byte (&tmp, ss_get_byte (&i->input));
     }
 
   /* Exponent. */
@@ -347,28 +346,28 @@ parse_number (struct data_in *i)
       && strchr ("eEdD-+", ss_first (i->input)))
     {
       explicit_decimals = true;
-      ds_put_char (&tmp, 'e');
+      ds_put_byte (&tmp, 'e');
 
       if (strchr ("eEdD", ss_first (i->input)))
         {
           ss_advance (&i->input, 1);
-          ss_match_char (&i->input, ' ');
+          ss_match_byte (&i->input, ' ');
         }
 
       if (ss_first (i->input) == '-' || ss_first (i->input) == '+')
         {
-          if (ss_get_char (&i->input) == '-')
-            ds_put_char (&tmp, '-');
-          ss_match_char (&i->input, ' ');
+          if (ss_get_byte (&i->input) == '-')
+            ds_put_byte (&tmp, '-');
+          ss_match_byte (&i->input, ' ');
         }
 
       while (c_isdigit (ss_first (i->input)))
-        ds_put_char (&tmp, ss_get_char (&i->input));
+        ds_put_byte (&tmp, ss_get_byte (&i->input));
     }
 
   /* Suffix character. */
-  if (!ss_is_empty (style->suffix))
-    ss_match_char (&i->input, ss_first (style->suffix));
+  if (style->suffix.s[0] != '\0')
+    ss_match_byte (&i->input, style->suffix.s[0]);
 
   if (!ss_is_empty (i->input))
     {
@@ -420,7 +419,7 @@ parse_N (struct data_in *i)
   int c;
 
   i->output->f = 0;
-  while ((c = ss_get_char (&i->input)) != EOF)
+  while ((c = ss_get_byte (&i->input)) != EOF)
     {
       if (!c_isdigit (c))
         return xstrdup (_("All characters in field must be digits."));
@@ -439,7 +438,7 @@ parse_PIBHEX (struct data_in *i)
 
   n = 0.0;
 
-  while ((c = ss_get_char (&i->input)) != EOF)
+  while ((c = ss_get_byte (&i->input)) != EOF)
     {
       if (!c_isxdigit (c))
         return xstrdup (_("Unrecognized character in field."));
@@ -460,8 +459,8 @@ parse_RBHEX (struct data_in *i)
   memset (&d, 0, sizeof d);
   for (j = 0; !ss_is_empty (i->input) && j < sizeof d; j++)
     {
-      int hi = ss_get_char (&i->input);
-      int lo = ss_get_char (&i->input);
+      int hi = ss_get_byte (&i->input);
+      int lo = ss_get_byte (&i->input);
       if (lo == EOF)
         return xstrdup (_("Field must have even length."));
       else if (!c_isxdigit (hi) || !c_isxdigit (lo))
@@ -520,22 +519,22 @@ parse_Z (struct data_in *i)
   ds_init_empty (&tmp);
   ds_extend (&tmp, 64);
 
-  ds_put_char (&tmp, '+');
+  ds_put_byte (&tmp, '+');
   while (!ss_is_empty (i->input))
     {
-      int c = ss_get_char (&i->input);
+      int c = ss_get_byte (&i->input);
       if (c_isdigit (c) && !got_final_digit)
-        ds_put_char (&tmp, c);
+        ds_put_byte (&tmp, c);
       else if (is_z_digit (c) && !got_final_digit)
         {
-          ds_put_char (&tmp, z_digit_value (c) + '0');
+          ds_put_byte (&tmp, z_digit_value (c) + '0');
           if (is_negative_z_digit (c))
             ds_data (&tmp)[0] = '-';
           got_final_digit = true;
         }
       else if (c == '.' && !got_dot)
         {
-          ds_put_char (&tmp, '.');
+          ds_put_byte (&tmp, '.');
           got_dot = true;
         }
       else
@@ -623,7 +622,7 @@ parse_PIB (struct data_in *i)
 static void
 get_nibbles (struct substring *s, int *high_nibble, int *low_nibble)
 {
-  int c = ss_get_char (s);
+  int c = ss_get_byte (s);
   assert (c != EOF);
   *high_nibble = (c >> 4) & 15;
   *low_nibble = c & 15;
@@ -721,8 +720,8 @@ parse_AHEX (struct data_in *i)
 
   for (j = 0; ; j++)
     {
-      int hi = ss_get_char (&i->input);
-      int lo = ss_get_char (&i->input);
+      int hi = ss_get_byte (&i->input);
+      int lo = ss_get_byte (&i->input);
       if (hi == EOF)
         break;
       else if (lo == EOF)
@@ -799,11 +798,11 @@ parse_time_units (struct data_in *i, double seconds_per_unit,
 
   if (*time_sign == SIGN_NO_TIME)
     {
-      if (ss_match_char (&i->input, '-'))
+      if (ss_match_byte (&i->input, '-'))
         *time_sign = SIGN_NEGATIVE;
       else
         {
-          ss_match_char (&i->input, '+');
+          ss_match_byte (&i->input, '+');
           *time_sign = SIGN_POSITIVE;
         }
     }
@@ -839,7 +838,7 @@ static struct substring
 parse_name_token (struct data_in *i)
 {
   struct substring token;
-  ss_get_chars (&i->input, ss_span (i->input, ss_cstr (CC_LETTERS)), &token);
+  ss_get_bytes (&i->input, ss_span (i->input, ss_cstr (CC_LETTERS)), &token);
   return token;
 }
 
@@ -949,7 +948,7 @@ parse_yday (struct data_in *i, long *yday)
   struct substring num_s;
   long num;
 
-  ss_get_chars (&i->input, 3, &num_s);
+  ss_get_bytes (&i->input, 3, &num_s);
   if (ss_span (num_s, ss_cstr (CC_DIGITS)) != 3)
     return xstrdup (_("Julian day must have exactly three digits."));
   else if (!ss_get_long (&num_s, &num) || num < 1 || num > 366)
@@ -1041,11 +1040,11 @@ parse_minute_second (struct data_in *i, double *time)
   /* Parse seconds. */
   cp = buf;
   while (c_isdigit (ss_first (i->input)))
-    *cp++ = ss_get_char (&i->input);
-  if (ss_match_char (&i->input, settings_get_decimal_char (FMT_F)))
+    *cp++ = ss_get_byte (&i->input);
+  if (ss_match_byte (&i->input, settings_get_decimal_char (FMT_F)))
     *cp++ = '.';
   while (c_isdigit (ss_first (i->input)))
-    *cp++ = ss_get_char (&i->input);
+    *cp++ = ss_get_byte (&i->input);
   *cp = '\0';
 
   *time += strtod (buf, NULL);
@@ -1192,8 +1191,8 @@ parse_date (struct data_in *i)
           break;
         default:
           assert (count == 1);
-          if (!ss_match_char (&i->input, c_toupper (ch))
-              && !ss_match_char (&i->input, c_tolower (ch)))
+          if (!ss_match_byte (&i->input, c_toupper (ch))
+              && !ss_match_byte (&i->input, c_tolower (ch)))
             error = xasprintf (_("`%c' expected in date field."), ch);
           else
             error = NULL;

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009  Free Software Foundation
+   Copyright (C) 2007, 2009, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -100,7 +100,8 @@ widget_printf (const gchar *fmt, ...)
     }
   va_end (ap);
 
-  g_free (a.arg);
+  if (a.arg != a.direct_alloc_arg)
+    free (a.arg);
 
   output = g_string_sized_new (strlen (fmt));
 
@@ -128,7 +129,8 @@ widget_printf (const gchar *fmt, ...)
     }
 
   free (widgets);
-  free (d.dir);
+  if (d.dir != d.direct_alloc_dir)
+    free (d.dir);
 
   if (*s)
     g_string_append_len (output, s, -1);
@@ -162,7 +164,8 @@ widget_scanf (const gchar *fmt, ...)
   if ( 0 !=  printf_parse (fmt, &d, &a) )
     return NULL;
 
-  g_free (a.arg);
+  if (a.arg != a.direct_alloc_arg)
+    free (a.arg);
 
   va_start (ap, fmt);
 
@@ -232,7 +235,8 @@ widget_scanf (const gchar *fmt, ...)
 
   g_free (widgets);
 
-  free (d.dir);
+  if (d.dir != d.direct_alloc_dir)
+    free (d.dir);
 
   return hbox;
 }

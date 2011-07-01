@@ -19,9 +19,7 @@
 #define UI_SOURCE_INIT_OPTS
 
 struct argv_parser;
-struct source_stream;
 
-void source_init_register_argv_parser (struct argv_parser *,
-                                       struct source_stream *);
+void source_init_register_argv_parser (struct argv_parser *);
 
 #endif /* ui/source/source-init-opts.h */

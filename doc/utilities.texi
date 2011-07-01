@@ -9,17 +9,18 @@ they take effect only once, unconditionally, at the time that they are
 encountered in the input.
 
 @menu
-* ADD DOCUMENT::                Add documentary text to the active file.
+* ADD DOCUMENT::                Add documentary text to the active dataset.
+* CACHE::                       Ignored for compatibility.
 * CD::                          Change the current directory.
 * COMMENT::                     Document your syntax file.
-* DOCUMENT::                    Document the active file.
-* DISPLAY DOCUMENTS::           Display active file documents.
-* DISPLAY FILE LABEL::          Display the active file label.
-* DROP DOCUMENTS::              Remove documents from the active file.
+* DOCUMENT::                    Document the active dataset.
+* DISPLAY DOCUMENTS::           Display active dataset documents.
+* DISPLAY FILE LABEL::          Display the active dataset label.
+* DROP DOCUMENTS::              Remove documents from the active dataset.
 * ECHO::                        Write a string to the output stream.
 * ERASE::                       Erase a file.
 * EXECUTE::                     Execute pending transformations.
-* FILE LABEL::                  Set the active file's label.
+* FILE LABEL::                  Set the active dataset's label.
 * FINISH::                      Terminate the PSPP session.
 * HOST::                        Temporarily return to the operating system.
 * INCLUDE::                     Include a file within the current one.
@@ -44,13 +45,23 @@ ADD DOCUMENT
 
 
 @cmd{ADD DOCUMENT} adds one or more lines of descriptive commentary to 
-the active file.  Documents added in this way are saved to system files.
+the active dataset.  Documents added in this way are saved to system files.
 They can be viewed using @cmd{SYSFILE INFO} or @cmd{DISPLAY
-DOCUMENTS}.  They can be removed from the active file with @cmd{DROP
+DOCUMENTS}.  They can be removed from the active dataset with @cmd{DROP
 DOCUMENTS}.
 
 Each line of documentary text must be enclosed in quotation marks, and 
 may not be more than 80 bytes long. @xref{DOCUMENT}.
+
+@node CACHE
+@section CACHE
+@vindex CACHE
+
+@display
+CACHE.
+@end display
+
+This command is accepted, for compatibility, but it has no effect.
 
 @node CD
 @section CD
@@ -92,9 +103,9 @@ DOCUMENT @var{documentary_text}.
 @end display
 
 @cmd{DOCUMENT} adds one or more lines of descriptive commentary to the
-active file.  Documents added in this way are saved to system files.
+active dataset.  Documents added in this way are saved to system files.
 They can be viewed using @cmd{SYSFILE INFO} or @cmd{DISPLAY
-DOCUMENTS}.  They can be removed from the active file with @cmd{DROP
+DOCUMENTS}.  They can be removed from the active dataset with @cmd{DROP
 DOCUMENTS}.
 
 Specify the @var{documentary text} following the DOCUMENT keyword.  
@@ -112,7 +123,7 @@ the command with a dot or a blank line. @xref{ADD DOCUMENT}.
 DISPLAY DOCUMENTS.
 @end display
 
-@cmd{DISPLAY DOCUMENTS} displays the documents in the active file.  Each
+@cmd{DISPLAY DOCUMENTS} displays the documents in the active dataset.  Each
 document is preceded by a line giving the time and date that it was
 added.  @xref{DOCUMENT}.
 
@@ -125,7 +136,7 @@ DISPLAY FILE LABEL.
 @end display
 
 @cmd{DISPLAY FILE LABEL} displays the file label contained in the
-active file,
+active dataset,
 if any.  @xref{FILE LABEL}.
 
 This command is a PSPP extension.
@@ -138,10 +149,10 @@ This command is a PSPP extension.
 DROP DOCUMENTS.
 @end display
 
-@cmd{DROP DOCUMENTS} removes all documents from the active file.
+@cmd{DROP DOCUMENTS} removes all documents from the active dataset.
 New documents can be added with @cmd{DOCUMENT} (@pxref{DOCUMENT}).
 
-@cmd{DROP DOCUMENTS} changes only the active file.  It does not modify any
+@cmd{DROP DOCUMENTS} changes only the active dataset.  It does not modify any
 system files stored on disk.
 
 @node ECHO
@@ -176,7 +187,7 @@ This command cannot be used if the SAFER setting is active.
 EXECUTE.
 @end display
 
-@cmd{EXECUTE} causes the active file to be read and all pending
+@cmd{EXECUTE} causes the active dataset to be read and all pending
 transformations to be executed.
 
 @node FILE LABEL
@@ -187,7 +198,7 @@ transformations to be executed.
 FILE LABEL file_label.
 @end display
 
-@cmd{FILE LABEL} provides a title for the active file.  This
+@cmd{FILE LABEL} provides a title for the active dataset.  This
 title will be saved into system files and portable files that are
 created during this PSPP run.
 
@@ -231,7 +242,7 @@ subshell.
 @vindex INCLUDE
 
 @display
-        INCLUDE [FILE=]'file-name'.
+        INCLUDE [FILE=]'file-name' [ENCODING='encoding'].
 @end display
 
 @cmd{INCLUDE} causes the PSPP command processor to read an
@@ -242,19 +253,11 @@ stop and no more commands will be processed.
 Include files may be nested to any depth, up to the limit of available
 memory.
 
+The @cmd{INSERT} command (@pxref{INSERT}) is a more flexible
+alternative to @cmd{INCLUDE}.  An INCLUDE command acts the same as
+INSERT with ERROR=STOP CD=NO SYNTAX=BATCH specified.
 
-The @cmd{INSERT} command (@pxref{INSERT}) may be used instead of
-@cmd{INCLUDE} if you require more flexible options.
-The syntax 
-@example
-INCLUDE FILE=@var{file-name}.
-@end example
-@noindent 
-functions identically to 
-@example
-INSERT FILE=@var{file-name} ERROR=STOP CD=NO SYNTAX=BATCH.
-@end example
-
+The optional ENCODING subcommand has the same meaning as on INSERT.
 
 @node INSERT
 @section INSERT
@@ -264,7 +267,8 @@ INSERT FILE=@var{file-name} ERROR=STOP CD=NO SYNTAX=BATCH.
      INSERT [FILE=]'file-name'
         [CD=@{NO,YES@}]
         [ERROR=@{CONTINUE,STOP@}]
-        [SYNTAX=@{BATCH,INTERACTIVE@}].
+        [SYNTAX=@{BATCH,INTERACTIVE@}]
+        [ENCODING='encoding'].
 @end display
 
 @cmd{INSERT} is similar to @cmd{INCLUDE} (@pxref{INCLUDE}) 
@@ -291,6 +295,37 @@ If @samp{SYNTAX=INTERACTIVE} is specified then the syntax contained in
 the included file must conform to interactive syntax
 conventions. @xref{Syntax Variants}.
 The default setting is @samp{SYNTAX=BATCH}.
+
+ENCODING optionally specifies the character set used by the included
+file.  Its argument, which is not case-sensitive, must be in one of
+the following forms:
+
+@table @asis
+@item @code{Locale}
+The encoding used by the system locale, or as overridden by the SET
+LOCALE command (@pxref{SET}).  On Unix systems, environment variables,
+e.g.@: @env{LANG} or @env{LC_ALL}, determine the system locale.
+
+@item IANA character set name
+One of the character set names listed by IANA at
+@uref{http://www.iana.org/assignments/character-sets}.  Some examples
+are @code{ASCII} (United States), @code{ISO-8859-1} (western Europe),
+@code{EUC-JP} (Japan), and @code{windows-1252} (Windows).  Not all
+systems support all character sets.
+
+@item @code{Auto}
+@item @code{Auto,@var{encoding}}
+Automatically detects whether a syntax file is encoded in
+@var{encoding} or in a Unicode encoding such as UTF-8, UTF-16, or
+UTF-32.  The @var{encoding} may be an IANA character set name or
+@code{Locale} (the default).  Only ASCII compatible encodings can
+automatically be distinguished from UTF-8 (the most common locale
+encodings are all ASCII-compatible).
+@end table
+
+When ENCODING is not specified, the default is taken from the
+@option{--syntax-encoding} command option, if it was specified, and
+otherwise it is @code{Auto}.
 
 @node PERMISSIONS
 @section PERMISSIONS
@@ -347,19 +382,13 @@ SET
         /RIB=@{NATIVE,MSBFIRST,LSBFIRST,VAX@}
         /RRB=@{NATIVE,ISL,ISB,IDL,IDB,VF,VD,VG,ZS,ZL@}
 
-(program input)
-        /ENDCMD='.'
-        /NULLINE=@{ON,OFF@}
-
 (interaction)
-        /CPROMPT='cprompt_string'
-        /DPROMPT='dprompt_string'
         /MXERRS=max_errs
         /MXWARNS=max_warnings
-        /PROMPT='prompt'
         /WORKSPACE=workspace_size
 
-(program execution)
+(syntax execution)
+        /LOCALE='locale'
         /MEXPAND=@{ON,OFF@}
         /MITERATE=max_iterations
         /MNEST=max_nest
@@ -519,30 +548,10 @@ formats are only for use with very old input files.
 The default is NATIVE.
 @end table
 
-Program input subcommands affect the way that programs are parsed when
-they are typed interactively or run from a command file.  They are
-
-@table @asis
-@item ENDCMD
-This is a single character indicating the end of a command.  The default
-is @samp{.}.  Don't change this.
-
-@item NULLINE
-Whether a blank line is interpreted as ending the current command.  The
-default is ON.
-@end table
-
 Interaction subcommands affect the way that PSPP interacts with an
 online user.  The interaction subcommands are
 
 @table @asis
-@item CPROMPT
-The command continuation prompt.  The default is @samp{    > }.
-
-@item DPROMPT
-Prompt used when expecting data input within @cmd{BEGIN DATA} (@pxref{BEGIN
-DATA}).  The default is @samp{data> }.
-
 @item MXERRS
 The maximum number of errors before PSPP halts processing of the current
 command file.  The default is 50.
@@ -554,15 +563,22 @@ The special value of zero means that all warning situations should be ignored.
 No warnings will be issued, except a single initial warning advising the user
 that warnings will not be given.
 The default value is 100.
-
-@item PROMPT
-The command prompt.  The default is @samp{PSPP> }.
 @end table
 
-Program execution subcommands control the way that PSPP commands
-execute.  The program execution subcommands are
+Syntax execution subcommands control the way that PSPP commands
+execute.  The syntax execution subcommands are
 
 @table @asis
+@item LOCALE
+Overrides the system locale for the purpose of reading and writing
+syntax and data files.  The argument should be a locale name in the
+general form @code{language_country.encoding}, where @code{language}
+and @code{country} are 2-character language and country abbreviations,
+respectively, and @code{encoding} is an IANA character set name.
+Example locales are @code{en_US.UTF-8} (UTF-8 encoded English as
+spoken in the United States) and @code{ja_JP.EUC-JP} (EUC-JP encoded
+Japanese as spoken in Japan).
+
 @item MEXPAND
 @itemx MITERATE
 @itemx MNEST
@@ -796,7 +812,6 @@ SHOW
         [CCE]
         [COPYING]
         [DECIMALS]
-        [ENDCMD]
         [FORMAT]
         [LENGTH]
         [MXERRS]

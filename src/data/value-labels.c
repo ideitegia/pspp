@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,23 +16,23 @@
 
 #include <config.h>
 
-#include "value-labels.h"
+#include "data/value-labels.h"
 
 #include <stdlib.h>
 
-#include <data/data-out.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <libpspp/array.h>
-#include <libpspp/cast.h>
-#include <libpspp/compiler.h>
-#include <libpspp/hash-functions.h>
-#include <libpspp/hmap.h>
-#include <libpspp/intern.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/data-out.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/array.h"
+#include "libpspp/cast.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/hmap.h"
+#include "libpspp/intern.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 /* Creates and returns a new, empty set of value labels with the
    given WIDTH. */
@@ -58,7 +58,7 @@ val_labs_clone (const struct val_labs *vls)
 
   copy = val_labs_create (vls->width);
   HMAP_FOR_EACH (label, struct val_lab, node, &vls->labels)
-    val_labs_add (copy, &label->value, label->label);
+    val_labs_add (copy, &label->value, label->escaped_label);
   return copy;
 }
 
@@ -114,6 +114,7 @@ val_labs_clear (struct val_labs *vls)
       hmap_delete (&vls->labels, &label->node);
       value_destroy (&label->value, vls->width);
       intern_unref (label->label);
+      intern_unref (label->escaped_label);
       free (label);
     }
 }
@@ -134,17 +135,47 @@ val_labs_count (const struct val_labs *vls)
 }
 
 static void
+set_label (struct val_lab *lab, const char *escaped_label)
+{
+  lab->escaped_label = intern_new (escaped_label);
+  if (strstr (escaped_label, "\\n") == NULL)
+    lab->label = intern_ref (lab->escaped_label);
+  else
+    {
+      struct string s;
+      const char *p;
+
+      ds_init_empty (&s);
+      ds_extend (&s, intern_strlen (lab->escaped_label));
+      for (p = escaped_label; *p != '\0'; p++)
+        {
+          char c = *p;
+          if (c == '\\' && p[1] == 'n')
+            {
+              c = '\n';
+              p++;
+            }
+          ds_put_byte (&s, c);
+        }
+      lab->label = intern_new (ds_cstr (&s));
+      ds_destroy (&s);
+    }
+}
+
+static void
 do_add_val_lab (struct val_labs *vls, const union value *value,
-                const char *label)
+                const char *escaped_label)
 {
   struct val_lab *lab = xmalloc (sizeof *lab);
   value_clone (&lab->value, value, vls->width);
-  lab->label = intern_new (label);
+  set_label (lab, escaped_label);
   hmap_insert (&vls->labels, &lab->node, value_hash (value, vls->width, 0));
 }
 
-/* If VLS does not already contain a value label for VALUE, adds
-   LABEL for it and returns true.  Otherwise, returns false. */
+/* If VLS does not already contain a value label for VALUE, adds the UTF-8
+   encoded LABEL for it and returns true.  Otherwise, returns false.
+
+   In LABEL, the two-byte sequence "\\n" is interpreted as a new-line. */
 bool
 val_labs_add (struct val_labs *vls, const union value *value,
               const char *label)
@@ -160,7 +191,9 @@ val_labs_add (struct val_labs *vls, const union value *value,
 }
 
 /* Sets LABEL as the value label for VALUE in VLS, replacing any
-   existing label for VALUE. */
+   existing label for VALUE.
+
+   In LABEL, the two-byte sequence "\\n" is interpreted as a new-line. */
 void
 val_labs_replace (struct val_labs *vls, const union value *value,
                   const char *label)
@@ -169,7 +202,8 @@ val_labs_replace (struct val_labs *vls, const union value *value,
   if (vl != NULL)
     {
       intern_unref (vl->label);
-      vl->label = intern_new (label);
+      intern_unref (vl->escaped_label);
+      set_label (vl, label);
     }
   else
     do_add_val_lab (vls, value, label);
@@ -182,12 +216,14 @@ val_labs_remove (struct val_labs *vls, struct val_lab *label)
   hmap_delete (&vls->labels, &label->node);
   value_destroy (&label->value, vls->width);
   intern_unref (label->label);
+  intern_unref (label->escaped_label);
   free (label);
 }
 
-/* Searches VLS for a value label for VALUE.  If successful,
-   returns the string used as the label; otherwise, returns a
-   null pointer.  Returns a null pointer if VLS is null. */
+/* Searches VLS for a value label for VALUE.  If successful, returns the string
+   used as the label, as a UTF-8 encoded string in a format suitable for
+   output.  Otherwise, returns a null pointer.  Returns a null pointer if VLS
+   is null. */
 const char *
 val_labs_find (const struct val_labs *vls, const union value *value)
 {
@@ -198,18 +234,27 @@ val_labs_find (const struct val_labs *vls, const union value *value)
 /* Searches VLS for a value label for VALUE.  If successful,
    returns the value label; otherwise, returns a null pointer.
    Returns a null pointer if VLS is null. */
+static struct val_lab *
+val_labs_lookup__ (const struct val_labs *vls, const union value *value,
+                   unsigned int hash)
+{
+  struct val_lab *label;
+
+  HMAP_FOR_EACH_WITH_HASH (label, struct val_lab, node, hash, &vls->labels)
+    if (value_equal (&label->value, value, vls->width))
+      return label;
+
+  return NULL;
+}
+
+/* Searches VLS for a value label for VALUE.  If successful,
+   returns the value label; otherwise, returns a null pointer.
+   Returns a null pointer if VLS is null. */
 struct val_lab *
 val_labs_lookup (const struct val_labs *vls, const union value *value)
 {
-  if (vls != NULL)
-    {
-      struct val_lab *label;
-      HMAP_FOR_EACH_WITH_HASH (label, struct val_lab, node,
-                               value_hash (value, vls->width, 0), &vls->labels)
-        if (value_equal (&label->value, value, vls->width))
-          return label;
-    }
-  return NULL;
+  return (vls == NULL ? NULL
+          : val_labs_lookup__ (vls, value, value_hash (value, vls->width, 0)));
 }
 
 /* Returns the first value label in VLS, in arbitrary order, or a
@@ -264,4 +309,40 @@ val_labs_sorted (const struct val_labs *vls)
     }
   else
     return NULL;
+}
+
+/* Returns a hash value that represents all of the labels in VLS, starting from
+   BASIS. */
+unsigned int
+val_labs_hash (const struct val_labs *vls, unsigned int basis)
+{
+  const struct val_lab *label;
+  unsigned int hash;
+
+  hash = hash_int (val_labs_count (vls), basis);
+  HMAP_FOR_EACH (label, struct val_lab, node, &vls->labels)
+    hash ^= value_hash (&label->value, vls->width,
+                        hash_string (label->label, basis));
+  return hash;
+}
+
+/* Returns true if A and B contain the same values with the same labels,
+   false if they differ in some way. */
+bool
+val_labs_equal (const struct val_labs *a, const struct val_labs *b)
+{
+  const struct val_lab *label;
+
+  if (val_labs_count (a) != val_labs_count (b) || a->width != b->width)
+    return false;
+
+  HMAP_FOR_EACH (label, struct val_lab, node, &a->labels)
+    {
+      struct val_lab *label2 = val_labs_lookup__ (b, &label->value,
+                                                  label->node.hash);
+      if (!label2 || label->label != label2->label)
+        return false;
+    }
+
+  return true;
 }

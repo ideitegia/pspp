@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,10 +31,13 @@
    See http://en.wikipedia.org/wiki/String_interning for more information. */
 
 #include <stdbool.h>
+#include <stddef.h>
 
 const char *intern_new (const char *);
 const char *intern_ref (const char *);
 void intern_unref (const char *);
+
+size_t intern_strlen (const char *);
 
 bool is_interned_string (const char *);
 

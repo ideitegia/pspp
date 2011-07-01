@@ -10,11 +10,13 @@ UI_FILES = \
 	src/ui/gui/crosstabs.ui \
 	src/ui/gui/chi-square.ui \
 	src/ui/gui/descriptives.ui \
+	src/ui/gui/entry-dialog.ui \
 	src/ui/gui/examine.ui \
 	src/ui/gui/goto-case.ui \
 	src/ui/gui/factor.ui \
 	src/ui/gui/find.ui \
 	src/ui/gui/frequencies.ui \
+	src/ui/gui/k-related.ui \
 	src/ui/gui/oneway.ui \
 	src/ui/gui/psppire.ui \
 	src/ui/gui/rank.ui \
@@ -147,6 +149,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.h \
 	src/ui/gui/dict-display.c \
+	src/ui/gui/entry-dialog.c \
+	src/ui/gui/entry-dialog.h \
 	src/ui/gui/examine-dialog.c \
 	src/ui/gui/examine-dialog.h \
 	src/ui/gui/executor.c \
@@ -163,6 +167,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/help-menu.c \
 	src/ui/gui/help-menu.h \
 	src/ui/gui/helper.h \
+	src/ui/gui/k-related-dialog.c \
+	src/ui/gui/k-related-dialog.h \
 	src/ui/gui/main.c \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \
@@ -185,6 +191,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dict.h \
 	src/ui/gui/psppire-dictview.c \
 	src/ui/gui/psppire-dictview.h \
+	src/ui/gui/psppire-encoding-selector.c \
+	src/ui/gui/psppire-encoding-selector.h \
 	src/ui/gui/psppire-hbuttonbox.h \
 	src/ui/gui/psppire-keypad.h \
 	src/ui/gui/psppire-output-window.c \
@@ -223,8 +231,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/sort-cases-dialog.h \
 	src/ui/gui/split-file-dialog.c \
 	src/ui/gui/split-file-dialog.h \
-	src/ui/gui/syntax-editor-source.c \
-	src/ui/gui/syntax-editor-source.h \
 	src/ui/gui/text-data-import-dialog.c \
 	src/ui/gui/text-data-import-dialog.h \
 	src/ui/gui/transpose-dialog.c \
@@ -255,7 +261,6 @@ src_ui_gui_psppire_SOURCES = \
 nodist_src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-marshal.c \
 	src/ui/gui/psppire-marshal.h
-
 
 yelp-check:
 	@if ! yelp --version > /dev/null 2>&1 ; then \
@@ -289,3 +294,20 @@ endif HAVE_GUI
 #ensure the installcheck passes even if there is no X server available
 installcheck-local:
 	DISPLAY=/invalid/port $(MAKE) $(AM_MAKEFLAGS) installcheck-binPROGRAMS
+
+# <gtk/gtk.h> wrapper
+src_ui_gui_psppire_CPPFLAGS = $(AM_CPPFLAGS) -Isrc/ui/gui/include
+BUILT_SOURCES += src/ui/gui/include/gtk/gtk.h
+src/ui/gui/include/gtk/gtk.h: src/ui/gui/include/gtk/gtk.in.h
+	@$(MKDIR_P) src/ui/gui/include/gtk
+	$(AM_V_GEN)rm -f $@-t $@ && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  sed -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
+	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
+	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
+	      -e 's|@''NEXT_GTK_GTK_H''@|$(NEXT_GTK_GTK_H)|g' \
+	      < $(srcdir)/src/ui/gui/include/gtk/gtk.in.h; \
+	} > $@-t && \
+	mv $@-t $@
+CLEANFILES += src/ui/gui/include/gtk/gtk.h
+EXTRA_DIST += src/ui/gui/include/gtk/gtk.in.h

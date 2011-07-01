@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,24 +16,24 @@
 
 #include <config.h>
 
-#include "file-handle-def.h"
+#include "data/file-handle-def.h"
 
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <libpspp/compiler.h>
-#include <libpspp/hmap.h>
-#include <libpspp/ll.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <libpspp/hash-functions.h>
-#include <data/file-name.h>
-#include <data/variable.h>
-#include <data/scratch-handle.h>
+#include "data/dataset.h"
+#include "data/file-name.h"
+#include "data/variable.h"
+#include "libpspp/compiler.h"
+#include "libpspp/hmap.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "libpspp/hash-functions.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -41,7 +41,7 @@
 /* File handle. */
 struct file_handle
   {
-    struct ll ll;               /* Element in global list. */
+    struct hmap_node name_node; /* Element in named_handles hmap. */
     size_t ref_cnt;             /* Number of references. */
     char *id;                   /* Identifier token, NULL if none. */
     char *name;                 /* User-friendly identifying name. */
@@ -56,18 +56,12 @@ struct file_handle
     size_t record_width;        /* Length of fixed-format records. */
     size_t tab_width;           /* Tab width, 0=do not expand tabs. */
 
-    /* FH_REF_SCRATCH only. */
-    struct scratch_handle *sh;  /* Scratch file data. */
+    /* FH_REF_DATASET only. */
+    struct dataset *ds;         /* Dataset. */
   };
 
-static struct file_handle *
-file_handle_from_ll (struct ll *ll)
-{
-  return ll_data (ll, struct file_handle, ll);
-}
-
-/* List of all named handles. */
-static struct ll_list named_handles;
+/* All "struct file_handle"s with nonnull 'id' member. */
+static struct hmap named_handles = HMAP_INITIALIZER (named_handles);
 
 /* Default file handle for DATA LIST, REREAD, REPEATING DATA
    commands. */
@@ -88,7 +82,6 @@ static struct hmap locks = HMAP_INITIALIZER (locks);
 void
 fh_init (void)
 {
-  ll_init (&named_handles);
   inline_file = create_handle ("INLINE", xstrdup ("INLINE"), FH_REF_INLINE);
   inline_file->record_width = 80;
   inline_file->tab_width = 8;
@@ -98,8 +91,11 @@ fh_init (void)
 void
 fh_done (void)
 {
-  while (!ll_is_empty (&named_handles))
-    unname_handle (file_handle_from_ll (ll_head (&named_handles)));
+  struct file_handle *handle, *next;
+
+  HMAP_FOR_EACH_SAFE (handle, next,
+                      struct file_handle, name_node, &named_handles)
+    unname_handle (handle);
 }
 
 /* Free HANDLE and remove it from the global list. */
@@ -108,13 +104,12 @@ free_handle (struct file_handle *handle)
 {
   /* Remove handle from global list. */
   if (handle->id != NULL)
-    ll_remove (&handle->ll);
+    hmap_delete (&named_handles, &handle->name_node);
 
   /* Free data. */
   free (handle->id);
   free (handle->name);
   free (handle->file_name);
-  scratch_handle_destroy (handle->sh);
   free (handle);
 }
 
@@ -127,7 +122,7 @@ unname_handle (struct file_handle *handle)
   assert (handle->id != NULL);
   free (handle->id);
   handle->id = NULL;
-  ll_remove (&handle->ll);
+  hmap_delete (&named_handles, &handle->name_node);
 
   /* Drop the reference held by the named_handles table. */
   fh_unref (handle);
@@ -176,7 +171,8 @@ fh_from_id (const char *id)
 {
   struct file_handle *handle;
 
-  ll_for_each (handle, struct file_handle, ll, &named_handles)
+  HMAP_FOR_EACH_WITH_HASH (handle, struct file_handle, name_node,
+                           hash_case_string (id, 0), &named_handles)
     if (!strcasecmp (id, handle->id))
       {
         handle->ref_cnt++;
@@ -205,7 +201,8 @@ create_handle (const char *id, char *handle_name, enum fh_referent referent)
   if (id != NULL)
     {
       assert (fh_from_id (id) == NULL);
-      ll_push_tail (&named_handles, &handle->ll);
+      hmap_insert (&named_handles, &handle->name_node,
+                   hash_case_string (handle->id, 0));
       handle->ref_cnt++;
     }
 
@@ -222,10 +219,10 @@ fh_inline_file (void)
   return inline_file;
 }
 
-/* Creates and returns a new file handle with the given ID, which
-   may be null.  If it is non-null, it must be unique among
-   existing file identifiers.  The new handle is associated with
-   file FILE_NAME and the given PROPERTIES. */
+/* Creates and returns a new file handle with the given ID, which may be null.
+   If it is non-null, it must be a UTF-8 encoded string that is unique among
+   existing file identifiers.  The new handle is associated with file FILE_NAME
+   and the given PROPERTIES. */
 struct file_handle *
 fh_create_file (const char *id, const char *file_name,
                 const struct fh_properties *properties)
@@ -245,13 +242,19 @@ fh_create_file (const char *id, const char *file_name,
 
 /* Creates a new file handle with the given ID, which must be
    unique among existing file identifiers.  The new handle is
-   associated with a scratch file (initially empty). */
+   associated with a dataset file (initially empty). */
 struct file_handle *
-fh_create_scratch (const char *id)
+fh_create_dataset (struct dataset *ds)
 {
+  const char *name;
   struct file_handle *handle;
-  handle = create_handle (id, xstrdup (id), FH_REF_SCRATCH);
-  handle->sh = NULL;
+
+  name = dataset_name (ds);
+  if (name[0] == '\0')
+    name = _("active dataset");
+
+  handle = create_handle (NULL, xstrdup (name), FH_REF_DATASET);
+  handle->ds = ds;
   return handle;
 }
 
@@ -260,7 +263,7 @@ const struct fh_properties *
 fh_default_properties (void)
 {
   static const struct fh_properties default_properties
-    = {FH_MODE_TEXT, 1024, 4, LEGACY_NATIVE};
+    = {FH_MODE_TEXT, 1024, 4, C_ENCODING};
   return &default_properties;
 }
 
@@ -333,25 +336,16 @@ const char *
 fh_get_legacy_encoding (const struct file_handle *handle)
 {
   assert (handle->referent & (FH_REF_FILE | FH_REF_INLINE));
-  return (handle->referent == FH_REF_FILE ? handle->encoding : LEGACY_NATIVE);
+  return (handle->referent == FH_REF_FILE ? handle->encoding : C_ENCODING);
 }
 
-/* Returns the scratch file handle associated with HANDLE.
-   Applicable to only FH_REF_SCRATCH files. */
-struct scratch_handle *
-fh_get_scratch_handle (const struct file_handle *handle)
+/* Returns the dataset handle associated with HANDLE.
+   Applicable to only FH_REF_DATASET files. */
+struct dataset *
+fh_get_dataset (const struct file_handle *handle)
 {
-  assert (handle->referent == FH_REF_SCRATCH);
-  return handle->sh;
-}
-
-/* Sets SH to be the scratch file handle associated with HANDLE.
-   Applicable to only FH_REF_SCRATCH files. */
-void
-fh_set_scratch_handle (struct file_handle *handle, struct scratch_handle *sh)
-{
-  assert (handle->referent == FH_REF_SCRATCH);
-  handle->sh = sh;
+  assert (handle->referent == FH_REF_DATASET);
+  return handle->ds;
 }
 
 /* Returns the current default handle. */
@@ -384,7 +378,7 @@ struct fh_lock
     union
       {
         struct file_identity *file; /* FH_REF_FILE only. */
-        unsigned int unique_id;    /* FH_REF_SCRATCH only. */
+        unsigned int unique_id;    /* FH_REF_DATASET only. */
       }
     u;
     enum fh_access access;      /* Type of file access. */
@@ -592,11 +586,8 @@ make_key (struct fh_lock *lock, const struct file_handle *h,
   lock->access = access;
   if (lock->referent == FH_REF_FILE)
     lock->u.file = fn_get_identity (fh_get_file_name (h));
-  else if (lock->referent == FH_REF_SCRATCH)
-    {
-      struct scratch_handle *sh = fh_get_scratch_handle (h);
-      lock->u.unique_id = sh != NULL ? sh->unique_id : 0;
-    }
+  else if (lock->referent == FH_REF_DATASET)
+    lock->u.unique_id = dataset_seqno (fh_get_dataset (h));
 }
 
 /* Frees the key fields in LOCK. */
@@ -618,7 +609,7 @@ compare_fh_locks (const struct fh_lock *a, const struct fh_lock *b)
     return a->access < b->access ? -1 : 1;
   else if (a->referent == FH_REF_FILE)
     return fn_compare_file_identities (a->u.file, b->u.file);
-  else if (a->referent == FH_REF_SCRATCH)
+  else if (a->referent == FH_REF_DATASET)
     return (a->u.unique_id < b->u.unique_id ? -1
             : a->u.unique_id > b->u.unique_id);
   else
@@ -632,7 +623,7 @@ hash_fh_lock (const struct fh_lock *lock)
   unsigned int basis;
   if (lock->referent == FH_REF_FILE)
     basis = fn_hash_identity (lock->u.file);
-  else if (lock->referent == FH_REF_SCRATCH)
+  else if (lock->referent == FH_REF_DATASET)
     basis = lock->u.unique_id;
   else
     basis = 0;

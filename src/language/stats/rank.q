@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,28 +16,27 @@
 
 #include <config.h>
 
+#include <gsl/gsl_cdf.h>
 #include <limits.h>
 #include <math.h>
 
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/missing-values.h>
-#include <data/procedure.h>
-#include <data/short-names.h>
-#include <data/subcase.h>
-#include <data/variable.h>
-#include <language/command.h>
-#include <language/stats/sort-criteria.h>
-#include <libpspp/compiler.h>
-#include <libpspp/taint.h>
-#include <math/sort.h>
-#include <output/tab.h>
-
-#include <gsl/gsl_cdf.h>
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/missing-values.h"
+#include "data/short-names.h"
+#include "data/subcase.h"
+#include "data/variable.h"
+#include "language/command.h"
+#include "language/stats/sort-criteria.h"
+#include "libpspp/compiler.h"
+#include "libpspp/taint.h"
+#include "math/sort.h"
+#include "output/tab.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -225,7 +224,7 @@ create_var_label (struct variable *dest_var,
     ds_put_format (&label, _("%s of %s"),
                    function_name[f], var_get_name (src_var));
 
-  var_set_label (dest_var, ds_cstr (&label));
+  var_set_label (dest_var, ds_cstr (&label), false);
 
   ds_destroy (&label);
 }
@@ -280,7 +279,7 @@ rank_cmd (struct dataset *ds, const struct subcase *sc,
         }
       ok = casegrouper_destroy (split_grouper);
       ok = proc_commit (ds) && ok;
-      ok = (proc_set_active_file_data (ds, casewriter_make_reader (output))
+      ok = (dataset_set_source (ds, casewriter_make_reader (output))
             && ok);
       if (!ok)
         break;
@@ -674,10 +673,12 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
       int v;
       for ( v = 0 ; v < n_src_vars ;  v ++ )
 	{
+          struct dictionary *dict = dataset_dict (ds);
+
 	  if ( rank_specs[i].destvars[v] == NULL )
 	    {
 	      rank_specs[i].destvars[v] =
-		create_rank_variable (dataset_dict(ds), rank_specs[i].rfunc, src_vars[v], NULL);
+		create_rank_variable (dict, rank_specs[i].rfunc, src_vars[v], NULL);
 	    }
 
 	  create_var_label ( rank_specs[i].destvars[v],
@@ -769,7 +770,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   /* Do the ranking */
   result = rank_cmd (ds, &sc, rank_specs, n_rank_specs);
 
-  /* Put the active file back in its original order.  Delete
+  /* Put the active dataset back in its original order.  Delete
      our sort key, which we don't need anymore.  */
   {
     struct casereader *sorted;
@@ -781,7 +782,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
     result = proc_commit (ds) && result;
 
     dict_delete_var (dataset_dict (ds), order);
-    result = proc_set_active_file_data (ds, sorted) && result;
+    result = dataset_set_source (ds, sorted) && result;
   }
 
   rank_cleanup();
@@ -796,9 +797,9 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 static int
 rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
 
-  if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
+  if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
       return 2;
 
@@ -808,7 +809,7 @@ rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank 
 
   if ( lex_match (lexer, T_BY)  )
     {
-      if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
+      if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokcstr (lexer)) == NULL))
 	{
 	  return 2;
 	}
@@ -847,9 +848,9 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
       while( lex_token (lexer) == T_ID )
 	{
 
-	  if ( dict_lookup_var (dict, lex_tokid (lexer)) != NULL )
+	  if ( dict_lookup_var (dict, lex_tokcstr (lexer)) != NULL )
 	    {
-	      msg(SE, _("Variable %s already exists."), lex_tokid (lexer));
+	      msg(SE, _("Variable %s already exists."), lex_tokcstr (lexer));
 	      return 0;
 	    }
 	  if ( var_count >= subcase_get_n_fields (&sc) )
@@ -858,7 +859,7 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
 	      return 0;
 	    }
 
-	  destvar = create_rank_variable (dict, f, src_vars[var_count], lex_tokid (lexer));
+	  destvar = create_rank_variable (dict, f, src_vars[var_count], lex_tokcstr (lexer));
 	  rank_specs[n_rank_specs - 1].destvars[var_count] = destvar ;
 
 	  lex_get (lexer);
@@ -932,13 +933,13 @@ rank_custom_ntiles (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cm
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  if ( lex_force_match (lexer, '(') )
+  if ( lex_force_match (lexer, T_LPAREN) )
     {
       if ( lex_force_int (lexer) )
 	{
 	  k_ntiles = lex_integer (lexer);
 	  lex_get (lexer);
-	  lex_force_match (lexer, ')');
+	  lex_force_match (lexer, T_RPAREN);
 	}
       else
 	return 0;

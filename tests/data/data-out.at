@@ -218,6 +218,42 @@ sub increment {
 AT_CHECK([$PERL num-out-compare.pl $PSPP_NUM_OUT_COMPARE_FLAGS expout.inexact output.inexact])
 AT_CLEANUP
 
+AT_SETUP([non-ASCII custom currency formats])
+AT_DATA([data-out.sps], [dnl
+SET CCA='«,¥,€,»'.
+SHOW CCA.
+DATA LIST LIST NOTABLE/x.
+PRINT/x (F8.2) x (CCA10.2).
+EXECUTE.
+BEGIN DATA.
+1
+-1
+1.5
+-1.5
+.75
+1.5e10
+-1.5e10
+END DATA.
+])
+AT_CHECK([pspp -O format=csv data-out.sps], [0], [dnl
+"data-out.sps:2: note: SHOW: CCA is «,¥,€,»."
+
+1.00   ¥1.00€ @&t@
+
+-1.00  «¥1.00€»
+
+1.50   ¥1.50€ @&t@
+
+-1.50  «¥1.50€»
+
+.75    ¥.75€ @&t@
+
+1.5E+010 ¥2E+010€ @&t@
+
+-2E+010«¥2E+010€»
+])
+AT_CLEANUP
+
 AT_SETUP([binary and hexadecimal output])
 AT_DATA([binhex-out.sps], [dnl
 SET ERRORS=NONE.
@@ -14009,11 +14045,12 @@ print outfile='month-out.out'/x(month40).
 execute.
 ])
 AT_CHECK([pspp -O format=csv month-out.sps], [1], [stdout])
-AT_CHECK([sed '/^$/d' stdout | sort | uniq -c], [0], [dnl
-     38 error: Month number 0.000000 is not between 1 and 12.
-     38 error: Month number 0.500000 is not between 1 and 12.
-     38 error: Month number 0.900000 is not between 1 and 12.
-     38 error: Month number 13.000000 is not between 1 and 12.
+AT_CHECK([[sed '/^$/d' stdout | sort | uniq -c | sed 's/^[ 	]*//']], [0],
+[dnl
+38 error: Month number 0.000000 is not between 1 and 12.
+38 error: Month number 0.500000 is not between 1 and 12.
+38 error: Month number 0.900000 is not between 1 and 12.
+38 error: Month number 13.000000 is not between 1 and 12.
 ])
 AT_CHECK([cat month-out.out], [0], [dnl
    .
@@ -14924,11 +14961,12 @@ end repeat.
 execute.
 ])
 AT_CHECK([pspp -O format=csv wkday-out.sps], [1], [stdout])
-AT_CHECK([sed '/^$/d' stdout | sort | uniq -c], [0], [dnl
-     39 error: Weekday number 0.000000 is not between 1 and 7.
-     39 error: Weekday number 0.500000 is not between 1 and 7.
-     39 error: Weekday number 0.900000 is not between 1 and 7.
-     39 error: Weekday number 8.000000 is not between 1 and 7.
+AT_CHECK([[sed '/^$/d' stdout | sort | uniq -c | sed 's/^[ 	]*//']], [0],
+[dnl
+39 error: Weekday number 0.000000 is not between 1 and 7.
+39 error: Weekday number 0.500000 is not between 1 and 7.
+39 error: Weekday number 0.900000 is not between 1 and 7.
+39 error: Weekday number 8.000000 is not between 1 and 7.
 ])
 AT_CHECK([cat wkday-out.out], [0], [dnl
   .

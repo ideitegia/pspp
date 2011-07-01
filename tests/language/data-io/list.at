@@ -84,6 +84,50 @@ Case Number,avar,bvar
 ])
 AT_CLEANUP
 
+# Checks for a crash when LIST did not include the variables from SPLIT
+# FILE in the same positions (bug #30684).
+AT_SETUP([LIST with split file])
+AT_DATA([data.txt], [dnl
+a 1
+a 2
+a 3
+b 1
+c 4
+c 5
+])
+AT_DATA([list.sps], [dnl
+DATA LIST LIST NOTABLE FILE='data.txt'/s (a1) n.
+SPLIT FILE BY s.
+LIST n.
+])
+AT_CHECK([pspp -o pspp.csv list.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Value,Label
+s,a,
+
+Table: Data List
+n
+1.00
+2.00
+3.00
+
+Variable,Value,Label
+s,b,
+
+Table: Data List
+n
+1.00
+
+Variable,Value,Label
+s,c,
+
+Table: Data List
+n
+4.00
+5.00
+])
+AT_CLEANUP
+
 AT_SETUP([LIST lots of variables])
 AT_DATA([data.txt], [dnl
 767532466348513789073483106409

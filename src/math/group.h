@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 #ifndef GROUP_H
 #define GROUP_H
 
-#include <data/value.h>
+#include "data/value.h"
 
 /* Statistics for grouped data */
 struct group_statistics
@@ -67,18 +67,6 @@ struct group_statistics
 
 struct variable ;
 
-/* These funcs are useful for hash tables */
-
-/* Return -1 if the id of a is less than b; +1 if greater than and
-   0 if equal */
-int  compare_group (const void *a,
-		    const void *b,
-		    const void *var);
-
-unsigned int hash_group (const void *g, const void *var);
-
 void  free_group (struct group_statistics *v, void *aux);
-
-
 
 #endif

@@ -46,7 +46,7 @@ m4_define([SORT_CASES_TEST],
    AT_CAPTURE_FILE([sort-cases.sps])
    AT_DATA([sort-cases.sps], [dnl
 DATA LIST LIST NOTABLE FILE='data.txt'/x y (F8).
-SORT BY x[]m4_if([$3], [], [], [/BUFFERS=$3]).
+SORT CASES BY x[]m4_if([$3], [], [], [/BUFFERS=$3]).
 PRINT OUTFILE='output.txt'/x y.
 EXECUTE.
 ])
@@ -80,3 +80,51 @@ SORT_CASES_TEST(10000, 5, 500)
 
 SORT_CASES_TEST(50000, 1)
 
+dnl Bug #33089 caused SORT CASES to delete filtered cases permanently.
+AT_SETUP([SORT CASES preserves filtered cases])
+AT_DATA([sort-cases.sps], [dnl
+DATA LIST FREE /x.
+BEGIN DATA.
+5 4 3 2 1 0
+END DATA.
+COMPUTE mod2 = MOD(x, 2).
+LIST.
+FILTER BY mod2.
+LIST.
+SORT CASES BY x.
+LIST.
+FILTER OFF.
+LIST.
+])
+AT_CHECK([pspp -O format=csv sort-cases.sps], [0], [dnl
+Table: Data List
+x,mod2
+5.00,1.00
+4.00,.00
+3.00,1.00
+2.00,.00
+1.00,1.00
+.00,.00
+
+Table: Data List
+x,mod2
+5.00,1.00
+3.00,1.00
+1.00,1.00
+
+Table: Data List
+x,mod2
+1.00,1.00
+3.00,1.00
+5.00,1.00
+
+Table: Data List
+x,mod2
+.00,.00
+1.00,1.00
+2.00,.00
+3.00,1.00
+4.00,.00
+5.00,1.00
+])
+AT_CLEANUP

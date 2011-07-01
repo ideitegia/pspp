@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2006, 2007, 2009  Free Software Foundation
+   Copyright (C) 2004, 2006, 2007, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include <gtk/gtk.h>
 
 #include "data/dictionary.h"
+#include "data/identifier.h"
 #include "data/missing-values.h"
 #include "data/value-labels.h"
 #include "data/variable.h"
@@ -425,7 +426,7 @@ psppire_dict_set_name (PsppireDict* d, gint idx, const gchar *name)
   g_assert (d);
   g_assert (PSPPIRE_IS_DICT (d));
 
-  if ( ! var_is_valid_name (name, false))
+  if ( ! dict_id_is_valid (d->dict, name, false))
     return FALSE;
 
   if ( idx < dict_get_var_cnt (d->dict))
@@ -527,7 +528,7 @@ gboolean
 psppire_dict_check_name (const PsppireDict *dict,
 			 const gchar *name, gboolean report)
 {
-  if ( ! var_is_valid_name (name, report ) )
+  if ( ! dict_id_is_valid (dict->dict, name, report ) )
     return FALSE;
 
   if (psppire_dict_lookup_var (dict, name))
@@ -835,7 +836,7 @@ gboolean
 psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
 			 const gchar *name)
 {
-  if ( ! var_is_valid_name (name, false))
+  if ( ! dict_id_is_valid (dict->dict, name, false))
     return FALSE;
 
   /* Make sure no other variable has this name */

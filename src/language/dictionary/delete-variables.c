@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,12 +18,12 @@
 
 #include <stdlib.h>
 
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <language/command.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/message.h>
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "language/command.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -40,13 +40,13 @@ cmd_delete_variables (struct lexer *lexer, struct dataset *ds)
     msg (SE, _("DELETE VARIABLES may not be used after TEMPORARY.  "
                "Temporary transformations will be made permanent."));
 
-  if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt,
-			      PV_NONE))
+  if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt, PV_NONE))
     goto error;
   if (var_cnt == dict_get_var_cnt (dataset_dict (ds)))
     {
       msg (SE, _("DELETE VARIABLES may not be used to delete all variables "
-                 "from the active file dictionary.  Use NEW FILE instead."));
+                 "from the active dataset dictionary.  "
+                 "Use NEW FILE instead."));
       goto error;
     }
 

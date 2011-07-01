@@ -1,0 +1,585 @@
+AT_BANNER([ASCII driver -- rendering corner cases])
+
+AT_SETUP([ASCII driver overwriting single-width text])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [dnl
+## overwriting rest of line
+# plain
+0 0 0 abc
+1 0 0 BCD
+# emphasized over plain
+0 1 0 efg
+1 1 1 FGH
+# plain over emphasized
+0 2 1 ijk
+1 2 0 JKL
+# emphasized over emphasized
+0 3 1 mno
+1 3 1 NOP
+
+## overwriting partial line
+# plain
+0 5 0 abcdef
+0 5 0 A
+2 5 0 CDE
+# emphasized over plain
+0 6 0 ghijkl
+0 6 1 G
+2 6 1 IJK
+# plain over emphasized
+0 7 1 mnopqr
+0 7 0 M
+2 7 0 OPQ
+# emphasized over emphasized
+0 8 1 stuvwx
+0 8 1 S
+2 8 1 UVW
+
+## overwriting rest of line with double-width characters
+# plain
+0 10 0 kakiku
+2 10 0 きくけ
+# emphasized over plain
+0 11 0 kakiku
+2 11 1 きくけ
+# plain over emphasized
+0 12 1 kakiku
+2 12 0 きくけ
+# emphasized over emphasized
+0 13 1 kakiku
+2 13 1 きくけ
+
+## overwriting partial line with double-width characters
+# plain
+0 15 0 kakikukeko
+0 15 0 か
+4 15 0 くけ
+# emphasized over plain
+0 16 0 kakikukeko
+0 16 1 か
+4 16 1 くけ
+# plain over emphasized
+0 17 1 kakikukeko
+0 17 0 か
+4 17 0 くけ
+# emphasized over emphasized
+0 18 1 kakikukeko
+0 18 1 か
+4 18 1 くけ
+])
+AT_CHECK([render-test --draw-mode --emph=none input], [0], [dnl
+aBCD
+eFGH
+iJKL
+mNOP
+
+AbCDEf
+GhIJKl
+MnOPQr
+StUVWx
+
+kaきくけ
+kaきくけ
+kaきくけ
+kaきくけ
+
+かkiくけko
+かkiくけko
+かkiくけko
+かkiくけko
+])
+AT_CHECK([render-test --draw-mode --emph=bold input], [0], [dnl
+aBCD
+eFFGGHH
+iiJKL
+mmNNOOPP
+
+AbCDEf
+GGhIIJJKKl
+MnnOPQrr
+SSttUUVVWWxx
+
+kaきくけ
+kaききくくけけ
+kkaaきくけ
+kkaaききくくけけ
+
+かkiくけko
+かかkiくくけけko
+かkkiiくけkkoo
+かかkkiiくくけけkkoo
+])
+AT_CHECK([render-test --draw-mode --emph=underline input], [0], [dnl
+aBCD
+e_F_G_H
+_iJKL
+_m_N_O_P
+
+AbCDEf
+_Gh_I_J_Kl
+M_nOPQ_r
+_S_t_U_V_W_x
+
+kaきくけ
+ka_き_く_け
+_k_aきくけ
+_k_a_き_く_け
+
+かkiくけko
+_かki_く_けko
+か_k_iくけ_k_o
+_か_k_i_く_け_k_o
+])
+AT_CLEANUP
+
+AT_SETUP([ASCII driver overwriting double-width text])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [dnl
+## overwrite rest of line, aligned double-width over double-width
+# plain
+0 0 0 あいう
+2 0 0 きくけ
+# emphasized over plain
+0 1 0 あいう
+2 1 1 きくけ
+# plain over emphasized
+0 2 1 あいう
+2 2 0 きくけ
+# emphasized over emphasized
+0 3 1 あいう
+2 3 1 きくけ
+
+## overwrite rest of line, misaligned double-width over double-width
+# plain
+0 5 0 あいう
+3 5 0 きくけ
+# emphasized over plain
+0 6 0 あいう
+3 6 1 きくけ
+# plain over emphasized
+0 7 1 あいう
+3 7 0 きくけ
+# emphasized over emphasized
+0 8 1 あいう
+3 8 1 きくけ
+
+## overwrite partial line, aligned double-width over double-width
+# plain
+0 10 0 あいうえお
+0 10 0 か
+4 10 0 くけ
+# emphasized over plain
+0 11 0 あいうえお
+0 11 1 か
+4 11 1 くけ
+# plain over emphasized
+0 12 1 あいうえお
+0 12 0 か
+4 12 0 くけ
+# emphasized over emphasized
+0 13 1 あいうえお
+0 13 1 か
+4 13 1 くけ
+
+## overwrite partial line, misaligned double-width over double-width
+# plain
+0 15 0 あいうえおさ
+1 15 0 か
+5 15 0 くけ
+# emphasized over plain
+0 16 0 あいうえおさ
+1 16 1 か
+5 16 1 くけ
+# plain over emphasized
+0 17 1 あいうえおさ
+1 17 0 か
+5 17 0 くけ
+# emphasized over emphasized
+0 18 1 あいうえおさ
+1 18 1 か
+5 18 1 くけ
+
+## overwrite rest of line, aligned single-width over double-width
+# plain
+0 20 0 あいう
+2 20 0 kikuko
+# emphasized over plain
+0 21 0 あいう
+2 21 1 kikuko
+# plain over emphasized
+0 22 1 あいう
+2 22 0 kikuko
+# emphasized over emphasized
+0 23 1 あいう
+2 23 1 kikuko
+
+## overwrite rest of line, misaligned single-width over double-width
+# plain
+0 25 0 あいう
+3 25 0 kikuko
+# emphasized over plain
+0 26 0 あいう
+3 26 1 kikuko
+# plain over emphasized
+0 27 1 あいう
+3 27 0 kikuko
+# emphasized over emphasized
+0 28 1 あいう
+3 28 1 kikuko
+
+## overwrite partial line, aligned single-width over double-width
+# plain
+0 30 0 あいうえお
+0 30 0 ka
+4 30 0 kuke
+# emphasized over plain
+0 31 0 あいうえお
+0 31 1 ka
+4 31 1 kuke
+# plain over emphasized
+0 32 1 あいうえお
+0 32 0 ka
+4 32 0 kuke
+# emphasized over emphasized
+0 33 1 あいうえお
+0 33 1 ka
+4 33 1 kuke
+
+## overwrite partial line, misaligned single-width over double-width
+# plain
+0 35 0 あいうえおさ
+1 35 0 a
+5 35 0 kuke
+# emphasized over plain
+0 36 0 あいうえおさ
+1 36 1 a
+5 36 1 kuke
+# plain over emphasized
+0 37 1 あいうえおさ
+1 37 0 a
+5 37 0 kuke
+# emphasized over emphasized
+0 38 1 あいうえおさ
+1 38 1 a
+5 38 1 kuke
+])
+AT_CHECK([render-test --draw-mode --emph=none input], [0], [dnl
+あきくけ
+あきくけ
+あきくけ
+あきくけ
+
+あ?きくけ
+あ?きくけ
+あ?きくけ
+あ?きくけ
+
+かいくけお
+かいくけお
+かいくけお
+かいくけお
+
+?か??くけ?さ
+?か??くけ?さ
+?か??くけ?さ
+?か??くけ?さ
+
+あkikuko
+あkikuko
+あkikuko
+あkikuko
+
+あ?kikuko
+あ?kikuko
+あ?kikuko
+あ?kikuko
+
+kaいkukeお
+kaいkukeお
+kaいkukeお
+kaいkukeお
+
+?aい?kuke?さ
+?aい?kuke?さ
+?aい?kuke?さ
+?aい?kuke?さ
+])
+AT_CHECK([render-test --draw-mode --emph=bold input], [0], [dnl
+あきくけ
+あききくくけけ
+ああきくけ
+ああききくくけけ
+
+あ?きくけ
+あ?ききくくけけ
+ああ?きくけ
+ああ?ききくくけけ
+
+かいくけお
+かかいくくけけお
+かいいくけおお
+かかいいくくけけおお
+
+?か??くけ?さ
+?かか??くくけけ?さ
+?か??くけ?ささ
+?かか??くくけけ?ささ
+
+あkikuko
+あkkiikkuukkoo
+ああkikuko
+ああkkiikkuukkoo
+
+あ?kikuko
+あ?kkiikkuukkoo
+ああ?kikuko
+ああ?kkiikkuukkoo
+
+kaいkukeお
+kkaaいkkuukkeeお
+kaいいkukeおお
+kkaaいいkkuukkeeおお
+
+?aい?kuke?さ
+?aaい?kkuukkee?さ
+?aいい?kuke?ささ
+?aaいい?kkuukkee?ささ
+])
+AT_CHECK([render-test --draw-mode --emph=underline input], [0], [dnl
+あきくけ
+あ_き_く_け
+_あきくけ
+_あ_き_く_け
+
+あ?きくけ
+あ?_き_く_け
+_あ?きくけ
+_あ?_き_く_け
+
+かいくけお
+_かい_く_けお
+か_いくけ_お
+_か_い_く_け_お
+
+?か??くけ?さ
+?_か??_く_け?さ
+?か??くけ?_さ
+?_か??_く_け?_さ
+
+あkikuko
+あ_k_i_k_u_k_o
+_あkikuko
+_あ_k_i_k_u_k_o
+
+あ?kikuko
+あ?_k_i_k_u_k_o
+_あ?kikuko
+_あ?_k_i_k_u_k_o
+
+kaいkukeお
+_k_aい_k_u_k_eお
+ka_いkuke_お
+_k_a_い_k_u_k_e_お
+
+?aい?kuke?さ
+?_aい?_k_u_k_e?さ
+?a_い?kuke?_さ
+?_a_い?_k_u_k_e?_さ
+])
+AT_CLEANUP
+
+AT_SETUP([ASCII driver overwriting combining characters])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [dnl
+## overwriting rest of line, ordinary over combining
+# plain
+0 0 0 àéî
+1 0 0 xyz
+# emphasized over plain
+0 1 0 àéî
+1 1 1 xyz
+# plain over emphasized
+0 2 1 àéî
+1 2 0 xyz
+# emphasized over emphasized
+0 3 1 àéî
+1 3 1 xyz
+
+## overwriting rest of line, combining over ordinary
+# plain
+0 5 0 xyz
+1 5 0 àéî
+# emphasized over plain
+0 6 0 xyz
+1 6 1 àéî
+# plain over emphasized
+0 7 1 xyz
+1 7 0 àéî
+# emphasized over emphasized
+0 8 1 xyz
+1 8 1 àéî
+
+## overwriting partial line, ordinary over combining
+# plain
+0 10 0 àéîo̧ũẙ
+0 10 0 a
+2 10 0 iou
+# emphasized over plain
+0 11 0 àéîo̧ũẙ
+0 11 1 a
+2 11 1 iou
+# plain over emphasized
+0 12 1 àéîo̧ũẙ
+0 12 0 a
+2 12 0 iou
+# emphasized over emphasized
+0 13 1 àéîo̧ũẙ
+0 13 1 a
+2 13 1 iou
+
+## overwriting partial line, combining over ordinary
+# plain
+0 15 0 aeiouy
+0 15 0 à
+2 15 0 îo̧ũ
+# emphasized over plain
+0 16 0 aeiouy
+0 16 1 à
+2 16 1 îo̧ũ
+# plain over emphasized
+0 17 1 aeiouy
+0 17 0 à
+2 17 0 îo̧ũ
+# emphasized over emphasized
+0 18 1 aeiouy
+0 18 1 à
+2 18 1 îo̧ũ
+])
+AT_CHECK([render-test --draw-mode --emph=none input], [0], [dnl
+àxyz
+àxyz
+àxyz
+àxyz
+
+xàéî
+xàéî
+xàéî
+xàéî
+
+aéiouẙ
+aéiouẙ
+aéiouẙ
+aéiouẙ
+
+àeîo̧ũy
+àeîo̧ũy
+àeîo̧ũy
+àeîo̧ũy
+])
+AT_CHECK([render-test --draw-mode --emph=bold input], [0], [dnl
+àxyz
+àxxyyzz
+aàxyz
+aàxxyyzz
+
+xàéî
+xaàeéiî
+xxàéî
+xxaàeéiî
+
+aéiouẙ
+aaéiioouuẙ
+aeéiouyẙ
+aaeéiioouuyẙ
+
+àeîo̧ũy
+aàeiîoo̧uũy
+àeeîo̧ũyy
+aàeeiîoo̧uũyy
+])
+AT_CHECK([render-test --draw-mode --emph=underline input], [0], [dnl
+àxyz
+à_x_y_z
+_àxyz
+_à_x_y_z
+
+xàéî
+x_à_é_î
+_xàéî
+_x_à_é_î
+
+aéiouẙ
+_aé_i_o_uẙ
+a_éiou_ẙ
+_a_é_i_o_u_ẙ
+
+àeîo̧ũy
+_àe_î_o̧_ũy
+à_eîo̧ũ_y
+_à_e_î_o̧_ũ_y
+])
+AT_CLEANUP
+
+AT_SETUP([ASCII driver Unicode box characters])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [3 3
+1*2 @abc
+2*1 @d\ne\nf
+2*1 @g\nh\ni
+@j
+1*2 @klm
+])
+AT_CHECK([render-test --box=unicode input], [0], [dnl
+╭───┬─╮
+│abc│d│
+├─┬─┤e│
+│g│j│f│
+│h├─┴─┤
+│i│klm│
+╰─┴───╯
+])
+AT_CLEANUP
+
+AT_SETUP([ASCII driver syntax printback])
+AT_DATA([ascii.sps], [dnl
+SET PRINTBACK=ON.
+DATA LIST LIST /x * y * a (a23).
+BEGIN DATA.
+1 11 One
+2 22 Two
+3 33 Three
+END DATA.
+
+REGRESSION
+/VARIABLES= a
+/DEPENDENT= x y
+/STATISTICS=COEFF R ANOVA.
+])
+AT_CHECK([pspp ascii.sps], [1], [dnl
+SET PRINTBACK=ON.
+
+DATA LIST LIST /x * y * a (a23).
+
+Reading free-form data from INLINE.
++--------+------+
+|Variable|Format|
+#========#======#
+|x       |F8.0  |
+|y       |F8.0  |
+|a       |A23   |
++--------+------+
+
+BEGIN DATA.
+1 11 One
+2 22 Two
+3 33 Three
+END DATA.
+
+REGRESSION
+/VARIABLES= a
+/DEPENDENT= x y
+/STATISTICS=COEFF R ANOVA.
+
+ascii.sps:12: error: REGRESSION: REGRESSION requires numeric variables.
+])
+AT_CLEANUP

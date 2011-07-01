@@ -1,5 +1,5 @@
 /* Pspp - a program for statistical analysis.
-   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,27 +18,27 @@
 
 #include <config.h>
 
-#include "wilcoxon.h"
+#include "language/stats/wilcoxon.h"
 
 #include <gsl/gsl_cdf.h>
 #include <math.h>
 
-#include <data/casereader.h>
-#include <data/casewriter.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/procedure.h>
-#include <data/subcase.h>
-#include <data/variable.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <math/sort.h>
-#include <math/wilcoxon-sig.h>
-#include <output/tab.h>
+#include "data/casereader.h"
+#include "data/casewriter.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/subcase.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "math/sort.h"
+#include "math/wilcoxon-sig.h"
+#include "output/tab.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 static double
 append_difference (const struct ccase *c, casenumber n UNUSED, void *aux)

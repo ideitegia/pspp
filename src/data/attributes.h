@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 #ifndef DATA_ATTRIBUTES_H
 #define DATA_ATTRIBUTES_H 1
 
-#include <libpspp/hmapx.h>
+#include "libpspp/hmapx.h"
 
 /* This header supports custom attribute of the sort maintained
    by the DATAFILE ATTRIBUTE and VARIABLE ATTRIBUTE commands.

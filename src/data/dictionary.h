@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,14 +19,14 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <data/case.h>
-#include <data/dict-class.h>
+#include "data/case.h"
+#include "data/dict-class.h"
 
 struct string;
 struct ccase;
 
 /* Creating dictionaries. */
-struct dictionary *dict_create (void);
+struct dictionary *dict_create (const char *encoding);
 struct dictionary *dict_clone (const struct dictionary *);
 
 
@@ -84,9 +84,8 @@ void dict_rename_var (struct dictionary *, struct variable *, const char *);
 bool dict_rename_vars (struct dictionary *,
                        struct variable **, char **new_names,
                        size_t count, char **err_name);
-bool dict_make_unique_var_name (const struct dictionary *, const char *hint,
-                                unsigned long int *num_start,
-                                char name[]);
+char *dict_make_unique_var_name (const struct dictionary *, const char *hint,
+                                 unsigned long int *num_start);
 
 /* Weight variable. */
 double dict_get_case_weight (const struct dictionary *,
@@ -128,14 +127,15 @@ void dict_set_label (struct dictionary *, const char *);
 /* Documents. */
 #define DOC_LINE_LENGTH 80 /* Fixed length of document lines. */
 
-const char *dict_get_documents (const struct dictionary *);
-void dict_set_documents (struct dictionary *, const char *);
+const struct string_array *dict_get_documents (const struct dictionary *);
+void dict_set_documents (struct dictionary *, const struct string_array *);
+void dict_set_documents_string (struct dictionary *, const char *);
 void dict_clear_documents (struct dictionary *);
 
-void dict_add_document_line (struct dictionary *, const char *);
+bool dict_add_document_line (struct dictionary *, const char *,
+                             bool issue_warning);
 size_t dict_get_document_line_cnt (const struct dictionary *);
-void dict_get_document_line (const struct dictionary *,
-                             size_t, struct string *);
+const char *dict_get_document_line (const struct dictionary *, size_t);
 
 /* Vectors. */
 bool dict_create_vector (struct dictionary *, const char *name,
@@ -164,8 +164,10 @@ void dict_set_attributes (struct dictionary *, const struct attrset *);
 bool dict_has_attributes (const struct dictionary *);
 
 /* Data encoding. */
-void dict_set_encoding (struct dictionary *d, const char *enc);
 const char *dict_get_encoding (const struct dictionary *d);
+
+bool dict_id_is_valid (const struct dictionary *, const char *id,
+                       bool issue_error);
 
 /* Internal variables. */
 struct variable *dict_create_internal_var (int case_idx, int width);

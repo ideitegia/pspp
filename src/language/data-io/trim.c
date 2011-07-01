@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,17 +16,17 @@
 
 #include <config.h>
 
-#include <language/data-io/trim.h>
+#include "language/data-io/trim.h"
 
 #include <stdlib.h>
 
-#include <data/dictionary.h>
-#include <data/variable.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/message.h>
+#include "data/dictionary.h"
+#include "data/variable.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/message.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -72,29 +72,30 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
 
   int group;
 
-  lex_match (lexer, '=');
-  if (lex_token (lexer) != '(')
+  lex_match (lexer, T_EQUALS);
+  if (lex_token (lexer) != T_LPAREN)
     {
       struct variable *v;
 
       v = parse_variable (lexer, dict);
       if (v == NULL)
 	return 0;
-      if (!lex_force_match (lexer, '=')
-	  || !lex_force_id (lexer))
+      if (!lex_force_match (lexer, T_EQUALS)
+	  || !lex_force_id (lexer)
+          || !dict_id_is_valid (dict, lex_tokcstr (lexer), true))
 	return 0;
-      if (dict_lookup_var (dict, lex_tokid (lexer)) != NULL)
+      if (dict_lookup_var (dict, lex_tokcstr (lexer)) != NULL)
 	{
 	  msg (SE, _("Cannot rename %s as %s because there already exists "
 		     "a variable named %s.  To rename variables with "
 		     "overlapping names, use a single RENAME subcommand "
 		     "such as `/RENAME (A=B)(B=C)(C=A)', or equivalently, "
 		     "`/RENAME (A B C=B C A)'."),
-               var_get_name (v), lex_tokid (lexer), lex_tokid (lexer));
+               var_get_name (v), lex_tokcstr (lexer), lex_tokcstr (lexer));
 	  return 0;
 	}
 
-      dict_rename_var (dict, v, lex_tokid (lexer));
+      dict_rename_var (dict, v, lex_tokcstr (lexer));
       lex_get (lexer);
       return 1;
     }
@@ -103,18 +104,18 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
   v = NULL;
   new_names = 0;
   group = 1;
-  while (lex_match (lexer, '('))
+  while (lex_match (lexer, T_LPAREN))
     {
       size_t old_nv = nv;
 
       if (!parse_variables (lexer, dict, &v, &nv, PV_NO_DUPLICATE | PV_APPEND))
 	goto done;
-      if (!lex_match (lexer, '='))
+      if (!lex_match (lexer, T_EQUALS))
 	{
 	  msg (SE, _("`=' expected after variable list."));
 	  goto done;
 	}
-      if (!parse_DATA_LIST_vars (lexer, &new_names, &nn,
+      if (!parse_DATA_LIST_vars (lexer, dict, &new_names, &nn,
                                  PV_APPEND | PV_NO_SCRATCH | PV_NO_DUPLICATE))
 	goto done;
       if (nn != nv)
@@ -125,7 +126,7 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
 	       nv - old_nv, nn - old_nv, group);
 	  goto done;
 	}
-      if (!lex_force_match (lexer, ')'))
+      if (!lex_force_match (lexer, T_RPAREN))
 	goto done;
       group++;
     }
@@ -155,7 +156,7 @@ parse_dict_drop (struct lexer *lexer, struct dictionary *dict)
   struct variable **v;
   size_t nv;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
     return false;
   dict_delete_vars (dict, v, nv);
@@ -179,7 +180,7 @@ parse_dict_keep (struct lexer *lexer, struct dictionary *dict)
   size_t nv;
   size_t i;
 
-  lex_match (lexer, '=');
+  lex_match (lexer, T_EQUALS);
   if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
     return false;
 

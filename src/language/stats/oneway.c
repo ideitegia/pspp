@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,40 +16,32 @@
 
 #include <config.h>
 
-#include <data/case.h>
-#include <data/casegrouper.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/value.h>
-
-
-#include <math/covariance.h>
-#include <math/categoricals.h>
-#include <math/levene.h>
-#include <math/moments.h>
-#include <gsl/gsl_matrix.h>
-#include <linreg/sweep.h>
-
-#include <libpspp/ll.h>
-
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <language/lexer/value-parser.h>
-#include <language/command.h>
-
-
-#include <language/dictionary/split-file.h>
-#include <libpspp/taint.h>
-#include <libpspp/misc.h>
-
-#include <output/tab.h>
-
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_matrix.h>
 #include <math.h>
-#include <data/format.h>
 
-#include <libpspp/message.h>
+#include "data/case.h"
+#include "data/casegrouper.h"
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/value.h"
+#include "language/command.h"
+#include "language/dictionary/split-file.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/value-parser.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/ll.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/taint.h"
+#include "linreg/sweep.h"
+#include "math/categoricals.h"
+#include "math/covariance.h"
+#include "math/levene.h"
+#include "math/moments.h"
+#include "output/tab.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -164,13 +156,13 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
   ll_init (&oneway.contrast_list);
 
   
-  if ( lex_match (lexer, '/'))
+  if ( lex_match (lexer, T_SLASH))
     {
       if (!lex_force_match_id (lexer, "VARIABLES"))
 	{
 	  goto error;
 	}
-      lex_match (lexer, '=');
+      lex_match (lexer, T_EQUALS);
     }
 
   if (!parse_variables_const (lexer, dict,
@@ -182,14 +174,14 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 
   oneway.indep_var = parse_variable_const (lexer, dict);
 
-  while (lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      lex_match (lexer, '/');
+      lex_match (lexer, T_SLASH);
 
       if (lex_match_id (lexer, "STATISTICS"))
 	{
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if (lex_match_id (lexer, "DESCRIPTIVES"))
 		{
@@ -211,11 +203,11 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 	  struct contrasts_node *cl = xzalloc (sizeof *cl);
 
 	  struct ll_list *coefficient_list = &cl->coefficient_list;
-          lex_match (lexer, '=');
+          lex_match (lexer, T_EQUALS);
 
 	  ll_init (coefficient_list);
 
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {
 	      if ( lex_is_number (lexer))
 		{
@@ -236,8 +228,8 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match (lexer, '=');
-          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+          lex_match (lexer, T_EQUALS);
+          while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
             {
 	      if (lex_match_id (lexer, "INCLUDE"))
 		{
@@ -392,11 +384,11 @@ run_oneway (const struct oneway_spec *cmd,
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      ws.vws[v].cat = categoricals_create (&cmd->indep_var, 1,
-						       cmd->wv, cmd->exclude, 
-						       makeit,
-						       updateit,
-						       cmd->vars[v], ws.dd_total[v]);
+      ws.vws[v].cat = categoricals_create (&cmd->indep_var, 1, cmd->wv,
+                                           cmd->exclude, makeit, updateit,
+                                           CONST_CAST (struct variable *,
+                                                       cmd->vars[v]),
+                                           ws.dd_total[v]);
 
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
 					       ws.vws[v].cat, 
@@ -495,11 +487,13 @@ run_oneway (const struct oneway_spec *cmd,
       pvw->n_groups = categoricals_total (cats);
 
       pvw->mse = (pvw->sst - pvw->ssa) / (n - pvw->n_groups);
+
+      gsl_matrix_free (cm);
     }
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      struct categoricals *cats = covariance_get_categoricals (ws.vws[v].cov);
+      const struct categoricals *cats = covariance_get_categoricals (ws.vws[v].cov);
 
       categoricals_done (cats);
       

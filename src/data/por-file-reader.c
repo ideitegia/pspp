@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +15,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "por-file-reader.h"
+
+#include "data/por-file-reader.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -26,24 +27,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/casereader-provider.h>
-#include <data/casereader.h>
-#include <data/dictionary.h>
-#include <data/file-handle-def.h>
-#include <data/file-name.h>
-#include <data/format.h>
-#include <data/missing-values.h>
-#include <data/short-names.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <libpspp/str.h>
+#include "data/casereader-provider.h"
+#include "data/casereader.h"
+#include "data/dictionary.h"
+#include "data/file-handle-def.h"
+#include "data/file-name.h"
+#include "data/format.h"
+#include "data/missing-values.h"
+#include "data/short-names.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/str.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/intprops.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -103,10 +106,11 @@ error (struct pfm_reader *r, const char *msg, ...)
 
   m.category = MSG_C_GENERAL;
   m.severity = MSG_S_ERROR;
-  m.where.file_name = NULL;
-  m.where.line_number = 0;
-  m.where.first_column = 0;
-  m.where.last_column = 0;
+  m.file_name = NULL;
+  m.first_line = 0;
+  m.last_line = 0;
+  m.first_column = 0;
+  m.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);
@@ -134,10 +138,11 @@ warning (struct pfm_reader *r, const char *msg, ...)
 
   m.category = MSG_C_GENERAL;
   m.severity = MSG_S_WARNING;
-  m.where.file_name = NULL;
-  m.where.line_number = 0;
-  m.where.first_column = 0;
-  m.where.last_column = 0;
+  m.file_name = NULL;
+  m.first_line = 0;
+  m.last_line = 0;
+  m.first_column = 0;
+  m.last_column = 0;
   m.text = ds_cstr (&text);
 
   msg_emit (&m);
@@ -246,7 +251,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   struct pool *volatile pool = NULL;
   struct pfm_reader *volatile r = NULL;
 
-  *dict = dict_create ();
+  *dict = dict_create (get_default_encoding ());
 
   /* Create and initialize reader. */
   pool = pool_create ();
@@ -680,7 +685,8 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       for (j = 0; j < 6; j++)
         fmt[j] = read_int (r);
 
-      if (!var_is_valid_name (name, false) || *name == '#' || *name == '$')
+      if (!dict_id_is_valid (dict, name, false)
+          || *name == '#' || *name == '$')
         error (r, _("Invalid variable name `%s' in position %d."), name, i);
       str_uppercase (name);
 
@@ -690,17 +696,15 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       v = dict_create_var (dict, name, width);
       if (v == NULL)
         {
-          int i;
-          for (i = 1; i < 100000; i++)
+          unsigned long int i;
+          for (i = 1; ; i++)
             {
-              char try_name[VAR_NAME_LEN + 1];
-              sprintf (try_name, "%.*s_%d", VAR_NAME_LEN - 6, name, i);
+              char try_name[8 + 1 + INT_STRLEN_BOUND (i) + 1];
+              sprintf (try_name, "%s_%lu", name, i);
               v = dict_create_var (dict, try_name, width);
               if (v != NULL)
                 break;
             }
-          if (v == NULL)
-            error (r, _("Duplicate variable name %s in position %d."), name, i);
           warning (r, _("Duplicate variable name %s in position %d renamed "
                         "to %s."), name, i, var_get_name (v));
         }
@@ -742,7 +746,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
         {
           char label[256];
           read_string (r, label);
-          var_set_label (v, label);
+          var_set_label (v, label, false); /* XXX */
         }
     }
 
@@ -832,7 +836,7 @@ read_documents (struct pfm_reader *r, struct dictionary *dict)
     {
       char line[256];
       read_string (r, line);
-      dict_add_document_line (dict, line);
+      dict_add_document_line (dict, line, false);
     }
 }
 

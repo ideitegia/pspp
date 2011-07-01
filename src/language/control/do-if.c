@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009-2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,19 +18,19 @@
 
 #include <stdlib.h>
 
-#include "control-stack.h"
-#include <data/case.h>
-#include <data/procedure.h>
-#include <data/transformations.h>
-#include <data/value.h>
-#include <language/command.h>
-#include <language/expressions/public.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/case.h"
+#include "data/dataset.h"
+#include "data/transformations.h"
+#include "data/value.h"
+#include "language/command.h"
+#include "language/control/control-stack.h"
+#include "language/expressions/public.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/compiler.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -121,19 +121,19 @@ cmd_else_if (struct lexer *lexer, struct dataset *ds)
 
 /* Parse ELSE. */
 int
-cmd_else (struct lexer *lexer, struct dataset *ds)
+cmd_else (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   struct do_if_trns *do_if = ctl_stack_top (&do_if_class);
   assert (ds == do_if->ds);
   if (do_if == NULL || !must_not_have_else (do_if))
     return CMD_CASCADING_FAILURE;
   add_else (do_if);
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Parse END IF. */
 int
-cmd_end_if (struct lexer *lexer, struct dataset *ds)
+cmd_end_if (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   struct do_if_trns *do_if = ctl_stack_top (&do_if_class);
   assert (ds == do_if->ds);
@@ -143,7 +143,7 @@ cmd_end_if (struct lexer *lexer, struct dataset *ds)
 
   ctl_stack_pop (do_if);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Closes out DO_IF, by adding a sentinel ELSE clause if
@@ -204,7 +204,7 @@ parse_clause (struct lexer *lexer, struct do_if_trns *do_if, struct dataset *ds)
 
   add_clause (do_if, condition);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 /* Adds a clause to DO_IF that tests for the given CONDITION and,

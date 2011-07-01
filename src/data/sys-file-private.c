@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,16 +16,17 @@
 
 #include <config.h>
 
-#include <data/sys-file-private.h>
+#include "data/sys-file-private.h"
 
-#include <data/dictionary.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <libpspp/assertion.h>
-#include <libpspp/misc.h>
+#include "data/dictionary.h"
+#include "data/value.h"
+#include "data/variable.h"
+#include "libpspp/assertion.h"
+#include "libpspp/misc.h"
 
-#include "minmax.h"
-#include "xalloc.h"
+#include "gl/c-strcase.h"
+#include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 /* Number of bytes really stored in each segment of a very long
    string variable. */
@@ -247,4 +248,35 @@ sfm_dictionary_to_sfm_vars (const struct dictionary *dict,
     }
 
   return segment_cnt;
+}
+
+/* Given the name of an encoding, returns the codepage number to use in the
+   'character_code' member of the machine integer info record for writing a
+   system file. */
+int
+sys_get_codepage_from_encoding (const char *name)
+{
+  const struct sys_encoding *e;
+
+  for (e = sys_codepage_name_to_number; e->name != NULL; e++)
+    if (!c_strcasecmp (name, e->name))
+      return e->number;
+
+  return 0;
+}
+
+/* Given a codepage number from the 'character_code' member of the machine
+   integer info record in a system file, returns a corresponding encoding name.
+   Most encodings have multiple aliases; the one returned is the one that would
+   be used in the character encoding record. */
+const char *
+sys_get_encoding_from_codepage (int codepage)
+{
+  const struct sys_encoding *e;
+
+  for (e = sys_codepage_number_to_name; e->name != NULL; e++)
+    if (codepage == e->number)
+      return e->name;
+
+  return NULL;
 }

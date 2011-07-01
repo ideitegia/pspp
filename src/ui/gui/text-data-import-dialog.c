@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,39 +16,38 @@
 
 #include <config.h>
 
-#include <gtk/gtk.h>
-
-
-#include "widget-io.h"
-#include "checkbox-treeview.h"
-#include "descriptives-dialog.h"
+#include "ui/gui/text-data-import-dialog.h"
 
 #include <errno.h>
-
 #include <gtk-contrib/psppire-sheet.h>
+#include <gtk/gtk.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include <data/data-in.h>
-#include <data/data-out.h>
-#include <data/format-guesser.h>
-#include <data/value-labels.h>
-#include <language/data-io/data-parser.h>
-#include <language/syntax-string-source.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <ui/syntax-gen.h>
-#include <ui/gui/psppire-data-window.h>
-#include <ui/gui/dialog-common.h>
-#include <ui/gui/helper.h>
-#include <ui/gui/psppire-dialog.h>
-#include <ui/gui/psppire-var-sheet.h>
-#include <ui/gui/psppire-var-store.h>
-#include "executor.h"
+#include "data/data-in.h"
+#include "data/data-out.h"
+#include "data/format-guesser.h"
+#include "data/value-labels.h"
+#include "language/data-io/data-parser.h"
+#include "language/lexer/lexer.h"
+#include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
+#include "libpspp/message.h"
+#include "ui/gui/checkbox-treeview.h"
+#include "ui/gui/descriptives-dialog.h"
+#include "ui/gui/dialog-common.h"
+#include "ui/gui/executor.h"
+#include "ui/gui/helper.h"
+#include "ui/gui/psppire-data-window.h"
+#include "ui/gui/psppire-dialog.h"
+#include "ui/gui/psppire-var-sheet.h"
+#include "ui/gui/psppire-var-store.h"
+#include "ui/gui/widget-io.h"
+#include "ui/syntax-gen.h"
 
-#include "error.h"
-#include "xalloc.h"
+#include "gl/error.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -227,14 +226,15 @@ static GtkTreeViewColumn *make_data_column (struct import_assistant *,
                                             gint column_idx);
 static GtkTreeView *create_data_tree_view (bool input, GtkContainer *parent,
                                            struct import_assistant *);
-static void escape_underscores (const char *in, char *out);
+static char *escape_underscores (const char *in);
 static void push_watch_cursor (struct import_assistant *);
 static void pop_watch_cursor (struct import_assistant *);
 
 /* Pops up the Text Data Import assistant. */
 void
-text_data_import_assistant (GtkWindow *parent_window)
+text_data_import_assistant (PsppireDataWindow *dw)
 {
+  GtkWindow *parent_window = GTK_WINDOW (dw);
   struct import_assistant *ia;
 
   ia = xzalloc (sizeof *ia);
@@ -259,18 +259,10 @@ text_data_import_assistant (GtkWindow *parent_window)
   switch (ia->asst.response)
     {
     case GTK_RESPONSE_APPLY:
-      {
-	char *syntax = generate_syntax (ia);
-	execute_syntax (create_syntax_string_source (syntax));
-	free (syntax);
-      }
+      free (execute_syntax_string (dw, generate_syntax (ia)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      {
-	char *syntax = generate_syntax (ia);
-        paste_syntax_to_window (syntax);
-	free (syntax);
-      }
+      free (paste_syntax_to_window (generate_syntax (ia)));
       break;
     default:
       break;
@@ -338,8 +330,8 @@ apply_dict (const struct dictionary *dict, struct string *s)
               const struct val_lab *vl = labels[i];
               ds_put_cstr (s, "\n  ");
               syntax_gen_value (s, &vl->value, width, format);
-              ds_put_char (s, ' ');
-              syntax_gen_string (s, ss_cstr (val_lab_get_label (vl)));
+              ds_put_byte (s, ' ');
+              syntax_gen_string (s, ss_cstr (val_lab_get_escaped_label (vl)));
             }
           free (labels);
           ds_put_cstr (s, ".\n");
@@ -398,9 +390,9 @@ generate_syntax (const struct import_assistant *ia)
   if (ia->first_line.skip_lines > 0)
     ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line.skip_lines + 1);
   ds_put_cstr (&s, "  /DELIMITERS=\"");
-  if (ds_find_char (&ia->separators.separators, '\t') != SIZE_MAX)
+  if (ds_find_byte (&ia->separators.separators, '\t') != SIZE_MAX)
     ds_put_cstr (&s, "\\t");
-  if (ds_find_char (&ia->separators.separators, '\\') != SIZE_MAX)
+  if (ds_find_byte (&ia->separators.separators, '\\') != SIZE_MAX)
     ds_put_cstr (&s, "\\\\");
   for (i = 0; i < ds_length (&ia->separators.separators); i++)
     {
@@ -408,7 +400,7 @@ generate_syntax (const struct import_assistant *ia)
       if (c == '"')
         ds_put_cstr (&s, "\"\"");
       else if (c != '\t' && c != '\\')
-        ds_put_char (&s, c);
+        ds_put_byte (&s, c);
     }
   ds_put_cstr (&s, "\"\n");
   if (!ds_is_empty (&ia->separators.quotes))
@@ -485,8 +477,8 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
           destroy_file (ia);
           return false;
         }
-      ds_chomp (line, '\n');
-      ds_chomp (line, '\r');
+      ds_chomp_byte (line, '\n');
+      ds_chomp_byte (line, '\r');
     }
 
   if (file->line_cnt == 0)
@@ -881,7 +873,7 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
   size_t max_line_length;
   gint content_width, header_width;
   size_t i;
-  gchar *title = _("Text");
+  const gchar *title = _("Text");
 
   make_tree_view (ia, 0, &tree_view);
 
@@ -1169,7 +1161,7 @@ split_fields (struct import_assistant *ia)
   clear_fields (ia);
 
   /* Is space in the set of separators? */
-  space_sep = ss_find_char (ds_ss (&s->separators), ' ') != SIZE_MAX;
+  space_sep = ss_find_byte (ds_ss (&s->separators), ' ') != SIZE_MAX;
 
   /* Split all the lines, not just those from
      ia->first_line.skip_lines on, so that we split the line that
@@ -1196,9 +1188,9 @@ split_fields (struct import_assistant *ia)
               field = text;
             }
           else if (!ds_is_empty (&s->quotes)
-                   && ds_find_char (&s->quotes, text.string[0]) != SIZE_MAX)
+                   && ds_find_byte (&s->quotes, text.string[0]) != SIZE_MAX)
             {
-              int quote = ss_get_char (&text);
+              int quote = ss_get_byte (&text);
               if (!s->escape)
                 ss_get_until (&text, quote, &field);
               else
@@ -1207,18 +1199,18 @@ split_fields (struct import_assistant *ia)
                   int c;
 
                   ds_init_empty (&s);
-                  while ((c = ss_get_char (&text)) != EOF)
+                  while ((c = ss_get_byte (&text)) != EOF)
                     if (c != quote)
-                      ds_put_char (&s, c);
-                    else if (ss_match_char (&text, quote))
-                      ds_put_char (&s, quote);
+                      ds_put_byte (&s, c);
+                    else if (ss_match_byte (&text, quote))
+                      ds_put_byte (&s, quote);
                     else
                       break;
                   field = ds_ss (&s);
                 }
             }
           else
-            ss_get_chars (&text, ss_cspan (text, ds_ss (&s->separators)),
+            ss_get_bytes (&text, ss_cspan (text, ds_ss (&s->separators)),
                           &field);
 
           if (column_idx >= s->column_cnt)
@@ -1243,7 +1235,7 @@ split_fields (struct import_assistant *ia)
             ss_ltrim (&text, ss_cstr (" "));
           if (ss_is_empty (text))
             break;
-          if (ss_find_char (ds_ss (&s->separators), ss_first (text))
+          if (ss_find_byte (ds_ss (&s->separators), ss_first (text))
               != SIZE_MAX)
             ss_advance (&text, 1);
         }
@@ -1261,19 +1253,17 @@ choose_column_names (struct import_assistant *ia)
   struct column *col;
   size_t name_row;
 
-  dict = dict_create ();
+  dict = dict_create (get_default_encoding ());
   name_row = f->variable_names && f->skip_lines ? f->skip_lines : 0;
   for (col = s->columns; col < &s->columns[s->column_cnt]; col++)
     {
-      char name[VAR_NAME_LEN + 1];
-      char *hint;
+      char *hint, *name;
 
       hint = name_row ? ss_xstrdup (col->contents[name_row - 1]) : NULL;
-      if (!dict_make_unique_var_name (dict, hint, &generated_name_count, name))
-        NOT_REACHED ();
+      name = dict_make_unique_var_name (dict, hint, &generated_name_count);
       free (hint);
 
-      col->name = xstrdup (name);
+      col->name = name;
       dict_create_var_assert (dict, name, 0);
     }
   dict_destroy (dict);
@@ -1331,7 +1321,7 @@ find_commonest_chars (unsigned long int histogram[UCHAR_MAX + 1],
   if (max_count > 0)
     {
       ds_clear (result);
-      ds_put_char (result, max);
+      ds_put_byte (result, max);
     }
   else
     ds_assign_cstr (result, def);
@@ -1387,7 +1377,7 @@ set_separators (struct import_assistant *ia)
             }
         }
 
-      ds_put_char (&custom, c);
+      ds_put_byte (&custom, c);
     next:;
     }
 
@@ -1430,7 +1420,7 @@ get_separators (struct import_assistant *ia)
       const struct separator *sep = &separators[i];
       GtkWidget *button = get_widget_assert (ia->asst.builder, sep->name);
       if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button)))
-        ds_put_char (&s->separators, sep->c);
+        ds_put_byte (&s->separators, sep->c);
     }
 
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (s->custom_cb)))
@@ -1606,12 +1596,11 @@ prepare_formats_page (struct import_assistant *ia)
 
   push_watch_cursor (ia);
 
-  dict = dict_create ();
+  dict = dict_create (get_default_encoding ());
   fg = fmt_guesser_create ();
   for (column_idx = 0; column_idx < s->column_cnt; column_idx++)
     {
       struct variable *modified_var;
-      char name[VAR_NAME_LEN + 1];
 
       modified_var = (column_idx < p->modified_var_cnt
                       ? p->modified_vars[column_idx] : NULL);
@@ -1620,11 +1609,11 @@ prepare_formats_page (struct import_assistant *ia)
           struct column *column = &s->columns[column_idx];
           struct variable *var;
           struct fmt_spec format;
+          char *name;
           size_t row;
 
           /* Choose variable name. */
-          if (!dict_make_unique_var_name (dict, column->name, &number, name))
-            NOT_REACHED ();
+          name = dict_make_unique_var_name (dict, column->name, &number);
 
           /* Choose variable format. */
           fmt_guesser_clear (fg);
@@ -1636,13 +1625,17 @@ prepare_formats_page (struct import_assistant *ia)
           /* Create variable. */
           var = dict_create_var_assert (dict, name, fmt_var_width (&format));
           var_set_both_formats (var, &format);
+
+          free (name);
         }
       else
         {
-          if (!dict_make_unique_var_name (dict, var_get_name (modified_var),
-                                          &number, name))
-            NOT_REACHED ();
+          char *name;
+
+          name = dict_make_unique_var_name (dict, var_get_name (modified_var),
+                                            &number);
           dict_clone_var_as_assert (dict, modified_var, name);
+          free (name);
         }
     }
   fmt_guesser_destroy (fg);
@@ -1777,8 +1770,7 @@ parse_field (struct import_assistant *ia,
     {
       char *error;
 
-      error = data_in (field, LEGACY_NATIVE, in->type, &val,
-                       var_get_width (var),
+      error = data_in (field, C_ENCODING, in->type, &val, var_get_width (var),
                        dict_get_encoding (ia->formats.dict));
       if (error != NULL)
         {
@@ -1890,7 +1882,7 @@ get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
      to make the data related to the tool tips part of a GObject
      that only gets destroyed when all references are released,
      but this solution appears to be effective too. */
-  if (!GTK_WIDGET_MAPPED (widget))
+  if (!gtk_widget_get_mapped (widget))
     return FALSE;
 
   gtk_tree_view_convert_widget_to_bin_window_coords (tree_view,
@@ -1952,8 +1944,8 @@ get_monospace_width (GtkTreeView *treeview, GtkCellRenderer *renderer,
   gint width;
 
   ds_init_empty (&s);
-  ds_put_char_multiple (&s, '0', char_cnt);
-  ds_put_char (&s, ' ');
+  ds_put_byte_multiple (&s, '0', char_cnt);
+  ds_put_byte (&s, ' ');
   width = get_string_width (treeview, renderer, ds_cstr (&s));
   ds_destroy (&s);
 
@@ -1977,17 +1969,17 @@ make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
 {
   struct variable *var = NULL;
   struct column *column = NULL;
-  char name[(VAR_NAME_LEN * 2) + 1];
   size_t char_cnt;
   gint content_width, header_width;
   GtkTreeViewColumn *tree_column;
+  char *name;
 
   if (input)
     column = &ia->separators.columns[dict_idx];
   else
     var = dict_get_var (ia->formats.dict, dict_idx);
 
-  escape_underscores (input ? column->name : var_get_name (var), name);
+  name = escape_underscores (input ? column->name : var_get_name (var));
   char_cnt = input ? column->width : var_get_print_format (var)->w;
   content_width = get_monospace_width (tree_view, ia->asst.fixed_renderer,
                                        char_cnt);
@@ -2006,6 +1998,8 @@ make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
   gtk_tree_view_column_set_sizing (tree_column, GTK_TREE_VIEW_COLUMN_FIXED);
   gtk_tree_view_column_set_fixed_width (tree_column, MAX (content_width,
                                                           header_width));
+
+  free (name);
 
   return tree_column;
 }
@@ -2037,16 +2031,22 @@ create_data_tree_view (bool input, GtkContainer *parent,
   return tree_view;
 }
 
-static void
-escape_underscores (const char *in, char *out)
+static char *
+escape_underscores (const char *in)
 {
+  char *out = xmalloc (2 * strlen (in) + 1);
+  char *p;
+
+  p = out;
   for (; *in != '\0'; in++)
     {
       if (*in == '_')
-        *out++ = '_';
-      *out++ = *in;
+        *p++ = '_';
+      *p++ = *in;
     }
-  *out = '\0';
+  *p = '\0';
+
+  return out;
 }
 
 /* TextImportModel, a GtkTreeModel implementation used by some

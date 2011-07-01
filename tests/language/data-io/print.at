@@ -172,7 +172,7 @@ PRINT F8.2
 LIST.
 ])
 AT_CHECK([pspp -O format=csv print.sps], [1], [dnl
-print.sps:7: error: PRINT: Syntax error at `F8.2': expecting a valid subcommand.
+print.sps:7.7-7.10: error: PRINT: Syntax error at `F8.2': expecting a valid subcommand.
 
 Table: Data List
 a,b

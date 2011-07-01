@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,17 +18,17 @@
 
 #include <stdlib.h>
 
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/variable.h>
-#include <data/format.h>
-#include <language/command.h>
-#include <language/lexer/format-parser.h>
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/variable.h"
+#include "data/format.h"
+#include "language/command.h"
+#include "language/lexer/format-parser.h"
+#include "language/lexer/lexer.h"
+#include "language/lexer/variable-parser.h"
+#include "libpspp/assertion.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -49,11 +49,12 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	 be used. */
       struct fmt_spec f;
 
-      if (!parse_DATA_LIST_vars (lexer, &v, &nv, PV_NO_DUPLICATE))
+      if (!parse_DATA_LIST_vars (lexer, dataset_dict (ds),
+                                 &v, &nv, PV_NO_DUPLICATE))
 	return CMD_FAILURE;
 
       /* Get the optional format specification. */
-      if (lex_match (lexer, '('))
+      if (lex_match (lexer, T_LPAREN))
 	{
 	  if (!parse_format_specifier (lexer, &f))
 	    goto fail;
@@ -69,7 +70,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	      goto fail;
 	    }
 
-	  if (!lex_match (lexer, ')'))
+	  if (!lex_match (lexer, T_RPAREN))
 	    {
 	      msg (SE, _("`)' expected after output format."));
 	      goto fail;
@@ -96,9 +97,9 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	free (v[i]);
       free (v);
     }
-  while (lex_match (lexer, '/'));
+  while (lex_match (lexer, T_SLASH));
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
   /* If we have an error at a point where cleanup is required,
      flow-of-control comes here. */
@@ -127,12 +128,13 @@ cmd_string (struct lexer *lexer, struct dataset *ds)
 
   do
     {
-      if (!parse_DATA_LIST_vars (lexer, &v, &nv, PV_NO_DUPLICATE))
+      if (!parse_DATA_LIST_vars (lexer, dataset_dict (ds),
+                                 &v, &nv, PV_NO_DUPLICATE))
 	return CMD_FAILURE;
 
-      if (!lex_force_match (lexer, '(')
+      if (!lex_force_match (lexer, T_LPAREN)
           || !parse_format_specifier (lexer, &f)
-          || !lex_force_match (lexer, ')'))
+          || !lex_force_match (lexer, T_RPAREN))
 	goto fail;
       if (!fmt_is_string (f.type))
 	{
@@ -162,9 +164,9 @@ cmd_string (struct lexer *lexer, struct dataset *ds)
 	free (v[i]);
       free (v);
     }
-  while (lex_match (lexer, '/'));
+  while (lex_match (lexer, T_SLASH));
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 
   /* If we have an error at a point where cleanup is required,
      flow-of-control comes here. */
@@ -190,5 +192,5 @@ cmd_leave (struct lexer *lexer, struct dataset *ds)
     var_set_leave (v[i], true);
   free (v);
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }

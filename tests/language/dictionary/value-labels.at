@@ -1,5 +1,100 @@
 AT_BANNER([VALUE LABELS])
 
+AT_SETUP([VALUE LABELS date formats])
+AT_DATA([value-labels.sps], [dnl
+DATA LIST LIST NOTABLE /ad (adate10) dt (datetime20).
+VALUE LABELS ad 'july 10, 1982' 'label 1'
+                '1-2-93' 'label 2'
+                '5-4-2003' 'label 3'
+            /dt '12 Apr 2011 06:09:56' 'label 4'.
+DISPLAY DICTIONARY.
+])
+AT_CHECK([pspp -O format=csv value-labels.sps], [0], [dnl
+Variable,Description,,Position
+ad,Format: ADATE10,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,07/10/1982,label 1,
+,01/02/1993,label 2,
+,05/04/2003,label 3,
+dt,Format: DATETIME20.0,,2
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,12-APR-2011 06:09:56,label 4,
+])
+AT_CLEANUP
+
+AT_SETUP([VALUE LABELS with new-line])
+AT_DATA([value-labels.sps], [dnl
+DATA LIST LIST NOTABLE /x.
+VALUE LABELS x 1 'one' 2 'first line\nsecond line' 3 'three'.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+DISPLAY DICTIONARY.
+FREQUENCIES x/STAT=NONE.
+])
+AT_CHECK([pspp -O format=csv value-labels.sps], [0], [dnl
+Variable,Description,,Position
+x,Format: F8.2,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,1.00,one,
+,2.00,first line\nsecond line,
+,3.00,three,
+
+Table: x
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+one,1.00,1,33.33,33.33,33.33
+"first line
+second line",2.00,1,33.33,33.33,66.67
+three,3.00,1,33.33,33.33,100.00
+Total,,3,100.0,100.0,
+])
+AT_CLEANUP
+
+AT_SETUP([VALUE LABELS with new-line in system file])
+AT_DATA([save.sps], [dnl
+DATA LIST LIST NOTABLE /x.
+VALUE LABELS x 1 'one' 2 'first line\nsecond line' 3 'three'.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+SAVE OUTFILE='value-labels.sav'.
+])
+AT_CHECK([pspp -O format=csv save.sps])
+AT_DATA([get.sps], [dnl
+GET FILE='value-labels.sav'.
+DISPLAY DICTIONARY.
+FREQUENCIES x/STAT=NONE.
+])
+AT_CHECK([pspp -O format=csv get.sps], [0], [dnl
+Variable,Description,,Position
+x,Format: F8.2,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,1.00,one,
+,2.00,first line\nsecond line,
+,3.00,three,
+
+Table: x
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+one,1.00,1,33.33,33.33,33.33
+"first line
+second line",2.00,1,33.33,33.33,66.67
+three,3.00,1,33.33,33.33,100.00
+Total,,3,100.0,100.0,
+])
+AT_CLEANUP
+
 dnl Tests for a bug which caused VALUE LABELS to 
 dnl crash when given invalid syntax.
 AT_SETUP([VALUE LABELS invalid syntax bug])

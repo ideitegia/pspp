@@ -134,8 +134,8 @@ a,b,c,d,e,f
 ])
 AT_CLEANUP
 
-dnl Test bug handling TABLE from active file found by John Darrington.
-AT_SETUP([MATCH FILES bug with TABLE from active file])
+dnl Test bug handling TABLE from active dataset found by John Darrington.
+AT_SETUP([MATCH FILES bug with TABLE from active dataset])
 AT_DATA([match-files.sps], [dnl
 DATA LIST LIST NOTABLE /x * y *.
 BEGIN DATA

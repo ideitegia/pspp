@@ -23,12 +23,11 @@
 
 #include "data/settings.h"
 #include "data/file-name.h"
-#include "language/syntax-file.h"
+#include "language/lexer/include-path.h"
 #include "libpspp/argv-parser.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
 #include "libpspp/compiler.h"
-#include "libpspp/getl.h"
 #include "libpspp/llx.h"
 #include "libpspp/str.h"
 #include "libpspp/string-array.h"
@@ -38,8 +37,6 @@
 #include "output/driver.h"
 #include "output/driver-provider.h"
 #include "output/msglog.h"
-#include "ui/terminal/msg-ui.h"
-#include "ui/terminal/read-line.h"
 
 #include "gl/error.h"
 #include "gl/progname.h"
@@ -53,12 +50,13 @@
 
 struct terminal_opts
   {
-    enum syntax_mode *syntax_mode;
     struct string_map options;  /* Output driver options. */
     bool has_output_driver;
     bool has_terminal_driver;
     bool has_error_file;
+    enum lex_syntax_mode *syntax_mode;
     bool *process_statrc;
+    char **syntax_encoding;
   };
 
 enum
@@ -68,7 +66,9 @@ enum
     OPT_OUTPUT,
     OPT_OUTPUT_OPTION,
     OPT_NO_OUTPUT,
+    OPT_BATCH,
     OPT_INTERACTIVE,
+    OPT_SYNTAX_ENCODING,
     OPT_NO_STATRC,
     OPT_HELP,
     OPT_VERSION,
@@ -82,7 +82,9 @@ static struct argv_option terminal_argv_options[N_TERMINAL_OPTIONS] =
     {"output", 'o', required_argument, OPT_OUTPUT},
     {NULL, 'O', required_argument, OPT_OUTPUT_OPTION},
     {"no-output", 0, no_argument, OPT_NO_OUTPUT},
+    {"batch", 'b', no_argument, OPT_BATCH},
     {"interactive", 'i', no_argument, OPT_INTERACTIVE},
+    {"syntax-encoding", 0, required_argument, OPT_SYNTAX_ENCODING},
     {"no-statrc", 'r', no_argument, OPT_NO_STATRC},
     {"help", 'h', no_argument, OPT_HELP},
     {"version", 'V', no_argument, OPT_VERSION},
@@ -160,29 +162,11 @@ get_supported_formats (void)
   return format_string;
 }
 
-static char *
-get_default_include_path (void)
-{
-  struct source_stream *ss;
-  struct string dst;
-  char **path;
-  size_t i;
-
-  ss = create_source_stream ();
-  path = getl_include_path (ss);
-  ds_init_empty (&dst);
-  for (i = 0; path[i] != NULL; i++)
-    ds_put_format (&dst, " %s", path[i]);
-  destroy_source_stream (ss);
-
-  return ds_steal_cstr (&dst);
-}
-
 static void
 usage (void)
 {
   char *supported_formats = get_supported_formats ();
-  char *default_include_path = get_default_include_path ();
+  char *inc_path = string_array_join (include_path_default (), " ");
 
   printf (_("\
 PSPP, a program for statistical analysis of sample data.\n\
@@ -208,19 +192,21 @@ Language options:\n\
                             calculated from broken algorithms\n\
   -x, --syntax={compatible|enhanced}\n\
                             set to `compatible' to disable PSPP extensions\n\
+  -b, --batch               interpret syntax in batch mode\n\
   -i, --interactive         interpret syntax in interactive mode\n\
+  --syntax-encoding=ENCODING  specify encoding for syntax files\n\
   -s, --safer               don't allow some unsafe operations\n\
-Default search path:%s\n\
+Default search path: %s\n\
 \n\
 Informative output:\n\
   -h, --help                display this help and exit\n\
   -V, --version             output version information and exit\n\
 \n\
 Non-option arguments are interpreted as syntax files to execute.\n"),
-          program_name, supported_formats, default_include_path);
+          program_name, supported_formats, inc_path);
 
   free (supported_formats);
-  free (default_include_path);
+  free (inc_path);
 
   emit_bug_reporting_address ();
   exit (EXIT_SUCCESS);
@@ -257,8 +243,16 @@ terminal_option_callback (int id, void *to_)
       to->has_output_driver = true;
       break;
 
+    case OPT_BATCH:
+      *to->syntax_mode = LEX_SYNTAX_BATCH;
+      break;
+
     case OPT_INTERACTIVE:
-      *to->syntax_mode = GETL_INTERACTIVE;
+      *to->syntax_mode = LEX_SYNTAX_INTERACTIVE;
+      break;
+
+    case OPT_SYNTAX_ENCODING:
+      *to->syntax_encoding = optarg;
       break;
 
     case OPT_NO_STATRC:
@@ -282,19 +276,23 @@ terminal_option_callback (int id, void *to_)
 
 struct terminal_opts *
 terminal_opts_init (struct argv_parser *ap,
-                    enum syntax_mode *syntax_mode, bool *process_statrc)
+                    enum lex_syntax_mode *syntax_mode, bool *process_statrc,
+                    char **syntax_encoding)
 {
   struct terminal_opts *to;
 
-  *syntax_mode = GETL_BATCH;
+  *syntax_mode = LEX_SYNTAX_AUTO;
   *process_statrc = true;
+  *syntax_encoding = "Auto";
 
   to = xzalloc (sizeof *to);
   to->syntax_mode = syntax_mode;
   string_map_init (&to->options);
   to->has_output_driver = false;
   to->has_error_file = false;
+  to->syntax_mode = syntax_mode;
   to->process_statrc = process_statrc;
+  to->syntax_encoding = syntax_encoding;
 
   argv_parser_add_options (ap, terminal_argv_options, N_TERMINAL_OPTIONS,
                            terminal_option_callback, to);

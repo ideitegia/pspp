@@ -21,77 +21,78 @@ AT_DATA([float-format.txt], [dnl
 # x: hexadecimal digits
 
 # IEEE special values.
- 0 == isb(x'00000000')
-x('Infinity') == isb(x'7f800000')
-x('-Infinity') == isb(x'ff800000')
-x('NaN:') => isb(x'7f800001')		# NaN requires nonzero fraction.
-x('NaN:e000000000000000') == isb(x'7ff00000') == idb(x'7ffe000000000000')
-x('NaN:5a5a5e0000000000') == isb(x'7fad2d2f') == idb(x'7ff5a5a5e0000000')
-x('NaN:975612abcdef4000') == idb(x'7ff975612abcdef4')
-x('-NaN:e000000000000000') == isb(x'fff00000') == idb(x'fffe000000000000')
-x('-NaN:5a5a5e0000000000') == isb(x'ffad2d2f') == idb(x'fff5a5a5e0000000')
-x('-NaN:975612abcdef4000') == idb(x'fff975612abcdef4')
+ 0 == isb('00000000')
+x('Infinity') == isb('7f800000')
+x('-Infinity') == isb('ff800000')
+x('NaN:') => isb('7f800001')		# NaN requires nonzero fraction.
+x('NaN:e000000000000000') == isb('7ff00000') == idb('7ffe000000000000')
+x('NaN:5a5a5e0000000000') == isb('7fad2d2f') == idb('7ff5a5a5e0000000')
+x('NaN:975612abcdef4000') == idb('7ff975612abcdef4')
+x('-NaN:e000000000000000') == isb('fff00000') == idb('fffe000000000000')
+x('-NaN:5a5a5e0000000000') == isb('ffad2d2f') == idb('fff5a5a5e0000000')
+x('-NaN:975612abcdef4000') == idb('fff975612abcdef4')
 
 # PSPP special values.
-x('Missing') == isb(x'ff7fffff') == idb(x'ffefffffffffffff') == isl(x'ffff7fff') == idl(x'ffffffffffffefff') == vf(x'ffffffff') == vd(x'ffffffffffffffff') == vg(x'ffffffffffffffff') == zs(x'ffffffff') == zl(x'ffffffffffffffff')
-x('Lowest') == isb(x'ff7ffffe') == idb(x'ffeffffffffffffe') == isl(x'feff7fff') == idl(x'feffffffffffefff') == vf(x'fffffeff') == vd(x'fffffeffffffffff') == vg(x'fffffeffffffffff') == zs(x'fffffffe') == zl(x'fffffffffffffffe')
-x('Highest') == isb(x'7f7fffff') == idb(x'7fefffffffffffff') == isl(x'ffff7f7f') == idl(x'ffffffffffffef7f') == vf(x'ff7fffff') == vd(x'ffffffffff7fffff') == vg(x'ffffffffff7fffff') == zs(x'7fffffff') == zl(x'7fffffffffffffff')
+x('Missing') == isb('ff7fffff') == idb('ffefffffffffffff') == isl('ffff7fff') == idl('ffffffffffffefff') == vf('ffffffff') == vd('ffffffffffffffff') == vg('ffffffffffffffff') == zs('ffffffff') == zl('ffffffffffffffff')
+x('Lowest') == isb('ff7ffffe') == idb('ffeffffffffffffe') == isl('feff7fff') == idl('feffffffffffefff') == vf('fffffeff') == vd('fffffeffffffffff') == vg('fffffeffffffffff') == zs('fffffffe') == zl('fffffffffffffffe')
+x('Highest') == isb('7f7fffff') == idb('7fefffffffffffff') == isl('ffff7f7f') == idl('ffffffffffffef7f') == vf('ff7fffff') == vd('ffffffffff7fffff') == vg('ffffffffff7fffff') == zs('7fffffff') == zl('7fffffffffffffff')
 
 # From Wikipedia.
-0.15625 == isb(b'00111110001000000000000000000000')
--118.625 == isb(b'11000010111011010100000000000000')
+0.15625 == isb('3e200000')
+-118.625 == isb('c2ed4000')
 
 # http://www.psc.edu/general/software/packages/ieee/ieee.html
-x('NaN:0400000000000000') == isb(b'01111111100000100000000000000000')
-x('-NaN:2225540000000000') == isb(b'11111111100100010001001010101010')
-2 == isb(b'01000000000000000000000000000000')
-6.5 == isb(b'01000000110100000000000000000000')
--6.5 == isb(b'11000000110100000000000000000000')
-x('.4p-124') == isb(b'00000000100000000000000000000000')
-x('.2p-124') == isb(b'00000000010000000000000000000000')
+x('NaN:0400000000000000') == isb('7f820000')
+x('-NaN:2225540000000000') == isb('ff9112aa')
+2 == isb('40000000')
+6.5 == isb('40d00000')
+-6.5 == isb('c0d00000')
+x('.4p-124') == isb('00800000')
+x('.2p-124') == isb('00400000')
 
 # Using converter at http://babbage.cs.qc.edu/IEEE-754/Decimal.html
 # plus Emacs 'calc' to convert decimal to hexadecimal
-x('.7b74bc6a7ef9db23p8') => isb(x'42f6e979')		# 123.456
-x('.7b74bc6a7ef9db23p8') => idb(x'405edd2f1a9fbe77')
-x('.817427d2d4642004p-12') => isb(x'39017428')		# .0001234567
-x('.817427d2d4642004p-12') => idb(x'3f202e84fa5a8c84')
-x('.446c3b15f9926688p168') => isb(x'7f800000')		# 1e50; overflow
-x('.446c3b15f9926688p168') => idb(x'4a511b0ec57e649a')
+x('.7b74bc6a7ef9db23p8') => isb('42f6e979')		# 123.456
+x('.7b74bc6a7ef9db23p8') => idb('405edd2f1a9fbe77')
+x('.817427d2d4642004p-12') => isb('39017428')		# .0001234567
+x('.817427d2d4642004p-12') => idb('3f202e84fa5a8c84')
+x('.446c3b15f9926688p168') => isb('7f800000')		# 1e50; overflow
+x('.446c3b15f9926688p168') => idb('4a511b0ec57e649a')
 
 # From multiple editions of the z/Architecture Principles of Operation
 # manual.
-	      1.0 == zs(x'41100000') == isb(x'3f800000')
-	      0.5 == zs(x'40800000') == isb(x'3f000000')
-       x('.4p-4') == zs(x'3f400000') == isb(x'3c800000')
-		0 == zs(x'00000000') == isb(x'00000000')
-	             zs(x'80000000') == isb(x'80000000')
-	      -15 == zs(x'c1f00000') == isb(x'c1700000')
-# x('.ffffffp252') == zs(x'7fffffff')
-      x('.3b4p8') == zs(x'423b4000')
-     x('.1p-256') == zs(x'00100000')
-     x('.4p-124') == zs(x'21400000') == isb(x'00800000')
-     x('.8p-148') == zs(x'1b800000') == isb(x'00000001')
-# x('.ffffffp128') == zs(x'60ffffff') == isb(x'7f7fffff')
-     x('.1p-256') == zs(x'00100000')
-     x('.1p-256') => isb(x'00000000')              # Underflow to zero.
- x('.ffffffp248') == zs(x'7effffff')
- x('.ffffffp248') => isb(x'7f800000')              # Overflow to +Infinity.
+	      1.0 == zs('41100000') == isb('3f800000')
+	      0.5 == zs('40800000') == isb('3f000000')
+       x('.4p-4') == zs('3f400000') == isb('3c800000')
+		0 == zs('00000000') == isb('00000000')
+	             zs('80000000') == isb('80000000')
+	      -15 == zs('c1f00000') == isb('c1700000')
+# x('.ffffffp252') == zs('7fffffff')
+      x('.3b4p8') == zs('423b4000')
+     x('.1p-256') == zs('00100000')
+     x('.4p-124') == zs('21400000') == isb('00800000')
+     x('.8p-148') == zs('1b800000') == isb('00000001')
+# x('.ffffffp128') == zs('60ffffff') == isb('7f7fffff')
+     x('.1p-256') == zs('00100000')
+     x('.1p-256') => isb('00000000')              # Underflow to zero.
+ x('.ffffffp248') == zs('7effffff')
+ x('.ffffffp248') => isb('7f800000')              # Overflow to +Infinity.
 
-            x('.4p-1020') => zl(x'0000000000000000')     # Underflow to zero.
-            x('.4p-1020') == idb(x'0010000000000000')
-            x('.4p-1072') => zl(x'0000000000000000')     # Underflow to zero.
-            x('.4p-1072') => idb(x'0000000000000001')
-x('.fffffffffffff8p1024') => zl(x'7fffffffffffffff')     # Overflow to maxval.
-x('.fffffffffffff8p1024') => idb(x'7fefffffffffffff')
-            x('.1p-256') == zl(x'0010000000000000') == idb(x'2fb0000000000000')
- x('.ffffffffffffffp248') == zl(x'7effffffffffffff')
- x('.ffffffffffffffp248') => idb(x'4f70000000000000')	# Loses precision.
+            x('.4p-1020') => zl('0000000000000000')     # Underflow to zero.
+            x('.4p-1020') == idb('0010000000000000')
+            x('.4p-1072') => zl('0000000000000000')     # Underflow to zero.
+            x('.4p-1072') => idb('0000000000000001')
+x('.fffffffffffff8p1024') => zl('7fffffffffffffff')     # Overflow to maxval.
+x('.fffffffffffff8p1024') => idb('7fefffffffffffff')
+            x('.1p-256') == zl('0010000000000000') == idb('2fb0000000000000')
+ x('.ffffffffffffffp248') == zl('7effffffffffffff')
+ x('.ffffffffffffffp248') => idb('4f70000000000000')	# Loses precision.
 ])
 AT_CHECK(
   [sed 's/#.*//
 s/^[ 	]*//
 s/[ 	]*$//
+/^$/d
 s/^\(..*\)$/DEBUG FLOAT FORMAT \1./' < float-format.txt > float-format.sps])
 AT_CHECK([pspp --testing-mode -O format=csv float-format.sps])
 AT_CLEANUP

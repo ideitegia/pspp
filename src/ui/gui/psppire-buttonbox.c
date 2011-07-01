@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 
 #include <glib.h>
 #include <gtk/gtk.h>
-#include <gtk/gtksignal.h>
 #include "psppire-buttonbox.h"
 #include "psppire-dialog.h"
 
@@ -65,57 +64,85 @@ psppire_button_box_get_type (void)
 }
 
 enum {
-  PROP_BUTTONS = 1
+  PROP_BUTTONS = 1,
+  PROP_DEFAULT = 2
 };
 
 static void
+set_default (PsppireButtonBox *bb)
+{
+  int i;
+
+  for (i = 0 ; i < n_PsppireButtonBoxButtons ; ++i )
+    if (bb->def == (1 << i))
+      {
+        gtk_widget_set_can_default (bb->button[i], TRUE);
+        gtk_widget_grab_default (bb->button[i]);
+      }
+}
+
+static void
 psppire_buttonbox_set_property (GObject         *object,
-			       guint            prop_id,
-			       const GValue    *value,
-			       GParamSpec      *pspec)
+                                guint            prop_id,
+                                const GValue    *value,
+                                GParamSpec      *pspec)
 {
   gint i;
   guint flags;
   PsppireButtonBox *bb = PSPPIRE_BUTTONBOX (object);
-  if ( prop_id != PROP_BUTTONS)
+
+  switch (prop_id)
     {
+    case PROP_BUTTONS:
+      flags = g_value_get_flags (value);
+      for (i = 0 ; i < n_PsppireButtonBoxButtons ; ++i )
+        g_object_set (bb->button[i], "visible", 0x01 & (flags >> i)  , NULL);
+      break;
+
+    case PROP_DEFAULT:
+      bb->def = g_value_get_flags (value);
+      if (gtk_widget_get_realized (GTK_WIDGET (bb)))
+        set_default (bb);
+      break;
+
+    default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-      return ;
     }
-
-  flags = g_value_get_flags (value);
-
-  for (i = 0 ; i < n_PsppireButtonBoxButtons ; ++i )
-    g_object_set (bb->button[i], "visible", 0x01 & (flags >> i)  , NULL);
 }
 
 static void
 psppire_buttonbox_get_property (GObject         *object,
-			       guint            prop_id,
-			       GValue          *value,
-			       GParamSpec      *pspec)
+                                guint            prop_id,
+                                GValue          *value,
+                                GParamSpec      *pspec)
 {
   guint flags = 0;
   gint i;
 
   PsppireButtonBox *bb = PSPPIRE_BUTTONBOX (object);
 
-  if  (PROP_BUTTONS != prop_id)
+  switch (prop_id)
     {
+    case PROP_BUTTONS:
+      for (i = 0 ; i < n_PsppireButtonBoxButtons ; ++i )
+        {
+          gboolean visibility;
+          g_object_get (bb->button[i], "visible", &visibility, NULL);
+
+          if ( visibility )
+            flags |= (0x01 << i);
+        }
+
+      g_value_set_flags (value, flags);
+      break;
+
+    case PROP_DEFAULT:
+      g_value_set_flags (value, bb->def);
+
+    default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-      return;
+      break;
     }
-
-  for (i = 0 ; i < n_PsppireButtonBoxButtons ; ++i )
-    {
-      gboolean visibility;
-      g_object_get (bb->button[i], "visible", &visibility, NULL);
-
-      if ( visibility )
-	flags |= (0x01 << i);
-    }
-
-  g_value_set_flags (value, flags);
 }
 
 
@@ -131,6 +158,7 @@ typedef enum
   } PsppireButtonMask;
 
 static GParamSpec *button_flags;
+static GParamSpec *default_flags;
 
 static void
 psppire_button_box_class_init (PsppireButtonBoxClass *class)
@@ -151,12 +179,20 @@ psppire_button_box_class_init (PsppireButtonBoxClass *class)
 			PSPPIRE_BUTTON_HELP_MASK |
 			PSPPIRE_BUTTON_PASTE_MASK,
 			G_PARAM_READWRITE);
-
-
   g_object_class_install_property (object_class,
 				   PROP_BUTTONS,
 				   button_flags);
 
+  default_flags =
+    g_param_spec_flags ("default",
+			"Default",
+			"The mask that decides what what button grabs the default",
+			PSPPIRE_TYPE_BUTTON_MASK,
+			0,
+			G_PARAM_READWRITE);
+  g_object_class_install_property (object_class,
+				   PROP_DEFAULT,
+				   default_flags);
 }
 
 static void
@@ -250,11 +286,13 @@ on_realize (GtkWidget *buttonbox, gpointer data)
       g_signal_connect (toplevel, "validity-changed",
 			G_CALLBACK (on_validity_change), buttonbox);
     }
+  set_default (PSPPIRE_BUTTONBOX (buttonbox));
 }
 
 static void
 psppire_button_box_init (PsppireButtonBox *bb)
 {
+  bb->def = PSPPIRE_BUTTON_CONTINUE;
 
   bb->button[PSPPIRE_BUTTON_OK] = gtk_button_new_from_stock (GTK_STOCK_OK);
   psppire_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_OK]);
@@ -273,12 +311,6 @@ psppire_button_box_init (PsppireButtonBox *bb)
 
   bb->button[PSPPIRE_BUTTON_CONTINUE] =
     gtk_button_new_with_mnemonic (_("Continue"));
-
-  GTK_WIDGET_SET_FLAGS (bb->button[PSPPIRE_BUTTON_CONTINUE],
-			GTK_CAN_DEFAULT);
-
-  g_signal_connect (bb->button[PSPPIRE_BUTTON_CONTINUE], "realize",
-	 G_CALLBACK (gtk_widget_grab_default), NULL);
 
   psppire_box_pack_start_defaults (GTK_BOX (bb),
 			       bb->button[PSPPIRE_BUTTON_CONTINUE]);
@@ -399,7 +431,7 @@ _psppire_button_box_child_requisition (GtkWidget *widget,
       child = children->data;
       children = children->next;
 
-      if (GTK_WIDGET_VISIBLE (child->widget))
+      if (gtk_widget_get_visible (child->widget))
 	{
 	  nchildren += 1;
 	  gtk_widget_size_request (child->widget, &child_requisition);

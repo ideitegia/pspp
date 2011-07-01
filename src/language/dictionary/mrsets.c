@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,9 +17,9 @@
 #include <config.h>
 
 #include "data/data-out.h"
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/mrset.h"
-#include "data/procedure.h"
 #include "data/value-labels.h"
 #include "data/variable.h"
 #include "language/command.h"
@@ -27,6 +27,7 @@
 #include "language/lexer/variable-parser.h"
 #include "libpspp/assertion.h"
 #include "libpspp/hmap.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "libpspp/stringi-map.h"
@@ -47,7 +48,7 @@ cmd_mrsets (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  while (lex_match (lexer, '/'))
+  while (lex_match (lexer, T_SLASH))
     {
       bool ok;
 
@@ -69,7 +70,7 @@ cmd_mrsets (struct lexer *lexer, struct dataset *ds)
         return CMD_FAILURE;
     }
 
-  return lex_end_of_command (lexer);
+  return CMD_SUCCESS;
 }
 
 static bool
@@ -87,27 +88,22 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
 
   labelsource_varlabel = false;
   has_value = false;
-  while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+  while (lex_token (lexer) != T_SLASH && lex_token (lexer) != T_ENDCMD)
     {
       if (lex_match_id (lexer, "NAME"))
         {
-          if (!lex_force_match (lexer, '=') || !lex_force_id (lexer))
+          if (!lex_force_match (lexer, T_EQUALS) || !lex_force_id (lexer)
+              || !mrset_is_valid_name (lex_tokcstr (lexer),
+                                       dict_get_encoding (dict), true))
             goto error;
-          if (lex_tokid (lexer)[0] != '$')
-            {
-              msg (SE, _("%s is not a valid name for a multiple response "
-                         "set.  Multiple response set names must begin with "
-                         "`$'."), lex_tokid (lexer));
-              goto error;
-            }
 
           free (mrset->name);
-          mrset->name = xstrdup (lex_tokid (lexer));
+          mrset->name = xstrdup (lex_tokcstr (lexer));
           lex_get (lexer);
         }
       else if (lex_match_id (lexer, "VARIABLES"))
         {
-          if (!lex_force_match (lexer, '='))
+          if (!lex_force_match (lexer, T_EQUALS))
             goto error;
 
           free (mrset->vars);
@@ -125,16 +121,16 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
         }
       else if (lex_match_id (lexer, "LABEL"))
         {
-          if (!lex_force_match (lexer, '=') || !lex_force_string (lexer))
+          if (!lex_force_match (lexer, T_EQUALS) || !lex_force_string (lexer))
             goto error;
 
           free (mrset->label);
-          mrset->label = ds_xstrdup (lex_tokstr (lexer));
+          mrset->label = ss_xstrdup (lex_tokss (lexer));
           lex_get (lexer);
         }
       else if (type == MRSET_MD && lex_match_id (lexer, "LABELSOURCE"))
         {
-          if (!lex_force_match (lexer, '=')
+          if (!lex_force_match (lexer, T_EQUALS)
               || !lex_force_match_id (lexer, "VARLABEL"))
             goto error;
 
@@ -142,7 +138,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
         }
       else if (type == MRSET_MD && lex_match_id (lexer, "VALUE"))
         {
-          if (!lex_force_match (lexer, '='))
+          if (!lex_force_match (lexer, T_EQUALS))
             goto error;
 
           has_value = true;
@@ -159,12 +155,15 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
             }
           else if (lex_is_string (lexer))
             {
-              const char *s = ds_cstr (lex_tokstr (lexer));
-              int width;
+              size_t width;
+              char *s;
+
+              s = recode_string (dict_get_encoding (dict), "UTF-8",
+                                 lex_tokcstr (lexer), -1);
+              width = strlen (s);
 
               /* Trim off trailing spaces, but don't trim the string until
                  it's empty because a width of 0 is a numeric type. */
-              width = strlen (s);
               while (width > 1 && s[width - 1] == ' ')
                 width--;
 
@@ -172,6 +171,8 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
               value_init (&mrset->counted, width);
               memcpy (value_str_rw (&mrset->counted, width), s, width);
               mrset->width = width;
+
+              free (s);
             }
           else
             {
@@ -182,7 +183,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
         }
       else if (type == MRSET_MD && lex_match_id (lexer, "CATEGORYLABELS"))
         {
-          if (!lex_force_match (lexer, '='))
+          if (!lex_force_match (lexer, T_EQUALS))
             goto error;
 
           if (lex_match_id (lexer, "VARLABELS"))
@@ -469,24 +470,25 @@ static bool
 parse_mrset_names (struct lexer *lexer, struct dictionary *dict,
                    struct stringi_set *mrset_names)
 {
-  if (!lex_force_match_id (lexer, "NAME") || !lex_force_match (lexer, '='))
+  if (!lex_force_match_id (lexer, "NAME")
+      || !lex_force_match (lexer, T_EQUALS))
     return false;
 
   stringi_set_init (mrset_names);
-  if (lex_match (lexer, '['))
+  if (lex_match (lexer, T_LBRACK))
     {
-      while (!lex_match (lexer, ']'))
+      while (!lex_match (lexer, T_RBRACK))
         {
           if (!lex_force_id (lexer))
             return false;
-          if (dict_lookup_mrset (dict, lex_tokid (lexer)) == NULL)
+          if (dict_lookup_mrset (dict, lex_tokcstr (lexer)) == NULL)
             {
               msg (SE, _("No multiple response set named %s."),
-                   lex_tokid (lexer));
+                   lex_tokcstr (lexer));
               stringi_set_destroy (mrset_names);
               return false;
             }
-          stringi_set_insert (mrset_names, lex_tokid (lexer));
+          stringi_set_insert (mrset_names, lex_tokcstr (lexer));
           lex_get (lexer);
         }
     }
@@ -535,8 +537,8 @@ parse_display (struct lexer *lexer, struct dictionary *dict)
   if (n == 0)
     {
       if (dict_get_n_mrsets (dict) == 0)
-        msg (SN, _("The active file dictionary does not contain any multiple "
-                   "response sets."));
+        msg (SN, _("The active dataset dictionary does not contain any "
+                   "multiple response sets."));
       stringi_set_destroy (&mrset_names_set);
       return true;
     }
@@ -577,8 +579,14 @@ parse_display (struct lexer *lexer, struct dictionary *dict)
           if (mrset->width == 0)
             ds_put_format (&details, "%.0f\n", mrset->counted.f);
           else
-            ds_put_format (&details, "`%.*s'\n", mrset->width,
-                           value_str (&mrset->counted, mrset->width));
+            {
+              const uint8_t *raw = value_str (&mrset->counted, mrset->width);
+              char *utf8 = recode_string ("UTF-8", dict_get_encoding (dict),
+                                          CHAR_CAST (const char *, raw),
+                                          mrset->width);
+              ds_put_format (&details, "`%s'\n", utf8);
+              free (utf8);
+            }
           ds_put_format (&details, "%s: %s\n", _("Category label source"),
                          (mrset->cat_source == MRSET_VARLABELS
                           ? _("Variable labels")

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,17 +27,18 @@
 
 #include <config.h>
 
-#include <math.h>
-#include <stdlib.h>
+#include "math/ts/innovations.h"
 
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
-#include <libpspp/compiler.h>
-#include <libpspp/misc.h>
-#include <math/coefficient.h>
-#include <math/ts/innovations.h>
+#include <math.h>
+#include <stdlib.h>
 
-#include "xalloc.h"
+#include "libpspp/compiler.h"
+#include "libpspp/misc.h"
+#include "math/coefficient.h"
+
+#include "gl/xalloc.h"
 
 static void
 get_mean (const gsl_matrix *data,

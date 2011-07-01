@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
 
 #include <stddef.h>
 #include <stdbool.h>
-#include <data/dict-class.h>
-#include <data/missing-values.h>
-#include <data/val-type.h>
+#include "data/dict-class.h"
+#include "data/missing-values.h"
+#include "data/val-type.h"
 
 union value;
 
@@ -34,12 +34,8 @@ struct variable *var_clone (const struct variable *);
 void var_destroy (struct variable *);
 
 /* Variable names. */
-#define VAR_NAME_LEN 64 /* Maximum length of variable name, in bytes. */
-
 const char *var_get_name (const struct variable *);
 void var_set_name (struct variable *, const char *);
-bool var_is_valid_name (const char *, bool issue_error);
-bool var_is_plausible_name (const char *name, bool issue_error);
 enum dict_class var_get_dict_class (const struct variable *);
 
 int compare_vars_by_name (const void *, const void *, const void *);
@@ -102,7 +98,7 @@ struct fmt_spec var_default_formats (int width);
 /* Variable labels. */
 const char *var_to_string (const struct variable *);
 const char *var_get_label (const struct variable *);
-void var_set_label (struct variable *, const char *);
+bool var_set_label (struct variable *, const char *label, bool issue_warning);
 void var_clear_label (struct variable *);
 bool var_has_label (const struct variable *);
 
@@ -116,6 +112,8 @@ enum measure
   };
 
 bool measure_is_valid (enum measure);
+const char *measure_to_string (enum measure);
+
 enum measure var_get_measure (const struct variable *);
 void var_set_measure (struct variable *, enum measure);
 
@@ -132,11 +130,12 @@ enum alignment
   {
     ALIGN_LEFT = 0,
     ALIGN_RIGHT = 1,
-    ALIGN_CENTRE = 2,
-    n_ALIGN
+    ALIGN_CENTRE = 2
   };
 
 bool alignment_is_valid (enum alignment);
+const char *alignment_to_string (enum alignment);
+
 enum alignment var_get_alignment (const struct variable *);
 void var_set_alignment (struct variable *, enum alignment);
 

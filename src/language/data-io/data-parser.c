@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,24 +16,24 @@
 
 #include <config.h>
 
-#include <language/data-io/data-parser.h>
+#include "language/data-io/data-parser.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <data/casereader-provider.h>
-#include <data/data-in.h>
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/file-handle-def.h>
-#include <data/procedure.h>
-#include <data/settings.h>
-#include <language/data-io/data-reader.h>
-#include <libpspp/message.h>
-#include <libpspp/str.h>
-#include <output/tab.h>
+#include "data/casereader-provider.h"
+#include "data/data-in.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
+#include "data/format.h"
+#include "data/file-handle-def.h"
+#include "data/settings.h"
+#include "language/data-io/data-reader.h"
+#include "libpspp/message.h"
+#include "libpspp/str.h"
+#include "output/tab.h"
 
-#include "xalloc.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -450,19 +450,19 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
     }
 
   *first_column = dfm_column_start (reader);
-  if (ss_find_char (parser->quotes, ss_first (p)) != SIZE_MAX)
+  if (ss_find_byte (parser->quotes, ss_first (p)) != SIZE_MAX)
     {
       /* Quoted field. */
-      int quote = ss_get_char (&p);
+      int quote = ss_get_byte (&p);
       if (!ss_get_until (&p, quote, field))
         msg (SW, _("Quoted string extends beyond end of line."));
       if (parser->quote_escape && ss_first (p) == quote)
         {
           ds_assign_substring (tmp, *field);
-          while (ss_match_char (&p, quote))
+          while (ss_match_byte (&p, quote))
             {
               struct substring ss;
-              ds_put_char (tmp, quote);
+              ds_put_byte (tmp, quote);
               if (!ss_get_until (&p, quote, &ss))
                 msg (SW, _("Quoted string extends beyond end of line."));
               ds_put_substring (tmp, ss);
@@ -475,17 +475,17 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
          if present. */
       ss_ltrim (&p, parser->soft_seps);
       if (!ss_is_empty (p)
-          && ss_find_char (parser->hard_seps, ss_first (p)) != SIZE_MAX)
+          && ss_find_byte (parser->hard_seps, ss_first (p)) != SIZE_MAX)
         ss_advance (&p, 1);
     }
   else
     {
       /* Regular field. */
-      ss_get_chars (&p, ss_cspan (p, ds_ss (&parser->any_sep)), field);
+      ss_get_bytes (&p, ss_cspan (p, ds_ss (&parser->any_sep)), field);
       *last_column = *first_column + ss_length (*field);
 
       if (!ss_ltrim (&p, parser->soft_seps) || ss_is_empty (p)
-          || ss_find_char (parser->hard_seps, p.string[0]) != SIZE_MAX)
+          || ss_find_byte (parser->hard_seps, p.string[0]) != SIZE_MAX)
         {
           /* Advance past a trailing hard separator,
              regardless of whether one actually existed.  If
@@ -508,10 +508,11 @@ parse_error (const struct dfm_reader *reader, const struct field *field,
 
   m.category = MSG_C_DATA;
   m.severity = MSG_S_WARNING;
-  m.where.file_name = CONST_CAST (char *, dfm_get_file_name (reader));
-  m.where.line_number = dfm_get_line_number (reader);
-  m.where.first_column = first_column;
-  m.where.last_column = last_column;
+  m.file_name = CONST_CAST (char *, dfm_get_file_name (reader));
+  m.first_line = dfm_get_line_number (reader);
+  m.last_line = m.first_line + 1;
+  m.first_column = first_column;
+  m.last_column = last_column;
   m.text = xasprintf (_("Data for variable %s is not valid as format %s: %s"),
                       field->name, fmt_name (field->format.type), error);
   msg_emit (&m);
@@ -761,7 +762,7 @@ struct data_parser_casereader
 
 static const struct casereader_class data_parser_casereader_class;
 
-/* Replaces DS's active file by an input program that reads data
+/* Replaces DS's active dataset by an input program that reads data
    from READER according to the rules in PARSER, using DICT as
    the underlying dictionary.  Ownership of PARSER and READER is
    transferred to the input program, and ownership of DICT is
@@ -781,7 +782,8 @@ data_parser_make_active_file (struct data_parser *parser, struct dataset *ds,
   casereader = casereader_create_sequential (NULL, r->proto,
                                              CASENUMBER_MAX,
                                              &data_parser_casereader_class, r);
-  proc_set_active_file (ds, casereader, dict);
+  dataset_set_dict (ds, dict);
+  dataset_set_source (ds, casereader);
 }
 
 static struct ccase *

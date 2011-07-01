@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,31 +30,31 @@
 #endif
 #include <unistd.h>
 
+#include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
-#include "data/procedure.h"
+#include "data/session.h"
 #include "data/settings.h"
 #include "data/variable.h"
 #include "gsl/gsl_errno.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
-#include "language/prompt.h"
-#include "language/syntax-file.h"
+#include "language/lexer/include-path.h"
 #include "libpspp/argv-parser.h"
 #include "libpspp/compiler.h"
-#include "libpspp/getl.h"
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/version.h"
 #include "math/random.h"
 #include "output/driver.h"
+#include "output/message-item.h"
 #include "ui/debugger.h"
 #include "ui/source-init-opts.h"
-#include "ui/terminal/msg-ui.h"
-#include "ui/terminal/read-line.h"
 #include "ui/terminal/terminal-opts.h"
+#include "ui/terminal/terminal-reader.h"
 #include "ui/terminal/terminal.h"
+#include "ui/terminal/terminal-opts.h"
 
 #include "gl/fatal-signal.h"
 #include "gl/progname.h"
@@ -63,15 +63,13 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static struct dataset * the_dataset = NULL;
+static struct session *the_session;
 
-static struct lexer *the_lexer;
-static struct source_stream *the_source_stream ;
-
-static void add_syntax_file (struct source_stream *, enum syntax_mode,
-                             const char *file_name);
+static void add_syntax_reader (struct lexer *, const char *file_name,
+                               const char *encoding, enum lex_syntax_mode);
 static void bug_handler(int sig);
 static void fpu_init (void);
+static void output_msg (const struct msg *, void *);
 
 /* Program entry point. */
 int
@@ -79,8 +77,10 @@ main (int argc, char **argv)
 {
   struct terminal_opts *terminal_opts;
   struct argv_parser *parser;
-  enum syntax_mode syntax_mode;
+  enum lex_syntax_mode syntax_mode;
+  char *syntax_encoding;
   bool process_statrc;
+  struct lexer *lexer;
 
   set_program_name (argv[0]);
 
@@ -93,32 +93,33 @@ main (int argc, char **argv)
   gsl_set_error_handler_off ();
 
   fh_init ();
-  the_source_stream = create_source_stream ();
-  prompt_init ();
-  readln_initialize ();
   settings_init ();
   terminal_check_size ();
   random_init ();
 
-  the_dataset = create_dataset ();
+  lexer = lex_create ();
+  the_session = session_create ();
+  dataset_create (the_session, "");
 
   parser = argv_parser_create ();
-  terminal_opts = terminal_opts_init (parser, &syntax_mode, &process_statrc);
-  source_init_register_argv_parser (parser, the_source_stream);
+  terminal_opts = terminal_opts_init (parser, &syntax_mode, &process_statrc,
+                                      &syntax_encoding);
+  source_init_register_argv_parser (parser);
   if (!argv_parser_run (parser, argc, argv))
     exit (EXIT_FAILURE);
   terminal_opts_done (terminal_opts, argc, argv);
   argv_parser_destroy (parser);
 
-  msg_ui_init (the_source_stream);
+  msg_set_handler (output_msg, lexer);
+  session_set_default_syntax_encoding (the_session, syntax_encoding);
 
   /* Add syntax files to source stream. */
   if (process_statrc)
     {
-      char *rc = fn_search_path ("rc", getl_include_path (the_source_stream));
+      char *rc = include_path_search ("rc");
       if (rc != NULL)
         {
-          add_syntax_file (the_source_stream, GETL_BATCH, rc);
+          add_syntax_reader (lexer, rc, "Auto", LEX_SYNTAX_AUTO);
           free (rc);
         }
     }
@@ -127,47 +128,52 @@ main (int argc, char **argv)
       int i;
 
       for (i = optind; i < argc; i++)
-        add_syntax_file (the_source_stream, syntax_mode, argv[i]);
+        add_syntax_reader (lexer, argv[i], syntax_encoding, syntax_mode);
     }
   else
-    add_syntax_file (the_source_stream, syntax_mode, "-");
+    add_syntax_reader (lexer, "-", syntax_encoding, syntax_mode);
 
   /* Parse and execute syntax. */
-  the_lexer = lex_create (the_source_stream);
+  lex_get (lexer);
   for (;;)
     {
-      int result = cmd_parse (the_lexer, the_dataset);
+      int result = cmd_parse (lexer, session_active_dataset (the_session));
 
       if (result == CMD_EOF || result == CMD_FINISH)
 	break;
-      if (result == CMD_CASCADING_FAILURE &&
-	  !getl_is_interactive (the_source_stream))
-	{
-	  msg (SE, _("Stopping syntax file processing here to avoid "
-		     "a cascade of dependent command failures."));
-	  getl_abort_noninteractive (the_source_stream);
-	}
-      else if (msg_ui_too_many_errors ())
-        getl_abort_noninteractive (the_source_stream);
+      else if (cmd_result_is_failure (result) && lex_token (lexer) != T_STOP)
+        {
+          if (lex_get_error_mode (lexer) == LEX_ERROR_STOP)
+            {
+              msg (MW, _("Error encountered while ERROR=STOP is effective."));
+              lex_discard_noninteractive (lexer);
+            }
+          else if (result == CMD_CASCADING_FAILURE
+                   && lex_get_error_mode (lexer) != LEX_ERROR_INTERACTIVE)
+            {
+              msg (SE, _("Stopping syntax file processing here to avoid "
+                         "a cascade of dependent command failures."));
+              lex_discard_noninteractive (lexer);
+            }
+        }
+
+      if (msg_ui_too_many_errors ())
+        lex_discard_noninteractive (lexer);
     }
 
 
-  destroy_dataset (the_dataset);
+  session_destroy (the_session);
 
   random_done ();
   settings_done ();
   fh_done ();
-  lex_destroy (the_lexer);
-  destroy_source_stream (the_source_stream);
-  prompt_done ();
-  readln_uninitialize ();
+  lex_destroy (lexer);
   output_close ();
-  msg_ui_done ();
   i18n_done ();
 
   return msg_ui_any_errors ();
 }
-
+
 static void
 fpu_init (void)
 {
@@ -213,13 +219,32 @@ bug_handler(int sig)
 }
 
 static void
-add_syntax_file (struct source_stream *ss, enum syntax_mode syntax_mode,
-                 const char *file_name)
+output_msg (const struct msg *m_, void *lexer_)
 {
-  struct getl_interface *source;
+  struct lexer *lexer = lexer_;
+  struct msg m = *m_;
 
-  source = (!strcmp (file_name, "-") && isatty (STDIN_FILENO)
-           ? create_readln_source ()
-           : create_syntax_file_source (file_name));
-  getl_append_source (ss, source, syntax_mode, ERRMODE_CONTINUE);
+  if (m.file_name == NULL)
+    {
+      m.file_name = CONST_CAST (char *, lex_get_file_name (lexer));
+      m.first_line = lex_get_first_line_number (lexer, 0);
+      m.last_line = lex_get_last_line_number (lexer, 0);
+    }
+
+  message_item_submit (message_item_create (&m));
+}
+
+static void
+add_syntax_reader (struct lexer *lexer, const char *file_name,
+                   const char *encoding, enum lex_syntax_mode syntax_mode)
+{
+  struct lex_reader *reader;
+
+  reader = (!strcmp (file_name, "-") && isatty (STDIN_FILENO)
+            ? terminal_reader_create ()
+            : lex_reader_for_file (file_name, encoding, syntax_mode,
+                                   LEX_ERROR_CONTINUE));
+
+  if (reader)
+    lex_append (lexer, reader);
 }
