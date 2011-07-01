@@ -17,8 +17,6 @@ src_math_libpspp_math_la_SOURCES = \
 	src/math/correlation.c \
 	src/math/correlation.h \
 	src/math/extrema.c src/math/extrema.h \
-	src/math/group.c  src/math/group.h \
-	src/math/group-proc.h \
 	src/math/histogram.c src/math/histogram.h \
 	src/math/interaction.c src/math/interaction.h \
 	src/math/levene.c src/math/levene.h \
