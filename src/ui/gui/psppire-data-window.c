@@ -43,6 +43,7 @@
 #include "ui/gui/help-menu.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/k-related-dialog.h"
+#include "ui/gui/npar-two-sample-related.h"
 #include "ui/gui/oneway-anova-dialog.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-syntax-window.h"
@@ -1116,6 +1117,7 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "binomial", G_CALLBACK (binomial_dialog));
 
   connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));
+  connect_action (de, "two-related-samples", G_CALLBACK (two_related_dialog));
  
 
   {

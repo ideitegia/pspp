@@ -204,6 +204,8 @@ t_test_paired_samples_dialog (PsppireDataWindow *de)
   psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
 				      dialog_state_valid, &tt_d);
 
+  gtk_window_set_title (GTK_WINDOW (dialog), _("Paired Samples T Test"));
+
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
   switch (response)

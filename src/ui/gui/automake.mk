@@ -172,6 +172,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/missing-val-dialog.h \
         src/ui/gui/oneway-anova-dialog.c \
         src/ui/gui/oneway-anova-dialog.h \
+	src/ui/gui/paired-dialog.c \
+	src/ui/gui/paired-dialog.h \
 	src/ui/gui/psppire.c \
 	src/ui/gui/psppire.h \
 	src/ui/gui/psppire-acr.h \
@@ -243,6 +245,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/t-test-options.h \
 	src/ui/gui/t-test-paired-samples.c \
 	src/ui/gui/t-test-paired-samples.h \
+	src/ui/gui/npar-two-sample-related.c \
+	src/ui/gui/npar-two-sample-related.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \
