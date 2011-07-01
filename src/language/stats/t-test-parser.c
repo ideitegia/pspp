@@ -68,6 +68,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
   tt.missing_type = MISS_ANALYSIS;
   tt.n_vars = 0;
   tt.vars = NULL;
+  tt.mode = MODE_undef;
 
   lex_match (lexer, T_EQUALS);
 
@@ -128,6 +129,13 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 	{
 	  bool with = false;
 	  bool paired = false;
+
+	  if (tt.n_vars > 0)
+	    {
+	      msg (SE, _("VARIABLES subcommand may not be used with PAIRS."));
+	      goto parse_failed;
+	    }
+
 	  mode_count++;
 	  tt.mode = MODE_PAIRED;
 	  lex_match (lexer, T_EQUALS);
