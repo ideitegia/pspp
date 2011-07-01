@@ -890,14 +890,6 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
 
 static bool
 parse_two_sample_related_test (struct lexer *lexer,
-				    const struct dictionary *dict,
-				    struct two_sample_test *test_parameters,
-				    struct pool *pool
-				    );
-
-
-static bool
-parse_two_sample_related_test (struct lexer *lexer,
 			       const struct dictionary *dict,
 			       struct two_sample_test *test_parameters,
 			       struct pool *pool
@@ -965,8 +957,8 @@ parse_two_sample_related_test (struct lexer *lexer,
 	  assert (n_vlist1 == n_vlist2);
 	  for ( i = 0 ; i < n_vlist1; ++i )
 	    {
-	      test_parameters->pairs[n][1] = vlist1[i];
-	      test_parameters->pairs[n][0] = vlist2[i];
+	      test_parameters->pairs[n][0] = vlist1[i];
+	      test_parameters->pairs[n][1] = vlist2[i];
 	      n++;
 	    }
 	}
@@ -977,8 +969,8 @@ parse_two_sample_related_test (struct lexer *lexer,
 	    {
 	      for ( j = 0 ; j < n_vlist2; ++j )
 		{
-		  test_parameters->pairs[n][1] = vlist1[i];
-		  test_parameters->pairs[n][0] = vlist2[j];
+		  test_parameters->pairs[n][0] = vlist1[i];
+		  test_parameters->pairs[n][1] = vlist2[j];
 		  n++;
 		}
 	    }
@@ -992,8 +984,8 @@ parse_two_sample_related_test (struct lexer *lexer,
 	  for ( j = i + 1 ; j < n_vlist1; ++j )
 	    {
 	      assert ( n < test_parameters->n_pairs);
-	      test_parameters->pairs[n][1] = vlist1[i];
-	      test_parameters->pairs[n][0] = vlist1[j];
+	      test_parameters->pairs[n][0] = vlist1[i];
+	      test_parameters->pairs[n][1] = vlist1[j];
 	      n++;
 	    }
 	}

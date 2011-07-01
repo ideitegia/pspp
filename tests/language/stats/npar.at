@@ -526,13 +526,13 @@ AT_CHECK([pspp -o pspp.csv npar.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
 Table: Ranks
 ,,N,Mean Rank,Sum of Ranks
-second - first,Negative Ranks,5,8.60,43.00
-,Positive Ranks,8,6.00,48.00
+first - second,Negative Ranks,8,6.00,48.00
+,Positive Ranks,5,8.60,43.00
 ,Ties,2,,
 ,Total,15,,
 
 Table: Test Statistics
-,second - first
+,first - second
 Z,-.18
 Asymp. Sig. (2-tailed),.86
 Exact Sig. (2-tailed),.89
@@ -575,13 +575,13 @@ dnl This is the same output as the previous test.
 AT_CHECK([cat pspp.csv], [0], [dnl
 Table: Ranks
 ,,N,Mean Rank,Sum of Ranks
-second - first,Negative Ranks,5,8.60,43.00
-,Positive Ranks,8,6.00,48.00
+first - second,Negative Ranks,8,6.00,48.00
+,Positive Ranks,5,8.60,43.00
 ,Ties,2,,
 ,Total,15,,
 
 Table: Test Statistics
-,second - first
+,first - second
 Z,-.18
 Asymp. Sig. (2-tailed),.86
 Exact Sig. (2-tailed),.89
@@ -615,17 +615,17 @@ dnl (see bug #31611).
 AT_CHECK([sed 's/\.313$/.312/' pspp.csv], [0], [dnl
 Table: Frequencies
 ,,N
-height - age,Negative Differences,1
-,Positive Differences,3
+age - height,Negative Differences,3
+,Positive Differences,1
 ,Ties,2
 ,Total,6
-rank - height,Negative Differences,3
-,Positive Differences,2
+height - rank,Negative Differences,2
+,Positive Differences,3
 ,Ties,1
 ,Total,6
 
 Table: Test Statistics
-,height - age,rank - height
+,age - height,height - rank
 Exact Sig. (2-tailed),.625,1.000
 Exact Sig. (1-tailed),.312,.500
 Point Probability,.250,.312
