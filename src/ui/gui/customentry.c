@@ -57,7 +57,7 @@
 
 #include <gtk/gtk.h>
 #include "customentry.h"
-
+#include "helper.h"
 
 static void psppire_custom_entry_class_init          (PsppireCustomEntryClass *klass);
 static void psppire_custom_entry_init                (PsppireCustomEntry      *ce);

@@ -23,6 +23,7 @@
 #include "psppire-selector.h"
 #include "psppire-conf.h"
 #include <string.h>
+#include "helper.h"
 
 static void psppire_dialog_class_init          (PsppireDialogClass *);
 static void psppire_dialog_init                (PsppireDialog      *);

@@ -206,9 +206,6 @@ enter_leave_notify (GtkWidget   *widget,
  if (event->type == GDK_ENTER_NOTIFY)
    gtk_widget_grab_focus (widget);
 
- if (event->type == GDK_LEAVE_NOTIFY)
-   GTK_WIDGET_UNSET_FLAGS (widget, GTK_HAS_FOCUS);
-
  return FALSE;
 }
 
@@ -313,8 +310,7 @@ psppire_keypad_init (PsppireKeypad *kp)
   const int digit_voffset = 0;
   const int digit_hoffset = 3;
 
-  GTK_WIDGET_SET_FLAGS (kp, GTK_CAN_FOCUS);
-  GTK_WIDGET_UNSET_FLAGS (kp, GTK_HAS_FOCUS);
+  gtk_widget_set_can_focus (GTK_WIDGET (kp), TRUE);
 
   kp->dispose_has_run = FALSE;
 
