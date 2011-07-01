@@ -295,6 +295,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="transform_count">
+            <property name="name">transform_count</property>
+            <property name="label" translatable="yes">Cou_nt...</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="transform_rank">
             <property name="name">transform_rank</property>
             <property name="label" translatable="yes">Ran_k Cases...</property>
@@ -537,6 +543,7 @@
         </menu>
         <menu action="transform">
           <menuitem action="transform_compute"/>
+          <menuitem action="transform_count"/>
           <menuitem action="transform_rank"/>
           <separator/>
           <menuitem action="transform_recode-same"/>

@@ -7,6 +7,7 @@ UI_FILES = \
 	src/ui/gui/binomial.ui \
 	src/ui/gui/compute.ui \
 	src/ui/gui/correlation.ui \
+	src/ui/gui/count.ui \
 	src/ui/gui/crosstabs.ui \
 	src/ui/gui/chi-square.ui \
 	src/ui/gui/descriptives.ui \
@@ -133,6 +134,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/chi-square-dialog.h \
 	src/ui/gui/correlation-dialog.c \
 	src/ui/gui/correlation-dialog.h \
+	src/ui/gui/count-dialog.c \
+	src/ui/gui/count-dialog.h \
 	src/ui/gui/crosstabs-dialog.c \
 	src/ui/gui/crosstabs-dialog.h \
 	src/ui/gui/customentry.c \

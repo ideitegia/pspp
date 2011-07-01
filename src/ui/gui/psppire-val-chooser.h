@@ -43,6 +43,7 @@ typedef struct _PsppireValChooserClass  PsppireValChooserClass;
 
 struct range_widgets
 {
+  GtkLabel *label;
   GtkToggleButton *rb;
   GtkEntry *e1;
   GtkEntry *e2;

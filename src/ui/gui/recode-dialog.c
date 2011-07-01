@@ -860,7 +860,7 @@ set_new_value (GValue *val, const struct recode_dialog *rd)
 
 
 /* A function to set a value in a column in the ACR */
-gboolean
+static gboolean
 set_value (gint col, GValue  *val, gpointer data)
 {
   struct recode_dialog *rd = data;

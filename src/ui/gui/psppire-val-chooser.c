@@ -77,8 +77,20 @@ enum
 {
   PROP_0,
   PROP_IS_STRING,
+  PROP_SHOW_ELSE
 };
 
+
+enum 
+  {
+    VC_VALUE,
+    VC_SYSMIS,
+    VC_MISSING,
+    VC_RANGE,
+    VC_LOW_UP,
+    VC_HIGH_DOWN,
+    VC_ELSE
+  };
 
 static void
 psppire_val_chooser_set_property (GObject         *object,
@@ -90,14 +102,20 @@ psppire_val_chooser_set_property (GObject         *object,
 
   switch (prop_id)
     {
+    case PROP_SHOW_ELSE:
+      {
+	gboolean x = g_value_get_boolean (value);
+	gtk_widget_set_visible (GTK_WIDGET (vr->rw[VC_ELSE].rb), x);
+	gtk_widget_set_visible (GTK_WIDGET (vr->rw[VC_ELSE].label), x);
+      }
+      break;
     case PROP_IS_STRING:
       vr->input_var_is_string = g_value_get_boolean (value);
-
-      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[1].rb), !vr->input_var_is_string);
-      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[2].rb), !vr->input_var_is_string);
-      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[3].rb), !vr->input_var_is_string);
-      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[4].rb), !vr->input_var_is_string);      
-      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[5].rb), !vr->input_var_is_string);
+      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[VC_SYSMIS].rb), !vr->input_var_is_string);
+      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[VC_MISSING].rb), !vr->input_var_is_string);
+      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[VC_RANGE].rb), !vr->input_var_is_string);
+      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[VC_LOW_UP].rb), !vr->input_var_is_string);      
+      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[VC_HIGH_DOWN].rb), !vr->input_var_is_string);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -116,6 +134,13 @@ psppire_val_chooser_get_property (GObject         *object,
 
   switch (prop_id)
     {
+    case PROP_SHOW_ELSE:
+      {
+	gboolean x =
+	  gtk_widget_get_visible (GTK_WIDGET (vr->rw[VC_ELSE].rb));
+	g_value_set_boolean (value, x);
+      }
+      break;
     case PROP_IS_STRING:
       g_value_set_boolean (value, vr->input_var_is_string);
     default:
@@ -140,6 +165,14 @@ psppire_val_chooser_class_init (PsppireValChooserClass *class)
 			  FALSE,
 			  G_PARAM_READWRITE);
 
+  GParamSpec *show_else_spec =
+    g_param_spec_boolean ("show-else",
+			  "Show Else",
+			  "Should the \"All other values\" item be visible",
+			  TRUE,
+			  G_PARAM_READWRITE);
+
+
   parent_class = g_type_class_peek_parent (class);
 
   object_class->set_property = psppire_val_chooser_set_property;
@@ -150,6 +183,10 @@ psppire_val_chooser_class_init (PsppireValChooserClass *class)
   g_object_class_install_property (object_class,
                                    PROP_IS_STRING,
                                    is_string_spec);
+
+  g_object_class_install_property (object_class,
+                                   PROP_SHOW_ELSE,
+                                   show_else_spec);
 }
 
 
@@ -321,13 +358,13 @@ psppire_val_chooser_init (PsppireValChooser *vr)
   for (i = 0; i < n_VAL_CHOOSER_BUTTONS; ++i)
     {
       struct layout *l = &range_opt[i];
-      GtkWidget *label = gtk_label_new (gettext (l->label));
+      vr->rw[i].label = GTK_LABEL (gtk_label_new (gettext (l->label)));
       vr->rw[i].rb = GTK_TOGGLE_BUTTON (gtk_radio_button_new (group));
 
-      gtk_widget_set_sensitive (label, FALSE);
-      g_signal_connect (vr->rw[i].rb, "toggled", G_CALLBACK (set_sensitivity_from_toggle), label);
+      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[i].label), FALSE);
+      g_signal_connect (vr->rw[i].rb, "toggled", G_CALLBACK (set_sensitivity_from_toggle), vr->rw[i].label);
 
-      gtk_misc_set_alignment (GTK_MISC (label), 0, 0.5);
+      gtk_misc_set_alignment (GTK_MISC (vr->rw[i].label), 0, 0.5);
 
       group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (vr->rw[i].rb));
 
@@ -335,7 +372,7 @@ psppire_val_chooser_init (PsppireValChooser *vr)
 				 row, row + 1);
 
 
-      gtk_table_attach_defaults (GTK_TABLE (table), label, 1, 2,
+      gtk_table_attach_defaults (GTK_TABLE (table), GTK_WIDGET (vr->rw[i].label), 1, 2,
 				 row, row + 1);
       ++row;
 
@@ -619,23 +656,23 @@ psppire_val_chooser_set_status (PsppireValChooser *vr, const struct old_value *o
       break;
 
       case OV_SYSMIS:
-	gtk_toggle_button_set_active (vr->rw[1].rb, TRUE);
+	gtk_toggle_button_set_active (vr->rw[VC_SYSMIS].rb, TRUE);
 	break;
 
       case OV_MISSING:
-	gtk_toggle_button_set_active (vr->rw[2].rb, TRUE);
+	gtk_toggle_button_set_active (vr->rw[VC_MISSING].rb, TRUE);
 	break;
 
       case OV_RANGE:
 	{
 	  gchar *str = num_to_string (ov->v.range[0]);
-	  gtk_toggle_button_set_active (vr->rw[3].rb, TRUE);
-	  gtk_entry_set_text (vr->rw[3].e1, str);
+	  gtk_toggle_button_set_active (vr->rw[VC_RANGE].rb, TRUE);
+	  gtk_entry_set_text (vr->rw[VC_RANGE].e1, str);
 
 	  g_free (str);
 
 	  str = num_to_string (ov->v.range[1]);
-	  gtk_entry_set_text (vr->rw[3].e2, str);
+	  gtk_entry_set_text (vr->rw[VC_RANGE].e2, str);
 	  g_free (str);
 	}
 	break;
@@ -644,9 +681,9 @@ psppire_val_chooser_set_status (PsppireValChooser *vr, const struct old_value *o
 	{
 	  gchar *str = num_to_string (ov->v.range[1]);
 
-	  gtk_toggle_button_set_active (vr->rw[4].rb, TRUE);
+	  gtk_toggle_button_set_active (vr->rw[VC_LOW_UP].rb, TRUE);
 
-	  gtk_entry_set_text (vr->rw[4].e1, str);
+	  gtk_entry_set_text (vr->rw[VC_LOW_UP].e1, str);
 
 	  g_free (str);
 	}
@@ -657,16 +694,16 @@ psppire_val_chooser_set_status (PsppireValChooser *vr, const struct old_value *o
 	{
 	  gchar *str = num_to_string (ov->v.range[0]);
 
-	  gtk_toggle_button_set_active (vr->rw[5].rb, TRUE);
+	  gtk_toggle_button_set_active (vr->rw[VC_HIGH_DOWN].rb, TRUE);
 
-	  gtk_entry_set_text (vr->rw[5].e1, str);
+	  gtk_entry_set_text (vr->rw[VC_HIGH_DOWN].e1, str);
 
 	  g_free (str);
 	}
 	break;
 
       case OV_ELSE:
-	gtk_toggle_button_set_active (vr->rw[6].rb, TRUE);
+	gtk_toggle_button_set_active (vr->rw[VC_ELSE].rb, TRUE);
 	break;
 
     default:

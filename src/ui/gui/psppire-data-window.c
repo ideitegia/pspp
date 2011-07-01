@@ -30,6 +30,7 @@
 #include "ui/gui/comments-dialog.h"
 #include "ui/gui/compute-dialog.h"
 #include "ui/gui/correlation-dialog.h"
+#include "ui/gui/count-dialog.h"
 #include "ui/gui/crosstabs-dialog.h"
 #include "ui/gui/descriptives-dialog.h"
 #include "ui/gui/entry-dialog.h"
@@ -1085,6 +1086,8 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "utilities_comments", G_CALLBACK (comments_dialog));
  
   connect_action (de, "transform_rank", G_CALLBACK (rank_dialog));
+
+  connect_action (de, "transform_count", G_CALLBACK (count_dialog));
  
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
  
