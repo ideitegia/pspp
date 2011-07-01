@@ -49,23 +49,26 @@ struct tt_options_dialog
   gdouble confidence_interval;
   gboolean non_default_options;
   enum exclude_mode excl;
+  GtkBuilder *xml;
 };
 
 struct tt_options_dialog *
-tt_options_dialog_create (GtkBuilder *xml, GtkWindow *parent)
+tt_options_dialog_create (GtkWindow *parent)
 {
   struct tt_options_dialog *tto = xmalloc (sizeof (*tto));
+
+  tto->xml = builder_new ("t-test.ui");
 
   tto->confidence =
     widget_scanf (_("Confidence Interval: %2d %%"),
 		  &tto->conf_percent);
 
-  tto->dialog = get_widget_assert (xml, "options-dialog");
+  tto->dialog = get_widget_assert (tto->xml, "options-dialog");
 
-  tto->box =   get_widget_assert (xml, "vbox1");
+  tto->box =   get_widget_assert (tto->xml, "vbox1");
 
-  tto->analysis = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "radiobutton1"));
-  tto->listwise = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "radiobutton2"));
+  tto->analysis = GTK_TOGGLE_BUTTON (get_widget_assert (tto->xml, "radiobutton1"));
+  tto->listwise = GTK_TOGGLE_BUTTON (get_widget_assert (tto->xml, "radiobutton2"));
 
   gtk_widget_show (tto->confidence);
 
@@ -84,6 +87,7 @@ void
 tt_options_dialog_destroy (struct tt_options_dialog *tto)
 {
   gtk_container_remove (GTK_CONTAINER (tto->box), tto->confidence);
+  g_object_unref (tto->xml);
   g_free (tto);
 }
 

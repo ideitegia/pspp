@@ -162,7 +162,7 @@ t_test_paired_samples_dialog (PsppireDataWindow *de)
 
   PsppireVarStore *vs = NULL;
 
-  GtkBuilder *xml = builder_new ("t-test.ui");
+  GtkBuilder *xml = builder_new ("paired-samples.ui");
 
   GtkWidget *dict_view =
     get_widget_assert (xml, "paired-samples-t-test-treeview1");
@@ -178,7 +178,7 @@ t_test_paired_samples_dialog (PsppireDataWindow *de)
   g_object_get (vs, "dictionary", &tt_d.dict, NULL);
   tt_d.pairs_treeview =
    get_widget_assert (xml, "paired-samples-t-test-treeview2");
-  tt_d.opt = tt_options_dialog_create (xml, GTK_WINDOW (de));
+  tt_d.opt = tt_options_dialog_create (GTK_WINDOW (de));
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 

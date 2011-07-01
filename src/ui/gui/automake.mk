@@ -19,6 +19,7 @@ UI_FILES = \
 	src/ui/gui/frequencies.ui \
 	src/ui/gui/k-related.ui \
 	src/ui/gui/oneway.ui \
+	src/ui/gui/paired-samples.ui \
 	src/ui/gui/psppire.ui \
 	src/ui/gui/rank.ui \
 	src/ui/gui/sort.ui \

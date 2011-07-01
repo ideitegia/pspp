@@ -416,7 +416,7 @@ t_test_independent_samples_dialog (PsppireDataWindow *de)
 
   tt_d.define_groups_button = get_widget_assert (xml, "define-groups-button");
   tt_d.groups_entry = get_widget_assert (xml, "indep-samples-t-test-entry");
-  tt_d.opts = tt_options_dialog_create (xml, GTK_WINDOW (de));
+  tt_d.opts = tt_options_dialog_create (GTK_WINDOW (de));
   tt_d.grps = tt_groups_dialog_create (xml, GTK_WINDOW (de));
 
 
