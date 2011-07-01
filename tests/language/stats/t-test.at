@@ -285,7 +285,7 @@ DEP,F8.0
 
 Table: Group Statistics
 ,INDEP,N,Mean,Std. Deviation,S.E. Mean
-DEP,>=    1.51,11,9.00,3.82,1.15
+DEP,≥    1.51,11,9.00,3.82,1.15
 ,<    1.51,11,8.00,2.86,.86
 
 Table: Independent Samples Test

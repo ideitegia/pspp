@@ -384,7 +384,7 @@ show_runs_result (const struct runs_test *rt, const struct run_state *rs, const 
 	    TAT_TITLE | TAB_LEFT , _("Cases < Test Value"));
 
   tab_text (table,  0, column_headers + 2,
-	    TAT_TITLE | TAB_LEFT , _("Cases >= Test Value"));
+	    TAT_TITLE | TAB_LEFT , _("Cases ≥ Test Value"));
 
   tab_text (table,  0, column_headers + 3,
 	    TAT_TITLE | TAB_LEFT , _("Total Cases"));

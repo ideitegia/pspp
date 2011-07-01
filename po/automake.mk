@@ -15,6 +15,7 @@ XGETTEXT_OPTIONS = \
 	--package-name=$(PACKAGE) \
 	--package-version=$(VERSION) \
 	--msgid-bugs-address=$(MSGID_BUGS_ADDRESS) \
+        --from-code=UTF-8 \
 	--add-comments='TRANSLATORS:'
 
 $(POTFILE): $(TRANSLATABLE_FILES) $(UI_FILES)

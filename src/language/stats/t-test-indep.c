@@ -215,8 +215,7 @@ indep_summary (const struct tt *tt, struct indep_samples *is, const struct pair_
 
   if (is->cut)
     {
-      /*      ds_put_cstr (&vallab0, "≥"); */
-      ds_put_cstr (&vallab0, ">=");
+      ds_put_cstr (&vallab0, "≥");
       ds_put_cstr (&vallab1, "<");
 
       var_append_value_name (is->gvar, is->gval0, &vallab0);

@@ -854,7 +854,7 @@ Table: Runs Test
 ,score
 Test Value (median),3.0000
 Cases < Test Value,177.0000
-Cases >= Test Value,309.0000
+Cases ≥ Test Value,309.0000
 Total Cases,486.0000
 Number of Runs,12
 Z,-20.9931
@@ -864,7 +864,7 @@ Table: Runs Test
 ,score
 Test Value (mean),3.6379
 Cases < Test Value,259.0000
-Cases >= Test Value,227.0000
+Cases ≥ Test Value,227.0000
 Total Cases,486.0000
 Number of Runs,12
 Z,-21.0650
@@ -874,7 +874,7 @@ Table: Runs Test
 ,score
 Test Value (mode),6.0000
 Cases < Test Value,316.0000
-Cases >= Test Value,170.0000
+Cases ≥ Test Value,170.0000
 Total Cases,486.0000
 Number of Runs,11
 Z,-21.0742
