@@ -7,8 +7,7 @@ src_language_stats_built_sources = \
 	src/language/stats/examine.c \
 	src/language/stats/frequencies.c \
 	src/language/stats/rank.c \
-	src/language/stats/regression.c \
-	src/language/stats/t-test.c
+	src/language/stats/regression.c
 
 language_stats_sources = \
 	src/language/stats/aggregate.c \
@@ -49,6 +48,11 @@ language_stats_sources = \
 	src/language/stats/sort-cases.c \
 	src/language/stats/sort-criteria.c \
 	src/language/stats/sort-criteria.h \
+	src/language/stats/t-test.h \
+	src/language/stats/t-test-indep.c \
+	src/language/stats/t-test-one-sample.c \
+	src/language/stats/t-test-paired.c \
+	src/language/stats/t-test-parser.c \
 	src/language/stats/wilcoxon.c \
 	src/language/stats/wilcoxon.h
 

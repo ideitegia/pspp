@@ -16,165 +16,245 @@
 
 #include <config.h>
 
-#include "math/levene.h"
-
+#include "levene.h"
 #include <math.h>
 
-#include "data/case.h"
-#include "data/casereader.h"
-#include "data/variable.h"
-#include "libpspp/hmap.h"
 #include "libpspp/misc.h"
+#include "libpspp/hmap.h"
+#include "data/value.h"
+
+#include <gl/xalloc.h>
+#include <assert.h>
 
 struct lev
 {
   struct hmap_node node;
   union value group;
-  int width;
 
   double t_bar;
   double z_mean;
   double n;
 };
 
+typedef unsigned int hash_func (const struct levene *, const union value *v);
+typedef bool cmp_func (const struct levene *, const union value *v0, const union value *v1);
+
+struct levene
+{
+  /* Width of the categorical variable */
+  int gvw ;
+
+  /* The value deviding the the groups. Valid only for dichotomous categorical variable.*/
+  const union value *cutpoint;
+
+
+  /* A hashtable of struct lev objects indexed by union value */
+  struct hmap hmap;
+
+  hash_func *hash;
+  cmp_func *cmp;
+
+
+  /* A state variable indicating how many passes have been done */
+  int pass;
+
+  double grand_n;
+  double z_grand_mean;
+
+  double denominator;
+};
+
+
+static unsigned int
+unique_hash (const struct levene *nl, const union value *val)
+{
+  return value_hash (val, nl->gvw, 0);
+}
+
+static bool
+unique_cmp (const struct levene *nl, const union value *val0, const union value *val1)
+{
+  return value_equal (val0, val1, nl->gvw);
+}
+
+static unsigned int
+cutpoint_hash (const struct levene *nl, const union value *val)
+{
+  int x = value_compare_3way (val, nl->cutpoint, nl->gvw);
+
+  return (x < 0);
+}
+
+static bool
+cutpoint_cmp (const struct levene *nl, const union value *val0, const union value *val1)
+{
+  int x = value_compare_3way (val0, nl->cutpoint, nl->gvw);
+
+  int y = value_compare_3way (val1, nl->cutpoint, nl->gvw);
+
+  if ( x == 0) x = 1;
+  if ( y == 0) y = 1;
+
+  return ( x == y);
+}
+
+
 
 static struct lev *
-find_group (struct hmap *map, const union value *target, int width)
+find_group (const struct levene *nl, const union value *target)
 {
   struct lev *l = NULL;
-  unsigned int hash = value_hash (target, width, 0);
-  HMAP_FOR_EACH_WITH_HASH (l, struct lev, node, hash, map)
+
+  HMAP_FOR_EACH_WITH_HASH (l, struct lev, node, nl->hash (nl, target), &nl->hmap)
     {
-      if (value_equal (&l->group, target, width))
+      if (nl->cmp (nl, &l->group, target))
 	break;
       l = NULL;
     }
-
   return l;
 }
 
 
-double
-levene (struct casereader *rx, const struct variable *gvar,
-	const struct variable *var, const struct variable *wv,
-	enum mv_class exclude)
+struct levene *
+levene_create (int indep_width, const union value *cutpoint)
 {
-  double numerator = 0.0;
-  double denominator = 0.0;
-  int n_groups = 0;
-  double z_grand_mean = 0.0;
-  double grand_n = 0.0;
+  struct levene *nl = xzalloc (sizeof *nl);
 
-  struct hmap map = HMAP_INITIALIZER (map);
+  hmap_init (&nl->hmap);
 
-  struct ccase *c;
-  struct casereader *r = casereader_clone (rx);
+  nl->gvw = indep_width;
+  nl->cutpoint = cutpoint;
 
-  for (; (c = casereader_read (r)) != NULL; case_unref (c))
+  nl->hash  = cutpoint ? cutpoint_hash : unique_hash;
+  nl->cmp   = cutpoint ? cutpoint_cmp : unique_cmp;
+
+  return nl;
+}
+
+
+/* Data accumulation. First pass */
+void 
+levene_pass_one (struct levene *nl, double value, double weight, const union value *gv)
+{
+  struct lev *lev = find_group (nl, gv);
+
+  if ( nl->pass == 0 ) 
     {
-      struct lev *l = NULL;
-      const union value *target = case_data (c, gvar);
-      int width = var_get_width (gvar);
-      unsigned int hash = value_hash (target, width, 0);
-      const double x = case_data (c, var)->f;
-      const double weight = wv ? case_data (c, wv)->f : 1.0;
-
-      if (var_is_value_missing (var, case_data (c, var), exclude))
-	continue;
-
-      l = find_group (&map, target, width);
-      
-      if (l == NULL)
-	{
-	  l = xzalloc (sizeof *l);
-	  value_clone (&l->group, target, width);
-	  hmap_insert (&map, &l->node, hash);
-	}
-
-      l->n += weight;
-      l->t_bar += x * weight;
-      grand_n += weight;
+      nl->pass = 1;
     }
-  casereader_destroy (r);
+  assert (nl->pass == 1);
 
-  {
-    struct lev *l;
-    HMAP_FOR_EACH (l, struct lev, node, &map)
+  if ( NULL == lev)
+    {
+      struct lev *l = xzalloc (sizeof *l);
+      value_clone (&l->group, gv, nl->gvw);
+      hmap_insert (&nl->hmap, &l->node, nl->hash (nl, &l->group));
+      lev = l;
+    }
+
+  lev->n += weight;
+  lev->t_bar += value * weight;
+
+  nl->grand_n += weight;
+}
+
+/* Data accumulation. Second pass */
+void 
+levene_pass_two (struct levene *nl, double value, double weight, const union value *gv)
+{
+  struct lev *lev = NULL;
+
+  if ( nl->pass == 1 )
+    {
+      struct lev *next;
+      struct lev *l;
+
+      nl->pass = 2;
+
+      HMAP_FOR_EACH_SAFE (l, next, struct lev, node, &nl->hmap)
       {
 	l->t_bar /= l->n;
       }
-  }
-
-  n_groups = hmap_count (&map);
-
-  r = casereader_clone (rx);
-  for (; (c = casereader_read (r)) != NULL; case_unref (c))
-    {
-      struct lev *l = NULL;
-      const union value *target = case_data (c, gvar);
-      int width = var_get_width (gvar);
-      const double x = case_data (c, var)->f;
-      const double weight = wv ? case_data (c, wv)->f : 1.0;
-
-      if (var_is_value_missing (var, case_data (c, var), exclude))
-	continue;
-
-      l = find_group (&map, target, width);
-      assert (l);
-      
-      l->z_mean += fabs (x - l->t_bar) * weight;
-      z_grand_mean += fabs (x - l->t_bar) * weight;
     }
-  casereader_destroy (r);
+  assert (nl->pass == 2);
 
-  {
-    struct lev *l;
-    HMAP_FOR_EACH (l, struct lev, node, &map)
+  lev = find_group (nl, gv);
+
+  lev->z_mean += fabs (value - lev->t_bar) * weight;
+  nl->z_grand_mean += fabs (value - lev->t_bar) * weight;
+}
+
+/* Data accumulation. Third pass */
+void 
+levene_pass_three (struct levene *nl, double value, double weight, const union value *gv)
+{
+  double z;
+  struct lev *lev = NULL;
+
+  if ( nl->pass == 2 )
+    {
+      struct lev *next;
+      struct lev *l;
+
+      nl->pass = 3;
+
+      HMAP_FOR_EACH_SAFE (l, next, struct lev, node, &nl->hmap)
       {
 	l->z_mean /= l->n;
       }
+
+      nl->z_grand_mean /= nl->grand_n;
   }
 
-  z_grand_mean /= grand_n;
+  assert (nl->pass == 3);
+  lev = find_group (nl, gv);
 
-  r = casereader_clone (rx);
-  for (; (c = casereader_read (r)) != NULL; case_unref (c))
+  z = fabs (value - lev->t_bar);
+  nl->denominator += pow2 (z - lev->z_mean) * weight;
+}
+
+
+/* Return the value of the levene statistic */
+double
+levene_calculate (struct levene *nl)
+{
+  struct lev *next;
+  struct lev *l;
+
+  double numerator = 0.0;
+  double nn = 0.0;
+  if ( nl->pass == 3 )
     {
-      double z;
-      struct lev *l;
-      const union value *target = case_data (c, gvar);
-      int width = var_get_width (gvar);
-      const double x = case_data (c, var)->f;
-      const double weight = wv ? case_data (c, wv)->f : 1.0;
-
-      if (var_is_value_missing (var, case_data (c, var), exclude))
-	continue;
-
-      l = find_group (&map, target, width);
-      assert (l);
-
-      z = fabs (x - l->t_bar);
-      denominator += pow2 (z - l->z_mean) * weight;
+      nl->pass = 4;
     }
-  casereader_destroy (r);
 
-  denominator *= n_groups - 1;
+  assert (nl->pass == 4);
 
-  {
-    double grand_n = 0.0;
-    struct lev *next;
-    struct lev *l;
-    HMAP_FOR_EACH_SAFE (l, next, struct lev, node, &map)
-      {
-	numerator += l->n * pow2 (l->z_mean - z_grand_mean);
-	grand_n += l->n;
+  nl->denominator *= hmap_count (&nl->hmap) - 1;
 
-	/* We don't need these anymore */
-	free (l);
-      }
-    numerator *= grand_n - n_groups ;
-    hmap_destroy (&map);
-  }
+  HMAP_FOR_EACH_SAFE (l, next, struct lev, node, &nl->hmap)
+    {
+      numerator += l->n * pow2 (l->z_mean - nl->z_grand_mean);
+      nn += l->n;
+    }
 
-  return numerator/ denominator;
+  numerator *= nn - hmap_count (&nl->hmap);
+    
+  return numerator / nl->denominator;
+}
+
+void
+levene_destroy (struct levene *nl)
+{
+  struct lev *next;
+  struct lev *l;
+
+  HMAP_FOR_EACH_SAFE (l, next, struct lev, node, &nl->hmap)
+    {
+      value_destroy (&l->group, nl->gvw);
+      free (l);
+    }
+
+  hmap_destroy (&nl->hmap);
+  free (nl);
 }

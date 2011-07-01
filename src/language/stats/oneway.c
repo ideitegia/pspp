@@ -91,7 +91,6 @@ struct oneway_spec
 
   /* The weight variable */
   const struct variable *wv;
-
 };
 
 /* Per category data */
@@ -109,6 +108,7 @@ struct per_var_ws
 {
   struct categoricals *cat;
   struct covariance *cov;
+  struct levene *nl;
 
   double sst;
   double sse;
@@ -117,7 +117,6 @@ struct per_var_ws
   int n_groups;
 
   double mse;
-  double levene_w;
 };
 
 struct oneway_workspace
@@ -393,6 +392,7 @@ run_oneway (const struct oneway_spec *cmd,
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
 					       ws.vws[v].cat, 
 					       cmd->wv, cmd->exclude);
+      ws.vws[v].nl = levene_create (var_get_width (cmd->indep_var), NULL);
     }
 
   c = casereader_peek (input, 0);
@@ -413,20 +413,11 @@ run_oneway (const struct oneway_spec *cmd,
                                               cmd->exclude, NULL, NULL);
   input = casereader_create_filter_weight (input, dict, NULL, NULL);
 
-
-  if (cmd->stats & STATS_HOMOGENEITY)
-    for (v = 0; v < cmd->n_vars; ++v)
-      {
-	struct per_var_ws *pvw = &ws.vws[v];
-
-	pvw->levene_w = levene (input, cmd->indep_var, cmd->vars[v], cmd->wv, cmd->exclude);
-      }
-
   reader = casereader_clone (input);
-
   for (; (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       int i;
+      double w = dict_get_case_weight (dict, c, NULL);
 
       for (i = 0; i < cmd->n_vars; ++i)
 	{
@@ -441,13 +432,16 @@ run_oneway (const struct oneway_spec *cmd,
 	    }
 
 	  covariance_accumulate_pass1 (pvw->cov, c);
+	  levene_pass_one (pvw->nl, val->f, w, case_data (c, cmd->indep_var));
 	}
     }
   casereader_destroy (reader);
+
   reader = casereader_clone (input);
   for ( ; (c = casereader_read (reader) ); case_unref (c))
     {
       int i;
+      double w = dict_get_case_weight (dict, c, NULL);
       for (i = 0; i < cmd->n_vars; ++i)
 	{
 	  struct per_var_ws *pvw = &ws.vws[i];
@@ -461,9 +455,34 @@ run_oneway (const struct oneway_spec *cmd,
 	    }
 
 	  covariance_accumulate_pass2 (pvw->cov, c);
+	  levene_pass_two (pvw->nl, val->f, w, case_data (c, cmd->indep_var));
 	}
     }
   casereader_destroy (reader);
+
+  reader = casereader_clone (input);
+  for ( ; (c = casereader_read (reader) ); case_unref (c))
+    {
+      int i;
+      double w = dict_get_case_weight (dict, c, NULL);
+
+      for (i = 0; i < cmd->n_vars; ++i)
+	{
+	  struct per_var_ws *pvw = &ws.vws[i];
+	  const struct variable *v = cmd->vars[i];
+	  const union value *val = case_data (c, v);
+
+	  if ( MISS_ANALYSIS == cmd->missing_type)
+	    {
+	      if ( var_is_value_missing (v, val, cmd->exclude))
+		continue;
+	    }
+
+	  levene_pass_three (pvw->nl, val->f, w, case_data (c, cmd->indep_var));
+	}
+    }
+  casereader_destroy (reader);
+
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
@@ -475,8 +494,6 @@ run_oneway (const struct oneway_spec *cmd,
       moments1_calculate (ws.dd_total[v]->mom, &n, NULL, NULL, NULL, NULL);
 
       pvw->sst = gsl_matrix_get (cm, 0, 0);
-
-      //      gsl_matrix_fprintf (stdout, cm, "%g ");
 
       reg_sweep (cm, 0);
 
@@ -512,11 +529,11 @@ run_oneway (const struct oneway_spec *cmd,
   for (v = 0; v < cmd->n_vars; ++v)
     {
       covariance_destroy (ws.vws[v].cov);
+      levene_destroy (ws.vws[v].nl);
       dd_destroy (ws.dd_total[v]);
     }
   free (ws.vws);
   free (ws.dd_total);
-
 }
 
 static void show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspace *ws);
@@ -846,7 +863,7 @@ show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *
     {
       double n;
       const struct per_var_ws *pvw = &ws->vws[v];
-      double F = pvw->levene_w;
+      double F = levene_calculate (pvw->nl);
 
       const struct variable *var = cmd->vars[v];
       const char *s = var_to_string (var);

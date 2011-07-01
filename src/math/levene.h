@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,15 +17,18 @@
 #if !levene_h
 #define levene_h 1
 
-struct casereader;
-struct variable;
+struct nl;
 
+union value;
 
-enum mv_class;
+struct levene *levene_create (int indep_width, const union value *cutpoint);
 
-double
-levene (struct casereader *rx, const struct variable *gvar,
-	const struct variable *var, const struct variable *wv,  enum mv_class exclude );
+void levene_pass_one (struct levene *, double value, double weight, const union value *gv);
+void levene_pass_two (struct levene *, double value, double weight, const union value *gv);
+void levene_pass_three (struct levene *, double value, double weight, const union value *gv);
 
+double levene_calculate (struct levene*);
+
+void levene_destroy (struct levene*);
 
 #endif
