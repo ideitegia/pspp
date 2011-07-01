@@ -364,7 +364,7 @@ refresh (PsppireDialog *dialog, struct recode_dialog *rd)
   gtk_widget_set_sensitive (rd->new_name_entry, FALSE);
   gtk_widget_set_sensitive (rd->new_label_entry, FALSE);
 
-  if ( rd->different )
+  if ( rd->different && rd->varmap )
     g_hash_table_remove_all (rd->varmap);
 
   gtk_list_store_clear (GTK_LIST_STORE (rd->value_map));
@@ -1068,7 +1068,8 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
       break;
     }
 
-  g_hash_table_destroy (rd.varmap);
+  if (rd.varmap)
+    g_hash_table_destroy (rd.varmap);
 
   gtk_list_store_clear (GTK_LIST_STORE (rd.value_map));
   g_object_unref (rd.value_map);
