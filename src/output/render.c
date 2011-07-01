@@ -815,7 +815,7 @@ render_page_get_size (const struct render_page *page, enum table_axis axis)
 
 /* Drawing render_pages. */
 
-static enum render_line_style
+static inline enum render_line_style
 get_rule (const struct render_page *page, enum table_axis axis,
           const int d[TABLE_N_AXES])
 {
