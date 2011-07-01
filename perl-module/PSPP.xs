@@ -727,6 +727,21 @@ CODE:
  OUTPUT:
 RETVAL
 
+SV *
+get_case_cnt (sfr)
+ struct sysreader_info *sfr;
+CODE:
+ SV *ret;
+ casenumber n = casereader_get_case_cnt (sfr->reader);
+ if (n == CASENUMBER_MAX)
+  ret = &PL_sv_undef;
+ else 
+  ret = newSViv (n);
+ RETVAL = ret;
+ OUTPUT:
+RETVAL
+
+
 
 void
 get_next_case (sfr)

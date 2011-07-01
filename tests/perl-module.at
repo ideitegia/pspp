@@ -701,7 +701,7 @@ AT_SKIP_IF([test "$WITH_PERL_MODULE" = no])
 # Skip this test if Perl's Text::Diff module is not installed.
 AT_CHECK([perl -MText::Diff -e '' || exit 77])
 AT_CHECK([RUN_PERL_MODULE $abs_top_builddir/perl-module/t/Pspp.t], [0],
-  [[1..36
+  [[1..37
 ok 1 - use PSPP;
 ok 2 - Dictionary Creation
 ok 3
@@ -739,15 +739,6 @@ ok 33 - Missing Value Positive
 ok 34 - Missing Value Positive SYS
 ok 35 - Missing Value Positive Num
 ok 36 - Custom Attributes
-]],
-  [[# @&t@
-# @@ -0,0 +1 @@
-# +
-# @@ -0,0 +1 @@
-# +
-# @@ -0,0 +1 @@
-# +
-# @@ -0,0 +1 @@
-# +
-]])
+ok 37 - Case count
+]],[ignore])
 AT_CLEANUP

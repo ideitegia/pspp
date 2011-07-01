@@ -483,6 +483,13 @@ Open is used to read data from an existing system file.
 It creates and returns a PSPP::Reader object which can be used to read 
 data and dictionary information from C<filename>.
 
+=head3 get_case_cnt ()
+
+Returns the number of cases in a open system file.  Some files
+do not store the number of cases.  In these instances undef
+will be returned.  Therefore, then programmer must check that the
+returned value is not undef before using it.
+
 =cut
 
 sub get_dict

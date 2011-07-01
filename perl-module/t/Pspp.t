@@ -8,7 +8,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 36;
+use Test::More tests => 37;
 use Text::Diff;
 use File::Temp qw/ tempfile tempdir /;
 BEGIN { use_ok('PSPP') };
@@ -605,5 +605,18 @@ colour =>blue, pink, violet
 nationality =>foreign
 size =>large
 EOF
+}
 
+
+# Test of the get_case_cnt function
+{
+ my $tempdir = tempdir( CLEANUP => 1 );
+
+ generate_sav_file ("$tempdir/in.sav", "$tempdir");
+
+ my $sf = PSPP::Reader->open ("$tempdir/in.sav");
+
+ my $n = $sf->get_case_cnt ();
+
+ ok ($n == 5, "Case count");
 }
