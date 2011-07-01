@@ -660,7 +660,7 @@ static void gtk_xpaned_size_request (GtkWidget* widget,
 	requisition->width = 0;
 	requisition->height = 0;
 
-	if (xpaned->top_left_child && GTK_WIDGET_VISIBLE (xpaned->top_left_child))
+	if (xpaned->top_left_child && gtk_widget_get_visible (xpaned->top_left_child))
 	{
 		gtk_widget_size_request (xpaned->top_left_child, &child_requisition);
 
@@ -668,7 +668,7 @@ static void gtk_xpaned_size_request (GtkWidget* widget,
 		requisition->height = child_requisition.height;
 	}
 
-	if (xpaned->top_right_child && GTK_WIDGET_VISIBLE (xpaned->top_right_child))
+	if (xpaned->top_right_child && gtk_widget_get_visible (xpaned->top_right_child))
 	{
 		gtk_widget_size_request (xpaned->top_right_child, &child_requisition);
 
@@ -676,7 +676,7 @@ static void gtk_xpaned_size_request (GtkWidget* widget,
 		requisition->height = MAX (requisition->height, child_requisition.height);
 	}
 
-	if (xpaned->bottom_left_child && GTK_WIDGET_VISIBLE (xpaned->bottom_left_child))
+	if (xpaned->bottom_left_child && gtk_widget_get_visible (xpaned->bottom_left_child))
 	{
 		gtk_widget_size_request (xpaned->bottom_left_child, &child_requisition);
 
@@ -684,7 +684,7 @@ static void gtk_xpaned_size_request (GtkWidget* widget,
 		requisition->height += child_requisition.height;
 	}
 
-	if (xpaned->bottom_right_child && GTK_WIDGET_VISIBLE (xpaned->bottom_right_child))
+	if (xpaned->bottom_right_child && gtk_widget_get_visible (xpaned->bottom_right_child))
 	{
 		gtk_widget_size_request (xpaned->bottom_right_child, &child_requisition);
 
@@ -697,10 +697,10 @@ static void gtk_xpaned_size_request (GtkWidget* widget,
 	requisition->height += GTK_CONTAINER (xpaned)->border_width * 2;
 
 	/* also add the handle "thickness" to GtkXPaneds width- and height-requisitions */
-	if (xpaned->top_left_child && GTK_WIDGET_VISIBLE (xpaned->top_left_child) &&
-		xpaned->top_right_child && GTK_WIDGET_VISIBLE (xpaned->top_right_child) &&
-		xpaned->bottom_left_child && GTK_WIDGET_VISIBLE (xpaned->bottom_left_child) &&
-		xpaned->bottom_right_child && GTK_WIDGET_VISIBLE (xpaned->bottom_right_child))
+	if (xpaned->top_left_child && gtk_widget_get_visible (xpaned->top_left_child) &&
+		xpaned->top_right_child && gtk_widget_get_visible (xpaned->top_right_child) &&
+		xpaned->bottom_left_child && gtk_widget_get_visible (xpaned->bottom_left_child) &&
+		xpaned->bottom_right_child && gtk_widget_get_visible (xpaned->bottom_right_child))
 	{
 		gint handle_size;
 
@@ -739,10 +739,10 @@ static void gtk_xpaned_size_allocate (GtkWidget* widget,
 
 	widget->allocation = *allocation;
 
-	if (xpaned->top_left_child && GTK_WIDGET_VISIBLE (xpaned->top_left_child) &&
-		xpaned->top_right_child && GTK_WIDGET_VISIBLE (xpaned->top_right_child) &&
-		xpaned->bottom_left_child && GTK_WIDGET_VISIBLE (xpaned->bottom_left_child) &&
-		xpaned->bottom_right_child && GTK_WIDGET_VISIBLE (xpaned->bottom_right_child))
+	if (xpaned->top_left_child && gtk_widget_get_visible (xpaned->top_left_child) &&
+		xpaned->top_right_child && gtk_widget_get_visible (xpaned->top_right_child) &&
+		xpaned->bottom_left_child && gtk_widget_get_visible (xpaned->bottom_left_child) &&
+		xpaned->bottom_right_child && gtk_widget_get_visible (xpaned->bottom_right_child))
     {
 		/* what sizes do the children want to be at least at */
 		gtk_widget_get_child_requisition (xpaned->top_left_child,
@@ -815,9 +815,9 @@ static void gtk_xpaned_size_allocate (GtkWidget* widget,
 		bottom_right_child_allocation.width = xpaned->handle_pos_east.width;
 		bottom_right_child_allocation.height = xpaned->handle_pos_south.height;
 
-		if (GTK_WIDGET_REALIZED (widget))
+		if (gtk_widget_get_realized (widget))
 		{
-			if (GTK_WIDGET_MAPPED (widget))
+			if (gtk_widget_get_mapped (widget))
 			{
 				gdk_window_show (xpaned->handle_east);
 				gdk_window_show (xpaned->handle_west);
@@ -860,7 +860,7 @@ static void gtk_xpaned_size_allocate (GtkWidget* widget,
 		/* Now allocate the childen, making sure, when resizing not to
 		* overlap the windows
 		*/
-		if (GTK_WIDGET_MAPPED (widget))
+		if (gtk_widget_get_mapped (widget))
 		{
 			gtk_widget_size_allocate (xpaned->top_right_child, &top_right_child_allocation);
 			gtk_widget_size_allocate (xpaned->top_left_child, &top_left_child_allocation);
@@ -1216,10 +1216,10 @@ static void gtk_xpaned_realize (GtkWidget* widget)
 
 	widget->style = gtk_style_attach (widget->style, widget->window);
 
-	if (xpaned->top_left_child && GTK_WIDGET_VISIBLE (xpaned->top_left_child) &&
-		xpaned->top_right_child && GTK_WIDGET_VISIBLE (xpaned->top_right_child) &&
-		xpaned->bottom_left_child && GTK_WIDGET_VISIBLE (xpaned->bottom_left_child) &&
-		xpaned->bottom_right_child && GTK_WIDGET_VISIBLE (xpaned->bottom_right_child))
+	if (xpaned->top_left_child && gtk_widget_get_visible (xpaned->top_left_child) &&
+		xpaned->top_right_child && gtk_widget_get_visible (xpaned->top_right_child) &&
+		xpaned->bottom_left_child && gtk_widget_get_visible (xpaned->bottom_left_child) &&
+		xpaned->bottom_right_child && gtk_widget_get_visible (xpaned->bottom_right_child))
 	{
 		gdk_window_show (xpaned->handle_east);
 		gdk_window_show (xpaned->handle_west);
@@ -1325,11 +1325,11 @@ static gboolean gtk_xpaned_expose (GtkWidget* widget,
 	/* I want the handle-"thickness" to be at least 3 */
 	g_assert (handle_size >= 3);
 
-	if (GTK_WIDGET_VISIBLE (widget) && GTK_WIDGET_MAPPED (widget) &&
-		xpaned->top_left_child && GTK_WIDGET_VISIBLE (xpaned->top_left_child) &&
-		xpaned->top_right_child && GTK_WIDGET_VISIBLE (xpaned->top_right_child) &&
-		xpaned->bottom_left_child && GTK_WIDGET_VISIBLE (xpaned->bottom_left_child) &&
-		xpaned->bottom_right_child && GTK_WIDGET_VISIBLE (xpaned->bottom_right_child))
+	if (gtk_widget_get_visible (widget) && gtk_widget_get_mapped (widget) &&
+		xpaned->top_left_child && gtk_widget_get_visible (xpaned->top_left_child) &&
+		xpaned->top_right_child && gtk_widget_get_visible (xpaned->top_right_child) &&
+		xpaned->bottom_left_child && gtk_widget_get_visible (xpaned->bottom_left_child) &&
+		xpaned->bottom_right_child && gtk_widget_get_visible (xpaned->bottom_right_child))
     {
 		GtkStateType state;
 
@@ -1338,7 +1338,7 @@ static gboolean gtk_xpaned_expose (GtkWidget* widget,
 		else if (xpaned->handle_prelit)
 			state = GTK_STATE_PRELIGHT;
 		else
-			state = GTK_WIDGET_STATE (widget);
+			state = gtk_widget_get_state (widget);
 
 		horizontalClipArea.x = xpaned->handle_pos_west.x;
 		horizontalClipArea.y = xpaned->handle_pos_west.y;
@@ -1930,7 +1930,7 @@ static void gtk_xpaned_remove (GtkContainer* container, GtkWidget* widget)
 	gboolean was_visible;
 
 	xpaned = GTK_XPANED (container);
-	was_visible = GTK_WIDGET_VISIBLE (widget);
+	was_visible = gtk_widget_get_visible (widget);
 
 	if (xpaned->top_left_child == widget)
 	{
@@ -1938,7 +1938,7 @@ static void gtk_xpaned_remove (GtkContainer* container, GtkWidget* widget)
 
 		xpaned->top_left_child = NULL;
 
-		if (was_visible && GTK_WIDGET_VISIBLE (container))
+		if (was_visible && gtk_widget_get_visible (GTK_WIDGET (container)))
 			gtk_widget_queue_resize (GTK_WIDGET (container));
 	}
 	else if (xpaned->top_right_child == widget)
@@ -1947,7 +1947,7 @@ static void gtk_xpaned_remove (GtkContainer* container, GtkWidget* widget)
 
 		xpaned->top_right_child = NULL;
 
-		if (was_visible && GTK_WIDGET_VISIBLE (container))
+		if (was_visible && gtk_widget_get_visible (GTK_WIDGET (container)))
 			gtk_widget_queue_resize (GTK_WIDGET (container));
 	}
 	else if (xpaned->bottom_left_child == widget)
@@ -1956,7 +1956,7 @@ static void gtk_xpaned_remove (GtkContainer* container, GtkWidget* widget)
 
 		xpaned->bottom_left_child = NULL;
 
-		if (was_visible && GTK_WIDGET_VISIBLE (container))
+		if (was_visible && gtk_widget_get_visible (GTK_WIDGET (container)))
 			gtk_widget_queue_resize (GTK_WIDGET (container));
 	}
 	else if (xpaned->bottom_right_child == widget)
@@ -1965,7 +1965,7 @@ static void gtk_xpaned_remove (GtkContainer* container, GtkWidget* widget)
 
 		xpaned->bottom_right_child = NULL;
 
-		if (was_visible && GTK_WIDGET_VISIBLE (container))
+		if (was_visible && gtk_widget_get_visible (GTK_WIDGET (container)))
 			gtk_widget_queue_resize (GTK_WIDGET (container));
 	}
 	else
@@ -2668,7 +2668,7 @@ static GtkWidget* xpaned_get_focus_widget (GtkXPaned* xpaned)
 	GtkWidget* toplevel;
 
 	toplevel = gtk_widget_get_toplevel (GTK_WIDGET (xpaned));
-	if (GTK_WIDGET_TOPLEVEL (toplevel))
+	if (gtk_widget_is_toplevel (toplevel))
 		return GTK_WINDOW (toplevel)->focus_widget;
 
 	return NULL;
@@ -3059,7 +3059,7 @@ static void gtk_xpaned_restore_focus (GtkXPaned* xpaned)
 	if (gtk_widget_is_focus (GTK_WIDGET (xpaned)))
 	{
 		if (xpaned->priv->saved_focus &&
-			GTK_WIDGET_SENSITIVE (xpaned->priv->saved_focus))
+			gtk_widget_get_sensitive (xpaned->priv->saved_focus))
 		{
 			gtk_widget_grab_focus (xpaned->priv->saved_focus);
 		}
