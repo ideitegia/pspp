@@ -1,0 +1,43 @@
+AT_BANNER([zip])
+
+AT_SETUP([Basic zip - unzip test])
+AT_KEYWORDS([compression])
+
+AT_CHECK([dnl
+here=`pwd`
+dir1=$here/original
+dir2=$here/recovered
+
+mkdir -p $dir1
+
+# Generate files of differing sizes with random data in them
+names=""
+s=1;
+while test $s -le 8192 ; do
+	name=`mktemp -p $dir1`;
+	dd if=/dev/urandom of=$name count=1 bs=$s 2> /dev/null
+	s=$(($s * 2));
+	bn=`basename $name`;
+        names="$names $bn";
+done
+
+(cd $dir1 && $abs_top_builddir/tests/libpspp/zip-test w foo.zip $names)
+
+
+mkdir -p $dir2
+cp $dir1/foo.zip $dir2
+cd $dir2 
+$abs_top_builddir/tests/libpspp/zip-test r foo.zip $names
+
+# Compare the files to their originals
+for f in $names; do
+ diff $dir1/$f $dir2/$f;
+ if test $? -ne 0 ; then exit 1; fi;
+done
+
+exit 0
+])
+
+
+AT_CLEANUP
+

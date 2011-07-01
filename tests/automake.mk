@@ -27,6 +27,7 @@ check_PROGRAMS += \
 	tests/libpspp/stringi-set-test \
 	tests/libpspp/tower-test \
 	tests/libpspp/u8-istream-test \
+	tests/libpspp/zip-test \
 	tests/output/render-test
 
 check-programs: $(check_PROGRAMS)
@@ -213,6 +214,18 @@ tests_language_lexer_segment_test_SOURCES = \
 	tests/language/lexer/segment-test.c
 tests_language_lexer_segment_test_CFLAGS = $(AM_CFLAGS)
 
+check_PROGRAMS += tests/libpspp/zip-test
+tests_libpspp_zip_test_SOURCES = \
+	src/libpspp/str.c \
+	src/libpspp/pool.c \
+	src/libpspp/temp-file.c \
+	src/libpspp/inflate.c \
+	src/libpspp/zip-reader.c \
+	src/libpspp/zip-writer.c \
+	tests/libpspp/zip-test.c
+tests_libpspp_zip_test_CFLAGS = $(AM_CFLAGS)
+
+
 check_PROGRAMS += tests/output/render-test
 tests_output_render_test_SOURCES = tests/output/render-test.c
 tests_output_render_test_LDADD = \
@@ -349,6 +362,7 @@ TESTSUITE_AT = \
 	tests/libpspp/stringi-set.at \
 	tests/libpspp/tower.at \
 	tests/libpspp/u8-istream.at \
+	tests/libpspp/zip.at \
 	tests/math/moments.at \
 	tests/math/randist.at \
 	tests/output/ascii.at \

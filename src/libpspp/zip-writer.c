@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include "libpspp/zip-writer.h"
+#include "libpspp/zip-private.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -120,7 +121,7 @@ zip_writer_add (struct zip_writer *zw, FILE *file, const char *member_name)
 
   /* Local file header. */
   offset = ftello (zw->file);
-  put_u32 (zw, 0x04034b50);     /* local file header signature */
+  put_u32 (zw, MAGIC_LHDR);     /* local file header signature */
   put_u16 (zw, 10);             /* version needed to extract */
   put_u16 (zw, 1 << 3);         /* general purpose bit flag */
   put_u16 (zw, 0);              /* compression method */
@@ -144,7 +145,7 @@ zip_writer_add (struct zip_writer *zw, FILE *file, const char *member_name)
     }
 
   /* Data descriptor. */
-  put_u32 (zw, 0x08074b50);
+  put_u32 (zw, MAGIC_DDHD);
   put_u32 (zw, crc);
   put_u32 (zw, size);
   put_u32 (zw, size);
@@ -179,7 +180,7 @@ zip_writer_close (struct zip_writer *zw)
       struct zip_member *m = &zw->members[i];
 
       /* Central directory file header. */
-      put_u32 (zw, 0x02014b50);       /* central file header signature */
+      put_u32 (zw, MAGIC_SOCD);       /* central file header signature */
       put_u16 (zw, 63);               /* version made by */
       put_u16 (zw, 10);               /* version needed to extract */
       put_u16 (zw, 1 << 3);           /* general purpose bit flag */
@@ -203,7 +204,7 @@ zip_writer_close (struct zip_writer *zw)
   dir_end = ftello (zw->file);
 
   /* End of central directory record. */
-  put_u32 (zw, 0x06054b50);     /* end of central dir signature */
+  put_u32 (zw, MAGIC_EOCD);     /* end of central dir signature */
   put_u16 (zw, 0);              /* number of this disk */
   put_u16 (zw, 0);              /* number of the disk with the
                                    start of the central directory */

@@ -30,6 +30,8 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/freaderror.h \
 	src/libpspp/hash-functions.c \
 	src/libpspp/hash-functions.h \
+	src/libpspp/inflate.c \
+	src/libpspp/inflate.h \
 	src/libpspp/heap.c \
 	src/libpspp/heap.h \
 	src/libpspp/hmap.c \
@@ -87,6 +89,9 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/u8-istream.c \
 	src/libpspp/u8-istream.h \
 	src/libpspp/version.h \
+	src/libpspp/zip-private.h \
+	src/libpspp/zip-reader.c \
+	src/libpspp/zip-reader.h \
 	src/libpspp/zip-writer.c \
 	src/libpspp/zip-writer.h
 
