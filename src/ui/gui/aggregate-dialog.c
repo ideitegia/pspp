@@ -533,7 +533,7 @@ aggregate_dialog (PsppireDataWindow *dw)
 
     column = gtk_tree_view_get_column (PSPPIRE_ACR (fd.summary_acr)->tv, 0);
 
-    l = gtk_tree_view_column_get_cell_renderers (column);
+    l = gtk_cell_layout_get_cells (GTK_CELL_LAYOUT (column));
 
     cell_renderer = l->data;
 
