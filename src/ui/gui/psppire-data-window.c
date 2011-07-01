@@ -1131,6 +1131,9 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
     GtkWidget *menu_files = gtk_recent_chooser_menu_new_for_manager (
       gtk_recent_manager_get_default ());
 
+    g_object_set (menu_data, "show-tips",  TRUE, NULL);
+    g_object_set (menu_files, "show-tips",  TRUE, NULL);
+
     {
       GtkRecentFilter *filter = gtk_recent_filter_new ();
 
