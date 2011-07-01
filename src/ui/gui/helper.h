@@ -76,19 +76,4 @@ GtkListStore * clone_list_store (const GtkListStore *src);
 void psppire_box_pack_start_defaults (GtkBox *box, GtkWidget *widget);
 
 
-
-
-#if ! GTK_CHECK_VERSION (2,20,0)
-static inline gboolean gtk_widget_get_realized (GtkWidget *w)
-{
-  return GTK_WIDGET_REALIZED (w);
-}
-
-static inline gboolean gtk_widget_get_mapped (GtkWidget *w)
-{
-  return GTK_WIDGET_MAPPED (w);
-}
-#endif
-
-
 #endif
