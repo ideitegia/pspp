@@ -1137,10 +1137,8 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
     {
       GtkRecentFilter *filter = gtk_recent_filter_new ();
 
-      gtk_recent_filter_add_pattern (filter, "*.sav");
-      gtk_recent_filter_add_pattern (filter, "*.SAV");
-      gtk_recent_filter_add_pattern (filter, "*.por");
-      gtk_recent_filter_add_pattern (filter, "*.POR");
+      gtk_recent_filter_add_mime_type (filter, "application/x-spss-sav");
+      gtk_recent_filter_add_mime_type (filter, "application/x-spss-por");
 
       gtk_recent_chooser_set_sort_type (GTK_RECENT_CHOOSER (menu_data), GTK_RECENT_SORT_MRU);
 
