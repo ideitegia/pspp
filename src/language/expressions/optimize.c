@@ -26,7 +26,7 @@
 #include "data/calendar.h"
 #include "data/data-in.h"
 #include "data/variable.h"
-#include "language/expressions/evaluate.h"
+#include "evaluate.h"
 #include "language/expressions/helpers.h"
 #include "language/expressions/public.h"
 #include "libpspp/assertion.h"

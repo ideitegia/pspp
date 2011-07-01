@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include "language/expressions/evaluate.h"
+#include "evaluate.h"
 
 #include <ctype.h>
 

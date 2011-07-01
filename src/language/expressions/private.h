@@ -21,8 +21,8 @@
 #include <stddef.h>
 
 #include "data/format.h"
-#include "language/expressions/operations.h"
-#include "language/expressions/public.h"
+#include "operations.h"
+#include "public.h"
 #include "libpspp/str.h"
 
 enum operation_flags
