@@ -151,7 +151,7 @@ enum
 };
 
 
-static void on_activate (PsppireSelector *selector, gpointer data);
+static void on_click (GtkButton *b);
 
 static void update_subjects (PsppireSelector *selector);
 
@@ -218,6 +218,7 @@ static void
 psppire_selector_class_init (PsppireSelectorClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
+  GtkButtonClass *button_class = GTK_BUTTON_CLASS (class);
   GParamSpec *orientation_spec =
     g_param_spec_enum ("orientation",
 		       "Orientation",
@@ -249,6 +250,8 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 			 GTK_TYPE_WIDGET,
 			 G_PARAM_READWRITE);
 
+
+  button_class->clicked = on_click;
 
   object_class->set_property = psppire_selector_set_property;
   object_class->get_property = psppire_selector_get_property;
@@ -323,9 +326,7 @@ on_row_activate (GtkTreeView       *tree_view,
 		 GtkTreeViewColumn *column,
 		 gpointer           data)
 {
-  PsppireSelector *selector  = data;
-
-  gtk_action_activate (selector->action);
+  on_click (GTK_BUTTON (data));
 }
 
 /* Callback for when the source selection changes */
@@ -338,12 +339,12 @@ on_source_select (GtkTreeSelection *treeselection, gpointer data)
 
   if ( selector->allow_selection )
     {
-      gtk_action_set_sensitive (selector->action,
+      gtk_widget_set_sensitive (GTK_WIDGET (selector),
 				selector->allow_selection (selector->source, selector->dest));
     }
   else if ( GTK_IS_ENTRY (selector->dest) )
     {
-      gtk_action_set_sensitive (selector->action,
+      gtk_widget_set_sensitive (GTK_WIDGET (selector),
 				gtk_tree_selection_count_selected_rows
 				(treeselection) <= 1 );
     }
@@ -392,15 +393,10 @@ psppire_selector_init (PsppireSelector *selector)
   selector->arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
   selector->filtered_source = NULL;
 
-  selector->action = gtk_action_new ("select", NULL, NULL, "pspp-stock-select");
-
-  gtk_action_connect_proxy (selector->action, GTK_WIDGET (selector));
 
   gtk_container_add (GTK_CONTAINER (selector), selector->arrow);
 
   gtk_widget_show (selector->arrow);
-
-  g_signal_connect_swapped (selector->action, "activate", G_CALLBACK (on_activate), selector);
 
   selector->selecting = FALSE;
 
@@ -627,8 +623,10 @@ select_selection (PsppireSelector *selector)
    or other event which causes the selector's action to occur.
  */
 static void
-on_activate (PsppireSelector *selector, gpointer data)
+on_click (GtkButton *b)
 {
+  PsppireSelector *selector = PSPPIRE_SELECTOR (b);
+
   switch (selector->direction)
     {
     case PSPPIRE_SELECTOR_SOURCE_TO_DEST:
@@ -641,6 +639,10 @@ on_activate (PsppireSelector *selector, gpointer data)
       g_assert_not_reached ();
       break;
     }
+
+  if (GTK_BUTTON_CLASS (parent_class)->clicked)
+    GTK_BUTTON_CLASS (parent_class)->clicked (b);
+
 }
 
 static gboolean

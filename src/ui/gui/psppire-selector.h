@@ -71,7 +71,6 @@ struct _PsppireSelector
 
   /* <private> */
   GtkWidget *arrow;
-  GtkAction *action;
 
   gboolean dispose_has_run;
 
