@@ -387,7 +387,8 @@ load_file (PsppireWindow *de, const gchar *file_name)
   mime_type = (name_has_por_suffix (file_name)
                ? "application/x-spss-por"
                : "application/x-spss-sav");
-  add_most_recent (ds_cstr (&filename), mime_type);
+
+  add_most_recent (file_name, mime_type);
 
   return ok;
 }
