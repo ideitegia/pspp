@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010, 2011  Free Software Foundation
+   Copyright (C) 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,14 +18,15 @@
 #include <config.h>
 #include <gtk/gtk.h>
 
+#include "t-test-options.h"
+#include "t-test-paired-samples.h"
+
 #include "psppire-data-window.h"
 #include "psppire-selector.h"
 #include "psppire-var-view.h"
 
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
-#include "t-test-paired-samples.h"
-#include "t-test-options.h"
 
 #include "dialog-common.h"
 #include "psppire-dialog.h"
@@ -36,22 +37,27 @@
 
 #include "psppire-var-ptr.h"
 
+#include "paired-dialog.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
 
-struct tt_paired_samples_dialog
+static void
+refresh (void *aux)
 {
-  PsppireDict *dict;
-  GtkWidget *pairs_treeview;
-  GtkTreeModel *list_store;
-  struct tt_options_dialog *opt;
-};
+}
+
+
+static gboolean
+valid (void *aux)
+{
+  return TRUE;
+}
 
 static gchar *
-generate_syntax (const struct tt_paired_samples_dialog *d)
+generate_syntax (const struct paired_samples_dialog *d, const struct tt_options_dialog *opt)
 {
   gchar *text = NULL;
   GString *str =   g_string_new ("T-TEST \n\tPAIRS = ");
@@ -65,7 +71,7 @@ generate_syntax (const struct tt_paired_samples_dialog *d)
   g_string_append (str, " (PAIRED)");
   g_string_append (str, "\n");
 
-  tt_options_dialog_append_syntax (d->opt, str);
+  tt_options_dialog_append_syntax (opt, str);
 
   g_string_append (str, ".\n");
 
@@ -75,155 +81,43 @@ generate_syntax (const struct tt_paired_samples_dialog *d)
   return text;
 }
 
-static void
-refresh (struct tt_paired_samples_dialog *tt_d)
-{
-  gtk_list_store_clear (GTK_LIST_STORE (tt_d->list_store));
-}
-
-static gboolean
-dialog_state_valid (gpointer data)
-{
-  struct variable *v = NULL;
-  struct tt_paired_samples_dialog *tt_d = data;
-  GtkTreeIter dest_iter;
-
-  gint n_rows = gtk_tree_model_iter_n_children  (tt_d->list_store, NULL);
-
-  if ( n_rows == 0 )
-    return FALSE;
-
-  /* Get the last row */
-  gtk_tree_model_iter_nth_child (tt_d->list_store, &dest_iter,
-				 NULL, n_rows - 1);
-
-  /* Get the last (2nd) column */
-  gtk_tree_model_get (tt_d->list_store, &dest_iter, 1, &v, -1);
-
-
-  return (v != NULL);
-}
-
-
-
-static void
-select_as_pair_member (GtkTreeIter source_iter,
-		       GtkWidget *dest,
-		       GtkTreeModel *source_model,
-		       gpointer data)
-{
-  struct variable *v;
-  struct variable *v1;
-  gint n_rows;
-  GtkTreeIter dest_iter;
-  struct tt_paired_samples_dialog *tt_d = data;
-
-
-  gtk_tree_model_get (source_model, &source_iter,
-		      DICT_TVM_COL_VAR, &v, -1);
-
-  n_rows = gtk_tree_model_iter_n_children  (tt_d->list_store, NULL);
-
-  if ( n_rows > 0 )
-    {
-
-      gtk_tree_model_iter_nth_child (tt_d->list_store,
-				     &dest_iter, NULL, n_rows - 1);
-
-      gtk_tree_model_get (tt_d->list_store, &dest_iter, 1, &v1, -1);
-    }
-  else
-    v1 = NULL;
-
-  if ( n_rows == 0 || v1 != NULL)
-    {
-      gtk_list_store_append (GTK_LIST_STORE (tt_d->list_store), &dest_iter);
-
-      gtk_list_store_set (GTK_LIST_STORE (tt_d->list_store), &dest_iter,
-			  0, v,
-			  1, NULL,
-			  -1);
-    }
-  else
-    {
-      gtk_list_store_set (GTK_LIST_STORE (tt_d->list_store), &dest_iter,
-			  1, v,
-			  -1);
-
-    }
-}
-
 /* Pops up the dialog box */
 void
 t_test_paired_samples_dialog (PsppireDataWindow *de)
 {
-  struct tt_paired_samples_dialog tt_d;
   gint response;
+  struct paired_samples_dialog *tt_d = two_sample_dialog_create (de);
+  struct tt_options_dialog *opts = tt_options_dialog_create (GTK_WINDOW (de));
 
-  PsppireVarStore *vs = NULL;
+  GtkWidget *bb = gtk_hbutton_box_new ();
+  GtkWidget *opt = gtk_button_new_with_mnemonic (_("_Options"));
+  gtk_box_pack_start (GTK_BOX (bb), opt, TRUE, TRUE, 5);
 
-  GtkBuilder *xml = builder_new ("paired-samples.ui");
-
-  GtkWidget *dict_view =
-    get_widget_assert (xml, "paired-samples-t-test-treeview1");
-
-  GtkWidget *options_button = get_widget_assert (xml, "paired-samples-t-test-options-button");
-
-  GtkWidget *selector = get_widget_assert (xml, "psppire-selector3");
-
-  GtkWidget *dialog = get_widget_assert (xml, "t-test-paired-samples-dialog");
-
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-  g_object_get (vs, "dictionary", &tt_d.dict, NULL);
-  tt_d.pairs_treeview =
-   get_widget_assert (xml, "paired-samples-t-test-treeview2");
-  tt_d.opt = tt_options_dialog_create (GTK_WINDOW (de));
-
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
-
-
-  g_object_set (dict_view, "model", tt_d.dict,
-		"predicate",
-		var_is_numeric, NULL);
-
+  gtk_widget_show_all (bb);
+  two_sample_dialog_add_widget (tt_d, bb);
   
-  tt_d.list_store = gtk_tree_view_get_model (GTK_TREE_VIEW (tt_d.pairs_treeview));
+  g_signal_connect_swapped (opt, "clicked", G_CALLBACK (tt_options_dialog_run), opts);
 
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
-				    select_as_pair_member,
-				    &tt_d);
+  tt_d->refresh = refresh;
+  tt_d->valid = valid;
+  tt_d->aux = opts;
 
-  g_signal_connect_swapped (dialog, "refresh",
-			    G_CALLBACK (refresh),  &tt_d);
+  gtk_window_set_title (GTK_WINDOW (tt_d->dialog), _("Paired Samples T Test"));
 
-
-  g_signal_connect_swapped (options_button, "clicked",
-			    G_CALLBACK (tt_options_dialog_run), tt_d.opt);
-
-  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
-				      dialog_state_valid, &tt_d);
-
-  gtk_window_set_title (GTK_WINDOW (dialog), _("Paired Samples T Test"));
-
-  response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
+  response = psppire_dialog_run (PSPPIRE_DIALOG (tt_d->dialog));
 
   switch (response)
     {
     case GTK_RESPONSE_OK:
-      g_free (execute_syntax_string (de, generate_syntax (&tt_d)));
+      g_free (execute_syntax_string (de, generate_syntax (tt_d, opts)));
       break;
     case PSPPIRE_RESPONSE_PASTE:
-      g_free (paste_syntax_to_window (generate_syntax (&tt_d)));
+      g_free (paste_syntax_to_window (generate_syntax (tt_d, opts)));
       break;
     default:
       break;
     }
 
-
-  g_object_unref (xml);
-
-  tt_options_dialog_destroy (tt_d.opt);
+  two_sample_dialog_destroy (tt_d);
+  tt_options_dialog_destroy (opts);
 }
-
-

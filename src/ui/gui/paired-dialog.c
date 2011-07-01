@@ -152,8 +152,6 @@ two_sample_dialog_create (PsppireDataWindow *de)
   GtkWidget *dict_view =
     get_widget_assert (tt_d->xml, "paired-samples-t-test-treeview1");
 
-  GtkWidget *options_button = get_widget_assert (tt_d->xml, "paired-samples-t-test-options-button");
-
   GtkWidget *selector = get_widget_assert (tt_d->xml, "psppire-selector3");
 
   tt_d->dialog = get_widget_assert (tt_d->xml, "t-test-paired-samples-dialog");

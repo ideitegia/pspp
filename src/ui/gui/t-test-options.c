@@ -119,7 +119,7 @@ tt_options_dialog_run (struct tt_options_dialog *tto)
 }
 
 void
-tt_options_dialog_append_syntax (struct tt_options_dialog *tto, GString *str)
+tt_options_dialog_append_syntax (const struct tt_options_dialog *tto, GString *str)
 {
   g_string_append (str, "\t/MISSING=");
 

@@ -29,7 +29,7 @@ struct tt_options_dialog * tt_options_dialog_create (GtkWindow *);
 void tt_options_dialog_destroy (struct tt_options_dialog *);
 
 
-void tt_options_dialog_append_syntax (struct tt_options_dialog *, GString *);
+void tt_options_dialog_append_syntax (const struct tt_options_dialog *, GString *);
 
 
 #endif
