@@ -19,6 +19,8 @@
 #include <config.h>
 
 #include "libpspp/temp-file.h"
+#include "libpspp/hmapx.h"
+#include "libpspp/hash-functions.h"
 
 #include <stdlib.h>
 
@@ -36,29 +38,59 @@
 
      - It honors the $TMPDIR environment variable.
 
-     - The file will not be automatically deleted upon close.  You have to call
-       close_temp_file() if you want it to be deleted before the process exits.
 */
+
+
+static struct temp_dir *temp_dir;
+struct hmapx map;
+
+static void
+setup (void)
+{
+  hmapx_init (&map);
+  temp_dir = create_temp_dir ("pspp", NULL, true);
+}
+
+static void
+cleanup (void)
+{
+  struct hmapx_node *node;
+  const char *fn;
+
+  cleanup_temp_dir (temp_dir);
+
+  HMAPX_FOR_EACH (fn, node, &map)
+    {
+      free (fn);
+    }
+
+  hmapx_destroy (&map);
+}
+
 FILE *
 create_temp_file (void)
 {
   static int idx = 0;
-  static struct temp_dir *temp_dir;
   char *file_name;
   FILE *stream;
 
   if (temp_dir == NULL)
     {
-      temp_dir = create_temp_dir ("pspp", NULL, true);
+      setup ();
       if (temp_dir == NULL)
         return NULL;
+      atexit (cleanup);
     }
 
   file_name = xasprintf ("%s/%d", temp_dir->dir_name, idx++);
+  register_temp_file (temp_dir, file_name);
   stream = fopen_temp (file_name, "wb+");
-  if (stream != NULL)
+  if (stream == NULL)
+    unregister_temp_file (temp_dir, file_name);
+  else
     setvbuf (stream, NULL, _IOFBF, 65536);
-  free (file_name);
+
+  hmapx_insert (&map, file_name, hash_pointer (stream, 0));
 
   return stream;
 }
@@ -68,5 +100,12 @@ void
 close_temp_file (FILE *file)
 {
   if (file != NULL)
-    fclose_temp (file);
+    {
+      struct hmapx_node *node = hmapx_first_with_hash (&map, hash_pointer (file, 0));
+      char *fn = node->data;
+      fclose_temp (file);
+      cleanup_temp_file (temp_dir, fn); 
+      hmapx_delete (&map, node);
+      free (fn);
+    }
 }

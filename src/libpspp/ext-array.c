@@ -69,7 +69,7 @@ ext_array_destroy (struct ext_array *ea)
     {
       ok = !ext_array_error (ea);
       if (ea->file != NULL)
-        fclose (ea->file);
+        close_temp_file (ea->file);
       free (ea);
     }
   return ok;
