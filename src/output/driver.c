@@ -235,7 +235,7 @@ extern const struct output_driver_factory txt_driver_factory;
 extern const struct output_driver_factory list_driver_factory;
 extern const struct output_driver_factory html_driver_factory;
 extern const struct output_driver_factory csv_driver_factory;
-#ifdef ODT_SUPPORT
+#ifdef ODF_WRITE_SUPPORT
 extern const struct output_driver_factory odt_driver_factory;
 #endif
 #ifdef HAVE_CAIRO
@@ -250,7 +250,7 @@ static const struct output_driver_factory *factories[] =
     &list_driver_factory,
     &html_driver_factory,
     &csv_driver_factory,
-#ifdef ODT_SUPPORT
+#ifdef ODF_WRITE_SUPPORT
     &odt_driver_factory,
 #endif
 #ifdef HAVE_CAIRO
