@@ -48,8 +48,7 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
 
   gtk_window_set_icon_name (GTK_WINDOW (about), "psppicon");
 
-  gtk_about_dialog_set_website (GTK_ABOUT_DIALOG (about),
-				"http://www.gnu.org/software/pspp");
+  gtk_about_dialog_set_website (GTK_ABOUT_DIALOG (about), PACKAGE_URL);
 
   gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about),
 				bare_version);
@@ -98,7 +97,7 @@ reference_manual (GtkMenuItem *menu, gpointer data)
       msg (ME, _("Cannot open reference manual: %s.  The PSPP user manual is "
                  "also available at %s"),
                   err->message,
-                  "http://www.gnu.org/software/pspp/documentation.html");
+                  PACKAGE_URL "documentation.html");
     }
 
   g_free (cmd);
