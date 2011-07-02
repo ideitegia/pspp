@@ -72,3 +72,46 @@ Valid,,500000
 ])
 AT_CLEANUP
 
+
+AT_SETUP([QUICK CLUSTER with weights])
+AT_DATA([qc-weighted.sps], [dnl
+input program.
+loop #i = 1 to 400.
+ compute x = mod (#i, 4).
+ compute w = 5.
+ end case.
+end loop.
+loop #i = 1 to 400.
+ compute x = mod (#i, 4).
+ compute w = 3.
+ end case.
+end loop.
+end file.
+end input program.
+
+weight by w.
+
+QUICK CLUSTER x /CRITERIA = CLUSTER(4) MXITER (100).
+])
+
+AT_CHECK([pspp -o pspp-w.csv qc-weighted.sps])
+
+
+AT_DATA([qc-unweighted.sps], [dnl
+input program.
+loop #i = 1 to 3200.
+ compute x = mod (#i, 4).
+ end case.
+end loop.
+end file.
+end input program.
+
+QUICK CLUSTER x /CRITERIA = CLUSTER(4) MXITER (100).
+])
+
+AT_CHECK([pspp -o pspp-unw.csv qc-unweighted.sps])
+
+AT_CHECK([diff pspp-w.csv pspp-unw.csv], [0])
+
+AT_CLEANUP
+

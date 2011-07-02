@@ -67,13 +67,10 @@ GNULIB_MODULES = \
 	stdbool \
 	stdint \
 	stpcpy \
-	strcase \
 	strerror \
 	strftime \
 	strtod \
 	strtok_r \
-	strtol \
-	strtoul \
 	sys_stat \
 	tempname \
 	trunc \
