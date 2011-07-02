@@ -46,6 +46,13 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+enum missing_type
+  {
+    MISS_LISTWISE,
+    MISS_PAIRWISE,
+  };
+
+
 struct qc
 {
   const struct variable **vars;
@@ -55,6 +62,9 @@ struct qc
   int maxiter;			/* Maximum iterations (Given by the user) */
 
   const struct variable *wv;	/* Weighting variable. */
+
+  enum missing_type missing_type;
+  enum mv_class exclude;
 };
 
 /* Holds all of the information for the functions.  int n, holds the number of
@@ -279,6 +289,7 @@ kmeans_calculate_indexes_and_check_convergence (struct Kmeans *kmeans, const str
       struct ccase *index_case_new = case_create (kmeans->proto);
       int bestindex = kmeans_get_nearest_group (kmeans, c, qc);
       double weight = qc->wv ? case_data (c, qc->wv)->f : 1.0;
+      assert (bestindex < kmeans->num_elements_groups->size);
       kmeans->num_elements_groups->data[bestindex] += weight;
       if (kmeans->index_rdr)
 	{
@@ -487,6 +498,7 @@ cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
   const struct dictionary *dict = dataset_dict (ds);
   qc.ngroups = 2;
   qc.maxiter = 2;
+  qc.missing_type = MISS_LISTWISE;
 
   if (!parse_variables_const (lexer, dict, &qc.vars, &qc.n_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
@@ -536,6 +548,13 @@ cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
 
     while (casegrouper_get_next_group (grouper, &group))
       {
+	if ( qc.missing_type == MISS_LISTWISE )
+	  {
+	    group  = casereader_create_filter_missing (group, qc.vars, qc.n_vars,
+						     qc.exclude,
+						     NULL,  NULL);
+	  }
+
 	kmeans = kmeans_create (&qc);
 	kmeans_cluster (kmeans, group, &qc);
 	quick_cluster_show_results (kmeans, &qc);

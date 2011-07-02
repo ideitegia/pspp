@@ -115,3 +115,41 @@ AT_CHECK([diff pspp-w.csv pspp-unw.csv], [0])
 
 AT_CLEANUP
 
+AT_SETUP([QUICK CLUSTER with listwise missing])
+AT_DATA([quick-miss.sps], [dnl
+data list notable list /x *.
+begin data.
+1
+1
+2
+3
+4
+.
+2
+end data.
+
+QUICK CLUSTER x /CRITERIA = CLUSTER(4) MXITER (100).
+])
+
+AT_CHECK([pspp -o pspp-m.csv quick-miss.sps])
+
+AT_DATA([quick-nmiss.sps], [dnl
+data list notable list /x *.
+begin data.
+1
+1
+2
+3
+4
+2
+end data.
+
+QUICK CLUSTER x /CRITERIA = CLUSTER(4) MXITER (100).
+])
+
+AT_CHECK([pspp -o pspp-nm.csv quick-nmiss.sps])
+
+AT_CHECK([diff pspp-m.csv pspp-nm.csv], [0])
+
+
+AT_CLEANUP
