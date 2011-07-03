@@ -307,6 +307,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="transform_autorecode">
+            <property name="name">transform_autorecode</property>
+            <property name="label" translatable="yes">Auto_matic Recode...</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="transform_recode-same">
             <property name="name">transform_recode-same</property>
             <property name="label" translatable="yes">Recode into _Same Variables...</property>
@@ -551,6 +557,7 @@
           <menuitem action="transform_compute"/>
           <menuitem action="transform_count"/>
           <menuitem action="transform_rank"/>
+          <menuitem action="transform_autorecode"/>
           <separator/>
           <menuitem action="transform_recode-same"/>
           <menuitem action="transform_recode-different"/>

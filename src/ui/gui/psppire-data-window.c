@@ -25,6 +25,7 @@
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "ui/gui/aggregate-dialog.h"
+#include "ui/gui/autorecode-dialog.h"
 #include "ui/gui/binomial-dialog.h"
 #include "ui/gui/chi-square-dialog.h"
 #include "ui/gui/comments-dialog.h"
@@ -1067,6 +1068,8 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "data_aggregate", G_CALLBACK (aggregate_dialog));
 
   connect_action (de, "transform_compute", G_CALLBACK (compute_dialog));
+
+  connect_action (de, "transform_autorecode", G_CALLBACK (autorecode_dialog));
 
   connect_action (de, "edit_find", G_CALLBACK (find_dialog));
 
