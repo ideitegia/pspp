@@ -693,14 +693,12 @@ var_get_display_width (const struct variable *v)
 void
 var_set_display_width (struct variable *v, int new_width)
 {
-  int old_width = v->display_width;
-
-  v->display_width = new_width;
-
-  if ( old_width != new_width)
-    dict_var_display_width_changed (v);
-
-  dict_var_changed (v);
+  if (v->display_width != new_width)
+    {
+      v->display_width = new_width;
+      dict_var_display_width_changed (v);
+      dict_var_changed (v);
+    }
 }
 
 /* Returns the default display width for a variable of the given
