@@ -516,18 +516,15 @@ fmt_fix (struct fmt_spec *fmt, bool for_input)
   step = fmt_step_width (fmt->type);
   fmt->w = ROUND_DOWN (fmt->w, step);
 
-  /* First, if FMT has more decimal places than allowed, attempt
-     to increase FMT's width until that number of decimal places
-     can be achieved. */
-  if (fmt->d > fmt_max_decimals (fmt->type, fmt->w, for_input))
+  /* If FMT has more decimal places than allowed, attempt to increase FMT's
+     width until that number of decimal places can be achieved. */
+  if (fmt->d > fmt_max_decimals (fmt->type, fmt->w, for_input)
+      && fmt_takes_decimals (fmt->type))
     {
-      int w;
-      for (w = fmt->w; w <= max_w; w++)
-        if (fmt_max_decimals (fmt->type, w, for_input) >= fmt->d)
-          {
-            fmt->w = w;
-            break;
-          }
+      int max_w = fmt_max_width (fmt->type, for_input);
+      for (; fmt->w < max_w; fmt->w++)
+        if (fmt->d <= fmt_max_decimals (fmt->type, fmt->w, for_input))
+          break;
     }
 
   /* Clamp decimals to those allowed by format and width. */
