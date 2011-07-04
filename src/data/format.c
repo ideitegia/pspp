@@ -49,6 +49,8 @@ bool is_fmt_type (enum fmt_type);
 static bool valid_width (enum fmt_type, int width, bool for_input);
 
 static int max_digits_for_bytes (int bytes);
+static void fmt_clamp_width (struct fmt_spec *, bool for_input);
+static void fmt_clamp_decimals (struct fmt_spec *, bool for_input);
 
 static void fmt_affix_set (struct fmt_affix *, const char *);
 static void fmt_affix_free (struct fmt_affix *);
@@ -500,21 +502,8 @@ fmt_resize (struct fmt_spec *fmt, int width)
 void
 fmt_fix (struct fmt_spec *fmt, bool for_input)
 {
-  unsigned int step;
-  int min_w, max_w;
-  int max_d;
-
   /* Clamp width to those allowed by format. */
-  min_w = fmt_min_width (fmt->type, for_input);
-  max_w = fmt_max_width (fmt->type, for_input);
-  if (fmt->w < min_w)
-    fmt->w = min_w;
-  else if (fmt->w > max_w)
-    fmt->w = max_w;
-
-  /* Round width to step. */
-  step = fmt_step_width (fmt->type);
-  fmt->w = ROUND_DOWN (fmt->w, step);
+  fmt_clamp_width (fmt, for_input);
 
   /* If FMT has more decimal places than allowed, attempt to increase FMT's
      width until that number of decimal places can be achieved. */
@@ -528,11 +517,7 @@ fmt_fix (struct fmt_spec *fmt, bool for_input)
     }
 
   /* Clamp decimals to those allowed by format and width. */
-  max_d = fmt_max_decimals (fmt->type, fmt->w, for_input);
-  if (fmt->d < 0)
-    fmt->d = 0;
-  else if (fmt->d > max_d)
-    fmt->d = max_d;
+  fmt_clamp_decimals (fmt, for_input);
 }
 
 /* Adjusts FMT's width and decimal places to be valid for an
@@ -549,6 +534,26 @@ void
 fmt_fix_output (struct fmt_spec *fmt)
 {
   fmt_fix (fmt, false);
+}
+
+/* Sets FMT's width to WIDTH (or the nearest width allowed by FMT's type) and
+   reduces its decimal places as necessary (if necessary) for that width.  */
+void
+fmt_change_width (struct fmt_spec *fmt, int width, bool for_input)
+{
+  fmt->w = width;
+  fmt_clamp_width (fmt, for_input);
+  fmt_clamp_decimals (fmt, for_input);
+}
+
+/* Sets FMT's decimal places to DECIMALS (or the nearest number of decimal
+   places allowed by FMT's type) and increases its width as necessary (if
+   necessary) for that number of decimal places.  */
+void
+fmt_change_decimals (struct fmt_spec *fmt, int decimals, bool for_input)
+{
+  fmt->d = decimals;
+  fmt_fix (fmt, for_input);
 }
 
 /* Describes a display format. */
@@ -992,6 +997,38 @@ max_digits_for_bytes (int bytes)
   int map[8] = {3, 5, 8, 10, 13, 15, 17, 20};
   assert (bytes > 0 && bytes <= sizeof map / sizeof *map);
   return map[bytes - 1];
+}
+
+/* Clamp FMT's width to the range and values allowed by FMT's type. */
+static void
+fmt_clamp_width (struct fmt_spec *fmt, bool for_input)
+{
+  unsigned int step;
+  int min_w, max_w;
+
+  min_w = fmt_min_width (fmt->type, for_input);
+  max_w = fmt_max_width (fmt->type, for_input);
+  if (fmt->w < min_w)
+    fmt->w = min_w;
+  else if (fmt->w > max_w)
+    fmt->w = max_w;
+
+  /* Round width to step. */
+  step = fmt_step_width (fmt->type);
+  fmt->w = ROUND_DOWN (fmt->w, step);
+}
+
+/* Clamp FMT's decimal places to the range allowed by FMT's type and width. */
+static void
+fmt_clamp_decimals (struct fmt_spec *fmt, bool for_input)
+{
+  int max_d;
+
+  max_d = fmt_max_decimals (fmt->type, fmt->w, for_input);
+  if (fmt->d < 0)
+    fmt->d = 0;
+  else if (fmt->d > max_d)
+    fmt->d = max_d;
 }
 
 /* Sets AFFIX's string value to S, a UTF-8 encoded string. */

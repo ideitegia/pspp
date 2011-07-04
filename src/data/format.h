@@ -95,6 +95,9 @@ void fmt_fix (struct fmt_spec *, bool for_input);
 void fmt_fix_input (struct fmt_spec *);
 void fmt_fix_output (struct fmt_spec *);
 
+void fmt_change_width (struct fmt_spec *, int width, bool for_input);
+void fmt_change_decimals (struct fmt_spec *, int decimals, bool for_input);
+
 /* Format types. */
 bool is_fmt_type (enum fmt_type);
 
