@@ -654,6 +654,20 @@ static bool
 parse_design_interaction (struct lexer *lexer, struct glm_spec *glm)
 {
   const struct variable *v = NULL;
+  switch  (lex_next_token (lexer, 1))
+    {
+    case T_ENDCMD:
+    case T_SLASH:
+    case T_COMMA:
+    case T_ID:
+    case T_BY:
+    case T_ASTERISK:
+      break;
+    default:
+      return false;
+      break;
+    }
+
   if (! lex_match_variable (lexer, glm, &v))
     return false;
 
@@ -670,19 +684,35 @@ parse_design_interaction (struct lexer *lexer, struct glm_spec *glm)
   return true;
 }
 
-/* A design term is a varible OR an interaction */
+static bool
+parse_nested_variable (struct lexer *lexer, struct glm_spec *glm)
+{
+  const struct variable *v = NULL;
+  if ( ! lex_match_variable (lexer, glm, &v))
+    return false;
+
+  if (lex_match (lexer, T_LPAREN))
+    {
+      if ( ! parse_nested_variable (lexer, glm))
+	return false;
+
+      if ( ! lex_force_match (lexer, T_RPAREN))
+	return false;
+    }
+
+  lex_error (lexer, "Nested variables are not yet implemented"); return false;  
+  return true;
+}
+
+/* A design term is an interaction OR a nested variable */
 static bool
 parse_design_term (struct lexer *lexer, struct glm_spec *glm)
 {
-  const struct variable *v = NULL;
   if (parse_design_interaction (lexer, glm))
     return true;
 
-  /* FIXME: This should accept nexted variables */
-  if ( lex_match_variable (lexer, glm, &v))
-    {
-      return true;
-    }
+  if ( parse_nested_variable (lexer, glm))
+    return true;
 
   return false;
 }
@@ -696,7 +726,6 @@ parse_design_term (struct lexer *lexer, struct glm_spec *glm)
 static bool
 parse_design_spec (struct lexer *lexer, struct glm_spec *glm)
 {
-  /* Kludge: Return success if end of design spec */
   if  (lex_token (lexer) == T_ENDCMD || lex_token (lexer) == T_SLASH)
     return true;
 
