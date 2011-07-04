@@ -500,6 +500,7 @@ fmt_resize (struct fmt_spec *fmt, int width)
 void
 fmt_fix (struct fmt_spec *fmt, bool for_input)
 {
+  unsigned int step;
   int min_w, max_w;
   int max_d;
 
@@ -510,6 +511,10 @@ fmt_fix (struct fmt_spec *fmt, bool for_input)
     fmt->w = min_w;
   else if (fmt->w > max_w)
     fmt->w = max_w;
+
+  /* Round width to step. */
+  step = fmt_step_width (fmt->type);
+  fmt->w = ROUND_DOWN (fmt->w, step);
 
   /* First, if FMT has more decimal places than allowed, attempt
      to increase FMT's width until that number of decimal places
