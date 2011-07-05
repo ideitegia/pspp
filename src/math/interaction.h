@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,28 +14,37 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef INTERACTION_H
-#define INTERACTION_H
 
-#include "data/case.h"
+#ifndef _INTERACTION_H__
+#define _INTERACTION_H__ 1
 
-struct interaction_variable;
-struct interaction_value;
+#include <stdbool.h>
+#include "data/missing-values.h"
 
-struct interaction_variable * interaction_variable_create (const struct variable **, int);
-void interaction_variable_destroy (struct interaction_variable *);
-struct interaction_value * interaction_value_create (const struct interaction_variable *, const union value **);
-void interaction_value_destroy (struct interaction_value *);
-size_t interaction_variable_get_n_vars (const struct interaction_variable *);
-double interaction_value_get_nonzero_entry (const struct interaction_value *);
-const union value *interaction_value_get (const struct interaction_value *);
-const struct variable * interaction_get_variable (const struct interaction_variable *);
-size_t interaction_get_n_numeric (const struct interaction_variable *);
-size_t interaction_get_n_alpha (const struct interaction_variable *);
-size_t interaction_get_n_vars (const struct interaction_variable *);
-const struct variable * interaction_get_member (const struct interaction_variable *, size_t);
-bool is_interaction (const struct variable *, const struct interaction_variable **, size_t);
-struct interaction_value *
-interaction_case_data (const struct ccase *, const struct interaction_variable *);
-double interaction_value_get_nonzero_entry (const struct interaction_value *);
+struct interaction;
+struct variable;
+struct string;
+
+#include <stddef.h>
+struct interaction
+{
+  size_t n_vars;
+  const struct variable **vars;
+};
+
+
+
+struct interaction * interaction_create (const struct variable *);
+void interaction_destroy (struct interaction *);
+void interaction_add_variable (struct interaction *, const struct variable *);
+void interaction_dump (const struct interaction *);
+void interaction_to_string (const struct interaction *iact, struct string *str);
+
+
+union value;
+
+unsigned int interaction_value_hash (const struct interaction *, const union value *);
+bool interaction_value_equal (const struct interaction *, const union value *, const union value *);
+bool interaction_value_is_missing (const struct interaction *, const union value *, enum mv_class);
+
 #endif

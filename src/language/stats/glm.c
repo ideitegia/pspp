@@ -39,6 +39,7 @@
 #include "linreg/sweep.h"
 #include "math/categoricals.h"
 #include "math/covariance.h"
+#include "math/interaction.h"
 #include "math/moments.h"
 #include "output/tab.h"
 
@@ -60,6 +61,9 @@ struct glm_spec
   */
   size_t n_design_vars;
   const struct variable **design_vars;
+
+  size_t n_interactions;
+  const struct interaction **interactions;
 
   enum mv_class exclude;
 
@@ -107,6 +111,8 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   glm.n_dep_vars = 0;
   glm.n_factor_vars = 0;
   glm.n_design_vars = 0;
+  glm.n_interactions = 0;
+  glm.interactions = NULL;
   glm.dep_vars = NULL;
   glm.factor_vars = NULL;
   glm.design_vars = NULL;
@@ -252,7 +258,7 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 	  if (! parse_design_spec (lexer, &glm))
 	    goto error;
 	  
-	  if ( glm.n_design_vars == 0)
+	  if ( glm.n_interactions == 0)
 	    {
 	      msg (ME, _("One or more design  variables must be given"));
 	      goto error;
@@ -287,7 +293,7 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 
   const_var_set_destroy (factors);
   free (glm.factor_vars);
-  free (glm.design_vars);
+  free (glm.interactions);
   free (glm.dep_vars);
 
 
@@ -297,7 +303,7 @@ error:
 
   const_var_set_destroy (factors);
   free (glm.factor_vars);
-  free (glm.design_vars);
+  free (glm.interactions);
   free (glm.dep_vars);
 
   return CMD_FAILURE;
@@ -455,8 +461,8 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
     reg_sweep (cm, 0);
 
     /*
-       Store the overall SSE.
-     */
+      Store the overall SSE.
+    */
     ws.ssq = gsl_vector_alloc (cm->size1);
     gsl_vector_set (ws.ssq, 0, gsl_matrix_get (cm, 0, 0));
     get_ssq (cov, ws.ssq, cmd);
@@ -493,7 +499,7 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   struct tab_table *t;
 
   const int nc = 6;
-  int nr = heading_rows + 4 + cmd->n_design_vars;
+  int nr = heading_rows + 4 + cmd->n_interactions;
   if (cmd->intercept)
     nr++;
 
@@ -522,7 +528,7 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   if (cmd->intercept)
     df_corr += 1.0;
 
-  for (f = 0; f < cmd->n_design_vars; ++f)
+  for (f = 0; f < cmd->n_interactions; ++f)
     df_corr += categoricals_n_count (ws->cats, f) - 1.0;
 
   mse = gsl_vector_get (ws->ssq, 0) / (n_total - df_corr);
@@ -547,13 +553,15 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
       r++;
     }
 
-  for (f = 0; f < cmd->n_design_vars; ++f)
+  for (f = 0; f < cmd->n_interactions; ++f)
     {
+      struct string str = DS_EMPTY_INITIALIZER;
       const double df = categoricals_n_count (ws->cats, f) - 1.0;
       const double ssq = gsl_vector_get (ws->ssq, f + 1);
       const double F = ssq / df / mse;
-      tab_text (t, 0, r, TAB_LEFT | TAT_TITLE,
-		var_to_string (cmd->design_vars[f]));
+      interaction_to_string (cmd->interactions[f], &str);
+      tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, ds_cstr (&str));
+      ds_destroy (&str);
 
       tab_double (t, 1, r, 0, ssq, NULL);
       tab_double (t, 2, r, 0, df, wfmt);
@@ -562,8 +570,6 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
 
       tab_double (t, 5, r, 0, gsl_cdf_fdist_Q (F, df, n_total - df_corr),
 		  NULL);
-
-
       r++;
     }
 
@@ -651,9 +657,11 @@ lex_match_variable (struct lexer *lexer, const struct glm_spec *glm, const struc
 
 /* An interaction is a variable followed by {*, BY} followed by an interaction */
 static bool
-parse_design_interaction (struct lexer *lexer, struct glm_spec *glm)
+parse_design_interaction (struct lexer *lexer, struct glm_spec *glm, struct interaction **iact)
 {
   const struct variable *v = NULL;
+  assert (iact);
+
   switch  (lex_next_token (lexer, 1))
     {
     case T_ENDCMD:
@@ -669,12 +677,23 @@ parse_design_interaction (struct lexer *lexer, struct glm_spec *glm)
     }
 
   if (! lex_match_variable (lexer, glm, &v))
-    return false;
+    {
+      interaction_destroy (*iact);
+      *iact = NULL;
+      return false;
+    }
+  
+  assert (v);
+
+  if ( *iact == NULL)
+    *iact = interaction_create (v);
+  else
+    interaction_add_variable (*iact, v);
 
   if ( lex_match (lexer, T_ASTERISK) || lex_match (lexer, T_BY))
     {
       lex_error (lexer, "Interactions are not yet implemented"); return false;
-      return parse_design_interaction (lexer, glm);
+      return parse_design_interaction (lexer, glm, iact);
     }
 
   glm->n_design_vars++;
@@ -708,8 +727,14 @@ parse_nested_variable (struct lexer *lexer, struct glm_spec *glm)
 static bool
 parse_design_term (struct lexer *lexer, struct glm_spec *glm)
 {
-  if (parse_design_interaction (lexer, glm))
-    return true;
+  struct interaction *iact = NULL;
+  if (parse_design_interaction (lexer, glm, &iact))
+    {
+      /* Interaction parsing successful.  Add to list of interactions */
+      glm->interactions = xrealloc (glm->interactions, sizeof *glm->interactions * ++glm->n_interactions);
+      glm->interactions[glm->n_interactions - 1] = iact;
+      return true;
+    }
 
   if ( parse_nested_variable (lexer, glm))
     return true;

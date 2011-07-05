@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,269 +14,134 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-/*
-  An interaction is a structure containing a "product" of other
-  variables. The variables can be either categorical or numeric.
-  If the variables are all numeric, the interaction is just the
-  scalar product. If any of the variables are categorical, their
-  product is a vector containing 0's in all but one entry. This entry
-  is found by combining the vectors corresponding to the variables'
-  OBS_VALS member. If there are K categorical variables, each with
-  N_1, N_2, ..., N_K categories, then the interaction will have
-  N_1 * N_2 * N_3 *...* N_K - 1 entries.
-
-  When using these functions, make sure the orders of variables and
-  values match when appropriate.
- */
-
 #include <config.h>
 
-#include "math/interaction.h"
+#include "interaction.h"
 
-#include <assert.h>
-#include <string.h>
-#include <unistr.h>
-
-#include "data/dictionary.h"
 #include "data/value.h"
 #include "data/variable.h"
+#include "libpspp/str.h"
 
 #include "gl/xalloc.h"
 
-struct interaction_variable
-{
-  int n_vars;
-  const struct variable **members;
-  struct variable *intr;
-  size_t n_alpha;
-};
+#include <stdio.h>
 
-struct interaction_value
-{
-  const struct interaction_variable *intr;
-  union value val; /* Concatenation of the string values in this
-                      interaction's value, or the product of a bunch
-                      of numeric values for a purely numeric
-                      interaction.
-		    */
-  double f; /* Product of the numerical values in this interaction's value. */
-};
 
 /*
-  An interaction_variable has type alpha if any of members have type
-  alpha. Otherwise, its type is numeric.
- */
-struct interaction_variable *
-interaction_variable_create (const struct variable **vars, int n_vars)
-{
-  struct interaction_variable *result = NULL;
-  size_t i;
+  An interaction is a structure containing a "product" of other
+  variables. The variables can be either string or numeric.
 
-  if (n_vars > 0)
-    {
-      int width = 0;
-
-      result = xmalloc (sizeof (*result));
-      result->n_alpha = 0;
-      result->members = xnmalloc (n_vars, sizeof (*result->members));
-      result->n_vars = n_vars;
-      for (i = 0; i < n_vars; i++)
-	{
-	  result->members[i] = vars[i];
-	  if (var_is_alpha (vars[i]))
-	    {
-	      result->n_alpha++;
-	      width += var_get_width (vars[i]);
-	    }
-	}
-      result->intr = dict_create_internal_var (0, width);
-    }
-
-  return result;
-}
-void interaction_variable_destroy (struct interaction_variable *iv)
-{
-  dict_destroy_internal_var (iv->intr);
-  free (iv->members);
-  free (iv);
-}
-
-/*
-  Get one of the member variables.
- */
-const struct variable *
-interaction_get_member (const struct interaction_variable *iv, size_t i)
-{
-  return iv->members[i];
-}
-
-size_t
-interaction_get_n_vars (const struct interaction_variable *iv)
-{
-  return (iv == NULL) ? 0 : iv->n_vars;
-}
-
-size_t
-interaction_get_n_alpha (const struct interaction_variable *iv)
-{
-  return iv->n_alpha;
-}
-
-size_t
-interaction_get_n_numeric (const struct interaction_variable *iv)
-{
-  return (interaction_get_n_vars (iv) - interaction_get_n_alpha (iv));
-}
-
-/*
-  Get the interaction variable itself.
- */
-const struct variable *
-interaction_get_variable (const struct interaction_variable *iv)
-{
-  return iv->intr;
-}
-/*
-  Given list of values, compute the value of the corresponding
-  interaction.  This "value" is not stored as the typical vector of
-  0's and one double, but rather the string values are concatenated to
-  make one big string value, and the numerical values are multiplied
-  together to give the non-zero entry of the corresponding vector.
- */
-struct interaction_value *
-interaction_value_create (const struct interaction_variable *var, const union value **vals)
-{
-  struct interaction_value *result = NULL;
+  Interaction is commutative.  That means, that from a mathematical point of
+  view,  the order of the variables is irrelevant.  However, for display
+  purposes, and for matching with an interaction's value the order is 
+  pertinent.
   
-  if (var != NULL)
+  Therefore, when using these functions, make sure the orders of variables 
+  and values match when appropriate.
+*/
+
+
+
+struct interaction *
+interaction_create (const struct variable *v)
+{
+  struct interaction  *i = xmalloc (sizeof *i);
+  i->vars = xmalloc (sizeof *i->vars);
+  i->vars[0] = v;
+  i->n_vars = 1;
+  return i;
+}
+
+void
+interaction_destroy (struct interaction *i)
+{
+  free (i->vars);
+  free (i);
+}
+
+void
+interaction_add_variable (struct interaction *i, const struct variable *v)
+{
+  i->vars = xrealloc (i->vars, sizeof (*i->vars) * ++i->n_vars);
+  i->vars[i->n_vars - 1] = v;
+}
+
+
+void
+interaction_dump (const struct interaction *i)
+{
+  int v = 0;
+  printf ("%s", var_get_name (i->vars[v]));
+  for (v = 1; v < i->n_vars; ++v)
     {
-      size_t i;
-      int val_width = var_get_width (interaction_get_variable (var));
-      int offset = 0;
-      size_t n_vars = interaction_get_n_vars (var);
-
-      result = xmalloc (sizeof (*result));
-      result->intr = var;
-
-      value_init (&result->val, val_width);
-
-      result->f = 1.0;
-      for (i = 0; i < n_vars; i++)
-	{
-          const struct variable *member = interaction_get_member (var, i);
-
-	  if (var_is_value_missing (member, vals[i], MV_ANY))
-	    {
-	      value_set_missing (&result->val, val_width);
-	      result->f = SYSMIS;
-	      break;
-	    }
-	  else
-	    {
-	      if (var_is_alpha (var->members[i]))
-		{
-		  uint8_t *val = value_str_rw (&result->val, val_width);
-                  int w = var_get_width (var->members[i]);
-                  u8_cpy (val + offset, value_str (vals[i], w), w);
-                  offset += w;
-		}
-	      else if (var_is_numeric (var->members[i]))
-		{
-		  result->f *= vals[i]->f;
-		}
-	    }
-	}
-      if (interaction_get_n_alpha (var) == 0)
-	{
-	  /*
-	    If there are no categorical variables, then the
-	    interaction consists of only numeric data. In this case,
-	    code that uses this interaction_value will see the union
-	    member as the numeric value. If we were to store that
-	    numeric value in result->f as well, the calling code may
-	    inadvertently square this value by multiplying by
-	    result->val->f. Such multiplication would be correct for an
-	    interaction consisting of both categorical and numeric
-	    data, but a mistake for purely numerical interactions. To
-	    avoid the error, we set result->f to 1.0 for numeric
-	    interactions.
-	   */
-	  result->val.f = result->f;
-	  result->f = 1.0;
-	}
+      printf (" * %s", var_get_name (i->vars[v]));
     }
-  return result;
+  printf ("\n");
 }
 
-const union value *
-interaction_value_get (const struct interaction_value *val)
-{
-  return &val->val;
-}
+/* Appends STR with a representation of the interaction, suitable for user
+   display.
 
-/*
-  Returns the numeric value of the non-zero entry for the vector
-  corresponding to this interaction.  Do not use this function to get
-  the numeric value of a purely numeric interaction. Instead, use the
-  union value * returned by interaction_value_get.
- */
-double 
-interaction_value_get_nonzero_entry (const struct interaction_value *val)
+   STR must have been initialised prior to calling this function.
+*/
+void
+interaction_to_string (const struct interaction *iact, struct string *str)
 {
-  if (val != NULL)
-    return val->f;
-  return 1.0;
-}
-
-void 
-interaction_value_destroy (struct interaction_value *val)
-{
-  if (val != NULL)
+  int v = 0;
+  ds_put_cstr (str, var_to_string (iact->vars[v]));
+  for (v = 1; v < iact->n_vars; ++v)
     {
-      int val_width = var_get_width (interaction_get_variable (val->intr));
-
-      value_destroy (&val->val, val_width);
-      free (val);
+      ds_put_cstr (str, " * ");
+      ds_put_cstr (str, var_to_string (iact->vars[v]));
     }
 }
 
-/*
-  Return a value from a variable that is an interaction. 
- */
-struct interaction_value *
-interaction_case_data (const struct ccase *ccase, const struct interaction_variable *iv)
+unsigned int
+interaction_value_hash (const struct interaction *iact, const union value *val)
 {
-  size_t i;
-  size_t n_vars;
-  const struct variable *member;
-  const union value **vals = NULL;
+  int i;
+  size_t hash = 0;
+  for (i = 0; i < iact->n_vars; ++i)
+    {
+      hash = value_hash (&val[i], var_get_width (iact->vars[i]), hash);
+    }
 
-  n_vars = interaction_get_n_vars (iv);
-  vals = xnmalloc (n_vars, sizeof (*vals));
-
-  for (i = 0; i < n_vars; i++)
-	{
-	  member = interaction_get_member (iv, i);
-	  vals[i] = case_data (ccase, member);
-	}
-
-  return interaction_value_create (iv, vals);
+  return hash;
 }
 
 bool
-is_interaction (const struct variable *var, const struct interaction_variable **iv, size_t n_intr)
+interaction_value_equal (const struct interaction *iact, const union value *val1, const union value *val2)
 {
-  size_t i;
-  const struct variable *intr;
-  
-  for (i = 0; i < n_intr; i++)
+  int i;
+  bool same = true;
+
+  for (i = 0; i < iact->n_vars; ++i)
     {
-      intr = interaction_get_variable (iv[i]);
-      if (intr == var)
+      if ( ! value_equal (&val1[i], &val2[i], var_get_width (iact->vars[i])))
 	{
-	  return true;
+	  same = false;
+	  break;
 	}
     }
-  return false;
+
+  return same;
 }
-  
+
+
+bool
+interaction_value_is_missing (const struct interaction *iact, const union value *val, enum mv_class exclude)
+{
+  int i;
+  bool missing = false;
+
+  for (i = 0; i < iact->n_vars; ++i)
+    {
+      if ( var_is_value_missing (iact->vars[i], &val[i], exclude))
+	{
+	  missing = true;
+	  break;
+	}
+    }
+
+  return missing;
+}
