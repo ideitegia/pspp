@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,13 +19,14 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "data/format.h"
 
-struct fmt_spec;
 struct pool;
 struct lexer;
 
 bool parse_record_placement (struct lexer *, int *record, int *column);
-bool parse_var_placements (struct lexer *, struct pool *, size_t var_cnt, bool for_input,
+bool parse_var_placements (struct lexer *, struct pool *, size_t var_cnt,
+                           enum fmt_use,
                            struct fmt_spec **, size_t *format_cnt);
 bool execute_placement_format (const struct fmt_spec *,
                                int *record, int *column);

@@ -23,6 +23,13 @@
 #include "data/val-type.h"
 #include "libpspp/str.h"
 
+/* How a format is going to be used. */
+enum fmt_use
+  {
+    FMT_FOR_INPUT,           /* For parsing data input, e.g. data_in(). */
+    FMT_FOR_OUTPUT           /* For formatting data output, e.g. data_out(). */
+  };
+
 /* Format type categories.
 
    Each format is in exactly one category.  We give categories
@@ -79,7 +86,7 @@ struct fmt_spec fmt_for_output_from_input (const struct fmt_spec *);
 struct fmt_spec fmt_default_for_width (int width);
 
 /* Verifying formats. */
-bool fmt_check (const struct fmt_spec *, bool for_input);
+bool fmt_check (const struct fmt_spec *, enum fmt_use);
 bool fmt_check_input (const struct fmt_spec *);
 bool fmt_check_output (const struct fmt_spec *);
 bool fmt_check_type_compat (const struct fmt_spec *, enum val_type);
@@ -91,12 +98,12 @@ char *fmt_to_string (const struct fmt_spec *, char s[FMT_STRING_LEN_MAX + 1]);
 bool fmt_equal (const struct fmt_spec *, const struct fmt_spec *);
 void fmt_resize (struct fmt_spec *, int new_width);
 
-void fmt_fix (struct fmt_spec *, bool for_input);
+void fmt_fix (struct fmt_spec *, enum fmt_use);
 void fmt_fix_input (struct fmt_spec *);
 void fmt_fix_output (struct fmt_spec *);
 
-void fmt_change_width (struct fmt_spec *, int width, bool for_input);
-void fmt_change_decimals (struct fmt_spec *, int decimals, bool for_input);
+void fmt_change_width (struct fmt_spec *, int width, enum fmt_use);
+void fmt_change_decimals (struct fmt_spec *, int decimals, enum fmt_use);
 
 /* Format types. */
 bool is_fmt_type (enum fmt_type);
@@ -106,9 +113,9 @@ bool fmt_from_name (const char *name, enum fmt_type *);
 
 bool fmt_takes_decimals (enum fmt_type) PURE_FUNCTION;
 
-int fmt_min_width (enum fmt_type, bool for_input) PURE_FUNCTION;
-int fmt_max_width (enum fmt_type, bool for_input) PURE_FUNCTION;
-int fmt_max_decimals (enum fmt_type, int width, bool for_input) PURE_FUNCTION;
+int fmt_min_width (enum fmt_type, enum fmt_use) PURE_FUNCTION;
+int fmt_max_width (enum fmt_type, enum fmt_use) PURE_FUNCTION;
+int fmt_max_decimals (enum fmt_type, int width, enum fmt_use) PURE_FUNCTION;
 int fmt_min_input_width (enum fmt_type) PURE_FUNCTION;
 int fmt_max_input_width (enum fmt_type) PURE_FUNCTION;
 int fmt_max_input_decimals (enum fmt_type, int width) PURE_FUNCTION;

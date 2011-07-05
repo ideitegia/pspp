@@ -46,11 +46,11 @@ struct fmt_settings
 
 bool is_fmt_type (enum fmt_type);
 
-static bool valid_width (enum fmt_type, int width, bool for_input);
+static bool valid_width (enum fmt_type, int width, enum fmt_use);
 
 static int max_digits_for_bytes (int bytes);
-static void fmt_clamp_width (struct fmt_spec *, bool for_input);
-static void fmt_clamp_decimals (struct fmt_spec *, bool for_input);
+static void fmt_clamp_width (struct fmt_spec *, enum fmt_use);
+static void fmt_clamp_decimals (struct fmt_spec *, enum fmt_use);
 
 static void fmt_affix_set (struct fmt_affix *, const char *);
 static void fmt_affix_free (struct fmt_affix *);
@@ -313,20 +313,20 @@ fmt_default_for_width (int width)
           : fmt_for_output (FMT_A, width, 0));
 }
 
-/* Checks whether SPEC is valid as an input format (if FOR_INPUT)
-   or an output format (otherwise) and returns nonzero if so.
+/* Checks whether SPEC is valid for USE and returns nonzero if so.
    Otherwise, emits an error message and returns zero. */
 bool
-fmt_check (const struct fmt_spec *spec, bool for_input)
+fmt_check (const struct fmt_spec *spec, enum fmt_use use)
 {
-  const char *io_fmt = for_input ? _("Input format") : _("Output format");
+  const char *io_fmt;
   char str[FMT_STRING_LEN_MAX + 1];
   int min_w, max_w, max_d;
 
   assert (is_fmt_type (spec->type));
   fmt_to_string (spec, str);
 
-  if (for_input && !fmt_usable_for_input (spec->type))
+  io_fmt = use == FMT_FOR_INPUT ? _("Input format") : _("Output format");
+  if (use == FMT_FOR_INPUT && !fmt_usable_for_input (spec->type))
     {
       msg (SE, _("Format %s may not be used for input."), str);
       return false;
@@ -340,8 +340,8 @@ fmt_check (const struct fmt_spec *spec, bool for_input)
       return false;
     }
 
-  min_w = fmt_min_width (spec->type, for_input);
-  max_w = fmt_max_width (spec->type, for_input);
+  min_w = fmt_min_width (spec->type, use);
+  max_w = fmt_max_width (spec->type, use);
   if (spec->w < min_w || spec->w > max_w)
     {
       msg (SE, _("%s %s specifies width %d, but "
@@ -350,7 +350,7 @@ fmt_check (const struct fmt_spec *spec, bool for_input)
       return false;
     }
 
-  max_d = fmt_max_decimals (spec->type, spec->w, for_input);
+  max_d = fmt_max_decimals (spec->type, spec->w, use);
   if (!fmt_takes_decimals (spec->type) && spec->d != 0)
     {
       msg (SE, ngettext ("%s %s specifies %d decimal place, but "
@@ -389,7 +389,7 @@ fmt_check (const struct fmt_spec *spec, bool for_input)
 bool
 fmt_check_input (const struct fmt_spec *spec)
 {
-  return fmt_check (spec, true);
+  return fmt_check (spec, FMT_FOR_INPUT);
 }
 
 /* Checks whether SPEC is valid as an output format and returns
@@ -397,7 +397,7 @@ fmt_check_input (const struct fmt_spec *spec)
 bool
 fmt_check_output (const struct fmt_spec *spec)
 {
-  return fmt_check (spec, false);
+  return fmt_check (spec, FMT_FOR_OUTPUT);
 }
 
 /* Checks that FORMAT is appropriate for a variable of the given
@@ -496,28 +496,26 @@ fmt_resize (struct fmt_spec *fmt, int width)
     }
 }
 
-/* Adjusts FMT's width and decimal places to be valid for an
-   input format (if FOR_INPUT) or an output format (if
-   !FOR_INPUT).  */
+/* Adjusts FMT's width and decimal places to be valid for USE.  */
 void
-fmt_fix (struct fmt_spec *fmt, bool for_input)
+fmt_fix (struct fmt_spec *fmt, enum fmt_use use)
 {
   /* Clamp width to those allowed by format. */
-  fmt_clamp_width (fmt, for_input);
+  fmt_clamp_width (fmt, use);
 
   /* If FMT has more decimal places than allowed, attempt to increase FMT's
      width until that number of decimal places can be achieved. */
-  if (fmt->d > fmt_max_decimals (fmt->type, fmt->w, for_input)
+  if (fmt->d > fmt_max_decimals (fmt->type, fmt->w, use)
       && fmt_takes_decimals (fmt->type))
     {
-      int max_w = fmt_max_width (fmt->type, for_input);
+      int max_w = fmt_max_width (fmt->type, use);
       for (; fmt->w < max_w; fmt->w++)
-        if (fmt->d <= fmt_max_decimals (fmt->type, fmt->w, for_input))
+        if (fmt->d <= fmt_max_decimals (fmt->type, fmt->w, use))
           break;
     }
 
   /* Clamp decimals to those allowed by format and width. */
-  fmt_clamp_decimals (fmt, for_input);
+  fmt_clamp_decimals (fmt, use);
 }
 
 /* Adjusts FMT's width and decimal places to be valid for an
@@ -525,7 +523,7 @@ fmt_fix (struct fmt_spec *fmt, bool for_input)
 void
 fmt_fix_input (struct fmt_spec *fmt)
 {
-  fmt_fix (fmt, true);
+  fmt_fix (fmt, FMT_FOR_INPUT);
 }
 
 /* Adjusts FMT's width and decimal places to be valid for an
@@ -533,27 +531,27 @@ fmt_fix_input (struct fmt_spec *fmt)
 void
 fmt_fix_output (struct fmt_spec *fmt)
 {
-  fmt_fix (fmt, false);
+  fmt_fix (fmt, FMT_FOR_OUTPUT);
 }
 
 /* Sets FMT's width to WIDTH (or the nearest width allowed by FMT's type) and
    reduces its decimal places as necessary (if necessary) for that width.  */
 void
-fmt_change_width (struct fmt_spec *fmt, int width, bool for_input)
+fmt_change_width (struct fmt_spec *fmt, int width, enum fmt_use use)
 {
   fmt->w = width;
-  fmt_clamp_width (fmt, for_input);
-  fmt_clamp_decimals (fmt, for_input);
+  fmt_clamp_width (fmt, use);
+  fmt_clamp_decimals (fmt, use);
 }
 
 /* Sets FMT's decimal places to DECIMALS (or the nearest number of decimal
    places allowed by FMT's type) and increases its width as necessary (if
    necessary) for that number of decimal places.  */
 void
-fmt_change_decimals (struct fmt_spec *fmt, int decimals, bool for_input)
+fmt_change_decimals (struct fmt_spec *fmt, int decimals, enum fmt_use use)
 {
   fmt->d = decimals;
-  fmt_fix (fmt, for_input);
+  fmt_fix (fmt, use);
 }
 
 /* Describes a display format. */
@@ -599,20 +597,20 @@ fmt_takes_decimals (enum fmt_type type)
   return fmt_max_output_decimals (type, fmt_max_output_width (type)) > 0;
 }
 
-/* Returns the minimum width of the given format TYPE,
-   for input if FOR_INPUT is true,
-   for output otherwise. */
+/* Returns the minimum width of the given format TYPE for the given USE. */
 int
-fmt_min_width (enum fmt_type type, bool for_input)
+fmt_min_width (enum fmt_type type, enum fmt_use use)
 {
-  return for_input ? fmt_min_input_width (type) : fmt_min_output_width (type);
+  return (use == FMT_FOR_INPUT
+          ? fmt_min_input_width (type)
+          : fmt_min_output_width (type));
 }
 
 /* Returns the maximum width of the given format TYPE,
    for input if FOR_INPUT is true,
    for output otherwise. */
 int
-fmt_max_width (enum fmt_type type, bool for_input UNUSED)
+fmt_max_width (enum fmt_type type, enum fmt_use use UNUSED)
 {
   /* Maximum width is actually invariant of whether the format is
      for input or output, so FOR_INPUT is unused. */
@@ -642,11 +640,9 @@ fmt_max_width (enum fmt_type type, bool for_input UNUSED)
 }
 
 /* Returns the maximum number of decimal places allowed for the
-   given format TYPE with a width of WIDTH places,
-   for input if FOR_INPUT is true,
-   for output otherwise. */
+   given format TYPE with a width of WIDTH places, for the given USE. */
 int
-fmt_max_decimals (enum fmt_type type, int width, bool for_input)
+fmt_max_decimals (enum fmt_type type, int width, enum fmt_use use)
 {
   int max_d;
 
@@ -655,16 +651,16 @@ fmt_max_decimals (enum fmt_type type, int width, bool for_input)
     case FMT_F:
     case FMT_COMMA:
     case FMT_DOT:
-      max_d = for_input ? width : width - 1;
+      max_d = use == FMT_FOR_INPUT ? width : width - 1;
       break;
 
     case FMT_DOLLAR:
     case FMT_PCT:
-      max_d = for_input ? width : width - 2;
+      max_d = use == FMT_FOR_INPUT ? width : width - 2;
       break;
 
     case FMT_E:
-      max_d = for_input ? width : width - 7;
+      max_d = use == FMT_FOR_INPUT ? width : width - 7;
       break;
 
     case FMT_CCA:
@@ -672,7 +668,7 @@ fmt_max_decimals (enum fmt_type type, int width, bool for_input)
     case FMT_CCC:
     case FMT_CCD:
     case FMT_CCE:
-      assert (!for_input);
+      assert (use == FMT_FOR_OUTPUT);
       max_d = width - 1;
       break;
 
@@ -757,7 +753,7 @@ fmt_min_input_width (enum fmt_type type)
 int
 fmt_max_input_width (enum fmt_type type)
 {
-  return fmt_max_width (type, true);
+  return fmt_max_width (type, FMT_FOR_INPUT);
 }
 
 /* Returns the maximum number of decimal places allowed in an
@@ -766,7 +762,7 @@ int
 fmt_max_input_decimals (enum fmt_type type, int width)
 {
   assert (valid_width (type, width, true));
-  return fmt_max_decimals (type, width, true);
+  return fmt_max_decimals (type, width, FMT_FOR_INPUT);
 }
 
 /* Returns the minimum acceptable width for an output field
@@ -782,7 +778,7 @@ fmt_min_output_width (enum fmt_type type)
 int
 fmt_max_output_width (enum fmt_type type)
 {
-  return fmt_max_width (type, false);
+  return fmt_max_width (type, FMT_FOR_OUTPUT);
 }
 
 /* Returns the maximum number of decimal places allowed in an
@@ -791,7 +787,7 @@ int
 fmt_max_output_decimals (enum fmt_type type, int width)
 {
   assert (valid_width (type, width, false));
-  return fmt_max_decimals (type, width, false);
+  return fmt_max_decimals (type, width, FMT_FOR_OUTPUT);
 }
 
 /* Returns the width step for a field formatted with the given
@@ -979,14 +975,12 @@ is_fmt_type (enum fmt_type type)
 }
 
 /* Returns true if WIDTH is a valid width for the given format
-   TYPE,
-   for input if FOR_INPUT is true,
-   for output otherwise. */
+   TYPE, for the given USE. */
 static bool
-valid_width (enum fmt_type type, int width, bool for_input)
+valid_width (enum fmt_type type, int width, enum fmt_use use)
 {
-  return (width >= fmt_min_width (type, for_input)
-          && width <= fmt_max_width (type, for_input));
+  return (width >= fmt_min_width (type, use)
+          && width <= fmt_max_width (type, use));
 }
 
 /* Returns the maximum number of decimal digits in an unsigned
@@ -1001,13 +995,13 @@ max_digits_for_bytes (int bytes)
 
 /* Clamp FMT's width to the range and values allowed by FMT's type. */
 static void
-fmt_clamp_width (struct fmt_spec *fmt, bool for_input)
+fmt_clamp_width (struct fmt_spec *fmt, enum fmt_use use)
 {
   unsigned int step;
   int min_w, max_w;
 
-  min_w = fmt_min_width (fmt->type, for_input);
-  max_w = fmt_max_width (fmt->type, for_input);
+  min_w = fmt_min_width (fmt->type, use);
+  max_w = fmt_max_width (fmt->type, use);
   if (fmt->w < min_w)
     fmt->w = min_w;
   else if (fmt->w > max_w)
@@ -1020,11 +1014,11 @@ fmt_clamp_width (struct fmt_spec *fmt, bool for_input)
 
 /* Clamp FMT's decimal places to the range allowed by FMT's type and width. */
 static void
-fmt_clamp_decimals (struct fmt_spec *fmt, bool for_input)
+fmt_clamp_decimals (struct fmt_spec *fmt, enum fmt_use use)
 {
   int max_d;
 
-  max_d = fmt_max_decimals (fmt->type, fmt->w, for_input);
+  max_d = fmt_max_decimals (fmt->type, fmt->w, use);
   if (fmt->d < 0)
     fmt->d = 0;
   else if (fmt->d > max_d)

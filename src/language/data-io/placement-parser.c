@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,9 +42,9 @@ enum
     PRS_TYPE_NEW_REC            /* Next record. */
   };
 
-static bool fixed_parse_columns (struct lexer *, struct pool *, size_t var_cnt, bool for_input,
-                                 struct fmt_spec **, size_t *);
-static bool fixed_parse_fortran (struct lexer *l, struct pool *, bool for_input,
+static bool fixed_parse_columns (struct lexer *, struct pool *, size_t var_cnt,
+                                 enum fmt_use, struct fmt_spec **, size_t *);
+static bool fixed_parse_fortran (struct lexer *l, struct pool *, enum fmt_use,
                                  struct fmt_spec **, size_t *);
 
 /* Parses Fortran-like or column-based specifications for placing
@@ -63,18 +63,20 @@ static bool fixed_parse_fortran (struct lexer *l, struct pool *, bool for_input,
    Uses POOL for allocation.  When the caller is finished
    interpreting *FORMATS, POOL may be destroyed. */
 bool
-parse_var_placements (struct lexer *lexer, struct pool *pool, size_t var_cnt, bool for_input,
+parse_var_placements (struct lexer *lexer, struct pool *pool, size_t var_cnt,
+                      enum fmt_use use,
                       struct fmt_spec **formats, size_t *format_cnt)
 {
   assert (var_cnt > 0);
   if (lex_is_number (lexer))
-    return fixed_parse_columns (lexer, pool, var_cnt, for_input, formats, format_cnt);
+    return fixed_parse_columns (lexer, pool, var_cnt, use,
+                                formats, format_cnt);
   else if (lex_match (lexer, T_LPAREN))
     {
       size_t assignment_cnt;
       size_t i;
 
-      if (!fixed_parse_fortran (lexer, pool, for_input, formats, format_cnt))
+      if (!fixed_parse_fortran (lexer, pool, use, formats, format_cnt))
         return false;
 
       assignment_cnt = 0;
@@ -101,7 +103,8 @@ parse_var_placements (struct lexer *lexer, struct pool *pool, size_t var_cnt, bo
 
 /* Implements parse_var_placements for column-based formats. */
 static bool
-fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, bool for_input,
+fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt,
+                     enum fmt_use use,
                      struct fmt_spec **formats, size_t *format_cnt)
 {
   struct fmt_spec format;
@@ -151,7 +154,7 @@ fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, boo
       format.type = FMT_F;
       format.d = 0;
     }
-  if (!fmt_check (&format, for_input))
+  if (!fmt_check (&format, use))
     return false;
 
   *formats = pool_nalloc (pool, var_cnt + 1, sizeof **formats);
@@ -165,7 +168,7 @@ fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, boo
 
 /* Implements parse_var_placements for Fortran-like formats. */
 static bool
-fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
+fixed_parse_fortran (struct lexer *lexer, struct pool *pool, enum fmt_use use,
                      struct fmt_spec **formats, size_t *format_cnt)
 {
   size_t formats_allocated = 0;
@@ -193,7 +196,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
       if (lex_match (lexer, T_LPAREN))
         {
           /* Call ourselves recursively to handle parentheses. */
-          if (!fixed_parse_fortran (lexer, pool, for_input,
+          if (!fixed_parse_fortran (lexer, pool, use,
                                     &new_formats, &new_format_cnt))
             return false;
         }
@@ -225,7 +228,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
                       msg (SE, _("Unknown format type `%s'."), type);
                       return false;
                     }
-                  if (!fmt_check (&f, for_input))
+                  if (!fmt_check (&f, use))
                     return false;
                 }
             }
