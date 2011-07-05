@@ -402,7 +402,8 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
 
   struct glm_workspace ws;
   struct covariance *cov;
-  ws.cats = categoricals_create (cmd->design_vars, cmd->n_design_vars,
+
+  ws.cats = categoricals_create (cmd->interactions, cmd->n_interactions,
 				 cmd->wv, cmd->exclude,
 				 NULL, NULL, NULL, NULL);
 

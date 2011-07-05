@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include "math/categoricals.h"
+#include "math/interaction.h"
 
 #include <stdio.h>
 
@@ -215,7 +216,7 @@ lookup_value (const struct hmap *map, const struct variable *var, const union va
 
 
 struct categoricals *
-categoricals_create (const struct variable *const *v, size_t n_vars,
+categoricals_create (const struct interaction **inter, size_t n_inter,
 		     const struct variable *wv, enum mv_class exclude,
 		     user_data_create_func *udf,
 		     update_func *update, void *aux1, void *aux2
@@ -224,7 +225,7 @@ categoricals_create (const struct variable *const *v, size_t n_vars,
   size_t i;
   struct categoricals *cat = xmalloc (sizeof *cat);
   
-  cat->n_vp = n_vars;
+  cat->n_vp = n_inter;
   cat->wv = wv;
   cat->n_cats_total = 0;
   cat->n_vars = 0;
@@ -244,7 +245,7 @@ categoricals_create (const struct variable *const *v, size_t n_vars,
   for (i = 0 ; i < cat->n_vp; ++i)
     {
       hmap_init (&cat->vp[i].map);
-      cat->vp[i].var = v[i];
+      cat->vp[i].var = inter[i]->vars[0];
     }
 
   return cat;

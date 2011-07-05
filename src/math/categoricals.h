@@ -24,6 +24,7 @@
 struct categoricals;
 struct variable;
 struct ccase;
+struct interaction;
 
 union value ;
 
@@ -36,7 +37,7 @@ typedef void update_func (void *user_data,
 
 typedef void *user_data_create_func (void *aux1, void *aux2);
 
-struct categoricals *categoricals_create (const struct variable *const *v, size_t n_vars,
+struct categoricals *categoricals_create (const struct interaction **, size_t n_int,
 					  const struct variable *wv, enum mv_class exclude,
 					  user_data_create_func *udf,
 					  update_func *update, void *aux1, void *aux2);
