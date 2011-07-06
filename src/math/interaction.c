@@ -130,6 +130,25 @@ interaction_case_equal (const struct interaction *iact, const struct ccase *c1, 
   return same;
 }
 
+
+int
+interaction_case_cmp_3way (const struct interaction *iact, const struct ccase *c1, const struct ccase *c2)
+{
+  int i;
+  int result = 0;
+
+  for (i = 0; i < iact->n_vars; ++i)
+    {
+      const struct variable *var = iact->vars[i];
+      result = value_compare_3way (case_data (c1, var), case_data (c2, var), var_get_width (var));
+      if (result != 0)
+	break;
+    }
+
+  return result;
+}
+
+
 bool
 interaction_case_is_missing (const struct interaction *iact, const struct ccase *c, enum mv_class exclude)
 {

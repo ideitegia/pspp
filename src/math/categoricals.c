@@ -34,7 +34,7 @@
 struct value_node
 {
   struct hmap_node node;      /* Node in hash map. */
-  union value value;          /* The value being labeled. */
+  struct ccase *ccase;
   double cc;                  /* The total of the weights of cases with this value */
 
   void *user_data;            /* A pointer to data which the caller can store stuff */
@@ -49,6 +49,7 @@ struct var_params
   struct hmap map;
 
   const struct variable *var;
+  const struct interaction *iact;
 
   int base_subscript_short;
   int base_subscript_long;
@@ -72,7 +73,7 @@ compare_value_node (const void *vn1_, const void *vn2_, const void *aux)
   const struct value_node * const *vn2 = vn2_;
   const struct var_params *vp = aux;
 
-  return value_compare_3way (&(*vn1)->value, &(*vn2)->value, var_get_width (vp->var));
+  return interaction_case_cmp_3way (vp->iact, (*vn1)->ccase, (*vn2)->ccase);
 }
 
 
@@ -195,23 +196,21 @@ categoricals_dump (const struct categoricals *cat)
 #endif
 
 
-
 static struct value_node *
-lookup_value (const struct hmap *map, const struct variable *var, const union value *val)
+lookup_case (const struct hmap *map, const struct interaction *iact, const struct ccase *c)
 {
-  struct value_node *foo;
-  unsigned int width = var_get_width (var);
-  size_t hash = value_hash (val, width, 0);
+  struct value_node *nn;
+  size_t hash = interaction_case_hash (iact, c);
 
-  HMAP_FOR_EACH_WITH_HASH (foo, struct value_node, node, hash, map)
+  HMAP_FOR_EACH_WITH_HASH (nn, struct value_node, node, hash, map)
     {
-      if (value_equal (val, &foo->value, width))
+      if (interaction_case_equal (iact, c, nn->ccase))
 	break;
 
       fprintf (stderr, "Warning: Hash table collision\n");
     }
 
-  return foo;
+  return nn;
 }
 
 
@@ -246,6 +245,7 @@ categoricals_create (const struct interaction **inter, size_t n_inter,
     {
       hmap_init (&cat->vp[i].map);
       cat->vp[i].var = inter[i]->vars[0];
+      cat->vp[i].iact = inter[i];
     }
 
   return cat;
@@ -265,24 +265,27 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 
   for (i = 0 ; i < cat->n_vp; ++i)
     {
+      const struct interaction *iact = cat->vp[i].iact;
       const struct variable *var = cat->vp[i].var;
-      unsigned int width = var_get_width (var);
+
       const union value *val = case_data (c, var);
       size_t hash;
       struct value_node *node ;
 
+#if XXX
       if ( var_is_value_missing (var, val, cat->exclude))
 	continue;
+#endif
 
-      hash = value_hash (val, width, 0);
-      node = lookup_value (&cat->vp[i].map, var, val);
+      hash = interaction_case_hash (iact, c);
+      node = lookup_case (&cat->vp[i].map, iact, c);
 
       if ( NULL == node)
 	{
+	  int width  = var_get_width (var);
 	  node = pool_malloc (cat->pool, sizeof *node);
 
-	  value_init (&node->value, width);
-	  value_copy (&node->value, val, width);
+	  node->ccase = case_ref (c);
 	  node->cc = 0.0;
 
 	  hmap_insert (&cat->vp[i].map, &node->node,  hash);
@@ -409,15 +412,25 @@ categoricals_get_variable_by_subscript (const struct categoricals *cat, int subs
   return cat->vp[index].var;
 }
 
-/* Return the value corresponding to SUBSCRIPT */
-static const union value *
-categoricals_get_value_by_subscript (const struct categoricals *cat, int subscript)
+/* Return the interaction corresponding to SUBSCRIPT */
+static const struct interaction *
+categoricals_get_interaction_by_subscript (const struct categoricals *cat, int subscript)
+{
+  int index = reverse_variable_lookup_short (cat, subscript);
+
+  return cat->vp[index].iact;
+}
+
+
+/* Return the case corresponding to SUBSCRIPT */
+static const struct ccase *
+categoricals_get_case_by_subscript (const struct categoricals *cat, int subscript)
 {
   int vindex = reverse_variable_lookup_short (cat, subscript);
   const struct var_params *vp = &cat->vp[vindex];
   const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_short];
 
-  return &vn->value;
+  return vn->ccase;
 }
 
 
@@ -447,12 +460,11 @@ double
 categoricals_get_binary_by_subscript (const struct categoricals *cat, int subscript,
 				      const struct ccase *c)
 {
-  const struct variable *var = categoricals_get_variable_by_subscript (cat, subscript);
-  int width = var_get_width (var);
+  const struct interaction *iact = categoricals_get_interaction_by_subscript (cat, subscript);
 
-  const union value *val = case_data (c, var);
+  const struct ccase *c2 =  categoricals_get_case_by_subscript (cat, subscript);
 
-  return value_equal (val, categoricals_get_value_by_subscript (cat, subscript), width);
+  return interaction_case_equal (iact, c, c2);
 }
 
 
@@ -463,16 +475,15 @@ categoricals_get_n_variables (const struct categoricals *cat)
 }
 
 
-
-/* Return the value corresponding to SUBSCRIPT */
-const union value *
-categoricals_get_value_by_category (const struct categoricals *cat, int subscript)
+/* Return a case containing the set of values corresponding to SUBSCRIPT */
+const struct ccase *
+categoricals_get_case_by_category (const struct categoricals *cat, int subscript)
 {
   int vindex = reverse_variable_lookup_long (cat, subscript);
   const struct var_params *vp = &cat->vp[vindex];
   const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_long];
 
-  return &vn->value;
+  return vn->ccase;
 }
 
 

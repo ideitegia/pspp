@@ -39,6 +39,7 @@
 #include "linreg/sweep.h"
 #include "tukey/tukey.h"
 #include "math/categoricals.h"
+#include "math/interaction.h"
 #include "math/covariance.h"
 #include "math/levene.h"
 #include "math/moments.h"
@@ -651,7 +652,7 @@ run_oneway (const struct oneway_spec *cmd,
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      struct interaction *inter = interaction_create (cmd->indep_var);
+      const struct interaction *inter = interaction_create (cmd->indep_var);
       ws.vws[v].cat = categoricals_create (&inter, 1, cmd->wv,
                                            cmd->exclude, makeit, updateit,
                                            CONST_CAST (struct variable *,
@@ -1022,7 +1023,7 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 
 	  struct string vstr;
 
-	  const union value *gval = categoricals_get_value_by_category (cats, count);
+	  const struct ccase *gcc = categoricals_get_case_by_category (cats, count);
 	  const struct descriptive_data *dd = categoricals_get_user_data_by_category (cats, count);
 
 	  moments1_calculate (dd->mom, &n, &mean, &variance, NULL, NULL);
@@ -1032,7 +1033,7 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 
 	  ds_init_empty (&vstr);
 
-	  var_append_value_name (cmd->indep_var, gval, &vstr);
+	  var_append_value_name (cmd->indep_var, case_data (gcc, cmd->indep_var), &vstr);
 
 	  tab_text (t, 1, row + count,
 		    TAB_LEFT | TAT_TITLE,
@@ -1232,13 +1233,13 @@ show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspa
 	   ++count, coeffi = ll_next (coeffi))
 	{
 	  const struct categoricals *cats = covariance_get_categoricals (cov);
-	  const union value *val = categoricals_get_value_by_category (cats, count);
+	  const struct ccase *gcc = categoricals_get_case_by_category (cats, count);
 	  struct coeff_node *coeffn = ll_data (coeffi, struct coeff_node, ll);
 	  struct string vstr;
 
 	  ds_init_empty (&vstr);
 
-	  var_append_value_name (cmd->indep_var, val, &vstr);
+	  var_append_value_name (cmd->indep_var, case_data (gcc, cmd->indep_var), &vstr);
 
 	  tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE, ds_cstr (&vstr));
 
@@ -1519,10 +1520,11 @@ show_comparisons (const struct oneway_spec *cmd, const struct oneway_workspace *
 	  struct string vstr;
 	  int j;
 	  struct descriptive_data *dd_i = categoricals_get_user_data_by_category (cat, i);
-	  const union value *gval = categoricals_get_value_by_category (cat, i);
+	  const struct ccase *gcc = categoricals_get_case_by_category (cat, i);
+	  
 
 	  ds_init_empty (&vstr);
-	  var_append_value_name (cmd->indep_var, gval, &vstr);
+	  var_append_value_name (cmd->indep_var, case_data (gcc, cmd->indep_var), &vstr);
 
 	  if ( i != 0)
 	    tab_hline (t, TAL_1, 1, n_cols - 1, r);
@@ -1540,8 +1542,8 @@ show_comparisons (const struct oneway_spec *cmd, const struct oneway_workspace *
 		continue;
 
 	      ds_clear (&vstr);
-	      gval = categoricals_get_value_by_category (cat, j);
-	      var_append_value_name (cmd->indep_var, gval, &vstr);
+	      const struct ccase *cc = categoricals_get_case_by_category (cat, j);
+	      var_append_value_name (cmd->indep_var, case_data (cc, cmd->indep_var), &vstr);
 	      tab_text (t, 2, r + rx, TAB_LEFT | TAT_TITLE, ds_cstr (&vstr));
 
 	      moments1_calculate (dd_j->mom, &weight_j, &mean_j, &var_j, 0, 0);

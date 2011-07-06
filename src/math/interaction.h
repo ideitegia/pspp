@@ -43,5 +43,7 @@ struct ccase;
 unsigned int interaction_case_hash (const struct interaction *, const struct ccase *);
 bool interaction_case_equal (const struct interaction *, const struct ccase *, const struct ccase *);
 bool interaction_case_is_missing (const struct interaction *, const struct ccase *, enum mv_class);
+int interaction_case_cmp_3way (const struct interaction *, const struct ccase *, const struct ccase *);
+
 
 #endif

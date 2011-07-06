@@ -93,6 +93,7 @@ const union value * categoricals_get_value_by_category (const struct categorical
 
 void * categoricals_get_user_data_by_category (const struct categoricals *cat, int category);
 
+const struct ccase * categoricals_get_case_by_category (const struct categoricals *cat, int subscript);
 
 
 #endif
