@@ -143,16 +143,17 @@ two_sample_dialog_destroy (struct paired_samples_dialog *psd)
 struct paired_samples_dialog *
 two_sample_dialog_create (PsppireDataWindow *de)
 {
+  GtkWidget *dict_view ;
+  GtkWidget *selector ;
   struct paired_samples_dialog *tt_d = g_malloc (sizeof *tt_d);
 
   PsppireVarStore *vs = NULL;
 
   tt_d->xml = builder_new ("paired-samples.ui");
 
-  GtkWidget *dict_view =
-    get_widget_assert (tt_d->xml, "paired-samples-t-test-treeview1");
+  dict_view = get_widget_assert (tt_d->xml, "paired-samples-t-test-treeview1");
 
-  GtkWidget *selector = get_widget_assert (tt_d->xml, "psppire-selector3");
+  selector = get_widget_assert (tt_d->xml, "psppire-selector3");
 
   tt_d->dialog = get_widget_assert (tt_d->xml, "t-test-paired-samples-dialog");
 
