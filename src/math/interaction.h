@@ -32,8 +32,6 @@ struct interaction
   const struct variable **vars;
 };
 
-
-
 struct interaction * interaction_create (const struct variable *);
 void interaction_destroy (struct interaction *);
 void interaction_add_variable (struct interaction *, const struct variable *);
@@ -41,10 +39,9 @@ void interaction_dump (const struct interaction *);
 void interaction_to_string (const struct interaction *iact, struct string *str);
 
 
-union value;
-
-unsigned int interaction_value_hash (const struct interaction *, const union value *);
-bool interaction_value_equal (const struct interaction *, const union value *, const union value *);
-bool interaction_value_is_missing (const struct interaction *, const union value *, enum mv_class);
+struct ccase;
+unsigned int interaction_case_hash (const struct interaction *, const struct ccase *);
+bool interaction_case_equal (const struct interaction *, const struct ccase *, const struct ccase *);
+bool interaction_case_is_missing (const struct interaction *, const struct ccase *, enum mv_class);
 
 #endif

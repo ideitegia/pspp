@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include "data/case.h"
 #include "interaction.h"
 
 #include "data/value.h"
@@ -97,27 +98,29 @@ interaction_to_string (const struct interaction *iact, struct string *str)
 }
 
 unsigned int
-interaction_value_hash (const struct interaction *iact, const union value *val)
+interaction_case_hash (const struct interaction *iact, const struct ccase *c)
 {
   int i;
   size_t hash = 0;
   for (i = 0; i < iact->n_vars; ++i)
     {
-      hash = value_hash (&val[i], var_get_width (iact->vars[i]), hash);
+      const struct variable *var = iact->vars[i];
+      const union value *val = case_data (c, var);
+      hash = value_hash (val, var_get_width (var), hash);
     }
-
   return hash;
 }
 
 bool
-interaction_value_equal (const struct interaction *iact, const union value *val1, const union value *val2)
+interaction_case_equal (const struct interaction *iact, const struct ccase *c1, const struct ccase *c2)
 {
   int i;
   bool same = true;
 
   for (i = 0; i < iact->n_vars; ++i)
     {
-      if ( ! value_equal (&val1[i], &val2[i], var_get_width (iact->vars[i])))
+      const struct variable *var = iact->vars[i];
+      if ( ! value_equal (case_data (c1, var), case_data (c2, var), var_get_width (var)))
 	{
 	  same = false;
 	  break;
@@ -127,16 +130,15 @@ interaction_value_equal (const struct interaction *iact, const union value *val1
   return same;
 }
 
-
 bool
-interaction_value_is_missing (const struct interaction *iact, const union value *val, enum mv_class exclude)
+interaction_case_is_missing (const struct interaction *iact, const struct ccase *c, enum mv_class exclude)
 {
   int i;
   bool missing = false;
 
   for (i = 0; i < iact->n_vars; ++i)
     {
-      if ( var_is_value_missing (iact->vars[i], &val[i], exclude))
+      if ( var_is_value_missing (iact->vars[i], case_data (c, iact->vars[i]), exclude))
 	{
 	  missing = true;
 	  break;
@@ -145,3 +147,4 @@ interaction_value_is_missing (const struct interaction *iact, const union value 
 
   return missing;
 }
+
