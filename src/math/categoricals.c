@@ -48,7 +48,6 @@ struct var_params
   /* A map indexed by a union values */
   struct hmap map;
 
-  const struct variable *var;
   const struct interaction *iact;
 
   int base_subscript_short;
@@ -81,7 +80,6 @@ struct categoricals
 {
   /* The weight variable */
   const struct variable *wv;
-
 
   /* An array of var_params */
   struct var_params *vp;
@@ -244,7 +242,6 @@ categoricals_create (const struct interaction **inter, size_t n_inter,
   for (i = 0 ; i < cat->n_vp; ++i)
     {
       hmap_init (&cat->vp[i].map);
-      cat->vp[i].var = inter[i]->vars[0];
       cat->vp[i].iact = inter[i];
     }
 
@@ -266,23 +263,17 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
   for (i = 0 ; i < cat->n_vp; ++i)
     {
       const struct interaction *iact = cat->vp[i].iact;
-      const struct variable *var = cat->vp[i].var;
-
-      const union value *val = case_data (c, var);
       size_t hash;
       struct value_node *node ;
 
-#if XXX
-      if ( var_is_value_missing (var, val, cat->exclude))
+      if ( interaction_case_is_missing (iact, c, cat->exclude))
 	continue;
-#endif
 
       hash = interaction_case_hash (iact, c);
       node = lookup_case (&cat->vp[i].map, iact, c);
 
       if ( NULL == node)
 	{
-	  int width  = var_get_width (var);
 	  node = pool_malloc (cat->pool, sizeof *node);
 
 	  node->ccase = case_ref (c);
@@ -304,7 +295,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       cat->vp[i].cc += weight;
 
       if (cat->update)
-	cat->update (node->user_data, cat->exclude, cat->wv, var, c, cat->aux1, cat->aux2);
+	cat->update (node->user_data, cat->exclude, cat->wv, NULL, c, cat->aux1, cat->aux2);
     }
 }
 
@@ -409,11 +400,11 @@ categoricals_get_variable_by_subscript (const struct categoricals *cat, int subs
 {
   int index = reverse_variable_lookup_short (cat, subscript);
 
-  return cat->vp[index].var;
+  return cat->vp[index].iact->vars[0];
 }
 
 /* Return the interaction corresponding to SUBSCRIPT */
-static const struct interaction *
+const struct interaction *
 categoricals_get_interaction_by_subscript (const struct categoricals *cat, int subscript)
 {
   int index = reverse_variable_lookup_short (cat, subscript);

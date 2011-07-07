@@ -756,3 +756,18 @@ covariance_get_var_indices (const struct covariance *cov, const struct variable 
       vars[i] = categoricals_get_variable_by_subscript (cov->categoricals, i - cov->n_vars);
     }
 }
+
+
+void
+covariance_get_interaction_indices (const struct covariance *cov, const struct interaction **iacts)
+{
+  int i;
+  for (i = 0; i < cov->n_vars; i++)
+    {
+      iacts[i] = cov->vars[i];
+    }
+  for (i = cov->n_vars; i < cov->dim; i++)
+    {
+      iacts[i] = categoricals_get_interaction_by_subscript (cov->categoricals, i - cov->n_vars);
+    }
+}
