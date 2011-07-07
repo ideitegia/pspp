@@ -54,14 +54,6 @@ struct glm_spec
   size_t n_factor_vars;
   const struct variable **factor_vars;
 
-  /* In the current implementation, design_vars will
-     normally be the same as factor_vars.
-     This will change once interactions, nested variables
-     and repeated measures become involved.
-  */
-  size_t n_design_vars;
-  const struct variable **design_vars;
-
   size_t n_interactions;
   struct interaction **interactions;
 
@@ -111,12 +103,10 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   glm.dict = dataset_dict (ds);
   glm.n_dep_vars = 0;
   glm.n_factor_vars = 0;
-  glm.n_design_vars = 0;
   glm.n_interactions = 0;
   glm.interactions = NULL;
   glm.dep_vars = NULL;
   glm.factor_vars = NULL;
-  glm.design_vars = NULL;
   glm.exclude = MV_ANY;
   glm.intercept = true;
   glm.wv = dict_get_weight (glm.dict);
@@ -298,7 +288,6 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
     interaction_destroy (glm.interactions[i]);
   free (glm.interactions);
   free (glm.dep_vars);
-  free (glm.design_vars);
 
 
   return CMD_SUCCESS;
@@ -312,7 +301,6 @@ error:
 
   free (glm.interactions);
   free (glm.dep_vars);
-  free (glm.design_vars);
 
   return CMD_FAILURE;
 }
@@ -351,13 +339,14 @@ get_ssq (struct covariance *cov, gsl_vector * ssq, const struct glm_spec *cmd)
   vars = xcalloc (covariance_dim (cov), sizeof (*vars));
   covariance_get_var_indices (cov, vars);
 
-  for (k = 0; k < cmd->n_design_vars; k++)
+  for (k = 0; k < cmd->n_interactions; k++)
     {
       n_dropped = 0;
       for (i = 1; i < covariance_dim (cov); i++)
 	{
-	  if (vars[i] == cmd->design_vars[k])
+	  if (vars[i] == cmd->interactions[k]->vars[0])
 	    {
+	      assert (n_dropped < covariance_dim (cov));
 	      dropped[n_dropped++] = i;
 	    }
 	}
@@ -701,13 +690,9 @@ parse_design_interaction (struct lexer *lexer, struct glm_spec *glm, struct inte
 
   if ( lex_match (lexer, T_ASTERISK) || lex_match (lexer, T_BY))
     {
-      lex_error (lexer, "Interactions are not yet implemented"); return false;
+      // lex_error (lexer, "Interactions are not yet implemented"); return false;
       return parse_design_interaction (lexer, glm, iact);
     }
-
-  glm->n_design_vars++;
-  glm->design_vars = xrealloc (glm->design_vars, sizeof (*glm->design_vars) * glm->n_design_vars);
-  glm->design_vars[glm->n_design_vars - 1] = v;
 
   return true;
 }
