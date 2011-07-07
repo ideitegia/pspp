@@ -63,7 +63,7 @@ struct glm_spec
   const struct variable **design_vars;
 
   size_t n_interactions;
-  const struct interaction **interactions;
+  struct interaction **interactions;
 
   enum mv_class exclude;
 
@@ -104,6 +104,7 @@ static bool parse_design_spec (struct lexer *lexer, struct glm_spec *glm);
 int
 cmd_glm (struct lexer *lexer, struct dataset *ds)
 {
+  int i;
   struct const_var_set *factors = NULL;
   struct glm_spec glm;
   bool design = false;
@@ -293,8 +294,11 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 
   const_var_set_destroy (factors);
   free (glm.factor_vars);
+  for (i = 0 ; i < glm.n_interactions; ++i)
+    interaction_destroy (glm.interactions[i]);
   free (glm.interactions);
   free (glm.dep_vars);
+  free (glm.design_vars);
 
 
   return CMD_SUCCESS;
@@ -303,8 +307,12 @@ error:
 
   const_var_set_destroy (factors);
   free (glm.factor_vars);
+  for (i = 0 ; i < glm.n_interactions; ++i)
+    interaction_destroy (glm.interactions[i]);
+
   free (glm.interactions);
   free (glm.dep_vars);
+  free (glm.design_vars);
 
   return CMD_FAILURE;
 }

@@ -125,7 +125,17 @@ categoricals_destroy ( struct categoricals *cat)
   if (cat != NULL)
     {
       for (i = 0 ; i < cat->n_vp; ++i)
-	hmap_destroy (&cat->vp[i].map);
+	{
+	  struct hmap *map = &cat->vp[i].map;
+	  struct value_node *nn;
+
+	  HMAP_FOR_EACH (nn, struct value_node, node, map)
+	    {
+	      case_unref (nn->ccase);
+	    }	  
+	  
+	  hmap_destroy (map);
+	}
       
       pool_destroy (cat->pool);
       free (cat);
