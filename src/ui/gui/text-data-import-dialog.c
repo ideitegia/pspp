@@ -41,32 +41,19 @@
 #include "ui/gui/builder-wrapper.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dialog.h"
+#include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-scanf.h"
 #include "ui/syntax-gen.h"
 
 #include "gl/error.h"
+#include "gl/intprops.h"
 #include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
-
-
-/* TextImportModel, a GtkTreeModel used by the text data import
-   dialog. */
-enum
-  {
-    TEXT_IMPORT_MODEL_COLUMN_LINE_NUMBER, /* 1-based line number in file */
-    TEXT_IMPORT_MODEL_COLUMN_LINE,        /* The line from the file. */
-  };
-typedef struct TextImportModel TextImportModel;
-typedef struct TextImportModelClass TextImportModelClass;
-
-TextImportModel *text_import_model_new (struct string *lines, size_t line_cnt,
-                                        size_t first_line);
-gint text_import_model_iter_to_row (const GtkTreeIter *);
 
 struct import_assistant;
 
@@ -898,6 +885,23 @@ reset_first_line_page (struct import_assistant *ia)
   set_first_line (ia);
 }
 
+static void
+render_line (GtkTreeViewColumn *tree_column,
+             GtkCellRenderer *cell,
+             GtkTreeModel *tree_model,
+             GtkTreeIter *iter,
+             gpointer data)
+{
+  gint row = empty_list_store_iter_to_row (iter);
+  struct string *lines;
+
+  lines = g_object_get_data (G_OBJECT (tree_model), "lines");
+  g_return_if_fail (lines != NULL);
+
+  g_object_set (cell, "text", ds_cstr (&lines[row]), NULL);
+}
+
+
 /* Creates and returns a tree view that contains each of the
    lines in IA's file as a row. */
 static GtkTreeView *
@@ -912,12 +916,10 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
 
   make_tree_view (ia, 0, &tree_view);
 
-  column = gtk_tree_view_column_new_with_attributes 
-    (
-     title, ia->asst.fixed_renderer,
-     "text", TEXT_IMPORT_MODEL_COLUMN_LINE,
-     (void *) NULL
-     );
+  column = gtk_tree_view_column_new_with_attributes (
+     title, ia->asst.fixed_renderer, (void *) NULL);
+  gtk_tree_view_column_set_cell_data_func (column, ia->asst.fixed_renderer,
+                                           render_line, NULL, NULL);
   gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);
 
   max_line_length = 0;
@@ -1537,7 +1539,7 @@ render_input_cell (GtkTreeViewColumn *tree_column, GtkCellRenderer *cell,
 
   column = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tree_column),
                                                "column-number"));
-  row = text_import_model_iter_to_row (iter) + ia->first_line.skip_lines;
+  row = empty_list_store_iter_to_row (iter) + ia->first_line.skip_lines;
   field = ia->separators.columns[column].contents[row];
   if (field.string != NULL)
     {
@@ -1851,7 +1853,7 @@ render_output_cell (GtkTreeViewColumn *tree_column,
   bool ok;
 
   ok = parse_field (ia,
-                    (text_import_model_iter_to_row (iter)
+                    (empty_list_store_iter_to_row (iter)
                      + ia->first_line.skip_lines),
                     GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tree_column),
                                                         "column-number")),
@@ -1935,7 +1937,7 @@ get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
   if (!ok)
     return FALSE;
 
-  *row = text_import_model_iter_to_row (&iter) + ia->first_line.skip_lines;
+  *row = empty_list_store_iter_to_row (&iter) + ia->first_line.skip_lines;
   return TRUE;
 }
 
@@ -1947,12 +1949,31 @@ make_tree_view (const struct import_assistant *ia,
   GtkTreeModel *model;
 
   *tree_view = GTK_TREE_VIEW (gtk_tree_view_new ());
-  model = GTK_TREE_MODEL (text_import_model_new (
-                            ia->file.lines + first_line,
-                            ia->file.line_cnt - first_line, first_line));
+  model = GTK_TREE_MODEL (psppire_empty_list_store_new (
+                            ia->file.line_cnt - first_line));
+  g_object_set_data (G_OBJECT (model), "lines", ia->file.lines + first_line);
+  g_object_set_data (G_OBJECT (model), "first-line",
+                     GINT_TO_POINTER (first_line));
   gtk_tree_view_set_model (*tree_view, model);
 
   add_line_number_column (ia, *tree_view);
+}
+
+static void
+render_line_number (GtkTreeViewColumn *tree_column,
+                    GtkCellRenderer *cell,
+                    GtkTreeModel *tree_model,
+                    GtkTreeIter *iter,
+                    gpointer data)
+{
+  gint row = empty_list_store_iter_to_row (iter);
+  char s[INT_BUFSIZE_BOUND (int)];
+  int first_line;
+
+  first_line = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tree_model),
+                                                   "first-line"));
+  sprintf (s, "%d", first_line + row);
+  g_object_set (cell, "text", s, NULL);
 }
 
 static void
@@ -1962,12 +1983,13 @@ add_line_number_column (const struct import_assistant *ia,
   GtkTreeViewColumn *column;
 
   column = gtk_tree_view_column_new_with_attributes (
-						     _("Line"), ia->asst.prop_renderer,
-    "text", TEXT_IMPORT_MODEL_COLUMN_LINE_NUMBER,
-    (void *) NULL);
+    _("Line"), ia->asst.prop_renderer, (void *) NULL);
   gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);
   gtk_tree_view_column_set_fixed_width (
     column, get_monospace_width (treeview, ia->asst.prop_renderer, 5));
+  gtk_tree_view_column_set_resizable (column, TRUE);
+  gtk_tree_view_column_set_cell_data_func (column, ia->asst.prop_renderer,
+                                           render_line_number, NULL, NULL);
   gtk_tree_view_append_column (treeview, column);
 }
 
@@ -2082,272 +2104,6 @@ escape_underscores (const char *in)
   *p = '\0';
 
   return out;
-}
-
-/* TextImportModel, a GtkTreeModel implementation used by some
-   pages of the assistant. */
-
-#define G_TYPE_TEXT_IMPORT_MODEL (text_import_model_get_type ())
-#define TEXT_IMPORT_MODEL(object) (G_TYPE_CHECK_INSTANCE_CAST ((object), G_TYPE_TEXT_IMPORT_MODEL, TextImportModel))
-#define TEXT_IMPORT_MODEL_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_TYPE_TEXT_IMPORT_MODEL, TextImportModelClass))
-#define IS_TEXT_IMPORT_MODEL(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), G_TYPE_TEXT_IMPORT_MODEL))
-#define IS_TEXT_IMPORT_MODEL_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_TYPE_TEXT_IMPORT_MODEL))
-#define TEXT_IMPORT_MODEL_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_TYPE_TEXT_IMPORT_MODEL, TextImportModelClass))
-
-/* Random number used in 'stamp' member of GtkTreeIter. */
-#define TREE_MODEL_STAMP 0x7efd67d3
-
-struct TextImportModel
-{
-  GObject             parent;
-  struct string *lines;
-  size_t line_cnt;
-  size_t first_line;
-};
-
-struct TextImportModelClass
-{
-  GObjectClass parent_class;
-};
-
-GType text_import_model_get_type (void);
-static void text_import_model_tree_model_init (gpointer iface, gpointer data);
-
-GType
-text_import_model_get_type (void)
-{
-  static GType object_type = 0;
-
-  if (!object_type)
-    {
-      static const GTypeInfo object_info = {
-	sizeof (TextImportModelClass),
-	(GBaseInitFunc) NULL,
-	(GBaseFinalizeFunc) NULL,
-	NULL,   /* class_init */
-	NULL,   /* class_finalize */
-	NULL,   /* class_data */
-	sizeof (TextImportModel),
-	0,      /* n_preallocs */
-	NULL,   /* instance_init */
-      };
-
-      static const GInterfaceInfo tree_model_info = {
-	text_import_model_tree_model_init,
-	NULL,
-	NULL
-      };
-
-      object_type = g_type_register_static (G_TYPE_OBJECT,
-					    "TextImportModel",
-					    &object_info, 0);
-
-      g_type_add_interface_static (object_type, GTK_TYPE_TREE_MODEL,
-				   &tree_model_info);
-
-
-    }
-
-  return object_type;
-}
-
-
-/* Creates and returns a new TextImportModel that contains the
-   LINE_CNT lines in LINES.  The lines before FIRST_LINE in LINES
-   are not part of the model, but they are included in the line
-   numbers in the TEXT_IMPORT_MODEL_COLUMN_LINE_NUMBER column.
-
-   The caller retains responsibility for freeing LINES and must
-   ensure that its lifetime and that of the strings that it
-   contains exceeds that of the TextImportModel. */
-TextImportModel *
-text_import_model_new (struct string *lines, size_t line_cnt,
-                       size_t first_line)
-{
-  TextImportModel *new_text_import_model
-    = g_object_new (G_TYPE_TEXT_IMPORT_MODEL, NULL);
-  new_text_import_model->lines = lines;
-  new_text_import_model->line_cnt = line_cnt;
-  new_text_import_model->first_line = first_line;
-  return new_text_import_model;
-}
-
-
-static gboolean
-tree_model_iter_has_child  (GtkTreeModel *tree_model,
-			    GtkTreeIter  *iter)
-{
-  return FALSE;
-}
-
-static gboolean
-tree_model_iter_parent (GtkTreeModel *tree_model,
-		        GtkTreeIter *iter,
-		        GtkTreeIter *child)
-{
-  return TRUE;
-}
-
-static GtkTreeModelFlags
-tree_model_get_flags (GtkTreeModel *model)
-{
-  g_return_val_if_fail (IS_TEXT_IMPORT_MODEL (model), (GtkTreeModelFlags) 0);
-
-  return GTK_TREE_MODEL_LIST_ONLY | GTK_TREE_MODEL_ITERS_PERSIST;
-}
-
-
-static gint
-tree_model_n_columns (GtkTreeModel *model)
-{
-  return 2;
-}
-
-static GType
-tree_model_column_type (GtkTreeModel *model, gint index)
-{
-  return (index == TEXT_IMPORT_MODEL_COLUMN_LINE_NUMBER ? G_TYPE_INT
-          : index == TEXT_IMPORT_MODEL_COLUMN_LINE ? G_TYPE_STRING
-          : -1);
-}
-
-static gboolean
-init_iter (TextImportModel *list, gint idx, GtkTreeIter *iter)
-{
-  if (idx < 0 || idx >= list->line_cnt)
-    {
-      iter->stamp = 0;
-      iter->user_data = GINT_TO_POINTER (-1);
-      return FALSE;
-    }
-  else
-    {
-      iter->stamp = TREE_MODEL_STAMP;
-      iter->user_data = GINT_TO_POINTER (idx);
-      return TRUE;
-    }
-}
-
-static gboolean
-tree_model_get_iter (GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
-{
-  gint *indices, depth;
-
-  TextImportModel *list = TEXT_IMPORT_MODEL (model);
-
-  g_return_val_if_fail (path, FALSE);
-
-  indices = gtk_tree_path_get_indices (path);
-  depth = gtk_tree_path_get_depth (path);
-
-  g_return_val_if_fail (depth == 1, FALSE);
-
-  return init_iter (list, indices[0], iter);
-}
-
-
-static gboolean
-tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
-{
-  TextImportModel *list = TEXT_IMPORT_MODEL (model);
-  gint idx;
-
-  assert (iter->stamp == TREE_MODEL_STAMP);
-
-  idx = GPOINTER_TO_INT (iter->user_data);
-  return init_iter (list, idx == -1 ? -1 : idx + 1, iter);
-}
-
-static GtkTreePath *
-tree_model_get_path (GtkTreeModel *model, GtkTreeIter *iter)
-{
-  GtkTreePath *path;
-
-  g_return_val_if_fail (iter->stamp == TREE_MODEL_STAMP, FALSE);
-
-  path = gtk_tree_path_new ();
-  gtk_tree_path_append_index (path, GPOINTER_TO_INT (iter->user_data));
-
-  return path;
-}
-
-static void
-tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
-		      gint column, GValue *value)
-{
-  TextImportModel *list = TEXT_IMPORT_MODEL (model);
-  gint idx;
-
-  g_return_if_fail (iter->stamp == TREE_MODEL_STAMP);
-
-  idx = GPOINTER_TO_INT (iter->user_data);
-  assert (idx >= 0 && idx < list->line_cnt);
-
-  if (column == 0)
-    {
-      g_value_init (value, G_TYPE_INT);
-      g_value_set_int (value, idx + list->first_line + 1);
-    }
-  else
-    {
-      g_value_init (value, G_TYPE_STRING);
-      g_value_set_static_string (value, ds_cstr (&list->lines[idx]));
-    }
-}
-
-static gboolean
-tree_model_iter_children (GtkTreeModel *tree_model,
-			  GtkTreeIter *iter,
-			  GtkTreeIter *parent)
-{
-  return FALSE;
-}
-
-static gint
-tree_model_n_children (GtkTreeModel *model, GtkTreeIter  *iter)
-{
-  TextImportModel *list = TEXT_IMPORT_MODEL (model);
-
-  return iter == NULL ? list->line_cnt : 0;
-}
-
-static gboolean
-tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
-		      GtkTreeIter *parent, gint n)
-{
-  TextImportModel *list = TEXT_IMPORT_MODEL (model);
-  g_return_val_if_fail (IS_TEXT_IMPORT_MODEL (model), FALSE);
-
-  if (parent)
-    return FALSE;
-  return init_iter (list, n, iter);
-}
-
-static void
-text_import_model_tree_model_init (gpointer iface_, gpointer data UNUSED)
-{
-  GtkTreeModelIface *iface = (GtkTreeModelIface *) iface_;
-
-  iface->get_flags = tree_model_get_flags;
-  iface->get_n_columns = tree_model_n_columns;
-  iface->get_column_type = tree_model_column_type;
-  iface->get_iter = tree_model_get_iter;
-  iface->iter_next = tree_model_iter_next;
-  iface->get_path = tree_model_get_path;
-  iface->get_value = tree_model_get_value;
-
-  iface->iter_children = tree_model_iter_children;
-  iface->iter_has_child = tree_model_iter_has_child;
-  iface->iter_n_children = tree_model_n_children;
-  iface->iter_nth_child = tree_model_nth_child;
-  iface->iter_parent = tree_model_iter_parent;
-}
-
-gint
-text_import_model_iter_to_row (const GtkTreeIter *iter)
-{
-  assert (iter->stamp == TREE_MODEL_STAMP);
-  return GPOINTER_TO_INT (iter->user_data);
 }
 
 /* Increments the "watch cursor" level, setting the cursor for
