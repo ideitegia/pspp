@@ -184,18 +184,18 @@ static int
 kmeans_get_nearest_group (struct Kmeans *kmeans, struct ccase *c, const struct qc *qc)
 {
   int result = -1;
-  double x;
   int i, j;
-  double dist;
-  double mindist;
-  mindist = INFINITY;
+  double mindist = INFINITY;
   for (i = 0; i < qc->ngroups; i++)
     {
-      dist = 0;
+      double dist = 0;
       for (j = 0; j < qc->n_vars; j++)
 	{
-	  x = case_data (c, qc->vars[j])->f;
-	  dist += pow2 (gsl_matrix_get (kmeans->centers, i, j) - x);
+	  const union value *val = case_data (c, qc->vars[j]);
+	  if ( var_is_value_missing (qc->vars[j], val, qc->exclude))
+	    continue;
+
+	  dist += pow2 (gsl_matrix_get (kmeans->centers, i, j) - val->f);
 	}
       if (dist < mindist)
 	{
@@ -210,29 +210,28 @@ kmeans_get_nearest_group (struct Kmeans *kmeans, struct ccase *c, const struct q
 static void
 kmeans_recalculate_centers (struct Kmeans *kmeans, const struct casereader *reader, const struct qc *qc)
 {
-  casenumber i;
+  casenumber i = 0;
   int v, j;
-  double x, curval;
   struct ccase *c;
-  struct ccase *c_index;
-  struct casereader *cs;
-  struct casereader *cs_index;
-  int index;
 
-  i = 0;
-  cs = casereader_clone (reader);
-  cs_index = casereader_clone (kmeans->index_rdr);
+  struct casereader *cs = casereader_clone (reader);
+  struct casereader *cs_index = casereader_clone (kmeans->index_rdr);
 
   gsl_matrix_set_all (kmeans->centers, 0.0);
   for (; (c = casereader_read (cs)) != NULL; case_unref (c))
     {
       double weight = qc->wv ? case_data (c, qc->wv)->f : 1.0;
-      c_index = casereader_read (cs_index);
-      index = case_data_idx (c_index, 0)->f;
+      struct ccase *c_index = casereader_read (cs_index);
+      int index = case_data_idx (c_index, 0)->f;
       for (v = 0; v < qc->n_vars; ++v)
 	{
-	  x = case_data (c, qc->vars[v])->f * weight;
-	  curval = gsl_matrix_get (kmeans->centers, index, v);
+	  const union value *val = case_data (c, qc->vars[v]);
+	  double x = val->f * weight;
+
+	  if ( var_is_value_missing (qc->vars[v], val, qc->exclude))
+	    continue;
+
+	  double curval = gsl_matrix_get (kmeans->centers, index, v);
 	  gsl_matrix_set (kmeans->centers, index, v, curval + x);
 	}
       i++;
@@ -499,6 +498,7 @@ cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
   qc.ngroups = 2;
   qc.maxiter = 2;
   qc.missing_type = MISS_LISTWISE;
+  qc.exclude = MV_ANY;
 
   if (!parse_variables_const (lexer, dict, &qc.vars, &qc.n_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
@@ -506,9 +506,33 @@ cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
       return (CMD_FAILURE);
     }
 
-  if (lex_match (lexer, T_SLASH))
+  while (lex_token (lexer) != T_ENDCMD)
     {
-      if (lex_match_id (lexer, "CRITERIA"))
+      lex_match (lexer, T_SLASH);
+
+      if (lex_match_id (lexer, "MISSING"))
+	{
+	  lex_match (lexer, T_EQUALS);
+	  while (lex_token (lexer) != T_ENDCMD
+		 && lex_token (lexer) != T_SLASH)
+	    {
+	      if (lex_match_id (lexer, "LISTWISE") || lex_match_id (lexer, "DEFAULT"))
+		{
+		  qc.missing_type = MISS_LISTWISE;
+		}
+	      else if (lex_match_id (lexer, "PAIRWISE"))
+		{
+		  qc.missing_type = MISS_PAIRWISE;
+		}
+	      else if (lex_match_id (lexer, "INCLUDE"))
+		{
+		  qc.exclude = MV_SYSTEM;
+		}
+	      else
+		goto error;
+	    }	  
+	}
+      else if (lex_match_id (lexer, "CRITERIA"))
 	{
 	  lex_match (lexer, T_EQUALS);
 	  while (lex_token (lexer) != T_ENDCMD
