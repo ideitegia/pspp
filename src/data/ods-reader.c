@@ -315,13 +315,14 @@ convert_xml_to_value (struct ccase *c, const struct variable *var,
     value_copy_str_rpad (v, var_get_width (var), xmv->text, ' ');
   else
     {
+      const char *text ;
       const struct fmt_spec *fmt = var_get_write_format (var);
       enum fmt_category fc  = fmt_get_category (fmt->type);
 
       assert ( fc != FMT_CAT_STRING);
 
-      const char *text = xmv->value ? CHAR_CAST (const char *, xmv->value):
-	CHAR_CAST (const char *, xmv->text);
+      text =
+        xmv->value ? CHAR_CAST (const char *, xmv->value) : CHAR_CAST (const char *, xmv->text);
 
       data_in (ss_cstr (text), "UTF-8",
 	       fmt->type,
@@ -344,12 +345,14 @@ ods_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
   int n_var_specs = 0;
 
   struct ods_reader *r = xzalloc (sizeof *r);
+  struct zip_member *content = NULL;
+  struct zip_reader *zreader ;
+  xmlChar *val_string = NULL;
 
   r->read_names = gri->read_names;
   ds_init_empty (&r->ods_errs);
 
-  struct zip_reader *zreader = zip_reader_create (gri->file_name, &r->ods_errs);
-  struct zip_member *content = NULL;
+  zreader = zip_reader_create (gri->file_name, &r->ods_errs);
 
   if ( NULL == zreader)
     {
@@ -473,7 +476,6 @@ ods_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
 	}
     }
 
-  xmlChar *val_string = NULL;
   /* Read in the first row of data */
   while (1 == xmlTextReaderRead (r->xtr))
     {

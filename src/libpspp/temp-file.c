@@ -55,7 +55,7 @@ static void
 cleanup (void)
 {
   struct hmapx_node *node;
-  const char *fn;
+  char *fn;
 
   cleanup_temp_dir (temp_dir);
 

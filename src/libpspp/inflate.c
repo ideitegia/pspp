@@ -99,6 +99,7 @@ inflate_init (struct zip_member *zm)
 int
 inflate_read (struct zip_member *zm, void *buf, size_t n)
 {
+  int r;
   struct inflator *inf = zm->aux;
 
   if (inf->zss.avail_in == 0)
@@ -134,7 +135,7 @@ inflate_read (struct zip_member *zm, void *buf, size_t n)
   inf->zss.avail_out = n;
   inf->zss.next_out = buf;
 
-  int r = inflate (&inf->zss, Z_NO_FLUSH);
+  r = inflate (&inf->zss, Z_NO_FLUSH);
   if ( Z_OK == r)
     {
       return n - inf->zss.avail_out;

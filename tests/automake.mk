@@ -58,9 +58,6 @@ tests_libpspp_encoding_guesser_test_SOURCES = \
 tests_libpspp_encoding_guesser_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
 
 tests_libpspp_heap_test_SOURCES = \
-	src/libpspp/heap.c \
-	src/libpspp/pool.c \
-	src/libpspp/temp-file.c \
 	tests/libpspp/heap-test.c
 tests_libpspp_heap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_heap_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
@@ -96,10 +93,6 @@ tests_libpspp_range_map_test_SOURCES = \
 tests_libpspp_range_map_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_range_set_test_SOURCES = \
-	src/libpspp/bt.c \
-	src/libpspp/pool.c \
-	src/libpspp/range-set.c \
-	src/libpspp/temp-file.c \
 	tests/libpspp/range-set-test.c
 tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_range_set_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
@@ -109,23 +102,11 @@ tests_libpspp_str_test_SOURCES = \
 tests_libpspp_str_test_LDADD = src/libpspp/libpspp.la gl/libgl.la 
 
 tests_libpspp_string_map_test_SOURCES = \
-	src/libpspp/hash-functions.c \
-	src/libpspp/hmap.c \
-	src/libpspp/string-map.c \
-	src/libpspp/string-set.c \
 	tests/libpspp/string-map-test.c
 tests_libpspp_string_map_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_string_map_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
 
 tests_libpspp_stringi_map_test_SOURCES = \
-	src/libpspp/hash-functions.c \
-	src/libpspp/hmap.c \
-	src/libpspp/pool.c \
-	src/libpspp/str.c \
-	src/libpspp/stringi-map.c \
-	src/libpspp/string-set.c \
-	src/libpspp/stringi-set.c \
-	src/libpspp/temp-file.c \
 	tests/libpspp/stringi-map-test.c
 tests_libpspp_stringi_map_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_stringi_map_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
@@ -138,21 +119,11 @@ tests_libpspp_string_set_test_SOURCES = \
 tests_libpspp_string_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_stringi_set_test_SOURCES = \
-	src/libpspp/hash-functions.c \
-	src/libpspp/hmap.c \
-	src/libpspp/pool.c \
-	src/libpspp/str.c \
-	src/libpspp/stringi-set.c \
-	src/libpspp/temp-file.c \
 	tests/libpspp/stringi-set-test.c
 tests_libpspp_stringi_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_stringi_set_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
 
 tests_libpspp_tower_test_SOURCES = \
-	src/libpspp/abt.c \
-	src/libpspp/pool.c \
-	src/libpspp/temp-file.c \
-	src/libpspp/tower.c \
 	tests/libpspp/tower-test.c
 tests_libpspp_tower_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_tower_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
@@ -161,25 +132,11 @@ tests_libpspp_u8_istream_test_SOURCES = tests/libpspp/u8-istream-test.c
 tests_libpspp_u8_istream_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
 
 tests_libpspp_sparse_array_test_SOURCES = \
-	src/libpspp/sparse-array.c \
-	src/libpspp/pool.c \
-	tests/libpspp/sparse-array-test.c \
-	src/libpspp/temp-file.c
+	tests/libpspp/sparse-array-test.c 
 tests_libpspp_sparse_array_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_sparse_array_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
 
 tests_libpspp_sparse_xarray_test_SOURCES = \
-	src/libpspp/argv-parser.c \
-	src/libpspp/bt.c \
-	src/libpspp/deque.c \
-	src/libpspp/ext-array.c \
-	src/libpspp/model-checker.c \
-	src/libpspp/range-set.c \
-	src/libpspp/sparse-array.c \
-	src/libpspp/sparse-xarray.c \
-	src/libpspp/str.c \
-	src/libpspp/pool.c \
-	src/libpspp/temp-file.c \
 	tests/libpspp/sparse-xarray-test.c
 tests_libpspp_sparse_xarray_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_sparse_xarray_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
@@ -203,10 +160,6 @@ tests_language_lexer_scan_test_SOURCES = \
 	src/language/lexer/scan.c \
 	src/language/lexer/segment.c \
 	src/language/lexer/token.c \
-	src/libpspp/pool.c \
-	src/libpspp/prompt.c \
-	src/libpspp/str.c \
-	src/libpspp/temp-file.c \
 	tests/language/lexer/scan-test.c
 tests_language_lexer_scan_test_CFLAGS = $(AM_CFLAGS)
 tests_language_lexer_scan_test_LDADD = \
@@ -218,10 +171,6 @@ tests_language_lexer_segment_test_SOURCES = \
 	src/data/identifier.c \
 	src/language/lexer/command-name.c \
 	src/language/lexer/segment.c \
-	src/libpspp/pool.c \
-	src/libpspp/prompt.c \
-	src/libpspp/str.c \
-	src/libpspp/temp-file.c \
 	tests/language/lexer/segment-test.c
 tests_language_lexer_segment_test_CFLAGS = $(AM_CFLAGS)
 tests_language_lexer_segment_test_LDADD = \
@@ -230,12 +179,6 @@ tests_language_lexer_segment_test_LDADD = \
 
 check_PROGRAMS += tests/libpspp/zip-test
 tests_libpspp_zip_test_SOURCES = \
-	src/libpspp/str.c \
-	src/libpspp/pool.c \
-	src/libpspp/temp-file.c \
-	src/libpspp/inflate.c \
-	src/libpspp/zip-reader.c \
-	src/libpspp/zip-writer.c \
 	tests/libpspp/zip-test.c
 tests_libpspp_zip_test_CFLAGS = $(AM_CFLAGS)
 tests_libpspp_zip_test_LDADD = \

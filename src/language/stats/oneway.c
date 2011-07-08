@@ -181,7 +181,7 @@ static double bonferroni_pinv (double std_err, double alpha, double df, int k, c
   return std_err * gsl_cdf_tdist_Pinv (1.0 - alpha / (2.0 * m), df);
 }
 
-static double sidak_pinv (double std_err, double alpha, double df, int k, const struct moments1 *mom_i, const struct moments1 *mom_j)
+static double sidak_pinv (double std_err, double alpha, double df, int k, const struct moments1 *mom_i UNUSED, const struct moments1 *mom_j UNUSED)
 {
   const double m = k * (k - 1) / 2;
   double lp = 1.0 - exp (log (1.0 - alpha) / m ) ;
@@ -271,21 +271,22 @@ static double scheffe_1tailsig (double ts, double df1, double df2)
 }
 
 
-static double tukey_test_stat (int k, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
+static double tukey_test_stat (int k UNUSED, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
 {
+  double ts;
   double n_i, mean_i, var_i;
   double n_j, mean_j, var_j;
 
   moments1_calculate (mom_i, &n_i, &mean_i, &var_i, 0, 0);  
   moments1_calculate (mom_j, &n_j, &mean_j, &var_j, 0, 0);
 
-  double ts =  (mean_i - mean_j) / std_err;
+  ts =  (mean_i - mean_j) / std_err;
   ts = fabs (ts) * sqrt (2.0);
 
   return ts;
 }
 
-static double lsd_test_stat (int k, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
+static double lsd_test_stat (int k UNUSED, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
 {
   double n_i, mean_i, var_i;
   double n_j, mean_j, var_j;
@@ -298,32 +299,35 @@ static double lsd_test_stat (int k, const struct moments1 *mom_i, const struct m
 
 static double scheffe_test_stat (int k, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
 {
+  double t;
   double n_i, mean_i, var_i;
   double n_j, mean_j, var_j;
 
   moments1_calculate (mom_i, &n_i, &mean_i, &var_i, 0, 0);  
   moments1_calculate (mom_j, &n_j, &mean_j, &var_j, 0, 0);
 
-  double t = (mean_i - mean_j) / std_err;
+  t = (mean_i - mean_j) / std_err;
   t = pow2 (t);
   t /= k - 1;
 
   return t;
 }
 
-static double gh_test_stat (int k, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err)
+static double gh_test_stat (int k UNUSED, const struct moments1 *mom_i, const struct moments1 *mom_j, double std_err UNUSED)
 {
+  double ts;
+  double thing;
   double n_i, mean_i, var_i;
   double n_j, mean_j, var_j;
 
   moments1_calculate (mom_i, &n_i, &mean_i, &var_i, 0, 0);  
   moments1_calculate (mom_j, &n_j, &mean_j, &var_j, 0, 0);
 
-  double thing = var_i / n_i + var_j / n_j;
+  thing = var_i / n_i + var_j / n_j;
   thing /= 2.0;
   thing = sqrt (thing);
 
-  double ts = (mean_i - mean_j) / thing;
+  ts = (mean_i - mean_j) / thing;
 
   return fabs (ts);
 }
@@ -1527,6 +1531,7 @@ show_comparisons (const struct oneway_spec *cmd, const struct oneway_workspace *
 
 	  for (j = 0 ; j < pvw->n_groups; ++j)
 	    {
+	      double std_err;
 	      double weight_j, mean_j, var_j;
 	      double half_range;
 	      struct descriptive_data *dd_j = categoricals_get_user_data_by_category (cat, j);
@@ -1542,7 +1547,7 @@ show_comparisons (const struct oneway_spec *cmd, const struct oneway_workspace *
 
 	      tab_double  (t, 3, r + rx, 0, mean_i - mean_j, 0);
 
-	      double std_err = pvw->mse;
+	      std_err = pvw->mse;
 	      std_err *= weight_i + weight_j;
 	      std_err /= weight_i * weight_j;
 	      std_err = sqrt (std_err);
