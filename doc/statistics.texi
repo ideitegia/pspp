@@ -14,6 +14,7 @@ far.
 * NPAR TESTS::                  Nonparametric tests.
 * T-TEST::                      Test hypotheses about means.
 * ONEWAY::                      One way analysis of variance.
+* QUICK CLUSTER::               K-Means clustering.
 * RANK::                        Compute rank scores.
 * REGRESSION::                  Linear regression.
 * RELIABILITY::                 Reliability analysis.
@@ -1169,9 +1170,51 @@ that @var{value} should be used as the
 confidence level for which the posthoc tests will be performed.
 The default is 0.05.
 
+@node QUICK CLUSTER
+@comment  node-name,  next,  previous,  up
+@section QUICK CLUSTER
+@vindex QUICK CLUSTER
+
+@cindex K-means clustering
+@cindex clustering
+
+@display
+QUICK CLUSTER var_list
+      [/CRITERIA=CLUSTERS(@var{k}) [MXITER(@var{max_iter})]]
+      [/MISSING=@{EXCLUDE,INCLUDE@} @{LISTWISE, PAIRWISE@}]
+@end display
+
+The @cmd{QUICK CLUSTER} command performs k-means clustering on the
+dataset.  This is useful when you wish to allocate cases into clusters
+of similar values and you already know the number of clusters.
+
+The minimum specification is @samp{QUICK CLUSTER} followed by the names
+of the variables which contain the cluster data.  Normally you will also
+want to specify @samp{/CRITERIA=CLUSTERS(@var{k})} where @var{k} is the
+number of clusters.  If this is not given, then @var{k} defaults to 2.
+
+The command uses an iterative algorithm to determine the clusters for
+each case.  It will continue iterating until convergence, or until @var{max_iter}
+iterations have been done.  The default value of @var{max_iter} is 2.
+
+The @cmd{MISSING} subcommand determines the handling of missing variables.  
+If INCLUDE is set, then user-missing values are considered at their face
+value and not as missing values.
+If EXCLUDE is set, which is the default, user-missing
+values are excluded as well as system-missing values. 
+
+If LISTWISE is set, then the entire case is excluded from the analysis
+whenever any of the clustering variables contains a missing value.   
+If PAIRWISE is set, then a case is considered missing only if all the
+clustering variables contain missing values.  Otherwise it is clustered
+on the basis of the non-missing values.
+The default is LISTWISE.
+
+
 @node RANK
 @comment  node-name,  next,  previous,  up
 @section RANK
+
 
 @vindex RANK
 @display
