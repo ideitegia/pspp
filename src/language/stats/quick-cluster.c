@@ -227,11 +227,12 @@ kmeans_recalculate_centers (struct Kmeans *kmeans, const struct casereader *read
 	{
 	  const union value *val = case_data (c, qc->vars[v]);
 	  double x = val->f * weight;
+	  double curval;
 
 	  if ( var_is_value_missing (qc->vars[v], val, qc->exclude))
 	    continue;
 
-	  double curval = gsl_matrix_get (kmeans->centers, index, v);
+	  curval = gsl_matrix_get (kmeans->centers, index, v);
 	  gsl_matrix_set (kmeans->centers, index, v, curval + x);
 	}
       i++;
@@ -527,6 +528,10 @@ cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
 	      else if (lex_match_id (lexer, "INCLUDE"))
 		{
 		  qc.exclude = MV_SYSTEM;
+		}
+	      else if (lex_match_id (lexer, "EXCLUDE"))
+		{
+		  qc.exclude = MV_ANY;
 		}
 	      else
 		goto error;
