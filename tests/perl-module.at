@@ -5,8 +5,12 @@ dnl built (with "make") but before it has been installed.  The -I options are
 dnl equivalent to "use ExtUtils::testlib;" inside the Perl program, but it does
 dnl not need to be run with the perl-module build directory as the current
 dnl working directory.
+dnl
+dnl XXX "libtool --mode=execute" is probably better than setting
+dnl LD_LIBRARY_PATH.
 m4_define([RUN_PERL_MODULE],
   [LD_LIBRARY_PATH=$abs_top_builddir/src/.libs \
+   DYLD_LIBRARY_PATH=$abs_top_builddir/src/.libs \
    $PERL -I$abs_top_builddir/perl-module/blib/arch \
          -I$abs_top_builddir/perl-module/blib/lib])
 
