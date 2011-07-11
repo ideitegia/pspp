@@ -324,25 +324,22 @@ not_dropped (size_t j, size_t * dropped, size_t n_dropped)
 static void
 get_ssq (struct covariance *cov, gsl_vector * ssq, const struct glm_spec *cmd)
 {
-  const struct variable **vars;
-  gsl_matrix *small_cov = NULL;
   gsl_matrix *cm = covariance_calculate_unnormalized (cov);
   size_t i;
   size_t j;
   size_t k;
-  size_t n;
-  size_t m;
-  size_t *dropped;
-  size_t n_dropped;
+  size_t *dropped = xcalloc (covariance_dim (cov), sizeof (*dropped));
+  const struct variable **vars = xcalloc (covariance_dim (cov), sizeof (*vars));
 
-  dropped = xcalloc (covariance_dim (cov), sizeof (*dropped));
-  vars = xcalloc (covariance_dim (cov), sizeof (*vars));
   covariance_get_var_indices (cov, vars);
 
   for (k = 0; k < cmd->n_interactions; k++)
     {
-      n_dropped = 0;
-      for (i = 1; i < covariance_dim (cov); i++)
+      size_t n = 0;
+      size_t m = 0;
+      gsl_matrix *small_cov = NULL;
+      size_t n_dropped = 0;
+      for (i = cmd->n_dep_vars; i < covariance_dim (cov); i++)
 	{
 	  if (vars[i] == cmd->interactions[k]->vars[0])
 	    {
@@ -353,8 +350,6 @@ get_ssq (struct covariance *cov, gsl_vector * ssq, const struct glm_spec *cmd)
       small_cov =
 	gsl_matrix_alloc (cm->size1 - n_dropped, cm->size2 - n_dropped);
       gsl_matrix_set (small_cov, 0, 0, gsl_matrix_get (cm, 0, 0));
-      n = 0;
-      m = 0;
       for (i = 0; i < cm->size1; i++)
 	{
 	  if (not_dropped (i, dropped, n_dropped))
