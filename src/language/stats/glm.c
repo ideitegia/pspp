@@ -329,9 +329,7 @@ get_ssq (struct covariance *cov, gsl_vector * ssq, const struct glm_spec *cmd)
   size_t j;
   size_t k;
   size_t *dropped = xcalloc (covariance_dim (cov), sizeof (*dropped));
-  const struct variable **vars = xcalloc (covariance_dim (cov), sizeof (*vars));
-
-  covariance_get_var_indices (cov, vars);
+  const struct categoricals *cats = covariance_get_categoricals (cov);
 
   for (k = 0; k < cmd->n_interactions; k++)
     {
@@ -341,7 +339,8 @@ get_ssq (struct covariance *cov, gsl_vector * ssq, const struct glm_spec *cmd)
       size_t n_dropped = 0;
       for (i = cmd->n_dep_vars; i < covariance_dim (cov); i++)
 	{
-	  if (vars[i] == cmd->interactions[k]->vars[0])
+	  if (categoricals_get_interaction_by_subscript (cats, i - cmd->n_dep_vars)
+	      == cmd->interactions[k])
 	    {
 	      assert (n_dropped < covariance_dim (cov));
 	      dropped[n_dropped++] = i;
@@ -375,7 +374,6 @@ get_ssq (struct covariance *cov, gsl_vector * ssq, const struct glm_spec *cmd)
     }
 
   free (dropped);
-  free (vars);
   gsl_matrix_free (cm);
 }
 
