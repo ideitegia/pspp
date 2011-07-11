@@ -76,8 +76,6 @@ void categoricals_done (const struct categoricals *cat);
   the total number of distinct values of each categorical variable should
   be considered.
  */
-const struct variable * categoricals_get_variable_by_subscript (const struct categoricals *cat, int subscript);
-
 double categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscript);
 const struct interaction *categoricals_get_interaction_by_subscript (const struct categoricals *cat, int subscript);
 

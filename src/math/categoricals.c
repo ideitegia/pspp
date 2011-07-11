@@ -403,16 +403,6 @@ reverse_variable_lookup_long (const struct categoricals *cat, int subscript)
 }
 
 
-
-/* Return the categorical variable corresponding to SUBSCRIPT */
-const struct variable *
-categoricals_get_variable_by_subscript (const struct categoricals *cat, int subscript)
-{
-  int index = reverse_variable_lookup_short (cat, subscript);
-
-  return cat->vp[index].iact->vars[0];
-}
-
 /* Return the interaction corresponding to SUBSCRIPT */
 const struct interaction *
 categoricals_get_interaction_by_subscript (const struct categoricals *cat, int subscript)

@@ -25,6 +25,7 @@
 #include "libpspp/assertion.h"
 #include "libpspp/misc.h"
 #include "math/categoricals.h"
+#include "math/interaction.h"
 #include "math/moments.h"
 
 #include "gl/xalloc.h"
@@ -247,7 +248,7 @@ is_missing (const struct covariance *cov, int i, const struct ccase *c)
 {
   const struct variable *var = i < cov->n_vars ?
     cov->vars[i] : 
-    categoricals_get_variable_by_subscript (cov->categoricals, i - cov->n_vars);
+    categoricals_get_interaction_by_subscript (cov->categoricals, i - cov->n_vars)->vars[0];
 
   const union value *val = case_data (c, var);
 
