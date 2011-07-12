@@ -151,14 +151,19 @@ categoricals_dump (const struct categoricals *cat)
 
   for (v = 0 ; v < cat->n_iap; ++v)
     {
-      const struct interact_params *vp = &cat->vp[v];
+      const struct interact_params *vp = &cat->iap[v];
       const struct hmap *m = &vp->map;
       struct hmap_node *node ;
       int x;
-     
-      printf ("\n%s (%d)  CC=%g n_cats=%d:\n", 
-	      var_get_name (vp->var), vp->base_subscript_long, vp->cc, vp->n_cats);
+      struct string str ;
+      ds_init_empty (&str);
 
+      interaction_to_string (vp->iact, &str);
+      printf ("\n%s (%d)  CC=%g n_cats=%d:\n", 
+	      ds_cstr (&str),
+	      vp->base_subscript_long, vp->cc, vp->n_cats);
+
+#if 0
       printf ("Reverse map\n");
       for (x = 0 ; x < vp->n_cats; ++x)
 	{
@@ -182,12 +187,13 @@ categoricals_dump (const struct categoricals *cat)
 		  vn->subscript, vn->cc);
 	  ds_destroy (&s);
 	}
+#endif
     }
 
   assert (cat->n_vars <= cat->n_iap);
 
   printf ("\n");
-  printf ("Number of categorical variables: %d\n", cat->n_iap);
+  printf ("Number of interactions: %d\n", cat->n_iap);
   printf ("Number of non-empty categorical variables: %d\n", cat->n_vars);
   printf ("Total number of categories: %d\n", cat->n_cats_total);
 
