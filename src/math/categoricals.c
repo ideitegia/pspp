@@ -43,7 +43,7 @@ struct value_node
 				 Can be used as an index into an array */
 };
 
-struct var_params
+struct interact_params
 {
   /* A map indexed by a union values */
   struct hmap map;
@@ -70,7 +70,7 @@ compare_value_node (const void *vn1_, const void *vn2_, const void *aux)
 {
   const struct value_node * const *vn1 = vn1_;
   const struct value_node * const *vn2 = vn2_;
-  const struct var_params *vp = aux;
+  const struct interact_params *vp = aux;
 
   return interaction_case_cmp_3way (vp->iact, (*vn1)->ccase, (*vn2)->ccase);
 }
@@ -81,14 +81,14 @@ struct categoricals
   /* The weight variable */
   const struct variable *wv;
 
-  /* An array of var_params */
-  struct var_params *vp;
+  /* An array of interact_params */
+  struct interact_params *iap;
 
-  /* The size of VP. (ie, the number of variables involved.) */
-  size_t n_vp;
+  /* The size of IAP. (ie, the number of interactions involved.) */
+  size_t n_iap;
 
   /* The number of categorical variables which contain entries.
-     In the absence of missing values, this will be equal to N_VP */
+     In the absence of missing values, this will be equal to N_IAP */
   size_t n_vars;
 
   /* A map to enable the lookup of variables indexed by subscript.
@@ -124,9 +124,9 @@ categoricals_destroy ( struct categoricals *cat)
   int i;
   if (cat != NULL)
     {
-      for (i = 0 ; i < cat->n_vp; ++i)
+      for (i = 0 ; i < cat->n_iap; ++i)
 	{
-	  struct hmap *map = &cat->vp[i].map;
+	  struct hmap *map = &cat->iap[i].map;
 	  struct value_node *nn;
 
 	  HMAP_FOR_EACH (nn, struct value_node, node, map)
@@ -149,9 +149,9 @@ categoricals_dump (const struct categoricals *cat)
 {
   int v;
 
-  for (v = 0 ; v < cat->n_vp; ++v)
+  for (v = 0 ; v < cat->n_iap; ++v)
     {
-      const struct var_params *vp = &cat->vp[v];
+      const struct interact_params *vp = &cat->vp[v];
       const struct hmap *m = &vp->map;
       struct hmap_node *node ;
       int x;
@@ -184,10 +184,10 @@ categoricals_dump (const struct categoricals *cat)
 	}
     }
 
-  assert (cat->n_vars <= cat->n_vp);
+  assert (cat->n_vars <= cat->n_iap);
 
   printf ("\n");
-  printf ("Number of categorical variables: %d\n", cat->n_vp);
+  printf ("Number of categorical variables: %d\n", cat->n_iap);
   printf ("Number of non-empty categorical variables: %d\n", cat->n_vars);
   printf ("Total number of categories: %d\n", cat->n_cats_total);
 
@@ -232,7 +232,7 @@ categoricals_create (const struct interaction **inter, size_t n_inter,
   size_t i;
   struct categoricals *cat = xmalloc (sizeof *cat);
   
-  cat->n_vp = n_inter;
+  cat->n_iap = n_inter;
   cat->wv = wv;
   cat->n_cats_total = 0;
   cat->n_vars = 0;
@@ -247,12 +247,12 @@ categoricals_create (const struct interaction **inter, size_t n_inter,
   cat->aux2 = aux2;
 
 
-  cat->vp = pool_calloc (cat->pool, cat->n_vp, sizeof *cat->vp);
+  cat->iap = pool_calloc (cat->pool, cat->n_iap, sizeof *cat->iap);
 
-  for (i = 0 ; i < cat->n_vp; ++i)
+  for (i = 0 ; i < cat->n_iap; ++i)
     {
-      hmap_init (&cat->vp[i].map);
-      cat->vp[i].iact = inter[i];
+      hmap_init (&cat->iap[i].map);
+      cat->iap[i].iact = inter[i];
     }
 
   return cat;
@@ -270,9 +270,9 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
   assert (NULL == cat->reverse_variable_map_short);
   assert (NULL == cat->reverse_variable_map_long);
 
-  for (i = 0 ; i < cat->n_vp; ++i)
+  for (i = 0 ; i < cat->n_iap; ++i)
     {
-      const struct interaction *iact = cat->vp[i].iact;
+      const struct interaction *iact = cat->iap[i].iact;
       size_t hash;
       struct value_node *node ;
 
@@ -280,7 +280,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 	continue;
 
       hash = interaction_case_hash (iact, c);
-      node = lookup_case (&cat->vp[i].map, iact, c);
+      node = lookup_case (&cat->iap[i].map, iact, c);
 
       if ( NULL == node)
 	{
@@ -289,20 +289,20 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 	  node->ccase = case_ref (c);
 	  node->cc = 0.0;
 
-	  hmap_insert (&cat->vp[i].map, &node->node,  hash);
+	  hmap_insert (&cat->iap[i].map, &node->node,  hash);
 	  cat->n_cats_total++;
 	  
-	  if ( 0 == cat->vp[i].n_cats)
+	  if ( 0 == cat->iap[i].n_cats)
 	    cat->n_vars++;
 
-	  node->subscript = cat->vp[i].n_cats++ ;
+	  node->subscript = cat->iap[i].n_cats++ ;
 
 	  if (cat->user_data_create)
 	    node->user_data = cat->user_data_create (cat->aux1, cat->aux2);
 	}
 
       node->cc += weight;
-      cat->vp[i].cc += weight;
+      cat->iap[i].cc += weight;
 
       if (cat->update)
 	cat->update (node->user_data, cat->exclude, cat->wv, NULL, c, cat->aux1, cat->aux2);
@@ -313,7 +313,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 size_t
 categoricals_n_count (const struct categoricals *cat, size_t n)
 {
-  return hmap_count (&cat->vp[n].map);
+  return hmap_count (&cat->iap[n].map);
 }
 
 
@@ -348,10 +348,10 @@ categoricals_done (const struct categoricals *cat_)
 						cat->n_cats_total,
 						sizeof *cat->reverse_variable_map_long);
   
-  for (v = 0 ; v < cat->n_vp; ++v)
+  for (v = 0 ; v < cat->n_iap; ++v)
     {
       int i;
-      struct var_params *vp = &cat->vp[v];
+      struct interact_params *vp = &cat->iap[v];
       int n_cats_total = categoricals_n_count (cat, v);
       struct hmap_node *node ;
 
@@ -378,7 +378,7 @@ categoricals_done (const struct categoricals *cat_)
 	cat->reverse_variable_map_long[idx_long++] = v;
     }
 
-  assert (cat->n_vars <= cat->n_vp);
+  assert (cat->n_vars <= cat->n_iap);
 }
 
 
@@ -409,7 +409,7 @@ categoricals_get_interaction_by_subscript (const struct categoricals *cat, int s
 {
   int index = reverse_variable_lookup_short (cat, subscript);
 
-  return cat->vp[index].iact;
+  return cat->iap[index].iact;
 }
 
 
@@ -418,7 +418,7 @@ static const struct ccase *
 categoricals_get_case_by_subscript (const struct categoricals *cat, int subscript)
 {
   int vindex = reverse_variable_lookup_short (cat, subscript);
-  const struct var_params *vp = &cat->vp[vindex];
+  const struct interact_params *vp = &cat->iap[vindex];
   const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_short];
 
   return vn->ccase;
@@ -429,7 +429,7 @@ double
 categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscript)
 {
   int vindex = reverse_variable_lookup_short (cat, subscript);
-  const struct var_params *vp = &cat->vp[vindex];
+  const struct interact_params *vp = &cat->iap[vindex];
 
   return vp->cc;
 }
@@ -438,7 +438,7 @@ double
 categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript)
 {
   int vindex = reverse_variable_lookup_short (cat, subscript);
-  const struct var_params *vp = &cat->vp[vindex];
+  const struct interact_params *vp = &cat->iap[vindex];
 
   const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_short];
   return vn->cc;
@@ -471,7 +471,7 @@ const struct ccase *
 categoricals_get_case_by_category (const struct categoricals *cat, int subscript)
 {
   int vindex = reverse_variable_lookup_long (cat, subscript);
-  const struct var_params *vp = &cat->vp[vindex];
+  const struct interact_params *vp = &cat->iap[vindex];
   const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_long];
 
   return vn->ccase;
@@ -482,7 +482,7 @@ void *
 categoricals_get_user_data_by_category (const struct categoricals *cat, int subscript)
 {
   int vindex = reverse_variable_lookup_long (cat, subscript);
-  const struct var_params *vp = &cat->vp[vindex];
+  const struct interact_params *vp = &cat->iap[vindex];
 
   const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript_long];
   return vn->user_data;
