@@ -56,8 +56,8 @@ glm y by   b a c
   .
 ])
 
-AT_CHECK([pspp -O format=csv latin.sps], [0], [dnl
-Table: Tests of Between-Subjects Effects
+AT_CHECK([pspp -O format=csv latin.sps | sed 's/329.62[[678]]/329.62/'], [0],
+  [Table: Tests of Between-Subjects Effects
 Source,Type III Sum of Squares,df,Mean Square,F,Sig.
 Corrected Model,263.064,15,17.538,5.269,.000
 Intercept,815.103,1,815.103,244.910,.000
@@ -66,7 +66,7 @@ Factor B,28.599,5,5.720,1.719,.176
 Factor C,155.596,5,31.119,9.350,.000
 Error,66.563,20,3.328,,
 Total,1144.730,36,,,
-Corrected Total,329.627,35,,,
+Corrected Total,329.62,35,,,
 ])
 
 AT_CLEANUP
