@@ -322,7 +322,7 @@ not_dropped (size_t j, size_t * dropped, size_t n_dropped)
 }
 
 static void
-get_ssq (struct covariance *cov, gsl_vector * ssq, const struct glm_spec *cmd)
+get_ssq (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 {
   gsl_matrix *cm = covariance_calculate_unnormalized (cov);
   size_t i;
@@ -519,8 +519,7 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   if (cmd->intercept)
     df_corr += 1.0;
 
-  for (f = 0; f < cmd->n_interactions; ++f)
-    df_corr += categoricals_n_count (ws->cats, f) - 1.0;
+  df_corr += categoricals_df_total (ws->cats);
 
   mse = gsl_vector_get (ws->ssq, 0) / (n_total - df_corr);
 
@@ -547,7 +546,7 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   for (f = 0; f < cmd->n_interactions; ++f)
     {
       struct string str = DS_EMPTY_INITIALIZER;
-      const double df = categoricals_n_count (ws->cats, f) - 1.0;
+      const double df = categoricals_df (ws->cats, f);
       const double ssq = gsl_vector_get (ws->ssq, f + 1);
       const double F = ssq / df / mse;
       interaction_to_string (cmd->interactions[f], &str);

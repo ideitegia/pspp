@@ -770,7 +770,7 @@ run_oneway (const struct oneway_spec *cmd,
 
       pvw->ssa = pvw->sst - pvw->sse;
 
-      pvw->n_groups = categoricals_total (cats);
+      pvw->n_groups = categoricals_n_total (cats);
 
       pvw->mse = (pvw->sst - pvw->ssa) / (pvw->n - pvw->n_groups);
 
@@ -783,8 +783,8 @@ run_oneway (const struct oneway_spec *cmd,
 
       categoricals_done (cats);
       
-      if (categoricals_total (cats) > ws.actual_number_of_groups)
-	ws.actual_number_of_groups = categoricals_total (cats);
+      if (categoricals_n_total (cats) > ws.actual_number_of_groups)
+	ws.actual_number_of_groups = categoricals_n_total (cats);
     }
 
   casereader_destroy (input);
@@ -1015,7 +1015,7 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
       if ( v > 0)
 	tab_hline (t, TAL_1, 0, n_cols - 1, row);
 
-      for (count = 0; count < categoricals_total (cats); ++count)
+      for (count = 0; count < categoricals_n_total (cats); ++count)
 	{
 	  double T;
 	  double n, mean, variance;
@@ -1104,7 +1104,7 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 	tab_double (t, 9, row + count, 0,  ws->dd_total[v]->maximum, fmt);
       }
 
-      row += categoricals_total (cats) + 1;
+      row += categoricals_n_total (cats) + 1;
     }
 
   tab_submit (t);

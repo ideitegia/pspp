@@ -350,8 +350,7 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
       cov->dim = cov->n_vars;
       
       if (cov->categoricals)
-	cov->dim += categoricals_total (cov->categoricals) 
-	  - categoricals_get_n_variables (cov->categoricals);
+	cov->dim += categoricals_df_total (cov->categoricals);
 
       cov->n_cm = (cov->dim * (cov->dim - 1)  ) / 2;
       cov->cm = xcalloc (sizeof *cov->cm, cov->n_cm);
@@ -363,8 +362,8 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
 	  cov->moments[i] = resize_matrix (cov->moments[i], cov->dim);
 	}
 
-      if (cov->categoricals)
-	categoricals_done (cov->categoricals);
+      //      if (cov->categoricals)
+      //	categoricals_done (cov->categoricals);
 
       /* Populate the moments matrices with the categorical value elements */
       for (i = cov->n_vars; i < cov->dim; ++i)

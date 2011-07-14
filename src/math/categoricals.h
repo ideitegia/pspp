@@ -50,9 +50,14 @@ void categoricals_update (struct categoricals *cat, const struct ccase *c);
 /* Return the number of categories (distinct values) for variable N */
 size_t categoricals_n_count (const struct categoricals *cat, size_t n);
 
+size_t categoricals_df (const struct categoricals *cat, size_t n);
 
 /* Return the total number of categories */
-size_t categoricals_total (const struct categoricals *cat);
+size_t categoricals_n_total (const struct categoricals *cat);
+
+/* Return the total degrees of freedom */
+size_t categoricals_df_total (const struct categoricals *cat);
+
 
 /*
   Return the total number of variables which participated in these categoricals.
