@@ -260,7 +260,7 @@ lookup_case (const struct hmap *map, const struct interaction *iact, const struc
 
 
 struct categoricals *
-categoricals_create (const struct interaction **inter, size_t n_inter,
+categoricals_create (struct interaction *const*inter, size_t n_inter,
 		     const struct variable *wv, enum mv_class exclude,
 		     user_data_create_func *udf,
 		     update_func *update, void *aux1, void *aux2
@@ -467,7 +467,6 @@ categoricals_done (const struct categoricals *cat_)
       iap->reverse_interaction_value_map = pool_calloc (cat->pool, iap->n_cats,
 							sizeof *iap->reverse_interaction_value_map);
 
-
       HMAP_FOR_EACH (ivn, struct interaction_value, node, &iap->ivmap)
 	{
 	  iap->reverse_interaction_value_map[x++] = ivn;
@@ -486,8 +485,6 @@ categoricals_done (const struct categoricals *cat_)
       for (ii = 0; ii < iap->n_cats; ++ii)
 	cat->reverse_variable_map_long[idx_long++] = i;
     }
-
-
 
   assert (cat->n_vars <= cat->n_iap);
 }

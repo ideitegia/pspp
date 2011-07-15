@@ -652,7 +652,7 @@ run_oneway (const struct oneway_spec *cmd,
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      const struct interaction *inter = interaction_create (cmd->indep_var);
+      struct interaction *inter = interaction_create (cmd->indep_var);
       ws.vws[v].cat = categoricals_create (&inter, 1, cmd->wv,
                                            cmd->exclude, makeit, updateit,
                                            CONST_CAST (struct variable *,
@@ -1537,12 +1537,13 @@ show_comparisons (const struct oneway_spec *cmd, const struct oneway_workspace *
 	      double std_err;
 	      double weight_j, mean_j, var_j;
 	      double half_range;
+	      const struct ccase *cc;
 	      struct descriptive_data *dd_j = categoricals_get_user_data_by_category (cat, j);
 	      if (j == i)
 		continue;
 
 	      ds_clear (&vstr);
-	      const struct ccase *cc = categoricals_get_case_by_category (cat, j);
+	      cc = categoricals_get_case_by_category (cat, j);
 	      var_append_value_name (cmd->indep_var, case_data (cc, cmd->indep_var), &vstr);
 	      tab_text (t, 2, r + rx, TAB_LEFT | TAT_TITLE, ds_cstr (&vstr));
 
