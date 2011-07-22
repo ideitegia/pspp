@@ -427,8 +427,6 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
     }
   casereader_destroy (reader);
 
-  categoricals_done (ws.cats);
-
   for (reader = input;
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
