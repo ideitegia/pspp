@@ -655,8 +655,7 @@ run_oneway (const struct oneway_spec *cmd,
       struct interaction *inter = interaction_create (cmd->indep_var);
       ws.vws[v].cat = categoricals_create (&inter, 1, cmd->wv,
                                            cmd->exclude, makeit, updateit,
-                                           CONST_CAST (struct variable *,
-                                                       cmd->vars[v]),
+                                           CONST_CAST (struct variable *, cmd->vars[v]),
                                            ws.dd_total[v]);
 
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
@@ -757,8 +756,10 @@ run_oneway (const struct oneway_spec *cmd,
   for (v = 0; v < cmd->n_vars; ++v)
     {
       struct per_var_ws *pvw = &ws.vws[v];
-      gsl_matrix *cm = covariance_calculate_unnormalized (pvw->cov);
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
+      categoricals_done (cats);
+
+      gsl_matrix *cm = covariance_calculate_unnormalized (pvw->cov);
 
       moments1_calculate (ws.dd_total[v]->mom, &pvw->n, NULL, NULL, NULL, NULL);
 
@@ -781,8 +782,6 @@ run_oneway (const struct oneway_spec *cmd,
     {
       const struct categoricals *cats = covariance_get_categoricals (ws.vws[v].cov);
 
-      categoricals_done (cats);
-      
       if (categoricals_n_total (cats) > ws.actual_number_of_groups)
 	ws.actual_number_of_groups = categoricals_n_total (cats);
     }
