@@ -309,7 +309,7 @@ static void get_ssq (struct covariance *, gsl_vector *,
 		     const struct glm_spec *);
 
 static bool
-not_dropped (size_t j, size_t * dropped, size_t n_dropped)
+not_dropped (size_t j, const size_t *dropped, size_t n_dropped)
 {
   size_t i;
 
