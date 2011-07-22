@@ -486,6 +486,10 @@ categoricals_done (const struct categoricals *cat_)
       sort (iap->reverse_interaction_value_map, x, sizeof (*iap->reverse_interaction_value_map),
 	    compare_interaction_value_3way, iap);
 
+      /* Fill the remaining values with null */
+      for (ii = x ; ii < iap->n_cats; ++ii)
+	iap->reverse_interaction_value_map[ii] = NULL;
+
       /* Populate the reverse variable maps. */
       for (ii = 0; ii < iap->df; ++ii)
 	cat->reverse_variable_map_short[idx_short++] = i;
@@ -538,6 +542,10 @@ categoricals_get_case_by_subscript (const struct categoricals *cat, int subscrip
   int vindex = reverse_variable_lookup_short (cat, subscript);
   const struct interact_params *vp = &cat->iap[vindex];
   const struct interaction_value *vn = vp->reverse_interaction_value_map [subscript - vp->base_subscript_short];
+
+  if ( vn == NULL)
+    return NULL;
+
   return vn->ccase;
 }
 
@@ -559,6 +567,9 @@ categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript
 
   const struct interaction_value *iv = vp->reverse_interaction_value_map [subscript - vp->base_subscript_short];
 
+  if (iv == NULL)
+    return 0;
+
   return iv->cc;
 }
 
@@ -571,6 +582,9 @@ categoricals_get_binary_by_subscript (const struct categoricals *cat, int subscr
   const struct interaction *iact = categoricals_get_interaction_by_subscript (cat, subscript);
 
   const struct ccase *c2 =  categoricals_get_case_by_subscript (cat, subscript);
+
+  if ( c2 == NULL)
+    return 0;
 
   return interaction_case_equal (iact, c, c2);
 }
