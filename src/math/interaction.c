@@ -48,8 +48,12 @@ interaction_create (const struct variable *v)
 {
   struct interaction  *i = xmalloc (sizeof *i);
   i->vars = xmalloc (sizeof *i->vars);
-  i->vars[0] = v;
-  i->n_vars = 1;
+  i->n_vars = 0;
+  if ( v )
+    {
+      i->vars[0] = v;
+      i->n_vars = 1;
+    }
   return i;
 }
 

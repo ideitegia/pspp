@@ -18,6 +18,7 @@
 
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_combination.h>
 #include <math.h>
 
 #include "data/case.h"
@@ -84,6 +85,37 @@ struct glm_workspace
   gsl_vector *ssq;
 };
 
+
+/* Default design: all possible interactions */
+static void
+design_full (struct glm_spec *glm)
+{
+  int sz;
+  int i = 0;
+  glm->n_interactions = (1 << glm->n_factor_vars) - 1;
+
+  glm->interactions = xcalloc (glm->n_interactions, sizeof *glm->interactions);
+
+  /* All subsets, with exception of the empty set, of [0, glm->n_factor_vars) */
+  for (sz = 1; sz <= glm->n_factor_vars; ++sz)
+    {
+      gsl_combination *c = gsl_combination_calloc (glm->n_factor_vars, sz);
+
+      do
+	{
+	  struct interaction *iact = interaction_create (NULL);
+	  int e;
+	  for (e = 0 ; e < gsl_combination_k (c); ++e)
+	    interaction_add_variable (iact, glm->factor_vars [gsl_combination_get (c, e)]);
+
+	  glm->interactions[i++] = iact;
+	}
+      while (gsl_combination_next (c) == GSL_SUCCESS);
+
+      gsl_combination_free (c);
+    }
+}
+
 static void output_glm (const struct glm_spec *,
 			const struct glm_workspace *ws);
 static void run_glm (struct glm_spec *cmd, struct casereader *input,
@@ -92,6 +124,8 @@ static void run_glm (struct glm_spec *cmd, struct casereader *input,
 
 static bool parse_design_spec (struct lexer *lexer, struct glm_spec *glm);
 
+/* Define to 1 if the /DESIGN subcommand should not be optional */
+#define DESIGN_MANDATORY 1
 
 int
 cmd_glm (struct lexer *lexer, struct dataset *ds)
@@ -248,7 +282,8 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 
 	  if (! parse_design_spec (lexer, &glm))
 	    goto error;
-	  
+
+#if DESIGN_MANDATORY
 	  if ( glm.n_interactions == 0)
 	    {
 	      msg (ME, _("One or more design  variables must be given"));
@@ -256,6 +291,10 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 	    }
 	  
 	  design = true;
+#else
+	  if (glm.n_interactions > 0)
+	    design = true;
+#endif
 	}
       else
 	{
@@ -266,8 +305,12 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 
   if ( ! design )
     {
+#if DESIGN_MANDATORY
       lex_error (lexer, _("/DESIGN is mandatory in GLM"));
       goto error;
+#endif
+
+      design_full (&glm);
     }
 
   {
