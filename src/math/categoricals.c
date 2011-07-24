@@ -243,6 +243,29 @@ categoricals_dump (const struct categoricals *cat)
 void
 categoricals_destroy (struct categoricals *cat)
 {
+  struct variable_node *vn = NULL;
+  int i;
+  for (i = 0; i < cat->n_iap; ++i)
+    {
+      struct interaction_value *iv = NULL;
+      /* Interate over each interaction value, and unref any cases that we reffed */
+      HMAP_FOR_EACH (iv, struct interaction_value, node, &cat->iap[i].ivmap)
+	{
+	  case_unref (iv->ccase);
+	}
+      hmap_destroy (&cat->iap[i].ivmap);
+    }
+
+  /* Interate over each variable and delete its value map */
+  HMAP_FOR_EACH (vn, struct variable_node, node, &cat->varmap)
+    {
+      hmap_destroy (&vn->valmap);
+    }
+
+  hmap_destroy (&cat->varmap);
+
+  pool_destroy (cat->pool);
+
   free (cat);
 }
 
