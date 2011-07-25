@@ -24,6 +24,7 @@ UI_FILES = \
 	src/ui/gui/paired-samples.ui \
 	src/ui/gui/psppire.ui \
 	src/ui/gui/rank.ui \
+	src/ui/gui/runs.ui \
 	src/ui/gui/sort.ui \
 	src/ui/gui/split-file.ui \
 	src/ui/gui/recode.ui \
@@ -233,6 +234,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/reliability-dialog.h \
 	src/ui/gui/roc-dialog.c \
 	src/ui/gui/roc-dialog.h \
+	src/ui/gui/runs-dialog.c \
+	src/ui/gui/runs-dialog.h \
 	src/ui/gui/select-cases-dialog.c \
 	src/ui/gui/select-cases-dialog.h \
 	src/ui/gui/sort-cases-dialog.c \

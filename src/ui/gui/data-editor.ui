@@ -446,6 +446,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="runs">
+            <property name="name">runs</property>
+            <property name="label" translatable="yes">R_uns...</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="two-related-samples">
             <property name="name">"two-related-samples"></property>
             <property name="label" translatable="yes">2 _Related Samples...</property>
@@ -591,6 +597,7 @@
           <menu action="non-parametrics">
             <menuitem action="chi-square"/>
             <menuitem action="binomial"/>
+            <menuitem action="runs"/>
             <menuitem action="two-related-samples"/>
             <menuitem action="k-related-samples"/>
           </menu>

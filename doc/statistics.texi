@@ -895,7 +895,7 @@ not be run.
 @cindex runs test
 
 @display 
-     [ /RUNS (@{MEAN, MEDIAN, MODE, value@}) varlist ]
+     [ /RUNS (@{MEAN, MEDIAN, MODE, value@})  = varlist ]
 @end display
 
 The /RUNS subcommand tests whether a data sequence is randomly ordered.

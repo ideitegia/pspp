@@ -52,6 +52,7 @@
 #include "ui/gui/psppire-window.h"
 #include "ui/gui/psppire.h"
 #include "ui/gui/rank-dialog.h"
+#include "ui/gui/runs-dialog.h"
 #include "ui/gui/recode-dialog.h"
 #include "ui/gui/regression-dialog.h"
 #include "ui/gui/reliability-dialog.h"
@@ -1120,9 +1121,8 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "k-means", G_CALLBACK (k_means_dialog));
 
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
-
   connect_action (de, "binomial", G_CALLBACK (binomial_dialog));
-
+  connect_action (de, "runs", G_CALLBACK (runs_dialog));
   connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));
   connect_action (de, "two-related-samples", G_CALLBACK (two_related_dialog));
  
