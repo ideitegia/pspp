@@ -18,6 +18,7 @@ UI_FILES = \
 	src/ui/gui/factor.ui \
 	src/ui/gui/find.ui \
 	src/ui/gui/frequencies.ui \
+	src/ui/gui/k-means.ui \
 	src/ui/gui/k-related.ui \
 	src/ui/gui/oneway.ui \
 	src/ui/gui/paired-samples.ui \
@@ -170,6 +171,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/helper.h \
 	src/ui/gui/k-related-dialog.c \
 	src/ui/gui/k-related-dialog.h \
+	src/ui/gui/k-means-dialog.c \
+	src/ui/gui/k-means-dialog.h \
 	src/ui/gui/main.c \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \

@@ -404,6 +404,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="k-means">
+            <property name="name">k-means</property>
+            <property name="label" translatable="yes">_K-Means Cluster...</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="factor-analysis">
             <property name="name">factor-analysis</property>
             <property name="label" translatable="yes">Factor _Analysis...</property>
@@ -578,6 +584,7 @@
             <menuitem action="oneway-anova"/>
           </menu>
           <menuitem action="correlation"/>
+          <menuitem action="k-means"/>
           <menuitem action="factor-analysis"/>
           <menuitem action="reliability"/>
           <menuitem action="linear-regression"/>
