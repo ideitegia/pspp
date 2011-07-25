@@ -101,6 +101,7 @@
                             <property name="label" translatable="yes">_Break variable(s)</property>
                             <property name="use_markup">True</property>
                             <property name="use_underline">True</property>
+                            <property name="mnemonic_widget">psppire-var-view1</property>
                           </object>
                         </child>
                       </object>

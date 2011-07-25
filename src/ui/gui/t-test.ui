@@ -270,6 +270,7 @@
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="label" translatable="yes">Group_2 value:</property>
                     <property name="use_underline">True</property>
+                    <property name="mnemonic_widget">group2-entry</property>
                   </object>
                   <packing>
                     <property name="top_attach">1</property>
@@ -283,6 +284,7 @@
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="label" translatable="yes">Group_1 value:</property>
                     <property name="use_underline">True</property>
+                    <property name="mnemonic_widget">group1-entry</property>
                   </object>
                   <packing>
                     <property name="x_options"></property>
@@ -332,6 +334,7 @@
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">_Cut point:</property>
                     <property name="use_underline">True</property>
+                    <property name="mnemonic_widget">radiobutton4</property>
                   </object>
                   <packing>
                     <property name="position">0</property>
@@ -364,6 +367,7 @@
                 <property name="xalign">0</property>
                 <property name="label" translatable="yes">_Use specified values:</property>
                 <property name="use_underline">True</property>
+                <property name="mnemonic_widget">radiobutton3</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -623,7 +627,9 @@
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="xalign">0</property>
-                <property name="label" translatable="yes">Test Value: </property>
+                <property name="label" translatable="yes">Test _Value: </property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">test-value-entry</property>
               </object>
               <packing>
                 <property name="expand">False</property>

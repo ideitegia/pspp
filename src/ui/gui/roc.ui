@@ -115,6 +115,7 @@
                     <property name="label" translatable="yes">_Test Variable:</property>
                     <property name="use_markup">True</property>
                     <property name="use_underline">True</property>
+                    <property name="mnemonic_widget">psppire-var-view1</property>
                   </object>
                 </child>
               </object>
@@ -147,6 +148,7 @@
                     <property name="label" translatable="yes">_State Variable:</property>
                     <property name="use_markup">True</property>
                     <property name="use_underline">True</property>
+                    <property name="mnemonic_widget">entry1</property>
                   </object>
                 </child>
               </object>
