@@ -113,13 +113,12 @@ k_means_dialog (PsppireDataWindow *dw)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (fd.de));
 
   g_object_get (vs, "dictionary", &fd.dict, NULL);
-  g_object_set (source, "model", fd.dict, NULL);
+  g_object_set (source, "model", fd.dict,
+		"predicate", var_is_numeric,
+		NULL);
 
   psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
 				      dialog_state_valid, &fd);
-
-  psppire_selector_set_allow (PSPPIRE_SELECTOR (get_widget_assert (fd.xml, "psppire-selector1")),
-			      numeric_only);
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
