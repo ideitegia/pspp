@@ -245,6 +245,8 @@ categoricals_destroy (struct categoricals *cat)
 {
   struct variable_node *vn = NULL;
   int i;
+  if (NULL == cat)
+    return;
   for (i = 0; i < cat->n_iap; ++i)
     {
       struct interaction_value *iv = NULL;
