@@ -49,7 +49,7 @@ LDADD = gl/libgl.la
 
 generate-changelog:
 	if test -d $(top_srcdir)/.git; then			\
-	  $(top_srcdir)/gitlog-to-changelog --since=2008-07-27	\
+	  $(top_srcdir)/build-aux/gitlog-to-changelog --since=2008-07-27	\
 	    > $(distdir)/cl-t;					\
 	  rm -f $(distdir)/ChangeLog;				\
 	  mv $(distdir)/cl-t $(distdir)/ChangeLog;		\
