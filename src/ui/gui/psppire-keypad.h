@@ -102,7 +102,7 @@ struct _PsppireKeypad
 
 struct _PsppireKeypadClass
 {
-  GtkTableClass parent_class;
+  GtkEventBoxClass parent_class;
   void (*keypad)(PsppireKeypad*);
 };
 
