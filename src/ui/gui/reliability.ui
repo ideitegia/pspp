@@ -124,6 +124,7 @@
                                 <property name="label" translatable="yes">_Items:</property>
                                 <property name="use_markup">True</property>
                                 <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">treeview2</property>
                               </object>
                             </child>
                           </object>
@@ -138,8 +139,10 @@
                               <object class="GtkLabel" id="label3">
                                 <property name="visible">True</property>
                                 <property name="xalign">1</property>
-                                <property name="label" translatable="yes">Model:	</property>
+                                <property name="label" translatable="yes">_Model: </property>
+                                <property name="use_underline">True</property>
                                 <property name="justify">right</property>
+                                <property name="mnemonic_widget">combobox1</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -177,7 +180,9 @@
                             <child>
                               <object class="GtkLabel" id="label2">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">Variables in first split:</property>
+                                <property name="label" translatable="yes">_Variables in first split:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">spinbutton1</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -214,11 +219,11 @@
                 </child>
                 <child>
                   <object class="GtkCheckButton" id="totals-checkbutton">
-                    <property name="label" translatable="yes">Show descriptives for scale if _item is deleted</property>
-                    <property name="use_underline">True</property>
+                    <property name="label" translatable="yes">Show _descriptives for scale if item is deleted</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
+                    <property name="use_underline">True</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
