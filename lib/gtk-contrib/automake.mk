@@ -2,6 +2,7 @@
 
 noinst_LIBRARIES += lib/gtk-contrib/libgtksheet.a
 
+lib_gtk_contrib_libgtksheet_a_CPPFLAGS = $(AM_CPPFLAGS) -Isrc/ui/gui/include
 lib_gtk_contrib_libgtksheet_a_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
 
 lib_gtk_contrib_libgtksheet_a_SOURCES = \

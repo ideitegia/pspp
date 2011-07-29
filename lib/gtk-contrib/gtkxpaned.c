@@ -31,12 +31,11 @@
 
 #include <config.h>
 #include "gtkxpaned.h"
+
+#include <gtk/gtk.h>
 #include <ui/gui/psppire-marshal.h>
-#include <gtk/gtkbindings.h>
-#include <gtk/gtksignal.h>
 #include <gdk/gdkkeysyms.h>
-#include <gtk/gtkwindow.h>
-#include <gtk/gtkmain.h>
+
 
 enum WidgetProperties
 {
