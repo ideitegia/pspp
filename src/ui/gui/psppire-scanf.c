@@ -12,7 +12,8 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include <config.h>
 #include <gtk/gtk.h>
@@ -25,8 +26,6 @@
 #include "xalloc.h"
 
 
-
-
 static void psppire_scanf_class_init          (PsppireScanfClass *class);
 static void psppire_scanf_init                (PsppireScanf      *w);
 
@@ -37,7 +36,9 @@ enum
 {
   PROP_0,
   PROP_FORMAT,
-  PROP_NCONV
+  PROP_NCONV,
+  PROP_USE_UNDERLINE,
+  PROP_MNEMONIC_WIDGET
 };
 
 /* Create a GtkLabel and pack it into BOX.
@@ -47,7 +48,7 @@ enum
    After this function returns, *S points to the first unused character.
 */
 static void
-ship_label (GtkBox *box, const char **s,
+ship_label (PsppireScanf *box, const char **s,
 	    const char_directives *dirs, size_t dir_idx)
 {
   GtkWidget *label ;
@@ -77,7 +78,7 @@ ship_label (GtkBox *box, const char **s,
 
   g_string_free (str, TRUE);
 
-  gtk_box_pack_start (box, label, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (box), label, FALSE, FALSE, 0);
   gtk_widget_show (label);
 }
 
@@ -113,7 +114,7 @@ guts (PsppireScanf *scanf)
 	width = strtol (dir.width_start, (char **) &dir.width_end, 10);
 
       if ( dir.dir_start > s )
-	ship_label (GTK_BOX (scanf), &s, &scanf->d, i);
+	ship_label (scanf, &s, &scanf->d, i);
 
       if ( dir.conversion == '%')
 	{
@@ -142,10 +143,37 @@ guts (PsppireScanf *scanf)
     }
 
   if ( s && *s )
-    ship_label (GTK_BOX (scanf), &s, NULL, 0);
+    ship_label (scanf, &s, NULL, 0);
 
 }
 
+
+static void
+set_mnemonic (PsppireScanf *scanf)
+{
+  if (scanf->use_underline || scanf->mnemonic_widget)
+    {
+      GList *l = gtk_container_get_children (GTK_CONTAINER (scanf));
+      while (l)
+	{
+	  if ( GTK_IS_LABEL (l->data))
+	    {
+	      const gchar *t = gtk_label_get_label (l->data);
+	      if  ( g_strstr_len (t, -1,  "_"))
+		{
+		  g_object_set (l->data,
+				"use-underline", TRUE,
+				"mnemonic-widget", scanf->mnemonic_widget,
+				NULL);
+
+		  break;
+		}
+	    }
+	  l = l->next;
+	}
+      g_list_free (l);
+    }
+}
 
 static void
 psppire_scanf_set_property (GObject         *object,
@@ -160,6 +188,14 @@ psppire_scanf_set_property (GObject         *object,
     case PROP_FORMAT:
       scanf->format = g_value_get_string (value);
       guts (scanf);
+      break;
+    case PROP_MNEMONIC_WIDGET:
+      scanf->mnemonic_widget = g_value_get_object (value);
+      set_mnemonic (scanf);
+      break;
+    case PROP_USE_UNDERLINE:
+      scanf->use_underline = g_value_get_boolean (value);
+      set_mnemonic (scanf);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -183,6 +219,12 @@ psppire_scanf_get_property (GObject         *object,
       break;
     case PROP_NCONV:
       g_value_set_int (value, scanf->d.count);
+      break;
+    case PROP_USE_UNDERLINE:
+      g_value_set_boolean (value, scanf->use_underline);
+      break;
+    case PROP_MNEMONIC_WIDGET:
+      g_value_set_object (value, scanf->mnemonic_widget);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -243,6 +285,22 @@ psppire_scanf_class_init (PsppireScanfClass *class)
 		       G_PARAM_READABLE);
 
 
+  GParamSpec *use_underline_spec =
+    g_param_spec_boolean ("use-underline",
+		       "Use Underline",
+		       "If set, an underline in the text indicates the next character should be used for the mnemonic accelerator key",
+			  FALSE,
+			  G_PARAM_READWRITE);
+
+
+  GParamSpec *mnemonic_widget_spec =
+    g_param_spec_object ("mnemonic-widget",
+		       "Mnemonic widget",
+		       "The widget which is to be activated when the Scanf's mnemonic key is pressed.  Has no effect if use-underline is false.",
+			 GTK_TYPE_WIDGET,
+			 G_PARAM_READWRITE);
+
+
   parent_class = g_type_class_peek_parent (class);
 
   object_class->dispose = psppire_scanf_dispose;
@@ -259,6 +317,13 @@ psppire_scanf_class_init (PsppireScanfClass *class)
                                    PROP_FORMAT,
                                    format_spec);
 
+  g_object_class_install_property (object_class,
+                                   PROP_USE_UNDERLINE,
+                                   use_underline_spec);
+
+  g_object_class_install_property (object_class,
+                                   PROP_MNEMONIC_WIDGET,
+                                   mnemonic_widget_spec);
 }
 
 

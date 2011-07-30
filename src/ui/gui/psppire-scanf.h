@@ -47,6 +47,9 @@ struct _PsppireScanf
   GtkWidget **widgets;
   char_directives d;
 
+  gboolean use_underline;
+  GtkWidget *mnemonic_widget;
+
   gboolean dispose_has_run;
 };
 
@@ -59,6 +62,8 @@ struct _PsppireScanfClass
 
 GType          psppire_scanf_get_type        (void);
 GtkWidget*     psppire_scanf_new             (const gchar *fmt, ...);
+GtkWidget *    psppire_scanf_get_child (PsppireScanf *w, gint n);
+
 
 G_END_DECLS
 
