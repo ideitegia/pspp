@@ -28,7 +28,7 @@
 #include "psppire-data-window.h"
 #include "psppire-var-view.h"
 
-#include "widget-io.h"
+#include "psppire-scanf.h"
 
 #include "executor.h"
 #include "helper.h"
@@ -340,7 +340,7 @@ factor_dialog (PsppireDataWindow *dw)
 
   {
     GtkWidget *hbox = get_widget_assert (fd.xml, "hbox6");
-    GtkWidget *eigenvalue_extraction = widget_scanf (_("Eigenvalues over %4.2f times the mean eigenvalue"), &fd.mineigen);
+    GtkWidget *eigenvalue_extraction = psppire_scanf_new (_("Eigenvalues over %4.2f times the mean eigenvalue"), &fd.mineigen);
 
     fd.nfactors_toggle = get_widget_assert (fd.xml, "nfactors-radiobutton");
     fd.mineigen_toggle = get_widget_assert (fd.xml, "mineigen-radiobutton");

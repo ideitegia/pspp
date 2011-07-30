@@ -25,6 +25,7 @@
 #include "dict-display.h"
 #include "dialog-common.h"
 #include "widget-io.h"
+#include "psppire-scanf.h"
 #include "helper.h"
 #include <xalloc.h>
 
@@ -103,7 +104,7 @@ sample_subdialog (GtkButton *b, gpointer data)
 
   if ( ! scd->hbox1 )
     {
-      scd->hbox1 = widget_scanf (gettext (label1), &scd->spinbutton);
+      scd->hbox1 = psppire_scanf_new (gettext (label1), &scd->spinbutton);
 
       gtk_widget_show (scd->hbox1);
 
@@ -120,7 +121,7 @@ sample_subdialog (GtkButton *b, gpointer data)
   if ( ! scd->hbox2 )
     {
       scd->hbox2 =
-	widget_scanf (gettext (label2), &scd->spinbutton1, &scd->spinbutton2);
+	psppire_scanf_new (gettext (label2), &scd->spinbutton1, &scd->spinbutton2);
 
       gtk_spin_button_set_range (GTK_SPIN_BUTTON (scd->spinbutton1),
 				 1, case_count);

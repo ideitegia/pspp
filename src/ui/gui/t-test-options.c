@@ -25,6 +25,7 @@
 #include "t-test-options.h"
 
 #include "widget-io.h"
+#include "psppire-scanf.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -60,8 +61,7 @@ tt_options_dialog_create (GtkWindow *parent)
   tto->xml = builder_new ("t-test.ui");
 
   tto->confidence =
-    widget_scanf (_("Confidence Interval: %2d %%"),
-		  &tto->conf_percent);
+    psppire_scanf_new (_("Confidence Interval: %2d %%"), &tto->conf_percent);
 
   tto->dialog = get_widget_assert (tto->xml, "options-dialog");
 

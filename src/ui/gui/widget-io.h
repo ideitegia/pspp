@@ -25,14 +25,3 @@
    The returned string should be freed when no longer required.
  */
 gchar * widget_printf (const gchar *fmt, ...);
-
-/*
-   Returns a GtkHBox populated with an GtkLabel and GtkEntry widgets.
-   Each conversion in FMT will cause a GtkEntry (possibly a GtkSpinButton) to
-   be created.  Any text between conversions produces a GtkLabel.
-   There should be N arguments following FMT should be of type GtkEntry **,
-   where N is the number of conversions.
-   These arguments will be filled with a pointer to the corresponding widgets.
-   Their properties may be changed, but they should not be unrefed.
- */
-GtkWidget *widget_scanf (const gchar *fmt, ...);

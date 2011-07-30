@@ -123,6 +123,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-buttonbox.c \
 	src/ui/gui/psppire-hbuttonbox.c \
 	src/ui/gui/psppire-vbuttonbox.c \
+	src/ui/gui/psppire-scanf.c \
+	src/ui/gui/psppire-scanf.h \
 	src/ui/gui/psppire-acr.c \
 	src/ui/gui/autorecode-dialog.c \
 	src/ui/gui/autorecode-dialog.h \

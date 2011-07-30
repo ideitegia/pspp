@@ -43,7 +43,7 @@
 #include "ui/gui/psppire-dialog.h"
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-var-store.h"
-#include "ui/gui/widget-io.h"
+#include "ui/gui/psppire-scanf.h"
 #include "ui/syntax-gen.h"
 
 #include "gl/error.h"
@@ -728,7 +728,7 @@ init_intro_page (struct import_assistant *ia)
 
   p->n_cases_spin = gtk_spin_button_new_with_range (0, INT_MAX, 100);
 
-  hbox_n_cases = widget_scanf (_("Only the first %4d cases"), &p->n_cases_spin);
+  hbox_n_cases = psppire_scanf_new (_("Only the first %4d cases"), &p->n_cases_spin);
 
   table  = get_widget_assert (builder, "button-table");
 
@@ -738,7 +738,7 @@ init_intro_page (struct import_assistant *ia)
 
   p->percent_spin = gtk_spin_button_new_with_range (0, 100, 10);
 
-  hbox_percent = widget_scanf (_("Only the first %3d %% of file (approximately)"), &p->percent_spin);
+  hbox_percent = psppire_scanf_new (_("Only the first %3d %% of file (approximately)"), &p->percent_spin);
 
   gtk_table_attach_defaults (GTK_TABLE (table), hbox_percent,
 			     1, 2,
