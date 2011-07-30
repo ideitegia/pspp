@@ -340,10 +340,18 @@ factor_dialog (PsppireDataWindow *dw)
 
   {
     GtkWidget *hbox = get_widget_assert (fd.xml, "hbox6");
-    GtkWidget *eigenvalue_extraction = psppire_scanf_new (_("Eigenvalues over %4.2f times the mean eigenvalue"), &fd.mineigen);
+    GtkWidget *eigenvalue_extraction ;
+
+    fd.mineigen_toggle = get_widget_assert (fd.xml, "mineigen-radiobutton");
+
+    eigenvalue_extraction = psppire_scanf_new (_("_Eigenvalues over %4.2f times the mean eigenvalue"), &fd.mineigen);
+
+    g_object_set (eigenvalue_extraction,
+		  "use-underline", TRUE,
+		  "mnemonic-widget", fd.mineigen_toggle,
+		  NULL);
 
     fd.nfactors_toggle = get_widget_assert (fd.xml, "nfactors-radiobutton");
-    fd.mineigen_toggle = get_widget_assert (fd.xml, "mineigen-radiobutton");
     fd.n_factors = get_widget_assert (fd.xml, "spinbutton-nfactors");
     fd.extract_iterations = get_widget_assert (fd.xml, "spinbutton-extract-iterations");
     fd.covariance_toggle = get_widget_assert (fd.xml,  "covariance-radiobutton");

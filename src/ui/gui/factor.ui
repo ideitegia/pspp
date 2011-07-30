@@ -143,6 +143,8 @@
                 </child>
               </object>
               <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -178,8 +180,10 @@
                 <child type="label">
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">Variables:</property>
+                    <property name="label" translatable="yes">_Variables:</property>
                     <property name="use_markup">True</property>
+                    <property name="use_underline">True</property>
+                    <property name="mnemonic_widget">psppire-var-view1</property>
                   </object>
                 </child>
               </object>
@@ -221,7 +225,9 @@
                     <child>
                       <object class="GtkLabel" id="label5">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Method: </property>
+                        <property name="label" translatable="yes">_Method: </property>
+                        <property name="use_underline">True</property>
+                        <property name="mnemonic_widget">combobox1</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -271,10 +277,11 @@
                                 <property name="layout_style">spread</property>
                                 <child>
                                   <object class="GtkRadioButton" id="correlations-radiobutton">
-                                    <property name="label" translatable="yes">Correlation matrix</property>
+                                    <property name="label" translatable="yes">Co_rrelation matrix</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
+                                    <property name="use_underline">True</property>
                                     <property name="draw_indicator">True</property>
                                   </object>
                                   <packing>
@@ -285,10 +292,11 @@
                                 </child>
                                 <child>
                                   <object class="GtkRadioButton" id="covariance-radiobutton">
-                                    <property name="label" translatable="yes">Covariance matrix</property>
+                                    <property name="label" translatable="yes">Co_variance matrix</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
+                                    <property name="use_underline">True</property>
                                     <property name="draw_indicator">True</property>
                                     <property name="group">correlations-radiobutton</property>
                                   </object>
@@ -329,10 +337,11 @@
                                 <property name="layout_style">spread</property>
                                 <child>
                                   <object class="GtkCheckButton" id="unrotated-button">
-                                    <property name="label" translatable="yes">Unrotated factor solution</property>
+                                    <property name="label" translatable="yes">_Unrotated factor solution</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
+                                    <property name="use_underline">True</property>
                                     <property name="draw_indicator">True</property>
                                   </object>
                                   <packing>
@@ -343,10 +352,11 @@
                                 </child>
                                 <child>
                                   <object class="GtkCheckButton" id="scree-button">
-                                    <property name="label" translatable="yes">Scree plot</property>
+                                    <property name="label" translatable="yes">_Scree plot</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
+                                    <property name="use_underline">True</property>
                                     <property name="draw_indicator">True</property>
                                   </object>
                                   <packing>
@@ -435,7 +445,9 @@
                                   <object class="GtkLabel" id="label7">
                                     <property name="visible">True</property>
                                     <property name="xalign">0</property>
-                                    <property name="label" translatable="yes">Number of factors:</property>
+                                    <property name="label" translatable="yes">_Number of factors:</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="mnemonic_widget">nfactors-radiobutton</property>
                                   </object>
                                   <packing>
                                     <property name="position">1</property>
@@ -480,7 +492,9 @@
                     <child>
                       <object class="GtkLabel" id="label6">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Maximum iterations for convergence:</property>
+                        <property name="label" translatable="yes">Ma_ximum iterations for convergence:</property>
+                        <property name="use_underline">True</property>
+                        <property name="mnemonic_widget">spinbutton-extract-iterations</property>
                       </object>
                       <packing>
                         <property name="position">0</property>
@@ -670,7 +684,9 @@
                     <child>
                       <object class="GtkLabel" id="label13">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Maximum iterations for convergence:</property>
+                        <property name="label" translatable="yes">Ma_ximum iterations for convergence:</property>
+                        <property name="use_underline">True</property>
+                        <property name="mnemonic_widget">spinbutton-rot-iterations</property>
                       </object>
                       <packing>
                         <property name="position">0</property>
