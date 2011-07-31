@@ -556,7 +556,7 @@ FACTOR  VARIABLES=var_list
 
         [ /ROTATION=@{VARIMAX, EQUAMAX, QUARTIMAX, NOROTATE@}]
 
-        [ /PRINT=[INITIAL] [EXTRACTION] [ROTATION] [UNIVARIATE] [CORRELATION] [COVARIANCE] [DET] [SIG] [ALL] [DEFAULT] ]
+        [ /PRINT=[INITIAL] [EXTRACTION] [ROTATION] [UNIVARIATE] [CORRELATION] [COVARIANCE] [DET] [KMO] [SIG] [ALL] [DEFAULT] ]
 
         [ /PLOT=[EIGEN] ]
 
@@ -601,6 +601,8 @@ The /PRINT subcommand may be used to select which features of the analysis are r
       The covariance matrix is printed.
 @item DET
       The determinant of the correlation or covariance matrix is printed.
+@item KMO
+      The Kaiser-Meyer-Olkin measure of sampling adequacy and the Bartlett test of sphericity is printed.
 @item SIG
       The significance of the elements of correlation matrix is printed.
 @item ALL

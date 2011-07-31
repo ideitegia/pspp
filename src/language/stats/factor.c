@@ -22,6 +22,7 @@
 #include <gsl/gsl_eigen.h> 
 #include <gsl/gsl_blas.h> 
 #include <gsl/gsl_sort_vector.h>
+#include <gsl/gsl_cdf.h>
 
 #include "data/casegrouper.h"
 #include "data/casereader.h"
@@ -178,6 +179,8 @@ struct idata
   int n_extractions;
 
   gsl_vector *msr ;  /* Multiple Squared Regressions */
+
+  double detR;  /* The determinant of the correlation matrix */
 };
 
 static struct idata *
@@ -207,6 +210,54 @@ idata_free (struct idata *id)
 }
 
 
+static gsl_matrix *
+anti_image (const gsl_matrix *m)
+{
+  int i, j;
+  gsl_matrix *a;
+  assert (m->size1 == m->size2);
+
+  a = gsl_matrix_alloc (m->size1, m->size2);
+  
+  for (i = 0; i < m->size1; ++i)
+    {
+      for (j = 0; j < m->size2; ++j)
+	{
+	  double *p = gsl_matrix_ptr (a, i, j);
+	  *p = gsl_matrix_get (m, i, j);
+	  *p /= gsl_matrix_get (m, i, i);
+	  *p /= gsl_matrix_get (m, j, j);
+	}
+    }
+
+  return a;
+}
+
+
+/* Return the sum of all the elements excluding row N */
+static double
+ssq_od_n (const gsl_matrix *m, int n)
+{
+  int i, j;
+  double ss = 0;
+  assert (m->size1 == m->size2);
+
+  assert (n < m->size1);
+  
+  for (i = 0; i < m->size1; ++i)
+    {
+      if (i == n ) continue;
+      for (j = 0; j < m->size2; ++j)
+	{
+	  ss += pow2 (gsl_matrix_get (m, i, j));
+	}
+    }
+
+  return ss;
+}
+
+
+
 #if 0
 static void
 dump_matrix (const gsl_matrix *m)
@@ -220,7 +271,6 @@ dump_matrix (const gsl_matrix *m)
       printf ("\n");
     }
 }
-
 
 static void
 dump_matrix_permute (const gsl_matrix *m, const gsl_permutation *p)
@@ -1049,10 +1099,11 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		{
 		  factor.print |= PRINT_INITIAL;
 		}
-#if FACTOR_FULLY_IMPLEMENTED
 	      else if (lex_match_id (lexer, "KMO"))
 		{
+		  factor.print |= PRINT_KMO;
 		}
+#if FACTOR_FULLY_IMPLEMENTED
 	      else if (lex_match_id (lexer, "REPR"))
 		{
 		}
@@ -1647,22 +1698,9 @@ show_correlation_matrix (const struct cmd_factor *factor, const struct idata *id
 
   if (factor->print & PRINT_DETERMINANT)
     {
-      int sign = 0;
-      double det = 0.0;
-
-      const int size = idata->corr->size1;
-      gsl_permutation *p = gsl_permutation_calloc (size);
-      gsl_matrix *tmp = gsl_matrix_calloc (size, size);
-      gsl_matrix_memcpy (tmp, idata->corr);
-
-      gsl_linalg_LU_decomp (tmp, p, &sign);
-      det = gsl_linalg_LU_det (tmp, sign);
-      gsl_permutation_free (p);
-      gsl_matrix_free (tmp);
-
-
       tab_text (t, 0, nr, TAB_LEFT | TAT_TITLE, _("Determinant"));
-      tab_double (t, 1, nr, 0, det, NULL);
+
+      tab_double (t, 1, nr, 0, idata->detR, NULL);
     }
 
   tab_submit (t);
@@ -1703,17 +1741,33 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
   if ( factor->method == METHOD_CORR)
     {
       idata->corr = correlation_from_covariance (idata->cov, var_matrix);
+      
       analysis_matrix = idata->corr;
     }
   else
     analysis_matrix = idata->cov;
 
+  if (factor->print & PRINT_DETERMINANT
+      || factor->print & PRINT_KMO)
+    {
+      int sign = 0;
+
+      const int size = idata->corr->size1;
+      gsl_permutation *p = gsl_permutation_calloc (size);
+      gsl_matrix *tmp = gsl_matrix_calloc (size, size);
+      gsl_matrix_memcpy (tmp, idata->corr);
+
+      gsl_linalg_LU_decomp (tmp, p, &sign);
+      idata->detR = gsl_linalg_LU_det (tmp, sign);
+      gsl_permutation_free (p);
+      gsl_matrix_free (tmp);
+    }
+
   if ( factor->print & PRINT_UNIVARIATE)
     {
+      const struct fmt_spec *wfmt = factor->wv ? var_get_print_format (factor->wv) : & F_8_0;
       const int nc = 4;
       int i;
-      const struct fmt_spec *wfmt = factor->wv ? var_get_print_format (factor->wv) : & F_8_0;
-
 
       const int heading_columns = 1;
       const int heading_rows = 1;
@@ -1759,9 +1813,88 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
       tab_submit (t);
     }
 
+  if (factor->print & PRINT_KMO)
+    {
+      int i;
+      double sum_ssq_r = 0;
+      double sum_ssq_a = 0;
+
+      double df = factor->n_vars * ( factor->n_vars - 1) / 2;
+
+      double w = 0;
+
+
+      double xsq;
+
+      const int heading_columns = 2;
+      const int heading_rows = 0;
+
+      const int nr = heading_rows + 4;
+      const int nc = heading_columns + 1;
+
+      gsl_matrix *a, *x;
+
+      struct tab_table *t = tab_create (nc, nr);
+      tab_title (t, _("KMO and Bartlett's Test"));
+
+      x  = clone_matrix (idata->corr);
+      gsl_linalg_cholesky_decomp (x);
+      gsl_linalg_cholesky_invert (x);
+
+      a = anti_image (x);
+
+      for (i = 0; i < x->size1; ++i)
+	{
+	  sum_ssq_r += ssq_od_n (x, i);
+	  sum_ssq_a += ssq_od_n (a, i);
+	}
+
+      gsl_matrix_free (a);
+      gsl_matrix_free (x);
+
+      tab_headers (t, heading_columns, 0, heading_rows, 0);
+
+      /* Outline the box */
+      tab_box (t,
+	       TAL_2, TAL_2,
+	       -1, -1,
+	       0, 0,
+	       nc - 1, nr - 1);
+
+      tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
+
+      tab_text (t, 0, 0, TAT_TITLE | TAB_LEFT, _("Kaiser-Meyer-Olkin Measure of Sampling Adequacy"));
+
+      tab_double (t, 2, 0, 0, sum_ssq_r /  (sum_ssq_r + sum_ssq_a), NULL);
+
+      tab_text (t, 0, 1, TAT_TITLE | TAB_LEFT, _("Bartlett's Test of Sphericity"));
+
+      tab_text (t, 1, 1, TAT_TITLE, _("Approx. Chi-Square"));
+      tab_text (t, 1, 2, TAT_TITLE, _("df"));
+      tab_text (t, 1, 3, TAT_TITLE, _("Sig."));
+
+
+      /* The literature doesn't say what to do for the value of W when 
+	 missing values are involved.  The best thing I can think of
+	 is to take the mean average. */
+      w = 0;
+      for (i = 0; i < idata->n->size1; ++i)
+	w += gsl_matrix_get (idata->n, i, i);
+      w /= idata->n->size1;
+
+      xsq = w - 1 - (2 * factor->n_vars + 5) / 6.0;
+      xsq *= -log (idata->detR);
+
+      tab_double (t, 2, 1, 0, xsq, NULL);
+      tab_double (t, 2, 2, 0, df, &F_8_0);
+      tab_double (t, 2, 3, 0, gsl_cdf_chisq_Q (xsq, df), NULL);
+      
+
+      tab_submit (t);
+    }
+
   show_correlation_matrix (factor, idata);
 
-#if 1
   {
     gsl_eigen_symmv_workspace *workspace = gsl_eigen_symmv_alloc (factor->n_vars);
     
@@ -1771,7 +1904,6 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
   }
 
   gsl_eigen_symmv_sort (idata->eval, idata->evec, GSL_EIGEN_SORT_ABS_DESC);
-#endif
 
   idata->n_extractions = n_extracted_factors (factor, idata);
 
