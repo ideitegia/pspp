@@ -164,6 +164,7 @@ choose_filename (struct aggregate *fd)
 							   GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 							   GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 							   NULL);
+  g_object_set (dialog, "local-only", FALSE, NULL);
 
   gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
 

@@ -525,15 +525,16 @@ destroy_file (struct import_assistant *ia)
 static char *
 choose_file (GtkWindow *parent_window)
 {
-  GtkWidget *dialog;
   char *file_name;
 
-  dialog = gtk_file_chooser_dialog_new (_("Import Delimited Text Data"),
+  GtkWidget *dialog = gtk_file_chooser_dialog_new (_("Import Delimited Text Data"),
                                         parent_window,
                                         GTK_FILE_CHOOSER_ACTION_OPEN,
                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                                         GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
                                         NULL);
+
+  g_object_set (dialog, "local-only", FALSE, NULL);
 
   switch (gtk_dialog_run (GTK_DIALOG (dialog)))
     {

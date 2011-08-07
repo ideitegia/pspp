@@ -492,6 +492,7 @@ static void
 data_pick_filename (PsppireWindow *window)
 {
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (window);
+  GtkFileFilter *filter = gtk_file_filter_new ();
   GtkWidget *button_sys;
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Save"),
@@ -501,7 +502,8 @@ data_pick_filename (PsppireWindow *window)
 				 GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
 				 NULL);
 
-  GtkFileFilter *filter = gtk_file_filter_new ();
+  g_object_set (dialog, "local-only", FALSE, NULL);
+
   gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
   gtk_file_filter_add_pattern (filter, "*.sav");
   gtk_file_filter_add_pattern (filter, "*.SAV");

@@ -574,6 +574,8 @@ syntax_pick_filename (PsppireWindow *window)
 				 GTK_STOCK_SAVE,   GTK_RESPONSE_ACCEPT,
 				 NULL);
 
+  g_object_set (dialog, "local-only", FALSE, NULL);
+
   filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("Syntax Files (*.sps) "));
   gtk_file_filter_add_pattern (filter, "*.sps");

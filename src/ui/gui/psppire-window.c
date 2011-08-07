@@ -709,6 +709,7 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
 GtkWidget *
 psppire_window_file_chooser_dialog (PsppireWindow *toplevel)
 {
+  GtkFileFilter *filter = gtk_file_filter_new ();
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Open"),
 				 GTK_WINDOW (toplevel),
@@ -717,9 +718,8 @@ psppire_window_file_chooser_dialog (PsppireWindow *toplevel)
 				 GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 				 NULL);
 
-  GtkFileFilter *filter;
+  g_object_set (dialog, "local-only", FALSE, NULL);
 
-  filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("Data and Syntax Files"));
   gtk_file_filter_add_pattern (filter, "*.sav");
   gtk_file_filter_add_pattern (filter, "*.SAV");

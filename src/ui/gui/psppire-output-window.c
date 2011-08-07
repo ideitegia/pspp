@@ -586,6 +586,8 @@ psppire_output_window_export (PsppireOutputWindow *window)
                                         GTK_STOCK_SAVE,   GTK_RESPONSE_ACCEPT,
                                         NULL);
 
+  g_object_set (dialog, "local-only", FALSE, NULL);
+
   chooser = GTK_FILE_CHOOSER (dialog);
 
   list = create_file_type_list ();
