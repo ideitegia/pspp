@@ -687,6 +687,7 @@ is used.
 * COCHRAN::                 Cochran Q Test
 * FRIEDMAN::                Friedman Test
 * KENDALL::                 Kendall's W Test
+* KOLMOGOROV-SMIRNOV::      Kolmogorov Smirnov Test
 * KRUSKAL-WALLIS::          Kruskal-Wallis Test
 * MANN-WHITNEY::            Mann Whitney U Test
 * MCNEMAR::                 McNemar Test
@@ -817,6 +818,45 @@ It is identical to the Friedman test except that the additional statistic W, Ken
 It has the range [0,1] --- a value of zero indicates no agreement between the samples whereas a value of
 unity indicates complete agreement.
 
+
+@node KOLMOGOROV-SMIRNOV
+@subsection Kolmogorov-Smirnov Test
+@vindex KOLMOGOROV-SMIRNOV
+@vindex K-S
+@cindex Kolmogorov-Smirnov test
+
+@display
+     [ /KOLMOGOROV-SMIRNOV (@{NORMAL [@var{mu}, @var{sigma}], UNIFORM [@var{min}, @var{max}], POISSON [@var{lambda}], EXPONENTIAL [@var{scale}] @}) = varlist ]
+@end display
+
+The one sample Kolmogorov-Smirnov subcommand is used to test whether or not a dataset is
+drawn from a particular distribution.  Four distributions are supported, @i{viz:}
+Normal, Uniform, Poisson and Exponential.
+
+Ideally you should provide the parameters of the distribution against which you wish to test
+the data. For example, with the normal distribution  the mean (@var{mu})and standard deviation (@var{sigma})
+should be given; with the uniform distribution, the minimum (@var{min})and maximum (@var{max}) value should
+be provided.
+However, if the parameters are omitted they will be imputed from the data. Imputing the
+parameters reduces the power of the test so should be avoided if possible.
+
+In the following example, two variables @var{score} and @var{age} are tested to see if
+they follow a normal distribution with a mean of 3.5 and a standard deviation of 2.0.
+@example
+  NPAR TESTS
+        /KOLMOGOROV-SMIRNOV (normal 3.5 2.0) = @var{score} @var{age}.
+@end example
+If the variables need to be tested against different distributions, then a seperate
+subcommand must be used.  For example the following syntax tests @var{score} against
+a normal distribution with mean of 3.5 and standard deviation of 2.0 whilst @var{age}
+is tested against a normal distribution of mean 40 and standard deviation 1.5.
+@example
+  NPAR TESTS
+        /KOLMOGOROV-SMIRNOV (normal 3.5 2.0) = @var{score}
+        /KOLMOGOROV-SMIRNOV (normal 40 1.5) =  @var{age}.
+@end example
+
+The abbreviated subcommand  K-S may be used in place of KOLMOGOROV-SMIRNOV.
 
 @node KRUSKAL-WALLIS
 @subsection Kruskal-Wallis Test

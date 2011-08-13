@@ -34,6 +34,7 @@
 #include "language/lexer/variable-parser.h"
 #include "language/stats/binomial.h"
 #include "language/stats/chisquare.h"
+#include "language/stats/ks-one-sample.h"
 #include "language/stats/cochran.h"
 #include "language/stats/friedman.h"
 #include "language/stats/kruskal-wallis.h"
@@ -83,6 +84,7 @@ struct cmd_npar_tests
     int chisquare;
     int cochran;
     int binomial;
+    int ks_one_sample;
     int wilcoxon;
     int sign;
     int runs;
@@ -126,6 +128,7 @@ struct npar_specs
 /* Prototype for custom subcommands of NPAR TESTS. */
 static int npar_chisquare (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_binomial (struct lexer *, struct dataset *,  struct npar_specs *);
+static int npar_ks_one_sample (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_runs (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_friedman (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_kendall (struct lexer *, struct dataset *, struct npar_specs *);
@@ -147,6 +150,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
 {
   npt->binomial = 0;
   npt->chisquare = 0;
+  npt->ks_one_sample = 0;
   npt->cochran = 0;
   npt->friedman = 0;
   npt->kruskal_wallis = 0;
@@ -250,6 +254,24 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
           lex_match (lexer, T_EQUALS);
           npt->binomial++;
           switch (npar_binomial (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+        }
+      else if (lex_match_phrase (lexer, "K-S") ||
+	       lex_match_phrase (lexer, "KOLMOGOROV-SMIRNOV"))
+        {
+          lex_match (lexer, T_EQUALS);
+          npt->ks_one_sample++;
+          switch (npar_ks_one_sample (lexer, ds, nps))
             {
             case 0:
               goto lossage;
@@ -909,12 +931,93 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
 }
 
 
+
+static void
+ks_one_sample_parse_params (struct lexer *lexer, struct ks_one_sample_test *kst, int params)
+{
+  assert (params == 1 || params == 2);
+
+  if (lex_is_number (lexer))
+    {
+      kst->p[0] = lex_number (lexer);
+
+      lex_get (lexer);
+      if ( params == 2)
+	{
+	  lex_match (lexer, T_COMMA);
+	  if (lex_force_num (lexer))
+	    {
+	      kst->p[1] = lex_number (lexer);
+	      lex_get (lexer);
+	    }
+	}
+    }
+}
+
+static int
+npar_ks_one_sample (struct lexer *lexer, struct dataset *ds, struct npar_specs *specs)
+{
+  struct ks_one_sample_test *kst = pool_alloc (specs->pool, sizeof (*kst));
+  struct one_sample_test *tp = &kst->parent;
+  struct npar_test *nt = &tp->parent;
+
+  nt->execute = ks_one_sample_execute;
+  nt->insert_variables = one_sample_insert_variables;
+
+  kst->p[0] = kst->p[1] = SYSMIS;
+
+  if (! lex_force_match (lexer, T_LPAREN))
+    return 2;
+
+  if (lex_match_id (lexer, "NORMAL"))
+    {
+      kst->dist = KS_NORMAL;
+      ks_one_sample_parse_params (lexer, kst, 2);
+    }
+  else if (lex_match_id (lexer, "POISSON"))
+    {
+      kst->dist = KS_POISSON;
+      ks_one_sample_parse_params (lexer, kst, 1);
+    }
+  else if (lex_match_id (lexer, "UNIFORM"))
+    {
+      kst->dist = KS_UNIFORM;
+      ks_one_sample_parse_params (lexer, kst, 2);
+    }
+  else if (lex_match_id (lexer, "EXPONENTIAL"))
+    {
+      kst->dist = KS_EXPONENTIAL;
+      ks_one_sample_parse_params (lexer, kst, 1);
+    }
+  else
+    return 2;
+
+  if (! lex_force_match (lexer, T_RPAREN))
+    return 2;
+
+  lex_match (lexer, T_EQUALS);
+
+  if (! parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
+				  &tp->vars, &tp->n_vars,
+				  PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
+    return 2;
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+
+  specs->test[specs->n_tests - 1] = kst;
+
+  return 1;
+}
+
+
 static bool
 parse_two_sample_related_test (struct lexer *lexer,
 			       const struct dictionary *dict,
 			       struct two_sample_test *test_parameters,
-			       struct pool *pool
-			       )
+			       struct pool *pool)
 {
   int n = 0;
   bool paired = false;

@@ -20,6 +20,7 @@ UI_FILES = \
 	src/ui/gui/frequencies.ui \
 	src/ui/gui/k-means.ui \
 	src/ui/gui/k-related.ui \
+	src/ui/gui/ks-one-sample.ui \
 	src/ui/gui/oneway.ui \
 	src/ui/gui/paired-samples.ui \
 	src/ui/gui/psppire.ui \
@@ -83,7 +84,7 @@ context = apps
 install-icons:
 	for size in 16x16 ; do \
 	  $(MKDIR_P) $(themedir)/$$size/$(context) ; \
-          $(INSTALL) $(top_srcdir)/src/ui/gui/psppicon.png $(themedir)/$$size/$(context) ; \
+          $(INSTALL) $(top_srcdir)/src/ui/gui/icons/$$size/* $(themedir)/$$size/$(context) ; \
 	done 
 	gtk-update-icon-cache --ignore-theme-index $(themedir)
 
@@ -176,6 +177,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/k-related-dialog.h \
 	src/ui/gui/k-means-dialog.c \
 	src/ui/gui/k-means-dialog.h \
+	src/ui/gui/ks-one-sample-dialog.c \
+	src/ui/gui/ks-one-sample-dialog.h \
 	src/ui/gui/main.c \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \

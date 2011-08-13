@@ -1148,3 +1148,244 @@ v1 & junk,20,.453,.227,.164
 ])
 
 AT_CLEANUP
+
+
+AT_SETUP([NPAR TESTS Kolmogorov-Smirnov Uniform parameters given])
+
+AT_DATA([ks-uniform.sps], [dnl
+set format F12.3.
+data list notable list /x *.
+begin data
+.554
+.382
+.329
+.480
+.711
+.503
+.203
+.477
+.621
+.581
+end data.
+
+npar tests k-s (uniform 0 1) = x.
+])
+
+AT_CHECK([pspp -O format=csv ks-uniform.sps], [0], [dnl
+Table: One-Sample Kolmogorov-Smirnov Test
+,,x
+N,,10
+Uniform Parameters,Minimum,.000
+,Maximum,1.000
+Most Extreme Differences,Absolute,.289
+,Positive,.289
+,Negative,-.229
+Kolmogorov-Smirnov Z,,.914
+Asymp. Sig. (2-tailed),,.374
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([NPAR TESTS Kolmogorov-Smirnov Normal parameters imputed])
+
+AT_DATA([ks-normal.sps], [dnl
+set format = F12.3.
+
+data list notable list /foo * bar *.
+begin data.
+65 12.5
+59 14.2
+43 12.6
+57 
+68 
+79 
+51 
+62 
+57  
+73 
+58 
+58 
+68 
+75 
+47 
+70 
+59 
+71 
+52 
+48 13.0
+58 14.1
+37 15.0
+39 13.1
+58 13.2
+43 14.5
+58 13.5
+86 14.0
+63 12.5
+80 12.8
+70 
+63 
+53 
+53 
+48 
+49 
+51 
+47 
+81 
+66 
+78 
+65
+69 
+70 12.1
+63 12.5
+64 12.4
+39 13.8
+51 13.2
+68 14.0
+76 12.6
+53 12.1
+71 13.5
+47 13.8
+87 14.1
+72 12.9
+48 12.1
+75 12.8
+51 13.4
+63 13.9
+61 12.5
+61 12.4
+66 12.8
+82 12.9
+81 13.6
+46 
+52 
+71 
+73 
+58 
+57 
+46 
+58 
+52 13.5
+71 13.2
+57 12.8
+78 14.1
+73 12.1
+50 12.6
+71
+51
+51
+68
+84
+64
+66
+65
+52
+56
+70
+68
+66
+78
+65
+71
+53
+81
+53
+57
+64
+61
+43
+56
+37
+74
+66
+81
+67
+80
+68
+76
+70
+80
+42
+74
+80
+70
+60
+39
+72
+69
+63
+72
+63
+49
+53 13.2
+43 13.8
+51 12.5
+63 12.6
+64 12.9
+65 13.0
+64 12.5
+66 12.0
+55 
+62 
+58 
+48 
+67 
+46 
+36 
+61 
+55 
+77 
+74 
+60 
+70  
+69 
+57 
+49 
+63 
+69 
+63 
+76 
+53 
+54 
+42 
+64 
+66 
+61 
+62 
+73 
+73 
+60 
+79 
+40 
+48 
+76 
+60 
+76 
+54
+69
+65
+69
+51
+54
+82
+end data.
+
+npar tests 
+	/k-s (normal) = foo bar.
+])
+
+AT_CHECK([pspp -O format=csv ks-normal.sps], [0], [dnl
+Table: One-Sample Kolmogorov-Smirnov Test
+,,foo,bar
+N,,174,48
+Normal Parameters,Mean,62.109,13.108
+,Std. Deviation,11.548,.718
+Most Extreme Differences,Absolute,.059,.115
+,Positive,.055,.115
+,Negative,-.059,-.082
+Kolmogorov-Smirnov Z,,.785,.795
+Asymp. Sig. (2-tailed),,.569,.552
+])
+
+
+AT_CLEANUP
