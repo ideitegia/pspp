@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -99,11 +99,11 @@
    not yet carefully examined the situation, or if you are not sure.
    Use CHAR_CAST if you are convinced that this is actually a correct cast. */
 #define CHAR_CAST(TYPE, POINTER)                                \
-        ((void) verify_true (sizeof (*(POINTER)) == 1),         \
-         (void) (sizeof (*(POINTER) + 1)),                      \
-         (void) verify_true (sizeof (*(TYPE) NULL) == 1),       \
-         (void) (sizeof (*(TYPE) NULL + 1)),                    \
-         (TYPE) (POINTER))
+  ((void) verify_expr (sizeof (*(POINTER)) == 1, 1),            \
+   (void) (sizeof (*(POINTER) + 1)),                            \
+   (void) verify_expr (sizeof (*(TYPE) NULL) == 1, 1),          \
+   (void) (sizeof (*(TYPE) NULL + 1)),                          \
+   (TYPE) (POINTER))
 #define CHAR_CAST_BUG(TYPE, POINTER) CHAR_CAST(TYPE, POINTER)
 
 /* Given POINTER, a pointer to the given MEMBER within structure

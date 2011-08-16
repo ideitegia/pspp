@@ -34,14 +34,18 @@ This version of PSPP should work with the Gnulib commit shown below.
 Gnulib does not maintain a stable API or ABI, so it is possible that
 PSPP will not work with older or newer versions of Gnulib.
 
-  commit a38e4bbf37c4a77ea65f548dfcf590cf23e73d7e
-  Author: Bruno Haible <bruno@clisp.org>
-  Date:   Sun Feb 13 18:04:55 2011 +0100
+  commit fb6aa6ad7dd950729f4e3349d89d4ad82761af61
+  Author: Ben Pfaff <blp@cs.stanford.edu>
+  Date:   Mon Aug 15 22:33:25 2011 -0700
 
-      mbsinit: Don't crash for a NULL argument.
+      relocatable-prog: fix link error
 
-      * lib/mbsinit.c (mbsinit): When the argument is NULL, return 1.
-      * tests/test-mbsinit.c (mbsinit): Check this behaviour.
+      * modules/relocatable-prog (configure.ac) [RELOCATABLE]: Also
+      invoke AC_LIBOBJ([relocatable]).  This invocation was previously
+      in the gl_RELOCATABLE_LIBRARY macro.  That invocation was moved
+      into modules/relocatable-lib without noticing that
+      modules/relocatable-prog also invokes gl_RELOCATABLE_LIBRARY and
+      also needs to build relocatable.c.
 
 To clone Gnulib into a directory named "gnulib" using Git, and then
 check out this particular commit, run these commands:

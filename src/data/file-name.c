@@ -33,6 +33,7 @@
 #include "libpspp/version.h"
 
 #include "gl/dirname.h"
+#include "gl/dosname.h"
 #include "gl/intprops.h"
 #include "gl/minmax.h"
 #include "gl/relocatable.h"
