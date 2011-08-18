@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2010  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2010, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 
 #include "language/lexer/include-path.h"
 #include "libpspp/argv-parser.h"
+#include "libpspp/array.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
 #include "libpspp/copyleft.h"
@@ -216,6 +217,27 @@ static GMemVTable vtable =
     realloc
   };
 
+#ifdef __APPLE__
+/* Searches ARGV for the -psn_xxxx option that the desktop application
+   launcher passes in, and removes it if it finds it.  Returns the new value
+   of ARGC. */
+static int
+remove_psn (int argc, char **argv)
+{
+  int i;
+
+  for (i = 0; i < argc; i++)
+    {
+      if (!strncmp(argv[i], "-psn", 4))
+        {
+          remove_element (argv, argc + 1, sizeof *argv, i);
+          return argc - 1;
+        }
+    }
+  return argc;
+}
+#endif  /* __APPLE__ */
+
 int
 main (int argc, char *argv[])
 {
@@ -244,6 +266,9 @@ main (int argc, char *argv[])
       g_warning ("%s", vers);
     }
 
+#ifdef __APPLE__
+  argc = remove_psn (argc, argv);
+#endif
 
   /* Parse our own options. 
      This must come BEFORE gdk_init otherwise options such as 
