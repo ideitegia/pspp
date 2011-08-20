@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   PSPP - a program for statistical analysis.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+<language id="pspp" _name="PSPP" version="2.0" _section="Sources">
+
+  <styles>
+    <style id="string" _name="String" map-to="def:string"/>
+    <style id="escaped-character" _name="Escaped Character" map-to="def:special-char"/>
+    <style id="data-block" _name="Data Block" map-to="def:preprocessor"/>
+    <style id="included-file" _name="Included File" map-to="def:string"/>
+    <style id="char" _name="Character" map-to="def:character"/>
+    <style id="keyword" _name="Keyword" map-to="def:keyword"/>
+    <style id="type" _name="Data Type" map-to="def:type"/>
+    <style id="comment" _name="Comment" map-to="def:comment"/>
+  </styles>
+
+  <default-regex-options case-sensitive="false" />
+
+  <definitions>
+
+    <context id="pspp">
+
+      <include>
+
+        <context id="comment-star" style-ref="comment">
+          <start>^[\t ]*\*</start>
+          <end>^[\t ]*$|^(?=[^\t ])</end>
+        </context>
+
+        <context id="comment-keyword" style-ref="comment">
+          <start>^[\t ]*COMMENT</start>
+          <end>\.[\t ]*$|^[\t ]*$|^(?=[^\t ])</end>
+        </context>
+
+        <context id="data-block" style-ref="data-block">
+          <start>(?&lt;=(^BEGIN DATA$))</start>
+          <end>(?=(^END DATA\.?))</end>
+	</context>
+
+        <context id="string-double" end-at-line-end="true"
+                 style-ref="string">
+          <start>"</start>
+          <end>"</end>
+        </context>
+
+        <context id="string-single" end-at-line-end="true"
+                 style-ref="string">
+          <start>'</start>
+          <end>'</end>
+        </context>
+
+	<context id="keywords" style-ref="keyword">
+          <keyword>ALL</keyword>
+          <keyword>AND</keyword>
+          <keyword>BY</keyword>
+          <keyword>EQ</keyword>
+          <keyword>GE</keyword>
+          <keyword>GT</keyword>
+          <keyword>LE</keyword>
+          <keyword>LT</keyword>
+          <keyword>NE</keyword>
+          <keyword>NOT</keyword>
+          <keyword>OR</keyword>
+          <keyword>TO</keyword>
+          <keyword>WITH</keyword>
+        </context>
+
+      </include>
+    </context>
+  </definitions>
+
+
+</language>

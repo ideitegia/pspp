@@ -839,6 +839,7 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 }
 
 
+
 static void
 enable_delete_cases (GtkWidget *w, gint case_num, gpointer data)
 {

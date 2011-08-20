@@ -19,6 +19,12 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 
+#include <gtksourceview/gtksourcebuffer.h>
+#include <gtksourceview/gtksourcelanguage.h>
+#include <gtksourceview/gtksourcelanguagemanager.h>
+#include <gtksourceview/gtksourceprintcompositor.h>
+
+
 #include "language/lexer/lexer.h"
 #include "libpspp/encoding-guesser.h"
 #include "libpspp/i18n.h"
@@ -180,9 +186,32 @@ psppire_syntax_window_dispose (GObject *obj)
 static void
 psppire_syntax_window_class_init (PsppireSyntaxWindowClass *class)
 {
+  GParamSpec *encoding_spec;
   GObjectClass *gobject_class = G_OBJECT_CLASS (class);
 
-  GParamSpec *encoding_spec =
+  GtkSourceLanguageManager *lm = gtk_source_language_manager_get_default ();
+
+  const gchar * const *existing_paths =  gtk_source_language_manager_get_search_path (lm);
+  gchar **new_paths = g_strdupv ((gchar **)existing_paths);
+  int n = g_strv_length ((gchar **) existing_paths);
+
+  new_paths = g_realloc (new_paths, (n + 2) * sizeof (*new_paths));
+  new_paths[n] = g_strdup (relocate (PKGDATADIR));
+  new_paths[n+1] = NULL;
+
+  lm = gtk_source_language_manager_new ();
+  gtk_source_language_manager_set_search_path (lm, new_paths);
+
+  class->lan = gtk_source_language_manager_get_language (lm, "pspp");
+
+  if (class->lan == NULL)
+    g_warning ("pspp.lang file not found.  Syntax highlighting will not be available.");
+
+  parent_class = g_type_class_peek_parent (class);
+
+  g_strfreev (new_paths);
+
+  encoding_spec =
     null_if_empty_param ("encoding",
                          "Character encoding",
                          "IANA character encoding in this syntax file",
@@ -205,7 +234,6 @@ static void
 psppire_syntax_window_base_init (PsppireSyntaxWindowClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
-
   object_class->finalize = psppire_syntax_window_finalize;
 }
 
@@ -224,9 +252,7 @@ editor_execute_syntax (const PsppireSyntaxWindow *sw, GtkTextIter start,
 {
   PsppireWindow *win = PSPPIRE_WINDOW (sw);
   struct lex_reader *reader;
-  gchar *text;
-
-  text = gtk_text_buffer_get_text (sw->buffer, &start, &stop, FALSE);
+  gchar *text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (sw->buffer), &start, &stop, FALSE);
   reader = lex_reader_for_string (text);
   g_free (text);
 
@@ -240,12 +266,11 @@ static void
 on_edit_delete (PsppireSyntaxWindow *sw)
 {
   GtkTextIter begin, end;
+  GtkTextBuffer *buffer = GTK_TEXT_BUFFER (sw->buffer);
   
-  if ( gtk_text_buffer_get_selection_bounds (sw->buffer, &begin, &end) )
-    gtk_text_buffer_delete (sw->buffer, &begin, &end);
+  if ( gtk_text_buffer_get_selection_bounds (buffer, &begin, &end) )
+    gtk_text_buffer_delete (buffer, &begin, &end);
 }
-
-
 
 
 /* The syntax editor's clipboard deals only with text */
@@ -258,7 +283,7 @@ enum {
 static void
 selection_changed (PsppireSyntaxWindow *sw)
 {
-  gboolean sel = gtk_text_buffer_get_has_selection (sw->buffer);
+  gboolean sel = gtk_text_buffer_get_has_selection (GTK_TEXT_BUFFER (sw->buffer));
 
   gtk_action_set_sensitive (sw->edit_copy, sel);
   gtk_action_set_sensitive (sw->edit_cut, sel);
@@ -311,12 +336,13 @@ static gboolean
 set_clip (PsppireSyntaxWindow *sw, GtkTextIter *begin, GtkTextIter *end)
 {
   GtkClipboard *clipboard ;
+  GtkTextBuffer *buffer = GTK_TEXT_BUFFER (sw->buffer);
 
-  if ( ! gtk_text_buffer_get_selection_bounds (sw->buffer, begin, end) )
+  if ( ! gtk_text_buffer_get_selection_bounds (buffer, begin, end) )
     return FALSE;
 
   g_free (sw->cliptext);
-  sw->cliptext = gtk_text_buffer_get_text  (sw->buffer, begin, end, FALSE);
+  sw->cliptext = gtk_text_buffer_get_text  (buffer, begin, end, FALSE);
 
   clipboard =
     gtk_widget_get_clipboard (GTK_WIDGET (sw), GDK_SELECTION_CLIPBOARD);
@@ -336,7 +362,7 @@ on_edit_cut (PsppireSyntaxWindow *sw)
   GtkTextIter begin, end;
   
   if ( set_clip (sw, &begin, &end))
-    gtk_text_buffer_delete (sw->buffer, &begin, &end);
+    gtk_text_buffer_delete (GTK_TEXT_BUFFER (sw->buffer), &begin, &end);
 }
 
 static void
@@ -365,7 +391,7 @@ contents_received_callback (GtkClipboard *clipboard,
 
   c = (gchar *) sd->data;
 
-  gtk_text_buffer_insert_at_cursor (syntax_window->buffer,
+  gtk_text_buffer_insert_at_cursor (GTK_TEXT_BUFFER (syntax_window->buffer),
 				    (gchar *) sd->data,
 				    sd->length);
 
@@ -418,8 +444,8 @@ on_run_all (GtkMenuItem *menuitem, gpointer user_data)
   GtkTextIter begin, end;
   PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (user_data);
 
-  gtk_text_buffer_get_iter_at_offset (se->buffer, &begin, 0);
-  gtk_text_buffer_get_iter_at_offset (se->buffer, &end, -1);
+  gtk_text_buffer_get_iter_at_offset (GTK_TEXT_BUFFER (se->buffer), &begin, 0);
+  gtk_text_buffer_get_iter_at_offset (GTK_TEXT_BUFFER (se->buffer), &end, -1);
 
   editor_execute_syntax (se, begin, end);
 }
@@ -431,7 +457,7 @@ on_run_selection (GtkMenuItem *menuitem, gpointer user_data)
   GtkTextIter begin, end;
   PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (user_data);
 
-  if ( gtk_text_buffer_get_selection_bounds (se->buffer, &begin, &end) )
+  if ( gtk_text_buffer_get_selection_bounds (GTK_TEXT_BUFFER (se->buffer), &begin, &end) )
     editor_execute_syntax (se, begin, end);
 }
 
@@ -448,17 +474,17 @@ on_run_to_end (GtkMenuItem *menuitem, gpointer user_data)
   PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (user_data);
 
   /* Get the current line */
-  gtk_text_buffer_get_iter_at_mark (se->buffer,
+  gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (se->buffer),
 				    &here,
-				    gtk_text_buffer_get_insert (se->buffer)
+				    gtk_text_buffer_get_insert (GTK_TEXT_BUFFER (se->buffer))
 				    );
 
   line = gtk_text_iter_get_line (&here) ;
 
   /* Now set begin and end to the start of this line, and end of buffer
      respectively */
-  gtk_text_buffer_get_iter_at_line (se->buffer, &begin, line);
-  gtk_text_buffer_get_iter_at_line (se->buffer, &end, -1);
+  gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (se->buffer), &begin, line);
+  gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (se->buffer), &end, -1);
 
   editor_execute_syntax (se, begin, end);
 }
@@ -476,17 +502,17 @@ on_run_current_line (GtkMenuItem *menuitem, gpointer user_data)
   PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (user_data);
 
   /* Get the current line */
-  gtk_text_buffer_get_iter_at_mark (se->buffer,
+  gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (se->buffer),
 				    &here,
-				    gtk_text_buffer_get_insert (se->buffer)
+				    gtk_text_buffer_get_insert (GTK_TEXT_BUFFER (se->buffer))
 				    );
 
   line = gtk_text_iter_get_line (&here) ;
 
   /* Now set begin and end to the start of this line, and start of
      following line respectively */
-  gtk_text_buffer_get_iter_at_line (se->buffer, &begin, line);
-  gtk_text_buffer_get_iter_at_line (se->buffer, &end, line + 1);
+  gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (se->buffer), &begin, line);
+  gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (se->buffer), &end, line + 1);
 
   editor_execute_syntax (se, begin, end);
 }
@@ -518,7 +544,7 @@ save_editor_to_file (PsppireSyntaxWindow *se,
 		     const gchar *filename,
 		     GError **err)
 {
-  GtkTextBuffer *buffer = se->buffer;
+  GtkTextBuffer *buffer = GTK_TEXT_BUFFER (se->buffer);
   struct substring text_locale;
   gboolean result ;
   GtkTextIter start, stop;
@@ -644,6 +670,21 @@ on_quit (GtkMenuItem *menuitem, gpointer    user_data)
 }
 
 
+static void
+load_and_show_syntax_window (GtkWidget *se, const gchar *filename)
+{
+  gboolean ok;
+
+  gtk_source_buffer_begin_not_undoable_action (PSPPIRE_SYNTAX_WINDOW (se)->buffer);
+  ok = psppire_window_load (PSPPIRE_WINDOW (se), filename);
+  gtk_source_buffer_end_not_undoable_action (PSPPIRE_SYNTAX_WINDOW (se)->buffer);
+
+  if (ok )
+    gtk_widget_show (se);
+  else
+    gtk_widget_destroy (se);
+}
+
 void
 create_syntax_window (void)
 {
@@ -656,23 +697,30 @@ open_syntax_window (const char *file_name, const gchar *encoding)
 {
   GtkWidget *se = psppire_syntax_window_new (encoding);
 
-  if ( psppire_window_load (PSPPIRE_WINDOW (se), file_name) )
-    gtk_widget_show (se);
-  else
-    gtk_widget_destroy (se);
+  if ( file_name)
+    load_and_show_syntax_window (se, file_name);
 }
 
-static void
-on_text_changed (GtkTextBuffer *buffer, PsppireSyntaxWindow *window)
-{
-  gtk_statusbar_pop (GTK_STATUSBAR (window->sb), window->text_context);
-}
+
+
+static void psppire_syntax_window_print (PsppireSyntaxWindow *window);
 
 static void
 on_modified_changed (GtkTextBuffer *buffer, PsppireWindow *window)
 {
   if (gtk_text_buffer_get_modified (buffer))
     psppire_window_set_unsaved (window);
+}
+
+static void undo_redo_update (PsppireSyntaxWindow *window);
+static void undo_last_edit (PsppireSyntaxWindow *window);
+static void redo_last_edit (PsppireSyntaxWindow *window);
+
+static void
+on_text_changed (GtkTextBuffer *buffer, PsppireSyntaxWindow *window)
+{
+  gtk_statusbar_pop (GTK_STATUSBAR (window->sb), window->text_context);
+  undo_redo_update (window);
 }
 
 static void
@@ -684,11 +732,36 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   GtkWidget *menubar = get_widget_assert (xml, "menubar");
   GtkWidget *sw = get_widget_assert (xml, "scrolledwindow8");
 
-
   GtkWidget *text_view = get_widget_assert (xml, "syntax_text_view");
+
+  PsppireSyntaxWindowClass *class
+    = PSPPIRE_SYNTAX_WINDOW_CLASS (G_OBJECT_GET_CLASS (window));
 
   GtkClipboard *clip_selection = gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_CLIPBOARD);
   GtkClipboard *clip_primary =   gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
+
+  window->print_settings = NULL;
+  window->undo_menuitem = get_action_assert (xml, "edit_undo");
+  window->redo_menuitem = get_action_assert (xml, "edit_redo");
+
+  if (class->lan)
+    window->buffer = gtk_source_buffer_new_with_language (class->lan);
+  else
+    window->buffer = gtk_source_buffer_new (NULL);
+
+  gtk_text_view_set_buffer (GTK_TEXT_VIEW (text_view), GTK_TEXT_BUFFER (window->buffer));
+
+  g_object_set (window->buffer,
+		"highlight-matching-brackets", TRUE,
+		NULL);
+
+  g_object_set (text_view,
+		"show-line-numbers", TRUE,
+		"show-line-marks", TRUE,
+		"auto-indent", TRUE,
+		"indent-width", 4,
+		"highlight-current-line", TRUE,
+		NULL);
 
   window->encoding = NULL;
 
@@ -700,7 +773,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   window->edit_cut = get_action_assert (xml, "edit_cut");
   window->edit_paste = get_action_assert (xml, "edit_paste");
 
-  window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
+  window->buffer = GTK_SOURCE_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view)));
 
   window->sb = get_widget_assert (xml, "statusbar2");
   window->text_context = gtk_statusbar_get_context_id (GTK_STATUSBAR (window->sb), "Text Context");
@@ -710,6 +783,22 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_signal_connect (window->buffer, "modified-changed", 
 		    G_CALLBACK (on_modified_changed), window);
+
+  g_signal_connect_swapped (get_action_assert (xml, "file_print"), "activate",
+                            G_CALLBACK (psppire_syntax_window_print), window);
+
+
+  g_signal_connect_swapped (window->undo_menuitem,
+			    "activate",
+                            G_CALLBACK (undo_last_edit),
+			    window);
+
+  g_signal_connect_swapped (window->redo_menuitem,
+			    "activate",
+                            G_CALLBACK (redo_last_edit),
+			    window);
+
+  undo_redo_update (window);
 
   window->sel_handler = g_signal_connect_swapped (clip_primary, "owner-change", 
 						   G_CALLBACK (selection_changed), window);
@@ -805,6 +894,9 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    G_CALLBACK (psppire_window_minimise_all), NULL);
 
 
+
+
+
   {
   GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1", GTK_TYPE_UI_MANAGER));
 
@@ -868,6 +960,7 @@ syntax_load (PsppireWindow *window, const gchar *filename)
   gsize len_utf8 = -1;
   GtkTextIter iter;
   PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (window);
+  GtkTextBuffer *buffer = GTK_TEXT_BUFFER (sw->buffer);
   gchar *encoding;
   char *mime_type;
 
@@ -892,11 +985,18 @@ syntax_load (PsppireWindow *window, const gchar *filename)
                                      NULL).string;
   free (text_locale);
 
-  gtk_text_buffer_get_iter_at_line (sw->buffer, &iter, 0);
+  if ( text_utf8 == NULL )
+    {
+      error_dialog (GTK_WINDOW (window), filename, err);
+      g_clear_error (&err);
+      return FALSE;
+    }
 
-  gtk_text_buffer_insert (sw->buffer, &iter, text_utf8, len_utf8);
+  gtk_text_buffer_get_iter_at_line (buffer, &iter, 0);
 
-  gtk_text_buffer_set_modified (sw->buffer, FALSE);
+  gtk_text_buffer_insert (buffer, &iter, text_utf8, len_utf8);
+
+  gtk_text_buffer_set_modified (buffer, FALSE);
 
   free (text_utf8);
 
@@ -917,3 +1017,113 @@ psppire_syntax_window_iface_init (PsppireWindowIface *iface)
   iface->load = syntax_load;
 }
 
+
+
+
+static void
+undo_redo_update (PsppireSyntaxWindow *window)
+{
+  gtk_action_set_sensitive (window->undo_menuitem,
+			    gtk_source_buffer_can_undo (window->buffer));
+
+  gtk_action_set_sensitive (window->redo_menuitem,
+			    gtk_source_buffer_can_redo (window->buffer));
+}
+
+static void
+undo_last_edit (PsppireSyntaxWindow *window)
+{
+  gtk_source_buffer_undo (window->buffer);
+  undo_redo_update (window);
+}
+
+static void
+redo_last_edit (PsppireSyntaxWindow *window)
+{
+  gtk_source_buffer_redo (window->buffer);
+  undo_redo_update (window);
+}
+
+
+
+/* Printing related stuff */
+
+
+static void
+begin_print (GtkPrintOperation *operation,
+          GtkPrintContext   *context,
+          PsppireSyntaxWindow *window)
+{
+  window->compositor =
+    gtk_source_print_compositor_new (window->buffer);
+}
+
+
+static void
+end_print (GtkPrintOperation *operation,
+          GtkPrintContext   *context,
+          PsppireSyntaxWindow *window)
+{
+  g_object_unref (window->compositor);
+  window->compositor = NULL;
+}
+
+
+
+static gboolean
+paginate (GtkPrintOperation *operation,
+          GtkPrintContext   *context,
+          PsppireSyntaxWindow *window)
+{
+  if (gtk_source_print_compositor_paginate (window->compositor, context))
+    {
+      gint n_pages = gtk_source_print_compositor_get_n_pages (window->compositor);
+      gtk_print_operation_set_n_pages (operation, n_pages);
+        
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+static void
+draw_page (GtkPrintOperation *operation,
+           GtkPrintContext   *context,
+           gint               page_nr,
+          PsppireSyntaxWindow *window)
+{
+  gtk_source_print_compositor_draw_page (window->compositor, 
+					 context,
+					 page_nr);
+}
+
+
+
+static void
+psppire_syntax_window_print (PsppireSyntaxWindow *window)
+{
+  GtkPrintOperationResult res;
+
+  GtkPrintOperation *print = gtk_print_operation_new ();
+
+  if (window->print_settings != NULL) 
+    gtk_print_operation_set_print_settings (print, window->print_settings);
+
+
+  g_signal_connect (print, "begin_print", G_CALLBACK (begin_print), window);
+  g_signal_connect (print, "end_print", G_CALLBACK (end_print),     window);
+  g_signal_connect (print, "draw_page", G_CALLBACK (draw_page),     window);
+  g_signal_connect (print, "paginate", G_CALLBACK (paginate),       window);
+
+  res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
+                                 GTK_WINDOW (window), NULL);
+
+  if (res == GTK_PRINT_OPERATION_RESULT_APPLY)
+    {
+      if (window->print_settings != NULL)
+        g_object_unref (window->print_settings);
+      window->print_settings = g_object_ref (gtk_print_operation_get_print_settings (print));
+    }
+
+  g_object_unref (print);
+}

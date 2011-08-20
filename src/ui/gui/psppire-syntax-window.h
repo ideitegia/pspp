@@ -23,12 +23,17 @@
 #include <gtk/gtk.h>
 #include "psppire-window.h"
 
+#include <gtksourceview/gtksourcelanguage.h>
+#include <gtksourceview/gtksourcelanguagemanager.h>
+#include <gtksourceview/gtksourcebuffer.h>
+#include <gtksourceview/gtksourceprintcompositor.h>
+
 G_BEGIN_DECLS
 
 #define PSPPIRE_SYNTAX_WINDOW_TYPE            (psppire_syntax_window_get_type ())
 #define PSPPIRE_SYNTAX_WINDOW(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPPIRE_SYNTAX_WINDOW_TYPE, PsppireSyntaxWindow))
 #define PSPPIRE_SYNTAX_WINDOW_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), \
-    PSPPIRE_SYNTAX_WINDOW_TYPE, PsppireSyntax_WindowClass))
+    PSPPIRE_SYNTAX_WINDOW_TYPE, PsppireSyntaxWindowClass))
 #define PSPPIRE_IS_SYNTAX_WINDOW(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
     PSPPIRE_SYNTAX_WINDOW_TYPE))
 #define PSPPIRE_IS_SYNTAX_WINDOW_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), \
@@ -45,11 +50,16 @@ struct _PsppireSyntaxWindow
 
   /* <private> */
 
+  GtkSourceBuffer *buffer;  /* The buffer which contains the text */
+  struct lexer *lexer;    /* Lexer to parse syntax */
   gchar *encoding;              /* File's encoding. */
-
-  GtkTextBuffer *buffer;  /* The buffer which contains the text */
   GtkWidget *sb;
   guint text_context;
+
+  GtkPrintSettings *print_settings;
+  GtkSourcePrintCompositor *compositor;
+  GtkAction *undo_menuitem;
+  GtkAction *redo_menuitem;
 
   gchar *cliptext;
 
@@ -68,6 +78,8 @@ struct _PsppireSyntaxWindowClass
 {
   PsppireWindowClass parent_class;
 
+
+  GtkSourceLanguage *lan ;
 };
 
 GType      psppire_syntax_window_get_type        (void);

@@ -49,6 +49,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="file_print">
+            <property name="name">file_print</property>
+            <property name="stock-id">gtk-print</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="file_quit">
             <property name="stock-id">gtk-quit</property>
             <property name="name">file_quit</property>
@@ -86,6 +92,18 @@
             <property name="stock-id">gtk-delete</property>
             <property name="name">edit_delete</property>
             <property name="sensitive">false</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_undo">
+            <property name="stock-id">gtk-undo</property>
+            <property name="name">edit_undo</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_redo">
+            <property name="stock-id">gtk-redo</property>
+            <property name="name">edit_redo</property>
           </object>
         </child>
         <child>
@@ -144,6 +162,8 @@
           <menuitem action="file_save"/>
           <menuitem action="file_save_as"/>
           <separator/>
+          <menuitem action="file_print"/>
+          <separator/>
           <menuitem action="file_quit"/>
         </menu>
         <menu action="menuitem7">
@@ -151,6 +171,9 @@
           <menuitem action="edit_copy"/>
           <menuitem action="edit_paste"/>
           <menuitem action="edit_delete"/>
+          <separator/>
+          <menuitem action="edit_undo"/>
+          <menuitem action="edit_redo"/>
         </menu>
         <menu action="run1">
           <menuitem action="run_all"/>
@@ -177,7 +200,7 @@
     <property name="shadow_type">GTK_SHADOW_IN</property>
     <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
     <child>
-      <object class="GtkTextView" id="syntax_text_view">
+      <object class="GtkSourceView" id="syntax_text_view">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="editable">True</property>
