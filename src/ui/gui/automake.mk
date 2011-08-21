@@ -84,8 +84,8 @@ context = apps
 
 
 install-lang:
-	$(INSTALL) $(top_srcdir)/src/ui/gui/pspp.lang $(pkgdatadir)
-	
+	$(INSTALL) $(top_srcdir)/src/ui/gui/pspp.lang $(DESTDIR)$(pkgdatadir)
+
 install-icons:
 	for size in 16x16 ; do \
 	  $(MKDIR_P) $(themedir)/$$size/$(context) ; \
