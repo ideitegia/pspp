@@ -33,10 +33,7 @@ static struct tower_node *prev_node (const struct tower *,
                                      const struct tower_node *);
 static unsigned long int get_subtree_size (const struct abt_node *);
 static unsigned long int get_subtree_count (const struct abt_node *);
-static void reaugment_tower_node (struct abt_node *,
-                                  const struct abt_node *,
-                                  const struct abt_node *,
-                                  const void *aux);
+static void reaugment_tower_node (struct abt_node *, const void *aux);
 
 /* Returns the height of the bottom of the given tower NODE.
 
@@ -351,27 +348,26 @@ get_subtree_count (const struct abt_node *p)
   return p != NULL ? abt_to_tower_node (p)->subtree_count : 0;
 }
 
-/* Recalculates the subtree_size of NODE based on its LEFT and
-   RIGHT children's subtree_sizes. */
+/* Recalculates the subtree_size of NODE based on the subtree_sizes of its
+   children. */
 static void
-reaugment_tower_node (struct abt_node *node_,
-                      const struct abt_node *left,
-                      const struct abt_node *right,
-                      const void *aux UNUSED)
+reaugment_tower_node (struct abt_node *node_, const void *aux UNUSED)
 {
   struct tower_node *node = abt_to_tower_node (node_);
   node->subtree_size = node->size;
   node->subtree_count = 1;
-  if (left != NULL) 
+
+  if (node->abt_node.down[0] != NULL)
     {
-      struct tower_node *left_node = abt_to_tower_node (left);
-      node->subtree_size += left_node->subtree_size;
-      node->subtree_count += left_node->subtree_count; 
+      struct tower_node *left = abt_to_tower_node (node->abt_node.down[0]);
+      node->subtree_size += left->subtree_size;
+      node->subtree_count += left->subtree_count;
     }
-  if (right != NULL) 
+
+  if (node->abt_node.down[1] != NULL)
     {
-      struct tower_node *right_node = abt_to_tower_node (right);
-      node->subtree_size += right_node->subtree_size;
-      node->subtree_count += right_node->subtree_count; 
+      struct tower_node *right = abt_to_tower_node (node->abt_node.down[1]);
+      node->subtree_size += right->subtree_size;
+      node->subtree_count += right->subtree_count;
     }
 }

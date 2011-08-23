@@ -34,10 +34,9 @@
 
    The ABT data structure partially abstracts augmentation.  The
    client passes in a "reaugmentation" function that accepts a
-   node and its left and right children.  This function must
-   recalculate the node's augmentation data based on its own
-   contents and the contents of its children, and store the new
-   augmentation data in the node.
+   node.  This function must recalculate the node's augmentation
+   data based on its own contents and the contents of its
+   children, and store the new augmentation data in the node.
 
    The ABT automatically calls the reaugmentation function
    whenever it can tell that a node's augmentation data might
@@ -104,19 +103,16 @@
      }
 
      // Recalculates the count for NODE's subtree by adding up the
-     // counts for its LEFT and RIGHT child subtrees.
+     // counts for its left and right child subtrees.
      static void
-     reaugment_elements (struct abt_node *node_,
-                         const struct abt_node *left,
-                         const struct abt_node *right,
-                         const void *aux)
+     reaugment_elements (struct abt_node *node_, const void *aux)
      {
        struct element *node = node_to_element (node_);
        node->count = 1;
-       if (left != NULL)
-         node->count += node_to_element (left)->count;
-       if (right != NULL)
-         node->count += node_to_element (right)->count;
+       if (node->node.down[0] != NULL)
+         node->count += node_to_element (node->node.down[0])->count;
+       if (node->node.down[1] != NULL)
+         node->count += node_to_element (node->node.down[1])->count;
      }
 
      // Finds and returns the element in ABT that is in the given
@@ -173,12 +169,10 @@ typedef int abt_compare_func (const struct abt_node *a,
                               const struct abt_node *b,
                               const void *aux);
 
-/* Recalculates NODE's augmentation based on NODE's data and that
-   of its LEFT and RIGHT children, with the tree's AUX. */
-typedef void abt_reaugment_func (struct abt_node *node,
-                                 const struct abt_node *left,
-                                 const struct abt_node *right,
-                                 const void *aux);
+/* Recalculates NODE's augmentation based on NODE's data and that of its left
+   and right children NODE->down[0] and NODE[1], respectively, with the tree's
+   AUX. */
+typedef void abt_reaugment_func (struct abt_node *node, const void *aux);
 
 /* An augmented binary tree. */
 struct abt

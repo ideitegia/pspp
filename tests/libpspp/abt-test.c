@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -138,20 +138,17 @@ compare_elements (const struct abt_node *a_, const struct abt_node *b_,
 /* Recalculates the count for NODE's subtree by adding up the
    counts for its LEFT and RIGHT child subtrees. */
 static void
-reaugment_elements (struct abt_node *node_,
-                    const struct abt_node *left,
-                    const struct abt_node *right,
-                    const void *aux)
+reaugment_elements (struct abt_node *node_, const void *aux)
 {
   struct element *node = abt_node_to_element (node_);
 
   check (aux == &aux_data);
 
   node->count = 1;
-  if (left != NULL)
-    node->count += abt_node_to_element (left)->count;
-  if (right != NULL)
-    node->count += abt_node_to_element (right)->count;
+  if (node->node.down[0] != NULL)
+    node->count += abt_node_to_element (node->node.down[0])->count;
+  if (node->node.down[1] != NULL)
+    node->count += abt_node_to_element (node->node.down[1])->count;
 }
 
 /* Compares A and B and returns a strcmp-type return value. */

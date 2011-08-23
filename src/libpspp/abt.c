@@ -351,7 +351,7 @@ void
 abt_reaugmented (const struct abt *abt, struct abt_node *p)
 {
   for (; p != NULL; p = p->up)
-    abt->reaugment (p, p->down[0], p->down[1], abt->aux);
+    abt->reaugment (p, abt->aux);
 }
 
 /* Moves P around in ABT to compensate for its key having
@@ -452,8 +452,8 @@ skew (struct abt *abt, struct abt_node *a)
       b->up = a->up;
       a->up = b;
 
-      abt->reaugment (a, a->down[0], a->down[1], abt->aux);
-      abt->reaugment (b, b->down[0], b->down[1], abt->aux);
+      abt->reaugment (a, abt->aux);
+      abt->reaugment (b, abt->aux);
 
       return b;
     }
@@ -483,8 +483,8 @@ split (struct abt *abt, struct abt_node *a)
 
       b->level++;
 
-      abt->reaugment (a, a->down[0], a->down[1], abt->aux);
-      abt->reaugment (b, b->down[0], b->down[1], abt->aux);
+      abt->reaugment (a, abt->aux);
+      abt->reaugment (b, abt->aux);
 
       return b;
     }
