@@ -755,11 +755,12 @@ run_oneway (const struct oneway_spec *cmd,
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
+      gsl_matrix *cm;
       struct per_var_ws *pvw = &ws.vws[v];
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
       categoricals_done (cats);
 
-      gsl_matrix *cm = covariance_calculate_unnormalized (pvw->cov);
+      cm = covariance_calculate_unnormalized (pvw->cov);
 
       moments1_calculate (ws.dd_total[v]->mom, &pvw->n, NULL, NULL, NULL, NULL);
 

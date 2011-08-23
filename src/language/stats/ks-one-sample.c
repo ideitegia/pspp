@@ -130,9 +130,10 @@ static void show_results (const struct ks *, const struct ks_one_sample_test *, 
 
 void
 ks_one_sample_execute (const struct dataset *ds,
-		   struct casereader *input,
-                   enum mv_class exclude,
-		   const struct npar_test *test)
+		       struct casereader *input,
+		       enum mv_class exclude,
+		       const struct npar_test *test,
+		       bool x UNUSED, double y UNUSED)
 {
   const struct dictionary *dict = dataset_dict (ds);
   const struct ks_one_sample_test *kst = UP_CAST (test, const struct ks_one_sample_test, parent.parent);
@@ -142,6 +143,7 @@ ks_one_sample_execute (const struct dataset *ds,
   const struct fmt_spec *wfmt = wvar ? var_get_print_format (wvar) : & F_8_0;
   bool warn = true;
   int v;
+  struct casereader *r = casereader_clone (input);
 
   struct ks *ks = xcalloc (sizeof *ks, ost->n_vars);
 
@@ -155,8 +157,6 @@ ks_one_sample_execute (const struct dataset *ds,
       ks[v].sum = 0;
       ks[v].ssq = 0;
     }
-
-  struct casereader *r = casereader_clone (input);
 
   for (; (c = casereader_read (r)) != NULL; case_unref (c))
     {
@@ -182,6 +182,10 @@ ks_one_sample_execute (const struct dataset *ds,
 
   for (v = 0; v < ost->n_vars; ++v)
     {
+      const struct variable *var = ost->vars[v];
+      double cc = 0;
+      double prev_empirical = 0;
+
       switch (kst->dist)
 	{
 	case KS_UNIFORM:
@@ -218,9 +222,6 @@ ks_one_sample_execute (const struct dataset *ds,
 	  NOT_REACHED ();
 	}
 
-      const struct variable *var = ost->vars[v];
-      double cc = 0;
-      double prev_empirical = 0;
       r = sort_execute_1var (casereader_clone (input), var);
       for (; (c = casereader_read (r)) != NULL; case_unref (c))
 	{

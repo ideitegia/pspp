@@ -1007,7 +1007,7 @@ npar_ks_one_sample (struct lexer *lexer, struct dataset *ds, struct npar_specs *
 			      specs->test,
 			      sizeof (*specs->test) * specs->n_tests);
 
-  specs->test[specs->n_tests - 1] = kst;
+  specs->test[specs->n_tests - 1] = nt;
 
   return 1;
 }

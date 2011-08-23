@@ -73,6 +73,7 @@ struct variable_node
   struct hmap valmap;         /* A map of value nodes */
 };
 
+#if 0
 static void
 dump_interaction (const struct interaction *iact)
 {
@@ -81,6 +82,7 @@ dump_interaction (const struct interaction *iact)
   printf ("Interaction: %s\n", ds_cstr (&str));
   ds_destroy (&str);
 }
+#endif
 
 
 static struct variable_node *
@@ -180,7 +182,7 @@ struct categoricals
   void *aux2;
 };
 
-
+#if 0
 static void
 categoricals_dump (const struct categoricals *cat)
 {
@@ -238,7 +240,7 @@ categoricals_dump (const struct categoricals *cat)
       printf (")\n");
     }
 }
-
+#endif
 
 void
 categoricals_destroy (struct categoricals *cat)

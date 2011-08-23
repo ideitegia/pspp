@@ -209,7 +209,7 @@ generate_syntax (const struct runs *rd)
 
   if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (rd->cb[CB_CUSTOM])))
     {
-      char *text = gtk_entry_get_text (GTK_ENTRY (rd->entry));
+      const char *text = gtk_entry_get_text (GTK_ENTRY (rd->entry));
       append_fragment (string, text, PSPPIRE_VAR_VIEW (rd->variables));
     }
 
