@@ -194,6 +194,9 @@ check} and similar scripts.
 
 @node PDF PostScript and SVG Output Options
 @section PDF, PostScript, and SVG Output Options
+@cindex PDF
+@cindex Postscript
+@cindex SVG
 
 To produce output in PDF, PostScript, and SVG formats, specify
 @option{-o @var{file}} on the PSPP command line, optionally followed
@@ -335,7 +338,7 @@ you might pass the output.  Default: @code{none}.
 
 @node HTML Output Options
 @section HTML Output Options
-
+@cindex HTML
 To produce output in HTML format, specify @option{-o @var{file}} on
 the PSPP command line, optionally followed by any of the options shown
 in the table below to customize the output format.
@@ -348,6 +351,16 @@ given on @option{-o} does not end in @file{.html}.
 @item -O charts=@{@var{template}.png|none@}
 Sets the name used for chart files.  @xref{Plain Text Output Options},
 for details.
+
+@item -O borders=@var{boolean}
+Decorate the tables with borders.  If set to false, the tables produced
+will have no borders.  The default value is true.
+
+@item -O css=@var{boolean}
+Use cascading style sheets.  Cascading style sheets give an improved appearance
+and can be used to produce pages which fit a certain web site's style.
+The default value is true.
+
 @end table
 
 @node OpenDocument Output Options

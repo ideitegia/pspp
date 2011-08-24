@@ -55,6 +55,9 @@ struct html_driver
     char *command_name;
     FILE *file;
     size_t chart_cnt;
+
+    bool css;
+    bool borders;
   };
 
 static const struct output_driver_class html_driver_class;
@@ -91,6 +94,8 @@ html_create (const char *file_name, enum settings_output_devices device_type,
   d = &html->driver;
   output_driver_init (&html->driver, &html_driver_class, file_name,
                       device_type);
+  html->css = parse_boolean (opt (d, o, "css", "true"));
+  html->borders = parse_boolean (opt (d, o, "borders", "true"));
 
   html->file_name = xstrdup (file_name);
   html->chart_file_name = parse_chart_file_name (opt (d, o, "charts",
@@ -111,62 +116,66 @@ html_create (const char *file_name, enum settings_output_devices device_type,
   fputs ("<HEAD>\n", html->file);
   print_title_tag (html->file, "TITLE", _("PSPP Output"));
   fprintf (html->file, "<META NAME=\"generator\" CONTENT=\"%s\">\n", version);
-  fputs ("<META http-equiv=\"Content-Style-Type\" content=\"text/css\">\n",
-         html->file);
   fputs ("<META HTTP-EQUIV=\"Content-Type\" "
          "CONTENT=\"text/html; charset=utf-8\">\n", html->file);
-  fputs ("<STYLE TYPE=\"text/css\">\n"
-         "<!--\n"
-         "body {\n"
-         "  background: white;\n"
-         "  color: black;\n"
-         "  padding: 0em 12em 0em 3em;\n"
-         "  margin: 0\n"
-         "}\n"
-         "body>p {\n"
-         "  margin: 0pt 0pt 0pt 0em\n"
-         "}\n"
-         "body>p + p {\n"
-         "  text-indent: 1.5em;\n"
-         "}\n"
-         "h1 {\n"
-         "  font-size: 150%;\n"
-         "  margin-left: -1.33em\n"
-         "}\n"
-         "h2 {\n"
-         "  font-size: 125%;\n"
-         "  font-weight: bold;\n"
-         "  margin-left: -.8em\n"
-         "}\n"
-         "h3 {\n"
-         "  font-size: 100%;\n"
-         "  font-weight: bold;\n"
-         "  margin-left: -.5em }\n"
-         "h4 {\n"
-         "  font-size: 100%;\n"
-         "  margin-left: 0em\n"
-         "}\n"
-         "h1, h2, h3, h4, h5, h6 {\n"
-         "  font-family: sans-serif;\n"
-         "  color: blue\n"
-         "}\n"
-         "html {\n"
-         "  margin: 0\n"
-         "}\n"
-         "code {\n"
-         "  font-family: sans-serif\n"
-         "}\n"
-         "table {\n"
-         "  border-collapse: collapse;\n"
-         "  margin-bottom: 1em\n"
-         "}\n"
-         "th { background: #dddddd; font-weight: normal; font-style: oblique }\n"
-         "caption {\n"
-         "  text-align: left\n"
-         "}\n"
-         "-->\n"
-         "</STYLE>\n",
-         html->file);
+
+  if ( html->css)
+    {
+      fputs ("<META http-equiv=\"Content-Style-Type\" content=\"text/css\">\n",
+	     html->file);
+      fputs ("<STYLE TYPE=\"text/css\">\n"
+	     "<!--\n"
+	     "body {\n"
+	     "  background: white;\n"
+	     "  color: black;\n"
+	     "  padding: 0em 12em 0em 3em;\n"
+	     "  margin: 0\n"
+	     "}\n"
+	     "body>p {\n"
+	     "  margin: 0pt 0pt 0pt 0em\n"
+	     "}\n"
+	     "body>p + p {\n"
+	     "  text-indent: 1.5em;\n"
+	     "}\n"
+	     "h1 {\n"
+	     "  font-size: 150%;\n"
+	     "  margin-left: -1.33em\n"
+	     "}\n"
+	     "h2 {\n"
+	     "  font-size: 125%;\n"
+	     "  font-weight: bold;\n"
+	     "  margin-left: -.8em\n"
+	     "}\n"
+	     "h3 {\n"
+	     "  font-size: 100%;\n"
+	     "  font-weight: bold;\n"
+	     "  margin-left: -.5em }\n"
+	     "h4 {\n"
+	     "  font-size: 100%;\n"
+	     "  margin-left: 0em\n"
+	     "}\n"
+	     "h1, h2, h3, h4, h5, h6 {\n"
+	     "  font-family: sans-serif;\n"
+	     "  color: blue\n"
+	     "}\n"
+	     "html {\n"
+	     "  margin: 0\n"
+	     "}\n"
+	     "code {\n"
+	     "  font-family: sans-serif\n"
+	     "}\n"
+	     "table {\n"
+	     "  border-collapse: collapse;\n"
+	     "  margin-bottom: 1em\n"
+	     "}\n"
+	     "th { background: #dddddd; font-weight: normal; font-style: oblique }\n"
+	     "caption {\n"
+	     "  text-align: left\n"
+	     "}\n"
+	     "-->\n"
+	     "</STYLE>\n",
+	     html->file);
+    }
   fputs ("</HEAD>\n", html->file);
   fputs ("<BODY BGCOLOR=\"#ffffff\" TEXT=\"#000000\"\n", html->file);
   fputs (" LINK=\"#1f00ff\" ALINK=\"#ff0000\" VLINK=\"#9900dd\">\n", html->file);
@@ -406,33 +415,36 @@ html_output_table (struct html_driver *html, struct table_item *item)
           if (rowspan > 1)
             fprintf (html->file, " ROWSPAN=\"%d\"", rowspan);
 
-          /* Cell borders. */
-          n_borders = 0;
+	  if (html->borders)
+	    {
+	      /* Cell borders. */
+	      n_borders = 0;
           
-          top = table_get_rule (t, TABLE_VERT, x, y);
-          if (top > TAL_GAP)
-            put_border (html->file, n_borders++, top, "top");
+	      top = table_get_rule (t, TABLE_VERT, x, y);
+	      if (top > TAL_GAP)
+		put_border (html->file, n_borders++, top, "top");
 
-          if (y == table_nr (t) - 1)
-            {
-              bottom = table_get_rule (t, TABLE_VERT, x, y + 1);
-              if (bottom > TAL_GAP)
-                put_border (html->file, n_borders++, bottom, "bottom");
-            }
+	      if (y == table_nr (t) - 1)
+		{
+		  bottom = table_get_rule (t, TABLE_VERT, x, y + 1);
+		  if (bottom > TAL_GAP)
+		    put_border (html->file, n_borders++, bottom, "bottom");
+		}
 
-          left = table_get_rule (t, TABLE_HORZ, x, y);
-          if (left > TAL_GAP)
-            put_border (html->file, n_borders++, left, "left");
+	      left = table_get_rule (t, TABLE_HORZ, x, y);
+	      if (left > TAL_GAP)
+		put_border (html->file, n_borders++, left, "left");
 
-          if (x == table_nc (t) - 1)
-            {
-              right = table_get_rule (t, TABLE_HORZ, x + 1, y);
-              if (right > TAL_GAP)
-                put_border (html->file, n_borders++, right, "right");
-            }
+	      if (x == table_nc (t) - 1)
+		{
+		  right = table_get_rule (t, TABLE_HORZ, x + 1, y);
+		  if (right > TAL_GAP)
+		    put_border (html->file, n_borders++, right, "right");
+		}
 
-          if (n_borders > 0)
-            fputs ("\"", html->file);
+	      if (n_borders > 0)
+		fputs ("\"", html->file);
+	    }
 
           putc ('>', html->file);
 

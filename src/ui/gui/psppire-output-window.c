@@ -855,6 +855,8 @@ clipboard_get_cb (GtkClipboard     *clipboard,
 
     case SELECT_FMT_HTML:
       string_map_insert (&options, "format", "html");
+      string_map_insert (&options, "borders", "false");
+      string_map_insert (&options, "css", "false");
       break;
 
     case SELECT_FMT_ODT:
