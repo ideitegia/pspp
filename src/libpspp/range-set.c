@@ -152,7 +152,7 @@ range_set_insert (struct range_set *rs,
     }
 }
 
-/* Inserts the region starting at START and extending for WIDTH
+/* Deletes the region starting at START and extending for WIDTH
    from RS. */
 void
 range_set_delete (struct range_set *rs,
