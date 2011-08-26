@@ -18,6 +18,7 @@ check_PROGRAMS += \
 	tests/libpspp/llx-test \
 	tests/libpspp/range-map-test \
 	tests/libpspp/range-set-test \
+	tests/libpspp/range-tower-test \
 	tests/libpspp/sparse-array-test \
 	tests/libpspp/sparse-xarray-test \
 	tests/libpspp/str-test \
@@ -98,6 +99,11 @@ tests_libpspp_range_set_test_SOURCES = \
 	tests/libpspp/range-set-test.c
 tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_range_set_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
+
+tests_libpspp_range_tower_test_SOURCES = \
+	tests/libpspp/range-tower-test.c
+tests_libpspp_range_tower_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+tests_libpspp_range_tower_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
 
 tests_libpspp_str_test_SOURCES = \
 	tests/libpspp/str-test.c
@@ -318,6 +324,7 @@ TESTSUITE_AT = \
 	tests/libpspp/llx.at \
 	tests/libpspp/range-map.at \
 	tests/libpspp/range-set.at \
+	tests/libpspp/range-tower.at \
 	tests/libpspp/sparse-array.at \
 	tests/libpspp/sparse-xarray-test.at \
 	tests/libpspp/str.at \
@@ -393,6 +400,7 @@ valgrind_wrappers = \
 	tests/valgrind/llx-test \
 	tests/valgrind/range-map-test \
 	tests/valgrind/range-set-test \
+	tests/valgrind/range-tower-test \
 	tests/valgrind/sparse-array-test \
 	tests/valgrind/sparse-xarray-test \
 	tests/valgrind/str-test \

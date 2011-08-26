@@ -62,6 +62,8 @@ src_libpspp_liblibpspp_la_SOURCES = \
 	src/libpspp/range-map.h \
 	src/libpspp/range-set.c \
 	src/libpspp/range-set.h \
+	src/libpspp/range-tower.c \
+	src/libpspp/range-tower.h \
 	src/libpspp/sparse-array.c \
 	src/libpspp/sparse-array.h \
 	src/libpspp/sparse-xarray.c \

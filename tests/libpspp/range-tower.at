@@ -1,0 +1,15 @@
+AT_BANNER([range tower library])
+
+m4_define([CHECK_RANGE_TOWER],
+  [AT_SETUP([range-tower -- $1])
+   AT_CHECK([range-tower-test $1])
+   AT_CLEANUP])
+
+CHECK_RANGE_TOWER([set1])
+CHECK_RANGE_TOWER([set0])
+CHECK_RANGE_TOWER([insert0])
+CHECK_RANGE_TOWER([insert1])
+CHECK_RANGE_TOWER([delete])
+CHECK_RANGE_TOWER([move])
+CHECK_RANGE_TOWER([pool])
+CHECK_RANGE_TOWER([destroy-null])
