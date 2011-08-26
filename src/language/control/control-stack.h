@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,13 @@
 #define CTL_STACK_H 1
 
 #include <stdbool.h>
+
+/* The following #include avoids a potential problem when Gnulib substitutes
+ * for close() by putting "#define close rpl_close" into <unistd.h>, by
+ * ensuring that every source file that includes this one sees the #define..
+ * (It would probably be better to rename the 'close' member of struct
+ * ctl_class.)  */
+#include <unistd.h>
 
 struct ctl_class
   {
