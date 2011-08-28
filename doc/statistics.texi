@@ -691,6 +691,7 @@ is used.
 * KRUSKAL-WALLIS::          Kruskal-Wallis Test
 * MANN-WHITNEY::            Mann Whitney U Test
 * MCNEMAR::                 McNemar Test
+* MEDIAN::                  Median Test
 * RUNS::                    Runs Test
 * SIGN::                    The Sign Test
 * WILCOXON::                Wilcoxon Signed Ranks Test
@@ -930,6 +931,31 @@ of variable preceding @code{WITH} against variable following
 The data in each variable must be dichotomous.  If there are more
 than two distinct variables an error will occur and the test will
 not be run.
+
+@node MEDIAN
+@subsection Median Test
+@vindex MEDIAN
+@cindex Median test
+
+@display
+     [ /MEDIAN [(value)] = varlist BY variable (value1, value2) ]
+@end display
+
+The median test is used to test whether independent samples come from 
+populations with a common median.
+The median of the populations against which the samples are to be tested
+may be given in parentheses immediately after the 
+/MEDIAN subcommand.  If it is not given, the median will be imputed from the 
+union of all the samples.
+
+The variables of the samples to be tested should immediately follow the @samp{=} sign. The
+keyword @code{BY} must come next, and then the grouping variable.  Two values
+in parentheses should follow.  If the first value is greater than the second,
+then a 2 sample test is performed using these two values to determine the groups.
+If however, the first variable is less than the second, then a @i{k} sample test is
+conducted and the group values used are all values encountered which lie in the
+range [@var{value1},@var{value2}].
+
 
 @node RUNS
 @subsection Runs Test

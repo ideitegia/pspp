@@ -1389,3 +1389,197 @@ Asymp. Sig. (2-tailed),,.569,.552
 
 
 AT_CLEANUP
+
+
+AT_SETUP([NPAR TESTS Median Test (median imputed)])
+
+AT_DATA([median1.sps], [dnl
+set format F12.3.
+data list notable list /ignore * animal * years * w *.
+begin data
+99  1   10  1
+99  4    1  1
+99  5   11  1
+99  5   10  1
+99  3    7  1
+99  6   10  1
+99  0    7  1
+99  3   14  1
+99  2    3  1
+99  1    1  1
+99  4    7  1
+99  5   12  1
+99  3    6  1
+99  4    1  1
+99  3    5  1
+99  5    7  1
+99  4    6  1
+99  3   14  1
+99  4    8  1
+99  5   13  1
+99  2    0  1
+99  4    7  1
+99  4    7  1
+99  1    0  1
+99  2    8  1
+99  4   10  1
+99  2    3  1
+99  2    0  1
+99  4    8  1
+99  1    8  1
+end data.
+
+
+variable label years 'Years expected'.
+variable label animal 'Animal Genus'.
+
+add value labels animal 1 'Animal 1' 2 'Animal 2' 3 'Animal 3' 4 'Animal 4' 5 'Animal 5'.
+
+npar tests
+     /median = years by animal (1, 5)
+     .
+])
+
+
+AT_CHECK([pspp -O format=csv median1.sps], [0], [dnl
+Table: Frequencies
+,,Animal Genus,,,,
+,,Animal 1,Animal 2,Animal 3,Animal 4,Animal 5
+Years expected,> Median,2,1,2,3,4
+,≤ Median,2,4,3,6,1
+
+Table: Test Statistics
+,N,Median,Chi-Square,df,Asymp. Sig.
+Years expected,28,7.000,4.317,4,.365
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([NPAR TESTS Median Test (median given)])
+
+AT_DATA([median2.sps], [dnl
+set format F12.3.
+data list notable list /ignore * animal * years * w *.
+begin data
+99  1   10  1
+99  4    1  1
+99  5   11  1
+99  5   10  1
+99  3    7  1
+99  3   14  1
+99  2    3  1
+99  1    1  1
+99  4    7  1
+99  5   12  1
+99  3    6  1
+99  4    1  1
+99  3    5  1
+99  5    7  1
+99  4    6  1
+99  3   14  1
+99  4    8  1
+99  5   13  1
+99  2    0  1
+99  4    7  1
+99  4    7  1
+99  1    0  1
+99  2    8  1
+99  4   10  1
+99  2    3  1
+99  2    0  1
+99  4    8  1
+99  1    8  1
+end data.
+
+
+variable label years 'Years expected'.
+variable label animal 'Animal Genus'.
+
+add value labels animal 1 'Animal 1' 2 'Animal 2' 3 'Animal 3' 4 'Animal 4' 5 'Animal 5'.
+
+npar tests
+     /median (7) = years by animal (1, 5)
+     .
+])
+
+
+AT_CHECK([pspp -O format=csv median2.sps], [0], [dnl
+Table: Frequencies
+,,Animal Genus,,,,
+,,Animal 1,Animal 2,Animal 3,Animal 4,Animal 5
+Years expected,> Median,2,1,2,3,4
+,≤ Median,2,4,3,6,1
+
+Table: Test Statistics
+,N,Median,Chi-Square,df,Asymp. Sig.
+Years expected,28,7.000,4.317,4,.365
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([NPAR TESTS Median Test (two sample)])
+
+AT_DATA([median3.sps], [dnl
+set format F12.3.
+data list notable list /xx * animal * years * w *.
+begin data
+99  1   10  1
+99  4    1  1
+99  5   11  1
+99  5   10  1
+99  3    7  1
+99  3   14  1
+99  2    3  1
+99  1    1  1
+99  4    7  1
+99  5   12  1
+99  3    6  1
+99  4    1  1
+99  3    5  1
+99  5    7  1
+99  4    6  1
+99  3   14  1
+99  4    8  1
+99  5   13  1
+99  2    0  1
+99  4    7  1
+99  4    7  1
+99  1    0  1
+99  2    8  1
+99  4   10  1
+99  2    3  1
+99  2    0  1
+99  4    8  1
+99  1    8  1
+end data.
+
+
+variable label years 'Years expected'.
+variable label animal 'Animal Genus'.
+
+add value labels animal 1 'Animal 1' 2 'Animal 2' 3 'Animal 3' 4 'Animal 4' 5 'Animal 5'.
+
+npar tests
+     /median (7) = xx years by animal (5, 1)
+     .
+])
+
+
+AT_CHECK([pspp -O format=csv median3.sps], [0], [dnl
+Table: Frequencies
+,,Animal Genus,
+,,Animal 1,Animal 5
+xx,> Median,4,5
+,≤ Median,0,0
+Years expected,> Median,2,4
+,≤ Median,2,1
+
+Table: Test Statistics
+,N,Median,Chi-Square,df,Asymp. Sig.
+xx,9,7.000,NaN,1,NaN
+Years expected,9,7.000,.900,1,.343
+])
+
+AT_CLEANUP

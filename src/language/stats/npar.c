@@ -40,6 +40,7 @@
 #include "language/stats/kruskal-wallis.h"
 #include "language/stats/mann-whitney.h"
 #include "language/stats/mcnemar.h"
+#include "language/stats/median.h"
 #include "language/stats/npar-summary.h"
 #include "language/stats/runs.h"
 #include "language/stats/sign.h"
@@ -93,6 +94,7 @@ struct cmd_npar_tests
     int kruskal_wallis;
     int mann_whitney;
     int mcnemar;
+    int median;
     int missing;
     int method;
     int statistics;
@@ -138,6 +140,8 @@ static int npar_sign (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_kruskal_wallis (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_mann_whitney (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_mcnemar (struct lexer *, struct dataset *, struct npar_specs *);
+static int npar_median (struct lexer *, struct dataset *, struct npar_specs *);
+
 static int npar_method (struct lexer *, struct npar_specs *);
 
 /* Command parsing functions. */
@@ -325,6 +329,23 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
           lex_match (lexer, T_EQUALS);
           npt->mann_whitney++;
           switch (npar_mann_whitney (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+	}
+      else if (lex_match_phrase (lexer, "MEDIAN"))
+        {
+          npt->median++;
+
+          switch (npar_median (lexer, ds, nps))
             {
             case 0:
               goto lossage;
@@ -1212,6 +1233,42 @@ npar_mann_whitney (struct lexer *lexer,
 }
 
 
+static int
+npar_median (struct lexer *lexer,
+	     struct dataset *ds,
+	     struct npar_specs *specs)
+{
+  struct median_test *mt = pool_alloc (specs->pool, sizeof (*mt));
+  struct n_sample_test *tp = &mt->parent;
+  struct npar_test *nt = &tp->parent;
+
+  mt->median = SYSMIS;
+
+  if ( lex_match (lexer, T_LPAREN))
+    {
+      lex_force_num (lexer);
+      mt->median = lex_number (lexer);
+      lex_get (lexer);
+      lex_force_match (lexer, T_RPAREN);
+    }
+
+  lex_match (lexer, T_EQUALS);
+
+  nt->insert_variables = n_sample_insert_variables;
+  nt->execute = median_execute;
+
+  if (!parse_n_sample_related_test (lexer, dataset_dict (ds),
+				    tp, specs->pool) )
+    return 0;
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
 
 
 static int
