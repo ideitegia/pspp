@@ -723,7 +723,7 @@ parse_design_interaction (struct lexer *lexer, struct glm_spec *glm, struct inte
 
   if ( lex_match (lexer, T_ASTERISK) || lex_match (lexer, T_BY))
     {
-      // lex_error (lexer, "Interactions are not yet implemented"); return false;
+      lex_error (lexer, "Interactions are not yet implemented"); return false;
       return parse_design_interaction (lexer, glm, iact);
     }
 
