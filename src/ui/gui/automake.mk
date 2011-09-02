@@ -43,7 +43,6 @@ UI_FILES = \
 
 EXTRA_DIST += \
 	src/ui/gui/OChangeLog \
-	src/ui/gui/psppicon.png \
 	src/ui/gui/marshaller-list \
 	src/ui/gui/pspp.desktop
 
@@ -80,7 +79,7 @@ src_ui_gui_psppiredir = $(pkgdatadir)
 
 
 themedir = $(DESTDIR)$(datadir)/icons/hicolor
-context = apps
+context = pspp
 
 
 install-lang:
@@ -90,6 +89,8 @@ install-icons:
 	for size in 16x16 ; do \
 	  $(MKDIR_P) $(themedir)/$$size/$(context) ; \
           $(INSTALL) $(top_srcdir)/src/ui/gui/icons/$$size/* $(themedir)/$$size/$(context) ; \
+	  $(MKDIR_P) $(themedir)/$$size/apps ; \
+	  $(INSTALL) $(top_srcdir)/src/ui/gui/app-icons/$$size/pspp.png $(themedir)/$$size/apps ; \
 	done 
 	gtk-update-icon-cache --ignore-theme-index $(themedir)
 
@@ -97,7 +98,8 @@ INSTALL_DATA_HOOKS += install-icons install-lang
 
 uninstall-icons:
 	for size in 16x16 ; do \
-          rm -f $(themedir)/$$size/$(context)/psppicon.png ; \
+          rm -r -f $(themedir)/$$size/$(context); \
+          rm -f $(themedir)/$$size/apps/pspp.png; \
 	done 
 	gtk-update-icon-cache --ignore-theme-index $(themedir)
 
@@ -105,6 +107,7 @@ UNINSTALL_DATA_HOOKS += uninstall-icons
 
 dist_src_ui_gui_psppire_DATA = \
 	$(UI_FILES) \
+	$(top_srcdir)/src/ui/gui/app-icons/16x16/pspp.png \
 	$(top_srcdir)/src/ui/gui/pspp.lang \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
@@ -120,7 +123,7 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/icons/16x16/scale.png \
 	$(top_srcdir)/src/ui/gui/icons/16x16/string.png \
 	$(top_srcdir)/src/ui/gui/icons/16x16/date-scale.png \
-	$(top_srcdir)/src/ui/gui/icons/splash.png
+	$(top_srcdir)/src/ui/gui/icons/splash.png 
 
 
 src_ui_gui_psppire_SOURCES = \

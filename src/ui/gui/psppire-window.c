@@ -488,7 +488,7 @@ psppire_window_init (PsppireWindow *window)
 
   g_signal_connect_swapped (window, "delete-event", G_CALLBACK (on_delete), window);
 
-  g_object_set (window, "icon-name", "psppicon", NULL);
+  g_object_set (window, "icon-name", "pspp", NULL);
 
   g_signal_connect (window, "realize",
 		    G_CALLBACK (on_realize), window);
@@ -526,7 +526,7 @@ psppire_window_query_save (PsppireWindow *se)
 			    description);
   g_free (description);
 
-  g_object_set (dialog, "icon-name", "psppicon", NULL);
+  g_object_set (dialog, "icon-name", "pspp", NULL);
 
   gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
 					    _("If you don't save, changes from the last %ld seconds will be permanently lost."),

@@ -600,7 +600,7 @@ confirm_delete_dataset (PsppireDataWindow *de,
                           GTK_STOCK_DELETE, GTK_RESPONSE_OK,
                           NULL);
 
-  g_object_set (dialog, "icon-name", "psppicon", NULL);
+  g_object_set (dialog, "icon-name", "pspp", NULL);
 
   result = gtk_dialog_run (GTK_DIALOG (dialog));
 

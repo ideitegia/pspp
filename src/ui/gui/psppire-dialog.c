@@ -355,7 +355,7 @@ psppire_dialog_init (PsppireDialog *dialog)
   gtk_window_set_type_hint (GTK_WINDOW (dialog),
 	GDK_WINDOW_TYPE_HINT_DIALOG);
 
-  g_object_set (dialog, "icon-name", "psppicon", NULL);
+  g_object_set (dialog, "icon-name", "pspp", NULL);
 }
 
 

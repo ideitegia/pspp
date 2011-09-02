@@ -46,7 +46,7 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
   gtk_about_dialog_set_logo (GTK_ABOUT_DIALOG (about), pb);
 
 
-  gtk_window_set_icon_name (GTK_WINDOW (about), "psppicon");
+  gtk_window_set_icon_name (GTK_WINDOW (about), "pspp");
 
   gtk_about_dialog_set_website (GTK_ABOUT_DIALOG (about), PACKAGE_URL);
 
