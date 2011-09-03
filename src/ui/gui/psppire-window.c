@@ -706,6 +706,22 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
   return ok;
 }
 
+
+static void
+on_selection_changed (GtkFileChooser *chooser, GtkWidget *encoding_selector)
+{
+  const gchar *sysname;
+
+  const gchar *name = gtk_file_chooser_get_filename (chooser);
+
+  if ( NULL == name )
+    return;
+
+  sysname = convert_glib_filename_to_system_filename (name, NULL);
+
+  gtk_widget_set_sensitive (encoding_selector, ! any_reader_may_open (sysname));
+}
+
 GtkWidget *
 psppire_window_file_chooser_dialog (PsppireWindow *toplevel)
 {
@@ -769,8 +785,13 @@ psppire_window_file_chooser_dialog (PsppireWindow *toplevel)
       free (dir_name);
     }
 
-  gtk_file_chooser_set_extra_widget (
-    GTK_FILE_CHOOSER (dialog), psppire_encoding_selector_new ("Auto", true));
+
+  {
+    GtkWidget *encoding_selector =  psppire_encoding_selector_new ("Auto", true);
+    gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (dialog), encoding_selector);
+
+    g_signal_connect (dialog, "selection-changed", G_CALLBACK (on_selection_changed), encoding_selector);
+  }
 
   return dialog;
 }
