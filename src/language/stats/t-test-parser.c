@@ -48,18 +48,18 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
   const struct variable **v2 = NULL;
   size_t n_v2;
 	  
-  size_t n_pairs;
+  size_t n_pairs = 0;
   vp *pairs = NULL;
 
 
   /* One sample mode */
-  double testval;
+  double testval = SYSMIS;
 
   /* Independent samples mode */
   const struct variable *gvar;
   union value gval0;
   union value gval1;
-  bool cut;
+  bool cut = false;
 
   tt.wv = dict_get_weight (dict);
   tt.dict = dict;
