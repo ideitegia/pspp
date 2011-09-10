@@ -4,6 +4,23 @@ Installation Instructions for GNU pspp
 These instructions are based on the generic GNU installation
 instructions, but they have been tailored for PSPP.
 
+Overview
+========
+
+PSPP uses the standard GNU configuration system.  Therefore, if all is well,
+the following simple procedure should work, even on non-GNU systems:
+
+ tar -xzf pspp-*.tar.gz
+ cd pspp-*
+ ./configure
+ make 
+ sudo make install
+
+Obviously, you should replace 'pspp-*' in the above, with the name of
+the tarball you are installing.  If any part of this process fails, then 
+it's likely that one or more of the necessary prerequisites is missing
+from your system.   Read on to find out how to correct this.
+
 Before You Install
 ==================
 
@@ -58,10 +75,6 @@ use the GUI, you must run `configure' with --without-gui.
     * GtkSourceView (http://projects.gnome.org/gtksourceview/) 
       version 2.2 or later.
 
-
-To cross-compile PSPP, you will likely need to set the
-PKG_CONFIG_LIBDIR environment variable to point to an
-appropriate pkg-config for the cross-compilation environment.
 
 Installing the following packages will allow your PSPP binary to read
 Gnumeric files.
@@ -191,7 +204,11 @@ is an example:
 
      ./configure CC=c89 CFLAGS=-O2 LIBS=-lposix
 
-   See "Defining Variables", below, for more details.
+To cross-compile PSPP, you will likely need to set the
+PKG_CONFIG_LIBDIR environment variable to point to an
+appropriate pkg-config for the cross-compilation environment.
+
+See "Defining Variables", below, for more details.
 
 Installation Names
 ==================
