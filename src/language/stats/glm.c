@@ -364,59 +364,137 @@ not_dropped (size_t j, const size_t *dropped, size_t n_dropped)
   return true;
 }
 
+/*
+  Do the variables in X->VARS constitute a proper
+  subset of the variables in Y->VARS?
+ */
+static bool
+is_subset (struct interaction *x, struct interaction *y)
+{
+  size_t i;
+  size_t j;
+  size_t n = 0;
+
+  if (x->n_vars < y->n_vars)
+    {
+      for (i = 0; i < x->n_vars; i++)
+	{
+	  for (j = 0; j < y->n_vars; j++)
+	    {
+	      if (x->vars [i] == y->vars [j])
+		{
+		  n++;
+		}
+	    }
+	}
+    }
+  if (n >= x->n_vars)
+    return true;
+  return false;
+}
+
+static bool
+drop_from_submodel (struct interaction *x, struct interaction *y)
+{
+  size_t i;
+  size_t j;
+  size_t n = 0;
+
+  if (is_subset (x, y))
+    return true;
+
+  for (i = 0; i < x->n_vars; i++)
+    for (j = 0; j < y->n_vars; j++)
+      {
+	if (x->vars [i] == y->vars [j])
+	  n++;
+      }
+  if (n == x->n_vars)
+    {
+      return true;
+    }
+
+  return false;
+}
+
+static void
+fill_submatrix (gsl_matrix * cov, gsl_matrix * submatrix, size_t * dropped,
+		size_t n_dropped)
+{
+  size_t i;
+  size_t j;
+  size_t n = 0;
+  size_t m = 0;
+  
+  for (i = 0; i < cov->size1; i++)
+    {
+      if (not_dropped (i, dropped, n_dropped))
+	{	  
+	  m = 0;
+	  for (j = 0; j < cov->size2; j++)
+	    {
+	      if (not_dropped (j, dropped, n_dropped))
+		{
+		  gsl_matrix_set (submatrix, n, m,
+				  gsl_matrix_get (cov, i, j));
+		  m++;
+		}	
+	    }
+	  n++;
+	}
+    }
+}
+	      
 static void
 get_ssq (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 {
   gsl_matrix *cm = covariance_calculate_unnormalized (cov);
   size_t i;
-  size_t j;
   size_t k;
-  size_t *dropped = xcalloc (covariance_dim (cov), sizeof (*dropped));
+  size_t *model_dropped = xcalloc (covariance_dim (cov), sizeof (*model_dropped));
+  size_t *submodel_dropped = xcalloc (covariance_dim (cov), sizeof (*submodel_dropped));
   const struct categoricals *cats = covariance_get_categoricals (cov);
 
   for (k = 0; k < cmd->n_interactions; k++)
     {
-      size_t n = 0;
-      size_t m = 0;
-      gsl_matrix *small_cov = NULL;
-      size_t n_dropped = 0;
+      gsl_matrix *model_cov = NULL;
+      gsl_matrix *submodel_cov = NULL;
+      size_t n_dropped_model = 0;
+      size_t n_dropped_submodel = 0;
       for (i = cmd->n_dep_vars; i < covariance_dim (cov); i++)
 	{
-	  if (categoricals_get_interaction_by_subscript (cats, i - cmd->n_dep_vars)
-	      == cmd->interactions[k])
+	  const struct interaction * x = 
+	    categoricals_get_interaction_by_subscript (cats, i - cmd->n_dep_vars);
+	  if (is_subset (cmd->interactions [k], x))
 	    {
-	      assert (n_dropped < covariance_dim (cov));
-	      dropped[n_dropped++] = i;
+	      assert (n_dropped_model < covariance_dim (cov));
+	      model_dropped[n_dropped_model++] = i;
+	    }
+	  if (drop_from_submodel (cmd->interactions [k], x))
+	    {
+	      assert (n_dropped_submodel < covariance_dim (cov));
+	      submodel_dropped[n_dropped_submodel++] = i;
 	    }
 	}
-      small_cov =
-	gsl_matrix_alloc (cm->size1 - n_dropped, cm->size2 - n_dropped);
-      gsl_matrix_set (small_cov, 0, 0, gsl_matrix_get (cm, 0, 0));
-      for (i = 0; i < cm->size1; i++)
-	{
-	  if (not_dropped (i, dropped, n_dropped))
-	    {
-	      m = 0;
-	      for (j = 0; j < cm->size2; j++)
-		{
-		  if (not_dropped (j, dropped, n_dropped))
-		    {
-		      gsl_matrix_set (small_cov, n, m,
-				      gsl_matrix_get (cm, i, j));
-		      m++;
-		    }
-		}
-	      n++;
-	    }
-	}
-      reg_sweep (small_cov, 0);
+      model_cov = 
+	gsl_matrix_alloc (cm->size1 - n_dropped_model, cm->size2 - n_dropped_model);
+      gsl_matrix_set (model_cov, 0, 0, gsl_matrix_get (cm, 0, 0));
+      submodel_cov = 
+	gsl_matrix_calloc (cm->size1 - n_dropped_submodel, cm->size2 - n_dropped_submodel);
+      fill_submatrix (cm, model_cov, model_dropped, n_dropped_model);
+      fill_submatrix (cm, submodel_cov, submodel_dropped, n_dropped_submodel);
+
+      reg_sweep (model_cov, 0);
+      reg_sweep (submodel_cov, 0);
       gsl_vector_set (ssq, k + 1,
-		      gsl_matrix_get (small_cov, 0, 0)
-		      - gsl_vector_get (ssq, 0));
-      gsl_matrix_free (small_cov);
+		      gsl_matrix_get (submodel_cov, 0, 0)
+		      - gsl_matrix_get (model_cov, 0, 0));
+      gsl_matrix_free (model_cov);
+      gsl_matrix_free (submodel_cov);
     }
 
-  free (dropped);
+  free (model_dropped);
+  free (submodel_dropped);
   gsl_matrix_free (cm);
 }
 
@@ -723,7 +801,9 @@ parse_design_interaction (struct lexer *lexer, struct glm_spec *glm, struct inte
 
   if ( lex_match (lexer, T_ASTERISK) || lex_match (lexer, T_BY))
     {
+#if 0
       lex_error (lexer, "Interactions are not yet implemented"); return false;
+#endif
       return parse_design_interaction (lexer, glm, iact);
     }
 
