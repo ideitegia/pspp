@@ -124,8 +124,6 @@ static void run_glm (struct glm_spec *cmd, struct casereader *input,
 
 static bool parse_design_spec (struct lexer *lexer, struct glm_spec *glm);
 
-/* Define to 1 if the /DESIGN subcommand should not be optional */
-#define DESIGN_MANDATORY 1
 
 int
 cmd_glm (struct lexer *lexer, struct dataset *ds)
@@ -283,18 +281,8 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 	  if (! parse_design_spec (lexer, &glm))
 	    goto error;
 
-#if DESIGN_MANDATORY
-	  if ( glm.n_interactions == 0)
-	    {
-	      msg (ME, _("One or more design  variables must be given"));
-	      goto error;
-	    }
-	  
-	  design = true;
-#else
 	  if (glm.n_interactions > 0)
 	    design = true;
-#endif
 	}
       else
 	{
@@ -305,11 +293,6 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 
   if ( ! design )
     {
-#if DESIGN_MANDATORY
-      lex_error (lexer, _("/DESIGN is mandatory in GLM"));
-      goto error;
-#endif
-
       design_full (&glm);
     }
 
@@ -369,7 +352,7 @@ not_dropped (size_t j, const size_t *dropped, size_t n_dropped)
   subset of the variables in Y->VARS?
  */
 static bool
-is_subset (struct interaction *x, struct interaction *y)
+is_subset (const struct interaction *x, const struct interaction *y)
 {
   size_t i;
   size_t j;
@@ -394,7 +377,7 @@ is_subset (struct interaction *x, struct interaction *y)
 }
 
 static bool
-drop_from_submodel (struct interaction *x, struct interaction *y)
+drop_from_submodel (const struct interaction *x, const struct interaction *y)
 {
   size_t i;
   size_t j;
@@ -801,9 +784,6 @@ parse_design_interaction (struct lexer *lexer, struct glm_spec *glm, struct inte
 
   if ( lex_match (lexer, T_ASTERISK) || lex_match (lexer, T_BY))
     {
-#if 0
-      lex_error (lexer, "Interactions are not yet implemented"); return false;
-#endif
       return parse_design_interaction (lexer, glm, iact);
     }
 
