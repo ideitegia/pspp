@@ -978,7 +978,7 @@ static void
 axis_make_available (struct axis *axis,
                      unsigned long int start, unsigned long int width)
 {
-  range_set_insert (axis->available, start, width);
+  range_set_set1 (axis->available, start, width);
 }
 
 /* Extends the total physical length of AXIS by WIDTH and returns
@@ -1228,7 +1228,7 @@ source_create_empty (size_t n_bytes)
   size_t row_size = n_bytes + 4 * sizeof (void *);
   size_t max_memory_rows = settings_get_workspace () / row_size;
   source->avail = range_set_create ();
-  range_set_insert (source->avail, 0, n_bytes);
+  range_set_set1 (source->avail, 0, n_bytes);
   source->data = sparse_xarray_create (n_bytes, MAX (max_memory_rows, 4));
   source->backing = NULL;
   source->backing_rows = 0;
@@ -1247,7 +1247,7 @@ source_create_casereader (struct casereader *reader)
   size_t n_columns;
   size_t i;
 
-  range_set_delete (source->avail, 0, n_bytes);
+  range_set_set0 (source->avail, 0, n_bytes);
   source->backing = reader;
   source->backing_rows = casereader_count_cases (reader);
 
@@ -1301,7 +1301,7 @@ static void
 source_release_column (struct source *source, int ofs, int width)
 {
   assert (width >= 0);
-  range_set_insert (source->avail, ofs, width_to_n_bytes (width));
+  range_set_set1 (source->avail, ofs, width_to_n_bytes (width));
   if (source->backing != NULL)
     source->n_used--;
 }

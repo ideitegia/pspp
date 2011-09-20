@@ -106,8 +106,8 @@ range_set_destroy (struct range_set *rs)
 /* Inserts the region starting at START and extending for WIDTH
    into RS. */
 void
-range_set_insert (struct range_set *rs,
-                  unsigned long int start, unsigned long int width)
+range_set_set1 (struct range_set *rs,
+                unsigned long int start, unsigned long int width)
 {
   unsigned long int end = start + width;
   struct range_set_node *node;
@@ -155,8 +155,8 @@ range_set_insert (struct range_set *rs,
 /* Deletes the region starting at START and extending for WIDTH
    from RS. */
 void
-range_set_delete (struct range_set *rs,
-                  unsigned long int start, unsigned long int width)
+range_set_set0 (struct range_set *rs,
+                unsigned long int start, unsigned long int width)
 {
   unsigned long int end = start + width;
   struct range_set_node *node;

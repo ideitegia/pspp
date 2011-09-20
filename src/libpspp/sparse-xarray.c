@@ -207,7 +207,7 @@ dump_sparse_xarray_to_disk (struct sparse_xarray *sx)
           sx->disk_rows = NULL;
           return false;
         }
-      range_set_insert (sx->disk_rows, idx, 1);
+      range_set_set1 (sx->disk_rows, idx, 1);
     }
   sparse_array_destroy (sx->memory);
   sx->memory = NULL;
@@ -264,7 +264,7 @@ write_disk_row (struct sparse_xarray *sx, unsigned long int row,
     return ext_array_write (sx->disk, ofs + start, n, data);
   else
     {
-      range_set_insert (sx->disk_rows, row, 1);
+      range_set_set1 (sx->disk_rows, row, 1);
       return (ext_array_write (sx->disk, ofs, start, sx->default_row)
               && ext_array_write (sx->disk, ofs + start, n, data)
               && ext_array_write (sx->disk, ofs + start + n,

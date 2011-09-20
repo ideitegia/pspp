@@ -53,10 +53,10 @@ struct range_set *range_set_create_pool (struct pool *);
 struct range_set *range_set_clone (const struct range_set *, struct pool *);
 void range_set_destroy (struct range_set *);
 
-void range_set_insert (struct range_set *,
-                       unsigned long int start, unsigned long int width);
-void range_set_delete (struct range_set *,
-                       unsigned long int start, unsigned long int width);
+void range_set_set1 (struct range_set *,
+                     unsigned long int start, unsigned long int width);
+void range_set_set0 (struct range_set *,
+                     unsigned long int start, unsigned long int width);
 bool range_set_allocate (struct range_set *, unsigned long int request,
                          unsigned long int *start, unsigned long int *width);
 bool range_set_allocate_fully (struct range_set *, unsigned long int request,
@@ -104,7 +104,7 @@ range_set_is_empty (const struct range_set *rs)
 
 /* Returns the node representing the first contiguous region of
    1-bits in RS, or a null pointer if RS is empty.
-   Any call to range_set_insert, range_set_delete, or
+   Any call to range_set_set1, range_set_set0, or
    range_set_allocate invalidates the returned node. */
 static inline const struct range_set_node *
 range_set_first (const struct range_set *rs)
@@ -117,7 +117,7 @@ range_set_first (const struct range_set *rs)
    pointer if NODE is the last region in RS.
    If NODE is null, returns the first region in RS, as for
    range_set_first.
-   Any call to range_set_insert, range_set_delete, or
+   Any call to range_set_set1, range_set_set0, or
    range_set_allocate invalidates the returned node. */
 static inline const struct range_set_node *
 range_set_next (const struct range_set *rs, const struct range_set_node *node)
@@ -129,7 +129,7 @@ range_set_next (const struct range_set *rs, const struct range_set_node *node)
 
 /* Returns the node representing the last contiguous region of
    1-bits in RS, or a null pointer if RS is empty.
-   Any call to range_set_insert, range_set_delete, or
+   Any call to range_set_set1, range_set_set0, or
    range_set_allocate invalidates the returned node. */
 static inline const struct range_set_node *
 range_set_last (const struct range_set *rs)
@@ -142,7 +142,7 @@ range_set_last (const struct range_set *rs)
    pointer if NODE is the first region in RS.
    If NODE is null, returns the last region in RS, as for
    range_set_last.
-   Any call to range_set_insert, range_set_delete, or
+   Any call to range_set_set1, range_set_set0, or
    range_set_allocate invalidates the returned node. */
 static inline const struct range_set_node *
 range_set_prev (const struct range_set *rs, const struct range_set_node *node)

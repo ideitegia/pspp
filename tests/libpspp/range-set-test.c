@@ -254,7 +254,7 @@ make_pattern (unsigned int pattern)
   unsigned long int width = 0;
   struct range_set *rs = range_set_create_pool (NULL);
   while (next_region (pattern, start + width, &start, &width))
-    range_set_insert (rs, start, width);
+    range_set_set1 (rs, start, width);
   check_pattern (rs, pattern);
   return rs;
 }
@@ -294,7 +294,7 @@ test_insert (void)
           unsigned int final_pat;
 
           rs = make_pattern (init_pat);
-          range_set_insert (rs, i, j - i);
+          range_set_set1 (rs, i, j - i);
           final_pat = init_pat | bit_range (i, j - i);
           check_pattern (rs, final_pat);
           rs2 = range_set_clone (rs, NULL);
@@ -327,7 +327,7 @@ test_delete (void)
           unsigned int final_pat;
 
           rs = make_pattern (init_pat);
-          range_set_delete (rs, i, j - i);
+          range_set_set0 (rs, i, j - i);
           final_pat = init_pat & ~bit_range (i, j - i);
           check_pattern (rs, final_pat);
           range_set_destroy (rs);
@@ -461,7 +461,7 @@ test_pool (void)
      Makes sure that this doesn't cause a double-free. */
   pool = pool_create ();
   rs = range_set_create_pool (pool);
-  range_set_insert (rs, 1, 10);
+  range_set_set1 (rs, 1, 10);
   range_set_destroy (rs);
   pool_destroy (pool);
 
@@ -469,7 +469,7 @@ test_pool (void)
      Makes sure that this doesn't cause a leak. */
   pool = pool_create ();
   rs = range_set_create_pool (pool);
-  range_set_insert (rs, 1, 10);
+  range_set_set1 (rs, 1, 10);
   pool_destroy (pool);
 }
 
