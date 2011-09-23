@@ -37,6 +37,8 @@ void interaction_destroy (struct interaction *);
 void interaction_add_variable (struct interaction *, const struct variable *);
 void interaction_dump (const struct interaction *);
 void interaction_to_string (const struct interaction *iact, struct string *str);
+bool interaction_is_proper_subset (const struct interaction *x, const struct interaction *y);
+bool interaction_is_subset (const struct interaction *x, const struct interaction *y);
 
 
 struct ccase;

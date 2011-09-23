@@ -347,59 +347,6 @@ not_dropped (size_t j, const size_t *dropped, size_t n_dropped)
   return true;
 }
 
-/*
-  Do the variables in X->VARS constitute a proper
-  subset of the variables in Y->VARS?
- */
-static bool
-is_subset (const struct interaction *x, const struct interaction *y)
-{
-  size_t i;
-  size_t j;
-  size_t n = 0;
-
-  if (x->n_vars < y->n_vars)
-    {
-      for (i = 0; i < x->n_vars; i++)
-	{
-	  for (j = 0; j < y->n_vars; j++)
-	    {
-	      if (x->vars [i] == y->vars [j])
-		{
-		  n++;
-		}
-	    }
-	}
-    }
-  if (n >= x->n_vars)
-    return true;
-  return false;
-}
-
-static bool
-drop_from_submodel (const struct interaction *x, const struct interaction *y)
-{
-  size_t i;
-  size_t j;
-  size_t n = 0;
-
-  if (is_subset (x, y))
-    return true;
-
-  for (i = 0; i < x->n_vars; i++)
-    for (j = 0; j < y->n_vars; j++)
-      {
-	if (x->vars [i] == y->vars [j])
-	  n++;
-      }
-  if (n == x->n_vars)
-    {
-      return true;
-    }
-
-  return false;
-}
-
 static void
 fill_submatrix (gsl_matrix * cov, gsl_matrix * submatrix, size_t * dropped,
 		size_t n_dropped)
@@ -448,12 +395,12 @@ get_ssq (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 	{
 	  const struct interaction * x = 
 	    categoricals_get_interaction_by_subscript (cats, i - cmd->n_dep_vars);
-	  if (is_subset (cmd->interactions [k], x))
+	  if (interaction_is_proper_subset (cmd->interactions [k], x))
 	    {
 	      assert (n_dropped_model < covariance_dim (cov));
 	      model_dropped[n_dropped_model++] = i;
 	    }
-	  if (drop_from_submodel (cmd->interactions [k], x))
+	  if (interaction_is_subset (cmd->interactions [k], x))
 	    {
 	      assert (n_dropped_submodel < covariance_dim (cov));
 	      submodel_dropped[n_dropped_submodel++] = i;

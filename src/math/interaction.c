@@ -72,6 +72,56 @@ interaction_add_variable (struct interaction *i, const struct variable *v)
 }
 
 
+/*
+  Do the variables in X->VARS constitute a proper
+  subset of the variables in Y->VARS?
+ */
+bool
+interaction_is_proper_subset (const struct interaction *x, const struct interaction *y)
+{
+  if (x->n_vars >= y->n_vars)
+    return false;
+
+  return interaction_is_subset (x, y);
+}
+
+/*
+  Do the variables in X->VARS constitute a 
+  subset (proper or otherwise) of the variables in Y->VARS?
+ */
+bool
+interaction_is_subset (const struct interaction *x, const struct interaction *y)
+{
+  size_t i;
+  size_t j;
+  size_t n = 0;
+
+  /* By definition, a subset cannot have more members than its superset */
+  if (x->n_vars > y->n_vars)
+    return false;
+
+  /* Count the number of values which are members of both sets */
+  for (i = 0; i < x->n_vars; i++)
+    {
+      for (j = 0; j < y->n_vars; j++)
+	{
+	  if (x->vars [i] == y->vars [j])
+	    {
+	      n++;
+	    }
+	}
+    }
+
+  /* If ALL the members of X were also found in Y, then this must be a subset */    
+  if (n >= x->n_vars)
+    return true;
+
+  return false;
+}
+
+
+
+
 void
 interaction_dump (const struct interaction *i)
 {
