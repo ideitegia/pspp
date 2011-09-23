@@ -70,3 +70,54 @@ Corrected Total,329.62,35,,,
 ])
 
 AT_CLEANUP
+
+AT_SETUP([GLM 2 by 2 factorial design])
+
+AT_DATA([2by2.sps], [dnl
+set format = F20.3.
+data list notable  list /Factor0 * Factor1 * points (F10).
+begin data.
+1	4	332
+1	4	380
+1	4	371
+1	4	366
+1	4	354
+1	0	259.5
+1	0	302.5
+1	0	296
+1	0	349
+1	0	309
+2	4	354.67
+2	4	353.5
+2	4	304
+2	4	365
+2	4	339
+2	0	306
+2	0	339
+2	0	353
+2	0	351
+2	0	333
+end data.
+
+glm points by Factor0 Factor1
+  /method=sstype(3)
+  /intercept=include
+  /criteria=alpha(.05)
+  .
+])
+
+
+AT_CHECK([pspp -O format=csv 2by2.sps ], [0],
+  [Table: Tests of Between-Subjects Effects
+Source,Type III Sum of Squares,df,Mean Square,F,Sig.
+Corrected Model,8667.053,3,2889.018,5.043,.012
+Intercept,2256018.640,1,2256018.640,3937.693,.000
+Factor0,313.394,1,313.394,.547,.470
+Factor1,5157.508,1,5157.508,9.002,.008
+Factor0 * Factor1,3196.150,1,3196.150,5.579,.031
+Error,9166.865,16,572.929,,
+Total,2273852.559,20,,,
+Corrected Total,17833.918,19,,,
+])
+
+AT_CLEANUP
