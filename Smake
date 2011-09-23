@@ -108,22 +108,31 @@ GNULIB_MODULES = \
 	xstrndup \
 	xvasprintf
 
-all: 
+all: prep_ph
+	$(MAKE) -f Smake Makefile.in configure
+
+.PHONY: prep_ph
+prep_ph: 
 	test -e ChangeLog || touch ChangeLog
 	test -d m4 || mkdir m4
 	touch m4/Makefile.am
-	$(MAKE) -f Smake gnulib
-	libtoolize --force --automake
-	aclocal -I m4 -I gl/m4
-	autoconf
-	autoheader
-	automake --add-missing --copy --no-force
-
-gnulib:
 	$(GNULIB_TOOL) --add-import --no-changelog --m4-base=gl/m4 \
 		--source-base=gl --lib=libgl --tests-base=tests \
-		--doc-base=gl/doc --aux-dir=build-aux --import \
+		--doc-base=gl/doc --aux-dir=build-aux  \
 		--libtool $(GNULIB_MODULES)
+	libtoolize --force --automake
+
+aclocal.m4:
+	aclocal -I m4 -I gl/m4
+
+configure: configure.ac aclocal.m4
+	autoconf
+
+config.h.in: configure.ac
+	autoheader
+
+Makefile.in: Makefile.am config.h.in aclocal.m4
+	automake --add-missing --copy --no-force --include-deps
 
 
 gettextize:
