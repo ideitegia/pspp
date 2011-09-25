@@ -35,6 +35,7 @@ UI_FILES = \
 	src/ui/gui/select-cases.ui \
 	src/ui/gui/t-test.ui \
 	src/ui/gui/text-data-import.ui \
+	src/ui/gui/univariate.ui \
 	src/ui/gui/var-sheet-dialogs.ui \
 	src/ui/gui/variable-info.ui \
 	src/ui/gui/data-editor.ui \
@@ -270,6 +271,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/t-test-paired-samples.h \
 	src/ui/gui/npar-two-sample-related.c \
 	src/ui/gui/npar-two-sample-related.h \
+	src/ui/gui/univariate-dialog.c \
+	src/ui/gui/univariate-dialog.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \

@@ -398,6 +398,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="univariate">
+            <property name="name">univariate</property>
+            <property name="label" translatable="yes">_Univariate Analysis...</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="correlation">
             <property name="name">correlation</property>
             <property name="label" translatable="yes">Bivariate _Correlation...</property>
@@ -595,6 +601,7 @@
             <menuitem action="paired-t-test"/>
             <menuitem action="oneway-anova"/>
           </menu>
+          <menuitem action="univariate"/>
           <menuitem action="correlation"/>
           <menuitem action="k-means"/>
           <menuitem action="factor-analysis"/>

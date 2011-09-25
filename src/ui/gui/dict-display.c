@@ -23,7 +23,10 @@
 #include "dict-display.h"
 
 #include "psppire-dict.h"
+#include "psppire-dictview.h"
+#include "psppire-var-ptr.h"
 #include "psppire-var-view.h"
+#include "psppire-select-dest.h"
 #include <libpspp/i18n.h>
 #include "helper.h"
 #include <data/variable.h>
@@ -150,5 +153,35 @@ is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
   result = ( 0 == strcmp (text, var_get_name (var) ));
 
   return result;
+}
+
+gboolean
+is_currently_in_varview (GtkTreeModel *model, GtkTreeIter *iter, PsppireSelector *sel)
+{
+  gboolean ret = false;
+
+  /* First, fetch the variable from the source */
+
+  PsppireDictView *dv = PSPPIRE_DICT_VIEW (sel->source);
+
+  GtkTreePath *path = gtk_tree_model_get_path (model, iter);
+
+  gint *idx = gtk_tree_path_get_indices (path);
+
+  const struct variable *var =  psppire_dict_get_variable (dv->dict, *idx);
+
+
+  /* Now test if that variable exists in the destination */
+
+  GValue value = {0};
+
+  g_value_init (&value, PSPPIRE_VAR_PTR_TYPE);
+  g_value_set_boxed (&value, var);
+
+  ret = psppire_select_dest_widget_contains_var (PSPPIRE_SELECT_DEST_WIDGET (sel->dest), &value);
+
+  g_value_unset (&value);
+
+  return ret ;
 }
 

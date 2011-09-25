@@ -66,6 +66,7 @@
 #include "ui/gui/t-test-paired-samples.h"
 #include "ui/gui/text-data-import-dialog.h"
 #include "ui/gui/transpose-dialog.h"
+#include "ui/gui/univariate-dialog.h"
 #include "ui/gui/variable-info-dialog.h"
 #include "ui/gui/weight-cases-dialog.h"
 #include "ui/syntax-gen.h"
@@ -1115,6 +1116,10 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "reliability", G_CALLBACK (reliability_dialog));
  
   connect_action (de, "roc-curve", G_CALLBACK (roc_dialog));
+
+  connect_action (de, "analyze_explore", G_CALLBACK (examine_dialog));
+
+  connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
 
   connect_action (de, "correlation", G_CALLBACK (correlation_dialog));
  

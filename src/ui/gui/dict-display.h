@@ -47,4 +47,9 @@ void insert_source_row_into_entry (GtkTreeIter source_iter,
 gboolean is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
 				PsppireSelector *selector);
 
+
+/* A FilterItemsFunc function for PsppireVarview widgets */
+gboolean is_currently_in_varview (GtkTreeModel *model, GtkTreeIter *iter,
+				  PsppireSelector *sel);
+
 #endif
