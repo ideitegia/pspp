@@ -1590,3 +1590,27 @@ Table: Coefficients
 ,,,,,,
 ])
 AT_CLEANUP
+
+AT_SETUP([REGRESSION no crash on all missing])
+AT_DATA([regcrash.sps], [dnl
+data list list /x * y.
+begin data.
+ . .
+ . .
+ . .
+ . .
+ . .
+ . .
+ . .
+ . .
+ . .
+ . .
+end data.
+
+
+regression /variables=x y /dependent=y.
+])
+
+AT_CHECK([pspp -o pspp.csv regcrash.sps], [1], [ignore], [ignore])
+
+AT_CLEANUP

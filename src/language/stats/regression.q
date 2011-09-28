@@ -792,6 +792,7 @@ identify_indep_vars (const struct variable **indep_vars,
     }
   return n_indep_vars;
 }
+
 static double
 fill_covariance (gsl_matrix *cov, struct covariance *all_cov, 
 		 const struct variable **vars,
@@ -804,12 +805,15 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
   size_t dep_subscript;
   size_t *rows;
   const gsl_matrix *ssizes;
-  gsl_matrix *cm;
   const gsl_matrix *mean_matrix;
   const gsl_matrix *ssize_matrix;
   double result = 0.0;
   
-  cm = covariance_calculate_unnormalized (all_cov);
+  gsl_matrix *cm = covariance_calculate_unnormalized (all_cov);
+
+  if ( cm == NULL)
+    return 0;
+
   rows = xnmalloc (cov->size1 - 1, sizeof (*rows));
   
   for (i = 0; i < n_all_vars; i++)
