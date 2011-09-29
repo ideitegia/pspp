@@ -334,22 +334,14 @@ error:
 static void get_ssq (struct covariance *, gsl_vector *,
 		     const struct glm_spec *);
 
-static bool
-not_dropped (size_t j, const size_t *dropped, size_t n_dropped)
+static inline bool
+not_dropped (size_t j, const bool *ff)
 {
-  size_t i;
-
-  for (i = 0; i < n_dropped; i++)
-    {
-      if (j == dropped[i])
-	return false;
-    }
-  return true;
+  return ! ff[j];
 }
 
 static void
-fill_submatrix (gsl_matrix * cov, gsl_matrix * submatrix, size_t * dropped,
-		size_t n_dropped)
+fill_submatrix (const gsl_matrix * cov, gsl_matrix * submatrix, bool *dropped_f)
 {
   size_t i;
   size_t j;
@@ -358,12 +350,12 @@ fill_submatrix (gsl_matrix * cov, gsl_matrix * submatrix, size_t * dropped,
   
   for (i = 0; i < cov->size1; i++)
     {
-      if (not_dropped (i, dropped, n_dropped))
+      if (not_dropped (i, dropped_f))
 	{	  
 	  m = 0;
 	  for (j = 0; j < cov->size2; j++)
 	    {
-	      if (not_dropped (j, dropped, n_dropped))
+	      if (not_dropped (j, dropped_f))
 		{
 		  gsl_matrix_set (submatrix, n, m,
 				  gsl_matrix_get (cov, i, j));
@@ -381,8 +373,8 @@ get_ssq (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
   gsl_matrix *cm = covariance_calculate_unnormalized (cov);
   size_t i;
   size_t k;
-  size_t *model_dropped = xcalloc (covariance_dim (cov), sizeof (*model_dropped));
-  size_t *submodel_dropped = xcalloc (covariance_dim (cov), sizeof (*submodel_dropped));
+  bool *model_dropped = xcalloc (covariance_dim (cov), sizeof (*model_dropped));
+  bool *submodel_dropped = xcalloc (covariance_dim (cov), sizeof (*submodel_dropped));
   const struct categoricals *cats = covariance_get_categoricals (cov);
 
   for (k = 0; k < cmd->n_interactions; k++)
@@ -395,30 +387,38 @@ get_ssq (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 	{
 	  const struct interaction * x = 
 	    categoricals_get_interaction_by_subscript (cats, i - cmd->n_dep_vars);
-	  if (interaction_is_proper_subset (cmd->interactions [k], x))
-	    {
-	      assert (n_dropped_model < covariance_dim (cov));
-	      model_dropped[n_dropped_model++] = i;
-	    }
+
+	  model_dropped[i] = false;
+	  submodel_dropped[i] = false;
 	  if (interaction_is_subset (cmd->interactions [k], x))
 	    {
 	      assert (n_dropped_submodel < covariance_dim (cov));
-	      submodel_dropped[n_dropped_submodel++] = i;
+	      n_dropped_submodel++;
+              submodel_dropped[i] = true;
+
+	      if ( cmd->interactions [k]->n_vars < x->n_vars)
+		{
+		  assert (n_dropped_model < covariance_dim (cov));
+		  n_dropped_model++;
+		  model_dropped[i] = true;
+		}
 	    }
 	}
-      model_cov = 
-	gsl_matrix_alloc (cm->size1 - n_dropped_model, cm->size2 - n_dropped_model);
+
+      model_cov = gsl_matrix_alloc (cm->size1 - n_dropped_model, cm->size2 - n_dropped_model);
       gsl_matrix_set (model_cov, 0, 0, gsl_matrix_get (cm, 0, 0));
-      submodel_cov = 
-	gsl_matrix_calloc (cm->size1 - n_dropped_submodel, cm->size2 - n_dropped_submodel);
-      fill_submatrix (cm, model_cov, model_dropped, n_dropped_model);
-      fill_submatrix (cm, submodel_cov, submodel_dropped, n_dropped_submodel);
+      submodel_cov = gsl_matrix_calloc (cm->size1 - n_dropped_submodel, cm->size2 - n_dropped_submodel);
+
+      fill_submatrix (cm, model_cov,    model_dropped);
+      fill_submatrix (cm, submodel_cov, submodel_dropped);
 
       reg_sweep (model_cov, 0);
       reg_sweep (submodel_cov, 0);
+
       gsl_vector_set (ssq, k + 1,
-		      gsl_matrix_get (submodel_cov, 0, 0)
-		      - gsl_matrix_get (model_cov, 0, 0));
+		      gsl_matrix_get (submodel_cov, 0, 0) - gsl_matrix_get (model_cov, 0, 0)
+		      );
+
       gsl_matrix_free (model_cov);
       gsl_matrix_free (submodel_cov);
     }
