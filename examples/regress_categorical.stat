@@ -1,3 +1,5 @@
+set decimal=dot.
+
 title 'Demonstrate REGRESSION procedure'.
 /*      run this syntax file with the command:
 /*                 pspp example.stat
@@ -19,7 +21,10 @@ c  5.343832 -16.79548
 a  8.838262 -29.25689
 b  6.200189 -18.58219
 end data.
+
 list.
+
 freq /variables=v0 v1 v2.
-regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 /method=enter.
+
+regression /variables= v1 v2 /statistics defaults /dependent=v2 /method=enter.
 

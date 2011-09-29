@@ -1,3 +1,4 @@
+set decimal=dot.
 title 'Demonstrate REGRESSION procedure'.
 /*      run this syntax file with the command:
 /*                 pspp example.stat
