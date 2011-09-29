@@ -101,6 +101,7 @@ int tgetnum (const char *);
      scompression=scompress:on/off;
      scripttab=string "x==1" "one character long";
      seed=custom;
+     tnumbers=custom;
      tb1=string "x==3 || x==11" "3 or 11 characters long";
      tbfonts=string;
      undefined=undef:warn/nowarn;
@@ -297,6 +298,35 @@ stc_custom_blanks (struct lexer *lexer,
     }
   return 1;
 }
+
+static int
+stc_custom_tnumbers (struct lexer *lexer,
+		   struct dataset *ds UNUSED,
+		   struct cmd_set *cmd UNUSED, void *aux UNUSED)
+{
+  lex_match (lexer, T_EQUALS);
+
+  if (lex_match_id (lexer, "VALUES"))
+    {
+      settings_set_value_style (SETTINGS_VAL_STYLE_VALUES);
+    }
+  else if (lex_match_id (lexer, "LABELS"))
+    {
+      settings_set_value_style (SETTINGS_VAL_STYLE_LABELS);
+    }
+  else if (lex_match_id (lexer, "BOTH"))
+    {
+      settings_set_value_style (SETTINGS_VAL_STYLE_BOTH);
+    }
+  else
+    {
+      lex_error (lexer, _("expecting VALUES, LABELS or BOTH"));
+      return 0;
+    }
+
+  return 1;
+}
+
 
 /* Parses the EPOCH subcommand, which controls the epoch used for
    parsing 2-digit years. */

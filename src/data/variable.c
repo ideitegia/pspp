@@ -26,6 +26,7 @@
 #include "data/format.h"
 #include "data/identifier.h"
 #include "data/missing-values.h"
+#include "data/settings.h"
 #include "data/value-labels.h"
 #include "data/vardict.h"
 #include "libpspp/assertion.h"
@@ -467,6 +468,19 @@ var_lookup_value_label (const struct variable *v, const union value *value)
   return val_labs_find (v->val_labs, value);
 }
 
+/*
+   Append to STR the string representation of VALUE for variable V.
+   STR must be a pointer to an initialised struct string.
+*/
+static void
+append_value (const struct variable *v, const union value *value,
+	      struct string *str)
+{
+  char *s = data_out (value, var_get_encoding (v), &v->print);
+  ds_put_cstr (str, s);
+  free (s);
+}
+
 /* Append STR with a string representing VALUE for variable V.
    That is, if VALUE has a label, append that label,
    otherwise format VALUE and append the formatted string.
@@ -476,15 +490,33 @@ void
 var_append_value_name (const struct variable *v, const union value *value,
 		       struct string *str)
 {
+  enum settings_value_style style = settings_get_value_style ();
   const char *name = var_lookup_value_label (v, value);
-  if (name == NULL)
+
+  switch (style)
     {
-      char *s = data_out (value, var_get_encoding (v), &v->print);
-      ds_put_cstr (str, s);
-      free (s);
-    }
-  else
-    ds_put_cstr (str, name);
+    case SETTINGS_VAL_STYLE_VALUES:
+      append_value (v, value, str);
+      break;
+      
+    case SETTINGS_VAL_STYLE_LABELS:
+      if (name == NULL)
+	append_value (v, value, str);
+      else
+	ds_put_cstr (str, name);
+      break;
+
+    case SETTINGS_VAL_STYLE_BOTH:
+    default:
+      append_value (v, value, str);
+      if (name != NULL)
+	{
+	  ds_put_cstr (str, " (");
+	  ds_put_cstr (str, name);
+	  ds_put_cstr (str, ")");
+	}
+      break;
+    };
 }
 
 /* Print and write formats. */

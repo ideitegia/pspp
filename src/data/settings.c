@@ -75,6 +75,9 @@ struct settings
   struct fmt_settings *styles;
 
   enum settings_output_devices output_routing[SETTINGS_N_OUTPUT_TYPES];
+
+  enum settings_var_style var_output_style;
+  enum settings_value_style value_output_style;
 };
 
 static struct settings the_settings = {
@@ -115,7 +118,10 @@ static struct settings the_settings = {
   {SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL,
    SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL,
    0,
-   SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL}
+   SETTINGS_DEVICE_LISTING | SETTINGS_DEVICE_TERMINAL},
+
+  SETTINGS_VAR_STYLE_LABELS,
+  SETTINGS_VAL_STYLE_LABELS
 };
 
 /* Initializes the settings module. */
@@ -686,4 +692,24 @@ settings_get_output_routing (enum settings_output_type type)
 {
   assert (type < SETTINGS_N_OUTPUT_TYPES);
   return the_settings.output_routing[type] | SETTINGS_DEVICE_UNFILTERED;
+}
+
+enum settings_value_style 
+settings_get_value_style (void)
+{
+  return the_settings.value_output_style;
+}
+
+void
+settings_set_value_style (enum settings_value_style s)
+{
+  the_settings.value_output_style = s;
+}
+
+
+
+enum settings_var_style
+settings_get_var_style (void)
+{
+  return the_settings.var_output_style;
 }

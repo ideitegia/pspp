@@ -415,6 +415,7 @@ SET
         /LENGTH=@{NONE,length_in_lines@}
         /MORE=@{ON,OFF@}
         /WIDTH=@{NARROW,WIDTH,n_characters@}
+        /TNUMBERS=@{VALUES,LABELS,BOTH@}
 
 (logging)
         /JOURNAL=@{ON,OFF@} ['file-name']
@@ -702,6 +703,16 @@ subcommands are
 @itemx MORE
 @itemx PAGER 
 @itemx WIDTH
+@itemx TNUMBERS
+The TNUMBERS option sets the way in which values are displayed in output tables.
+The valid settings are VALUES, LABELS and BOTH.
+If TNUMBERS is set to VALUES, then all values are displayed with their literal value 
+(which for a numeric value is a number and for a string value an alphanumeric string).
+If TNUMBERS is set to LABELS, then values are displayed using their assigned labels if any.
+(@xref{VALUE LABELS}.)
+If the a value has no label, then it will be displayed using its literal value.
+If TNUMBERS is set to BOTH, then values will be displayed with both their label
+(if any) and their literal value in parenthesis.
 @end table
 
 @cindex headers
@@ -709,6 +720,7 @@ subcommands are
 @cindex more
 @cindex pager 
 @cindex width
+@cindex tnumbers
 
 
 Logging subcommands affect logging of commands executed to external

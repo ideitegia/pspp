@@ -102,6 +102,28 @@ void settings_set_format ( const struct fmt_spec *);
 bool settings_get_testing_mode (void);
 void settings_set_testing_mode (bool);
 
+enum settings_var_style
+  {
+    SETTINGS_VAR_STYLE_NAMES,
+    SETTINGS_VAR_STYLE_LABELS,
+    SETTINGS_VAR_STYLE_BOTH
+  };
+
+enum settings_value_style
+  {
+    SETTINGS_VAL_STYLE_VALUES,
+    SETTINGS_VAL_STYLE_LABELS,
+    SETTINGS_VAL_STYLE_BOTH
+  };
+
+
+enum settings_value_style settings_get_value_style (void);
+enum settings_var_style settings_get_var_style (void);
+
+void settings_set_value_style (enum settings_value_style s);
+void settings_set_var_style (enum settings_value_style s);
+
+
 enum behavior_mode {
   ENHANCED,             /* Use improved PSPP behavior. */
   COMPATIBLE            /* Be as compatible as possible. */
@@ -142,6 +164,8 @@ enum settings_output_type
     SETTINGS_OUTPUT_RESULT,     /* Everything else. */
     SETTINGS_N_OUTPUT_TYPES
   };
+
+
 
 void settings_set_output_routing (enum settings_output_type,
                                   enum settings_output_devices);
