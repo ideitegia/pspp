@@ -60,6 +60,9 @@ interaction_create (const struct variable *v)
 void
 interaction_destroy (struct interaction *i)
 {
+  if (NULL == i)
+    return;
+
   free (i->vars);
   free (i);
 }
