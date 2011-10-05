@@ -155,10 +155,10 @@ interaction_to_string (const struct interaction *iact, struct string *str)
 }
 
 unsigned int
-interaction_case_hash (const struct interaction *iact, const struct ccase *c)
+interaction_case_hash (const struct interaction *iact, const struct ccase *c, unsigned int base)
 {
   int i;
-  size_t hash = 0;
+  size_t hash = base;
   for (i = 0; i < iact->n_vars; ++i)
     {
       const struct variable *var = iact->vars[i];

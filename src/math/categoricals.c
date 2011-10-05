@@ -279,7 +279,7 @@ static struct interaction_value *
 lookup_case (const struct hmap *map, const struct interaction *iact, const struct ccase *c)
 {
   struct interaction_value *iv = NULL;
-  size_t hash = interaction_case_hash (iact, c);
+  size_t hash = interaction_case_hash (iact, c, 0);
 
   HMAP_FOR_EACH_WITH_HASH (iv, struct interaction_value, node, hash, map)
     {
@@ -375,7 +375,6 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 	}
     }	  
   
-
   for (i = 0 ; i < cat->n_iap; ++i)
     {
       const struct interaction *iact = cat->iap[i].iact;
@@ -383,7 +382,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       //      if ( interaction_case_is_missing (iact, c, cat->exclude))
       //         continue;
 
-      size_t hash = interaction_case_hash (iact, c);
+      size_t hash = interaction_case_hash (iact, c, 0);
       struct interaction_value *node = lookup_case (&cat->iap[i].ivmap, iact, c);
 
       if ( NULL == node)
