@@ -401,6 +401,7 @@
           <object class="GtkAction" id="univariate">
             <property name="name">univariate</property>
             <property name="label" translatable="yes">_Univariate Analysis...</property>
+            <property name="visible">False</property>
           </object>
         </child>
         <child>
