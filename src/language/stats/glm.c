@@ -543,6 +543,7 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   if (cmd->intercept)
     nr++;
 
+  msg (MW, "GLM is experimental.  Do not rely on these results.");
   t = tab_create (nc, nr);
   tab_title (t, _("Tests of Between-Subjects Effects"));
 
