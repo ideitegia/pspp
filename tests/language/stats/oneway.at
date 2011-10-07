@@ -901,3 +901,23 @@ temperature,Assume equal variances,1,-.98,2.74,.36,6,.73
 ])
 
 AT_CLEANUP
+
+
+AT_SETUP([ONEWAY crash on single category independent variable])
+AT_DATA([crash.sps],[
+input program.
+loop #i = 1 to 10.
+compute test = #i.
+end case.
+end loop.
+end file.
+end input program.
+
+compute x = 1.
+
+oneway test by x.
+])
+
+AT_CHECK([pspp -O format=csv crash.sps], [0], [ignore])
+
+AT_CLEANUP
