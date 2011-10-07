@@ -176,7 +176,7 @@ percentile_create (double p, double W)
   ptl->w = W;
 
   os->n_k = 2;
-  os->k = xcalloc (sizeof (*os->k), 2);
+  os->k = xcalloc (2, sizeof (*os->k));
   os->k[0].tc = W * p;
   os->k[1].tc = (W + 1.0) * p;
 

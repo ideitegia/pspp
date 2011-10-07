@@ -174,7 +174,7 @@ sign_execute (const struct dataset *ds,
   const struct two_sample_test *t2s = UP_CAST (test, const struct two_sample_test, parent);
   struct ccase *c;
 
-  struct sign_test_params *stp = xcalloc (sizeof *stp, t2s->n_pairs);
+  struct sign_test_params *stp = xcalloc (t2s->n_pairs, sizeof *stp);
 
   struct casereader *r = input;
 

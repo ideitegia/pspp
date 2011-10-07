@@ -82,7 +82,7 @@ indep_run (struct tt *tt, const struct variable *gvar,
   struct ccase *c;
   struct casereader *r;
 
-  struct pair_stats *ps = xcalloc (sizeof (*ps), tt->n_vars);
+  struct pair_stats *ps = xcalloc (tt->n_vars, sizeof *ps);
 
   int v;
 

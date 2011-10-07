@@ -57,7 +57,7 @@ trimmed_mean_create (double W, double tail)
   struct statistic *stat = &os->parent;
 
   os->n_k = 2;
-  os->k = xcalloc (sizeof (*os->k), 2);
+  os->k = xcalloc (2, sizeof (*os->k));
 
   assert (tail >= 0);
   assert (tail <= 1);

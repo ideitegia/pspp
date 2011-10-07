@@ -93,7 +93,7 @@ guts (PsppireScanf *scanf)
   g_return_if_fail (0 == printf_parse (scanf->format, &scanf->d, &a));
 
   if ( scanf->d.count > 0)
-    scanf->widgets = xcalloc (sizeof (*scanf->widgets), scanf->d.count);
+    scanf->widgets = xcalloc (scanf->d.count, sizeof (*scanf->widgets));
 
   /* A is not used, so get rid of it */
   if (a.arg != a.direct_alloc_arg)

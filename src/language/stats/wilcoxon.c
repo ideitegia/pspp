@@ -81,7 +81,7 @@ wilcoxon_execute (const struct dataset *ds,
   const struct dictionary *dict = dataset_dict (ds);
   const struct two_sample_test *t2s = UP_CAST (test, const struct two_sample_test, parent);
 
-  struct wilcoxon_state *ws = xcalloc (sizeof (*ws), t2s->n_pairs);
+  struct wilcoxon_state *ws = xcalloc (t2s->n_pairs, sizeof *ws);
   const struct variable *weight = dict_get_weight (dict);
   struct variable *weightx = dict_create_internal_var (WEIGHT_IDX, 0);
   struct caseproto *proto;

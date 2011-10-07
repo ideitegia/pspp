@@ -81,7 +81,7 @@ tukey_hinges_create (double W, double c_min)
   assert (c_min >= 0);
 
   os->n_k = 3;
-  os->k = xcalloc (sizeof (*os->k), 3);
+  os->k = xcalloc (3, sizeof (*os->k));
 
   if ( c_min >= 1.0)
     {

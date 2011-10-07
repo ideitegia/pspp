@@ -178,8 +178,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 	    else
 	      n_pairs = n_v1 * n_v2;
 	  
-	    pairs = xcalloc (sizeof *pairs, n_pairs);
-
+	    pairs = xcalloc (n_pairs, sizeof *pairs);
 
 	    if ( with)
 	      {

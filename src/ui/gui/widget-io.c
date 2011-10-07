@@ -51,7 +51,7 @@ widget_printf (const gchar *fmt, ...)
   if ( 0 !=  printf_parse (fmt, &d, &a) )
     return NULL;
 
-  widgets = xcalloc (sizeof (*widgets), d.count);
+  widgets = xcalloc (d.count, sizeof (*widgets));
   va_start (ap, fmt);
   for (i = 0 ; i < d.count ; ++i )
     {

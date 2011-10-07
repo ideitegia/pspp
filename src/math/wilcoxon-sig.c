@@ -105,7 +105,7 @@ count_sums_to_W (unsigned long int n, unsigned long int w)
   else if (n == 1)
     return 1;
 
-  array = xcalloc (sizeof *array, w + 1);
+  array = xcalloc (w + 1, sizeof *array);
   array[w] = 1;
 
   max = w;
