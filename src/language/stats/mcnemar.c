@@ -184,7 +184,7 @@ output_freq_table (variable_pair *vp,
   ds_put_cstr (&pair_name, " & ");
   ds_put_cstr (&pair_name, var_to_string ((*vp)[1]));
 
-  tab_title (table, ds_cstr (&pair_name));
+  tab_title (table, "%s", ds_cstr (&pair_name));
 
   ds_destroy (&pair_name);
 

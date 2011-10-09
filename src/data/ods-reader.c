@@ -127,7 +127,7 @@ ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
     xmlFreeTextReader (r->xtr);
 
   if ( ! ds_is_empty (&r->ods_errs))
-    msg (ME, ds_cstr (&r->ods_errs));
+    msg (ME, "%s", ds_cstr (&r->ods_errs));
 
   ds_destroy (&r->ods_errs);
 
