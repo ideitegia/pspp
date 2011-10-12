@@ -385,24 +385,23 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
         case S_INITIAL | S_DATA:
           NOT_REACHED ();
         case S_INITIAL | S_INPUT_PROGRAM:
-          msg (SE, _("%s is allowed only before the active dataset has "
-                     "been defined or inside INPUT PROGRAM."), command->name);
+          msg (SE, _("%s is allowed only before the active dataset has been defined or inside %s."),
+	       command->name, "INPUT PROGRAM");
           break;
         case S_INITIAL | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only before the active dataset has "
-                     "been defined or inside FILE TYPE."), command->name);
+          msg (SE, _("%s is allowed only before the active dataset has been defined or inside %s."),
+	       command->name, "FILE TYPE");
           break;
         case S_DATA | S_INPUT_PROGRAM:
-          msg (SE, _("%s is allowed only after the active dataset has "
-                     "been defined or inside INPUT PROGRAM."), command->name);
+          msg (SE, _("%s is allowed only after the active dataset has been defined or inside %s."),
+	       command->name, "INPUT PROGRAM");
           break;
         case S_DATA | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only after the active dataset has "
-                     "been defined or inside FILE TYPE."), command->name);
+          msg (SE, _("%s is allowed only after the active dataset has been defined or inside %s."),
+	       command->name, "FILE TYPE");
           break;
         case S_INPUT_PROGRAM | S_FILE_TYPE:
-          msg (SE, _("%s is allowed only inside INPUT PROGRAM "
-                     "or inside FILE TYPE."), command->name);
+          msg (SE, _("%s is allowed only inside INPUT PROGRAM or inside FILE TYPE."), command->name);
           break;
 
           /* Three allowed states. */
@@ -431,7 +430,7 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
     }
   else if (state == CMD_STATE_INPUT_PROGRAM)
     msg (SE, _("%s is not allowed inside %s."),
-         command->name, "INPUT PROGRAM" );
+	 command->name, "INPUT PROGRAM" );
   else if (state == CMD_STATE_FILE_TYPE)
     msg (SE, _("%s is not allowed inside %s."), command->name, "FILE TYPE");
 
