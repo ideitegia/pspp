@@ -411,7 +411,6 @@ parse_strings (struct lexer *lexer, struct dummy_var *dv)
     {
       if (!lex_force_string (lexer))
 	{
-	  msg (SE, _("String expected."));
 	  return false;
 	}
 
