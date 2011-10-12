@@ -534,7 +534,7 @@ psppire_dict_check_name (const PsppireDict *dict,
   if (psppire_dict_lookup_var (dict, name))
     {
       if ( report )
-	msg (ME,"Duplicate variable name.");
+	msg (ME, _("Duplicate variable name."));
       return FALSE;
     }
 

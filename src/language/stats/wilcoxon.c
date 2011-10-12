@@ -358,7 +358,7 @@ show_tests_box (const struct wilcoxon_state *ws,
 	  double p = LevelOfSignificanceWXMPSR (ws[i].positives.sum, n);
 	  if (p < 0)
 	    {
-	      msg (MW, ("Too many pairs to calculate exact significance."));
+	      msg (MW, _("Too many pairs to calculate exact significance."));
 	    }
 	  else
 	    {
