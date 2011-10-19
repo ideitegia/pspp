@@ -74,8 +74,7 @@
      +variables=custom;
      missing=miss:!table/include/report;
      +write[wr_]=none,cells,all;
-     +format=fmt:!labels/nolabels/novallabs,
-	     val:!avalue/dvalue,
+     +format=val:!avalue/dvalue,
 	     indx:!noindex/index,
 	     tabl:!tables/notables,
 	     box:!box/nobox,
@@ -927,9 +926,9 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
       struct string vars;
       int i;
 
-      ds_init_cstr (&vars, var_get_name (pt->vars[0]));
+      ds_init_cstr (&vars, var_to_string (pt->vars[0]));
       for (i = 1; i < pt->n_vars; i++)
-        ds_put_format (&vars, " * %s", var_get_name (pt->vars[i]));
+        ds_put_format (&vars, " * %s", var_to_string (pt->vars[i]));
 
       /* TRANSLATORS: The %s here describes a crosstabulation.  It takes the
          form "var1 * var2 * var3 * ...".  */
@@ -1158,7 +1157,7 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   /* First header line. */
   tab_joint_text (table, x.n_consts + 1, 0,
                   (x.n_consts + 1) + (x.n_cols - 1), 0,
-                  TAB_CENTER | TAT_TITLE, var_get_name (x.vars[COL_VAR]));
+                  TAB_CENTER | TAT_TITLE, var_to_string (x.vars[COL_VAR]));
 
   tab_hline (table, TAL_1, x.n_consts + 1,
              x.n_consts + 2 + x.n_cols - 2, 1);
@@ -1169,7 +1168,7 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
                     x.n_consts + 2 - i - 1, 1,
                     TAB_RIGHT | TAT_TITLE, var_to_string (x.vars[i]));
   tab_text (table, x.n_consts + 2 - 2, 1, TAB_RIGHT | TAT_TITLE,
-            var_get_name (x.vars[ROW_VAR]));
+            var_to_string (x.vars[ROW_VAR]));
   for (i = 0; i < x.n_cols; i++)
     table_value_missing (proc, table, x.n_consts + 2 + i - 1, 1, TAB_RIGHT,
                          &x.cols[i], x.vars[COL_VAR]);
@@ -1184,14 +1183,14 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
     {
       if (i)
         ds_put_cstr (&title, " * ");
-      ds_put_cstr (&title, var_get_name (x.vars[i]));
+      ds_put_cstr (&title, var_to_string (x.vars[i]));
     }
   for (i = 0; i < pt->n_consts; i++)
     {
       const struct variable *var = pt->const_vars[i];
       char *s;
 
-      ds_put_format (&title, ", %s=", var_get_name (var));
+      ds_put_format (&title, ", %s=", var_to_string (var));
 
       /* Insert the formatted value of VAR without any leading spaces. */
       s = data_out (&pt->const_values[i], var_get_encoding (var),
@@ -1890,10 +1889,10 @@ display_risk (struct pivot_table *pt, struct tab_table *risk)
 	case 0:
 	  if (var_is_numeric (cv))
 	    sprintf (buf, _("Odds Ratio for %s (%g / %g)"),
-		     var_get_name (cv), c[0].f, c[1].f);
+		     var_to_string (cv), c[0].f, c[1].f);
 	  else
 	    sprintf (buf, _("Odds Ratio for %s (%.*s / %.*s)"),
-		     var_get_name (cv),
+		     var_to_string (cv),
 		     cvw, value_str (&c[0], cvw),
 		     cvw, value_str (&c[1], cvw));
 	  break;
@@ -1901,10 +1900,10 @@ display_risk (struct pivot_table *pt, struct tab_table *risk)
 	case 2:
 	  if (var_is_numeric (rv))
 	    sprintf (buf, _("For cohort %s = %g"),
-		     var_get_name (rv), pt->rows[i - 1].f);
+		     var_to_string (rv), pt->rows[i - 1].f);
 	  else
 	    sprintf (buf, _("For cohort %s = %.*s"),
-		     var_get_name (rv),
+		     var_to_string (rv),
 		     rvw, value_str (&pt->rows[i - 1], rvw));
 	  break;
 	}
@@ -2022,9 +2021,9 @@ display_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 		  if (k == 0)
 		    string = NULL;
 		  else if (k == 1)
-		    string = var_get_name (pt->vars[0]);
+		    string = var_to_string (pt->vars[0]);
 		  else
-		    string = var_get_name (pt->vars[1]);
+		    string = var_to_string (pt->vars[1]);
 
 		  tab_text_format (direct, j, 0, TAB_LEFT,
                                    gettext (stats_names[j][k]), string);

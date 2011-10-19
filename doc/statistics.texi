@@ -361,7 +361,6 @@ CROSSTABS
         /MISSING=@{TABLE,INCLUDE,REPORT@}
         /WRITE=@{NONE,CELLS,ALL@}
         /FORMAT=@{TABLES,NOTABLES@}
-                @{LABELS,NOLABELS,NOVALLABS@}
                 @{PIVOT,NOPIVOT@}
                 @{AVALUE,DVALUE@}
                 @{NOINDEX,INDEX@}
@@ -418,11 +417,6 @@ settings:
 @item
 TABLES, the default, causes crosstabulation tables to be output.
 NOTABLES suppresses them.
-
-@item
-LABELS, the default, allows variable labels and value labels to appear
-in the output.  NOLABELS suppresses them.  NOVALLABS displays variable
-labels but suppresses value labels.
 
 @item
 PIVOT, the default, causes each TABLES subcommand to be displayed in a
