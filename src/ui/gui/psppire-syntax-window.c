@@ -33,6 +33,7 @@
 #include "ui/gui/helper.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-encoding-selector.h"
+#include "ui/gui/psppire-lex-reader.h"
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-window-register.h"
 #include "ui/gui/psppire.h"
@@ -248,10 +249,7 @@ editor_execute_syntax (const PsppireSyntaxWindow *sw, GtkTextIter start,
 		       GtkTextIter stop)
 {
   PsppireWindow *win = PSPPIRE_WINDOW (sw);
-  struct lex_reader *reader;
-  gchar *text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (sw->buffer), &start, &stop, FALSE);
-  reader = lex_reader_for_string (text);
-  g_free (text);
+  struct lex_reader *reader = lex_reader_for_gtk_text_buffer (GTK_TEXT_BUFFER (sw->buffer), start, stop);
 
   lex_reader_set_file_name (reader, psppire_window_get_filename (win));
 

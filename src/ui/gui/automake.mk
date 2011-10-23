@@ -217,6 +217,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-encoding-selector.h \
 	src/ui/gui/psppire-hbuttonbox.h \
 	src/ui/gui/psppire-keypad.h \
+	src/ui/gui/psppire-lex-reader.c \
+	src/ui/gui/psppire-lex-reader.h \
 	src/ui/gui/psppire-output-window.c \
 	src/ui/gui/psppire-output-window.h \
 	src/ui/gui/psppire-var-view.c \
