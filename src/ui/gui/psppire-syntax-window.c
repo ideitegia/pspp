@@ -24,7 +24,6 @@
 #include <gtksourceview/gtksourcelanguagemanager.h>
 #include <gtksourceview/gtksourceprintcompositor.h>
 
-
 #include "language/lexer/lexer.h"
 #include "libpspp/encoding-guesser.h"
 #include "libpspp/i18n.h"
@@ -35,9 +34,7 @@
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-encoding-selector.h"
 #include "ui/gui/psppire-syntax-window.h"
-#include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-window-register.h"
-#include "ui/gui/psppire.h"
 #include "ui/gui/psppire.h"
 
 #include "gl/localcharset.h"

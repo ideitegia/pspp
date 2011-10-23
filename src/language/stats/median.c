@@ -21,7 +21,7 @@
 #include <gsl/gsl_cdf.h>
 
 #include "data/format.h"
-#include "libpspp/cast.h"
+
 
 #include "data/variable.h"
 #include "data/case.h"
@@ -30,17 +30,15 @@
 #include "data/casereader.h"
 #include "data/casewriter.h"
 #include "data/subcase.h"
+#include "data/value.h"
 
-
-#include "data/casereader.h"
 #include "math/percentiles.h"
-
 #include "math/sort.h"
 
+#include "libpspp/cast.h"
 #include "libpspp/hmap.h"
 #include "libpspp/array.h"
 #include "libpspp/str.h"
-#include "data/value.h"
 #include "libpspp/misc.h"
 
 #include "output/tab.h"

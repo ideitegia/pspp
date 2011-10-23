@@ -54,7 +54,6 @@
 #include "ui/terminal/terminal-opts.h"
 #include "ui/terminal/terminal-reader.h"
 #include "ui/terminal/terminal.h"
-#include "ui/terminal/terminal-opts.h"
 
 #include "gl/fatal-signal.h"
 #include "gl/progname.h"

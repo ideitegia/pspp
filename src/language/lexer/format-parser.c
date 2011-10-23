@@ -16,8 +16,6 @@
 
 #include <config.h>
 
-#include "language/lexer/format-parser.h"
-
 #include <ctype.h>
 #include <stdint.h>
 #include <stdlib.h>
