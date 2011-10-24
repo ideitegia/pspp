@@ -108,12 +108,6 @@ static const struct checkbox_entry_item cells[] =
 #undef CS
   };
 
-enum
-  {
-    LABEL,
-    NO_LABEL,
-    NO_VAL_LABEL,
-  };
 struct format_options
 {
   gboolean avalue;
@@ -140,9 +134,6 @@ struct crosstabs_dialog
 
   GtkWidget *stat_view;
   GtkWidget *cell_view;
-  GtkToggleButton *label;
-  GtkToggleButton *no_label;
-  GtkToggleButton *no_val_label;
   struct format_options current_opts;
 };
 
@@ -175,14 +166,6 @@ on_format_clicked (struct crosstabs_dialog *cd)
     {
       gtk_toggle_button_set_active (cd->pivot_button, TRUE);
     }
-  lab = gtk_toggle_button_get_active (cd->label);
-  no_lab = gtk_toggle_button_get_active (cd->no_label);
-  no_val_lab = gtk_toggle_button_get_active (cd->no_val_label);
-  if (!lab)
-    if (!no_lab)
-      if (!no_val_lab)
-	gtk_toggle_button_set_active (cd->label, TRUE);
-
 
   ret = psppire_dialog_run (PSPPIRE_DIALOG (cd->format_dialog));
 
@@ -194,12 +177,6 @@ on_format_clicked (struct crosstabs_dialog *cd)
 	? TRUE : FALSE;
       cd->current_opts.pivot = (gtk_toggle_button_get_active (cd->pivot_button) == TRUE)
 	? TRUE : FALSE;
-    }
-  else
-    {
-      gtk_toggle_button_set_active (cd->label, lab);
-      gtk_toggle_button_set_active (cd->no_label, no_lab);
-      gtk_toggle_button_set_active (cd->no_val_label, no_val_lab);
     }
 }
 
@@ -272,19 +249,6 @@ generate_syntax (const struct crosstabs_dialog *cd)
   else 
     {
       g_string_append (string, "DVALUE");
-    }
-  g_string_append (string, " ");
-  if (gtk_toggle_button_get_active (cd->label))
-    {
-      g_string_append (string, "LABELS");
-    }
-  else if (gtk_toggle_button_get_active (cd->no_label))
-    {
-      g_string_append (string, "NOLABELS");
-    }
-  else if (gtk_toggle_button_get_active (cd->no_val_label))
-    {
-      g_string_append (string, "NOVALLABS");
     }
   g_string_append (string, " ");
   if (cd->current_opts.table)
@@ -428,9 +392,6 @@ crosstabs_dialog (PsppireDataWindow *de)
   cd.format_dialog = get_widget_assert (xml, "format-dialog");
   cd.table_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "print-tables"));
   cd.pivot_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "pivot"));
-  cd.label = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "radiobutton1"));
-  cd.no_label = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "radiobutton2"));
-  cd.no_val_label = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "radiobutton3"));
   cd.stat_dialog = get_widget_assert (xml, "stat-dialog");
   cd.cell_dialog = get_widget_assert (xml, "cell-dialog");
 
