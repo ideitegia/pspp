@@ -558,7 +558,7 @@ create_file_type_list (void)
   GtkTreeIter iter;
   GtkListStore *list = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_STRING);
   
-  for (i = 0 ; i < 6 ; ++i)
+  for (i = 0 ; i < n_FT ; ++i)
     {
       gtk_list_store_append (list, &iter);
       gtk_list_store_set (list, &iter,
