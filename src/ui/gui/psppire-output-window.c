@@ -469,7 +469,7 @@ enum
     n_FT
   };
 
-#define N_EXTENTIONS (n_FT - 1)
+#define N_EXTENSIONS (n_FT - 1)
 
 struct file_types ft[n_FT] = {
   {N_("Infer file type from extension"),  NULL},
@@ -504,7 +504,7 @@ on_combo_change (GtkFileChooser *chooser)
       if ( x != 0 )
 	sensitive = TRUE;
 
-      for (i = 1 ; i < N_EXTENTIONS ; ++i)
+      for (i = 1 ; i < N_EXTENSIONS ; ++i)
 	{
 	  if ( g_str_has_suffix (fn, ft[i].ext))
 	    {
@@ -629,7 +629,7 @@ psppire_output_window_export (PsppireOutputWindow *window)
       if (file_type == FT_AUTO)
 	{
 	  gint i;
-	  for (i = 1 ; i < N_EXTENTIONS ; ++i)
+	  for (i = 1 ; i < N_EXTENSIONS ; ++i)
 	    {
 	      if ( g_str_has_suffix (filename, ft[i].ext))
 		{
