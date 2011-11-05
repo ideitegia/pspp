@@ -2049,10 +2049,6 @@ main (int argc, char *argv[])
 
           dump (0, "#include \"gl/xalloc.h\"");
 	  dump_blank_line (0);
-
-          dump (0, "#include \"gettext.h\"");
-          dump (0, "#define _(msgid) gettext (msgid)");
-	  dump_blank_line (0);
 	}
       else if (!strcmp (directive, "declarations"))
 	dump_declarations ();
