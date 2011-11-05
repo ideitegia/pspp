@@ -362,6 +362,24 @@ lex_sbc_missing (const char *sbc)
   msg (SE, _("Required subcommand %s was not specified."), sbc);
 }
 
+/* Reports an error to the effect that specification SPEC may only be specified
+   once within subcommand SBC. */
+void
+lex_spec_only_once (struct lexer *lexer, const char *sbc, const char *spec)
+{
+  lex_error (lexer, _("%s may only be specified once within subcommand %s"),
+             spec, sbc);
+}
+
+/* Reports an error to the effect that specification SPEC is missing within
+   subcommand SBC. */
+void
+lex_spec_missing (struct lexer *lexer, const char *sbc, const char *spec)
+{
+  lex_error (lexer, _("Required %s specification missing from %s subcommand"),
+             sbc, spec);
+}
+
 /* Prints a syntax error message containing the current token and
    given message MESSAGE (if non-null). */
 void

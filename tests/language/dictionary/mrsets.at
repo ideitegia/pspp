@@ -239,7 +239,7 @@ AT_DATA([mrsets.sps],
 MRSETS /MCGROUP VARIABLES=a b c.
 ])
 AT_CHECK([pspp -O format=csv mrsets.sps], [1],
-  [mrsets.sps:6: error: MRSETS: Required NAME specification missing from MCGROUP subcommand.
+  [mrsets.sps:6.32: error: MRSETS: Syntax error at end of command: Required MCGROUP specification missing from NAME subcommand.
 ])
 AT_CLEANUP
 
@@ -249,7 +249,7 @@ AT_DATA([mrsets.sps],
 MRSETS /MCGROUP NAME=$Mcgroup.
 ])
 AT_CHECK([pspp -O format=csv mrsets.sps], [1],
-  [mrsets.sps:6: error: MRSETS: Required VARIABLES specification missing from MCGROUP subcommand.
+  [mrsets.sps:6.30: error: MRSETS: Syntax error at end of command: Required MCGROUP specification missing from VARIABLES subcommand.
 ])
 AT_CLEANUP
 

@@ -160,6 +160,11 @@ void lex_error_expecting (struct lexer *, const char *, ...) SENTINEL(0);
 void lex_sbc_only_once (const char *);
 void lex_sbc_missing (const char *);
 
+void lex_spec_only_once (struct lexer *, const char *subcommand,
+                         const char *specification);
+void lex_spec_missing (struct lexer *, const char *subcommand,
+                       const char *specification);
+
 void lex_error_valist (struct lexer *, const char *, va_list)
   PRINTF_FORMAT (2, 0);
 void lex_next_error_valist (struct lexer *lexer, int n0, int n1,

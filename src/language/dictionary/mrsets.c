@@ -205,14 +205,12 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
 
   if (mrset->name == NULL)
     {
-      msg (SE, _("Required %s specification missing from %s subcommand."),
-           "NAME", subcommand_name);
+      lex_spec_missing (lexer, subcommand_name, "NAME");
       goto error;
     }
   else if (mrset->n_vars == 0)
     {
-      msg (SE, _("Required %s specification missing from %s subcommand."),
-           "VARIABLES", subcommand_name);
+      lex_spec_missing (lexer, subcommand_name, "VARIABLES");
       goto error;
     }
 
@@ -221,8 +219,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
       /* Check that VALUE is specified and is valid for the VARIABLES. */
       if (!has_value)
         {
-          msg (SE, _("Required %s specification missing from %s subcommand."),
-               "VALUE", subcommand_name);
+          lex_spec_missing (lexer, subcommand_name, "VALUE");
           goto error;
         }
       else if (var_is_alpha (mrset->vars[0]))
