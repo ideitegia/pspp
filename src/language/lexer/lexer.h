@@ -20,13 +20,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-/* The following #include avoids a potential problem when Gnulib substitutes
- * for close() by putting "#define close rpl_close" into <unistd.h>, by
- * ensuring that every source file that includes this one sees the #define.
- * (It would probably be better to rename the 'close' member of struct
- * lex_reader_class.)  */
-#include <unistd.h>
-
 #include "data/identifier.h"
 #include "data/variable.h"
 #include "libpspp/compiler.h"
@@ -79,7 +72,7 @@ struct lex_reader_class
 
        The caller will free the 'file_name' member of READER, so the
        implementation should not do so. */
-    void (*close) (struct lex_reader *reader);
+    void (*destroy) (struct lex_reader *reader);
   };
 
 /* Helper functions for lex_reader. */

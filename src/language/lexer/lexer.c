@@ -1452,8 +1452,8 @@ static void
 lex_source_destroy (struct lex_source *src)
 {
   char *file_name = src->reader->file_name;
-  if (src->reader->class->close != NULL)
-    src->reader->class->close (src->reader);
+  if (src->reader->class->destroy != NULL)
+    src->reader->class->destroy (src->reader);
   free (file_name);
   free (src->buffer);
   while (!deque_is_empty (&src->deque))
