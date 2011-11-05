@@ -43,7 +43,7 @@
    "FILE HANDLE" (fh_):
      name=string;
      lrecl=integer;
-     tabwidth=integer "x>=0" "%s must be nonnegative";
+     tabwidth=integer;
      mode=mode:!character/binary/image/360;
      recform=recform:fixed/f/variable/v/spanned/vs.
 */
@@ -95,7 +95,12 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
     case FH_CHARACTER:
       properties.mode = FH_MODE_TEXT;
       if (cmd.sbc_tabwidth)
-        properties.tab_width = cmd.n_tabwidth[0];
+        {
+          if (cmd.n_tabwidth[0] >= 0)
+            properties.tab_width = cmd.n_tabwidth[0];
+          else
+            msg (SE, _("%s must not be negative."), "TABWIDTH");
+        }
       break;
     case FH_IMAGE:
       properties.mode = FH_MODE_FIXED;

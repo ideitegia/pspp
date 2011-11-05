@@ -585,11 +585,7 @@ struct subcommand
     int narray;			/* Index of next array element. */
     const char *prefix;		/* Prefix for variable and constant names. */
     specifier *spec;		/* Array of specifiers. */
-
-    /* SBC_STRING and SBC_INT only. */
-    char *restriction;		/* Expression restricting string length. */
-    char *message;		/* Error message. */
-    int translatable;           /* Error message is translatable */
+    char *pv_options;           /* PV_* options for SBC_VARLIST. */
   };
 
 /* Name of the command; i.e., DESCRIPTIVES. */
@@ -811,7 +807,6 @@ parse_subcommand (subcommand *sbc)
   sbc->narray = 0;
   sbc->type = SBC_PLAIN;
   sbc->spec = NULL;
-  sbc->translatable = 0;
 
   if (match_token ('['))
     {
@@ -848,39 +843,18 @@ parse_subcommand (subcommand *sbc)
 	  if (match_token ('('))
 	    {
 	      force_string ();
-	      sbc->message = xstrdup (tokstr);
+	      sbc->pv_options = xstrdup (tokstr);
 	      lex_get();
 
 	      skip_token (')');
 	    }
-	  else sbc->message = NULL;
+	  else
+            sbc->pv_options = NULL;
 
 	  sbc->type = SBC_VARLIST;
 	}
       else if (match_id ("INTEGER"))
-       {
 	sbc->type = match_id ("LIST") ? SBC_INT_LIST : SBC_INT;
-        if ( token == T_STRING)
-         {
-	      sbc->restriction = xstrdup (tokstr);
-	      lex_get ();
-              if ( match_id("N_") )
-	       {
-		skip_token('(');
-	        force_string ();
-		lex_get();
-		skip_token(')');
-		sbc->translatable = 1;
-	       }
-	      else {
-        	force_string ();
-		lex_get ();
-              }
-	      sbc->message = xstrdup (tokstr);
-         }
-	else
-	    sbc->restriction = NULL;
-       }
       else if (match_id ("PINT"))
 	sbc->type = SBC_PINT;
       else if (match_id ("DOUBLE"))
@@ -891,19 +865,7 @@ parse_subcommand (subcommand *sbc)
 	    sbc->type = SBC_DBL;
 	}
       else if (match_id ("STRING"))
-	{
-	  sbc->type = SBC_STRING;
-	  if (token == T_STRING)
-	    {
-	      sbc->restriction = xstrdup (tokstr);
-	      lex_get ();
-	      force_string ();
-	      sbc->message = xstrdup (tokstr);
-	      lex_get ();
-	    }
-	  else
-	    sbc->restriction = NULL;
-	}
+        sbc->type = SBC_STRING;
       else if (match_id ("CUSTOM"))
 	sbc->type = SBC_CUSTOM;
       else
@@ -1548,9 +1510,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	      }
 
 	      dump (1, "{");
-	      dump (0, "msg (SE, _(\"Bad argument for %s "
-		    "specifier of %s subcommand.\"));",
-		    s->specname, sbc->name);
+              dump (0, "lex_error (lexer, NULL);");
 	      dump (0, "goto lossage;");
 	      dump (-1, "}");
 	      outdent ();
@@ -1659,8 +1619,8 @@ dump_subcommand (const subcommand *sbc)
 	    "PV_APPEND%s%s))",
 	    st_lower (sbc->prefix), st_lower (sbc->name),
 	    st_lower (sbc->prefix), st_lower (sbc->name),
-	    sbc->message ? " |" : "",
-	    sbc->message ? sbc->message : "");
+	    sbc->pv_options ? " |" : "",
+	    sbc->pv_options ? sbc->pv_options : "");
       dump (0, "goto lossage;");
       outdent ();
     }
@@ -1675,31 +1635,13 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_STRING)
     {
-      if (sbc->restriction)
-	{
-	  dump (1, "{");
-	  dump (0, "int x;");
-	}
       dump (1, "if (!lex_force_string (lexer))");
       dump (0, "return false;");
       outdent ();
-      if (sbc->restriction)
-	{
-	  dump (0, "x = ss_length (lex_tokss (lexer));");
-	  dump (1, "if (!(%s))", sbc->restriction);
-	  dump (1, "{");
-	  dump (0, "msg (SE, _(\"String for %s must be %s.\"));",
-		sbc->name, sbc->message);
-	  dump (0, "goto lossage;");
-	  dump (-1, "}");
-	  outdent ();
-	}
       dump (0, "free(p->s_%s);", st_lower(sbc->name) );
       dump (0, "p->s_%s = ss_xstrdup (lex_tokss (lexer));",
 	    st_lower (sbc->name));
       dump (0, "lex_get (lexer);");
-      if (sbc->restriction)
-	dump (-1, "}");
     }
   else if (sbc->type == SBC_DBL)
     {
@@ -1717,19 +1659,6 @@ dump_subcommand (const subcommand *sbc)
       dump (0, "goto lossage;");
       dump (-1, "x = lex_integer (lexer);");
       dump (0, "lex_get(lexer);");
-      if (sbc->restriction)
-       {
-	  char buf[1024];
-	  dump (1, "if (!(%s))", sbc->restriction);
-	  dump (1, "{");
-          sprintf(buf,sbc->message,sbc->name);
-	  if ( sbc->translatable )
-		  dump (0, "msg (SE, gettext(\"%s\"));",buf);
-	  else
-		  dump (0, "msg (SE, \"%s\");",buf);
-	  dump (0, "goto lossage;");
-	  dump (-1, "}");
-      }
       dump (0, "p->n_%s[p->sbc_%s - 1] = x;", st_lower (sbc->name), st_lower(sbc->name) );
       dump (-1,"}");
     }
@@ -2113,6 +2042,7 @@ main (int argc, char *argv[])
           dump (0, "#include \"language/lexer/subcommand-list.h\"");
 	  dump (0, "#include \"language/lexer/variable-parser.h\"");
 	  dump (0, "#include \"libpspp/assertion.h\"");
+	  dump (0, "#include \"libpspp/cast.h\"");
 	  dump (0, "#include \"libpspp/message.h\"");
 	  dump (0, "#include \"libpspp/str.h\"");
 	  dump_blank_line (0);

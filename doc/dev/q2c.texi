@@ -212,14 +212,11 @@ setting-value ::=
               ::= ( setting-value-2 )
               ::= setting-value-2
 setting-value-2 ::= setting-value-options setting-value-type : ID
-                    setting-value-restriction
 setting-value-options ::=
                       ::= *
 setting-value-type ::= N
                    ::= D
                    ::= S
-setting-value-restriction ::=
-                          ::= , STRING
 @end example
 
 Settings may have values.  If the value must be enclosed in parentheses,
@@ -228,11 +225,7 @@ type as @samp{n}, @samp{d}, or @samp{s} for integer, floating-point,
 or string type, respectively.  The given @code{ID} is used to
 construct a variable name.
 If option @samp{*} is given, then the value is optional; otherwise it
-must be specified whenever the corresponding setting is specified.  A
-``restriction'' can also be specified which is a string giving a C
-expression limiting the valid range of the value.  The special escape
-@code{%s} should be used within the restriction to refer to the
-setting's value variable.
+must be specified whenever the corresponding setting is specified.
 
 @example
 sbc-special-form ::= VAR
@@ -240,14 +233,12 @@ sbc-special-form ::= VAR
                  ::= INTEGER opt-list
                  ::= DOUBLE opt-list
                  ::= PINT
-                 ::= STRING @r{(the literal word STRING)} string-options
+                 ::= STRING @r{(the literal word STRING)}
                  ::= CUSTOM
 varlist-options ::=
                 ::= ( STRING )
 opt-list ::=
          ::= LIST
-string-options ::=
-               ::= ( STRING STRING )
 @end example
 
 The special forms are of the following types:
@@ -284,9 +275,7 @@ A single positive integer value.
 
 @item STRING
 
-A string value.  If the options are given then the first string is an
-expression giving a restriction on the value of the string; the second
-string is an error message to display when the restriction is violated.
+A string value.
 
 @item CUSTOM
 

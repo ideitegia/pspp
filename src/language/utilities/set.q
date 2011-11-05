@@ -59,8 +59,8 @@ int tgetnum (const char *);
 /* (specification)
    "SET" (stc_):
      blanks=custom;
-     block=string "x==1" "one character long";
-     boxstring=string "x==3 || x==11" "3 or 11 characters long";
+     block=string;
+     boxstring=string;
      case=size:upper/uplow;
      cca=string;
      ccb=string;
@@ -68,29 +68,29 @@ int tgetnum (const char *);
      ccd=string;
      cce=string;
      compression=compress:on/off;
-     cpi=integer "x>0" "%s must be greater than 0";
+     cpi=integer;
      decimal=dec:dot/comma;
      epoch=custom;
      errors=custom;
      format=custom;
      headers=headers:no/yes/blank;
      highres=hires:on/off;
-     histogram=string "x==1" "one character long";
+     histogram=string;
      include=inc:on/off;
      journal=custom;
      log=custom;
      length=custom;
      locale=custom;
      lowres=lores:auto/on/off;
-     lpi=integer "x>0" "%s must be greater than 0";
+     lpi=integer;
      menus=menus:standard/extended;
      messages=custom;
      mexpand=mexp:on/off;
-     miterate=integer "x>0" "%s must be greater than 0";
-     mnest=integer "x>0" "%s must be greater than 0";
+     miterate=integer;
+     mnest=integer;
      mprint=mprint:on/off;
-     mxerrs=integer "x >= 1" "%s must be at least 1";
-     mxloops=integer "x >=1" "%s must be at least 1";
+     mxerrs=integer;
+     mxloops=integer;
      mxmemory=integer;
      mxwarns=integer;
      printback=custom;
@@ -99,16 +99,16 @@ int tgetnum (const char *);
      rrb=rrb:native/isl/isb/idl/idb/vf/vd/vg/zs/zl;
      safer=safe:on;
      scompression=scompress:on/off;
-     scripttab=string "x==1" "one character long";
+     scripttab=string;
      seed=custom;
      tnumbers=custom;
-     tb1=string "x==3 || x==11" "3 or 11 characters long";
+     tb1=string;
      tbfonts=string;
      undefined=undef:warn/nowarn;
      wib=wib:msbfirst/lsbfirst/vax/native;
      wrb=wrb:native/isl/isb/idl/idb/vf/vd/vg/zs/zl;
      width=custom;
-     workspace=integer "x>0" "%s must be positive";
+     workspace=integer;
      xsort=xsort:yes/no.
 */
 
@@ -149,7 +149,12 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
   if (cmd.sbc_include)
     settings_set_include (cmd.inc == STC_ON);
   if (cmd.sbc_mxerrs)
-    settings_set_max_messages (MSG_S_ERROR, cmd.n_mxerrs[0]);
+    {
+      if (cmd.n_mxerrs[0] >= 1)
+        settings_set_max_messages (MSG_S_ERROR, cmd.n_mxerrs[0]);
+      else
+        msg (SE, _("%s must be at least 1."), "MXERRS");
+    }
   if (cmd.sbc_mxloops)
     {
       if (cmd.n_mxloops[0] >= 1)
@@ -158,7 +163,12 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
         msg (SE, _("%s must be at least 1."), "MXLOOPS");
     }
   if (cmd.sbc_mxwarns)
-    settings_set_max_messages (MSG_S_WARNING, cmd.n_mxwarns[0]);
+    {
+      if (cmd.n_mxwarns[0] >= 0)
+        settings_set_max_messages (MSG_S_WARNING, cmd.n_mxwarns[0]);
+      else
+        msg (SE, _("%s must not be negative."), "MXWARNS");
+    }
   if (cmd.sbc_rib)
     settings_set_input_integer_format (stc_to_integer_format (cmd.rib));
   if (cmd.sbc_rrb)
@@ -177,6 +187,8 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
     {
       if ( cmd.n_workspace[0] < 1024 && ! settings_get_testing_mode ())
 	msg (SE, _("WORKSPACE must be at least 1MB"));
+      else if (cmd.n_workspace[0] <= 0)
+	msg (SE, _("WORKSPACE must be positive"));
       else
 	settings_set_workspace (cmd.n_workspace[0] * 1024L);
     }
