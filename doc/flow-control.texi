@@ -169,6 +169,7 @@ condition on @cmd{END LOOP} will always execute at least once.
 
 If neither the index clause nor either condition clause is
 present, then the loop is executed MXLOOPS (@pxref{SET}) times.
+The default MXLOOPS is 40.
 
 @cmd{BREAK} also terminates @cmd{LOOP} execution (@pxref{BREAK}).
 

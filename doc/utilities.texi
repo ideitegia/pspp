@@ -588,6 +588,7 @@ Currently not used.
 
 @item MXLOOPS
 The maximum number of iterations for an uncontrolled loop (@pxref{LOOP}).
+The default MXLOOPS is 40.
 
 @item SEED
 The initial pseudo-random number seed.  Set to a real number or to

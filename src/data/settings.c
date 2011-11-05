@@ -105,7 +105,7 @@ static struct settings the_settings = {
 
   true,                         /* printback */
   true,                         /* mprint */
-  1,                            /* mxloops */
+  40,                           /* mxloops */
   64L * 1024 * 1024,            /* workspace */
   {FMT_F, 8, 2},                /* default_format */
   false,                        /* testing_mode */
