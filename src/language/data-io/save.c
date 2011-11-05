@@ -279,7 +279,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
 
   if (handle == NULL)
     {
-      lex_sbc_missing (lexer, "OUTFILE");
+      lex_sbc_missing ("OUTFILE");
       goto error;
     }
 

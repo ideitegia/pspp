@@ -261,7 +261,7 @@ parse_index_clause (struct dataset *ds, struct lexer *lexer,
     }
   if (loop->last_expr == NULL)
     {
-      lex_sbc_missing (lexer, "TO");
+      lex_sbc_missing ("TO");
       return false;
     }
   if (loop->by_expr == NULL)

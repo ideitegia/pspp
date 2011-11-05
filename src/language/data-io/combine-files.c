@@ -376,7 +376,7 @@ combine_files (enum comb_command_type command,
     {
       if (command == COMB_UPDATE)
         {
-          msg (SE, _("The BY subcommand is required."));
+          lex_sbc_missing ("BY");
           goto error;
         }
       if (n_tables)

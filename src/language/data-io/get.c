@@ -106,7 +106,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 
   if (fh == NULL)
     {
-      lex_sbc_missing (lexer, "FILE");
+      lex_sbc_missing ("FILE");
       goto error;
     }
 

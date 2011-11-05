@@ -337,20 +337,29 @@ lex_error_expecting (struct lexer *lexer, const char *option0, ...)
     }
 }
 
-/* Reports an error to the effect that subcommand SBC may only be
-   specified once. */
+/* Reports an error to the effect that subcommand SBC may only be specified
+   once.
+
+   This function does not take a lexer as an argument or use lex_error(),
+   because the result would ordinarily just be redundant: "Syntax error at
+   SUBCOMMAND: Subcommand SUBCOMMAND may only be specified once.", which does
+   not help the user find the error. */
 void
 lex_sbc_only_once (const char *sbc)
 {
   msg (SE, _("Subcommand %s may only be specified once."), sbc);
 }
 
-/* Reports an error to the effect that subcommand SBC is
-   missing. */
+/* Reports an error to the effect that subcommand SBC is missing.
+
+   This function does not take a lexer as an argument or use lex_error(),
+   because a missing subcommand can normally be detected only after the whole
+   command has been parsed, and so lex_error() would always report "Syntax
+   error at end of command", which does not help the user find the error. */
 void
-lex_sbc_missing (struct lexer *lexer, const char *sbc)
+lex_sbc_missing (const char *sbc)
 {
-  lex_error (lexer, _("missing required subcommand %s"), sbc);
+  msg (SE, _("Required subcommand %s was not specified."), sbc);
 }
 
 /* Prints a syntax error message containing the current token and

@@ -86,7 +86,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
   properties = *fh_default_properties ();
   if (cmd.s_name == NULL)
     {
-      lex_sbc_missing (lexer, "NAME");
+      lex_sbc_missing ("NAME");
       goto exit_free_cmd;
     }
 
