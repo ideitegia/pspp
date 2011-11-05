@@ -367,12 +367,8 @@ end_loop_trns_proc (void *loop_, struct ccase **c, casenumber case_num UNUSED)
     goto break_out;
 
   /* MXLOOPS limiter. */
-  if (loop->max_pass_count >= 0)
-    {
-      if (loop->pass >= loop->max_pass_count)
-        goto break_out;
-      loop->pass++;
-    }
+  if (loop->max_pass_count >= 0 && ++loop->pass >= loop->max_pass_count)
+    goto break_out;
 
   /* Indexing clause limiter: counting downward. */
   if (loop->index_var != NULL)

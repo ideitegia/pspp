@@ -208,10 +208,9 @@ AT_CHECK([cat pspp.csv], [0], [dnl
 ])
 AT_CLEANUP
 
-AT_SETUP([LOOP with no conditions])
+AT_SETUP([LOOP with no conditions containing BREAK])
 AT_DATA([loop.sps], [dnl
 LOOP_DATA
-set mxloops = 2.
 compute #p = x.
 loop.
 print /#p.
@@ -246,3 +245,43 @@ AT_CHECK([cat pspp.csv], [0], [dnl
 --------
 ])
 AT_CLEANUP
+
+AT_SETUP([LOOP with no conditions that ends due to MXLOOPS])
+AT_DATA([loop.sps], [dnl
+LOOP_DATA
+set mxloops=2.
+loop.
+compute #p = #p + 1.
+print /x #p.
+end loop.
+print/'--------'.
+execute.
+])
+AT_CHECK([pspp -o pspp.csv loop.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+1     1.00 @&t@
+
+1     2.00 @&t@
+
+--------
+
+2     3.00 @&t@
+
+2     4.00 @&t@
+
+--------
+
+3     5.00 @&t@
+
+3     6.00 @&t@
+
+--------
+
+4     7.00 @&t@
+
+4     8.00 @&t@
+
+--------
+])
+AT_CLEANUP
+
