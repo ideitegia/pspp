@@ -1500,10 +1500,9 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 		{
 		  dump (1, "if (!lex_match (lexer, T_LPAREN))");
 		  dump (1, "{");
-		  dump (0, "msg (SE, _(\"`(' expected after %s "
-			"specifier of %s subcommand.\"));",
-			s->specname, sbc->name);
-		  dump (0, "goto lossage;");
+		  dump (0, "lex_error_expecting (lexer, \"`('\", "
+                        "NULL_SENTINEL);");
+                  dump (0, "goto lossage;");
 		  dump (-1, "}");
 		  outdent ();
 		}
@@ -1511,25 +1510,15 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 
 	  if (s->value == VAL_INT)
 	    {
-	      dump (1, "if (!lex_is_integer (lexer))");
-	      dump (1, "{");
-	      dump (0, "msg (SE, _(\"%s specifier of %s subcommand "
-		    "requires an integer argument.\"));",
-		    s->specname, sbc->name);
+	      dump (1, "if (!lex_force_int (lexer))");
 	      dump (0, "goto lossage;");
-	      dump (-1, "}");
 	      dump (-1, "p->%s%s = lex_integer (lexer);",
 		    sbc->prefix, st_lower (s->valname));
 	    }
 	  else if (s->value == VAL_DBL)
 	    {
-	      dump (1, "if (!lex_is_number (lexer))");
-	      dump (1, "{");
-	      dump (0, "msg (SE, _(\"Number expected after %s "
-		    "specifier of %s subcommand.\"));",
-		    s->specname, sbc->name);
+	      dump (1, "if (!lex_force_num (lexer))");
 	      dump (0, "goto lossage;");
-	      dump (-1, "}");
 	      dump (-1, "p->%s%s = lex_tokval (lexer);", sbc->prefix,
 		    st_lower (s->valname));
 	    }
@@ -1577,13 +1566,8 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 
 	  if (s->valtype == VT_PAREN)
 	    {
-	      dump (1, "if (!lex_match (lexer, T_RPAREN))");
-	      dump (1, "{");
-	      dump (0, "msg (SE, _(\"`)' expected after argument for "
-		    "%s specifier of %s.\"));",
-		    s->specname, sbc->name);
+	      dump (1, "if (!lex_force_match (lexer, T_RPAREN))");
 	      dump (0, "goto lossage;");
-	      dump (-1, "}");
 	      outdent ();
 	      if (s->optvalue)
 		{
@@ -1891,8 +1875,7 @@ dump_parser (int persistent)
 	  {
 	    dump (1, "if (p->sbc_%s > 1)", st_lower (sbc->name));
 	    dump (1, "{");
-	    dump (0, "msg (SE, _(\"%s subcommand may be given only once.\"));",
-		  sbc->name);
+            dump (0, "lex_sbc_only_once (\"%s\");", sbc->name);
 	    dump (0, "goto lossage;");
 	    dump (-1, "}");
 	    outdent ();
@@ -1946,8 +1929,7 @@ dump_parser (int persistent)
 	  {
 	    dump (0, "if ( 0 == p->sbc_%s)", st_lower (sbc->name));
 	    dump (1, "{");
-	    dump (0, "msg (SE, _(\"%s subcommand must be given.\"));",
-		  sbc->name);
+	    dump (0, "lex_sbc_missing (\"%s\");", sbc->name);
 	    dump (0, "goto lossage;");
 	    dump (-1, "}");
 	    dump_blank_line (0);

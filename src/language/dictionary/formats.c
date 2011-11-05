@@ -84,7 +84,7 @@ internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
 
       if (!lex_match (lexer, T_LPAREN))
 	{
-	  msg (SE, _("`(' expected after variable list."));
+          lex_error_expecting (lexer, "`('", NULL_SENTINEL);
 	  goto fail;
 	}
       if (!parse_format_specifier (lexer, &f)
@@ -94,7 +94,7 @@ internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
 
       if (!lex_match (lexer, T_RPAREN))
 	{
-	  msg (SE, _("`)' expected after output format."));
+          lex_error_expecting (lexer, "`)'", NULL_SENTINEL);
 	  goto fail;
 	}
 

@@ -71,14 +71,11 @@ parse_sort_criteria (struct lexer *lexer, const struct dictionary *dict,
             direction = SC_ASCEND;
           else
 	    {
-	      msg (SE, _("`A' or `D' expected inside parentheses."));
+              lex_error_expecting (lexer, "A", "D", NULL_SENTINEL);
               goto error;
 	    }
-	  if (!lex_match (lexer, T_RPAREN))
-	    {
-	      msg (SE, _("`)' expected."));
-              goto error;
-	    }
+	  if (!lex_force_match (lexer, T_RPAREN))
+            goto error;
           if (saw_direction != NULL)
             *saw_direction = true;
 	}

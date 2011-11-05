@@ -297,7 +297,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 
   if (tt.n_vars == 0 && tt.mode != MODE_PAIRED)
     {
-      msg (SE, _("One or more VARIABLES must be specified."));
+      lex_sbc_missing ("VARIABLES");
       goto parse_failed;
     }
 

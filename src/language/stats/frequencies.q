@@ -699,7 +699,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 	    if (!lex_match (lexer, T_RPAREN))
 	      {
 		free (v);
-		msg (SE, _("`)' expected after GROUPED interval list."));
+                lex_error_expecting (lexer, "`)'", NULL_SENTINEL);
 		return 0;
 	      }
 	  }

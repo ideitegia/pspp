@@ -25,6 +25,7 @@
 #include "data/settings.h"
 #include "language/command.h"
 #include "language/lexer/lexer.h"
+#include "libpspp/cast.h"
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
@@ -75,7 +76,7 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
     }
   else
     {
-      msg (SE, _("Expecting %s or %s."), "WRITEABLE", "READONLY");
+      lex_error_expecting (lexer, "WRITEABLE", "READONLY", NULL_SENTINEL);
       goto error;
     }
 

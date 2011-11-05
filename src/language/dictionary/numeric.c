@@ -72,7 +72,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 
 	  if (!lex_match (lexer, T_RPAREN))
 	    {
-	      msg (SE, _("`)' expected after output format."));
+              lex_error_expecting (lexer, "`)'", NULL_SENTINEL);
 	      goto fail;
 	    }
 	}

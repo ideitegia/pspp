@@ -110,7 +110,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 
 	  if (already_encountered & 1)
 	    {
-	      msg (SE, _("%s subcommand may be given at most once."), "REORDER");
+              lex_sbc_only_once ("REORDER");
 	      goto done;
 	    }
 	  already_encountered |= 1;
@@ -143,7 +143,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		{
 		  if (!lex_match (lexer, T_LPAREN))
 		    {
-		      msg (SE, _("`(' expected on %s subcommand."), "REORDER");
+                      lex_error_expecting (lexer, "`('", NULL_SENTINEL);
 		      free (v);
 		      goto done;
 		    }
@@ -155,8 +155,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		    }
 		  if (!lex_match (lexer, T_RPAREN))
 		    {
-		      msg (SE, _("`)' expected following variable names on "
-			   "REORDER subcommand."));
+                      lex_error_expecting (lexer, "`)'", NULL_SENTINEL);
 		      free (v);
 		      goto done;
 		    }
@@ -174,7 +173,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	{
 	  if (already_encountered & 2)
 	    {
-	      msg (SE, _("%s subcommand may be given at most once."), "RENAME");
+              lex_sbc_only_once ("RENAME");
 	      goto done;
 	    }
 	  already_encountered |= 2;
@@ -187,7 +186,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 
 	      if (!lex_match (lexer, T_LPAREN))
 		{
-		  msg (SE, _("`(' expected on %s subcommand."), "RENAME");
+                  lex_error_expecting (lexer, "`('", NULL_SENTINEL);
 		  goto done;
 		}
 	      if (!parse_variables (lexer, dataset_dict (ds),
@@ -196,8 +195,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		goto done;
 	      if (!lex_match (lexer, T_EQUALS))
 		{
-		  msg (SE, _("`=' expected between lists of new and old variable "
-		       "names on RENAME subcommand."));
+                  lex_error_expecting (lexer, "`='", NULL_SENTINEL);
 		  goto done;
 		}
 	      if (!parse_DATA_LIST_vars (lexer, dataset_dict (ds),
@@ -216,8 +214,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		}
 	      if (!lex_match (lexer, T_RPAREN))
 		{
-		  msg (SE, _("`)' expected after variable lists on RENAME "
-		       "subcommand."));
+                  lex_error_expecting (lexer, "`)'", NULL_SENTINEL);
 		  goto done;
 		}
 	    }
@@ -310,7 +307,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	break;
       if (lex_token (lexer) != T_SLASH)
 	{
-	  msg (SE, _("`/' or `.' expected."));
+          lex_error_expecting (lexer, "`/'", "`.'", NULL_SENTINEL);
 	  goto done;
 	}
       lex_get (lexer);

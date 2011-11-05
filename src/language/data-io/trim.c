@@ -112,7 +112,7 @@ parse_dict_rename (struct lexer *lexer, struct dictionary *dict)
 	goto done;
       if (!lex_match (lexer, T_EQUALS))
 	{
-	  msg (SE, _("`=' expected after variable list."));
+          lex_error_expecting (lexer, "`='", NULL_SENTINEL);
 	  goto done;
 	}
       if (!parse_DATA_LIST_vars (lexer, dict, &new_names, &nn,

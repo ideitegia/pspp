@@ -626,9 +626,9 @@ T-TEST /testval=2.0 .
 T-TEST /groups=id(3) .
 ])
 AT_CHECK([pspp -O format=csv t-test.sps], [1], [dnl
-t-test.sps:11: error: T-TEST: One or more VARIABLES must be specified.
+t-test.sps:11: error: T-TEST: Required subcommand VARIABLES was not specified.
 
-t-test.sps:12: error: T-TEST: One or more VARIABLES must be specified.
+t-test.sps:12: error: T-TEST: Required subcommand VARIABLES was not specified.
 ])
 AT_CLEANUP
 
