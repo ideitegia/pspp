@@ -150,6 +150,13 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
     settings_set_include (cmd.inc == STC_ON);
   if (cmd.sbc_mxerrs)
     settings_set_max_messages (MSG_S_ERROR, cmd.n_mxerrs[0]);
+  if (cmd.sbc_mxloops)
+    {
+      if (cmd.n_mxloops[0] >= 1)
+        settings_set_mxloops (cmd.n_mxloops[0]);
+      else
+        msg (SE, _("%s must be at least 1."), "MXLOOPS");
+    }
   if (cmd.sbc_mxwarns)
     settings_set_max_messages (MSG_S_WARNING, cmd.n_mxwarns[0]);
   if (cmd.sbc_rib)
