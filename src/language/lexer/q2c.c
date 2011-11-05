@@ -1745,7 +1745,8 @@ dump_subcommand (const subcommand *sbc)
     {
       dump (0, "if ( p->sbc_%s > MAXLISTS)",st_lower(sbc->name));
       dump (1, "{");
-      dump (0, "msg (SE, \"No more than %%d %s subcommands allowed\",MAXLISTS);",st_lower(sbc->name));
+      dump (0, "subc_list_error (lexer, \"%s\", MAXLISTS);",
+            st_lower(sbc->name));
       dump (0, "goto lossage;");
       dump (-1,"}");
 

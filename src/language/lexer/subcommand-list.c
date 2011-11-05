@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,9 +16,13 @@
 
 
 #include <config.h>
-#include "subcommand-list.h"
+#include "language/lexer/subcommand-list.h"
 #include <stdlib.h>
-#include "xalloc.h"
+#include "language/lexer/lexer.h"
+#include "gl/xalloc.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* I call these objects `lists' but they are in fact simple dynamic arrays */
 
@@ -106,4 +110,11 @@ void
 subc_list_int_destroy(subc_list_int *l)
 {
   free(l->data);
+}
+
+void
+subc_list_error (struct lexer *lexer, const char *sbc, int max_list)
+{
+  lex_error (lexer, _("No more than %d %s subcommands allowed."),
+             max_list, sbc);
 }

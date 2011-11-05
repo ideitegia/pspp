@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
    It is intended for use by the command line parser for list subcommands
 */
 
+struct lexer;
 
 struct subc_list_double {
   double *data ;
@@ -61,5 +62,6 @@ int subc_list_int_count(const subc_list_int *l);
 void subc_list_double_destroy(subc_list_double *l) ;
 void subc_list_int_destroy(subc_list_int *l) ;
 
+void subc_list_error (struct lexer *, const char *sbc, int max_list);
 
 #endif
