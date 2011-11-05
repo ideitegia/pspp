@@ -178,8 +178,12 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
     msg (SW, _("%s is obsolete."), "BLOCK");
   if (cmd.sbc_boxstring)
     msg (SW, _("%s is obsolete."), "BOXSTRING");
+  if (cmd.sbc_cpi)
+    msg (SW, _("%s is obsolete."), "CPI");
   if (cmd.sbc_histogram)
     msg (SW, _("%s is obsolete."), "HISTOGRAM");
+  if (cmd.sbc_lpi)
+    msg (SW, _("%s is obsolete."), "LPI");
   if (cmd.sbc_menus)
     msg (SW, _("%s is obsolete."), "MENUS");
   if (cmd.sbc_xsort)
