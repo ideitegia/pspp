@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
             type = TAB_FILE;
           else
             {
-              lex_error (lexer, _("expecting %s or %s"), "CSV", "TAB");
+              lex_error_expecting (lexer, "CSV", "TAB", NULL_SENTINEL);
               goto error;
             }
         }
@@ -132,7 +132,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
             recode_user_missing = true;
           else
             {
-              lex_error (lexer, _("expecting %s or %s"), "IGNORE", "RECODE");
+              lex_error_expecting (lexer, "IGNORE", "RECODE", NULL_SENTINEL);
               goto error;
             }
         }
@@ -145,7 +145,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
             use_value_labels = true;
           else
             {
-              lex_error (lexer, _("expecting %s or %s"), "VALUES", "LABELS");
+              lex_error_expecting (lexer, "VALUES", "LABELS", NULL_SENTINEL);
               goto error;
             }
         }
@@ -193,8 +193,8 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                     decimal = ',';
                   else
                     {
-                      lex_error (lexer, _("expecting %s or %s"),
-                                 "DOT", "COMMA");
+                      lex_error_expecting (lexer, "DOT", "COMMA",
+                                           NULL_SENTINEL);
                       goto error;
                     }
                 }
@@ -207,8 +207,8 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
                     use_print_formats = true;
                   else
                     {
-                      lex_error (lexer, _("expecting %s or %s"),
-                                 "PLAIN", "VARIABLE");
+                      lex_error_expecting (lexer, "PLAIN", "VARIABLE",
+                                           NULL_SENTINEL);
                       goto error;
                     }
                 }
@@ -225,7 +225,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
             retain_unselected = false;
           else
             {
-              lex_error (lexer, _("expecting %s or %s"), "RETAIN", "DELETE");
+              lex_error_expecting (lexer, "RETAIN", "DELETE", NULL_SENTINEL);
               goto error;
             }
         }

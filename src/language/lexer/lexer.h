@@ -155,6 +155,8 @@ void lex_next_error (struct lexer *, int n0, int n1, const char *, ...)
   PRINTF_FORMAT (4, 5);
 int lex_end_of_command (struct lexer *);
 
+void lex_error_expecting (struct lexer *, const char *, ...) SENTINEL(0);
+
 void lex_sbc_only_once (const char *);
 void lex_sbc_missing (struct lexer *, const char *);
 

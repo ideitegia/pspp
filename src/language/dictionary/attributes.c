@@ -197,7 +197,7 @@ parse_attributes (struct lexer *lexer, const char *dict_encoding,
         command = DELETE;
       else if (command == UNKNOWN)
         {
-          lex_error (lexer, _("expecting %s or %s"), "ATTRIBUTE=", "DELETE=");
+          lex_error_expecting (lexer, "ATTRIBUTE=", "DELETE=", NULL_SENTINEL);
           return CMD_FAILURE;
         }
 

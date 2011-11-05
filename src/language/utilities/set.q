@@ -331,7 +331,7 @@ stc_custom_tnumbers (struct lexer *lexer,
     }
   else
     {
-      lex_error (lexer, _("expecting VALUES, LABELS or BOTH"));
+      lex_error_expecting (lexer, "VALUES", "LABELS", "BOTH", NULL_SENTINEL);
       return 0;
     }
 

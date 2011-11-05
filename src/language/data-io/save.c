@@ -213,8 +213,8 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
             cw = true;
           else
             {
-              lex_error (lexer, _("expecting %s or %s"),
-                         "READONLY", "WRITEABLE");
+              lex_error_expecting (lexer, "READONLY", "WRITEABLE",
+                                   NULL_SENTINEL);
               goto error;
             }
           sysfile_opts.create_writeable = porfile_opts.create_writeable = cw;
@@ -228,7 +228,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
             *retain_unselected = false;
           else
             {
-              lex_error (lexer, _("expecting %s or %s"), "RETAIN", "DELETE");
+              lex_error_expecting (lexer, "RETAIN", "DELETE", NULL_SENTINEL);
               goto error;
             }
         }
@@ -256,7 +256,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
             porfile_opts.type = PFM_TAPE;
           else
             {
-              lex_error (lexer, _("expecting %s or %s"), "COMM", "TAPE");
+              lex_error_expecting (lexer, "COMM", "TAPE", NULL_SENTINEL);
               goto error;
             }
         }

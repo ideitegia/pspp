@@ -106,8 +106,8 @@ do_insert (struct lexer *lexer, struct dataset *ds, enum variant variant)
 	    syntax_mode = LEX_SYNTAX_AUTO;
 	  else
 	    {
-	      lex_error (lexer, _("expecting %s, %s, or %s after %s"),
-                         "BATCH", "INTERACTIVE", "AUTO", "SYNTAX");
+	      lex_error_expecting (lexer, "BATCH", "INTERACTIVE", "AUTO",
+                                   NULL_SENTINEL);
 	      goto exit;
 	    }
 	}
@@ -124,8 +124,7 @@ do_insert (struct lexer *lexer, struct dataset *ds, enum variant variant)
 	    }
 	  else
 	    {
-	      lex_error (lexer, _("expecting %s or %s after %s"),
-                         "YES", "NO", "CD");
+	      lex_error_expecting (lexer, "YES", "NO", NULL_SENTINEL);
 	      goto exit;
 	    }
 	}
@@ -142,8 +141,7 @@ do_insert (struct lexer *lexer, struct dataset *ds, enum variant variant)
 	    }
 	  else
 	    {
-	      lex_error (lexer, _("expecting %s or %s after %s"),
-                         "CONTINUE", "STOP", "ERROR");
+	      lex_error_expecting (lexer, "CONTINUE", "STOP", NULL_SENTINEL);
 	      goto exit;
 	    }
 	}

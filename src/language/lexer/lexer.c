@@ -268,6 +268,75 @@ lex_next_error (struct lexer *lexer, int n0, int n1, const char *format, ...)
   va_end (args);
 }
 
+/* Prints a syntax error message saying that OPTION0 or one of the other
+   strings following it, up to the first NULL, is expected. */
+void
+lex_error_expecting (struct lexer *lexer, const char *option0, ...)
+{
+  enum { MAX_OPTIONS = 8 };
+  const char *options[MAX_OPTIONS + 1];
+  va_list args;
+  int n;
+
+  va_start (args, option0);
+  options[0] = option0;
+  n = 0;
+  while (n + 1 < MAX_OPTIONS && options[n] != NULL)
+    options[++n] = va_arg (args, const char *);
+  va_end (args);
+
+  switch (n)
+    {
+    case 0:
+      lex_error (lexer, NULL);
+      break;
+
+    case 1:
+      lex_error (lexer, _("expecting %s"), options[0]);
+      break;
+
+    case 2:
+      lex_error (lexer, _("expecting %s or %s"), options[0], options[1]);
+      break;
+
+    case 3:
+      lex_error (lexer, _("expecting %s, %s, or %s"), options[0], options[1],
+                 options[2]);
+      break;
+
+    case 4:
+      lex_error (lexer, _("expecting %s, %s, %s, or %s"),
+                 options[0], options[1], options[2], options[3]);
+      break;
+
+    case 5:
+      lex_error (lexer, _("expecting %s, %s, %s, %s, or %s"),
+                 options[0], options[1], options[2], options[3], options[4]);
+      break;
+
+    case 6:
+      lex_error (lexer, _("expecting %s, %s, %s, %s, %s, or %s"),
+                 options[0], options[1], options[2], options[3], options[4],
+                 options[5]);
+      break;
+
+    case 7:
+      lex_error (lexer, _("expecting %s, %s, %s, %s, %s, %s, or %s"),
+                 options[0], options[1], options[2], options[3], options[4],
+                 options[5], options[6]);
+      break;
+
+    case 8:
+      lex_error (lexer, _("expecting %s, %s, %s, %s, %s, %s, %s, or %s"),
+                 options[0], options[1], options[2], options[3], options[4],
+                 options[5], options[6], options[7]);
+      break;
+
+    default:
+      NOT_REACHED ();
+    }
+}
+
 /* Reports an error to the effect that subcommand SBC may only be
    specified once. */
 void
@@ -491,7 +560,7 @@ lex_force_match_id (struct lexer *lexer, const char *identifier)
     return true;
   else
     {
-      lex_error (lexer, _("expecting `%s'"), identifier);
+      lex_error_expecting (lexer, identifier, NULL_SENTINEL);
       return false;
     }
 }
@@ -508,7 +577,9 @@ lex_force_match (struct lexer *lexer, enum token_type type)
     }
   else
     {
-      lex_error (lexer, _("expecting `%s'"), token_type_to_string (type));
+      char *s = xasprintf ("`%s'", token_type_to_string (type));
+      lex_error_expecting (lexer, s, NULL_SENTINEL);
+      free (s);
       return false;
     }
 }

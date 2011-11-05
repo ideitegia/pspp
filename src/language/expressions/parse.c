@@ -1268,8 +1268,7 @@ parse_function (struct lexer *lexer, struct expression *e)
           break;
         else if (!lex_match (lexer, T_COMMA))
           {
-            lex_error (lexer, _("expecting `,' or `)' invoking %s function"),
-                       first->name);
+            lex_error_expecting (lexer, ",", ")", NULL_SENTINEL);
             goto fail;
           }
       }

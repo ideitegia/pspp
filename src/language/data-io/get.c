@@ -96,7 +96,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 	    type = PFM_TAPE;
 	  else
 	    {
-	      lex_error (lexer, _("expecting %s or %s"), "COMM", "TAPE");
+	      lex_error_expecting (lexer, "COMM", "TAPE", NULL_SENTINEL);
               goto error;
 	    }
 	}

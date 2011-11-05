@@ -35,6 +35,7 @@
 #include "language/data-io/placement-parser.h"
 #include "language/lexer/format-parser.h"
 #include "language/lexer/lexer.h"
+#include "libpspp/cast.h"
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 
@@ -345,7 +346,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
                            DP_DELIMITED, &has_type);
           else
             {
-              lex_error (lexer, _("expecting %s or %s"), "FIXED", "DELIMITED");
+              lex_error_expecting (lexer, "FIXED", "DELIMITED", NULL_SENTINEL);
               goto error;
             }
           if (!ok)
@@ -383,7 +384,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
             }
           else
             {
-              lex_error (lexer, _("expecting %s or %s"), "LINE", "VARIABLES");
+              lex_error_expecting (lexer, "LINE", "VARIABLES", NULL_SENTINEL);
               goto error;
             }
         }
@@ -494,7 +495,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
         break;
       else
         {
-          lex_error (lexer, _("expecting %s"), "VARIABLES");
+          lex_error_expecting (lexer, "VARIABLES", NULL_SENTINEL);
           goto error;
         }
     }

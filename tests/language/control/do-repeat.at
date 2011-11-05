@@ -145,6 +145,6 @@ DATA LIST NOTABLE /x 1.
 DO REPEAT y = 1 TO 10.
 ])
 AT_CHECK([pspp -O format=csv do-repeat.sps], [1], [dnl
-error: DO REPEAT: Syntax error at end of input: expecting `END'.
+error: DO REPEAT: Syntax error at end of input: expecting END.
 ])
 AT_CLEANUP
