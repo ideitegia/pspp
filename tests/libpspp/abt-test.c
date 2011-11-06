@@ -371,6 +371,7 @@ check_abt (struct abt *abt, const int data[], size_t cnt)
         check (abt_node_to_element (p)->data == order[cnt - i - 1]);
       check (p == NULL);
     }
+  check (abt_is_empty (abt) == (cnt == 0));
 
   free (order);
 }

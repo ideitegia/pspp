@@ -145,6 +145,7 @@
    code and links to other resources, such as the original AA
    tree paper.  */
 
+#include <stdbool.h>
 #include <stddef.h>
 #include "libpspp/cast.h"
 
@@ -186,6 +187,8 @@ struct abt
 void abt_init (struct abt *, abt_compare_func *, abt_reaugment_func *,
                const void *aux);
 
+static inline bool abt_is_empty (const struct abt *);
+
 struct abt_node *abt_insert (struct abt *, struct abt_node *);
 void abt_insert_after (struct abt *,
                        const struct abt_node *, struct abt_node *);
@@ -202,5 +205,13 @@ struct abt_node *abt_prev (const struct abt *, const struct abt_node *);
 void abt_reaugmented (const struct abt *, struct abt_node *);
 struct abt_node *abt_changed (struct abt *, struct abt_node *);
 void abt_moved (struct abt *, struct abt_node *);
+
+/* Returns true if ABT contains no nodes, false if ABT contains at least one
+   node. */
+static inline bool
+abt_is_empty (const struct abt *abt)
+{
+  return abt->root == NULL;
+}
 
 #endif /* libpspp/abt.h */
