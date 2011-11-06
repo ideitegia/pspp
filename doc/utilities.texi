@@ -701,7 +701,6 @@ subcommands are
 @item HEADERS
 @itemx LENGTH
 @itemx MORE
-@itemx PAGER 
 @itemx WIDTH
 @itemx TNUMBERS
 The TNUMBERS option sets the way in which values are displayed in output tables.
