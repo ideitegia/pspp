@@ -1524,14 +1524,8 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	    }
           else if (s->value == VAL_STRING)
             {
-              dump (1, "if (lex_token (lexer) != T_ID "
-                    "&& !lex_is_string (lexer))");
-              dump (1, "{");
-              dump (0, "msg (SE, _(\"%s specifier of %s subcommand "
-                    "requires a string argument.\"));",
-		    s->specname, sbc->name);
+              dump (1, "if (!lex_force_string_or_id (lexer))");
 	      dump (0, "goto lossage;");
-	      dump (-1, "}");
               dump (-1, "free (p->%s%s);", sbc->prefix, st_lower (s->valname));
               dump (0, "p->%s%s = ss_xstrdup (ss_tokss (lexer));",
                     sbc->prefix, st_lower (s->valname));

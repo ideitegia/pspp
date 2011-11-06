@@ -59,12 +59,8 @@ do_insert (struct lexer *lexer, struct dataset *ds, enum variant variant)
   if (lex_match_id (lexer, "FILE"))
     lex_match (lexer, T_EQUALS);
 
-  /* File name can be identifier or string. */
-  if (lex_token (lexer) != T_ID && !lex_is_string (lexer))
-    {
-      lex_error (lexer, _("expecting file name"));
-      return CMD_FAILURE;
-    }
+  if (!lex_force_string_or_id (lexer))
+    return CMD_FAILURE;
 
   relative_name = utf8_to_filename (lex_tokcstr (lexer)); 
   filename = include_path_search (relative_name);

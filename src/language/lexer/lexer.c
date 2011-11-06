@@ -625,6 +625,21 @@ lex_force_string (struct lexer *lexer)
     }
 }
 
+/* If the current token is a string or an identifier, does nothing and returns
+   true.  Otherwise, reports an error and returns false.
+
+   This is meant for use in syntactic situations where we want to encourage the
+   user to supply a quoted string, but for compatibility we also accept
+   identifiers.  (One example of such a situation is file names.)  Therefore,
+   the error message issued when the current token is wrong only says that a
+   string is expected and doesn't mention that an identifier would also be
+   accepted. */
+bool
+lex_force_string_or_id (struct lexer *lexer)
+{
+  return lex_is_integer (lexer) || lex_force_string (lexer);
+}
+
 /* If the current token is an integer, does nothing and returns true.
    Otherwise, reports an error and returns false. */
 bool

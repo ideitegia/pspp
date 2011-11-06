@@ -128,6 +128,7 @@ bool lex_force_int (struct lexer *);
 bool lex_force_num (struct lexer *);
 bool lex_force_id (struct lexer *);
 bool lex_force_string (struct lexer *);
+bool lex_force_string_or_id (struct lexer *);
 
 /* Token accessors. */
 enum token_type lex_token (const struct lexer *);
