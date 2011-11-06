@@ -26,6 +26,7 @@ AC_ARG_ENABLE(
                   [Attempt to allow building against older versions of dependent libraries])])
 
 PSPP_ENABLE_OPTION(-Wdeclaration-after-statement)
+PSPP_ENABLE_WERROR
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 

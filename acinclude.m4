@@ -278,3 +278,31 @@ EOF
        AM_MAKEINFOFLAGS="$AM_MAKEINFOFLAGS -DMISSING_CLICKSEQUENCE"
        AC_SUBST([AM_MAKEINFOFLAGS])
    fi])
+
+# The following comes from Open vSwitch:
+# ----------------------------------------------------------------------
+# Copyright (c) 2008, 2009, 2010, 2011 Nicira Networks.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+dnl PSPP_ENABLE_WERROR
+AC_DEFUN([PSPP_ENABLE_WERROR],
+  [AC_ARG_ENABLE(
+     [Werror],
+     [AC_HELP_STRING([--enable-Werror], [Add -Werror to CFLAGS])],
+     [], [enable_Werror=no])
+   AC_CONFIG_COMMANDS_PRE(
+     [if test "X$enable_Werror" = Xyes; then
+        CFLAGS="$CFLAGS -Werror"
+      fi])])
+
