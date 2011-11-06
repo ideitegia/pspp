@@ -150,9 +150,6 @@ static void
 on_format_clicked (struct crosstabs_dialog *cd)
 {
   int ret;
-  gboolean lab;
-  gboolean no_lab;
-  gboolean no_val_lab;
 
   if (cd->current_opts.avalue)
     {
