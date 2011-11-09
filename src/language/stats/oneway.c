@@ -827,7 +827,7 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
       if (ll_count (cl) != ws->actual_number_of_groups)
 	{
 	  msg (SW,
-	       _("In contrast list %zu, the number of coefficients (%d) does not equal the number of groups (%d). This contrast list will be ignored."),
+	       _("In contrast list %zu, the number of coefficients (%zu) does not equal the number of groups (%d). This contrast list will be ignored."),
 	       i, ll_count (cl), ws->actual_number_of_groups);
 
 	  ll_remove (&coeff_list->ll);
