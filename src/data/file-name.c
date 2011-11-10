@@ -128,12 +128,16 @@ fn_is_special (const char *file_name)
   return false;
 }
 
-/* Returns true if file with name NAME exists. */
+/* Returns true if file with name NAME exists, and that file is not a
+   directory */
 bool
 fn_exists (const char *name)
 {
   struct stat temp;
-  return stat (name, &temp) == 0;
+  if ( stat (name, &temp) != 0 )
+    return false;
+
+  return ! S_ISDIR (temp.st_mode);
 }
 
 /* Environment variables. */

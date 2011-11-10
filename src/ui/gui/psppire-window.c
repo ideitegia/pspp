@@ -28,6 +28,7 @@
 #define N_(msgid) msgid
 
 #include "data/any-reader.h"
+#include "data/file-name.h"
 #include "data/dataset.h"
 
 #include "helper.h"
@@ -719,6 +720,12 @@ on_selection_changed (GtkFileChooser *chooser, GtkWidget *encoding_selector)
 
   sysname = convert_glib_filename_to_system_filename (name, NULL);
 
+  if ( ! fn_exists (sysname))
+    {
+      gtk_widget_set_sensitive (encoding_selector, FALSE);
+      return;
+    }
+
   gtk_widget_set_sensitive (encoding_selector, ! any_reader_may_open (sysname));
 }
 
@@ -788,9 +795,13 @@ psppire_window_file_chooser_dialog (PsppireWindow *toplevel)
 
   {
     GtkWidget *encoding_selector =  psppire_encoding_selector_new ("Auto", true);
-    gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (dialog), encoding_selector);
 
-    g_signal_connect (dialog, "selection-changed", G_CALLBACK (on_selection_changed), encoding_selector);
+    gtk_widget_set_sensitive (encoding_selector, FALSE);
+
+    g_signal_connect (dialog, "selection-changed", G_CALLBACK (on_selection_changed),
+		      encoding_selector);
+
+    gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (dialog), encoding_selector);
   }
 
   return dialog;
