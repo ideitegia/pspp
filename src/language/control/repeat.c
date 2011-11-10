@@ -26,6 +26,7 @@
 #include "language/lexer/segment.h"
 #include "language/lexer/token.h"
 #include "language/lexer/variable-parser.h"
+#include "libpspp/assertion.h"
 #include "libpspp/cast.h"
 #include "libpspp/hash-functions.h"
 #include "libpspp/hmap.h"
@@ -189,13 +190,13 @@ count_values (struct hmap *dummies)
 }
 
 static void
-do_parse_commands (struct substring s, enum lex_syntax_mode syntax_mode,
+do_parse_commands (struct substring s, enum segmenter_mode mode,
                    struct hmap *dummies,
                    struct string *outputs, size_t n_outputs)
 {
   struct segmenter segmenter;
 
-  segmenter_init (&segmenter, syntax_mode);
+  segmenter_init (&segmenter, mode);
 
   while (!ss_is_empty (s))
     {
@@ -219,7 +220,7 @@ do_parse_commands (struct substring s, enum lex_syntax_mode syntax_mode,
               n += k;
             }
 
-          do_parse_commands (ss_head (s, n), syntax_mode, dummies,
+          do_parse_commands (ss_head (s, n), mode, dummies,
                              outputs, n_outputs);
         }
       else if (type != SEG_END)
@@ -244,6 +245,8 @@ do_parse_commands (struct substring s, enum lex_syntax_mode syntax_mode,
 static bool
 parse_commands (struct lexer *lexer, struct hmap *dummies)
 {
+  enum lex_syntax_mode syntax_mode;
+  enum segmenter_mode mode;
   struct string *outputs;
   struct string input;
   size_t input_len;
@@ -276,8 +279,16 @@ parse_commands (struct lexer *lexer, struct hmap *dummies)
   for (i = 0; i < n_values; i++)
     ds_init_empty (&outputs[i]);
 
-  do_parse_commands (ds_ss (&input), lex_get_syntax_mode (lexer),
-                     dummies, outputs, n_values);
+  syntax_mode = lex_get_syntax_mode (lexer);
+  if (syntax_mode == LEX_SYNTAX_AUTO)
+    mode = SEG_MODE_AUTO;
+  else if (syntax_mode == LEX_SYNTAX_INTERACTIVE)
+    mode = SEG_MODE_INTERACTIVE;
+  else if (syntax_mode == LEX_SYNTAX_BATCH)
+    mode = SEG_MODE_BATCH;
+  else
+    NOT_REACHED ();
+  do_parse_commands (ds_ss (&input), mode, dummies, outputs, n_values);
 
   ds_destroy (&input);
 
