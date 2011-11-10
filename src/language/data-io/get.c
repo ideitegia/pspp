@@ -66,7 +66,8 @@ cmd_import (struct lexer *lexer, struct dataset *ds)
 
 /* Parses a GET or IMPORT command. */
 static int
-parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command type)
+parse_read_command (struct lexer *lexer, struct dataset *ds,
+                    enum reader_command command)
 {
   struct casereader *reader = NULL;
   struct file_handle *fh = NULL;
@@ -86,15 +87,12 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 	  if (fh == NULL)
             goto error;
 	}
-      else if (type == IMPORT_CMD && lex_match_id (lexer, "TYPE"))
+      else if (command == IMPORT_CMD && lex_match_id (lexer, "TYPE"))
 	{
 	  lex_match (lexer, T_EQUALS);
 
-	  if (lex_match_id (lexer, "COMM"))
-	    type = PFM_COMM;
-	  else if (lex_match_id (lexer, "TAPE"))
-	    type = PFM_TAPE;
-	  else
+	  if (!lex_match_id (lexer, "COMM")
+              && !lex_match_id (lexer, "TAPE"))
 	    {
 	      lex_error_expecting (lexer, "COMM", "TAPE", NULL_SENTINEL);
               goto error;
