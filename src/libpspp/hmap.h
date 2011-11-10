@@ -248,7 +248,7 @@ static inline struct hmap_node *hmap_first_nonempty_bucket__ (
 static inline size_t hmap_mask_to_capacity__ (size_t mask);
 
 /* Returns the hash value associated with NODE. */
-size_t
+static inline size_t
 hmap_node_hash (const struct hmap_node *node) 
 {
   return node->hash;
