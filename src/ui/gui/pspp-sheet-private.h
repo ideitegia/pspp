@@ -244,6 +244,9 @@ struct _PsppSheetViewPrivate
   PsppSheetViewGridLines grid_lines;
   GdkGC *grid_line_gc;
 
+  /* Special cells. */
+  PsppSheetViewSpecialCells special_cells;
+
   /* Tooltip support */
   gint tooltip_column;
 

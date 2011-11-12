@@ -53,6 +53,25 @@ typedef enum
 GType pspp_sheet_view_grid_lines_get_type (void) G_GNUC_CONST;
 #define PSPP_TYPE_SHEET_VIEW_GRID_LINES (pspp_sheet_view_grid_lines_get_type ())
 
+/* A "special cell" is a cell that is editable or activatable.  When a row that
+ * contains a special cell is selected, the cursor is drawn around a single
+ * cell; when other rows are selected, the cursor is drawn around the entire
+ * row.
+ *
+ * With the default of "detect", whether a given row contains a special cell is
+ * detected automatically.  This is the best choice most of the time.  For
+ * sheet views that contain more than 100 columns, an explicit "yes" or "no"
+ * improves performance. */
+typedef enum
+{
+  PSPP_SHEET_VIEW_SPECIAL_CELLS_DETECT,
+  PSPP_SHEET_VIEW_SPECIAL_CELLS_YES,
+  PSPP_SHEET_VIEW_SPECIAL_CELLS_NO,
+} PsppSheetViewSpecialCells;
+
+GType pspp_sheet_view_special_cells_get_type (void) G_GNUC_CONST;
+#define PSPP_TYPE_SHEET_VIEW_SPECIAL_CELLS (pspp_sheet_view_special_cells_get_type ())
+
 typedef enum
 {
   /* drop before/after this row */
@@ -367,12 +386,11 @@ gboolean pspp_sheet_view_is_rubber_banding_active (PsppSheetView       *tree_vie
 PsppSheetViewGridLines        pspp_sheet_view_get_grid_lines         (PsppSheetView                *tree_view);
 void                        pspp_sheet_view_set_grid_lines         (PsppSheetView                *tree_view,
 								  PsppSheetViewGridLines        grid_lines);
-gboolean                    pspp_sheet_view_get_enable_tree_lines  (PsppSheetView                *tree_view);
-void                        pspp_sheet_view_set_enable_tree_lines  (PsppSheetView                *tree_view,
-								  gboolean                    enabled);
-void                        pspp_sheet_view_set_level_indentation  (PsppSheetView                *tree_view,
-								  gint                        indentation);
-gint                        pspp_sheet_view_get_level_indentation  (PsppSheetView                *tree_view);
+
+PsppSheetViewSpecialCells pspp_sheet_view_get_special_cells (PsppSheetView                *tree_view);
+void                        pspp_sheet_view_set_special_cells (PsppSheetView                *tree_view,
+                                                               PsppSheetViewSpecialCells);
+
 
 /* Convenience functions for setting tooltips */
 void          pspp_sheet_view_set_tooltip_row    (PsppSheetView       *tree_view,

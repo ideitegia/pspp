@@ -143,7 +143,8 @@ enum {
   PROP_HOVER_SELECTION,
   PROP_RUBBER_BANDING,
   PROP_ENABLE_GRID_LINES,
-  PROP_TOOLTIP_COLUMN
+  PROP_TOOLTIP_COLUMN,
+  PROP_SPECIAL_CELLS
 };
 
 /* object signals */
@@ -629,6 +630,15 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 						       -1,
 						       GTK_PARAM_READWRITE));
 
+    g_object_class_install_property (o_class,
+                                     PROP_SPECIAL_CELLS,
+                                     g_param_spec_enum ("special-cells",
+							P_("Special Cells"),
+							P_("Whether rows have special cells."),
+							PSPP_TYPE_SHEET_VIEW_SPECIAL_CELLS,
+							PSPP_SHEET_VIEW_SPECIAL_CELLS_DETECT,
+							GTK_PARAM_READWRITE));
+
   /* Style properties */
 #define _TREE_VIEW_EXPANDER_SIZE 12
 #define _TREE_VIEW_VERTICAL_SEPARATOR 2
@@ -1005,6 +1015,8 @@ pspp_sheet_view_init (PsppSheetView *tree_view)
 
   tree_view->priv->tooltip_column = -1;
 
+  tree_view->priv->special_cells = PSPP_SHEET_VIEW_SPECIAL_CELLS_DETECT;
+
   tree_view->priv->post_validation_flag = FALSE;
 
   tree_view->priv->last_button_x = -1;
@@ -1076,6 +1088,9 @@ pspp_sheet_view_set_property (GObject         *object,
     case PROP_TOOLTIP_COLUMN:
       pspp_sheet_view_set_tooltip_column (tree_view, g_value_get_int (value));
       break;
+    case PROP_SPECIAL_CELLS:
+      pspp_sheet_view_set_special_cells (tree_view, g_value_get_enum (value));
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1132,6 +1147,9 @@ pspp_sheet_view_get_property (GObject    *object,
       break;
     case PROP_TOOLTIP_COLUMN:
       g_value_set_int (value, tree_view->priv->tooltip_column);
+      break;
+    case PROP_SPECIAL_CELLS:
+      g_value_set_enum (value, tree_view->priv->special_cells);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -3853,21 +3871,26 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
       parity = node % 2;
 
-      /* we *need* to set cell data on all cells before the call
-       * to _has_special_cell, else _has_special_cell() does not
-       * return a correct value.
-       */
-      for (list = (rtl ? g_list_last (tree_view->priv->columns) : g_list_first (tree_view->priv->columns));
-	   list;
-	   list = (rtl ? list->prev : list->next))
+      if (tree_view->priv->special_cells == PSPP_SHEET_VIEW_SPECIAL_CELLS_DETECT)
         {
-	  PsppSheetViewColumn *column = list->data;
-	  pspp_sheet_view_column_cell_set_cell_data (column,
-						   tree_view->priv->model,
-						   &iter);
-        }
+          /* we *need* to set cell data on all cells before the call
+           * to _has_special_cell, else _has_special_cell() does not
+           * return a correct value.
+           */
+          for (list = (rtl ? g_list_last (tree_view->priv->columns) : g_list_first (tree_view->priv->columns));
+               list;
+               list = (rtl ? list->prev : list->next))
+            {
+              PsppSheetViewColumn *column = list->data;
+              pspp_sheet_view_column_cell_set_cell_data (column,
+                                                         tree_view->priv->model,
+                                                         &iter);
+            }
 
-      has_special_cell = pspp_sheet_view_has_special_cell (tree_view);
+          has_special_cell = pspp_sheet_view_has_special_cell (tree_view);
+        }
+      else
+        has_special_cell = tree_view->priv->special_cells == PSPP_SHEET_VIEW_SPECIAL_CELLS_YES;
 
       for (list = (rtl ? g_list_last (tree_view->priv->columns) : g_list_first (tree_view->priv->columns));
 	   list;
@@ -6425,6 +6448,9 @@ static gboolean
 pspp_sheet_view_has_special_cell (PsppSheetView *tree_view)
 {
   GList *list;
+
+  if (tree_view->priv->special_cells != PSPP_SHEET_VIEW_SPECIAL_CELLS_DETECT)
+    return tree_view->priv->special_cells = PSPP_SHEET_VIEW_SPECIAL_CELLS_YES;
 
   for (list = tree_view->priv->columns; list; list = list->next)
     {
@@ -12238,6 +12264,52 @@ pspp_sheet_view_set_grid_lines (PsppSheetView           *tree_view,
 }
 
 /**
+ * pspp_sheet_view_get_special_cells:
+ * @tree_view: a #PsppSheetView
+ *
+ * Returns which grid lines are enabled in @tree_view.
+ *
+ * Return value: a #PsppSheetViewSpecialCells value indicating whether rows in
+ * the sheet view contain special cells.
+ */
+PsppSheetViewSpecialCells
+pspp_sheet_view_get_special_cells (PsppSheetView *tree_view)
+{
+  g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), 0);
+
+  return tree_view->priv->special_cells;
+}
+
+/**
+ * pspp_sheet_view_set_special_cells:
+ * @tree_view: a #PsppSheetView
+ * @special_cells: a #PsppSheetViewSpecialCells value indicating whether rows in
+ * the sheet view contain special cells.
+ *
+ * Sets whether rows in the sheet view contain special cells, controlling the
+ * rendering of row selections.
+ */
+void
+pspp_sheet_view_set_special_cells (PsppSheetView           *tree_view,
+			      PsppSheetViewSpecialCells   special_cells)
+{
+  PsppSheetViewPrivate *priv;
+  GtkWidget *widget;
+
+  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
+
+  priv = tree_view->priv;
+  widget = GTK_WIDGET (tree_view);
+
+  if (priv->special_cells != special_cells)
+    {
+      priv->special_cells = special_cells;
+      gtk_widget_queue_draw (GTK_WIDGET (tree_view));
+      g_object_notify (G_OBJECT (tree_view), "special-cells");
+    }
+}
+
+/**
  * pspp_sheet_view_set_tooltip_row:
  * @tree_view: a #PsppSheetView
  * @tooltip: a #GtkTooltip
@@ -12564,6 +12636,22 @@ pspp_sheet_view_grid_lines_get_type (void)
             { 0, NULL, NULL }
         };
         etype = g_enum_register_static (g_intern_static_string ("PsppSheetViewGridLines"), values);
+    }
+    return etype;
+}
+
+GType
+pspp_sheet_view_special_cells_get_type (void)
+{
+    static GType etype = 0;
+    if (G_UNLIKELY(etype == 0)) {
+        static const GEnumValue values[] = {
+            { PSPP_SHEET_VIEW_SPECIAL_CELLS_DETECT, "PSPP_SHEET_VIEW_SPECIAL_CELLS_DETECT", "detect" },
+            { PSPP_SHEET_VIEW_SPECIAL_CELLS_YES, "PSPP_SHEET_VIEW_SPECIAL_CELLS_YES", "yes" },
+            { PSPP_SHEET_VIEW_SPECIAL_CELLS_NO, "PSPP_SHEET_VIEW_SPECIAL_CELLS_NO", "no" },
+            { 0, NULL, NULL }
+        };
+        etype = g_enum_register_static (g_intern_static_string ("PsppSheetViewSpecialCells"), values);
     }
     return etype;
 }
