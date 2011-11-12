@@ -3482,10 +3482,12 @@ pspp_sheet_view_draw_grid_lines (PsppSheetView    *tree_view,
 
       current_x += column->width;
 
-      gdk_draw_line (event->window,
-		     tree_view->priv->grid_line_gc,
-		     current_x - 1, 0,
-		     current_x - 1, height);
+      if (current_x - 1 >= event->area.x
+          && current_x - 1 < event->area.x + event->area.width)
+        gdk_draw_line (event->window,
+                       tree_view->priv->grid_line_gc,
+                       current_x - 1, 0,
+                       current_x - 1, height);
     }
 }
 
