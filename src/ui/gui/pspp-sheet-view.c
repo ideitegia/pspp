@@ -404,6 +404,12 @@ static gboolean pspp_sheet_view_start_interactive_search      (PsppSheetView *tr
 static PsppSheetViewColumn *pspp_sheet_view_get_drop_column (PsppSheetView       *tree_view,
 							 PsppSheetViewColumn *column,
 							 gint               drop_position);
+static void
+pspp_sheet_view_adjust_cell_area (PsppSheetView        *tree_view,
+                                  PsppSheetViewColumn  *column,
+                                  const GdkRectangle   *background_area,
+                                  gboolean              subtract_focus_rect,
+                                  GdkRectangle         *cell_area);
 static gint pspp_sheet_view_find_offset (PsppSheetView *tree_view,
                                          gint height,
                                          int *new_node);
@@ -2170,6 +2176,61 @@ pspp_sheet_view_row_head_clicked (PsppSheetView *tree_view,
 }
 
 static gboolean
+find_click (PsppSheetView *tree_view,
+            gint x, gint y,
+            gint *node,
+            PsppSheetViewColumn **column,
+            GdkRectangle *background_area,
+            GdkRectangle *cell_area)
+{
+  gint y_offset;
+  gboolean rtl;
+  GList *list;
+  gint new_y;
+
+  /* find the node that was clicked */
+  new_y = TREE_WINDOW_Y_TO_RBTREE_Y(tree_view, y);
+  if (new_y < 0)
+    new_y = 0;
+  y_offset = -pspp_sheet_view_find_offset (tree_view, new_y, node);
+
+  if (*node < 0)
+    return FALSE;
+
+  background_area->y = y_offset + y;
+  background_area->height = ROW_HEIGHT (tree_view);
+  background_area->x = 0;
+
+  /* Let the column have a chance at selecting it. */
+  rtl = (gtk_widget_get_direction (GTK_WIDGET (tree_view)) == GTK_TEXT_DIR_RTL);
+  for (list = (rtl ? g_list_last (tree_view->priv->columns) : g_list_first (tree_view->priv->columns));
+       list; list = (rtl ? list->prev : list->next))
+    {
+      PsppSheetViewColumn *candidate = list->data;
+
+      if (!candidate->visible)
+        continue;
+
+      background_area->width = candidate->width;
+      if ((background_area->x > x) ||
+          (background_area->x + background_area->width <= x))
+        {
+          background_area->x += background_area->width;
+          continue;
+        }
+
+      /* we found the focus column */
+
+      pspp_sheet_view_adjust_cell_area (tree_view, candidate, background_area,
+                                        TRUE, cell_area);
+      *column = candidate;
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+static gboolean
 pspp_sheet_view_button_press (GtkWidget      *widget,
 			    GdkEventButton *event)
 {
@@ -2179,16 +2240,10 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
   gint i;
   GdkRectangle background_area;
   GdkRectangle cell_area;
-  gint vertical_separator;
-  gint horizontal_separator;
   gboolean rtl;
 
   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
   pspp_sheet_view_stop_editing (tree_view, FALSE);
-  gtk_widget_style_get (widget,
-			"vertical-separator", &vertical_separator,
-			"horizontal-separator", &horizontal_separator,
-			NULL);
 
 
   /* Because grab_focus can cause reentrancy, we delay grab_focus until after
@@ -2199,19 +2254,12 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
     {
       int node;
       GtkTreePath *path;
-      gchar *path_string;
-      gint depth;
-      gint new_y;
-      gint y_offset;
       gint dval;
       gint pre_val, aft_val;
       PsppSheetViewColumn *column = NULL;
       GtkCellRenderer *focus_cell = NULL;
-      gint column_handled_click = FALSE;
       gboolean row_double_click = FALSE;
-      gboolean rtl;
       gboolean node_selected;
-      guint modifiers;
 
       /* Empty tree? */
       if (tree_view->priv->row_count == 0)
@@ -2220,134 +2268,14 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 	  return TRUE;
 	}
 
-      /* find the node that was clicked */
-      new_y = TREE_WINDOW_Y_TO_RBTREE_Y(tree_view, event->y);
-      if (new_y < 0)
-	new_y = 0;
-      y_offset = -pspp_sheet_view_find_offset (tree_view, new_y, &node);
-
-      if (node < 0)
-	{
-	  /* We clicked in dead space */
+      if (!find_click (tree_view, event->x, event->y, &node, &column,
+                       &background_area, &cell_area))
+        {
 	  grab_focus_and_unset_draw_keyfocus (tree_view);
-	  return TRUE;
-	}
-
-      /* Get the path and the node */
-      path = _pspp_sheet_view_find_path (tree_view, node);
-
-      depth = gtk_tree_path_get_depth (path);
-      background_area.y = y_offset + event->y;
-      background_area.height = ROW_HEIGHT (tree_view);
-      background_area.x = 0;
-
-
-      /* Let the column have a chance at selecting it. */
-      rtl = (gtk_widget_get_direction (GTK_WIDGET (tree_view)) == GTK_TEXT_DIR_RTL);
-      for (list = (rtl ? g_list_last (tree_view->priv->columns) : g_list_first (tree_view->priv->columns));
-	   list; list = (rtl ? list->prev : list->next))
-	{
-	  PsppSheetViewColumn *candidate = list->data;
-
-	  if (!candidate->visible)
-	    continue;
-
-	  background_area.width = candidate->width;
-	  if ((background_area.x > (gint) event->x) ||
-	      (background_area.x + background_area.width <= (gint) event->x))
-	    {
-	      background_area.x += background_area.width;
-	      continue;
-	    }
-
-	  /* we found the focus column */
-	  column = candidate;
-	  cell_area = background_area;
-	  cell_area.width -= horizontal_separator;
-	  cell_area.height -= vertical_separator;
-	  cell_area.x += horizontal_separator/2;
-	  cell_area.y += vertical_separator/2;
-	  break;
-	}
-
-      if (column == NULL)
-	{
-	  gtk_tree_path_free (path);
-	  grab_focus_and_unset_draw_keyfocus (tree_view);
-	  return FALSE;
-	}
+          return FALSE;
+        }
 
       tree_view->priv->focus_column = column;
-
-      /* decide if we edit */
-      modifiers = event->state & gtk_accelerator_get_default_mod_mask ();
-      if (event->type == GDK_BUTTON_PRESS && event->button == 1 && !modifiers)
-	{
-	  GtkTreePath *anchor;
-	  GtkTreeIter iter;
-
-	  gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
-	  pspp_sheet_view_column_cell_set_cell_data (column,
-						   tree_view->priv->model,
-						   &iter);
-
-	  if (tree_view->priv->anchor)
-	    anchor = gtk_tree_row_reference_get_path (tree_view->priv->anchor);
-	  else
-	    anchor = NULL;
-
-	  if (pspp_sheet_view_column_get_quick_edit (column)
-              //|| (anchor && !gtk_tree_path_compare (anchor, path))
-              || !_pspp_sheet_view_column_has_editable_cell (column))
-	    {
-	      GtkCellEditable *cell_editable = NULL;
-
-	      /* FIXME: get the right flags */
-	      guint flags = 0;
-
-	      path_string = gtk_tree_path_to_string (path);
-
-	      if (_pspp_sheet_view_column_cell_event (column,
-						    &cell_editable,
-						    (GdkEvent *)event,
-						    path_string,
-						    &background_area,
-						    &cell_area, flags))
-		{
-		  if (cell_editable != NULL)
-		    {
-		      gint left, right;
-		      GdkRectangle area;
-
-                      pspp_sheet_view_real_set_cursor (tree_view, path,
-                                                       TRUE, TRUE);
-                      gtk_widget_queue_draw (GTK_WIDGET (tree_view));
-
-		      area = cell_area;
-		      _pspp_sheet_view_column_get_neighbor_sizes (column,	_pspp_sheet_view_column_get_edited_cell (column), &left, &right);
-
-		      area.x += left;
-		      area.width -= right + left;
-
-		      pspp_sheet_view_real_start_editing (tree_view,
-							column,
-							path,
-							cell_editable,
-							&area,
-							(GdkEvent *)event,
-							flags);
-		      g_free (path_string);
-		      gtk_tree_path_free (path);
-		      gtk_tree_path_free (anchor);
-		      return TRUE;
-		    }
-		  column_handled_click = TRUE;
-		}
-	      g_free (path_string);
-	    }
-	  if (anchor)
-	    gtk_tree_path_free (anchor);
-	}
 
       if (pspp_sheet_view_row_head_clicked (tree_view, node, column, event))
         return TRUE;
@@ -2355,6 +2283,8 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
       /* select */
       node_selected = pspp_sheet_view_node_is_selected (tree_view, node);
       pre_val = tree_view->priv->vadjustment->value;
+
+      path = _pspp_sheet_view_find_path (tree_view, node);
 
       /* we only handle selection modifications on the first button press
        */
@@ -2408,13 +2338,13 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 
       /* Save press to possibly begin a drag
        */
-      if (!column_handled_click &&
-	  !tree_view->priv->in_grab &&
+      if (!tree_view->priv->in_grab &&
 	  tree_view->priv->pressed_button < 0)
         {
           tree_view->priv->pressed_button = event->button;
           tree_view->priv->press_start_x = event->x;
           tree_view->priv->press_start_y = event->y;
+          tree_view->priv->press_start_node = node;
 
 	  if (tree_view->priv->rubber_banding_enable
 	      //&& !node_selected
@@ -2625,21 +2555,96 @@ pspp_sheet_view_button_release_column_resize (GtkWidget      *widget,
 }
 
 static gboolean
+pspp_sheet_view_button_release_edit (PsppSheetView *tree_view,
+                                     GdkEventButton *event)
+{
+  GtkCellEditable *cell_editable;
+  gchar *path_string;
+  GtkTreePath *path;
+  gint left, right;
+  GtkTreeIter iter;
+  PsppSheetViewColumn *column;
+  GdkRectangle background_area;
+  GdkRectangle cell_area;
+  GdkRectangle area;
+  guint modifiers;
+  guint flags;
+  int node;
+
+  if (event->window != tree_view->priv->bin_window)
+    return FALSE;
+
+  if (!find_click (tree_view, event->x, event->y, &node, &column, &background_area,
+                   &cell_area))
+    return FALSE;
+
+  /* decide if we edit */
+  path = _pspp_sheet_view_find_path (tree_view, node);
+  modifiers = event->state & gtk_accelerator_get_default_mod_mask ();
+  if (event->button != 1 || modifiers)
+    return FALSE;
+
+  gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
+  pspp_sheet_view_column_cell_set_cell_data (column,
+                                             tree_view->priv->model,
+                                             &iter);
+
+  if (!pspp_sheet_view_column_get_quick_edit (column)
+      && _pspp_sheet_view_column_has_editable_cell (column))
+    return FALSE;
+
+  flags = 0;                    /* FIXME: get the right flags */
+  path_string = gtk_tree_path_to_string (path);
+
+  if (!_pspp_sheet_view_column_cell_event (column,
+                                           &cell_editable,
+                                           (GdkEvent *)event,
+                                           path_string,
+                                           &background_area,
+                                           &cell_area, flags))
+    return FALSE;
+
+  if (cell_editable == NULL)
+    return FALSE;
+
+  pspp_sheet_view_real_set_cursor (tree_view, path,
+                                   TRUE, TRUE);
+  gtk_widget_queue_draw (GTK_WIDGET (tree_view));
+
+  area = cell_area;
+  _pspp_sheet_view_column_get_neighbor_sizes (
+    column, _pspp_sheet_view_column_get_edited_cell (column), &left, &right);
+
+  area.x += left;
+  area.width -= right + left;
+
+  pspp_sheet_view_real_start_editing (tree_view,
+                                      column,
+                                      path,
+                                      cell_editable,
+                                      &area,
+                                      (GdkEvent *)event,
+                                      flags);
+  g_free (path_string);
+  gtk_tree_path_free (path);
+  return TRUE;
+}
+
+static gboolean
 pspp_sheet_view_button_release (GtkWidget      *widget,
 			      GdkEventButton *event)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
 
-  if (tree_view->priv->edited_column &&
-      tree_view->priv->edited_column->editable_widget)
+  pspp_sheet_view_stop_editing (tree_view, FALSE);
+  if (tree_view->priv->rubber_band_status != RUBBER_BAND_ACTIVE
+      && pspp_sheet_view_button_release_edit (tree_view, event))
     {
-      /* When a column is in quick-edit mode, the initial button press that
-       * starts editing implicitly grabs the pointer, so that the corresponding
-       * release doesn't get passed along to the GtkWidget created by the
-       * press.  Pass the release along explicitly. */
-      gtk_widget_event (GTK_WIDGET (tree_view->priv->edited_column->editable_widget),
-                        (GdkEvent *) event);
-      return FALSE;
+      if (tree_view->priv->pressed_button == event->button)
+        tree_view->priv->pressed_button = -1;
+
+      tree_view->priv->rubber_band_status = RUBBER_BAND_OFF;
+      return TRUE;
     }
 
   if (PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_IN_COLUMN_DRAG))
@@ -3532,6 +3537,15 @@ pspp_sheet_view_motion_bin_window (GtkWidget      *widget,
 
   if (tree_view->priv->rubber_band_status == RUBBER_BAND_MAYBE_START)
     {
+      GdkRectangle background_area, cell_area;
+      PsppSheetViewColumn *column;
+
+      if (find_click (tree_view, event->x, event->y, &node, &column,
+                      &background_area, &cell_area)
+          && tree_view->priv->focus_column == column
+          && tree_view->priv->press_start_node == node)
+        return FALSE;
+
       gtk_grab_add (GTK_WIDGET (tree_view));
       pspp_sheet_view_update_rubber_band (tree_view);
 
@@ -9946,6 +9960,121 @@ pspp_sheet_view_get_path_at_pos (PsppSheetView        *tree_view,
   return TRUE;
 }
 
+/* Computes 'cell_area' from 'background_area', which must be the background
+   area for a cell.  Set 'subtract_focus_rect' to TRUE to compute the cell area
+   as passed to a GtkCellRenderer's "render" function, or to FALSE to compute
+   the cell area as passed to _pspp_sheet_view_column_cell_render().
+
+   'column' is required to properly adjust 'cell_area->x' and
+   'cell_area->width'.  It may be set to NULL if these values are not of
+   interest.  In this case 'cell_area->x' and 'cell_area->width' will be
+   returned as 0. */
+static void
+pspp_sheet_view_adjust_cell_area (PsppSheetView        *tree_view,
+                                  PsppSheetViewColumn  *column,
+                                  const GdkRectangle   *background_area,
+                                  gboolean              subtract_focus_rect,
+                                  GdkRectangle         *cell_area)
+{
+  gint vertical_separator;
+  gint horizontal_separator;
+
+  *cell_area = *background_area;
+
+  gtk_widget_style_get (GTK_WIDGET (tree_view),
+			"vertical-separator", &vertical_separator,
+			"horizontal-separator", &horizontal_separator,
+			NULL);
+  cell_area->x += horizontal_separator / 2;
+  cell_area->y += vertical_separator / 2;
+  cell_area->width -= horizontal_separator;
+  cell_area->height -= vertical_separator;
+
+  if (subtract_focus_rect)
+    {
+      int focus_line_width;
+
+      gtk_widget_style_get (GTK_WIDGET (tree_view),
+                            "focus-line-width", &focus_line_width,
+                            NULL);
+      cell_area->x += focus_line_width;
+      cell_area->y += focus_line_width;
+      cell_area->width -= 2 * focus_line_width;
+      cell_area->height -= 2 * focus_line_width;
+    }
+
+  if (tree_view->priv->grid_lines != PSPP_SHEET_VIEW_GRID_LINES_NONE)
+    {
+      gint grid_line_width;
+      gtk_widget_style_get (GTK_WIDGET (tree_view),
+                            "grid-line-width", &grid_line_width,
+                            NULL);
+
+      if ((tree_view->priv->grid_lines == PSPP_SHEET_VIEW_GRID_LINES_VERTICAL
+           || tree_view->priv->grid_lines == PSPP_SHEET_VIEW_GRID_LINES_BOTH)
+          && column != NULL)
+        {
+          PsppSheetViewColumn *first_column, *last_column;
+          GList *list;
+
+          /* Find the last visible column. */
+          last_column = NULL;
+          for (list = g_list_last (tree_view->priv->columns);
+               list;
+               list = list->prev)
+            {
+              PsppSheetViewColumn *c = list->data;
+              if (c->visible)
+                {
+                  last_column = c;
+                  break;
+                }
+            }
+
+          /* Find the first visible column. */
+          first_column = NULL;
+          for (list = g_list_first (tree_view->priv->columns);
+               list;
+               list = list->next)
+            {
+              PsppSheetViewColumn *c = list->data;
+              if (c->visible)
+                {
+                  first_column = c;
+                  break;
+                }
+            }
+
+          if (column == first_column)
+            {
+              cell_area->width -= grid_line_width / 2;
+            }
+          else if (column == last_column)
+            {
+              cell_area->x += grid_line_width / 2;
+              cell_area->width -= grid_line_width / 2;
+            }
+          else
+            {
+              cell_area->x += grid_line_width / 2;
+              cell_area->width -= grid_line_width;
+            }
+        }
+
+      if (tree_view->priv->grid_lines == PSPP_SHEET_VIEW_GRID_LINES_HORIZONTAL
+          || tree_view->priv->grid_lines == PSPP_SHEET_VIEW_GRID_LINES_BOTH)
+        {
+          cell_area->y += grid_line_width / 2;
+          cell_area->height -= grid_line_width;
+        }
+    }
+
+  if (column == NULL)
+    {
+      cell_area->x = 0;
+      cell_area->width = 0;
+    }
+}
 
 /**
  * pspp_sheet_view_get_cell_area:
@@ -9970,9 +10099,7 @@ pspp_sheet_view_get_cell_area (PsppSheetView        *tree_view,
                              PsppSheetViewColumn  *column,
                              GdkRectangle       *rect)
 {
-  int node = -1;
-  gint vertical_separator;
-  gint horizontal_separator;
+  GdkRectangle background_area;
 
   g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
   g_return_if_fail (column == NULL || PSPP_IS_SHEET_VIEW_COLUMN (column));
@@ -9980,33 +10107,10 @@ pspp_sheet_view_get_cell_area (PsppSheetView        *tree_view,
   g_return_if_fail (!column || column->tree_view == (GtkWidget *) tree_view);
   g_return_if_fail (gtk_widget_get_realized (GTK_WIDGET (tree_view)));
 
-  gtk_widget_style_get (GTK_WIDGET (tree_view),
-			"vertical-separator", &vertical_separator,
-			"horizontal-separator", &horizontal_separator,
-			NULL);
-
-  rect->x = 0;
-  rect->y = 0;
-  rect->width = 0;
-  rect->height = 0;
-
-  if (column)
-    {
-      rect->x = column->button->allocation.x + horizontal_separator/2;
-      rect->width = column->button->allocation.width - horizontal_separator;
-    }
-
-  if (path)
-    {
-      _pspp_sheet_view_find_node (tree_view, path, &node);
-
-      /* Get vertical coords */
-      if (node < 0)
-	return;
-
-      rect->y = CELL_FIRST_PIXEL (tree_view, node, vertical_separator);
-      rect->height = MAX (CELL_HEIGHT (tree_view, vertical_separator), tree_view->priv->expander_size - vertical_separator);
-    }
+  pspp_sheet_view_get_background_area (tree_view, path, column,
+                                       &background_area);
+  pspp_sheet_view_adjust_cell_area (tree_view, column, &background_area,
+                                    FALSE, rect);
 }
 
 /**

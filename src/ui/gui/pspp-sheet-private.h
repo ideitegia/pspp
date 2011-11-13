@@ -144,6 +144,7 @@ struct _PsppSheetViewPrivate
   gint pressed_button;
   gint press_start_x;
   gint press_start_y;
+  gint press_start_node;
 
   gint event_last_x;
   gint event_last_y;
