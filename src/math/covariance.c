@@ -631,22 +631,6 @@ covariance_calculate (struct covariance *cov)
 static gsl_matrix *
 covariance_calculate_double_pass_unnormalized (struct covariance *cov)
 {
-  size_t i, j;
-  for (i = 0 ; i < cov->dim; ++i)
-    {
-      for (j = 0 ; j < cov->dim; ++j)
-	{
-	  int idx;
-	  double *x = gsl_matrix_ptr (cov->moments[MOMENT_VARIANCE], i, j);
-
-	  idx = cm_idx (cov, i, j);
-	  if ( idx >= 0)
-	    {
-	      x = &cov->cm [idx];
-	    }
-	}
-    }
-
   return  cm_to_gsl (cov);
 }
 
