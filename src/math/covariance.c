@@ -722,4 +722,86 @@ covariance_dim (const struct covariance * cov)
   return (cov->dim);
 }
 
+
 
+/*
+  Routines to assist debugging.
+  The following are not thoroughly tested and in certain respects
+  unreliable.  They should only be
+  used for aids to development. Not as user accessible code.
+*/
+
+#include "libpspp/str.h"
+#include "output/tab.h"
+#include "data/format.h"
+
+
+/* Create a table which can be populated with the encodings for
+   the covariance matrix COV */
+struct tab_table *
+covariance_dump_enc_header (const struct covariance *cov, int length)
+{
+  struct tab_table *t = tab_create (cov->dim,  length);
+  int i;
+  tab_title (t, "Covariance Encoding");
+
+  tab_box (t, 
+	   TAL_2, TAL_2, 0, 0,
+	   0, 0,   tab_nc (t) - 1,   tab_nr (t) - 1);
+
+  tab_hline (t, TAL_2, 0, tab_nc (t) - 1, 1);
+
+
+  for (i = 0 ; i < cov->n_vars; ++i)
+    {
+      tab_text (t, i, 0, TAT_TITLE, var_get_name (cov->vars[i]));
+      tab_vline (t, TAL_1, i + 1, 0, tab_nr (t) - 1);
+    }
+
+  int n = 0;
+  while (i < cov->dim)
+    {
+      struct string str;
+      int idx = i - cov->n_vars;
+      const struct interaction *iact =
+	categoricals_get_interaction_by_subscript (cov->categoricals, idx);
+
+      ds_init_empty (&str);
+      interaction_to_string (iact, &str);
+
+      int df = categoricals_df (cov->categoricals, n);
+
+      tab_joint_text (t,
+		      i, 0,
+		      i + df - 1, 0,
+		      TAT_TITLE, ds_cstr (&str));
+
+      if (i + df < tab_nr (t) - 1)
+	tab_vline (t, TAL_1, i + df, 0, tab_nr (t) - 1);
+
+      i += df;
+      n++;
+      ds_destroy (&str);
+    }
+
+  return t;
+}
+
+
+/*
+  Append table T, which should have been returned by covariance_dump_enc_header
+  with an entry corresponding to case C for the covariance matrix COV
+ */
+void
+covariance_dump_enc (const struct covariance *cov, const struct ccase *c,
+		     struct tab_table *t)
+{
+  static int row = 0;
+  int i;
+  ++row;
+  for (i = 0 ; i < cov->dim; ++i)
+    {
+      double v = get_val (cov, i, c);
+      tab_double (t, i, row, 0, v, i < cov->n_vars ? NULL : &F_8_0);
+    }
+}

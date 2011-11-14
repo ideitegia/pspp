@@ -68,6 +68,8 @@ struct glm_spec
   bool intercept;
 
   double alpha;
+
+  bool dump_coding;
 };
 
 struct glm_workspace
@@ -143,6 +145,7 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   glm.intercept = true;
   glm.wv = dict_get_weight (glm.dict);
   glm.alpha = 0.05;
+  glm.dump_coding = false;
 
   if (!parse_variables_const (lexer, glm.dict,
 			      &glm.dep_vars, &glm.n_dep_vars,
@@ -283,6 +286,13 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 
 	  if (glm.n_interactions > 0)
 	    design = true;
+	}
+      else if (lex_match_id (lexer, "SHOWCODES"))
+	/* Undocumented debug option */
+	{
+	  lex_match (lexer, T_EQUALS);
+
+	  glm.dump_coding = true;
 	}
       else
 	{
@@ -478,7 +488,12 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
     }
   casereader_destroy (reader);
 
-  for (reader = input;
+  if (cmd->dump_coding)
+    reader = casereader_clone (input);
+  else
+    reader = input;
+
+  for (;
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       double weight = dict_get_case_weight (dict, c, &warn_bad_weight);
@@ -490,6 +505,21 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
       covariance_accumulate_pass2 (cov, c);
     }
   casereader_destroy (reader);
+
+
+  if (cmd->dump_coding)
+    {
+      struct tab_table *t =
+	covariance_dump_enc_header (cov,
+				    1 + casereader_count_cases (input));
+      for (reader = input;
+	   (c = casereader_read (reader)) != NULL; case_unref (c))
+	{
+	  covariance_dump_enc (cov, c, t);
+	}
+      casereader_destroy (reader);
+      tab_submit (t);
+    }
 
   {
     gsl_matrix *cm = covariance_calculate_unnormalized (cov);
