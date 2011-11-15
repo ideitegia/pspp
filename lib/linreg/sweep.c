@@ -38,7 +38,7 @@
 
   Numerical Linear Algebra for Applications in Statistics. JE Gentle.
   Springer. 1998. ISBN 0-387-98542-5.
- */
+*/
 
 #include <config.h>
 
@@ -49,26 +49,32 @@
   The matrix A will be overwritten. In ordinary uses of the sweep
   operator, A will be the matrix
 
-   __       __
+  __       __
   |X'X    X'Y|
   |          |
   |Y'X    Y'Y|
-   --        --
+  --        --
 
-   X refers to the design matrix and Y to the vector of dependent
-   observations. reg_sweep sweeps on the diagonal elements of
-   X'X.
+  X refers to the design matrix and Y to the vector of dependent
+  observations. reg_sweep sweeps on the diagonal elements of
+  X'X.
 
-   The matrix A is assumed to be symmetric, so the sweep operation is
-   performed only for the upper triangle of A.
+  The matrix A is assumed to be symmetric, so the sweep operation is
+  performed only for the upper triangle of A.
 
-   LAST_COL is considered to be the final column in the augmented matrix,
-   that is, the column to the right of the '=' sign of the system.
- */
+  LAST_COL is considered to be the final column in the augmented matrix,
+  that is, the column to the right of the '=' sign of the system.
+*/
 
 int
 reg_sweep (gsl_matrix * A, int last_col)
 {
+  if (A == NULL)
+    return GSL_EFAULT;
+
+  if (A->size1 != A->size2)
+    return GSL_ENOTSQR;
+
   double sweep_element;
   double tmp;
   int i;
@@ -76,89 +82,82 @@ reg_sweep (gsl_matrix * A, int last_col)
   int k;
   gsl_matrix *B;
 
-  if (A != NULL)
-    {
-      if (A->size1 == A->size2)
-	{
-          assert (last_col < A->size1);
-	  gsl_matrix_swap_rows (A, A->size1 - 1, last_col);
-	  gsl_matrix_swap_columns (A, A->size1 - 1 , last_col);
+
+  assert (last_col < A->size1);
+  gsl_matrix_swap_rows (A, A->size1 - 1, last_col);
+  gsl_matrix_swap_columns (A, A->size1 - 1 , last_col);
 	  
-	  B = gsl_matrix_alloc (A->size1, A->size2);
-	  for (k = 0; k < (A->size1 - 1); k++)
+  B = gsl_matrix_alloc (A->size1, A->size2);
+  for (k = 0; k < (A->size1 - 1); k++)
+    {
+      sweep_element = gsl_matrix_get (A, k, k);
+      if (fabs (sweep_element) > GSL_DBL_MIN)
+	{
+	  tmp = -1.0 / sweep_element;
+	  gsl_matrix_set (B, k, k, tmp);
+	  /*
+	    Rows before current row k.
+	  */
+	  for (i = 0; i < k; i++)
 	    {
-	      sweep_element = gsl_matrix_get (A, k, k);
-	      if (fabs (sweep_element) > GSL_DBL_MIN)
+	      for (j = i; j < A->size2; j++)
 		{
-		  tmp = -1.0 / sweep_element;
-		  gsl_matrix_set (B, k, k, tmp);
 		  /*
-		     Rows before current row k.
-		   */
-		  for (i = 0; i < k; i++)
+		    Use only the upper triangle of A.
+		  */
+		  if (j < k)
 		    {
-		      for (j = i; j < A->size2; j++)
-			{
-			  /*
-			     Use only the upper triangle of A.
-			   */
-			  if (j < k)
-			    {
-			      tmp = gsl_matrix_get (A, i, j) -
-				gsl_matrix_get (A, i, k)
-				* gsl_matrix_get (A, j, k) / sweep_element;
-			      gsl_matrix_set (B, i, j, tmp);
-			    }
-			  else if (j > k)
-			    {
-			      tmp = gsl_matrix_get (A, i, j) -
-				gsl_matrix_get (A, i, k)
-				* gsl_matrix_get (A, k, j) / sweep_element;
-			      gsl_matrix_set (B, i, j, tmp);
-			    }
-			  else
-			    {
-			      tmp = gsl_matrix_get (A, i, k) / sweep_element;
-			      gsl_matrix_set (B, i, j, tmp);
-			    }
-			}
+		      tmp = gsl_matrix_get (A, i, j) -
+			gsl_matrix_get (A, i, k)
+			* gsl_matrix_get (A, j, k) / sweep_element;
+		      gsl_matrix_set (B, i, j, tmp);
 		    }
-		  /*
-		     Current row k.
-		   */
-		  for (j = k + 1; j < A->size1; j++)
+		  else if (j > k)
 		    {
-		      tmp = gsl_matrix_get (A, k, j) / sweep_element;
-		      gsl_matrix_set (B, k, j, tmp);
+		      tmp = gsl_matrix_get (A, i, j) -
+			gsl_matrix_get (A, i, k)
+			* gsl_matrix_get (A, k, j) / sweep_element;
+		      gsl_matrix_set (B, i, j, tmp);
 		    }
-		  /*
-		     Rows after the current row k.
-		   */
-		  for (i = k + 1; i < A->size1; i++)
+		  else
 		    {
-		      for (j = i; j < A->size2; j++)
-			{
-			  tmp = gsl_matrix_get (A, i, j) -
-			    gsl_matrix_get (A, k, i)
-			    * gsl_matrix_get (A, k, j) / sweep_element;
-			  gsl_matrix_set (B, i, j, tmp);
-			}
+		      tmp = gsl_matrix_get (A, i, k) / sweep_element;
+		      gsl_matrix_set (B, i, j, tmp);
 		    }
 		}
-	      for (i = 0; i < A->size1; i++)
-		for (j = i; j < A->size2; j++)
-		  {
-		    gsl_matrix_set (A, i, j, gsl_matrix_get (B, i, j));
-		  }
 	    }
-	  gsl_matrix_free (B);
-
-	  gsl_matrix_swap_columns (A, A->size1 - 1 , last_col);
-	  gsl_matrix_swap_rows (A, A->size1 - 1, last_col);
-
-	  return GSL_SUCCESS;
+	  /*
+	    Current row k.
+	  */
+	  for (j = k + 1; j < A->size1; j++)
+	    {
+	      tmp = gsl_matrix_get (A, k, j) / sweep_element;
+	      gsl_matrix_set (B, k, j, tmp);
+	    }
+	  /*
+	    Rows after the current row k.
+	  */
+	  for (i = k + 1; i < A->size1; i++)
+	    {
+	      for (j = i; j < A->size2; j++)
+		{
+		  tmp = gsl_matrix_get (A, i, j) -
+		    gsl_matrix_get (A, k, i)
+		    * gsl_matrix_get (A, k, j) / sweep_element;
+		  gsl_matrix_set (B, i, j, tmp);
+		}
+	    }
 	}
-      return GSL_ENOTSQR;
+      for (i = 0; i < A->size1; i++)
+	for (j = i; j < A->size2; j++)
+	  {
+	    gsl_matrix_set (A, i, j, gsl_matrix_get (B, i, j));
+	  }
     }
-  return GSL_EFAULT;
+  gsl_matrix_free (B);
+
+  gsl_matrix_swap_columns (A, A->size1 - 1 , last_col);
+  gsl_matrix_swap_rows (A, A->size1 - 1, last_col);
+
+  return GSL_SUCCESS;
 }
