@@ -75,8 +75,6 @@ reg_sweep (gsl_matrix * A, int last_col)
   if (A->size1 != A->size2)
     return GSL_ENOTSQR;
 
-  double sweep_element;
-  double tmp;
   int i;
   int j;
   int k;
@@ -90,11 +88,10 @@ reg_sweep (gsl_matrix * A, int last_col)
   B = gsl_matrix_alloc (A->size1, A->size2);
   for (k = 0; k < (A->size1 - 1); k++)
     {
-      sweep_element = gsl_matrix_get (A, k, k);
+      const double sweep_element = gsl_matrix_get (A, k, k);
       if (fabs (sweep_element) > GSL_DBL_MIN)
 	{
-	  tmp = -1.0 / sweep_element;
-	  gsl_matrix_set (B, k, k, tmp);
+	  gsl_matrix_set (B, k, k, -1.0 / sweep_element);
 	  /*
 	    Rows before current row k.
 	  */
@@ -102,9 +99,8 @@ reg_sweep (gsl_matrix * A, int last_col)
 	    {
 	      for (j = i; j < A->size2; j++)
 		{
-		  /*
-		    Use only the upper triangle of A.
-		  */
+		  /* Use only the upper triangle of A. */
+		  double tmp;
 		  if (j < k)
 		    {
 		      tmp = gsl_matrix_get (A, i, j) -
@@ -131,7 +127,7 @@ reg_sweep (gsl_matrix * A, int last_col)
 	  */
 	  for (j = k + 1; j < A->size1; j++)
 	    {
-	      tmp = gsl_matrix_get (A, k, j) / sweep_element;
+	      double tmp = gsl_matrix_get (A, k, j) / sweep_element;
 	      gsl_matrix_set (B, k, j, tmp);
 	    }
 	  /*
@@ -141,7 +137,7 @@ reg_sweep (gsl_matrix * A, int last_col)
 	    {
 	      for (j = i; j < A->size2; j++)
 		{
-		  tmp = gsl_matrix_get (A, i, j) -
+		  double tmp = gsl_matrix_get (A, i, j) -
 		    gsl_matrix_get (A, k, i)
 		    * gsl_matrix_get (A, k, j) / sweep_element;
 		  gsl_matrix_set (B, i, j, tmp);
