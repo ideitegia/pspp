@@ -106,20 +106,18 @@ reg_sweep (gsl_matrix * A, int last_col)
 		      tmp = gsl_matrix_get (A, i, j) -
 			gsl_matrix_get (A, i, k)
 			* gsl_matrix_get (A, j, k) / sweep_element;
-		      gsl_matrix_set (B, i, j, tmp);
 		    }
 		  else if (j > k)
 		    {
 		      tmp = gsl_matrix_get (A, i, j) -
 			gsl_matrix_get (A, i, k)
 			* gsl_matrix_get (A, k, j) / sweep_element;
-		      gsl_matrix_set (B, i, j, tmp);
 		    }
 		  else
 		    {
 		      tmp = gsl_matrix_get (A, i, k) / sweep_element;
-		      gsl_matrix_set (B, i, j, tmp);
 		    }
+		  gsl_matrix_set (B, i, j, tmp);
 		}
 	    }
 	  /*
