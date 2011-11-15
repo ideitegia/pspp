@@ -142,11 +142,7 @@ reg_sweep (gsl_matrix * A, int last_col)
 		}
 	    }
 	}
-      for (i = 0; i < A->size1; i++)
-	for (j = i; j < A->size2; j++)
-	  {
-	    gsl_matrix_set (A, i, j, gsl_matrix_get (B, i, j));
-	  }
+      gsl_matrix_memcpy (A, B);
     }
   gsl_matrix_free (B);
 
