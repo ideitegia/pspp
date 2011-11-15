@@ -44,6 +44,7 @@
 
 #include "sweep.h"
 
+#include <assert.h>
 /*
   The matrix A will be overwritten. In ordinary uses of the sweep
   operator, A will be the matrix
@@ -73,65 +74,52 @@ reg_sweep (gsl_matrix * A, int last_col)
   int i;
   int j;
   int k;
-  int row_i;
-  int row_k;
-  int row_j;
-  int *ordered_cols;
   gsl_matrix *B;
 
   if (A != NULL)
     {
       if (A->size1 == A->size2)
 	{
-	  ordered_cols = malloc (A->size1 * sizeof (*ordered_cols));
-	  for (i = 0; i < last_col; i++)
-	    {
-	      ordered_cols[i] = i;
-	    }
-	  for (i = last_col + 1; i < A->size1; i++)
-	    {
-	      ordered_cols[i - 1] = i;
-	    }
-	  ordered_cols[A->size1 - 1] = last_col;
+          assert (last_col < A->size1);
+	  gsl_matrix_swap_rows (A, A->size1 - 1, last_col);
+	  gsl_matrix_swap_columns (A, A->size1 - 1 , last_col);
+	  
 	  B = gsl_matrix_alloc (A->size1, A->size2);
 	  for (k = 0; k < (A->size1 - 1); k++)
 	    {
-	      row_k = ordered_cols[k];
-	      sweep_element = gsl_matrix_get (A, row_k, row_k);
+	      sweep_element = gsl_matrix_get (A, k, k);
 	      if (fabs (sweep_element) > GSL_DBL_MIN)
 		{
 		  tmp = -1.0 / sweep_element;
-		  gsl_matrix_set (B, row_k, row_k, tmp);
+		  gsl_matrix_set (B, k, k, tmp);
 		  /*
 		     Rows before current row k.
 		   */
 		  for (i = 0; i < k; i++)
 		    {
-		      row_i = ordered_cols[i];
 		      for (j = i; j < A->size2; j++)
 			{
-			  row_j = ordered_cols[j];
 			  /*
 			     Use only the upper triangle of A.
 			   */
-			  if (row_j < row_k)
+			  if (j < k)
 			    {
-			      tmp = gsl_matrix_get (A, row_i, row_j) -
-				gsl_matrix_get (A, row_i, row_k)
-				* gsl_matrix_get (A, row_j, row_k) / sweep_element;
-			      gsl_matrix_set (B, row_i, row_j, tmp);
+			      tmp = gsl_matrix_get (A, i, j) -
+				gsl_matrix_get (A, i, k)
+				* gsl_matrix_get (A, j, k) / sweep_element;
+			      gsl_matrix_set (B, i, j, tmp);
 			    }
-			  else if (row_j > row_k)
+			  else if (j > k)
 			    {
-			      tmp = gsl_matrix_get (A, row_i, row_j) -
-				gsl_matrix_get (A, row_i, row_k)
-				* gsl_matrix_get (A, row_k, row_j) / sweep_element;
-			      gsl_matrix_set (B, row_i, row_j, tmp);
+			      tmp = gsl_matrix_get (A, i, j) -
+				gsl_matrix_get (A, i, k)
+				* gsl_matrix_get (A, k, j) / sweep_element;
+			      gsl_matrix_set (B, i, j, tmp);
 			    }
 			  else
 			    {
-			      tmp = gsl_matrix_get (A, row_i, row_k) / sweep_element;
-			      gsl_matrix_set (B, row_i, row_j, tmp);
+			      tmp = gsl_matrix_get (A, i, k) / sweep_element;
+			      gsl_matrix_set (B, i, j, tmp);
 			    }
 			}
 		    }
@@ -140,36 +128,34 @@ reg_sweep (gsl_matrix * A, int last_col)
 		   */
 		  for (j = k + 1; j < A->size1; j++)
 		    {
-		      row_j = ordered_cols[j];
-		      tmp = gsl_matrix_get (A, row_k, row_j) / sweep_element;
-		      gsl_matrix_set (B, row_k, row_j, tmp);
+		      tmp = gsl_matrix_get (A, k, j) / sweep_element;
+		      gsl_matrix_set (B, k, j, tmp);
 		    }
 		  /*
 		     Rows after the current row k.
 		   */
 		  for (i = k + 1; i < A->size1; i++)
 		    {
-		      row_i = ordered_cols[i];
 		      for (j = i; j < A->size2; j++)
 			{
-			  row_j = ordered_cols[j];
-			  tmp = gsl_matrix_get (A, row_i, row_j) -
-			    gsl_matrix_get (A, row_k, row_i)
-			    * gsl_matrix_get (A, row_k, row_j) / sweep_element;
-			  gsl_matrix_set (B, row_i, row_j, tmp);
+			  tmp = gsl_matrix_get (A, i, j) -
+			    gsl_matrix_get (A, k, i)
+			    * gsl_matrix_get (A, k, j) / sweep_element;
+			  gsl_matrix_set (B, i, j, tmp);
 			}
 		    }
 		}
 	      for (i = 0; i < A->size1; i++)
 		for (j = i; j < A->size2; j++)
 		  {
-		    row_i = ordered_cols[i];
-		    row_j = ordered_cols[j];
-		    gsl_matrix_set (A, row_i, row_j, gsl_matrix_get (B, row_i, row_j));
+		    gsl_matrix_set (A, i, j, gsl_matrix_get (B, i, j));
 		  }
 	    }
 	  gsl_matrix_free (B);
-	  free (ordered_cols);
+
+	  gsl_matrix_swap_columns (A, A->size1 - 1 , last_col);
+	  gsl_matrix_swap_rows (A, A->size1 - 1, last_col);
+
 	  return GSL_SUCCESS;
 	}
       return GSL_ENOTSQR;
