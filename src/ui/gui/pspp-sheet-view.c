@@ -7721,10 +7721,7 @@ pspp_sheet_view_move_cursor_left_right (PsppSheetView *tree_view,
 
   if (found_column)
     {
-      if (!pspp_sheet_view_has_special_cell (tree_view))
-	_pspp_sheet_view_queue_draw_node (tree_view,
-                                          cursor_node,
-                                          NULL);
+      _pspp_sheet_view_queue_draw_node (tree_view, cursor_node, NULL);
       g_signal_emit (tree_view, tree_view_signals[CURSOR_CHANGED], 0);
       gtk_widget_grab_focus (GTK_WIDGET (tree_view));
     }
