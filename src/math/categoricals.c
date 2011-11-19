@@ -38,6 +38,7 @@ struct value_node
 
   union value val;            /* The value */
 
+  int index;                  /* A zero based unique index for this value */
 };
 
 struct interaction_value
@@ -71,6 +72,7 @@ struct variable_node
   const struct variable *var; /* The variable */
 
   struct hmap valmap;         /* A map of value nodes */
+  int n_vals;                 /* Number of values for this variable */
 };
 
 #if 0
@@ -115,7 +117,7 @@ struct interact_params
   int n_cats;
 
   /* The degrees of freedom for this interaction */
-  int df; 
+  int *df; 
 
   /* A map of interaction_values indexed by subscript */
   struct interaction_value **reverse_interaction_value_map;
@@ -335,6 +337,7 @@ categoricals_create (struct interaction *const*inter, size_t n_inter,
 	    {
 	      vn = pool_malloc (cat->pool, sizeof *vn);
 	      vn->var = var;
+	      vn->n_vals = 0;
 	      hmap_init (&vn->valmap);
 
 	      hmap_insert (&cat->varmap, &vn->node,  hash);
@@ -369,6 +372,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       if (valn == NULL)
 	{
 	  valn = pool_malloc (cat->pool, sizeof *valn);
+	  valn->index = vn->n_vals++;
 	  value_init (&valn->val, width);
 	  value_copy (&valn->val, val, width);
 	  hmap_insert (&vn->valmap, &valn->node, hash);
@@ -419,7 +423,8 @@ categoricals_n_count (const struct categoricals *cat, size_t n)
 size_t
 categoricals_df (const struct categoricals *cat, size_t n)
 {
-  return cat->iap[n].df;
+  const struct interact_params *iap = &cat->iap[n];
+  return iap->df[iap->iact->n_vars - 1];
 }
 
 
@@ -460,22 +465,26 @@ categoricals_done (const struct categoricals *cat_)
   /* Calculate the degrees of freedom, and the number of categories */
   for (i = 0 ; i < cat->n_iap; ++i)
     {
+      int df = 1;
       const struct interaction *iact = cat->iap[i].iact;
 
-      cat->iap[i].df = 1;
-      cat->iap[i].n_cats = 1;
+      cat->iap[i].df = xcalloc (iact->n_vars, sizeof (int));
 
+      cat->iap[i].n_cats = 1;
+      
       for (v = 0 ; v < iact->n_vars; ++v)
 	{
 	  const struct variable *var = iact->vars[v];
 
 	  struct variable_node *vn = lookup_variable (&cat->varmap, var, hash_pointer (var, 0));
 
-	  cat->iap[i].df *= hmap_count (&vn->valmap) - 1;
+	  cat->iap[i].df[v] = df * (hmap_count (&vn->valmap) - 1);
+	  df = cat->iap[i].df[v];
+
 	  cat->iap[i].n_cats *= hmap_count (&vn->valmap);
 	}
 
-      cat->df_sum += cat->iap[i].df;
+      cat->df_sum += cat->iap[i].df [v - 1];
       cat->n_cats_total += cat->iap[i].n_cats;
     }
 
@@ -517,7 +526,7 @@ categoricals_done (const struct categoricals *cat_)
 	iap->reverse_interaction_value_map[ii] = NULL;
 
       /* Populate the reverse variable maps. */
-      for (ii = 0; ii < iap->df; ++ii)
+      for (ii = 0; ii < iap->df [iap->iact->n_vars - 1]; ++ii)
 	cat->reverse_variable_map_short[idx_short++] = i;
 
       for (ii = 0; ii < iap->n_cats; ++ii)
@@ -560,7 +569,6 @@ categoricals_get_interaction_by_subscript (const struct categoricals *cat, int s
   return cat->iap[index].iact;
 }
 
-
 /* Return the case corresponding to SUBSCRIPT */
 static const struct ccase *
 categoricals_get_case_by_subscript (const struct categoricals *cat, int subscript)
@@ -602,17 +610,48 @@ categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript
 /* Returns unity if the value in case C at SUBSCRIPT is equal to the category
    for that subscript */
 double
-categoricals_get_binary_by_subscript (const struct categoricals *cat, int subscript,
+categoricals_get_binary_by_subscript (const struct categoricals *cat,
+				      int subscript,
 				      const struct ccase *c)
 {
   const struct interaction *iact = categoricals_get_interaction_by_subscript (cat, subscript);
 
-  const struct ccase *c2 =  categoricals_get_case_by_subscript (cat, subscript);
+  const int i = reverse_variable_lookup_short (cat, subscript);
 
-  if ( c2 == NULL)
-    return 0;
+  const int base_index = cat->iap[i].base_subscript_short;
 
-  return interaction_case_equal (iact, c, c2);
+  int v;
+  double result = 1.0;
+
+  for (v = 0; v < iact->n_vars; ++v)
+  {
+    const struct variable *var = iact->vars[v];
+
+    const union value *val = case_data (c, var);
+    const int width = var_get_width (var);
+    const struct variable_node *vn = lookup_variable (&cat->varmap, var, hash_pointer (var, 0));
+
+    const unsigned int hash = value_hash (val, width, 0);
+    const struct value_node *valn = lookup_value (&vn->valmap, val, hash, width);
+
+    /* Translate the subscript into an index for the individual variable */
+    int index = (subscript - base_index) % cat->iap[i].df[v];
+    if ( v > 0)
+      index /= cat->iap[i].df[v - 1];
+
+    double bin = 1.0;
+#if EFFECTS_CODING
+    if ( valn->index == 0)
+      bin = -1.0;
+    else 
+#endif
+    if ( valn->index  != index )
+      bin = 0;
+    
+    result *= bin;
+  }
+
+  return result;
 }
 
 
