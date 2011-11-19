@@ -116,8 +116,10 @@ struct interact_params
   /* The number of distinct values of this interaction */
   int n_cats;
 
-  /* The degrees of freedom for this interaction */
-  int *df; 
+  /* An array of integers df_n * df_{n-1} * df_{n-2} ...
+     These are the products of the degrees of freedom for the current 
+     variable and all preceeding variables */
+  int *df_prod; 
 
   /* A map of interaction_values indexed by subscript */
   struct interaction_value **reverse_interaction_value_map;
@@ -424,7 +426,7 @@ size_t
 categoricals_df (const struct categoricals *cat, size_t n)
 {
   const struct interact_params *iap = &cat->iap[n];
-  return iap->df[iap->iact->n_vars - 1];
+  return iap->df_prod[iap->iact->n_vars - 1];
 }
 
 
@@ -468,7 +470,7 @@ categoricals_done (const struct categoricals *cat_)
       int df = 1;
       const struct interaction *iact = cat->iap[i].iact;
 
-      cat->iap[i].df = xcalloc (iact->n_vars, sizeof (int));
+      cat->iap[i].df_prod = xcalloc (iact->n_vars, sizeof (int));
 
       cat->iap[i].n_cats = 1;
       
@@ -478,13 +480,13 @@ categoricals_done (const struct categoricals *cat_)
 
 	  struct variable_node *vn = lookup_variable (&cat->varmap, var, hash_pointer (var, 0));
 
-	  cat->iap[i].df[v] = df * (hmap_count (&vn->valmap) - 1);
-	  df = cat->iap[i].df[v];
+	  cat->iap[i].df_prod[v] = df * (hmap_count (&vn->valmap) - 1);
+	  df = cat->iap[i].df_prod[v];
 
 	  cat->iap[i].n_cats *= hmap_count (&vn->valmap);
 	}
 
-      cat->df_sum += cat->iap[i].df [v - 1];
+      cat->df_sum += cat->iap[i].df_prod [v - 1];
       cat->n_cats_total += cat->iap[i].n_cats;
     }
 
@@ -526,7 +528,7 @@ categoricals_done (const struct categoricals *cat_)
 	iap->reverse_interaction_value_map[ii] = NULL;
 
       /* Populate the reverse variable maps. */
-      for (ii = 0; ii < iap->df [iap->iact->n_vars - 1]; ++ii)
+      for (ii = 0; ii < iap->df_prod [iap->iact->n_vars - 1]; ++ii)
 	cat->reverse_variable_map_short[idx_short++] = i;
 
       for (ii = 0; ii < iap->n_cats; ++ii)
@@ -634,12 +636,13 @@ categoricals_get_binary_by_subscript (const struct categoricals *cat,
     const unsigned int hash = value_hash (val, width, 0);
     const struct value_node *valn = lookup_value (&vn->valmap, val, hash, width);
 
-    /* Translate the subscript into an index for the individual variable */
-    int index = (subscript - base_index) % cat->iap[i].df[v];
-    if ( v > 0)
-      index /= cat->iap[i].df[v - 1];
-
     double bin = 1.0;
+
+    /* Translate the subscript into an index for the individual variable */
+    int index = (subscript - base_index) % cat->iap[i].df_prod[v];
+    if ( v > 0)
+      index /= cat->iap[i].df_prod[v - 1];
+
 #if EFFECTS_CODING
     if ( valn->index == 0)
       bin = -1.0;
