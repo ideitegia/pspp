@@ -32,6 +32,8 @@
 
 #include "gl/xalloc.h"
 
+#define EFFECTS_CODING 0
+
 struct value_node
 {
   struct hmap_node node;      /* Node in hash map. */
@@ -43,12 +45,11 @@ struct value_node
 
 struct interaction_value
 {
-  struct hmap_node node;        /* Node in hash map. */
+  struct hmap_node node;      /* Node in hash map */
 
-  struct ccase *ccase;          /* A case (probably the first in the dataset) which matches this value */
+  struct ccase *ccase;        /* A case (probably the first in the dataset) which matches this value */
 
-  /* Total of the weights of cases matching this interaction */
-  double cc; 
+  double cc;        /* Total of the weights of cases matching this interaction */
 
   void *user_data;            /* A pointer to data which the caller can store stuff */
 };
@@ -120,6 +121,8 @@ struct interact_params
      These are the products of the degrees of freedom for the current 
      variable and all preceeding variables */
   int *df_prod; 
+
+  double *enc_sum;
 
   /* A map of interaction_values indexed by subscript */
   struct interaction_value **reverse_interaction_value_map;
@@ -538,6 +541,28 @@ categoricals_done (const struct categoricals *cat_)
   assert (cat->n_vars <= cat->n_iap);
 
   //  categoricals_dump (cat);
+
+  /* Tally up the sums for all the encodings */
+  for (i = 0 ; i < cat->n_iap; ++i)
+    {
+      int x, y;
+      struct interact_params *iap = &cat->iap[i];
+      const struct interaction *iact = iap->iact;
+
+      const int df = iap->df_prod [iact->n_vars - 1];
+
+      iap->enc_sum = xcalloc (df, sizeof (*(iap->enc_sum)));
+
+      for (y = 0; y < hmap_count (&iap->ivmap); ++y)
+	{
+	  struct interaction_value *iv = iap->reverse_interaction_value_map[y];
+	  for (x = iap->base_subscript_short; x < iap->base_subscript_short + df ;++x)
+	    {
+	      const double bin = categoricals_get_binary_by_subscript (cat, x, iv->ccase); \
+	      iap->enc_sum [x - iap->base_subscript_short] += bin * iv->cc;
+	    }
+	}
+    }
 }
 
 
@@ -601,12 +626,7 @@ categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript
   int vindex = reverse_variable_lookup_short (cat, subscript);
   const struct interact_params *vp = &cat->iap[vindex];
 
-  const struct interaction_value *iv = vp->reverse_interaction_value_map [subscript - vp->base_subscript_short];
-
-  if (iv == NULL)
-    return 0;
-
-  return iv->cc;
+  return   vp->enc_sum[subscript - vp->base_subscript_short];
 }
 
 /* Returns unity if the value in case C at SUBSCRIPT is equal to the category
@@ -625,6 +645,8 @@ categoricals_get_binary_by_subscript (const struct categoricals *cat,
   int v;
   double result = 1.0;
 
+  const struct interact_params *iap = &cat->iap[i];
+
   for (v = 0; v < iact->n_vars; ++v)
   {
     const struct variable *var = iact->vars[v];
@@ -639,9 +661,9 @@ categoricals_get_binary_by_subscript (const struct categoricals *cat,
     double bin = 1.0;
 
     /* Translate the subscript into an index for the individual variable */
-    int index = (subscript - base_index) % cat->iap[i].df_prod[v];
+    int index = (subscript - base_index) % iap->df_prod[v];
     if ( v > 0)
-      index /= cat->iap[i].df_prod[v - 1];
+      index /= iap->df_prod[v - 1];
 
 #if EFFECTS_CODING
     if ( valn->index == 0)
@@ -685,3 +707,7 @@ categoricals_get_user_data_by_category (const struct categoricals *cat, int subs
   const struct interaction_value *iv = vp->reverse_interaction_value_map [subscript - vp->base_subscript_long];
   return iv->user_data;
 }
+
+
+
+
