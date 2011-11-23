@@ -65,6 +65,7 @@ struct glm_spec
 
   const struct dictionary *dict;
 
+  int ss_type;
   bool intercept;
 
   double alpha;
@@ -146,6 +147,7 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   glm.wv = dict_get_weight (glm.dict);
   glm.alpha = 0.05;
   glm.dump_coding = false;
+  glm.ss_type = 3;
 
   if (!parse_variables_const (lexer, glm.dict,
 			      &glm.dep_vars, &glm.n_dep_vars,
@@ -263,9 +265,10 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 	      goto error;
 	    }
 
-	  if (3 != lex_integer (lexer))
+	  glm.ss_type = lex_integer (lexer);
+	  if (1 != glm.ss_type  && 2 != glm.ss_type )
 	    {
-	      msg (ME, _("Only type 3 sum of squares are currently implemented"));
+	      msg (ME, _("Only types 1 & 2 sum of squares are currently implemented"));
 	      goto error;
 	    }
 
@@ -551,6 +554,15 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
   taint_destroy (taint);
 }
 
+static const char *roman[] = 
+  {
+    "", /* The Romans had no concept of zero */
+    "I",
+    "II",
+    "III",
+    "IV"
+  };
+
 static void
 output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
 {
@@ -587,7 +599,8 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
 
   /* TRANSLATORS: The parameter is a roman numeral */
   tab_text_format (t, 1, 0, TAB_CENTER | TAT_TITLE,
-		   _("Type %s Sum of Squares"), "III");
+		   _("Type %s Sum of Squares"), 
+		   roman[cmd->ss_type]);
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("df"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean Square"));
   tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("F"));
