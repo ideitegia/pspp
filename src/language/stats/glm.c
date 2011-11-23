@@ -416,8 +416,7 @@ get_ssq (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 	}
 
       model_cov = gsl_matrix_alloc (cm->size1 - n_dropped_model, cm->size2 - n_dropped_model);
-      gsl_matrix_set (model_cov, 0, 0, gsl_matrix_get (cm, 0, 0));
-      submodel_cov = gsl_matrix_calloc (cm->size1 - n_dropped_submodel, cm->size2 - n_dropped_submodel);
+      submodel_cov = gsl_matrix_alloc (cm->size1 - n_dropped_submodel, cm->size2 - n_dropped_submodel);
 
       fill_submatrix (cm, model_cov,    model_dropped);
       fill_submatrix (cm, submodel_cov, submodel_dropped);
