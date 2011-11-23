@@ -49,7 +49,6 @@ end data.
 variable labels a 'Factor A' b 'Factor B' c 'Factor C' y 'Criterion'.
 
 glm y by   b a c
-  /method=sstype(3)
   /intercept=include
   /criteria=alpha(.05)
   /design = a b c
@@ -103,7 +102,6 @@ begin data.
 end data.
 
 glm points by Factor0 Factor1
-  /method=sstype(3)
   /intercept=include
   /criteria=alpha(.05)
   .

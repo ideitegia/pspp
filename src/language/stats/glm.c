@@ -33,6 +33,7 @@
 #include "language/lexer/lexer.h"
 #include "language/lexer/value-parser.h"
 #include "language/lexer/variable-parser.h"
+#include "libpspp/assertion.h"
 #include "libpspp/ll.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
@@ -537,7 +538,18 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
     */
     ws.ssq = gsl_vector_alloc (cm->size1);
     gsl_vector_set (ws.ssq, 0, gsl_matrix_get (cm, 0, 0));
-    get_ssq (cov, ws.ssq, cmd);
+    switch (cmd->ss_type)
+      {
+      case 1:
+	break;
+      case 2:
+      case 3:
+	get_ssq (cov, ws.ssq, cmd);
+	break;
+      default:
+	NOT_REACHED ();
+	break;
+      }
     //    dump_matrix (cm);
 
     gsl_matrix_free (cm);
