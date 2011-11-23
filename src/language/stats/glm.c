@@ -345,9 +345,6 @@ error:
   return CMD_FAILURE;
 }
 
-static void get_ssq (struct covariance *, gsl_vector *,
-		     const struct glm_spec *);
-
 static inline bool
 not_dropped (size_t j, const bool *ff)
 {
@@ -380,9 +377,84 @@ fill_submatrix (const gsl_matrix * cov, gsl_matrix * submatrix, bool *dropped_f)
 	}
     }
 }
-	      
+
+
+/* 
+   Type 1 sums of squares.
+   Populate SSQ with the Type 1 sums of squares according to COV
+ */
 static void
-get_ssq (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
+ssq_type1 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
+{
+  gsl_matrix *cm = covariance_calculate_unnormalized (cov);
+  size_t i;
+  size_t k;
+  bool *model_dropped = xcalloc (covariance_dim (cov), sizeof (*model_dropped));
+  bool *submodel_dropped = xcalloc (covariance_dim (cov), sizeof (*submodel_dropped));
+  const struct categoricals *cats = covariance_get_categoricals (cov);
+
+  size_t n_dropped_model = 0;
+  size_t n_dropped_submodel = 0;
+
+  for (i = cmd->n_dep_vars; i < covariance_dim (cov); i++)
+    {
+      n_dropped_model++;
+      n_dropped_submodel++;
+      model_dropped[i] = true;
+      submodel_dropped[i] = true;
+    }
+
+  for (k = 0; k < cmd->n_interactions; k++)
+    {
+      gsl_matrix *model_cov = NULL;
+      gsl_matrix *submodel_cov = NULL;
+      
+      n_dropped_submodel = n_dropped_model;
+      for (i = cmd->n_dep_vars; i < covariance_dim (cov); i++)
+	{
+	  submodel_dropped[i] = model_dropped[i];
+	}
+
+      for (i = cmd->n_dep_vars; i < covariance_dim (cov); i++)
+	{
+	  const struct interaction * x = 
+	    categoricals_get_interaction_by_subscript (cats, i - cmd->n_dep_vars);
+
+	  if ( x == cmd->interactions [k])
+	    {
+	      model_dropped[i] = false;
+	      n_dropped_model--;
+	    }
+	}
+
+      model_cov = gsl_matrix_alloc (cm->size1 - n_dropped_model, cm->size2 - n_dropped_model);
+      submodel_cov = gsl_matrix_alloc (cm->size1 - n_dropped_submodel, cm->size2 - n_dropped_submodel);
+
+      fill_submatrix (cm, model_cov,    model_dropped);
+      fill_submatrix (cm, submodel_cov, submodel_dropped);
+
+      reg_sweep (model_cov, 0);
+      reg_sweep (submodel_cov, 0);
+
+      gsl_vector_set (ssq, k + 1,
+		      gsl_matrix_get (submodel_cov, 0, 0) - gsl_matrix_get (model_cov, 0, 0)
+		      );
+
+      gsl_matrix_free (model_cov);
+      gsl_matrix_free (submodel_cov);
+    }
+
+  free (model_dropped);
+  free (submodel_dropped);
+  gsl_matrix_free (cm);
+}
+
+/* 
+   Type 2 sums of squares.
+   Populate SSQ with the Type 2 sums of squares according to COV
+ */
+static void
+ssq_type2 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 {
   gsl_matrix *cm = covariance_calculate_unnormalized (cov);
   size_t i;
@@ -541,10 +613,12 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
     switch (cmd->ss_type)
       {
       case 1:
+	ssq_type1 (cov, ws.ssq, cmd);
 	break;
       case 2:
       case 3:
-	get_ssq (cov, ws.ssq, cmd);
+	/* Type 3 is not yet implemented :( but for balanced designs it is the same as type 2 */
+	ssq_type2 (cov, ws.ssq, cmd);
 	break;
       default:
 	NOT_REACHED ();

@@ -125,3 +125,117 @@ Corrected Total,17833.918,19,,,
 ])
 
 AT_CLEANUP
+
+
+AT_SETUP([GLM Type 1 Sums of Squares])
+
+dnl  The following example comes from 
+dnl  http://www.uvm.edu/~dhowell/StatPages/More_Stuff/Type1-3.pdf
+AT_DATA([type1.sps], [dnl
+set decimal = dot.
+set format=F20.3.
+data list notable list /dv * Agrp * B0 * B1 * B2 * i0 * i1 * i2 * sss *.
+begin data.
+5 1 1 0 0 1 0 0 1.00
+7 1 1 0 0 1 0 0 1.00
+9 1 1 0 0 1 0 0 1.00
+8 1 1 0 0 1 0 0 1.00
+2 1 0 1 0 0 1 0 1.00
+5 1 0 1 0 0 1 0 1.00
+7 1 0 1 0 0 1 0 1.00
+3 1 0 1 0 0 1 0 1.00
+9 1 0 1 0 0 1 0 1.00
+8 1 0 0 1 0 0 1 1.00
+11 1 0 0 1 0 0 1 1.00
+12 1 0 0 1 0 0 1 1.00
+14 1 0 0 1 0 0 1 1.00
+11 1 -1 -1 -1 -1 -1 -1 1.00
+15 1 -1 -1 -1 -1 -1 -1 1.00
+16 1 -1 -1 -1 -1 -1 -1 1.00
+10 1 -1 -1 -1 -1 -1 -1 1.00
+9 1 -1 -1 -1 -1 -1 -1 1.00
+7 -1 1 0 0 -1 0 0 2.00
+9 -1 1 0 0 -1 0 0 2.00
+10 -1 1 0 0 -1 0 0 2.00
+9 -1 1 0 0 -1 0 0 2.00
+3 -1 0 1 0 0 -1 0 2.00
+8 -1 0 1 0 0 -1 0 2.00
+9 -1 0 1 0 0 -1 0 2.00
+11 -1 0 1 0 0 -1 0 2.00
+9 -1 0 0 1 0 0 -1 2.00
+12 -1 0 0 1 0 0 -1 2.00
+14 -1 0 0 1 0 0 -1 2.00
+8 -1 0 0 1 0 0 -1 2.00
+7 -1 0 0 1 0 0 -1 2.00
+11 -1 -1 -1 -1 1 1 1 2.00
+14 -1 -1 -1 -1 1 1 1 2.00
+10 -1 -1 -1 -1 1 1 1 2.00
+12 -1 -1 -1 -1 1 1 1 2.00
+13 -1 -1 -1 -1 1 1 1 2.00
+11 -1 -1 -1 -1 1 1 1 2.00
+12 -1 -1 -1 -1 1 1 1 2.00
+end data.
+
+do if B0 = -1 AND B1 = -1 AND B2 = -1.
+compute Bgrp = -1.
+end if.
+
+do if B0 = 0 AND B1 = 0 AND B2 = 1.
+compute Bgrp = 1.
+end if.
+
+do if B0 = 0 AND B1 = 1 AND B2 = 0.
+compute Bgrp = 2.
+end if.
+
+do if B0 = 1 AND B1 = 0 AND B2 = 0.
+compute Bgrp = 3.
+end if.
+
+
+do if B0 = 0 AND B1 = 1 AND B2 = 0.
+compute Bgrp = 4.
+end if.
+
+
+glm dv by Agrp Bgrp
+	/method = sstype (1)
+	.
+
+glm dv by Agrp Bgrp
+	/method = sstype (1)
+	/design Bgrp Agrp Bgrp * Agrp
+	.
+])
+
+
+AT_CHECK([pspp -O format=csv type1.sps], [0],
+  [dnl
+warning: GLM is experimental.  Do not rely on these results.
+
+Table: Tests of Between-Subjects Effects
+Source,Type I Sum of Squares,df,Mean Square,F,Sig.
+Corrected Model,216.017,7,30.860,5.046,.001
+Intercept,3410.526,1,3410.526,557.709,.000
+Agrp,9.579,1,9.579,1.566,.220
+Bgrp,186.225,3,62.075,10.151,.000
+Agrp * Bgrp,20.212,3,6.737,1.102,.364
+Error,183.457,30,6.115,,
+Total,3810.000,38,,,
+Corrected Total,399.474,37,,,
+
+warning: GLM is experimental.  Do not rely on these results.
+
+Table: Tests of Between-Subjects Effects
+Source,Type I Sum of Squares,df,Mean Square,F,Sig.
+Corrected Model,216.017,7,30.860,5.046,.001
+Intercept,3410.526,1,3410.526,557.709,.000
+Bgrp,193.251,3,64.417,10.534,.000
+Agrp,2.553,1,2.553,.418,.523
+Bgrp * Agrp,20.212,3,6.737,1.102,.364
+Error,183.457,30,6.115,,
+Total,3810.000,38,,,
+Corrected Total,399.474,37,,,
+])
+
+AT_CLEANUP
