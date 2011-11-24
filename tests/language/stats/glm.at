@@ -177,11 +177,11 @@ begin data.
 end data.
 
 do if B0 = -1 AND B1 = -1 AND B2 = -1.
-compute Bgrp = -1.
+compute Bgrp = 4.
 end if.
 
 do if B0 = 0 AND B1 = 0 AND B2 = 1.
-compute Bgrp = 1.
+compute Bgrp = 3.
 end if.
 
 do if B0 = 0 AND B1 = 1 AND B2 = 0.
@@ -189,12 +189,7 @@ compute Bgrp = 2.
 end if.
 
 do if B0 = 1 AND B1 = 0 AND B2 = 0.
-compute Bgrp = 3.
-end if.
-
-
-do if B0 = 0 AND B1 = 1 AND B2 = 0.
-compute Bgrp = 4.
+compute Bgrp = 1.
 end if.
 
 
