@@ -267,9 +267,9 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 	    }
 
 	  glm.ss_type = lex_integer (lexer);
-	  if (1 != glm.ss_type  && 2 != glm.ss_type )
+	  if (1 > glm.ss_type  && 3 < glm.ss_type )
 	    {
-	      msg (ME, _("Only types 1 & 2 sum of squares are currently implemented"));
+	      msg (ME, _("Only types 1, 2 & 3 sums of squares are currently implemented"));
 	      goto error;
 	    }
 
@@ -513,6 +513,66 @@ ssq_type2 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
   gsl_matrix_free (cm);
 }
 
+/* 
+   Type 3 sums of squares.
+   Populate SSQ with the Type 2 sums of squares according to COV
+ */
+static void
+ssq_type3 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
+{
+  gsl_matrix *cm = covariance_calculate_unnormalized (cov);
+  size_t i;
+  size_t k;
+  bool *model_dropped = xcalloc (covariance_dim (cov), sizeof (*model_dropped));
+  bool *submodel_dropped = xcalloc (covariance_dim (cov), sizeof (*submodel_dropped));
+  const struct categoricals *cats = covariance_get_categoricals (cov);
+
+  double ss0;
+  gsl_matrix *submodel_cov = gsl_matrix_alloc (cm->size1, cm->size2);
+  fill_submatrix (cm, submodel_cov, submodel_dropped);
+  reg_sweep (submodel_cov, 0);
+  ss0 = gsl_matrix_get (submodel_cov, 0, 0);
+  gsl_matrix_free (submodel_cov);
+  free (submodel_dropped);
+
+  for (k = 0; k < cmd->n_interactions; k++)
+    {
+      gsl_matrix *model_cov = NULL;
+      size_t n_dropped_model = 0;
+
+      for (i = cmd->n_dep_vars; i < covariance_dim (cov); i++)
+	{
+	  const struct interaction * x = 
+	    categoricals_get_interaction_by_subscript (cats, i - cmd->n_dep_vars);
+
+	  model_dropped[i] = false;
+
+	  if ( cmd->interactions [k] == x)
+	    {
+	      assert (n_dropped_model < covariance_dim (cov));
+	      n_dropped_model++;
+	      model_dropped[i] = true;
+	    }
+	}
+
+      model_cov = gsl_matrix_alloc (cm->size1 - n_dropped_model, cm->size2 - n_dropped_model);
+
+      fill_submatrix (cm, model_cov,    model_dropped);
+
+      reg_sweep (model_cov, 0);
+
+      gsl_vector_set (ssq, k + 1,
+		      gsl_matrix_get (model_cov, 0, 0) - ss0);
+
+      gsl_matrix_free (model_cov);
+    }
+  free (model_dropped);
+
+  gsl_matrix_free (cm);
+}
+
+
+
 //static  void dump_matrix (const gsl_matrix *m);
 
 static void
@@ -616,9 +676,10 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
 	ssq_type1 (cov, ws.ssq, cmd);
 	break;
       case 2:
-      case 3:
-	/* Type 3 is not yet implemented :( but for balanced designs it is the same as type 2 */
 	ssq_type2 (cov, ws.ssq, cmd);
+	break;
+      case 3:
+	ssq_type3 (cov, ws.ssq, cmd);
 	break;
       default:
 	NOT_REACHED ();
