@@ -127,11 +127,11 @@ Corrected Total,17833.918,19,,,
 AT_CLEANUP
 
 
-AT_SETUP([GLM Type 1 Sums of Squares])
+AT_SETUP([GLM Type I and II Sums of Squares])
 
 dnl  The following example comes from 
 dnl  http://www.uvm.edu/~dhowell/StatPages/More_Stuff/Type1-3.pdf
-AT_DATA([type1.sps], [dnl
+AT_DATA([data-inc.sps], [dnl
 set decimal = dot.
 set format=F20.3.
 data list notable list /dv * Agrp * B0 * B1 * B2 * i0 * i1 * i2 * sss *.
@@ -191,7 +191,10 @@ end if.
 do if B0 = 1 AND B1 = 0 AND B2 = 0.
 compute Bgrp = 1.
 end if.
+])
 
+AT_DATA([type1.sps], [dnl
+include 'data-inc.sps'.
 
 glm dv by Agrp Bgrp
 	/method = sstype (1)
@@ -228,6 +231,32 @@ Intercept,3410.526,1,3410.526,557.709,.000
 Bgrp,193.251,3,64.417,10.534,.000
 Agrp,2.553,1,2.553,.418,.523
 Bgrp * Agrp,20.212,3,6.737,1.102,.364
+Error,183.457,30,6.115,,
+Total,3810.000,38,,,
+Corrected Total,399.474,37,,,
+])
+
+
+AT_DATA([type2.sps], [dnl
+include 'data-inc.sps'.
+
+glm dv by Agrp Bgrp
+	/method = sstype (2)
+	.
+])
+
+
+AT_CHECK([pspp -O format=csv type2.sps], [0],
+  [dnl
+warning: GLM is experimental.  Do not rely on these results.
+
+Table: Tests of Between-Subjects Effects
+Source,Type II Sum of Squares,df,Mean Square,F,Sig.
+Corrected Model,216.017,7,30.860,5.046,.001
+Intercept,3410.526,1,3410.526,557.709,.000
+Agrp,2.553,1,2.553,.418,.523
+Bgrp,186.225,3,62.075,10.151,.000
+Agrp * Bgrp,20.212,3,6.737,1.102,.364
 Error,183.457,30,6.115,,
 Total,3810.000,38,,,
 Corrected Total,399.474,37,,,
