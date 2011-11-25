@@ -32,7 +32,7 @@
 
 #include "gl/xalloc.h"
 
-#define EFFECTS_CODING 0
+#define EFFECTS_CODING 1
 
 struct value_node
 {
@@ -647,6 +647,7 @@ categoricals_get_binary_by_subscript (const struct categoricals *cat,
 
   const struct interact_params *iap = &cat->iap[i];
 
+  double dfp = 1.0;
   for (v = 0; v < iact->n_vars; ++v)
   {
     const struct variable *var = iact->vars[v];
@@ -660,13 +661,14 @@ categoricals_get_binary_by_subscript (const struct categoricals *cat,
 
     double bin = 1.0;
 
+    const double df = iap->df_prod[v] / dfp;
+
     /* Translate the subscript into an index for the individual variable */
-    int index = (subscript - base_index) % iap->df_prod[v];
-    if ( v > 0)
-      index /= iap->df_prod[v - 1];
+    const int index = ((subscript - base_index) % iap->df_prod[v] ) / dfp;
+    dfp = iap->df_prod [v];
 
 #if EFFECTS_CODING
-    if ( valn->index == 0)
+    if ( valn->index == df )
       bin = -1.0;
     else 
 #endif
