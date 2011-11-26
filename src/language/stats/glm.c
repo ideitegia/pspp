@@ -717,7 +717,7 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
     cmd->wv ? var_get_print_format (cmd->wv) : &F_8_0;
 
   double n_total, mean;
-  double df_corr = 0.0;
+  double df_corr = 1.0;
   double mse = 0;
 
   int f;
@@ -727,9 +727,9 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   struct tab_table *t;
 
   const int nc = 6;
-  int nr = heading_rows + 4 + cmd->n_interactions;
+  int nr = heading_rows + 3 + cmd->n_interactions;
   if (cmd->intercept)
-    nr++;
+    nr += 2;
 
   msg (MW, "GLM is experimental.  Do not rely on these results.");
   t = tab_create (nc, nr);
@@ -755,27 +755,29 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
 
   moments_calculate (ws->totals, &n_total, &mean, NULL, NULL, NULL);
 
-  if (cmd->intercept)
-    df_corr += 1.0;
-
   df_corr += categoricals_df_total (ws->cats);
 
-  mse = gsl_vector_get (ws->ssq, 0) / (n_total - df_corr);
-
   r = heading_rows;
-  tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Corrected Model"));
+  if (cmd->intercept)
+    tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Corrected Model"));
+  else
+    tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Model"));
 
   r++;
 
+  mse = gsl_vector_get (ws->ssq, 0) / (n_total - df_corr);
+
+  const double intercept_ssq = pow2 (mean * n_total) / n_total;
+
+  double ssq_effects = 0.0;
   if (cmd->intercept)
     {
-      const double intercept = pow2 (mean * n_total) / n_total;
       const double df = 1.0;
-      const double F = intercept / df / mse;
+      const double F = intercept_ssq / df / mse;
       tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Intercept"));
-      tab_double (t, 1, r, 0, intercept, NULL);
+      tab_double (t, 1, r, 0, intercept_ssq, NULL);
       tab_double (t, 2, r, 0, 1.00, wfmt);
-      tab_double (t, 3, r, 0, intercept / df, NULL);
+      tab_double (t, 3, r, 0, intercept_ssq / df, NULL);
       tab_double (t, 4, r, 0, F, NULL);
       tab_double (t, 5, r, 0, gsl_cdf_fdist_Q (F, df, n_total - df_corr),
 		  NULL);
@@ -785,8 +787,17 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   for (f = 0; f < cmd->n_interactions; ++f)
     {
       struct string str = DS_EMPTY_INITIALIZER;
-      const double df = categoricals_df (ws->cats, f);
-      const double ssq = gsl_vector_get (ws->ssq, f + 1);
+      double df = categoricals_df (ws->cats, f);
+
+      double ssq = gsl_vector_get (ws->ssq, f + 1);
+      ssq_effects += ssq;
+
+      if (! cmd->intercept) 
+	{
+	  df++;
+	  ssq += intercept_ssq;
+	}
+
       const double F = ssq / df / mse;
       interaction_to_string (cmd->interactions[f], &str);
       tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, ds_cstr (&str));
@@ -803,9 +814,14 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
     }
 
   {
-    /* Corrected Model */
-    const double df = df_corr - 1.0;
-    const double ssq = ws->total_ssq - gsl_vector_get (ws->ssq, 0);
+    /* Model / Corrected Model */
+    double df = df_corr;
+    double ssq = ws->total_ssq - gsl_vector_get (ws->ssq, 0);
+    if ( cmd->intercept )
+      df --;
+    else
+      ssq += intercept_ssq;
+
     const double F = ssq / df / mse;
     tab_double (t, 1, heading_rows, 0, ssq, NULL);
     tab_double (t, 2, heading_rows, 0, df, wfmt);
@@ -826,23 +842,20 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
     tab_double (t, 3, r++, 0, mse, NULL);
   }
 
+  {
+    tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Total"));
+    tab_double (t, 1, r, 0, ws->total_ssq + intercept_ssq, NULL);
+    tab_double (t, 2, r, 0, n_total, wfmt);
+    
+    r++;
+  }
+
   if (cmd->intercept)
     {
-      const double intercept = pow2 (mean * n_total) / n_total;
-      const double ssq = intercept + ws->total_ssq;
-
-      tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Total"));
-      tab_double (t, 1, r, 0, ssq, NULL);
-      tab_double (t, 2, r, 0, n_total, wfmt);
-
-      r++;
+      tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Corrected Total"));
+      tab_double (t, 1, r, 0, ws->total_ssq, NULL);
+      tab_double (t, 2, r, 0, n_total - 1.0, wfmt);
     }
-
-  tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Corrected Total"));
-
-
-  tab_double (t, 1, r, 0, ws->total_ssq, NULL);
-  tab_double (t, 2, r, 0, n_total - 1.0, wfmt);
 
   tab_submit (t);
 }
