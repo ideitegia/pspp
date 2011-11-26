@@ -264,6 +264,9 @@ categoricals_destroy (struct categoricals *cat)
 	{
 	  case_unref (iv->ccase);
 	}
+
+      free (cat->iap[i].enc_sum);
+      free (cat->iap[i].df_prod);
       hmap_destroy (&cat->iap[i].ivmap);
     }
 
