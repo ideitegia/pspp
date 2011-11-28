@@ -599,21 +599,6 @@ categoricals_get_interaction_by_subscript (const struct categoricals *cat, int s
   return cat->iap[index].iact;
 }
 
-/* Return the case corresponding to SUBSCRIPT */
-static const struct ccase *
-categoricals_get_case_by_subscript (const struct categoricals *cat, int subscript)
-{
-  int vindex = reverse_variable_lookup_short (cat, subscript);
-  const struct interact_params *vp = &cat->iap[vindex];
-  const struct interaction_value *vn = vp->reverse_interaction_value_map [subscript - vp->base_subscript_short];
-
-  if ( vn == NULL)
-    return NULL;
-
-  return vn->ccase;
-}
-
-
 double
 categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscript)
 {
