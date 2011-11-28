@@ -86,8 +86,7 @@ const struct interaction *categoricals_get_interaction_by_subscript (const struc
 
 double categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript);
 
-double categoricals_get_binary_by_subscript (const struct categoricals *cat, int subscript,
-					     const struct ccase *c);
+double categoricals_get_code_for_case (const struct categoricals *cat, int subscript, const struct ccase *c);
 
 
 /* These use the long map.  Useful for descriptive statistics. */

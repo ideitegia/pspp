@@ -561,7 +561,7 @@ categoricals_done (const struct categoricals *cat_)
 	  struct interaction_value *iv = iap->reverse_interaction_value_map[y];
 	  for (x = iap->base_subscript_short; x < iap->base_subscript_short + df ;++x)
 	    {
-	      const double bin = categoricals_get_binary_by_subscript (cat, x, iv->ccase); \
+	      const double bin = categoricals_get_code_for_case (cat, x, iv->ccase); \
 	      iap->enc_sum [x - iap->base_subscript_short] += bin * iv->cc;
 	    }
 	}
@@ -620,8 +620,7 @@ categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript
 /* Returns unity if the value in case C at SUBSCRIPT is equal to the category
    for that subscript */
 double
-categoricals_get_binary_by_subscript (const struct categoricals *cat,
-				      int subscript,
+categoricals_get_code_for_case (const struct categoricals *cat, int subscript,
 				      const struct ccase *c)
 {
   const struct interaction *iact = categoricals_get_interaction_by_subscript (cat, subscript);
