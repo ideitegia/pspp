@@ -1003,7 +1003,7 @@ paginate (GtkPrintOperation *operation,
   if ( window->print_item < window->n_items )
     {
       xr_driver_output_item (window->print_xrd, window->items[window->print_item++]);
-      if (xr_driver_need_new_page (window->print_xrd))
+      while (xr_driver_need_new_page (window->print_xrd))
 	{
 	  xr_driver_next_page (window->print_xrd, NULL);
 	  window->print_n_pages ++;
@@ -1046,12 +1046,9 @@ draw_page (GtkPrintOperation *operation,
 	   PsppireOutputWindow *window)
 {
   xr_driver_next_page (window->print_xrd, gtk_print_context_get_cairo_context (context));
-  while ( window->print_item < window->n_items)
-    {
-      xr_driver_output_item (window->print_xrd, window->items [window->print_item++]);
-      if ( xr_driver_need_new_page (window->print_xrd) )
-	  break;	  
-    }
+  while (!xr_driver_need_new_page (window->print_xrd)
+         && window->print_item < window->n_items)
+    xr_driver_output_item (window->print_xrd, window->items [window->print_item++]);
 }
 
 
