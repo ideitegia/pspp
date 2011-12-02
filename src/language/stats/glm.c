@@ -716,6 +716,8 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
   const struct fmt_spec *wfmt =
     cmd->wv ? var_get_print_format (cmd->wv) : &F_8_0;
 
+  double intercept_ssq;
+  double ssq_effects;
   double n_total, mean;
   double df_corr = 1.0;
   double mse = 0;
@@ -767,9 +769,9 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
 
   mse = gsl_vector_get (ws->ssq, 0) / (n_total - df_corr);
 
-  const double intercept_ssq = pow2 (mean * n_total) / n_total;
+  intercept_ssq = pow2 (mean * n_total) / n_total;
 
-  double ssq_effects = 0.0;
+  ssq_effects = 0.0;
   if (cmd->intercept)
     {
       const double df = 1.0;
@@ -790,6 +792,8 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
       double df = categoricals_df (ws->cats, f);
 
       double ssq = gsl_vector_get (ws->ssq, f + 1);
+      double F;
+
       ssq_effects += ssq;
 
       if (! cmd->intercept) 
@@ -798,7 +802,7 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
 	  ssq += intercept_ssq;
 	}
 
-      const double F = ssq / df / mse;
+      F = ssq / df / mse;
       interaction_to_string (cmd->interactions[f], &str);
       tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, ds_cstr (&str));
       ds_destroy (&str);
@@ -817,12 +821,14 @@ output_glm (const struct glm_spec *cmd, const struct glm_workspace *ws)
     /* Model / Corrected Model */
     double df = df_corr;
     double ssq = ws->total_ssq - gsl_vector_get (ws->ssq, 0);
+    double F;
+
     if ( cmd->intercept )
       df --;
     else
       ssq += intercept_ssq;
 
-    const double F = ssq / df / mse;
+    F = ssq / df / mse;
     tab_double (t, 1, heading_rows, 0, ssq, NULL);
     tab_double (t, 2, heading_rows, 0, df, wfmt);
     tab_double (t, 3, heading_rows, 0, ssq / df, NULL);

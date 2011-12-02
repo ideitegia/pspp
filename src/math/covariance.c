@@ -742,7 +742,9 @@ struct tab_table *
 covariance_dump_enc_header (const struct covariance *cov, int length)
 {
   struct tab_table *t = tab_create (cov->dim,  length);
+  int n;
   int i;
+
   tab_title (t, "Covariance Encoding");
 
   tab_box (t, 
@@ -758,18 +760,19 @@ covariance_dump_enc_header (const struct covariance *cov, int length)
       tab_vline (t, TAL_1, i + 1, 0, tab_nr (t) - 1);
     }
 
-  int n = 0;
+  n = 0;
   while (i < cov->dim)
     {
       struct string str;
       int idx = i - cov->n_vars;
       const struct interaction *iact =
 	categoricals_get_interaction_by_subscript (cov->categoricals, idx);
+      int df;
 
       ds_init_empty (&str);
       interaction_to_string (iact, &str);
 
-      int df = categoricals_df (cov->categoricals, n);
+      df = categoricals_df (cov->categoricals, n);
 
       tab_joint_text (t,
 		      i, 0,

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009, 2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -69,17 +69,16 @@
 int
 reg_sweep (gsl_matrix * A, int last_col)
 {
-  if (A == NULL)
-    return GSL_EFAULT;
-
-  if (A->size1 != A->size2)
-    return GSL_ENOTSQR;
-
   int i;
   int j;
   int k;
   gsl_matrix *B;
 
+  if (A == NULL)
+    return GSL_EFAULT;
+
+  if (A->size1 != A->size2)
+    return GSL_ENOTSQR;
 
   assert (last_col < A->size1);
   gsl_matrix_swap_rows (A, A->size1 - 1, last_col);
