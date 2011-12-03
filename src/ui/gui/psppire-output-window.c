@@ -374,9 +374,8 @@ psppire_output_window_setup (void)
                       SETTINGS_DEVICE_UNFILTERED);
   output_driver_register (d);
 }
+
 
-int viewer_length = 16;
-int viewer_width = 59;
 
 /* Callback for the "delete" action (clicking the x on the top right
    hand corner of the window) */
