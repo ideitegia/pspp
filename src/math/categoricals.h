@@ -68,11 +68,16 @@ size_t categoricals_df_total (const struct categoricals *cat);
 size_t categoricals_get_n_variables (const struct categoricals *cat);
 
 
+bool categoricals_is_complete (const struct categoricals *cat);
+
+
 /*
   Must be called (once) before any call to the *_by_subscript or *_by_category
-  functions, but AFTER any calls to categoricals_update 
+  functions, but AFTER any calls to categoricals_update.
+  If this function returns false, then no calls to _by_subscript or *_by_category
+  are allowed.
 */
-void categoricals_done (const struct categoricals *cat);
+bool categoricals_done (const struct categoricals *cat);
 
 
 /*

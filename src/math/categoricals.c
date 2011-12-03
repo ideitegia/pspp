@@ -440,7 +440,8 @@ categoricals_df (const struct categoricals *cat, size_t n)
 size_t
 categoricals_n_total (const struct categoricals *cat)
 {
-  assert (cat->reverse_variable_map_long);
+  if (!categoricals_is_complete (cat))
+    return 0;
 
   return cat->n_cats_total;
 }
@@ -451,9 +452,16 @@ categoricals_df_total (const struct categoricals *cat)
   return cat->df_sum;
 }
 
+bool
+categoricals_is_complete (const struct categoricals *cat)
+{
+  return (NULL != cat->reverse_variable_map_short);
+}
+
+
 /* This function must be called *before* any call to categoricals_get_*_by subscript and
  *after* all calls to categoricals_update */
-void
+bool
 categoricals_done (const struct categoricals *cat_)
 {
   /* Implementation Note: Whilst this function is O(n) in cat->n_cats_total, in most
@@ -485,6 +493,9 @@ categoricals_done (const struct categoricals *cat_)
 	  const struct variable *var = iact->vars[v];
 
 	  struct variable_node *vn = lookup_variable (&cat->varmap, var, hash_pointer (var, 0));
+
+	  if  (hmap_count (&vn->valmap) == 0)
+	    return false;
 
 	  cat->iap[i].df_prod[v] = df * (hmap_count (&vn->valmap) - 1);
 	  df = cat->iap[i].df_prod[v];
@@ -566,6 +577,8 @@ categoricals_done (const struct categoricals *cat_)
 	    }
 	}
     }
+
+  return true;
 }
 
 

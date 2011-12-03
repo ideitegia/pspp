@@ -758,7 +758,15 @@ run_oneway (const struct oneway_spec *cmd,
       gsl_matrix *cm;
       struct per_var_ws *pvw = &ws.vws[v];
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
-      categoricals_done (cats);
+      const bool ok = categoricals_done (cats);
+
+      if ( ! ok)
+	{
+	  msg (MW, 
+	       _("Dependent variable %s has no non-missing values.  No analysis for this variable will be done."),
+	       var_get_name (cmd->vars[v]));
+	  continue;
+	}
 
       cm = covariance_calculate_unnormalized (pvw->cov);
 
@@ -782,6 +790,11 @@ run_oneway (const struct oneway_spec *cmd,
   for (v = 0; v < cmd->n_vars; ++v)
     {
       const struct categoricals *cats = covariance_get_categoricals (ws.vws[v].cov);
+
+      if ( ! categoricals_is_complete (cats))
+	{
+	  continue;
+	}
 
       if (categoricals_n_total (cats) > ws.actual_number_of_groups)
 	ws.actual_number_of_groups = categoricals_n_total (cats);
@@ -859,7 +872,12 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
     {
       int v;
       for (v = 0 ; v < cmd->n_vars; ++v)
-	show_comparisons (cmd, ws, v);
+	{
+	  const struct categoricals *cats = covariance_get_categoricals (ws->vws[v].cov);
+
+	  if ( categoricals_is_complete (cats))
+	    show_comparisons (cmd, ws, v);
+	}
     }
 }
 
@@ -1068,6 +1086,7 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 	  tab_double (t, 9, row + count, 0,  dd->maximum, fmt);
 	}
 
+      if (categoricals_is_complete (cats))
       {
 	double T;
 	double n, mean, variance;
@@ -1098,6 +1117,7 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 
 	tab_double (t, 7, row + count, 0,
 		    mean + T * std_error, NULL);
+
 
 	/* Min and Max */
 	tab_double (t, 8, row + count, 0,  ws->dd_total[v]->minimum, fmt);

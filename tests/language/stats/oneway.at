@@ -921,3 +921,30 @@ oneway test by x.
 AT_CHECK([pspp -O format=csv crash.sps], [0], [ignore])
 
 AT_CLEANUP
+
+
+
+AT_SETUP([ONEWAY crash on missing dependent variable])
+AT_DATA([crash2.sps],[dnl
+data list notable list /dv1 * dv2  *  y * .
+begin data.
+2  .  2     
+1  .  2 
+1  .  1    
+2  .  4    
+3  .  4
+4  .  4    
+5  .  4    
+end data.
+
+ONEWAY 
+       /VARIABLES= dv1 dv2  BY y
+       /STATISTICS = DESCRIPTIVES
+       /POSTHOC = BONFERRONI LSD SCHEFFE SIDAK TUKEY
+       /MISSING = ANALYSIS      
+       .
+])
+
+AT_CHECK([pspp -O format=csv crash2.sps], [0], [ignore])
+
+AT_CLEANUP
