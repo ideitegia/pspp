@@ -999,7 +999,13 @@ paginate (GtkPrintOperation *operation,
 	  GtkPrintContext   *context,
 	  PsppireOutputWindow *window)
 {
-  if ( window->print_item < window->n_items )
+  if (window->paginated)
+    {
+      /* Sometimes GTK+ emits this signal again even after pagination is
+         complete.  Don't let that screw up printing. */
+      return TRUE;
+    }
+  else if ( window->print_item < window->n_items )
     {
       xr_driver_output_item (window->print_xrd, window->items[window->print_item++]);
       while (xr_driver_need_new_page (window->print_xrd))
@@ -1012,8 +1018,13 @@ paginate (GtkPrintOperation *operation,
   else
     {
       gtk_print_operation_set_n_pages (operation, window->print_n_pages);
-      window->print_item = 0;
+
+      /* Re-create the driver to do the real printing. */
+      xr_driver_destroy (window->print_xrd);
       create_xr_print_driver (context, window);
+      window->print_item = 0;
+      window->paginated = TRUE;
+
       return TRUE;
     }
 }
@@ -1027,6 +1038,7 @@ begin_print (GtkPrintOperation *operation,
 
   window->print_item = 0;
   window->print_n_pages = 1;
+  window->paginated = FALSE;
 }
 
 static void
