@@ -33,6 +33,7 @@ struct interaction
 };
 
 struct interaction * interaction_create (const struct variable *);
+struct interaction * interaction_clone (const struct interaction *);
 void interaction_destroy (struct interaction *);
 void interaction_add_variable (struct interaction *, const struct variable *);
 void interaction_dump (const struct interaction *);

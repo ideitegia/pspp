@@ -42,7 +42,6 @@
 */
 
 
-
 struct interaction *
 interaction_create (const struct variable *v)
 {
@@ -56,6 +55,24 @@ interaction_create (const struct variable *v)
     }
   return i;
 }
+
+/* Deep copy an interaction */
+struct interaction *
+interaction_clone (const struct interaction *iact)
+{
+  int v;
+  struct interaction  *i = xmalloc (sizeof *i);
+  i->vars = xcalloc (iact->n_vars, sizeof *i->vars);
+  i->n_vars = iact->n_vars;
+
+  for (v = 0; v < iact->n_vars; ++v)
+    {
+      i->vars[v] = iact->vars[v];
+    }
+
+  return i;
+}
+
 
 void
 interaction_destroy (struct interaction *i)
