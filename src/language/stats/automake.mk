@@ -34,6 +34,7 @@ language_stats_sources = \
 	src/language/stats/ks-one-sample.h \
 	src/language/stats/mann-whitney.c \
 	src/language/stats/mann-whitney.h \
+	src/language/stats/means.c \
 	src/language/stats/mcnemar.c \
 	src/language/stats/mcnemar.h \
 	src/language/stats/median.c \
