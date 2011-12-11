@@ -59,6 +59,8 @@ static void psppire_output_window_base_init     (PsppireOutputWindowClass *class
 static void psppire_output_window_class_init    (PsppireOutputWindowClass *class);
 static void psppire_output_window_init          (PsppireOutputWindow      *window);
 
+static void psppire_output_window_realize (GtkWidget *window);
+
 
 GType
 psppire_output_window_get_type (void)
@@ -124,6 +126,8 @@ psppire_output_window_class_init (PsppireOutputWindowClass *class)
 
   parent_class = g_type_class_peek_parent (class);
   object_class->dispose = psppire_output_window_dispose;
+  
+  GTK_WIDGET_CLASS (object_class)->realize = psppire_output_window_realize;
 }
 
 
@@ -161,6 +165,8 @@ psppire_output_cast (struct output_driver *driver)
   assert (driver->class == &psppire_output_class);
   return UP_CAST (driver, struct psppire_output_driver, driver);
 }
+
+static void on_dwgarea_realize (GtkWidget *widget, gpointer data);
 
 static gboolean
 expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
@@ -228,6 +234,11 @@ psppire_output_submit (struct output_driver *this,
       PangoFontDescription *font_desc;
       char *font_name;
       int font_width;
+      
+      /* Set the widget's text color as the foreground color for the output driver */
+      gchar *fgc = gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (viewer))]);
+      string_map_insert (&options, "foreground-color", fgc);
+      g_free (fgc);
 
       /* Use GTK+ default font as proportional font. */
       font_name = pango_font_description_to_string (style->font_desc);
@@ -273,15 +284,18 @@ psppire_output_submit (struct output_driver *this,
   xr_rendering_measure (r, &tw, &th);
 
   drawing_area = gtk_drawing_area_new ();
-  gtk_widget_modify_bg (
-    GTK_WIDGET (drawing_area), GTK_STATE_NORMAL,
-    &gtk_widget_get_style (drawing_area)->base[GTK_STATE_NORMAL]);
+
   g_object_set_data (G_OBJECT (drawing_area), "rendering", r);
+  g_signal_connect (drawing_area, "realize",
+                     G_CALLBACK (on_dwgarea_realize), pod->viewer);
+
+  g_signal_connect (drawing_area, "expose_event",
+                     G_CALLBACK (expose_event_callback), NULL);
+
   gtk_widget_set_size_request (drawing_area, tw, th);
   gtk_layout_put (pod->viewer->output, drawing_area, 0, pod->viewer->y);
+
   gtk_widget_show (drawing_area);
-  g_signal_connect (G_OBJECT (drawing_area), "expose_event",
-                     G_CALLBACK (expose_event_callback), NULL);
 
   if (!is_text_item (item)
       || text_item_get_type (to_text_item (item)) != TEXT_ITEM_SYNTAX
@@ -854,6 +868,37 @@ on_select_all (PsppireOutputWindow *window)
 
 
 static void
+copy_base_to_bg (GtkWidget *dest, GtkWidget *src)
+{
+  int i;
+  for (i = 0; i < 5; ++i)
+    {
+      GdkColor *col = &gtk_widget_get_style (src)->base[i];
+
+      gtk_widget_modify_bg (dest, i, col);
+    }
+}
+
+static void 
+on_dwgarea_realize (GtkWidget *dwg_area, gpointer data)
+{
+  GtkWidget *viewer = GTK_WIDGET (data);
+
+  copy_base_to_bg (dwg_area, viewer);
+}
+
+static void
+psppire_output_window_realize (GtkWidget *w)
+{
+  GtkWidget *op = GTK_WIDGET (PSPPIRE_OUTPUT_WINDOW (w)->output);
+
+  copy_base_to_bg (op, w);  
+
+    /* Chain up to the parent class */
+  GTK_WIDGET_CLASS (parent_class)->realize (w);
+}
+
+static void
 psppire_output_window_init (PsppireOutputWindow *window)
 {
   GtkTreeViewColumn *column;
@@ -907,9 +952,6 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   g_signal_connect (GTK_TREE_VIEW (window->overview),
                     "row-activated", G_CALLBACK (on_row_activate), window);
-
-  gtk_widget_modify_bg (GTK_WIDGET (window->output), GTK_STATE_NORMAL,
-                        &gtk_widget_get_style (GTK_WIDGET (window->output))->base[GTK_STATE_NORMAL]);
 
   connect_help (xml);
 
