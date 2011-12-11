@@ -80,8 +80,6 @@ bool xr_driver_need_new_page (const struct xr_driver *);
 bool xr_driver_is_page_blank (const struct xr_driver *);
 
 /* Render charts with Cairo. */
-void xr_draw_chart (const struct chart_item *, cairo_t *,
-                    double x, double y, double width, double height);
 char *xr_draw_png_chart (const struct chart_item *,
                          const char *file_name_template, int number);
 
