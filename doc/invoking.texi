@@ -224,6 +224,13 @@ taken from the locale.  Otherwise, if @file{/etc/papersize} exists,
 the default paper size is read from it.  As a last resort, A4 paper is
 assumed.
 
+@item -O foreground-color=@var{color}
+@itemx -O background-color=@var{color}
+Sets @var{color} as the color to be used for the background or foreground.
+Color should be given in the format @code{#@var{RRRR}@var{GGGG}@var{BBBB}},
+where @var{RRRR}, @var{GGGG} and @var{BBBB} are 4 character hexadecimal
+representations of the red, green and blue components respectively.
+
 @item -O orientation=@var{orientation}
 Either @code{portrait} or @code{landscape}.  Default: @code{portrait}.
 

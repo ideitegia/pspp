@@ -131,6 +131,9 @@ struct xr_driver
     int line_space;		/* Space between lines. */
     int line_width;		/* Width of lines. */
 
+    double bg_red, bg_green, bg_blue; /* Background color */
+    double fg_red, fg_green, fg_blue; /* Foreground color */
+
     /* Internal state. */
     struct render_params *params;
     int char_width, char_height;
@@ -175,6 +178,35 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
      const char *default_value)
 {
   return driver_option_get (d, options, key, default_value);
+}
+
+/* Parse color information specified by KEY into {RED,GREEN,BLUE}.
+   Currently, the input string must be of the form "#RRRRGGGGBBBB"
+   Future implementations might allow things like "yellow" and
+   "sky-blue-ultra-brown"
+ */
+static void
+parse_color (struct output_driver *d, struct string_map *options,
+	      const char *key, const char *default_value,
+	      double *dred, double *dgreen, double *dblue)
+{
+  int red, green, blue;
+  char *string = parse_string (opt (d, options, key, default_value));
+
+  if (3 != sscanf (string, "#%04x%04x%04x", &red, &green, &blue))
+    {
+      /* If the parsed option string fails, then try the default value */
+      if ( 3 != sscanf (default_value, "#%04x%04x%04x", &red, &green, &blue))
+	{
+	  /* ... and if that fails set everything to zero */
+	  red = green = blue = 0;
+	}
+    }
+
+  /* Convert 16 bit ints to float */
+  *dred = red / (double) 0xFFFF;
+  *dgreen = green / (double) 0xFFFF;
+  *dblue = blue / (double) 0xFFFF;
 }
 
 static PangoFontDescription *
@@ -233,6 +265,9 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
   xr->line_space = XR_POINT;
   xr->line_width = XR_POINT / 2;
   xr->page_number = 0;
+
+  parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &xr->bg_red, &xr->bg_green, &xr->bg_blue);
+  parse_color (d, o, "foreground-color", "#000000000000", &xr->fg_red, &xr->fg_green, &xr->fg_blue);
 
   parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
   xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
@@ -322,6 +357,8 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
           xr->params->line_widths[i][RENDER_LINE_DOUBLE] = double_width;
         }
     }
+
+  cairo_set_source_rgb (xr->cairo, xr->fg_red, xr->fg_green, xr->fg_blue);
 
   return true;
 }
@@ -523,9 +560,17 @@ void
 xr_driver_next_page (struct xr_driver *xr, cairo_t *cairo)
 {
   if (cairo != NULL)
-    cairo_translate (cairo,
-                     xr_to_pt (xr->left_margin),
-                     xr_to_pt (xr->top_margin));
+    {
+      cairo_save (cairo);
+      cairo_set_source_rgb (cairo, xr->bg_red, xr->bg_green, xr->bg_blue);
+      cairo_rectangle (cairo, 0, 0, xr->width, xr->length);
+      cairo_fill (cairo);
+      cairo_restore (cairo);
+
+      cairo_translate (cairo,
+		       xr_to_pt (xr->left_margin),
+		       xr_to_pt (xr->top_margin));
+    }
 
   xr->page_number++;
   xr->cairo = cairo;
@@ -1060,12 +1105,6 @@ xr_draw_png_chart (const struct chart_item *item,
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, length);
   cr = cairo_create (surface);
-
-  cairo_save (cr);
-  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
-  cairo_rectangle (cr, 0, 0, width, length);
-  cairo_fill (cr);
-  cairo_restore (cr);
 
   cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
 
