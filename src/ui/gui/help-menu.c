@@ -95,9 +95,7 @@ online_help (const char *page)
   if (page == NULL)
     cmd = g_strdup_printf ("yelp file://%s", relocate (DOCDIR "/pspp.xml"));
   else
-    cmd = g_strdup_printf ("yelp file://%s#%s", relocate (DOCDIR "/pspp.xml"), page);
-
-  g_print ("%s\n",cmd);
+    cmd = g_strdup_printf ("yelp file://%s\\#%s", relocate (DOCDIR "/pspp.xml"), page);
 
   if ( ! g_spawn_command_line_async (cmd, &err) )
     {
