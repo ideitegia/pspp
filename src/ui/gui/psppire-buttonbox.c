@@ -265,6 +265,22 @@ refresh_clicked (GtkWidget *w, gpointer data)
 
 
 static void
+help_clicked (GtkWidget *w, gpointer data)
+{
+  GtkWidget *toplevel = gtk_widget_get_toplevel (w);
+  PsppireDialog *dialog;
+
+  if ( ! PSPPIRE_IS_DIALOG (toplevel))
+    return;
+
+  dialog = PSPPIRE_DIALOG (toplevel);
+
+  psppire_dialog_help (dialog);
+}
+
+
+
+static void
 on_validity_change (GtkWidget *toplevel, gboolean valid, gpointer data)
 {
   PsppireButtonBox *bb = data;
@@ -343,6 +359,8 @@ psppire_button_box_init (PsppireButtonBox *bb)
 
 
   bb->button[PSPPIRE_BUTTON_HELP] = gtk_button_new_from_stock (GTK_STOCK_HELP);
+  g_signal_connect (bb->button[PSPPIRE_BUTTON_HELP], "clicked",
+		    G_CALLBACK (help_clicked), NULL);
   psppire_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_HELP]);
   g_object_set (bb->button[PSPPIRE_BUTTON_HELP], "no-show-all", TRUE, NULL);
 
@@ -464,13 +482,13 @@ psppire_button_flags_get_type (void)
     {
       static const GFlagsValue values[] =
 	{
-	  { PSPPIRE_BUTTON_OK_MASK,     "PSPPIRE_BUTTON_OK_MASK",     N_("OK") },
-	  { PSPPIRE_BUTTON_GOTO_MASK,   "PSPPIRE_BUTTON_GOTO_MASK", N_("Go To") },
+	  { PSPPIRE_BUTTON_OK_MASK,      "PSPPIRE_BUTTON_OK_MASK",       N_("OK") },
+	  { PSPPIRE_BUTTON_GOTO_MASK,    "PSPPIRE_BUTTON_GOTO_MASK",     N_("Go To") },
 	  { PSPPIRE_BUTTON_CONTINUE_MASK,"PSPPIRE_BUTTON_CONTINUE_MASK", N_("Continue") },
-	  { PSPPIRE_BUTTON_CANCEL_MASK, "PSPPIRE_BUTTON_CANCEL_MASK", N_("Cancel") },
-	  { PSPPIRE_BUTTON_HELP_MASK,   "PSPPIRE_BUTTON_HELP_MASK",   N_("Help") },
-	  { PSPPIRE_BUTTON_RESET_MASK,  "PSPPIRE_BUTTON_RESET_MASK",  N_("Reset") },
-	  { PSPPIRE_BUTTON_PASTE_MASK,  "PSPPIRE_BUTTON_PASTE_MASK",  N_("Paste") },
+	  { PSPPIRE_BUTTON_CANCEL_MASK,  "PSPPIRE_BUTTON_CANCEL_MASK",   N_("Cancel") },
+	  { PSPPIRE_BUTTON_HELP_MASK,    "PSPPIRE_BUTTON_HELP_MASK",     N_("Help") },
+	  { PSPPIRE_BUTTON_RESET_MASK,   "PSPPIRE_BUTTON_RESET_MASK",    N_("Reset") },
+	  { PSPPIRE_BUTTON_PASTE_MASK,   "PSPPIRE_BUTTON_PASTE_MASK",    N_("Paste") },
 	  { 0, NULL, NULL }
 	};
 

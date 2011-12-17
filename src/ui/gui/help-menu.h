@@ -22,4 +22,7 @@
 
 void merge_help_menu (GtkUIManager *uim);
 
+void online_help (const char *page);
+
+
 #endif

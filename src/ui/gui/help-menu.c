@@ -85,12 +85,19 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
   gtk_widget_hide (about);
 }
 
-
-static void
-reference_manual (GtkMenuItem *menu, gpointer data)
+/* Open the manual at PAGE */
+void
+online_help (const char *page)
 {
   GError *err = NULL;
-  gchar *cmd = g_strdup_printf ("yelp file://%s", relocate (DOCDIR "/pspp.xml"));
+  gchar *cmd = NULL;
+
+  if (page == NULL)
+    cmd = g_strdup_printf ("yelp file://%s", relocate (DOCDIR "/pspp.xml"));
+  else
+    cmd = g_strdup_printf ("yelp file://%s#%s", relocate (DOCDIR "/pspp.xml"), page);
+
+  g_print ("%s\n",cmd);
 
   if ( ! g_spawn_command_line_async (cmd, &err) )
     {
@@ -103,6 +110,14 @@ reference_manual (GtkMenuItem *menu, gpointer data)
   g_free (cmd);
   g_clear_error (&err);
 }
+
+static void
+reference_manual (GtkMenuItem *menu, gpointer data)
+{
+  online_help (NULL);
+}
+
+
 
 void
 merge_help_menu (GtkUIManager *uim)

@@ -24,6 +24,7 @@
 #include "psppire-conf.h"
 #include <string.h>
 #include "helper.h"
+#include "help-menu.h"
 
 static void psppire_dialog_class_init          (PsppireDialogClass *);
 static void psppire_dialog_init                (PsppireDialog      *);
@@ -31,6 +32,7 @@ static void psppire_dialog_init                (PsppireDialog      *);
 
 enum  {DIALOG_REFRESH,
        VALIDITY_CHANGED,
+       DIALOG_HELP,
        n_SIGNALS};
 
 static guint signals [n_SIGNALS];
@@ -223,8 +225,6 @@ psppire_dialog_class_init (PsppireDialogClass *class)
 			  FALSE,
 			  G_PARAM_CONSTRUCT_ONLY |G_PARAM_READWRITE);
 
-
-
   object_class->set_property = psppire_dialog_set_property;
   object_class->get_property = psppire_dialog_get_property;
 
@@ -236,8 +236,6 @@ psppire_dialog_class_init (PsppireDialogClass *class)
   g_object_class_install_property (object_class,
                                    PROP_SLIDING,
                                    sliding_spec);
-
-
 
   signals [DIALOG_REFRESH] =
     g_signal_new ("refresh",
@@ -260,6 +258,18 @@ psppire_dialog_class_init (PsppireDialogClass *class)
 		  G_TYPE_NONE,
 		  1,
 		  G_TYPE_BOOLEAN);
+
+
+  signals [DIALOG_HELP] =
+    g_signal_new ("help",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__STRING,
+		  G_TYPE_NONE,
+		  1,
+		  G_TYPE_STRING);
 
 
   object_class->finalize = psppire_dialog_finalize;
@@ -393,8 +403,6 @@ connect_notify_signal (GtkWidget *w, gpointer data)
   if ( PSPPIRE_IS_BUTTONBOX (w))
     return;
 
-
-
   if ( GTK_IS_CONTAINER (w))
     {
       gtk_container_foreach (GTK_CONTAINER (w),
@@ -527,6 +535,16 @@ psppire_dialog_reload (PsppireDialog *dialog)
 }
 
 
+void
+psppire_dialog_help (PsppireDialog *dialog)
+{
+  char *name = NULL;
+  g_object_get (dialog, "name", &name, NULL);
+
+  online_help (name);
+
+  g_signal_emit (dialog, signals [DIALOG_HELP], 0, name);
+}
 
 
 GType
