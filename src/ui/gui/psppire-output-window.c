@@ -59,7 +59,7 @@ static void psppire_output_window_base_init     (PsppireOutputWindowClass *class
 static void psppire_output_window_class_init    (PsppireOutputWindowClass *class);
 static void psppire_output_window_init          (PsppireOutputWindow      *window);
 
-static void psppire_output_window_realize (GtkWidget *window);
+static void psppire_output_window_style_set (GtkWidget *window, GtkStyle *prev);
 
 
 GType
@@ -127,7 +127,7 @@ psppire_output_window_class_init (PsppireOutputWindowClass *class)
   parent_class = g_type_class_peek_parent (class);
   object_class->dispose = psppire_output_window_dispose;
   
-  GTK_WIDGET_CLASS (object_class)->realize = psppire_output_window_realize;
+  GTK_WIDGET_CLASS (object_class)->style_set = psppire_output_window_style_set;
 }
 
 
@@ -172,9 +172,8 @@ static gboolean
 expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
   struct xr_rendering *r = g_object_get_data (G_OBJECT (widget), "rendering");
-  cairo_t *cr;
+  cairo_t *cr = gdk_cairo_create (widget->window);
 
-  cr = gdk_cairo_create (widget->window);
   xr_rendering_draw (r, cr, event->area.x, event->area.y,
                      event->area.width, event->area.height);
   cairo_destroy (cr);
@@ -874,8 +873,10 @@ copy_base_to_bg (GtkWidget *dest, GtkWidget *src)
   for (i = 0; i < 5; ++i)
     {
       GdkColor *col = &gtk_widget_get_style (src)->base[i];
-
       gtk_widget_modify_bg (dest, i, col);
+
+      col = &gtk_widget_get_style (src)->text[i];
+      gtk_widget_modify_fg (dest, i, col);
     }
 }
 
@@ -887,15 +888,24 @@ on_dwgarea_realize (GtkWidget *dwg_area, gpointer data)
   copy_base_to_bg (dwg_area, viewer);
 }
 
+
 static void
-psppire_output_window_realize (GtkWidget *w)
+psppire_output_window_style_set (GtkWidget *w, GtkStyle *prev)
 {
   GtkWidget *op = GTK_WIDGET (PSPPIRE_OUTPUT_WINDOW (w)->output);
 
-  copy_base_to_bg (op, w);  
+  /* Copy the base style from the parent widget to the container and 
+     all its children.
+     We do this, because the container's primary purpose is to 
+     display text.  This way psppire appears to follow the chosen
+     gnome theme.
+   */
+  copy_base_to_bg (op, w);
+  gtk_container_foreach (GTK_CONTAINER (op), (GtkCallback) copy_base_to_bg,
+			 PSPPIRE_OUTPUT_WINDOW (w)->output);
 
     /* Chain up to the parent class */
-  GTK_WIDGET_CLASS (parent_class)->realize (w);
+  GTK_WIDGET_CLASS (parent_class)->style_set (w, prev);
 }
 
 static void
