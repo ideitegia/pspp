@@ -56,7 +56,6 @@ Free Documentation License".
 @title PSPP Users Guide
 @subtitle GNU PSPP Statistical Analysis Software
 @subtitle Release @value{VERSION}
-@author
 @page
 @vskip 0pt plus 1filll
 @insertcopying

@@ -680,14 +680,14 @@ These output routing subcommands are:
 @item ERRORS
 Applies to error and warning messages.  The default is BOTH.
 
-@itemx MESSAGES
+@item MESSAGES
 Applies to notes.  The default is BOTH.
 
-@itemx PRINTBACK
+@item PRINTBACK
 Determines whether the syntax used for input is printed back as part
 of the output.  The default is NONE.
 
-@itemx RESULTS
+@item RESULTS
 Applies to everything not in one of the above categories, such as the
 results of statistical procedures.  The default is BOTH.
 @end table

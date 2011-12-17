@@ -107,11 +107,11 @@ Variable names are displayed, for scratch variables only (@pxref{Scratch
 Variables}).
 
 @item ATTRIBUTES
-Datafile and variable attributes are displayed, except that attributes
-whose names begin with @code{@@} or @code{$@@} are omitted.
-
 @itemx @@ATTRIBUTES
-All datafile and variable attributes are displayed.
+Datafile and variable attributes are displayed.
+The first form of the command omits those attributes 
+whose names begin with @code{@@} or @code{$@@}.
+In the second for, all datafile and variable attributes are displayed.
 @end table
 
 With the @code{VECTOR} keyword, @cmd{DISPLAY} lists all the currently
