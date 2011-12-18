@@ -63,6 +63,7 @@ $(srcdir)/doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 		-e 's/&rsquo;/\&#8217;/g' \
 		-e 's/&mdash;/\&#8212;/g' \
 		-e 's/&ndash;/\&#8242;/g' \
+                -e 's/&eacute;/\&#0233;/g' \
 		-e 's/&copy;/\&#0169;/g' \
 		-e 's/&minus;/\&#8722;/g' \
 		-e 's/&hellip;/\&#8230;/g' \
