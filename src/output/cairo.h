@@ -31,12 +31,15 @@ struct string_map;
 struct xr_driver *xr_driver_create (cairo_t *, struct string_map *options);
 void xr_driver_destroy (struct xr_driver *);
 
+
 /* Functions for rendering a single output item to a Cairo context.
    Output items are never broken across multiple pages.
    Used by PSPPIRE to render in the GUI. */
 struct xr_rendering *xr_rendering_create (struct xr_driver *,
                                           const struct output_item *,
                                           cairo_t *);
+
+void xr_rendering_apply_options (struct xr_rendering *, struct string_map *o);
 void xr_rendering_measure (struct xr_rendering *, int *w, int *h);
 void xr_rendering_draw (struct xr_rendering *, cairo_t *,
                         int x, int y, int w, int h);

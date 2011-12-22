@@ -24,9 +24,7 @@
 #include <gtk/gtk.h>
 #include "psppire-window.h"
 #include "psppire.h"
-
-extern int viewer_length;
-extern int viewer_width ;
+#include "libpspp/string-map.h"
 
 
 G_BEGIN_DECLS
@@ -55,6 +53,7 @@ struct _PsppireOutputWindow
   int max_width;
   int y;
 
+  struct string_map render_opts;
   GtkTreeView *overview;
   GtkTreeIter cur_command;
   bool in_command;

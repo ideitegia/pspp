@@ -95,6 +95,9 @@ static GObjectClass *parent_class;
 static void
 psppire_output_window_finalize (GObject *object)
 {
+  string_map_destroy (&PSPPIRE_OUTPUT_WINDOW(object)->render_opts);
+
+
   if (G_OBJECT_CLASS (parent_class)->finalize)
     (*G_OBJECT_CLASS (parent_class)->finalize) (object);
 }
@@ -171,8 +174,38 @@ static void on_dwgarea_realize (GtkWidget *widget, gpointer data);
 static gboolean
 expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
+  PsppireOutputWindow *viewer = PSPPIRE_OUTPUT_WINDOW (data);
   struct xr_rendering *r = g_object_get_data (G_OBJECT (widget), "rendering");
   cairo_t *cr = gdk_cairo_create (widget->window);
+
+  const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
+
+  struct text_item *text_item;
+  PangoFontDescription *font_desc;
+  char *font_name;
+  int font_width;
+  
+  gchar *fgc =
+    gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (widget))]);
+
+  string_map_replace (&viewer->render_opts, "foreground-color", fgc);
+
+  free (fgc);
+
+  /* Use GTK+ default font as proportional font. */
+  font_name = pango_font_description_to_string (style->font_desc);
+  string_map_replace (&viewer->render_opts, "prop-font", font_name);
+  g_free (font_name);
+
+  /* Derived emphasized font from proportional font. */
+  font_desc = pango_font_description_copy (style->font_desc);
+  pango_font_description_set_style (font_desc, PANGO_STYLE_ITALIC);
+  font_name = pango_font_description_to_string (font_desc);
+  string_map_replace (&viewer->render_opts, "emph-font", font_name);
+  g_free (font_name);
+  pango_font_description_free (font_desc);
+
+  xr_rendering_apply_options (r, &viewer->render_opts);
 
   xr_rendering_draw (r, cr, event->area.x, event->area.y,
                      event->area.width, event->area.height);
@@ -228,7 +261,6 @@ psppire_output_submit (struct output_driver *this,
   if (pod->xr == NULL)
     {
       const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
-      struct string_map options = STRING_MAP_INITIALIZER (options);
       struct text_item *text_item;
       PangoFontDescription *font_desc;
       char *font_name;
@@ -236,19 +268,20 @@ psppire_output_submit (struct output_driver *this,
       
       /* Set the widget's text color as the foreground color for the output driver */
       gchar *fgc = gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (viewer))]);
-      string_map_insert (&options, "foreground-color", fgc);
+
+      string_map_insert (&pod->viewer->render_opts, "foreground-color", fgc);
       g_free (fgc);
 
       /* Use GTK+ default font as proportional font. */
       font_name = pango_font_description_to_string (style->font_desc);
-      string_map_insert (&options, "prop-font", font_name);
+      string_map_insert (&pod->viewer->render_opts, "prop-font", font_name);
       g_free (font_name);
 
       /* Derived emphasized font from proportional font. */
       font_desc = pango_font_description_copy (style->font_desc);
       pango_font_description_set_style (font_desc, PANGO_STYLE_ITALIC);
       font_name = pango_font_description_to_string (font_desc);
-      string_map_insert (&options, "emph-font", font_name);
+      string_map_insert (&pod->viewer->render_opts, "emph-font", font_name);
       g_free (font_name);
       pango_font_description_free (font_desc);
 
@@ -257,15 +290,14 @@ psppire_output_submit (struct output_driver *this,
          scrolling only.  (The length should not be increased very much because
          it is already close enough to INT_MAX when expressed as thousands of a
          point.) */
-      string_map_insert (&options, "paper-size", "300x200000mm");
-      string_map_insert (&options, "left-margin", "0");
-      string_map_insert (&options, "right-margin", "0");
-      string_map_insert (&options, "top-margin", "0");
-      string_map_insert (&options, "bottom-margin", "0");
+      string_map_insert (&pod->viewer->render_opts, "paper-size", "300x200000mm");
+      string_map_insert (&pod->viewer->render_opts, "left-margin", "0");
+      string_map_insert (&pod->viewer->render_opts, "right-margin", "0");
+      string_map_insert (&pod->viewer->render_opts, "top-margin", "0");
+      string_map_insert (&pod->viewer->render_opts, "bottom-margin", "0");
 
-      pod->xr = xr_driver_create (cr, &options);
+      pod->xr = xr_driver_create (cr, &pod->viewer->render_opts);
 
-      string_map_destroy (&options);
 
       text_item = text_item_create (TEXT_ITEM_PARAGRAPH, "X");
       r = xr_rendering_create (pod->xr, text_item_super (text_item), cr);
@@ -289,7 +321,7 @@ psppire_output_submit (struct output_driver *this,
                      G_CALLBACK (on_dwgarea_realize), pod->viewer);
 
   g_signal_connect (drawing_area, "expose_event",
-                     G_CALLBACK (expose_event_callback), NULL);
+                     G_CALLBACK (expose_event_callback), pod->viewer);
 
   gtk_widget_set_size_request (drawing_area, tw, th);
   gtk_layout_put (pod->viewer->output, drawing_area, 0, pod->viewer->y);
@@ -917,6 +949,8 @@ psppire_output_window_init (PsppireOutputWindow *window)
   GtkAction *copy_action;
   GtkAction *select_all_action;
   GtkTreeSelection *sel;
+
+  string_map_init (&window->render_opts);
 
   xml = builder_new ("output-viewer.ui");
 

@@ -184,7 +184,7 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
    Currently, the input string must be of the form "#RRRRGGGGBBBB"
    Future implementations might allow things like "yellow" and
    "sky-blue-ultra-brown"
- */
+*/
 static void
 parse_color (struct output_driver *d, struct string_map *options,
 	      const char *key, const char *default_value,
@@ -240,20 +240,15 @@ parse_font (struct output_driver *d, struct string_map *options,
   return desc;
 }
 
-static struct xr_driver *
-xr_allocate (const char *name, int device_type, struct string_map *o)
+
+static void
+apply_options (struct xr_driver *xr, struct string_map *o)
 {
+  struct output_driver *d = &xr->driver;
+
   int paper_width, paper_length;
-  struct output_driver *d;
-  struct xr_driver *xr;
-  int font_points;
 
-  xr = xzalloc (sizeof *xr);
-  d = &xr->driver;
-  output_driver_init (d, &cairo_driver_class, name, device_type);
-
-  font_points = parse_int (opt (d, o, "font-size", "10000"),
-                           1000, 1000000);
+  int font_points = parse_int (opt (d, o, "font-size", "10000"), 1000, 1000000);
   xr->fonts[XR_FONT_FIXED].desc = parse_font (d, o, "fixed-font", "monospace",
                                               font_points);
   xr->fonts[XR_FONT_PROPORTIONAL].desc = parse_font (d, o, "prop-font",
@@ -277,6 +272,17 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
 
   xr->width = paper_width - xr->left_margin - xr->right_margin;
   xr->length = paper_length - xr->top_margin - xr->bottom_margin;
+}
+
+static struct xr_driver *
+xr_allocate (const char *name, int device_type, struct string_map *o)
+{
+  struct xr_driver *xr = xzalloc (sizeof *xr);
+  struct output_driver *d = &xr->driver;
+
+  output_driver_init (d, &cairo_driver_class, name, device_type);
+
+  apply_options (xr, o);
 
   return xr;
 }
@@ -934,6 +940,8 @@ struct xr_rendering
 #define CHART_WIDTH 500
 #define CHART_HEIGHT 375
 
+
+
 struct xr_driver *
 xr_driver_create (cairo_t *cairo, struct string_map *options)
 {
@@ -969,6 +977,12 @@ xr_rendering_create_text (struct xr_driver *xr, const char *text, cairo_t *cr)
   table_item_unref (table_item);
 
   return r;
+}
+
+void 
+xr_rendering_apply_options (struct xr_rendering *xr, struct string_map *o)
+{
+  apply_options (xr->xr, o);
 }
 
 struct xr_rendering *
