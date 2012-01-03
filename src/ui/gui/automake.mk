@@ -143,6 +143,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/aggregate-dialog.h \
 	src/ui/gui/binomial-dialog.c \
 	src/ui/gui/binomial-dialog.h \
+	src/ui/gui/builder-wrapper.c \
+	src/ui/gui/builder-wrapper.h \
 	src/ui/gui/checkbox-treeview.c \
 	src/ui/gui/checkbox-treeview.h \
 	src/ui/gui/comments-dialog.c \
