@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,10 +25,11 @@
 #include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
-#include <ui/gui/helper.h>
+#include <ui/gui/builder-wrapper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
 #include "executor.h"
+#include "helper.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

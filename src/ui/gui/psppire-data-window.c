@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "ui/gui/aggregate-dialog.h"
 #include "ui/gui/autorecode-dialog.h"
 #include "ui/gui/binomial-dialog.h"
+#include "ui/gui/builder-wrapper.h"
 #include "ui/gui/chi-square-dialog.h"
 #include "ui/gui/comments-dialog.h"
 #include "ui/gui/compute-dialog.h"
@@ -42,6 +43,7 @@
 #include "ui/gui/frequencies-dialog.h"
 #include "ui/gui/goto-case-dialog.h"
 #include "ui/gui/help-menu.h"
+#include "ui/gui/helper.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/k-means-dialog.h"
 #include "ui/gui/k-related-dialog.h"

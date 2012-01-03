@@ -26,7 +26,9 @@
 #include "dialog-common.h"
 #include "widget-io.h"
 #include "psppire-scanf.h"
+#include "builder-wrapper.h"
 #include "helper.h"
+
 #include <xalloc.h>
 
 

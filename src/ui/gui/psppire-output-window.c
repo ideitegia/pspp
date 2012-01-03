@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,12 +35,14 @@
 #include "output/table-item.h"
 #include "output/text-item.h"
 #include "ui/gui/help-menu.h"
-#include "ui/gui/helper.h"
+#include "ui/gui/builder-wrapper.h"
 #include "ui/gui/psppire-output-window.h"
 
 #include "gl/error.h"
 #include "gl/tmpdir.h"
 #include "gl/xalloc.h"
+
+#include "helper.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -180,10 +182,8 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 
   const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
 
-  struct text_item *text_item;
   PangoFontDescription *font_desc;
   char *font_name;
-  int font_width;
   
   gchar *fgc =
     gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (widget))]);

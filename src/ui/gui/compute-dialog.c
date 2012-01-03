@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010, 2011  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 #include <config.h>
 #include <gtk/gtk.h>
 #include "compute-dialog.h"
-#include "helper.h"
+#include "builder-wrapper.h"
 #include "psppire-dialog.h"
 #include "psppire-keypad.h"
 #include "psppire-data-window.h"
@@ -26,8 +26,11 @@
 #include "dialog-common.h"
 #include <libpspp/i18n.h>
 
+
 #include <language/expressions/public.h>
 #include "executor.h"
+#include "helper.h"
+
 
 static void function_list_populate (GtkTreeView *tv);
 

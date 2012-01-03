@@ -18,6 +18,7 @@
 #include "psppire-var-sheet.h"
 #include <ui/gui/sheet/psppire-axis.h>
 
+#include "builder-wrapper.h"
 #include "helper.h"
 
 #include "customentry.h"

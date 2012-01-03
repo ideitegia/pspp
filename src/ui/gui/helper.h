@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2004, 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 #ifndef __MISC_H__
 #define __MISC_H__
 
-#include "relocatable.h"
 
 #include <data/format.h>
 #include <data/value.h>
@@ -26,8 +25,6 @@
 #include <gtk/gtk.h>
 
 #include "psppire-dict.h"
-
-#include "gl/configmake.h"
 
 gchar *paste_syntax_to_window (gchar *syntax);
 
@@ -56,18 +53,10 @@ text_to_value (const gchar *text,
 	       const struct variable *var,
 	       union value *);
 
-GObject *get_object_assert (GtkBuilder *builder, const gchar *name, GType type);
-GtkAction * get_action_assert (GtkBuilder *builder, const gchar *name);
-GtkWidget * get_widget_assert (GtkBuilder *builder, const gchar *name);
-
 gchar * convert_glib_filename_to_system_filename (const gchar *fname,
 						  GError **err);
 
 void connect_help (GtkBuilder *);
-
-#define builder_new(NAME) builder_new_real (relocate (PKGDATADIR "/" NAME))
-
-GtkBuilder *builder_new_real (const gchar *name);
 
 
 /* Create a deep copy of SRC */

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011  Free Software Foundation
+   Copyright (C) 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #include "count-dialog.h"
 
 #include <gtk/gtk.h>
-#include "helper.h"
+#include "builder-wrapper.h"
 #include "psppire-dialog.h"
 #include "psppire-selector.h"
 #include "psppire-val-chooser.h"
@@ -28,8 +28,10 @@
 #include "psppire-acr.h"
 #include "dialog-common.h"
 
+
 #include <ui/syntax-gen.h>
 #include "executor.h"
+#include "helper.h"
 
 struct cnt_dialog
 {

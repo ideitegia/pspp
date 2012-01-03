@@ -18,7 +18,7 @@
 
 #include "ui/gui/entry-dialog.h"
 
-#include "ui/gui/helper.h"
+#include "ui/gui/builder-wrapper.h"
 #include "ui/gui/psppire-dialog.h"
 
 #include "gl/xalloc.h"
