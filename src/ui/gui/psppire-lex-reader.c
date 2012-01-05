@@ -81,7 +81,7 @@ lex_gtk_text_buffer_read (struct lex_reader *r_, char *buf, size_t n,
 
   s = gtk_text_iter_get_text (&r->start, &iter);
 
-  strcpy (buf, s);
+  strncpy (buf, s, n_chars);
 
   r->start = iter;
 
