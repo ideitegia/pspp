@@ -158,6 +158,7 @@ var_destroy (struct variable *v)
       var_clear_aux (v);
       val_labs_destroy (v->val_labs);
       var_clear_label (v);
+      attrset_destroy (var_get_attributes (v));
       free (v->name);
       free (v);
     }

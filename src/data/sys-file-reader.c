@@ -698,7 +698,7 @@ read_variable_record (struct sfm_reader *r, struct sfm_var_record *record)
 
       /* Read up to MAX_LABEL_LEN bytes of label. */
       read_len = MIN (MAX_LABEL_LEN, len);
-      record->label = xmalloc (read_len + 1);
+      record->label = pool_malloc (r->pool, read_len + 1);
       read_string (r, record->label, read_len + 1);
 
       /* Skip unread label bytes. */
