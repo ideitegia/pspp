@@ -1015,6 +1015,8 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
     {
       r = xzalloc (sizeof *r);
       r->item = output_item_ref (item);
+      r->xr = xr;
+      xr_set_cairo (xr, cr);
     }
 
   return r;
