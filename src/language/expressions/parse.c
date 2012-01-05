@@ -897,8 +897,8 @@ parse_primary (struct lexer *lexer, struct expression *e)
         dict_encoding = (e->ds != NULL
                          ? dict_get_encoding (dataset_dict (e->ds))
                          : "UTF-8");
-        s = recode_string (dict_encoding, "UTF-8", lex_tokcstr (lexer),
-                           ss_length (lex_tokss (lexer)));
+        s = recode_string_pool (dict_encoding, "UTF-8", lex_tokcstr (lexer),
+                           ss_length (lex_tokss (lexer)), e->expr_pool);
         node = expr_allocate_string (e, ss_cstr (s));
 
 	lex_get (lexer);
