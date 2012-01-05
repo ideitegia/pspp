@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2007, 2010  Free Software Foundation
+   Copyright (C) 2006, 2007, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -92,12 +92,16 @@ online_help (const char *page)
   GError *err = NULL;
   gchar *cmd = NULL;
 
-  if (page == NULL)
-    cmd = g_strdup_printf ("yelp file://%s", relocate (DOCDIR "/pspp.xml"));
-  else
-    cmd = g_strdup_printf ("yelp file://%s\\#%s", relocate (DOCDIR "/pspp.xml"), page);
+  gchar *argv[3] = { "yelp", 0, 0};
 
-  if ( ! g_spawn_command_line_async (cmd, &err) )
+  if (page == NULL)
+    argv[1] = g_strdup_printf ("file://%s", relocate (DOCDIR "/pspp.xml"));
+  else
+    argv[1] = g_strdup_printf ("file://%s#%s", relocate (DOCDIR "/pspp.xml"), page);
+
+  if (! g_spawn_async (NULL, argv,
+		       NULL, G_SPAWN_SEARCH_PATH,
+		       NULL, NULL,   NULL,   &err))
     {
       msg (ME, _("Cannot open reference manual: %s.  The PSPP user manual is "
                  "also available at %s"),
