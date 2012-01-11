@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#include <glib.h>
+
 #include "psppire-conf.h"
 
 static void psppire_conf_init            (PsppireConf      *conf);
@@ -73,8 +75,8 @@ conf_read (PsppireConf *conf)
 			     NULL);
 }
 
-static void
-conf_write (PsppireConf *conf)
+static gboolean
+flush_conf (PsppireConf *conf)
 {
   gsize length = 0;
 
@@ -86,7 +88,18 @@ conf_write (PsppireConf *conf)
     }
 
   g_free (kf);
+  conf->idle = 0;
+  return FALSE;
 }
+
+static void
+conf_write (PsppireConf *conf)
+{
+  if ( conf->idle == 0)
+    conf->idle = g_idle_add_full (G_PRIORITY_LOW, 
+				  (GSourceFunc) flush_conf, conf, NULL);
+}
+
 
 static void
 psppire_conf_dispose  (GObject *object)
@@ -157,6 +170,7 @@ psppire_conf_init (PsppireConf *conf)
   conf->keyfile = g_key_file_new ();
 
   conf->dispose_has_run = FALSE;
+  conf->idle = 0;
 }
 
 

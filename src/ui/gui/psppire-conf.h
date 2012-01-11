@@ -62,6 +62,7 @@ struct _PsppireConf
 
   GKeyFile *keyfile;
   gchar *filename;
+  guint idle;
 };
 
 
