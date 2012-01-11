@@ -74,7 +74,8 @@ src_ui_gui_psppire_LDADD = \
 	$(GTK_LIBS) \
 	$(GTKSOURCEVIEW_LIBS) \
 	$(CAIRO_LIBS) \
-	$(LIBINTL)
+	$(LIBINTL) \
+	$(GSL_LIBS)
 
 src_ui_gui_psppiredir = $(pkgdatadir)
 
