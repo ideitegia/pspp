@@ -25,7 +25,7 @@ print "END FILE.\n";
 print "END INPUT PROGRAM.\n";
 
 print "PRINT OUTFILE='output.txt'/EXPR.\n";
-for my $format qw (F COMMA DOT DOLLAR PCT E CCA CCB CCC CCD CCE N Z) {
+for my $format (qw (F COMMA DOT DOLLAR PCT E CCA CCB CCC CCD CCE N Z)) {
     for my $d (0...16) {
 	my ($min_w);
 	if ($format ne 'E') {
