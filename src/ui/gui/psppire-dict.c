@@ -129,7 +129,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 
 
   signals [VARIABLE_CHANGED] =
-    g_signal_new ("variable_changed",
+    g_signal_new ("variable-changed",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
@@ -142,7 +142,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 
 
   signals [VARIABLE_INSERTED] =
-    g_signal_new ("variable_inserted",
+    g_signal_new ("variable-inserted",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
