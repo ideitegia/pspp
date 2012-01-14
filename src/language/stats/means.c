@@ -53,12 +53,9 @@ struct per_var_data
 };
 
 
-typedef void *stat_create (const struct means *, struct pool *pool);
-
-typedef void stat_update (const struct means *, void *stat, double w, double x);
-
-typedef double stat_get (const struct means *, struct per_var_data *, void *aux);
-
+typedef void *stat_create (struct pool *pool);
+typedef void stat_update  (void *stat, double w, double x);
+typedef double stat_get   (const struct per_var_data *, void *aux);
 
 struct cell_spec
 {
@@ -73,16 +70,14 @@ struct cell_spec
   stat_get *sd;
 };
 
-
 struct harmonic_mean
 {
   double rsum;
   double n;
 };
 
-
 static void *
-harmonic_create (const struct means *means UNUSED, struct pool *pool)
+harmonic_create (struct pool *pool)
 {
   struct harmonic_mean *hm = pool_alloc (pool, sizeof *hm);
 
@@ -94,7 +89,7 @@ harmonic_create (const struct means *means UNUSED, struct pool *pool)
 
 
 static void
-harmonic_update (const struct means *means UNUSED, void *stat, double w, double x)
+harmonic_update (void *stat, double w, double x)
 {
   struct harmonic_mean *hm = stat;
   hm->rsum  += w / x;
@@ -103,7 +98,7 @@ harmonic_update (const struct means *means UNUSED, void *stat, double w, double 
 
 
 static double
-harmonic_get (const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
+harmonic_get (const struct per_var_data *pvd UNUSED, void *stat)
 {
   struct harmonic_mean *hm = stat;
 
@@ -120,7 +115,7 @@ struct geometric_mean
 
 
 static void *
-geometric_create (const struct means *means UNUSED, struct pool *pool)
+geometric_create (struct pool *pool)
 {
   struct geometric_mean *gm = pool_alloc (pool, sizeof *gm);
 
@@ -132,7 +127,7 @@ geometric_create (const struct means *means UNUSED, struct pool *pool)
 
 
 static void
-geometric_update (const struct means *means UNUSED, void *stat, double w, double x)
+geometric_update (void *stat, double w, double x)
 {
   struct geometric_mean *gm = stat;
   gm->prod  *=  pow (x, w);
@@ -141,7 +136,7 @@ geometric_update (const struct means *means UNUSED, void *stat, double w, double
 
 
 static double
-geometric_get (const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
+geometric_get (const struct per_var_data *pvd UNUSED, void *stat)
 {
   struct geometric_mean *gm = stat;
 
@@ -151,7 +146,7 @@ geometric_get (const struct means *means UNUSED, struct per_var_data *pvd UNUSED
 
 
 static double
-sum_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
+sum_get (const struct per_var_data *pvd, void *stat UNUSED)
 {
   double n, mean;
 
@@ -162,7 +157,7 @@ sum_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat 
 
 
 static double
-n_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
+n_get (const struct per_var_data *pvd, void *stat UNUSED)
 {
   double n;
 
@@ -172,7 +167,7 @@ n_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat UN
 }
 
 static double
-arithmean_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
+arithmean_get (const struct per_var_data *pvd, void *stat UNUSED)
 {
   double n, mean;
 
@@ -182,7 +177,7 @@ arithmean_get (const const struct means *means UNUSED, struct per_var_data *pvd,
 }
 
 static double
-variance_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
+variance_get (const struct per_var_data *pvd, void *stat UNUSED)
 {
   double n, mean, variance;
 
@@ -193,16 +188,16 @@ variance_get (const const struct means *means UNUSED, struct per_var_data *pvd, 
 
 
 static double
-stddev_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+stddev_get (const struct per_var_data *pvd, void *stat)
 {
-  return sqrt (variance_get (means, pvd, stat));
+  return sqrt (variance_get (pvd, stat));
 }
 
 
 
 
 static double
-skew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
+skew_get (const struct per_var_data *pvd, void *stat UNUSED)
 {
   double skew;
 
@@ -212,7 +207,7 @@ skew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void
 }
 
 static double
-sekurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
+sekurt_get (const struct per_var_data *pvd, void *stat UNUSED)
 {
   double n;
 
@@ -221,10 +216,8 @@ sekurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, vo
   return calc_sekurt (n);
 }
 
-
-
 static double
-seskew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
+seskew_get (const struct per_var_data *pvd, void *stat UNUSED)
 {
   double n;
 
@@ -233,10 +226,8 @@ seskew_get (const const struct means *means UNUSED, struct per_var_data *pvd, vo
   return calc_seskew (n);
 }
 
-
-
 static double
-kurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
+kurt_get (const struct per_var_data *pvd, void *stat UNUSED)
 {
   double kurt;
 
@@ -245,9 +236,8 @@ kurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void
   return kurt;
 }
 
-
 static double
-semean_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
+semean_get (const struct per_var_data *pvd, void *stat UNUSED)
 {
   double n, var;
 
@@ -256,12 +246,10 @@ semean_get (const struct means *means UNUSED, struct per_var_data *pvd, void *st
   return sqrt (var / n);
 }
 
-
-
 
 
 static void *
-min_create (const struct means *means UNUSED, struct pool *pool)
+min_create (struct pool *pool)
 {
   double *r = pool_alloc (pool, sizeof *r);
 
@@ -271,7 +259,7 @@ min_create (const struct means *means UNUSED, struct pool *pool)
 }
 
 static void
-min_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+min_update (void *stat, double w UNUSED, double x)
 {
   double *r = stat;
 
@@ -280,7 +268,7 @@ min_update (const struct means *means UNUSED, void *stat, double w UNUSED, doubl
 }
 
 static double
-min_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
+min_get (const struct per_var_data *pvd UNUSED, void *stat)
 {
   double *r = stat;
 
@@ -288,7 +276,7 @@ min_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED
 }
 
 static void *
-max_create (const struct means *means UNUSED, struct pool *pool)
+max_create (struct pool *pool)
 {
   double *r = pool_alloc (pool, sizeof *r);
 
@@ -298,7 +286,7 @@ max_create (const struct means *means UNUSED, struct pool *pool)
 }
 
 static void
-max_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+max_update (void *stat, double w UNUSED, double x)
 {
   double *r = stat;
 
@@ -307,7 +295,7 @@ max_update (const struct means *means UNUSED, void *stat, double w UNUSED, doubl
 }
 
 static double
-max_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
+max_get (const struct per_var_data *pvd UNUSED, void *stat)
 {
   double *r = stat;
 
@@ -323,7 +311,7 @@ struct range
 };
 
 static void *
-range_create (const struct means *means UNUSED, struct pool *pool)
+range_create (struct pool *pool)
 {
   struct range *r = pool_alloc (pool, sizeof *r);
 
@@ -334,7 +322,7 @@ range_create (const struct means *means UNUSED, struct pool *pool)
 }
 
 static void
-range_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+range_update (void *stat, double w UNUSED, double x)
 {
   struct range *r = stat;
 
@@ -346,7 +334,7 @@ range_update (const struct means *means UNUSED, void *stat, double w UNUSED, dou
 }
 
 static double
-range_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
+range_get (const struct per_var_data *pvd UNUSED, void *stat)
 {
   struct range *r = stat;
 
@@ -356,7 +344,7 @@ range_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUS
 
 
 static void *
-last_create (const struct means *means UNUSED, struct pool *pool)
+last_create (struct pool *pool)
 {
   double *l = pool_alloc (pool, sizeof *l);
 
@@ -364,7 +352,7 @@ last_create (const struct means *means UNUSED, struct pool *pool)
 }
 
 static void
-last_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+last_update (void *stat, double w UNUSED, double x)
 {
   double *l = stat;
 
@@ -372,7 +360,7 @@ last_update (const struct means *means UNUSED, void *stat, double w UNUSED, doub
 }
 
 static double
-last_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
+last_get (const struct per_var_data *pvd UNUSED, void *stat)
 {
   double *l = stat;
 
@@ -381,17 +369,17 @@ last_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSE
 
 
 static void *
-first_create (const struct means *means UNUSED, struct pool *pool)
+first_create (struct pool *pool)
 {
   double *f = pool_alloc (pool, sizeof *f);
 
-   *f = SYSMIS;
+  *f = SYSMIS;
 
   return f;
 }
 
 static void
-first_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+first_update (void *stat, double w UNUSED, double x)
 {
   double *f = stat;
 
@@ -400,14 +388,12 @@ first_update (const struct means *means UNUSED, void *stat, double w UNUSED, dou
 }
 
 static double
-first_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED,  void *stat)
+first_get (const struct per_var_data *pvd UNUSED,  void *stat)
 {
   double *f = stat;
 
   return *f;
 }
-
-
 
 /* Table of cell_specs */
 static const struct cell_spec cell_spec[] = {
@@ -845,7 +831,7 @@ create_n (const void *aux1, void *aux2)
 	  const struct cell_spec *cs = &cell_spec[csi];
 	  if (cs->sc)
 	    {
-	      pp->cell_stats[i] = cs->sc (means, means->pool);
+	      pp->cell_stats[i] = cs->sc (means->pool);
 	    }
 	}
       pp->mom = moments1_create (maxmom);
@@ -858,15 +844,13 @@ create_n (const void *aux1, void *aux2)
 }
 
 static void
-update_n (const void *aux1, void *aux2, void *user_data, const struct ccase *c)
+update_n (const void *aux1, void *aux2, void *user_data, const struct ccase *c, double weight)
 {
   int i;
   int v = 0;
   const struct means *means = aux1;
   struct mtable *table = aux2;
   struct per_cat_data *per_cat_data = user_data;
-
-  double weight = dict_get_case_weight (means->dict, c, &per_cat_data->warn);
 
   for (v = 0; v < table->n_dep_vars; ++v)
     {
@@ -887,8 +871,7 @@ update_n (const void *aux1, void *aux2, void *user_data, const struct ccase *c)
 
 
 	  if (cs->su)
-	    cs->su (means,
-		    pvd->cell_stats[i],
+	    cs->su (pvd->cell_stats[i],
 		    weight, x);
 	}
 
@@ -917,7 +900,7 @@ calculate_n (const void *aux1, void *aux2, void *user_data)
 	  const struct cell_spec *cs = &cell_spec[csi];
 
 	  if (cs->su)
-	    cs->sd (means, pvd, pvd->cell_stats[i]);
+	    cs->sd (pvd, pvd->cell_stats[i]);
 	}
     }
 }
@@ -1187,7 +1170,7 @@ output_report (const struct means *cmd,  int iact_idx,
 	      const int csi = cmd->cells[i];
 	      const struct cell_spec *cs = &cell_spec[csi];
 
-	      double result = cs->sd (cmd, pvd, pvd->cell_stats[i]);
+	      double result = cs->sd (pvd, pvd->cell_stats[i]);
 
 	      tab_double (t, heading_columns + i,
 			  heading_rows + grp + dv * n_cats,
