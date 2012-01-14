@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -575,7 +575,7 @@ dd_destroy (struct descriptive_data *dd)
 }
 
 static void *
-makeit (void *aux1, void *aux2 UNUSED)
+makeit (const void *aux1, void *aux2 UNUSED)
 {
   const struct variable *var = aux1;
 
@@ -585,12 +585,9 @@ makeit (void *aux1, void *aux2 UNUSED)
 }
 
 static void 
-updateit (void *user_data, 
-	  enum mv_class exclude,
-	  const struct variable *wv, 
-	  const struct variable *catvar UNUSED,
-	  const struct ccase *c,
-	  void *aux1, void *aux2)
+updateit (const void *aux1, void *aux2, void *user_data,
+	    const struct ccase *c, enum mv_class exclude,
+	    const struct variable *wv)
 {
   struct descriptive_data *dd = user_data;
 
@@ -653,10 +650,18 @@ run_oneway (const struct oneway_spec *cmd,
   for (v = 0; v < cmd->n_vars; ++v)
     {
       struct interaction *inter = interaction_create (cmd->indep_var);
+
+      struct payload payload;
+      payload.create = makeit;
+      payload.update = updateit;
+
       ws.vws[v].cat = categoricals_create (&inter, 1, cmd->wv,
-                                           cmd->exclude, makeit, updateit,
-                                           CONST_CAST (struct variable *, cmd->vars[v]),
-                                           ws.dd_total[v]);
+                                           cmd->exclude);
+
+      categoricals_set_payload (ws.vws[v].cat, &payload, 
+				CONST_CAST (struct variable *, cmd->vars[v]),
+				ws.dd_total[v]);
+
 
       ws.vws[v].cov = covariance_2pass_create (1, &cmd->vars[v],
 					       ws.vws[v].cat, 

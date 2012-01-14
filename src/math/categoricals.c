@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -178,15 +178,10 @@ struct categoricals
   /* Missing values to be excluded */
   enum mv_class exclude;
 
-  /* Function to be called on each update */
-  update_func *update;
-
-  /* Function specified by the caller to create user_data */
-  user_data_create_func *user_data_create;
-
-  /* Auxilliary data to be passed to update and user_data_create_func*/
-  void *aux1;
+  const void *aux1;
   void *aux2;
+
+  const struct payload *payload;
 };
 
 #if 0
@@ -262,6 +257,10 @@ categoricals_destroy (struct categoricals *cat)
       /* Interate over each interaction value, and unref any cases that we reffed */
       HMAP_FOR_EACH (iv, struct interaction_value, node, &cat->iap[i].ivmap)
 	{
+#if 0
+	  if (cat->payload)
+	    cat->payload->destroy (cat->aux1, iv->user_data);
+#endif
 	  case_unref (iv->ccase);
 	}
 
@@ -305,10 +304,7 @@ lookup_case (const struct hmap *map, const struct interaction *iact, const struc
 
 struct categoricals *
 categoricals_create (struct interaction *const*inter, size_t n_inter,
-		     const struct variable *wv, enum mv_class exclude,
-		     user_data_create_func *udf,
-		     update_func *update, void *aux1, void *aux2
-		     )
+		     const struct variable *wv, enum mv_class exclude)
 {
   size_t i;
   struct categoricals *cat = xmalloc (sizeof *cat);
@@ -321,11 +317,8 @@ categoricals_create (struct interaction *const*inter, size_t n_inter,
   cat->reverse_variable_map_long = NULL;
   cat->pool = pool_create ();
   cat->exclude = exclude;
-  cat->update = update;
-  cat->user_data_create = udf;
-
-  cat->aux1 = aux1;
-  cat->aux2 = aux2;
+  cat->payload = NULL;
+  cat->aux2 = NULL;
 
   cat->iap = pool_calloc (cat->pool, cat->n_iap, sizeof *cat->iap);
 
@@ -391,11 +384,14 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
     {
       const struct interaction *iact = cat->iap[i].iact;
 
-      //      if ( interaction_case_is_missing (iact, c, cat->exclude))
-      //         continue;
+      size_t hash;
+      struct interaction_value *node;
 
-      size_t hash = interaction_case_hash (iact, c, 0);
-      struct interaction_value *node = lookup_case (&cat->iap[i].ivmap, iact, c);
+      if ( interaction_case_is_missing (iact, c, cat->exclude))
+	continue;
+
+      hash = interaction_case_hash (iact, c, 0);
+      node = lookup_case (&cat->iap[i].ivmap, iact, c);
 
       if ( NULL == node)
 	{
@@ -406,8 +402,10 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 
 	  hmap_insert (&cat->iap[i].ivmap, &node->node, hash);
 
-	  if (cat->user_data_create)
-	    node->user_data = cat->user_data_create (cat->aux1, cat->aux2);
+	  if (cat->payload) 
+	    {
+	      node->user_data = cat->payload->create (cat->aux1, cat->aux2);
+	    }
 	}
       else
 	{
@@ -415,8 +413,9 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 	}
       cat->iap[i].cc += weight;
 
-      if (cat->update)
-      	cat->update (node->user_data, cat->exclude, cat->wv, NULL, c, cat->aux1, cat->aux2);
+      if (cat->payload)
+	cat->payload->update (cat->aux1, cat->aux2, node->user_data, c, cat->exclude, cat->wv);
+
     }
 }
 
@@ -689,6 +688,30 @@ categoricals_get_n_variables (const struct categoricals *cat)
   return cat->n_vars;
 }
 
+
+/* Return a case containing the set of values corresponding to 
+   the Nth Category of the IACTth interaction */
+const struct ccase *
+categoricals_get_case_by_category_real (const struct categoricals *cat, int iact, int n)
+{
+  const struct interact_params *vp = &cat->iap[iact];
+  const struct interaction_value *vn = vp->reverse_interaction_value_map [n];
+
+  return vn->ccase;
+}
+
+/* Return a the user data corresponding to the Nth Category of the IACTth interaction. */
+void *
+categoricals_get_user_data_by_category_real (const struct categoricals *cat, int iact, int n)
+{
+  const struct interact_params *vp = &cat->iap[iact];
+  const struct interaction_value *iv = vp->reverse_interaction_value_map [n];
+
+  return iv->user_data;
+}
+
+
+
 /* Return a case containing the set of values corresponding to SUBSCRIPT */
 const struct ccase *
 categoricals_get_case_by_category (const struct categoricals *cat, int subscript)
@@ -711,5 +734,13 @@ categoricals_get_user_data_by_category (const struct categoricals *cat, int subs
 }
 
 
+
 
-
+void
+categoricals_set_payload (struct categoricals *cat, const struct payload *p,
+			  const void *aux1, void *aux2)
+{
+  cat->payload = p;
+  cat->aux1 = aux1;
+  cat->aux2 = aux2;
+}

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -163,6 +163,8 @@ void
 interaction_to_string (const struct interaction *iact, struct string *str)
 {
   int v = 0;
+  if ( iact->n_vars == 0)
+    return;
   ds_put_cstr (str, var_to_string (iact->vars[v]));
   for (v = 1; v < iact->n_vars; ++v)
     {

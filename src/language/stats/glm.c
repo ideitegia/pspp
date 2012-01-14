@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -590,8 +590,7 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
   struct covariance *cov;
 
   ws.cats = categoricals_create (cmd->interactions, cmd->n_interactions,
-				 cmd->wv, cmd->exclude,
-				 NULL, NULL, NULL, NULL);
+				 cmd->wv, cmd->exclude);
 
   cov = covariance_2pass_create (cmd->n_dep_vars, cmd->dep_vars,
 				 ws.cats, cmd->wv, cmd->exclude);

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,19 +28,8 @@ struct interaction;
 
 union value ;
 
-typedef void update_func (void *user_data,
-			  enum mv_class exclude,
-			  const struct variable *wv, 
-			  const struct variable *catvar,
-			  const struct ccase *c,
-			  void *aux1, void *aux2);
-
-typedef void *user_data_create_func (void *aux1, void *aux2);
-
 struct categoricals *categoricals_create (struct interaction *const *, size_t n_int,
-					  const struct variable *wv, enum mv_class exclude,
-					  user_data_create_func *udf,
-					  update_func *update, void *aux1, void *aux2);
+					  const struct variable *wv, enum mv_class exclude);
 
 void categoricals_destroy (struct categoricals *);
 
@@ -99,9 +88,28 @@ double categoricals_get_code_for_case (const struct categoricals *cat, int subsc
 /* Return the value corresponding to the N'th category */
 const union value * categoricals_get_value_by_category (const struct categoricals *cat, int n);
 
+const struct ccase *
+categoricals_get_case_by_category_real (const struct categoricals *cat, int iact, int n);
+
+void *
+categoricals_get_user_data_by_category_real (const struct categoricals *cat, int iact, int n);
+
+
 void * categoricals_get_user_data_by_category (const struct categoricals *cat, int category);
 
 const struct ccase * categoricals_get_case_by_category (const struct categoricals *cat, int subscript);
+
+
+struct payload
+{
+  void* (*create)  (const void *aux1, void *aux2);
+  void (*update)  (const void *aux1, void *aux2, void *user_data,
+		   const struct ccase *, enum mv_class, const struct variable *wv);
+  void (*destroy) (const void *aux1, void *aux2, void *user_data);
+};
+
+
+void  categoricals_set_payload (struct categoricals *cats, const struct payload *p, const void *aux1, void *aux2);
 
 
 #endif
