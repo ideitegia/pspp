@@ -414,7 +414,10 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       cat->iap[i].cc += weight;
 
       if (cat->payload)
-	cat->payload->update (cat->aux1, cat->aux2, node->user_data, c, cat->exclude, cat->wv);
+	{
+	  double weight = cat->wv ? case_data (c, cat->wv)->f : 1.0;
+	  cat->payload->update (cat->aux1, cat->aux2, node->user_data, c, weight);
+	}
 
     }
 }

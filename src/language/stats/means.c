@@ -16,7 +16,6 @@
 
 #include <config.h>
 
-
 #include "data/case.h"
 #include "data/casegrouper.h"
 #include "data/casereader.h"
@@ -104,7 +103,7 @@ harmonic_update (const struct means *means UNUSED, void *stat, double w, double 
 
 
 static double
-harmonic_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+harmonic_get (const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
 {
   struct harmonic_mean *hm = stat;
 
@@ -142,7 +141,7 @@ geometric_update (const struct means *means UNUSED, void *stat, double w, double
 
 
 static double
-geometric_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+geometric_get (const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
 {
   struct geometric_mean *gm = stat;
 
@@ -151,14 +150,8 @@ geometric_get (const struct means *means UNUSED, struct per_var_data *pvd, void 
 
 
 
-static void *
-sum_create (const struct means *means UNUSED, struct pool *pool)
-{
-  return NULL;
-}
-
 static double
-sum_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+sum_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
 {
   double n, mean;
 
@@ -168,14 +161,8 @@ sum_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
 }
 
 
-static void *
-n_create (const struct means *means UNUSED, struct pool *pool)
-{
-  return NULL;
-}
-
 static double
-n_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+n_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
 {
   double n;
 
@@ -184,14 +171,8 @@ n_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
   return n;
 }
 
-static void *
-arithmean_create (const struct means *means UNUSED, struct pool *pool)
-{
-  return NULL;
-}
-
 static double
-arithmean_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+arithmean_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
 {
   double n, mean;
 
@@ -200,14 +181,8 @@ arithmean_get (const const struct means *means UNUSED, struct per_var_data *pvd,
   return mean;
 }
 
-static void *
-stddev_create (const struct means *means UNUSED, struct pool *pool)
-{
-  return NULL;
-}
-
 static double
-variance_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+variance_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
 {
   double n, mean, variance;
 
@@ -226,14 +201,8 @@ stddev_get (const const struct means *means UNUSED, struct per_var_data *pvd, vo
 
 
 
-static void *
-skew_create (const struct means *means UNUSED, struct pool *pool)
-{
-  return NULL;
-}
-
 static double
-skew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+skew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
 {
   double skew;
 
@@ -243,7 +212,7 @@ skew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void
 }
 
 static double
-sekurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+sekurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
 {
   double n;
 
@@ -255,7 +224,7 @@ sekurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, vo
 
 
 static double
-seskew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+seskew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
 {
   double n;
 
@@ -266,15 +235,8 @@ seskew_get (const const struct means *means UNUSED, struct per_var_data *pvd, vo
 
 
 
-static void *
-kurt_create (const struct means *means UNUSED, struct pool *pool)
-{
-  return NULL;
-}
-
-
 static double
-kurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+kurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
 {
   double kurt;
 
@@ -285,7 +247,7 @@ kurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void
 
 
 static double
-semean_get (const struct means *means, struct per_var_data *pvd, void *stat)
+semean_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat UNUSED)
 {
   double n, var;
 
@@ -318,7 +280,7 @@ min_update (const struct means *means UNUSED, void *stat, double w UNUSED, doubl
 }
 
 static double
-min_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+min_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
 {
   double *r = stat;
 
@@ -345,7 +307,7 @@ max_update (const struct means *means UNUSED, void *stat, double w UNUSED, doubl
 }
 
 static double
-max_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+max_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
 {
   double *r = stat;
 
@@ -384,7 +346,7 @@ range_update (const struct means *means UNUSED, void *stat, double w UNUSED, dou
 }
 
 static double
-range_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+range_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
 {
   struct range *r = stat;
 
@@ -410,7 +372,7 @@ last_update (const struct means *means UNUSED, void *stat, double w UNUSED, doub
 }
 
 static double
-last_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+last_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED, void *stat)
 {
   double *l = stat;
 
@@ -438,7 +400,7 @@ first_update (const struct means *means UNUSED, void *stat, double w UNUSED, dou
 }
 
 static double
-first_get (const const struct means *means UNUSED, struct per_var_data *pvd,  void *stat)
+first_get (const const struct means *means UNUSED, struct per_var_data *pvd UNUSED,  void *stat)
 {
   double *f = stat;
 
@@ -963,7 +925,7 @@ calculate_n (const void *aux1, void *aux2, void *user_data)
 
 static void
 run_means (struct means *cmd, struct casereader *input,
-	   const struct dataset *ds)
+	   const struct dataset *ds UNUSED)
 {
   int i,t;
   const struct variable *wv = dict_get_weight (cmd->dict);

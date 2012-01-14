@@ -103,8 +103,7 @@ const struct ccase * categoricals_get_case_by_category (const struct categorical
 struct payload
 {
   void* (*create)  (const void *aux1, void *aux2);
-  void (*update)  (const void *aux1, void *aux2, void *user_data,
-		   const struct ccase *, enum mv_class, const struct variable *wv);
+  void (*update)  (const void *aux1, void *aux2, void *user_data, const struct ccase *, double weight);
   void (*destroy) (const void *aux1, void *aux2, void *user_data);
 };
 

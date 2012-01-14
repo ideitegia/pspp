@@ -586,8 +586,7 @@ makeit (const void *aux1, void *aux2 UNUSED)
 
 static void 
 updateit (const void *aux1, void *aux2, void *user_data,
-	    const struct ccase *c, enum mv_class exclude,
-	    const struct variable *wv)
+	  const struct ccase *c, double weight)
 {
   struct descriptive_data *dd = user_data;
 
@@ -596,13 +595,6 @@ updateit (const void *aux1, void *aux2, void *user_data,
   const union value *valx = case_data (c, varp);
 
   struct descriptive_data *dd_total = aux2;
-
-  double weight;
-
-  if ( var_is_value_missing (varp, valx, exclude))
-    return;
-
-  weight = wv != NULL ? case_data (c, wv)->f : 1.0;
 
   moments1_add (dd->mom, valx->f, weight);
   if (valx->f < dd->minimum)
