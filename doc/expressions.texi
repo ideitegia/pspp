@@ -1476,7 +1476,7 @@ Constraints: 0 <= @var{p} < 1, @var{x} >= 1.
 @deftypefn {Function} {} PDF.NEGBIN (@var{x}, @var{n}, @var{p})
 @deftypefnx {Function} {} CDF.NEGBIN (@var{x}, @var{n}, @var{p})
 @deftypefnx {Function} {} RV.NEGBIN (@var{n}, @var{p})
-Negative binomial distribution with number of successes paramter
+Negative binomial distribution with number of successes parameter
 @var{n} and probability of success parameter @var{p}.  Constraints:
 integer @var{n} >= 0, 0 < @var{p} <= 1, integer @var{x} >= 1.
 @end deftypefn

@@ -258,7 +258,7 @@ useful there is more than one dependent variable and at least one factor.   If
 containing boxplots for all the factors.
 If /COMPARE=VARIABLES is specified, then one plot per factor is produced, each 
 each containing one boxplot per dependent variable.
-If the /COMPARE subcommand is ommitted, then PSPP uses the default value of 
+If the /COMPARE subcommand is omitted, then PSPP uses the default value of 
 /COMPARE=GROUPS.
  
 The ID subcommand also pertains to boxplots.  If given, it must
@@ -605,7 +605,7 @@ The /PRINT subcommand may be used to select which features of the analysis are r
       Identical to INITIAL and EXTRACTION.
 @end itemize
 
-If /PLOT=EIGEN is given, then a ``Scree'' plot of the eigenvalues will be printed.  This can be useful for visualising
+If /PLOT=EIGEN is given, then a ``Scree'' plot of the eigenvalues will be printed.  This can be useful for visualizing
 which factors (components) should be retained.
 
 The /FORMAT subcommand determined how data are to be displayed in loading matrices.  If SORT is specified, then the variables
@@ -841,7 +841,7 @@ they follow a normal distribution with a mean of 3.5 and a standard deviation of
   NPAR TESTS
         /KOLMOGOROV-SMIRNOV (normal 3.5 2.0) = @var{score} @var{age}.
 @end example
-If the variables need to be tested against different distributions, then a seperate
+If the variables need to be tested against different distributions, then a separate
 subcommand must be used.  For example the following syntax tests @var{score} against
 a normal distribution with mean of 3.5 and standard deviation of 2.0 whilst @var{age}
 is tested against a normal distribution of mean 40 and standard deviation 1.5.
@@ -1085,7 +1085,7 @@ which they would be needed. This is the default.
 
 
 @menu
-* One Sample Mode::             Testing against a hypothesised mean
+* One Sample Mode::             Testing against a hypothesized mean
 * Independent Samples Mode::    Testing two independent groups for equal mean
 * Paired Samples Mode::         Testing two interdependent groups for equal mean
 @end menu
@@ -1094,7 +1094,7 @@ which they would be needed. This is the default.
 @subsection One Sample Mode
 
 The @cmd{TESTVAL} subcommand invokes the One Sample mode.
-This mode is used to test a population mean against a hypothesised
+This mode is used to test a population mean against a hypothesized
 mean. 
 The value given to the @cmd{TESTVAL} subcommand is the value against
 which you wish to test.
@@ -1353,7 +1353,7 @@ RELIABILITY
 @end display
 
 @cindex Cronbach's Alpha
-The @cmd{RELIABILTY} command performs reliablity analysis on the data.
+The @cmd{RELIABILTY} command performs reliability analysis on the data.
 
 The VARIABLES subcommand is required. It determines the set of variables 
 upon which analysis is to be performed.
@@ -1388,7 +1388,7 @@ analysis tested against the totals.
 @section ROC
 
 @vindex ROC
-@cindex Receiver Operating Characterstic
+@cindex Receiver Operating Characteristic
 @cindex Area under curve
 
 @display
