@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,19 +22,44 @@
 #include "data/casereader.h"
 #include "data/dataset.h"
 #include "data/dictionary.h"
+#include "data/format.h"
 #include "data/variable.h"
+
 #include "language/command.h"
 #include "language/lexer/lexer.h"
 #include "language/lexer/variable-parser.h"
 
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+
 #include "math/categoricals.h"
 #include "math/interaction.h"
+#include "math/moments.h"
 
 #include "output/tab.h"
+
+#include <math.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) (msgid)
+
+
+struct means;
+
+struct per_var_data
+{
+  void **cell_stats;
+  struct moments1 *mom;
+};
+
+
+typedef void *stat_create (const struct means *, struct pool *pool);
+
+typedef void stat_update (const struct means *, void *stat, double w, double x);
+
+typedef double stat_get (const struct means *, struct per_var_data *, void *aux);
+
 
 struct cell_spec
 {
@@ -43,43 +68,433 @@ struct cell_spec
 
   /* Keyword for syntax */
   const char *keyword;
+
+  stat_create *sc;
+  stat_update *su;
+  stat_get *sd;
 };
 
-/* Table of cell_specs */
-static const struct cell_spec cell_spec[] =
+
+struct harmonic_mean
 {
-  {N_("Means"),          "MEANS"},
-  {N_("N"),              "COUNT"},
-  {N_("Std. Deviation"), "STDDEV"},
-  {N_("Median"),         "MEDIAN"},
-  {N_("Group Median"),   "GMEDIAN"},
-  {N_("S.E. Mean"),      "SEMEAN"},
-  {N_("Sum"),            "SUM"},
-  {N_("Min"),            "MIN"},
-  {N_("Max"),            "MAX"},
-  {N_("Range"),          "RANGE"},
-  {N_("Variance"),       "VARIANCE"},
-  {N_("Kurtosis"),       "KURTOSIS"},
-  {N_("S.E. Kurt"),      "SEKURT"},
-  {N_("Skewness"),       "SKEW"},
-  {N_("S.E. Skew"),      "SESKEW"},
-  {N_("First"),          "FIRST"},
-  {N_("Last"),           "LAST"},
-  {N_("Percent N"),      "NPCT"},
-  {N_("Percent Sum"),    "SPCT"},
-  {N_("Harmonic Mean"),  "HARMONIC"},
-  {N_("Geom. Mean"),     "GEOMETRIC"}
+  double rsum;
+  double n;
+};
+
+
+static void *
+harmonic_create (const struct means *means UNUSED, struct pool *pool)
+{
+  struct harmonic_mean *hm = pool_alloc (pool, sizeof *hm);
+
+  hm->rsum = 0;
+  hm->n = 0;
+
+  return hm;
+}
+
+
+static void
+harmonic_update (const struct means *means UNUSED, void *stat, double w, double x)
+{
+  struct harmonic_mean *hm = stat;
+  hm->rsum  += w / x;
+  hm->n += w;
+}
+
+
+static double
+harmonic_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  struct harmonic_mean *hm = stat;
+
+  return hm->n / hm->rsum;
+}
+
+
+
+struct geometric_mean
+{
+  double prod;
+  double n;
+};
+
+
+static void *
+geometric_create (const struct means *means UNUSED, struct pool *pool)
+{
+  struct geometric_mean *gm = pool_alloc (pool, sizeof *gm);
+
+  gm->prod = 1.0;
+  gm->n = 0;
+
+  return gm;
+}
+
+
+static void
+geometric_update (const struct means *means UNUSED, void *stat, double w, double x)
+{
+  struct geometric_mean *gm = stat;
+  gm->prod  *=  pow (x, w);
+  gm->n += w;
+}
+
+
+static double
+geometric_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  struct geometric_mean *gm = stat;
+
+  return pow (gm->prod, 1.0 / gm->n);
+}
+
+
+
+static void *
+sum_create (const struct means *means UNUSED, struct pool *pool)
+{
+  return NULL;
+}
+
+static double
+sum_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double n, mean;
+
+  moments1_calculate (pvd->mom, &n, &mean, 0, 0, 0);
+
+  return mean * n;
+}
+
+
+static void *
+n_create (const struct means *means UNUSED, struct pool *pool)
+{
+  return NULL;
+}
+
+static double
+n_get (const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double n;
+
+  moments1_calculate (pvd->mom, &n, 0, 0, 0, 0);
+
+  return n;
+}
+
+static void *
+arithmean_create (const struct means *means UNUSED, struct pool *pool)
+{
+  return NULL;
+}
+
+static double
+arithmean_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double n, mean;
+
+  moments1_calculate (pvd->mom, &n, &mean, 0, 0, 0);
+
+  return mean;
+}
+
+static void *
+stddev_create (const struct means *means UNUSED, struct pool *pool)
+{
+  return NULL;
+}
+
+static double
+variance_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double n, mean, variance;
+
+  moments1_calculate (pvd->mom, &n, &mean, &variance, 0, 0);
+
+  return variance;
+}
+
+
+static double
+stddev_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  return sqrt (variance_get (means, pvd, stat));
+}
+
+
+
+
+static void *
+skew_create (const struct means *means UNUSED, struct pool *pool)
+{
+  return NULL;
+}
+
+static double
+skew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double skew;
+
+  moments1_calculate (pvd->mom, NULL, NULL, NULL, &skew, 0);
+
+  return skew;
+}
+
+static double
+sekurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double n;
+
+  moments1_calculate (pvd->mom, &n, NULL, NULL, NULL, NULL);
+
+  return calc_sekurt (n);
+}
+
+
+
+static double
+seskew_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double n;
+
+  moments1_calculate (pvd->mom, &n, NULL, NULL, NULL, NULL);
+
+  return calc_seskew (n);
+}
+
+
+
+static void *
+kurt_create (const struct means *means UNUSED, struct pool *pool)
+{
+  return NULL;
+}
+
+
+static double
+kurt_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double kurt;
+
+  moments1_calculate (pvd->mom, NULL, NULL, NULL, NULL, &kurt);
+
+  return kurt;
+}
+
+
+static double
+semean_get (const struct means *means, struct per_var_data *pvd, void *stat)
+{
+  double n, var;
+
+  moments1_calculate (pvd->mom, &n, NULL, &var, NULL, NULL);
+
+  return sqrt (var / n);
+}
+
+
+
+
+
+static void *
+min_create (const struct means *means UNUSED, struct pool *pool)
+{
+  double *r = pool_alloc (pool, sizeof *r);
+
+  *r = DBL_MAX;
+
+  return r;
+}
+
+static void
+min_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+{
+  double *r = stat;
+
+  if (x < *r)
+    *r = x;
+}
+
+static double
+min_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double *r = stat;
+
+  return *r;
+}
+
+static void *
+max_create (const struct means *means UNUSED, struct pool *pool)
+{
+  double *r = pool_alloc (pool, sizeof *r);
+
+  *r = -DBL_MAX;
+
+  return r;
+}
+
+static void
+max_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+{
+  double *r = stat;
+
+  if (x > *r)
+    *r = x;
+}
+
+static double
+max_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double *r = stat;
+
+  return *r;
+}
+
+
+
+struct range
+{
+  double min;
+  double max;
+};
+
+static void *
+range_create (const struct means *means UNUSED, struct pool *pool)
+{
+  struct range *r = pool_alloc (pool, sizeof *r);
+
+  r->min = DBL_MAX;
+  r->max = -DBL_MAX;
+
+  return r;
+}
+
+static void
+range_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+{
+  struct range *r = stat;
+
+  if (x > r->max)
+    r->max = x;
+
+  if (x < r->min)
+    r->min = x;
+}
+
+static double
+range_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  struct range *r = stat;
+
+  return r->max - r->min;
+}
+
+
+
+static void *
+last_create (const struct means *means UNUSED, struct pool *pool)
+{
+  double *l = pool_alloc (pool, sizeof *l);
+
+  return l;
+}
+
+static void
+last_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+{
+  double *l = stat;
+
+  *l = x;
+}
+
+static double
+last_get (const const struct means *means UNUSED, struct per_var_data *pvd, void *stat)
+{
+  double *l = stat;
+
+  return *l;
+}
+
+
+static void *
+first_create (const struct means *means UNUSED, struct pool *pool)
+{
+  double *f = pool_alloc (pool, sizeof *f);
+
+   *f = SYSMIS;
+
+  return f;
+}
+
+static void
+first_update (const struct means *means UNUSED, void *stat, double w UNUSED, double x)
+{
+  double *f = stat;
+
+  if (*f == SYSMIS)
+     *f = x;
+}
+
+static double
+first_get (const const struct means *means UNUSED, struct per_var_data *pvd,  void *stat)
+{
+  double *f = stat;
+
+  return *f;
+}
+
+
+
+/* Table of cell_specs */
+static const struct cell_spec cell_spec[] = {
+  {N_("Mean"), "MEAN", NULL, NULL, arithmean_get},
+  {N_("N"), "COUNT", NULL, NULL, n_get},
+  {N_("Std. Deviation"), "STDDEV", NULL, NULL, stddev_get},
+#if 0
+  {N_("Median"), "MEDIAN", NULL, NULL, NULL},
+  {N_("Group Median"), "GMEDIAN", NULL, NULL, NULL},
+#endif
+  {N_("S.E. Mean"), "SEMEAN", NULL, NULL, semean_get},
+  {N_("Sum"), "SUM", NULL, NULL, sum_get},
+  {N_("Min"), "MIN", min_create, min_update, min_get},
+  {N_("Max"), "MAX", max_create, max_update, max_get},
+  {N_("Range"), "RANGE", range_create, range_update, range_get},
+  {N_("Variance"), "VARIANCE", NULL, NULL, variance_get},
+  {N_("Kurtosis"), "KURT", NULL, NULL, kurt_get},
+  {N_("S.E. Kurt"), "SEKURT", NULL, NULL, sekurt_get},
+  {N_("Skewness"), "SKEW", NULL, NULL, skew_get},
+  {N_("S.E. Skew"), "SESKEW", NULL, NULL, seskew_get},
+  {N_("First"), "FIRST", first_create, first_update, first_get},
+  {N_("Last"), "LAST", last_create, last_update, last_get},
+#if 0
+  {N_("Percent N"), "NPCT", NULL, NULL, NULL},
+  {N_("Percent Sum"), "SPCT", NULL, NULL, NULL},
+#endif
+  {N_("Harmonic Mean"), "HARMONIC", harmonic_create, harmonic_update, harmonic_get},
+  {N_("Geom. Mean"), "GEOMETRIC", geometric_create, geometric_update, geometric_get}
 };
 
 #define n_C (sizeof (cell_spec) / sizeof (struct cell_spec))
 
-struct means
+
+struct summary
+{
+  casenumber missing;
+  casenumber non_missing;
+};
+
+
+/* The thing parsed after TABLES= */
+struct mtable
 {
   size_t n_dep_vars;
   const struct variable **dep_vars;
 
   size_t n_interactions;
   struct interaction **interactions;
+  struct summary *summary;
 
   size_t *n_factor_vars;
   const struct variable ***factor_vars;
@@ -88,9 +503,21 @@ struct means
 
   int n_layers;
 
+  struct categoricals *cats;
+};
+
+struct means
+{
   const struct dictionary *dict;
 
+  struct mtable *table;
+  size_t n_tables;
+
+  /* Missing value class for categorical variables */
   enum mv_class exclude;
+
+  /* Missing value class for dependent variables */
+  enum mv_class dep_exclude;
 
   /* an array  indicating which statistics are to be calculated */
   int *cells;
@@ -98,7 +525,8 @@ struct means
   /* Size of cells */
   int n_cells;
 
-  struct categoricals *cats;
+  /* Pool on which cell functions may allocate data */
+  struct pool *pool;
 };
 
 
@@ -111,10 +539,11 @@ run_means (struct means *cmd, struct casereader *input,
    This is a recursive function.
  */
 static void
-iact_append_factor (struct means *means, int layer, const struct interaction *iact)
+iact_append_factor (struct mtable *means, int layer,
+		    const struct interaction *iact)
 {
   int v;
-  const struct variable **fv ;
+  const struct variable **fv;
 
   if (layer >= means->n_layers)
     return;
@@ -136,28 +565,91 @@ iact_append_factor (struct means *means, int layer, const struct interaction *ia
     }
 }
 
+static bool
+parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct mtable *table)
+{
+  table->ii = 0;
+  table->n_layers = 0;
+  table->factor_vars = NULL;
+  table->n_factor_vars = NULL;
+
+  /* Dependent variable (s) */
+  if (!parse_variables_const (lexer, cmd->dict,
+			      &table->dep_vars, &table->n_dep_vars,
+			      PV_NO_DUPLICATE | PV_NUMERIC))
+    return false;
+
+  /* Factor variable (s) */
+  while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
+    {
+      if (lex_match (lexer, T_BY))
+	{
+	  table->n_layers++;
+	  table->factor_vars =
+	    xrealloc (table->factor_vars,
+		      sizeof (*table->factor_vars) * table->n_layers);
+
+	  table->n_factor_vars =
+	    xrealloc (table->n_factor_vars,
+		      sizeof (*table->n_factor_vars) * table->n_layers);
+
+	  if (!parse_variables_const (lexer, cmd->dict,
+				      &table->factor_vars[table->n_layers - 1],
+				      &table->n_factor_vars[table->n_layers -
+							    1],
+				      PV_NO_DUPLICATE))
+	    return false;
+
+	}
+    }
+
+  return true;
+}
+
+/* Match a variable.
+   If the match succeeds, the variable will be placed in VAR.
+   Returns true if successful */
+static bool
+lex_is_variable (struct lexer *lexer, const struct dictionary *dict,
+		 int n)
+{
+  const char *tstr;
+  if (lex_next_token (lexer, n) !=  T_ID)
+    return false;
+
+  tstr = lex_next_tokcstr (lexer, n);
+
+  if (NULL == dict_lookup_var (dict, tstr) )
+    return false;
+
+  return true;
+}
+
+
 int
 cmd_means (struct lexer *lexer, struct dataset *ds)
 {
+  int t;
   int i;
   int l;
   struct means means;
+  bool more_tables = true;
 
-  means.n_factor_vars = NULL;
-  means.factor_vars = NULL;
+  means.exclude = MV_ANY;
+  means.dep_exclude = MV_ANY;
+  means.table = NULL;
+  means.n_tables = 0;
 
-  means.n_layers = 0;
-
-  means.n_dep_vars = 0;
   means.dict = dataset_dict (ds);
 
   means.n_cells = 3;
   means.cells = xcalloc (means.n_cells, sizeof (*means.cells));
-  
-  /* The first three items (MEANS, COUNT, STDDEV) are the default */
-  for (i = 0; i < 3 ; ++i)
+
+
+  /* The first three items (MEAN, COUNT, STDDEV) are the default */
+  for (i = 0; i < 3; ++i)
     means.cells[i] = i;
-  
+
 
   /*   Optional TABLES =   */
   if (lex_match_id (lexer, "TABLES"))
@@ -165,32 +657,29 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
       lex_force_match (lexer, T_EQUALS);
     }
 
-  /* Dependent variable (s) */
-  if (!parse_variables_const (lexer, means.dict,
-			      &means.dep_vars, &means.n_dep_vars,
-			      PV_NO_DUPLICATE | PV_NUMERIC))
-    goto error;
 
-  /* Factor variable (s) */
-  while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
+  more_tables = true;
+  /* Parse the "tables" */
+  while (more_tables)
     {
-      if (lex_match (lexer, T_BY))
+      means.n_tables ++;
+      means.table = xrealloc (means.table, means.n_tables * sizeof (*means.table));
+
+      if (! parse_means_table_syntax (lexer, &means, 
+				      &means.table[means.n_tables - 1]))
 	{
-	  means.n_layers++;
-	  means.factor_vars =
-	    xrealloc (means.factor_vars,
-		      sizeof (*means.factor_vars) * means.n_layers);
-	  means.n_factor_vars =
-	    xrealloc (means.n_factor_vars,
-		      sizeof (*means.n_factor_vars) * means.n_layers);
+	  goto error;
+	}
 
-	  if (!parse_variables_const (lexer, means.dict,
-				      &means.factor_vars[means.n_layers - 1],
-				      &means.n_factor_vars[means.n_layers -
-							   1],
-				      PV_NO_DUPLICATE | PV_NUMERIC))
-	    goto error;
-
+      /* Look ahead to see if there are more tables to be parsed */
+      more_tables = false;
+      if ( T_SLASH == lex_next_token (lexer, 0) )
+	{
+	  if (lex_is_variable (lexer, means.dict, 1) )
+	    {
+	      more_tables = true;
+	      lex_force_match (lexer, T_SLASH);
+	    }
 	}
     }
 
@@ -201,23 +690,56 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 
       if (lex_match_id (lexer, "MISSING"))
 	{
+	  /*
+	     If no MISSING subcommand is specified, each combination of
+	     a dependent variable and categorical variables is handled
+	     separately.
+	   */
 	  lex_match (lexer, T_EQUALS);
-	  while (lex_token (lexer) != T_ENDCMD
-		 && lex_token (lexer) != T_SLASH)
+	  if (lex_match_id (lexer, "INCLUDE"))
 	    {
-	      if (lex_match_id (lexer, "INCLUDE"))
-		{
-		  means.exclude = MV_SYSTEM;
-		}
-	      else if (lex_match_id (lexer, "EXCLUDE"))
-		{
-		  means.exclude = MV_ANY;
-		}
-	      else
-		{
-		  lex_error (lexer, NULL);
-		  goto error;
-		}
+	      /*
+		Use the subcommand  "/MISSING=INCLUDE" to include user-missing
+		values in the analysis.
+	      */
+
+	      means.exclude = MV_SYSTEM;
+	      means.dep_exclude = MV_SYSTEM;
+	    }
+	  else if (lex_match_id (lexer, "TABLE"))
+	    /*
+	      This is the default. (I think).
+	      Every case containing a complete set of variables for a given
+	      table. If any variable, categorical or dependent for in a table
+	      is missing (as defined by what?), then that variable will
+	      be dropped FOR THAT TABLE ONLY.
+	    */
+	    {
+	      means.exclude = MV_ANY;
+	      means.dep_exclude = MV_ANY;
+	    }
+	  else if (lex_match_id (lexer, "DEPENDENT"))
+	    /*
+	     Use the command "/MISSING=DEPENDENT" to
+	     include user-missing values for the categorical variables, 
+	     while excluding them for the dependent variables.
+
+	     Cases are dropped only when user-missing values
+	     appear in dependent  variables.  User-missing
+	     values for categorical variables are treated according to
+	     their face value.
+
+	     Cases are ALWAYS dropped when System Missing values appear 
+	     in the categorical variables.
+	    */
+	    {
+	      means.dep_exclude = MV_ANY;
+	      means.exclude = MV_SYSTEM;
+	    }
+	  else
+	    {
+	      lex_error (lexer, NULL);
+	      goto error;
 	    }
 	}
       else if (lex_match_id (lexer, "CELLS"))
@@ -256,20 +778,33 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
+  means.pool = pool_create ();
 
-  means.n_interactions = 1;
-  for (l = 0; l < means.n_layers; ++l)
-    {
-      const int n_vars = means.n_factor_vars[l];
-      means.n_interactions *= n_vars;
-    }
 
-  means.interactions =
-    xcalloc (means.n_interactions, sizeof (*means.interactions));
+  for (t = 0; t < means.n_tables; ++t)
+  {
+    struct mtable *table = &means.table[t];
+    table->n_interactions = 1;
+    for (l = 0; l < table->n_layers; ++l)
+      {
+	const int n_vars = table->n_factor_vars[l];
+	table->n_interactions *= n_vars;
+      }
 
-  means.ii = 0;
+    table->interactions =
+      xcalloc (table->n_interactions, sizeof (*table->interactions));
 
-  iact_append_factor (&means, 0, interaction_create (NULL));
+    table->summary =
+      xcalloc (table->n_dep_vars * table->n_interactions, sizeof (*table->summary));
+
+
+    if (table->n_layers > 0)
+      iact_append_factor (table, 0, interaction_create (NULL));
+    else
+      table->interactions[0] = interaction_create (NULL);
+
+  }
+
 
   {
     struct casegrouper *grouper;
@@ -290,61 +825,226 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 
 error:
 
-  free (means.dep_vars);
-
   return CMD_FAILURE;
 }
 
-static void output_case_processing_summary (const struct means *cmd);
-static void output_report (const struct means *,
-			  const struct interaction *);
+
+static bool
+is_missing (const struct means *cmd,
+	    const struct variable *dvar,
+	    const struct interaction *iact,
+	    const struct ccase *c)
+{
+  if ( interaction_case_is_missing (iact, c, cmd->exclude) )
+    return true;
+
+
+  if (var_is_value_missing (dvar,
+			    case_data (c, dvar),
+			    cmd->dep_exclude))
+    return true;
+
+  return false;
+}
+
+static void output_case_processing_summary (const struct mtable *);
+
+static void output_report (const struct means *, int, const struct mtable *);
+
+
+struct per_cat_data
+{
+  struct per_var_data *pvd;
+
+  bool warn;
+};
+
+static void *
+create_n (const void *aux1, void *aux2)
+{
+  int i, v;
+  const struct means *means = aux1;
+  struct mtable *table = aux2;
+  struct per_cat_data *per_cat_data = xmalloc (sizeof *per_cat_data);
+
+  struct per_var_data *pvd = xcalloc (table->n_dep_vars, sizeof *pvd);
+
+  for (v = 0; v < table->n_dep_vars; ++v)
+    {
+      enum moment maxmom = MOMENT_KURTOSIS;
+      struct per_var_data *pp = &pvd[v];
+
+      pp->cell_stats = xcalloc (means->n_cells, sizeof *pp->cell_stats);
+      
+
+      for (i = 0; i < means->n_cells; ++i)
+	{
+	  int csi = means->cells[i];
+	  const struct cell_spec *cs = &cell_spec[csi];
+	  if (cs->sc)
+	    {
+	      pp->cell_stats[i] = cs->sc (means, means->pool);
+	    }
+	}
+      pp->mom = moments1_create (maxmom);
+    }
+
+
+  per_cat_data->pvd = pvd;
+  per_cat_data->warn = true;
+  return per_cat_data;
+}
+
+static void
+update_n (const void *aux1, void *aux2, void *user_data, const struct ccase *c)
+{
+  int i;
+  int v = 0;
+  const struct means *means = aux1;
+  struct mtable *table = aux2;
+  struct per_cat_data *per_cat_data = user_data;
+
+  double weight = dict_get_case_weight (means->dict, c, &per_cat_data->warn);
+
+  for (v = 0; v < table->n_dep_vars; ++v)
+    {
+      struct per_var_data *pvd = &per_cat_data->pvd[v];
+
+      const double x = case_data (c, table->dep_vars[v])->f;
+
+      for (i = 0; i < table->n_interactions; ++i)
+	{
+	  if ( is_missing (means, table->dep_vars[v], table->interactions[i], c))
+	    goto end;
+	}
+
+      for (i = 0; i < means->n_cells; ++i)
+	{
+	  const int csi = means->cells[i];
+	  const struct cell_spec *cs = &cell_spec[csi];
+
+
+	  if (cs->su)
+	    cs->su (means,
+		    pvd->cell_stats[i],
+		    weight, x);
+	}
+
+      moments1_add (pvd->mom, x, weight);
+
+    end:
+      continue;
+    }
+}
+
+static void
+calculate_n (const void *aux1, void *aux2, void *user_data)
+{
+  int i;
+  int v = 0;
+  struct per_cat_data *per_cat_data = user_data;
+  const struct means *means = aux1;
+  struct mtable *table = aux2;
+
+  for (v = 0; v < table->n_dep_vars; ++v)
+    {
+      struct per_var_data *pvd = &per_cat_data->pvd[v];
+      for (i = 0; i < means->n_cells; ++i)
+	{
+	  int csi = means->cells[i];
+	  const struct cell_spec *cs = &cell_spec[csi];
+
+	  if (cs->su)
+	    cs->sd (means, pvd, pvd->cell_stats[i]);
+	}
+    }
+}
+
 
 static void
 run_means (struct means *cmd, struct casereader *input,
 	   const struct dataset *ds)
 {
-  int i;
+  int i,t;
   const struct variable *wv = dict_get_weight (cmd->dict);
   struct ccase *c;
   struct casereader *reader;
 
-  bool warn_bad_weight = true;
+  struct payload payload;
+  payload.create = create_n;
+  payload.update = update_n;
+  payload.destroy = calculate_n;
+  
+  for (t = 0; t < cmd->n_tables; ++t)
+  {
+    struct mtable *table = &cmd->table[t];
+    table->cats
+      = categoricals_create (table->interactions,
+			     table->n_interactions, wv, cmd->exclude);
 
-  cmd->cats
-    = categoricals_create (cmd->interactions,
-			   cmd->n_interactions, wv, cmd->exclude, 0, 0, 0, 0);
-
+    categoricals_set_payload (table->cats, &payload, cmd, table);
+  }
 
   for (reader = casereader_clone (input);
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
-      double weight = dict_get_case_weight (cmd->dict, c, &warn_bad_weight);
+      for (t = 0; t < cmd->n_tables; ++t)
+	{
+	  int  v;
+	  struct mtable *table = &cmd->table[t];
 
-      printf ("%g\n", case_data_idx (c, 0)->f);
-      categoricals_update (cmd->cats, c);
+	  for (v = 0; v < table->n_dep_vars; ++v)
+	    {
+	      int i;
+	      for (i = 0; i < table->n_interactions; ++i)
+		{
+		  const bool missing =
+		    is_missing (cmd, table->dep_vars[v],
+				table->interactions[i], c);
+		  if (missing)
+		    table->summary[v * table->n_interactions + i].missing++;
+		  else
+		    table->summary[v * table->n_interactions + i].non_missing++;
+		}
+	    }
+	  categoricals_update (table->cats, c);
+	}
     }
   casereader_destroy (reader);
 
-  categoricals_done (cmd->cats);
-
-  output_case_processing_summary (cmd);
-
-  for (i = 0; i < cmd->n_interactions; ++i)
+  for (t = 0; t < cmd->n_tables; ++t)
     {
-      output_report (cmd, cmd->interactions[i]);
+      struct mtable *table = &cmd->table[t];
+
+      categoricals_done (table->cats);
+    }
+
+
+  for (t = 0; t < cmd->n_tables; ++t)
+    {
+      const struct mtable *table = &cmd->table[t];
+
+      output_case_processing_summary (table);
+
+      for (i = 0; i < table->n_interactions; ++i)
+	{
+	  output_report (cmd, i, table);
+	}
+
+      categoricals_destroy (table->cats);
     }
 }
 
 
 static void
-output_case_processing_summary (const struct means *cmd)
+output_case_processing_summary (const struct mtable *table)
 {
-  int i;
+  int i, v;
   const int heading_columns = 1;
   const int heading_rows = 3;
   struct tab_table *t;
 
-  const int nr = heading_rows + cmd->n_interactions;
+  const int nr = heading_rows + table->n_interactions * table->n_dep_vars;
   const int nc = 7;
 
   t = tab_create (nc, nr);
@@ -377,22 +1077,57 @@ output_case_processing_summary (const struct means *cmd)
 		_("Percent"));
     }
 
-  for (i = 0; i < cmd->n_interactions; ++i)
+  for (v = 0; v < table->n_dep_vars; ++v)
     {
-      const struct interaction *iact = cmd->interactions[i];
+      const struct variable *var = table->dep_vars[v];
+      const char *dv_name = var_to_string (var);
+      for (i = 0; i < table->n_interactions; ++i)
+	{
+	  const int row = v * table->n_interactions + i;
+	  const struct interaction *iact = table->interactions[i];
+	  casenumber n_total;
 
-      struct string str;
-      ds_init_empty (&str);
-      interaction_to_string (iact, &str);
+	  struct string str;
+	  ds_init_cstr (&str, dv_name);
+	  ds_put_cstr (&str, ": ");
 
-      size_t n = categoricals_n_count (cmd->cats, i);
+	  interaction_to_string (iact, &str);
 
-      tab_text (t, 0, i + heading_rows, TAB_LEFT | TAT_TITLE, ds_cstr (&str));
+	  tab_text (t, 0, row + heading_rows,
+		    TAB_LEFT | TAT_TITLE, ds_cstr (&str));
 
-      printf ("Count %d is %d\n", i, n);
+
+	  n_total = table->summary[row].missing + 
+	    table->summary[row].non_missing;
+
+	  tab_double (t, 1, row + heading_rows,
+		      0, table->summary[row].non_missing, &F_8_0);
+
+	  tab_text_format (t, 2, row + heading_rows,
+			   0, _("%g%%"), 
+			   table->summary[row].non_missing / (double) n_total * 100.0);
 
 
-      ds_destroy (&str);
+	  tab_double (t, 3, row + heading_rows,
+		      0, table->summary[row].missing, &F_8_0);
+
+
+	  tab_text_format (t, 4, row + heading_rows,
+			   0, _("%g%%"), 
+			   table->summary[row].missing / (double) n_total * 100.0);
+
+
+	  tab_double (t, 5, row + heading_rows,
+		      0, table->summary[row].missing + 
+		      table->summary[row].non_missing, &F_8_0);
+
+	  tab_text_format (t, 6, row + heading_rows,
+			   0, _("%g%%"), 
+			   n_total / (double) n_total * 100.0);
+
+
+	  ds_destroy (&str);
+	}
     }
 
   tab_submit (t);
@@ -401,16 +1136,23 @@ output_case_processing_summary (const struct means *cmd)
 
 
 static void
-output_report (const struct means *cmd, const struct interaction *iact)
+output_report (const struct means *cmd,  int iact_idx,
+	       const struct mtable *table)
 {
+  int grp;
   int i;
-  const int heading_columns = 0;
+
+  const struct interaction *iact = table->interactions[iact_idx];
+
+  const int heading_columns = 1 + iact->n_vars;
   const int heading_rows = 1;
   struct tab_table *t;
 
-  const int nr = 18;
-  const int nc = heading_columns + iact->n_vars + cmd->n_cells;
+  const int n_cats = categoricals_n_count (table->cats, iact_idx);
 
+  const int nr = n_cats * table->n_dep_vars + heading_rows;
+
+  const int nc = heading_columns + cmd->n_cells;
 
   t = tab_create (nc, nr);
   tab_title (t, _("Report"));
@@ -424,18 +1166,73 @@ output_report (const struct means *cmd, const struct interaction *iact)
 
   for (i = 0; i < iact->n_vars; ++i)
     {
-      tab_text (t, heading_columns + i, 0, TAB_CENTER | TAT_TITLE,
+      tab_text (t, 1 + i, 0, TAB_CENTER | TAT_TITLE,
 		var_to_string (iact->vars[i]));
     }
 
   for (i = 0; i < cmd->n_cells; ++i)
     {
-      tab_text (t, heading_columns + iact->n_vars + i, 0,
+      tab_text (t, heading_columns + i, 0,
 		TAB_CENTER | TAT_TITLE,
 		gettext (cell_spec[cmd->cells[i]].title));
     }
 
-  tab_text (t, heading_columns + 1, 5, TAB_CENTER | TAT_TITLE, "data");
+
+  for (i = 0; i < n_cats; ++i)
+    {
+      int v, dv;
+      const struct ccase *c =
+	categoricals_get_case_by_category_real (table->cats, iact_idx, i);
+
+      for (dv = 0; dv < table->n_dep_vars; ++dv)
+	{
+	  tab_text (t, 0,
+		    heading_rows + dv * n_cats,
+		    TAB_RIGHT | TAT_TITLE,
+		    var_get_name (table->dep_vars[dv])
+		    );
+
+	  if ( dv > 0)
+	    tab_hline (t, TAL_1, 0, nc - 1, heading_rows + dv * n_cats);
+
+	  for (v = 0; v < iact->n_vars; ++v)
+	    {
+	      const struct variable *var = iact->vars[v];
+	      const union value *val = case_data (c, var);
+	      struct string str;
+	      ds_init_empty (&str);
+	      var_append_value_name (var, val, &str);
+
+	      tab_text (t, 1 + v, heading_rows + dv * n_cats + i,
+			TAB_RIGHT | TAT_TITLE, ds_cstr (&str));
+
+	      ds_destroy (&str);
+	    }
+	}
+    }
+
+  for (grp = 0; grp < n_cats; ++grp)
+    {
+      int dv;
+      struct per_cat_data *per_cat_data =
+	categoricals_get_user_data_by_category_real (table->cats, iact_idx, grp);
+
+      for (dv = 0; dv < table->n_dep_vars; ++dv)
+	{
+	  const struct per_var_data *pvd = &per_cat_data->pvd[dv];
+	  for (i = 0; i < cmd->n_cells; ++i)
+	    {
+	      const int csi = cmd->cells[i];
+	      const struct cell_spec *cs = &cell_spec[csi];
+
+	      double result = cs->sd (cmd, pvd, pvd->cell_stats[i]);
+
+	      tab_double (t, heading_columns + i,
+			  heading_rows + grp + dv * n_cats,
+			  0, result, 0);
+	    }
+	}
+    }
 
   tab_submit (t);
 }

@@ -1,0 +1,265 @@
+AT_BANNER([MEANS procedure])
+
+AT_SETUP([MEANS simple example])
+
+AT_DATA([means-simple.sps], [dnl
+SET FORMAT=F12.5.
+
+data list notable list /score * factor *.
+BEGIN DATA.
+22 01
+22 01
+29 01
+16 01
+24 02
+21 02
+22 01
+24 01
+19 01
+17 01
+22 01
+17 02
+23 02
+25 02
+20 01
+15 01
+18 01
+26 01
+23 02
+35 02
+20 01
+16 01
+19 01
+14 01
+14 01
+21 01
+END DATA.
+
+MEANS TABLES = score BY factor.
+])
+
+AT_CHECK([pspp -O format=csv means-simple.sps], [0],
+  [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Included,,Excluded,,Total,
+,N,Percent,N,Percent,N,Percent
+score: factor,26,100%,0,0%,26,100%
+
+Table: Report
+,factor,Mean,N,Std. Deviation
+score,1.00000,19.78947,19.00000,4.03566
+,2.00000,24.00000,7.00000,5.50757
+])
+
+AT_CLEANUP
+
+
+
+AT_SETUP([MEANS very simple example])
+
+AT_DATA([means-vsimple.sps], [dnl
+SET FORMAT=F12.5.
+
+data list notable list /score.
+begin data.
+1
+1
+2
+2
+end data.
+
+means tables = score.
+])
+
+AT_CHECK([pspp -O format=csv means-vsimple.sps], [0],
+  [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Included,,Excluded,,Total,
+,N,Percent,N,Percent,N,Percent
+score: ,4,100%,0,0%,4,100%
+
+Table: Report
+,Mean,N,Std. Deviation
+score,1.50000,4.00000,.57735
+])
+
+AT_CLEANUP
+
+
+
+
+AT_SETUP([MEANS default missing])
+
+AT_DATA([means-dmiss.sps], [dnl
+SET FORMAT=F12.2.
+data list notable list /a * g1 * g2 *.
+begin data.
+3 1 . 
+4 1 11
+3 1 21
+6 2 21
+2 2 31
+. 2 31
+8 2 31
+7 2 31
+end data.
+
+MEANS TABLES = 
+      a BY g1
+      a BY g2
+      /cells = MEAN COUNT
+      .
+])
+
+AT_CHECK([pspp -O format=csv means-dmiss.sps], [0],
+  [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Included,,Excluded,,Total,
+,N,Percent,N,Percent,N,Percent
+a: g1 * g2,6,75%,2,25%,8,100%
+a: a * g2,6,75%,2,25%,8,100%
+
+Table: Report
+,g1,g2,Mean,N
+a,1.00,11.00,4.00,1.00
+,1.00,21.00,3.00,1.00
+,2.00,21.00,6.00,1.00
+,2.00,31.00,5.67,3.00
+
+Table: Report
+,a,g2,Mean,N
+a,2.00,31.00,2.00,1.00
+,3.00,21.00,3.00,1.00
+,4.00,11.00,4.00,1.00
+,6.00,21.00,6.00,1.00
+,7.00,31.00,7.00,1.00
+,8.00,31.00,8.00,1.00
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([MEANS linear stats])
+
+dnl Slightly more involved example to test the linear statistics
+AT_DATA([means-linear.sps], [dnl
+set format F12.4.
+data list notable list /id * group * test1 *
+begin data.
+1 1 85
+2 1 90
+3 1 82
+4 1 75
+5 1 99
+6 2 70
+7 2 66
+8 2 52
+9 2 71
+10 2 50
+end data.
+
+add value labels /group 1 "experimental group" 2 "control group".
+
+means test1 by group
+  /cells = mean count stddev sum min max range variance kurt skew
+  .
+])
+
+
+AT_CHECK([pspp -O format=csv means-linear.sps], [0],
+  [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Included,,Excluded,,Total,
+,N,Percent,N,Percent,N,Percent
+test1: group,10,100%,0,0%,10,100%
+
+Table: Report
+,group,Mean,N,Std. Deviation,Sum,Min,Max,Range,Variance,Kurtosis,Skewness
+test1,experimental group,86.2000,5.0000,8.9833,431.0000,75.0000,99.0000,24.0000,80.7000,.2727,.3858
+,control group,61.8000,5.0000,10.0598,309.0000,50.0000,71.0000,21.0000,101.2000,-3.0437,-.4830
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([MEANS standard errors])
+
+AT_DATA([means-stderr.sps], [dnl
+set format F12.4.
+data list notable list /id * group * test1 *
+begin data.
+1 1 85
+2 1 90
+3 1 82
+4 1 75
+5 1 99
+6 1 70
+7 2 66
+8 2 52
+9 2 71
+10 2 50
+end data.
+
+means test1 by group 
+	/cells = mean count semean seskew sekurt.
+])
+
+
+AT_CHECK([pspp -O format=csv means-stderr.sps], [0],
+  [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Included,,Excluded,,Total,
+,N,Percent,N,Percent,N,Percent
+test1: group,10,100%,0,0%,10,100%
+
+Table: Report
+,group,Mean,N,S.E. Mean,S.E. Skew,S.E. Kurt
+test1,1.0000,83.5000,6.0000,4.2485,.8452,1.7408
+,2.0000,59.7500,4.0000,5.1700,1.0142,2.6186
+])
+
+AT_CLEANUP
+
+
+
+AT_SETUP([MEANS harmonic and geometric means])
+
+AT_DATA([means-hg.sps], [dnl
+set format F12.4.
+data list notable list /x * y *.
+begin data.
+1 3
+2 3
+3 3
+4 3
+5 3
+end data.
+
+
+means x y
+	/cells = mean harmonic geometric
+.
+])
+
+
+AT_CHECK([pspp -O format=csv means-hg.sps], [0],
+  [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Included,,Excluded,,Total,
+,N,Percent,N,Percent,N,Percent
+x: ,5,100%,0,0%,5,100%
+y: ,5,100%,0,0%,5,100%
+
+Table: Report
+,Mean,Harmonic Mean,Geom. Mean
+x,3.0000,2.1898,2.6052
+y,3.0000,3.0000,3.0000
+])
+
+AT_CLEANUP
