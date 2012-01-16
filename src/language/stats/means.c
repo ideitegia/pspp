@@ -474,6 +474,8 @@ struct means
   /* Missing value class for dependent variables */
   enum mv_class dep_exclude;
 
+  bool listwise_exclude;
+
   /* an array  indicating which statistics are to be calculated */
   int *cells;
 
@@ -592,6 +594,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 
   means.exclude = MV_ANY;
   means.dep_exclude = MV_ANY;
+  means.listwise_exclude = false;
   means.table = NULL;
   means.n_tables = 0;
 
@@ -670,8 +673,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 	      be dropped FOR THAT TABLE ONLY.
 	    */
 	    {
-	      means.exclude = MV_ANY;
-	      means.dep_exclude = MV_ANY;
+	      means.listwise_exclude = true;
 	    }
 	  else if (lex_match_id (lexer, "DEPENDENT"))
 	    /*
@@ -969,6 +971,7 @@ run_means (struct means *cmd, struct casereader *input,
     {
       for (t = 0; t < cmd->n_tables; ++t)
 	{
+	  bool something_missing = false;
 	  int  v;
 	  struct mtable *table = &cmd->table[t];
 
@@ -981,11 +984,17 @@ run_means (struct means *cmd, struct casereader *input,
 		    is_missing (cmd, table->dep_vars[v],
 				table->interactions[i], c);
 		  if (missing)
-		    table->summary[v * table->n_interactions + i].missing++;
+		    {
+		      something_missing = true;
+		      table->summary[v * table->n_interactions + i].missing++;
+		    }
 		  else
 		    table->summary[v * table->n_interactions + i].non_missing++;
 		}
 	    }
+	  if ( something_missing && cmd->listwise_exclude)
+	    continue;
+
 	  categoricals_update (table->cats, c);
 	}
     }
