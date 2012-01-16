@@ -395,6 +395,13 @@ first_get (const struct per_var_data *pvd UNUSED,  void *stat)
   return *f;
 }
 
+enum 
+  {
+    MEANS_MEAN = 0,
+    MEANS_N,
+    MEANS_STDDEV
+  };
+
 /* Table of cell_specs */
 static const struct cell_spec cell_spec[] = {
   {N_("Mean"), "MEAN", NULL, NULL, arithmean_get},
@@ -699,17 +706,44 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 	  while (lex_token (lexer) != T_ENDCMD
 		 && lex_token (lexer) != T_SLASH)
 	    {
-	      int k;
-	      for (k = 0; k < n_C; ++k)
+	      int k = 0;
+	      if (lex_match (lexer, T_ALL))
 		{
-		  if (lex_match_id (lexer, cell_spec[k].keyword))
-		    {
-		      means.cells =
-			xrealloc (means.cells,
-				  ++means.n_cells * sizeof (*means.cells));
+		  int x;
+		  means.cells =
+		    xrealloc (means.cells,
+			      (means.n_cells += n_C) * sizeof (*means.cells));
 
-		      means.cells[means.n_cells - 1] = k;
-		      break;
+		  for (x = 0; x < n_C; ++x)
+		    means.cells[means.n_cells - (n_C - 1 - x) - 1] = x;
+		}
+	      else if (lex_match_id (lexer, "NONE"))
+		{
+		  /* Do nothing */
+		}
+	      else if (lex_match_id (lexer, "DEFAULT"))
+		{
+		  means.cells =
+		    xrealloc (means.cells,
+			      (means.n_cells += 3) * sizeof (*means.cells));
+		  
+		  means.cells[means.n_cells - 2 - 1] = MEANS_MEAN;
+		  means.cells[means.n_cells - 1 - 1] = MEANS_N;
+		  means.cells[means.n_cells - 0 - 1] = MEANS_STDDEV;
+		}
+	      else
+		{
+		  for (; k < n_C; ++k)
+		    {
+		      if (lex_match_id (lexer, cell_spec[k].keyword))
+			{
+			  means.cells =
+			    xrealloc (means.cells,
+				      ++means.n_cells * sizeof (*means.cells));
+			
+			  means.cells[means.n_cells - 1] = k;
+			  break;
+			}
 		    }
 		}
 	      if (k >= n_C)

@@ -263,3 +263,65 @@ y,3.0000,3.0000,3.0000
 ])
 
 AT_CLEANUP
+
+
+
+
+
+
+AT_SETUP([MEANS all/none/default])
+
+dnl Make sure that /CELLS = {ALL,NONE,DEFAULT} work properly
+AT_DATA([means-stat-keywords.sps], [dnl
+SET FORMAT=F12.2.
+SET DECIMAL=DOT.
+
+DATA LIST NOTABLE LIST /score *.
+BEGIN DATA.
+22
+22
+29
+16
+23
+END DATA.
+
+MEANS score /CELLS = ALL.
+MEANS score /CELLS = DEFAULT.
+MEANS score /CELLS = NONE.
+])
+
+
+AT_CHECK([pspp -O format=csv means-stat-keywords.sps], [0],
+  [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Included,,Excluded,,Total,
+,N,Percent,N,Percent,N,Percent
+score: ,5,100%,0,0%,5,100%
+
+Table: Report
+,Mean,N,Std. Deviation,S.E. Mean,Sum,Min,Max,Range,Variance,Kurtosis,S.E. Kurt,Skewness,S.E. Skew,First,Last,Harmonic Mean,Geom. Mean
+score,22.40,5.00,4.62,2.06,112.00,16.00,29.00,13.00,21.30,1.85,2.00,.11,.91,22.00,23.00,21.61,22.01
+
+Table: Case Processing Summary
+,Cases,,,,,
+,Included,,Excluded,,Total,
+,N,Percent,N,Percent,N,Percent
+score: ,5,100%,0,0%,5,100%
+
+Table: Report
+,Mean,N,Std. Deviation
+score,22.40,5.00,4.62
+
+Table: Case Processing Summary
+,Cases,,,,,
+,Included,,Excluded,,Total,
+,N,Percent,N,Percent,N,Percent
+score: ,5,100%,0,0%,5,100%
+
+Table: Report
+
+score
+])
+
+AT_CLEANUP
