@@ -896,7 +896,8 @@ update_n (const void *aux1, void *aux2, void *user_data, const struct ccase *c, 
 
       for (i = 0; i < table->n_interactions; ++i)
 	{
-	  if ( is_missing (means, table->dep_vars[v], table->interactions[i], c))
+	  if ( is_missing (means, table->dep_vars[v],
+			   table->interactions[i], c))
 	    goto end;
 	}
 
