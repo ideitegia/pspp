@@ -368,12 +368,17 @@ psppire_val_chooser_init (PsppireValChooser *vr)
 
       group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (vr->rw[i].rb));
 
-      gtk_table_attach_defaults (GTK_TABLE (table), GTK_WIDGET (vr->rw[i].rb), 0, 1,
-				 row, row + 1);
+      /* Attach the buttons */
+      gtk_table_attach (GTK_TABLE (table), GTK_WIDGET (vr->rw[i].rb),
+			0, 1,	row, row + 1,
+			0, GTK_EXPAND | GTK_FILL,
+			0, 0);
 
-
-      gtk_table_attach_defaults (GTK_TABLE (table), GTK_WIDGET (vr->rw[i].label), 1, 2,
-				 row, row + 1);
+      /* Attach the labels */
+      gtk_table_attach (GTK_TABLE (table), GTK_WIDGET (vr->rw[i].label),
+			1, 2,   row, row + 1,
+			GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL,
+			0, 0);
       ++row;
 
       if (l->fill)
