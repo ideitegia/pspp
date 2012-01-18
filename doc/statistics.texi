@@ -11,6 +11,7 @@ far.
 * CORRELATIONS::                Correlation tables.
 * CROSSTABS::                   Crosstabulation tables.
 * FACTOR::                      Factor analysis and Principal Components analysis
+* MEANS::                       Average values and other statistics.
 * NPAR TESTS::                  Nonparametric tests.
 * T-TEST::                      Test hypotheses about means.
 * ONEWAY::                      One way analysis of variance.
@@ -634,7 +635,145 @@ contains a missing value.
 If PAIRWISE is set, then a case is considered missing only if either of the
 values  for the particular coefficient are missing.
 The default is LISTWISE.
- 
+
+@node MEANS
+@section MEANS
+
+@vindex MEANS
+@cindex means
+
+@display 
+MEANS [TABLES =] 
+      @{varlist@} 
+        [ BY @{varlist@} [BY @{varlist@} [BY @{varlist@} @dots{} ]]]
+
+      [ /@{varlist@} 
+         [ BY @{varlist@} [BY @{varlist@} [BY @{varlist@} @dots{} ]]] ]
+
+      [/CELLS = [MEAN] [COUNT] [STDDEV] [SEMEAN] [SUM] [MIN] [MAX] [RANGE]
+        [VARIANCE] [KURT] [SEKURT] 
+        [SKEW] [SESKEW] [FIRST] [LAST] 
+        [HARMONIC] [GEOMETRIC] 
+        [DEFAULT]
+        [ALL]
+        [NONE] ]
+
+      [/MISSING = [TABLE] [INCLUDE] [DEPENDENT]]
+@end display 
+
+You can use the MEANS command to calculate the arithmetic mean and similar
+statistics, either for the dataset as a whole or for categories of data.
+
+The simplest form of the command is
+@example
+MEANS @var{v}.
+@end example
+@noindent which calculates the mean, count and standard deviation for @var{v}.
+If you specify a grouping variable, for example
+@example
+MEANS @var{v} BY @var{g}.
+@end example
+@noindent then the means, counts and standard deviations for @var{v} after having
+been grouped by @var{g} will be calculated.
+Instead of the mean, count and standard deviation, you could specify the statistics
+in which you are interested:
+@example
+MEANS @var{x} @var{y} BY @var{g}
+      /CELLS = HARMONIC SUM MIN.
+@end example
+This example calculates the harmonic mean, the sum and the minimum values of @var{x} and @var{y}
+grouped by @var{g}.
+
+The CELLS subcommand specifies which statistics to calculate.  The available statistics
+are:
+@itemize
+@item MEAN
+@cindex arithmetic mean
+      The arithmetic mean.
+@item COUNT
+      The count of the values.
+@item STDDEV
+      The standard deviation.
+@item SEMEAN
+      The standard error of the mean.
+@item SUM
+      The sum of the values.
+@item MIN
+      The minimum value.
+@item MAX
+      The maximum value.
+@item RANGE
+      The difference between the maximum and minimum values.
+@item VARIANCE
+      The variance.
+@item FIRST
+      The first value in the category.
+@item LAST
+      The last value in the category.
+@item SKEW
+      The skewness.
+@item SESKEW
+      The standard error of the skewness.
+@item KURT
+      The kurtosis
+@item SEKURT
+      The standard error of the kurtosis.
+@item HARMONIC
+@cindex harmonic mean
+      The harmonic mean.
+@item GEOMETRIC
+@cindex geometric mean
+      The geometric mean.
+@end itemize
+
+In addition, three special keywords are recognized:
+@itemize
+@item DEFAULT
+      This is the same as MEAN COUNT STDDEV
+@item ALL
+      All of the above statistics will be calculated.
+@item NONE
+      No statistics will be calculated (only a summary will be shown).
+@end itemize
+
+
+More than one @dfn{table} can be specified in a single command. 
+Each table is separated by a @samp{/}. For
+example
+@example
+MEANS TABLES =
+      @var{c} @var{d} @var{e} BY @var{x}
+      /@var{a} @var{b} BY @var{x} @var{y}
+      /@var{f} BY @var{y} BY @var{z}.
+@end example
+has three tables (the @samp{TABLE =} is optional).
+The first table has three dependent variables @var{c}, @var{d} and @var{e}
+and a single categorical variable @var{x}.
+The second table has two dependent variables @var{a} and @var{b}, 
+and two categorical variables @var{x} and @var{y}.
+The third table has a single dependent variables @var{f}
+and a categorical variable formed by the combination of @var{y} and @var{z}.
+
+
+By default values are omitted from the analysis only if missing values
+(either system missing or user missing)
+for any of the variables directly involved in their calculation are 
+encountered.
+This behaviour can be modified with the  /MISSING subcommand.
+Three options are possible: TABLE, INCLUDE and DEPENDENT.
+
+/MISSING = TABLE causes cases to be dropped if any variable is missing 
+in the table specification currently being processed, regardless of 
+whether it is needed to calculate the statistic.
+
+/MISSING = INCLUDE says that user missing values, either in the dependent
+variables or in the categorical variables should be taken at their face
+value, and not excluded.
+
+/MISSING = DEPENDENT says that user missing values, in the dependent
+variables should be taken at their face value, however cases which 
+have user missing values for the categorical variables should be omitted 
+from the calculation.
 
 @node NPAR TESTS
 @section NPAR TESTS
@@ -1452,5 +1591,3 @@ exclude them.
 Cases are excluded on a listwise basis; if any of the variables in @var{var_list} 
 or if the variable @var{state_var} is missing, then the entire case will be 
 excluded.
-
-
