@@ -1,15 +1,17 @@
-PSPP is a program for statistical analysis of sampled data. It
-is a free replacement for the proprietary program SPSS.
+PSPP is a program for statistical analysis of sampled data.  It is
+a free replacement for the proprietary program SPSS.
 
-PSPP development is ongoing. It already supports a large subset of
-SPSS's syntax.  Its statistical procedure support is currently
-limited, but growing.  At your option, PSPP will produce statistical
-reports in ASCII, PostScript, PDF, HTML, SVG, or OpenDocument formats. 
+PSPP supports T-tests, ANOVA and GLM analyses, factor analysis,
+non-parametric tests, and other statistical features.  PSPP produces
+statistical reports in plain text, PDF, PostScript, CSV, HTML, SVG,
+and OpenDocument formats.
+
+PSPP has both text-based and graphical user interfaces.  The PSPP
+user interface has been translated into a number of languages.
 
 Instructions for PSPP installation are in INSTALL, including a list of
 prerequisite packages and other PSPP-specific information.  Full
-documentation  on PSPP's language will be installed along with the
-programs. 
+documentation on PSPP's language is also included.
 
 For information on differences from previous versions, please see file
 NEWS.  
@@ -49,11 +51,6 @@ following support to users:
 	* Friendly textual and graphical interfaces.  This release
           includes the first version of PSPPIRE, the PSPP graphical
           user interface.
-
-	* Attractive output, including graphs, in a variety of human-
-          and machine-readable formats.  PSPP currently produces
-          output in ASCII, PostScript, PDF, HTML, and SVG formats.  We
-          will enhance PSPP's output formatting in the future.
 
 	* Good documentation.  Currently the PSPP manual describes its
           language completely, but we would like to add information on
