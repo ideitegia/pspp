@@ -1,6 +1,4 @@
 crosstabs.c
 examine.c
 frequencies.c
-rank.c
 regression.c
-t-test.c
