@@ -85,14 +85,14 @@ context = pspp
 
 
 install-lang:
-	$(INSTALL) $(top_srcdir)/src/ui/gui/pspp.lang $(DESTDIR)$(pkgdatadir)
+	$(INSTALL_DATA) $(top_srcdir)/src/ui/gui/pspp.lang $(DESTDIR)$(pkgdatadir)
 
 install-icons:
 	for size in 16x16 ; do \
 	  $(MKDIR_P) $(themedir)/$$size/$(context) ; \
-          $(INSTALL) $(top_srcdir)/src/ui/gui/icons/$$size/* $(themedir)/$$size/$(context) ; \
+          $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/icons/$$size/* $(themedir)/$$size/$(context) ; \
 	  $(MKDIR_P) $(themedir)/$$size/apps ; \
-	  $(INSTALL) $(top_srcdir)/src/ui/gui/app-icons/$$size/pspp.png $(themedir)/$$size/apps ; \
+	  $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/app-icons/$$size/pspp.png $(themedir)/$$size/apps ; \
 	done 
 	gtk-update-icon-cache --ignore-theme-index $(themedir)
 
