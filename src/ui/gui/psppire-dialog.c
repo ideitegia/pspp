@@ -31,6 +31,7 @@ static void psppire_dialog_init                (PsppireDialog      *);
 
 
 enum  {DIALOG_REFRESH,
+       RESPONSE,
        VALIDITY_CHANGED,
        DIALOG_HELP,
        n_SIGNALS};
@@ -246,6 +247,18 @@ psppire_dialog_class_init (PsppireDialogClass *class)
 		  g_cclosure_marshal_VOID__VOID,
 		  G_TYPE_NONE,
 		  0);
+
+
+  signals [RESPONSE] =
+    g_signal_new ("response",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__INT,
+		  G_TYPE_NONE,
+		  1,
+		  G_TYPE_INT);
 
 
   signals [VALIDITY_CHANGED] =
@@ -523,6 +536,8 @@ psppire_dialog_run (PsppireDialog *dialog)
   gdk_threads_enter ();
 
   g_main_loop_unref (dialog->loop);
+
+  g_signal_emit (dialog, signals [RESPONSE], 0, dialog->response);
 
   return dialog->response;
 }

@@ -13,6 +13,9 @@
 #include "psppire-var-view.h"
 #include "psppire-val-chooser.h"
 
+#include "psppire-dialog-action-descriptives.h"
+#include "psppire-dialog-action-var-info.h"
+
 
 /* Any custom widgets which are to be used in GtkBuilder ui files
    need to be preregistered, otherwise GtkBuilder refuses to 
@@ -29,4 +32,7 @@ preregister_widgets (void)
   psppire_acr_get_type ();
   psppire_dict_view_get_type ();
   psppire_var_view_get_type ();
+
+  psppire_dialog_action_descriptives_get_type ();
+  psppire_dialog_action_var_info_get_type ();
 }

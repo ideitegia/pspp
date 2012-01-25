@@ -34,7 +34,6 @@
 #include "ui/gui/correlation-dialog.h"
 #include "ui/gui/count-dialog.h"
 #include "ui/gui/crosstabs-dialog.h"
-#include "ui/gui/descriptives-dialog.h"
 #include "ui/gui/entry-dialog.h"
 #include "ui/gui/examine-dialog.h"
 #include "ui/gui/executor.h"
@@ -69,7 +68,6 @@
 #include "ui/gui/text-data-import-dialog.h"
 #include "ui/gui/transpose-dialog.h"
 #include "ui/gui/univariate-dialog.h"
-#include "ui/gui/variable-info-dialog.h"
 #include "ui/gui/weight-cases-dialog.h"
 #include "ui/syntax-gen.h"
 
@@ -1084,9 +1082,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   connect_action (de, "data_weight-cases", G_CALLBACK (weight_cases_dialog));
 
-
-  connect_action (de, "utilities_variables", G_CALLBACK (variable_info_dialog));
- 
   connect_action (de, "oneway-anova", G_CALLBACK (oneway_anova_dialog));
 
   connect_action (de, "indep-t-test", G_CALLBACK (t_test_independent_samples_dialog));
@@ -1105,8 +1100,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
  
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
 
-  connect_action (de, "analyze_descriptives", G_CALLBACK (descriptives_dialog));
- 
   connect_action (de, "analyze_frequencies", G_CALLBACK (frequencies_dialog));
  
   connect_action (de, "crosstabs", G_CALLBACK (crosstabs_dialog));

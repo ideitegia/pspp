@@ -1,6 +1,7 @@
 /* PSPPIRE - a graphical user interface for PSPP.
    Copyright (C) 2007, 2009, 2010, 2011, 2012  Free Software Foundation
 
+
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
@@ -14,25 +15,29 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+
 #include <config.h>
-#include <gtk/gtk.h>
+
+#include "psppire-dialog-action-var-info.h"
 
 #include <data/variable.h>
 #include <data/format.h>
 #include <data/value-labels.h>
 #include <libpspp/i18n.h>
 
-#include "variable-info-dialog.h"
 #include "var-display.h"
-
-#include "psppire-data-window.h"
-#include "psppire-dialog.h"
-#include "psppire-dictview.h"
-#include "psppire-var-store.h"
-#include "builder-wrapper.h"
 #include "helper.h"
+#include "psppire-var-view.h"
+#include "psppire-dictview.h"
 
+#include "psppire-dialog.h"
+#include "builder-wrapper.h"
+#include "psppire-data-window.h"
 
+static void psppire_dialog_action_var_info_init            (PsppireDialogActionVarInfo      *act);
+static void psppire_dialog_action_var_info_class_init      (PsppireDialogActionVarInfoClass *class);
+
+G_DEFINE_TYPE (PsppireDialogActionVarInfo, psppire_dialog_action_var_info, PSPPIRE_TYPE_DIALOG_ACTION);
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -51,6 +56,36 @@ label_to_string (const struct variable *var)
 
   return label;
 }
+
+
+static gboolean
+treeview_item_selected (gpointer data)
+{
+  PsppireDialogAction *pda = data;
+  GtkTreeView *tv = GTK_TREE_VIEW (pda->source);
+  GtkTreeModel *model = gtk_tree_view_get_model (tv);
+
+  gint n_rows = gtk_tree_model_iter_n_children  (model, NULL);
+
+  if ( n_rows == 0 )
+    return FALSE;
+
+  return TRUE;
+}
+
+static gchar *
+generate_syntax (PsppireDialogAction *act)
+
+{
+  const struct variable *var =
+    psppire_dict_view_get_selected_variable (PSPPIRE_DICT_VIEW (act->source));
+
+  if ( NULL == var)
+    return g_strdup ("");
+
+  return g_strdup (var_get_name (var));
+}
+
 
 
 static void
@@ -125,99 +160,72 @@ populate_text (PsppireDictView *treeview, gpointer data)
   g_string_free (gstring, TRUE);
 }
 
-static gboolean
-treeview_item_selected (gpointer data)
+
+static void
+jump_to (PsppireDialog *d, gint response, gpointer data)
 {
-  GtkTreeView *tv = GTK_TREE_VIEW (data);
-  GtkTreeModel *model = gtk_tree_view_get_model (tv);
+  PsppireDataWindow *dw;
+  PsppireDialogAction *pda = PSPPIRE_DIALOG_ACTION (data);
+  const struct variable *var;
 
-  gint n_rows = gtk_tree_model_iter_n_children  (model, NULL);
+  if (response !=  PSPPIRE_RESPONSE_GOTO)
+    return;
 
-  if ( n_rows == 0 )
-    return FALSE;
+  var = psppire_dict_view_get_selected_variable (PSPPIRE_DICT_VIEW (pda->source));
 
-  return TRUE;
+  if ( NULL == var)
+    return;
+
+  g_object_get (pda, "top-level", &dw, NULL);
+
+  g_object_set (dw->data_editor,
+		"current-variable", var_get_dict_index (var),
+		NULL);
 }
 
-
-static gchar * generate_syntax (PsppireDictView *treeview);
-
-
-void
-variable_info_dialog (PsppireDataWindow *de)
+static void
+psppire_dialog_action_var_info_activate (GtkAction *a)
 {
-  gint response ;
+  PsppireDialogAction *pda = PSPPIRE_DIALOG_ACTION (a);
 
   GtkBuilder *xml = builder_new ("variable-info.ui");
+  GtkWidget *textview = get_widget_assert (xml, "textview1");  
 
-  GtkWidget *dialog = get_widget_assert (xml, "variable-info-dialog");
-  GtkWidget *treeview = get_widget_assert (xml, "treeview2");
-  GtkWidget *textview = get_widget_assert (xml, "textview1");
+  pda->dialog = get_widget_assert (xml, "variable-info-dialog");
+  pda->source = get_widget_assert (xml, "treeview2");
 
-  PsppireVarStore *vs = NULL;
-  PsppireDict *dict = NULL;
-
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
-
-  g_object_get (vs, "dictionary", &dict, NULL);
-  g_object_set (treeview, "model", dict,
+  g_object_set (pda->source,
 		"selection-mode", GTK_SELECTION_SINGLE,
 		NULL);
 
-  g_signal_connect (treeview, "cursor-changed", G_CALLBACK (populate_text),
+  g_signal_connect (pda->source, "cursor-changed", G_CALLBACK (populate_text),
 		    textview);
 
 
-  gtk_text_view_set_indent (GTK_TEXT_VIEW (textview), -5);
+  g_signal_connect (pda->dialog, "response", G_CALLBACK (jump_to),
+		    pda);
 
-  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
-				      treeview_item_selected, treeview);
+  psppire_dialog_action_set_valid_predicate (pda,
+					     treeview_item_selected);
 
-  response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
-
-  switch (response)
-    {
-    case PSPPIRE_RESPONSE_GOTO:
-      {
-	const struct variable *var =
-	  psppire_dict_view_get_selected_variable (PSPPIRE_DICT_VIEW (treeview));
-
-	if ( NULL == var)
-	  goto done;
-
-	g_object_set (de->data_editor,
-		      "current-variable", var_get_dict_index (var),
-		      NULL);
-      }
-
-      break;
-    case PSPPIRE_RESPONSE_PASTE:
-      {
-	gchar *syntax = generate_syntax (PSPPIRE_DICT_VIEW (treeview));
-        paste_syntax_to_window (syntax);
-
-	g_free (syntax);
-      }
-      break;
-    default:
-      break;
-    }
-
- done:
   g_object_unref (xml);
+
+  if (PSPPIRE_DIALOG_ACTION_CLASS (psppire_dialog_action_var_info_parent_class)->activate)
+    PSPPIRE_DIALOG_ACTION_CLASS (psppire_dialog_action_var_info_parent_class)->activate (pda);
 }
 
-static gchar *
-generate_syntax (PsppireDictView *treeview)
+static void
+psppire_dialog_action_var_info_class_init (PsppireDialogActionVarInfoClass *class)
 {
-  const struct variable *var =
-    psppire_dict_view_get_selected_variable (treeview);
+  GtkActionClass *action_class = GTK_ACTION_CLASS (class);
 
-  if ( NULL == var)
-    return g_strdup ("");
+  action_class->activate = psppire_dialog_action_var_info_activate;
+  PSPPIRE_DIALOG_ACTION_CLASS (class)->generate_syntax = generate_syntax;
+}
 
-  return g_strdup (var_get_name (var));
+
+static void
+psppire_dialog_action_var_info_init (PsppireDialogActionVarInfo *act)
+{
 }
 

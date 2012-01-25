@@ -162,8 +162,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/crosstabs-dialog.h \
 	src/ui/gui/customentry.c \
 	src/ui/gui/customentry.h \
-	src/ui/gui/descriptives-dialog.c \
-	src/ui/gui/descriptives-dialog.h \
 	src/ui/gui/dialog-common.c \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.h \
@@ -212,6 +210,12 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-data-window.c \
 	src/ui/gui/psppire-data-window.h \
 	src/ui/gui/psppire-dialog.h \
+	src/ui/gui/psppire-dialog-action.c \
+	src/ui/gui/psppire-dialog-action.h \
+	src/ui/gui/psppire-dialog-action-descriptives.c \
+	src/ui/gui/psppire-dialog-action-descriptives.h \
+	src/ui/gui/psppire-dialog-action-var-info.c \
+	src/ui/gui/psppire-dialog-action-var-info.h \
 	src/ui/gui/psppire-dict.c \
 	src/ui/gui/psppire-dict.h \
 	src/ui/gui/psppire-dictview.c \
@@ -282,8 +286,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \
 	src/ui/gui/var-display.h \
-	src/ui/gui/variable-info-dialog.c \
-	src/ui/gui/variable-info-dialog.h \
 	src/ui/gui/var-type-dialog.c \
 	src/ui/gui/var-type-dialog.h \
 	src/ui/gui/weight-cases-dialog.c \

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,27 +14,26 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+
 #include <config.h>
 
+#include "psppire-dialog-action-descriptives.h"
+
 #include "checkbox-treeview.h"
-#include "descriptives-dialog.h"
+
 #include "psppire-var-view.h"
-
-#include <gtk/gtk.h>
-#include <stdlib.h>
-
-#include <ui/gui/psppire-data-window.h>
-#include <ui/gui/dialog-common.h>
-#include <ui/gui/dict-display.h>
-#include <ui/gui/builder-wrapper.h>
-#include <ui/gui/psppire-dialog.h>
-#include <ui/gui/psppire-var-store.h>
-#include "executor.h"
-#include "helper.h"
+#include "psppire-dict.h"
+#include "psppire-dialog.h"
+#include "builder-wrapper.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
+
+static void psppire_dialog_action_descriptives_class_init      (PsppireDialogActionDescriptivesClass *class);
+
+G_DEFINE_TYPE (PsppireDialogActionDescriptives, psppire_dialog_action_descriptives, PSPPIRE_TYPE_DIALOG_ACTION);
+
 
 #define DESCRIPTIVE_STATS                       \
   DS (MEAN, N_("Mean"))                         \
@@ -73,41 +72,11 @@ static const struct checkbox_entry_item stats[] =
 #undef DS
   };
 
-struct descriptives_dialog
-{
-  GtkTreeView *stat_vars;
-  GtkTreeModel *stats;
-  PsppireDict *dict;
-  GtkToggleButton *exclude_missing_listwise;
-  GtkToggleButton *include_user_missing;
-  GtkToggleButton *save_z_scores;
-};
-
-static void
-refresh (PsppireDialog *dialog, struct descriptives_dialog *scd)
-{
-  GtkTreeModel *liststore;
-  GtkTreeIter iter;
-  size_t i;
-  bool ok;
-
-  liststore = gtk_tree_view_get_model (scd->stat_vars);
-  gtk_list_store_clear (GTK_LIST_STORE (liststore));
-
-  for (i = 0, ok = gtk_tree_model_get_iter_first (scd->stats, &iter); ok;
-       i++, ok = gtk_tree_model_iter_next (scd->stats, &iter))
-    gtk_list_store_set (GTK_LIST_STORE (scd->stats), &iter,
-			CHECKBOX_COLUMN_SELECTED,
-                        (B_DS_DEFAULT & (1u << i)) ? true : false, -1);
-
-  gtk_toggle_button_set_active (scd->exclude_missing_listwise, false);
-  gtk_toggle_button_set_active (scd->include_user_missing, false);
-  gtk_toggle_button_set_active (scd->save_z_scores, false);
-}
 
 static char *
-generate_syntax (const struct descriptives_dialog *scd)
+generate_syntax (PsppireDialogAction *act)
 {
+  PsppireDialogActionDescriptives *scd = PSPPIRE_DIALOG_ACTION_DESCRIPTIVES (act);
   gchar *text;
   GString *string;
   GtkTreeIter iter;
@@ -187,12 +156,10 @@ generate_syntax (const struct descriptives_dialog *scd)
   return text;
 }
 
-
-/* Dialog is valid iff at least one variable has been selected */
 static gboolean
 dialog_state_valid (gpointer data)
 {
-  struct descriptives_dialog *dd = data;
+  PsppireDialogActionDescriptives *dd = data;
 
   GtkTreeModel *vars = gtk_tree_view_get_model (dd->stat_vars);
 
@@ -201,71 +168,74 @@ dialog_state_valid (gpointer data)
   return gtk_tree_model_get_iter_first (vars, &notused);
 }
 
-/* Pops up the Descriptives dialog box */
-void
-descriptives_dialog (PsppireDataWindow *de)
+static void
+dialog_refresh (PsppireDialogActionDescriptives *scd)
 {
-  gint response;
+  GtkTreeModel *liststore;
+  GtkTreeIter iter;
+  size_t i;
+  bool ok;
 
-  struct descriptives_dialog scd;
+  liststore = gtk_tree_view_get_model (scd->stat_vars);
+  gtk_list_store_clear (GTK_LIST_STORE (liststore));
+
+  for (i = 0, ok = gtk_tree_model_get_iter_first (scd->stats, &iter); ok;
+       i++, ok = gtk_tree_model_iter_next (scd->stats, &iter))
+    gtk_list_store_set (GTK_LIST_STORE (scd->stats), &iter,
+			CHECKBOX_COLUMN_SELECTED,
+                        (B_DS_DEFAULT & (1u << i)) ? true : false, -1);
+
+  gtk_toggle_button_set_active (scd->exclude_missing_listwise, false);
+  gtk_toggle_button_set_active (scd->include_user_missing, false);
+  gtk_toggle_button_set_active (scd->save_z_scores, false);
+}
+
+static void
+psppire_dialog_action_descriptives_activate (GtkAction *a)
+{
+  PsppireDialogAction *pda = PSPPIRE_DIALOG_ACTION (a);
+  PsppireDialogActionDescriptives *act = PSPPIRE_DIALOG_ACTION_DESCRIPTIVES (a);
 
   GtkBuilder *xml = builder_new ("descriptives.ui");
 
-  GtkWidget *dialog = get_widget_assert   (xml, "descriptives-dialog");
-
-
-  GtkWidget *source = get_widget_assert   (xml, "all-variables");
-  GtkWidget *dest =   get_widget_assert   (xml, "stat-variables");
-
   GtkWidget *stats_treeview = get_widget_assert    (xml, "statistics");
 
-  PsppireVarStore *vs = NULL;
-  PsppireDict *dict;
+  pda->dialog = get_widget_assert   (xml, "descriptives-dialog");
+  pda->source = get_widget_assert   (xml, "all-variables");
+  act->variables =   get_widget_assert   (xml, "stat-variables");
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-  g_object_get (vs, "dictionary", &dict, NULL);
-
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
-
-
-  g_object_set (source, "model", dict,
+  g_object_set (pda->source, "model", pda->dict,
 	"predicate", var_is_numeric, NULL);
 
   put_checkbox_items_in_treeview (GTK_TREE_VIEW (stats_treeview),
 				  B_DS_DEFAULT,
 				  N_DESCRIPTIVE_STATS, stats);
 
-  scd.stat_vars = GTK_TREE_VIEW (dest);
-  scd.stats = gtk_tree_view_get_model (GTK_TREE_VIEW (stats_treeview));
+  act->stat_vars = GTK_TREE_VIEW (act->variables);
+  act->stats = gtk_tree_view_get_model (GTK_TREE_VIEW (stats_treeview));
   
-  g_object_get (vs, "dictionary", &scd.dict, NULL);
-  
-  scd.include_user_missing =
+  act->include_user_missing =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "include_user_missing"));
-  scd.exclude_missing_listwise =
+  act->exclude_missing_listwise =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "exclude_missing_listwise"));
-  scd.save_z_scores =
+  act->save_z_scores =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "save_z_scores"));
 
-  g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &scd);
+  psppire_dialog_action_set_valid_predicate (pda, dialog_state_valid);
+  psppire_dialog_action_set_refresh (pda, dialog_refresh);
 
-  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
-				      dialog_state_valid, &scd);
+  PSPPIRE_DIALOG_ACTION_CLASS (psppire_dialog_action_descriptives_parent_class)->activate (pda);
+}
 
-  response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
+static void
+psppire_dialog_action_descriptives_class_init (PsppireDialogActionDescriptivesClass *class)
+{
+  GTK_ACTION_CLASS (class)->activate = psppire_dialog_action_descriptives_activate;
 
+  PSPPIRE_DIALOG_ACTION_CLASS (class)->generate_syntax = generate_syntax;
+}
 
-  switch (response)
-    {
-    case GTK_RESPONSE_OK:
-      g_free (execute_syntax_string (de, generate_syntax (&scd)));
-      break;
-    case PSPPIRE_RESPONSE_PASTE:
-      g_free (paste_syntax_to_window (generate_syntax (&scd)));
-      break;
-    default:
-      break;
-    }
-
-  g_object_unref (xml);
+static void
+psppire_dialog_action_descriptives_init (PsppireDialogActionDescriptives *act)
+{
 }

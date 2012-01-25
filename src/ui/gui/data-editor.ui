@@ -350,7 +350,8 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="analyze_descriptives">
+          <object class="PsppireDialogActionDescriptives" id="analyze_descriptives">
+            <property name="manager">uimanager1</property>
             <property name="name">analyze_descriptives</property>
             <property name="label" translatable="yes">_Descriptives...</property>
           </object>
@@ -489,7 +490,8 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="utilities_variables">
+          <object class="PsppireDialogActionVarInfo" id="utilities_variables">
+            <property name="manager">uimanager1</property>
             <property name="name">utilities_variables</property>
             <property name="label" translatable="yes">_Variables...</property>
 	    <property name="tooltip" translatable="yes">Jump to variable</property>
