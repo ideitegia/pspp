@@ -1,5 +1,5 @@
 bin_PROGRAMS += utilities/pspp-dump-sav
-man_MANS += utilities/pspp-dump-sav.1
+dist_man_MANS += utilities/pspp-dump-sav.1
 utilities_pspp_dump_sav_SOURCES = \
 	src/libpspp/integer-format.c \
 	src/libpspp/float-format.c \
