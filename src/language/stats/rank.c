@@ -663,6 +663,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   struct rank rank;
   struct variable *order;
   bool result = true;
+  int i;
 
   subcase_init_empty (&rank.sc);
 
@@ -802,7 +803,6 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
      already been created with INTO.
      Add labels to all the destination variables.
   */
-  int i;
   for (i = 0 ; i <  rank.n_rs ; ++i )
     {
       int v;
