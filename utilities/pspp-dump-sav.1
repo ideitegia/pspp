@@ -1,0 +1,55 @@
+.\" -*- nroff -*-
+.de IQ
+.  br
+.  ns
+.  IP "\\$1"
+..
+.TH pspp\-dump\-sav 1 "January 2012" "PSPP" "PSPP Manual"
+.
+.SH NAME
+pspp\-dump\-sav \- dissect SPSS system file
+.
+.SH SYNOPSIS
+\fBpspp\-dump\-sav\fR [\fB\-d \fR| \fB\-\-data\fR[\fB=\fImaxcases\fR]] \fIfile\fR...
+.br
+\fBpspp\-dump\-sav \-\-help\fR | \fB\-h\fR
+.br
+\fBpspp\-dump\-sav \-\-version\fR | \fB\-v\fR
+.
+.SH DESCRIPTION
+The \fBpspp\-dump\-sav\fR program reads each SPSS system file
+\fIfile\fR and prints its contents.  The output format is useful for
+debugging system file readers and writers and for discovering how to
+interpret unknown or poorly understood records.  End users may find
+the output useful for providing the PSPP developers information about
+system files that PSPP does not accurately read.
+.
+.SH "OPTIONS"
+.
+.IP "\fB\-d\fR[\fImaxcases\fR]"
+.IQ "\fB\-\-data\fR[\fB=\fImaxcases\fR]"
+By default, \fBpspp\-dump\-sav\fR does not print any of the data in a
+system file, only the file headers.  Specify this option to print the
+data as well.  If \fImaxcases\fR is specified, then it limits the
+number of cases printed.
+.
+.IP "\fB\-h\fR"
+.IQ "\fB\-\-help\fR"
+Prints a usage message on stdout and exits.
+.
+.IP "\fB\-v\fR"
+.IQ "\fB\-\-version\fR"
+Prints version information on stdout and exits.
+.
+.SH "BUGS"
+Some errors that prevent files from being interpreted successfully
+cause \fBpspp\-dump\-sav\fR to exit without reading any additional
+files given on the command line.
+.
+.SH "AUTHORS"
+Ben Pfaff and John Darrington.
+.
+.SH "SEE ALSO"
+.
+.BR pspp (1),
+.BR psppire (1).
