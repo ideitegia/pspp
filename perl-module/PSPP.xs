@@ -749,7 +749,7 @@ get_next_case (sfr)
 PPCODE:
  struct ccase *c;
 
- if (c = casereader_read (sfr->reader))
+ if ((c = casereader_read (sfr->reader)) != NULL)
  {
   int v;
 
