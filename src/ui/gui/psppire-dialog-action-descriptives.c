@@ -169,8 +169,10 @@ dialog_state_valid (gpointer data)
 }
 
 static void
-dialog_refresh (PsppireDialogActionDescriptives *scd)
+dialog_refresh (PsppireDialogAction *scd_)
 {
+  PsppireDialogActionDescriptives *scd
+    = PSPPIRE_DIALOG_ACTION_DESCRIPTIVES (scd_);
   GtkTreeModel *liststore;
   GtkTreeIter iter;
   size_t i;

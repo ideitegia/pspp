@@ -176,7 +176,8 @@ void
 psppire_dialog_action_set_valid_predicate (PsppireDialogAction *act, 
 					   ContentsAreValid dialog_state_valid)
 {
-  psppire_dialog_set_valid_predicate (act->dialog, dialog_state_valid, act);
+  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (act->dialog),
+                                      dialog_state_valid, act);
 }
 
 void
