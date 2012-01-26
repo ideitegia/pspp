@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -459,7 +459,7 @@ print_untyped_value (struct sfm_reader *r, char raw_value[8])
   double value;
 
   value = float_get_double (r->float_format, raw_value);
-  for (n_printable = 0; n_printable < sizeof raw_value; n_printable++)
+  for (n_printable = 0; n_printable < 8; n_printable++)
     if (!isprint (raw_value[n_printable]))
       break;
 
