@@ -44,6 +44,7 @@
 #include <data/attributes.h>
 #include <data/file-handle-def.h>
 #include <data/identifier.h>
+#include <data/settings.h>
 #include <data/sys-file-writer.h>
 #include <data/sys-file-reader.h>
 #include <data/value.h>
@@ -182,7 +183,7 @@ CODE:
 
  i18n_init ();
  msg_set_handler (message_handler, NULL);
- settings_init (0, 0);
+ settings_init ();
  fh_init ();
 
 SV *
