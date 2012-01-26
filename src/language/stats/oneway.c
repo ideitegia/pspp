@@ -164,6 +164,9 @@ df_individual (const struct per_var_ws *pvw UNUSED, const struct moments1 *mom_i
 
   moments1_calculate (mom_i, &n_i, NULL, &var_i, 0, 0);  
   moments1_calculate (mom_j, &n_j, NULL, &var_j, 0, 0);
+  
+  if ( n_i <= 1.0 || n_j <= 1.0)
+    return SYSMIS;
 
   nom = pow2 (var_i/n_i + var_j/n_j);
   denom = pow2 (var_i/n_i) / (n_i - 1) + pow2 (var_j/n_j) / (n_j - 1);
@@ -191,6 +194,9 @@ static double sidak_pinv (double std_err, double alpha, double df, int k, const 
 
 static double tukey_pinv (double std_err, double alpha, double df, int k, const struct moments1 *mom_i UNUSED, const struct moments1 *mom_j UNUSED)
 {
+  if ( k < 2 || df < 2)
+    return SYSMIS;
+
   return std_err / sqrt (2.0)  * qtukey (1 - alpha, 1.0, k, df, 1, 0);
 }
 
@@ -211,6 +217,9 @@ static double gh_pinv (double std_err UNUSED, double alpha, double df, int k, co
 
   m = sqrt ((var_i/n_i + var_j/n_j) / 2.0);
 
+  if ( k < 2 || df < 2)
+    return SYSMIS;
+
   return m * qtukey (1 - alpha, 1.0, k, df, 1, 0);
 }
 
@@ -224,6 +233,8 @@ multiple_comparison_sig (double std_err,
   int k = pvw->n_groups;
   double df = ph->dff (pvw, dd_i->mom, dd_j->mom);
   double ts = ph->tsf (k, dd_i->mom, dd_j->mom, std_err);
+  if ( df == SYSMIS)
+    return SYSMIS;
   return  ph->p1f (ts, k - 1, df);
 }
 
@@ -232,13 +243,20 @@ mc_half_range (const struct oneway_spec *cmd, const struct per_var_ws *pvw, doub
 {
   int k = pvw->n_groups;
   double df = ph->dff (pvw, dd_i->mom, dd_j->mom);
+  if ( df == SYSMIS)
+    return SYSMIS;
 
   return ph->pinv (std_err, cmd->alpha, df, k, dd_i->mom, dd_j->mom);
 }
 
 static double tukey_1tailsig (double ts, double df1, double df2)
 {
-  double twotailedsig = 1.0 - ptukey (ts, 1.0, df1 + 1, df2, 1, 0);
+  double twotailedsig;
+
+  if (df2 < 2 || df1 < 1)
+    return SYSMIS;
+
+  twotailedsig = 1.0 - ptukey (ts, 1.0, df1 + 1, df2, 1, 0);
 
   return twotailedsig / 2.0;
 }

@@ -371,9 +371,7 @@ ptukey (double q, double rr, double cc, double df, int lower_tail, int log_p)
   double ans, f2, f21, f2lf, ff4, otsum, qsqz, rotsum, t1, twa1, ulen, wprb;
   int i, j, jj;
 
-#ifdef IEEE_754
-  abort (! (ISNAN (q) || ISNAN (rr) || ISNAN (cc) || ISNAN (df)));
-#endif
+  assert (! (isnan (q) || isnan (rr) || isnan (cc) || isnan (df)));
 
   if (q <= 0)
     return R_DT_0;

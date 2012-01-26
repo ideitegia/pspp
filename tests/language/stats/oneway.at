@@ -948,3 +948,27 @@ ONEWAY
 AT_CHECK([pspp -O format=csv crash2.sps], [0], [ignore])
 
 AT_CLEANUP
+
+
+
+
+AT_SETUP([ONEWAY Games-Howell test with few cases])
+AT_DATA([crash3.sps],[dnl
+data list notable list /dv * y * .
+begin data.
+2 2
+1 2
+1 1
+2 4
+3 4
+end data.
+
+ONEWAY
+ /VARIABLES= dv BY y
+ /POSTHOC = GH
+ . 
+])
+
+AT_CHECK([pspp -O format=csv crash3.sps], [0], [ignore])
+
+AT_CLEANUP

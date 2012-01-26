@@ -81,10 +81,8 @@
 
 static double fmax2(double x, double y)
 {
-#ifdef IEEE_754
-	if (ISNAN(x) || ISNAN(y))
+	if (isnan(x) || isnan(y))
 		return x + y;
-#endif
 	return (x < y) ? y : x;
 }
 
@@ -188,15 +186,20 @@ double qtukey(double p, double rr, double cc, double df,
     double ans = 0.0, valx0, valx1, x0, x1, xabs;
     int iter;
 
-#ifdef IEEE_754
-    if (ISNAN(p) || ISNAN(rr) || ISNAN(cc) || ISNAN(df)) {
-	ML_ERROR(ME_DOMAIN, "qtukey");
+    if (isnan(p) || isnan(rr) || isnan(cc) || isnan(df)) {
+      /*	ML_ERROR(ME_DOMAIN, "qtukey"); */
 	return p + rr + cc + df;
     }
-#endif
 
     /* df must be > 1 ; there must be at least two values */
-    assert (! (df < 2 || rr < 1 || cc < 2) );
+    /*              ^^ 
+       JMD: The comment says 1 but the code says 2.
+       Which is correct?
+    */
+    assert (df >= 2);
+    assert (rr >= 1);
+    assert (cc >= 2);
+    
 
     R_Q_P01_boundaries (p, 0, ML_POSINF);
 
