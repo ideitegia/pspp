@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -39,9 +39,11 @@
 #include <data/dictionary.h>
 #include <data/case.h>
 #include <data/casereader.h>
+#include <data/casewriter.h>
 #include <data/variable.h>
 #include <data/attributes.h>
 #include <data/file-handle-def.h>
+#include <data/identifier.h>
 #include <data/sys-file-writer.h>
 #include <data/sys-file-reader.h>
 #include <data/value.h>
