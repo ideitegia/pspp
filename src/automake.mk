@@ -10,7 +10,7 @@ include $(top_srcdir)/src/data/automake.mk
 AM_CPPFLAGS += -I$(top_srcdir)/src -I$(top_srcdir)/lib
 
 
-lib_LTLIBRARIES = src/libpspp-core.la src/libpspp.la
+pkglib_LTLIBRARIES = src/libpspp-core.la src/libpspp.la
 src_libpspp_core_la_SOURCES = 
 
 

@@ -15,6 +15,8 @@ module_sources = \
  perl-module/lib/PSPP.pm \
  perl-module/t/Pspp.t
 
+MAKE_PERL = $(MAKE) $(AM_MAKEFLAGS) LD_RUN_PATH=$(pkglibdir)
+
 perl-module/pspp-module-config: Makefile
 	(echo '%Locations = (';\
 	 printf "  SourceDir => '";\
@@ -28,11 +30,11 @@ perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config $(m
 
 perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz: $(module_sources) perl-module/Makefile
 	rm -f $@
-	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
+	cd perl-module && $(MAKE_PERL) tardist
 
 PHONY += module-make
 module-make: perl-module/Makefile
-	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
+	cd perl-module && $(MAKE_PERL)
 
 ALL_LOCAL += perl_module_tarball
 perl_module_tarball: $(module_sources) src/libpspp-core.la
@@ -47,7 +49,7 @@ perl_module_tarball: $(module_sources) src/libpspp-core.la
 	  fi ; \
 	 done \
 	fi
-	$(MAKE) $(AM_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz
+	$(MAKE_PERL) module-make perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz
 
 CLEAN_LOCAL += perl_module_clean
 perl_module_clean:

@@ -342,7 +342,7 @@ LIBS="$LIBICONV $LIBS"
 
 dnl Required by the gnulib 'relocatable-prog' module.
 dnl See doc/relocatable-maint.texi in the gnulib tree for details.
-RELOCATABLE_LIBRARY_PATH='$(libdir)'
+RELOCATABLE_LIBRARY_PATH='$(pkglibdir)'
 RELOCATABLE_STRIP=:
 
 PSPP_CHECK_PREREQS
