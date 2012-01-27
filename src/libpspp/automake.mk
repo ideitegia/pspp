@@ -1,9 +1,9 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-noinst_LTLIBRARIES += src/libpspp/libpspp.la
+noinst_LTLIBRARIES += src/libpspp/liblibpspp.la
 
-src_libpspp_libpspp_la_SOURCES = \
+src_libpspp_liblibpspp_la_SOURCES = \
 	src/libpspp/abt.c \
 	src/libpspp/abt.h \
 	src/libpspp/argv-parser.c \
@@ -97,9 +97,11 @@ src_libpspp_libpspp_la_SOURCES = \
 
 DISTCLEANFILES+=src/libpspp/version.c
 
-src_libpspp_libpspp_la_CPPFLAGS = -I $(top_srcdir)/src/libpspp $(AM_CPPFLAGS)
+src_libpspp_liblibpspp_la_CPPFLAGS = \
+	-I $(top_srcdir)/src/libpspp \
+	$(AM_CPPFLAGS)
 
-nodist_src_libpspp_libpspp_la_SOURCES = src/libpspp/version.c
+nodist_src_libpspp_liblibpspp_la_SOURCES = src/libpspp/version.c
 
 src/libpspp/version.c: $(top_srcdir)/AUTHORS Makefile
 	@$(MKDIR_P) src/libpspp

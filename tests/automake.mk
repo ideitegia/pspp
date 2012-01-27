@@ -55,12 +55,14 @@ tests_libpspp_llx_test_CFLAGS = $(AM_CFLAGS)
 
 tests_libpspp_encoding_guesser_test_SOURCES = \
 	tests/libpspp/encoding-guesser-test.c
-tests_libpspp_encoding_guesser_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_encoding_guesser_test_LDADD = \
+	src/libpspp/liblibpspp.la \
+	gl/libgl.la
 
 tests_libpspp_heap_test_SOURCES = \
 	tests/libpspp/heap-test.c
 tests_libpspp_heap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_heap_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_heap_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_hmap_test_SOURCES = \
 	src/libpspp/hmap.c \
@@ -74,7 +76,7 @@ tests_libpspp_hmapx_test_SOURCES = \
 tests_libpspp_hmapx_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_i18n_test_SOURCES = tests/libpspp/i18n-test.c
-tests_libpspp_i18n_test_LDADD = src/libpspp/libpspp.la gl/libgl.la 
+tests_libpspp_i18n_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la 
 
 tests_libpspp_abt_test_SOURCES = \
 	src/libpspp/abt.c \
@@ -95,21 +97,21 @@ tests_libpspp_range_map_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_range_set_test_SOURCES = \
 	tests/libpspp/range-set-test.c
 tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_range_set_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_range_set_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_str_test_SOURCES = \
 	tests/libpspp/str-test.c
-tests_libpspp_str_test_LDADD = src/libpspp/libpspp.la gl/libgl.la 
+tests_libpspp_str_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la 
 
 tests_libpspp_string_map_test_SOURCES = \
 	tests/libpspp/string-map-test.c
 tests_libpspp_string_map_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_string_map_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_string_map_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_stringi_map_test_SOURCES = \
 	tests/libpspp/stringi-map-test.c
 tests_libpspp_stringi_map_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_stringi_map_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_stringi_map_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_string_set_test_SOURCES = \
 	src/libpspp/hash-functions.c \
@@ -121,25 +123,25 @@ tests_libpspp_string_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_stringi_set_test_SOURCES = \
 	tests/libpspp/stringi-set-test.c
 tests_libpspp_stringi_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_stringi_set_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_stringi_set_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_tower_test_SOURCES = \
 	tests/libpspp/tower-test.c
 tests_libpspp_tower_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_tower_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_tower_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_u8_istream_test_SOURCES = tests/libpspp/u8-istream-test.c
-tests_libpspp_u8_istream_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_u8_istream_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_sparse_array_test_SOURCES = \
 	tests/libpspp/sparse-array-test.c 
 tests_libpspp_sparse_array_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_sparse_array_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_sparse_array_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_sparse_xarray_test_SOURCES = \
 	tests/libpspp/sparse-xarray-test.c
 tests_libpspp_sparse_xarray_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_sparse_xarray_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_sparse_xarray_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_data_inexactify_SOURCES = tests/data/inexactify.c
 
@@ -149,7 +151,7 @@ tests_language_lexer_command_name_test_SOURCES = \
 	src/language/lexer/command-name.c \
 	tests/language/lexer/command-name-test.c
 tests_language_lexer_command_name_test_LDADD = \
-	src/libpspp/libpspp.la \
+	src/libpspp/liblibpspp.la \
 	gl/libgl.la 
 tests_language_lexer_command_name_test_CFLAGS = $(AM_CFLAGS)
 
@@ -163,7 +165,7 @@ tests_language_lexer_scan_test_SOURCES = \
 	tests/language/lexer/scan-test.c
 tests_language_lexer_scan_test_CFLAGS = $(AM_CFLAGS)
 tests_language_lexer_scan_test_LDADD = \
-	src/libpspp/libpspp.la \
+	src/libpspp/liblibpspp.la \
 	gl/libgl.la 
 
 check_PROGRAMS += tests/language/lexer/segment-test
@@ -174,7 +176,7 @@ tests_language_lexer_segment_test_SOURCES = \
 	tests/language/lexer/segment-test.c
 tests_language_lexer_segment_test_CFLAGS = $(AM_CFLAGS)
 tests_language_lexer_segment_test_LDADD = \
-	src/libpspp/libpspp.la \
+	src/libpspp/liblibpspp.la \
 	gl/libgl.la 
 
 check_PROGRAMS += tests/libpspp/zip-test
@@ -182,7 +184,7 @@ tests_libpspp_zip_test_SOURCES = \
 	tests/libpspp/zip-test.c
 tests_libpspp_zip_test_CFLAGS = $(AM_CFLAGS)
 tests_libpspp_zip_test_LDADD = \
-	src/libpspp/libpspp.la \
+	src/libpspp/liblibpspp.la \
 	gl/libgl.la 
 
 
