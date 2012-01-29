@@ -43,7 +43,6 @@
 #include "ui/gui/help-menu.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/helper.h"
-#include "ui/gui/k-means-dialog.h"
 #include "ui/gui/k-related-dialog.h"
 #include "ui/gui/npar-two-sample-related.h"
 #include "ui/gui/oneway-anova-dialog.h"
@@ -1116,8 +1115,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
 
   connect_action (de, "factor-analysis", G_CALLBACK (factor_dialog));
-
-  connect_action (de, "k-means", G_CALLBACK (k_means_dialog));
 
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
   connect_action (de, "binomial", G_CALLBACK (binomial_dialog));
