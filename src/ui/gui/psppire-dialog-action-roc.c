@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,70 +14,30 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+
 #include <config.h>
+
+#include "psppire-dialog-action-roc.h"
 
 #include "dialog-common.h"
 #include <ui/syntax-gen.h>
-#include <libpspp/str.h>
-
-#include "roc-dialog.h"
-#include "psppire-selector.h"
-#include "psppire-dictview.h"
-#include "psppire-dialog.h"
-
-#include "psppire-data-window.h"
 #include "psppire-var-view.h"
 
-#include "executor.h"
+#include "psppire-dialog.h"
 #include "builder-wrapper.h"
-#include "helper.h"
 
-#include <gtk/gtk.h>
-
-#include "gettext.h"
-#define _(msgid) gettext (msgid)
-#define N_(msgid) msgid
-
-
-struct roc
-{
-  PsppireDict *dict;
-
-  GtkWidget *test_variables;
-  GtkWidget *state_variable;
-  GtkWidget *state_value;
-
-  GtkWidget *curve;
-  GtkWidget *reference;
-  GtkWidget *standard_error;
-  GtkWidget *coordinates;
-};
-
-
-static char * generate_syntax (const struct roc *rd);
-
+#include "psppire-dict.h"
+#include "libpspp/str.h"
 
 static void
-refresh (struct roc *rd)
-{
-  GtkTreeModel *liststore =
-    gtk_tree_view_get_model (GTK_TREE_VIEW (rd->test_variables));
-  gtk_list_store_clear (GTK_LIST_STORE (liststore));
+psppire_dialog_action_roc_class_init (PsppireDialogActionRocClass *class);
 
-  gtk_entry_set_text (GTK_ENTRY (rd->state_variable), "");
-  gtk_entry_set_text (GTK_ENTRY (rd->state_value), "");
-
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->curve),          TRUE);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->reference),      FALSE);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->standard_error), FALSE);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->coordinates),    FALSE);
-}
-
+G_DEFINE_TYPE (PsppireDialogActionRoc, psppire_dialog_action_roc, PSPPIRE_TYPE_DIALOG_ACTION);
 
 static gboolean
 dialog_state_valid (gpointer data)
 {
-  struct roc *rd = data;
+  PsppireDialogActionRoc *rd = data;
   const gchar *text;
 
   GtkTreeModel *liststore =
@@ -101,7 +61,7 @@ dialog_state_valid (gpointer data)
 }
 
 static void
-on_curve_button_toggle  (GtkCheckButton *curve, struct roc *rd)
+on_curve_button_toggle (GtkCheckButton *curve, PsppireDialogActionRoc *rd)
 {
   if ( !gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (curve)))
     {
@@ -116,70 +76,62 @@ on_curve_button_toggle  (GtkCheckButton *curve, struct roc *rd)
     }
 }
 
-
-/* Pops up the Roc dialog box */
-void
-roc_dialog (PsppireDataWindow *de)
+static void
+refresh (PsppireDialogActionRoc *rd)
 {
-  struct roc rd;
-  gint response;
+  GtkTreeModel *liststore =
+    gtk_tree_view_get_model (GTK_TREE_VIEW (rd->test_variables));
+  gtk_list_store_clear (GTK_LIST_STORE (liststore));
+
+  gtk_entry_set_text (GTK_ENTRY (rd->state_variable), "");
+  gtk_entry_set_text (GTK_ENTRY (rd->state_value), "");
+
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->curve),          TRUE);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->reference),      FALSE);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->standard_error), FALSE);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->coordinates),    FALSE);
+}
+
+static void
+psppire_dialog_action_roc_activate (GtkAction *a)
+{
+  PsppireDialogActionRoc *act = PSPPIRE_DIALOG_ACTION_ROC (a);
+  PsppireDialogAction *pda = PSPPIRE_DIALOG_ACTION (a);
 
   GtkBuilder *xml = builder_new ("roc.ui");
-  PsppireVarStore *vs;
+  pda->dialog = get_widget_assert   (xml, "roc-dialog");
+  pda->source = get_widget_assert   (xml, "dict-view");
+  pda->source = get_widget_assert   (xml, "dict-view");
 
-  GtkWidget *dialog = get_widget_assert   (xml, "roc-dialog");
-  GtkWidget *source = get_widget_assert   (xml, "dict-view");
+  act->test_variables    = get_widget_assert   (xml, "psppire-var-view1");
+  act->state_variable    = get_widget_assert   (xml, "entry1");
+  act->state_value       = get_widget_assert   (xml, "entry2");
 
-  rd.test_variables    = get_widget_assert   (xml, "psppire-var-view1");
-  rd.state_variable    = get_widget_assert   (xml, "entry1");
-  rd.state_value       = get_widget_assert   (xml, "entry2");
-
-  rd.curve          = get_widget_assert   (xml, "curve");
-  rd.reference      = get_widget_assert   (xml, "reference-line");
-  rd.standard_error = get_widget_assert   (xml, "standard-error");
-  rd.coordinates    = get_widget_assert   (xml, "co-ordinates");
-
-
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
-
-  g_object_get (vs, "dictionary", &rd.dict, NULL);
-  g_object_set (source, "model", rd.dict, NULL);
-
-  g_signal_connect (rd.curve, "toggled", G_CALLBACK (on_curve_button_toggle), &rd);
-
-  g_signal_connect_swapped (dialog, "refresh", G_CALLBACK (refresh),  &rd);
-
-  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
-				      dialog_state_valid, &rd);
-
-  psppire_selector_set_allow (PSPPIRE_SELECTOR (get_widget_assert (xml, "dep-selector")),
-			      numeric_only);
-
-  response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
-
-  switch (response)
-    {
-    case GTK_RESPONSE_OK:
-      g_free (execute_syntax_string (de, generate_syntax (&rd)));
-      break;
-    case PSPPIRE_RESPONSE_PASTE:
-      g_free (paste_syntax_to_window (generate_syntax (&rd)));
-      break;
-    default:
-      break;
-    }
+  act->curve          = get_widget_assert   (xml, "curve");
+  act->reference      = get_widget_assert   (xml, "reference-line");
+  act->standard_error = get_widget_assert   (xml, "standard-error");
+  act->coordinates    = get_widget_assert   (xml, "co-ordinates");
 
   g_object_unref (xml);
+
+  g_signal_connect (act->curve, "toggled",
+		    G_CALLBACK (on_curve_button_toggle), act);
+
+  psppire_dialog_action_set_refresh (pda, refresh);
+
+  psppire_dialog_action_set_valid_predicate (pda,
+					dialog_state_valid);
+
+  if (PSPPIRE_DIALOG_ACTION_CLASS (psppire_dialog_action_roc_parent_class)->activate)
+    PSPPIRE_DIALOG_ACTION_CLASS (psppire_dialog_action_roc_parent_class)->activate (pda);
 }
 
 
-
 
 static char *
-generate_syntax (const struct roc *rd)
+generate_syntax (PsppireDialogAction *a)
 {
+  PsppireDialogActionRoc *rd = PSPPIRE_DIALOG_ACTION_ROC (a);
   gchar *text;
   const gchar *var_name = gtk_entry_get_text (GTK_ENTRY (rd->state_variable));
   GString *string = g_string_new ("ROC");
@@ -194,17 +146,17 @@ generate_syntax (const struct roc *rd)
   {
     const gchar *value = gtk_entry_get_text (GTK_ENTRY (rd->state_value));
 
-    const struct variable *var = psppire_dict_lookup_var (rd->dict, var_name);
+    const struct variable *var = psppire_dict_lookup_var (PSPPIRE_DIALOG_ACTION(rd)->dict, var_name);
 
     g_return_val_if_fail (var, NULL);
 
     if ( var_is_alpha (var))
       {
-	struct string xx;
-	ds_init_empty (&xx);
-	syntax_gen_string (&xx, ss_cstr (value));
-	g_string_append (string, ds_cstr (&xx));
-	ds_destroy (&xx);
+	struct string str;
+	ds_init_empty (&str);
+	syntax_gen_string (&str, ss_cstr (value));
+	g_string_append (string, ds_cstr (&str));
+	ds_destroy (&str);
       }
     else
       g_string_append (string, value);
@@ -245,3 +197,20 @@ generate_syntax (const struct roc *rd)
 
   return text;
 }
+
+static void
+psppire_dialog_action_roc_class_init (PsppireDialogActionRocClass *class)
+{
+  GtkActionClass *action_class = GTK_ACTION_CLASS (class);
+
+  action_class->activate = psppire_dialog_action_roc_activate;
+
+  PSPPIRE_DIALOG_ACTION_CLASS (class)->generate_syntax = generate_syntax;
+}
+
+
+static void
+psppire_dialog_action_roc_init (PsppireDialogActionRoc *act)
+{
+}
+

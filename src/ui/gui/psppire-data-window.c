@@ -56,7 +56,6 @@
 #include "ui/gui/recode-dialog.h"
 #include "ui/gui/regression-dialog.h"
 #include "ui/gui/reliability-dialog.h"
-#include "ui/gui/roc-dialog.h"
 #include "ui/gui/select-cases-dialog.h"
 #include "ui/gui/sort-cases-dialog.h"
 #include "ui/gui/split-file-dialog.h"
@@ -1108,8 +1107,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
  
   connect_action (de, "reliability", G_CALLBACK (reliability_dialog));
  
-  connect_action (de, "roc-curve", G_CALLBACK (roc_dialog));
-
   connect_action (de, "analyze_explore", G_CALLBACK (examine_dialog));
 
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));

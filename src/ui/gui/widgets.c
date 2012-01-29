@@ -16,6 +16,7 @@
 #include "psppire-dialog-action-correlation.h"
 #include "psppire-dialog-action-descriptives.h"
 #include "psppire-dialog-action-kmeans.h"
+#include "psppire-dialog-action-roc.h"
 #include "psppire-dialog-action-var-info.h"
 
 
@@ -39,4 +40,5 @@ preregister_widgets (void)
   psppire_dialog_action_descriptives_get_type ();
   psppire_dialog_action_kmeans_get_type ();
   psppire_dialog_action_var_info_get_type ();
+  psppire_dialog_action_roc_get_type ();
 }
