@@ -1107,8 +1107,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
  
   connect_action (de, "reliability", G_CALLBACK (reliability_dialog));
  
-  connect_action (de, "analyze_explore", G_CALLBACK (examine_dialog));
-
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
 
   connect_action (de, "factor-analysis", G_CALLBACK (factor_dialog));
