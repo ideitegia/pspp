@@ -406,8 +406,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="correlation">
+          <object class="PsppireDialogActionCorrelation" id="correlation">
             <property name="name">correlation</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">Bivariate _Correlation...</property>
           </object>
         </child>

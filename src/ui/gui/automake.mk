@@ -154,8 +154,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/compute-dialog.h \
 	src/ui/gui/chi-square-dialog.c \
 	src/ui/gui/chi-square-dialog.h \
-	src/ui/gui/correlation-dialog.c \
-	src/ui/gui/correlation-dialog.h \
 	src/ui/gui/count-dialog.c \
 	src/ui/gui/count-dialog.h \
 	src/ui/gui/crosstabs-dialog.c \
@@ -212,6 +210,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog.h \
 	src/ui/gui/psppire-dialog-action.c \
 	src/ui/gui/psppire-dialog-action.h \
+	src/ui/gui/psppire-dialog-action-correlation.c \
+	src/ui/gui/psppire-dialog-action-correlation.h \
 	src/ui/gui/psppire-dialog-action-descriptives.c \
 	src/ui/gui/psppire-dialog-action-descriptives.h \
 	src/ui/gui/psppire-dialog-action-var-info.c \

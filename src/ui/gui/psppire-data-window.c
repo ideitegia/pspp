@@ -31,7 +31,6 @@
 #include "ui/gui/chi-square-dialog.h"
 #include "ui/gui/comments-dialog.h"
 #include "ui/gui/compute-dialog.h"
-#include "ui/gui/correlation-dialog.h"
 #include "ui/gui/count-dialog.h"
 #include "ui/gui/crosstabs-dialog.h"
 #include "ui/gui/entry-dialog.h"
@@ -1116,8 +1115,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
 
-  connect_action (de, "correlation", G_CALLBACK (correlation_dialog));
- 
   connect_action (de, "factor-analysis", G_CALLBACK (factor_dialog));
 
   connect_action (de, "k-means", G_CALLBACK (k_means_dialog));
