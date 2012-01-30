@@ -2412,8 +2412,6 @@ gtk_xpaned_compute_position (GtkXPaned* xpaned,
 	GdkPoint old_max_position;
 	gint handle_size;
 	gint border_width = GTK_CONTAINER (xpaned)->border_width;
-	float fX;
-	float fY;
 
 	g_return_if_fail (GTK_IS_XPANED (xpaned));
 
@@ -2423,9 +2421,6 @@ gtk_xpaned_compute_position (GtkXPaned* xpaned,
 	old_min_position.y = xpaned->min_position.y;
 	old_max_position.x = xpaned->max_position.x;
 	old_max_position.y = xpaned->max_position.y;
-
-	fX = 100.0f * (float) old_position.x / (float) allocation->width;
-	fY = 100.0f * (float) old_position.y / (float) allocation->height;
 
 	xpaned->min_position.x = xpaned->top_left_child_shrink ? 0 : top_left_child_req->width;
 	xpaned->min_position.y = xpaned->top_left_child_shrink ? 0 : top_left_child_req->height;
@@ -2574,9 +2569,6 @@ gtk_xpaned_compute_position (GtkXPaned* xpaned,
 
 	xpaned->last_allocation.width = allocation->width;
 	xpaned->last_allocation.height = allocation->height;
-
-	fX = 100.0f * (float) old_position.x / (float) allocation->width;
-	fY = 100.0f * (float) old_position.y / (float) allocation->height;
 }
 
 static void gtk_xpaned_set_saved_focus (GtkXPaned* xpaned, GtkWidget* widget)
