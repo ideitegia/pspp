@@ -216,6 +216,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-kmeans.h \
 	src/ui/gui/psppire-dialog-action-reliability.c \
 	src/ui/gui/psppire-dialog-action-reliability.h \
+	src/ui/gui/psppire-dialog-action-sort.c \
+	src/ui/gui/psppire-dialog-action-sort.h \
 	src/ui/gui/psppire-dialog-action-var-info.c \
 	src/ui/gui/psppire-dialog-action-var-info.h \
 	src/ui/gui/psppire-dialog-action-roc.c \
@@ -262,8 +264,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/runs-dialog.h \
 	src/ui/gui/select-cases-dialog.c \
 	src/ui/gui/select-cases-dialog.h \
-	src/ui/gui/sort-cases-dialog.c \
-	src/ui/gui/sort-cases-dialog.h \
 	src/ui/gui/split-file-dialog.c \
 	src/ui/gui/split-file-dialog.h \
 	src/ui/gui/text-data-import-dialog.c \

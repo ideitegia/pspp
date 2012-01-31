@@ -56,7 +56,6 @@
 #include "ui/gui/recode-dialog.h"
 #include "ui/gui/regression-dialog.h"
 #include "ui/gui/select-cases-dialog.h"
-#include "ui/gui/sort-cases-dialog.h"
 #include "ui/gui/split-file-dialog.h"
 #include "ui/gui/t-test-independent-samples-dialog.h"
 #include "ui/gui/t-test-one-sample.h"
@@ -1064,8 +1063,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   connect_action (de, "data_select-cases", G_CALLBACK (select_cases_dialog));
  
-  connect_action (de, "data_sort-cases", G_CALLBACK (sort_cases_dialog));
-
   connect_action (de, "data_aggregate", G_CALLBACK (aggregate_dialog));
 
   connect_action (de, "transform_compute", G_CALLBACK (compute_dialog));

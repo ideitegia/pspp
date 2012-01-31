@@ -18,6 +18,7 @@
 #include "psppire-dialog-action-kmeans.h"
 #include "psppire-dialog-action-reliability.h"
 #include "psppire-dialog-action-roc.h"
+#include "psppire-dialog-action-sort.h"
 #include "psppire-dialog-action-var-info.h"
 
 
@@ -43,4 +44,5 @@ preregister_widgets (void)
   psppire_dialog_action_var_info_get_type ();
   psppire_dialog_action_reliability_get_type ();
   psppire_dialog_action_roc_get_type ();
+  psppire_dialog_action_sort_get_type ();
 }

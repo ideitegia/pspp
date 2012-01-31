@@ -238,9 +238,10 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="data_sort-cases">
+          <object class="PsppireDialogActionSort" id="data_sort-cases">
             <property name="label" translatable="yes">_Sort Cases...</property>
             <property name="name">data_sort-cases</property>
+            <property name="manager">uimanager1</property>
 	    <property name="stock-id">gtk-sort-ascending</property>
 	    <property name="tooltip" translatable="yes">Sort cases in the active dataset</property>
           </object>
