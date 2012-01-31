@@ -487,69 +487,184 @@ When @cmd{IF} is specified following @cmd{TEMPORARY}
 @section RECODE
 @vindex RECODE
 
+The @cmd{RECODE} command is used to transform existing values into other,
+user specified values.
+The general form is:
+
 @display
-RECODE var_list (src_value@dots{}=dest_value)@dots{} [INTO var_list].
-
-src_value may take the following forms:
-        number
-        string
-        num1 THRU num2
-        MISSING
-        SYSMIS
-        ELSE
-Open-ended ranges may be specified using LO or LOWEST for num1
-or HI or HIGHEST for num2.
-
-dest_value may take the following forms:
-        num
-        string
-        SYSMIS
-        COPY
+RECODE @var{src_vars}
+        (@var{src_value} @var{src_value} @dots{} = @var{dest_value})
+        (@var{src_value} @var{src_value} @dots{} = @var{dest_value})
+        (@var{src_value} @var{src_value} @dots{} = @var{dest_value}) @dots{}
+         [INTO @var{dest_vars}].
 @end display
 
-@cmd{RECODE} translates data from one range of values to
-another, via flexible user-specified mappings.  Data may be remapped
-in-place or copied to new variables.  Numeric and
-string data can be recoded.
+Following the RECODE keyword itself comes @var{src_vars} which is a list
+of variables whose values are to be transformed.
+These variables may be string variables or they may be numeric.
+However the list must be homogeneous; you may not mix string variables and
+numeric variables in the same recoding.
 
-Specify the list of source variables, followed by one or more mapping
-specifications each enclosed in parentheses.  If the data is to be
-copied to new variables, specify INTO, then the list of target
-variables.  String target variables must already have been declared
-using @cmd{STRING} or another transformation, but numeric target
-variables can
-be created on the fly.  There must be exactly as many target variables
-as source variables.  Each source variable is remapped into its
-corresponding target variable.
+After the list of source variables, there should be one or more @dfn{mappings}.
+Each mapping is enclosed in parentheses, and contains the source values and
+a destination value separated by a single @samp{=}.
+The source values are used to specify the values in the dataset which 
+need to change, and the destination value specifies the new value
+to which they should be changed.
+Each @var{src_value} may take one of the following forms:
+@itemize @bullet
+@item @var{number}
+If the source variables are numeric then @var{src_value} may be a literal
+number.
+@item @var{string}
+If the source variables are string variables then @var{src_value} may be a
+literal string (like all strings, enclosed in single or double quotes).
+@item @var{num1} THRU @var{num2}
+This form is valid only when the source variables are numeric.
+It specifies all values in the range [@var{num1}, @var{num2}].
+Normally you would ensure that @var{num2} is greater than or equal to
+@var{num1}.
+If @var{num1} however is greater than @var{num2}, then the range 
+[@var{num2},@var{num1}] will be used instead.
+Open-ended ranges may be specified using @samp{LO} or @samp{LOWEST} 
+for @var{num1}
+or @samp{HI} or @samp{HIGHEST} for @var{num2}.
+@item @samp{MISSING}
+The literal keyword @samp{MISSING} matches both system missing and user
+missing values.
+It is valid for both numeric and string variables.
+@item @samp{SYSMIS}
+The literal keyword @samp{SYSMIS} matches system missing
+values.
+It is valid for both numeric variables only.
+@item @samp{ELSE}
+The @samp{ELSE} keyword may be used to match any values which are
+not matched by any other @var{src_value} appearing in the command.
+If this keyword appears, it should be used in the last mapping of the 
+command.
+@end itemize
 
-When INTO is not used, the input and output variables must be of the
-same type.  Otherwise, string values can be recoded into numeric values,
-and vice versa.  When this is done and there is no mapping for a
-particular value, either a value consisting of all spaces or the
-system-missing value is assigned, depending on variable type.
+After the source variables comes an @samp{=} and then the @var{dest_value}.
+The @var{dest_value} may take any of the following forms:
+@itemize @bullet
+@item @var{number}
+A literal numeric value to which the source values should be changed.
+This implies the destination variable must be numeric.
+@item @var{string}
+A literal string value (enclosed in quotation marks) to which the source
+values should be changed.
+This implies the destination variable must be a string variable.
+@item @samp{SYSMIS}
+The keyword @samp{SYSMIS} changes the value to the system missing value.
+This implies the destination variable must be numeric.
+@item @samp{COPY}
+The special keyword @samp{COPY} means that the source value should not be
+modified, but
+copied directly to the destination value.
+This is meaningful only if @samp{INTO @var{dest_vars}} is specified.
+@end itemize
 
-Mappings are considered from left to right.  The first src_value that
-matches the value of the source variable causes the target variable to
-receive the value indicated by the dest_value.  Literal number, string,
-and range src_value's should be self-explanatory.  MISSING as a
-src_value matches any user- or system-missing value.  SYSMIS matches the
-system missing value only.  ELSE is a catch-all that matches anything.
-It should be the last src_value specified.
+Mappings are considered from left to right.
+Therefore, if a value is matched by a @var{src_value} from more than 
+one mapping, the first (leftmost) mapping which matches will be considered.
+Any subsequent matches will be ignored.
 
-Numeric and string dest_value's should be self-explanatory.  COPY
-causes the input values to be copied to the output.  This is only valid
-if the source and target variables are of the same type.  SYSMIS
-indicates the system-missing value.
+The clause @samp{INTO @var{dest_vars}} is optional.
+The behaviour of the command is slightly different depending on whether it
+appears or not.
 
-If the source variables are strings and the target variables are
-numeric, then there is one additional mapping available: (CONVERT),
-which must be the last specified mapping.  CONVERT causes a number
-specified as a string to be converted to a numeric value.  If the string
-cannot be parsed as a number, then the system-missing value is assigned.
+If @samp{INTO @var{dest_vars}} does not appear, then values will be recoded
+``in place´´.  This means that the recoded values are written back to the
+source variables from whence the original values came.
+In this case, the @var{dest_value} for every mapping must imply a value which
+has the same type as the @var{src_value}.
+For example, if the source value is a string value, it is not permissible for
+@var{dest_value} to be @samp{SYSMIS} or another forms which implies a numeric
+result.
+The following example two numeric variables @var{x} and @var{y} are recoded
+in place.
+Zero is recoded to 99, the values 1 to 10 inclusive are unchanged,
+values 1000 and higher are recoded to the system-missing value and all other
+values are changed to 999:
+@example
+recode @var{x} @var{y} 
+        (0 = 99)
+        (1 THRU 10 = COPY)
+        (1000 THRU HIGHEST = SYSMIS)
+        (ELSE = 999).
+@end example
 
-Multiple recodings can be specified on a single @cmd{RECODE} invocation.
+If @samp{INTO @var{dest_vars}} is given, then recoded values are written
+into the variables specified in @var{dest_vars}, which must therefore
+ contain a list of valid variable names.
+The number of variables in @var{dest_vars} must be the same as the number
+of variables in @var{src_vars}
+and the respective order of the variables in @var{dest_vars} corresponds to 
+the order of @var{src_vars}.
+That is to say, recoded values whose 
+original value came from the @var{n}th variable in @var{src_vars} will be
+placed into the @var{n}th variable in @var{dest_vars}.
+The source variables will be unchanged.
+If any mapping implies a string as its destination value, then the respective
+destination variable must already exist, or 
+have been declared using @cmd{STRING} or another transformation.
+Numeric variables however will be automatically created if they don't already
+exist.
+The following example deals with two source variables, @var{a} and @var{b}
+which contain string values.  Hence there are two destination variables
+@var{v1} and @var{v2}.
+Any cases where @var{a} or @var{b} contain the values @samp{apple}, 
+@samp{pear} or @samp{pomegranate} will result in @var{v1} or @var{v2} being
+filled with the string @samp{fruit} whilst cases with 
+@samp{tomato}, @samp{lettuce} or @samp{carrot} will result in @samp{vegetable}.
+Any other values will produce the result @samp{unknown}:
+@example
+string @var{v1} (a20).
+string @var{v2} (a20).
+
+recode @var{a} @var{b} 
+        ("apple" "pear" "pomegranate" = "fruit")
+        ("tomato" "lettuce" "carrot" = "vegetable")
+        (ELSE = "unknown")
+        into @var{v1} @var{v2}.
+@end example
+
+There is one very special mapping, not mentioned above.
+If the source variable is a string variable
+then a mapping may be specified as @samp{(CONVERT)}.
+This mapping, if it appears must be the last mapping given and
+the @samp{INTO @var{dest_vars}} clause must also be given and 
+must not refer to a string variable. 
+@samp{CONVERT} causes a number specified as a string to
+be converted to a numeric value. 
+For example it will convert the string @samp{"3"} into the numeric
+value 3 (note that it will not convert @samp{three} into 3).
+If the string cannot be parsed as a number, then the system-missing value
+is assigned instead.
+In the following example, cases where the value of @var{x} (a string variable)
+is the empty string, are recoded to 999 and all others are converted to the
+numeric equivalent of the input value.  The results are placed into the 
+numeric variable @var{y}:
+@example
+recode @var{x} 
+       ("" = 999)
+        (convert)
+        into @var{y}.
+@end example
+
+It is possible to specify multiple recodings on a single command.
 Introduce additional recodings with a slash (@samp{/}) to
-separate them from the previous recodings.
+separate them from the previous recodings:
+@example
+recode 
+        @var{a}  (2 = 22) (else = 99) 
+        /@var{b} (1 = 3) into @var{z}
+        .
+@end example
+@noindent Here we have two recodings. The first affects the source variable
+@var{a} and recodes in-place the value 2 into 22 and all other values to 99.
+The second recoding copies the values of @var{b} into the the variable @var{z}, 
+changing any instances of 1 into 3.
 
 @node SORT CASES
 @section SORT CASES
