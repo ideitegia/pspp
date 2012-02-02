@@ -807,14 +807,16 @@ on_var_type_ok_clicked (GtkWidget *w, gpointer data)
 	break;
       case BUTTON_DATE:
       case BUTTON_CUSTOM:
-	g_assert (fmt_check_output (&dialog->fmt_l));
-	result = memcpy (&spec, &dialog->fmt_l, sizeof (struct fmt_spec));
+	if  (! fmt_check_output (&dialog->fmt_l))
+	  g_critical ("Invalid variable format");
+	else
+	  result = memcpy (&spec, &dialog->fmt_l, sizeof (struct fmt_spec));
 	break;
       case BUTTON_DOLLAR:
 	result = make_output_format_try (&spec, FMT_DOLLAR, width, decimals);
 	break;
       default:
-	g_print ("Unknown variable type: %d\n", dialog->active_button) ;
+	g_critical ("Unknown variable type: %d", dialog->active_button) ;
 	result = false;
 	break;
       }
