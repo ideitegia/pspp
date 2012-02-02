@@ -391,6 +391,9 @@ PsppSheetViewSpecialCells pspp_sheet_view_get_special_cells (PsppSheetView      
 void                        pspp_sheet_view_set_special_cells (PsppSheetView                *tree_view,
                                                                PsppSheetViewSpecialCells);
 
+int           pspp_sheet_view_get_fixed_height (const PsppSheetView *);
+void          pspp_sheet_view_set_fixed_height (PsppSheetView *,
+                                                int fixed_height);
 
 /* Convenience functions for setting tooltips */
 void          pspp_sheet_view_set_tooltip_row    (PsppSheetView       *tree_view,

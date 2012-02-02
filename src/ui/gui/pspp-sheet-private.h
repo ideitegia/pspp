@@ -215,6 +215,7 @@ struct _PsppSheetViewPrivate
 
   /* fixed height */
   gint fixed_height;
+  gboolean fixed_height_set;
 
   /* Scroll-to functionality when unrealized */
   GtkTreeRowReference *scroll_to_path;

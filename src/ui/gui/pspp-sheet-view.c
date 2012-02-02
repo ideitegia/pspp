@@ -144,7 +144,9 @@ enum {
   PROP_RUBBER_BANDING,
   PROP_ENABLE_GRID_LINES,
   PROP_TOOLTIP_COLUMN,
-  PROP_SPECIAL_CELLS
+  PROP_SPECIAL_CELLS,
+  PROP_FIXED_HEIGHT,
+  PROP_FIXED_HEIGHT_SET
 };
 
 /* object signals */
@@ -637,6 +639,24 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 							PSPP_SHEET_VIEW_SPECIAL_CELLS_DETECT,
 							GTK_PARAM_READWRITE));
 
+    g_object_class_install_property (o_class,
+				     PROP_FIXED_HEIGHT,
+				     g_param_spec_int ("fixed-height",
+						       P_("Fixed Height"),
+						       P_("Height of a single row.  Normally the height of a row is determined automatically.  Writing this property sets fixed-height-set to true, preventing this property's value from changing."),
+						       -1,
+						       G_MAXINT,
+						       -1,
+						       GTK_PARAM_READWRITE));
+
+    g_object_class_install_property (o_class,
+                                     PROP_FIXED_HEIGHT_SET,
+                                     g_param_spec_boolean ("fixed-height-set",
+                                                           P_("Fixed Height Set"),
+                                                           P_("Whether fixed-height was set externally."),
+                                                           FALSE,
+                                                           GTK_PARAM_READWRITE));
+
   /* Style properties */
 #define _TREE_VIEW_EXPANDER_SIZE 12
 #define _TREE_VIEW_VERTICAL_SEPARATOR 2
@@ -994,6 +1014,7 @@ pspp_sheet_view_init (PsppSheetView *tree_view)
   tree_view->priv->presize_handler_timer = 0;
   tree_view->priv->scroll_sync_timer = 0;
   tree_view->priv->fixed_height = -1;
+  tree_view->priv->fixed_height_set = FALSE;
   pspp_sheet_view_set_adjustments (tree_view, NULL, NULL);
   tree_view->priv->selection = _pspp_sheet_selection_new_with_tree_view (tree_view);
   tree_view->priv->enable_search = TRUE;
@@ -1091,6 +1112,29 @@ pspp_sheet_view_set_property (GObject         *object,
     case PROP_SPECIAL_CELLS:
       pspp_sheet_view_set_special_cells (tree_view, g_value_get_enum (value));
       break;
+    case PROP_FIXED_HEIGHT:
+      pspp_sheet_view_set_fixed_height (tree_view, g_value_get_int (value));
+      break;
+    case PROP_FIXED_HEIGHT_SET:
+      if (g_value_get_boolean (value))
+        {
+          if (!tree_view->priv->fixed_height_set
+              && tree_view->priv->fixed_height >= 0)
+            {
+              tree_view->priv->fixed_height_set = true;
+              g_object_notify (G_OBJECT (tree_view), "fixed-height-set");
+            }
+        }
+      else
+        {
+          if (tree_view->priv->fixed_height_set)
+            {
+              tree_view->priv->fixed_height_set = false;
+              g_object_notify (G_OBJECT (tree_view), "fixed-height-set");
+              install_presize_handler (tree_view);
+            }
+        }
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1150,6 +1194,12 @@ pspp_sheet_view_get_property (GObject    *object,
       break;
     case PROP_SPECIAL_CELLS:
       g_value_set_enum (value, tree_view->priv->special_cells);
+      break;
+    case PROP_FIXED_HEIGHT:
+      g_value_set_int (value, pspp_sheet_view_get_fixed_height (tree_view));
+      break;
+    case PROP_FIXED_HEIGHT_SET:
+      g_value_set_boolean (value, tree_view->priv->fixed_height_set);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -5244,6 +5294,9 @@ initialize_fixed_height_mode (PsppSheetView *tree_view)
   if (!tree_view->priv->row_count)
     return;
 
+  if (tree_view->priv->fixed_height_set)
+    return;
+
   if (tree_view->priv->fixed_height < 0)
     {
       GtkTreeIter iter;
@@ -5257,6 +5310,8 @@ initialize_fixed_height_mode (PsppSheetView *tree_view)
       tree_view->priv->fixed_height = validate_row (tree_view, node, &iter, path);
 
       gtk_tree_path_free (path);
+
+      g_object_notify (G_OBJECT (tree_view), "fixed-height");
     }
 }
 
@@ -12364,6 +12419,31 @@ pspp_sheet_view_set_special_cells (PsppSheetView           *tree_view,
       priv->special_cells = special_cells;
       gtk_widget_queue_draw (GTK_WIDGET (tree_view));
       g_object_notify (G_OBJECT (tree_view), "special-cells");
+    }
+}
+
+int
+pspp_sheet_view_get_fixed_height (const PsppSheetView *tree_view)
+{
+  /* XXX (re)calculate fixed_height if necessary */
+  return tree_view->priv->fixed_height;
+}
+
+void
+pspp_sheet_view_set_fixed_height (PsppSheetView *tree_view,
+                                  int fixed_height)
+{
+  g_return_if_fail (fixed_height > 0);
+
+  if (tree_view->priv->fixed_height != fixed_height)
+    {
+      tree_view->priv->fixed_height = fixed_height;
+      g_object_notify (G_OBJECT (tree_view), "fixed-height");
+    }
+  if (!tree_view->priv->fixed_height_set)
+    {
+      tree_view->priv->fixed_height_set = TRUE;
+      g_object_notify (G_OBJECT (tree_view), "fixed-height-set");
     }
 }
 
