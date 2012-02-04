@@ -21,10 +21,11 @@
 #include "psppire-dialog.h"
 #include "psppire-buttonbox.h"
 #include "psppire-selector.h"
-#include "psppire-conf.h"
 #include <string.h>
 #include "builder-wrapper.h"
 #include "help-menu.h"
+
+#include "psppire-window-base.h"
 
 static void psppire_dialog_class_init          (PsppireDialogClass *);
 static void psppire_dialog_init                (PsppireDialog      *);
@@ -69,7 +70,7 @@ psppire_dialog_get_type (void)
 	NULL
       };
 
-      dialog_type = g_type_register_static (GTK_TYPE_WINDOW,
+      dialog_type = g_type_register_static (PSPPIRE_TYPE_WINDOW_BASE,
 					    "PsppireDialog", &dialog_info, 0);
 
       g_type_add_interface_static (dialog_type,
@@ -314,37 +315,6 @@ delete_event_callback (GtkWidget *w, GdkEvent *e, gpointer data)
 }
 
 
-static gboolean
-configure_event_callback (GtkDialog *dialog,
-			  GdkEvent *event, gpointer data)
-{
-  const gchar *base;
-
-  PsppireConf *conf = psppire_conf_new ();
-
-  if ( ! gtk_widget_get_mapped (GTK_WIDGET (dialog)))
-    return FALSE;
-
-  base = gtk_buildable_get_name (GTK_BUILDABLE (dialog));
-
-  psppire_conf_save_window_geometry (conf, base, GTK_WINDOW (dialog));
-
-  return FALSE;
-}
-
-
-static void
-on_realize (GtkWindow *dialog, gpointer data)
-{
-  PsppireConf *conf = psppire_conf_new ();
-
-  const gchar *base = gtk_buildable_get_name (GTK_BUILDABLE (dialog));
-
-  psppire_conf_set_window_geometry (conf, base, dialog);
-}
-
-
-
 static void
 psppire_dialog_init (PsppireDialog *dialog)
 {
@@ -365,15 +335,6 @@ psppire_dialog_init (PsppireDialog *dialog)
   g_signal_connect (dialog, "delete-event",
 		    G_CALLBACK (delete_event_callback),
 		    dialog);
-
-  g_signal_connect (dialog, "configure-event",
-		    G_CALLBACK (configure_event_callback),
-		    dialog);
-
-  g_signal_connect (dialog, "realize",
-		    G_CALLBACK (on_realize),
-		    dialog);
-
 
   gtk_window_set_type_hint (GTK_WINDOW (dialog),
 	GDK_WINDOW_TYPE_HINT_DIALOG);

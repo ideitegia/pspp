@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include "psppire-window.h"
+#include "psppire-window-base.h"
 
 #include <gtk/gtk.h>
 
@@ -32,7 +33,6 @@
 #include "data/dataset.h"
 
 #include "helper.h"
-#include "psppire-conf.h"
 #include "psppire-data-window.h"
 #include "psppire-encoding-selector.h"
 #include "psppire-syntax-window.h"
@@ -67,7 +67,7 @@ psppire_window_get_type (void)
       };
 
       psppire_window_type =
-	g_type_register_static (GTK_TYPE_WINDOW, "PsppireWindow",
+	g_type_register_static (PSPPIRE_TYPE_WINDOW_BASE, "PsppireWindow",
 				&psppire_window_info, G_TYPE_FLAG_ABSTRACT);
     }
 
@@ -226,17 +226,6 @@ psppire_window_get_property (GObject         *object,
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
     };
-}
-
-
-static void
-on_realize (GtkWindow *window, gpointer data)
-{
-  PsppireConf *conf = psppire_conf_new ();
-
-  const gchar *base = G_OBJECT_TYPE_NAME (window);
-
-  psppire_conf_set_window_geometry (conf, base, window);
 }
 
 
@@ -423,13 +412,6 @@ on_delete (PsppireWindow *w, GdkEvent *event, gpointer user_data)
 {
   PsppireWindowRegister *reg = psppire_window_register_new ();
 
-  const gchar *base = G_OBJECT_TYPE_NAME (w);
-
-  PsppireConf *conf = psppire_conf_new ();
-
-  psppire_conf_save_window_geometry (conf, base, GTK_WINDOW (w));
-
-
   if ( w->dirty )
     {
       gint response = psppire_window_query_save (w);
@@ -490,9 +472,6 @@ psppire_window_init (PsppireWindow *window)
   g_signal_connect_swapped (window, "delete-event", G_CALLBACK (on_delete), window);
 
   g_object_set (window, "icon-name", "pspp", NULL);
-
-  g_signal_connect (window, "realize",
-		    G_CALLBACK (on_realize), window);
 }
 
 /*

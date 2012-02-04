@@ -252,6 +252,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-vbuttonbox.h \
 	src/ui/gui/psppire-window.c \
 	src/ui/gui/psppire-window.h \
+	src/ui/gui/psppire-window-base.c \
+	src/ui/gui/psppire-window-base.h \
 	src/ui/gui/psppire-window-register.c \
 	src/ui/gui/psppire-window-register.h \
 	src/ui/gui/rank-dialog.c \
