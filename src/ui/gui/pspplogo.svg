@@ -14,7 +14,10 @@
    id="svg2818"
    version="1.1"
    inkscape:version="0.47 r22583"
-   sodipodi:docname="Zeichnung.svg">
+   sodipodi:docname="pspplogo.svg"
+   inkscape:export-filename="/home/john/pspp-master/src/ui/gui/pspplogo.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs2820">
     <inkscape:perspective
@@ -59,6 +62,41 @@
        inkscape:vp_y="0 : 1000 : 0"
        inkscape:vp_x="0 : 0.5 : 1"
        sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3616"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3661"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective5409"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective5447"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective5447-0"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -68,8 +106,8 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="7.7781746"
-     inkscape:cx="35.656965"
-     inkscape:cy="28.530712"
+     inkscape:cx="7.2441289"
+     inkscape:cy="17.165947"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:document-units="px"
@@ -82,7 +120,9 @@
      inkscape:snap-grids="false"
      inkscape:snap-global="true"
      showborder="false"
-     inkscape:showpageshadow="false">
+     inkscape:showpageshadow="false"
+     showguides="true"
+     inkscape:guide-bbox="true">
     <inkscape:grid
        type="xygrid"
        id="grid2828"
@@ -106,6 +146,10 @@
        position="0,64"
        orientation="64,0"
        id="guide2838" />
+    <sodipodi:guide
+       orientation="0,1"
+       position="-8.2281516,17.227692"
+       id="guide5461" />
   </sodipodi:namedview>
   <metadata
      id="metadata2823">
@@ -115,6 +159,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -127,18 +172,6 @@
        d="M 5,9 18.200092,9 18.071527,51.571297 60,51.442733 60,64 5,64 5,9 z"
        id="rect2840"
        sodipodi:nodetypes="ccccccc" />
-    <text
-       xml:space="preserve"
-       style="font-size:15.70913887px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#404040;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-       x="26.139948"
-       y="38.073444"
-       id="text3712"
-       transform="scale(0.81560045,1.2260905)"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan3714"
-         x="26.139948"
-         y="38.073444">PSPP</tspan></text>
     <g
        transform="scale(1.0878985,0.91920339)"
        style="font-size:13.41888523px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:50%;writing-mode:tb-rl;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Liberation Sans;-inkscape-font-specification:Liberation Sans Bold"
@@ -157,7 +190,8 @@
          id="path3825" />
     </g>
     <g
-       id="g3812">
+       id="g5167"
+       style="opacity:0.3">
       <path
          sodipodi:end="4.7044526"
          sodipodi:start="0.92937638"
@@ -168,23 +202,8 @@
          sodipodi:cy="19"
          sodipodi:cx="45"
          id="path3648"
-         style="fill:#000080;stroke:#000000;stroke-opacity:1;fill-opacity:1"
+         style="fill:#000080;fill-opacity:1;stroke:#000000;stroke-opacity:1"
          sodipodi:type="arc" />
-      <path
-         sodipodi:end="0.8765329"
-         sodipodi:start="0.43319034"
-         transform="matrix(1.0096724,0,0,1.0096724,-3.0523163,-0.82500045)"
-         d="m 58.614467,25.296529 a 15,15 0 0 1 -4.017174,5.231349 L 45,19 z"
-         sodipodi:ry="15"
-         sodipodi:rx="15"
-         sodipodi:cy="19"
-         sodipodi:cx="45"
-         id="path3648-8"
-         style="fill:#000080;stroke:#000000;stroke-opacity:1;fill-opacity:1"
-         sodipodi:type="arc">
-        <title
-           id="title3788">Slice</title>
-      </path>
       <path
          sodipodi:end="6.6705859"
          sodipodi:start="4.7220683"
@@ -195,8 +214,34 @@
          sodipodi:cy="19"
          sodipodi:cx="45"
          id="path3648-88"
-         style="fill:#808080;stroke:#000000;stroke-opacity:1;fill-opacity:1"
+         style="fill:#808080;fill-opacity:1;stroke:#000000;stroke-opacity:1"
          sodipodi:type="arc" />
+    </g>
+    <g
+       id="g5161">
+      <path
+         sodipodi:end="0.8765329"
+         sodipodi:start="0.43319034"
+         transform="matrix(1.0096724,0,0,1.0096724,-3.0523163,-0.82500045)"
+         d="m 58.614467,25.296529 a 15,15 0 0 1 -4.017174,5.231349 L 45,19 z"
+         sodipodi:ry="15"
+         sodipodi:rx="15"
+         sodipodi:cy="19"
+         sodipodi:cx="45"
+         id="path3648-8"
+         style="fill:#000080;fill-opacity:1;stroke:#000000;stroke-opacity:1"
+         sodipodi:type="arc">
+        <title
+           id="title3788">Slice</title>
+      </path>
+      <path
+         id="path3689"
+         d="m 24.15625,9.09375 c -2.28122,4.891708 -1.861878,10.841213 1.59375,15.46875 5.004703,6.70195 14.48555,8.098453 21.1875,3.09375 L 37.875,15.5 37.8125,9.09375 l -13.65625,0 z"
+         style="fill:#000080;fill-opacity:1;stroke:#000000;stroke-width:1.0096724;stroke-opacity:1" />
+      <path
+         id="path3695"
+         d="M 39.90625,9.09375 39.84375,15.5 53.875,21.21875 c 0.722533,-1.77083 1.106488,-3.650028 1.125,-5.5625 0.02272,-2.34738 -0.5347,-4.570244 -1.46875,-6.5625 l -13.625,0 z"
+         style="fill:#808080;fill-opacity:1;stroke:#000000;stroke-width:1.0096724;stroke-opacity:1" />
     </g>
     <rect
        style="fill:none;stroke:#808080;stroke-width:1.12856483;stroke-opacity:1"
@@ -205,12 +250,24 @@
        height="39.499771"
        x="20.435947"
        y="9.0642824" />
-    <rect
-       style="fill:#ffffff;fill-opacity:0.75294118;stroke:none"
-       id="rect3818"
-       width="64.000008"
-       height="8.8456707"
-       x="0"
-       y="0" />
+    <g
+       id="g5472">
+      <path
+         d="m 22.058396,46.772308 1.231503,0 0,-5.552705 2.363151,0 c 1.664196,0 2.562859,-0.241424 3.311748,-0.854264 0.798809,-0.649981 1.231502,-1.78281 1.231502,-3.157056 0,-1.578527 -0.532542,-2.822781 -1.464492,-3.435621 -0.765527,-0.519984 -1.697477,-0.724266 -3.278457,-0.724266 l -3.394955,0 0,13.723912 m 1.231503,-6.796958 0,-5.682702 1.747401,0 c 1.414564,0 2.296589,0.129997 2.795845,0.40856 0.715602,0.40856 1.11501,1.281395 1.11501,2.507075 0,1.05854 -0.382764,1.912804 -1.015161,2.302793 -0.515894,0.334277 -1.231502,0.464274 -2.363151,0.464274 l -2.279944,0"
+         style="font-size:347.17446899px;font-weight:normal;fill:#000080;fill-opacity:1;stroke:#000080;stroke-width:0.44750839;stroke-opacity:1;font-family:URW Gothic L"
+         id="path2088" />
+      <path
+         id="path3971"
+         d="m 31.466914,43.590346 c 0.65732,0.334291 1.768119,0.54328 2.652096,0.54328 1.314641,0 1.904179,-0.54328 1.904179,-1.253932 0,-0.877722 -0.634672,-1.274966 -1.972127,-2.006654 -2.470902,-1.358501 -2.878917,-2.904805 -2.878917,-3.950051 0,-2.31991 1.632059,-4.326413 5.168297,-4.326413 1.042851,0 2.040074,0.250757 2.516037,0.501664 l -0.498612,2.779806 c -0.453478,-0.250908 -1.110798,-0.480931 -1.994776,-0.480931 -1.178745,0 -1.745469,0.564466 -1.745469,1.212315 0,0.606234 0.317418,1.003327 2.040238,1.901933 2.108022,1.086862 2.810477,2.570817 2.810477,4.012854 0,2.654655 -2.153156,4.41025 -5.371976,4.41025 -1.314642,0 -2.538686,-0.271791 -3.082761,-0.543582 l 0.453314,-2.800539 z"
+         style="fill:#ffffff;fill-opacity:0.3797468;stroke:#000000;stroke-width:0.47279528;stroke-linecap:round" />
+      <path
+         d="m 41.314447,46.691761 1.231503,0 0,-5.552705 2.363151,0 c 1.664196,0 2.562859,-0.241424 3.311748,-0.854264 0.798809,-0.649981 1.231502,-1.78281 1.231502,-3.157056 0,-1.578527 -0.532542,-2.822781 -1.464492,-3.435621 -0.765527,-0.519984 -1.697477,-0.724266 -3.278457,-0.724266 l -3.394955,0 0,13.723912 m 1.231503,-6.796958 0,-5.682702 1.747401,0 c 1.414564,0 2.296589,0.129997 2.795845,0.40856 0.715602,0.40856 1.11501,1.281395 1.11501,2.507075 0,1.05854 -0.382764,1.912804 -1.015161,2.302793 -0.515894,0.334277 -1.231502,0.464274 -2.363151,0.464274 l -2.279944,0"
+         style="font-size:347.17446899px;font-weight:normal;fill:#000080;fill-opacity:1;stroke:#000080;stroke-width:0.44750839;stroke-opacity:1;font-family:URW Gothic L"
+         id="path2088-4" />
+      <path
+         d="m 50.571117,46.772308 1.231503,0 0,-5.552705 2.363151,0 c 1.664196,0 2.562859,-0.241424 3.311748,-0.854264 0.798809,-0.649981 1.231502,-1.78281 1.231502,-3.157056 0,-1.578527 -0.532542,-2.822781 -1.464492,-3.435621 -0.765527,-0.519984 -1.697477,-0.724266 -3.278457,-0.724266 l -3.394955,0 0,13.723912 m 1.231503,-6.796958 0,-5.682702 1.747401,0 c 1.414564,0 2.296589,0.129997 2.795845,0.40856 0.715602,0.40856 1.11501,1.281395 1.11501,2.507075 0,1.05854 -0.382764,1.912804 -1.015161,2.302793 -0.515894,0.334277 -1.231502,0.464274 -2.363151,0.464274 l -2.279944,0"
+         style="font-size:347.17446899px;font-weight:normal;fill:#000080;fill-opacity:1;stroke:#000080;stroke-width:0.44750839;stroke-opacity:1;font-family:URW Gothic L"
+         id="path2088-1" />
+    </g>
   </g>
 </svg>
