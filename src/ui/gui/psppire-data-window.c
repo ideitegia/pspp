@@ -585,7 +585,7 @@ confirm_delete_dataset (PsppireDataWindow *de,
 
   gtk_message_dialog_format_secondary_text (
     GTK_MESSAGE_DIALOG (dialog),
-    _("Renaming \"%s\" to \"%s\" will delete destroy the existing "
+    _("Renaming \"%s\" to \"%s\" will destroy the existing "
       "dataset named \"%s\".  Are you sure that you want to do this?"),
     old_dataset, new_dataset, existing_dataset);
 
