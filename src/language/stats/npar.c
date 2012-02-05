@@ -37,6 +37,7 @@
 #include "language/stats/ks-one-sample.h"
 #include "language/stats/cochran.h"
 #include "language/stats/friedman.h"
+#include "language/stats/jonckheere-terpstra.h"
 #include "language/stats/kruskal-wallis.h"
 #include "language/stats/mann-whitney.h"
 #include "language/stats/mcnemar.h"
@@ -95,6 +96,7 @@ struct cmd_npar_tests
     int mann_whitney;
     int mcnemar;
     int median;
+    int jonckheere_terpstra;
     int missing;
     int method;
     int statistics;
@@ -138,6 +140,7 @@ static int npar_cochran (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_wilcoxon (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_sign (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_kruskal_wallis (struct lexer *, struct dataset *, struct npar_specs *);
+static int npar_jonckheere_terpstra (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_mann_whitney (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_mcnemar (struct lexer *, struct dataset *, struct npar_specs *);
 static int npar_median (struct lexer *, struct dataset *, struct npar_specs *);
@@ -159,6 +162,7 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
   npt->friedman = 0;
   npt->kruskal_wallis = 0;
   npt->mann_whitney = 0;
+  npt->jonckheere_terpstra = 0;
   npt->mcnemar = 0;
   npt->runs = 0;
   npt->sign = 0;
@@ -276,6 +280,24 @@ parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests
           lex_match (lexer, T_EQUALS);
           npt->ks_one_sample++;
           switch (npar_ks_one_sample (lexer, ds, nps))
+            {
+            case 0:
+              goto lossage;
+            case 1:
+              break;
+            case 2:
+              lex_error (lexer, NULL);
+              goto lossage;
+            default:
+              NOT_REACHED ();
+            }
+        }
+      else if (lex_match_phrase (lexer, "J-T") ||
+	       lex_match_phrase (lexer, "JONCKHEERE-TERPSTRA"))
+        {
+          lex_match (lexer, T_EQUALS);
+          npt->jonckheere_terpstra++;
+          switch (npar_jonckheere_terpstra (lexer, ds, nps))
             {
             case 0:
               goto lossage;
@@ -1316,6 +1338,30 @@ npar_mcnemar (struct lexer *lexer, struct dataset *ds,
   return 1;
 }
 
+
+static int
+npar_jonckheere_terpstra (struct lexer *lexer, struct dataset *ds,
+		      struct npar_specs *specs)
+{
+  struct n_sample_test *tp = pool_alloc (specs->pool, sizeof (*tp));
+  struct npar_test *nt = &tp->parent;
+
+  nt->insert_variables = n_sample_insert_variables;
+
+  nt->execute = jonckheere_terpstra_execute;
+
+  if (!parse_n_sample_related_test (lexer, dataset_dict (ds),
+				      tp, specs->pool) )
+    return 0;
+
+  specs->n_tests++;
+  specs->test = pool_realloc (specs->pool,
+			      specs->test,
+			      sizeof (*specs->test) * specs->n_tests);
+  specs->test[specs->n_tests - 1] = nt;
+
+  return 1;
+}
 
 static int
 npar_kruskal_wallis (struct lexer *lexer, struct dataset *ds,

@@ -31,6 +31,8 @@ language_stats_sources = \
 	src/language/stats/kruskal-wallis.h \
 	src/language/stats/ks-one-sample.c \
 	src/language/stats/ks-one-sample.h \
+	src/language/stats/jonckheere-terpstra.c \
+	src/language/stats/jonckheere-terpstra.h \
 	src/language/stats/mann-whitney.c \
 	src/language/stats/mann-whitney.h \
 	src/language/stats/means.c \
