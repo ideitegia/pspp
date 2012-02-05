@@ -122,7 +122,7 @@ u (const struct group_data *grp0, const struct group_data *grp1)
 #if 1
               usum += w0 * ( (grp1->cc - prev_cc1) / 2.0);
 #else
-              usum += w0 * (grp1->cc - (prev_cc1 + cc) / 2.0);
+              usum += w0 * (grp1->cc - (prev_cc1 + cc1) / 2.0);
 #endif
 	      case_unref (c1);
               break;
@@ -410,7 +410,7 @@ show_jt (const struct n_sample_test *nst, const struct jt *jt, const struct vari
                   std_jt, 0);
 
       tab_double (table, 7, i + row_headers, TAT_TITLE, 
-                  2.0 * gsl_cdf_ugaussian_P (std_jt), 0);
+                  2.0 * ((std_jt > 0) ? gsl_cdf_ugaussian_Q (std_jt) : gsl_cdf_ugaussian_P (std_jt)), 0);
     }
   
   tab_submit (table);
