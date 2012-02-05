@@ -155,22 +155,26 @@ static int
 parse_npar_tests (struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests *npt,
 		  struct npar_specs *nps)
 {
-  npt->binomial = 0;
   npt->chisquare = 0;
-  npt->ks_one_sample = 0;
   npt->cochran = 0;
+  npt->binomial = 0;
+  npt->ks_one_sample = 0;
+  npt->wilcoxon = 0;
+  npt->sign = 0;
+  npt->runs = 0;
   npt->friedman = 0;
+  npt->kendall = 0;
   npt->kruskal_wallis = 0;
   npt->mann_whitney = 0;
-  npt->jonckheere_terpstra = 0;
   npt->mcnemar = 0;
-  npt->runs = 0;
-  npt->sign = 0;
-  npt->wilcoxon = 0;
-  npt->missing = 0;
+  npt->median = 0;
+  npt->jonckheere_terpstra = 0;
+
   npt->miss = MISS_ANALYSIS;
+  npt->missing = 0;
   npt->method = 0;
   npt->statistics = 0;
+
   memset (npt->a_statistics, 0, sizeof npt->a_statistics);
   for (;;)
     {
