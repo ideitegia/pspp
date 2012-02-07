@@ -63,3 +63,60 @@ X,Y
 2,4.00
 ])
 AT_CLEANUP
+
+dnl This checks for a bug in the portable file writer that caused an infinite
+dnl loop in some cases, and other problems in other cases, when a variable
+dnl had value labels.
+AT_SETUP([write portable file with value labels])
+AT_DATA([export.sps], [dnl
+DATA LIST NOTABLE/var1 TO var5 1-5.
+VALUE LABELS
+	/var1 1 'one'
+	/var2 2 'two'
+	/var3 3 'three'
+	/var4 4 'four'
+	/var5 5 'five'.
+BEGIN DATA.
+12345
+END DATA.
+EXPORT OUTFILE='data.por'.
+])
+AT_CHECK([pspp -O format=csv export.sps])
+AT_DATA([import.sps], [dnl
+IMPORT FILE='data.por'.
+DISPLAY DICTIONARY.
+LIST.
+])
+AT_CHECK([pspp -O format=csv import.sps], [0], [dnl
+Variable,Description,,Position
+VAR1,Format: F1.0,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,1,one,
+VAR2,Format: F1.0,,2
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,2,two,
+VAR3,Format: F1.0,,3
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,3,three,
+VAR4,Format: F1.0,,4
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,4,four,
+VAR5,Format: F1.0,,5
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+,5,five,
+
+Table: Data List
+VAR1,VAR2,VAR3,VAR4,VAR5
+1,2,3,4,5
+])
+AT_CLEANUP

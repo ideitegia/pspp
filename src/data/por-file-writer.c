@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -404,6 +404,7 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
       const struct val_labs *val_labs = var_get_value_labels (v);
       size_t n_labels = val_labs_count (val_labs);
       const struct val_lab **labels;
+      int j;
 
       if (n_labels == 0)
 	continue;
@@ -415,9 +416,9 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
 
       n_labels = val_labs_count (val_labs);
       labels = val_labs_sorted (val_labs);
-      for (i = 0; i < n_labels; i++)
+      for (j = 0; j < n_labels; j++)
         {
-          const struct val_lab *vl = labels[i];
+          const struct val_lab *vl = labels[j];
           write_value (w, val_lab_get_value (vl), var_get_width (v));
           write_string (w, val_lab_get_escaped_label (vl));
         }
