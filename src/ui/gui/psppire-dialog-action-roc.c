@@ -77,8 +77,9 @@ on_curve_button_toggle (GtkCheckButton *curve, PsppireDialogActionRoc *rd)
 }
 
 static void
-refresh (PsppireDialogActionRoc *rd)
+refresh (PsppireDialogAction *rd_)
 {
+  PsppireDialogActionRoc *rd = PSPPIRE_DIALOG_ACTION_ROC (rd_);
   GtkTreeModel *liststore =
     gtk_tree_view_get_model (GTK_TREE_VIEW (rd->test_variables));
   gtk_list_store_clear (GTK_LIST_STORE (liststore));

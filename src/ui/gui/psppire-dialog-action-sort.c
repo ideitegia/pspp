@@ -36,7 +36,8 @@ generate_syntax (PsppireDialogAction *act)
   gchar *text;
   GString *string = g_string_new ("SORT CASES BY ");
 
-  gint n_vars = psppire_var_view_append_names (scd->variables, 0, string);
+  PsppireVarView *var_view = PSPPIRE_VAR_VIEW (scd->variables);
+  gint n_vars = psppire_var_view_append_names (var_view, 0, string);
 
   if ( n_vars == 0 )
     {
@@ -45,7 +46,8 @@ generate_syntax (PsppireDialogAction *act)
   else
     {
       const char up_down =
-	gtk_toggle_button_get_active (scd->ascending) ? 'A' : 'D';
+	(gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (scd->ascending))
+         ? 'A' : 'D');
       g_string_append_printf (string, "(%c)", up_down);
       g_string_append (string, ".");
     }
@@ -66,14 +68,14 @@ reset (PsppireDialogAction *act)
 
   gtk_list_store_clear (GTK_LIST_STORE (liststore));
 
-  gtk_toggle_button_set_active (scd->ascending, TRUE);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (scd->ascending), TRUE);
 }
 
 
 
 
 static gboolean
-dialog_state_valid (PsppireDialogAction *act)
+dialog_state_valid (gpointer act)
 {
   PsppireDialogActionSort *scd = PSPPIRE_DIALOG_ACTION_SORT (act);
   GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (scd->variables));

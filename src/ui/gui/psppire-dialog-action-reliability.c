@@ -81,8 +81,10 @@ on_method_change (PsppireDialogActionReliability *pda)
 
 
 static void
-refresh (PsppireDialogActionReliability *pda)
+refresh (PsppireDialogAction *pda_)
 {
+  PsppireDialogActionReliability *pda =
+    PSPPIRE_DIALOG_ACTION_RELIABILITY (pda_);
   GtkTreeModel *liststore =
     gtk_tree_view_get_model (GTK_TREE_VIEW (pda->variables));
   gtk_list_store_clear (GTK_LIST_STORE (liststore));

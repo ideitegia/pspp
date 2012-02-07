@@ -78,8 +78,10 @@ dialog_state_valid (gpointer user_data)
 }
 
 static void
-refresh (PsppireDialogActionCorrelation *rd)
+refresh (PsppireDialogAction *rd_)
 {
+  PsppireDialogActionCorrelation *rd =
+    PSPPIRE_DIALOG_ACTION_CORRELATION (rd_);
   GtkTreeModel *liststore =
     gtk_tree_view_get_model (GTK_TREE_VIEW (rd->variables));
   gtk_list_store_clear (GTK_LIST_STORE (liststore));
