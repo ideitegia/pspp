@@ -387,6 +387,8 @@ show_jt (const struct n_sample_test *nst, const struct jt *jt, const struct vari
 
   for (i = 0; i < nst->n_vars; ++i)
     {
+      double std_jt;
+
       tab_text (table, 0, i + row_headers, TAT_TITLE, 
                 var_to_string (nst->vars[i]) );
 
@@ -405,7 +407,7 @@ show_jt (const struct n_sample_test *nst, const struct jt *jt, const struct vari
       tab_double (table, 5, i + row_headers, TAT_TITLE, 
                   jt[0].stddev, 0);
 
-      double std_jt = (jt[0].obs - jt[0].mean) / jt[0].stddev;
+      std_jt = (jt[0].obs - jt[0].mean) / jt[0].stddev;
       tab_double (table, 6, i + row_headers, TAT_TITLE, 
                   std_jt, 0);
 
