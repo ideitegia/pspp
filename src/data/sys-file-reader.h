@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,16 +26,19 @@
 
 /* Reading system files. */
 
-/* System file info that doesn't fit in struct dictionary. */
+/* System file info that doesn't fit in struct dictionary.
+
+   The strings in this structure are encoded in UTF-8.  (They are normally in
+   the ASCII subset of UTF-8.) */
 struct sfm_read_info
   {
-    char creation_date[10];	/* `dd mmm yy' plus a null. */
-    char creation_time[9];	/* `hh:mm:ss' plus a null. */
+    char *creation_date;	/* "dd mmm yy". */
+    char *creation_time;	/* "hh:mm:ss". */
     enum integer_format integer_format;
     enum float_format float_format;
     bool compressed;		/* 0=no, 1=yes. */
     casenumber case_cnt;        /* -1 if unknown. */
-    char product[61];		/* Product name, as ASCII string. */
+    char *product;		/* Product name. */
 
     /* Writer's version number in X.Y.Z format.
        The version number is not always present; if not, then
@@ -44,6 +47,8 @@ struct sfm_read_info
     int version_minor;          /* Y. */
     int version_revision;       /* Z. */
   };
+
+void sfm_read_info_destroy (struct sfm_read_info *);
 
 struct dictionary;
 struct file_handle;

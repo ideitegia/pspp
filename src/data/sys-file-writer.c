@@ -325,7 +325,7 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   /* Product identification. */
   snprintf (prod_name, sizeof prod_name, "@(#) SPSS DATA FILE %s - %s",
             version, host_system);
-  write_string (w, prod_name, 60);
+  write_utf8_string (w, dict_encoding, prod_name, 60);
 
   /* Layout code. */
   write_int (w, 2);
@@ -374,14 +374,14 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
       snprintf (creation_time, sizeof creation_time,
                 "%02d:%02d:%02d", hour - 1, min - 1, sec - 1);
     }
-  write_string (w, creation_date, 9);
-  write_string (w, creation_time, 8);
+  write_utf8_string (w, dict_encoding, creation_date, 9);
+  write_utf8_string (w, dict_encoding, creation_time, 8);
 
   /* File label. */
   file_label = dict_get_label (d);
   if (file_label == NULL)
     file_label = "";
-  write_utf8_string (w, dict_get_encoding (d), file_label, 64);
+  write_utf8_string (w, dict_encoding, file_label, 64);
 
   /* Padding. */
   write_zeros (w, 3);

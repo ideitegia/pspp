@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2000, 2006-2007, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2006-2007, 2009-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -83,6 +83,20 @@ enum
     EXT_MRSETS2       = 19,     /* Multiple response sets (extended). */
     EXT_ENCODING      = 20,     /* Character encoding. */
     EXT_LONG_LABELS   = 21      /* Value labels for long strings. */
+  };
+
+/* Fields from the top-level header record. */
+struct sfm_header_record
+  {
+    int weight_idx;             /* 0 if unweighted, otherwise a var index. */
+    int nominal_case_size;      /* Number of var positions. */
+
+    /* These correspond to the members of struct sfm_file_info or a dictionary
+       but in the system file's encoding rather than ASCII. */
+    char creation_date[10];	/* "dd mmm yy". */
+    char creation_time[9];	/* "hh:mm:ss". */
+    char eye_catcher[61];       /* Eye-catcher string, then product name. */
+    char file_label[65];        /* File label. */
   };
 
 struct sfm_var_record
@@ -239,11 +253,11 @@ enum which_format
     WRITE_FORMAT
   };
 
-static void read_header (struct sfm_reader *, int *weight_idx,
-                         int *claimed_oct_cnt, struct sfm_read_info *,
-                         char **file_labelp);
-static void parse_file_label (struct sfm_reader *, const char *file_label,
-                              struct dictionary *);
+static void read_header (struct sfm_reader *, struct sfm_read_info *,
+                         struct sfm_header_record *);
+static void parse_header (struct sfm_reader *,
+                          const struct sfm_header_record *,
+                          struct sfm_read_info *, struct dictionary *);
 static void parse_variable_records (struct sfm_reader *, struct dictionary *,
                                     struct sfm_var_record *, size_t n);
 static void parse_format_spec (struct sfm_reader *, off_t pos,
@@ -281,16 +295,32 @@ static void parse_long_string_value_labels (struct sfm_reader *,
                                             const struct sfm_extension_record *,
                                             struct dictionary *);
 
-/* Opens the system file designated by file handle FH for
-   reading.  Reads the system file's dictionary into *DICT.
-   If INFO is non-null, then it receives additional info about the
-   system file. */
+/* Frees the strings inside INFO. */
+void
+sfm_read_info_destroy (struct sfm_read_info *info)
+{
+  if (info)
+    {
+      free (info->creation_date);
+      free (info->creation_time);
+      free (info->product);
+    }
+}
+
+/* Opens the system file designated by file handle FH for reading.  Reads the
+   system file's dictionary into *DICT.
+
+   If INFO is non-null, then it receives additional info about the system file,
+   which the caller must eventually free with sfm_read_info_destroy() when it
+   is no longer needed. */
 struct casereader *
 sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
-                 struct sfm_read_info *volatile info)
+                 struct sfm_read_info *infop)
 {
   struct sfm_reader *volatile r = NULL;
-  struct sfm_read_info local_info;
+  struct sfm_read_info info;
+
+  struct sfm_header_record header;
 
   struct sfm_var_record *vars;
   size_t n_vars, allocated_vars;
@@ -301,10 +331,6 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
   struct sfm_document_record *document;
 
   struct sfm_extension_record *extensions[32];
-
-  int weight_idx;
-  int claimed_oct_cnt;
-  char *file_label;
 
   struct dictionary *dict = NULL;
   size_t i;
@@ -318,6 +344,8 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
   r->error = false;
   r->opcode_idx = sizeof r->opcodes;
   r->corruption_warning = false;
+
+  memset (&info, 0, sizeof info);
 
   /* TRANSLATORS: this fragment will be interpolated into
      messages in fh_lock() that identify types of files. */
@@ -333,16 +361,11 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
       goto error;
     }
 
-  /* Initialize info. */
-  if (info == NULL)
-    info = &local_info;
-  memset (info, 0, sizeof *info);
-
   if (setjmp (r->bail_out))
     goto error;
 
   /* Read header. */
-  read_header (r, &weight_idx, &claimed_oct_cnt, info, &file_label);
+  read_header (r, &info, &header);
 
   vars = NULL;
   n_vars = allocated_vars = 0;
@@ -438,7 +461,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
     parse_document (dict, document);
 
   if (extensions[EXT_INTEGER] != NULL)
-    parse_machine_integer_info (r, extensions[EXT_INTEGER], info);
+    parse_machine_integer_info (r, extensions[EXT_INTEGER], &info);
 
   if (extensions[EXT_FLOAT] != NULL)
     parse_machine_float_info (r, extensions[EXT_FLOAT]);
@@ -446,7 +469,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
   if (extensions[EXT_FILE_ATTRS] != NULL)
     parse_data_file_attributes (r, extensions[EXT_FILE_ATTRS], dict);
 
-  parse_file_label (r, file_label, dict);
+  parse_header (r, &header, &info, dict);
 
   /* Parse the variable records, the basis of almost everything else. */
   parse_variable_records (r, dict, vars, n_vars);
@@ -456,11 +479,12 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
      before those indexes become invalidated by very long string variables. */
   for (i = 0; i < n_labels; i++)
     parse_value_labels (r, dict, vars, n_vars, &labels[i]);
-  if (weight_idx != 0)
+  if (header.weight_idx != 0)
     {
       struct variable *weight_var;
 
-      weight_var = lookup_var_by_index (r, 76, vars, n_vars, weight_idx);
+      weight_var = lookup_var_by_index (r, 76, vars, n_vars,
+                                        header.weight_idx);
       if (var_is_numeric (weight_var))
         dict_set_weight (dict, weight_var);
       else
@@ -497,11 +521,11 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
      amount that the header claims.  SPSS version 13 gets this
      wrong when very long strings are involved, so don't warn in
      that case. */
-  if (claimed_oct_cnt != -1 && claimed_oct_cnt != n_vars
-      && info->version_major != 13)
+  if (header.nominal_case_size != -1 && header.nominal_case_size != n_vars
+      && info.version_major != 13)
     sys_warn (r, -1, _("File header claims %d variable positions but "
                        "%zu were read from file."),
-              claimed_oct_cnt, n_vars);
+              header.nominal_case_size, n_vars);
 
   /* Create an index of dictionary variable widths for
      sfm_read_case to use.  We cannot use the `struct variable's
@@ -512,12 +536,18 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
   r->proto = caseproto_ref_pool (dict_get_proto (dict), r->pool);
 
   *dictp = dict;
+  if (infop)
+    *infop = info;
+  else
+    sfm_read_info_destroy (&info);
+
   return casereader_create_sequential
     (NULL, r->proto,
      r->case_cnt == -1 ? CASENUMBER_MAX: r->case_cnt,
                                        &sys_file_casereader_class, r);
 
 error:
+  sfm_read_info_destroy (&info);
   close_reader (r);
   dict_destroy (dict);
   *dictp = NULL;
@@ -577,28 +607,19 @@ sfm_detect (FILE *file)
   return !strcmp ("$FL2", rec_type);
 }
 
-/* Reads the global header of the system file.  Sets *WEIGHT_IDX to 0 if the
-   system file is unweighted, or to the value index of the weight variable
-   otherwise.  Sets *CLAIMED_OCT_CNT to the number of "octs" (8-byte units) per
-   case that the file claims to have (although it is not always correct).
-   Initializes INFO with header information.  Stores the file label as a string
-   in dictionary encoding into *FILE_LABELP. */
+/* Reads the global header of the system file.  Initializes *HEADER and *INFO,
+   except for the string fields in *INFO, which parse_header() will initialize
+   later once the file's encoding is known. */
 static void
-read_header (struct sfm_reader *r, int *weight_idx,
-             int *claimed_oct_cnt, struct sfm_read_info *info,
-             char **file_labelp)
+read_header (struct sfm_reader *r, struct sfm_read_info *info,
+             struct sfm_header_record *header)
 {
   char rec_type[5];
-  char eye_catcher[61];
   uint8_t raw_layout_code[4];
   uint8_t raw_bias[8];
-  char creation_date[10];
-  char creation_time[9];
-  char file_label[65];
-  struct substring product;
 
   read_string (r, rec_type, sizeof rec_type);
-  read_string (r, eye_catcher, sizeof eye_catcher);
+  read_string (r, header->eye_catcher, sizeof header->eye_catcher);
 
   if (strcmp ("$FL2", rec_type) != 0)
     sys_error (r, 0, _("This is not an SPSS system file."));
@@ -613,13 +634,14 @@ read_header (struct sfm_reader *r, int *weight_idx,
           && r->integer_format != INTEGER_LSB_FIRST))
     sys_error (r, 64, _("This is not an SPSS system file."));
 
-  *claimed_oct_cnt = read_int (r);
-  if (*claimed_oct_cnt < 0 || *claimed_oct_cnt > INT_MAX / 16)
-    *claimed_oct_cnt = -1;
+  header->nominal_case_size = read_int (r);
+  if (header->nominal_case_size < 0
+      || header->nominal_case_size > INT_MAX / 16)
+    header->nominal_case_size = -1;
 
   r->compressed = read_int (r) != 0;
 
-  *weight_idx = read_int (r);
+  header->weight_idx = read_int (r);
 
   r->case_cnt = read_int (r);
   if ( r->case_cnt > INT_MAX / 2)
@@ -652,25 +674,15 @@ read_header (struct sfm_reader *r, int *weight_idx,
     }
   float_convert (r->float_format, raw_bias, FLOAT_NATIVE_DOUBLE, &r->bias);
 
-  read_string (r, creation_date, sizeof creation_date);
-  read_string (r, creation_time, sizeof creation_time);
-  read_string (r, file_label, sizeof file_label);
+  read_string (r, header->creation_date, sizeof header->creation_date);
+  read_string (r, header->creation_time, sizeof header->creation_time);
+  read_string (r, header->file_label, sizeof header->file_label);
   skip_bytes (r, 3);
 
-  strcpy (info->creation_date, creation_date);
-  strcpy (info->creation_time, creation_time);
   info->integer_format = r->integer_format;
   info->float_format = r->float_format;
   info->compressed = r->compressed;
   info->case_cnt = r->case_cnt;
-
-  product = ss_cstr (eye_catcher);
-  ss_match_string (&product, ss_cstr ("@(#) SPSS DATA FILE"));
-  ss_trim (&product, ss_cstr (" "));
-  str_copy_buf_trunc (info->product, sizeof info->product,
-                      ss_data (product), ss_length (product));
-
-  *file_labelp = pool_strdup0 (r->pool, file_label, sizeof file_label - 1);
 }
 
 /* Reads a variable (type 2) record from R into RECORD. */
@@ -916,19 +928,32 @@ skip_extension_record (struct sfm_reader *r, int subtype)
 }
 
 static void
-parse_file_label (struct sfm_reader *r, const char *file_label,
-                  struct dictionary *dict)
+parse_header (struct sfm_reader *r, const struct sfm_header_record *header,
+              struct sfm_read_info *info, struct dictionary *dict)
 {
-  char *utf8_file_label;
-  size_t file_label_len;
+  const char *dict_encoding = dict_get_encoding (dict);
+  struct substring product;
+  struct substring label;
 
-  utf8_file_label = recode_string_pool ("UTF-8", dict_get_encoding (dict),
-                                        file_label, -1, r->pool);
-  file_label_len = strlen (utf8_file_label);
-  while (file_label_len > 0 && utf8_file_label[file_label_len - 1] == ' ')
-    file_label_len--;
-  utf8_file_label[file_label_len] = '\0';
-  dict_set_label (dict, utf8_file_label);
+  /* Convert file label to UTF-8 and put it into DICT. */
+  label = recode_substring_pool ("UTF-8", dict_encoding,
+                                 ss_cstr (header->file_label), r->pool);
+  ss_trim (&label, ss_cstr (" "));
+  label.string[label.length] = '\0';
+  dict_set_label (dict, label.string);
+
+  /* Put creation date and time in UTF-8 into INFO. */
+  info->creation_date = recode_string ("UTF-8", dict_encoding,
+                                       header->creation_date, -1);
+  info->creation_time = recode_string ("UTF-8", dict_encoding,
+                                       header->creation_time, -1);
+
+  /* Put product name into INFO, dropping eye-catcher string if present. */
+  product = recode_substring_pool ("UTF-8", dict_encoding,
+                                   ss_cstr (header->eye_catcher), r->pool);
+  ss_match_string (&product, ss_cstr ("@(#) SPSS DATA FILE"));
+  ss_trim (&product, ss_cstr (" "));
+  info->product = ss_xstrdup (product);
 }
 
 /* Reads a variable (type 2) record from R and adds the
