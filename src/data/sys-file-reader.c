@@ -88,6 +88,7 @@ enum
 /* Fields from the top-level header record. */
 struct sfm_header_record
   {
+    char magic[5];              /* First 4 bytes of file, then null. */
     int weight_idx;             /* 0 if unweighted, otherwise a var index. */
     int nominal_case_size;      /* Number of var positions. */
 
@@ -213,6 +214,7 @@ static void skip_extension_record (struct sfm_reader *, int subtype);
 
 static const char *choose_encoding (
   struct sfm_reader *,
+  const struct sfm_header_record *,
   const struct sfm_extension_record *ext_integer,
   const struct sfm_extension_record *ext_encoding);
 
@@ -452,7 +454,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
 
      First, figure out the correct character encoding, because this determines
      how the rest of the header data is to be interpreted. */
-  dict = dict_create (choose_encoding (r, extensions[EXT_INTEGER],
+  dict = dict_create (choose_encoding (r, &header, extensions[EXT_INTEGER],
                                        extensions[EXT_ENCODING]));
   r->encoding = dict_get_encoding (dict);
 
@@ -598,13 +600,13 @@ sys_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 bool
 sfm_detect (FILE *file)
 {
-  char rec_type[5];
+  char magic[5];
 
-  if (fread (rec_type, 4, 1, file) != 1)
+  if (fread (magic, 4, 1, file) != 1)
     return false;
-  rec_type[4] = '\0';
+  magic[4] = '\0';
 
-  return !strcmp ("$FL2", rec_type);
+  return !strcmp (ASCII_MAGIC, magic) || !strcmp (EBCDIC_MAGIC, magic);
 }
 
 /* Reads the global header of the system file.  Initializes *HEADER and *INFO,
@@ -614,14 +616,14 @@ static void
 read_header (struct sfm_reader *r, struct sfm_read_info *info,
              struct sfm_header_record *header)
 {
-  char rec_type[5];
   uint8_t raw_layout_code[4];
   uint8_t raw_bias[8];
 
-  read_string (r, rec_type, sizeof rec_type);
+  read_string (r, header->magic, sizeof header->magic);
   read_string (r, header->eye_catcher, sizeof header->eye_catcher);
 
-  if (strcmp ("$FL2", rec_type) != 0)
+  if (strcmp (ASCII_MAGIC, header->magic)
+      && strcmp (EBCDIC_MAGIC, header->magic))
     sys_error (r, 0, _("This is not an SPSS system file."));
 
   /* Identify integer format. */
@@ -1185,6 +1187,7 @@ parse_machine_integer_info (struct sfm_reader *r,
 
 static const char *
 choose_encoding (struct sfm_reader *r,
+                 const struct sfm_header_record *header,
                  const struct sfm_extension_record *ext_integer,
                  const struct sfm_extension_record *ext_encoding)
 {
@@ -1222,6 +1225,10 @@ choose_encoding (struct sfm_reader *r,
           break;
         }
     }
+
+  /* If the file magic number is EBCDIC then its character data is too. */
+  if (!strcmp (header->magic, EBCDIC_MAGIC))
+    return "EBCDIC-US";
 
   return locale_charset ();
 }

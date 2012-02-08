@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2006-2007, 2009-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,6 +34,14 @@
 #include <stddef.h>
 
 struct dictionary;
+
+/* Magic numbers.
+
+   Both of these are actually $FL2 in the respective character set.  The "FL2"
+   part is invariant among national variants of each character set, but "$" has
+   different encodings, so it is safer to write them as hexadecimal. */
+#define ASCII_MAGIC  "\x24\x46\x4c\x32"
+#define EBCDIC_MAGIC "\x5b\xc6\xd3\xf2"
 
 /* A variable in a system file. */
 struct sfm_var

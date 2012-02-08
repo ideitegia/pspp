@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -722,6 +722,16 @@ get_encoding_info (struct encoding_info *e, const char *name)
   e->is_ascii_compatible = ss_equals (in, out);
   ss_dealloc (&out);
 
+  if (!e->is_ascii_compatible && e->unit == 1)
+    {
+      out = recode_substring_pool ("UTF-8", name, ss_cstr ("A"), NULL);
+      e->is_ebcdic_compatible = (out.length == 1
+                                 && (uint8_t) out.string[0] == 0xc1);
+      ss_dealloc (&out);
+    }
+  else
+    e->is_ebcdic_compatible = false;
+
   return ok;
 }
 
@@ -732,6 +742,15 @@ is_encoding_ascii_compatible (const char *encoding)
 
   get_encoding_info (&e, encoding);
   return e.is_ascii_compatible;
+}
+
+bool
+is_encoding_ebcdic_compatible (const char *encoding)
+{
+  struct encoding_info e;
+
+  get_encoding_info (&e, encoding);
+  return e.is_ebcdic_compatible;
 }
 
 /* Returns true if iconv can convert ENCODING to and from UTF-8,

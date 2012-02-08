@@ -115,7 +115,9 @@ char                padding[3];
 
 @table @code
 @item char rec_type[4];
-Record type code, set to @samp{$FL2}.
+Record type code, set to @samp{$FL2}, that is, either @code{24 46 4c
+32} if the file uses an ASCII-based character encoding, or @code{5b c6
+d3 f2} if the file uses an EBCDIC-based character encoding.
 
 @item char prod_name[60];
 Product identification string.  This always begins with the characters
@@ -559,6 +561,9 @@ Machine endianness.  1 indicates big-endian, 2 indicates little-endian.
 been actually observed in system files:
 
 @table @asis
+@item 1
+EBCDIC.
+
 @item 2
 7-bit ASCII.
 
@@ -579,9 +584,6 @@ UTF-8.
 The following additional values are known to be defined:
 
 @table @asis
-@item 1
-EBCDIC.
-
 @item 3
 8-bit ``ASCII''.
 
@@ -591,9 +593,10 @@ DEC Kanji.
 
 Other Windows code page numbers are known to be generally valid.
 
-Old versions of SPSS always wrote value 2 in this field, regardless of
-the encoding in use.  Newer versions also write the character encoding
-as a string (see @ref{Character Encoding Record}).
+Old versions of SPSS for Unix and Windows always wrote value 2 in this
+field, regardless of the encoding in use.  Newer versions also write
+the character encoding as a string (see @ref{Character Encoding
+Record}).
 @end table
 
 @node Machine Floating-Point Info Record

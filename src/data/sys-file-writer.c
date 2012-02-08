@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2006-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -311,6 +311,7 @@ calc_oct_idx (const struct dictionary *d, struct variable *target_var)
 static void
 write_header (struct sfm_writer *w, const struct dictionary *d)
 {
+  const char *dict_encoding = dict_get_encoding (d);
   char prod_name[61];
   char creation_date[10];
   char creation_time[9];
@@ -320,7 +321,10 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   time_t t;
 
   /* Record-type code. */
-  write_string (w, "$FL2", 4);
+  if (is_encoding_ebcdic_compatible (dict_encoding))
+    write_string (w, EBCDIC_MAGIC, 4);
+  else
+    write_string (w, ASCII_MAGIC, 4);
 
   /* Product identification. */
   snprintf (prod_name, sizeof prod_name, "@(#) SPSS DATA FILE %s - %s",
@@ -952,6 +956,7 @@ static void
 write_integer_info_record (struct sfm_writer *w,
                            const struct dictionary *d)
 {
+  const char *dict_encoding = dict_get_encoding (d);
   int version_component[3];
   int float_format;
   int codepage;
@@ -973,13 +978,21 @@ write_integer_info_record (struct sfm_writer *w,
     abort ();
 
   /* Choose codepage. */
-  codepage = sys_get_codepage_from_encoding (dict_get_encoding (d));
+  codepage = sys_get_codepage_from_encoding (dict_encoding);
   if (codepage == 0)
     {
-      /* Default to "7-bit ASCII" if the codepage number is unknown, because
+      /* The codepage is unknown.  Choose a default.
+
+         For an EBCDIC-compatible encoding, use the value for EBCDIC.
+
+         For an ASCII-compatible encoding, default to "7-bit ASCII", because
          many files use this codepage number regardless of their actual
-         encoding. */
-      codepage = 2;
+         encoding.
+      */
+      if (is_encoding_ascii_compatible (dict_encoding))
+        codepage = 2;
+      else if (is_encoding_ebcdic_compatible (dict_encoding))
+        codepage = 1;
     }
 
   /* Write record. */

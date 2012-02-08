@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -126,6 +126,10 @@ struct encoding_info
        used in ASCII text files has the same value in this encoding. */
     bool is_ascii_compatible;
 
+    /* True if this encoding has a unit width of 1 byte and appears to be
+       EBCDIC-based.  */
+    bool is_ebcdic_compatible;
+
     /* Character information. */
     int unit;                   /* Unit width, in bytes. */
     char cr[MAX_UNIT];          /* \r in encoding, 'unit' bytes long. */
@@ -134,6 +138,7 @@ struct encoding_info
 
 bool get_encoding_info (struct encoding_info *, const char *name);
 bool is_encoding_ascii_compatible (const char *encoding);
+bool is_encoding_ebcdic_compatible (const char *encoding);
 bool is_encoding_supported (const char *encoding);
 
 #endif /* i18n.h */
