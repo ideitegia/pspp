@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1250,15 +1250,18 @@ dict_get_label (const struct dictionary *d)
   return d->label;
 }
 
-/* Sets D's file label to LABEL, truncating it to a maximum of 60
-   characters.
+/* Sets D's file label to LABEL, truncating it to at most 60 bytes in D's
+   encoding.
 
    Removes D's label if LABEL is null or the empty string. */
 void
 dict_set_label (struct dictionary *d, const char *label)
 {
   free (d->label);
-  d->label = label != NULL && label[0] != '\0' ? xstrndup (label, 60) : NULL;
+  if (label == NULL || label[0] == '\0')
+    d->label = NULL;
+  else
+    d->label = utf8_encoding_trunc (label, d->encoding, 60);
 }
 
 /* Returns the documents for D, as an UTF-8 encoded string_array.  The
