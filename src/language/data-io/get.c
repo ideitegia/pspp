@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -73,6 +73,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds,
   struct file_handle *fh = NULL;
   struct dictionary *dict = NULL;
   struct case_map *map = NULL;
+  char *encoding = NULL;
 
   for (;;)
     {
@@ -87,6 +88,18 @@ parse_read_command (struct lexer *lexer, struct dataset *ds,
 	  if (fh == NULL)
             goto error;
 	}
+      else if (command == GET_CMD && lex_match_id (lexer, "ENCODING"))
+        {
+	  lex_match (lexer, T_EQUALS);
+
+          if (!lex_force_string (lexer))
+            goto error;
+
+          free (encoding);
+          encoding = ss_xstrdup (lex_tokss (lexer));
+
+          lex_get (lexer);
+        }
       else if (command == IMPORT_CMD && lex_match_id (lexer, "TYPE"))
 	{
 	  lex_match (lexer, T_EQUALS);
@@ -108,7 +121,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds,
       goto error;
     }
 
-  reader = any_reader_open (fh, &dict);
+  reader = any_reader_open (fh, encoding, &dict);
   if (reader == NULL)
     goto error;
 
@@ -130,6 +143,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds,
   dataset_set_source (ds, reader);
 
   fh_unref (fh);
+  free (encoding);
   return CMD_SUCCESS;
 
  error:
@@ -137,5 +151,6 @@ parse_read_command (struct lexer *lexer, struct dataset *ds,
   casereader_destroy (reader);
   if (dict != NULL)
     dict_destroy (dict);
+  free (encoding);
   return CMD_CASCADING_FAILURE;
 }

@@ -74,6 +74,7 @@ struct sfm_writer
 
     bool compress;		/* 1=compressed, 0=not compressed. */
     casenumber case_cnt;	/* Number of cases written so far. */
+    uint8_t space;              /* ' ' in the file's character encoding. */
 
     /* Compression buffering.
 
@@ -176,6 +177,7 @@ struct casewriter *
 sfm_open_writer (struct file_handle *fh, struct dictionary *d,
                  struct sfm_write_options opts)
 {
+  struct encoding_info encoding_info;
   struct sfm_writer *w;
   mode_t mode;
   int i;
@@ -226,6 +228,9 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
            fh_get_file_name (fh), strerror (errno));
       goto error;
     }
+
+  get_encoding_info (&encoding_info, dict_get_encoding (d));
+  w->space = encoding_info.space[0];
 
   /* Write the file header. */
   write_header (w, d);
@@ -711,6 +716,12 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
   struct string s = DS_EMPTY_INITIALIZER;
   size_t n_mrsets;
   size_t i;
+
+  if (is_encoding_ebcdic_compatible (encoding))
+    {
+      /* FIXME. */
+      return;
+    }
 
   n_mrsets = dict_get_n_mrsets (dict);
   if (n_mrsets == 0)
@@ -1251,7 +1262,7 @@ put_cmp_string (struct sfm_writer *w, const void *data, size_t size)
   assert (w->data_cnt < 8);
   assert (size <= 8);
 
-  memset (w->data[w->data_cnt], ' ', 8);
+  memset (w->data[w->data_cnt], w->space, 8);
   memcpy (w->data[w->data_cnt], data, size);
   w->data_cnt++;
 }
@@ -1313,7 +1324,7 @@ write_string (struct sfm_writer *w, const char *string, size_t width)
   size_t pad_bytes = width - data_bytes;
   write_bytes (w, string, data_bytes);
   while (pad_bytes-- > 0)
-    putc (' ', w->file);
+    putc (w->space, w->file);
 }
 
 /* Recodes null-terminated UTF-8 encoded STRING into ENCODING, and writes the
@@ -1374,5 +1385,5 @@ static void
 write_spaces (struct sfm_writer *w, size_t n)
 {
   while (n-- > 0)
-    putc (' ', w->file);
+    putc (w->space, w->file);
 }

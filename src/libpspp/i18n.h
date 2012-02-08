@@ -134,6 +134,7 @@ struct encoding_info
     int unit;                   /* Unit width, in bytes. */
     char cr[MAX_UNIT];          /* \r in encoding, 'unit' bytes long. */
     char lf[MAX_UNIT];          /* \n in encoding, 'unit' bytes long. */
+    char space[MAX_UNIT];       /* ' ' in encoding, 'unit' bytes long. */
   };
 
 bool get_encoding_info (struct encoding_info *, const char *name);

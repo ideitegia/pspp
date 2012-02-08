@@ -139,6 +139,7 @@ GET
         /DROP=var_list
         /KEEP=var_list
         /RENAME=(src_names=target_names)@dots{}
+        /ENCODING='encoding'
 @end display
 
 @cmd{GET} clears the current dictionary and active dataset and
@@ -170,6 +171,13 @@ DROP, KEEP, and RENAME are executed in left-to-right order.
 Each may be present any number of times.  @cmd{GET} never modifies a
 file on disk.  Only the active dataset read from the file
 is affected by these subcommands.
+
+PSPP tries to automatically detect the encoding of string data in the
+file.  Sometimes, however, this does not work well encoding,
+especially for files written by old versions of SPSS or PSPP.  Specify
+the ENCODING subcommand with an IANA character set name as its string
+argument to override the default.  The ENCODING subcommand is a PSPP
+extension.
 
 @cmd{GET} does not cause the data to be read, only the dictionary.  The data
 is read later, when a procedure is executed.

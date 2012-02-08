@@ -709,7 +709,7 @@ CODE:
  	 fh_create_file (NULL, name, fh_default_properties () );
 
  sri = xmalloc (sizeof (*sri));
- sri->reader = sfm_open_reader (fh, &sri->dict, &sri->opts);
+ sri->reader = sfm_open_reader (fh, NULL, &sri->dict, &sri->opts);
 
  if ( NULL == sri->reader)
  {

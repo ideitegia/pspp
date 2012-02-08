@@ -694,29 +694,37 @@ get_encoding_info (struct encoding_info *e, const char *name)
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
     "abcdefghijklmnopqrstuvwxyz{|}~");
 
-  struct substring out, cr, lf;
+  struct substring out, cr, lf, space;
   bool ok;
 
   memset (e, 0, sizeof *e);
 
   cr = recode_substring_pool (name, "UTF-8", ss_cstr ("\r"), NULL);
   lf = recode_substring_pool (name, "UTF-8", ss_cstr ("\n"), NULL);
-  ok = cr.length >= 1 && cr.length <= MAX_UNIT && cr.length == lf.length;
+  space = recode_substring_pool (name, "UTF-8", ss_cstr (" "), NULL);
+  ok = (cr.length >= 1
+        && cr.length <= MAX_UNIT
+        && cr.length == lf.length
+        && cr.length == space.length);
   if (!ok)
     {
       fprintf (stderr, "warning: encoding `%s' is not supported.\n", name);
       ss_dealloc (&cr);
       ss_dealloc (&lf);
+      ss_dealloc (&space);
       ss_alloc_substring (&cr, ss_cstr ("\r"));
       ss_alloc_substring (&lf, ss_cstr ("\n"));
+      ss_alloc_substring (&space, ss_cstr (" "));
     }
 
   e->unit = cr.length;
   memcpy (e->cr, cr.string, e->unit);
   memcpy (e->lf, lf.string, e->unit);
+  memcpy (e->space, space.string, e->unit);
 
   ss_dealloc (&cr);
   ss_dealloc (&lf);
+  ss_dealloc (&space);
 
   out = recode_substring_pool ("UTF-8", name, in, NULL);
   e->is_ascii_compatible = ss_equals (in, out);

@@ -312,12 +312,17 @@ sfm_read_info_destroy (struct sfm_read_info *info)
 /* Opens the system file designated by file handle FH for reading.  Reads the
    system file's dictionary into *DICT.
 
+   Ordinarily the reader attempts to automatically detect the character
+   encoding based on the file's contents.  This isn't always possible,
+   especially for files written by old versions of SPSS or PSPP, so specifying
+   a nonnull ENCODING overrides the choice of character encoding.
+
    If INFO is non-null, then it receives additional info about the system file,
    which the caller must eventually free with sfm_read_info_destroy() when it
    is no longer needed. */
 struct casereader *
-sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
-                 struct sfm_read_info *infop)
+sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
+                 struct dictionary **dictp, struct sfm_read_info *infop)
 {
   struct sfm_reader *volatile r = NULL;
   struct sfm_read_info info;
@@ -454,8 +459,10 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dictp,
 
      First, figure out the correct character encoding, because this determines
      how the rest of the header data is to be interpreted. */
-  dict = dict_create (choose_encoding (r, &header, extensions[EXT_INTEGER],
-                                       extensions[EXT_ENCODING]));
+  dict = dict_create (encoding
+                      ? encoding
+                      : choose_encoding (r, &header, extensions[EXT_INTEGER],
+                                         extensions[EXT_ENCODING]));
   r->encoding = dict_get_encoding (dict);
 
   /* These records don't use variables at all. */

@@ -40,7 +40,7 @@ Changes from 0.6.2 to 0.7.9:
 
    - HOST has been updated to use more modern syntax.
 
-   - INCLUDE and INSERT have a new ENCODING subcommand.
+   - GET, INCLUDE, and INSERT have a new ENCODING subcommand.
 
    - MISSING VALUES can now assign missing values to long string
      variables.

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -80,9 +80,15 @@ any_reader_may_open (const char *file)
 
 /* Returns a casereader for HANDLE.  On success, returns the new
    casereader and stores the file's dictionary into *DICT.  On
-   failure, returns a null pointer. */
+   failure, returns a null pointer.
+
+   Ordinarily the reader attempts to automatically detect the character
+   encoding based on the file's contents.  This isn't always possible,
+   especially for files written by old versions of SPSS or PSPP, so specifying
+   a nonnull ENCODING overrides the choice of character encoding.  */
 struct casereader *
-any_reader_open (struct file_handle *handle, struct dictionary **dict)
+any_reader_open (struct file_handle *handle, const char *encoding,
+                 struct dictionary **dict)
 {
   switch (fh_get_referent (handle))
     {
@@ -94,7 +100,7 @@ any_reader_open (struct file_handle *handle, struct dictionary **dict)
         if (result == IO_ERROR)
           return NULL;
         else if (result == YES)
-          return sfm_open_reader (handle, dict, NULL);
+          return sfm_open_reader (handle, encoding, dict, NULL);
 
         result = try_detect (fh_get_file_name (handle), pfm_detect);
         if (result == IO_ERROR)

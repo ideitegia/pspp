@@ -81,7 +81,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   if (!h)
     return CMD_FAILURE;
 
-  reader = sfm_open_reader (h, &d, &info);
+  reader = sfm_open_reader (h, NULL, &d, &info);
   if (!reader)
     {
       fh_unref (h);

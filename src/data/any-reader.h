@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 struct file_handle;
 struct dictionary;
 bool any_reader_may_open (const char *file_name);
-struct casereader *any_reader_open (struct file_handle *,
+struct casereader *any_reader_open (struct file_handle *, const char *encoding,
                                     struct dictionary **);
 
 #endif /* any-reader.h */

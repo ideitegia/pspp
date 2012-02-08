@@ -52,7 +52,7 @@ void sfm_read_info_destroy (struct sfm_read_info *);
 
 struct dictionary;
 struct file_handle;
-struct casereader *sfm_open_reader (struct file_handle *,
+struct casereader *sfm_open_reader (struct file_handle *, const char *encoding,
                                     struct dictionary **,
                                     struct sfm_read_info *);
 bool sfm_detect (FILE *);
