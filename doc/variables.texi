@@ -52,8 +52,8 @@ DELETE VARIABLES var_list.
 dictionary.  It may not be used to delete all variables from the
 dictionary; use @cmd{NEW FILE} to do that (@pxref{NEW FILE}).
 
-@cmd{DELETE VARIABLES} should not used after defining transformations
-and before executing a procedure.  If it is used in such a context, it
+@cmd{DELETE VARIABLES} should not be used after defining transformations
+but before executing a procedure.  If it is used in such a context, it
 causes the data to be read.  If it is used while @cmd{TEMPORARY} is in
 effect, it causes the temporary transformations to become permanent.
 
