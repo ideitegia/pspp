@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: pspp 0.7.9\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2012-02-03 19:12-0800\n"
-"PO-Revision-Date: 2012-02-04 19:49+0100\n"
+"PO-Revision-Date: 2012-02-07 22:40+0100\n"
 "Last-Translator: Matej Urbančič <matej.urban@gmail.com>\n"
 "Language-Team: Slovenian <translation-team-sl@lists.sourceforge.net>\n"
 "Language: Slovenian\n"
@@ -64,24 +64,23 @@ msgid "Variable"
 msgstr "Spremenljivka"
 
 #: src/ui/gui/psppire-dictview.c:503
-#, fuzzy
 msgid "Prefer variable labels"
-msgstr "Oznake na gumbih orodne vrstice:"
+msgstr "Prednostne oznake spremenljivk"
 
 #: src/ui/gui/psppire-var-view.c:192
-#, fuzzy, c-format
+#, c-format
 msgid "Var%d"
-msgstr "spr X"
+msgstr "Spr%d"
 
 #: src/data/any-reader.c:60
-#, fuzzy, c-format
+#, c-format
 msgid "An error occurred while opening `%s': %s."
-msgstr "Prišlo je do napake med tiskanjem"
+msgstr "Prišlo je do napake med odpiranjem `%s': %s."
 
 #: src/data/any-reader.c:105
-#, fuzzy, c-format
+#, c-format
 msgid "`%s' is not a system or portable file."
-msgstr "Datoteka '%s' ni običajna datoteka ali mapa."
+msgstr "`%s' ni sistemska ali prenosna datoteka."
 
 #: src/data/any-reader.c:111 src/data/any-writer.c:67
 msgid "The inline file is not allowed here."
@@ -118,9 +117,9 @@ msgid "Error opening `%s' for writing as a system file: %s."
 msgstr ""
 
 #: src/data/csv-file-writer.c:462
-#, fuzzy, c-format
+#, c-format
 msgid "An I/O error occurred writing CSV file `%s'."
-msgstr "Napaka med razčlenjevanjem CSV datoteke: %s"
+msgstr "Prišlo je do V/I napake med zapisovanjem datoteke CSV `%s'."
 
 #: src/data/data-in.c:171
 #, c-format
@@ -137,9 +136,8 @@ msgid "Number followed by garbage."
 msgstr "(?R ali (?[+-] številom mora slediti )"
 
 #: src/data/data-in.c:391
-#, fuzzy
 msgid "Invalid numeric syntax."
-msgstr "Neveljavna skladnja DN"
+msgstr "Neveljavna številska skladnja."
 
 #: src/data/data-in.c:399 src/data/data-in.c:570
 msgid "Too-large number set to system-missing."
@@ -154,14 +152,12 @@ msgid "All characters in field must be digits."
 msgstr "Vsi znaki v polju morajo biti števila."
 
 #: src/data/data-in.c:444
-#, fuzzy
 msgid "Unrecognized character in field."
-msgstr "Neveljavno polje v ukazu"
+msgstr "Neprepoznan znak v polju."
 
 #: src/data/data-in.c:465 src/data/data-in.c:728
-#, fuzzy
 msgid "Field must have even length."
-msgstr "Največja dolžina polja besedila"
+msgstr "Polje mora imeti enako dolžino."
 
 #: src/data/data-in.c:467 src/data/data-in.c:731
 msgid "Field must contain only hex digits."
@@ -172,14 +168,12 @@ msgid "Invalid zoned decimal syntax."
 msgstr ""
 
 #: src/data/data-in.c:643 src/data/data-in.c:649
-#, fuzzy
 msgid "Invalid syntax for P field."
-msgstr "Neveljavno polje v ukazu"
+msgstr "Neveljavna skladnja polja P."
 
 #: src/data/data-in.c:767 src/data/data-in.c:813
-#, fuzzy
 msgid "Syntax error in date field."
-msgstr "Neveljavno polje dneva v datumu"
+msgstr "Napaka skladnje v polju datuma."
 
 #: src/data/data-in.c:782
 #, c-format
@@ -214,23 +208,23 @@ msgid "Julian day (%ld) must be between 1 and 366."
 msgstr ""
 
 #: src/data/data-in.c:979
-#, fuzzy, c-format
+#, c-format
 msgid "Quarter (%ld) must be between 1 and 4."
-msgstr "Črtice osi morajo biti med 2 in 200"
+msgstr "Četrtina (%ld) mora biti med 1 in 4."
 
 #: src/data/data-in.c:1000
 #, c-format
 msgid "Week (%ld) must be between 1 and 53."
-msgstr ""
+msgstr "Teden (%ld) mora biti med 1 in 53."
 
 #: src/data/data-in.c:1012
 msgid "Delimiter expected between fields in time."
-msgstr ""
+msgstr "Ločilni znak med polji časa."
 
 #: src/data/data-in.c:1032
 #, c-format
 msgid "Minute (%ld) must be between 0 and 59."
-msgstr ""
+msgstr "Minuta (%ld) mora biti med 0 in 59."
 
 #: src/data/data-in.c:1070
 msgid "Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified."
@@ -242,9 +236,9 @@ msgid "`%c' expected in date field."
 msgstr "Neveljavno polje dneva v datumu"
 
 #: src/data/data-out.c:546
-#, fuzzy, c-format
+#, c-format
 msgid "Weekday number %f is not between 1 and 7."
-msgstr "Preveri, ali je argument logična vrednost (in ni število)"
+msgstr "Številka dneva v tednu %f ni med 1 in 7."
 
 #: src/data/data-out.c:571
 #, c-format
@@ -260,17 +254,15 @@ msgstr ""
 #. messages in fh_lock() that identify types of files.
 #: src/data/dataset-writer.c:66 src/language/data-io/file-handle.q:187
 msgid "dataset"
-msgstr ""
+msgstr "podatkovna množica"
 
 #: src/data/dict-class.c:52
-#, fuzzy
 msgid "ordinary"
-msgstr "Običajen"
+msgstr "običajno"
 
 #: src/data/dict-class.c:54
-#, fuzzy
 msgid "system"
-msgstr "Sistem:"
+msgstr "sistemsko"
 
 #: src/data/dict-class.c:56
 #, fuzzy
@@ -287,9 +279,8 @@ msgid "Truncating document line to %d bytes."
 msgstr ""
 
 #: src/data/file-handle-def.c:254
-#, fuzzy
 msgid "active dataset"
-msgstr "Dejavna opravila:"
+msgstr "dejavna podatkovna množica"
 
 #: src/data/file-handle-def.c:465
 #, c-format
@@ -302,9 +293,9 @@ msgid "Can't write to %s as a %s because it is already being written as a %s."
 msgstr ""
 
 #: src/data/file-handle-def.c:476
-#, fuzzy, c-format
+#, c-format
 msgid "Can't re-open %s as a %s."
-msgstr "Odpri terminal s skrbniškimi dovoljenji"
+msgstr "Ni mogoče odpreti %s kot %s."
 
 #: src/data/file-name.c:173
 #, c-format
@@ -394,32 +385,26 @@ msgid "String variable with width %d is not compatible with format %s."
 msgstr ""
 
 #: src/data/format.c:927 src/ui/gui/var-sheet-dialogs.ui:43
-#, fuzzy
 msgid "Comma"
 msgstr "Vejica"
 
 #: src/data/format.c:930 src/ui/gui/var-sheet-dialogs.ui:59
-#, fuzzy
 msgid "Dot"
 msgstr "Pika"
 
 #: src/data/format.c:933
-#, fuzzy
 msgid "Scientific"
 msgstr "Znanstveni"
 
 #: src/data/format.c:948 src/ui/gui/var-sheet-dialogs.ui:91
-#, fuzzy
 msgid "Date"
 msgstr "Datum"
 
 #: src/data/format.c:951 src/ui/gui/var-sheet-dialogs.ui:107
-#, fuzzy
 msgid "Dollar"
-msgstr "dolar"
+msgstr "Dolar"
 
 #: src/data/format.c:958
-#, fuzzy
 msgid "Custom"
 msgstr "Po meri"
 
@@ -482,7 +467,7 @@ msgstr "Napaka med odpiranjem zbirke ključev `%s' za branje: "
 #: src/data/make-file.c:80
 #, fuzzy, c-format
 msgid "Opening stream for %s: %s."
-msgstr "Odpiranje povezave'%s' za %s\n"
+msgstr "Odpiranje pretoka za začasno datoteko %s: %s."
 
 #: src/data/make-file.c:109
 #, c-format
@@ -735,9 +720,8 @@ msgstr ""
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
 #: src/data/sys-file-reader.c:324 src/data/sys-file-writer.c:213
-#, fuzzy
 msgid "system file"
-msgstr "Datotečni sistem"
+msgstr "sistemska datoteka"
 
 #: src/data/sys-file-reader.c:331
 #, c-format
@@ -1227,49 +1211,49 @@ msgstr ""
 "%s."
 
 #: src/language/lexer/lexer.c:295
-#, fuzzy, c-format
+#, c-format
 msgid "expecting %s"
-msgstr "Pričakovano je <%s> korensko vozlišče"
+msgstr "pričakovana je vrednost %s"
 
 #: src/language/lexer/lexer.c:299
-#, fuzzy, c-format
+#, c-format
 msgid "expecting %s or %s"
-msgstr "Or_ganizator:"
+msgstr "pričakovana je vrednost %s ali %s"
 
 #: src/language/lexer/lexer.c:303
-#, fuzzy, c-format
+#, c-format
 msgid "expecting %s, %s, or %s"
-msgstr "Or_ganizator:"
+msgstr "pričakovana je vrednost %s, %s ali %s"
 
 #: src/language/lexer/lexer.c:308
-#, fuzzy, c-format
+#, c-format
 msgid "expecting %s, %s, %s, or %s"
-msgstr "Or_ganizator:"
+msgstr "pričakovana je vrednost %s, %s, %s ali %s"
 
 #: src/language/lexer/lexer.c:313
-#, fuzzy, c-format
+#, c-format
 msgid "expecting %s, %s, %s, %s, or %s"
-msgstr "Or_ganizator:"
+msgstr "pričakovana je vrednost %s, %s, %s, %s ali %s"
 
 #: src/language/lexer/lexer.c:318
-#, fuzzy, c-format
+#, c-format
 msgid "expecting %s, %s, %s, %s, %s, or %s"
-msgstr "Or_ganizator:"
+msgstr "pričakovana je vrednost %s, %s, %s, %s, %s ali %s"
 
 #: src/language/lexer/lexer.c:324
-#, fuzzy, c-format
+#, c-format
 msgid "expecting %s, %s, %s, %s, %s, %s, or %s"
-msgstr "Or_ganizator:"
+msgstr "pričakovana je vrednost %s, %s, %s, %s, %s, %s ali %s"
 
 #: src/language/lexer/lexer.c:330
-#, fuzzy, c-format
+#, c-format
 msgid "expecting %s, %s, %s, %s, %s, %s, %s, or %s"
-msgstr "Or_ganizator:"
+msgstr "pričakovana je vrednost %s, %s, %s, %s, %s, %s, %s ali %s"
 
 #: src/language/lexer/lexer.c:350
-#, fuzzy, c-format
+#, c-format
 msgid "Subcommand %s may only be specified once."
-msgstr "Napaka: navedena je lahko le ena možnost izhoda.\n"
+msgstr "Podrejen ukaz %s je lahko naveden le enkrat."
 
 #: src/language/lexer/lexer.c:362
 #, fuzzy, c-format
@@ -1299,37 +1283,31 @@ msgid "expecting end of command"
 msgstr "Ni mogoče izvesti ukaza: \"%s\""
 
 #: src/language/lexer/lexer.c:623
-#, fuzzy
 msgid "expecting string"
-msgstr "Niz za od_govor:"
+msgstr "pričakovan je niz"
 
 #: src/language/lexer/lexer.c:652
-#, fuzzy
 msgid "expecting integer"
-msgstr "Celoštevilčni parametri"
+msgstr "pričakovano je celo število"
 
 #: src/language/lexer/lexer.c:665
-#, fuzzy
 msgid "expecting number"
-msgstr "Število sider"
+msgstr "pričakovano je število"
 
 #: src/language/lexer/lexer.c:677
-#, fuzzy
 msgid "expecting identifier"
-msgstr "določilo@strežnik"
+msgstr "pričakovano je določilo"
 
 #: src/language/lexer/lexer.c:1300
-#, fuzzy
 msgid "Syntax error at end of command"
-msgstr "Napaka skladnje v vrstici %d in stolpcu %d"
+msgstr "Napaka skladnje na koncu ukaza"
 
 #: src/language/lexer/lexer.c:1309
-#, fuzzy, c-format
+#, c-format
 msgid "Syntax error at `%s'"
-msgstr "Napaka skladnje na vrstici"
+msgstr "Napaka skladnje pri `%s'"
 
 #: src/language/lexer/lexer.c:1312
-#, fuzzy
 msgid "Syntax error"
 msgstr "Napaka skladnje"
 
@@ -1374,19 +1352,19 @@ msgid "Bad character %s in input"
 msgstr "Neveljavni znak \"%c\" v opombi"
 
 #: src/language/lexer/lexer.c:1608
-#, fuzzy, c-format
+#, c-format
 msgid "Opening `%s': %s."
-msgstr "Odpiranje %s"
+msgstr "Odpiranje `%s': %s."
 
 #: src/language/lexer/lexer.c:1638
-#, fuzzy, c-format
+#, c-format
 msgid "Error reading `%s': %s."
-msgstr "Napaka med branjem \"%s\": %s\n"
+msgstr "Napaka med branjem `%s': %s."
 
 #: src/language/lexer/lexer.c:1652
-#, fuzzy, c-format
+#, c-format
 msgid "Error closing `%s': %s."
-msgstr "%s: %s: napaka med zapiranjem: %s\n"
+msgstr "Napaka med zapiranjem `%s': %s."
 
 #: src/language/lexer/subcommand-list.c:118
 #, fuzzy, c-format
@@ -1405,9 +1383,8 @@ msgid "Unknown format type `%s'."
 msgstr "Neznana MIME vrsta"
 
 #: src/language/lexer/format-parser.c:131
-#, fuzzy
 msgid "expecting format type"
-msgstr "Prepreči sporočila vrste:"
+msgstr "pričakovana je vrsta oblike"
 
 #: src/language/lexer/value-parser.c:65
 #, c-format
@@ -1782,7 +1759,6 @@ msgid "Variables"
 msgstr "Spremenljivke"
 
 #: src/language/dictionary/mrsets.c:550
-#, fuzzy
 msgid "Details"
 msgstr "Podrobnosti"
 
@@ -1802,14 +1778,12 @@ msgstr "Nastavitev več mest"
 #: src/language/dictionary/sys-file-info.c:574
 #: src/ui/gui/psppire-var-sheet.c:535 src/ui/gui/psppire-var-store.c:772
 #: src/ui/gui/compute.ui:467
-#, fuzzy
 msgid "Label"
 msgstr "Oznaka"
 
 #: src/language/dictionary/mrsets.c:571
-#, fuzzy
 msgid "Label source"
-msgstr "Izvorna datoteka:"
+msgstr "Vir oznake"
 
 #: src/language/dictionary/mrsets.c:573
 msgid "First variable label among variables"
@@ -1838,7 +1812,7 @@ msgstr "Eliptične nalepke"
 #: src/language/dictionary/mrsets.c:590
 #, fuzzy
 msgid "Value labels of counted value"
-msgstr "Oznake na gumbih orodne vrstice:"
+msgstr "Pokaži/Skrij oznake vrednosti"
 
 #: src/language/dictionary/numeric.c:68
 #, c-format
@@ -1945,7 +1919,7 @@ msgstr "Spremenljivke:"
 
 #: src/language/dictionary/sys-file-info.c:121
 msgid "Cases:"
-msgstr ""
+msgstr "Primeri:"
 
 #: src/language/dictionary/sys-file-info.c:126
 msgid "Type:"
@@ -2065,7 +2039,7 @@ msgstr "Širina prikaza"
 #: src/language/dictionary/sys-file-info.c:525
 #, fuzzy
 msgid "Missing Values: "
-msgstr "Privzete vrednosti"
+msgstr "Manjkajoče vrednosti"
 
 #: src/language/dictionary/sys-file-info.c:624
 msgid "No vectors defined."
@@ -2198,15 +2172,13 @@ msgstr "Povprečje rezultatov"
 #: src/ui/gui/psppire-dialog-action-descriptives.c:40
 #, fuzzy
 msgid "Standard deviation"
-msgstr "Običajna primerjava"
+msgstr "Standardni odklon"
 
 #: src/language/stats/aggregate.c:99
-#, fuzzy
 msgid "Maximum value"
 msgstr "Največja vrednost"
 
 #: src/language/stats/aggregate.c:100
-#, fuzzy
 msgid "Minimum value"
 msgstr "Najmanjša vrednost"
 
@@ -2383,7 +2355,7 @@ msgstr "N"
 #: src/language/stats/binomial.c:254
 #, fuzzy
 msgid "Observed Prop."
-msgstr "Zasidraj _lastnosti"
+msgstr "Opazovana vrednost"
 
 #: src/language/stats/binomial.c:255
 #, fuzzy
@@ -2402,8 +2374,9 @@ msgid "CHISQUARE test specified %d expected values, but %d distinct values were 
 msgstr ""
 
 #: src/language/stats/chisquare.c:161 src/language/stats/chisquare.c:200
+#, fuzzy
 msgid "Observed N"
-msgstr ""
+msgstr "Opazovana vrednost"
 
 #: src/language/stats/chisquare.c:162 src/language/stats/chisquare.c:201
 #, fuzzy
@@ -2418,8 +2391,9 @@ msgstr ""
 #: src/language/stats/chisquare.c:195 src/language/stats/cochran.c:159
 #: src/language/stats/median.c:321 src/language/stats/sign.c:62
 #: src/ui/gui/frequencies.ui:9 src/ui/gui/frequencies.ui:669
+#, fuzzy
 msgid "Frequencies"
-msgstr ""
+msgstr "_Frekvence ..."
 
 #: src/language/stats/chisquare.c:249 src/language/stats/cochran.c:208
 #: src/language/stats/friedman.c:272 src/language/stats/kruskal-wallis.c:310
@@ -2432,9 +2406,8 @@ msgstr "<b>statistični podatki</b>"
 
 #: src/language/stats/chisquare.c:263 src/language/stats/friedman.c:282
 #: src/language/stats/kruskal-wallis.c:313 src/language/stats/median.c:425
-#, fuzzy
 msgid "Chi-Square"
-msgstr "Union Square"
+msgstr "Hi-kvadrat"
 
 #: src/language/stats/chisquare.c:264 src/language/stats/cochran.c:217
 #: src/language/stats/factor.c:1873 src/language/stats/friedman.c:285
@@ -2476,7 +2449,7 @@ msgstr "Cochranov Q"
 #: src/language/stats/npar-summary.c:109
 #, fuzzy
 msgid "Descriptive Statistics"
-msgstr "<b>statistični podatki</b>"
+msgstr "_Opisna statistika"
 
 #: src/language/stats/correlations.c:118 src/language/stats/descriptives.c:102
 #: src/language/stats/factor.c:1799 src/language/stats/ks-one-sample.c:302
@@ -2487,9 +2460,8 @@ msgstr "<b>statistični podatki</b>"
 #: src/language/stats/t-test-paired.c:310 src/ui/gui/frequencies-dialog.c:41
 #: src/ui/gui/psppire-dialog-action-descriptives.c:39
 #: src/language/stats/examine.q:1443 src/language/stats/frequencies.q:105
-#, fuzzy
 msgid "Mean"
-msgstr "Povprečje:"
+msgstr "Povprečje"
 
 #: src/language/stats/correlations.c:119 src/language/stats/factor.c:1800
 #: src/language/stats/ks-one-sample.c:304 src/language/stats/means.c:409
@@ -2595,7 +2567,6 @@ msgstr "Območje"
 #: src/ui/gui/frequencies-dialog.c:43
 #: src/ui/gui/psppire-dialog-action-descriptives.c:41
 #: src/language/stats/examine.q:1483 src/language/stats/frequencies.q:116
-#, fuzzy
 msgid "Minimum"
 msgstr "Najnižji"
 
@@ -2605,7 +2576,6 @@ msgstr "Najnižji"
 #: src/ui/gui/frequencies-dialog.c:44
 #: src/ui/gui/psppire-dialog-action-descriptives.c:42
 #: src/language/stats/examine.q:1488 src/language/stats/frequencies.q:117
-#, fuzzy
 msgid "Maximum"
 msgstr "Najvišji"
 
@@ -2634,12 +2604,10 @@ msgid "Mapping of variables to corresponding Z-scores."
 msgstr ""
 
 #: src/language/stats/descriptives.c:572 src/language/stats/glm.c:746
-#, fuzzy
 msgid "Source"
 msgstr "Vir"
 
 #: src/language/stats/descriptives.c:573
-#, fuzzy
 msgid "Target"
 msgstr "Cilj"
 
@@ -2697,7 +2665,6 @@ msgid "Component"
 msgstr "Enota"
 
 #: src/language/stats/factor.c:1364 src/language/stats/factor.c:1488
-#, fuzzy
 msgid "Factor"
 msgstr "Faktor"
 
@@ -2727,9 +2694,9 @@ msgid "Rotation Sums of Squared Loadings"
 msgstr ""
 
 #: src/language/stats/factor.c:1513
-#, no-c-format
+#, fuzzy, no-c-format
 msgid "% of Variance"
-msgstr ""
+msgstr "Varianca"
 
 #: src/language/stats/factor.c:1514
 #, fuzzy
@@ -2747,9 +2714,8 @@ msgid "Correlation Matrix"
 msgstr "Hankelova matrika"
 
 #: src/language/stats/factor.c:1701
-#, fuzzy
 msgid "Determinant"
-msgstr "Poišči determinanto matrike"
+msgstr "Determinanta"
 
 #: src/language/stats/factor.c:1733
 msgid "The dataset contains no complete observations. No analysis will be performed."
@@ -2925,7 +2891,6 @@ msgid "Intercept"
 msgstr "Odstotek"
 
 #: src/language/stats/glm.c:844
-#, fuzzy
 msgid "Error"
 msgstr "Napaka"
 
@@ -2970,23 +2935,21 @@ msgid "Most Extreme Differences"
 msgstr "Uporabi razlike med:"
 
 #: src/language/stats/ks-one-sample.c:387
-#, fuzzy
 msgid "Absolute"
 msgstr "Absolutno"
 
 #: src/language/stats/ks-one-sample.c:390 src/language/stats/roc.c:1076
-#, fuzzy
 msgid "Positive"
 msgstr "Pozitivno"
 
 #: src/language/stats/ks-one-sample.c:393 src/language/stats/roc.c:1077
-#, fuzzy
 msgid "Negative"
 msgstr "Negativno"
 
 #: src/language/stats/ks-one-sample.c:396
+#, fuzzy
 msgid "Kolmogorov-Smirnov Z"
-msgstr ""
+msgstr "Kolmogorov-Smirnov Z"
 
 #: src/language/stats/ks-one-sample.c:399
 #: src/language/stats/mann-whitney.c:267 src/language/stats/runs.c:399
@@ -3028,9 +2991,8 @@ msgstr "Diagram verjetnosti."
 #: src/language/stats/means.c:411 src/language/stats/median.c:422
 #: src/ui/gui/frequencies-dialog.c:53 src/language/stats/examine.q:1468
 #: src/language/stats/frequencies.q:107
-#, fuzzy
 msgid "Median"
-msgstr "Mediana:"
+msgstr "Mediana"
 
 #: src/language/stats/means.c:412
 #, fuzzy
@@ -3038,22 +3000,18 @@ msgid "Group Median"
 msgstr "Skupina izrezkov:"
 
 #: src/language/stats/means.c:416
-#, fuzzy
 msgid "Min"
-msgstr "Najmanjša vrednost"
+msgstr "Najmanj"
 
 #: src/language/stats/means.c:417
-#, fuzzy
 msgid "Max"
-msgstr "Največja vrednost"
+msgstr "Največ"
 
 #: src/language/stats/means.c:424
-#, fuzzy
 msgid "First"
-msgstr "Prva"
+msgstr "Prvi"
 
 #: src/language/stats/means.c:425
-#, fuzzy
 msgid "Last"
 msgstr "Zadnji"
 
@@ -3086,7 +3044,7 @@ msgstr "Dostopen povzetek razpredelnice"
 #: src/language/stats/means.c:1051 src/language/stats/reliability.c:524
 #: src/language/stats/crosstabs.q:828 src/language/stats/examine.q:1163
 msgid "Cases"
-msgstr ""
+msgstr "Primeri"
 
 #: src/language/stats/means.c:1053
 #, fuzzy
@@ -3107,10 +3065,9 @@ msgstr "Odstotek"
 #: src/language/stats/means.c:1114
 #, c-format
 msgid "%g%%"
-msgstr ""
+msgstr "%g%%"
 
 #: src/language/stats/means.c:1147
-#, fuzzy
 msgid "Report"
 msgstr "Poročilo"
 
@@ -3188,11 +3145,11 @@ msgstr "Tukey"
 
 #: src/language/stats/oneway.c:360
 msgid "Bonferroni"
-msgstr ""
+msgstr "Bonferroni"
 
 #: src/language/stats/oneway.c:361
 msgid "Scheffé"
-msgstr ""
+msgstr "Scheffé"
 
 #: src/language/stats/oneway.c:362
 #, fuzzy
@@ -3201,7 +3158,7 @@ msgstr "Igre s kartami:"
 
 #: src/language/stats/oneway.c:363
 msgid "Šidák"
-msgstr ""
+msgstr "Šidák"
 
 #: src/language/stats/oneway.c:480
 #, c-format
@@ -3292,7 +3249,7 @@ msgstr ""
 #: src/language/stats/oneway.c:1175
 #, fuzzy
 msgid "Test of Homogeneity of Variances"
-msgstr "Izbriši ta test (d)"
+msgstr "Leveneov test enakosti varianc"
 
 #: src/language/stats/oneway.c:1248
 #, fuzzy
@@ -3300,7 +3257,6 @@ msgid "Contrast Coefficients"
 msgstr "Koeficient YCbCr"
 
 #: src/language/stats/oneway.c:1250 src/language/stats/oneway.c:1324
-#, fuzzy
 msgid "Contrast"
 msgstr "Kontrast"
 
@@ -3338,12 +3294,12 @@ msgstr "Krajevno prilagojene primerjave"
 #: src/language/stats/oneway.c:1527
 #, c-format
 msgid "(I) %s"
-msgstr ""
+msgstr "(I) %s"
 
 #: src/language/stats/oneway.c:1528
 #, c-format
 msgid "(J) %s"
-msgstr ""
+msgstr "(J) %s"
 
 #: src/language/stats/oneway.c:1529 src/language/stats/t-test-indep.c:293
 #: src/language/stats/t-test-one-sample.c:97
@@ -3353,7 +3309,7 @@ msgstr "Prva razlika"
 
 #: src/language/stats/oneway.c:1530
 msgid "(I - J)"
-msgstr ""
+msgstr "(I - J)"
 
 #: src/language/stats/oneway.c:1535
 #, fuzzy, c-format
@@ -3595,9 +3551,8 @@ msgid "Positive if greater than or equal to"
 msgstr "Namestiti je treba različico GTK+ %s ali novejšo."
 
 #: src/language/stats/roc.c:1118 src/output/charts/roc-chart-cairo.c:38
-#, fuzzy
 msgid "Sensitivity"
-msgstr "_Občutljivost:"
+msgstr "Občutljivost"
 
 #: src/language/stats/roc.c:1119 src/output/charts/roc-chart-cairo.c:37
 msgid "1 - Specificity"
@@ -3644,9 +3599,8 @@ msgid "Cases ≥ Test Value"
 msgstr "Vrednost višine okna."
 
 #: src/language/stats/runs.c:390
-#, fuzzy
 msgid "Total Cases"
-msgstr "Skupna razdalja"
+msgstr "Skupno primerov"
 
 #: src/language/stats/runs.c:393
 #, fuzzy
@@ -3695,7 +3649,7 @@ msgstr "Leveneov test enakosti varianc"
 #: src/language/stats/t-test-indep.c:286
 #, fuzzy
 msgid "t-test for Equality of Means"
-msgstr "Vprašaj za potrditev brisanja"
+msgstr "Leveneov test enakosti varianc"
 
 #: src/language/stats/t-test-indep.c:294
 #, fuzzy
@@ -3765,8 +3719,9 @@ msgid "Paired Samples Correlations"
 msgstr "Vzorci na točko"
 
 #: src/language/stats/t-test-paired.c:234
+#, fuzzy
 msgid "Correlation"
-msgstr ""
+msgstr "Pearsonova soodnosnost"
 
 #: src/language/stats/t-test-paired.c:246
 #, c-format
@@ -3979,11 +3934,13 @@ msgid "Format"
 msgstr "Oblika"
 
 #: src/language/data-io/data-parser.c:704
-#, fuzzy, c-format
+#, c-format
 msgid "Reading %d record from %s."
 msgid_plural "Reading %d records from %s."
-msgstr[0] "Posnemi iz _vhoda:"
-msgstr[1] ""
+msgstr[0] "Branje %d zapisov iz %s."
+msgstr[1] "Branje %d zapisa iz %s."
+msgstr[2] "Branje %d zapisov iz %s."
+msgstr[3] "Branje %d zapisov iz %s."
 
 #: src/language/data-io/data-parser.c:738
 #, fuzzy, c-format
@@ -4001,7 +3958,7 @@ msgstr "Podatkovna datoteka SPSS"
 #: src/language/data-io/data-reader.c:148
 #, c-format
 msgid "Could not open `%s' for reading as a data file: %s."
-msgstr ""
+msgstr "Ni mogoče odpreti `%s' za branje kot podatkovno datoteko: %s."
 
 #: src/language/data-io/data-reader.c:198
 msgid "Missing END DATA while reading inline data.  This probably indicates a missing or incorrectly formatted END DATA command.  END DATA must appear by itself on a single line with exactly one space between words."
@@ -4044,11 +4001,11 @@ msgstr ""
 #: src/language/data-io/data-reader.c:519
 #, c-format
 msgid "Attempt to read beyond end-of-file on file %s."
-msgstr ""
+msgstr "Izveden je poskus branja po koncu datoteke v datoteki %s."
 
 #: src/language/data-io/data-reader.c:522
 msgid "Attempt to read beyond END DATA."
-msgstr ""
+msgstr "Izveden je poskus branja po KONCU PODATKOV."
 
 #: src/language/data-io/data-reader.c:706
 msgid "This command is not valid here since the current input program does not access the inline file."
@@ -4071,17 +4028,15 @@ msgstr "V \"%s\" ni nobenega diska."
 
 #: src/language/data-io/dataset.c:257
 msgid "Dataset"
-msgstr ""
+msgstr "Podatkovna množica"
 
 #: src/language/data-io/dataset.c:265
-#, fuzzy
 msgid "unnamed dataset"
-msgstr "Neimenovan seznam"
+msgstr "neimenovana podatkovna množica"
 
 #: src/language/data-io/dataset.c:269
-#, fuzzy
 msgid "(active dataset)"
-msgstr "Dejavna opravila:"
+msgstr "(dejavna podatkovna množica)"
 
 #: src/language/data-io/get-data.c:99
 #, fuzzy, c-format
@@ -4133,8 +4088,9 @@ msgid "Unexpected end-of-file within INPUT PROGRAM."
 msgstr ""
 
 #: src/language/data-io/inpt-pgm.c:131
+#, fuzzy
 msgid "Input program did not create any variables."
-msgstr ""
+msgstr "Vhodni program ni ustvaril nobene spremenljivke."
 
 #: src/language/data-io/inpt-pgm.c:330
 msgid "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
@@ -4156,11 +4112,11 @@ msgstr ""
 
 #: src/language/data-io/placement-parser.c:302
 msgid "Column positions for fields must be positive."
-msgstr ""
+msgstr "Položaj stolpca za polja mora biti pozitivna vrednost."
 
 #: src/language/data-io/placement-parser.c:304
 msgid "Column positions for fields must not be negative."
-msgstr ""
+msgstr "Položaj stolpca za polja ne sme biti negativna vrednost."
 
 #: src/language/data-io/placement-parser.c:343
 msgid "The ending column for a field must be greater than the starting column."
@@ -4186,18 +4142,22 @@ msgid "Output calls for %d records but %zu specified on RECORDS subcommand."
 msgstr ""
 
 #: src/language/data-io/print.c:436
-#, fuzzy, c-format
+#, c-format
 msgid "Writing %zu record to %s."
 msgid_plural "Writing %zu records to %s."
-msgstr[0] "Izbor območja snemanja"
-msgstr[1] ""
+msgstr[0] "Zapisovanje %zu zapisov v %s."
+msgstr[1] "Zapisovanje %zu zapisa v %s."
+msgstr[2] "Zapisovanje %zu zapisov v %s."
+msgstr[3] "Zapisovanje %zu zapisov v %s."
 
 #: src/language/data-io/print.c:440
-#, fuzzy, c-format
+#, c-format
 msgid "Writing %zu record."
 msgid_plural "Writing %zu records."
-msgstr[0] "Pripravljanje na zapisovanje"
-msgstr[1] ""
+msgstr[0] "Zapisovanje %zu zapisov."
+msgstr[1] "Zapisovanje %zu zapisa."
+msgstr[2] "Zapisovanje %zu zapisov."
+msgstr[3] "Zapisovanje %zu zapisov."
 
 #: src/language/data-io/save-translate.c:165
 #: src/language/data-io/save-translate.c:180
@@ -4226,8 +4186,9 @@ msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
 #: src/language/data-io/trim.c:167
+#, fuzzy
 msgid "Cannot DROP all variables from dictionary."
-msgstr ""
+msgstr "Ni mogoče spustiti vseh spremenljivk"
 
 #: src/language/expressions/evaluate.c:152
 #, fuzzy
@@ -4410,7 +4371,6 @@ msgid "warning"
 msgstr "opozorilo:"
 
 #: src/libpspp/message.c:90
-#, fuzzy
 msgid "note"
 msgstr "opomba"
 
@@ -4467,7 +4427,7 @@ msgstr ""
 #: src/libpspp/zip-writer.c:92
 #, fuzzy, c-format
 msgid "%s: error opening output file"
-msgstr "Napaka med odpiranjem izbrane datoteke"
+msgstr "napaka med zapisovanjem izhodne datoteke `%s'"
 
 #: src/libpspp/zip-writer.c:225
 #, fuzzy, c-format
@@ -4531,7 +4491,7 @@ msgstr "stran 1"
 #: src/output/msglog.c:66
 #, fuzzy, c-format
 msgid "error opening output file `%s'"
-msgstr "Napaka med odpiranjem izbrane datoteke"
+msgstr "napaka med zapisovanjem izhodne datoteke `%s'"
 
 #. TRANSLATORS: Don't translate the words `terminal' or `listing'.
 #: src/output/driver.c:319
@@ -4650,7 +4610,7 @@ msgstr "Slabo določilo različice '%s'"
 #: src/output/cairo.c:400
 #, fuzzy, c-format
 msgid "error opening output file `%s': %s"
-msgstr "Napaka med odpiranjem izbrane datoteke"
+msgstr "napaka med zapisovanjem izhodne datoteke `%s'"
 
 #: src/output/cairo.c:417
 #, c-format
@@ -4670,7 +4630,7 @@ msgstr ""
 #: src/output/cairo.c:1130
 #, fuzzy, c-format
 msgid "error writing output file `%s': %s"
-msgstr "Napaka med pisanjem v datoteko"
+msgstr "napaka med zapisovanjem izhodne datoteke `%s'"
 
 #: src/output/charts/np-plot-cairo.c:37
 #, fuzzy, c-format
@@ -5085,7 +5045,7 @@ msgstr "Vse datoteke"
 #: src/ui/gui/psppire-data-window.c:527
 #, fuzzy
 msgid "Portable File"
-msgstr "Prenosna podatkovna datoteka SPSS"
+msgstr "prenosna datoteka"
 
 #: src/ui/gui/psppire-data-window.c:584
 #, fuzzy
@@ -5136,7 +5096,7 @@ msgstr "Vrsta: %s\n"
 #: src/ui/gui/psppire-dialog-action-var-info.c:124
 #, fuzzy, c-format
 msgid "Missing Values: %s\n"
-msgstr "Privzete vrednosti"
+msgstr "Manjkajoče vrednosti"
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:128
 #, fuzzy, c-format
@@ -5146,7 +5106,7 @@ msgstr "Raven zaznave:"
 #: src/ui/gui/psppire-dialog-action-var-info.c:141
 #, fuzzy
 msgid "Value Labels:\n"
-msgstr "Eliptične nalepke"
+msgstr "_Oznake vrednosti"
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:150
 #, c-format
@@ -5161,9 +5121,9 @@ msgstr "%s %s\n"
 #. - The final charactor may not be '.' or '_'
 #.
 #: src/ui/gui/psppire-dict.c:367
-#, fuzzy, c-format
+#, c-format
 msgid "VAR%05d"
-msgstr "Razdelek Solaris /var"
+msgstr "SPR%05d"
 
 #: src/ui/gui/psppire-dict.c:537
 #, fuzzy
@@ -5176,157 +5136,126 @@ msgid "Automatically Detect"
 msgstr "Samodejno zaznaj"
 
 #: src/ui/gui/psppire-encoding-selector.c:154
-#, fuzzy
 msgid "Locale Encoding"
-msgstr "Način kodiranja"
+msgstr "Jezikovno kodiranje"
 
 #: src/ui/gui/psppire-encoding-selector.c:158
-#, fuzzy
 msgid "Arabic"
 msgstr "arabsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:160
-#, fuzzy
 msgid "Armenian"
 msgstr "armensko"
 
 #: src/ui/gui/psppire-encoding-selector.c:161
-#, fuzzy
 msgid "Baltic"
 msgstr "baltsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:163
-#, fuzzy
 msgid "Celtic"
 msgstr "keltsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:164
-#, fuzzy
 msgid "Central European"
 msgstr "srednjeevropsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:166
-#, fuzzy
 msgid "Chinese Simplified"
 msgstr "kitajsko poenostavljeno"
 
 #: src/ui/gui/psppire-encoding-selector.c:168
-#, fuzzy
 msgid "Chinese Traditional"
 msgstr "kitajsko tradicionalno"
 
 #: src/ui/gui/psppire-encoding-selector.c:170
-#, fuzzy
 msgid "Croatian"
-msgstr "hrvaški"
+msgstr "hrvaško"
 
 #: src/ui/gui/psppire-encoding-selector.c:171
-#, fuzzy
 msgid "Cyrillic"
 msgstr "cirilica"
 
 #: src/ui/gui/psppire-encoding-selector.c:173
-#, fuzzy
 msgid "Cyrillic/Russian"
 msgstr "cirilica/rusko"
 
 #: src/ui/gui/psppire-encoding-selector.c:174
-#, fuzzy
 msgid "Cyrillic/Ukrainian"
 msgstr "cirilica/ukrajinsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:176
-#, fuzzy
 msgid "Georgian"
 msgstr "gruzijsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:177
-#, fuzzy
 msgid "Greek"
 msgstr "grško"
 
 #: src/ui/gui/psppire-encoding-selector.c:178
-#, fuzzy
 msgid "Gujarati"
-msgstr "gudžaratski"
+msgstr "gudžaratsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:179
-#, fuzzy
 msgid "Gurmukhi"
 msgstr "gurmuki"
 
 #: src/ui/gui/psppire-encoding-selector.c:180
-#, fuzzy
 msgid "Hebrew"
 msgstr "hebrejsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:182
-#, fuzzy
 msgid "Hebrew Visual"
 msgstr "hebrejsko predočeno"
 
 #: src/ui/gui/psppire-encoding-selector.c:183
-#, fuzzy
 msgid "Hindi"
-msgstr "hindujski"
+msgstr "hindujsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:184
-#, fuzzy
 msgid "Icelandic"
-msgstr "islandski"
+msgstr "islandsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:185
-#, fuzzy
 msgid "Japanese"
 msgstr "japonsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:187
-#, fuzzy
 msgid "Korean"
 msgstr "korejsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:189
-#, fuzzy
 msgid "Nordic"
 msgstr "nordijsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:190
-#, fuzzy
 msgid "Romanian"
 msgstr "romunsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:192
-#, fuzzy
 msgid "South European"
 msgstr "južnoevropsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:193
-#, fuzzy
 msgid "Thai"
 msgstr "tajsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:195
-#, fuzzy
 msgid "Turkish"
 msgstr "turško"
 
 #: src/ui/gui/psppire-encoding-selector.c:197
-#, fuzzy
 msgid "Vietnamese"
 msgstr "vietnamsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:199
-#, fuzzy
 msgid "Western European"
 msgstr "Zahodnoevropsko"
 
 #: src/ui/gui/psppire-encoding-selector.c:222
-#, fuzzy
 msgid "Character Encoding: "
-msgstr "Znakovno _kodiranje"
+msgstr "Znakovno kodiranje:"
 
 #: src/ui/gui/psppire-output-window.c:358
-#, fuzzy
 msgid "Message"
 msgstr "Sporočilo"
 
@@ -5335,34 +5264,28 @@ msgid "Infer file type from extension"
 msgstr ""
 
 #: src/ui/gui/psppire-output-window.c:520
-#, fuzzy
 msgid "PDF (*.pdf)"
-msgstr "PDF"
+msgstr "PDF (*.pdf)"
 
 #: src/ui/gui/psppire-output-window.c:521
-#, fuzzy
 msgid "HTML (*.html)"
-msgstr "_HTML"
+msgstr "HTML (*.html)"
 
 #: src/ui/gui/psppire-output-window.c:522
-#, fuzzy
 msgid "OpenDocument (*.odt)"
-msgstr "_Ustvari ODT dokument"
+msgstr "OpenDocument (*.odt)"
 
 #: src/ui/gui/psppire-output-window.c:523
-#, fuzzy
 msgid "Text (*.txt)"
-msgstr "izpisano besedilo.txt"
+msgstr "Besedilna datoteka (*.txt)"
 
 #: src/ui/gui/psppire-output-window.c:524
-#, fuzzy
 msgid "PostScript (*.ps)"
-msgstr "PS (postskript)"
+msgstr "PostScript (*.ps)"
 
 #: src/ui/gui/psppire-output-window.c:525
-#, fuzzy
 msgid "Comma-Separated Values (*.csv)"
-msgstr "Z vejico ločene vrednosti (.csv)"
+msgstr "Z vejico ločene vrednosti (*.csv)"
 
 #: src/ui/gui/psppire-output-window.c:626
 #, fuzzy
@@ -5391,14 +5314,12 @@ msgid "Saved file `%s'"
 msgstr "Datoteka je shranjena."
 
 #: src/ui/gui/psppire-syntax-window.c:592
-#, fuzzy
 msgid "Save Syntax"
-msgstr "Poudarjanje skladnje"
+msgstr "Shrani skladnjo"
 
 #: src/ui/gui/psppire-syntax-window.c:602 src/ui/gui/psppire-window.c:764
-#, fuzzy
 msgid "Syntax Files (*.sps) "
-msgstr "Omogoči samodejno shranjevanje datotek"
+msgstr "Skladenjska datoteka (*.sps)"
 
 #: src/ui/gui/psppire-syntax-window.c:916
 #, fuzzy
@@ -5450,47 +5371,40 @@ msgstr "Vse druge vrednosti"
 
 #: src/ui/gui/psppire-var-sheet.c:532 src/ui/gui/psppire-var-store.c:769
 #: src/language/stats/crosstabs.q:1307 src/ui/gui/compute.ui:599
-#, fuzzy
 msgid "Type"
 msgstr "Vrsta"
 
 #: src/ui/gui/psppire-var-sheet.c:533 src/ui/gui/psppire-var-store.c:770
 #: src/ui/gui/compute.ui:517
-#, fuzzy
 msgid "Width"
 msgstr "Širina"
 
 #: src/ui/gui/psppire-var-sheet.c:534 src/ui/gui/psppire-var-store.c:771
-#, fuzzy
 msgid "Decimals"
 msgstr "Decimalke"
 
 #: src/ui/gui/psppire-var-sheet.c:536 src/ui/gui/psppire-var-store.c:773
-#, fuzzy
 msgid "Values"
 msgstr "Vrednosti"
 
 #: src/ui/gui/psppire-var-sheet.c:537 src/ui/gui/psppire-var-store.c:774
 #: src/language/stats/crosstabs.q:830 src/language/stats/examine.q:1103
 #: src/language/stats/frequencies.q:872 src/language/stats/frequencies.q:1043
-#, fuzzy
 msgid "Missing"
 msgstr "Manjkajoče"
 
 #: src/ui/gui/psppire-var-sheet.c:539 src/ui/gui/psppire-var-store.c:776
-#, fuzzy
 msgid "Align"
 msgstr "Poravnava"
 
 #: src/ui/gui/psppire-var-sheet.c:540 src/ui/gui/psppire-var-store.c:777
-#, fuzzy
 msgid "Measure"
-msgstr "_Izmeri"
+msgstr "Izmeri"
 
 #: src/ui/gui/psppire-var-store.c:690
 #, c-format
 msgid "{%s,`%s'}_"
-msgstr ""
+msgstr "{%s,`%s'}_"
 
 #: src/ui/gui/psppire-window.c:526
 #, fuzzy, c-format
@@ -5508,7 +5422,6 @@ msgid "Close _without saving"
 msgstr "Zapri _brez shranjevanja"
 
 #: src/ui/gui/psppire-window.c:737
-#, fuzzy
 msgid "Open"
 msgstr "Odpri"
 
@@ -5552,7 +5465,7 @@ msgstr ""
 #: src/ui/gui/select-cases-dialog.c:84
 #, c-format
 msgid "Approximately %3d%% of all cases."
-msgstr ""
+msgstr "Približno %3d%% vseh primerov."
 
 #: src/ui/gui/select-cases-dialog.c:85
 #, c-format
@@ -5587,12 +5500,12 @@ msgstr "%s'%s' je prazen"
 #: src/ui/gui/text-data-import-dialog.c:530
 #, fuzzy
 msgid "Import Delimited Text Data"
-msgstr "Uvozi podatke iz drugih programov"
+msgstr "_Uvozi podatke iz besedilne datoteke"
 
 #: src/ui/gui/text-data-import-dialog.c:583
 #, fuzzy
 msgid "Importing Delimited Text Data"
-msgstr "Uvažanje podatkov Outlook Express"
+msgstr "_Uvozi podatke iz besedilne datoteke"
 
 #: src/ui/gui/text-data-import-dialog.c:732
 #, fuzzy, c-format
@@ -5659,7 +5572,6 @@ msgid "Confidence Interval: %2d %%"
 msgstr "Časovni razmik večkratnega klika"
 
 #: src/ui/gui/t-test-paired-samples.c:93
-#, fuzzy
 msgid "_Options"
 msgstr "_Možnosti"
 
@@ -6081,12 +5993,10 @@ msgid "Interquartile Range"
 msgstr "Neveljavno območje"
 
 #: src/language/stats/examine.q:1820
-#, fuzzy
 msgid "Highest"
 msgstr "Najvišje"
 
 #: src/language/stats/examine.q:1825
-#, fuzzy
 msgid "Lowest"
 msgstr "najnižja"
 
@@ -6189,14 +6099,12 @@ msgid "Model Summary"
 msgstr "Povzetek seje"
 
 #: src/language/stats/regression.q:199
-#, fuzzy
 msgid "B"
 msgstr "B"
 
 #: src/language/stats/regression.q:201
-#, fuzzy
 msgid "Beta"
-msgstr "Grška beta"
+msgstr "Beta"
 
 #: src/language/stats/regression.q:204
 msgid "(Constant)"
@@ -6277,12 +6185,12 @@ msgstr ""
 #: src/language/data-io/list.q:106
 #, c-format
 msgid "The first case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr ""
+msgstr "Prvi primer (%ld) za izpis je manj kot 1, zato je vrednost spremenjena na to vrednost."
 
 #: src/language/data-io/list.q:112
 #, c-format
 msgid "The last case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr ""
+msgstr "Zadnji primer (%ld) za izpis je manj kot 1, zato je vrednost spremenjena na to vrednost."
 
 #: src/language/data-io/list.q:118
 #, c-format
@@ -6314,14 +6222,12 @@ msgid "Function: "
 msgstr "Funkcija:"
 
 #: src/ui/gui/aggregate.ui:255
-#, fuzzy
 msgid "Argument 1: "
-msgstr "Argument"
+msgstr "Argument 1: "
 
 #: src/ui/gui/aggregate.ui:284
-#, fuzzy
 msgid "Argument 2: "
-msgstr "Argument"
+msgstr "Argument 2: "
 
 #: src/ui/gui/aggregate.ui:330
 #, fuzzy
@@ -6341,7 +6247,6 @@ msgid "_Write a new data file containing only the aggregated variables"
 msgstr ""
 
 #: src/ui/gui/aggregate.ui:430
-#, fuzzy
 msgid "label"
 msgstr "oznaka"
 
@@ -6370,14 +6275,12 @@ msgid "Variable -> New Name"
 msgstr "Novo ime datoteke"
 
 #: src/ui/gui/autorecode.ui:115
-#, fuzzy
 msgid "_Lowest value"
-msgstr "Trenutna vrednost"
+msgstr "_Najnižja vrednost"
 
 #: src/ui/gui/autorecode.ui:131
-#, fuzzy
 msgid "_Highest value"
-msgstr "Trenutna vrednost"
+msgstr "_Najvišja vrednost"
 
 #: src/ui/gui/autorecode.ui:153
 #, fuzzy
@@ -6385,14 +6288,12 @@ msgid "Recode starting from"
 msgstr "Prilepi iz odložišča"
 
 #: src/ui/gui/autorecode.ui:175
-#, fuzzy
 msgid "_New Name"
-msgstr "Novo ime:"
+msgstr "_Novo ime"
 
 #: src/ui/gui/autorecode.ui:193
-#, fuzzy
 msgid "_Add New Name"
-msgstr "Novo ime datoteke"
+msgstr "_Dodaj novo ime"
 
 #: src/ui/gui/autorecode.ui:235
 msgid "_Use the same recoding scheme for all variables"
@@ -6552,29 +6453,24 @@ msgid "Crosstabs"
 msgstr ""
 
 #: src/ui/gui/crosstabs.ui:57
-#, fuzzy
 msgid "_Rows"
-msgstr "Vrstice"
+msgstr "_Vrstice"
 
 #: src/ui/gui/crosstabs.ui:100
-#, fuzzy
 msgid "_Columns"
-msgstr "Stolpci"
+msgstr "_Stolpci"
 
 #: src/ui/gui/crosstabs.ui:139
-#, fuzzy
 msgid "_Format..."
 msgstr "_Oblika ..."
 
 #: src/ui/gui/crosstabs.ui:153
-#, fuzzy
 msgid "_Statistics..."
-msgstr "Statistika"
+msgstr "_Statistika ..."
 
 #: src/ui/gui/crosstabs.ui:167
-#, fuzzy
 msgid "Ce_lls..."
-msgstr "Celice ..."
+msgstr "_Celice ..."
 
 #: src/ui/gui/crosstabs.ui:248
 #, fuzzy
@@ -6582,9 +6478,8 @@ msgid "Crosstabs: Format"
 msgstr "_Oblika = Povezana"
 
 #: src/ui/gui/crosstabs.ui:267
-#, fuzzy
 msgid "Print tables"
-msgstr "Pokaži razpredelnice"
+msgstr "Natisni razpredelnice"
 
 #: src/ui/gui/crosstabs.ui:280
 #, fuzzy
@@ -6611,7 +6506,6 @@ msgid "Crosstabs: Statistics"
 msgstr "<b>statistični podatki</b>"
 
 #: src/ui/gui/crosstabs.ui:431 src/ui/gui/oneway.ui:231
-#, fuzzy
 msgid "Statistics"
 msgstr "Statistika"
 
@@ -6660,14 +6554,12 @@ msgid "Test _Variables"
 msgstr "<b>Spremenljivke testa</b>"
 
 #: src/ui/gui/descriptives.ui:115 src/ui/gui/factor.ui:183
-#, fuzzy
 msgid "_Variables:"
-msgstr "Spremenljivke"
+msgstr "_Spremenljivke:"
 
 #: src/ui/gui/descriptives.ui:159
-#, fuzzy
 msgid "S_tatistics:"
-msgstr "S_tatistika"
+msgstr "S_tatistika:"
 
 #: src/ui/gui/descriptives.ui:198
 msgid "_Exclude entire case if any selected variable is missing"
@@ -6683,13 +6575,13 @@ msgid "Save _Z-scores of selected variables as new variables"
 msgstr ""
 
 #: src/ui/gui/descriptives.ui:252
-#, fuzzy
 msgid "Options:"
 msgstr "Možnosti:"
 
 #: src/ui/gui/examine.ui:8
+#, fuzzy
 msgid "Explore"
-msgstr ""
+msgstr "_Razišči ..."
 
 #: src/ui/gui/examine.ui:51
 #, fuzzy
@@ -6739,9 +6631,8 @@ msgid "Exclude cases pairwise"
 msgstr "Izključi fotografije označene z \"{0}\""
 
 #: src/ui/gui/examine.ui:434
-#, fuzzy
 msgid "Repeat values"
-msgstr "Privzete vrednosti"
+msgstr "Ponovi vrednosti"
 
 #: src/ui/gui/examine.ui:455 src/ui/gui/t-test.ui:497
 #: src/ui/gui/var-sheet-dialogs.ui:685
@@ -6749,14 +6640,12 @@ msgid "Missing Values"
 msgstr "Manjkajoče vrednosti"
 
 #: src/ui/gui/goto-case.ui:8
-#, fuzzy
 msgid "Goto Case"
-msgstr "Razlikovanje velikosti črk"
+msgstr "Pojdi na primer"
 
 #: src/ui/gui/goto-case.ui:26
-#, fuzzy
 msgid "Goto Case Number:"
-msgstr "_Pojdi na številko vrstice"
+msgstr "Pojdi na številko primera:"
 
 #: src/ui/gui/factor.ui:22
 #, fuzzy
@@ -6791,14 +6680,13 @@ msgid "Factor Analysis: Extraction"
 msgstr "Odpakiranje ni izvedeno"
 
 #: src/ui/gui/factor.ui:228
-#, fuzzy
 msgid "_Method: "
-msgstr "Način"
+msgstr "_Metoda: "
 
 #: src/ui/gui/factor.ui:280
 #, fuzzy
 msgid "Co_rrelation matrix"
-msgstr "Izbriši stolpec matrike"
+msgstr "_Korelacijska matrika"
 
 #: src/ui/gui/factor.ui:295
 #, fuzzy
@@ -6808,7 +6696,7 @@ msgstr "Izbriši stolpec matrike"
 #: src/ui/gui/factor.ui:316
 #, fuzzy
 msgid "Analyze"
-msgstr "Način analize"
+msgstr "_Preuči"
 
 #: src/ui/gui/factor.ui:340
 #, fuzzy
@@ -6826,9 +6714,8 @@ msgid "Display"
 msgstr "Pokaži"
 
 #: src/ui/gui/factor.ui:448
-#, fuzzy
 msgid "_Number of factors:"
-msgstr "Vrni vse faktorje števila"
+msgstr "_Število faktorjev:"
 
 #: src/ui/gui/factor.ui:480
 #, fuzzy
@@ -6871,9 +6758,8 @@ msgid "_Display rotated solution"
 msgstr "Pokaži gumb za dodajanje"
 
 #: src/ui/gui/find.ui:8
-#, fuzzy
 msgid "Find Case"
-msgstr "Razlikovanje velikosti črk"
+msgstr "Poišči primer"
 
 #: src/ui/gui/find.ui:88
 msgid "Variable:"
@@ -6882,20 +6768,17 @@ msgstr "Spremenljivka:"
 #: src/ui/gui/find.ui:147
 #, fuzzy
 msgid "Search value labels"
-msgstr "Oznake na gumbih orodne vrstice:"
+msgstr "Pokaži/Skrij oznake vrednosti"
 
 #: src/ui/gui/find.ui:171
-#, fuzzy
 msgid "Regular expression Match"
-msgstr "Poišči kot _logični izraz"
+msgstr "Zadetki logičnega izraza"
 
 #: src/ui/gui/find.ui:187
-#, fuzzy
 msgid "Search substrings"
-msgstr "Iskanje vnosa"
+msgstr "Iskanje podrejenih nizov"
 
 #: src/ui/gui/find.ui:203
-#, fuzzy
 msgid "Wrap around"
 msgstr "Prelomi besedilo"
 
@@ -6910,14 +6793,12 @@ msgid "_Variable(s):"
 msgstr "Spremenljivka"
 
 #: src/ui/gui/frequencies.ui:148
-#, fuzzy
 msgid "_Statistics:"
-msgstr "Statistika"
+msgstr "_Statistika:"
 
 #: src/ui/gui/frequencies.ui:161
-#, fuzzy
 msgid "Include _missing values"
-msgstr "Vrednosti za opazovanje"
+msgstr "Vključi _manjkajoče vrednosti"
 
 #: src/ui/gui/frequencies.ui:179
 msgid "Charts..."
@@ -6942,9 +6823,8 @@ msgid "Never"
 msgstr "Nikoli"
 
 #: src/ui/gui/frequencies.ui:315
-#, fuzzy
 msgid "If no more than "
-msgstr "... in če je neuporabljenega več kot"
+msgstr "Če ni več kot"
 
 #: src/ui/gui/frequencies.ui:346
 msgid "values"
@@ -6956,29 +6836,24 @@ msgid "Display frequency tables"
 msgstr "ni razpredelnic, zato bo ustvarjana ..."
 
 #: src/ui/gui/frequencies.ui:395
-#, fuzzy
 msgid "Ascending value"
-msgstr "Trenutna vrednost"
+msgstr "Naraščajoča vrednost"
 
 #: src/ui/gui/frequencies.ui:411
-#, fuzzy
 msgid "Descending value"
-msgstr "Trenutna vrednost"
+msgstr "Padajoča vrednost"
 
 #: src/ui/gui/frequencies.ui:427
-#, fuzzy
 msgid "Ascending frequency"
-msgstr "_Pogostost objave:"
+msgstr "Naraščajoča frekvenca"
 
 #: src/ui/gui/frequencies.ui:443
-#, fuzzy
 msgid "Descending frequency"
-msgstr "_Pogostost objave:"
+msgstr "Padajoča frekvenca"
 
 #: src/ui/gui/frequencies.ui:465
-#, fuzzy
 msgid "Order by"
-msgstr "Po _prihodu"
+msgstr "Razvrsti po"
 
 #: src/ui/gui/frequencies.ui:508
 #, fuzzy
@@ -6986,14 +6861,12 @@ msgid "Frequencies: Charts"
 msgstr "Površinski diagrami"
 
 #: src/ui/gui/frequencies.ui:536
-#, fuzzy
 msgid "Exclude values below "
-msgstr "Besedilo pod ikonami"
+msgstr "Izloči vrednosti pod"
 
 #: src/ui/gui/frequencies.ui:571
-#, fuzzy
 msgid "Exclude values above "
-msgstr "Slikovne točke nad vrsticami"
+msgstr "Izloči vrednosti nad"
 
 #: src/ui/gui/frequencies.ui:609
 #, fuzzy
@@ -7052,9 +6925,8 @@ msgid "Tests for Several Related Samples"
 msgstr ""
 
 #: src/ui/gui/k-related.ui:104
-#, fuzzy
 msgid "_Test Variables:"
-msgstr "<b>Spremenljivke testa</b>"
+msgstr "_Preizkusne spremenljivke:"
 
 #: src/ui/gui/k-related.ui:133
 msgid "_Friedman"
@@ -7100,7 +6972,7 @@ msgstr "distribucijski seznam"
 #: src/ui/gui/oneway.ui:8
 #, fuzzy
 msgid "One-Way ANOVA"
-msgstr "Dvosmerno usklajevanje"
+msgstr "Enosmerna _ANOVA ..."
 
 #: src/ui/gui/oneway.ui:37
 msgid "_Factor:"
@@ -7128,9 +7000,8 @@ msgid "One-Way ANOVA: Contrasts"
 msgstr ""
 
 #: src/ui/gui/oneway.ui:380
-#, fuzzy
 msgid "_Coefficients:"
-msgstr "Koeficient YCbCr"
+msgstr "_Koeficienti:"
 
 #: src/ui/gui/oneway.ui:428
 #, fuzzy
@@ -7171,19 +7042,17 @@ msgid "Transpose"
 msgstr "Transponiraj"
 
 #: src/ui/gui/psppire.ui:247
-#, fuzzy
 msgid "Name Variable:"
 msgstr "Ime spremenljivke:"
 
 #: src/ui/gui/psppire.ui:282 src/ui/gui/rank.ui:105
-#, fuzzy
 msgid "Variable(s):"
-msgstr "Spremenljivka"
+msgstr "Spremenljivke:"
 
 #: src/ui/gui/psppire.ui:383
 #, fuzzy
 msgid "Data File Comments"
-msgstr "Podatkovna datoteka SPSS"
+msgstr "Opombe _podatkovne datoteke ..."
 
 #: src/ui/gui/psppire.ui:407
 msgid "Comments:"
@@ -7307,9 +7176,8 @@ msgid "Rank Cases: Ties"
 msgstr "Poišči rang matrike"
 
 #: src/ui/gui/rank.ui:651
-#, fuzzy
 msgid "_Mean"
-msgstr "Povprečje:"
+msgstr "_Povprečje"
 
 #: src/ui/gui/rank.ui:668
 #, fuzzy
@@ -7407,7 +7275,7 @@ msgstr "Številčnik datotek je že zaprt"
 #: src/ui/gui/split-file.ui:287
 #, fuzzy
 msgid "Current Status : "
-msgstr "Pokaži trenutno stanje"
+msgstr "Trenutno stanje:"
 
 #: src/ui/gui/split-file.ui:298
 msgid "Analysis by groups is off"
@@ -7467,7 +7335,6 @@ msgid "S_tatistics..."
 msgstr "S_tatistika"
 
 #: src/ui/gui/regression.ui:47
-#, fuzzy
 msgid "_Save..."
 msgstr "_Shrani ..."
 
@@ -7499,7 +7366,6 @@ msgid "Regression: Statistics"
 msgstr "Regresija: statistika"
 
 #: src/ui/gui/regression.ui:358 src/ui/gui/univariate.ui:313
-#, fuzzy
 msgid "S_tatistics"
 msgstr "S_tatistika"
 
@@ -7513,9 +7379,8 @@ msgid "_Items:"
 msgstr "_Predmeti:"
 
 #: src/ui/gui/reliability.ui:142
-#, fuzzy
 msgid "_Model: "
-msgstr "Model"
+msgstr "_Model: "
 
 #: src/ui/gui/reliability.ui:183
 #, fuzzy
@@ -7560,9 +7425,8 @@ msgid "_Coordinate points of the ROC Curve"
 msgstr ""
 
 #: src/ui/gui/select-cases.ui:8
-#, fuzzy
 msgid "Select Cases"
-msgstr "Izberi vse"
+msgstr "Izbor primerov"
 
 #: src/ui/gui/select-cases.ui:196
 #, fuzzy
@@ -7694,14 +7558,12 @@ msgid "One - Sample T Test"
 msgstr "Izbriši ta test (d)"
 
 #: src/ui/gui/t-test.ui:630
-#, fuzzy
 msgid "Test _Value: "
-msgstr "Trenutna vrednost"
+msgstr "Preizkusna _vrednost:"
 
 #: src/ui/gui/text-data-import.ui:8
-#, fuzzy
 msgid "Importing Textual Data"
-msgstr "Besedilni opis podatkov."
+msgstr "Uvažanje besedilnih podatkov"
 
 #: src/ui/gui/text-data-import.ui:19
 msgid ""
@@ -7711,9 +7573,8 @@ msgid ""
 msgstr ""
 
 #: src/ui/gui/text-data-import.ui:95
-#, fuzzy
 msgid "All cases"
-msgstr "Izberi vse"
+msgstr "Vsi primeri"
 
 #: src/ui/gui/text-data-import.ui:116
 #, fuzzy
@@ -7721,9 +7582,8 @@ msgid "<b>Amount to Import</b>"
 msgstr "Uvozi v knjižnico"
 
 #: src/ui/gui/text-data-import.ui:135
-#, fuzzy
 msgid "Select Data to Import"
-msgstr "Izberite potrdilo za uvoz ..."
+msgstr "Izbor podatkov za uvoz ..."
 
 #: src/ui/gui/text-data-import.ui:146
 msgid "Select the first line of the data file that contains data."
@@ -7859,14 +7719,12 @@ msgid "Custom currency"
 msgstr "Denarna enota po meri"
 
 #: src/ui/gui/var-sheet-dialogs.ui:225
-#, fuzzy
 msgid "positive"
-msgstr "Pozitivno"
+msgstr "pozitivno"
 
 #: src/ui/gui/var-sheet-dialogs.ui:234
-#, fuzzy
 msgid "negative"
-msgstr "Negativno"
+msgstr "negativno"
 
 #: src/ui/gui/var-sheet-dialogs.ui:247
 msgid "Sample"
@@ -7877,14 +7735,13 @@ msgid "Width:"
 msgstr "Širina:"
 
 #: src/ui/gui/var-sheet-dialogs.ui:339
-#, fuzzy
 msgid "Decimal Places:"
-msgstr "Decimalna mesta"
+msgstr "Decimalna mesta:"
 
 #: src/ui/gui/var-sheet-dialogs.ui:419 src/ui/gui/var-sheet-dialogs.ui:610
 #, fuzzy
 msgid "Value Labels"
-msgstr "Eliptične nalepke"
+msgstr "_Oznake vrednosti"
 
 #: src/ui/gui/var-sheet-dialogs.ui:516
 #, fuzzy
@@ -7947,9 +7804,8 @@ msgid "_Import Delimited Text Data..."
 msgstr "_Uvozi podatke iz besedilne datoteke"
 
 #: src/ui/gui/data-editor.ui:61
-#, fuzzy
 msgid "_Rename Dataset..."
-msgstr "Preimenuj dohodni predal"
+msgstr "Preimenuj podatkovno množico ..."
 
 #: src/ui/gui/data-editor.ui:74 src/ui/gui/syntax-editor.ui:48
 msgid "Save _As..."
@@ -7990,23 +7846,20 @@ msgid "Create a new variable at the current position"
 msgstr "Ustvari novo spremenljivko na trenutnem mestu"
 
 #: src/ui/gui/data-editor.ui:131
-#, fuzzy
 msgid "Insert Cases"
-msgstr "Vstavi _čas"
+msgstr "Vstavi primere"
 
 #: src/ui/gui/data-editor.ui:132
-#, fuzzy
 msgid "Create a new case at the current position"
-msgstr "Vstavi nov meni na trenutno mesto"
+msgstr "Ustvari nov primer na trenutnem mestu"
 
 #: src/ui/gui/data-editor.ui:138
-#, fuzzy
 msgid "Go To Case..."
-msgstr "Pojdi na _današnji dan"
+msgstr "Pojdi na primer ..."
 
 #: src/ui/gui/data-editor.ui:140
 msgid "Jump to a case in the data sheet"
-msgstr ""
+msgstr "Skoči na primer v podatkovnem listu"
 
 #: src/ui/gui/data-editor.ui:166
 msgid "Cl_ear Variables"
@@ -8014,16 +7867,15 @@ msgstr "Poč_isti spremenljivke"
 
 #: src/ui/gui/data-editor.ui:167
 msgid "Delete the variables at the selected position(s)"
-msgstr ""
+msgstr "Izbriši spremenljivke na izbranem mestu"
 
 #: src/ui/gui/data-editor.ui:175
-#, fuzzy
 msgid "_Clear Cases"
-msgstr "Počisti poudarjanje"
+msgstr "_Počisti primere"
 
 #: src/ui/gui/data-editor.ui:176
 msgid "Delete the cases at the selected position(s)"
-msgstr ""
+msgstr "Izbriši primere na izbranem mestu"
 
 #: src/ui/gui/data-editor.ui:183
 msgid "_Find..."
@@ -8058,13 +7910,12 @@ msgid "_Variables"
 msgstr "_Spremenljivke"
 
 #: src/ui/gui/data-editor.ui:242
-#, fuzzy
 msgid "_Sort Cases..."
-msgstr "Razvrsti tipkovne bližnjice"
+msgstr "_Razvrsti primere ..."
 
 #: src/ui/gui/data-editor.ui:246
 msgid "Sort cases in the active dataset"
-msgstr ""
+msgstr "Razvrsti primere v dejavni podatkovni množici"
 
 #: src/ui/gui/data-editor.ui:253
 msgid "_Transpose..."
@@ -8072,7 +7923,7 @@ msgstr "_Transponiranje ..."
 
 #: src/ui/gui/data-editor.ui:254
 msgid "Transpose the cases with the variables"
-msgstr ""
+msgstr "Transponiraj primere s spremenljivkami"
 
 #: src/ui/gui/data-editor.ui:261
 msgid "_Aggregate..."
@@ -8087,19 +7938,16 @@ msgid "Split the active dataset"
 msgstr "Razdeli dejavno podatkovno množico"
 
 #: src/ui/gui/data-editor.ui:275
-#, fuzzy
 msgid "Select _Cases..."
-msgstr "Izberi vse"
+msgstr "Izbor _primerov ..."
 
 #: src/ui/gui/data-editor.ui:281
-#, fuzzy
 msgid "_Weight Cases..."
-msgstr "Enobarvno (teža)"
+msgstr "_Uteženje primerov ..."
 
 #: src/ui/gui/data-editor.ui:282
-#, fuzzy
 msgid "Weight cases by variable"
-msgstr "<span size=\"smaller\">Od <span weight=\"bold\">{0}</span></span>"
+msgstr "Uteži primere po spremenljivki"
 
 #: src/ui/gui/data-editor.ui:289
 msgid "_Transform"
@@ -8185,13 +8033,14 @@ msgid "_Univariate Analysis..."
 msgstr "Analiza teka"
 
 #: src/ui/gui/data-editor.ui:413
+#, fuzzy
 msgid "Bivariate _Correlation..."
-msgstr ""
+msgstr "Pearsonova soodnosnost"
 
 #: src/ui/gui/data-editor.ui:420
 #, fuzzy
 msgid "_K-Means Cluster..."
-msgstr "Orodje za upravljanje gruč"
+msgstr "Primerjava _srednjih vrednosti"
 
 #: src/ui/gui/data-editor.ui:426
 msgid "Factor _Analysis..."
