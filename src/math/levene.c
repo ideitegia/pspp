@@ -22,6 +22,7 @@
 #include "libpspp/misc.h"
 #include "libpspp/hmap.h"
 #include "data/value.h"
+#include "data/val-type.h"
 
 #include <gl/xalloc.h>
 #include <assert.h>
@@ -223,12 +224,16 @@ levene_calculate (struct levene *nl)
 
   double numerator = 0.0;
   double nn = 0.0;
-  if ( nl->pass == 3 )
-    {
-      nl->pass = 4;
-    }
 
-  assert (nl->pass == 4);
+  /* The Levene calculation requires three passes.
+     Normally this should have been done prior to calling this function.
+     However, in abnormal circumstances (eg. the dataset is empty) there
+     will have been no passes.
+   */
+  assert (nl->pass == 0 || nl->pass == 3);
+
+  if ( nl->pass == 0 )
+    return SYSMIS;
 
   nl->denominator *= hmap_count (&nl->hmap) - 1;
 
