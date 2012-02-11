@@ -384,7 +384,7 @@ dnl This test writes non-ASCII characters to most of the string fields in
 dnl a .sav file and demonstrates that they are properly read back in.
 dnl XXX mrsets tests are missing.
 AT_SETUP([system file character encoding])
-AT_CHECK([supports_encodings windows-1252])
+AT_CHECK([i18n-test supports_encodings windows-1252])
 AT_DATA([save.sps], [dnl
 SET LOCALE='windows-1252'.
 DATA LIST LIST NOTABLE /àéîöçxyzabc * roué (A9) croûton (A1000).

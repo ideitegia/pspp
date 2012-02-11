@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,20 @@ main (int argc, char *argv[])
 {
   i18n_init ();
 
+  if (argc > 1 && !strcmp (argv[1], "supports_encodings"))
+    {
+      int status = 0;
+      int i;
+
+      for (i = 2; i < argc; i++)
+        if (!is_encoding_supported (argv[i]))
+          {
+            printf ("encoding \"%s\" is NOT supported\n", argv[i]);
+            status = 77;
+          }
+      i18n_done ();
+      exit (status);
+    }
   if (argc == 5 && !strcmp (argv[1], "recode"))
     {
       const char *from = argv[2];
@@ -68,6 +82,10 @@ main (int argc, char *argv[])
   else
     {
       fprintf (stderr, "\
+usage: %s supports_encodings ENCODING...\n\
+where ENCODING is the name of an encoding.\n\
+Exits with status 0 if all the encodings are supported, 77 otherwise.\n\
+\n\
 usage: %s recode FROM TO STRING\n\
 where FROM is the source encoding,\n\
       TO is the target encoding,\n\
@@ -78,7 +96,7 @@ where HEAD is the first string to concatenate\n\
       TAIL is the second string to concatenate\n\
       ENCODING is the encoding in which to measure the result's length\n\
       MAX_LEN is the maximum length of the result in ENCODING.\n",
-               argv[0], argv[0]);
+               argv[0], argv[0], argv[0]);
       return EXIT_FAILURE;
     }
 

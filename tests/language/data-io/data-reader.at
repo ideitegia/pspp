@@ -206,14 +206,14 @@ DATA_READER_BINARY([MODE=360 /RECFORM=FIXED /LRECL=32],
        length ($out) == 32 or die;
        print +a2e ($out);
    }],
-  [AT_CHECK([supports_encodings EBCDIC-US])])
+  [AT_CHECK([i18n-test supports_encodings EBCDIC-US])])
 
 DATA_READER_BINARY([MODE=360 /RECFORM=VARIABLE],
   [for $_ (@data) {
        push (@records, pack ("n xx", length ($_) + 4) . a2e ($_));
    }
    dump_records ();],
-  [AT_CHECK([supports_encodings EBCDIC-US])])
+  [AT_CHECK([i18n-test supports_encodings EBCDIC-US])])
 
 DATA_READER_BINARY([MODE=360 /RECFORM=SPANNED],
   [[for my $line (@data) {
@@ -233,4 +233,4 @@ DATA_READER_BINARY([MODE=360 /RECFORM=SPANNED],
        }
    }
    dump_records ();]],
-  [AT_CHECK([supports_encodings EBCDIC-US])])
+  [AT_CHECK([i18n-test supports_encodings EBCDIC-US])])
