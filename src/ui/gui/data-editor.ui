@@ -376,6 +376,13 @@
           </object>
         </child>
         <child>
+          <object class="PsppireDialogActionMeans" id="means">
+            <property name="name">means</property>
+            <property name="manager">uimanager1</property>
+            <property name="label" translatable="yes">_Means...</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="one-sample-t-test">
             <property name="name">one-sample-t-test</property>
             <property name="label" translatable="yes">_One Sample T Test...</property>
@@ -604,6 +611,7 @@
             <menuitem action="crosstabs"/>
           </menu>
           <menu action="compare-means">
+            <menuitem action="means"/>
             <menuitem action="one-sample-t-test"/>
             <menuitem action="indep-t-test"/>
             <menuitem action="paired-t-test"/>

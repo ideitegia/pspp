@@ -21,6 +21,7 @@ UI_FILES = \
 	src/ui/gui/k-means.ui \
 	src/ui/gui/k-related.ui \
 	src/ui/gui/ks-one-sample.ui \
+	src/ui/gui/means.ui \
 	src/ui/gui/oneway.ui \
 	src/ui/gui/paired-samples.ui \
 	src/ui/gui/psppire.ui \
@@ -214,6 +215,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-descriptives.h \
 	src/ui/gui/psppire-dialog-action-kmeans.c \
 	src/ui/gui/psppire-dialog-action-kmeans.h \
+	src/ui/gui/psppire-dialog-action-means.c \
+	src/ui/gui/psppire-dialog-action-means.h \
 	src/ui/gui/psppire-dialog-action-reliability.c \
 	src/ui/gui/psppire-dialog-action-reliability.h \
 	src/ui/gui/psppire-dialog-action-sort.c \
@@ -232,6 +235,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-keypad.h \
 	src/ui/gui/psppire-lex-reader.c \
 	src/ui/gui/psppire-lex-reader.h \
+	src/ui/gui/psppire-means-layer.c \
+	src/ui/gui/psppire-means-layer.h \
 	src/ui/gui/psppire-output-window.c \
 	src/ui/gui/psppire-output-window.h \
 	src/ui/gui/psppire-var-view.c \

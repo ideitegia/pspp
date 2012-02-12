@@ -100,13 +100,37 @@ psppire_var_view_get_type (void)
   return psppire_var_view_type;
 }
 
+void 
+psppire_var_view_clear (PsppireVarView *vv)
+{
+  gint i;
+  for (i = 0; i < vv->n_lists; ++i)
+    g_object_unref (vv->list[i]);
+
+  g_free (vv->list);
+
+  vv->n_lists = 0;
+  vv->l_idx = -1;
+  vv->list = NULL;
+
+  psppire_var_view_push_model (vv);
+}
+
 
 static void
 psppire_var_view_finalize (GObject *object)
 {
+  gint i;
   PsppireVarView *var_view = PSPPIRE_VAR_VIEW (object);
   g_free (var_view->nums);
+  for (i = 0; i < var_view->n_lists; ++i)
+    g_object_unref (var_view->list[i]);
+
+  g_free (var_view->list);
+  g_free (var_view->cols);
 }
+
+
 
 /* Properties */
 enum
@@ -155,7 +179,7 @@ psppire_var_view_get_property (GObject         *object,
   switch (prop_id)
     {
     case PROP_N_COLS:
-      g_value_set_int (value,  gtk_tree_model_iter_n_children (GTK_TREE_MODEL (var_view->list), NULL));
+      g_value_set_int (value,  var_view->n_cols);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -163,6 +187,64 @@ psppire_var_view_get_property (GObject         *object,
     };
 }
 
+static void
+set_renderers (PsppireVarView *var_view)
+{
+  gint c;
+  var_view->nums = g_malloc (sizeof *var_view->nums * var_view->n_cols);
+  
+  for (c = 0 ; c < var_view->n_cols; ++c)
+    {
+      GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
+      GtkTreeViewColumn *col = gtk_tree_view_column_new ();
+      
+      gchar *label = g_strdup_printf (_("Var%d"), c + 1);
+      
+      gtk_tree_view_column_set_min_width (col, 100);
+      gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_FIXED);
+      gtk_tree_view_column_set_resizable (col, TRUE);
+      gtk_tree_view_column_set_title (col, label);
+      
+      g_free (label);
+      
+      var_view->nums[c] = c;
+      
+      gtk_tree_view_column_pack_start (col, renderer, TRUE);
+      gtk_tree_view_column_set_cell_data_func (col, renderer,
+					       display_cell_var_name,
+					       &var_view->nums[c], 0);
+      
+      gtk_tree_view_append_column (GTK_TREE_VIEW (var_view), col);
+    }
+}
+
+
+
+
+/* Set a model, which is an GtkListStore of gpointers which point to a variable */
+void
+psppire_var_view_push_model (PsppireVarView *vv)
+{
+  vv->n_lists++;
+  vv->l_idx++;
+  vv->list = xrealloc (vv->list, sizeof (*vv->list) * vv->n_lists);
+  vv->list[vv->l_idx] = gtk_list_store_newv  (vv->n_cols, vv->cols);
+  g_object_ref (vv->list[vv->l_idx]);
+  gtk_tree_view_set_model (GTK_TREE_VIEW (vv), GTK_TREE_MODEL (vv->list[vv->l_idx]));
+}
+
+gboolean
+psppire_var_view_set_current_model (PsppireVarView *vv, gint n)
+{
+  if (n < 0 || n >= vv->n_lists)
+    return FALSE;
+
+  vv->l_idx = n;
+
+  gtk_tree_view_set_model (GTK_TREE_VIEW (vv), GTK_TREE_MODEL (vv->list[vv->l_idx]));
+
+  return TRUE;
+}
 
 static void
 psppire_var_view_set_property (GObject         *object,
@@ -176,42 +258,17 @@ psppire_var_view_set_property (GObject         *object,
     {
     case PROP_N_COLS:
       {
-	gint n_cols = g_value_get_int (value);
 	gint c;
+	var_view->n_cols = g_value_get_int (value);
 
+	var_view->cols = xrealloc (var_view->cols, sizeof (GType) *  var_view->n_cols);
 
-	GType *array = g_alloca (sizeof (GType) *  n_cols);
+	for (c = 0 ; c < var_view->n_cols; ++c)
+	  var_view->cols[c] = PSPPIRE_VAR_PTR_TYPE;
 
-	var_view->nums = g_malloc (sizeof *var_view->nums * n_cols);
+	set_renderers (var_view);
 
-	for (c = 0 ; c < n_cols; ++c)
-	{
-	  GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
-	  GtkTreeViewColumn *col = gtk_tree_view_column_new ();
-
-	  gchar *label = g_strdup_printf (_("Var%d"), c + 1);
-
-	  gtk_tree_view_column_set_min_width (col, 100);
-	  gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_FIXED);
-	  gtk_tree_view_column_set_resizable (col, TRUE);
-	  gtk_tree_view_column_set_title (col, label);
-
-	  g_free (label);
-
-	  var_view->nums[c] = c;
-
-	  gtk_tree_view_column_pack_start (col, renderer, TRUE);
-	  gtk_tree_view_column_set_cell_data_func (col, renderer,
-						   display_cell_var_name,
-						   &var_view->nums[c], 0);
-
-	  gtk_tree_view_append_column (GTK_TREE_VIEW (var_view), col);
-	  array[c] = PSPPIRE_VAR_PTR_TYPE;
-	}
-
-	/* Set a model, which is an GtkListStore of gpointers which point to a variable */
-	var_view->list = gtk_list_store_newv  (n_cols, array);
-	gtk_tree_view_set_model (GTK_TREE_VIEW (var_view), GTK_TREE_MODEL (var_view->list));
+	psppire_var_view_clear (var_view);
       }
       break;
     default:
@@ -246,7 +303,10 @@ psppire_var_view_class_init (PsppireVarViewClass *class)
 static void
 psppire_var_view_base_init (PsppireVarViewClass *class)
 {
+
   GObjectClass *object_class = G_OBJECT_CLASS (class);
+
+
 
   object_class->finalize = psppire_var_view_finalize;
 }
@@ -262,8 +322,12 @@ psppire_var_view_base_finalize (PsppireVarViewClass *class,
 
 
 static void
-psppire_var_view_init (PsppireVarView *var_view)
+psppire_var_view_init (PsppireVarView *vv)
 {
+  vv->cols = 0;
+  vv->n_lists = 0;
+  vv->l_idx = -1;
+  vv->list = NULL;
 }
 
 
@@ -277,13 +341,20 @@ psppire_var_view_new (void)
 gboolean
 psppire_var_view_get_iter_first (PsppireVarView *vv, GtkTreeIter *iter)
 {
-  return gtk_tree_model_get_iter_first (GTK_TREE_MODEL (vv->list), iter);
+  GtkTreeIter dummy;
+  if ( vv->l_idx < 0)
+    return FALSE;
+
+  return gtk_tree_model_get_iter_first (GTK_TREE_MODEL (vv->list[vv->l_idx]), iter ? iter : &dummy);
 }
 
 gboolean
 psppire_var_view_get_iter_next (PsppireVarView *vv, GtkTreeIter *iter)
 {
-  return gtk_tree_model_iter_next (GTK_TREE_MODEL (vv->list), iter);
+  if ( vv->l_idx < 0)
+    return FALSE;
+
+  return gtk_tree_model_iter_next (GTK_TREE_MODEL (vv->list[vv->l_idx]), iter);
 }
 
 const struct variable *
@@ -291,7 +362,7 @@ psppire_var_view_get_variable (PsppireVarView *vv, gint column, GtkTreeIter *ite
 {
   const struct variable *var = NULL;
   GValue value = {0};
-  gtk_tree_model_get_value (GTK_TREE_MODEL (vv->list), iter, column, &value);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (vv->list[vv->l_idx]), iter, column, &value);
 
   if ( G_VALUE_TYPE (&value) == PSPPIRE_VAR_PTR_TYPE)
     var = g_value_get_boxed (&value);
