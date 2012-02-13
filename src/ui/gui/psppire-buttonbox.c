@@ -482,16 +482,16 @@ psppire_button_flags_get_type (void)
     {
       static const GFlagsValue values[] =
 	{
-	  { PSPPIRE_BUTTON_OK_MASK,      "PSPPIRE_BUTTON_OK_MASK",       N_("OK") },
-	  { PSPPIRE_BUTTON_GOTO_MASK,    "PSPPIRE_BUTTON_GOTO_MASK",     N_("Go To") },
-	  { PSPPIRE_BUTTON_CONTINUE_MASK,"PSPPIRE_BUTTON_CONTINUE_MASK", N_("Continue") },
-	  { PSPPIRE_BUTTON_CANCEL_MASK,  "PSPPIRE_BUTTON_CANCEL_MASK",   N_("Cancel") },
-	  { PSPPIRE_BUTTON_HELP_MASK,    "PSPPIRE_BUTTON_HELP_MASK",     N_("Help") },
-	  { PSPPIRE_BUTTON_RESET_MASK,   "PSPPIRE_BUTTON_RESET_MASK",    N_("Reset") },
-	  { PSPPIRE_BUTTON_PASTE_MASK,   "PSPPIRE_BUTTON_PASTE_MASK",    N_("Paste") },
+	  { PSPPIRE_BUTTON_OK_MASK,      "PSPPIRE_BUTTON_OK_MASK",       "Accept dialog and run it" },
+	  { PSPPIRE_BUTTON_GOTO_MASK,    "PSPPIRE_BUTTON_GOTO_MASK",     "Goto case/variable" },
+	  { PSPPIRE_BUTTON_CONTINUE_MASK,"PSPPIRE_BUTTON_CONTINUE_MASK", "Accept and close the subdialog" },
+	  { PSPPIRE_BUTTON_CANCEL_MASK,  "PSPPIRE_BUTTON_CANCEL_MASK",   "Close dialog and discard settings" },
+	  { PSPPIRE_BUTTON_HELP_MASK,    "PSPPIRE_BUTTON_HELP_MASK",     "Invoke context sensitive help" },
+	  { PSPPIRE_BUTTON_RESET_MASK,   "PSPPIRE_BUTTON_RESET_MASK",    "Restore dialog to its default settings" },
+	  { PSPPIRE_BUTTON_PASTE_MASK,   "PSPPIRE_BUTTON_PASTE_MASK",    "Accept dialog and paste syntax" },
 	  { 0, NULL, NULL }
 	};
-
+      
       ftype = g_flags_register_static
 	(g_intern_static_string ("PsppireButtonFlags"), values);
 
