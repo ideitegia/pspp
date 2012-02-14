@@ -263,6 +263,12 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
       int i;
       const struct cronbach *s;
 
+      if ( reliability.split_point >= reliability.n_variables)
+        {
+          msg (ME, _("The split point must be less than the number of variables"));
+          goto error;
+        }
+
       reliability.n_sc += 2 ;
       reliability.sc = xrealloc (reliability.sc, sizeof (struct cronbach) * reliability.n_sc);
 
