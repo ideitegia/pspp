@@ -62,7 +62,8 @@
 
 static void inject_renamed_icons (void);
 static void create_icon_factory (void);
-static void load_data_file (PsppireDataWindow *, const char *);
+static gchar *local_to_filename_encoding (const char *fn);
+
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -98,8 +99,20 @@ initialize (const char *data_file)
   psppire_selector_set_default_selection_func (GTK_TYPE_TREE_VIEW, insert_source_row_into_tree_view);
 
   data_window = psppire_default_data_window ();
-  if (data_file != NULL)
-    load_data_file (data_window, data_file);
+
+  if (data_file)
+    {
+      gchar *filename = local_to_filename_encoding (data_file);
+
+      /* Check to see if the file is a .sav or a .por file.  If not
+         assume that it is a syntax file */
+      if ( any_reader_may_open (filename))
+        psppire_window_load (PSPPIRE_WINDOW (data_window), filename);
+      else
+        open_syntax_window (filename, NULL);
+
+      g_free (filename);
+    }
 }
 
 
@@ -242,8 +255,13 @@ create_icon_factory (void)
   gtk_icon_factory_add_default (factory);
 }
 
-static void
-load_data_file (PsppireDataWindow *window, const char *arg)
+/* 
+   Convert a filename from the local encoding into "filename" encoding.
+   The return value will be allocated on the heap.  It is the responsibility
+   of the caller to free it.
+ */
+static gchar *
+local_to_filename_encoding (const char *fn)
 {
   gchar *filename = NULL;
   gchar *utf8 = NULL;
@@ -263,12 +281,12 @@ load_data_file (PsppireDataWindow *window, const char *arg)
 
   if ( local_is_utf8)
     {
-      utf8 = xstrdup (arg);
+      utf8 = xstrdup (fn);
     }
   else
     {
       GError *err = NULL;
-      utf8 = g_locale_to_utf8 (arg, -1, NULL, &written, &err);
+      utf8 = g_locale_to_utf8 (fn, -1, NULL, &written, &err);
       if ( NULL == utf8)
         {
           g_warning ("Cannot convert filename from local encoding `%s' to UTF-8: %s",
@@ -293,11 +311,9 @@ load_data_file (PsppireDataWindow *window, const char *arg)
   g_free (utf8);
 
   if ( filename == NULL)
-    filename = xstrdup (arg);
+    filename = xstrdup (fn);
 
-  psppire_window_load (PSPPIRE_WINDOW (window), filename);
-
-  g_free (filename);
+  return filename;
 }
 
 static void

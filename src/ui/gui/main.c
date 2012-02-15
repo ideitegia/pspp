@@ -106,7 +106,8 @@ Informative output:\n\
   -h, --help                display this help and exit\n\
   -V, --version             output version information and exit\n\
 \n\
-A non-option argument is interpreted as a .sav or .por file to load.\n"),
+A non-option argument is interpreted as a .sav file, a .por file or a syntax\n\
+file to load.\n"),
           program_name, gtk_help, inc_path);
 
   free (inc_path);
