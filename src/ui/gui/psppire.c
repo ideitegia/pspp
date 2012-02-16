@@ -22,6 +22,7 @@
 #include <libintl.h>
 #include <unistd.h>
 
+#include "data/any-reader.h"
 #include "data/casereader.h"
 #include "data/dataset.h"
 #include "data/datasheet.h"
@@ -48,6 +49,7 @@
 #include "ui/gui/psppire-dict.h"
 #include "ui/gui/psppire.h"
 #include "ui/gui/psppire-output-window.h"
+#include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-selector.h"
 #include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-var-view.h"
