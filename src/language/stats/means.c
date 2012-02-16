@@ -1132,7 +1132,7 @@ output_report (const struct means *cmd,  int iact_idx,
   tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, nc - 1, nr - 1);
 
   tab_hline (t, TAL_2, 0, nc - 1, heading_rows);
-  tab_vline (t, TAL_2, iact->n_vars, 0, nr - 1);
+  tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
 
   for (i = 0; i < iact->n_vars; ++i)
     {
