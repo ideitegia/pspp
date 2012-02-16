@@ -45,11 +45,16 @@ Table: Case Processing Summary
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 score: factor,26,100%,0,0%,26,100%
+score: ,26,100%,0,0%,26,100%
 
 Table: Report
 ,factor,Mean,N,Std. Deviation
 score,1.00000,19.78947,19.00000,4.03566
 ,2.00000,24.00000,7.00000,5.50757
+
+Table: Report
+,Mean,N,Std. Deviation
+score,20.92308,26.00000,4.75750
 ])
 
 AT_CLEANUP
@@ -107,8 +112,8 @@ begin data.
 end data.
 
 MEANS TABLES = 
-      a BY g1
-      a BY g2
+      a BY g1 g2
+      BY g2
       /cells = MEAN COUNT
       .
 ])
@@ -120,7 +125,8 @@ Table: Case Processing Summary
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 a: g1 * g2,6,75%,2,25%,8,100%
-a: a * g2,6,75%,2,25%,8,100%
+a: g2,6,75%,2,25%,8,100%
+a: ,7,87.5%,1,12.5%,8,100%
 
 Table: Report
 ,g1,g2,Mean,N
@@ -130,13 +136,14 @@ a,1.00,11.00,4.00,1.00
 ,2.00,31.00,5.67,3.00
 
 Table: Report
-,a,g2,Mean,N
-a,2.00,31.00,2.00,1.00
-,3.00,21.00,3.00,1.00
-,4.00,11.00,4.00,1.00
-,6.00,21.00,6.00,1.00
-,7.00,31.00,7.00,1.00
-,8.00,31.00,8.00,1.00
+,g2,Mean,N
+a,11.00,4.00,1.00
+,21.00,4.50,2.00
+,31.00,5.67,3.00
+
+Table: Report
+,Mean,N
+a,5.00,6.00
 ])
 
 AT_CLEANUP
@@ -176,11 +183,16 @@ Table: Case Processing Summary
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 test1: group,10,100%,0,0%,10,100%
+test1: ,10,100%,0,0%,10,100%
 
 Table: Report
 ,group,Mean,N,Std. Deviation,Sum,Min,Max,Range,Variance,Kurtosis,Skewness
 test1,experimental group,86.2000,5.0000,8.9833,431.0000,75.0000,99.0000,24.0000,80.7000,.2727,.3858
 ,control group,61.8000,5.0000,10.0598,309.0000,50.0000,71.0000,21.0000,101.2000,-3.0437,-.4830
+
+Table: Report
+,Mean,N,Std. Deviation,Sum,Min,Max,Range,Variance,Kurtosis,Skewness
+test1,74.0000,10.0000,15.6915,740.0000,50.0000,99.0000,49.0000,246.2222,-.5759,-.1262
 ])
 
 AT_CLEANUP
@@ -216,11 +228,16 @@ Table: Case Processing Summary
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 test1: group,10,100%,0,0%,10,100%
+test1: ,10,100%,0,0%,10,100%
 
 Table: Report
 ,group,Mean,N,S.E. Mean,S.E. Skew,S.E. Kurt
 test1,1.0000,83.5000,6.0000,4.2485,.8452,1.7408
 ,2.0000,59.7500,4.0000,5.1700,1.0142,2.6186
+
+Table: Report
+,Mean,N,S.E. Mean,S.E. Skew,S.E. Kurt
+test1,74.0000,10.0000,4.9621,.6870,1.3342
 ])
 
 AT_CLEANUP
@@ -363,7 +380,9 @@ Table: Case Processing Summary
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 a: g1,7,100%,0,0%,7,100%
+a: ,7,100%,0,0%,7,100%
 b: g1,6,85.7143%,1,14.2857%,7,100%
+b: ,6,85.7143%,1,14.2857%,7,100%
 
 Table: Report
 ,g1,N
@@ -372,23 +391,35 @@ a,1.00,3.00
 b,1.00,3.00
 ,2.00,3.00
 
+Table: Report
+,N
+a,6.00
+b,6.00
+
 Table: Case Processing Summary
 ,Cases,,,,,
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 a: g1,7,100%,0,0%,7,100%
+a: ,7,100%,0,0%,7,100%
 
 Table: Report
 ,g1,N
 a,1.00,3.00
 ,2.00,4.00
 
+Table: Report
+,N
+a,7.00
+
 Table: Case Processing Summary
 ,Cases,,,,,
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 a: g1,7,100%,0,0%,7,100%
+a: ,7,100%,0,0%,7,100%
 b: g1,6,85.7143%,1,14.2857%,7,100%
+b: ,6,85.7143%,1,14.2857%,7,100%
 
 Table: Report
 ,g1,N
@@ -397,16 +428,26 @@ a,1.00,3.00
 b,1.00,3.00
 ,2.00,3.00
 
+Table: Report
+,N
+a,7.00
+b,6.00
+
 Table: Case Processing Summary
 ,Cases,,,,,
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 a: g1,7,100%,0,0%,7,100%
+a: ,7,100%,0,0%,7,100%
 
 Table: Report
 ,g1,N
 a,1.00,3.00
 ,2.00,4.00
+
+Table: Report
+,N
+a,7.00
 ])
 
 AT_CLEANUP
@@ -446,7 +487,9 @@ Table: Case Processing Summary
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 a: g1,6,85.7143%,1,14.2857%,7,100%
+a: ,7,100%,0,0%,7,100%
 b: g1,5,71.4286%,2,28.5714%,7,100%
+b: ,6,85.7143%,1,14.2857%,7,100%
 
 Table: Report
 ,g1,N
@@ -455,12 +498,19 @@ a,1.00,2.00
 b,1.00,2.00
 ,2.00,3.00
 
+Table: Report
+,N
+a,6.00
+b,5.00
+
 Table: Case Processing Summary
 ,Cases,,,,,
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 a: g1,7,100%,0,0%,7,100%
+a: ,7,100%,0,0%,7,100%
 b: g1,7,100%,0,0%,7,100%
+b: ,7,100%,0,0%,7,100%
 
 Table: Report
 ,g1,N
@@ -471,12 +521,19 @@ b,1.00,2.00
 ,2.00,4.00
 ,9.00,1.00
 
+Table: Report
+,N
+a,7.00
+b,7.00
+
 Table: Case Processing Summary
 ,Cases,,,,,
 ,Included,,Excluded,,Total,
 ,N,Percent,N,Percent,N,Percent
 a: g1,7,100%,0,0%,7,100%
+a: ,7,100%,0,0%,7,100%
 b: g1,6,85.7143%,1,14.2857%,7,100%
+b: ,6,85.7143%,1,14.2857%,7,100%
 
 Table: Report
 ,g1,N
@@ -486,6 +543,11 @@ a,1.00,2.00
 b,1.00,2.00
 ,2.00,3.00
 ,9.00,1.00
+
+Table: Report
+,N
+a,7.00
+b,6.00
 ])
 
 AT_CLEANUP

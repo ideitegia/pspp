@@ -441,22 +441,25 @@ struct summary
 };
 
 
+struct layer
+{
+  size_t n_factor_vars;
+  const struct variable **factor_vars;
+};
+
 /* The thing parsed after TABLES= */
 struct mtable
 {
   size_t n_dep_vars;
   const struct variable **dep_vars;
 
-  size_t n_interactions;
+  int n_layers;
+  struct layer *layers;
+
   struct interaction **interactions;
   struct summary *summary;
 
-  size_t *n_factor_vars;
-  const struct variable ***factor_vars;
-
   int ii;
-
-  int n_layers;
 
   struct categoricals *cats;
 };
@@ -491,44 +494,14 @@ static void
 run_means (struct means *cmd, struct casereader *input,
 	   const struct dataset *ds);
 
-/* Append all the variables belonging to layer and all subsequent layers
-   to iact. And then append iact to the means->interaction.
-   This is a recursive function.
- */
-static void
-iact_append_factor (struct mtable *means, int layer,
-		    const struct interaction *iact)
-{
-  int v;
-  const struct variable **fv;
 
-  if (layer >= means->n_layers)
-    return;
-
-  fv = means->factor_vars[layer];
-
-  for (v = 0; v < means->n_factor_vars[layer]; ++v)
-    {
-      struct interaction *nexti = interaction_clone (iact);
-
-      interaction_add_variable (nexti, fv[v]);
-
-      iact_append_factor (means, layer + 1, nexti);
-
-      if (layer == means->n_layers - 1)
-	{
-	  means->interactions[means->ii++] = nexti;
-	}
-    }
-}
 
 static bool
 parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct mtable *table)
 {
   table->ii = 0;
   table->n_layers = 0;
-  table->factor_vars = NULL;
-  table->n_factor_vars = NULL;
+  table->layers = NULL;
 
   /* Dependent variable (s) */
   if (!parse_variables_const (lexer, cmd->dict,
@@ -542,23 +515,32 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
       if (lex_match (lexer, T_BY))
 	{
 	  table->n_layers++;
-	  table->factor_vars =
-	    xrealloc (table->factor_vars,
-		      sizeof (*table->factor_vars) * table->n_layers);
+          table->layers = 
+	    xrealloc (table->layers, 
+		      sizeof (*table->layers) * table->n_layers);
 
-	  table->n_factor_vars =
-	    xrealloc (table->n_factor_vars,
-		      sizeof (*table->n_factor_vars) * table->n_layers);
-
-	  if (!parse_variables_const (lexer, cmd->dict,
-				      &table->factor_vars[table->n_layers - 1],
-				      &table->n_factor_vars[table->n_layers -
-							    1],
-				      PV_NO_DUPLICATE))
+	  if (!parse_variables_const 
+              (lexer, cmd->dict,
+               &table->layers[table->n_layers - 1].factor_vars,
+               &table->layers[table->n_layers - 1].n_factor_vars,
+               PV_NO_DUPLICATE))
 	    return false;
 
 	}
     }
+
+  /* There is always at least one layer.
+     However the final layer is the total, and not
+     normally considered by the user as a 
+     layer.
+  */
+
+  table->n_layers++;
+  table->layers = 
+    xrealloc (table->layers, 
+              sizeof (*table->layers) * table->n_layers);
+  table->layers[table->n_layers - 1].factor_vars = NULL;
+  table->layers[table->n_layers - 1].n_factor_vars = 0;
 
   return true;
 }
@@ -768,27 +750,26 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
   for (t = 0; t < means.n_tables; ++t)
   {
     struct mtable *table = &means.table[t];
-    table->n_interactions = 1;
-    for (l = 0; l < table->n_layers; ++l)
-      {
-	const int n_vars = table->n_factor_vars[l];
-	table->n_interactions *= n_vars;
-      }
 
     table->interactions =
-      xcalloc (table->n_interactions, sizeof (*table->interactions));
+      xcalloc (table->n_layers, sizeof (*table->interactions));
 
     table->summary =
-      xcalloc (table->n_dep_vars * table->n_interactions, sizeof (*table->summary));
+      xcalloc (table->n_dep_vars * table->n_layers, sizeof (*table->summary));
 
-
-    if (table->n_layers > 0)
-      iact_append_factor (table, 0, interaction_create (NULL));
-    else
-      table->interactions[0] = interaction_create (NULL);
-
+    for (l = 0; l < table->n_layers; ++l)
+      {
+        int v;
+        const struct layer *lyr = &table->layers[l];
+	const int n_vars = lyr->n_factor_vars;
+        table->interactions[l] = interaction_create (NULL);
+        for (v = 0 ; v < n_vars ; ++v)
+          {
+            interaction_add_variable (table->interactions[l],
+                                      lyr->factor_vars[v]);
+          }
+      }
   }
-
 
   {
     struct casegrouper *grouper;
@@ -894,7 +875,7 @@ update_n (const void *aux1, void *aux2, void *user_data, const struct ccase *c, 
 
       const double x = case_data (c, table->dep_vars[v])->f;
 
-      for (i = 0; i < table->n_interactions; ++i)
+      for (i = 0; i < table->n_layers; ++i)
 	{
 	  if ( is_missing (means, table->dep_vars[v],
 			   table->interactions[i], c))
@@ -942,12 +923,11 @@ calculate_n (const void *aux1, void *aux2, void *user_data)
     }
 }
 
-
 static void
 run_means (struct means *cmd, struct casereader *input,
 	   const struct dataset *ds UNUSED)
 {
-  int i,t;
+  int t;
   const struct variable *wv = dict_get_weight (cmd->dict);
   struct ccase *c;
   struct casereader *reader;
@@ -962,7 +942,7 @@ run_means (struct means *cmd, struct casereader *input,
     struct mtable *table = &cmd->table[t];
     table->cats
       = categoricals_create (table->interactions,
-			     table->n_interactions, wv, cmd->exclude);
+			     table->n_layers, wv, cmd->exclude);
 
     categoricals_set_payload (table->cats, &payload, cmd, table);
   }
@@ -979,7 +959,7 @@ run_means (struct means *cmd, struct casereader *input,
 	  for (v = 0; v < table->n_dep_vars; ++v)
 	    {
 	      int i;
-	      for (i = 0; i < table->n_interactions; ++i)
+	      for (i = 0; i < table->n_layers; ++i)
 		{
 		  const bool missing =
 		    is_missing (cmd, table->dep_vars[v],
@@ -987,10 +967,10 @@ run_means (struct means *cmd, struct casereader *input,
 		  if (missing)
 		    {
 		      something_missing = true;
-		      table->summary[v * table->n_interactions + i].missing++;
+		      table->summary[v * table->n_layers + i].missing++;
 		    }
 		  else
-		    table->summary[v * table->n_interactions + i].non_missing++;
+		    table->summary[v * table->n_layers  + i].non_missing++;
 		}
 	    }
 	  if ( something_missing && cmd->listwise_exclude)
@@ -1011,18 +991,20 @@ run_means (struct means *cmd, struct casereader *input,
 
   for (t = 0; t < cmd->n_tables; ++t)
     {
+      int i;
       const struct mtable *table = &cmd->table[t];
 
       output_case_processing_summary (table);
 
-      for (i = 0; i < table->n_interactions; ++i)
+      for (i = 0; i < table->n_layers; ++i)
 	{
 	  output_report (cmd, i, table);
 	}
-
       categoricals_destroy (table->cats);
     }
+
 }
+
 
 
 static void
@@ -1033,7 +1015,7 @@ output_case_processing_summary (const struct mtable *table)
   const int heading_rows = 3;
   struct tab_table *t;
 
-  const int nr = heading_rows + table->n_interactions * table->n_dep_vars;
+  const int nr = heading_rows + table->n_layers * table->n_dep_vars;
   const int nc = 7;
 
   t = tab_create (nc, nr);
@@ -1070,9 +1052,9 @@ output_case_processing_summary (const struct mtable *table)
     {
       const struct variable *var = table->dep_vars[v];
       const char *dv_name = var_to_string (var);
-      for (i = 0; i < table->n_interactions; ++i)
+      for (i = 0; i < table->n_layers; ++i)
 	{
-	  const int row = v * table->n_interactions + i;
+	  const int row = v * table->n_layers + i;
 	  const struct interaction *iact = table->interactions[i];
 	  casenumber n_total;
 
@@ -1121,7 +1103,6 @@ output_case_processing_summary (const struct mtable *table)
 
   tab_submit (t);
 }
-
 
 
 static void
