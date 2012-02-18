@@ -78,7 +78,7 @@ struct variable_node
   int n_vals;                 /* Number of values for this variable */
 };
 
-static void
+static void UNUSED
 dump_interaction (const struct interaction *iact)
 {
   if (CATEGORICALS_DEBUG)
@@ -186,7 +186,7 @@ struct categoricals
   const struct payload *payload;
 };
 
-static void
+static void UNUSED
 categoricals_dump (const struct categoricals *cat)
 {
   if (CATEGORICALS_DEBUG)
