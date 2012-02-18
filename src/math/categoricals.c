@@ -87,7 +87,6 @@ dump_interaction (const struct interaction *iact)
 }
 #endif
 
-
 static struct variable_node *
 lookup_variable (const struct hmap *map, const struct variable *var, unsigned int hash)
 {
@@ -165,7 +164,7 @@ struct categoricals
 
   /* A map to enable the lookup of variables indexed by subscript.
      This map considers only the N - 1 of the N variables.
-   */
+  */
   int *reverse_variable_map_short;
 
   /* Like the above, but uses all N variables */
@@ -216,7 +215,7 @@ categoricals_dump (const struct categoricals *cat)
       ds_init_empty (&str);
       interaction_to_string (iact, &str);
 
-      printf ("\nInteraction: %s (n: %d; df: %d ); ", ds_cstr (&str), iap->n_cats, iap->df);
+      printf ("\nInteraction: %s (n: %d); ", ds_cstr (&str), iap->n_cats);
       ds_destroy (&str);
       printf ("Base subscript: %d\n", iap->base_subscript_short);
 
@@ -486,7 +485,7 @@ categoricals_done (const struct categoricals *cat_)
       int df = 1;
       const struct interaction *iact = cat->iap[i].iact;
 
-      cat->iap[i].df_prod = xcalloc (iact->n_vars, sizeof (int));
+      cat->iap[i].df_prod = iact->n_vars ? xcalloc (iact->n_vars, sizeof (int)) : NULL;
 
       cat->iap[i].n_cats = 1;
       
@@ -500,12 +499,15 @@ categoricals_done (const struct categoricals *cat_)
 	    return false;
 
 	  cat->iap[i].df_prod[v] = df * (hmap_count (&vn->valmap) - 1);
-	  df = cat->iap[i].df_prod[v];
+      	  df = cat->iap[i].df_prod[v];
 
 	  cat->iap[i].n_cats *= hmap_count (&vn->valmap);
 	}
 
-      cat->df_sum += cat->iap[i].df_prod [v - 1];
+      assert (v == iact->n_vars);
+      if (v > 0)
+	cat->df_sum += cat->iap[i].df_prod [v - 1];
+
       cat->n_cats_total += cat->iap[i].n_cats;
     }
 
@@ -547,8 +549,11 @@ categoricals_done (const struct categoricals *cat_)
 	iap->reverse_interaction_value_map[ii] = NULL;
 
       /* Populate the reverse variable maps. */
-      for (ii = 0; ii < iap->df_prod [iap->iact->n_vars - 1]; ++ii)
-	cat->reverse_variable_map_short[idx_short++] = i;
+      if (iap->df_prod)
+	{
+	  for (ii = 0; ii < iap->df_prod [iap->iact->n_vars - 1]; ++ii)
+	    cat->reverse_variable_map_short[idx_short++] = i;
+	}
 
       for (ii = 0; ii < iap->n_cats; ++ii)
 	cat->reverse_variable_map_long[idx_long++] = i;
@@ -565,7 +570,7 @@ categoricals_done (const struct categoricals *cat_)
       struct interact_params *iap = &cat->iap[i];
       const struct interaction *iact = iap->iact;
 
-      const int df = iap->df_prod [iact->n_vars - 1];
+      const int df = iap->df_prod ? iap->df_prod [iact->n_vars - 1] : 0;
 
       iap->enc_sum = xcalloc (df, sizeof (*(iap->enc_sum)));
 
@@ -636,7 +641,7 @@ categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript
    for that subscript */
 double
 categoricals_get_code_for_case (const struct categoricals *cat, int subscript,
-				      const struct ccase *c)
+				const struct ccase *c)
 {
   const struct interaction *iact = categoricals_get_interaction_by_subscript (cat, subscript);
 
@@ -651,34 +656,34 @@ categoricals_get_code_for_case (const struct categoricals *cat, int subscript,
 
   double dfp = 1.0;
   for (v = 0; v < iact->n_vars; ++v)
-  {
-    const struct variable *var = iact->vars[v];
+    {
+      const struct variable *var = iact->vars[v];
 
-    const union value *val = case_data (c, var);
-    const int width = var_get_width (var);
-    const struct variable_node *vn = lookup_variable (&cat->varmap, var, hash_pointer (var, 0));
+      const union value *val = case_data (c, var);
+      const int width = var_get_width (var);
+      const struct variable_node *vn = lookup_variable (&cat->varmap, var, hash_pointer (var, 0));
 
-    const unsigned int hash = value_hash (val, width, 0);
-    const struct value_node *valn = lookup_value (&vn->valmap, val, hash, width);
+      const unsigned int hash = value_hash (val, width, 0);
+      const struct value_node *valn = lookup_value (&vn->valmap, val, hash, width);
 
-    double bin = 1.0;
+      double bin = 1.0;
 
-    const double df = iap->df_prod[v] / dfp;
+      const double df = iap->df_prod[v] / dfp;
 
-    /* Translate the subscript into an index for the individual variable */
-    const int index = ((subscript - base_index) % iap->df_prod[v] ) / dfp;
-    dfp = iap->df_prod [v];
+      /* Translate the subscript into an index for the individual variable */
+      const int index = ((subscript - base_index) % iap->df_prod[v] ) / dfp;
+      dfp = iap->df_prod [v];
 
 #if EFFECTS_CODING
-    if ( valn->index == df )
-      bin = -1.0;
-    else 
+      if ( valn->index == df )
+	bin = -1.0;
+      else 
 #endif
-    if ( valn->index  != index )
-      bin = 0;
+	if ( valn->index  != index )
+	  bin = 0;
     
-    result *= bin;
-  }
+      result *= bin;
+    }
 
   return result;
 }
