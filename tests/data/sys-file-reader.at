@@ -2354,7 +2354,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Missing new-line parsing variable names at offset 14 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Missing new-line parsing variable names at offset 13 in MRSETS record.
 
 warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
 ])
@@ -2986,9 +2986,9 @@ do
 GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xdf: Error parsing attribute value Attr1[[1]].
+warning: `sys-file.sav' near offset 0xde: Error parsing attribute value Attr1[[1]].
 
-warning: `sys-file.sav' near offset 0x102: Error parsing attribute value fred[[2]].
+warning: `sys-file.sav' near offset 0x101: Error parsing attribute value fred[[2]].
 ])
 done
 AT_CLEANUP

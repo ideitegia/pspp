@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -491,11 +491,15 @@ bool
 ss_tokenize (struct substring ss, struct substring delimiters,
              size_t *save_idx, struct substring *token)
 {
+  bool found_token;
+
   ss_advance (&ss, *save_idx);
   *save_idx += ss_ltrim (&ss, delimiters);
   ss_get_bytes (&ss, ss_cspan (ss, delimiters), token);
-  *save_idx += ss_length (*token) + 1;
-  return ss_length (*token) > 0;
+
+  found_token = ss_length (*token) > 0;
+  *save_idx += ss_length (*token) + found_token;
+  return found_token;
 }
 
 /* Removes the first CNT bytes from SS. */
