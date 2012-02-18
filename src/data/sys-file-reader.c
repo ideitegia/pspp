@@ -2439,7 +2439,7 @@ text_parse_counted_string (struct sfm_reader *r, struct text_record *text)
 
   start = text->pos;
   n = 0;
-  for (;;)
+  while (text->pos < text->buffer.length)
     {
       int c = text->buffer.string[text->pos];
       if (c < '0' || c > '9')
@@ -2447,7 +2447,7 @@ text_parse_counted_string (struct sfm_reader *r, struct text_record *text)
       n = (n * 10) + (c - '0');
       text->pos++;
     }
-  if (start == text->pos)
+  if (text->pos >= text->buffer.length || start == text->pos)
     {
       sys_warn (r, text->start,
                 _("Expecting digit at offset %zu in MRSETS record."),
