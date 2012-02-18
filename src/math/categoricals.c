@@ -32,6 +32,8 @@
 
 #include "gl/xalloc.h"
 
+#define CATEGORICALS_DEBUG 0
+
 #define EFFECTS_CODING 1
 
 struct value_node
@@ -76,16 +78,17 @@ struct variable_node
   int n_vals;                 /* Number of values for this variable */
 };
 
-#if 0
 static void
 dump_interaction (const struct interaction *iact)
 {
-  struct string str = DS_EMPTY_INITIALIZER;
-  interaction_to_string (iact, &str);
-  printf ("Interaction: %s\n", ds_cstr (&str));
-  ds_destroy (&str);
+  if (CATEGORICALS_DEBUG)
+    {
+      struct string str = DS_EMPTY_INITIALIZER;
+      interaction_to_string (iact, &str);
+      printf ("Interaction: %s\n", ds_cstr (&str));
+      ds_destroy (&str);
+    }
 }
-#endif
 
 static struct variable_node *
 lookup_variable (const struct hmap *map, const struct variable *var, unsigned int hash)
@@ -183,65 +186,66 @@ struct categoricals
   const struct payload *payload;
 };
 
-#if 0
 static void
 categoricals_dump (const struct categoricals *cat)
 {
-  int i;
-
-  printf ("Reverse Variable Map (short):\n");
-  for (i = 0; i < cat->df_sum; ++i)
+  if (CATEGORICALS_DEBUG)
     {
-      printf (" %d", cat->reverse_variable_map_short[i]);
-    }
-  printf ("\n");
+      int i;
 
-  printf ("Reverse Variable Map (long):\n");
-  for (i = 0; i < cat->n_cats_total; ++i)
-    {
-      printf (" %d", cat->reverse_variable_map_long[i]);
-    }
-  printf ("\n");
-
-
-  printf ("Number of interactions %d\n", cat->n_iap);
-  for (i = 0 ; i < cat->n_iap; ++i)
-    {
-      int v;
-      struct string str;
-      const struct interact_params *iap = &cat->iap[i];
-      const struct interaction *iact = iap->iact;
-
-      ds_init_empty (&str);
-      interaction_to_string (iact, &str);
-
-      printf ("\nInteraction: %s (n: %d); ", ds_cstr (&str), iap->n_cats);
-      ds_destroy (&str);
-      printf ("Base subscript: %d\n", iap->base_subscript_short);
-
-      printf ("\t(");
-      for (v = 0; v < hmap_count (&iap->ivmap); ++v)
+      printf ("Reverse Variable Map (short):\n");
+      for (i = 0; i < cat->df_sum; ++i)
 	{
-	  int vv;
-	  const struct interaction_value *iv = iap->reverse_interaction_value_map[v];
-	  
-	  if (v > 0)  printf ("   ");
-	  printf ("{");
-	  for (vv = 0; vv < iact->n_vars; ++vv)
-	    {
-	      const struct variable *var = iact->vars[vv];
-	      const union value *val = case_data (iv->ccase, var);
-	      
-	      printf ("%g", val->f);
-	      if (vv < iact->n_vars - 1)
-		printf (", ");
-	    }
-	  printf ("}");
+	  printf (" %d", cat->reverse_variable_map_short[i]);
 	}
-      printf (")\n");
+      printf ("\n");
+
+      printf ("Reverse Variable Map (long):\n");
+      for (i = 0; i < cat->n_cats_total; ++i)
+	{
+	  printf (" %d", cat->reverse_variable_map_long[i]);
+	}
+      printf ("\n");
+
+
+      printf ("Number of interactions %d\n", cat->n_iap);
+      for (i = 0 ; i < cat->n_iap; ++i)
+	{
+	  int v;
+	  struct string str;
+	  const struct interact_params *iap = &cat->iap[i];
+	  const struct interaction *iact = iap->iact;
+
+	  ds_init_empty (&str);
+	  interaction_to_string (iact, &str);
+
+	  printf ("\nInteraction: %s (n: %d); ", ds_cstr (&str), iap->n_cats);
+	  ds_destroy (&str);
+	  printf ("Base subscript: %d\n", iap->base_subscript_short);
+
+	  printf ("\t(");
+	  for (v = 0; v < hmap_count (&iap->ivmap); ++v)
+	    {
+	      int vv;
+	      const struct interaction_value *iv = iap->reverse_interaction_value_map[v];
+	  
+	      if (v > 0)  printf ("   ");
+	      printf ("{");
+	      for (vv = 0; vv < iact->n_vars; ++vv)
+		{
+		  const struct variable *var = iact->vars[vv];
+		  const union value *val = case_data (iv->ccase, var);
+	      
+		  printf ("%g", val->f);
+		  if (vv < iact->n_vars - 1)
+		    printf (", ");
+		}
+	      printf ("}");
+	    }
+	  printf (")\n");
+	}
     }
 }
-#endif
 
 void
 categoricals_destroy (struct categoricals *cat)
