@@ -197,7 +197,6 @@ median_execute (const struct dataset *ds,
 
 	  if ( var_is_value_missing (var, case_data (c, var), exclude))
 	    {
-	      case_unref (c);
 	      continue;
 	    }
 
@@ -211,7 +210,6 @@ median_execute (const struct dataset *ds,
 		  value_compare_3way (indep_val, &nst->val2, width) > 0
 		   )
 		{
-		  case_unref (c);
 		  continue;
 		}
 	    }
