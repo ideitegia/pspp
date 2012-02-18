@@ -1009,15 +1009,15 @@ struct separator
 /* All the separators in the dialog box. */
 static const struct separator separators[] =
   {
-    {N_("space"), ' '},
-    {N_("tab"), '\t'},
-    {N_("bang"), '!'},
-    {N_("colon"), ':'},
-    {N_("comma"), ','},
-    {N_("hyphen"), '-'},
-    {N_("pipe"), '|'},
-    {N_("semicolon"), ';'},
-    {N_("slash"), '/'},
+    {"space", ' '},
+    {"tab", '\t'},
+    {"bang", '!'},
+    {"colon", ':'},
+    {"comma", ','},
+    {"hyphen", '-'},
+    {"pipe", '|'},
+    {"semicolon", ';'},
+    {"slash", '/'},
   };
 #define SEPARATOR_CNT (sizeof separators / sizeof *separators)
 
@@ -1077,7 +1077,7 @@ init_separators_page (struct import_assistant *ia)
   g_signal_connect (p->custom_cb, "toggled",
                     G_CALLBACK (on_separators_custom_cb_toggle), ia);
   for (i = 0; i < SEPARATOR_CNT; i++)
-    g_signal_connect (get_widget_assert (builder, gettext(separators[i].name)),
+    g_signal_connect (get_widget_assert (builder, separators[i].name),
                       "toggled", G_CALLBACK (on_separator_toggle), ia);
   g_signal_connect (p->escape_cb, "toggled",
                     G_CALLBACK (on_separator_toggle), ia);
