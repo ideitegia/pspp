@@ -411,8 +411,10 @@ ods_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
   /* If CELLRANGE was given, then we know how many variables should be read */
   if ( r->stop_col != -1 )
     {
+      assert (var_spec == NULL);
       n_var_specs =  r->stop_col - r->start_col + 1;
       var_spec = xrealloc (var_spec, sizeof (*var_spec) * n_var_specs);
+      memset (var_spec, '\0', sizeof (*var_spec) * n_var_specs);
     }
 
 
