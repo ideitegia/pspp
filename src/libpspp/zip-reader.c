@@ -26,6 +26,7 @@
 #include <xalloc.h>
 #include <libpspp/assertion.h>
 
+#include <byteswap.h>
 #include <crc.h>
 
 #include "inflate.h"
@@ -160,9 +161,28 @@ get_bytes (FILE *f, void *x, size_t n)
 
 /* Read a 32 bit value from F */
 static void
-get_u32 (FILE *f, uint32_t *x)
+get_u32 (FILE *f, uint32_t *v)
 {
-  get_bytes (f, x, sizeof *x);
+  uint32_t x;
+  get_bytes (f, &x, sizeof x);
+#ifdef WORDS_BIGENDIAN
+  *v = bswap_32 (x);
+#else
+  *v = x;
+#endif
+}
+
+/* Read a 16 bit value from F */
+static void
+get_u16 (FILE *f, uint16_t *v)
+{
+  uint16_t x;
+  get_bytes (f, &x, sizeof x);
+#ifdef WORDS_BIGENDIAN
+  *v = bswap_16 (x);
+#else
+  *v = x;
+#endif
 }
 
 
@@ -186,13 +206,6 @@ check_magic (FILE *f, uint32_t expected, struct string *err)
   return true;
 }
 
-
-/* Read a 16 bit value from F */
-static void
-get_u16 (FILE *f, uint16_t *x)
-{
-  get_bytes (f, x, sizeof *x);
-}
 
 /* Reads upto BYTES bytes from ZM and puts them in BUF.
    Returns the number of bytes read, or -1 on error */
