@@ -516,7 +516,7 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
 	{
 	  table->n_layers++;
           table->layers = 
-	    xrealloc (table->layers, 
+	    pool_realloc (cmd->pool, table->layers, 
 		      sizeof (*table->layers) * table->n_layers);
 
 	  if (!parse_variables_const 
@@ -537,7 +537,7 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
 
   table->n_layers++;
   table->layers = 
-    xrealloc (table->layers, 
+    pool_realloc (cmd->pool, table->layers, 
               sizeof (*table->layers) * table->n_layers);
   table->layers[table->n_layers - 1].factor_vars = NULL;
   table->layers[table->n_layers - 1].n_factor_vars = 0;
@@ -574,6 +574,8 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
   struct means means;
   bool more_tables = true;
 
+  means.pool = pool_create ();
+
   means.exclude = MV_ANY;
   means.dep_exclude = MV_ANY;
   means.listwise_exclude = false;
@@ -583,7 +585,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
   means.dict = dataset_dict (ds);
 
   means.n_cells = 3;
-  means.cells = xcalloc (means.n_cells, sizeof (*means.cells));
+  means.cells = pool_calloc (means.pool, means.n_cells, sizeof (*means.cells));
 
 
   /* The first three items (MEAN, COUNT, STDDEV) are the default */
@@ -603,7 +605,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
   while (more_tables)
     {
       means.n_tables ++;
-      means.table = xrealloc (means.table, means.n_tables * sizeof (*means.table));
+      means.table = pool_realloc (means.pool, means.table, means.n_tables * sizeof (*means.table));
 
       if (! parse_means_table_syntax (lexer, &means, 
 				      &means.table[means.n_tables - 1]))
@@ -695,7 +697,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 		{
 		  int x;
 		  means.cells =
-		    xrealloc (means.cells,
+		    pool_realloc (means.pool, means.cells,
 			      (means.n_cells += n_C) * sizeof (*means.cells));
 
 		  for (x = 0; x < n_C; ++x)
@@ -708,7 +710,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 	      else if (lex_match_id (lexer, "DEFAULT"))
 		{
 		  means.cells =
-		    xrealloc (means.cells,
+		    pool_realloc (means.pool, means.cells,
 			      (means.n_cells += 3) * sizeof (*means.cells));
 		  
 		  means.cells[means.n_cells - 2 - 1] = MEANS_MEAN;
@@ -722,7 +724,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 		      if (lex_match_id (lexer, cell_spec[k].keyword))
 			{
 			  means.cells =
-			    xrealloc (means.cells,
+			    pool_realloc (means.pool, means.cells,
 				      ++means.n_cells * sizeof (*means.cells));
 			
 			  means.cells[means.n_cells - 1] = k;
@@ -744,7 +746,6 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
-  means.pool = pool_create ();
 
 
   for (t = 0; t < means.n_tables; ++t)
@@ -752,10 +753,10 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
     struct mtable *table = &means.table[t];
 
     table->interactions =
-      xcalloc (table->n_layers, sizeof (*table->interactions));
+      pool_calloc (means.pool, table->n_layers, sizeof (*table->interactions));
 
     table->summary =
-      xcalloc (table->n_dep_vars * table->n_layers, sizeof (*table->summary));
+      pool_calloc (means.pool, table->n_dep_vars * table->n_layers, sizeof (*table->summary));
 
     for (l = 0; l < table->n_layers; ++l)
       {
@@ -786,10 +787,12 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
   }
 
 
+  pool_destroy (means.pool);
   return CMD_SUCCESS;
 
 error:
 
+  pool_destroy (means.pool);
   return CMD_FAILURE;
 }
 
@@ -830,16 +833,16 @@ create_n (const void *aux1, void *aux2)
   int i, v;
   const struct means *means = aux1;
   struct mtable *table = aux2;
-  struct per_cat_data *per_cat_data = xmalloc (sizeof *per_cat_data);
+  struct per_cat_data *per_cat_data = pool_malloc (means->pool, sizeof *per_cat_data);
 
-  struct per_var_data *pvd = xcalloc (table->n_dep_vars, sizeof *pvd);
+  struct per_var_data *pvd = pool_calloc (means->pool, table->n_dep_vars, sizeof *pvd);
 
   for (v = 0; v < table->n_dep_vars; ++v)
     {
       enum moment maxmom = MOMENT_KURTOSIS;
       struct per_var_data *pp = &pvd[v];
 
-      pp->cell_stats = xcalloc (means->n_cells, sizeof *pp->cell_stats);
+      pp->cell_stats = pool_calloc (means->pool, means->n_cells, sizeof *pp->cell_stats);
       
 
       for (i = 0; i < means->n_cells; ++i)
