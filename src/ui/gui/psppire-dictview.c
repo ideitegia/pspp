@@ -105,7 +105,10 @@ set_model (PsppireDictView *dict_view)
 {
   GtkTreeModel *model ;
 
-  if ( dict_view->predicate )
+  if ( dict_view->dict == NULL)
+    return;
+
+   if ( dict_view->predicate )
     {
       model = gtk_tree_model_filter_new (GTK_TREE_MODEL (dict_view->dict),
 					 NULL);
