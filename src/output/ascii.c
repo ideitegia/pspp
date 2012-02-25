@@ -955,7 +955,6 @@ ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
   if (length == 0)
     return;
 
-  text = cell->contents;
   breaks = xmalloc (length + 1);
   u8_possible_linebreaks (CHAR_CAST (const uint8_t *, text), length,
                           "UTF-8", breaks);
