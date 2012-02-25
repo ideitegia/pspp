@@ -202,6 +202,24 @@ static void ascii_draw_cell (void *, const struct table_cell *,
                              int bb[TABLE_N_AXES][2],
                              int clip[TABLE_N_AXES][2]);
 
+static void
+reallocate_lines (struct ascii_driver *a)
+{
+  if (a->length > a->allocated_lines)
+    {
+      int i;
+      a->lines = xnrealloc (a->lines, a->length, sizeof *a->lines);
+      for (i = a->allocated_lines; i < a->length; i++)
+        {
+          struct ascii_line *line = &a->lines[i];
+          ds_init_empty (&line->s);
+          line->width = 0;
+        }
+      a->allocated_lines = a->length;
+    }
+}
+
+
 static struct ascii_driver *
 ascii_driver_cast (struct output_driver *driver)
 {
@@ -339,6 +357,8 @@ update_page_size (struct ascii_driver *a, bool issue_error)
         a->length = MIN_LENGTH;
       return false;
     }
+
+  reallocate_lines (a);
 
   return true;
 }
@@ -1109,17 +1129,7 @@ ascii_open_page (struct ascii_driver *a)
 
   a->page_number++;
 
-  if (a->length > a->allocated_lines)
-    {
-      a->lines = xnrealloc (a->lines, a->length, sizeof *a->lines);
-      for (i = a->allocated_lines; i < a->length; i++)
-        {
-          struct ascii_line *line = &a->lines[i];
-          ds_init_empty (&line->s);
-          line->width = 0;
-        }
-      a->allocated_lines = a->length;
-    }
+  reallocate_lines (a);
 
   for (i = 0; i < a->length; i++)
     {
