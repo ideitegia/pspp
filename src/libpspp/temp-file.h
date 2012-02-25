@@ -23,5 +23,7 @@
 
 FILE *create_temp_file (void);
 void close_temp_file (FILE *);
+const char *temp_dir_name (void);
+
 
 #endif /* libpspp/ext-array.h */

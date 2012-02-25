@@ -40,6 +40,7 @@
 
 */
 
+static void cleanup (void);
 
 static struct temp_dir *temp_dir;
 struct hmapx map;
@@ -49,6 +50,30 @@ setup (void)
 {
   hmapx_init (&map);
   temp_dir = create_temp_dir ("pspp", NULL, true);
+}
+
+static void
+initialise (void)
+{
+  if (temp_dir == NULL)
+    {
+      setup ();
+      if (temp_dir == NULL)
+        return ;
+      atexit (cleanup);
+    }
+}
+
+
+const char *
+temp_dir_name (void)
+{
+  initialise ();
+
+  if (temp_dir)
+    return temp_dir->dir_name;
+
+  return NULL;
 }
 
 static void
@@ -74,13 +99,9 @@ create_temp_file (void)
   char *file_name;
   FILE *stream;
 
+  initialise ();
   if (temp_dir == NULL)
-    {
-      setup ();
-      if (temp_dir == NULL)
-        return NULL;
-      atexit (cleanup);
-    }
+    return NULL;
 
   file_name = xasprintf ("%s/%d", temp_dir->dir_name, idx++);
   register_temp_file (temp_dir, file_name);

@@ -824,13 +824,17 @@ SHOW
         [CCE]
         [COPYING]
         [DECIMALS]
+        [DIRECTORY]
+        [ENVIRONMENT]
         [FORMAT]
         [LENGTH]
         [MXERRS]
         [MXLOOPS]
         [MXWARNS]
         [SCOMPRESSION]
+        [TEMPDIR]
         [UNDEFINED]
+        [VERSION]
         [WARRANTY]
         [WEIGHT]
         [WIDTH]
@@ -847,9 +851,17 @@ subcommands:
 Show all settings.
 @item CC
 Show all custom currency settings (CCA through CCE).
+@item DIRECTORY
+Shows the current working directory.
+@item ENVIRONMENT
+Shows the operating system details.
+@item TEMPDIR
+Shows the path of the directory where temporary files will be stored.
+@item VERSION
+Shows the version of this installation of PSPP.
 @item WARRANTY
 Show details of the lack of warranty for PSPP.
-@item COPYING
+@item COPYING / LICENSE
 Display the terms of PSPP's copyright licence (@pxref{License}).
 @end table
 

@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "data/data-in.h"
 #include "data/data-out.h"
@@ -34,6 +35,8 @@
 #include "language/lexer/lexer.h"
 #include "libpspp/compiler.h"
 #include "libpspp/copyleft.h"
+#include "libpspp/temp-file.h"
+#include "libpspp/version.h"
 #include "libpspp/float-format.h"
 #include "libpspp/i18n.h"
 #include "libpspp/integer-format.h"
@@ -828,6 +831,41 @@ show_width (const struct dataset *ds UNUSED)
   return xasprintf ("%d", settings_get_viewwidth ());
 }
 
+static char *
+show_current_directory (const struct dataset *ds UNUSED)
+{
+  char *buf = NULL;
+  char *wd = NULL;
+  size_t len = 256;
+
+  do
+    {
+      len <<= 1;
+      buf = xrealloc (buf, len);
+    } 
+  while (NULL == (wd = getcwd (buf, len)));
+
+  return wd;
+}
+
+static char *
+show_tempdir (const struct dataset *ds UNUSED)
+{
+  return strdup (temp_dir_name ());
+}
+
+static char *
+show_version (const struct dataset *ds UNUSED)
+{
+  return strdup (version);
+}
+
+static char *
+show_system (const struct dataset *ds UNUSED)
+{
+  return strdup (host_system);
+}
+
 struct show_sbc
   {
     const char *name;
@@ -843,6 +881,8 @@ const struct show_sbc show_table[] =
     {"CCD", show_ccd},
     {"CCE", show_cce},
     {"DECIMALS", show_decimals},
+    {"DIRECTORY", show_current_directory},
+    {"ENVIRONMENT", show_system},
     {"ERRORS", show_errors},
     {"FORMAT", show_format},
     {"LENGTH", show_length},
@@ -856,7 +896,9 @@ const struct show_sbc show_table[] =
     {"RIB", show_rib},
     {"RRB", show_rrb},
     {"SCOMPRESSION", show_scompression},
+    {"TEMPDIR", show_tempdir},
     {"UNDEFINED", show_undefined},
+    {"VERSION", show_version},
     {"WEIGHT", show_weight},
     {"WIB", show_wib},
     {"WRB", show_wrb},
@@ -905,6 +947,7 @@ show_copying (const struct dataset *ds UNUSED)
   fputs (copyleft, stdout);
 }
 
+
 int
 cmd_show (struct lexer *lexer, struct dataset *ds)
 {
@@ -922,7 +965,7 @@ cmd_show (struct lexer *lexer, struct dataset *ds)
         show_all_cc (ds);
       else if (lex_match_id (lexer, "WARRANTY"))
         show_warranty (ds);
-      else if (lex_match_id (lexer, "COPYING"))
+      else if (lex_match_id (lexer, "COPYING") || lex_match_id (lexer, "LICENSE"))
         show_copying (ds);
       else if (lex_token (lexer) == T_ID)
         {
