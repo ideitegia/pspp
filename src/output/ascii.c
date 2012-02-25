@@ -749,7 +749,9 @@ find_ascii_pos (struct ascii_line *line, int target_x, struct ascii_pos *c)
 static char *
 ascii_reserve (struct ascii_driver *a, int y, int x0, int x1, int n)
 {
-  struct ascii_line *line = &a->lines[y];
+  struct ascii_line *line;
+  assert (y < a->allocated_lines);
+  line = &a->lines[y];
 
   if (x0 >= line->width)
     {
