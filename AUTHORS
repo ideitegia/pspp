@@ -16,21 +16,6 @@ is also an important contributor to GSL, which is used by PSPP.
 
 * Mehmet Hakan Satman wrote the QUICK CLUSTER command.
 
-* Translators:
-
-  - Dutch: Harry Thijssen.
-
-  - Catalan and Spanish: Palmira Payá Sanchez, Javier Gómez Serrano,
-    and Francesc Josep Miguel Quesada.
-
-  - British English: John Darrington.
-
-  - Brazilian Portuguese: Michel Almada de Castro Boaventura.
-
-  - French: Eric Thivant.
-
-  - Lithuanian: Mindaugas Baranauskas
-
 We also thank past contributors:
 
 * John Williams wrote an initial draft of the T-TEST procedure.
