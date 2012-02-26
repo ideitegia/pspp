@@ -26,14 +26,14 @@
 #  Window     = venster
 #  Weighting  = Weging
 #
-# Harry Thijssen <pspp@sjpaes.nl>, 2009, 2010, 2011, 2012.
 # filename: pspp-0.7.9.nl.po
+# Harry Thijssen <pspp@sjpaes.nl>, 2009, 2010, 2011, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: pspp-0.7.9\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2012-02-03 19:12-0800\n"
-"PO-Revision-Date: 2012-02-04 17:25+0100\n"
+"PO-Revision-Date: 2012-02-25 17:25+0100\n"
 "Last-Translator: Harry Thijssen <pspp@sjpaes.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
@@ -2153,15 +2153,15 @@ msgstr "Percentage kleiner dan"
 
 #: src/language/stats/aggregate.c:103
 msgid "Percentage included in range"
-msgstr ""
+msgstr "Percentage opgenomen in range"
 
 #: src/language/stats/aggregate.c:104
 msgid "Percentage excluded from range"
-msgstr ""
+msgstr "Percentage uitgesloten van range"
 
 #: src/language/stats/aggregate.c:105
 msgid "Fraction greater than"
-msgstr ""
+msgstr "Fractie groter dan"
 
 #: src/language/stats/aggregate.c:106
 msgid "Fraction less than"
@@ -2169,11 +2169,11 @@ msgstr "Fractie kleiner dan"
 
 #: src/language/stats/aggregate.c:107
 msgid "Fraction included in range"
-msgstr ""
+msgstr "Fractie opgenomen in range"
 
 #: src/language/stats/aggregate.c:108
 msgid "Fraction excluded from range"
-msgstr ""
+msgstr "Fractie uitgesloten van range"
 
 #: src/language/stats/aggregate.c:109
 msgid "Number of cases"
@@ -2935,7 +2935,7 @@ msgstr "Cases"
 
 #: src/language/stats/means.c:1053
 msgid "Included"
-msgstr ""
+msgstr "Opgenomen"
 
 #: src/language/stats/means.c:1054 src/language/stats/reliability.c:530
 msgid "Excluded"
@@ -3181,7 +3181,7 @@ msgstr "%g%% Betrouwbaarheidsinterval"
 
 #: src/language/stats/quick-cluster.c:361
 msgid "Number of clusters may not be larger than the number of cases."
-msgstr ""
+msgstr "Aantal clusters mag niet groter dan aantal cases zijn."
 
 #: src/language/stats/quick-cluster.c:403
 msgid "Final Cluster Centers"
@@ -3391,7 +3391,7 @@ msgstr "Gevoeligheid"
 
 #: src/language/stats/roc.c:1119 src/output/charts/roc-chart-cairo.c:37
 msgid "1 - Specificity"
-msgstr ""
+msgstr "1 - Specificity"
 
 #: src/language/stats/runs.c:167
 #, c-format
@@ -4154,7 +4154,7 @@ msgstr "waarschuwing"
 
 #: src/libpspp/message.c:90
 msgid "note"
-msgstr "aantekening"
+msgstr "noot"
 
 #: src/libpspp/message.c:280
 #, c-format
@@ -4994,11 +4994,11 @@ msgstr "West-europees"
 
 #: src/ui/gui/psppire-encoding-selector.c:222
 msgid "Character Encoding: "
-msgstr ""
+msgstr "Tekencodering:"
 
 #: src/ui/gui/psppire-output-window.c:358
 msgid "Message"
-msgstr ""
+msgstr "Bericht"
 
 #: src/ui/gui/psppire-output-window.c:519
 msgid "Infer file type from extension"
@@ -5438,7 +5438,7 @@ msgstr "ZL (64-bit IBM Z hexadecimal long, big-endian)"
 #: src/language/utilities/set.q:870
 #, c-format
 msgid "%s is %s."
-msgstr "%s van %s."
+msgstr "%s is %s."
 
 #: src/language/utilities/set.q:973
 #, c-format
@@ -5953,7 +5953,7 @@ msgstr "_Hoogste waarde"
 
 #: src/ui/gui/autorecode.ui:153
 msgid "Recode starting from"
-msgstr ""
+msgstr "Hercoderen starten vanaf"
 
 #: src/ui/gui/autorecode.ui:175
 msgid "_New Name"
@@ -6090,7 +6090,7 @@ msgstr ""
 
 #: src/ui/gui/count.ui:271
 msgid "Values _to Count:"
-msgstr ""
+msgstr "Waardes _te tellen:"
 
 #: src/ui/gui/crosstabs.ui:7
 msgid "Crosstabs"
@@ -6331,7 +6331,7 @@ msgstr "Aa_ntal factoren:"
 
 #: src/ui/gui/factor.ui:480
 msgid "Extract"
-msgstr ""
+msgstr "Uitpakken"
 
 #: src/ui/gui/factor.ui:495 src/ui/gui/factor.ui:687
 msgid "Ma_ximum iterations for convergence:"
@@ -7299,7 +7299,7 @@ msgstr "_Open..."
 
 #: src/ui/gui/data-editor.ui:54
 msgid "_Import Delimited Text Data..."
-msgstr "Gescheiden tekstgegevens _importeren..."
+msgstr "Gescheiden tekstgegevens _importeren (*.CSV)..."
 
 #: src/ui/gui/data-editor.ui:61
 msgid "_Rename Dataset..."
