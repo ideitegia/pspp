@@ -6,6 +6,7 @@ MSGFMT=msgfmt
 
 POFILES = \
 	po/ca.po \
+	po/cs.po \
 	po/de.po \
 	po/en_GB.po \
 	po/es.po \
@@ -27,14 +28,20 @@ XGETTEXT_OPTIONS = \
         --from-code=UTF-8 \
 	--add-comments='TRANSLATORS:'
 
-$(POTFILE): $(TRANSLATABLE_FILES) $(UI_FILES)
+$(POTFILE): $(TRANSLATABLE_FILES) $(UI_FILES) src/ui/gui/gen-dot-desktop.sh
 	@$(MKDIR_P) po
 	$(XGETTEXT) --directory=$(top_srcdir) $(XGETTEXT_OPTIONS)    $(TRANSLATABLE_FILES) --language=C --keyword=_ --keyword=N_ -o $@
 	$(XGETTEXT) --directory=$(top_srcdir) $(XGETTEXT_OPTIONS) -j $(UI_FILES) --language=glade -o $@
+	$(XGETTEXT) --directory=$(top_srcdir) $(XGETTEXT_OPTIONS) -j src/ui/gui/gen-dot-desktop.sh --language=shell --keyword=TRANSLATE -o $@
 
 
 $(POFILES): $(POTFILE)
 	$(MSGMERGE) $(top_srcdir)/$@ $? -o $@
+	if test -e $(top_srcdir)/$@,aux ; then \
+	         touch $@ ; \
+		 msgcat --use-first $(top_srcdir)/$@,aux $@ -o $@; \
+	fi ;
+
 
 
 SUFFIXES += .po .gmo
