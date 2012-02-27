@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -88,7 +88,6 @@ static uint32_t
 get_le32 (const uint8_t *data)
 {
   return (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
-
 }
 
 static const char *
