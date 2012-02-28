@@ -29,6 +29,7 @@
 #include <libpspp/zip-reader.h>
 #include <libpspp/str.h>
 
+#include <errno.h>
 #include "xalloc.h"
 
 /* Exit with a failure code.
@@ -67,11 +68,29 @@ main (int argc, char **argv)
       int i;
       struct string str;
       struct zip_reader *zr = zip_reader_create (argv[2], &str);
+      if ( NULL == zr)
+	{
+	  fprintf (stderr, "Could not create zip reader: %s\n", ds_cstr (&str));
+	  check_die ();
+	}
       for (i = 3; i < argc; ++i)
 	{
 	  int x = 0;
-	  struct zip_member *zm = zip_member_open (zr, argv[i]);
+	  struct zip_member *zm ;
 	  FILE *fp = fopen (argv[i], "w");
+	  if ( NULL == fp)
+	    {
+	      int e = errno;
+	      fprintf (stderr, "Could not create file %s: %s\n", argv[i], strerror(e));
+	      check_die ();
+	    }
+	  zm = zip_member_open (zr, argv[i]);
+	  if ( NULL == zm)
+	    {
+	      fprintf (stderr, "Could not open zip member %s from archive: %s\n",
+		       argv[i], ds_cstr (&str));
+	      check_die ();
+	    }
 
 	  while ((x = zip_member_read (zm, buf, BUFSIZE)) > 0)
 	    {
@@ -80,7 +99,7 @@ main (int argc, char **argv)
 	  fclose (fp);
 	  if ( x < 0)
 	    {
-	      fprintf (stderr, "Unzip failed: %s", ds_cstr (&str));
+	      fprintf (stderr, "Unzip failed: %s\n", ds_cstr (&str));
 	      check_die ();
 	    }
 	  
