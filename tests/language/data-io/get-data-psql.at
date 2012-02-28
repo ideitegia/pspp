@@ -6,14 +6,15 @@ m4_define([INIT_PSQL],
    export PATH
    PGDATA=`pwd`/cluster
    export PGDATA
-   PGHOST=`pwd`
-   export PGHOST
    PGPORT=$PG_PORT
    export PGPORT
+   socket_dir=`mktemp -d`
+   PGHOST="$socket_dir"
+   export PGHOST
    AT_CHECK([initdb -A trust], [0], [ignore])
-   AT_CHECK([pg_ctl start -w -o "-k `pwd` -h ''"], [0], [ignore])
+   AT_CHECK([pg_ctl start -w -o "-k $socket_dir -h ''"], [0], [ignore])
    trap 'CLEANUP_PSQL' 0
-   AT_CHECK([createdb -h "`pwd`" -p $PG_PORT $PG_DBASE],
+   AT_CHECK([createdb -h "$socket_dir" -p $PG_PORT $PG_DBASE],
       [0], [ignore], [ignore])
    AT_DATA([populate.sql], 
      [CREATE TABLE empty (a int, b date, c numeric(23, 4));
@@ -115,10 +116,10 @@ m4_define([INIT_PSQL],
        '01:05:02 UTC-7'
       );
 ])
-   AT_CHECK([psql -h "`pwd`" -p $PG_PORT $PG_DBASE < populate.sql],
+   AT_CHECK([psql -h "$socket_dir" -p $PG_PORT $PG_DBASE < populate.sql],
       [0], [ignore])])
 
-m4_define([CLEANUP_PSQL], [pg_ctl stop -W -o "-k `pwd` -h ''"])
+m4_define([CLEANUP_PSQL], [pg_ctl stop -W -o "-k $socket_dir -h ''"])
 
 AT_SETUP([GET DATA /TYPE=PSQL])
 INIT_PSQL
@@ -126,7 +127,7 @@ INIT_PSQL
 dnl Test with an ordinary query.
 AT_CHECK([cat > ordinary-query.sps <<EOF
 GET DATA /TYPE=psql 
-	/CONNECT="host=$PGHOST port=$PGPORT dbname=$PG_DBASE"
+	/CONNECT="host=$socket_dir port=$PGPORT dbname=$PG_DBASE"
 	/UNENCRYPTED
 	/SQL="select * from thing".
 
@@ -237,7 +238,7 @@ bool,bytea,char,int8,int2,int4,numeric,text,oid,float4,float8,money,pbchar,varch
 dnl Test query with empty result set.
 AT_CHECK([cat > empty-result.sps <<EOF
 GET DATA /TYPE=psql 
-	/CONNECT="host=$PGHOST port=$PGPORT dbname=$PG_DBASE"
+	/CONNECT="host=$socket_dir port=$PGPORT dbname=$PG_DBASE"
 	/UNENCRYPTED
 	/SQL="select * from empty".
 
@@ -266,7 +267,7 @@ c,Format: E40.2,,3
 dnl Test query with large result set.
 AT_CHECK([cat > large-result.sps <<EOF
 GET DATA /TYPE=psql 
-	/CONNECT="host=$PGHOST port=$PGPORT dbname=$PG_DBASE"
+	/CONNECT="host=$socket_dir port=$PGPORT dbname=$PG_DBASE"
 	/UNENCRYPTED
 	/SQL="select * from large".
 
@@ -321,12 +322,12 @@ AT_DATA([all-null-string.sql],
 
    INSERT INTO foo VALUES (null, '');
 ])
-AT_CHECK([psql -h "`pwd`" -p $PG_PORT $PG_DBASE < all-null-string.sql],
+AT_CHECK([psql -h "$socket_dir" -p $PG_PORT $PG_DBASE < all-null-string.sql],
   [0], [ignore])
 AT_CAPTURE_FILE([get-data.sps])
 AT_CHECK([cat > get-data.sps <<EOF
 GET DATA /TYPE=psql 
-	/CONNECT="host=$PGHOST port=$PGPORT dbname=$PG_DBASE"
+	/CONNECT="host=$socket_dir port=$PGPORT dbname=$PG_DBASE"
 	/UNENCRYPTED
 	/SQL="select * from foo".
 
@@ -337,4 +338,5 @@ EOF
 ])
 AT_CHECK([pspp -o pspp.csv get-data.sps])
 AT_CAPTURE_FILE([pspp.csv])
+rm -rf "$socket_dir"
 AT_CLEANUP
