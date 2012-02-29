@@ -672,8 +672,8 @@ AT_CHECK([cat pspp.csv], [0], [dnl
 Table: Ranks
 ,gv,N,Mean Rank
 xscore,timed out,5,4.400
-,handled the ball,4,11.500
 ,hit wicket,5,7.400
+,handled the ball,4,11.500
 ,Total,14,
 
 Table: Test Statistics
@@ -776,12 +776,12 @@ AT_CHECK([cat pspp.csv], [0], [dnl
 Table: Ranks
 ,gv,N,Mean Rank
 xscore,timed out,5,4.400
+,hit wicket,5,7.400
 ,handled the ball,4,11.500
-,hit wicket,5,7.400
 ,Total,14,
-yscore,handled the ball,4,11.500
+yscore,hit wicket,5,7.400
+,handled the ball,4,11.500
 ,bowled,5,4.400
-,hit wicket,5,7.400
 ,Total,14,
 
 Table: Test Statistics

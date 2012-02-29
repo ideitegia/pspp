@@ -31,6 +31,7 @@
 #include "data/variable.h"
 #include "libpspp/assertion.h"
 #include "libpspp/hmap.h"
+#include "libpspp/bt.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "math/sort.h"
@@ -59,11 +60,26 @@ include_func (const struct ccase *c, void *aux)
 struct rank_entry
 {
   struct hmap_node node;
+  struct bt_node btn;
   union value group;
 
   double sum_of_ranks;
   double n;
 };
+
+
+static int
+compare_rank_entries_3way (const struct bt_node *a,
+                           const struct bt_node *b,
+                           const void *aux)
+{
+  const struct variable *var = aux;
+  const struct rank_entry *rea = bt_data (a, struct rank_entry, btn);
+  const struct rank_entry *reb = bt_data (b, struct rank_entry, btn);
+
+  return value_compare_3way (&rea->group, &reb->group, var_get_width (var));
+}
+
 
 /* Return the entry with the key GROUP or null if there is no such entry */
 static struct rank_entry *
@@ -264,7 +280,9 @@ show_ranks_box (const struct n_sample_test *nst, const struct kw *kw, int n_grou
   for (i = 0 ; i < nst->n_vars ; ++i)
     {
       int tot = 0;
-      const struct rank_entry *re;
+      struct rank_entry *re_x;
+      struct bt_node *bt_n = NULL;
+      struct bt bt;
 
       if (i > 0)
 	tab_hline (table, TAL_1, 0, tab_nc (table) -1, row);
@@ -272,21 +290,36 @@ show_ranks_box (const struct n_sample_test *nst, const struct kw *kw, int n_grou
       tab_text (table,  0, row,
 		TAT_TITLE, var_to_string (nst->vars[i]));
 
-      HMAP_FOR_EACH (re, const struct rank_entry, node, &kw[i].map)
+      /* Sort the rank entries, by iteratin the hash and putting the entries
+         into a binary tree. */
+      bt_init (&bt, compare_rank_entries_3way, nst->vars[i]);
+      HMAP_FOR_EACH (re_x, struct rank_entry, node, &kw[i].map)
 	{
+          bt_insert (&bt, &re_x->btn);
+        }
+
+      /* Report the rank entries in sorted order. */
+      for (bt_n = bt_first (&bt);
+           bt_n != NULL;
+           bt_n = bt_next (&bt, bt_n) )
+        {
+          const struct rank_entry *re =
+            bt_data (bt_n, const struct rank_entry, btn);
+
 	  struct string str;
 	  ds_init_empty (&str);
-
+          
 	  var_append_value_name (nst->indep_var, &re->group, &str);
-
+          
 	  tab_text   (table, 1, row, TAB_LEFT, ds_cstr (&str));
 	  tab_double (table, 2, row, TAB_LEFT, re->n, &F_8_0);
 	  tab_double (table, 3, row, TAB_LEFT, re->sum_of_ranks / re->n, 0);
-
+          
 	  tot += re->n;
 	  row++;
 	  ds_destroy (&str);
 	}
+
       tab_double (table, 2, row, TAB_LEFT,
 		  tot, &F_8_0);
       tab_text (table, 1, row++, TAB_LEFT, _("Total"));
