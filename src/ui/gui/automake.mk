@@ -96,7 +96,9 @@ install-icons:
 	  $(MKDIR_P) $(themedir)/$$size/apps ; \
 	  $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/app-icons/$$size/pspp.png $(themedir)/$$size/apps ; \
 	done 
-	gtk-update-icon-cache --ignore-theme-index $(themedir)
+	if test -z "$(DESTDIR)" ; then \
+		gtk-update-icon-cache --ignore-theme-index $(themedir); \
+	fi
 
 INSTALL_DATA_HOOKS += install-icons install-lang
 
