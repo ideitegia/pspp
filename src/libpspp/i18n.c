@@ -769,3 +769,17 @@ is_encoding_supported (const char *encoding)
   return (create_iconv__ ("UTF-8", encoding)->conv != (iconv_t) -1
           && create_iconv__ (encoding, "UTF-8")->conv != (iconv_t) -1);
 }
+
+/* Returns true if E is the name of a UTF-8 encoding.
+
+   XXX Possibly we should test not E as a string but its properties via
+   iconv. */
+bool
+is_encoding_utf8 (const char *e)
+{
+  return ((e[0] == 'u' || e[0] == 'U')
+          && (e[1] == 't' || e[1] == 'T')
+          && (e[2] == 'f' || e[2] == 'F')
+          && ((e[3] == '8' && e[4] == '\0')
+              || (e[3] == '-' && e[4] == '8' && e[5] == '\0')));
+}

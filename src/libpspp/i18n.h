@@ -142,4 +142,6 @@ bool is_encoding_ascii_compatible (const char *encoding);
 bool is_encoding_ebcdic_compatible (const char *encoding);
 bool is_encoding_supported (const char *encoding);
 
+bool is_encoding_utf8 (const char *encoding);
+
 #endif /* i18n.h */

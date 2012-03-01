@@ -313,14 +313,23 @@ are @code{ASCII} (United States), @code{ISO-8859-1} (western Europe),
 @code{EUC-JP} (Japan), and @code{windows-1252} (Windows).  Not all
 systems support all character sets.
 
-@item @code{Auto}
 @item @code{Auto,@var{encoding}}
-Automatically detects whether a syntax file is encoded in
-@var{encoding} or in a Unicode encoding such as UTF-8, UTF-16, or
-UTF-32.  The @var{encoding} may be an IANA character set name or
-@code{Locale} (the default).  Only ASCII compatible encodings can
-automatically be distinguished from UTF-8 (the most common locale
-encodings are all ASCII-compatible).
+Automatically detects whether a syntax file is encoded in an Unicode
+encoding such as UTF-8, UTF-16, or UTF-32.  If it is not, then PSPP
+generally assumes that the file is encoded in @var{encoding} (an IANA
+character set name).  However, if @var{encoding} is UTF-8, and the
+syntax file is not valid UTF-8, PSPP instead assumes that the file
+is encoded in @code{windows-1252}.
+
+For best results, @var{encoding} should be an ASCII-compatible
+encoding (the most common locale encodings are all ASCII-compatible),
+because encodings that are not ASCII compatible cannot be
+automatically distinguished from UTF-8.
+
+@item @code{Auto}
+@item @code{Auto,Locale}
+Automatic detection, as above, with the default encoding taken from
+the system locale or the setting on SET LOCALE.
 @end table
 
 When ENCODING is not specified, the default is taken from the

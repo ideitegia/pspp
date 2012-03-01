@@ -36,22 +36,26 @@
    of information about encoding detection.
 */
 
-/* Parses and returns the fallback encoding from ENCODING, which must be in one
-   of the forms described at the top of encoding-guesser.h.  The returned
-   string might be ENCODING itself or a suffix of it, or it might be a
-   statically allocated string. */
+/* Returns the encoding specified by ENCODING, which must be in one of the
+   forms described at the top of encoding-guesser.h.  The returned string might
+   be ENCODING itself or a suffix of it, or it might be a statically allocated
+   string. */
 const char *
 encoding_guess_parse_encoding (const char *encoding)
 {
+  const char *fallback;
+
   if (encoding == NULL
       || !c_strcasecmp (encoding, "auto")
       || !c_strcasecmp (encoding, "auto,locale")
       || !c_strcasecmp (encoding, "locale"))
-    return locale_charset ();
+    fallback = locale_charset ();
   else if (!c_strncasecmp (encoding, "auto,", 5))
-    return encoding + 5;
+    fallback = encoding + 5;
   else
     return encoding;
+
+  return is_encoding_utf8 (fallback) ? "windows-1252" : fallback;
 }
 
 /* Returns true if ENCODING, which must be in one of the forms described at the
@@ -267,16 +271,37 @@ const char *
 encoding_guess_tail_encoding (const char *encoding,
                               const void *data, size_t n)
 {
-  return (encoding_guess_tail_is_utf8 (data, n)
+  return (encoding_guess_tail_is_utf8 (data, n) != 0
           ? "UTF-8"
           : encoding_guess_parse_encoding (encoding));
 }
 
-/* Same as encoding_guess_tail_encoding() but returns true for UTF-8 or false
-   for the fallback encoding. */
-bool
+/* Returns an encoding guess based on ENCODING and the N bytes of text starting
+   at DATA.  DATA should start with the first non-ASCII text character (as
+   determined by encoding_guess_is_ascii_text()) found in the input.
+
+   The return value is:
+
+       0, if the encoding is definitely not UTF-8 (because the input contains
+       byte sequences that are not valid in UTF-8).
+
+       1, if the encoding appears to be UTF-8 (because the input contains valid
+       UTF-8 multibyte sequences).
+
+       -1, if the input contains only ASCII characters.  (This means that the
+       input may be treated as UTF-8, since ASCII is a subset of UTF-8.)
+
+   See encoding-guesser.h for intended use of this function.
+
+   N must be at least ENCODING_GUESS_MIN, unless the file has fewer bytes than
+   that starting with the first non-ASCII text character. */
+int
 encoding_guess_tail_is_utf8 (const void *data, size_t n)
 {
+  /* If all the bytes are in the ASCII range, it's just ASCII. */
+  if (encoding_guess_count_ascii (data, n) == n)
+    return -1;
+
   return (n < ENCODING_GUESS_MIN
           ? u8_check (data, n) == NULL
           : is_all_utf8_text (data, n));
@@ -297,15 +322,7 @@ encoding_guess_whole_file (const char *encoding, const void *text, size_t size)
 
   guess = encoding_guess_head_encoding (encoding, text, size);
   if (!strcmp (guess, "ASCII") && encoding_guess_encoding_is_auto (encoding))
-    {
-      size_t ofs = encoding_guess_count_ascii (text, size);
-      if (ofs < size)
-        return encoding_guess_tail_encoding (encoding,
-                                             (const char *) text + ofs,
-                                             size - ofs);
-      else
-        return encoding_guess_parse_encoding (encoding);
-    }
+    return encoding_guess_tail_encoding (encoding, text, size);
   else
     return guess;
 }

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,7 +42,9 @@
        encoding"): Requests detection whether the input is encoded in UTF-8,
        UTF-16, UTF-32, or a few other easily identifiable charsets.  When a
        particular character set cannot be recognized, the guesser falls back to
-       the encoding following the comma.  UTF-8 detection works only for
+       the encoding following the comma.  When the fallback encoding is UTF-8,
+       but the input is invalid UTF-8, then the windows-1252 encoding (closely
+       related to ISO 8859-1) is used instead.  UTF-8 detection works only for
        ASCII-compatible character sets.
 
      - NULL or "Auto": As above, with the encoding used by the system locale as
@@ -111,7 +113,7 @@ const char *encoding_guess_head_encoding (const char *encoding,
 /* Refining an initial ASCII coding guess using later non-ASCII bytes. */
 static inline bool encoding_guess_is_ascii_text (uint8_t c);
 size_t encoding_guess_count_ascii (const void *, size_t);
-bool encoding_guess_tail_is_utf8 (const void *, size_t);
+int encoding_guess_tail_is_utf8 (const void *, size_t);
 const char *encoding_guess_tail_encoding (const char *encoding,
                                           const void *, size_t);
 

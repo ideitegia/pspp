@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "libpspp/cast.h"
 #include "libpspp/compiler.h"
 #include "libpspp/encoding-guesser.h"
+#include "libpspp/i18n.h"
 
 #include "gl/c-strcase.h"
 #include "gl/localcharset.h"
@@ -120,7 +121,7 @@ u8_istream_for_fd (const char *fromcode, int fd)
     goto error;
 
   encoding = encoding_guess_head_encoding (fromcode, is->buffer, is->length);
-  if (!strcmp (encoding, "UTF-8"))
+  if (is_encoding_utf8 (encoding))
     is->state = S_UTF8;
   else
     {

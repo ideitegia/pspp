@@ -141,3 +141,11 @@ AT_CHECK([printf '\343\201\201\343\201\202\343\201\203\343\201\204\343\201\205\3
   [0], [UTF-8
 ])
 AT_CLEANUP
+
+AT_SETUP([windows-1252 as Auto,UTF-8])
+AT_KEYWORDS([encoding guesser])
+AT_CHECK([i18n-test supports_encodings windows-1252])
+AT_CHECK([printf 'entr\351e' | encoding-guesser-test Auto,UTF-8 32], [0],
+  [windows-1252
+])
+AT_CLEANUP
