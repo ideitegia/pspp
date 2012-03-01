@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "libpspp/integer-format.h"
-
 #include "gl/crc.h"
 #include "gl/error.h"
 #include "gl/fwriteerror.h"
@@ -63,16 +61,18 @@ put_bytes (struct zip_writer *zw, const void *p, size_t n)
 static void
 put_u16 (struct zip_writer *zw, uint16_t x)
 {
-  if (INTEGER_NATIVE != INTEGER_LSB_FIRST)
-    integer_convert (INTEGER_NATIVE, &x, INTEGER_MSB_FIRST, &x, sizeof x);
+#ifdef WORDS_BIGENDIAN
+  x = bswap_16 (x);
+#endif
   put_bytes (zw, &x, sizeof x);
 }
 
 static void
 put_u32 (struct zip_writer *zw, uint32_t x)
 {
-  if (INTEGER_NATIVE != INTEGER_LSB_FIRST)
-    integer_convert (INTEGER_NATIVE, &x, INTEGER_MSB_FIRST, &x, sizeof x);
+#ifdef WORDS_BIGENDIAN
+  x = bswap_32 (x);
+#endif
   put_bytes (zw, &x, sizeof x);
 }
 
