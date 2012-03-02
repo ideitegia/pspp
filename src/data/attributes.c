@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -298,4 +298,39 @@ attrset_next (const struct attrset *set, struct attrset_iterator *iterator)
 {
   iterator->node = hmap_next (&set->map, iterator->node);
   return iterator_data (iterator);
+}
+
+static int
+compare_attribute_by_name (const void *a_, const void *b_)
+{
+  const struct attribute *const *a = a_;
+  const struct attribute *const *b = b_;
+
+  return strcmp ((*a)->name, (*b)->name);
+}
+
+/* Allocates and returns an array of pointers to attributes
+   that is sorted by attribute name.  The array has
+   'attrset_count (SET)' elements.  The caller is responsible for
+   freeing the array. */
+struct attribute **
+attrset_sorted (const struct attrset *set)
+{
+  if (set != NULL && attrset_count (set) > 0)
+    {
+      struct attribute **attrs;
+      struct attribute *attr;
+      size_t i;
+
+      attrs = xmalloc (attrset_count (set) * sizeof *attrs);
+      i = 0;
+      HMAP_FOR_EACH (attr, struct attribute, node, &set->map)
+        attrs[i++] = attr;
+      assert (i == attrset_count (set));
+      qsort (attrs, attrset_count (set), sizeof *attrs,
+             compare_attribute_by_name);
+      return attrs;
+    }
+  else
+    return NULL;
 }

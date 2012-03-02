@@ -377,12 +377,15 @@ static void
 display_attributes (struct tab_table *t, const struct attrset *set, int flags,
                     int c, int r)
 {
-  struct attrset_iterator i;
-  struct attribute *attr;
+  struct attribute **attrs;
+  size_t n_attrs;
+  size_t i;
 
-  for (attr = attrset_first (set, &i); attr != NULL;
-       attr = attrset_next (set, &i)) 
+  n_attrs = attrset_count (set);
+  attrs = attrset_sorted (set);
+  for (i = 0; i < n_attrs; i++)
     {
+      const struct attribute *attr = attrs[i];
       const char *name = attribute_get_name (attr);
       size_t n_values;
       size_t i;
@@ -401,6 +404,7 @@ display_attributes (struct tab_table *t, const struct attrset *set, int flags,
           r++;
         }
     }
+  free (attrs);
 }
 
 static void

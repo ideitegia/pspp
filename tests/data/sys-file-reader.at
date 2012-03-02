@@ -1088,18 +1088,18 @@ DISPLAY ATTRIBUTES.
   AT_CHECK([cat pspp.csv], [0],
 [[Variable,Description,
 FirstVariable,Custom attributes:,
-,bert,123
 ,adèle[1],23
 ,adèle[2],34
+,bert,123
 SécondVariable,Custom attributes:,
 ,xyzzy,quux
 
 Table: Custom data file attributes.
 Attribute,Value
-SécondAttr[1],123
-SécondAttr[2],456
 Attr1[1],Value1
 Attr1[2],'déclaration'
+SécondAttr[1],123
+SécondAttr[2],456
 ]])
 done
 AT_CLEANUP
