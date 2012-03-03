@@ -65,7 +65,7 @@ void moments1_calculate (const struct moments1 *,
 void moments1_destroy (struct moments1 *);
 
 /* Standard errors. */
-double calc_semean (double stddev, double weight);
+double calc_semean (double var, double weight);
 double calc_seskew (double weight);
 double calc_sekurt (double weight);
 

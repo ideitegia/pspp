@@ -461,6 +461,13 @@ moments1_destroy (struct moments1 *m)
   free (m);
 }
 
+
+double
+calc_semean (double var, double W)
+{
+  return sqrt (var / W);
+}
+
 /* Returns the standard error of the skewness for the given total
    weight W.
 
