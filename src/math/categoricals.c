@@ -78,18 +78,6 @@ struct variable_node
   int n_vals;                 /* Number of values for this variable */
 };
 
-static void UNUSED
-dump_interaction (const struct interaction *iact)
-{
-  if (CATEGORICALS_DEBUG)
-    {
-      struct string str = DS_EMPTY_INITIALIZER;
-      interaction_to_string (iact, &str);
-      printf ("Interaction: %s\n", ds_cstr (&str));
-      ds_destroy (&str);
-    }
-}
-
 static struct variable_node *
 lookup_variable (const struct hmap *map, const struct variable *var, unsigned int hash)
 {
@@ -186,7 +174,7 @@ struct categoricals
   const struct payload *payload;
 };
 
-static void UNUSED
+static void
 categoricals_dump (const struct categoricals *cat)
 {
   if (CATEGORICALS_DEBUG)
@@ -540,6 +528,7 @@ categoricals_done (const struct categoricals *cat_)
       HMAP_FOR_EACH (ivn, struct interaction_value, node, &iap->ivmap)
 	{
 	  iap->reverse_interaction_value_map[x++] = ivn;
+
 	}
 
       assert (x <= iap->n_cats);
@@ -565,7 +554,7 @@ categoricals_done (const struct categoricals *cat_)
 
   assert (cat->n_vars <= cat->n_iap);
 
-  //  categoricals_dump (cat);
+  categoricals_dump (cat);
 
   /* Tally up the sums for all the encodings */
   for (i = 0 ; i < cat->n_iap; ++i)
