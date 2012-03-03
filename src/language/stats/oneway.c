@@ -664,6 +664,7 @@ run_oneway (const struct oneway_spec *cmd,
       struct payload payload;
       payload.create = makeit;
       payload.update = updateit;
+      payload.destroy = NULL;
 
       ws.vws[v].cat = categoricals_create (&inter, 1, cmd->wv,
                                            cmd->exclude);
