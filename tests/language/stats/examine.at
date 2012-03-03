@@ -549,7 +549,7 @@ DATA LIST FILE='large.txt' /S 1-2 (A) X 3 .
 AGGREGATE OUTFILE=* /BREAK=X /A=N.
 
 
-EXAMINE /A BY /X.
+EXAMINE /A BY X.
 ])
 AT_CHECK([pspp -o pspp.csv examine.sps])
 dnl Ignore output -- this is just a no-crash check.
