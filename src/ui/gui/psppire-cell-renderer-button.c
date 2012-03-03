@@ -59,7 +59,8 @@ enum
   {
     PROP_0,
     PROP_EDITABLE,
-    PROP_LABEL
+    PROP_LABEL,
+    PROP_SLASH
   };
 
 static void
@@ -85,6 +86,11 @@ psppire_cell_renderer_button_set_property (GObject      *object,
       obj->label = g_value_dup_string (value);
       break;
 
+    case PROP_SLASH:
+      psppire_cell_renderer_button_set_slash (obj,
+                                              g_value_get_boolean (value));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -107,6 +113,11 @@ psppire_cell_renderer_button_get_property (GObject      *object,
 
     case PROP_LABEL:
       g_value_set_string (value, obj->label);
+      break;
+
+    case PROP_SLASH:
+      g_value_set_boolean (value,
+                           psppire_cell_renderer_button_get_slash (obj));
       break;
 
     default:
@@ -222,6 +233,13 @@ psppire_cell_renderer_button_render (GtkCellRenderer      *cell,
                         state_type,
                         button->label_style, button->label, button->xpad,
                         button->ypad, cell->xalign, cell->yalign);
+
+  if (button->slash)
+    gdk_draw_line (window, button->button_style->black_gc,
+                   cell_area->x,
+                   cell_area->y + cell_area->height,
+                   cell_area->x + cell_area->width,
+                   cell_area->y);
 }
 
 static void
@@ -404,6 +422,7 @@ psppire_cell_renderer_button_start_editing (GtkCellRenderer      *cell,
                                       "xalign", xalign,
                                       "yalign", yalign,
                                       "path", path,
+                                      "slash", cell_button->slash,
                                       NULL);
 
   g_signal_connect (G_OBJECT (cell_button->button), "focus-out-event",
@@ -493,6 +512,15 @@ psppire_cell_renderer_button_class_init (PsppireCellRendererButtonClass *class)
                                                         "Text to appear in button.",
                                                         "",
                                                         G_PARAM_READWRITE));
+
+  g_object_class_install_property (gobject_class,
+                                   PROP_SLASH,
+                                   g_param_spec_boolean ("slash",
+                                                         _("Diagonal slash"),
+                                                         _("Whether to draw a diagonal slash across the button."),
+                                                         FALSE,
+                                                         G_PARAM_READWRITE));
+
 }
 
 static void
@@ -503,6 +531,8 @@ psppire_cell_renderer_button_init (PsppireCellRendererButton *obj)
   obj->border_width = 0;
   obj->xpad = 0;
   obj->ypad = 0;
+
+  obj->slash = FALSE;
 
   obj->button = NULL;
 
@@ -535,4 +565,19 @@ GtkCellRenderer *
 psppire_cell_renderer_button_new (void)
 {
   return GTK_CELL_RENDERER (g_object_new (PSPPIRE_TYPE_CELL_RENDERER_BUTTON, NULL));
+}
+
+void
+psppire_cell_renderer_button_set_slash (PsppireCellRendererButton *button,
+                                        gboolean slash)
+{
+  g_return_if_fail (button != NULL);
+  button->slash = slash;
+}
+
+gboolean
+psppire_cell_renderer_button_get_slash (const PsppireCellRendererButton *button)
+{
+  g_return_val_if_fail (button != NULL, FALSE);
+  return button->slash;
 }

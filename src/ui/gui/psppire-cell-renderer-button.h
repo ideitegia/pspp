@@ -40,6 +40,8 @@ struct _PsppireCellRendererButton {
   gint xpad;
   gint ypad;
 
+  gboolean slash;
+
   GtkWidget *button;
   guint32 click_time;
   gdouble click_x;
@@ -59,6 +61,10 @@ struct _PsppireCellRendererButtonClass {
 
 GType psppire_cell_renderer_button_get_type (void) G_GNUC_CONST;
 GtkCellRenderer* psppire_cell_renderer_button_new (void);
+
+void psppire_cell_renderer_button_set_slash (PsppireCellRendererButton *,
+                                             gboolean slash);
+gboolean psppire_cell_renderer_button_get_slash (const PsppireCellRendererButton *);
 
 G_END_DECLS
 
