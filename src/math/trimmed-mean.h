@@ -17,8 +17,6 @@
 #ifndef __TRIMMED_MEAN_H__
 #define __TRIMMED_MEAN_H__
 
-#include <stddef.h>
-
 #include "order-stats.h"
 
 
