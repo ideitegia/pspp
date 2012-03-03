@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -411,6 +411,9 @@ gboolean      pspp_sheet_view_get_tooltip_context(PsppSheetView       *tree_view
 void          pspp_sheet_view_set_tooltip_column (PsppSheetView       *tree_view,
 					        gint               column);
 gint          pspp_sheet_view_get_tooltip_column (PsppSheetView       *tree_view);
+
+void pspp_sheet_view_stop_editing (PsppSheetView *tree_view,
+                                   gboolean     cancel_editing);
 
 G_END_DECLS
 

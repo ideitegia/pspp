@@ -397,8 +397,6 @@ static void pspp_sheet_view_real_start_editing (PsppSheetView       *tree_view,
 					      GdkRectangle      *cell_area,
 					      GdkEvent          *event,
 					      guint              flags);
-static void pspp_sheet_view_stop_editing                  (PsppSheetView *tree_view,
-							 gboolean     cancel_editing);
 static gboolean pspp_sheet_view_real_start_interactive_search (PsppSheetView *tree_view,
 							     gboolean     keybinding);
 static gboolean pspp_sheet_view_start_interactive_search      (PsppSheetView *tree_view);
@@ -12070,9 +12068,9 @@ pspp_sheet_view_real_start_editing (PsppSheetView       *tree_view,
     }
 }
 
-static void
+void
 pspp_sheet_view_stop_editing (PsppSheetView *tree_view,
-			    gboolean     cancel_editing)
+                              gboolean     cancel_editing)
 {
   PsppSheetViewColumn *column;
   GtkCellRenderer *cell;
