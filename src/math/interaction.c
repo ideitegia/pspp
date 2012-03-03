@@ -146,11 +146,14 @@ void
 interaction_dump (const struct interaction *i)
 {
   int v = 0;
+  if ( i->n_vars == 0)
+    {
+      printf ("(empty)\n");
+      return;
+    }
   printf ("%s", var_get_name (i->vars[v]));
   for (v = 1; v < i->n_vars; ++v)
-    {
-      printf (" * %s", var_get_name (i->vars[v]));
-    }
+    printf (" * %s", var_get_name (i->vars[v]));
   printf ("\n");
 }
 
