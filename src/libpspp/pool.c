@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2000, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -96,10 +96,16 @@ union align
     void (*fp) (void);
     long l;
     double d;
+
+    /* glibc jmp_buf on ia64 requires 16-byte alignment.  This ensures it. */
+    size_t s[2];
   };
 
 /* This should be the alignment size used by malloc().  The size of
-   the union above is correct, if not optimal, in all known cases. */
+   the union above is correct, if not optimal, in all known cases.
+
+   This is normally 8 bytes for 32-bit architectures and 16 bytes for 64-bit
+   architectures. */
 #define ALIGN_SIZE sizeof (union align)
 
 /* DISCRETE_BLOCKS may be declared as nonzero to prevent
