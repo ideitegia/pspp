@@ -1730,12 +1730,11 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
   PsppSheetViewColumn *column;
   GtkAllocation allocation;
   gint width = 0;
-  gint extra, extra_per_column, extra_for_last;
+  gint extra, extra_per_column;
   gint full_requested_width = 0;
   gint number_of_expand_columns = 0;
   gboolean column_changed = FALSE;
   gboolean rtl;
-  gboolean update_expand;
 
   tree_view = PSPP_SHEET_VIEW (widget);
 
@@ -1770,41 +1769,11 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
 	number_of_expand_columns++;
     }
 
-  /* Only update the expand value if the width of the widget has changed,
-   * or the number of expand columns has changed, or if there are no expand
-   * columns, or if we didn't have an size-allocation yet after the
-   * last validated node.
-   */
-  update_expand = (width_changed && *width_changed == TRUE)
-      || number_of_expand_columns != tree_view->priv->last_number_of_expand_columns
-      || number_of_expand_columns == 0
-      || tree_view->priv->post_validation_flag == TRUE;
-
-  tree_view->priv->post_validation_flag = FALSE;
-
-  if (!update_expand)
-    {
-      extra = tree_view->priv->last_extra_space;
-      extra_for_last = MAX (widget->allocation.width - full_requested_width - extra, 0);
-    }
-  else
-    {
-      extra = MAX (widget->allocation.width - full_requested_width, 0);
-      extra_for_last = 0;
-
-      tree_view->priv->last_extra_space = extra;
-    }
-
+  extra = MAX (widget->allocation.width - full_requested_width, 0);
   if (number_of_expand_columns > 0)
     extra_per_column = extra/number_of_expand_columns;
   else
     extra_per_column = 0;
-
-  if (update_expand)
-    {
-      tree_view->priv->last_extra_space_per_column = extra_per_column;
-      tree_view->priv->last_number_of_expand_columns = number_of_expand_columns;
-    }
 
   for (list = (rtl ? last_column : first_column); 
        list != (rtl ? first_column->prev : last_column->next);
@@ -1855,17 +1824,6 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
 	      number_of_expand_columns --;
 	    }
 	}
-      else if (number_of_expand_columns == 0 &&
-	       list == last_column)
-	{
-	  column->width += extra;
-	}
-
-      /* In addition to expand, the last column can get even more
-       * extra space so all available space is filled up.
-       */
-      if (extra_for_last > 0 && list == last_column)
-	column->width += extra_for_last;
 
       if (column->width != old_width)
         g_object_notify (G_OBJECT (column), "width");
@@ -2478,7 +2436,7 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 
 	  gtk_grab_add (widget);
 	  PSPP_SHEET_VIEW_SET_FLAG (tree_view, PSPP_SHEET_VIEW_IN_COLUMN_RESIZE);
-	  column->resized_width = column->width - tree_view->priv->last_extra_space_per_column;
+	  column->resized_width = column->width;
 
 	  /* block attached dnd signal handler */
 	  drag_data = g_object_get_data (G_OBJECT (widget), "gtk-site-data");
@@ -3111,8 +3069,10 @@ pspp_sheet_view_motion_resize_column (GtkWidget      *widget,
     {
       column->use_resized_width = TRUE;
       column->resized_width = new_width;
+#if 0
       if (column->expand)
 	column->resized_width -= tree_view->priv->last_extra_space_per_column;
+#endif
       gtk_widget_queue_resize (widget);
     }
 
@@ -3687,7 +3647,9 @@ draw_empty_focus (PsppSheetView *tree_view, GdkRectangle *clip_area)
 static void
 pspp_sheet_view_draw_grid_lines (PsppSheetView    *tree_view,
 			       GdkEventExpose *event,
-			       gint            n_visible_columns)
+                                 gint            n_visible_columns,
+                                 gint min_y,
+                                 gint max_y)
 {
   GList *list = tree_view->priv->columns;
   gint i = 0;
@@ -3718,8 +3680,8 @@ pspp_sheet_view_draw_grid_lines (PsppSheetView    *tree_view,
           && current_x - 1 < event->area.x + event->area.width)
         gdk_draw_line (event->window,
                        tree_view->priv->grid_line_gc,
-                       current_x - 1, 0,
-                       current_x - 1, height);
+                       current_x - 1, min_y,
+                       current_x - 1, max_y - min_y);
     }
 }
 
@@ -3762,6 +3724,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   gint grid_line_width;
   gboolean row_ending_details;
   gboolean draw_vgrid_lines, draw_hgrid_lines;
+  gint min_y, max_y;
 
   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
 
@@ -3869,6 +3832,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
    * order, drawing each successive node.
    */
 
+  min_y = y_offset;
   do
     {
       gboolean parity;
@@ -3883,6 +3847,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
       background_area.y = y_offset + event->area.y;
       background_area.height = max_height;
+      max_y = background_area.y + max_height;
 
       flags = 0;
 
@@ -4134,6 +4099,21 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	  cell_offset += column->width;
 	}
 
+      if (cell_offset < event->area.x)
+        {
+          gtk_paint_flat_box (widget->style,
+                              event->window,
+                              GTK_STATE_NORMAL,
+                              GTK_SHADOW_NONE,
+                              &event->area,
+                              widget,
+                              "base",
+                              cell_offset,
+                              background_area.y,
+                              event->area.x - cell_offset,
+                              background_area.height);
+        }
+
       if (node == drag_highlight)
         {
           /* Draw indicator for the drop
@@ -4273,7 +4253,8 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   while (y_offset < event->area.height);
 
 done:
-  pspp_sheet_view_draw_grid_lines (tree_view, event, n_visible_columns);
+  pspp_sheet_view_draw_grid_lines (tree_view, event, n_visible_columns,
+                                   min_y, max_y);
 
  if (tree_view->priv->rubber_band_status == RUBBER_BAND_ACTIVE)
    {
@@ -4330,8 +4311,21 @@ pspp_sheet_view_expose (GtkWidget      *widget,
 
   else if (event->window == tree_view->priv->header_window)
     {
+      gint n_visible_columns;
       GList *list;
-      
+
+      gtk_paint_flat_box (widget->style,
+                          event->window,
+                          GTK_STATE_NORMAL,
+                          GTK_SHADOW_NONE,
+                          &event->area,
+                          widget,
+                          "cell_odd",
+                          event->area.x,
+                          event->area.y,
+                          event->area.width,
+                          event->area.height);
+
       for (list = tree_view->priv->columns; list != NULL; list = list->next)
 	{
 	  PsppSheetViewColumn *column = list->data;
@@ -4345,6 +4339,19 @@ pspp_sheet_view_expose (GtkWidget      *widget,
             gtk_container_propagate_expose (GTK_CONTAINER (tree_view),
                                             column->button, event);
 	}
+
+      n_visible_columns = 0;
+      for (list = tree_view->priv->columns; list; list = list->next)
+        {
+          if (! PSPP_SHEET_VIEW_COLUMN (list->data)->visible)
+            continue;
+          n_visible_columns ++;
+        }
+      pspp_sheet_view_draw_grid_lines (tree_view,
+                                       event,
+                                       n_visible_columns,
+                                       event->area.y,
+                                       event->area.height);
     }
   else if (event->window == tree_view->priv->drag_window)
     {

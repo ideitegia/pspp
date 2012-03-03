@@ -186,10 +186,6 @@ struct _PsppSheetViewPrivate
   /* Non-interactive Header Resizing, expand flag support */
   gint prev_width;
 
-  gint last_extra_space;
-  gint last_extra_space_per_column;
-  gint last_number_of_expand_columns;
-
   /* ATK Hack */
   PsppSheetDestroyCountFunc destroy_count_func;
   gpointer destroy_count_data;
