@@ -575,6 +575,8 @@ categoricals_done (const struct categoricals *cat_)
 	      const double bin = categoricals_get_code_for_case (cat, x, iv->ccase); \
 	      iap->enc_sum [x - iap->base_subscript_short] += bin * iv->cc;
 	    }
+	  if (cat->payload && cat->payload->destroy)
+	    cat->payload->destroy (cat->aux1, cat->aux2, iv->user_data);
 	}
     }
 
