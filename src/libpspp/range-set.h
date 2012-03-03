@@ -67,6 +67,11 @@ unsigned long int range_set_scan (const struct range_set *,
 
 static inline bool range_set_is_empty (const struct range_set *);
 
+#define RANGE_SET_FOR_EACH(NODE, RANGE_SET)             \
+        for ((NODE) = range_set_first (RANGE_SET);      \
+             (NODE) != NULL;                            \
+             (NODE) = range_set_next (RANGE_SET, NODE))
+
 static inline const struct range_set_node *range_set_first (
   const struct range_set *);
 static inline const struct range_set_node *range_set_next (

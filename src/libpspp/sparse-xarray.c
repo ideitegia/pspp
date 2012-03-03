@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -105,8 +105,7 @@ sparse_xarray_clone (const struct sparse_xarray *old)
 
       new->disk = ext_array_create ();
       new->disk_rows = range_set_clone (old->disk_rows, NULL);
-      for (node = range_set_first (old->disk_rows); node != NULL;
-           node = range_set_next (old->disk_rows, node))
+      RANGE_SET_FOR_EACH (node, old->disk_rows)
         {
           unsigned long int start = range_set_node_get_start (node);
           unsigned long int end = range_set_node_get_end (node);
@@ -336,8 +335,7 @@ sparse_xarray_write_columns (struct sparse_xarray *sx, size_t start,
     {
       const struct range_set_node *node;
 
-      for (node = range_set_first (sx->disk_rows); node != NULL;
-           node = range_set_next (sx->disk_rows, node))
+      RANGE_SET_FOR_EACH (node, sx->disk_rows)
         {
           unsigned long int start_row = range_set_node_get_start (node);
           unsigned long int end_row = range_set_node_get_end (node);
@@ -446,8 +444,7 @@ sparse_xarray_copy (const struct sparse_xarray *sx, struct sparse_xarray *dx,
           const struct range_set_node *node;
           void *tmp = xmalloc (sx->n_bytes);
 
-          for (node = range_set_first (sx->disk_rows); node != NULL;
-               node = range_set_next (sx->disk_rows, node))
+          RANGE_SET_FOR_EACH (node, sx->disk_rows)
             {
               unsigned long int start = range_set_node_get_start (node);
               unsigned long int end = range_set_node_get_end (node);
@@ -587,8 +584,7 @@ sparse_xarray_model_checker_hash (const struct sparse_xarray *sx,
       void *tmp = xmalloc (sx->n_bytes);
 
       md4_process_bytes ("d", 1, &ctx);
-      for (node = range_set_first (sx->disk_rows); node != NULL;
-           node = range_set_next (sx->disk_rows, node))
+      RANGE_SET_FOR_EACH (node, sx->disk_rows)
         {
           unsigned long int start = range_set_node_get_start (node);
           unsigned long int end = range_set_node_get_end (node);

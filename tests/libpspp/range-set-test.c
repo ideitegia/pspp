@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -163,8 +163,7 @@ print_regions (const struct range_set *rs)
   const struct range_set_node *node;
 
   printf ("result:");
-  for (node = range_set_first (rs); node != NULL;
-       node = range_set_next (rs, node))
+  RANGE_SET_FOR_EACH (node, rs)
     printf (" (%lu,%lu)",
             range_set_node_get_start (node), range_set_node_get_end (node));
   printf ("\n");

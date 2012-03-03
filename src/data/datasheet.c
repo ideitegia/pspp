@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -926,8 +926,7 @@ axis_hash (const struct axis *axis, struct md4_ctx *ctx)
       md4_process_bytes (&size, sizeof size, ctx);
     }
 
-  for (rsn = range_set_first (axis->available); rsn != NULL;
-       rsn = range_set_next (axis->available, rsn))
+  RANGE_SET_FOR_EACH (rsn, axis->available)
     {
       unsigned long int start = range_set_node_get_start (rsn);
       unsigned long int end = range_set_node_get_end (rsn);
