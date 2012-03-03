@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -93,6 +93,8 @@ size_t val_labs_count (const struct val_labs *);
 const char *val_labs_find (const struct val_labs *, const union value *);
 struct val_lab *val_labs_lookup (const struct val_labs *,
                                  const union value *);
+const union value *val_labs_find_value (const struct val_labs *,
+                                        const char *label);
 
 /* Basic properties. */
 size_t val_labs_count (const struct val_labs *);

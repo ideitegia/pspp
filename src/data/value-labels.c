@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -255,6 +255,35 @@ val_labs_lookup (const struct val_labs *vls, const union value *value)
 {
   return (vls == NULL ? NULL
           : val_labs_lookup__ (vls, value, value_hash (value, vls->width, 0)));
+}
+
+/* Searches VLS for a value label whose label is exactly LABEL.  If successful,
+   returns the corresponding value.  Otherwise, returns a null pointer.
+
+   Returns a null pointer if VLS is null.
+
+   This function is O(n) in the number of labels in VLS. */
+const union value *
+val_labs_find_value (const struct val_labs *vls, const char *label_)
+{
+  const union value *value = NULL;
+
+  if (vls != NULL)
+    {
+      const struct val_lab *vl;
+      const char *label;
+
+      label = intern_new (label_);
+      HMAP_FOR_EACH (vl, struct val_lab, node, &vls->labels)
+        if (vl->label == label)
+          {
+            value = &vl->value;
+            break;
+          }
+      intern_unref (label);
+    }
+
+  return value;
 }
 
 /* Returns the first value label in VLS, in arbitrary order, or a
