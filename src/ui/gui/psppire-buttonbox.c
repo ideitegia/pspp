@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010, 2011  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -152,6 +152,7 @@ typedef enum
     PSPPIRE_BUTTON_GOTO_MASK   = (1 << PSPPIRE_BUTTON_GOTO),
     PSPPIRE_BUTTON_CONTINUE_MASK = (1 << PSPPIRE_BUTTON_CONTINUE),
     PSPPIRE_BUTTON_CANCEL_MASK = (1 << PSPPIRE_BUTTON_CANCEL),
+    PSPPIRE_BUTTON_CLOSE_MASK  = (1 << PSPPIRE_BUTTON_CLOSE),
     PSPPIRE_BUTTON_HELP_MASK   = (1 << PSPPIRE_BUTTON_HELP),
     PSPPIRE_BUTTON_RESET_MASK  = (1 << PSPPIRE_BUTTON_RESET),
     PSPPIRE_BUTTON_PASTE_MASK  = (1 << PSPPIRE_BUTTON_PASTE)
@@ -175,6 +176,7 @@ psppire_button_box_class_init (PsppireButtonBoxClass *class)
 			PSPPIRE_TYPE_BUTTON_MASK,
 			PSPPIRE_BUTTON_OK_MASK |
 			PSPPIRE_BUTTON_CANCEL_MASK |
+			PSPPIRE_BUTTON_CLOSE_MASK |
 			PSPPIRE_BUTTON_RESET_MASK |
 			PSPPIRE_BUTTON_HELP_MASK |
 			PSPPIRE_BUTTON_PASTE_MASK,
@@ -350,6 +352,12 @@ psppire_button_box_init (PsppireButtonBox *bb)
   psppire_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_CANCEL]);
   g_object_set (bb->button[PSPPIRE_BUTTON_CANCEL], "no-show-all", TRUE, NULL);
 
+  bb->button[PSPPIRE_BUTTON_CLOSE] = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
+  g_signal_connect (bb->button[PSPPIRE_BUTTON_CLOSE], "clicked",
+		    G_CALLBACK (close_dialog), NULL);
+  psppire_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_CLOSE]);
+  g_object_set (bb->button[PSPPIRE_BUTTON_CLOSE], "no-show-all", TRUE, NULL);
+
 
   bb->button[PSPPIRE_BUTTON_RESET] = gtk_button_new_from_stock ("pspp-stock-reset");
   g_signal_connect (bb->button[PSPPIRE_BUTTON_RESET], "clicked",
@@ -486,6 +494,7 @@ psppire_button_flags_get_type (void)
 	  { PSPPIRE_BUTTON_GOTO_MASK,    "PSPPIRE_BUTTON_GOTO_MASK",     "Goto case/variable" },
 	  { PSPPIRE_BUTTON_CONTINUE_MASK,"PSPPIRE_BUTTON_CONTINUE_MASK", "Accept and close the subdialog" },
 	  { PSPPIRE_BUTTON_CANCEL_MASK,  "PSPPIRE_BUTTON_CANCEL_MASK",   "Close dialog and discard settings" },
+	  { PSPPIRE_BUTTON_CLOSE_MASK,   "PSPPIRE_BUTTON_CLOSE_MASK",    "Close dialog" },
 	  { PSPPIRE_BUTTON_HELP_MASK,    "PSPPIRE_BUTTON_HELP_MASK",     "Invoke context sensitive help" },
 	  { PSPPIRE_BUTTON_RESET_MASK,   "PSPPIRE_BUTTON_RESET_MASK",    "Restore dialog to its default settings" },
 	  { PSPPIRE_BUTTON_PASTE_MASK,   "PSPPIRE_BUTTON_PASTE_MASK",    "Accept dialog and paste syntax" },
