@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010, 2011  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -70,11 +70,9 @@ _psppire_button_box_child_requisition (GtkWidget *widget,
 				       int       *nvis_children,
 				       int       *nvis_secondaries,
 				       int       *width,
-
-
-#define PSPPIRE_TYPE_BUTTON_MASK \
-  (psppire_button_flags_get_type())
 				       int       *height);
+
+#define PSPPIRE_TYPE_BUTTON_MASK psppire_button_flags_get_type()
 
 G_END_DECLS
 
