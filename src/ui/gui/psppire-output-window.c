@@ -736,6 +736,12 @@ enum {
   SELECT_FMT_ODT
 };
 
+/* GNU Hurd doesn't have PATH_MAX.  Use a fallback.
+   Temporary directory names are usually not that long.  */
+#ifndef PATH_MAX
+# define PATH_MAX 1024
+#endif
+
 static void
 clipboard_get_cb (GtkClipboard     *clipboard,
 		  GtkSelectionData *selection_data,
