@@ -963,8 +963,10 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 				 dict_get_weight (dict), MV_ANY);
 
   reader = casereader_clone (input);
-  reader = casereader_create_filter_missing (reader, v_variables, n_variables,
+  reader = casereader_create_filter_missing (reader, all_vars, n_all_vars,
 					     MV_ANY, NULL, NULL);
+
+
   for (; (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       covariance_accumulate (cov, c);
