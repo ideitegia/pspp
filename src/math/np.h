@@ -19,7 +19,6 @@
 
 #include "order-stats.h"
 
-struct moments1;
 struct casewriter;
 
 enum
@@ -38,7 +37,6 @@ struct np
   double mean;
   double stddev;
 
-
   double prev_cc;
 
   double ns_min;
@@ -54,6 +52,6 @@ struct np
 };
 
 
-struct np * np_create (const struct moments1 *);
+struct np * np_create (double n, double mean, double var);
 
 #endif

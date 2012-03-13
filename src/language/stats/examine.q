@@ -902,7 +902,11 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 
 	 if ( cmd->a_plot[XMN_PLT_NPPLOT] )
 	    {
-	      metric->np = np_create (metric->moments);
+              double n, mean, var;
+              moments1_calculate (metric->moments,
+                                  &n, &mean, &var, NULL,  NULL);
+
+	      metric->np = np_create (n, mean, var);
 	      n_os ++;
 	    }
 

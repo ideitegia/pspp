@@ -72,9 +72,8 @@ acc (struct statistic *s, const struct ccase *cx UNUSED,
 }
 
 struct np *
-np_create (const struct moments1 *m)
+np_create (double n, double mean, double var)
 {
-  double variance;
   struct np *np = xzalloc (sizeof (*np));
   struct order_stats *os = &np->parent;
   struct statistic *stat = &os->parent;
@@ -83,9 +82,10 @@ np_create (const struct moments1 *m)
 
   np->prev_cc = 0;
 
-  moments1_calculate (m, &np->n, &np->mean, &variance, NULL, NULL);
+  np->n = n;
+  np->mean = mean;
 
-  np->stddev = sqrt (variance);
+  np->stddev = sqrt (var);
 
   np->y_min = np->ns_min = np->dns_min = DBL_MAX;
   np->y_max = np->ns_max = np->dns_max = -DBL_MAX;
