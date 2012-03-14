@@ -1078,8 +1078,15 @@ generate_syntax (const struct recode_dialog *rd)
       while (g_hash_table_iter_next (&iter, (void**) &var, (void**) &nlp))
 	{
 	  if (nlp->label)
-	    g_string_append_printf (str, "\nVARIABLE LABELS %s %s.",
-				    nlp->name, nlp->label);
+	    {
+	      struct string sl;
+	      ds_init_empty (&sl);
+	      syntax_gen_string (&sl, ss_cstr (nlp->label));
+	      g_string_append_printf (str, "\nVARIABLE LABELS %s %s.",
+				      nlp->name, ds_cstr (&sl));
+
+	      ds_destroy (&sl);
+	    }
 	}
     }
 
