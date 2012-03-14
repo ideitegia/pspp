@@ -44,6 +44,7 @@ struct _PsppireVarView
 {
   GtkTreeView parent;
 
+  /* Private */
   GtkListStore **list;
   
   GType *cols;

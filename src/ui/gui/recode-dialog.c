@@ -243,7 +243,7 @@ dialog_state_valid (gpointer data)
 
   if ( rd->different )
     {
-      GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd->variable_treeview)->list);
+      GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (rd->variable_treeview));
 
       if (g_hash_table_size (rd->varmap) != gtk_tree_model_iter_n_children (model, NULL) )
 	return FALSE;
@@ -435,7 +435,7 @@ on_selection_change (GtkTreeSelection *selection, gpointer data)
 {
   struct recode_dialog *rd = data;
 
-  GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd->variable_treeview)->list);
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (rd->variable_treeview));
 
   GList *rows = gtk_tree_selection_get_selected_rows (selection, &model);
 
@@ -514,7 +514,9 @@ on_change_clicked (GObject *obj, gpointer data)
   struct recode_dialog *rd = data;
   struct variable *var = NULL;
   struct nlp *nlp;
-  GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd->variable_treeview)->list);
+
+  GtkTreeModel *model =  gtk_tree_view_get_model (GTK_TREE_VIEW (rd->variable_treeview));
+
   GtkTreeIter iter;
   GtkTreeSelection *selection =
     gtk_tree_view_get_selection (GTK_TREE_VIEW (rd->variable_treeview));
