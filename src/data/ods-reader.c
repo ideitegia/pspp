@@ -462,7 +462,7 @@ ods_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
 		  var_spec = xrealloc (var_spec, sizeof (*var_spec) * (idx + 1));
 
 		  /* xrealloc (unlike realloc) doesn't initialise its memory to 0 */
-		  memset (var_spec + n_var_specs * sizeof (*var_spec),
+		  memset (var_spec + n_var_specs,
 			  0, 
 			  (n_var_specs - idx + 1) * sizeof (*var_spec));
 		  n_var_specs = idx + 1;
