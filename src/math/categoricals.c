@@ -697,8 +697,14 @@ categoricals_get_n_variables (const struct categoricals *cat)
 const struct ccase *
 categoricals_get_case_by_category_real (const struct categoricals *cat, int iact, int n)
 {
+  const struct interaction_value *vn;
+
   const struct interact_params *vp = &cat->iap[iact];
-  const struct interaction_value *vn = vp->reverse_interaction_value_map [n];
+
+  if ( n >= hmap_count (&vp->ivmap))
+    return NULL;
+
+  vn = vp->reverse_interaction_value_map [n];
 
   return vn->ccase;
 }
@@ -708,7 +714,12 @@ void *
 categoricals_get_user_data_by_category_real (const struct categoricals *cat, int iact, int n)
 {
   const struct interact_params *vp = &cat->iap[iact];
-  const struct interaction_value *iv = vp->reverse_interaction_value_map [n];
+  const struct interaction_value *iv ;
+
+  if ( n >= hmap_count (&vp->ivmap))
+    return NULL;
+
+  iv = vp->reverse_interaction_value_map [n];
 
   return iv->user_data;
 }
