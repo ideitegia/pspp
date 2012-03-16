@@ -52,6 +52,13 @@ enum mv_class;
 
 void order_stats_dump (const struct order_stats *os);
 
+void
+order_stats_accumulate_idx (struct order_stats **os, size_t nos,
+                            struct casereader *reader,
+                            int wt_idx,
+                            int val_idx);
+
+
 void order_stats_accumulate (struct order_stats **ptl, size_t nos,
 			     struct casereader *reader,
 			     const struct variable *wv,

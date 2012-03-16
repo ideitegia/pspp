@@ -111,11 +111,10 @@ update_k_values (const struct ccase *cx, double y_i, double c_i, double cc_i,
 
 
 void
-order_stats_accumulate (struct order_stats **os, size_t nos,
-			struct casereader *reader,
-			const struct variable *wv,
-			const struct variable *var,
-			enum mv_class exclude)
+order_stats_accumulate_idx (struct order_stats **os, size_t nos,
+                            struct casereader *reader,
+                            int wt_idx,
+                            int val_idx)
 {
   struct ccase *cx;
   struct ccase *prev_cx = NULL;
@@ -126,14 +125,11 @@ order_stats_accumulate (struct order_stats **os, size_t nos,
 
   for (; (cx = casereader_read (reader)) != NULL; case_unref (cx))
     {
-      const double weight = wv ? case_data (cx, wv)->f : 1.0;
-      const double this_value = case_data (cx, var)->f;
+      const double weight = (wt_idx == -1) ? 1.0 : case_data_idx (cx, wt_idx)->f;
+      const double this_value = case_data_idx (cx, val_idx)->f;
 
       /* The casereader MUST be sorted */
       assert (this_value >= prev_value);
-
-      if ( var_is_value_missing (var, case_data (cx, var), exclude))
-	continue;
 
       if ( prev_value == -DBL_MAX || prev_value == this_value)
 	c_i += weight;
@@ -157,4 +153,20 @@ order_stats_accumulate (struct order_stats **os, size_t nos,
 }
 
 
+void
+order_stats_accumulate (struct order_stats **os, size_t nos,
+			struct casereader *reader,
+			const struct variable *wv,
+			const struct variable *var,
+			enum mv_class exclude)
+{
+  /* Filter out missing cases */
+  reader = casereader_create_filter_missing (reader, &var, 1,
+                                             exclude, NULL, NULL);
+
+  order_stats_accumulate_idx (os, nos,
+                              reader,
+                              wv ? var_get_case_index (wv) : -1,
+                              var_get_case_index (var));
+}
 
