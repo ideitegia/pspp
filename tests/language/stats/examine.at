@@ -75,7 +75,7 @@ Table: Extreme Values
 ,,,Case Number,Value
 Breaking Strain,Highest,1,12,7.00
 ,,2,16,6.00
-,,3,7,5.00
+,,3,14,5.00
 ,Lowest,1,3,1.00
 ,,2,3,1.00
 ,,3,4,1.00
@@ -106,8 +106,8 @@ Breaking Strain,Aspeger,8.00,100%,.00,0%,8.00,100%
 
 Table: Extreme Values
 ,Manufacturer,,,Case Number,Value
-Breaking Strain,Aspeger,Highest,1,5,4.00
-,,,2,6,4.00
+Breaking Strain,Aspeger,Highest,1,6,4.00
+,,,2,5,4.00
 ,,,3,1,3.00
 ,,Lowest,1,3,1.00
 ,,,2,3,1.00
@@ -335,7 +335,9 @@ BEGIN DATA.
 .   2
 END DATA
 
-EXAMINE /x by y.
+EXAMINE /x by y
+        /MISSING = PAIRWISE
+        .
 ])
 AT_CHECK([pspp -o pspp.csv examine.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
@@ -356,6 +358,33 @@ Table: Case Processing Summary
 ,y,N,Percent,N,Percent,N,Percent
 x,1.00,4,100%,0,0%,4,100%
 ,2.00,2,66.6667%,1,33.3333%,3,100%
+])
+AT_CLEANUP
+
+
+AT_SETUP([EXAMINE -- user missing values])
+AT_DATA([examine-m.sps], [dnl
+DATA LIST notable LIST /x * y *.
+BEGIN DATA.
+1                   2
+9999999999          2
+9999999999          99
+END DATA.
+
+MISSING VALUES x (9999999999).
+MISSING VALUES y (99).
+
+EXAMINE
+	/VARIABLES= x y
+	/MISSING=PAIRWISE.
+])
+AT_CHECK([pspp -O format=csv examine-m.sps], [0], [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x,1,33.3333%,2,66.6667%,3,100%
+y,2,66.6667%,1,33.3333%,3,100%
 ])
 AT_CLEANUP
 
@@ -509,9 +538,7 @@ END DATA.
 
 EXAMINE /x PLOT=HISTOGRAM.
 ])
-AT_CHECK([pspp -o pspp.csv examine.sps], [0], [dnl
-warning: Not creating plot because data set is empty.
-])
+AT_CHECK([pspp -o pspp.csv examine.sps], [0], [ignore])
 dnl Ignore output -- this is just a no-crash check.
 AT_CLEANUP
 

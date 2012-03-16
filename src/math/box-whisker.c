@@ -82,14 +82,9 @@ acc (struct statistic *s, const struct ccase *cx,
   o->extreme = extreme;
   ds_init_empty (&o->label);
 
-  if (bw->id_var)
-    var_append_value_name (bw->id_var,
-			   case_data (cx, bw->id_var),
-			   &o->label);
-  else
-    ds_put_format (&o->label,
+  ds_put_format (&o->label,
 		   "%ld",
-		   (casenumber) case_data_idx (cx, bw->casenumber_idx)->f);
+                 (casenumber) case_data_idx (cx, bw->casenumber_idx)->f);
 
   ll_push_head (&bw->outliers, &o->ll);
 }
@@ -115,9 +110,17 @@ box_whisker_outliers (const struct box_whisker *bw)
   return &bw->outliers;
 }
 
+/*
+  Create a box_whisker struct, suitable for generating a boxplot.
+
+  TH are the tukey hinges of the dataset.
+
+  Casenumber_idx is the index into the casereader which will be used to label 
+  outliers.
+*/
 struct box_whisker *
 box_whisker_create (const struct tukey_hinges *th,
-		    const struct variable *id_var,  size_t casenumber_idx)
+		    size_t casenumber_idx)
 {
   struct box_whisker *w = xzalloc (sizeof (*w));
   struct order_stats *os = &w->parent;
@@ -131,7 +134,6 @@ box_whisker_create (const struct tukey_hinges *th,
   tukey_hinges_calculate (th, w->hinges);
 
   w->casenumber_idx = casenumber_idx;
-  w->id_var = id_var;
 
   w->step = (w->hinges[2] - w->hinges[0]) * 1.5;
 

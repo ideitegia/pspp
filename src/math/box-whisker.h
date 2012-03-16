@@ -27,7 +27,6 @@
  */
 struct tukey_hinges;
 
-
 struct outlier
 {
   double value;
@@ -49,11 +48,10 @@ struct box_whisker
   double step;
 
   size_t casenumber_idx;
-  const struct variable *id_var;
 };
 
 struct box_whisker * box_whisker_create (const struct tukey_hinges *,
-					 const struct variable *, size_t);
+                                         size_t);
 
 void box_whisker_whiskers (const struct box_whisker *bw, double whiskers[2]);
 

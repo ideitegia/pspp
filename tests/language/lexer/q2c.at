@@ -14,7 +14,7 @@ ONEWAY.
 CROSSTABS.
 ])
 AT_CHECK([pspp -O format=csv q2c.sps], [1], [dnl
-q2c.sps:8: error: EXAMINE: Required subcommand VARIABLES was not specified.
+q2c.sps:8.8: error: EXAMINE: Syntax error at end of command: expecting variable name.
 
 q2c.sps:9.7: error: ONEWAY: Syntax error at end of command: expecting variable name.
 
