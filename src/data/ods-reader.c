@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -324,11 +324,11 @@ convert_xml_to_value (struct ccase *c, const struct variable *var,
       text =
         xmv->value ? CHAR_CAST (const char *, xmv->value) : CHAR_CAST (const char *, xmv->text);
 
-      data_in (ss_cstr (text), "UTF-8",
-	       fmt->type,
-	       v,
-	       var_get_width (var),
-	       "UTF-8");
+      free (data_in (ss_cstr (text), "UTF-8",
+                     fmt->type,
+                     v,
+                     var_get_width (var),
+                     "UTF-8"));
     }
 }
 
