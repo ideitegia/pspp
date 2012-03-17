@@ -23,6 +23,7 @@
 
 #include "libpspp/assertion.h"
 #include "libpspp/message.h"
+#include "libpspp/pool.h"
 
 
 #include "data/dataset.h"
@@ -69,8 +70,24 @@ enum bp_mode
     BP_VARIABLES
   };
 
+
+/* Indices for the ex_proto member (below) */
+enum
+  {
+    EX_VAL,  /* value */
+    EX_ID,   /* identity */
+    EX_WT    /* weight */
+  };
+
+
 struct examine
 {
+  struct pool *pool;
+
+  /* A caseproto used to contain the data subsets under examination,
+     see (enum above)   */
+  struct caseproto *ex_proto;
+
   size_t n_dep_vars;
   const struct variable **dep_vars;
 
@@ -122,13 +139,6 @@ struct extremity
      by the /ID subcommand which corresponds to this extremity */
   double identity;
 };
-
-enum
-  {
-    EX_VAL,  /* value */
-    EX_ID,   /* identity */
-    EX_WT    /* weight */
-  };
 
 struct exploratory_stats
 {
@@ -183,7 +193,7 @@ xxx0 (const struct interaction *iact)
   int ivar_idx;
 
   const union value **prev_val = xcalloc (iact->n_vars, sizeof (*prev_val));
-  
+
   for (ivar_idx = 0; ivar_idx < iact->n_vars; ++ivar_idx)
     prev_val[ivar_idx] = NULL;
 
@@ -195,6 +205,7 @@ xxx1 (const struct interaction *iact, const struct ccase *c, const union value *
 {
   int ivar_idx;
   int diff_idx = -1;
+
   for (ivar_idx = 0; ivar_idx < iact->n_vars; ++ivar_idx)
     {
       const struct variable *ivar = iact->vars[ivar_idx];
@@ -436,6 +447,7 @@ show_npplot (const struct examine *cmd, int iact_idx)
               chart_item_submit (npp);
               chart_item_submit (dnpp);
             }
+	  casereader_destroy (reader);
 
           ds_destroy (&label);
         }
@@ -558,12 +570,15 @@ percentiles_report (const struct examine *cmd, int iact_idx)
                 );
     }
 
-  tab_vline (t, TAL_1, heading_columns - 1, heading_rows, nr - 1);
 
+
+  if (n_cats > 0)
+    {
+    tab_vline (t, TAL_1, heading_columns - 1, heading_rows, nr - 1);
 
   for (v = 0; v < cmd->n_dep_vars; ++v)
     {
-      const union value **prev_val = xxx0 (iact);
+      const union value **prev_vals = xxx0 (iact);
 
       int ivar_idx;
       if ( v > 0 )
@@ -586,7 +601,7 @@ percentiles_report (const struct examine *cmd, int iact_idx)
 
           const struct exploratory_stats *es = ess + v;
 
-          int diff_idx = xxx1 (iact, c, prev_val);
+          int diff_idx = xxx1 (iact, c, prev_vals);
 
           double hinges[3];
           int p;
@@ -669,8 +684,10 @@ percentiles_report (const struct examine *cmd, int iact_idx)
                     _("Tukey's Hinges"));
           
         }
-    }
 
+      free (prev_vals);
+    }
+    }
   tab_submit (t);
 }
 
@@ -986,6 +1003,8 @@ descriptives_report (const struct examine *cmd, int iact_idx)
                       heading_rows + v * rows_per_var + i * rows_per_cat + 12,
                       0, calc_sekurt (m0), 0);
         }
+
+      free (prev_val);
     }
   tab_submit (t);
 }
@@ -1168,6 +1187,7 @@ extremes_report (const struct examine *cmd, int iact_idx)
                           0);
             }
         }
+      free (prev_val);
     }
 
   tab_submit (t);
@@ -1244,7 +1264,7 @@ summary_report (const struct examine *cmd, int iact_idx)
   for (v = 0; v < cmd->n_dep_vars; ++v)
     {
       int ivar_idx;
-      const union value **prev_val = xxx0 (iact);
+      const union value **prev_values = xxx0 (iact);
 
       if ( v > 0 )
         tab_hline (t, TAL_1, 0, nc - 1, heading_rows + v * n_cats);
@@ -1266,12 +1286,11 @@ summary_report (const struct examine *cmd, int iact_idx)
                                                     iact_idx, i);
           if (c)
             {
-              int diff_idx = xxx1 (iact, c, prev_val);
+              int diff_idx = xxx1 (iact, c, prev_values);
 
               if ( diff_idx != -1 && diff_idx < iact->n_vars - 1)
                 tab_hline (t, TAL_1, 1 + diff_idx, nc - 1,
-                           heading_rows + n_cats * v + i
-                           );
+                           heading_rows + n_cats * v + i );
 
               for (ivar_idx = 0; ivar_idx < iact->n_vars; ++ivar_idx)
                 {
@@ -1295,6 +1314,7 @@ summary_report (const struct examine *cmd, int iact_idx)
                     }
                 }
             }
+
 
           es = categoricals_get_user_data_by_category_real (cmd->cats, iact_idx, i);
   
@@ -1347,6 +1367,7 @@ summary_report (const struct examine *cmd, int iact_idx)
                            100.0 * (es[v].missing + es[v].non_missing)/ total
                            );
         }
+      free (prev_values);
     }
 
   tab_hline (t, TAL_1, heading_columns, nc - 1, 1);
@@ -1407,20 +1428,13 @@ create_n (const void *aux1, void *aux2 UNUSED)
   int v;
   
   const struct examine *examine = aux1;
-  struct exploratory_stats *es = xcalloc (examine->n_dep_vars, sizeof (*es));
-
-  struct caseproto *proto = caseproto_create ();
-  proto = caseproto_add_width (proto, 0); /* value */
-  proto = caseproto_add_width (proto, 0); /* id */
-  proto = caseproto_add_width (proto, 0); /* weight */
+  struct exploratory_stats *es = pool_calloc (examine->pool, examine->n_dep_vars, sizeof (*es));
+  struct subcase ordering;
+  subcase_init (&ordering, 0, 0, SC_ASCEND);
 
   for (v = 0; v < examine->n_dep_vars; v++)
     {
-      struct subcase ordering;
-  
-      subcase_init (&ordering, 0, 0, SC_ASCEND);
-  
-      es[v].sorted_writer = sort_create_writer (&ordering, proto);
+      es[v].sorted_writer = sort_create_writer (&ordering, examine->ex_proto);
       es[v].sorted_reader = NULL;
 
       es[v].mom = moments_create (MOMENT_KURTOSIS);
@@ -1429,6 +1443,8 @@ create_n (const void *aux1, void *aux2 UNUSED)
       es[v].maximum = -DBL_MAX;
       es[v].minimum =  DBL_MAX;
     }
+
+  subcase_destroy (&ordering);
   return es;
 }
 
@@ -1440,14 +1456,8 @@ update_n (const void *aux1, void *aux2 UNUSED, void *user_data,
   const struct examine *examine = aux1;
   struct exploratory_stats *es = user_data;
 
-  struct caseproto *proto = caseproto_create ();
-  proto = caseproto_add_width (proto, 0); /* value */
-  proto = caseproto_add_width (proto, 0); /* id */
-  proto = caseproto_add_width (proto, 0); /* weight */
-
   for (v = 0; v < examine->n_dep_vars; v++)
     {
-      struct ccase *outcase = case_create (proto);
       const struct variable *var = examine->dep_vars[v];
       const double x = case_data (c, var)->f;
       
@@ -1456,6 +1466,8 @@ update_n (const void *aux1, void *aux2 UNUSED, void *user_data,
           es[v].missing += weight;
           continue;
         }
+
+      struct ccase *outcase = case_create (examine->ex_proto);
 
       if (x > es[v].maximum)
         es[v].maximum = x;
@@ -1506,11 +1518,11 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
         }
 
       es[v].sorted_reader = casewriter_make_reader (es[v].sorted_writer);
-      total_cases = casereader_count_cases (casereader_clone (es[v].sorted_reader));
+      total_cases = casereader_count_cases (es[v].sorted_reader);
       es[v].sorted_writer = NULL;
 
-      es[v].maxima = xcalloc (examine->calc_extremes, sizeof (*es[v].maxima));
-      es[v].minima = xcalloc (examine->calc_extremes, sizeof (*es[v].minima));
+      es[v].maxima = pool_calloc (examine->pool, examine->calc_extremes, sizeof (*es[v].maxima));
+      es[v].minima = pool_calloc (examine->pool, examine->calc_extremes, sizeof (*es[v].minima));
       
       for (reader = casereader_clone (es[v].sorted_reader);
            (c = casereader_read (reader)) != NULL; case_unref (c))
@@ -1564,7 +1576,7 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
       {
       const int n_os = 5 + examine->n_percentiles;
       struct order_stats **os ;
-      es[v].percentiles = xcalloc (examine->n_percentiles, sizeof (*es[v].percentiles));
+      es[v].percentiles = pool_calloc (examine->pool, examine->n_percentiles, sizeof (*es[v].percentiles));
 
       es[v].trimmed_mean = trimmed_mean_create (es[v].cc, 0.05);
 
@@ -1591,6 +1603,8 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
       order_stats_accumulate_idx (os, n_os,
                                   casereader_clone (es[v].sorted_reader),
                                   EX_WT, EX_VAL);
+
+      free (os);
       }
 
       if (examine->boxplot)
@@ -1624,6 +1638,69 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
 
     }
 }
+
+static void
+cleanup_exploratory_stats (struct examine *cmd)
+{ 
+  int i;
+  for (i = 0; i < cmd->n_iacts; ++i)
+    {
+      int v;
+      const size_t n_cats =  categoricals_n_count (cmd->cats, i);
+
+      for (v = 0; v < cmd->n_dep_vars; ++v)
+	{
+	  int grp;
+	  for (grp = 0; grp < n_cats; ++grp)
+	    {
+	      int q;
+	      const struct exploratory_stats *es =
+		categoricals_get_user_data_by_category_real (cmd->cats, i, grp);
+
+	      struct order_stats *os = es[v].hinges;
+	      struct statistic  *stat = &os->parent;
+	      stat->destroy (stat);
+
+	      for (q = 0; q < 3 ; q++)
+		{
+		  os = es[v].quartiles[q];
+		  stat = &os->parent;
+		  stat->destroy (stat);
+		}
+
+	      for (q = 0; q < cmd->n_percentiles ; q++)
+		{
+		  os = es[v].percentiles[q];
+		  stat = &os->parent;
+		  stat->destroy (stat);
+		}
+
+	      os = es[v].trimmed_mean;
+	      stat = &os->parent;
+	      stat->destroy (stat);
+
+	      os = es[v].np;
+	      if (os)
+		{
+		  stat = &os->parent;
+		  stat->destroy (stat);
+		}
+
+	      os = es[v].histogram;
+	      if (os)
+		{
+		  stat = &os->parent;
+		  stat->destroy (stat);
+		}
+
+	      moments_destroy (es[v].mom);
+
+	      casereader_destroy (es[v].sorted_reader);
+	    }
+	}
+    }
+}
+
 
 static void
 run_examine (struct examine *cmd, struct casereader *input)
@@ -1672,7 +1749,7 @@ run_examine (struct examine *cmd, struct casereader *input)
                                               NULL,
                                               NULL);
 
-  for (reader = casereader_clone (input);
+  for (reader = input;
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       categoricals_update (cmd->cats, c);
@@ -1715,11 +1792,16 @@ run_examine (struct examine *cmd, struct casereader *input)
       if (cmd->descriptives)
         descriptives_report (cmd, i);
     }
+
+  cleanup_exploratory_stats (cmd);
+  categoricals_destroy (cmd->cats);
 }
+
 
 int
 cmd_examine (struct lexer *lexer, struct dataset *ds)
 {
+  int i;
   bool nototals_seen = false;
   bool totals_seen = false;
 
@@ -1739,6 +1821,12 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
   examine.id_var = 0;
   examine.boxplot_mode = BP_GROUPS;
   
+  examine.ex_proto = caseproto_create ();
+  examine.ex_proto = caseproto_add_width (examine.ex_proto, 0); /* value */
+  examine.ex_proto = caseproto_add_width (examine.ex_proto, 0); /* id */
+  examine.ex_proto = caseproto_add_width (examine.ex_proto, 0); /* weight */
+
+  examine.pool = pool_create ();
 
   /* Allocate space for the first interaction.
      This is interaction is an empty one (for the totals).
@@ -1746,7 +1834,7 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
      interaction.
   */
   examine.n_iacts = 1;
-  examine.iacts = iacts_mem = xzalloc (sizeof (struct interaction *));
+  examine.iacts = iacts_mem = pool_zalloc (examine.pool, sizeof (struct interaction *));
   examine.iacts[0] = interaction_create (NULL);
 
   examine.exclude = MV_ANY;
@@ -1779,8 +1867,9 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
             {
               examine.n_iacts++;
               iacts_mem = 
-                xrealloc (iacts_mem,
-                          sizeof (*iacts_mem) * examine.n_iacts);
+                pool_nrealloc (examine.pool, iacts_mem,
+			       examine.n_iacts,
+			       sizeof (*iacts_mem));
               
               iacts_mem[examine.n_iacts - 1] = iact;
             }
@@ -2085,8 +2174,24 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
     ok = proc_commit (ds) && ok;
   }
 
+  caseproto_unref (examine.ex_proto);
+
+  for (i = 0; i < examine.n_iacts; ++i)
+    interaction_destroy (examine.iacts[i]);
+
+  free (examine.ptiles);
+  free (examine.dep_vars);
+  pool_destroy (examine.pool);
+
   return CMD_SUCCESS;
 
  error:
+  caseproto_unref (examine.ex_proto);
+  for (i = 0; i < examine.n_iacts; ++i)
+    interaction_destroy (examine.iacts[i]);
+  free (examine.dep_vars);
+  free (examine.ptiles);
+  pool_destroy (examine.pool);
+
   return CMD_FAILURE;
 }
