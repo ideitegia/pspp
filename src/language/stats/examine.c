@@ -186,9 +186,10 @@ struct exploratory_stats
 };
 
 
-static
-const union value **
-xxx0 (const struct interaction *iact)
+/* Returns an array of (iact->n_vars) pointers to union value initialised to NULL.
+   The caller must free this array when no longer required. */
+static const union value **
+previous_value_alloc (const struct interaction *iact)
 {
   int ivar_idx;
 
@@ -200,8 +201,9 @@ xxx0 (const struct interaction *iact)
   return prev_val;
 }
 
+/* Set the contents of PREV_VAL to the values of C indexed by the variables of IACT */
 static int
-xxx1 (const struct interaction *iact, const struct ccase *c, const union value **prev_val)
+previous_value_record (const struct interaction *iact, const struct ccase *c, const union value **prev_val)
 {
   int ivar_idx;
   int diff_idx = -1;
@@ -578,7 +580,7 @@ percentiles_report (const struct examine *cmd, int iact_idx)
 
   for (v = 0; v < cmd->n_dep_vars; ++v)
     {
-      const union value **prev_vals = xxx0 (iact);
+      const union value **prev_vals = previous_value_alloc (iact);
 
       int ivar_idx;
       if ( v > 0 )
@@ -601,7 +603,7 @@ percentiles_report (const struct examine *cmd, int iact_idx)
 
           const struct exploratory_stats *es = ess + v;
 
-          int diff_idx = xxx1 (iact, c, prev_vals);
+          int diff_idx = previous_value_record (iact, c, prev_vals);
 
           double hinges[3];
           int p;
@@ -742,7 +744,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
 
   for (v = 0; v < cmd->n_dep_vars; ++v)
     {
-      const union value **prev_val = xxx0 (iact);
+      const union value **prev_val = previous_value_alloc (iact);
 
       int ivar_idx;
       if ( v > 0 )
@@ -765,7 +767,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
 
           const struct exploratory_stats *es = ess + v;
 
-          const int diff_idx = xxx1 (iact, c, prev_val);
+          const int diff_idx = previous_value_record (iact, c, prev_val);
 
           double m0, m1, m2, m3, m4;
 	  double tval;
@@ -1065,7 +1067,7 @@ extremes_report (const struct examine *cmd, int iact_idx)
 
   for (v = 0; v < cmd->n_dep_vars; ++v)
     {
-      const union value **prev_val = xxx0 (iact);
+      const union value **prev_val = previous_value_alloc (iact);
 
       int ivar_idx;
       if ( v > 0 )
@@ -1088,7 +1090,7 @@ extremes_report (const struct examine *cmd, int iact_idx)
 
           const struct exploratory_stats *es = ess + v;
 
-          int diff_idx = xxx1 (iact, c, prev_val);
+          int diff_idx = previous_value_record (iact, c, prev_val);
 
           for (ivar_idx = 0; ivar_idx < iact->n_vars; ++ivar_idx)
             {
@@ -1264,7 +1266,7 @@ summary_report (const struct examine *cmd, int iact_idx)
   for (v = 0; v < cmd->n_dep_vars; ++v)
     {
       int ivar_idx;
-      const union value **prev_values = xxx0 (iact);
+      const union value **prev_values = previous_value_alloc (iact);
 
       if ( v > 0 )
         tab_hline (t, TAL_1, 0, nc - 1, heading_rows + v * n_cats);
@@ -1286,7 +1288,7 @@ summary_report (const struct examine *cmd, int iact_idx)
                                                     iact_idx, i);
           if (c)
             {
-              int diff_idx = xxx1 (iact, c, prev_values);
+              int diff_idx = previous_value_record (iact, c, prev_values);
 
               if ( diff_idx != -1 && diff_idx < iact->n_vars - 1)
                 tab_hline (t, TAL_1, 1 + diff_idx, nc - 1,
