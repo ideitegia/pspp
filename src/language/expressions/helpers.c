@@ -175,12 +175,13 @@ recognize_unit (struct substring name, enum date_unit *unit)
         return true;
       }
 
-  /* TRANSLATORS: Don't translate the the actual unit names `weeks', `days' etc
-	They must remain in their original English. */
   msg (SE, _("Unrecognized date unit `%.*s'.  "
-             "Valid date units are `years', `quarters', `months', "
-             "`weeks', `days', `hours', `minutes', and `seconds'."),
-       (int) ss_length (name), ss_data (name));
+             "Valid date units are `%s', `%s', `%s', "
+             "`%s', `%s', `%s', `%s', and `%s'."),
+       (int) ss_length (name), ss_data (name),
+       "years", "quarters", "months",
+       "weeks", "days", "hours", "minutes", "seconds");
+
   return false;
 }
 
@@ -328,7 +329,7 @@ recognize_method (struct substring method_name, enum date_sum_method *method)
   else
     {
       msg (SE, _("Invalid DATESUM method.  "
-                 "Valid choices are `closest' and `rollover'."));
+                 "Valid choices are `%s' and `%s'."), "closest", "rollover");
       return false;
     }
 }

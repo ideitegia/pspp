@@ -71,8 +71,8 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
   gtk_about_dialog_set_translator_credits 
     (
      GTK_ABOUT_DIALOG (about),
-     /* TRANSLATORS: Use this string to list the people who have helped with
-	translation to your language. */
+     /* TRANSLATORS: Do not translate this string.  Instead, put the names of the people
+	who have helped in the translation. */
      _("translator-credits")
      );
 

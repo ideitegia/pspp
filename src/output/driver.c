@@ -315,9 +315,8 @@ output_driver_create (struct string_map *options)
     device_type = SETTINGS_DEVICE_LISTING;
   else
     {
-      /* TRANSLATORS: Don't translate the words `terminal' or `listing'. */
-      error (0, 0, _("%s is not a valid device type (the choices are "
-                     "`terminal' and `listing')"), device_string);
+      error (0, 0, _("%s is not a valid device type (the choices are `%s' and `%s')"),
+                     device_string, "terminal", "listing");
       device_type = default_device_type (file_name);
     }
 
