@@ -326,7 +326,7 @@ show_boxplot_variabled (const struct examine *cmd, int iact_idx)
       double y_max = -DBL_MAX;
 
       const struct ccase *c =
-            categoricals_get_case_by_category_real (cmd->cats,  iact_idx, grp);
+	categoricals_get_case_by_category_real (cmd->cats,  iact_idx, grp);
 
       struct string title;
       ds_init_empty (&title);
@@ -576,119 +576,119 @@ percentiles_report (const struct examine *cmd, int iact_idx)
 
   if (n_cats > 0)
     {
-    tab_vline (t, TAL_1, heading_columns - 1, heading_rows, nr - 1);
+      tab_vline (t, TAL_1, heading_columns - 1, heading_rows, nr - 1);
 
-  for (v = 0; v < cmd->n_dep_vars; ++v)
-    {
-      const union value **prev_vals = previous_value_alloc (iact);
+      for (v = 0; v < cmd->n_dep_vars; ++v)
+	{
+	  const union value **prev_vals = previous_value_alloc (iact);
 
-      int ivar_idx;
-      if ( v > 0 )
-        tab_hline (t, TAL_1, 0, nc - 1, heading_rows + v * rows_per_var);
+	  int ivar_idx;
+	  if ( v > 0 )
+	    tab_hline (t, TAL_1, 0, nc - 1, heading_rows + v * rows_per_var);
         
-      tab_text (t,
-                0, heading_rows + v * rows_per_var,
-                TAT_TITLE | TAB_LEFT,
-                var_to_string (cmd->dep_vars[v])
-                );
+	  tab_text (t,
+		    0, heading_rows + v * rows_per_var,
+		    TAT_TITLE | TAB_LEFT,
+		    var_to_string (cmd->dep_vars[v])
+		    );
 
-      for (i = 0; i < n_cats; ++i)
-        {
-          const struct ccase *c =
-            categoricals_get_case_by_category_real (cmd->cats,
-                                                    iact_idx, i);
+	  for (i = 0; i < n_cats; ++i)
+	    {
+	      const struct ccase *c =
+		categoricals_get_case_by_category_real (cmd->cats,
+							iact_idx, i);
 
-          const struct exploratory_stats *ess =
-            categoricals_get_user_data_by_category_real (cmd->cats, iact_idx, i);
+	      const struct exploratory_stats *ess =
+		categoricals_get_user_data_by_category_real (cmd->cats, iact_idx, i);
 
-          const struct exploratory_stats *es = ess + v;
+	      const struct exploratory_stats *es = ess + v;
 
-          int diff_idx = previous_value_record (iact, c, prev_vals);
+	      int diff_idx = previous_value_record (iact, c, prev_vals);
 
-          double hinges[3];
-          int p;
+	      double hinges[3];
+	      int p;
 
-          for (ivar_idx = 0; ivar_idx < iact->n_vars; ++ivar_idx)
-            {
-              const struct variable *ivar = iact->vars[ivar_idx];
-              const union value *val = case_data (c, ivar);
+	      for (ivar_idx = 0; ivar_idx < iact->n_vars; ++ivar_idx)
+		{
+		  const struct variable *ivar = iact->vars[ivar_idx];
+		  const union value *val = case_data (c, ivar);
 
-              if (( diff_idx != -1 && diff_idx <= ivar_idx)
-                  || i == 0)
-                {              
-                  struct string str;
-                  ds_init_empty (&str);
-                  var_append_value_name (ivar, val, &str);
+		  if (( diff_idx != -1 && diff_idx <= ivar_idx)
+		      || i == 0)
+		    {              
+		      struct string str;
+		      ds_init_empty (&str);
+		      var_append_value_name (ivar, val, &str);
               
-                  tab_text (t,
-                            1 + ivar_idx,
-                            heading_rows + v * rows_per_var + i * rows_per_cat,
-                            TAT_TITLE | TAB_LEFT,
-                            ds_cstr (&str)
-                            );
+		      tab_text (t,
+				1 + ivar_idx,
+				heading_rows + v * rows_per_var + i * rows_per_cat,
+				TAT_TITLE | TAB_LEFT,
+				ds_cstr (&str)
+				);
                   
-                  ds_destroy (&str);
-                }
-            }
+		      ds_destroy (&str);
+		    }
+		}
 
-          if ( diff_idx != -1 && diff_idx < iact->n_vars)
-            {
-              tab_hline (t, TAL_1, 1 + diff_idx, nc - 1,
-                         heading_rows + v * rows_per_var + i * rows_per_cat
-                         );
-            }
+	      if ( diff_idx != -1 && diff_idx < iact->n_vars)
+		{
+		  tab_hline (t, TAL_1, 1 + diff_idx, nc - 1,
+			     heading_rows + v * rows_per_var + i * rows_per_cat
+			     );
+		}
 
-          tab_text (t, heading_columns - 1, 
-                    heading_rows + v * rows_per_var + i * rows_per_cat,
-                    TAT_TITLE | TAB_LEFT,
-		    gettext (ptile_alg_desc [cmd->pc_alg]));
+	      tab_text (t, heading_columns - 1, 
+			heading_rows + v * rows_per_var + i * rows_per_cat,
+			TAT_TITLE | TAB_LEFT,
+			gettext (ptile_alg_desc [cmd->pc_alg]));
 
-          tukey_hinges_calculate (es->hinges, hinges);
+	      tukey_hinges_calculate (es->hinges, hinges);
 
-          for (p = 0; p < cmd->n_percentiles; ++p)
-            {
-              tab_double (t, heading_columns + p, 
-                          heading_rows + v * rows_per_var + i * rows_per_cat,
-                          0,
-                          percentile_calculate (es->percentiles[p], cmd->pc_alg),
-                          0);
+	      for (p = 0; p < cmd->n_percentiles; ++p)
+		{
+		  tab_double (t, heading_columns + p, 
+			      heading_rows + v * rows_per_var + i * rows_per_cat,
+			      0,
+			      percentile_calculate (es->percentiles[p], cmd->pc_alg),
+			      0);
               
-              if (cmd->ptiles[p] == 25.0)
-                {
-                  tab_double (t, heading_columns + p, 
-                              heading_rows + v * rows_per_var + i * rows_per_cat + 1,
-                              0,
-                              hinges[0],
-                              0);
-                }
-              else if (cmd->ptiles[p] == 50.0)
-                {
-                  tab_double (t, heading_columns + p, 
-                              heading_rows + v * rows_per_var + i * rows_per_cat + 1,
-                              0,
-                              hinges[1],
-                              0);
-                }
-              else if (cmd->ptiles[p] == 75.0)
-                {
-                  tab_double (t, heading_columns + p, 
-                              heading_rows + v * rows_per_var + i * rows_per_cat + 1,
-                              0,
-                              hinges[2],
-                              0);
-                }
-            }
+		  if (cmd->ptiles[p] == 25.0)
+		    {
+		      tab_double (t, heading_columns + p, 
+				  heading_rows + v * rows_per_var + i * rows_per_cat + 1,
+				  0,
+				  hinges[0],
+				  0);
+		    }
+		  else if (cmd->ptiles[p] == 50.0)
+		    {
+		      tab_double (t, heading_columns + p, 
+				  heading_rows + v * rows_per_var + i * rows_per_cat + 1,
+				  0,
+				  hinges[1],
+				  0);
+		    }
+		  else if (cmd->ptiles[p] == 75.0)
+		    {
+		      tab_double (t, heading_columns + p, 
+				  heading_rows + v * rows_per_var + i * rows_per_cat + 1,
+				  0,
+				  hinges[2],
+				  0);
+		    }
+		}
 
 
-          tab_text (t, heading_columns - 1, 
-                    heading_rows + v * rows_per_var + i * rows_per_cat + 1,
-                    TAT_TITLE | TAB_LEFT,
-                    _("Tukey's Hinges"));
+	      tab_text (t, heading_columns - 1, 
+			heading_rows + v * rows_per_var + i * rows_per_cat + 1,
+			TAT_TITLE | TAB_LEFT,
+			_("Tukey's Hinges"));
           
-        }
+	    }
 
-      free (prev_vals);
-    }
+	  free (prev_vals);
+	}
     }
   tab_submit (t);
 }
@@ -1263,114 +1263,114 @@ summary_report (const struct examine *cmd, int iact_idx)
     }
 
   if (n_cats > 0)
-  for (v = 0; v < cmd->n_dep_vars; ++v)
-    {
-      int ivar_idx;
-      const union value **prev_values = previous_value_alloc (iact);
+    for (v = 0; v < cmd->n_dep_vars; ++v)
+      {
+	int ivar_idx;
+	const union value **prev_values = previous_value_alloc (iact);
 
-      if ( v > 0 )
-        tab_hline (t, TAL_1, 0, nc - 1, heading_rows + v * n_cats);
+	if ( v > 0 )
+	  tab_hline (t, TAL_1, 0, nc - 1, heading_rows + v * n_cats);
 
-      tab_text (t,
-                0, heading_rows + n_cats * v,
-                TAT_TITLE,
-                var_to_string (cmd->dep_vars[v])
-                );
+	tab_text (t,
+		  0, heading_rows + n_cats * v,
+		  TAT_TITLE,
+		  var_to_string (cmd->dep_vars[v])
+		  );
 
 
-      for (i = 0; i < n_cats; ++i)
-        {
-          double total;
-          const struct exploratory_stats *es;
+	for (i = 0; i < n_cats; ++i)
+	  {
+	    double total;
+	    const struct exploratory_stats *es;
 
-          const struct ccase *c =
-            categoricals_get_case_by_category_real (cmd->cats,
-                                                    iact_idx, i);
-          if (c)
-            {
-              int diff_idx = previous_value_record (iact, c, prev_values);
+	    const struct ccase *c =
+	      categoricals_get_case_by_category_real (cmd->cats,
+						      iact_idx, i);
+	    if (c)
+	      {
+		int diff_idx = previous_value_record (iact, c, prev_values);
 
-              if ( diff_idx != -1 && diff_idx < iact->n_vars - 1)
-                tab_hline (t, TAL_1, 1 + diff_idx, nc - 1,
-                           heading_rows + n_cats * v + i );
+		if ( diff_idx != -1 && diff_idx < iact->n_vars - 1)
+		  tab_hline (t, TAL_1, 1 + diff_idx, nc - 1,
+			     heading_rows + n_cats * v + i );
 
-              for (ivar_idx = 0; ivar_idx < iact->n_vars; ++ivar_idx)
-                {
-                  const struct variable *ivar = iact->vars[ivar_idx];
-                  const union value *val = case_data (c, ivar);
+		for (ivar_idx = 0; ivar_idx < iact->n_vars; ++ivar_idx)
+		  {
+		    const struct variable *ivar = iact->vars[ivar_idx];
+		    const union value *val = case_data (c, ivar);
 
-                  if (( diff_idx != -1 && diff_idx <= ivar_idx)
-                      || i == 0)
-                    {              
-                      struct string str;
-                      ds_init_empty (&str);
-                      var_append_value_name (ivar, val, &str);
+		    if (( diff_idx != -1 && diff_idx <= ivar_idx)
+			|| i == 0)
+		      {              
+			struct string str;
+			ds_init_empty (&str);
+			var_append_value_name (ivar, val, &str);
               
-                      tab_text (t,
-                                1 + ivar_idx, heading_rows + n_cats * v + i,
-                                TAT_TITLE | TAB_LEFT,
-                                ds_cstr (&str)
-                                );
+			tab_text (t,
+				  1 + ivar_idx, heading_rows + n_cats * v + i,
+				  TAT_TITLE | TAB_LEFT,
+				  ds_cstr (&str)
+				  );
                   
-                      ds_destroy (&str);
-                    }
-                }
-            }
+			ds_destroy (&str);
+		      }
+		  }
+	      }
 
 
-          es = categoricals_get_user_data_by_category_real (cmd->cats, iact_idx, i);
+	    es = categoricals_get_user_data_by_category_real (cmd->cats, iact_idx, i);
   
           
-          total = es[v].missing + es[v].non_missing;
-          tab_double (t, 
-                      heading_columns + 0,
-                      heading_rows + n_cats * v + i,
-                      0,
-                      es[v].non_missing,
-                      wfmt);
+	    total = es[v].missing + es[v].non_missing;
+	    tab_double (t, 
+			heading_columns + 0,
+			heading_rows + n_cats * v + i,
+			0,
+			es[v].non_missing,
+			wfmt);
 
 
-          tab_text_format (t, 
-                           heading_columns + 1,
-                           heading_rows + n_cats * v + i,
-                           0,
-                           "%g%%",
-                           100.0 * es[v].non_missing / total
-                           );
+	    tab_text_format (t, 
+			     heading_columns + 1,
+			     heading_rows + n_cats * v + i,
+			     0,
+			     "%g%%",
+			     100.0 * es[v].non_missing / total
+			     );
 
 
-          tab_double (t, 
-                      heading_columns + 2,
-                      heading_rows + n_cats * v + i,
-                      0,
-                      es[v].missing,
-                      wfmt);
+	    tab_double (t, 
+			heading_columns + 2,
+			heading_rows + n_cats * v + i,
+			0,
+			es[v].missing,
+			wfmt);
 
-          tab_text_format (t, 
-                           heading_columns + 3,
-                           heading_rows + n_cats * v + i,
-                           0,
-                           "%g%%",
-                           100.0 * es[v].missing / total
-                           );
-          tab_double (t, 
-                      heading_columns + 4,
-                      heading_rows + n_cats * v + i,
-                      0,
-                      total,
-                      wfmt);
+	    tab_text_format (t, 
+			     heading_columns + 3,
+			     heading_rows + n_cats * v + i,
+			     0,
+			     "%g%%",
+			     100.0 * es[v].missing / total
+			     );
+	    tab_double (t, 
+			heading_columns + 4,
+			heading_rows + n_cats * v + i,
+			0,
+			total,
+			wfmt);
 
-          /* This can only be 100% can't it? */
-          tab_text_format (t, 
-                           heading_columns + 5,
-                           heading_rows + n_cats * v + i,
-                           0,
-                           "%g%%",
-                           100.0 * (es[v].missing + es[v].non_missing)/ total
-                           );
-        }
-      free (prev_values);
-    }
+	    /* This can only be 100% can't it? */
+	    tab_text_format (t, 
+			     heading_columns + 5,
+			     heading_rows + n_cats * v + i,
+			     0,
+			     "%g%%",
+			     100.0 * (es[v].missing + es[v].non_missing)/ total
+			     );
+	  }
+	free (prev_values);
+      }
 
   tab_hline (t, TAL_1, heading_columns, nc - 1, 1);
   tab_hline (t, TAL_1, heading_columns, nc - 1, 2);
@@ -1576,37 +1576,37 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
         }
 
       {
-      const int n_os = 5 + examine->n_percentiles;
-      struct order_stats **os ;
-      es[v].percentiles = pool_calloc (examine->pool, examine->n_percentiles, sizeof (*es[v].percentiles));
+	const int n_os = 5 + examine->n_percentiles;
+	struct order_stats **os ;
+	es[v].percentiles = pool_calloc (examine->pool, examine->n_percentiles, sizeof (*es[v].percentiles));
 
-      es[v].trimmed_mean = trimmed_mean_create (es[v].cc, 0.05);
+	es[v].trimmed_mean = trimmed_mean_create (es[v].cc, 0.05);
 
-      os = xcalloc (n_os, sizeof *os);
-      os[0] = &es[v].trimmed_mean->parent;
+	os = xcalloc (n_os, sizeof *os);
+	os[0] = &es[v].trimmed_mean->parent;
 
-      es[v].quartiles[0] = percentile_create (0.25, es[v].cc);
-      es[v].quartiles[1] = percentile_create (0.5,  es[v].cc);
-      es[v].quartiles[2] = percentile_create (0.75, es[v].cc);
+	es[v].quartiles[0] = percentile_create (0.25, es[v].cc);
+	es[v].quartiles[1] = percentile_create (0.5,  es[v].cc);
+	es[v].quartiles[2] = percentile_create (0.75, es[v].cc);
 
-      os[1] = &es[v].quartiles[0]->parent;
-      os[2] = &es[v].quartiles[1]->parent;
-      os[3] = &es[v].quartiles[2]->parent;
+	os[1] = &es[v].quartiles[0]->parent;
+	os[2] = &es[v].quartiles[1]->parent;
+	os[3] = &es[v].quartiles[2]->parent;
 
-      es[v].hinges = tukey_hinges_create (es[v].cc, es[v].cmin);
-      os[4] = &es[v].hinges->parent;
+	es[v].hinges = tukey_hinges_create (es[v].cc, es[v].cmin);
+	os[4] = &es[v].hinges->parent;
 
-      for (i = 0; i < examine->n_percentiles; ++i)
-        {
-          es[v].percentiles[i] = percentile_create (examine->ptiles[i] / 100.00, es[v].cc);
-          os[5 + i] = &es[v].percentiles[i]->parent;
-        }
+	for (i = 0; i < examine->n_percentiles; ++i)
+	  {
+	    es[v].percentiles[i] = percentile_create (examine->ptiles[i] / 100.00, es[v].cc);
+	    os[5 + i] = &es[v].percentiles[i]->parent;
+	  }
 
-      order_stats_accumulate_idx (os, n_os,
-                                  casereader_clone (es[v].sorted_reader),
-                                  EX_WT, EX_VAL);
+	order_stats_accumulate_idx (os, n_os,
+				    casereader_clone (es[v].sorted_reader),
+				    EX_WT, EX_VAL);
 
-      free (os);
+	free (os);
       }
 
       if (examine->boxplot)
@@ -1618,8 +1618,8 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
 
           os = &es[v].box_whisker->parent;
 	  order_stats_accumulate_idx (&os, 1,
-                                  casereader_clone (es[v].sorted_reader),
-                                  EX_WT, EX_VAL);
+				      casereader_clone (es[v].sorted_reader),
+				      EX_WT, EX_VAL);
         }
 
       if (examine->npplot)
@@ -1634,8 +1634,8 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
           os = &es[v].np->parent;
 
           order_stats_accumulate_idx (&os, 1,
-                                  casereader_clone (es[v].sorted_reader),
-                                  EX_WT, EX_VAL);
+				      casereader_clone (es[v].sorted_reader),
+				      EX_WT, EX_VAL);
         }
 
     }
