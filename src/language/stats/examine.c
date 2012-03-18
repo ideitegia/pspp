@@ -1460,6 +1460,7 @@ update_n (const void *aux1, void *aux2 UNUSED, void *user_data,
 
   for (v = 0; v < examine->n_dep_vars; v++)
     {
+      struct ccase *outcase ;
       const struct variable *var = examine->dep_vars[v];
       const double x = case_data (c, var)->f;
       
@@ -1469,7 +1470,7 @@ update_n (const void *aux1, void *aux2 UNUSED, void *user_data,
           continue;
         }
 
-      struct ccase *outcase = case_create (examine->ex_proto);
+      outcase = case_create (examine->ex_proto);
 
       if (x > es[v].maximum)
         es[v].maximum = x;
@@ -1659,42 +1660,36 @@ cleanup_exploratory_stats (struct examine *cmd)
 	      const struct exploratory_stats *es =
 		categoricals_get_user_data_by_category_real (cmd->cats, i, grp);
 
-	      struct order_stats *os = es[v].hinges;
+	      struct order_stats *os = &es[v].hinges->parent;
 	      struct statistic  *stat = &os->parent;
 	      stat->destroy (stat);
 
 	      for (q = 0; q < 3 ; q++)
 		{
-		  os = es[v].quartiles[q];
+		  os = &es[v].quartiles[q]->parent;
 		  stat = &os->parent;
 		  stat->destroy (stat);
 		}
 
 	      for (q = 0; q < cmd->n_percentiles ; q++)
 		{
-		  os = es[v].percentiles[q];
+		  os = &es[v].percentiles[q]->parent;
 		  stat = &os->parent;
 		  stat->destroy (stat);
 		}
 
-	      os = es[v].trimmed_mean;
+	      os = &es[v].trimmed_mean->parent;
 	      stat = &os->parent;
 	      stat->destroy (stat);
 
-	      os = es[v].np;
+	      os = &es[v].np->parent;
 	      if (os)
 		{
 		  stat = &os->parent;
 		  stat->destroy (stat);
 		}
 
-	      os = es[v].histogram;
-	      if (os)
-		{
-		  stat = &os->parent;
-		  stat->destroy (stat);
-		}
-
+	      statistic_destroy (&es[v].histogram->parent);
 	      moments_destroy (es[v].mom);
 
 	      casereader_destroy (es[v].sorted_reader);
