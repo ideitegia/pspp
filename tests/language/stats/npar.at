@@ -610,9 +610,9 @@ npar tests
 	.
 ])
 AT_CHECK([pspp -o pspp.csv npar.sps])
-dnl Some machines return .313 instead of .312 for the Point Probability
+dnl Some machines return .313 instead of .312 
 dnl (see bug #31611).
-AT_CHECK([sed 's/\.313$/.312/' pspp.csv], [0], [dnl
+AT_CHECK([sed -e 's/\.313$/.312/' -e 's/^Exact Sig\. (1-tailed),\.313/Exact Sig. (1-tailed),.312/' pspp.csv], [0], [dnl
 Table: Frequencies
 ,,N
 age - height,Negative Differences,3
