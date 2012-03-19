@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -200,8 +200,9 @@ struct pqueue
   {
     struct subcase ordering;
     struct pqueue_record *records;
-    size_t record_cnt;
-    size_t record_cap;
+    size_t record_cnt;          /* Current number of records. */
+    size_t record_cap;          /* Space currently allocated for records. */
+    size_t record_max;          /* Max space we are willing to allocate. */
     casenumber idx;
   };
 
@@ -222,13 +223,14 @@ pqueue_create (const struct subcase *ordering, const struct caseproto *proto)
 
   pq = xmalloc (sizeof *pq);
   subcase_clone (&pq->ordering, ordering);
-  pq->record_cap = settings_get_workspace_cases (proto);
-  if (pq->record_cap > max_buffers)
-    pq->record_cap = max_buffers;
-  else if (pq->record_cap < min_buffers)
-    pq->record_cap = min_buffers;
+  pq->record_max = settings_get_workspace_cases (proto);
+  if (pq->record_max > max_buffers)
+    pq->record_max = max_buffers;
+  else if (pq->record_max < min_buffers)
+    pq->record_max = min_buffers;
   pq->record_cnt = 0;
-  pq->records = xnmalloc (pq->record_cap, sizeof *pq->records);
+  pq->record_cap = 0;
+  pq->records = NULL;
   pq->idx = 0;
 
   return pq;
@@ -254,7 +256,7 @@ pqueue_destroy (struct pqueue *pq)
 static bool
 pqueue_is_full (const struct pqueue *pq)
 {
-  return pq->record_cnt >= pq->record_cap;
+  return pq->record_cnt >= pq->record_max;
 }
 
 static bool
@@ -269,6 +271,17 @@ pqueue_push (struct pqueue *pq, struct ccase *c, casenumber id)
   struct pqueue_record *r;
 
   assert (!pqueue_is_full (pq));
+
+  if (pq->record_cnt >= pq->record_cap)
+    {
+      pq->record_cap = pq->record_cap * 2;
+      if (pq->record_cap < 16)
+        pq->record_cap = 16;
+      else if (pq->record_cap > pq->record_max)
+        pq->record_cap = pq->record_max;
+      pq->records = xrealloc (pq->records,
+                              pq->record_cap * sizeof *pq->records);
+    }
 
   r = &pq->records[pq->record_cnt++];
   r->id = id;
