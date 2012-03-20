@@ -34,10 +34,12 @@ Changes from 0.6.2 to 0.7.9:
 
    - CROSSTABS has been re-implemented to fix numerous bugs.
 
+   - EXAMINE: /MISSING=LISTWISE is now the default.
+
    - DO REPEAT command has been reimplemented.  Now, when DO REPEAT
      contains an INCLUDE or INSERT command, substitutions are not
      applied to the included file.
-
+  
    - HOST has been updated to use more modern syntax.
 
    - GET, INCLUDE, and INSERT have a new ENCODING subcommand.
