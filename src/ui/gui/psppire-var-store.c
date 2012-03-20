@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2006, 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,7 +52,8 @@ var_change_callback (GtkWidget *w, gint n, gpointer data)
 
 
 static void
-var_delete_callback (GtkWidget *w, gint dict_idx, gint case_idx, gint val_cnt, gpointer data)
+var_delete_callback (GtkWidget *w, const struct variable *var UNUSED,
+                     gint dict_idx, gint case_idx UNUSED, gpointer data)
 {
   PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
 

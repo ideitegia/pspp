@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -337,17 +337,18 @@ insert_variable_callback (PsppireDict *dict, gint x, gpointer data)
 
 
 static void
-delete_variable_callback (PsppireDict *dict, gint posn,
-			  gint x UNUSED, gint y UNUSED, gpointer data)
+delete_variable_callback (PsppireDict *dict,
+                          const struct variable *var UNUSED,
+                          gint dict_idx, gint case_idx UNUSED, gpointer data)
 {
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
 
   PsppireAxis *var_vaxis;
   g_object_get (de->var_sheet, "vertical-axis", &var_vaxis, NULL);
 
-  psppire_axis_delete (var_vaxis, posn, 1);
+  psppire_axis_delete (var_vaxis, dict_idx, 1);
 
-  psppire_axis_delete (de->haxis, posn, 1);
+  psppire_axis_delete (de->haxis, dict_idx, 1);
 }
 
 

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2008, 2009, 2010  Free Software Foundation
+   Copyright (C) 2006, 2008, 2009, 2010, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -301,8 +301,8 @@ psppire_data_store_sheet_model_init (PsppireSheetModelIface *iface)
    A callback which occurs after a variable has been deleted.
  */
 static void
-delete_variable_callback (GObject *obj, gint dict_index,
-			  gint case_index, gint width,
+delete_variable_callback (GObject *obj, const struct variable *var UNUSED,
+                          gint dict_index, gint case_index,
 			  gpointer data)
 {
   PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);

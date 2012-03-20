@@ -159,10 +159,10 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
-		  psppire_marshal_VOID__INT_INT_INT,
+		  psppire_marshal_VOID__POINTER_INT_INT,
 		  G_TYPE_NONE,
 		  3,
-		  G_TYPE_INT,
+		  G_TYPE_POINTER,
 		  G_TYPE_INT,
 		  G_TYPE_INT);
 
@@ -248,10 +248,11 @@ addcb (struct dictionary *d, int idx, void *pd)
 }
 
 static void
-delcb (struct dictionary *d, int dict_idx, int case_idx, int width, void *pd)
+delcb (struct dictionary *d, const struct variable *var,
+       int dict_idx, int case_idx, void *pd)
 {
   g_signal_emit (pd, signals [VARIABLE_DELETED], 0,
-                 dict_idx, case_idx, width );
+                 var, dict_idx, case_idx);
 }
 
 static void

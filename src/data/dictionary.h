@@ -177,7 +177,8 @@ void dict_destroy_internal_var (struct variable *);
 struct dict_callbacks
  {
   void (*var_added) (struct dictionary *, int, void *);
-  void (*var_deleted) (struct dictionary *, int, int, int, void *);
+  void (*var_deleted) (struct dictionary *, const struct variable *,
+                       int dict_index, int case_index, void *);
   void (*var_changed) (struct dictionary *, int, void *);
   void (*var_resized) (struct dictionary *, int, int, void *);
   void (*weight_changed) (struct dictionary *, int, void *);

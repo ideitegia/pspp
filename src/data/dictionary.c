@@ -600,7 +600,6 @@ dict_delete_var (struct dictionary *d, struct variable *v)
 {
   int dict_index = var_get_dict_index (v);
   const int case_index = var_get_case_index (v);
-  const int width = var_get_width (v);
 
   assert (dict_contains_var (d, v));
 
@@ -628,13 +627,14 @@ dict_delete_var (struct dictionary *d, struct variable *v)
 
   /* Free memory. */
   var_clear_vardict (v);
-  var_destroy (v);
 
   if ( d->changed ) d->changed (d, d->changed_data);
 
   invalidate_proto (d);
   if (d->callbacks &&  d->callbacks->var_deleted )
-    d->callbacks->var_deleted (d, dict_index, case_index, width, d->cb_data);
+    d->callbacks->var_deleted (d, v, dict_index, case_index, d->cb_data);
+
+  var_destroy (v);
 }
 
 /* Deletes the COUNT variables listed in VARS from D.  This is
