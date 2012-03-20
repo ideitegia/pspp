@@ -3,8 +3,3 @@ This is not part of the GNU PSPP program, but is used with GNU PSPP.
 This directory contains a version of the GtkXPaned widget.  It includes
 minor modifications. GtkXPaned is licensed under the GNU Lesser
 General Public License.  See COPYING.LESSER. 
-
-
-This directory also contains the PsppireSheet widget which is a very
-heavily modified version of GtkSheet widget.  This modified version if
-licensed under the GNU General Public License version 3 or later.

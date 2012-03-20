@@ -1,14 +1,10 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-noinst_LIBRARIES += lib/gtk-contrib/libgtksheet.a
+noinst_LIBRARIES += lib/gtk-contrib/libxpaned.a
 
-lib_gtk_contrib_libgtksheet_a_CPPFLAGS = $(AM_CPPFLAGS) -Isrc/ui/gui/include
-lib_gtk_contrib_libgtksheet_a_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
+lib_gtk_contrib_libxpaned_a_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
 
-lib_gtk_contrib_libgtksheet_a_SOURCES = \
-	lib/gtk-contrib/gtkextra-sheet.h \
-	lib/gtk-contrib/psppire-sheet.c \
-	lib/gtk-contrib/psppire-sheet.h \
+lib_gtk_contrib_libxpaned_a_SOURCES = \
 	lib/gtk-contrib/gtkxpaned.c \
 	lib/gtk-contrib/gtkxpaned.h
 

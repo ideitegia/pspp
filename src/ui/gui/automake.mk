@@ -1,7 +1,5 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-include $(top_srcdir)/src/ui/gui/sheet/automake.mk
-
 UI_FILES = \
 	src/ui/gui/aggregate.ui \
 	src/ui/gui/autorecode.ui \
@@ -71,8 +69,7 @@ endif
 
 
 src_ui_gui_psppire_LDADD = \
-        src/ui/gui/sheet/libsheet.la \
-	lib/gtk-contrib/libgtksheet.a \
+	lib/gtk-contrib/libxpaned.a \
 	src/ui/libuicommon.la \
 	src/libpspp.la \
 	src/libpspp-core.la \
