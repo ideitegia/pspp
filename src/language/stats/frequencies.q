@@ -43,6 +43,8 @@
 #include "libpspp/str.h"
 #include "math/histogram.h"
 #include "math/moments.h"
+#include "math/chart-geometry.h"
+
 #include "output/chart-item.h"
 #include "output/charts/piechart.h"
 #include "output/charts/plot-hist.h"
@@ -1114,10 +1116,9 @@ freq_tab_to_hist (const struct frq_proc *frq, const struct freq_tab *ft,
 {
   double x_min, x_max, valid_freq;
   int i;
-
+  double bin_width;
   struct histogram *histogram;
   double iqr;
-  int bins;
 
   /* Find out the extremes of the x value, within the range to be included in
      the histogram, and sum the total frequency of those values. */
@@ -1137,19 +1138,10 @@ freq_tab_to_hist (const struct frq_proc *frq, const struct freq_tab *ft,
 
   /* Freedman-Diaconis' choice of bin width. */
   iqr = calculate_iqr (frq);
-  if (iqr != SYSMIS)
-    {
-      double bin_width = 2 * iqr / pow (valid_freq, 1.0 / 3.0);
-      bins = (x_max - x_min) / bin_width;
-      if (bins < 5)
-        bins = 5;
-      else if (bins > 400)
-        bins = 400;
-    }
-  else
-    bins = 5;
+  bin_width = 2 * iqr / pow (valid_freq, 1.0 / 3.0);
+  bin_width = chart_rounded_tick (bin_width);
 
-  histogram = histogram_create (bins, x_min, x_max);
+  histogram = histogram_create (bin_width, x_min, x_max);
   for (i = 0; i < ft->n_valid; i++)
     {
       const struct freq *f = &ft->valid[i];

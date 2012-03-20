@@ -30,7 +30,7 @@ struct histogram
   gsl_histogram *gsl_hist;
 };
 
-struct histogram * histogram_create (int bins, double max, double min);
+struct histogram * histogram_create (double bin_width, double max, double min);
 
 void histogram_add (struct histogram *h, double y, double c);
 

@@ -40,6 +40,7 @@
 #include "math/interaction.h"
 #include "math/box-whisker.h"
 #include "math/categoricals.h"
+#include "math/chart-geometry.h"
 #include "math/histogram.h"
 #include "math/moments.h"
 #include "math/np.h"
@@ -1516,8 +1517,15 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
 
       if (examine->histogram)
         {
+          /* Sturges Rule */
+          double bin_width = abs (es[v].minimum - es[v].maximum)
+            / (1 + log2 (es[v].cc))
+            ;
+
+          bin_width = chart_rounded_tick (bin_width);
+
           es[v].histogram =
-            histogram_create (10, es[v].minimum, es[v].maximum);
+            histogram_create (bin_width, es[v].minimum, es[v].maximum);
         }
 
       es[v].sorted_reader = casewriter_make_reader (es[v].sorted_writer);

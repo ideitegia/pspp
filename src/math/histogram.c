@@ -55,27 +55,30 @@ destroy (struct statistic *s)
 
 
 struct histogram *
-histogram_create (int bins, double min, double max)
+histogram_create (double bin_width, double min, double max)
 {
+  int bins;
   struct histogram *h = xmalloc (sizeof *h);
   struct statistic *stat = &h->parent;
+  const short max_sign = max >= 0;
+  const short min_sign = min >= 0;
+
   double upper_limit, lower_limit;
-
-  double bin_width = chart_rounded_tick ((max - min) / (double) bins);
-  double bin_width_2 = bin_width / 2.0;
-
-  int n =  ceil (max / (bin_width_2) ) ;
 
   assert (max >= min);
 
-  if ( ! (n % 2 ) ) n++;
-  upper_limit = n * bin_width_2;
+  lower_limit = trunc (2 * abs (min) / bin_width) - 1;
+  lower_limit *= bin_width / 2;
+  lower_limit *= min_sign;
 
-  n =  floor (min / (bin_width_2) ) ;
-  if ( ! (n % 2 ) ) n--;
-  lower_limit = n * bin_width_2;
+  upper_limit = trunc (2 * abs(max) / bin_width) + 1;
+  upper_limit *= bin_width / 2;
+  upper_limit *= max_sign;
+  
+  bins = (upper_limit - lower_limit) / bin_width;
 
   h->gsl_hist = gsl_histogram_alloc (bins);
+
   gsl_histogram_set_ranges_uniform (h->gsl_hist, lower_limit, upper_limit);
 
   stat->accumulate = acc;
