@@ -379,23 +379,24 @@ psppire_dict_generate_name (const PsppireDict *dict, char *name, size_t size)
   return name;
 }
 
-/* Insert a new variable at posn IDX, with the name NAME.
+/* Insert a new variable at posn IDX, with the name NAME, and return the
+   new variable.
    If NAME is null, then a name will be automatically assigned.
 */
-void
+struct variable *
 psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
 {
-  struct variable *var ;
+  struct variable *var;
   char tmpname[64];
 
-  g_return_if_fail (idx >= 0);
-  g_return_if_fail (d);
-  g_return_if_fail (PSPPIRE_IS_DICT (d));
+  g_return_val_if_fail (idx >= 0, NULL);
+  g_return_val_if_fail (d, NULL);
+  g_return_val_if_fail (PSPPIRE_IS_DICT (d), NULL);
 
-  if ( ! name )
+  if (name == NULL)
     {
       if (!psppire_dict_generate_name (d, tmpname, sizeof tmpname))
-        g_return_if_reached ();
+        g_return_val_if_reached (NULL);
 
       name = tmpname;
     }
@@ -409,6 +410,8 @@ psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
   d->disable_insert_signal = FALSE;
 
   g_signal_emit (d, signals[VARIABLE_INSERTED], 0, idx);
+
+  return var;
 }
 
 /* Delete N variables beginning at FIRST */

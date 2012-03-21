@@ -90,7 +90,8 @@ struct variable * psppire_dict_get_variable (const PsppireDict *d, gint idx);
 void psppire_dict_delete_variables (PsppireDict *d, gint first, gint n);
 
 /* Insert a new variable at posn IDX */
-void psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name);
+struct variable *psppire_dict_insert_variable (PsppireDict *d, gint idx,
+                                               const gchar *name);
 
 void psppire_dict_resize_variable (PsppireDict *,
 				  const struct variable *,
