@@ -352,8 +352,8 @@ psppire_dict_replace_dictionary (PsppireDict *dict, struct dictionary *d)
 
 /* Stores a valid name for a new variable in DICT into the SIZE bytes in NAME.
    Returns true if successful, false if SIZE is insufficient. */
-static bool
-auto_generate_var_name (const PsppireDict *dict, char *name, size_t size)
+bool
+psppire_dict_generate_name (const PsppireDict *dict, char *name, size_t size)
 {
   gint d;
 
@@ -394,7 +394,7 @@ psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
 
   if ( ! name )
     {
-      if (!auto_generate_var_name (d, tmpname, sizeof tmpname))
+      if (!psppire_dict_generate_name (d, tmpname, sizeof tmpname))
         g_return_if_reached ();
 
       name = tmpname;

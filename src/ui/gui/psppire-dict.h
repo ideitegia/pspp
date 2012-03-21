@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2009  Free Software Foundation
+   Copyright (C) 2004, 2009, 2011  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,6 +98,8 @@ void psppire_dict_resize_variable (PsppireDict *,
 
 gboolean psppire_dict_check_name (const PsppireDict *dict,
 			      const gchar *name, gboolean report);
+
+bool psppire_dict_generate_name (const PsppireDict *, char *name, size_t size);
 
 gint psppire_dict_get_next_value_idx (const PsppireDict *dict);
 
