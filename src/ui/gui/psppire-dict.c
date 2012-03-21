@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2006, 2007, 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2004, 2006, 2007, 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -350,24 +350,31 @@ psppire_dict_replace_dictionary (PsppireDict *dict, struct dictionary *d)
 }
 
 
-/* Returns a valid name for a new variable in DICT.
-   The return value is statically allocated */
-static gchar *
-auto_generate_var_name (PsppireDict *dict)
+/* Stores a valid name for a new variable in DICT into the SIZE bytes in NAME.
+   Returns true if successful, false if SIZE is insufficient. */
+static bool
+auto_generate_var_name (const PsppireDict *dict, char *name, size_t size)
 {
-  gint d = 0;
-  static gchar name[10];
+  gint d;
 
-  /* TRANSLATORS: This string must be a valid variable name.  That means:
-     - The string must be at most 64 bytes (not characters) long.
-     - The string may not contain whitespace.
-     - The first character may not be '$'
-     - The first character may not be a digit
-     - The final charactor may not be '.' or '_'
-   */
-  while (g_snprintf (name, 10, _("VAR%05d"), d++),
-	 psppire_dict_lookup_var (dict, name))
-    ;
+  for (d = 1; ; d++)
+    {
+      int len;
+
+      /* TRANSLATORS: This string must be a valid variable name.  That means:
+         - The string must be at most 64 bytes (not characters) long.
+         - The string may not contain whitespace.
+         - The first character may not be '$'
+         - The first character may not be a digit
+         - The final charactor may not be '.' or '_'
+      */
+      len = snprintf (name, size, _("Var%04d"), d);
+      if (len + 1 >= size)
+        return false;
+
+      if (psppire_dict_lookup_var (dict, name) == NULL)
+        return true;
+    }
 
   return name;
 }
@@ -379,12 +386,19 @@ void
 psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
 {
   struct variable *var ;
+  char tmpname[64];
+
   g_return_if_fail (idx >= 0);
   g_return_if_fail (d);
   g_return_if_fail (PSPPIRE_IS_DICT (d));
 
   if ( ! name )
-    name = auto_generate_var_name (d);
+    {
+      if (!auto_generate_var_name (d, tmpname, sizeof tmpname))
+        g_return_if_reached ();
+
+      name = tmpname;
+    }
 
   d->disable_insert_signal = TRUE;
 
