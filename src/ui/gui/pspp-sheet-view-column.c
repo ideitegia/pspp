@@ -44,6 +44,7 @@
 
 #include "ui/gui/psppire-marshal.h"
 #include "ui/gui/pspp-sheet-selection.h"
+#include "ui/gui/pspp-widget-facade.h"
 
 #define P_(STRING) STRING
 #define GTK_PARAM_READABLE G_PARAM_READABLE|G_PARAM_STATIC_NAME|G_PARAM_STATIC_NICK|G_PARAM_STATIC_BLURB
@@ -139,7 +140,7 @@ static GList *pspp_sheet_view_column_cell_layout_get_cells        (GtkCellLayout
 
 /* Button handling code */
 static void pspp_sheet_view_column_create_button                 (PsppSheetViewColumn       *tree_column);
-static void pspp_sheet_view_column_update_button                 (PsppSheetViewColumn       *tree_column);
+void pspp_sheet_view_column_update_button                 (PsppSheetViewColumn       *tree_column);
 
 /* Button signal handlers */
 static gint pspp_sheet_view_column_button_event                  (GtkWidget               *widget,
@@ -479,6 +480,7 @@ pspp_sheet_view_column_init (PsppSheetViewColumn *tree_column)
   tree_column->use_resized_width = FALSE;
   tree_column->title = g_strdup ("");
   tree_column->quick_edit = TRUE;
+  tree_column->need_button = FALSE;
 }
 
 static void
@@ -1035,7 +1037,7 @@ pspp_sheet_view_column_create_button (PsppSheetViewColumn *tree_column)
   pspp_sheet_view_column_update_button (tree_column);
 }
 
-static void 
+void 
 pspp_sheet_view_column_update_button (PsppSheetViewColumn *tree_column)
 {
   gint sort_column_id = -1;
@@ -1045,6 +1047,7 @@ pspp_sheet_view_column_update_button (PsppSheetViewColumn *tree_column)
   GtkWidget *current_child;
   GtkArrowType arrow_type = GTK_ARROW_NONE;
   GtkTreeModel *model;
+  gboolean can_focus;
 
   if (tree_column->tree_view)
     model = pspp_sheet_view_get_model (PSPP_SHEET_VIEW (tree_column->tree_view));
@@ -1052,7 +1055,8 @@ pspp_sheet_view_column_update_button (PsppSheetViewColumn *tree_column)
     model = NULL;
 
   /* Create a button if necessary */
-  if (tree_column->visible &&
+  if (tree_column->need_button &&
+      tree_column->visible &&
       tree_column->button == NULL &&
       tree_column->tree_view &&
       gtk_widget_get_realized (tree_column->tree_view))
@@ -1187,23 +1191,18 @@ pspp_sheet_view_column_update_button (PsppSheetViewColumn *tree_column)
 	    gdk_window_hide (tree_column->window);
 	}
     }
-  
-  if (tree_column->reorderable || tree_column->clickable)
+
+  can_focus = pspp_sheet_view_column_can_focus (tree_column);
+  gtk_widget_set_can_focus (tree_column->button, can_focus);
+  if (!can_focus && gtk_widget_has_focus (tree_column->button))
     {
-      gtk_widget_set_can_focus (tree_column->button, TRUE);
+      GtkWidget *toplevel = gtk_widget_get_toplevel (tree_column->tree_view);
+      if (gtk_widget_is_toplevel (toplevel))
+        {
+          gtk_window_set_focus (GTK_WINDOW (toplevel), NULL);
+        }
     }
-  else
-    {
-      gtk_widget_set_can_focus (tree_column->button, FALSE);
-      if (gtk_widget_has_focus (tree_column->button))
-	{
-	  GtkWidget *toplevel = gtk_widget_get_toplevel (tree_column->tree_view);
-	  if (gtk_widget_is_toplevel (toplevel))
-	    {
-	      gtk_window_set_focus (GTK_WINDOW (toplevel), NULL);
-	    }
-	}
-    }
+
   /* Queue a resize on the assumption that we always want to catch all changes
    * and columns don't change all that often.
    */
@@ -1539,6 +1538,9 @@ _pspp_sheet_view_column_realize_button (PsppSheetViewColumn *column)
   g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
   g_return_if_fail (gtk_widget_get_realized (GTK_WIDGET (tree_view)));
   g_return_if_fail (tree_view->priv->header_window != NULL);
+  if (!column->need_button || !column->button)
+    return;
+
   g_return_if_fail (column->button != NULL);
 
   gtk_widget_set_parent_window (column->button, tree_view->priv->header_window);
@@ -1577,11 +1579,12 @@ void
 _pspp_sheet_view_column_unrealize_button (PsppSheetViewColumn *column)
 {
   g_return_if_fail (column != NULL);
-  g_return_if_fail (column->window != NULL);
-
-  gdk_window_set_user_data (column->window, NULL);
-  gdk_window_destroy (column->window);
-  column->window = NULL;
+  if (column->window != NULL)
+    {
+      gdk_window_set_user_data (column->window, NULL);
+      gdk_window_destroy (column->window);
+      column->window = NULL;
+    }
 }
 
 void
@@ -1604,7 +1607,8 @@ _pspp_sheet_view_column_set_tree_view (PsppSheetViewColumn *column,
   g_assert (column->tree_view == NULL);
 
   column->tree_view = GTK_WIDGET (tree_view);
-  pspp_sheet_view_column_create_button (column);
+  if (column->need_button)
+    pspp_sheet_view_column_create_button (column);
 
   column->property_changed_signal =
 	  g_signal_connect_swapped (tree_view,
@@ -4261,4 +4265,65 @@ _gtk_cell_layout_buildable_add_child (GtkBuildable      *buildable,
   iface = GTK_CELL_LAYOUT_GET_IFACE (buildable);
   g_return_if_fail (iface->pack_start != NULL);
   iface->pack_start (GTK_CELL_LAYOUT (buildable), GTK_CELL_RENDERER (child), FALSE);
+}
+
+void
+pspp_sheet_view_column_size_request (PsppSheetViewColumn       *tree_column,
+                                     GtkRequisition            *request)
+{
+  GtkWidget *base = GTK_WIDGET (tree_column->tree_view);
+  GtkRequisition label_req;
+  GtkRequisition align_req;
+  GtkRequisition arrow_req;
+  GtkRequisition hbox_req;
+  GtkStyle **button_style;
+
+  if (tree_column->button)
+    {
+      gtk_widget_size_request (tree_column->button, request);
+      return;
+    }
+
+  facade_label_get_size_request (0, 0, base, tree_column->title, &label_req);
+  facade_alignment_get_size_request (0, 0, 0, 0, 0, &label_req, &align_req);
+  facade_arrow_get_size_request (0, 0, &arrow_req);
+
+  facade_hbox_get_base_size_request (0, 2, 2, &hbox_req);
+  facade_hbox_add_child_size_request (0, &arrow_req, 0, &hbox_req);
+  facade_hbox_add_child_size_request (0, &align_req, 0, &hbox_req);
+
+  button_style = &PSPP_SHEET_VIEW (tree_column->tree_view)->priv->button_style;
+  if (*button_style == NULL)
+    {
+      *button_style = facade_get_style (base, GTK_TYPE_BUTTON, 0);
+      g_object_ref (*button_style);
+    }
+  facade_button_get_size_request (0, base, *button_style, &hbox_req, request);
+}
+
+void
+pspp_sheet_view_column_size_allocate (PsppSheetViewColumn       *tree_column,
+                                      GtkAllocation             *allocation)
+{
+  tree_column->allocation = *allocation;
+  if (tree_column->button)
+    gtk_widget_size_allocate (tree_column->button, allocation);
+}
+
+gboolean
+pspp_sheet_view_column_can_focus (PsppSheetViewColumn       *tree_column)
+{
+  return tree_column->reorderable || tree_column->clickable;
+}
+
+void
+pspp_sheet_view_column_set_need_button (PsppSheetViewColumn       *tree_column,
+                                        gboolean                   need_button)
+{
+  if (tree_column->need_button != need_button)
+    {
+      tree_column->need_button = need_button;
+      pspp_sheet_view_column_update_button (tree_column);
+      _pspp_sheet_view_column_realize_button (tree_column);
+    }
 }

@@ -71,6 +71,7 @@ struct _PsppSheetViewColumn
   gfloat GSEAL (xalign);
   guint GSEAL (property_changed_signal);
   gint GSEAL (spacing);
+  GtkAllocation GSEAL (allocation);
 
   /* Sizing fields */
   /* see gtk+/doc/tree-column-sizing.txt for more information on them */
@@ -109,6 +110,7 @@ struct _PsppSheetViewColumn
   guint GSEAL (selected)            : 1;
   guint GSEAL (selectable)          : 1;
   guint GSEAL (row_head)            : 1;
+  guint GSEAL (need_button)         : 1;
 };
 
 struct _PsppSheetViewColumnClass
@@ -250,6 +252,14 @@ gboolean                pspp_sheet_view_column_cell_get_position   (PsppSheetVie
 void                    pspp_sheet_view_column_queue_resize        (PsppSheetViewColumn       *tree_column);
 GtkWidget              *pspp_sheet_view_column_get_tree_view       (PsppSheetViewColumn       *tree_column);
 
+void                    pspp_sheet_view_column_size_request       (PsppSheetViewColumn       *tree_column,
+                                                                    GtkRequisition             *requisition);
+
+void                    pspp_sheet_view_column_size_allocate       (PsppSheetViewColumn       *tree_column,
+                                                                    GtkAllocation             *allocation);
+gboolean                pspp_sheet_view_column_can_focus           (PsppSheetViewColumn       *tree_column);
+void                    pspp_sheet_view_column_set_need_button     (PsppSheetViewColumn       *tree_column,
+                                                                    gboolean                   need_button);
 
 G_END_DECLS
 

@@ -1,5 +1,5 @@
  /* PSPPIRE - a graphical user interface for PSPP.
-    Copyright (C) 2011 Free Software Foundation, Inc.
+    Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -249,6 +249,9 @@ struct _PsppSheetViewPrivate
 
   /* Tooltip support */
   gint tooltip_column;
+
+  /* Cached style for button facades in columns. */
+  GtkStyle *button_style;
 
   /* Here comes the bitfield */
   guint scroll_to_use_align : 1;
