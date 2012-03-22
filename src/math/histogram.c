@@ -60,22 +60,31 @@ histogram_create (double bin_width, double min, double max)
   int bins;
   struct histogram *h = xmalloc (sizeof *h);
   struct statistic *stat = &h->parent;
-  const short max_sign = max >= 0;
-  const short min_sign = min >= 0;
 
   double upper_limit, lower_limit;
 
   assert (max >= min);
 
-  lower_limit = trunc (2 * abs (min) / bin_width) - 1;
-  lower_limit *= bin_width / 2;
-  lower_limit *= min_sign;
+  if (max == min)
+     bin_width = 1;
 
-  upper_limit = trunc (2 * abs(max) / bin_width) + 1;
-  upper_limit *= bin_width / 2;
-  upper_limit *= max_sign;
+  lower_limit = floor (2 * min / bin_width) - 1;
+  upper_limit = floor (2 * max / bin_width) + 1;
   
-  bins = (upper_limit - lower_limit) / bin_width;
+  /* The range must be an even number of half bin_widths */
+  if ( (int)(upper_limit - lower_limit) % 2)
+    {
+      /* Extend the range at the end which gives the least unused space */
+      if (remainder (min, bin_width / 2.0) > remainder (max, bin_width / 2.0))
+	lower_limit --;
+      else
+	upper_limit ++;
+    }
+
+  bins = (upper_limit - lower_limit) / 2.0;
+
+  upper_limit *= bin_width / 2;
+  lower_limit *= bin_width / 2;  
 
   h->gsl_hist = gsl_histogram_alloc (bins);
 

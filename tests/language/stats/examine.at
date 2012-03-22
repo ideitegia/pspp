@@ -519,6 +519,7 @@ END DATA
 EXAMINE
 	quality 
 	/STATISTICS descriptives 
+        /PLOT = histogram
 	.
 ])
 AT_CHECK([pspp -o pspp.csv examine.sps])
