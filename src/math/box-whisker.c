@@ -22,6 +22,7 @@
 #include <float.h>
 
 #include "data/case.h"
+#include "data/data-out.h"
 #include "data/val-type.h"
 #include "data/variable.h"
 #include "libpspp/assertion.h"
@@ -82,9 +83,21 @@ acc (struct statistic *s, const struct ccase *cx,
   o->extreme = extreme;
   ds_init_empty (&o->label);
 
-  ds_put_format (&o->label,
-		   "%ld",
-                 (casenumber) case_data_idx (cx, bw->casenumber_idx)->f);
+  if (bw->id_var)
+    {
+      char *s = data_out (case_data_idx (cx, bw->id_idx),
+                           var_get_encoding (bw->id_var),
+                           var_get_print_format (bw->id_var));
+
+      ds_put_cstr (&o->label, s);
+      free (s);
+    }
+  else
+    {
+      ds_put_format (&o->label,
+                     "%ld",
+                     (casenumber) case_data_idx (cx, bw->id_idx)->f);
+    }
 
   ll_push_head (&bw->outliers, &o->ll);
 }
@@ -115,12 +128,13 @@ box_whisker_outliers (const struct box_whisker *bw)
 
   TH are the tukey hinges of the dataset.
 
-  Casenumber_idx is the index into the casereader which will be used to label 
+  id_idx is the index into the casereader which will be used to label 
   outliers.
+  id_var is the variable from which that label came, or NULL
 */
 struct box_whisker *
 box_whisker_create (const struct tukey_hinges *th,
-		    size_t casenumber_idx)
+		    size_t id_idx, const struct variable *id_var)
 {
   struct box_whisker *w = xzalloc (sizeof (*w));
   struct order_stats *os = &w->parent;
@@ -133,7 +147,8 @@ box_whisker_create (const struct tukey_hinges *th,
 
   tukey_hinges_calculate (th, w->hinges);
 
-  w->casenumber_idx = casenumber_idx;
+  w->id_idx = id_idx;
+  w->id_var = id_var;
 
   w->step = (w->hinges[2] - w->hinges[0]) * 1.5;
 

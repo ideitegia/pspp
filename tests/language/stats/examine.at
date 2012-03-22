@@ -587,3 +587,56 @@ AT_CHECK([$PERL more-big-input.pl >> large.txt])
 AT_CHECK([pspp -o pspp.csv examine.sps])
 dnl Ignore output -- this is just a no-crash check.
 AT_CLEANUP
+
+
+dnl Test that the ID command works with non-numberic variables
+AT_SETUP([EXAMINE -- non-numeric ID])
+
+AT_DATA([examine-id.sps], [dnl
+data list notable list /x * y (a12).
+begin data.
+1  one
+2  two
+3  three
+4  four
+5  five
+6  six
+7  seven
+8  eight
+9  nine
+10 ten
+11 eleven
+12 twelve
+30 thirty
+300 threehundred
+end data.
+
+examine x
+	/statistics = extreme
+	/id = y
+	/plot = boxplot
+	.
+])
+
+AT_CHECK([pspp -O format=csv examine-id.sps], [0], 
+[Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x,14,100%,0,0%,14,100%
+
+Table: Extreme Values
+,,,y,Value
+x,Highest,1,threehundred,300.00
+,,2,thirty      ,30.00
+,,3,twelve      ,12.00
+,,4,eleven      ,11.00
+,,5,ten         ,10.00
+,Lowest,1,one         ,1.00
+,,2,two         ,2.00
+,,3,three       ,3.00
+,,4,four        ,4.00
+,,5,five        ,5.00
+])
+
+AT_CLEANUP 

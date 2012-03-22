@@ -26,6 +26,7 @@
    However, there's no reason not to use it for other purposes too.
  */
 struct tukey_hinges;
+struct variable;
 
 struct outlier
 {
@@ -47,11 +48,12 @@ struct box_whisker
 
   double step;
 
-  size_t casenumber_idx;
+  size_t id_idx;
+  const struct variable *id_var;
 };
 
 struct box_whisker * box_whisker_create (const struct tukey_hinges *,
-                                         size_t);
+                                         size_t id_idx, const struct variable *id_var);
 
 void box_whisker_whiskers (const struct box_whisker *bw, double whiskers[2]);
 

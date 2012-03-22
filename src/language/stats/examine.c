@@ -110,11 +110,9 @@ struct examine
 
   bool missing_pw;
 
-  /* Test options require that casenumbers are known */
-  bool casenumbers;
-
   /* The case index of the ID value (or -1) if not applicable */
   size_t id_idx;
+  int id_width;
 
   enum pc_alg pc_alg;
   double *ptiles;
@@ -138,7 +136,7 @@ struct extremity
 
   /* Either the casenumber or the value of the variable specified
      by the /ID subcommand which corresponds to this extremity */
-  double identity;
+  union value identity;
 };
 
 struct exploratory_stats
@@ -1150,13 +1148,21 @@ extremes_report (const struct examine *cmd, int iact_idx)
                           &F_8_0);
 
               /* The casenumber */
-              tab_double (t,
+              if (cmd->id_var)
+                tab_value (t,
+                           heading_columns,
+                           heading_rows + v * rows_per_var + i * rows_per_cat + e,
+                           TAB_RIGHT,
+                           &es->maxima[e].identity,
+                           cmd->id_var,
+                           NULL);
+              else 
+                tab_double (t,
                           heading_columns,
-                          heading_rows + v * rows_per_var + i * rows_per_cat + e,
-                          0,
-                          es->maxima[e].identity,
-                          &F_8_0);
-
+                            heading_rows + v * rows_per_var + i * rows_per_cat + e,
+                            TAB_RIGHT,
+                            es->maxima[e].identity.f,
+                            &F_8_0);
 
               tab_double (t,
                           heading_columns + 1,
@@ -1175,12 +1181,21 @@ extremes_report (const struct examine *cmd, int iact_idx)
                           &F_8_0);
 
               /* The casenumber */
-              tab_double (t,
-                          heading_columns,
-                          heading_rows + v * rows_per_var + i * rows_per_cat + cmd->disp_extremes + e,
-                          0,
-                          es->minima[e].identity,
-                          &F_8_0);
+              if (cmd->id_var)
+                tab_value (t,
+                           heading_columns,
+                           heading_rows + v * rows_per_var + i * rows_per_cat + cmd->disp_extremes + e,
+                           TAB_RIGHT,
+                           &es->minima[e].identity,
+                           cmd->id_var,
+                           NULL);
+              else
+                tab_double (t,
+                            heading_columns,
+                            heading_rows + v * rows_per_var + i * rows_per_cat + cmd->disp_extremes + e,
+                            TAB_RIGHT,
+                            es->minima[e].identity.f,
+                            &F_8_0);
 
               tab_double (t,
                           heading_columns + 1,
@@ -1483,10 +1498,11 @@ update_n (const void *aux1, void *aux2 UNUSED, void *user_data,
 
       moments_pass_one (es[v].mom, x, weight);
 
-      /* Save the value and the casenumber to the writer */
+      /* Save the value and the ID to the writer */
+      assert (examine->id_idx != -1);
       case_data_rw_idx (outcase, EX_VAL)->f = x;
-      if ( examine->id_idx != -1)
-        case_data_rw_idx (outcase, EX_ID)->f = case_data_idx (c, examine->id_idx)->f;
+      value_copy (case_data_rw_idx (outcase, EX_ID),
+                  case_data_idx (c, examine->id_idx), examine->id_width);
 
       case_data_rw_idx (outcase, EX_WT)->f = weight;
       
@@ -1534,6 +1550,11 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
 
       es[v].maxima = pool_calloc (examine->pool, examine->calc_extremes, sizeof (*es[v].maxima));
       es[v].minima = pool_calloc (examine->pool, examine->calc_extremes, sizeof (*es[v].minima));
+      for (i = 0; i < examine->calc_extremes; ++i)
+        {
+          value_init_pool (examine->pool, &es[v].maxima[i].identity, examine->id_width) ;
+          value_init_pool (examine->pool, &es[v].minima[i].identity, examine->id_width) ;
+        }
       
       for (reader = casereader_clone (es[v].sorted_reader);
            (c = casereader_read (reader)) != NULL; case_unref (c))
@@ -1553,7 +1574,7 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
                 {
                   struct extremity *min = &es[v].minima[x];
                   min->val = val;
-                  min->identity = case_data_idx (c, EX_ID)->f;
+                  value_copy (&min->identity, case_data_idx (c, EX_ID), examine->id_width);
                 }
               imin += wt;
             }
@@ -1572,7 +1593,7 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
 
                   max = &es[v].maxima[x];
                   max->val = val;
-                  max->identity = case_data_idx (c, EX_ID)->f;
+                  value_copy (&max->identity, case_data_idx (c, EX_ID), examine->id_width);
                 }
             }
         }
@@ -1623,7 +1644,7 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
           struct order_stats *os;
 
           es[v].box_whisker = box_whisker_create (es[v].hinges, 
-                                                  EX_ID);
+                                                  EX_ID, examine->id_var);
 
           os = &es[v].box_whisker->parent;
 	  order_stats_accumulate_idx (&os, 1,
@@ -1721,24 +1742,20 @@ run_examine (struct examine *cmd, struct casereader *input)
   
   cmd->wv = dict_get_weight (cmd->dict);
 
-  cmd->id_idx = -1;
   cmd->cats
     = categoricals_create (cmd->iacts, cmd->n_iacts,  
                            cmd->wv, cmd->exclude);
 
   categoricals_set_payload (cmd->cats, &payload, cmd, NULL);
 
-  if (cmd->casenumbers)
+  if (cmd->id_idx == -1)
     {
       struct ccase *c = casereader_peek (input,  0);
 
-      if (cmd->id_var) 
-        cmd->id_idx = var_get_case_index (cmd->id_var);
-      else
-        {
-          cmd->id_idx = case_get_value_cnt (c);
-          input = casereader_create_arithmetic_sequence (input, 1.0, 1.0);
-        }
+      assert (cmd->id_var == NULL);
+
+      cmd->id_idx = case_get_value_cnt (c);
+      input = casereader_create_arithmetic_sequence (input, 1.0, 1.0);
 
       case_unref (c);
     }
@@ -1814,7 +1831,6 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
   struct examine examine;
   bool percentiles_seen = false;
 
-  examine.casenumbers = false;
   examine.missing_pw = false;
   examine.disp_extremes = 0;
   examine.calc_extremes = 0;
@@ -1823,13 +1839,12 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
   examine.pc_alg = PC_HAVERAGE;
   examine.ptiles = NULL;
   examine.n_percentiles = 0;
-  examine.id_var = 0;
+  examine.id_idx = -1;
+  examine.id_width = 0;
+  examine.id_var = NULL;
   examine.boxplot_mode = BP_GROUPS;
   
   examine.ex_proto = caseproto_create ();
-  examine.ex_proto = caseproto_add_width (examine.ex_proto, 0); /* value */
-  examine.ex_proto = caseproto_add_width (examine.ex_proto, 0); /* id */
-  examine.ex_proto = caseproto_add_width (examine.ex_proto, 0); /* weight */
 
   examine.pool = pool_create ();
 
@@ -2114,6 +2129,7 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
         }
     }
 
+
   if ( totals_seen && nototals_seen)
     {
       msg (SE, _("%s and %s are mutually exclusive"),"TOTAL","NOTOTAL");
@@ -2133,17 +2149,21 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
     }
 
 
+  if ( examine.id_var )
+    {
+      examine.id_idx = var_get_case_index (examine.id_var);
+      examine.id_width = var_get_width (examine.id_var);
+    }
+
+  examine.ex_proto = caseproto_add_width (examine.ex_proto, 0); /* value */
+  examine.ex_proto = caseproto_add_width (examine.ex_proto, examine.id_width);   /* id */
+  examine.ex_proto = caseproto_add_width (examine.ex_proto, 0); /* weight */
+
+
   if (examine.disp_extremes > 0)
     {
       examine.calc_extremes = examine.disp_extremes;
-      examine.casenumbers = true;
     }
-
-  if (examine.boxplot)
-    {
-      examine.casenumbers = true;
-    }
-
 
   if (examine.descriptives && examine.calc_extremes == 0)
     {
