@@ -25,7 +25,6 @@
 double
 chart_rounded_tick(double tick)
 {
-
   int i;
 
   double diff = DBL_MAX;
@@ -33,7 +32,13 @@ chart_rounded_tick(double tick)
 
   static const double standard_ticks[] = {1, 2, 5, 10};
 
-  const double factor = pow(10,ceil(log10(standard_ticks[0] / tick))) ;
+  double factor;
+
+  /* Avoid arithmetic problems with very small values */
+  if (abs (tick) < DBL_EPSILON)
+     return 0;
+
+  factor = pow(10,ceil(log10(standard_ticks[0] / tick))) ;
 
   for (i = 3  ; i >= 0 ; --i)
     {
