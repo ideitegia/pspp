@@ -35,7 +35,7 @@ chart_rounded_tick(double tick)
   double factor;
 
   /* Avoid arithmetic problems with very small values */
-  if (abs (tick) < DBL_EPSILON)
+  if (fabs (tick) < DBL_EPSILON)
      return 0;
 
   factor = pow(10,ceil(log10(standard_ticks[0] / tick))) ;
