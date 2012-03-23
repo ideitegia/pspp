@@ -53,6 +53,7 @@ goto_case_dialog (PsppireDataSheet *ds)
 
   if ( response == PSPPIRE_RESPONSE_GOTO )
     {
+      PsppireDataStore *data_store = psppire_data_sheet_get_data_store (ds);
       glong case_num;
       GtkWidget *case_num_entry =
 	get_widget_assert (xml, "goto-case-case-num-entry");
@@ -60,6 +61,8 @@ goto_case_dialog (PsppireDataSheet *ds)
       case_num = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (case_num_entry))
 	- FIRST_CASE_NUMBER ;
 
-      psppire_data_sheet_goto_case (ds, case_num);
+      if (case_num >= 0
+          && case_num < psppire_data_store_get_case_count (data_store))
+        psppire_data_sheet_goto_case (ds, case_num);
     }
 }
