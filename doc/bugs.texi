@@ -1,14 +1,35 @@
 @node Bugs
 @chapter Bugs
 
-PSPP does have bugs.  We do our best to fix them, but our limited
-resources mean that some may remain for a long time.  Our best
-alternative is to make you aware of PSPP's known bugs.  To see a list,
-visit PSPP's project webpage at
-@uref{https://savannah.gnu.org/projects/pspp}.  You can also submit
-your own bug report there: click on ``Bugs,'' then on ``Submit a
-Bug,'' and fill out the form.  Alternatively, PSPP bug reports may be
-sent by email to @email{bug-gnu-pspp@@gnu.org}.
+@cindex bugs
+
+Occasionally users encounter problems with PSPP.
+When such problems arise we do our best to fix them, but our limited
+resources mean that certain issues may remain for some time.
+If you discover a bug, please first:
+@itemize @bullet
+@item Try an up to date version of PSPP; it may be that the problem 
+ has recently been fixed.
+@item If the problem persists in the up to date version; check to see
+ if it has already been reported.
+@item If the problem exists in a recent version and it has not already 
+ been reported, please file a report.
+@end itemize
+
+To see a list of reported bugs, visit PSPP's project webpage at
+@uref{http://savannah.gnu.org/bugs/?group=pspp}
+Alternatively, bug reports may be sent by email
+to @email{bug-gnu-pspp@@gnu.org}.
+
+In your bug report please include:
+@itemize @bullet
+@item The version of PSPP which you are using.
+@item The operating system and type of computer on which it is running.
+@item A sample of the syntax which causes the problem or, if it is a user
+ interface problem, the sequence of steps required to reproduce it.
+@item A description of what you think is wrong: What happened that you 
+  didn't expect, and what did you expect to happen?
+@end itemize
 
 For known bugs in individual language features, see the documentation
 for that feature.
