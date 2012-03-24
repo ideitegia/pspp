@@ -38,7 +38,7 @@ histogram_write_legend (cairo_t *cr, const struct xrchart_geometry *geom,
 
   if (n != SYSMIS)
     {
-      char *buf = xasprintf ("N = %.2f", n);
+      char *buf = xasprintf (_("N = %.2f"), n);
       cairo_move_to (cr, geom->legend_left, y);
       xrchart_label (cr, 'l', 'b', geom->font_size, buf);
       y += geom->font_size * 1.5;
@@ -47,7 +47,7 @@ histogram_write_legend (cairo_t *cr, const struct xrchart_geometry *geom,
 
   if (mean != SYSMIS)
     {
-      char *buf = xasprintf ("Mean = %.1f", mean);
+      char *buf = xasprintf (_("Mean = %.1f"), mean);
       cairo_move_to (cr,geom->legend_left, y);
       xrchart_label (cr, 'l', 'b', geom->font_size, buf);
       y += geom->font_size * 1.5;
@@ -56,7 +56,7 @@ histogram_write_legend (cairo_t *cr, const struct xrchart_geometry *geom,
 
   if (stddev != SYSMIS)
     {
-      char *buf = xasprintf ("Std. Dev = %.2f", stddev);
+      char *buf = xasprintf (_("Std. Dev = %.2f"), stddev);
       cairo_move_to (cr, geom->legend_left, y);
       xrchart_label (cr, 'l', 'b', geom->font_size, buf);
       free (buf);
