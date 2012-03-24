@@ -60,31 +60,52 @@ histogram_create (double bin_width, double min, double max)
   int bins;
   struct histogram *h = xmalloc (sizeof *h);
   struct statistic *stat = &h->parent;
-
   double upper_limit, lower_limit;
+  const double half_bin_width = bin_width / 2.0;
+
+  /* -1 if the lower end of the range contains more unused space
+     than the upper end.
+     +1 otherwise.  */
+  short sparse_end = 0;
 
   assert (max >= min);
 
   if (max == min)
-     bin_width = 1;
+    bin_width = 1;
 
-  lower_limit = floor (2 * min / bin_width) - 1;
-  upper_limit = floor (2 * max / bin_width) + 1;
+  lower_limit = floor (min / half_bin_width) - 1;
+  upper_limit = floor (max / half_bin_width) + 1;
   
-  /* The range must be an even number of half bin_widths */
+  if (remainder (min, half_bin_width > remainder (max, half_bin_width)))
+    sparse_end = -1;
+  else
+    sparse_end = +1;
+
+  /* The range must be an EVEN number of half bin_widths */
   if ( (int)(upper_limit - lower_limit) % 2)
     {
       /* Extend the range at the end which gives the least unused space */
-      if (remainder (min, bin_width / 2.0) > remainder (max, bin_width / 2.0))
+      if (sparse_end == +1)
 	lower_limit --;
       else
 	upper_limit ++;
+      
+      /* Now the other end has more space */
+      sparse_end *= -1;
+    }
+
+  /* But the range should be aligned to an ODD number of
+     half bin widths, so that the labels are aesthetically pleasing ones. */
+  if ( (int)lower_limit % 2 == 0)
+    {
+      lower_limit += -sparse_end ;
+      upper_limit += -sparse_end ;
     }
 
   bins = (upper_limit - lower_limit) / 2.0;
 
-  upper_limit *= bin_width / 2;
-  lower_limit *= bin_width / 2;  
+  upper_limit *= half_bin_width;
+  lower_limit *= half_bin_width;
 
   h->gsl_hist = gsl_histogram_alloc (bins);
 
