@@ -57,17 +57,17 @@ xrchart_draw_piechart (const struct chart_item *chart_item, cairo_t *cr,
   double angle;
   int i;
 
-  centre_x = (geom->data_right + geom->data_left) / 2.0 ;
-  centre_y = (geom->data_top + geom->data_bottom) / 2.0 ;
+  centre_x = (geom->axis[SCALE_ABSCISSA].data_max + geom->axis[SCALE_ORDINATE].data_min) / 2.0 ;
+  centre_y = (geom->axis[SCALE_ORDINATE].data_max + geom->axis[SCALE_ORDINATE].data_min) / 2.0 ;
 
-  left_label = geom->data_left + (geom->data_right - geom->data_left)/10.0;
-  right_label = geom->data_right - (geom->data_right - geom->data_left)/10.0;
+  left_label = geom->axis[SCALE_ORDINATE].data_min + (geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ORDINATE].data_min)/10.0;
+  right_label = geom->axis[SCALE_ABSCISSA].data_max - (geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ORDINATE].data_min)/10.0;
 
-  radius = MIN (5.0 / 12.0 * (geom->data_top - geom->data_bottom),
-                1.0 / 4.0 * (geom->data_right - geom->data_left));
+  radius = MIN (5.0 / 12.0 * (geom->axis[SCALE_ORDINATE].data_max - geom->axis[SCALE_ORDINATE].data_min),
+                1.0 / 4.0 * (geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ORDINATE].data_min));
 
-  radius = MIN (5.0 / 12.0 * (geom->data_top - geom->data_bottom),
-                1.0 / 4.0 * (geom->data_right - geom->data_left));
+  radius = MIN (5.0 / 12.0 * (geom->axis[SCALE_ORDINATE].data_max - geom->axis[SCALE_ORDINATE].data_min),
+                1.0 / 4.0 * (geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ORDINATE].data_min));
 
   xrchart_write_title (cr, geom, "%s", chart_item_get_title (chart_item));
 

@@ -31,16 +31,20 @@ struct xrchart_colour
     uint8_t blue;
   };
 
+struct xrchart_axis
+{
+  int data_max;
+  int data_min;
+
+  double scale;
+  double min;
+  double max;
+};
+
 /* The geometry of a chart. */
 struct xrchart_geometry
   {
-    int data_top;
-    int data_right;
-    int data_bottom;
-    int data_left;
-
     int abscissa_top;
-
     int ordinate_right;
 
     int title_bottom;
@@ -57,12 +61,9 @@ struct xrchart_geometry
     struct xrchart_colour fill_colour;
 
     /* Stuff particular to cartesians and boxplots. */
-    double ordinate_scale;
-    double abscissa_scale;
-    double x_min;
-    double x_max;
-    double y_min;
-    double y_max;
+    struct xrchart_axis axis[2];
+
+    /* True iff a path is currently being drawn */
     bool in_path;
   };
 
@@ -75,8 +76,8 @@ extern const struct xrchart_colour data_colour[];
 
 enum tick_orientation
   {
-    TICK_ABSCISSA=0,
-    TICK_ORDINATE
+    SCALE_ABSCISSA=0,
+    SCALE_ORDINATE
   };
 
 enum xrmarker_type

@@ -31,7 +31,7 @@ static void
 draw_case (cairo_t *cr, const struct xrchart_geometry *geom, double centreline,
 	   const struct outlier *outlier)
 {
-  double y = geom->data_bottom + (outlier->value - geom->y_min) * geom->ordinate_scale;
+  double y = geom->axis[SCALE_ORDINATE].data_min + (outlier->value - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale;
   xrchart_draw_marker (cr, centreline, y,
                      outlier->extreme ? XRMARKER_ASTERISK : XRMARKER_CIRCLE,
                      20);
@@ -65,14 +65,14 @@ boxplot_draw_box (cairo_t *cr, const struct xrchart_geometry *geom,
   box_whisker_whiskers (bw, whisker);
   box_whisker_hinges (bw, hinge);
 
-  box_bottom = geom->data_bottom + (hinge[0] - geom->y_min ) * geom->ordinate_scale;
+  box_bottom = geom->axis[SCALE_ORDINATE].data_min + (hinge[0] - geom->axis[SCALE_ORDINATE].min ) * geom->axis[SCALE_ORDINATE].scale;
 
-  box_top = geom->data_bottom + (hinge[2] - geom->y_min ) * geom->ordinate_scale;
+  box_top = geom->axis[SCALE_ORDINATE].data_min + (hinge[2] - geom->axis[SCALE_ORDINATE].min ) * geom->axis[SCALE_ORDINATE].scale;
 
-  bottom_whisker = geom->data_bottom + (whisker[0] - geom->y_min) *
-    geom->ordinate_scale;
+  bottom_whisker = geom->axis[SCALE_ORDINATE].data_min + (whisker[0] - geom->axis[SCALE_ORDINATE].min) *
+    geom->axis[SCALE_ORDINATE].scale;
 
-  top_whisker = geom->data_bottom + (whisker[1] - geom->y_min) * geom->ordinate_scale;
+  top_whisker = geom->axis[SCALE_ORDINATE].data_min + (whisker[1] - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale;
 
   /* Draw the box */
   cairo_rectangle (cr,
@@ -94,10 +94,10 @@ boxplot_draw_box (cairo_t *cr, const struct xrchart_geometry *geom,
   cairo_set_line_width (cr, cairo_get_line_width (cr) * 5);
   cairo_move_to (cr,
                  box_left,
-                 geom->data_bottom + (hinge[1] - geom->y_min) * geom->ordinate_scale);
+                 geom->axis[SCALE_ORDINATE].data_min + (hinge[1] - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale);
   cairo_line_to (cr,
                  box_right,
-                 geom->data_bottom + (hinge[1] - geom->y_min) * geom->ordinate_scale);
+                 geom->axis[SCALE_ORDINATE].data_min + (hinge[1] - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale);
   cairo_stroke (cr);
   cairo_restore (cr);
 
@@ -131,7 +131,7 @@ boxplot_draw_box (cairo_t *cr, const struct xrchart_geometry *geom,
     }
 
   /* Draw  tick  mark on x axis */
-  draw_tick(cr, geom, TICK_ABSCISSA, box_centre - geom->data_left, "%s", name);
+  draw_tick(cr, geom, SCALE_ABSCISSA, box_centre - geom->axis[SCALE_ABSCISSA].data_min, "%s", name);
 }
 
 static void
@@ -141,21 +141,21 @@ boxplot_draw_yscale (cairo_t *cr, struct xrchart_geometry *geom,
   double y_tick;
   double d;
 
-  geom->y_max = y_max;
-  geom->y_min = y_min;
+  geom->axis[SCALE_ORDINATE].max = y_max;
+  geom->axis[SCALE_ORDINATE].min = y_min;
 
-  y_tick = chart_rounded_tick (fabs (geom->y_max - geom->y_min) / 5.0);
+  y_tick = chart_rounded_tick (fabs (geom->axis[SCALE_ORDINATE].max - geom->axis[SCALE_ORDINATE].min) / 5.0);
 
-  geom->y_min = (ceil (geom->y_min / y_tick) - 1.0) * y_tick;
+  geom->axis[SCALE_ORDINATE].min = (ceil (geom->axis[SCALE_ORDINATE].min / y_tick) - 1.0) * y_tick;
 
-  geom->y_max = (floor (geom->y_max / y_tick) + 1.0) * y_tick;
+  geom->axis[SCALE_ORDINATE].max = (floor (geom->axis[SCALE_ORDINATE].max / y_tick) + 1.0) * y_tick;
 
-  geom->ordinate_scale = (fabs (geom->data_top - geom->data_bottom)
-                          / fabs (geom->y_max - geom->y_min));
+  geom->axis[SCALE_ORDINATE].scale = (fabs (geom->axis[SCALE_ORDINATE].data_max - geom->axis[SCALE_ORDINATE].data_min)
+                          / fabs (geom->axis[SCALE_ORDINATE].max - geom->axis[SCALE_ORDINATE].min));
 
-  for (d = geom->y_min; d <= geom->y_max; d += y_tick)
-    draw_tick (cr, geom, TICK_ORDINATE,
-               (d - geom->y_min) * geom->ordinate_scale, "%g", d);
+  for (d = geom->axis[SCALE_ORDINATE].min; d <= geom->axis[SCALE_ORDINATE].max; d += y_tick)
+    draw_tick (cr, geom, SCALE_ORDINATE,
+               (d - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale, "%g", d);
 }
 
 void
@@ -169,11 +169,11 @@ xrchart_draw_boxplot (const struct chart_item *chart_item, cairo_t *cr,
   boxplot_draw_yscale (cr, geom, boxplot->y_max, boxplot->y_min);
   xrchart_write_title (cr, geom, "%s", chart_item->title);
 
-  box_width = (geom->data_right - geom->data_left) / boxplot->n_boxes / 2.0;
+  box_width = (geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ABSCISSA].data_min) / boxplot->n_boxes / 2.0;
   for (i = 0; i < boxplot->n_boxes; i++)
     {
       const struct boxplot_box *box = &boxplot->boxes[i];
-      const double box_centre = (i * 2 + 1) * box_width + geom->data_left;
+      const double box_centre = (i * 2 + 1) * box_width + geom->axis[SCALE_ABSCISSA].data_min;
       boxplot_draw_box (cr, geom, box_centre, box_width, box->bw, box->label);
     }
 }

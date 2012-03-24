@@ -47,10 +47,10 @@ xrchart_geometry_init (cairo_t *cr, struct xrchart_geometry *geom,
                        double width, double length)
 {
   /* Set default chartetry. */
-  geom->data_top = 0.900 * length;
-  geom->data_right = 0.800 * width;
-  geom->data_bottom = 0.120 * length;
-  geom->data_left = 0.150 * width;
+  geom->axis[SCALE_ORDINATE].data_max = 0.900 * length;
+  geom->axis[SCALE_ABSCISSA].data_max = 0.800 * width;
+  geom->axis[SCALE_ORDINATE].data_min = 0.120 * length;
+  geom->axis[SCALE_ABSCISSA].data_min = 0.150 * width;
   geom->abscissa_top = 0.070 * length;
   geom->ordinate_right = 0.120 * width;
   geom->title_bottom = 0.920 * length;
@@ -67,9 +67,9 @@ xrchart_geometry_init (cairo_t *cr, struct xrchart_geometry *geom,
 
   cairo_set_line_width (cr, 1.0);
 
-  cairo_rectangle (cr, geom->data_left, geom->data_bottom,
-                   geom->data_right - geom->data_left,
-                   geom->data_top - geom->data_bottom);
+  cairo_rectangle (cr, geom->axis[SCALE_ABSCISSA].data_min, geom->axis[SCALE_ORDINATE].data_min,
+                   geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ABSCISSA].data_min,
+                   geom->axis[SCALE_ORDINATE].data_max - geom->axis[SCALE_ORDINATE].data_min);
   cairo_stroke (cr);
 }
 
@@ -226,14 +226,14 @@ draw_tick (cairo_t *cr, const struct xrchart_geometry *geom,
   const int tickSize = 10;
   double x, y;
 
-  cairo_move_to (cr, geom->data_left, geom->data_bottom);
+  cairo_move_to (cr, geom->axis[SCALE_ABSCISSA].data_min, geom->axis[SCALE_ORDINATE].data_min);
 
-  if (orientation == TICK_ABSCISSA)
+  if (orientation == SCALE_ABSCISSA)
     {
       cairo_rel_move_to (cr, position, 0);
       cairo_rel_line_to (cr, 0, -tickSize);
     }
-  else if (orientation == TICK_ORDINATE)
+  else if (orientation == SCALE_ORDINATE)
     {
       cairo_rel_move_to (cr, 0, position);
       cairo_rel_line_to (cr, -tickSize, 0);
@@ -253,9 +253,9 @@ draw_tick (cairo_t *cr, const struct xrchart_geometry *geom,
 
       va_start (ap, label);
       s = xvasprintf (label, ap);
-      if (orientation == TICK_ABSCISSA)
+      if (orientation == SCALE_ABSCISSA)
         xrchart_label (cr, 'c', 't', geom->font_size, s);
-      else if (orientation == TICK_ORDINATE)
+      else if (orientation == SCALE_ORDINATE)
         {
           if (fabs (position) < DBL_EPSILON)
 	    cairo_rel_move_to (cr, 0, 10);
@@ -276,7 +276,7 @@ xrchart_write_title (cairo_t *cr, const struct xrchart_geometry *geom,
   char *s;
 
   cairo_save (cr);
-  cairo_move_to (cr, geom->data_left, geom->title_bottom);
+  cairo_move_to (cr, geom->axis[SCALE_ABSCISSA].data_min, geom->title_bottom);
 
   va_start(ap, title);
   s = xvasprintf (title, ap);
@@ -288,55 +288,55 @@ xrchart_write_title (cairo_t *cr, const struct xrchart_geometry *geom,
 }
 
 
-/* Set the scale for the abscissa */
-void
-xrchart_write_xscale (cairo_t *cr, struct xrchart_geometry *geom,
-                    double min, double max, int ticks)
-{
-  double x;
-
-  const double tick_interval =
-    chart_rounded_tick ((max - min) / (double) ticks);
-
-  geom->x_max = ceil (max / tick_interval) * tick_interval;
-  geom->x_min = floor (min / tick_interval) * tick_interval;
-  geom->abscissa_scale = fabs(geom->data_right - geom->data_left) /
-    fabs(geom->x_max - geom->x_min);
-
-  for (x = geom->x_min; x <= geom->x_max; x += tick_interval)
-    draw_tick (cr, geom, TICK_ABSCISSA,
-               (x - geom->x_min) * geom->abscissa_scale, "%g", x);
-}
-
-
 /* Set the scale for the ordinate */
-void
-xrchart_write_yscale (cairo_t *cr, struct xrchart_geometry *geom,
-                    double smin, double smax, int ticks)
+static void
+xrchart_write_scale (cairo_t *cr, struct xrchart_geometry *geom,
+		     double smin, double smax, int ticks, enum tick_orientation orient)
 {
   double y;
 
   const double tick_interval =
     chart_rounded_tick ((smax - smin) / (double) ticks);
 
-  geom->y_max = ceil (smax / tick_interval) * tick_interval;
-  geom->y_min = floor (smin / tick_interval) * tick_interval;
+  geom->axis[orient].max = ceil (smax / tick_interval) * tick_interval;
+  geom->axis[orient].min = floor (smin / tick_interval) * tick_interval;
 
-  geom->ordinate_scale =
-    (fabs (geom->data_top - geom->data_bottom)
-     / fabs (geom->y_max - geom->y_min));
+  geom->axis[orient].scale = (fabs (geom->axis[orient].data_max - geom->axis[orient].data_min)
+     / fabs (geom->axis[orient].max - geom->axis[orient].min));
 
-  for (y = geom->y_min; y <= geom->y_max; y += tick_interval)
-    draw_tick (cr, geom, TICK_ORDINATE,
-	       (y - geom->y_min) * geom->ordinate_scale, "%g", y);
+  /*
+  geom->axis[orient].scale = (fabs (geom->axis[SCALE_ORDINATE].data_max - geom->axis[SCALE_ORDINATE].data_min)
+     / fabs (geom->axis[orient].max - geom->axis[orient].min));
+  */
+
+
+  for (y = geom->axis[orient].min; y <= geom->axis[orient].max; y += tick_interval)
+    draw_tick (cr, geom, orient,
+	       (y - geom->axis[orient].min) * geom->axis[orient].scale, "%g", y);
 }
+
+void
+xrchart_write_yscale (cairo_t *cr, struct xrchart_geometry *geom,
+                    double smin, double smax, int ticks)
+{
+  xrchart_write_scale (cr, geom, smin, smax, ticks, SCALE_ORDINATE);
+}
+
+/* Set the scale for the abscissa */
+void
+xrchart_write_xscale (cairo_t *cr, struct xrchart_geometry *geom,
+                    double smin, double smax, int ticks)
+{
+  xrchart_write_scale (cr, geom, smin, smax, ticks, SCALE_ABSCISSA);
+}
+
 
 /* Write the abscissa label */
 void
 xrchart_write_xlabel (cairo_t *cr, const struct xrchart_geometry *geom,
                     const char *label)
 {
-  cairo_move_to (cr, geom->data_left, geom->abscissa_top);
+  cairo_move_to (cr, geom->axis[SCALE_ABSCISSA].data_min, geom->abscissa_top);
   xrchart_label (cr, 'l', 't', geom->font_size, label);
 }
 
@@ -346,7 +346,7 @@ xrchart_write_ylabel (cairo_t *cr, const struct xrchart_geometry *geom,
                     const char *label)
 {
   cairo_save (cr);
-  cairo_translate (cr, -geom->data_bottom, -geom->ordinate_right);
+  cairo_translate (cr, -geom->axis[SCALE_ORDINATE].data_min, -geom->ordinate_right);
   cairo_move_to (cr, 0, 0);
   cairo_rotate (cr, M_PI / 2.0);
   xrchart_label (cr, 'l', 'x', geom->font_size, label);
@@ -362,7 +362,7 @@ xrchart_write_legend (cairo_t *cr, const struct xrchart_geometry *geom)
   const int xpad = 10;
   const int ypad = 10;
   const int swatch = 20;
-  const int legend_top = geom->data_top;
+  const int legend_top = geom->axis[SCALE_ORDINATE].data_max;
   const int legend_bottom = legend_top -
     (vstep * geom->n_datasets + 2 * ypad );
 
@@ -425,8 +425,8 @@ void
 xrchart_datum (cairo_t *cr, const struct xrchart_geometry *geom,
              int dataset UNUSED, double x, double y)
 {
-  double x_pos = (x - geom->x_min) * geom->abscissa_scale + geom->data_left;
-  double y_pos = (y - geom->y_min) * geom->ordinate_scale + geom->data_bottom;
+  double x_pos = (x - geom->axis[SCALE_ABSCISSA].min) * geom->axis[SCALE_ABSCISSA].scale + geom->axis[SCALE_ABSCISSA].data_min;
+  double y_pos = (y - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale + geom->axis[SCALE_ORDINATE].data_min;
 
   xrchart_draw_marker (cr, x_pos, y_pos, XRMARKER_SQUARE, 15);
 }
@@ -444,10 +444,10 @@ void
 xrchart_vector (cairo_t *cr, struct xrchart_geometry *geom, double x, double y)
 {
   const double x_pos =
-    (x - geom->x_min) * geom->abscissa_scale + geom->data_left ;
+    (x - geom->axis[SCALE_ABSCISSA].min) * geom->axis[SCALE_ABSCISSA].scale + geom->axis[SCALE_ABSCISSA].data_min ;
 
   const double y_pos =
-    (y - geom->y_min) * geom->ordinate_scale + geom->data_bottom ;
+    (y - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale + geom->axis[SCALE_ORDINATE].data_min ;
 
   if (geom->in_path)
     cairo_line_to (cr, x_pos, y_pos);
@@ -488,10 +488,10 @@ xrchart_line(cairo_t *cr, const struct xrchart_geometry *geom,
       y2 = slope * x2 + intercept;
     }
 
-  y1 = (y1 - geom->y_min) * geom->ordinate_scale + geom->data_bottom;
-  y2 = (y2 - geom->y_min) * geom->ordinate_scale + geom->data_bottom;
-  x1 = (x1 - geom->x_min) * geom->abscissa_scale + geom->data_left;
-  x2 = (x2 - geom->x_min) * geom->abscissa_scale + geom->data_left;
+  y1 = (y1 - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale + geom->axis[SCALE_ORDINATE].data_min;
+  y2 = (y2 - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale + geom->axis[SCALE_ORDINATE].data_min;
+  x1 = (x1 - geom->axis[SCALE_ABSCISSA].min) * geom->axis[SCALE_ABSCISSA].scale + geom->axis[SCALE_ABSCISSA].data_min;
+  x2 = (x2 - geom->axis[SCALE_ABSCISSA].min) * geom->axis[SCALE_ABSCISSA].scale + geom->axis[SCALE_ABSCISSA].data_min;
 
   cairo_move_to (cr, x1, y1);
   cairo_line_to (cr, x2, y2);
