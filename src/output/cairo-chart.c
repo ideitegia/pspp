@@ -293,7 +293,7 @@ static void
 xrchart_write_scale (cairo_t *cr, struct xrchart_geometry *geom,
 		     double smin, double smax, int ticks, enum tick_orientation orient)
 {
-  double y;
+  int s;
 
   const double tick_interval =
     chart_rounded_tick ((smax - smin) / (double) ticks);
@@ -304,15 +304,14 @@ xrchart_write_scale (cairo_t *cr, struct xrchart_geometry *geom,
   geom->axis[orient].scale = (fabs (geom->axis[orient].data_max - geom->axis[orient].data_min)
      / fabs (geom->axis[orient].max - geom->axis[orient].min));
 
-  /*
-  geom->axis[orient].scale = (fabs (geom->axis[SCALE_ORDINATE].data_max - geom->axis[SCALE_ORDINATE].data_min)
-     / fabs (geom->axis[orient].max - geom->axis[orient].min));
-  */
-
-
-  for (y = geom->axis[orient].min; y <= geom->axis[orient].max; y += tick_interval)
-    draw_tick (cr, geom, orient,
-	       (y - geom->axis[orient].min) * geom->axis[orient].scale, "%g", y);
+  for (s = 0 ; s < (geom->axis[orient].max - geom->axis[orient].min) / tick_interval; ++s)
+    {
+      double pos = s * tick_interval + geom->axis[orient].min; 
+      if (fabs (pos) < DBL_EPSILON)
+      	pos = 0;
+      draw_tick (cr, geom, orient,
+		 s * tick_interval * geom->axis[orient].scale, "%g", pos);
+    }
 }
 
 void
