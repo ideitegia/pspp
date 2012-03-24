@@ -1534,7 +1534,7 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
       if (examine->histogram)
         {
           /* Sturges Rule */
-          double bin_width = abs (es[v].minimum - es[v].maximum)
+          double bin_width = fabs (es[v].minimum - es[v].maximum)
             / (1 + log2 (es[v].cc))
             ;
 
