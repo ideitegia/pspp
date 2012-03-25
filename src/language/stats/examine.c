@@ -1169,13 +1169,12 @@ extremes_report (const struct examine *cmd, int iact_idx)
                             &F_8_0);
 
               tab_double (t,
-                          heading_columns + 1,
-                          heading_rows + v * rows_per_var + i * rows_per_cat + e,
-                          0,
-                          es->maxima[e].val,
-                          0);
-
-
+                         heading_columns + 1,
+                         heading_rows + v * rows_per_var + i * rows_per_cat + e,
+                         0,
+                         es->maxima[e].val,
+                         var_get_print_format (cmd->dep_vars[v]));
+                         
 
               tab_double (t,
                           heading_columns - 1,
@@ -1206,7 +1205,7 @@ extremes_report (const struct examine *cmd, int iact_idx)
                           heading_rows + v * rows_per_var + i * rows_per_cat + cmd->disp_extremes + e,
                           0,
                           es->minima[e].val,
-                          0);
+                          var_get_print_format (cmd->dep_vars[v]));
             }
         }
       free (prev_val);
