@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2008, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,8 +40,6 @@ histogram_add (struct histogram *h, double y, double c)
   stat->accumulate (stat, NULL, c, 0, y);
 }
 
-
-
 static void
 acc (struct statistic *s, const struct ccase *cx UNUSED, double c, double cc UNUSED, double y)
 {
@@ -49,7 +47,6 @@ acc (struct statistic *s, const struct ccase *cx UNUSED, double c, double cc UNU
 
   gsl_histogram_accumulate (hist->gsl_hist, y, c);
 }
-
 
 static void
 destroy (struct statistic *s)
@@ -113,6 +110,13 @@ histogram_create (double bin_width, double min, double max)
     }
 
   bins = (upper_limit - lower_limit) / 2.0;
+
+  /* Force the number of bins to lie in a sensible range */
+  if (bins > 25) 
+    bins = 25;
+
+  if (bins < 1)
+    bins = 1;
 
   upper_limit *= half_bin_width;
   lower_limit *= half_bin_width;
