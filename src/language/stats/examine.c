@@ -479,6 +479,10 @@ show_histogram (const struct examine *cmd, int iact_idx)
             categoricals_get_user_data_by_category_real (cmd->cats, iact_idx, grp);
 
           struct string label;
+
+	  if (es[v].histogram == NULL)
+	    continue;
+
           ds_init_cstr (&label, 
                         var_to_string (cmd->dep_vars[v]));
 

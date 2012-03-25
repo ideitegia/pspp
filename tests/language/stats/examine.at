@@ -522,7 +522,7 @@ EXAMINE
         /PLOT = histogram
 	.
 ])
-AT_CHECK([pspp -o pspp.csv examine.sps])
+AT_CHECK([pspp -o pspp.csv examine.sps], [0], [ignore])
 dnl Ignore output -- this is just a no-crash check.
 AT_CLEANUP
 

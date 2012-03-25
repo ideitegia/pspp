@@ -21,9 +21,15 @@
 #include <gsl/gsl_histogram.h>
 #include <math.h>
 
+#include "libpspp/message.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
 #include "math/chart-geometry.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 
 #include "gl/xalloc.h"
 
@@ -68,10 +74,14 @@ histogram_create (double bin_width, double min, double max)
      +1 otherwise.  */
   short sparse_end = 0;
 
-  assert (max >= min);
-
   if (max == min)
-    bin_width = 1;
+    {
+      msg (MW, _("Not creating histogram because the data contains less than 2 distinct values"));
+      free (h);
+      return NULL;
+    }
+
+  assert (max > min);
 
   lower_limit = floor (min / half_bin_width) - 1;
   upper_limit = floor (max / half_bin_width) + 1;

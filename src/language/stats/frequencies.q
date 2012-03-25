@@ -499,14 +499,17 @@ postcalc (struct frq_proc *frq, const struct dataset *ds)
 
 	  histogram = freq_tab_to_hist (frq, &vf->tab, vf->var);
 
-          chart_item_submit (histogram_chart_create (
+	  if ( histogram)
+	    {
+	      chart_item_submit (histogram_chart_create (
                                histogram->gsl_hist, var_to_string(vf->var),
                                vf->tab.valid_cases,
                                d[FRQ_MEAN],
                                d[FRQ_STDDEV],
                                frq->hist->draw_normal));
 
-	  statistic_destroy (&histogram->parent);
+	      statistic_destroy (&histogram->parent);
+	    }
 	}
 
       if (frq->pie)
@@ -1142,6 +1145,10 @@ freq_tab_to_hist (const struct frq_proc *frq, const struct freq_tab *ft,
   bin_width = chart_rounded_tick (bin_width);
 
   histogram = histogram_create (bin_width, x_min, x_max);
+
+  if ( histogram == NULL)
+    return NULL;
+
   for (i = 0; i < ft->n_valid; i++)
     {
       const struct freq *f = &ft->valid[i];

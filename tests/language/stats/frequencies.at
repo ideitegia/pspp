@@ -152,18 +152,8 @@ end data.
 
 frequencies /x /histogram /STATISTICS=median.
 ])
-AT_CHECK([pspp -O format=csv frequencies.sps], [0], [dnl
-Table: x
-Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
-,1.00,1,100.00,100.00,100.00
-Total,,1,100.0,100.0,
-
-Table: x
-N,Valid,1
-,Missing,0
-S.E. Kurt,,.00
-,50 (Median),1.00
-])
+AT_CHECK([pspp -O format=csv frequencies.sps], [0], [ignore])
+dnl Ignore output - No crash test.
 AT_CLEANUP
 
 # Tests for a bug which caused FREQUENCIES following TEMPORARY to
