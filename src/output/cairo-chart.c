@@ -215,13 +215,39 @@ xrchart_label (cairo_t *cr, int horz_justify, int vert_justify,
 }
 
 /* Draw a tick mark at position
-   If label is non zero, then print it at the tick mark
+   If label is non null, then print it at the tick mark
 */
+static void
+draw_tick_internal (cairo_t *cr, const struct xrchart_geometry *geom,
+		    enum tick_orientation orientation,
+		    double position,
+		    const char *s);
+
 void
 draw_tick (cairo_t *cr, const struct xrchart_geometry *geom,
            enum tick_orientation orientation,
            double position,
            const char *label, ...)
+{
+  va_list ap;
+  char *s;
+  va_start (ap, label);
+  s = xvasprintf (label, ap);
+
+  if (fabs (position) < DBL_EPSILON)
+    position = 0;
+
+  draw_tick_internal (cr, geom, orientation, position, s);
+  free (s);
+  va_end (ap);
+}
+
+
+static void
+draw_tick_internal (cairo_t *cr, const struct xrchart_geometry *geom,
+		    enum tick_orientation orientation,
+		    double position,
+		    const char *s)
 {
   const int tickSize = 10;
   double x, y;
@@ -244,15 +270,10 @@ draw_tick (cairo_t *cr, const struct xrchart_geometry *geom,
 
   cairo_stroke (cr);
 
-  if (label != NULL)
+  if (s != NULL)
     {
-      va_list ap;
-      char *s;
-
       cairo_move_to (cr, x, y);
 
-      va_start (ap, label);
-      s = xvasprintf (label, ap);
       if (orientation == SCALE_ABSCISSA)
         xrchart_label (cr, 'c', 't', geom->font_size, s);
       else if (orientation == SCALE_ORDINATE)
@@ -261,8 +282,6 @@ draw_tick (cairo_t *cr, const struct xrchart_geometry *geom,
 	    cairo_rel_move_to (cr, 0, 10);
           xrchart_label (cr, 'r', 'c', geom->font_size, s);
         }
-      free (s);
-      va_end (ap);
     }
 }
 
@@ -307,8 +326,6 @@ xrchart_write_scale (cairo_t *cr, struct xrchart_geometry *geom,
   for (s = 0 ; s < (geom->axis[orient].max - geom->axis[orient].min) / tick_interval; ++s)
     {
       double pos = s * tick_interval + geom->axis[orient].min; 
-      if (fabs (pos) < DBL_EPSILON)
-      	pos = 0;
       draw_tick (cr, geom, orient,
 		 s * tick_interval * geom->axis[orient].scale, "%g", pos);
     }
