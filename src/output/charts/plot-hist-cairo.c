@@ -67,15 +67,20 @@ histogram_write_legend (cairo_t *cr, const struct xrchart_geometry *geom,
 
 static void
 hist_draw_bar (cairo_t *cr, const struct xrchart_geometry *geom,
-               const gsl_histogram *h, int bar)
+               const gsl_histogram *h, int bar, bool label)
 {
   double upper;
   double lower;
   double height;
 
   const size_t bins = gsl_histogram_bins (h);
-  const double x_pos = (geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ABSCISSA].data_min) * bar / (double) bins ;
-  const double width = (geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ABSCISSA].data_min) / (double) bins ;
+
+  const double x_pos =
+    (geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ABSCISSA].data_min) *
+    bar / (double) bins ;
+
+  const double width =
+    (geom->axis[SCALE_ABSCISSA].data_max - geom->axis[SCALE_ABSCISSA].data_min) / (double) bins ;
 
   assert ( 0 == gsl_histogram_get_range (h, bar, &lower, &upper));
 
@@ -85,7 +90,9 @@ hist_draw_bar (cairo_t *cr, const struct xrchart_geometry *geom,
     (geom->axis[SCALE_ORDINATE].max - geom->axis[SCALE_ORDINATE].min) *
     (geom->axis[SCALE_ORDINATE].data_max - geom->axis[SCALE_ORDINATE].data_min);
 
-  cairo_rectangle (cr, geom->axis[SCALE_ABSCISSA].data_min + x_pos, geom->axis[SCALE_ORDINATE].data_min,
+  cairo_rectangle (cr,
+		   geom->axis[SCALE_ABSCISSA].data_min + x_pos,
+		   geom->axis[SCALE_ORDINATE].data_min,
                    width, height);
   cairo_save (cr);
   cairo_set_source_rgb (cr,
@@ -96,8 +103,9 @@ hist_draw_bar (cairo_t *cr, const struct xrchart_geometry *geom,
   cairo_restore (cr);
   cairo_stroke (cr);
 
-  draw_tick (cr, geom, SCALE_ABSCISSA,
-             x_pos + width / 2.0, "%g", (upper + lower) / 2.0);
+  if (label)
+    draw_tick (cr, geom, SCALE_ABSCISSA,
+	       x_pos + width / 2.0, "%g", (upper + lower) / 2.0);
 }
 
 void
@@ -124,7 +132,9 @@ xrchart_draw_histogram (const struct chart_item *chart_item, cairo_t *cr,
   xrchart_write_yscale (cr, geom, 0, gsl_histogram_max_val (h->gsl_hist), 5);
 
   for (i = 0; i < bins; i++)
-    hist_draw_bar (cr, geom, h->gsl_hist, i);
+    {
+      hist_draw_bar (cr, geom, h->gsl_hist, i, true);
+    }
 
   histogram_write_legend (cr, geom, h->n, h->mean, h->stddev);
 
