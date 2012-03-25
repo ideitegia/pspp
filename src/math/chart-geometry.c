@@ -20,17 +20,18 @@
 
 #include "chart-geometry.h"
 
+static const double standard_ticks[] = {1, 2, 5, 10};
+
+
 /* Adjust tick to be a sensible value
    ie:  ... 0.1,0.2,0.5,   1,2,5,  10,20,50 ... */
 double
-chart_rounded_tick(double tick)
+chart_rounded_tick (double tick)
 {
   int i;
 
   double diff = DBL_MAX;
   double t = tick;
-
-  static const double standard_ticks[] = {1, 2, 5, 10};
 
   double factor;
 
@@ -38,11 +39,11 @@ chart_rounded_tick(double tick)
   if (fabs (tick) < DBL_EPSILON)
      return 0;
 
-  factor = pow(10,ceil(log10(standard_ticks[0] / tick))) ;
+  factor = pow (10,ceil (log10 (standard_ticks[0] / tick)));
 
   for (i = 3  ; i >= 0 ; --i)
     {
-      const double d = fabs( tick - standard_ticks[i] / factor ) ;
+      const double d = fabs (tick - standard_ticks[i] / factor);
 
       if ( d < diff )
 	{
@@ -52,6 +53,5 @@ chart_rounded_tick(double tick)
     }
 
   return t;
-
 }
 
