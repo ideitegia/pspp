@@ -86,9 +86,7 @@ hist_draw_bar (cairo_t *cr, const struct xrchart_geometry *geom,
 
   assert ( upper >= lower);
 
-  height = gsl_histogram_get (h, bar) /
-    (geom->axis[SCALE_ORDINATE].max - geom->axis[SCALE_ORDINATE].min) *
-    (geom->axis[SCALE_ORDINATE].data_max - geom->axis[SCALE_ORDINATE].data_min);
+  height = geom->axis[SCALE_ORDINATE].scale * gsl_histogram_get (h, bar);
 
   cairo_rectangle (cr,
 		   geom->axis[SCALE_ABSCISSA].data_min + x_pos,
