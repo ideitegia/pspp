@@ -63,8 +63,12 @@ histogram_create (double bin_width, double min, double max)
   int bins;
   struct histogram *h = xmalloc (sizeof *h);
   struct statistic *stat = &h->parent;
-  double upper_limit, lower_limit;
+
   const double half_bin_width = bin_width / 2.0;
+
+  /* The lower and upper limits of the histogram, in units of half
+     bin widths */
+  int lower_limit, upper_limit;
 
   /* -1 if the lower end of the range contains more unused space
      than the upper end.
@@ -80,22 +84,24 @@ histogram_create (double bin_width, double min, double max)
 
   assert (max > min);
 
-  lower_limit = floor (min / half_bin_width) - 1;
-  upper_limit = floor (max / half_bin_width) + 1;
-  
-  if (remainder (min, half_bin_width > remainder (max, half_bin_width)))
-    sparse_end = -1;
-  else
-    sparse_end = +1;
+  {
+    double ul, ll;
+    double lower_tail = modf (min / half_bin_width, &ll);
+    double upper_tail = modf (max / half_bin_width, &ul);
+    lower_limit = ll - 1;
+    upper_limit = ul + 1;
+    
+    sparse_end = lower_tail < upper_tail ? -1 : +1;
+  }
 
   /* The range must be an EVEN number of half bin_widths */
-  if ( (int)(upper_limit - lower_limit) % 2)
+  if ( (upper_limit - lower_limit) % 2)
     {
       /* Extend the range at the end which gives the least unused space */
       if (sparse_end == +1)
-	lower_limit --;
+	lower_limit--;
       else
-	upper_limit ++;
+        upper_limit++;
       
       /* Now the other end has more space */
       sparse_end *= -1;
@@ -103,7 +109,7 @@ histogram_create (double bin_width, double min, double max)
 
   /* But the range should be aligned to an ODD number of
      half bin widths, so that the labels are aesthetically pleasing ones. */
-  if ( (int)lower_limit % 2 == 0)
+  if ( lower_limit % 2 == 0)
     {
       lower_limit += -sparse_end ;
       upper_limit += -sparse_end ;
@@ -118,12 +124,11 @@ histogram_create (double bin_width, double min, double max)
   if (bins < 1)
     bins = 1;
 
-  upper_limit *= half_bin_width;
-  lower_limit *= half_bin_width;
-
   h->gsl_hist = gsl_histogram_alloc (bins);
 
-  gsl_histogram_set_ranges_uniform (h->gsl_hist, lower_limit, upper_limit);
+  gsl_histogram_set_ranges_uniform (h->gsl_hist,
+                                    lower_limit * half_bin_width,
+                                    upper_limit * half_bin_width);
 
   stat->accumulate = acc;
   stat->destroy = destroy;
