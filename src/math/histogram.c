@@ -156,13 +156,13 @@ histogram_create (double bin_width, double min, double max)
   int bins;
   double adjusted_min, adjusted_max;
 
-  assert (bin_width > 0);
-
   if (max == min)
     {
       msg (MW, _("Not creating histogram because the data contains less than 2 distinct values"));
       return NULL;
     }
+
+  assert (bin_width > 0);
 
   bins = adjust_bin_ranges (bin_width, min, max, &adjusted_min, &adjusted_max);
 
