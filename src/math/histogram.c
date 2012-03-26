@@ -75,6 +75,11 @@ histogram_create (double bin_width, double min, double max)
      +1 otherwise.  */
   short sparse_end = 0;
 
+  double ul, ll;
+  double lower_remainder = fabs (modf (min / half_bin_width, &ll));
+  double upper_remainder = fabs (modf (max / half_bin_width, &ul));
+
+
   if (max == min)
     {
       msg (MW, _("Not creating histogram because the data contains less than 2 distinct values"));
@@ -84,15 +89,24 @@ histogram_create (double bin_width, double min, double max)
 
   assert (max > min);
 
-  {
-    double ul, ll;
-    double lower_tail = modf (min / half_bin_width, &ll);
-    double upper_tail = modf (max / half_bin_width, &ul);
-    lower_limit = ll - 1;
-    upper_limit = ul + 1;
-    
-    sparse_end = lower_tail < upper_tail ? -1 : +1;
-  }
+  lower_limit = ll;
+
+  /* If the minimum value is not aligned on a half bin width,
+     then the lower bound must be extended so that the histogram range includes it. */
+  if (lower_remainder > 0)
+    lower_limit--;
+
+  /* However, the upper bound must be extended regardless, because histogram bins
+     span the range [lower, upper) */
+  upper_limit = ul + 1;
+
+  /* So, in the case of the maximum value coinciding with a half bin width,
+     the upper end will be the sparse end (because is got extended by a complete
+     half bin width).   In other cases, it depends which got the bigger extension. */
+  if (upper_remainder == 0)
+    sparse_end = +1;
+  else
+    sparse_end = lower_remainder < upper_remainder ? -1 : +1;
 
   /* The range must be an EVEN number of half bin_widths */
   if ( (upper_limit - lower_limit) % 2)
@@ -108,16 +122,28 @@ histogram_create (double bin_width, double min, double max)
     }
 
   /* But the range should be aligned to an ODD number of
-     half bin widths, so that the labels are aesthetically pleasing ones. */
+     half bin widths, so that the labels are aesthetically pleasing ones.
+     Otherwise we are likely to get labels such as -3 -1 1 3 instead of -2 0 2 4
+  */
   if ( lower_limit % 2 == 0)
     {
-      lower_limit += -sparse_end ;
-      upper_limit += -sparse_end ;
+      /* Shift the range away from the sparse end, EXCEPT if that is the upper end,
+         and it was extended to prevent the maximum value from getting lost */
+      if (sparse_end == +1 && upper_remainder > 0)
+        {
+          lower_limit --;
+          upper_limit --;
+        }
+      else
+        {
+          lower_limit ++;
+          upper_limit ++;
+        }
     }
-
   bins = (upper_limit - lower_limit) / 2.0;
 
-  /* Force the number of bins to lie in a sensible range */
+  /* Force the number of bins to lie in a sensible range.  
+     FIXME: We should redo the above calculations if this happens! */
   if (bins > 25) 
     bins = 25;
 
