@@ -57,13 +57,15 @@ destroy (struct statistic *s)
 }
 
 
-struct histogram *
-histogram_create (double bin_width, double min, double max)
+/* This functions adjusts the upper and lower range of the histogram to make them fit BIN_WIDTH
+   MIN and MAX are the lowest and highest data to be plotted in the histogram.
+   ADJ_MIN and ADJ_MAX are locations of the adjusted values of MIN and MAX (the range will always be
+   equal or slightly larger).
+   Returns the number of bins.
+ */
+static int
+adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, double *adj_max)
 {
-  int bins;
-  struct histogram *h = xmalloc (sizeof *h);
-  struct statistic *stat = &h->parent;
-
   const double half_bin_width = bin_width / 2.0;
 
   /* The lower and upper limits of the histogram, in units of half
@@ -79,13 +81,6 @@ histogram_create (double bin_width, double min, double max)
   double lower_remainder = fabs (modf (min / half_bin_width, &ll));
   double upper_remainder = fabs (modf (max / half_bin_width, &ul));
 
-
-  if (max == min)
-    {
-      msg (MW, _("Not creating histogram because the data contains less than 2 distinct values"));
-      free (h);
-      return NULL;
-    }
 
   assert (max > min);
 
@@ -140,22 +135,55 @@ histogram_create (double bin_width, double min, double max)
           upper_limit ++;
         }
     }
-  bins = (upper_limit - lower_limit) / 2.0;
 
-  /* Force the number of bins to lie in a sensible range.  
-     FIXME: We should redo the above calculations if this happens! */
-  if (bins > 25) 
-    bins = 25;
+  *adj_min = lower_limit * half_bin_width;
+  *adj_max = upper_limit * half_bin_width;
 
+  assert (*adj_max >= max);
+  assert (*adj_min <= min);
+
+  return (upper_limit - lower_limit) / 2.0;
+}
+
+
+
+struct histogram *
+histogram_create (double bin_width, double min, double max)
+{
+  const int MAX_BINS = 25;
+  struct histogram *h;
+  struct statistic *stat;
+  int bins;
+  double adjusted_min, adjusted_max;
+
+  assert (bin_width > 0);
+
+  if (max == min)
+    {
+      msg (MW, _("Not creating histogram because the data contains less than 2 distinct values"));
+      return NULL;
+    }
+
+  bins = adjust_bin_ranges (bin_width, min, max, &adjusted_min, &adjusted_max);
+
+  /* Force the number of bins to lie in a sensible range. */
+  if (bins > MAX_BINS) 
+    {
+      bins = adjust_bin_ranges ((max - min) / (double) (MAX_BINS - 1),
+                                min, max, &adjusted_min, &adjusted_max);
+    }
+
+  /* Can this ever happen? */
   if (bins < 1)
     bins = 1;
 
+  h = xmalloc (sizeof *h);
+
   h->gsl_hist = gsl_histogram_alloc (bins);
 
-  gsl_histogram_set_ranges_uniform (h->gsl_hist,
-                                    lower_limit * half_bin_width,
-                                    upper_limit * half_bin_width);
+  gsl_histogram_set_ranges_uniform (h->gsl_hist, adjusted_min, adjusted_max);
 
+  stat = &h->parent;
   stat->accumulate = acc;
   stat->destroy = destroy;
 
