@@ -283,8 +283,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-var-ptr.h \
 	src/ui/gui/psppire-var-sheet.c \
 	src/ui/gui/psppire-var-sheet.h \
-	src/ui/gui/psppire-var-store.c \
-	src/ui/gui/psppire-var-store.h \
 	src/ui/gui/psppire-vbuttonbox.h \
 	src/ui/gui/psppire-window.c \
 	src/ui/gui/psppire-window.h \

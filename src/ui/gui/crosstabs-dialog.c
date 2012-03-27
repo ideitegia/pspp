@@ -28,7 +28,6 @@
 #include <ui/gui/dict-display.h>
 #include "executor.h"
 #include <ui/gui/psppire-dialog.h>
-#include <ui/gui/psppire-var-store.h>
 #include <ui/gui/builder-wrapper.h>
 #include "helper.h"
 
@@ -350,7 +349,6 @@ crosstabs_dialog (PsppireDataWindow *de)
   struct crosstabs_dialog cd;
 
   GtkBuilder *xml = builder_new ("crosstabs.ui");
-  PsppireVarStore *vs = NULL;
   PsppireDict *dict = NULL;
 
 
@@ -366,8 +364,6 @@ crosstabs_dialog (PsppireDataWindow *de)
   cd.stat_view = get_widget_assert (xml, "stats-view");
   cd.cell_view = get_widget_assert (xml, "cell-view");
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
   put_checkbox_items_in_treeview (GTK_TREE_VIEW(cd.stat_view),
 				  B_CS_STATS_DEFAULT,
 				  N_CROSSTABS_STATS,
@@ -381,12 +377,12 @@ crosstabs_dialog (PsppireDataWindow *de)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_get (vs, "dictionary", &dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &dict, NULL);
   g_object_set (source, "model", dict, NULL);
 
   cd.row_vars = GTK_TREE_VIEW (dest_rows);
   cd.col_vars = GTK_TREE_VIEW (dest_cols);
-  g_object_get (vs, "dictionary", &cd.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &cd.dict, NULL);
   cd.format_dialog = get_widget_assert (xml, "format-dialog");
   cd.table_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "print-tables"));
   cd.pivot_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "pivot"));

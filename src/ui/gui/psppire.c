@@ -51,7 +51,6 @@
 #include "ui/gui/psppire-output-window.h"
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-selector.h"
-#include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-var-view.h"
 #include "ui/gui/psppire-window-register.h"
 #include "ui/gui/widgets.h"

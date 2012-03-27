@@ -32,8 +32,6 @@
 #define N_(msgid) msgid
 
 
-#include "psppire-var-store.h"
-
 struct weight_cases_dialog
 {
   PsppireDict *dict;
@@ -119,10 +117,7 @@ weight_cases_dialog (PsppireDataWindow *de)
 
   GtkWidget *selector = get_widget_assert (xml, "weight-cases-selector");
 
-  PsppireVarStore *vs = NULL;
-
-  g_object_get (de->data_editor, "var-store", &vs,  NULL);
-  g_object_get (vs, "dictionary", &wcd.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &wcd.dict, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 

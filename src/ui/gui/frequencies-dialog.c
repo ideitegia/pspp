@@ -28,7 +28,6 @@
 #include <ui/gui/dict-display.h>
 #include <ui/gui/builder-wrapper.h>
 #include <ui/gui/psppire-dialog.h>
-#include <ui/gui/psppire-var-store.h>
 #include "executor.h"
 #include "helper.h"
 
@@ -468,10 +467,6 @@ frequencies_dialog (PsppireDataWindow *de)
   GtkWidget *charts_button = get_widget_assert (xml, "charts-button");
   GtkWidget *stats_treeview = get_widget_assert (xml, "stats-treeview");
 
-  PsppireVarStore *vs = NULL;
-
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
   put_checkbox_items_in_treeview (GTK_TREE_VIEW(stats_treeview),
 				  B_FS_DEFAULT,
 				  N_FREQUENCY_STATS,
@@ -481,7 +476,7 @@ frequencies_dialog (PsppireDataWindow *de)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_get (vs, "dictionary", &fd.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &fd.dict, NULL);
   g_object_set (source, "model", fd.dict, NULL);
 
   fd.stat_vars = GTK_TREE_VIEW (dest);

@@ -37,7 +37,6 @@
 #include <ui/gui/builder-wrapper.h>
 #include "helper.h"
 #include <ui/gui/psppire-dialog.h>
-#include <ui/gui/psppire-var-store.h>
 
 #include "psppire-val-chooser.h"
 
@@ -611,9 +610,6 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
   GtkWidget *output_variable_box = get_widget_assert (builder,"frame4");
 
-  PsppireVarStore *vs = NULL;
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
   rd.change_button = get_widget_assert (builder, "change-button");
   rd.varmap = NULL;
   rd.dialog = get_widget_assert   (builder, "recode-dialog");
@@ -622,7 +618,7 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
   rd.new_name_entry = get_widget_assert (builder, "dest-name-entry");
   rd.new_label_entry = get_widget_assert (builder, "dest-label-entry");
 
-  g_object_get (vs, "dictionary", &rd.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &rd.dict, NULL);
 
   rd.value_map = gtk_list_store_new (2,
 				     old_value_get_type (),

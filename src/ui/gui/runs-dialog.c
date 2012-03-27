@@ -122,8 +122,6 @@ runs_dialog (PsppireDataWindow *dw)
   struct runs fd;
   gint response;
 
-  PsppireVarStore *vs;
-
   GtkWidget *dialog ;
   GtkWidget *source ;
 
@@ -145,11 +143,9 @@ runs_dialog (PsppireDataWindow *dw)
 
   fd.variables = get_widget_assert   (fd.xml, "psppire-var-view1");
 
-  g_object_get (fd.de->data_editor, "var-store", &vs, NULL);
-
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (fd.de));
 
-  g_object_get (vs, "dictionary", &fd.dict, NULL);
+  g_object_get (fd.de->data_editor, "dictionary", &fd.dict, NULL);
   g_object_set (source, "model", fd.dict,
 		"predicate", var_is_numeric,
 		NULL);

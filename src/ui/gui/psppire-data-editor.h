@@ -32,7 +32,6 @@
 #include <glib-object.h>
 #include <gtk/gtk.h>
 
-#include "psppire-var-store.h"
 #include "psppire-data-store.h"
 #include "ui/gui/pspp-sheet-view.h"
 
@@ -55,7 +54,7 @@ struct _PsppireDataEditor
 
   /* <private> */
   PsppireDataStore *data_store;
-  PsppireVarStore *var_store;
+  PsppireDict *dict;
 
   /* Font to use in var sheet and data sheet(s), NULL to use system default. */
   struct _PangoFontDescription *font;
@@ -82,7 +81,7 @@ struct _PsppireDataEditorClass
 
 
 GType          psppire_data_editor_get_type        (void);
-GtkWidget*     psppire_data_editor_new             (PsppireVarStore *, PsppireDataStore *);
+GtkWidget*     psppire_data_editor_new             (PsppireDict *, PsppireDataStore *);
 void           psppire_data_editor_show_grid       (PsppireDataEditor *, gboolean);
 void           psppire_data_editor_set_font        (PsppireDataEditor *, PangoFontDescription *);
 void           psppire_data_editor_split_window    (PsppireDataEditor *, gboolean );

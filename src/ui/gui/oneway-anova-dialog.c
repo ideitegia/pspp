@@ -19,7 +19,6 @@
 #include <gtk/gtk.h>
 #include "oneway-anova-dialog.h"
 #include "psppire-dict.h"
-#include "psppire-var-store.h"
 #include "psppire-var-view.h"
 #include "builder-wrapper.h"
 #include "psppire-data-window.h"
@@ -126,8 +125,6 @@ oneway_anova_dialog (PsppireDataWindow *de)
 {
   gint response;
 
-  PsppireVarStore *vs = NULL;
-
   struct oneway_anova_dialog ow;
 
   GtkBuilder *builder = builder_new ("oneway.ui");
@@ -156,9 +153,7 @@ oneway_anova_dialog (PsppireDataWindow *de)
   ow.homogeneity =
     GTK_TOGGLE_BUTTON (get_widget_assert (builder, "checkbutton2"));
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-  g_object_get (vs, "dictionary", &ow.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &ow.dict, NULL);
 
   ow.dialog =
     GTK_WINDOW (get_widget_assert (builder, "oneway-anova-dialog"));

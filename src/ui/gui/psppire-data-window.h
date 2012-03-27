@@ -61,7 +61,7 @@ struct _PsppireDataWindow
   GtkBuilder *builder;
   GtkUIManager *ui_manager;
 
-  PsppireVarStore *var_store;
+  PsppireDict *dict;
   struct dataset *dataset;
   PsppireDataStore *data_store;
 

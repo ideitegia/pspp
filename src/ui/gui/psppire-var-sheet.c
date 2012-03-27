@@ -31,7 +31,6 @@
 #include "ui/gui/psppire-dialog-action-var-info.h"
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-marshal.h"
-#include "ui/gui/psppire-var-store.h"
 #include "ui/gui/val-labs-dialog.h"
 #include "ui/gui/var-display.h"
 #include "ui/gui/var-type-dialog.h"

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005, 2011  Free Software Foundation
+   Copyright (C) 2005, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,8 +19,6 @@
 #define __PSPPIRE_VAR_TYPE_DIALOG_H
 
 #include <data/format.h>
-
-#include "psppire-var-store.h"
 
 /*  This module describes the behaviour of the Variable Type dialog box,
     used for input of the variable type parameter in the var sheet */

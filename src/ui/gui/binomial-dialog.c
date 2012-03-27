@@ -146,15 +146,12 @@ binomial_dialog (PsppireDataWindow *dw)
   struct binomial_dialog bin_d;
 
   GtkBuilder *xml = builder_new ("binomial.ui");
-  PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "binomial-dialog");
 
 
 
   GtkWidget *dict_view = get_widget_assert   (xml, "dict-view");
-
-  g_object_get (dw->data_editor, "var-store", &vs, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (dw));
 
@@ -165,7 +162,7 @@ binomial_dialog (PsppireDataWindow *dw)
   bin_d.cutpoint_entry =     get_widget_assert   (xml, "cutpoint-entry");
   bin_d.cutpoint_button =    get_widget_assert   (xml, "radiobutton4");
 
-  g_object_get (vs, "dictionary", &bin_d.dict, NULL);
+  g_object_get (dw->data_editor, "dictionary", &bin_d.dict, NULL);
   g_object_set (dict_view,
 		"model", bin_d.dict, 
 		"predicate", var_is_numeric,

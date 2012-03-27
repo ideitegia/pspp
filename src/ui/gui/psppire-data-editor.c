@@ -91,10 +91,10 @@ psppire_data_editor_dispose (GObject *obj)
       de->data_store = NULL;
     }
 
-  if (de->var_store)
+  if (de->dict)
     {
-      g_object_unref (de->var_store);
-      de->var_store = NULL;
+      g_object_unref (de->dict);
+      de->dict = NULL;
     }
 
   if (de->font != NULL)
@@ -117,7 +117,7 @@ enum
   {
     PROP_0,
     PROP_DATA_STORE,
-    PROP_VAR_STORE,
+    PROP_DICTIONARY,
     PROP_VALUE_LABELS,
     PROP_SPLIT_WINDOW,
     PROP_UI_MANAGER
@@ -132,7 +132,7 @@ psppire_data_editor_refresh_model (PsppireDataEditor *de)
 
   FOR_EACH_DATA_SHEET (data_sheet, i, de)
     psppire_data_sheet_set_data_store (data_sheet, de->data_store);
-  psppire_var_sheet_set_dictionary (var_sheet, de->var_store->dictionary);
+  psppire_var_sheet_set_dictionary (var_sheet, de->dict);
 }
 
 static void
@@ -167,13 +167,14 @@ psppire_data_editor_set_property (GObject         *object,
                                 G_CALLBACK (refresh_entry), de);
 
       break;
-    case PROP_VAR_STORE:
-      if ( de->var_store) g_object_unref (de->var_store);
-      de->var_store = g_value_get_pointer (value);
-      g_object_ref (de->var_store);
+    case PROP_DICTIONARY:
+      if (de->dict)
+        g_object_unref (de->dict);
+      de->dict = g_value_get_pointer (value);
+      g_object_ref (de->dict);
 
       psppire_var_sheet_set_dictionary (PSPPIRE_VAR_SHEET (de->var_sheet),
-                                        de->var_store->dictionary);
+                                        de->dict);
       break;
     case PROP_VALUE_LABELS:
       FOR_EACH_DATA_SHEET (data_sheet, i, de)
@@ -203,8 +204,8 @@ psppire_data_editor_get_property (GObject         *object,
     case PROP_DATA_STORE:
       g_value_set_pointer (value, de->data_store);
       break;
-    case PROP_VAR_STORE:
-      g_value_set_pointer (value, de->var_store);
+    case PROP_DICTIONARY:
+      g_value_set_pointer (value, de->dict);
       break;
     case PROP_VALUE_LABELS:
       g_value_set_boolean (value,
@@ -241,7 +242,7 @@ static void
 psppire_data_editor_class_init (PsppireDataEditorClass *klass)
 {
   GParamSpec *data_store_spec ;
-  GParamSpec *var_store_spec ;
+  GParamSpec *dict_spec ;
   GParamSpec *value_labels_spec;
   GParamSpec *split_window_spec;
   GParamSpec *ui_manager_spec;
@@ -269,15 +270,15 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
                                    PROP_DATA_STORE,
                                    data_store_spec);
 
-  var_store_spec =
-    g_param_spec_pointer ("var-store",
-			  "Variable Store",
-			  "A pointer to the variable store associated with this editor",
+  dict_spec =
+    g_param_spec_pointer ("dictionary",
+			  "Dictionary",
+			  "A pointer to the dictionary associated with this editor",
 			  G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE | G_PARAM_READABLE );
 
   g_object_class_install_property (object_class,
-                                   PROP_VAR_STORE,
-                                   var_store_spec);
+                                   PROP_DICTIONARY,
+                                   dict_spec);
 
   value_labels_spec =
     g_param_spec_boolean ("value-labels",
@@ -743,11 +744,11 @@ psppire_data_editor_init (PsppireDataEditor *de)
 }
 
 GtkWidget*
-psppire_data_editor_new (PsppireVarStore *var_store,
+psppire_data_editor_new (PsppireDict *dict,
 			 PsppireDataStore *data_store)
 {
   return  g_object_new (PSPPIRE_DATA_EDITOR_TYPE,
-                        "var-store",  var_store,
+                        "dictionary",  dict,
                         "data-store",  data_store,
                         NULL);
 }

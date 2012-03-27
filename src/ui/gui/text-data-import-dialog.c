@@ -48,7 +48,6 @@
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-scanf.h"
 #include "ui/gui/psppire-var-sheet.h"
-#include "ui/gui/psppire-var-store.h"
 #include "ui/syntax-gen.h"
 
 #include "gl/error.h"

@@ -201,13 +201,11 @@ on_filter_change (GObject *o, gint filter_index, gpointer data)
     }
   else
     {
-      PsppireVarStore *vs = NULL;
       PsppireDict *dict = NULL;
       struct variable *var ;
       gchar *text ;
 
-      g_object_get (de->data_editor, "var-store", &vs, NULL);
-      g_object_get (vs, "dictionary", &dict, NULL);
+      g_object_get (de->data_editor, "dictionary", &dict, NULL);
 
       var = psppire_dict_get_variable (dict, filter_index);
 
@@ -274,12 +272,10 @@ on_weight_change (GObject *o, gint weight_index, gpointer data)
   else
     {
       struct variable *var ;
-      PsppireVarStore *vs = NULL;
       PsppireDict *dict = NULL;
       gchar *text;
 
-      g_object_get (de->data_editor, "var-store", &vs, NULL);
-      g_object_get (vs, "dictionary", &dict, NULL);
+      g_object_get (de->data_editor, "dictionary", &dict, NULL);
 
       var = psppire_dict_get_variable (dict, weight_index);
 
@@ -868,8 +864,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
       transformation_change_callback, /* transformations_changed */
     };
 
-  PsppireDict *dict;
-
   GtkWidget *menubar;
   GtkWidget *hb ;
   GtkWidget *sb ;
@@ -877,9 +871,8 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   GtkWidget *box = gtk_vbox_new (FALSE, 0);
 
   de->dataset = ds;
-  dict = psppire_dict_new_from_dict (dataset_dict (ds));
-  de->var_store = psppire_var_store_new (dict);
-  de->data_store = psppire_data_store_new (dict);
+  de->dict = psppire_dict_new_from_dict (dataset_dict (ds));
+  de->data_store = psppire_data_store_new (de->dict);
   psppire_data_store_set_reader (de->data_store, NULL);
 
   menubar = get_widget_assert (de->builder, "menubar");
@@ -890,8 +883,7 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   de->merge_id = 0;
 
   de->data_editor =
-    PSPPIRE_DATA_EDITOR (psppire_data_editor_new (de->var_store,
-                                                  de->data_store));
+    PSPPIRE_DATA_EDITOR (psppire_data_editor_new (de->dict, de->data_store));
   g_signal_connect (de->data_editor, "switch-page",
                     G_CALLBACK (on_switch_page), de);
 
@@ -915,15 +907,15 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   gtk_container_add (GTK_CONTAINER (de), box);
 
-  g_signal_connect (dict, "weight-changed",
+  g_signal_connect (de->dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
 		    de);
 
-  g_signal_connect (dict, "filter-changed",
+  g_signal_connect (de->dict, "filter-changed",
 		    G_CALLBACK (on_filter_change),
 		    de);
 
-  g_signal_connect (dict, "split-changed",
+  g_signal_connect (de->dict, "split-changed",
 		    G_CALLBACK (on_split_change),
 		    de);
 
@@ -1067,10 +1059,10 @@ psppire_data_window_dispose (GObject *object)
       dw->builder = NULL;
     }
 
-  if (dw->var_store)
+  if (dw->dict)
     {
-      g_object_unref (dw->var_store);
-      dw->var_store = NULL;
+      g_object_unref (dw->dict);
+      dw->dict = NULL;
     }
 
   if (dw->data_store)
@@ -1227,7 +1219,7 @@ psppire_data_window_new (struct dataset *ds)
 bool
 psppire_data_window_is_empty (PsppireDataWindow *dw)
 {
-  return psppire_var_store_get_var_cnt (dw->var_store) == 0;
+  return psppire_dict_get_var_cnt (dw->dict) == 0;
 }
 
 static void

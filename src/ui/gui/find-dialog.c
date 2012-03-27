@@ -49,9 +49,6 @@ which match particular strings */
 #define N_(msgid) msgid
 
 
-/* FIXME: These shouldn't be here */
-#include "psppire-var-store.h"
-
 struct find_dialog
 {
   GtkBuilder *xml;
@@ -196,7 +193,6 @@ find_dialog (PsppireDataWindow *de)
 
   GtkWidget *buttonbox;
 
-  PsppireVarStore *vs ;
   PsppireDataStore *ds ;
 
   fd.xml = builder_new ("find.ui");
@@ -215,11 +211,9 @@ find_dialog (PsppireDataWindow *de)
   selector = get_widget_assert (fd.xml, "find-selector");
 
   g_object_get (de->data_editor,
-		"var-store", &vs,
+		"dictionary", &fd.dict,
 		"data-store", &ds,
 		NULL);
-
-  g_object_get (vs, "dictionary", &fd.dict, NULL);
 
   fd.data = ds->datasheet;
 

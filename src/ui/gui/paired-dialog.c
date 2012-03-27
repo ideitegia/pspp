@@ -27,7 +27,6 @@
 #include "psppire-var-view.h"
 
 #include "psppire-dict.h"
-#include "psppire-var-store.h"
 
 #include "dialog-common.h"
 #include "psppire-dialog.h"
@@ -147,8 +146,6 @@ two_sample_dialog_create (PsppireDataWindow *de)
   GtkWidget *selector ;
   struct paired_samples_dialog *tt_d = g_malloc (sizeof *tt_d);
 
-  PsppireVarStore *vs = NULL;
-
   tt_d->xml = builder_new ("paired-samples.ui");
 
   dict_view = get_widget_assert (tt_d->xml, "paired-samples-t-test-treeview1");
@@ -157,9 +154,7 @@ two_sample_dialog_create (PsppireDataWindow *de)
 
   tt_d->dialog = get_widget_assert (tt_d->xml, "t-test-paired-samples-dialog");
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-  g_object_get (vs, "dictionary", &tt_d->dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &tt_d->dict, NULL);
   tt_d->pairs_treeview =
    get_widget_assert (tt_d->xml, "paired-samples-t-test-treeview2");
 

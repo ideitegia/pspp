@@ -31,7 +31,6 @@
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dialog.h"
 #include "ui/gui/psppire-dictview.h"
-#include "ui/gui/psppire-var-store.h"
 #include "ui/gui/var-display.h"
 
 static void psppire_dialog_action_var_info_init            (PsppireDialogActionVarInfo      *act);
