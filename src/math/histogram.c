@@ -57,10 +57,32 @@ destroy (struct statistic *s)
 }
 
 
+static
+double get_slack (double limit, double half_bin_width, int *n_half_bins)
+{
+  double ipart, remainder;
+
+  assert (half_bin_width > 0);
+
+  remainder =  modf (limit / half_bin_width, &ipart);
+
+  /* In C modf and % behave in an unexpected (to me at any rate) manner
+     when presented with a negative value
+
+     For example, modf (-7.0 / 3.0) returns -2.0 R -0.3333
+  */
+
+  
+  *n_half_bins = ipart;
+
+  return remainder * half_bin_width;
+}
+
+
 /* This functions adjusts the upper and lower range of the histogram to make them fit BIN_WIDTH
    MIN and MAX are the lowest and highest data to be plotted in the histogram.
-   ADJ_MIN and ADJ_MAX are locations of the adjusted values of MIN and MAX (the range will always be
-   equal or slightly larger).
+   ADJ_MIN and ADJ_MAX are locations of the adjusted values of MIN and MAX (the range will
+   always be  equal or slightly larger).
    Returns the number of bins.
  */
 static int
@@ -72,48 +94,44 @@ adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, do
      bin widths */
   int lower_limit, upper_limit;
 
-  /* -1 if the lower end of the range contains more unused space
-     than the upper end.
-     +1 otherwise.  */
-  short sparse_end = 0;
-
-  double ul, ll;
-  double lower_remainder = fabs (modf (min / half_bin_width, &ll));
-  double upper_remainder = fabs (modf (max / half_bin_width, &ul));
-
+  double lower_slack =  get_slack (min, half_bin_width, &lower_limit);
+  double upper_slack = -get_slack (max, half_bin_width, &upper_limit);
 
   assert (max > min);
 
-  lower_limit = ll;
-
-  /* If the minimum value is not aligned on a half bin width,
-     then the lower bound must be extended so that the histogram range includes it. */
-  if (lower_remainder > 0)
-    lower_limit--;
+  /* If min is negative, then lower_slack may be less than zero.
+     In this case, the lower bound must be extended in the negative direction
+     so that it is less than OR EQUAL to min.
+   */
+  if (lower_slack < 0)
+    {
+      lower_limit--;
+      lower_slack += half_bin_width;
+    }
+  assert (lower_limit * half_bin_width <= min);
 
   /* However, the upper bound must be extended regardless, because histogram bins
-     span the range [lower, upper) */
-  upper_limit = ul + 1;
-
-  /* So, in the case of the maximum value coinciding with a half bin width,
-     the upper end will be the sparse end (because is got extended by a complete
-     half bin width).   In other cases, it depends which got the bigger extension. */
-  if (upper_remainder == 0)
-    sparse_end = +1;
-  else
-    sparse_end = lower_remainder < upper_remainder ? -1 : +1;
+     span the range [lower, upper). In other words, the upper bound must be
+     greater than max.
+  */
+  upper_limit++;;
+  upper_slack += half_bin_width;
+  assert (upper_limit * half_bin_width > max);
 
   /* The range must be an EVEN number of half bin_widths */
   if ( (upper_limit - lower_limit) % 2)
     {
       /* Extend the range at the end which gives the least unused space */
-      if (sparse_end == +1)
-	lower_limit--;
+      if (upper_slack > lower_slack)
+        {
+          lower_limit--;
+          lower_slack += half_bin_width;
+        }
       else
-        upper_limit++;
-      
-      /* Now the other end has more space */
-      sparse_end *= -1;
+        {
+          upper_limit++;
+          upper_slack += half_bin_width;
+        }
     }
 
   /* But the range should be aligned to an ODD number of
@@ -122,24 +140,50 @@ adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, do
   */
   if ( lower_limit % 2 == 0)
     {
-      /* Shift the range away from the sparse end, EXCEPT if that is the upper end,
-         and it was extended to prevent the maximum value from getting lost */
-      if (sparse_end == +1 && upper_remainder > 0)
+      if (upper_slack > lower_slack && upper_slack > half_bin_width)
         {
+          /* Adjust the range to the left */
           lower_limit --;
           upper_limit --;
+          upper_slack -= half_bin_width;
+          lower_slack += half_bin_width;
+        }
+      else if (lower_slack > upper_slack && lower_slack >= half_bin_width)
+        {
+          /* Adjust the range to the right */
+          lower_limit ++;
+          upper_limit ++;
+          lower_slack -= half_bin_width;
+          upper_slack += half_bin_width;
         }
       else
         {
-          lower_limit ++;
-          upper_limit ++;
+          /* In this case, we cannot adjust in either direction.
+             To get the most pleasing alignment, we would have to change
+             the bin width (which would have other visual disadvantages).
+          */
         }
+    }
+
+  /* If there are any completely empty bins, then remove them,
+     since empty bins don't really add much information to the histogram.
+   */
+  if (upper_slack > 2 * half_bin_width)
+    {
+      upper_slack -= 2 * half_bin_width;
+      upper_limit -=2;
+    }
+
+  if (lower_slack >= 2 * half_bin_width)
+    {
+      lower_slack -= 2 * half_bin_width;
+      lower_limit +=2;
     }
 
   *adj_min = lower_limit * half_bin_width;
   *adj_max = upper_limit * half_bin_width;
 
-  assert (*adj_max >= max);
+  assert (*adj_max > max);
   assert (*adj_min <= min);
 
   return (upper_limit - lower_limit) / 2.0;

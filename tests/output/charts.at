@@ -118,3 +118,39 @@ factor /variables = all
 AT_CHECK([pspp -O format=csv scree.sps], [0], [ignore])
 
 AT_CLEANUP
+
+
+AT_SETUP([Histogram])
+AT_DATA([histogram.sps],[
+* This test is designed to "torture" the code which
+  generates histograms.  It is no-crash test. However
+  the code is rich in assertions, so any problems we
+  hope will be caught there.
+  
+
+input program.
+loop #i = 1 to 1000.
+ compute pos  = rv.normal (56, 3) + rv.uniform (1, 1).
+ compute neg  = rv.normal (-86, 2) + rv.uniform (1, 1).
+ compute pn  = rv.normal (0, 2) + rv.uniform (1, 2).
+ compute A  = rv.uniform (-1, 1).
+  compute A = (A > 0).
+ end case.
+end loop.
+end file.
+end input program.
+
+
+examine pos neg pn by a
+	/plot = histogram
+	.
+
+frequencies pos neg pn
+	/format=notable
+	/histogram=normal.
+])
+
+
+AT_CHECK([pspp -O format=csv histogram.sps], [0], [ignore])
+
+AT_CLEANUP
