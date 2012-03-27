@@ -140,28 +140,42 @@ adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, do
   */
   if ( lower_limit % 2 == 0)
     {
-      if (upper_slack > lower_slack && upper_slack > half_bin_width)
+      /* If there is not enough slack at either end to perform a shift,
+         then we must extend the range so that there is.  We must extend
+         by two half bin widths in order to preserve the EVEN condition
+         established above.  Also, we extend on the end with the least
+         slack, in order to keep things as balanced as possible. */
+      if ( upper_slack > lower_slack && upper_slack <= half_bin_width)
         {
+          lower_limit -= 2;
+          lower_slack += 2 * half_bin_width;
+        }
+           
+      if (lower_slack > upper_slack && lower_slack < half_bin_width)
+        {
+          upper_limit += 2;
+          upper_slack += 2 * half_bin_width;
+        }
+
+      if (upper_slack > lower_slack)
+        {
+          assert (upper_slack > half_bin_width);
+
           /* Adjust the range to the left */
           lower_limit --;
           upper_limit --;
           upper_slack -= half_bin_width;
           lower_slack += half_bin_width;
         }
-      else if (lower_slack > upper_slack && lower_slack >= half_bin_width)
+      else
         {
+          assert (lower_slack >= half_bin_width);
+
           /* Adjust the range to the right */
           lower_limit ++;
           upper_limit ++;
           lower_slack -= half_bin_width;
           upper_slack += half_bin_width;
-        }
-      else
-        {
-          /* In this case, we cannot adjust in either direction.
-             To get the most pleasing alignment, we would have to change
-             the bin width (which would have other visual disadvantages).
-          */
         }
     }
 
