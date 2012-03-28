@@ -230,7 +230,7 @@ HOST COMMAND=['command'...].
 to the operating system.
 This command cannot be used if the SAFER setting is active.
 
-If the COMMAND subcommand is specified, as a sequence of shell
+If the @subcmd{COMMAND} subcommand is specified, as a sequence of shell
 commands as quoted strings within square brackets, then @pspp{} executes
 them together in a single subshell.
 
@@ -257,7 +257,7 @@ The @cmd{INSERT} command (@pxref{INSERT}) is a more flexible
 alternative to @cmd{INCLUDE}.  An INCLUDE command acts the same as
 INSERT with ERROR=STOP CD=NO SYNTAX=BATCH specified.
 
-The optional ENCODING subcommand has the same meaning as on INSERT.
+The optional @subcmd{ENCODING} subcommand has the same meaning as on INSERT.
 
 @node INSERT
 @section INSERT
@@ -458,7 +458,7 @@ SET
 @pspp{}'s execution.  Since there are many subcommands to this command, its
 subcommands will be examined in groups.
 
-On subcommands that take boolean values, ON and YES are synonym, and
+For subcommands that take boolean values, ON and YES are synonymous, 
 as are OFF and NO, when used as subcommand values.
 
 The data input subcommands affect the way that data is read from data

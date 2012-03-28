@@ -15,8 +15,16 @@
 
 @include version.texi
 
+@c This macro should be used for marking command names.  For the purposes of markup, 
+@c  no distinction is made between ``commands'' and ``procedures''.
 @macro cmd{CMDNAME}
-\CMDNAME\
+@code{\CMDNAME\}
+@end macro
+
+@c This macro is used for fragments of command syntax that are not in themselves command names.
+@c It does not necessarily have to be a subcommand.
+@macro subcmd{CMDNAME}
+@code{\CMDNAME\}
 @end macro
 
 @c Use this macro to refer to PSPP itself .  Not when giving a shell command line example.

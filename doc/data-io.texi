@@ -102,7 +102,7 @@ attributes associated with the active dataset.  Custom data file
 attributes are not interpreted by @pspp{}, but they are saved as part of
 system files and may be used by other software that reads them.
 
-Use the ATTRIBUTE subcommand to add or modify a custom data file
+Use the @subcmd{ATTRIBUTE} subcommand to add or modify a custom data file
 attribute.  Specify the name of the attribute as an identifier
 (@pxref{Tokens}), followed by the desired value, in parentheses, as a
 quoted string.  Attribute names that begin with @code{$} are reserved
@@ -116,7 +116,7 @@ element, add an integer array index enclosed in square brackets
 indexes start at 1, not 0.  An attribute array that has a single
 element (number 1) is not distinguished from a non-array attribute.
 
-Use the DELETE subcommand to delete an attribute.  Specify an
+Use the @subcmd{DELETE} subcommand to delete an attribute.  Specify an
 attribute name by itself to delete an entire attribute, including all
 array elements for attribute arrays.  Specify an attribute name
 followed by an array index in square brackets to delete a single
@@ -187,9 +187,9 @@ all datasets except for the active dataset, which becomes unnamed.
 @vindex DATASET DISPLAY
 The DATASET DISPLAY command lists all the currently defined datasets.
 
-Many DATASET commands accept an optional WINDOW subcommand.  In the
+Many DATASET commands accept an optional @subcmd{WINDOW} subcommand.  In the
 @pspp{}IRE GUI, the value given for this subcommand influences how the
-dataset's window is displayed.  Outside the GUI, the WINDOW subcommand
+dataset's window is displayed.  Outside the GUI, the @subcmd{WINDOW} subcommand
 has no effect.  The valid values are:
 
 @table @asis
@@ -267,28 +267,28 @@ where each var_spec takes one of the forms
 positions on each line of single-line or multiline records.  The
 keyword FIXED is optional.
 
-The FILE subcommand must be used if input is to be taken from an
+The @subcmd{FILE} subcommand must be used if input is to be taken from an
 external file.  It may be used to specify a file name as a string or a
-file handle (@pxref{File Handles}).  If the FILE subcommand is not used,
+file handle (@pxref{File Handles}).  If the @subcmd{FILE} subcommand is not used,
 then input is assumed to be specified within the command file using
 @cmd{BEGIN DATA}@dots{}@cmd{END DATA} (@pxref{BEGIN DATA}).
-The ENCODING subcommand may only be used if the FILE subcommand is also used.
+The @subcmd{ENCODING} subcommand may only be used if the @subcmd{FILE} subcommand is also used.
 It specifies the character encoding of the file.
 
-The optional RECORDS subcommand, which takes a single integer as an
+The optional @subcmd{RECORDS} subcommand, which takes a single integer as an
 argument, is used to specify the number of lines per record.  If RECORDS
 is not specified, then the number of lines per record is calculated from
 the list of variable specifications later in @cmd{DATA LIST}.
 
-The END subcommand is only useful in conjunction with @cmd{INPUT
+The @subcmd{END} subcommand is only useful in conjunction with @cmd{INPUT
 PROGRAM}.  @xref{INPUT PROGRAM}, for details.
 
-The optional SKIP subcommand specifies a number of records to skip at
+The optional @subcmd{SKIP} subcommand specifies a number of records to skip at
 the beginning of an input file.  It can be used to skip over a row
 that contains variable names, for example.
 
 @cmd{DATA LIST} can optionally output a table describing how the data file
-will be read.  The TABLE subcommand enables this output, and NOTABLE
+will be read.  The @subcmd{TABLE} subcommand enables this output, and @subcmd{NOTABLE}
 disables it.  The default is to output the table.
 
 The list of variables to be read from the data list must come last.
@@ -494,10 +494,10 @@ fields.  Furthermore, leading spaces at the beginnings of fields are
 not trimmed, consecutive delimiters define empty fields, and no form
 of quoting is allowed.
 
-The NOTABLE and TABLE subcommands are as in @cmd{DATA LIST FIXED} above.
-NOTABLE is the default.
+The @subcmd{NOTABLE} and @subcmd{TABLE} subcommands are as in @cmd{DATA LIST FIXED} above.
+@subcmd{NOTABLE} is the default.
 
-The FILE and SKIP subcommands are as in @cmd{DATA LIST FIXED} above.
+The @subcmd{FILE} and @subcmd{SKIP} subcommands are as in @cmd{DATA LIST FIXED} above.
 
 The variables to be parsed are given as a single list of variable names.
 This list must be introduced by a single slash (@samp{/}).  The set of
@@ -648,7 +648,7 @@ input or output, using an ASCII/EBCDIC translation that is one-to-one,
 so that a ``round trip'' from ASCII to EBCDIC back to ASCII, or vice
 versa, always yields exactly the original data.
 
-The RECFORM subcommand is required in mode 360.  The precise file
+The @subcmd{RECFORM} subcommand is required in mode 360.  The precise file
 format depends on its setting:
 
 @table @asis
@@ -716,7 +716,7 @@ these fields are effectively padded with character @code{X'80'}.  This
 wart is implemented for compatibility.
 @end itemize
 
-The NAME subcommand specifies the name of the file associated with the
+The @subcmd{NAME} subcommand specifies the name of the file associated with the
 handle.  It is required in all modes but SCRATCH mode, in which its
 use is forbidden.
 
@@ -748,7 +748,7 @@ stop when end of file is reached on any of the data files.
 
 To prevent @cmd{INPUT PROGRAM} from terminating at the first end of
 file, use
-the END subcommand on @cmd{DATA LIST}.  This subcommand takes a
+the @subcmd{END} subcommand on @cmd{DATA LIST}.  This subcommand takes a
 variable name,
 which should be a numeric scratch variable (@pxref{Scratch Variables}).
 (It need not be a scratch variable but otherwise the results can be
@@ -762,7 +762,7 @@ structure produces one case.  @cmd{END CASE} controls exactly
 when cases are output.  When @cmd{END CASE} is used, looping from the end of
 @cmd{INPUT PROGRAM} to the beginning does not cause a case to be output.
 
-@cmd{END FILE} is the second.  When the END subcommand is used on @cmd{DATA
+@cmd{END FILE} is the second.  When the @subcmd{END} subcommand is used on @cmd{DATA
 LIST}, there is no way for the @cmd{INPUT PROGRAM} construct to stop
 looping,
 so an infinite loop results.  @cmd{END FILE}, when executed,
@@ -895,17 +895,17 @@ LIST
 The @cmd{LIST} procedure prints the values of specified variables to the
 listing file.
 
-The VARIABLES subcommand specifies the variables whose values are to be
-printed.  Keyword VARIABLES is optional.  If VARIABLES subcommand is not
+The @subcmd{VARIABLES} subcommand specifies the variables whose values are to be
+printed.  Keyword VARIABLES is optional.  If @subcmd{VARIABLES} subcommand is not
 specified then all variables in the active dataset are printed.
 
-The CASES subcommand can be used to specify a subset of cases to be
+The @subcmd{CASES} subcommand can be used to specify a subset of cases to be
 printed.  Specify FROM and the case number of the first case to print,
 TO and the case number of the last case to print, and BY and the number
 of cases to advance between printing cases, or any subset of those
 settings.  If CASES is not specified then all cases are printed.
 
-The FORMAT subcommand can be used to change the output format.  NUMBERED
+The @subcmd{FORMAT} subcommand can be used to change the output format.  NUMBERED
 will print case numbers along with each case; UNNUMBERED, the default,
 causes the case numbers to be omitted.  The WRAP and SINGLE settings are
 currently not used.
@@ -956,18 +956,18 @@ print variable data without invoking a procedure (@pxref{EXECUTE}).
 All @cmd{PRINT} subcommands are optional.  If no strings or variables
 are specified, PRINT outputs a single blank line.
 
-The OUTFILE subcommand specifies the file to receive the output.  The
+The @subcmd{OUTFILE} subcommand specifies the file to receive the output.  The
 file may be a file name as a string or a file handle (@pxref{File
 Handles}).  If OUTFILE is not present then output will be sent to
 @pspp{}'s output listing file.  When OUTFILE is present, a space is
 inserted at beginning of each output line, even lines that otherwise
 would be blank.
 
-The RECORDS subcommand specifies the number of lines to be output.  The
+The @subcmd{RECORDS} subcommand specifies the number of lines to be output.  The
 number of lines may optionally be surrounded by parentheses.
 
-TABLE will cause the PRINT command to output a table to the listing file
-that describes what it will print to the output file.  NOTABLE, the
+@subcmd{TABLE} will cause the @cmd{PRINT} command to output a table to the listing file
+that describes what it will print to the output file.  @subcmd{NOTABLE}, the
 default, suppresses this output table.
 
 Introduce the strings and variables to be printed with a slash
@@ -1020,10 +1020,10 @@ way as @cmd{PRINT}.
 
 All @cmd{PRINT EJECT} subcommands are optional.
 
-Without OUTFILE, PRINT EJECT ejects the current page in
+Without @subcmd{OUTFILE}, @cmd{PRINT EJECT} ejects the current page in
 the listing file, then it produces other output, if any is specified.
 
-With OUTFILE, PRINT EJECT writes its output to the specified file.
+With @subcmd{OUTFILE}, @cmd{PRINT EJECT} writes its output to the specified file.
 The first line of output is written with @samp{1} inserted in the
 first column.  Commonly, this is the only line of output.  If
 additional lines of output are specified, these additional lines are
@@ -1041,7 +1041,7 @@ PRINT SPACE OUTFILE='file-name' n_lines.
 
 @cmd{PRINT SPACE} prints one or more blank lines to an output file.
 
-The OUTFILE subcommand is optional.  It may be used to direct output to
+The @subcmd{OUTFILE} subcommand is optional.  It may be used to direct output to
 a file specified by file name as a string or file handle (@pxref{File
 Handles}).  If OUTFILE is not specified then output will be directed to
 the listing file.
@@ -1063,14 +1063,14 @@ data file
 already processed by @cmd{DATA LIST} or another input command to be re-read
 for further processing.
 
-The FILE subcommand, which is optional, is used to specify the file to
+The @subcmd{FILE} subcommand, which is optional, is used to specify the file to
 have its line re-read.  The file must be specified as the name of a file
 handle (@pxref{File Handles}).  If FILE is not specified then the last
 file specified on @cmd{DATA LIST} will be assumed (last file specified
 lexically, not in terms of flow-of-control).
 
 By default, the line re-read is re-read in its entirety.  With the
-COLUMN subcommand, a prefix of the line can be exempted from
+@subcmd{COLUMN} subcommand, a prefix of the line can be exempted from
 re-reading.  Specify an expression (@pxref{Expressions}) evaluating to
 the first column that should be included in the re-read line.  Columns
 are numbered from 1 at the left margin.
@@ -1106,7 +1106,7 @@ When used with @cmd{DATA LIST}, it
 can be used to parse groups of cases that share a subset of variables
 but differ in their other data.
 
-The STARTS subcommand is required.  Specify a range of columns, using
+The @subcmd{STARTS} subcommand is required.  Specify a range of columns, using
 literal numbers or numeric variable names.  This range specifies the
 columns on the first line that are used to contain groups of data.  The
 ending column is optional.  If it is not specified, then the record
@@ -1114,11 +1114,11 @@ width of the input file is used.  For the inline file (@pxref{BEGIN
 DATA}) this is 80 columns; for a file with fixed record widths it is the
 record width; for other files it is 1024 characters by default.
 
-The OCCURS subcommand is required.  It must be a number or the name of a
+The @subcmd{OCCURS} subcommand is required.  It must be a number or the name of a
 numeric variable.  Its value is the number of groups present in the
 current record.
 
-The DATA subcommand is required.  It must be the last subcommand
+The @subcmd{DATA} subcommand is required.  It must be the last subcommand
 specified.  It is used to specify the data present within each repeating
 group.  Column numbers are specified relative to the beginning of a
 group at column 1.  Data is specified in the same way as with @cmd{DATA LIST
@@ -1132,23 +1132,23 @@ default is the last file handle used on @cmd{DATA LIST} (lexically, not in
 terms of flow of control).
 
 By default @cmd{REPEATING DATA} will output a table describing how it will
-parse the input data.  Specifying NOTABLE will disable this behavior;
+parse the input data.  Specifying @subcmd{NOTABLE} will disable this behavior;
 specifying TABLE will explicitly enable it.
 
-The LENGTH subcommand specifies the length in characters of each group.
-If it is not present then length is inferred from the DATA subcommand.
+The @subcmd{LENGTH} subcommand specifies the length in characters of each group.
+If it is not present then length is inferred from the @subcmd{DATA} subcommand.
 LENGTH can be a number or a variable name.
 
 Normally all the data groups are expected to be present on a single
-line.  Use the CONTINUED command to indicate that data can be continued
+line.  Use the @subcmd{CONTINUED} command to indicate that data can be continued
 onto additional lines.  If data on continuation lines starts at the left
 margin and continues through the entire field width, no column
-specifications are necessary on CONTINUED.  Otherwise, specify the
+specifications are necessary on @subcmd{CONTINUED}.  Otherwise, specify the
 possible range of columns in the same way as on STARTS.
 
 When data groups are continued from line to line, it is easy
 for cases to get out of sync through careless hand editing.  The
-ID subcommand allows a case identifier to be present on each line of
+@subcmd{ID} subcommand allows a case identifier to be present on each line of
 repeating data groups.  @cmd{REPEATING DATA} will check for the same
 identifier on each line and report mismatches.  Specify the range of
 columns that the identifier will occupy, followed by an equals sign

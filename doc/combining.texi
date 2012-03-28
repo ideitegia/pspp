@@ -66,14 +66,14 @@ The syntax of each command begins with a specification of the files to
 be read as input.  For each input file, specify FILE with a system
 file or portable file's name as a string, a dataset (@pxref{Datasets})
 or file handle name, (@pxref{File Handles}), or an asterisk (@samp{*})
-to use the active dataset as input.  Use of portable files on FILE is a
+to use the active dataset as input.  Use of portable files on @subcmd{FILE} is a
 @pspp{} extension.
 
-At least two FILE subcommands must be specified.  If the active dataset
+At least two @subcmd{FILE} subcommands must be specified.  If the active dataset
 is used as an input source, then @cmd{TEMPORARY} must not be in
 effect.
 
-Each FILE subcommand may be followed by any number of RENAME
+Each @subcmd{FILE} subcommand may be followed by any number of @subcmd{RENAME}
 subcommands that specify a parenthesized group or groups of variable
 names as they appear in the input file, followed by those variables'
 new names, separated by an equals sign (@samp{=}),
@@ -83,17 +83,17 @@ Within a parenthesized group, variables are renamed simultaneously, so
 that @samp{/RENAME=(A B=B A)} exchanges the names of variables A and
 B.  Otherwise, renaming occurs in left-to-right order.
 
-Each FILE subcommand may optionally be followed by a single IN
+Each @subcmd{FILE} subcommand may optionally be followed by a single @subcmd{IN}
 subcommand, which creates a numeric variable with the specified name
 and format F1.0.  The IN variable takes value 1 in an output case if
 the given input file contributed to that output case, and 0 otherwise.
-The DROP, KEEP, and RENAME subcommands have no effect on IN variables.
+The @subcmd{DROP}, @subcmd{KEEP}, and @subcmd{RENAME} subcommands have no effect on IN variables.
 
 If BY is used (see below), the SORT keyword must be specified after a
-FILE if that input file is not already sorted on the BY variables.
-When SORT is specified, @pspp{} sorts the input file's data on the BY
+@subcmd{FILE} if that input file is not already sorted on the BY variables.
+When @subcmd{SORT} is specified, @pspp{} sorts the input file's data on the BY
 variables before it applies it to the command.  When SORT is used, BY
-is required.  SORT is a @pspp{} extension.
+is required.  @subcmd{SORT} is a @pspp{} extension.
 
 @pspp{} merges the dictionaries of all of the input files to form the
 dictionary of the new active dataset, like so:
@@ -106,8 +106,8 @@ contains a variable with a given name, the output file will contain
 exactly that variable.  When more than one input file contains a
 variable with a given name, those variables must all have the same
 type (numeric or string) and, for string variables, the same width.
-Variables are matched after renaming with the RENAME subcommand.
-Thus, RENAME can be used to resolve conflicts.
+Variables are matched after renaming with the @subcmd{RENAME} subcommand.
+Thus, @subcmd{RENAME} can be used to resolve conflicts.
 
 @item
 The variable label for each output variable is taken from the first
@@ -121,7 +121,7 @@ first specified FILE that has a file label.
 @item
 The documents in the new active dataset (@pxref{DOCUMENT}) are the
 concatenation of all the input files' documents, in the order in which
-the FILE subcommands are specified.
+the @subcmd{FILE} subcommands are specified.
 
 @item
 If all of the input files are weighted on the same variable, then the
@@ -141,26 +141,26 @@ variables, then SORT must be specified for those input files.
 
 The variables listed on BY may include (A) or (D) annotations to
 specify ascending or descending sort order.  @xref{SORT CASES}, for
-more details on this notation.  Adding (A) or (D) to the BY subcommand
+more details on this notation.  Adding (A) or (D) to the @subcmd{BY} subcommand
 specification is a @pspp{} extension.
 
-The DROP subcommand can be used to specify a list of variables to
-exclude from the output.  By contrast, the KEEP subcommand can be used
+The @subcmd{DROP} subcommand can be used to specify a list of variables to
+exclude from the output.  By contrast, the @subcmd{KEEP} subcommand can be used
 to specify variables to include in the output; all variables not
 listed are dropped.  DROP and KEEP are executed in left-to-right order
 and may be repeated any number of times.  DROP and KEEP do not affect
-variables created by the IN, FIRST, and LAST subcommands, which are
+variables created by the IN, FIRST, and @subcmd{LAST} subcommands, which are
 always included in the new active dataset, but they can be used to drop
 BY variables.
 
-The FIRST and LAST subcommands are optional.  They may only be
+The @subcmd{FIRST} and @subcmd{LAST} subcommands are optional.  They may only be
 specified on @cmd{MATCH FILES} and @cmd{ADD FILES}, and only when BY
-is used.  FIRST and LIST each adds a numeric variable to the new
+is used.  @subcmd{FIRST} and @subcmd{LIST} each adds a numeric variable to the new
 active dataset, with the name given as the subcommand's argument and F1.0
-print and write formats.  The value of the FIRST variable is 1 in the
+print and write formats.  The value of the @subcmd{FIRST} variable is 1 in the
 first output case with a given set of values for the BY variables, and
-0 in other cases.  Similarly, the LAST variable is 1 in the last case
-with a given of BY values, and 0 in other cases.
+0 in other cases.  Similarly, the @subcmd{LAST} variable is 1 in the last case
+with a given of @subcmd{BY} values, and 0 in other cases.
 
 When any of these commands creates an output case, variables that are
 only in files that are not present for the current case are set to the
@@ -193,16 +193,16 @@ Once per command:
 which replaces the active dataset, consists all of the cases in all of
 the input files.
 
-ADD FILES shares the bulk of its syntax with other @pspp{} commands for
+@subcmd{ADD FILES} shares the bulk of its syntax with other @pspp{} commands for
 combining multiple data files.  @xref{Combining Files Common Syntax},
 above, for an explanation of this common syntax.
 
-When BY is not used, the output of ADD FILES consists of all the cases
+When @subcmd{BY} is not used, the output of @subcmd{ADD FILES} consists of all the cases
 from the first input file specified, followed by all the cases from
 the second file specified, and so on.  When BY is used, the output is
 additionally sorted on the BY variables.
 
-When ADD FILES creates an output case, variables that are not part of
+When @subcmd{ADD FILES} creates an output case, variables that are not part of
 the input file from which the case was drawn are set to the
 system-missing value for numeric variables or spaces for string
 variables.
@@ -251,13 +251,13 @@ to cases output after their input has been exhausted.
 If BY is used, MATCH FILES combines cases from each input file that
 have identical values for the BY variables.
 
-When BY is used, TABLE subcommands may be used to introduce @dfn{table
-lookup file}.  TABLE has same syntax as FILE, and the RENAME, IN, and
-SORT subcommands may follow a TABLE in the same way as a FILE.
+When BY is used, @subcmd{TABLE} subcommands may be used to introduce @dfn{table
+lookup file}.  @subcmd{TABLE} has same syntax as @subcmd{FILE}, and the @subcmd{RENAME}, @subcmd{IN}, and
+@subcmd{SORT} subcommands may follow a TABLE in the same way as a FILE.
 Regardless of the number of TABLEs, at least one FILE must specified.
 Table lookup files are treated in the same way as other input files
 for most purposes and, in particular, table lookup files must be
-sorted on the BY variables or the SORT subcommand must be specified
+sorted on the BY variables or the @subcmd{SORT} subcommand must be specified
 for that TABLE.
 
 Cases in table lookup files are not consumed after they have been used
@@ -297,17 +297,17 @@ Once per command:
 @cmd{UPDATE} updates a @dfn{master file} by applying modifications
 from one or more @dfn{transaction files}.  
 
-UPDATE shares the bulk of its syntax with other @pspp{} commands for
+@cmd{UPDATE} shares the bulk of its syntax with other @pspp{} commands for
 combining multiple data files.  @xref{Combining Files Common Syntax},
 above, for an explanation of this common syntax.
 
-At least two FILE subcommands must be specified.  The first FILE
+At least two @subcmd{FILE} subcommands must be specified.  The first @subcmd{FILE}
 subcommand names the master file, and the rest name transaction files.
 Every input file must either be sorted on the variables named on the
-BY subcommand, or the SORT subcommand must be used just after the FILE
+@subcmd{BY} subcommand, or the @subcmd{SORT} subcommand must be used just after the @subcmd{FILE}
 subcommand for that input file.
 
-UPDATE uses the variables specified on the BY subcommand, which is
+@cmd{UPDATE} uses the variables specified on the @subcmd{BY} subcommand, which is
 required, to attempt to match each case in a transaction file with a
 case in the master file:
 

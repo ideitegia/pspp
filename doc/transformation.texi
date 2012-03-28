@@ -36,7 +36,7 @@ Cases are divided into groups that have the same values for one or more
 variables called @dfn{break variables}.  Several functions are available
 for summarizing case contents.
 
-The OUTFILE subcommand is required and must appear first.  Specify a
+The @subcmd{OUTFILE} subcommand is required and must appear first.  Specify a
 system file or portable file by file name or file
 handle (@pxref{File Handles}), or a dataset by its name
 (@pxref{Datasets}).
@@ -244,7 +244,7 @@ to 1), specify DESCENDING.
 
 PRINT is currently ignored.
 
-The GROUP subcommand is relevant only if more than one variable is to be
+The @subcmd{GROUP} subcommand is relevant only if more than one variable is to be
 recoded.   It causes a single mapping between source and target values to
 be used, instead of one map per variable.
 
@@ -413,9 +413,9 @@ causes cases to be swapped with variables, and vice versa.
 All variables in the transposed active dataset are numeric.  String
 variables take on the system-missing value in the transposed file.
 
-No subcommands are required.  If specified, the VARIABLES subcommand
+@subcmd{N} subcommands are required.  If specified, the @subcmd{VARIABLES} subcommand
 selects variables to be transformed into cases, and variables not
-specified are discarded.  If the VARIABLES subcommand is omitted, all
+specified are discarded.  If the @subcmd{VARIABLES} subcommand is omitted, all
 variables are selected for transposition.
 
 The variables specified by NEWNAMES, which must be a string variable, is

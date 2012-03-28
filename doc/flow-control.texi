@@ -1,3 +1,4 @@
+
 @node Conditionals and Looping
 @chapter Conditional and Looping Constructs
 @cindex conditionals
@@ -112,11 +113,11 @@ as variables, but only if used in the code block in a context that
 would create them, e.g.@: on a @cmd{NUMERIC} or @cmd{STRING} command
 or on the left side of a @cmd{COMPUTE} assignment.
 
-Any command may appear within DO REPEAT, including nested DO REPEAT
-commands.  If @cmd{INCLUDE} or @cmd{INSERT} appears within DO REPEAT,
+Any command may appear within @subcmd{DO REPEAT}, including nested @subcmd{DO REPEAT}
+commands.  If @cmd{INCLUDE} or @cmd{INSERT} appears within @subcmd{DO REPEAT},
 the substitutions do not apply to the included file.
 
-If PRINT is specified on @cmd{END REPEAT}, the commands after substitutions
+If @subcmd{PRINT} is specified on @cmd{END REPEAT}, the commands after substitutions
 are made are printed to the listing file, prefixed by a plus sign
 (@samp{+}).
 
@@ -125,31 +126,33 @@ are made are printed to the listing file, prefixed by a plus sign
 @vindex LOOP
 
 @display
-LOOP [index_var=start TO end [BY incr]] [IF condition].
+LOOP [@var{index_var}=@var{start} TO @var{end} [BY @var{incr}]] [IF @var{condition}].
         @dots{}
-END LOOP [IF condition].
+END LOOP [IF @var{condition}].
 @end display
 
 @cmd{LOOP} iterates a group of commands.  A number of
 termination options are offered.
 
 Specify index_var to make that variable count from one value to
-another by a particular increment.  index_var must be a pre-existing
-numeric variable.  start, end, and incr are numeric expressions
+another by a particular increment.  @var{index_var} must be a pre-existing
+numeric variable.  @var{start}, @var{end}, and @var{incr} are numeric expressions
 (@pxref{Expressions}.)  
 
-During the first iteration, index_var is set to the value of start.
-During each successive iteration, index_var is increased by the value of
-incr.  If end > start, then the loop terminates when index_var > end;
-otherwise it terminates when index_var < end.  If incr is not specified
+During the first iteration, @var{index_var} is set to the value of @var{start}.
+During each successive iteration, @var{index_var} is increased by the value of
+@var{incr}.  If @var{end} > @var{start}, then the loop terminates 
+when @var{index_var} > @var{end};
+otherwise it terminates when @var{index_var} < @var{end}.  If @var{incr} is not specified
 then it defaults to +1 or -1 as appropriate.
 
-If end > start and incr < 0, or if end < start and incr > 0, then the
-loop is never executed.  index_var is nevertheless set to the value of
+If @var{end} > @var{start} and @var{incr} < 0, or if @var{end} < @var{start} and
+ @var{incr} > 0, then the
+loop is never executed.  @var{index_var} is nevertheless set to the value of
 start.
 
-Modifying index_var within the loop is allowed, but it has no effect on
-the value of index_var in the next iteration.
+Modifying @var{index_var} within the loop is allowed, but it has no effect on
+the value of @var{index_var} in the next iteration.
 
 Specify a boolean expression for the condition on @cmd{LOOP} to
 cause the loop to be executed only if the condition is true.  If the

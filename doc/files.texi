@@ -103,7 +103,7 @@ The @cmd{EXPORT} procedure writes the active dataset's dictionary and
 data to a specified portable file.
 
 By default, cases excluded with FILTER are written to the
-file.  These can be excluded by specifying DELETE on the UNSELECTED
+file.  These can be excluded by specifying DELETE on the @subcmd{UNSELECTED}
 subcommand.  Specifying RETAIN makes the default explicit.
 
 Portable files express real numbers in base 30.  Integers are always
@@ -111,21 +111,21 @@ expressed to the maximum precision needed to make them exact.
 Non-integers are, by default, expressed to the machine's maximum
 natural precision (approximately 15 decimal digits on many machines).
 If many numbers require this many digits, the portable file may
-significantly increase in size.  As an alternative, the DIGITS
+significantly increase in size.  As an alternative, the @subcmd{DIGITS}
 subcommand may be used to specify the number of decimal digits of
 precision to write.  DIGITS applies only to non-integers.
 
-The OUTFILE subcommand, which is the only required subcommand, specifies
+The @subcmd{OUTFILE} subcommand, which is the only required subcommand, specifies
 the portable file to be written as a file name string or
 a file handle (@pxref{File Handles}).
 
-DROP, KEEP, and RENAME follow the same format as the SAVE procedure
-(@pxref{SAVE}).
+@subcmd{DROP}, @subcmd{KEEP}, and @subcmd{RENAME} follow the same format as the 
+@subcmd{SAVE} procedure (@pxref{SAVE}).
 
-The TYPE subcommand specifies the character set for use in the
+The @subcmd{TYPE} subcommand specifies the character set for use in the
 portable file.  Its value is currently not used.
 
-The MAP subcommand is currently ignored.
+The @subcmd{MAP} subcommand is currently ignored.
 
 @cmd{EXPORT} is a procedure.  It causes the active dataset to be read.
 
@@ -145,29 +145,29 @@ GET
 @cmd{GET} clears the current dictionary and active dataset and
 replaces them with the dictionary and data from a specified file.
 
-The FILE subcommand is the only required subcommand.  Specify the system
+The @subcmd{FILE} subcommand is the only required subcommand.  Specify the system
 file or portable file to be read as a string file name or
 a file handle (@pxref{File Handles}).
 
 By default, all the variables in a file are read.  The DROP
 subcommand can be used to specify a list of variables that are not to be
-read.  By contrast, the KEEP subcommand can be used to specify variable
+read.  By contrast, the @subcmd{KEEP} subcommand can be used to specify variable
 that are to be read, with all other variables not read.
 
 Normally variables in a file retain the names that they were
-saved under.  Use the RENAME subcommand to change these names.  Specify,
+saved under.  Use the @subcmd{RENAME} subcommand to change these names.  Specify,
 within parentheses, a list of variable names followed by an equals sign
 (@samp{=}) and the names that they should be renamed to.  Multiple
 parenthesized groups of variable names can be included on a single
-RENAME subcommand.  Variables' names may be swapped using a RENAME
+@subcmd{RENAME} subcommand.  Variables' names may be swapped using a @subcmd{RENAME}
 subcommand of the form @samp{/RENAME=(A B=B A)}.
 
-Alternate syntax for the RENAME subcommand allows the parentheses to be
+Alternate syntax for the @subcmd{RENAME} subcommand allows the parentheses to be
 eliminated.  When this is done, only a single variable may be renamed at
 once.  For instance, @samp{/RENAME=A=B}.  This alternate syntax is
 deprecated.
 
-DROP, KEEP, and RENAME are executed in left-to-right order.  
+@subcmd{DROP}, @subcmd{KEEP}, and @subcmd{RENAME} are executed in left-to-right order.  
 Each may be present any number of times.  @cmd{GET} never modifies a
 file on disk.  Only the active dataset read from the file
 is affected by these subcommands.
@@ -175,8 +175,8 @@ is affected by these subcommands.
 @pspp{} tries to automatically detect the encoding of string data in the
 file.  Sometimes, however, this does not work well encoding,
 especially for files written by old versions of SPSS or @pspp{}.  Specify
-the ENCODING subcommand with an IANA character set name as its string
-argument to override the default.  The ENCODING subcommand is a @pspp{}
+the @subcmd{ENCODING} subcommand with an IANA character set name as its string
+argument to override the default.  The @subcmd{ENCODING} subcommand is a @pspp{}
 extension.
 
 @cmd{GET} does not cause the data to be read, only the dictionary.  The data
@@ -199,7 +199,7 @@ sources created by other applications.  When this command is executed,
 the current dictionary and active dataset are replaced with variables
 and data read from the specified source.
 
-The TYPE subcommand is mandatory and must be the first subcommand
+The @subcmd{TYPE} subcommand is mandatory and must be the first subcommand
 specified.  It determines the type of the file or source to read.
 @pspp{} currently supports the following file types:
 
@@ -246,10 +246,10 @@ Gnumeric spreadsheets (@url{http://gnumeric.org}), and spreadsheets
 in OpenDocument format
 (@url{http://libreplanet.org/wiki/Group:OpenDocument/Software})
 can be read using the GET DATA command.
-Use the TYPE subcommand to indicate the file's format.  
+Use the @subcmd{TYPE} subcommand to indicate the file's format.  
 /TYPE=GNM indicates Gnumeric files,
 /TYPE=ODS indicates OpenDocument.
-The FILE subcommand is mandatory.
+The @subcmd{FILE} subcommand is mandatory.
 Use it to specify the name file to be read. 
 All other subcommands are optional.
 
@@ -257,27 +257,27 @@ The format of each variable is determined by the format of the spreadsheet
 cell containing the first datum for the variable.
 If this cell is of string (text) format, then the width of the variable is
 determined from the length of the string it contains, unless the 
-ASSUMEDVARWIDTH subcommand is given.
+@subcmd{ASSUMEDVARWIDTH} subcommand is given.
 
-The SHEET subcommand specifies the sheet within the spreadsheet file to read.
-There are two forms of the SHEET subcommand.
+The @subcmd{SHEET} subcommand specifies the sheet within the spreadsheet file to read.
+There are two forms of the @subcmd{SHEET} subcommand.
 In the first form,
 @samp{/SHEET=name @var{sheet-name}}, the string @var{sheet-name} is the
 name of the sheet to read.
 In the second form, @samp{/SHEET=index @var{idx}}, @var{idx} is a
 integer which is the index of the sheet to read.
 The first sheet has the index 1.
-If the SHEET subcommand is omitted, then the command will read the
+If the @subcmd{SHEET} subcommand is omitted, then the command will read the
 first sheet in the file.
 
-The CELLRANGE subcommand specifies the range of cells within the sheet to read.
+The @subcmd{CELLRANGE} subcommand specifies the range of cells within the sheet to read.
 If the subcommand is given as @samp{/CELLRANGE=FULL}, then the entire
 sheet  is read.
 To read only part of a sheet, use the form 
 @samp{/CELLRANGE=range '@var{top-left-cell}:@var{bottom-right-cell}'}.
 For example, the subcommand @samp{/CELLRANGE=range 'C3:P19'} reads 
 columns C--P, and rows 3--19 inclusive.
-If no CELLRANGE subcommand is given, then the entire sheet is read.
+If no @subcmd{CELLRANGE} subcommand is given, then the entire sheet is read.
 
 If @samp{/READNAMES=ON} is specified, then the contents of cells of
 the first row are used as the names of the variables in which to store
@@ -285,7 +285,7 @@ the data from subsequent rows.  This is the default.
 If @samp{/READNAMES=OFF} is
 used, then the variables  receive automatically assigned names.
 
-The ASSUMEDVARWIDTH subcommand specifies the maximum width of string
+The @subcmd{ASSUMEDVARWIDTH} subcommand specifies the maximum width of string
 variables read  from the file.
 If omitted, the default value is determined from the length of the 
 string in the first spreadsheet cell for each variable.
@@ -316,29 +316,29 @@ Not all the postgres data types are able to be represented in @pspp{}.
 If a datum cannot be represented a warning will be issued and that 
 datum will be set to SYSMIS.
 
-The CONNECT subcommand is mandatory.
+The @subcmd{CONNECT} subcommand is mandatory.
 It is a string specifying the parameters of the database server from
 which the data should be fetched.
 The format of the string is given in the postgres manual
 @url{http://www.postgresql.org/docs/8.0/static/libpq.html#LIBPQ-CONNECT}.
 
-The SQL subcommand is mandatory.
+The @subcmd{SQL} subcommand is mandatory.
 It must be a valid SQL string to retrieve data from the database.
 
-The ASSUMEDVARWIDTH subcommand specifies the maximum width of string
+The @subcmd{ASSUMEDVARWIDTH} subcommand specifies the maximum width of string
 variables read  from the database.
 If omitted, the default value is determined from the length of the 
 string in the first value read for each variable.
 
-The UNENCRYPTED subcommand allows data to be retrieved over an insecure
+The @subcmd{UNENCRYPTED} subcommand allows data to be retrieved over an insecure
 connection.
-If the connection is not encrypted, and the UNENCRYPTED subcommand is not
+If the connection is not encrypted, and the @subcmd{UNENCRYPTED} subcommand is not
 given, then an error will occur.
 Whether or not the connection is
 encrypted depends upon the underlying psql library and the 
 capabilities of the database server.
 
-The BSIZE subcommand serves only to optimise the speed of data transfer.
+The @subcmd{BSIZE} subcommand serves only to optimise the speed of data transfer.
 It specifies an upper limit on
 number of cases to fetch from the database at once.
 The default value is 4096.
@@ -374,22 +374,22 @@ GET DATA /TYPE=TXT
 When TYPE=TXT is specified, GET DATA reads data in a delimited or
 fixed columnar format, much like DATA LIST (@pxref{DATA LIST}).
 
-The FILE subcommand is mandatory.  Specify the file to be read as 
+The @subcmd{FILE} subcommand is mandatory.  Specify the file to be read as 
 a string file name or (for textual data
 only) a file handle (@pxref{File Handles}).
 
-The ARRANGEMENT subcommand determines the file's basic format.
+The @subcmd{ARRANGEMENT} subcommand determines the file's basic format.
 DELIMITED, the default setting, specifies that fields in the input
 data are separated by spaces, tabs, or other user-specified
 delimiters.  FIXED specifies that fields in the input data appear at
 particular fixed column positions within records of a case.
 
 By default, cases are read from the input file starting from the first
-line.  To skip lines at the beginning of an input file, set FIRSTCASE
+line.  To skip lines at the beginning of an input file, set @subcmd{FIRSTCASE}
 to the number of the first line to read: 2 to skip the first line, 3
 to skip the first two lines, and so on.
 
-IMPORTCASE can be used to limit the number of cases read from the
+@subcmd{IMPORTCASE} can be used to limit the number of cases read from the
 input file.  With the default setting, ALL, all cases in the file are
 read.  Specify FIRST @i{max_cases} to read at most @i{max_cases} cases
 from the file.  Use PERCENT @i{percent} to read only @i{percent}
@@ -399,7 +399,7 @@ the number of cases in the file without reading the entire file.  The
 number of cases in some kinds of unusual files cannot be estimated;
 @pspp{} will read all cases in such files.)
 
-FIRSTCASE and IMPORTCASE may be used with delimited and fixed-format
+@subcmd{FIRSTCASE} and @subcmd{IMPORTCASE} may be used with delimited and fixed-format
 data.  The remaining subcommands, which apply only to one of the two  file
 arrangements, are described below.
 
@@ -432,50 +432,50 @@ separated by a set of user-specified delimiters.  Its capabilities are
 similar to those of DATA LIST FREE (@pxref{DATA LIST FREE}), with a
 few enhancements.
 
-The required FILE subcommand and optional FIRSTCASE and IMPORTCASE
+The required @subcmd{FILE} subcommand and optional @subcmd{FIRSTCASE} and @subcmd{IMPORTCASE}
 subcommands are described above (@pxref{GET DATA /TYPE=TXT}).
 
-DELIMITERS, which is required, specifies the set of characters that
+@subcmd{DELIMITERS}, which is required, specifies the set of characters that
 may separate fields.  Each character in the string specified on
-DELIMITERS separates one field from the next.  The end of a line also
-separates fields, regardless of DELIMITERS.  Two consecutive
+@subcmd{DELIMITERS} separates one field from the next.  The end of a line also
+separates fields, regardless of @subcmd{DELIMITERS}.  Two consecutive
 delimiters in the input yield an empty field, as does a delimiter at
 the end of a line.  A space character as a delimiter is an exception:
 consecutive spaces do not yield an empty field and neither does any
 number of spaces at the end of a line.
 
 To use a tab as a delimiter, specify @samp{\t} at the beginning of the
-DELIMITERS string.  To use a backslash as a delimiter, specify
+@subcmd{DELIMITERS} string.  To use a backslash as a delimiter, specify
 @samp{\\} as the first delimiter or, if a tab should also be a
 delimiter, immediately following @samp{\t}.  To read a data file in
 which each field appears on a separate line, specify the empty string
-for DELIMITERS.
+for @subcmd{DELIMITERS}.
 
-The optional QUALIFIER subcommand names one or more characters that
+The optional @subcmd{QUALIFIER} subcommand names one or more characters that
 can be used to quote values within fields in the input.  A field that
 begins with one of the specified quote characters ends at the next
 matching quote.  Intervening delimiters become part of the field,
 instead of terminating it.  The ability to specify more than one quote
 character is a @pspp{} extension.
 
-By default, a character specified on QUALIFIER cannot itself be
+By default, a character specified on @subcmd{QUALIFIER} cannot itself be
 embedded within a field that it quotes, because the quote character
 always terminates the quoted field.  With ESCAPE, however, a doubled
 quote character within a quoted field inserts a single instance of the
 quote into the field.  For example, if @samp{'} is specified on
-QUALIFIER, then without ESCAPE @code{'a''b'} specifies a pair of
+@subcmd{QUALIFIER}, then without ESCAPE @code{'a''b'} specifies a pair of
 fields that contain @samp{a} and @samp{b}, but with ESCAPE it
 specifies a single field that contains @samp{a'b}.  ESCAPE is a @pspp{}
 extension.
 
-The DELCASE subcommand controls how data may be broken across lines in
+The @subcmd{DELCASE} subcommand controls how data may be broken across lines in
 the data file.  With LINE, the default setting, each line must contain
 all the data for exactly one case.  For additional flexibility, to
 allow a single case to be split among lines or multiple cases to be
 contained on a single line, specify VARIABLES @i{n_variables}, where
 @i{n_variables} is the number of variables per case.
 
-The VARIABLES subcommand is required and must be the last subcommand.
+The @subcmd{VARIABLES} subcommand is required and must be the last subcommand.
 Specify the name of each variable and its input format (@pxref{Input
 and Output Formats}) in the order they should be read from the input
 file.
@@ -588,14 +588,14 @@ particular fixed column positions within records of a case.  Its
 capabilities are similar to those of DATA LIST FIXED (@pxref{DATA LIST
 FIXED}), with a few enhancements.
 
-The required FILE subcommand and optional FIRSTCASE and IMPORTCASE
+The required @subcmd{FILE} subcommand and optional @subcmd{FIRSTCASE} and @subcmd{IMPORTCASE}
 subcommands are described above (@pxref{GET DATA /TYPE=TXT}).
 
-The optional FIXCASE subcommand may be used to specify the positive
+The optional @subcmd{FIXCASE} subcommand may be used to specify the positive
 integer number of input lines that make up each case.  The default
 value is 1.
 
-The VARIABLES subcommand, which is required, specifies the positions
+The @subcmd{VARIABLES} subcommand, which is required, specifies the positions
 at which each variable can be found.  For each variable, specify its
 name, followed by its start and end column separated by @samp{-}
 (e.g.@: @samp{0-9}), followed by an input format type (e.g.@:
@@ -651,15 +651,15 @@ data and
 replaces them with a dictionary and data from a system file or
 portable file.
 
-The FILE subcommand, which is the only required subcommand, specifies
+The @subcmd{FILE} subcommand, which is the only required subcommand, specifies
 the portable file to be read as a file name string or a file handle
 (@pxref{File Handles}).
 
-The TYPE subcommand is currently not used.
+The @subcmd{TYPE} subcommand is currently not used.
 
-DROP, KEEP, and RENAME follow the syntax used by @cmd{GET} (@pxref{GET}).
+@subcmd{DROP}, @subcmd{KEEP}, and @subcmd{RENAME} follow the syntax used by @cmd{GET} (@pxref{GET}).
 
-@cmd{IMPORT} does not cause the data to be read, only the dictionary.  The
+@cmd{IMPORT} does not cause the data to be read; only the dictionary.  The
 data is read later, when a procedure is executed.
 
 Use of @cmd{IMPORT} to read a system file is a @pspp{} extension.
@@ -691,31 +691,31 @@ to be written as a string file name or a file handle
 (@pxref{File Handles}).
 
 By default, cases excluded with FILTER are written to the system file.
-These can be excluded by specifying DELETE on the UNSELECTED
-subcommand.  Specifying RETAIN makes the default explicit.
+These can be excluded by specifying @subcmd{DELETE} on the @subcmd{UNSELECTED}
+subcommand.  Specifying @subcmd{RETAIN} makes the default explicit.
 
-The COMPRESS and UNCOMPRESS subcommand determine whether the saved
+The @subcmd{COMPRESS} and @subcmd{UNCOMPRESS} subcommand determine whether the saved
 system file is compressed.  By default, system files are compressed.
 This default can be changed with the SET command (@pxref{SET}).
 
-The PERMISSIONS subcommand specifies permissions for the new system
+The @subcmd{PERMISSIONS} subcommand specifies permissions for the new system
 file.  WRITEABLE, the default, creates the file with read and write
 permission.  READONLY creates the file for read-only access.
 
 By default, all the variables in the active dataset dictionary are written
-to the system file.  The DROP subcommand can be used to specify a list
+to the system file.  The @subcmd{DROP} subcommand can be used to specify a list
 of variables not to be written.  In contrast, KEEP specifies variables
 to be written, with all variables not specified not written.
 
 Normally variables are saved to a system file under the same names they
-have in the active dataset.  Use the RENAME subcommand to change these names.
+have in the active dataset.  Use the @subcmd{RENAME} subcommand to change these names.
 Specify, within parentheses, a list of variable names followed by an
 equals sign (@samp{=}) and the names that they should be renamed to.
 Multiple parenthesized groups of variable names can be included on a
-single RENAME subcommand.  Variables' names may be swapped using a
-RENAME subcommand of the form @samp{/RENAME=(A B=B A)}.
+single @subcmd{RENAME} subcommand.  Variables' names may be swapped using a
+@subcmd{RENAME} subcommand of the form @samp{/RENAME=(A B=B A)}.
 
-Alternate syntax for the RENAME subcommand allows the parentheses to be
+Alternate syntax for the @subcmd{RENAME} subcommand allows the parentheses to be
 eliminated.  When this is done, only a single variable may be renamed at
 once.  For instance, @samp{/RENAME=A=B}.  This alternate syntax is
 deprecated.
@@ -725,12 +725,12 @@ each may be present any number of times.  @cmd{SAVE} never modifies
 the active dataset.  DROP, KEEP, and RENAME only affect the system file
 written to disk.
 
-The VERSION subcommand specifies the version of the file format. Valid
+The @subcmd{VERSION} subcommand specifies the version of the file format. Valid
 versions are 2 and 3.  The default version is 3.  In version 2 system
 files, variable names longer than 8 bytes will be truncated.  The two
 versions are otherwise identical.
 
-The NAMES and MAP subcommands are currently ignored.
+The @subcmd{NAMES} and @subcmd{MAP} subcommands are currently ignored.
 
 @cmd{SAVE} causes the data to be read.  It is a procedure.
 
@@ -757,9 +757,9 @@ SAVE TRANSLATE
 The @cmd{SAVE TRANSLATE} command is used to save data into various
 formats understood by other applications.
 
-The OUTFILE and TYPE subcommands are mandatory.  OUTFILE specifies the
-file to be written, as a string file name or a file handle
-(@pxref{File Handles}).  TYPE determines the type of the file or
+The @subcmd{OUTFILE} and @subcmd{TYPE} subcommands are mandatory.
+@subcmd{OUTFILE} specifies the file to be written, as a string file name or a file handle
+(@pxref{File Handles}).  @subcmd{TYPE} determines the type of the file or
 source to read.  It must be one of the following:
 
 @table @asis
@@ -770,19 +770,19 @@ Comma-separated value format,
 Tab-delimited format.
 @end table
 
-By default, SAVE TRANSLATE will not overwrite an existing file.  Use
-REPLACE to force an existing file to be overwritten.
+By default, @cmd{SAVE TRANSLATE} will not overwrite an existing file.  Use
+@subcmd{REPLACE} to force an existing file to be overwritten.
 
-With MISSING=IGNORE, the default, SAVE TRANSLATE treats user-missing
+With MISSING=IGNORE, the default, @subcmd{SAVE TRANSLATE} treats user-missing
 values as if they were not missing.  Specify MISSING=RECODE to output
 numeric user-missing values like system-missing values and string
 user-missing values as all spaces.
 
 By default, all the variables in the active dataset dictionary are saved
-to the system file, but DROP or KEEP can select a subset of variable
-to save.  The RENAME subcommand can also be used to change the names
-under which variables are saved.  UNSELECTED determines whether cases
-filtered out by the FILTER command are written to the output file.
+to the system file, but @subcmd{DROP} or @subcmd{KEEP} can select a subset of variable
+to save.  The @subcmd{RENAME} subcommand can also be used to change the names
+under which variables are saved.  @subcmd{UNSELECTED} determines whether cases
+filtered out by the @cmd{FILTER} command are written to the output file.
 These subcommands have the same syntax and meaning as on the
 @cmd{SAVE} command (@pxref{SAVE}).
 
@@ -912,7 +912,7 @@ It is similar to the @cmd{EXPORT} procedure, with two differences:
 the data is read by a procedure or procedure-like command.
 
 @item
-@cmd{XEXPORT} does not support the UNSELECTED subcommand.
+@cmd{XEXPORT} does not support the @subcmd{UNSELECTED} subcommand.
 @end itemize
 
 @xref{EXPORT}, for more information.
@@ -944,7 +944,7 @@ procedure, with two differences:
 the data is read by a procedure or procedure-like command.
 
 @item
-@cmd{XSAVE} does not support the UNSELECTED subcommand.
+@cmd{XSAVE} does not support the @subcmd{UNSELECTED} subcommand.
 @end itemize
 
 @xref{SAVE}, for more information.

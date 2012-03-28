@@ -53,16 +53,16 @@ REGRESSION
 The @cmd{REGRESSION} procedure reads the active dataset and outputs
 statistics relevant to the linear model specified by the user.
 
-The VARIABLES subcommand, which is required, specifies the list of
+The @subcmd{VARIABLES} subcommand, which is required, specifies the list of
 variables to be analyzed.  Keyword VARIABLES is required. The
-DEPENDENT subcommand specifies the dependent variable of the linear
-model. The DEPENDENT subcommand is required. All variables listed in
-the VARIABLES subcommand, but not listed in the DEPENDENT subcommand,
+@subcmd{DEPENDENT} subcommand specifies the dependent variable of the linear
+model. The @subcmd{DEPENDENT} subcommand is required. All variables listed in
+the @subcmd{VARIABLES} subcommand, but not listed in the @subcmd{DEPENDENT} subcommand,
 are treated as explanatory variables in the linear model.
 
 All other subcommands are optional:
 
-The STATISTICS subcommand specifies the statistics to be displayed:
+The @subcmd{STATISTICS} subcommand specifies the statistics to be displayed:
 
 @table @code
 @item ALL
@@ -78,7 +78,7 @@ Analysis of variance table for the model.
 The covariance matrix for the estimated model coefficients.
 @end table
 
-The SAVE subcommand causes @pspp{} to save the residuals or predicted
+The @subcmd{SAVE} subcommand causes @pspp{} to save the residuals or predicted
 values from the fitted
 model to the active dataset. @pspp{} will store the residuals in a variable
 called RES1 if no such variable exists, RES2 if RES1 already exists,

@@ -81,7 +81,7 @@ be displayed.  With these keywords, by default information is
 displayed about all variable in the active dataset, in the order that
 variables occur in the active dataset dictionary.  The SORTED keyword
 causes output to be sorted alphabetically by variable name.  The
-VARIABLES subcommand limits output to the specified variables.
+@subcmd{VARIABLES} subcommand limits output to the specified variables.
 
 @table @asis
 @item NAMES
@@ -247,7 +247,7 @@ active dataset.
 At least one subcommand must be specified, and no subcommand may be
 specified more than once.  DROP and KEEP may not both be specified.
 
-The REORDER subcommand changes the order of variables in the active
+The @subcmd{REORDER} subcommand changes the order of variables in the active
 dataset.  Specify one or more lists of variable names in parentheses.  By
 default, each list of variables is rearranged into the specified order.
 To put the variables into the reverse of the specified order, put
@@ -262,10 +262,10 @@ same number of old and new variable names.  Each old variable is renamed to
 the corresponding new variable name.  Multiple parenthesized groups of
 variables may be specified.
 
-The DROP subcommand deletes a specified list of variables from the
+The @subcmd{DROP} subcommand deletes a specified list of variables from the
 active dataset.
 
-The KEEP subcommand keeps the specified list of variables in the active
+The @subcmd{KEEP} subcommand keeps the specified list of variables in the active
 dataset.  Any unlisted variables are deleted from the active dataset.
 
 MAP is currently ignored.
@@ -313,7 +313,7 @@ represents one of the responses.
 
 Any number of subcommands may be specified in any order.
 
-The MDGROUP subcommand creates a new multiple dichotomy set or
+The @subcmd{MDGROUP} subcommand creates a new multiple dichotomy set or
 replaces an existing multiple response set.  The NAME, VARIABLES, and
 VALUE specifications are required.  The others are optional:
 
@@ -365,19 +365,19 @@ LABELSOURCE=VARLABEL must be used with CATEGORYLABELS=COUNTEDVALUES.
 It is mutually exclusive with LABEL.
 @end itemize
 
-The MCGROUP subcommand creates a new multiple category set or
+The @subcmd{MCGROUP} subcommand creates a new multiple category set or
 replaces an existing multiple response set.  The NAME and VARIABLES
 specifications are required, and LABEL is optional.  Their meanings
 are as described above to MDGROUP.  @pspp{} warns if two variables in the
 set have different value labels for a single value, since each of the
 variables in the set should have the same possible categories.
 
-The DELETE subcommand deletes multiple response groups.  A list of
+The @subcmd{DELETE} subcommand deletes multiple response groups.  A list of
 groups may be named within a set of required square brackets, or ALL
 may be used to delete all groups.
 
-The DISPLAY subcommand displays information about defined multiple
-response sets.  Its syntax is the same as the DELETE subcommand.
+The @subcmd{DISPLAY} subcommand displays information about defined multiple
+response sets.  Its syntax is the same as the @subcmd{DELETE} subcommand.
 
 Multiple response sets are saved to and read from system files by,
 e.g., the @cmd{SAVE} and @cmd{GET} command.  Otherwise, multiple
@@ -501,11 +501,11 @@ variable attributes are not interpreted by @pspp{}, but they are saved as
 part of system files and may be used by other software that reads
 them.
 
-The required VARIABLES subcommand must come first.  Specify the
-variables to which the following ATTRIBUTE or DELETE subcommand
+The required @subcmd{VARIABLES} subcommand must come first.  Specify the
+variables to which the following ATTRIBUTE or @subcmd{DELETE} subcommand
 should apply.
 
-Use the ATTRIBUTE subcommand to add or modify custom variable
+Use the @subcmd{ATTRIBUTE} subcommand to add or modify custom variable
 attributes.  Specify the name of the attribute as an identifier
 (@pxref{Tokens}), followed by the desired value, in parentheses, as a
 quoted string.  The specified attributes are then added or modified in
@@ -521,7 +521,7 @@ element, add an integer array index enclosed in square brackets
 indexes start at 1, not 0.  An attribute array that has a single
 element (number 1) is not distinguished from a non-array attribute.
 
-Use the DELETE subcommand to delete an attribute from the variable
+Use the @subcmd{DELETE} subcommand to delete an attribute from the variable
 specified on VARIABLES.  Specify an attribute name by itself to delete
 an entire attribute, including all array elements for attribute
 arrays.  Specify an attribute name followed by an array index in
