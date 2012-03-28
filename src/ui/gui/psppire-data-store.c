@@ -239,7 +239,7 @@ psppire_data_store_get_case_count_wrapper (const PsppireSheetModel *model)
 static void
 psppire_data_store_init (PsppireDataStore *data_store)
 {
-  data_store->dict = 0;
+  data_store->dict = NULL;
   data_store->datasheet = NULL;
   data_store->dispose_has_run = FALSE;
 }
