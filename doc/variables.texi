@@ -117,7 +117,7 @@ In the second for, all datafile and variable attributes are displayed.
 With the @code{VECTOR} keyword, @cmd{DISPLAY} lists all the currently
 declared vectors.  If the SORTED keyword is given, the vectors are
 listed in alphabetical order; otherwise, they are listed in textual
-order of definition within the PSPP syntax file.
+order of definition within the @pspp{} syntax file.
 
 For related commands, see @ref{DISPLAY DOCUMENTS} and @ref{DISPLAY
 FILE LABEL}.
@@ -341,13 +341,13 @@ category in the set:
 @itemize @minus
 @item
 VARLABELS, the default, uses variable labels or, for variables without
-variable labels, variable names.  PSPP warns if two variables have the
+variable labels, variable names.  @pspp{} warns if two variables have the
 same variable label, since these categories cannot be distinguished in
 output.
 
 @item 
 COUNTEDVALUES instead uses each variable's value label for the counted
-value.  PSPP warns if two variables have the same value label for the
+value.  @pspp{} warns if two variables have the same value label for the
 counted value or if one of the variables lacks a value label, since
 such categories cannot be distinguished in output.
 @end itemize
@@ -368,7 +368,7 @@ It is mutually exclusive with LABEL.
 The MCGROUP subcommand creates a new multiple category set or
 replaces an existing multiple response set.  The NAME and VARIABLES
 specifications are required, and LABEL is optional.  Their meanings
-are as described above to MDGROUP.  PSPP warns if two variables in the
+are as described above to MDGROUP.  @pspp{} warns if two variables in the
 set have different value labels for a single value, since each of the
 variables in the set should have the same possible categories.
 
@@ -497,7 +497,7 @@ VARIABLE ATTRIBUTE
 
 @cmd{VARIABLE ATTRIBUTE} adds, modifies, or removes user-defined
 attributes associated with variables in the active dataset.  Custom
-variable attributes are not interpreted by PSPP, but they are saved as
+variable attributes are not interpreted by @pspp{}, but they are saved as
 part of system files and may be used by other software that reads
 them.
 
@@ -510,8 +510,8 @@ attributes.  Specify the name of the attribute as an identifier
 (@pxref{Tokens}), followed by the desired value, in parentheses, as a
 quoted string.  The specified attributes are then added or modified in
 the variables specified on VARIABLES.  Attribute names that begin with
-@code{$} are reserved for PSPP's internal use, and attribute names
-that begin with @code{@@} or @code{$@@} are not displayed by most PSPP
+@code{$} are reserved for @pspp{}'s internal use, and attribute names
+that begin with @code{@@} or @code{$@@} are not displayed by most @pspp{}
 commands that display other attributes.  Other attribute names are not
 treated specially.
 
@@ -577,7 +577,7 @@ VARIABLE ALIGNMENT
 
 @cmd{VARIABLE ALIGNMENT} sets the alignment of variables for display editing 
 purposes.   This only has effect for third party software.  It does not affect 
-the display of variables in the PSPP output.
+the display of variables in the @pspp{} output.
 
 
 
@@ -598,7 +598,7 @@ VARIABLE WIDTH
 
 @cmd{VARIABLE WIDTH} sets the column width of variables for display editing
 purposes.   This only affects third party software.  It does not affect 
-the display of variables in the PSPP output.
+the display of variables in the @pspp{} output.
 
 
 @node VARIABLE LEVEL

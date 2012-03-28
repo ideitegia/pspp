@@ -67,7 +67,7 @@ be read as input.  For each input file, specify FILE with a system
 file or portable file's name as a string, a dataset (@pxref{Datasets})
 or file handle name, (@pxref{File Handles}), or an asterisk (@samp{*})
 to use the active dataset as input.  Use of portable files on FILE is a
-PSPP extension.
+@pspp{} extension.
 
 At least two FILE subcommands must be specified.  If the active dataset
 is used as an input source, then @cmd{TEMPORARY} must not be in
@@ -91,11 +91,11 @@ The DROP, KEEP, and RENAME subcommands have no effect on IN variables.
 
 If BY is used (see below), the SORT keyword must be specified after a
 FILE if that input file is not already sorted on the BY variables.
-When SORT is specified, PSPP sorts the input file's data on the BY
+When SORT is specified, @pspp{} sorts the input file's data on the BY
 variables before it applies it to the command.  When SORT is used, BY
-is required.  SORT is a PSPP extension.
+is required.  SORT is a @pspp{} extension.
 
-PSPP merges the dictionaries of all of the input files to form the
+@pspp{} merges the dictionaries of all of the input files to form the
 dictionary of the new active dataset, like so:
 
 @itemize @bullet
@@ -142,7 +142,7 @@ variables, then SORT must be specified for those input files.
 The variables listed on BY may include (A) or (D) annotations to
 specify ascending or descending sort order.  @xref{SORT CASES}, for
 more details on this notation.  Adding (A) or (D) to the BY subcommand
-specification is a PSPP extension.
+specification is a @pspp{} extension.
 
 The DROP subcommand can be used to specify a list of variables to
 exclude from the output.  By contrast, the KEEP subcommand can be used
@@ -193,7 +193,7 @@ Once per command:
 which replaces the active dataset, consists all of the cases in all of
 the input files.
 
-ADD FILES shares the bulk of its syntax with other PSPP commands for
+ADD FILES shares the bulk of its syntax with other @pspp{} commands for
 combining multiple data files.  @xref{Combining Files Common Syntax},
 above, for an explanation of this common syntax.
 
@@ -232,7 +232,7 @@ Once per command:
 @cmd{MATCH FILES} merges sets of corresponding cases in multiple
 input files into single cases in the output, combining their data.
 
-MATCH FILES shares the bulk of its syntax with other PSPP commands for
+MATCH FILES shares the bulk of its syntax with other @pspp{} commands for
 combining multiple data files.  @xref{Combining Files Common Syntax},
 above, for an explanation of this common syntax.
 
@@ -297,7 +297,7 @@ Once per command:
 @cmd{UPDATE} updates a @dfn{master file} by applying modifications
 from one or more @dfn{transaction files}.  
 
-UPDATE shares the bulk of its syntax with other PSPP commands for
+UPDATE shares the bulk of its syntax with other @pspp{} commands for
 combining multiple data files.  @xref{Combining Files Common Syntax},
 above, for an explanation of this common syntax.
 
@@ -316,7 +316,7 @@ case in the master file:
 When a match is found, then the values of the variables present in the
 transaction file replace those variable's values in the new active
 file.  If there are matching cases in more than more transaction file,
-PSPP applies the replacements from the first transaction file, then
+@pspp{} applies the replacements from the first transaction file, then
 from the second transaction file, and so on.  Similarly, if a single
 transaction file has cases with duplicate BY values, then those are
 applied in order to the master file.

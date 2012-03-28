@@ -2,18 +2,18 @@
 @chapter Introduction
 @cindex introduction
 
-@cindex PSPP language
-@cindex language, PSPP
-PSPP is a tool for statistical analysis of sampled data.  It reads a
+@cindex @pspp{} language
+@cindex language, @pspp{}
+@pspp{} is a tool for statistical analysis of sampled data.  It reads a
 syntax file and a data file, analyzes the data, and writes the results
 to a listing file or to standard output.
 
-The language accepted by PSPP is similar to those accepted by SPSS
-statistical products.  The details of PSPP's language are given
+The language accepted by @pspp{} is similar to those accepted by SPSS
+statistical products.  The details of @pspp{}'s language are given
 later in this manual.
 
-@cindex files, PSPP
-@cindex output, PSPP
+@cindex files, @pspp{}
+@cindex output, @pspp{}
 @cindex PostScript
 @cindex PDF
 @cindex HTML
@@ -21,13 +21,13 @@ later in this manual.
 @cindex graphics
 @cindex Ghostscript
 @cindex Free Software Foundation
-PSPP produces tables and charts as output, which it can produce in
+@pspp{} produces tables and charts as output, which it can produce in
 several formats; currently, ASCII, PostScript, PDF, HTML, and SVG are
 supported.
 
-The current version of PSPP, @value{VERSION}, is woefully incomplete in
-terms of its statistical procedure support.  PSPP is a work in progress.
+The current version of @pspp{}, @value{VERSION}, is woefully incomplete in
+terms of its statistical procedure support.  @pspp{} is a work in progress.
 The author hopes to fully support all features in the products
-that PSPP replaces, eventually.  The author welcomes questions,
+that @pspp{} replaces, eventually.  The author welcomes questions,
 comments, donations, and code submissions.  @xref{Bugs,,Submitting Bug
 Reports}, for instructions on contacting the author.

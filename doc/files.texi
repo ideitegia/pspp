@@ -172,17 +172,17 @@ Each may be present any number of times.  @cmd{GET} never modifies a
 file on disk.  Only the active dataset read from the file
 is affected by these subcommands.
 
-PSPP tries to automatically detect the encoding of string data in the
+@pspp{} tries to automatically detect the encoding of string data in the
 file.  Sometimes, however, this does not work well encoding,
-especially for files written by old versions of SPSS or PSPP.  Specify
+especially for files written by old versions of SPSS or @pspp{}.  Specify
 the ENCODING subcommand with an IANA character set name as its string
-argument to override the default.  The ENCODING subcommand is a PSPP
+argument to override the default.  The ENCODING subcommand is a @pspp{}
 extension.
 
 @cmd{GET} does not cause the data to be read, only the dictionary.  The data
 is read later, when a procedure is executed.
 
-Use of @cmd{GET} to read a portable file is a PSPP extension.
+Use of @cmd{GET} to read a portable file is a @pspp{} extension.
 
 @node GET DATA
 @section GET DATA
@@ -201,7 +201,7 @@ and data read from the specified source.
 
 The TYPE subcommand is mandatory and must be the first subcommand
 specified.  It determines the type of the file or source to read.
-PSPP currently supports the following file types:
+@pspp{} currently supports the following file types:
 
 @table @asis
 @item GNM
@@ -311,8 +311,8 @@ The server may be located locally or remotely.
 Variables are automatically created based on the table column names 
 or the names specified in the SQL query.
 Postgres data types of high precision, will loose precision when 
-imported into PSPP.
-Not all the postgres data types are able to be represented in PSPP.
+imported into @pspp{}.
+Not all the postgres data types are able to be represented in @pspp{}.
 If a datum cannot be represented a warning will be issued and that 
 datum will be set to SYSMIS.
 
@@ -345,7 +345,7 @@ The default value is 4096.
 If your SQL statement fetches a large number of cases but only a small number of
 variables, then the data transfer may be faster if you increase this value.
 Conversely, if the number of variables is large, or if the machine on which 
-PSPP is running has only a
+@pspp{} is running has only a
 small amount of memory, then a smaller value will be better.
 
 
@@ -397,7 +397,7 @@ percent, approximately, of the cases contained in the file.  (The
 percentage is approximate, because there is no way to accurately count
 the number of cases in the file without reading the entire file.  The
 number of cases in some kinds of unusual files cannot be estimated;
-PSPP will read all cases in such files.)
+@pspp{} will read all cases in such files.)
 
 FIRSTCASE and IMPORTCASE may be used with delimited and fixed-format
 data.  The remaining subcommands, which apply only to one of the two  file
@@ -456,7 +456,7 @@ can be used to quote values within fields in the input.  A field that
 begins with one of the specified quote characters ends at the next
 matching quote.  Intervening delimiters become part of the field,
 instead of terminating it.  The ability to specify more than one quote
-character is a PSPP extension.
+character is a @pspp{} extension.
 
 By default, a character specified on QUALIFIER cannot itself be
 embedded within a field that it quotes, because the quote character
@@ -465,7 +465,7 @@ quote character within a quoted field inserts a single instance of the
 quote into the field.  For example, if @samp{'} is specified on
 QUALIFIER, then without ESCAPE @code{'a''b'} specifies a pair of
 fields that contain @samp{a} and @samp{b}, but with ESCAPE it
-specifies a single field that contains @samp{a'b}.  ESCAPE is a PSPP
+specifies a single field that contains @samp{a'b}.  ESCAPE is a @pspp{}
 extension.
 
 The DELCASE subcommand controls how data may be broken across lines in
@@ -662,7 +662,7 @@ DROP, KEEP, and RENAME follow the syntax used by @cmd{GET} (@pxref{GET}).
 @cmd{IMPORT} does not cause the data to be read, only the dictionary.  The
 data is read later, when a procedure is executed.
 
-Use of @cmd{IMPORT} to read a system file is a PSPP extension.
+Use of @cmd{IMPORT} to read a system file is a @pspp{} extension.
 
 @node SAVE
 @section SAVE
@@ -902,7 +902,7 @@ XEXPORT
 The @cmd{EXPORT} transformation writes the active dataset dictionary and
 data to a specified portable file.
 
-This transformation is a PSPP extension.
+This transformation is a @pspp{} extension.
 
 It is similar to the @cmd{EXPORT} procedure, with two differences:
 

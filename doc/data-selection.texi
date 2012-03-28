@@ -1,7 +1,7 @@
 @node Data Selection
 @chapter Selecting data for analysis
 
-This chapter documents PSPP commands that temporarily or permanently
+This chapter documents @pspp{} commands that temporarily or permanently
 select data records from the active dataset for analysis.
 
 @menu
@@ -53,7 +53,7 @@ N [OF CASES] num_of_cases [ESTIMATED].
 
 @cmd{N OF CASES} limits the number of cases processed by any
 procedures that follow it in the command stream.  @code{N OF CASES
-100}, for example, tells PSPP to disregard all cases after the first
+100}, for example, tells @pspp{} to disregard all cases after the first
 100.
 
 When @cmd{N OF CASES} is specified after @cmd{TEMPORARY}, it affects
@@ -75,7 +75,7 @@ file.
 @cmd{N OF CASES} with the @code{ESTIMATED} keyword gives an estimated
 number of cases before @cmd{DATA LIST} or another command to read in
 data.  @code{ESTIMATED} never limits the number of cases processed by
-procedures.  PSPP currently does not make use of case count estimates.
+procedures.  @pspp{} currently does not make use of case count estimates.
 
 @node SAMPLE
 @section SAMPLE

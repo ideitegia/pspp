@@ -1,19 +1,19 @@
 @node Installation
-@appendix Installing PSPP
+@appendix Installing @pspp{}
 @cindex installation
-@cindex PSPP, installing
+@cindex @pspp{}, installing
 
 @cindex GNU C compiler
 @cindex gcc
 @cindex compiler, recommended
 @cindex compiler, gcc
-PSPP is written in ISO C and primarily targeted at UNIX-like
-environments.  To install PSPP under a UNIX-like operating system,
+@pspp{} is written in ISO C and primarily targeted at UNIX-like
+environments.  To install @pspp{} under a UNIX-like operating system,
 follow the steps below.
 
 @enumerate
 @item
-@code{cd} to the directory containing the PSPP source.
+@code{cd} to the directory containing the @pspp{} source.
 
 @cindex configure, GNU
 @cindex GNU configure
@@ -36,23 +36,23 @@ correctly under your configuration, contact the author.
 
 @cindex self-tests, running
 @item
-Type @samp{make check} to run self-tests on the compiled PSPP package.
+Type @samp{make check} to run self-tests on the compiled @pspp{} package.
 
 @cindex installation
-@cindex PSPP, installing
+@cindex @pspp{}, installing
 @cindex @file{/usr/local/share/pspp/}
 @cindex @file{/usr/local/bin/}
 @cindex @file{/usr/local/info/}
 @cindex documentation, installing
 @item
 Become the superuser and type @samp{make install} to install the
-PSPP binaries, by default in @file{/usr/local/bin/}.  The
+@pspp{} binaries, by default in @file{/usr/local/bin/}.  The
 directory @file{/usr/local/share/pspp/} is created and populated with
-files needed by PSPP at runtime.  This step will also cause the
-PSPP documentation to be installed in @file{/usr/local/info/},
+files needed by @pspp{} at runtime.  This step will also cause the
+@pspp{} documentation to be installed in @file{/usr/local/info/},
 but only if that directory already exists.
 
 @item
-(optional) Type @samp{make clean} to delete the PSPP binaries
+(optional) Type @samp{make clean} to delete the @pspp{} binaries
 from the source tree.
 @end enumerate

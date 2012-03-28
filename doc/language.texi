@@ -1,9 +1,9 @@
 @node Language
-@chapter The PSPP language
-@cindex language, PSPP
-@cindex PSPP, language
+@chapter The @pspp{} language
+@cindex language, @pspp{}
+@cindex @pspp{}, language
 
-This chapter discusses elements common to many PSPP commands.
+This chapter discusses elements common to many @pspp{} commands.
 Later chapters will describe individual commands in detail.
 
 @menu
@@ -14,7 +14,7 @@ Later chapters will describe individual commands in detail.
 * Order of Commands::           Commands combine to form syntax files.
 * Missing Observations::        Handling missing observations.
 * Datasets::                    Data organization.
-* Files::                       Files used by PSPP.
+* Files::                       Files used by @pspp{}.
 * File Handles::                How files are named.
 * BNF::                         How command syntax is described.
 @end menu
@@ -27,10 +27,10 @@ Later chapters will describe individual commands in detail.
 @cindex tokens
 @cindex lexical analysis
 
-PSPP divides most syntax file lines into series of short chunks
+@pspp{} divides most syntax file lines into series of short chunks
 called @dfn{tokens}.
 Tokens are then grouped to form commands, each of which tells
-PSPP to take some action---read in data, write out data, perform
+@pspp{} to take some action---read in data, write out data, perform
 a statistical procedure, etc.  Each type of token is
 described below.
 
@@ -155,11 +155,11 @@ of, e.g.@:, an identifier or a floating-point number.
 @node Commands
 @section Forming commands of tokens
 
-@cindex PSPP, command structure
+@cindex @pspp{}, command structure
 @cindex language, command structure
 @cindex commands, structure
 
-Most PSPP commands share a common structure.  A command begins with a
+Most @pspp{} commands share a common structure.  A command begins with a
 command name, such as @cmd{FREQUENCIES}, @cmd{DATA LIST}, or @cmd{N OF
 CASES}.  The command name may be abbreviated to its first word, and
 each word in the command name may be abbreviated to its first three
@@ -207,23 +207,23 @@ accepted regardless of syntax mode.
 The default mode for reading commands from a file is @dfn{auto mode}.
 It is the same as batch mode, except that a line with a non-blank in
 the leftmost column only starts a new command if that line begins with
-the name of a PSPP command.  This correctly interprets most valid PSPP
+the name of a @pspp{} command.  This correctly interprets most valid @pspp{}
 syntax files regardless of the syntax mode for which they are
 intended.
 
 The @option{--interactive} (or @option{-i}) or @option{--batch} (or
-@option{-b}) options set the syntax mode for files listed on the PSPP
+@option{-b}) options set the syntax mode for files listed on the @pspp{}
 command line.  @xref{Main Options}, for more details.
 
 @node Types of Commands
 @section Types of Commands
 
-Commands in PSPP are divided roughly into six categories:
+Commands in @pspp{} are divided roughly into six categories:
 
 @table @strong
 @item Utility commands
 @cindex utility commands
-Set or display various global options that affect PSPP operations.
+Set or display various global options that affect @pspp{} operations.
 May appear anywhere in a syntax file.  @xref{Utilities, , Utility
 commands}.
 
@@ -263,17 +263,17 @@ active dataset (the data) to be read.
 @cindex commands, ordering
 @cindex order of commands
 
-PSPP does not place many restrictions on ordering of commands.  The
+@pspp{} does not place many restrictions on ordering of commands.  The
 main restriction is that variables must be defined before they are otherwise
 referenced.  This section describes the details of command ordering,
 but most users will have no need to refer to them.
 
-PSPP possesses five internal states, called initial, INPUT PROGRAM,
+@pspp{} possesses five internal states, called initial, INPUT PROGRAM,
 FILE TYPE, transformation, and procedure states.  (Please note the
 distinction between the @cmd{INPUT PROGRAM} and @cmd{FILE TYPE}
 @emph{commands} and the INPUT PROGRAM and FILE TYPE @emph{states}.)
 
-PSPP starts in the initial state.  Each successful completion
+@pspp{} starts in the initial state.  Each successful completion
 of a command may cause a state transition.  Each type of command has its
 own rules for state transitions:
 
@@ -361,7 +361,7 @@ Cause a transition to the procedure state.
 @cindex missing values
 @cindex values, missing
 
-PSPP includes special support for unknown numeric data values.
+@pspp{} includes special support for unknown numeric data values.
 Missing observations are assigned a special value, called the
 @dfn{system-missing value}.  This ``value'' actually indicates the
 absence of a value; it means that the actual value is unknown.  Procedures
@@ -390,14 +390,14 @@ handle missing values.
 @cindex variable
 @cindex dictionary
 
-PSPP works with data organized into @dfn{datasets}.  A dataset
+@pspp{} works with data organized into @dfn{datasets}.  A dataset
 consists of a set of @dfn{variables}, which taken together are said to
 form a @dfn{dictionary}, and one or more @dfn{cases}, each of which
 has one value for each variable.
 
-At any given time PSPP has exactly one distinguished dataset, called
-the @dfn{active dataset}.  Most PSPP commands work only with the
-active dataset.  In addition to the active dataset, PSPP also supports
+At any given time @pspp{} has exactly one distinguished dataset, called
+the @dfn{active dataset}.  Most @pspp{} commands work only with the
+active dataset.  In addition to the active dataset, @pspp{} also supports
 any number of additional open datasets.  The @cmd{DATASET} commands
 can choose a new active dataset from among those that are open, as
 well as create and destroy datasets (@pxref{DATASET}).
@@ -406,7 +406,7 @@ The sections below describe variables in more detail.
 
 @menu
 * Attributes::                  Attributes of variables.
-* System Variables::            Variables automatically defined by PSPP.
+* System Variables::            Variables automatically defined by @pspp{}.
 * Sets of Variables::           Lists of variable names.
 * Input and Output Formats::    Input and output formats.
 * Scratch Variables::           Variables deleted by procedures.
@@ -436,11 +436,11 @@ on a line: @code{FOO.} will be divided into two separate tokens,
 
 @cindex @samp{_}
 The final character in a variable name should not be @samp{_}, because
-some such identifiers are used for special purposes by PSPP
+some such identifiers are used for special purposes by @pspp{}
 procedures.
 
-As with all PSPP identifiers, variable names are not case-sensitive.
-PSPP capitalizes variable names on output the same way they were
+As with all @pspp{} identifiers, variable names are not case-sensitive.
+@pspp{} capitalizes variable names on output the same way they were
 capitalized at their point of definition in the input.
 
 @cindex variables, type
@@ -505,7 +505,7 @@ ATTRIBUTE}.
 @end table
 
 @node System Variables
-@subsection Variables Automatically Defined by PSPP
+@subsection Variables Automatically Defined by @pspp{}
 @cindex system variables
 @cindex variables, system
 
@@ -522,12 +522,12 @@ shuffled around.
 
 @cindex @code{$DATE}
 @item $DATE
-Date the PSPP process was started, in format A9, following the
+Date the @pspp{} process was started, in format A9, following the
 pattern @code{DD MMM YY}.
 
 @cindex @code{$JDATE}
 @item $JDATE
-Number of days between 15 Oct 1582 and the time the PSPP process
+Number of days between 15 Oct 1582 and the time the @pspp{} process
 was started.
 
 @cindex @code{$LENGTH}
@@ -586,7 +586,7 @@ input field as a number or a string.  It might specify that the field
 contains an ordinary decimal number, a time or date, a number in binary
 or hexadecimal notation, or one of several other notations.  Input
 formats are used by commands such as @cmd{DATA LIST} that read data or
-syntax files into the PSPP active dataset.
+syntax files into the @pspp{} active dataset.
 
 Every input format corresponds to a default @dfn{output format} that
 specifies the formatting used when the value is output later.  It is
@@ -605,7 +605,7 @@ created variables have identical print and write formats, and
 most of the time, the distinction between print and write formats is
 unimportant.
 
-Input and output formats are specified to PSPP with a @dfn{format
+Input and output formats are specified to @pspp{} with a @dfn{format
 specification} of the form @code{TYPEw} or @code{TYPEw.d}, where
 @code{TYPE} is one of the format types described later, @code{w} is a
 field width measured in columns, and @code{d} is an optional number of
@@ -613,7 +613,7 @@ decimal places.  If @code{d} is omitted, a value of 0 is assumed.  Some
 formats do not allow a nonzero @code{d} to be specified.
 
 The following sections describe the input and output formats supported
-by PSPP.
+by @pspp{}.
 
 @menu
 * Basic Numeric Formats::       
@@ -1055,7 +1055,7 @@ lowercase are accepted on input; output is in uppercase.
 Other than the hexadecimal representation, these formats are equivalent
 to PIB and RB formats, respectively.  However, bytes in PIBHEX format
 are always ordered with the most-significant byte first (big-endian
-order), regardless of the host machine's native byte order or PSPP
+order), regardless of the host machine's native byte order or @pspp{}
 settings.
 
 Field widths must be even and between 2 and 16.  RBHEX format allows no
@@ -1067,10 +1067,10 @@ with half the given width.
 
 @cindex time formats
 @cindex date formats
-In PSPP, a @dfn{time} is an interval.  The time formats translate
-between human-friendly descriptions of time intervals and PSPP's
+In @pspp{}, a @dfn{time} is an interval.  The time formats translate
+between human-friendly descriptions of time intervals and @pspp{}'s
 internal representation of time intervals, which is simply the number of
-seconds in the interval.  PSPP has two time formats:
+seconds in the interval.  @pspp{} has two time formats:
 
 @float
 @multitable {Time Format} {@code{dd-mmm-yyyy HH:MM:SS.ss}} {@code{01-OCT-1978 04:31:17.01}}
@@ -1080,11 +1080,11 @@ seconds in the interval.  PSPP has two time formats:
 @end multitable
 @end float
 
-A @dfn{date} is a moment in the past or the future.  Internally, PSPP
+A @dfn{date} is a moment in the past or the future.  Internally, @pspp{}
 represents a date as the number of seconds since the @dfn{epoch},
 midnight, Oct. 14, 1582.  The date formats translate between
-human-readable dates and PSPP's numeric representation of dates and
-times.  PSPP has several date formats:
+human-readable dates and @pspp{}'s numeric representation of dates and
+times.  @pspp{} has several date formats:
 
 @float
 @multitable {Date Format} {@code{dd-mmm-yyyy HH:MM:SS.ss}} {@code{01-OCT-1978 04:31:17.01}}
@@ -1205,7 +1205,7 @@ by the format's decimal places).
 @end table
 
 For the time and date formats, the default output format is the same as
-the input format, except that PSPP increases the field width, if
+the input format, except that @pspp{} increases the field width, if
 necessary, to the minimum allowed for output.
 
 Time or dates narrower than the field width are right-justified within
@@ -1285,9 +1285,9 @@ to copy its value into an ordinary variable, then use that ordinary
 variable in the analysis.
 
 @node Files
-@section Files Used by PSPP
+@section Files Used by @pspp{}
 
-PSPP makes use of many files each time it runs.  Some of these it
+@pspp{} makes use of many files each time it runs.  Some of these it
 reads, some it writes, some it creates.  Here is a table listing the
 most important of these files:
 
@@ -1299,8 +1299,8 @@ most important of these files:
 @item command file
 @itemx syntax file
 These names (synonyms) refer to the file that contains instructions
-that tell PSPP what to do.  The syntax file's name is specified on
-the PSPP command line.  Syntax files can also be read with
+that tell @pspp{} what to do.  The syntax file's name is specified on
+the @pspp{} command line.  Syntax files can also be read with
 @cmd{INCLUDE} (@pxref{INCLUDE}).
 
 @cindex file, data
@@ -1312,10 +1312,10 @@ be embedded in a syntax file with @cmd{BEGIN DATA} and @cmd{END DATA}.
 @cindex file, output
 @cindex output file
 @item listing file
-One or more output files are created by PSPP each time it is
+One or more output files are created by @pspp{} each time it is
 run.  The output files receive the tables and charts produced by
 statistical procedures.  The output files may be in any number of formats,
-depending on how PSPP is configured.
+depending on how @pspp{} is configured.
 
 @cindex system file
 @cindex file, system
@@ -1348,22 +1348,22 @@ read compressed data from a file using a program such as @samp{zcat}
 (e.g.@: @code{GET '|zcat mydata.sav.gz'}), and for many other
 purposes.
 
-PSPP also supports declaring named file handles with the @cmd{FILE
+@pspp{} also supports declaring named file handles with the @cmd{FILE
 HANDLE} command.  This command associates an identifier of your choice
 (the file handle's name) with a file.  Later, the file handle name can
-be substituted for the name of the file.  When PSPP syntax accesses a
+be substituted for the name of the file.  When @pspp{} syntax accesses a
 file multiple times, declaring a named file handle simplifies updating
 the syntax later to use a different file.  Use of @cmd{FILE HANDLE} is
 also required to read data files in binary formats.  @xref{FILE HANDLE},
 for more information.
 
-In some circumstances, PSPP must distinguish whether a file handle
+In some circumstances, @pspp{} must distinguish whether a file handle
 refers to a system file or a portable file.  When this is necessary to
 read a file, e.g.@: as an input file for @cmd{GET} or @cmd{MATCH FILES},
-PSPP uses the file's contents to decide.  In the context of writing a
-file, e.g.@: as an output file for @cmd{SAVE} or @cmd{AGGREGATE}, PSPP
+@pspp{} uses the file's contents to decide.  In the context of writing a
+file, e.g.@: as an output file for @cmd{SAVE} or @cmd{AGGREGATE}, @pspp{}
 decides based on the file's name: if it ends in @samp{.por} (with any
-capitalization), then PSPP writes a portable file; otherwise, PSPP
+capitalization), then @pspp{} writes a portable file; otherwise, @pspp{}
 writes a system file.
 
 INLINE is reserved as a file handle name.  It refers to the ``data
@@ -1382,7 +1382,7 @@ more information.
 @cindex command syntax, description of
 @cindex description of command syntax
 
-The syntax of some parts of the PSPP language is presented in this
+The syntax of some parts of the @pspp{} language is presented in this
 manual using the formalism known as @dfn{Backus-Naur Form}, or BNF. The
 following table describes BNF:
 
@@ -1390,7 +1390,7 @@ following table describes BNF:
 @cindex keywords
 @cindex terminals
 @item
-Words in all-uppercase are PSPP keyword tokens.  In BNF, these are
+Words in all-uppercase are @pspp{} keyword tokens.  In BNF, these are
 often called @dfn{terminals}.  There are some special terminals, which
 are written in lowercase for clarity:
 

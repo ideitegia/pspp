@@ -19,6 +19,12 @@
 \CMDNAME\
 @end macro
 
+@c Use this macro to refer to PSPP itself .  Not when giving a shell command line example.
+@macro pspp
+PSPP
+@end macro
+
+
 @ifset MISSING_CLICKSEQUENCE
 @alias clicksequence = asis
 @macro click {}
@@ -33,7 +39,7 @@
 @dircategory Math
 @direntry
 * PSPP: (pspp).             Statistical analysis package.
-* PSPPIRE: (pspp).          Graphical user interface to PSPP.
+* PSPPIRE: (pspp).          Graphical user interface to @pspp{}.
 @end direntry
 
 @copying

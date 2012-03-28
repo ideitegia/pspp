@@ -1,7 +1,7 @@
 @node Not Implemented
 @chapter Not Implemented
 
-This chapter lists parts of the PSPP language that are not yet
+This chapter lists parts of the @pspp{} language that are not yet
 implemented.
 
 @cindex unimplemented commands

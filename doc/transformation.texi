@@ -2,7 +2,7 @@
 @chapter Data transformations
 @cindex transformations
 
-The PSPP procedures examined in this chapter manipulate data and
+The @pspp{} procedures examined in this chapter manipulate data and
 prepare the active dataset for later analyses.  They do not produce output,
 as a rule.
 
@@ -42,7 +42,7 @@ handle (@pxref{File Handles}), or a dataset by its name
 (@pxref{Datasets}).
 The aggregated cases are written to this file.  If @samp{*} is
 specified, then the aggregated cases replace the active dataset's data.
-Use of OUTFILE to write a portable file is a PSPP extension.
+Use of OUTFILE to write a portable file is a @pspp{} extension.
 
 If OUTFILE=@samp{*} is given, then the subcommand MODE may also be
 specified.

@@ -3,18 +3,18 @@
 @include tut.texi
 
 @node Using PSPP
-@chapter Using PSPP
+@chapter Using @pspp{}
 
-PSPP is a tool for the statistical analysis of sampled data.
+@pspp{} is a tool for the statistical analysis of sampled data.
 You can use it to discover patterns in the data,
 to explain differences in one subset of data in terms of another subset
 and to find out
 whether certain beliefs about the data are justified.
 This chapter does not attempt to introduce the theory behind the 
 statistical analysis,
-but it shows how such analysis can be performed using PSPP.
+but it shows how such analysis can be performed using @pspp{}.
 
-For the purposes of this tutorial, it is assumed that you are using PSPP in its 
+For the purposes of this tutorial, it is assumed that you are using @pspp{} in its 
 interactive mode from the command line.
 However, the example commands can also be typed into a file and executed in 
 a post-hoc mode by typing @samp{pspp @var{filename}} at a shell prompt,
@@ -25,15 +25,15 @@ and use the @clicksequence{Run} menu when a syntax fragment is ready to be
 executed.
 Whichever method you choose, the syntax is identical.
 
-When using the interactive method, PSPP tells you that it's waiting for your
-data with a string like @prompt{PSPP>} or @prompt{data>}.
+When using the interactive method, @pspp{} tells you that it's waiting for your
+data with a string like @prompt{@pspp{}>} or @prompt{data>}.
 In the examples of this chapter, whenever you see text like this, it
-indicates the prompt displayed by PSPP, @emph{not} something that you 
+indicates the prompt displayed by @pspp{}, @emph{not} something that you 
 should type.
 
 Throughout this chapter reference is made to a number of sample data files.
 So that you can try the examples for yourself,
-you should have received these files along with your copy of PSPP.@c
+you should have received these files along with your copy of @pspp{}.@c
 @footnote{These files contain purely fictitious data.  They should not be used
 for research purposes.}
 @note{Normally these files are installed in the directory
@@ -53,8 +53,8 @@ the examples accordingly.}
 @section Preparation of Data Files
 
 
-Before analysis can commence,  the data must be loaded into PSPP and
-arranged such that both PSPP and humans can understand what
+Before analysis can commence,  the data must be loaded into @pspp{} and
+arranged such that both @pspp{} and humans can understand what
 the data represents.
 There are two aspects of data:
 
@@ -105,14 +105,14 @@ and reads data into them by manual input.
 @float Example, data-list
 @cartouche
 @example
-@prompt{PSPP>} data list list /forename (A12) height.
-@prompt{PSPP>} begin data.
+@prompt{@pspp{}>} data list list /forename (A12) height.
+@prompt{@pspp{}>} begin data.
 @prompt{data>} Ahmed 188
 @prompt{data>} Bertram 167
 @prompt{data>} Catherine 134.231
 @prompt{data>} David 109.1
 @prompt{data>} end data
-@prompt{PSPP>}
+@prompt{@pspp{}>}
 @end example
 @end cartouche
 @caption{Manual entry of data using the @cmd{DATA LIST} command.
@@ -127,11 +127,11 @@ There are several things to note about this example.
 @item
 The words @samp{data list list} are an example of the @cmd{DATA LIST}
 command. @xref{DATA LIST}.
-It tells PSPP to prepare for reading data.
+It tells @pspp{} to prepare for reading data.
 The word @samp{list} intentionally appears twice.
 The first occurrence is part of the @cmd{DATA LIST} call,
 whilst the second
-tells PSPP that the data is to be read as free format data with
+tells @pspp{} that the data is to be read as free format data with
 one record per line.
 
 @item
@@ -148,14 +148,14 @@ For more information on data formats, @pxref{Input and Output Formats}.
 
 
 @item
-Normally, PSPP displays the  prompt @prompt{PSPP>} whenever it's
+Normally, @pspp{} displays the  prompt @prompt{@pspp{}>} whenever it's
 expecting a command.
 However, when it's expecting data, the prompt changes to @prompt{data>}
 so that you know to enter data and not a command.
 
 @item
 At the end of every command there is a terminating @samp{.} which tells
-PSPP that the end of a command has been encountered.
+@pspp{} that the end of a command has been encountered.
 You should not enter @samp{.} when data is expected (@i{ie.} when 
 the @prompt{data>} prompt is current) since it is appropriate only for
 terminating commands.
@@ -168,7 +168,7 @@ terminating commands.
 Once the data has been entered,
 you could type
 @example
-@prompt{PSPP>} list /format=numbered.
+@prompt{@pspp{}>} list /format=numbered.
 @end example
 @noindent
 to list the data.
@@ -215,7 +215,7 @@ Zachariah      113.02
 You can can tell the @cmd{DATA LIST} command to read the data directly from
 this file instead of by manual entry, with a command like:
 @example
-@prompt{PSPP>} data list file='mydata.dat' list /forename (A12) height.
+@prompt{@pspp{}>} data list file='mydata.dat' list /forename (A12) height.
 @end example
 @noindent
 Notice however, that it is still necessary to specify the names of the
@@ -226,13 +226,13 @@ parameters.
 For full details refer to @pxref{DATA LIST}.
 
 @node Reading data from a pre-prepared PSPP file
-@subsection Reading data from a pre-prepared PSPP file
+@subsection Reading data from a pre-prepared @pspp{} file
 @cindex system files
 @vindex GET
 
-When working with other PSPP users, or users of other software which
-uses the PSPP data format, you may be given the data in
-a pre-prepared PSPP file.
+When working with other @pspp{} users, or users of other software which
+uses the @pspp{} data format, you may be given the data in
+a pre-prepared @pspp{} file.
 Such files contain not only the data, but the variable definitions,
 along with their formats, labels and other meta-data.
 Conventionally, these files (sometimes called ``system'' files) 
@@ -240,25 +240,25 @@ have the suffix @file{.sav}, but that is
 not mandatory.
 The following syntax loads a file called @file{my-file.sav}.
 @example
-@prompt{PSPP>} get file='my-file.sav'.
+@prompt{@pspp{}>} get file='my-file.sav'.
 @end example
 @noindent
 You will encounter several instances of this in future examples.
 
 
 @node Saving data to a PSPP file.
-@subsection Saving data to a PSPP file.
+@subsection Saving data to a @pspp{} file.
 @cindex saving
 @vindex SAVE
 
 If you want to save your data, along with the variable definitions so
-that you or other PSPP users can use it later, you can do this with
+that you or other @pspp{} users can use it later, you can do this with
 the @cmd{SAVE} command.
 
 The following syntax will save the existing data and variables to a
 file called @file{my-new-file.sav}.
 @example
-@prompt{PSPP>} save outfile='my-new-file.sav'.
+@prompt{@pspp{}>} save outfile='my-new-file.sav'.
 @end example
 @noindent
 If @file{my-new-file.sav} already exists, then it will be overwritten.
@@ -301,7 +301,7 @@ At the very least, it's good practice to check for errors.
 @cindex errors, in data
 
 Data from real sources is rarely error free.
-PSPP has a number of procedures which can be used to help 
+@pspp{} has a number of procedures which can be used to help 
 identify data which might be incorrect.
 
 The @cmd{DESCRIPTIVES} command (@pxref{DESCRIPTIVES}) is used to generate
@@ -317,8 +317,8 @@ data and identify the erroneous values.
 @float Example, descriptives
 @cartouche
 @example
-@prompt{PSPP>} get file='@value{example-dir}/physiology.sav'.
-@prompt{PSPP>} descriptives sex, weight, height.
+@prompt{@pspp{}>} get file='@value{example-dir}/physiology.sav'.
+@prompt{@pspp{}>} descriptives sex, weight, height.
 @end example
 
 Output:
@@ -363,7 +363,7 @@ represent data entry errors.
 @cartouche
 [@dots{} continue from @ref{descriptives}]
 @example
-@prompt{PSPP>} examine height, weight /statistics=extreme(3).    
+@prompt{@pspp{}>} examine height, weight /statistics=extreme(3).    
 @end example
 
 Output:
@@ -403,13 +403,13 @@ They are possibly erroneous.}
 If possible, suspect data should be checked and re-measured.
 However, this may not always be feasible, in which case the researcher may
 decide to disregard these values.
-PSPP has a feature whereby data can assume the special value `SYSMIS', and
+@pspp{} has a feature whereby data can assume the special value `SYSMIS', and
 will be disregarded in future analysis. @xref{Missing Observations}.
 You can set the two suspect values to the `SYSMIS' value using the @cmd{RECODE}
 command.
 @example
-PSPP> recode height (179 = SYSMIS).
-PSPP> recode weight (LOWEST THRU 0 = SYSMIS).
+@pspp{}> recode height (179 = SYSMIS).
+@pspp{}> recode weight (LOWEST THRU 0 = SYSMIS).
 @end example
 @noindent
 The first command says that for any observation which has a
@@ -434,7 +434,7 @@ Data entry errors are not the only reason for wanting to recode data.
 The sample file @file{hotel.sav} comprises data gathered from a 
 customer satisfaction survey of clients at a particular hotel.
 In @ref{reliability}, this file is loaded for analysis.
-The line @code{display dictionary.} tells PSPP to display the
+The line @code{display dictionary.} tells @pspp{} to display the
 variables and associated data.
 The output from this command has been omitted from the example for the sake of clarity, but
 you will notice that each of the variables
@@ -479,19 +479,19 @@ you will notice that they ask very similar questions.
 One would therefore expect the values of these variables (after recoding) 
 to closely follow one another, and we can test that with the @cmd{RELIABILITY} 
 command (@pxref{RELIABILITY}).
-@ref{reliability} shows a PSPP session where the user (after recoding
+@ref{reliability} shows a @pspp{} session where the user (after recoding
 negatively scaled variables) requests reliability statistics for
 @var{v1}, @var{v3} and @var{v5}.
 
 @float Example, reliability
 @cartouche
 @example
-@prompt{PSPP>} get file='@value{example-dir}/hotel.sav'.
-@prompt{PSPP>} display dictionary.
-@prompt{PSPP>} * recode negatively worded questions.
-@prompt{PSPP>} compute v3 = 6 - v3.
-@prompt{PSPP>} compute v5 = 6 - v5.
-@prompt{PSPP>} reliability v1, v3, v5.
+@prompt{@pspp{}>} get file='@value{example-dir}/hotel.sav'.
+@prompt{@pspp{}>} display dictionary.
+@prompt{@pspp{}>} * recode negatively worded questions.
+@prompt{@pspp{}>} compute v3 = 6 - v3.
+@prompt{@pspp{}>} compute v5 = 6 - v5.
+@prompt{@pspp{}>} reliability v1, v3, v5.
 @end example
 
 Output (dictionary information omitted for clarity):
@@ -569,11 +569,11 @@ an appropriate non-parametric test instead of a linear one.
 @float Example, normality
 @cartouche
 @example
-@prompt{PSPP>} get file='@value{example-dir}/repairs.sav'.
-@prompt{PSPP>} examine mtbf 
+@prompt{@pspp{}>} get file='@value{example-dir}/repairs.sav'.
+@prompt{@pspp{}>} examine mtbf 
                 /statistics=descriptives.
-@prompt{PSPP>} compute mtbf_ln = ln (mtbf).
-@prompt{PSPP>} examine mtbf_ln
+@prompt{@pspp{}>} compute mtbf_ln = ln (mtbf).
+@prompt{@pspp{}>} examine mtbf_ln
                 /statistics=descriptives.
 @end example
 
@@ -642,7 +642,7 @@ the same distribution as another,
 or
 whether the mean of a dataset significantly differs from a particular
 value.
-This section presents just some of the possible tests that PSPP offers.
+This section presents just some of the possible tests that @pspp{} offers.
 
 The researcher starts by making a @dfn{null hypothesis}.
 Often this is a hypothesis which he suspects to be false.
@@ -695,7 +695,7 @@ Levene test for equal variances.
 If the variances are equal, then a more powerful form of the T-test can be used.
 However if it is unsafe to assume equal variances,
 then an alternative calculation is necessary.
-PSPP performs both calculations.
+@pspp{} performs both calculations.
 
 For the @var{height} variable, the output shows the significance of the 
 Levene test to be 0.33 which means there is a 
@@ -718,9 +718,9 @@ suggest that the body temperature of male and female persons are different.
 @float Example, t-test
 @cartouche
 @example
-@prompt{PSPP>} get file='@value{example-dir}/physiology.sav'.
-@prompt{PSPP>} recode height (179 = SYSMIS).
-@prompt{PSPP>} t-test group=sex(0,1) /variables = height temperature.
+@prompt{@pspp{}>} get file='@value{example-dir}/physiology.sav'.
+@prompt{@pspp{}>} recode height (179 = SYSMIS).
+@prompt{@pspp{}>} t-test group=sex(0,1) /variables = height temperature.
 @end example
 Output:
 @example
@@ -784,9 +784,9 @@ identifies the potential linear relationship. @xref{REGRESSION}.
 @float Example, regression 
 @cartouche
 @example
-@prompt{PSPP>} get file='@value{example-dir}/repairs.sav'.
-@prompt{PSPP>} regression /variables = mtbf duty_cycle /dependent = mttr.
-@prompt{PSPP>} regression /variables = mtbf /dependent = mttr.
+@prompt{@pspp{}>} get file='@value{example-dir}/repairs.sav'.
+@prompt{@pspp{}>} regression /variables = mtbf duty_cycle /dependent = mttr.
+@prompt{@pspp{}>} regression /variables = mtbf /dependent = mttr.
 @end example
 Output:
 @example
@@ -851,7 +851,7 @@ suggesting that at the 0.06 level, the formula
 predictor of the time to repair.
 
 
-@c  LocalWords:  PSPP dir itemize noindent var cindex dfn cartouche samp xref
+@c  LocalWords:  @pspp{} dir itemize noindent var cindex dfn cartouche samp xref
 @c  LocalWords:  pxref ie sav Std Dev kilograms SYSMIS sansserif pre pspp emph
 @c  LocalWords:  Likert Cronbach's Cronbach mtbf npplot ln myfile cmd NPAR Sig
 @c  LocalWords:  vindex Levene Levene's df Diff clicksequence mydata dat ascii

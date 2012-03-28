@@ -6,19 +6,19 @@
 @cindex cases
 @cindex observations
 
-Data are the focus of the PSPP language.  
+Data are the focus of the @pspp{} language.  
 Each datum  belongs to a @dfn{case} (also called an @dfn{observation}).
 Each case represents an individual or ``experimental unit''.
 For example, in the results of a survey, the names of the respondents,
 their sex, age, etc.@: and their responses are all data and the data
 pertaining to single respondent is a case.
 This chapter examines
-the PSPP commands for defining variables and reading and writing data.
+the @pspp{} commands for defining variables and reading and writing data.
 There are alternative commands to  read data from predefined sources
 such as system files or databases (@xref{GET, GET DATA}.)
 
 @quotation Note
-These commands tell PSPP how to read data, but the data will not
+These commands tell @pspp{} how to read data, but the data will not
 actually be read until a procedure is executed.
 @end quotation
 
@@ -56,7 +56,7 @@ END DATA.
 @end display
 
 @cmd{BEGIN DATA} and @cmd{END DATA} can be used to embed raw ASCII
-data in a PSPP syntax file.  @cmd{DATA LIST} or another input
+data in a @pspp{} syntax file.  @cmd{DATA LIST} or another input
 procedure must be used before @cmd{BEGIN DATA} (@pxref{DATA LIST}).
 @cmd{BEGIN DATA} and @cmd{END DATA} must be used together.  @cmd{END
 DATA} must appear by itself on a single line, with no leading
@@ -83,7 +83,7 @@ The file named INLINE, which represents data entered between @cmd{BEGIN
 DATA} and @cmd{END DATA}, cannot be closed.  Attempts to close it with
 @cmd{CLOSE FILE HANDLE} have no effect.
 
-@cmd{CLOSE FILE HANDLE} is a PSPP extension.
+@cmd{CLOSE FILE HANDLE} is a @pspp{} extension.
 
 @node DATAFILE ATTRIBUTE
 @section DATAFILE ATTRIBUTE
@@ -99,15 +99,15 @@ DATAFILE ATTRIBUTE
 
 @cmd{DATAFILE ATTRIBUTE} adds, modifies, or removes user-defined
 attributes associated with the active dataset.  Custom data file
-attributes are not interpreted by PSPP, but they are saved as part of
+attributes are not interpreted by @pspp{}, but they are saved as part of
 system files and may be used by other software that reads them.
 
 Use the ATTRIBUTE subcommand to add or modify a custom data file
 attribute.  Specify the name of the attribute as an identifier
 (@pxref{Tokens}), followed by the desired value, in parentheses, as a
 quoted string.  Attribute names that begin with @code{$} are reserved
-for PSPP's internal use, and attribute names that begin with @code{@@}
-or @code{$@@} are not displayed by most PSPP commands that display
+for @pspp{}'s internal use, and attribute names that begin with @code{@@}
+or @code{$@@} are not displayed by most @pspp{} commands that display
 other attributes.  Other attribute names are not treated specially.
 
 Attributes may also be organized into arrays.  To assign to an array
@@ -146,8 +146,8 @@ DATASET DISPLAY.
 @end display
 
 The @cmd{DATASET} commands simplify use of multiple datasets within a
-PSPP session.  They allow datasets to be created and destroyed.  At
-any given time, most PSPP commands work with a single dataset, called
+@pspp{} session.  They allow datasets to be created and destroyed.  At
+any given time, most @pspp{} commands work with a single dataset, called
 the active dataset.
 
 @vindex DATASET NAME
@@ -188,7 +188,7 @@ all datasets except for the active dataset, which becomes unnamed.
 The DATASET DISPLAY command lists all the currently defined datasets.
 
 Many DATASET commands accept an optional WINDOW subcommand.  In the
-PSPPIRE GUI, the value given for this subcommand influences how the
+@pspp{}IRE GUI, the value given for this subcommand influences how the
 dataset's window is displayed.  Outside the GUI, the WINDOW subcommand
 has no effect.  The valid values are:
 
@@ -222,7 +222,7 @@ Used to read text or binary data, @cmd{DATA LIST} is the most
 fundamental data-reading command.  Even the more sophisticated input
 methods use @cmd{DATA LIST} commands as a building block.
 Understanding @cmd{DATA LIST} is important to understanding how to use
-PSPP to read your data files.
+@pspp{} to read your data files.
 
 There are two major variants of @cmd{DATA LIST}, which are fixed
 format and free format.  In addition, free format has a minor variant,
@@ -415,7 +415,7 @@ Case   NAME         INFO1   INFO2   INFO3
    3   Bill Yates      9      18       6
 @end example
 
-The @code{TABLE} keyword causes PSPP to print out a table
+The @code{TABLE} keyword causes @pspp{} to print out a table
 describing the four variables defined.
 
 @item
@@ -613,7 +613,7 @@ read as one record.
 
 In CHARACTER mode only, tabs are expanded to spaces by input programs,
 except by @cmd{DATA LIST FREE} with explicitly specified delimiters.
-Each tab is 4 characters wide by default, but TABWIDTH (a PSPP
+Each tab is 4 characters wide by default, but TABWIDTH (a @pspp{}
 extension) may be used to specify an alternate width.  Use a TABWIDTH
 of 0 to suppress tab expansion.
 
@@ -631,7 +631,7 @@ variable-length binary records.  LRECL may be specified, but its value
 is ignored.  The data for each record is both preceded and followed by
 a 32-bit signed integer in little-endian byte order that specifies the
 length of the record.  (This redundancy permits records in these
-files to be efficiently read in reverse order, although PSPP always
+files to be efficiently read in reverse order, although @pspp{} always
 reads them in forward order.)  The length does not include either
 integer.
 
@@ -642,7 +642,7 @@ the modern successors of those operating systems.  For more
 information, see @cite{OS/400 Tape and Diskette Device Programming},
 available on IBM's website.
 
-Alphanumeric data in mode 360 files are encoded in EBCDIC.  PSPP
+Alphanumeric data in mode 360 files are encoded in EBCDIC.  @pspp{}
 translates EBCDIC to or from the host's native format as necessary on
 input or output, using an ASCII/EBCDIC translation that is one-to-one,
 so that a ``round trip'' from ASCII to EBCDIC back to ASCII, or vice
@@ -701,7 +701,7 @@ buffer is also flushed at end of file regardless of the final record's
 SCC.
 
 The maximum length of a logical record in VARIABLE mode is limited
-only by memory available to PSPP.  Segments are limited to 65,527
+only by memory available to @pspp{}.  Segments are limited to 65,527
 bytes, as in VARIABLE mode.
 
 This format is similar to what IBM documentation call @code{*VS}
@@ -732,7 +732,7 @@ END INPUT PROGRAM.
 
 @cmd{INPUT PROGRAM}@dots{}@cmd{END INPUT PROGRAM} specifies a
 complex input program.  By placing data input commands within @cmd{INPUT
-PROGRAM}, PSPP programs can take advantage of more complex file
+PROGRAM}, @pspp{} programs can take advantage of more complex file
 structures than available with only @cmd{DATA LIST}.
 
 The first sort of extended input program is to simply put multiple @cmd{DATA
@@ -959,7 +959,7 @@ are specified, PRINT outputs a single blank line.
 The OUTFILE subcommand specifies the file to receive the output.  The
 file may be a file name as a string or a file handle (@pxref{File
 Handles}).  If OUTFILE is not present then output will be sent to
-PSPP's output listing file.  When OUTFILE is present, a space is
+@pspp{}'s output listing file.  When OUTFILE is present, a space is
 inserted at beginning of each output line, even lines that otherwise
 would be blank.
 

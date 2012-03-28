@@ -1,7 +1,7 @@
 @node Statistics
 @chapter Statistics
 
-This chapter documents the statistical procedures that PSPP supports so
+This chapter documents the statistical procedures that @pspp{} supports so
 far.
 
 @menu
@@ -241,7 +241,7 @@ factors for the analysis.
 Variables listed before the first BY keyword (if any) are the 
 dependent variables.
 The dependent variables may optionally be followed by a list of
-factors which tell PSPP how to break down the analysis for each
+factors which tell @pspp{} how to break down the analysis for each
 dependent variable. 
 
 Following the dependent variables, factors may be specified.
@@ -287,7 +287,7 @@ If
 each of which contain boxplots for all the cells.
 If /COMPARE=VARIABLES is specified, then one plot per cell is produced,
 each containing one boxplot per dependent variable.
-If the /COMPARE subcommand is omitted, then PSPP behaves as if
+If the /COMPARE subcommand is omitted, then @pspp{} behaves as if
 /COMPARE=GROUPS were given.
  
 The ID subcommand is relevant only if /PLOT=BOXPLOT or 
@@ -457,7 +457,7 @@ times as needed.  This is the only required subcommand in @dfn{general
 mode}.  
 
 Occasionally, one may want to invoke a special mode called @dfn{integer
-mode}.  Normally, in general mode, PSPP automatically determines
+mode}.  Normally, in general mode, @pspp{} automatically determines
 what values occur in the data.  In integer mode, the user specifies the
 range of values that the data assumes.  To invoke this mode, specify the
 VARIABLES subcommand, giving a range of data values in parentheses for
@@ -943,7 +943,7 @@ significance of observing the observed proportion or less is reported.
 That is to say, the test is always performed in the observed
 direction. 
 
-PSPP uses a very precise approximation to the gamma function to
+@pspp{} uses a very precise approximation to the gamma function to
 compute the binomial significance.  Thus, exact results are reported
 even for very large sample sizes.
 
@@ -1274,7 +1274,7 @@ It operates in one of three modes:
 Each of these modes are described in more detail below.
 There are two optional subcommands which are common to all modes.
 
-The @cmd{/CRITERIA} subcommand tells PSPP the confidence interval used
+The @cmd{/CRITERIA} subcommand tells @pspp{} the confidence interval used
 in the tests.  The default value is 0.95.
 
 
@@ -1308,7 +1308,7 @@ mean.
 The value given to the @cmd{TESTVAL} subcommand is the value against
 which you wish to test.
 In this mode, you must also use the @cmd{/VARIABLES} subcommand to
-tell PSPP which variables you wish to test.
+tell @pspp{} which variables you wish to test.
 
 @node Independent Samples Mode
 @comment  node-name,  next,  previous,  up
@@ -1319,7 +1319,7 @@ The @cmd{GROUPS} subcommand invokes Independent Samples mode or
 This mode is used to test whether two groups of values have the
 same population mean.
 In this mode, you must also use the @cmd{/VARIABLES} subcommand to
-tell PSPP the dependent variables you wish to test.
+tell @pspp{} the dependent variables you wish to test.
 
 The variable given in the @cmd{GROUPS} subcommand is the independent
 variable which determines to which group the samples belong.
@@ -1386,7 +1386,7 @@ subcommand.
 The list of variables must be followed by the @code{BY} keyword and
 the name of the independent (or factor) variable.
 
-You can use the @code{STATISTICS} subcommand to tell PSPP to display
+You can use the @code{STATISTICS} subcommand to tell @pspp{} to display
 ancilliary information.  The options accepted are:
 @itemize
 @item DESCRIPTIVES
@@ -1403,7 +1403,7 @@ The subcommand must be followed by a list of numerals which are the
 coefficients of the groups to be tested.
 The number of coefficients must correspond to the number of distinct
 groups (or values of the independent variable).
-If the total sum of the coefficients are not zero, then PSPP will
+If the total sum of the coefficients are not zero, then @pspp{} will
 display a warning, but will proceed with the analysis.
 The @code{CONTRAST} subcommand may be given up to 10 times in order
 to specify different contrast tests.

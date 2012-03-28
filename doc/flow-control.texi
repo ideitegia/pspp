@@ -5,7 +5,7 @@
 @cindex flow of control
 @cindex control flow
 
-This chapter documents PSPP commands used for conditional execution,
+This chapter documents @pspp{} commands used for conditional execution,
 looping, and flow of control.
 
 @menu

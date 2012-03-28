@@ -1,12 +1,12 @@
 @node Invoking PSPP
 @chapter Invoking @command{pspp}
 @cindex invocation
-@cindex PSPP, invoking
+@cindex @pspp{}, invoking
 
-PSPP has two separate user interfaces.  This chapter describes
-@command{pspp}, PSPP's command-line driven text-based user interface.
+@pspp{} has two separate user interfaces.  This chapter describes
+@command{pspp}, @pspp{}'s command-line driven text-based user interface.
 The following chapter briefly describes PSPPIRE, the graphical user
-interface to PSPP.
+interface to @pspp{}.
 
 The sections below describe the @command{pspp} program's command-line
 interface.
@@ -73,20 +73,20 @@ corresponding short options.
 @table @code
 @item @var{syntax-file}
 Read and execute the named syntax file.  If no syntax files are
-specified, PSPP prompts for commands.  If any syntax files are
-specified, PSPP by default exits after it runs them, but you may make
+specified, @pspp{} prompts for commands.  If any syntax files are
+specified, @pspp{} by default exits after it runs them, but you may make
 it prompt for commands by specifying @samp{-} as an additional syntax
 file.
 
 @item -o @var{output-file}
-Write output to @var{output-file}.  PSPP has several different output
+Write output to @var{output-file}.  @pspp{} has several different output
 drivers that support output in various formats (use @option{--help} to
 list the available formats).  Specify this option more than once to
 produce multiple output files, presumably in different formats.
 
 Use @samp{-} as @var{output-file} to write output to standard output.
 
-If no @option{-o} option is used, then PSPP writes output to standard
+If no @option{-o} option is used, then @pspp{} writes output to standard
 output in plain text format.
 
 @item -O @var{option}=@var{value}
@@ -95,14 +95,14 @@ Sets an option for the output file configured by a preceding
 A few options that apply generically are listed below.
 
 @item -O format=@var{format}
-PSPP uses the extension of the file name given on @option{-o} to
+@pspp{} uses the extension of the file name given on @option{-o} to
 select an output format.  Use this option to override this choice by
 specifying an alternate format, e.g.@: @option{-o pspp.out -O html} to
 write HTML to a file named @file{pspp.out}.  Use @option{--help} to
 list the available formats.
 
 @item -O device=@{terminal|listing@}
-Sets whether PSPP considers the output device configured by the
+Sets whether @pspp{} considers the output device configured by the
 preceding @option{-o} to be a terminal or a listing device.  This
 affects what output will be sent to the device, as configured by the
 SET command's output routing subcommands (@pxref{SET}).  By default,
@@ -116,7 +116,7 @@ no effect.
 
 @item -e @var{error-file}
 @itemx --error-file=@var{error-file}
-Configures a file to receive PSPP error, warning, and note messages in
+Configures a file to receive @pspp{} error, warning, and note messages in
 plain text format.  Use @samp{-} as @var{error-file} to write messages
 to standard output.  The default error file is standard output in the
 absence of these options, but this is suppressed if an output device
@@ -134,7 +134,7 @@ Appends @var{dir} to the set of directories searched by INCLUDE
 Clears all directories from the include path, including directories
 inserted in the include path by default.  The default include path is
 @file{.} (the current directory), followed by @file{.pspp} in the
-user's home directory, followed by PSPP's system configuration
+user's home directory, followed by @pspp{}'s system configuration
 directory (usually @file{/etc/pspp} or @file{/usr/local/etc/pspp}).
 
 @item -b
@@ -147,13 +147,13 @@ interactive mode, respectively, rather than the default ``auto'' mode.
 
 @item -r
 @itemx --no-statrc
-Disables running @file{rc} at PSPP startup time.
+Disables running @file{rc} at @pspp{} startup time.
 
 @item -a @{enhanced|compatible@}
 @itemx --algorithm=@{enhanced|compatible@}
-With @code{enhanced}, the default, PSPP uses the best implemented
+With @code{enhanced}, the default, @pspp{} uses the best implemented
 algorithms for statistical procedures.  With @code{compatible},
-however, PSPP will in some cases use inferior algorithms to produce
+however, @pspp{} will in some cases use inferior algorithms to produce
 the same results as the proprietary program SPSS.
 
 Some commands have subcommands that override this setting on a per
@@ -161,24 +161,24 @@ command basis.
 
 @item -x @{enhanced|compatible@}
 @itemx --syntax=@{enhanced|compatible@}
-With @code{enhanced}, the default, PSPP accepts its own extensions
+With @code{enhanced}, the default, @pspp{} accepts its own extensions
 beyond those compatible with the proprietary program SPSS.  With
-@code{compatible}, PSPP rejects syntax that uses these extensions.
+@code{compatible}, @pspp{} rejects syntax that uses these extensions.
 
 @item --syntax-encoding=@var{encoding}
 Specifies @var{encoding} as the encoding for syntax files named on the
 command line.  The @var{encoding} also becomes the default encoding
-for other syntax files read during the PSPP session by the
+for other syntax files read during the @pspp{} session by the
 @cmd{INCLUDE} and @cmd{INSERT} commands.  @xref{INSERT}, for the
 accepted forms of @var{encoding}.
 
 @item --help
-Prints a message describing PSPP command-line syntax and the available
+Prints a message describing @pspp{} command-line syntax and the available
 device formats, then exits.
 
 @item -V
 @itemx --version
-Prints a brief message listing PSPP's version, warranties you don't
+Prints a brief message listing @pspp{}'s version, warranties you don't
 have, copying conditions and copyright, and e-mail address for bug
 reports, then exits.
 
@@ -188,7 +188,7 @@ Disables certain unsafe operations.  This includes the ERASE and
 HOST commands, as well as use of pipes as input and output files.
 
 @item --testing-mode
-Invoke heuristics to assist with testing PSPP.  For use by @code{make
+Invoke heuristics to assist with testing @pspp{}.  For use by @code{make
 check} and similar scripts.
 @end table
 
@@ -199,12 +199,12 @@ check} and similar scripts.
 @cindex SVG
 
 To produce output in PDF, PostScript, and SVG formats, specify
-@option{-o @var{file}} on the PSPP command line, optionally followed
+@option{-o @var{file}} on the @pspp{} command line, optionally followed
 by any of the options shown in the table below to customize the output
 format.
 
 PDF, PostScript, and SVG output is only available if your installation
-of PSPP was compiled with the Cairo library.
+of @pspp{} was compiled with the Cairo library.
 
 @table @code
 @item -O format=@{pdf|ps|svg@}
@@ -277,9 +277,9 @@ millimeters.
 @node Plain Text Output Options
 @section Plain Text Output Options
 
-PSPP can produce plain text output, drawing boxes using ASCII or
+@pspp{} can produce plain text output, drawing boxes using ASCII or
 Unicode line drawing characters.  To produce plain text output,
-specify @option{-o @var{file}} on the PSPP command line, optionally
+specify @option{-o @var{file}} on the @pspp{} command line, optionally
 followed by options from the table below to customize the output
 format.
 
@@ -298,16 +298,16 @@ default is the file name specified on @option{-o} with the extension
 stripped off and replaced by @file{-#.png}.
 
 Specify @code{none} to disable chart output.  Charts are always
-disabled if your installation of PSPP was compiled without the
+disabled if your installation of @pspp{} was compiled without the
 Cairo library.
 
 @item -O paginate=@var{boolean}
-If set, PSPP writes an ASCII formfeed the end of every page.  Default:
+If set, @pspp{} writes an ASCII formfeed the end of every page.  Default:
 @code{off}.
 
 @item -O headers=@var{boolean}
-If enabled, PSPP prints two lines of header information giving title
-and subtitle, page number, date and time, and PSPP version are printed
+If enabled, @pspp{} prints two lines of header information giving title
+and subtitle, page number, date and time, and @pspp{} version are printed
 at the top of every page.  These two lines are in addition to any top
 margin requested.  Default: @code{off}.
 
@@ -324,11 +324,11 @@ number to track the width of the terminal as it changes.  Default:
 @code{79}.
 
 @item -O top-margin=@var{top-margin-lines}
-Length of the top margin, in lines.  PSPP subtracts this value from
+Length of the top margin, in lines.  @pspp{} subtracts this value from
 the page length.  Default: @code{0}.
 
 @item -O bottom-margin=@var{bottom-margin-lines}
-Length of the bottom margin, in lines.  PSPP subtracts this value from
+Length of the bottom margin, in lines.  @pspp{} subtracts this value from
 the page length.  Default: @code{0}.
 
 @item -O box=@{ascii|unicode@}
@@ -347,7 +347,7 @@ you might pass the output.  Default: @code{none}.
 @section HTML Output Options
 @cindex HTML
 To produce output in HTML format, specify @option{-o @var{file}} on
-the PSPP command line, optionally followed by any of the options shown
+the @pspp{} command line, optionally followed by any of the options shown
 in the table below to customize the output format.
 
 @table @code
@@ -374,10 +374,10 @@ The default value is true.
 @section OpenDocument Output Options
 
 To produce output as an OpenDocument text (ODT) document, specify
-@option{-o @var{file}} on the PSPP command line.  If @var{file} does
+@option{-o @var{file}} on the @pspp{} command line.  If @var{file} does
 not end in @file{.odt}, you must also specify @option{-O format=odt}.
 
-ODT support is only available if your installation of PSPP was
+ODT support is only available if your installation of @pspp{} was
 compiled with the libxml2 library.
 
 The OpenDocument output format does not have any configurable options.
@@ -386,7 +386,7 @@ The OpenDocument output format does not have any configurable options.
 @section Comma-Separated Value Output Options
 
 To produce output in comma-separated value (CSV) format, specify
-@option{-o @var{file}} on the PSPP command line, optionally followed
+@option{-o @var{file}} on the @pspp{} command line, optionally followed
 by any of the options shown in the table below to customize the output
 format.
 
@@ -440,9 +440,9 @@ Successive output items are separated by a blank line.
 @chapter Invoking @command{psppire}
 @section The graphic user interface
 @cindex Graphic user interface
-@cindex PSPPIRE
+@cindex @pspp{}IRE
 
-The PSPPIRE graphic user interface for PSPP can perform all
+The @pspp{}IRE graphic user interface for @pspp{} can perform all
 functionality of the command line interface.  In addition it gives an
 instantaneous view of the data, variables and statistical output.
 
@@ -451,6 +451,6 @@ command prompt.
 Alternatively many systems have a system of interactive menus or buttons 
 from which @command{psppire} can be started by a series of mouse clicks.
 
-Once the principles of the PSPP system are understood, 
+Once the principles of the @pspp{} system are understood, 
 the graphic user interface is designed to be largely intuitive, and
 for this reason is covered only very briefly by this manual.

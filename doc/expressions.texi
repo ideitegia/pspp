@@ -3,7 +3,7 @@
 @cindex expressions, mathematical
 @cindex mathematical expressions
 
-Expressions share a common syntax each place they appear in PSPP
+Expressions share a common syntax each place they appear in @pspp{}
 commands.  Expressions are made up of @dfn{operands}, which can be
 numbers, strings, or variable names, separated by @dfn{operators}.
 There are five types of operators: grouping, arithmetic, logical,
@@ -30,7 +30,7 @@ full-fledged expressions in themselves.
 @cindex Boolean
 @cindex values, Boolean
 
-Some PSPP operators and expressions work with Boolean values, which
+Some @pspp{} operators and expressions work with Boolean values, which
 represent true/false conditions.  Booleans have only three possible
 values: 0 (false), 1 (true), and system-missing (unknown).
 System-missing is neither true nor false and indicates that the true
@@ -238,7 +238,7 @@ True if @var{a} is not equal to @var{b}.
 @cindex @code{(}
 @cindex @code{)}
 @cindex names, of functions
-PSPP functions provide mathematical abilities above and beyond
+@pspp{} functions provide mathematical abilities above and beyond
 those possible using simple operators.  Functions have a common
 syntax: each is composed of a function name followed by a left
 parenthesis, one or more arguments, and a right parenthesis.
@@ -349,7 +349,7 @@ results.
 @deftypefnx {Function} {} ACOS (@var{number})
 Takes the arccosine, in radians, of @var{number}.  Results in
 system-missing if @var{number} is not between -1 and 1 inclusive.
-This function is a PSPP extension.
+This function is a @pspp{} extension.
 @end deftypefn
 
 @cindex arcsine
@@ -698,7 +698,7 @@ Returns @var{string}, changing lowercase letters to uppercase letters.
 @cindex dates
 
 @cindex dates, valid
-For compatibility, PSPP considers dates before 15 Oct 1582 invalid.
+For compatibility, @pspp{} considers dates before 15 Oct 1582 invalid.
 Most time and date functions will not accept earlier dates.
 
 @menu
@@ -717,8 +717,8 @@ Most time and date functions will not accept earlier dates.
 
 @cindex time, concepts
 @cindex time, intervals
-Times and dates are handled by PSPP as single numbers.  A
-@dfn{time} is an interval.  PSPP measures times in seconds.
+Times and dates are handled by @pspp{} as single numbers.  A
+@dfn{time} is an interval.  @pspp{} measures times in seconds.
 Thus, the following intervals correspond with the numeric values given:
                 
 @example
@@ -731,9 +731,9 @@ Thus, the following intervals correspond with the numeric values given:
 @cindex dates, concepts
 @cindex time, instants of
 A @dfn{date}, on the other hand, is a particular instant in the past
-or the future.  PSPP represents a date as a number of seconds since
+or the future.  @pspp{} represents a date as a number of seconds since
 midnight preceding 14 Oct 1582.  Because midnight preceding the dates
-given below correspond with the numeric PSPP dates given:
+given below correspond with the numeric @pspp{} dates given:
 
 @example
               15 Oct 1582                86,400
@@ -773,7 +773,7 @@ vice versa.
 @cindex examination, of times
 @cindex time, lengths of
 
-These functions take numeric arguments in PSPP time format and
+These functions take numeric arguments in @pspp{} time format and
 give numeric results.
 
 @cindex days
@@ -886,18 +886,18 @@ Results in a date value corresponding to the day
 @cindex date examination
 
 @cindex arguments, of date extraction functions
-These functions take numeric arguments in PSPP date or time
+These functions take numeric arguments in @pspp{} date or time
 format and give numeric results.  These names are used for arguments:
 
 @table @var
 @item date
-A numeric value in PSPP date format.
+A numeric value in @pspp{} date format.
 
 @item time
-A numeric value in PSPP time format.
+A numeric value in @pspp{} time format.
 
 @item time-or-date
-A numeric value in PSPP time or date format.
+A numeric value in @pspp{} time or date format.
 @end table
 
 @cindex days
@@ -1025,7 +1025,7 @@ accuracy of some procedures may be affected.  If necessary, convert
 times or dates in seconds to some other unit, like days or years,
 before performing analysis.
 
-PSPP supplies a few functions for date arithmetic:
+@pspp{} supplies a few functions for date arithmetic:
 
 @deftypefn {Function} {} DATEDIFF (@var{date2}, @var{date1}, @var{unit})
 Returns the span of time from @var{date1} to @var{date2} in terms of
@@ -1098,7 +1098,7 @@ use of a large value will increase memory consumption.
 @cindex Julian date
 @deftypefn {Function} {} YRMODA (@var{year}, @var{month}, @var{day})
 @var{year} is a year, either between 0 and 99 or at least 1582.
-Unlike other PSPP date functions, years between 0 and 99 always
+Unlike other @pspp{} date functions, years between 0 and 99 always
 correspond to 1900 through 1999.  @var{month} is a month between 1 and
 13.  @var{day} is a day between 0 and 31.  A @var{day} of 0 refers to
 the last day of the previous month, and a @var{month} of 13 refers to
@@ -1121,7 +1121,7 @@ associated label, then this function returns the empty string.
 @node Statistical Distribution Functions
 @subsection Statistical Distribution Functions
 
-PSPP can calculate several functions of standard statistical
+@pspp{} can calculate several functions of standard statistical
 distributions.  These functions are named systematically based on the
 function and the distribution.  The table below describes the
 statistical distribution functions in general:
@@ -1236,7 +1236,7 @@ Exponential distribution with scale parameter @var{a}.  The inverse of
 Exponential power distribution with positive scale parameter @var{a}
 and nonnegative power parameter @var{b}.  Constraints: @var{a} > 0,
 @var{b} >= 0, @var{x} >= 0, 0 <= @var{p} <= 1.  This distribution is a
-PSPP extension.
+@pspp{} extension.
 @end deftypefn
 
 @deftypefn {Function} {} PDF.F (@var{x}, @var{df1}, @var{df2})
@@ -1341,7 +1341,7 @@ Equivalent to RV.NORMAL(0, @var{sigma}).
 @deftypefn {Function} {} PDF.NTAIL (@var{x}, @var{a}, @var{sigma})
 @deftypefnx {Function} {} RV.NTAIL (@var{a}, @var{sigma})
 Normal tail distribution with lower limit @var{a} and standard
-deviation @var{sigma}.  This distribution is a PSPP extension.
+deviation @var{sigma}.  This distribution is a @pspp{} extension.
 Constraints: @var{a} > 0, @var{x} > @var{a}, 0 < @var{p} < 1.
 @end deftypefn
 
@@ -1359,14 +1359,14 @@ parameter @var{b}.  Constraints: @var{a} > 0, @var{b} > 0, @var{x} >=
 @deftypefnx {Function} {} IDF.RAYLEIGH (@var{p}, @var{sigma})
 @deftypefnx {Function} {} RV.RAYLEIGH (@var{sigma})
 Rayleigh distribution with scale parameter @var{sigma}.  This
-distribution is a PSPP extension.  Constraints: @var{sigma} > 0,
+distribution is a @pspp{} extension.  Constraints: @var{sigma} > 0,
 @var{x} > 0.
 @end deftypefn
 
 @deftypefn {Function} {} PDF.RTAIL (@var{x}, @var{a}, @var{sigma})
 @deftypefnx {Function} {} RV.RTAIL (@var{a}, @var{sigma})
 Rayleigh tail distribution with lower limit @var{a} and scale
-parameter @var{sigma}.  This distribution is a PSPP extension.
+parameter @var{sigma}.  This distribution is a @pspp{} extension.
 Constraints: @var{a} > 0, @var{sigma} > 0, @var{x} > @var{a}.
 @end deftypefn
 
@@ -1399,14 +1399,14 @@ distribution takes an additional parameter @var{lambda}.  Constraints:
 @deftypefnx {Function} {} CDF.T1G (@var{x}, @var{a}, @var{b})
 @deftypefnx {Function} {} IDF.T1G (@var{p}, @var{a}, @var{b})
 Type-1 Gumbel distribution with parameters @var{a} and @var{b}.  This
-distribution is a PSPP extension.  Constraints: 0 < @var{p} < 1.
+distribution is a @pspp{} extension.  Constraints: 0 < @var{p} < 1.
 @end deftypefn
 
 @deftypefn {Function} {} PDF.T2G (@var{x}, @var{a}, @var{b})
 @deftypefnx {Function} {} CDF.T2G (@var{x}, @var{a}, @var{b})
 @deftypefnx {Function} {} IDF.T2G (@var{p}, @var{a}, @var{b})
 Type-2 Gumbel distribution with parameters @var{a} and @var{b}.  This
-distribution is a PSPP extension.  Constraints: @var{x} > 0, 0 <
+distribution is a @pspp{} extension.  Constraints: @var{x} > 0, 0 <
 @var{p} < 1.
 @end deftypefn
 

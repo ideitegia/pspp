@@ -78,9 +78,9 @@ Analysis of variance table for the model.
 The covariance matrix for the estimated model coefficients.
 @end table
 
-The SAVE subcommand causes PSPP to save the residuals or predicted
+The SAVE subcommand causes @pspp{} to save the residuals or predicted
 values from the fitted
-model to the active dataset. PSPP will store the residuals in a variable
+model to the active dataset. @pspp{} will store the residuals in a variable
 called RES1 if no such variable exists, RES2 if RES1 already exists,
 RES3 if RES1 and RES2 already exist, etc. It will choose the name of
 the variable for the predicted values similarly, but with PRED as a
@@ -88,7 +88,7 @@ prefix.
 
 @node Examples
 @subsection Examples
-The following PSPP syntax will generate the default output and save the
+The following @pspp{} syntax will generate the default output and save the
 predicted values and residuals to the active dataset.
 
 @example

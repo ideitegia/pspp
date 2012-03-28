@@ -21,13 +21,13 @@ encountered in the input.
 * ERASE::                       Erase a file.
 * EXECUTE::                     Execute pending transformations.
 * FILE LABEL::                  Set the active dataset's label.
-* FINISH::                      Terminate the PSPP session.
+* FINISH::                      Terminate the @pspp{} session.
 * HOST::                        Temporarily return to the operating system.
 * INCLUDE::                     Include a file within the current one.
 * INSERT::                      Insert a file within the current one.
 * PERMISSIONS::                 Change permissions on a file.
 * PRESERVE and RESTORE::        Saving settings and restoring them later.
-* SET::                         Adjust PSPP runtime parameters.
+* SET::                         Adjust @pspp{} runtime parameters.
 * SHOW::                        Display runtime parameters.
 * SUBTITLE::                    Provide a document subtitle.
 * TITLE::                       Provide a document title.
@@ -87,7 +87,7 @@ Two possibles syntaxes:
 @end display
 
 @cmd{COMMENT} is ignored.  It is used to provide information to
-the author and other readers of the PSPP syntax file.  
+the author and other readers of the @pspp{} syntax file.  
 
 @cmd{COMMENT} can extend over any number of lines.  Don't forget to
 terminate it with a dot or a blank line.
@@ -139,7 +139,7 @@ DISPLAY FILE LABEL.
 active dataset,
 if any.  @xref{FILE LABEL}.
 
-This command is a PSPP extension.
+This command is a @pspp{} extension.
 
 @node DROP DOCUMENTS
 @section DROP DOCUMENTS
@@ -200,7 +200,7 @@ FILE LABEL file_label.
 
 @cmd{FILE LABEL} provides a title for the active dataset.  This
 title will be saved into system files and portable files that are
-created during this PSPP run.
+created during this @pspp{} run.
 
 file_label need not be quoted.  If quotes are
 included, they become part of the file label.
@@ -213,7 +213,7 @@ included, they become part of the file label.
 FINISH.
 @end display
 
-@cmd{FINISH} terminates the current PSPP session and returns
+@cmd{FINISH} terminates the current @pspp{} session and returns
 control to the operating system.
 
 @node HOST
@@ -226,15 +226,15 @@ HOST.
 HOST COMMAND=['command'...].
 @end display
 
-@cmd{HOST} suspends the current PSPP session and temporarily returns control 
+@cmd{HOST} suspends the current @pspp{} session and temporarily returns control 
 to the operating system.
 This command cannot be used if the SAFER setting is active.
 
 If the COMMAND subcommand is specified, as a sequence of shell
-commands as quoted strings within square brackets, then PSPP executes
+commands as quoted strings within square brackets, then @pspp{} executes
 them together in a single subshell.
 
-If no subcommands are specified, then PSPP invokes an interactive
+If no subcommands are specified, then @pspp{} invokes an interactive
 subshell.
 
 @node INCLUDE
@@ -245,7 +245,7 @@ subshell.
         INCLUDE [FILE=]'file-name' [ENCODING='encoding'].
 @end display
 
-@cmd{INCLUDE} causes the PSPP command processor to read an
+@cmd{INCLUDE} causes the @pspp{} command processor to read an
 additional command file as if it were included bodily in the current
 command file.
 If errors are encountered in the included file, then command processing will 
@@ -315,10 +315,10 @@ systems support all character sets.
 
 @item @code{Auto,@var{encoding}}
 Automatically detects whether a syntax file is encoded in an Unicode
-encoding such as UTF-8, UTF-16, or UTF-32.  If it is not, then PSPP
+encoding such as UTF-8, UTF-16, or UTF-32.  If it is not, then @pspp{}
 generally assumes that the file is encoded in @var{encoding} (an IANA
 character set name).  However, if @var{encoding} is UTF-8, and the
-syntax file is not valid UTF-8, PSPP instead assumes that the file
+syntax file is not valid UTF-8, @pspp{} instead assumes that the file
 is encoded in @code{windows-1252}.
 
 For best results, @var{encoding} should be an ASCII-compatible
@@ -455,7 +455,7 @@ SET
 @end display
 
 @cmd{SET} allows the user to adjust several parameters relating to
-PSPP's execution.  Since there are many subcommands to this command, its
+@pspp{}'s execution.  Since there are many subcommands to this command, its
 subcommands will be examined in groups.
 
 On subcommands that take boolean values, ON and YES are synonym, and
@@ -498,25 +498,25 @@ epoch.  If AUTOMATIC (the default) is specified, then the epoch begins
 @item RIB
 @anchor{SET RIB} 
 
-PSPP extension to set the byte ordering (endianness) used for reading
+@pspp{} extension to set the byte ordering (endianness) used for reading
 data in IB or PIB format (@pxref{Binary and Hexadecimal Numeric
 Formats}).  In MSBFIRST ordering, the most-significant byte appears at
 the left end of a IB or PIB field.  In LSBFIRST ordering, the
 least-significant byte appears at the left end.  VAX ordering is like
 MSBFIRST, except that each pair of bytes is in reverse order.  NATIVE,
 the default, is equivalent to MSBFIRST or LSBFIRST depending on the
-native format of the machine running PSPP.
+native format of the machine running @pspp{}.
 
 @item RRB
 @anchor{SET RRB}
 
-PSPP extension to set the floating-point format used for reading data in
+@pspp{} extension to set the floating-point format used for reading data in
 RB format (@pxref{Binary and Hexadecimal Numeric Formats}).  The
 possibilities are:
 
 @table @asis
 @item NATIVE
-The native format of the machine running PSPP.  Equivalent to either IDL
+The native format of the machine running @pspp{}.  Equivalent to either IDL
 or IDB.
 
 @item ISL
@@ -558,16 +558,16 @@ formats are only for use with very old input files.
 The default is NATIVE.
 @end table
 
-Interaction subcommands affect the way that PSPP interacts with an
+Interaction subcommands affect the way that @pspp{} interacts with an
 online user.  The interaction subcommands are
 
 @table @asis
 @item MXERRS
-The maximum number of errors before PSPP halts processing of the current
+The maximum number of errors before @pspp{} halts processing of the current
 command file.  The default is 50.
 
 @item MXWARNS
-The maximum number of warnings + errors before PSPP halts processing the
+The maximum number of warnings + errors before @pspp{} halts processing the
 current command file.  
 The special value of zero means that all warning situations should be ignored.
 No warnings will be issued, except a single initial warning advising the user
@@ -575,7 +575,7 @@ that warnings will not be given.
 The default value is 100.
 @end table
 
-Syntax execution subcommands control the way that PSPP commands
+Syntax execution subcommands control the way that @pspp{} commands
 execute.  The syntax execution subcommands are
 
 @table @asis
@@ -607,13 +607,13 @@ RANDOM, which will obtain an initial seed from the current time of day.
 Currently not used.
 
 @item WORKSPACE
-The maximum amount of memory that PSPP will use to store data being processed.
-If memory in excess of the workspace size is required, then PSPP will start
+The maximum amount of memory that @pspp{} will use to store data being processed.
+If memory in excess of the workspace size is required, then @pspp{} will start
 to use temporary files to store the data.
 Setting a higher value will, in general, mean procedures will run faster, 
 but may cause other applications to run slower.
 On platforms without virtual memory management, setting a very large workspace
-may cause PSPP to abort.
+may cause @pspp{} to abort.
 @cindex workspace
 @cindex memory, amount used to store cases
 @end table
@@ -644,24 +644,24 @@ default is F8.2.  @xref{Input and Output Formats}.
 @item WIB
 @anchor{SET WIB} 
 
-PSPP extension to set the byte ordering (endianness) used for writing
+@pspp{} extension to set the byte ordering (endianness) used for writing
 data in IB or PIB format (@pxref{Binary and Hexadecimal Numeric
 Formats}).  In MSBFIRST ordering, the most-significant byte appears at
 the left end of a IB or PIB field.  In LSBFIRST ordering, the
 least-significant byte appears at the left end.  VAX ordering is like
 MSBFIRST, except that each pair of bytes is in reverse order.  NATIVE,
 the default, is equivalent to MSBFIRST or LSBFIRST depending on the
-native format of the machine running PSPP.
+native format of the machine running @pspp{}.
 
 @item WRB
 @anchor{SET WRB}
 
-PSPP extension to set the floating-point format used for writing data in
+@pspp{} extension to set the floating-point format used for writing data in
 RB format (@pxref{Binary and Hexadecimal Numeric Formats}).  The choices
 are the same as SET RIB.  The default is NATIVE.
 @end table
 
-In the PSPP text-based interface, the output routing subcommands
+In the @pspp{} text-based interface, the output routing subcommands
 affect where output is sent.  The following values are allowed for
 each of these subcommands:
 
@@ -701,7 +701,7 @@ Applies to everything not in one of the above categories, such as the
 results of statistical procedures.  The default is BOTH.
 @end table
 
-These subcommands have no effect on output in the PSPP GUI
+These subcommands have no effect on output in the @pspp{} GUI
 environment.
 
 Output driver option subcommands affect output drivers' settings.  These
@@ -741,7 +741,7 @@ files.  These subcommands are
 These subcommands, which are synonyms, control the journal.  The
 default is ON, which causes commands entered interactively to be
 written to the journal file.  Commands included from syntax files that
-are included interactively and error messages printed by PSPP are also
+are included interactively and error messages printed by @pspp{} are also
 written to the journal file, prefixed by @samp{>}.  OFF disables use
 of the journal.
 
@@ -750,7 +750,7 @@ be specified.
 @end table
 
 System file subcommands affect the default format of system files
-produced by PSPP.  These subcommands are
+produced by @pspp{}.  These subcommands are
 
 @table @asis
 @item COMPRESSION
@@ -794,8 +794,8 @@ as a locale name.
 If given as a locale name, only the character encoding of the 
 locale is relevant.
 
-System files written by PSPP will use this encoding.
-System files read by PSPP, for which the encoding is unknown, will be
+System files written by @pspp{} will use this encoding.
+System files read by @pspp{}, for which the encoding is unknown, will be
 interpreted using this encoding.
 
 The full list of valid encodings and locale names/alias are operating system
@@ -849,7 +849,7 @@ SHOW
         [WIDTH]
 @end display
 
-@cmd{SHOW} can be used to display the current state of PSPP's execution
+@cmd{SHOW} can be used to display the current state of @pspp{}'s execution
 parameters.  Parameters that can be changed using @cmd{SET}
 (@pxref{SET}), can be examined using @cmd{SHOW} using the subcommand
 with the same name.  @code{SHOW} supports the following additional
@@ -867,11 +867,11 @@ Shows the operating system details.
 @item TEMPDIR
 Shows the path of the directory where temporary files will be stored.
 @item VERSION
-Shows the version of this installation of PSPP.
+Shows the version of this installation of @pspp{}.
 @item WARRANTY
-Show details of the lack of warranty for PSPP.
+Show details of the lack of warranty for @pspp{}.
 @item COPYING / LICENSE
-Display the terms of PSPP's copyright licence (@pxref{License}).
+Display the terms of @pspp{}'s copyright licence (@pxref{License}).
 @end table
 
 Specifying @cmd{SHOW} without any subcommands is equivalent to SHOW ALL.
@@ -886,7 +886,7 @@ SUBTITLE 'subtitle_string'.
 SUBTITLE subtitle_string.
 @end display
 
-@cmd{SUBTITLE} provides a subtitle to a particular PSPP
+@cmd{SUBTITLE} provides a subtitle to a particular @pspp{}
 run.  This subtitle appears at the top of each output page below the
 title, if headers are enabled on the output device.
 
@@ -904,7 +904,7 @@ TITLE 'title_string'.
 TITLE title_string.
 @end display
 
-@cmd{TITLE} provides a title to a particular PSPP run.
+@cmd{TITLE} provides a title to a particular @pspp{} run.
 This title appears at the top of each output page, if headers are enabled
 on the output device.
 
