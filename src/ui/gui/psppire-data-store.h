@@ -24,28 +24,28 @@
 
 G_BEGIN_DECLS
 
-#define GTK_TYPE_DATA_STORE	       (psppire_data_store_get_type ())
+#define PSPPIRE_TYPE_DATA_STORE	       (psppire_data_store_get_type ())
 
 #define PSPPIRE_DATA_STORE(obj)	\
-                     (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
-								    GTK_TYPE_DATA_STORE, PsppireDataStore))
+  (G_TYPE_CHECK_INSTANCE_CAST ((obj),                                   \
+                               PSPPIRE_TYPE_DATA_STORE, PsppireDataStore))
 
 #define PSPPIRE_DATA_STORE_CLASS(klass) \
-                     (G_TYPE_CHECK_CLASS_CAST ((klass), \
-								 GTK_TYPE_DATA_STORE, \
-                                                                 PsppireDataStoreClass))
+  (G_TYPE_CHECK_CLASS_CAST ((klass),                                    \
+                            PSPPIRE_TYPE_DATA_STORE,                    \
+                            PsppireDataStoreClass))
 
 
 #define PSPPIRE_IS_DATA_STORE(obj) \
-	             (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_DATA_STORE))
+  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), PSPPIRE_TYPE_DATA_STORE))
 
 #define PSPPIRE_IS_DATA_STORE_CLASS(klass) \
-                     (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_DATA_STORE))
+  (G_TYPE_CHECK_CLASS_TYPE ((klass), PSPPIRE_TYPE_DATA_STORE))
 
 #define PSPPIRE_DATA_STORE_GET_CLASS(obj) \
-                     (G_TYPE_INSTANCE_GET_CLASS ((obj), \
-								   GTK_TYPE_DATA_STORE, \
-								   PsppireDataStoreClass))
+  (G_TYPE_INSTANCE_GET_CLASS ((obj),                                    \
+                              PSPPIRE_TYPE_DATA_STORE,                  \
+                              PsppireDataStoreClass))
 
 typedef struct _PsppireDataStore       PsppireDataStore;
 typedef struct _PsppireDataStoreClass  PsppireDataStoreClass;

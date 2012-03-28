@@ -419,7 +419,7 @@ psppire_data_store_new (PsppireDict *dict)
 {
   PsppireDataStore *retval;
 
-  retval = g_object_new (GTK_TYPE_DATA_STORE, NULL);
+  retval = g_object_new (PSPPIRE_TYPE_DATA_STORE, NULL);
 
   psppire_data_store_set_dictionary (retval, dict);
 
