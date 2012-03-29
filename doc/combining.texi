@@ -40,17 +40,17 @@ that describes its specific syntax and semantics.
 
 @display
 Per input file:
-        /FILE=@{*,'file-name'@}
-        [/RENAME=(src_names=target_names)@dots{}]
-        [/IN=var_name]
+        /FILE=@{*,'@var{file_name}'@}
+        [/RENAME=(@var{src_names}=@var{target_names})@dots{}]
+        [/IN=@var{var_name}]
         [/SORT]
 
 Once per command:
-        /BY var_list[(@{D|A@})] [var_list[(@{D|A@}]]@dots{}
-        [/DROP=var_list]
-        [/KEEP=var_list]
-        [/FIRST=var_name]
-        [/LAST=var_name]
+        /BY @var{var_list}[(@{D|A@})] [@var{var_list}[(@{D|A@}]]@dots{}
+        [/DROP=@var{var_list}]
+        [/KEEP=@var{var_list}]
+        [/FIRST=@var{var_name}]
+        [/LAST=@var{var_name}]
         [/MAP]
 @end display
 
@@ -76,12 +76,13 @@ effect.
 Each @subcmd{FILE} subcommand may be followed by any number of @subcmd{RENAME}
 subcommands that specify a parenthesized group or groups of variable
 names as they appear in the input file, followed by those variables'
-new names, separated by an equals sign (@samp{=}),
-e.g. @samp{/RENAME=(OLD1=NEW1)(OLD2=NEW2)}.  To rename a single
-variable, the parentheses may be omitted: @samp{/RENAME=OLD=NEW}.
+new names, separated by an equals sign (@subcmd{=}),
+e.g. @subcmd{/RENAME=(OLD1=NEW1)(OLD2=NEW2)}.  To rename a single
+variable, the parentheses may be omitted: @subcmd{/RENAME=@var{old}=@var{new}}.
 Within a parenthesized group, variables are renamed simultaneously, so
-that @samp{/RENAME=(A B=B A)} exchanges the names of variables A and
-B.  Otherwise, renaming occurs in left-to-right order.
+that @subcmd{/RENAME=(@var{A} @var{B}=@var{B} @var{A})} exchanges the
+names of variables @var{A} and @var{B}.
+Otherwise, renaming occurs in left-to-right order.
 
 Each @subcmd{FILE} subcommand may optionally be followed by a single @subcmd{IN}
 subcommand, which creates a numeric variable with the specified name
@@ -89,10 +90,10 @@ and format F1.0.  The IN variable takes value 1 in an output case if
 the given input file contributed to that output case, and 0 otherwise.
 The @subcmd{DROP}, @subcmd{KEEP}, and @subcmd{RENAME} subcommands have no effect on IN variables.
 
-If BY is used (see below), the SORT keyword must be specified after a
-@subcmd{FILE} if that input file is not already sorted on the BY variables.
-When @subcmd{SORT} is specified, @pspp{} sorts the input file's data on the BY
-variables before it applies it to the command.  When SORT is used, BY
+If @subcmd{BY} is used (see below), the @subcmd{SORT} keyword must be specified after a
+@subcmd{FILE} if that input file is not already sorted on the @subcmd{BY} variables.
+When @subcmd{SORT} is specified, @pspp{} sorts the input file's data on the @subcmd{BY}
+variables before it applies it to the command.  When @subcmd{SORT} is used, @subcmd{BY}
 is required.  @subcmd{SORT} is a @pspp{} extension.
 
 @pspp{} merges the dictionaries of all of the input files to form the
@@ -132,14 +133,14 @@ active dataset is not weighted.
 The remaining subcommands apply to the output file as a whole, rather
 than to individual input files.  They must be specified at the end of
 the command specification, following all of the FILE and related
-subcommands.  The most important of these subcommands is BY, which
+subcommands.  The most important of these subcommands is @subcmd{BY}, which
 specifies a set of one or more variables that may be used to find
 corresponding cases in each of the input files.  The variables
-specified on BY must be present in all of the input files.
-Furthermore, if any of the input files are not sorted on the BY
-variables, then SORT must be specified for those input files.
+specified on @subcmd{BY} must be present in all of the input files.
+Furthermore, if any of the input files are not sorted on the @subcmd{BY}
+variables, then @subcmd{SORT} must be specified for those input files.
 
-The variables listed on BY may include (A) or (D) annotations to
+The variables listed on @subcmd{BY} may include (A) or (D) annotations to
 specify ascending or descending sort order.  @xref{SORT CASES}, for
 more details on this notation.  Adding (A) or (D) to the @subcmd{BY} subcommand
 specification is a @pspp{} extension.
@@ -147,18 +148,18 @@ specification is a @pspp{} extension.
 The @subcmd{DROP} subcommand can be used to specify a list of variables to
 exclude from the output.  By contrast, the @subcmd{KEEP} subcommand can be used
 to specify variables to include in the output; all variables not
-listed are dropped.  DROP and KEEP are executed in left-to-right order
-and may be repeated any number of times.  DROP and KEEP do not affect
-variables created by the IN, FIRST, and @subcmd{LAST} subcommands, which are
+listed are dropped.  @subcmd{DROP} and @subcmd{KEEP} are executed in left-to-right order
+and may be repeated any number of times.  @subcmd{DROP} and @subcmd{KEEP} do not affect
+variables created by the @subcmd{IN}, @subcmd{FIRST}, and @subcmd{LAST} subcommands, which are
 always included in the new active dataset, but they can be used to drop
-BY variables.
+@subcmd{BY} variables.
 
 The @subcmd{FIRST} and @subcmd{LAST} subcommands are optional.  They may only be
-specified on @cmd{MATCH FILES} and @cmd{ADD FILES}, and only when BY
+specified on @cmd{MATCH FILES} and @cmd{ADD FILES}, and only when @subcmd{BY}
 is used.  @subcmd{FIRST} and @subcmd{LIST} each adds a numeric variable to the new
 active dataset, with the name given as the subcommand's argument and F1.0
 print and write formats.  The value of the @subcmd{FIRST} variable is 1 in the
-first output case with a given set of values for the BY variables, and
+first output case with a given set of values for the @subcmd{BY} variables, and
 0 in other cases.  Similarly, the @subcmd{LAST} variable is 1 in the last case
 with a given of @subcmd{BY} values, and 0 in other cases.
 
@@ -175,17 +176,17 @@ variables.
 ADD FILES
 
 Per input file:
-        /FILE=@{*,'file-name'@}
-        [/RENAME=(src_names=target_names)@dots{}]
-        [/IN=var_name]
+        /FILE=@{*,'@var{file_name}'@}
+        [/RENAME=(@var{src_names}=@var{target_names})@dots{}]
+        [/IN=@var{var_name}]
         [/SORT]
 
 Once per command:
-        [/BY var_list[(@{D|A@})] [var_list[(@{D|A@})]@dots{}]]
-        [/DROP=var_list]
-        [/KEEP=var_list]
-        [/FIRST=var_name]
-        [/LAST=var_name]
+        [/BY @var{var_list}[(@{D|A@})] [@var{var_list}[(@{D|A@})]@dots{}]]
+        [/DROP=@var{var_list}]
+        [/KEEP=@var{var_list}]
+        [/FIRST=@var{var_name}]
+        [/LAST=@var{var_name}]
         [/MAP]
 @end display
 
@@ -199,8 +200,8 @@ above, for an explanation of this common syntax.
 
 When @subcmd{BY} is not used, the output of @subcmd{ADD FILES} consists of all the cases
 from the first input file specified, followed by all the cases from
-the second file specified, and so on.  When BY is used, the output is
-additionally sorted on the BY variables.
+the second file specified, and so on.  When @subcmd{BY} is used, the output is
+additionally sorted on the @subcmd{BY} variables.
 
 When @subcmd{ADD FILES} creates an output case, variables that are not part of
 the input file from which the case was drawn are set to the
@@ -215,61 +216,61 @@ variables.
 MATCH FILES
 
 Per input file:
-        /@{FILE,TABLE@}=@{*,'file-name'@}
-        [/RENAME=(src_names=target_names)@dots{}]
-        [/IN=var_name]
+        /@{FILE,TABLE@}=@{*,'@var{file_name}'@}
+        [/RENAME=(@var{src_names}=@var{target_names})@dots{}]
+        [/IN=@var{var_name}]
         [/SORT]
 
 Once per command:
-        /BY var_list[(@{D|A@}] [var_list[(@{D|A@})]@dots{}]
-        [/DROP=var_list]
-        [/KEEP=var_list]
-        [/FIRST=var_name]
-        [/LAST=var_name]
+        /BY @var{var_list}[(@{D|A@}] [@var{var_list}[(@{D|A@})]@dots{}]
+        [/DROP=@var{var_list}]
+        [/KEEP=@var{var_list}]
+        [/FIRST=@var{var_name}]
+        [/LAST=@var{var_name}]
         [/MAP]
 @end display
 
 @cmd{MATCH FILES} merges sets of corresponding cases in multiple
 input files into single cases in the output, combining their data.
 
-MATCH FILES shares the bulk of its syntax with other @pspp{} commands for
+@cmd{MATCH FILES} shares the bulk of its syntax with other @pspp{} commands for
 combining multiple data files.  @xref{Combining Files Common Syntax},
 above, for an explanation of this common syntax.
 
-How MATCH FILES matches up cases from the input files depends on
-whether BY is specified:
+How @cmd{MATCH FILES} matches up cases from the input files depends on
+whether @subcmd{BY} is specified:
 
 @itemize @bullet
 @item
-If BY is not used, MATCH FILES combines the first case from each input
+If @subcmd{BY} is not used, @cmd{MATCH FILES} combines the first case from each input
 file to produce the first output case, then the second case from each
 input file for the second output case, and so on.  If some input files
 have fewer cases than others, then the shorter files do not contribute
 to cases output after their input has been exhausted.
 
 @item
-If BY is used, MATCH FILES combines cases from each input file that
+If @subcmd{BY} is used, @cmd{MATCH FILES} combines cases from each input file that
 have identical values for the BY variables.
 
-When BY is used, @subcmd{TABLE} subcommands may be used to introduce @dfn{table
+When @subcmd{BY} is used, @subcmd{TABLE} subcommands may be used to introduce @dfn{table
 lookup file}.  @subcmd{TABLE} has same syntax as @subcmd{FILE}, and the @subcmd{RENAME}, @subcmd{IN}, and
-@subcmd{SORT} subcommands may follow a TABLE in the same way as a FILE.
-Regardless of the number of TABLEs, at least one FILE must specified.
+@subcmd{SORT} subcommands may follow a @subcmd{TABLE} in the same way as @subcmd{FILE}.
+Regardless of the number of @subcmd{TABLE}s, at least one @subcmd{FILE} must specified.
 Table lookup files are treated in the same way as other input files
 for most purposes and, in particular, table lookup files must be
-sorted on the BY variables or the @subcmd{SORT} subcommand must be specified
-for that TABLE.
+sorted on the @subcmd{BY} variables or the @subcmd{SORT} subcommand must be specified
+for that @subcmd{TABLE}.
 
 Cases in table lookup files are not consumed after they have been used
 once.  This means that data in table lookup files can correspond to
-any number of cases in FILE input files.  Table lookup files are
+any number of cases in @subcmd{FILE} input files.  Table lookup files are
 analogous to lookup tables in traditional relational database systems.
 
 If a table lookup file contains more than one case with a given set of
-BY variables, only the first case is used.
+@subcmd{BY} variables, only the first case is used.
 @end itemize
 
-When MATCH FILES creates an output case, variables that are only in
+When @cmd{MATCH FILES} creates an output case, variables that are only in
 files that are not present for the current case are set to the
 system-missing value for numeric variables or spaces for string
 variables.
@@ -282,15 +283,15 @@ variables.
 UPDATE
 
 Per input file:
-        /FILE=@{*,'file-name'@}
-        [/RENAME=(src_names=target_names)@dots{}]
-        [/IN=var_name]
+        /FILE=@{*,'@var{file_name}'@}
+        [/RENAME=(@var{src_names}=@var{target_names})@dots{}]
+        [/IN=@var{var_name}]
         [/SORT]
 
 Once per command:
-        /BY var_list[(@{D|A@})] [var_list[(@{D|A@})]]@dots{}
-        [/DROP=var_list]
-        [/KEEP=var_list]
+        /BY @var{var_list}[(@{D|A@})] [@var{var_list}[(@{D|A@})]]@dots{}
+        [/DROP=@var{var_list}]
+        [/KEEP=@var{var_list}]
         [/MAP]
 @end display
 
@@ -318,7 +319,7 @@ transaction file replace those variable's values in the new active
 file.  If there are matching cases in more than more transaction file,
 @pspp{} applies the replacements from the first transaction file, then
 from the second transaction file, and so on.  Similarly, if a single
-transaction file has cases with duplicate BY values, then those are
+transaction file has cases with duplicate @subcmd{BY} values, then those are
 applied in order to the master file.
 
 When a variable in a transaction file has a missing value or a string

@@ -15,7 +15,7 @@ while (<INFO>)
     my ($command, $description)
       = /^\s*UNIMPL_CMD\s*\(\s*"([^"]*)"\s*,\s*"([^"]*)"\)\s*$/
 	or next;
-    print "\@item $command\n$description\n\n";
+    print "\@item \@cmd{$command}\n$description\n\n";
 }
 print "\@end table\n";
 

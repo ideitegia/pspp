@@ -33,7 +33,7 @@ several utility functions for examining and adjusting them.
 
 @display 
 ADD VALUE LABELS
-        /var_list value 'label' [value 'label']@dots{}
+        /@var{var_list} @var{value} '@var{label}' [@var{value} '@var{label}']@dots{}
 @end display
 
 @cmd{ADD VALUE LABELS} has the same syntax and purpose as @cmd{VALUE
@@ -45,7 +45,7 @@ labels from the variables before adding the ones specified.
 @vindex DELETE VARIABLES
 
 @display
-DELETE VARIABLES var_list.
+DELETE VARIABLES @var{var_list}.
 @end display
 
 @cmd{DELETE VARIABLES} deletes the specified variables from the
@@ -62,14 +62,14 @@ effect, it causes the temporary transformations to become permanent.
 @vindex DISPLAY
 
 @display
-DISPLAY [SORTED] NAMES [[/VARIABLES=]var_list].
-DISPLAY [SORTED] INDEX [[/VARIABLES=]var_list].
-DISPLAY [SORTED] LABELS [[/VARIABLES=]var_list].
-DISPLAY [SORTED] VARIABLES [[/VARIABLES=]var_list].
-DISPLAY [SORTED] DICTIONARY [[/VARIABLES=]var_list].
-DISPLAY [SORTED] SCRATCH [[/VARIABLES=]var_list].
-DISPLAY [SORTED] ATTRIBUTES [[/VARIABLES=]var_list].
-DISPLAY [SORTED] @@ATTRIBUTES [[/VARIABLES=]var_list].
+DISPLAY [SORTED] NAMES [[/VARIABLES=]@var{var_list}].
+DISPLAY [SORTED] INDEX [[/VARIABLES=]@var{var_list}].
+DISPLAY [SORTED] LABELS [[/VARIABLES=]@var{var_list}].
+DISPLAY [SORTED] VARIABLES [[/VARIABLES=]@var{var_list}].
+DISPLAY [SORTED] DICTIONARY [[/VARIABLES=]@var{var_list}].
+DISPLAY [SORTED] SCRATCH [[/VARIABLES=]@var{var_list}].
+DISPLAY [SORTED] ATTRIBUTES [[/VARIABLES=]@var{var_list}].
+DISPLAY [SORTED] @@ATTRIBUTES [[/VARIABLES=]@var{var_list}].
 DISPLAY [SORTED] VECTORS.
 @end display
 
@@ -79,7 +79,7 @@ of different forms of information can be requested.
 The following keywords primarily cause information about variables to
 be displayed.  With these keywords, by default information is
 displayed about all variable in the active dataset, in the order that
-variables occur in the active dataset dictionary.  The SORTED keyword
+variables occur in the active dataset dictionary.  The @subcmd{SORTED} keyword
 causes output to be sorted alphabetically by variable name.  The
 @subcmd{VARIABLES} subcommand limits output to the specified variables.
 
@@ -115,7 +115,7 @@ In the second for, all datafile and variable attributes are displayed.
 @end table
 
 With the @code{VECTOR} keyword, @cmd{DISPLAY} lists all the currently
-declared vectors.  If the SORTED keyword is given, the vectors are
+declared vectors.  If the @subcmd{SORTED} keyword is given, the vectors are
 listed in alphabetical order; otherwise, they are listed in textual
 order of definition within the @pspp{} syntax file.
 
@@ -127,7 +127,7 @@ FILE LABEL}.
 @vindex FORMATS
 
 @display
-FORMATS var_list (fmt_spec) [var_list (fmt_spec)]@dots{}.
+FORMATS @var{var_list} (@var{fmt_spec}) [@var{var_list} (@var{fmt_spec})]@dots{}.
 @end display
 
 @cmd{FORMATS} set both print and write formats for the specified
@@ -150,7 +150,7 @@ conditional and looping structures such as @cmd{DO IF} or @cmd{LOOP}.
 @vindex LEAVE
 
 @display
-LEAVE var_list.
+LEAVE @var{var_list}.
 @end display
 
 @cmd{LEAVE} prevents the specified variables from being
@@ -164,7 +164,7 @@ initialized to 0 (not system-missing) or spaces for the first case.
 After that, it retains its value between cases.
 
 This becomes useful for counters.  For instance, in the example below
-the variable SUM maintains a running total of the values in the ITEM
+the variable @code{SUM} maintains a running total of the values in the @code{ITEM}
 variable.
 
 @example
@@ -199,19 +199,19 @@ Left status is also reset by all procedure invocations.
 @vindex MISSING VALUES
 
 @display
-MISSING VALUES var_list (missing_values).
+MISSING VALUES @var{var_list} (@var{missing_values}).
 
-missing_values takes one of the following forms:
-        num1
-        num1, num2
-        num1, num2, num3
-        num1 THRU num2
-        num1 THRU num2, num3
-        string1
-        string1, string2
-        string1, string2, string3
-As part of a range, LO or LOWEST may take the place of num1;
-HI or HIGHEST may take the place of num2.
+where @var{missing_values} takes one of the following forms:
+        @var{num1}
+        @var{num1}, @var{num2}
+        @var{num1}, @var{num2}, @var{num3}
+        @var{num1} THRU @var{num2}
+        @var{num1} THRU @var{num2}, @var{num3}
+        @var{string1}
+        @var{string1}, @var{string2}
+        @var{string1}, @var{string2}, @var{string3}
+As part of a range, LO or LOWEST may take the place of @var{num1};
+HI or HIGHEST may take the place of @var{num2}.
 @end display
 
 @cmd{MISSING VALUES} sets user-missing values for numeric and string
@@ -235,9 +235,9 @@ affected by conditional and looping constructs such as @cmd{DO IF} or
 
 @display 
 MODIFY VARS
-        /REORDER=@{FORWARD,BACKWARD@} @{POSITIONAL,ALPHA@} (var_list)@dots{}
-        /RENAME=(old_names=new_names)@dots{}
-        /@{DROP,KEEP@}=var_list
+        /REORDER=@{FORWARD,BACKWARD@} @{POSITIONAL,ALPHA@} (@var{var_list})@dots{}
+        /RENAME=(@var{old_names}=@var{new_names})@dots{}
+        /@{DROP,KEEP@}=@var{var_list}
         /MAP    
 @end display
 
@@ -245,17 +245,18 @@ MODIFY VARS
 active dataset.
 
 At least one subcommand must be specified, and no subcommand may be
-specified more than once.  DROP and KEEP may not both be specified.
+specified more than once.  @subcmd{DROP} and @subcmd{KEEP} may not both
+be specified.
 
 The @subcmd{REORDER} subcommand changes the order of variables in the active
 dataset.  Specify one or more lists of variable names in parentheses.  By
 default, each list of variables is rearranged into the specified order.
 To put the variables into the reverse of the specified order, put
-keyword BACKWARD before the parentheses.  To put them into alphabetical
-order in the dictionary, specify keyword ALPHA before the parentheses.
-BACKWARD and ALPHA may also be combined.
+keyword @subcmd{BACKWARD} before the parentheses.  To put them into alphabetical
+order in the dictionary, specify keyword @subcmd{ALPHA} before the parentheses.
+@subcmd{BACKWARD} and @subcmd{ALPHA} may also be combined.
 
-To rename variables in the active dataset, specify RENAME, an equals sign
+To rename variables in the active dataset, specify @subcmd{RENAME}, an equals sign
 (@samp{=}), and lists of the old variable names and new variable names
 separated by another equals sign within parentheses.  There must be the
 same number of old and new variable names.  Each old variable is renamed to
@@ -268,10 +269,10 @@ active dataset.
 The @subcmd{KEEP} subcommand keeps the specified list of variables in the active
 dataset.  Any unlisted variables are deleted from the active dataset.
 
-MAP is currently ignored.
+@subcmd{MAP} is currently ignored.
 
-If either DROP or KEEP is specified, the data is read; otherwise it is
-not.
+If either @subcmd{DROP} or @subcmd{KEEP} is specified, the data is read;
+otherwise it is not.
 
 @cmd{MODIFY VARS} may not be specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}).
@@ -282,15 +283,15 @@ not.
 
 @display
 MRSETS 
-    /MDGROUP NAME=name VARIABLES=var_list VALUE=value
+    /MDGROUP NAME=@var{name} VARIABLES=@var{var_list} VALUE=@var{value}
      [CATEGORYLABELS=@{VARLABELS,COUNTEDVALUES@}]
-     [@{LABEL='label',LABELSOURCE=VARLABEL@}]
+     [@{LABEL='@var{label}',LABELSOURCE=VARLABEL@}]
 
-    /MCGROUP NAME=name VARIABLES=var_list [LABEL='label']
+    /MCGROUP NAME=@var{name} VARIABLES=@var{var_list} [LABEL='@var{label}']
 
-    /DELETE NAME=@{[names],ALL@}
+    /DELETE NAME=@{[@var{names}],ALL@}
 
-    /DISPLAY NAME=@{[names],ALL@}
+    /DISPLAY NAME=@{[@var{names}],ALL@}
 @end display
 
 @cmd{MRSETS} creates, modifies, deletes, and displays multiple
@@ -314,61 +315,62 @@ represents one of the responses.
 Any number of subcommands may be specified in any order.
 
 The @subcmd{MDGROUP} subcommand creates a new multiple dichotomy set or
-replaces an existing multiple response set.  The NAME, VARIABLES, and
-VALUE specifications are required.  The others are optional:
+replaces an existing multiple response set.  The @subcmd{NAME},
+@subcmd{VARIABLES}, and
+@subcmd{VALUE} specifications are required.  The others are optional:
 
 @itemize @bullet
 @item
-NAME specifies the name used in syntax for the new multiple dichotomy
+@var{NAME} specifies the name used in syntax for the new multiple dichotomy
 set.  The name must begin with @samp{$}; it must otherwise follow the
 rules for identifiers (@pxref{Tokens}).
 
 @item
-VARIABLES specifies the variables that belong to the set.  At least
+@subcmd{VARIABLES} specifies the variables that belong to the set.  At least
 two variables must be specified.  The variables must be all string or
 all numeric.
 
 @item
-VALUE specifies the counted value.  If the variables are numeric, the
+@subcmd{VALUE} specifies the counted value.  If the variables are numeric, the
 value must be an integer.  If the variables are strings, then the
 value must be a string that is no longer than the shortest of the
 variables in the set (ignoring trailing spaces).
 
 @item
-CATEGORYLABELS optionally specifies the source of the labels for each
+@subcmd{CATEGORYLABELS} optionally specifies the source of the labels for each
 category in the set:
 
 @itemize @minus
 @item
-VARLABELS, the default, uses variable labels or, for variables without
+@subcmd{VARLABELS}, the default, uses variable labels or, for variables without
 variable labels, variable names.  @pspp{} warns if two variables have the
 same variable label, since these categories cannot be distinguished in
 output.
 
 @item 
-COUNTEDVALUES instead uses each variable's value label for the counted
+@subcmd{COUNTEDVALUES} instead uses each variable's value label for the counted
 value.  @pspp{} warns if two variables have the same value label for the
 counted value or if one of the variables lacks a value label, since
 such categories cannot be distinguished in output.
 @end itemize
 
 @item
-LABEL optionally specifies a label for the multiple response set.  If
-neither LABEL nor LABELSOURCE=VARLABEL is specified, the set is
+@subcmd{LABEL} optionally specifies a label for the multiple response set.  If
+neither @subcmd{LABEL} nor @subcmd{LABELSOURCE=VARLABEL} is specified, the set is
 unlabeled.
 
 @item
-LABELSOURCE=VARLABEL draws the multiple response set's label from the
+@subcmd{LABELSOURCE=VARLABEL} draws the multiple response set's label from the
 first variable label among the variables in the set; if none of the
 variables has a label, the name of the first variable is used.
-LABELSOURCE=VARLABEL must be used with CATEGORYLABELS=COUNTEDVALUES.
-It is mutually exclusive with LABEL.
+@subcmd{LABELSOURCE=VARLABEL} must be used with @subcmd{CATEGORYLABELS=COUNTEDVALUES}.
+It is mutually exclusive with @subcmd{LABEL}.
 @end itemize
 
 The @subcmd{MCGROUP} subcommand creates a new multiple category set or
-replaces an existing multiple response set.  The NAME and VARIABLES
-specifications are required, and LABEL is optional.  Their meanings
-are as described above to MDGROUP.  @pspp{} warns if two variables in the
+replaces an existing multiple response set.  The @subcmd{NAME} and @subcmd{VARIABLES}
+specifications are required, and @subcmd{LABEL} is optional.  Their meanings
+are as described above in @subcmd{MDGROUP}.  @pspp{} warns if two variables in the
 set have different value labels for a single value, since each of the
 variables in the set should have the same possible categories.
 
@@ -388,7 +390,7 @@ response sets are currently used only by third party software.
 @vindex NUMERIC
 
 @display
-NUMERIC /var_list [(fmt_spec)].
+NUMERIC /@var{var_list} [(@var{fmt_spec})].
 @end display
 
 @cmd{NUMERIC} explicitly declares new numeric variables, optionally
@@ -407,7 +409,7 @@ system-missing value.
 @vindex PRINT FORMATS
 
 @display
-PRINT FORMATS var_list (fmt_spec) [var_list (fmt_spec)]@dots{}.
+PRINT FORMATS @var{var_list} (@var{fmt_spec}) [@var{var_list} (@var{fmt_spec})]@dots{}.
 @end display
 
 @cmd{PRINT FORMATS} sets the print formats for the specified
@@ -421,7 +423,7 @@ but @cmd{PRINT FORMATS} sets only print formats, not write formats.
 @vindex RENAME VARIABLES
 
 @display
-RENAME VARIABLES (old_names=new_names)@dots{} .
+RENAME VARIABLES (@var{old_names}=@var{new_names})@dots{} .
 @end display
 
 @cmd{RENAME VARIABLES} changes the names of variables in the active
@@ -443,7 +445,7 @@ to be read.
 
 @display 
 VALUE LABELS
-        /var_list value 'label' [value 'label']@dots{}
+        /@var{var_list} @var{value} '@var{label}' [@var{value} '@var{label}']@dots{}
 @end display
 
 @cmd{VALUE LABELS} allows values of numeric and short string
@@ -468,7 +470,7 @@ already present.
 @vindex STRING
 
 @display
-STRING /var_list (fmt_spec).
+STRING /@var{var_list} (@var{fmt_spec}).
 @end display
 
 @cmd{STRING} creates new string variables for use in
@@ -488,11 +490,11 @@ Created variables are initialized to spaces.
 
 @display
 VARIABLE ATTRIBUTE
-         VARIABLES=var_list
-         ATTRIBUTE=name('value') [name('value')]@dots{}
-         ATTRIBUTE=name@b{[}index@b{]}('value') [name@b{[}index@b{]}('value')]@dots{}
-         DELETE=name [name]@dots{}
-         DELETE=name@b{[}index@b{]} [name@b{[}index@b{]}]@dots{}
+         VARIABLES=@var{var_list}
+         ATTRIBUTE=@var{name}('@var{value}') [@var{name}('@var{value}')]@dots{}
+         ATTRIBUTE=@var{name}@b{[}@var{index}@b{]}('@var{value}') [@var{name}@b{[}@var{index}@b{]}('@var{value}')]@dots{}
+         DELETE=@var{name} [@var{name}]@dots{}
+         DELETE=@var{name}@b{[}@var{index}@b{]} [@var{name}@b{[}@var{index}@b{]}]@dots{}
 @end display
 
 @cmd{VARIABLE ATTRIBUTE} adds, modifies, or removes user-defined
@@ -502,14 +504,14 @@ part of system files and may be used by other software that reads
 them.
 
 The required @subcmd{VARIABLES} subcommand must come first.  Specify the
-variables to which the following ATTRIBUTE or @subcmd{DELETE} subcommand
+variables to which the following @subcmd{ATTRIBUTE} or @subcmd{DELETE} subcommand
 should apply.
 
 Use the @subcmd{ATTRIBUTE} subcommand to add or modify custom variable
 attributes.  Specify the name of the attribute as an identifier
 (@pxref{Tokens}), followed by the desired value, in parentheses, as a
 quoted string.  The specified attributes are then added or modified in
-the variables specified on VARIABLES.  Attribute names that begin with
+the variables specified on @subcmd{VARIABLES}.  Attribute names that begin with
 @code{$} are reserved for @pspp{}'s internal use, and attribute names
 that begin with @code{@@} or @code{$@@} are not displayed by most @pspp{}
 commands that display other attributes.  Other attribute names are not
@@ -522,7 +524,7 @@ indexes start at 1, not 0.  An attribute array that has a single
 element (number 1) is not distinguished from a non-array attribute.
 
 Use the @subcmd{DELETE} subcommand to delete an attribute from the variable
-specified on VARIABLES.  Specify an attribute name by itself to delete
+specified on @subcmd{VARIABLES}.  Specify an attribute name by itself to delete
 an entire attribute, including all array elements for attribute
 arrays.  Specify an attribute name followed by an array index in
 square brackets to delete a single element of an attribute array.  In
@@ -542,12 +544,12 @@ by conditional and looping structures such as @cmd{DO IF} or
 
 @display
 VARIABLE LABELS
-        var_list 'var_label' 
-        [ /var_list 'var_label']
+        @var{var_list} '@var{var_label}' 
+        [ /@var{var_list} '@var{var_label}']
         .
         .
         .
-        [ /var_list 'var_label']
+        [ /@var{var_list} '@var{var_label}']
 @end display
 
 @cmd{VARIABLE LABELS} associates explanatory names
@@ -561,18 +563,17 @@ precede the subsequent variable list with a slash (@samp{/}).
 
 
 @node VARIABLE ALIGNMENT
-@comment  node-name,  next,  previous,  u
 @section VARIABLE ALIGNMENT
 @vindex VARIABLE ALIGNMENT
 
 @display
 VARIABLE ALIGNMENT
-        var_list ( LEFT | RIGHT | CENTER )
-        [ /var_list ( LEFT | RIGHT | CENTER ) ]
+        @var{var_list} ( LEFT | RIGHT | CENTER )
+        [ /@var{var_list} ( LEFT | RIGHT | CENTER ) ]
         .
         .
         .
-        [ /var_list ( LEFT | RIGHT | CENTER ) ]
+        [ /@var{var_list} ( LEFT | RIGHT | CENTER ) ]
 @end display
 
 @cmd{VARIABLE ALIGNMENT} sets the alignment of variables for display editing 
@@ -583,17 +584,16 @@ the display of variables in the @pspp{} output.
 
 
 @node VARIABLE WIDTH
-@comment  node-name,  next,  previous,  up
 @section VARIABLE WIDTH
 @vindex VARIABLE WIDTH
 @display
 VARIABLE WIDTH
-        var_list (width)
-        [ /var_list (width) ] 
+        @var{var_list} (width)
+        [ /@var{var_list} (width) ] 
         .
         .
         .
-        [ /var_list (width) ] 
+        [ /@var{var_list} (width) ] 
 @end display
 
 @cmd{VARIABLE WIDTH} sets the column width of variables for display editing
@@ -602,17 +602,16 @@ the display of variables in the @pspp{} output.
 
 
 @node VARIABLE LEVEL
-@comment  node-name,  next,  previous,  up
 @section VARIABLE LEVEL
 @vindex VARIABLE LEVEL
 @display
 VARIABLE LEVEL
-        var_list ( SCALE | NOMINAL | ORDINAL )
-        [ /var_list ( SCALE | NOMINAL | ORDINAL ) ]
+        @var{var_list} ( SCALE | NOMINAL | ORDINAL )
+        [ /@var{var_list} ( SCALE | NOMINAL | ORDINAL ) ]
         .
         .
         .
-        [ /var_list ( SCALE | NOMINAL | ORDINAL ) ]
+        [ /@var{var_list} ( SCALE | NOMINAL | ORDINAL ) ]
 @end display
 
 @cmd{VARIABLE LEVEL} sets the measurement level of  variables.
@@ -625,8 +624,8 @@ Currently, this has no effect except for certain third party software.
 
 @display
 Two possible syntaxes:
-        VECTOR vec_name=var_list.
-        VECTOR vec_name_list(count [format]).
+        VECTOR @var{vec_name}=@var{var_list}.
+        VECTOR @var{vec_name_list}(@var{count} [@var{format}]).
 @end display
 
 @cmd{VECTOR} allows a group of variables to be accessed as if they
@@ -660,7 +659,7 @@ Variables within a vector may be referenced in expressions using
 @vindex WRITE FORMATS
 
 @display
-WRITE FORMATS var_list (fmt_spec) [var_list (fmt_spec)]@dots{}.
+WRITE FORMATS @var{var_list} (@var{fmt_spec}) [@var{var_list} (@var{fmt_spec})]@dots{}.
 @end display
 
 @cmd{WRITE FORMATS} sets the write formats for the specified variables

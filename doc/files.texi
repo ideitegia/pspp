@@ -22,7 +22,7 @@ portable files.
 @vindex APPLY DICTIONARY
 
 @display
-APPLY DICTIONARY FROM=@{'file-name',file_handle@}.
+APPLY DICTIONARY FROM=@{'@var{file_name}',@var{file_handle}@}.
 @end display
 
 @cmd{APPLY DICTIONARY} applies the variable labels, value labels,
@@ -89,12 +89,12 @@ active dataset.  The system file is not modified.
 
 @display
 EXPORT
-        /OUTFILE='file-name'
+        /OUTFILE='@var{file_name}'
         /UNSELECTED=@{RETAIN,DELETE@}
-        /DIGITS=n
-        /DROP=var_list
-        /KEEP=var_list
-        /RENAME=(src_names=target_names)@dots{}
+        /DIGITS=@var{n}
+        /DROP=@var{var_list}
+        /KEEP=@var{var_list}
+        /RENAME=(@var{src_names}=@var{target_names})@dots{}
         /TYPE=@{COMM,TAPE@}
         /MAP
 @end display
@@ -113,7 +113,7 @@ natural precision (approximately 15 decimal digits on many machines).
 If many numbers require this many digits, the portable file may
 significantly increase in size.  As an alternative, the @subcmd{DIGITS}
 subcommand may be used to specify the number of decimal digits of
-precision to write.  DIGITS applies only to non-integers.
+precision to write.  @subcmd{DIGITS} applies only to non-integers.
 
 The @subcmd{OUTFILE} subcommand, which is the only required subcommand, specifies
 the portable file to be written as a file name string or
@@ -135,36 +135,39 @@ The @subcmd{MAP} subcommand is currently ignored.
 
 @display
 GET
-        /FILE=@{'file-name',file_handle@}
-        /DROP=var_list
-        /KEEP=var_list
-        /RENAME=(src_names=target_names)@dots{}
-        /ENCODING='encoding'
+        /FILE=@{'@var{file_name}',@var{file_handle}@}
+        /DROP=@var{var_list}
+        /KEEP=@var{var_list}
+        /RENAME=(@var{src_names}=@var{target_names})@dots{}
+        /ENCODING='@var{encoding}'
 @end display
 
 @cmd{GET} clears the current dictionary and active dataset and
 replaces them with the dictionary and data from a specified file.
 
-The @subcmd{FILE} subcommand is the only required subcommand.  Specify the system
+The @subcmd{FILE} subcommand is the only required subcommand.  
+Specify the system
 file or portable file to be read as a string file name or
 a file handle (@pxref{File Handles}).
 
 By default, all the variables in a file are read.  The DROP
 subcommand can be used to specify a list of variables that are not to be
-read.  By contrast, the @subcmd{KEEP} subcommand can be used to specify variable
-that are to be read, with all other variables not read.
+read.  By contrast, the @subcmd{KEEP} subcommand can be used to specify
+variable that are to be read, with all other variables not read.
 
 Normally variables in a file retain the names that they were
-saved under.  Use the @subcmd{RENAME} subcommand to change these names.  Specify,
+saved under.  Use the @subcmd{RENAME} subcommand to change these names.
+Specify,
 within parentheses, a list of variable names followed by an equals sign
 (@samp{=}) and the names that they should be renamed to.  Multiple
 parenthesized groups of variable names can be included on a single
-@subcmd{RENAME} subcommand.  Variables' names may be swapped using a @subcmd{RENAME}
-subcommand of the form @samp{/RENAME=(A B=B A)}.
+@subcmd{RENAME} subcommand.
+Variables' names may be swapped using a @subcmd{RENAME}
+subcommand of the form @subcmd{/RENAME=(@var{A} @var{B}=@var{B} @var{A})}.
 
 Alternate syntax for the @subcmd{RENAME} subcommand allows the parentheses to be
 eliminated.  When this is done, only a single variable may be renamed at
-once.  For instance, @samp{/RENAME=A=B}.  This alternate syntax is
+once.  For instance, @subcmd{/RENAME=@var{A}=@var{B}}.  This alternate syntax is
 deprecated.
 
 @subcmd{DROP}, @subcmd{KEEP}, and @subcmd{RENAME} are executed in left-to-right order.  
@@ -231,11 +234,11 @@ separate sections below.
 
 @display
 GET DATA /TYPE=@{GNM, ODS@}
-        /FILE=@{'file-name'@}
-        /SHEET=@{NAME 'sheet-name', INDEX n@}
-        /CELLRANGE=@{RANGE 'range', FULL@}
+        /FILE=@{'@var{file_name}'@}
+        /SHEET=@{NAME '@var{sheet_name}', INDEX @var{n}@}
+        /CELLRANGE=@{RANGE '@var{range}', FULL@}
         /READNAMES=@{ON, OFF@}
-        /ASSUMEDVARWIDTH=n.
+        /ASSUMEDVARWIDTH=@var{n}.
 @end display
 
 @cindex Gnumeric
@@ -245,7 +248,7 @@ GET DATA /TYPE=@{GNM, ODS@}
 Gnumeric spreadsheets (@url{http://gnumeric.org}), and spreadsheets
 in OpenDocument format
 (@url{http://libreplanet.org/wiki/Group:OpenDocument/Software})
-can be read using the GET DATA command.
+can be read using the @cmd{GET DATA} command.
 Use the @subcmd{TYPE} subcommand to indicate the file's format.  
 /TYPE=GNM indicates Gnumeric files,
 /TYPE=ODS indicates OpenDocument.
@@ -262,27 +265,27 @@ determined from the length of the string it contains, unless the
 The @subcmd{SHEET} subcommand specifies the sheet within the spreadsheet file to read.
 There are two forms of the @subcmd{SHEET} subcommand.
 In the first form,
-@samp{/SHEET=name @var{sheet-name}}, the string @var{sheet-name} is the
+@subcmd{/SHEET=name @var{sheet_name}}, the string @var{sheet_name} is the
 name of the sheet to read.
-In the second form, @samp{/SHEET=index @var{idx}}, @var{idx} is a
+In the second form, @subcmd{/SHEET=index @var{idx}}, @var{idx} is a
 integer which is the index of the sheet to read.
 The first sheet has the index 1.
 If the @subcmd{SHEET} subcommand is omitted, then the command will read the
 first sheet in the file.
 
 The @subcmd{CELLRANGE} subcommand specifies the range of cells within the sheet to read.
-If the subcommand is given as @samp{/CELLRANGE=FULL}, then the entire
+If the subcommand is given as @subcmd{/CELLRANGE=FULL}, then the entire
 sheet  is read.
 To read only part of a sheet, use the form 
-@samp{/CELLRANGE=range '@var{top-left-cell}:@var{bottom-right-cell}'}.
-For example, the subcommand @samp{/CELLRANGE=range 'C3:P19'} reads 
+@subcmd{/CELLRANGE=range '@var{top_left_cell}:@var{bottom_right_cell}'}.
+For example, the subcommand @subcmd{/CELLRANGE=range 'C3:P19'} reads 
 columns C--P, and rows 3--19 inclusive.
 If no @subcmd{CELLRANGE} subcommand is given, then the entire sheet is read.
 
-If @samp{/READNAMES=ON} is specified, then the contents of cells of
+If @subcmd{/READNAMES=ON} is specified, then the contents of cells of
 the first row are used as the names of the variables in which to store
 the data from subsequent rows.  This is the default.
-If @samp{/READNAMES=OFF} is
+If @subcmd{/READNAMES=OFF} is
 used, then the variables  receive automatically assigned names.
 
 The @subcmd{ASSUMEDVARWIDTH} subcommand specifies the maximum width of string
@@ -296,11 +299,11 @@ string in the first spreadsheet cell for each variable.
 
 @display
 GET DATA /TYPE=PSQL
-         /CONNECT=@{connection info@}
-         /SQL=@{query@}
-         [/ASSUMEDVARWIDTH=n]
+         /CONNECT=@{@var{connection info}@}
+         /SQL=@{@var{query}@}
+         [/ASSUMEDVARWIDTH=@var{w}]
          [/UNENCRYPTED]
-         [/BSIZE=n].
+         [/BSIZE=@var{n}].
 @end display
 
 @cindex postgres
@@ -332,8 +335,8 @@ string in the first value read for each variable.
 
 The @subcmd{UNENCRYPTED} subcommand allows data to be retrieved over an insecure
 connection.
-If the connection is not encrypted, and the @subcmd{UNENCRYPTED} subcommand is not
-given, then an error will occur.
+If the connection is not encrypted, and the @subcmd{UNENCRYPTED} subcommand is 
+not given, then an error will occur.
 Whether or not the connection is
 encrypted depends upon the underlying psql library and the 
 capabilities of the database server.
@@ -362,10 +365,10 @@ GET DATA /TYPE=PSQL
 
 @display
 GET DATA /TYPE=TXT
-        /FILE=@{'file-name',file_handle@}
+        /FILE=@{'@var{file_name}',@var{file_handle}@}
         [/ARRANGEMENT=@{DELIMITED,FIXED@}]
-        [/FIRSTCASE=@{first_case@}]
-        [/IMPORTCASE=@{ALL,FIRST max_cases,PERCENT percent@}]
+        [/FIRSTCASE=@{@var{first_case}@}]
+        [/IMPORTCASE=@{ALL,FIRST @var{max_cases},PERCENT @var{percent}@}]
         @dots{}additional subcommands depending on ARRANGEMENT@dots{}
 @end display
 
@@ -375,8 +378,8 @@ When TYPE=TXT is specified, GET DATA reads data in a delimited or
 fixed columnar format, much like DATA LIST (@pxref{DATA LIST}).
 
 The @subcmd{FILE} subcommand is mandatory.  Specify the file to be read as 
-a string file name or (for textual data
-only) a file handle (@pxref{File Handles}).
+a string file name or (for textual data only) a
+file handle (@pxref{File Handles}).
 
 The @subcmd{ARRANGEMENT} subcommand determines the file's basic format.
 DELIMITED, the default setting, specifies that fields in the input
@@ -391,8 +394,8 @@ to skip the first two lines, and so on.
 
 @subcmd{IMPORTCASE} can be used to limit the number of cases read from the
 input file.  With the default setting, ALL, all cases in the file are
-read.  Specify FIRST @i{max_cases} to read at most @i{max_cases} cases
-from the file.  Use PERCENT @i{percent} to read only @i{percent}
+read.  Specify FIRST @var{max_cases} to read at most @var{max_cases} cases
+from the file.  Use @subcmd{PERCENT @var{percent}} to read only @var{percent}
 percent, approximately, of the cases contained in the file.  (The
 percentage is approximate, because there is no way to accurately count
 the number of cases in the file without reading the entire file.  The
@@ -413,16 +416,16 @@ arrangements, are described below.
 
 @display
 GET DATA /TYPE=TXT
-        /FILE=@{'file-name',file_handle@}
+        /FILE=@{'@var{file_name}',@var{file_handle}@}
         [/ARRANGEMENT=@{DELIMITED,FIXED@}]
-        [/FIRSTCASE=@{first_case@}]
-        [/IMPORTCASE=@{ALL,FIRST max_cases,PERCENT percent@}]
+        [/FIRSTCASE=@{@var{first_case}@}]
+        [/IMPORTCASE=@{ALL,FIRST @var{max_cases},PERCENT @var{percent}@}]
 
-        /DELIMITERS="delimiters"
-        [/QUALIFIER="quotes" [/ESCAPE]]
-        [/DELCASE=@{LINE,VARIABLES n_variables@}]
-        /VARIABLES=del_var [del_var]@dots{}
-where each del_var takes the form:
+        /DELIMITERS="@var{delimiters}"
+        [/QUALIFIER="@var{quotes}" [/ESCAPE]]
+        [/DELCASE=@{LINE,VARIABLES @var{n_variables}@}]
+        /VARIABLES=@var{del_var1} [@var{del_var2}]@dots{}
+where each @var{del_var} takes the form:
         variable format
 @end display
 
@@ -568,21 +571,25 @@ GET DATA /TYPE=TXT /FILE='pets.data' /DELIMITERS=', ' /QUALIFIER='''"' /ESCAPE
 @node GET DATA /TYPE=TXT /ARRANGEMENT=FIXED
 @subsubsection Reading Fixed Columnar Data
 
+@c (modify-syntax-entry ?_ "w")
+@c (modify-syntax-entry ?' "'")
+@c (modify-syntax-entry ?@ "'")
+
 @display
 GET DATA /TYPE=TXT
-        /FILE=@{'file-name',file_handle@}
+        /FILE=@{'file_name',@var{file_handle}@}
         [/ARRANGEMENT=@{DELIMITED,FIXED@}]
-        [/FIRSTCASE=@{first_case@}]
-        [/IMPORTCASE=@{ALL,FIRST max_cases,PERCENT percent@}]
+        [/FIRSTCASE=@{@var{first_case}@}]
+        [/IMPORTCASE=@{ALL,FIRST @var{max_cases},PERCENT @var{percent}@}]
 
-        [/FIXCASE=n]
-        /VARIABLES fixed_var [fixed_var]@dots{}
-            [/rec# fixed_var [fixed_var]@dots{}]@dots{}
-where each fixed_var takes the form:
-        variable start-end format
+        [/FIXCASE=@var{n}]
+        /VARIABLES @var{fixed_var} [@var{fixed_var}]@dots{}
+            [/rec# @var{fixed_var} [@var{fixed_var}]@dots{}]@dots{}
+where each @var{fixed_var} takes the form:
+        @var{variable} @var{start}-@var{end} @var{format}
 @end display
 
-The GET DATA command with TYPE=TXT and ARRANGEMENT=FIXED reads input
+The @cmd{GET DATA} command with TYPE=TXT and ARRANGEMENT=FIXED reads input
 data from text files in fixed format, where each field is located in
 particular fixed column positions within records of a case.  Its
 capabilities are similar to those of DATA LIST FIXED (@pxref{DATA LIST
@@ -639,11 +646,11 @@ GET DATA /TYPE=TXT /FILE='cars.data' /ARRANGEMENT=FIXED /FIRSTCASE=2
 
 @display
 IMPORT
-        /FILE='file-name'
+        /FILE='@var{file_name}'
         /TYPE=@{COMM,TAPE@}
-        /DROP=var_list
-        /KEEP=var_list
-        /RENAME=(src_names=target_names)@dots{}
+        /DROP=@var{var_list}
+        /KEEP=@var{var_list}
+        /RENAME=(@var{src_names}=@var{target_names})@dots{}
 @end display
 
 The @cmd{IMPORT} transformation clears the active dataset dictionary and
@@ -670,14 +677,14 @@ Use of @cmd{IMPORT} to read a system file is a @pspp{} extension.
 
 @display
 SAVE
-        /OUTFILE=@{'file-name',file_handle@}
+        /OUTFILE=@{'@var{file_name}',@var{file_handle}@}
         /UNSELECTED=@{RETAIN,DELETE@}
         /@{COMPRESSED,UNCOMPRESSED@}
         /PERMISSIONS=@{WRITEABLE,READONLY@}
-        /DROP=var_list
-        /KEEP=var_list
-        /VERSION=version
-        /RENAME=(src_names=target_names)@dots{}
+        /DROP=@var{var_list}
+        /KEEP=@var{var_list}
+        /VERSION=@var{version}
+        /RENAME=(@var{src_names}=@var{target_names})@dots{}
         /NAMES
         /MAP
 @end display
@@ -694,8 +701,8 @@ By default, cases excluded with FILTER are written to the system file.
 These can be excluded by specifying @subcmd{DELETE} on the @subcmd{UNSELECTED}
 subcommand.  Specifying @subcmd{RETAIN} makes the default explicit.
 
-The @subcmd{COMPRESS} and @subcmd{UNCOMPRESS} subcommand determine whether the saved
-system file is compressed.  By default, system files are compressed.
+The @subcmd{COMPRESS} and @subcmd{UNCOMPRESS} subcommand determine whether
+the saved system file is compressed.  By default, system files are compressed.
 This default can be changed with the SET command (@pxref{SET}).
 
 The @subcmd{PERMISSIONS} subcommand specifies permissions for the new system
@@ -713,17 +720,19 @@ Specify, within parentheses, a list of variable names followed by an
 equals sign (@samp{=}) and the names that they should be renamed to.
 Multiple parenthesized groups of variable names can be included on a
 single @subcmd{RENAME} subcommand.  Variables' names may be swapped using a
-@subcmd{RENAME} subcommand of the form @samp{/RENAME=(A B=B A)}.
+@subcmd{RENAME} subcommand of the 
+form @subcmd{/RENAME=(@var{A} @var{B}=@var{B} @var{A})}.
 
 Alternate syntax for the @subcmd{RENAME} subcommand allows the parentheses to be
 eliminated.  When this is done, only a single variable may be renamed at
-once.  For instance, @samp{/RENAME=A=B}.  This alternate syntax is
+once.  For instance, @subcmd{/RENAME=@var{A}=@var{B}}.  This alternate syntax is
 deprecated.
 
-DROP, KEEP, and RENAME are performed in left-to-right order.  They
+@subcmd{DROP}, @subcmd{KEEP}, and @subcmd{RENAME} are performed in
+left-to-right order.  They
 each may be present any number of times.  @cmd{SAVE} never modifies
-the active dataset.  DROP, KEEP, and RENAME only affect the system file
-written to disk.
+the active dataset.  @subcmd{DROP}, @subcmd{KEEP}, and @subcmd{RENAME} only
+affect the system file written to disk.
 
 The @subcmd{VERSION} subcommand specifies the version of the file format. Valid
 versions are 2 and 3.  The default version is 3.  In version 2 system
@@ -740,14 +749,14 @@ The @subcmd{NAMES} and @subcmd{MAP} subcommands are currently ignored.
 
 @display
 SAVE TRANSLATE
-        /OUTFILE=@{'file-name',file_handle@}
+        /OUTFILE=@{'@var{file_name}',@var{file_handle}@}
         /TYPE=@{CSV,TAB@}
         [/REPLACE]
         [/MISSING=@{IGNORE,RECODE@}]
 
-        [/DROP=var_list]
-        [/KEEP=var_list]
-        [/RENAME=(src_names=target_names)@dots{}]
+        [/DROP=@var{var_list}]
+        [/KEEP=@var{var_list}]
+        [/RENAME=(@var{src_names}=@var{target_names})@dots{}]
         [/UNSELECTED=@{RETAIN,DELETE@}]
         [/MAP]
 
@@ -800,20 +809,20 @@ separate sections below.
 
 @display
 SAVE TRANSLATE
-        /OUTFILE=@{'file-name',file_handle@}
+        /OUTFILE=@{'@var{file_name}',@var{file_handle}@}
         /TYPE=CSV
         [/REPLACE]
         [/MISSING=@{IGNORE,RECODE@}]
 
-        [/DROP=var_list]
-        [/KEEP=var_list]
-        [/RENAME=(src_names=target_names)@dots{}]
+        [/DROP=@var{var_list}]
+        [/KEEP=@var{var_list}]
+        [/RENAME=(@var{src_names}=@var{target_names})@dots{}]
         [/UNSELECTED=@{RETAIN,DELETE@}]
 
         [/FIELDNAMES]
         [/CELLS=@{VALUES,LABELS@}]
-        [/TEXTOPTIONS DELIMITER='delimiter']
-        [/TEXTOPTIONS QUALIFIER='qualifier']
+        [/TEXTOPTIONS DELIMITER='@var{delimiter}']
+        [/TEXTOPTIONS QUALIFIER='@var{qualifier}']
         [/TEXTOPTIONS DECIMAL=@{DOT,COMMA@}]
         [/TEXTOPTIONS FORMAT=@{PLAIN,VARIABLE@}]
 @end display
@@ -873,7 +882,7 @@ qualifier character that appears within a value is doubled.
 @vindex SYSFILE INFO
 
 @display 
-SYSFILE INFO FILE='file-name'.
+SYSFILE INFO FILE='@var{file_name}'.
 @end display
 
 @cmd{SYSFILE INFO} reads the dictionary in a system file and
@@ -890,11 +899,11 @@ a system file and displays information on its dictionary.
 
 @display
 XEXPORT
-        /OUTFILE='file-name'
-        /DIGITS=n
-        /DROP=var_list
-        /KEEP=var_list
-        /RENAME=(src_names=target_names)@dots{}
+        /OUTFILE='@var{file_name}'
+        /DIGITS=@var{n}
+        /DROP=@var{var_list}
+        /KEEP=@var{var_list}
+        /RENAME=(@var{src_names}=@var{target_names})@dots{}
         /TYPE=@{COMM,TAPE@}
         /MAP
 @end display
@@ -923,13 +932,13 @@ the data is read by a procedure or procedure-like command.
 
 @display
 XSAVE
-        /OUTFILE='file-name'
+        /OUTFILE='@var{file_name}'
         /@{COMPRESSED,UNCOMPRESSED@}
         /PERMISSIONS=@{WRITEABLE,READONLY@}
-        /DROP=var_list
-        /KEEP=var_list
-        /VERSION=version
-        /RENAME=(src_names=target_names)@dots{}
+        /DROP=@var{var_list}
+        /KEEP=@var{var_list}
+        /VERSION=@var{version}
+        /RENAME=(@var{src_names}=@var{target_names})@dots{}
         /NAMES
         /MAP
 @end display

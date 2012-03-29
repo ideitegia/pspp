@@ -1,37 +1,36 @@
 @node REGRESSION
-@comment  node-name,  next,  previous,  up
 @section REGRESSION
 
 @cindex regression
 @cindex linear regression
-The REGRESSION procedure fits linear models to data via least-squares
+The @cmd{REGRESSION} procedure fits linear models to data via least-squares
 estimation. The procedure is appropriate for data which satisfy those
 assumptions typical in linear regression:
 
 @itemize @bullet
 @item The data set contains @math{n} observations of a dependent variable, say
 @math{Y_1,@dots{},Y_n}, and @math{n} observations of one or more explanatory
-variables. Let @math{X_{11}, X_{12}}, @dots{}, @math{X_{1n}} denote the @math{n} observations of the
-first explanatory variable; @math{X_{21}},@dots{},@math{X_{2n}} denote the @math{n} observations of the
-second explanatory variable; @math{X_{k1}},@dots{},@math{X_{kn}} denote the @math{n} observations of the kth
-explanatory variable.
+variables.
+Let @math{X_{11}, X_{12}}, @dots{}, @math{X_{1n}} denote the @math{n} observations
+of the first explanatory variable;
+@math{X_{21}},@dots{},@math{X_{2n}} denote the @math{n} observations of the second
+explanatory variable;
+@math{X_{k1}},@dots{},@math{X_{kn}} denote the @math{n} observations of 
+the @math{k}th explanatory variable.
 
 @item The dependent variable @math{Y} has the following relationship to the 
 explanatory variables:
 @math{Y_i = b_0 + b_1 X_{1i} + ... + b_k X_{ki} + Z_i} 
 where @math{b_0, b_1, @dots{}, b_k} are unknown
 coefficients, and @math{Z_1,@dots{},Z_n} are independent, normally
-distributed ``noise'' terms with mean zero and common variance. The noise, or
-``error'' terms are unobserved. This relationship is called the
-``linear model.''
+distributed @dfn{noise} terms with mean zero and common variance.
+The noise, or @dfn{error} terms are unobserved.
+This relationship is called the @dfn{linear model}.
 @end itemize
 
-The REGRESSION procedure estimates the coefficients
+The @cmd{REGRESSION} procedure estimates the coefficients
 @math{b_0,@dots{},b_k} and produces output relevant to inferences for the
 linear model. 
-
-@c If you add any new commands, then don't forget to remove the entry in 
-@c not-implemented.texi
 
 @menu
 * Syntax::                      Syntax definition.
@@ -44,8 +43,8 @@ linear model.
 @vindex REGRESSION
 @display
 REGRESSION
-        /VARIABLES=var_list
-        /DEPENDENT=var_list
+        /VARIABLES=@var{var_list}
+        /DEPENDENT=@var{var_list}
         /STATISTICS=@{ALL, DEFAULTS, R, COEFF, ANOVA, BCOV@}
         /SAVE=@{PRED, RESID@}
 @end display
@@ -54,7 +53,7 @@ The @cmd{REGRESSION} procedure reads the active dataset and outputs
 statistics relevant to the linear model specified by the user.
 
 The @subcmd{VARIABLES} subcommand, which is required, specifies the list of
-variables to be analyzed.  Keyword VARIABLES is required. The
+variables to be analyzed.  Keyword @subcmd{VARIABLES} is required. The
 @subcmd{DEPENDENT} subcommand specifies the dependent variable of the linear
 model. The @subcmd{DEPENDENT} subcommand is required. All variables listed in
 the @subcmd{VARIABLES} subcommand, but not listed in the @subcmd{DEPENDENT} subcommand,

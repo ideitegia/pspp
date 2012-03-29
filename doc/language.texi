@@ -268,10 +268,10 @@ main restriction is that variables must be defined before they are otherwise
 referenced.  This section describes the details of command ordering,
 but most users will have no need to refer to them.
 
-@pspp{} possesses five internal states, called initial, INPUT PROGRAM,
-FILE TYPE, transformation, and procedure states.  (Please note the
+@pspp{} possesses five internal states, called @dfn{initial}, @dfn{input-program}
+@dfn{file-type}, @dfn{transformation}, and @dfn{procedure} states.  (Please note the
 distinction between the @cmd{INPUT PROGRAM} and @cmd{FILE TYPE}
-@emph{commands} and the INPUT PROGRAM and FILE TYPE @emph{states}.)
+@emph{commands} and the @dfn{input-program} and @dfn{file-type} @emph{states}.)
 
 @pspp{} starts in the initial state.  Each successful completion
 of a command may cause a state transition.  Each type of command has its
@@ -303,9 +303,9 @@ state.
 @item @cmd{INPUT PROGRAM}
 @itemize @bullet
 @item
-Invalid in INPUT PROGRAM and FILE TYPE states.
+Invalid in input-program and file-type states.
 @item
-Causes a transition to the INPUT PROGRAM state.  
+Causes a transition to the intput-program state.  
 @item
 Clears the active dataset.
 @end itemize
@@ -313,9 +313,9 @@ Clears the active dataset.
 @item @cmd{FILE TYPE}
 @itemize @bullet
 @item
-Invalid in INPUT PROGRAM and FILE TYPE states.
+Invalid in intput-program and file-type states.
 @item
-Causes a transition to the FILE TYPE state.
+Causes a transition to the file-type state.
 @item
 Clears the active dataset.
 @end itemize
@@ -323,7 +323,7 @@ Clears the active dataset.
 @item Other file definition commands
 @itemize @bullet
 @item
-Invalid in INPUT PROGRAM and FILE TYPE states.
+Invalid in input-program and file-type states.
 @item
 Cause a transition to the transformation state.
 @item
@@ -334,7 +334,7 @@ and @cmd{UPDATE}.
 @item Transformations
 @itemize @bullet
 @item
-Invalid in initial and FILE TYPE states.
+Invalid in initial and file-type states.
 @item
 Cause a transition to the transformation state.
 @end itemize
@@ -342,7 +342,7 @@ Cause a transition to the transformation state.
 @item Restricted transformations
 @itemize @bullet
 @item
-Invalid in initial, INPUT PROGRAM, and FILE TYPE states.
+Invalid in initial, input-program, and file-type states.
 @item
 Cause a transition to the transformation state.
 @end itemize
@@ -350,7 +350,7 @@ Cause a transition to the transformation state.
 @item Procedures
 @itemize @bullet
 @item
-Invalid in initial, INPUT PROGRAM, and FILE TYPE states.
+Invalid in initial, input-program, and file-type states.
 @item
 Cause a transition to the procedure state.
 @end itemize
@@ -605,12 +605,13 @@ created variables have identical print and write formats, and
 most of the time, the distinction between print and write formats is
 unimportant.
 
-Input and output formats are specified to @pspp{} with a @dfn{format
-specification} of the form @code{TYPEw} or @code{TYPEw.d}, where
-@code{TYPE} is one of the format types described later, @code{w} is a
-field width measured in columns, and @code{d} is an optional number of
-decimal places.  If @code{d} is omitted, a value of 0 is assumed.  Some
-formats do not allow a nonzero @code{d} to be specified.
+Input and output formats are specified to @pspp{} with 
+a @dfn{format specification} of the
+form @subcmd{@var{TYPE}@var{w}} or @code{TYPE@var{w}.@var{d}}, where
+@var{TYPE} is one of the format types described later, @var{w} is a
+field width measured in columns, and @var{d} is an optional number of
+decimal places.  If @var{d} is omitted, a value of 0 is assumed.  Some
+formats do not allow a nonzero @var{d} to be specified.
 
 The following sections describe the input and output formats supported
 by @pspp{}.

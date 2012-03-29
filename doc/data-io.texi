@@ -1,3 +1,8 @@
+@c (modify-syntax-entry ?_ "w")
+@c (modify-syntax-entry ?' "'")
+@c (modify-syntax-entry ?@ "'")
+
+
 @node Data Input and Output
 @chapter Data Input and Output
 @cindex input
@@ -71,7 +76,7 @@ END DATA.
 @section CLOSE FILE HANDLE
 
 @display
-CLOSE FILE HANDLE handle_name.
+CLOSE FILE HANDLE @var{handle_name}.
 @end display
 
 @cmd{CLOSE FILE HANDLE} disassociates the name of a file handle with a
@@ -91,10 +96,10 @@ DATA} and @cmd{END DATA}, cannot be closed.  Attempts to close it with
 
 @display
 DATAFILE ATTRIBUTE
-         ATTRIBUTE=name('value') [name('value')]@dots{}
-         ATTRIBUTE=name@b{[}index@b{]}('value') [name@b{[}index@b{]}('value')]@dots{}
-         DELETE=name [name]@dots{}
-         DELETE=name@b{[}index@b{]} [name@b{[}index@b{]}]@dots{}
+         ATTRIBUTE=@var{name}('@var{value}') [@var{name}('@var{value}')]@dots{}
+         ATTRIBUTE=@var{name}@b{[}@var{index}@b{]}('@var{value}') [@var{name}@b{[}@var{index}@b{]}('@var{value}')]@dots{}
+         DELETE=@var{name} [@var{name}]@dots{}
+         DELETE=@var{name}@b{[}@var{index}@b{]} [@var{name}@b{[}@var{index}@b{]}]@dots{}
 @end display
 
 @cmd{DATAFILE ATTRIBUTE} adds, modifies, or removes user-defined
@@ -137,11 +142,11 @@ by conditional and looping structures such as @cmd{DO IF} or
 @vindex DATASET
 
 @display
-DATASET NAME name [WINDOW=@{ASIS,FRONT@}].
-DATASET ACTIVATE name [WINDOW=@{ASIS,FRONT@}].
-DATASET COPY name [WINDOW=@{MINIMIZED,HIDDEN,FRONT@}].
-DATASET DECLARE name [WINDOW=@{MINIMIZED,HIDDEN,FRONT@}].
-DATASET CLOSE @{name,*,ALL@}.
+DATASET NAME @var{name} [WINDOW=@{ASIS,FRONT@}].
+DATASET ACTIVATE @var{name} [WINDOW=@{ASIS,FRONT@}].
+DATASET COPY @var{name} [WINDOW=@{MINIMIZED,HIDDEN,FRONT@}].
+DATASET DECLARE @var{name} [WINDOW=@{MINIMIZED,HIDDEN,FRONT@}].
+DATASET CLOSE @{@var{name},*,ALL@}.
 DATASET DISPLAY.
 @end display
 
@@ -252,15 +257,15 @@ situations.
 @display
 DATA LIST [FIXED]
         @{TABLE,NOTABLE@}
-        [FILE='file-name' [ENCODING='encoding']]
-        [RECORDS=record_count]
-        [END=end_var]
-        [SKIP=record_count]
-        /[line_no] var_spec@dots{}
+        [FILE='@var{file_name}' [ENCODING='@var{encoding}']]
+        [RECORDS=@var{record_count}]
+        [END=@var{end_var}]
+        [SKIP=@var{record_count}]
+        /[line_no] @var{var_spec}@dots{}
 
-where each var_spec takes one of the forms
-        var_list start-end [type_spec]
-        var_list (fortran_spec)
+where each @var{var_spec} takes one of the forms
+        @var{var_list} @var{start}-@var{end} [@var{type_spec}]
+        @var{var_list} (@var{fortran_spec})
 @end display
 
 @cmd{DATA LIST FIXED} is used to read data files that have values at fixed
@@ -276,7 +281,8 @@ The @subcmd{ENCODING} subcommand may only be used if the @subcmd{FILE} subcomman
 It specifies the character encoding of the file.
 
 The optional @subcmd{RECORDS} subcommand, which takes a single integer as an
-argument, is used to specify the number of lines per record.  If RECORDS
+argument, is used to specify the number of lines per record.
+If @subcmd{RECORDS}
 is not specified, then the number of lines per record is calculated from
 the list of variable specifications later in @cmd{DATA LIST}.
 
@@ -288,8 +294,8 @@ the beginning of an input file.  It can be used to skip over a row
 that contains variable names, for example.
 
 @cmd{DATA LIST} can optionally output a table describing how the data file
-will be read.  The @subcmd{TABLE} subcommand enables this output, and @subcmd{NOTABLE}
-disables it.  The default is to output the table.
+will be read.  The @subcmd{TABLE} subcommand enables this output, and
+@subcmd{NOTABLE} disables it.  The default is to output the table.
 
 The list of variables to be read from the data list must come last.
 Each line in the data record is introduced by a slash (@samp{/}).
@@ -465,15 +471,15 @@ This example shows keywords abbreviated to their first 3 letters.
 
 @display
 DATA LIST FREE
-        [(@{TAB,'c'@}, @dots{})]
+        [(@{TAB,'@var{c}'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
-        [FILE='file-name' [ENCODING='encoding']]
-        [SKIP=record_cnt]
-        /var_spec@dots{}
+        [FILE='@var{file_name}' [ENCODING='@var{encoding}']]
+        [SKIP=@var{record_cnt}]
+        /@var{var_spec}@dots{}
 
-where each var_spec takes one of the forms
-        var_list [(type_spec)]
-        var_list *
+where each @var{var_spec} takes one of the forms
+        @var{var_list} [(@var{type_spec})]
+        @var{var_list} *
 @end display
 
 In free format, the input data is, by default, structured as a series
@@ -517,15 +523,15 @@ on field width apply, but they are honored on output.
 
 @display
 DATA LIST LIST
-        [(@{TAB,'c'@}, @dots{})]
+        [(@{TAB,'@var{c}'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
-        [FILE='file-name' [ENCODING='encoding']]
-        [SKIP=record_count]
-        /var_spec@dots{}
+        [FILE='@var{file_name'} [ENCODING='@var{encoding}']]
+        [SKIP=@var{record_count}]
+        /@var{var_spec}@dots{}
 
-where each var_spec takes one of the forms
-        var_list [(type_spec)]
-        var_list *
+where each @var{var_spec} takes one of the forms
+        @var{var_list} [(@var{type_spec})]
+        @var{var_list} *
 @end display
 
 With one exception, @cmd{DATA LIST LIST} is syntactically and
@@ -562,29 +568,29 @@ the current input program.  @xref{INPUT PROGRAM}.
 
 @display
 For text files:
-        FILE HANDLE handle_name
-                /NAME='file-name'
+        FILE HANDLE @var{handle_name}
+                /NAME='@var{file_name}
                 [/MODE=CHARACTER]
-                /TABWIDTH=tab_width
+                /TABWIDTH=@var{tab_width}
 
 For binary files in native encoding with fixed-length records:
-        FILE HANDLE handle_name
-                /NAME='file-name'
+        FILE HANDLE @var{handle_name}
+                /NAME='@var{file_name}'
                 /MODE=IMAGE
-                [/LRECL=rec_len]
+                [/LRECL=@var{rec_len}]
 
 For binary files in native encoding with variable-length records:
-        FILE HANDLE handle_name
-                /NAME='file-name'
+        FILE HANDLE @var{handle_name}
+                /NAME='@var{file_name}'
                 /MODE=BINARY
-                [/LRECL=rec_len]
+                [/LRECL=@var{rec_len}]
 
 For binary files encoded in EBCDIC:
-        FILE HANDLE handle_name
-                /NAME='file-name'
+        FILE HANDLE @var{handle_name}
+                /NAME='@var{file_name}'
                 /MODE=360
                 /RECFORM=@{FIXED,VARIABLE,SPANNED@}
-                [/LRECL=rec_len]
+                [/LRECL=@var{rec_len}]
 @end display
 
 Use @cmd{FILE HANDLE} to associate a file handle name with a file and
@@ -603,7 +609,7 @@ file handle name must not already have been used in a previous
 invocation of @cmd{FILE HANDLE}, unless it has been closed by an
 intervening command (@pxref{CLOSE FILE HANDLE}).
 
-The effect and syntax of FILE HANDLE depends on the selected MODE:
+The effect and syntax of @cmd{FILE HANDLE} depends on the selected MODE:
 
 @itemize
 @item
@@ -887,8 +893,8 @@ random variates between 0 and 10.
 
 @display
 LIST
-        /VARIABLES=var_list
-        /CASES=FROM start_index TO end_index BY incr_index
+        /VARIABLES=@var{var_list}
+        /CASES=FROM @var{start_index} TO @var{end_index} BY @var{incr_index}
         /FORMAT=@{UNNUMBERED,NUMBERED@} @{WRAP,SINGLE@}
 @end display
 
@@ -936,16 +942,16 @@ active dataset.
 
 @display
 PRINT 
-        OUTFILE='file-name'
-        RECORDS=n_lines
+        OUTFILE='@var{file_name}'
+        RECORDS=@var{n_lines}
         @{NOTABLE,TABLE@}
-        [/[line_no] arg@dots{}]
+        [/[@var{line_no}] @var{arg}@dots{}]
 
-arg takes one of the following forms:
-        'string' [start-end]
-        var_list start-end [type_spec]
-        var_list (fortran_spec)
-        var_list *
+@var{arg} takes one of the following forms:
+        '@var{string}' [@var{start}-@var{end}]
+        @var{var_list} @var{start}-@var{end} [@var{type_spec}]
+        @var{var_list} (@var{fortran_spec})
+        @var{var_list} *
 @end display
 
 The @cmd{PRINT} transformation writes variable data to the listing
@@ -954,12 +960,12 @@ causes the data to be read.  Follow @cmd{PRINT} by @cmd{EXECUTE} to
 print variable data without invoking a procedure (@pxref{EXECUTE}).
 
 All @cmd{PRINT} subcommands are optional.  If no strings or variables
-are specified, PRINT outputs a single blank line.
+are specified, @cmd{PRINT} outputs a single blank line.
 
 The @subcmd{OUTFILE} subcommand specifies the file to receive the output.  The
 file may be a file name as a string or a file handle (@pxref{File
-Handles}).  If OUTFILE is not present then output will be sent to
-@pspp{}'s output listing file.  When OUTFILE is present, a space is
+Handles}).  If @subcmd{OUTFILE} is not present then output will be sent to
+@pspp{}'s output listing file.  When @subcmd{OUTFILE} is present, a space is
 inserted at beginning of each output line, even lines that otherwise
 would be blank.
 
@@ -976,6 +982,7 @@ indicating which output line will be specified.  In the absence of this
 line number, the next line number will be specified.  Multiple lines may
 be specified using multiple slashes with the intended output for a line
 following its respective slash.
+
 
 Literal strings may be printed.  Specify the string itself.  Optionally
 the string may be followed by a column number or range of column
@@ -1002,16 +1009,16 @@ again extend the line to that length.
 
 @display
 PRINT EJECT 
-        OUTFILE='file-name'
-        RECORDS=n_lines
+        OUTFILE='@var{file_name}'
+        RECORDS=@var{n_lines}
         @{NOTABLE,TABLE@}
-        /[line_no] arg@dots{}
+        /[@var{line_no}] @var{arg}@dots{}
 
-arg takes one of the following forms:
-        'string' [start-end]
-        var_list start-end [type_spec]
-        var_list (fortran_spec)
-        var_list *
+@var{arg} takes one of the following forms:
+        '@var{string}' [@var{start}-@var{end}]
+        @var{var_list} @var{start}-@var{end} [@var{type_spec}]
+        @var{var_list} (@var{fortran_spec})
+        @var{var_list} *
 @end display
 
 @cmd{PRINT EJECT} advances to the beginning of a new output page in
@@ -1036,7 +1043,7 @@ written with a space inserted in the first column, as with PRINT.
 @vindex PRINT SPACE
 
 @display
-PRINT SPACE OUTFILE='file-name' n_lines.
+PRINT SPACE OUTFILE='file_name' n_lines.
 @end display
 
 @cmd{PRINT SPACE} prints one or more blank lines to an output file.
@@ -1084,18 +1091,18 @@ file.  Instead, it will re-read the same line multiple times.
 
 @display
 REPEATING DATA
-        /STARTS=start-end
-        /OCCURS=n_occurs
-        /FILE='file-name'
-        /LENGTH=length
-        /CONTINUED[=cont_start-cont_end]
-        /ID=id_start-id_end=id_var
+        /STARTS=@var{start}-@var{end}
+        /OCCURS=@var{n_occurs}
+        /FILE='@var{file_name}'
+        /LENGTH=@var{length}
+        /CONTINUED[=@var{cont_start}-@var{cont_end}]
+        /ID=@var{id_start}-@var{id_end}=@var{id_var}
         /@{TABLE,NOTABLE@}
-        /DATA=var_spec@dots{}
+        /DATA=@var{var_spec}@dots{}
 
-where each var_spec takes one of the forms
-        var_list start-end [type_spec]
-        var_list (fortran_spec)
+where each @var{var_spec} takes one of the forms
+        @var{var_list} @var{start}-@var{end} [@var{type_spec}]
+        @var{var_list} (@var{fortran_spec})
 @end display
 
 @cmd{REPEATING DATA} parses groups of data repeating in
@@ -1166,16 +1173,16 @@ structure (@pxref{LOOP}).  Use @cmd{DATA LIST} before, not after,
 
 @display
 WRITE 
-        OUTFILE='file-name'
-        RECORDS=n_lines
+        OUTFILE='@var{file_name}'
+        RECORDS=@var{n_lines}
         @{NOTABLE,TABLE@}
-        /[line_no] arg@dots{}
+        /[@var{line_no}] @var{arg}@dots{}
 
-arg takes one of the following forms:
-        'string' [start-end]
-        var_list start-end [type_spec]
-        var_list (fortran_spec)
-        var_list *
+@var{arg} takes one of the following forms:
+        '@var{string}' [@var{start}-@var{end}]
+        @var{var_list} @var{start}-@var{end} [@var{type_spec}]
+        @var{var_list} (@var{fortran_spec})
+        @var{var_list} *
 @end display
 
 @code{WRITE} writes text or binary data to an output file.  

@@ -19,14 +19,14 @@ select data records from the active dataset for analysis.
 @vindex FILTER
 
 @display
-FILTER BY var_name.
+FILTER BY @var{var_name}.
 FILTER OFF.
 @end display
 
 @cmd{FILTER} allows a boolean-valued variable to be used to select
 cases from the data stream for processing.
 
-To set up filtering, specify BY and a variable name.  Keyword
+To set up filtering, specify @subcmd{BY} and a variable name.  Keyword
 BY is optional but recommended.  Cases which have a zero or system- or
 user-missing value are excluded from analysis, but not deleted from the
 data stream.  Cases with other values are analyzed.
@@ -40,7 +40,7 @@ filter variable of the required form, then specify that variable on
 Filtering takes place immediately before cases pass to a procedure for
 analysis.  Only one filter variable may be active at a time.  Normally,
 case filtering continues until it is explicitly turned off with @code{FILTER
-OFF}.  However, if @cmd{FILTER} is placed after TEMPORARY, it filters only
+OFF}.  However, if @cmd{FILTER} is placed after @cmd{TEMPORARY}, it filters only
 the next procedure or procedure-like command.
 
 @node N OF CASES
@@ -48,7 +48,7 @@ the next procedure or procedure-like command.
 @vindex N OF CASES
 
 @display
-N [OF CASES] num_of_cases [ESTIMATED].
+N [OF CASES] @var{num_of_cases} [ESTIMATED].
 @end display
 
 @cmd{N OF CASES} limits the number of cases processed by any
@@ -82,7 +82,7 @@ procedures.  @pspp{} currently does not make use of case count estimates.
 @vindex SAMPLE
 
 @display
-SAMPLE num1 [FROM num2].
+SAMPLE @var{num1} [FROM @var{num2}].
 @end display
 
 @cmd{SAMPLE} randomly samples a proportion of the cases in the active
@@ -90,12 +90,12 @@ file.  Unless it follows @cmd{TEMPORARY}, it operates as a
 transformation, permanently removing cases from the active dataset.
 
 The proportion to sample can be expressed as a single number between 0
-and 1.  If @code{k} is the number specified, and @code{N} is the number
+and 1.  If @var{k} is the number specified, and @var{N} is the number
 of currently-selected cases in the active dataset, then after
-@code{SAMPLE @var{k}.}, approximately @code{k*N} cases will be
+@subcmd{SAMPLE @var{k}.}, approximately @var{k}*@var{N} cases will be
 selected.
 
-The proportion to sample can also be specified in the style @code{SAMPLE
+The proportion to sample can also be specified in the style @subcmd{SAMPLE
 @var{m} FROM @var{N}}.  With this style, cases are selected as follows:
 
 @enumerate
@@ -131,11 +131,11 @@ random number seed is based on the system time.
 @vindex SELECT IF
 
 @display
-SELECT IF expression.
+SELECT IF @var{expression}.
 @end display
 
-@cmd{SELECT IF} selects cases for analysis based on the value of a
-boolean expression.  Cases not selected are permanently eliminated
+@cmd{SELECT IF} selects cases for analysis based on the value of
+@var{expression}.  Cases not selected are permanently eliminated
 from the active dataset, unless @cmd{TEMPORARY} is in effect
 (@pxref{TEMPORARY}).
 
@@ -157,7 +157,7 @@ When @cmd{SELECT IF} is specified following @cmd{TEMPORARY}
 @vindex SPLIT FILE
 
 @display
-SPLIT FILE [@{LAYERED, SEPARATE@}] BY var_list.
+SPLIT FILE [@{LAYERED, SEPARATE@}] BY @var{var_list}.
 SPLIT FILE OFF.
 @end display
 
@@ -172,14 +172,14 @@ An independent analysis is carried out for each group of cases, and the
 variable values for the group are printed along with the analysis.
 
 When a list of variable names is specified, one of the keywords
-LAYERED or SEPARATE may also be specified.  If provided, either
+@subcmd{LAYERED} or @subcmd{SEPARATE} may also be specified.  If provided, either
 keyword are ignored.
 
 Groups are formed only by @emph{adjacent} cases.  To create a split 
 using a variable where like values are not adjacent in the working file,
 you should first sort the data by that variable (@pxref{SORT CASES}).
 
-Specify OFF to disable @cmd{SPLIT FILE} and resume analysis of the
+Specify @subcmd{OFF} to disable @cmd{SPLIT FILE} and resume analysis of the
 entire active dataset as a single group of data.
 
 When @cmd{SPLIT FILE} is specified after @cmd{TEMPORARY}, it affects only
@@ -218,9 +218,12 @@ BEGIN DATA.
 20
 24
 END DATA.
+
 COMPUTE X=X/2.
+
 TEMPORARY.
 COMPUTE X=X+3.
+
 DESCRIPTIVES X.
 DESCRIPTIVES X.
 @end example
@@ -234,7 +237,7 @@ The data read by the first @cmd{DESCRIPTIVES} are 4, 5, 8,
 @vindex WEIGHT
 
 @display
-WEIGHT BY var_name.
+WEIGHT BY @var{var_name}.
 WEIGHT OFF.
 @end display
 
@@ -244,11 +247,11 @@ changing the frequency distribution of the active dataset.  Execution of
 
 If a variable name is specified, @cmd{WEIGHT} causes the values of that
 variable to be used as weighting factors for subsequent statistical
-procedures.  Use of keyword BY is optional but recommended.  Weighting
+procedures.  Use of keyword @subcmd{BY} is optional but recommended.  Weighting
 variables must be numeric.  Scratch variables may not be used for
 weighting (@pxref{Scratch Variables}).
 
-When OFF is specified, subsequent statistical procedures will weight all
+When @subcmd{OFF} is specified, subsequent statistical procedures will weight all
 cases equally.
 
 A positive integer weighting factor @var{w} on a case will yield the

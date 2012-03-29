@@ -23,12 +23,12 @@ as a rule.
 
 @display
 AGGREGATE 
-        OUTFILE=@{*,'file-name',file_handle@} [MODE=@{REPLACE, ADDVARIABLES@}]
+        OUTFILE=@{*,'@var{file_name}',@var{file_handle}@} [MODE=@{REPLACE, ADDVARIABLES@}]
         /PRESORTED
         /DOCUMENT
         /MISSING=COLUMNWISE
-        /BREAK=var_list
-        /dest_var['label']@dots{}=agr_func(src_vars, args@dots{})@dots{}
+        /BREAK=@var{var_list}
+        /@var{dest_var}['@var{label}']@dots{}=@var{agr_func}(@var{src_vars}, @var{args}@dots{})@dots{}
 @end display
 
 @cmd{AGGREGATE} summarizes groups of cases into single cases.
@@ -46,40 +46,40 @@ Use of OUTFILE to write a portable file is a @pspp{} extension.
 
 If OUTFILE=@samp{*} is given, then the subcommand MODE may also be
 specified.
-The mode subcommand has two possible values: ADDVARIABLES or REPLACE.
-In REPLACE mode, the entire active dataset is replaced by a new dataset
+The mode subcommand has two possible values: @subcmd{ADDVARIABLES} or @subcmd{REPLACE}.
+In @subcmd{REPLACE} mode, the entire active dataset is replaced by a new dataset
 which contains just the break variables and the destination varibles.
 In this mode, the new file will contain as many cases as there are
 unique combinations of the break variables.
-In ADDVARIABLES mode, the destination variables will be appended to 
+In @subcmd{ADDVARIABLES} mode, the destination variables will be appended to 
 the existing active dataset.
 Cases which have identical combinations of values in their break
 variables, will receive identical values for the destination variables.
 The number of cases in the active dataset will remain unchanged.
-Note that if ADDVARIABLES is specified, then the data @emph{must} be
+Note that if @subcmd{ADDVARIABLES} is specified, then the data @emph{must} be
 sorted on the break variables.
 
 By default, the active dataset will be sorted based on the break variables
 before aggregation takes place.  If the active dataset is already sorted
 or otherwise grouped in terms of the break variables, specify
-PRESORTED to save time.
-PRESORTED is assumed if MODE=ADDVARIABLES is used.
+@subcmd{PRESORTED} to save time.
+@subcmd{PRESORTED} is assumed if @subcmd{MODE=ADDVARIABLES} is used.
 
-Specify DOCUMENT to copy the documents from the active dataset into the
+Specify @subcmd{DOCUMENT} to copy the documents from the active dataset into the
 aggregate file (@pxref{DOCUMENT}).  Otherwise, the aggregate file will
 not contain any documents, even if the aggregate file replaces the
 active dataset.
 
-Normally, only a single case (for SD and SD., two cases) need be
+Normally, only a single case (for @subcmd{SD} and @subcmd{SD}., two cases) need be
 non-missing in each group for the aggregate variable to be
-non-missing.  Specifying /MISSING=COLUMNWISE inverts this behavior, so
+non-missing.  Specifying @subcmd{/MISSING=COLUMNWISE} inverts this behavior, so
 that the aggregate variable becomes missing if any aggregated value is
 missing.
 
-If PRESORTED, DOCUMENT, or MISSING are specified, they must appear
-between OUTFILE and BREAK.
+If @subcmd{PRESORTED}, @subcmd{DOCUMENT}, or @subcmd{MISSING} are specified, they must appear
+between @subcmd{OUTFILE} and @subcmd{BREAK}.
 
-At least one break variable must be specified on BREAK, a
+At least one break variable must be specified on @subcmd{BREAK}, a
 required subcommand.  The values of these variables are used to divide
 the active dataset into groups to be summarized.  In addition, at least
 one @var{dest_var} must be specified.
@@ -107,52 +107,52 @@ and string variables.
 The available aggregation functions are as follows:
 
 @table @asis
-@item FGT(var_name, value)
+@item FGT(@var{var_name}, @var{value})
 Fraction of values greater than the specified constant.  The default
 format is F5.3.
 
-@item FIN(var_name, low, high)
+@item FIN(@var{var_name}, @var{low}, @var{high})
 Fraction of values within the specified inclusive range of constants.
 The default format is F5.3.
 
-@item FLT(var_name, value)
+@item FLT(@var{var_name}, @var{value})
 Fraction of values less than the specified constant.  The default
 format is F5.3.
 
-@item FIRST(var_name)
+@item FIRST(@var{var_name})
 First non-missing value in break group.  The aggregation variable
 receives the complete dictionary information from the source variable.
-The sort performed by AGGREGATE (and by SORT CASES) is stable, so that
+The sort performed by @cmd{AGGREGATE} (and by @cmd{SORT CASES}) is stable, so that
 the first case with particular values for the break variables before
 sorting will also be the first case in that break group after sorting.
 
-@item FOUT(var_name, low, high)
+@item FOUT(@var{var_name}, @var{low}, @var{high})
 Fraction of values strictly outside the specified range of constants.
 The default format is F5.3.
 
-@item LAST(var_name)
+@item LAST(@var{var_name})
 Last non-missing value in break group.  The aggregation variable
 receives the complete dictionary information from the source variable.
-The sort performed by AGGREGATE (and by SORT CASES) is stable, so that
+The sort performed by @cmd{AGGREGATE} (and by @cmd{SORT CASES}) is stable, so that
 the last case with particular values for the break variables before
 sorting will also be the last case in that break group after sorting.
 
-@item MAX(var_name)
+@item MAX(@var{var_name})
 Maximum value.  The aggregation variable receives the complete
 dictionary information from the source variable.
 
-@item MEAN(var_name)
+@item MEAN(@var{var_name})
 Arithmetic mean.  Limited to numeric values.  The default format is
 F8.2.
 
-@item MEDIAN(var_name)
+@item MEDIAN(@var{var_name})
 The median value.  Limited to numeric values.  The default format is F8.2.
 
-@item MIN(var_name)
+@item MIN(@var{var_name})
 Minimum value.  The aggregation variable receives the complete
 dictionary information from the source variable.
 
-@item N(var_name)
+@item N(@var{var_name})
 Number of non-missing values.  The default format is F7.0 if weighting
 is not enabled, F8.2 if it is (@pxref{WEIGHT}).
 
@@ -160,11 +160,11 @@ is not enabled, F8.2 if it is (@pxref{WEIGHT}).
 Number of cases aggregated to form this group.  The default format is
 F7.0 if weighting is not enabled, F8.2 if it is (@pxref{WEIGHT}).
 
-@item NMISS(var_name)
+@item NMISS(@var{var_name})
 Number of missing values.  The default format is F7.0 if weighting is
 not enabled, F8.2 if it is (@pxref{WEIGHT}).
 
-@item NU(var_name)
+@item NU(@var{var_name})
 Number of non-missing values.  Each case is considered to have a weight
 of 1, regardless of the current weighting variable (@pxref{WEIGHT}).
 The default format is F7.0.
@@ -174,27 +174,27 @@ Number of cases aggregated to form this group.  Each case is considered
 to have a weight of 1, regardless of the current weighting variable.
 The default format is F7.0.
 
-@item NUMISS(var_name)
+@item NUMISS(@var{var_name})
 Number of missing values.  Each case is considered to have a weight of
 1, regardless of the current weighting variable.  The default format is F7.0.
 
-@item PGT(var_name, value)
+@item PGT(@var{var_name}, @var{value})
 Percentage between 0 and 100 of values greater than the specified
 constant.  The default format is F5.1.
 
-@item PIN(var_name, low, high)
+@item PIN(@var{var_name}, @var{low}, @var{high})
 Percentage of values within the specified inclusive range of
 constants.  The default format is F5.1.
 
-@item PLT(var_name, value)
+@item PLT(@var{var_name}, @var{value})
 Percentage of values less than the specified constant.  The default
 format is F5.1.
 
-@item POUT(var_name, low, high)
+@item POUT(@var{var_name}, @var{low}, @var{high})
 Percentage of values strictly outside the specified range of
 constants.  The default format is F5.1.
 
-@item SD(var_name)
+@item SD(@var{var_name})
 Standard deviation of the mean.  Limited to numeric values.  The
 default format is F8.2.
 
@@ -219,7 +219,7 @@ settings (@pxref{SPLIT FILE}).
 @vindex AUTORECODE
 
 @display
-AUTORECODE VARIABLES=src_vars INTO dest_vars
+AUTORECODE VARIABLES=@var{src_vars} INTO @var{dest_vars}
         [ /DESCENDING ]
         [ /PRINT ]
         [ /GROUP ]
@@ -230,9 +230,9 @@ The @cmd{AUTORECODE} procedure considers the @var{n} values that a variable
 takes on and maps them onto values 1@dots{}@var{n} on a new numeric
 variable.
 
-Subcommand VARIABLES is the only required subcommand and must come
-first.  Specify VARIABLES, an equals sign (@samp{=}), a list of source
-variables, INTO, and a list of target variables.  There must the same
+Subcommand @subcmd{VARIABLES} is the only required subcommand and must come
+first.  Specify @subcmd{VARIABLES}, an equals sign (@samp{=}), a list of source
+variables, @subcmd{INTO}, and a list of target variables.  There must the same
 number of source and target variables.  The target variables must not
 already exist.
 
@@ -260,9 +260,11 @@ to numeric values. /BLANK=VALID is the default.
 @vindex COMPUTE
 
 @display
-COMPUTE variable = expression.
+COMPUTE @var{variable} = @var{expression}.
+@end display
   or
-COMPUTE vector(index) = expression.
+@display
+COMPUTE vector(@var{index}) = @var{expression}.
 @end display
 
 @cmd{COMPUTE} assigns the value of an expression to a target
@@ -279,9 +281,9 @@ exist.  Numeric variables created by @cmd{COMPUTE} are assigned an
 they can be used as targets for @cmd{COMPUTE}.
 
 The target variable may be specified as an element of a vector
-(@pxref{VECTOR}).  In this case, a vector index expression must be
-specified in parentheses following the vector name.  The index
-expression must evaluate to a numeric value that, after rounding down
+(@pxref{VECTOR}).  In this case, an expression @var{index} must be
+specified in parentheses following the vector name.  The expression @var{index}
+must evaluate to a numeric value that, after rounding down
 to the nearest integer, is a valid index for the named vector.
 
 Using @cmd{COMPUTE} to assign to a variable specified on @cmd{LEAVE}
@@ -300,15 +302,15 @@ When @cmd{COMPUTE} is specified following @cmd{TEMPORARY}
 @vindex COUNT
 
 @display
-COUNT var_name = var@dots{} (value@dots{}).
+COUNT @var{var_name} = @var{var}@dots{} (@var{value}@dots{}).
 
-Each value takes one of the following forms:
-        number
-        string
-        num1 THRU num2
+Each @var{value} takes one of the following forms:
+        @var{number}
+        @var{string}
+        @var{num1} THRU @var{num2}
         MISSING
         SYSMIS
-In addition, num1 and num2 can be LO or LOWEST, or HI or HIGHEST,
+In addition, @var{num1} and @var{num2} can be LO or LOWEST, or HI or HIGHEST,
 respectively.
 @end display
 
@@ -329,22 +331,22 @@ variables), keyword MISSING may be used to refer to all system-
 and user-missing values.
 
 @cmd{COUNT} target variables are assigned values in the order
-specified.  In the command @code{COUNT A=A B(1) /B=A B(2).}, the
+specified.  In the command @code{COUNT @var{A}=@var{A} @var{B}(1) /@var{B}=@var{A} @var{B}(2).}, the
 following actions occur:
 
 @itemize @minus
 @item
-The number of occurrences of 1 between @code{A} and @code{B} is counted.
+The number of occurrences of 1 between @var{A} and @var{B} is counted.
 
 @item
-@code{A} is assigned this value.
+@var{A} is assigned this value.
 
 @item
-The number of occurrences of 1 between @code{B} and the @strong{new}
-value of @code{A} is counted.
+The number of occurrences of 1 between @var{B} and the @strong{new}
+value of @var{A} is counted.
 
 @item
-@code{B} is assigned this value.
+@var{B} is assigned this value.
 @end itemize
 
 Despite this ordering, all @cmd{COUNT} criterion variables must exist
@@ -404,7 +406,7 @@ DESCRIPTIVES QVALID /STATISTICS=MEAN.
 @vindex FLIP
 
 @display
-FLIP /VARIABLES=var_list /NEWNAMES=var_name.
+FLIP /VARIABLES=@var{var_list} /NEWNAMES=@var{var_name}.
 @end display
 
 @cmd{FLIP} transposes rows and columns in the active dataset.  It
@@ -418,21 +420,22 @@ selects variables to be transformed into cases, and variables not
 specified are discarded.  If the @subcmd{VARIABLES} subcommand is omitted, all
 variables are selected for transposition.
 
-The variables specified by NEWNAMES, which must be a string variable, is
+The variables specified by @subcmd{NEWNAMES}, which must be a
+string variable, is
 used to give names to the variables created by @cmd{FLIP}.  Only the
 first 8 characters of the variable are used.  If
-NEWNAMES is not
+@subcmd{NEWNAMES} is not
 specified then the default is a variable named CASE_LBL, if it exists.
-If it does not then the variables created by FLIP are named VAR000
+If it does not then the variables created by @cmd{FLIP} are named VAR000
 through VAR999, then VAR1000, VAR1001, and so on.
 
-When a NEWNAMES variable is available, the names must be canonicalized
+When a @subcmd{NEWNAMES} variable is available, the names must be canonicalized
 before becoming variable names.  Invalid characters are replaced by
 letter @samp{V} in the first position, or by @samp{_} in subsequent
 positions.  If the name thus generated is not unique, then numeric
 extensions are added, starting with 1, until a unique name is found or
 there are no remaining possibilities.  If the latter occurs then the
-FLIP operation aborts.
+@cmd{FLIP} operation aborts.
 
 The resultant dictionary contains a CASE_LBL variable, a string
 variable of width 8, which stores the names of the variables in the
@@ -441,7 +444,7 @@ characters are truncated.  If the active dataset is subsequently
 transposed using @cmd{FLIP}, this variable can be used to recreate the
 original variable names.
 
-FLIP honors @cmd{N OF CASES} (@pxref{N OF CASES}).  It ignores
+@cmd{FLIP} honors @cmd{N OF CASES} (@pxref{N OF CASES}).  It ignores
 @cmd{TEMPORARY} (@pxref{TEMPORARY}), so that ``temporary''
 transformations become permanent.
 
@@ -450,9 +453,11 @@ transformations become permanent.
 @vindex IF
 
 @display
-IF condition variable=expression.
+IF @var{condition} @var{variable}=@var{expression}.
+@end display
   or
-IF condition vector(index)=expression.
+@display
+IF @var{condition} vector(@var{index})=@var{expression}.
 @end display
 
 The @cmd{IF} transformation conditionally assigns the value of a target
@@ -460,7 +465,7 @@ expression to a target variable, based on the truth of a test
 expression.
 
 Specify a boolean-valued expression (@pxref{Expressions}) to be tested
-following the IF keyword.  This expression is evaluated for each case.
+following the @cmd{IF} keyword.  This expression is evaluated for each case.
 If the value is true, then the value of the expression is computed and
 assigned to the specified variable.  If the value is false or missing,
 nothing is done.  Numeric and string variables may be
@@ -671,17 +676,17 @@ changing any instances of 1 into 3.
 @vindex SORT CASES
 
 @display
-SORT CASES BY var_list[(@{D|A@}] [ var_list[(@{D|A@}] ] ...
+SORT CASES BY @var{var_list}[(@{D|A@}] [ @var{var_list}[(@{D|A@}] ] ...
 @end display
 
 @cmd{SORT CASES} sorts the active dataset by the values of one or more
 variables.
 
-Specify BY and a list of variables to sort by.  By default, variables
-are sorted in ascending order.  To override sort order, specify (D) or
-(DOWN) after a list of variables to get descending order, or (A) or (UP)
+Specify @subcmd{BY} and a list of variables to sort by.  By default, variables
+are sorted in ascending order.  To override sort order, specify @subcmd{(D)} or
+@subcmd{(DOWN)} after a list of variables to get descending order, or @subcmd{(A)} or @subcmd{(UP)}
 for ascending order.  These apply to all the listed variables
-up until the preceding (A), (D), (UP) or (DOWN).
+up until the preceding @subcmd{(A)}, @subcmd{(D)}, @subcmd{(UP)} or @subcmd{(DOWN)}.
 
 The sort algorithms used by @cmd{SORT CASES} are stable.  That is,
 records that have equal values of the sort variables will have the
@@ -695,4 +700,4 @@ cases.
 If workspace is exhausted, it falls back to a merge sort algorithm that
 involves creates numerous temporary files.
 
-@cmd{SORT CASES} may not be specified following TEMPORARY.  
+@cmd{SORT CASES} may not be specified following @cmd{TEMPORARY}.  

@@ -26,7 +26,7 @@ executed.
 Whichever method you choose, the syntax is identical.
 
 When using the interactive method, @pspp{} tells you that it's waiting for your
-data with a string like @prompt{@pspp{}>} or @prompt{data>}.
+data with a string like @prompt{PSPP>} or @prompt{data>}.
 In the examples of this chapter, whenever you see text like this, it
 indicates the prompt displayed by @pspp{}, @emph{not} something that you 
 should type.
@@ -105,14 +105,14 @@ and reads data into them by manual input.
 @float Example, data-list
 @cartouche
 @example
-@prompt{@pspp{}>} data list list /forename (A12) height.
-@prompt{@pspp{}>} begin data.
+@prompt{PSPP>} data list list /forename (A12) height.
+@prompt{PSPP>} begin data.
 @prompt{data>} Ahmed 188
 @prompt{data>} Bertram 167
 @prompt{data>} Catherine 134.231
 @prompt{data>} David 109.1
 @prompt{data>} end data
-@prompt{@pspp{}>}
+@prompt{PSPP>}
 @end example
 @end cartouche
 @caption{Manual entry of data using the @cmd{DATA LIST} command.
@@ -148,7 +148,7 @@ For more information on data formats, @pxref{Input and Output Formats}.
 
 
 @item
-Normally, @pspp{} displays the  prompt @prompt{@pspp{}>} whenever it's
+Normally, @pspp{} displays the  prompt @prompt{PSPP>} whenever it's
 expecting a command.
 However, when it's expecting data, the prompt changes to @prompt{data>}
 so that you know to enter data and not a command.
@@ -168,7 +168,7 @@ terminating commands.
 Once the data has been entered,
 you could type
 @example
-@prompt{@pspp{}>} list /format=numbered.
+@prompt{PSPP>} list /format=numbered.
 @end example
 @noindent
 to list the data.
@@ -215,7 +215,7 @@ Zachariah      113.02
 You can can tell the @cmd{DATA LIST} command to read the data directly from
 this file instead of by manual entry, with a command like:
 @example
-@prompt{@pspp{}>} data list file='mydata.dat' list /forename (A12) height.
+@prompt{PSPP>} data list file='mydata.dat' list /forename (A12) height.
 @end example
 @noindent
 Notice however, that it is still necessary to specify the names of the
@@ -240,7 +240,7 @@ have the suffix @file{.sav}, but that is
 not mandatory.
 The following syntax loads a file called @file{my-file.sav}.
 @example
-@prompt{@pspp{}>} get file='my-file.sav'.
+@prompt{PSPP>} get file='my-file.sav'.
 @end example
 @noindent
 You will encounter several instances of this in future examples.
@@ -258,7 +258,7 @@ the @cmd{SAVE} command.
 The following syntax will save the existing data and variables to a
 file called @file{my-new-file.sav}.
 @example
-@prompt{@pspp{}>} save outfile='my-new-file.sav'.
+@prompt{PSPP>} save outfile='my-new-file.sav'.
 @end example
 @noindent
 If @file{my-new-file.sav} already exists, then it will be overwritten.
@@ -317,8 +317,8 @@ data and identify the erroneous values.
 @float Example, descriptives
 @cartouche
 @example
-@prompt{@pspp{}>} get file='@value{example-dir}/physiology.sav'.
-@prompt{@pspp{}>} descriptives sex, weight, height.
+@prompt{PSPP>} get file='@value{example-dir}/physiology.sav'.
+@prompt{PSPP>} descriptives sex, weight, height.
 @end example
 
 Output:
@@ -363,7 +363,7 @@ represent data entry errors.
 @cartouche
 [@dots{} continue from @ref{descriptives}]
 @example
-@prompt{@pspp{}>} examine height, weight /statistics=extreme(3).    
+@prompt{PSPP>} examine height, weight /statistics=extreme(3).    
 @end example
 
 Output:
@@ -486,12 +486,12 @@ negatively scaled variables) requests reliability statistics for
 @float Example, reliability
 @cartouche
 @example
-@prompt{@pspp{}>} get file='@value{example-dir}/hotel.sav'.
-@prompt{@pspp{}>} display dictionary.
-@prompt{@pspp{}>} * recode negatively worded questions.
-@prompt{@pspp{}>} compute v3 = 6 - v3.
-@prompt{@pspp{}>} compute v5 = 6 - v5.
-@prompt{@pspp{}>} reliability v1, v3, v5.
+@prompt{PSPP>} get file='@value{example-dir}/hotel.sav'.
+@prompt{PSPP>} display dictionary.
+@prompt{PSPP>} * recode negatively worded questions.
+@prompt{PSPP>} compute v3 = 6 - v3.
+@prompt{PSPP>} compute v5 = 6 - v5.
+@prompt{PSPP>} reliability v1, v3, v5.
 @end example
 
 Output (dictionary information omitted for clarity):
@@ -569,11 +569,11 @@ an appropriate non-parametric test instead of a linear one.
 @float Example, normality
 @cartouche
 @example
-@prompt{@pspp{}>} get file='@value{example-dir}/repairs.sav'.
-@prompt{@pspp{}>} examine mtbf 
+@prompt{PSPP>} get file='@value{example-dir}/repairs.sav'.
+@prompt{PSPP>} examine mtbf 
                 /statistics=descriptives.
-@prompt{@pspp{}>} compute mtbf_ln = ln (mtbf).
-@prompt{@pspp{}>} examine mtbf_ln
+@prompt{PSPP>} compute mtbf_ln = ln (mtbf).
+@prompt{PSPP>} examine mtbf_ln
                 /statistics=descriptives.
 @end example
 
@@ -718,9 +718,9 @@ suggest that the body temperature of male and female persons are different.
 @float Example, t-test
 @cartouche
 @example
-@prompt{@pspp{}>} get file='@value{example-dir}/physiology.sav'.
-@prompt{@pspp{}>} recode height (179 = SYSMIS).
-@prompt{@pspp{}>} t-test group=sex(0,1) /variables = height temperature.
+@prompt{PSPP>} get file='@value{example-dir}/physiology.sav'.
+@prompt{PSPP>} recode height (179 = SYSMIS).
+@prompt{PSPP>} t-test group=sex(0,1) /variables = height temperature.
 @end example
 Output:
 @example
@@ -784,9 +784,9 @@ identifies the potential linear relationship. @xref{REGRESSION}.
 @float Example, regression 
 @cartouche
 @example
-@prompt{@pspp{}>} get file='@value{example-dir}/repairs.sav'.
-@prompt{@pspp{}>} regression /variables = mtbf duty_cycle /dependent = mttr.
-@prompt{@pspp{}>} regression /variables = mtbf /dependent = mttr.
+@prompt{PSPP>} get file='@value{example-dir}/repairs.sav'.
+@prompt{PSPP>} regression /variables = mtbf duty_cycle /dependent = mttr.
+@prompt{PSPP>} regression /variables = mtbf /dependent = mttr.
 @end example
 Output:
 @example
@@ -851,7 +851,7 @@ suggesting that at the 0.06 level, the formula
 predictor of the time to repair.
 
 
-@c  LocalWords:  @pspp{} dir itemize noindent var cindex dfn cartouche samp xref
+@c  LocalWords:  PSPP dir itemize noindent var cindex dfn cartouche samp xref
 @c  LocalWords:  pxref ie sav Std Dev kilograms SYSMIS sansserif pre pspp emph
 @c  LocalWords:  Likert Cronbach's Cronbach mtbf npplot ln myfile cmd NPAR Sig
 @c  LocalWords:  vindex Levene Levene's df Diff clicksequence mydata dat ascii

@@ -440,9 +440,9 @@ Successive output items are separated by a blank line.
 @chapter Invoking @command{psppire}
 @section The graphic user interface
 @cindex Graphic user interface
-@cindex @pspp{}IRE
+@cindex PSPPIRE
 
-The @pspp{}IRE graphic user interface for @pspp{} can perform all
+The PSPPIRE graphic user interface for @pspp{} can perform all
 functionality of the command line interface.  In addition it gives an
 instantaneous view of the data, variables and statistical output.
 

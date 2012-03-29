@@ -34,7 +34,6 @@ encountered in the input.
 @end menu
 
 @node ADD DOCUMENT
-@comment  node-name,  next,  previous,  up
 @section ADD DOCUMENT
 @vindex  ADD DOCUMENT
 
@@ -166,7 +165,6 @@ ECHO 'arbitrary text' .
 Use @cmd{ECHO} to write arbitrary text to the output stream. The text should be enclosed in quotation marks following the normal rules for string tokens (@pxref{Tokens}).
 
 @node ERASE
-@comment  node-name,  next,  previous,  up
 @section ERASE
 @vindex ERASE
 
@@ -176,7 +174,7 @@ ERASE FILE file_name.
 
 @cmd{ERASE FILE} deletes a file from the local filesystem.
 file_name must be quoted.
-This command cannot be used if the SAFER setting is active.
+This command cannot be used if the SAFER (@pxref{SET}) setting is active.
 
 
 @node EXECUTE
@@ -195,15 +193,15 @@ transformations to be executed.
 @vindex FILE LABEL
 
 @display
-FILE LABEL file_label.
+FILE LABEL @var{file_label}.
 @end display
 
 @cmd{FILE LABEL} provides a title for the active dataset.  This
 title will be saved into system files and portable files that are
 created during this @pspp{} run.
 
-file_label need not be quoted.  If quotes are
-included, they become part of the file label.
+@var{file_label} should not be quoted.
+If quotes are included, they are literally interpreted and become part of the file label.
 
 @node FINISH
 @section FINISH
@@ -217,18 +215,17 @@ FINISH.
 control to the operating system.
 
 @node HOST
-@comment  node-name,  next,  previous,  up
 @section HOST
 @vindex HOST
 
 @display
 HOST.
-HOST COMMAND=['command'...].
+HOST COMMAND=['@var{command}'...].
 @end display
 
 @cmd{HOST} suspends the current @pspp{} session and temporarily returns control 
 to the operating system.
-This command cannot be used if the SAFER setting is active.
+This command cannot be used if the SAFER (@pxref{SET}) setting is active.
 
 If the @subcmd{COMMAND} subcommand is specified, as a sequence of shell
 commands as quoted strings within square brackets, then @pspp{} executes
@@ -242,7 +239,7 @@ subshell.
 @vindex INCLUDE
 
 @display
-        INCLUDE [FILE=]'file-name' [ENCODING='encoding'].
+        INCLUDE [FILE=]'@var{file_name}' [ENCODING='@var{encoding}'].
 @end display
 
 @cmd{INCLUDE} causes the @pspp{} command processor to read an
@@ -254,21 +251,21 @@ Include files may be nested to any depth, up to the limit of available
 memory.
 
 The @cmd{INSERT} command (@pxref{INSERT}) is a more flexible
-alternative to @cmd{INCLUDE}.  An INCLUDE command acts the same as
-INSERT with ERROR=STOP CD=NO SYNTAX=BATCH specified.
+alternative to @cmd{INCLUDE}.  An @cmd{INCLUDE} command acts the same as
+@cmd{INSERT} with @subcmd{ERROR=STOP CD=NO SYNTAX=BATCH} specified.
 
-The optional @subcmd{ENCODING} subcommand has the same meaning as on INSERT.
+The optional @subcmd{ENCODING} subcommand has the same meaning as with @cmd{INSERT}.
 
 @node INSERT
 @section INSERT
 @vindex INSERT
 
 @display
-     INSERT [FILE=]'file-name'
+     INSERT [FILE=]'@var{file_name}'
         [CD=@{NO,YES@}]
         [ERROR=@{CONTINUE,STOP@}]
         [SYNTAX=@{BATCH,INTERACTIVE@}]
-        [ENCODING='encoding'].
+        [ENCODING=@{LOCALE, '@var{charset_name}'@}].
 @end display
 
 @cmd{INSERT} is similar to @cmd{INCLUDE} (@pxref{INCLUDE}) 
@@ -276,7 +273,7 @@ but somewhat more flexible.
 It causes the command processor to read a file as if it were embedded in the 
 current command file.
 
-If @samp{CD=YES} is specified, then before including the file, the
+If @subcmd{CD=YES} is specified, then before including the file, the
 current directory  will be changed to the directory of the included
 file.  
 The default setting is @samp{CD=NO}.
@@ -286,27 +283,28 @@ changed explicitly (with the @cmd{CD} command, or a subsequent
 It will not revert to its original setting even after the included
 file is finished processing.
 
-If @samp{ERROR=STOP} is specified, errors encountered in the
+If @subcmd{ERROR=STOP} is specified, errors encountered in the
 inserted file will cause processing to immediately cease.
 Otherwise processing will continue at the next command.
-The default setting is @samp{ERROR=CONTINUE}.
+The default setting is @subcmd{ERROR=CONTINUE}.
 
-If @samp{SYNTAX=INTERACTIVE} is specified then the syntax contained in
+If @subcmd{SYNTAX=INTERACTIVE} is specified then the syntax contained in
 the included file must conform to interactive syntax
 conventions. @xref{Syntax Variants}.
-The default setting is @samp{SYNTAX=BATCH}.
+The default setting is @subcmd{SYNTAX=BATCH}.
 
-ENCODING optionally specifies the character set used by the included
+@subcmd{ENCODING} optionally specifies the character set used by the included
 file.  Its argument, which is not case-sensitive, must be in one of
 the following forms:
 
 @table @asis
-@item @code{Locale}
-The encoding used by the system locale, or as overridden by the SET
-LOCALE command (@pxref{SET}).  On Unix systems, environment variables,
-e.g.@: @env{LANG} or @env{LC_ALL}, determine the system locale.
+@item @subcmd{LOCALE}
+The encoding used by the system locale, or as overridden by the 
+@cmd{SET} command (@pxref{SET}).  On GNU/Linux and other Unix-like systems,
+environment variables, e.g.@: @env{LANG} or @env{LC_ALL}, determine the
+system locale.
 
-@item IANA character set name
+@item @var{charset_name}
 One of the character set names listed by IANA at
 @uref{http://www.iana.org/assignments/character-sets}.  Some examples
 are @code{ASCII} (United States), @code{ISO-8859-1} (western Europe),
@@ -345,19 +343,19 @@ otherwise it is @code{Auto}.
 
 @display
 PERMISSIONS
-        FILE='file-name'
+        FILE='@var{file_name}'
         /PERMISSIONS = @{READONLY,WRITEABLE@}.
 @end display
 
 @cmd{PERMISSIONS} changes the permissions of a file.  
 There is one mandatory subcommand which specifies the permissions to
 which the file should be changed.  
-If you set a file's  permission  to READONLY, then the file will become
+If you set a file's  permission  to @subcmd{READONLY}, then the file will become
 unwritable either by you or anyone else on the system.
-If you set the permission to WRITEABLE, then the file will become
+If you set the permission to @subcmd{WRITEABLE}, then the file will become
 writeable by you; the permissions afforded to others will be
 unchanged.
-This command cannot be used if the SAFER setting is active.
+This command cannot be used if the @subcmd{SAFER} (@pxref{SET}) setting is active.
 
 
 @node PRESERVE and RESTORE
@@ -386,30 +384,30 @@ SET
 (data input)
         /BLANKS=@{SYSMIS,'.',number@}
         /DECIMAL=@{DOT,COMMA@}
-        /FORMAT=fmt_spec
-        /EPOCH=@{AUTOMATIC,year@}
+        /FORMAT=@var{fmt_spec}
+        /EPOCH=@{AUTOMATIC,@var{year}@}
         /RIB=@{NATIVE,MSBFIRST,LSBFIRST,VAX@}
         /RRB=@{NATIVE,ISL,ISB,IDL,IDB,VF,VD,VG,ZS,ZL@}
 
 (interaction)
-        /MXERRS=max_errs
-        /MXWARNS=max_warnings
-        /WORKSPACE=workspace_size
+        /MXERRS=@var{max_errs}
+        /MXWARNS=@var{max_warnings}
+        /WORKSPACE=@var{workspace_size}
 
 (syntax execution)
-        /LOCALE='locale'
+        /LOCALE='@var{locale}'
         /MEXPAND=@{ON,OFF@}
-        /MITERATE=max_iterations
-        /MNEST=max_nest
+        /MITERATE=@var{max_iterations}
+        /MNEST=@var{max_nest}
         /MPRINT=@{ON,OFF@}
-        /MXLOOPS=max_loops
-        /SEED=@{RANDOM,seed_value@}
+        /MXLOOPS=@var{max_loops}
+        /SEED=@{RANDOM,@var{seed_value}@}
         /UNDEFINED=@{WARN,NOWARN@}
 
 (data output)
-        /CC@{A,B,C,D,E@}=@{'npre,pre,suf,nsuf','npre.pre.suf.nsuf'@}
+        /CC@{A,B,C,D,E@}=@{'@var{npre},@var{pre},@var{suf},@var{nsuf}','@var{npre}.@var{pre}.@var{suf}.@var{nsuf}'@}
         /DECIMAL=@{DOT,COMMA@}
-        /FORMAT=fmt_spec
+        /FORMAT=@var{fmt_spec}
         /WIB=@{NATIVE,MSBFIRST,LSBFIRST,VAX@}
         /WRB=@{NATIVE,ISL,ISB,IDL,IDB,VF,VD,VG,ZS,ZL@}
 
@@ -421,13 +419,13 @@ SET
 
 (output driver options)
         /HEADERS=@{NO,YES,BLANK@}
-        /LENGTH=@{NONE,length_in_lines@}
+        /LENGTH=@{NONE,@var{n_lines}@}
         /MORE=@{ON,OFF@}
-        /WIDTH=@{NARROW,WIDTH,n_characters@}
+        /WIDTH=@{NARROW,WIDTH,@var{n_characters}@}
         /TNUMBERS=@{VALUES,LABELS,BOTH@}
 
 (logging)
-        /JOURNAL=@{ON,OFF@} ['file-name']
+        /JOURNAL=@{ON,OFF@} ['@var{file_name}']
 
 (system files)
         /COMPRESSION=@{ON,OFF@}
@@ -435,22 +433,22 @@ SET
 
 (miscellaneous)
         /SAFER=ON
-        /LOCALE='string'
+        /LOCALE='@var{string}'
 
 
 (obsolete settings accepted for compatibility, but ignored)
-        /BOXSTRING=@{'xxx','xxxxxxxxxxx'@}
+        /BOXSTRING=@{'@var{xxx}','@var{xxxxxxxxxxx}'@}
         /CASE=@{UPPER,UPLOW@}
         /CPI=cpi_value
         /HIGHRES=@{ON,OFF@}
-        /HISTOGRAM='c'
+        /HISTOGRAM='@var{c}'
         /LOWRES=@{AUTO,ON,OFF@}
-        /LPI=lpi_value
+        /LPI=@var{lpi_value}
         /MENUS=@{STANDARD,EXTENDED@}
-        /MXMEMORY=max_memory
+        /MXMEMORY=@var{max_memory}
         /SCRIPTTAB='c'
-        /TB1=@{'xxx','xxxxxxxxxxx'@}
-        /TBFONTS='string'
+        /TB1=@{'@var{xxx}','@var{xxxxxxxxxxx}'@}
+        /TBFONTS='@var{string}'
         /XSORT=@{YES,NO@}
 @end display
 
@@ -458,8 +456,8 @@ SET
 @pspp{}'s execution.  Since there are many subcommands to this command, its
 subcommands will be examined in groups.
 
-For subcommands that take boolean values, ON and YES are synonymous, 
-as are OFF and NO, when used as subcommand values.
+For subcommands that take boolean values, @subcmd{ON} and @subcmd{YES} are synonymous, 
+as are @subcmd{OFF} and @subcmd{NO}, when used as subcommand values.
 
 The data input subcommands affect the way that data is read from data
 files.  The data input subcommands are
@@ -474,10 +472,10 @@ default.  Any real value may be assigned.
 
 @item DECIMAL
 @anchor{SET DECIMAL}
-This value may be set to DOT or COMMA.
+This value may be set to @subcmd{DOT} or @subcmd{COMMA}.
 Setting it to DOT causes the decimal point character to be
 @samp{.} and the grouping character to be @samp{,}.
-Setting it to COMMA
+Setting it to @subcmd{COMMA}
 causes the decimal point character to be @samp{,} and the grouping
 character to be @samp{.}.
 The default value is determined from the system locale.
@@ -492,7 +490,7 @@ Specifies the range of years used when a 2-digit year is read from a
 data file or used in a date construction expression (@pxref{Date
 Construction}).  If a 4-digit year is specified for the epoch, then
 2-digit years are interpreted starting from that year, known as the
-epoch.  If AUTOMATIC (the default) is specified, then the epoch begins
+epoch.  If @subcmd{AUTOMATIC} (the default) is specified, then the epoch begins
 69 years before the current date.
 
 @item RIB
@@ -597,7 +595,7 @@ Currently not used.
 
 @item MXLOOPS
 The maximum number of iterations for an uncontrolled loop (@pxref{LOOP}).
-The default MXLOOPS is 40.
+The default @var{max_loops} is 40.
 
 @item SEED
 The initial pseudo-random number seed.  Set to a real number or to
@@ -770,11 +768,11 @@ Setting this option disables the following operations:
 
 @itemize @bullet
 @item
-The ERASE command.
+The @cmd{ERASE} command.
 @item
-The HOST command.
+The @cmd{HOST} command.
 @item
-The PERMISSIONS command.
+The @cmd{PERMISSIONS} command.
 @item
 Pipes (file names beginning or ending with @samp{|}).
 @end itemize
@@ -803,13 +801,11 @@ dependent.
 The following are all examples of acceptable syntax on common GNU/Linux
 systems.
 @example
-
 SET LOCALE='iso-8859-1'.
 
 SET LOCALE='ru_RU.cp1251'.
 
 SET LOCALE='japanese'.
-
 @end example
 
 Contrary to the intuition, this command does not affect any aspect 
@@ -817,7 +813,6 @@ of the system's locale.
 @end table
 
 @node SHOW
-@comment  node-name,  next,  previous,  up
 @section SHOW
 @vindex SHOW
 
@@ -852,38 +847,38 @@ SHOW
 @cmd{SHOW} can be used to display the current state of @pspp{}'s execution
 parameters.  Parameters that can be changed using @cmd{SET}
 (@pxref{SET}), can be examined using @cmd{SHOW} using the subcommand
-with the same name.  @code{SHOW} supports the following additional
+with the same name.  @cmd{SHOW} supports the following additional
 subcommands:
 
-@table @code
-@item ALL
+@table @bullet
+@item @subcmd{ALL}
 Show all settings.
-@item CC
+@item @subcmd{CC}
 Show all custom currency settings (CCA through CCE).
-@item DIRECTORY
+@item @subcmd{DIRECTORY}
 Shows the current working directory.
-@item ENVIRONMENT
+@item @subcmd{ENVIRONMENT}
 Shows the operating system details.
-@item TEMPDIR
+@item @subcmd{TEMPDIR}
 Shows the path of the directory where temporary files will be stored.
-@item VERSION
+@item @subcmd{VERSION}
 Shows the version of this installation of @pspp{}.
-@item WARRANTY
+@item @subcmd{WARRANTY}
 Show details of the lack of warranty for @pspp{}.
-@item COPYING / LICENSE
+@item @subcmd{COPYING} / @subcmd{LICENSE}
 Display the terms of @pspp{}'s copyright licence (@pxref{License}).
 @end table
 
-Specifying @cmd{SHOW} without any subcommands is equivalent to SHOW ALL.
+Specifying @cmd{SHOW} without any subcommands is equivalent to @subcmd{SHOW ALL}.
 
 @node SUBTITLE
 @section SUBTITLE
 @vindex SUBTITLE
 
 @display
-SUBTITLE 'subtitle_string'.
+SUBTITLE '@var{subtitle_string}'.
   or
-SUBTITLE subtitle_string.
+SUBTITLE @var{subtitle_string}.
 @end display
 
 @cmd{SUBTITLE} provides a subtitle to a particular @pspp{}
@@ -899,9 +894,9 @@ converted to all uppercase.
 @vindex TITLE
 
 @display
-TITLE 'title_string'.
+TITLE '@var{title_string}'.
   or
-TITLE title_string.
+TITLE @var{title_string}.
 @end display
 
 @cmd{TITLE} provides a title to a particular @pspp{} run.
