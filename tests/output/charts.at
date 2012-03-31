@@ -19,7 +19,7 @@ end file.
 end input program.
 
 examine x y by a
-	/plot = histogram, npplot
+	/plot = histogram, npplot spreadlevel(1)
 	.
 
 examine x y by a

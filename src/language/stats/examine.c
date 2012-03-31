@@ -52,6 +52,7 @@
 
 #include "output/charts/boxplot.h"
 #include "output/charts/np-plot.h"
+#include "output/charts/spreadlevel-plot.h"
 #include "output/charts/plot-hist.h"
 
 #include "language/command.h"
@@ -121,6 +122,8 @@ struct examine
   bool npplot;
   bool histogram;
   bool boxplot;
+  bool spreadlevel;
+  int sl_power;
 
   enum bp_mode boxplot_mode;
 
@@ -452,6 +455,58 @@ show_npplot (const struct examine *cmd, int iact_idx)
 
           ds_destroy (&label);
         }
+    }
+}
+
+static void
+show_spreadlevel (const struct examine *cmd, int iact_idx)
+{
+  const struct interaction *iact = cmd->iacts[iact_idx];
+  const size_t n_cats =  categoricals_n_count (cmd->cats, iact_idx);
+
+  int v;
+
+  /* Spreadlevel when there are no levels is not useful */
+  if (iact->n_vars == 0)
+    return;
+
+  for (v = 0; v < cmd->n_dep_vars; ++v)
+    {
+      int grp;
+      struct chart_item *sl;
+
+      struct string label;
+      ds_init_cstr (&label, 
+		    var_to_string (cmd->dep_vars[v]));
+
+      if (iact->n_vars > 0)
+	{
+	  ds_put_cstr (&label, " (");
+	  interaction_to_string (iact, &label);
+	  ds_put_cstr (&label, ")");
+	}
+      
+      sl = spreadlevel_plot_create (ds_cstr (&label), cmd->sl_power);
+
+      for (grp = 0; grp < n_cats; ++grp)
+        {
+          const struct exploratory_stats *es =
+            categoricals_get_user_data_by_category_real (cmd->cats, iact_idx, grp);
+
+	  double median = percentile_calculate (es[v].quartiles[1], cmd->pc_alg);
+
+	  double iqr = percentile_calculate (es[v].quartiles[2], cmd->pc_alg) -
+	    percentile_calculate (es[v].quartiles[0], cmd->pc_alg);
+
+	  spreadlevel_plot_add (sl, iqr, median);
+	}
+
+      if (sl == NULL)
+	msg (MW, _("Not creating spreadlevel chart for %s"), ds_cstr (&label));
+      else 
+	chart_item_submit (sl);
+
+      ds_destroy (&label);
     }
 }
 
@@ -1814,6 +1869,9 @@ run_examine (struct examine *cmd, struct casereader *input)
       if (cmd->npplot)
         show_npplot (cmd, i);
 
+      if (cmd->spreadlevel)
+        show_spreadlevel (cmd, i);
+
       if (cmd->descriptives)
         descriptives_report (cmd, i);
     }
@@ -1864,6 +1922,8 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
   examine.histogram = false;
   examine.npplot = false;
   examine.boxplot = false;
+  examine.spreadlevel = false;
+  examine.sl_power = 0;
   
   examine.dict = dataset_dict (ds);
 
@@ -2090,6 +2150,19 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
               else if (lex_match_id (lexer, "HISTOGRAM"))
                 {
                   examine.histogram = true;
+                }
+              else if (lex_match_id (lexer, "SPREADLEVEL"))
+                {
+		  examine.spreadlevel = true;
+		  examine.sl_power = 0;
+		  if (lex_match (lexer, T_LPAREN))
+		    {
+                      examine.sl_power = lex_integer (lexer);
+
+                      lex_get (lexer);
+                      if (! lex_force_match (lexer, T_RPAREN))
+                        goto error;
+		    }
                 }
               else if (lex_match_id (lexer, "NONE"))
                 {

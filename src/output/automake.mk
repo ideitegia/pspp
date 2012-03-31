@@ -20,6 +20,8 @@ src_output_liboutput_la_SOURCES = \
 	src/output/charts/plot-hist.h \
 	src/output/charts/roc-chart.c \
 	src/output/charts/roc-chart.h \
+	src/output/charts/spreadlevel-plot.c \
+	src/output/charts/spreadlevel-plot.h \
 	src/output/charts/scree.c \
 	src/output/charts/scree.h \
 	src/output/csv.c \
@@ -66,7 +68,8 @@ src_output_liboutput_la_SOURCES += \
 	src/output/charts/piechart-cairo.c \
 	src/output/charts/plot-hist-cairo.c \
 	src/output/charts/roc-chart-cairo.c \
-	src/output/charts/scree-cairo.c
+	src/output/charts/scree-cairo.c \
+	src/output/charts/spreadlevel-cairo.c
 endif
 if ODF_WRITE_SUPPORT
 src_output_liboutput_la_SOURCES += src/output/odt.c

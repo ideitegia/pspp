@@ -162,5 +162,8 @@ void xrchart_draw_np_plot (const struct chart_item *, cairo_t *,
                            struct xrchart_geometry *);
 void xrchart_draw_scree (const struct chart_item *, cairo_t *,
                          struct xrchart_geometry *);
+void xrchart_draw_spreadlevel (const struct chart_item *, cairo_t *,
+                         struct xrchart_geometry *);
+
 
 #endif /* output/cairo-chart.h */

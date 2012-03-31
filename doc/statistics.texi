@@ -220,7 +220,7 @@ EXAMINE
              [ @var{factor3} [BY @var{subfactor3}]]
             ]
         /STATISTICS=@{DESCRIPTIVES, EXTREME[(@var{n})], ALL, NONE@}
-        /PLOT=@{BOXPLOT, NPPLOT, HISTOGRAM, ALL, NONE@}
+        /PLOT=@{BOXPLOT, NPPLOT, HISTOGRAM, SPREADLEVEL[(@var{t})], ALL, NONE@}
         /CINTERVAL @var{p}
         /COMPARE=@{GROUPS,VARIABLES@}
         /ID=@var{identity_variable}
@@ -274,11 +274,23 @@ specified.
 @cindex boxplot
 @cindex histogram
 @cindex npplot
+@cindex spreadlevel plot
 The @subcmd{PLOT} subcommand specifies which plots are to be produced if any.
-Available plots are @subcmd{HISTOGRAM}, @subcmd{NPPLOT} and @subcmd{BOXPLOT}.
-They can all be used to visualise how closely each cell conforms to a 
-normal distribution.
+Available plots are @subcmd{HISTOGRAM}, @subcmd{NPPLOT},  @subcmd{BOXPLOT} and
+@subcmd{SPREADLEVEL}.
+The first three can be used to visualise how closely each cell conforms to a 
+normal distribution, whilst the spread vs.@: level plot can be useful to visualise
+how the variance of differs between factors.
 Boxplots will also show you the outliers and extreme values.
+
+The @subcmd{SPREADLEVEL} plot displays the interquartile range versus the 
+median.  It takes an optional parameter @var{t}, which specifies how the data
+should be transformed prior to plotting.
+The given value @var{t} is a power to which the data is raised.  For example, if
+@var{t} is given as 2, then the data will be squared.
+Zero, however is a special value.  If @var{t} is 0 or 
+is omitted, then data will be transformed by taking its natural logarithm instead of
+raising to the power of @var{t}.
 
 The @subcmd{COMPARE} subcommand is only relevant if producing boxplots, and it is only 
 useful there is more than one dependent variable and at least one factor.
