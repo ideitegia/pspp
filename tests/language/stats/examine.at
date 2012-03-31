@@ -641,3 +641,32 @@ x,Highest,1,threehundred,300.00
 ])
 
 AT_CLEANUP 
+
+dnl Test for a crash which happened on cleanup from a bad input syntax
+AT_SETUP([EXAMINE -- Bad Input])
+
+AT_DATA([examine-bad.sps], [dnl
+data list list /h * g *.
+begin data.
+1 1
+2 1
+3 1
+4 1
+5 2
+6 2
+7 2
+8 2
+9 2
+end data.
+
+EXAMINE 
+	/VARIABLES= h
+	BY  g
+	/STATISTICS = DESCRIPTIVES EXTREME
+        /PLOT = lkajsdas
+	.
+])
+
+AT_CHECK([pspp -o pspp.csv examine-bad.sps], [1], [ignore])
+
+AT_CLEANUP 

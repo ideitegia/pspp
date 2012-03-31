@@ -2215,6 +2215,7 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 
  error:
   caseproto_unref (examine.ex_proto);
+  examine.iacts = iacts_mem;
   for (i = 0; i < examine.n_iacts; ++i)
     interaction_destroy (examine.iacts[i]);
   free (examine.dep_vars);
