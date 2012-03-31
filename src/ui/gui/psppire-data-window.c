@@ -34,7 +34,6 @@
 #include "ui/gui/count-dialog.h"
 #include "ui/gui/crosstabs-dialog.h"
 #include "ui/gui/entry-dialog.h"
-#include "ui/gui/examine-dialog.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/factor-dialog.h"
 #include "ui/gui/find-dialog.h"
@@ -1096,9 +1095,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "analyze_frequencies", G_CALLBACK (frequencies_dialog));
  
   connect_action (de, "crosstabs", G_CALLBACK (crosstabs_dialog));
- 
-  connect_action (de, "analyze_explore", G_CALLBACK (examine_dialog));
- 
   connect_action (de, "linear-regression", G_CALLBACK (regression_dialog));
  
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));

@@ -358,8 +358,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="analyze_explore">
+          <object class="PsppireDialogActionExamine" id="explore">
             <property name="name">analyze_explore</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">_Explore...</property>
           </object>
         </child>
@@ -607,7 +608,7 @@
           <menu action="descriptive-statistics">
             <menuitem action="analyze_frequencies"/>
             <menuitem action="analyze_descriptives"/>
-            <menuitem action="analyze_explore"/>
+            <menuitem action="explore"/>
             <menuitem action="crosstabs"/>
           </menu>
           <menu action="compare-means">
