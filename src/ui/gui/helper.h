@@ -46,6 +46,8 @@ null_if_empty_param (const gchar *name, const gchar *nick,
 
 
 gchar * value_to_text (union value v, const struct variable *);
+gchar * value_to_text__ (union value v, const struct fmt_spec *,
+                         const char *encoding);
 
 
 union value *

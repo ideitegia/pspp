@@ -58,17 +58,32 @@
 gchar *
 value_to_text (union value v, const struct variable *var)
 {
+  return value_to_text__ (v, var_get_print_format (var),
+                          var_get_encoding (var));
+}
+
+/* Formats a value with format FORMAT and strips white space appropriately for
+   FORMATs' type.  That is, if FORMAT is numeric, strips leading white space
+   (because numbers are right-justified within their fields), and if FORMAT is
+   string, strips trailing white space (because spaces pad out string values on
+   the right).
+
+   Returns an allocated string.  The returned string must be freed when no
+   longer required. */
+gchar *
+value_to_text__ (union value v,
+                 const struct fmt_spec *format, const char *encoding)
+{
   gchar *s;
 
-  s = data_out (&v, var_get_encoding (var), var_get_print_format (var));
-  if (var_is_numeric (var))
+  s = data_out (&v, encoding, format);
+  if (fmt_is_numeric (format->type))
     g_strchug (s);
   else
     g_strchomp (s);
 
   return s;
 }
-
 
 /* Converts TEXT to a value.
 
