@@ -44,8 +44,11 @@ struct xrchart_axis
 /* The geometry of a chart. */
 struct xrchart_geometry
   {
-    int abscissa_top;
-    int ordinate_right;
+    /* Bottom of the abscissa segment */
+    int abscissa_bottom;
+
+    /* Left of the ordinate segment */
+    int ordinate_left;
 
     int title_bottom;
 

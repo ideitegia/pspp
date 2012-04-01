@@ -46,13 +46,14 @@ void
 xrchart_geometry_init (cairo_t *cr, struct xrchart_geometry *geom,
                        double width, double length)
 {
-  /* Set default chartetry. */
+  /* Set default chart geometry. */
   geom->axis[SCALE_ORDINATE].data_max = 0.900 * length;
-  geom->axis[SCALE_ABSCISSA].data_max = 0.800 * width;
   geom->axis[SCALE_ORDINATE].data_min = 0.120 * length;
+
   geom->axis[SCALE_ABSCISSA].data_min = 0.150 * width;
-  geom->abscissa_top = 0.070 * length;
-  geom->ordinate_right = 0.120 * width;
+  geom->axis[SCALE_ABSCISSA].data_max = 0.800 * width;
+  geom->abscissa_bottom = 0.070 * length;
+  geom->ordinate_left = 0.050 * width;
   geom->title_bottom = 0.920 * length;
   geom->legend_left = 0.810 * width;
   geom->legend_right = width;
@@ -355,7 +356,7 @@ void
 xrchart_write_xlabel (cairo_t *cr, const struct xrchart_geometry *geom,
                     const char *label)
 {
-  cairo_move_to (cr, geom->axis[SCALE_ABSCISSA].data_min, geom->abscissa_top);
+  cairo_move_to (cr, geom->axis[SCALE_ABSCISSA].data_min, geom->abscissa_bottom);
   xrchart_label (cr, 'l', 't', geom->font_size, label);
 }
 
@@ -365,9 +366,9 @@ xrchart_write_ylabel (cairo_t *cr, const struct xrchart_geometry *geom,
                     const char *label)
 {
   cairo_save (cr);
-  cairo_translate (cr, -geom->axis[SCALE_ORDINATE].data_min, -geom->ordinate_right);
-  cairo_move_to (cr, 0, 0);
+  cairo_translate (cr, geom->ordinate_left,   geom->axis[SCALE_ORDINATE].data_min);
   cairo_rotate (cr, M_PI / 2.0);
+
   xrchart_label (cr, 'l', 'x', geom->font_size, label);
   cairo_restore (cr);
 }
