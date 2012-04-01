@@ -526,6 +526,7 @@ static char *
 choose_file (GtkWindow *parent_window)
 {
   char *file_name;
+  GtkFileFilter *filter = NULL;
 
   GtkWidget *dialog = gtk_file_chooser_dialog_new (_("Import Delimited Text Data"),
                                         parent_window,
@@ -535,6 +536,39 @@ choose_file (GtkWindow *parent_window)
                                         NULL);
 
   g_object_set (dialog, "local-only", FALSE, NULL);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Text files"));
+  gtk_file_filter_add_mime_type (filter, "text/*");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Text (*.txt) Files"));
+  gtk_file_filter_add_pattern (filter, "*.txt");
+  gtk_file_filter_add_pattern (filter, "*.TXT");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Plain Text (ASCII) Files"));
+  gtk_file_filter_add_mime_type (filter, "text/plain");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Comma Separated Value Files"));
+  gtk_file_filter_add_mime_type (filter, "text/csv");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  /* I've never encountered one of these, but it's listed here:
+     http://www.iana.org/assignments/media-types/text/tab-separated-values  */
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Tab Separated Value Files"));
+  gtk_file_filter_add_mime_type (filter, "text/tab-separated-values");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("All Files"));
+  gtk_file_filter_add_pattern (filter, "*");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   switch (gtk_dialog_run (GTK_DIALOG (dialog)))
     {
