@@ -1796,3 +1796,81 @@ factor /variables = ALL.
 
 AT_CHECK([pspp -O format=csv factor-empty.sps], [0], [ignore])
 AT_CLEANUP
+
+
+dnl Fixes a crash reported at
+dnl http://lists.gnu.org/archive/html/bug-gnu-pspp/2012-04/msg00001.html
+AT_SETUP([FACTOR /ROTATION=NOROTATE])
+AT_DATA([factor-norotate.sps], [dnl
+DATA LIST FREE / TRAIT1 TO TRAIT5 (F8.2).
+BEGIN DATA
+1 5 5 1 1
+8 9 7 9 8
+9 8 9 9 8
+9 9 9 9 9
+1 9 1 1 9
+9 7 7 9 9
+9 7 9 9 7
+END DATA
+
+FACTOR /VARIABLES=TRAIT1 TO TRAIT5
+    /ROTATION=NOROTATE    /* NOROTATE may have caused the problem. */
+    /EXTRACTION=PC
+    /PRINT=ALL
+])
+AT_CHECK([pspp -O format=csv factor-norotate.sps], [0], [dnl
+Table: Descriptive Statistics
+,Mean,Std. Deviation,Analysis N
+TRAIT1,6.57,3.54,7
+TRAIT2,7.71,1.39,7
+TRAIT3,6.71,2.71,7
+TRAIT4,6.71,3.61,7
+TRAIT5,7.29,2.66,7
+
+Table: KMO and Bartlett's Test
+Kaiser-Meyer-Olkin Measure of Sampling Adequacy,,1.00
+Bartlett's Test of Sphericity,Approx. Chi-Square,NaN
+,df,10
+,Sig.,NaN
+
+Table: Correlation Matrix
+,,TRAIT1,TRAIT2,TRAIT3,TRAIT4,TRAIT5
+Correlations,TRAIT1,1.00,.30,.88,1.00,.54
+,TRAIT2,.30,1.00,-.02,.33,.84
+,TRAIT3,.88,-.02,1.00,.87,.13
+,TRAIT4,1.00,.33,.87,1.00,.54
+,TRAIT5,.54,.84,.13,.54,1.00
+Sig. (1-tailed),TRAIT1,,.26,.00,.00,.10
+,TRAIT2,.26,,.48,.24,.01
+,TRAIT3,.00,.48,,.01,.39
+,TRAIT4,.00,.24,.01,,.10
+,TRAIT5,.10,.01,.39,.10,
+Determinant,.00,,,,,
+
+Table: Communalities
+,Initial,Extraction
+TRAIT1,1.00,1.00
+TRAIT2,1.00,1.00
+TRAIT3,1.00,.99
+TRAIT4,1.00,.99
+TRAIT5,1.00,.99
+
+Table: Total Variance Explained
+,Initial Eigenvalues,,,Extraction Sums of Squared Loadings,,
+Component,Total,% of Variance,Cumulative %,Total,% of Variance,Cumulative %
+1,3.26,65.26,65.26,3.26,65.26,65.26
+2,1.54,30.77,96.03,1.54,30.77,96.03
+3,.17,3.36,99.39,.17,3.36,99.39
+4,.03,.61,100.00,.03,.61,100.00
+5,.00,.00,100.00,,,
+
+Table: Component Matrix
+,Component,,,
+,1,2,3,4
+TRAIT1,.97,.23,-.08,.00
+TRAIT2,.52,-.81,.28,.00
+TRAIT3,.78,.59,.17,.00
+TRAIT4,.97,.21,-.04,.00
+TRAIT5,.70,-.67,-.23,.00
+])
+AT_CLEANUP

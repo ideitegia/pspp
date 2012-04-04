@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1536,16 +1536,12 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
       const double e_lambda = gsl_vector_get (extracted_eigenvalues, i);
       double e_percent = 100.0 * e_lambda / e_total ;
 
-      const double r_lambda = gsl_vector_get (rotated_loadings, i);
-      double r_percent = 100.0 * r_lambda / e_total ;
-
       c = 0;
 
       tab_text_format (t, c++, i + heading_rows, TAB_LEFT | TAT_TITLE, _("%zu"), i + 1);
 
       i_cum += i_percent;
       e_cum += e_percent;
-      r_cum += r_percent;
 
       /* Initial Eigenvalues */
       if (factor->print & PRINT_INITIAL)
@@ -1567,16 +1563,22 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 	    }
 	}
 
-      if (factor->print & PRINT_ROTATION)
-	{
-	  if (i < idata->n_extractions)
-	    {
-	      tab_double (t, c++, i + heading_rows, 0, r_lambda, NULL);
-	      tab_double (t, c++, i + heading_rows, 0, r_percent, NULL);
-	      tab_double (t, c++, i + heading_rows, 0, r_cum, NULL);
-	    }
-      }
+      if (rotated_loadings != NULL)
+        {
+          const double r_lambda = gsl_vector_get (rotated_loadings, i);
+          double r_percent = 100.0 * r_lambda / e_total ;
 
+          if (factor->print & PRINT_ROTATION)
+            {
+              if (i < idata->n_extractions)
+                {
+                  r_cum += r_percent;
+                  tab_double (t, c++, i + heading_rows, 0, r_lambda, NULL);
+                  tab_double (t, c++, i + heading_rows, 0, r_percent, NULL);
+                  tab_double (t, c++, i + heading_rows, 0, r_cum, NULL);
+                }
+            }
+        }
     }
 
   tab_submit (t);
