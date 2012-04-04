@@ -304,7 +304,7 @@ of variable specifications may be present.
 
 Each variable specification consists of a list of variable names
 followed by a description of their location on the input line.  Sets of
-variables may be specified using the @code{DATA LIST} TO convention
+variables may be specified using the @cmd{DATA LIST} @subcmd{TO} convention
 (@pxref{Sets of
 Variables}).  There are two ways to specify the location of the variable
 on the line: columnar style and FORTRAN style.
@@ -906,14 +906,14 @@ printed.  Keyword VARIABLES is optional.  If @subcmd{VARIABLES} subcommand is no
 specified then all variables in the active dataset are printed.
 
 The @subcmd{CASES} subcommand can be used to specify a subset of cases to be
-printed.  Specify FROM and the case number of the first case to print,
-TO and the case number of the last case to print, and BY and the number
+printed.  Specify @subcmd{FROM} and the case number of the first case to print,
+@subcmd{TO} and the case number of the last case to print, and @subcmd{BY} and the number
 of cases to advance between printing cases, or any subset of those
-settings.  If CASES is not specified then all cases are printed.
+settings.  If @subcmd{CASES} is not specified then all cases are printed.
 
-The @subcmd{FORMAT} subcommand can be used to change the output format.  NUMBERED
-will print case numbers along with each case; UNNUMBERED, the default,
-causes the case numbers to be omitted.  The WRAP and SINGLE settings are
+The @subcmd{FORMAT} subcommand can be used to change the output format.  @subcmd{NUMBERED}
+will print case numbers along with each case; @subcmd{UNNUMBERED}, the default,
+causes the case numbers to be omitted.  The @subcmd{WRAP} and @subcmd{SINGLE} settings are
 currently not used.
 
 Case numbers start from 1.  They are counted after all transformations
@@ -1034,7 +1034,7 @@ With @subcmd{OUTFILE}, @cmd{PRINT EJECT} writes its output to the specified file
 The first line of output is written with @samp{1} inserted in the
 first column.  Commonly, this is the only line of output.  If
 additional lines of output are specified, these additional lines are
-written with a space inserted in the first column, as with PRINT.
+written with a space inserted in the first column, as with @subcmd{PRINT}.
 
 @xref{PRINT}, for more information on syntax and usage.
 

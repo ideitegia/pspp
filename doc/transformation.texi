@@ -42,9 +42,9 @@ handle (@pxref{File Handles}), or a dataset by its name
 (@pxref{Datasets}).
 The aggregated cases are written to this file.  If @samp{*} is
 specified, then the aggregated cases replace the active dataset's data.
-Use of OUTFILE to write a portable file is a @pspp{} extension.
+Use of @subcmd{OUTFILE} to write a portable file is a @pspp{} extension.
 
-If OUTFILE=@samp{*} is given, then the subcommand MODE may also be
+If @subcmd{OUTFILE=*} is given, then the subcommand @subcmd{MODE} may also be
 specified.
 The mode subcommand has two possible values: @subcmd{ADDVARIABLES} or @subcmd{REPLACE}.
 In @subcmd{REPLACE} mode, the entire active dataset is replaced by a new dataset
@@ -100,110 +100,112 @@ list.
 Each set must have exactly as many source variables as aggregation
 variables.  Each aggregation variable receives the results of applying
 the specified aggregation function to the corresponding source
-variable.  The MEAN, MEDIAN, SD, and SUM aggregation functions may only be
+variable.  The @subcmd{MEAN}, @subcmd{MEDIAN}, @subcmd{SD}, and @subcmd{SUM}
+aggregation functions may only be
 applied to numeric variables.  All the rest may be applied to numeric
 and string variables.
 
 The available aggregation functions are as follows:
 
 @table @asis
-@item FGT(@var{var_name}, @var{value})
+@item @subcmd{FGT(@var{var_name}, @var{value})}
 Fraction of values greater than the specified constant.  The default
 format is F5.3.
 
-@item FIN(@var{var_name}, @var{low}, @var{high})
+@item @subcmd{FIN(@var{var_name}, @var{low}, @var{high})}
 Fraction of values within the specified inclusive range of constants.
 The default format is F5.3.
 
-@item FLT(@var{var_name}, @var{value})
+@item @subcmd{FLT(@var{var_name}, @var{value})}
 Fraction of values less than the specified constant.  The default
 format is F5.3.
 
-@item FIRST(@var{var_name})
+@item @subcmd{FIRST(@var{var_name})}
 First non-missing value in break group.  The aggregation variable
 receives the complete dictionary information from the source variable.
 The sort performed by @cmd{AGGREGATE} (and by @cmd{SORT CASES}) is stable, so that
 the first case with particular values for the break variables before
 sorting will also be the first case in that break group after sorting.
 
-@item FOUT(@var{var_name}, @var{low}, @var{high})
+@item @subcmd{FOUT(@var{var_name}, @var{low}, @var{high})}
 Fraction of values strictly outside the specified range of constants.
 The default format is F5.3.
 
-@item LAST(@var{var_name})
+@item @subcmd{LAST(@var{var_name})}
 Last non-missing value in break group.  The aggregation variable
 receives the complete dictionary information from the source variable.
 The sort performed by @cmd{AGGREGATE} (and by @cmd{SORT CASES}) is stable, so that
 the last case with particular values for the break variables before
 sorting will also be the last case in that break group after sorting.
 
-@item MAX(@var{var_name})
+@item @subcmd{MAX(@var{var_name})}
 Maximum value.  The aggregation variable receives the complete
 dictionary information from the source variable.
 
-@item MEAN(@var{var_name})
+@item @subcmd{MEAN(@var{var_name})}
 Arithmetic mean.  Limited to numeric values.  The default format is
 F8.2.
 
-@item MEDIAN(@var{var_name})
+@item @subcmd{MEDIAN(@var{var_name})}
 The median value.  Limited to numeric values.  The default format is F8.2.
 
-@item MIN(@var{var_name})
+@item @subcmd{MIN(@var{var_name})}
 Minimum value.  The aggregation variable receives the complete
 dictionary information from the source variable.
 
-@item N(@var{var_name})
+@item @subcmd{N(@var{var_name})}
 Number of non-missing values.  The default format is F7.0 if weighting
 is not enabled, F8.2 if it is (@pxref{WEIGHT}).
 
-@item N
+@item @subcmd{N}
 Number of cases aggregated to form this group.  The default format is
 F7.0 if weighting is not enabled, F8.2 if it is (@pxref{WEIGHT}).
 
-@item NMISS(@var{var_name})
+@item @subcmd{NMISS(@var{var_name})}
 Number of missing values.  The default format is F7.0 if weighting is
 not enabled, F8.2 if it is (@pxref{WEIGHT}).
 
-@item NU(@var{var_name})
+@item @subcmd{NU(@var{var_name})}
 Number of non-missing values.  Each case is considered to have a weight
 of 1, regardless of the current weighting variable (@pxref{WEIGHT}).
 The default format is F7.0.
 
-@item NU
+@item @subcmd{NU}
 Number of cases aggregated to form this group.  Each case is considered
 to have a weight of 1, regardless of the current weighting variable.
 The default format is F7.0.
 
-@item NUMISS(@var{var_name})
+@item @subcmd{NUMISS(@var{var_name})}
 Number of missing values.  Each case is considered to have a weight of
 1, regardless of the current weighting variable.  The default format is F7.0.
 
-@item PGT(@var{var_name}, @var{value})
+@item @subcmd{PGT(@var{var_name}, @var{value})}
 Percentage between 0 and 100 of values greater than the specified
 constant.  The default format is F5.1.
 
-@item PIN(@var{var_name}, @var{low}, @var{high})
+@item @subcmd{PIN(@var{var_name}, @var{low}, @var{high})}
 Percentage of values within the specified inclusive range of
 constants.  The default format is F5.1.
 
-@item PLT(@var{var_name}, @var{value})
+@item @subcmd{PLT(@var{var_name}, @var{value})}
 Percentage of values less than the specified constant.  The default
 format is F5.1.
 
-@item POUT(@var{var_name}, @var{low}, @var{high})
+@item @subcmd{POUT(@var{var_name}, @var{low}, @var{high})}
 Percentage of values strictly outside the specified range of
 constants.  The default format is F5.1.
 
-@item SD(@var{var_name})
+@item @subcmd{SD(@var{var_name})}
 Standard deviation of the mean.  Limited to numeric values.  The
 default format is F8.2.
 
-@item SUM(var_name)
+@item @subcmd{SUM(@var{var_name})}
 Sum.  Limited to numeric values.  The default format is F8.2.
 @end table
 
 Aggregation functions compare string values in terms of internal
-character codes.  On most modern computers, this is a form of ASCII.
+character codes.
+On most modern computers, this is  @acronym{ASCII} or a superset thereof.
 
 The aggregation functions listed above exclude all user-missing values
 from calculations.  To include user-missing values, insert a period
@@ -240,18 +242,18 @@ By default, increasing values of a source variable (for a string, this
 is based on character code comparisons) are recoded to increasing values
 of its target variable.  To cause increasing values of a source variable
 to be recoded to decreasing values of its target variable (@var{n} down
-to 1), specify DESCENDING.
+to 1), specify @subcmd{DESCENDING}.
 
-PRINT is currently ignored.
+@subcmd{PRINT} is currently ignored.
 
 The @subcmd{GROUP} subcommand is relevant only if more than one variable is to be
 recoded.   It causes a single mapping between source and target values to
 be used, instead of one map per variable.
 
-If /BLANK=MISSING is given, then string variables which contain only 
-whitespace are recoded as SYSMIS.  If /BLANK=VALID is given then they
-will be allocated a value like any other.  /BLANK is not relevant
-to numeric values. /BLANK=VALID is the default.
+If @subcmd{/BLANK=MISSING} is given, then string variables which contain only 
+whitespace are recoded as SYSMIS.  If @subcmd{/BLANK=VALID} is given then they
+will be allocated a value like any other.  @subcmd{/BLANK} is not relevant
+to numeric values. @subcmd{/BLANK=VALID} is the default.
 
 @cmd{AUTORECODE} is a procedure.  It causes the data to be read.
 
@@ -310,8 +312,8 @@ Each @var{value} takes one of the following forms:
         @var{num1} THRU @var{num2}
         MISSING
         SYSMIS
-In addition, @var{num1} and @var{num2} can be LO or LOWEST, or HI or HIGHEST,
-respectively.
+where @var{num1} is a numeric expression or the words @subcmd{LO}  or @subcmd{LOWEST}
+      and @var{num2} is a numeric expression  or @subcmd{HI} or @subcmd{HIGHEST}.
 @end display
 
 @cmd{COUNT} creates or replaces a numeric @dfn{target} variable that
@@ -327,11 +329,11 @@ User-missing values of test variables are treated just like any other
 values.  They are @strong{not} treated as system-missing values.
 User-missing values that are criterion values or inside ranges of
 criterion values are counted as any other values.  However (for numeric
-variables), keyword MISSING may be used to refer to all system-
+variables), keyword @subcmd{MISSING} may be used to refer to all system-
 and user-missing values.
 
 @cmd{COUNT} target variables are assigned values in the order
-specified.  In the command @code{COUNT @var{A}=@var{A} @var{B}(1) /@var{B}=@var{A} @var{B}(2).}, the
+specified.  In the command @subcmd{COUNT @var{A}=@var{A} @var{B}(1) /@var{B}=@var{A} @var{B}(2).}, the
 following actions occur:
 
 @itemize @minus
@@ -504,7 +506,7 @@ RECODE @var{src_vars}
          [INTO @var{dest_vars}].
 @end display
 
-Following the RECODE keyword itself comes @var{src_vars} which is a list
+Following the @cmd{RECODE} keyword itself comes @var{src_vars} which is a list
 of variables whose values are to be transformed.
 These variables may be string variables or they may be numeric.
 However the list must be homogeneous; you may not mix string variables and

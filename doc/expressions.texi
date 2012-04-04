@@ -1,3 +1,9 @@
+@c Use @func when refering to a function.
+@c Use @deftypefn for their definitions 
+@macro func{NAME}
+@code{/NAME/}
+@end macro
+
 @node Expressions
 @chapter Mathematical Expressions
 @cindex expressions, mathematical
@@ -244,9 +250,9 @@ syntax: each is composed of a function name followed by a left
 parenthesis, one or more arguments, and a right parenthesis.
 
 Function names are not reserved.  Their names are specially treated
-only when followed by a left parenthesis, so that @code{EXP(10)}
-refers to the constant value @code{e} raised to the 10th power, but
-@code{EXP} by itself refers to the value of variable EXP.
+only when followed by a left parenthesis, so that @samp{EXP(10)}
+refers to the constant value @math{e} raised to the 10th power, but
+@samp{EXP} by itself refers to the value of a variable called @code{EXP}.
 
 The sections below describe each function in detail.
 
@@ -273,7 +279,7 @@ Advanced mathematical functions take numeric arguments and produce
 numeric results.
 
 @deftypefn {Function} {} EXP (@var{exponent})
-Returns @i{e} (approximately 2.71828) raised to power @var{exponent}.
+Returns @math{e} (approximately 2.71828) raised to power @var{exponent}.
 @end deftypefn
 
 @cindex logarithms
@@ -283,12 +289,12 @@ not positive, the result is system-missing.
 @end deftypefn
 
 @deftypefn {Function} {} LN (@var{number})
-Takes the base-@i{e} logarithm of @var{number}.  If @var{number} is
+Takes the base-@math{e} logarithm of @var{number}.  If @var{number} is
 not positive, the result is system-missing.
 @end deftypefn
 
 @deftypefn {Function} {} LNGAMMA (@var{number})
-Yields the base-@i{e} logarithm of the complete gamma of @var{number}.
+Yields the base-@math{e} logarithm of the complete gamma of @var{number}.
 If @var{number} is a negative integer, the result is system-missing.
 @end deftypefn
 
@@ -381,7 +387,7 @@ Takes the sine of @var{angle} which should be in radians.
 @deftypefn {Function} {} TAN (@var{angle})
 Takes the tangent of @var{angle} which should be in radians.
 Results in system-missing at values
-of @var{angle} that are too close to odd multiples of pi/2.
+of @var{angle} that are too close to odd multiples of @math{\pi/2}.
 Portability: none.
 @end deftypefn
 
@@ -443,7 +449,7 @@ String comparisons are performed according to the rules given in
 Results in true if @var{value} is equal to any of the @var{set}
 values.  Otherwise, results in false.  If @var{value} is
 system-missing, returns system-missing.  System-missing values in
-@var{set} do not cause ANY to return system-missing.
+@var{set} do not cause @func{ANY} to return system-missing.
 @end deftypefn
 
 @deftypefn {Function} {} RANGE (@var{value}, @var{low}, @var{high} [, @var{low}, @var{high}]@dots{})
@@ -452,7 +458,7 @@ Results in true if @var{value} is in any of the intervals bounded by
 Each @var{low} must be less than or equal to its corresponding
 @var{high} value.  @var{low} and @var{high} must be given in pairs.
 If @var{value} is system-missing, returns system-missing.
-System-missing values in @var{set} do not cause RANGE to return
+System-missing values in @var{set} do not cause @func{RANGE} to return
 system-missing.
 @end deftypefn
 
@@ -475,10 +481,10 @@ using the @code{@var{var1} TO @var{var2}} syntax.
 Unlike most functions, statistical functions can return non-missing
 values even when some of their arguments are missing.  Most
 statistical functions, by default, require only 1 non-missing value to
-have a non-missing return, but CFVAR, SD, and VARIANCE require 2.
+have a non-missing return, but @func{CFVAR}, @func{SD}, and @func {VARIANCE} require 2.
 These defaults can be increased (but not decreased) by appending a dot
 and the minimum number of valid arguments to the function name.  For
-example, @code{MEAN.3(X, Y, Z)} would only return non-missing if all
+example, @subcmd{MEAN.3(X, Y, Z)} would only return non-missing if all
 of @samp{X}, @samp{Y}, and @samp{Z} were valid.
 
 @cindex coefficient of variation
@@ -1144,7 +1150,7 @@ a probability.
 Tail probability function for @var{dist}, that is, the probability
 that a random variate drawn from the distribution is greater than
 @var{x}.  The domain of @var{x} depends @var{dist}.  The result is a
-probability.  Only a few distributions include an SIG function.
+probability.  Only a few distributions include an @func{SIG} function.
 
 @item IDF.@var{dist} (@var{p}[, @var{param}@dots{}])
 Inverse distribution function for @var{dist}, the value of @var{x} for
@@ -1160,7 +1166,7 @@ distribution.
 Noncentral probability density function.  The result is the density of
 the given noncentral distribution at @var{x}.  The domain of @var{x}
 depends on @var{dist}.  The range is nonnegative real numbers.  Only a
-few distributions include an NPDF function.
+few distributions include an @func{NPDF} function.
 
 @item NCDF.@var{dist} (@var{x}[, @var{param}@dots{}])
 Noncentral cumulative distribution function for @var{dist}, that is,

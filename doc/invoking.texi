@@ -70,7 +70,7 @@ corresponding short options.
 @end example
 @end table
 
-@table @code
+@table @asis
 @item @var{syntax-file}
 Read and execute the named syntax file.  If no syntax files are
 specified, @pspp{} prompts for commands.  If any syntax files are
@@ -78,7 +78,7 @@ specified, @pspp{} by default exits after it runs them, but you may make
 it prompt for commands by specifying @samp{-} as an additional syntax
 file.
 
-@item -o @var{output-file}
+@item @option{-o @var{output-file}}
 Write output to @var{output-file}.  @pspp{} has several different output
 drivers that support output in various formats (use @option{--help} to
 list the available formats).  Specify this option more than once to
@@ -89,19 +89,19 @@ Use @samp{-} as @var{output-file} to write output to standard output.
 If no @option{-o} option is used, then @pspp{} writes output to standard
 output in plain text format.
 
-@item -O @var{option}=@var{value}
+@item @option{-O @var{option}=@var{value}}
 Sets an option for the output file configured by a preceding
 @option{-o}.  Most options are specific to particular output formats.
 A few options that apply generically are listed below.
 
-@item -O format=@var{format}
+@item @option{-O format=@var{format}}
 @pspp{} uses the extension of the file name given on @option{-o} to
 select an output format.  Use this option to override this choice by
 specifying an alternate format, e.g.@: @option{-o pspp.out -O html} to
 write HTML to a file named @file{pspp.out}.  Use @option{--help} to
 list the available formats.
 
-@item -O device=@{terminal|listing@}
+@item @option{-O device=@{terminal|listing@}}
 Sets whether @pspp{} considers the output device configured by the
 preceding @option{-o} to be a terminal or a listing device.  This
 affects what output will be sent to the device, as configured by the
@@ -109,13 +109,13 @@ SET command's output routing subcommands (@pxref{SET}).  By default,
 output written to standard output is considered a terminal device and
 other output is considered a listing device.
 
-@item --no-output
+@item @option{--no-output}
 Disables output entirely, if neither @option{-o} nor @option{-O} is
 also used.  If one of those options is used, @option{--no-output} has
 no effect.
 
-@item -e @var{error-file}
-@itemx --error-file=@var{error-file}
+@item @option{-e @var{error-file}}
+@itemx @option{--error-file=@var{error-file}}
 Configures a file to receive @pspp{} error, warning, and note messages in
 plain text format.  Use @samp{-} as @var{error-file} to write messages
 to standard output.  The default error file is standard output in the
@@ -124,33 +124,33 @@ writes to standard output (or another terminal), to avoid printing
 every message twice.  Use @samp{none} as @var{error-file} to
 explicitly suppress the default.
 
-@item -I @var{dir}
-@itemx --include=@var{dir}
-Appends @var{dir} to the set of directories searched by INCLUDE
-(@pxref{INCLUDE}) and INSERT (@pxref{INSERT}).
+@item @option{-I @var{dir}}
+@itemx @option{--include=@var{dir}}
+Appends @var{dir} to the set of directories searched by the @cmd{INCLUDE}
+(@pxref{INCLUDE}) and @cmd{INSERT} (@pxref{INSERT}) commands.
 
-@item -I-
-@itemx --no-include
+@item @option{-I-}
+@itemx @option{--no-include}
 Clears all directories from the include path, including directories
 inserted in the include path by default.  The default include path is
 @file{.} (the current directory), followed by @file{.pspp} in the
 user's home directory, followed by @pspp{}'s system configuration
 directory (usually @file{/etc/pspp} or @file{/usr/local/etc/pspp}).
 
-@item -b
-@item --batch
-@item -i
-@itemx --interactive
+@item @option{-b}
+@item @option{--batch}
+@item @option{-i}
+@itemx @option{--interactive}
 These options forces syntax files to be interpreted in batch mode or
 interactive mode, respectively, rather than the default ``auto'' mode.
 @xref{Syntax Variants}, for a description of the differences.
 
-@item -r
-@itemx --no-statrc
+@item @option{-r}
+@itemx @option{--no-statrc}
 Disables running @file{rc} at @pspp{} startup time.
 
-@item -a @{enhanced|compatible@}
-@itemx --algorithm=@{enhanced|compatible@}
+@item @option{-a @{enhanced|compatible@}}
+@itemx @option{--algorithm=@{enhanced|compatible@}}
 With @code{enhanced}, the default, @pspp{} uses the best implemented
 algorithms for statistical procedures.  With @code{compatible},
 however, @pspp{} will in some cases use inferior algorithms to produce
@@ -159,37 +159,37 @@ the same results as the proprietary program SPSS.
 Some commands have subcommands that override this setting on a per
 command basis.
 
-@item -x @{enhanced|compatible@}
-@itemx --syntax=@{enhanced|compatible@}
+@item @option{-x @{enhanced|compatible@}}
+@itemx @option{--syntax=@{enhanced|compatible@}}
 With @code{enhanced}, the default, @pspp{} accepts its own extensions
 beyond those compatible with the proprietary program SPSS.  With
 @code{compatible}, @pspp{} rejects syntax that uses these extensions.
 
-@item --syntax-encoding=@var{encoding}
+@item @option{--syntax-encoding=@var{encoding}}
 Specifies @var{encoding} as the encoding for syntax files named on the
 command line.  The @var{encoding} also becomes the default encoding
 for other syntax files read during the @pspp{} session by the
 @cmd{INCLUDE} and @cmd{INSERT} commands.  @xref{INSERT}, for the
 accepted forms of @var{encoding}.
 
-@item --help
+@item @option{--help}
 Prints a message describing @pspp{} command-line syntax and the available
 device formats, then exits.
 
-@item -V
-@itemx --version
+@item @option{-V}
+@itemx @option{--version}
 Prints a brief message listing @pspp{}'s version, warranties you don't
 have, copying conditions and copyright, and e-mail address for bug
 reports, then exits.
 
-@item -s
-@itemx --safer
-Disables certain unsafe operations.  This includes the ERASE and
-HOST commands, as well as use of pipes as input and output files.
+@item @option{-s}
+@itemx @option{--safer}
+Disables certain unsafe operations.  This includes the @subcmd{ERASE} and
+@subcmd{HOST} commands, as well as use of pipes as input and output files.
 
-@item --testing-mode
-Invoke heuristics to assist with testing @pspp{}.  For use by @code{make
-check} and similar scripts.
+@item @option{--testing-mode}
+Invoke heuristics to assist with testing @pspp{}.  For use
+by @command{make check} and similar scripts.
 @end table
 
 @node PDF PostScript and SVG Output Options
@@ -206,13 +206,13 @@ format.
 PDF, PostScript, and SVG output is only available if your installation
 of @pspp{} was compiled with the Cairo library.
 
-@table @code
-@item -O format=@{pdf|ps|svg@}
+@table @asis
+@item @option{-O format=@{pdf|ps|svg@}}
 Specify the output format.  This is only necessary if the file name
 given on @option{-o} does not end in @file{.pdf}, @file{.ps}, or
 @file{.svg}.
 
-@item -O paper-size=@var{paper-size}
+@item @option{-O paper-size=@var{paper-size}}
 Paper size, as a name (e.g.@: @code{a4}, @code{letter}) or
 measurements (e.g.@: @code{210x297}, @code{8.5x11in}).
 
@@ -224,26 +224,26 @@ taken from the locale.  Otherwise, if @file{/etc/papersize} exists,
 the default paper size is read from it.  As a last resort, A4 paper is
 assumed.
 
-@item -O foreground-color=@var{color}
-@itemx -O background-color=@var{color}
+@item @option{-O foreground-color=@var{color}}
+@itemx @option{-O background-color=@var{color}}
 Sets @var{color} as the color to be used for the background or foreground.
 Color should be given in the format @code{#@var{RRRR}@var{GGGG}@var{BBBB}},
 where @var{RRRR}, @var{GGGG} and @var{BBBB} are 4 character hexadecimal
 representations of the red, green and blue components respectively.
 
-@item -O orientation=@var{orientation}
+@item @option{-O orientation=@var{orientation}}
 Either @code{portrait} or @code{landscape}.  Default: @code{portrait}.
 
-@item -O left-margin=@var{dimension}
-@itemx -O right-margin=@var{dimension}
-@itemx -O top-margin=@var{dimension}
-@itemx -O bottom-margin=@var{dimension}
+@item @option{-O left-margin=@var{dimension}}
+@itemx @option{-O right-margin=@var{dimension}}
+@itemx @option{-O top-margin=@var{dimension}}
+@itemx @option{-O bottom-margin=@var{dimension}}
 Sets the margins around the page.  See
 below for the allowed forms of @var{dimension} Default: @code{0.5in}.
 
-@item -O prop-font=@var{font-name}
-@itemx -O emph-font=@var{font-name}
-@itemx -O fixed-font=@var{font-name}
+@item @option{-O prop-font=@var{font-name}}
+@itemx @option{-O emph-font=@var{font-name}}
+@itemx @option{-O fixed-font=@var{font-name}}
 Sets the font used for proportional, emphasized, or fixed-pitch text.
 Most systems support CSS-like font names such as ``serif'' and
 ``monospace'', but a wide range of system-specific font are likely to
@@ -252,19 +252,19 @@ be supported as well.
 Default: proportional font @code{serif}, emphasis font @code{serif
 italic}, fixed-pitch font @code{monospace}.
 
-@item -O font-size=@var{font-size}
+@item @option{-O font-size=@var{font-size}}
 Sets the size of the default fonts, in thousandths of a point.  Default:
 10000 (10 point).
 
-@item -O line-gutter=@var{dimension}
+@item @option{-O line-gutter=@var{dimension}}
 Sets the width of white space on either side of lines that border text
 or graphics objects.  Default: @code{1pt}.
 
-@item -O line-spacing=@var{dimension}
+@item @option{-O line-spacing=@var{dimension}}
 Sets the spacing between the lines in a double line in a table.
 Default: @code{1pt}.
 
-@item -O line-width=@var{dimension}
+@item @option{-O line-width=@var{dimension}}
 Sets the width of the lines used in tables.  Default: @code{0.5pt}.
 @end table
 
@@ -285,12 +285,12 @@ format.
 
 Plain text output is encoded in UTF-8.
 
-@table @code
-@item -O format=txt
+@table @asis
+@item @option{-O format=txt}
 Specify the output format.  This is only necessary if the file name
 given on @option{-o} does not end in @file{.txt} or @file{.list}.
 
-@item -O charts=@{@var{template}.png|none@}
+@item @option{-O charts=@{@var{template}.png|none@}}
 Name for chart files included in output.  The value should be a file
 name that includes a single @samp{#} and ends in @file{png}.  When a
 chart is output, the @samp{#} is replaced by the chart number.  The
@@ -301,43 +301,43 @@ Specify @code{none} to disable chart output.  Charts are always
 disabled if your installation of @pspp{} was compiled without the
 Cairo library.
 
-@item -O paginate=@var{boolean}
+@item @option{-O paginate=@var{boolean}}
 If set, @pspp{} writes an ASCII formfeed the end of every page.  Default:
 @code{off}.
 
-@item -O headers=@var{boolean}
+@item @option{-O headers=@var{boolean}}
 If enabled, @pspp{} prints two lines of header information giving title
 and subtitle, page number, date and time, and @pspp{} version are printed
 at the top of every page.  These two lines are in addition to any top
 margin requested.  Default: @code{off}.
 
-@item -O length=@var{line-count}
+@item @option{-O length=@var{line-count}}
 Physical length of a page.  Headers and margins are subtracted from
 this value.  You may specify the number of lines as a number, or for
 screen output you may specify @code{auto} to track the height of the
 terminal as it changes.  Default: @code{66}.
 
-@item -O width=@var{character-count}
+@item @option{-O width=@var{character-count}}
 Width of a page, in characters.  Margins are subtracted from this
 value.  For screen output you may specify @code{auto} in place of a
 number to track the width of the terminal as it changes.  Default:
 @code{79}.
 
-@item -O top-margin=@var{top-margin-lines}
+@item @option{-O top-margin=@var{top-margin-lines}}
 Length of the top margin, in lines.  @pspp{} subtracts this value from
 the page length.  Default: @code{0}.
 
-@item -O bottom-margin=@var{bottom-margin-lines}
+@item @option{-O bottom-margin=@var{bottom-margin-lines}}
 Length of the bottom margin, in lines.  @pspp{} subtracts this value from
 the page length.  Default: @code{0}.
 
-@item -O box=@{ascii|unicode@}
+@item @option{-O box=@{ascii|unicode@}}
 Sets the characters used for lines in tables.  The default,
 @code{ascii}, uses @samp{-}, @samp{|}, and @samp{+} for single-width
 lines and @samp{=} and @samp{#} for double-width lines.  Specify
 @code{unicode} to use Unicode box drawing characters.
 
-@item -O emphasis=@{none|bold|underline@}
+@item @option{-O emphasis=@{none|bold|underline@}}
 How to emphasize text.  Bold and underline emphasis are achieved with
 overstriking, which may not be supported by all the software to which
 you might pass the output.  Default: @code{none}.
@@ -350,20 +350,20 @@ To produce output in HTML format, specify @option{-o @var{file}} on
 the @pspp{} command line, optionally followed by any of the options shown
 in the table below to customize the output format.
 
-@table @code
-@item -O format=html
+@table @asis
+@item @option{-O format=html}
 Specify the output format.  This is only necessary if the file name
 given on @option{-o} does not end in @file{.html}.
 
-@item -O charts=@{@var{template}.png|none@}
+@item @option{-O charts=@{@var{template}.png|none@}}
 Sets the name used for chart files.  @xref{Plain Text Output Options},
 for details.
 
-@item -O borders=@var{boolean}
+@item @option{-O borders=@var{boolean}}
 Decorate the tables with borders.  If set to false, the tables produced
 will have no borders.  The default value is true.
 
-@item -O css=@var{boolean}
+@item @option{-O css=@var{boolean}}
 Use cascading style sheets.  Cascading style sheets give an improved appearance
 and can be used to produce pages which fit a certain web site's style.
 The default value is true.
@@ -390,16 +390,16 @@ To produce output in comma-separated value (CSV) format, specify
 by any of the options shown in the table below to customize the output
 format.
 
-@table @code
-@item -O format=csv
+@table @asis
+@item @option{-O format=csv}
 Specify the output format.  This is only necessary if the file name
 given on @option{-o} does not end in @file{.csv}.
 
-@item -O separator=@var{field-separator}
+@item @option{-O separator=@var{field-separator}}
 Sets the character used to separate fields.  Default: a comma
 (@samp{,}).
 
-@item -O quote=@var{qualifier}
+@item @option{-O quote=@var{qualifier}}
 Sets @var{qualifier} as the character used to quote fields that
 contain white space, the separator (or any of the characters in the
 separator, if it contains more than one character), or the quote
@@ -407,7 +407,7 @@ character itself.  If @var{qualifier} is longer than one character,
 only the first character is used; if @var{qualifier} is the empty
 string, then fields are never quoted.
 
-@item -O captions=@var{boolean}
+@item @option{-O captions=@var{boolean}}
 Whether table captions should be printed.  Default: @code{on}.
 @end table
 

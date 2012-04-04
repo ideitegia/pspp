@@ -178,7 +178,7 @@ is affected by these subcommands.
 @pspp{} tries to automatically detect the encoding of string data in the
 file.  Sometimes, however, this does not work well encoding,
 especially for files written by old versions of SPSS or @pspp{}.  Specify
-the @subcmd{ENCODING} subcommand with an IANA character set name as its string
+the @subcmd{ENCODING} subcommand with an @acronym{IANA} character set name as its string
 argument to override the default.  The @subcmd{ENCODING} subcommand is a @pspp{}
 extension.
 

@@ -63,7 +63,7 @@ All other subcommands are optional:
 
 The @subcmd{STATISTICS} subcommand specifies the statistics to be displayed:
 
-@table @code
+@table @subcmd
 @item ALL
 All of the statistics below.
 @item R
@@ -80,9 +80,11 @@ The covariance matrix for the estimated model coefficients.
 The @subcmd{SAVE} subcommand causes @pspp{} to save the residuals or predicted
 values from the fitted
 model to the active dataset. @pspp{} will store the residuals in a variable
-called RES1 if no such variable exists, RES2 if RES1 already exists,
-RES3 if RES1 and RES2 already exist, etc. It will choose the name of
-the variable for the predicted values similarly, but with PRED as a
+called @samp{RES1} if no such variable exists, @samp{RES2} if @samp{RES1} 
+already exists,
+@samp{RES3} if @samp{RES1} and @samp{RES2} already exist, etc. It will
+choose the name of
+the variable for the predicted values similarly, but with @samp{PRED} as a
 prefix.
 
 @node Examples

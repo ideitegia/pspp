@@ -117,7 +117,7 @@ similarly for value labels and missing values.
 
 @item
 The file label of the new active dataset (@pxref{FILE LABEL}) is that of the
-first specified FILE that has a file label.
+first specified @subcmd{FILE} that has a file label.
 
 @item
 The documents in the new active dataset (@pxref{DOCUMENT}) are the
@@ -132,7 +132,7 @@ active dataset is not weighted.
 
 The remaining subcommands apply to the output file as a whole, rather
 than to individual input files.  They must be specified at the end of
-the command specification, following all of the FILE and related
+the command specification, following all of the @subcmd{FILE} and related
 subcommands.  The most important of these subcommands is @subcmd{BY}, which
 specifies a set of one or more variables that may be used to find
 corresponding cases in each of the input files.  The variables
@@ -250,7 +250,7 @@ to cases output after their input has been exhausted.
 
 @item
 If @subcmd{BY} is used, @cmd{MATCH FILES} combines cases from each input file that
-have identical values for the BY variables.
+have identical values for the @subcmd{BY} variables.
 
 When @subcmd{BY} is used, @subcmd{TABLE} subcommands may be used to introduce @dfn{table
 lookup file}.  @subcmd{TABLE} has same syntax as @subcmd{FILE}, and the @subcmd{RENAME}, @subcmd{IN}, and

@@ -210,8 +210,8 @@ where @var{missing_values} takes one of the following forms:
         @var{string1}
         @var{string1}, @var{string2}
         @var{string1}, @var{string2}, @var{string3}
-As part of a range, LO or LOWEST may take the place of @var{num1};
-HI or HIGHEST may take the place of @var{num2}.
+As part of a range, @subcmd{LO} or @subcmd{LOWEST} may take the place of @var{num1};
+@subcmd{HI} or @subcmd{HIGHEST} may take the place of @var{num2}.
 @end display
 
 @cmd{MISSING VALUES} sets user-missing values for numeric and string
@@ -223,7 +223,8 @@ Specify a list of variables, followed by a list of their user-missing
 values in parentheses.  Up to three discrete values may be given, or,
 for numeric variables only, a range of values optionally accompanied by
 a single discrete value.  Ranges may be open-ended on one end, indicated
-through the use of the keyword LO or LOWEST or HI or HIGHEST.
+through the use of the 
+keyword @subcmd{LO} or @subcmd{LOWEST} or @subcmd{HI} or @subcmd{HIGHEST}.
 
 The @cmd{MISSING VALUES} command takes effect immediately.  It is not
 affected by conditional and looping constructs such as @cmd{DO IF} or
@@ -664,5 +665,5 @@ WRITE FORMATS @var{var_list} (@var{fmt_spec}) [@var{var_list} (@var{fmt_spec})]@
 
 @cmd{WRITE FORMATS} sets the write formats for the specified variables
 to the specified format specification.  Its syntax is identical to
-that of FORMATS (@pxref{FORMATS}), but @cmd{WRITE FORMATS} sets only
+that of @cmd{FORMATS} (@pxref{FORMATS}), but @cmd{WRITE FORMATS} sets only
 write formats, not print formats.

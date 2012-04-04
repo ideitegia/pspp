@@ -107,7 +107,7 @@ They can be viewed using @cmd{SYSFILE INFO} or @cmd{DISPLAY
 DOCUMENTS}.  They can be removed from the active dataset with @cmd{DROP
 DOCUMENTS}.
 
-Specify the @var{documentary text} following the DOCUMENT keyword.  
+Specify the @var{documentary text} following the @subcmd{DOCUMENT} keyword.  
 It is interpreted literally --- any quotes or other punctuation marks 
 will be included in the file.
 You can extend the documentary text over as many lines as necessary.  
@@ -169,11 +169,11 @@ Use @cmd{ECHO} to write arbitrary text to the output stream. The text should be 
 @vindex ERASE
 
 @display
-ERASE FILE file_name.
+ERASE FILE @var{file_name}.
 @end display
 
 @cmd{ERASE FILE} deletes a file from the local filesystem.
-file_name must be quoted.
+@var{file_name} must be quoted.
 This command cannot be used if the SAFER (@pxref{SET}) setting is active.
 
 
@@ -305,7 +305,7 @@ environment variables, e.g.@: @env{LANG} or @env{LC_ALL}, determine the
 system locale.
 
 @item @var{charset_name}
-One of the character set names listed by IANA at
+One of the character set names listed by @acronym{IANA} at
 @uref{http://www.iana.org/assignments/character-sets}.  Some examples
 are @code{ASCII} (United States), @code{ISO-8859-1} (western Europe),
 @code{EUC-JP} (Japan), and @code{windows-1252} (Windows).  Not all
@@ -314,20 +314,20 @@ systems support all character sets.
 @item @code{Auto,@var{encoding}}
 Automatically detects whether a syntax file is encoded in an Unicode
 encoding such as UTF-8, UTF-16, or UTF-32.  If it is not, then @pspp{}
-generally assumes that the file is encoded in @var{encoding} (an IANA
+generally assumes that the file is encoded in @var{encoding} (an @acronym{IANA}
 character set name).  However, if @var{encoding} is UTF-8, and the
 syntax file is not valid UTF-8, @pspp{} instead assumes that the file
 is encoded in @code{windows-1252}.
 
-For best results, @var{encoding} should be an ASCII-compatible
-encoding (the most common locale encodings are all ASCII-compatible),
-because encodings that are not ASCII compatible cannot be
+For best results, @var{encoding} should be an @acronym{ASCII}-compatible
+encoding (the most common locale encodings are all @acronym{ASCII}-compatible),
+because encodings that are not @acronym{ASCII} compatible cannot be
 automatically distinguished from UTF-8.
 
 @item @code{Auto}
 @item @code{Auto,Locale}
 Automatic detection, as above, with the default encoding taken from
-the system locale or the setting on SET LOCALE.
+the system locale or the setting on @subcmd{SET LOCALE}.
 @end table
 
 When ENCODING is not specified, the default is taken from the
@@ -473,7 +473,7 @@ default.  Any real value may be assigned.
 @item DECIMAL
 @anchor{SET DECIMAL}
 This value may be set to @subcmd{DOT} or @subcmd{COMMA}.
-Setting it to DOT causes the decimal point character to be
+Setting it to @subcmd{DOT} causes the decimal point character to be
 @samp{.} and the grouping character to be @samp{,}.
 Setting it to @subcmd{COMMA}
 causes the decimal point character to be @samp{,} and the grouping
@@ -498,11 +498,11 @@ epoch.  If @subcmd{AUTOMATIC} (the default) is specified, then the epoch begins
 
 @pspp{} extension to set the byte ordering (endianness) used for reading
 data in IB or PIB format (@pxref{Binary and Hexadecimal Numeric
-Formats}).  In MSBFIRST ordering, the most-significant byte appears at
-the left end of a IB or PIB field.  In LSBFIRST ordering, the
-least-significant byte appears at the left end.  VAX ordering is like
-MSBFIRST, except that each pair of bytes is in reverse order.  NATIVE,
-the default, is equivalent to MSBFIRST or LSBFIRST depending on the
+Formats}).  In @subcmd{MSBFIRST} ordering, the most-significant byte appears at
+the left end of a IB or PIB field.  In @subcmd{LSBFIRST} ordering, the
+least-significant byte appears at the left end.  @subcmd{VAX} ordering is like
+@subcmd{MSBFIRST}, except that each pair of bytes is in reverse order.  @subcmd{NATIVE},
+the default, is equivalent to @subcmd{MSBFIRST} or @subcmd{LSBFIRST} depending on the
 native format of the machine running @pspp{}.
 
 @item RRB
@@ -580,9 +580,9 @@ execute.  The syntax execution subcommands are
 @item LOCALE
 Overrides the system locale for the purpose of reading and writing
 syntax and data files.  The argument should be a locale name in the
-general form @code{language_country.encoding}, where @code{language}
-and @code{country} are 2-character language and country abbreviations,
-respectively, and @code{encoding} is an IANA character set name.
+general form @code{@var{language}_@var{country}.@var{encoding}}, where @var{language}
+and @var{country} are 2-character language and country abbreviations,
+respectively, and @var{encoding} is an @acronym{IANA} character set name.
 Example locales are @code{en_US.UTF-8} (UTF-8 encoded English as
 spoken in the United States) and @code{ja_JP.EUC-JP} (EUC-JP encoded
 Japanese as spoken in Japan).
@@ -631,8 +631,8 @@ Set up custom currency formats.  @xref{Custom Currency Formats}, for
 details.
 
 @item DECIMAL
-The default DOT setting causes the decimal point character to be
-@samp{.}.  A setting of COMMA causes the decimal point character to be
+The default @subcmd{DOT} setting causes the decimal point character to be
+@samp{.}.  A setting of @subcmd{COMMA} causes the decimal point character to be
 @samp{,}.
 
 @item FORMAT
@@ -644,11 +644,11 @@ default is F8.2.  @xref{Input and Output Formats}.
 
 @pspp{} extension to set the byte ordering (endianness) used for writing
 data in IB or PIB format (@pxref{Binary and Hexadecimal Numeric
-Formats}).  In MSBFIRST ordering, the most-significant byte appears at
-the left end of a IB or PIB field.  In LSBFIRST ordering, the
-least-significant byte appears at the left end.  VAX ordering is like
-MSBFIRST, except that each pair of bytes is in reverse order.  NATIVE,
-the default, is equivalent to MSBFIRST or LSBFIRST depending on the
+Formats}).  In @subcmd{MSBFIRST} ordering, the most-significant byte appears at
+the left end of a IB or PIB field.  In @subcmd{LSBFIRST} ordering, the
+least-significant byte appears at the left end.  @subcmd{VAX} ordering is like
+@subcmd{MSBFIRST}, except that each pair of bytes is in reverse order.  @subcmd{NATIVE},
+the default, is equivalent to @subcmd{MSBFIRST} or @subcmd{LSBFIRST} depending on the
 native format of the machine running @pspp{}.
 
 @item WRB
@@ -656,7 +656,7 @@ native format of the machine running @pspp{}.
 
 @pspp{} extension to set the floating-point format used for writing data in
 RB format (@pxref{Binary and Hexadecimal Numeric Formats}).  The choices
-are the same as SET RIB.  The default is NATIVE.
+are the same as @subcmd{SET RIB}.  The default is @subcmd{NATIVE}.
 @end table
 
 In the @pspp{} text-based interface, the output routing subcommands
@@ -685,18 +685,18 @@ These output routing subcommands are:
 
 @table @asis
 @item ERRORS
-Applies to error and warning messages.  The default is BOTH.
+Applies to error and warning messages.  The default is @subcmd{BOTH}.
 
 @item MESSAGES
-Applies to notes.  The default is BOTH.
+Applies to notes.  The default is @subcmd{BOTH}.
 
 @item PRINTBACK
 Determines whether the syntax used for input is printed back as part
-of the output.  The default is NONE.
+of the output.  The default is @subcmd{NONE}.
 
 @item RESULTS
 Applies to everything not in one of the above categories, such as the
-results of statistical procedures.  The default is BOTH.
+results of statistical procedures.  The default is @subcmd{BOTH}.
 @end table
 
 These subcommands have no effect on output in the @pspp{} GUI
@@ -711,14 +711,14 @@ subcommands are
 @itemx MORE
 @itemx WIDTH
 @itemx TNUMBERS
-The TNUMBERS option sets the way in which values are displayed in output tables.
-The valid settings are VALUES, LABELS and BOTH.
-If TNUMBERS is set to VALUES, then all values are displayed with their literal value 
+The @subcmd{TNUMBERS} option sets the way in which values are displayed in output tables.
+The valid settings are @subcmd{VALUES}, @subcmd{LABELS} and @subcmd{BOTH}.
+If @subcmd{TNUMBERS} is set to @subcmd{VALUES}, then all values are displayed with their literal value 
 (which for a numeric value is a number and for a string value an alphanumeric string).
-If TNUMBERS is set to LABELS, then values are displayed using their assigned labels if any.
+If @subcmd{TNUMBERS} is set to @subcmd{LABELS}, then values are displayed using their assigned labels if any.
 (@xref{VALUE LABELS}.)
 If the a value has no label, then it will be displayed using its literal value.
-If TNUMBERS is set to BOTH, then values will be displayed with both their label
+If @subcmd{TNUMBERS} is set to @subcmd{BOTH}, then values will be displayed with both their label
 (if any) and their literal value in parenthesis.
 @end table
 
@@ -737,10 +737,10 @@ files.  These subcommands are
 @item JOURNAL
 @itemx LOG
 These subcommands, which are synonyms, control the journal.  The
-default is ON, which causes commands entered interactively to be
+default is @subcmd{ON}, which causes commands entered interactively to be
 written to the journal file.  Commands included from syntax files that
 are included interactively and error messages printed by @pspp{} are also
-written to the journal file, prefixed by @samp{>}.  OFF disables use
+written to the journal file, prefixed by @samp{>}.  @subcmd{OFF} disables use
 of the journal.
 
 The journal is named @file{pspp.jnl} by default.  A different name may
@@ -756,7 +756,7 @@ Not currently used.
 
 @item SCOMPRESSION
 Whether system files created by @cmd{SAVE} or @cmd{XSAVE} are
-compressed by default.  The default is ON.
+compressed by default.  The default is @subcmd{ON}.
 @end table
 
 Security subcommands affect the operations that commands are allowed to
@@ -854,7 +854,7 @@ subcommands:
 @item @subcmd{ALL}
 Show all settings.
 @item @subcmd{CC}
-Show all custom currency settings (CCA through CCE).
+Show all custom currency settings (@subcmd{CCA} through @subcmd{CCE}).
 @item @subcmd{DIRECTORY}
 Shows the current working directory.
 @item @subcmd{ENVIRONMENT}
