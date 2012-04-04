@@ -26,6 +26,7 @@
 
 #include <math.h>
 #include <float.h>
+#include <stdlib.h>
 
 struct chart_item *
 spreadlevel_plot_create (const char *label, double tx_pwr)
