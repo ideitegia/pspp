@@ -1814,9 +1814,9 @@ BEGIN DATA
 END DATA
 
 FACTOR /VARIABLES=TRAIT1 TO TRAIT5
-    /ROTATION=NOROTATE    /* NOROTATE may have caused the problem. */
-    /EXTRACTION=PC
-    /PRINT=ALL
+    /ROTATION=NOROTATE /* NOROTATE may have caused the problem. */
+    /EXTRACTION=PC
+    /PRINT=DEFAULT DET UNIVARIATE ROTATION SIG CORRELATION.
 ])
 AT_CHECK([pspp -O format=csv factor-norotate.sps], [0], [dnl
 Table: Descriptive Statistics
@@ -1826,12 +1826,6 @@ TRAIT2,7.71,1.39,7
 TRAIT3,6.71,2.71,7
 TRAIT4,6.71,3.61,7
 TRAIT5,7.29,2.66,7
-
-Table: KMO and Bartlett's Test
-Kaiser-Meyer-Olkin Measure of Sampling Adequacy,,1.00
-Bartlett's Test of Sphericity,Approx. Chi-Square,NaN
-,df,10
-,Sig.,NaN
 
 Table: Correlation Matrix
 ,,TRAIT1,TRAIT2,TRAIT3,TRAIT4,TRAIT5
