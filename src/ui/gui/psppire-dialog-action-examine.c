@@ -224,7 +224,6 @@ psppire_dialog_action_examine_activate (GtkAction *a)
 
   g_object_set (pda->source,
 		"model", pda->dict,
-		"predicate", var_is_numeric,
 		NULL);
 
   psppire_dialog_action_set_valid_predicate (pda, (void *) dialog_state_valid);
