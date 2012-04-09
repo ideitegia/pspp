@@ -20,6 +20,8 @@
 #include "psppire-dialog-action-examine.h"
 
 #include "psppire-var-view.h"
+#include "dialog-common.h"
+#include "psppire-selector.h"
 #include "psppire-dict.h"
 #include "psppire-dialog.h"
 #include "builder-wrapper.h"
@@ -206,6 +208,8 @@ psppire_dialog_action_examine_activate (GtkAction *a)
   GtkWidget *stats_button = get_widget_assert (xml, "stats-button");
   GtkWidget *opts_button = get_widget_assert (xml, "opts-button");
 
+  GtkWidget *dep_sel = get_widget_assert (xml, "psppire-selector1");
+
   pda->dialog    = get_widget_assert   (xml, "examine-dialog");
   pda->source    = get_widget_assert   (xml, "treeview1");
   act->variables = get_widget_assert   (xml, "treeview2");
@@ -225,6 +229,8 @@ psppire_dialog_action_examine_activate (GtkAction *a)
   g_object_set (pda->source,
 		"model", pda->dict,
 		NULL);
+
+  psppire_selector_set_allow (PSPPIRE_SELECTOR (dep_sel), numeric_only);
 
   psppire_dialog_action_set_valid_predicate (pda, (void *) dialog_state_valid);
   psppire_dialog_action_set_refresh (pda, dialog_refresh);
