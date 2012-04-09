@@ -1802,7 +1802,7 @@ run_examine (struct examine *cmd, struct casereader *input)
 
   cmd->cats
     = categoricals_create (cmd->iacts, cmd->n_iacts,  
-                           cmd->wv, cmd->exclude);
+                           cmd->wv, cmd->exclude, MV_ANY);
 
   categoricals_set_payload (cmd->cats, &payload, cmd, NULL);
 

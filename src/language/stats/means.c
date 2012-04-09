@@ -945,7 +945,7 @@ run_means (struct means *cmd, struct casereader *input,
     struct mtable *table = &cmd->table[t];
     table->cats
       = categoricals_create (table->interactions,
-			     table->n_layers, wv, cmd->exclude);
+			     table->n_layers, wv, cmd->dep_exclude, cmd->exclude);
 
     categoricals_set_payload (table->cats, &payload, cmd, table);
   }

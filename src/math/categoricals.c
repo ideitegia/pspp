@@ -165,8 +165,11 @@ struct categoricals
 
   struct pool *pool;
 
-  /* Missing values to be excluded */
-  enum mv_class exclude;
+  /* Missing values in the dependent varirable to be excluded */
+  enum mv_class dep_excl;
+
+  /* Missing values in the factor variables to be excluded */
+  enum mv_class fctr_excl;
 
   const void *aux1;
   void *aux2;
@@ -295,7 +298,7 @@ lookup_case (const struct hmap *map, const struct interaction *iact, const struc
 
 struct categoricals *
 categoricals_create (struct interaction *const*inter, size_t n_inter,
-		     const struct variable *wv, enum mv_class exclude)
+		     const struct variable *wv, enum mv_class dep_excl, enum mv_class fctr_excl)
 {
   size_t i;
   struct categoricals *cat = xmalloc (sizeof *cat);
@@ -307,7 +310,8 @@ categoricals_create (struct interaction *const*inter, size_t n_inter,
   cat->reverse_variable_map_short = NULL;
   cat->reverse_variable_map_long = NULL;
   cat->pool = pool_create ();
-  cat->exclude = exclude;
+  cat->dep_excl = dep_excl;
+  cat->fctr_excl = fctr_excl;
   cat->payload = NULL;
   cat->aux2 = NULL;
 
@@ -378,7 +382,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       size_t hash;
       struct interaction_value *node;
 
-      if ( interaction_case_is_missing (iact, c, cat->exclude))
+      if ( interaction_case_is_missing (iact, c, cat->fctr_excl))
 	continue;
 
       hash = interaction_case_hash (iact, c, 0);
