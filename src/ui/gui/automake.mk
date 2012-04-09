@@ -236,6 +236,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-empty-list-store.h \
 	src/ui/gui/psppire-encoding-selector.c \
 	src/ui/gui/psppire-encoding-selector.h \
+	src/ui/gui/psppire-format.c \
+	src/ui/gui/psppire-format.h \
 	src/ui/gui/psppire-hbuttonbox.h \
 	src/ui/gui/psppire-keypad.h \
 	src/ui/gui/psppire-lex-reader.c \
