@@ -408,7 +408,6 @@ If @subcmd{INCLUDE} is set, then user-missing values are included in the
 calculations, but system-missing values are not.
 If @subcmd{EXCLUDE} is set, which is the default, user-missing
 values are excluded as well as system-missing values. 
-This is the default.
 
 If @subcmd{LISTWISE} is set, then the entire case is excluded from analysis
 whenever any variable  specified in any @cmd{/VARIABLES} subcommand

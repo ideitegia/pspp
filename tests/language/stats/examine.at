@@ -670,3 +670,129 @@ EXAMINE
 AT_CHECK([pspp -o pspp.csv examine-bad.sps], [1], [ignore])
 
 AT_CLEANUP 
+
+
+dnl Check the MISSING=REPORT option
+AT_SETUP([EXAMINE -- MISSING=REPORT])
+
+
+AT_DATA([examine-report.sps], [dnl
+set format = F22.0.
+data list list /x * g *.
+begin data.
+1   1
+2   1
+3   1
+4   1
+5   1
+6   1
+7   1
+8   1
+9   1
+10   2
+20   2
+30   2
+40   2
+50   2
+60   2
+70   2
+80   2
+90   2
+101   9
+201   9
+301   9
+401   9
+501   99
+601   99
+701   99
+801   99
+901   99
+1001  .
+2002  .
+3003  .
+4004  .
+end data.
+
+MISSING VALUES g (9, 99, 999).
+
+EXAMINE
+        /VARIABLES = x
+        BY  g
+        /STATISTICS = EXTREME
+        /NOTOTAL
+        /MISSING = REPORT.
+])
+
+
+AT_CHECK([pspp -O format=csv examine-report.sps], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+x,F8.0
+g,F8.0
+
+Table: Case Processing Summary
+,,Cases,,,,,
+,,Valid,,Missing,,Total,
+,g,N,Percent,N,Percent,N,Percent
+x,. (missing),4,100%,0,0%,4,100%
+,1,9,100%,0,0%,9,100%
+,2,9,100%,0,0%,9,100%
+,9 (missing),4,100%,0,0%,4,100%
+,99 (missing),5,100%,0,0%,5,100%
+
+Table: Extreme Values
+,g,,,Case Number,Value
+x,. (missing),Highest,1,31,4004
+,,,2,30,3003
+,,,3,29,2002
+,,,4,28,1001
+,,,5,0,0
+,,Lowest,1,28,1001
+,,,2,29,2002
+,,,3,30,3003
+,,,4,31,4004
+,,,5,31,4004
+,1,Highest,1,9,9
+,,,2,8,8
+,,,3,7,7
+,,,4,6,6
+,,,5,5,5
+,,Lowest,1,1,1
+,,,2,2,2
+,,,3,3,3
+,,,4,4,4
+,,,5,5,5
+,2,Highest,1,18,90
+,,,2,17,80
+,,,3,16,70
+,,,4,15,60
+,,,5,14,50
+,,Lowest,1,10,10
+,,,2,11,20
+,,,3,12,30
+,,,4,13,40
+,,,5,14,50
+,9 (missing),Highest,1,22,401
+,,,2,21,301
+,,,3,20,201
+,,,4,19,101
+,,,5,0,0
+,,Lowest,1,19,101
+,,,2,20,201
+,,,3,21,301
+,,,4,22,401
+,,,5,22,401
+,99 (missing),Highest,1,27,901
+,,,2,26,801
+,,,3,25,701
+,,,4,24,601
+,,,5,23,501
+,,Lowest,1,23,501
+,,,2,24,601
+,,,3,25,701
+,,,4,26,801
+,,,5,27,901
+])
+
+
+AT_CLEANUP 

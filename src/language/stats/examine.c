@@ -66,6 +66,14 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+static void 
+append_value_name (const struct variable *var, const union value *val, struct string *str)
+{
+  var_append_value_name (var, val, str);
+  if ( var_is_value_missing (var, val, MV_ANY))
+    ds_put_cstr (str, _(" (missing)"));
+}
+
 enum bp_mode
   {
     BP_GROUPS,
@@ -96,7 +104,8 @@ struct examine
   size_t n_iacts;
   struct interaction **iacts;
 
-  enum mv_class exclude;
+  enum mv_class dep_excl;
+  enum mv_class fctr_excl;
 
   const struct dictionary *dict;
 
@@ -300,7 +309,7 @@ show_boxplot_grouped (const struct examine *cmd, int iact_idx)
               
               ds_put_cstr (&label, var_to_string (ivar));
               ds_put_cstr (&label, " = ");
-              var_append_value_name (ivar, val, &label);
+              append_value_name (ivar, val, &label);
               ds_put_cstr (&label, "; ");
             }
 
@@ -359,7 +368,7 @@ show_boxplot_variabled (const struct examine *cmd, int iact_idx)
               
               ds_put_cstr (&label, var_to_string (ivar));
               ds_put_cstr (&label, " = ");
-              var_append_value_name (ivar, val, &label);
+              append_value_name (ivar, val, &label);
               ds_put_cstr (&label, "; ");
             }
 
@@ -426,7 +435,7 @@ show_npplot (const struct examine *cmd, int iact_idx)
                   
                   ds_put_cstr (&label, var_to_string (ivar));
                   ds_put_cstr (&label, " = ");
-                  var_append_value_name (ivar, val, &label);
+                  append_value_name (ivar, val, &label);
                   ds_put_cstr (&label, "; ");
                   
                 }
@@ -551,7 +560,7 @@ show_histogram (const struct examine *cmd, int iact_idx)
                   
                   ds_put_cstr (&label, var_to_string (ivar));
                   ds_put_cstr (&label, " = ");
-                  var_append_value_name (ivar, val, &label);
+                  append_value_name (ivar, val, &label);
                   ds_put_cstr (&label, "; ");
                   
                 }
@@ -676,7 +685,7 @@ percentiles_report (const struct examine *cmd, int iact_idx)
 		    {              
 		      struct string str;
 		      ds_init_empty (&str);
-		      var_append_value_name (ivar, val, &str);
+		      append_value_name (ivar, val, &str);
               
 		      tab_text (t,
 				1 + ivar_idx,
@@ -844,7 +853,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
                 {              
                   struct string str;
                   ds_init_empty (&str);
-                  var_append_value_name (ivar, val, &str);
+                  append_value_name (ivar, val, &str);
               
                   tab_text (t,
                             1 + ivar_idx,
@@ -1160,7 +1169,7 @@ extremes_report (const struct examine *cmd, int iact_idx)
                 {              
                   struct string str;
                   ds_init_empty (&str);
-                  var_append_value_name (ivar, val, &str);
+                  append_value_name (ivar, val, &str);
               
                   tab_text (t,
                             1 + ivar_idx,
@@ -1378,7 +1387,7 @@ summary_report (const struct examine *cmd, int iact_idx)
 		      {              
 			struct string str;
 			ds_init_empty (&str);
-			var_append_value_name (ivar, val, &str);
+			append_value_name (ivar, val, &str);
               
 			tab_text (t,
 				  1 + ivar_idx, heading_rows + n_cats * v + i,
@@ -1538,7 +1547,7 @@ update_n (const void *aux1, void *aux2 UNUSED, void *user_data,
       const struct variable *var = examine->dep_vars[v];
       const double x = case_data (c, var)->f;
       
-      if (var_is_value_missing (var, case_data (c, var), examine->exclude))
+      if (var_is_value_missing (var, case_data (c, var), examine->dep_excl))
         {
           es[v].missing += weight;
           continue;
@@ -1802,7 +1811,7 @@ run_examine (struct examine *cmd, struct casereader *input)
 
   cmd->cats
     = categoricals_create (cmd->iacts, cmd->n_iacts,  
-                           cmd->wv, cmd->exclude, MV_ANY);
+                           cmd->wv, cmd->dep_excl, cmd->fctr_excl);
 
   categoricals_set_payload (cmd->cats, &payload, cmd, NULL);
 
@@ -1818,14 +1827,12 @@ run_examine (struct examine *cmd, struct casereader *input)
       case_unref (c);
     }
 
-  /* FIXME: Filter out missing factor variables */
-
   /* Remove cases on a listwise basis if requested */
   if ( cmd->missing_pw == false)
     input = casereader_create_filter_missing (input,
                                               cmd->dep_vars,
                                               cmd->n_dep_vars,
-                                              cmd->exclude,
+                                              cmd->dep_excl,
                                               NULL,
                                               NULL);
 
@@ -1918,7 +1925,8 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
   examine.iacts = iacts_mem = pool_zalloc (examine.pool, sizeof (struct interaction *));
   examine.iacts[0] = interaction_create (NULL);
 
-  examine.exclude = MV_ANY;
+  examine.dep_excl = MV_ANY;
+  examine.fctr_excl = MV_ANY;
   examine.histogram = false;
   examine.npplot = false;
   examine.boxplot = false;
@@ -2102,11 +2110,19 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
                 }
               else if (lex_match_id (lexer, "EXCLUDE"))
                 {
-                  examine.exclude = MV_ANY;
+                  examine.dep_excl = MV_ANY;
                 }
               else if (lex_match_id (lexer, "INCLUDE"))
                 {
-                  examine.exclude = MV_SYSTEM;
+                  examine.dep_excl = MV_SYSTEM;
+                }
+              else if (lex_match_id (lexer, "REPORT"))
+                {
+                  examine.fctr_excl = MV_NEVER;
+                }
+              else if (lex_match_id (lexer, "NOREPORT"))
+                {
+                  examine.fctr_excl = MV_ANY;
                 }
               else
                 {
