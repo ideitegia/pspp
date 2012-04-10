@@ -1435,7 +1435,6 @@ void
 psppire_data_editor_set_font (PsppireDataEditor *de, PangoFontDescription *font_desc)
 {
   set_font (GTK_WIDGET (de), font_desc);
-  gtk_container_foreach (GTK_CONTAINER (de), set_font, font_desc);
 }
 
 
