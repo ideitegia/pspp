@@ -584,6 +584,10 @@ select_selection (PsppireSelector *selector)
 
   g_return_if_fail (selector->select_items);
 
+  if (selector->allow_selection && 
+      ! selector->allow_selection (selector->source, selector->dest))
+    return;
+
   selector->selecting = TRUE;
 
   for (item = g_list_first (selected_rows);
