@@ -1591,7 +1591,6 @@ parse_long_var_name_map (struct sfm_reader *r,
   while (read_variable_to_value_pair (r, dict, text, &var, &long_name))
     {
       /* Validate long name. */
-      /* XXX need to reencode name to UTF-8 */
       if (!dict_id_is_valid (dict, long_name, false))
         {
           sys_warn (r, record->pos,
