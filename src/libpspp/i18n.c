@@ -30,6 +30,7 @@
 #include <unigbrk.h>
 
 #include "libpspp/assertion.h"
+#include "libpspp/compiler.h"
 #include "libpspp/hmapx.h"
 #include "libpspp/hash-functions.h"
 #include "libpspp/pool.h"
@@ -41,6 +42,9 @@
 #include "gl/xalloc.h"
 #include "gl/relocatable.h"
 #include "gl/xstrndup.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 struct converter
  {
@@ -782,4 +786,118 @@ is_encoding_utf8 (const char *e)
           && (e[2] == 'f' || e[2] == 'F')
           && ((e[3] == '8' && e[4] == '\0')
               || (e[3] == '-' && e[4] == '8' && e[5] == '\0')));
+}
+
+static struct encoding_category *categories;
+static int n_categories;
+
+static void SENTINEL (0)
+add_category (size_t *allocated_categories, const char *category, ...)
+{
+  struct encoding_category *c;
+  const char *encodings[16];
+  va_list args;
+  int i, n;
+
+  /* Count encoding arguments. */
+  va_start (args, category);
+  n = 0;
+  while ((encodings[n] = va_arg (args, const char *)) != NULL)
+    {
+      const char *encoding = encodings[n];
+      if (!strcmp (encoding, "Auto") || is_encoding_supported (encoding))
+        n++;
+    }
+  assert (n < sizeof encodings / sizeof *encodings);
+  va_end (args);
+
+  if (n == 0)
+    return;
+
+  if (n_categories >= *allocated_categories)
+    categories = x2nrealloc (categories,
+                             allocated_categories, sizeof *categories);
+
+  c = &categories[n_categories++];
+  c->category = category;
+  c->encodings = xmalloc (n * sizeof *c->encodings);
+  for (i = 0; i < n; i++)
+    c->encodings[i] = encodings[i];
+  c->n_encodings = n;
+}
+
+static void
+init_encoding_categories (void)
+{
+  static bool inited;
+  size_t alloc;
+
+  if (inited)
+    return;
+  inited = true;
+
+  alloc = 0;
+  add_category (&alloc, "Unicode", "UTF-8", "UTF-16", "UTF-16BE", "UTF-16LE",
+                "UTF-32", "UTF-32BE", "UTF-32LE", NULL_SENTINEL);
+  add_category (&alloc, _("Arabic"), "IBM864", "ISO-8859-6", "Windows-1256",
+                NULL_SENTINEL);
+  add_category (&alloc, _("Armenian"), "ARMSCII-8", NULL_SENTINEL);
+  add_category (&alloc, _("Baltic"), "ISO-8859-13", "ISO-8859-4",
+                "Windows-1257", NULL_SENTINEL);
+  add_category (&alloc, _("Celtic"), "ISO-8859-14", NULL_SENTINEL);
+  add_category (&alloc, _("Central European"), "IBM852", "ISO-8859-2",
+                "Mac-CentralEurope", "Windows-1250", NULL_SENTINEL);
+  add_category (&alloc, _("Chinese Simplified"), "GB18030", "GB2312", "GBK",
+                "HZ-GB-2312", "ISO-2022-CN", NULL_SENTINEL);
+  add_category (&alloc, _("Chinese Traditional"), "Big5", "Big5-HKSCS",
+                "EUC-TW", NULL_SENTINEL);
+  add_category (&alloc, _("Croatian"), "MacCroatian", NULL_SENTINEL);
+  add_category (&alloc, _("Cyrillic"), "IBM855", "ISO-8859-5", "ISO-IR-111",
+                "KOI8-R", "MacCyrillic", NULL_SENTINEL);
+  add_category (&alloc, _("Cyrillic/Russian"), "IBM866", NULL_SENTINEL);
+  add_category (&alloc, _("Cyrillic/Ukrainian"), "KOI8-U", "MacUkrainian",
+                NULL_SENTINEL);
+  add_category (&alloc, _("Georgian"), "GEOSTD8", NULL_SENTINEL);
+  add_category (&alloc, _("Greek"), "ISO-8859-7", "MacGreek", NULL_SENTINEL);
+  add_category (&alloc, _("Gujarati"), "MacGujarati", NULL_SENTINEL);
+  add_category (&alloc, _("Gurmukhi"), "MacGurmukhi", NULL_SENTINEL);
+  add_category (&alloc, _("Hebrew"), "IBM862", "ISO-8859-8-I", "Windows-1255",
+                NULL_SENTINEL);
+  add_category (&alloc, _("Hebrew Visual"), "ISO-8859-8", NULL_SENTINEL);
+  add_category (&alloc, _("Hindi"), "MacDevangari", NULL_SENTINEL);
+  add_category (&alloc, _("Icelandic"), "MacIcelandic", NULL_SENTINEL);
+  add_category (&alloc, _("Japanese"), "EUC-JP", "ISO-2022-JP", "Shift_JIS",
+                NULL_SENTINEL);
+  add_category (&alloc, _("Korean"), "EUC-KR", "ISO-2022-KR", "JOHAB", "UHC",
+                NULL_SENTINEL);
+  add_category (&alloc, _("Nordic"), "ISO-8859-10", NULL_SENTINEL);
+  add_category (&alloc, _("Romanian"), "ISO-8859-16", "MacRomanian",
+                NULL_SENTINEL);
+  add_category (&alloc, _("South European"), "ISO-8859-3", NULL_SENTINEL);
+  add_category (&alloc, _("Thai"), "ISO-8859-11", "TIS-620", "Windows-874",
+                NULL_SENTINEL);
+  add_category (&alloc, _("Turkish"), "IBM857", "ISO-8859-9", "Windows-1254",
+                NULL_SENTINEL);
+  add_category (&alloc, _("Vietnamese"), "TVCN", "VISCII", "VPS",
+                "Windows-1258", NULL_SENTINEL);
+  add_category (&alloc, _("Western European"), "ISO-8859-1", "ISO-8859-15",
+                "Windows-1252", "IBM850", "MacRoman", NULL_SENTINEL);
+}
+
+/* Returns an array of "struct encoding_category" that contains only the
+   categories and encodings that the system supports. */
+struct encoding_category *
+get_encoding_categories (void)
+{
+  init_encoding_categories ();
+  return categories;
+}
+
+/* Returns the number of elements in the array returned by
+   get_encoding_categories().  */
+size_t
+get_n_encoding_categories (void)
+{
+  init_encoding_categories ();
+  return n_categories;
 }

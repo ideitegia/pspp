@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,42 +40,22 @@ enum
     COL_ENCODING
   };
 
-static void SENTINEL (0)
-add_encodings (GtkTreeStore *store, const char *category, ...)
+static void
+add_encodings (GtkTreeStore *store, struct encoding_category *cat)
 {
-  const char *encodings[16];
-  va_list args;
-  int n;
-
-  /* Count encoding arguments. */
-  va_start (args, category);
-  n = 0;
-  while ((encodings[n] = va_arg (args, const char *)) != NULL)
-    {
-      const char *encoding = encodings[n];
-      if (!strcmp (encoding, "Auto") || is_encoding_supported (encoding))
-        n++;
-    }
-  assert (n < sizeof encodings / sizeof *encodings);
-  va_end (args);
-
-  if (n == 0)
-    return;
-
-  va_start (args, category);
-  if (n == 1)
+  if (cat->n_encodings == 1)
     {
       char *description;
 
-      if (strcmp (encodings[0], "Auto"))
-        description = xasprintf ("%s (%s)", category, encodings[0]);
+      if (strcmp (cat->encodings[0], "Auto"))
+        description = xasprintf ("%s (%s)", cat->category, cat->encodings[0]);
       else
-        description = xstrdup (category);
+        description = xstrdup (cat->category);
 
       gtk_tree_store_insert_with_values (
         store, NULL, NULL, G_MAXINT,
         COL_DESCRIPTION, description,
-        COL_ENCODING, encodings[0],
+        COL_ENCODING, cat->encodings[0],
         -1);
 
       free (description);
@@ -87,17 +67,16 @@ add_encodings (GtkTreeStore *store, const char *category, ...)
 
       gtk_tree_store_insert_with_values (
         store, &head, NULL, G_MAXINT,
-        COL_DESCRIPTION, category,
+        COL_DESCRIPTION, cat->category,
         -1);
 
-      for (i = 0; i < n; i++)
+      for (i = 0; i < cat->n_encodings; i++)
         gtk_tree_store_insert_with_values (
           store, NULL, &head, G_MAXINT,
-          COL_DESCRIPTION, encodings[i],
-          COL_ENCODING, encodings[i],
+          COL_DESCRIPTION, cat->encodings[i],
+          COL_ENCODING, cat->encodings[i],
           -1);
     }
-  va_end (args);
 }
 
 static void
@@ -142,62 +121,39 @@ psppire_encoding_selector_new (const char *default_encoding,
                                gboolean allow_auto)
 {
   struct find_default_encoding_aux aux;
+  struct encoding_category *categories;
+  struct encoding_category locale_cat;
+  const char *locale_encoding;
   GtkCellRenderer *renderer;
   GtkWidget *hbox;
   GtkWidget *combo_box;
   GtkTreeStore *store;
+  size_t n_categories;
+  size_t i;
 
   store = gtk_tree_store_new (2, G_TYPE_STRING, G_TYPE_STRING);
 
   if (allow_auto)
-    add_encodings (store, _("Automatically Detect"), "Auto", NULL_SENTINEL);
-  add_encodings (store, _("Locale Encoding"), locale_charset (),
-                 NULL_SENTINEL);
-  add_encodings (store, "Unicode", "UTF-8", "UTF-16", "UTF-16BE", "UTF-16LE",
-                 "UTF-32", "UTF-32BE", "UTF-32LE", NULL_SENTINEL);
-  add_encodings (store, _("Arabic"), "IBM864", "ISO-8859-6", "Windows-1256",
-                 NULL_SENTINEL);
-  add_encodings (store, _("Armenian"), "ARMSCII-8", NULL_SENTINEL);
-  add_encodings (store, _("Baltic"), "ISO-8859-13", "ISO-8859-4",
-                 "Windows-1257", NULL_SENTINEL);
-  add_encodings (store, _("Celtic"), "ISO-8859-14", NULL_SENTINEL);
-  add_encodings (store, _("Central European"), "IBM852", "ISO-8859-2",
-                 "Mac-CentralEurope", "Windows-1250", NULL_SENTINEL);
-  add_encodings (store, _("Chinese Simplified"), "GB18030", "GB2312", "GBK",
-                 "HZ-GB-2312", "ISO-2022-CN", NULL_SENTINEL);
-  add_encodings (store, _("Chinese Traditional"), "Big5", "Big5-HKSCS",
-                 "EUC-TW", NULL_SENTINEL);
-  add_encodings (store, _("Croatian"), "MacCroatian", NULL_SENTINEL);
-  add_encodings (store, _("Cyrillic"), "IBM855", "ISO-8859-5", "ISO-IR-111",
-                 "KOI8-R", "MacCyrillic", NULL_SENTINEL);
-  add_encodings (store, _("Cyrillic/Russian"), "IBM866", NULL_SENTINEL);
-  add_encodings (store, _("Cyrillic/Ukrainian"), "KOI8-U", "MacUkrainian",
-                 NULL_SENTINEL);
-  add_encodings (store, _("Georgian"), "GEOSTD8", NULL_SENTINEL);
-  add_encodings (store, _("Greek"), "ISO-8859-7", "MacGreek", NULL_SENTINEL);
-  add_encodings (store, _("Gujarati"), "MacGujarati", NULL_SENTINEL);
-  add_encodings (store, _("Gurmukhi"), "MacGurmukhi", NULL_SENTINEL);
-  add_encodings (store, _("Hebrew"), "IBM862", "ISO-8859-8-I", "Windows-1255",
-                 NULL_SENTINEL);
-  add_encodings (store, _("Hebrew Visual"), "ISO-8859-8", NULL_SENTINEL);
-  add_encodings (store, _("Hindi"), "MacDevangari", NULL_SENTINEL);
-  add_encodings (store, _("Icelandic"), "MacIcelandic", NULL_SENTINEL);
-  add_encodings (store, _("Japanese"), "EUC-JP", "ISO-2022-JP", "Shift_JIS",
-                 NULL_SENTINEL);
-  add_encodings (store, _("Korean"), "EUC-KR", "ISO-2022-KR", "JOHAB", "UHC",
-                 NULL_SENTINEL);
-  add_encodings (store, _("Nordic"), "ISO-8859-10", NULL_SENTINEL);
-  add_encodings (store, _("Romanian"), "ISO-8859-16", "MacRomanian",
-                 NULL_SENTINEL);
-  add_encodings (store, _("South European"), "ISO-8859-3", NULL_SENTINEL);
-  add_encodings (store, _("Thai"), "ISO-8859-11", "TIS-620", "Windows-874",
-                 NULL_SENTINEL);
-  add_encodings (store, _("Turkish"), "IBM857", "ISO-8859-9", "Windows-1254",
-                 NULL_SENTINEL);
-  add_encodings (store, _("Vietnamese"), "TVCN", "VISCII", "VPS",
-                 "Windows-1258", NULL_SENTINEL);
-  add_encodings (store, _("Western European"), "ISO-8859-1", "ISO-8859-15",
-                 "Windows-1252", "IBM850", "MacRoman", NULL_SENTINEL);
+    {
+      struct encoding_category auto_cat;
+      const char *encoding = "Auto";
+
+      auto_cat.category = _("Automatically Detect");
+      auto_cat.encodings = &encoding;
+      auto_cat.n_encodings = 1;
+      add_encodings (store, &auto_cat);
+    }
+
+  locale_encoding = locale_charset ();
+  locale_cat.category = _("Locale Encoding");
+  locale_cat.encodings = &locale_encoding;
+  locale_cat.n_encodings = 1;
+  add_encodings (store, &locale_cat);
+
+  categories = get_encoding_categories ();
+  n_categories = get_n_encoding_categories ();
+  for (i = 0; i < n_categories; i++)
+    add_encodings (store, &categories[i]);
 
   combo_box = gtk_combo_box_new_with_model (GTK_TREE_MODEL (store));
 

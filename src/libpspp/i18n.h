@@ -143,5 +143,17 @@ bool is_encoding_ebcdic_compatible (const char *encoding);
 bool is_encoding_supported (const char *encoding);
 
 bool is_encoding_utf8 (const char *encoding);
+
+/* Database of encodings, by language or region. */
+
+struct encoding_category
+  {
+    const char *category;       /* e.g. "Arabic" or "Western European". */
+    const char **encodings;     /* Encodings within the category. */
+    size_t n_encodings;         /* Number of encodings in category. */
+  };
+
+struct encoding_category *get_encoding_categories (void);
+size_t get_n_encoding_categories (void);
 
 #endif /* i18n.h */
