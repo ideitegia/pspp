@@ -47,6 +47,26 @@
 
 #include <gettext.h>
 
+/* Returns a copy of IN with each underscore doubled.  The caller should free
+   the returned string (with free()) when it is no longer needed. */
+char *
+escape_underscores (const char *in)
+{
+  char *out = xmalloc (2 * strlen (in) + 1);
+  char *p;
+
+  p = out;
+  for (; *in != '\0'; in++)
+    {
+      if (*in == '_')
+        *p++ = '_';
+      *p++ = *in;
+    }
+  *p = '\0';
+
+  return out;
+}
+
 /* Formats a value according to VAR's print format and strips white space
    appropriately for VAR's type.  That is, if VAR is numeric, strips leading
    white space (because numbers are right-justified within their fields), and

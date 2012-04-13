@@ -213,7 +213,6 @@ static GtkTreeViewColumn *make_data_column (struct import_assistant *,
                                             gint column_idx);
 static GtkTreeView *create_data_tree_view (bool input, GtkContainer *parent,
                                            struct import_assistant *);
-static char *escape_underscores (const char *in);
 static void push_watch_cursor (struct import_assistant *);
 static void pop_watch_cursor (struct import_assistant *);
 
@@ -2086,24 +2085,6 @@ create_data_tree_view (bool input, GtkContainer *parent,
   gtk_widget_show (GTK_WIDGET (tree_view));
 
   return tree_view;
-}
-
-static char *
-escape_underscores (const char *in)
-{
-  char *out = xmalloc (2 * strlen (in) + 1);
-  char *p;
-
-  p = out;
-  for (; *in != '\0'; in++)
-    {
-      if (*in == '_')
-        *p++ = '_';
-      *p++ = *in;
-    }
-  *p = '\0';
-
-  return out;
 }
 
 /* Increments the "watch cursor" level, setting the cursor for
