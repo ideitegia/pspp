@@ -555,7 +555,7 @@ REGRESSION
 /DEPENDENT= x y
 /STATISTICS=COEFF R ANOVA.
 ])
-AT_CHECK([pspp ascii.sps], [1], [dnl
+AT_CHECK([pspp ascii.sps], [0], [dnl
 SET PRINTBACK=ON.
 
 DATA LIST LIST /x * y * a (a23).
@@ -577,9 +577,12 @@ END DATA.
 
 REGRESSION
 /VARIABLES= a
+
+ascii.sps:11: warning: REGRESSION: a is not a numeric variable.  It will not be
+included in the variable list.
+
 /DEPENDENT= x y
 /STATISTICS=COEFF R ANOVA.
-
-ascii.sps:12: error: REGRESSION: REGRESSION requires numeric variables.
 ])
+
 AT_CLEANUP

@@ -4,8 +4,7 @@ AM_CPPFLAGS += -I$(top_srcdir)/src/language/stats
 
 src_language_stats_built_sources = \
 	src/language/stats/crosstabs.c \
-	src/language/stats/frequencies.c \
-	src/language/stats/regression.c
+	src/language/stats/frequencies.c
 
 language_stats_sources = \
 	src/language/stats/aggregate.c \
@@ -50,6 +49,7 @@ language_stats_sources = \
 	src/language/stats/reliability.c \
 	src/language/stats/roc.c \
 	src/language/stats/roc.h \
+	src/language/stats/regression.c \
 	src/language/stats/runs.h \
 	src/language/stats/runs.c \
 	src/language/stats/sign.c \
