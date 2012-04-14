@@ -287,6 +287,8 @@ psppire_dialog_class_init (PsppireDialogClass *class)
 
 
   object_class->finalize = psppire_dialog_finalize;
+
+  parent_class = g_type_class_peek_parent (class);
 }
 
 
