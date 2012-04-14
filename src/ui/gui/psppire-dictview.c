@@ -68,7 +68,7 @@ psppire_dict_view_finalize (GObject *object)
 {
   PsppireDictView *dict_view = PSPPIRE_DICT_VIEW (object);
 
-  g_object_unref (dict_view->menu);
+  gtk_widget_destroy (dict_view->menu);
 }
 
 /* Properties */
