@@ -73,6 +73,7 @@ src_ui_gui_psppire_LDADD = \
 	src/ui/libuicommon.la \
 	src/libpspp.la \
 	src/libpspp-core.la \
+	$(GSL_LIBS) \
 	$(GTK_LIBS) \
 	$(GTKSOURCEVIEW_LIBS) \
 	$(CAIRO_LIBS) \
