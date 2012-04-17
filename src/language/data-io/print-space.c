@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -48,8 +48,8 @@ int
 cmd_print_space (struct lexer *lexer, struct dataset *ds)
 {
   struct print_space_trns *trns;
-  struct file_handle *handle;
-  struct expression *expr;
+  struct file_handle *handle = NULL;
+  struct expression *expr = NULL;
   struct dfm_writer *writer;
 
   if (lex_match_id (lexer, "OUTFILE"))
@@ -68,9 +68,8 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
       expr = expr_parse (lexer, ds, EXPR_NUMBER);
       if (lex_token (lexer) != T_ENDCMD)
 	{
-	  expr_free (expr);
-	  lex_error (lexer, _("expecting end of command"));
-	  return CMD_FAILURE;
+          lex_error (lexer, _("expecting end of command"));
+          goto error;
 	}
     }
   else
@@ -80,11 +79,7 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
     {
       writer = dfm_open_writer (handle);
       if (writer == NULL)
-        {
-          fh_unref (handle);
-          expr_free (expr);
-          return CMD_FAILURE;
-        }
+        goto error;
     }
   else
     writer = NULL;
@@ -97,6 +92,11 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
 		      print_space_trns_proc, print_space_trns_free, trns);
   fh_unref (handle);
   return CMD_SUCCESS;
+
+error:
+  fh_unref (handle);
+  expr_free (expr);
+  return CMD_FAILURE;
 }
 
 /* Executes a PRINT SPACE transformation. */
