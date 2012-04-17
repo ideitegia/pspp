@@ -82,6 +82,26 @@ enum  {SELECTED,    /* Emitted when an item is inserted into dest */
 
 static guint signals [n_SIGNALS];
 
+/* Callback for when an item disappears from the source list.
+   By implication, this means that the item has been inserted into the
+   destination.
+ */
+static void
+on_row_deleted (PsppireSelector *selector)
+{
+  g_signal_emit (selector, signals [SELECTED], 0);
+}
+
+/* Callback for when a new item appears in the source list.
+   By implication, this means that an item has been deleted from the
+   destination.
+ */
+static void
+on_row_inserted (PsppireSelector *selector)
+{
+  g_signal_emit (selector, signals [DE_SELECTED], 0);
+}
+
 
 GType
 psppire_selector_get_type (void)
@@ -152,6 +172,8 @@ enum
 
 
 static void on_click (GtkButton *b);
+static void on_realize (GtkWidget *selector);
+
 
 static void update_subjects (PsppireSelector *selector);
 
@@ -219,6 +241,7 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
   GtkButtonClass *button_class = GTK_BUTTON_CLASS (class);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
   GParamSpec *orientation_spec =
     g_param_spec_enum ("orientation",
 		       "Orientation",
@@ -252,6 +275,8 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 
 
   button_class->clicked = on_click;
+  widget_class->realize = on_realize;
+
 
   object_class->set_property = psppire_selector_set_property;
   object_class->get_property = psppire_selector_get_property;
@@ -352,12 +377,16 @@ on_source_select (GtkTreeSelection *treeselection, gpointer data)
 
 
 static void
-on_realize (PsppireSelector *selector)
+on_realize (GtkWidget *w)
 {
+  PsppireSelector *selector = PSPPIRE_SELECTOR (w);
   PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
   GtkTreeSelection* selection ;
 
   GList *list = g_hash_table_lookup (class->source_hash, selector->source);
+
+  if (GTK_WIDGET_CLASS (parent_class)->realize)
+    GTK_WIDGET_CLASS (parent_class)->realize (w);
 
   if ( NULL == list)
     return;
@@ -391,7 +420,6 @@ psppire_selector_init (PsppireSelector *selector)
   selector->filter = NULL;
 
   selector->arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
-  selector->filtered_source = NULL;
 
 
   gtk_container_add (GTK_CONTAINER (selector), selector->arrow);
@@ -407,10 +435,6 @@ psppire_selector_init (PsppireSelector *selector)
 
   selector->row_activate_id = 0;
   selector->source_select_id  = 0;
-
-  g_signal_connect (selector, "realize",
-		    G_CALLBACK (on_realize), NULL);
-
 }
 
 
@@ -545,6 +569,18 @@ de_select_selection_tree_view (PsppireSelector *selector)
 }
 
 
+/* Callback which causes the filter to be refiltered.
+   Called when the DEST GtkEntry is activated (Enter is pressed), or when it
+   looses focus.
+*/
+static gboolean
+refilter (PsppireSelector *selector)
+{
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source));
+  gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (model));
+  return FALSE;
+}
+
 /* Removes something from the DEST widget */
 static void
 de_select_selection (PsppireSelector *selector)
@@ -562,7 +598,7 @@ de_select_selection (PsppireSelector *selector)
 
   selector->selecting = FALSE;
 
-  gtk_tree_model_filter_refilter (selector->filtered_source);
+  refilter (selector);
 
   g_signal_emit (selector, signals [DE_SELECTED], 0);
 }
@@ -579,8 +615,8 @@ select_selection (PsppireSelector *selector)
   GList *selected_rows =
     gtk_tree_selection_get_selected_rows (selection, NULL);
 
-  GtkTreeModel *childmodel  = gtk_tree_model_filter_get_model
-    (selector->filtered_source);
+  GtkTreeModel *childmodel  =
+    gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source))));
 
   g_return_if_fail (selector->select_items);
 
@@ -598,11 +634,11 @@ select_selection (PsppireSelector *selector)
       GtkTreeIter iter;
       GtkTreePath *path  = item->data;
 
-      gtk_tree_model_get_iter (GTK_TREE_MODEL (selector->filtered_source),
+      gtk_tree_model_get_iter (GTK_TREE_MODEL (gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source))),
 			       &iter, path);
 
       gtk_tree_model_filter_convert_iter_to_child_iter
-	(selector->filtered_source,
+	(GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source))),
 	 &child_iter,
 	 &iter);
 
@@ -616,7 +652,7 @@ select_selection (PsppireSelector *selector)
   g_list_foreach (selected_rows, (GFunc) gtk_tree_path_free, NULL);
   g_list_free (selected_rows);
 
-  gtk_tree_model_filter_refilter (selector->filtered_source);
+  refilter (selector);
 
   g_signal_emit (selector, signals [SELECTED], 0);
 
@@ -646,7 +682,6 @@ on_click (GtkButton *b)
 
   if (GTK_BUTTON_CLASS (parent_class)->clicked)
     GTK_BUTTON_CLASS (parent_class)->clicked (b);
-
 }
 
 static gboolean
@@ -713,37 +748,20 @@ is_source_item_visible (GtkTreeModel *childmodel,
 
 /* set the source widget to SOURCE */
 static void
-set_tree_view_source (PsppireSelector *selector,
-		      GtkTreeView *source)
+set_tree_view_source (PsppireSelector *selector)
 {
   GList *list = NULL;
 
   PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
   
-  GtkTreeModel *model = gtk_tree_view_get_model (source);
-
-  if ( ! (list = g_hash_table_lookup (class->source_hash, source)))
+  if ( ! (list = g_hash_table_lookup (class->source_hash, selector->source)))
     {
-      selector->filtered_source =
-	GTK_TREE_MODEL_FILTER (gtk_tree_model_filter_new (model, NULL));
-
-      gtk_tree_view_set_model (source,
-			       GTK_TREE_MODEL (selector->filtered_source));
-
       list = g_list_append (list, selector);
-      g_hash_table_insert (class->source_hash, source, list);
-
-
-      gtk_tree_model_filter_set_visible_func (selector->filtered_source,
-					      is_source_item_visible,
-					      selector,
-					      NULL);
+      g_hash_table_insert (class->source_hash, selector->source, list);
     }
   else
     {  /* Append this selector to the list and push the <source,list>
 	  pair onto the hash table */
-
-      selector->filtered_source = GTK_TREE_MODEL_FILTER (model);
 
       if ( NULL == g_list_find (list, selector) )
 	{
@@ -751,10 +769,52 @@ set_tree_view_source (PsppireSelector *selector,
 	    list = g_list_prepend (list, selector);
 	  else
 	    list = g_list_append (list, selector);
-	  g_hash_table_replace (class->source_hash, source, list);
+	  g_hash_table_replace (class->source_hash, selector->source, list);
 	}
     }
 }
+
+
+
+/* This function is a callback which occurs when the
+   SOURCE's model has changed */
+static void
+update_model (
+              GtkTreeView *source,
+              GParamSpec *psp,
+              PsppireSelector *selector
+              )
+{
+  GtkTreeModel *model = gtk_tree_view_get_model (source);
+
+  g_assert (source == GTK_TREE_VIEW (selector->source));
+
+  if (model && (model == g_object_get_data (G_OBJECT (source), "model-copy")))
+    return;
+
+  if (model != NULL) 
+    {      
+      GtkTreeModel *new_model = gtk_tree_model_filter_new (model, NULL); 
+
+      g_object_set_data (G_OBJECT (source), "model-copy", new_model);  
+
+      gtk_tree_view_set_model (source, new_model);
+  
+      gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (new_model),
+                                              is_source_item_visible,
+                                              selector,
+                                              NULL);
+
+      g_signal_connect_swapped (new_model,
+				"row-deleted",
+				G_CALLBACK (on_row_deleted), selector);
+
+      g_signal_connect_swapped (new_model,
+				"row-inserted",
+				G_CALLBACK (on_row_inserted), selector);
+    }
+}
+
 
 
 /*
@@ -770,7 +830,7 @@ on_dest_data_change (GtkTreeModel *tree_model,
 
   if ( selector->selecting) return;
 
-  gtk_tree_model_filter_refilter (selector->filtered_source);
+  refilter (selector);
 }
 
 
@@ -783,7 +843,7 @@ on_dest_data_delete (GtkTreeModel *tree_model,
 
   if ( selector->selecting ) return;
 
-  gtk_tree_model_filter_refilter (selector->filtered_source);
+  refilter (selector);
 }
 
 
@@ -818,16 +878,6 @@ set_tree_view_dest (PsppireSelector *selector,
 }
 
 
-/* Callback which causes the filter to be refiltered.
-   Called when the DEST GtkEntry is activated (Enter is pressed), or when it
-   looses focus.
-*/
-static gboolean
-refilter (PsppireSelector *selector)
-{
-  gtk_tree_model_filter_refilter (selector->filtered_source);
-  return FALSE;
-}
 
 
 /* Callback for when the DEST GtkEntry is selected (clicked) */
@@ -840,27 +890,6 @@ on_entry_dest_select (GtkWidget *widget, GdkEventFocus *event, gpointer data)
   set_direction (selector, PSPPIRE_SELECTOR_DEST_TO_SOURCE);
 
   return FALSE;
-}
-
-
-/* Callback for when an item disappears from the source list.
-   By implication, this means that the item has been inserted into the
-   destination.
- */
-static void
-on_row_deleted (PsppireSelector *selector)
-{
-  g_signal_emit (selector, signals [SELECTED], 0);
-}
-
-/* Callback for when a new item appears in the source list.
-   By implication, this means that an item has been deleted from the
-   destination.
- */
-static void
-on_row_inserted (PsppireSelector *selector)
-{
-  g_signal_emit (selector, signals [DE_SELECTED], 0);
 }
 
 
@@ -883,11 +912,6 @@ set_entry_dest (PsppireSelector *selector,
 		    selector);
 
 
-  g_signal_connect_swapped (selector->filtered_source, "row-deleted",
-		    G_CALLBACK (on_row_deleted), selector);
-
-  g_signal_connect_swapped (selector->filtered_source, "row-inserted",
-		    G_CALLBACK (on_row_inserted), selector);
 }
 
 static void
@@ -900,11 +924,10 @@ set_default_filter (PsppireSelector *selector)
     }
 }
 
+
 static void
 update_subjects (PsppireSelector *selector)
 {
-  GtkTreeModel *model = NULL;
-
   if ( NULL == selector->dest )
     return;
 
@@ -913,17 +936,15 @@ update_subjects (PsppireSelector *selector)
   if ( NULL == selector->source )
     return;
 
-  g_signal_connect_swapped (selector->source, "notify::model",
-			    G_CALLBACK (update_subjects), selector);
-
-  model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source));
-
-  if ( NULL == model)
-    return;
-
-
   if ( GTK_IS_TREE_VIEW (selector->source))
-    set_tree_view_source (selector, GTK_TREE_VIEW (selector->source) );
+    {
+      set_tree_view_source (selector);
+
+      g_signal_connect (selector->source, "notify::model", 
+                              G_CALLBACK (update_model), selector); 
+
+      update_model (GTK_TREE_VIEW (selector->source), 0, selector);
+    }
   else
     g_error ("Unsupported source widget: %s", G_OBJECT_TYPE_NAME (selector->source));
 

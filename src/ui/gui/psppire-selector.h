@@ -87,8 +87,6 @@ struct _PsppireSelector
 
   gint orientation;
 
-  GtkTreeModelFilter *filtered_source;
-
   SelectItemsFunc *select_items;
   gpointer select_user_data;
 
@@ -97,7 +95,6 @@ struct _PsppireSelector
   AllowSelectionFunc *allow_selection;
 
   gulong row_activate_id ;
-
   gulong source_select_id ;
 
   gboolean primary_requested;
