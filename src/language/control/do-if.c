@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -136,11 +136,11 @@ int
 cmd_end_if (struct lexer *lexer UNUSED, struct dataset *ds)
 {
   struct do_if_trns *do_if = ctl_stack_top (&do_if_class);
-  assert (ds == do_if->ds);
 
   if (do_if == NULL)
     return CMD_CASCADING_FAILURE;
 
+  assert (ds == do_if->ds);
   ctl_stack_pop (do_if);
 
   return CMD_SUCCESS;

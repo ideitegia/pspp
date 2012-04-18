@@ -48,3 +48,13 @@ EXECUTE.
 AT_CHECK([pspp do-if.sps], [0], [ignore])
 AT_CHECK([cat do-if.out], [0], [expout])
 AT_CLEANUP
+
+AT_SETUP([unpaired END IF crash])
+AT_DATA([do-if.sps], [dnl
+DATA LIST LIST NOTABLE/a b c.
+END IF.
+])
+AT_CHECK([pspp -O format=csv do-if.sps], [0], [dnl
+do-if.pspp:2: error: END IF: This command cannot appear outside DO IF...END IF.
+])
+AT_CLEANUP
