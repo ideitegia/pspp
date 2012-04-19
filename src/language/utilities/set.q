@@ -22,6 +22,9 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "gl/vasnprintf.h"
+
+#include "data/casereader.h"
 #include "data/data-in.h"
 #include "data/data-out.h"
 #include "data/dataset.h"
@@ -866,6 +869,23 @@ show_system (const struct dataset *ds UNUSED)
   return strdup (host_system);
 }
 
+static char *
+show_n (const struct dataset *ds)
+{
+  casenumber n;
+  size_t l;
+
+  const struct casereader *reader = dataset_source (ds);
+
+  if (reader == NULL)
+    return strdup (_("Unknown"));
+
+  n =  casereader_count_cases (reader);
+
+  return  asnprintf (NULL, &l, "%ld", n);
+}
+
+
 struct show_sbc
   {
     const char *name;
@@ -891,6 +911,7 @@ const struct show_sbc show_table[] =
     {"MXERRS", show_mxerrs},
     {"MXLOOPS", show_mxloops},
     {"MXWARNS", show_mxwarns},
+    {"N", show_n},
     {"PRINTBACk", show_printback},
     {"RESULTS", show_results},
     {"RIB", show_rib},

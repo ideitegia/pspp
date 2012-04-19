@@ -1,0 +1,34 @@
+AT_BANNER([SHOW])
+
+AT_SETUP([SHOW N])
+
+AT_DATA([show.sps], [dnl
+DATA LIST LIST NOTABLE /x.
+BEGIN DATA.
+1
+2
+3
+END DATA.
+
+SHOW N.
+])
+
+AT_CHECK([pspp -O format=csv show.sps], [0], [dnl
+show.sps:8: note: SHOW: N is 3.
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([SHOW N empty])
+
+AT_DATA([shown-empty.sps], [dnl
+SHOW N.
+])
+
+AT_CHECK([pspp -O format=csv shown-empty.sps], [0], [dnl
+shown-empty.sps:1: note: SHOW: N is Unknown.
+])
+
+AT_CLEANUP
+

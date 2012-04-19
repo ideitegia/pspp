@@ -835,6 +835,7 @@ SHOW
         [MXERRS]
         [MXLOOPS]
         [MXWARNS]
+        [N]
         [SCOMPRESSION]
         [TEMPDIR]
         [UNDEFINED]
@@ -859,6 +860,9 @@ Show all custom currency settings (@subcmd{CCA} through @subcmd{CCE}).
 Shows the current working directory.
 @item @subcmd{ENVIRONMENT}
 Shows the operating system details.
+@item @subcmd{N}
+Reports the number of cases in the active dataset.  The reported number is not
+weighted.  If no dataset is defined, then @samp{Unknown} will be reported.
 @item @subcmd{TEMPDIR}
 Shows the path of the directory where temporary files will be stored.
 @item @subcmd{VERSION}

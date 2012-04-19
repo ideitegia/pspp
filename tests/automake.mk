@@ -299,6 +299,7 @@ TESTSUITE_AT = \
 	tests/language/utilities/insert.at \
 	tests/language/utilities/permissions.at \
 	tests/language/utilities/set.at \
+	tests/language/utilities/show.at \
 	tests/language/utilities/title.at \
 	tests/language/xforms/compute.at \
 	tests/language/xforms/count.at \
