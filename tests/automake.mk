@@ -103,7 +103,7 @@ tests_libpspp_range_set_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 tests_libpspp_range_tower_test_SOURCES = \
 	tests/libpspp/range-tower-test.c
 tests_libpspp_range_tower_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_range_tower_test_LDADD = src/libpspp/libpspp.la gl/libgl.la
+tests_libpspp_range_tower_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 
 tests_libpspp_str_test_SOURCES = \
 	tests/libpspp/str-test.c
