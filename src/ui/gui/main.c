@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2010, 2011  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ enum
     OPT_HELP,
     OPT_VERSION,
     OPT_NO_SPLASH,
+    OPT_MEASURE_STARTUP,
     N_STARTUP_OPTIONS
   };
 
@@ -57,8 +58,14 @@ static const struct argv_option startup_options[N_STARTUP_OPTIONS] =
   {
     {"help",      'h', no_argument, OPT_HELP},
     {"version",   'V', no_argument, OPT_VERSION},
-    {"no-splash", 'q', no_argument, OPT_NO_SPLASH}
+    {"no-splash", 'q', no_argument, OPT_NO_SPLASH},
+    {"measure-startup", 0, no_argument, OPT_MEASURE_STARTUP},
   };
+
+/* --measure-startup: Prints the elapsed time to start up and load any file
+   specified on the command line. */
+static gboolean measure_startup;
+static GTimer *startup;
 
 static void
 usage (void)
@@ -138,6 +145,10 @@ startup_option_callback (int id, void *show_splash_)
       *show_splash = FALSE;
       break;
 
+    case OPT_MEASURE_STARTUP:
+      measure_startup = TRUE;
+      break;
+
     default:
       NOT_REACHED ();
     }
@@ -177,6 +188,16 @@ hide_splash_window (gpointer data)
   return FALSE;
 }
 
+static gboolean
+print_startup_time (gpointer data)
+{
+  g_timer_stop (startup);
+  printf ("%.3f seconds elapsed\n", g_timer_elapsed (startup, NULL));
+  g_timer_destroy (startup);
+  startup = NULL;
+
+  return FALSE;
+}
 
 static gboolean
 quit_one_loop (gpointer data)
@@ -199,6 +220,15 @@ run_inner_loop (gpointer data)
   initialize (ip->data_file);
 
   g_timeout_add (500, hide_splash_window, ip->splash_window);
+
+  if (measure_startup)
+    {
+      GSource *source = g_idle_source_new ();
+      g_source_set_priority (source, G_PRIORITY_LOW);
+      g_source_set_callback (source, print_startup_time, NULL, NULL);
+      g_source_attach (source, NULL);
+      g_source_unref (source);
+    }
 
   gtk_main ();
 
@@ -250,9 +280,12 @@ main (int argc, char *argv[])
   set_program_name (argv[0]);
 
   g_mem_set_vtable (&vtable);
+  g_thread_init (NULL);
 
   gtk_disable_setlocale ();
 
+  startup = g_timer_new ();
+  g_timer_start (startup);
 
   if ( ! gtk_parse_args (&argc, &argv) )
     {
