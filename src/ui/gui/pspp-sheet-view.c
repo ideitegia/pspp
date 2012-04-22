@@ -64,7 +64,6 @@
 #define SCROLL_EDGE_SIZE 15
 #define EXPANDER_EXTRA_PADDING 4
 #define PSPP_SHEET_VIEW_SEARCH_DIALOG_TIMEOUT 5000
-#define AUTO_EXPAND_TIMEOUT 500
 
 /* The "background" areas of all rows/cells add up to cover the entire tree.
  * The background includes all inter-row and inter-cell spacing.
@@ -72,8 +71,8 @@
  * i.e. just the cells, no spacing.
  */
 
-#define BACKGROUND_HEIGHT(node) (PSPP_RBNODE_GET_HEIGHT (node))
-#define CELL_HEIGHT(node, separator) ((BACKGROUND_HEIGHT (node)) - (separator))
+#define BACKGROUND_HEIGHT(tree_view) (tree_view->priv->fixed_height)
+#define CELL_HEIGHT(tree_view, separator) ((BACKGROUND_HEIGHT (tree_view)) - (separator))
 
 /* Translate from bin_window coordinates to rbtree (tree coordinates) and
  * vice versa.
@@ -82,11 +81,11 @@
 #define RBTREE_Y_TO_TREE_WINDOW_Y(tree_view,y) ((y) - tree_view->priv->dy)
 
 /* This is in bin_window coordinates */
-#define BACKGROUND_FIRST_PIXEL(tree_view,tree,node) (RBTREE_Y_TO_TREE_WINDOW_Y (tree_view, _pspp_rbtree_node_find_offset ((tree), (node))))
-#define CELL_FIRST_PIXEL(tree_view,tree,node,separator) (BACKGROUND_FIRST_PIXEL (tree_view,tree,node) + separator/2)
+#define BACKGROUND_FIRST_PIXEL(tree_view,node) (RBTREE_Y_TO_TREE_WINDOW_Y (tree_view, pspp_sheet_view_node_find_offset (tree_view, (node))))
+#define CELL_FIRST_PIXEL(tree_view,node,separator) (BACKGROUND_FIRST_PIXEL (tree_view,node) + separator/2)
 
-#define ROW_HEIGHT(tree_view,height) \
-  ((height > 0) ? (height) : (tree_view)->priv->expander_size)
+#define ROW_HEIGHT(tree_view) \
+  ((tree_view->priv->fixed_height > 0) ? (tree_view->priv->fixed_height) : (tree_view)->priv->expander_size)
 
 
 typedef struct _PsppSheetViewChild PsppSheetViewChild;
@@ -118,10 +117,6 @@ struct _TreeViewDragInfo
 enum
 {
   ROW_ACTIVATED,
-  TEST_EXPAND_ROW,
-  TEST_COLLAPSE_ROW,
-  ROW_EXPANDED,
-  ROW_COLLAPSED,
   COLUMNS_CHANGED,
   CURSOR_CHANGED,
   MOVE_CURSOR,
@@ -129,8 +124,6 @@ enum
   UNSELECT_ALL,
   SELECT_CURSOR_ROW,
   TOGGLE_CURSOR_ROW,
-  EXPAND_COLLAPSE_CURSOR_ROW,
-  SELECT_CURSOR_PARENT,
   START_INTERACTIVE_SEARCH,
   LAST_SIGNAL
 };
@@ -143,19 +136,13 @@ enum {
   PROP_VADJUSTMENT,
   PROP_HEADERS_VISIBLE,
   PROP_HEADERS_CLICKABLE,
-  PROP_EXPANDER_COLUMN,
   PROP_REORDERABLE,
   PROP_RULES_HINT,
   PROP_ENABLE_SEARCH,
   PROP_SEARCH_COLUMN,
-  PROP_FIXED_HEIGHT_MODE,
   PROP_HOVER_SELECTION,
-  PROP_HOVER_EXPAND,
-  PROP_SHOW_EXPANDERS,
-  PROP_LEVEL_INDENTATION,
   PROP_RUBBER_BANDING,
   PROP_ENABLE_GRID_LINES,
-  PROP_ENABLE_TREE_LINES,
   PROP_TOOLTIP_COLUMN
 };
 
@@ -273,20 +260,11 @@ static gboolean pspp_sheet_view_real_unselect_all           (PsppSheetView     *
 static gboolean pspp_sheet_view_real_select_cursor_row      (PsppSheetView     *tree_view,
 							   gboolean         start_editing);
 static gboolean pspp_sheet_view_real_toggle_cursor_row      (PsppSheetView     *tree_view);
-static gboolean pspp_sheet_view_real_expand_collapse_cursor_row (PsppSheetView     *tree_view,
-							       gboolean         logical,
-							       gboolean         expand,
-							       gboolean         open_all);
-static gboolean pspp_sheet_view_real_select_cursor_parent   (PsppSheetView     *tree_view);
 static void pspp_sheet_view_row_changed                     (GtkTreeModel    *model,
 							   GtkTreePath     *path,
 							   GtkTreeIter     *iter,
 							   gpointer         data);
 static void pspp_sheet_view_row_inserted                    (GtkTreeModel    *model,
-							   GtkTreePath     *path,
-							   GtkTreeIter     *iter,
-							   gpointer         data);
-static void pspp_sheet_view_row_has_child_toggled           (GtkTreeModel    *model,
 							   GtkTreePath     *path,
 							   GtkTreeIter     *iter,
 							   gpointer         data);
@@ -300,16 +278,12 @@ static void pspp_sheet_view_rows_reordered                  (GtkTreeModel    *mo
 							   gpointer         data);
 
 /* Incremental reflow */
-static gboolean validate_row             (PsppSheetView *tree_view,
-					  GtkRBTree   *tree,
-					  GtkRBNode   *node,
+static gint validate_row             (PsppSheetView *tree_view,
+					  int node,
 					  GtkTreeIter *iter,
 					  GtkTreePath *path);
 static void     validate_visible_area    (PsppSheetView *tree_view);
 static gboolean validate_rows_handler    (PsppSheetView *tree_view);
-static gboolean do_validate_rows         (PsppSheetView *tree_view,
-					  gboolean     size_request);
-static gboolean validate_rows            (PsppSheetView *tree_view);
 static gboolean presize_handler_callback (gpointer     data);
 static void     install_presize_handler  (PsppSheetView *tree_view);
 static void     install_scroll_sync_handler (PsppSheetView *tree_view);
@@ -321,45 +295,22 @@ static void     pspp_sheet_view_top_row_to_dy (PsppSheetView *tree_view);
 static void     invalidate_empty_focus      (PsppSheetView *tree_view);
 
 /* Internal functions */
-static gboolean pspp_sheet_view_is_expander_column             (PsppSheetView        *tree_view,
-							      PsppSheetViewColumn  *column);
 static void     pspp_sheet_view_add_move_binding               (GtkBindingSet      *binding_set,
 							      guint               keyval,
 							      guint               modmask,
 							      gboolean            add_shifted_binding,
 							      GtkMovementStep     step,
 							      gint                count);
-static gint     pspp_sheet_view_unref_and_check_selection_tree (PsppSheetView        *tree_view,
-							      GtkRBTree          *tree);
 static void     pspp_sheet_view_queue_draw_path                (PsppSheetView        *tree_view,
 							      GtkTreePath        *path,
 							      const GdkRectangle *clip_rect);
-static void     pspp_sheet_view_queue_draw_arrow               (PsppSheetView        *tree_view,
-							      GtkRBTree          *tree,
-							      GtkRBNode          *node,
-							      const GdkRectangle *clip_rect);
-static void     pspp_sheet_view_draw_arrow                     (PsppSheetView        *tree_view,
-							      GtkRBTree          *tree,
-							      GtkRBNode          *node,
-							      gint                x,
-							      gint                y);
-static void     pspp_sheet_view_get_arrow_xrange               (PsppSheetView        *tree_view,
-							      GtkRBTree          *tree,
-							      gint               *x1,
-							      gint               *x2);
 static gint     pspp_sheet_view_new_column_width               (PsppSheetView        *tree_view,
 							      gint                i,
 							      gint               *x);
 static void     pspp_sheet_view_adjustment_changed             (GtkAdjustment      *adjustment,
 							      PsppSheetView        *tree_view);
-static void     pspp_sheet_view_build_tree                     (PsppSheetView        *tree_view,
-							      GtkRBTree          *tree,
-							      GtkTreeIter        *iter,
-							      gint                depth,
-							      gboolean            recurse);
 static void     pspp_sheet_view_clamp_node_visible             (PsppSheetView        *tree_view,
-							      GtkRBTree          *tree,
-							      GtkRBNode          *node);
+							      int node);
 static void     pspp_sheet_view_clamp_column_visible           (PsppSheetView        *tree_view,
 							      PsppSheetViewColumn  *column,
 							      gboolean            focus_to_cell);
@@ -374,37 +325,16 @@ static void     pspp_sheet_view_move_cursor_left_right         (PsppSheetView   
 							      gint                count);
 static void     pspp_sheet_view_move_cursor_start_end          (PsppSheetView        *tree_view,
 							      gint                count);
-static gboolean pspp_sheet_view_real_collapse_row              (PsppSheetView        *tree_view,
-							      GtkTreePath        *path,
-							      GtkRBTree          *tree,
-							      GtkRBNode          *node,
-							      gboolean            animate);
-static gboolean pspp_sheet_view_real_expand_row                (PsppSheetView        *tree_view,
-							      GtkTreePath        *path,
-							      GtkRBTree          *tree,
-							      GtkRBNode          *node,
-							      gboolean            open_all,
-							      gboolean            animate);
 static void     pspp_sheet_view_real_set_cursor                (PsppSheetView        *tree_view,
 							      GtkTreePath        *path,
 							      gboolean            clear_and_select,
 							      gboolean            clamp_node);
 static gboolean pspp_sheet_view_has_special_cell               (PsppSheetView        *tree_view);
-static void     column_sizing_notify                         (GObject            *object,
-                                                              GParamSpec         *pspec,
-                                                              gpointer            data);
-static gboolean expand_collapse_timeout                      (gpointer            data);
-static void     add_expand_collapse_timeout                  (PsppSheetView        *tree_view,
-                                                              GtkRBTree          *tree,
-                                                              GtkRBNode          *node,
-                                                              gboolean            expand);
-static void     remove_expand_collapse_timeout               (PsppSheetView        *tree_view);
-static void     cancel_arrow_animation                       (PsppSheetView        *tree_view);
-static gboolean do_expand_collapse                           (PsppSheetView        *tree_view);
 static void     pspp_sheet_view_stop_rubber_band               (PsppSheetView        *tree_view);
 static void     update_prelight                              (PsppSheetView        *tree_view,
                                                               int                 x,
                                                               int                 y);
+static void initialize_fixed_height_mode (PsppSheetView *tree_view);
 
 /* interactive search */
 static void     pspp_sheet_view_ensure_interactive_directory (PsppSheetView *tree_view);
@@ -474,6 +404,9 @@ static gboolean pspp_sheet_view_start_interactive_search      (PsppSheetView *tr
 static PsppSheetViewColumn *pspp_sheet_view_get_drop_column (PsppSheetView       *tree_view,
 							 PsppSheetViewColumn *column,
 							 gint               drop_position);
+static gint pspp_sheet_view_find_offset (PsppSheetView *tree_view,
+                                         gint height,
+                                         int *new_node);
 
 /* GtkBuildable */
 static void pspp_sheet_view_buildable_add_child (GtkBuildable *tree_view,
@@ -564,8 +497,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
   class->unselect_all = pspp_sheet_view_real_unselect_all;
   class->select_cursor_row = pspp_sheet_view_real_select_cursor_row;
   class->toggle_cursor_row = pspp_sheet_view_real_toggle_cursor_row;
-  class->expand_collapse_cursor_row = pspp_sheet_view_real_expand_collapse_cursor_row;
-  class->select_cursor_parent = pspp_sheet_view_real_select_cursor_parent;
   class->start_interactive_search = pspp_sheet_view_start_interactive_search;
 
   /* Properties */
@@ -611,14 +542,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 							 GTK_PARAM_READWRITE));
 
   g_object_class_install_property (o_class,
-                                   PROP_EXPANDER_COLUMN,
-                                   g_param_spec_object ("expander-column",
-							P_("Expander Column"),
-							P_("Set the column for the expander column"),
-							PSPP_TYPE_SHEET_VIEW_COLUMN,
-							GTK_PARAM_READWRITE));
-
-  g_object_class_install_property (o_class,
                                    PROP_REORDERABLE,
                                    g_param_spec_boolean ("reorderable",
 							 P_("Reorderable"),
@@ -653,25 +576,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 						       GTK_PARAM_READWRITE));
 
     /**
-     * PsppSheetView:fixed-height-mode:
-     *
-     * Setting the ::fixed-height-mode property to %TRUE speeds up 
-     * #PsppSheetView by assuming that all rows have the same height. 
-     * Only enable this option if all rows are the same height.  
-     * Please see pspp_sheet_view_set_fixed_height_mode() for more 
-     * information on this option.
-     *
-     * Since: 2.4
-     **/
-    g_object_class_install_property (o_class,
-                                     PROP_FIXED_HEIGHT_MODE,
-                                     g_param_spec_boolean ("fixed-height-mode",
-                                                           P_("Fixed Height Mode"),
-                                                           P_("Speeds up PsppSheetView by assuming that all rows have the same height"),
-                                                           FALSE,
-                                                           GTK_PARAM_READWRITE));
-    
-    /**
      * PsppSheetView:hover-selection:
      * 
      * Enables of disables the hover selection mode of @tree_view.
@@ -692,58 +596,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
                                                            FALSE,
                                                            GTK_PARAM_READWRITE));
 
-    /**
-     * PsppSheetView:hover-expand:
-     * 
-     * Enables of disables the hover expansion mode of @tree_view.
-     * Hover expansion makes rows expand or collapse if the pointer moves 
-     * over them.
-     *
-     * This mode is primarily intended for treeviews in popups, e.g.
-     * in #GtkComboBox or #GtkEntryCompletion.
-     *
-     * Since: 2.6
-     */
-    g_object_class_install_property (o_class,
-                                     PROP_HOVER_EXPAND,
-                                     g_param_spec_boolean ("hover-expand",
-                                                           P_("Hover Expand"),
-                                                           P_("Whether rows should be expanded/collapsed when the pointer moves over them"),
-                                                           FALSE,
-                                                           GTK_PARAM_READWRITE));
-
-    /**
-     * PsppSheetView:show-expanders:
-     *
-     * %TRUE if the view has expanders.
-     *
-     * Since: 2.12
-     */
-    g_object_class_install_property (o_class,
-				     PROP_SHOW_EXPANDERS,
-				     g_param_spec_boolean ("show-expanders",
-							   P_("Show Expanders"),
-							   P_("View has expanders"),
-							   TRUE,
-							   GTK_PARAM_READWRITE));
-
-    /**
-     * PsppSheetView:level-indentation:
-     *
-     * Extra indentation for each level.
-     *
-     * Since: 2.12
-     */
-    g_object_class_install_property (o_class,
-				     PROP_LEVEL_INDENTATION,
-				     g_param_spec_int ("level-indentation",
-						       P_("Level Indentation"),
-						       P_("Extra indentation for each level"),
-						       0,
-						       G_MAXINT,
-						       0,
-						       GTK_PARAM_READWRITE));
-
     g_object_class_install_property (o_class,
                                      PROP_RUBBER_BANDING,
                                      g_param_spec_boolean ("rubber-banding",
@@ -760,14 +612,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 							PSPP_TYPE_SHEET_VIEW_GRID_LINES,
 							PSPP_SHEET_VIEW_GRID_LINES_NONE,
 							GTK_PARAM_READWRITE));
-
-    g_object_class_install_property (o_class,
-                                     PROP_ENABLE_TREE_LINES,
-                                     g_param_spec_boolean ("enable-tree-lines",
-                                                           P_("Enable Tree Lines"),
-                                                           P_("Whether tree lines should be drawn in the tree view"),
-                                                           FALSE,
-                                                           GTK_PARAM_READWRITE));
 
     g_object_class_install_property (o_class,
 				     PROP_TOOLTIP_COLUMN,
@@ -815,13 +659,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 					   g_param_spec_boolean ("allow-rules",
 								 P_("Allow Rules"),
 								 P_("Allow drawing of alternating color rows"),
-								 TRUE,
-								 GTK_PARAM_READABLE));
-
-  gtk_widget_class_install_style_property (widget_class,
-					   g_param_spec_boolean ("indent-expanders",
-								 P_("Indent Expanders"),
-								 P_("Make the expanders indented"),
 								 TRUE,
 								 GTK_PARAM_READABLE));
 
@@ -922,88 +759,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 		  PSPP_TYPE_SHEET_VIEW_COLUMN);
 
   /**
-   * PsppSheetView::test-expand-row:
-   * @tree_view: the object on which the signal is emitted
-   * @iter: the tree iter of the row to expand
-   * @path: a tree path that points to the row 
-   * 
-   * The given row is about to be expanded (show its children nodes). Use this
-   * signal if you need to control the expandability of individual rows.
-   *
-   * Returns: %FALSE to allow expansion, %TRUE to reject
-   */
-  tree_view_signals[TEST_EXPAND_ROW] =
-    g_signal_new ("test-expand-row",
-		  G_TYPE_FROM_CLASS (o_class),
-		  G_SIGNAL_RUN_LAST,
-		  G_STRUCT_OFFSET (PsppSheetViewClass, test_expand_row),
-		  _gtk_boolean_handled_accumulator, NULL,
-                  psppire_marshal_BOOLEAN__BOXED_BOXED,
-		  G_TYPE_BOOLEAN, 2,
-		  GTK_TYPE_TREE_ITER,
-		  GTK_TYPE_TREE_PATH);
-
-  /**
-   * PsppSheetView::test-collapse-row:
-   * @tree_view: the object on which the signal is emitted
-   * @iter: the tree iter of the row to collapse
-   * @path: a tree path that points to the row 
-   * 
-   * The given row is about to be collapsed (hide its children nodes). Use this
-   * signal if you need to control the collapsibility of individual rows.
-   *
-   * Returns: %FALSE to allow collapsing, %TRUE to reject
-   */
-  tree_view_signals[TEST_COLLAPSE_ROW] =
-    g_signal_new ("test-collapse-row",
-		  G_TYPE_FROM_CLASS (o_class),
-		  G_SIGNAL_RUN_LAST,
-		  G_STRUCT_OFFSET (PsppSheetViewClass, test_collapse_row),
-		  _gtk_boolean_handled_accumulator, NULL,
-		  psppire_marshal_BOOLEAN__BOXED_BOXED,
-		  G_TYPE_BOOLEAN, 2,
-		  GTK_TYPE_TREE_ITER,
-		  GTK_TYPE_TREE_PATH);
-
-  /**
-   * PsppSheetView::row-expanded:
-   * @tree_view: the object on which the signal is emitted
-   * @iter: the tree iter of the expanded row
-   * @path: a tree path that points to the row 
-   * 
-   * The given row has been expanded (child nodes are shown).
-   */
-  tree_view_signals[ROW_EXPANDED] =
-    g_signal_new ("row-expanded",
-		  G_TYPE_FROM_CLASS (o_class),
-		  G_SIGNAL_RUN_LAST,
-		  G_STRUCT_OFFSET (PsppSheetViewClass, row_expanded),
-		  NULL, NULL,
-		  psppire_marshal_VOID__BOXED_BOXED,
-		  G_TYPE_NONE, 2,
-		  GTK_TYPE_TREE_ITER,
-		  GTK_TYPE_TREE_PATH);
-
-  /**
-   * PsppSheetView::row-collapsed:
-   * @tree_view: the object on which the signal is emitted
-   * @iter: the tree iter of the collapsed row
-   * @path: a tree path that points to the row 
-   * 
-   * The given row has been collapsed (child nodes are hidden).
-   */
-  tree_view_signals[ROW_COLLAPSED] =
-    g_signal_new ("row-collapsed",
-		  G_TYPE_FROM_CLASS (o_class),
-		  G_SIGNAL_RUN_LAST,
-		  G_STRUCT_OFFSET (PsppSheetViewClass, row_collapsed),
-		  NULL, NULL,
-		  psppire_marshal_VOID__BOXED_BOXED,
-		  G_TYPE_NONE, 2,
-		  GTK_TYPE_TREE_ITER,
-		  GTK_TYPE_TREE_PATH);
-
-  /**
    * PsppSheetView::columns-changed:
    * @tree_view: the object on which the signal is emitted 
    * 
@@ -1077,27 +832,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 		  G_TYPE_FROM_CLASS (object_class),
 		  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		  G_STRUCT_OFFSET (PsppSheetViewClass, toggle_cursor_row),
-		  NULL, NULL,
-		  psppire_marshal_BOOLEAN__VOID,
-		  G_TYPE_BOOLEAN, 0);
-
-  tree_view_signals[EXPAND_COLLAPSE_CURSOR_ROW] =
-    g_signal_new ("expand-collapse-cursor-row",
-		  G_TYPE_FROM_CLASS (object_class),
-		  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
-		  G_STRUCT_OFFSET (PsppSheetViewClass, expand_collapse_cursor_row),
-		  NULL, NULL,
-		  psppire_marshal_BOOLEAN__BOOLEAN_BOOLEAN_BOOLEAN,
-		  G_TYPE_BOOLEAN, 3,
-		  G_TYPE_BOOLEAN,
-		  G_TYPE_BOOLEAN,
-		  G_TYPE_BOOLEAN);
-
-  tree_view_signals[SELECT_CURSOR_PARENT] =
-    g_signal_new ("select-cursor-parent",
-		  G_TYPE_FROM_CLASS (object_class),
-		  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
-		  G_STRUCT_OFFSET (PsppSheetViewClass, select_cursor_parent),
 		  NULL, NULL,
 		  psppire_marshal_BOOLEAN__VOID,
 		  G_TYPE_BOOLEAN, 0);
@@ -1210,113 +944,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
   gtk_binding_entry_add_signal (binding_set, GDK_KP_Enter, 0, "select-cursor-row", 1,
 				G_TYPE_BOOLEAN, TRUE);
 
-  /* expand and collapse rows */
-  gtk_binding_entry_add_signal (binding_set, GDK_plus, 0, "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, FALSE);
-
-  gtk_binding_entry_add_signal (binding_set, GDK_asterisk, 0,
-                                "expand-collapse-cursor-row", 3,
-                                G_TYPE_BOOLEAN, TRUE,
-                                G_TYPE_BOOLEAN, TRUE,
-                                G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Multiply, 0,
-                                "expand-collapse-cursor-row", 3,
-                                G_TYPE_BOOLEAN, TRUE,
-                                G_TYPE_BOOLEAN, TRUE,
-                                G_TYPE_BOOLEAN, TRUE);
-
-  gtk_binding_entry_add_signal (binding_set, GDK_slash, 0,
-                                "expand-collapse-cursor-row", 3,
-                                G_TYPE_BOOLEAN, TRUE,
-                                G_TYPE_BOOLEAN, FALSE,
-                                G_TYPE_BOOLEAN, FALSE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Divide, 0,
-                                "expand-collapse-cursor-row", 3,
-                                G_TYPE_BOOLEAN, TRUE,
-                                G_TYPE_BOOLEAN, FALSE,
-                                G_TYPE_BOOLEAN, FALSE);
-
-  /* Not doable on US keyboards */
-  gtk_binding_entry_add_signal (binding_set, GDK_plus, GDK_SHIFT_MASK, "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Add, 0, "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, FALSE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Add, GDK_SHIFT_MASK, "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Add, GDK_SHIFT_MASK, "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_Right, GDK_SHIFT_MASK,
-                                "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Right, GDK_SHIFT_MASK,
-                                "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_Right,
-                                GDK_CONTROL_MASK | GDK_SHIFT_MASK,
-                                "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Right,
-                                GDK_CONTROL_MASK | GDK_SHIFT_MASK,
-                                "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, TRUE);
-
-  gtk_binding_entry_add_signal (binding_set, GDK_minus, 0, "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, FALSE);
-  gtk_binding_entry_add_signal (binding_set, GDK_minus, GDK_SHIFT_MASK, "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Subtract, 0, "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, FALSE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Subtract, GDK_SHIFT_MASK, "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, TRUE,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_Left, GDK_SHIFT_MASK,
-                                "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Left, GDK_SHIFT_MASK,
-                                "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_Left,
-                                GDK_CONTROL_MASK | GDK_SHIFT_MASK,
-                                "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Left,
-                                GDK_CONTROL_MASK | GDK_SHIFT_MASK,
-                                "expand-collapse-cursor-row", 3,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, FALSE,
-				G_TYPE_BOOLEAN, TRUE);
-
   gtk_binding_entry_add_signal (binding_set, GDK_BackSpace, 0, "select-cursor-parent", 0);
   gtk_binding_entry_add_signal (binding_set, GDK_BackSpace, GDK_CONTROL_MASK, "select-cursor-parent", 0);
 
@@ -1341,11 +968,11 @@ pspp_sheet_view_init (PsppSheetView *tree_view)
   gtk_widget_set_can_focus (GTK_WIDGET (tree_view), TRUE);
   gtk_widget_set_redraw_on_allocate (GTK_WIDGET (tree_view), FALSE);
 
-  tree_view->priv->flags =  PSPP_SHEET_VIEW_SHOW_EXPANDERS
-                            | PSPP_SHEET_VIEW_DRAW_KEYFOCUS
+  tree_view->priv->flags =  PSPP_SHEET_VIEW_DRAW_KEYFOCUS
                             | PSPP_SHEET_VIEW_HEADERS_VISIBLE;
 
   /* We need some padding */
+  tree_view->priv->selected = range_tower_create ();
   tree_view->priv->dy = 0;
   tree_view->priv->cursor_offset = 0;
   tree_view->priv->n_columns = 0;
@@ -1360,8 +987,6 @@ pspp_sheet_view_init (PsppSheetView *tree_view)
   tree_view->priv->presize_handler_timer = 0;
   tree_view->priv->scroll_sync_timer = 0;
   tree_view->priv->fixed_height = -1;
-  tree_view->priv->fixed_height_mode = FALSE;
-  tree_view->priv->fixed_height_check = 0;
   pspp_sheet_view_set_adjustments (tree_view, NULL, NULL);
   tree_view->priv->selection = _pspp_sheet_selection_new_with_tree_view (tree_view);
   tree_view->priv->enable_search = TRUE;
@@ -1374,14 +999,10 @@ pspp_sheet_view_init (PsppSheetView *tree_view)
   tree_view->priv->width = 0;
           
   tree_view->priv->hover_selection = FALSE;
-  tree_view->priv->hover_expand = FALSE;
-
-  tree_view->priv->level_indentation = 0;
 
   tree_view->priv->rubber_banding_enable = FALSE;
 
   tree_view->priv->grid_lines = PSPP_SHEET_VIEW_GRID_LINES_NONE;
-  tree_view->priv->tree_lines_enabled = FALSE;
 
   tree_view->priv->tooltip_column = -1;
 
@@ -1392,6 +1013,10 @@ pspp_sheet_view_init (PsppSheetView *tree_view)
 
   tree_view->priv->event_last_x = -10000;
   tree_view->priv->event_last_y = -10000;
+
+  tree_view->priv->prelight_node = -1;
+  tree_view->priv->rubber_band_start_node = -1;
+  tree_view->priv->rubber_band_end_node = -1;
 }
 
 
@@ -1426,9 +1051,6 @@ pspp_sheet_view_set_property (GObject         *object,
     case PROP_HEADERS_CLICKABLE:
       pspp_sheet_view_set_headers_clickable (tree_view, g_value_get_boolean (value));
       break;
-    case PROP_EXPANDER_COLUMN:
-      pspp_sheet_view_set_expander_column (tree_view, g_value_get_object (value));
-      break;
     case PROP_REORDERABLE:
       pspp_sheet_view_set_reorderable (tree_view, g_value_get_boolean (value));
       break;
@@ -1441,29 +1063,14 @@ pspp_sheet_view_set_property (GObject         *object,
     case PROP_SEARCH_COLUMN:
       pspp_sheet_view_set_search_column (tree_view, g_value_get_int (value));
       break;
-    case PROP_FIXED_HEIGHT_MODE:
-      pspp_sheet_view_set_fixed_height_mode (tree_view, g_value_get_boolean (value));
-      break;
     case PROP_HOVER_SELECTION:
       tree_view->priv->hover_selection = g_value_get_boolean (value);
-      break;
-    case PROP_HOVER_EXPAND:
-      tree_view->priv->hover_expand = g_value_get_boolean (value);
-      break;
-    case PROP_SHOW_EXPANDERS:
-      pspp_sheet_view_set_show_expanders (tree_view, g_value_get_boolean (value));
-      break;
-    case PROP_LEVEL_INDENTATION:
-      tree_view->priv->level_indentation = g_value_get_int (value);
       break;
     case PROP_RUBBER_BANDING:
       tree_view->priv->rubber_banding_enable = g_value_get_boolean (value);
       break;
     case PROP_ENABLE_GRID_LINES:
       pspp_sheet_view_set_grid_lines (tree_view, g_value_get_enum (value));
-      break;
-    case PROP_ENABLE_TREE_LINES:
-      pspp_sheet_view_set_enable_tree_lines (tree_view, g_value_get_boolean (value));
       break;
     case PROP_TOOLTIP_COLUMN:
       pspp_sheet_view_set_tooltip_column (tree_view, g_value_get_int (value));
@@ -1501,9 +1108,6 @@ pspp_sheet_view_get_property (GObject    *object,
     case PROP_HEADERS_CLICKABLE:
       g_value_set_boolean (value, pspp_sheet_view_get_headers_clickable (tree_view));
       break;
-    case PROP_EXPANDER_COLUMN:
-      g_value_set_object (value, tree_view->priv->expander_column);
-      break;
     case PROP_REORDERABLE:
       g_value_set_boolean (value, tree_view->priv->reorderable);
       break;
@@ -1516,29 +1120,14 @@ pspp_sheet_view_get_property (GObject    *object,
     case PROP_SEARCH_COLUMN:
       g_value_set_int (value, tree_view->priv->search_column);
       break;
-    case PROP_FIXED_HEIGHT_MODE:
-      g_value_set_boolean (value, tree_view->priv->fixed_height_mode);
-      break;
     case PROP_HOVER_SELECTION:
       g_value_set_boolean (value, tree_view->priv->hover_selection);
-      break;
-    case PROP_HOVER_EXPAND:
-      g_value_set_boolean (value, tree_view->priv->hover_expand);
-      break;
-    case PROP_SHOW_EXPANDERS:
-      g_value_set_boolean (value, PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_SHOW_EXPANDERS));
-      break;
-    case PROP_LEVEL_INDENTATION:
-      g_value_set_int (value, tree_view->priv->level_indentation);
       break;
     case PROP_RUBBER_BANDING:
       g_value_set_boolean (value, tree_view->priv->rubber_banding_enable);
       break;
     case PROP_ENABLE_GRID_LINES:
       g_value_set_enum (value, tree_view->priv->grid_lines);
-      break;
-    case PROP_ENABLE_TREE_LINES:
-      g_value_set_boolean (value, tree_view->priv->tree_lines_enabled);
       break;
     case PROP_TOOLTIP_COLUMN:
       g_value_set_int (value, tree_view->priv->tooltip_column);
@@ -1570,26 +1159,18 @@ pspp_sheet_view_buildable_add_child (GtkBuildable *tree_view,
  */
 
 static void
-pspp_sheet_view_free_rbtree (PsppSheetView *tree_view)
-{
-  _pspp_rbtree_free (tree_view->priv->tree);
-  
-  tree_view->priv->tree = NULL;
-  tree_view->priv->button_pressed_node = NULL;
-  tree_view->priv->button_pressed_tree = NULL;
-  tree_view->priv->prelight_tree = NULL;
-  tree_view->priv->prelight_node = NULL;
-  tree_view->priv->expanded_collapsed_node = NULL;
-  tree_view->priv->expanded_collapsed_tree = NULL;
-}
-
-static void
 pspp_sheet_view_destroy (GtkObject *object)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (object);
   GList *list;
 
   pspp_sheet_view_stop_editing (tree_view, TRUE);
+
+  if (tree_view->priv->selected != NULL)
+    {
+      range_tower_destroy (tree_view->priv->selected);
+      tree_view->priv->selected = NULL;
+    }
 
   if (tree_view->priv->columns != NULL)
     {
@@ -1604,12 +1185,7 @@ pspp_sheet_view_destroy (GtkObject *object)
       tree_view->priv->columns = NULL;
     }
 
-  if (tree_view->priv->tree != NULL)
-    {
-      pspp_sheet_view_unref_and_check_selection_tree (tree_view, tree_view->priv->tree);
-
-      pspp_sheet_view_free_rbtree (tree_view);
-    }
+  tree_view->priv->prelight_node = -1;
 
   if (tree_view->priv->selection != NULL)
     {
@@ -1681,12 +1257,6 @@ pspp_sheet_view_destroy (GtkObject *object)
       tree_view->priv->search_position_user_data = NULL;
     }
 
-  if (tree_view->priv->row_separator_destroy && tree_view->priv->row_separator_data)
-    {
-      tree_view->priv->row_separator_destroy (tree_view->priv->row_separator_data);
-      tree_view->priv->row_separator_data = NULL;
-    }
-  
   pspp_sheet_view_set_model (tree_view, NULL);
 
   if (tree_view->priv->hadjustment)
@@ -1853,7 +1423,6 @@ pspp_sheet_view_realize (GtkWidget *widget)
 
   /* Need to call those here, since they create GCs */
   pspp_sheet_view_set_grid_lines (tree_view, tree_view->priv->grid_lines);
-  pspp_sheet_view_set_enable_tree_lines (tree_view, tree_view->priv->tree_lines_enabled);
 
   install_presize_handler (tree_view); 
 }
@@ -1871,20 +1440,12 @@ pspp_sheet_view_unrealize (GtkWidget *widget)
       priv->scroll_timeout = 0;
     }
 
-  if (priv->auto_expand_timeout != 0)
-    {
-      g_source_remove (priv->auto_expand_timeout);
-      priv->auto_expand_timeout = 0;
-    }
-
   if (priv->open_dest_timeout != 0)
     {
       g_source_remove (priv->open_dest_timeout);
       priv->open_dest_timeout = 0;
     }
 
-  remove_expand_collapse_timeout (tree_view);
-  
   if (priv->presize_handler_timer != 0)
     {
       g_source_remove (priv->presize_handler_timer);
@@ -1932,12 +1493,6 @@ pspp_sheet_view_unrealize (GtkWidget *widget)
       gdk_window_set_user_data (priv->drag_highlight_window, NULL);
       gdk_window_destroy (priv->drag_highlight_window);
       priv->drag_highlight_window = NULL;
-    }
-
-  if (priv->tree_line_gc)
-    {
-      g_object_unref (priv->tree_line_gc);
-      priv->tree_line_gc = NULL;
     }
 
   if (priv->grid_line_gc)
@@ -2008,17 +1563,9 @@ pspp_sheet_view_update_size (PsppSheetView *tree_view)
 	{
 	  real_requested_width = column->resized_width;
 	}
-      else if (column->column_type == PSPP_SHEET_VIEW_COLUMN_FIXED)
-	{
-	  real_requested_width = column->fixed_width;
-	}
-      else if (PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_HEADERS_VISIBLE))
-	{
-	  real_requested_width = MAX (column->requested_width, column->button_request);
-	}
       else
 	{
-	  real_requested_width = column->requested_width;
+	  real_requested_width = column->fixed_width;
 	}
 
       if (column->min_width != -1)
@@ -2029,10 +1576,7 @@ pspp_sheet_view_update_size (PsppSheetView *tree_view)
       tree_view->priv->width += real_requested_width;
     }
 
-  if (tree_view->priv->tree == NULL)
-    tree_view->priv->height = 0;
-  else
-    tree_view->priv->height = tree_view->priv->tree->root->offset;
+  tree_view->priv->height = tree_view->priv->fixed_height * tree_view->priv->row_count;
 }
 
 static void
@@ -2045,7 +1589,7 @@ pspp_sheet_view_size_request (GtkWidget      *widget,
   /* we validate some rows initially just to make sure we have some size. 
    * In practice, with a lot of static lists, this should get a good width.
    */
-  do_validate_rows (tree_view, FALSE);
+  initialize_fixed_height_mode (tree_view);
   pspp_sheet_view_size_request_columns (tree_view);
   pspp_sheet_view_update_size (PSPP_SHEET_VIEW (widget));
 
@@ -2064,26 +1608,6 @@ pspp_sheet_view_size_request (GtkWidget      *widget,
       if (gtk_widget_get_visible (child->widget))
         gtk_widget_size_request (child->widget, &child_requisition);
     }
-}
-
-static int
-pspp_sheet_view_calculate_width_before_expander (PsppSheetView *tree_view)
-{
-  int width = 0;
-  GList *list;
-  gboolean rtl;
-
-  rtl = (gtk_widget_get_direction (GTK_WIDGET (tree_view)) == GTK_TEXT_DIR_RTL);
-  for (list = (rtl ? g_list_last (tree_view->priv->columns) : g_list_first (tree_view->priv->columns));
-       list->data != tree_view->priv->expander_column;
-       list = (rtl ? list->prev : list->next))
-    {
-      PsppSheetViewColumn *column = list->data;
-
-      width += column->width;
-    }
-
-  return width;
 }
 
 static void
@@ -2151,19 +1675,9 @@ pspp_sheet_view_get_real_requested_width_from_column (PsppSheetView       *tree_
     {
       real_requested_width = column->resized_width;
     }
-  else if (column->column_type == PSPP_SHEET_VIEW_COLUMN_FIXED)
-    {
-      real_requested_width = column->fixed_width;
-    }
-  else if (PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_HEADERS_VISIBLE))
-    {
-      real_requested_width = MAX (column->requested_width, column->button_request);
-    }
   else
     {
-      real_requested_width = column->requested_width;
-      if (real_requested_width < 0)
-        real_requested_width = 0;
+      real_requested_width = column->fixed_width;
     }
 
   if (column->min_width != -1)
@@ -2456,7 +1970,7 @@ pspp_sheet_view_size_allocate (GtkWidget     *widget,
 			      allocation->height - TREE_VIEW_HEADER_HEIGHT (tree_view));
     }
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     invalidate_empty_focus (tree_view);
 
   if (gtk_widget_get_realized (widget))
@@ -2470,27 +1984,6 @@ pspp_sheet_view_size_allocate (GtkWidget     *widget,
 	      break;
 	    }
 	}
-
-      if (width_changed && tree_view->priv->expander_column)
-        {
-          /* Might seem awkward, but is the best heuristic I could come up
-           * with.  Only if the width of the columns before the expander
-           * changes, we will update the prelight status.  It is this
-           * width that makes the expander move vertically.  Always updating
-           * prelight status causes trouble with hover selections.
-           */
-          gint width_before_expander;
-
-          width_before_expander = pspp_sheet_view_calculate_width_before_expander (tree_view);
-
-          if (tree_view->priv->prev_width_before_expander
-              != width_before_expander)
-              update_prelight (tree_view,
-                               tree_view->priv->event_last_x,
-                               tree_view->priv->event_last_y);
-
-          tree_view->priv->prev_width_before_expander = width_before_expander;
-        }
 
       /* This little hack only works if we have an LTR locale, and no column has the  */
       if (width_changed)
@@ -2515,28 +2008,39 @@ grab_focus_and_unset_draw_keyfocus (PsppSheetView *tree_view)
   PSPP_SHEET_VIEW_UNSET_FLAG (tree_view, PSPP_SHEET_VIEW_DRAW_KEYFOCUS);
 }
 
-static inline gboolean
-row_is_separator (PsppSheetView *tree_view,
-		  GtkTreeIter *iter,
-		  GtkTreePath *path)
+gboolean
+pspp_sheet_view_node_is_selected (PsppSheetView *tree_view,
+                                  int node)
 {
-  gboolean is_separator = FALSE;
+  return node >= 0 && range_tower_contains (tree_view->priv->selected, node);
+}
 
-  if (tree_view->priv->row_separator_func)
-    {
-      GtkTreeIter tmpiter;
+void
+pspp_sheet_view_node_select (PsppSheetView *tree_view,
+                             int node)
+{
+  range_tower_set1 (tree_view->priv->selected, node, 1);
+}
 
-      if (iter)
-	tmpiter = *iter;
-      else
-	gtk_tree_model_get_iter (tree_view->priv->model, &tmpiter, path);
+void
+pspp_sheet_view_node_unselect (PsppSheetView *tree_view,
+                               int node)
+{
+  range_tower_set0 (tree_view->priv->selected, node, 1);
+}
 
-      is_separator = tree_view->priv->row_separator_func (tree_view->priv->model,
-                                                          &tmpiter,
-                                                          tree_view->priv->row_separator_data);
-    }
+gint
+pspp_sheet_view_node_next (PsppSheetView *tree_view,
+                           gint node)
+{
+  return node + 1 < tree_view->priv->row_count ? node + 1 : -1;
+}
 
-  return is_separator;
+gint
+pspp_sheet_view_node_prev (PsppSheetView *tree_view,
+                           gint node)
+{
+  return node > 0 ? node - 1 : -1;
 }
 
 static gboolean
@@ -2551,7 +2055,6 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
   GdkRectangle cell_area;
   gint vertical_separator;
   gint horizontal_separator;
-  gboolean path_is_selectable;
   gboolean rtl;
 
   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
@@ -2568,8 +2071,7 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 
   if (event->window == tree_view->priv->bin_window)
     {
-      GtkRBNode *node;
-      GtkRBTree *tree;
+      int node;
       GtkTreePath *path;
       gchar *path_string;
       gint depth;
@@ -2585,29 +2087,8 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
       gboolean node_selected;
 
       /* Empty tree? */
-      if (tree_view->priv->tree == NULL)
+      if (tree_view->priv->row_count == 0)
 	{
-	  grab_focus_and_unset_draw_keyfocus (tree_view);
-	  return TRUE;
-	}
-
-      /* are we in an arrow? */
-      if (tree_view->priv->prelight_node &&
-          PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_ARROW_PRELIT) &&
-	  TREE_VIEW_DRAW_EXPANDERS (tree_view))
-	{
-	  if (event->button == 1)
-	    {
-	      gtk_grab_add (widget);
-	      tree_view->priv->button_pressed_node = tree_view->priv->prelight_node;
-	      tree_view->priv->button_pressed_tree = tree_view->priv->prelight_tree;
-	      pspp_sheet_view_draw_arrow (PSPP_SHEET_VIEW (widget),
-					tree_view->priv->prelight_tree,
-					tree_view->priv->prelight_node,
-					event->x,
-					event->y);
-	    }
-
 	  grab_focus_and_unset_draw_keyfocus (tree_view);
 	  return TRUE;
 	}
@@ -2616,9 +2097,9 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
       new_y = TREE_WINDOW_Y_TO_RBTREE_Y(tree_view, event->y);
       if (new_y < 0)
 	new_y = 0;
-      y_offset = -_pspp_rbtree_find_offset (tree_view->priv->tree, new_y, &tree, &node);
+      y_offset = -pspp_sheet_view_find_offset (tree_view, new_y, &node);
 
-      if (node == NULL)
+      if (node < 0)
 	{
 	  /* We clicked in dead space */
 	  grab_focus_and_unset_draw_keyfocus (tree_view);
@@ -2626,19 +2107,11 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 	}
 
       /* Get the path and the node */
-      path = _pspp_sheet_view_find_path (tree_view, tree, node);
-      path_is_selectable = !row_is_separator (tree_view, NULL, path);
-
-      if (!path_is_selectable)
-	{
-	  gtk_tree_path_free (path);
-	  grab_focus_and_unset_draw_keyfocus (tree_view);
-	  return TRUE;
-	}
+      path = _pspp_sheet_view_find_path (tree_view, node);
 
       depth = gtk_tree_path_get_depth (path);
       background_area.y = y_offset + event->y;
-      background_area.height = ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
+      background_area.height = ROW_HEIGHT (tree_view);
       background_area.x = 0;
 
 
@@ -2667,19 +2140,6 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 	  cell_area.height -= vertical_separator;
 	  cell_area.x += horizontal_separator/2;
 	  cell_area.y += vertical_separator/2;
-	  if (pspp_sheet_view_is_expander_column (tree_view, column))
-	    {
-	      if (!rtl)
-		cell_area.x += (depth - 1) * tree_view->priv->level_indentation;
-	      cell_area.width -= (depth - 1) * tree_view->priv->level_indentation;
-
-              if (TREE_VIEW_DRAW_EXPANDERS (tree_view))
-	        {
-		  if (!rtl)
-		    cell_area.x += depth * tree_view->priv->expander_size;
-	          cell_area.width -= depth * tree_view->priv->expander_size;
-		}
-	    }
 	  break;
 	}
 
@@ -2702,9 +2162,7 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 	  gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
 	  pspp_sheet_view_column_cell_set_cell_data (column,
 						   tree_view->priv->model,
-						   &iter,
-						   PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_PARENT),
-						   node->children?TRUE:FALSE);
+						   &iter);
 
 	  if (tree_view->priv->anchor)
 	    anchor = gtk_tree_row_reference_get_path (tree_view->priv->anchor);
@@ -2760,7 +2218,7 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 	}
 
       /* select */
-      node_selected = PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED);
+      node_selected = pspp_sheet_view_node_is_selected (tree_view, node);
       pre_val = tree_view->priv->vadjustment->value;
 
       /* we only handle selection modifications on the first button press
@@ -2897,14 +2355,6 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 	  column->window)
 	{
 	  gpointer drag_data;
-
-	  if (event->type == GDK_2BUTTON_PRESS &&
-	      pspp_sheet_view_column_get_sizing (column) != PSPP_SHEET_VIEW_COLUMN_AUTOSIZE)
-	    {
-	      column->use_resized_width = FALSE;
-	      _pspp_sheet_view_column_autosize (tree_view, column);
-	      return TRUE;
-	    }
 
 	  if (gdk_pointer_grab (column->window, FALSE,
 				GDK_POINTER_MOTION_HINT_MASK |
@@ -3047,38 +2497,7 @@ pspp_sheet_view_button_release (GtkWidget      *widget,
   if (PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_IN_COLUMN_RESIZE))
     return pspp_sheet_view_button_release_column_resize (widget, event);
 
-  if (tree_view->priv->button_pressed_node == NULL)
-    return FALSE;
-
-  if (event->button == 1)
-    {
-      gtk_grab_remove (widget);
-      if (tree_view->priv->button_pressed_node == tree_view->priv->prelight_node &&
-          PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_ARROW_PRELIT))
-	{
-	  GtkTreePath *path = NULL;
-
-	  path = _pspp_sheet_view_find_path (tree_view,
-					   tree_view->priv->button_pressed_tree,
-					   tree_view->priv->button_pressed_node);
-	  /* Actually activate the node */
-	  if (tree_view->priv->button_pressed_node->children == NULL)
-	    pspp_sheet_view_real_expand_row (tree_view, path,
-					   tree_view->priv->button_pressed_tree,
-					   tree_view->priv->button_pressed_node,
-					   FALSE, TRUE);
-	  else
-	    pspp_sheet_view_real_collapse_row (PSPP_SHEET_VIEW (widget), path,
-					     tree_view->priv->button_pressed_tree,
-					     tree_view->priv->button_pressed_node, TRUE);
-	  gtk_tree_path_free (path);
-	}
-
-      tree_view->priv->button_pressed_tree = NULL;
-      tree_view->priv->button_pressed_node = NULL;
-    }
-
-  return TRUE;
+  return FALSE;
 }
 
 static gboolean
@@ -3113,172 +2532,30 @@ pspp_sheet_view_configure (GtkWidget *widget,
 /* GtkWidget::motion_event function set.
  */
 
-static gboolean
-coords_are_over_arrow (PsppSheetView *tree_view,
-                       GtkRBTree   *tree,
-                       GtkRBNode   *node,
-                       /* these are in bin window coords */
-                       gint         x,
-                       gint         y)
-{
-  GdkRectangle arrow;
-  gint x2;
-
-  if (!gtk_widget_get_realized (GTK_WIDGET (tree_view)))
-    return FALSE;
-
-  if ((node->flags & PSPP_RBNODE_IS_PARENT) == 0)
-    return FALSE;
-
-  arrow.y = BACKGROUND_FIRST_PIXEL (tree_view, tree, node);
-
-  arrow.height = ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node));
-
-  pspp_sheet_view_get_arrow_xrange (tree_view, tree, &arrow.x, &x2);
-
-  arrow.width = x2 - arrow.x;
-
-  return (x >= arrow.x &&
-          x < (arrow.x + arrow.width) &&
-	  y >= arrow.y &&
-	  y < (arrow.y + arrow.height));
-}
-
-static gboolean
-auto_expand_timeout (gpointer data)
-{
-  PsppSheetView *tree_view = PSPP_SHEET_VIEW (data);
-  GtkTreePath *path;
-
-  if (tree_view->priv->prelight_node)
-    {
-      path = _pspp_sheet_view_find_path (tree_view,
-				       tree_view->priv->prelight_tree,
-				       tree_view->priv->prelight_node);   
-
-      if (tree_view->priv->prelight_node->children)
-	pspp_sheet_view_collapse_row (tree_view, path);
-      else
-	pspp_sheet_view_expand_row (tree_view, path, FALSE);
-
-      gtk_tree_path_free (path);
-    }
-
-  tree_view->priv->auto_expand_timeout = 0;
-
-  return FALSE;
-}
-
-static void
-remove_auto_expand_timeout (PsppSheetView *tree_view)
-{
-  if (tree_view->priv->auto_expand_timeout != 0)
-    {
-      g_source_remove (tree_view->priv->auto_expand_timeout);
-      tree_view->priv->auto_expand_timeout = 0;
-    }
-}
-
 static void
 do_prelight (PsppSheetView *tree_view,
-             GtkRBTree   *tree,
-             GtkRBNode   *node,
+             int node,
 	     /* these are in bin_window coords */
              gint         x,
              gint         y)
 {
-  if (tree_view->priv->prelight_tree == tree &&
-      tree_view->priv->prelight_node == node)
+  int prev_node = tree_view->priv->prelight_node;
+
+  if (prev_node != node)
     {
-      /*  We are still on the same node,
-	  but we might need to take care of the arrow  */
+      tree_view->priv->prelight_node = node;
 
-      if (tree && node && TREE_VIEW_DRAW_EXPANDERS (tree_view))
-	{
-	  gboolean over_arrow;
-	  gboolean flag_set;
+      if (prev_node >= 0)
+        _pspp_sheet_view_queue_draw_node (tree_view, prev_node, NULL);
 
-	  over_arrow = coords_are_over_arrow (tree_view, tree, node, x, y);
-	  flag_set = PSPP_SHEET_VIEW_FLAG_SET (tree_view,
-					     PSPP_SHEET_VIEW_ARROW_PRELIT);
-
-	  if (over_arrow != flag_set)
-	    {
-	      if (over_arrow)
-		PSPP_SHEET_VIEW_SET_FLAG (tree_view,
-					PSPP_SHEET_VIEW_ARROW_PRELIT);
-	      else
-		PSPP_SHEET_VIEW_UNSET_FLAG (tree_view,
-					  PSPP_SHEET_VIEW_ARROW_PRELIT);
-
-	      pspp_sheet_view_draw_arrow (tree_view, tree, node, x, y);
-	    }
-	}
-
-      return;
-    }
-
-  if (tree_view->priv->prelight_tree && tree_view->priv->prelight_node)
-    {
-      /*  Unprelight the old node and arrow  */
-
-      PSPP_RBNODE_UNSET_FLAG (tree_view->priv->prelight_node,
-			     PSPP_RBNODE_IS_PRELIT);
-
-      if (PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_ARROW_PRELIT)
-	  && TREE_VIEW_DRAW_EXPANDERS (tree_view))
-	{
-	  PSPP_SHEET_VIEW_UNSET_FLAG (tree_view, PSPP_SHEET_VIEW_ARROW_PRELIT);
-	  
-	  pspp_sheet_view_draw_arrow (tree_view,
-				    tree_view->priv->prelight_tree,
-				    tree_view->priv->prelight_node,
-				    x,
-				    y);
-	}
-
-      _pspp_sheet_view_queue_draw_node (tree_view,
-				      tree_view->priv->prelight_tree,
-				      tree_view->priv->prelight_node,
-				      NULL);
-    }
-
-
-  if (tree_view->priv->hover_expand)
-    remove_auto_expand_timeout (tree_view);
-
-  /*  Set the new prelight values  */
-  tree_view->priv->prelight_node = node;
-  tree_view->priv->prelight_tree = tree;
-
-  if (!node || !tree)
-    return;
-
-  /*  Prelight the new node and arrow  */
-
-  if (TREE_VIEW_DRAW_EXPANDERS (tree_view)
-      && coords_are_over_arrow (tree_view, tree, node, x, y))
-    {
-      PSPP_SHEET_VIEW_SET_FLAG (tree_view, PSPP_SHEET_VIEW_ARROW_PRELIT);
-
-      pspp_sheet_view_draw_arrow (tree_view, tree, node, x, y);
-    }
-
-  PSPP_RBNODE_SET_FLAG (node, PSPP_RBNODE_IS_PRELIT);
-
-  _pspp_sheet_view_queue_draw_node (tree_view, tree, node, NULL);
-
-  if (tree_view->priv->hover_expand)
-    {
-      tree_view->priv->auto_expand_timeout = 
-	gdk_threads_add_timeout (AUTO_EXPAND_TIMEOUT, auto_expand_timeout, tree_view);
+      if (node >= 0)
+        _pspp_sheet_view_queue_draw_node (tree_view, node, NULL);
     }
 }
 
 static void
 prelight_or_select (PsppSheetView *tree_view,
-		    GtkRBTree   *tree,
-		    GtkRBNode   *node,
+		    int node,
 		    /* these are in bin_window coords */
 		    gint         x,
 		    gint         y)
@@ -3290,15 +2567,15 @@ prelight_or_select (PsppSheetView *tree_view,
       !(tree_view->priv->edited_column &&
 	tree_view->priv->edited_column->editable_widget))
     {
-      if (node)
+      if (node >= 0)
 	{
-	  if (!PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
+          if (!pspp_sheet_view_node_is_selected (tree_view, node))
 	    {
 	      GtkTreePath *path;
 	      
-	      path = _pspp_sheet_view_find_path (tree_view, tree, node);
+	      path = _pspp_sheet_view_find_path (tree_view, node);
 	      pspp_sheet_selection_select_path (tree_view->priv->selection, path);
-	      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
+              if (pspp_sheet_view_node_is_selected (tree_view, node))
 		{
 		  PSPP_SHEET_VIEW_UNSET_FLAG (tree_view, PSPP_SHEET_VIEW_DRAW_KEYFOCUS);
 		  pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, FALSE);
@@ -3311,17 +2588,17 @@ prelight_or_select (PsppSheetView *tree_view,
 	pspp_sheet_selection_unselect_all (tree_view->priv->selection);
     }
 
-    do_prelight (tree_view, tree, node, x, y);
+    do_prelight (tree_view, node, x, y);
 }
 
 static void
 ensure_unprelighted (PsppSheetView *tree_view)
 {
   do_prelight (tree_view,
-	       NULL, NULL,
+	       -1,
 	       -1000, -1000); /* coords not possibly over an arrow */
 
-  g_assert (tree_view->priv->prelight_node == NULL);
+  g_assert (tree_view->priv->prelight_node < 0);
 }
 
 static void
@@ -3330,10 +2607,9 @@ update_prelight (PsppSheetView *tree_view,
                  gint         y)
 {
   int new_y;
-  GtkRBTree *tree;
-  GtkRBNode *node;
+  int node;
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     return;
 
   if (x == -10000)
@@ -3346,11 +2622,10 @@ update_prelight (PsppSheetView *tree_view,
   if (new_y < 0)
     new_y = 0;
 
-  _pspp_rbtree_find_offset (tree_view->priv->tree,
-                           new_y, &tree, &node);
+  pspp_sheet_view_find_offset (tree_view, new_y, &node);
 
-  if (node)
-    prelight_or_select (tree_view, tree, node, x, y);
+  if (node >= 0)
+    prelight_or_select (tree_view, node, x, y);
 }
 
 
@@ -3778,7 +3053,6 @@ pspp_sheet_view_stop_rubber_band (PsppSheetView *tree_view)
 
       /* The anchor path should be set to the start path */
       tmp_path = _pspp_sheet_view_find_path (tree_view,
-					   tree_view->priv->rubber_band_start_tree,
 					   tree_view->priv->rubber_band_start_node);
 
       if (tree_view->priv->anchor)
@@ -3793,7 +3067,6 @@ pspp_sheet_view_stop_rubber_band (PsppSheetView *tree_view)
 
       /* ... and the cursor to the end path */
       tmp_path = _pspp_sheet_view_find_path (tree_view,
-					   tree_view->priv->rubber_band_end_tree,
 					   tree_view->priv->rubber_band_end_node);
       pspp_sheet_view_real_set_cursor (PSPP_SHEET_VIEW (tree_view), tmp_path, FALSE, FALSE);
       gtk_tree_path_free (tmp_path);
@@ -3806,18 +3079,14 @@ pspp_sheet_view_stop_rubber_band (PsppSheetView *tree_view)
   tree_view->priv->rubber_band_shift = 0;
   tree_view->priv->rubber_band_ctrl = 0;
 
-  tree_view->priv->rubber_band_start_node = NULL;
-  tree_view->priv->rubber_band_start_tree = NULL;
-  tree_view->priv->rubber_band_end_node = NULL;
-  tree_view->priv->rubber_band_end_tree = NULL;
+  tree_view->priv->rubber_band_start_node = -1;
+  tree_view->priv->rubber_band_end_node = -1;
 }
 
 static void
 pspp_sheet_view_update_rubber_band_selection_range (PsppSheetView *tree_view,
-						 GtkRBTree   *start_tree,
-						 GtkRBNode   *start_node,
-						 GtkRBTree   *end_tree,
-						 GtkRBNode   *end_node,
+						 int start_node,
+						 int end_node,
 						 gboolean     select,
 						 gboolean     skip_start,
 						 gboolean     skip_end)
@@ -3834,74 +3103,50 @@ pspp_sheet_view_update_rubber_band_selection_range (PsppSheetView *tree_view,
       /* Small optimization by assuming insensitive nodes are never
        * selected.
        */
-      if (!PSPP_RBNODE_FLAG_SET (start_node, PSPP_RBNODE_IS_SELECTED))
-        {
-	  GtkTreePath *path;
-	  gboolean selectable;
-
-	  path = _pspp_sheet_view_find_path (tree_view, start_tree, start_node);
-	  selectable = _pspp_sheet_selection_row_is_selectable (tree_view->priv->selection, start_node, path);
-	  gtk_tree_path_free (path);
-
-	  if (!selectable)
-	    goto node_not_selectable;
-	}
-
       if (select)
         {
 	  if (tree_view->priv->rubber_band_shift)
-	    PSPP_RBNODE_SET_FLAG (start_node, PSPP_RBNODE_IS_SELECTED);
+            pspp_sheet_view_node_select (tree_view, start_node);
 	  else if (tree_view->priv->rubber_band_ctrl)
 	    {
 	      /* Toggle the selection state */
-	      if (PSPP_RBNODE_FLAG_SET (start_node, PSPP_RBNODE_IS_SELECTED))
-		PSPP_RBNODE_UNSET_FLAG (start_node, PSPP_RBNODE_IS_SELECTED);
+              if (pspp_sheet_view_node_is_selected (tree_view, start_node))
+                pspp_sheet_view_node_unselect (tree_view, start_node);
 	      else
-		PSPP_RBNODE_SET_FLAG (start_node, PSPP_RBNODE_IS_SELECTED);
+                pspp_sheet_view_node_select (tree_view, start_node);
 	    }
 	  else
-	    PSPP_RBNODE_SET_FLAG (start_node, PSPP_RBNODE_IS_SELECTED);
+            pspp_sheet_view_node_select (tree_view, start_node);
 	}
       else
         {
 	  /* Mirror the above */
 	  if (tree_view->priv->rubber_band_shift)
-	    PSPP_RBNODE_UNSET_FLAG (start_node, PSPP_RBNODE_IS_SELECTED);
+                pspp_sheet_view_node_unselect (tree_view, start_node);
 	  else if (tree_view->priv->rubber_band_ctrl)
 	    {
 	      /* Toggle the selection state */
-	      if (PSPP_RBNODE_FLAG_SET (start_node, PSPP_RBNODE_IS_SELECTED))
-		PSPP_RBNODE_UNSET_FLAG (start_node, PSPP_RBNODE_IS_SELECTED);
+              if (pspp_sheet_view_node_is_selected (tree_view, start_node))
+                pspp_sheet_view_node_unselect (tree_view, start_node);
 	      else
-		PSPP_RBNODE_SET_FLAG (start_node, PSPP_RBNODE_IS_SELECTED);
+                pspp_sheet_view_node_select (tree_view, start_node);
 	    }
 	  else
-	    PSPP_RBNODE_UNSET_FLAG (start_node, PSPP_RBNODE_IS_SELECTED);
+            pspp_sheet_view_node_unselect (tree_view, start_node);
 	}
 
-      _pspp_sheet_view_queue_draw_node (tree_view, start_tree, start_node, NULL);
+      _pspp_sheet_view_queue_draw_node (tree_view, start_node, NULL);
 
-node_not_selectable:
       if (start_node == end_node)
 	break;
 
 skip_first:
 
-      if (start_node->children)
-        {
-	  start_tree = start_node->children;
-	  start_node = start_tree->root;
-	  while (start_node->left != start_tree->nil)
-	    start_node = start_node->left;
-	}
-      else
-        {
-	  _pspp_rbtree_next_full (start_tree, start_node, &start_tree, &start_node);
+      start_node = pspp_sheet_view_node_next (tree_view, start_node);
 
-	  if (!start_tree)
-	    /* Ran out of tree */
-	    break;
-	}
+      if (start_node < 0)
+        /* Ran out of tree */
+        break;
 
       if (skip_end && start_node == end_node)
 	break;
@@ -3909,108 +3154,117 @@ skip_first:
   while (TRUE);
 }
 
+static gint
+pspp_sheet_view_node_find_offset (PsppSheetView *tree_view,
+                                  int node)
+{
+  return node * tree_view->priv->fixed_height;
+}
+
+static gint
+pspp_sheet_view_find_offset (PsppSheetView *tree_view,
+                             gint height,
+                             int *new_node)
+{
+  int fixed_height = tree_view->priv->fixed_height;
+  if (fixed_height <= 0
+      || height < 0
+      || height >= tree_view->priv->row_count * fixed_height)
+    {
+      *new_node = -1;
+      return 0;
+    }
+  else
+    {
+      *new_node = height / fixed_height;
+      return height % fixed_height;
+    }
+}
+
 static void
 pspp_sheet_view_update_rubber_band_selection (PsppSheetView *tree_view)
 {
-  GtkRBTree *start_tree, *end_tree;
-  GtkRBNode *start_node, *end_node;
+  int start_node;
+  int end_node;
 
-  _pspp_rbtree_find_offset (tree_view->priv->tree, MIN (tree_view->priv->press_start_y, tree_view->priv->rubber_band_y), &start_tree, &start_node);
-  _pspp_rbtree_find_offset (tree_view->priv->tree, MAX (tree_view->priv->press_start_y, tree_view->priv->rubber_band_y), &end_tree, &end_node);
+  pspp_sheet_view_find_offset (tree_view, MIN (tree_view->priv->press_start_y, tree_view->priv->rubber_band_y), &start_node);
+  pspp_sheet_view_find_offset (tree_view, MAX (tree_view->priv->press_start_y, tree_view->priv->rubber_band_y), &end_node);
 
   /* Handle the start area first */
-  if (!tree_view->priv->rubber_band_start_node)
+  if (tree_view->priv->rubber_band_start_node < 0)
     {
       pspp_sheet_view_update_rubber_band_selection_range (tree_view,
-						       start_tree,
 						       start_node,
-						       end_tree,
 						       end_node,
 						       TRUE,
 						       FALSE,
 						       FALSE);
     }
-  else if (_pspp_rbtree_node_find_offset (start_tree, start_node) <
-           _pspp_rbtree_node_find_offset (tree_view->priv->rubber_band_start_tree, tree_view->priv->rubber_band_start_node))
+  else if (start_node < tree_view->priv->rubber_band_start_node)
     {
       /* New node is above the old one; selection became bigger */
       pspp_sheet_view_update_rubber_band_selection_range (tree_view,
-						       start_tree,
 						       start_node,
-						       tree_view->priv->rubber_band_start_tree,
 						       tree_view->priv->rubber_band_start_node,
 						       TRUE,
 						       FALSE,
 						       TRUE);
     }
-  else if (_pspp_rbtree_node_find_offset (start_tree, start_node) >
-           _pspp_rbtree_node_find_offset (tree_view->priv->rubber_band_start_tree, tree_view->priv->rubber_band_start_node))
+  else if (start_node > tree_view->priv->rubber_band_start_node)
     {
       /* New node is below the old one; selection became smaller */
       pspp_sheet_view_update_rubber_band_selection_range (tree_view,
-						       tree_view->priv->rubber_band_start_tree,
 						       tree_view->priv->rubber_band_start_node,
-						       start_tree,
 						       start_node,
 						       FALSE,
 						       FALSE,
 						       TRUE);
     }
 
-  tree_view->priv->rubber_band_start_tree = start_tree;
   tree_view->priv->rubber_band_start_node = start_node;
 
   /* Next, handle the end area */
-  if (!tree_view->priv->rubber_band_end_node)
+  if (tree_view->priv->rubber_band_end_node < 0)
     {
-      /* In the event this happens, start_node was also NULL; this case is
+      /* In the event this happens, start_node was also -1; this case is
        * handled above.
        */
     }
-  else if (!end_node)
+  else if (end_node < 0)
     {
       /* Find the last node in the tree */
-      _pspp_rbtree_find_offset (tree_view->priv->tree, tree_view->priv->height - 1,
-			       &end_tree, &end_node);
+      pspp_sheet_view_find_offset (tree_view, tree_view->priv->height - 1,
+			       &end_node);
 
       /* Selection reached end of the tree */
       pspp_sheet_view_update_rubber_band_selection_range (tree_view,
-						       tree_view->priv->rubber_band_end_tree,
 						       tree_view->priv->rubber_band_end_node,
-						       end_tree,
 						       end_node,
 						       TRUE,
 						       TRUE,
 						       FALSE);
     }
-  else if (_pspp_rbtree_node_find_offset (end_tree, end_node) >
-           _pspp_rbtree_node_find_offset (tree_view->priv->rubber_band_end_tree, tree_view->priv->rubber_band_end_node))
+  else if (end_node > tree_view->priv->rubber_band_end_node)
     {
       /* New node is below the old one; selection became bigger */
       pspp_sheet_view_update_rubber_band_selection_range (tree_view,
-						       tree_view->priv->rubber_band_end_tree,
 						       tree_view->priv->rubber_band_end_node,
-						       end_tree,
 						       end_node,
 						       TRUE,
 						       TRUE,
 						       FALSE);
     }
-  else if (_pspp_rbtree_node_find_offset (end_tree, end_node) <
-           _pspp_rbtree_node_find_offset (tree_view->priv->rubber_band_end_tree, tree_view->priv->rubber_band_end_node))
+  else if (end_node < tree_view->priv->rubber_band_end_node)
     {
       /* New node is above the old one; selection became smaller */
       pspp_sheet_view_update_rubber_band_selection_range (tree_view,
-						       end_tree,
 						       end_node,
-						       tree_view->priv->rubber_band_end_tree,
 						       tree_view->priv->rubber_band_end_node,
 						       FALSE,
 						       TRUE,
 						       FALSE);
     }
 
-  tree_view->priv->rubber_band_end_tree = end_tree;
   tree_view->priv->rubber_band_end_node = end_node;
 }
 
@@ -4115,13 +3369,12 @@ pspp_sheet_view_motion_bin_window (GtkWidget      *widget,
 				 GdkEventMotion *event)
 {
   PsppSheetView *tree_view;
-  GtkRBTree *tree;
-  GtkRBNode *node;
+  int node;
   gint new_y;
 
   tree_view = (PsppSheetView *) widget;
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     return FALSE;
 
   if (tree_view->priv->rubber_band_status == RUBBER_BAND_MAYBE_START)
@@ -4147,17 +3400,12 @@ pspp_sheet_view_motion_bin_window (GtkWidget      *widget,
   if (new_y < 0)
     new_y = 0;
 
-  _pspp_rbtree_find_offset (tree_view->priv->tree, new_y, &tree, &node);
-
-  /* If we are currently pressing down a button, we don't want to prelight anything else. */
-  if ((tree_view->priv->button_pressed_node != NULL) &&
-      (tree_view->priv->button_pressed_node != node))
-    node = NULL;
+  pspp_sheet_view_find_offset (tree_view, new_y, &node);
 
   tree_view->priv->event_last_x = event->x;
   tree_view->priv->event_last_y = event->y;
 
-  prelight_or_select (tree_view, tree, node, event->x, event->y);
+  prelight_or_select (tree_view, node, event->x, event->y);
 
   return TRUE;
 }
@@ -4275,13 +3523,10 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
   GtkTreePath *path;
-  GtkRBTree *tree;
   GList *list;
-  GtkRBNode *node;
-  GtkRBNode *cursor = NULL;
-  GtkRBTree *cursor_tree = NULL;
-  GtkRBNode *drag_highlight = NULL;
-  GtkRBTree *drag_highlight_tree = NULL;
+  int node;
+  int cursor = -1;
+  int drag_highlight = -1;
   GtkTreeIter iter;
   gint new_y;
   gint y_offset, cell_offset;
@@ -4290,8 +3535,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   GdkRectangle background_area;
   GdkRectangle cell_area;
   guint flags;
-  gint highlight_x;
-  gint expander_cell_width;
   gint bin_window_width;
   gint bin_window_height;
   GtkTreePath *cursor_path;
@@ -4304,9 +3547,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   gboolean has_special_cell;
   gboolean rtl;
   gint n_visible_columns;
-  gint pointer_x, pointer_y;
   gint grid_line_width;
-  gboolean got_pointer = FALSE;
   gboolean row_ending_details;
   gboolean draw_vgrid_lines, draw_hgrid_lines;
 
@@ -4320,7 +3561,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 			"row-ending-details", &row_ending_details,
 			NULL);
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     {
       draw_empty_focus (tree_view, &event->area);
       return TRUE;
@@ -4336,7 +3577,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
   if (new_y < 0)
     new_y = 0;
-  y_offset = -_pspp_rbtree_find_offset (tree_view->priv->tree, new_y, &tree, &node);
+  y_offset = -pspp_sheet_view_find_offset (tree_view, new_y, &node);
   gdk_drawable_get_size (tree_view->priv->bin_window,
                          &bin_window_width, &bin_window_height);
 
@@ -4354,13 +3595,11 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
                           bin_window_height - tree_view->priv->height);
     }
 
-  if (node == NULL)
+  if (node < 0)
     return TRUE;
 
   /* find the path for the node */
-  path = _pspp_sheet_view_find_path ((PsppSheetView *)widget,
-				   tree,
-				   node);
+  path = _pspp_sheet_view_find_path ((PsppSheetView *)widget, node);
   gtk_tree_model_get_iter (tree_view->priv->model,
 			   &iter,
 			   path);
@@ -4374,15 +3613,14 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
     cursor_path = gtk_tree_row_reference_get_path (tree_view->priv->cursor);
 
   if (cursor_path)
-    _pspp_sheet_view_find_node (tree_view, cursor_path,
-                              &cursor_tree, &cursor);
+    _pspp_sheet_view_find_node (tree_view, cursor_path, &cursor);
 
   if (tree_view->priv->drag_dest_row)
     drag_dest_path = gtk_tree_row_reference_get_path (tree_view->priv->drag_dest_row);
 
   if (drag_dest_path)
     _pspp_sheet_view_find_node (tree_view, drag_dest_path,
-                              &drag_highlight_tree, &drag_highlight);
+                                &drag_highlight);
 
   draw_vgrid_lines =
     tree_view->priv->grid_lines == PSPP_SHEET_VIEW_GRID_LINES_VERTICAL
@@ -4422,30 +3660,26 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   do
     {
       gboolean parity;
-      gboolean is_separator = FALSE;
       gboolean is_first = FALSE;
       gboolean is_last = FALSE;
-      
-      is_separator = row_is_separator (tree_view, &iter, NULL);
+      gboolean done = FALSE;
 
-      max_height = ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node));
+      max_height = ROW_HEIGHT (tree_view);
 
       cell_offset = 0;
-      highlight_x = 0; /* should match x coord of first cell */
-      expander_cell_width = 0;
 
       background_area.y = y_offset + event->area.y;
       background_area.height = max_height;
 
       flags = 0;
 
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_PRELIT))
+      if (node == tree_view->priv->prelight_node)
 	flags |= GTK_CELL_RENDERER_PRELIT;
 
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
+      if (pspp_sheet_view_node_is_selected (tree_view, node))
         flags |= GTK_CELL_RENDERER_SELECTED;
 
-      parity = _pspp_rbtree_node_find_parity (tree, node);
+      parity = node % 2;
 
       /* we *need* to set cell data on all cells before the call
        * to _has_special_cell, else _has_special_cell() does not
@@ -4458,9 +3692,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	  PsppSheetViewColumn *column = list->data;
 	  pspp_sheet_view_column_cell_set_cell_data (column,
 						   tree_view->priv->model,
-						   &iter,
-						   PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_PARENT),
-						   node->children?TRUE:FALSE);
+						   &iter);
         }
 
       has_special_cell = pspp_sheet_view_has_special_cell (tree_view);
@@ -4533,10 +3765,8 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	    }
 
 	  pspp_sheet_view_column_cell_set_cell_data (column,
-						   tree_view->priv->model,
-						   &iter,
-						   PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_PARENT),
-						   node->children?TRUE:FALSE);
+                                                     tree_view->priv->model,
+                                                     &iter);
 
           /* Select the detail for drawing the cell.  relevant
            * factors are parity, sortedness, and whether to
@@ -4652,153 +3882,14 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 			       background_area.y + max_height);
 	    }
 
-	  if (pspp_sheet_view_is_expander_column (tree_view, column))
-	    {
-	      if (!rtl)
-		cell_area.x += (depth - 1) * tree_view->priv->level_indentation;
-	      cell_area.width -= (depth - 1) * tree_view->priv->level_indentation;
+          _pspp_sheet_view_column_cell_render (column,
+                                               event->window,
+                                               &background_area,
+                                               &cell_area,
+                                               &event->area,
+                                               flags);
 
-              if (TREE_VIEW_DRAW_EXPANDERS(tree_view))
-	        {
-	          if (!rtl)
-		    cell_area.x += depth * tree_view->priv->expander_size;
-		  cell_area.width -= depth * tree_view->priv->expander_size;
-		}
-
-              /* If we have an expander column, the highlight underline
-               * starts with that column, so that it indicates which
-               * level of the tree we're dropping at.
-               */
-              highlight_x = cell_area.x;
-	      expander_cell_width = cell_area.width;
-
-	      if (is_separator)
-		gtk_paint_hline (widget->style,
-				 event->window,
-				 state,
-				 &cell_area,
-				 widget,
-				 NULL,
-				 cell_area.x,
-				 cell_area.x + cell_area.width,
-				 cell_area.y + cell_area.height / 2);
-	      else
-		_pspp_sheet_view_column_cell_render (column,
-						   event->window,
-						   &background_area,
-						   &cell_area,
-						   &event->area,
-						   flags);
-	      if (TREE_VIEW_DRAW_EXPANDERS(tree_view)
-		  && (node->flags & PSPP_RBNODE_IS_PARENT) == PSPP_RBNODE_IS_PARENT)
-		{
-		  if (!got_pointer)
-		    {
-		      gdk_window_get_pointer (tree_view->priv->bin_window, 
-					      &pointer_x, &pointer_y, NULL);
-		      got_pointer = TRUE;
-		    }
-
-		  pspp_sheet_view_draw_arrow (PSPP_SHEET_VIEW (widget),
-					    tree,
-					    node,
-					    pointer_x, pointer_y);
-		}
-	    }
-	  else
-	    {
-	      if (is_separator)
-		gtk_paint_hline (widget->style,
-				 event->window,
-				 state,
-				 &cell_area,
-				 widget,
-				 NULL,
-				 cell_area.x,
-				 cell_area.x + cell_area.width,
-				 cell_area.y + cell_area.height / 2);
-	      else
-		_pspp_sheet_view_column_cell_render (column,
-						   event->window,
-						   &background_area,
-						   &cell_area,
-						   &event->area,
-						   flags);
-	    }
-
-	  if (pspp_sheet_view_is_expander_column (tree_view, column) &&
-	      tree_view->priv->tree_lines_enabled)
-	    {
-	      gint x = background_area.x;
-	      gint mult = rtl ? -1 : 1;
-	      gint y0 = background_area.y;
-	      gint y1 = background_area.y + background_area.height/2;
-	      gint y2 = background_area.y + background_area.height;
-
-	      if (rtl)
-		x += background_area.width - 1;
-
-	      if ((node->flags & PSPP_RBNODE_IS_PARENT) == PSPP_RBNODE_IS_PARENT
-		  && depth > 1)
-	        {
-		  gdk_draw_line (event->window,
-				 tree_view->priv->tree_line_gc,
-			         x + tree_view->priv->expander_size * (depth - 1.5) * mult,
-				 y1,
-			         x + tree_view->priv->expander_size * (depth - 1.1) * mult,
-				 y1);
-	        }
-	      else if (depth > 1)
-	        {
-		  gdk_draw_line (event->window,
-				 tree_view->priv->tree_line_gc,
-			         x + tree_view->priv->expander_size * (depth - 1.5) * mult,
-				 y1,
-			         x + tree_view->priv->expander_size * (depth - 0.5) * mult,
-				 y1);
-		}
-
-	      if (depth > 1)
-	        {
-		  gint i;
-		  GtkRBNode *tmp_node;
-		  GtkRBTree *tmp_tree;
-
-	          if (!_pspp_rbtree_next (tree, node))
-		    gdk_draw_line (event->window,
-				   tree_view->priv->tree_line_gc,
-				   x + tree_view->priv->expander_size * (depth - 1.5) * mult,
-				   y0,
-				   x + tree_view->priv->expander_size * (depth - 1.5) * mult,
-				   y1);
-		  else
-		    gdk_draw_line (event->window,
-				   tree_view->priv->tree_line_gc,
-				   x + tree_view->priv->expander_size * (depth - 1.5) * mult,
-				   y0,
-				   x + tree_view->priv->expander_size * (depth - 1.5) * mult,
-				   y2);
-
-		  tmp_node = tree->parent_node;
-		  tmp_tree = tree->parent_tree;
-
-		  for (i = depth - 2; i > 0; i--)
-		    {
-	              if (_pspp_rbtree_next (tmp_tree, tmp_node))
-			gdk_draw_line (event->window,
-				       tree_view->priv->tree_line_gc,
-				       x + tree_view->priv->expander_size * (i - 0.5) * mult,
-				       y0,
-				       x + tree_view->priv->expander_size * (i - 0.5) * mult,
-				       y2);
-
-		      tmp_node = tmp_tree->parent_node;
-		      tmp_tree = tmp_tree->parent_tree;
-		    }
-		}
-	    }
-
-	  if (node == cursor && has_special_cell &&
+          if (node == cursor && has_special_cell &&
 	      ((column == tree_view->priv->focus_column &&
 		PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_DRAW_KEYFOCUS) &&
 		gtk_widget_has_focus (widget)) ||
@@ -4820,8 +3911,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
           /* Draw indicator for the drop
            */
           gint highlight_y = -1;
-	  GtkRBTree *tree = NULL;
-	  GtkRBNode *node = NULL;
+	  int node = -1;
 	  gint width;
 
           switch (tree_view->priv->drag_dest_pos)
@@ -4838,9 +3928,9 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
             case PSPP_SHEET_VIEW_DROP_INTO_OR_BEFORE:
             case PSPP_SHEET_VIEW_DROP_INTO_OR_AFTER:
-	      _pspp_sheet_view_find_node (tree_view, drag_dest_path, &tree, &node);
+	      _pspp_sheet_view_find_node (tree_view, drag_dest_path, &node);
 
-	      if (tree == NULL)
+	      if (node < 0)
 		break;
 	      gdk_drawable_get_size (tree_view->priv->bin_window,
 				     &width, NULL);
@@ -4854,9 +3944,9 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 				 (is_first
 				  ? (is_last ? "treeview-drop-indicator" : "treeview-drop-indicator-left" )
 				  : (is_last ? "treeview-drop-indicator-right" : "tree-view-drop-indicator-middle" )),
-				 0, BACKGROUND_FIRST_PIXEL (tree_view, tree, node)
+				 0, BACKGROUND_FIRST_PIXEL (tree_view, node)
 				 - focus_line_width / 2,
-				 width, ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node))
+				 width, ROW_HEIGHT (tree_view)
 			       - focus_line_width + 1);
 	      else
 		gtk_paint_focus (widget->style,
@@ -4865,9 +3955,9 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 				 &event->area,
 				 widget,
 				 "treeview-drop-indicator",
-				 0, BACKGROUND_FIRST_PIXEL (tree_view, tree, node)
+				 0, BACKGROUND_FIRST_PIXEL (tree_view, node)
 				 - focus_line_width / 2,
-				 width, ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node))
+				 width, ROW_HEIGHT (tree_view)
 				 - focus_line_width + 1);
               break;
             }
@@ -4876,7 +3966,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
             {
               gdk_draw_line (event->window,
                              widget->style->fg_gc[gtk_widget_get_state (widget)],
-                             rtl ? highlight_x + expander_cell_width : highlight_x,
+                             0,
                              highlight_y,
                              rtl ? 0 : bin_window_width,
                              highlight_y);
@@ -4903,13 +3993,13 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	  
 	  if (draw_hgrid_lines)
 	    {
-	      tmp_y = BACKGROUND_FIRST_PIXEL (tree_view, tree, node) + grid_line_width / 2;
-	      tmp_height = ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node)) - grid_line_width;
+	      tmp_y = BACKGROUND_FIRST_PIXEL (tree_view, node) + grid_line_width / 2;
+	      tmp_height = ROW_HEIGHT (tree_view) - grid_line_width;
 	    }
 	  else
 	    {
-	      tmp_y = BACKGROUND_FIRST_PIXEL (tree_view, tree, node);
-	      tmp_height = ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node));
+	      tmp_y = BACKGROUND_FIRST_PIXEL (tree_view, node);
+	      tmp_height = ROW_HEIGHT (tree_view);
 	    }
 
 	  if (row_ending_details)
@@ -4935,62 +4025,22 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	}
 
       y_offset += max_height;
-      if (node->children)
-	{
-	  GtkTreeIter parent = iter;
-	  gboolean has_child;
 
-	  tree = node->children;
-	  node = tree->root;
+      do
+        {
+          node = pspp_sheet_view_node_next (tree_view, node);
+          if (node >= 0)
+            {
+              gboolean has_next = gtk_tree_model_iter_next (tree_view->priv->model, &iter);
+              done = TRUE;
 
-          g_assert (node != tree->nil);
-
-	  while (node->left != tree->nil)
-	    node = node->left;
-	  has_child = gtk_tree_model_iter_children (tree_view->priv->model,
-						    &iter,
-						    &parent);
-	  depth++;
-
-	  /* Sanity Check! */
-	  TREE_VIEW_INTERNAL_ASSERT (has_child, FALSE);
-	}
-      else
-	{
-	  gboolean done = FALSE;
-
-	  do
-	    {
-	      node = _pspp_rbtree_next (tree, node);
-	      if (node != NULL)
-		{
-		  gboolean has_next = gtk_tree_model_iter_next (tree_view->priv->model, &iter);
-		  done = TRUE;
-
-		  /* Sanity Check! */
-		  TREE_VIEW_INTERNAL_ASSERT (has_next, FALSE);
-		}
-	      else
-		{
-		  GtkTreeIter parent_iter = iter;
-		  gboolean has_parent;
-
-		  node = tree->parent_node;
-		  tree = tree->parent_tree;
-		  if (tree == NULL)
-		    /* we should go to done to free some memory */
-		    goto done;
-		  has_parent = gtk_tree_model_iter_parent (tree_view->priv->model,
-							   &iter,
-							   &parent_iter);
-		  depth--;
-
-		  /* Sanity check */
-		  TREE_VIEW_INTERNAL_ASSERT (has_parent, FALSE);
-		}
-	    }
-	  while (!done);
-	}
+              /* Sanity Check! */
+              TREE_VIEW_INTERNAL_ASSERT (has_next, FALSE);
+            }
+          else
+            goto done;
+        }
+      while (!done);
     }
   while (y_offset < event->area.height);
 
@@ -5544,15 +4594,14 @@ pspp_sheet_view_enter_notify (GtkWidget        *widget,
 			    GdkEventCrossing *event)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
-  GtkRBTree *tree;
-  GtkRBNode *node;
+  int node;
   gint new_y;
 
   /* Sanity check it */
   if (event->window != tree_view->priv->bin_window)
     return FALSE;
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     return FALSE;
 
   if (event->mode == GDK_CROSSING_GRAB ||
@@ -5565,14 +4614,12 @@ pspp_sheet_view_enter_notify (GtkWidget        *widget,
   new_y = TREE_WINDOW_Y_TO_RBTREE_Y(tree_view, event->y);
   if (new_y < 0)
     new_y = 0;
-  _pspp_rbtree_find_offset (tree_view->priv->tree, new_y, &tree, &node);
+  pspp_sheet_view_find_offset (tree_view, new_y, &node);
 
   tree_view->priv->event_last_x = event->x;
   tree_view->priv->event_last_y = event->y;
 
-  if ((tree_view->priv->button_pressed_node == NULL) ||
-      (tree_view->priv->button_pressed_node == node))
-    prelight_or_select (tree_view, tree, node, event->x, event->y);
+  prelight_or_select (tree_view, node, event->x, event->y);
 
   return TRUE;
 }
@@ -5588,9 +4635,8 @@ pspp_sheet_view_leave_notify (GtkWidget        *widget,
 
   tree_view = PSPP_SHEET_VIEW (widget);
 
-  if (tree_view->priv->prelight_node)
+  if (tree_view->priv->prelight_node >= 0)
     _pspp_sheet_view_queue_draw_node (tree_view,
-                                   tree_view->priv->prelight_tree,
                                    tree_view->priv->prelight_node,
                                    NULL);
 
@@ -5598,7 +4644,7 @@ pspp_sheet_view_leave_notify (GtkWidget        *widget,
   tree_view->priv->event_last_y = -10000;
 
   prelight_or_select (tree_view,
-		      NULL, NULL,
+		      -1,
 		      -1000, -1000); /* coords not possibly over an arrow */
 
   return TRUE;
@@ -5628,31 +4674,29 @@ pspp_sheet_view_focus_out (GtkWidget     *widget,
 
 static void
 pspp_sheet_view_node_queue_redraw (PsppSheetView *tree_view,
-				 GtkRBTree   *tree,
-				 GtkRBNode   *node)
+				 int node)
 {
   gint y;
 
-  y = _pspp_rbtree_node_find_offset (tree, node)
+  y = pspp_sheet_view_node_find_offset (tree_view, node)
     - tree_view->priv->vadjustment->value
     + TREE_VIEW_HEADER_HEIGHT (tree_view);
 
   gtk_widget_queue_draw_area (GTK_WIDGET (tree_view),
 			      0, y,
 			      GTK_WIDGET (tree_view)->allocation.width,
-			      PSPP_RBNODE_GET_HEIGHT (node));
+                              tree_view->priv->fixed_height);
 }
 
 static gboolean
 node_is_visible (PsppSheetView *tree_view,
-		 GtkRBTree   *tree,
-		 GtkRBNode   *node)
+		 int node)
 {
   int y;
   int height;
 
-  y = _pspp_rbtree_node_find_offset (tree, node);
-  height = ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
+  y = pspp_sheet_view_node_find_offset (tree_view, node);
+  height = ROW_HEIGHT (tree_view);
 
   if (y >= tree_view->priv->vadjustment->value &&
       y + height <= (tree_view->priv->vadjustment->value
@@ -5662,12 +4706,10 @@ node_is_visible (PsppSheetView *tree_view,
   return FALSE;
 }
 
-/* Returns TRUE if it updated the size
- */
-static gboolean
+/* Returns the row height. */
+static gint
 validate_row (PsppSheetView *tree_view,
-	      GtkRBTree   *tree,
-	      GtkRBNode   *node,
+	      int node,
 	      GtkTreeIter *iter,
 	      GtkTreePath *path)
 {
@@ -5677,21 +4719,12 @@ validate_row (PsppSheetView *tree_view,
   gint horizontal_separator;
   gint vertical_separator;
   gint focus_line_width;
-  gint depth = gtk_tree_path_get_depth (path);
   gboolean retval = FALSE;
-  gboolean is_separator = FALSE;
   gboolean draw_vgrid_lines, draw_hgrid_lines;
   gint focus_pad;
   gint grid_line_width;
   gboolean wide_separators;
   gint separator_height;
-
-  /* double check the row needs validating */
-  if (! PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_INVALID) &&
-      ! PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_COLUMN_INVALID))
-    return FALSE;
-
-  is_separator = row_is_separator (tree_view, iter, NULL);
 
   gtk_widget_style_get (GTK_WIDGET (tree_view),
 			"focus-padding", &focus_pad,
@@ -5730,39 +4763,15 @@ validate_row (PsppSheetView *tree_view,
       if (! column->visible)
 	continue;
 
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_COLUMN_INVALID) && !column->dirty)
-	continue;
-
-      pspp_sheet_view_column_cell_set_cell_data (column, tree_view->priv->model, iter,
-					       PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_PARENT),
-					       node->children?TRUE:FALSE);
+      pspp_sheet_view_column_cell_set_cell_data (column, tree_view->priv->model, iter);
       pspp_sheet_view_column_cell_get_size (column,
 					  NULL, NULL, NULL,
 					  &tmp_width, &tmp_height);
 
-      if (!is_separator)
-	{
-          tmp_height += vertical_separator;
-	  height = MAX (height, tmp_height);
-	  height = MAX (height, tree_view->priv->expander_size);
-	}
-      else
-        {
-          if (wide_separators)
-            height = separator_height + 2 * focus_pad;
-          else
-            height = 2 + 2 * focus_pad;
-        }
+      tmp_height += vertical_separator;
+      height = MAX (height, tmp_height);
 
-      if (pspp_sheet_view_is_expander_column (tree_view, column))
-        {
-	  tmp_width = tmp_width + horizontal_separator + (depth - 1) * tree_view->priv->level_indentation;
-
-	  if (TREE_VIEW_DRAW_EXPANDERS (tree_view))
-	    tmp_width += depth * tree_view->priv->expander_size;
-	}
-      else
-	tmp_width = tmp_width + horizontal_separator;
+      tmp_width = tmp_width + horizontal_separator;
 
       if (draw_vgrid_lines)
         {
@@ -5782,15 +4791,8 @@ validate_row (PsppSheetView *tree_view,
   if (draw_hgrid_lines)
     height += grid_line_width;
 
-  if (height != PSPP_RBNODE_GET_HEIGHT (node))
-    {
-      retval = TRUE;
-      _pspp_rbtree_node_set_height (tree, node, height);
-    }
-  _pspp_rbtree_node_mark_valid (tree, node);
   tree_view->priv->post_validation_flag = TRUE;
-
-  return retval;
+  return height;
 }
 
 
@@ -5800,19 +4802,16 @@ validate_visible_area (PsppSheetView *tree_view)
   GtkTreePath *path = NULL;
   GtkTreePath *above_path = NULL;
   GtkTreeIter iter;
-  GtkRBTree *tree = NULL;
-  GtkRBNode *node = NULL;
-  gboolean need_redraw = FALSE;
+  int node = -1;
   gboolean size_changed = FALSE;
   gint total_height;
   gint area_above = 0;
   gint area_below = 0;
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     return;
 
-  if (! PSPP_RBNODE_FLAG_SET (tree_view->priv->tree->root, PSPP_RBNODE_DESCENDANTS_INVALID) &&
-      tree_view->priv->scroll_to_path == NULL)
+  if (tree_view->priv->scroll_to_path == NULL)
     return;
 
   total_height = GTK_WIDGET (tree_view)->allocation.height - TREE_VIEW_HEADER_HEIGHT (tree_view);
@@ -5820,248 +4819,120 @@ validate_visible_area (PsppSheetView *tree_view)
   if (total_height == 0)
     return;
 
-  /* First, we check to see if we need to scroll anywhere
-   */
-  if (tree_view->priv->scroll_to_path)
+  path = gtk_tree_row_reference_get_path (tree_view->priv->scroll_to_path);
+  if (path)
     {
-      path = gtk_tree_row_reference_get_path (tree_view->priv->scroll_to_path);
-      if (path && !_pspp_sheet_view_find_node (tree_view, path, &tree, &node))
-	{
-          /* we are going to scroll, and will update dy */
-	  gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
-	  if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_INVALID) ||
-	      PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_COLUMN_INVALID))
-	    {
-	      _pspp_sheet_view_queue_draw_node (tree_view, tree, node, NULL);
-	      if (validate_row (tree_view, tree, node, &iter, path))
-		size_changed = TRUE;
-	    }
-
-	  if (tree_view->priv->scroll_to_use_align)
-	    {
-	      gint height = ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
-	      area_above = (total_height - height) *
-		tree_view->priv->scroll_to_row_align;
-	      area_below = total_height - area_above - height;
-	      area_above = MAX (area_above, 0);
-	      area_below = MAX (area_below, 0);
-	    }
-	  else
-	    {
-	      /* two cases:
-	       * 1) row not visible
-	       * 2) row visible
-	       */
-	      gint dy;
-	      gint height = ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
-
-	      dy = _pspp_rbtree_node_find_offset (tree, node);
-
-	      if (dy >= tree_view->priv->vadjustment->value &&
-		  dy + height <= (tree_view->priv->vadjustment->value
-		                  + tree_view->priv->vadjustment->page_size))
-	        {
-		  /* row visible: keep the row at the same position */
-		  area_above = dy - tree_view->priv->vadjustment->value;
-		  area_below = (tree_view->priv->vadjustment->value +
-		                tree_view->priv->vadjustment->page_size)
-		               - dy - height;
-		}
-	      else
-	        {
-		  /* row not visible */
-		  if (dy >= 0
-		      && dy + height <= tree_view->priv->vadjustment->page_size)
-		    {
-		      /* row at the beginning -- fixed */
-		      area_above = dy;
-		      area_below = tree_view->priv->vadjustment->page_size
-				   - area_above - height;
-		    }
-		  else if (dy >= (tree_view->priv->vadjustment->upper -
-			          tree_view->priv->vadjustment->page_size))
-		    {
-		      /* row at the end -- fixed */
-		      area_above = dy - (tree_view->priv->vadjustment->upper -
-			           tree_view->priv->vadjustment->page_size);
-                      area_below = tree_view->priv->vadjustment->page_size -
-                                   area_above - height;
-
-                      if (area_below < 0)
-                        {
-			  area_above = tree_view->priv->vadjustment->page_size - height;
-                          area_below = 0;
-                        }
-		    }
-		  else
-		    {
-		      /* row somewhere in the middle, bring it to the top
-		       * of the view
-		       */
-		      area_above = 0;
-		      area_below = total_height - height;
-		    }
-		}
-	    }
-	}
-      else
-	/* the scroll to isn't valid; ignore it.
-	 */
-	{
-	  if (tree_view->priv->scroll_to_path && !path)
-	    {
-	      gtk_tree_row_reference_free (tree_view->priv->scroll_to_path);
-	      tree_view->priv->scroll_to_path = NULL;
-	    }
-	  if (path)
-	    gtk_tree_path_free (path);
-	  path = NULL;
-	}      
-    }
-
-  /* We didn't have a scroll_to set, so we just handle things normally
-   */
-  if (path == NULL)
-    {
-      gint offset;
-
-      offset = _pspp_rbtree_find_offset (tree_view->priv->tree,
-					TREE_WINDOW_Y_TO_RBTREE_Y (tree_view, 0),
-					&tree, &node);
-      if (node == NULL)
-	{
-	  /* In this case, nothing has been validated */
-	  path = gtk_tree_path_new_first ();
-	  _pspp_sheet_view_find_node (tree_view, path, &tree, &node);
-	}
-      else
-	{
-	  path = _pspp_sheet_view_find_path (tree_view, tree, node);
-	  total_height += offset;
-	}
-
+      /* we are going to scroll, and will update dy */
+      _pspp_sheet_view_find_node (tree_view, path, &node);
       gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
 
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_INVALID) ||
-	  PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_COLUMN_INVALID))
-	{
-	  _pspp_sheet_view_queue_draw_node (tree_view, tree, node, NULL);
-	  if (validate_row (tree_view, tree, node, &iter, path))
-	    size_changed = TRUE;
-	}
-      area_above = 0;
-      area_below = total_height - ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
+      if (tree_view->priv->scroll_to_use_align)
+        {
+          gint height = ROW_HEIGHT (tree_view);
+          area_above = (total_height - height) *
+            tree_view->priv->scroll_to_row_align;
+          area_below = total_height - area_above - height;
+          area_above = MAX (area_above, 0);
+          area_below = MAX (area_below, 0);
+        }
+      else
+        {
+          /* two cases:
+           * 1) row not visible
+           * 2) row visible
+           */
+          gint dy;
+          gint height = ROW_HEIGHT (tree_view);
+
+          dy = pspp_sheet_view_node_find_offset (tree_view, node);
+
+          if (dy >= tree_view->priv->vadjustment->value &&
+              dy + height <= (tree_view->priv->vadjustment->value
+                              + tree_view->priv->vadjustment->page_size))
+            {
+              /* row visible: keep the row at the same position */
+              area_above = dy - tree_view->priv->vadjustment->value;
+              area_below = (tree_view->priv->vadjustment->value +
+                            tree_view->priv->vadjustment->page_size)
+                - dy - height;
+            }
+          else
+            {
+              /* row not visible */
+              if (dy >= 0
+                  && dy + height <= tree_view->priv->vadjustment->page_size)
+                {
+                  /* row at the beginning -- fixed */
+                  area_above = dy;
+                  area_below = tree_view->priv->vadjustment->page_size
+                    - area_above - height;
+                }
+              else if (dy >= (tree_view->priv->vadjustment->upper -
+                              tree_view->priv->vadjustment->page_size))
+                {
+                  /* row at the end -- fixed */
+                  area_above = dy - (tree_view->priv->vadjustment->upper -
+                                     tree_view->priv->vadjustment->page_size);
+                  area_below = tree_view->priv->vadjustment->page_size -
+                    area_above - height;
+
+                  if (area_below < 0)
+                    {
+                      area_above = tree_view->priv->vadjustment->page_size - height;
+                      area_below = 0;
+                    }
+                }
+              else
+                {
+                  /* row somewhere in the middle, bring it to the top
+                   * of the view
+                   */
+                  area_above = 0;
+                  area_below = total_height - height;
+                }
+            }
+        }
+    }
+  else
+    /* the scroll to isn't valid; ignore it.
+     */
+    {
+      gtk_tree_row_reference_free (tree_view->priv->scroll_to_path);
+      tree_view->priv->scroll_to_path = NULL;
+      return;
     }
 
   above_path = gtk_tree_path_copy (path);
-
-  /* if we do not validate any row above the new top_row, we will make sure
-   * that the row immediately above top_row has been validated. (if we do not
-   * do this, _pspp_rbtree_find_offset will find the row above top_row, because
-   * when invalidated that row's height will be zero. and this will mess up
-   * scrolling).
-   */
-  if (area_above == 0)
-    {
-      GtkRBTree *tmptree;
-      GtkRBNode *tmpnode;
-
-      _pspp_sheet_view_find_node (tree_view, above_path, &tmptree, &tmpnode);
-      _pspp_rbtree_prev_full (tmptree, tmpnode, &tmptree, &tmpnode);
-
-      if (tmpnode)
-        {
-	  GtkTreePath *tmppath;
-	  GtkTreeIter tmpiter;
-
-	  tmppath = _pspp_sheet_view_find_path (tree_view, tmptree, tmpnode);
-	  gtk_tree_model_get_iter (tree_view->priv->model, &tmpiter, tmppath);
-
-	  if (PSPP_RBNODE_FLAG_SET (tmpnode, PSPP_RBNODE_INVALID) ||
-	      PSPP_RBNODE_FLAG_SET (tmpnode, PSPP_RBNODE_COLUMN_INVALID))
-	    {
-	      _pspp_sheet_view_queue_draw_node (tree_view, tmptree, tmpnode, NULL);
-	      if (validate_row (tree_view, tmptree, tmpnode, &tmpiter, tmppath))
-		size_changed = TRUE;
-	    }
-
-	  gtk_tree_path_free (tmppath);
-	}
-    }
 
   /* Now, we walk forwards and backwards, measuring rows. Unfortunately,
    * backwards is much slower then forward, as there is no iter_prev function.
    * We go forwards first in case we run out of tree.  Then we go backwards to
    * fill out the top.
    */
-  while (node && area_below > 0)
+  while (node >= 0 && area_below > 0)
     {
-      if (node->children)
-	{
-	  GtkTreeIter parent = iter;
-	  gboolean has_child;
+      gboolean done = FALSE;
+      do
+        {
+          node = pspp_sheet_view_node_next (tree_view, node);
+          if (node >= 0)
+            {
+              gboolean has_next = gtk_tree_model_iter_next (tree_view->priv->model, &iter);
+              done = TRUE;
+              gtk_tree_path_next (path);
 
-	  tree = node->children;
-	  node = tree->root;
+              /* Sanity Check! */
+              TREE_VIEW_INTERNAL_ASSERT_VOID (has_next);
+            }
+          else
+            break;
+        }
+      while (!done);
 
-          g_assert (node != tree->nil);
-
-	  while (node->left != tree->nil)
-	    node = node->left;
-	  has_child = gtk_tree_model_iter_children (tree_view->priv->model,
-						    &iter,
-						    &parent);
-	  TREE_VIEW_INTERNAL_ASSERT_VOID (has_child);
-	  gtk_tree_path_down (path);
-	}
-      else
-	{
-	  gboolean done = FALSE;
-	  do
-	    {
-	      node = _pspp_rbtree_next (tree, node);
-	      if (node != NULL)
-		{
-		  gboolean has_next = gtk_tree_model_iter_next (tree_view->priv->model, &iter);
-		  done = TRUE;
-		  gtk_tree_path_next (path);
-
-		  /* Sanity Check! */
-		  TREE_VIEW_INTERNAL_ASSERT_VOID (has_next);
-		}
-	      else
-		{
-		  GtkTreeIter parent_iter = iter;
-		  gboolean has_parent;
-
-		  node = tree->parent_node;
-		  tree = tree->parent_tree;
-		  if (tree == NULL)
-		    break;
-		  has_parent = gtk_tree_model_iter_parent (tree_view->priv->model,
-							   &iter,
-							   &parent_iter);
-		  gtk_tree_path_up (path);
-
-		  /* Sanity check */
-		  TREE_VIEW_INTERNAL_ASSERT_VOID (has_parent);
-		}
-	    }
-	  while (!done);
-	}
-
-      if (!node)
+      if (node < 0)
         break;
 
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_INVALID) ||
-	  PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_COLUMN_INVALID))
-	{
-	  _pspp_sheet_view_queue_draw_node (tree_view, tree, node, NULL);
-	  if (validate_row (tree_view, tree, node, &iter, path))
-	      size_changed = TRUE;
-	}
-
-      area_below -= ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
+      area_below -= ROW_HEIGHT (tree_view);
     }
   gtk_tree_path_free (path);
 
@@ -6070,12 +4941,12 @@ validate_visible_area (PsppSheetView *tree_view)
   if (area_below > 0)
     area_above += area_below;
 
-  _pspp_sheet_view_find_node (tree_view, above_path, &tree, &node);
+  _pspp_sheet_view_find_node (tree_view, above_path, &node);
 
   /* We walk backwards */
   while (area_above > 0)
     {
-      _pspp_rbtree_prev_full (tree, node, &tree, &node);
+      node = pspp_sheet_view_node_prev (tree_view, node);
 
       /* Always find the new path in the tree.  We cannot just assume
        * a gtk_tree_path_prev() is enough here, as there might be children
@@ -6086,49 +4957,22 @@ validate_visible_area (PsppSheetView *tree_view)
        * iter_prev).
        */
 
-      if (node == NULL)
+      if (node < 0)
 	break;
 
       gtk_tree_path_free (above_path);
-      above_path = _pspp_sheet_view_find_path (tree_view, tree, node);
+      above_path = _pspp_sheet_view_find_path (tree_view, node);
 
       gtk_tree_model_get_iter (tree_view->priv->model, &iter, above_path);
 
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_INVALID) ||
-	  PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_COLUMN_INVALID))
-	{
-	  _pspp_sheet_view_queue_draw_node (tree_view, tree, node, NULL);
-	  if (validate_row (tree_view, tree, node, &iter, above_path))
-	    size_changed = TRUE;
-	}
-      area_above -= ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
+      area_above -= ROW_HEIGHT (tree_view);
     }
 
-  /* if we scrolled to a path, we need to set the dy here,
+  /* set the dy here to scroll to the path,
    * and sync the top row accordingly
    */
-  if (tree_view->priv->scroll_to_path)
-    {
-      pspp_sheet_view_set_top_row (tree_view, above_path, -area_above);
-      pspp_sheet_view_top_row_to_dy (tree_view);
-
-      need_redraw = TRUE;
-    }
-  else if (tree_view->priv->height <= tree_view->priv->vadjustment->page_size)
-    {
-      /* when we are not scrolling, we should never set dy to something
-       * else than zero. we update top_row to be in sync with dy = 0.
-       */
-      gtk_adjustment_set_value (GTK_ADJUSTMENT (tree_view->priv->vadjustment), 0);
-      pspp_sheet_view_dy_to_top_row (tree_view);
-    }
-  else if (tree_view->priv->vadjustment->value + tree_view->priv->vadjustment->page_size > tree_view->priv->height)
-    {
-      gtk_adjustment_set_value (GTK_ADJUSTMENT (tree_view->priv->vadjustment), tree_view->priv->height - tree_view->priv->vadjustment->page_size);
-      pspp_sheet_view_dy_to_top_row (tree_view);
-    }
-  else
-    pspp_sheet_view_top_row_to_dy (tree_view);
+  pspp_sheet_view_set_top_row (tree_view, above_path, -area_above);
+  pspp_sheet_view_top_row_to_dy (tree_view);
 
   /* update width/height and queue a resize */
   if (size_changed)
@@ -6147,11 +4991,8 @@ validate_visible_area (PsppSheetView *tree_view)
       gtk_widget_queue_resize (GTK_WIDGET (tree_view));
     }
 
-  if (tree_view->priv->scroll_to_path)
-    {
-      gtk_tree_row_reference_free (tree_view->priv->scroll_to_path);
-      tree_view->priv->scroll_to_path = NULL;
-    }
+  gtk_tree_row_reference_free (tree_view->priv->scroll_to_path);
+  tree_view->priv->scroll_to_path = NULL;
 
   if (above_path)
     gtk_tree_path_free (above_path);
@@ -6160,14 +5001,13 @@ validate_visible_area (PsppSheetView *tree_view)
     {
       tree_view->priv->scroll_to_column = NULL;
     }
-  if (need_redraw)
-    gtk_widget_queue_draw (GTK_WIDGET (tree_view));
+  gtk_widget_queue_draw (GTK_WIDGET (tree_view));
 }
 
 static void
 initialize_fixed_height_mode (PsppSheetView *tree_view)
 {
-  if (!tree_view->priv->tree)
+  if (!tree_view->priv->row_count)
     return;
 
   if (tree_view->priv->fixed_height < 0)
@@ -6175,24 +5015,15 @@ initialize_fixed_height_mode (PsppSheetView *tree_view)
       GtkTreeIter iter;
       GtkTreePath *path;
 
-      GtkRBTree *tree = NULL;
-      GtkRBNode *node = NULL;
+      int node = 0;
 
-      tree = tree_view->priv->tree;
-      node = tree->root;
-
-      path = _pspp_sheet_view_find_path (tree_view, tree, node);
+      path = _pspp_sheet_view_find_path (tree_view, node);
       gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
 
-      validate_row (tree_view, tree, node, &iter, path);
+      tree_view->priv->fixed_height = validate_row (tree_view, node, &iter, path);
 
       gtk_tree_path_free (path);
-
-      tree_view->priv->fixed_height = ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
     }
-
-   _pspp_rbtree_set_fixed_height (tree_view->priv->tree,
-                                 tree_view->priv->fixed_height, TRUE);
 }
 
 /* Our strategy for finding nodes to validate is a little convoluted.  We find
@@ -6202,202 +5033,33 @@ initialize_fixed_height_mode (PsppSheetView *tree_view)
  */
 
 static gboolean
-do_validate_rows (PsppSheetView *tree_view, gboolean queue_resize)
-{
-  GtkRBTree *tree = NULL;
-  GtkRBNode *node = NULL;
-  gboolean validated_area = FALSE;
-  gint retval = TRUE;
-  GtkTreePath *path = NULL;
-  GtkTreeIter iter;
-  GTimer *timer;
-  gint i = 0;
-
-  gint prev_height = -1;
-  gboolean fixed_height = TRUE;
-
-  g_assert (tree_view);
-
-  if (tree_view->priv->tree == NULL)
-      return FALSE;
-
-  if (tree_view->priv->fixed_height_mode)
-    {
-      if (tree_view->priv->fixed_height < 0)
-        initialize_fixed_height_mode (tree_view);
-
-      return FALSE;
-    }
-
-  timer = g_timer_new ();
-  g_timer_start (timer);
-
-  do
-    {
-      if (! PSPP_RBNODE_FLAG_SET (tree_view->priv->tree->root, PSPP_RBNODE_DESCENDANTS_INVALID))
-	{
-	  retval = FALSE;
-	  goto done;
-	}
-
-      if (path != NULL)
-	{
-	  node = _pspp_rbtree_next (tree, node);
-	  if (node != NULL)
-	    {
-	      TREE_VIEW_INTERNAL_ASSERT (gtk_tree_model_iter_next (tree_view->priv->model, &iter), FALSE);
-	      gtk_tree_path_next (path);
-	    }
-	  else
-	    {
-	      gtk_tree_path_free (path);
-	      path = NULL;
-	    }
-	}
-
-      if (path == NULL)
-	{
-	  tree = tree_view->priv->tree;
-	  node = tree_view->priv->tree->root;
-
-	  g_assert (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_DESCENDANTS_INVALID));
-
-	  do
-	    {
-	      if (node->left != tree->nil &&
-		  PSPP_RBNODE_FLAG_SET (node->left, PSPP_RBNODE_DESCENDANTS_INVALID))
-		{
-		  node = node->left;
-		}
-	      else if (node->right != tree->nil &&
-		       PSPP_RBNODE_FLAG_SET (node->right, PSPP_RBNODE_DESCENDANTS_INVALID))
-		{
-		  node = node->right;
-		}
-	      else if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_INVALID) ||
-		       PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_COLUMN_INVALID))
-		{
-		  break;
-		}
-	      else if (node->children != NULL)
-		{
-		  tree = node->children;
-		  node = tree->root;
-		}
-	      else
-		/* RBTree corruption!  All bad */
-		g_assert_not_reached ();
-	    }
-	  while (TRUE);
-	  path = _pspp_sheet_view_find_path (tree_view, tree, node);
-	  gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
-	}
-
-      validated_area = validate_row (tree_view, tree, node, &iter, path) ||
-                       validated_area;
-
-      if (!tree_view->priv->fixed_height_check)
-        {
-	  gint height;
-
-	  height = ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
-	  if (prev_height < 0)
-	    prev_height = height;
-	  else if (prev_height != height)
-	    fixed_height = FALSE;
-	}
-
-      i++;
-    }
-  while (g_timer_elapsed (timer, NULL) < PSPP_SHEET_VIEW_TIME_MS_PER_IDLE / 1000.);
-
-  if (!tree_view->priv->fixed_height_check)
-   {
-     if (fixed_height)
-       _pspp_rbtree_set_fixed_height (tree_view->priv->tree, prev_height, FALSE);
-
-     tree_view->priv->fixed_height_check = 1;
-   }
-  
- done:
-  if (validated_area)
-    {
-      GtkRequisition requisition;
-      /* We temporarily guess a size, under the assumption that it will be the
-       * same when we get our next size_allocate.  If we don't do this, we'll be
-       * in an inconsistent state when we call top_row_to_dy. */
-
-      gtk_widget_size_request (GTK_WIDGET (tree_view), &requisition);
-      tree_view->priv->hadjustment->upper = MAX (tree_view->priv->hadjustment->upper, (gfloat)requisition.width);
-      tree_view->priv->vadjustment->upper = MAX (tree_view->priv->vadjustment->upper, (gfloat)requisition.height);
-      gtk_adjustment_changed (tree_view->priv->hadjustment);
-      gtk_adjustment_changed (tree_view->priv->vadjustment);
-
-      if (queue_resize)
-        gtk_widget_queue_resize (GTK_WIDGET (tree_view));
-    }
-
-  if (path) gtk_tree_path_free (path);
-  g_timer_destroy (timer);
-
-  return retval;
-}
-
-static gboolean
-validate_rows (PsppSheetView *tree_view)
-{
-  gboolean retval;
-  
-  retval = do_validate_rows (tree_view, TRUE);
-  
-  if (! retval && tree_view->priv->validate_rows_timer)
-    {
-      g_source_remove (tree_view->priv->validate_rows_timer);
-      tree_view->priv->validate_rows_timer = 0;
-    }
-
-  return retval;
-}
-
-static gboolean
 validate_rows_handler (PsppSheetView *tree_view)
 {
-  gboolean retval;
-
-  retval = do_validate_rows (tree_view, TRUE);
-  if (! retval && tree_view->priv->validate_rows_timer)
+  initialize_fixed_height_mode (tree_view);
+  if (tree_view->priv->validate_rows_timer)
     {
       g_source_remove (tree_view->priv->validate_rows_timer);
       tree_view->priv->validate_rows_timer = 0;
     }
 
-  return retval;
+  return FALSE;
 }
 
 static gboolean
 do_presize_handler (PsppSheetView *tree_view)
 {
-  if (tree_view->priv->mark_rows_col_dirty)
-    {
-      if (tree_view->priv->tree)
-	_pspp_rbtree_column_invalid (tree_view->priv->tree);
-      tree_view->priv->mark_rows_col_dirty = FALSE;
-    }
+  GtkRequisition requisition;
+
   validate_visible_area (tree_view);
   tree_view->priv->presize_handler_timer = 0;
 
-  if (tree_view->priv->fixed_height_mode)
-    {
-      GtkRequisition requisition;
+  gtk_widget_size_request (GTK_WIDGET (tree_view), &requisition);
 
-      gtk_widget_size_request (GTK_WIDGET (tree_view), &requisition);
-
-      tree_view->priv->hadjustment->upper = MAX (tree_view->priv->hadjustment->upper, (gfloat)requisition.width);
-      tree_view->priv->vadjustment->upper = MAX (tree_view->priv->vadjustment->upper, (gfloat)requisition.height);
-      gtk_adjustment_changed (tree_view->priv->hadjustment);
-      gtk_adjustment_changed (tree_view->priv->vadjustment);
-      gtk_widget_queue_resize (GTK_WIDGET (tree_view));
-    }
+  tree_view->priv->hadjustment->upper = MAX (tree_view->priv->hadjustment->upper, (gfloat)requisition.width);
+  tree_view->priv->vadjustment->upper = MAX (tree_view->priv->vadjustment->upper, (gfloat)requisition.height);
+  gtk_adjustment_changed (tree_view->priv->hadjustment);
+  gtk_adjustment_changed (tree_view->priv->vadjustment);
+  gtk_widget_queue_resize (GTK_WIDGET (tree_view));
 		   
   return FALSE;
 }
@@ -6483,26 +5145,25 @@ pspp_sheet_view_dy_to_top_row (PsppSheetView *tree_view)
 {
   gint offset;
   GtkTreePath *path;
-  GtkRBTree *tree;
-  GtkRBNode *node;
+  int node;
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     {
       pspp_sheet_view_set_top_row (tree_view, NULL, 0);
     }
   else
     {
-      offset = _pspp_rbtree_find_offset (tree_view->priv->tree,
-					tree_view->priv->dy,
-					&tree, &node);
+      offset = pspp_sheet_view_find_offset (tree_view,
+                                            tree_view->priv->dy,
+                                            &node);
 
-      if (tree == NULL)
+      if (node < 0)
         {
 	  pspp_sheet_view_set_top_row (tree_view, NULL, 0);
 	}
       else
         {
-	  path = _pspp_sheet_view_find_path (tree_view, tree, node);
+	  path = _pspp_sheet_view_find_path (tree_view, node);
 	  pspp_sheet_view_set_top_row (tree_view, path, offset);
 	  gtk_tree_path_free (path);
 	}
@@ -6513,8 +5174,7 @@ static void
 pspp_sheet_view_top_row_to_dy (PsppSheetView *tree_view)
 {
   GtkTreePath *path;
-  GtkRBTree *tree;
-  GtkRBNode *node;
+  int node;
   int new_dy;
 
   /* Avoid recursive calls */
@@ -6527,14 +5187,14 @@ pspp_sheet_view_top_row_to_dy (PsppSheetView *tree_view)
     path = NULL;
 
   if (!path)
-    tree = NULL;
+    node = -1;
   else
-    _pspp_sheet_view_find_node (tree_view, path, &tree, &node);
+    _pspp_sheet_view_find_node (tree_view, path, &node);
 
   if (path)
     gtk_tree_path_free (path);
 
-  if (tree == NULL)
+  if (node < 0)
     {
       /* keep dy and set new toprow */
       gtk_tree_row_reference_free (tree_view->priv->top_row);
@@ -6545,15 +5205,14 @@ pspp_sheet_view_top_row_to_dy (PsppSheetView *tree_view)
       return;
     }
 
-  if (ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node))
-      < tree_view->priv->top_row_dy)
+  if (ROW_HEIGHT (tree_view) < tree_view->priv->top_row_dy)
     {
       /* new top row -- do NOT install the idle handler */
       pspp_sheet_view_dy_to_top_row (tree_view);
       return;
     }
 
-  new_dy = _pspp_rbtree_node_find_offset (tree, node);
+  new_dy = pspp_sheet_view_node_find_offset (tree_view, node);
   new_dy += tree_view->priv->top_row_dy;
 
   if (new_dy + tree_view->priv->vadjustment->page_size > tree_view->priv->height)
@@ -6570,31 +5229,7 @@ pspp_sheet_view_top_row_to_dy (PsppSheetView *tree_view)
 void
 _pspp_sheet_view_install_mark_rows_col_dirty (PsppSheetView *tree_view)
 {
-  tree_view->priv->mark_rows_col_dirty = TRUE;
-
   install_presize_handler (tree_view);
-}
-
-/*
- * This function works synchronously (due to the while (validate_rows...)
- * loop).
- *
- * There was a check for column_type != PSPP_SHEET_VIEW_COLUMN_AUTOSIZE
- * here. You now need to check that yourself.
- */
-void
-_pspp_sheet_view_column_autosize (PsppSheetView *tree_view,
-			        PsppSheetViewColumn *column)
-{
-  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
-  g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (column));
-
-  _pspp_sheet_view_column_cell_set_dirty (column, FALSE);
-
-  do_presize_handler (tree_view);
-  while (validate_rows (tree_view));
-
-  gtk_widget_queue_resize (GTK_WIDGET (tree_view));
 }
 
 /* Drag-and-drop */
@@ -6852,49 +5487,6 @@ check_model_dnd (GtkTreeModel *model,
     return TRUE;
 }
 
-static void
-remove_open_timeout (PsppSheetView *tree_view)
-{
-  if (tree_view->priv->open_dest_timeout != 0)
-    {
-      g_source_remove (tree_view->priv->open_dest_timeout);
-      tree_view->priv->open_dest_timeout = 0;
-    }
-}
-
-
-static gint
-open_row_timeout (gpointer data)
-{
-  PsppSheetView *tree_view = data;
-  GtkTreePath *dest_path = NULL;
-  PsppSheetViewDropPosition pos;
-  gboolean result = FALSE;
-
-  pspp_sheet_view_get_drag_dest_row (tree_view,
-                                   &dest_path,
-                                   &pos);
-
-  if (dest_path &&
-      (pos == PSPP_SHEET_VIEW_DROP_INTO_OR_AFTER ||
-       pos == PSPP_SHEET_VIEW_DROP_INTO_OR_BEFORE))
-    {
-      pspp_sheet_view_expand_row (tree_view, dest_path, FALSE);
-      tree_view->priv->open_dest_timeout = 0;
-
-      gtk_tree_path_free (dest_path);
-    }
-  else
-    {
-      if (dest_path)
-        gtk_tree_path_free (dest_path);
-
-      result = TRUE;
-    }
-
-  return result;
-}
-
 static gboolean
 scroll_row_timeout (gpointer data)
 {
@@ -6944,7 +5536,6 @@ set_destination_row (PsppSheetView    *tree_view,
                                        PSPP_SHEET_VIEW_DROP_BEFORE);
 
       remove_scroll_timeout (PSPP_SHEET_VIEW (widget));
-      remove_open_timeout (PSPP_SHEET_VIEW (widget));
 
       return FALSE; /* no longer a drop site */
     }
@@ -6963,8 +5554,6 @@ set_destination_row (PsppSheetView    *tree_view,
     {
       gint n_children;
       GtkTreeModel *model;
-
-      remove_open_timeout (tree_view);
 
       /* the row got dropped on empty space, let's setup a special case
        */
@@ -7000,12 +5589,6 @@ set_destination_row (PsppSheetView    *tree_view,
                                    &old_dest_path,
                                    &old_pos);
 
-  if (old_dest_path &&
-      (gtk_tree_path_compare (path, old_dest_path) != 0 ||
-       !(pos == PSPP_SHEET_VIEW_DROP_INTO_OR_AFTER ||
-         pos == PSPP_SHEET_VIEW_DROP_INTO_OR_BEFORE)))
-    remove_open_timeout (tree_view);
-
   if (old_dest_path)
     gtk_tree_path_free (old_dest_path);
 
@@ -7037,8 +5620,6 @@ out:
   else
     {
       /* can't drop here */
-      remove_open_timeout (tree_view);
-
       pspp_sheet_view_set_drag_dest_row (PSPP_SHEET_VIEW (widget),
                                        NULL,
                                        PSPP_SHEET_VIEW_DROP_BEFORE);
@@ -7317,7 +5898,6 @@ pspp_sheet_view_drag_leave (GtkWidget      *widget,
                                    PSPP_SHEET_VIEW_DROP_BEFORE);
 
   remove_scroll_timeout (PSPP_SHEET_VIEW (widget));
-  remove_open_timeout (PSPP_SHEET_VIEW (widget));
 }
 
 
@@ -7357,8 +5937,7 @@ pspp_sheet_view_drag_motion (GtkWidget        *widget,
           (pos == PSPP_SHEET_VIEW_DROP_INTO_OR_AFTER ||
            pos == PSPP_SHEET_VIEW_DROP_INTO_OR_BEFORE))
         {
-          tree_view->priv->open_dest_timeout =
-            gdk_threads_add_timeout (AUTO_EXPAND_TIMEOUT, open_row_timeout, tree_view);
+          /* Nothing. */
         }
       else
         {
@@ -7409,7 +5988,6 @@ pspp_sheet_view_drag_drop (GtkWidget        *widget,
   model = pspp_sheet_view_get_model (tree_view);
 
   remove_scroll_timeout (PSPP_SHEET_VIEW (widget));
-  remove_open_timeout (PSPP_SHEET_VIEW (widget));
 
   di = get_info (tree_view);
 
@@ -7675,91 +6253,6 @@ pspp_sheet_view_has_special_cell (PsppSheetView *tree_view)
   return FALSE;
 }
 
-static void
-column_sizing_notify (GObject    *object,
-                      GParamSpec *pspec,
-                      gpointer    data)
-{
-  PsppSheetViewColumn *c = PSPP_SHEET_VIEW_COLUMN (object);
-
-  if (pspp_sheet_view_column_get_sizing (c) != PSPP_SHEET_VIEW_COLUMN_FIXED)
-    /* disable fixed height mode */
-    g_object_set (data, "fixed-height-mode", FALSE, NULL);
-}
-
-/**
- * pspp_sheet_view_set_fixed_height_mode:
- * @tree_view: a #PsppSheetView 
- * @enable: %TRUE to enable fixed height mode
- * 
- * Enables or disables the fixed height mode of @tree_view. 
- * Fixed height mode speeds up #PsppSheetView by assuming that all 
- * rows have the same height. 
- * Only enable this option if all rows are the same height and all
- * columns are of type %PSPP_SHEET_VIEW_COLUMN_FIXED.
- *
- * Since: 2.6 
- **/
-void
-pspp_sheet_view_set_fixed_height_mode (PsppSheetView *tree_view,
-                                     gboolean     enable)
-{
-  GList *l;
-  
-  enable = enable != FALSE;
-
-  if (enable == tree_view->priv->fixed_height_mode)
-    return;
-
-  if (!enable)
-    {
-      tree_view->priv->fixed_height_mode = 0;
-      tree_view->priv->fixed_height = -1;
-
-      /* force a revalidation */
-      install_presize_handler (tree_view);
-    }
-  else 
-    {
-      /* make sure all columns are of type FIXED */
-      for (l = tree_view->priv->columns; l; l = l->next)
-	{
-	  PsppSheetViewColumn *c = l->data;
-	  
-	  g_return_if_fail (pspp_sheet_view_column_get_sizing (c) == PSPP_SHEET_VIEW_COLUMN_FIXED);
-	}
-      
-      /* yes, we really have to do this is in a separate loop */
-      for (l = tree_view->priv->columns; l; l = l->next)
-	g_signal_connect (l->data, "notify::sizing",
-			  G_CALLBACK (column_sizing_notify), tree_view);
-      
-      tree_view->priv->fixed_height_mode = 1;
-      tree_view->priv->fixed_height = -1;
-      
-      if (tree_view->priv->tree)
-	initialize_fixed_height_mode (tree_view);
-    }
-
-  g_object_notify (G_OBJECT (tree_view), "fixed-height-mode");
-}
-
-/**
- * pspp_sheet_view_get_fixed_height_mode:
- * @tree_view: a #PsppSheetView
- * 
- * Returns whether fixed height mode is turned on for @tree_view.
- * 
- * Return value: %TRUE if @tree_view is in fixed height mode
- * 
- * Since: 2.6
- **/
-gboolean
-pspp_sheet_view_get_fixed_height_mode (PsppSheetView *tree_view)
-{
-  return tree_view->priv->fixed_height_mode;
-}
-
 /* Returns TRUE if the focus is within the headers, after the focus operation is
  * done
  */
@@ -7919,38 +6412,17 @@ static gboolean
 search_first_focusable_path (PsppSheetView  *tree_view,
 			     GtkTreePath **path,
 			     gboolean      search_forward,
-			     GtkRBTree   **new_tree,
-			     GtkRBNode   **new_node)
+			     int *new_node)
 {
-  GtkRBTree *tree = NULL;
-  GtkRBNode *node = NULL;
+  int node = -1;
 
   if (!path || !*path)
     return FALSE;
 
-  _pspp_sheet_view_find_node (tree_view, *path, &tree, &node);
+  _pspp_sheet_view_find_node (tree_view, *path, &node);
 
-  if (!tree || !node)
+  if (node < 0)
     return FALSE;
-
-  while (node && row_is_separator (tree_view, NULL, *path))
-    {
-      if (search_forward)
-	_pspp_rbtree_next_full (tree, node, &tree, &node);
-      else
-	_pspp_rbtree_prev_full (tree, node, &tree, &node);
-
-      if (*path)
-	gtk_tree_path_free (*path);
-
-      if (node)
-	*path = _pspp_sheet_view_find_path (tree_view, tree, node);
-      else
-	*path = NULL;
-    }
-
-  if (new_tree)
-    *new_tree = tree;
 
   if (new_node)
     *new_node = node;
@@ -8036,7 +6508,6 @@ pspp_sheet_view_style_set (GtkWidget *widget,
       gtk_style_set_background (widget->style, tree_view->priv->header_window, GTK_STATE_NORMAL);
 
       pspp_sheet_view_set_grid_lines (tree_view, tree_view->priv->grid_lines);
-      pspp_sheet_view_set_enable_tree_lines (tree_view, tree_view->priv->tree_lines_enabled);
     }
 
   gtk_widget_style_get (widget,
@@ -8047,11 +6518,10 @@ pspp_sheet_view_style_set (GtkWidget *widget,
   for (list = tree_view->priv->columns; list; list = list->next)
     {
       column = list->data;
-      _pspp_sheet_view_column_cell_set_dirty (column, TRUE);
+      _pspp_sheet_view_column_cell_set_dirty (column);
     }
 
   tree_view->priv->fixed_height = -1;
-  _pspp_rbtree_mark_invalid (tree_view->priv->tree);
 
   gtk_widget_queue_resize (widget);
 }
@@ -8151,7 +6621,7 @@ pspp_sheet_view_real_move_cursor (PsppSheetView       *tree_view,
 			step == GTK_MOVEMENT_PAGES ||
 			step == GTK_MOVEMENT_BUFFER_ENDS, FALSE);
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     return FALSE;
   if (!gtk_widget_has_focus (GTK_WIDGET (tree_view)))
     return FALSE;
@@ -8272,10 +6742,8 @@ pspp_sheet_view_row_changed (GtkTreeModel *model,
 			   gpointer      data)
 {
   PsppSheetView *tree_view = (PsppSheetView *)data;
-  GtkRBTree *tree;
-  GtkRBNode *node;
+  int node;
   gboolean free_path = FALSE;
-  GList *list;
   GtkTreePath *cursor_path;
 
   g_return_if_fail (path != NULL || iter != NULL);
@@ -8300,45 +6768,16 @@ pspp_sheet_view_row_changed (GtkTreeModel *model,
   else if (iter == NULL)
     gtk_tree_model_get_iter (model, iter, path);
 
-  if (_pspp_sheet_view_find_node (tree_view,
-				path,
-				&tree,
-				&node))
-    /* We aren't actually showing the node */
-    goto done;
+  _pspp_sheet_view_find_node (tree_view,
+                              path,
+                              &node);
 
-  if (tree == NULL)
-    goto done;
-
-  if (tree_view->priv->fixed_height_mode
-      && tree_view->priv->fixed_height >= 0)
+  if (node >= 0)
     {
-      _pspp_rbtree_node_set_height (tree, node, tree_view->priv->fixed_height);
       if (gtk_widget_get_realized (GTK_WIDGET (tree_view)))
-	pspp_sheet_view_node_queue_redraw (tree_view, tree, node);
+        pspp_sheet_view_node_queue_redraw (tree_view, node);
     }
-  else
-    {
-      _pspp_rbtree_node_mark_invalid (tree, node);
-      for (list = tree_view->priv->columns; list; list = list->next)
-        {
-          PsppSheetViewColumn *column;
-
-          column = list->data;
-          if (! column->visible)
-            continue;
-
-          if (column->column_type == PSPP_SHEET_VIEW_COLUMN_AUTOSIZE)
-            {
-              _pspp_sheet_view_column_cell_set_dirty (column, TRUE);
-            }
-        }
-    }
-
- done:
-  if (!tree_view->priv->fixed_height_mode &&
-      gtk_widget_get_realized (GTK_WIDGET (tree_view)))
-    install_presize_handler (tree_view);
+  
   if (free_path)
     gtk_tree_path_free (path);
 }
@@ -8351,21 +6790,12 @@ pspp_sheet_view_row_inserted (GtkTreeModel *model,
 {
   PsppSheetView *tree_view = (PsppSheetView *) data;
   gint *indices;
-  GtkRBTree *tmptree, *tree;
-  GtkRBNode *tmpnode = NULL;
-  gint depth;
-  gint i = 0;
-  gint height;
+  int tmpnode = -1;
+  gint height = tree_view->priv->fixed_height;
   gboolean free_path = FALSE;
   gboolean node_visible = TRUE;
 
   g_return_if_fail (path != NULL || iter != NULL);
-
-  if (tree_view->priv->fixed_height_mode
-      && tree_view->priv->fixed_height >= 0)
-    height = tree_view->priv->fixed_height;
-  else
-    height = 0;
 
   if (path == NULL)
     {
@@ -8375,79 +6805,18 @@ pspp_sheet_view_row_inserted (GtkTreeModel *model,
   else if (iter == NULL)
     gtk_tree_model_get_iter (model, iter, path);
 
-  if (tree_view->priv->tree == NULL)
-    tree_view->priv->tree = _pspp_rbtree_new ();
-
-  tmptree = tree = tree_view->priv->tree;
+  tree_view->priv->row_count = gtk_tree_model_iter_n_children (model, NULL);
 
   /* Update all row-references */
   gtk_tree_row_reference_inserted (G_OBJECT (data), path);
-  depth = gtk_tree_path_get_depth (path);
   indices = gtk_tree_path_get_indices (path);
+  tmpnode = indices[0];
 
-  /* First, find the parent tree */
-  while (i < depth - 1)
-    {
-      if (tmptree == NULL)
-	{
-	  /* We aren't showing the node */
-	  node_visible = FALSE;
-          goto done;
-	}
+  range_tower_insert0 (tree_view->priv->selected, tmpnode, 1);
 
-      tmpnode = _pspp_rbtree_find_count (tmptree, indices[i] + 1);
-      if (tmpnode == NULL)
-	{
-	  g_warning ("A node was inserted with a parent that's not in the tree.\n" \
-		     "This possibly means that a GtkTreeModel inserted a child node\n" \
-		     "before the parent was inserted.");
-          goto done;
-	}
-      else if (!PSPP_RBNODE_FLAG_SET (tmpnode, PSPP_RBNODE_IS_PARENT))
-	{
-          /* FIXME enforce correct behavior on model, probably */
-	  /* In theory, the model should have emitted has_child_toggled here.  We
-	   * try to catch it anyway, just to be safe, in case the model hasn't.
-	   */
-	  GtkTreePath *tmppath = _pspp_sheet_view_find_path (tree_view,
-							   tree,
-							   tmpnode);
-	  pspp_sheet_view_row_has_child_toggled (model, tmppath, NULL, data);
-	  gtk_tree_path_free (tmppath);
-          goto done;
-	}
-
-      tmptree = tmpnode->children;
-      tree = tmptree;
-      i++;
-    }
-
-  if (tree == NULL)
-    {
-      node_visible = FALSE;
-      goto done;
-    }
-
-  /* ref the node */
-  gtk_tree_model_ref_node (tree_view->priv->model, iter);
-  if (indices[depth - 1] == 0)
-    {
-      tmpnode = _pspp_rbtree_find_count (tree, 1);
-      tmpnode = _pspp_rbtree_insert_before (tree, tmpnode, height, FALSE);
-    }
-  else
-    {
-      tmpnode = _pspp_rbtree_find_count (tree, indices[depth - 1]);
-      tmpnode = _pspp_rbtree_insert_after (tree, tmpnode, height, FALSE);
-    }
-
- done:
   if (height > 0)
     {
-      if (tree)
-        _pspp_rbtree_node_mark_valid (tree, tmpnode);
-
-      if (node_visible && node_is_visible (tree_view, tree, tmpnode))
+      if (node_visible && node_is_visible (tree_view, tmpnode))
 	gtk_widget_queue_resize (GTK_WIDGET (tree_view));
       else
 	gtk_widget_queue_resize_no_redraw (GTK_WIDGET (tree_view));
@@ -8459,131 +6828,23 @@ pspp_sheet_view_row_inserted (GtkTreeModel *model,
 }
 
 static void
-pspp_sheet_view_row_has_child_toggled (GtkTreeModel *model,
-				     GtkTreePath  *path,
-				     GtkTreeIter  *iter,
-				     gpointer      data)
-{
-  PsppSheetView *tree_view = (PsppSheetView *)data;
-  GtkTreeIter real_iter;
-  gboolean has_child;
-  GtkRBTree *tree;
-  GtkRBNode *node;
-  gboolean free_path = FALSE;
-
-  g_return_if_fail (path != NULL || iter != NULL);
-
-  if (iter)
-    real_iter = *iter;
-
-  if (path == NULL)
-    {
-      path = gtk_tree_model_get_path (model, iter);
-      free_path = TRUE;
-    }
-  else if (iter == NULL)
-    gtk_tree_model_get_iter (model, &real_iter, path);
-
-  if (_pspp_sheet_view_find_node (tree_view,
-				path,
-				&tree,
-				&node))
-    /* We aren't actually showing the node */
-    goto done;
-
-  if (tree == NULL)
-    goto done;
-
-  has_child = gtk_tree_model_iter_has_child (model, &real_iter);
-  /* Sanity check.
-   */
-  if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_PARENT) == has_child)
-    goto done;
-
-  if (has_child)
-    PSPP_RBNODE_SET_FLAG (node, PSPP_RBNODE_IS_PARENT);
-  else
-    PSPP_RBNODE_UNSET_FLAG (node, PSPP_RBNODE_IS_PARENT);
-
-  if (has_child && PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_IS_LIST))
-    {
-      PSPP_SHEET_VIEW_UNSET_FLAG (tree_view, PSPP_SHEET_VIEW_IS_LIST);
-      if (PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_SHOW_EXPANDERS))
-	{
-	  GList *list;
-
-	  for (list = tree_view->priv->columns; list; list = list->next)
-	    if (PSPP_SHEET_VIEW_COLUMN (list->data)->visible)
-	      {
-		PSPP_SHEET_VIEW_COLUMN (list->data)->dirty = TRUE;
-		_pspp_sheet_view_column_cell_set_dirty (PSPP_SHEET_VIEW_COLUMN (list->data), TRUE);
-		break;
-	      }
-	}
-      gtk_widget_queue_resize (GTK_WIDGET (tree_view));
-    }
-  else
-    {
-      _pspp_sheet_view_queue_draw_node (tree_view, tree, node, NULL);
-    }
-
- done:
-  if (free_path)
-    gtk_tree_path_free (path);
-}
-
-static void
-count_children_helper (GtkRBTree *tree,
-		       GtkRBNode *node,
-		       gpointer   data)
-{
-  if (node->children)
-    _pspp_rbtree_traverse (node->children, node->children->root, G_POST_ORDER, count_children_helper, data);
-  (*((gint *)data))++;
-}
-
-static void
-check_selection_helper (GtkRBTree *tree,
-                        GtkRBNode *node,
-                        gpointer   data)
-{
-  gint *value = (gint *)data;
-
-  *value = PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED);
-
-  if (node->children && !*value)
-    _pspp_rbtree_traverse (node->children, node->children->root, G_POST_ORDER, check_selection_helper, data);
-}
-
-static void
 pspp_sheet_view_row_deleted (GtkTreeModel *model,
 			   GtkTreePath  *path,
 			   gpointer      data)
 {
   PsppSheetView *tree_view = (PsppSheetView *)data;
-  GtkRBTree *tree;
-  GtkRBNode *node;
-  GList *list;
-  gint selection_changed = FALSE;
+  int node;
 
   g_return_if_fail (path != NULL);
 
   gtk_tree_row_reference_deleted (G_OBJECT (data), path);
 
-  if (_pspp_sheet_view_find_node (tree_view, path, &tree, &node))
+  _pspp_sheet_view_find_node (tree_view, path, &node);
+
+  if (node < 0)
     return;
 
-  if (tree == NULL)
-    return;
-
-  /* check if the selection has been changed */
-  _pspp_rbtree_traverse (tree, node, G_POST_ORDER,
-                        check_selection_helper, &selection_changed);
-
-  for (list = tree_view->priv->columns; list; list = list->next)
-    if (((PsppSheetViewColumn *)list->data)->visible &&
-	((PsppSheetViewColumn *)list->data)->column_type == PSPP_SHEET_VIEW_COLUMN_AUTOSIZE)
-      _pspp_sheet_view_column_cell_set_dirty ((PsppSheetViewColumn *)list->data, TRUE);
+  range_tower_delete (tree_view->priv->selected, node, 1);
 
   /* Ensure we don't have a dangling pointer to a dead node */
   ensure_unprelighted (tree_view);
@@ -8591,28 +6852,13 @@ pspp_sheet_view_row_deleted (GtkTreeModel *model,
   /* Cancel editting if we've started */
   pspp_sheet_view_stop_editing (tree_view, TRUE);
 
-  /* If we have a node expanded/collapsed timeout, remove it */
-  remove_expand_collapse_timeout (tree_view);
-
   if (tree_view->priv->destroy_count_func)
     {
       gint child_count = 0;
-      if (node->children)
-	_pspp_rbtree_traverse (node->children, node->children->root, G_POST_ORDER, count_children_helper, &child_count);
       tree_view->priv->destroy_count_func (tree_view, path, child_count, tree_view->priv->destroy_count_data);
     }
 
-  if (tree->root->count == 1)
-    {
-      if (tree_view->priv->tree == tree)
-	tree_view->priv->tree = NULL;
-
-      _pspp_rbtree_remove (tree);
-    }
-  else
-    {
-      _pspp_rbtree_remove_node (tree, node);
-    }
+  tree_view->priv->row_count = gtk_tree_model_iter_n_children (model, NULL);
 
   if (! gtk_tree_row_reference_valid (tree_view->priv->top_row))
     {
@@ -8624,8 +6870,10 @@ pspp_sheet_view_row_deleted (GtkTreeModel *model,
 
   gtk_widget_queue_resize (GTK_WIDGET (tree_view));
 
-  if (selection_changed)
+#if 0
+  if (helper_data.changed)
     g_signal_emit_by_name (tree_view->priv->selection, "changed");
+#endif
 }
 
 static void
@@ -8636,10 +6884,9 @@ pspp_sheet_view_rows_reordered (GtkTreeModel *model,
 			      gpointer      data)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (data);
-  GtkRBTree *tree;
-  GtkRBNode *node;
   gint len;
 
+  /* XXX need to adjust selection */
   len = gtk_tree_model_iter_n_children (model, iter);
 
   if (len < 2)
@@ -8650,19 +6897,7 @@ pspp_sheet_view_rows_reordered (GtkTreeModel *model,
 				    iter,
 				    new_order);
 
-  if (_pspp_sheet_view_find_node (tree_view,
-				parent,
-				&tree,
-				&node))
-    return;
-
-  /* We need to special case the parent path */
-  if (tree == NULL)
-    tree = tree_view->priv->tree;
-  else
-    tree = node->children;
-
-  if (tree == NULL)
+  if (gtk_tree_path_get_depth (parent) != 0)
     return;
 
   if (tree_view->priv->edited_column)
@@ -8670,11 +6905,6 @@ pspp_sheet_view_rows_reordered (GtkTreeModel *model,
 
   /* we need to be unprelighted */
   ensure_unprelighted (tree_view);
-
-  /* clear the timeout */
-  cancel_arrow_animation (tree_view);
-  
-  _pspp_rbtree_reorder (tree, new_order, len);
 
   gtk_widget_queue_draw (GTK_WIDGET (tree_view));
 
@@ -8688,7 +6918,6 @@ pspp_sheet_view_rows_reordered (GtkTreeModel *model,
 
 static void
 pspp_sheet_view_get_background_xrange (PsppSheetView       *tree_view,
-                                     GtkRBTree         *tree,
                                      PsppSheetViewColumn *column,
                                      gint              *x1,
                                      gint              *x2)
@@ -8737,133 +6966,11 @@ pspp_sheet_view_get_background_xrange (PsppSheetView       *tree_view,
         *x2 = total_width; /* width of 0 */
     }
 }
-static void
-pspp_sheet_view_get_arrow_xrange (PsppSheetView *tree_view,
-				GtkRBTree   *tree,
-                                gint        *x1,
-                                gint        *x2)
-{
-  gint x_offset = 0;
-  GList *list;
-  PsppSheetViewColumn *tmp_column = NULL;
-  gint total_width;
-  gboolean indent_expanders;
-  gboolean rtl;
-
-  rtl = (gtk_widget_get_direction (GTK_WIDGET (tree_view)) == GTK_TEXT_DIR_RTL);
-
-  total_width = 0;
-  for (list = (rtl ? g_list_last (tree_view->priv->columns) : g_list_first (tree_view->priv->columns));
-       list;
-       list = (rtl ? list->prev : list->next))
-    {
-      tmp_column = list->data;
-
-      if (pspp_sheet_view_is_expander_column (tree_view, tmp_column))
-        {
-	  if (rtl)
-	    x_offset = total_width + tmp_column->width - tree_view->priv->expander_size;
-	  else
-	    x_offset = total_width;
-          break;
-        }
-
-      if (tmp_column->visible)
-        total_width += tmp_column->width;
-    }
-
-  gtk_widget_style_get (GTK_WIDGET (tree_view),
-			"indent-expanders", &indent_expanders,
-			NULL);
-
-  if (indent_expanders)
-    {
-      if (rtl)
-	x_offset -= tree_view->priv->expander_size * _pspp_rbtree_get_depth (tree);
-      else
-	x_offset += tree_view->priv->expander_size * _pspp_rbtree_get_depth (tree);
-    }
-
-  *x1 = x_offset;
-  
-  if (tmp_column && tmp_column->visible)
-    /* +1 because x2 isn't included in the range. */
-    *x2 = *x1 + tree_view->priv->expander_size + 1;
-  else
-    *x2 = *x1;
-}
-
-static void
-pspp_sheet_view_build_tree (PsppSheetView *tree_view,
-			  GtkRBTree   *tree,
-			  GtkTreeIter *iter,
-			  gint         depth,
-			  gboolean     recurse)
-{
-  GtkRBNode *temp = NULL;
-  GtkTreePath *path = NULL;
-  gboolean is_list = PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_IS_LIST);
-
-  do
-    {
-      gtk_tree_model_ref_node (tree_view->priv->model, iter);
-      temp = _pspp_rbtree_insert_after (tree, temp, 0, FALSE);
-
-      if (tree_view->priv->fixed_height > 0)
-        {
-          if (PSPP_RBNODE_FLAG_SET (temp, PSPP_RBNODE_INVALID))
-	    {
-              _pspp_rbtree_node_set_height (tree, temp, tree_view->priv->fixed_height);
-	      _pspp_rbtree_node_mark_valid (tree, temp);
-	    }
-        }
-
-      if (is_list)
-        continue;
-
-      if (recurse)
-	{
-	  GtkTreeIter child;
-
-	  if (!path)
-	    path = gtk_tree_model_get_path (tree_view->priv->model, iter);
-	  else
-	    gtk_tree_path_next (path);
-
-	  if (gtk_tree_model_iter_children (tree_view->priv->model, &child, iter))
-	    {
-	      gboolean expand;
-
-	      g_signal_emit (tree_view, tree_view_signals[TEST_EXPAND_ROW], 0, iter, path, &expand);
-
-	      if (gtk_tree_model_iter_has_child (tree_view->priv->model, iter)
-		  && !expand)
-	        {
-	          temp->children = _pspp_rbtree_new ();
-	          temp->children->parent_tree = tree;
-	          temp->children->parent_node = temp;
-	          pspp_sheet_view_build_tree (tree_view, temp->children, &child, depth + 1, recurse);
-		}
-	    }
-	}
-
-      if (gtk_tree_model_iter_has_child (tree_view->priv->model, iter))
-	{
-	  if ((temp->flags&PSPP_RBNODE_IS_PARENT) != PSPP_RBNODE_IS_PARENT)
-	    temp->flags ^= PSPP_RBNODE_IS_PARENT;
-	}
-    }
-  while (gtk_tree_model_iter_next (tree_view->priv->model, iter));
-
-  if (path)
-    gtk_tree_path_free (path);
-}
 
 /* Make sure the node is visible vertically */
 static void
 pspp_sheet_view_clamp_node_visible (PsppSheetView *tree_view,
-				  GtkRBTree   *tree,
-				  GtkRBNode   *node)
+                                    int node)
 {
   gint node_dy, height;
   GtkTreePath *path = NULL;
@@ -8872,15 +6979,14 @@ pspp_sheet_view_clamp_node_visible (PsppSheetView *tree_view,
     return;
 
   /* just return if the node is visible, avoiding a costly expose */
-  node_dy = _pspp_rbtree_node_find_offset (tree, node);
-  height = ROW_HEIGHT (tree_view, PSPP_RBNODE_GET_HEIGHT (node));
-  if (! PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_INVALID)
-      && node_dy >= tree_view->priv->vadjustment->value
+  node_dy = pspp_sheet_view_node_find_offset (tree_view, node);
+  height = ROW_HEIGHT (tree_view);
+  if (node_dy >= tree_view->priv->vadjustment->value
       && node_dy + height <= (tree_view->priv->vadjustment->value
                               + tree_view->priv->vadjustment->page_size))
     return;
 
-  path = _pspp_sheet_view_find_path (tree_view, tree, node);
+  path = _pspp_sheet_view_find_path (tree_view, node);
   if (path)
     {
       /* We process updates because we want to clear old selected items when we scroll.
@@ -8965,121 +7071,30 @@ pspp_sheet_view_clamp_column_visible (PsppSheetView       *tree_view,
   }
 }
 
-/* This function could be more efficient.  I'll optimize it if profiling seems
- * to imply that it is important */
 GtkTreePath *
 _pspp_sheet_view_find_path (PsppSheetView *tree_view,
-			  GtkRBTree   *tree,
-			  GtkRBNode   *node)
+                            int node)
 {
   GtkTreePath *path;
-  GtkRBTree *tmp_tree;
-  GtkRBNode *tmp_node, *last;
-  gint count;
 
   path = gtk_tree_path_new ();
-
-  g_return_val_if_fail (node != NULL, path);
-  g_return_val_if_fail (node != tree->nil, path);
-
-  count = 1 + node->left->count;
-
-  last = node;
-  tmp_node = node->parent;
-  tmp_tree = tree;
-  while (tmp_tree)
-    {
-      while (tmp_node != tmp_tree->nil)
-	{
-	  if (tmp_node->right == last)
-	    count += 1 + tmp_node->left->count;
-	  last = tmp_node;
-	  tmp_node = tmp_node->parent;
-	}
-      gtk_tree_path_prepend_index (path, count - 1);
-      last = tmp_tree->parent_node;
-      tmp_tree = tmp_tree->parent_tree;
-      if (last)
-	{
-	  count = 1 + last->left->count;
-	  tmp_node = last->parent;
-	}
-    }
+  if (node >= 0)
+    gtk_tree_path_append_index (path, node);
   return path;
 }
 
-/* Returns TRUE if we ran out of tree before finding the path.  If the path is
- * invalid (ie. points to a node that's not in the tree), *tree and *node are
- * both set to NULL.
- */
-gboolean
+void
 _pspp_sheet_view_find_node (PsppSheetView  *tree_view,
 			  GtkTreePath  *path,
-			  GtkRBTree   **tree,
-			  GtkRBNode   **node)
+			  int *node)
 {
-  GtkRBNode *tmpnode = NULL;
-  GtkRBTree *tmptree = tree_view->priv->tree;
   gint *indices = gtk_tree_path_get_indices (path);
   gint depth = gtk_tree_path_get_depth (path);
-  gint i = 0;
 
-  *node = NULL;
-  *tree = NULL;
-
-  if (depth == 0 || tmptree == NULL)
-    return FALSE;
-  do
-    {
-      tmpnode = _pspp_rbtree_find_count (tmptree, indices[i] + 1);
-      ++i;
-      if (tmpnode == NULL)
-	{
-	  *tree = NULL;
-	  *node = NULL;
-	  return FALSE;
-	}
-      if (i >= depth)
-	{
-	  *tree = tmptree;
-	  *node = tmpnode;
-	  return FALSE;
-	}
-      *tree = tmptree;
-      *node = tmpnode;
-      tmptree = tmpnode->children;
-      if (tmptree == NULL)
-	return TRUE;
-    }
-  while (1);
-}
-
-static gboolean
-pspp_sheet_view_is_expander_column (PsppSheetView       *tree_view,
-				  PsppSheetViewColumn *column)
-{
-  GList *list;
-
-  if (PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_IS_LIST))
-    return FALSE;
-
-  if (tree_view->priv->expander_column != NULL)
-    {
-      if (tree_view->priv->expander_column == column)
-	return TRUE;
-      return FALSE;
-    }
-  else
-    {
-      for (list = tree_view->priv->columns;
-	   list;
-	   list = list->next)
-	if (((PsppSheetViewColumn *)list->data)->visible)
-	  break;
-      if (list && list->data == column)
-	return TRUE;
-    }
-  return FALSE;
+  *node = -1;
+  if (depth == 0 || indices[0] < 0 || indices[0] >= tree_view->priv->row_count)
+    return;
+  *node = indices[0];
 }
 
 static void
@@ -9114,71 +7129,6 @@ pspp_sheet_view_add_move_binding (GtkBindingSet  *binding_set,
                                 "move-cursor", 2,
                                 G_TYPE_ENUM, step,
                                 G_TYPE_INT, count);
-}
-
-static gint
-pspp_sheet_view_unref_tree_helper (GtkTreeModel *model,
-				 GtkTreeIter  *iter,
-				 GtkRBTree    *tree,
-				 GtkRBNode    *node)
-{
-  gint retval = FALSE;
-  do
-    {
-      g_return_val_if_fail (node != NULL, FALSE);
-
-      if (node->children)
-	{
-	  GtkTreeIter child;
-	  GtkRBTree *new_tree;
-	  GtkRBNode *new_node;
-
-	  new_tree = node->children;
-	  new_node = new_tree->root;
-
-	  while (new_node && new_node->left != new_tree->nil)
-	    new_node = new_node->left;
-
-	  if (!gtk_tree_model_iter_children (model, &child, iter))
-	    return FALSE;
-
-	  retval = retval || pspp_sheet_view_unref_tree_helper (model, &child, new_tree, new_node);
-	}
-
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
-	retval = TRUE;
-      gtk_tree_model_unref_node (model, iter);
-      node = _pspp_rbtree_next (tree, node);
-    }
-  while (gtk_tree_model_iter_next (model, iter));
-
-  return retval;
-}
-
-static gint
-pspp_sheet_view_unref_and_check_selection_tree (PsppSheetView *tree_view,
-					      GtkRBTree   *tree)
-{
-  GtkTreeIter iter;
-  GtkTreePath *path;
-  GtkRBNode *node;
-  gint retval;
-
-  if (!tree)
-    return FALSE;
-
-  node = tree->root;
-  while (node && node->left != tree->nil)
-    node = node->left;
-
-  g_return_val_if_fail (node != NULL, FALSE);
-  path = _pspp_sheet_view_find_path (tree_view, tree, node);
-  gtk_tree_model_get_iter (GTK_TREE_MODEL (tree_view->priv->model),
-			   &iter, path);
-  retval = pspp_sheet_view_unref_tree_helper (GTK_TREE_MODEL (tree_view->priv->model), &iter, tree, node);
-  gtk_tree_path_free (path);
-
-  return retval;
 }
 
 static void
@@ -9386,41 +7336,9 @@ _pspp_sheet_view_column_start_drag (PsppSheetView       *tree_view,
 		     GDK_CURRENT_TIME);
 }
 
-static void
-pspp_sheet_view_queue_draw_arrow (PsppSheetView        *tree_view,
-				GtkRBTree          *tree,
-				GtkRBNode          *node,
-				const GdkRectangle *clip_rect)
-{
-  GdkRectangle rect;
-
-  if (!gtk_widget_get_realized (GTK_WIDGET (tree_view)))
-    return;
-
-  rect.x = 0;
-  rect.width = MAX (tree_view->priv->expander_size, MAX (tree_view->priv->width, GTK_WIDGET (tree_view)->allocation.width));
-
-  rect.y = BACKGROUND_FIRST_PIXEL (tree_view, tree, node);
-  rect.height = ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node));
-
-  if (clip_rect)
-    {
-      GdkRectangle new_rect;
-
-      gdk_rectangle_intersect (clip_rect, &rect, &new_rect);
-
-      gdk_window_invalidate_rect (tree_view->priv->bin_window, &new_rect, TRUE);
-    }
-  else
-    {
-      gdk_window_invalidate_rect (tree_view->priv->bin_window, &rect, TRUE);
-    }
-}
-
 void
 _pspp_sheet_view_queue_draw_node (PsppSheetView        *tree_view,
-				GtkRBTree          *tree,
-				GtkRBNode          *node,
+				int node,
 				const GdkRectangle *clip_rect)
 {
   GdkRectangle rect;
@@ -9431,8 +7349,8 @@ _pspp_sheet_view_queue_draw_node (PsppSheetView        *tree_view,
   rect.x = 0;
   rect.width = MAX (tree_view->priv->width, GTK_WIDGET (tree_view)->allocation.width);
 
-  rect.y = BACKGROUND_FIRST_PIXEL (tree_view, tree, node);
-  rect.height = ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node));
+  rect.y = BACKGROUND_FIRST_PIXEL (tree_view, node);
+  rect.height = ROW_HEIGHT (tree_view);
 
   if (clip_rect)
     {
@@ -9453,90 +7371,12 @@ pspp_sheet_view_queue_draw_path (PsppSheetView        *tree_view,
                                GtkTreePath        *path,
                                const GdkRectangle *clip_rect)
 {
-  GtkRBTree *tree = NULL;
-  GtkRBNode *node = NULL;
+  int node = -1;
 
-  _pspp_sheet_view_find_node (tree_view, path, &tree, &node);
+  _pspp_sheet_view_find_node (tree_view, path, &node);
 
-  if (tree)
-    _pspp_sheet_view_queue_draw_node (tree_view, tree, node, clip_rect);
-}
-
-/* x and y are the mouse position
- */
-static void
-pspp_sheet_view_draw_arrow (PsppSheetView *tree_view,
-                          GtkRBTree   *tree,
-			  GtkRBNode   *node,
-			  /* in bin_window coordinates */
-			  gint         x,
-			  gint         y)
-{
-  GdkRectangle area;
-  GtkStateType state;
-  GtkWidget *widget;
-  gint x_offset = 0;
-  gint x2;
-  gint vertical_separator;
-  gint expander_size;
-  GtkExpanderStyle expander_style;
-
-  widget = GTK_WIDGET (tree_view);
-
-  gtk_widget_style_get (widget,
-			"vertical-separator", &vertical_separator,
-			NULL);
-  expander_size = tree_view->priv->expander_size - EXPANDER_EXTRA_PADDING;
-
-  if (! PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_PARENT))
-    return;
-
-  pspp_sheet_view_get_arrow_xrange (tree_view, tree, &x_offset, &x2);
-
-  area.x = x_offset;
-  area.y = CELL_FIRST_PIXEL (tree_view, tree, node, vertical_separator);
-  area.width = expander_size + 2;
-  area.height = MAX (CELL_HEIGHT (node, vertical_separator), (expander_size - vertical_separator));
-
-  if (gtk_widget_get_state (widget) == GTK_STATE_INSENSITIVE)
-    {
-      state = GTK_STATE_INSENSITIVE;
-    }
-  else if (node == tree_view->priv->button_pressed_node)
-    {
-      if (x >= area.x && x <= (area.x + area.width) &&
-	  y >= area.y && y <= (area.y + area.height))
-        state = GTK_STATE_ACTIVE;
-      else
-        state = GTK_STATE_NORMAL;
-    }
-  else
-    {
-      if (node == tree_view->priv->prelight_node &&
-	  PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_ARROW_PRELIT))
-	state = GTK_STATE_PRELIGHT;
-      else
-	state = GTK_STATE_NORMAL;
-    }
-
-  if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SEMI_EXPANDED))
-    expander_style = GTK_EXPANDER_SEMI_EXPANDED;
-  else if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SEMI_COLLAPSED))
-    expander_style = GTK_EXPANDER_SEMI_COLLAPSED;
-  else if (node->children != NULL)
-    expander_style = GTK_EXPANDER_EXPANDED;
-  else
-    expander_style = GTK_EXPANDER_COLLAPSED;
-
-  gtk_paint_expander (widget->style,
-                      tree_view->priv->bin_window,
-                      state,
-                      &area,
-                      widget,
-                      "treeview",
-		      area.x + area.width / 2,
-		      area.y + area.height / 2,
-		      expander_style);
+  if (node)
+    _pspp_sheet_view_queue_draw_node (tree_view, node, clip_rect);
 }
 
 static void
@@ -9545,7 +7385,7 @@ pspp_sheet_view_focus_to_cursor (PsppSheetView *tree_view)
 {
   GtkTreePath *cursor_path;
 
-  if ((tree_view->priv->tree == NULL) ||
+  if ((tree_view->priv->row_count == 0) ||
       (! gtk_widget_get_realized (GTK_WIDGET (tree_view))))
     return;
 
@@ -9575,7 +7415,7 @@ pspp_sheet_view_focus_to_cursor (PsppSheetView *tree_view)
 	{
 	  cursor_path = gtk_tree_path_new_first ();
 	  search_first_focusable_path (tree_view, &cursor_path,
-				       TRUE, NULL, NULL);
+				       TRUE, NULL);
 	}
 
       gtk_tree_row_reference_free (tree_view->priv->cursor);
@@ -9617,13 +7457,10 @@ pspp_sheet_view_move_cursor_up_down (PsppSheetView *tree_view,
 				   gint         count)
 {
   gint selection_count;
-  GtkRBTree *cursor_tree = NULL;
-  GtkRBNode *cursor_node = NULL;
-  GtkRBTree *new_cursor_tree = NULL;
-  GtkRBNode *new_cursor_node = NULL;
+  int cursor_node = -1;
+  int new_cursor_node = -1;
   GtkTreePath *cursor_path = NULL;
   gboolean grab_focus = TRUE;
-  gboolean selectable;
 
   if (! gtk_widget_has_focus (GTK_WIDGET (tree_view)))
     return;
@@ -9634,47 +7471,37 @@ pspp_sheet_view_move_cursor_up_down (PsppSheetView *tree_view,
     return;
 
   cursor_path = gtk_tree_row_reference_get_path (tree_view->priv->cursor);
-  _pspp_sheet_view_find_node (tree_view, cursor_path,
-			    &cursor_tree, &cursor_node);
+  _pspp_sheet_view_find_node (tree_view, cursor_path, &cursor_node);
 
-  if (cursor_tree == NULL)
+  if (cursor_node < 0)
     /* FIXME: we lost the cursor; should we get the first? */
     return;
 
   selection_count = pspp_sheet_selection_count_selected_rows (tree_view->priv->selection);
-  selectable = _pspp_sheet_selection_row_is_selectable (tree_view->priv->selection,
-						      cursor_node,
-						      cursor_path);
 
   if (selection_count == 0
       && tree_view->priv->selection->type != GTK_SELECTION_NONE
-      && !tree_view->priv->ctrl_pressed
-      && selectable)
+      && !tree_view->priv->ctrl_pressed)
     {
       /* Don't move the cursor, but just select the current node */
-      new_cursor_tree = cursor_tree;
       new_cursor_node = cursor_node;
     }
   else
     {
       if (count == -1)
-	_pspp_rbtree_prev_full (cursor_tree, cursor_node,
-			       &new_cursor_tree, &new_cursor_node);
+	new_cursor_node = pspp_sheet_view_node_prev (tree_view, cursor_node);
       else
-	_pspp_rbtree_next_full (cursor_tree, cursor_node,
-			       &new_cursor_tree, &new_cursor_node);
+	new_cursor_node = pspp_sheet_view_node_next (tree_view, cursor_node);
     }
 
   gtk_tree_path_free (cursor_path);
 
   if (new_cursor_node)
     {
-      cursor_path = _pspp_sheet_view_find_path (tree_view,
-					      new_cursor_tree, new_cursor_node);
+      cursor_path = _pspp_sheet_view_find_path (tree_view, new_cursor_node);
 
       search_first_focusable_path (tree_view, &cursor_path,
 				   (count != -1),
-				   &new_cursor_tree,
 				   &new_cursor_node);
 
       if (cursor_path)
@@ -9686,36 +7513,33 @@ pspp_sheet_view_move_cursor_up_down (PsppSheetView *tree_view,
    * the row (if not yet selected).
    */
   if (tree_view->priv->selection->type == GTK_SELECTION_MULTIPLE &&
-      new_cursor_node == NULL)
+      new_cursor_node < 0)
     {
       if (count == -1)
-        _pspp_rbtree_next_full (cursor_tree, cursor_node,
-    			       &new_cursor_tree, &new_cursor_node);
+        new_cursor_node = pspp_sheet_view_node_next (tree_view, cursor_node);
       else
-        _pspp_rbtree_prev_full (cursor_tree, cursor_node,
-			       &new_cursor_tree, &new_cursor_node);
+        new_cursor_node = pspp_sheet_view_node_prev (tree_view, cursor_node);
 
-      if (new_cursor_node == NULL
-	  && !PSPP_RBNODE_FLAG_SET (cursor_node, PSPP_RBNODE_IS_SELECTED))
+      if (new_cursor_node < 0
+	  && !pspp_sheet_view_node_is_selected (tree_view, cursor_node))
         {
           new_cursor_node = cursor_node;
-          new_cursor_tree = cursor_tree;
         }
       else
         {
-          new_cursor_node = NULL;
+          new_cursor_node = -1;
         }
     }
 
-  if (new_cursor_node)
+  if (new_cursor_node >= 0)
     {
-      cursor_path = _pspp_sheet_view_find_path (tree_view, new_cursor_tree, new_cursor_node);
+      cursor_path = _pspp_sheet_view_find_path (tree_view, new_cursor_node);
       pspp_sheet_view_real_set_cursor (tree_view, cursor_path, TRUE, TRUE);
       gtk_tree_path_free (cursor_path);
     }
   else
     {
-      pspp_sheet_view_clamp_node_visible (tree_view, cursor_tree, cursor_node);
+      pspp_sheet_view_clamp_node_visible (tree_view, cursor_node);
 
       if (!tree_view->priv->shift_pressed)
         {
@@ -9748,12 +7572,10 @@ static void
 pspp_sheet_view_move_cursor_page_up_down (PsppSheetView *tree_view,
 					gint         count)
 {
-  GtkRBTree *cursor_tree = NULL;
-  GtkRBNode *cursor_node = NULL;
+  int cursor_node = -1;
   GtkTreePath *old_cursor_path = NULL;
   GtkTreePath *cursor_path = NULL;
-  GtkRBTree *start_cursor_tree = NULL;
-  GtkRBNode *start_cursor_node = NULL;
+  int start_cursor_node = -1;
   gint y;
   gint window_y;
   gint vertical_separator;
@@ -9768,18 +7590,16 @@ pspp_sheet_view_move_cursor_page_up_down (PsppSheetView *tree_view,
     return;
 
   gtk_widget_style_get (GTK_WIDGET (tree_view), "vertical-separator", &vertical_separator, NULL);
-  _pspp_sheet_view_find_node (tree_view, old_cursor_path,
-			    &cursor_tree, &cursor_node);
+  _pspp_sheet_view_find_node (tree_view, old_cursor_path, &cursor_node);
 
-  if (cursor_tree == NULL)
+  if (cursor_node < 0)
     {
       /* FIXME: we lost the cursor.  Should we try to get one? */
       gtk_tree_path_free (old_cursor_path);
       return;
     }
-  g_return_if_fail (cursor_node != NULL);
 
-  y = _pspp_rbtree_node_find_offset (cursor_tree, cursor_node);
+  y = pspp_sheet_view_node_find_offset (tree_view, cursor_node);
   window_y = RBTREE_Y_TO_TREE_WINDOW_Y (tree_view, y);
   y += tree_view->priv->cursor_offset;
   y += count * (int)tree_view->priv->vadjustment->page_increment;
@@ -9789,51 +7609,47 @@ pspp_sheet_view_move_cursor_page_up_down (PsppSheetView *tree_view,
     y = tree_view->priv->height - 1;
 
   tree_view->priv->cursor_offset =
-    _pspp_rbtree_find_offset (tree_view->priv->tree, y,
-			     &cursor_tree, &cursor_node);
+    pspp_sheet_view_find_offset (tree_view, y, &cursor_node);
 
-  if (tree_view->priv->cursor_offset > BACKGROUND_HEIGHT (cursor_node))
+  if (tree_view->priv->cursor_offset > BACKGROUND_HEIGHT (tree_view))
     {
-      _pspp_rbtree_next_full (cursor_tree, cursor_node,
-			     &cursor_tree, &cursor_node);
-      tree_view->priv->cursor_offset -= BACKGROUND_HEIGHT (cursor_node);
+      cursor_node = pspp_sheet_view_node_next (tree_view, cursor_node);
+      tree_view->priv->cursor_offset -= BACKGROUND_HEIGHT (tree_view);
     }
 
   y -= tree_view->priv->cursor_offset;
-  cursor_path = _pspp_sheet_view_find_path (tree_view, cursor_tree, cursor_node);
+  cursor_path = _pspp_sheet_view_find_path (tree_view, cursor_node);
 
-  start_cursor_tree = cursor_tree;
   start_cursor_node = cursor_node;
 
   if (! search_first_focusable_path (tree_view, &cursor_path,
 				     (count != -1),
-				     &cursor_tree, &cursor_node))
+				     &cursor_node))
     {
       /* It looks like we reached the end of the view without finding
        * a focusable row.  We will step backwards to find the last
        * focusable row.
        */
-      cursor_tree = start_cursor_tree;
       cursor_node = start_cursor_node;
-      cursor_path = _pspp_sheet_view_find_path (tree_view, cursor_tree, cursor_node);
+      cursor_path = _pspp_sheet_view_find_path (tree_view, cursor_node);
 
       search_first_focusable_path (tree_view, &cursor_path,
 				   (count == -1),
-				   &cursor_tree, &cursor_node);
+				   &cursor_node);
     }
 
   if (!cursor_path)
     goto cleanup;
 
   /* update y */
-  y = _pspp_rbtree_node_find_offset (cursor_tree, cursor_node);
+  y = pspp_sheet_view_node_find_offset (tree_view, cursor_node);
 
   pspp_sheet_view_real_set_cursor (tree_view, cursor_path, TRUE, FALSE);
 
   y -= window_y;
   pspp_sheet_view_scroll_to_point (tree_view, -1, y);
-  pspp_sheet_view_clamp_node_visible (tree_view, cursor_tree, cursor_node);
-  _pspp_sheet_view_queue_draw_node (tree_view, cursor_tree, cursor_node, NULL);
+  pspp_sheet_view_clamp_node_visible (tree_view, cursor_node);
+  _pspp_sheet_view_queue_draw_node (tree_view, cursor_node, NULL);
 
   if (!gtk_tree_path_compare (old_cursor_path, cursor_path))
     gtk_widget_error_bell (GTK_WIDGET (tree_view));
@@ -9849,8 +7665,7 @@ static void
 pspp_sheet_view_move_cursor_left_right (PsppSheetView *tree_view,
 				      gint         count)
 {
-  GtkRBTree *cursor_tree = NULL;
-  GtkRBNode *cursor_node = NULL;
+  int cursor_node = -1;
   GtkTreePath *cursor_path = NULL;
   PsppSheetViewColumn *column;
   GtkTreeIter iter;
@@ -9868,8 +7683,8 @@ pspp_sheet_view_move_cursor_left_right (PsppSheetView *tree_view,
   else
     return;
 
-  _pspp_sheet_view_find_node (tree_view, cursor_path, &cursor_tree, &cursor_node);
-  if (cursor_tree == NULL)
+  _pspp_sheet_view_find_node (tree_view, cursor_path, &cursor_node);
+  if (cursor_node < 0)
     return;
   if (gtk_tree_model_get_iter (tree_view->priv->model, &iter, cursor_path) == FALSE)
     {
@@ -9898,9 +7713,7 @@ pspp_sheet_view_move_cursor_left_right (PsppSheetView *tree_view,
 
       pspp_sheet_view_column_cell_set_cell_data (column,
 					       tree_view->priv->model,
-					       &iter,
-					       PSPP_RBNODE_FLAG_SET (cursor_node, PSPP_RBNODE_IS_PARENT),
-					       cursor_node->children?TRUE:FALSE);
+					       &iter);
 
       if (rtl)
         {
@@ -9930,9 +7743,8 @@ pspp_sheet_view_move_cursor_left_right (PsppSheetView *tree_view,
     {
       if (!pspp_sheet_view_has_special_cell (tree_view))
 	_pspp_sheet_view_queue_draw_node (tree_view,
-				        cursor_tree,
-				        cursor_node,
-				        NULL);
+                                          cursor_node,
+                                          NULL);
       g_signal_emit (tree_view, tree_view_signals[CURSOR_CHANGED], 0);
       gtk_widget_grab_focus (GTK_WIDGET (tree_view));
     }
@@ -9949,49 +7761,30 @@ static void
 pspp_sheet_view_move_cursor_start_end (PsppSheetView *tree_view,
 				     gint         count)
 {
-  GtkRBTree *cursor_tree;
-  GtkRBNode *cursor_node;
+  int cursor_node;
   GtkTreePath *path;
   GtkTreePath *old_path;
 
   if (!gtk_widget_has_focus (GTK_WIDGET (tree_view)))
     return;
 
-  g_return_if_fail (tree_view->priv->tree != NULL);
+  g_return_if_fail (tree_view->priv->row_count > 0);
 
   pspp_sheet_view_get_cursor (tree_view, &old_path, NULL);
 
-  cursor_tree = tree_view->priv->tree;
-  cursor_node = cursor_tree->root;
-
   if (count == -1)
     {
-      while (cursor_node && cursor_node->left != cursor_tree->nil)
-	cursor_node = cursor_node->left;
-
       /* Now go forward to find the first focusable row. */
-      path = _pspp_sheet_view_find_path (tree_view, cursor_tree, cursor_node);
+      path = _pspp_sheet_view_find_path (tree_view, 0);
       search_first_focusable_path (tree_view, &path,
-				   TRUE, &cursor_tree, &cursor_node);
+				   TRUE, &cursor_node);
     }
   else
     {
-      do
-	{
-	  while (cursor_node && cursor_node->right != cursor_tree->nil)
-	    cursor_node = cursor_node->right;
-	  if (cursor_node->children == NULL)
-	    break;
-
-	  cursor_tree = cursor_node->children;
-	  cursor_node = cursor_tree->root;
-	}
-      while (1);
-
       /* Now go backwards to find last focusable row. */
-      path = _pspp_sheet_view_find_path (tree_view, cursor_tree, cursor_node);
+      path = _pspp_sheet_view_find_path (tree_view, tree_view->priv->row_count - 1);
       search_first_focusable_path (tree_view, &path,
-				   FALSE, &cursor_tree, &cursor_node);
+				   FALSE, &cursor_node);
     }
 
   if (!path)
@@ -10044,10 +7837,8 @@ static gboolean
 pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
 				      gboolean     start_editing)
 {
-  GtkRBTree *new_tree = NULL;
-  GtkRBNode *new_node = NULL;
-  GtkRBTree *cursor_tree = NULL;
-  GtkRBNode *cursor_node = NULL;
+  int new_node = -1;
+  int cursor_node = -1;
   GtkTreePath *cursor_path = NULL;
   GtkTreeSelectMode mode = 0;
 
@@ -10061,9 +7852,9 @@ pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
     return FALSE;
 
   _pspp_sheet_view_find_node (tree_view, cursor_path,
-			    &cursor_tree, &cursor_node);
+                              &cursor_node);
 
-  if (cursor_tree == NULL)
+  if (cursor_node < 0)
     {
       gtk_tree_path_free (cursor_path);
       return FALSE;
@@ -10086,7 +7877,6 @@ pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
 
   _pspp_sheet_selection_internal_select_node (tree_view->priv->selection,
 					    cursor_node,
-					    cursor_tree,
 					    cursor_path,
                                             mode,
 					    FALSE);
@@ -10095,15 +7885,15 @@ pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
    * handling the selection-changed callback.  We do return TRUE because
    * the key press has been handled at this point.
    */
-  _pspp_sheet_view_find_node (tree_view, cursor_path, &new_tree, &new_node);
+  _pspp_sheet_view_find_node (tree_view, cursor_path, &new_node);
 
-  if (cursor_tree != new_tree || cursor_node != new_node)
+  if (cursor_node != new_node)
     return FALSE;
 
-  pspp_sheet_view_clamp_node_visible (tree_view, cursor_tree, cursor_node);
+  pspp_sheet_view_clamp_node_visible (tree_view, cursor_node);
 
   gtk_widget_grab_focus (GTK_WIDGET (tree_view));
-  _pspp_sheet_view_queue_draw_node (tree_view, cursor_tree, cursor_node, NULL);
+  _pspp_sheet_view_queue_draw_node (tree_view, cursor_node, NULL);
 
   if (!tree_view->priv->shift_pressed)
     pspp_sheet_view_row_activated (tree_view, cursor_path,
@@ -10117,10 +7907,8 @@ pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
 static gboolean
 pspp_sheet_view_real_toggle_cursor_row (PsppSheetView *tree_view)
 {
-  GtkRBTree *new_tree = NULL;
-  GtkRBNode *new_node = NULL;
-  GtkRBTree *cursor_tree = NULL;
-  GtkRBNode *cursor_node = NULL;
+  int new_node = -1;
+  int cursor_node = -1;
   GtkTreePath *cursor_path = NULL;
 
   if (!gtk_widget_has_focus (GTK_WIDGET (tree_view)))
@@ -10133,9 +7921,8 @@ pspp_sheet_view_real_toggle_cursor_row (PsppSheetView *tree_view)
   if (cursor_path == NULL)
     return FALSE;
 
-  _pspp_sheet_view_find_node (tree_view, cursor_path,
-			    &cursor_tree, &cursor_node);
-  if (cursor_tree == NULL)
+  _pspp_sheet_view_find_node (tree_view, cursor_path, &cursor_node);
+  if (cursor_node < 0)
     {
       gtk_tree_path_free (cursor_path);
       return FALSE;
@@ -10143,7 +7930,6 @@ pspp_sheet_view_real_toggle_cursor_row (PsppSheetView *tree_view)
 
   _pspp_sheet_selection_internal_select_node (tree_view->priv->selection,
 					    cursor_node,
-					    cursor_tree,
 					    cursor_path,
                                             GTK_TREE_SELECT_MODE_TOGGLE,
 					    FALSE);
@@ -10152,117 +7938,18 @@ pspp_sheet_view_real_toggle_cursor_row (PsppSheetView *tree_view)
    * handling the selection-changed callback.  We do return TRUE because
    * the key press has been handled at this point.
    */
-  _pspp_sheet_view_find_node (tree_view, cursor_path, &new_tree, &new_node);
+  _pspp_sheet_view_find_node (tree_view, cursor_path, &new_node);
 
-  if (cursor_tree != new_tree || cursor_node != new_node)
+  if (cursor_node != new_node)
     return FALSE;
 
-  pspp_sheet_view_clamp_node_visible (tree_view, cursor_tree, cursor_node);
+  pspp_sheet_view_clamp_node_visible (tree_view, cursor_node);
 
   gtk_widget_grab_focus (GTK_WIDGET (tree_view));
   pspp_sheet_view_queue_draw_path (tree_view, cursor_path, NULL);
   gtk_tree_path_free (cursor_path);
 
   return TRUE;
-}
-
-static gboolean
-pspp_sheet_view_real_expand_collapse_cursor_row (PsppSheetView *tree_view,
-					       gboolean     logical,
-					       gboolean     expand,
-					       gboolean     open_all)
-{
-  GtkTreePath *cursor_path = NULL;
-  GtkRBTree *tree;
-  GtkRBNode *node;
-
-  if (!gtk_widget_has_focus (GTK_WIDGET (tree_view)))
-    return FALSE;
-
-  cursor_path = NULL;
-  if (tree_view->priv->cursor)
-    cursor_path = gtk_tree_row_reference_get_path (tree_view->priv->cursor);
-
-  if (cursor_path == NULL)
-    return FALSE;
-
-  if (_pspp_sheet_view_find_node (tree_view, cursor_path, &tree, &node))
-    return FALSE;
-
-  /* Don't handle the event if we aren't an expander */
-  if (!((node->flags & PSPP_RBNODE_IS_PARENT) == PSPP_RBNODE_IS_PARENT))
-    return FALSE;
-
-  if (!logical
-      && gtk_widget_get_direction (GTK_WIDGET (tree_view)) == GTK_TEXT_DIR_RTL)
-    expand = !expand;
-
-  if (expand)
-    pspp_sheet_view_real_expand_row (tree_view, cursor_path, tree, node, open_all, TRUE);
-  else
-    pspp_sheet_view_real_collapse_row (tree_view, cursor_path, tree, node, TRUE);
-
-  gtk_tree_path_free (cursor_path);
-
-  return TRUE;
-}
-
-static gboolean
-pspp_sheet_view_real_select_cursor_parent (PsppSheetView *tree_view)
-{
-  GtkRBTree *cursor_tree = NULL;
-  GtkRBNode *cursor_node = NULL;
-  GtkTreePath *cursor_path = NULL;
-  GdkModifierType state;
-
-  if (!gtk_widget_has_focus (GTK_WIDGET (tree_view)))
-    goto out;
-
-  cursor_path = NULL;
-  if (tree_view->priv->cursor)
-    cursor_path = gtk_tree_row_reference_get_path (tree_view->priv->cursor);
-
-  if (cursor_path == NULL)
-    goto out;
-
-  _pspp_sheet_view_find_node (tree_view, cursor_path,
-			    &cursor_tree, &cursor_node);
-  if (cursor_tree == NULL)
-    {
-      gtk_tree_path_free (cursor_path);
-      goto out;
-    }
-
-  if (cursor_tree->parent_node)
-    {
-      pspp_sheet_view_queue_draw_path (tree_view, cursor_path, NULL);
-      cursor_node = cursor_tree->parent_node;
-      cursor_tree = cursor_tree->parent_tree;
-
-      gtk_tree_path_up (cursor_path);
-
-      if (gtk_get_current_event_state (&state))
-	{
-	  if ((state & GDK_CONTROL_MASK) == GDK_CONTROL_MASK)
-	    tree_view->priv->ctrl_pressed = TRUE;
-	}
-
-      pspp_sheet_view_real_set_cursor (tree_view, cursor_path, TRUE, FALSE);
-      pspp_sheet_view_clamp_node_visible (tree_view, cursor_tree, cursor_node);
-
-      gtk_widget_grab_focus (GTK_WIDGET (tree_view));
-      pspp_sheet_view_queue_draw_path (tree_view, cursor_path, NULL);
-      gtk_tree_path_free (cursor_path);
-
-      tree_view->priv->ctrl_pressed = FALSE;
-
-      return TRUE;
-    }
-
- out:
-
-  tree_view->priv->search_entry_avoid_unhandled_binding = TRUE;
-  return FALSE;
 }
 
 static gboolean
@@ -10714,19 +8401,15 @@ pspp_sheet_view_set_model (PsppSheetView  *tree_view,
     {
       GList *tmplist = tree_view->priv->columns;
 
-      pspp_sheet_view_unref_and_check_selection_tree (tree_view, tree_view->priv->tree);
+      if (tree_view->priv->selected)
+        range_tower_set0 (tree_view->priv->selected, 0, ULONG_MAX);
       pspp_sheet_view_stop_editing (tree_view, TRUE);
-
-      remove_expand_collapse_timeout (tree_view);
 
       g_signal_handlers_disconnect_by_func (tree_view->priv->model,
 					    pspp_sheet_view_row_changed,
 					    tree_view);
       g_signal_handlers_disconnect_by_func (tree_view->priv->model,
 					    pspp_sheet_view_row_inserted,
-					    tree_view);
-      g_signal_handlers_disconnect_by_func (tree_view->priv->model,
-					    pspp_sheet_view_row_has_child_toggled,
 					    tree_view);
       g_signal_handlers_disconnect_by_func (tree_view->priv->model,
 					    pspp_sheet_view_row_deleted,
@@ -10739,8 +8422,7 @@ pspp_sheet_view_set_model (PsppSheetView  *tree_view,
 	_pspp_sheet_view_column_unset_model (tmplist->data,
 					   tree_view->priv->model);
 
-      if (tree_view->priv->tree)
-	pspp_sheet_view_free_rbtree (tree_view);
+      tree_view->priv->prelight_node = -1;
 
       gtk_tree_row_reference_free (tree_view->priv->drag_dest_row);
       tree_view->priv->drag_dest_row = NULL;
@@ -10758,7 +8440,6 @@ pspp_sheet_view_set_model (PsppSheetView  *tree_view,
       g_object_unref (tree_view->priv->model);
 
       tree_view->priv->search_column = -1;
-      tree_view->priv->fixed_height_check = 0;
       tree_view->priv->fixed_height = -1;
       tree_view->priv->dy = tree_view->priv->top_row_dy = 0;
       tree_view->priv->last_button_x = -1;
@@ -10770,8 +8451,6 @@ pspp_sheet_view_set_model (PsppSheetView  *tree_view,
   if (tree_view->priv->model)
     {
       gint i;
-      GtkTreePath *path;
-      GtkTreeIter iter;
       GtkTreeModelFlags flags;
 
       if (tree_view->priv->search_column == -1)
@@ -10798,10 +8477,6 @@ pspp_sheet_view_set_model (PsppSheetView  *tree_view,
 			G_CALLBACK (pspp_sheet_view_row_inserted),
 			tree_view);
       g_signal_connect (tree_view->priv->model,
-			"row-has-child-toggled",
-			G_CALLBACK (pspp_sheet_view_row_has_child_toggled),
-			tree_view);
-      g_signal_connect (tree_view->priv->model,
 			"row-deleted",
 			G_CALLBACK (pspp_sheet_view_row_deleted),
 			tree_view);
@@ -10811,18 +8486,8 @@ pspp_sheet_view_set_model (PsppSheetView  *tree_view,
 			tree_view);
 
       flags = gtk_tree_model_get_flags (tree_view->priv->model);
-      if ((flags & GTK_TREE_MODEL_LIST_ONLY) == GTK_TREE_MODEL_LIST_ONLY)
-        PSPP_SHEET_VIEW_SET_FLAG (tree_view, PSPP_SHEET_VIEW_IS_LIST);
-      else
-        PSPP_SHEET_VIEW_UNSET_FLAG (tree_view, PSPP_SHEET_VIEW_IS_LIST);
 
-      path = gtk_tree_path_new_first ();
-      if (gtk_tree_model_get_iter (tree_view->priv->model, &iter, path))
-	{
-	  tree_view->priv->tree = _pspp_rbtree_new ();
-	  pspp_sheet_view_build_tree (tree_view, tree_view->priv->tree, &iter, 1, FALSE);
-	}
-      gtk_tree_path_free (path);
+      tree_view->priv->row_count = gtk_tree_model_iter_n_children (tree_view->priv->model, NULL);
 
       /*  FIXME: do I need to do this? pspp_sheet_view_create_buttons (tree_view); */
       install_presize_handler (tree_view);
@@ -10831,7 +8496,7 @@ pspp_sheet_view_set_model (PsppSheetView  *tree_view,
   g_object_notify (G_OBJECT (tree_view), "model");
 
   if (tree_view->priv->selection)
-  _pspp_sheet_selection_emit_changed (tree_view->priv->selection);
+    _pspp_sheet_selection_emit_changed (tree_view->priv->selection);
 
   if (gtk_widget_get_realized (GTK_WIDGET (tree_view)))
     gtk_widget_queue_resize (GTK_WIDGET (tree_view));
@@ -11031,9 +8696,7 @@ pspp_sheet_view_columns_autosize (PsppSheetView *tree_view)
   for (list = tree_view->priv->columns; list; list = list->next)
     {
       column = list->data;
-      if (column->column_type == PSPP_SHEET_VIEW_COLUMN_AUTOSIZE)
-	continue;
-      _pspp_sheet_view_column_cell_set_dirty (column, TRUE);
+      _pspp_sheet_view_column_cell_set_dirty (column);
       dirty = TRUE;
     }
 
@@ -11147,9 +8810,7 @@ pspp_sheet_view_get_rules_hint (PsppSheetView  *tree_view)
  * @tree_view: A #PsppSheetView.
  * @column: The #PsppSheetViewColumn to add.
  *
- * Appends @column to the list of columns. If @tree_view has "fixed_height"
- * mode enabled, then @column must have its "sizing" property set to be
- * PSPP_SHEET_VIEW_COLUMN_FIXED.
+ * Appends @column to the list of columns.
  *
  * Return value: The number of columns in @tree_view after appending.
  **/
@@ -11193,13 +8854,6 @@ pspp_sheet_view_remove_column (PsppSheetView       *tree_view,
       tree_view->priv->edited_column = NULL;
     }
 
-  if (tree_view->priv->expander_column == column)
-    tree_view->priv->expander_column = NULL;
-
-  g_signal_handlers_disconnect_by_func (column,
-                                        G_CALLBACK (column_sizing_notify),
-                                        tree_view);
-
   _pspp_sheet_view_column_unset_tree_view (column);
 
   tree_view->priv->columns = g_list_remove (tree_view->priv->columns, column);
@@ -11216,7 +8870,7 @@ pspp_sheet_view_remove_column (PsppSheetView       *tree_view,
 
 	  tmp_column = PSPP_SHEET_VIEW_COLUMN (list->data);
 	  if (tmp_column->visible)
-	    _pspp_sheet_view_column_cell_set_dirty (tmp_column, TRUE);
+	    _pspp_sheet_view_column_cell_set_dirty (tmp_column);
 	}
 
       if (tree_view->priv->n_columns == 0 &&
@@ -11239,9 +8893,7 @@ pspp_sheet_view_remove_column (PsppSheetView       *tree_view,
  * @position: The position to insert @column in.
  *
  * This inserts the @column into the @tree_view at @position.  If @position is
- * -1, then the column is inserted at the end. If @tree_view has
- * "fixed_height" mode enabled, then @column must have its "sizing" property
- * set to be PSPP_SHEET_VIEW_COLUMN_FIXED.
+ * -1, then the column is inserted at the end.
  *
  * Return value: The number of columns in @tree_view after insertion.
  **/
@@ -11254,10 +8906,6 @@ pspp_sheet_view_insert_column (PsppSheetView       *tree_view,
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (column), -1);
   g_return_val_if_fail (column->tree_view == NULL, -1);
 
-  if (tree_view->priv->fixed_height_mode)
-    g_return_val_if_fail (pspp_sheet_view_column_get_sizing (column)
-                          == PSPP_SHEET_VIEW_COLUMN_FIXED, -1);
-
   g_object_ref_sink (column);
 
   if (tree_view->priv->n_columns == 0 &&
@@ -11266,9 +8914,6 @@ pspp_sheet_view_insert_column (PsppSheetView       *tree_view,
     {
       gdk_window_show (tree_view->priv->header_window);
     }
-
-  g_signal_connect (column, "notify::sizing",
-                    G_CALLBACK (column_sizing_notify), tree_view);
 
   tree_view->priv->columns = g_list_insert (tree_view->priv->columns,
 					    column, position);
@@ -11286,7 +8931,7 @@ pspp_sheet_view_insert_column (PsppSheetView       *tree_view,
 	{
 	  column = PSPP_SHEET_VIEW_COLUMN (list->data);
 	  if (column->visible)
-	    _pspp_sheet_view_column_cell_set_dirty (column, TRUE);
+	    _pspp_sheet_view_column_cell_set_dirty (column);
 	}
       gtk_widget_queue_resize (GTK_WIDGET (tree_view));
     }
@@ -11306,9 +8951,7 @@ pspp_sheet_view_insert_column (PsppSheetView       *tree_view,
  *
  * Creates a new #PsppSheetViewColumn and inserts it into the @tree_view at
  * @position.  If @position is -1, then the newly created column is inserted at
- * the end.  The column is initialized with the attributes given. If @tree_view
- * has "fixed_height" mode enabled, then the new column will have its sizing
- * property set to be PSPP_SHEET_VIEW_COLUMN_FIXED.
+ * the end.  The column is initialized with the attributes given.
  *
  * Return value: The number of columns in @tree_view after insertion.
  **/
@@ -11327,9 +8970,6 @@ pspp_sheet_view_insert_column_with_attributes (PsppSheetView     *tree_view,
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), -1);
 
   column = pspp_sheet_view_column_new ();
-  if (tree_view->priv->fixed_height_mode)
-    pspp_sheet_view_column_set_sizing (column, PSPP_SHEET_VIEW_COLUMN_FIXED);
-
   pspp_sheet_view_column_set_title (column, title);
   pspp_sheet_view_column_pack_start (column, cell, TRUE);
 
@@ -11365,8 +9005,6 @@ pspp_sheet_view_insert_column_with_attributes (PsppSheetView     *tree_view,
  * with the given cell renderer and a #GtkCellDataFunc to set cell renderer
  * attributes (normally using data from the model). See also
  * pspp_sheet_view_column_set_cell_data_func(), pspp_sheet_view_column_pack_start().
- * If @tree_view has "fixed_height" mode enabled, then the new column will have its
- * "sizing" property set to be PSPP_SHEET_VIEW_COLUMN_FIXED.
  *
  * Return value: number of columns in the tree view post-insert
  **/
@@ -11384,9 +9022,6 @@ pspp_sheet_view_insert_column_with_data_func  (PsppSheetView               *tree
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), -1);
 
   column = pspp_sheet_view_column_new ();
-  if (tree_view->priv->fixed_height_mode)
-    pspp_sheet_view_column_set_sizing (column, PSPP_SHEET_VIEW_COLUMN_FIXED);
-
   pspp_sheet_view_column_set_title (column, title);
   pspp_sheet_view_column_pack_start (column, cell, TRUE);
   pspp_sheet_view_column_set_cell_data_func (column, cell, func, data, dnotify);
@@ -11496,66 +9131,6 @@ pspp_sheet_view_move_column_after (PsppSheetView       *tree_view,
 }
 
 /**
- * pspp_sheet_view_set_expander_column:
- * @tree_view: A #PsppSheetView
- * @column: %NULL, or the column to draw the expander arrow at.
- *
- * Sets the column to draw the expander arrow at. It must be in @tree_view.  
- * If @column is %NULL, then the expander arrow is always at the first 
- * visible column.
- *
- * If you do not want expander arrow to appear in your tree, set the 
- * expander column to a hidden column.
- **/
-void
-pspp_sheet_view_set_expander_column (PsppSheetView       *tree_view,
-                                   PsppSheetViewColumn *column)
-{
-  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
-  g_return_if_fail (column == NULL || PSPP_IS_SHEET_VIEW_COLUMN (column));
-
-  if (tree_view->priv->expander_column != column)
-    {
-      GList *list;
-
-      if (column)
-	{
-	  /* Confirm that column is in tree_view */
-	  for (list = tree_view->priv->columns; list; list = list->next)
-	    if (list->data == column)
-	      break;
-	  g_return_if_fail (list != NULL);
-	}
-
-      tree_view->priv->expander_column = column;
-      g_object_notify (G_OBJECT (tree_view), "expander-column");
-    }
-}
-
-/**
- * pspp_sheet_view_get_expander_column:
- * @tree_view: A #PsppSheetView
- *
- * Returns the column that is the current expander column.  This
- * column has the expander arrow drawn next to it.
- *
- * Return value: The expander column.
- **/
-PsppSheetViewColumn *
-pspp_sheet_view_get_expander_column (PsppSheetView *tree_view)
-{
-  GList *list;
-
-  g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), NULL);
-
-  for (list = tree_view->priv->columns; list; list = list->next)
-    if (pspp_sheet_view_is_expander_column (tree_view, PSPP_SHEET_VIEW_COLUMN (list->data)))
-      return (PsppSheetViewColumn *) list->data;
-  return NULL;
-}
-
-
-/**
  * pspp_sheet_view_set_column_drag_function:
  * @tree_view: A #PsppSheetView.
  * @func: (allow-none): A function to determine which columns are reorderable, or %NULL.
@@ -11658,7 +9233,6 @@ pspp_sheet_view_scroll_to_cell (PsppSheetView       *tree_view,
 {
   g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
   g_return_if_fail (tree_view->priv->model != NULL);
-  g_return_if_fail (tree_view->priv->tree != NULL);
   g_return_if_fail (row_align >= 0.0 && row_align <= 1.0);
   g_return_if_fail (col_align >= 0.0 && col_align <= 1.0);
   g_return_if_fail (path != NULL || column != NULL);
@@ -11676,9 +9250,8 @@ pspp_sheet_view_scroll_to_cell (PsppSheetView       *tree_view,
    * it is much slower than just going to the point.
    */
   if (!gtk_widget_get_visible (GTK_WIDGET (tree_view)) ||
-      !gtk_widget_get_realized (GTK_WIDGET (tree_view)) ||
-      /* XXX GTK_WIDGET_ALLOC_NEEDED (tree_view) || */
-      PSPP_RBNODE_FLAG_SET (tree_view->priv->tree->root, PSPP_RBNODE_DESCENDANTS_INVALID))
+      !gtk_widget_get_realized (GTK_WIDGET (tree_view))
+      /* XXX || GTK_WIDGET_ALLOC_NEEDED (tree_view) */)
     {
       if (tree_view->priv->scroll_to_path)
 	gtk_tree_row_reference_free (tree_view->priv->scroll_to_path);
@@ -11764,670 +9337,6 @@ pspp_sheet_view_row_activated (PsppSheetView       *tree_view,
 }
 
 
-static void
-pspp_sheet_view_expand_all_emission_helper (GtkRBTree *tree,
-                                          GtkRBNode *node,
-                                          gpointer   data)
-{
-  PsppSheetView *tree_view = data;
-
-  if ((node->flags & PSPP_RBNODE_IS_PARENT) == PSPP_RBNODE_IS_PARENT &&
-      node->children)
-    {
-      GtkTreePath *path;
-      GtkTreeIter iter;
-
-      path = _pspp_sheet_view_find_path (tree_view, tree, node);
-      gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
-
-      g_signal_emit (tree_view, tree_view_signals[ROW_EXPANDED], 0, &iter, path);
-
-      gtk_tree_path_free (path);
-    }
-
-  if (node->children)
-    _pspp_rbtree_traverse (node->children,
-                          node->children->root,
-                          G_PRE_ORDER,
-                          pspp_sheet_view_expand_all_emission_helper,
-                          tree_view);
-}
-
-/**
- * pspp_sheet_view_expand_all:
- * @tree_view: A #PsppSheetView.
- *
- * Recursively expands all nodes in the @tree_view.
- **/
-void
-pspp_sheet_view_expand_all (PsppSheetView *tree_view)
-{
-  GtkTreePath *path;
-  GtkRBTree *tree;
-  GtkRBNode *node;
-
-  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
-
-  if (tree_view->priv->tree == NULL)
-    return;
-
-  path = gtk_tree_path_new_first ();
-  _pspp_sheet_view_find_node (tree_view, path, &tree, &node);
-
-  while (node)
-    {
-      pspp_sheet_view_real_expand_row (tree_view, path, tree, node, TRUE, FALSE);
-      node = _pspp_rbtree_next (tree, node);
-      gtk_tree_path_next (path);
-  }
-
-  gtk_tree_path_free (path);
-}
-
-/* Timeout to animate the expander during expands and collapses */
-static gboolean
-expand_collapse_timeout (gpointer data)
-{
-  return do_expand_collapse (data);
-}
-
-static void
-add_expand_collapse_timeout (PsppSheetView *tree_view,
-                             GtkRBTree   *tree,
-                             GtkRBNode   *node,
-                             gboolean     expand)
-{
-  if (tree_view->priv->expand_collapse_timeout != 0)
-    return;
-
-  tree_view->priv->expand_collapse_timeout =
-      gdk_threads_add_timeout (50, expand_collapse_timeout, tree_view);
-  tree_view->priv->expanded_collapsed_tree = tree;
-  tree_view->priv->expanded_collapsed_node = node;
-
-  if (expand)
-    PSPP_RBNODE_SET_FLAG (node, PSPP_RBNODE_IS_SEMI_COLLAPSED);
-  else
-    PSPP_RBNODE_SET_FLAG (node, PSPP_RBNODE_IS_SEMI_EXPANDED);
-}
-
-static void
-remove_expand_collapse_timeout (PsppSheetView *tree_view)
-{
-  if (tree_view->priv->expand_collapse_timeout)
-    {
-      g_source_remove (tree_view->priv->expand_collapse_timeout);
-      tree_view->priv->expand_collapse_timeout = 0;
-    }
-
-  if (tree_view->priv->expanded_collapsed_node != NULL)
-    {
-      PSPP_RBNODE_UNSET_FLAG (tree_view->priv->expanded_collapsed_node, PSPP_RBNODE_IS_SEMI_EXPANDED);
-      PSPP_RBNODE_UNSET_FLAG (tree_view->priv->expanded_collapsed_node, PSPP_RBNODE_IS_SEMI_COLLAPSED);
-
-      tree_view->priv->expanded_collapsed_node = NULL;
-    }
-}
-
-static void
-cancel_arrow_animation (PsppSheetView *tree_view)
-{
-  if (tree_view->priv->expand_collapse_timeout)
-    {
-      while (do_expand_collapse (tree_view));
-
-      remove_expand_collapse_timeout (tree_view);
-    }
-}
-
-static gboolean
-do_expand_collapse (PsppSheetView *tree_view)
-{
-  GtkRBNode *node;
-  GtkRBTree *tree;
-  gboolean expanding;
-  gboolean redraw;
-
-  redraw = FALSE;
-  expanding = TRUE;
-
-  node = tree_view->priv->expanded_collapsed_node;
-  tree = tree_view->priv->expanded_collapsed_tree;
-
-  if (node->children == NULL)
-    expanding = FALSE;
-
-  if (expanding)
-    {
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SEMI_COLLAPSED))
-	{
-	  PSPP_RBNODE_UNSET_FLAG (node, PSPP_RBNODE_IS_SEMI_COLLAPSED);
-	  PSPP_RBNODE_SET_FLAG (node, PSPP_RBNODE_IS_SEMI_EXPANDED);
-
-	  redraw = TRUE;
-
-	}
-      else if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SEMI_EXPANDED))
-	{
-	  PSPP_RBNODE_UNSET_FLAG (node, PSPP_RBNODE_IS_SEMI_EXPANDED);
-
-	  redraw = TRUE;
-	}
-    }
-  else
-    {
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SEMI_EXPANDED))
-	{
-	  PSPP_RBNODE_UNSET_FLAG (node, PSPP_RBNODE_IS_SEMI_EXPANDED);
-	  PSPP_RBNODE_SET_FLAG (node, PSPP_RBNODE_IS_SEMI_COLLAPSED);
-
-	  redraw = TRUE;
-	}
-      else if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SEMI_COLLAPSED))
-	{
-	  PSPP_RBNODE_UNSET_FLAG (node, PSPP_RBNODE_IS_SEMI_COLLAPSED);
-
-	  redraw = TRUE;
-
-	}
-    }
-
-  if (redraw)
-    {
-      pspp_sheet_view_queue_draw_arrow (tree_view, tree, node, NULL);
-
-      return TRUE;
-    }
-
-  return FALSE;
-}
-
-/**
- * pspp_sheet_view_collapse_all:
- * @tree_view: A #PsppSheetView.
- *
- * Recursively collapses all visible, expanded nodes in @tree_view.
- **/
-void
-pspp_sheet_view_collapse_all (PsppSheetView *tree_view)
-{
-  GtkRBTree *tree;
-  GtkRBNode *node;
-  GtkTreePath *path;
-  gint *indices;
-
-  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
-
-  if (tree_view->priv->tree == NULL)
-    return;
-
-  path = gtk_tree_path_new ();
-  gtk_tree_path_down (path);
-  indices = gtk_tree_path_get_indices (path);
-
-  tree = tree_view->priv->tree;
-  node = tree->root;
-  while (node && node->left != tree->nil)
-    node = node->left;
-
-  while (node)
-    {
-      if (node->children)
-	pspp_sheet_view_real_collapse_row (tree_view, path, tree, node, FALSE);
-      indices[0]++;
-      node = _pspp_rbtree_next (tree, node);
-    }
-
-  gtk_tree_path_free (path);
-}
-
-/**
- * pspp_sheet_view_expand_to_path:
- * @tree_view: A #PsppSheetView.
- * @path: path to a row.
- *
- * Expands the row at @path. This will also expand all parent rows of
- * @path as necessary.
- *
- * Since: 2.2
- **/
-void
-pspp_sheet_view_expand_to_path (PsppSheetView *tree_view,
-			      GtkTreePath *path)
-{
-  gint i, depth;
-  gint *indices;
-  GtkTreePath *tmp;
-
-  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
-  g_return_if_fail (path != NULL);
-
-  depth = gtk_tree_path_get_depth (path);
-  indices = gtk_tree_path_get_indices (path);
-
-  tmp = gtk_tree_path_new ();
-  g_return_if_fail (tmp != NULL);
-
-  for (i = 0; i < depth; i++)
-    {
-      gtk_tree_path_append_index (tmp, indices[i]);
-      pspp_sheet_view_expand_row (tree_view, tmp, FALSE);
-    }
-
-  gtk_tree_path_free (tmp);
-}
-
-/* FIXME the bool return values for expand_row and collapse_row are
- * not analagous; they should be TRUE if the row had children and
- * was not already in the requested state.
- */
-
-
-static gboolean
-pspp_sheet_view_real_expand_row (PsppSheetView *tree_view,
-			       GtkTreePath *path,
-			       GtkRBTree   *tree,
-			       GtkRBNode   *node,
-			       gboolean     open_all,
-			       gboolean     animate)
-{
-  GtkTreeIter iter;
-  GtkTreeIter temp;
-  gboolean expand;
-
-  if (animate)
-    g_object_get (gtk_widget_get_settings (GTK_WIDGET (tree_view)),
-                  "gtk-enable-animations", &animate,
-                  NULL);
-
-  remove_auto_expand_timeout (tree_view);
-
-  if (node->children && !open_all)
-    return FALSE;
-
-  if (! PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_PARENT))
-    return FALSE;
-
-  gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
-  if (! gtk_tree_model_iter_has_child (tree_view->priv->model, &iter))
-    return FALSE;
-
-
-   if (node->children && open_all)
-    {
-      gboolean retval = FALSE;
-      GtkTreePath *tmp_path = gtk_tree_path_copy (path);
-
-      gtk_tree_path_append_index (tmp_path, 0);
-      tree = node->children;
-      node = tree->root;
-      while (node->left != tree->nil)
-	node = node->left;
-      /* try to expand the children */
-      do
-        {
-         gboolean t;
-	 t = pspp_sheet_view_real_expand_row (tree_view, tmp_path, tree, node,
-					    TRUE, animate);
-         if (t)
-           retval = TRUE;
-
-         gtk_tree_path_next (tmp_path);
-	 node = _pspp_rbtree_next (tree, node);
-       }
-      while (node != NULL);
-
-      gtk_tree_path_free (tmp_path);
-
-      return retval;
-    }
-
-  g_signal_emit (tree_view, tree_view_signals[TEST_EXPAND_ROW], 0, &iter, path, &expand);
-
-  if (!gtk_tree_model_iter_has_child (tree_view->priv->model, &iter))
-    return FALSE;
-
-  if (expand)
-    return FALSE;
-
-  node->children = _pspp_rbtree_new ();
-  node->children->parent_tree = tree;
-  node->children->parent_node = node;
-
-  gtk_tree_model_iter_children (tree_view->priv->model, &temp, &iter);
-
-  pspp_sheet_view_build_tree (tree_view,
-			    node->children,
-			    &temp,
-			    gtk_tree_path_get_depth (path) + 1,
-			    open_all);
-
-  remove_expand_collapse_timeout (tree_view);
-
-  if (animate)
-    add_expand_collapse_timeout (tree_view, tree, node, TRUE);
-
-  install_presize_handler (tree_view);
-
-  g_signal_emit (tree_view, tree_view_signals[ROW_EXPANDED], 0, &iter, path);
-  if (open_all && node->children)
-    {
-      _pspp_rbtree_traverse (node->children,
-                            node->children->root,
-                            G_PRE_ORDER,
-                            pspp_sheet_view_expand_all_emission_helper,
-                            tree_view);
-    }
-  return TRUE;
-}
-
-
-/**
- * pspp_sheet_view_expand_row:
- * @tree_view: a #PsppSheetView
- * @path: path to a row
- * @open_all: whether to recursively expand, or just expand immediate children
- *
- * Opens the row so its children are visible.
- *
- * Return value: %TRUE if the row existed and had children
- **/
-gboolean
-pspp_sheet_view_expand_row (PsppSheetView *tree_view,
-			  GtkTreePath *path,
-			  gboolean     open_all)
-{
-  GtkRBTree *tree;
-  GtkRBNode *node;
-
-  g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), FALSE);
-  g_return_val_if_fail (tree_view->priv->model != NULL, FALSE);
-  g_return_val_if_fail (path != NULL, FALSE);
-
-  if (_pspp_sheet_view_find_node (tree_view,
-				path,
-				&tree,
-				&node))
-    return FALSE;
-
-  if (tree != NULL)
-    return pspp_sheet_view_real_expand_row (tree_view, path, tree, node, open_all, FALSE);
-  else
-    return FALSE;
-}
-
-static gboolean
-pspp_sheet_view_real_collapse_row (PsppSheetView *tree_view,
-				 GtkTreePath *path,
-				 GtkRBTree   *tree,
-				 GtkRBNode   *node,
-				 gboolean     animate)
-{
-  GtkTreeIter iter;
-  GtkTreeIter children;
-  gboolean collapse;
-  gint x, y;
-  GList *list;
-  GdkWindow *child, *parent;
-
-  if (animate)
-    g_object_get (gtk_widget_get_settings (GTK_WIDGET (tree_view)),
-                  "gtk-enable-animations", &animate,
-                  NULL);
-
-  remove_auto_expand_timeout (tree_view);
-
-  if (node->children == NULL)
-    return FALSE;
-
-  gtk_tree_model_get_iter (tree_view->priv->model, &iter, path);
-
-  g_signal_emit (tree_view, tree_view_signals[TEST_COLLAPSE_ROW], 0, &iter, path, &collapse);
-
-  if (collapse)
-    return FALSE;
-
-  /* if the prelighted node is a child of us, we want to unprelight it.  We have
-   * a chance to prelight the correct node below */
-
-  if (tree_view->priv->prelight_tree)
-    {
-      GtkRBTree *parent_tree;
-      GtkRBNode *parent_node;
-
-      parent_tree = tree_view->priv->prelight_tree->parent_tree;
-      parent_node = tree_view->priv->prelight_tree->parent_node;
-      while (parent_tree)
-	{
-	  if (parent_tree == tree && parent_node == node)
-	    {
-	      ensure_unprelighted (tree_view);
-	      break;
-	    }
-	  parent_node = parent_tree->parent_node;
-	  parent_tree = parent_tree->parent_tree;
-	}
-    }
-
-  TREE_VIEW_INTERNAL_ASSERT (gtk_tree_model_iter_children (tree_view->priv->model, &children, &iter), FALSE);
-
-  for (list = tree_view->priv->columns; list; list = list->next)
-    {
-      PsppSheetViewColumn *column = list->data;
-
-      if (column->visible == FALSE)
-	continue;
-      if (pspp_sheet_view_column_get_sizing (column) == PSPP_SHEET_VIEW_COLUMN_AUTOSIZE)
-	_pspp_sheet_view_column_cell_set_dirty (column, TRUE);
-    }
-
-  if (tree_view->priv->destroy_count_func)
-    {
-      GtkTreePath *child_path;
-      gint child_count = 0;
-      child_path = gtk_tree_path_copy (path);
-      gtk_tree_path_down (child_path);
-      if (node->children)
-	_pspp_rbtree_traverse (node->children, node->children->root, G_POST_ORDER, count_children_helper, &child_count);
-      tree_view->priv->destroy_count_func (tree_view, child_path, child_count, tree_view->priv->destroy_count_data);
-      gtk_tree_path_free (child_path);
-    }
-
-  if (gtk_tree_row_reference_valid (tree_view->priv->cursor))
-    {
-      GtkTreePath *cursor_path = gtk_tree_row_reference_get_path (tree_view->priv->cursor);
-
-      if (gtk_tree_path_is_ancestor (path, cursor_path))
-	{
-	  gtk_tree_row_reference_free (tree_view->priv->cursor);
-	  tree_view->priv->cursor = gtk_tree_row_reference_new_proxy (G_OBJECT (tree_view),
-								      tree_view->priv->model,
-								      path);
-	}
-      gtk_tree_path_free (cursor_path);
-    }
-
-  if (gtk_tree_row_reference_valid (tree_view->priv->anchor))
-    {
-      GtkTreePath *anchor_path = gtk_tree_row_reference_get_path (tree_view->priv->anchor);
-      if (gtk_tree_path_is_ancestor (path, anchor_path))
-	{
-	  gtk_tree_row_reference_free (tree_view->priv->anchor);
-	  tree_view->priv->anchor = NULL;
-	}
-      gtk_tree_path_free (anchor_path);
-    }
-
-  /* Stop a pending double click */
-  tree_view->priv->last_button_x = -1;
-  tree_view->priv->last_button_y = -1;
-
-  remove_expand_collapse_timeout (tree_view);
-
-  if (pspp_sheet_view_unref_and_check_selection_tree (tree_view, node->children))
-    {
-      _pspp_rbtree_remove (node->children);
-      g_signal_emit_by_name (tree_view->priv->selection, "changed");
-    }
-  else
-    _pspp_rbtree_remove (node->children);
-  
-  if (animate)
-    add_expand_collapse_timeout (tree_view, tree, node, FALSE);
-  
-  if (gtk_widget_get_mapped (GTK_WIDGET (tree_view)))
-    {
-      gtk_widget_queue_resize (GTK_WIDGET (tree_view));
-    }
-
-  g_signal_emit (tree_view, tree_view_signals[ROW_COLLAPSED], 0, &iter, path);
-
-  if (gtk_widget_get_mapped (GTK_WIDGET (tree_view)))
-    {
-      /* now that we've collapsed all rows, we want to try to set the prelight
-       * again. To do this, we fake a motion event and send it to ourselves. */
-
-      child = tree_view->priv->bin_window;
-      parent = gdk_window_get_parent (child);
-
-      if (gdk_window_get_pointer (parent, &x, &y, NULL) == child)
-	{
-	  GdkEventMotion event;
-	  gint child_x, child_y;
-
-	  gdk_window_get_position (child, &child_x, &child_y);
-
-	  event.window = tree_view->priv->bin_window;
-	  event.x = x - child_x;
-	  event.y = y - child_y;
-
-	  /* despite the fact this isn't a real event, I'm almost positive it will
-	   * never trigger a drag event.  maybe_drag is the only function that uses
-	   * more than just event.x and event.y. */
-	  pspp_sheet_view_motion_bin_window (GTK_WIDGET (tree_view), &event);
-	}
-    }
-
-  return TRUE;
-}
-
-/**
- * pspp_sheet_view_collapse_row:
- * @tree_view: a #PsppSheetView
- * @path: path to a row in the @tree_view
- *
- * Collapses a row (hides its child rows, if they exist).
- *
- * Return value: %TRUE if the row was collapsed.
- **/
-gboolean
-pspp_sheet_view_collapse_row (PsppSheetView *tree_view,
-			    GtkTreePath *path)
-{
-  GtkRBTree *tree;
-  GtkRBNode *node;
-
-  g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), FALSE);
-  g_return_val_if_fail (tree_view->priv->tree != NULL, FALSE);
-  g_return_val_if_fail (path != NULL, FALSE);
-
-  if (_pspp_sheet_view_find_node (tree_view,
-				path,
-				&tree,
-				&node))
-    return FALSE;
-
-  if (tree == NULL || node->children == NULL)
-    return FALSE;
-
-  return pspp_sheet_view_real_collapse_row (tree_view, path, tree, node, FALSE);
-}
-
-static void
-pspp_sheet_view_map_expanded_rows_helper (PsppSheetView            *tree_view,
-					GtkRBTree              *tree,
-					GtkTreePath            *path,
-					PsppSheetViewMappingFunc  func,
-					gpointer                user_data)
-{
-  GtkRBNode *node;
-
-  if (tree == NULL || tree->root == NULL)
-    return;
-
-  node = tree->root;
-
-  while (node && node->left != tree->nil)
-    node = node->left;
-
-  while (node)
-    {
-      if (node->children)
-	{
-	  (* func) (tree_view, path, user_data);
-	  gtk_tree_path_down (path);
-	  pspp_sheet_view_map_expanded_rows_helper (tree_view, node->children, path, func, user_data);
-	  gtk_tree_path_up (path);
-	}
-      gtk_tree_path_next (path);
-      node = _pspp_rbtree_next (tree, node);
-    }
-}
-
-/**
- * pspp_sheet_view_map_expanded_rows:
- * @tree_view: A #PsppSheetView
- * @func: A function to be called
- * @data: User data to be passed to the function.
- *
- * Calls @func on all expanded rows.
- **/
-void
-pspp_sheet_view_map_expanded_rows (PsppSheetView            *tree_view,
-				 PsppSheetViewMappingFunc  func,
-				 gpointer                user_data)
-{
-  GtkTreePath *path;
-
-  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
-  g_return_if_fail (func != NULL);
-
-  path = gtk_tree_path_new_first ();
-
-  pspp_sheet_view_map_expanded_rows_helper (tree_view,
-					  tree_view->priv->tree,
-					  path, func, user_data);
-
-  gtk_tree_path_free (path);
-}
-
-/**
- * pspp_sheet_view_row_expanded:
- * @tree_view: A #PsppSheetView.
- * @path: A #GtkTreePath to test expansion state.
- *
- * Returns %TRUE if the node pointed to by @path is expanded in @tree_view.
- *
- * Return value: %TRUE if #path is expanded.
- **/
-gboolean
-pspp_sheet_view_row_expanded (PsppSheetView *tree_view,
-			    GtkTreePath *path)
-{
-  GtkRBTree *tree;
-  GtkRBNode *node;
-
-  g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), FALSE);
-  g_return_val_if_fail (path != NULL, FALSE);
-
-  _pspp_sheet_view_find_node (tree_view, path, &tree, &node);
-
-  if (node == NULL)
-    return FALSE;
-
-  return (node->children != NULL);
-}
-
 /**
  * pspp_sheet_view_get_reorderable:
  * @tree_view: a #PsppSheetView
@@ -12508,8 +9417,7 @@ pspp_sheet_view_real_set_cursor (PsppSheetView     *tree_view,
 			       gboolean         clear_and_select,
 			       gboolean         clamp_node)
 {
-  GtkRBTree *tree = NULL;
-  GtkRBNode *node = NULL;
+  int node = -1;
 
   if (gtk_tree_row_reference_valid (tree_view->priv->cursor))
     {
@@ -12522,30 +9430,15 @@ pspp_sheet_view_real_set_cursor (PsppSheetView     *tree_view,
   gtk_tree_row_reference_free (tree_view->priv->cursor);
   tree_view->priv->cursor = NULL;
 
-  /* One cannot set the cursor on a separator.   Also, if
-   * _pspp_sheet_view_find_node returns TRUE, it ran out of tree
-   * before finding the tree and node belonging to path.  The
-   * path maps to a non-existing path and we will silently bail out.
-   * We unset tree and node to avoid further processing.
-   */
-  if (!row_is_separator (tree_view, NULL, path)
-      && _pspp_sheet_view_find_node (tree_view, path, &tree, &node) == FALSE)
-    {
-      tree_view->priv->cursor =
-          gtk_tree_row_reference_new_proxy (G_OBJECT (tree_view),
-                                            tree_view->priv->model,
-                                            path);
-    }
-  else
-    {
-      tree = NULL;
-      node = NULL;
-    }
+  _pspp_sheet_view_find_node (tree_view, path, &node);
+  tree_view->priv->cursor =
+    gtk_tree_row_reference_new_proxy (G_OBJECT (tree_view),
+                                      tree_view->priv->model,
+                                      path);
 
-  if (tree != NULL)
+  if (tree_view->priv->row_count > 0)
     {
-      GtkRBTree *new_tree = NULL;
-      GtkRBNode *new_node = NULL;
+      int new_node = -1;
 
       if (clear_and_select && !tree_view->priv->ctrl_pressed)
         {
@@ -12557,7 +9450,7 @@ pspp_sheet_view_real_set_cursor (PsppSheetView     *tree_view,
             mode |= GTK_TREE_SELECT_MODE_EXTEND;
 
           _pspp_sheet_selection_internal_select_node (tree_view->priv->selection,
-                                                    node, tree, path, mode,
+                                                    node, path, mode,
                                                     FALSE);
         }
 
@@ -12565,15 +9458,15 @@ pspp_sheet_view_real_set_cursor (PsppSheetView     *tree_view,
        * cleared the node or the whole tree in the PsppSheetSelection::changed
        * callback. If the nodes differ we bail out here.
        */
-      _pspp_sheet_view_find_node (tree_view, path, &new_tree, &new_node);
+      _pspp_sheet_view_find_node (tree_view, path, &new_node);
 
-      if (tree != new_tree || node != new_node)
+      if (node != new_node)
         return;
 
       if (clamp_node)
         {
-	  pspp_sheet_view_clamp_node_visible (tree_view, tree, node);
-	  _pspp_sheet_view_queue_draw_node (tree_view, tree, node, NULL);
+	  pspp_sheet_view_clamp_node_visible (tree_view, node);
+	  _pspp_sheet_view_queue_draw_node (tree_view, node, NULL);
 	}
     }
 
@@ -12772,8 +9665,7 @@ pspp_sheet_view_get_path_at_pos (PsppSheetView        *tree_view,
                                gint               *cell_x,
                                gint               *cell_y)
 {
-  GtkRBTree *tree;
-  GtkRBNode *node;
+  int node;
   gint y_offset;
 
   g_return_val_if_fail (tree_view != NULL, FALSE);
@@ -12786,7 +9678,7 @@ pspp_sheet_view_get_path_at_pos (PsppSheetView        *tree_view,
   if (tree_view->priv->bin_window == NULL)
     return FALSE;
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     return FALSE;
 
   if (x > tree_view->priv->hadjustment->upper)
@@ -12850,18 +9742,18 @@ pspp_sheet_view_get_path_at_pos (PsppSheetView        *tree_view,
 	}
     }
 
-  y_offset = _pspp_rbtree_find_offset (tree_view->priv->tree,
-				      TREE_WINDOW_Y_TO_RBTREE_Y (tree_view, y),
-				      &tree, &node);
+  y_offset = pspp_sheet_view_find_offset (tree_view,
+                                          TREE_WINDOW_Y_TO_RBTREE_Y (tree_view, y),
+                                          &node);
 
-  if (tree == NULL)
+  if (node < 0)
     return FALSE;
 
   if (cell_y)
     *cell_y = y_offset;
 
   if (path)
-    *path = _pspp_sheet_view_find_path (tree_view, tree, node);
+    *path = _pspp_sheet_view_find_path (tree_view, node);
 
   return TRUE;
 }
@@ -12890,8 +9782,7 @@ pspp_sheet_view_get_cell_area (PsppSheetView        *tree_view,
                              PsppSheetViewColumn  *column,
                              GdkRectangle       *rect)
 {
-  GtkRBTree *tree = NULL;
-  GtkRBNode *node = NULL;
+  int node = -1;
   gint vertical_separator;
   gint horizontal_separator;
 
@@ -12919,36 +9810,14 @@ pspp_sheet_view_get_cell_area (PsppSheetView        *tree_view,
 
   if (path)
     {
-      gboolean ret = _pspp_sheet_view_find_node (tree_view, path, &tree, &node);
+      _pspp_sheet_view_find_node (tree_view, path, &node);
 
       /* Get vertical coords */
-      if ((!ret && tree == NULL) || ret)
+      if (node < 0)
 	return;
 
-      rect->y = CELL_FIRST_PIXEL (tree_view, tree, node, vertical_separator);
-      rect->height = MAX (CELL_HEIGHT (node, vertical_separator), tree_view->priv->expander_size - vertical_separator);
-
-      if (column &&
-	  pspp_sheet_view_is_expander_column (tree_view, column))
-	{
-	  gint depth = gtk_tree_path_get_depth (path);
-	  gboolean rtl;
-
-	  rtl = gtk_widget_get_direction (GTK_WIDGET (tree_view)) == GTK_TEXT_DIR_RTL;
-
-	  if (!rtl)
-	    rect->x += (depth - 1) * tree_view->priv->level_indentation;
-	  rect->width -= (depth - 1) * tree_view->priv->level_indentation;
-
-	  if (TREE_VIEW_DRAW_EXPANDERS (tree_view))
-	    {
-	      if (!rtl)
-		rect->x += depth * tree_view->priv->expander_size;
-	      rect->width -= depth * tree_view->priv->expander_size;
-	    }
-
-	  rect->width = MAX (rect->width, 0);
-	}
+      rect->y = CELL_FIRST_PIXEL (tree_view, node, vertical_separator);
+      rect->height = MAX (CELL_HEIGHT (tree_view, vertical_separator), tree_view->priv->expander_size - vertical_separator);
     }
 }
 
@@ -12967,7 +9836,7 @@ pspp_sheet_view_get_cell_area (PsppSheetView        *tree_view,
  * @background_area passed to gtk_cell_renderer_render().  These background
  * areas tile to cover the entire bin window.  Contrast with the @cell_area,
  * returned by pspp_sheet_view_get_cell_area(), which returns only the cell
- * itself, excluding surrounding borders and the tree expander area.
+ * itself, excluding surrounding borders.
  *
  **/
 void
@@ -12976,8 +9845,7 @@ pspp_sheet_view_get_background_area (PsppSheetView        *tree_view,
                                    PsppSheetViewColumn  *column,
                                    GdkRectangle       *rect)
 {
-  GtkRBTree *tree = NULL;
-  GtkRBNode *node = NULL;
+  int node = -1;
 
   g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
   g_return_if_fail (column == NULL || PSPP_IS_SHEET_VIEW_COLUMN (column));
@@ -12992,20 +9860,20 @@ pspp_sheet_view_get_background_area (PsppSheetView        *tree_view,
     {
       /* Get vertical coords */
 
-      if (!_pspp_sheet_view_find_node (tree_view, path, &tree, &node) &&
-	  tree == NULL)
+      _pspp_sheet_view_find_node (tree_view, path, &node);
+      if (node < 0)
 	return;
 
-      rect->y = BACKGROUND_FIRST_PIXEL (tree_view, tree, node);
+      rect->y = BACKGROUND_FIRST_PIXEL (tree_view, node);
 
-      rect->height = ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node));
+      rect->height = ROW_HEIGHT (tree_view);
     }
 
   if (column)
     {
       gint x2 = 0;
 
-      pspp_sheet_view_get_background_xrange (tree_view, tree, column, &rect->x, &x2);
+      pspp_sheet_view_get_background_xrange (tree_view, column, &rect->x, &x2);
       rect->width = x2 - rect->x;
     }
 }
@@ -13303,24 +10171,23 @@ pspp_sheet_view_get_visible_range (PsppSheetView  *tree_view,
                                  GtkTreePath **start_path,
                                  GtkTreePath **end_path)
 {
-  GtkRBTree *tree;
-  GtkRBNode *node;
+  int node;
   gboolean retval;
   
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), FALSE);
 
-  if (!tree_view->priv->tree)
+  if (!tree_view->priv->row_count)
     return FALSE;
 
   retval = TRUE;
 
   if (start_path)
     {
-      _pspp_rbtree_find_offset (tree_view->priv->tree,
-                               TREE_WINDOW_Y_TO_RBTREE_Y (tree_view, 0),
-                               &tree, &node);
-      if (node)
-        *start_path = _pspp_sheet_view_find_path (tree_view, tree, node);
+      pspp_sheet_view_find_offset (tree_view,
+                                   TREE_WINDOW_Y_TO_RBTREE_Y (tree_view, 0),
+                                   &node);
+      if (node >= 0)
+        *start_path = _pspp_sheet_view_find_path (tree_view, node);
       else
         retval = FALSE;
     }
@@ -13334,9 +10201,9 @@ pspp_sheet_view_get_visible_range (PsppSheetView  *tree_view,
       else
         y = TREE_WINDOW_Y_TO_RBTREE_Y (tree_view, tree_view->priv->vadjustment->page_size) - 1;
 
-      _pspp_rbtree_find_offset (tree_view->priv->tree, y, &tree, &node);
-      if (node)
-        *end_path = _pspp_sheet_view_find_path (tree_view, tree, node);
+      pspp_sheet_view_find_offset (tree_view, y, &node);
+      if (node >= 0)
+        *end_path = _pspp_sheet_view_find_path (tree_view, node);
       else
         retval = FALSE;
     }
@@ -13547,21 +10414,20 @@ pspp_sheet_view_set_drag_dest_row (PsppSheetView            *tree_view,
 
   if (current_dest)
     {
-      GtkRBTree *tree, *new_tree;
-      GtkRBNode *node, *new_node;
+      int node, new_node;
 
-      _pspp_sheet_view_find_node (tree_view, current_dest, &tree, &node);
-      _pspp_sheet_view_queue_draw_node (tree_view, tree, node, NULL);
+      _pspp_sheet_view_find_node (tree_view, current_dest, &node);
+      _pspp_sheet_view_queue_draw_node (tree_view, node, NULL);
 
-      if (tree && node)
+      if (node >= 0)
 	{
-	  _pspp_rbtree_next_full (tree, node, &new_tree, &new_node);
-	  if (new_tree && new_node)
-	    _pspp_sheet_view_queue_draw_node (tree_view, new_tree, new_node, NULL);
+	  new_node = pspp_sheet_view_node_next (tree_view, node);
+	  if (new_node >= 0)
+	    _pspp_sheet_view_queue_draw_node (tree_view, new_node, NULL);
 
-	  _pspp_rbtree_prev_full (tree, node, &new_tree, &new_node);
-	  if (new_tree && new_node)
-	    _pspp_sheet_view_queue_draw_node (tree_view, new_tree, new_node, NULL);
+	  new_node = pspp_sheet_view_node_prev (tree_view, node);
+	  if (new_node >= 0)
+	    _pspp_sheet_view_queue_draw_node (tree_view, new_node, NULL);
 	}
       gtk_tree_path_free (current_dest);
     }
@@ -13644,7 +10510,7 @@ pspp_sheet_view_get_dest_row_at_pos (PsppSheetView             *tree_view,
   if (tree_view->priv->bin_window == NULL)
     return FALSE;
 
-  if (tree_view->priv->tree == NULL)
+  if (tree_view->priv->row_count == 0)
     return FALSE;
 
   /* If in the top third of a row, we drop before that row; if
@@ -13718,8 +10584,7 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
                                     GtkTreePath  *path)
 {
   GtkTreeIter   iter;
-  GtkRBTree    *tree;
-  GtkRBNode    *node;
+  int node;
   gint cell_offset;
   GList *list;
   GdkRectangle background_area;
@@ -13730,7 +10595,6 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
   gint x = 1, y = 1;
   GdkDrawable *drawable;
   gint bin_window_width;
-  gboolean is_separator = FALSE;
   gboolean rtl;
 
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), NULL);
@@ -13745,10 +10609,9 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
 
   _pspp_sheet_view_find_node (tree_view,
                             path,
-                            &tree,
                             &node);
 
-  if (tree == NULL)
+  if (node < 0)
     return NULL;
 
   if (!gtk_tree_model_get_iter (tree_view->priv->model,
@@ -13756,12 +10619,10 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
                                 path))
     return NULL;
   
-  is_separator = row_is_separator (tree_view, &iter, NULL);
-
   cell_offset = x;
 
   background_area.y = y;
-  background_area.height = ROW_HEIGHT (tree_view, BACKGROUND_HEIGHT (node));
+  background_area.height = ROW_HEIGHT (tree_view);
 
   gdk_drawable_get_size (tree_view->priv->bin_window,
                          &bin_window_width, NULL);
@@ -13796,9 +10657,7 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
       if (!column->visible)
         continue;
 
-      pspp_sheet_view_column_cell_set_cell_data (column, tree_view->priv->model, &iter,
-					       PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_PARENT),
-					       node->children?TRUE:FALSE);
+      pspp_sheet_view_column_cell_set_cell_data (column, tree_view->priv->model, &iter);
 
       background_area.x = cell_offset;
       background_area.width = column->width;
@@ -13812,40 +10671,13 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
       cell_area.y += vertical_separator / 2;
       cell_area.height -= vertical_separator;
 
-      if (pspp_sheet_view_is_expander_column (tree_view, column))
-        {
-	  if (!rtl)
-	    cell_area.x += (depth - 1) * tree_view->priv->level_indentation;
-	  cell_area.width -= (depth - 1) * tree_view->priv->level_indentation;
-
-          if (TREE_VIEW_DRAW_EXPANDERS(tree_view))
-	    {
-	      if (!rtl)
-		cell_area.x += depth * tree_view->priv->expander_size;
-	      cell_area.width -= depth * tree_view->priv->expander_size;
-	    }
-        }
-
       if (pspp_sheet_view_column_cell_is_visible (column))
-	{
-	  if (is_separator)
-	    gtk_paint_hline (widget->style,
-			     drawable,
-			     GTK_STATE_NORMAL,
-			     &cell_area,
-			     widget,
-			     NULL,
-			     cell_area.x,
-			     cell_area.x + cell_area.width,
-			     cell_area.y + cell_area.height / 2);
-	  else
-	    _pspp_sheet_view_column_cell_render (column,
-					       drawable,
-					       &background_area,
-					       &cell_area,
-					       &expose_area,
-					       0);
-	}
+        _pspp_sheet_view_column_cell_render (column,
+                                             drawable,
+                                             &background_area,
+                                             &cell_area,
+                                             &expose_area,
+                                             0);
       cell_offset += column->width;
     }
 
@@ -13868,8 +10700,7 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
  * @destroy: (allow-none): Destroy notifier for @data, or %NULL
  *
  * This function should almost never be used.  It is meant for private use by
- * ATK for determining the number of visible children that are removed when the
- * user collapses a row, or a row is deleted.
+ * ATK for determining the number of visible children that are removed when a row is deleted.
  **/
 void
 pspp_sheet_view_set_destroy_count_func (PsppSheetView             *tree_view,
@@ -14274,8 +11105,7 @@ pspp_sheet_view_search_activate (GtkEntry    *entry,
 			       PsppSheetView *tree_view)
 {
   GtkTreePath *path;
-  GtkRBNode *node;
-  GtkRBTree *tree;
+  int node;
 
   pspp_sheet_view_search_dialog_hide (tree_view->priv->search_window,
 				    tree_view);
@@ -14286,9 +11116,9 @@ pspp_sheet_view_search_activate (GtkEntry    *entry,
     {
       path = gtk_tree_row_reference_get_path (tree_view->priv->cursor);
       
-      _pspp_sheet_view_find_node (tree_view, path, &tree, &node);
+      _pspp_sheet_view_find_node (tree_view, path, &node);
       
-      if (node && PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
+      if (node >= 0 && pspp_sheet_view_node_is_selected (tree_view, node))
 	pspp_sheet_view_row_activated (tree_view, path, tree_view->priv->focus_column);
       
       gtk_tree_path_free (path);
@@ -14559,30 +11389,31 @@ pspp_sheet_view_search_equal_func (GtkTreeModel *model,
 
 static gboolean
 pspp_sheet_view_search_iter (GtkTreeModel     *model,
-			   PsppSheetSelection *selection,
-			   GtkTreeIter      *iter,
-			   const gchar      *text,
-			   gint             *count,
-			   gint              n)
+                             PsppSheetSelection *selection,
+                             GtkTreeIter      *iter,
+                             const gchar      *text,
+                             gint             *count,
+                             gint              n)
 {
-  GtkRBTree *tree = NULL;
-  GtkRBNode *node = NULL;
+  int node = -1;
   GtkTreePath *path;
 
   PsppSheetView *tree_view = pspp_sheet_selection_get_tree_view (selection);
 
   path = gtk_tree_model_get_path (model, iter);
-  _pspp_sheet_view_find_node (tree_view, path, &tree, &node);
+  _pspp_sheet_view_find_node (tree_view, path, &node);
 
   do
     {
+      gboolean done = FALSE;
+
       if (! tree_view->priv->search_equal_func (model, tree_view->priv->search_column, text, iter, tree_view->priv->search_user_data))
         {
           (*count)++;
           if (*count == n)
             {
               pspp_sheet_view_scroll_to_cell (tree_view, path, NULL,
-					    TRUE, 0.5, 0.0);
+                                              TRUE, 0.5, 0.0);
               pspp_sheet_selection_select_iter (selection, iter);
               pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, TRUE);
 
@@ -14593,72 +11424,33 @@ pspp_sheet_view_search_iter (GtkTreeModel     *model,
             }
         }
 
-      if (node->children)
-	{
-	  gboolean has_child;
-	  GtkTreeIter tmp;
 
-	  tree = node->children;
-	  node = tree->root;
+      do
+        {
+          node = pspp_sheet_view_node_next (tree_view, node);
 
-	  while (node->left != tree->nil)
-	    node = node->left;
+          if (node >= 0)
+            {
+              gboolean has_next;
 
-	  tmp = *iter;
-	  has_child = gtk_tree_model_iter_children (model, iter, &tmp);
-	  gtk_tree_path_down (path);
+              has_next = gtk_tree_model_iter_next (model, iter);
 
-	  /* sanity check */
-	  TREE_VIEW_INTERNAL_ASSERT (has_child, FALSE);
-	}
-      else
-	{
-	  gboolean done = FALSE;
+              done = TRUE;
+              gtk_tree_path_next (path);
 
-	  do
-	    {
-	      node = _pspp_rbtree_next (tree, node);
+              /* sanity check */
+              TREE_VIEW_INTERNAL_ASSERT (has_next, FALSE);
+            }
+          else
+            {
+              if (path)
+                gtk_tree_path_free (path);
 
-	      if (node)
-		{
-		  gboolean has_next;
-
-		  has_next = gtk_tree_model_iter_next (model, iter);
-
-		  done = TRUE;
-		  gtk_tree_path_next (path);
-
-		  /* sanity check */
-		  TREE_VIEW_INTERNAL_ASSERT (has_next, FALSE);
-		}
-	      else
-		{
-		  gboolean has_parent;
-		  GtkTreeIter tmp_iter = *iter;
-
-		  node = tree->parent_node;
-		  tree = tree->parent_tree;
-
-		  if (!tree)
-		    {
-		      if (path)
-			gtk_tree_path_free (path);
-
-		      /* we've run out of tree, done with this func */
-		      return FALSE;
-		    }
-
-		  has_parent = gtk_tree_model_iter_parent (model,
-							   iter,
-							   &tmp_iter);
-		  gtk_tree_path_up (path);
-
-		  /* sanity check */
-		  TREE_VIEW_INTERNAL_ASSERT (has_parent, FALSE);
-		}
-	    }
-	  while (!done);
-	}
+              /* we've run out of tree, done with this func */
+              return FALSE;
+            }
+        }
+      while (!done);
     }
   while (1);
 
@@ -14745,28 +11537,23 @@ pspp_sheet_view_start_editing (PsppSheetView *tree_view,
   gchar *path_string;
   guint flags = 0; /* can be 0, as the flags are primarily for rendering */
   gint retval = FALSE;
-  GtkRBTree *cursor_tree;
-  GtkRBNode *cursor_node;
+  int cursor_node;
 
   g_assert (tree_view->priv->focus_column);
 
   if (!gtk_widget_get_realized (GTK_WIDGET (tree_view)))
     return FALSE;
 
-  if (_pspp_sheet_view_find_node (tree_view, cursor_path, &cursor_tree, &cursor_node) ||
-      cursor_node == NULL)
+  _pspp_sheet_view_find_node (tree_view, cursor_path, &cursor_node);
+  if (cursor_node < 0)
     return FALSE;
 
   path_string = gtk_tree_path_to_string (cursor_path);
   gtk_tree_model_get_iter (tree_view->priv->model, &iter, cursor_path);
 
-  validate_row (tree_view, cursor_tree, cursor_node, &iter, cursor_path);
-
   pspp_sheet_view_column_cell_set_cell_data (tree_view->priv->focus_column,
 					   tree_view->priv->model,
-					   &iter,
-					   PSPP_RBNODE_FLAG_SET (cursor_node, PSPP_RBNODE_IS_PARENT),
-					   cursor_node->children?TRUE:FALSE);
+					   &iter);
   pspp_sheet_view_get_background_area (tree_view,
 				     cursor_path,
 				     tree_view->priv->focus_column,
@@ -14937,47 +11724,6 @@ pspp_sheet_view_get_hover_selection (PsppSheetView *tree_view)
 }
 
 /**
- * pspp_sheet_view_set_hover_expand:
- * @tree_view: a #PsppSheetView
- * @expand: %TRUE to enable hover selection mode
- *
- * Enables of disables the hover expansion mode of @tree_view.
- * Hover expansion makes rows expand or collapse if the pointer 
- * moves over them.
- * 
- * Since: 2.6
- **/
-void     
-pspp_sheet_view_set_hover_expand (PsppSheetView *tree_view,
-				gboolean     expand)
-{
-  expand = expand != FALSE;
-
-  if (expand != tree_view->priv->hover_expand)
-    {
-      tree_view->priv->hover_expand = expand;
-
-      g_object_notify (G_OBJECT (tree_view), "hover-expand");
-    }
-}
-
-/**
- * pspp_sheet_view_get_hover_expand:
- * @tree_view: a #PsppSheetView
- * 
- * Returns whether hover expansion mode is turned on for @tree_view.
- * 
- * Return value: %TRUE if @tree_view is in hover expansion mode
- *
- * Since: 2.6 
- **/
-gboolean 
-pspp_sheet_view_get_hover_expand (PsppSheetView *tree_view)
-{
-  return tree_view->priv->hover_expand;
-}
-
-/**
  * pspp_sheet_view_set_rubber_banding:
  * @tree_view: a #PsppSheetView
  * @enable: %TRUE to enable rubber banding
@@ -15044,58 +11790,6 @@ pspp_sheet_view_is_rubber_banding_active (PsppSheetView *tree_view)
   return FALSE;
 }
 
-/**
- * pspp_sheet_view_get_row_separator_func:
- * @tree_view: a #PsppSheetView
- * 
- * Returns the current row separator function.
- * 
- * Return value: the current row separator function.
- *
- * Since: 2.6
- **/
-PsppSheetViewRowSeparatorFunc 
-pspp_sheet_view_get_row_separator_func (PsppSheetView *tree_view)
-{
-  g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), NULL);
-
-  return tree_view->priv->row_separator_func;
-}
-
-/**
- * pspp_sheet_view_set_row_separator_func:
- * @tree_view: a #PsppSheetView
- * @func: a #PsppSheetViewRowSeparatorFunc
- * @data: (allow-none): user data to pass to @func, or %NULL
- * @destroy: (allow-none): destroy notifier for @data, or %NULL
- * 
- * Sets the row separator function, which is used to determine
- * whether a row should be drawn as a separator. If the row separator
- * function is %NULL, no separators are drawn. This is the default value.
- *
- * Since: 2.6
- **/
-void
-pspp_sheet_view_set_row_separator_func (PsppSheetView                 *tree_view,
-				      PsppSheetViewRowSeparatorFunc  func,
-				      gpointer                     data,
-				      GDestroyNotify               destroy)
-{
-  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
-
-  if (tree_view->priv->row_separator_destroy)
-    tree_view->priv->row_separator_destroy (tree_view->priv->row_separator_data);
-
-  tree_view->priv->row_separator_func = func;
-  tree_view->priv->row_separator_data = data;
-  tree_view->priv->row_separator_destroy = destroy;
-
-  /* Have the tree recalculate heights */
-  _pspp_rbtree_mark_invalid (tree_view->priv->tree);
-  gtk_widget_queue_resize (GTK_WIDGET (tree_view));
-}
-
-  
 static void
 pspp_sheet_view_grab_notify (GtkWidget *widget,
 			   gboolean   was_grabbed)
@@ -15214,188 +11908,6 @@ pspp_sheet_view_set_grid_lines (PsppSheetView           *tree_view,
 }
 
 /**
- * pspp_sheet_view_get_enable_tree_lines:
- * @tree_view: a #PsppSheetView.
- *
- * Returns whether or not tree lines are drawn in @tree_view.
- *
- * Return value: %TRUE if tree lines are drawn in @tree_view, %FALSE
- * otherwise.
- *
- * Since: 2.10
- */
-gboolean
-pspp_sheet_view_get_enable_tree_lines (PsppSheetView *tree_view)
-{
-  g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), FALSE);
-
-  return tree_view->priv->tree_lines_enabled;
-}
-
-/**
- * pspp_sheet_view_set_enable_tree_lines:
- * @tree_view: a #PsppSheetView
- * @enabled: %TRUE to enable tree line drawing, %FALSE otherwise.
- *
- * Sets whether to draw lines interconnecting the expanders in @tree_view.
- * This does not have any visible effects for lists.
- *
- * Since: 2.10
- */
-void
-pspp_sheet_view_set_enable_tree_lines (PsppSheetView *tree_view,
-				     gboolean     enabled)
-{
-  PsppSheetViewPrivate *priv;
-  GtkWidget *widget;
-  gboolean was_enabled;
-
-  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
-
-  enabled = enabled != FALSE;
-
-  priv = tree_view->priv;
-  widget = GTK_WIDGET (tree_view);
-
-  was_enabled = priv->tree_lines_enabled;
-
-  priv->tree_lines_enabled = enabled;
-
-  if (gtk_widget_get_realized (widget))
-    {
-      if (!enabled && priv->tree_line_gc)
-	{
-	  g_object_unref (priv->tree_line_gc);
-	  priv->tree_line_gc = NULL;
-	}
-      
-      if (enabled && !priv->tree_line_gc)
-	{
-	  gint line_width;
-	  gint8 *dash_list;
-	  gtk_widget_style_get (widget,
-				"tree-line-width", &line_width,
-				"tree-line-pattern", (gchar *)&dash_list,
-				NULL);
-	  
-	  priv->tree_line_gc = gdk_gc_new (widget->window);
-	  gdk_gc_copy (priv->tree_line_gc, widget->style->black_gc);
-	  
-	  gdk_gc_set_line_attributes (priv->tree_line_gc, line_width,
-				      GDK_LINE_ON_OFF_DASH,
-				      GDK_CAP_BUTT, GDK_JOIN_MITER);
-	  gdk_gc_set_dashes (priv->tree_line_gc, 0, dash_list, 2);
-
-	  g_free (dash_list);
-	}
-    }
-
-  if (was_enabled != enabled)
-    {
-      gtk_widget_queue_draw (GTK_WIDGET (tree_view));
-
-      g_object_notify (G_OBJECT (tree_view), "enable-tree-lines");
-    }
-}
-
-
-/**
- * pspp_sheet_view_set_show_expanders:
- * @tree_view: a #PsppSheetView
- * @enabled: %TRUE to enable expander drawing, %FALSE otherwise.
- *
- * Sets whether to draw and enable expanders and indent child rows in
- * @tree_view.  When disabled there will be no expanders visible in trees
- * and there will be no way to expand and collapse rows by default.  Also
- * note that hiding the expanders will disable the default indentation.  You
- * can set a custom indentation in this case using
- * pspp_sheet_view_set_level_indentation().
- * This does not have any visible effects for lists.
- *
- * Since: 2.12
- */
-void
-pspp_sheet_view_set_show_expanders (PsppSheetView *tree_view,
-				  gboolean     enabled)
-{
-  gboolean was_enabled;
-
-  g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
-
-  enabled = enabled != FALSE;
-  was_enabled = PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_SHOW_EXPANDERS);
-
-  if (enabled)
-    PSPP_SHEET_VIEW_SET_FLAG (tree_view, PSPP_SHEET_VIEW_SHOW_EXPANDERS);
-  else
-    PSPP_SHEET_VIEW_UNSET_FLAG (tree_view, PSPP_SHEET_VIEW_SHOW_EXPANDERS);
-
-  if (enabled != was_enabled)
-    gtk_widget_queue_draw (GTK_WIDGET (tree_view));
-}
-
-/**
- * pspp_sheet_view_get_show_expanders:
- * @tree_view: a #PsppSheetView.
- *
- * Returns whether or not expanders are drawn in @tree_view.
- *
- * Return value: %TRUE if expanders are drawn in @tree_view, %FALSE
- * otherwise.
- *
- * Since: 2.12
- */
-gboolean
-pspp_sheet_view_get_show_expanders (PsppSheetView *tree_view)
-{
-  g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), FALSE);
-
-  return PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_SHOW_EXPANDERS);
-}
-
-/**
- * pspp_sheet_view_set_level_indentation:
- * @tree_view: a #PsppSheetView
- * @indentation: the amount, in pixels, of extra indentation in @tree_view.
- *
- * Sets the amount of extra indentation for child levels to use in @tree_view
- * in addition to the default indentation.  The value should be specified in
- * pixels, a value of 0 disables this feature and in this case only the default
- * indentation will be used.
- * This does not have any visible effects for lists.
- *
- * Since: 2.12
- */
-void
-pspp_sheet_view_set_level_indentation (PsppSheetView *tree_view,
-				     gint         indentation)
-{
-  tree_view->priv->level_indentation = indentation;
-
-  gtk_widget_queue_draw (GTK_WIDGET (tree_view));
-}
-
-/**
- * pspp_sheet_view_get_level_indentation:
- * @tree_view: a #PsppSheetView.
- *
- * Returns the amount, in pixels, of extra indentation for child levels
- * in @tree_view.
- *
- * Return value: the amount of extra indentation for child levels in
- * @tree_view.  A return value of 0 means that this feature is disabled.
- *
- * Since: 2.12
- */
-gint
-pspp_sheet_view_get_level_indentation (PsppSheetView *tree_view)
-{
-  g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), 0);
-
-  return tree_view->priv->level_indentation;
-}
-
-/**
  * pspp_sheet_view_set_tooltip_row:
  * @tree_view: a #PsppSheetView
  * @tooltip: a #GtkTooltip
@@ -15431,11 +11943,6 @@ pspp_sheet_view_set_tooltip_row (PsppSheetView *tree_view,
  * area will be set to the full area covered by @column.  See also
  * gtk_tooltip_set_tip_area().
  *
- * Note that if @path is not specified and @cell is set and part of a column
- * containing the expander, the tooltip might not show and hide at the correct
- * position.  In such cases @path must be set to the current node under the
- * mouse cursor for this function to operate correctly.
- *
  * See also pspp_sheet_view_set_tooltip_column() for a simpler alternative.
  *
  * Since: 2.12
@@ -15460,13 +11967,6 @@ pspp_sheet_view_set_tooltip_cell (PsppSheetView       *tree_view,
       GdkRectangle tmp;
       gint start, width;
 
-      /* We always pass in path here, whether it is NULL or not.
-       * For cells in expander columns path must be specified so that
-       * we can correctly account for the indentation.  This also means
-       * that the tooltip is constrained vertically by the "Determine y
-       * values" code below; this is not a real problem since cells actually
-       * don't stretch vertically in constrast to columns.
-       */
       pspp_sheet_view_get_cell_area (tree_view, path, column, &tmp);
       pspp_sheet_view_column_cell_get_position (column, cell, &start, &width);
 

@@ -38,18 +38,15 @@
 
 
 #include <gtk/gtk.h>
+#include "libpspp/range-tower.h"
 #include "ui/gui/pspp-sheet-view.h"
 #include "ui/gui/pspp-sheet-view-column.h"
-#include "ui/gui/pspp-rb-tree.h"
 
 #define TREE_VIEW_DRAG_WIDTH 6
 
 typedef enum
 {
-  PSPP_SHEET_VIEW_IS_LIST = 1 << 0,
-  PSPP_SHEET_VIEW_SHOW_EXPANDERS = 1 << 1,
   PSPP_SHEET_VIEW_IN_COLUMN_RESIZE = 1 << 2,
-  PSPP_SHEET_VIEW_ARROW_PRELIT = 1 << 3,
   PSPP_SHEET_VIEW_HEADERS_VISIBLE = 1 << 4,
   PSPP_SHEET_VIEW_DRAW_KEYFOCUS = 1 << 5,
   PSPP_SHEET_VIEW_MODEL_SETUP = 1 << 6,
@@ -84,7 +81,6 @@ enum
 #define PSPP_SHEET_VIEW_FLAG_SET(tree_view, flag)   ((tree_view->priv->flags&flag)==flag)
 #define TREE_VIEW_HEADER_HEIGHT(tree_view)        (PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_HEADERS_VISIBLE)?tree_view->priv->header_height:0)
 #define TREE_VIEW_COLUMN_REQUESTED_WIDTH(column)  (CLAMP (column->requested_width, (column->min_width!=-1)?column->min_width:column->requested_width, (column->max_width!=-1)?column->max_width:column->requested_width))
-#define TREE_VIEW_DRAW_EXPANDERS(tree_view)       (!PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_IS_LIST)&&PSPP_SHEET_VIEW_FLAG_SET (tree_view, PSPP_SHEET_VIEW_SHOW_EXPANDERS))
 
  /* This lovely little value is used to determine how far away from the title bar
   * you can move the mouse and still have a column drag work.
@@ -106,7 +102,8 @@ struct _PsppSheetViewPrivate
 
   guint flags;
   /* tree information */
-  GtkRBTree *tree;
+  gint row_count;
+  struct range_tower *selected;
 
   /* Container info */
   GList *children;
@@ -134,9 +131,6 @@ struct _PsppSheetViewPrivate
 
   /* Indentation and expander layout */
   gint expander_size;
-  PsppSheetViewColumn *expander_column;
-
-  gint level_indentation;
 
   /* Key navigation (focus), selection */
   gint cursor_offset;
@@ -147,9 +141,6 @@ struct _PsppSheetViewPrivate
   PsppSheetViewColumn *focus_column;
 
   /* Current pressed node, previously pressed, prelight */
-  GtkRBNode *button_pressed_node;
-  GtkRBTree *button_pressed_tree;
-
   gint pressed_button;
   gint press_start_x;
   gint press_start_y;
@@ -161,19 +152,10 @@ struct _PsppSheetViewPrivate
   gint last_button_x;
   gint last_button_y;
 
-  GtkRBNode *prelight_node;
-  GtkRBTree *prelight_tree;
+  int prelight_node;
 
   /* Cell Editing */
   PsppSheetViewColumn *edited_column;
-
-  /* The node that's currently being collapsed or expanded */
-  GtkRBNode *expanded_collapsed_node;
-  GtkRBTree *expanded_collapsed_tree;
-  guint expand_collapse_timeout;
-
-  /* Auto expand/collapse timeout in hover mode */
-  guint auto_expand_timeout;
 
   /* Selection information */
   PsppSheetSelection *selection;
@@ -188,8 +170,6 @@ struct _PsppSheetViewPrivate
   GDestroyNotify column_drop_func_data_destroy;
   GList *column_drag_info;
   PsppSheetViewColumnReorder *cur_reorder;
-
-  gint prev_width_before_expander;
 
   /* Interactive Header reordering */
   GdkWindow *drag_window;
@@ -228,11 +208,9 @@ struct _PsppSheetViewPrivate
   gint rubber_band_shift;
   gint rubber_band_ctrl;
 
-  GtkRBNode *rubber_band_start_node;
-  GtkRBTree *rubber_band_start_tree;
+  int rubber_band_start_node;
 
-  GtkRBNode *rubber_band_end_node;
-  GtkRBTree *rubber_band_end_tree;
+  int rubber_band_end_node;
 
   /* fixed height */
   gint fixed_height;
@@ -261,29 +239,17 @@ struct _PsppSheetViewPrivate
   PsppSheetViewGridLines grid_lines;
   GdkGC *grid_line_gc;
 
-  gboolean tree_lines_enabled;
-  GdkGC *tree_line_gc;
-
-  /* Row separators */
-  PsppSheetViewRowSeparatorFunc row_separator_func;
-  gpointer row_separator_data;
-  GDestroyNotify row_separator_destroy;
-
   /* Tooltip support */
   gint tooltip_column;
 
   /* Here comes the bitfield */
   guint scroll_to_use_align : 1;
 
-  guint fixed_height_mode : 1;
-  guint fixed_height_check : 1;
-
   guint reorderable : 1;
   guint header_has_focus : 1;
   guint drag_column_window_state : 3;
   /* hint to display rows in alternating colors */
   guint has_rules : 1;
-  guint mark_rows_col_dirty : 1;
 
   /* for DnD */
   guint empty_view_drop : 1;
@@ -301,7 +267,6 @@ struct _PsppSheetViewPrivate
   guint search_custom_entry_set : 1;
   
   guint hover_selection : 1;
-  guint hover_expand : 1;
   guint imcontext_changed : 1;
 
   guint rubber_banding_enable : 1;
@@ -386,19 +351,16 @@ struct _PsppSheetViewPrivate
 
 /* functions that shouldn't be exported */
 void         _pspp_sheet_selection_internal_select_node (PsppSheetSelection  *selection,
-						       GtkRBNode         *node,
-						       GtkRBTree         *tree,
+						       int                node,
 						       GtkTreePath       *path,
                                                        GtkTreeSelectMode  mode,
 						       gboolean           override_browse_mode);
 void         _pspp_sheet_selection_emit_changed         (PsppSheetSelection  *selection);
-gboolean     _pspp_sheet_view_find_node                 (PsppSheetView       *tree_view,
+void         _pspp_sheet_view_find_node                 (PsppSheetView       *tree_view,
 						       GtkTreePath       *path,
-						       GtkRBTree        **tree,
-						       GtkRBNode        **node);
+						       int              *node);
 GtkTreePath *_pspp_sheet_view_find_path                 (PsppSheetView       *tree_view,
-						       GtkRBTree         *tree,
-						       GtkRBNode         *node);
+						       int                    node);
 void         _pspp_sheet_view_child_move_resize         (PsppSheetView       *tree_view,
 						       GtkWidget         *widget,
 						       gint               x,
@@ -406,8 +368,7 @@ void         _pspp_sheet_view_child_move_resize         (PsppSheetView       *tr
 						       gint               width,
 						       gint               height);
 void         _pspp_sheet_view_queue_draw_node           (PsppSheetView       *tree_view,
-						       GtkRBTree         *tree,
-						       GtkRBNode         *node,
+						       int                    node,
 						       const GdkRectangle *clip_rect);
 
 void _pspp_sheet_view_column_realize_button   (PsppSheetViewColumn *column);
@@ -445,9 +406,6 @@ PsppSheetSelection* _pspp_sheet_selection_new                (void);
 PsppSheetSelection* _pspp_sheet_selection_new_with_tree_view (PsppSheetView      *tree_view);
 void              _pspp_sheet_selection_set_tree_view      (PsppSheetSelection *selection,
                                                           PsppSheetView      *tree_view);
-gboolean          _pspp_sheet_selection_row_is_selectable  (PsppSheetSelection *selection,
-							  GtkRBNode        *node,
-							  GtkTreePath      *path);
 
 void		  _pspp_sheet_view_column_cell_render      (PsppSheetViewColumn  *tree_column,
 							  GdkWindow          *window,
@@ -469,12 +427,25 @@ void		  _pspp_sheet_view_column_cell_draw_focus  (PsppSheetViewColumn  *tree_col
 							  const GdkRectangle *cell_area,
 							  const GdkRectangle *expose_area,
 							  guint               flags);
-void		  _pspp_sheet_view_column_cell_set_dirty	 (PsppSheetViewColumn  *tree_column,
-							  gboolean            install_handler);
+void		  _pspp_sheet_view_column_cell_set_dirty	 (PsppSheetViewColumn  *tree_column);
 void              _pspp_sheet_view_column_get_neighbor_sizes (PsppSheetViewColumn *column,
 							    GtkCellRenderer   *cell,
 							    gint              *left,
 							    gint              *right);
+
+gboolean pspp_sheet_view_node_is_selected (PsppSheetView *tree_view,
+                                           int node);
+void pspp_sheet_view_node_select (PsppSheetView *tree_view,
+                                  int node);
+void pspp_sheet_view_node_unselect (PsppSheetView *tree_view,
+                                    int node);
+
+gint
+pspp_sheet_view_node_next (PsppSheetView *tree_view,
+                           gint node);
+gint
+pspp_sheet_view_node_prev (PsppSheetView *tree_view,
+                           gint node);
 
 #endif /* __GTK_TREE_PRIVATE_H__ */
 

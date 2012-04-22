@@ -95,18 +95,6 @@ struct _PsppSheetViewClass
   void     (* row_activated)              (PsppSheetView       *tree_view,
 				           GtkTreePath       *path,
 					   PsppSheetViewColumn *column);
-  gboolean (* test_expand_row)            (PsppSheetView       *tree_view,
-				           GtkTreeIter       *iter,
-				           GtkTreePath       *path);
-  gboolean (* test_collapse_row)          (PsppSheetView       *tree_view,
-				           GtkTreeIter       *iter,
-				           GtkTreePath       *path);
-  void     (* row_expanded)               (PsppSheetView       *tree_view,
-				           GtkTreeIter       *iter,
-				           GtkTreePath       *path);
-  void     (* row_collapsed)              (PsppSheetView       *tree_view,
-				           GtkTreeIter       *iter,
-				           GtkTreePath       *path);
   void     (* columns_changed)            (PsppSheetView       *tree_view);
   void     (* cursor_changed)             (PsppSheetView       *tree_view);
 
@@ -119,10 +107,6 @@ struct _PsppSheetViewClass
   gboolean (* select_cursor_row)          (PsppSheetView       *tree_view,
 					   gboolean           start_editing);
   gboolean (* toggle_cursor_row)          (PsppSheetView       *tree_view);
-  gboolean (* expand_collapse_cursor_row) (PsppSheetView       *tree_view,
-					   gboolean           logical,
-					   gboolean           expand,
-					   gboolean           open_all);
   gboolean (* select_cursor_parent)       (PsppSheetView       *tree_view);
   gboolean (* start_interactive_search)   (PsppSheetView       *tree_view);
 
@@ -148,9 +132,6 @@ typedef gboolean (*PsppSheetViewSearchEqualFunc) (GtkTreeModel            *model
 						const gchar             *key,
 						GtkTreeIter             *iter,
 						gpointer                 search_data);
-typedef gboolean (*PsppSheetViewRowSeparatorFunc) (GtkTreeModel      *model,
-						 GtkTreeIter       *iter,
-						 gpointer           data);
 typedef void     (*PsppSheetViewSearchPositionFunc) (PsppSheetView  *tree_view,
 						   GtkWidget    *search_dialog,
 						   gpointer      user_data);
@@ -209,9 +190,6 @@ GList                 *pspp_sheet_view_get_columns                   (PsppSheetV
 void                   pspp_sheet_view_move_column_after             (PsppSheetView               *tree_view,
 								    PsppSheetViewColumn         *column,
 								    PsppSheetViewColumn         *base_column);
-void                   pspp_sheet_view_set_expander_column           (PsppSheetView               *tree_view,
-								    PsppSheetViewColumn         *column);
-PsppSheetViewColumn     *pspp_sheet_view_get_expander_column           (PsppSheetView               *tree_view);
 void                   pspp_sheet_view_set_column_drag_function      (PsppSheetView               *tree_view,
 								    PsppSheetViewColumnDropFunc  func,
 								    gpointer                   user_data,
@@ -230,20 +208,6 @@ void                   pspp_sheet_view_scroll_to_cell                (PsppSheetV
 void                   pspp_sheet_view_row_activated                 (PsppSheetView               *tree_view,
 								    GtkTreePath               *path,
 								    PsppSheetViewColumn         *column);
-void                   pspp_sheet_view_expand_all                    (PsppSheetView               *tree_view);
-void                   pspp_sheet_view_collapse_all                  (PsppSheetView               *tree_view);
-void                   pspp_sheet_view_expand_to_path                (PsppSheetView               *tree_view,
-								    GtkTreePath               *path);
-gboolean               pspp_sheet_view_expand_row                    (PsppSheetView               *tree_view,
-								    GtkTreePath               *path,
-								    gboolean                   open_all);
-gboolean               pspp_sheet_view_collapse_row                  (PsppSheetView               *tree_view,
-								    GtkTreePath               *path);
-void                   pspp_sheet_view_map_expanded_rows             (PsppSheetView               *tree_view,
-								    PsppSheetViewMappingFunc     func,
-								    gpointer                   data);
-gboolean               pspp_sheet_view_row_expanded                  (PsppSheetView               *tree_view,
-								    GtkTreePath               *path);
 void                   pspp_sheet_view_set_reorderable               (PsppSheetView               *tree_view,
 								    gboolean                   reorderable);
 gboolean               pspp_sheet_view_get_reorderable               (PsppSheetView               *tree_view);
@@ -391,26 +355,14 @@ void pspp_sheet_view_set_destroy_count_func (PsppSheetView             *tree_vie
 					   gpointer                 data,
 					   GDestroyNotify           destroy);
 
-void     pspp_sheet_view_set_fixed_height_mode (PsppSheetView          *tree_view,
-					      gboolean              enable);
-gboolean pspp_sheet_view_get_fixed_height_mode (PsppSheetView          *tree_view);
 void     pspp_sheet_view_set_hover_selection   (PsppSheetView          *tree_view,
 					      gboolean              hover);
 gboolean pspp_sheet_view_get_hover_selection   (PsppSheetView          *tree_view);
-void     pspp_sheet_view_set_hover_expand      (PsppSheetView          *tree_view,
-					      gboolean              expand);
-gboolean pspp_sheet_view_get_hover_expand      (PsppSheetView          *tree_view);
 void     pspp_sheet_view_set_rubber_banding    (PsppSheetView          *tree_view,
 					      gboolean              enable);
 gboolean pspp_sheet_view_get_rubber_banding    (PsppSheetView          *tree_view);
 
 gboolean pspp_sheet_view_is_rubber_banding_active (PsppSheetView       *tree_view);
-
-PsppSheetViewRowSeparatorFunc pspp_sheet_view_get_row_separator_func (PsppSheetView               *tree_view);
-void                        pspp_sheet_view_set_row_separator_func (PsppSheetView                *tree_view,
-								  PsppSheetViewRowSeparatorFunc func,
-								  gpointer                    data,
-								  GDestroyNotify              destroy);
 
 PsppSheetViewGridLines        pspp_sheet_view_get_grid_lines         (PsppSheetView                *tree_view);
 void                        pspp_sheet_view_set_grid_lines         (PsppSheetView                *tree_view,
@@ -418,9 +370,6 @@ void                        pspp_sheet_view_set_grid_lines         (PsppSheetVie
 gboolean                    pspp_sheet_view_get_enable_tree_lines  (PsppSheetView                *tree_view);
 void                        pspp_sheet_view_set_enable_tree_lines  (PsppSheetView                *tree_view,
 								  gboolean                    enabled);
-void                        pspp_sheet_view_set_show_expanders     (PsppSheetView                *tree_view,
-								  gboolean                    enabled);
-gboolean                    pspp_sheet_view_get_show_expanders     (PsppSheetView                *tree_view);
 void                        pspp_sheet_view_set_level_indentation  (PsppSheetView                *tree_view,
 								  gint                        indentation);
 gint                        pspp_sheet_view_get_level_indentation  (PsppSheetView                *tree_view);

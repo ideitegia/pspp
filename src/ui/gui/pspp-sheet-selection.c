@@ -42,12 +42,13 @@
 
 #include "ui/gui/pspp-sheet-selection.h"
 
+#include "libpspp/range-set.h"
+
 static void pspp_sheet_selection_finalize          (GObject               *object);
 static gint pspp_sheet_selection_real_select_all   (PsppSheetSelection      *selection);
 static gint pspp_sheet_selection_real_unselect_all (PsppSheetSelection      *selection);
 static gint pspp_sheet_selection_real_select_node  (PsppSheetSelection      *selection,
-						  GtkRBTree             *tree,
-						  GtkRBNode             *node,
+						  int node,
 						  gboolean               select);
 
 enum
@@ -89,17 +90,6 @@ pspp_sheet_selection_init (PsppSheetSelection *selection)
 static void
 pspp_sheet_selection_finalize (GObject *object)
 {
-  PsppSheetSelection *selection = PSPP_SHEET_SELECTION (object);
-
-  if (selection->destroy)
-    {
-      GDestroyNotify d = selection->destroy;
-
-      selection->destroy = NULL;
-      d (selection->user_data);
-    }
-
-  /* chain parent_class' handler */
   G_OBJECT_CLASS (pspp_sheet_selection_parent_class)->finalize (object);
 }
 
@@ -175,7 +165,6 @@ void
 pspp_sheet_selection_set_mode (PsppSheetSelection *selection,
 			     GtkSelectionMode  type)
 {
-  PsppSheetSelectionFunc tmp_func;
   g_return_if_fail (PSPP_IS_SHEET_SELECTION (selection));
 
   if (selection->type == type)
@@ -184,12 +173,7 @@ pspp_sheet_selection_set_mode (PsppSheetSelection *selection,
   
   if (type == GTK_SELECTION_NONE)
     {
-      /* We do this so that we unconditionally unset all rows
-       */
-      tmp_func = selection->user_func;
-      selection->user_func = NULL;
       pspp_sheet_selection_unselect_all (selection);
-      selection->user_func = tmp_func;
 
       gtk_tree_row_reference_free (selection->tree_view->priv->anchor);
       selection->tree_view->priv->anchor = NULL;
@@ -197,8 +181,7 @@ pspp_sheet_selection_set_mode (PsppSheetSelection *selection,
   else if (type == GTK_SELECTION_SINGLE ||
 	   type == GTK_SELECTION_BROWSE)
     {
-      GtkRBTree *tree = NULL;
-      GtkRBNode *node = NULL;
+      int node = -1;
       gint selected = FALSE;
       GtkTreePath *anchor_path = NULL;
 
@@ -210,25 +193,20 @@ pspp_sheet_selection_set_mode (PsppSheetSelection *selection,
             {
               _pspp_sheet_view_find_node (selection->tree_view,
                                         anchor_path,
-                                        &tree,
                                         &node);
 
-              if (node && PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
+              if (node >= 0 && pspp_sheet_view_node_is_selected (selection->tree_view, node))
                 selected = TRUE;
             }
 	}
 
       /* We do this so that we unconditionally unset all rows
        */
-      tmp_func = selection->user_func;
-      selection->user_func = NULL;
       pspp_sheet_selection_unselect_all (selection);
-      selection->user_func = tmp_func;
 
-      if (node && selected)
+      if (node >= 0 && selected)
 	_pspp_sheet_selection_internal_select_node (selection,
 						  node,
-						  tree,
 						  anchor_path,
                                                   0,
 						  FALSE);
@@ -254,74 +232,6 @@ pspp_sheet_selection_get_mode (PsppSheetSelection *selection)
   g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), GTK_SELECTION_SINGLE);
 
   return selection->type;
-}
-
-/**
- * pspp_sheet_selection_set_select_function:
- * @selection: A #PsppSheetSelection.
- * @func: The selection function.
- * @data: The selection function's data.
- * @destroy: The destroy function for user data.  May be NULL.
- *
- * Sets the selection function.  If set, this function is called before any node
- * is selected or unselected, giving some control over which nodes are selected.
- * The select function should return %TRUE if the state of the node may be toggled,
- * and %FALSE if the state of the node should be left unchanged.
- **/
-void
-pspp_sheet_selection_set_select_function (PsppSheetSelection     *selection,
-					PsppSheetSelectionFunc  func,
-					gpointer              data,
-					GDestroyNotify        destroy)
-{
-  g_return_if_fail (PSPP_IS_SHEET_SELECTION (selection));
-  g_return_if_fail (func != NULL);
-
-  if (selection->destroy)
-    {
-      GDestroyNotify d = selection->destroy;
-
-      selection->destroy = NULL;
-      d (selection->user_data);
-    }
-
-  selection->user_func = func;
-  selection->user_data = data;
-  selection->destroy = destroy;
-}
-
-/**
- * pspp_sheet_selection_get_select_function:
- * @selection: A #PsppSheetSelection.
- *
- * Returns the current selection function.
- *
- * Return value: The function.
- *
- * Since: 2.14
- **/
-PsppSheetSelectionFunc
-pspp_sheet_selection_get_select_function (PsppSheetSelection *selection)
-{
-  g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), NULL);
-
-  return selection->user_func;
-}
-
-/**
- * pspp_sheet_selection_get_user_data:
- * @selection: A #PsppSheetSelection.
- *
- * Returns the user data for the selection function.
- *
- * Return value: The user data.
- **/
-gpointer
-pspp_sheet_selection_get_user_data (PsppSheetSelection *selection)
-{
-  g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), NULL);
-
-  return selection->user_data;
 }
 
 /**
@@ -359,11 +269,9 @@ pspp_sheet_selection_get_selected (PsppSheetSelection  *selection,
 				 GtkTreeModel     **model,
 				 GtkTreeIter       *iter)
 {
-  GtkRBTree *tree;
-  GtkRBNode *node;
+  int node;
   GtkTreePath *anchor_path;
   gboolean retval;
-  gboolean found_node;
 
   g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), FALSE);
   g_return_val_if_fail (selection->type != GTK_SELECTION_MULTIPLE, FALSE);
@@ -386,12 +294,11 @@ pspp_sheet_selection_get_selected (PsppSheetSelection  *selection,
 
   retval = FALSE;
 
-  found_node = !_pspp_sheet_view_find_node (selection->tree_view,
-                                          anchor_path,
-                                          &tree,
-                                          &node);
+  _pspp_sheet_view_find_node (selection->tree_view,
+                              anchor_path,
+                              &node);
 
-  if (found_node && PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
+  if (pspp_sheet_view_node_is_selected (selection->tree_view, node))
     {
       /* we only want to return the anchor if it exists in the rbtree and
        * is selected.
@@ -439,10 +346,9 @@ GList *
 pspp_sheet_selection_get_selected_rows (PsppSheetSelection   *selection,
                                       GtkTreeModel      **model)
 {
+  const struct range_tower_node *node;
+  unsigned long int start;
   GList *list = NULL;
-  GtkRBTree *tree = NULL;
-  GtkRBNode *node = NULL;
-  GtkTreePath *path;
 
   g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), NULL);
   g_return_val_if_fail (selection->tree_view != NULL, NULL);
@@ -450,8 +356,7 @@ pspp_sheet_selection_get_selected_rows (PsppSheetSelection   *selection,
   if (model)
     *model = selection->tree_view->priv->model;
 
-  if (selection->tree_view->priv->tree == NULL ||
-      selection->tree_view->priv->tree->root == NULL)
+  if (selection->tree_view->priv->row_count == 0)
     return NULL;
 
   if (selection->type == GTK_SELECTION_NONE)
@@ -473,80 +378,16 @@ pspp_sheet_selection_get_selected_rows (PsppSheetSelection   *selection,
       return NULL;
     }
 
-  tree = selection->tree_view->priv->tree;
-  node = selection->tree_view->priv->tree->root;
-
-  while (node->left != tree->nil)
-    node = node->left;
-  path = gtk_tree_path_new_first ();
-
-  do
+  RANGE_TOWER_FOR_EACH (node, start, selection->tree_view->priv->selected)
     {
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
-	list = g_list_prepend (list, gtk_tree_path_copy (path));
+      unsigned long int width = range_tower_node_get_width (node);
+      unsigned long int index;
 
-      if (node->children)
-        {
-	  tree = node->children;
-	  node = tree->root;
-
-	  while (node->left != tree->nil)
-	    node = node->left;
-
-	  gtk_tree_path_append_index (path, 0);
-	}
-      else
-        {
-	  gboolean done = FALSE;
-
-	  do
-	    {
-	      node = _pspp_rbtree_next (tree, node);
-	      if (node != NULL)
-	        {
-		  done = TRUE;
-		  gtk_tree_path_next (path);
-		}
-	      else
-	        {
-		  node = tree->parent_node;
-		  tree = tree->parent_tree;
-
-		  if (!tree)
-		    {
-		      gtk_tree_path_free (path);
-
-		      goto done; 
-		    }
-
-		  gtk_tree_path_up (path);
-		}
-	    }
-	  while (!done);
-	}
+      for (index = start; index < start + width; index++)
+        list = g_list_prepend (list, gtk_tree_path_new_from_indices (index, -1));
     }
-  while (TRUE);
 
-  gtk_tree_path_free (path);
-
- done:
   return g_list_reverse (list);
-}
-
-static void
-pspp_sheet_selection_count_selected_rows_helper (GtkRBTree *tree,
-					       GtkRBNode *node,
-					       gpointer   data)
-{
-  gint *count = (gint *)data;
-
-  if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
-    (*count)++;
-
-  if (node->children)
-    _pspp_rbtree_traverse (node->children, node->children->root,
-			  G_PRE_ORDER,
-			  pspp_sheet_selection_count_selected_rows_helper, data);
 }
 
 /**
@@ -562,13 +403,14 @@ pspp_sheet_selection_count_selected_rows_helper (GtkRBTree *tree,
 gint
 pspp_sheet_selection_count_selected_rows (PsppSheetSelection *selection)
 {
+  const struct range_tower_node *node;
+  unsigned long int start;
   gint count = 0;
 
   g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), 0);
   g_return_val_if_fail (selection->tree_view != NULL, 0);
 
-  if (selection->tree_view->priv->tree == NULL ||
-      selection->tree_view->priv->tree->root == NULL)
+  if (selection->tree_view->priv->row_count == 0)
     return 0;
 
   if (selection->type == GTK_SELECTION_SINGLE ||
@@ -580,11 +422,9 @@ pspp_sheet_selection_count_selected_rows (PsppSheetSelection *selection)
 	return 0;
     }
 
-  _pspp_rbtree_traverse (selection->tree_view->priv->tree,
-                        selection->tree_view->priv->tree->root,
-			G_PRE_ORDER,
-			pspp_sheet_selection_count_selected_rows_helper,
-			&count);
+  count = 0;
+  RANGE_TOWER_FOR_EACH (node, start, selection->tree_view->priv->selected)
+    count += range_tower_node_get_width (node);
 
   return count;
 }
@@ -613,9 +453,9 @@ pspp_sheet_selection_selected_foreach (PsppSheetSelection            *selection,
 				     PsppSheetSelectionForeachFunc  func,
 				     gpointer                     data)
 {
+  const struct range_tower_node *node;
+  unsigned long int start;
   GtkTreePath *path;
-  GtkRBTree *tree;
-  GtkRBNode *node;
   GtkTreeIter iter;
   GtkTreeModel *model;
 
@@ -626,8 +466,7 @@ pspp_sheet_selection_selected_foreach (PsppSheetSelection            *selection,
   g_return_if_fail (selection->tree_view != NULL);
 
   if (func == NULL ||
-      selection->tree_view->priv->tree == NULL ||
-      selection->tree_view->priv->tree->root == NULL)
+      selection->tree_view->priv->row_count == 0)
     return;
 
   if (selection->type == GTK_SELECTION_SINGLE ||
@@ -642,12 +481,6 @@ pspp_sheet_selection_selected_foreach (PsppSheetSelection            *selection,
 	}
       return;
     }
-
-  tree = selection->tree_view->priv->tree;
-  node = selection->tree_view->priv->tree->root;
-  
-  while (node->left != tree->nil)
-    node = node->left;
 
   model = selection->tree_view->priv->model;
   g_object_ref (model);
@@ -666,66 +499,22 @@ pspp_sheet_selection_selected_foreach (PsppSheetSelection            *selection,
 					 G_CALLBACK (model_changed), 
 					 &stop);
 
-  /* find the node internally */
-  path = gtk_tree_path_new_first ();
-
-  do
+  RANGE_TOWER_FOR_EACH (node, start, selection->tree_view->priv->selected)
     {
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
+      unsigned long int width = range_tower_node_get_width (node);
+      unsigned long int index;
+
+      for (index = start; index < start + width; index++)
         {
+          GtkTreePath *path;
+          GtkTreeIter iter;
+
+          path = gtk_tree_path_new_from_indices (index, -1);
           gtk_tree_model_get_iter (model, &iter, path);
 	  (* func) (model, path, &iter, data);
+          gtk_tree_path_free (path);
         }
-
-      if (stop)
-	goto out;
-
-      if (node->children)
-	{
-	  tree = node->children;
-	  node = tree->root;
-
-	  while (node->left != tree->nil)
-	    node = node->left;
-
-	  gtk_tree_path_append_index (path, 0);
-	}
-      else
-	{
-	  gboolean done = FALSE;
-
-	  do
-	    {
-	      node = _pspp_rbtree_next (tree, node);
-	      if (node != NULL)
-		{
-		  done = TRUE;
-		  gtk_tree_path_next (path);
-		}
-	      else
-		{
-		  node = tree->parent_node;
-		  tree = tree->parent_tree;
-
-		  if (tree == NULL)
-		    {
-		      /* we've run out of tree */
-		      /* We're done with this function */
-
-		      goto out;
-		    }
-
-		  gtk_tree_path_up (path);
-		}
-	    }
-	  while (!done);
-	}
     }
-  while (TRUE);
-
-out:
-  if (path)
-    gtk_tree_path_free (path);
 
   g_signal_handler_disconnect (model, inserted_id);
   g_signal_handler_disconnect (model, deleted_id);
@@ -752,22 +541,18 @@ void
 pspp_sheet_selection_select_path (PsppSheetSelection *selection,
 				GtkTreePath      *path)
 {
-  GtkRBNode *node;
-  GtkRBTree *tree;
-  gboolean ret;
+  int node;
   GtkTreeSelectMode mode = 0;
 
   g_return_if_fail (PSPP_IS_SHEET_SELECTION (selection));
   g_return_if_fail (selection->tree_view != NULL);
   g_return_if_fail (path != NULL);
 
-  ret = _pspp_sheet_view_find_node (selection->tree_view,
-				  path,
-				  &tree,
-				  &node);
+   _pspp_sheet_view_find_node (selection->tree_view,
+                               path,
+                               &node);
 
-  if (node == NULL || PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED) ||
-      ret == TRUE)
+  if (node < 0 || pspp_sheet_view_node_is_selected (selection->tree_view, node)) 
     return;
 
   if (selection->type == GTK_SELECTION_MULTIPLE)
@@ -775,7 +560,6 @@ pspp_sheet_selection_select_path (PsppSheetSelection *selection,
 
   _pspp_sheet_selection_internal_select_node (selection,
 					    node,
-					    tree,
 					    path,
                                             mode,
 					    FALSE);
@@ -792,26 +576,21 @@ void
 pspp_sheet_selection_unselect_path (PsppSheetSelection *selection,
 				  GtkTreePath      *path)
 {
-  GtkRBNode *node;
-  GtkRBTree *tree;
-  gboolean ret;
+  int node;
 
   g_return_if_fail (PSPP_IS_SHEET_SELECTION (selection));
   g_return_if_fail (selection->tree_view != NULL);
   g_return_if_fail (path != NULL);
 
-  ret = _pspp_sheet_view_find_node (selection->tree_view,
-				  path,
-				  &tree,
-				  &node);
+  _pspp_sheet_view_find_node (selection->tree_view,
+                              path,
+                              &node);
 
-  if (node == NULL || !PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED) ||
-      ret == TRUE)
+  if (node < 0 || !pspp_sheet_view_node_is_selected (selection->tree_view, node)) 
     return;
 
   _pspp_sheet_selection_internal_select_node (selection,
 					    node,
-					    tree,
 					    path,
                                             GTK_TREE_SELECT_MODE_TOGGLE,
 					    TRUE);
@@ -888,9 +667,7 @@ gboolean
 pspp_sheet_selection_path_is_selected (PsppSheetSelection *selection,
 				     GtkTreePath      *path)
 {
-  GtkRBNode *node;
-  GtkRBTree *tree;
-  gboolean ret;
+  int node;
 
   g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection), FALSE);
   g_return_val_if_fail (path != NULL, FALSE);
@@ -899,13 +676,11 @@ pspp_sheet_selection_path_is_selected (PsppSheetSelection *selection,
   if (selection->tree_view->priv->model == NULL)
     return FALSE;
 
-  ret = _pspp_sheet_view_find_node (selection->tree_view,
+  _pspp_sheet_view_find_node (selection->tree_view,
 				  path,
-				  &tree,
 				  &node);
 
-  if ((node == NULL) || !PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED) ||
-      ret == TRUE)
+  if (node < 0 || !pspp_sheet_view_node_is_selected (selection->tree_view, node)) 
     return FALSE;
 
   return TRUE;
@@ -943,60 +718,30 @@ pspp_sheet_selection_iter_is_selected (PsppSheetSelection *selection,
 }
 
 
-/* Wish I was in python, right now... */
-struct _TempTuple {
-  PsppSheetSelection *selection;
-  gint dirty;
-};
-
-static void
-select_all_helper (GtkRBTree  *tree,
-		   GtkRBNode  *node,
-		   gpointer    data)
-{
-  struct _TempTuple *tuple = data;
-
-  if (node->children)
-    _pspp_rbtree_traverse (node->children,
-			  node->children->root,
-			  G_PRE_ORDER,
-			  select_all_helper,
-			  data);
-  if (!PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
-    {
-      tuple->dirty = pspp_sheet_selection_real_select_node (tuple->selection, tree, node, TRUE) || tuple->dirty;
-    }
-}
-
-
 /* We have a real_{un,}select_all function that doesn't emit the signal, so we
  * can use it in other places without fear of the signal being emitted.
  */
 static gint
 pspp_sheet_selection_real_select_all (PsppSheetSelection *selection)
 {
-  struct _TempTuple *tuple;
+  const struct range_tower_node *node;
+  int row_count = selection->tree_view->priv->row_count;
 
-  if (selection->tree_view->priv->tree == NULL)
+  if (row_count == 0)
     return FALSE;
 
-  /* Mark all nodes selected */
-  tuple = g_new (struct _TempTuple, 1);
-  tuple->selection = selection;
-  tuple->dirty = FALSE;
+  node = range_tower_first (selection->tree_view->priv->selected);
+  if (node
+      && range_tower_node_get_start (node) == 0
+      && range_tower_node_get_width (node) >= row_count)
+    return FALSE;
 
-  _pspp_rbtree_traverse (selection->tree_view->priv->tree,
-			selection->tree_view->priv->tree->root,
-			G_PRE_ORDER,
-			select_all_helper,
-			tuple);
-  if (tuple->dirty)
-    {
-      g_free (tuple);
-      return TRUE;
-    }
-  g_free (tuple);
-  return FALSE;
+  range_tower_set1 (selection->tree_view->priv->selected, 0, row_count);
+
+  /* XXX we could invalidate individual visible rows instead */
+  gdk_window_invalidate_rect (selection->tree_view->priv->bin_window, NULL, TRUE);
+
+  return TRUE;
 }
 
 /**
@@ -1012,7 +757,7 @@ pspp_sheet_selection_select_all (PsppSheetSelection *selection)
   g_return_if_fail (PSPP_IS_SHEET_SELECTION (selection));
   g_return_if_fail (selection->tree_view != NULL);
 
-  if (selection->tree_view->priv->tree == NULL || selection->tree_view->priv->model == NULL)
+  if (selection->tree_view->priv->row_count == 0 || selection->tree_view->priv->model == NULL)
     return;
 
   g_return_if_fail (selection->type == GTK_SELECTION_MULTIPLE);
@@ -1021,35 +766,13 @@ pspp_sheet_selection_select_all (PsppSheetSelection *selection)
     g_signal_emit (selection, tree_selection_signals[CHANGED], 0);
 }
 
-static void
-unselect_all_helper (GtkRBTree  *tree,
-		     GtkRBNode  *node,
-		     gpointer    data)
-{
-  struct _TempTuple *tuple = data;
-
-  if (node->children)
-    _pspp_rbtree_traverse (node->children,
-			  node->children->root,
-			  G_PRE_ORDER,
-			  unselect_all_helper,
-			  data);
-  if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
-    {
-      tuple->dirty = pspp_sheet_selection_real_select_node (tuple->selection, tree, node, FALSE) || tuple->dirty;
-    }
-}
-
 static gint
 pspp_sheet_selection_real_unselect_all (PsppSheetSelection *selection)
 {
-  struct _TempTuple *tuple;
-
   if (selection->type == GTK_SELECTION_SINGLE ||
       selection->type == GTK_SELECTION_BROWSE)
     {
-      GtkRBTree *tree = NULL;
-      GtkRBNode *node = NULL;
+      int node = -1;
       GtkTreePath *anchor_path;
 
       if (selection->tree_view->priv->anchor == NULL)
@@ -1062,17 +785,16 @@ pspp_sheet_selection_real_unselect_all (PsppSheetSelection *selection)
 
       _pspp_sheet_view_find_node (selection->tree_view,
                                 anchor_path,
-				&tree,
 				&node);
 
       gtk_tree_path_free (anchor_path);
 
-      if (tree == NULL)
+      if (node < 0)
         return FALSE;
 
-      if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED))
+      if (pspp_sheet_view_node_is_selected (selection->tree_view, node))
 	{
-	  if (pspp_sheet_selection_real_select_node (selection, tree, node, FALSE))
+	  if (pspp_sheet_selection_real_select_node (selection, node, FALSE))
 	    {
 	      gtk_tree_row_reference_free (selection->tree_view->priv->anchor);
 	      selection->tree_view->priv->anchor = NULL;
@@ -1081,25 +803,16 @@ pspp_sheet_selection_real_unselect_all (PsppSheetSelection *selection)
 	}
       return FALSE;
     }
+  else if (range_tower_is_empty (selection->tree_view->priv->selected))
+    return FALSE;
   else
     {
-      tuple = g_new (struct _TempTuple, 1);
-      tuple->selection = selection;
-      tuple->dirty = FALSE;
+      range_tower_set0 (selection->tree_view->priv->selected, 0, ULONG_MAX);
 
-      _pspp_rbtree_traverse (selection->tree_view->priv->tree,
-                            selection->tree_view->priv->tree->root,
-                            G_PRE_ORDER,
-                            unselect_all_helper,
-                            tuple);
+      /* XXX we could invalidate individual visible rows instead */
+      gdk_window_invalidate_rect (selection->tree_view->priv->bin_window, NULL, TRUE);
 
-      if (tuple->dirty)
-        {
-          g_free (tuple);
-          return TRUE;
-        }
-      g_free (tuple);
-      return FALSE;
+      return TRUE;
     }
 }
 
@@ -1115,7 +828,7 @@ pspp_sheet_selection_unselect_all (PsppSheetSelection *selection)
   g_return_if_fail (PSPP_IS_SHEET_SELECTION (selection));
   g_return_if_fail (selection->tree_view != NULL);
 
-  if (selection->tree_view->priv->tree == NULL || selection->tree_view->priv->model == NULL)
+  if (selection->tree_view->priv->row_count == 0 || selection->tree_view->priv->model == NULL)
     return;
   
   if (pspp_sheet_selection_real_unselect_all (selection))
@@ -1134,8 +847,7 @@ pspp_sheet_selection_real_modify_range (PsppSheetSelection *selection,
 				      GtkTreePath      *start_path,
 				      GtkTreePath      *end_path)
 {
-  GtkRBNode *start_node, *end_node;
-  GtkRBTree *start_tree, *end_tree;
+  int start_node, end_node;
   GtkTreePath *anchor_path = NULL;
   gboolean dirty = FALSE;
 
@@ -1144,38 +856,32 @@ pspp_sheet_selection_real_modify_range (PsppSheetSelection *selection,
     case 1:
       _pspp_sheet_view_find_node (selection->tree_view,
 				end_path,
-				&start_tree,
 				&start_node);
       _pspp_sheet_view_find_node (selection->tree_view,
 				start_path,
-				&end_tree,
 				&end_node);
       anchor_path = start_path;
       break;
     case 0:
       _pspp_sheet_view_find_node (selection->tree_view,
 				start_path,
-				&start_tree,
 				&start_node);
-      end_tree = start_tree;
       end_node = start_node;
       anchor_path = start_path;
       break;
     case -1:
       _pspp_sheet_view_find_node (selection->tree_view,
 				start_path,
-				&start_tree,
 				&start_node);
       _pspp_sheet_view_find_node (selection->tree_view,
 				end_path,
-				&end_tree,
 				&end_node);
       anchor_path = start_path;
       break;
     }
 
-  g_return_val_if_fail (start_node != NULL, FALSE);
-  g_return_val_if_fail (end_node != NULL, FALSE);
+  g_return_val_if_fail (start_node >= 0, FALSE);
+  g_return_val_if_fail (end_node >= 0, FALSE);
 
   if (anchor_path)
     {
@@ -1190,28 +896,18 @@ pspp_sheet_selection_real_modify_range (PsppSheetSelection *selection,
 
   do
     {
-      dirty |= pspp_sheet_selection_real_select_node (selection, start_tree, start_node, (mode == RANGE_SELECT)?TRUE:FALSE);
+      dirty |= pspp_sheet_selection_real_select_node (selection, start_node, (mode == RANGE_SELECT)?TRUE:FALSE);
 
       if (start_node == end_node)
 	break;
 
-      if (start_node->children)
-	{
-	  start_tree = start_node->children;
-	  start_node = start_tree->root;
-	  while (start_node->left != start_tree->nil)
-	    start_node = start_node->left;
-	}
-      else
-	{
-	  _pspp_rbtree_next_full (start_tree, start_node, &start_tree, &start_node);
-	  if (start_tree == NULL)
-	    {
-	      /* we just ran out of tree.  That means someone passed in bogus values.
-	       */
-	      return dirty;
-	    }
-	}
+      start_node = pspp_sheet_view_node_next (selection->tree_view, start_node);
+      if (start_node < 0)
+        {
+          /* we just ran out of tree.  That means someone passed in bogus values.
+           */
+          return dirty;
+        }
     }
   while (TRUE);
 
@@ -1265,34 +961,22 @@ pspp_sheet_selection_unselect_range (PsppSheetSelection *selection,
     g_signal_emit (selection, tree_selection_signals[CHANGED], 0);
 }
 
-gboolean
-_pspp_sheet_selection_row_is_selectable (PsppSheetSelection *selection,
-				       GtkRBNode        *node,
-				       GtkTreePath      *path)
+struct range_set *
+pspp_sheet_selection_get_range_set (PsppSheetSelection *selection)
 {
-  GtkTreeIter iter;
-  gboolean sensitive = FALSE;
+  const struct range_tower_node *node;
+  unsigned long int start;
+  struct range_set *set;
 
-  if (!gtk_tree_model_get_iter (selection->tree_view->priv->model, &iter, path))
-    sensitive = TRUE;
+  g_return_val_if_fail (PSPP_IS_SHEET_SELECTION (selection),
+                        range_set_create ());
+  g_return_val_if_fail (selection->tree_view != NULL, range_set_create ());
 
-  if (!sensitive && selection->tree_view->priv->row_separator_func)
-    {
-      /* never allow separators to be selected */
-      if ((* selection->tree_view->priv->row_separator_func) (selection->tree_view->priv->model,
-							      &iter,
-							      selection->tree_view->priv->row_separator_data))
-	return FALSE;
-    }
-
-  if (selection->user_func)
-    return (*selection->user_func) (selection, selection->tree_view->priv->model, path,
-				    PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED),
-				    selection->user_data);
-  else
-    return TRUE;
+  set = range_set_create ();
+  RANGE_TOWER_FOR_EACH (node, start, selection->tree_view->priv->selected)
+    range_set_set1 (set, start, range_tower_node_get_width (node));
+  return set;
 }
-
 
 /* Called internally by gtktreeview.c It handles actually selecting the tree.
  */
@@ -1304,13 +988,11 @@ _pspp_sheet_selection_row_is_selectable (PsppSheetSelection *selection,
  */
 void
 _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
-					  GtkRBNode        *node,
-					  GtkRBTree        *tree,
+					  int               node,
 					  GtkTreePath      *path,
                                           GtkTreeSelectMode mode,
 					  gboolean          override_browse_mode)
 {
-  gint flags;
   gint dirty = FALSE;
   GtkTreePath *anchor_path = NULL;
 
@@ -1341,15 +1023,7 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
 	{
 	  if (anchor_path)
 	    {
-	      /* We only want to select the new node if we can unselect the old one,
-	       * and we can select the new one. */
-	      dirty = _pspp_sheet_selection_row_is_selectable (selection, node, path);
-
-	      /* if dirty is FALSE, we weren't able to select the new one, otherwise, we try to
-	       * unselect the new one
-	       */
-	      if (dirty)
-		dirty = pspp_sheet_selection_real_unselect_all (selection);
+              dirty = pspp_sheet_selection_real_unselect_all (selection);
 
 	      /* if dirty is TRUE at this point, we successfully unselected the
 	       * old one, and can then select the new one */
@@ -1361,7 +1035,7 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
                       selection->tree_view->priv->anchor = NULL;
                     }
 
-		  if (pspp_sheet_selection_real_select_node (selection, tree, node, TRUE))
+		  if (pspp_sheet_selection_real_select_node (selection, node, TRUE))
 		    {
 		      selection->tree_view->priv->anchor =
 			gtk_tree_row_reference_new_proxy (G_OBJECT (selection->tree_view), selection->tree_view->priv->model, path);
@@ -1370,7 +1044,7 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
 	    }
 	  else
 	    {
-	      if (pspp_sheet_selection_real_select_node (selection, tree, node, TRUE))
+	      if (pspp_sheet_selection_real_select_node (selection, node, TRUE))
 		{
 		  dirty = TRUE;
 		  if (selection->tree_view->priv->anchor)
@@ -1392,7 +1066,7 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
 
 	  selection->tree_view->priv->anchor =
 	    gtk_tree_row_reference_new_proxy (G_OBJECT (selection->tree_view), selection->tree_view->priv->model, path);
-	  dirty = pspp_sheet_selection_real_select_node (selection, tree, node, TRUE);
+	  dirty = pspp_sheet_selection_real_select_node (selection, node, TRUE);
 	}
       else if ((mode & (GTK_TREE_SELECT_MODE_EXTEND | GTK_TREE_SELECT_MODE_TOGGLE)) == (GTK_TREE_SELECT_MODE_EXTEND | GTK_TREE_SELECT_MODE_TOGGLE))
 	{
@@ -1402,17 +1076,17 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
 	}
       else if ((mode & GTK_TREE_SELECT_MODE_TOGGLE) == GTK_TREE_SELECT_MODE_TOGGLE)
 	{
-	  flags = node->flags;
+          bool selected = pspp_sheet_view_node_is_selected (selection->tree_view, node);
 	  if (selection->tree_view->priv->anchor)
 	    gtk_tree_row_reference_free (selection->tree_view->priv->anchor);
 
 	  selection->tree_view->priv->anchor =
 	    gtk_tree_row_reference_new_proxy (G_OBJECT (selection->tree_view), selection->tree_view->priv->model, path);
 
-	  if ((flags & PSPP_RBNODE_IS_SELECTED) == PSPP_RBNODE_IS_SELECTED)
-	    dirty |= pspp_sheet_selection_real_select_node (selection, tree, node, FALSE);
+	  if (selected)
+	    dirty |= pspp_sheet_selection_real_select_node (selection, node, FALSE);
 	  else
-	    dirty |= pspp_sheet_selection_real_select_node (selection, tree, node, TRUE);
+	    dirty |= pspp_sheet_selection_real_select_node (selection, node, TRUE);
 	}
       else if ((mode & GTK_TREE_SELECT_MODE_EXTEND) == GTK_TREE_SELECT_MODE_EXTEND)
 	{
@@ -1432,7 +1106,7 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
 	  selection->tree_view->priv->anchor =
 	    gtk_tree_row_reference_new_proxy (G_OBJECT (selection->tree_view), selection->tree_view->priv->model, path);
 
-	  dirty |= pspp_sheet_selection_real_select_node (selection, tree, node, TRUE);
+	  dirty |= pspp_sheet_selection_real_select_node (selection, node, TRUE);
 	}
     }
 
@@ -1455,27 +1129,18 @@ _pspp_sheet_selection_emit_changed (PsppSheetSelection *selection)
 
 static gint
 pspp_sheet_selection_real_select_node (PsppSheetSelection *selection,
-				     GtkRBTree        *tree,
-				     GtkRBNode        *node,
+				     int               node,
 				     gboolean          select)
 {
-  gboolean toggle = FALSE;
-  GtkTreePath *path = NULL;
-
   select = !! select;
-
-  if (PSPP_RBNODE_FLAG_SET (node, PSPP_RBNODE_IS_SELECTED) != select)
+  if (pspp_sheet_view_node_is_selected (selection->tree_view, node) != select)
     {
-      path = _pspp_sheet_view_find_path (selection->tree_view, tree, node);
-      toggle = _pspp_sheet_selection_row_is_selectable (selection, node, path);
-      gtk_tree_path_free (path);
-    }
+      if (select)
+        pspp_sheet_view_node_select (selection->tree_view, node);
+      else
+        pspp_sheet_view_node_unselect (selection->tree_view, node);
 
-  if (toggle)
-    {
-      node->flags ^= PSPP_RBNODE_IS_SELECTED;
-
-      _pspp_sheet_view_queue_draw_node (selection->tree_view, tree, node, NULL);
+      _pspp_sheet_view_queue_draw_node (selection->tree_view, node, NULL);
       
       return TRUE;
     }

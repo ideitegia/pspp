@@ -55,7 +55,6 @@ enum
   PROP_RESIZABLE,
   PROP_WIDTH,
   PROP_SPACING,
-  PROP_SIZING,
   PROP_FIXED_WIDTH,
   PROP_MIN_WIDTH,
   PROP_MAX_WIDTH,
@@ -235,14 +234,6 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
 						     G_MAXINT,
 						     0,
 						     GTK_PARAM_READWRITE));
-  g_object_class_install_property (object_class,
-                                   PROP_SIZING,
-                                   g_param_spec_enum ("sizing",
-                                                      P_("Sizing"),
-                                                      P_("Resize mode of the column"),
-                                                      PSPP_TYPE_SHEET_VIEW_COLUMN_SIZING,
-                                                      PSPP_SHEET_VIEW_COLUMN_GROW_ONLY,
-                                                      GTK_PARAM_READWRITE));
   
   g_object_class_install_property (object_class,
                                    PROP_FIXED_WIDTH,
@@ -251,7 +242,7 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
                                                      P_("Current fixed width of the column"),
                                                      1,
                                                      G_MAXINT,
-                                                     1, /* not useful */
+                                                     100,
                                                      GTK_PARAM_READWRITE));
 
   g_object_class_install_property (object_class,
@@ -393,7 +384,6 @@ pspp_sheet_view_column_init (PsppSheetViewColumn *tree_column)
   tree_column->min_width = -1;
   tree_column->max_width = -1;
   tree_column->resized_width = 0;
-  tree_column->column_type = PSPP_SHEET_VIEW_COLUMN_GROW_ONLY;
   tree_column->visible = TRUE;
   tree_column->resizable = FALSE;
   tree_column->expand = FALSE;
@@ -463,11 +453,6 @@ pspp_sheet_view_column_set_property (GObject         *object,
     case PROP_RESIZABLE:
       pspp_sheet_view_column_set_resizable (tree_column,
 					  g_value_get_boolean (value));
-      break;
-
-    case PROP_SIZING:
-      pspp_sheet_view_column_set_sizing (tree_column,
-                                       g_value_get_enum (value));
       break;
 
     case PROP_FIXED_WIDTH:
@@ -571,11 +556,6 @@ pspp_sheet_view_column_get_property (GObject         *object,
     case PROP_SPACING:
       g_value_set_int (value,
                        pspp_sheet_view_column_get_spacing (tree_column));
-      break;
-
-    case PROP_SIZING:
-      g_value_set_enum (value,
-                        pspp_sheet_view_column_get_sizing (tree_column));
       break;
 
     case PROP_FIXED_WIDTH:
@@ -734,7 +714,7 @@ pspp_sheet_view_column_cell_layout_add_attribute (GtkCellLayout   *cell_layout,
   info->attributes = g_slist_prepend (info->attributes, g_strdup (attribute));
 
   if (tree_column->tree_view)
-    _pspp_sheet_view_column_cell_set_dirty (tree_column, TRUE);
+    _pspp_sheet_view_column_cell_set_dirty (tree_column);
 }
 
 static void
@@ -766,7 +746,7 @@ pspp_sheet_view_column_cell_layout_set_cell_data_func (GtkCellLayout         *ce
   info->destroy = destroy;
 
   if (column->tree_view)
-    _pspp_sheet_view_column_cell_set_dirty (column, TRUE);
+    _pspp_sheet_view_column_cell_set_dirty (column);
 }
 
 static void
@@ -829,7 +809,7 @@ pspp_sheet_view_column_clear_attributes_by_info (PsppSheetViewColumn *tree_colum
   info->attributes = NULL;
 
   if (tree_column->tree_view)
-    _pspp_sheet_view_column_cell_set_dirty (tree_column, TRUE);
+    _pspp_sheet_view_column_cell_set_dirty (tree_column);
 }
 
 /* Helper functions
@@ -1754,7 +1734,7 @@ pspp_sheet_view_column_set_spacing (PsppSheetViewColumn *tree_column,
 
   tree_column->spacing = spacing;
   if (tree_column->tree_view)
-    _pspp_sheet_view_column_cell_set_dirty (tree_column, TRUE);
+    _pspp_sheet_view_column_cell_set_dirty (tree_column);
 }
 
 /**
@@ -1796,7 +1776,7 @@ pspp_sheet_view_column_set_visible (PsppSheetViewColumn *tree_column,
   tree_column->visible = visible;
 
   if (tree_column->visible)
-    _pspp_sheet_view_column_cell_set_dirty (tree_column, TRUE);
+    _pspp_sheet_view_column_cell_set_dirty (tree_column);
 
   pspp_sheet_view_column_update_button (tree_column);
   g_object_notify (G_OBJECT (tree_column), "visible");
@@ -1825,9 +1805,7 @@ pspp_sheet_view_column_get_visible (PsppSheetViewColumn *tree_column)
  * @resizable: %TRUE, if the column can be resized
  * 
  * If @resizable is %TRUE, then the user can explicitly resize the column by
- * grabbing the outer edge of the column button.  If resizable is %TRUE and
- * sizing mode of the column is #PSPP_SHEET_VIEW_COLUMN_AUTOSIZE, then the sizing
- * mode is changed to #PSPP_SHEET_VIEW_COLUMN_GROW_ONLY.
+ * grabbing the outer edge of the column button.
  **/
 void
 pspp_sheet_view_column_set_resizable (PsppSheetViewColumn *tree_column,
@@ -1841,9 +1819,6 @@ pspp_sheet_view_column_set_resizable (PsppSheetViewColumn *tree_column,
     return;
 
   tree_column->resizable = resizable;
-
-  if (resizable && tree_column->column_type == PSPP_SHEET_VIEW_COLUMN_AUTOSIZE)
-    pspp_sheet_view_column_set_sizing (tree_column, PSPP_SHEET_VIEW_COLUMN_GROW_ONLY);
 
   pspp_sheet_view_column_update_button (tree_column);
 
@@ -1868,58 +1843,6 @@ pspp_sheet_view_column_get_resizable (PsppSheetViewColumn *tree_column)
 
 
 /**
- * pspp_sheet_view_column_set_sizing:
- * @tree_column: A #PsppSheetViewColumn.
- * @type: The #PsppSheetViewColumnSizing.
- * 
- * Sets the growth behavior of @tree_column to @type.
- **/
-void
-pspp_sheet_view_column_set_sizing (PsppSheetViewColumn       *tree_column,
-                                 PsppSheetViewColumnSizing  type)
-{
-  g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
-
-  if (type == tree_column->column_type)
-    return;
-
-  if (type == PSPP_SHEET_VIEW_COLUMN_AUTOSIZE)
-    pspp_sheet_view_column_set_resizable (tree_column, FALSE);
-
-#if 0
-  /* I was clearly on crack when I wrote this.  I'm not sure what's supposed to
-   * be below so I'll leave it until I figure it out.
-   */
-  if (tree_column->column_type == PSPP_SHEET_VIEW_COLUMN_AUTOSIZE &&
-      tree_column->requested_width != -1)
-    {
-      pspp_sheet_view_column_set_sizing (tree_column, tree_column->requested_width);
-    }
-#endif
-  tree_column->column_type = type;
-
-  pspp_sheet_view_column_update_button (tree_column);
-
-  g_object_notify (G_OBJECT (tree_column), "sizing");
-}
-
-/**
- * pspp_sheet_view_column_get_sizing:
- * @tree_column: A #PsppSheetViewColumn.
- * 
- * Returns the current type of @tree_column.
- * 
- * Return value: The type of @tree_column.
- **/
-PsppSheetViewColumnSizing
-pspp_sheet_view_column_get_sizing (PsppSheetViewColumn *tree_column)
-{
-  g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), 0);
-
-  return tree_column->column_type;
-}
-
-/**
  * pspp_sheet_view_column_get_width:
  * @tree_column: A #PsppSheetViewColumn.
  * 
@@ -1940,8 +1863,7 @@ pspp_sheet_view_column_get_width (PsppSheetViewColumn *tree_column)
  * @tree_column: A #PsppSheetViewColumn.
  * @fixed_width: The size to set @tree_column to. Must be greater than 0.
  * 
- * Sets the size of the column in pixels.  This is meaningful only if the sizing
- * type is #PSPP_SHEET_VIEW_COLUMN_FIXED.  The size of the column is clamped to
+ * Sets the size of the column in pixels.  The size of the column is clamped to
  * the min/max width for the column.  Please note that the min/max width of the
  * column doesn't actually affect the "fixed_width" property of the widget, just
  * the actual size when displayed.
@@ -1957,8 +1879,7 @@ pspp_sheet_view_column_set_fixed_width (PsppSheetViewColumn *tree_column,
   tree_column->use_resized_width = FALSE;
 
   if (tree_column->tree_view &&
-      gtk_widget_get_realized (tree_column->tree_view) &&
-      tree_column->column_type == PSPP_SHEET_VIEW_COLUMN_FIXED)
+      gtk_widget_get_realized (tree_column->tree_view))
     {
       gtk_widget_queue_resize (tree_column->tree_view);
     }
@@ -2018,10 +1939,6 @@ pspp_sheet_view_column_set_min_width (PsppSheetViewColumn *tree_column,
     }
   g_object_notify (G_OBJECT (tree_column), "min-width");
   g_object_thaw_notify (G_OBJECT (tree_column));
-
-  if (tree_column->column_type == PSPP_SHEET_VIEW_COLUMN_AUTOSIZE)
-    _pspp_sheet_view_column_autosize (PSPP_SHEET_VIEW (tree_column->tree_view),
-				    tree_column);
 }
 
 /**
@@ -2078,10 +1995,6 @@ pspp_sheet_view_column_set_max_width (PsppSheetViewColumn *tree_column,
     }
   g_object_notify (G_OBJECT (tree_column), "max-width");
   g_object_thaw_notify (G_OBJECT (tree_column));
-
-  if (tree_column->column_type == PSPP_SHEET_VIEW_COLUMN_AUTOSIZE)
-    _pspp_sheet_view_column_autosize (PSPP_SHEET_VIEW (tree_column->tree_view),
-				    tree_column);
 }
 
 /**
@@ -2554,8 +2467,6 @@ pspp_sheet_view_column_get_sort_order      (PsppSheetViewColumn     *tree_column
  * @tree_column: A #PsppSheetViewColumn.
  * @tree_model: The #GtkTreeModel to to get the cell renderers attributes from.
  * @iter: The #GtkTreeIter to to get the cell renderer's attributes from.
- * @is_expander: %TRUE, if the row has children
- * @is_expanded: %TRUE, if the row has visible children
  * 
  * Sets the cell renderer based on the @tree_model and @iter.  That is, for
  * every attribute mapping in @tree_column, it will get a value from the set
@@ -2565,9 +2476,7 @@ pspp_sheet_view_column_get_sort_order      (PsppSheetViewColumn     *tree_column
 void
 pspp_sheet_view_column_cell_set_cell_data (PsppSheetViewColumn *tree_column,
 					 GtkTreeModel      *tree_model,
-					 GtkTreeIter       *iter,
-					 gboolean           is_expander,
-					 gboolean           is_expanded)
+					 GtkTreeIter       *iter)
 {
   GSList *list;
   GValue value = { 0, };
@@ -2586,12 +2495,6 @@ pspp_sheet_view_column_cell_set_cell_data (PsppSheetViewColumn *tree_column,
       list = info->attributes;
 
       g_object_freeze_notify (cell);
-
-      if (info->cell->is_expander != is_expander)
-	g_object_set (cell, "is-expander", is_expander, NULL);
-
-      if (info->cell->is_expanded != is_expanded)
-	g_object_set (cell, "is-expanded", is_expanded, NULL);
 
       while (list && list->next)
 	{
@@ -3617,8 +3520,7 @@ pspp_sheet_view_column_focus_cell (PsppSheetViewColumn *tree_column,
 }
 
 void
-_pspp_sheet_view_column_cell_set_dirty (PsppSheetViewColumn *tree_column,
-				      gboolean           install_handler)
+_pspp_sheet_view_column_cell_set_dirty (PsppSheetViewColumn *tree_column)
 {
   GList *list;
 
@@ -3635,10 +3537,7 @@ _pspp_sheet_view_column_cell_set_dirty (PsppSheetViewColumn *tree_column,
   if (tree_column->tree_view &&
       gtk_widget_get_realized (tree_column->tree_view))
     {
-      if (install_handler)
-	_pspp_sheet_view_install_mark_rows_col_dirty (PSPP_SHEET_VIEW (tree_column->tree_view));
-      else
-	PSPP_SHEET_VIEW (tree_column->tree_view)->priv->mark_rows_col_dirty = TRUE;
+      _pspp_sheet_view_install_mark_rows_col_dirty (PSPP_SHEET_VIEW (tree_column->tree_view));
       gtk_widget_queue_resize (tree_column->tree_view);
     }
 }
@@ -3775,7 +3674,7 @@ pspp_sheet_view_column_queue_resize (PsppSheetViewColumn *tree_column)
   g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
 
   if (tree_column->tree_view)
-    _pspp_sheet_view_column_cell_set_dirty (tree_column, TRUE);
+    _pspp_sheet_view_column_cell_set_dirty (tree_column);
 }
 
 /**
@@ -3928,20 +3827,4 @@ _gtk_cell_layout_buildable_add_child (GtkBuildable      *buildable,
   iface = GTK_CELL_LAYOUT_GET_IFACE (buildable);
   g_return_if_fail (iface->pack_start != NULL);
   iface->pack_start (GTK_CELL_LAYOUT (buildable), GTK_CELL_RENDERER (child), FALSE);
-}
-
-GType
-pspp_sheet_view_column_sizing_get_type (void)
-{
-    static GType etype = 0;
-    if (G_UNLIKELY(etype == 0)) {
-        static const GEnumValue values[] = {
-            { PSPP_SHEET_VIEW_COLUMN_GROW_ONLY, "PSPP_SHEET_VIEW_COLUMN_GROW_ONLY", "grow-only" },
-            { PSPP_SHEET_VIEW_COLUMN_AUTOSIZE, "PSPP_SHEET_VIEW_COLUMN_AUTOSIZE", "autosize" },
-            { PSPP_SHEET_VIEW_COLUMN_FIXED, "PSPP_SHEET_VIEW_COLUMN_FIXED", "fixed" },
-            { 0, NULL, NULL }
-        };
-        etype = g_enum_register_static (g_intern_static_string ("PsppSheetViewColumnSizing"), values);
-    }
-    return etype;
 }

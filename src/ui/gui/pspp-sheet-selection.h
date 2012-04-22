@@ -66,9 +66,6 @@ struct _PsppSheetSelection
 
   PsppSheetView *GSEAL (tree_view);
   GtkSelectionMode GSEAL (type);
-  PsppSheetSelectionFunc GSEAL (user_func);
-  gpointer GSEAL (user_data);
-  GDestroyNotify GSEAL (destroy);
 };
 
 struct _PsppSheetSelectionClass

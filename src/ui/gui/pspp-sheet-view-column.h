@@ -48,16 +48,6 @@ G_BEGIN_DECLS
 #define PSPP_IS_SHEET_VIEW_COLUMN_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), PSPP_TYPE_SHEET_VIEW_COLUMN))
 #define PSPP_SHEET_VIEW_COLUMN_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), PSPP_TYPE_SHEET_VIEW_COLUMN, PsppSheetViewColumnClass))
 
-typedef enum
-{
-  PSPP_SHEET_VIEW_COLUMN_GROW_ONLY,
-  PSPP_SHEET_VIEW_COLUMN_AUTOSIZE,
-  PSPP_SHEET_VIEW_COLUMN_FIXED
-} PsppSheetViewColumnSizing;
-
-GType pspp_sheet_view_column_sizing_get_type (void) G_GNUC_CONST;
-#define PSPP_TYPE_SHEET_VIEW_COLUMN_SIZING (pspp_sheet_view_column_sizing_get_type ())
-
 typedef struct _PsppSheetViewColumn      PsppSheetViewColumn;
 typedef struct _PsppSheetViewColumnClass PsppSheetViewColumnClass;
 
@@ -85,7 +75,6 @@ struct _PsppSheetViewColumn
 
   /* Sizing fields */
   /* see gtk+/doc/tree-column-sizing.txt for more information on them */
-  PsppSheetViewColumnSizing GSEAL (column_type);
   gint GSEAL (requested_width);
   gint GSEAL (button_request);
   gint GSEAL (resized_width);
@@ -170,9 +159,6 @@ gboolean                pspp_sheet_view_column_get_visible         (PsppSheetVie
 void                    pspp_sheet_view_column_set_resizable       (PsppSheetViewColumn       *tree_column,
 								  gboolean                 resizable);
 gboolean                pspp_sheet_view_column_get_resizable       (PsppSheetViewColumn       *tree_column);
-void                    pspp_sheet_view_column_set_sizing          (PsppSheetViewColumn       *tree_column,
-								  PsppSheetViewColumnSizing  type);
-PsppSheetViewColumnSizing pspp_sheet_view_column_get_sizing          (PsppSheetViewColumn       *tree_column);
 gint                    pspp_sheet_view_column_get_width           (PsppSheetViewColumn       *tree_column);
 gint                    pspp_sheet_view_column_get_fixed_width     (PsppSheetViewColumn       *tree_column);
 void                    pspp_sheet_view_column_set_fixed_width     (PsppSheetViewColumn       *tree_column,
@@ -228,9 +214,7 @@ GtkSortType             pspp_sheet_view_column_get_sort_order      (PsppSheetVie
  */
 void                    pspp_sheet_view_column_cell_set_cell_data  (PsppSheetViewColumn       *tree_column,
 								  GtkTreeModel            *tree_model,
-								  GtkTreeIter             *iter,
-								  gboolean                 is_expander,
-								  gboolean                 is_expanded);
+								  GtkTreeIter             *iter);
 void                    pspp_sheet_view_column_cell_get_size       (PsppSheetViewColumn       *tree_column,
 								  const GdkRectangle      *cell_area,
 								  gint                    *x_offset,
