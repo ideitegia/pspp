@@ -50,7 +50,8 @@ struct variable;
 typedef struct _PsppireValueEntry      PsppireValueEntry;
 typedef struct _PsppireValueEntryClass PsppireValueEntryClass;
 
-struct _PsppireValueEntry {
+struct _PsppireValueEntry 
+{
   GtkComboBoxEntry parent;
 
   gboolean show_value_label;
@@ -62,11 +63,12 @@ struct _PsppireValueEntry {
   const union value *cur_value;
 };
 
-struct _PsppireValueEntryClass {
+struct _PsppireValueEntryClass 
+{
   GtkComboBoxEntryClass parent_class;
 };
 
-GType psppire_value_entry_get_type (void) G_GNUC_CONST;
+GType psppire_value_entry_get_type (void);
 GtkWidget *psppire_value_entry_new (void);
 
 void psppire_value_entry_set_show_value_label (PsppireValueEntry *,
