@@ -243,6 +243,7 @@ psppire_value_entry_refresh_model (PsppireValueEntry *obj)
 {
   GtkWidget *entry = gtk_bin_get_child (GTK_BIN (obj));
   GtkTreeModel *model;
+  GtkTreeModel *old_model;
 
   if (val_labs_count (obj->val_labs) > 0)
     {
@@ -269,6 +270,14 @@ psppire_value_entry_refresh_model (PsppireValueEntry *obj)
     }
   else
     model = NULL;
+
+  old_model = gtk_combo_box_get_model (GTK_COMBO_BOX (obj));
+
+  if (old_model != model)
+    {
+      GtkEntry *entry = GTK_ENTRY (gtk_bin_get_child (GTK_BIN (obj)));
+      gtk_entry_set_text (entry, "");
+    }
 
   gtk_combo_box_set_model (GTK_COMBO_BOX (obj), model);
   gtk_combo_box_entry_set_text_column (GTK_COMBO_BOX_ENTRY (obj), COL_LABEL);
