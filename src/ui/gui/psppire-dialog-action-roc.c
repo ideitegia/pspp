@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include "psppire-dialog-action-roc.h"
+#include "psppire-value-entry.h"
 
 #include "dialog-common.h"
 #include <ui/syntax-gen.h>
@@ -37,8 +38,12 @@ G_DEFINE_TYPE (PsppireDialogActionRoc, psppire_dialog_action_roc, PSPPIRE_TYPE_D
 static gboolean
 dialog_state_valid (gpointer data)
 {
+  int width;
+  gboolean result ;
+  union value val;
   PsppireDialogActionRoc *rd = data;
-  const gchar *text;
+  const gchar *var_name;
+  const struct variable *var;
 
   GtkTreeModel *liststore =
     gtk_tree_view_get_model (GTK_TREE_VIEW (rd->test_variables));
@@ -46,18 +51,24 @@ dialog_state_valid (gpointer data)
   if  (gtk_tree_model_iter_n_children (liststore, NULL) < 1)
     return FALSE;
 
+  var_name = gtk_entry_get_text (GTK_ENTRY (rd->state_variable));
+
+  var = psppire_dict_lookup_var (PSPPIRE_DIALOG_ACTION (rd)->dict, var_name);
+
+  if ( var == NULL)
+    return FALSE;
+
+  width = var_get_width (var);
+  value_init (&val, width);
+
+  result = psppire_value_entry_get_value (PSPPIRE_VALUE_ENTRY (rd->state_value), &val, width);
   
-  text = gtk_entry_get_text (GTK_ENTRY (rd->state_variable));
-  if ( 0 == strcmp ("", text))
-    return FALSE;
+  if (var_is_value_missing (var, &val, MV_SYSTEM))
+      result = FALSE;
+  
+  value_destroy (&val, width);
 
-
-  text = gtk_entry_get_text (GTK_ENTRY (rd->state_value));
-  if ( 0 == strcmp ("", text))
-    return FALSE;
-
-
-  return TRUE;
+  return result;
 }
 
 static void
@@ -85,12 +96,29 @@ refresh (PsppireDialogAction *rd_)
   gtk_list_store_clear (GTK_LIST_STORE (liststore));
 
   gtk_entry_set_text (GTK_ENTRY (rd->state_variable), "");
-  gtk_entry_set_text (GTK_ENTRY (rd->state_value), "");
+  psppire_value_entry_set_variable (PSPPIRE_VALUE_ENTRY (rd->state_value), NULL);
 
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->curve),          TRUE);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->reference),      FALSE);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->standard_error), FALSE);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rd->coordinates),    FALSE);
+}
+
+static void
+on_state_var_changed (GtkAction *a)
+{
+  PsppireDialogActionRoc *act = PSPPIRE_DIALOG_ACTION_ROC (a);
+  PsppireDialogAction *pda = PSPPIRE_DIALOG_ACTION (a);
+
+  const gchar *var_name = gtk_entry_get_text (GTK_ENTRY(act->state_variable));
+
+  const struct variable *var =
+    psppire_dict_lookup_var (PSPPIRE_DIALOG_ACTION(act)->dict, var_name);
+
+  if ( var == NULL)
+    return;
+
+  psppire_value_entry_set_variable (PSPPIRE_VALUE_ENTRY (act->state_value), var);
 }
 
 static void
@@ -102,7 +130,6 @@ psppire_dialog_action_roc_activate (GtkAction *a)
   GtkBuilder *xml = builder_new ("roc.ui");
   pda->dialog = get_widget_assert   (xml, "roc-dialog");
   pda->source = get_widget_assert   (xml, "dict-view");
-  pda->source = get_widget_assert   (xml, "dict-view");
 
   act->test_variables    = get_widget_assert   (xml, "psppire-var-view1");
   act->state_variable    = get_widget_assert   (xml, "entry1");
@@ -112,6 +139,9 @@ psppire_dialog_action_roc_activate (GtkAction *a)
   act->reference      = get_widget_assert   (xml, "reference-line");
   act->standard_error = get_widget_assert   (xml, "standard-error");
   act->coordinates    = get_widget_assert   (xml, "co-ordinates");
+
+  g_signal_connect_swapped (act->state_variable, "changed",
+			    G_CALLBACK (on_state_var_changed), act);
 
   g_object_unref (xml);
 
@@ -145,23 +175,30 @@ generate_syntax (PsppireDialogAction *a)
 
   g_string_append (string, " (");
   {
-    const gchar *value = gtk_entry_get_text (GTK_ENTRY (rd->state_value));
+    const struct variable *var =
+      psppire_dict_lookup_var (PSPPIRE_DIALOG_ACTION(rd)->dict, var_name);
 
-    const struct variable *var = psppire_dict_lookup_var (PSPPIRE_DIALOG_ACTION(rd)->dict, var_name);
+    union value val;
+    value_init (&val, var_get_width (var));
+
+    psppire_value_entry_get_value (PSPPIRE_VALUE_ENTRY (rd->state_value),
+				   &val, var_get_width (var));
 
     g_return_val_if_fail (var, NULL);
 
-    if ( var_is_alpha (var))
-      {
-	struct string str;
-	ds_init_empty (&str);
-	syntax_gen_string (&str, ss_cstr (value));
-	g_string_append (string, ds_cstr (&str));
-	ds_destroy (&str);
-      }
-    else
-      g_string_append (string, value);
+    {
+      struct string str;
+      ds_init_empty (&str);
+      
+      syntax_gen_value (&str, &val, var_get_width (var),
+			var_get_print_format (var));
+      
+      g_string_append (string, ds_cstr (&str));
+      ds_destroy (&str);
+    }
+    value_destroy (&val, var_get_width (var));
   }
+
   g_string_append (string, ")");
 
 

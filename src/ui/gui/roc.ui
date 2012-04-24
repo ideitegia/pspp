@@ -1,3 +1,4 @@
+
 <?xml version="1.0"?>
 <interface>
   <requires lib="psppire" version="2054.17080"/>
@@ -180,10 +181,9 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry" id="entry2">
+                      <object class="PsppireValueEntry" id="entry2">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="invisible_char">&#x2022;</property>
                       </object>
                       <packing>
                         <property name="position">1</property>
