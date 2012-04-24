@@ -133,6 +133,15 @@ dist_src_ui_gui_psppire_DATA = \
 
 
 src_ui_gui_psppire_SOURCES = \
+	src/ui/gui/pspp-rb-tree.c \
+	src/ui/gui/pspp-rb-tree.h \
+	src/ui/gui/pspp-sheet-private.h \
+	src/ui/gui/pspp-sheet-selection.c \
+	src/ui/gui/pspp-sheet-selection.h \
+	src/ui/gui/pspp-sheet-view-column.c \
+	src/ui/gui/pspp-sheet-view-column.h \
+	src/ui/gui/pspp-sheet-view.c \
+	src/ui/gui/pspp-sheet-view.h \
 	src/ui/gui/psppire-dialog.c \
 	src/ui/gui/psppire-keypad.c \
 	src/ui/gui/psppire-selector.c \
