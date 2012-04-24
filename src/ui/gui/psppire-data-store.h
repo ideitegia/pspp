@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2009  Free Software Foundation
+   Copyright (C) 2006, 2009, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -74,9 +74,6 @@ struct _PsppireDataStore
   PsppireDict *dict;
   struct datasheet *datasheet;
 
-  gboolean show_labels;
-
-  //  gint cf_handler_id [n_cf_signals];
   gint dict_handler_id [n_dict_signals];
 };
 
@@ -96,9 +93,6 @@ void psppire_data_store_set_reader (PsppireDataStore *ds,
 void psppire_data_store_set_dictionary (PsppireDataStore *data_store,
 					PsppireDict *dict);
 
-void psppire_data_store_show_labels (PsppireDataStore *store,
-				     gboolean show_labels);
-
 void psppire_data_store_clear (PsppireDataStore *data_store);
 
 gboolean psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn);
@@ -109,12 +103,17 @@ gboolean psppire_data_store_delete_cases (PsppireDataStore *ds, casenumber first
 
 struct casereader * psppire_data_store_get_reader (PsppireDataStore *ds);
 
-gchar * psppire_data_store_get_string (PsppireDataStore *ds,
-				       casenumber row, glong column);
-
+gchar *psppire_data_store_get_string (PsppireDataStore *,
+                                      glong row, const struct variable *,
+                                      bool use_value_label);
+gboolean psppire_data_store_set_value (PsppireDataStore *,
+                                       casenumber casenum,
+                                       const struct variable *,
+                                       const union value *);
 gboolean psppire_data_store_set_string (PsppireDataStore *ds,
 					const gchar *text,
-					glong row, glong column);
+					glong row, const struct variable *,
+                                        gboolean use_value_label);
 
 
 gboolean psppire_data_store_filtered (PsppireDataStore *ds,

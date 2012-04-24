@@ -157,6 +157,7 @@ struct _PsppSheetViewPrivate
 
   /* Cell Editing */
   PsppSheetViewColumn *edited_column;
+  gint edited_row;
 
   /* Selection information */
   PsppSheetSelection *selection;

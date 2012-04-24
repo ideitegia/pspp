@@ -140,7 +140,7 @@ psppire_dialog_action_class_init (PsppireDialogActionClass *class)
 			 "Manager",
 			 "The GtkUIManager which created this object",
 			 GTK_TYPE_UI_MANAGER,
-			 G_PARAM_CONSTRUCT_ONLY |G_PARAM_READWRITE);
+			 G_PARAM_READWRITE);
 
   GParamSpec *toplevel_spec =
     g_param_spec_object ("top-level",

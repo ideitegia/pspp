@@ -11,6 +11,7 @@ UI_FILES = \
 	src/ui/gui/count.ui \
 	src/ui/gui/crosstabs.ui \
 	src/ui/gui/chi-square.ui \
+	src/ui/gui/data-sheet.ui \
 	src/ui/gui/descriptives.ui \
 	src/ui/gui/entry-dialog.ui \
 	src/ui/gui/examine.ui \
@@ -42,7 +43,8 @@ UI_FILES = \
 	src/ui/gui/variable-info.ui \
 	src/ui/gui/data-editor.ui \
 	src/ui/gui/output-viewer.ui \
-	src/ui/gui/syntax-editor.ui
+	src/ui/gui/syntax-editor.ui \
+	src/ui/gui/var-sheet.ui
 
 EXTRA_DIST += \
 	src/ui/gui/OChangeLog \
@@ -216,6 +218,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-conf.h \
 	src/ui/gui/psppire-data-editor.c \
 	src/ui/gui/psppire-data-editor.h \
+	src/ui/gui/psppire-data-sheet.c \
+	src/ui/gui/psppire-data-sheet.h \
 	src/ui/gui/psppire-data-store.c \
 	src/ui/gui/psppire-data-store.h \
 	src/ui/gui/psppire-data-window.c \

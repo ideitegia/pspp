@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 #ifndef __GOTO_CASE_DIALOG_H
 #define __GOTO_CASE_DIALOG_H
 
-#include "psppire-data-window.h"
+#include "psppire-data-sheet.h"
 
-void goto_case_dialog (PsppireDataWindow * data);
+void goto_case_dialog (PsppireDataSheet *ds);
 
 #endif

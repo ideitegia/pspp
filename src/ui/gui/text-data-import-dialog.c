@@ -20,7 +20,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <gtk-contrib/psppire-sheet.h>
 #include <gtk/gtk.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -36,18 +35,20 @@
 #include "libpspp/i18n.h"
 #include "libpspp/line-reader.h"
 #include "libpspp/message.h"
+#include "ui/gui/builder-wrapper.h"
 #include "ui/gui/checkbox-treeview.h"
 #include "ui/gui/dialog-common.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/helper.h"
-#include "ui/gui/builder-wrapper.h"
+#include "ui/gui/pspp-sheet-selection.h"
+#include "ui/gui/pspp-sheet-view.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dialog.h"
 #include "ui/gui/psppire-encoding-selector.h"
 #include "ui/gui/psppire-empty-list-store.h"
+#include "ui/gui/psppire-scanf.h"
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-var-store.h"
-#include "ui/gui/psppire-scanf.h"
 #include "ui/syntax-gen.h"
 
 #include "gl/error.h"
@@ -115,7 +116,7 @@ struct first_line_page
     bool variable_names; /* Variable names above first line of data? */
 
     GtkWidget *page;
-    GtkTreeView *tree_view;
+    PsppSheetView *tree_view;
     GtkWidget *variable_names_cb;
   };
 static void init_first_line_page (struct import_assistant *);
@@ -140,7 +141,7 @@ struct separators_page
     GtkWidget *quote_combo;
     GtkEntry *quote_entry;
     GtkWidget *escape_cb;
-    GtkTreeView *fields_tree_view;
+    PsppSheetView *fields_tree_view;
   };
 /* The columns that the separators divide the data into. */
 struct column
@@ -177,7 +178,7 @@ struct formats_page
     struct dictionary *dict;
 
     GtkWidget *page;
-    GtkTreeView *data_tree_view;
+    PsppSheetView *data_tree_view;
     PsppireDict *psppire_dict;
     struct variable **modified_vars;
     size_t modified_var_cnt;
@@ -205,17 +206,17 @@ static gboolean get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
                                       size_t *row, size_t *column);
 static void make_tree_view (const struct import_assistant *ia,
                             size_t first_line,
-                            GtkTreeView **tree_view);
+                            PsppSheetView **tree_view);
 static void add_line_number_column (const struct import_assistant *,
-                                    GtkTreeView *);
-static gint get_monospace_width (GtkTreeView *, GtkCellRenderer *,
+                                    PsppSheetView *);
+static gint get_monospace_width (PsppSheetView *, GtkCellRenderer *,
                                  size_t char_cnt);
-static gint get_string_width (GtkTreeView *, GtkCellRenderer *,
+static gint get_string_width (PsppSheetView *, GtkCellRenderer *,
                               const char *string);
-static GtkTreeViewColumn *make_data_column (struct import_assistant *,
-                                            GtkTreeView *, bool input,
+static PsppSheetViewColumn *make_data_column (struct import_assistant *,
+                                            PsppSheetView *, bool input,
                                             gint column_idx);
-static GtkTreeView *create_data_tree_view (bool input, GtkContainer *parent,
+static PsppSheetView *create_data_tree_view (bool input, GtkContainer *parent,
                                            struct import_assistant *);
 static void push_watch_cursor (struct import_assistant *);
 static void pop_watch_cursor (struct import_assistant *);
@@ -861,9 +862,9 @@ on_intro_amount_changed (struct import_assistant *ia)
 
 /* The "first line" page of the assistant. */
 
-static GtkTreeView *create_lines_tree_view (GtkContainer *parent_window,
+static PsppSheetView *create_lines_tree_view (GtkContainer *parent_window,
                                             struct import_assistant *);
-static void on_first_line_change (GtkTreeSelection *,
+static void on_first_line_change (PsppSheetSelection *,
                                   struct import_assistant *);
 static void on_variable_names_cb_toggle (GtkToggleButton *,
                                          struct import_assistant *);
@@ -883,11 +884,12 @@ init_first_line_page (struct import_assistant *ia)
   p->tree_view = create_lines_tree_view (
     GTK_CONTAINER (get_widget_assert (builder, "first-line-scroller")), ia);
   p->variable_names_cb = get_widget_assert (builder, "variable-names");
-  gtk_tree_selection_set_mode (
-    gtk_tree_view_get_selection (GTK_TREE_VIEW (p->tree_view)),
-    GTK_SELECTION_BROWSE);
+  pspp_sheet_selection_set_mode (
+    pspp_sheet_view_get_selection (PSPP_SHEET_VIEW (p->tree_view)),
+    PSPP_SHEET_SELECTION_BROWSE);
+  pspp_sheet_view_set_rubber_banding (PSPP_SHEET_VIEW (p->tree_view), TRUE);
   set_first_line (ia);
-  g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (p->tree_view)),
+  g_signal_connect (pspp_sheet_view_get_selection (PSPP_SHEET_VIEW (p->tree_view)),
                     "changed", G_CALLBACK (on_first_line_change), ia);
   g_signal_connect (p->variable_names_cb, "toggled",
                     G_CALLBACK (on_variable_names_cb_toggle), ia);
@@ -903,7 +905,7 @@ reset_first_line_page (struct import_assistant *ia)
 }
 
 static void
-render_line (GtkTreeViewColumn *tree_column,
+render_line (PsppSheetViewColumn *tree_column,
              GtkCellRenderer *cell,
              GtkTreeModel *tree_model,
              GtkTreeIter *iter,
@@ -921,11 +923,11 @@ render_line (GtkTreeViewColumn *tree_column,
 
 /* Creates and returns a tree view that contains each of the
    lines in IA's file as a row. */
-static GtkTreeView *
+static PsppSheetView *
 create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
 {
-  GtkTreeView *tree_view;
-  GtkTreeViewColumn *column;
+  PsppSheetView *tree_view;
+  PsppSheetViewColumn *column;
   size_t max_line_length;
   gint content_width, header_width;
   size_t i;
@@ -933,11 +935,11 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
 
   make_tree_view (ia, 0, &tree_view);
 
-  column = gtk_tree_view_column_new_with_attributes (
-     title, ia->asst.fixed_renderer, (void *) NULL);
-  gtk_tree_view_column_set_cell_data_func (column, ia->asst.fixed_renderer,
+  column = pspp_sheet_view_column_new_with_attributes (
+    title, ia->asst.fixed_renderer, (void *) NULL);
+  pspp_sheet_view_column_set_cell_data_func (column, ia->asst.fixed_renderer,
                                            render_line, NULL, NULL);
-  gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);
+  pspp_sheet_view_column_set_resizable (column, TRUE);
 
   max_line_length = 0;
   for (i = 0; i < ia->file.line_cnt; i++)
@@ -949,11 +951,9 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
   content_width = get_monospace_width (tree_view, ia->asst.fixed_renderer,
                                        max_line_length);
   header_width = get_string_width (tree_view, ia->asst.prop_renderer, title);
-  gtk_tree_view_column_set_fixed_width (column, MAX (content_width,
+  pspp_sheet_view_column_set_fixed_width (column, MAX (content_width,
                                                      header_width));
-  gtk_tree_view_append_column (tree_view, column);
-
-  gtk_tree_view_set_fixed_height_mode (tree_view, true);
+  pspp_sheet_view_append_column (tree_view, column);
 
   gtk_container_add (parent, GTK_WIDGET (tree_view));
   gtk_widget_show (GTK_WIDGET (tree_view));
@@ -964,7 +964,7 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
 /* Called when the line selected in the first_line tree view
    changes. */
 static void
-on_first_line_change (GtkTreeSelection *selection UNUSED,
+on_first_line_change (PsppSheetSelection *selection UNUSED,
                       struct import_assistant *ia)
 {
   get_first_line (ia);
@@ -986,7 +986,7 @@ set_first_line (struct import_assistant *ia)
   GtkTreePath *path;
 
   path = gtk_tree_path_new_from_indices (ia->first_line.skip_lines, -1);
-  gtk_tree_view_set_cursor (GTK_TREE_VIEW (ia->first_line.tree_view),
+  pspp_sheet_view_set_cursor (PSPP_SHEET_VIEW (ia->first_line.tree_view),
                             path, NULL, false);
   gtk_tree_path_free (path);
 
@@ -1001,12 +1001,12 @@ set_first_line (struct import_assistant *ia)
 static void
 get_first_line (struct import_assistant *ia)
 {
-  GtkTreeSelection *selection;
+  PsppSheetSelection *selection;
   GtkTreeIter iter;
   GtkTreeModel *model;
 
-  selection = gtk_tree_view_get_selection (ia->first_line.tree_view);
-  if (gtk_tree_selection_get_selected (selection, &model, &iter))
+  selection = pspp_sheet_view_get_selection (ia->first_line.tree_view);
+  if (pspp_sheet_selection_get_selected (selection, &model, &iter))
     {
       GtkTreePath *path = gtk_tree_model_get_path (model, &iter);
       int row = gtk_tree_path_get_indices (path)[0];
@@ -1043,7 +1043,7 @@ static void on_quote_combo_change (GtkComboBox *combo,
 static void on_quote_cb_toggle (GtkToggleButton *quote_cb,
                                 struct import_assistant *);
 static void on_separator_toggle (GtkToggleButton *, struct import_assistant *);
-static void render_input_cell (GtkTreeViewColumn *tree_column,
+static void render_input_cell (PsppSheetViewColumn *tree_column,
                                GtkCellRenderer *cell,
                                GtkTreeModel *model, GtkTreeIter *iter,
                                gpointer ia);
@@ -1121,7 +1121,7 @@ init_separators_page (struct import_assistant *ia)
 
   set_separators (ia);
   set_quote_list (GTK_COMBO_BOX_ENTRY (p->quote_combo));
-  p->fields_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "fields"));
+  p->fields_tree_view = PSPP_SHEET_VIEW (get_widget_assert (builder, "fields"));
   g_signal_connect (p->quote_combo, "changed",
                     G_CALLBACK (on_quote_combo_change), ia);
   g_signal_connect (p->quote_cb, "toggled",
@@ -1546,7 +1546,7 @@ on_separator_toggle (GtkToggleButton *toggle UNUSED,
 /* Called to render one of the cells in the fields preview tree
    view. */
 static void
-render_input_cell (GtkTreeViewColumn *tree_column, GtkCellRenderer *cell,
+render_input_cell (PsppSheetViewColumn *tree_column, GtkCellRenderer *cell,
                    GtkTreeModel *model, GtkTreeIter *iter,
                    gpointer ia_)
 {
@@ -1612,7 +1612,7 @@ init_formats_page (struct import_assistant *ia)
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Formats"),
                                    GTK_ASSISTANT_PAGE_CONFIRM);
-  p->data_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "data"));
+  p->data_tree_view = PSPP_SHEET_VIEW (get_widget_assert (builder, "data"));
   p->modified_vars = NULL;
   p->modified_var_cnt = 0;
   p->dict = NULL;
@@ -1639,7 +1639,6 @@ prepare_formats_page (struct import_assistant *ia)
 {
   struct dictionary *dict;
   PsppireDict *psppire_dict;
-  PsppireVarStore *var_store;
   GtkBin *vars_scroller;
   GtkWidget *old_var_sheet;
   PsppireVarSheet *var_sheet;
@@ -1705,14 +1704,13 @@ prepare_formats_page (struct import_assistant *ia)
      psppire_dict for now, but it should.  After it does, we
      should g_object_ref the psppire_dict here, since we also
      hold a reference via ia->formats.dict. */
-  var_store = psppire_var_store_new (psppire_dict);
-  g_object_set (var_store,
-                "format-type", PSPPIRE_VAR_STORE_INPUT_FORMATS,
-                (void *) NULL);
   var_sheet = PSPPIRE_VAR_SHEET (psppire_var_sheet_new ());
   g_object_set (var_sheet,
-                "model", var_store,
+                "dictionary", psppire_dict,
                 "may-create-vars", FALSE,
+                "may-delete-vars", FALSE,
+                "format-use", FMT_FOR_INPUT,
+                "enable-grid-lines", PSPP_SHEET_VIEW_GRID_LINES_BOTH,
                 (void *) NULL);
 
   vars_scroller = GTK_BIN (get_widget_assert (ia->asst.builder, "vars-scroller"));
@@ -1764,14 +1762,14 @@ on_variable_change (PsppireDict *dict, int dict_idx,
                     struct import_assistant *ia)
 {
   struct formats_page *p = &ia->formats;
-  GtkTreeView *tv = ia->formats.data_tree_view;
+  PsppSheetView *tv = ia->formats.data_tree_view;
   gint column_idx = dict_idx + 1;
 
   push_watch_cursor (ia);
 
   /* Remove previous column and replace with new column. */
-  gtk_tree_view_remove_column (tv, gtk_tree_view_get_column (tv, column_idx));
-  gtk_tree_view_insert_column (tv, make_data_column (ia, tv, false, dict_idx),
+  pspp_sheet_view_remove_column (tv, pspp_sheet_view_get_column (tv, column_idx));
+  pspp_sheet_view_insert_column (tv, make_data_column (ia, tv, false, dict_idx),
                                column_idx);
 
   /* Save a copy of the modified variable in modified_vars, so
@@ -1859,7 +1857,7 @@ parse_field (struct import_assistant *ia,
 /* Called to render one of the cells in the data preview tree
    view. */
 static void
-render_output_cell (GtkTreeViewColumn *tree_column,
+render_output_cell (PsppSheetViewColumn *tree_column,
                     GtkCellRenderer *cell,
                     GtkTreeModel *model,
                     GtkTreeIter *iter,
@@ -1919,11 +1917,11 @@ get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
                       const struct import_assistant *ia,
                       size_t *row, size_t *column)
 {
-  GtkTreeView *tree_view = GTK_TREE_VIEW (widget);
+  PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
   gint bx, by;
   GtkTreePath *path;
   GtkTreeIter iter;
-  GtkTreeViewColumn *tree_column;
+  PsppSheetViewColumn *tree_column;
   GtkTreeModel *tree_model;
   bool ok;
 
@@ -1940,16 +1938,16 @@ get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
   if (!gtk_widget_get_mapped (widget))
     return FALSE;
 
-  gtk_tree_view_convert_widget_to_bin_window_coords (tree_view,
+  pspp_sheet_view_convert_widget_to_bin_window_coords (tree_view,
                                                      wx, wy, &bx, &by);
-  if (!gtk_tree_view_get_path_at_pos (tree_view, bx, by,
+  if (!pspp_sheet_view_get_path_at_pos (tree_view, bx, by,
                                       &path, &tree_column, NULL, NULL))
     return FALSE;
 
   *column = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tree_column),
                                                 "column-number"));
 
-  tree_model = gtk_tree_view_get_model (tree_view);
+  tree_model = pspp_sheet_view_get_model (tree_view);
   ok = gtk_tree_model_get_iter (tree_model, &iter, path);
   gtk_tree_path_free (path);
   if (!ok)
@@ -1962,24 +1960,25 @@ get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
 static void
 make_tree_view (const struct import_assistant *ia,
                 size_t first_line,
-                GtkTreeView **tree_view)
+                PsppSheetView **tree_view)
 {
   GtkTreeModel *model;
 
-  *tree_view = GTK_TREE_VIEW (gtk_tree_view_new ());
+  *tree_view = PSPP_SHEET_VIEW (pspp_sheet_view_new ());
+  pspp_sheet_view_set_grid_lines (*tree_view, PSPP_SHEET_VIEW_GRID_LINES_BOTH);
   model = GTK_TREE_MODEL (psppire_empty_list_store_new (
                             ia->file.line_cnt - first_line));
   g_object_set_data (G_OBJECT (model), "lines", ia->file.lines + first_line);
   g_object_set_data (G_OBJECT (model), "first-line",
                      GINT_TO_POINTER (first_line));
-  gtk_tree_view_set_model (*tree_view, model);
+  pspp_sheet_view_set_model (*tree_view, model);
   g_object_unref (model);
 
   add_line_number_column (ia, *tree_view);
 }
 
 static void
-render_line_number (GtkTreeViewColumn *tree_column,
+render_line_number (PsppSheetViewColumn *tree_column,
                     GtkCellRenderer *cell,
                     GtkTreeModel *tree_model,
                     GtkTreeIter *iter,
@@ -1997,23 +1996,22 @@ render_line_number (GtkTreeViewColumn *tree_column,
 
 static void
 add_line_number_column (const struct import_assistant *ia,
-                        GtkTreeView *treeview)
+                        PsppSheetView *treeview)
 {
-  GtkTreeViewColumn *column;
+  PsppSheetViewColumn *column;
 
-  column = gtk_tree_view_column_new_with_attributes (
+  column = pspp_sheet_view_column_new_with_attributes (
     _("Line"), ia->asst.prop_renderer, (void *) NULL);
-  gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);
-  gtk_tree_view_column_set_fixed_width (
+  pspp_sheet_view_column_set_fixed_width (
     column, get_monospace_width (treeview, ia->asst.prop_renderer, 5));
-  gtk_tree_view_column_set_resizable (column, TRUE);
-  gtk_tree_view_column_set_cell_data_func (column, ia->asst.prop_renderer,
-                                           render_line_number, NULL, NULL);
-  gtk_tree_view_append_column (treeview, column);
+  pspp_sheet_view_column_set_resizable (column, TRUE);
+  pspp_sheet_view_column_set_cell_data_func (column, ia->asst.prop_renderer,
+                                             render_line_number, NULL, NULL);
+  pspp_sheet_view_append_column (treeview, column);
 }
 
 static gint
-get_monospace_width (GtkTreeView *treeview, GtkCellRenderer *renderer,
+get_monospace_width (PsppSheetView *treeview, GtkCellRenderer *renderer,
                      size_t char_cnt)
 {
   struct string s;
@@ -2029,7 +2027,7 @@ get_monospace_width (GtkTreeView *treeview, GtkCellRenderer *renderer,
 }
 
 static gint
-get_string_width (GtkTreeView *treeview, GtkCellRenderer *renderer,
+get_string_width (PsppSheetView *treeview, GtkCellRenderer *renderer,
                   const char *string)
 {
   gint width;
@@ -2039,15 +2037,15 @@ get_string_width (GtkTreeView *treeview, GtkCellRenderer *renderer,
   return width;
 }
 
-static GtkTreeViewColumn *
-make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
+static PsppSheetViewColumn *
+make_data_column (struct import_assistant *ia, PsppSheetView *tree_view,
                   bool input, gint dict_idx)
 {
   struct variable *var = NULL;
   struct column *column = NULL;
   size_t char_cnt;
   gint content_width, header_width;
-  GtkTreeViewColumn *tree_column;
+  PsppSheetViewColumn *tree_column;
   char *name;
 
   if (input)
@@ -2062,44 +2060,43 @@ make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
   header_width = get_string_width (tree_view, ia->asst.prop_renderer,
                                    name);
 
-  tree_column = gtk_tree_view_column_new ();
+  tree_column = pspp_sheet_view_column_new ();
   g_object_set_data (G_OBJECT (tree_column), "column-number",
                      GINT_TO_POINTER (dict_idx));
-  gtk_tree_view_column_set_title (tree_column, name);
-  gtk_tree_view_column_pack_start (tree_column, ia->asst.fixed_renderer,
+  pspp_sheet_view_column_set_title (tree_column, name);
+  pspp_sheet_view_column_pack_start (tree_column, ia->asst.fixed_renderer,
                                    FALSE);
-  gtk_tree_view_column_set_cell_data_func (
+  pspp_sheet_view_column_set_cell_data_func (
     tree_column, ia->asst.fixed_renderer,
     input ? render_input_cell : render_output_cell, ia, NULL);
-  gtk_tree_view_column_set_sizing (tree_column, GTK_TREE_VIEW_COLUMN_FIXED);
-  gtk_tree_view_column_set_fixed_width (tree_column, MAX (content_width,
+  pspp_sheet_view_column_set_fixed_width (tree_column, MAX (content_width,
                                                           header_width));
+  pspp_sheet_view_column_set_resizable (tree_column, TRUE);
 
   free (name);
 
   return tree_column;
 }
 
-static GtkTreeView *
+static PsppSheetView *
 create_data_tree_view (bool input, GtkContainer *parent,
                        struct import_assistant *ia)
 {
-  GtkTreeView *tree_view;
+  PsppSheetView *tree_view;
   gint i;
 
   make_tree_view (ia, ia->first_line.skip_lines, &tree_view);
-  gtk_tree_selection_set_mode (gtk_tree_view_get_selection (tree_view),
-                               GTK_SELECTION_NONE);
+  pspp_sheet_selection_set_mode (pspp_sheet_view_get_selection (tree_view),
+                               PSPP_SHEET_SELECTION_NONE);
 
   for (i = 0; i < ia->separators.column_cnt; i++)
-    gtk_tree_view_append_column (tree_view,
+    pspp_sheet_view_append_column (tree_view,
                                  make_data_column (ia, tree_view, input, i));
 
   g_object_set (G_OBJECT (tree_view), "has-tooltip", TRUE, (void *) NULL);
   g_signal_connect (tree_view, "query-tooltip",
                     G_CALLBACK (input ? on_query_input_tooltip
                                 : on_query_output_tooltip), ia);
-  gtk_tree_view_set_fixed_height_mode (tree_view, true);
 
   gtk_container_add (parent, GTK_WIDGET (tree_view));
   gtk_widget_show (GTK_WIDGET (tree_view));

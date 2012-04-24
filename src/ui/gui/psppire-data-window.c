@@ -35,9 +35,7 @@
 #include "ui/gui/crosstabs-dialog.h"
 #include "ui/gui/entry-dialog.h"
 #include "ui/gui/executor.h"
-#include "ui/gui/find-dialog.h"
 #include "ui/gui/frequencies-dialog.h"
-#include "ui/gui/goto-case-dialog.h"
 #include "ui/gui/help-menu.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/helper.h"
@@ -45,6 +43,7 @@
 #include "ui/gui/npar-two-sample-related.h"
 #include "ui/gui/oneway-anova-dialog.h"
 #include "ui/gui/psppire-data-window.h"
+#include "ui/gui/psppire-dialog-action.h"
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-window.h"
 #include "ui/gui/psppire.h"
@@ -87,6 +86,10 @@ static void psppire_data_window_get_property (GObject         *object,
                                               guint            prop_id,
                                               GValue          *value,
                                               GParamSpec      *pspec);
+
+static guint psppire_data_window_add_ui (PsppireDataWindow *, GtkUIManager *);
+static void psppire_data_window_remove_ui (PsppireDataWindow *,
+                                           GtkUIManager *, guint);
 
 GType
 psppire_data_window_get_type (void)
@@ -152,24 +155,6 @@ psppire_data_window_class_init (PsppireDataWindowClass *class)
                           G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
 }
 
-static void
-set_paste_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
-{
-  GtkAction *edit_paste = get_action_assert (de->builder, "edit_paste");
-
-  gtk_action_set_sensitive (edit_paste, x);
-}
-
-static void
-set_cut_copy_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
-{
-  GtkAction *edit_copy = get_action_assert (de->builder, "edit_copy");
-  GtkAction *edit_cut = get_action_assert (de->builder, "edit_cut");
-
-  gtk_action_set_sensitive (edit_copy, x);
-  gtk_action_set_sensitive (edit_cut, x);
-}
-
 /* Run the EXECUTE command. */
 static void
 execute (PsppireDataWindow *dw)
@@ -431,19 +416,6 @@ save_file (PsppireWindow *w)
 
 
 static void
-insert_case (PsppireDataWindow *dw)
-{
-  psppire_data_editor_insert_case (dw->data_editor);
-}
-
-static void
-on_insert_variable (PsppireDataWindow *dw)
-{
-  psppire_data_editor_insert_variable (dw->data_editor);
-}
-
-
-static void
 display_dict (PsppireDataWindow *de)
 {
   execute_const_syntax_string (de, "DISPLAY DICTIONARY.");
@@ -628,27 +600,6 @@ on_rename_dataset (PsppireDataWindow *de)
 }
 
 static void
-on_edit_paste (PsppireDataWindow  *de)
-{
-  psppire_data_editor_clip_paste (de->data_editor);
-}
-
-static void
-on_edit_copy (PsppireDataWindow  *de)
-{
-  psppire_data_editor_clip_copy (de->data_editor);
-}
-
-
-
-static void
-on_edit_cut (PsppireDataWindow  *de)
-{
-  psppire_data_editor_clip_cut (de->data_editor);
-}
-
-
-static void
 status_bar_activate (PsppireDataWindow  *de, GtkToggleAction *action)
 {
   GtkWidget *statusbar = get_widget_assert (de->builder, "status-bar");
@@ -742,7 +693,6 @@ file_quit (PsppireDataWindow *de)
   psppire_quit ();
 }
 
-
 static void
 on_recent_data_select (GtkMenuShell *menushell,
 		       PsppireWindow *window)
@@ -827,74 +777,51 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
   g_free (file);
 }
 
-
-
-static void
-enable_delete_cases (GtkWidget *w, gint case_num, gpointer data)
-{
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
-
-  gtk_action_set_visible (de->delete_cases, case_num != -1);
-}
-
-
-static void
-enable_delete_variables (GtkWidget *w, gint var, gpointer data)
-{
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
-
-  gtk_action_set_visible (de->delete_variables, var != -1);
-}
-
-/* Callback for when the datasheet/varsheet is selected */
-static void
-on_switch_sheet (GtkNotebook *notebook,
-		 GtkNotebookPage *page,
-		 guint page_num,
-		 gpointer user_data)
-{
-  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (user_data);
-
-  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
-
-  GtkWidget *view_data =
-    gtk_ui_manager_get_widget (uim,"/ui/menubar/view/view_data");
-
-  GtkWidget *view_variables =
-    gtk_ui_manager_get_widget (uim,"/ui/menubar/view/view_variables");
-
-  switch (page_num)
-    {
-    case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
-      gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (view_variables),
-                                      TRUE);
-      gtk_action_set_sensitive (de->insert_variable, TRUE);
-      gtk_action_set_sensitive (de->insert_case, FALSE);
-      gtk_action_set_sensitive (de->invoke_goto_dialog, FALSE);
-      break;
-    case PSPPIRE_DATA_EDITOR_DATA_VIEW:
-      gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (view_data), TRUE);
-      gtk_action_set_sensitive (de->invoke_goto_dialog, TRUE);
-      gtk_action_set_sensitive (de->insert_case, TRUE);
-      break;
-    default:
-      g_assert_not_reached ();
-      break;
-    }
-
-#if 0
-  update_paste_menuitem (de, page_num);
-#endif
-}
-
-
-
 static void
 set_unsaved (gpointer w)
 {
   psppire_window_set_unsaved (PSPPIRE_WINDOW (w));
 }
 
+static void
+on_switch_page (PsppireDataEditor *de, GtkNotebookPage *p,
+		gint pagenum, PsppireDataWindow *dw)
+{
+  GtkWidget *page_menu_item;
+  gboolean is_ds;
+  const char *path;
+
+  is_ds = pagenum == PSPPIRE_DATA_EDITOR_DATA_VIEW;
+  path = (is_ds
+          ? "/ui/menubar/view/view_data"
+          : "/ui/menubar/view/view_variables");
+  page_menu_item = gtk_ui_manager_get_widget (dw->ui_manager, path);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (page_menu_item), TRUE);
+}
+
+static void
+on_ui_manager_changed (PsppireDataEditor *de,
+                       GParamSpec *pspec UNUSED,
+                       PsppireDataWindow *dw)
+{
+  GtkUIManager *uim = psppire_data_editor_get_ui_manager (de);
+  if (uim == dw->uim)
+    return;
+
+  if (dw->uim)
+    {
+      psppire_data_window_remove_ui (dw, dw->uim, dw->merge_id);
+      g_object_unref (dw->uim);
+      dw->uim = NULL;
+    }
+
+  dw->uim = uim;
+  if (dw->uim)
+    {
+      g_object_ref (dw->uim);
+      dw->merge_id = psppire_data_window_add_ui (dw, dw->uim);
+    }
+}
 
 /* Connects the action called ACTION_NAME to HANDLER passing DW as the auxilliary data.
    Returns a pointer to the action
@@ -920,14 +847,15 @@ connect_action (PsppireDataWindow *dw, const char *action_name,
 static void
 psppire_data_window_init (PsppireDataWindow *de)
 {
-  GtkUIManager *uim;
-
   de->builder = builder_new ("data-editor.ui");
 
-  uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
+  de->ui_manager = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
   PSPPIRE_WINDOW (de)->menu =
-    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
+    GTK_MENU_SHELL (gtk_ui_manager_get_widget (de->ui_manager, "/ui/menubar/windows/windows_minimise_all")->parent);
+
+  de->uim = NULL;
+  de->merge_id = 0;
 }
 
 static void
@@ -958,9 +886,14 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   hb = get_widget_assert (de->builder, "handlebox1");
   sb = get_widget_assert (de->builder, "status-bar");
 
+  de->uim = NULL;
+  de->merge_id = 0;
+
   de->data_editor =
-    PSPPIRE_DATA_EDITOR (psppire_data_editor_new (de, de->var_store,
+    PSPPIRE_DATA_EDITOR (psppire_data_editor_new (de->var_store,
                                                   de->data_store));
+  g_signal_connect (de->data_editor, "switch-page",
+                    G_CALLBACK (on_switch_page), de);
 
   g_signal_connect_swapped (de->data_store, "case-changed",
 			    G_CALLBACK (set_unsaved), de);
@@ -982,17 +915,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   gtk_container_add (GTK_CONTAINER (de), box);
 
-  set_cut_copy_menuitem_sensitivity (de, FALSE);
-
-  g_signal_connect_swapped (de->data_editor, "data-selection-changed",
-			    G_CALLBACK (set_cut_copy_menuitem_sensitivity), de);
-
-
-  set_paste_menuitem_sensitivity (de, FALSE);
-
-  g_signal_connect_swapped (de->data_editor, "data-available-changed",
-			    G_CALLBACK (set_paste_menuitem_sensitivity), de);
-
   g_signal_connect (dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
 		    de);
@@ -1005,10 +927,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 		    G_CALLBACK (on_split_change),
 		    de);
 
-
-  connect_action (de, "edit_copy", G_CALLBACK (on_edit_copy));
-
-  connect_action (de, "edit_cut", G_CALLBACK (on_edit_cut));
 
   connect_action (de, "file_new_data", G_CALLBACK (create_data_window));
 
@@ -1026,40 +944,13 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   connect_action (de, "file_information_external-file", G_CALLBACK (sysfile_info));
 
-  connect_action (de, "edit_paste", G_CALLBACK (on_edit_paste));
-
-  de->insert_case = connect_action (de, "edit_insert-case", G_CALLBACK (insert_case));
-
-  de->insert_variable = connect_action (de, "action_insert-variable", G_CALLBACK (on_insert_variable));
-
-  de->invoke_goto_dialog = connect_action (de, "edit_goto-case", G_CALLBACK (goto_case_dialog));
-
   g_signal_connect_swapped (get_action_assert (de->builder, "view_value-labels"), "toggled", G_CALLBACK (toggle_value_labels), de);
-
-  {
-    de->delete_cases = get_action_assert (de->builder, "edit_clear-cases");
-
-    g_signal_connect_swapped (de->delete_cases, "activate", G_CALLBACK (psppire_data_editor_delete_cases), de->data_editor);
-
-    gtk_action_set_visible (de->delete_cases, FALSE);
-  }
-
-
-  {
-    de->delete_variables = get_action_assert (de->builder, "edit_clear-variables");
-
-    g_signal_connect_swapped (de->delete_variables, "activate", G_CALLBACK (psppire_data_editor_delete_variables), de->data_editor);
-
-    gtk_action_set_visible (de->delete_variables, FALSE);
-  }
-
 
   connect_action (de, "data_transpose", G_CALLBACK (transpose_dialog));
   connect_action (de, "data_select-cases", G_CALLBACK (select_cases_dialog));
   connect_action (de, "data_aggregate", G_CALLBACK (aggregate_dialog));
   connect_action (de, "transform_compute", G_CALLBACK (compute_dialog));
   connect_action (de, "transform_autorecode", G_CALLBACK (autorecode_dialog));
-  connect_action (de, "edit_find", G_CALLBACK (find_dialog));
   connect_action (de, "data_split-file", G_CALLBACK (split_file_dialog));
   connect_action (de, "data_weight-cases", G_CALLBACK (weight_cases_dialog));
   connect_action (de, "oneway-anova", G_CALLBACK (oneway_anova_dialog));
@@ -1080,13 +971,11 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "two-related-samples", G_CALLBACK (two_related_dialog));
 
   {
-    GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
-
     GtkWidget *recent_data =
-      gtk_ui_manager_get_widget (uim,"/ui/menubar/file/file_recent-data");
+      gtk_ui_manager_get_widget (de->ui_manager, "/ui/menubar/file/file_recent-data");
 
     GtkWidget *recent_files =
-      gtk_ui_manager_get_widget (uim,"/ui/menubar/file/file_recent-files");
+      gtk_ui_manager_get_widget (de->ui_manager, "/ui/menubar/file/file_recent-files");
 
 
     GtkWidget *menu_data = gtk_recent_chooser_menu_new_for_manager (
@@ -1134,21 +1023,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "file_new_syntax", G_CALLBACK (create_syntax_window));
 
 
-  g_signal_connect (de->data_editor,
-		    "cases-selected",
-		    G_CALLBACK (enable_delete_cases),
-		    de);
-
-  g_signal_connect (de->data_editor,
-		    "variables-selected",
-		    G_CALLBACK (enable_delete_variables),
-		    de);
-
-
-  g_signal_connect (de->data_editor,
-		    "switch-page",
-		    G_CALLBACK (on_switch_sheet), de);
-
   gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
   gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
@@ -1170,36 +1044,11 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   g_signal_connect_swapped (get_action_assert (de->builder, "windows_split"), "toggled", G_CALLBACK (toggle_split_window), de);
 
-  {
-    GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
+  merge_help_menu (de->ui_manager);
 
-    merge_help_menu (uim);
-  }
-
-  {
-    GtkWidget *data_sheet_cases_popup_menu = get_widget_assert (de->builder,
-								"datasheet-cases-popup");
-
-    GtkWidget *var_sheet_variable_popup_menu = get_widget_assert (de->builder,
-								  "varsheet-variable-popup");
-
-    GtkWidget *data_sheet_variable_popup_menu = get_widget_assert (de->builder,
-								   "datasheet-variable-popup");
-
-    g_signal_connect_swapped (get_action_assert (de->builder, "sort-up"), "activate",
-			      G_CALLBACK (psppire_data_editor_sort_ascending),
-			      de->data_editor);
-
-    g_signal_connect_swapped (get_action_assert (de->builder, "sort-down"), "activate",
-			      G_CALLBACK (psppire_data_editor_sort_descending),
-			      de->data_editor);
-
-    g_object_set (de->data_editor,
-		  "datasheet-column-menu", data_sheet_variable_popup_menu,
-		  "datasheet-row-menu", data_sheet_cases_popup_menu,
-		  "varsheet-row-menu", var_sheet_variable_popup_menu,
-		  NULL);
-  }
+  g_signal_connect (de->data_editor, "notify::ui-manager",
+                    G_CALLBACK (on_ui_manager_changed), de);
+  on_ui_manager_changed (de->data_editor, NULL, de);
 
   gtk_widget_show (GTK_WIDGET (de->data_editor));
   gtk_widget_show (box);
@@ -1276,6 +1125,71 @@ psppire_data_window_get_property (GObject         *object,
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
     };
+}
+
+static guint
+psppire_data_window_add_ui (PsppireDataWindow *pdw, GtkUIManager *uim)
+{
+  gchar *ui_string;
+  guint merge_id;
+  GList *list;
+
+  ui_string = gtk_ui_manager_get_ui (uim);
+  merge_id = gtk_ui_manager_add_ui_from_string (pdw->ui_manager, ui_string,
+                                                -1, NULL);
+  g_free (ui_string);
+
+  g_return_val_if_fail (merge_id != 0, 0);
+
+  list = gtk_ui_manager_get_action_groups (uim);
+  for (; list != NULL; list = list->next)
+    {
+      GtkActionGroup *action_group = list->data;
+      GList *actions = gtk_action_group_list_actions (action_group);
+      GList *action;
+
+      for (action = actions; action != NULL; action = action->next)
+        {
+          GtkAction *a = action->data;
+
+          if (PSPPIRE_IS_DIALOG_ACTION (a))
+            g_object_set (a, "manager", pdw->ui_manager, NULL);
+        }
+
+      gtk_ui_manager_insert_action_group (pdw->ui_manager, action_group, 0);
+    }
+
+  gtk_window_add_accel_group (GTK_WINDOW (pdw),
+                              gtk_ui_manager_get_accel_group (uim));
+
+  return merge_id;
+}
+
+static void
+psppire_data_window_remove_ui (PsppireDataWindow *pdw,
+                               GtkUIManager *uim, guint merge_id)
+{
+  GList *list;
+
+  g_return_if_fail (merge_id != 0);
+
+  gtk_ui_manager_remove_ui (pdw->ui_manager, merge_id);
+
+  list = gtk_ui_manager_get_action_groups (uim);
+  for (; list != NULL; list = list->next)
+    {
+      GtkActionGroup *action_group = list->data;
+      gtk_ui_manager_remove_action_group (pdw->ui_manager, action_group);
+    }
+
+  gtk_window_remove_accel_group (GTK_WINDOW (pdw),
+                                 gtk_ui_manager_get_accel_group (uim));
+
+  /* Our caller unrefs 'uim', possibly causing 'uim' to be freed.  The
+     following call appears to be necessary to ensure that pdw->ui_manager
+     drops all references to 'uim'.  Otherwise, I get valgrind complaints about
+     access to freed memory (and segfaults) on e.g. Windows|Split View.  */
+  gtk_ui_manager_ensure_update (pdw->ui_manager);
 }
 
 GtkWidget*
@@ -1358,6 +1272,18 @@ psppire_data_window_for_dataset (struct dataset *ds)
   return NULL;
 }
 
+PsppireDataWindow *
+psppire_data_window_for_data_store (PsppireDataStore *data_store)
+{
+  PsppireDataWindow *pdw;
+
+  ll_for_each (pdw, PsppireDataWindow, ll, &all_data_windows)
+    if (pdw->data_store == data_store)
+      return pdw;
+
+  return NULL;
+}
+
 void
 create_data_window (void)
 {
@@ -1371,10 +1297,14 @@ open_data_window (PsppireWindow *victim, const char *file_name)
 
   if (PSPPIRE_IS_DATA_WINDOW (victim)
       && psppire_data_window_is_empty (PSPPIRE_DATA_WINDOW (victim)))
-    window = GTK_WIDGET (victim);
+    {
+      window = GTK_WIDGET (victim);
+      gtk_widget_hide (GTK_WIDGET (PSPPIRE_DATA_WINDOW (window)->data_editor));
+    }
   else
     window = psppire_data_window_new (NULL);
 
   psppire_window_load (PSPPIRE_WINDOW (window), file_name);
-  gtk_widget_show (window);
+  gtk_widget_show_all (window);
 }
+

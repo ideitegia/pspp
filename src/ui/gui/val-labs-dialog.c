@@ -26,7 +26,6 @@
 #include "val-labs-dialog.h"
 #include <data/value-labels.h>
 #include <data/format.h>
-#include "psppire-var-sheet.h"
 #include "psppire-var-store.h"
 #include <libpspp/i18n.h>
 

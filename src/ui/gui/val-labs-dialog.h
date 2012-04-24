@@ -24,7 +24,6 @@
 
 #include <gtk/gtk.h>
 #include <data/variable.h>
-//#include <gtk-contrib/psppire-sheet.h>
 #include "psppire-var-store.h"
 
 struct val_labs;

@@ -429,6 +429,8 @@ static void     remove_scroll_timeout                (PsppSheetView *tree_view);
 
 static guint tree_view_signals [LAST_SIGNAL] = { 0 };
 
+static GtkBindingSet *edit_bindings;
+
 
 
 /* GType Methods
@@ -445,9 +447,13 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
   GtkObjectClass *object_class;
   GtkWidgetClass *widget_class;
   GtkContainerClass *container_class;
-  GtkBindingSet *binding_set;
+  GtkBindingSet *binding_set[2];
+  int i;
 
-  binding_set = gtk_binding_set_by_class (class);
+  binding_set[0] = gtk_binding_set_by_class (class);
+
+  binding_set[1] = gtk_binding_set_new ("PsppSheetViewEditing");
+  edit_bindings = binding_set[1];
 
   o_class = (GObjectClass *) class;
   object_class = (GtkObjectClass *) class;
@@ -873,110 +879,113 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 		  G_TYPE_BOOLEAN, 0);
 
   /* Key bindings */
-  pspp_sheet_view_add_move_binding (binding_set, GDK_Up, 0, TRUE,
-				  GTK_MOVEMENT_DISPLAY_LINES, -1);
-  pspp_sheet_view_add_move_binding (binding_set, GDK_KP_Up, 0, TRUE,
-				  GTK_MOVEMENT_DISPLAY_LINES, -1);
+  for (i = 0; i < 2; i++)
+    {
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_Up, 0, TRUE,
+                                        GTK_MOVEMENT_DISPLAY_LINES, -1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_KP_Up, 0, TRUE,
+                                        GTK_MOVEMENT_DISPLAY_LINES, -1);
 
-  pspp_sheet_view_add_move_binding (binding_set, GDK_Down, 0, TRUE,
-				  GTK_MOVEMENT_DISPLAY_LINES, 1);
-  pspp_sheet_view_add_move_binding (binding_set, GDK_KP_Down, 0, TRUE,
-				  GTK_MOVEMENT_DISPLAY_LINES, 1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_Down, 0, TRUE,
+                                        GTK_MOVEMENT_DISPLAY_LINES, 1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_KP_Down, 0, TRUE,
+                                        GTK_MOVEMENT_DISPLAY_LINES, 1);
 
-  pspp_sheet_view_add_move_binding (binding_set, GDK_p, GDK_CONTROL_MASK, FALSE,
-				  GTK_MOVEMENT_DISPLAY_LINES, -1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_p, GDK_CONTROL_MASK, FALSE,
+                                        GTK_MOVEMENT_DISPLAY_LINES, -1);
 
-  pspp_sheet_view_add_move_binding (binding_set, GDK_n, GDK_CONTROL_MASK, FALSE,
-				  GTK_MOVEMENT_DISPLAY_LINES, 1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_n, GDK_CONTROL_MASK, FALSE,
+                                        GTK_MOVEMENT_DISPLAY_LINES, 1);
 
-  pspp_sheet_view_add_move_binding (binding_set, GDK_Home, 0, TRUE,
-				  GTK_MOVEMENT_BUFFER_ENDS, -1);
-  pspp_sheet_view_add_move_binding (binding_set, GDK_KP_Home, 0, TRUE,
-				  GTK_MOVEMENT_BUFFER_ENDS, -1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_Home, 0, TRUE,
+                                        GTK_MOVEMENT_BUFFER_ENDS, -1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_KP_Home, 0, TRUE,
+                                        GTK_MOVEMENT_BUFFER_ENDS, -1);
 
-  pspp_sheet_view_add_move_binding (binding_set, GDK_End, 0, TRUE,
-				  GTK_MOVEMENT_BUFFER_ENDS, 1);
-  pspp_sheet_view_add_move_binding (binding_set, GDK_KP_End, 0, TRUE,
-				  GTK_MOVEMENT_BUFFER_ENDS, 1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_End, 0, TRUE,
+                                        GTK_MOVEMENT_BUFFER_ENDS, 1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_KP_End, 0, TRUE,
+                                        GTK_MOVEMENT_BUFFER_ENDS, 1);
 
-  pspp_sheet_view_add_move_binding (binding_set, GDK_Page_Up, 0, TRUE,
-				  GTK_MOVEMENT_PAGES, -1);
-  pspp_sheet_view_add_move_binding (binding_set, GDK_KP_Page_Up, 0, TRUE,
-				  GTK_MOVEMENT_PAGES, -1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_Page_Up, 0, TRUE,
+                                        GTK_MOVEMENT_PAGES, -1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_KP_Page_Up, 0, TRUE,
+                                        GTK_MOVEMENT_PAGES, -1);
 
-  pspp_sheet_view_add_move_binding (binding_set, GDK_Page_Down, 0, TRUE,
-				  GTK_MOVEMENT_PAGES, 1);
-  pspp_sheet_view_add_move_binding (binding_set, GDK_KP_Page_Down, 0, TRUE,
-				  GTK_MOVEMENT_PAGES, 1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_Page_Down, 0, TRUE,
+                                        GTK_MOVEMENT_PAGES, 1);
+      pspp_sheet_view_add_move_binding (binding_set[i], GDK_KP_Page_Down, 0, TRUE,
+                                        GTK_MOVEMENT_PAGES, 1);
 
 
-  gtk_binding_entry_add_signal (binding_set, GDK_Right, 0, "move-cursor", 2,
-				G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
-				G_TYPE_INT, 1);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_Right, 0, "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_INT, 1);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_Left, 0, "move-cursor", 2,
-				G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
-				G_TYPE_INT, -1);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_Left, 0, "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_INT, -1);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Right, 0, "move-cursor", 2,
-				G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
-				G_TYPE_INT, 1);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_KP_Right, 0, "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_INT, 1);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Left, 0, "move-cursor", 2,
-				G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
-				G_TYPE_INT, -1);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_KP_Left, 0, "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_INT, -1);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_Right, GDK_CONTROL_MASK,
-                                "move-cursor", 2,
-				G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
-				G_TYPE_INT, 1);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_Right, GDK_CONTROL_MASK,
+                                    "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_INT, 1);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_Left, GDK_CONTROL_MASK,
-                                "move-cursor", 2,
-				G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
-				G_TYPE_INT, -1);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_Left, GDK_CONTROL_MASK,
+                                    "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_INT, -1);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Right, GDK_CONTROL_MASK,
-                                "move-cursor", 2,
-				G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
-				G_TYPE_INT, 1);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_KP_Right, GDK_CONTROL_MASK,
+                                    "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_INT, 1);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Left, GDK_CONTROL_MASK,
-                                "move-cursor", 2,
-				G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
-				G_TYPE_INT, -1);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_KP_Left, GDK_CONTROL_MASK,
+                                    "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_INT, -1);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_space, GDK_CONTROL_MASK, "toggle-cursor-row", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Space, GDK_CONTROL_MASK, "toggle-cursor-row", 0);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_f, GDK_CONTROL_MASK, "start-interactive-search", 0);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_a, GDK_CONTROL_MASK, "select-all", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_slash, GDK_CONTROL_MASK, "select-all", 0);
+      gtk_binding_entry_add_signal (binding_set[i], GDK_F, GDK_CONTROL_MASK, "start-interactive-search", 0);
+    }
 
-  gtk_binding_entry_add_signal (binding_set, GDK_A, GDK_CONTROL_MASK | GDK_SHIFT_MASK, "unselect-all", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_backslash, GDK_CONTROL_MASK, "unselect-all", 0);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_space, GDK_CONTROL_MASK, "toggle-cursor-row", 0);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_KP_Space, GDK_CONTROL_MASK, "toggle-cursor-row", 0);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_space, GDK_SHIFT_MASK, "select-cursor-row", 1,
+  gtk_binding_entry_add_signal (binding_set[0], GDK_a, GDK_CONTROL_MASK, "select-all", 0);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_slash, GDK_CONTROL_MASK, "select-all", 0);
+
+  gtk_binding_entry_add_signal (binding_set[0], GDK_A, GDK_CONTROL_MASK | GDK_SHIFT_MASK, "unselect-all", 0);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_backslash, GDK_CONTROL_MASK, "unselect-all", 0);
+
+  gtk_binding_entry_add_signal (binding_set[0], GDK_space, GDK_SHIFT_MASK, "select-cursor-row", 1,
 				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Space, GDK_SHIFT_MASK, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
-
-  gtk_binding_entry_add_signal (binding_set, GDK_space, 0, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Space, 0, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_Return, 0, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_ISO_Enter, 0, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KP_Enter, 0, "select-cursor-row", 1,
+  gtk_binding_entry_add_signal (binding_set[0], GDK_KP_Space, GDK_SHIFT_MASK, "select-cursor-row", 1,
 				G_TYPE_BOOLEAN, TRUE);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_BackSpace, 0, "select-cursor-parent", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_BackSpace, GDK_CONTROL_MASK, "select-cursor-parent", 0);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_space, 0, "select-cursor-row", 1,
+				G_TYPE_BOOLEAN, TRUE);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_KP_Space, 0, "select-cursor-row", 1,
+				G_TYPE_BOOLEAN, TRUE);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_Return, 0, "select-cursor-row", 1,
+				G_TYPE_BOOLEAN, TRUE);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_ISO_Enter, 0, "select-cursor-row", 1,
+				G_TYPE_BOOLEAN, TRUE);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_KP_Enter, 0, "select-cursor-row", 1,
+				G_TYPE_BOOLEAN, TRUE);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_f, GDK_CONTROL_MASK, "start-interactive-search", 0);
-
-  gtk_binding_entry_add_signal (binding_set, GDK_F, GDK_CONTROL_MASK, "start-interactive-search", 0);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_BackSpace, 0, "select-cursor-parent", 0);
+  gtk_binding_entry_add_signal (binding_set[0], GDK_BackSpace, GDK_CONTROL_MASK, "select-cursor-parent", 0);
 
   g_type_class_add_private (o_class, sizeof (PsppSheetViewPrivate));
 }
@@ -8026,7 +8035,7 @@ pspp_sheet_view_move_cursor_left_right (PsppSheetView *tree_view,
       gboolean left, right;
 
       column = list->data;
-      if (column->visible == FALSE)
+      if (column->visible == FALSE || column->row_head)
 	goto loop_end;
 
       pspp_sheet_view_column_cell_set_cell_data (column,
@@ -12060,6 +12069,154 @@ pspp_sheet_view_editable_clicked (GtkButton *button,
                                                sheet_view);
 }
 
+static gboolean
+is_all_selected (GtkWidget *widget)
+{
+  GtkEntryBuffer *buffer;
+  gint start_pos, end_pos;
+
+  if (!GTK_IS_ENTRY (widget))
+    return FALSE;
+
+  buffer = gtk_entry_get_buffer (GTK_ENTRY (widget));
+  return (gtk_editable_get_selection_bounds (GTK_EDITABLE (widget),
+                                             &start_pos, &end_pos)
+          && start_pos == 0
+          && end_pos == gtk_entry_buffer_get_length (buffer));
+}
+
+static gboolean
+is_at_left (GtkWidget *widget)
+{
+  return (GTK_IS_ENTRY (widget)
+          && gtk_editable_get_position (GTK_EDITABLE (widget)) == 0);
+}
+
+static gboolean
+is_at_right (GtkWidget *widget)
+{
+  GtkEntryBuffer *buffer;
+  gint length;
+
+  if (!GTK_IS_ENTRY (widget))
+    return FALSE;
+
+  buffer = gtk_entry_get_buffer (GTK_ENTRY (widget));
+  length = gtk_entry_buffer_get_length (buffer);
+  return gtk_editable_get_position (GTK_EDITABLE (widget)) == length;
+}
+
+static gboolean
+pspp_sheet_view_event (GtkWidget *widget,
+                       GdkEventKey *event,
+                       PsppSheetView *tree_view)
+{
+  PsppSheetViewColumn *column;
+  GtkTreePath *path;
+  gboolean handled;
+  gboolean cancel;
+  guint keyval;
+  guint state;
+  gint row;
+
+  /* Intercept only key press events.
+     It would make sense to use "key-press-event" instead of "event", but
+     GtkEntry attaches its own signal handler to "key-press-event" that runs
+     before ours and overrides our desired behavior for GDK_Up and GDK_Down.
+  */
+  if (event->type != GDK_KEY_PRESS)
+    return FALSE;
+
+  if (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_MOD1_MASK))
+    {
+      /* Pass through most keys that include modifiers. */
+      if ((event->keyval == GDK_Tab || event->keyval == GDK_ISO_Left_Tab)
+          && !(event->state & (GDK_CONTROL_MASK | GDK_MOD1_MASK)))
+        {
+          /* Special case for Shift-Tab. */
+        }
+      else
+        return FALSE;
+    }
+
+  keyval = event->keyval;
+  state = event->state & ~(GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_MOD1_MASK);
+  cancel = FALSE;
+  switch (event->keyval)
+    {
+    case GDK_Left:      case GDK_KP_Left:
+      if (!is_all_selected (widget) && !is_at_left (widget))
+        return FALSE;
+      break;
+
+    case GDK_Right:     case GDK_KP_Right:
+      if (!is_all_selected (widget) && !is_at_right (widget))
+        return FALSE;
+      break;
+
+    case GDK_Up:        case GDK_KP_Up:
+    case GDK_Down:      case GDK_KP_Down:
+      break;
+
+    case GDK_Page_Up:   case GDK_KP_Page_Up:
+    case GDK_Page_Down: case GDK_KP_Page_Down:
+      break;
+
+    case GDK_Escape:
+      cancel = TRUE;
+      break;
+
+    case GDK_Return:
+      keyval = GDK_Down;
+      break;
+
+    case GDK_Tab:
+    case GDK_ISO_Left_Tab:
+      keyval = event->state & GDK_SHIFT_MASK ? GDK_Left : GDK_Right;
+      break;
+
+    default:
+      return FALSE;
+    }
+
+  row = tree_view->priv->edited_row;
+  column = tree_view->priv->edited_column;
+  path = gtk_tree_path_new_from_indices (row, -1);
+
+  pspp_sheet_view_stop_editing (tree_view, cancel);
+  gtk_widget_grab_focus (GTK_WIDGET (tree_view));
+
+  pspp_sheet_view_set_cursor (tree_view, path, column, FALSE);
+  gtk_tree_path_free (path);
+
+  handled = gtk_binding_set_activate (edit_bindings, keyval, state,
+                                      GTK_OBJECT (tree_view));
+  if (handled)
+    g_signal_stop_emission_by_name (widget, "event");
+
+  pspp_sheet_view_get_cursor (tree_view, &path, NULL);
+  pspp_sheet_view_start_editing (tree_view, path);
+  gtk_tree_path_free (path);
+
+  return handled;
+}
+
+static void
+pspp_sheet_view_override_cell_keypresses (GtkWidget *widget,
+                                          gpointer data)
+{
+  PsppSheetView *sheet_view = data;
+
+  g_signal_connect (widget, "event",
+                    G_CALLBACK (pspp_sheet_view_event),
+                    sheet_view);
+
+  if (GTK_IS_CONTAINER (widget))
+    gtk_container_foreach (GTK_CONTAINER (widget),
+                           pspp_sheet_view_override_cell_keypresses,
+                           data);
+}
+
 static void
 pspp_sheet_view_real_start_editing (PsppSheetView       *tree_view,
 				  PsppSheetViewColumn *column,
@@ -12072,10 +12229,15 @@ pspp_sheet_view_real_start_editing (PsppSheetView       *tree_view,
   PsppSheetSelectionMode mode = pspp_sheet_selection_get_mode (tree_view->priv->selection);
   gint pre_val = tree_view->priv->vadjustment->value;
   GtkRequisition requisition;
+  gint row;
+
+  g_return_if_fail (gtk_tree_path_get_depth (path) == 1);
 
   tree_view->priv->edited_column = column;
   _pspp_sheet_view_column_start_editing (column, GTK_CELL_EDITABLE (cell_editable));
 
+  row = gtk_tree_path_get_indices (path)[0];
+  tree_view->priv->edited_row = row;
   pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, TRUE);
   cell_area->y += pre_val - (int)tree_view->priv->vadjustment->value;
 
@@ -12116,11 +12278,14 @@ pspp_sheet_view_real_start_editing (PsppSheetView       *tree_view,
                         G_CALLBACK (pspp_sheet_view_editable_button_press_event),
                         tree_view);
       g_object_set_data (G_OBJECT (cell_editable), "pspp-sheet-view-node",
-                         GINT_TO_POINTER (gtk_tree_path_get_indices (path)[0]));
+                         GINT_TO_POINTER (row));
       g_signal_connect (cell_editable, "clicked",
                         G_CALLBACK (pspp_sheet_view_editable_clicked),
                         tree_view);
     }
+
+  pspp_sheet_view_override_cell_keypresses (GTK_WIDGET (cell_editable),
+                                            tree_view);
 }
 
 void

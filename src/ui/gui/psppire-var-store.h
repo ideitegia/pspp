@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006  Free Software Foundation
+   Copyright (C) 2006, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,21 +21,6 @@
 #include <gdk/gdk.h>
 
 G_BEGIN_DECLS
-
-/* PSPPIRE variable store format type, to determine whether a
-   PSPPIRE variable store contains variable input formats or
-   variable output formats.  */
-GType psppire_var_store_format_type_get_type (void);
-
-typedef enum
-  {
-    PSPPIRE_VAR_STORE_INPUT_FORMATS,
-    PSPPIRE_VAR_STORE_OUTPUT_FORMATS
-  }
-PsppireVarStoreFormatType;
-
-#define PSPPIRE_TYPE_VAR_STORE_FORMAT_TYPE \
-        (psppire_var_store_format_type_get_type ())
 
 /* PSPPIRE variable store. */
 #define GTK_TYPE_VAR_STORE	       (psppire_var_store_get_type ())
@@ -64,8 +49,6 @@ struct _PsppireVarStore
 
   /*< private >*/
   PsppireDict *dictionary;
-  GdkColor disabled;
-  PsppireVarStoreFormatType format_type;
 };
 
 struct _PsppireVarStoreClass
@@ -87,24 +70,6 @@ struct variable * psppire_var_store_get_var (PsppireVarStore *store, glong row);
 /* Return the number of variables */
 gint psppire_var_store_get_var_cnt (PsppireVarStore      *var_store);
 
-void psppire_var_store_set_font (PsppireVarStore *store, const PangoFontDescription *fd);
-
-
 G_END_DECLS
-
-
-enum {
- PSPPIRE_VAR_STORE_COL_NAME,
- PSPPIRE_VAR_STORE_COL_TYPE,
- PSPPIRE_VAR_STORE_COL_WIDTH,
- PSPPIRE_VAR_STORE_COL_DECIMALS,
- PSPPIRE_VAR_STORE_COL_LABEL,
- PSPPIRE_VAR_STORE_COL_VALUES,
- PSPPIRE_VAR_STORE_COL_MISSING,
- PSPPIRE_VAR_STORE_COL_COLUMNS,
- PSPPIRE_VAR_STORE_COL_ALIGN,
- PSPPIRE_VAR_STORE_COL_MEASURE,
- PSPPIRE_VAR_STORE_n_COLS
-};
 
 #endif /* __PSPPIRE_VAR_STORE_H__ */

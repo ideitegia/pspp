@@ -2,20 +2,6 @@
 <interface>
   <object class="GtkUIManager" id="uimanager1">
     <child>
-      <object class="GtkActionGroup" id="actiongroup2">
-        <child>
-          <object class="GtkAction" id="sort-up">
-            <property name="stock-id">gtk-sort-ascending</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="sort-down">
-            <property name="stock-id">gtk-sort-descending</property>
-          </object>
-        </child>
-      </object>
-    </child>
-    <child>
       <object class="GtkActionGroup" id="actiongroup1">
         <child>
           <object class="GtkAction" id="file">
@@ -115,72 +101,6 @@
           <object class="GtkAction" id="edit">
             <property name="name">edit</property>
             <property name="label" translatable="yes">_Edit</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="action_insert-variable">
-            <property name="name">action_insert-variable</property>
-            <property name="label" translatable="yes">Insert Variable</property>
-            <property name="tooltip" translatable="yes">Create a new variable at the current position</property>
-	    <property name="stock-id">pspp-insert-variable</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="edit_insert-case">
-            <property name="name">edit_insert-case</property>
-            <property name="label" translatable="yes">Insert Cases</property>
-            <property name="tooltip" translatable="yes">Create a new case at the current position</property>
-	    <property name="stock-id">pspp-insert-case</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="edit_goto-case">
-            <property name="label" translatable="yes">Go To Case...</property>
-            <property name="name">edit_goto-case</property>
-            <property name="tooltip" translatable="yes">Jump to a case in the data sheet</property>
-	    <property name="stock-id">gtk-jump-to</property>
-
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="edit_cut">
-            <property name="stock-id">gtk-cut</property>
-            <property name="name">edit_cut</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="edit_copy">
-            <property name="stock-id">gtk-copy</property>
-            <property name="name">edit_copy</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="edit_paste">
-            <property name="stock-id">gtk-paste</property>
-            <property name="name">edit_paste</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="edit_clear-variables">
-            <property name="name">edit_clear-variables</property>
-            <property name="label" translatable="yes">Cl_ear Variables</property>
-	    <property name="tooltip" translatable="yes">Delete the variables at the selected position(s)</property>
-            <property name="stock-id">gtk-clear</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="edit_clear-cases">
-            <property name="name">edit_clear-cases</property>
-            <property name="stock-id">gtk-clear</property>
-            <property name="label" translatable="yes">_Clear Cases</property>
-            <property name="tooltip" translatable="yes">Delete the cases at the selected position(s)</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="edit_find">
-            <property name="stock-id">gtk-find</property>
-            <property name="name">edit_find</property>
-            <property name="label" translatable="yes">_Find...</property>
           </object>
         </child>
         <child>
@@ -565,19 +485,8 @@
           <separator/>
           <menuitem action="file_quit"/>
         </menu>
-        <menu action="edit">
-          <menuitem action="action_insert-variable"/>
-          <menuitem action="edit_insert-case"/>
-          <menuitem action="edit_goto-case"/>
-          <separator/>
-          <menuitem action="edit_cut"/>
-          <menuitem action="edit_copy"/>
-          <menuitem action="edit_paste"/>
-          <menuitem action="edit_clear-variables"/>
-          <menuitem action="edit_clear-cases"/>
-          <separator/>
-          <menuitem action="edit_find"/>
-        </menu>
+	<placeholder name="DataSheetEditMenu"/>
+	<placeholder name="VarSheetEditMenu"/>
         <menu action="view">
           <menuitem action="view_statusbar"/>
           <separator/>
@@ -648,57 +557,23 @@
         </menu>
       </menubar>
       <toolbar action="toolbar">
-        <placeholder name="tool-items">
-          <toolitem name="toolbar_open" action="file_open"/>
-          <toolitem name="toolbar_save" action="file_save"/>
-	  <separator/>
-          <toolitem name="toolbar_goto-case" action="edit_goto-case"/>
-          <toolitem name="toolbar_goto-variable" action="utilities_variables"/>
-	  <separator/>
-          <toolitem name="toolbar_find" action="edit_find"/>
-	  <separator/>
-	  <toolitem name="toolbar_insert-cases" action="edit_insert-case"/>
-	  <toolitem name="toolbar_insert-variable" action="action_insert-variable"/>
-	  <separator/>
-	  <toolitem name="toolbar_split-file" action="data_split-file"/>
-	  <toolitem name="toolbar_weight-cases" action="data_weight-cases"/>
-	  <toolitem name="toolbar_select-cases" action="data_select-cases"/>
-	  <separator/>
-	  <toolitem name="toolbar_select-cases" action="view_value-labels"/>
-        </placeholder>
+	<toolitem name="toolbar_open" action="file_open"/>
+	<toolitem name="toolbar_save" action="file_save"/>
+	<separator/>
+	<placeholder name="DataSheetToolItems"/>
+	<placeholder name="VarSheetToolItems"/>
+	<separator/>
+	<toolitem name="toolbar_split-file" action="data_split-file"/>
+	<toolitem name="toolbar_weight-cases" action="data_weight-cases"/>
+	<toolitem name="toolbar_select-cases" action="data_select-cases"/>
+	<separator/>
+	<toolitem name="toolbar_select-cases" action="view_value-labels"/>
       </toolbar>
-      <popup name="datasheet-variable-popup">
-	<menuitem action="action_insert-variable"/>
-	<separator/>
-	<menuitem action="edit_clear-variables"/>
-	<separator/>
-        <menuitem action="sort-up"/>
-        <menuitem action="sort-down"/>
-      </popup>
-      <popup name="varsheet-variable-popup">
-	<menuitem action="action_insert-variable"/>
-	<separator/>
-	<menuitem action="edit_clear-variables"/>
-      </popup>
-      <popup name="datasheet-cases-popup">
-	<menuitem action="edit_insert-case"/>
-	<separator/>
-	<menuitem action="edit_clear-cases"/>
-      </popup>
     </ui>
   </object>
   <!-- interface-requires gtk+ 2.6 -->
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkMenuBar" constructor="uimanager1" id="menubar">
-    <property name="visible">True</property>
-  </object>
-  <object class="GtkMenu" constructor="uimanager1" id="datasheet-variable-popup">
-    <property name="visible">True</property>
-  </object>
-  <object class="GtkMenu" constructor="uimanager1" id="varsheet-variable-popup">
-    <property name="visible">True</property>
-  </object>
-  <object class="GtkMenu" constructor="uimanager1" id="datasheet-cases-popup">
     <property name="visible">True</property>
   </object>
   <object class="GtkHandleBox" id="handlebox1">
