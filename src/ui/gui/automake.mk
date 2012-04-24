@@ -129,8 +129,8 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/icons/16x16/scale.png \
 	$(top_srcdir)/src/ui/gui/icons/16x16/string.png \
 	$(top_srcdir)/src/ui/gui/icons/16x16/date-scale.png \
-	$(top_srcdir)/src/ui/gui/icons/splash.png 
-
+	$(top_srcdir)/src/ui/gui/icons/splash.png \
+	$(top_srcdir)/src/ui/gui/psppire.gtkrc
 
 src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/pspp-sheet-private.h \
@@ -142,6 +142,10 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/pspp-sheet-view.h \
 	src/ui/gui/pspp-widget-facade.c \
 	src/ui/gui/pspp-widget-facade.h \
+	src/ui/gui/psppire-button-editable.c \
+	src/ui/gui/psppire-button-editable.h \
+	src/ui/gui/psppire-cell-renderer-button.c \
+	src/ui/gui/psppire-cell-renderer-button.h \
 	src/ui/gui/psppire-dialog.c \
 	src/ui/gui/psppire-keypad.c \
 	src/ui/gui/psppire-selector.c \

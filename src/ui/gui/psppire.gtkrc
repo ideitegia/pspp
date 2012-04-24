@@ -1,0 +1,7 @@
+#
+# Avoid making buttons inside the PSPPIRE data sheet and variable sheet
+# extra-tall.  This allows more rows to fit on the screen, making data
+# easier to review.
+#
+style "thinbuttons" { ythickness = 0 }
+widget_class "*<PsppSheetView>*GtkButton" style : rc "thinbuttons"

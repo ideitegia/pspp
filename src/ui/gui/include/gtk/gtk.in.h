@@ -163,4 +163,25 @@ gtk_widget_set_can_focus (GtkWidget *widget,
 }
 #endif  /* gtk < 2.18 */
 
+#if !GTK_CHECK_VERSION(2,22,0)
+/**
+ * gtk_button_get_event_window:
+ * @button: a #GtkButton
+ *
+ * Returns the button's event window if it is realized, %NULL otherwise.
+ * This function should be rarely needed.
+ *
+ * Return value: (transfer none): @button's event window.
+ *
+ * Since: 2.22
+ */
+static inline GdkWindow*
+gtk_button_get_event_window (GtkButton *button)
+{
+  g_return_val_if_fail (GTK_IS_BUTTON (button), NULL);
+
+  return button->event_window;
+}
+#endif  /* gtk < 2.22 */
+
 #endif /* PSPP_GTK_GTK_H */
