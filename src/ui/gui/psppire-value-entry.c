@@ -319,9 +319,7 @@ void
 psppire_value_entry_set_value_labels (PsppireValueEntry *obj,
                                       const struct val_labs *val_labs)
 {
-  if (val_labs != NULL
-      ? obj->val_labs == NULL || !val_labs_equal (obj->val_labs, val_labs)
-      : obj->val_labs != NULL)
+  if (!val_labs_equal (obj->val_labs, val_labs))
     {
       obj->cur_value = NULL;
 

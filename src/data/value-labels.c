@@ -362,7 +362,13 @@ val_labs_equal (const struct val_labs *a, const struct val_labs *b)
 {
   const struct val_lab *label;
 
-  if (val_labs_count (a) != val_labs_count (b) || a->width != b->width)
+  if (val_labs_count (a) != val_labs_count (b))
+    return false;
+  
+  if (a == NULL || b == NULL)
+    return true;
+
+  if (a->width != b->width)
     return false;
 
   HMAP_FOR_EACH (label, struct val_lab, node, &a->labels)
