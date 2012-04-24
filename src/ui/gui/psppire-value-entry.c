@@ -216,6 +216,7 @@ psppire_value_entry_init (PsppireValueEntry *obj)
   obj->format = F_8_0;
   obj->encoding = NULL;
   obj->cur_value = NULL;
+  gtk_combo_box_entry_set_text_column (GTK_COMBO_BOX_ENTRY (obj), COL_LABEL);
 
   g_signal_connect (buffer, "notify::text",
                     G_CALLBACK (psppire_value_entry_text_changed), obj);
@@ -241,7 +242,6 @@ psppire_value_entry_new (void)
 static void
 psppire_value_entry_refresh_model (PsppireValueEntry *obj)
 {
-  GtkWidget *entry = gtk_bin_get_child (GTK_BIN (obj));
   GtkTreeModel *model;
   GtkTreeModel *old_model;
 
@@ -280,8 +280,6 @@ psppire_value_entry_refresh_model (PsppireValueEntry *obj)
     }
 
   gtk_combo_box_set_model (GTK_COMBO_BOX (obj), model);
-  gtk_combo_box_entry_set_text_column (GTK_COMBO_BOX_ENTRY (obj), COL_LABEL);
-  gtk_widget_set_sensitive (entry, model != NULL);
 }
 
 void
