@@ -37,31 +37,31 @@
 #define N_(msgid) msgid
 
 
-#define CROSSTABS_STATS                       \
-  CS (CHISQ, N_("Chisq"))                         \
-  CS (PHI, N_("Phi"))         \
-  CS (CC, N_("CC"))                   \
-  CS (LAMBDA, N_("Lambda"))                   \
-  CS (UC, N_("UC")) \
-  CS (BTAU, N_("BTau"))                 \
-  CS (CTAU, N_("CTau"))                 \
-  CS (RISK, N_("Risk"))  \
+#define CROSSTABS_STATS                         \
+  CS (CHISQ, N_("Chisq"))                       \
+  CS (PHI, N_("Phi"))                           \
+  CS (CC, N_("CC"))                             \
+  CS (LAMBDA, N_("Lambda"))                     \
+  CS (UC, N_("UC"))                             \
+  CS (BTAU, N_("BTau"))                         \
+  CS (CTAU, N_("CTau"))                         \
+  CS (RISK, N_("Risk"))                         \
   CS (GAMMA, N_("Gamma"))                       \
-  CS (D, N_("D"))                         \
-  CS (KAPPA, N_("Kappa"))                 \
-  CS (ETA, N_("Eta"))  \
-  CS (CORR, N_("Corr")) \
+  CS (D, N_("D"))                               \
+  CS (KAPPA, N_("Kappa"))                       \
+  CS (ETA, N_("Eta"))                           \
+  CS (CORR, N_("Corr"))                         \
   CS (STATS_NONE, N_("None"))
 
-#define CROSSTABS_CELLS \
-  CS (COUNT, N_("Count"))   \
-  CS (ROW, N_("Row"))   \
-  CS (COLUMN, N_("Column"))   \
-  CS (TOTAL, N_("Total"))   \
-  CS (EXPECTED, N_("Expected"))   \
-  CS (RESIDUAL, N_("Residual"))   \
-  CS (SRESIDUAL, N_("Std. Residual"))   \
-  CS (ASRESIDUAL, N_("Adjusted Std. Residual"))   \
+#define CROSSTABS_CELLS                         \
+  CS (COUNT, N_("Count"))                       \
+  CS (ROW, N_("Row"))                           \
+  CS (COLUMN, N_("Column"))                     \
+  CS (TOTAL, N_("Total"))                       \
+  CS (EXPECTED, N_("Expected"))                 \
+  CS (RESIDUAL, N_("Residual"))                 \
+  CS (SRESIDUAL, N_("Std. Residual"))           \
+  CS (ASRESIDUAL, N_("Adjusted Std. Residual")) \
   CS (CELLS_NONE, N_("None"))
 
 enum
