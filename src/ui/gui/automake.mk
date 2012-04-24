@@ -140,6 +140,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/pspp-sheet-view-column.h \
 	src/ui/gui/pspp-sheet-view.c \
 	src/ui/gui/pspp-sheet-view.h \
+	src/ui/gui/pspp-widget-facade.c \
+	src/ui/gui/pspp-widget-facade.h \
 	src/ui/gui/psppire-dialog.c \
 	src/ui/gui/psppire-keypad.c \
 	src/ui/gui/psppire-selector.c \
