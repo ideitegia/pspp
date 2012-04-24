@@ -23,6 +23,7 @@
 #include "psppire-dialog-action-roc.h"
 #include "psppire-dialog-action-sort.h"
 #include "psppire-dialog-action-var-info.h"
+#include "psppire-value-entry.h"
 
 
 /* Any custom widgets which are to be used in GtkBuilder ui files
@@ -40,6 +41,7 @@ preregister_widgets (void)
   psppire_acr_get_type ();
   psppire_dict_view_get_type ();
   psppire_var_view_get_type ();
+  psppire_value_entry_get_type ();
 
   psppire_dialog_action_correlation_get_type ();
   psppire_dialog_action_descriptives_get_type ();
