@@ -108,7 +108,6 @@ static void
 on_state_var_changed (GtkAction *a)
 {
   PsppireDialogActionRoc *act = PSPPIRE_DIALOG_ACTION_ROC (a);
-  PsppireDialogAction *pda = PSPPIRE_DIALOG_ACTION (a);
 
   const gchar *var_name = gtk_entry_get_text (GTK_ENTRY(act->state_variable));
 
