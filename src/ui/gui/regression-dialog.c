@@ -298,4 +298,5 @@ regression_dialog (PsppireDataWindow *de)
     }
 
   g_object_unref (xml);
+  g_object_unref (rd.stat);
 }

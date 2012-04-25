@@ -1077,6 +1077,7 @@ set_quote_list (GtkComboBoxEntry *cb)
     }
 
   gtk_combo_box_set_model (GTK_COMBO_BOX (cb), GTK_TREE_MODEL (list));
+  g_object_unref (list);
 
   gtk_combo_box_entry_set_text_column (cb, 0);
 }
@@ -1954,6 +1955,7 @@ make_tree_view (const struct import_assistant *ia,
   g_object_set_data (G_OBJECT (model), "first-line",
                      GINT_TO_POINTER (first_line));
   gtk_tree_view_set_model (*tree_view, model);
+  g_object_unref (model);
 
   add_line_number_column (ia, *tree_view);
 }

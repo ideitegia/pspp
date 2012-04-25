@@ -955,6 +955,7 @@ psppire_output_window_init (PsppireOutputWindow *window)
   GtkAction *copy_action;
   GtkAction *select_all_action;
   GtkTreeSelection *sel;
+  GtkTreeModel *model;
 
   string_map_init (&window->render_opts);
 
@@ -982,12 +983,13 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   g_signal_connect (sel, "changed", G_CALLBACK (on_selection_change), copy_action);
 
-  gtk_tree_view_set_model (window->overview,
-                           GTK_TREE_MODEL (gtk_tree_store_new (
+  model = GTK_TREE_MODEL (gtk_tree_store_new (
                                              N_COLS,
                                              G_TYPE_STRING,  /* COL_TITLE */
 					     G_TYPE_POINTER, /* COL_ADDR */
-                                             G_TYPE_LONG))); /* COL_Y */
+                                             G_TYPE_LONG));  /* COL_Y */
+  gtk_tree_view_set_model (window->overview, model);
+  g_object_unref (model);
 
   window->in_command = false;
 

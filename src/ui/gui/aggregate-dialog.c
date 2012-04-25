@@ -226,6 +226,7 @@ populate_combo_model (GtkComboBox *cb)
   gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (cb), renderer, "text", 0);
 
   gtk_combo_box_set_model (GTK_COMBO_BOX (cb), GTK_TREE_MODEL (list));
+  g_object_unref (list);
 }
 
 

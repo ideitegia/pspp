@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -55,7 +55,6 @@ treeview_create_checkbox_model (GtkTreeView *treeview,
 
   list = gtk_list_store_new (N_CHECKBOX_COLUMNS,
 			     G_TYPE_STRING, G_TYPE_BOOLEAN);
-  gtk_tree_view_set_model (GTK_TREE_VIEW (treeview), GTK_TREE_MODEL (list));
 
   for (i = 0; i < n_items; i++)
     {
@@ -67,6 +66,9 @@ treeview_create_checkbox_model (GtkTreeView *treeview,
 			  (default_items & (1u << i)) != 0,
                           -1);
     }
+
+  gtk_tree_view_set_model (GTK_TREE_VIEW (treeview), GTK_TREE_MODEL (list));
+  g_object_unref (list);
 }
 
 static void

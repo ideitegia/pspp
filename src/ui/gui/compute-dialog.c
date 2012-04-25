@@ -502,6 +502,7 @@ function_list_populate (GtkTreeView *tv)
   }
 
   gtk_tree_view_set_model (tv, GTK_TREE_MODEL (liststore));
+  g_object_unref (liststore);
 }
 
 

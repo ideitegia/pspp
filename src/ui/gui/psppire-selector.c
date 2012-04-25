@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2012 Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -812,6 +812,8 @@ update_model (
       g_signal_connect_swapped (new_model,
 				"row-inserted",
 				G_CALLBACK (on_row_inserted), selector);
+
+      g_object_unref (new_model);
     }
 }
 

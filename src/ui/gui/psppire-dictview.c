@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -124,6 +124,7 @@ set_model (PsppireDictView *dict_view)
     }
 
   gtk_tree_view_set_model (GTK_TREE_VIEW (dict_view), model);
+  g_object_unref (model);
 }
 
 static void

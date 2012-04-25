@@ -165,6 +165,7 @@ void count_dialog (PsppireDataWindow *de)
     }
 
 
+  g_object_unref (cnt.value_list);
   g_object_unref (builder);
 }
 
