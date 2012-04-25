@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,35 +40,22 @@
 #include "psppire-acr.h"
 #include "helper.h"
 
-static void psppire_acr_init (PsppireAcr *);
+G_DEFINE_TYPE (PsppireAcr, psppire_acr, GTK_TYPE_HBOX);
 
-GType
-psppire_acr_get_type (void)
+static void
+psppire_acr_dispose (GObject *obj)
 {
-  static GType acr_type = 0;
+  PsppireAcr *acr = PSPPIRE_ACR (obj);
+  psppire_acr_set_model (acr, NULL);
 
-  if (!acr_type)
-    {
-      static const GTypeInfo acr_info =
-      {
-	sizeof (PsppireAcrClass),
-	NULL, /* base_init */
-        NULL, /* base_finalize */
-	NULL, /* class_init */
-        NULL, /* class_finalize */
-	NULL, /* class_data */
-        sizeof (PsppireAcr),
-	0,
-	(GInstanceInitFunc) psppire_acr_init,
-      };
-
-      acr_type = g_type_register_static (GTK_TYPE_HBOX, "PsppireAcr",
-					&acr_info, 0);
-    }
-
-  return acr_type;
+  G_OBJECT_CLASS (psppire_acr_parent_class)->dispose (obj);
 }
 
+static void
+psppire_acr_class_init (PsppireAcrClass *class)
+{
+  G_OBJECT_CLASS (class)->dispose = psppire_acr_dispose;
+}
 
 static gboolean row_is_selected (const PsppireAcr *acr);
 
@@ -347,10 +334,16 @@ psppire_acr_new (void)
 
 
 
-/* Set the widget's treemodel */
+/* Set the widget's treemodel to LISTSTORE.  LISTSTORE ownership is not
+   transferred. */
 void
 psppire_acr_set_model (PsppireAcr *acr, GtkListStore *liststore)
 {
+  if (acr->list_store)
+    g_object_unref (acr->list_store);
+  if (liststore)
+    g_object_ref (liststore);
+
   acr->list_store = liststore;
 
   gtk_tree_view_set_model (GTK_TREE_VIEW (acr->tv),

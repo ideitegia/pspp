@@ -237,5 +237,6 @@ chisquare_dialog (PsppireDataWindow *dw)
       break;
     }
 
+  g_object_unref (csd.expected_list);
   g_object_unref (xml);
 }

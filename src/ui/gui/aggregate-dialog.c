@@ -527,6 +527,7 @@ aggregate_dialog (PsppireDataWindow *dw)
 					     G_TYPE_DOUBLE);
 
     psppire_acr_set_model (PSPPIRE_ACR (fd.summary_acr), list);
+    g_object_unref (list);
 
     psppire_acr_set_get_value_func (PSPPIRE_ACR (fd.summary_acr),
 						 get_summary_spec, &fd);
