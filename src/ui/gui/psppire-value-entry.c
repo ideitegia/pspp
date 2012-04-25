@@ -280,7 +280,7 @@ psppire_value_entry_refresh_model (PsppireValueEntry *obj)
     }
 
   gtk_combo_box_set_model (GTK_COMBO_BOX (obj), model);
-  if ((model != NULL) && (model != old_model))
+  if (model != NULL)
     g_object_unref (model);
 }
 
