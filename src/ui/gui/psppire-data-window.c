@@ -49,7 +49,6 @@
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-window.h"
 #include "ui/gui/psppire.h"
-#include "ui/gui/rank-dialog.h"
 #include "ui/gui/runs-dialog.h"
 #include "ui/gui/ks-one-sample-dialog.h"
 #include "ui/gui/recode-dialog.h"
@@ -1084,8 +1083,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   connect_action (de, "utilities_comments", G_CALLBACK (comments_dialog));
  
-  connect_action (de, "transform_rank", G_CALLBACK (rank_dialog));
-
   connect_action (de, "transform_count", G_CALLBACK (count_dialog));
  
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
