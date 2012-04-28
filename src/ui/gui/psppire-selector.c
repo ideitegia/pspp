@@ -854,11 +854,14 @@ on_dest_model_changed (PsppireSelector *selector)
 {
   GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->dest));
 
-  g_signal_connect (model, "row-changed", G_CALLBACK (on_dest_data_change),
-		    selector);
-
-  g_signal_connect (model, "row-deleted", G_CALLBACK (on_dest_data_delete),
-		    selector);
+  if ( model ) 
+    {
+      g_signal_connect (model, "row-changed", G_CALLBACK (on_dest_data_change),
+			selector);
+      
+      g_signal_connect (model, "row-deleted", G_CALLBACK (on_dest_data_delete),
+			selector);
+    }
 }
 
 /* Set the destination widget to DEST */
