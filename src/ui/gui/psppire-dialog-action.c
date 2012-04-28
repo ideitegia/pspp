@@ -126,6 +126,8 @@ psppire_dialog_action_activate (PsppireDialogAction *act)
 	  break;
 	}
     }
+
+  gtk_widget_destroy (act->dialog);
 }
 
 static void
