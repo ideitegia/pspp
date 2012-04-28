@@ -38,10 +38,10 @@
 #define N_(msgid) msgid
 
 
-#define REGRESSION_STATS                       \
+#define REGRESSION_STATS			  \
   RG (COEFF, N_("Coeff"))                         \
-  RG (R, N_("R"))         \
-  RG (ANOVA, N_("Anova"))                   \
+  RG (R, N_("R"))				  \
+  RG (ANOVA, N_("Anova"))			  \
   RG (BCOV, N_("Bcov"))
 enum
   {
@@ -85,7 +85,6 @@ struct regression_dialog
   GtkWidget *save_dialog;
 
   GtkWidget *stat_view;
-  GtkTreeModel *stat;
   struct save_options current_opts;
 };
 
@@ -102,19 +101,20 @@ refresh (PsppireDialog *dialog, struct regression_dialog *rd)
 static void
 on_statistics_clicked (struct regression_dialog *rd)
 {
-  GtkListStore *liststore;
   int ret;
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (rd->stat_view));
 
-  liststore = clone_list_store (GTK_LIST_STORE (rd->stat));
+  /* Take a backup copy of the existing model */
+  GtkListStore *backup_model = clone_list_store (GTK_LIST_STORE (model));
 
   ret = psppire_dialog_run (PSPPIRE_DIALOG (rd->stat_dialog));
 
   if ( ret != PSPPIRE_RESPONSE_CONTINUE )
     {
-      gtk_tree_view_set_model (GTK_TREE_VIEW (rd->stat_view) , GTK_TREE_MODEL (liststore));
-      rd->stat = GTK_TREE_MODEL (liststore);
+      /* If the user chose to abandon his changes, then replace the model, from the backup */
+      gtk_tree_view_set_model (GTK_TREE_VIEW (rd->stat_view) , GTK_TREE_MODEL (backup_model));
     }
-  g_object_unref (liststore);
+  g_object_unref (backup_model);
 }
 
 static void
@@ -153,17 +153,19 @@ generate_syntax (const struct regression_dialog *rd)
   gchar *text;
   GString *string = g_string_new ("REGRESSION");
 
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (rd->stat_view));
+
   g_string_append (string, "\n\t/VARIABLES=");
   psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->indep_vars), 0, string);
   g_string_append (string, "\n\t/DEPENDENT=\t");
   psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->dep_vars), 0, string);
 
   selected = 0;
-  for (i = 0, ok = gtk_tree_model_get_iter_first (rd->stat, &iter); ok; 
-       i++, ok = gtk_tree_model_iter_next (rd->stat, &iter))
+  for (i = 0, ok = gtk_tree_model_get_iter_first (model, &iter); ok; 
+       i++, ok = gtk_tree_model_iter_next (model, &iter))
     {
       gboolean toggled;
-      gtk_tree_model_get (rd->stat, &iter,
+      gtk_tree_model_get (model, &iter,
 			  CHECKBOX_COLUMN_SELECTED, &toggled, -1); 
       if (toggled) 
 	selected |= 1u << i; 
@@ -261,7 +263,6 @@ regression_dialog (PsppireDataWindow *de)
   rd.resid_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "resid-button"));
   rd.stat_dialog = get_widget_assert (xml, "statistics-dialog");
 
-  rd.stat = gtk_tree_view_get_model (GTK_TREE_VIEW (rd.stat_view));
   rd.current_opts.pred = FALSE;
   rd.current_opts.resid = FALSE;
 
