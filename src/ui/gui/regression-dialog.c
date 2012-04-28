@@ -109,16 +109,12 @@ on_statistics_clicked (struct regression_dialog *rd)
 
   ret = psppire_dialog_run (PSPPIRE_DIALOG (rd->stat_dialog));
 
-  if ( ret == PSPPIRE_RESPONSE_CONTINUE )
+  if ( ret != PSPPIRE_RESPONSE_CONTINUE )
     {
-      g_object_unref (liststore);
-    }
-  else
-    {
-      g_object_unref (rd->stat);
       gtk_tree_view_set_model (GTK_TREE_VIEW (rd->stat_view) , GTK_TREE_MODEL (liststore));
       rd->stat = GTK_TREE_MODEL (liststore);
     }
+  g_object_unref (liststore);
 }
 
 static void
@@ -298,5 +294,4 @@ regression_dialog (PsppireDataWindow *de)
     }
 
   g_object_unref (xml);
-  g_object_unref (rd.stat);
 }

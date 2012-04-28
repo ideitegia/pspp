@@ -121,6 +121,7 @@ set_model (PsppireDictView *dict_view)
   else
     {
       model = GTK_TREE_MODEL (dict_view->dict);
+      g_object_ref (model);
     }
 
   gtk_tree_view_set_model (GTK_TREE_VIEW (dict_view), model);
