@@ -120,6 +120,8 @@ psppire_dialog_action_means_activate (GtkAction *a)
   psppire_dialog_action_set_refresh (pda, dialog_refresh);
 
   PSPPIRE_DIALOG_ACTION_CLASS (psppire_dialog_action_means_parent_class)->activate (pda);
+
+  g_object_unref (xml);
 }
 
 static void

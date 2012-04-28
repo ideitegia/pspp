@@ -159,6 +159,8 @@ psppire_dialog_action_reliability_activate (GtkAction *a)
 
   if (PSPPIRE_DIALOG_ACTION_CLASS (psppire_dialog_action_reliability_parent_class)->activate)
     PSPPIRE_DIALOG_ACTION_CLASS (psppire_dialog_action_reliability_parent_class)->activate (pda);
+
+  g_object_unref (xml);
 }
 
 static void

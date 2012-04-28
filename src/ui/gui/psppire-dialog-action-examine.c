@@ -242,6 +242,8 @@ psppire_dialog_action_examine_activate (GtkAction *a)
 			    G_CALLBACK (run_opts_dialog), act);
 
   PSPPIRE_DIALOG_ACTION_CLASS (psppire_dialog_action_examine_parent_class)->activate (pda);
+  
+  g_object_unref (xml);
 }
 
 static void
