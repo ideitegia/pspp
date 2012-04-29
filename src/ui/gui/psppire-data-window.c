@@ -35,7 +35,6 @@
 #include "ui/gui/crosstabs-dialog.h"
 #include "ui/gui/entry-dialog.h"
 #include "ui/gui/executor.h"
-#include "ui/gui/factor-dialog.h"
 #include "ui/gui/find-dialog.h"
 #include "ui/gui/frequencies-dialog.h"
 #include "ui/gui/goto-case-dialog.h"
@@ -1058,53 +1057,31 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
 
   connect_action (de, "data_transpose", G_CALLBACK (transpose_dialog));
-
   connect_action (de, "data_select-cases", G_CALLBACK (select_cases_dialog));
- 
   connect_action (de, "data_aggregate", G_CALLBACK (aggregate_dialog));
-
   connect_action (de, "transform_compute", G_CALLBACK (compute_dialog));
-
   connect_action (de, "transform_autorecode", G_CALLBACK (autorecode_dialog));
-
   connect_action (de, "edit_find", G_CALLBACK (find_dialog));
-
   connect_action (de, "data_split-file", G_CALLBACK (split_file_dialog));
-
   connect_action (de, "data_weight-cases", G_CALLBACK (weight_cases_dialog));
-
   connect_action (de, "oneway-anova", G_CALLBACK (oneway_anova_dialog));
-
   connect_action (de, "indep-t-test", G_CALLBACK (t_test_independent_samples_dialog));
-
   connect_action (de, "paired-t-test", G_CALLBACK (t_test_paired_samples_dialog));
-
   connect_action (de, "one-sample-t-test", G_CALLBACK (t_test_one_sample_dialog));
-
   connect_action (de, "utilities_comments", G_CALLBACK (comments_dialog));
- 
   connect_action (de, "transform_count", G_CALLBACK (count_dialog));
- 
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
- 
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
-
   connect_action (de, "analyze_frequencies", G_CALLBACK (frequencies_dialog));
- 
   connect_action (de, "crosstabs", G_CALLBACK (crosstabs_dialog));
   connect_action (de, "linear-regression", G_CALLBACK (regression_dialog));
- 
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
-
-  connect_action (de, "factor-analysis", G_CALLBACK (factor_dialog));
-
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
   connect_action (de, "binomial", G_CALLBACK (binomial_dialog));
   connect_action (de, "runs", G_CALLBACK (runs_dialog));
   connect_action (de, "ks-one-sample", G_CALLBACK (ks_one_sample_dialog));
   connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));
   connect_action (de, "two-related-samples", G_CALLBACK (two_related_dialog));
- 
 
   {
     GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));

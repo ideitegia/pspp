@@ -16,6 +16,7 @@
 #include "psppire-dialog-action-correlation.h"
 #include "psppire-dialog-action-descriptives.h"
 #include "psppire-dialog-action-examine.h"
+#include "psppire-dialog-action-factor.h"
 #include "psppire-dialog-action-kmeans.h"
 #include "psppire-dialog-action-means.h"
 #include "psppire-means-layer.h"
@@ -47,6 +48,7 @@ preregister_widgets (void)
   psppire_dialog_action_correlation_get_type ();
   psppire_dialog_action_descriptives_get_type ();
   psppire_dialog_action_examine_get_type ();
+  psppire_dialog_action_factor_get_type ();
   psppire_dialog_action_kmeans_get_type ();
   psppire_dialog_action_means_get_type ();
   psppire_means_layer_get_type ();

@@ -430,8 +430,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="factor-analysis">
+          <object class="PsppireDialogActionFactor" id="factor-analysis">
             <property name="name">factor-analysis</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">Factor _Analysis...</property>
           </object>
         </child>
