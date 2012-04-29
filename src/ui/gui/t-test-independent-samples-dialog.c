@@ -22,6 +22,7 @@
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "psppire-var-view.h"
+#include "psppire-value-entry.h"
 #include "executor.h"
 #include "psppire-data-window.h"
 #include "psppire-dialog.h"
@@ -63,7 +64,9 @@ struct tt_groups_dialog
   GtkWidget *cut_point_entry;
 
   enum group_definition group_defn;
-  gchar *val[2];
+
+  union value grp_val[2];
+  union value cut_point;
 };
 
 static void
@@ -81,11 +84,9 @@ set_group_criterion_type (GtkToggleButton *button,
 static void
 tt_groups_dialog_destroy (struct tt_groups_dialog *grps)
 {
+
   g_object_unref (grps->table1);
   g_object_unref (grps->table2);
-
-  g_free (grps->val[0]);
-  g_free (grps->val[1]);
 
   g_free (grps);
 }
@@ -118,9 +119,6 @@ tt_groups_dialog_create (GtkBuilder *xml, GtkWindow *parent)
 
   gtk_window_set_transient_for (GTK_WINDOW (grps->dialog), parent);
 
-  grps->val[0] = xstrdup ("");
-  grps->val[1] = xstrdup ("");
-
   return grps;
 }
 
@@ -133,13 +131,16 @@ struct tt_indep_samples_dialog
   GtkWidget *define_groups_button;
   GtkWidget *groups_entry;
 
+  const struct variable *grp_var;
+
   struct tt_groups_dialog *grps;
   struct tt_options_dialog *opts;
 };
 
 
+/* Called whenever the group variable entry widget's contents change */
 static void
-set_define_groups_sensitivity (GtkEntry *entry,
+on_grp_var_change (GtkEntry *entry,
 			       struct tt_indep_samples_dialog *tt_d)
 {
   const gchar *text = gtk_entry_get_text (entry);
@@ -147,13 +148,43 @@ set_define_groups_sensitivity (GtkEntry *entry,
   const struct variable *v = psppire_dict_lookup_var (tt_d->dict, text);
 
   gtk_widget_set_sensitive (tt_d->define_groups_button, v != NULL);
+
+  if (tt_d->grp_var)
+    {
+      int width = var_get_width (tt_d->grp_var);
+      value_destroy (&tt_d->grps->cut_point, width);
+      value_destroy (&tt_d->grps->grp_val[0], width);
+      value_destroy (&tt_d->grps->grp_val[1], width);
+    }
+
+  if (v)
+    {
+      const int width = var_get_width (v);
+      value_init (&tt_d->grps->cut_point, width);
+      value_init (&tt_d->grps->grp_val[0], width);
+      value_init (&tt_d->grps->grp_val[1], width);
+
+      if (width == 0)
+        {
+          tt_d->grps->cut_point.f  = SYSMIS;
+          tt_d->grps->grp_val[0].f = SYSMIS;
+          tt_d->grps->grp_val[1].f = SYSMIS;
+        }
+      else
+        {
+          tt_d->grps->cut_point.short_string[0] = '\0';
+          tt_d->grps->grp_val[0].short_string[0] = '\0';
+          tt_d->grps->grp_val[1].short_string[0] = '\0';
+        }
+    }
+
+  tt_d->grp_var = v;
 }
 
 
 static gchar *
 generate_syntax (const struct tt_indep_samples_dialog *d)
 {
-  struct variable *group_variable;
   gchar *text;
 
   GtkWidget *tv =
@@ -165,43 +196,41 @@ generate_syntax (const struct tt_indep_samples_dialog *d)
 
   g_string_append (str, "\n\t/GROUPS=");
 
-  group_variable =
-    psppire_dict_lookup_var (d->dict,
-			     gtk_entry_get_text (GTK_ENTRY (d->groups_entry)));
-
-  g_string_append (str, var_get_name (group_variable));
+  g_string_append (str, var_get_name (d->grp_var));
 
   if (d->grps->group_defn != GROUPS_UNDEF)
     {
       g_string_append (str, "(");
 
-      if ( var_is_alpha (group_variable))
-	{
-	  struct string s = DS_EMPTY_INITIALIZER;
-	  syntax_gen_string (&s, ss_cstr (d->grps->val[0]));
-	  g_string_append (str, ds_cstr (&s));
-	  ds_destroy (&s);
-	}
-      else
-	{
-	  g_string_append (str, d->grps->val[0]);
-	}
+      {
+        const union value *val = 
+          (d->grps->group_defn == GROUPS_VALUES) ?
+          &d->grps->grp_val[0] :
+          &d->grps->cut_point;
 
-      if ( d->grps->group_defn == GROUPS_VALUES )
+        struct string strx;        
+        ds_init_empty (&strx);
+        syntax_gen_value (&strx, val, var_get_width (d->grp_var),
+                          var_get_print_format (d->grp_var));
+      
+        g_string_append (str, ds_cstr (&strx));
+        ds_destroy (&strx);
+      }
+
+      if (d->grps->group_defn == GROUPS_VALUES)
 	{
 	  g_string_append (str, ",");
 
-	  if ( var_is_alpha (group_variable))
-	    {
-	      struct string s = DS_EMPTY_INITIALIZER;
-	      syntax_gen_string (&s, ss_cstr (d->grps->val[1]));
-	      g_string_append (str, ds_cstr (&s));
-	      ds_destroy (&s);
-	    }
-	  else
-	    {
-	      g_string_append (str, d->grps->val[1]);
-	    }
+          {
+            struct string strx;
+            ds_init_empty (&strx);
+            
+            syntax_gen_value (&strx, &d->grps->grp_val[1], var_get_width (d->grp_var),
+                              var_get_print_format (d->grp_var));
+            
+            g_string_append (str, ds_cstr (&strx));
+            ds_destroy (&strx);
+          }
 	}
 
       g_string_append (str, ")");
@@ -234,27 +263,53 @@ refresh (struct tt_indep_samples_dialog *ttd)
 }
 
 
+/* Return TRUE if VE contains a text which is not valid for VAR or if it
+   contains the SYSMIS value */
+static gboolean
+value_entry_contains_invalid (PsppireValueEntry *ve, const struct variable *var)
+{
+  union value val;
+  gboolean result = FALSE;
+  const int width = var_get_width (var);
+  value_init (&val, width);
+
+  if ( psppire_value_entry_get_value (ve, &val, width))
+    {
+      if (var_is_value_missing (var, &val, MV_SYSTEM))
+        {
+          result = TRUE;
+        }
+    }
+  else
+    result = TRUE;
+
+  value_destroy (&val, width);
+
+
+  return result;
+}
+
+
 /* Returns TRUE iff the define groups subdialog has a
    state which defines a valid group criterion */
 static gboolean
 define_groups_state_valid (gpointer data)
 {
-  struct tt_groups_dialog *d = data;
+  struct tt_indep_samples_dialog *dialog = data;
 
-  if ( gtk_toggle_button_get_active
-       (GTK_TOGGLE_BUTTON (d->values_toggle_button)))
+  if (gtk_toggle_button_get_active
+      (GTK_TOGGLE_BUTTON (dialog->grps->values_toggle_button)))
     {
-      if ( 0 == strcmp ("", gtk_entry_get_text (GTK_ENTRY (d->grp_entry[0]))))
-	return FALSE;
+      if (value_entry_contains_invalid (PSPPIRE_VALUE_ENTRY (dialog->grps->grp_entry[0]), dialog->grp_var))
+        return FALSE;
 
-      if ( 0 == strcmp ("", gtk_entry_get_text (GTK_ENTRY (d->grp_entry[1]))))
-	return FALSE;
+      if (value_entry_contains_invalid (PSPPIRE_VALUE_ENTRY (dialog->grps->grp_entry[1]), dialog->grp_var))
+        return FALSE;
     }
   else
     {
-      if ( 0 == strcmp ("",
-			gtk_entry_get_text (GTK_ENTRY (d->cut_point_entry))))
-	return FALSE;
+      if (value_entry_contains_invalid (PSPPIRE_VALUE_ENTRY (dialog->grps->cut_point_entry), dialog->grp_var))
+        return FALSE;
     }
 
   return TRUE;
@@ -295,7 +350,11 @@ run_define_groups (struct tt_indep_samples_dialog *ttd)
 
 
   psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (grps->dialog),
-				      define_groups_state_valid, grps);
+				      define_groups_state_valid, ttd);
+
+  psppire_value_entry_set_variable (PSPPIRE_VALUE_ENTRY (grps->grp_entry[0]), ttd->grp_var);
+  psppire_value_entry_set_variable (PSPPIRE_VALUE_ENTRY (grps->grp_entry[1]), ttd->grp_var);
+  psppire_value_entry_set_variable (PSPPIRE_VALUE_ENTRY (grps->cut_point_entry), ttd->grp_var);
 
   if ( grps->group_defn != GROUPS_CUT_POINT )
     {
@@ -304,11 +363,6 @@ run_define_groups (struct tt_indep_samples_dialog *ttd)
 
       gtk_toggle_button_set_active
 	(GTK_TOGGLE_BUTTON (grps->values_toggle_button), TRUE);
-
-      gtk_entry_set_text (GTK_ENTRY (grps->grp_entry[0]), grps->val[0]);
-      gtk_entry_set_text (GTK_ENTRY (grps->grp_entry[1]), grps->val[1]);
-
-      gtk_entry_set_text (GTK_ENTRY (grps->cut_point_entry), "");
     }
   else
     {
@@ -317,11 +371,6 @@ run_define_groups (struct tt_indep_samples_dialog *ttd)
 
       gtk_toggle_button_set_active
 	(GTK_TOGGLE_BUTTON (grps->cut_point_toggle_button), TRUE);
-
-      gtk_entry_set_text (GTK_ENTRY (grps->grp_entry[0]), "");
-      gtk_entry_set_text (GTK_ENTRY (grps->grp_entry[1]), "");
-
-      gtk_entry_set_text (GTK_ENTRY (grps->cut_point_entry), grps->val[0]);
     }
 
   g_signal_emit_by_name (grps->grp_entry[0], "changed");
@@ -332,28 +381,21 @@ run_define_groups (struct tt_indep_samples_dialog *ttd)
 
   if (response == PSPPIRE_RESPONSE_CONTINUE)
     {
-      g_free (grps->val[0]);
-      g_free (grps->val[1]);
+      const int width = var_get_width (ttd->grp_var);
 
       if (gtk_toggle_button_get_active
 	  (GTK_TOGGLE_BUTTON (grps->values_toggle_button)))
 	{
 	  grps->group_defn = GROUPS_VALUES;
 
-	  grps->val[0] =
-	    xstrdup (gtk_entry_get_text (GTK_ENTRY (grps->grp_entry[0])));
-
-	  grps->val[1] =
-	    xstrdup (gtk_entry_get_text (GTK_ENTRY (grps->grp_entry[1])));
+          psppire_value_entry_get_value (PSPPIRE_VALUE_ENTRY (grps->grp_entry[0]), &grps->grp_val[0], width);
+          psppire_value_entry_get_value (PSPPIRE_VALUE_ENTRY (grps->grp_entry[1]), &grps->grp_val[1], width);
 	}
       else
 	{
 	  grps->group_defn = GROUPS_CUT_POINT;
 
-	  grps->val[1] = NULL;
-
-	  grps->val[0] =
-	    xstrdup (gtk_entry_get_text (GTK_ENTRY (grps->cut_point_entry)));
+          psppire_value_entry_get_value (PSPPIRE_VALUE_ENTRY (grps->cut_point_entry), &grps->cut_point, width);
 	}
 
       psppire_dialog_notify_change (PSPPIRE_DIALOG (ttd->dialog));
@@ -420,6 +462,7 @@ t_test_independent_samples_dialog (PsppireDataWindow *de)
   tt_d.opts = tt_options_dialog_create (GTK_WINDOW (de));
   tt_d.grps = tt_groups_dialog_create (xml, GTK_WINDOW (de));
 
+  tt_d.grp_var = NULL;
 
   gtk_window_set_transient_for (GTK_WINDOW (tt_d.dialog), GTK_WINDOW (de));
 
@@ -444,7 +487,7 @@ t_test_independent_samples_dialog (PsppireDataWindow *de)
 			    &tt_d);
 
   g_signal_connect (tt_d.groups_entry, "changed",
-		    G_CALLBACK (set_define_groups_sensitivity), &tt_d);
+		    G_CALLBACK (on_grp_var_change), &tt_d);
 
 
   psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (tt_d.dialog),
@@ -463,6 +506,14 @@ t_test_independent_samples_dialog (PsppireDataWindow *de)
     default:
       break;
     }
+
+  if (tt_d.grp_var)
+  {
+    int width = var_get_width (tt_d.grp_var);
+    value_destroy (&tt_d.grps->cut_point, width);
+    value_destroy (&tt_d.grps->grp_val[0], width);
+    value_destroy (&tt_d.grps->grp_val[1], width);
+  }
 
   tt_options_dialog_destroy (tt_d.opts);
   tt_groups_dialog_destroy (tt_d.grps);
