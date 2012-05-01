@@ -176,8 +176,9 @@
                         <property name="visible">True</property>
                         <child>
                           <object class="GtkButton" id="charts-button">
-                            <property name="label" translatable="yes">Charts...</property>
+                            <property name="label" translatable="yes">Ch_arts...</property>
                             <property name="visible">True</property>
+                            <property name="use_underline">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -190,8 +191,9 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="tables-button">
-                            <property name="label" translatable="yes">Frequency Tables...</property>
+                            <property name="label" translatable="yes">Frequency _Tables...</property>
                             <property name="visible">True</property>
+                            <property name="use_underline">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -277,12 +279,13 @@
                             <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkRadioButton" id="always">
-                                <property name="label" translatable="yes">Always</property>
+                                <property name="label" translatable="yes">_Always</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="active">True</property>
+				<property name="use_underline">True</property>
                                 <property name="draw_indicator">True</property>
                               </object>
                               <packing>
@@ -293,9 +296,10 @@
                             </child>
                             <child>
                               <object class="GtkRadioButton" id="never">
-                                <property name="label" translatable="yes">Never</property>
+                                <property name="label" translatable="yes">_Never</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+				<property name="use_underline">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="draw_indicator">True</property>
@@ -312,8 +316,9 @@
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkRadioButton" id="limit">
-                                    <property name="label" translatable="yes">If no more than </property>
+                                    <property name="label" translatable="yes">If no _more than </property>
                                     <property name="visible">True</property>
+				    <property name="use_underline">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
                                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -392,9 +397,10 @@
                             <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkRadioButton" id="avalue">
-                                <property name="label" translatable="yes">Ascending value</property>
+                                <property name="label" translatable="yes">A_scending value</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+				<property name="use_underline">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="active">True</property>
@@ -408,7 +414,8 @@
                             </child>
                             <child>
                               <object class="GtkRadioButton" id="dvalue">
-                                <property name="label" translatable="yes">Descending value</property>
+                                <property name="label" translatable="yes">D_escending value</property>
+				<property name="use_underline">True</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
@@ -424,13 +431,14 @@
                             </child>
                             <child>
                               <object class="GtkRadioButton" id="afreq">
-                                <property name="label" translatable="yes">Ascending frequency</property>
+                                <property name="label" translatable="yes">Ascending _frequency</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">avalue</property>
+				<property name="use_underline">True</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -440,9 +448,10 @@
                             </child>
                             <child>
                               <object class="GtkRadioButton" id="dfreq">
-                                <property name="label" translatable="yes">Descending frequency</property>
+                                <property name="label" translatable="yes">Descending f_requency</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+				<property name="use_underline">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="draw_indicator">True</property>
@@ -533,11 +542,12 @@
                             <property name="visible">True</property>
                             <child>
                               <object class="GtkCheckButton" id="min">
-                                <property name="label" translatable="yes">Exclude values below </property>
+                                <property name="label" translatable="yes">Exclude values _below </property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="draw_indicator">True</property>
+				<property name="use_underline">True</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -568,11 +578,12 @@
                             <property name="visible">True</property>
                             <child>
                               <object class="GtkCheckButton" id="max">
-                                <property name="label" translatable="yes">Exclude values above </property>
+                                <property name="label" translatable="yes">Exclude values _above </property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="draw_indicator">True</property>
+				<property name="use_underline">True</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -630,11 +641,12 @@
                         <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkCheckButton" id="hist">
-                            <property name="label" translatable="yes">Draw histograms</property>
+                            <property name="label" translatable="yes">Draw _histograms</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="draw_indicator">True</property>
+			    <property name="use_underline">True</property>
                           </object>
                           <packing>
                             <property name="position">0</property>
@@ -642,11 +654,12 @@
                         </child>
                         <child>
                           <object class="GtkCheckButton" id="normal">
-                            <property name="label" translatable="yes">Superimpose normal curve</property>
+                            <property name="label" translatable="yes">Superimpose _normal curve</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="draw_indicator">True</property>
+			    <property name="use_underline">True</property>
                           </object>
                           <packing>
                             <property name="position">1</property>
@@ -666,12 +679,13 @@
                             </child>
                             <child>
                               <object class="GtkRadioButton" id="freqs">
-                                <property name="label" translatable="yes">Frequencies</property>
+                                <property name="label" translatable="yes">_Frequencies</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
+				<property name="use_underline">True</property>
                               </object>
                               <packing>
                                 <property name="position">1</property>
@@ -679,12 +693,13 @@
                             </child>
                             <child>
                               <object class="GtkRadioButton" id="percents">
-                                <property name="label" translatable="yes">Percentages</property>
+                                <property name="label" translatable="yes">_Percentages</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">freqs</property>
+				<property name="use_underline">True</property>
                               </object>
                               <packing>
                                 <property name="position">2</property>
@@ -726,11 +741,12 @@
                         <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkCheckButton" id="pie">
-                            <property name="label" translatable="yes">Draw pie charts</property>
+                            <property name="label" translatable="yes">Draw _pie charts</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="draw_indicator">True</property>
+			    <property name="use_underline">True</property>
                           </object>
                           <packing>
                             <property name="position">0</property>
@@ -738,11 +754,12 @@
                         </child>
                         <child>
                           <object class="GtkCheckButton" id="pie-include-missing">
-                            <property name="label" translatable="yes">Include slices for missing values</property>
+                            <property name="label" translatable="yes">Include slices for _missing values</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="draw_indicator">True</property>
+			    <property name="use_underline">True</property>
                           </object>
                           <packing>
                             <property name="position">1</property>
