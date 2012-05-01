@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -150,7 +150,7 @@ prev_region (unsigned int pattern, unsigned int offset,
    or ULONG_MAX if none is found. */
 static unsigned long int
 next_1bit (unsigned int pattern, unsigned int offset,
-           unsigned int pattern_offset)
+           unsigned long int pattern_offset)
 {
   for (; offset < UINT_BIT; offset++)
     if (pattern & (1u << offset))
