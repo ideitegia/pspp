@@ -1162,7 +1162,7 @@ output_report (const struct means *cmd,  int iact_idx,
 	  tab_text (t, 0,
 		    heading_rows + dv * n_cats,
 		    TAB_RIGHT | TAT_TITLE,
-		    var_get_name (table->dep_vars[dv])
+		    var_to_string (table->dep_vars[dv])
 		    );
 
 	  if ( dv > 0)
