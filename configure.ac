@@ -73,6 +73,9 @@ AC_ARG_WITH([gui],
 AM_CONDITIONAL([HAVE_GUI], 
                [test "$with_cairo" != no && test "$with_gui" != "no"])
 if test "$with_cairo" != no && test "$with_gui" != "no"; then
+  PKG_CHECK_MODULES([GTHREAD], [gthread-2.0], [],
+    [PSPP_REQUIRED_PREREQ([gthread 2.0 (or use --without-gui)])])
+
   PKG_CHECK_MODULES([GTK], [gtk+-2.0 >= 2.16], [],
     [PSPP_REQUIRED_PREREQ([gtk+ 2.0 version 2.16 or later (or use --without-gui)])])
 
