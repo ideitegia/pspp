@@ -26,15 +26,24 @@
 
 #include "libpspp/cast.h"
 
+#include "gl/minmax.h"
+
 static const struct lex_reader_class lex_gtk_text_buffer_reader_class ;
 
 
 struct lex_gtk_text_buffer_reader
 {
   struct lex_reader reader;
+
+  /* The GtkTextBuffer from which we are reading. */
   GtkTextBuffer *buffer;
   GtkTextIter start;
   GtkTextIter stop;
+
+  /* Text pulled from part of the GtkTextBuffer. */
+  gchar *part;
+  gsize part_len;               /* Number of bytes in 'part'. */
+  gsize part_ofs;               /* Current offset into 'part'. */
 };
 
 static struct lex_gtk_text_buffer_reader *
@@ -57,6 +66,10 @@ lex_reader_for_gtk_text_buffer (GtkTextBuffer *buffer, GtkTextIter start, GtkTex
   r->start = start;
   r->stop = stop;
 
+  r->part = NULL;
+  r->part_len = 0;
+  r->part_ofs = 0;
+
   return &r->reader;
 }
 
@@ -66,26 +79,38 @@ lex_gtk_text_buffer_read (struct lex_reader *r_, char *buf, size_t n,
                  enum prompt_style prompt_style UNUSED)
 {
   struct lex_gtk_text_buffer_reader *r = lex_gtk_text_buffer_reader_cast (r_);
-  int n_chars = n;
-  char *s;
+  gsize chunk;
 
-  GtkTextIter iter = r->start ;
-  
-  int offset = gtk_text_iter_get_offset (&iter);
-  int end_offset = gtk_text_iter_get_offset (&r->stop);
+  if (r->part_ofs == r->part_len)
+    {
+      /* Read up to N characters into r->part.  N characters might be more than
+         N bytes, but that's OK: we'll just buffer up some of those bytes for
+         the next read. */
+      int n_chars = n;
 
-  if ( end_offset - offset < n)
-    n_chars = end_offset - offset;
-  
-  gtk_text_iter_set_offset (&iter, offset + n_chars);
+      GtkTextIter iter = r->start ;
 
-  s = gtk_text_iter_get_text (&r->start, &iter);
+      int offset = gtk_text_iter_get_offset (&iter);
+      int end_offset = gtk_text_iter_get_offset (&r->stop);
 
-  strncpy (buf, s, n_chars);
+      if ( end_offset - offset < n)
+        n_chars = end_offset - offset;
 
-  r->start = iter;
+      gtk_text_iter_set_offset (&iter, offset + n_chars);
 
-  return strlen (s);
+      g_free (r->part);
+      r->part = gtk_text_iter_get_text (&r->start, &iter);
+      r->part_len = strlen (r->part);
+      r->part_ofs = 0;
+
+      r->start = iter;
+    }
+
+  chunk = MIN (r->part_len - r->part_ofs, n);
+  memcpy (buf, r->part + r->part_ofs, chunk);
+  r->part_ofs += chunk;
+
+  return chunk;
 }
 
 
@@ -96,6 +121,7 @@ lex_gtk_text_buffer_close (struct lex_reader *r_)
   struct lex_gtk_text_buffer_reader *r = lex_gtk_text_buffer_reader_cast (r_);
 
   g_object_unref (r->buffer);
+  g_free (r->part);
 }
 
 
