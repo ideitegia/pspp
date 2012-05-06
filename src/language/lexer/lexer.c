@@ -1209,14 +1209,18 @@ lex_source_read__ (struct lex_source *src)
   do
     {
       size_t head_ofs;
+      size_t space;
       size_t n;
 
       lex_source_expand__ (src);
 
       head_ofs = src->head - src->tail;
+      space = src->allocated - head_ofs;
       n = src->reader->class->read (src->reader, &src->buffer[head_ofs],
-                                    src->allocated - head_ofs,
+                                    space,
                                     segmenter_get_prompt (&src->segmenter));
+      assert (n <= space);
+
       if (n == 0)
         {
           /* End of input.
