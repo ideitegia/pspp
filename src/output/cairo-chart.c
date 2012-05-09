@@ -308,7 +308,7 @@ xrchart_write_title (cairo_t *cr, const struct xrchart_geometry *geom,
 }
 
 
-/* Set the scale for the ordinate */
+
 static void
 xrchart_write_scale (cairo_t *cr, struct xrchart_geometry *geom,
 		     double smin, double smax, int ticks, enum tick_orientation orient)
@@ -335,6 +335,7 @@ xrchart_write_scale (cairo_t *cr, struct xrchart_geometry *geom,
     }
 }
 
+/* Set the scale for the ordinate */
 void
 xrchart_write_yscale (cairo_t *cr, struct xrchart_geometry *geom,
                     double smin, double smax, int ticks)
