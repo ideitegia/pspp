@@ -546,6 +546,7 @@ void
 i18n_init (void)
 {
   setlocale (LC_CTYPE, "");
+  setlocale (LC_COLLATE, "");
   setlocale (LC_MESSAGES, "");
 #if HAVE_LC_PAPER
   setlocale (LC_PAPER, "");
