@@ -1605,8 +1605,6 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
             / (1 + log2 (es[v].cc))
             ;
 
-          bin_width = chart_rounded_tick (bin_width);
-
           es[v].histogram =
             histogram_create (bin_width, es[v].minimum, es[v].maximum);
         }

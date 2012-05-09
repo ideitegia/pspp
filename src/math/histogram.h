@@ -30,7 +30,13 @@ struct histogram
   gsl_histogram *gsl_hist;
 };
 
-struct histogram * histogram_create (double bin_width, double max, double min);
+/* 
+   Prepare a histogram for data which lies in the range [min, max)
+   bin_width is a nominal figure only.  It is a hint about what might be
+   an good approximate bin width, but the implementation will adjust it
+   as it thinks fit.
+ */
+struct histogram * histogram_create (double bin_width, double min, double max);
 
 void histogram_add (struct histogram *h, double y, double c);
 

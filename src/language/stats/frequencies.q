@@ -1142,7 +1142,6 @@ freq_tab_to_hist (const struct frq_proc *frq, const struct freq_tab *ft,
   /* Freedman-Diaconis' choice of bin width. */
   iqr = calculate_iqr (frq);
   bin_width = 2 * iqr / pow (valid_freq, 1.0 / 3.0);
-  bin_width = chart_rounded_tick (bin_width);
 
   histogram = histogram_create (bin_width, x_min, x_max);
 

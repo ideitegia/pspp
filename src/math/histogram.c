@@ -222,12 +222,14 @@ histogram_create (double bin_width, double min, double max)
 
   assert (bin_width > 0);
 
+  bin_width = chart_rounded_tick (bin_width);
   bins = adjust_bin_ranges (bin_width, min, max, &adjusted_min, &adjusted_max);
 
   /* Force the number of bins to lie in a sensible range. */
   if (bins > MAX_BINS) 
     {
-      bins = adjust_bin_ranges ((max - min) / (double) (MAX_BINS - 1),
+      bin_width = chart_rounded_tick ((max - min) / (double) (MAX_BINS - 1));
+      bins = adjust_bin_ranges (bin_width,
                                 min, max, &adjusted_min, &adjusted_max);
     }
 
