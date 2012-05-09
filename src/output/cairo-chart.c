@@ -151,8 +151,8 @@ xrchart_draw_marker (cairo_t *cr, double x, double y,
 }
 
 void
-xrchart_label (cairo_t *cr, int horz_justify, int vert_justify,
-               double font_size, const char *string)
+xrchart_label_rotate (cairo_t *cr, int horz_justify, int vert_justify,
+		      double font_size, const char *string, double angle)
 {
   PangoFontDescription *desc;
   PangoLayout *layout;
@@ -167,6 +167,7 @@ xrchart_label (cairo_t *cr, int horz_justify, int vert_justify,
   pango_font_description_set_absolute_size (desc, font_size * PANGO_SCALE);
 
   cairo_save (cr);
+  cairo_rotate (cr, angle);
   cairo_get_current_point (cr, &x, &y);
   cairo_translate (cr, x, y);
   cairo_move_to (cr, 0, 0);
@@ -215,18 +216,28 @@ xrchart_label (cairo_t *cr, int horz_justify, int vert_justify,
   pango_font_description_free (desc);
 }
 
+void
+xrchart_label (cairo_t *cr, int horz_justify, int vert_justify,
+               double font_size, const char *string)
+{
+  xrchart_label_rotate (cr, horz_justify, vert_justify, font_size, string, 0);
+}
+
+
 /* Draw a tick mark at position
    If label is non null, then print it at the tick mark
 */
 static void
 draw_tick_internal (cairo_t *cr, const struct xrchart_geometry *geom,
 		    enum tick_orientation orientation,
+		    bool rotated,
 		    double position,
 		    const char *s);
 
 void
 draw_tick (cairo_t *cr, const struct xrchart_geometry *geom,
            enum tick_orientation orientation,
+	   bool rotated,
            double position,
            const char *label, ...)
 {
@@ -238,7 +249,7 @@ draw_tick (cairo_t *cr, const struct xrchart_geometry *geom,
   if (fabs (position) < DBL_EPSILON)
     position = 0;
 
-  draw_tick_internal (cr, geom, orientation, position, s);
+  draw_tick_internal (cr, geom, orientation, rotated, position, s);
   free (s);
   va_end (ap);
 }
@@ -247,6 +258,7 @@ draw_tick (cairo_t *cr, const struct xrchart_geometry *geom,
 static void
 draw_tick_internal (cairo_t *cr, const struct xrchart_geometry *geom,
 		    enum tick_orientation orientation,
+		    bool rotated,
 		    double position,
 		    const char *s)
 {
@@ -276,7 +288,12 @@ draw_tick_internal (cairo_t *cr, const struct xrchart_geometry *geom,
       cairo_move_to (cr, x, y);
 
       if (orientation == SCALE_ABSCISSA)
-        xrchart_label (cr, 'c', 't', geom->font_size, s);
+	{
+	  if ( rotated) 
+	    xrchart_label_rotate (cr, 'l', 'c', geom->font_size, s, -G_PI_4);
+	  else
+	    xrchart_label (cr, 'c', 't', geom->font_size, s);
+	}
       else if (orientation == SCALE_ORDINATE)
         {
           if (fabs (position) < DBL_EPSILON)
@@ -330,7 +347,7 @@ xrchart_write_scale (cairo_t *cr, struct xrchart_geometry *geom,
   for (s = 0 ; s < upper - lower; ++s)
     {
       double pos = (s + lower) * tick_interval;
-      draw_tick (cr, geom, orient,
+      draw_tick (cr, geom, orient, false,
 		 s * tick_interval * geom->axis[orient].scale, "%g", pos);
     }
 }

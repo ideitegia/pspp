@@ -131,7 +131,8 @@ boxplot_draw_box (cairo_t *cr, const struct xrchart_geometry *geom,
     }
 
   /* Draw  tick  mark on x axis */
-  draw_tick(cr, geom, SCALE_ABSCISSA, box_centre - geom->axis[SCALE_ABSCISSA].data_min, "%s", name);
+  draw_tick (cr, geom, SCALE_ABSCISSA, false,
+	     box_centre - geom->axis[SCALE_ABSCISSA].data_min, "%s", name);
 }
 
 void

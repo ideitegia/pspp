@@ -102,7 +102,7 @@ hist_draw_bar (cairo_t *cr, const struct xrchart_geometry *geom,
   cairo_stroke (cr);
 
   if (label)
-    draw_tick (cr, geom, SCALE_ABSCISSA,
+    draw_tick (cr, geom, SCALE_ABSCISSA, bins > 10,
 	       x_pos + width / 2.0, "%g", (upper + lower) / 2.0);
 }
 

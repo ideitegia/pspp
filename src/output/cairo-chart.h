@@ -96,13 +96,19 @@ void xrchart_draw_marker (cairo_t *, double x, double y, enum xrmarker_type,
 void xrchart_label (cairo_t *, int horz_justify, int vert_justify,
                     double font_size, const char *);
 
+void xrchart_label_rotate (cairo_t *cr, int horz_justify, int vert_justify,
+			   double font_size, const char *string, double angle);
+
+
 /* Draw a tick mark at position
    If label is non zero, then print it at the tick mark
 */
 void draw_tick (cairo_t *, const struct xrchart_geometry *,
-                enum tick_orientation orientation, double position,
+                enum tick_orientation orientation,
+		bool rotated,
+		double position,
                 const char *label, ...)
-  PRINTF_FORMAT (5, 6);
+  PRINTF_FORMAT (6, 7);
 
 
 /* Write the title on a chart*/
