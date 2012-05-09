@@ -76,21 +76,21 @@ list by enclosing them in parentheses after each variable.
 The @subcmd{STATISTICS} subcommand specifies the statistics to be displayed:
 
 @table @code
-@item ALL
+@item @subcmd{ALL}
 All of the statistics below.
-@item MEAN
+@item @subcmd{MEAN}
 Arithmetic mean.
-@item SEMEAN
+@item @subcmd{SEMEAN}
 Standard error of the mean.
-@item STDDEV
+@item @subcmd{STDDEV}
 Standard deviation.
-@item VARIANCE
+@item @subcmd{VARIANCE}
 Variance.
-@item KURTOSIS
+@item @subcmd{KURTOSIS}
 Kurtosis and standard error of the kurtosis.
-@item SKEWNESS
+@item @subcmd{SKEWNESS}
 Skewness and standard error of the skewness.
-@item RANGE
+@item @subcmd{RANGE}
 Range.
 @item MINIMUM
 Minimum value.
@@ -666,28 +666,28 @@ to be analysed.  By default, the correlation matrix is analysed.
 
 The @subcmd{/PRINT} subcommand may be used to select which features of the analysis are reported:
 
-@itemize @subcmd{}
-@item UNIVARIATE
+@itemize 
+@item @subcmd{UNIVARIATE}
       A table of mean values, standard deviations and total weights are printed.
-@item INITIAL
+@item @subcmd{INITIAL}
       Initial communalities and eigenvalues are printed.
-@item EXTRACTION
+@item @subcmd{EXTRACTION}
       Extracted communalities and eigenvalues are printed.
-@item ROTATION
+@item @subcmd{ROTATION}
       Rotated communalities and eigenvalues are printed.
-@item CORRELATION
+@item @subcmd{CORRELATION}
       The correlation matrix is printed.
-@item COVARIANCE
+@item @subcmd{COVARIANCE}
       The covariance matrix is printed.
-@item DET
+@item @subcmd{DET}
       The determinant of the correlation or covariance matrix is printed.
-@item KMO
+@item @subcmd{KMO}
       The Kaiser-Meyer-Olkin measure of sampling adequacy and the Bartlett test of sphericity is printed.
-@item SIG
+@item @subcmd{SIG}
       The significance of the elements of correlation matrix is printed.
-@item ALL
+@item @subcmd{ALL}
       All of the above are printed.
-@item DEFAULT
+@item @subcmd{DEFAULT}
       Identical to @subcmd{INITIAL} and @subcmd{EXTRACTION}.
 @end itemize
 
