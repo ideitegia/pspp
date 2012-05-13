@@ -108,6 +108,7 @@ int tgetnum (const char *);
      scripttab=string;
      seed=custom;
      tnumbers=custom;
+     tvars=custom;
      tb1=string;
      tbfonts=string;
      undefined=undef:warn/nowarn;
@@ -350,6 +351,35 @@ stc_custom_tnumbers (struct lexer *lexer,
   else
     {
       lex_error_expecting (lexer, "VALUES", "LABELS", "BOTH", NULL_SENTINEL);
+      return 0;
+    }
+
+  return 1;
+}
+
+
+static int
+stc_custom_tvars (struct lexer *lexer,
+                  struct dataset *ds UNUSED,
+                  struct cmd_set *cmd UNUSED, void *aux UNUSED)
+{
+  lex_match (lexer, T_EQUALS);
+
+  if (lex_match_id (lexer, "NAMES"))
+    {
+      settings_set_var_style (SETTINGS_VAR_STYLE_NAMES);
+    }
+  else if (lex_match_id (lexer, "LABELS"))
+    {
+      settings_set_var_style (SETTINGS_VAR_STYLE_LABELS);
+    }
+  else if (lex_match_id (lexer, "BOTH"))
+    {
+      settings_set_var_style (SETTINGS_VAR_STYLE_BOTH);
+    }
+  else
+    {
+      lex_error_expecting (lexer, "NAMES", "LABELS", "BOTH", NULL_SENTINEL);
       return 0;
     }
 

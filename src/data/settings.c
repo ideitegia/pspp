@@ -713,3 +713,10 @@ settings_get_var_style (void)
 {
   return the_settings.var_output_style;
 }
+
+
+void
+settings_set_var_style (enum settings_var_style s)
+{
+  the_settings.var_output_style = s;
+}

@@ -54,6 +54,7 @@ struct variable
     struct fmt_spec write;	/* Default format for WRITE. */
     struct val_labs *val_labs;  /* Value labels. */
     char *label;		/* Variable label. */
+    struct string name_and_label; /* The name and label in the same string */
 
     /* GUI information. */
     enum measure measure;       /* Nominal, ordinal, or continuous. */
@@ -91,9 +92,7 @@ var_create (const char *name, int width)
 
   assert (width >= 0 && width <= MAX_STRING);
 
-  v = xmalloc (sizeof *v);
-  v->vardict = NULL;
-  v->name = NULL;
+  v = xzalloc (sizeof *v);
   var_set_name (v, name);
   v->width = width;
   mv_init (&v->miss, width);
@@ -103,13 +102,8 @@ var_create (const char *name, int width)
   v->measure = var_default_measure (type);
   v->display_width = var_default_display_width (width);
   v->print = v->write = var_default_formats (width);
-  v->val_labs = NULL;
-  v->label = NULL;
-  v->short_names = NULL;
-  v->short_name_cnt = 0;
-  v->aux = NULL;
-  v->aux_dtor = NULL;
   attrset_init (&v->attributes);
+  ds_init_empty (&v->name_and_label);
 
   return v;
 }
@@ -160,6 +154,7 @@ var_destroy (struct variable *v)
       var_clear_label (v);
       attrset_destroy (var_get_attributes (v));
       free (v->name);
+      ds_destroy (&v->name_and_label);
       free (v);
     }
 }
@@ -173,6 +168,8 @@ var_get_name (const struct variable *v)
   return v->name;
 }
 
+
+
 /* Sets V's name to NAME, a UTF-8 encoded string.
    Do not use this function for a variable in a dictionary.  Use
    dict_rename_var instead. */
@@ -184,6 +181,8 @@ var_set_name (struct variable *v, const char *name)
 
   free (v->name);
   v->name = xstrdup (name);
+  ds_destroy (&v->name_and_label);
+  ds_init_empty (&v->name_and_label);
   dict_var_changed (v);
 }
 
@@ -582,14 +581,51 @@ var_default_formats (int width)
           ? fmt_for_output (FMT_F, 8, 2)
           : fmt_for_output (FMT_A, width, 0));
 }
+
+
 
+
+/* Update the combined name and label string if necessary */
+static void
+update_vl_string (const struct variable *v)
+{
+  /* Cast away const! */
+  struct string *str = (struct string *) &v->name_and_label;
+
+  if (ds_is_empty (str))
+    {
+      if (v->label)
+        ds_put_format (str, _("%s (%s)"), v->label, v->name);
+      else
+        ds_put_cstr (str, v->name);
+    }
+}
+
+
 /* Return a string representing this variable, in the form most
    appropriate from a human factors perspective, that is, its
    variable label if it has one, otherwise its name. */
 const char *
 var_to_string (const struct variable *v)
 {
-  return v->label != NULL ? v->label : v->name;
+  enum settings_var_style style = settings_get_var_style ();
+
+  switch (style)
+  {
+    case SETTINGS_VAR_STYLE_NAMES:
+      return v->name;
+      break;
+    case SETTINGS_VAR_STYLE_LABELS:
+      return v->label != NULL ? v->label : v->name;
+      break;
+    case SETTINGS_VAR_STYLE_BOTH:
+      update_vl_string (v);
+      return ds_cstr (&v->name_and_label);
+      break;
+    default:
+      NOT_REACHED ();
+      break;
+  };
 }
 
 /* Returns V's variable label, or a null pointer if it has none. */
@@ -640,6 +676,9 @@ var_set_label (struct variable *v, const char *label, bool issue_warning)
 
         v->label = ss_xstrdup (s);
     }
+
+  ds_destroy (&v->name_and_label);
+  ds_init_empty (&v->name_and_label);
 
   dict_var_changed (v);
 

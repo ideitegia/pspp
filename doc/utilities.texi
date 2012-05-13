@@ -423,6 +423,7 @@ SET
         /MORE=@{ON,OFF@}
         /WIDTH=@{NARROW,WIDTH,@var{n_characters}@}
         /TNUMBERS=@{VALUES,LABELS,BOTH@}
+        /TVARS=@{NAMES,LABELS,BOTH@}
 
 (logging)
         /JOURNAL=@{ON,OFF@} ['@var{file_name}']
@@ -719,7 +720,16 @@ If @subcmd{TNUMBERS} is set to @subcmd{LABELS}, then values are displayed using 
 (@xref{VALUE LABELS}.)
 If the a value has no label, then it will be displayed using its literal value.
 If @subcmd{TNUMBERS} is set to @subcmd{BOTH}, then values will be displayed with both their label
-(if any) and their literal value in parenthesis.
+(if any) and their literal value in parentheses.
+@itemx TVARS
+The @subcmd{TVARS} option sets the way in which variables are displayed in output tables.
+The valid settings are @subcmd{NAMES}, @subcmd{LABELS} and @subcmd{BOTH}.
+If @subcmd{TVARS} is set to @subcmd{NAMES}, then all variables are displayed using their names.
+If @subcmd{TVARS} is set to @subcmd{LABELS}, then variables are displayed using their label if one
+has been set.  If no label has been set, then the name will be used.
+(@xref{VARIABLE LABELS}.)
+If @subcmd{TVARS} is set to @subcmd{BOTH}, then variables will be displayed with both their label
+(if any) and their name in parentheses.
 @end table
 
 @cindex headers

@@ -121,7 +121,7 @@ enum settings_value_style settings_get_value_style (void);
 enum settings_var_style settings_get_var_style (void);
 
 void settings_set_value_style (enum settings_value_style s);
-void settings_set_var_style (enum settings_value_style s);
+void settings_set_var_style (enum settings_var_style s);
 
 
 enum behavior_mode {
