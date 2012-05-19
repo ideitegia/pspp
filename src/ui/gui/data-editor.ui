@@ -391,8 +391,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="indep-t-test">
+          <object class="PsppireDialogActionIndepSamps" id="indep-t-test">
             <property name="name">indep-t-test</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">_Independent Samples T Test...</property>
           </object>
         </child>
