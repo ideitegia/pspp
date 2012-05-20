@@ -51,7 +51,6 @@
 #include "ui/gui/runs-dialog.h"
 #include "ui/gui/ks-one-sample-dialog.h"
 #include "ui/gui/recode-dialog.h"
-#include "ui/gui/regression-dialog.h"
 #include "ui/gui/select-cases-dialog.h"
 #include "ui/gui/split-file-dialog.h"
 #include "ui/gui/t-test-one-sample.h"
@@ -1072,7 +1071,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
   connect_action (de, "analyze_frequencies", G_CALLBACK (frequencies_dialog));
   connect_action (de, "crosstabs", G_CALLBACK (crosstabs_dialog));
-  connect_action (de, "linear-regression", G_CALLBACK (regression_dialog));
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
   connect_action (de, "binomial", G_CALLBACK (binomial_dialog));

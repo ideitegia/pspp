@@ -445,8 +445,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="linear-regression">
+          <object class="PsppireDialogActionRegression" id="linear-regression">
             <property name="name">linear-regression</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">Linear _Regression...</property>
           </object>
         </child>
