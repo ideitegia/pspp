@@ -18,6 +18,7 @@ UI_FILES = \
 	src/ui/gui/factor.ui \
 	src/ui/gui/find.ui \
 	src/ui/gui/frequencies.ui \
+	src/ui/gui/indep-samples.ui \
 	src/ui/gui/k-means.ui \
 	src/ui/gui/k-related.ui \
 	src/ui/gui/ks-one-sample.ui \

@@ -291,16 +291,16 @@ psppire_dialog_action_indep_samps_activate (GtkAction *a)
   PsppireDialogActionIndepSamps *act = PSPPIRE_DIALOG_ACTION_INDEP_SAMPS (a);
   PsppireDialogAction *pda = PSPPIRE_DIALOG_ACTION (a);
 
-  GtkBuilder *xml = builder_new ("t-test.ui");
+  GtkBuilder *xml = builder_new ("indep-samples.ui");
 
-  pda->dialog = get_widget_assert (xml,"t-test-independent-samples-dialog"); 
-  pda->source = get_widget_assert (xml, "indep-samples-t-test-treeview1");
+  pda->dialog = get_widget_assert (xml,"independent-samples-dialog"); 
+  pda->source = get_widget_assert (xml, "indep-samples-treeview1");
   act->define_groups_button = get_widget_assert (xml, "define-groups-button");
-  act->options_button = get_widget_assert (xml, "indep-samples-t-test-options-button");
+  act->options_button = get_widget_assert (xml, "indep-samples-options-button");
 
   act->def_grps_dialog = get_widget_assert (xml, "define-groups-dialog");
-  act->group_var_entry = get_widget_assert (xml, "indep-samples-t-test-entry");
-  act->test_vars_tv = get_widget_assert (xml, "indep-samples-t-test-treeview2");
+  act->group_var_entry = get_widget_assert (xml, "indep-samples-entry");
+  act->test_vars_tv = get_widget_assert (xml, "indep-samples-treeview2");
 
   act->dg_dialog = get_widget_assert (xml, "define-groups-dialog");
   act->dg_grp_entry[0] = get_widget_assert (xml, "group1-entry");
