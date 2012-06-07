@@ -207,6 +207,7 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 	   nc - 1, nr - 1);
 
   tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
+
   tab_vline (t, TAL_1, 1, heading_rows, nr - 1);
 
   for (r = 0 ; r < corr->n_vars1 ; ++r)
@@ -232,7 +233,8 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 
   for (c = 0 ; c < matrix_cols ; ++c)
     {
-      const struct variable *v = corr->n_vars_total > corr->n_vars1 ? corr->vars[corr->n_vars_total - corr->n_vars1 + c] : corr->vars[c];
+      const struct variable *v = corr->n_vars_total > corr->n_vars1 ?
+	corr->vars[corr->n_vars_total - corr->n_vars1 - 1 + c] : corr->vars[c];
       tab_text (t, heading_columns + c, 0, TAB_LEFT | TAT_TITLE, var_to_string (v));      
     }
 
@@ -242,7 +244,9 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
       for (c = 0 ; c < matrix_cols ; ++c)
 	{
 	  unsigned char flags = 0; 
-	  const int col_index = corr->n_vars_total - corr->n_vars1 + c;
+	  const int col_index = corr->n_vars_total > corr->n_vars1 ? 
+	    corr->n_vars_total - corr->n_vars1 - 1  + c : 
+	    c;
 	  double pearson = gsl_matrix_get (cm, r, col_index);
 	  double w = gsl_matrix_get (samples, r, col_index);
 	  double sig = opts->tails * significance_of_correlation (pearson, w);
@@ -309,10 +313,8 @@ run_corr (struct casereader *r, const struct corr_opts *opts, const struct corr 
   if ( opts->statistics & STATS_DESCRIPTIVES) 
     output_descriptives (corr, mean_matrix, var_matrix, samples_matrix);
 
-  output_correlation (corr, opts,
-		      corr_matrix,
-		      samples_matrix,
-		      cov_matrix);
+  output_correlation (corr, opts, corr_matrix,
+		      samples_matrix, cov_matrix);
 
   covariance_destroy (cov);
   gsl_matrix_free (corr_matrix);

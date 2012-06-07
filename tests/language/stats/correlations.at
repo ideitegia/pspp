@@ -116,3 +116,32 @@ AT_CHECK([pspp -O format=csv correlations1.sps], [0], [stdout])
 mv stdout expout
 AT_CHECK([pspp -O format=csv correlations2.sps], [0], [expout])
 AT_CLEANUP
+
+
+AT_SETUP([CORRELATIONS -- non-square])
+AT_DATA([corr-ns.sps], [dnl
+set format = F11.3.
+data list notable list /foo * bar * wiz *.
+begin data.
+1 1 6
+2 2 5 
+3 3 4
+4 4 3
+5 5 2
+6 6 1
+end data.
+
+correlations 
+	variables = foo with bar wiz
+	.
+])
+
+AT_CHECK([pspp -O format=csv corr-ns.sps], [0], [dnl
+Table: Correlations
+,,bar,wiz
+foo,Pearson Correlation,1.000,-1.000
+,Sig. (2-tailed),,.000
+,N,6,6
+])
+
+AT_CLEANUP
