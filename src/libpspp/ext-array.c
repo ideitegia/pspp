@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,12 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+enum op
+  {
+    OP_WRITE, /* writing */
+    OP_READ   /* reading */
+  };
+
 struct ext_array
   {
     FILE *file;                 /* Underlying file. */
@@ -45,6 +51,9 @@ struct ext_array
        the stream buffer, making the common case of sequential
        access to cases unreasonably slow. */
     off_t position;
+
+    /* The most recent operation performed */
+    enum op op;
   };
 
 /* Creates and returns a new external array. */
@@ -56,6 +65,7 @@ ext_array_create (void)
   if (ea->file == NULL)
     error (0, errno, _("failed to create temporary file"));
   ea->position = 0;
+  ea->op = OP_WRITE;
   return ea;
 }
 
@@ -80,13 +90,12 @@ ext_array_destroy (struct ext_array *ea)
    Returns true if the seek is successful and EA is not
    otherwise tainted, false otherwise. */
 static bool
-do_seek (const struct ext_array *ea_, off_t offset)
+do_seek (const struct ext_array *ea_, off_t offset, enum op op)
 {
   struct ext_array *ea = CONST_CAST (struct ext_array *, ea_);
-
   if (!ext_array_error (ea))
     {
-      if (ea->position == offset)
+      if (ea->position == offset && ea->op == op)
         return true;
       else if (fseeko (ea->file, offset, SEEK_SET) == 0)
         {
@@ -121,6 +130,7 @@ do_read (const struct ext_array *ea_, void *buffer, size_t bytes)
       return false;
     }
   ea->position += bytes;
+  ea->op = OP_READ;
   return true;
 }
 
@@ -138,6 +148,7 @@ do_write (struct ext_array *ea, const void *buffer, size_t bytes)
       return false;
     }
   ea->position += bytes;
+  ea->op = OP_WRITE;
   return true;
 }
 
@@ -146,8 +157,9 @@ do_write (struct ext_array *ea, const void *buffer, size_t bytes)
 bool
 ext_array_read (const struct ext_array *ea, off_t offset, size_t n, void *data)
 {
-  return do_seek (ea, offset) && do_read (ea, data, n);
+  return do_seek (ea, offset, OP_READ) && do_read (ea, data, n);
 }
+
 
 /* Writes the N bytes in DATA to EA at byte offset OFFSET.
    Returns true if successful, false on failure.  */
@@ -155,7 +167,7 @@ bool
 ext_array_write (struct ext_array *ea, off_t offset, size_t n,
                  const void *data)
 {
-  return do_seek (ea, offset) && do_write (ea, data, n);
+  return do_seek (ea, offset, OP_WRITE) && do_write (ea, data, n);
 }
 
 /* Returns true if an error has occurred in I/O on EA,
