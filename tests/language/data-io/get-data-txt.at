@@ -568,3 +568,20 @@ x
 100
 ])
 AT_CLEANUP
+
+AT_SETUP([GET DATA /TYPE=TXT with ENCODING subcommand])
+AT_CHECK([i18n-test supports_encodings UTF-8 ISO-8859-1])
+AT_DATA([get-data.sps], [dnl
+set locale='utf-8'
+get data /type=txt /file='data.txt' /encoding='iso-8859-1'
+  /delimiters="," /variables=s a8.
+list.
+])
+printf '\351' > data.txt	# é in ISO-8859-1.
+AT_CHECK([pspp -o pspp.csv get-data.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Table: Data List
+s
+é      @&t@
+])
+AT_CLEANUP

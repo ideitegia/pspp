@@ -51,6 +51,7 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
   struct file_handle *handle = NULL;
   struct expression *expr = NULL;
   struct dfm_writer *writer;
+  char *encoding = NULL;
 
   if (lex_match_id (lexer, "OUTFILE"))
     {
@@ -59,6 +60,17 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
       handle = fh_parse (lexer, FH_REF_FILE, NULL);
       if (handle == NULL)
 	return CMD_FAILURE;
+
+      if (lex_match_id (lexer, "ENCODING"))
+	{
+	  lex_match (lexer, T_EQUALS);
+	  if (!lex_force_string (lexer))
+	    goto error;
+
+          encoding = ss_xstrdup (lex_tokss (lexer));
+
+	  lex_get (lexer);
+	}
     }
   else
     handle = NULL;
@@ -77,7 +89,7 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
 
   if (handle != NULL)
     {
-      writer = dfm_open_writer (handle);
+      writer = dfm_open_writer (handle, encoding);
       if (writer == NULL)
         goto error;
     }
@@ -124,7 +136,7 @@ print_space_trns_proc (void *t_, struct ccase **c,
     if (trns->writer == NULL)
       text_item_submit (text_item_create (TEXT_ITEM_BLANK_LINE, ""));
     else
-      dfm_put_record (trns->writer, " ", 1);
+      dfm_put_record (trns->writer, " ", 1); /* XXX */
 
   if (trns->writer != NULL && dfm_write_error (trns->writer))
     return TRNS_ERROR;

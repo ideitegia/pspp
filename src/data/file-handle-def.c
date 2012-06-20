@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,12 +26,13 @@
 #include "data/dataset.h"
 #include "data/file-name.h"
 #include "data/variable.h"
+#include "libpspp/cast.h"
 #include "libpspp/compiler.h"
+#include "libpspp/hash-functions.h"
 #include "libpspp/hmap.h"
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
-#include "libpspp/hash-functions.h"
 
 #include "gl/xalloc.h"
 
@@ -50,11 +51,11 @@ struct file_handle
     /* FH_REF_FILE only. */
     char *file_name;		/* File name as provided by user. */
     enum fh_mode mode;  	/* File mode. */
-    const char *encoding;       /* File encoding. */
 
     /* FH_REF_FILE and FH_REF_INLINE only. */
     size_t record_width;        /* Length of fixed-format records. */
     size_t tab_width;           /* Tab width, 0=do not expand tabs. */
+    char *encoding;             /* Charset for contents. */
 
     /* FH_REF_DATASET only. */
     struct dataset *ds;         /* Dataset. */
@@ -71,7 +72,8 @@ static struct file_handle *default_handle;
 static struct file_handle *inline_file;
 
 static struct file_handle *create_handle (const char *id,
-                                          char *name, enum fh_referent);
+                                          char *name, enum fh_referent,
+                                          const char *encoding);
 static void free_handle (struct file_handle *);
 static void unname_handle (struct file_handle *);
 
@@ -82,7 +84,8 @@ static struct hmap locks = HMAP_INITIALIZER (locks);
 void
 fh_init (void)
 {
-  inline_file = create_handle ("INLINE", xstrdup ("INLINE"), FH_REF_INLINE);
+  inline_file = create_handle ("INLINE", xstrdup ("INLINE"), FH_REF_INLINE,
+                               "Auto");
   inline_file->record_width = 80;
   inline_file->tab_width = 8;
 }
@@ -110,6 +113,7 @@ free_handle (struct file_handle *handle)
   free (handle->id);
   free (handle->name);
   free (handle->file_name);
+  free (handle->encoding);
   free (handle);
 }
 
@@ -189,7 +193,8 @@ fh_from_id (const char *id)
    The new handle is not fully initialized.  The caller is
    responsible for completing its initialization. */
 static struct file_handle *
-create_handle (const char *id, char *handle_name, enum fh_referent referent)
+create_handle (const char *id, char *handle_name, enum fh_referent referent,
+               const char *encoding)
 {
   struct file_handle *handle = xzalloc (sizeof *handle);
 
@@ -197,6 +202,7 @@ create_handle (const char *id, char *handle_name, enum fh_referent referent)
   handle->id = id != NULL ? xstrdup (id) : NULL;
   handle->name = handle_name;
   handle->referent = referent;
+  handle->encoding = xstrdup (encoding);
 
   if (id != NULL)
     {
@@ -231,12 +237,11 @@ fh_create_file (const char *id, const char *file_name,
   struct file_handle *handle;
 
   handle_name = id != NULL ? xstrdup (id) : xasprintf ("`%s'", file_name);
-  handle = create_handle (id, handle_name, FH_REF_FILE);
+  handle = create_handle (id, handle_name, FH_REF_FILE, properties->encoding);
   handle->file_name = xstrdup (file_name);
   handle->mode = properties->mode;
   handle->record_width = properties->record_width;
   handle->tab_width = properties->tab_width;
-  handle->encoding = properties->encoding;
   return handle;
 }
 
@@ -253,7 +258,7 @@ fh_create_dataset (struct dataset *ds)
   if (name[0] == '\0')
     name = _("active dataset");
 
-  handle = create_handle (NULL, xstrdup (name), FH_REF_DATASET);
+  handle = create_handle (NULL, xstrdup (name), FH_REF_DATASET, C_ENCODING);
   handle->ds = ds;
   return handle;
 }
@@ -263,7 +268,7 @@ const struct fh_properties *
 fh_default_properties (void)
 {
   static const struct fh_properties default_properties
-    = {FH_MODE_TEXT, 1024, 4, C_ENCODING};
+    = {FH_MODE_TEXT, 1024, 4, (char *) "Auto"};
   return &default_properties;
 }
 
@@ -333,10 +338,9 @@ fh_get_tab_width (const struct file_handle *handle)
 
 /* Returns the encoding of characters read from HANDLE. */
 const char *
-fh_get_legacy_encoding (const struct file_handle *handle)
+fh_get_encoding (const struct file_handle *handle)
 {
-  assert (handle->referent & (FH_REF_FILE | FH_REF_INLINE));
-  return (handle->referent == FH_REF_FILE ? handle->encoding : C_ENCODING);
+  return handle->encoding;
 }
 
 /* Returns the dataset handle associated with HANDLE.

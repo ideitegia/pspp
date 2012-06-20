@@ -136,6 +136,7 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
   bool print_table = 0;
   struct print_trns *trns;
   struct file_handle *fh = NULL;
+  char *encoding = NULL;
   struct pool *tmp_pool;
 
   /* Fill in prt to facilitate error-handling. */
@@ -159,6 +160,17 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
 	  fh = fh_parse (lexer, FH_REF_FILE, NULL);
 	  if (fh == NULL)
 	    goto error;
+	}
+      else if (lex_match_id (lexer, "ENCODING"))
+	{
+	  lex_match (lexer, T_EQUALS);
+	  if (!lex_force_string (lexer))
+	    goto error;
+
+          free (encoding);
+          encoding = ss_xstrdup (lex_tokss (lexer));
+
+	  lex_get (lexer);
 	}
       else if (lex_match_id (lexer, "RECORDS"))
 	{
@@ -194,10 +206,10 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
 
   if (fh != NULL)
     {
-      trns->writer = dfm_open_writer (fh);
+      trns->writer = dfm_open_writer (fh, encoding);
       if (trns->writer == NULL)
         goto error;
-      trns->encoding = dfm_writer_get_legacy_encoding (trns->writer);
+      trns->encoding = dfm_writer_get_encoding (trns->writer);
     }
   else
     trns->encoding = UTF8;

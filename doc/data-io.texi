@@ -277,8 +277,9 @@ external file.  It may be used to specify a file name as a string or a
 file handle (@pxref{File Handles}).  If the @subcmd{FILE} subcommand is not used,
 then input is assumed to be specified within the command file using
 @cmd{BEGIN DATA}@dots{}@cmd{END DATA} (@pxref{BEGIN DATA}).
-The @subcmd{ENCODING} subcommand may only be used if the @subcmd{FILE} subcommand is also used.
-It specifies the character encoding of the file.
+The @subcmd{ENCODING} subcommand may only be used if the @subcmd{FILE}
+subcommand is also used.  It specifies the character encoding of the
+file.  @xref{INSERT}, for information on supported encodings.
 
 The optional @subcmd{RECORDS} subcommand, which takes a single integer as an
 argument, is used to specify the number of lines per record.
@@ -503,7 +504,8 @@ of quoting is allowed.
 The @subcmd{NOTABLE} and @subcmd{TABLE} subcommands are as in @cmd{DATA LIST FIXED} above.
 @subcmd{NOTABLE} is the default.
 
-The @subcmd{FILE} and @subcmd{SKIP} subcommands are as in @cmd{DATA LIST FIXED} above.
+The @subcmd{FILE}, @subcmd{SKIP}, and @subcmd{ENCODING} subcommands
+are as in @cmd{DATA LIST FIXED} above.
 
 The variables to be parsed are given as a single list of variable names.
 This list must be introduced by a single slash (@samp{/}).  The set of
@@ -525,7 +527,7 @@ on field width apply, but they are honored on output.
 DATA LIST LIST
         [(@{TAB,'@var{c}'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
-        [FILE='@var{file_name'} [ENCODING='@var{encoding}']]
+        [FILE='@var{file_name}' [ENCODING='@var{encoding}']]
         [SKIP=@var{record_count}]
         /@var{var_spec}@dots{}
 
@@ -572,18 +574,21 @@ For text files:
                 /NAME='@var{file_name}
                 [/MODE=CHARACTER]
                 /TABWIDTH=@var{tab_width}
+                [ENCODING='@var{encoding}']
 
 For binary files in native encoding with fixed-length records:
         FILE HANDLE @var{handle_name}
                 /NAME='@var{file_name}'
                 /MODE=IMAGE
                 [/LRECL=@var{rec_len}]
+                [ENCODING='@var{encoding}']
 
 For binary files in native encoding with variable-length records:
         FILE HANDLE @var{handle_name}
                 /NAME='@var{file_name}'
                 /MODE=BINARY
                 [/LRECL=@var{rec_len}]
+                [ENCODING='@var{encoding}']
 
 For binary files encoded in EBCDIC:
         FILE HANDLE @var{handle_name}
@@ -591,6 +596,7 @@ For binary files encoded in EBCDIC:
                 /MODE=360
                 /RECFORM=@{FIXED,VARIABLE,SPANNED@}
                 [/LRECL=@var{rec_len}]
+                [ENCODING='@var{encoding}']
 @end display
 
 Use @cmd{FILE HANDLE} to associate a file handle name with a file and
@@ -725,6 +731,14 @@ wart is implemented for compatibility.
 The @subcmd{NAME} subcommand specifies the name of the file associated with the
 handle.  It is required in all modes but SCRATCH mode, in which its
 use is forbidden.
+
+The ENCODING subcommand specifies the encoding of text in the file.
+For reading text files in CHARACTER mode, all of the forms described
+for ENCODING on the INSERT command are supported (@pxref{INSERT}).
+For reading in other file-based modes, encoding autodetection is not
+supported; if the specified encoding requests autodetection then the
+default encoding will be used.  This is also true when a file handle
+is used for writing a file in any mode.
 
 @node INPUT PROGRAM
 @section INPUT PROGRAM
@@ -942,9 +956,10 @@ active dataset.
 
 @display
 PRINT 
-        OUTFILE='@var{file_name}'
-        RECORDS=@var{n_lines}
-        @{NOTABLE,TABLE@}
+        [OUTFILE='@var{file_name}']
+        [RECORDS=@var{n_lines}]
+        [@{NOTABLE,TABLE@}]
+        [ENCODING='@var{encoding}']
         [/[@var{line_no}] @var{arg}@dots{}]
 
 @var{arg} takes one of the following forms:
@@ -969,6 +984,11 @@ Handles}).  If @subcmd{OUTFILE} is not present then output will be sent to
 inserted at beginning of each output line, even lines that otherwise
 would be blank.
 
+The @subcmd{ENCODING} subcommand may only be used if the
+@subcmd{OUTFILE} subcommand is also used.  It specifies the character
+encoding of the file.  @xref{INSERT}, for information on supported
+encodings.
+
 The @subcmd{RECORDS} subcommand specifies the number of lines to be output.  The
 number of lines may optionally be surrounded by parentheses.
 
@@ -982,7 +1002,6 @@ indicating which output line will be specified.  In the absence of this
 line number, the next line number will be specified.  Multiple lines may
 be specified using multiple slashes with the intended output for a line
 following its respective slash.
-
 
 Literal strings may be printed.  Specify the string itself.  Optionally
 the string may be followed by a column number or range of column
@@ -1043,7 +1062,7 @@ written with a space inserted in the first column, as with @subcmd{PRINT}.
 @vindex PRINT SPACE
 
 @display
-PRINT SPACE OUTFILE='file_name' n_lines.
+PRINT SPACE [OUTFILE='file_name'] [ENCODING='@var{encoding}'] [n_lines].
 @end display
 
 @cmd{PRINT SPACE} prints one or more blank lines to an output file.
@@ -1052,6 +1071,10 @@ The @subcmd{OUTFILE} subcommand is optional.  It may be used to direct output to
 a file specified by file name as a string or file handle (@pxref{File
 Handles}).  If OUTFILE is not specified then output will be directed to
 the listing file.
+
+The @subcmd{ENCODING} subcommand may only be used if @subcmd{OUTFILE}
+is also used.  It specifies the character encoding of the file.
+@xref{INSERT}, for information on supported encodings.
 
 n_lines is also optional.  If present, it is an expression
 (@pxref{Expressions}) specifying the number of blank lines to be
@@ -1062,7 +1085,7 @@ printed.  The expression must evaluate to a nonnegative value.
 @vindex REREAD
 
 @display
-REREAD FILE=handle COLUMN=column.
+REREAD [FILE=handle] [COLUMN=column] [ENCODING='@var{encoding}'].
 @end display
 
 The @cmd{REREAD} transformation allows the previous input line in a
@@ -1081,6 +1104,10 @@ By default, the line re-read is re-read in its entirety.  With the
 re-reading.  Specify an expression (@pxref{Expressions}) evaluating to
 the first column that should be included in the re-read line.  Columns
 are numbered from 1 at the left margin.
+
+The @subcmd{ENCODING} subcommand may only be used if the @subcmd{FILE}
+subcommand is also used.  It specifies the character encoding of the
+file.   @xref{INSERT}, for information on supported encodings.
 
 Issuing @code{REREAD} multiple times will not back up in the data
 file.  Instead, it will re-read the same line multiple times.

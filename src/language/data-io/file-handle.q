@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,20 +16,22 @@
 
 #include <config.h>
 
+#include "data/file-handle-def.h"
+
 #include <limits.h>
 #include <errno.h>
 #include <stdlib.h>
 
 #include "data/file-name.h"
 #include "data/session.h"
+#include "data/variable.h"
 #include "language/command.h"
 #include "language/data-io/file-handle.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/assertion.h"
+#include "libpspp/cast.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
-#include "data/variable.h"
-#include "data/file-handle-def.h"
 
 #include "gl/xalloc.h"
 
@@ -45,7 +47,8 @@
      lrecl=integer;
      tabwidth=integer;
      mode=mode:!character/binary/image/360;
-     recform=recform:fixed/f/variable/v/spanned/vs.
+     recform=recform:fixed/f/variable/v/spanned/vs;
+     encoding=string.
 */
 /* (declarations) */
 /* (functions) */
@@ -109,7 +112,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
       properties.mode = FH_MODE_VARIABLE;
       break;
     case FH_360:
-      properties.encoding = "EBCDIC-US";
+      properties.encoding = CONST_CAST (char *, "EBCDIC-US");
       if (cmd.recform == FH_FIXED || cmd.recform == FH_F)
         properties.mode = FH_MODE_FIXED;
       else if (cmd.recform == FH_VARIABLE || cmd.recform == FH_V)
@@ -145,6 +148,9 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
       else
         properties.record_width = cmd.n_lrecl[0];
     }
+
+  if (cmd.s_encoding != NULL)
+    properties.encoding = cmd.s_encoding;
 
   fh_create_file (handle_name, cmd.s_name, &properties);
 

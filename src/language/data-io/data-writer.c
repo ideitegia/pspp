@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2004, 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-2004, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,7 +28,9 @@
 #include "data/make-file.h"
 #include "language/data-io/file-handle.h"
 #include "libpspp/assertion.h"
+#include "libpspp/encoding-guesser.h"
 #include "libpspp/integer-format.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
@@ -46,14 +48,31 @@ struct dfm_writer
     struct fh_lock *lock;       /* Exclusive access to file. */
     FILE *file;                 /* Associated file. */
     struct replace_file *rf;    /* Atomic file replacement support. */
+    char *encoding;             /* Encoding. */
+
+    int unit;                   /* Unit width, in bytes. */
+    char lf[MAX_UNIT];          /* \n in encoding, 'unit' bytes long. */
+    char spaces[32];            /* 32 bytes worth of ' ' in encoding. */
   };
 
-/* Opens a file handle for writing as a data file. */
+/* Opens a file handle for writing as a data file.
+
+   The encoding of the file written is by default that of FH itself.  If
+   ENCODING is nonnull, then it overrides the default encoding.
+
+   *However*: ENCODING directly affects only text strings written by the data
+   writer code itself, that is, new-lines in FH_MODE_TEXT and space padding in
+   FH_MODE_FIXED mode.  The client must do its own encoding translation for the
+   data that it writes.  (This is unavoidable because sometimes the data
+   written includes binary data that reencoding would mangle.)  The client can
+   obtain the encoding to re-encode into with dfm_writer_get_encoding(). */
 struct dfm_writer *
-dfm_open_writer (struct file_handle *fh)
+dfm_open_writer (struct file_handle *fh, const char *encoding)
 {
+  struct encoding_info ei;
   struct dfm_writer *w;
   struct fh_lock *lock;
+  int ofs;
 
   lock = fh_lock (fh, FH_REF_FILE, N_("data file"), FH_ACC_WRITE, false);
   if (lock == NULL)
@@ -63,11 +82,22 @@ dfm_open_writer (struct file_handle *fh)
   if (w != NULL)
     return w;
 
+  encoding = encoding_guess_parse_encoding (encoding != NULL
+                                            ? encoding
+                                            : fh_get_encoding (fh));
+  get_encoding_info (&ei, encoding);
+
   w = xmalloc (sizeof *w);
   w->fh = fh_ref (fh);
   w->lock = lock;
   w->rf = replace_file_start (fh_get_file_name (w->fh), "wb", 0666,
                               &w->file, NULL);
+  w->encoding = xstrdup (encoding);
+  w->unit = ei.unit;
+  memcpy (w->lf, ei.lf, sizeof w->lf);
+  for (ofs = 0; ofs + ei.unit <= sizeof w->spaces; ofs += ei.unit)
+    memcpy (&w->spaces[ofs], ei.space, ei.unit);
+
   if (w->rf == NULL)
     {
       msg (ME, _("An error occurred while opening `%s' for writing "
@@ -104,7 +134,7 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
     {
     case FH_MODE_TEXT:
       fwrite (rec, len, 1, w->file);
-      putc ('\n', w->file);
+      fwrite (w->lf, w->unit, 1, w->file);
       break;
 
     case FH_MODE_FIXED:
@@ -115,9 +145,8 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
         fwrite (rec, write_bytes, 1, w->file);
         while (pad_bytes > 0)
           {
-            static const char spaces[32] = "                                ";
-            size_t chunk = MIN (pad_bytes, sizeof spaces);
-            fwrite (spaces, chunk, 1, w->file);
+            size_t chunk = MIN (pad_bytes, sizeof w->spaces);
+            fwrite (w->spaces, chunk, 1, w->file);
             pad_bytes -= chunk;
           }
       }
@@ -193,14 +222,15 @@ dfm_close_writer (struct dfm_writer *w)
         ok = false;
     }
   fh_unref (w->fh);
+  free (w->encoding);
   free (w);
 
   return ok;
 }
 
-/* Returns the legacy character encoding of data written to WRITER. */
+/* Returns the encoding of data written to WRITER. */
 const char *
-dfm_writer_get_legacy_encoding (const struct dfm_writer *writer)
+dfm_writer_get_encoding (const struct dfm_writer *writer)
 {
-  return fh_get_legacy_encoding (writer->fh);
+  return writer->encoding;
 }

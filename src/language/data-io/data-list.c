@@ -78,7 +78,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   struct dfm_reader *reader;
   struct variable *end = NULL;
   struct file_handle *fh = NULL;
-  struct string encoding = DS_EMPTY_INITIALIZER;
+  char *encoding = NULL;
 
   int table;
   enum data_parser_type type;
@@ -111,7 +111,8 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	  if (!lex_force_string (lexer))
 	    goto error;
 
-	  ds_init_substring (&encoding, lex_tokss (lexer));
+          free (encoding);
+          encoding = ss_xstrdup (lex_tokss (lexer));
 
 	  lex_get (lexer);
 	}
@@ -241,7 +242,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
     }
   type = data_parser_get_type (parser);
 
-  if (! ds_is_empty (&encoding) && NULL == fh)
+  if (encoding && NULL == fh)
     msg (MW, _("Encoding should not be specified for inline data. It will be "
                "ignored."));
 
@@ -278,7 +279,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   if (table)
     data_parser_output_description (parser, fh);
 
-  reader = dfm_open_reader (fh, lexer);
+  reader = dfm_open_reader (fh, lexer, encoding);
   if (reader == NULL)
     goto error;
 
@@ -294,7 +295,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
     data_parser_make_active_file (parser, ds, reader, dict);
 
   fh_unref (fh);
-  ds_destroy (&encoding);
+  free (encoding);
 
   return CMD_SUCCESS;
 
@@ -303,7 +304,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   if (!in_input_program ())
     dict_destroy (dict);
   fh_unref (fh);
-  ds_destroy (&encoding);
+  free (encoding);
   return CMD_CASCADING_FAILURE;
 }
 

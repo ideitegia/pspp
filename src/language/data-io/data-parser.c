@@ -527,7 +527,7 @@ static bool
 parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
              struct ccase *c)
 {
-  const char *input_encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *input_encoding = dfm_reader_get_encoding (reader);
   const char *output_encoding = dict_get_encoding (parser->dict);
   struct field *f;
   int row;
@@ -579,7 +579,7 @@ static bool
 parse_delimited_span (const struct data_parser *parser,
                       struct dfm_reader *reader, struct ccase *c)
 {
-  const char *input_encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *input_encoding = dfm_reader_get_encoding (reader);
   const char *output_encoding = dict_get_encoding (parser->dict);
   struct string tmp = DS_EMPTY_INITIALIZER;
   struct field *f;
@@ -623,7 +623,7 @@ static bool
 parse_delimited_no_span (const struct data_parser *parser,
                          struct dfm_reader *reader, struct ccase *c)
 {
-  const char *input_encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *input_encoding = dfm_reader_get_encoding (reader);
   const char *output_encoding = dict_get_encoding (parser->dict);
   struct string tmp = DS_EMPTY_INITIALIZER;
   struct substring s;

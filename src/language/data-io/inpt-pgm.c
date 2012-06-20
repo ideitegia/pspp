@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -266,6 +266,7 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
   struct file_handle *fh;       /* File to be re-read. */
   struct expression *e;         /* Expression for column to set. */
   struct reread_trns *t;        /* Created transformation. */
+  char *encoding = NULL;
 
   fh = fh_get_default_handle ();
   e = NULL;
@@ -278,13 +279,12 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
 	  if (e)
 	    {
               lex_sbc_only_once ("COLUMN");
-	      expr_free (e);
-	      return CMD_CASCADING_FAILURE;
+              goto error;
 	    }
 
 	  e = expr_parse (lexer, ds, EXPR_NUMBER);
 	  if (!e)
-	    return CMD_CASCADING_FAILURE;
+            goto error;
 	}
       else if (lex_match_id (lexer, "FILE"))
 	{
@@ -292,26 +292,39 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
           fh_unref (fh);
           fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE, NULL);
 	  if (fh == NULL)
-	    {
-	      expr_free (e);
-	      return CMD_CASCADING_FAILURE;
-	    }
+            goto error;
+	}
+      else if (lex_match_id (lexer, "ENCODING"))
+	{
+	  lex_match (lexer, T_EQUALS);
+	  if (!lex_force_string (lexer))
+	    goto error;
+
+          free (encoding);
+          encoding = ss_xstrdup (lex_tokss (lexer));
+
+	  lex_get (lexer);
 	}
       else
 	{
 	  lex_error (lexer, NULL);
-	  expr_free (e);
-          return CMD_CASCADING_FAILURE;
+          goto error;
 	}
     }
 
   t = xmalloc (sizeof *t);
-  t->reader = dfm_open_reader (fh, lexer);
+  t->reader = dfm_open_reader (fh, lexer, encoding);
   t->column = e;
   add_transformation (ds, reread_trns_proc, reread_trns_free, t);
 
   fh_unref (fh);
+  free (encoding);
   return CMD_SUCCESS;
+
+error:
+  expr_free (e);
+  free (encoding);
+  return CMD_CASCADING_FAILURE;
 }
 
 /* Executes a REREAD transformation. */

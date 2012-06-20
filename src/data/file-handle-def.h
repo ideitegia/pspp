@@ -55,7 +55,7 @@ struct fh_properties
     enum fh_mode mode;          /* File mode. */
     size_t record_width;        /* Length of fixed-format records. */
     size_t tab_width;           /* Tab width, 0=do not expand tabs. */
-    const char *encoding;       /* ASCII or EBCDIC? */
+    char *encoding;             /* Charset for contents. */
   };
 
 void fh_init (void);
@@ -82,6 +82,7 @@ struct file_handle *fh_inline_file (void);
 const char *fh_get_id (const struct file_handle *);
 const char *fh_get_name (const struct file_handle *);
 enum fh_referent fh_get_referent (const struct file_handle *);
+const char *fh_get_encoding (const struct file_handle *);
 
 /* Properties of FH_REF_FILE file handles. */
 const char *fh_get_file_name (const struct file_handle *);
@@ -90,7 +91,6 @@ enum fh_mode fh_get_mode (const struct file_handle *) ;
 /* Properties of FH_REF_FILE and FH_REF_INLINE file handles. */
 size_t fh_get_record_width (const struct file_handle *);
 size_t fh_get_tab_width (const struct file_handle *);
-const char *fh_get_legacy_encoding (const struct file_handle *);
 
 /* Properties of FH_REF_DATASET file handles. */
 struct dataset *fh_get_dataset (const struct file_handle *);

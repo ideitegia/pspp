@@ -366,6 +366,7 @@ GET DATA /TYPE=PSQL
 @display
 GET DATA /TYPE=TXT
         /FILE=@{'@var{file_name}',@var{file_handle}@}
+        [ENCODING='@var{encoding}']
         [/ARRANGEMENT=@{DELIMITED,FIXED@}]
         [/FIRSTCASE=@{@var{first_case}@}]
         [/IMPORTCASE=@{ALL,FIRST @var{max_cases},PERCENT @var{percent}@}]
@@ -380,6 +381,10 @@ fixed columnar format, much like DATA LIST (@pxref{DATA LIST}).
 The @subcmd{FILE} subcommand is mandatory.  Specify the file to be read as 
 a string file name or (for textual data only) a
 file handle (@pxref{File Handles}).
+
+The @subcmd{ENCODING} subcommand specifies the character encoding of
+the file to be read.  @xref{INSERT}, for information on supported
+encodings.
 
 The @subcmd{ARRANGEMENT} subcommand determines the file's basic format.
 DELIMITED, the default setting, specifies that fields in the input

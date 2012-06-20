@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -307,6 +307,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
   struct dictionary *dict = dict_create (get_default_encoding ());
   struct file_handle *fh = NULL;
   struct dfm_reader *reader = NULL;
+  char *encoding = NULL;
   char *name = NULL;
 
   int record;
@@ -334,7 +335,18 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
       if (!lex_force_match (lexer, T_SLASH))
         goto error;
 
-      if (lex_match_id (lexer, "ARRANGEMENT"))
+      if (lex_match_id (lexer, "ENCODING"))
+	{
+	  lex_match (lexer, T_EQUALS);
+	  if (!lex_force_string (lexer))
+	    goto error;
+
+          free (encoding);
+          encoding = ss_xstrdup (lex_tokss (lexer));
+
+	  lex_get (lexer);
+	}
+      else if (lex_match_id (lexer, "ARRANGEMENT"))
         {
           bool ok;
 
@@ -606,12 +618,13 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
     }
   while (lex_token (lexer) != T_ENDCMD);
 
-  reader = dfm_open_reader (fh, lexer);
+  reader = dfm_open_reader (fh, lexer, encoding);
   if (reader == NULL)
     goto error;
 
   data_parser_make_active_file (parser, ds, reader, dict);
   fh_unref (fh);
+  free (encoding);
   return CMD_SUCCESS;
 
  error:
@@ -619,6 +632,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
   dict_destroy (dict);
   fh_unref (fh);
   free (name);
+  free (encoding);
   return CMD_CASCADING_FAILURE;
 }
 

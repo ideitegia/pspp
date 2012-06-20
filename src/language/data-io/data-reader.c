@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2004, 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-2004, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,7 +34,9 @@
 #include "language/lexer/lexer.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
+#include "libpspp/encoding-guesser.h"
 #include "libpspp/integer-format.h"
+#include "libpspp/line-reader.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
@@ -69,6 +71,10 @@ struct dfm_reader
     size_t pos;                 /* Offset in line of current character. */
     unsigned eof_cnt;           /* # of attempts to advance past EOF. */
     struct lexer *lexer;        /* The lexer reading the file */
+    char *encoding;             /* Current encoding. */
+
+    /* For FH_MODE_TEXT only. */
+    struct line_reader *line_reader;
 
     /* For FH_MODE_360_VARIABLE and FH_MODE_360_SPANNED files only. */
     size_t block_left;          /* Bytes left in current block. */
@@ -101,19 +107,28 @@ dfm_close_reader (struct dfm_reader *r)
         }
     }
 
+  line_reader_free (r->line_reader);
+  free (r->encoding);
   fh_unref (r->fh);
   ds_destroy (&r->line);
   ds_destroy (&r->scratch);
   free (r);
 }
 
-/* Opens the file designated by file handle FH for reading as a
-   data file.  Providing fh_inline_file() for FH designates the
-   "inline file", that is, data included inline in the command
-   file between BEGIN FILE and END FILE.  Returns a reader if
-   successful, or a null pointer otherwise. */
+/* Opens the file designated by file handle FH for reading as a data file.
+   Returns a reader if successful, or a null pointer otherwise.
+
+   If FH is fh_inline_file() then the new reader reads data included inline in
+   the command file between BEGIN FILE and END FILE, obtaining data from LEXER.
+   LEXER must remain valid as long as the new reader is in use.  ENCODING is
+   ignored.
+
+   If FH is not fh_inline_file(), then the encoding of the file read is by
+   default that of FH itself.  If ENCODING is nonnull, then it overrides the
+   default encoding.  LEXER is ignored. */
 struct dfm_reader *
-dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
+dfm_open_reader (struct file_handle *fh, struct lexer *lexer,
+                 const char *encoding)
 {
   struct dfm_reader *r;
   struct fh_lock *lock;
@@ -147,10 +162,6 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
         {
           msg (ME, _("Could not open `%s' for reading as a data file: %s."),
                fh_get_file_name (r->fh), strerror (errno));
-          fh_unlock (r->lock);
-          fh_unref (fh);
-          free (r);
-          return NULL;
         }
       r->file_size = fstat (fileno (r->file), &s) == 0 ? s.st_size : -1;
     }
@@ -158,14 +169,43 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
     r->file_size = -1;
   fh_lock_set_aux (lock, r);
 
+  if (encoding == NULL)
+    encoding = fh_get_encoding (fh);
+  if (fh_get_referent (fh) == FH_REF_FILE && fh_get_mode (fh) == FH_MODE_TEXT)
+    {
+      r->line_reader = line_reader_for_fd (encoding, fileno (r->file));
+      if (r->line_reader == NULL)
+        {
+          msg (ME, _("Could not read `%s' as a text file with encoding `%s': "
+                     "%s."),
+               fh_get_file_name (r->fh), encoding, strerror (errno));
+          goto error;
+        }
+      r->encoding = xstrdup (line_reader_get_encoding (r->line_reader));
+    }
+  else
+    {
+      r->line_reader = NULL;
+      r->encoding = xstrdup (encoding_guess_parse_encoding (encoding));
+    }
+
   return r;
+
+error:
+  fh_unlock (r->lock);
+  fh_unref (fh);
+  free (r);
+  return NULL;
 }
 
 /* Returns true if an I/O error occurred on READER, false otherwise. */
 bool
 dfm_reader_error (const struct dfm_reader *r)
 {
-  return fh_get_referent (r->fh) == FH_REF_FILE && ferror (r->file);
+  return (fh_get_referent (r->fh) == FH_REF_FILE
+          && (r->line_reader != NULL
+              ? line_reader_error (r->line_reader) != 0
+              : ferror (r->file)));
 }
 
 /* Reads a record from the inline file into R.
@@ -211,17 +251,12 @@ read_inline_record (struct dfm_reader *r)
   return true;
 }
 
-/* Report a read error or unexpected end-of-file condition on R. */
+/* Report a read error on R. */
 static void
 read_error (struct dfm_reader *r)
 {
-  if (ferror (r->file))
-    msg (ME, _("Error reading file %s: %s."),
-         fh_get_name (r->fh), strerror (errno));
-  else if (feof (r->file))
-    msg (ME, _("Unexpected end of file reading %s."), fh_get_name (r->fh));
-  else
-    NOT_REACHED ();
+  msg (ME, _("Error reading file %s: %s."),
+       fh_get_name (r->fh), strerror (errno));
 }
 
 /* Report a partial read at end of file reading R. */
@@ -333,6 +368,34 @@ read_size (struct dfm_reader *r, size_t *size_out)
   return 1;
 }
 
+static bool
+read_text_record (struct dfm_reader *r)
+{
+  bool is_auto;
+  bool ok;
+
+  /* Read a line.  If the line reader's encoding changes, update r->encoding to
+     match. */
+  is_auto = line_reader_is_auto (r->line_reader);
+  ok = line_reader_read (r->line_reader, &r->line, SIZE_MAX);
+  if (is_auto && !line_reader_is_auto (r->line_reader))
+    {
+      free (r->encoding);
+      r->encoding = xstrdup (line_reader_get_encoding (r->line_reader));
+    }
+
+  /* Detect and report read error. */
+  if (!ok)
+    {
+      int error = line_reader_error (r->line_reader);
+      if (error != 0)
+        msg (ME, _("Error reading file %s: %s."),
+             fh_get_name (r->fh), strerror (error));
+    }
+
+  return ok;
+}
+
 /* Reads a record from a disk file into R.
    Returns true if successful, false on error or at end of file. */
 static bool
@@ -344,17 +407,7 @@ read_file_record (struct dfm_reader *r)
   switch (fh_get_mode (r->fh))
     {
     case FH_MODE_TEXT:
-      if (ds_read_line (&r->line, r->file, SIZE_MAX))
-        {
-          ds_chomp_byte (&r->line, '\n');
-          return true;
-        }
-      else
-        {
-          if (ferror (r->file))
-            read_error (r);
-          return false;
-        }
+      return read_text_record (r);
 
     case FH_MODE_FIXED:
       if (ds_read_stream (&r->line, 1, fh_get_record_width (r->fh), r->file))
@@ -597,11 +650,11 @@ dfm_expand_tabs (struct dfm_reader *r)
   r->pos = new_pos;
 }
 
-/* Returns the legacy character encoding of data read from READER. */
+/* Returns the character encoding of data read from READER. */
 const char *
-dfm_reader_get_legacy_encoding (const struct dfm_reader *reader)
+dfm_reader_get_encoding (const struct dfm_reader *reader)
 {
-  return fh_get_legacy_encoding (reader->fh);
+  return reader->encoding;
 }
 
 /* Returns a number between 0 and 100 that approximates the
@@ -615,7 +668,11 @@ dfm_get_percent_read (const struct dfm_reader *reader)
 {
   if (reader->file_size >= 0)
     {
-      off_t position = ftello (reader->file);
+      off_t position;
+
+      position = (reader->line_reader != NULL
+                  ? line_reader_tell (reader->line_reader)
+                  : ftello (reader->file));
       if (position >= 0)
         {
           double p = 100.0 * position / reader->file_size;
@@ -710,7 +767,7 @@ cmd_begin_data (struct lexer *lexer, struct dataset *ds)
   lex_match (lexer, T_ENDCMD);
 
   /* Open inline file. */
-  r = dfm_open_reader (fh_inline_file (), lexer);
+  r = dfm_open_reader (fh_inline_file (), lexer, NULL);
   r->flags |= DFM_SAW_BEGIN_DATA;
   r->flags &= ~DFM_CONSUME;
 

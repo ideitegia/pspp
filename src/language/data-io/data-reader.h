@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,13 +31,14 @@ struct string;
 struct lexer;
 
 /* Input. */
-struct dfm_reader *dfm_open_reader (struct file_handle *, struct lexer *);
+struct dfm_reader *dfm_open_reader (struct file_handle *, struct lexer *,
+                                    const char *encoding);
 void dfm_close_reader (struct dfm_reader *);
 bool dfm_reader_error (const struct dfm_reader *);
 unsigned dfm_eof (struct dfm_reader *);
 struct substring dfm_get_record (struct dfm_reader *);
 void dfm_expand_tabs (struct dfm_reader *);
-const char *dfm_reader_get_legacy_encoding (const struct dfm_reader *);
+const char *dfm_reader_get_encoding (const struct dfm_reader *);
 int dfm_get_percent_read (const struct dfm_reader *);
 
 /* Line control. */
