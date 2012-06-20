@@ -19,6 +19,7 @@
 #include "ui/gui/text-data-import-dialog.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <gtk-contrib/psppire-sheet.h>
 #include <gtk/gtk.h>
 #include <limits.h>
@@ -33,6 +34,7 @@
 #include "language/lexer/lexer.h"
 #include "libpspp/assertion.h"
 #include "libpspp/i18n.h"
+#include "libpspp/line-reader.h"
 #include "libpspp/message.h"
 #include "ui/gui/checkbox-treeview.h"
 #include "ui/gui/dialog-common.h"
@@ -41,6 +43,7 @@
 #include "ui/gui/builder-wrapper.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dialog.h"
+#include "ui/gui/psppire-encoding-selector.h"
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-var-store.h"
@@ -61,6 +64,7 @@ struct import_assistant;
 struct file
   {
     char *file_name;        /* File name. */
+    gchar *encoding;        /* Encoding. */
     unsigned long int total_lines; /* Number of lines in file. */
     bool total_is_exact;    /* Is total_lines exact (or an estimate)? */
 
@@ -358,6 +362,8 @@ generate_syntax (const struct import_assistant *ia)
                    "  /TYPE=TXT\n"
                    "  /FILE=%sq\n",
                    ia->file.file_name);
+  if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
+    syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
                                       ia->intro.n_cases_button)))
     ds_put_format (&s, "  /IMPORTCASES=FIRST %d\n",
@@ -413,7 +419,7 @@ generate_syntax (const struct import_assistant *ia)
 
 /* Choosing a file and reading it. */
 
-static char *choose_file (GtkWindow *parent_window);
+static char *choose_file (GtkWindow *parent_window, gchar **encodingp);
 
 /* Obtains the file to import from the user and initializes IA's
    file substructure.  PARENT_WINDOW must be the window to use
@@ -427,14 +433,14 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   struct file *file = &ia->file;
   enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
   enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
-  FILE *stream;
+  struct line_reader *reader;
 
-  file->file_name = choose_file (parent_window);
+  file->file_name = choose_file (parent_window, &file->encoding);
   if (file->file_name == NULL)
     return false;
 
-  stream = fopen (file->file_name, "r");
-  if (stream == NULL)
+  reader = line_reader_for_file (file->encoding, file->file_name, O_RDONLY);
+  if (reader == NULL)
     {
       msg (ME, _("Could not open `%s': %s"),
            file->file_name, strerror (errno));
@@ -447,30 +453,29 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
       struct string *line = &file->lines[file->line_cnt];
 
       ds_init_empty (line);
-      if (!ds_read_line (line, stream, MAX_LINE_LEN))
+      if (!line_reader_read (reader, line, MAX_LINE_LEN + 1)
+          || ds_length (line) > MAX_LINE_LEN)
         {
-          if (feof (stream))
+          if (line_reader_eof (reader))
             break;
-          else if (ferror (stream))
+          else if (line_reader_error (reader))
             msg (ME, _("Error reading `%s': %s"),
-                 file->file_name, strerror (errno));
+                 file->file_name, strerror (line_reader_error (reader)));
           else
             msg (ME, _("Failed to read `%s', because it contains a line "
                        "over %d bytes long and therefore appears not to be "
                        "a text file."),
                  file->file_name, MAX_LINE_LEN);
-          fclose (stream);
+          line_reader_close (reader);
           destroy_file (ia);
           return false;
         }
-      ds_chomp_byte (line, '\n');
-      ds_chomp_byte (line, '\r');
     }
 
   if (file->line_cnt == 0)
     {
       msg (ME, _("`%s' is empty."), file->file_name);
-      fclose (stream);
+      line_reader_close (reader);
       destroy_file (ia);
       return false;
     }
@@ -481,12 +486,14 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   else
     {
       struct stat s;
-      off_t position = ftello (stream);
-      if (fstat (fileno (stream), &s) == 0 && position > 0)
+      off_t position = line_reader_tell (reader);
+      if (fstat (line_reader_fileno (reader), &s) == 0 && position > 0)
         file->total_lines = (double) file->line_cnt / position * s.st_size;
       else
         file->total_lines = 0;
     }
+
+  line_reader_close (reader);
 
   return true;
 }
@@ -502,14 +509,19 @@ destroy_file (struct import_assistant *ia)
     ds_destroy (&f->lines[i]);
   free (f->lines);
   g_free (f->file_name);
+  g_free (f->encoding);
 }
 
-/* Obtains the file to read from the user and returns the name of
-   the file as a string that must be freed with g_free if
-   successful, otherwise a null pointer.  PARENT_WINDOW must be
-   the window to use as the file chooser window's parent. */
+/* Obtains the file to read from the user.  If successful, returns the name of
+   the file and stores the user's chosen encoding for the file into *ENCODINGP.
+   The caller must free each of these strings with g_free().
+
+   On failure, stores a null pointer and stores NULL in *ENCODINGP.
+
+   PARENT_WINDOW must be the window to use as the file chooser window's
+   parent. */
 static char *
-choose_file (GtkWindow *parent_window)
+choose_file (GtkWindow *parent_window, gchar **encodingp)
 {
   char *file_name;
   GtkFileFilter *filter = NULL;
@@ -551,6 +563,9 @@ choose_file (GtkWindow *parent_window)
   gtk_file_filter_add_mime_type (filter, "text/tab-separated-values");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
+  gtk_file_chooser_set_extra_widget (
+    GTK_FILE_CHOOSER (dialog), psppire_encoding_selector_new ("Auto", true));
+
   filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("All Files"));
   gtk_file_filter_add_pattern (filter, "*");
@@ -560,9 +575,12 @@ choose_file (GtkWindow *parent_window)
     {
     case GTK_RESPONSE_ACCEPT:
       file_name = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+      *encodingp = psppire_encoding_selector_get_encoding (
+        gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (dialog)));
       break;
     default:
       file_name = NULL;
+      *encodingp = NULL;
       break;
     }
   gtk_widget_destroy (dialog);
@@ -1807,7 +1825,7 @@ parse_field (struct import_assistant *ia,
     {
       char *error;
 
-      error = data_in (field, C_ENCODING, in->type, &val, var_get_width (var),
+      error = data_in (field, "UTF-8", in->type, &val, var_get_width (var),
                        dict_get_encoding (ia->formats.dict));
       if (error != NULL)
         {
