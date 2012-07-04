@@ -315,14 +315,14 @@ case in the master file:
 @itemize @bullet
 @item
 When a match is found, then the values of the variables present in the
-transaction file replace those variable's values in the new active
+transaction file replace those variables' values in the new active
 file.  If there are matching cases in more than more transaction file,
 @pspp{} applies the replacements from the first transaction file, then
 from the second transaction file, and so on.  Similarly, if a single
 transaction file has cases with duplicate @subcmd{BY} values, then those are
 applied in order to the master file.
 
-When a variable in a transaction file has a missing value or a string
+When a variable in a transaction file has a missing value or when a string
 variable's value is all blanks, that value is never used to update the
 master file.
 

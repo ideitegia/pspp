@@ -67,7 +67,7 @@ Free Documentation License".
 @end copying
 
 @titlepage
-@title PSPP Users Guide
+@title PSPP Users' Guide
 @subtitle GNU PSPP Statistical Analysis Software
 @subtitle Release @value{VERSION}
 @page
