@@ -30,7 +30,7 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static void psppire_cell_renderer_button_destroy (GtkObject *);
+static void psppire_cell_renderer_button_dispose (GObject *);
 static void psppire_cell_renderer_button_finalize (GObject *);
 
 static void update_style_cache (PsppireCellRendererButton *button,
@@ -135,13 +135,6 @@ on_style_set (GtkWidget                 *base,
 }
 
 static void
-on_destroy (GtkObject                 *base,
-            PsppireCellRendererButton *button)
-{
-  update_style_cache (button, NULL);
-}
-
-static void
 update_style_cache (PsppireCellRendererButton *button,
                     GtkWidget                 *widget)
 {
@@ -167,11 +160,6 @@ update_style_cache (PsppireCellRendererButton *button,
                                        button->style_set_handler);
           button->style_set_handler = 0;
         }
-      if (button->destroy_handler)
-        {
-          g_signal_handler_disconnect (button->base, button->destroy_handler);
-          button->destroy_handler = 0;
-        }
       g_object_unref (button->base);
       button->base = NULL;
     }
@@ -186,10 +174,6 @@ update_style_cache (PsppireCellRendererButton *button,
       button->style_set_handler = g_signal_connect (widget, "style-set",
                                                     G_CALLBACK (on_style_set),
                                                     button);
-      button->destroy_handler = g_signal_connect (widget, "destroy",
-                                                  G_CALLBACK (on_destroy),
-                                                  button);
-
       g_object_ref (widget);
       g_object_ref (button->button_style);
       g_object_ref (button->label_style);
@@ -476,14 +460,12 @@ static void
 psppire_cell_renderer_button_class_init (PsppireCellRendererButtonClass *class)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (class);
-  GtkObjectClass *gtk_object_class = GTK_OBJECT_CLASS (class);
   GtkCellRendererClass *cell_class = GTK_CELL_RENDERER_CLASS (class);
 
   gobject_class->set_property = psppire_cell_renderer_button_set_property;
   gobject_class->get_property = psppire_cell_renderer_button_get_property;
   gobject_class->finalize = psppire_cell_renderer_button_finalize;
-
-  gtk_object_class->destroy = psppire_cell_renderer_button_destroy;
+  gobject_class->dispose = psppire_cell_renderer_button_dispose;
 
   cell_class->get_size = psppire_cell_renderer_button_get_size;
   cell_class->render = psppire_cell_renderer_button_render;
@@ -550,7 +532,7 @@ psppire_cell_renderer_button_init (PsppireCellRendererButton *obj)
   obj->label_style = NULL;
   obj->base = NULL;
   obj->style_set_handler = 0;
-  obj->destroy_handler = 0;
+  obj->dispose_has_run = FALSE;
 }
 
 static void
@@ -562,13 +544,20 @@ psppire_cell_renderer_button_finalize (GObject *obj)
 }
 
 static void
-psppire_cell_renderer_button_destroy (GtkObject *obj)
+psppire_cell_renderer_button_dispose (GObject *obj)
 {
   PsppireCellRendererButton *button = PSPPIRE_CELL_RENDERER_BUTTON (obj);
 
+  if (button->dispose_has_run)
+    return;
+  
+  button->dispose_has_run = TRUE;
+
+  /* When called with NULL, as we are doing here, update_style_cache
+     does nothing more than to drop references */
   update_style_cache (button, NULL);
 
-  GTK_OBJECT_CLASS (psppire_cell_renderer_button_parent_class)->destroy (obj);
+  G_OBJECT_CLASS (psppire_cell_renderer_button_parent_class)->dispose (obj);
 }
 
 GtkCellRenderer *
