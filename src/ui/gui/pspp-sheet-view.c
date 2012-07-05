@@ -1276,18 +1276,6 @@ pspp_sheet_view_finalize (GObject *object)
       tree_view->priv->selected = NULL;
     }
 
-  if (tree_view->priv->columns != NULL)
-    {
-      list = tree_view->priv->columns;
-      while (list)
-	{
-	  PsppSheetViewColumn *column;
-	  column = PSPP_SHEET_VIEW_COLUMN (list->data);
-	  list = list->next;
-	  pspp_sheet_view_remove_column (tree_view, column);
-	}
-      tree_view->priv->columns = NULL;
-    }
 
   tree_view->priv->prelight_node = -1;
 
@@ -1594,6 +1582,19 @@ pspp_sheet_view_unrealize (GtkWidget *widget)
 
   for (x = 0 ; x < 5 ; ++x)
     g_object_unref (priv->grid_line_gc[x]);
+
+  if (tree_view->priv->columns != NULL)
+    {
+      list = tree_view->priv->columns;
+      while (list)
+	{
+	  PsppSheetViewColumn *column;
+	  column = PSPP_SHEET_VIEW_COLUMN (list->data);
+	  list = list->next;
+	  pspp_sheet_view_remove_column (tree_view, column);
+	}
+      tree_view->priv->columns = NULL;
+    }
 
   GTK_WIDGET_CLASS (pspp_sheet_view_parent_class)->unrealize (widget);
 }
@@ -9233,7 +9234,8 @@ pspp_sheet_view_remove_column (PsppSheetView       *tree_view,
 	}
 
       if (tree_view->priv->n_columns == 0 &&
-	  pspp_sheet_view_get_headers_visible (tree_view))
+	  pspp_sheet_view_get_headers_visible (tree_view) && 
+	  tree_view->priv->header_window)
 	gdk_window_hide (tree_view->priv->header_window);
 
       gtk_widget_queue_resize (GTK_WIDGET (tree_view));

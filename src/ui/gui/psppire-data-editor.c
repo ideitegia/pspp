@@ -696,6 +696,7 @@ psppire_data_editor_init (PsppireDataEditor *de)
 
   de->font = NULL;
   de->ui_manager = NULL;
+  de->old_vbox_widget = NULL;
 
   g_object_set (de, "tab-pos", GTK_POS_BOTTOM, NULL);
 
@@ -814,12 +815,17 @@ psppire_data_editor_split_window (PsppireDataEditor *de, gboolean split)
     PSPP_SHEET_VIEW (de->data_sheets[0]));
 
   disconnect_data_sheets (de);
-  gtk_widget_destroy (de->datasheet_vbox_widget);
+  if (de->old_vbox_widget)
+    g_object_unref (de->old_vbox_widget);
+  de->old_vbox_widget = de->datasheet_vbox_widget;
+  g_object_ref (de->old_vbox_widget);
+  gtk_container_remove (de->vbox, de->datasheet_vbox_widget);
 
   if (split)
     de->datasheet_vbox_widget = make_split_datasheet (de, grid_lines);
   else
     de->datasheet_vbox_widget = make_single_datasheet (de, grid_lines);
+
   psppire_data_editor_refresh_model (de);
 
   gtk_box_pack_start (GTK_BOX (de->vbox), de->datasheet_vbox_widget,

@@ -1176,12 +1176,6 @@ psppire_data_window_remove_ui (PsppireDataWindow *pdw,
 
   gtk_window_remove_accel_group (GTK_WINDOW (pdw),
                                  gtk_ui_manager_get_accel_group (uim));
-
-  /* Our caller unrefs 'uim', possibly causing 'uim' to be freed.  The
-     following call appears to be necessary to ensure that pdw->ui_manager
-     drops all references to 'uim'.  Otherwise, I get valgrind complaints about
-     access to freed memory (and segfaults) on e.g. Windows|Split View.  */
-  gtk_ui_manager_ensure_update (pdw->ui_manager);
 }
 
 GtkWidget*

@@ -72,6 +72,7 @@ struct _PsppireDataEditor
 
   /* UI manager for whichever var or data sheet is currently in use. */
   GtkUIManager *ui_manager;
+  GtkWidget *old_vbox_widget;
 };
 
 struct _PsppireDataEditorClass
