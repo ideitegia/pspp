@@ -38,7 +38,8 @@ G_BEGIN_DECLS
 typedef struct _PsppireDataSheet      PsppireDataSheet;
 typedef struct _PsppireDataSheetClass PsppireDataSheetClass;
 
-struct _PsppireDataSheet {
+struct _PsppireDataSheet
+{
   PsppSheetView parent;
 
   struct _PsppireDataStore *data_store;
@@ -55,9 +56,12 @@ struct _PsppireDataSheet {
   GtkBuilder *builder;
 
   GtkWidget *container;
+  GtkUIManager *uim;
+  gboolean dispose_has_run;
 };
 
-struct _PsppireDataSheetClass {
+struct _PsppireDataSheetClass 
+{
   PsppSheetViewClass parent_class;
 };
 

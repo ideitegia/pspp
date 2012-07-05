@@ -47,7 +47,7 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-static void psppire_data_sheet_destroy (GtkObject *);
+static void psppire_data_sheet_dispose (GObject *);
 static void psppire_data_sheet_unset_data_store (PsppireDataSheet *);
 
 static void psppire_data_sheet_update_clip_actions (PsppireDataSheet *);
@@ -1168,38 +1168,48 @@ psppire_data_sheet_get_current_case (const PsppireDataSheet *data_sheet)
 GtkUIManager *
 psppire_data_sheet_get_ui_manager (PsppireDataSheet *data_sheet)
 {
-  return GTK_UI_MANAGER (get_object_assert (data_sheet->builder,
-                                            "data_sheet_uim",
-                                            GTK_TYPE_UI_MANAGER));
+  if (data_sheet->uim == NULL)
+    {
+      data_sheet->uim = 
+	GTK_UI_MANAGER (get_object_assert (data_sheet->builder,
+					   "data_sheet_uim",
+					   GTK_TYPE_UI_MANAGER));
+      g_object_ref (data_sheet->uim);
+    }
+
+  return data_sheet->uim;
 }
 
 static void
-psppire_data_sheet_destroy (GtkObject *object)
+psppire_data_sheet_dispose (GObject *object)
 {
   PsppireDataSheet *data_sheet = PSPPIRE_DATA_SHEET (object);
 
-  psppire_data_sheet_unset_data_store (data_sheet);
-  if (data_sheet->builder)
-    {
-      g_object_unref (data_sheet->builder);
-      data_sheet->builder = NULL;
-    }
+  if (data_sheet->dispose_has_run)
+    return;
 
-  GTK_OBJECT_CLASS (psppire_data_sheet_parent_class)->destroy (object);
+  data_sheet->dispose_has_run = TRUE;
+
+  psppire_data_sheet_unset_data_store (data_sheet);
+
+  g_object_unref (data_sheet->builder);
+
+  if (data_sheet->uim)
+    g_object_unref (data_sheet->uim);
+
+  G_OBJECT_CLASS (psppire_data_sheet_parent_class)->dispose (object);
 }
 
 static void
 psppire_data_sheet_class_init (PsppireDataSheetClass *class)
 {
   GObjectClass *gobject_class;
-  GtkObjectClass *gtk_object_class;
 
   gobject_class = G_OBJECT_CLASS (class);
   gobject_class->set_property = psppire_data_sheet_set_property;
   gobject_class->get_property = psppire_data_sheet_get_property;
 
-  gtk_object_class = GTK_OBJECT_CLASS (class);
-  gtk_object_class->destroy = psppire_data_sheet_destroy;
+  gobject_class->dispose = psppire_data_sheet_dispose;
 
   g_signal_new ("var-double-clicked",
                 G_OBJECT_CLASS_TYPE (gobject_class),
@@ -1621,6 +1631,9 @@ psppire_data_sheet_init (PsppireDataSheet *obj)
   obj->scroll_to_right_signal = 0;
   obj->new_variable_column = NULL;
   obj->container = NULL;
+
+  obj->uim = NULL;
+  obj->dispose_has_run = FALSE;
 
   pspp_sheet_view_set_special_cells (sheet_view, PSPP_SHEET_VIEW_SPECIAL_CELLS_YES);
 
