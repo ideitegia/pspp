@@ -389,6 +389,13 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
 static void
 psppire_data_store_finalize (GObject *object)
 {
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (object);
+
+  if (ds->datasheet)
+    {
+      datasheet_destroy (ds->datasheet);
+      ds->datasheet = NULL;
+    }
 
   /* must chain up */
   (* parent_class->finalize) (object);
@@ -403,11 +410,6 @@ psppire_data_store_dispose (GObject *object)
   if (ds->dispose_has_run)
     return;
 
-  if (ds->datasheet)
-    {
-      datasheet_destroy (ds->datasheet);
-      ds->datasheet = NULL;
-    }
 
   /* must chain up */
   (* parent_class->dispose) (object);
