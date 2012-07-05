@@ -44,6 +44,14 @@ GType psppire_fmt_use_get_type (void) G_GNUC_CONST;
 typedef struct _PsppireVarSheet       PsppireVarSheet;
 typedef struct _PsppireVarSheetClass  PsppireVarSheetClass;
 
+enum
+{
+    PSPPIRE_VAR_SHEET_BACKEND_CHANGED,
+    PSPPIRE_VAR_SHEET_VARIABLE_INSERTED,
+    PSPPIRE_VAR_SHEET_VARIABLE_DELETED,
+    PSPPIRE_VAR_SHEET_N_SIGNALS
+ };
+
 struct _PsppireVarSheet
 {
   PsppSheetView parent;
@@ -58,12 +66,14 @@ struct _PsppireVarSheet
   struct var_type_dialog *var_type_dialog;
 
   gulong scroll_to_bottom_signal;
-  gulong *dict_signals;
+  gulong dict_signals[PSPPIRE_VAR_SHEET_N_SIGNALS];
 
   GtkBuilder *builder;
 
   GtkWidget *container;
   gulong on_switch_page_handler;
+
+  gboolean dispose_has_run;
 };
 
 struct _PsppireVarSheetClass

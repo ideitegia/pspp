@@ -908,47 +908,49 @@ psppire_var_sheet_realize (GtkWidget *w)
 }
 
 static void
-psppire_var_sheet_destroy (GtkObject *obj)
+psppire_var_sheet_dispose (GObject *obj)
 {
   PsppireVarSheet *var_sheet = PSPPIRE_VAR_SHEET (obj);
+  int i;
 
-  GTK_OBJECT_CLASS (psppire_var_sheet_parent_class)->destroy (obj);
+  if (var_sheet->dispose_has_run)
+    return;
 
-  psppire_var_sheet_set_dictionary (var_sheet, NULL);
+  var_sheet->dispose_has_run = TRUE;
 
-  if (var_sheet->val_labs_dialog)
-    {
-      g_object_unref (var_sheet->val_labs_dialog);
-      var_sheet->val_labs_dialog = NULL;
-    }
+  for (i = 0; i < PSPPIRE_VAR_SHEET_N_SIGNALS; i++)
+    if ( var_sheet->dict_signals[i])
+      g_signal_handler_disconnect (var_sheet->dict,
+				   var_sheet->dict_signals[i]);
 
-  if (var_sheet->missing_val_dialog)
-    {
-      g_object_unref (var_sheet->missing_val_dialog);
-      var_sheet->missing_val_dialog = NULL;
-    }
+  if (var_sheet->dict)
+    g_object_unref (var_sheet->dict);
+  
 
-  if (var_sheet->var_type_dialog)
-    {
-      g_object_unref (var_sheet->var_type_dialog);
-      var_sheet->var_type_dialog = NULL;
-    }
+  /* These dialogs are not GObjects (although they should be!)
+    But for now, unreffing them only causes a GCritical Error
+    so comment them out for now. (and accept the memory leakage)
+
+  g_object_unref (var_sheet->val_labs_dialog);
+  g_object_unref (var_sheet->missing_val_dialog);
+  g_object_unref (var_sheet->var_type_dialog);
+  */
+
+  G_OBJECT_CLASS (psppire_var_sheet_parent_class)->dispose (obj);
 }
 
 static void
 psppire_var_sheet_class_init (PsppireVarSheetClass *class)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (class);
-  GtkObjectClass *gtk_object_class = GTK_OBJECT_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
   GParamSpec *pspec;
 
   gobject_class->set_property = psppire_var_sheet_set_property;
   gobject_class->get_property = psppire_var_sheet_get_property;
+  gobject_class->dispose = psppire_var_sheet_dispose;
 
   widget_class->realize = psppire_var_sheet_realize;
-
-  gtk_object_class->destroy = psppire_var_sheet_destroy;
 
   g_signal_new ("var-double-clicked",
                 G_OBJECT_CLASS_TYPE (gobject_class),
@@ -1165,6 +1167,7 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
   obj->scroll_to_bottom_signal = 0;
 
   obj->container = NULL;
+  obj->dispose_has_run = FALSE;
 
   pspp_sheet_view_append_column (sheet_view, make_row_number_column (obj));
 
@@ -1309,26 +1312,19 @@ void
 psppire_var_sheet_set_dictionary (PsppireVarSheet *var_sheet,
                                   PsppireDict *dict)
 {
-  enum {
-    BACKEND_CHANGED,
-    VARIABLE_INSERTED,
-    VARIABLE_DELETED,
-    N_SIGNALS
-  };
-
   if (var_sheet->dict != NULL)
     {
-      if (var_sheet->dict_signals)
-        {
-          int i;
+      int i;
+      
+      for (i = 0; i < PSPPIRE_VAR_SHEET_N_SIGNALS; i++)
+	{
+	  if (var_sheet->dict_signals[i])
+	    g_signal_handler_disconnect (var_sheet->dict,
+					 var_sheet->dict_signals[i]);
+	  
+	  var_sheet->dict_signals[i] = 0;
+	}
 
-          for (i = 0; i < N_SIGNALS; i++)
-            g_signal_handler_disconnect (var_sheet->dict,
-                                         var_sheet->dict_signals[i]);
-
-          g_free (var_sheet->dict_signals);
-          var_sheet->dict_signals = NULL;
-        }
       g_object_unref (var_sheet->dict);
     }
 
@@ -1338,21 +1334,19 @@ psppire_var_sheet_set_dictionary (PsppireVarSheet *var_sheet,
     {
       g_object_ref (dict);
 
-      var_sheet->dict_signals = g_malloc0 (
-        N_SIGNALS * sizeof *var_sheet->dict_signals);
-
-      var_sheet->dict_signals[BACKEND_CHANGED]
+      var_sheet->dict_signals[PSPPIRE_VAR_SHEET_BACKEND_CHANGED]
         = g_signal_connect (dict, "backend-changed",
                             G_CALLBACK (on_backend_changed), var_sheet);
 
-      var_sheet->dict_signals[VARIABLE_DELETED]
+      var_sheet->dict_signals[PSPPIRE_VAR_SHEET_VARIABLE_DELETED]
         = g_signal_connect (dict, "variable-inserted",
                             G_CALLBACK (on_var_inserted), var_sheet);
 
-      var_sheet->dict_signals[VARIABLE_INSERTED]
+      var_sheet->dict_signals[PSPPIRE_VAR_SHEET_VARIABLE_INSERTED]
         = g_signal_connect (dict, "variable-deleted",
                             G_CALLBACK (on_var_deleted), var_sheet);
     }
+
   refresh_model (var_sheet);
 }
 
