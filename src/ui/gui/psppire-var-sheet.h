@@ -73,6 +73,8 @@ struct _PsppireVarSheet
   GtkWidget *container;
   gulong on_switch_page_handler;
 
+  GtkUIManager *uim;
+
   gboolean dispose_has_run;
 };
 

@@ -926,6 +926,8 @@ psppire_var_sheet_dispose (GObject *obj)
   if (var_sheet->dict)
     g_object_unref (var_sheet->dict);
   
+  if (var_sheet->uim)
+    g_object_unref (var_sheet->uim);
 
   /* These dialogs are not GObjects (although they should be!)
     But for now, unreffing them only causes a GCritical Error
@@ -1168,6 +1170,7 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
 
   obj->container = NULL;
   obj->dispose_has_run = FALSE;
+  obj->uim = NULL;
 
   pspp_sheet_view_append_column (sheet_view, make_row_number_column (obj));
 
@@ -1418,8 +1421,14 @@ psppire_var_sheet_goto_variable (PsppireVarSheet *var_sheet, int dict_index)
 GtkUIManager *
 psppire_var_sheet_get_ui_manager (PsppireVarSheet *var_sheet)
 {
-  return GTK_UI_MANAGER (get_object_assert (var_sheet->builder,
-                                            "var_sheet_uim",
-                                            GTK_TYPE_UI_MANAGER));
+  if (var_sheet->uim == NULL)
+    {
+      var_sheet->uim = GTK_UI_MANAGER (get_object_assert (var_sheet->builder,
+							  "var_sheet_uim",
+							  GTK_TYPE_UI_MANAGER));
+      g_object_ref (var_sheet->uim);
+    }
+
+  return var_sheet->uim;
 }
 
