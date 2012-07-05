@@ -160,8 +160,7 @@ static void     pspp_sheet_view_get_property         (GObject         *object,
 						    GValue          *value,
 						    GParamSpec      *pspec);
 
-/* gtkobject signals */
-static void     pspp_sheet_view_destroy              (GtkObject        *object);
+static void     pspp_sheet_view_dispose              (GObject        *object);
 
 /* gtkwidget signals */
 static void     pspp_sheet_view_realize              (GtkWidget        *widget);
@@ -444,7 +443,6 @@ static void
 pspp_sheet_view_class_init (PsppSheetViewClass *class)
 {
   GObjectClass *o_class;
-  GtkObjectClass *object_class;
   GtkWidgetClass *widget_class;
   GtkContainerClass *container_class;
   GtkBindingSet *binding_set[2];
@@ -456,7 +454,6 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
   edit_bindings = binding_set[1];
 
   o_class = (GObjectClass *) class;
-  object_class = (GtkObjectClass *) class;
   widget_class = (GtkWidgetClass *) class;
   container_class = (GtkContainerClass *) class;
 
@@ -464,9 +461,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
   o_class->set_property = pspp_sheet_view_set_property;
   o_class->get_property = pspp_sheet_view_get_property;
   o_class->finalize = pspp_sheet_view_finalize;
-
-  /* GtkObject signals */
-  object_class->destroy = pspp_sheet_view_destroy;
+  o_class->dispose = pspp_sheet_view_dispose;
 
   /* GtkWidget signals */
   widget_class->map = pspp_sheet_view_map;
@@ -823,7 +818,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 
   tree_view_signals[MOVE_CURSOR] =
     g_signal_new ("move-cursor",
-		  G_TYPE_FROM_CLASS (object_class),
+		  G_TYPE_FROM_CLASS (o_class),
 		  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		  G_STRUCT_OFFSET (PsppSheetViewClass, move_cursor),
 		  NULL, NULL,
@@ -834,7 +829,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 
   tree_view_signals[SELECT_ALL] =
     g_signal_new ("select-all",
-		  G_TYPE_FROM_CLASS (object_class),
+		  G_TYPE_FROM_CLASS (o_class),
 		  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		  G_STRUCT_OFFSET (PsppSheetViewClass, select_all),
 		  NULL, NULL,
@@ -843,7 +838,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 
   tree_view_signals[UNSELECT_ALL] =
     g_signal_new ("unselect-all",
-		  G_TYPE_FROM_CLASS (object_class),
+		  G_TYPE_FROM_CLASS (o_class),
 		  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		  G_STRUCT_OFFSET (PsppSheetViewClass, unselect_all),
 		  NULL, NULL,
@@ -852,7 +847,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 
   tree_view_signals[SELECT_CURSOR_ROW] =
     g_signal_new ("select-cursor-row",
-		  G_TYPE_FROM_CLASS (object_class),
+		  G_TYPE_FROM_CLASS (o_class),
 		  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		  G_STRUCT_OFFSET (PsppSheetViewClass, select_cursor_row),
 		  NULL, NULL,
@@ -862,7 +857,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 
   tree_view_signals[TOGGLE_CURSOR_ROW] =
     g_signal_new ("toggle-cursor-row",
-		  G_TYPE_FROM_CLASS (object_class),
+		  G_TYPE_FROM_CLASS (o_class),
 		  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		  G_STRUCT_OFFSET (PsppSheetViewClass, toggle_cursor_row),
 		  NULL, NULL,
@@ -871,7 +866,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 
   tree_view_signals[START_INTERACTIVE_SEARCH] =
     g_signal_new ("start-interactive-search",
-		  G_TYPE_FROM_CLASS (object_class),
+		  G_TYPE_FROM_CLASS (o_class),
 		  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		  G_STRUCT_OFFSET (PsppSheetViewClass, start_interactive_search),
 		  NULL, NULL,
@@ -1060,6 +1055,8 @@ pspp_sheet_view_init (PsppSheetView *tree_view)
   tree_view->priv->anchor_column = NULL;
 
   tree_view->priv->button_style = NULL;
+
+  tree_view->dispose_has_run = FALSE;
 }
 
 
@@ -1217,9 +1214,41 @@ pspp_sheet_view_get_property (GObject    *object,
 }
 
 static void
-pspp_sheet_view_finalize (GObject *object)
+pspp_sheet_view_dispose (GObject *object)
 {
-  G_OBJECT_CLASS (pspp_sheet_view_parent_class)->finalize (object);
+  PsppSheetView *tree_view = PSPP_SHEET_VIEW (object);
+
+  if (tree_view->dispose_has_run)
+    return;
+
+  tree_view->dispose_has_run = TRUE;
+
+  if (tree_view->priv->selection != NULL)
+    {
+      _pspp_sheet_selection_set_tree_view (tree_view->priv->selection, NULL);
+      g_object_unref (tree_view->priv->selection);
+      tree_view->priv->selection = NULL;
+    }
+
+  if (tree_view->priv->hadjustment)
+    {
+      g_object_unref (tree_view->priv->hadjustment);
+      tree_view->priv->hadjustment = NULL;
+    }
+  if (tree_view->priv->vadjustment)
+    {
+      g_object_unref (tree_view->priv->vadjustment);
+      tree_view->priv->vadjustment = NULL;
+    }
+
+  if (tree_view->priv->button_style)
+    {
+      g_object_unref (tree_view->priv->button_style);
+      tree_view->priv->button_style = NULL;
+    }
+
+
+  G_OBJECT_CLASS (pspp_sheet_view_parent_class)->dispose (object);
 }
 
 
@@ -1233,11 +1262,8 @@ pspp_sheet_view_buildable_add_child (GtkBuildable *tree_view,
   pspp_sheet_view_append_column (PSPP_SHEET_VIEW (tree_view), PSPP_SHEET_VIEW_COLUMN (child));
 }
 
-/* GtkObject Methods
- */
-
 static void
-pspp_sheet_view_destroy (GtkObject *object)
+pspp_sheet_view_finalize (GObject *object)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (object);
   GList *list;
@@ -1265,12 +1291,6 @@ pspp_sheet_view_destroy (GtkObject *object)
 
   tree_view->priv->prelight_node = -1;
 
-  if (tree_view->priv->selection != NULL)
-    {
-      _pspp_sheet_selection_set_tree_view (tree_view->priv->selection, NULL);
-      g_object_unref (tree_view->priv->selection);
-      tree_view->priv->selection = NULL;
-    }
 
   if (tree_view->priv->scroll_to_path != NULL)
     {
@@ -1337,24 +1357,8 @@ pspp_sheet_view_destroy (GtkObject *object)
 
   pspp_sheet_view_set_model (tree_view, NULL);
 
-  if (tree_view->priv->hadjustment)
-    {
-      g_object_unref (tree_view->priv->hadjustment);
-      tree_view->priv->hadjustment = NULL;
-    }
-  if (tree_view->priv->vadjustment)
-    {
-      g_object_unref (tree_view->priv->vadjustment);
-      tree_view->priv->vadjustment = NULL;
-    }
 
-  if (tree_view->priv->button_style)
-    {
-      g_object_unref (tree_view->priv->button_style);
-      tree_view->priv->button_style = NULL;
-    }
-
-  GTK_OBJECT_CLASS (pspp_sheet_view_parent_class)->destroy (object);
+  G_OBJECT_CLASS (pspp_sheet_view_parent_class)->finalize (object);
 }
 
 
