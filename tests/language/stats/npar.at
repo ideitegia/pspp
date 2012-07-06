@@ -1625,3 +1625,41 @@ x,4,24.000,29.500,65.000,15.902,-2.232,.026
 ])
 
 AT_CLEANUP
+
+dnl Checks that (PAIRED) can have lists where the same 
+dnl variable appears more than once.
+AT_SETUP([NPAR TESTS (PAIRED)])
+AT_DATA([npar.sps], [dnl
+set format = F12.3.
+data list notable list /a * b * c *.
+begin data.
+1 2 4
+4 5 3
+1 2 2
+4 5 1
+end data.
+
+npar tests /wilcoxon a b with c c (paired).
+])
+
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
+Table: Ranks
+,,N,Mean Rank,Sum of Ranks
+a - c,Negative Ranks,2,2.500,5.000
+,Positive Ranks,2,2.500,5.000
+,Ties,0,,
+,Total,4,,
+b - c,Negative Ranks,1,1.500,1.500
+,Positive Ranks,2,2.250,4.500
+,Ties,1,,
+,Total,4,,
+
+Table: Test Statistics
+,a - c,b - c
+Z,.000,-.816
+Asymp. Sig. (2-tailed),1.000,.414
+])
+
+
+AT_CLEANUP
+

@@ -1080,7 +1080,7 @@ parse_two_sample_related_test (struct lexer *lexer,
   if (!parse_variables_const_pool (lexer, pool,
 				   dict,
 				   &vlist1, &n_vlist1,
-				   PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
+				   PV_NUMERIC | PV_NO_SCRATCH | PV_DUPLICATE) )
     return false;
 
   if ( lex_match (lexer, T_WITH))
@@ -1088,7 +1088,7 @@ parse_two_sample_related_test (struct lexer *lexer,
       with = true;
       if ( !parse_variables_const_pool (lexer, pool, dict,
 					&vlist2, &n_vlist2,
-					PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
+					PV_NUMERIC | PV_NO_SCRATCH | PV_DUPLICATE) )
 	return false;
 
       paired = (lex_match (lexer, T_LPAREN) &&
@@ -1101,9 +1101,12 @@ parse_two_sample_related_test (struct lexer *lexer,
       if (paired)
 	{
 	  if ( n_vlist1 != n_vlist2)
-	    msg (SE, _("PAIRED was specified but the number of variables "
+            {
+	      msg (SE, _("PAIRED was specified but the number of variables "
 		       "preceding WITH (%zu) did not match the number "
 		       "following (%zu)."), n_vlist1, n_vlist2);
+              return false;
+            }
 
 	  test_parameters->n_pairs = n_vlist1 ;
 	}
