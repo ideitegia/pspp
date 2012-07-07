@@ -24,6 +24,7 @@
 #include "data/datasheet.h"
 #include "data/value-labels.h"
 #include "libpspp/range-set.h"
+#include "libpspp/str.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/pspp-sheet-selection.h"
 #include "ui/gui/psppire-data-sheet.h"
@@ -427,21 +428,21 @@ refresh_entry (PsppireDataEditor *de)
         }
       else
         {
-          GString *string;
+          struct string s;
 
-          string = g_string_sized_new (25);
-          g_string_append_printf (string,
-                                  ngettext ("%'d case", "%'d cases", n_cases),
-                                  n_cases);
-          g_string_append_c (string, ' ');
-          g_string_append_unichar (string, 0xd7); /* U+00D7 MULTIPLICATION SIGN */
-          g_string_append_c (string, ' ');
-          g_string_append_printf (string,
-                                  ngettext ("%'d variable", "%'d variables",
-                                            n_vars),
-                                  n_vars);
-          ref_cell_text = string->str;
-          g_string_free (string, FALSE);
+          /* The glib string library does not understand the ' printf modifier
+             on all platforms, but the "struct string" library does (because
+             Gnulib fixes that problem), so use the latter.  */
+          ds_init_empty (&s);
+          ds_put_format (&s, ngettext ("%'d case", "%'d cases", n_cases),
+                         n_cases);
+          ds_put_byte (&s, ' ');
+          ds_put_unichar (&s, 0xd7); /* U+00D7 MULTIPLICATION SIGN */
+          ds_put_byte (&s, ' ');
+          ds_put_format (&s, ngettext ("%'d variable", "%'d variables",
+                                       n_vars),
+                         n_vars);
+          ref_cell_text = ds_steal_cstr (&s);
         }
 
       psppire_value_entry_set_variable (PSPPIRE_VALUE_ENTRY (de->datum_entry),

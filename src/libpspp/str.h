@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -223,6 +223,7 @@ bool ds_read_stream (struct string *, size_t size, size_t cnt, FILE *stream);
 /* Append. */
 void ds_put_byte (struct string *, int ch);
 void ds_put_byte_multiple (struct string *, int ch, size_t);
+void ds_put_unichar (struct string *, ucs4_t uc);
 void ds_put_cstr (struct string *, const char *);
 void ds_put_substring (struct string *, struct substring);
 void ds_put_vformat (struct string *st, const char *, va_list)
