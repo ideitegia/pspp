@@ -176,8 +176,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/count-dialog.h \
 	src/ui/gui/crosstabs-dialog.c \
 	src/ui/gui/crosstabs-dialog.h \
-	src/ui/gui/customentry.c \
-	src/ui/gui/customentry.h \
 	src/ui/gui/dialog-common.c \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.h \
