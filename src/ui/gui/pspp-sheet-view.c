@@ -1519,6 +1519,8 @@ pspp_sheet_view_unrealize (GtkWidget *widget)
   PsppSheetViewPrivate *priv = tree_view->priv;
   GList *list;
 
+  GTK_WIDGET_CLASS (pspp_sheet_view_parent_class)->unrealize (widget);
+
   if (priv->scroll_timeout != 0)
     {
       g_source_remove (priv->scroll_timeout);
@@ -1595,8 +1597,6 @@ pspp_sheet_view_unrealize (GtkWidget *widget)
 	}
       tree_view->priv->columns = NULL;
     }
-
-  GTK_WIDGET_CLASS (pspp_sheet_view_parent_class)->unrealize (widget);
 }
 
 /* GtkWidget::size_request helper */
