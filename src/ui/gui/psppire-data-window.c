@@ -1053,6 +1053,13 @@ psppire_data_window_dispose (GObject *object)
 {
   PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (object);
 
+  if (dw->uim)
+    {
+      psppire_data_window_remove_ui (dw, dw->uim, dw->merge_id);
+      g_object_unref (dw->uim);
+      dw->uim = NULL;
+    }
+
   if (dw->builder != NULL)
     {
       g_object_unref (dw->builder);
