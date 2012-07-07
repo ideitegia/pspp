@@ -5361,6 +5361,9 @@ do_presize_handler (PsppSheetView *tree_view)
   validate_visible_area (tree_view);
   tree_view->priv->presize_handler_timer = 0;
 
+  if (! gtk_widget_get_realized (GTK_WIDGET (tree_view)))
+    return FALSE;
+
   gtk_widget_size_request (GTK_WIDGET (tree_view), &requisition);
 
   tree_view->priv->hadjustment->upper = MAX (tree_view->priv->hadjustment->upper, (gfloat)requisition.width);
