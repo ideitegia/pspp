@@ -3,13 +3,15 @@
 # This file is distributed under the same license as the pspp package.
 #
 # Matej Urbančič <matej.urban@gmail.com>, 2011 - 2012.
+# Matej Kovačič <matej.kovacic@owca.info>, 2012.
+#
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pspp 0.7.9\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2012-02-03 19:12-0800\n"
-"PO-Revision-Date: 2012-06-29 12:20+0100\n"
+"PO-Revision-Date: 2012-07-04 15:07+0100\n"
 "Last-Translator: Matej Urbančič <matej.urban@gmail.com>\n"
 "Language-Team: Slovenian <translation-team-sl@lists.sourceforge.net>\n"
 "Language: Slovenian\n"
@@ -23,7 +25,7 @@ msgstr ""
 
 #: src/ui/gui/helper.c:153
 msgid "Sorry. The help system hasn't yet been implemented."
-msgstr "Sistem pomoči še ni podprt v tej različici programa."
+msgstr "Sistem pomoči v tej različici programa še ni podprt."
 
 #: src/ui/gui/psppire-buttonbox.c:329 src/ui/gui/psppire-buttonbox.c:487
 msgid "Continue"
@@ -84,7 +86,7 @@ msgstr "`%s' ni sistemska ali prenosna datoteka."
 
 #: src/data/any-reader.c:111 src/data/any-writer.c:67
 msgid "The inline file is not allowed here."
-msgstr ""
+msgstr "Uporaba medvrstične (inline) datoteke ni dovoljena."
 
 #: src/data/calendar.c:100
 #, c-format
@@ -103,7 +105,7 @@ msgstr "Datum %04d-%d-%d je pred najstarejšim sprejemljivim datumom 1582-10-15.
 
 #: src/data/casereader-filter.c:221
 msgid "At least one case in the data read had a weight value that was user-missing, system-missing, zero, or negative.  These case(s) were ignored."
-msgstr ""
+msgstr "Vsaj ena enota v podatkih ima vrednost uteži, ki je uporabniško določena manjkajoča vrednost, sistemsko določena manjkajoča vrednost, enaka nič ali negativna. Te enote so bile ignorirane."
 
 #. TRANSLATORS: this fragment will be interpolated into messages in fh_lock()
 #. that identify types of files.
@@ -124,7 +126,7 @@ msgstr "Prišlo je do V/I napake med zapisovanjem datoteke CSV `%s'."
 #: src/data/data-in.c:171
 #, c-format
 msgid "Data is not valid as format %s: %s"
-msgstr ""
+msgstr "Podatki niso v veljavnem formatu %s: %s"
 
 #: src/data/data-in.c:376 src/data/data-in.c:552
 msgid "Field contents are not numeric."
@@ -140,11 +142,11 @@ msgstr "Neveljavna številska sintaksa."
 
 #: src/data/data-in.c:399 src/data/data-in.c:570
 msgid "Too-large number set to system-missing."
-msgstr ""
+msgstr "Za sistemsko manjkajočo vrednost je bilo nastavljeno preveliko število."
 
 #: src/data/data-in.c:405 src/data/data-in.c:576
 msgid "Too-small number set to zero."
-msgstr ""
+msgstr "Premajhno število je bilo nastavljeno na nič."
 
 #: src/data/data-in.c:425
 msgid "All characters in field must be digits."
@@ -190,7 +192,7 @@ msgstr "Neprepoznan zapis meseca. Mesece je mogoče določiti z arabskimi ali ri
 #: src/data/data-in.c:928
 #, c-format
 msgid "Year (%ld) must be between 1582 and 19999."
-msgstr ""
+msgstr "Leto (%ld) mora biti med 1582 in 19999."
 
 #: src/data/data-in.c:939
 #, c-format
@@ -199,12 +201,12 @@ msgstr ""
 
 #: src/data/data-in.c:953
 msgid "Julian day must have exactly three digits."
-msgstr ""
+msgstr "Dan po julijanskem koledarju mora imeti natanko tri številke."
 
 #: src/data/data-in.c:955
 #, c-format
 msgid "Julian day (%ld) must be between 1 and 366."
-msgstr ""
+msgstr "Dan po julijanskem koledarju (%ld) mora bit med 1 in 366."
 
 #: src/data/data-in.c:979
 #, c-format
@@ -227,7 +229,7 @@ msgstr "Minuta (%ld) mora biti med 0 in 59."
 
 #: src/data/data-in.c:1070
 msgid "Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified."
-msgstr ""
+msgstr "Neprepoznano ime dneva v tednu. Določiti je potrebno vsaj prva dva znaka angleškega imena dneva."
 
 #: src/data/data-in.c:1196
 #, c-format
@@ -242,7 +244,7 @@ msgstr "Številka dneva v tednu %f ni med 1 in 7."
 #: src/data/data-out.c:571
 #, c-format
 msgid "Month number %f is not between 1 and 12."
-msgstr ""
+msgstr "Številka meseca (%f) ni med 1 in 12."
 
 #: src/data/dataset-reader.c:54
 #, c-format
@@ -392,7 +394,7 @@ msgstr "Pika"
 
 #: src/data/format.c:933
 msgid "Scientific"
-msgstr "Znanstveni"
+msgstr "Znanstveni "
 
 #: src/data/format.c:948 src/ui/gui/var-sheet-dialogs.ui:91
 msgid "Date"
@@ -400,7 +402,7 @@ msgstr "Datum"
 
 #: src/data/format.c:951 src/ui/gui/var-sheet-dialogs.ui:107
 msgid "Dollar"
-msgstr "Dolar"
+msgstr "Dolar oblika"
 
 #: src/data/format.c:958
 msgid "Custom"
@@ -417,9 +419,9 @@ msgid "Error opening `%s' for reading as a Gnumeric file: %s."
 msgstr ""
 
 #: src/data/gnumeric-reader.c:309 src/data/ods-reader.c:391
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid cell range `%s'"
-msgstr "Neveljaven odvisen obseg"
+msgstr "Neveljaven obseg celic `%s'"
 
 #: src/data/gnumeric-reader.c:447 src/data/ods-reader.c:430
 #: src/data/ods-reader.c:545
@@ -607,9 +609,8 @@ msgid "Weight variable name (%s) truncated."
 msgstr "Ime spremenljivke uteži (%s) je bilo skrajšano."
 
 #: src/data/por-file-reader.c:678
-#, fuzzy
 msgid "Expected variable record."
-msgstr "Pripravljanje na zapisovanje"
+msgstr "Pričakovan zapis spremenljivke."
 
 #: src/data/por-file-reader.c:682
 #, c-format
@@ -720,14 +721,12 @@ msgid "Error opening `%s' for reading as a system file: %s."
 msgstr ""
 
 #: src/data/sys-file-reader.c:388
-#, fuzzy
 msgid "Misplaced type 4 record."
-msgstr "Pripravljanje na zapisovanje"
+msgstr "Napačen zapis tipa 4."
 
 #: src/data/sys-file-reader.c:392
-#, fuzzy
 msgid "Duplicate type 6 (document) record."
-msgstr "Kratek opis vrste dokumenta"
+msgstr "Podvojen zapis tip 6 (dokument)."
 
 #: src/data/sys-file-reader.c:401 src/data/sys-file-reader.c:900
 #, c-format
@@ -3352,7 +3351,7 @@ msgstr "%(index)d od %(total)d izbranih predmetov"
 
 #: src/language/stats/reliability.c:614
 msgid "Cronbach's Alpha if Item Deleted"
-msgstr ""
+msgstr "Cronbachov alfa, če je element izbrisan"
 
 #: src/language/stats/reliability.c:688
 #, fuzzy
@@ -3715,7 +3714,7 @@ msgstr "Pokaži razlike za datoteko"
 #: src/language/data-io/combine-files.c:307
 #, c-format
 msgid "Active dataset lacks BY variable %s."
-msgstr ""
+msgstr "Aktivnemu naboru podatkov manjka BY s spremenljivko %s."
 
 #: src/language/data-io/combine-files.c:384
 #: src/language/data-io/combine-files.c:389
@@ -3815,7 +3814,7 @@ msgstr ""
 #: src/language/data-io/data-parser.c:516
 #, c-format
 msgid "Data for variable %s is not valid as format %s: %s"
-msgstr ""
+msgstr "Podatki spremenljivke %s niso v veljavnem formatu %s: %s"
 
 #: src/language/data-io/data-parser.c:545
 #, c-format
@@ -4702,7 +4701,7 @@ msgstr "Številka stolpca: %d"
 
 #: src/ui/gui/crosstabs-dialog.c:41
 msgid "Chisq"
-msgstr ""
+msgstr "Hi-kv."
 
 #: src/ui/gui/crosstabs-dialog.c:42 src/language/stats/crosstabs.q:1805
 msgid "Phi"
@@ -4821,16 +4820,15 @@ msgstr "zasluge za prevajanje"
 #: src/ui/gui/help-menu.c:106
 #, c-format
 msgid "Cannot open reference manual: %s.  The PSPP user manual is also available at %s"
-msgstr ""
+msgstr "Priročnika sklicev ni mogoče odpreti: %s. Priročnik PSPP za uporabnike je na voljo tudi na %s"
 
 #: src/ui/gui/help-menu.c:133
 msgid "_Help"
 msgstr "Pomo_č"
 
 #: src/ui/gui/help-menu.c:140
-#, fuzzy
 msgid "_Reference Manual"
-msgstr "Priročnik sklicev PyGObject"
+msgstr "Priročnik _sklicev"
 
 #: src/ui/gui/main.c:83
 #, c-format
@@ -4861,6 +4859,31 @@ msgid ""
 "\n"
 "A non-option argument is interpreted as a .sav or .por file to load.\n"
 msgstr ""
+"PSPPIRE, grafični vmesnik za PSPP, program za statistično analizo vzorčenih podatkov.\n"
+"Uporaba: %s [MOŽNOST]... DATOTEKA\n"
+"\n"
+"Ukazni parametri pri dolgi obliki možnosti so na voljo tudi za kratko obliko možnosti. \n"
+"\n"
+"Grafične možnosti:\n"
+"  -q, --no-splash           ne prikaži predstavitvenega okna pri zagonu\n"
+"\n"
+"%sJezikovne možnosti:\n"
+"  -I, --include=DIR         iskalni poti dodaj DIR\n"
+"  -I-, --no-include         izbriši iskalno pot clear search path\n"
+"  -a, --algorithm={compatible|enhanced}\n"
+"                            nastavite `compatible', če želite podatkivni izpis\n"
+"                            izračunan s pomočjo napačnih algoritmov (ki jih (je) uporablja(l) SPSS)\n"
+"  -x, --syntax={compatible|enhanced}\n"
+"                            nastavite `compatible' če želite onemogočiti PSPP razširitve\n"
+"  -i, --interactive         interpretacija sintakse v interaktivnem načinu\n"
+"  -s, --safer               ne dovoli nekaterih nevarnih operacij\n"
+"Privzeta iskalna pot: %s\n"
+"\n"
+"Prikaz informacij:\n"
+"  -h, --help                prikaži to pomoč in zaključi z izvajanjem programa\n"
+"  -V, --version             prikaži podatek o različici programa in in zaključi z izvajanjem programa\n"
+"\n"
+"Ostali ukazni parametri so razumljeni kot ukaz za nalaganje .sav ali .por datoteke.\n"
 
 #: src/ui/gui/missing-val-dialog.c:114 src/ui/gui/missing-val-dialog.c:167
 #, fuzzy
@@ -7481,9 +7504,8 @@ msgid "Variable Type"
 msgstr "Vrsta spremenljivke"
 
 #: src/ui/gui/var-sheet-dialogs.ui:75
-#, fuzzy
 msgid "Scientific notation"
-msgstr "Uporabi znanstveni zapis"
+msgstr "Znanstveni zapis"
 
 #: src/ui/gui/var-sheet-dialogs.ui:123
 msgid "Custom currency"
@@ -7561,7 +7583,7 @@ msgstr "_Podatki"
 
 #: src/ui/gui/data-editor.ui:48 src/ui/gui/syntax-editor.ui:35
 msgid "_Open..."
-msgstr "_Odpr i..."
+msgstr "_Odpri..."
 
 #: src/ui/gui/data-editor.ui:54
 msgid "_Import Delimited Text Data..."
@@ -7744,7 +7766,7 @@ msgstr "Rekodiraj v _nove spremenljivke"
 
 #: src/ui/gui/data-editor.ui:331
 msgid "_Run Pending Transforms"
-msgstr "_Zaženi čakajoče ukaze"
+msgstr "_Izvedi čakajoče ukaze"
 
 #: src/ui/gui/data-editor.ui:338
 msgid "_Analyze"
