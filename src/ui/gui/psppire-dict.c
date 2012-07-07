@@ -56,7 +56,7 @@ enum  {
 /* --- prototypes --- */
 static void psppire_dict_class_init	(PsppireDictClass	*class);
 static void psppire_dict_init	(PsppireDict		*dict);
-static void psppire_dict_finalize	(GObject		*object);
+static void psppire_dict_dispose	(GObject		*object);
 
 static void dictionary_tree_model_init (GtkTreeModelIface *iface);
 
@@ -115,7 +115,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 
   parent_class = g_type_class_peek_parent (class);
 
-  object_class->finalize = psppire_dict_finalize;
+  object_class->dispose = psppire_dict_dispose;
 
   signals [BACKEND_CHANGED] =
     g_signal_new ("backend-changed",
@@ -227,13 +227,13 @@ psppire_dict_class_init (PsppireDictClass *class)
 }
 
 static void
-psppire_dict_finalize (GObject *object)
+psppire_dict_dispose (GObject *object)
 {
   PsppireDict *d = PSPPIRE_DICT (object);
 
-  dict_destroy (d->dict);
+  dict_set_callbacks (d->dict, NULL, NULL);
 
-  G_OBJECT_CLASS (parent_class)->finalize (object);
+  G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
 /* Pass on callbacks from src/data/dictionary, as
