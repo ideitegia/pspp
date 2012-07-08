@@ -822,7 +822,7 @@ psppire_data_editor_split_window (PsppireDataEditor *de, gboolean split)
   /* FIXME:  old_vbox_widget needs to be unreffed in dispose.
 	(currently it seems to provoke an error if I do that.  
 	I don't know why. */
-  gtk_container_remove (de->vbox, de->datasheet_vbox_widget);
+  gtk_container_remove (GTK_CONTAINER (de->vbox), de->datasheet_vbox_widget);
 
   if (split)
     de->datasheet_vbox_widget = make_split_datasheet (de, grid_lines);

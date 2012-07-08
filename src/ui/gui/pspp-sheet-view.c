@@ -1266,7 +1266,6 @@ static void
 pspp_sheet_view_finalize (GObject *object)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (object);
-  GList *list;
 
   pspp_sheet_view_stop_editing (tree_view, TRUE);
 
