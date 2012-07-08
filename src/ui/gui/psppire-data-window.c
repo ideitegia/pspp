@@ -1212,6 +1212,18 @@ psppire_data_window_dispose (GObject *object)
 {
   PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (object);
 
+  if (dw->dataset)
+    {
+      struct dataset *dataset = dw->dataset;
+      struct session *session = dataset_session (dataset);
+
+      dw->dataset = NULL;
+
+      dataset_set_callbacks (dataset, NULL, NULL);
+      session_set_active_dataset (session, NULL);
+      dataset_destroy (dataset);
+    }
+
   if (dw->builder != NULL)
     {
       g_object_unref (dw->builder);
