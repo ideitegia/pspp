@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ struct session
     struct hmapx datasets;
     struct dataset *active;
     char *syntax_encoding;      /* Default encoding for syntax files. */
+    unsigned int n_dataset_names; /* For session_generate_dataset_name(). */
   };
 
 static struct hmapx_node *session_lookup_dataset__ (const struct session *,
@@ -49,6 +50,7 @@ session_create (void)
   hmapx_init (&s->datasets);
   s->active = NULL;
   s->syntax_encoding = xstrdup ("Auto");
+  s->n_dataset_names = 0;
   return s;
 }
 
@@ -163,6 +165,25 @@ session_get_dataset_by_seqno (const struct session *s, unsigned int seqno)
     if (dataset_seqno (ds) == seqno)
       return ds;
   return NULL;
+}
+
+/* Returns an identifier that is is not currently in use as a dataset name.
+   The caller must free the returned identifier, with free(). */
+char *
+session_generate_dataset_name (struct session *s)
+{
+  for (;;)
+    {
+      char *name;
+
+      s->n_dataset_names++;
+      assert(s->n_dataset_names != 0);
+
+      name = xasprintf ("DataSet%u", s->n_dataset_names);
+      if (!session_lookup_dataset (s, name))
+        return name;
+      free (name);
+    }
 }
 
 static struct hmapx_node *

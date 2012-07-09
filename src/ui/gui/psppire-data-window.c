@@ -1288,10 +1288,7 @@ psppire_data_window_new (struct dataset *ds)
 
   if (ds == NULL)
     {
-      static int n_datasets;
-      char *dataset_name;
-
-      dataset_name = xasprintf ("DataSet%d", ++n_datasets);
+      char *dataset_name = session_generate_dataset_name (the_session);
       ds = dataset_create (the_session, dataset_name);
       free (dataset_name);
     }
