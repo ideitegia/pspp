@@ -385,6 +385,8 @@ psppire_data_editor_set_property (GObject         *object,
       psppire_data_editor_split_window (de, g_value_get_boolean (value));
       break;
     case PROP_DATA_WINDOW:
+      if (de->data_window)
+        g_object_unref (de->data_window);
       de->data_window = g_value_get_pointer (value);
       g_object_ref (de->data_window);
       break;
