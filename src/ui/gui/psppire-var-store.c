@@ -447,7 +447,7 @@ psppire_var_store_dispose (GObject *object)
     g_object_unref (self->dictionary);
 
   /* must chain up */
-  (* parent_class->finalize) (object);
+  (* parent_class->dispose) (object);
 }
 
 
