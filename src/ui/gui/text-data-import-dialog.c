@@ -1625,7 +1625,7 @@ destroy_formats_page (struct import_assistant *ia)
 
   if (p->psppire_dict != NULL)
     {
-      /* This destroys p->dict also. */
+      dict_destroy (p->psppire_dict->dict);
       g_object_unref (p->psppire_dict);
     }
   clear_modified_vars (ia);

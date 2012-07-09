@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,6 +34,20 @@ create_casereader_from_data_store (void *data_store_)
 {
   PsppireDataStore *data_store = data_store_;
   return psppire_data_store_get_reader (data_store);
+}
+
+/* Ensures that dataset DS has a name, because some parts of the GUI insist
+   upon this. */
+static void
+name_dataset_cb (struct dataset *ds, void *aux UNUSED)
+{
+  if (dataset_name (ds)[0] == '\0')
+    {
+      struct session *session = dataset_session (ds);
+      char *dataset_name = session_generate_dataset_name (session);
+      dataset_set_name (ds, dataset_name);
+      free (dataset_name);
+    }
 }
 
 static void
@@ -130,6 +144,8 @@ execute_syntax (PsppireDataWindow *window, struct lex_reader *lex_reader)
       if ( result == CMD_EOF || result == CMD_FINISH)
 	break;
     }
+
+  session_for_each_dataset (the_session, name_dataset_cb, NULL);
 
   ll_for_each_safe (pdw, next_pdw, PsppireDataWindow, ll, &all_data_windows)
     {
