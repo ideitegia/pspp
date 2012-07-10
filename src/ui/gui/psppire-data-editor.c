@@ -89,7 +89,6 @@ psppire_data_editor_dispose (GObject *obj)
   if (de->dispose_has_run)
     return;
 
-  g_object_unref (de->data_window);
   g_object_unref (de->data_store);
   g_object_unref (de->var_store);
 
@@ -385,10 +384,9 @@ psppire_data_editor_set_property (GObject         *object,
       psppire_data_editor_split_window (de, g_value_get_boolean (value));
       break;
     case PROP_DATA_WINDOW:
-      if (de->data_window)
-        g_object_unref (de->data_window);
+      /* We hold no reference to this object, since it is used only by do_sort,
+	and that cannot be called unless the window is realized. */
       de->data_window = g_value_get_pointer (value);
-      g_object_ref (de->data_window);
       break;
     case PROP_DATA_STORE:
       if ( de->data_store) g_object_unref (de->data_store);
