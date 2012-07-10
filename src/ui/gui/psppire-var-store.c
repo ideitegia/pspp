@@ -381,8 +381,8 @@ psppire_var_store_sheet_model_init (PsppireSheetModelIface *iface)
 
 /**
  * psppire_var_store_new:
- * @dict: The dictionary for this var_store.
- *
+ * @dict: The dictionary for this var_store.  The caller retains its reference
+ * to @dict.
  *
  * Return value: a new #PsppireVarStore
  **/

@@ -951,6 +951,7 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   de->dataset = ds;
   dict = psppire_dict_new_from_dict (dataset_dict (ds));
   de->var_store = psppire_var_store_new (dict);
+  g_object_unref (dict);
   de->data_store = psppire_data_store_new (dict);
   psppire_data_store_set_reader (de->data_store, NULL);
 
