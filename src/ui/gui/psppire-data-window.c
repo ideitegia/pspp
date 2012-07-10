@@ -79,6 +79,7 @@ static void psppire_data_window_init          (PsppireDataWindow      *data_edit
 static void psppire_data_window_iface_init (PsppireWindowIface *iface);
 
 static void psppire_data_window_dispose (GObject *object);
+static void psppire_data_window_finalize (GObject *object);
 static void psppire_data_window_set_property (GObject         *object,
                                               guint            prop_id,
                                               const GValue    *value,
@@ -142,6 +143,7 @@ psppire_data_window_class_init (PsppireDataWindowClass *class)
   parent_class = g_type_class_peek_parent (class);
 
   object_class->dispose = psppire_data_window_dispose;
+  object_class->finalize = psppire_data_window_finalize;
   object_class->set_property = psppire_data_window_set_property;
   object_class->get_property = psppire_data_window_get_property;
 
@@ -1213,18 +1215,6 @@ psppire_data_window_dispose (GObject *object)
 {
   PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (object);
 
-  if (dw->dataset)
-    {
-      struct dataset *dataset = dw->dataset;
-      struct session *session = dataset_session (dataset);
-
-      dw->dataset = NULL;
-
-      dataset_set_callbacks (dataset, NULL, NULL);
-      session_set_active_dataset (session, NULL);
-      dataset_destroy (dataset);
-    }
-
   if (dw->builder != NULL)
     {
       g_object_unref (dw->builder);
@@ -1251,6 +1241,27 @@ psppire_data_window_dispose (GObject *object)
 
   if (G_OBJECT_CLASS (parent_class)->dispose)
     G_OBJECT_CLASS (parent_class)->dispose (object);
+}
+
+static void
+psppire_data_window_finalize (GObject *object)
+{
+  PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (object);
+
+  if (dw->dataset)
+    {
+      struct dataset *dataset = dw->dataset;
+      struct session *session = dataset_session (dataset);
+
+      dw->dataset = NULL;
+
+      dataset_set_callbacks (dataset, NULL, NULL);
+      session_set_active_dataset (session, NULL);
+      dataset_destroy (dataset);
+    }
+
+  if (G_OBJECT_CLASS (parent_class)->finalize)
+    G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
 static void
