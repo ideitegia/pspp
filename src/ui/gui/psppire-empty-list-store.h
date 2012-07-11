@@ -56,6 +56,8 @@ gint psppire_empty_list_store_get_n_rows (const PsppireEmptyListStore *);
 void psppire_empty_list_store_set_n_rows (PsppireEmptyListStore *,
                                           gint n_rows);
 
+void psppire_empty_list_store_row_changed (PsppireEmptyListStore *,
+                                           gint row);
 void psppire_empty_list_store_row_inserted (PsppireEmptyListStore *,
                                             gint row);
 void psppire_empty_list_store_row_deleted (PsppireEmptyListStore *,

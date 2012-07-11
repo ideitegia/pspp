@@ -181,6 +181,20 @@ psppire_empty_list_store_set_n_rows (PsppireEmptyListStore *obj,
 }
 
 void
+psppire_empty_list_store_row_changed (PsppireEmptyListStore *obj,
+                                      gint row)
+{
+  GtkTreeModel *tree_model = GTK_TREE_MODEL (obj);
+  GtkTreeIter iter;
+  GtkTreePath *path;
+
+  path = gtk_tree_path_new_from_indices (row, -1);
+  gtk_tree_model_get_iter (tree_model, &iter, path);
+  gtk_tree_model_row_changed (tree_model, path, &iter);
+  gtk_tree_path_free (path);
+}
+
+void
 psppire_empty_list_store_row_inserted (PsppireEmptyListStore *obj,
                                        gint row)
 {

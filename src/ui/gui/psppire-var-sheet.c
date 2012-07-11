@@ -1267,6 +1267,20 @@ refresh_model (PsppireVarSheet *var_sheet)
 }
 
 static void
+on_var_changed (PsppireDict *dict, glong row, PsppireVarSheet *var_sheet)
+{
+  PsppireEmptyListStore *store;
+
+  g_return_if_fail (dict == var_sheet->dict);
+
+  store = PSPPIRE_EMPTY_LIST_STORE (pspp_sheet_view_get_model (
+                                      PSPP_SHEET_VIEW (var_sheet)));
+  g_return_if_fail (store != NULL);
+
+  psppire_empty_list_store_row_changed (store, row);
+}
+
+static void
 on_var_inserted (PsppireDict *dict, glong row, PsppireVarSheet *var_sheet)
 {
   PsppireEmptyListStore *store;
@@ -1340,6 +1354,10 @@ psppire_var_sheet_set_dictionary (PsppireVarSheet *var_sheet,
       var_sheet->dict_signals[PSPPIRE_VAR_SHEET_BACKEND_CHANGED]
         = g_signal_connect (dict, "backend-changed",
                             G_CALLBACK (on_backend_changed), var_sheet);
+
+      var_sheet->dict_signals[PSPPIRE_VAR_SHEET_VARIABLE_CHANGED]
+        = g_signal_connect (dict, "variable-changed",
+                            G_CALLBACK (on_var_changed), var_sheet);
 
       var_sheet->dict_signals[PSPPIRE_VAR_SHEET_VARIABLE_DELETED]
         = g_signal_connect (dict, "variable-inserted",
