@@ -46,10 +46,7 @@ G_DEFINE_ABSTRACT_TYPE (PsppireWindowBase, psppire_window_base, GTK_TYPE_WINDOW)
 static const char *
 get_window_id (GtkWidget *wb)
 {
-  const gchar *name = NULL;
-      
-  g_object_get (wb, "name", &name, NULL);
-
+  const gchar *name = gtk_widget_get_name (wb);
   if (NULL == name || 0 == strcmp ("", name))
     name = G_OBJECT_TYPE_NAME (wb);
 

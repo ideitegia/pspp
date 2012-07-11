@@ -204,6 +204,8 @@ parse_color (struct output_driver *d, struct string_map *options,
 	}
     }
 
+  free (string);
+
   /* Convert 16 bit ints to float */
   *dred = red / (double) 0xFFFF;
   *dgreen = green / (double) 0xFFFF;
