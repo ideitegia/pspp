@@ -48,9 +48,7 @@ following support to users:
           an "enhanced" mode in certain cases where PSPP can output
           better results that may surprise SPSS users.
 
-	* Friendly textual and graphical interfaces.  This release
-          includes the first version of PSPPIRE, the PSPP graphical
-          user interface.
+	* Friendly textual and graphical interfaces.  
 
 	* Good documentation.  Currently the PSPP manual describes its
           language completely, but we would like to add information on
