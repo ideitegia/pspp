@@ -42,7 +42,8 @@ UI_FILES = \
 	src/ui/gui/variable-info.ui \
 	src/ui/gui/data-editor.ui \
 	src/ui/gui/output-viewer.ui \
-	src/ui/gui/syntax-editor.ui
+	src/ui/gui/syntax-editor.ui \
+	src/ui/gui/var-type-dialog.ui
 
 EXTRA_DIST += \
 	src/ui/gui/OChangeLog \

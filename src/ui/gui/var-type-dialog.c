@@ -323,7 +323,7 @@ var_type_dialog_create (GtkWindow *toplevel)
   gint i;
   struct var_type_dialog *dialog = g_malloc (sizeof (struct var_type_dialog));
 
-  GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
+  GtkBuilder *xml = builder_new ("var-type-dialog.ui");
 
   dialog->window = get_widget_assert (xml,"var_type_dialog");
   dialog->active_button = -1;
