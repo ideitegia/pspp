@@ -41,7 +41,8 @@ enum
   {
     PROP_0,
     PROP_PATH,
-    PROP_SLASH
+    PROP_SLASH,
+    PROP_EDITING_CANCELED
   };
 
 static void
@@ -61,6 +62,9 @@ psppire_button_editable_set_property (GObject      *object,
 
     case PROP_SLASH:
       psppire_button_editable_set_slash (obj, g_value_get_boolean (value));
+      break;
+
+    case PROP_EDITING_CANCELED:
       break;
 
     default:
@@ -85,6 +89,10 @@ psppire_button_editable_get_property (GObject      *object,
 
     case PROP_SLASH:
       g_value_set_boolean (value, psppire_button_editable_get_slash (obj));
+      break;
+
+    case PROP_EDITING_CANCELED:
+      g_value_set_boolean (value, FALSE);
       break;
 
     default:
@@ -173,6 +181,9 @@ psppire_button_editable_class_init (PsppireButtonEditableClass *class)
                                                          FALSE,
                                                          G_PARAM_READWRITE));
 
+  g_object_class_override_property (gobject_class,
+                                   PROP_EDITING_CANCELED,
+                                    "editing-canceled");
 }
 
 static void
