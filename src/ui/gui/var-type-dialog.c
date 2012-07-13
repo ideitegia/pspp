@@ -31,13 +31,6 @@
 #include "ui/gui/builder-wrapper.h"
 #include "ui/gui/var-type-dialog.h"
 
-struct tgs
-{
-  struct var_type_dialog *dialog;
-  gint button;
-};
-
-
 struct format_opt {
   gchar desc[21];
   struct fmt_spec spec;
@@ -102,14 +95,22 @@ static void select_treeview_from_format_type (GtkTreeView *treeview,
 
 /* callback for when any of the radio buttons are toggled */
 static void
-on_toggle_1 (GtkToggleButton *togglebutton, gpointer user_data)
+on_toggle_1 (GtkToggleButton *togglebutton, gpointer dialog_)
 {
-  struct tgs *tgs = user_data;
+  GtkWidget *widget = GTK_WIDGET (togglebutton);
+  struct var_type_dialog *dialog = dialog_;
+  int i;
 
   if ( gtk_toggle_button_get_active (togglebutton) == FALSE)
     return ;
 
-  tgs->dialog->active_button = tgs->button;
+  for (i = 0; i < num_BUTTONS; i++)
+    if (widget == dialog->radioButton[i])
+      {
+        dialog->active_button = i;
+        return;
+      }
+  g_return_if_reached ();
 }
 
 static void update_width_decimals (const struct var_type_dialog *dialog);
@@ -384,7 +385,6 @@ var_type_dialog_create (GtkWindow *toplevel)
   GtkTreeViewColumn *column;
   GtkCellRenderer *renderer ;
 
-  static struct tgs tgs[num_BUTTONS];
   /* The "middle_box" is a vbox with serveral children.
      However only one child is ever shown at a time.
      We need to make sure that they all have the same width, to avoid
@@ -397,10 +397,8 @@ var_type_dialog_create (GtkWindow *toplevel)
 
   for (i = 0 ; i < num_BUTTONS; ++i )
     {
-      tgs[i].dialog = dialog;
-      tgs[i].button = i;
       g_signal_connect (dialog->radioButton[i], "toggled",
-		       G_CALLBACK (on_toggle_1), &tgs[i]);
+		       G_CALLBACK (on_toggle_1), dialog);
 
       g_signal_connect (dialog->radioButton[i], "toggled",
 		       G_CALLBACK (on_toggle_2), dialog);
