@@ -391,6 +391,7 @@ render_var_cell (PsppSheetViewColumn *tree_column,
           free (vstr);
 
           g_object_set (cell, "text", text, NULL);
+          free (text);
           free (labels);
         }
       break;
@@ -735,6 +736,7 @@ on_query_var_tooltip (GtkWidget *widget, gint wx, gint wy,
 
           gtk_tooltip_set_text (tooltip, ds_cstr (&s));
           ds_destroy (&s);
+          free (labels);
 
           return TRUE;
         }
