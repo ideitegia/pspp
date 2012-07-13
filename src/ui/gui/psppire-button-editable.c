@@ -102,14 +102,13 @@ psppire_button_editable_get_property (GObject      *object,
 }
 
 static void
-psppire_button_editable_dispose (GObject *gobject)
+psppire_button_editable_finalize (GObject *gobject)
 {
   PsppireButtonEditable *obj = PSPPIRE_BUTTON_EDITABLE (gobject);
 
   g_free (obj->path);
-  obj->path = NULL;
 
-  G_OBJECT_CLASS (psppire_button_editable_parent_class)->dispose (gobject);
+  G_OBJECT_CLASS (psppire_button_editable_parent_class)->finalize (gobject);
 }
 
 static gboolean
@@ -160,7 +159,7 @@ psppire_button_editable_class_init (PsppireButtonEditableClass *class)
 
   gobject_class->set_property = psppire_button_editable_set_property;
   gobject_class->get_property = psppire_button_editable_get_property;
-  gobject_class->dispose = psppire_button_editable_dispose;
+  gobject_class->finalize = psppire_button_editable_finalize;
 
   widget_class->button_release_event = psppire_button_editable_button_release;
   widget_class->expose_event = psppire_button_editable_expose_event;
