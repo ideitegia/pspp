@@ -249,9 +249,18 @@ apply_options (struct xr_driver *xr, struct string_map *o)
 {
   struct output_driver *d = &xr->driver;
 
-  int paper_width, paper_length;
+  int paper_width, paper_length, i;
 
   int font_points = parse_int (opt (d, o, "font-size", "10000"), 1000, 1000000);
+
+  for (i = 0; i < XR_N_FONTS; i++)
+    {
+      struct xr_font *font = &xr->fonts[i];
+
+      if (font->desc != NULL)
+        pango_font_description_free (font->desc);
+    }
+
   xr->fonts[XR_FONT_FIXED].desc = parse_font (d, o, "fixed-font", "monospace",
                                               font_points);
   xr->fonts[XR_FONT_PROPORTIONAL].desc = parse_font (d, o, "prop-font",
