@@ -434,6 +434,7 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
   enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
   struct line_reader *reader;
+  struct string input;
 
   file->file_name = choose_file (parent_window, &file->encoding);
   if (file->file_name == NULL)
@@ -447,14 +448,13 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
       return false;
     }
 
+  ds_init_empty (&input);
   file->lines = xnmalloc (MAX_PREVIEW_LINES, sizeof *file->lines);
   for (; file->line_cnt < MAX_PREVIEW_LINES; file->line_cnt++)
     {
-      struct string *line = &file->lines[file->line_cnt];
-
-      ds_init_empty (line);
-      if (!line_reader_read (reader, line, MAX_LINE_LEN + 1)
-          || ds_length (line) > MAX_LINE_LEN)
+      ds_clear (&input);
+      if (!line_reader_read (reader, &input, MAX_LINE_LEN + 1)
+          || ds_length (&input) > MAX_LINE_LEN)
         {
           if (line_reader_eof (reader))
             break;
@@ -468,9 +468,15 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
                  file->file_name, MAX_LINE_LEN);
           line_reader_close (reader);
           destroy_file (ia);
+          ds_destroy (&input);
           return false;
         }
+
+      ds_init_cstr (&file->lines[file->line_cnt],
+                    recode_string ("UTF-8", line_reader_get_encoding (reader),
+                                   ds_cstr (&input), ds_length (&input)));
     }
+  ds_destroy (&input);
 
   if (file->line_cnt == 0)
     {
