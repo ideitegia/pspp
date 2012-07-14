@@ -1164,7 +1164,7 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
   GList *list;
 
   obj->dict = NULL;
-  obj->format_use = PSPPIRE_TYPE_FMT_USE;
+  obj->format_use = FMT_FOR_OUTPUT;
   obj->may_create_vars = TRUE;
   obj->may_delete_vars = TRUE;
 
