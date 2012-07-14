@@ -194,8 +194,12 @@ fill_buffer (struct u8_istream *is)
   is->head = is->buffer;
 
   /* Read more input. */
-  n = read (is->fd, is->buffer + is->length,
-            U8_ISTREAM_BUFFER_SIZE - is->length);
+  do
+    {
+      n = read (is->fd, is->buffer + is->length,
+                U8_ISTREAM_BUFFER_SIZE - is->length);
+    }
+  while (n < 0 && errno == EINTR);
   if (n > 0)
     is->length += n;
   return n;
