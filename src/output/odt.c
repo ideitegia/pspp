@@ -380,6 +380,7 @@ odt_destroy (struct output_driver *driver)
       zip_writer_close (odt->zip);
     }
   
+  free (odt->file_name);
   free (odt->command_name);
   free (odt);
 }
