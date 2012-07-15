@@ -504,7 +504,7 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
   table->layers = NULL;
 
   /* Dependent variable (s) */
-  if (!parse_variables_const (lexer, cmd->dict,
+  if (!parse_variables_const_pool (lexer, cmd->pool, cmd->dict,
 			      &table->dep_vars, &table->n_dep_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     return false;
@@ -519,8 +519,8 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
 	    pool_realloc (cmd->pool, table->layers, 
 		      sizeof (*table->layers) * table->n_layers);
 
-	  if (!parse_variables_const 
-              (lexer, cmd->dict,
+	  if (!parse_variables_const_pool 
+              (lexer, cmd->pool, cmd->dict,
                &table->layers[table->n_layers - 1].factor_vars,
                &table->layers[table->n_layers - 1].n_factor_vars,
                PV_NO_DUPLICATE))
