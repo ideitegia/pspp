@@ -22,6 +22,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtk.h>
+#include "psppire-window-base.h"
 
 G_BEGIN_DECLS
 
@@ -57,7 +58,7 @@ typedef struct _PsppireWindowIface  PsppireWindowIface;
 
 struct _PsppireWindow
 {
-  GtkWindow parent;
+  PsppireWindowBase parent;
 
   /* <private> */
   gchar *filename;             /* File name, in file name encoding, or NULL. */
@@ -79,7 +80,7 @@ struct _PsppireWindow
 
 struct _PsppireWindowClass
 {
-  GtkWindowClass parent_class;
+  PsppireWindowBaseClass parent_class;
 };
 
 

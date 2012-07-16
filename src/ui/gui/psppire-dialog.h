@@ -22,6 +22,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtk.h>
+#include "psppire-window-base.h"
 
 
 #define PSPPIRE_RESPONSE_PASTE 1
@@ -53,7 +54,7 @@ typedef enum
 
 struct _PsppireDialog
 {
-  GtkWindow window;
+  PsppireWindowBase window;
   GtkWidget *box;
 
   /* Private */
@@ -68,7 +69,7 @@ struct _PsppireDialog
 
 struct _PsppireDialogClass
 {
-  GtkWindowClass parent_class;
+  PsppireWindowBaseClass parent_class;
 };
 
 
