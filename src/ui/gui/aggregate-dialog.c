@@ -635,8 +635,8 @@ static void
 append_summary_spec (const struct aggregate *agg, GtkTreeIter *iter, GString *string)
 {
   GtkTreeIter combo_iter;
-  const char *varname;
-  const char *funcname;
+  char *varname = NULL;
+  char *funcname = NULL;
 
   GtkTreeModel *acr_model = GTK_TREE_MODEL (PSPPIRE_ACR (agg->summary_acr)->list_store);
   GtkTreeModel *combo_model = gtk_combo_box_get_model (GTK_COMBO_BOX (agg->function_combo));
@@ -647,8 +647,8 @@ append_summary_spec (const struct aggregate *agg, GtkTreeIter *iter, GString *st
   double arg1, arg2;
   int arity;
   enum agr_src_vars has_src_vars;
-    const gchar *label ;
-  const gchar *srcvar ;
+  gchar *label = NULL;
+  gchar *srcvar = NULL;
 
   gtk_tree_model_get (acr_model, iter,
 		      SUMMARY_COL_VARNAME, &varname,
@@ -695,6 +695,11 @@ append_summary_spec (const struct aggregate *agg, GtkTreeIter *iter, GString *st
 
       g_string_append (string, ")");
     }
+
+   free (label);
+   free (srcvar);
+   free (varname);
+   free (funcname);
 }
 
 
