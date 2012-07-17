@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -387,14 +387,11 @@ output_date (const union value *input, const struct fmt_spec *format,
   double number = input->f;
   int year, month, day, yday;
 
-  const char *template = fmt_date_template (format->type);
-  size_t template_width = strlen (template);
-  int excess_width = format->w - template_width;
+  const char *template = fmt_date_template (format->type, format->w);
 
   char tmp[64];
   char *p = tmp;
 
-  assert (format->w >= template_width);
   if (number == SYSMIS)
     goto missing;
 
@@ -411,6 +408,8 @@ output_date (const union value *input, const struct fmt_spec *format,
 
   while (*template != '\0')
     {
+      int excess_width;
+
       int ch = *template;
       int count = 1;
       while (template[count] == ch)
@@ -439,7 +438,7 @@ output_date (const union value *input, const struct fmt_spec *format,
             }
           break;
         case 'y':
-          if (count >= 4 || excess_width >= 2)
+          if (count >= 4)
             {
               if (year <= 9999)
                 p += sprintf (p, "%04d", year);
@@ -499,10 +498,7 @@ output_date (const union value *input, const struct fmt_spec *format,
                 }
               p += strlen (p);
             }
-          break;
-        case 'X':
-          *p++ = ' ';
-          break;
+          goto done;
         default:
           assert (count == 1);
           *p++ = ch;
@@ -510,6 +506,7 @@ output_date (const union value *input, const struct fmt_spec *format,
         }
     }
 
+ done:
   buf_copy_lpad (output, format->w, tmp, p - tmp, ' ');
   output[format->w] = '\0';
   return;
