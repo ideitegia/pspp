@@ -502,11 +502,9 @@ var_type_dialog_create (GtkWindow *toplevel)
   for ( i = 0 ; i < 5 ; ++i )
     {
       enum fmt_type cc_fmts[5] = {FMT_CCA, FMT_CCB, FMT_CCC, FMT_CCD, FMT_CCE};
-      gchar text[4];
-      g_snprintf (text, 4, "%s", fmt_name (cc_fmts[i]));
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
-                          0, text,
+                          0, fmt_name (cc_fmts[i]),
 			  1, &cc_format[i],
 			  -1);
     }
