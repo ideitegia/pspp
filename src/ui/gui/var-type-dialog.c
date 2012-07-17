@@ -31,32 +31,26 @@
 #include "ui/gui/builder-wrapper.h"
 #include "ui/gui/var-type-dialog.h"
 
-struct format_opt {
-  gchar desc[21];
-  struct fmt_spec spec;
-};
-
-
-static const struct format_opt format_option[] =
+static const struct fmt_spec date_format[] =
   {
-    { "dd-mmm-yyyy", {FMT_DATE,  11, 0} },
-    { "dd-mmm-yy",   {FMT_DATE,   9, 0} },
-    { "mm/dd/yyyy",  {FMT_ADATE, 10, 0} },
-    { "mm/dd/yy",    {FMT_ADATE, 8, 0} },
-    { "dd.mm.yyyy",  {FMT_EDATE, 10, 0} },
-    { "dd.mm.yy",    {FMT_EDATE, 8, 0} },
-    { "yyyy/mm/dd",  {FMT_SDATE, 10, 0} },
-    { "yy/mm/dd",    {FMT_SDATE, 8, 0} },
-    { "yyddd",       {FMT_JDATE, 5, 0} },
-    { "yyyyddd",     {FMT_JDATE, 7, 0} },
-    { "q Q yyyy",    {FMT_QYR, 8, 0} },
-    { "q Q yy",      {FMT_QYR, 6, 0} },
-    { "mmm yyyy",    {FMT_MOYR, 8, 0} },
-    { "mmm yy",      {FMT_MOYR, 6, 0} },
-    { "dd WK yyyy",  {FMT_WKYR, 10, 0} },
-    { "dd WK yy",    {FMT_WKYR, 8, 0} },
-    { "dd-mmm-yyyy HH:MM", {FMT_DATETIME, 17, 0}},
-    { "dd-mmm-yyyy HH:MM:SS", {FMT_DATETIME, 20, 0}}
+    {FMT_DATE,  11, 0},
+    {FMT_DATE,   9, 0},
+    {FMT_ADATE, 10, 0},
+    {FMT_ADATE, 8, 0},
+    {FMT_EDATE, 10, 0},
+    {FMT_EDATE, 8, 0},
+    {FMT_SDATE, 10, 0},
+    {FMT_SDATE, 8, 0},
+    {FMT_JDATE, 5, 0},
+    {FMT_JDATE, 7, 0},
+    {FMT_QYR, 8, 0},
+    {FMT_QYR, 6, 0},
+    {FMT_MOYR, 8, 0},
+    {FMT_MOYR, 6, 0},
+    {FMT_WKYR, 10, 0},
+    {FMT_WKYR, 8, 0},
+    {FMT_DATETIME, 17, 0},
+    {FMT_DATETIME, 20, 0}
   };
 
 
@@ -177,7 +171,7 @@ on_toggle_2 (GtkToggleButton *togglebutton, gpointer user_data)
       break;
     case BUTTON_DATE:
       select_treeview_from_format (dialog->date_format_treeview,
-				  &format_option[0].spec);
+				  &date_format[0]);
       gtk_widget_hide (dialog->width_decimals);
       gtk_widget_show (dialog->date_format_list);
       break;
@@ -426,12 +420,13 @@ var_type_dialog_create (GtkWindow *toplevel)
 
   list_store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER);
 
-  for ( i = 0 ; i < sizeof (format_option) / sizeof (format_option[0]) ; ++i )
+  for ( i = 0 ; i < sizeof (date_format) / sizeof (date_format[0]) ; ++i )
     {
+      const struct fmt_spec *f = &date_format[i];
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
-                          0, format_option[i].desc,
-			  1, &format_option[i].spec,
+                          0, fmt_date_template (f->type, f->w),
+			  1, f,
 			  -1);
     }
 
