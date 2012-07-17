@@ -314,7 +314,7 @@ set_format_type_from_treeview (GtkTreeView *treeview, gpointer data)
   gtk_tree_model_get_value (model, &iter, 1, &the_value);
 
   dialog->fmt_l = custom_format;
-  dialog->fmt_l.type = *(int*) g_value_get_pointer (&the_value);
+  dialog->fmt_l.type = g_value_get_int (&the_value);
 
   g_value_unset (&the_value);
 }
@@ -500,8 +500,7 @@ var_type_dialog_create (GtkWindow *toplevel)
 			       column);
 
 
-  list_store = gtk_list_store_new (2, G_TYPE_STRING,
-						 G_TYPE_POINTER);
+  list_store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_INT);
 
   for ( i = 0 ; i < 5 ; ++i )
     {
@@ -509,7 +508,7 @@ var_type_dialog_create (GtkWindow *toplevel)
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
                           0, fmt_name (cc_fmts[i]),
-			  1, &cc_format[i],
+			  1, cc_format[i],
 			  -1);
     }
 
@@ -640,7 +639,7 @@ select_treeview_from_format_type (GtkTreeView *treeview,
 
       gtk_tree_model_get_value (model, &iter, 1, &value);
 
-      spec = * ((int *) g_value_get_pointer (&value));
+      spec = g_value_get_int (&value);
 
       g_value_unset (&value);
 
