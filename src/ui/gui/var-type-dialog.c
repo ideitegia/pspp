@@ -290,6 +290,8 @@ set_format_from_treeview (GtkTreeView *treeview, gpointer data)
   gtk_tree_model_get_value (model, &iter, 1, &the_value);
 
   dialog->fmt_l = *(struct fmt_spec *) g_value_get_pointer (&the_value);
+
+  g_value_unset (&the_value);
 }
 
 
@@ -313,6 +315,8 @@ set_format_type_from_treeview (GtkTreeView *treeview, gpointer data)
 
   dialog->fmt_l = custom_format;
   dialog->fmt_l.type = *(int*) g_value_get_pointer (&the_value);
+
+  g_value_unset (&the_value);
 }
 
 
@@ -589,6 +593,8 @@ select_treeview_from_format (GtkTreeView *treeview, const struct fmt_spec *fmt)
 
       spec = g_value_get_pointer (&value);
 
+      g_value_unset (&value);
+
       if ( 0 == memcmp (spec, fmt, sizeof (struct fmt_spec)))
 	{
 	  break;
@@ -635,6 +641,8 @@ select_treeview_from_format_type (GtkTreeView *treeview,
       gtk_tree_model_get_value (model, &iter, 1, &value);
 
       spec = * ((int *) g_value_get_pointer (&value));
+
+      g_value_unset (&value);
 
       if ( spec == fmt_type)
 	break;
