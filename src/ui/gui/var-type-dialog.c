@@ -80,6 +80,7 @@ static const int cc_format[] =
   };
 
 
+static void select_treeview_at_index (GtkTreeView *, int index);
 static void select_treeview_from_format
  (GtkTreeView *treeview, const struct fmt_spec *fmt);
 
@@ -109,29 +110,6 @@ on_toggle_1 (GtkToggleButton *togglebutton, gpointer dialog_)
 
 static void update_width_decimals (const struct var_type_dialog *dialog);
 
-#define force_max(x, val) if (x > val) x = val
-
-/*
-   Set the local format from the variable
-   and force them to have sensible values */
-static void
-set_local_width_decimals (struct var_type_dialog *dialog)
-{
-  dialog->fmt_l = * var_get_print_format (dialog->pv);
-
-  switch (dialog->active_button)
-    {
-    case BUTTON_STRING:
-      force_max ( dialog->fmt_l.w, 255);
-      break;
-    default:
-      force_max ( dialog->fmt_l.w, 40);
-      force_max ( dialog->fmt_l.d, 16);
-      break;
-    }
-}
-
-
 /* callback for when any of the radio buttons are toggled */
 static void
 on_toggle_2 (GtkToggleButton *togglebutton, gpointer user_data)
@@ -158,40 +136,56 @@ on_toggle_2 (GtkToggleButton *togglebutton, gpointer user_data)
       return ;
     }
 
-  set_local_width_decimals (dialog);
-  update_width_decimals (dialog);
+  dialog->fmt_l = *var_get_print_format (dialog->pv);
 
   switch (dialog->active_button)
     {
+    case BUTTON_NUMERIC:
+      gtk_widget_show_all (dialog->width_decimals);
+      dialog->fmt_l.type = FMT_F;
+      break;
+    case BUTTON_COMMA:
+      gtk_widget_show_all (dialog->width_decimals);
+      dialog->fmt_l.type = FMT_COMMA;
+      break;
+    case BUTTON_DOT:
+      gtk_widget_show_all (dialog->width_decimals);
+      dialog->fmt_l.type = FMT_DOT;
+      break;
+    case BUTTON_SCIENTIFIC:
+      gtk_widget_show_all (dialog->width_decimals);
+      dialog->fmt_l.type = FMT_E;
+      break;
     case BUTTON_STRING:
+      dialog->fmt_l.type = FMT_A;
       gtk_widget_show (dialog->entry_width);
       gtk_widget_show (dialog->width_decimals);
       gtk_widget_hide (dialog->label_decimals);
       gtk_widget_hide (dialog->entry_decimals);
       break;
     case BUTTON_DATE:
-      select_treeview_from_format (dialog->date_format_treeview,
-				  &date_format[0]);
+      select_treeview_at_index (dialog->date_format_treeview, 0);
+      dialog->fmt_l = date_format[0];
       gtk_widget_hide (dialog->width_decimals);
       gtk_widget_show (dialog->date_format_list);
       break;
     case BUTTON_DOLLAR:
-      select_treeview_from_format (dialog->dollar_treeview,
-				  &dollar_format[0]);
+      select_treeview_at_index (dialog->dollar_treeview, 0);
+      dialog->fmt_l = dollar_format[0];
       gtk_widget_show (dialog->dollar_window);
       gtk_widget_show_all (dialog->width_decimals);
       break;
     case BUTTON_CUSTOM:
-      select_treeview_from_format_type (dialog->custom_treeview,
-				  cc_format[0]);
+      select_treeview_at_index (dialog->custom_treeview, 0);
+      dialog->fmt_l.type = cc_format[0];
 
       gtk_widget_show (dialog->width_decimals);
       gtk_widget_show (dialog->custom_currency_hbox);
       break;
-    default:
-      gtk_widget_show_all (dialog->width_decimals);
-      break;
     }
+
+  fmt_fix_output (&dialog->fmt_l);
+  update_width_decimals (dialog);
 }
 
 
@@ -560,6 +554,16 @@ var_type_dialog_set_active_button (struct var_type_dialog *dialog, gint b)
 }
 
 
+
+static void
+select_treeview_at_index (GtkTreeView *treeview, int index)
+{
+  GtkTreePath *path;
+
+  path = gtk_tree_path_new_from_indices (index, -1);
+  gtk_tree_view_set_cursor (treeview, path, 0, 0);
+  gtk_tree_path_free (path);
+}
 
 /* Set the TREEVIEW list cursor to the item described by FMT */
 static void
