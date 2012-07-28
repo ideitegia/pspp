@@ -89,6 +89,7 @@ cmd_read (int argc, char *argv[])
       else
         break;
     }
+  free (buffer);
 
   if (u8_istream_is_auto (is))
     printf ("Auto mode\n");
