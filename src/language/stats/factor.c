@@ -205,6 +205,8 @@ idata_free (struct idata *id)
   gsl_matrix_free (id->evec);
   if (id->cov != NULL)
     gsl_matrix_free (id->cov);
+  if (id->corr != NULL)
+    gsl_matrix_free (id->corr);
 
   free (id);
 }
@@ -725,6 +727,7 @@ rotate (const struct cmd_factor *cf, const gsl_matrix *unrot,
 		  h_sqrt, normalised,  0.0,   result);
 
   gsl_matrix_free (h_sqrt);
+  gsl_matrix_free (normalised);
 
 
   /* reflect negative sums and populate the rotated loadings vector*/
@@ -1739,6 +1742,7 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
   var_matrix = covariance_moments (cov, MOMENT_VARIANCE);
   mean_matrix = covariance_moments (cov, MOMENT_MEAN);
   idata->n = covariance_moments (cov, MOMENT_NONE);
+  
 
   if ( factor->method == METHOD_CORR)
     {
@@ -1748,6 +1752,7 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
     }
   else
     analysis_matrix = idata->cov;
+
 
   if (factor->print & PRINT_DETERMINANT
       || factor->print & PRINT_KMO)
@@ -1896,13 +1901,16 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
     }
 
   show_correlation_matrix (factor, idata);
+  covariance_destroy (cov);
 
   {
+    gsl_matrix *am = matrix_dup (analysis_matrix);
     gsl_eigen_symmv_workspace *workspace = gsl_eigen_symmv_alloc (factor->n_vars);
     
-    gsl_eigen_symmv (matrix_dup (analysis_matrix), idata->eval, idata->evec, workspace);
+    gsl_eigen_symmv (am, idata->eval, idata->evec, workspace);
 
     gsl_eigen_symmv_free (workspace);
+    gsl_matrix_free (am);
   }
 
   gsl_eigen_symmv_sort (idata->eval, idata->evec, GSL_EIGEN_SORT_ABS_DESC);
@@ -2014,6 +2022,8 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
 
 
+    gsl_matrix_free (factor_matrix);
+    gsl_vector_free (rotated_loadings);
     gsl_vector_free (initial_communalities);
     gsl_vector_free (extracted_communalities);
   }
