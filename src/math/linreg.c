@@ -118,6 +118,7 @@ linreg_free (void *m)
     {
       gsl_vector_free (c->indep_means);
       gsl_vector_free (c->indep_std);
+      gsl_vector_free (c->ss_indeps);
       gsl_matrix_free (c->cov);
       free (c->indep_vars);
       free (c->coeff);

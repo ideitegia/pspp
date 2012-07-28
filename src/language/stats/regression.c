@@ -403,9 +403,15 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
     subcommand_save (&regression);
  
 
+  free (regression.models);
+  free (regression.vars);
+  free (regression.dep_vars);
   return CMD_SUCCESS;
   
  error:
+  free (regression.models);
+  free (regression.vars);
+  free (regression.dep_vars);
   return CMD_FAILURE;
 }
 
@@ -671,10 +677,10 @@ run_regression (const struct regression *cmd, struct casereader *input)
 	}
       else
 	{
-	  msg (SE,
+          msg (SE,
 	       _("No valid data found. This command was skipped."));
-	  linreg_free (models[k]);
-	  models[k] = NULL;
+          linreg_free (models[k]);
+          models[k] = NULL;
 	}
       gsl_matrix_free (this_cm);
     }
