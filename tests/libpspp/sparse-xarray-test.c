@@ -73,6 +73,7 @@ test_state_destroy (const struct test_params *params, struct test_state *ts)
 
   for (i = 0; i < params->n_xarrays; i++)
     sparse_xarray_destroy (ts->xarrays[i]);
+  free (ts);
 }
 
 static struct test_state *
