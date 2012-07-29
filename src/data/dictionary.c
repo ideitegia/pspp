@@ -301,6 +301,7 @@ dict_destroy (struct dictionary *d)
       d->callbacks  = NULL ;
 
       dict_clear (d);
+      string_array_destroy (&d->documents);
       hmap_destroy (&d->name_map);
       attrset_destroy (&d->attributes);
       dict_clear_mrsets (d);
