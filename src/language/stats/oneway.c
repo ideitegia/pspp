@@ -384,6 +384,28 @@ static void show_homogeneity (const struct oneway_spec *, const struct oneway_wo
 static void output_oneway (const struct oneway_spec *, struct oneway_workspace *ws);
 static void run_oneway (const struct oneway_spec *cmd, struct casereader *input, const struct dataset *ds);
 
+static void
+oneway_cleanup (struct oneway_spec *cmd)
+{
+  struct contrasts_node *coeff_list  = NULL;
+  struct contrasts_node *coeff_next  = NULL;
+  ll_for_each_safe (coeff_list, coeff_next, struct contrasts_node, ll, &cmd->contrast_list)
+    {
+      struct coeff_node *cn = NULL;
+      struct coeff_node *cnx = NULL;
+      struct ll_list *cl = &coeff_list->coefficient_list;
+
+      ll_for_each_safe (cn, cnx, struct coeff_node, ll, cl)
+	{
+	  free (cn);
+	}
+
+      free (coeff_list);
+    }
+}
+
+
+
 int
 cmd_oneway (struct lexer *lexer, struct dataset *ds)
 {
@@ -560,10 +582,12 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
     ok = proc_commit (ds) && ok;
   }
 
+  oneway_cleanup (&oneway);
   free (oneway.vars);
   return CMD_SUCCESS;
 
  error:
+  oneway_cleanup (&oneway);
   free (oneway.vars);
   return CMD_FAILURE;
 }
@@ -824,6 +848,7 @@ run_oneway (const struct oneway_spec *cmd,
   taint_destroy (taint);
 
  finish:
+
   for (v = 0; v < cmd->n_vars; ++v)
     {
       covariance_destroy (ws.vws[v].cov);
