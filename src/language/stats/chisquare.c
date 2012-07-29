@@ -88,6 +88,8 @@ create_freq_hash_with_range (const struct dictionary *dict,
         }
     }
 
+  free (entries);
+
   return casereader_destroy (input);
 }
 
