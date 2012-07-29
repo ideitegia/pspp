@@ -402,6 +402,8 @@ oneway_cleanup (struct oneway_spec *cmd)
 
       free (coeff_list);
     }
+
+  free (cmd->posthoc);
 }
 
 
