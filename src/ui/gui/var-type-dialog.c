@@ -296,53 +296,52 @@ preview_custom (GtkWidget *w, gpointer data)
   msg_enable ();
 }
 
-/* Callback for when a treeview row is changed.
-   It sets the fmt_l_spec to reflect the selected format */
-static void
-set_format_from_treeview (GtkTreeView *treeview, gpointer data)
+static gint
+get_index_from_treeview (GtkTreeView *treeview)
 {
-  struct var_type_dialog *dialog = data;
-  GtkTreeIter iter ;
-  GValue the_value = {0};
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
+  GtkTreeModel *model;
+  GtkTreePath *path;
+  GtkTreeIter iter;
+  gint index;
 
-  GtkTreeSelection* sel =  gtk_tree_view_get_selection (treeview);
+  gtk_tree_selection_get_selected (selection, &model, &iter);
+  path = gtk_tree_model_get_path (model, &iter);
+  if (!path || gtk_tree_path_get_depth (path) < 1)
+    index = 0;
+  else
+    index = gtk_tree_path_get_indices (path)[0];
+  gtk_tree_path_free (path);
 
-  GtkTreeModel * model  = gtk_tree_view_get_model (treeview);
-
-  gtk_tree_selection_get_selected (sel, &model, &iter);
-
-  gtk_tree_model_get_value (model, &iter, 1, &the_value);
-
-  dialog->fmt_l = *(struct fmt_spec *) g_value_get_pointer (&the_value);
-
-  g_value_unset (&the_value);
+  return index;
 }
 
+/* Callback for when a date treeview row is changed.
+   It sets the fmt_l_spec to reflect the selected format */
+static void
+set_date_format_from_treeview (GtkTreeView *treeview,
+                               struct var_type_dialog *dialog)
+{
+  dialog->fmt_l = date_format[get_index_from_treeview (treeview)];
+}
+
+/* Callback for when a dollar treeview row is changed.
+   It sets the fmt_l_spec to reflect the selected format */
+static void
+set_dollar_format_from_treeview (GtkTreeView *treeview,
+                               struct var_type_dialog *dialog)
+{
+  dialog->fmt_l = dollar_format[get_index_from_treeview (treeview)];
+}
 
 /* Callback for when a treeview row is changed.
    It sets the type of the fmt_l to reflect the selected type */
 static void
-set_format_type_from_treeview (GtkTreeView *treeview, gpointer data)
+set_custom_format_from_treeview (GtkTreeView *treeview,
+                                 struct var_type_dialog *dialog)
 {
-  static struct fmt_spec custom_format = {0,0,0};
-  struct var_type_dialog *dialog = data;
-  GtkTreeIter iter ;
-  GValue the_value = {0};
-
-  GtkTreeSelection* sel =  gtk_tree_view_get_selection (treeview);
-
-  GtkTreeModel * model  = gtk_tree_view_get_model (treeview);
-
-  gtk_tree_selection_get_selected (sel, &model, &iter);
-
-  gtk_tree_model_get_value (model, &iter, 1, &the_value);
-
-  dialog->fmt_l = custom_format;
-  dialog->fmt_l.type = g_value_get_int (&the_value);
-
-  g_value_unset (&the_value);
+  dialog->fmt_l.type = cc_format[get_index_from_treeview (treeview)];
 }
-
 
 /* Create the structure */
 struct var_type_dialog *
@@ -461,7 +460,7 @@ var_type_dialog_create (GtkWindow *toplevel)
   g_object_unref (list_store);
 
   g_signal_connect (dialog->date_format_treeview, "cursor-changed",
-		   G_CALLBACK (set_format_from_treeview), dialog);
+		   G_CALLBACK (set_date_format_from_treeview), dialog);
 
 
   /* populate the dollar treeview */
@@ -499,7 +498,7 @@ var_type_dialog_create (GtkWindow *toplevel)
 
   g_signal_connect (dialog->dollar_treeview,
 		   "cursor-changed",
-		   G_CALLBACK (set_format_from_treeview), dialog);
+		   G_CALLBACK (set_dollar_format_from_treeview), dialog);
 
   g_signal_connect_swapped (dialog->dollar_treeview,
 		   "cursor-changed",
@@ -540,7 +539,7 @@ var_type_dialog_create (GtkWindow *toplevel)
 
   g_signal_connect (dialog->custom_treeview,
 		   "cursor-changed",
-		   G_CALLBACK (set_format_type_from_treeview), dialog);
+		   G_CALLBACK (set_custom_format_from_treeview), dialog);
 
 
   g_signal_connect (dialog->custom_treeview,
