@@ -90,6 +90,8 @@ static void update_width_decimals (const struct var_type_dialog *);
 static void refresh_active_button (struct var_type_dialog *);
 static void on_active_button_change (GtkToggleButton *,
                                      struct var_type_dialog *);
+static void on_width_changed (GtkEntry *, struct var_type_dialog *);
+static void on_decimals_changed (GtkEntry *, struct var_type_dialog *);
 
 /* callback for when any of the radio buttons are toggled */
 static void
@@ -122,6 +124,26 @@ refresh_active_button (struct var_type_dialog *dialog)
     }
 
   g_return_if_reached ();
+}
+
+static void
+update_adj_ranges (struct var_type_dialog *dialog)
+{
+  enum fmt_type type = dialog->fmt_l.type;
+  const enum fmt_use use = FMT_FOR_OUTPUT;
+  int min_w = fmt_min_width (type, use);
+  int max_w = fmt_max_width (type, use);
+  int max_d = fmt_max_decimals (type, max_w, use);
+
+  g_object_set (dialog->adj_width,
+                "lower", (double) min_w,
+                "upper", (double) max_w,
+                NULL);
+
+  g_object_set (dialog->adj_decimals,
+                "lower", 0.0,
+                "upper", (double) max_d,
+                NULL);
 }
 
 /* callback for when any of the radio buttons are toggled */
@@ -221,6 +243,7 @@ on_active_button_change (GtkToggleButton *togglebutton,
     }
 
   fmt_fix_output (&dialog->fmt_l);
+  update_adj_ranges (dialog);
   update_width_decimals (dialog);
 }
 
@@ -242,16 +265,24 @@ add_to_group (GtkWidget *w, gpointer data)
 static void
 update_width_decimals (const struct var_type_dialog *dialog)
 {
-  gchar *text;
-  g_assert (dialog);
+  gtk_adjustment_set_value (dialog->adj_width, dialog->fmt_l.w);
+  gtk_adjustment_set_value (dialog->adj_decimals, dialog->fmt_l.d);
+}
 
-  text = g_strdup_printf ("%d", dialog->fmt_l.w);
-  gtk_entry_set_text (GTK_ENTRY (dialog->entry_width), text);
-  g_free (text);
+static void
+on_width_changed (GtkEntry *entry, struct var_type_dialog *dialog)
+{
+  int w = atoi (gtk_entry_get_text (GTK_ENTRY (dialog->entry_width)));
+  fmt_change_width (&dialog->fmt_l, w, FMT_FOR_OUTPUT);
+  update_width_decimals (dialog);
+}
 
-  text = g_strdup_printf ("%d", dialog->fmt_l.d);
-  gtk_entry_set_text (GTK_ENTRY (dialog->entry_decimals), text);
-  g_free (text);
+static void
+on_decimals_changed (GtkEntry *entry, struct var_type_dialog *dialog)
+{
+  int d = atoi (gtk_entry_get_text (GTK_ENTRY (dialog->entry_decimals)));
+  fmt_change_decimals (&dialog->fmt_l, d, FMT_FOR_OUTPUT);
+  update_width_decimals (dialog);
 }
 
 /* Callback for when the custom treeview row is changed.
@@ -329,7 +360,7 @@ set_date_format_from_treeview (GtkTreeView *treeview,
    It sets the fmt_l_spec to reflect the selected format */
 static void
 set_dollar_format_from_treeview (GtkTreeView *treeview,
-                               struct var_type_dialog *dialog)
+                                 struct var_type_dialog *dialog)
 {
   dialog->fmt_l = dollar_format[get_index_from_treeview (treeview)];
 }
@@ -341,6 +372,9 @@ set_custom_format_from_treeview (GtkTreeView *treeview,
                                  struct var_type_dialog *dialog)
 {
   dialog->fmt_l.type = cc_format[get_index_from_treeview (treeview)];
+  update_adj_ranges (dialog);
+  fmt_fix_output (&dialog->fmt_l);
+  update_width_decimals (dialog);
 }
 
 /* Create the structure */
@@ -384,13 +418,16 @@ var_type_dialog_create (GtkWindow *toplevel)
   dialog->width_decimals = get_widget_assert (xml, "width_decimals");
   dialog->label_decimals = get_widget_assert (xml, "decimals_label");
   dialog->entry_decimals = get_widget_assert (xml, "decimals_entry");
+  dialog->adj_decimals = gtk_spin_button_get_adjustment (
+    GTK_SPIN_BUTTON (dialog->entry_decimals));
 
   dialog->label_psample = get_widget_assert (xml, "psample_label");
   dialog->label_nsample = get_widget_assert (xml, "nsample_label");
 
 
   dialog->entry_width = get_widget_assert (xml,"width_entry");
-
+  dialog->adj_width = gtk_spin_button_get_adjustment (
+    GTK_SPIN_BUTTON (dialog->entry_width));
   dialog->custom_currency_hbox = get_widget_assert (xml,
 						   "custom_currency_hbox");
 
@@ -442,7 +479,7 @@ var_type_dialog_create (GtkWindow *toplevel)
 			       column);
 
 
-  list_store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER);
+  list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
   for ( i = 0 ; i < sizeof (date_format) / sizeof (date_format[0]) ; ++i )
     {
@@ -450,7 +487,6 @@ var_type_dialog_create (GtkWindow *toplevel)
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
                           0, fmt_date_template (f->type, f->w),
-			  1, f,
 			  -1);
     }
 
@@ -477,8 +513,7 @@ var_type_dialog_create (GtkWindow *toplevel)
 			       column);
 
 
-  list_store = gtk_list_store_new (2, G_TYPE_STRING,
-						 G_TYPE_POINTER);
+  list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
   for ( i = 0 ; i < sizeof (dollar_format)/sizeof (dollar_format[0]) ; ++i )
     {
@@ -486,7 +521,6 @@ var_type_dialog_create (GtkWindow *toplevel)
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
                           0, template,
-			  1, &dollar_format[i],
 			  -1);
       free (template);
     }
@@ -519,7 +553,7 @@ var_type_dialog_create (GtkWindow *toplevel)
 			       column);
 
 
-  list_store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_INT);
+  list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
   for ( i = 0 ; i < 5 ; ++i )
     {
@@ -527,7 +561,6 @@ var_type_dialog_create (GtkWindow *toplevel)
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
                           0, fmt_name (cc_fmts[i]),
-			  1, cc_format[i],
 			  -1);
     }
 
@@ -546,6 +579,11 @@ var_type_dialog_create (GtkWindow *toplevel)
 		   "cursor-changed",
 		   G_CALLBACK (preview_custom), dialog);
 
+
+  g_signal_connect (dialog->entry_width, "changed",
+                    G_CALLBACK (on_width_changed), dialog);
+  g_signal_connect (dialog->entry_decimals, "changed",
+                    G_CALLBACK (on_decimals_changed), dialog);
 
   g_signal_connect (dialog->entry_width,
 		   "changed",
@@ -687,21 +725,6 @@ var_type_dialog_show (struct var_type_dialog *dialog)
   gtk_widget_show (dialog->window);
 }
 
-/* Fills F with an output format specification with type TYPE, width
-   W, and D decimals. Iff it's a valid format, then return true.
-*/
-static bool
-make_output_format_try (struct fmt_spec *f, int type, int w, int d)
-{
-  f->type = type;
-  f->w = w;
-  f->d = d;
-  return fmt_check_output (f);
-}
-
-
-
-
 /* Callbacks for the Variable Type Dialog Box */
 
 /* Callback for when the var type dialog is closed using the OK button.
@@ -711,60 +734,9 @@ on_var_type_ok_clicked (GtkWidget *w, gpointer data)
 {
   struct var_type_dialog *dialog = data;
 
-  g_assert (dialog);
-  g_assert (dialog->pv);
+  var_set_width (dialog->pv, fmt_var_width (&dialog->fmt_l));
+  var_set_both_formats (dialog->pv, &dialog->fmt_l);
 
-  {
-    gint width = atoi (gtk_entry_get_text
-		      (GTK_ENTRY (dialog->entry_width)));
-
-    gint decimals = atoi (gtk_entry_get_text
-			 (GTK_ENTRY (dialog->entry_decimals)));
-
-    gint new_width = 0;
-    bool result = false;
-    struct fmt_spec spec;
-    switch (dialog->active_button)
-      {
-      case BUTTON_STRING:
-	new_width = width;
-	result = make_output_format_try (&spec, FMT_A, width, 0);
-	break;
-      case BUTTON_NUMERIC:
-	result = make_output_format_try (&spec, FMT_F, width, decimals);
-	break;
-      case BUTTON_COMMA:
-	result = make_output_format_try (&spec, FMT_COMMA, width, decimals);
-	break;
-      case BUTTON_DOT:
-	result = make_output_format_try (&spec, FMT_DOT, width, decimals);
-	break;
-      case BUTTON_SCIENTIFIC:
-	result = make_output_format_try (&spec, FMT_E, width, decimals);
-	break;
-      case BUTTON_DATE:
-      case BUTTON_CUSTOM:
-	if  (! fmt_check_output (&dialog->fmt_l))
-	  g_critical ("Invalid variable format");
-	else
-	  result = memcpy (&spec, &dialog->fmt_l, sizeof (struct fmt_spec));
-	break;
-      case BUTTON_DOLLAR:
-	result = make_output_format_try (&spec, FMT_DOLLAR, width, decimals);
-	break;
-      default:
-	g_critical ("Unknown variable type: %d", dialog->active_button) ;
-	result = false;
-	break;
-      }
-
-    if ( result == true )
-      {
-	var_set_width (dialog->pv, new_width);
-	var_set_both_formats (dialog->pv, &spec);
-      }
-
-  }
   gtk_widget_hide (dialog->window);
 
   return FALSE;
