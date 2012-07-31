@@ -122,6 +122,7 @@ lex_gtk_text_buffer_close (struct lex_reader *r_)
 
   g_object_unref (r->buffer);
   g_free (r->part);
+  g_free (r);
 }
 
 
