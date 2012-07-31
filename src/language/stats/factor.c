@@ -35,6 +35,7 @@
 #include "language/lexer/lexer.h"
 #include "language/lexer/value-parser.h"
 #include "language/lexer/variable-parser.h"
+#include "libpspp/cast.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "math/correlation.h"
@@ -206,7 +207,7 @@ idata_free (struct idata *id)
   if (id->cov != NULL)
     gsl_matrix_free (id->cov);
   if (id->corr != NULL)
-    gsl_matrix_free (id->corr);
+    gsl_matrix_free (CONST_CAST (gsl_matrix *, id->corr));
 
   free (id);
 }
