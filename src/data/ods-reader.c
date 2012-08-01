@@ -593,7 +593,7 @@ ods_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
   free (var_spec);
 
   dict_destroy (r->dict);
-  ods_file_casereader_destroy (zreader, r);
+  ods_file_casereader_destroy (NULL, r);
 
 
   return NULL;
