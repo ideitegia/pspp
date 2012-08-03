@@ -2236,6 +2236,7 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
     {
       examine.n_iacts--;
       examine.iacts = &iacts_mem[1];
+      interaction_destroy (iacts_mem[0]);
     }
 
 
@@ -2290,9 +2291,6 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
   }
 
   caseproto_unref (examine.ex_proto);
-
-  for (i = 0; i < examine.n_iacts; ++i)
-    interaction_destroy (examine.iacts[i]);
 
   free (examine.ptiles);
   free (examine.dep_vars);
