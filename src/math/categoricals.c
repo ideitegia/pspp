@@ -174,6 +174,8 @@ struct categoricals
   const void *aux1;
   void *aux2;
 
+  bool sane;
+
   const struct payload *payload;
 };
 
@@ -296,6 +298,11 @@ lookup_case (const struct hmap *map, const struct interaction *iact, const struc
   return iv;
 }
 
+bool 
+categoricals_sane (const struct categoricals *cat)
+{
+  return cat->sane;
+}
 
 struct categoricals *
 categoricals_create (struct interaction *const*inter, size_t n_inter,
@@ -315,6 +322,7 @@ categoricals_create (struct interaction *const*inter, size_t n_inter,
   cat->fctr_excl = fctr_excl;
   cat->payload = NULL;
   cat->aux2 = NULL;
+  cat->sane = false;
 
   cat->iap = pool_calloc (cat->pool, cat->n_iap, sizeof *cat->iap);
 
@@ -459,7 +467,7 @@ categoricals_is_complete (const struct categoricals *cat)
 
 /* This function must be called *before* any call to categoricals_get_*_by subscript and
  *after* all calls to categoricals_update */
-bool
+void
 categoricals_done (const struct categoricals *cat_)
 {
   /* Implementation Note: Whilst this function is O(n) in cat->n_cats_total, in most
@@ -493,7 +501,10 @@ categoricals_done (const struct categoricals *cat_)
 	  struct variable_node *vn = lookup_variable (&cat->varmap, var, hash_pointer (var, 0));
 
 	  if  (hmap_count (&vn->valmap) == 0)
-	    return false;
+	    {
+	      cat->sane = false;
+	      return;
+	    }
 
 	  cat->iap[i].df_prod[v] = df * (hmap_count (&vn->valmap) - 1);
       	  df = cat->iap[i].df_prod[v];
@@ -585,7 +596,7 @@ categoricals_done (const struct categoricals *cat_)
 	}
     }
 
-  return true;
+  cat->sane = true;
 }
 
 

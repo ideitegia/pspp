@@ -800,7 +800,7 @@ run_oneway (const struct oneway_spec *cmd,
       gsl_matrix *cm;
       struct per_var_ws *pvw = &ws.vws[v];
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
-      const bool ok = categoricals_done (cats);
+      const bool ok = categoricals_sane (cats);
 
       if ( ! ok)
 	{
