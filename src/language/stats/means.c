@@ -938,7 +938,7 @@ run_means (struct means *cmd, struct casereader *input,
   struct payload payload;
   payload.create = create_n;
   payload.update = update_n;
-  payload.destroy = calculate_n;
+  payload.calculate = calculate_n;
   
   for (t = 0; t < cmd->n_tables; ++t)
   {
