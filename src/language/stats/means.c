@@ -950,7 +950,7 @@ run_means (struct means *cmd, struct casereader *input,
     categoricals_set_payload (table->cats, &payload, cmd, table);
   }
 
-  for (reader = casereader_clone (input);
+  for (reader = input;
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       for (t = 0; t < cmd->n_tables; ++t)
