@@ -108,6 +108,25 @@ struct reliability
 
 static bool run_reliability (struct dataset *ds, const struct reliability *reliability);
 
+static void
+reliability_destroy (struct reliability *rel)
+{
+  int j;
+  ds_destroy (&rel->scale_name);
+  for (j = 0; j < rel->n_sc ; ++j)
+    {
+      int x;
+      free (rel->sc[j].items);
+      moments1_destroy (rel->sc[j].total);
+      for (x = 0; x < rel->sc[j].n_items; ++x)
+	free (rel->sc[j].m[x]);
+      free (rel->sc[j].m);
+    }
+
+  free (rel->sc);
+  free (rel->variables);
+}
+
 int
 cmd_reliability (struct lexer *lexer, struct dataset *ds)
 {
@@ -174,7 +193,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 	  if ( ! lex_force_string (lexer) ) 
 	    goto error;
 
-	  ds_init_substring (&reliability.scale_name, lex_tokss (lexer));
+	  ds_assign_substring (&reliability.scale_name, lex_tokss (lexer));
 
 	  lex_get (lexer);
 
@@ -185,7 +204,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
 
 	  vs = const_var_set_create_from_array (reliability.variables, reliability.n_variables);
 
-
+	  free (reliability.sc->items);
 	  if (!parse_const_var_set_vars (lexer, vs, &reliability.sc->items, &reliability.sc->n_items, 0))
 	    {
 	      const_var_set_destroy (vs);
@@ -325,11 +344,11 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
   if ( ! run_reliability (ds, &reliability)) 
     goto error;
 
-  free (reliability.variables);
+  reliability_destroy (&reliability);
   return CMD_SUCCESS;
 
  error:
-  free (reliability.variables);
+  reliability_destroy (&reliability);
   return CMD_FAILURE;
 }
 
@@ -352,7 +371,6 @@ run_reliability (struct dataset *ds, const struct reliability *reliability)
   struct casereader *group;
 
   struct casegrouper *grouper = casegrouper_create_splits (proc_open (ds), dict);
-
 
   while (casegrouper_get_next_group (grouper, &group))
     {
