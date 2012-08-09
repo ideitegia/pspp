@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -535,9 +535,12 @@ var_get_print_format (const struct variable *v)
 void
 var_set_print_format (struct variable *v, const struct fmt_spec *print)
 {
-  assert (fmt_check_width_compat (print, v->width));
-  v->print = *print;
-  dict_var_changed (v);
+  if (!fmt_equal (&v->print, print))
+    {
+      assert (fmt_check_width_compat (print, v->width));
+      v->print = *print;
+      dict_var_changed (v);
+    }
 }
 
 /* Returns V's write format specification. */
@@ -554,9 +557,12 @@ var_get_write_format (const struct variable *v)
 void
 var_set_write_format (struct variable *v, const struct fmt_spec *write)
 {
-  assert (fmt_check_width_compat (write, v->width));
-  v->write = *write;
-  dict_var_changed (v);
+  if (!fmt_equal (&v->write, write))
+    {
+      assert (fmt_check_width_compat (write, v->width));
+      v->write = *write;
+      dict_var_changed (v);
+    }
 }
 
 /* Sets V's print and write format specifications to FORMAT,
