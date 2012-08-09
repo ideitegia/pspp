@@ -29,6 +29,7 @@
 #include "data/variable.h"
 #include "libpspp/message.h"
 #include "ui/gui/builder-wrapper.h"
+#include "ui/gui/psppire-format.h"
 #include "ui/gui/var-type-dialog.h"
 
 static const struct fmt_spec date_format[] =
@@ -79,6 +80,9 @@ static const int cc_format[] =
     FMT_CCE,
   };
 
+static GObject *psppire_var_type_dialog_constructor (GType type, guint,
+                                                     GObjectConstructParam *);
+static void psppire_var_type_dialog_set_state (PsppireVarTypeDialog *);
 
 static int find_format (const struct fmt_spec *target,
                         const struct fmt_spec formats[], int n_formats);
@@ -86,25 +90,142 @@ static int find_format_type (int target, const int types[], int n_types);
 
 static void select_treeview_at_index (GtkTreeView *, int index);
 
-static void update_width_decimals (const struct var_type_dialog *);
-static void refresh_active_button (struct var_type_dialog *);
+static void update_width_decimals (const PsppireVarTypeDialog *);
+static void refresh_active_button (PsppireVarTypeDialog *);
 static void on_active_button_change (GtkToggleButton *,
-                                     struct var_type_dialog *);
-static void on_width_changed (GtkEntry *, struct var_type_dialog *);
-static void on_decimals_changed (GtkEntry *, struct var_type_dialog *);
+                                     PsppireVarTypeDialog *);
+static void on_width_changed (GtkEntry *, PsppireVarTypeDialog *);
+static void on_decimals_changed (GtkEntry *, PsppireVarTypeDialog *);
+
+G_DEFINE_TYPE (PsppireVarTypeDialog,
+               psppire_var_type_dialog,
+               PSPPIRE_TYPE_DIALOG);
+
+enum
+  {
+    PROP_0,
+    PROP_FORMAT
+  };
+
+static void
+psppire_var_type_dialog_set_property (GObject      *object,
+                                      guint         prop_id,
+                                      const GValue *value,
+                                      GParamSpec   *pspec)
+{
+  PsppireVarTypeDialog *obj = PSPPIRE_VAR_TYPE_DIALOG (object);
+
+  switch (prop_id)
+    {
+    case PROP_FORMAT:
+      psppire_var_type_dialog_set_format (obj, g_value_get_boxed (value));
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+static void
+psppire_var_type_dialog_get_property (GObject      *object,
+                                      guint         prop_id,
+                                      GValue       *value,
+                                      GParamSpec   *pspec)
+{
+  PsppireVarTypeDialog *obj = PSPPIRE_VAR_TYPE_DIALOG (object);
+
+  switch (prop_id)
+    {
+    case PROP_FORMAT:
+      g_value_set_boxed (value, &obj->fmt_l);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+void
+psppire_var_type_dialog_set_format (PsppireVarTypeDialog *dialog,
+                                    const struct fmt_spec *format)
+{
+  dialog->base_format = *format;
+  psppire_var_type_dialog_set_state (dialog);
+}
+
+const struct fmt_spec *
+psppire_var_type_dialog_get_format (const PsppireVarTypeDialog *dialog)
+{
+  return &dialog->fmt_l;
+}
+
+static void
+psppire_var_type_dialog_init (PsppireVarTypeDialog *obj)
+{
+  /* We do all of our work on widgets in the constructor function, because that
+     runs after the construction properties have been set.  Otherwise
+     PsppireDialog's "orientation" property hasn't been set and therefore we
+     have no box to populate. */
+  obj->base_format = F_8_0;
+  obj->fmt_l = F_8_0;
+}
+
+static void
+psppire_var_type_dialog_class_init (PsppireVarTypeDialogClass *class)
+{
+  GObjectClass *gobject_class;
+  gobject_class = G_OBJECT_CLASS (class);
+
+  gobject_class->constructor = psppire_var_type_dialog_constructor;
+  gobject_class->set_property = psppire_var_type_dialog_set_property;
+  gobject_class->get_property = psppire_var_type_dialog_get_property;
+
+  g_object_class_install_property (
+    gobject_class, PROP_FORMAT,
+    g_param_spec_boxed ("format",
+                        "Format",
+                        "The format being edited.",
+                        PSPPIRE_TYPE_FORMAT,
+                        G_PARAM_READABLE | G_PARAM_WRITABLE));
+}
+
+PsppireVarTypeDialog *
+psppire_var_type_dialog_new (const struct fmt_spec *format)
+{
+  return PSPPIRE_VAR_TYPE_DIALOG (
+    g_object_new (PSPPIRE_TYPE_VAR_TYPE_DIALOG,
+                  "orientation", PSPPIRE_HORIZONTAL,
+                  "format", format,
+                  NULL));
+}
+
+void
+psppire_var_type_dialog_run (GtkWindow *parent_window,
+                             struct fmt_spec *format)
+{
+  PsppireVarTypeDialog *dialog;
+
+  dialog = psppire_var_type_dialog_new (format);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), parent_window);
+  gtk_widget_show (GTK_WIDGET (dialog));
+
+  if (psppire_dialog_run (PSPPIRE_DIALOG (dialog)) == GTK_RESPONSE_OK)
+    *format = *psppire_var_type_dialog_get_format (dialog);
+}
+
 
 /* callback for when any of the radio buttons are toggled */
 static void
 on_toggle (GtkToggleButton *togglebutton, gpointer dialog_)
 {
-  struct var_type_dialog *dialog = dialog_;
+  PsppireVarTypeDialog *dialog = dialog_;
 
   if ( gtk_toggle_button_get_active (togglebutton) == TRUE)
     refresh_active_button (dialog);
 }
 
 static void
-refresh_active_button (struct var_type_dialog *dialog)
+refresh_active_button (PsppireVarTypeDialog *dialog)
 {
   int i;
 
@@ -127,7 +248,7 @@ refresh_active_button (struct var_type_dialog *dialog)
 }
 
 static void
-update_adj_ranges (struct var_type_dialog *dialog)
+update_adj_ranges (PsppireVarTypeDialog *dialog)
 {
   enum fmt_type type = dialog->fmt_l.type;
   const enum fmt_use use = FMT_FOR_OUTPUT;
@@ -149,7 +270,7 @@ update_adj_ranges (struct var_type_dialog *dialog)
 /* callback for when any of the radio buttons are toggled */
 static void
 on_active_button_change (GtkToggleButton *togglebutton,
-                         struct var_type_dialog *dialog)
+                         PsppireVarTypeDialog *dialog)
 {
   enum widgets {
     W_WIDTH          = 1 << 0,
@@ -203,7 +324,7 @@ on_active_button_change (GtkToggleButton *togglebutton,
   gtk_widget_set_visible (dialog->dollar_window,
                           (widgets & W_DOLLAR_FORMATS) != 0);
 
-  dialog->fmt_l = *var_get_print_format (dialog->pv);
+  dialog->fmt_l = dialog->base_format;
 
   switch (dialog->active_button)
     {
@@ -247,12 +368,6 @@ on_active_button_change (GtkToggleButton *togglebutton,
   update_width_decimals (dialog);
 }
 
-
-
-static gint on_var_type_ok_clicked (GtkWidget *w, gpointer data);
-static gint hide_dialog (GtkWidget *w,  gpointer data);
-
-
 static void
 add_to_group (GtkWidget *w, gpointer data)
 {
@@ -263,14 +378,14 @@ add_to_group (GtkWidget *w, gpointer data)
 
 /* Set the local width and decimals entry boxes to reflec the local format */
 static void
-update_width_decimals (const struct var_type_dialog *dialog)
+update_width_decimals (const PsppireVarTypeDialog *dialog)
 {
   gtk_adjustment_set_value (dialog->adj_width, dialog->fmt_l.w);
   gtk_adjustment_set_value (dialog->adj_decimals, dialog->fmt_l.d);
 }
 
 static void
-on_width_changed (GtkEntry *entry, struct var_type_dialog *dialog)
+on_width_changed (GtkEntry *entry, PsppireVarTypeDialog *dialog)
 {
   int w = atoi (gtk_entry_get_text (GTK_ENTRY (dialog->entry_width)));
   fmt_change_width (&dialog->fmt_l, w, FMT_FOR_OUTPUT);
@@ -278,7 +393,7 @@ on_width_changed (GtkEntry *entry, struct var_type_dialog *dialog)
 }
 
 static void
-on_decimals_changed (GtkEntry *entry, struct var_type_dialog *dialog)
+on_decimals_changed (GtkEntry *entry, PsppireVarTypeDialog *dialog)
 {
   int d = atoi (gtk_entry_get_text (GTK_ENTRY (dialog->entry_decimals)));
   fmt_change_decimals (&dialog->fmt_l, d, FMT_FOR_OUTPUT);
@@ -292,7 +407,7 @@ preview_custom (GtkWidget *w, gpointer data)
 {
   const gchar *text ;
 
-  struct var_type_dialog *dialog = data;
+  PsppireVarTypeDialog *dialog = data;
 
   if ( dialog->active_button != BUTTON_CUSTOM )
     return;
@@ -351,7 +466,7 @@ get_index_from_treeview (GtkTreeView *treeview)
    It sets the fmt_l_spec to reflect the selected format */
 static void
 set_date_format_from_treeview (GtkTreeView *treeview,
-                               struct var_type_dialog *dialog)
+                               PsppireVarTypeDialog *dialog)
 {
   dialog->fmt_l = date_format[get_index_from_treeview (treeview)];
 }
@@ -360,7 +475,7 @@ set_date_format_from_treeview (GtkTreeView *treeview,
    It sets the fmt_l_spec to reflect the selected format */
 static void
 set_dollar_format_from_treeview (GtkTreeView *treeview,
-                                 struct var_type_dialog *dialog)
+                                 PsppireVarTypeDialog *dialog)
 {
   dialog->fmt_l = dollar_format[get_index_from_treeview (treeview)];
 }
@@ -369,7 +484,7 @@ set_dollar_format_from_treeview (GtkTreeView *treeview,
    It sets the type of the fmt_l to reflect the selected type */
 static void
 set_custom_format_from_treeview (GtkTreeView *treeview,
-                                 struct var_type_dialog *dialog)
+                                 PsppireVarTypeDialog *dialog)
 {
   dialog->fmt_l.type = cc_format[get_index_from_treeview (treeview)];
   update_adj_ranges (dialog);
@@ -378,23 +493,31 @@ set_custom_format_from_treeview (GtkTreeView *treeview,
 }
 
 /* Create the structure */
-struct var_type_dialog *
-var_type_dialog_create (GtkWindow *toplevel)
+static GObject *
+psppire_var_type_dialog_constructor (GType                  type,
+                                     guint                  n_properties,
+                                     GObjectConstructParam *properties)
 {
+  PsppireVarTypeDialog *dialog;
+  GtkContainer *content_area;
+  GtkBuilder *xml;
+  GObject *obj;
   gint i;
-  struct var_type_dialog *dialog = g_malloc (sizeof (struct var_type_dialog));
 
-  GtkBuilder *xml = builder_new ("var-type-dialog.ui");
+  obj = G_OBJECT_CLASS (psppire_var_type_dialog_parent_class)->constructor (
+    type, n_properties, properties);
+  dialog = PSPPIRE_VAR_TYPE_DIALOG (obj);
 
-  dialog->window = get_widget_assert (xml,"var_type_dialog");
+  xml = builder_new ("var-type-dialog.ui");
+
+  content_area = GTK_CONTAINER (PSPPIRE_DIALOG (dialog)->box);
+  gtk_container_add (GTK_CONTAINER (content_area),
+                     get_widget_assert (xml, "var-type-dialog"));
+
   dialog->active_button = -1;
 
-
-  g_signal_connect (dialog->window, "delete-event",
+  g_signal_connect (dialog, "delete-event",
 		    G_CALLBACK (gtk_widget_hide_on_delete), NULL);
-
-  gtk_window_set_transient_for (GTK_WINDOW (dialog->window),
-				toplevel);
 
   dialog->radioButton[BUTTON_NUMERIC] =
     get_widget_assert (xml,"radiobutton1");
@@ -438,8 +561,6 @@ var_type_dialog_create (GtkWindow *toplevel)
   dialog->custom_treeview =
     GTK_TREE_VIEW (get_widget_assert (xml, "custom_treeview"));
 
-
-  dialog->ok = get_widget_assert (xml,"var_type_ok");
 
 
   {
@@ -594,27 +715,19 @@ var_type_dialog_create (GtkWindow *toplevel)
 		   "changed",
 		   G_CALLBACK (preview_custom), dialog);
 
-
-  /* Connect to the OK button */
-  g_signal_connect (dialog->ok, "clicked", G_CALLBACK (on_var_type_ok_clicked),
-		   dialog);
-
-
-  /* And the cancel button */
-  g_signal_connect (get_widget_assert (xml, "var_type_cancel") , "clicked",
-		    G_CALLBACK (hide_dialog),
-		    dialog);
   }
 
   g_object_unref (xml);
 
-  return dialog;
+  psppire_var_type_dialog_set_state (dialog);
+
+  return obj;
 }
 
 
 /* Set a particular button to be active */
 void
-var_type_dialog_set_active_button (struct var_type_dialog *dialog, gint b)
+var_type_dialog_set_active_button (PsppireVarTypeDialog *dialog, gint b)
 {
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (dialog->radioButton[b]),
 			       TRUE);
@@ -659,15 +772,14 @@ find_format_type (int target, const int types[], int n_types)
 
 /* Set up the state of the dialog box to match the variable VAR */
 static void
-var_type_dialog_set_state (struct var_type_dialog *dialog)
+psppire_var_type_dialog_set_state (PsppireVarTypeDialog *dialog)
 {
   int button;
 
-  g_assert (dialog);
-  g_assert (dialog->pv);
+  g_return_if_fail (dialog != NULL);
 
   /* Populate the radio button states */
-  switch (var_get_print_format (dialog->pv)->type)
+  switch (dialog->base_format.type)
     {
     default:
     case FMT_F:
@@ -714,43 +826,3 @@ var_type_dialog_set_state (struct var_type_dialog *dialog)
   on_active_button_change (GTK_TOGGLE_BUTTON (dialog->radioButton[button]),
                            dialog);
 }
-
-
-/* Popup the dialog box */
-void
-var_type_dialog_show (struct var_type_dialog *dialog)
-{
-  var_type_dialog_set_state (dialog);
-
-  gtk_widget_show (dialog->window);
-}
-
-/* Callbacks for the Variable Type Dialog Box */
-
-/* Callback for when the var type dialog is closed using the OK button.
-   It sets the appropriate variable accordingly. */
-static gint
-on_var_type_ok_clicked (GtkWidget *w, gpointer data)
-{
-  struct var_type_dialog *dialog = data;
-
-  var_set_width (dialog->pv, fmt_var_width (&dialog->fmt_l));
-  var_set_both_formats (dialog->pv, &dialog->fmt_l);
-
-  gtk_widget_hide (dialog->window);
-
-  return FALSE;
-}
-
-
-
-static gint
-hide_dialog (GtkWidget *w,  gpointer data)
-{
-  struct var_type_dialog *dialog = data;
-
-  gtk_widget_hide (dialog->window);
-
-  return FALSE;
-}
-

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -288,7 +288,26 @@ traverse_cell_callback (PsppireSheet *sheet,
   return FALSE;
 }
 
+static void
+var_sheet_show_var_type_dialog (PsppireVarSheet *vs)
+{
+  PsppireVarStore *var_store;
+  struct fmt_spec format;
+  struct variable *var;
+  gint row;
 
+  var_store = PSPPIRE_VAR_STORE (psppire_sheet_get_model (PSPPIRE_SHEET (vs)));
+
+  psppire_sheet_get_active_cell (PSPPIRE_SHEET (vs), &row, NULL);
+  var = psppire_var_store_get_var (var_store, row);
+  g_return_if_fail (var != NULL);
+
+  format = *var_get_print_format (var);
+  psppire_var_type_dialog_run (GTK_WINDOW (gtk_widget_get_toplevel (
+                                             GTK_WIDGET (vs))), &format);
+  var_set_width (var, fmt_var_width (&format));
+  var_set_both_formats (var, &format);
+}
 
 /*
    Callback whenever the active cell changes on the var sheet.
@@ -404,14 +423,10 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	customEntry =
 	  PSPPIRE_CUSTOM_ENTRY (psppire_sheet_get_entry (sheet));
 
-
-	/* Popup the Variable Type dialog box */
-	vs->var_type_dialog->pv = var;
-
 	g_signal_connect_swapped (customEntry,
 				 "clicked",
-				 G_CALLBACK (var_type_dialog_show),
-				  vs->var_type_dialog);
+                                  G_CALLBACK (var_sheet_show_var_type_dialog),
+				  vs);
       }
       break;
 
@@ -485,8 +500,7 @@ psppire_var_sheet_realize (GtkWidget *w)
   vs->val_labs_dialog = val_labs_dialog_create (GTK_WINDOW (toplevel));
 
   vs->missing_val_dialog = missing_val_dialog_create (GTK_WINDOW (toplevel));
-  vs->var_type_dialog = var_type_dialog_create (GTK_WINDOW (toplevel));
-
+  
   /* Chain up to the parent class */
   GTK_WIDGET_CLASS (parent_class)->realize (w);
 }
@@ -498,7 +512,6 @@ psppire_var_sheet_unrealize (GtkWidget *w)
 
   g_free (vs->val_labs_dialog);
   g_free (vs->missing_val_dialog);
-  g_free (vs->var_type_dialog);
 
   /* Chain up to the parent class */
   GTK_WIDGET_CLASS (parent_class)->unrealize (w);

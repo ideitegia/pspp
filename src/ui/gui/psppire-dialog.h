@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010, 2011  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@
 
 G_BEGIN_DECLS
 
-#define PSPPIRE_DIALOG_TYPE            (psppire_dialog_get_type ())
-#define PSPPIRE_DIALOG(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPPIRE_DIALOG_TYPE, PsppireDialog))
-#define PSPPIRE_DIALOG_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), PSPPIRE_DIALOG_TYPE, PsppireDialogClass))
-#define PSPPIRE_IS_DIALOG(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), PSPPIRE_DIALOG_TYPE))
-#define PSPPIRE_IS_DIALOG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), PSPPIRE_DIALOG_TYPE))
+#define PSPPIRE_TYPE_DIALOG            (psppire_dialog_get_type ())
+#define PSPPIRE_DIALOG(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPPIRE_TYPE_DIALOG, PsppireDialog))
+#define PSPPIRE_DIALOG_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), PSPPIRE_TYPE_DIALOG, PsppireDialogClass))
+#define PSPPIRE_IS_DIALOG(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), PSPPIRE_TYPE_DIALOG))
+#define PSPPIRE_IS_DIALOG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), PSPPIRE_TYPE_DIALOG))
 
 
 typedef struct _PsppireDialog       PsppireDialog;
