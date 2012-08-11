@@ -99,7 +99,7 @@ struct interact_params
   /* A map indexed by a interaction_value */
   struct hmap ivmap;
 
-  const struct interaction *iact;
+  struct interaction *iact;
 
   int base_subscript_short;
   int base_subscript_long;
