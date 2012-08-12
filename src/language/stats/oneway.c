@@ -629,6 +629,15 @@ makeit (const void *aux1, void *aux2 UNUSED)
 }
 
 static void 
+killit (const void *aux1 UNUSED, void *user_data)
+{
+  struct descriptive_data *dd = user_data;
+
+  dd_destroy (dd);
+}
+
+
+static void 
 updateit (const void *aux1, void *aux2, void *user_data,
 	  const struct ccase *c, double weight)
 {
@@ -691,6 +700,7 @@ run_oneway (const struct oneway_spec *cmd,
       payload.create = makeit;
       payload.update = updateit;
       payload.calculate = NULL;
+      payload.destroy = killit;
 
       ws.vws[v].cat = categoricals_create (&inter, 1, cmd->wv,
                                            cmd->exclude, cmd->exclude);

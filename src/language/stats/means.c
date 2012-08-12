@@ -1,3 +1,4 @@
+
 /* PSPP - a program for statistical analysis.
    Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
@@ -939,6 +940,7 @@ run_means (struct means *cmd, struct casereader *input,
   payload.create = create_n;
   payload.update = update_n;
   payload.calculate = calculate_n;
+  payload.destroy = NULL;
   
   for (t = 0; t < cmd->n_tables; ++t)
   {

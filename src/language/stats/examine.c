@@ -1804,6 +1804,7 @@ run_examine (struct examine *cmd, struct casereader *input)
   payload.create = create_n;
   payload.update = update_n;
   payload.calculate = calculate_n;
+  payload.destroy = NULL;
   
   cmd->wv = dict_get_weight (cmd->dict);
 

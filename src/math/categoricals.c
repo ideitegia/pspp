@@ -253,10 +253,8 @@ categoricals_destroy (struct categoricals *cat)
       /* Interate over each interaction value, and unref any cases that we reffed */
       HMAP_FOR_EACH (iv, struct interaction_value, node, &cat->iap[i].ivmap)
 	{
-#if 0
-	  if (cat->payload)
+	  if (cat->payload && cat->payload->destroy)
 	    cat->payload->destroy (cat->aux1, iv->user_data);
-#endif
 	  case_unref (iv->ccase);
 	}
 
