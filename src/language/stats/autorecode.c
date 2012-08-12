@@ -322,6 +322,11 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
     }
   add_transformation (ds, autorecode_trns_proc, autorecode_trns_free, arc);
 
+  for (i = 0; i < n_dsts; i++)
+    free (dst_names[i]);
+  free (dst_names);
+  free (src_vars);
+
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 
 error:
