@@ -384,6 +384,22 @@ static void show_homogeneity (const struct oneway_spec *, const struct oneway_wo
 static void output_oneway (const struct oneway_spec *, struct oneway_workspace *ws);
 static void run_oneway (const struct oneway_spec *cmd, struct casereader *input, const struct dataset *ds);
 
+
+static void
+destroy_coeff_list (struct contrasts_node *coeff_list)
+{
+  struct coeff_node *cn = NULL;
+  struct coeff_node *cnx = NULL;
+  struct ll_list *cl = &coeff_list->coefficient_list;
+  
+  ll_for_each_safe (cn, cnx, struct coeff_node, ll, cl)
+    {
+      free (cn);
+    }
+  
+  free (coeff_list);
+}
+
 static void
 oneway_cleanup (struct oneway_spec *cmd)
 {
@@ -391,16 +407,7 @@ oneway_cleanup (struct oneway_spec *cmd)
   struct contrasts_node *coeff_next  = NULL;
   ll_for_each_safe (coeff_list, coeff_next, struct contrasts_node, ll, &cmd->contrast_list)
     {
-      struct coeff_node *cn = NULL;
-      struct coeff_node *cnx = NULL;
-      struct ll_list *cl = &coeff_list->coefficient_list;
-
-      ll_for_each_safe (cn, cnx, struct coeff_node, ll, cl)
-	{
-	  free (cn);
-	}
-
-      free (coeff_list);
+      destroy_coeff_list (coeff_list);
     }
 
   free (cmd->posthoc);
@@ -529,6 +536,7 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 		}
 	      else
 		{
+		  destroy_coeff_list (cl);
 		  lex_error (lexer, NULL);
 		  goto error;
 		}
@@ -897,6 +905,7 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
 	       i, ll_count (cl), ws->actual_number_of_groups);
 
 	  ll_remove (&coeff_list->ll);
+	  destroy_coeff_list (coeff_list);
 	  continue;
 	}
 
