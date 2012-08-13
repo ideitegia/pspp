@@ -637,7 +637,7 @@ makeit (const void *aux1, void *aux2 UNUSED)
 }
 
 static void 
-killit (const void *aux1 UNUSED, void *user_data)
+killit (const void *aux1 UNUSED, void *aux2 UNUSED, void *user_data)
 {
   struct descriptive_data *dd = user_data;
 

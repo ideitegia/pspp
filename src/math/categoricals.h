@@ -107,7 +107,7 @@ struct payload
   void* (*create)  (const void *aux1, void *aux2);
   void (*update)  (const void *aux1, void *aux2, void *user_data, const struct ccase *, double weight);
   void (*calculate) (const void *aux1, void *aux2, void *user_data);
-  void (*destroy) (const void *aux1, void *user_data);
+  void (*destroy) (const void *aux1, void *aux2, void *user_data);
 };
 
 

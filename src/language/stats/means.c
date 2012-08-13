@@ -1,4 +1,3 @@
-
 /* PSPP - a program for statistical analysis.
    Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
@@ -828,6 +827,22 @@ struct per_cat_data
   bool warn;
 };
 
+
+static void 
+destroy_n (const void *aux1 UNUSED, void *aux2, void *user_data)
+{
+  struct mtable *table = aux2;
+  int v;
+  struct per_cat_data *per_cat_data = user_data;
+  struct per_var_data *pvd = per_cat_data->pvd;
+
+  for (v = 0; v < table->n_dep_vars; ++v)
+    {
+      struct per_var_data *pp = &pvd[v];
+      moments1_destroy (pp->mom);
+    }
+}
+
 static void *
 create_n (const void *aux1, void *aux2)
 {
@@ -940,7 +955,7 @@ run_means (struct means *cmd, struct casereader *input,
   payload.create = create_n;
   payload.update = update_n;
   payload.calculate = calculate_n;
-  payload.destroy = NULL;
+  payload.destroy = destroy_n;
   
   for (t = 0; t < cmd->n_tables; ++t)
   {
