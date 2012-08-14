@@ -60,7 +60,7 @@ struct arc_spec
   {
     const struct variable *src;	/* Source variable. */
     struct variable *dst;	/* Target variable. */
-    struct hmap *items;         /* Hash table of "struct arc_item"s. */
+    struct rec_items *items;
   };
 
 /* Descending or ascending sort order. */
@@ -70,6 +70,14 @@ enum arc_direction
     DESCENDING
   };
 
+struct rec_items
+{
+  struct hmap ht;         /* Hash table of "struct arc_item"s. */
+  int refcnt;
+};
+
+
+
 /* AUTORECODE data. */
 struct autorecode_pgm
 {
@@ -77,7 +85,7 @@ struct autorecode_pgm
   size_t n_specs;
 
   /* Hash table of "struct arc_item"s. */
-  struct hmap *global_items;
+  struct rec_items *global_items;
 
   bool blank_valid;
   const struct dictionary *dict;
@@ -181,7 +189,8 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       else if (lex_match_id (lexer, "GROUP"))
 	{
 	  arc->global_items = xmalloc (sizeof (*arc->global_items));
-	  hmap_init (arc->global_items);
+	  arc->global_items->refcnt = 1;
+	  hmap_init (&arc->global_items->ht);
 	}
       else if (lex_match_id (lexer, "BLANK"))
 	{
@@ -216,14 +225,17 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       struct arc_spec *spec = &arc->specs[i];
 
       spec->src = src_vars[i];
+
       if (arc->global_items)
 	{
+	  arc->global_items->refcnt++;
 	  spec->items = arc->global_items;
 	}
       else
 	{
-	  spec->items = xmalloc (sizeof (*spec->items));
-	  hmap_init (spec->items);
+	  spec->items = xzalloc (sizeof (*spec->items));
+	  spec->items->refcnt = 1;
+	  hmap_init (&spec->items->ht);
 	}
     }
 
@@ -248,7 +260,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
             item = xmalloc (sizeof *item);
 	    item->width = width;
             value_clone (&item->from, value, width);
-            hmap_insert (spec->items, &item->hmap_node, hash);
+            hmap_insert (&spec->items->ht, &item->hmap_node, hash);
           }
       }
   ok = casereader_destroy (input);
@@ -267,10 +279,10 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       spec->dst = dict_create_var_assert (dict, dst_names[i], 0);
 
       /* Create array of pointers to items. */
-      n_items = hmap_count (spec->items);
+      n_items = hmap_count (&spec->items->ht);
       items = xmalloc (n_items * sizeof *items);
       j = 0;
-      HMAP_FOR_EACH (item, struct arc_item, hmap_node, spec->items)
+      HMAP_FOR_EACH (item, struct arc_item, hmap_node, &spec->items->ht)
         items[j++] = item;
 
       assert (j == n_items);
@@ -351,31 +363,31 @@ arc_free (struct autorecode_pgm *arc)
           struct arc_item *item, *next;
 
 	  HMAP_FOR_EACH_SAFE (item, next, struct arc_item, hmap_node,
-			      spec->items)
+			      &spec->items->ht)
 	    {
 	      value_destroy (&item->from, item->width);
-	      hmap_delete (spec->items, &item->hmap_node);
+	      hmap_delete (&spec->items->ht, &item->hmap_node);
 	      free (item);
 	    }
         }
 
-      if (arc->global_items)
+      for (i = 0; i < arc->n_specs; i++)
 	{
-	  free (arc->global_items);
-	}
-      else
-	{
-	  for (i = 0; i < arc->n_specs; i++)
+	  struct arc_spec *spec = &arc->specs[i];
+	  
+	  if (--spec->items->refcnt == 0)
 	    {
-	      struct arc_spec *spec = &arc->specs[i];
-	      if (spec->items)
-		{
-		  hmap_destroy (spec->items);
-		  free (spec->items);
-		}
+	      hmap_destroy (&spec->items->ht);
+	      free (spec->items);
 	    }
 	}
 
+      if (arc->global_items && --arc->global_items->refcnt == 0)
+	{
+	  hmap_destroy (&arc->global_items->ht);
+	  free (arc->global_items);
+	}
+      
       free (arc->specs);
       free (arc);
     }
@@ -387,7 +399,7 @@ find_arc_item (const struct arc_spec *spec, const union value *value,
 {
   struct arc_item *item;
 
-  HMAP_FOR_EACH_WITH_HASH (item, struct arc_item, hmap_node, hash, spec->items)
+  HMAP_FOR_EACH_WITH_HASH (item, struct arc_item, hmap_node, hash, &spec->items->ht)
     if (value_equal (value, &item->from, var_get_width (spec->src)))
       return item;
   return NULL;
