@@ -267,6 +267,7 @@ subcommand_save (const struct regression *cmd)
 int
 cmd_regression (struct lexer *lexer, struct dataset *ds)
 {
+  int k;
   struct regression regression;
   const struct dictionary *dict = dataset_dict (ds);
 
@@ -403,12 +404,16 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
     subcommand_save (&regression);
  
 
+  for (k = 0; k < regression.n_dep_vars; k++)
+    linreg_free (regression.models[k]);
   free (regression.models);
   free (regression.vars);
   free (regression.dep_vars);
   return CMD_SUCCESS;
   
  error:
+  for (k = 0; k < regression.n_dep_vars; k++)
+    linreg_free (regression.models[k]);
   free (regression.models);
   free (regression.vars);
   free (regression.dep_vars);
