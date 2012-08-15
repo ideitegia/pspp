@@ -1737,6 +1737,7 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
   if (idata->cov == NULL)
     {
       msg (MW, _("The dataset contains no complete observations. No analysis will be performed."));
+      covariance_destroy (cov);
       goto finish;
     }
 
