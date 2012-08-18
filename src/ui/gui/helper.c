@@ -118,8 +118,25 @@ text_to_value (const gchar *text,
 	       const struct variable *var,
 	       union value *val)
 {
-  const struct fmt_spec *format = var_get_print_format (var);
-  int width = var_get_width (var);
+  return text_to_value__ (text, var_get_print_format (var),
+                          var_get_encoding (var), val);
+}
+
+/* Converts TEXT, which contains a value in the given FORMAT encoding in
+   ENCODING, into a value.
+
+   VAL will be initialised and filled by this function.
+   It is the caller's responsibility to destroy VAL when no longer needed.
+
+   On success, VAL is returned, NULL otherwise.
+*/
+union value *
+text_to_value__ (const gchar *text,
+                 const struct fmt_spec *format,
+                 const gchar *encoding,
+                 union value *val)
+{
+  int width = fmt_var_width (format);
 
   if ( format->type != FMT_A)
     {
@@ -139,8 +156,7 @@ text_to_value (const gchar *text,
     }
 
   value_init (val, width);
-  free (data_in (ss_cstr (text), UTF8, format->type, val, width,
-                 var_get_encoding (var)));
+  free (data_in (ss_cstr (text), UTF8, format->type, val, width, encoding));
 
   return val;
 }

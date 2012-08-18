@@ -51,10 +51,10 @@ gchar * value_to_text__ (union value v, const struct fmt_spec *,
                          const char *encoding);
 
 
-union value *
-text_to_value (const gchar *text,
-	       const struct variable *var,
-	       union value *);
+union value *text_to_value (const gchar *text, const struct variable *,
+                            union value *);
+union value *text_to_value__ (const gchar *text, const struct fmt_spec *,
+                              const gchar *encoding, union value *);
 
 gchar * convert_glib_filename_to_system_filename (const gchar *fname,
 						  GError **err);
