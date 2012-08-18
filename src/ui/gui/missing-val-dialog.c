@@ -232,7 +232,7 @@ on_delete (GtkWidget *w, GdkEvent *e, gpointer data)
 struct missing_val_dialog *
 missing_val_dialog_create (GtkWindow *toplevel)
 {
-  GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
+  GtkBuilder *xml = builder_new ("missing-val-dialog.ui");
 
   struct missing_val_dialog *dialog = g_malloc (sizeof (*dialog));
 
