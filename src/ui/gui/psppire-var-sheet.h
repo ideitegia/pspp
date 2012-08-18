@@ -22,7 +22,6 @@
 #include <glib-object.h>
 #include <gtk-contrib/psppire-sheet.h>
 #include "missing-val-dialog.h"
-#include "var-type-dialog.h"
 
 
 G_BEGIN_DECLS

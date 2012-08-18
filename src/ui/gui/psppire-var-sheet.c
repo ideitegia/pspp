@@ -26,6 +26,7 @@
 #include "data/value-labels.h"
 #include "psppire-var-store.h"
 #include "ui/gui/val-labs-dialog.h"
+#include "ui/gui/var-type-dialog.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
