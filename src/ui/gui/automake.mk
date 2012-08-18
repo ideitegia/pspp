@@ -38,6 +38,7 @@ UI_FILES = \
 	src/ui/gui/t-test.ui \
 	src/ui/gui/text-data-import.ui \
 	src/ui/gui/univariate.ui \
+	src/ui/gui/val-labs-dialog.ui \
 	src/ui/gui/var-sheet-dialogs.ui \
 	src/ui/gui/variable-info.ui \
 	src/ui/gui/data-editor.ui \

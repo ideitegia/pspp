@@ -21,7 +21,6 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk-contrib/psppire-sheet.h>
-#include "val-labs-dialog.h"
 #include "missing-val-dialog.h"
 #include "var-type-dialog.h"
 
@@ -45,7 +44,6 @@ struct _PsppireVarSheet
   gboolean dispose_has_run;
   gboolean may_create_vars;
 
-  struct val_labs_dialog *val_labs_dialog ;
   struct missing_val_dialog *missing_val_dialog ;
 };
 

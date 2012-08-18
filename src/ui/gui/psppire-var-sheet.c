@@ -23,7 +23,9 @@
 
 #include "customentry.h"
 #include <data/variable.h>
+#include "data/value-labels.h"
 #include "psppire-var-store.h"
+#include "ui/gui/val-labs-dialog.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -309,6 +311,29 @@ var_sheet_show_var_type_dialog (PsppireVarSheet *vs)
   var_set_both_formats (var, &format);
 }
 
+static void
+var_sheet_show_val_labs_dialog (PsppireVarSheet *vs)
+{
+  PsppireVarStore *var_store;
+  struct val_labs *labels;
+  struct variable *var;
+  gint row;
+
+  var_store = PSPPIRE_VAR_STORE (psppire_sheet_get_model (PSPPIRE_SHEET (vs)));
+
+  psppire_sheet_get_active_cell (PSPPIRE_SHEET (vs), &row, NULL);
+  var = psppire_var_store_get_var (var_store, row);
+  g_return_if_fail (var != NULL);
+
+  labels = psppire_val_labs_dialog_run (GTK_WINDOW (gtk_widget_get_toplevel (
+                                                      GTK_WIDGET (vs))), var);
+  if (labels)
+    {
+      var_set_value_labels (var, labels);
+      val_labs_destroy (labels);
+    }
+}
+
 /*
    Callback whenever the active cell changes on the var sheet.
 */
@@ -386,12 +411,10 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	customEntry =
 	  PSPPIRE_CUSTOM_ENTRY (psppire_sheet_get_entry (sheet));
 
-	val_labs_dialog_set_target_variable (vs->val_labs_dialog, var);
-
 	g_signal_connect_swapped (customEntry,
 				  "clicked",
-				  G_CALLBACK (val_labs_dialog_show),
-				  vs->val_labs_dialog);
+				  G_CALLBACK (var_sheet_show_val_labs_dialog),
+				  vs);
       }
       break;
 
@@ -497,8 +520,6 @@ psppire_var_sheet_realize (GtkWidget *w)
 
   GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (vs));
 
-  vs->val_labs_dialog = val_labs_dialog_create (GTK_WINDOW (toplevel));
-
   vs->missing_val_dialog = missing_val_dialog_create (GTK_WINDOW (toplevel));
   
   /* Chain up to the parent class */
@@ -510,7 +531,6 @@ psppire_var_sheet_unrealize (GtkWidget *w)
 {
   PsppireVarSheet *vs = PSPPIRE_VAR_SHEET (w);
 
-  g_free (vs->val_labs_dialog);
   g_free (vs->missing_val_dialog);
 
   /* Chain up to the parent class */
