@@ -211,6 +211,8 @@ psppire_var_type_dialog_run (GtkWindow *parent_window,
 
   if (psppire_dialog_run (PSPPIRE_DIALOG (dialog)) == GTK_RESPONSE_OK)
     *format = *psppire_var_type_dialog_get_format (dialog);
+
+  gtk_widget_destroy (GTK_WIDGET (dialog));
 }
 
 
