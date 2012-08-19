@@ -42,8 +42,6 @@ struct _PsppireVarSheet
 
   gboolean dispose_has_run;
   gboolean may_create_vars;
-
-  struct missing_val_dialog *missing_val_dialog ;
 };
 
 

@@ -18,10 +18,8 @@
     used for input of the missing values in the variable sheet */
 
 #include <config.h>
-#include <gettext.h>
-#define _(msgid) gettext (msgid)
-#define N_(msgid) msgid
 
+#include "ui/gui/missing-val-dialog.h"
 
 #include "builder-wrapper.h"
 #include "helper.h"
@@ -31,10 +29,148 @@
 #include <data/variable.h>
 #include <data/data-in.h>
 
-
 #include <gtk/gtk.h>
 
 #include <string.h>
+
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+static GObject *psppire_missing_val_dialog_constructor (
+  GType type, guint, GObjectConstructParam *);
+static void psppire_missing_val_dialog_finalize (GObject *);
+
+G_DEFINE_TYPE (PsppireMissingValDialog,
+               psppire_missing_val_dialog,
+               PSPPIRE_TYPE_DIALOG);
+enum
+  {
+    PROP_0,
+    PROP_VARIABLE,
+    PROP_MISSING_VALUES
+  };
+
+static void
+psppire_missing_val_dialog_set_property (GObject      *object,
+                                         guint         prop_id,
+                                         const GValue *value,
+                                         GParamSpec   *pspec)
+{
+  PsppireMissingValDialog *obj = PSPPIRE_MISSING_VAL_DIALOG (object);
+
+  switch (prop_id)
+    {
+    case PROP_VARIABLE:
+      psppire_missing_val_dialog_set_variable (obj,
+                                               g_value_get_pointer (value));
+      break;
+    case PROP_MISSING_VALUES:
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+static void
+psppire_missing_val_dialog_get_property (GObject      *object,
+                                         guint         prop_id,
+                                         GValue       *value,
+                                         GParamSpec   *pspec)
+{
+  PsppireMissingValDialog *obj = PSPPIRE_MISSING_VAL_DIALOG (object);
+
+  switch (prop_id)
+    {
+    case PROP_MISSING_VALUES:
+      g_value_set_pointer (value, &obj->mvl);
+      break;
+    case PROP_VARIABLE:
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+static void
+psppire_missing_val_dialog_class_init (PsppireMissingValDialogClass *class)
+{
+  GObjectClass *gobject_class;
+  gobject_class = G_OBJECT_CLASS (class);
+
+  gobject_class->constructor = psppire_missing_val_dialog_constructor;
+  gobject_class->finalize = psppire_missing_val_dialog_finalize;
+  gobject_class->set_property = psppire_missing_val_dialog_set_property;
+  gobject_class->get_property = psppire_missing_val_dialog_get_property;
+
+  g_object_class_install_property (
+    gobject_class, PROP_VARIABLE,
+    g_param_spec_pointer ("variable",
+                          "Variable",
+                          "Variable whose missing values are to be edited.  "
+                          "The variable's print format and encoding are also "
+                          "used for editing.",
+                          G_PARAM_WRITABLE));
+
+  g_object_class_install_property (
+    gobject_class, PROP_MISSING_VALUES,
+    g_param_spec_pointer ("missing-values",
+                          "Missing Values",
+                          "Edited missing values.",
+                          G_PARAM_READABLE));
+}
+
+static void
+psppire_missing_val_dialog_init (PsppireMissingValDialog *dialog)
+{
+  /* We do all of our work on widgets in the constructor function, because that
+     runs after the construction properties have been set.  Otherwise
+     PsppireDialog's "orientation" property hasn't been set and therefore we
+     have no box to populate. */
+  mv_init (&dialog->mvl, 0);
+  dialog->encoding = NULL;
+}
+
+static void
+psppire_missing_val_dialog_finalize (GObject *obj)
+{
+  PsppireMissingValDialog *dialog = PSPPIRE_MISSING_VAL_DIALOG (obj);
+
+  mv_destroy (&dialog->mvl);
+  g_free (dialog->encoding);
+
+  G_OBJECT_CLASS (psppire_missing_val_dialog_parent_class)->finalize (obj);
+}
+
+PsppireMissingValDialog *
+psppire_missing_val_dialog_new (const struct variable *var)
+{
+  return PSPPIRE_MISSING_VAL_DIALOG (
+    g_object_new (PSPPIRE_TYPE_MISSING_VAL_DIALOG,
+                  "orientation", PSPPIRE_VERTICAL,
+                  "variable", var,
+                  NULL));
+}
+
+void
+psppire_missing_val_dialog_run (GtkWindow *parent_window,
+                                const struct variable *var,
+                                struct missing_values *mv)
+{
+  PsppireMissingValDialog *dialog;
+
+  dialog = psppire_missing_val_dialog_new (var);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), parent_window);
+  gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
+  gtk_widget_show (GTK_WIDGET (dialog));
+
+  if (psppire_dialog_run (PSPPIRE_DIALOG (dialog)) == GTK_RESPONSE_OK)
+    mv_copy (mv, psppire_missing_val_dialog_get_missing_values (dialog));
+  else
+    mv_copy (mv, var_get_missing_values (var));
+
+  gtk_widget_destroy (GTK_WIDGET (dialog));
+}
 
 
 /* A simple (sub) dialog box for displaying user input errors */
@@ -75,11 +211,13 @@ err_dialog (const gchar *msg, GtkWindow *window)
 }
 
 
-/* Callback which occurs when the OK button is clicked */
-static void
-missing_val_dialog_accept (GtkWidget *w, gpointer data)
+/* Acceptability predicate for PsppireMissingValDialog.
+
+   This function is also the only place that dialog->mvl gets updated. */
+static gboolean
+missing_val_dialog_acceptable (gpointer data)
 {
-  struct missing_val_dialog *dialog = data;
+  PsppireMissingValDialog *dialog = data;
 
   if ( gtk_toggle_button_get_active (dialog->button_discrete))
     {
@@ -99,7 +237,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	      continue;
 	    }
 
-	  if ( text_to_value (text, dialog->pv, &v))
+	  if ( text_to_value__ (text, &dialog->format, dialog->encoding, &v))
 	    {
 	      nvals++;
 	      mv_add_value (&dialog->mvl, &v);
@@ -107,13 +245,13 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	  else
 	      badvals++;
 	  g_free (text);
-	  value_destroy (&v, var_get_width (dialog->pv));
+	  value_destroy (&v, fmt_var_width (&dialog->format));
 	}
       if ( nvals == 0 || badvals > 0 )
 	{
 	  err_dialog (_("Incorrect value for variable type"),
-		     GTK_WINDOW (dialog->window));
-	  return ;
+                      GTK_WINDOW (dialog));
+	  return FALSE;
 	}
     }
 
@@ -129,18 +267,19 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       gboolean high_ok;
       gboolean ok;
 
-      low_ok = text_to_value (low_text, dialog->pv, &low_val) != NULL;
-      high_ok = text_to_value (high_text, dialog->pv, &high_val) != NULL;
+      low_ok = text_to_value__ (low_text, &dialog->format, dialog->encoding,
+                                &low_val) != NULL;
+      high_ok = text_to_value__ (high_text, &dialog->format, dialog->encoding,
+                                 &high_val) != NULL;
       ok = low_ok && high_ok && low_val.f <= high_val.f;
       if (!ok)
         {
-          err_dialog (_("Incorrect range specification"),
-                      GTK_WINDOW (dialog->window));
+          err_dialog (_("Incorrect range specification"), GTK_WINDOW (dialog));
           if (low_ok)
-            value_destroy (&low_val, var_get_width (dialog->pv));
+            value_destroy (&low_val, fmt_var_width (&dialog->format));
           if (high_ok)
-            value_destroy (&high_val, var_get_width (dialog->pv));
-          return;
+            value_destroy (&high_val, fmt_var_width (&dialog->format));
+          return FALSE;
         }
 
       discrete_text =
@@ -149,24 +288,25 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       mv_clear (&dialog->mvl);
       mv_add_range (&dialog->mvl, low_val.f, high_val.f);
 
-      value_destroy (&low_val, var_get_width (dialog->pv));
-      value_destroy (&high_val, var_get_width (dialog->pv));
+      value_destroy (&low_val, fmt_var_width (&dialog->format));
+      value_destroy (&high_val, fmt_var_width (&dialog->format));
 
       if ( discrete_text && strlen (g_strstrip (discrete_text)) > 0 )
 	{
 	  union value discrete_val;
-	  if ( !text_to_value (discrete_text, 
-			       dialog->pv,
-			       &discrete_val))
+	  if ( !text_to_value__ (discrete_text,
+                                 &dialog->format,
+                                 dialog->encoding,
+                                 &discrete_val))
 	    {
 	      err_dialog (_("Incorrect value for variable type"),
-			 GTK_WINDOW (dialog->window) );
+			 GTK_WINDOW (dialog) );
 	      g_free (discrete_text);
-	      value_destroy (&discrete_val, var_get_width (dialog->pv));
-	      return;
+	      value_destroy (&discrete_val, fmt_var_width (&dialog->format));
+	      return FALSE;
 	    }
 	  mv_add_value (&dialog->mvl, &discrete_val);
-	  value_destroy (&discrete_val, var_get_width (dialog->pv));
+	  value_destroy (&discrete_val, fmt_var_width (&dialog->format));
 	}
       g_free (discrete_text);
     }
@@ -175,9 +315,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
   if (gtk_toggle_button_get_active (dialog->button_none))
     mv_clear (&dialog->mvl);
 
-  var_set_missing_values (dialog->pv, &dialog->mvl);
-
-  gtk_widget_hide (dialog->window);
+  return TRUE;
 }
 
 
@@ -186,7 +324,7 @@ static void
 discrete (GtkToggleButton *button, gpointer data)
 {
   gint i;
-  struct missing_val_dialog *dialog = data;
+  PsppireMissingValDialog *dialog = data;
 
   for (i = 0 ; i < 3 ; ++i )
     {
@@ -199,7 +337,7 @@ discrete (GtkToggleButton *button, gpointer data)
 static void
 range (GtkToggleButton *button, gpointer data)
 {
-  struct missing_val_dialog *dialog = data;
+  PsppireMissingValDialog *dialog = data;
 
   const gboolean active = gtk_toggle_button_get_active (button);
 
@@ -210,40 +348,25 @@ range (GtkToggleButton *button, gpointer data)
 
 
 
-/* Callback for when the Missing Value dialog is closed using
-   the window delete button.*/
-static gint
-on_delete (GtkWidget *w, GdkEvent *e, gpointer data)
+/* Shows the dialog box and sets default values */
+static GObject *
+psppire_missing_val_dialog_constructor (GType                  type,
+                                        guint                  n_properties,
+                                        GObjectConstructParam *properties)
 {
-  struct missing_val_dialog *dialog = data;
+  PsppireMissingValDialog *dialog;
+  GtkContainer *content_area;
+  GtkBuilder *xml;
+  GObject *obj;
 
-  gtk_widget_hide (dialog->window);
+  obj = G_OBJECT_CLASS (psppire_missing_val_dialog_parent_class)->constructor (
+    type, n_properties, properties);
+  dialog = PSPPIRE_MISSING_VAL_DIALOG (obj);
 
-  return TRUE;
-}
-
-
-/* Creates the dialog structure */
-struct missing_val_dialog *
-missing_val_dialog_create (GtkWindow *toplevel)
-{
-  GtkBuilder *xml = builder_new ("missing-val-dialog.ui");
-
-  struct missing_val_dialog *dialog = g_malloc (sizeof (*dialog));
-
-  dialog->window = get_widget_assert (xml, "missing_values_dialog");
-
-  gtk_window_set_transient_for
-    (GTK_WINDOW (dialog->window), toplevel);
-
-  g_signal_connect_swapped (get_widget_assert (xml, "missing_val_cancel"),
-		   "clicked", G_CALLBACK (gtk_widget_hide), dialog->window);
-
-  g_signal_connect (get_widget_assert (xml, "missing_val_ok"),
-		   "clicked", G_CALLBACK (missing_val_dialog_accept), dialog);
-
-  g_signal_connect (dialog->window, "delete-event",
-		    G_CALLBACK (on_delete), dialog);
+  content_area = GTK_CONTAINER (PSPPIRE_DIALOG (dialog)->box);
+  xml = builder_new ("missing-val-dialog.ui");
+  gtk_container_add (GTK_CONTAINER (content_area),
+                     get_widget_assert (xml, "missing-values-dialog"));
 
   dialog->mv[0] = get_widget_assert (xml, "mv0");
   dialog->mv[1] = get_widget_assert (xml, "mv1");
@@ -263,6 +386,9 @@ missing_val_dialog_create (GtkWindow *toplevel)
   dialog->button_range    =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "range_missing"));
 
+  psppire_dialog_set_accept_predicate (PSPPIRE_DIALOG (dialog),
+                                       missing_val_dialog_acceptable,
+                                       dialog);
 
   g_signal_connect (dialog->button_discrete, "toggled",
 		   G_CALLBACK (discrete), dialog);
@@ -272,18 +398,31 @@ missing_val_dialog_create (GtkWindow *toplevel)
 
   g_object_unref (xml);
 
-  return dialog;
+  return obj;
 }
 
-/* Shows the dialog box and sets default values */
 void
-missing_val_dialog_show (struct missing_val_dialog *dialog)
+psppire_missing_val_dialog_set_variable (PsppireMissingValDialog *dialog,
+                                         const struct variable *var)
 {
+  enum val_type var_type;
   gint i;
-  g_return_if_fail (dialog);
-  g_return_if_fail (dialog->pv);
 
-  mv_copy (&dialog->mvl, var_get_missing_values (dialog->pv));
+  mv_destroy (&dialog->mvl);
+  g_free (dialog->encoding);
+
+  if (var != NULL)
+    {
+      mv_copy (&dialog->mvl, var_get_missing_values (var));
+      dialog->encoding = g_strdup (var_get_encoding (var));
+      dialog->format = *var_get_print_format (var);
+    }
+  else
+    {
+      mv_init (&dialog->mvl, 0);
+      dialog->encoding = NULL;
+      dialog->format = F_8_0;
+    }
 
   /* Blank all entry boxes and make them insensitive */
   gtk_entry_set_text (GTK_ENTRY (dialog->low), "");
@@ -293,9 +432,12 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
   gtk_widget_set_sensitive (dialog->high, FALSE);
   gtk_widget_set_sensitive (dialog->discrete, FALSE);
 
+  var_type = val_type_from_width (fmt_var_width (&dialog->format));
   gtk_widget_set_sensitive (GTK_WIDGET (dialog->button_range),
-			   var_is_numeric (dialog->pv));
+			    var_type == VAL_NUMERIC);
 
+  if (var == NULL)
+    return;
 
   for (i = 0 ; i < 3 ; ++i )
     {
@@ -311,8 +453,8 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       mv_get_range (&dialog->mvl, &low.f, &high.f);
 
 
-      low_text = value_to_text (low, dialog->pv);
-      high_text = value_to_text (high, dialog->pv);
+      low_text = value_to_text__ (low, &dialog->format, dialog->encoding);
+      high_text = value_to_text__ (high, &dialog->format, dialog->encoding);
 
       gtk_entry_set_text (GTK_ENTRY (dialog->low), low_text);
       gtk_entry_set_text (GTK_ENTRY (dialog->high), high_text);
@@ -322,7 +464,8 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       if ( mv_has_value (&dialog->mvl))
 	{
 	  gchar *text;
-	  text = value_to_text (*mv_get_value (&dialog->mvl, 0), dialog->pv);
+	  text = value_to_text__ (*mv_get_value (&dialog->mvl, 0),
+                                  &dialog->format, dialog->encoding);
 	  gtk_entry_set_text (GTK_ENTRY (dialog->discrete), text);
 	  g_free (text);
 	}
@@ -343,7 +486,8 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 	    {
 	      gchar *text ;
 
-	      text = value_to_text (*mv_get_value (&dialog->mvl, i), dialog->pv);
+	      text = value_to_text__ (*mv_get_value (&dialog->mvl, i),
+                                      &dialog->format, dialog->encoding);
 	      gtk_entry_set_text (GTK_ENTRY (dialog->mv[i]), text);
 	      g_free (text);
 	    }
@@ -355,6 +499,11 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
     {
       gtk_toggle_button_set_active (dialog->button_none, TRUE);
     }
+}
 
-  gtk_widget_show (dialog->window);
+const struct missing_values *
+psppire_missing_val_dialog_get_missing_values (
+  const PsppireMissingValDialog *dialog)
+{
+  return &dialog->mvl;
 }

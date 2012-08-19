@@ -35,8 +35,6 @@
 
 static void psppire_var_sheet_class_init  (PsppireVarSheetClass *klass);
 static void psppire_var_sheet_init        (PsppireVarSheet      *vs);
-static void psppire_var_sheet_realize     (GtkWidget *w);
-static void psppire_var_sheet_unrealize   (GtkWidget *w);
 
 
 enum
@@ -187,15 +185,12 @@ static void
 psppire_var_sheet_class_init (PsppireVarSheetClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
   GParamSpec *pspec;
 
   parent_class = g_type_class_peek_parent (klass);
 
   object_class->dispose = psppire_var_sheet_dispose;
   object_class->finalize = psppire_var_sheet_finalize;
-  widget_class->realize = psppire_var_sheet_realize;
-  widget_class->unrealize = psppire_var_sheet_unrealize;
   object_class->set_property = psppire_var_sheet_set_property;
   object_class->get_property = psppire_var_sheet_get_property;
 
@@ -335,6 +330,26 @@ var_sheet_show_val_labs_dialog (PsppireVarSheet *vs)
     }
 }
 
+static void
+var_sheet_show_miss_vals_dialog (PsppireVarSheet *vs)
+{
+  PsppireVarStore *var_store;
+  struct missing_values mv;
+  struct variable *var;
+  gint row;
+
+  var_store = PSPPIRE_VAR_STORE (psppire_sheet_get_model (PSPPIRE_SHEET (vs)));
+
+  psppire_sheet_get_active_cell (PSPPIRE_SHEET (vs), &row, NULL);
+  var = psppire_var_store_get_var (var_store, row);
+  g_return_if_fail (var != NULL);
+
+  psppire_missing_val_dialog_run (GTK_WINDOW (gtk_widget_get_toplevel (
+                                                GTK_WIDGET (vs))), var, &mv);
+  var_set_missing_values (var, &mv);
+  mv_destroy (&mv);
+}
+
 /*
    Callback whenever the active cell changes on the var sheet.
 */
@@ -428,13 +443,10 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	customEntry =
 	  PSPPIRE_CUSTOM_ENTRY (psppire_sheet_get_entry (sheet));
 
-	vs->missing_val_dialog->pv =
-	  psppire_var_store_get_var (var_store, row);
-
 	g_signal_connect_swapped (customEntry,
 				  "clicked",
-				  G_CALLBACK (missing_val_dialog_show),
-				  vs->missing_val_dialog);
+				  G_CALLBACK (var_sheet_show_miss_vals_dialog),
+				  vs);
       }
       break;
 
@@ -512,32 +524,6 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
       break;
     }
 }
-
-
-static void
-psppire_var_sheet_realize (GtkWidget *w)
-{
-  PsppireVarSheet *vs = PSPPIRE_VAR_SHEET (w);
-
-  GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (vs));
-
-  vs->missing_val_dialog = missing_val_dialog_create (GTK_WINDOW (toplevel));
-  
-  /* Chain up to the parent class */
-  GTK_WIDGET_CLASS (parent_class)->realize (w);
-}
-
-static void
-psppire_var_sheet_unrealize (GtkWidget *w)
-{
-  PsppireVarSheet *vs = PSPPIRE_VAR_SHEET (w);
-
-  g_free (vs->missing_val_dialog);
-
-  /* Chain up to the parent class */
-  GTK_WIDGET_CLASS (parent_class)->unrealize (w);
-}
-
 
 
 static void
