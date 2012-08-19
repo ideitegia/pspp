@@ -125,28 +125,23 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       union value high_val;
       const gchar *low_text = gtk_entry_get_text (GTK_ENTRY (dialog->low));
       const gchar *high_text = gtk_entry_get_text (GTK_ENTRY (dialog->high));
+      gboolean low_ok;
+      gboolean high_ok;
+      gboolean ok;
 
-      if ( text_to_value (low_text, dialog->pv, &low_val)
-	   &&
-	   text_to_value (high_text, dialog->pv, &high_val))
-	{
-	  if ( low_val.f > high_val.f )
-	    {
-	      err_dialog (_("Incorrect range specification"),
-			  GTK_WINDOW (dialog->window));
-	      value_destroy (&low_val, var_get_width (dialog->pv));
-	      value_destroy (&high_val, var_get_width (dialog->pv));
-	      return ;
-	    }
-	}
-      else
-	{
-	  err_dialog (_("Incorrect range specification"),
-		      GTK_WINDOW (dialog->window));
-	  value_destroy (&low_val, var_get_width (dialog->pv));
-	  value_destroy (&high_val, var_get_width (dialog->pv));
-	  return;
-	}
+      low_ok = text_to_value (low_text, dialog->pv, &low_val) != NULL;
+      high_ok = text_to_value (high_text, dialog->pv, &high_val) != NULL;
+      ok = low_ok && high_ok && low_val.f <= high_val.f;
+      if (!ok)
+        {
+          err_dialog (_("Incorrect range specification"),
+                      GTK_WINDOW (dialog->window));
+          if (low_ok)
+            value_destroy (&low_val, var_get_width (dialog->pv));
+          if (high_ok)
+            value_destroy (&high_val, var_get_width (dialog->pv));
+          return;
+        }
 
       discrete_text =
 	g_strdup (gtk_entry_get_text (GTK_ENTRY (dialog->discrete)));
