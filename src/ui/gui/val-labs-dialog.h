@@ -43,8 +43,6 @@ typedef struct _PsppireValLabsDialogClass PsppireValLabsDialogClass;
 struct _PsppireValLabsDialog {
   PsppireDialog parent;
 
-  GtkWidget *window;
-
   struct val_labs *labs;
   gchar *encoding;
   struct fmt_spec format;
