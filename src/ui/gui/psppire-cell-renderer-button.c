@@ -318,8 +318,8 @@ psppire_cell_renderer_button_initial_click (gpointer data)
 {
   GtkButton *button = data;
 
-  gtk_button_clicked (button);
   g_object_steal_data (G_OBJECT (button), IDLE_ID_STRING);
+  gtk_button_clicked (button);
   return FALSE;
 }
 
