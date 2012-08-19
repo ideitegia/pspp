@@ -207,6 +207,7 @@ psppire_var_type_dialog_run (GtkWindow *parent_window,
 
   dialog = psppire_var_type_dialog_new (format);
   gtk_window_set_transient_for (GTK_WINDOW (dialog), parent_window);
+  gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
   gtk_widget_show (GTK_WIDGET (dialog));
 
   if (psppire_dialog_run (PSPPIRE_DIALOG (dialog)) == GTK_RESPONSE_OK)

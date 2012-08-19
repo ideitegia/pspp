@@ -156,6 +156,7 @@ psppire_val_labs_dialog_run (GtkWindow *parent_window,
 
   dialog = psppire_val_labs_dialog_new (var);
   gtk_window_set_transient_for (GTK_WINDOW (dialog), parent_window);
+  gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
   gtk_widget_show (GTK_WIDGET (dialog));
 
   labs = (psppire_dialog_run (PSPPIRE_DIALOG (dialog)) == GTK_RESPONSE_OK
