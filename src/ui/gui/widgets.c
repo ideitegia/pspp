@@ -1,5 +1,7 @@
 #include <config.h>
 
+#include <gtksourceview/gtksourceview.h>
+
 #include "widgets.h"
 
 
