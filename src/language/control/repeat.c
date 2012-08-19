@@ -313,6 +313,7 @@ parse_commands (struct lexer *lexer, struct hmap *dummies)
       lex_include (lexer, reader);
     }
   free (file_name);
+  free (outputs);
 
   return ok;
 }

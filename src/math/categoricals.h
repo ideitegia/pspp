@@ -57,7 +57,6 @@ size_t categoricals_df_total (const struct categoricals *cat);
 */
 size_t categoricals_get_n_variables (const struct categoricals *cat);
 
-
 bool categoricals_is_complete (const struct categoricals *cat);
 
 
@@ -67,7 +66,9 @@ bool categoricals_is_complete (const struct categoricals *cat);
   If this function returns false, then no calls to _by_subscript or *_by_category
   are allowed.
 */
-bool categoricals_done (const struct categoricals *cat);
+void categoricals_done (const struct categoricals *cat);
+
+bool categoricals_sane (const struct categoricals *cat);
 
 
 /*
@@ -105,6 +106,7 @@ struct payload
 {
   void* (*create)  (const void *aux1, void *aux2);
   void (*update)  (const void *aux1, void *aux2, void *user_data, const struct ccase *, double weight);
+  void (*calculate) (const void *aux1, void *aux2, void *user_data);
   void (*destroy) (const void *aux1, void *aux2, void *user_data);
 };
 

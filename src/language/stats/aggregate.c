@@ -332,8 +332,8 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
       else
 	{
 	  dump_aggregate_info (&agr, output, c);
-	  case_unref (c);
 	}
+      case_unref (c);
     }
   if (!casegrouper_destroy (grouper))
     goto error;

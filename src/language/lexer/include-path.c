@@ -75,7 +75,7 @@ include_path_init__ (void)
 
   if (inited)
     return;
-  inited = false;
+  inited = true;
 
   string_array_init (&the_include_path);
   string_array_append (&the_include_path, ".");

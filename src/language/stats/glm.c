@@ -324,8 +324,6 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 
   const_var_set_destroy (factors);
   free (glm.factor_vars);
-  for (i = 0 ; i < glm.n_interactions; ++i)
-    interaction_destroy (glm.interactions[i]);
   free (glm.interactions);
   free (glm.dep_vars);
 

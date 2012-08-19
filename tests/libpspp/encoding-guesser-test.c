@@ -97,6 +97,7 @@ main (int argc, char *argv[])
           }
       }
   puts (guess);
+  free (buffer);
 
   return 0;
 }

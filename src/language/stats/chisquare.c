@@ -88,6 +88,8 @@ create_freq_hash_with_range (const struct dictionary *dict,
         }
     }
 
+  free (entries);
+
   return casereader_destroy (input);
 }
 
@@ -152,6 +154,7 @@ create_variable_frequency_table (const struct dictionary *dict,
 	  test->n_expected, n_cells,
 	  var_get_name (var)
 	  );
+      freq_hmap_destroy (freq_hash, var_get_width (var));
       return NULL;
     }
 

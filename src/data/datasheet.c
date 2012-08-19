@@ -509,15 +509,19 @@ datasheet_resize_column (struct datasheet *ds, size_t column, int new_width,
           if (!source_read (&old_col, prow, &src))
             {
               /* FIXME: back out col changes. */
-              return false;
+              break;
             }
           resize_cb (&src, &dst, resize_cb_aux);
           if (!source_write (col, prow, &dst))
             {
               /* FIXME: back out col changes. */
-              return false;
+              break;
             }
         }
+      value_destroy (&src, old_width);
+      value_destroy (&dst, new_width);
+      if (lrow < n_rows)
+	return false;
 
       release_source (ds, old_col.source);
     }

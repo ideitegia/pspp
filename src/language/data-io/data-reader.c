@@ -162,6 +162,7 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer,
         {
           msg (ME, _("Could not open `%s' for reading as a data file: %s."),
                fh_get_file_name (r->fh), strerror (errno));
+          goto error;
         }
       r->file_size = fstat (fileno (r->file), &s) == 0 ? s.st_size : -1;
     }

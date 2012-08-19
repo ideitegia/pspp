@@ -14,8 +14,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef __PSPPIRE_VAL_LABS_DIALOG_H
-#define __PSPPIRE_VAL_LABS_DIALOG_H
+#ifndef PSPPIRE_VAL_LABS_DIALOG_H
+#define PSPPIRE_VAL_LABS_DIALOG_H
 
 
 /*  This module describes the behaviour of the Value Labels dialog box,
@@ -23,16 +23,60 @@
 
 
 #include <gtk/gtk.h>
-#include <data/variable.h>
+#include "data/format.h"
+#include "data/variable.h"
+#include "ui/gui/psppire-dialog.h"
 
-struct val_labs;
+G_BEGIN_DECLS
 
+#define PSPPIRE_TYPE_VAL_LABS_DIALOG             (psppire_val_labs_dialog_get_type())
+#define PSPPIRE_VAL_LABS_DIALOG(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj),PSPPIRE_TYPE_VAL_LABS_DIALOG,PsppireValLabsDialog))
+#define PSPPIRE_VAL_LABS_DIALOG_CLASS(class)     (G_TYPE_CHECK_CLASS_CAST ((class),PSPPIRE_TYPE_VAL_LABS_DIALOG,PsppireValLabsDialogClass))
+#define PSPPIRE_IS_VAL_LABS_DIALOG(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj),PSPPIRE_TYPE_VAL_LABS_DIALOG))
+#define PSPPIRE_IS_VAL_LABS_DIALOG_CLASS(class)  (G_TYPE_CHECK_CLASS_TYPE ((class),PSPPIRE_TYPE_VAL_LABS_DIALOG))
+#define PSPPIRE_VAL_LABS_DIALOG_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj),PSPPIRE_TYPE_VAL_LABS_DIALOG,PsppireValLabsDialogClass))
 
-struct val_labs_dialog * val_labs_dialog_create (GtkWindow *);
+typedef struct _PsppireValLabsDialog      PsppireValLabsDialog;
+typedef struct _PsppireValLabsDialogClass PsppireValLabsDialogClass;
 
-void val_labs_dialog_show (struct val_labs_dialog *);
+struct _PsppireValLabsDialog {
+  PsppireDialog parent;
 
-void val_labs_dialog_set_target_variable (struct val_labs_dialog *,
-					  struct variable *);
+  struct val_labs *labs;
+  gchar *encoding;
+  struct fmt_spec format;
 
-#endif
+  /* Actions */
+  GtkWidget *add_button;
+  GtkWidget *remove_button;
+  GtkWidget *change_button;
+
+  /* Entry Boxes */
+  GtkWidget *value_entry;
+  GtkWidget *label_entry;
+
+  /* Signal handler ids */
+  gint change_handler_id;
+  gint value_handler_id;
+
+  GtkWidget *treeview;
+};
+
+struct _PsppireValLabsDialogClass {
+  PsppireDialogClass parent_class;
+};
+
+GType psppire_val_labs_dialog_get_type (void) G_GNUC_CONST;
+PsppireValLabsDialog* psppire_val_labs_dialog_new (const struct variable *);
+
+void psppire_val_labs_dialog_set_variable (PsppireValLabsDialog *,
+                                           const struct variable *);
+const struct val_labs *psppire_val_labs_dialog_get_value_labels (
+  const PsppireValLabsDialog *);
+
+struct val_labs *psppire_val_labs_dialog_run (GtkWindow *parent_window,
+                                              const struct variable *);
+
+G_END_DECLS
+
+#endif /* psppire-val-labs-dialog.h */

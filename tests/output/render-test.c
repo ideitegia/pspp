@@ -122,7 +122,10 @@ configure_drivers (int width, int length)
   string_map_destroy (&tmp);
 
   if (draw_mode)
+   {
+    string_map_destroy (&options);
     return;
+   }
 
   /* Render to render.txt. */
   string_map_replace (&options, "output-file", "render.txt");

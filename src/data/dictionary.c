@@ -194,10 +194,6 @@ dict_clone (const struct dictionary *s)
 
   d = dict_create (s->encoding);
 
-  /* Set the new dictionary's encoding early so that string length limitations
-     are interpreted correctly. */
-  d->encoding = xstrdup (s->encoding);
-
   for (i = 0; i < s->var_cnt; i++)
     {
       struct variable *sv = s->var[i].var;
@@ -305,6 +301,7 @@ dict_destroy (struct dictionary *d)
       d->callbacks  = NULL ;
 
       dict_clear (d);
+      string_array_destroy (&d->documents);
       hmap_destroy (&d->name_map);
       attrset_destroy (&d->attributes);
       dict_clear_mrsets (d);

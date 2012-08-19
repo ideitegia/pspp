@@ -424,9 +424,12 @@ datasheet_mc_init (struct mc *mc)
   if (params->backing_rows == 0 && params->n_backing_cols == 0)
     {
       /* Create unbacked datasheet. */
+      struct caseproto *proto;
       ds = datasheet_create (NULL);
       mc_name_operation (mc, "empty datasheet");
-      check_datasheet (mc, ds, NULL, 0, caseproto_create ());
+      proto = caseproto_create ();
+      check_datasheet (mc, ds, NULL, 0, proto);
+      caseproto_unref (proto);
     }
   else
     {

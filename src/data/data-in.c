@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1123,7 +1123,7 @@ parse_date (struct data_in *i)
   double time = 0, date = 0;
   enum time_sign time_sign = SIGN_NO_TIME;
 
-  const char *template = fmt_date_template (i->format);
+  const char *template = fmt_date_template (i->format, 0);
   size_t template_width = strlen (template);
   char *error;
 
@@ -1180,14 +1180,18 @@ parse_date (struct data_in *i)
         case '-':
         case '/':
         case '.':
-        case 'X':
           error = parse_date_delimiter (i);
           break;
         case ':':
           error = parse_time_delimiter (i);
         case ' ':
-          parse_spaces (i);
-          error = NULL;
+          if (i->format != FMT_MOYR)
+            {
+              parse_spaces (i);
+              error = NULL;
+            }
+          else
+            error = parse_date_delimiter (i);
           break;
         default:
           assert (count == 1);

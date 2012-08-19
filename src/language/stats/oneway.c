@@ -384,6 +384,37 @@ static void show_homogeneity (const struct oneway_spec *, const struct oneway_wo
 static void output_oneway (const struct oneway_spec *, struct oneway_workspace *ws);
 static void run_oneway (const struct oneway_spec *cmd, struct casereader *input, const struct dataset *ds);
 
+
+static void
+destroy_coeff_list (struct contrasts_node *coeff_list)
+{
+  struct coeff_node *cn = NULL;
+  struct coeff_node *cnx = NULL;
+  struct ll_list *cl = &coeff_list->coefficient_list;
+  
+  ll_for_each_safe (cn, cnx, struct coeff_node, ll, cl)
+    {
+      free (cn);
+    }
+  
+  free (coeff_list);
+}
+
+static void
+oneway_cleanup (struct oneway_spec *cmd)
+{
+  struct contrasts_node *coeff_list  = NULL;
+  struct contrasts_node *coeff_next  = NULL;
+  ll_for_each_safe (coeff_list, coeff_next, struct contrasts_node, ll, &cmd->contrast_list)
+    {
+      destroy_coeff_list (coeff_list);
+    }
+
+  free (cmd->posthoc);
+}
+
+
+
 int
 cmd_oneway (struct lexer *lexer, struct dataset *ds)
 {
@@ -505,6 +536,7 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 		}
 	      else
 		{
+		  destroy_coeff_list (cl);
 		  lex_error (lexer, NULL);
 		  goto error;
 		}
@@ -560,10 +592,12 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
     ok = proc_commit (ds) && ok;
   }
 
+  oneway_cleanup (&oneway);
   free (oneway.vars);
   return CMD_SUCCESS;
 
  error:
+  oneway_cleanup (&oneway);
   free (oneway.vars);
   return CMD_FAILURE;
 }
@@ -601,6 +635,15 @@ makeit (const void *aux1, void *aux2 UNUSED)
 
   return dd;
 }
+
+static void 
+killit (const void *aux1 UNUSED, void *aux2 UNUSED, void *user_data)
+{
+  struct descriptive_data *dd = user_data;
+
+  dd_destroy (dd);
+}
+
 
 static void 
 updateit (const void *aux1, void *aux2, void *user_data,
@@ -664,7 +707,8 @@ run_oneway (const struct oneway_spec *cmd,
       struct payload payload;
       payload.create = makeit;
       payload.update = updateit;
-      payload.destroy = NULL;
+      payload.calculate = NULL;
+      payload.destroy = killit;
 
       ws.vws[v].cat = categoricals_create (&inter, 1, cmd->wv,
                                            cmd->exclude, cmd->exclude);
@@ -774,7 +818,7 @@ run_oneway (const struct oneway_spec *cmd,
       gsl_matrix *cm;
       struct per_var_ws *pvw = &ws.vws[v];
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
-      const bool ok = categoricals_done (cats);
+      const bool ok = categoricals_sane (cats);
 
       if ( ! ok)
 	{
@@ -824,6 +868,7 @@ run_oneway (const struct oneway_spec *cmd,
   taint_destroy (taint);
 
  finish:
+
   for (v = 0; v < cmd->n_vars; ++v)
     {
       covariance_destroy (ws.vws[v].cov);
@@ -860,6 +905,7 @@ output_oneway (const struct oneway_spec *cmd, struct oneway_workspace *ws)
 	       i, ll_count (cl), ws->actual_number_of_groups);
 
 	  ll_remove (&coeff_list->ll);
+	  destroy_coeff_list (coeff_list);
 	  continue;
 	}
 

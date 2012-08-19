@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-marshal.h"
 #include "ui/gui/val-labs-dialog.h"
+#include "ui/gui/var-type-dialog.h"
 #include "ui/gui/var-display.h"
 #include "ui/gui/var-type-dialog.h"
 
@@ -449,8 +450,17 @@ on_type_click (PsppireCellRendererButton *cell,
                gchar *path,
                PsppireVarSheet *var_sheet)
 {
-  var_sheet->var_type_dialog->pv = path_string_to_variable (var_sheet, path);
-  var_type_dialog_show (var_sheet->var_type_dialog);
+  GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (var_sheet));
+  struct fmt_spec format;
+  struct variable *var;
+
+  var = path_string_to_variable (var_sheet, path);
+  g_return_if_fail (var != NULL);
+
+  format = *var_get_print_format (var);
+  psppire_var_type_dialog_run (GTK_WINDOW (toplevel), &format);
+  var_set_width (var, fmt_var_width (&format));
+  var_set_both_formats (var, &format);
 }
 
 static void
@@ -458,9 +468,19 @@ on_value_labels_click (PsppireCellRendererButton *cell,
                        gchar *path,
                        PsppireVarSheet *var_sheet)
 {
-  struct variable *var = path_string_to_variable (var_sheet, path);
-  val_labs_dialog_set_target_variable (var_sheet->val_labs_dialog, var);
-  val_labs_dialog_show (var_sheet->val_labs_dialog);
+  GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (var_sheet));
+  struct val_labs *labels;
+  struct variable *var;
+
+  var = path_string_to_variable (var_sheet, path);
+  g_return_if_fail (var != NULL);
+
+  labels = psppire_val_labs_dialog_run (GTK_WINDOW (toplevel), var);
+  if (labels)
+    {
+      var_set_value_labels (var, labels);
+      val_labs_destroy (labels);
+    }
 }
 
 static void
@@ -468,9 +488,16 @@ on_missing_values_click (PsppireCellRendererButton *cell,
                          gchar *path,
                          PsppireVarSheet *var_sheet)
 {
-  var_sheet->missing_val_dialog->pv = path_string_to_variable (var_sheet,
-                                                               path);
-  missing_val_dialog_show (var_sheet->missing_val_dialog);
+  GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (var_sheet));
+  struct missing_values mv;
+  struct variable *var;
+
+  var = path_string_to_variable (var_sheet, path);
+  g_return_if_fail (var != NULL);
+
+  psppire_missing_val_dialog_run (GTK_WINDOW (toplevel), var, &mv);
+  var_set_missing_values (var, &mv);
+  mv_destroy (&mv);
 }
 
 static gint
@@ -896,20 +923,6 @@ psppire_var_sheet_get_property (GObject      *object,
 }
 
 static void
-psppire_var_sheet_realize (GtkWidget *w)
-{
-  PsppireVarSheet *var_sheet = PSPPIRE_VAR_SHEET (w);
-  GtkWindow *toplevel;
-
-  GTK_WIDGET_CLASS (psppire_var_sheet_parent_class)->realize (w);
-
-  toplevel = GTK_WINDOW (gtk_widget_get_toplevel (w));
-  var_sheet->val_labs_dialog = val_labs_dialog_create (toplevel);
-  var_sheet->missing_val_dialog = missing_val_dialog_create (toplevel);
-  var_sheet->var_type_dialog = var_type_dialog_create (toplevel);
-}
-
-static void
 psppire_var_sheet_dispose (GObject *obj)
 {
   PsppireVarSheet *var_sheet = PSPPIRE_VAR_SHEET (obj);
@@ -947,14 +960,11 @@ static void
 psppire_var_sheet_class_init (PsppireVarSheetClass *class)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (class);
-  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
   GParamSpec *pspec;
 
   gobject_class->set_property = psppire_var_sheet_set_property;
   gobject_class->get_property = psppire_var_sheet_get_property;
   gobject_class->dispose = psppire_var_sheet_dispose;
-
-  widget_class->realize = psppire_var_sheet_realize;
 
   g_signal_new ("var-double-clicked",
                 G_OBJECT_CLASS_TYPE (gobject_class),

@@ -65,10 +65,12 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
   tok = strdup (lex_tokcstr (lexer));
   if (lex_match_id (lexer, "TXT"))
     {
+      free (tok);
       return parse_get_txt (lexer, ds);
     }
   else if (lex_match_id (lexer, "PSQL"))
     {
+      free (tok);
       return parse_get_psql (lexer, ds);
     }
   else if (lex_match_id (lexer, "GNM") || 

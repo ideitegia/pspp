@@ -29,41 +29,29 @@
 #include "data/variable.h"
 #include "libpspp/message.h"
 #include "ui/gui/builder-wrapper.h"
+#include "ui/gui/psppire-format.h"
 #include "ui/gui/var-type-dialog.h"
 
-struct tgs
-{
-  struct var_type_dialog *dialog;
-  gint button;
-};
-
-
-struct format_opt {
-  gchar desc[21];
-  struct fmt_spec spec;
-};
-
-
-static const struct format_opt format_option[] =
+static const struct fmt_spec date_format[] =
   {
-    { "dd-mmm-yyyy", {FMT_DATE,  11, 0} },
-    { "dd-mmm-yy",   {FMT_DATE,   9, 0} },
-    { "mm/dd/yyyy",  {FMT_ADATE, 10, 0} },
-    { "mm/dd/yy",    {FMT_ADATE, 8, 0} },
-    { "dd.mm.yyyy",  {FMT_EDATE, 10, 0} },
-    { "dd.mm.yy",    {FMT_EDATE, 8, 0} },
-    { "yyyy/mm/dd",  {FMT_SDATE, 10, 0} },
-    { "yy/mm/dd",    {FMT_SDATE, 8, 0} },
-    { "yyddd",       {FMT_JDATE, 5, 0} },
-    { "yyyyddd",     {FMT_JDATE, 7, 0} },
-    { "q Q yyyy",    {FMT_QYR, 8, 0} },
-    { "q Q yy",      {FMT_QYR, 6, 0} },
-    { "mmm yyyy",    {FMT_MOYR, 8, 0} },
-    { "mmm yy",      {FMT_MOYR, 6, 0} },
-    { "dd WK yyyy",  {FMT_WKYR, 10, 0} },
-    { "dd WK yy",    {FMT_WKYR, 8, 0} },
-    { "dd-mmm-yyyy HH:MM", {FMT_DATETIME, 17, 0}},
-    { "dd-mmm-yyyy HH:MM:SS", {FMT_DATETIME, 20, 0}}
+    {FMT_DATE,  11, 0},
+    {FMT_DATE,   9, 0},
+    {FMT_ADATE, 10, 0},
+    {FMT_ADATE, 8, 0},
+    {FMT_EDATE, 10, 0},
+    {FMT_EDATE, 8, 0},
+    {FMT_SDATE, 10, 0},
+    {FMT_SDATE, 8, 0},
+    {FMT_JDATE, 5, 0},
+    {FMT_JDATE, 7, 0},
+    {FMT_QYR, 8, 0},
+    {FMT_QYR, 6, 0},
+    {FMT_MOYR, 8, 0},
+    {FMT_MOYR, 6, 0},
+    {FMT_WKYR, 10, 0},
+    {FMT_WKYR, 8, 0},
+    {FMT_DATETIME, 17, 0},
+    {FMT_DATETIME, 20, 0}
   };
 
 
@@ -92,118 +80,296 @@ static const int cc_format[] =
     FMT_CCE,
   };
 
+static GObject *psppire_var_type_dialog_constructor (GType type, guint,
+                                                     GObjectConstructParam *);
+static void psppire_var_type_dialog_set_state (PsppireVarTypeDialog *);
 
-static void select_treeview_from_format
- (GtkTreeView *treeview, const struct fmt_spec *fmt);
+static int find_format (const struct fmt_spec *target,
+                        const struct fmt_spec formats[], int n_formats);
+static int find_format_type (int target, const int types[], int n_types);
 
-static void select_treeview_from_format_type (GtkTreeView *treeview,
-					     const int fmt_type);
+static void select_treeview_at_index (GtkTreeView *, int index);
 
+static void update_width_decimals (const PsppireVarTypeDialog *);
+static void refresh_active_button (PsppireVarTypeDialog *);
+static void on_active_button_change (GtkToggleButton *,
+                                     PsppireVarTypeDialog *);
+static void on_width_changed (GtkEntry *, PsppireVarTypeDialog *);
+static void on_decimals_changed (GtkEntry *, PsppireVarTypeDialog *);
 
-/* callback for when any of the radio buttons are toggled */
+G_DEFINE_TYPE (PsppireVarTypeDialog,
+               psppire_var_type_dialog,
+               PSPPIRE_TYPE_DIALOG);
+
+enum
+  {
+    PROP_0,
+    PROP_FORMAT
+  };
+
 static void
-on_toggle_1 (GtkToggleButton *togglebutton, gpointer user_data)
+psppire_var_type_dialog_set_property (GObject      *object,
+                                      guint         prop_id,
+                                      const GValue *value,
+                                      GParamSpec   *pspec)
 {
-  struct tgs *tgs = user_data;
+  PsppireVarTypeDialog *obj = PSPPIRE_VAR_TYPE_DIALOG (object);
 
-  if ( gtk_toggle_button_get_active (togglebutton) == FALSE)
-    return ;
-
-  tgs->dialog->active_button = tgs->button;
-}
-
-static void update_width_decimals (const struct var_type_dialog *dialog);
-
-#define force_max(x, val) if (x > val) x = val
-
-/*
-   Set the local format from the variable
-   and force them to have sensible values */
-static void
-set_local_width_decimals (struct var_type_dialog *dialog)
-{
-  dialog->fmt_l = * var_get_print_format (dialog->pv);
-
-  switch (dialog->active_button)
+  switch (prop_id)
     {
-    case BUTTON_STRING:
-      force_max ( dialog->fmt_l.w, 255);
+    case PROP_FORMAT:
+      psppire_var_type_dialog_set_format (obj, g_value_get_boxed (value));
       break;
     default:
-      force_max ( dialog->fmt_l.w, 40);
-      force_max ( dialog->fmt_l.d, 16);
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
     }
+}
+
+static void
+psppire_var_type_dialog_get_property (GObject      *object,
+                                      guint         prop_id,
+                                      GValue       *value,
+                                      GParamSpec   *pspec)
+{
+  PsppireVarTypeDialog *obj = PSPPIRE_VAR_TYPE_DIALOG (object);
+
+  switch (prop_id)
+    {
+    case PROP_FORMAT:
+      g_value_set_boxed (value, &obj->fmt_l);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+void
+psppire_var_type_dialog_set_format (PsppireVarTypeDialog *dialog,
+                                    const struct fmt_spec *format)
+{
+  dialog->base_format = *format;
+  psppire_var_type_dialog_set_state (dialog);
+}
+
+const struct fmt_spec *
+psppire_var_type_dialog_get_format (const PsppireVarTypeDialog *dialog)
+{
+  return &dialog->fmt_l;
+}
+
+static void
+psppire_var_type_dialog_init (PsppireVarTypeDialog *obj)
+{
+  /* We do all of our work on widgets in the constructor function, because that
+     runs after the construction properties have been set.  Otherwise
+     PsppireDialog's "orientation" property hasn't been set and therefore we
+     have no box to populate. */
+  obj->base_format = F_8_0;
+  obj->fmt_l = F_8_0;
+}
+
+static void
+psppire_var_type_dialog_class_init (PsppireVarTypeDialogClass *class)
+{
+  GObjectClass *gobject_class;
+  gobject_class = G_OBJECT_CLASS (class);
+
+  gobject_class->constructor = psppire_var_type_dialog_constructor;
+  gobject_class->set_property = psppire_var_type_dialog_set_property;
+  gobject_class->get_property = psppire_var_type_dialog_get_property;
+
+  g_object_class_install_property (
+    gobject_class, PROP_FORMAT,
+    g_param_spec_boxed ("format",
+                        "Format",
+                        "The format being edited.",
+                        PSPPIRE_TYPE_FORMAT,
+                        G_PARAM_READABLE | G_PARAM_WRITABLE));
+}
+
+PsppireVarTypeDialog *
+psppire_var_type_dialog_new (const struct fmt_spec *format)
+{
+  return PSPPIRE_VAR_TYPE_DIALOG (
+    g_object_new (PSPPIRE_TYPE_VAR_TYPE_DIALOG,
+                  "orientation", PSPPIRE_HORIZONTAL,
+                  "format", format,
+                  NULL));
+}
+
+void
+psppire_var_type_dialog_run (GtkWindow *parent_window,
+                             struct fmt_spec *format)
+{
+  PsppireVarTypeDialog *dialog;
+
+  dialog = psppire_var_type_dialog_new (format);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), parent_window);
+  gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
+  gtk_widget_show (GTK_WIDGET (dialog));
+
+  if (psppire_dialog_run (PSPPIRE_DIALOG (dialog)) == GTK_RESPONSE_OK)
+    *format = *psppire_var_type_dialog_get_format (dialog);
+
+  gtk_widget_destroy (GTK_WIDGET (dialog));
 }
 
 
 /* callback for when any of the radio buttons are toggled */
 static void
-on_toggle_2 (GtkToggleButton *togglebutton, gpointer user_data)
+on_toggle (GtkToggleButton *togglebutton, gpointer dialog_)
 {
-  struct var_type_dialog *dialog = user_data;
-  if ( gtk_toggle_button_get_active (togglebutton) == FALSE)
+  PsppireVarTypeDialog *dialog = dialog_;
+
+  if ( gtk_toggle_button_get_active (togglebutton) == TRUE)
+    refresh_active_button (dialog);
+}
+
+static void
+refresh_active_button (PsppireVarTypeDialog *dialog)
+{
+  int i;
+
+  for (i = 0; i < num_BUTTONS; i++)
     {
-      switch (dialog->active_button)
-	{
-	case BUTTON_DATE:
-	  gtk_widget_hide (dialog->date_format_list);
-	  break;
-	case BUTTON_CUSTOM:
-	  gtk_widget_hide (dialog->custom_currency_hbox);
-	  break;
-	case BUTTON_DOLLAR:
-	  gtk_widget_hide (dialog->dollar_window);
-	  break;
-	case BUTTON_STRING:
-	  gtk_widget_show (dialog->label_decimals);
-	  gtk_widget_show (dialog->entry_decimals);
-	  break;
-	}
-      return ;
+      GtkToggleButton *toggle = GTK_TOGGLE_BUTTON (dialog->radioButton[i]);
+
+      if (gtk_toggle_button_get_active (toggle))
+        {
+          if (dialog->active_button != i)
+            {
+              dialog->active_button = i;
+              on_active_button_change (toggle, dialog);
+            }
+          return;
+        }
     }
 
-  set_local_width_decimals (dialog);
-  update_width_decimals (dialog);
+  g_return_if_reached ();
+}
+
+static void
+update_adj_ranges (PsppireVarTypeDialog *dialog)
+{
+  enum fmt_type type = dialog->fmt_l.type;
+  const enum fmt_use use = FMT_FOR_OUTPUT;
+  int min_w = fmt_min_width (type, use);
+  int max_w = fmt_max_width (type, use);
+  int max_d = fmt_max_decimals (type, max_w, use);
+
+  g_object_set (dialog->adj_width,
+                "lower", (double) min_w,
+                "upper", (double) max_w,
+                NULL);
+
+  g_object_set (dialog->adj_decimals,
+                "lower", 0.0,
+                "upper", (double) max_d,
+                NULL);
+}
+
+/* callback for when any of the radio buttons are toggled */
+static void
+on_active_button_change (GtkToggleButton *togglebutton,
+                         PsppireVarTypeDialog *dialog)
+{
+  enum widgets {
+    W_WIDTH          = 1 << 0,
+    W_DECIMALS       = 1 << 1,
+    W_DATE_FORMATS   = 1 << 2,
+    W_DOLLAR_FORMATS = 1 << 3,
+    W_CC_FORMATS     = 1 << 4,
+  };
+
+  enum widgets widgets;
+  int indx;
 
   switch (dialog->active_button)
     {
+    case BUTTON_NUMERIC:
+    case BUTTON_COMMA:
+    case BUTTON_DOT:
+    case BUTTON_SCIENTIFIC:
+      widgets = W_WIDTH | W_DECIMALS;
+      break;
+
     case BUTTON_STRING:
-      gtk_widget_show (dialog->entry_width);
-      gtk_widget_show (dialog->width_decimals);
-      gtk_widget_hide (dialog->label_decimals);
-      gtk_widget_hide (dialog->entry_decimals);
+      widgets = W_WIDTH;
+      break;
+
+    case BUTTON_DATE:
+      widgets = W_DATE_FORMATS;
+      break;
+
+    case BUTTON_DOLLAR:
+      widgets = W_DOLLAR_FORMATS;
+      break;
+
+    case BUTTON_CUSTOM:
+      widgets = W_CC_FORMATS | W_WIDTH | W_DECIMALS;
+      break;
+
+    default:
+      /* No button active */
+      return;
+    }
+
+  gtk_widget_set_visible (dialog->width_decimals, (widgets & W_WIDTH) != 0);
+  gtk_widget_set_visible (dialog->entry_width, (widgets & W_WIDTH) != 0);
+  gtk_widget_set_visible (dialog->entry_decimals, (widgets & W_DECIMALS) != 0);
+  gtk_widget_set_visible (dialog->label_decimals, (widgets & W_DECIMALS) != 0);
+  gtk_widget_set_visible (dialog->date_format_list,
+                          (widgets & W_DATE_FORMATS) != 0);
+  gtk_widget_set_visible (dialog->custom_currency_hbox,
+                          (widgets & W_CC_FORMATS) != 0);
+  gtk_widget_set_visible (dialog->dollar_window,
+                          (widgets & W_DOLLAR_FORMATS) != 0);
+
+  dialog->fmt_l = dialog->base_format;
+
+  switch (dialog->active_button)
+    {
+    case BUTTON_NUMERIC:
+      dialog->fmt_l.type = FMT_F;
+      break;
+    case BUTTON_COMMA:
+      dialog->fmt_l.type = FMT_COMMA;
+      break;
+    case BUTTON_DOT:
+      dialog->fmt_l.type = FMT_DOT;
+      break;
+    case BUTTON_SCIENTIFIC:
+      dialog->fmt_l.type = FMT_E;
+      break;
+    case BUTTON_STRING:
+      dialog->fmt_l.type = FMT_A;
       break;
     case BUTTON_DATE:
-      select_treeview_from_format (dialog->date_format_treeview,
-				  &format_option[0].spec);
-      gtk_widget_hide (dialog->width_decimals);
-      gtk_widget_show (dialog->date_format_list);
+      indx = find_format (&dialog->fmt_l, date_format,
+                          sizeof date_format / sizeof *date_format);
+      select_treeview_at_index (dialog->date_format_treeview, indx);
+      dialog->fmt_l = date_format[indx];
       break;
     case BUTTON_DOLLAR:
-      select_treeview_from_format (dialog->dollar_treeview,
-				  &dollar_format[0]);
-      gtk_widget_show (dialog->dollar_window);
-      gtk_widget_show_all (dialog->width_decimals);
+      indx = find_format (&dialog->fmt_l, dollar_format,
+                          sizeof dollar_format / sizeof *dollar_format);
+      select_treeview_at_index (dialog->dollar_treeview, indx);
+      dialog->fmt_l = dollar_format[indx];
       break;
     case BUTTON_CUSTOM:
-      select_treeview_from_format_type (dialog->custom_treeview,
-				  cc_format[0]);
-
-      gtk_widget_show (dialog->width_decimals);
-      gtk_widget_show (dialog->custom_currency_hbox);
-      break;
-    default:
-      gtk_widget_show_all (dialog->width_decimals);
+      indx = find_format_type (dialog->fmt_l.type, cc_format,
+                               sizeof cc_format / sizeof *cc_format);
+      select_treeview_at_index (dialog->custom_treeview, indx);
+      dialog->fmt_l.type = cc_format[indx];
       break;
     }
+
+  fmt_fix_output (&dialog->fmt_l);
+  update_adj_ranges (dialog);
+  update_width_decimals (dialog);
 }
-
-
-
-static gint on_var_type_ok_clicked (GtkWidget *w, gpointer data);
-static gint hide_dialog (GtkWidget *w,  gpointer data);
-
 
 static void
 add_to_group (GtkWidget *w, gpointer data)
@@ -215,18 +381,26 @@ add_to_group (GtkWidget *w, gpointer data)
 
 /* Set the local width and decimals entry boxes to reflec the local format */
 static void
-update_width_decimals (const struct var_type_dialog *dialog)
+update_width_decimals (const PsppireVarTypeDialog *dialog)
 {
-  gchar *text;
-  g_assert (dialog);
+  gtk_adjustment_set_value (dialog->adj_width, dialog->fmt_l.w);
+  gtk_adjustment_set_value (dialog->adj_decimals, dialog->fmt_l.d);
+}
 
-  text = g_strdup_printf ("%d", dialog->fmt_l.w);
-  gtk_entry_set_text (GTK_ENTRY (dialog->entry_width), text);
-  g_free (text);
+static void
+on_width_changed (GtkEntry *entry, PsppireVarTypeDialog *dialog)
+{
+  int w = atoi (gtk_entry_get_text (GTK_ENTRY (dialog->entry_width)));
+  fmt_change_width (&dialog->fmt_l, w, FMT_FOR_OUTPUT);
+  update_width_decimals (dialog);
+}
 
-  text = g_strdup_printf ("%d", dialog->fmt_l.d);
-  gtk_entry_set_text (GTK_ENTRY (dialog->entry_decimals), text);
-  g_free (text);
+static void
+on_decimals_changed (GtkEntry *entry, PsppireVarTypeDialog *dialog)
+{
+  int d = atoi (gtk_entry_get_text (GTK_ENTRY (dialog->entry_decimals)));
+  fmt_change_decimals (&dialog->fmt_l, d, FMT_FOR_OUTPUT);
+  update_width_decimals (dialog);
 }
 
 /* Callback for when the custom treeview row is changed.
@@ -236,7 +410,7 @@ preview_custom (GtkWidget *w, gpointer data)
 {
   const gchar *text ;
 
-  struct var_type_dialog *dialog = data;
+  PsppireVarTypeDialog *dialog = data;
 
   if ( dialog->active_button != BUTTON_CUSTOM )
     return;
@@ -271,68 +445,82 @@ preview_custom (GtkWidget *w, gpointer data)
   msg_enable ();
 }
 
-/* Callback for when a treeview row is changed.
-   It sets the fmt_l_spec to reflect the selected format */
-static void
-set_format_from_treeview (GtkTreeView *treeview, gpointer data)
+static gint
+get_index_from_treeview (GtkTreeView *treeview)
 {
-  struct var_type_dialog *dialog = data;
-  GtkTreeIter iter ;
-  GValue the_value = {0};
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
+  GtkTreeModel *model;
+  GtkTreePath *path;
+  GtkTreeIter iter;
+  gint index;
 
-  GtkTreeSelection* sel =  gtk_tree_view_get_selection (treeview);
+  gtk_tree_selection_get_selected (selection, &model, &iter);
+  path = gtk_tree_model_get_path (model, &iter);
+  if (!path || gtk_tree_path_get_depth (path) < 1)
+    index = 0;
+  else
+    index = gtk_tree_path_get_indices (path)[0];
+  gtk_tree_path_free (path);
 
-  GtkTreeModel * model  = gtk_tree_view_get_model (treeview);
-
-  gtk_tree_selection_get_selected (sel, &model, &iter);
-
-  gtk_tree_model_get_value (model, &iter, 1, &the_value);
-
-  dialog->fmt_l = *(struct fmt_spec *) g_value_get_pointer (&the_value);
+  return index;
 }
 
+/* Callback for when a date treeview row is changed.
+   It sets the fmt_l_spec to reflect the selected format */
+static void
+set_date_format_from_treeview (GtkTreeView *treeview,
+                               PsppireVarTypeDialog *dialog)
+{
+  dialog->fmt_l = date_format[get_index_from_treeview (treeview)];
+}
+
+/* Callback for when a dollar treeview row is changed.
+   It sets the fmt_l_spec to reflect the selected format */
+static void
+set_dollar_format_from_treeview (GtkTreeView *treeview,
+                                 PsppireVarTypeDialog *dialog)
+{
+  dialog->fmt_l = dollar_format[get_index_from_treeview (treeview)];
+}
 
 /* Callback for when a treeview row is changed.
    It sets the type of the fmt_l to reflect the selected type */
 static void
-set_format_type_from_treeview (GtkTreeView *treeview, gpointer data)
+set_custom_format_from_treeview (GtkTreeView *treeview,
+                                 PsppireVarTypeDialog *dialog)
 {
-  static struct fmt_spec custom_format = {0,0,0};
-  struct var_type_dialog *dialog = data;
-  GtkTreeIter iter ;
-  GValue the_value = {0};
-
-  GtkTreeSelection* sel =  gtk_tree_view_get_selection (treeview);
-
-  GtkTreeModel * model  = gtk_tree_view_get_model (treeview);
-
-  gtk_tree_selection_get_selected (sel, &model, &iter);
-
-  gtk_tree_model_get_value (model, &iter, 1, &the_value);
-
-  dialog->fmt_l = custom_format;
-  dialog->fmt_l.type = *(int*) g_value_get_pointer (&the_value);
+  dialog->fmt_l.type = cc_format[get_index_from_treeview (treeview)];
+  update_adj_ranges (dialog);
+  fmt_fix_output (&dialog->fmt_l);
+  update_width_decimals (dialog);
 }
 
-
 /* Create the structure */
-struct var_type_dialog *
-var_type_dialog_create (GtkWindow *toplevel)
+static GObject *
+psppire_var_type_dialog_constructor (GType                  type,
+                                     guint                  n_properties,
+                                     GObjectConstructParam *properties)
 {
+  PsppireVarTypeDialog *dialog;
+  GtkContainer *content_area;
+  GtkBuilder *xml;
+  GObject *obj;
   gint i;
-  struct var_type_dialog *dialog = g_malloc (sizeof (struct var_type_dialog));
 
-  GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
+  obj = G_OBJECT_CLASS (psppire_var_type_dialog_parent_class)->constructor (
+    type, n_properties, properties);
+  dialog = PSPPIRE_VAR_TYPE_DIALOG (obj);
 
-  dialog->window = get_widget_assert (xml,"var_type_dialog");
+  xml = builder_new ("var-type-dialog.ui");
+
+  content_area = GTK_CONTAINER (PSPPIRE_DIALOG (dialog)->box);
+  gtk_container_add (GTK_CONTAINER (content_area),
+                     get_widget_assert (xml, "var-type-dialog"));
+
   dialog->active_button = -1;
 
-
-  g_signal_connect (dialog->window, "delete-event",
+  g_signal_connect (dialog, "delete-event",
 		    G_CALLBACK (gtk_widget_hide_on_delete), NULL);
-
-  gtk_window_set_transient_for (GTK_WINDOW (dialog->window),
-				toplevel);
 
   dialog->radioButton[BUTTON_NUMERIC] =
     get_widget_assert (xml,"radiobutton1");
@@ -356,13 +544,16 @@ var_type_dialog_create (GtkWindow *toplevel)
   dialog->width_decimals = get_widget_assert (xml, "width_decimals");
   dialog->label_decimals = get_widget_assert (xml, "decimals_label");
   dialog->entry_decimals = get_widget_assert (xml, "decimals_entry");
+  dialog->adj_decimals = gtk_spin_button_get_adjustment (
+    GTK_SPIN_BUTTON (dialog->entry_decimals));
 
   dialog->label_psample = get_widget_assert (xml, "psample_label");
   dialog->label_nsample = get_widget_assert (xml, "nsample_label");
 
 
   dialog->entry_width = get_widget_assert (xml,"width_entry");
-
+  dialog->adj_width = gtk_spin_button_get_adjustment (
+    GTK_SPIN_BUTTON (dialog->entry_width));
   dialog->custom_currency_hbox = get_widget_assert (xml,
 						   "custom_currency_hbox");
 
@@ -374,8 +565,6 @@ var_type_dialog_create (GtkWindow *toplevel)
     GTK_TREE_VIEW (get_widget_assert (xml, "custom_treeview"));
 
 
-  dialog->ok = get_widget_assert (xml,"var_type_ok");
-
 
   {
   GtkTreeIter iter;
@@ -384,7 +573,6 @@ var_type_dialog_create (GtkWindow *toplevel)
   GtkTreeViewColumn *column;
   GtkCellRenderer *renderer ;
 
-  static struct tgs tgs[num_BUTTONS];
   /* The "middle_box" is a vbox with serveral children.
      However only one child is ever shown at a time.
      We need to make sure that they all have the same width, to avoid
@@ -396,15 +584,8 @@ var_type_dialog_create (GtkWindow *toplevel)
 
 
   for (i = 0 ; i < num_BUTTONS; ++i )
-    {
-      tgs[i].dialog = dialog;
-      tgs[i].button = i;
-      g_signal_connect (dialog->radioButton[i], "toggled",
-		       G_CALLBACK (on_toggle_1), &tgs[i]);
-
-      g_signal_connect (dialog->radioButton[i], "toggled",
-		       G_CALLBACK (on_toggle_2), dialog);
-    }
+    g_signal_connect (dialog->radioButton[i], "toggled",
+                      G_CALLBACK (on_toggle), dialog);
 
   /* Populate the date format tree view */
   dialog->date_format_treeview = GTK_TREE_VIEW (get_widget_assert (xml,
@@ -422,14 +603,14 @@ var_type_dialog_create (GtkWindow *toplevel)
 			       column);
 
 
-  list_store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER);
+  list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
-  for ( i = 0 ; i < sizeof (format_option) / sizeof (format_option[0]) ; ++i )
+  for ( i = 0 ; i < sizeof (date_format) / sizeof (date_format[0]) ; ++i )
     {
+      const struct fmt_spec *f = &date_format[i];
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
-                          0, format_option[i].desc,
-			  1, &format_option[i].spec,
+                          0, fmt_date_template (f->type, f->w),
 			  -1);
     }
 
@@ -439,7 +620,7 @@ var_type_dialog_create (GtkWindow *toplevel)
   g_object_unref (list_store);
 
   g_signal_connect (dialog->date_format_treeview, "cursor-changed",
-		   G_CALLBACK (set_format_from_treeview), dialog);
+		   G_CALLBACK (set_date_format_from_treeview), dialog);
 
 
   /* populate the dollar treeview */
@@ -456,8 +637,7 @@ var_type_dialog_create (GtkWindow *toplevel)
 			       column);
 
 
-  list_store = gtk_list_store_new (2, G_TYPE_STRING,
-						 G_TYPE_POINTER);
+  list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
   for ( i = 0 ; i < sizeof (dollar_format)/sizeof (dollar_format[0]) ; ++i )
     {
@@ -465,7 +645,6 @@ var_type_dialog_create (GtkWindow *toplevel)
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
                           0, template,
-			  1, &dollar_format[i],
 			  -1);
       free (template);
     }
@@ -477,7 +656,7 @@ var_type_dialog_create (GtkWindow *toplevel)
 
   g_signal_connect (dialog->dollar_treeview,
 		   "cursor-changed",
-		   G_CALLBACK (set_format_from_treeview), dialog);
+		   G_CALLBACK (set_dollar_format_from_treeview), dialog);
 
   g_signal_connect_swapped (dialog->dollar_treeview,
 		   "cursor-changed",
@@ -498,18 +677,14 @@ var_type_dialog_create (GtkWindow *toplevel)
 			       column);
 
 
-  list_store = gtk_list_store_new (2, G_TYPE_STRING,
-						 G_TYPE_POINTER);
+  list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
   for ( i = 0 ; i < 5 ; ++i )
     {
       enum fmt_type cc_fmts[5] = {FMT_CCA, FMT_CCB, FMT_CCC, FMT_CCD, FMT_CCE};
-      gchar text[4];
-      g_snprintf (text, 4, "%s", fmt_name (cc_fmts[i]));
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
-                          0, text,
-			  1, &cc_format[i],
+                          0, fmt_name (cc_fmts[i]),
 			  -1);
     }
 
@@ -521,13 +696,18 @@ var_type_dialog_create (GtkWindow *toplevel)
 
   g_signal_connect (dialog->custom_treeview,
 		   "cursor-changed",
-		   G_CALLBACK (set_format_type_from_treeview), dialog);
+		   G_CALLBACK (set_custom_format_from_treeview), dialog);
 
 
   g_signal_connect (dialog->custom_treeview,
 		   "cursor-changed",
 		   G_CALLBACK (preview_custom), dialog);
 
+
+  g_signal_connect (dialog->entry_width, "changed",
+                    G_CALLBACK (on_width_changed), dialog);
+  g_signal_connect (dialog->entry_decimals, "changed",
+                    G_CALLBACK (on_decimals_changed), dialog);
 
   g_signal_connect (dialog->entry_width,
 		   "changed",
@@ -538,173 +718,87 @@ var_type_dialog_create (GtkWindow *toplevel)
 		   "changed",
 		   G_CALLBACK (preview_custom), dialog);
 
-
-  /* Connect to the OK button */
-  g_signal_connect (dialog->ok, "clicked", G_CALLBACK (on_var_type_ok_clicked),
-		   dialog);
-
-
-  /* And the cancel button */
-  g_signal_connect (get_widget_assert (xml, "var_type_cancel") , "clicked",
-		    G_CALLBACK (hide_dialog),
-		    dialog);
   }
 
   g_object_unref (xml);
 
-  return dialog;
+  psppire_var_type_dialog_set_state (dialog);
+
+  return obj;
 }
 
 
 /* Set a particular button to be active */
 void
-var_type_dialog_set_active_button (struct var_type_dialog *dialog, gint b)
+var_type_dialog_set_active_button (PsppireVarTypeDialog *dialog, gint b)
 {
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (dialog->radioButton[b]),
 			       TRUE);
-  dialog->active_button = b;
 }
 
 
 
-/* Set the TREEVIEW list cursor to the item described by FMT */
 static void
-select_treeview_from_format (GtkTreeView *treeview, const struct fmt_spec *fmt)
+select_treeview_at_index (GtkTreeView *treeview, int index)
 {
-  GtkTreePath *path ;
+  GtkTreePath *path;
 
-  /*
-    We do this with a linear search through the model --- hardly
-    efficient, but the list is short ... */
-  GtkTreeIter iter;
-
-  GtkTreeModel * model  = gtk_tree_view_get_model (treeview);
-
-  gboolean success;
-  for (success = gtk_tree_model_get_iter_first (model, &iter);
-       success;
-       success = gtk_tree_model_iter_next (model, &iter))
-    {
-      const struct fmt_spec *spec;
-
-      GValue value = {0};
-
-      gtk_tree_model_get_value (model, &iter, 1, &value);
-
-      spec = g_value_get_pointer (&value);
-
-      if ( 0 == memcmp (spec, fmt, sizeof (struct fmt_spec)))
-	{
-	  break;
-	}
-    }
-
-  path = gtk_tree_model_get_path (model, &iter);
-  if ( path )
-    {
-      gtk_tree_view_set_cursor (treeview, path, 0, 0);
-      gtk_tree_path_free (path);
-    }
-  else
-    {
-      char str[FMT_STRING_LEN_MAX + 1];
-      g_warning ("Unusual date format: %s\n", fmt_to_string (fmt, str));
-    }
+  path = gtk_tree_path_new_from_indices (index, -1);
+  gtk_tree_view_set_cursor (treeview, path, 0, 0);
+  gtk_tree_path_free (path);
 }
 
-
-/* Set the TREEVIEW list cursor to the item described by FMT_TYPE */
-static void
-select_treeview_from_format_type (GtkTreeView *treeview,
-				 const int fmt_type)
+static int
+find_format (const struct fmt_spec *target,
+             const struct fmt_spec formats[], int n_formats)
 {
-  GtkTreePath *path ;
+  int i;
 
- /*
-    We do this with a linear search through the model --- hardly
-    efficient, but the list is short ... */
-  GtkTreeIter iter;
+  for (i = 0; i < n_formats; i++)
+    if (fmt_equal (target, &formats[i]))
+      return i;
 
-  GtkTreeModel * model  = gtk_tree_view_get_model (treeview);
+  return 0;
+}
 
-  gboolean success;
-  for (success = gtk_tree_model_get_iter_first (model, &iter);
-       success;
-       success = gtk_tree_model_iter_next (model, &iter))
-    {
-      int spec ;
+static int
+find_format_type (int target, const int types[], int n_types)
+{
+  int i;
 
-      GValue value = {0};
+  for (i = 0; i < n_types; i++)
+    if (target == types[i])
+      return i;
 
-      gtk_tree_model_get_value (model, &iter, 1, &value);
-
-      spec = * ((int *) g_value_get_pointer (&value));
-
-      if ( spec == fmt_type)
-	break;
-    }
-
-  path = gtk_tree_model_get_path (model, &iter);
-  if ( path )
-    {
-      gtk_tree_view_set_cursor (treeview, path, 0, 0);
-      gtk_tree_path_free (path);
-    }
-  else
-    g_warning ("Unknown custom type  %d\n", fmt_type);
-
+  return 0;
 }
 
 /* Set up the state of the dialog box to match the variable VAR */
 static void
-var_type_dialog_set_state (struct var_type_dialog *dialog)
+psppire_var_type_dialog_set_state (PsppireVarTypeDialog *dialog)
 {
-  const struct fmt_spec *format ;
-  GString *str = g_string_new ("");
+  int button;
 
-  g_assert (dialog);
-  g_assert (dialog->pv);
-
-  /* Populate width and decimals */
-  format = var_get_print_format (dialog->pv);
-
-  g_string_printf (str, "%d", format->d);
-
-  gtk_entry_set_text (GTK_ENTRY (dialog->entry_decimals),
-		     str->str);
-
-  g_string_printf (str, "%d", format->w);
-
-  gtk_entry_set_text (GTK_ENTRY (dialog->entry_width),
-		     str->str);
-
-  g_string_free (str, TRUE);
+  g_return_if_fail (dialog != NULL);
 
   /* Populate the radio button states */
-  switch (format->type)
+  switch (dialog->base_format.type)
     {
+    default:
     case FMT_F:
-      var_type_dialog_set_active_button (dialog, BUTTON_NUMERIC);
-      gtk_widget_show_all (dialog->width_decimals);
+      button = BUTTON_NUMERIC;
       break;
     case FMT_A:
-      var_type_dialog_set_active_button (dialog, BUTTON_STRING);
-      gtk_widget_hide (dialog->label_decimals);
-      gtk_widget_hide (dialog->entry_decimals);
+      button = BUTTON_STRING;
       break;
     case FMT_COMMA:
-      var_type_dialog_set_active_button (dialog, BUTTON_COMMA);
-      gtk_widget_show_all (dialog->width_decimals);
+      button = BUTTON_COMMA;
       break;
     case FMT_DOT:
-      var_type_dialog_set_active_button (dialog, BUTTON_DOT);
-      gtk_widget_show_all (dialog->width_decimals);
+      button = BUTTON_DOT;
       break;
     case FMT_DOLLAR:
-      var_type_dialog_set_active_button (dialog, BUTTON_DOLLAR);
-      gtk_widget_show_all (dialog->width_decimals);
-
-      select_treeview_from_format (dialog->dollar_treeview, format);
+      button = BUTTON_DOLLAR;
       break;
     case FMT_DATE:
     case FMT_EDATE:
@@ -719,129 +813,19 @@ var_type_dialog_set_state (struct var_type_dialog *dialog)
     case FMT_DTIME:
     case FMT_WKDAY:
     case FMT_MONTH:
-      var_type_dialog_set_active_button (dialog, BUTTON_DATE);
-      gtk_widget_hide (dialog->width_decimals);
-      gtk_widget_show (dialog->date_format_list);
-      select_treeview_from_format (dialog->date_format_treeview, format);
+      button = BUTTON_DATE;
       break;
     case FMT_CCA:
     case FMT_CCB:
     case FMT_CCC:
     case FMT_CCD:
     case FMT_CCE:
-      var_type_dialog_set_active_button (dialog, BUTTON_CUSTOM);
-      select_treeview_from_format_type (dialog->custom_treeview,
-				       format->type);
-      gtk_widget_show_all (dialog->width_decimals);
-      break;
-    default:
-      gtk_widget_show_all (dialog->width_decimals);
+      button = BUTTON_CUSTOM;
       break;
     }
+
+  var_type_dialog_set_active_button (dialog, button);
+  refresh_active_button (dialog);
+  on_active_button_change (GTK_TOGGLE_BUTTON (dialog->radioButton[button]),
+                           dialog);
 }
-
-
-/* Popup the dialog box */
-void
-var_type_dialog_show (struct var_type_dialog *dialog)
-{
-  var_type_dialog_set_state (dialog);
-
-  gtk_widget_show (dialog->window);
-}
-
-/* Fills F with an output format specification with type TYPE, width
-   W, and D decimals. Iff it's a valid format, then return true.
-*/
-static bool
-make_output_format_try (struct fmt_spec *f, int type, int w, int d)
-{
-  f->type = type;
-  f->w = w;
-  f->d = d;
-  return fmt_check_output (f);
-}
-
-
-
-
-/* Callbacks for the Variable Type Dialog Box */
-
-/* Callback for when the var type dialog is closed using the OK button.
-   It sets the appropriate variable accordingly. */
-static gint
-on_var_type_ok_clicked (GtkWidget *w, gpointer data)
-{
-  struct var_type_dialog *dialog = data;
-
-  g_assert (dialog);
-  g_assert (dialog->pv);
-
-  {
-    gint width = atoi (gtk_entry_get_text
-		      (GTK_ENTRY (dialog->entry_width)));
-
-    gint decimals = atoi (gtk_entry_get_text
-			 (GTK_ENTRY (dialog->entry_decimals)));
-
-    gint new_width = 0;
-    bool result = false;
-    struct fmt_spec spec;
-    switch (dialog->active_button)
-      {
-      case BUTTON_STRING:
-	new_width = width;
-	result = make_output_format_try (&spec, FMT_A, width, 0);
-	break;
-      case BUTTON_NUMERIC:
-	result = make_output_format_try (&spec, FMT_F, width, decimals);
-	break;
-      case BUTTON_COMMA:
-	result = make_output_format_try (&spec, FMT_COMMA, width, decimals);
-	break;
-      case BUTTON_DOT:
-	result = make_output_format_try (&spec, FMT_DOT, width, decimals);
-	break;
-      case BUTTON_SCIENTIFIC:
-	result = make_output_format_try (&spec, FMT_E, width, decimals);
-	break;
-      case BUTTON_DATE:
-      case BUTTON_CUSTOM:
-	if  (! fmt_check_output (&dialog->fmt_l))
-	  g_critical ("Invalid variable format");
-	else
-	  result = memcpy (&spec, &dialog->fmt_l, sizeof (struct fmt_spec));
-	break;
-      case BUTTON_DOLLAR:
-	result = make_output_format_try (&spec, FMT_DOLLAR, width, decimals);
-	break;
-      default:
-	g_critical ("Unknown variable type: %d", dialog->active_button) ;
-	result = false;
-	break;
-      }
-
-    if ( result == true )
-      {
-	var_set_width (dialog->pv, new_width);
-	var_set_both_formats (dialog->pv, &spec);
-      }
-
-  }
-  gtk_widget_hide (dialog->window);
-
-  return FALSE;
-}
-
-
-
-static gint
-hide_dialog (GtkWidget *w,  gpointer data)
-{
-  struct var_type_dialog *dialog = data;
-
-  gtk_widget_hide (dialog->window);
-
-  return FALSE;
-}
-

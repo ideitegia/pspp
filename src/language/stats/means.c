@@ -504,7 +504,7 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
   table->layers = NULL;
 
   /* Dependent variable (s) */
-  if (!parse_variables_const (lexer, cmd->dict,
+  if (!parse_variables_const_pool (lexer, cmd->pool, cmd->dict,
 			      &table->dep_vars, &table->n_dep_vars,
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     return false;
@@ -519,8 +519,8 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
 	    pool_realloc (cmd->pool, table->layers, 
 		      sizeof (*table->layers) * table->n_layers);
 
-	  if (!parse_variables_const 
-              (lexer, cmd->dict,
+	  if (!parse_variables_const_pool 
+              (lexer, cmd->pool, cmd->dict,
                &table->layers[table->n_layers - 1].factor_vars,
                &table->layers[table->n_layers - 1].n_factor_vars,
                PV_NO_DUPLICATE))
@@ -827,6 +827,22 @@ struct per_cat_data
   bool warn;
 };
 
+
+static void 
+destroy_n (const void *aux1 UNUSED, void *aux2, void *user_data)
+{
+  struct mtable *table = aux2;
+  int v;
+  struct per_cat_data *per_cat_data = user_data;
+  struct per_var_data *pvd = per_cat_data->pvd;
+
+  for (v = 0; v < table->n_dep_vars; ++v)
+    {
+      struct per_var_data *pp = &pvd[v];
+      moments1_destroy (pp->mom);
+    }
+}
+
 static void *
 create_n (const void *aux1, void *aux2)
 {
@@ -938,7 +954,8 @@ run_means (struct means *cmd, struct casereader *input,
   struct payload payload;
   payload.create = create_n;
   payload.update = update_n;
-  payload.destroy = calculate_n;
+  payload.calculate = calculate_n;
+  payload.destroy = destroy_n;
   
   for (t = 0; t < cmd->n_tables; ++t)
   {
@@ -950,7 +967,7 @@ run_means (struct means *cmd, struct casereader *input,
     categoricals_set_payload (table->cats, &payload, cmd, table);
   }
 
-  for (reader = casereader_clone (input);
+  for (reader = input;
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       for (t = 0; t < cmd->n_tables; ++t)

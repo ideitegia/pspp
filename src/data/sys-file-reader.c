@@ -1421,6 +1421,7 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
                     _("MRSET %s has only %zu variables."), mrset->name,
                     mrset->n_vars);
           mrset_destroy (mrset);
+	  stringi_set_destroy (&var_names);
           continue;
         }
 

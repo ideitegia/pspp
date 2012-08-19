@@ -20,46 +20,153 @@
 
 #include <config.h>
 
+#include "ui/gui/val-labs-dialog.h"
+
 #include <string.h>
 
-#include "builder-wrapper.h"
-#include "val-labs-dialog.h"
-#include <data/value-labels.h>
-#include <data/format.h>
-#include <libpspp/i18n.h>
-
-#include "helper.h"
+#include "data/value-labels.h"
+#include "data/format.h"
+#include "libpspp/i18n.h"
+#include "ui/gui/builder-wrapper.h"
+#include "ui/gui/helper.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-struct val_labs_dialog
+static GObject *psppire_val_labs_dialog_constructor (GType type, guint,
+                                                     GObjectConstructParam *);
+static void psppire_val_labs_dialog_finalize (GObject *);
+
+G_DEFINE_TYPE (PsppireValLabsDialog,
+               psppire_val_labs_dialog,
+               PSPPIRE_TYPE_DIALOG);
+enum
+  {
+    PROP_0,
+    PROP_VARIABLE,
+    PROP_VALUE_LABELS
+  };
+
+static void
+psppire_val_labs_dialog_set_property (GObject      *object,
+                                      guint         prop_id,
+                                      const GValue *value,
+                                      GParamSpec   *pspec)
 {
-  GtkWidget *window;
+  PsppireValLabsDialog *obj = PSPPIRE_VAL_LABS_DIALOG (object);
 
-  /* The variable to be updated */
-  struct variable *pv;
+  switch (prop_id)
+    {
+    case PROP_VARIABLE:
+      psppire_val_labs_dialog_set_variable (obj, g_value_get_pointer (value));
+      break;
+    case PROP_VALUE_LABELS:
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
 
-  /* Local copy of labels */
+static void
+psppire_val_labs_dialog_get_property (GObject      *object,
+                                      guint         prop_id,
+                                      GValue       *value,
+                                      GParamSpec   *pspec)
+{
+  PsppireValLabsDialog *obj = PSPPIRE_VAL_LABS_DIALOG (object);
+
+  switch (prop_id)
+    {
+    case PROP_VALUE_LABELS:
+      g_value_set_pointer (value, obj->labs);
+      break;
+    case PROP_VARIABLE:
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+static void
+psppire_val_labs_dialog_class_init (PsppireValLabsDialogClass *class)
+{
+  GObjectClass *gobject_class;
+  gobject_class = G_OBJECT_CLASS (class);
+
+  gobject_class->constructor = psppire_val_labs_dialog_constructor;
+  gobject_class->finalize = psppire_val_labs_dialog_finalize;
+  gobject_class->set_property = psppire_val_labs_dialog_set_property;
+  gobject_class->get_property = psppire_val_labs_dialog_get_property;
+
+  g_object_class_install_property (
+    gobject_class, PROP_VARIABLE,
+    g_param_spec_pointer ("variable",
+                          "Variable",
+                          "Variable whose value labels are to be edited.  The "
+                          "variable's print format and encoding are also used "
+                          "for editing.",
+                          G_PARAM_WRITABLE));
+
+  g_object_class_install_property (
+    gobject_class, PROP_VALUE_LABELS,
+    g_param_spec_pointer ("value-labels",
+                          "Value Labels",
+                          "Edited value labels.",
+                          G_PARAM_READABLE));
+}
+
+static void
+psppire_val_labs_dialog_init (PsppireValLabsDialog *obj)
+{
+  /* We do all of our work on widgets in the constructor function, because that
+     runs after the construction properties have been set.  Otherwise
+     PsppireDialog's "orientation" property hasn't been set and therefore we
+     have no box to populate. */
+  obj->labs = val_labs_create (0);
+}
+
+static void
+psppire_val_labs_dialog_finalize (GObject *obj)
+{
+  PsppireValLabsDialog *dialog = PSPPIRE_VAL_LABS_DIALOG (obj);
+
+  val_labs_destroy (dialog->labs);
+  g_free (dialog->encoding);
+
+  G_OBJECT_CLASS (psppire_val_labs_dialog_parent_class)->finalize (obj);
+}
+
+PsppireValLabsDialog *
+psppire_val_labs_dialog_new (const struct variable *var)
+{
+  return PSPPIRE_VAL_LABS_DIALOG (
+    g_object_new (PSPPIRE_TYPE_VAL_LABS_DIALOG,
+                  "orientation", PSPPIRE_HORIZONTAL,
+                  "variable", var,
+                  NULL));
+}
+
+struct val_labs *
+psppire_val_labs_dialog_run (GtkWindow *parent_window,
+                             const struct variable *var)
+{
+  PsppireValLabsDialog *dialog;
   struct val_labs *labs;
 
-  /* Actions */
-  GtkWidget *add_button;
-  GtkWidget *remove_button;
-  GtkWidget *change_button;
+  dialog = psppire_val_labs_dialog_new (var);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), parent_window);
+  gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
+  gtk_widget_show (GTK_WIDGET (dialog));
 
-  /* Entry Boxes */
-  GtkWidget *value_entry;
-  GtkWidget *label_entry;
+  labs = (psppire_dialog_run (PSPPIRE_DIALOG (dialog)) == GTK_RESPONSE_OK
+          ? val_labs_clone (psppire_val_labs_dialog_get_value_labels (dialog))
+          : NULL);
 
-  /* Signal handler ids */
-  gint change_handler_id;
-  gint value_handler_id;
+  gtk_widget_destroy (GTK_WIDGET (dialog));
 
-  GtkWidget *treeview;
-};
-
+  return labs;
+}
 
 /* This callback occurs when the text in the label entry box
    is changed */
@@ -68,14 +175,12 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
 {
   union value v;
   const gchar *text ;
-  struct val_labs_dialog *dialog = data;
+  PsppireValLabsDialog *dialog = data;
   g_assert (dialog->labs);
 
   text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
-  text_to_value (text,
-		 dialog->pv,
-		 &v);
+  text_to_value__ (text, &dialog->format, dialog->encoding, &v);
 
   if (val_labs_find (dialog->labs, &v))
     {
@@ -88,7 +193,7 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
       gtk_widget_set_sensitive (dialog->add_button, TRUE);
     }
 
-  value_destroy (&v, var_get_width (dialog->pv));
+  value_destroy (&v, val_labs_get_width (dialog->labs));
 }
 
 
@@ -140,15 +245,12 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
 {
   const char *s;
 
-  struct val_labs_dialog *dialog = data;
+  PsppireValLabsDialog *dialog = data;
 
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   union value v;
-  text_to_value (text,
-		 dialog->pv,
-		 &v);
-
+  text_to_value__ (text, &dialog->format, dialog->encoding, &v);
 
   g_signal_handler_block (GTK_ENTRY (dialog->label_entry),
 			 dialog->change_handler_id);
@@ -172,68 +274,13 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
   g_signal_handler_unblock (GTK_ENTRY (dialog->label_entry),
 			 dialog->change_handler_id);
 
-  value_destroy (&v, var_get_width (dialog->pv));
-}
-
-
-/* Callback for when the Value Labels dialog is closed using
-   the OK button.*/
-static gint
-val_labs_ok (GtkWidget *w, gpointer data)
-{
-  struct val_labs_dialog *dialog = data;
-
-  var_set_value_labels (dialog->pv, dialog->labs);
-
-  val_labs_destroy (dialog->labs);
-
-  dialog->labs = NULL;
-
-  gtk_widget_hide (dialog->window);
-
-  return FALSE;
-}
-
-/* Callback for when the Value Labels dialog is closed using
-   the Cancel button.*/
-static void
-val_labs_cancel (struct val_labs_dialog *dialog)
-{
-  val_labs_destroy (dialog->labs);
-
-  dialog->labs = NULL;
-
-  gtk_widget_hide (dialog->window);
-}
-
-
-/* Callback for when the Value Labels dialog is closed using
-   the Cancel button.*/
-static void
-on_cancel (GtkWidget *w, gpointer data)
-{
-  struct val_labs_dialog *dialog = data;
-
-  val_labs_cancel (dialog);
-}
-
-
-/* Callback for when the Value Labels dialog is closed using
-   the window delete button.*/
-static gint
-on_delete (GtkWidget *w, GdkEvent *e, gpointer data)
-{
-  struct val_labs_dialog *dialog = data;
-
-  val_labs_cancel (dialog);
-
-  return TRUE;
+  value_destroy (&v, val_labs_get_width (dialog->labs));
 }
 
 
 /* Return the value-label pair currently selected in the dialog box  */
 static void
-get_selected_tuple (struct val_labs_dialog *dialog,
+get_selected_tuple (PsppireValLabsDialog *dialog,
                     union value *valuep, const char **label)
 {
   GtkTreeView *treeview = GTK_TREE_VIEW (dialog->treeview);
@@ -264,21 +311,19 @@ get_selected_tuple (struct val_labs_dialog *dialog,
 }
 
 
-static void repopulate_dialog (struct val_labs_dialog *dialog);
+static void repopulate_dialog (PsppireValLabsDialog *dialog);
 
 /* Callback which occurs when the "Change" button is clicked */
 static void
 on_change (GtkWidget *w, gpointer data)
 {
-  struct val_labs_dialog *dialog = data;
+  PsppireValLabsDialog *dialog = data;
 
   const gchar *val_text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   union value v;
 
-  text_to_value (val_text,
-		 dialog->pv,
-		 &v);
+  text_to_value__ (val_text, &dialog->format, dialog->encoding, &v);
 
   val_labs_replace (dialog->labs, &v,
 		    gtk_entry_get_text (GTK_ENTRY (dialog->label_entry)));
@@ -288,22 +333,20 @@ on_change (GtkWidget *w, gpointer data)
   repopulate_dialog (dialog);
   gtk_widget_grab_focus (dialog->value_entry);
 
-  value_destroy (&v, var_get_width (dialog->pv));
+  value_destroy (&v, val_labs_get_width (dialog->labs));
 }
 
 /* Callback which occurs when the "Add" button is clicked */
 static void
 on_add (GtkWidget *w, gpointer data)
 {
-  struct val_labs_dialog *dialog = data;
+  PsppireValLabsDialog *dialog = data;
 
   union value v;
 
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
-  text_to_value (text,
-		 dialog->pv,
-		 &v);
+  text_to_value__ (text, &dialog->format, dialog->encoding, &v);
 
   if (val_labs_add (dialog->labs, &v,
 		    gtk_entry_get_text
@@ -315,14 +358,14 @@ on_add (GtkWidget *w, gpointer data)
       gtk_widget_grab_focus (dialog->value_entry);
     }
 
-  value_destroy (&v, var_get_width (dialog->pv));
+  value_destroy (&v, val_labs_get_width (dialog->labs));
 }
 
 /* Callback which occurs when the "Remove" button is clicked */
 static void
 on_remove (GtkWidget *w, gpointer data)
 {
-  struct val_labs_dialog *dialog = data;
+  PsppireValLabsDialog *dialog = data;
 
   union value value;
   struct val_lab *vl;
@@ -345,7 +388,7 @@ on_remove (GtkWidget *w, gpointer data)
 static void
 on_select_row (GtkTreeView *treeview, gpointer data)
 {
-  struct val_labs_dialog *dialog = data;
+  PsppireValLabsDialog *dialog = data;
 
   union value value;
   const char *label = NULL;
@@ -353,7 +396,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
   gchar *text;
 
   get_selected_tuple (dialog, &value, &label);
-  text = value_to_text (value, dialog->pv);
+  text = value_to_text__ (value, &dialog->format, dialog->encoding);
 
   g_signal_handler_block (GTK_ENTRY (dialog->value_entry),
 			 dialog->value_handler_id);
@@ -381,23 +424,31 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 
 /* Create a new dialog box
    (there should  normally be only one)*/
-struct val_labs_dialog *
-val_labs_dialog_create (GtkWindow *toplevel)
+static GObject *
+psppire_val_labs_dialog_constructor (GType                  type,
+                                     guint                  n_properties,
+                                     GObjectConstructParam *properties)
 {
+  PsppireValLabsDialog *dialog;
   GtkTreeViewColumn *column;
 
   GtkCellRenderer *renderer ;
 
-  GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
+  GtkBuilder *xml = builder_new ("val-labs-dialog.ui");
 
-  struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
+  GtkContainer *content_area;
+  GObject *obj;
 
-  dialog->window = get_widget_assert (xml,"val_labs_dialog");
+  obj = G_OBJECT_CLASS (psppire_val_labs_dialog_parent_class)->constructor (
+    type, n_properties, properties);
+  dialog = PSPPIRE_VAL_LABS_DIALOG (obj);
+
+  content_area = GTK_CONTAINER (PSPPIRE_DIALOG (dialog)->box);
+  gtk_container_add (GTK_CONTAINER (content_area),
+                     get_widget_assert (xml, "val-labs-dialog"));
+
   dialog->value_entry = get_widget_assert (xml,"value_entry");
   dialog->label_entry = get_widget_assert (xml,"label_entry");
-
-  gtk_window_set_transient_for
-    (GTK_WINDOW (dialog->window), toplevel);
 
   dialog->add_button = get_widget_assert (xml, "val_labs_add");
   dialog->remove_button = get_widget_assert (xml, "val_labs_remove");
@@ -416,17 +467,6 @@ val_labs_dialog_create (GtkWindow *toplevel)
 						     NULL);
 
   gtk_tree_view_append_column (GTK_TREE_VIEW (dialog->treeview), column);
-
-  g_signal_connect (get_widget_assert (xml, "val_labs_cancel"),
-		   "clicked",
-		   G_CALLBACK (on_cancel), dialog);
-
-  g_signal_connect (dialog->window, "delete-event",
-		    G_CALLBACK (on_delete), dialog);
-
-  g_signal_connect (get_widget_assert (xml, "val_labs_ok"),
-		   "clicked",
-		   G_CALLBACK (val_labs_ok), dialog);
 
   dialog->change_handler_id =
     g_signal_connect (dialog->label_entry,
@@ -456,23 +496,14 @@ val_labs_dialog_create (GtkWindow *toplevel)
 
   g_object_unref (xml);
 
-  return dialog;
+  return obj;
 }
-
-
-void
-val_labs_dialog_set_target_variable (struct val_labs_dialog *dialog,
-				     struct variable *var)
-{
-  dialog->pv = var;
-}
-
 
 
 /* Populate the components of the dialog box, from the 'labs' member
    variable */
 static void
-repopulate_dialog (struct val_labs_dialog *dialog)
+repopulate_dialog (PsppireValLabsDialog *dialog)
 {
   const struct val_lab **labels;
   size_t n_labels;
@@ -504,7 +535,7 @@ repopulate_dialog (struct val_labs_dialog *dialog)
       const struct val_lab *vl = labels[i];
 
       gchar *const vstr  =
-	value_to_text (vl->value, dialog->pv);
+        value_to_text__ (vl->value, &dialog->format, dialog->encoding);
 
       gchar *const text = g_strdup_printf (_("%s = `%s'"), vstr,
                                            val_lab_get_escaped_label (vl));
@@ -527,28 +558,33 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 
 }
 
-/* Initialise and display the dialog box */
 void
-val_labs_dialog_show (struct val_labs_dialog *dialog)
+psppire_val_labs_dialog_set_variable (PsppireValLabsDialog *dialog,
+                                      const struct variable *var)
 {
-  const struct val_labs *value_labels;
+  val_labs_destroy (dialog->labs);
+  dialog->labs = NULL;
 
-  g_assert (!dialog->labs);
+  g_free (dialog->encoding);
+  dialog->encoding = NULL;
 
-  value_labels = var_get_value_labels (dialog->pv);
-
-  if (value_labels)
-    dialog->labs = val_labs_clone ( value_labels );
+  if (var != NULL)
+    {
+      dialog->labs = val_labs_clone (var_get_value_labels (var));
+      dialog->encoding = g_strdup (var_get_encoding (var));
+      dialog->format = *var_get_print_format (var);
+    }
   else
-    dialog->labs = val_labs_create ( var_get_width (dialog->pv));
+    dialog->format = F_8_0;
 
-  gtk_widget_set_sensitive (dialog->remove_button, FALSE);
-  gtk_widget_set_sensitive (dialog->change_button, FALSE);
-  gtk_widget_set_sensitive (dialog->add_button, FALSE);
-
-  gtk_widget_grab_focus (dialog->value_entry);
+  if (dialog->labs == NULL)
+    dialog->labs = val_labs_create (var_get_width (var));
 
   repopulate_dialog (dialog);
-  gtk_widget_show (dialog->window);
 }
 
+const struct val_labs *
+psppire_val_labs_dialog_get_value_labels (const PsppireValLabsDialog *dialog)
+{
+  return dialog->labs;
+}

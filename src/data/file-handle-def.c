@@ -179,8 +179,7 @@ fh_from_id (const char *id)
                            hash_case_string (id, 0), &named_handles)
     if (!strcasecmp (id, handle->id))
       {
-        handle->ref_cnt++;
-        return handle;
+	return fh_ref (handle);
       }
 
   return NULL;
@@ -206,10 +205,8 @@ create_handle (const char *id, char *handle_name, enum fh_referent referent,
 
   if (id != NULL)
     {
-      assert (fh_from_id (id) == NULL);
       hmap_insert (&named_handles, &handle->name_node,
                    hash_case_string (handle->id, 0));
-      handle->ref_cnt++;
     }
 
   return handle;
@@ -221,7 +218,6 @@ create_handle (const char *id, char *handle_name, enum fh_referent referent,
 struct file_handle *
 fh_inline_file (void)
 {
-  fh_ref (inline_file);
   return inline_file;
 }
 
@@ -356,7 +352,7 @@ fh_get_dataset (const struct file_handle *handle)
 struct file_handle *
 fh_get_default_handle (void)
 {
-  return default_handle ? fh_ref (default_handle) : fh_inline_file ();
+  return default_handle ? default_handle : fh_inline_file ();
 }
 
 /* Sets NEW_DEFAULT_HANDLE as the default handle. */
@@ -365,7 +361,7 @@ fh_set_default_handle (struct file_handle *new_default_handle)
 {
   assert (new_default_handle == NULL
           || (new_default_handle->referent & (FH_REF_INLINE | FH_REF_FILE)));
-  if (default_handle != NULL)
+  if (default_handle != NULL && default_handle != inline_file)
     fh_unref (default_handle);
   default_handle = new_default_handle;
   if (default_handle != NULL)

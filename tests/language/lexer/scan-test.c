@@ -140,6 +140,7 @@ main (int argc, char *argv[])
     }
 
   free (input);
+  free (segs);
 
   return 0;
 }

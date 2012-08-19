@@ -52,6 +52,7 @@ cmd_debug_format_guesser (struct lexer *lexer, struct dataset *ds UNUSED)
     }
   msg_enable ();
   putc ('\n', stderr);
+  fmt_guesser_destroy (g);
 
   return CMD_SUCCESS;
 }

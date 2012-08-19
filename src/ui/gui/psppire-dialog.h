@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010, 2011  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtk.h>
+#include "psppire-window-base.h"
 
 
 #define PSPPIRE_RESPONSE_PASTE 1
@@ -30,11 +31,11 @@
 
 G_BEGIN_DECLS
 
-#define PSPPIRE_DIALOG_TYPE            (psppire_dialog_get_type ())
-#define PSPPIRE_DIALOG(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPPIRE_DIALOG_TYPE, PsppireDialog))
-#define PSPPIRE_DIALOG_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), PSPPIRE_DIALOG_TYPE, PsppireDialogClass))
-#define PSPPIRE_IS_DIALOG(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), PSPPIRE_DIALOG_TYPE))
-#define PSPPIRE_IS_DIALOG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), PSPPIRE_DIALOG_TYPE))
+#define PSPPIRE_TYPE_DIALOG            (psppire_dialog_get_type ())
+#define PSPPIRE_DIALOG(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPPIRE_TYPE_DIALOG, PsppireDialog))
+#define PSPPIRE_DIALOG_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), PSPPIRE_TYPE_DIALOG, PsppireDialogClass))
+#define PSPPIRE_IS_DIALOG(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), PSPPIRE_TYPE_DIALOG))
+#define PSPPIRE_IS_DIALOG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), PSPPIRE_TYPE_DIALOG))
 
 
 typedef struct _PsppireDialog       PsppireDialog;
@@ -53,7 +54,7 @@ typedef enum
 
 struct _PsppireDialog
 {
-  GtkWindow window;
+  PsppireWindowBase window;
   GtkWidget *box;
 
   /* Private */
@@ -62,13 +63,15 @@ struct _PsppireDialog
 
   ContentsAreValid contents_are_valid;
   gpointer validity_data;
+  ContentsAreValid contents_are_acceptable;
+  gpointer acceptable_data;
   gboolean slidable;
   PsppireOrientation orientation;
 };
 
 struct _PsppireDialogClass
 {
-  GtkWindowClass parent_class;
+  PsppireWindowBaseClass parent_class;
 };
 
 
@@ -81,6 +84,10 @@ gint           psppire_dialog_run             (PsppireDialog *);
 void           psppire_dialog_set_valid_predicate (PsppireDialog *,
 						   ContentsAreValid,
 						   gpointer );
+void           psppire_dialog_set_accept_predicate (PsppireDialog *,
+                                                    ContentsAreValid,
+                                                    gpointer );
+gboolean       psppire_dialog_is_acceptable (const PsppireDialog *);
 void           psppire_dialog_notify_change (PsppireDialog *);
 
 

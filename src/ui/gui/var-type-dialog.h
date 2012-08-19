@@ -15,10 +15,23 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 
-#ifndef __PSPPIRE_VAR_TYPE_DIALOG_H
-#define __PSPPIRE_VAR_TYPE_DIALOG_H
+#ifndef PSPPIRE_VAR_TYPE_DIALOG_H
+#define PSPPIRE_VAR_TYPE_DIALOG_H 1
 
-#include <data/format.h>
+#include "data/format.h"
+#include "psppire-dialog.h"
+
+G_BEGIN_DECLS
+
+#define PSPPIRE_TYPE_VAR_TYPE_DIALOG             (psppire_var_type_dialog_get_type())
+#define PSPPIRE_VAR_TYPE_DIALOG(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj),PSPPIRE_TYPE_VAR_TYPE_DIALOG,PsppireVarTypeDialog))
+#define PSPPIRE_VAR_TYPE_DIALOG_CLASS(class)     (G_TYPE_CHECK_CLASS_CAST ((class),PSPPIRE_TYPE_VAR_TYPE_DIALOG,PsppireVarTypeDialogClass))
+#define PSPPIRE_IS_VAR_TYPE_DIALOG(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj),PSPPIRE_TYPE_VAR_TYPE_DIALOG))
+#define PSPPIRE_IS_VAR_TYPE_DIALOG_CLASS(class)  (G_TYPE_CHECK_CLASS_TYPE ((class),PSPPIRE_TYPE_VAR_TYPE_DIALOG))
+#define PSPPIRE_VAR_TYPE_DIALOG_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj),PSPPIRE_TYPE_VAR_TYPE_DIALOG,PsppireVarTypeDialogClass))
+
+typedef struct _PsppireVarTypeDialog      PsppireVarTypeDialog;
+typedef struct _PsppireVarTypeDialogClass PsppireVarTypeDialogClass;
 
 /*  This module describes the behaviour of the Variable Type dialog box,
     used for input of the variable type parameter in the var sheet */
@@ -38,14 +51,13 @@ enum
 
 struct variable;
 
-struct var_type_dialog
-{
-  GtkWidget *window;
+struct _PsppireVarTypeDialog {
+  PsppireDialog parent;
 
-  /* Variable to be updated */
-  struct variable *pv;
-  
-  /* Local copy of format specifier */
+  /* Format being edited. */
+  struct fmt_spec base_format;
+
+  /* Current version of format. */
   struct fmt_spec fmt_l;
 
   /* Toggle Buttons */
@@ -54,9 +66,11 @@ struct var_type_dialog
   /* Decimals */
   GtkWidget *label_decimals;
   GtkWidget *entry_decimals;
+  GtkAdjustment *adj_decimals;
 
   /* Width */
   GtkWidget *entry_width;
+  GtkAdjustment *adj_width;
 
   /* Container for width/decimals entry/labels */
   GtkWidget *width_decimals;
@@ -81,9 +95,21 @@ struct var_type_dialog
   gint active_button;
 };
 
+struct _PsppireVarTypeDialogClass {
+  PsppireDialogClass parent_class;
+};
 
-struct var_type_dialog * var_type_dialog_create (GtkWindow *);
+GType psppire_var_type_dialog_get_type (void) G_GNUC_CONST;
+PsppireVarTypeDialog* psppire_var_type_dialog_new (const struct fmt_spec *);
 
-void var_type_dialog_show (struct var_type_dialog *dialog);
+void psppire_var_type_dialog_set_format (PsppireVarTypeDialog *,
+                                         const struct fmt_spec *);
+const struct fmt_spec *psppire_var_type_dialog_get_format (
+  const PsppireVarTypeDialog *);
 
-#endif
+void psppire_var_type_dialog_run (GtkWindow *parent_window,
+                                  struct fmt_spec *format);
+
+G_END_DECLS
+
+#endif /* PSPPIRE_VAR_TYPE_DIALOG_H */

@@ -22,6 +22,7 @@ UI_FILES = \
 	src/ui/gui/k-related.ui \
 	src/ui/gui/ks-one-sample.ui \
 	src/ui/gui/means.ui \
+	src/ui/gui/missing-val-dialog.ui \
 	src/ui/gui/oneway.ui \
 	src/ui/gui/paired-samples.ui \
 	src/ui/gui/psppire.ui \
@@ -37,12 +38,13 @@ UI_FILES = \
 	src/ui/gui/t-test.ui \
 	src/ui/gui/text-data-import.ui \
 	src/ui/gui/univariate.ui \
-	src/ui/gui/var-sheet-dialogs.ui \
+	src/ui/gui/val-labs-dialog.ui \
 	src/ui/gui/variable-info.ui \
 	src/ui/gui/data-editor.ui \
 	src/ui/gui/output-viewer.ui \
 	src/ui/gui/syntax-editor.ui \
-	src/ui/gui/var-sheet.ui
+	src/ui/gui/var-sheet.ui \
+	src/ui/gui/var-type-dialog.ui
 
 EXTRA_DIST += \
 	src/ui/gui/OChangeLog \

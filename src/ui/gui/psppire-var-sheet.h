@@ -62,9 +62,6 @@ struct _PsppireVarSheet
   enum fmt_use format_use;
 
   struct _PsppireDict *dict;
-  struct val_labs_dialog *val_labs_dialog;
-  struct missing_val_dialog *missing_val_dialog;
-  struct var_type_dialog *var_type_dialog;
 
   gulong scroll_to_bottom_signal;
   gulong dict_signals[PSPPIRE_VAR_SHEET_N_SIGNALS];

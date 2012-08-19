@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -881,38 +881,81 @@ fmt_usable_for_input (enum fmt_type type)
   return fmt_get_category (type) != FMT_CAT_CUSTOM;
 }
 
-/* For time and date formats, returns a template used for input
-   and output. */
+/* For time and date formats, returns a template used for input and output in a
+   field of the given WIDTH.
+
+   WIDTH only affects whether a 2-digit year or a 4-digit year is used, that
+   is, whether the returned string contains "yy" or "yyyy", and whether seconds
+   are include, that is, whether the returned string contains ":SS".  A caller
+   that doesn't care whether the returned string contains "yy" or "yyyy" or
+   ":SS" can just specify 0 to omit them. */
 const char *
-fmt_date_template (enum fmt_type type)
+fmt_date_template (enum fmt_type type, int width)
 {
+  const char *s1, *s2;
+
   switch (type)
     {
     case FMT_DATE:
-      return "dd-mmm-yy";
+      s1 = "dd-mmm-yy";
+      s2 = "dd-mmm-yyyy";
+      break;
+
     case FMT_ADATE:
-      return "mm/dd/yy";
+      s1 = "mm/dd/yy";
+      s2 = "mm/dd/yyyy";
+      break;
+
     case FMT_EDATE:
-      return "dd.mm.yy";
+      s1 = "dd.mm.yy";
+      s2 = "dd.mm.yyyy";
+      break;
+
     case FMT_JDATE:
-      return "yyddd";
+      s1 = "yyddd";
+      s2 = "yyyyddd";
+      break;
+
     case FMT_SDATE:
-      return "yy/mm/dd";
+      s1 = "yy/mm/dd";
+      s2 = "yyyy/mm/dd";
+      break;
+
     case FMT_QYR:
-      return "q Q yy";
+      s1 = "q Q yy";
+      s2 = "q Q yyyy";
+      break;
+
     case FMT_MOYR:
-      return "mmmXyy";
+      s1 = "mmm yy";
+      s2 = "mmm yyyy";
+      break;
+
     case FMT_WKYR:
-      return "ww WK yy";
+      s1 = "ww WK yy";
+      s2 = "ww WK yyyy";
+      break;
+
     case FMT_DATETIME:
-      return "dd-mmm-yyyy HH:MM";
+      s1 = "dd-mmm-yyyy HH:MM";
+      s2 = "dd-mmm-yyyy HH:MM:SS";
+      break;
+
     case FMT_TIME:
-      return "H:MM";
+      s1 = "H:MM";
+      s2 = "H:MM:SS";
+      break;
+
     case FMT_DTIME:
-      return "D HH:MM";
+      s1 = "D HH:MM";
+      s2 = "D HH:MM:SS";
+      break;
+
     default:
       NOT_REACHED ();
     }
+
+  return width >= strlen (s2) ? s2 : s1;
 }
 
 /* Returns a string representing the format TYPE for use in a GUI dialog. */
