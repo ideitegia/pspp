@@ -66,5 +66,5 @@ preregister_widgets (void)
 
   /* This seems to be necessary on Cygwin.
      It ought not to be necessary.  Having it here can't do any harm. */
-  gtk_source_view_get_type ();
+  (void) gtk_source_view_get_type ();
 }
