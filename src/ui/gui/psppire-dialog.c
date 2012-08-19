@@ -324,6 +324,8 @@ psppire_dialog_init (PsppireDialog *dialog)
   dialog->box = NULL;
   dialog->contents_are_valid = NULL;
   dialog->validity_data = NULL;
+  dialog->contents_are_acceptable = NULL;
+  dialog->acceptable_data = NULL;
   dialog->slidable = FALSE;
 
   g_value_init (&value, orientation_spec->value_type);
@@ -547,6 +549,10 @@ psppire_orientation_get_type (void)
 }
 
 
+/* Sets a predicate function that is checked after each change that the user
+   makes to the dialog's state.  If the predicate function returns false, then
+   "OK" and other buttons that accept the dialog's settings will be
+   disabled. */
 void
 psppire_dialog_set_valid_predicate (PsppireDialog *dialog,
 				    ContentsAreValid contents_are_valid,
@@ -556,6 +562,30 @@ psppire_dialog_set_valid_predicate (PsppireDialog *dialog,
   dialog->validity_data = data;
 }
 
+/* Sets a predicate function that is called after "OK" or another button that
+   accepts the dialog's settings is pushed.  If the predicate function returns
+   false, then the button push is ignored.  (If the predicate function returns
+   false, then it should take some action to notify the user why the contents
+   are unacceptable, e.g. pop up a dialog box.)
+
+   An accept predicate is preferred over a validity predicate when the reason
+   why the dialog settings are unacceptable may not be obvious to the user, so
+   that the user needs a helpful message to explain. */
+void
+psppire_dialog_set_accept_predicate (PsppireDialog *dialog,
+                                     ContentsAreValid contents_are_acceptable,
+                                     gpointer data)
+{
+  dialog->contents_are_acceptable = contents_are_acceptable;
+  dialog->acceptable_data = data;
+}
+
+gboolean
+psppire_dialog_is_acceptable (const PsppireDialog *dialog)
+{
+  return (dialog->contents_are_acceptable == NULL
+          || dialog->contents_are_acceptable (dialog->acceptable_data));
+}
 
 
 

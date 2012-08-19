@@ -63,6 +63,8 @@ struct _PsppireDialog
 
   ContentsAreValid contents_are_valid;
   gpointer validity_data;
+  ContentsAreValid contents_are_acceptable;
+  gpointer acceptable_data;
   gboolean slidable;
   PsppireOrientation orientation;
 };
@@ -82,6 +84,10 @@ gint           psppire_dialog_run             (PsppireDialog *);
 void           psppire_dialog_set_valid_predicate (PsppireDialog *,
 						   ContentsAreValid,
 						   gpointer );
+void           psppire_dialog_set_accept_predicate (PsppireDialog *,
+                                                    ContentsAreValid,
+                                                    gpointer );
+gboolean       psppire_dialog_is_acceptable (const PsppireDialog *);
 void           psppire_dialog_notify_change (PsppireDialog *);
 
 

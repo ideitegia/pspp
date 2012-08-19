@@ -215,6 +215,14 @@ close_and_respond (GtkWidget *w, gint response)
   psppire_dialog_close (dialog);
 }
 
+static gboolean
+is_acceptable (GtkWidget *w)
+{
+  GtkWidget *toplevel = gtk_widget_get_toplevel (w);
+
+  return (PSPPIRE_IS_DIALOG (toplevel)
+          && psppire_dialog_is_acceptable (PSPPIRE_DIALOG (toplevel)));
+}
 
 static void
 close_dialog (GtkWidget *w, gpointer data)
@@ -225,27 +233,31 @@ close_dialog (GtkWidget *w, gpointer data)
 static void
 continue_button_clicked (GtkWidget *w, gpointer data)
 {
-  close_and_respond (w, PSPPIRE_RESPONSE_CONTINUE);
+  if (is_acceptable (w))
+    close_and_respond (w, PSPPIRE_RESPONSE_CONTINUE);
 }
 
 
 static void
 ok_button_clicked (GtkWidget *w, gpointer data)
 {
-  close_and_respond (w, GTK_RESPONSE_OK);
+  if (is_acceptable (w))
+    close_and_respond (w, GTK_RESPONSE_OK);
 }
 
 
 static void
 paste_button_clicked (GtkWidget *w, gpointer data)
 {
-  close_and_respond (w, PSPPIRE_RESPONSE_PASTE);
+  if (is_acceptable (w))
+    close_and_respond (w, PSPPIRE_RESPONSE_PASTE);
 }
 
 static void
 goto_button_clicked (GtkWidget *w, gpointer data)
 {
-  close_and_respond (w, PSPPIRE_RESPONSE_GOTO);
+  if (is_acceptable (w))
+    close_and_respond (w, PSPPIRE_RESPONSE_GOTO);
 }
 
 
