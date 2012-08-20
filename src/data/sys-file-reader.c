@@ -339,7 +339,7 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
 
   struct sfm_extension_record *extensions[32];
 
-  struct dictionary *dict = NULL;
+  struct dictionary *volatile dict = NULL;
   size_t i;
 
   /* Create and initialize reader. */
