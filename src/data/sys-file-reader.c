@@ -547,7 +547,10 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
 
   *dictp = dict;
   if (infop != info)
-    sfm_read_info_destroy (info);
+    {
+      sfm_read_info_destroy (info);
+      free (info);
+    }
 
   return casereader_create_sequential
     (NULL, r->proto,
@@ -555,7 +558,12 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
                                        &sys_file_casereader_class, r);
 
 error:
-  sfm_read_info_destroy (info);
+  if (infop != info)
+    {
+      sfm_read_info_destroy (info);
+      free (info);
+    }
+
   close_reader (r);
   dict_destroy (dict);
   *dictp = NULL;
