@@ -1,5 +1,7 @@
 #include <config.h>
 
+#include <gtksourceview/gtksourceview.h>
+
 #include "widgets.h"
 
 
@@ -61,4 +63,8 @@ preregister_widgets (void)
   psppire_dialog_action_regression_get_type ();
   psppire_dialog_action_roc_get_type ();
   psppire_dialog_action_sort_get_type ();
+
+  /* This seems to be necessary on Cygwin.
+     It ought not to be necessary.  Having it here can't do any harm. */
+  (void) gtk_source_view_get_type ();
 }
