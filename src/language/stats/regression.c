@@ -196,16 +196,15 @@ reg_get_name (const struct dictionary *dict, const char *prefix)
 static bool
 regression_trns_free (void *t_)
 {
-  bool result = true;
   struct reg_trns *t = t_;
 
   if (t->trns_id == t->n_trns)
     {
-      result = linreg_free (t->c);
+      linreg_unref (t->c);
     }
   free (t);
 
-  return result;
+  return true;
 }
 
 static void
@@ -249,6 +248,7 @@ subcommand_save (const struct regression *cmd)
         {
           if ((*lc)->depvar != NULL)
             {
+	      (*lc)->refcnt++;
               if (cmd->resid)
                 {
                   reg_save_var (cmd->ds, "RES", regression_trns_resid_proc, *lc,
@@ -401,11 +401,13 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   }
 
   if (regression.pred || regression.resid )
-    subcommand_save (&regression);
+    {
+      subcommand_save (&regression);
+    }
  
 
   for (k = 0; k < regression.n_dep_vars; k++)
-    linreg_free (regression.models[k]);
+    linreg_unref (regression.models[k]);
   free (regression.models);
   free (regression.vars);
   free (regression.dep_vars);
@@ -413,7 +415,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   
  error:
   for (k = 0; k < regression.n_dep_vars; k++)
-    linreg_free (regression.models[k]);
+    linreg_unref (regression.models[k]);
   free (regression.models);
   free (regression.vars);
   free (regression.dep_vars);
@@ -684,7 +686,7 @@ run_regression (const struct regression *cmd, struct casereader *input)
 	{
           msg (SE,
 	       _("No valid data found. This command was skipped."));
-          linreg_free (models[k]);
+          linreg_unref (models[k]);
           models[k] = NULL;
 	}
       gsl_matrix_free (this_cm);

@@ -90,6 +90,7 @@ typedef struct pspp_linreg_opts_struct pspp_linreg_opts;
 
 struct linreg_struct
 {
+  int refcnt;
   double n_obs;			/* Number of observations. */
   int n_indeps;			/* Number of independent variables. */
   int n_coeffs;                 /* The intercept is not considered a
@@ -153,7 +154,8 @@ typedef struct linreg_struct linreg;
 linreg *linreg_alloc (const struct variable *, const struct variable **, 
 		      double, size_t);
 
-bool linreg_free (void *);
+void linreg_unref (linreg *);
+void linreg_ref (linreg *c);
 
 /*
   Fit the linear model via least squares. All pointers passed to pspp_linreg

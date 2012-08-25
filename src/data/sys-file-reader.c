@@ -325,7 +325,7 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
                  struct dictionary **dictp, struct sfm_read_info *infop)
 {
   struct sfm_reader *volatile r = NULL;
-  struct sfm_read_info info;
+  struct sfm_read_info *volatile info;
 
   struct sfm_header_record header;
 
@@ -339,7 +339,7 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
 
   struct sfm_extension_record *extensions[32];
 
-  struct dictionary *dict = NULL;
+  struct dictionary *volatile dict = NULL;
   size_t i;
 
   /* Create and initialize reader. */
@@ -352,7 +352,8 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
   r->opcode_idx = sizeof r->opcodes;
   r->corruption_warning = false;
 
-  memset (&info, 0, sizeof info);
+  info = infop ? infop : xmalloc (sizeof *info);
+  memset (info, 0, sizeof *info);
 
   /* TRANSLATORS: this fragment will be interpolated into
      messages in fh_lock() that identify types of files. */
@@ -372,7 +373,7 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
     goto error;
 
   /* Read header. */
-  read_header (r, &info, &header);
+  read_header (r, info, &header);
 
   vars = NULL;
   n_vars = allocated_vars = 0;
@@ -470,7 +471,7 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
     parse_document (dict, document);
 
   if (extensions[EXT_INTEGER] != NULL)
-    parse_machine_integer_info (r, extensions[EXT_INTEGER], &info);
+    parse_machine_integer_info (r, extensions[EXT_INTEGER], info);
 
   if (extensions[EXT_FLOAT] != NULL)
     parse_machine_float_info (r, extensions[EXT_FLOAT]);
@@ -478,7 +479,7 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
   if (extensions[EXT_FILE_ATTRS] != NULL)
     parse_data_file_attributes (r, extensions[EXT_FILE_ATTRS], dict);
 
-  parse_header (r, &header, &info, dict);
+  parse_header (r, &header, info, dict);
 
   /* Parse the variable records, the basis of almost everything else. */
   parse_variable_records (r, dict, vars, n_vars);
@@ -531,7 +532,7 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
      wrong when very long strings are involved, so don't warn in
      that case. */
   if (header.nominal_case_size != -1 && header.nominal_case_size != n_vars
-      && info.version_major != 13)
+      && info->version_major != 13)
     sys_warn (r, -1, _("File header claims %d variable positions but "
                        "%zu were read from file."),
               header.nominal_case_size, n_vars);
@@ -545,10 +546,11 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
   r->proto = caseproto_ref_pool (dict_get_proto (dict), r->pool);
 
   *dictp = dict;
-  if (infop)
-    *infop = info;
-  else
-    sfm_read_info_destroy (&info);
+  if (infop != info)
+    {
+      sfm_read_info_destroy (info);
+      free (info);
+    }
 
   return casereader_create_sequential
     (NULL, r->proto,
@@ -556,7 +558,12 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
                                        &sys_file_casereader_class, r);
 
 error:
-  sfm_read_info_destroy (&info);
+  if (infop != info)
+    {
+      sfm_read_info_destroy (info);
+      free (info);
+    }
+
   close_reader (r);
   dict_destroy (dict);
   *dictp = NULL;
