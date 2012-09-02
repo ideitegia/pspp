@@ -225,8 +225,8 @@ on_var_column_edited (GtkCellRendererText *cell,
 
           format = *var_get_print_format (var);
           fmt_change_width (&format, width, var_sheet->format_use);
-          var_set_print_format (var, &format);
           var_set_width (var, fmt_var_width (&format));
+          var_set_both_formats (var, &format);
         }
       break;
 
@@ -342,16 +342,10 @@ render_var_cell (PsppSheetViewColumn *tree_column,
       break;
 
     case VS_WIDTH:
-      {
-        int step = fmt_step_width (print->type);
-        if (var_is_numeric (var))
-          set_spin_cell (cell, print->w,
-                         fmt_min_width (print->type, var_sheet->format_use),
-                         fmt_max_width (print->type, var_sheet->format_use),
-                         step);
-        else
-          set_spin_cell (cell, print->w, 0, 0, step);
-      }
+      set_spin_cell (cell, print->w,
+                     fmt_min_width (print->type, var_sheet->format_use),
+                     fmt_max_width (print->type, var_sheet->format_use),
+                     fmt_step_width (print->type));
       break;
 
     case VS_DECIMALS:
