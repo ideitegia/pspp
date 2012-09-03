@@ -292,25 +292,6 @@ psppire_cell_renderer_button_clicked (GtkButton *button,
   g_free (path);
 }
 
-static gboolean
-psppire_cell_renderer_button_focus_out_event (GtkWidget *widget,
-                                              GdkEvent  *event,
-                                              gpointer   data)
-{
-  PsppireCellRendererButton *cell_button = data;
-
-  g_signal_handlers_disconnect_by_func (widget,
-                                        psppire_cell_renderer_button_focus_out_event,
-                                        data);
-  g_signal_handlers_disconnect_by_func (widget,
-                                        psppire_cell_renderer_button_clicked,
-                                        data);
-
-  gtk_cell_renderer_stop_editing (GTK_CELL_RENDERER (cell_button), FALSE);
-
-  return FALSE;
-}
-
 #define IDLE_ID_STRING "psppire-cell-renderer-button-idle-id"
 
 static gboolean
@@ -419,9 +400,6 @@ psppire_cell_renderer_button_start_editing (GtkCellRenderer      *cell,
                                       "slash", cell_button->slash,
                                       NULL);
 
-  g_signal_connect (G_OBJECT (cell_button->button), "focus-out-event",
-                    G_CALLBACK (psppire_cell_renderer_button_focus_out_event),
-                    cell);
   g_signal_connect (G_OBJECT (cell_button->button), "clicked",
                     G_CALLBACK (psppire_cell_renderer_button_clicked),
                     cell);
