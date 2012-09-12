@@ -3669,6 +3669,56 @@ step_sheet (PsppireSheet *sheet, GtkScrollType dir)
 }
 
 
+/* Move to row 0 keeping the current column */
+static void
+row0 (PsppireSheet *sheet)
+{
+  gtk_adjustment_set_value (sheet->vadjustment,
+			    sheet->vadjustment->lower);
+  
+  change_active_cell (sheet,  0, sheet->active_cell.col);
+}
+
+/* Move to column 0 keeping the current row */
+static void
+col0 (PsppireSheet *sheet)
+{
+  gtk_adjustment_set_value (sheet->hadjustment,
+			    sheet->hadjustment->lower);
+
+  change_active_cell (sheet, sheet->active_cell.row, 0);
+}
+
+/* Move to last column  keeping the current row */
+static void
+col_last (PsppireSheet *sheet)
+{
+  glong last_col = psppire_axis_unit_count (sheet->haxis) - 1;
+
+  gtk_adjustment_set_value (sheet->hadjustment,
+			    sheet->hadjustment->upper - sheet->hadjustment->page_size);
+
+  change_active_cell (sheet, sheet->active_cell.row, 
+		      last_col);
+}
+
+
+/* Move to last row  keeping the current column */
+static void
+row_last (PsppireSheet *sheet)
+{
+  glong last_row = psppire_axis_unit_count (sheet->vaxis) - 1;
+
+  gtk_adjustment_set_value (sheet->vadjustment,
+			    sheet->vadjustment->upper- sheet->vadjustment->page_size);
+
+  change_active_cell (sheet, 
+		      last_row,
+		      sheet->active_cell.col);
+}
+
+
+
 static gboolean
 psppire_sheet_key_press (GtkWidget *widget,
 			 GdkEventKey *key)
@@ -3682,21 +3732,41 @@ psppire_sheet_key_press (GtkWidget *widget,
     case GDK_Tab:
       step_sheet (sheet, GTK_SCROLL_STEP_FORWARD);
       break;
+
     case GDK_Right:
-      step_sheet (sheet, GTK_SCROLL_STEP_RIGHT);
+      if (key->state & GDK_CONTROL_MASK) 
+	col_last (sheet);
+      else
+	step_sheet (sheet, GTK_SCROLL_STEP_RIGHT);
       break;
+
     case GDK_ISO_Left_Tab:
       step_sheet (sheet, GTK_SCROLL_STEP_BACKWARD);
       break;
+
     case GDK_Left:
-      step_sheet (sheet, GTK_SCROLL_STEP_LEFT);
+      if (key->state & GDK_CONTROL_MASK) 
+	col0 (sheet);
+      else
+	step_sheet (sheet, GTK_SCROLL_STEP_LEFT);
       break;
+
     case GDK_Return:
-    case GDK_Down:
       step_sheet (sheet, GTK_SCROLL_STEP_DOWN);
       break;
+
+    case GDK_Down:
+      if (key->state & GDK_CONTROL_MASK) 
+	row_last (sheet);
+      else
+	step_sheet (sheet, GTK_SCROLL_STEP_DOWN);
+      break;
+
     case GDK_Up:
-      step_sheet (sheet, GTK_SCROLL_STEP_UP);
+      if (key->state & GDK_CONTROL_MASK) 
+	row0 (sheet);
+      else
+	step_sheet (sheet, GTK_SCROLL_STEP_UP);
       break;
 
     case GDK_Page_Down:
@@ -3707,29 +3777,17 @@ psppire_sheet_key_press (GtkWidget *widget,
       break;
 
     case GDK_Home:
-      gtk_adjustment_set_value (sheet->vadjustment,
-				sheet->vadjustment->lower);
-
-      change_active_cell (sheet,  0,
-			  sheet->active_cell.col);
-
+      col0 (sheet);
       break;
 
     case GDK_End:
-      gtk_adjustment_set_value (sheet->vadjustment,
-				sheet->vadjustment->upper -
-				sheet->vadjustment->page_size -
-				sheet->vadjustment->page_increment);
-
-      /*
-	change_active_cellx (sheet,
-	psppire_axis_unit_count (sheet->vaxis) - 1,
-	sheet->active_cell.col);
-      */
+      col_last (sheet);
       break;
+
     case GDK_Delete:
       psppire_sheet_real_cell_clear (sheet, sheet->active_cell.row, sheet->active_cell.col);
       break;
+
     default:
       return FALSE;
       break;
