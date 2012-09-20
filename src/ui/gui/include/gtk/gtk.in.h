@@ -1,5 +1,5 @@
 /* Wrapper for <gtk/gtk.h>.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,6 +42,31 @@ gtk_widget_get_realized (GtkWidget *widget)
 
   return (GTK_WIDGET_FLAGS (widget) & GTK_REALIZED) != 0;
 }
+
+/**
+ * gtk_widget_set_realized:
+ * @widget: a #GtkWidget
+ * @realized: %TRUE to mark the widget as realized
+ *
+ * Marks the widget as being realized.
+ *
+ * This function should only ever be called in a derived widget's
+ * "realize" or "unrealize" implementation.
+ *
+ * Since: 2.20
+ */
+static inline void
+gtk_widget_set_realized (GtkWidget *widget,
+                         gboolean   realized)
+{
+  g_return_if_fail (GTK_IS_WIDGET (widget));
+
+  if (realized)
+    GTK_OBJECT_FLAGS (widget) |= GTK_REALIZED;
+  else
+    GTK_OBJECT_FLAGS (widget) &= ~(GTK_REALIZED);
+}
+
 #endif  /* gtk < 2.20 */
 
 #if !GTK_CHECK_VERSION(2,20,0)
@@ -62,6 +87,31 @@ gtk_widget_get_mapped (GtkWidget *widget)
 
   return (GTK_WIDGET_FLAGS (widget) & GTK_MAPPED) != 0;
 }
+
+/**
+ * gtk_widget_set_mapped:
+ * @widget: a #GtkWidget
+ * @mapped: %TRUE to mark the widget as mapped
+ *
+ * Marks the widget as being realized.
+ *
+ * This function should only ever be called in a derived widget's
+ * "map" or "unmap" implementation.
+ *
+ * Since: 2.20
+ */
+static inline void
+gtk_widget_set_mapped (GtkWidget *widget,
+                       gboolean   mapped)
+{
+  g_return_if_fail (GTK_IS_WIDGET (widget));
+
+  if (mapped)
+    GTK_OBJECT_FLAGS (widget) |= GTK_MAPPED;
+  else
+    GTK_OBJECT_FLAGS (widget) &= ~(GTK_MAPPED);
+}
+
 #endif  /* gtk < 2.20 */
 
 #if !GTK_CHECK_VERSION(2,18,0)
