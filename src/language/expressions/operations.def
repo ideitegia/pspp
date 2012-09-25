@@ -1,7 +1,7 @@
 // -*- c -*-
 //
 // PSPP - a program for statistical analysis.
-// Copyright (C) 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+// Copyright (C) 2005, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -654,14 +654,17 @@ boolean operator NUM_TO_BOOLEAN (x, string op_name)
 {
   if (x == 0. || x == 1. || x == SYSMIS)
     return x;
+
+  if (!ss_is_empty (op_name))
+    msg (SE, _("An operand of the %.*s operator was found to have a value "
+               "other than 0 (false), 1 (true), or the system-missing "
+               "value.  The result was forced to 0."),
+         (int) op_name.length, op_name.string);
   else
-    {
-      msg (SE, _("An operand of the %.*s operator was found to have a value "
-                 "other than 0 (false), 1 (true), or the system-missing "
-                 "value.  The result was forced to 0."),
-           (int) op_name.length, op_name.string);
-      return 0.;
-    }
+    msg (SE, _("A logical expression was found to have a value other than 0 "
+               "(false), 1 (true), or the system-missing value.  The result "
+               "was forced to 0."));
+  return 0.;
 }
 
 operator BOOLEAN_TO_NUM (boolean x) = x;
