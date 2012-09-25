@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005, 2007, 2010, 2011  Free Software Foundation
+   Copyright (C) 2005, 2007, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -304,12 +304,10 @@ psppire_custom_entry_class_init (PsppireCustomEntryClass *klass)
   GObjectClass     *gobject_class = G_OBJECT_CLASS (klass);
 
   GtkWidgetClass   *widget_class;
-  GtkEntryClass   *entry_class;
 
   parent_class = g_type_class_peek_parent (klass);
 
   widget_class   = (GtkWidgetClass*)   klass;
-  entry_class   = (GtkEntryClass*)   klass;
 
   widget_class->map = psppire_custom_entry_map;
   widget_class->unmap = psppire_custom_entry_unmap;

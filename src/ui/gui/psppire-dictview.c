@@ -305,11 +305,8 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
   struct variable *var;
   GtkTreeIter iter;
   GtkTreeModel *model;
-  PsppireDict *dict;
 
   dv_get_base_model (top_model, top_iter, &model, &iter);
-
-  dict = PSPPIRE_DICT (model);
 
   gtk_tree_model_get (model,
 		      &iter, DICT_TVM_COL_VAR, &var, -1);
@@ -414,10 +411,8 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
   {
     const gchar *tip ;
     GtkTreeModel *m;
-    PsppireDict *dict;
 
     dv_get_base_model (tree_model, NULL, &m, NULL);
-    dict = PSPPIRE_DICT (m);
 
     if ( PSPPIRE_DICT_VIEW (treeview)->prefer_labels )
       tip = var_get_name (var);

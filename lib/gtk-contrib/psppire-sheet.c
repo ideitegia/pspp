@@ -1698,12 +1698,8 @@ psppire_sheet_set_scroll_adjustments (PsppireSheet *sheet,
 static void
 psppire_sheet_finalize (GObject *object)
 {
-  PsppireSheet *sheet;
-
   g_return_if_fail (object != NULL);
   g_return_if_fail (PSPPIRE_IS_SHEET (object));
-
-  sheet = PSPPIRE_SHEET (object);
 
   if (G_OBJECT_CLASS (parent_class)->finalize)
     (*G_OBJECT_CLASS (parent_class)->finalize) (object);
@@ -4141,7 +4137,7 @@ draw_button (PsppireSheet *sheet, GdkWindow *window,
 	     GdkRectangle allocation)
 {
   GtkShadowType shadow_type;
-  gint text_width = 0, text_height = 0;
+  gint text_width = 0;
   PangoAlignment align = PANGO_ALIGN_LEFT;
 
   gboolean rtl ;
@@ -4206,9 +4202,6 @@ draw_button (PsppireSheet *sheet, GdkWindow *window,
 
   if (button->label_visible)
     {
-      text_height = DEFAULT_ROW_HEIGHT -
-	2 * COLUMN_TITLES_HEIGHT;
-
       gdk_gc_set_clip_rectangle (GTK_WIDGET (sheet)->style->fg_gc[button->state],
 				 &allocation);
       gdk_gc_set_clip_rectangle (GTK_WIDGET (sheet)->style->white_gc,

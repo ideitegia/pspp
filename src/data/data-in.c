@@ -281,7 +281,6 @@ parse_number (struct data_in *i)
 
   struct string tmp;
 
-  bool explicit_decimals = false;
   int save_errno;
   char *tail;
 
@@ -334,7 +333,6 @@ parse_number (struct data_in *i)
   /* Decimal point and following digits. */
   if (ss_match_byte (&i->input, style->decimal))
     {
-      explicit_decimals = true;
       ds_put_byte (&tmp, '.');
       while (c_isdigit (ss_first (i->input)))
         ds_put_byte (&tmp, ss_get_byte (&i->input));
@@ -345,7 +343,6 @@ parse_number (struct data_in *i)
       && !ss_is_empty (i->input)
       && strchr ("eEdD-+", ss_first (i->input)))
     {
-      explicit_decimals = true;
       ds_put_byte (&tmp, 'e');
 
       if (strchr ("eEdD", ss_first (i->input)))

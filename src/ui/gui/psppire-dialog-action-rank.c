@@ -169,14 +169,12 @@ run_types_dialog (GtkButton *b, PsppireDialogActionRank *dar)
 {
   PsppireDialogAction *act  = PSPPIRE_DIALOG_ACTION (dar);
 
-  gint response;
-
   gtk_window_set_transient_for (GTK_WINDOW (dar->types_dialog),
 				GTK_WINDOW (act->dialog));
 
   types_dialog_reset (dar);
 
-  response = psppire_dialog_run (PSPPIRE_DIALOG (dar->types_dialog));
+  psppire_dialog_run (PSPPIRE_DIALOG (dar->types_dialog));
 }
 
 static void
@@ -184,12 +182,10 @@ run_ties_dialog (GtkButton *b,  PsppireDialogActionRank *dar)
 {
   PsppireDialogAction *act  = PSPPIRE_DIALOG_ACTION (dar);
 
-  gint response;
-
   gtk_window_set_transient_for (GTK_WINDOW (dar->ties_dialog),
 				GTK_WINDOW (act->dialog));
 
-  response = psppire_dialog_run (PSPPIRE_DIALOG (dar->ties_dialog));
+  psppire_dialog_run (PSPPIRE_DIALOG (dar->ties_dialog));
 }
 
 static void

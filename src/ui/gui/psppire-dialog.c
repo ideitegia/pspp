@@ -89,12 +89,8 @@ static GObjectClass     *parent_class = NULL;
 static void
 psppire_dialog_finalize (GObject *object)
 {
-  PsppireDialog *dialog ;
-
   g_return_if_fail (object != NULL);
   g_return_if_fail (PSPPIRE_IS_DIALOG (object));
-
-  dialog = PSPPIRE_DIALOG (object);
 
   if (G_OBJECT_CLASS (parent_class)->finalize)
     G_OBJECT_CLASS (parent_class)->finalize (object);

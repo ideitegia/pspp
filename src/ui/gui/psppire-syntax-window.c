@@ -376,7 +376,6 @@ contents_received_callback (GtkClipboard *clipboard,
 			    GtkSelectionData *sd,
 			    gpointer data)
 {
-  gchar *c;
   PsppireSyntaxWindow *syntax_window = data;
 
   if ( sd->length < 0 )
@@ -384,8 +383,6 @@ contents_received_callback (GtkClipboard *clipboard,
 
   if ( sd->type != gdk_atom_intern ("UTF8_STRING", FALSE))
     return;
-
-  c = (gchar *) sd->data;
 
   gtk_text_buffer_insert_at_cursor (GTK_TEXT_BUFFER (syntax_window->buffer),
 				    (gchar *) sd->data,

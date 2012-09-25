@@ -2303,7 +2303,6 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
       PsppSheetViewColumn *column = NULL;
       GtkCellRenderer *focus_cell = NULL;
       gboolean row_double_click = FALSE;
-      gboolean node_selected;
 
       /* Empty tree? */
       if (tree_view->priv->row_count == 0)
@@ -2325,7 +2324,6 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
         return TRUE;
 
       /* select */
-      node_selected = pspp_sheet_view_node_is_selected (tree_view, node);
       pre_val = tree_view->priv->vadjustment->value;
 
       path = _pspp_sheet_view_find_path (tree_view, node);
@@ -2391,7 +2389,6 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
           tree_view->priv->press_start_node = node;
 
 	  if (tree_view->priv->rubber_banding_enable
-	      //&& !node_selected
 	      && (tree_view->priv->selection->type == PSPP_SHEET_SELECTION_MULTIPLE ||
                   tree_view->priv->selection->type == PSPP_SHEET_SELECTION_RECTANGLE))
 	    {
@@ -3753,7 +3750,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   gint new_y;
   gint y_offset, cell_offset;
   gint max_height;
-  gint depth;
   GdkRectangle background_area;
   GdkRectangle cell_area;
   guint flags;
@@ -3826,7 +3822,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   gtk_tree_model_get_iter (tree_view->priv->model,
 			   &iter,
 			   path);
-  depth = gtk_tree_path_get_depth (path);
   gtk_tree_path_free (path);
   
   cursor_path = NULL;
@@ -5003,7 +4998,6 @@ validate_row (PsppSheetView *tree_view,
   gint horizontal_separator;
   gint vertical_separator;
   gint focus_line_width;
-  gboolean retval = FALSE;
   gboolean draw_vgrid_lines, draw_hgrid_lines;
   gint focus_pad;
   gint grid_line_width;
@@ -5066,10 +5060,7 @@ validate_row (PsppSheetView *tree_view,
 	}
 
       if (tmp_width > column->requested_width)
-	{
-	  retval = TRUE;
-	  column->requested_width = tmp_width;
-	}
+        column->requested_width = tmp_width;
     }
 
   if (draw_hgrid_lines)
@@ -8782,7 +8773,6 @@ pspp_sheet_view_set_model (PsppSheetView  *tree_view,
   if (tree_view->priv->model)
     {
       gint i;
-      GtkTreeModelFlags flags;
 
       if (tree_view->priv->search_column == -1)
 	{
@@ -8815,8 +8805,6 @@ pspp_sheet_view_set_model (PsppSheetView  *tree_view,
 			"rows-reordered",
 			G_CALLBACK (pspp_sheet_view_rows_reordered),
 			tree_view);
-
-      flags = gtk_tree_model_get_flags (tree_view->priv->model);
 
       tree_view->priv->row_count = gtk_tree_model_iter_n_children (tree_view->priv->model, NULL);
 
@@ -11021,7 +11009,6 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
   GdkRectangle background_area;
   GdkRectangle expose_area;
   GtkWidget *widget;
-  gint depth;
   /* start drawing inside the black outline */
   gint x = 1, y = 1;
   GdkDrawable *drawable;
@@ -11035,8 +11022,6 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
 
   if (!gtk_widget_get_realized (widget))
     return NULL;
-
-  depth = gtk_tree_path_get_depth (path);
 
   _pspp_sheet_view_find_node (tree_view,
                             path,
@@ -12407,12 +12392,10 @@ pspp_sheet_view_set_special_cells (PsppSheetView           *tree_view,
 			      PsppSheetViewSpecialCells   special_cells)
 {
   PsppSheetViewPrivate *priv;
-  GtkWidget *widget;
 
   g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
 
   priv = tree_view->priv;
-  widget = GTK_WIDGET (tree_view);
 
   if (priv->special_cells != special_cells)
     {

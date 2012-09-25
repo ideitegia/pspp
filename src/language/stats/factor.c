@@ -813,7 +813,6 @@ static bool run_factor (struct dataset *ds, const struct cmd_factor *factor);
 int
 cmd_factor (struct lexer *lexer, struct dataset *ds)
 {
-  bool extraction_seen = false;
   const struct dictionary *dict = dataset_dict (ds);
 
   struct cmd_factor factor;
@@ -998,7 +997,6 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	}
       else if (lex_match_id (lexer, "EXTRACTION"))
 	{
-	  extraction_seen = true;
           lex_match (lexer, T_EQUALS);
           while (lex_token (lexer) != T_ENDCMD && lex_token (lexer) != T_SLASH)
 	    {

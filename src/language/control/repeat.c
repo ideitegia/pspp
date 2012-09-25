@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -249,7 +249,6 @@ parse_commands (struct lexer *lexer, struct hmap *dummies)
   enum segmenter_mode mode;
   struct string *outputs;
   struct string input;
-  size_t input_len;
   size_t n_values;
   char *file_name;
   int line_number;
@@ -272,7 +271,6 @@ parse_commands (struct lexer *lexer, struct hmap *dummies)
   if (ds_is_empty (&input))
     ds_put_byte (&input, '\n');
   ds_put_byte (&input, '\0');
-  input_len = ds_length (&input);
 
   n_values = count_values (dummies);
   outputs = xmalloc (n_values * sizeof *outputs);

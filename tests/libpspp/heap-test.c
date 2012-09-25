@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -524,11 +524,7 @@ test_inc_dec (void)
             delete[i] = insert[i];
           for (i = 0; i < cnt; i++)
             {
-              int old_value, old_min, new_min;
-              old_min = min_int (delete, cnt);
-              old_value = delete[i];
               elements[i].x = delete[i] = rand () % (cnt + 2) - 1;
-              new_min = min_int (delete, cnt);
               heap_changed (h, &elements[i].node);
               check (heap_node_to_element (heap_minimum (h))->x
                      == min_int (delete, cnt));
@@ -595,7 +591,6 @@ test_random_insert_delete (void)
       if (action == INSERT)
         {
           int new_value;
-          int old_min;
 
           new_value = rand () % max_elems;
           values[cnt] = new_value;
@@ -603,20 +598,13 @@ test_random_insert_delete (void)
 
           heap_insert (h, &elements[cnt].node);
 
-          old_min = min_int (values, cnt);
-
           cnt++;
         }
       else if (action == DELETE)
         {
           int del_idx;
-          int del_value;
-          int old_min, new_min;
-
-          old_min = min_int (values, cnt);
 
           del_idx = rand () % cnt;
-          del_value = values[del_idx];
           heap_delete (h, &elements[del_idx].node);
 
           cnt--;
@@ -626,8 +614,6 @@ test_random_insert_delete (void)
               elements[del_idx] = elements[cnt];
               heap_moved (h, &elements[del_idx].node);
             }
-
-          new_min = min_int (values, cnt);
         }
       else
         abort ();

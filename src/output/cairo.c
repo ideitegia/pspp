@@ -386,14 +386,12 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
            struct string_map *o, enum xr_output_type file_type)
 {
   enum { MIN_WIDTH = 3, MIN_LENGTH = 3 };
-  struct output_driver *d;
   struct xr_driver *xr;
   cairo_surface_t *surface;
   cairo_status_t status;
   double width_pt, length_pt;
 
   xr = xr_allocate (file_name, device_type, o);
-  d = &xr->driver;
 
   width_pt = (xr->width + xr->left_margin + xr->right_margin) / 1000.0;
   length_pt = (xr->length + xr->top_margin + xr->bottom_margin) / 1000.0;
