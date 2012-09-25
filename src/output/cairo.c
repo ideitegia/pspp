@@ -322,7 +322,7 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
   cairo_set_line_width (xr->cairo, xr_to_pt (xr->line_width));
 
   map = pango_cairo_font_map_get_default ();
-  context = pango_cairo_font_map_create_context (PANGO_CAIRO_FONT_MAP (map));
+  context = pango_font_map_create_context (map);
   if (xr_is_72dpi (cairo))
     {
       /* Pango seems to always scale fonts according to the DPI specified
