@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2006, 2008, 2009, 2011 Free Software Foundation
+  Copyright (C) 2006, 2008, 2009, 2011, 2012 Free Software Foundation
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -444,7 +444,6 @@ rectangle_from_cell (PsppireSheet *sheet, gint row, gint col,
 static void psppire_sheet_class_init 		 (PsppireSheetClass *klass);
 static void psppire_sheet_init 			 (PsppireSheet *sheet);
 static void psppire_sheet_dispose 			 (GObject *object);
-static void psppire_sheet_finalize 			 (GObject *object);
 static void psppire_sheet_style_set 		 (GtkWidget *widget,
 						  GtkStyle *previous_style);
 static void psppire_sheet_realize 			 (GtkWidget *widget);
@@ -1036,7 +1035,6 @@ psppire_sheet_class_init (PsppireSheetClass *klass)
   container_class->set_focus_child = NULL;
 
   object_class->dispose = psppire_sheet_dispose;
-  object_class->finalize = psppire_sheet_finalize;
 
   cell_padding_spec =
     g_param_spec_boxed ("cell-padding",
@@ -1693,16 +1691,6 @@ psppire_sheet_set_scroll_adjustments (PsppireSheet *sheet,
 	}
     }
   return TRUE;
-}
-
-static void
-psppire_sheet_finalize (GObject *object)
-{
-  g_return_if_fail (object != NULL);
-  g_return_if_fail (PSPPIRE_IS_SHEET (object));
-
-  if (G_OBJECT_CLASS (parent_class)->finalize)
-    (*G_OBJECT_CLASS (parent_class)->finalize) (object);
 }
 
 static void
