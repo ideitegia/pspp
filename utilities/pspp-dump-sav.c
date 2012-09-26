@@ -227,7 +227,6 @@ read_header (struct sfm_reader *r)
   char eye_catcher[61];
   uint8_t raw_layout_code[4];
   int32_t layout_code;
-  int32_t nominal_case_size;
   int32_t compressed;
   int32_t weight_index;
   int32_t ncases;
@@ -254,7 +253,7 @@ read_header (struct sfm_reader *r)
   layout_code = integer_get (r->integer_format,
                              raw_layout_code, sizeof raw_layout_code);
 
-  nominal_case_size = read_int (r);
+  read_int (r);                 /* Nominal case size (not actually useful). */
   compressed = read_int (r);
   weight_index = read_int (r);
   ncases = read_int (r);
