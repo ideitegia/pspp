@@ -185,7 +185,7 @@ split_file_dialog (PsppireDataWindow *de)
 
   g_object_get (vs, "dictionary", &sfd.dict, NULL);
 
-  sfd.selector = PSPPIRE_SELECTOR (get_widget_assert (sfd.xml, "split-file-selector"));
+  sfd.selector = PSPPIRE_SELECTOR (selector);
 
   g_object_set (source, "model", sfd.dict, NULL);
 
