@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -159,8 +159,6 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   struct case_map *map;       /* Map from input data to data for writer. */
 
   /* Common options. */
-  bool print_map;             /* Print map?  TODO. */
-  bool print_short_names;     /* Print long-to-short name map.  TODO. */
   struct sfm_write_options sysfile_opts;
   struct pfm_write_options porfile_opts;
 
@@ -175,8 +173,6 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   dict = dict_clone (dataset_dict (ds));
   writer = NULL;
   map = NULL;
-  print_map = false;
-  print_short_names = false;
   sysfile_opts = sfm_writer_default_options ();
   porfile_opts = pfm_writer_default_options ();
 
@@ -201,7 +197,9 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
 	    goto error;
 	}
       else if (lex_match_id (lexer, "NAMES"))
-        print_short_names = true;
+        {
+          /* Not yet implemented. */
+        }
       else if (lex_match_id (lexer, "PERMISSIONS"))
         {
           bool cw;
