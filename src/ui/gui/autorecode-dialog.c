@@ -216,6 +216,7 @@ on_selection_change (GtkTreeSelection *selection, gpointer data)
 
 
       ok = gtk_tree_model_get_iter (model, &iter, (GtkTreePath*) rows->data);
+      g_return_if_fail (ok);
 
       gtk_tree_model_get (model, &iter, 0, &var, -1);
 
