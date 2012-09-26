@@ -107,7 +107,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
       enum cmd_result result;
 
       result = cmd_parse_in_state (lexer, ds, CMD_STATE_INPUT_PROGRAM);
-      if (result == CMD_END_CASE)
+      if (result == (enum cmd_result) CMD_END_CASE)
         {
           emit_END_CASE (ds, inp);
           saw_END_CASE = true;

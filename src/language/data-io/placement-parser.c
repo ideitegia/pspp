@@ -270,7 +270,7 @@ bool
 execute_placement_format (const struct fmt_spec *format,
                           int *record, int *column)
 {
-  switch (format->type)
+  switch ((int) format->type)
     {
     case PRS_TYPE_X:
       *column += format->w;
