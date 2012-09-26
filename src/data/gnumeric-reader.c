@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -294,7 +294,8 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
 
   r = xzalloc (sizeof *r);
 
-  r->xtr = xmlReaderForIO ((xmlInputReadCallback) gzread, gzclose, gz,
+  r->xtr = xmlReaderForIO ((xmlInputReadCallback) gzread,
+                           (xmlInputCloseCallback) gzclose, gz,
 			   NULL, NULL, 0);
 
   if ( r->xtr == NULL)
