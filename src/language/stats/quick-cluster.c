@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -390,11 +390,10 @@ static void
 quick_cluster_show_centers (struct Kmeans *kmeans, bool initial, const struct qc *qc)
 {
   struct tab_table *t;
-  int nc, nr, heading_columns, currow;
+  int nc, nr, currow;
   int i, j;
   nc = qc->ngroups + 1;
   nr = qc->n_vars + 4;
-  heading_columns = 1;
   t = tab_create (nc, nr);
   tab_headers (t, 0, nc - 1, 0, 1);
   currow = 0;

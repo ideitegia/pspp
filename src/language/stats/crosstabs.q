@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -289,11 +289,11 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
   proc.exclude = (cmd.miss == CRS_TABLE ? MV_ANY
                    : cmd.miss == CRS_INCLUDE ? MV_SYSTEM
                    : MV_NEVER);
-  if (proc.mode == GENERAL && proc.mode == MV_NEVER)
+  if (proc.mode == GENERAL && proc.exclude == MV_NEVER)
     {
       msg (SE, _("Missing mode REPORT not allowed in general mode.  "
 		 "Assuming MISSING=TABLE."));
-      proc.mode = MV_ANY;
+      proc.exclude = MV_ANY;
     }
 
   /* PIVOT. */

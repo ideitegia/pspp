@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -134,7 +134,6 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
   size_t n_dsts = 0;
 
   enum arc_direction direction = ASCENDING;
-  bool print = true;
 
   struct casereader *input;
   struct ccase *c;
@@ -185,7 +184,9 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       if (lex_match_id (lexer, "DESCENDING"))
 	direction = DESCENDING;
       else if (lex_match_id (lexer, "PRINT"))
-	print = true;
+        {
+          /* Not yet implemented. */
+        }
       else if (lex_match_id (lexer, "GROUP"))
 	{
 	  arc->global_items = xmalloc (sizeof (*arc->global_items));

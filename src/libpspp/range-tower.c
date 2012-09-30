@@ -1,5 +1,5 @@
 /* pspp - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -741,7 +741,6 @@ range_tower_move (struct range_tower *rt,
                   unsigned long int width)
 {
   unsigned long int node_start;
-  int i;
 
   if (width == 0 || old_start == new_start)
     return;
@@ -749,7 +748,6 @@ range_tower_move (struct range_tower *rt,
   assert (old_start + width - 1 >= old_start);
   assert (new_start + width - 1 >= new_start);
 
-  i = 0;
   do
     {
       struct range_tower_node *node;

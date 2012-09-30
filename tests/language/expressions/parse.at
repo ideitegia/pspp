@@ -21,3 +21,20 @@ parse.sps:10: error: IF: Unknown identifier y.
 parse.sps:11: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
 ])
 AT_CLEANUP
+
+AT_SETUP([parse expression with invalid logical expression])
+AT_DATA([parse.sps], [dnl
+INPUT PROGRAM.
+LOOP c=1 to 10.
+COMPUTE var1=NORMAL(100).
+END CASE.
+END LOOP.
+END FILE.
+END INPUT PROGRAM.
+
+SELECT IF 2.
+])
+AT_CHECK([pspp -O format=csv parse.sps], [1], [dnl
+"parse.sps:9: error: SELECT IF: A logical expression was found to have a value other than 0 (false), 1 (true), or the system-missing value.  The result was forced to 0."
+])
+AT_CLEANUP

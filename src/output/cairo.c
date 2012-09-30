@@ -322,7 +322,7 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
   cairo_set_line_width (xr->cairo, xr_to_pt (xr->line_width));
 
   map = pango_cairo_font_map_get_default ();
-  context = pango_cairo_font_map_create_context (PANGO_CAIRO_FONT_MAP (map));
+  context = pango_font_map_create_context (map);
   if (xr_is_72dpi (cairo))
     {
       /* Pango seems to always scale fonts according to the DPI specified
@@ -386,14 +386,12 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
            struct string_map *o, enum xr_output_type file_type)
 {
   enum { MIN_WIDTH = 3, MIN_LENGTH = 3 };
-  struct output_driver *d;
   struct xr_driver *xr;
   cairo_surface_t *surface;
   cairo_status_t status;
   double width_pt, length_pt;
 
   xr = xr_allocate (file_name, device_type, o);
-  d = &xr->driver;
 
   width_pt = (xr->width + xr->left_margin + xr->right_margin) / 1000.0;
   length_pt = (xr->length + xr->top_margin + xr->bottom_margin) / 1000.0;

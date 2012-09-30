@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -262,8 +262,9 @@ type_check (struct expression *e,
                atom_type_name (actual_type));
 	  return false;
 	}
-      if (actual_type == OP_number && expected_type == OP_boolean)
-	*n = expr_allocate_unary (e, OP_NUM_TO_BOOLEAN, *n);
+      if (actual_type == OP_number && expected_type == EXPR_BOOLEAN)
+        *n = expr_allocate_binary (e, OP_NUM_TO_BOOLEAN, *n,
+                                   expr_allocate_string (e, ss_empty ()));
       break;
 
     case EXPR_STRING:

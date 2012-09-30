@@ -86,22 +86,6 @@ psppire_dialog_get_type (void)
 static GObjectClass     *parent_class = NULL;
 
 
-static void
-psppire_dialog_finalize (GObject *object)
-{
-  PsppireDialog *dialog ;
-
-  g_return_if_fail (object != NULL);
-  g_return_if_fail (PSPPIRE_IS_DIALOG (object));
-
-  dialog = PSPPIRE_DIALOG (object);
-
-  if (G_OBJECT_CLASS (parent_class)->finalize)
-    G_OBJECT_CLASS (parent_class)->finalize (object);
-}
-
-
-
 /* Properties */
 enum
 {
@@ -285,8 +269,6 @@ psppire_dialog_class_init (PsppireDialogClass *class)
 		  1,
 		  G_TYPE_STRING);
 
-
-  object_class->finalize = psppire_dialog_finalize;
 
   parent_class = g_type_class_peek_parent (class);
 }

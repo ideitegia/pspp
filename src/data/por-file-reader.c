@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -540,7 +540,7 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
 {
   static const char empty_string[] = "";
   char *date, *time;
-  const char *product, *author, *subproduct;
+  const char *product, *subproduct;
   int i;
 
   /* Read file. */
@@ -549,7 +549,11 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
   date = read_pool_string (r);
   time = read_pool_string (r);
   product = match (r, '1') ? read_pool_string (r) : empty_string;
-  author = match (r, '2') ? read_pool_string (r) : empty_string;
+  if (match (r, '2'))
+    {
+      /* Skip "author" field. */
+      read_pool_string (r);
+    }
   subproduct = match (r, '3') ? read_pool_string (r) : empty_string;
 
   /* Validate file. */

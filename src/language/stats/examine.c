@@ -1596,7 +1596,6 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
       double imax = es[v].cc;
       struct casereader *reader;
       struct ccase *c;
-      casenumber total_cases;
 
       if (examine->histogram)
         {
@@ -1610,7 +1609,6 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
         }
 
       es[v].sorted_reader = casewriter_make_reader (es[v].sorted_writer);
-      total_cases = casereader_count_cases (es[v].sorted_reader);
       es[v].sorted_writer = NULL;
 
       es[v].maxima = pool_calloc (examine->pool, examine->calc_extremes, sizeof (*es[v].maxima));

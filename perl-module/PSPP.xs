@@ -568,13 +568,12 @@ MODULE = PSPP		PACKAGE = PSPP::Sysfile
 
 
 struct sysfile_info *
-pxs_create_sysfile (name, dict_ref, opts_hr)
+pxs_create_sysfile (name, dict, opts_hr)
  char *name
- SV *dict_ref
+ struct dictionary *dict;
  SV *opts_hr
 INIT:
- SV *dict_sv = SvRV (dict_ref);
- struct dictionary *dict = (void *) SvIV (dict_sv);
+ SV *dict_sv = ST(1);
  struct sfm_write_options opts;
  if (!SvROK (opts_hr))
   {

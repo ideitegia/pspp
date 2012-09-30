@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,10 +51,12 @@ void
 hmapx_clear (struct hmapx *map)
 {
   struct hmapx_node *node, *next;
-  void *data;
 
-  HMAPX_FOR_EACH_SAFE (data, node, next, map)
-    hmapx_delete (map, node);
+  for (node = hmapx_first (map); node; node = next)
+    {
+      next = hmapx_next (map, node);
+      hmapx_delete (map, node);
+    }
 }
 
 /* Allocates and returns a new hmapx_node with DATA as its data
