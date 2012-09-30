@@ -12506,13 +12506,11 @@ pspp_sheet_view_set_grid_lines (PsppSheetView           *tree_view,
 			      PsppSheetViewGridLines   grid_lines)
 {
   PsppSheetViewPrivate *priv;
-  GtkWidget *widget;
   PsppSheetViewGridLines old_grid_lines;
 
   g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
 
   priv = tree_view->priv;
-  widget = GTK_WIDGET (tree_view);
 
   old_grid_lines = priv->grid_lines;
   priv->grid_lines = grid_lines;
