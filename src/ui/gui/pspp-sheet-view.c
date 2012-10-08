@@ -2635,6 +2635,10 @@ pspp_sheet_view_button_release_edit (PsppSheetView *tree_view,
   if (event->window != tree_view->priv->bin_window)
     return FALSE;
 
+  /* Ignore a released button, if that button wasn't depressed */
+  if (tree_view->priv->pressed_button != event->button)
+    return FALSE;
+
   if (!find_click (tree_view, event->x, event->y, &node, &column, &background_area,
                    &cell_area))
     return FALSE;
