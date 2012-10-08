@@ -564,13 +564,16 @@ disconnect_data_sheets (PsppireDataEditor *de)
 }
 
 static GtkWidget *
-make_data_sheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines)
+make_data_sheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines,
+                 gboolean show_value_labels)
 {
   PsppSheetSelection *selection;
   GtkWidget *ds;
 
   ds = psppire_data_sheet_new ();
   pspp_sheet_view_set_grid_lines (PSPP_SHEET_VIEW (ds), grid_lines);
+  psppire_data_sheet_set_value_labels (PSPPIRE_DATA_SHEET (ds),
+                                       show_value_labels);
 
   g_signal_connect_swapped (ds, "notify::value-labels",
                             G_CALLBACK (refresh_entry), de);
@@ -585,11 +588,12 @@ make_data_sheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines)
 }
 
 static GtkWidget *
-make_single_datasheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines)
+make_single_datasheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines,
+                       gboolean show_value_labels)
 {
   GtkWidget *data_sheet_scroller;
 
-  de->data_sheets[0] = make_data_sheet (de, grid_lines);
+  de->data_sheets[0] = make_data_sheet (de, grid_lines, show_value_labels);
   de->data_sheets[1] = de->data_sheets[2] = de->data_sheets[3] = NULL;
 
   /* Put data sheet in scroller. */
@@ -602,7 +606,8 @@ make_single_datasheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines)
 }
 
 static GtkWidget *
-make_split_datasheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines)
+make_split_datasheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines,
+                      gboolean show_value_labels)
 {
   /* Panes, in the order in which we want to create them. */
   enum
@@ -625,7 +630,7 @@ make_split_datasheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines)
       GtkPolicyType hpolicy, vpolicy;
       GtkWidget *scroller;
 
-      de->data_sheets[i] = make_data_sheet (de, grid_lines);
+      de->data_sheets[i] = make_data_sheet (de, grid_lines, show_value_labels);
       ds[i] = PSPP_SHEET_VIEW (de->data_sheets[i]);
 
       if (i == BL)
@@ -714,7 +719,7 @@ psppire_data_editor_init (PsppireDataEditor *de)
 
   de->split = FALSE;
   de->datasheet_vbox_widget
-    = make_single_datasheet (de, GTK_TREE_VIEW_GRID_LINES_BOTH);
+    = make_single_datasheet (de, GTK_TREE_VIEW_GRID_LINES_BOTH, FALSE);
 
   de->vbox = gtk_vbox_new (FALSE, 0);
   gtk_box_pack_start (GTK_BOX (de->vbox), hbox, FALSE, FALSE, 0);
@@ -806,6 +811,7 @@ void
 psppire_data_editor_split_window (PsppireDataEditor *de, gboolean split)
 {
   GtkTreeViewGridLines grid_lines;
+  gboolean labels;
 
   if (split == de->split)
     return;
@@ -813,6 +819,8 @@ psppire_data_editor_split_window (PsppireDataEditor *de, gboolean split)
 
   grid_lines = pspp_sheet_view_get_grid_lines (
     PSPP_SHEET_VIEW (de->data_sheets[0]));
+  labels = psppire_data_sheet_get_value_labels (PSPPIRE_DATA_SHEET (
+                                                  de->data_sheets[0]));
 
   disconnect_data_sheets (de);
   if (de->old_vbox_widget)
@@ -825,9 +833,9 @@ psppire_data_editor_split_window (PsppireDataEditor *de, gboolean split)
   gtk_container_remove (GTK_CONTAINER (de->vbox), de->datasheet_vbox_widget);
 
   if (split)
-    de->datasheet_vbox_widget = make_split_datasheet (de, grid_lines);
+    de->datasheet_vbox_widget = make_split_datasheet (de, grid_lines, labels);
   else
-    de->datasheet_vbox_widget = make_single_datasheet (de, grid_lines);
+    de->datasheet_vbox_widget = make_single_datasheet (de, grid_lines, labels);
 
   psppire_data_editor_refresh_model (de);
 
