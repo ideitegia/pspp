@@ -108,12 +108,9 @@ static gboolean
 psppire_button_editable_button_release (GtkWidget      *widget,
                                         GdkEventButton *event)
 {
-  GtkButton *button;
-
   if (event->button == 1)
     {
-      button = GTK_BUTTON (widget);
-      gtk_button_released (button);
+      g_signal_emit_by_name (widget, "button-release-event", event, NULL);
     }
 
   return TRUE;
@@ -222,15 +219,11 @@ gtk_cell_editable_interface_init (GtkCellEditableIface *iface)
 static void
 button_editable_editing_done (GtkCellEditable *cell_editable)
 {
-
-
 }
 
 static void
 button_editable_remove_widget (GtkCellEditable *cell_editable)
 {
-
-
 }
 
 static void
