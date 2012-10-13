@@ -77,31 +77,6 @@ $(srcdir)/doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 	$(XMLLINT) --output /dev/null $@ || ( $(RM) $@ ; false)
 
 
-doc/texi_deps: doc/texi-dep.sh $(info_TEXINFOS) $(doc_pspp_TEXINFOS)
-	@$(MKDIR_P) doc
-	$(SHELL) $(top_srcdir)/doc/texi-dep.sh doc/pspp.dvi  $(top_srcdir)/doc   > $@
-	$(SHELL) $(top_srcdir)/doc/texi-dep.sh doc/pspp.xml  $(top_srcdir)/doc  >> $@
-	$(SHELL) $(top_srcdir)/doc/texi-dep.sh doc/pspp.info $(top_srcdir)/doc  >> $@
-	$(SHELL) $(top_srcdir)/doc/texi-dep.sh doc/pspp.ps   $(top_srcdir)/doc  >> $@
-	$(SHELL) $(top_srcdir)/doc/texi-dep.sh doc/pspp.pdf  $(top_srcdir)/doc  >> $@
-
--include $(top_builddir)/doc/texi_deps
-
-
-docbookdir = $(docdir)
-dist_docbook_DATA = doc/pspp.xml
-
-SUFFIXES += .png .jpg .eps .txt
-
-.png.jpg:
-	convert $< $@
-
-.png.eps:
-	convert $< $@
-
-.png.txt:
-	echo A pretty picture > $@
-
 EXTRA_DIST += doc/OChangeLog
 CLEANFILES += pspp-dev.dvi $(docbook_DATA)
 
