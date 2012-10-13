@@ -83,3 +83,5 @@ dist_docbook_DATA = doc/pspp.xml
 EXTRA_DIST += doc/OChangeLog
 CLEANFILES += pspp-dev.dvi $(docbook_DATA)
 
+doc: $(INFO_DEPS) $(DVIS) $(PDFS) $(PSS) $(HTMLS) $(dist_docbook_DATA)
+.PHONY: doc
