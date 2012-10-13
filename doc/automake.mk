@@ -76,6 +76,9 @@ $(srcdir)/doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 	> $@
 	$(XMLLINT) --output /dev/null $@ || ( $(RM) $@ ; false)
 
+docbookdir = $(docdir)
+dist_docbook_DATA = doc/pspp.xml
+ 
 
 EXTRA_DIST += doc/OChangeLog
 CLEANFILES += pspp-dev.dvi $(docbook_DATA)
