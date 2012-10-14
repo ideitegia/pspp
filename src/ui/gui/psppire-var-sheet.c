@@ -1054,6 +1054,16 @@ psppire_var_sheet_row_number_double_clicked (PsppireCellRendererButton *button,
   gtk_tree_path_free (path);
 }
 
+static void
+psppire_var_sheet_variables_column_clicked (PsppSheetViewColumn *column,
+                                            PsppireVarSheet *var_sheet)
+{
+  PsppSheetView *sheet_view = PSPP_SHEET_VIEW (var_sheet);
+  PsppSheetSelection *selection = pspp_sheet_view_get_selection (sheet_view);
+
+  pspp_sheet_selection_select_all (selection);
+}
+
 static PsppSheetViewColumn *
 make_row_number_column (PsppireVarSheet *var_sheet)
 {
@@ -1068,9 +1078,14 @@ make_row_number_column (PsppireVarSheet *var_sheet)
 
   column = pspp_sheet_view_column_new_with_attributes (_("Variable"),
                                                        renderer, NULL);
+  pspp_sheet_view_column_set_clickable (column, TRUE);
   pspp_sheet_view_column_set_cell_data_func (
     column, renderer, render_row_number_cell, var_sheet, NULL);
   pspp_sheet_view_column_set_fixed_width (column, 50);
+  g_signal_connect (column, "clicked",
+                    G_CALLBACK (psppire_var_sheet_variables_column_clicked),
+                    var_sheet);
+
   return column;
 }
 
