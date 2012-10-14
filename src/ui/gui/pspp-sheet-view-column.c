@@ -2364,7 +2364,7 @@ pspp_sheet_view_column_set_expand (PsppSheetViewColumn *tree_column,
 {
   g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
 
-  expand = expand?TRUE:FALSE;
+  expand = !!expand;
   if (tree_column->expand == expand)
     return;
   tree_column->expand = expand;
@@ -2545,10 +2545,11 @@ pspp_sheet_view_column_set_reorderable (PsppSheetViewColumn *tree_column,
   /*  if (reorderable)
       pspp_sheet_view_column_set_clickable (tree_column, TRUE);*/
 
-  if (tree_column->reorderable == (reorderable?TRUE:FALSE))
+  reorderable = !!reorderable;
+  if (tree_column->reorderable == reorderable)
     return;
 
-  tree_column->reorderable = (reorderable?TRUE:FALSE);
+  tree_column->reorderable = reorderable;
   pspp_sheet_view_column_update_button (tree_column);
   g_object_notify (G_OBJECT (tree_column), "reorderable");
 }
@@ -2585,7 +2586,7 @@ pspp_sheet_view_column_set_quick_edit (PsppSheetViewColumn *tree_column,
   quick_edit = !!quick_edit;
   if (tree_column->quick_edit != quick_edit)
     {
-      tree_column->quick_edit = (quick_edit?TRUE:FALSE);
+      tree_column->quick_edit = quick_edit;
       g_object_notify (G_OBJECT (tree_column), "quick-edit");
     }
 }
@@ -2629,7 +2630,7 @@ pspp_sheet_view_column_set_selected (PsppSheetViewColumn *tree_column,
 
       if (tree_column->tree_view != NULL)
         gtk_widget_queue_draw (GTK_WIDGET (tree_column->tree_view));
-      tree_column->selected = (selected?TRUE:FALSE);
+      tree_column->selected = selected;
       g_object_notify (G_OBJECT (tree_column), "selected");
 
       sheet_view = PSPP_SHEET_VIEW (pspp_sheet_view_column_get_tree_view (
@@ -2674,7 +2675,7 @@ pspp_sheet_view_column_set_selectable (PsppSheetViewColumn *tree_column,
     {
       if (tree_column->tree_view != NULL)
         gtk_widget_queue_draw (GTK_WIDGET (tree_column->tree_view));
-      tree_column->selectable = (selectable?TRUE:FALSE);
+      tree_column->selectable = selectable;
       g_object_notify (G_OBJECT (tree_column), "selectable");
     }
 }
@@ -2713,7 +2714,7 @@ pspp_sheet_view_column_set_row_head (PsppSheetViewColumn *tree_column,
   row_head = !!row_head;
   if (tree_column->row_head != row_head)
     {
-      tree_column->row_head = (row_head?TRUE:FALSE);
+      tree_column->row_head = row_head;
       g_object_notify (G_OBJECT (tree_column), "row_head");
     }
 }
