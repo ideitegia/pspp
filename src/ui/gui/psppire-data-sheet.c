@@ -223,7 +223,8 @@ make_row_number_column (PsppireDataSheet *data_sheet,
 
   column = pspp_sheet_view_column_new_with_attributes (_("Case"),
                                                        renderer, NULL);
-  g_object_set (column, "selectable", FALSE, "row-head", TRUE, NULL);
+  pspp_sheet_view_column_set_selectable (column, TRUE);
+  pspp_sheet_view_column_set_row_head (column, TRUE);
   pspp_sheet_view_column_set_cell_data_func (
     column, renderer, render_row_number_cell, ds, NULL);
   pspp_sheet_view_column_set_fixed_width (column, 50);
