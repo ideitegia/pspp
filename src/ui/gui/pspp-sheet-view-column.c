@@ -1366,8 +1366,13 @@ on_pspp_sheet_view_column_button_clicked (PsppSheetViewColumn *column)
   if (pspp_sheet_selection_get_mode (selection) == PSPP_SHEET_SELECTION_RECTANGLE)
     {
       pspp_sheet_selection_select_all (selection);
-      pspp_sheet_selection_unselect_all_columns (selection);
-      pspp_sheet_selection_select_column (selection, column);
+      if (pspp_sheet_view_column_get_row_head (column))
+        pspp_sheet_selection_select_all_columns (selection);
+      else
+        {
+          pspp_sheet_selection_unselect_all_columns (selection);
+          pspp_sheet_selection_select_column (selection, column);
+        }
       sheet_view->priv->anchor_column = column;
       return TRUE;
     }
