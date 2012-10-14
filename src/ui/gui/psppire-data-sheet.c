@@ -51,7 +51,7 @@ static void psppire_data_sheet_dispose (GObject *);
 static void psppire_data_sheet_unset_data_store (PsppireDataSheet *);
 
 static void psppire_data_sheet_update_clip_actions (PsppireDataSheet *);
-static void psppire_data_sheet_set_clip (PsppireDataSheet *);
+static void psppire_data_sheet_set_clip (PsppireDataSheet *, gboolean cut);
 
 static void on_selection_changed (PsppSheetSelection *, gpointer);
 
@@ -1615,7 +1615,13 @@ on_edit_find (GtkAction *action, PsppireDataSheet *data_sheet)
 void
 on_edit_copy (GtkAction *action, PsppireDataSheet *data_sheet)
 {
-  psppire_data_sheet_set_clip (data_sheet);
+  psppire_data_sheet_set_clip (data_sheet, FALSE);
+}
+
+void
+on_edit_cut (GtkAction *action, PsppireDataSheet *data_sheet)
+{
+  psppire_data_sheet_set_clip (data_sheet, TRUE);
 }
 
 static void
@@ -1676,6 +1682,9 @@ psppire_data_sheet_init (PsppireDataSheet *obj)
 
   action = get_action_assert (obj->builder, "edit_copy");
   g_signal_connect (action, "activate", G_CALLBACK (on_edit_copy), obj);
+
+  action = get_action_assert (obj->builder, "edit_cut");
+  g_signal_connect (action, "activate", G_CALLBACK (on_edit_cut), obj);
 
   action = get_action_assert (obj->builder, "edit_clear-variables");
   g_signal_connect (action, "activate", G_CALLBACK (on_edit_clear_variables),
@@ -1984,10 +1993,12 @@ static struct dictionary *clip_dict = NULL;
 
 static void psppire_data_sheet_update_clipboard (PsppireDataSheet *);
 
-/* Set the clip according to the currently
-   selected range in the data sheet */
+/* Set the clip from the currently selected range in DATA_SHEET.  If CUT is
+   true, clears the original data from DATA_SHEET, otherwise leaves the
+   original data in-place. */
 static void
-psppire_data_sheet_set_clip (PsppireDataSheet *data_sheet)
+psppire_data_sheet_set_clip (PsppireDataSheet *data_sheet,
+                             gboolean cut)
 {
   struct casewriter *writer ;
   PsppireDataStore *ds = psppire_data_sheet_get_data_store (data_sheet);
@@ -2042,6 +2053,35 @@ psppire_data_sheet_set_clip (PsppireDataSheet *data_sheet)
         }
     }
   case_map_destroy (map);
+
+  /* Clear data that we copied out, if we're doing a "cut". */
+  if (cut && !casewriter_error (writer))
+    {
+      RANGE_SET_FOR_EACH (node, rows)
+        {
+          unsigned long int row;
+
+          for (row = node->start; row < node->end; row++)
+            {
+              const struct range_set_node *node2;
+
+              RANGE_SET_FOR_EACH (node2, cols)
+                {
+                  int dict_index;
+
+                  for (dict_index = node2->start; dict_index < node2->end;
+                       dict_index++)
+                    {
+                      struct variable *var;
+
+                      var = dict_get_var (ds->dict->dict, dict_index);
+                      psppire_data_store_set_string (ds, "", row,
+                                                     var, false);
+                    }
+                }
+            }
+        }
+    }
 
   range_set_destroy (rows);
   range_set_destroy (cols);
