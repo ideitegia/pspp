@@ -225,6 +225,7 @@ make_row_number_column (PsppireDataSheet *data_sheet,
                                                        renderer, NULL);
   pspp_sheet_view_column_set_selectable (column, TRUE);
   pspp_sheet_view_column_set_row_head (column, TRUE);
+  pspp_sheet_view_column_set_clickable (column, TRUE);
   pspp_sheet_view_column_set_cell_data_func (
     column, renderer, render_row_number_cell, ds, NULL);
   pspp_sheet_view_column_set_fixed_width (column, 50);
