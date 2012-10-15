@@ -54,6 +54,9 @@ static void psppire_data_sheet_update_clip_actions (PsppireDataSheet *);
 static void psppire_data_sheet_set_clip (PsppireDataSheet *, gboolean cut);
 
 static void on_selection_changed (PsppSheetSelection *, gpointer);
+static void on_owner_change (GtkClipboard *, GdkEventOwnerChange *, gpointer);
+static void psppire_data_sheet_clip_received_cb (GtkClipboard *,
+                                                 GtkSelectionData *, gpointer);
 
 G_DEFINE_TYPE (PsppireDataSheet, psppire_data_sheet, PSPP_TYPE_SHEET_VIEW);
 
@@ -1203,15 +1206,31 @@ psppire_data_sheet_dispose (GObject *object)
 }
 
 static void
+psppire_data_sheet_map (GtkWidget *widget)
+{
+  GtkClipboard *clip;
+
+  GTK_WIDGET_CLASS (psppire_data_sheet_parent_class)->map (widget);
+
+  clip = gtk_widget_get_clipboard (widget, GDK_SELECTION_CLIPBOARD);
+  g_signal_connect (clip, "owner-change", G_CALLBACK (on_owner_change),
+                    widget);
+  on_owner_change (clip, NULL, widget);
+}
+
+static void
 psppire_data_sheet_class_init (PsppireDataSheetClass *class)
 {
   GObjectClass *gobject_class;
+  GtkWidgetClass *widget_class;
 
   gobject_class = G_OBJECT_CLASS (class);
   gobject_class->set_property = psppire_data_sheet_set_property;
   gobject_class->get_property = psppire_data_sheet_get_property;
-
   gobject_class->dispose = psppire_data_sheet_dispose;
+
+  widget_class = GTK_WIDGET_CLASS (class);
+  widget_class->map = psppire_data_sheet_map;
 
   g_signal_new ("var-double-clicked",
                 G_OBJECT_CLASS_TYPE (gobject_class),
@@ -1624,6 +1643,19 @@ on_edit_cut (GtkAction *action, PsppireDataSheet *data_sheet)
   psppire_data_sheet_set_clip (data_sheet, TRUE);
 }
 
+void
+on_edit_paste (GtkAction *action, PsppireDataSheet *data_sheet)
+{
+  GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (data_sheet));
+  GtkClipboard *clipboard =
+    gtk_clipboard_get_for_display (display, GDK_SELECTION_CLIPBOARD);
+
+  gtk_clipboard_request_contents (clipboard,
+                                  gdk_atom_intern ("UTF8_STRING", TRUE),
+                                  psppire_data_sheet_clip_received_cb,
+                                  data_sheet);
+}
+
 static void
 psppire_data_sheet_init (PsppireDataSheet *obj)
 {
@@ -1685,6 +1717,9 @@ psppire_data_sheet_init (PsppireDataSheet *obj)
 
   action = get_action_assert (obj->builder, "edit_cut");
   g_signal_connect (action, "activate", G_CALLBACK (on_edit_cut), obj);
+
+  action = get_action_assert (obj->builder, "edit_paste");
+  g_signal_connect (action, "activate", G_CALLBACK (on_edit_paste), obj);
 
   action = get_action_assert (obj->builder, "edit_clear-variables");
   g_signal_connect (action, "activate", G_CALLBACK (on_edit_clear_variables),
@@ -2288,4 +2323,90 @@ psppire_data_sheet_update_clip_actions (PsppireDataSheet *data_sheet)
   action = get_action_assert (data_sheet->builder, "edit_cut");
   gtk_action_set_sensitive (action, enable);
 }
+
+/* A callback for when the clipboard contents have been received. */
+static void
+psppire_data_sheet_clip_received_cb (GtkClipboard *clipboard,
+                                     GtkSelectionData *sd,
+                                     gpointer data)
+{
+  PsppireDataSheet *data_sheet = data;
+  PsppireDataStore *store = data_sheet->data_store;
+  struct range_set *rows, *cols;
+  gint count = 0;
+  gint next_row, next_column;
+  gint first_column;
+  char *c;
 
+  if ( sd->length < 0 )
+    return;
+
+  if ( sd->type != gdk_atom_intern ("UTF8_STRING", FALSE))
+    return;
+
+  c = (char *) sd->data;
+
+  /* Get the starting selected position in the data sheet.  (Possibly we should
+     only paste into the selected range if it's larger than one cell?) */
+  if (!psppire_data_sheet_get_selected_range (data_sheet, &rows, &cols))
+    return;
+  next_row = range_set_first (rows)->start;
+  first_column = next_column = range_set_first (cols)->start;
+  range_set_destroy (rows);
+  range_set_destroy (cols);
+
+  g_return_if_fail (next_row >= 0);
+  g_return_if_fail (next_column >= 0);
+
+  while (count < sd->length)
+    {
+      gint row = next_row;
+      gint column = next_column;
+      struct variable *var;
+      char *s = c;
+
+      while (*c != '\t' && *c != '\n' && count < sd->length)
+        {
+          c++;
+          count++;
+        }
+      if ( *c == '\t')
+        {
+          next_row = row ;
+          next_column = column + 1;
+        }
+      else if ( *c == '\n')
+        {
+          next_row = row + 1;
+          next_column = first_column;
+        }
+      *c++ = '\0';
+      count++;
+
+      var = psppire_dict_get_variable (store->dict, column);
+      if (var != NULL)
+        psppire_data_store_set_string (store, s, row, var, FALSE);
+    }
+}
+
+static void
+on_owner_change (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
+{
+  PsppireDataSheet *data_sheet = PSPPIRE_DATA_SHEET (data);
+  gboolean compatible_target = FALSE;
+  GtkAction *action;
+  gint i;
+
+  for (i = 0; i < G_N_ELEMENTS (targets); i++)
+    {
+      GdkAtom atom = gdk_atom_intern (targets[i].target, TRUE);
+      if (gtk_clipboard_wait_is_target_available (clip, atom))
+        {
+          compatible_target = TRUE;
+          break;
+        }
+    }
+
+  action = get_action_assert (data_sheet->builder, "edit_paste");
+  gtk_action_set_sensitive (action, compatible_target);
+}
