@@ -10,7 +10,8 @@ far.
 * EXAMINE::                     Testing data for normality.
 * CORRELATIONS::                Correlation tables.
 * CROSSTABS::                   Crosstabulation tables.
-* FACTOR::                      Factor analysis and Principal Components analysis
+* FACTOR::                      Factor analysis and Principal Components analysis.
+* LOGISTIC REGRESSION::         Bivariate Logistic Regression.
 * MEANS::                       Average values and other statistics.
 * NPAR TESTS::                  Nonparametric tests.
 * T-TEST::                      Test hypotheses about means.
@@ -722,6 +723,80 @@ contains a missing value.
 If @subcmd{PAIRWISE} is set, then a case is considered missing only if either of the
 values  for the particular coefficient are missing.
 The default is @subcmd{LISTWISE}.
+
+@node LOGISTIC REGRESSION
+@section LOGISTIC REGRESSION
+
+@vindex LOGISTIC REGRESSION
+@cindex logistic regression
+@cindex bivariate logistic regression
+
+@display
+LOGISTIC REGRESSION [VARIABLES =] @var{dependent_var} WITH @var{var_list}
+
+     [@{/NOCONST | /ORIGIN | /NOORIGIN @}]
+
+     [/PRINT = [SUMMARY] [DEFAULT] [CI(@var{confidence})] [ALL]]
+
+     [/CRITERIA = [BCON(@var{min_delta})] [ITERATE(@var{max_interations})]
+                  [LCON(@var{min_likelihood_delta})] [EPS(@var{min_epsilon})]]
+
+     [/MISSING = @{INCLUDE|EXCLUDE@}]
+@end display
+
+Bivariate Logistic Regression is used when you want to explain a dichotomous dependent
+variable in terms of one or more predictor variables.
+
+The minimum command is
+@example
+LOGISTIC REGRESSION @var{y} WITH @var{x1} @var{x2} @dots{} @var{xn}.
+@end example
+Here, @var{y} is the dependent variable, which must be dichotomous and @var{x1} @dots{} @var{xn}
+are the predictor variables whose coefficients the procedure estimates.
+
+By default, a constant term is included in the model.
+Hence, the full model is
+@math{
+{\bf y} 
+= b_0 + b_1 {\bf x_1} 
++ b_2 {\bf x_2} 
++ \dots
++ b_n {\bf x_n}
+}
+If you want a model without the constant term @math{b_0}, use the keyword @subcmd{/ORIGIN}.
+@subcmd{/NOCONST} is a synonym for @subcmd{/ORIGIN}.
+
+An iterative Newton-Raphson procedure is used to fit the model.
+The @subcmd{/CRITERIA} subcommand is used to specify the stopping criteria of the procedure.
+During iterations, if any one of the stopping criteria are satisfied, the procedure is
+considered complete.
+The criteria are:
+@itemize
+@item The number of iterations exceeds @var{max_iterations}.  
+      The default value of @var{max_iterations} is 20.
+@item The change in the all coefficient estimates are less than @var{min_delta}.
+The default value of @var{min_delta} is 0.001.
+@item The magnitude of change in the likelihood estimate is less than @var{min_likelihood_delta}.
+The default value of @var{min_delta} is zero.
+This means that this criterion is disabled.
+@item The differential of the estimated probability for all cases is less than @var{min_epsilon}.
+In other words, the probabilities are close to zero or one.
+The default value of @var{min_epsilon} is 0.00000001.
+@end itemize
+
+The @subcmd{PRINT} subcommand controls the display of optional statistics.
+Currently there is one such option, @subcmd{CI}, which indicates that the 
+confidence interval of the odds ratio should be displayed as well as its value.
+@subcmd{CI} should be followed by an integer in parentheses, to indicate the
+confidence level of the desired confidence interval.
+
+The @subcmd{MISSING} subcommand determines the handling of missing
+variables.  
+If @subcmd{INCLUDE} is set, then user-missing values are included in the
+calculations, but system-missing values are not.
+If @subcmd{EXCLUDE} is set, which is the default, user-missing
+values are excluded as well as system-missing values. 
+This is the default.
 
 @node MEANS
 @section MEANS
