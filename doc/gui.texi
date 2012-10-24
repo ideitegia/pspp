@@ -1,0 +1,3443 @@
+@node Invoking PSPPIRE       
+@chapter Invoking PSPPIRE 
+@cindex graphical user interface, GUI
+@cindex psppire
+
+The PSPPIRE graphic user interface for @pspp{} can perform all
+functionality of the command line interface.  In addition it gives an
+instantaneous view of the data, variables and statistical output.
+
+The graphic user interface can be started by typing @command{psppire} at a 
+command prompt.
+Alternatively many systems have a system of interactive menus or buttons 
+from which @command{psppire} can be started by a series of mouse clicks.
+
+Once the principles of the @pspp{} system are understood, 
+the graphic user interface is designed to be largely intuitive.
+
+@menu
+* Primary Windows::           Primary Windows.
+* Data Editor Window::        Data Editor Window.
+* Output Viewer Window::      Output Viewer Window.
+* Syntax Editor Window::      Syntax Editor Window.
+* Main Menu::                 Main Menu. 
+@end menu
+
+
+@node Primary Windows
+@section Primary Windows
+@cindex Primary Windows
+
+The PSPP graphical user interface provides a set of windows through which you store, edit and analyze data.
+ You can choose to perform tasks and operations through interactive drop down menus in the data editor window or through command line statements in the syntax editor.
+The three primary windows include the Data Editor, Syntax Editor, and the Output Viewer.  
+
+
+@table @asis
+
+@cindex Data Editor
+@item @strong{Data Editor} Central to PSPP, launches when you start a session. Similar in organization to a spreadsheet with rows and columns of data cells, this is where the data is stored, operated on, and edited. 
+@end table
+
+@float Figure, fig:pic1
+@image{Images/pic1}
+@caption{Data editor window}
+@end float
+
+
+@cindex Output Viewer
+
+@table @asis
+@item @strong{Output Viewer} Displays executed instructions as well as results of statistical analyses including, text, tables, and charts. 
+
+@sp 1
+
+@item Note: this window is not visible upon start up and only pops open after the first instruction set is executed.
+
+@end table
+
+@cindex Syntax Editor
+
+@table @asis
+@item @strong{Syntax Editor} Enter command line instructions to edit, import and analyze data. This has the advantage of enabling batch processing and code reuse. 
+
+@sp 1
+
+@item Launch the syntax editor from within the data editor by selecting @clicksequence{File @click{} Open @click{} Syntax}.
+
+@end table
+
+@float Figure, fig:pic2
+@image{Images/pic2}
+@caption{Syntax editor window}
+@end float
+
+ 
+
+@node Data Editor Window
+@section Data Editor 
+@cindex Data Editor Window
+
+There are two alternate views: @emph{data view} and @emph{variable view}. 
+Data view shows the numerical value held by each datum while the other displays the meta-dictionary data of each variable. 
+Toggle between views by clicking on the @emph{Data View} or @emph{Variable View} tab at the bottom left hand corner of the window.
+
+
+@float Figure, fig:pic3
+@image{Images/pic3,6in}
+@caption{Data editor window}
+@end float
+
+
+@menu
+* Data View::               Data View.
+* Variable View::           Variable View.
+* Data Entry and Editing::  Data Entry and Editing.
+* Status Bar::              Status Bar.
+@end menu
+
+
+@node Data View
+@subsection Data View
+@cindex Data View
+
+PSPP lists variables in columns and cases in rows, e.g., in the hotel customer satisfaction survey (@pxref{fig:pic4}) each row represents the set of answers given by each respondent and each column a question. 
+
+@float Figure, fig:pic4
+@image{Images/pic4}
+@caption{Data view }
+@end float
+
+
+@node Variable View
+@subsection Variable View
+@cindex Variable View
+
+Display variable attributes associated with each case, where variable attributes (@pxref{Language,,Attributes}) include name, type, width, decimal, variable label, value label, missing values, columns, align, and measurement. 
+
+
+@float Figure, fig:pic5
+@image{Images/pic5,6in}
+@caption{Variable view}
+@end float
+
+@node Data Entry and Editing
+@subsection Data Entry and Editing
+@cindex Data Entry and Editing
+
+There are several functions available in the data editor for entering, editing and sorting data.
+
+@menu
+* Edit Variable Attributes::         Edit Variable Attributes.
+* New Variable::                     New Variable.
+* New Case::                         New Case.
+* Read Variable Label in Data View:: Read Variable Label in Data View.
+* Change Data Value::                Change Data Value.
+* Select Entire Row or Column::      Select a Whole Row or Column.
+* Clear Variables::                  Clear Variables.
+* Clear Cases::                      Clear Cases.
+* Sort Cases Without Menu::          Sort Cases Without Menu.
+@end menu 
+
+
+@node Edit Variable Attributes
+@subsubsection Edit Variable Attributes
+@cindex Edit Variable Attributes
+
+Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values, Missing, Columns, Align, and Measure in variable view.
+
+
+@table @asis
+
+@item @strong{Name}
+
+@item Click a cell in the @emph{Name} column. 
+@item Type a new name in the cell. 
+@item Press the enter key.
+
+@end table
+
+@float Figure, fig:pic6
+@image{Images/pic6, 6in}
+@caption{Edit @emph{name} in variable view.}
+@end float
+
+
+@table @asis
+
+@item @strong{Type}
+
+@cindex Type
+@item Click a cell in the @emph{Type} column.
+@sp 1
+
+@item Click on the Gray box that appears to bring up a @emph{Variable Type} dialogue box.
+@sp 1
+
+@item Choose a variable type (@pxref{Language,,Basic Numeric Formats}) from the list: Numeric, Comma, Dot, Scientific Notation, Date, Dollar, Custom Currency, and String.
+@sp 1
+
+@item Enter the width and/or number of decimal places, if relevant.
+@sp 1
+
+@item Press OK.
+
+@end table
+
+@float Figure, fig:pic7
+@image{Images/pic7, 6in}
+@caption{Edit @emph{type} in variable view.}
+@end float
+
+
+@table @asis
+
+@item @strong{Width}
+@cindex Width
+
+
+@item Click a cell in the @emph{Width}(@pxref{Language,,Attributes}) column.
+@sp 1
+
+@item Select the up-down arrow that appears in the cell to alter the value.
+
+@end table
+
+@float Figure, fig:pic8
+@image{Images/pic8, 6in}
+@caption{Edit @emph{width} in variable view.}
+@end float
+
+@table @asis
+
+
+@item @strong{Decimals}
+
+
+@item Click a cell in the @emph{Decimals}(@pxref{Language,,Attributes}) column.
+@sp 1
+
+@item Select the up-down arrow that appears inside the cell to alter the value.
+
+@end table
+
+@float Figure, fig:pic9
+@image{Images/pic9, 6in}
+@caption{Edit @emph{decimals} in variable view.}
+@end float
+
+
+@table @asis
+
+@item @strong{Label}
+@cindex Label
+
+
+@item Click a cell in the @emph{Label} column.
+@item Type a variable label in the cell.
+@item Press enter.
+
+@end table
+
+@float Figure, fig:pic10
+@image{Images/pic10, 6in}
+@caption{Edit @emph{label} in variable view.}
+@end float
+
+
+
+@table @asis
+
+@item @strong{Values}
+@cindex Values
+
+
+@item Click a cell in the @emph{Values}(@pxref{Language,,Attributes}) column.
+@sp 1
+
+@item Click the gray box that appears inside the cell to bring up the @emph{Value Labels dialogue} box.
+@sp 1
+
+@item Enter the @emph{Value label}.
+@sp 1
+
+@item Click the @emph{Add} button.
+@sp 1
+
+@item Repeat to add other labels, if necessary.
+@sp 1
+
+@item Press OK.
+
+@end table
+
+@float Figure, fig:pic11
+@image{Images/pic11, 6in}
+@caption{Edit @emph{values} in variable view.}
+@end float
+
+
+@table @asis
+
+@item @strong{Missing}
+
+@cindex Missing
+
+
+@item Select a cell in the @emph{Missing} column.
+@sp 1
+
+@item Click the gray box that appears inside the cell to bring up the @emph{Missing Values} dialogue box. 
+@sp 1
+
+@item Enter either up to three discrete missing values or specify a numerical range plus one discrete value. @pxref{Language,,Attributes} for further information.
+
+@end table
+
+@float Figure, fig:pic12
+@image{Images/pic12, 6in}
+@end float
+
+
+@table @asis
+
+@item @strong{Columns}
+@cindex Columns
+
+
+@item Select a cell in the @emph{Columns} (@pxref{Language,,Attributes}) column.
+@sp 1
+
+@item Click the up-down arrows that appears inside the cell to alter the value. 
+@sp 1
+
+@end table
+
+@float Figure, fig:pic13
+@image{Images/pic13, 6in}
+@caption{Edit @emph{columns} in variable view.}
+@end float
+
+
+@table @asis
+
+@item @strong{Align}
+@cindex Align
+
+@item Align values left, right or center in a cell
+
+
+@item Click a cell in the @emph{Align} column. 
+
+
+@item Select @emph{left}, @emph{right}, or @emph{center} from the drop down menu that appears.
+
+@end table
+
+@float Figure, fig:pic14
+@image{Images/pic14, 6in}
+@caption{Edit @emph{align} in variable view.}
+@end float
+
+
+
+@table @asis
+
+@item @strong{Measure}
+@cindex Measure
+
+
+@item Select a cell in the column @emph{Measure} (@pxref{Language,,Attributes}).
+
+@item Select either @emph{nominal}, @emph{ordinal}, or @emph{scale} from the drop down menu.
+
+@end table
+
+
+@float Figure, fig:pic15
+@image{Images/pic15, 6in}
+@caption{Edit @emph{measure} in variable view.}
+@end float
+
+
+@node New Variable
+@subsubsection New Variable
+@cindex New Variable 
+
+
+Enter a new variable by selecting @emph{insert variable} from the @emph{edit} drop down menu or tool bar. 
+This function inserts a new variable with a generic name. 
+In addition, if you already have at least one variable defined, then you can add a new variable to the left of the current column by right clicking on the variables title and selecting insert variable from the pop-up menu. 
+ 
+
+@float Figure, fig:pic16
+@image{Images/pic16}
+@caption{Insert new variable}
+@end float
+
+
+@node New Case
+@subsubsection New Case
+@cindex New Case
+
+There are a few ways to add a new case to an existing variable:
+@sp 1
+
+@enumerate
+@item Select @clicksequence{Edit @click{} Insert Case} from the drop down menu.
+@sp 1
+
+@item Select @emph{Insert Cases} from the toolbar.
+@sp 1
+
+@item Right click on the row number above the insertion point to bring up a pop menu, and select @emph{Insert Cases}.
+
+@end enumerate
+
+
+@float Figure, fig:pic17
+@image{Images/pic17}
+@caption{Insert new case}
+@end float
+
+
+@node Read Variable Label in Data View
+@subsubsection Read Variable in Data View
+@cindex Read Variable Label in Data View
+
+Hover the mouse over the variables name at the top of the column to view its label.
+
+@float Figure, fig:pic18
+@image{Images/pic18}
+@caption{Hover mouse over variable title to view its label.}
+@end float
+
+
+@node Change Data Value
+@subsubsection Change Data Value
+@cindex Change Data Value
+
+@table @asis
+
+@item Switch to @emph{data view}, if you are not there already.
+@item Select the cell you want to change.
+@item Type the new value.
+@item Press enter.
+
+@end table
+
+@node Select Entire Row or Column
+@subsubsection Select Entire Row or Column 
+@cindex Select Entire Row or Column
+
+Right click on the column title or row number to select the entire column or row, respectively. 
+
+@node Clear Variables
+@subsubsection Clear Variables
+@cindex Clear Variables
+
+There are a couple of ways to clear columns:
+
+@table @asis
+@item In data view:  
+@sp 1
+      @item 1. Right click on the variable name at the top of the column.
+      @item @tie{} @tie{} Select @emph{Clear Variables} from the pop-up menu.
+@sp 1 
+      @item 2. Right click on the column to select it.
+      @item @tie{} @tie{} Select @clicksequence{Edit @click{} Clear Variables} from the drop down menu.
+@sp 1
+@item In variable view:
+@sp 1
+     @item @tie{} @tie{} Right click on the number title to the left of the row.
+     @item @tie{} @tie{} Select @emph{Clear Variables} from the pop-up menu.
+
+@end table
+
+
+@float Figure, fig:pic19
+@image{Images/pic19}
+@caption{Delete variables}
+@end float
+
+
+@node Clear Cases
+@subsubsection Clear Cases
+@cindex Clear Cases
+
+There are a couple of ways to clear cases:
+
+        @table @asis
+        @item 1. Right click on the row number to the left of  the row.
+        @item @tie{} @tie{} Select @emph{Clear Cases} from the pop-up menu.
+        @end table
+
+        @table @asis
+        @item 2. Right click on the row number to the left of  the row.
+        @item @tie{} @tie{} Select @clicksequence{Edit @click{} Clear Cases} from the drop down menu.
+        @end table
+
+
+
+@float Figure, fig:pic20
+@image{Images/pic20}
+@caption{Delete cases}
+@end float
+
+
+@node Sort Cases Without Menu
+@subsubsection Sort Cases
+@cindex Sort Cases
+
+There are two alternative ways to sort cases without using the menu:
+
+@table @asis
+
+@item 1. Right click on the variable title and select @emph{Ascending} or @emph{Descending} from the pop-up menu.
+@sp 1
+@item 2. Right click on the variable title and select @clicksequence{Data @click{} Sort Cases} (@pxref{Sort Cases}).  
+
+@end table
+
+
+@float Figure, fig:pic21
+@image{Images/pic21}
+@caption{Sort cases}
+@end float
+
+
+@node Status Bar 
+@subsection Status Bar
+@cindex Status Bar
+
+
+Located at the bottom of the data editor window, provides information about the data under process. 
+
+@float Figure, fig:pic22
+@image{Images/pic22}
+@caption{Status bar}
+@end float
+
+
+@table @asis
+
+@cindex Filter Status
+
+@item @strong{Filter Status} turns on when you filter a subset of cases in the current file for analysis. 
+
+@sp 1
+
+@cindex Weight Status
+
+@item @strong{Weight Status} states the variable you are weighting the data against in the analysis. 
+@sp 1
+
+@cindex Split File Status
+@item @strong{Split File Status} indicates there are separate data into groups.
+@end table
+
+
+
+
+@node Output Viewer Window
+@section Output Viewer 
+@cindex Output Viewer
+
+
+The output viewer displays results, charts, and the instruction set executed, whether invoked from a menu command or the syntax window.
+
+
+@table @asis
+@item Note: The output viewer is not visible when PSPP loads, and appears upon execution of the first set of instructions.
+@end table
+
+
+@menu
+* Output View Examples::        Output View Examples.
+* Save Output::                 Save Output.
+@end menu
+
+@node Output View Examples
+@unnumberedsubsec  Output View Examples
+
+
+@table @asis
+@item @strong{1.}
+@end table
+
+@float Figure, fig:pic23
+@image{Images/pic23}
+@caption{Output viewer displays open file instructions.}
+@end float
+
+
+@table @asis
+@item @strong{2.}
+@end table
+
+@float Figure, fig:pic24
+@image{Images/pic24}
+@caption{Output viewer displays executed statistics functions.}
+@end float
+
+
+@table @asis
+
+@item The right pane of the output viewer displays results such as tables, text, and charts. The left pane gives the corresponding outline.
+@end table
+
+
+@float Figure, fig:pic25 
+@image{Images/pic25}
+@caption{Output viewer panes}
+@end float
+
+
+@node Save Output 
+@subsection Save Output 
+@cindex Save Output 
+
+To save the results in the output viewer select @clicksequence{ File @click{} export}. 
+File types include PDF, HTML, Open Document, Text, and Postscript. 
+
+
+@node Syntax Editor Window
+@section Syntax Editor
+@cindex Syntax Editor
+
+
+@menu
+* Enter Commands::          Enter Commands.
+* Run::                     Run.
+* Syntax Save::             Save.
+@end menu 
+
+
+Use the Syntax Editor window to enter command line instructions. 
+For syntax and rules (@pxref{Language,,Language}).
+
+Enter commands into the syntax window and then execute them by selecting run from the menu. 
+The instruction set can optionally be saved for later reuse. 
+For example, the following set of commands (@pxref{fig:pic26}) populates the data editor with a list of random numbers.
+
+
+@float Figure, fig:pic26
+@image{Images/pic26}
+@caption{Enter command line instructions in the syntax editor.}
+@end float
+
+
+@node Enter Commands
+@subsection Enter Commands
+@cindex Enter Commands
+
+Most data-editor-menu functions enable you to paste the command line equivalent to that function directly into a syntax window from within the functions dialogue box, by selecting the paste button.
+ 
+@menu
+* Enter Commands Example::  Enter Commands Example.
+@end menu
+
+@node Enter Commands Example
+@unnumberedsubsubsec Example
+
+@table @asis
+
+@item Place a command line instruction that generates descriptive statistics in the syntax editor window.
+
+@sp 1
+@item Open file @file{manufacturing.sav}.
+@sp 1
+
+@item Select @clicksequence{ Analyze @click{} Descriptive Statistics @click{} Descriptives} 
+@end table
+
+@float Figure, fig:pic27
+@image{Images/pic27}
+@caption{@emph{Descriptives} function in the data editor drop down menu.}
+@end float
+
+
+@table @asis
+
+@item Select @emph{variables and statistics} in the @emph{Descriptives} dialogue box
+@end table
+
+
+@float Figure, fig:pic28
+@image{Images/pic28}
+@caption{@emph{Paste} button in the @emph{Descriptives} dialogue box.}
+@end float
+
+@table @asis
+
+@item Click the Paste button to insert the command line equivalent of the function into the syntax editor.
+@end table
+
+@float Figure, fig:pic29
+@image{Images/pic29}
+@caption{Command line equivalent of @emph{Descriptives} function in the drop-down menu. }
+@end float
+
+
+@node Run
+@subsection Run
+@cindex Run
+
+
+Select run to execute code in the syntax window. Options include:
+
+
+@float 
+@multitable @columnfractions .4 .6
+@item Execute all commands @tab @clicksequence{Run @click{} All}
+@sp 1
+@item Execute highlighted commands @tab  @clicksequence{Run @click{} Selection} 
+@sp 1
+@item Execute a single line at current cursor position @tab @clicksequence{ Run @click{} Current Line }
+@sp 1
+@item Execute at cursor position on wards @tab @clicksequence{ Run @click{} To End } 
+@end multitable
+@end float 
+
+
+@node Syntax Save
+@subsection Save
+@cindex Save
+
+Save a set of commands by selecting @emph{Save} in the @emph{File} drop down menu.
+
+
+@node Main Menu
+@section GUI Main Menu
+@cindex GUI Main Menu
+
+@menu
+* Main Menu Overview::  Overview.
+* File::              File.
+* Edit::              Edit.
+* View::              View.
+* Data::              Data.
+* Transform::         Transform.
+* Analyze::           Analyze.
+* Psppire Utilities:: Utilities.
+* Windows::           Windows.
+* Help::              Help.
+* Toolbar::           Toolbar.
+@end menu
+
+
+@node Main Menu Overview
+@subsection Overview
+@cindex Main Menu Overview
+
+
+Perform tasks and operations on data with functions available through the drop down menus and toolbar. 
+
+@table @asis
+
+@cindex File
+
+@item @strong{File} Perform all file handling operations such opening, closing and saving files.
+@sp 1
+@cindex Edit
+
+@item @strong{Edit} Move data and text around with cut, copy, and paste operations. In addition, can use to insert data and cases and perform searches. 
+@sp 1
+@cindex View
+
+@item @strong{View} Use to change fonts, display extra information such as a status bar and value labels, and toggle between @emph{data} and @emph{variable} view. 
+@sp 1
+@cindex Data
+
+@item @strong{Data} Perform operations on data sets, such as sort, transpose, apply weights, extract subsets of cases, and split files.   
+@sp 1
+@cindex transform
+
+@item @strong{Transform} Replace select data with the result of applying mathematical or other operations on it. 
+@sp 1
+@cindex Analyze
+
+@item @strong{Analyze} Perform statistical analyses on the data.   
+@sp 1
+@cindex Utilities
+
+@item @strong{Utilities} Use to insert comments and view summary information of each variable.
+@sp 1
+@cindex Windows
+
+@item @strong{Windows} Use to toggle between open windows, split and minimize them.
+@sp 1
+@cindex Help
+
+@item @strong{Help} Provide help contents.
+
+@end table
+
+
+@node File 
+@subsection File
+@cindex File
+
+
+@menu
+* New::                              New.
+* Open::                             Open.
+* Import Delimited Text Data::       Import Delimited Text Data.
+* Save::                             Save.
+* Save As::                          Save As.
+* Display Data File Information::    Display Data File Information.
+* Recently Used Data::               Recently Used Data.
+* Recently Used Files::              Recently Used Files.
+* Quit::                             Quit.
+@end menu 
+
+
+@node New
+@subsubsection New
+@cindex New
+
+Open a new data or syntax file. 
+
+@node Open
+@subsubsection Open
+@cindex Open
+
+Open data, syntax, system, or portable files.   
+
+@node Import Delimited Text Data
+@subsubsection Import Delimited Text Data 
+@cindex Import Delimited Text Data
+
+Import all or part of a delimited text data file into the data editor. 
+A series of dialogue boxes guides you through this process as follows:
+
+@table @asis                  
+
+@item @strong{Importing Textual Data Dialogue Box} Import all or part of the file.
+@end table
+
+@float Figure, fig:pic32
+@image{Images/pic32, 6in}
+@caption{Import textual data dialogue box}
+@end float
+
+
+
+@table @asis
+@item @strong{First Line of Data Dialogue} Select the first line of data.
+@end table
+
+
+@float Figure, fig:pic33
+@image{Images/pic33}
+@caption{Select first line of data.}
+@end float
+
+@table @asis
+@item @strong{Choose Separators Dialogue} Choose a delimiter. Options include:
+@end table
+
+@cindex delimiters
+@cindex separators
+
+@table @strong
+
+@item Space 
+@sp 1
+@item Colon (:)
+@sp 1
+@item Pipe (|)
+@sp 1
+@item Tab
+@sp 1
+@item Comma (,)
+@sp 1
+@item Semicolon (;)
+@sp 1
+@item Bang (!)
+@sp 1
+@item Hyphen (-)
+@sp 1
+@item Slash (/)
+@sp 1
+
+
+@item @strong{Custom Separator} Choose how to quote separator characters as demonstrated below (@pxref{fig:pic34}).
+@end table
+
+
+@float Figure, fig:pic34
+@image{Images/pic34}
+@caption{Choose data separators dialogue box}
+@end float
+
+
+
+@table @asis
+@item @strong{Adjust Variable Formats} Verify and edit variable attributes ( @pxref{Language,,Attributes}).
+@end table
+
+@float Figure, fig:pic35
+@image{Images/pic35}
+@caption{Check and fix data formats.}
+@end float
+
+@table @asis
+
+@item Select the @emph{Apply} button to import the data.
+
+@end table
+
+
+@node Save 
+@subsubsection Save
+@cindex Save
+
+Save the current file.
+
+@node Save As
+@subsubsection Save As
+@cindex Save As
+@cindex Save
+
+Save the current file with a name and location of your choosing.
+
+@node Display Data File Information
+@subsubsection Display Data File Information
+@cindex Display Data File Information
+@cindex dictionary
+@cindex display dictionary
+
+@table @asis
+
+@cindex working file
+
+@item @strong{Working File} Display the dictionary of the currently opened file.
+
+
+@end table
+
+@float Figure, fig:pic36
+@image{Images/pic36}
+@caption{Dictionary of current file.}
+@end float
+
+@table @asis
+@cindex external file
+
+@item @strong{External File} Display the dictionary of a data file that is not yet open. 
+@end table
+
+
+@node Recently Used Data
+@subsubsection Recently Used Data
+@cindex Recently Used Data
+
+Links to recently used data files.  
+
+@node Recently Used Files
+@subsubsection Recently Used Files
+@cindex Recently Used Files
+
+Links to recently used syntax files.  
+
+@node Quit 
+@subsubsection Quit 
+@cindex Quit
+
+Close the current data file and shutdown PSPP.
+
+
+@node Edit
+@subsection Edit
+@cindex edit
+
+@menu
+* Insert Variable::         Insert Variable.
+* Insert Variable Example::  Insert Variable Example.
+
+* Insert Cases::            Insert Cases.
+* Go To Case::              Go To Case.
+* Cut::                     Cut.
+* Copy::                    Copy.
+* Paste::                   Paste.
+* Find::                    Find.
+@end menu
+
+@node Insert Variable
+@subsubsection Insert Variable
+@cindex insert variable
+
+
+Insert a new variable in data view to the left of the current column. 
+The editor fills in system-missing values for all cases as a placeholder. 
+By default, PSPP inserts a numerical variable type (@pxref{Language,,Basic Numeric Formats}).
+
+
+@node Insert Variable Example
+@unnumberedsubsubsec Insert Variable Example
+
+
+Select @clicksequence{ Edit @click{} Insert Variable} to enter a new variable. 
+
+@float Figure, fig:pic37
+@image{Images/pic37}
+@caption{Insert variable in data editor.}
+@end float
+
+
+@node Insert Cases
+@subsubsection Insert Cases
+@cindex insert cases
+
+Insert a new case in the selected row if it is empty, or, above otherwise.     
+
+@node Go To Case
+@subsubsection Go To Case
+@cindex go to case
+
+Jump to the selected case number.               
+
+@node Cut
+@subsubsection Cut
+@cindex cut
+
+Remove the selected text and place it elsewhere by selecting paste at the desired insertion point. 
+
+@node Copy
+@subsubsection Copy
+@cindex copy
+
+Copies text onto the clipboard. 
+Highlight the text and then select @clicksequence{Edit @click{} Copy}.
+
+@node Paste
+@subsubsection Paste
+@cindex paste
+
+Places the contents stored on the clipboard at the insertion point. 
+
+@node Find
+@subsubsection Find
+@cindex Find
+
+Look for a case.
+
+@node View
+@subsection View
+@cindex view
+
+@menu
+* Status Bar on-off::    Status Bar on or off.
+* Font::                 Font.
+* Grid Lines::           Grid Lines.
+* Value Labels::         Value Labels.
+* Value Labels Example:: Value Labels Example.
+* Psppire Variables::    Variables.
+@end menu
+
+@node Status Bar on-off
+@subsubsection Status Bar
+@cindex status bar
+
+Turn the status bar on or off. @pxref{Status Bar} for further information.
+
+@node Font  
+@subsubsection Font
+@cindex font
+
+View and edit the current font settings. 
+
+@node Grid Lines
+@subsubsection Grid Lines
+@cindex grid lines
+
+Make the grid lines in the data editor window visible or invisible. 
+
+@node Value Labels
+@subsubsection Value Labels
+@cindex value labels
+
+Show the value label associated with each result in data view.
+
+
+@node Value Labels Example
+@unnumberedsubsubsec Value Labels Example
+
+The data editor window on the right displays the value labels of the numerical survey data displayed in the window to the left (@pxref{fig:pic38}). 
+
+@float Figure, fig:pic38
+@image{Images/pic38}
+@caption{Value labels of the data in the left window.}
+@end float
+
+@node Psppire Variables
+@subsubsection Variables
+@cindex variables
+
+Use to switch from data to variable view.
+
+
+@node Data
+@subsection Data
+@cindex data
+
+@menu
+* Sort Cases::                Sort Cases.
+* Transpose::                 Transpose.
+
+* Split File::                Split File.
+* Compare Groups::            Compare Groups.
+* Organize Output by Groups:: Organize Output by Groups.
+
+* Weight Cases::              Weight Cases.
+@end menu
+
+
+@node Sort Cases
+@subsubsection Sort Cases
+@cindex sort cases
+@cindex sort
+
+
+Sort cases in ascending or descending order based on one or more variables. 
+
+@node Transpose
+@subsubsection Transpose
+@cindex transpose
+
+Exchange rows and columns on data that is in the reverse order to the PSPP file format. 
+Standard file format lists cases in rows and variables in columns.
+
+
+@node Split File
+@subsubsection Split File
+@cindex split file
+
+
+Split data into groups using grouping variables. 
+If you select more than one grouping variable then you need to nest each successive category within the previous one. 
+sp 1
+
+
+@table @asis
+@item Note: Cases should be sorted with the @emph{Sort Cases} command first such that they are in the same order as the grouping variables listed under the @emph{Groups based on} text box.
+@end table
+
+
+@float Figure, fig:pic39
+@image{Images/pic39}
+@caption{@emph{Split File} Dialogue Box}
+@end float
+
+@table @asis
+@item Group a file with physiology data according to height.
+@end table
+
+@float Figure, fig:pic40
+@image{Images/pic40}
+@caption{Physiology data file}
+@end float
+
+
+@table @asis
+
+@item Open the file @file{physiology.sav}.
+
+@item Select @clicksequence{ Data @click{} Split File}.
+
+@item Select the @emph{Compare groups}radio button in the pop up window. 
+
+@end table
+
+
+@table @asis
+@item Click @emph{Height in millimeters} to highlight the variable.
+
+@end table
+
+
+@float Figure, fig:pic41
+@image{Images/pic41}
+@caption{@emph{Split-File} dialogue box}
+@end float
+
+
+@table @asis
+
+@item Select the arrow to the left of the @emph{Groups based on} text box to move the @emph{height} variable inside that text box. 
+@sp 1
+
+@end table
+
+@table @asis
+
+@item Click OK to see the results in the output viewer.
+
+@end table
+
+
+@float Figure, fig:pic42
+@image{Images/pic42}
+@caption{Split-file results in output viewer}
+@end float
+
+@node Compare Groups
+@unnumberedsubsubsec Compare Groups
+@cindex compare groups
+
+Show split-file group output along side each other. 
+For example, the output viewer displays a chart for each group in a single window.
+
+@node Organize Output by Groups
+@unnumberedsubsubsec Organize Output by Groups
+@cindex organize output by groups
+
+Show results for each split-file group separately.  
+
+
+@node Weight Cases
+@subsubsection Weight Cases
+@cindex weight cases
+
+
+Assign weights to variables. Note: Cases with a zero, negative, or missing value for the weighting variable are not included in the analysis.
+
+
+@node Transform
+@subsection Transform
+@cindex transform
+
+
+@menu
+* Compute::                           Compute.
+* Compute Example::                   Compute Example.
+
+* Rank Cases::                        Rank Cases.
+* Rank Types::                        Rank Types. 
+
+* Recode Into Same Variables::        Recode into Same Variables.
+* Change a Single Value Example::     Change a single value Example
+* Collapse Range of Values Into a Category Example::  Collapse Range Example.
+
+* Recode Into Different Variables::   Recode into Different Variables.
+@end menu
+
+
+@node Compute
+@subsubsection Compute
+@cindex compute
+
+Perform operations on numeric and string variables. 
+Compute new variables or replace existing ones.
+
+
+@node Compute Example
+@unnumberedsubsubsec Example
+
+Compute the absolute difference in weight before and after participants follow a new diet plan (@pxref{fig:pic43}).
+
+ 
+@float Figure, fig:pic43
+@image{Images/pic43}
+@caption{Volunteers weights before and after dieting.}
+@end float
+
+@table @asis
+
+@item Open the file @file{Diet.sav}.  
+@sp 1
+@end table
+
+@table @asis
+@item Select @clicksequence{ Transform @click{} Compute} from the drop-down menu to bring up a Compute Variable dialogue box.
+
+@end table
+
+@float Figure, fig:pic44
+@image{Images/pic44}
+@caption{@emph{Compute} dialogue box}
+@end float
+
+
+@table @asis
+@item Enter @emph{weightChange} in the Target Variable text box and click the @emph{Type and Label} button below it; This variable holds the result of the calculation.
+@end table
+
+
+@float Figure, fig:pic45
+@image{Images/pic45}
+@caption{Compute solution @emph{Type} and @emph{Label}}
+@end float
+
+@table @asis
+
+@item Select the @emph{Label} radio button in the @emph{Type and Label} dialogue box, and enter @emph{weightChange}.
+@sp 1
+
+@item Press Continue.
+@sp 1
+
+@end table
+
+@table @asis
+
+@item Select the ABS(number) function from the list of functions and press the up arrow to place the function up in the Numeric Expressions text box. 
+@sp 1
+
+@item Select @emph{weightAfter} from the list of variables located on the left of the dialog box. 
+
+@end table
+
+
+@table @asis
+@item Note: when you hover the mouse over the list of variables this brings up their names.
+@end table
+
+@float Figure, fig:pic46
+@image{Images/pic46, 6in}
+@caption{Enter numeric expression into @emph{compute} dialogue box.}
+@end float
+
+
+
+@table @asis
+@item Click in between the parenthesis of the function in the @emph{Numeric Expressions} text box to move the cursor position. 
+@sp 1
+@item Click the right arrow to the left of the Numerical Expressions text box to move ABS(weightAfter) variable to the cursor position in the box.
+
+@item Delete the question mark if it is still present in the ABS arguments. 
+@sp 1
+
+@item Enter a space followed by a minus sign after  @emph{weightAfter}, as follows: ABS(weightAfter - )
+@sp 1
+
+@item Select the @emph{weightBefore} variable from the list on the left side of the Compute Variable dialog box.
+@sp 1
+
+@item Place the cursor after the minus sign of the mathematical expression in the @emph{Numeric Expressions} text box . 
+@sp 1
+
+@item Click the right arrow.
+
+@end table
+
+@float Figure, fig:pic47
+@image{Images/pic47}
+@caption{Enter formula into @emph{compute} variable dialogue box.}
+@end float
+
+@table @asis
+@item Click OK to add the result to the data file.
+
+@end table
+
+@float Figure, fig:pic49
+@image{Images/pic49, 6in}
+@caption{New variable @emph{weight change} from calculation in @emph{compute} dialogue box.}
+@end float
+
+
+@node Rank Cases
+@subsubsection Rank Cases
+@cindex rank cases
+
+
+Create new variables that hold ranks, Savage scores, Normal scores, and percentile values for numeric variables in the current data file. 
+PSPP automatically names and labels these such as to indicate original variable name and selected measures. 
+
+@float Figure, fig:pic50
+@image{Images/pic50}
+@caption{Rank cases by one or more variables.}
+@end float
+
+
+@table @asis
+@item Select the @emph{Smallest Value} option from the @emph{Assign rank 1 to} box for ascending order and @emph{Largest Value} for descending.
+@sp 1
+
+@item Rank numerical variables by moving them into the Variables text box (highlight the variable then click the right arrow).
+@sp 1
+
+
+@item Organize rankings into subgroups by moving the variables upon which the others will depend into the @emph{By} text box, e.g., move @emph{gender} and @emph{height} to calculate ranks for each combination of gender and height.
+@end table
+
+
+
+@node Rank Types
+@subsubsection Rank Types
+@cindex rank types
+@cindex rank
+
+@table @asis
+
+@item Bring up the @emph{Rank Cases Types} dialogue box by clicking on the @emph{Rank Types} Button towards the bottom of the @emph{Rank Cases} dialogue.  This dialogue box includes the following options: Rank, Savage score, Fractional rank, Fractional rank as a percent, Sum of case weights, Ntiles , Proportion Estimates, and Normal Scores.
+
+@end table
+
+@float Figure, fig:pic51
+@image{Images/pic51}
+@caption{@emph{Rank case types} dialogue box.}
+@end float
+
+
+@table @asis 
+
+@cindex rank
+
+@item @strong{Rank} The value of the new variable is its rank.
+@sp 1
+
+@cindex savage score
+@cindex savage
+
+@item @strong{Savage Scores} calculated using an exponential distribution
+@sp 1
+
+@cindex fractional rank
+
+@item @strong{Fractional Rank} Return rank divided by the sum of the weights.
+@sp 1
+
+@cindex fractional rank as a Percent
+@cindex fractional rank
+
+@item @strong{Fractional Rank as a Percent} Return rank divided by the number of cases as a percent.
+@sp 1
+
+@cindex sum of case weights
+
+@item @strong{Sum of Case Weights} is returned.
+
+@sp 1
+
+@cindex ntiles
+
+@item @strong{Ntiles} Return a rank according to the percentile group. The size of each percentile group is given by @math{100/Ntile}. 
+
+@sp 1
+
+@cindex proportion estimates
+
+@item @strong{Proportion Estimates} Estimate of the cumulative proportion of the distribution corresponding to a specific rank.
+
+@sp 1
+@cindex normal scores
+
+@item @strong{Normal Scores} Return z scores corresponding to the estimated cumulative proportion. 
+@end table
+
+@table @asis
+ 
+@item Choose from a range of proportion estimate formulas when calculating proportion estimates and normal scores; options include Blom, Tukey, Rankit, or Van der Waerden.
+@sp 1
+
+@table @asis
+@cindex Blom
+
+@item @strong{Blom} Ranking variable based on proportion estimates which employ the formula @math{(r - 3/8)/(w+ )}, where @math{w} is the sum of the case weights and @math{r} is the rank.
+@sp 1
+
+@cindex Tukey
+
+@item @strong{Tukey} Apply the formula @math{(r - 1/3)/(w + 1/3)}, where @math{r} is the rank and @math{w} is the sum of the case weights.
+@sp 1
+
+@cindex Rankit
+
+@item @strong{Rankit} Estimate expected values using @math{(r - 1/2)/w}, where @math{w} is the number of observations and @math{r} is the rank which ranges from unity to @math{w}.
+@sp 1
+
+@cindex Van der Waerden
+
+@item @strong{Van der Waerden} Return Van der Waerdens transformation, given by the formula @math{r/(w+1)}, where w is the sum of the case weights and r is the rank, ranging from 1 to w.
+
+@end table
+@end table
+
+
+@cindex Ties
+
+@table @asis
+
+@item @strong{Ties} Use to select the method for assigning rankings to cases with the same value on the original variable. 
+
+@end table
+
+@float Figure, fig:pic52
+@image{Images/pic52}
+@caption{@emph{Rank case ties} dialogue box}
+@end float
+
+
+@node Recode Into Same Variables
+@subsubsection Recode Into Same Variables
+@cindex recode into same variables
+
+Recode different values of the same type (numeric or string) into a variable. 
+There are two options available: 1) change a single value to a new one or 2) change a range of values to a category. 
+@sp 1
+
+@node Change a Single Value Example
+@unnumberedsubsubsec Change a Single Value Example
+
+Increase the value 12 Miles per Gallon (MPG) to 13 in the data set listing the mileage per gallon of a specific brand of car. 
+
+
+@float Figure, fig:pic53
+@image{Images/pic53}
+@caption{Mileage-per-gallon data file}
+@end float
+
+
+@table @asis
+
+@item Open file @file{MPG.sav}
+
+@sp 1
+
+@end table
+
+@table @asis
+
+@item Select @clicksequence{ Transform @click{} @emph{Recode into Same Variables}} to bring up a Recode dialogue box.
+@end table
+
+@float Figure, fig:pic54
+@image{Images/pic54}
+@caption{@emph{Recode into same variables} pop-up box}
+@end float
+
+
+@table @asis
+
+@item Select @emph{Miles Per Gallon} and click the right arrow to move the variable into the @emph{Variables} text box.
+@sp 1
+@end table
+
+
+@table @asis
+
+@item Click the @emph{Old and New Values} button to bring up its dialogue box.
+@end table
+
+
+@float Figure, fig:pic55
+@image{Images/pic55}
+@caption{@emph{Recode into same variables: Old and new values} pop-up box}
+@end float
+
+
+@table @asis
+@item Type the number 12 in the @emph{Value} text box under @emph{Old Value} on the left side.
+@sp 1
+
+@item Type the number 13 in the @emph{Value} text box under @emph{New Value} on the right side.
+@end table
+
+@float Figure, fig:pic56
+@image{Images/pic56}
+@caption{Replace cases with a new value.}
+@end float
+
+
+@table @asis
+@item Click the @emph{Add} button. The number 12 now appears under @emph{old} and 13 under @emph{new}.
+@end table
+
+@float Figure, fig:pic57
+@image{Images/pic57}
+@caption{Display old and new case values in @emph{Recode into same variables} pop-up box.}
+@end float
+
+
+@table @asis
+@item Press @emph{Continue} to close the @emph{New Values} dialogue box
+@sp 1
+
+@item Click OK on the @emph{Recode into Same Variable} dialogue box.
+
+@item The value 12 MPG is now 13 MPG.
+
+@end table
+
+
+@node Collapse Range of Values Into a Category Example
+@unnumberedsubsubsec Collapse Range of Values Into a Category Example
+
+@table @asis
+
+@item Open file @file{MPG.sav}
+@sp 1
+@end table
+
+@table @asis
+
+
+@item Convert the mileage per gallon values in the @file{MPG.sav} automobile data set into three categories, as follows:
+@sp 1
+
+@table @asis
+
+@item If @emph{Miles Per Gallon} is less than 19 MPG then give it a value of one.
+@sp 1
+
+@item If @emph{Miles Per Gallon} is greater than or equal to 19 MPG and less than 24 then give it a value of 2.
+
+@sp 1
+@item  If @emph{Miles Per Gallon} is greater or equal to 24 then give it a value of three.
+
+@end table
+
+
+@sp 1
+
+@item 	@clicksequence{Select Transform @click{} Recode} into Same Variables.
+@sp 1
+
+@item Select the @emph{range LOWEST thru value} radio button, and enter 18.
+@sp 1
+
+@item Enter the number 1 in the value field under @emph{New Value} on the right side of the dialogue box.
+@sp 1
+
+@item Click the @emph{Add button}, to get the @emph{LOWEST}-18 listed under @emph{old} and 1 under @emph{new}.
+
+@end table
+
+
+@table @asis
+
+@item 	Repeat with the other value ranges:
+ 
+      @table  @asis
+
+      @item  Select the @emph{Range-through} radio button and then enter 19 in the first text box and 23 in the second.      
+      @sp 1
+
+      @item Enter the number 2 in the value text box under @emph{New Value}, and click the Add button.
+      @sp 1
+
+      @item Select the @emph{range thru HIGHEST} radio button and enter 24.
+      @sp 1
+
+      @item Enter the number 3 in the value field under @emph{New Value}, and click the Add button.
+      
+      @end table
+
+@end table
+
+
+@float Figure, fig:pic58
+@image{Images/pic58}
+@caption{Collapse a range of values into categories with @emph{recode into same variables}.}
+@end float
+
+
+@table @asis
+
+@item Click Continue. The @emph{Old and New Values} dialogue box disappears.
+@sp 1
+
+@item Click OK on the @emph{Recode into New Variables} dialogue box to put the new values in the @emph{MPG} variable column.
+@sp 1
+
+@end table
+@sp 1
+
+@float Figure, fig:pic59
+@image{Images/pic59}
+@caption{Calculated @emph{frequency} data inserted into data editor.}
+@end float
+
+
+@node Recode Into Different Variables
+@subsubsection Recode into Different Variables
+@cindex recode into different variables
+@cindex recode
+
+Change variable values and save into a new one. 
+There are two options available; change a single value to a new one or change a range of values to a category. 
+Note, that  the new variable type must be the same as the original; numeric or string (@pxref{Recode Into Same Variables}).
+
+@float Figure, fig:pic60
+@image{Images/pic60}
+@caption{Recode case values into a new variable.}
+@end float
+
+
+
+@node Analyze
+@subsection Analyze
+@cindex analyze
+
+@menu 
+* Descriptive Statistics Definitions:: Descritptive Statistics Definitions.
+* Descriptive Statistics::             Descriptive Statistics.
+
+* Frequencies::                        Frequencies.
+* Descriptive-Frequencies Example::    Frequencies Example.
+* Descriptives::                       Descriptives.
+* Z-Score::                            Z-Score.
+* Z-Score Example::                    Z-Score Example. 
+* Explore::                            Explore.
+* Explore Example::                    Explore Example.
+
+* Crosstabs::                          Crosstabs.
+* Statistics and Measures of Association:: Measures of Association.
+* Crosstabs Example::                  Crosstabs Example.
+
+* Compare Means::                      Compare Means.
+* One-Sample T-Test::                  One Sample T-Test.
+* One-Sample T-Test Example::          One Sample T-Test Example.
+* Independent Samples T-Test::         Independent Samples T-Test.
+* Independent Samples T-Test Example:: Example Indep T-Test.
+* Paired Samples T-Test::              Paired Samples T-Test.
+* Paired Samples T-Test Example::      Example Paired T-Test.
+* One-Way ANOVA::                      One-Way ANOVA.
+* One-Way ANOVA Example::              One-Way ANOVA Example.
+* ANOVA Contrasts Example::            Anova Contrasts Example.
+
+* Bivariate Correlation::              Bivariate Correlation.
+* Bivariate Correlation Example::      Example of Bivariate Correlation.
+
+* Factor Analysis::                    Factor Analysis.
+* Extraction::                         Extraction.
+* Rotation::                           Rotation.
+* Factor Analysis Rotation Example::   Example Rotation.
+
+* Reliability::                        Reliability.
+* Split-half Reliability::             Split-half Reliability.
+* Cronbach's Alpha::                  Cronbach's Alpha.
+* Cronbach's Alpha Example::          Example of Cronbach's Alpha.
+
+
+* Non-Parametric Statistics::          Non-Parametric Statistics.
+* Binomial::                           Binomial.
+* Binomial Example::                   Binomial Example.
+* Chi-Square::                         Chi-Square.
+* Chi-Square Example::                 Chi-Square Example.
+
+* ROC Curve::                          ROC Curve.
+* Test Variable::                      Test Variable.
+* State Variable::                     State Variable.
+* Display::                            Display.
+* ROC Curve Example::                  ROC Curve Example.
+@end menu
+
+@node Descriptive Statistics Definitions
+@subsubsection Descriptive Statistics Definitions
+
+@table @asis
+
+@cindex central tendency
+
+@item @strong{Central Tendency} Measure of the central position of a set of data. 
+@sp 1
+
+@cindex mean
+
+@item @strong{Mean} Average value, or first moment (see definition below), defined as sum of all data within a set divided by the number of cases in the set. Note: the mean is susceptible to outlying values, e.g., the average temperature over a month in a region that has had a few unusually hot days will be higher than usual. 
+@sp 1
+
+@item @strong{Moments} are the sums of integer powers of the values, where a higher integer power corresponds to a higher moment e.g. the variance is the second moment, skewness the third, and kurtosis the fourth. 
+@sp 1
+
+@cindex median
+
+@item @strong{Median} The central value of an ordered set of numbers. In other words, 50% of the values fall above or below it. When the number of data values is even the median is the average of the middle two. The median is not as susceptible to outlying values as the mean.
+
+@sp 1
+
+@cindex mode
+
+@item @strong{Mode} Most frequently occurring value.  Note that there can be more than one mode in a data set.
+@sp 1
+
+@cindex sum
+
+@item @strong{Sum} The addition of all values across the different cases excluding missing ones.
+@sp 1 
+
+
+@cindex dispersion
+@item @strong{Dispersion} A measure of the spread or variation in data values about the mean.
+@sp 1
+
+@cindex standard deviation
+@item @strong{Standard Deviation} A measure of the spread in values about the mean equal to the square root of the sum of the squares of the difference between each value and the mean, for all values, divided by one less than the number of cases. 
+@sp 1
+
+@cindex variance
+@item @strong{Variance} The standard deviation squared, or the second moment.
+@sp 1
+
+@cindex range
+@item @strong{Range} The difference between the largest and smallest numerical values in the set.
+@sp 1
+
+@cindex Minimum
+
+@item @strong{Minimum} The smallest numerical value in the set.
+@sp 1
+
+@cindex maximum
+@item @strong{Maximum} The largest numerical value in the set.
+@sp 1
+
+@cindex S.E. mean
+@item @strong{S.E. Mean} The standard error of the mean is a measure of by how much the value of the mean varies with different samples from the same distribution.
+@sp 1
+
+
+@cindex distribution
+@item @strong{Distribution} Statistics that describe the shape and symmetry of a distribution. 
+@sp 1
+
+
+@cindex skewness
+@item @strong{Skewness} A measure of the asymmetry of a distribution. Estimate this by taking the third moment (proportional to the sum of the cube of the difference of each data value and the mean). Unlike the mean and variance the definition is such as to make it a dimensionless quantity, and this pure number characterizes the shape of the distribution.  Positive values indicate the distribution has a more heavily pronounced right tail, while negative ones indicate a more prominent left one. When both tails are equal the skewness is zero.
+@sp 1
+
+
+@cindex kurtosis
+@item @strong{Kurtosis} A measure of the relative peakedness or flatness compared to a normal distribution.  Estimate this by taking the fourth moment (proportional to the sum of the fourth power of the difference of each data value and the mean). Like the skewness, this is also a dimensionless quantity. A distribution with negative kurtosis is termed leptokurtic, while a distribution with a positive value as platykurtic, and an in-between one is termed mesorkurtic.
+
+@end table
+
+
+
+@node Descriptive Statistics
+@subsubsection Descriptive Statistics
+@cindex descriptive statistics
+
+Includes frequencies, descriptives, explore and crosstabs.
+
+@node Frequencies
+@unnumberedsubsubsec Frequencies
+
+cindex frequencies
+  
+Calculate statistics including central tendency (mean, median, mode, and sum), dispersion (standard deviation, variances, range, minimum, maximum, standard error of the mean) and distribution (skewness and kurtosis). 
+Optionally, view frequency tables and charts.
+
+
+@float Figure, fig:pic61
+@image{Images/pic61}
+@caption{@emph{Frequencies} dialogue box}
+@end float
+
+
+@table @asis
+
+@item The frequencies dialogue box lists all variables along the left side. In order to perform statistical analyses or plot charts move the variables into the @emph{Variables} dialogue box. To do this, first, click on the variable until it is highlighted and then select the right arrow.
+
+@end table
+
+@float Figure, fig:pic62
+@image{Images/pic62}
+@caption{Select variables in the @emph{frequencies} dialogue box. }
+@end float
+
+@table @asis
+
+@item Choose whether to display frequency tables, and in what way to order the tables; ascending or descending value or ascending or descending frequency.
+
+@end table
+
+@float Figure, fig:pic63
+@image{Images/pic63}
+@caption{@emph{Frequency tables} pop-up box }
+@end float
+
+@table @asis
+@item Plot histograms or pie charts with the Chart Dialogue box.
+@end table
+
+
+@float Figure, fig:pic64
+@image{Images/pic64}
+@caption{@emph{Frequency charts} pop-up box. }
+@end float
+
+
+@table @asis
+
+@item Histogram options include scaling with either frequencies or percentages and superimposing a normal curve.
+@sp 1
+
+@item Pie charts come with the option to include slices for missing values.
+@end table
+
+
+
+@node Descriptive-Frequencies Example
+@unnumberedsubsubsec Frequencies Example
+
+Analyze the extent to which hotel customers were satisfied with the level of service in the following survey (@pxref{fig:pic65}). 
+
+@float Figure, fig:pic65
+@image{Images/pic65, 6in}
+@caption{Customer satisfaction survey }
+@end float
+
+@table @asis
+
+@item Open file @file{hotel.sav}. 
+
+@item Select @clicksequence{Analyze @click{} Descriptive Statistics @click{} Frequencies} to bring up the @emph{Frequencies} dialogue box.
+@sp 1
+
+@end table
+
+
+@table @asis
+
+@item Select the first variable from the list on the left side then click the right arrow to move it inside the @emph{Variables} dialogue box.
+
+@end table
+
+@float Figure, fig:pic66
+@image{Images/pic66}
+@caption{Pick variables in the @emph{frequencies} dialogue box. }
+@end float
+
+
+@table @asis
+@item Select the @emph{charts} button to bring up the @emph{Charts} dialogue box.
+@sp 1
+
+@item Select @emph{Draw Histograms} and press @emph{Continue} to close this dialogue box.
+
+@end table
+
+@float Figure, fig:pic67
+@image{Images/pic67}
+@caption{Plot histograms of selected data.}
+@end float
+
+
+@table @asis
+@item Select @emph{Mode} from the @emph{Statistics} options in the @emph{Frequencies} dialogue box.
+@end table
+
+@float Figure, fig:pic68
+@image{Images/pic68}
+@caption{Select statistical analyses in the @emph{frequencies} pop-up.}
+@end float
+
+
+@table @asis
+
+@item Press OK to display the results in the output viewer.
+
+@end table
+
+
+@float Figure, fig:pic69
+@image{Images/pic69}
+@caption{Results of @emph{frequencies} function displayed in output viewer.}
+@end float
+
+
+@cindex descriptives 
+
+@node Descriptives
+@unnumberedsubsubsec Descriptives
+
+
+Display univariate summary statistics and z-scores. Statistics include central tendency (mean), dispersion (standard deviation, variance, range, minimum, maximum, and standard error of the mean), and distribution (kurtosis and skewness).
+
+@cindex z score
+@cindex univariate summary statistics 
+
+
+@node Z-Score
+@unnumberedsubsubsec Z-Score
+
+Z-score is a dimensionless variable that classifies how many standard deviations a value is from the mean. Also known as standardizing or normalizing. Based on normal theory, these are best for quantitative variables with symmetrical distributions. Note, if the distribution is skewed the z scores will be as well.
+
+
+@node Z-Score Example
+@unnumberedsubsubsec Z-Score Example
+
+Begin by making a data set in the syntax editor. 
+Write a small program to generate normally distributed numbers that represent SAT test scores with a mean of 500 and standard deviation of 110 as follows:
+
+@table @asis
+
+@item Select @clicksequence{ File @click{} New @click{} Syntax} to open a syntax window.
+
+@sp 1
+
+@item Enter the following command lines (@pxref{fig:pic70}) into the syntax window.
+
+@end table
+
+
+@float Figure, fig:pic70
+@image{Images/pic70}
+@caption{Generate data (random numbers) in the syntax editor.}
+@end float
+
+
+@table @asis
+
+@item Select @clicksequence{ Run @click{} All} to execute the program and populate the data editor with random numbers drawn from a normal distribution.
+@end table
+
+@float Figure, fig:pic71
+@image{Images/pic71}
+@caption{New data generated with command line instructions in the syntax editor.}
+@end float
+
+@table @asis
+
+@item Next, calculate the z scores using the @emph{Descriptives} menu command.
+@sp 1
+
+@item Select @clicksequence{ Analyze @click{} Descriptive Statistics @click{} Descriptives} to bring up the @emph{Descriptives} dialogue box.
+@sp 1
+
+@item Select the @emph{newvar} variable by clicking on it in the variables list to the left of the dialogue box, and then by clicking the right arrow to move it over into the @emph{Variables} textbox.
+@sp 1
+
+@item Select the @emph{save Z scores of selected variables as new variables} check box.
+@sp 1
+
+@item    Click OK to generate a list of z scores under the new variable in the data editor window.
+@sp 1
+
+@end table
+
+
+@float Figure, fig:pic72
+@image{Images/pic72}
+@caption{@emph{Z-scores} generated with the @emph{descriptives} function.}
+@end float
+
+@node Explore
+@unnumberedsubsubsec Explore
+@cindex explore
+
+
+Provides descriptive statistics including percentiles and extremes, and in addition, enables you to examine subgroups of data. Descriptive statistics include the mean, median, variance, standard deviation, minimum, maximum, range, skewness, and kurtosis.
+
+
+@node Explore Example
+@unnumberedsubsubsec Explore Example
+
+Generate descriptive statistics of the following data set of SAT test scores versus gender for everyone, independent of gender, or break it down into subgroups and do a separate analysis for each gender type.
+
+
+@float Figure, fig:pic73
+@image{Images/pic73}
+@caption{Data sheet of SAT scores by gender.}
+@end float
+
+
+@table @asis
+
+@item Open file SAT @file{scores.sav}.
+@sp 1
+
+@item Start by looking at all test scores independent of gender.
+@sp 1
+
+@item Select @clicksequence{Analyze @click{} Descriptive Statistics @click{} Explore} to open the @emph{Explore} dialogue box.
+
+@end table
+
+@float Figure, fig:pic74
+@image{Images/pic74}
+@caption{@emph{Explore} dialogue box}
+@end float
+
+@table @asis
+
+@item Select @emph{Score} and press the right arrow button next to the @emph{Dependent List} box. 
+@sp 1
+
+@item Click the @emph{Statistics} button at the bottom left side of the dialogue box to bring up the @emph{Statistics} pop-up box.
+@sp 1
+
+@end table
+
+
+@table @asis
+
+@item Select the @emph{Descriptives} and @emph{Extremes} check boxes, and then press continue.
+
+@end table
+
+@float Figure, fig:pic75
+@image{Images/pic75}
+@caption{@emph{Explore} statistic functions}
+@end float 
+
+
+@table @asis
+@item Press OK on the @emph{Explore} dialogue box to display the results in the output editor.
+@end table
+
+@float Figure, fig:pic76
+@image{Images/pic76}
+@caption{ @emph{Explore} statistical analysis results displayed in output viewer.  }
+@end float
+
+
+@table @asis
+
+@item Repeat the analysis, examining each gender group separately, where 0 represents male.
+@sp 1
+
+@item Select @clicksequence{ Analyze @click{} Descriptive Statistics @click{} Explore} to open the Explore dialogue box.
+@sp 1
+
+@item Select @emph{Score} and press the right arrow button beside the @emph{Dependent List} text box.
+@sp 1
+
+@item Select @emph{Gender} and press the right arrow button beside the @emph{Factor List} text box. 
+
+@end table
+
+@float Figure, fig:pic77
+@image{Images/pic77}
+@caption{Compare SAT scores by gender with the @emph{Explore} function.} 
+@end float
+
+@table @asis
+
+@item Press the Statistics button at the bottom of the Explore dialogue box.
+@sp 1
+
+@item Select the @emph{Descriptives} and @emph{Extremes} check boxes and then press the continue button.
+@sp 1
+
+@item Press OK on the Explore dialogue box to display the results.
+@sp 1
+
+@item The output viewer lists different statistics for each group. For example, the lowest and highest test scores are 182.98 and 835.52, respectively, for the males, and, 179.03 and 805.10 for the female group.
+
+@end table
+
+
+@float Figure, fig:pic78
+@image{Images/pic78}
+@caption{Results of @emph{Explore} function analysis in output viewer.}
+@end float
+
+@cindex crosstabs
+
+@node Crosstabs
+@unnumberedsubsubsec Crosstabs
+
+
+Examine bivariate relationships through cross tabulation. This tool is useful for determining if one variable is dependent upon another, e.g.,  in a customer satisfaction survey you might discover a dependency of customer satisfaction levels on price. 
+
+
+@node Statistics and Measures of Association
+@unnumberedsubsubsec Statistics and Measures of Association
+
+
+@table @asis
+
+@item @strong{Chi-Square} Use Pearson's Chi-Square to test if the frequency in each cell is at least five; when the frequency is less than five and the contingency table is 2 x 2 in size then Fishers exact test is performed. When both variables are quantitative this function also returns a linear-by-linear association test. 
+
+@cindex chi-square  
+@sp 1
+
+@cindex correlations
+@item @strong{Correlations} Return Superman's correlation coefficient and rho for numeric data when the values in the rows and columns are ordered. When both variables are quantitative returns the Pearson's R. 
+
+@end table
+
+
+@table @asis
+
+@cindex Nominal Data
+@item @strong{Nominal Data} Measure the degree of association with several coefficients.
+
+@sp 1
+
+@table @asis
+
+@cindex phi
+@item @strong{Phi} Measure of association that returns the square root of the chi-square coefficient divided by the sample size. Typically, apply this to 2 x 2 tables although it can handle larger sizes. For 2 x 2 tables phi is identical to the correlation coefficient, but for larger ones the interpretation can be more complex.
+@sp 1
+
+@cindex contingency coefficient
+@item @strong{Contingency Coefficient} An adjustment to phi in order to make it suitable for tables larger than 2 x 2. The coefficient is equal to the square root of chi-square divided by chi-square plus the sample size. Note: For tables smaller than 5-by-5 this underestimates the level of association. 
+@sp 1
+
+
+@cindex Cramer's V
+@item @strong{Cramer's V} This measure of association gives accurate results when the number of rows and columns are equal, independent of size. V is equal to the square root of chi-square divided by the product of the sample size and the length of the smallest row or column. 
+@sp 1
+
+@cindex Lambda
+@item @strong{Lamda} Returns the percent by which you reduce the error when estimating the value of the dependent variable based upon on the value of the independent one. A lambda of zero means that there is no advantage in using the distribution of the independent variable to estimate the value of the dependent variable. 
+@sp 1
+
+@cindex uncertainty coefficient
+@item @strong{Uncertainty Coefficient} Otherwise known as the entropy coefficient, is the percent reduction in error accounting for the variance in the dependent variable, where variance is defined in terms of entropy. When the uncertainty coefficient is zero, the independent variable is not helpful in predicting the dependent variable.
+@sp 1
+
+@end table
+@end table
+
+
+@table @asis
+
+@cindex ordinal data
+@item @strong{Ordinal Data}
+@sp 1
+
+
+@table @asis
+
+@cindex gamma
+@item @strong{Gamma} Returns the strength of association for ordinal data, ignoring tied (cases have equal values on both variables) pairs. Gamma is defined as the number of concordant pairs minus the number discordant ones over the sum of each type of pair. Cases form a concordant pair when the ranking agrees; meaning one case has a higher value than another case on both variables. When one case has a higher value on one variable, but a lower value on another the ranking disagrees and the cases form a discordant pair. Values of gamma range from -1 to 1. A value of 1 indicates perfect agreement between the rankings, while a value of -1 means there is perfect disagreement. When gamma is equal to zero then there is no association between cases. 
+
+@item Note: Since gamma ignores ties, the strength of association between two variables might be over-exaggerated.
+@sp 1
+
+@cindex Somers'd
+@item @strong{Somers'd} Modification to Gamma that accounts for pairs tied on the dependent variable; values range from -1 for negative relationships to +1 for positive ones. 
+@sp 1
+
+@cindex Kendall's Tau B
+@item @strong{Kendall's Tau B} A modification to gamma that takes into account tied pairs tied on both the dependent and independent variable. Kendall's Tau-B is symmetrical in that the same value is produced regardless of which variable is considered independent. Tau-b can only reach its maximum or minimum values of 1 and -1 for square tables.
+@sp 1
+
+
+@cindex Kendall's Tau C
+@item @strong{Kendall's Tau C} This is a variant of Kendall's Tau-B that can reach the maximum and minimum values of +1 and -1 for non-square tables. 
+
+
+@end table
+@end table
+
+
+@table @asis
+
+@cindex Nominal by Interval
+@item @strong{Nominal by Interval}
+@sp 1
+
+
+@table @asis
+
+@cindex eta
+@item @strong{Eta} Gauge of association when the dependent variable is a quantitative measure and the independent variable is categorical. Eta ranges from 0 to 1, with increasing values indicating a higher degree of association.
+@sp 1
+
+@cindex Cohen's Kappa
+@item @strong{Cohen's Kappa} Kappa is a measure of the degree to which two raters agree over their sorting of items into mutually exclusive categories, and takes into account agreement that occurs by chance. Values range from -1 to +1 and represent the proportion of agreements between raters after adjusting for those that take place by chance. A value of +1 indicates perfect agreement and -1 perfect disagreement. When kappa is zero, then there is no relationship between the raters and any agreements or disagreements are due to chance only. 
+@sp 1
+
+
+@cindex estimated relative risk
+@item @strong{Estimated Relative Risk} The observed risk of having the outcome of interest be greater due to a specific factor.  Use the odds ratio as an estimate or measure of risk if the occurrence of the factor is rare. A confidence interval greater than one indicates there is a greater chance of the event occurring in the presence of the factor. Note: this is only suitable for 2 x 2 tables.
+
+
+@end table
+@end table
+
+
+@node Crosstabs Example
+@unnumberedsubsubsec Crosstabs Example 
+
+
+Consider a medical study examining the relative risk of patients having cerebella toxicity who have taken a generic chemotherapeutic agent rather than a non-generic one.
+
+
+
+@float Table, tab:tab1
+@caption{Toxicity Versus Chemotheraputic Agent}
+@multitable @columnfractions .34 .33 .33
+@item @tab Toxicity+ @tab Toxicity-
+@item Generic+ @tab @tie{} @tie{} 11 @tab @tie{} @tie{} 14
+@item Generic- @tab @tie{} @tie{} 3  @tab @tie{} @tie{} 31
+@end multitable
+@end float
+
+
+
+
+@table @asis
+
+@item Enter the data from the table (@pxref{tab:tab1}) into a PSPP data sheet (@pxref{fig:pic79}), where +1 represents positive (+) and 0 negative (-). Alternatively, open file General @file{Toxicity.sav}.
+
+@end table
+
+@float Figure, fig:pic79
+@image{Images/pic79}
+@caption{Toxicity data in the data editor} 
+@end float
+
+
+@table @asis
+
+@item Weight cases by selecting @clicksequence{ Data @click{} Weight Cases}, and then choose the @emph{Weight Cases By:} option (@pxref{fig:pic80}).
+@end table
+
+@float Figure, fig:pic80
+@image{Images/pic80}
+@caption{@emph{Weight cases} function} 
+@end float
+
+
+@table @asis
+
+@item Select @clicksequence{ Analyze @click{} Descriptive Statistics @click{} Crosstabs} to open the @emph{Crosstabs} dialogue box.
+@sp 1
+
+@item Move the variable @emph{toxicity} from the list on the left side of the dialogue box into @emph{Rows} and @emph{Generic} into @emph{Columns}.
+
+
+@end table
+
+
+@table @asis
+
+@item Click @emph{Statistics} to bring up the @emph{Statistics} dialogue box.
+@end table
+   
+@float Figure, fig:pic81
+@image{Images/pic81}
+@caption{@emph{Crosstabs} dialogue box.} 
+@end float
+
+
+@table @asis
+
+@item Select the @emph{Risk} check box and then click @emph{Continue} to close this dialogue box.
+@sp 1
+
+@item Click OK on the @emph{Crosstabs} dialogue box to display the results in the output viewer.
+@end table
+
+@float Figure, fig:pic82
+@image{Images/pic82}
+@caption{@emph{Crosstab} statistics results in output viewer.}
+@end float
+
+
+@node Compare Means
+@subsubsection Compare Means
+@cindex compare means
+
+There are several options including One-Sample T-Test, Independent Samples T-Test, Paired Samples T-Test, and One-Way ANOVA. 
+
+@node One-Sample T-Test
+@unnumberedsubsubsec One-Sample T-Test
+@cindex One-Sample T-Test
+
+Tests if the mean of a single variable differs from a specified constant. 
+
+
+@node One-Sample T-Test Example
+@unnumberedsubsubsec One-Sample T-Test Example
+
+@table @asis
+
+@item Compare the mean of the measured lifetime of 100 soft white light bulbs to that claimed by the manufacturer (700 hours). 
+@sp 1
+
+@item Open the file @file{LightBulbHours.sav}.
+@sp 1
+
+@item Select @clicksequence{ Analyze @click{} Compare Means @click{} One Sample T Test}.
+@sp 1
+
+@item Select the @emph{hour} variable from the list on the left side of the dialogue box and then click the right arrow to move it into the @emph{Test Variables} text box.
+@sp 1
+
+@item Enter the value 700 into the @emph{Test Value} text box. 
+@end table
+
+@float Figure, fig:pic83
+@image{Images/pic83}
+@caption{@emph{One-Sample T Test} dialogue box}
+@end float
+
+@table @asis
+
+@item Click OK to view the results in the output window. 
+@end table
+
+@float Figure, fig:pic84
+@image{Images/pic84}
+@caption{@emph{One-Sample T Test} output results}
+@end float
+
+
+
+@node Independent Samples T-Test
+@unnumberedsubsubsec Independent Samples T-Test
+@cindex Independent Samples T-Test
+
+Compare means of the same variable taken from two independent samples. 
+Although the test requires normally distributed data, minor departures from this assumption are tolerable, and there is no requirement that the samples are the same size. 
+
+
+@node Independent Samples T-Test Example 
+@unnumberedsubsubsec Independent Samples T-Test Example
+
+@table @asis
+
+@item Compare mean heights, in centimeters, of ten twelve-year-old boys to ten twelve-year-old girls.
+@sp 1
+@end table
+
+
+@table @asis
+
+@item Enter the following @emph{height} and @emph{gender} data (@pxref{tab:tab2}) into a data file, where 0 represents female and 1 male, or open file @file{Height12YearOlds.sav}.
+@end table
+@sp 1
+
+@float Table, tab:tab2
+@caption{Height of twelve year old children} 
+@multitable @columnfractions .25 .25
+@item Height(cm) @tab Gender
+@item 152.71  @tab 0
+@item 142.57  @tab 0
+@item 155.48  @tab 0
+@item 148.79  @tab 0
+@item 167.74  @tab 0
+@item 149.51  @tab 0
+@item 142.00  @tab 0
+@item 150.21  @tab 0
+@item 171.19  @tab 0
+@item 141.99  @tab 0
+@item 152.67  @tab 1
+@item 139.65  @tab 1
+@item 152.19  @tab 1
+@item 156.94  @tab 1
+@item 151.86  @tab 1
+@item 157.79  @tab 1
+@item 152.49  @tab 1
+@item 157.52  @tab 1
+@item 156.95  @tab 1
+@item 141.61  @tab 1
+@end multitable
+@end float
+
+
+@table @asis
+
+@item Name the first variable @emph{Height} and the second @emph{Gender}.
+@sp 1
+
+@item Select @clicksequence{ Analyze @click{} Compare Means @click{} Independent Samples T Test}.
+@sp 1
+@end table
+
+@table @asis
+
+@item Select @emph{Height} from the list on the left side of the dialogue box and then click the upper right arrow to move it into the @emph{Test Variables} box.
+@end table
+
+@float Figure, fig:pic85
+@image{Images/pic85}
+@caption{@emph{Independent-Samples T Test} dialogue box}
+@end float
+
+@table @asis
+
+@item Select @emph{Gender} and click the lower right arrow to move the variable into the @emph{Define Groups} area.
+@sp 1
+@end table
+
+@table @asis
+@item Click the @emph{Define Groups} button at the bottom of the dialogue box.
+@end table   
+
+@float Figure, fig:pic86
+@image{Images/pic86}
+@caption{Define variables and groups in the @emph{Independent-Samples T Test} dialogue.}
+@end float
+
+@table @asis
+
+@item Enter 0 into the @emph{Group1 Value} text box of the @emph{Define Groups} dialogue box.
+@sp 1
+
+@item Enter 1 into the Group2 Value text box of the @emph{Define Groups} dialogue box.
+@sp 1
+
+@item Select @emph{Continue}.
+@end table 
+
+@comment : There is no pic87
+
+@float Figure, fig:pic88
+@image{Images/pic88}
+@caption{Organize data into groups. }
+@end float
+
+@table @asis
+
+@item Click OK on the @emph{Independent-Samples T Test} dialogue box to examine the results in the output viewer.
+
+ 
+@end table
+
+@float Figure, fig:pic89
+@image{Images/pic89}
+@caption{Results of the @emph{Independent-Samples T Test} in the output viewer.}
+@end float
+
+
+@node Paired Samples T-Test
+@unnumberedsubsubsec Paired Samples T-Test
+@cindex Paired Samples T-Test
+
+
+Compare means of two sets of quantitative data, where data sets are organized into pairs with a definite relationship, e.g., one set of data might represent a measurement taken before some event and the other a measurement after. 
+Each pair is then the measurement before coupled with the measurement after. 
+@sp 1
+
+
+@node Paired Samples T-Test Example 
+@unnumberedsubsubsec Paired Samples T-Test Example
+
+
+@table @asis
+
+@item Compare the means of the following measurements (@pxref{fig:pic90}) from nine asthmatics of their peak expiatory flow rate before and after a walk on a cold winters day.
+@end table
+
+@float Figure, fig:pic90
+@image{Images/pic90}
+@caption{Before and after data}
+@end float
+
+
+@table @asis
+
+@item Enter the data in @pxref{fig:pic90} into a new data file.
+@sp 1
+
+@item Select @clicksequence{ Analyze @click{} Compare Means @click{} Paired Samples T Test}.
+@sp 1
+
+@item Highlight the @emph{Before} variable with the mouse and then click the right arrow to place it in the @emph{Test Variables} dialogue box under @emph{Var1}.
+@end table
+
+@float Figure, fig:pic91
+@image{Images/pic91}
+@caption{@emph{Paired Samples T Test} dialogue box. }
+@end float
+
+@table @asis 
+
+@item Repeat the same steps with the @emph{After} variable to place it under @emph{Var2}.
+@ sp 1
+@item Click OK to display the results in the Output window.
+@end table
+
+@float Figure, fig:pic92
+@image{Images/pic92}
+@caption{@emph{Paired Samples T Test} output results.}
+@end float
+
+
+@node One-Way ANOVA
+@unnumberedsubsubsec One-Way ANOVA
+@cindex One-Way ANOVA
+
+Indicates if there are significant differences between means of three or more independent groups, where the independent variable consists of two or more categorical independent groups and the dependent one is either interval or ratio. 
+Note: this only tells you if the means of the groups are significantly different and not which ones.
+
+
+@table @asis
+
+@item Optional Statistics include:
+@sp 1 
+
+
+@item 	Descriptives (mean, standard deviation, standard error of the mean, minimum, maximum, and 95% confidence intervals for each dependent variable) 
+@sp 1
+
+@item 	Homogeneity of variance test that calculates the Levine statistic to look for the equality of variances
+@sp 1
+
+@item Specify contrasts the you want tested by the t statistic with the @emph{Contrasts} button in the dialogue box.
+
+@end table
+
+
+@node One-Way ANOVA Example
+@unnumberedsubsubsec One-Way ANOVA Example
+
+@table @asis
+
+@item Determine if the mean of each smoker group's lung capacity varies, where the different groups include non-smoker, light-smoker, medium-smoker, and heavy-smoker.
+@sp 1
+
+@item Open the data file @file{Smokers.sav}. This lists forced expiratory flow measurements under the variable @emph{FEF} and the corresponding group type (non-smoker=0, light-smoker=1, medium-smoker=2, heavy-smoker=3) under @emph{Groups}.
+@end table
+
+@float Figure, fig:pic93
+@image{Images/pic93}
+@caption{Data describing the lung capacity of several groups of smokers.}
+@end float
+
+@table @asis
+@item Select @clicksequence{ Analyze @click{} Compare Means @click{} One-Way ANOVA}
+
+@end table
+
+@float Figure, fig:pic94a
+@image{Images/pic94a}
+@caption{@emph{One-Way ANOVA} dialogue box}
+@end float
+
+@table @asis
+@item Click on @emph{FEF} from the list of variables on the left side of the dialogue box then select the upper right arrow to move it into the @emph{Dependent Variables} text box. 
+@end table
+
+@float Figure, fig:pic94b
+@image{Images/pic94b}
+@caption{Select dependent variable in @emph{One-Way ANOVA} dialogue box}
+@end float
+
+
+@table @asis
+@item Select the @emph{Group} variable and click the lower right arrow button to place it inside the @emph{Factor} text box.
+@end table
+
+@float Figure, fig:pic95
+@image{Images/pic95}
+@caption{Dependent and independent variables in the @emph{One-Way ANOVA} dialogue. }
+@end float
+
+@table @asis
+
+@item  Click OK to displays the results in the output viewer.
+
+@end table
+
+@float Figure, fig:pic96
+@image{Images/pic96}
+@caption{@emph{One-Way ANOVA} output}
+@end float
+
+
+@comment make false subsection with strong Contrast by itself
+@cindex contrast
+
+@sp 1
+
+
+@table @asis
+@item @strong{Contrast} is a weighted sum of the means and enables you to test your research hypothesis as opposed to the statistical one.
+@end table
+
+
+@node ANOVA Contrasts Example
+@unnumberedsubsubsec ANOVA Contrasts Example
+
+@table @asis
+
+
+@item Open the data file @file{Smokers.sav}. This lists forced expiratory flow measurements under the variable @emph{FEF} and the corresponding group type (non-smoker=0, light-smoker=1, medium-smoker=2, heavy-smoker=3) under @emph{Groups}.
+
+@item Check if the mean lung capacity of non-smokers varies from that of smokers, independent of how many they smoke. There are four different groups, of which three are smokers of different intensities. This means the non-smoking group should have a mean with a weighting of unity and the others a weighting of one-third.
+
+
+@end table
+
+@table @asis
+
+@item Select @emph{Contrasts} on the @emph{One-Way ANOVA} dialogue box.
+@end table
+
+@float Figure, fig:pic97
+@image{Images/pic97}
+@caption{Use @emph{contrasts} button to calculate weighted sum of the means.}
+@end float
+
+
+@table @asis
+@item Enter 1.0 in the @emph{Coefficients} text box and then click the @emph{Add} button.
+@sp 1
+
+@item Add the values -0.333, -0.333, and -0.334 to the @emph{Coefficients} list.
+@end table
+
+@float Figure, fig:pic98
+@image{Images/pic98}
+@caption{@emph{Contrasts} dialogue box}
+@end float
+
+@table @asis
+@item Press @emph{Continue} to close the @emph{Contrasts} dialogue box.
+@sp 1
+
+@item Press OK on the @emph{One-Way ANOVA} dialogue box to display the results in the output viewer.
+@end table
+
+@float Figure, fig:pic99
+@image{Images/pic99}
+@caption{@emph{One-Way ANOVA} output}
+@end float
+
+
+@node Bivariate Correlation
+@subsubsection Bivariate Correlation
+@cindex Bivariate Correlation
+
+
+Computes Pearson's correlation coefficient, defined as a value between -1 and +1 that indicates the degree of association between variables. 
+A positive value means large values of one variable are associated with large values of the other and,likewise, small values of one variable are associated with small values of the other. 
+A negative value indicates that large values of one variable are associated with small values of the other and vise-verse. 
+@sp 1
+
+
+@node Bivariate Correlation Example
+@unnumberedsubsubsec Bivariate Correlation Example
+
+@table @asis
+
+@item Use this feature to investigate the correlation, if any, between ice cream sales and outside temperature. 
+@sp 1
+
+@item Open a new data file.
+@sp 1
+
+
+@item Enter the following pairs of values listed (@pxref{tab:tab3}) of the number of ice cream cones sold each day one summer at a specified store along with the corresponding daytime high temperature, or open file @file{IceCream.sav}.
+
+@end table
+
+@float Table, tab:tab3
+@caption{Ice Cream Cones Sold Versus Outside Temperature}
+@multitable @columnfractions .6 .4
+@item @strong{Ice Cream Cones Sold} @tab @strong{Temperature (Fahrenheit)}
+@item @tie{} @tie{} @tie{} 171.00 @tab @tie{} @tie{} 76.00
+@item @tie{} @tie{} @tie{} 161.00 @tab @tie{} @tie{} 71.00
+@item @tie{} @tie{} @tie{} 156.00 @tab @tie{} @tie{} 66.00
+@item @tie{} @tie{} @tie{} 151.00 @tab @tie{} @tie{} 61.00
+@item @tie{} @tie{} @tie{} 154.00 @tab @tie{} @tie{} 73.00
+@item @tie{} @tie{} @tie{} 143.00 @tab @tie{} @tie{} 61.00
+@item @tie{} @tie{} @tie{} 146.00 @tab @tie{} @tie{} 64.00
+@item @tie{} @tie{} @tie{} 157.00 @tab @tie{} @tie{} 69.00
+@item @tie{} @tie{} @tie{} 171.00 @tab @tie{} @tie{} 78.00
+@item @tie{} @tie{} @tie{} 171.00 @tab @tie{} @tie{} 78.00
+@item @tie{} @tie{} @tie{} 166.00 @tab @tie{} @tie{} 76.00
+@item @tie{} @tie{} @tie{} 168.00 @tab @tie{} @tie{} 76.00
+@item @tie{} @tie{} @tie{} 176.00 @tab @tie{} @tie{} 81.00
+@item @tie{} @tie{} @tie{} 181.00 @tab @tie{} @tie{} 83.00
+@item @tie{} @tie{} @tie{} 181.00 @tab @tie{} @tie{} 86.00
+@item @tie{} @tie{} @tie{} 144.00 @tab @tie{} @tie{} 60.00
+@item @tie{} @tie{} @tie{} 174.00 @tab @tie{} @tie{} 87.00
+@item @tie{} @tie{} @tie{} 177.00 @tab @tie{} @tie{} 89.00
+@item @tie{} @tie{} @tie{} 178.00 @tab @tie{} @tie{} 86.00
+@item @tie{} @tie{} @tie{} 186.00 @tab @tie{} @tie{} 91.00
+@item @tie{} @tie{} @tie{} 164.00 @tab @tie{} @tie{} 75.00
+@item @tie{} @tie{} @tie{} 161.00 @tab @tie{} @tie{} 74.00
+@item @tie{} @tie{} @tie{} 163.00 @tab @tie{} @tie{} 72.00
+@item @tie{} @tie{} @tie{} 149.00 @tab @tie{} @tie{} 69.00
+@item @tie{} @tie{} @tie{} 161.00 @tab @tie{} @tie{} 71.00
+@item @tie{} @tie{} @tie{} 155.00 @tab @tie{} @tie{} 74.00
+@item @tie{} @tie{} @tie{} 170.00 @tab @tie{} @tie{} 86.00
+@item @tie{} @tie{} @tie{} 179.00 @tab @tie{} @tie{} 91.00
+@item @tie{} @tie{} @tie{} 176.00 @tab @tie{} @tie{} 71.00
+@item @tie{} @tie{} @tie{} 165.00 @tab @tie{} @tie{} 82.00
+@end multitable
+@end float
+
+@table @asis
+
+@item Select @clicksequence{ Analyze @click{} Bivariate Correlation}, to bring up the @emph{Bivariate Correlation} dialogue box.
+@sp 1
+
+@item Select @emph{Cones} and click the right arrow button to move it into the right-hand-side text box.
+@end table
+
+@float Figure, fig:pic100
+@image{Images/pic100}
+@caption{@emph{Bivariate Correlations} dialogue box}
+@end float
+
+@table @asis
+@item Repeat the same steps with the @emph{Temperature} variable.
+@sp 1 
+
+@item Click OK to display the results in the output viewer.
+@end table
+
+@float Figure, fig:pic101
+@image{Images/pic101}
+@caption{@emph{Bivariate Correlations} output}
+@end float
+
+
+@node Factor Analysis
+@subsubsection Factor Analysis
+@cindex Factor Analysis
+
+Helps identify the underlying variables, or factors, to explain correlations. Variables should be either interval or ratio, and not categorical. 
+@sp 1
+
+@table @asis
+
+@item Note: PSPP assumes the data has a nearly bivariate normal distribution for each pair of variables and that observations are independent. 
+@end table
+
+
+@table @asis
+
+@item Two main statistic functions are available: @emph{Extraction} and @emph{Rotation} (@pxref{fig:pic102}).
+@end table
+
+@float Figure, fig:pic102
+@image{Images/pic102}
+@caption{@emph{Factor Analysis} dialogue box}
+@end float
+
+@node Extraction
+@unnumberedsubsubsec Extraction
+@cindex extraction
+
+@float Figure, fig:pic103
+@image{Images/pic103}
+@caption{@emph{Factor Analysis Extraction} dialogue box}
+@end float
+
+
+@table @asis
+
+@cindex Method
+
+
+@item @strong{Method} The @emph{Method} button on the @emph{Extraction} dialogue box enables you to choose the method of factor extraction. Options include @emph{Principal Components Analysis} and @emph{Principal Axis Factoring}.
+@sp 1
+
+
+@table @asis
+
+@cindex Principal Components Analysis
+
+@item @strong{Principal Components Analysis} Use when the correlation matrix is singular. This function assembles uncorrelated linear combinations of the observed variables such that each successive component accounts for a progressively smaller portion of the variance.
+@sp 1
+
+@cindex Principal Axis Factoring
+
+@item @strong{Principal Axis Factoring} An iterative procedure that extracts and replaces factors from the current correlation matrix with new estimates repeatedly, until the convergence criterion for extraction is satisfied. 
+
+@end table
+@end table
+
+
+@table @asis
+
+@cindex Factor Analysis: Analyze
+@item @strong{Analyze} Choose either a correlation or covariance matrix.
+
+@end table
+
+
+@table @asis
+
+@item @strong{Display} Display the unrotated factor solution and Scree plot.
+@cindex Factory Analysis: Display
+@sp 1
+
+@table @asis
+
+
+@item @strong{Unrotated Factor Solution} Display the unrotated factor loadings, communalities, and the solution eigenvalues.
+@sp 1
+
+@cindex Unrotated Factor Solution
+
+@item @strong{Scree Plot} A plot of the variance for each factor. 
+@cindex Scree Plot
+@sp 1
+
+@end table
+@end table
+
+
+@table @asis
+
+@cindex Factor Analysis: Extract
+@item @strong{Extract} Specify to keep factors whose eigenvalues exceed a specified factor above the mean eigenvalue, or choose a specific number of factors to keep.
+@sp 1
+
+@cindex Maximum Iterations for Convergence
+@item @strong{Maximum Iterations for Convergence} Specify the maximum number of steps the algorithm can take to estimate the solution.
+
+@end table
+
+
+@node Rotation 
+@unnumberedsubsubsec Rotation
+@cindex rotation 
+
+@float Figure, fig:pic104
+@image{Images/pic104}
+@caption{@emph{Factor Analysis Rotation} dialogue box}
+@end float
+
+@sp 1
+
+@table @asis
+
+@cindex factor analysis: rotations; method
+@item @strong{Method} Choose the type of factor rotation method. Options include none, varimax, quartimax, and equimax.
+@sp 1
+
+
+@table @asis
+
+@item @strong{Varimax} An orthogonal rotation of the factor axes which has the effect of differentiating the original variables by the extracted factor. This solution provides results that make it easier to identify each variable with a single factor.
+@sp 1
+
+@cindex varimax
+
+
+@item @strong{Quartimax} An orthogonal rotation that minimizes the number of factors needed to explain each variable.
+@sp 1 
+@cindex quartimax
+
+@item @strong{Equimax} A combination of the varimax and quartimax rotations.
+@cindex equimax
+
+@end table
+@end table
+
+@sp 1
+
+@table @asis
+@cindex Display Rotated Solution
+@item @strong{Display Rotated Solution} Display the solution in this way if you have selected a rotation method.
+@sp 1
+
+
+@item @strong{Maximum Iterations for Convergence} Choose the maximum number of steps the algorithm can take to reach convergence. The default value is twenty-five. 
+
+@end table
+
+
+@node Factor Analysis Rotation Example
+@unnumberedsubsubsec Factor Analysis Rotation Example
+
+@table @asis
+
+@item Perform factor analysis to determine the leading factors that drive people to purchase specific brands of bread with the data (@pxref{fig:pic105}). 
+
+
+@end table
+
+@float Figure, fig:pic105
+@image{Images/pic105}
+@caption{Survey data describing influential factors in purchasing.}
+@end float
+
+
+@table @asis
+
+@item Enter the following consumer data (@pxref{fig:pic105}), or open file @file{Bread.sav}.
+
+@item Select @clicksequence{Analyze @click{} Factor Analysis} to bring up @emph{Factor Analysis} dialogue box.
+@sp 1
+
+@item Click the first variable, @emph{Reputation}, and then press the right arrow button to move it into the @emph{Variables} dialogue box.
+@end table
+
+
+@float Figure, fig:pic106
+@image{Images/pic106}
+@caption{ Pick variables for @emph{Factor Analysis}.}
+@end float
+
+@table @asis
+@item Repeat with all the other variables until no more remain on the left side.
+@end table
+
+@float Figure, fig:pic107
+@image{Images/pic107}
+@caption{All variables are selected for @emph{Factor Analysis}. }
+@end float
+
+@table @asis
+@item Click the @emph{Extraction} button.
+@sp 1
+
+@item Select the @emph{Principal Components Analysis} method.
+@sp 1
+
+@item Select the @emph{Correlation matrix} option under @emph{Analyse}.
+@sp 1
+
+@item Select @emph{Unrotated factor solution} and @emph{Scree plot} under @emph{Display}.
+@sp 1
+
+@item Click @emph{Continue} to close this dialogue box.
+@sp 1
+
+@item Select the @emph{Rotations} button in the @emph{Factor Analysis} dialogue box.
+@sp 1
+
+@item Select the @emph{Varimax} option under @emph{Method}.
+@sp 1
+
+@item Select @emph{Display rotated solution}.
+@sp 1
+
+@item Click @emph{Continue} to close the dialogue box.
+@sp 1
+
+@item Click the OK button to display the results in the output viewer.
+@end table
+
+@float Figure, fig:pic108
+@image{Images/pic108}
+@image{Images/pic109}
+@caption{@emph{Factor Analysis} output }
+@end float
+
+
+@node Reliability
+@subsubsection Reliability
+@cindex Reliability
+
+Estimate the internal consistency reliability. Options include Split-half reliability and Cronbach's Alpha. 
+@sp 1
+
+@float Figure, fig:pic110
+@image{Images/pic110}
+@caption{@emph{Reliability Analysis} dialogue box }
+@end float
+
+
+@node Split-half Reliability
+@unnumberedsubsubsec Split-half Reliability
+@cindex Split-half Reliability
+
+An estimation based on the correlation of two equivalent forms of the scale. 
+This is a three-step process: 1) Randomly divide all items that measure the same construct into two sets, 2) administer the whole instrument and divide the total score for each item in half, and 3) estimate the split-half reliability by calculating the correlation of these two sets. 
+
+@node Cronbach's Alpha
+@unnumberedsubsubsec Cronbach's Alpha
+@cindex Cronbach's Alpha
+
+This estimation is equivalent to the average of all possible split-half estimates, and is an indication of the correlation among the variables. 
+
+
+
+@node Cronbach's Alpha Example
+@unnumberedsubsubsec Cronbach's Alpha Example
+
+
+Examine the internal reliability of the following pass-fail test data (@pxref{fig:pic111}), where zero represents fail and one pass. 
+
+
+@float Figure, fig:pic111
+@image{Images/pic111}
+@caption{Fail-pass test data }
+@end float
+
+
+@table @asis
+
+@item Enter the test data (@pxref{fig:pic111}) into a new data file, or open the file @file{PassFail.sav}.
+@sp 1
+
+@item Select @clicksequence{Analyze @click{} Reliability}.
+@sp 1
+
+@item Click the first variable and select the right arrow to move it into the @emph{Items} text box.
+@end table
+
+@float Figure, fig:pic112
+@image{Images/pic112}
+@caption{Pick variables for @emph{Reliability Analysis}}
+@end float
+
+@table @asis
+@item Repeat with the other variables until they are all listed in the @emph{Items} text box.
+@end table
+
+@float Figure, fig:pic113
+@image{Images/pic113}
+@caption{All variables are chosen for @emph{Reliability Analysis}.}
+@end float
+
+@table @asis
+
+@item Click OK to display the results. In this instance, @emph{Cronbachs Alpha} is 0.61 indicating the internal consistency is questionable.
+@end table
+
+@float Figure, fig:pic114
+@image{Images/pic114}
+@caption{@emph{Reliability Analysis} output}
+@end float
+
+
+@comment Linear Regression is nonfunctional in the edition I have
+
+
+@node Non-Parametric Statistics
+@subsubsection Non-Parametric Statistics
+@cindex Non-Parametric Statistics
+
+
+Provides Binomial statistics and Chi-Square for an arbitrary distribution of data.  
+Tests the differences between the observed and expected distribution of a sample, and can also test the difference between two or more samples.
+
+@node Binomial
+@unnumberedsubsubsec Binomial
+@cindex Binomial
+
+Compare the observed frequencies of dichotomous data to the expected values from the binomial distribution. 
+The primary purpose of this test is to observe if the number of outcomes for each variable differs, e.g., you can verify a fair coin by comparing the frequency of heads and tails in several coin tosses.
+
+
+@node Binomial Example
+@unnumberedsubsubsec Binomial Example
+
+@table  @asis
+
+@item The following list of @emph{HotCold} and @emph{Range} data (@pxref{tab:tab4}) indicates the temperatures at which customers ordered their gourmet drinks on a midsummer's day; available menu options include ice-cold, luke-warm, warm, or steaming-hot. The first column, @emph{HotCold}is a dichotomous variable with a value of zero for ice-cold drinks and one otherwise. The next column, @emph{Range} varies from 0 to 3 depending upon temperature range of the drink, where 0=cold, 1=luke-warm, 2=warm, and 3= hot. 
+
+
+
+@float Table, tab:tab4
+@caption{Gourmet Drink Temperatures}
+@multitable @columnfractions .3 .3
+@item @strong{HotCold} @tab @strong{Range}
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0  
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 2
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 2
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 1
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 1
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 1
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 2
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 1
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 3
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 3
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 2
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 1
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 2
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 2
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0
+@item @tie{} @tie{} @tie{} 1   @tab @tie{} @tie{} 3
+@item @tie{} @tie{} @tie{} 0   @tab @tie{} @tie{} 0
+@end multitable
+@end float
+
+@item Start by examining the data in the first column; @emph{HotCold}.
+@sp 1
+
+@item Copy the gourmet drink data (@pxref{tab:tab4}) into a data file, or open @file{coffeeTemperature.sav}.
+@sp 1
+
+@item Select @clicksequence{Analyze @click{} Non-Parametric Statistics @click{} Binomial}.
+@sp 1
+
+@item Select @emph{HotCold} and click the right arrow button  to place it in the @emph{Test Variable List} text box.
+@sp 1
+
+@item Verify @emph{Test proportion} has the value 0.5.
+@sp 1
+
+@item Verify @emph{Get from data} is selected under @emph{Define Dichotomy}.
+@end table
+
+@float Figure, fig:pic115
+@image{Images/pic115}
+@caption{@emph{Binomial} dialogue box}
+@end float
+
+@table @asis
+@item Click OK to display the results in the output viewer.
+@end table
+
+@float Figure, fig:pic116
+@image{Images/pic116}
+@caption{@emph{Binomial Test} output}
+@end float
+
+
+@node Chi-Square
+@unnumberedsubsubsec Chi-Square
+@cindex Chi-Square
+
+Used to check if distributions of categorical variables differ, where categorical variables are used to label categorical data, e.g. assign a value of 1 for values in range a to c, value of 2 for values in range d to f, and so on.
+
+
+@node Chi-Square Example
+@unnumberedsubsubsec Chi-Square Example
+
+
+@comment need to fill in table number and a reference
+
+@table @asis
+
+@item Enter the gourmet drink data (@pxref{tab:tab4}) from the previous section (@pxref{Binomial Example}) into a new data file.
+@sp 1
+
+@item Select @clicksequence{Analyze @click{} Non-Parametric Statistics @click{} Chi-Square}.
+@sp 1
+
+@item Select the @emph{Range} variable, and then click the right arrow to place it into the @emph{Test Variable List} text box.
+@end table
+
+@float Figure, fig:pic117
+@image{Images/pic117}
+@caption{@emph{Chi-Square Test} dialogue box}
+@end float
+
+@table @asis
+@item Verify that @emph{All categories equal} is selected under @emph{Expected Values}.
+@sp 1
+
+@item Verify that the @emph{Get from data} option under @emph{Expected Range} is selected.
+@sp 1
+
+@item Click OK to display the results in the output viewer.
+
+@end table
+
+
+@float Figure, fig:pic118
+@image{Images/pic118}
+@caption{@emph{Chi-Square Test} output}
+@end float
+
+
+@node ROC Curve
+@subsubsection ROC Curve 
+@cindex ROC curve
+
+Use to analyze binary classification systems. 
+Examples of binary classification schemes include passing or failing newly made items during an inspection, and labeling patients to be either with or without a medical problem. 
+The Roc Curve function returns an ROC curve with the option to display a diagonal reference line, standard error and confidence interval, as well as all coordinate points. 
+
+
+@float Figure, fig:pic119
+@image{Images/pic119}
+@caption{@emph{ROC Curve} dialogue box}
+@end float
+
+
+@node Test Variable
+@unnumberedsubsubsec Test Variable
+@cindex Test Variable
+
+Continuous numerical data holding the test results.
+
+@node State Variable
+@unnumberedsubsubsec State Variable
+@cindex State Variable
+
+Indicates which category is positive.
+
+@node Display
+@unnumberedsubsubsec Display
+@cindex Display
+
+Gives options for the output viewer including: 
+
+@table @asis
+
+@item ROC curve with or without a diagonal reference line
+@sp 1
+@item Display standard error and confidence interval
+@sp 1
+@item Display coordinate points of the ROC curve
+
+@end table
+
+@sp 1
+
+@table @asis
+
+@item @strong{Display ROC Curve} Produce a plot of one classification rate from a binary classification scheme versus the other as the criterion changes, e.g., you can plot the true positive rate versus the false positive rate for a disease as the threshold value between the two classifications varies. 
+@sp 1
+
+@item @strong{Display Diagonal Reference Line} Include a diagonal reference line in the plot. An ROC curve that coincides with this line indicates the distribution of each classification group is similar. 
+@sp 1
+
+@item @strong{Display Standard Error and Confidence Interval} Show the standard error, confidence interval, and area in a separate table in the output viewer. The area ranges in value from 0 to 1, where 1 indicates the distribution of each classification group does not overlap and 0.5 means both distributions are the same.
+
+@end table
+
+@node ROC Curve Example
+@unnumberedsubsubsec ROC Curve Example
+
+Make an ROC curve of the following medical test data describing the dependence of a disease with age. 
+The @emph{age} variable holds the patients ages and the corresponding @emph{disease}column is either 0 indicating a negative diagnosis or 1 otherwise.
+
+
+@float Figure, fig:pic120
+@image{Images/pic120}
+@caption{Medical test data }
+@end float
+
+
+@table @asis
+
+@item Open the file @file{Disease.sav}.
+@sp 1
+
+@item Select @clicksequence{ Analyze @click{} ROC Curve}.
+@sp 1
+
+@item Select @emph{Age} from the list of variables on the left side of the dialogue box, and click the upper right arrow button to move it under  @emph{Test Variable}.
+@sp 1
+
+@item Select @emph{Disease} and click the lower right arrow button to move it into the @emph{State Variable} box.
+@sp 1
+
+@item Select all the check boxes under @emph{Display}.
+@sp 1
+
+@item Enter the number 1 in the @emph{Value of state variable} box.
+@end table
+
+@float Figure, fig:pic121
+@image{Images/pic121}
+@caption{@emph{ROC Curve} dialogue box }
+@end float
+
+@table @asis
+@item Click OK to display the ROC curve and accompanying tables in the output viewer.
+@end table
+
+@float Figure, fig:pic122
+@image{Images/pic122, 6in}
+@caption{@emph{ROC Curve} output}
+@end float
+
+
+@node Psppire Utilities
+@subsection Utilities
+@cindex utilities
+
+@menu
+* View Variable Properties::               View Variable Properties.
+* View Variable Properties Example::       Example.
+
+* Data File Comments::                     Data File Comments.
+* Display Comments in Output::             Display Comments in Output.
+* Reset::                                  Reset.
+@end menu
+
+@node View Variable Properties
+@subsubsection View Variable Properties
+@cindex Variables
+
+View variable properties and/or go-to it in the data editor window. 
+Properties include variable name and label, Data format, user-missing values, measurement level, and value labels. For a definition of each variable property, (@pxref{Edit Variable Attributes}).
+
+
+@node View Variable Properties Example
+@unnumberedsubsubsec View Variable Properties Example
+
+@table @asis
+
+@item open @file{hotel.sav}.
+
+@item Select @clicksequence{ Utilities @click{} Variables} to bring up the @emph{Variables} dialogue box.
+@sp 1
+
+@item Select a variable from the list in the left column to view its properties on the right side of the dialogue box.
+
+@end table
+
+
+@float Figure, fig:pic123
+@image{Images/pic123, 14cm}
+@caption{View variable properties in @emph{Variables} dialogue box.}
+@end float
+
+
+@node Data File Comments
+@subsubsection Data File Comments
+@cindex Data File Comments
+
+This feature enables you to add comments to a data file. 
+
+@float Figure, fig:pic124
+@image{Images/pic124, 14cm}
+@caption{@emph{Comments} dialogue box}
+@end float
+
+
+@node Display Comments in Output
+@unnumberedsubsubsec Display Comments in Output
+@cindex Display Comments in Output
+
+Display comments in the output viewer.
+
+@node Reset
+@unnumberedsubsubsec Reset
+@cindex Reset
+
+Clears the current comment.
+
+
+
+@node Windows
+@subsection Windows
+@cindex Windows
+
+@menu  
+* Minimize all Windows::       Minimize all Windows.
+* Split::                      Split.
+@end menu
+
+@node Minimize all Windows
+@subsubsection Minimize all Windows
+@cindex Minimize all Windows
+
+Collapse all windows.  Click the PSPP icon on the tool bar to open them again.
+
+@node Split
+@subsubsection  Split
+@cindex Split
+
+Split the current data editor window (@pxref{fig:pic125}).
+
+
+@float Figure, fig:pic125
+@image{Images/pic125, 6in}
+@caption{Split data-editor window}
+@end float
+
+@node Help
+@subsection Help
+@cindex help
+
+Provide user instructions and product version information. 
+
+@node Toolbar
+@subsection Toolbar
+@cindex Toolbar
+
+PSPP provides a tool bar across the top with short cuts to more commonly used menu commands.
+@sp 1
+
+@float Figure, fig:pic126
+@image{Images/pic126, 6in}
+@caption{Data editor toolbar}
+@end float
+
+
+@comment (think about,listing shortcuts which are clearly shown in image 

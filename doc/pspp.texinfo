@@ -126,6 +126,7 @@ in the production of this manual.
 @include license.texi
 
 @include invoking.texi
+@include gui.texi
 @include tutorial.texi
 @include language.texi
 @include expressions.texi

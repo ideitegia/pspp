@@ -10,6 +10,7 @@ doc_pspp_TEXINFOS = doc/version.texi \
 	doc/data-selection.texi \
 	doc/expressions.texi \
 	doc/files.texi \
+	doc/gui.texi \
 	doc/combining.texi \
 	doc/flow-control.texi \
 	doc/function-index.texi \
