@@ -228,6 +228,7 @@ make_row_number_column (PsppireDataSheet *data_sheet,
                                                        renderer, NULL);
   pspp_sheet_view_column_set_selectable (column, TRUE);
   pspp_sheet_view_column_set_row_head (column, TRUE);
+  pspp_sheet_view_column_set_tabbable (column, FALSE);
   pspp_sheet_view_column_set_clickable (column, TRUE);
   pspp_sheet_view_column_set_cell_data_func (
     column, renderer, render_row_number_cell, ds, NULL);
@@ -757,6 +758,7 @@ make_new_variable_column (PsppireDataSheet *data_sheet,
   width = display_width_to_pixel_width (data_sheet, 8, base_width, incr_width);
   pspp_sheet_view_column_set_min_width (column, 10);
   pspp_sheet_view_column_set_fixed_width (column, width);
+  pspp_sheet_view_column_set_tabbable (column, FALSE);
 
   g_object_set_data (G_OBJECT (cell), "data-sheet", data_sheet);
   g_signal_connect (column, "button-press-event",
