@@ -440,9 +440,9 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
   gsl_vector *se ;
 
   bool converged = false;
-  double likelihood;
+  double likelihood = -1;
   double prev_likelihood = -1;
-  double initial_likelihood ;
+  double initial_likelihood = -1;
 
   struct lr_result work;
   work.n_missing = 0;
@@ -535,6 +535,7 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 	break;
     }
   casereader_destroy (input);
+  assert (initial_likelihood >= 0);
 
   for (i = 0; i < se->size; ++i)
     {
