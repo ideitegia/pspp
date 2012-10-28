@@ -5,8 +5,8 @@ majority of the current code. Ben continues to contribute and
 most of the core libraries which ensure that PSPP runs with optimal
 speed are his work.
 
-* John Darrington wrote the graphical user interface, and the T-TEST,
-ONEWAY, EXAMINE, RANK and NPAR TESTS commands, implemented support for
+* John Darrington wrote the initial version of the graphical user interface,
+and many of the statistical procedures.  John also implemented support for
 long variable names, PostgreSQL and Gnumeric and made numerous
 revisions to other modules.
 

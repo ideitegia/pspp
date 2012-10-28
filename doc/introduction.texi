@@ -4,30 +4,25 @@
 
 @cindex @pspp{} language
 @cindex language, @pspp{}
-@pspp{} is a tool for statistical analysis of sampled data.  It reads a
-syntax file and a data file, analyzes the data, and writes the results
-to a listing file or to standard output.
+@pspp{} is a tool for statistical analysis of sampled data.  
+It reads the data, analyzes the data according to commands provided, and writes the results
+to a listing file,  to the standard output or to a window of the graphical display.
 
 The language accepted by @pspp{} is similar to those accepted by SPSS
-statistical products.  The details of @pspp{}'s language are given
-later in this manual.
+statistical products.  
+The details of @pspp{}'s language are given later in this manual.
 
-@cindex files, @pspp{}
-@cindex output, @pspp{}
 @cindex PostScript
 @cindex PDF
 @cindex HTML
-@cindex SVG
-@cindex graphics
-@cindex Ghostscript
-@cindex Free Software Foundation
+@cindex DocBook
 @pspp{} produces tables and charts as output, which it can produce in
-several formats; currently, ASCII, PostScript, PDF, HTML, and SVG are
+several formats; currently, ASCII, PostScript, PDF, HTML, and DocBook are
 supported.
 
-The current version of @pspp{}, @value{VERSION}, is woefully incomplete in
+The current version of @pspp{}, @value{VERSION}, is incomplete in
 terms of its statistical procedure support.  @pspp{} is a work in progress.
-The author hopes to fully support all features in the products
-that @pspp{} replaces, eventually.  The author welcomes questions,
+The authors hope to fully support all features in the products
+that @pspp{} replaces, eventually.  The authors welcome questions,
 comments, donations, and code submissions.  @xref{Bugs,,Submitting Bug
-Reports}, for instructions on contacting the author.
+Reports}, for instructions on contacting the authors.

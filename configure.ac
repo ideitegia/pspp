@@ -56,11 +56,11 @@ AC_ARG_WITH([cairo],
   [], [with_cairo=yes])
 AM_CONDITIONAL([HAVE_CAIRO], [test "$with_cairo" != no])
 if test "$with_cairo" != no; then
-  PKG_CHECK_MODULES([CAIRO], [cairo >= 1.5 pango >= 1.20 pangocairo], 
+  PKG_CHECK_MODULES([CAIRO], [cairo >= 1.5 pango >= 1.22 pangocairo],
     [CPPFLAGS="$CPPFLAGS $CAIRO_CFLAGS"
      AC_DEFINE([HAVE_CAIRO], 1, 
        [Define to 1 if Cairo and Pango are available.])],
-    [PSPP_REQUIRED_PREREQ([cairo 1.5 or later and pango 1.20 or later (or use --without-cairo)])])
+    [PSPP_REQUIRED_PREREQ([cairo 1.5 or later and pango 1.22 or later (or use --without-cairo)])])
   AC_PATH_PROG([XMLLINT], [xmllint], [echo], [$PATH])
   AC_SUBST(XMLLINT)
 fi

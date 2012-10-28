@@ -52,6 +52,8 @@ $(srcdir)/doc/tut.texi:
 	echo "@set example-dir $(examplesdir)" > $@
 
 
+# The SED and AWK filters in this rule, are to work-around some nasty bugs in makeinfo version 4.13, which produces
+# broken docbook xml.  These workarounds are rather horrible and must be removed asap.
 $(srcdir)/doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 	@$(MKDIR_P)  doc
 	$(MAKEINFO) $(AM_MAKEINFOFLAGS) --docbook -I $(top_srcdir) \
@@ -67,12 +69,19 @@ $(srcdir)/doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 		-e 's/&copy;/\&#0169;/g' \
 		-e 's/&minus;/\&#8722;/g' \
 		-e 's/&hellip;/\&#8230;/g' \
+		-e 's/&bull;/\&#2022;/g' \
 		-e 's/&period;/./g' \
-		> $@
-	$(XMLLINT) --output /dev/null $@ 2>&1 2> /dev/null || ( $(RM) $@ && false )
+		-e 's%\(<figure [^>]*\)>%\1/>%g' \
+	 | $(AWK) '/<para>.*<table.*>.*<\/para>/{x=sub("</para>",""); print; s=1;next}/<\/table>/{print; if (s==1) print "</para>"; s=0; next}1' \
+	> $@
+	$(XMLLINT) --output /dev/null $@ || ( $(RM) $@ ; false)
 
 docbookdir = $(docdir)
 dist_docbook_DATA = doc/pspp.xml
+ 
 
 EXTRA_DIST += doc/OChangeLog
 CLEANFILES += pspp-dev.dvi $(docbook_DATA)
+
+doc: $(INFO_DEPS) $(DVIS) $(PDFS) $(PSS) $(HTMLS) $(dist_docbook_DATA)
+.PHONY: doc
