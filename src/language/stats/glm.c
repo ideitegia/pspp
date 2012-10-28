@@ -883,66 +883,6 @@ dump_matrix (const gsl_matrix * m)
 
 
 
-
-/* Match a variable.
-   If the match succeeds, the variable will be placed in VAR.
-   Returns true if successful */
-static bool
-lex_match_variable (struct lexer *lexer, const struct dictionary *dict, const struct variable **var)
-{
-  if (lex_token (lexer) !=  T_ID)
-    return false;
-
-  *var = parse_variable_const  (lexer, dict);
-
-  if ( *var == NULL)
-    return false;
-  return true;
-}
-
-/* An interaction is a variable followed by {*, BY} followed by an interaction */
-static bool
-parse_design_interaction (struct lexer *lexer, const struct dictionary *dict, struct interaction **iact)
-{
-  const struct variable *v = NULL;
-  assert (iact);
-
-  switch  (lex_next_token (lexer, 1))
-    {
-    case T_ENDCMD:
-    case T_SLASH:
-    case T_COMMA:
-    case T_ID:
-    case T_BY:
-    case T_ASTERISK:
-      break;
-    default:
-      return false;
-      break;
-    }
-
-  if (! lex_match_variable (lexer, dict, &v))
-    {
-      interaction_destroy (*iact);
-      *iact = NULL;
-      return false;
-    }
-  
-  assert (v);
-
-  if ( *iact == NULL)
-    *iact = interaction_create (v);
-  else
-    interaction_add_variable (*iact, v);
-
-  if ( lex_match (lexer, T_ASTERISK) || lex_match (lexer, T_BY))
-    {
-      return parse_design_interaction (lexer, dict, iact);
-    }
-
-  return true;
-}
-
 static bool
 parse_nested_variable (struct lexer *lexer, struct glm_spec *glm)
 {

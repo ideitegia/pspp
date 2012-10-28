@@ -125,5 +125,22 @@ const_var_set_destroy (struct const_var_set *vs)
   var_set_destroy ( (struct var_set *) vs);
 }
 
+/* Match a variable.
+   If the match succeeds, the variable will be placed in VAR.
+   Returns true if successful */
+bool
+lex_match_variable (struct lexer *lexer, const struct dictionary *dict, const struct variable **var);
+
+struct interaction;
+
+/* Parse an interaction.
+   If not successfull return false.
+   Otherwise, a newly created interaction will be placed in IACT.
+   It is the caller's responsibility to destroy this interaction.
+ */
+bool
+parse_design_interaction (struct lexer *lexer, const struct dictionary *dict, struct interaction **iact);
+
+
 
 #endif /* variable-parser.h */
