@@ -6712,13 +6712,16 @@ pspp_sheet_view_header_focus (PsppSheetView      *tree_view,
 	      break;
 	    }
 	  column = tmp_list->data;
-	  if (column->button &&
-	      column->visible &&
+          if (column->visible &&
 	      pspp_sheet_view_column_can_focus (column))
-	    {
-              pspp_sheet_view_focus_column (tree_view, column,
-                                            clamp_column_visible);
-              return TRUE;
+            {
+              pspp_sheet_view_column_set_need_button (column, TRUE);
+              if (column->button)
+                {
+                  pspp_sheet_view_focus_column (tree_view, column,
+                                                clamp_column_visible);
+                  return TRUE;
+                }
 	    }
 	}
       return FALSE;
