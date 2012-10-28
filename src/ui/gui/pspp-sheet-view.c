@@ -8208,10 +8208,17 @@ pspp_sheet_view_move_cursor_tab (PsppSheetView *tree_view,
   if (!gtk_widget_has_focus (GTK_WIDGET (tree_view)))
     return;
 
-  if (!try_move_cursor_tab (tree_view, TRUE, count)
-      && pspp_sheet_view_move_cursor_up_down (tree_view, count)
-      && !try_move_cursor_tab (tree_view, FALSE, count))
-    gtk_widget_error_bell (GTK_WIDGET (tree_view));
+  if (!try_move_cursor_tab (tree_view, TRUE, count))
+    {
+      /* Shift+Tab goes backward, but Shift isn't supposed to act as Shift does
+         for other movement commands, that is, it shouldn't cause the selection
+         to be extended, so we need to act as though it is off. */
+      tree_view->priv->shift_pressed = FALSE;
+
+      if (pspp_sheet_view_move_cursor_up_down (tree_view, count)
+          && !try_move_cursor_tab (tree_view, FALSE, count))
+        gtk_widget_error_bell (GTK_WIDGET (tree_view));
+    }
 
   pspp_sheet_view_clamp_column_visible (tree_view,
                                         tree_view->priv->focus_column, TRUE);
