@@ -888,12 +888,12 @@ dump_matrix (const gsl_matrix * m)
    If the match succeeds, the variable will be placed in VAR.
    Returns true if successful */
 static bool
-lex_match_variable (struct lexer *lexer, const struct glm_spec *glm, const struct variable **var)
+lex_match_variable (struct lexer *lexer, const struct dictionary *dict, const struct variable **var)
 {
   if (lex_token (lexer) !=  T_ID)
     return false;
 
-  *var = parse_variable_const  (lexer, glm->dict);
+  *var = parse_variable_const  (lexer, dict);
 
   if ( *var == NULL)
     return false;
@@ -902,7 +902,7 @@ lex_match_variable (struct lexer *lexer, const struct glm_spec *glm, const struc
 
 /* An interaction is a variable followed by {*, BY} followed by an interaction */
 static bool
-parse_design_interaction (struct lexer *lexer, struct glm_spec *glm, struct interaction **iact)
+parse_design_interaction (struct lexer *lexer, const struct dictionary *dict, struct interaction **iact)
 {
   const struct variable *v = NULL;
   assert (iact);
@@ -921,7 +921,7 @@ parse_design_interaction (struct lexer *lexer, struct glm_spec *glm, struct inte
       break;
     }
 
-  if (! lex_match_variable (lexer, glm, &v))
+  if (! lex_match_variable (lexer, dict, &v))
     {
       interaction_destroy (*iact);
       *iact = NULL;
@@ -937,7 +937,7 @@ parse_design_interaction (struct lexer *lexer, struct glm_spec *glm, struct inte
 
   if ( lex_match (lexer, T_ASTERISK) || lex_match (lexer, T_BY))
     {
-      return parse_design_interaction (lexer, glm, iact);
+      return parse_design_interaction (lexer, dict, iact);
     }
 
   return true;
@@ -947,7 +947,7 @@ static bool
 parse_nested_variable (struct lexer *lexer, struct glm_spec *glm)
 {
   const struct variable *v = NULL;
-  if ( ! lex_match_variable (lexer, glm, &v))
+  if ( ! lex_match_variable (lexer, glm->dict, &v))
     return false;
 
   if (lex_match (lexer, T_LPAREN))
@@ -968,7 +968,7 @@ static bool
 parse_design_term (struct lexer *lexer, struct glm_spec *glm)
 {
   struct interaction *iact = NULL;
-  if (parse_design_interaction (lexer, glm, &iact))
+  if (parse_design_interaction (lexer, glm->dict, &iact))
     {
       /* Interaction parsing successful.  Add to list of interactions */
       glm->interactions = xrealloc (glm->interactions, sizeof *glm->interactions * ++glm->n_interactions);
