@@ -390,10 +390,10 @@ beta_hat_initial (const struct lr_spec *cmd, struct lr_result *res, struct caser
 	    }
 	}
 
-      if (value_equal (&res->y0, depval, width))
+      if (v0set && value_equal (&res->y0, depval, width))
 	  sumA += weight;
 
-      if (value_equal (&res->y1, depval, width))
+      if (v1set && value_equal (&res->y1, depval, width))
 	  sumB += weight;
 
 
