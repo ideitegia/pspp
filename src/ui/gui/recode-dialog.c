@@ -551,6 +551,14 @@ on_change_clicked (GObject *obj, gpointer data)
 }
 
 
+static void
+focus_value_entry (GtkWidget *w, struct recode_dialog *rd)
+{
+  if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (w)))
+    gtk_widget_grab_focus (rd->new_value_entry);
+}
+
+
 /* Callback for the new_value_entry and new_value_togglebutton widgets.
    It's used to enable/disable the acr. */
 static void
@@ -713,6 +721,9 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
     g_signal_connect_swapped (rd.toggle[BUTTON_NEW_VALUE], "toggled",
 		      G_CALLBACK (set_acr), &rd);
+
+    g_signal_connect_after (rd.toggle[BUTTON_NEW_VALUE], "toggled",
+		      G_CALLBACK (focus_value_entry), &rd);
 
     g_signal_connect_swapped (rd.new_value_entry, "changed",
 		      G_CALLBACK (set_acr), &rd);
