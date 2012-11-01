@@ -62,14 +62,16 @@
                       <object class="GtkVButtonBox" id="vbuttonbox2">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                        <property name="orientation">vertical</property>
                         <property name="layout_style">spread</property>
                         <child>
                           <object class="GtkRadioButton" id="split-radiobutton0">
-                            <property name="label" translatable="yes">Analyze all cases.  Do not create groups.</property>
+                            <property name="label" translatable="yes">Anal_yze all cases.  Do not create groups.</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="use_underline">True</property>
                             <property name="active">True</property>
                             <property name="draw_indicator">True</property>
                           </object>
@@ -81,11 +83,13 @@
                         </child>
                         <child>
                           <object class="GtkRadioButton" id="split-radiobutton1">
-                            <property name="label" translatable="yes">Compare groups.</property>
+                            <property name="label" translatable="yes">Compare _groups.</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">True</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">split-radiobutton0</property>
                           </object>
@@ -97,11 +101,13 @@
                         </child>
                         <child>
                           <object class="GtkRadioButton" id="split-radiobutton2">
-                            <property name="label" translatable="yes">Organize output by groups.</property>
+                            <property name="label" translatable="yes">Organize ou_tput by groups.</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">True</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">split-radiobutton0</property>
                           </object>
@@ -146,30 +152,14 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkVBox" id="vbox8">
+                          <object class="GtkFrame" id="frame1">
                             <property name="visible">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="orientation">vertical</property>
+                            <property name="label_xalign">0</property>
+                            <property name="shadow_type">none</property>
                             <child>
-                              <object class="GtkLabel" id="label5">
+                              <object class="GtkAlignment" id="alignment1">
                                 <property name="visible">True</property>
-                                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Groups based on:</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkFrame" id="frame4">
-                                <property name="visible">True</property>
-                                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="label_xalign">0</property>
-                                <property name="label_yalign">0</property>
-                                <property name="shadow_type">in</property>
+                                <property name="left_padding">12</property>
                                 <child>
                                   <object class="GtkScrolledWindow" id="scrolledwindow5">
                                     <property name="visible">True</property>
@@ -177,24 +167,29 @@
                                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                     <property name="hscrollbar_policy">never</property>
                                     <property name="vscrollbar_policy">automatic</property>
+                                    <property name="shadow_type">in</property>
                                     <child>
                                       <object class="PsppireVarView" id="split-file-grouping-vars">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                         <property name="headers_visible">False</property>
+                                        <property name="headers_clickable">False</property>
                                         <property name="fixed_height_mode">True</property>
                                       </object>
                                     </child>
                                   </object>
                                 </child>
-                                <child type="label_item">
-                                  <placeholder/>
-                                </child>
                               </object>
-                              <packing>
-                                <property name="position">1</property>
-                              </packing>
+                            </child>
+                            <child type="label">
+                              <object class="GtkLabel" id="label1">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">Groups _based on:</property>
+                                <property name="use_markup">True</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">split-file-grouping-vars</property>
+                              </object>
                             </child>
                           </object>
                           <packing>
@@ -210,11 +205,12 @@
                       <object class="GtkVButtonBox" id="vbuttonbox1">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                        <property name="orientation">vertical</property>
                         <property name="homogeneous">True</property>
                         <property name="layout_style">spread</property>
                         <child>
                           <object class="GtkRadioButton" id="split-radiobutton3">
-                            <property name="label" translatable="yes">Sort the file by grouping variables.</property>
+                            <property name="label" translatable="yes">_Sort the file by grouping variables.</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
@@ -231,7 +227,7 @@
                         </child>
                         <child>
                           <object class="GtkRadioButton" id="split-radiobutton4">
-                            <property name="label" translatable="yes">File is already sorted.</property>
+                            <property name="label" translatable="yes">_File is already sorted.</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
