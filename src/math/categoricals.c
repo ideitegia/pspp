@@ -96,7 +96,7 @@ lookup_variable (const struct hmap *map, const struct variable *var, unsigned in
 
 struct interact_params
 {
-  /* A map indexed by a interaction_value */
+  /* A map of cases indexed by a interaction_value */
   struct hmap ivmap;
 
   struct interaction *iact;
@@ -542,7 +542,6 @@ categoricals_done (const struct categoricals *cat_)
       HMAP_FOR_EACH (ivn, struct interaction_value, node, &iap->ivmap)
 	{
 	  iap->reverse_interaction_value_map[x++] = ivn;
-
 	}
 
       assert (x <= iap->n_cats);

@@ -87,8 +87,6 @@ double categoricals_get_code_for_case (const struct categoricals *cat, int subsc
 
 /* These use the long map.  Useful for descriptive statistics. */
 
-/* Return the value corresponding to the N'th category */
-const union value * categoricals_get_value_by_category (const struct categoricals *cat, int n);
 
 const struct ccase *
 categoricals_get_case_by_category_real (const struct categoricals *cat, int iact, int n);
