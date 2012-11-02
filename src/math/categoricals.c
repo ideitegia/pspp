@@ -358,6 +358,10 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 {
   int i;
   struct variable_node *vn = NULL;
+
+  if (NULL == cat)
+    return;
+
   const double weight = cat->wv ? case_data (c, cat->wv)->f : 1.0;
 
   assert (NULL == cat->reverse_variable_map_short);
@@ -453,6 +457,9 @@ categoricals_n_total (const struct categoricals *cat)
 size_t
 categoricals_df_total (const struct categoricals *cat)
 {
+  if (NULL == cat)
+    return 0;
+
   return cat->df_sum;
 }
 
@@ -479,6 +486,10 @@ categoricals_done (const struct categoricals *cat_)
   int i;
   int idx_short = 0;
   int idx_long = 0;
+
+  if (NULL == cat)
+    return;
+
   cat->df_sum = 0;
   cat->n_cats_total = 0;
 
