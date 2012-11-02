@@ -893,8 +893,8 @@ lex_match_variable (struct lexer *lexer, const struct dictionary *dict, const st
 }
 
 /* An interaction is a variable followed by {*, BY} followed by an interaction */
-bool
-parse_design_interaction (struct lexer *lexer, const struct dictionary *dict, struct interaction **iact)
+static bool
+parse_internal_interaction (struct lexer *lexer, const struct dictionary *dict, struct interaction **iact, struct interaction **it)
 {
   const struct variable *v = NULL;
   assert (iact);
@@ -915,7 +915,8 @@ parse_design_interaction (struct lexer *lexer, const struct dictionary *dict, st
 
   if (! lex_match_variable (lexer, dict, &v))
     {
-      interaction_destroy (*iact);
+      if (it)
+	interaction_destroy (*it);
       *iact = NULL;
       return false;
     }
@@ -929,9 +930,15 @@ parse_design_interaction (struct lexer *lexer, const struct dictionary *dict, st
 
   if ( lex_match (lexer, T_ASTERISK) || lex_match (lexer, T_BY))
     {
-      return parse_design_interaction (lexer, dict, iact);
+      return parse_internal_interaction (lexer, dict, iact, iact);
     }
 
   return true;
+}
+
+bool
+parse_design_interaction (struct lexer *lexer, const struct dictionary *dict, struct interaction **iact)
+{
+  return parse_internal_interaction (lexer, dict, iact, NULL);
 }
 
