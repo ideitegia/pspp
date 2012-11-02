@@ -90,7 +90,7 @@ t_test_paired_samples_dialog (PsppireDataWindow *de)
   struct tt_options_dialog *opts = tt_options_dialog_create (GTK_WINDOW (de));
 
   GtkWidget *bb = gtk_hbutton_box_new ();
-  GtkWidget *opt = gtk_button_new_with_mnemonic (_("_Options"));
+  GtkWidget *opt = gtk_button_new_with_mnemonic (_("O_ptions..."));
   gtk_box_pack_start (GTK_BOX (bb), opt, TRUE, TRUE, 5);
 
   gtk_widget_show_all (bb);
