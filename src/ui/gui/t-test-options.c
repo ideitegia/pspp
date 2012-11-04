@@ -66,7 +66,7 @@ tt_options_dialog_create (GtkWindow *parent)
   
   g_object_set (tto->confidence, 
 		"use-underline", TRUE, 
-		"mnemonic-widget", psppire_scanf_get_child (tto->confidence, 0),
+		"mnemonic-widget", psppire_scanf_get_child (PSPPIRE_SCANF (tto->confidence), 0),
 		NULL);
 
   tto->dialog = get_widget_assert (tto->xml, "options-dialog");

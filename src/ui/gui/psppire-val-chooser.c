@@ -361,7 +361,7 @@ psppire_val_chooser_init (PsppireValChooser *vr)
       vr->rw[i].label = GTK_LABEL (gtk_label_new (gettext (l->label)));
       gtk_label_set_use_underline (vr->rw[i].label, TRUE);
       vr->rw[i].rb = GTK_TOGGLE_BUTTON (gtk_radio_button_new (group));
-      gtk_label_set_mnemonic_widget (vr->rw[i].label, vr->rw[i].rb);
+      gtk_label_set_mnemonic_widget (vr->rw[i].label, GTK_WIDGET (vr->rw[i].rb));
 
       gtk_misc_set_alignment (GTK_MISC (vr->rw[i].label), 0, 0.5);
 

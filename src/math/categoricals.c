@@ -358,11 +358,12 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 {
   int i;
   struct variable_node *vn = NULL;
+  double weight;
 
   if (NULL == cat)
     return;
 
-  const double weight = cat->wv ? case_data (c, cat->wv)->f : 1.0;
+  weight = cat->wv ? case_data (c, cat->wv)->f : 1.0;
 
   assert (NULL == cat->reverse_variable_map_short);
   assert (NULL == cat->reverse_variable_map_long);
