@@ -34,8 +34,6 @@
 
 #define CATEGORICALS_DEBUG 0
 
-#define EFFECTS_CODING 1
-
 struct value_node
 {
   struct hmap_node node;      /* Node in hash map. */
@@ -597,7 +595,7 @@ categoricals_done (const struct categoricals *cat_)
 	  struct interaction_value *iv = iap->reverse_interaction_value_map[y];
 	  for (x = iap->base_subscript_short; x < iap->base_subscript_short + df ;++x)
 	    {
-	      const double bin = categoricals_get_code_for_case (cat, x, iv->ccase); \
+	      const double bin = categoricals_get_effects_code_for_case (cat, x, iv->ccase);
 	      iap->enc_sum [x - iap->base_subscript_short] += bin * iv->cc;
 	    }
 	  if (cat->payload && cat->payload->calculate)
@@ -657,11 +655,13 @@ categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript
   return   vp->enc_sum[subscript - vp->base_subscript_short];
 }
 
+
 /* Returns unity if the value in case C at SUBSCRIPT is equal to the category
    for that subscript */
-double
+static double
 categoricals_get_code_for_case (const struct categoricals *cat, int subscript,
-				const struct ccase *c)
+				const struct ccase *c,
+				bool effects_coding)
 {
   const struct interaction *iact = categoricals_get_interaction_by_subscript (cat, subscript);
 
@@ -694,18 +694,37 @@ categoricals_get_code_for_case (const struct categoricals *cat, int subscript,
       const int index = ((subscript - base_index) % iap->df_prod[v] ) / dfp;
       dfp = iap->df_prod [v];
 
-#if EFFECTS_CODING
-      if ( valn->index == df )
+      if (effects_coding && valn->index == df )
 	bin = -1.0;
-      else 
-#endif
-	if ( valn->index  != index )
-	  bin = 0;
+      else if ( valn->index  != index )
+	bin = 0;
     
       result *= bin;
     }
 
   return result;
+}
+
+
+/* Returns unity if the value in case C at SUBSCRIPT is equal to the category
+   for that subscript */
+double
+categoricals_get_dummy_code_for_case (const struct categoricals *cat, int subscript,
+				     const struct ccase *c)
+{
+  return categoricals_get_code_for_case (cat, subscript, c, false);
+}
+
+/* Returns unity if the value in case C at SUBSCRIPT is equal to the category
+   for that subscript. 
+   Else if it is the last category, return -1.
+   Otherwise return 0.
+ */
+double
+categoricals_get_effects_code_for_case (const struct categoricals *cat, int subscript,
+					const struct ccase *c)
+{
+  return categoricals_get_code_for_case (cat, subscript, c, true);
 }
 
 
