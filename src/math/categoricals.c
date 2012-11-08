@@ -43,13 +43,15 @@ struct value_node
   int index;                  /* A zero based unique index for this value */
 };
 
+
 struct interaction_value
 {
   struct hmap_node node;      /* Node in hash map */
 
-  struct ccase *ccase;        /* A case (probably the first in the dataset) which matches this value */
+  struct ccase *ccase;        /* A case (probably the first in the dataset) which matches
+				 this value */
 
-  double cc;        /* Total of the weights of cases matching this interaction */
+  double cc;                  /* Total of the weights of cases matching this interaction */
 
   void *user_data;            /* A pointer to data which the caller can store stuff */
 };
@@ -74,7 +76,32 @@ struct variable_node
 
   struct hmap valmap;         /* A map of value nodes */
   int n_vals;                 /* Number of values for this variable */
+
+  int *indirection;           /* An array (of size n_vals) of integers, which serve to
+				 permute the index members of the values in valmap.
+				 
+				 Doing this, means that categories are considered in the order
+				 of their values.  Mathematically the order is irrelevant.
+				 However certain procedures (eg logistic regression)  want to report
+				 statisitics for particular categories */
+
 };
+
+
+/* Comparison function to sort value_nodes in ascending order */
+static int
+compare_value_node_3way (const void *vn1_, const void *vn2_, const void *aux)
+{
+  const struct value_node *const *vn1p = vn1_;
+  const struct value_node *const *vn2p = vn2_;
+
+  const struct variable_node *vn = aux;
+
+
+  return value_compare_3way (&(*vn1p)->val, &(*vn2p)->val, var_get_width (vn->var));
+}
+
+
 
 static struct variable_node *
 lookup_variable (const struct hmap *map, const struct variable *var, unsigned int hash)
@@ -198,7 +225,6 @@ categoricals_dump (const struct categoricals *cat)
 	}
       printf ("\n");
 
-
       printf ("Number of interactions %d\n", cat->n_iap);
       for (i = 0 ; i < cat->n_iap; ++i)
 	{
@@ -210,24 +236,32 @@ categoricals_dump (const struct categoricals *cat)
 	  ds_init_empty (&str);
 	  interaction_to_string (iact, &str);
 
-	  printf ("\nInteraction: %s (n: %d); ", ds_cstr (&str), iap->n_cats);
+	  printf ("\nInteraction: \"%s\" (number of categories: %d); ", ds_cstr (&str), iap->n_cats);
 	  ds_destroy (&str);
-	  printf ("Base subscript: %d\n", iap->base_subscript_short);
+	  printf ("Base index (short/long): %d/%d\n", iap->base_subscript_short, iap->base_subscript_long);
 
 	  printf ("\t(");
 	  for (v = 0; v < hmap_count (&iap->ivmap); ++v)
 	    {
 	      int vv;
 	      const struct interaction_value *iv = iap->reverse_interaction_value_map[v];
-	  
+
 	      if (v > 0)  printf ("   ");
 	      printf ("{");
 	      for (vv = 0; vv < iact->n_vars; ++vv)
 		{
 		  const struct variable *var = iact->vars[vv];
 		  const union value *val = case_data (iv->ccase, var);
-	      
-		  printf ("%g", val->f);
+		  unsigned int varhash = hash_pointer (var, 0);
+		  struct variable_node *vn = lookup_variable (&cat->varmap, var, varhash);
+
+		  const int width = var_get_width (var);
+		  unsigned int valhash = value_hash (val, width, 0);
+		  struct value_node *valn = lookup_value (&vn->valmap, val, valhash, width);
+
+		  assert (vn->var == var);
+
+		  printf ("%g(%d)", val->f, valn->index);
 		  if (vv < iact->n_vars - 1)
 		    printf (", ");
 		}
@@ -383,7 +417,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 	  value_copy (&valn->val, val, width);
 	  hmap_insert (&vn->valmap, &valn->node, hash);
 	}
-    }	  
+    }
   
   for (i = 0 ; i < cat->n_iap; ++i)
     {
@@ -401,7 +435,6 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       if ( NULL == node)
 	{
 	  node = pool_malloc (cat->pool, sizeof *node);
-
 	  node->ccase = case_ref (c);
 	  node->cc = weight;
 
@@ -504,23 +537,49 @@ categoricals_done (const struct categoricals *cat_)
       
       for (v = 0 ; v < iact->n_vars; ++v)
 	{
+	  int x;
 	  const struct variable *var = iact->vars[v];
 
 	  struct variable_node *vn = lookup_variable (&cat->varmap, var, hash_pointer (var, 0));
 
-	  if  (hmap_count (&vn->valmap) == 0)
+	  struct value_node *valnd = NULL;
+	  struct value_node **array ;
+
+	  assert (vn->n_vals == hmap_count (&vn->valmap));
+
+	  if  (vn->n_vals == 0)
 	    {
 	      cat->sane = false;
 	      return;
 	    }
 
-	  cat->iap[i].df_prod[v] = df * (hmap_count (&vn->valmap) - 1);
+	  vn->indirection = pool_calloc (cat->pool, vn->n_vals, sizeof *vn->indirection);
+
+	  /* Sort the VALMAP here */
+	  array = xcalloc (sizeof *array, vn->n_vals);
+	  HMAP_FOR_EACH (valnd, struct value_node, node, &vn->valmap)
+	    {
+	      /* Note: This loop is probably superfluous, it could be done in the 
+	       update stage (at the expense of a realloc) */
+	      array[valnd->index] = valnd;
+	    }
+
+	  sort (array, vn->n_vals, sizeof (*array), 
+		compare_value_node_3way, vn);
+
+	  for (x = 0; x <  vn->n_vals; ++x)
+	    {
+	      struct value_node *vvv = array[x];
+	      vn->indirection[vn->n_vals - x - 1] = vvv->index;
+	    }
+	  free (array);
+
+	  cat->iap[i].df_prod[v] = df * (vn->n_vals - 1);
       	  df = cat->iap[i].df_prod[v];
 
-	  cat->iap[i].n_cats *= hmap_count (&vn->valmap);
+	  cat->iap[i].n_cats *= vn->n_vals;
 	}
 
-      assert (v == iact->n_vars);
       if (v > 0)
 	cat->df_sum += cat->iap[i].df_prod [v - 1];
 
@@ -694,9 +753,9 @@ categoricals_get_code_for_case (const struct categoricals *cat, int subscript,
       const int index = ((subscript - base_index) % iap->df_prod[v] ) / dfp;
       dfp = iap->df_prod [v];
 
-      if (effects_coding && valn->index == df )
+      if (effects_coding && vn->indirection [valn->index] == df )
 	bin = -1.0;
-      else if ( valn->index  != index )
+      else if ( vn->indirection [valn->index] != index )
 	bin = 0;
     
       result *= bin;
