@@ -117,7 +117,7 @@ psppire_button_editable_button_release (GtkWidget      *widget,
 {
   if (event->button == 1)
     {
-      g_signal_emit_by_name (widget, "button-release-event", event, NULL);
+      g_signal_emit_by_name (widget, "released", event, NULL);
     }
 
   return TRUE;
