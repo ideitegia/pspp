@@ -1056,8 +1056,17 @@ psppire_data_sheet_show_variable (PsppireDataSheet *data_sheet,
   column = psppire_data_sheet_find_column_for_variable (data_sheet,
                                                         dict_index);
   if (column != NULL)
-    pspp_sheet_view_scroll_to_cell (sheet_view, NULL, column,
-                                    FALSE, 0.0, 0.0);
+    {
+      GtkTreePath *path;
+
+      gint row = psppire_data_sheet_get_current_case (data_sheet);
+      path = gtk_tree_path_new_from_indices (row >= 0 ? row : 0, -1);
+
+      pspp_sheet_view_scroll_to_cell (sheet_view, path, column,
+                                      FALSE, 0.0, 0.0);
+      pspp_sheet_view_set_cursor (sheet_view, path, column, FALSE);
+      gtk_tree_path_free (path);
+    }
 }
 
 struct variable *
