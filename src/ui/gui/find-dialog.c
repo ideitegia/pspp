@@ -119,7 +119,7 @@ do_find (GObject *obj, const struct find_dialog *fd)
 				     PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
       psppire_data_sheet_goto_case (data_sheet, x);
-      psppire_data_sheet_show_variable (data_sheet, column);
+      psppire_data_sheet_goto_variable (data_sheet, column);
     }
 
 }

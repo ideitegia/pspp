@@ -86,7 +86,7 @@ void psppire_data_sheet_set_may_create_vars (PsppireDataSheet *, gboolean);
 gboolean psppire_data_sheet_get_may_delete_vars (PsppireDataSheet *);
 void psppire_data_sheet_set_may_delete_vars (PsppireDataSheet *, gboolean);
 
-void psppire_data_sheet_show_variable (PsppireDataSheet *, gint dict_index);
+void psppire_data_sheet_goto_variable (PsppireDataSheet *, gint dict_index);
 struct variable *psppire_data_sheet_get_current_variable (const PsppireDataSheet *);
 
 void psppire_data_sheet_goto_case (PsppireDataSheet *, gint case_index);

@@ -1047,7 +1047,7 @@ psppire_data_sheet_find_column_for_variable (PsppireDataSheet *data_sheet,
 }
 
 void
-psppire_data_sheet_show_variable (PsppireDataSheet *data_sheet,
+psppire_data_sheet_goto_variable (PsppireDataSheet *data_sheet,
                                   gint dict_index)
 {
   PsppSheetView *sheet_view = PSPP_SHEET_VIEW (data_sheet);

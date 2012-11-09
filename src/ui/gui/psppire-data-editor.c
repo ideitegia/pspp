@@ -339,7 +339,7 @@ on_var_sheet_var_double_clicked (PsppireVarSheet *var_sheet, gint dict_index,
                                  PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
   data_sheet = psppire_data_editor_get_active_data_sheet (de);
-  psppire_data_sheet_show_variable (data_sheet, dict_index);
+  psppire_data_sheet_goto_variable (data_sheet, dict_index);
 
   return TRUE;
 }
@@ -862,7 +862,7 @@ psppire_data_editor_goto_variable (PsppireDataEditor *de, gint dict_index)
     {
     case PSPPIRE_DATA_EDITOR_DATA_VIEW:
       data_sheet = psppire_data_editor_get_active_data_sheet (de);
-      psppire_data_sheet_show_variable (data_sheet, dict_index);
+      psppire_data_sheet_goto_variable (data_sheet, dict_index);
       break;
 
     case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
