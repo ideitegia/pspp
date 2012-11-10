@@ -321,6 +321,8 @@ static void     pspp_sheet_view_move_cursor_page_up_down       (PsppSheetView   
 							      gint                count);
 static void     pspp_sheet_view_move_cursor_left_right         (PsppSheetView        *tree_view,
 							      gint                count);
+static void     pspp_sheet_view_move_cursor_line_start_end     (PsppSheetView        *tree_view,
+							        gint                count);
 static void     pspp_sheet_view_move_cursor_tab                (PsppSheetView        *tree_view,
 							      gint                count);
 static void     pspp_sheet_view_move_cursor_start_end          (PsppSheetView        *tree_view,
@@ -895,14 +897,14 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
                                         GTK_MOVEMENT_DISPLAY_LINES, 1);
 
       pspp_sheet_view_add_move_binding (binding_set[i], GDK_Home, 0, TRUE,
-                                        GTK_MOVEMENT_BUFFER_ENDS, -1);
+                                        GTK_MOVEMENT_DISPLAY_LINE_ENDS, -1);
       pspp_sheet_view_add_move_binding (binding_set[i], GDK_KP_Home, 0, TRUE,
-                                        GTK_MOVEMENT_BUFFER_ENDS, -1);
+                                        GTK_MOVEMENT_DISPLAY_LINE_ENDS, -1);
 
       pspp_sheet_view_add_move_binding (binding_set[i], GDK_End, 0, TRUE,
-                                        GTK_MOVEMENT_BUFFER_ENDS, 1);
+                                        GTK_MOVEMENT_DISPLAY_LINE_ENDS, 1);
       pspp_sheet_view_add_move_binding (binding_set[i], GDK_KP_End, 0, TRUE,
-                                        GTK_MOVEMENT_BUFFER_ENDS, 1);
+                                        GTK_MOVEMENT_DISPLAY_LINE_ENDS, 1);
 
       pspp_sheet_view_add_move_binding (binding_set[i], GDK_Page_Up, 0, TRUE,
                                         GTK_MOVEMENT_PAGES, -1);
@@ -6967,7 +6969,8 @@ pspp_sheet_view_real_move_cursor (PsppSheetView       *tree_view,
 			step == GTK_MOVEMENT_VISUAL_POSITIONS ||
 			step == GTK_MOVEMENT_DISPLAY_LINES ||
 			step == GTK_MOVEMENT_PAGES ||
-			step == GTK_MOVEMENT_BUFFER_ENDS, FALSE);
+			step == GTK_MOVEMENT_BUFFER_ENDS ||
+			step == GTK_MOVEMENT_DISPLAY_LINE_ENDS, FALSE);
 
   if (tree_view->priv->row_count == 0)
     return FALSE;
@@ -7003,6 +7006,9 @@ pspp_sheet_view_real_move_cursor (PsppSheetView       *tree_view,
       break;
     case GTK_MOVEMENT_BUFFER_ENDS:
       pspp_sheet_view_move_cursor_start_end (tree_view, count);
+      break;
+    case GTK_MOVEMENT_DISPLAY_LINE_ENDS:
+      pspp_sheet_view_move_cursor_line_start_end (tree_view, count);
       break;
     default:
       g_assert_not_reached ();
@@ -8107,6 +8113,95 @@ pspp_sheet_view_move_cursor_left_right (PsppSheetView *tree_view,
   else
     {
       gtk_widget_error_bell (GTK_WIDGET (tree_view));
+    }
+
+  pspp_sheet_view_clamp_column_visible (tree_view,
+				      tree_view->priv->focus_column, TRUE);
+}
+
+static void
+pspp_sheet_view_move_cursor_line_start_end (PsppSheetView *tree_view,
+                                            gint         count)
+{
+  int cursor_node = -1;
+  GtkTreePath *cursor_path = NULL;
+  PsppSheetViewColumn *column;
+  PsppSheetViewColumn *found_column;
+  GtkTreeIter iter;
+  GList *list;
+  gboolean rtl;
+
+  rtl = (gtk_widget_get_direction (GTK_WIDGET (tree_view)) == GTK_TEXT_DIR_RTL);
+
+  if (!gtk_widget_has_focus (GTK_WIDGET (tree_view)))
+    return;
+
+  if (gtk_tree_row_reference_valid (tree_view->priv->cursor))
+    cursor_path = gtk_tree_row_reference_get_path (tree_view->priv->cursor);
+  else
+    return;
+
+  _pspp_sheet_view_find_node (tree_view, cursor_path, &cursor_node);
+  if (cursor_node < 0)
+    return;
+  if (gtk_tree_model_get_iter (tree_view->priv->model, &iter, cursor_path) == FALSE)
+    {
+      gtk_tree_path_free (cursor_path);
+      return;
+    }
+  gtk_tree_path_free (cursor_path);
+
+  list = rtl ? g_list_last (tree_view->priv->columns) : g_list_first (tree_view->priv->columns);
+  if (tree_view->priv->focus_column)
+    {
+      for (; list; list = (rtl ? list->prev : list->next))
+	{
+	  if (list->data == tree_view->priv->focus_column)
+	    break;
+	}
+    }
+
+  found_column = NULL;
+  while (list)
+    {
+      gboolean left, right;
+
+      column = list->data;
+      if (column->visible == FALSE || column->row_head)
+	goto loop_end;
+
+      pspp_sheet_view_column_cell_set_cell_data (column,
+					       tree_view->priv->model,
+					       &iter);
+
+      if (rtl)
+        {
+	  right = list->prev ? TRUE : FALSE;
+	  left = list->next ? TRUE : FALSE;
+	}
+      else
+        {
+	  left = list->prev ? TRUE : FALSE;
+	  right = list->next ? TRUE : FALSE;
+        }
+
+      if (column->tabbable
+          && _pspp_sheet_view_column_cell_focus (column, count, left, right))
+        found_column = column;
+
+    loop_end:
+      if (count == 1)
+	list = rtl ? list->prev : list->next;
+      else
+	list = rtl ? list->next : list->prev;
+    }
+
+  if (found_column)
+    {
+      tree_view->priv->focus_column = found_column;
+      _pspp_sheet_view_queue_draw_node (tree_view, cursor_node, NULL);
+      g_signal_emit (tree_view, tree_view_signals[CURSOR_CHANGED], 0);
+      gtk_widget_grab_focus (GTK_WIDGET (tree_view));
     }
 
   pspp_sheet_view_clamp_column_visible (tree_view,
