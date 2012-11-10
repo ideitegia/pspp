@@ -12275,11 +12275,13 @@ pspp_sheet_view_event (GtkWidget *widget,
       switch (event->keyval)
         {
         case GDK_Left:      case GDK_KP_Left:
+        case GDK_Home:      case GDK_KP_Home:
           if (!is_all_selected (widget) && !is_at_left (widget))
             return FALSE;
           break;
 
         case GDK_Right:     case GDK_KP_Right:
+        case GDK_End:       case GDK_KP_End:
           if (!is_all_selected (widget) && !is_at_right (widget))
             return FALSE;
           break;
