@@ -12257,7 +12257,6 @@ pspp_sheet_view_event (GtkWidget *widget,
   gboolean handled;
   gboolean cancel;
   guint keyval;
-  guint state;
   gint row;
 
   /* Intercept only key press events.
@@ -12268,53 +12267,60 @@ pspp_sheet_view_event (GtkWidget *widget,
   if (event->type != GDK_KEY_PRESS)
     return FALSE;
 
-  if (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_MOD1_MASK))
-    {
-      /* Pass through most keys that include modifiers. */
-      if ((event->keyval == GDK_Tab || event->keyval == GDK_ISO_Left_Tab)
-          && !(event->state & (GDK_CONTROL_MASK | GDK_MOD1_MASK)))
-        {
-          /* Special case for Shift-Tab. */
-        }
-      else
-        return FALSE;
-    }
-
   keyval = event->keyval;
-  state = event->state & ~(GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_MOD1_MASK);
   cancel = FALSE;
-  switch (event->keyval)
+  switch (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_MOD1_MASK))
     {
-    case GDK_Left:      case GDK_KP_Left:
-      if (!is_all_selected (widget) && !is_at_left (widget))
-        return FALSE;
+    case 0:
+      switch (event->keyval)
+        {
+        case GDK_Left:      case GDK_KP_Left:
+          if (!is_all_selected (widget) && !is_at_left (widget))
+            return FALSE;
+          break;
+
+        case GDK_Right:     case GDK_KP_Right:
+          if (!is_all_selected (widget) && !is_at_right (widget))
+            return FALSE;
+          break;
+
+        case GDK_Up:        case GDK_KP_Up:
+        case GDK_Down:      case GDK_KP_Down:
+          break;
+
+        case GDK_Page_Up:   case GDK_KP_Page_Up:
+        case GDK_Page_Down: case GDK_KP_Page_Down:
+          break;
+
+        case GDK_Escape:
+          cancel = TRUE;
+          break;
+
+        case GDK_Return:
+          keyval = GDK_Down;
+          break;
+
+        case GDK_Tab:       case GDK_KP_Tab:
+        case GDK_ISO_Left_Tab:
+          keyval = GDK_Tab;
+          break;
+
+        default:
+          return FALSE;
+        }
       break;
 
-    case GDK_Right:     case GDK_KP_Right:
-      if (!is_all_selected (widget) && !is_at_right (widget))
-        return FALSE;
-      break;
+    case GDK_SHIFT_MASK:
+      switch (event->keyval)
+        {
+        case GDK_Tab:
+        case GDK_ISO_Left_Tab:
+          keyval = GDK_Tab;
+          break;
 
-    case GDK_Up:        case GDK_KP_Up:
-    case GDK_Down:      case GDK_KP_Down:
-      break;
-
-    case GDK_Page_Up:   case GDK_KP_Page_Up:
-    case GDK_Page_Down: case GDK_KP_Page_Down:
-      break;
-
-    case GDK_Escape:
-      cancel = TRUE;
-      break;
-
-    case GDK_Return:
-      keyval = GDK_Down;
-      break;
-
-    case GDK_Tab:       case GDK_KP_Tab:
-    case GDK_ISO_Left_Tab:
-      keyval = GDK_Tab;
-      state |= event->state & GDK_SHIFT_MASK;
+        default:
+          return FALSE;
+        }
       break;
 
     default:
@@ -12331,7 +12337,7 @@ pspp_sheet_view_event (GtkWidget *widget,
   pspp_sheet_view_set_cursor (tree_view, path, column, FALSE);
   gtk_tree_path_free (path);
 
-  handled = gtk_binding_set_activate (edit_bindings, keyval, state,
+  handled = gtk_binding_set_activate (edit_bindings, keyval, event->state,
                                       GTK_OBJECT (tree_view));
   if (handled)
     g_signal_stop_emission_by_name (widget, "event");
