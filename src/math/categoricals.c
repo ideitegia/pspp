@@ -76,15 +76,6 @@ struct variable_node
 
   struct hmap valmap;         /* A map of value nodes */
   int n_vals;                 /* Number of values for this variable */
-
-  int *indirection;           /* An array (of size n_vals) of integers, which serve to
-				 permute the index members of the values in valmap.
-				 
-				 Doing this, means that categories are considered in the order
-				 of their values.  Mathematically the order is irrelevant.
-				 However certain procedures (eg logistic regression)  want to report
-				 statisitics for particular categories */
-
 };
 
 
@@ -412,7 +403,8 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       if (valn == NULL)
 	{
 	  valn = pool_malloc (cat->pool, sizeof *valn);
-	  valn->index = vn->n_vals++;
+	  valn->index = -1; 
+	  vn->n_vals++;
 	  value_init (&valn->val, width);
 	  value_copy (&valn->val, val, width);
 	  hmap_insert (&vn->valmap, &valn->node, hash);
@@ -553,15 +545,14 @@ categoricals_done (const struct categoricals *cat_)
 	      return;
 	    }
 
-	  vn->indirection = pool_calloc (cat->pool, vn->n_vals, sizeof *vn->indirection);
-
 	  /* Sort the VALMAP here */
 	  array = xcalloc (sizeof *array, vn->n_vals);
+	  x = 0;
 	  HMAP_FOR_EACH (valnd, struct value_node, node, &vn->valmap)
 	    {
 	      /* Note: This loop is probably superfluous, it could be done in the 
 	       update stage (at the expense of a realloc) */
-	      array[valnd->index] = valnd;
+	      array[x++] = valnd;
 	    }
 
 	  sort (array, vn->n_vals, sizeof (*array), 
@@ -570,7 +561,7 @@ categoricals_done (const struct categoricals *cat_)
 	  for (x = 0; x <  vn->n_vals; ++x)
 	    {
 	      struct value_node *vvv = array[x];
-	      vn->indirection[vn->n_vals - x - 1] = vvv->index;
+	      vvv->index = x;
 	    }
 	  free (array);
 
@@ -753,9 +744,9 @@ categoricals_get_code_for_case (const struct categoricals *cat, int subscript,
       const int index = ((subscript - base_index) % iap->df_prod[v] ) / dfp;
       dfp = iap->df_prod [v];
 
-      if (effects_coding && vn->indirection [valn->index] == df )
+      if (effects_coding && valn->index == df )
 	bin = -1.0;
-      else if ( vn->indirection [valn->index] != index )
+      else if ( valn->index != index )
 	bin = 0;
     
       result *= bin;

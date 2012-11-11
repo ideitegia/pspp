@@ -732,7 +732,9 @@ The default is @subcmd{LISTWISE}.
 @cindex bivariate logistic regression
 
 @display
-LOGISTIC REGRESSION [VARIABLES =] @var{dependent_var} WITH @var{var_list}
+LOGISTIC REGRESSION [VARIABLES =] @var{dependent_var} WITH @var{predictors}
+
+     [/CATEGORICAL = @var{categorical_predictors}]
 
      [@{/NOCONST | /ORIGIN | /NOORIGIN @}]
 
@@ -763,6 +765,10 @@ Hence, the full model is
 + \dots
 + b_n {\bf x_n}
 }
+
+Predictor variables which are categorical in nature should be listed on the @subcmd{/CATEGORICAL} subcommand.
+Simple variables as well as interactions between variables may be listed here.
+
 If you want a model without the constant term @math{b_0}, use the keyword @subcmd{/ORIGIN}.
 @subcmd{/NOCONST} is a synonym for @subcmd{/ORIGIN}.
 
