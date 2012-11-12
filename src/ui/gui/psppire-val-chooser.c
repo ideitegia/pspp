@@ -325,13 +325,13 @@ static GtkWidget * simple_entry (struct layout *l, struct range_widgets *rw)
 
 static struct layout range_opt[n_VAL_CHOOSER_BUTTONS]= 
   {
-    {N_("Value:"),                    simple_entry, simple_set },
-    {N_("System Missing"),            NULL,         sysmis_set },
-    {N_("System or User Missing"),    NULL,         missing_set},
-    {N_("Range:"),                    range_entry,  range_set  },
-    {N_("Range, LOWEST thru value"),  simple_entry, lo_up_set  },
-    {N_("Range, value thru HIGHEST"), simple_entry, hi_down_set},
-    {N_("All other values"),          NULL,         else_set   }
+    {N_("_Value:"),                    simple_entry, simple_set },
+    {N_("_System Missing"),            NULL,         sysmis_set },
+    {N_("System _or User Missing"),    NULL,         missing_set},
+    {N_("_Range:"),                    range_entry,  range_set  },
+    {N_("Range, _LOWEST thru value"),  simple_entry, lo_up_set  },
+    {N_("Range, value thru _HIGHEST"), simple_entry, hi_down_set},
+    {N_("_All other values"),          NULL,         else_set   }
   };
 
 static void
@@ -359,10 +359,9 @@ psppire_val_chooser_init (PsppireValChooser *vr)
     {
       struct layout *l = &range_opt[i];
       vr->rw[i].label = GTK_LABEL (gtk_label_new (gettext (l->label)));
+      gtk_label_set_use_underline (vr->rw[i].label, TRUE);
       vr->rw[i].rb = GTK_TOGGLE_BUTTON (gtk_radio_button_new (group));
-
-      gtk_widget_set_sensitive (GTK_WIDGET (vr->rw[i].label), FALSE);
-      g_signal_connect (vr->rw[i].rb, "toggled", G_CALLBACK (set_sensitivity_from_toggle), vr->rw[i].label);
+      gtk_label_set_mnemonic_widget (vr->rw[i].label, GTK_WIDGET (vr->rw[i].rb));
 
       gtk_misc_set_alignment (GTK_MISC (vr->rw[i].label), 0, 0.5);
 

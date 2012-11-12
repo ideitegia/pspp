@@ -358,6 +358,7 @@
           <object class="GtkVBox" id="vbox3">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">5</property>
             <child>
               <object class="GtkTable" id="table2">
@@ -367,11 +368,12 @@
                 <property name="n_columns">2</property>
                 <child>
                   <object class="GtkCheckButton" id="sum-checkbutton">
-                    <property name="label" translatable="yes">Sum of case weights</property>
+                    <property name="label" translatable="yes">Sum of case _weights</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="use_underline">True</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -383,11 +385,12 @@
                 </child>
                 <child>
                   <object class="GtkCheckButton" id="percent-checkbutton">
-                    <property name="label" translatable="yes">Fractional rank as %</property>
+                    <property name="label" translatable="yes">Fractional rank as _%</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="use_underline">True</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -397,11 +400,12 @@
                 </child>
                 <child>
                   <object class="GtkCheckButton" id="rfrac-checkbutton">
-                    <property name="label" translatable="yes">Fractional rank</property>
+                    <property name="label" translatable="yes">_Fractional rank</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="use_underline">True</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -411,11 +415,12 @@
                 </child>
                 <child>
                   <object class="GtkCheckButton" id="savage-checkbutton">
-                    <property name="label" translatable="yes">Savage score</property>
+                    <property name="label" translatable="yes">_Savage score</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="use_underline">True</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -425,11 +430,12 @@
                 </child>
                 <child>
                   <object class="GtkCheckButton" id="rank-checkbutton">
-                    <property name="label" translatable="yes">Rank</property>
+                    <property name="label" translatable="yes">_Rank</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="use_underline">True</property>
                     <property name="draw_indicator">True</property>
                   </object>
                 </child>
@@ -439,11 +445,12 @@
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <child>
                       <object class="GtkCheckButton" id="ntiles-checkbutton">
-                        <property name="label" translatable="yes">Ntiles</property>
+                        <property name="label" translatable="yes">N_tiles</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                        <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
                       <packing>
@@ -482,11 +489,12 @@
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <child>
                   <object class="GtkCheckButton" id="prop-checkbutton">
-                    <property name="label" translatable="yes">Proportion Estimates</property>
+                    <property name="label" translatable="yes">_Proportion Estimates</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="use_underline">True</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -495,11 +503,12 @@
                 </child>
                 <child>
                   <object class="GtkCheckButton" id="normal-checkbutton">
-                    <property name="label" translatable="yes">Normal Scores</property>
+                    <property name="label" translatable="yes">_Normal Scores</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="use_underline">True</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -530,11 +539,12 @@
                         <property name="spacing">5</property>
                         <child>
                           <object class="GtkRadioButton" id="blom-button">
-                            <property name="label" translatable="yes">Blom</property>
+                            <property name="label" translatable="yes">_Blom</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="use_underline">True</property>
                             <property name="active">True</property>
                             <property name="draw_indicator">True</property>
                           </object>
@@ -544,11 +554,12 @@
                         </child>
                         <child>
                           <object class="GtkRadioButton" id="tukey-button">
-                            <property name="label" translatable="yes">Tukey</property>
+                            <property name="label" translatable="yes">Tuke_y</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="use_underline">True</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">blom-button</property>
                           </object>
@@ -558,11 +569,12 @@
                         </child>
                         <child>
                           <object class="GtkRadioButton" id="rankit-button">
-                            <property name="label" translatable="yes">Rankit</property>
+                            <property name="label" translatable="yes">Ran_kit</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="use_underline">True</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">blom-button</property>
                           </object>
@@ -572,11 +584,12 @@
                         </child>
                         <child>
                           <object class="GtkRadioButton" id="vw-button">
-                            <property name="label" translatable="yes">Van der W&#xE4;rden</property>
+                            <property name="label" translatable="yes">_Van der Waerden</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="use_underline">True</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">blom-button</property>
                           </object>
@@ -764,6 +777,5 @@
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-    <property name="page_size">0</property>
   </object>
 </interface>

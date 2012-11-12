@@ -51,7 +51,8 @@
                     <property name="layout_style">spread</property>
                     <child>
                       <object class="GtkButton" id="define-groups-button">
-                        <property name="label" translatable="yes">Define Groups</property>
+                        <property name="label" translatable="yes">_Define Groups...</property>
+			<property name="use_underline">True</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -65,7 +66,8 @@
                     </child>
                     <child>
                       <object class="GtkButton" id="indep-samples-options-button">
-                        <property name="label" translatable="yes">Options...</property>
+                        <property name="label" translatable="yes">O_ptions...</property>
+			<property name="use_underline">True</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>

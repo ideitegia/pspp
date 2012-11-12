@@ -304,6 +304,24 @@ run_type_label_dialog (GtkButton *b, gpointer data)
     cd->use_type = TRUE;
 }
 
+static void
+on_type_toggled (GtkToggleButton *button, gpointer data)
+{
+  struct compute_dialog *cd = data;
+
+  GtkWidget *entry =
+    get_widget_assert (cd->xml, "type-and-label-width");
+
+  if ( gtk_toggle_button_get_active (button))
+    {
+      gtk_widget_set_sensitive (entry, TRUE);
+      gtk_widget_grab_focus (entry);
+    }
+  else
+    {
+      gtk_widget_set_sensitive (entry, FALSE);
+    }
+}
 
 static void
 on_expression_toggle (GtkToggleButton *button, gpointer data)
@@ -320,7 +338,6 @@ on_expression_toggle (GtkToggleButton *button, gpointer data)
     }
   else
     {
-      const char *label;
       struct variable *target_var;
       const gchar *target_name = gtk_entry_get_text
 	(GTK_ENTRY (get_widget_assert (cd->xml, "compute-entry1")));
@@ -328,7 +345,7 @@ on_expression_toggle (GtkToggleButton *button, gpointer data)
       target_var = psppire_dict_lookup_var (cd->dict, target_name);
       if ( target_var )
 	{
-	  label = var_get_label (target_var);
+	  const char *label = var_get_label (target_var);
 
 	  if ( label )
 	    gtk_entry_set_text (GTK_ENTRY (entry), label);
@@ -337,6 +354,7 @@ on_expression_toggle (GtkToggleButton *button, gpointer data)
 	gtk_entry_set_text (GTK_ENTRY (entry), "");
 
       gtk_widget_set_sensitive (entry, TRUE);
+      gtk_widget_grab_focus (entry);
     }
 }
 
@@ -385,12 +403,18 @@ compute_dialog (PsppireDataWindow *de)
   GtkWidget *expression =
 	get_widget_assert (xml, "radio-button-expression-label");
 
+  GtkWidget *str_btn =
+	get_widget_assert (xml, "radio-button-string");
+
 
   g_object_get (de->data_editor, "dictionary", &scd.dict, NULL);
   scd.use_type = FALSE;
 
   g_signal_connect (expression, "toggled",
 		    G_CALLBACK(on_expression_toggle), &scd);
+
+  g_signal_connect (str_btn, "toggled",
+		    G_CALLBACK(on_type_toggled), &scd);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <interface>
-  <requires lib="psppire" version="2054.17080"/>
   <!-- interface-requires gtk+ 2.12 -->
+  <requires lib="psppire" version="2054.17080"/>
   <!-- interface-naming-policy project-wide -->
   <object class="PsppireDialog" id="compute-variable-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -38,7 +38,9 @@
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="xalign">0</property>
-                            <property name="label" translatable="yes">Target Variable:</property>
+                            <property name="label" translatable="yes">Target _Variable:</property>
+                            <property name="use_underline">True</property>
+                            <property name="mnemonic_widget">compute-entry1</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -67,11 +69,12 @@
                     </child>
                     <child>
                       <object class="GtkButton" id="compute-button1">
-                        <property name="label" translatable="yes">Type &amp; Label</property>
+                        <property name="label" translatable="yes">_Type &amp; Label...</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                        <property name="use_underline">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -168,7 +171,9 @@
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="xalign">0</property>
-                    <property name="label" translatable="yes">Numeric Expressions:</property>
+                    <property name="label" translatable="yes">_Numeric Expressions:</property>
+                    <property name="use_underline">True</property>
+                    <property name="mnemonic_widget">compute-textview1</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -230,7 +235,9 @@
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="xalign">0</property>
-                            <property name="label" translatable="yes">Functions:</property>
+                            <property name="label" translatable="yes">_Functions:</property>
+                            <property name="use_underline">True</property>
+                            <property name="mnemonic_widget">compute-treeview2</property>
                           </object>
                           <packing>
                             <property name="position">0</property>
@@ -295,11 +302,12 @@
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <child>
                   <object class="GtkButton" id="button4">
-                    <property name="label" translatable="yes">If...</property>
+                    <property name="label" translatable="yes">_If...</property>
                     <property name="sensitive">False</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="use_underline">True</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -383,7 +391,9 @@
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="xalign">0</property>
-                            <property name="label" translatable="yes">Use expression as label</property>
+                            <property name="label" translatable="yes">Use _expression as label</property>
+                            <property name="use_underline">True</property>
+                            <property name="mnemonic_widget">radio-button-expression-label</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -402,7 +412,9 @@
                               <object class="GtkLabel" id="label24">
                                 <property name="visible">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="label" translatable="yes">Label:</property>
+                                <property name="label" translatable="yes">_Label:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">radio-button-user-label</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -500,7 +512,9 @@
                                 <property name="visible">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="xalign">0</property>
-                                <property name="label" translatable="yes">String</property>
+                                <property name="label" translatable="yes">_String</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">radio-button-string</property>
                               </object>
                               <packing>
                                 <property name="position">0</property>
@@ -510,6 +524,7 @@
                               <object class="GtkHBox" id="hbox21">
                                 <property name="visible">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                                <property name="spacing">5</property>
                                 <child>
                                   <object class="GtkLabel" id="label30">
                                     <property name="visible">True</property>
@@ -517,15 +532,17 @@
                                     <property name="label" translatable="yes">Width</property>
                                   </object>
                                   <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <object class="GtkSpinButton" id="type-and-label-width">
-				    <property name="adjustment">adjustment1</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                                    <property name="adjustment">adjustment1</property>
                                   </object>
                                   <packing>
                                     <property name="position">1</property>
@@ -581,7 +598,9 @@
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="xalign">0</property>
-                            <property name="label" translatable="yes">Numeric</property>
+                            <property name="label" translatable="yes">_Numeric</property>
+                            <property name="use_underline">True</property>
+                            <property name="mnemonic_widget">radio-button-numeric</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>

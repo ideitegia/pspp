@@ -34,8 +34,6 @@
 
 #define CATEGORICALS_DEBUG 0
 
-#define EFFECTS_CODING 1
-
 struct value_node
 {
   struct hmap_node node;      /* Node in hash map. */
@@ -45,13 +43,15 @@ struct value_node
   int index;                  /* A zero based unique index for this value */
 };
 
+
 struct interaction_value
 {
   struct hmap_node node;      /* Node in hash map */
 
-  struct ccase *ccase;        /* A case (probably the first in the dataset) which matches this value */
+  struct ccase *ccase;        /* A case (probably the first in the dataset) which matches
+				 this value */
 
-  double cc;        /* Total of the weights of cases matching this interaction */
+  double cc;                  /* Total of the weights of cases matching this interaction */
 
   void *user_data;            /* A pointer to data which the caller can store stuff */
 };
@@ -78,6 +78,22 @@ struct variable_node
   int n_vals;                 /* Number of values for this variable */
 };
 
+
+/* Comparison function to sort value_nodes in ascending order */
+static int
+compare_value_node_3way (const void *vn1_, const void *vn2_, const void *aux)
+{
+  const struct value_node *const *vn1p = vn1_;
+  const struct value_node *const *vn2p = vn2_;
+
+  const struct variable_node *vn = aux;
+
+
+  return value_compare_3way (&(*vn1p)->val, &(*vn2p)->val, var_get_width (vn->var));
+}
+
+
+
 static struct variable_node *
 lookup_variable (const struct hmap *map, const struct variable *var, unsigned int hash)
 {
@@ -96,7 +112,7 @@ lookup_variable (const struct hmap *map, const struct variable *var, unsigned in
 
 struct interact_params
 {
-  /* A map indexed by a interaction_value */
+  /* A map of cases indexed by a interaction_value */
   struct hmap ivmap;
 
   struct interaction *iact;
@@ -200,7 +216,6 @@ categoricals_dump (const struct categoricals *cat)
 	}
       printf ("\n");
 
-
       printf ("Number of interactions %d\n", cat->n_iap);
       for (i = 0 ; i < cat->n_iap; ++i)
 	{
@@ -212,24 +227,32 @@ categoricals_dump (const struct categoricals *cat)
 	  ds_init_empty (&str);
 	  interaction_to_string (iact, &str);
 
-	  printf ("\nInteraction: %s (n: %d); ", ds_cstr (&str), iap->n_cats);
+	  printf ("\nInteraction: \"%s\" (number of categories: %d); ", ds_cstr (&str), iap->n_cats);
 	  ds_destroy (&str);
-	  printf ("Base subscript: %d\n", iap->base_subscript_short);
+	  printf ("Base index (short/long): %d/%d\n", iap->base_subscript_short, iap->base_subscript_long);
 
 	  printf ("\t(");
 	  for (v = 0; v < hmap_count (&iap->ivmap); ++v)
 	    {
 	      int vv;
 	      const struct interaction_value *iv = iap->reverse_interaction_value_map[v];
-	  
+
 	      if (v > 0)  printf ("   ");
 	      printf ("{");
 	      for (vv = 0; vv < iact->n_vars; ++vv)
 		{
 		  const struct variable *var = iact->vars[vv];
 		  const union value *val = case_data (iv->ccase, var);
-	      
-		  printf ("%g", val->f);
+		  unsigned int varhash = hash_pointer (var, 0);
+		  struct variable_node *vn = lookup_variable (&cat->varmap, var, varhash);
+
+		  const int width = var_get_width (var);
+		  unsigned int valhash = value_hash (val, width, 0);
+		  struct value_node *valn = lookup_value (&vn->valmap, val, valhash, width);
+
+		  assert (vn->var == var);
+
+		  printf ("%g(%d)", val->f, valn->index);
 		  if (vv < iact->n_vars - 1)
 		    printf (", ");
 		}
@@ -358,7 +381,12 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 {
   int i;
   struct variable_node *vn = NULL;
-  const double weight = cat->wv ? case_data (c, cat->wv)->f : 1.0;
+  double weight;
+
+  if (NULL == cat)
+    return;
+
+  weight = cat->wv ? case_data (c, cat->wv)->f : 1.0;
 
   assert (NULL == cat->reverse_variable_map_short);
   assert (NULL == cat->reverse_variable_map_long);
@@ -375,12 +403,13 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       if (valn == NULL)
 	{
 	  valn = pool_malloc (cat->pool, sizeof *valn);
-	  valn->index = vn->n_vals++;
+	  valn->index = -1; 
+	  vn->n_vals++;
 	  value_init (&valn->val, width);
 	  value_copy (&valn->val, val, width);
 	  hmap_insert (&vn->valmap, &valn->node, hash);
 	}
-    }	  
+    }
   
   for (i = 0 ; i < cat->n_iap; ++i)
     {
@@ -398,7 +427,6 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       if ( NULL == node)
 	{
 	  node = pool_malloc (cat->pool, sizeof *node);
-
 	  node->ccase = case_ref (c);
 	  node->cc = weight;
 
@@ -453,6 +481,9 @@ categoricals_n_total (const struct categoricals *cat)
 size_t
 categoricals_df_total (const struct categoricals *cat)
 {
+  if (NULL == cat)
+    return 0;
+
   return cat->df_sum;
 }
 
@@ -479,6 +510,10 @@ categoricals_done (const struct categoricals *cat_)
   int i;
   int idx_short = 0;
   int idx_long = 0;
+
+  if (NULL == cat)
+    return;
+
   cat->df_sum = 0;
   cat->n_cats_total = 0;
 
@@ -494,23 +529,48 @@ categoricals_done (const struct categoricals *cat_)
       
       for (v = 0 ; v < iact->n_vars; ++v)
 	{
+	  int x;
 	  const struct variable *var = iact->vars[v];
 
 	  struct variable_node *vn = lookup_variable (&cat->varmap, var, hash_pointer (var, 0));
 
-	  if  (hmap_count (&vn->valmap) == 0)
+	  struct value_node *valnd = NULL;
+	  struct value_node **array ;
+
+	  assert (vn->n_vals == hmap_count (&vn->valmap));
+
+	  if  (vn->n_vals == 0)
 	    {
 	      cat->sane = false;
 	      return;
 	    }
 
-	  cat->iap[i].df_prod[v] = df * (hmap_count (&vn->valmap) - 1);
+	  /* Sort the VALMAP here */
+	  array = xcalloc (sizeof *array, vn->n_vals);
+	  x = 0;
+	  HMAP_FOR_EACH (valnd, struct value_node, node, &vn->valmap)
+	    {
+	      /* Note: This loop is probably superfluous, it could be done in the 
+	       update stage (at the expense of a realloc) */
+	      array[x++] = valnd;
+	    }
+
+	  sort (array, vn->n_vals, sizeof (*array), 
+		compare_value_node_3way, vn);
+
+	  for (x = 0; x <  vn->n_vals; ++x)
+	    {
+	      struct value_node *vvv = array[x];
+	      vvv->index = x;
+	    }
+	  free (array);
+
+	  cat->iap[i].df_prod[v] = df * (vn->n_vals - 1);
       	  df = cat->iap[i].df_prod[v];
 
-	  cat->iap[i].n_cats *= hmap_count (&vn->valmap);
+	  cat->iap[i].n_cats *= vn->n_vals;
 	}
 
-      assert (v == iact->n_vars);
       if (v > 0)
 	cat->df_sum += cat->iap[i].df_prod [v - 1];
 
@@ -542,7 +602,6 @@ categoricals_done (const struct categoricals *cat_)
       HMAP_FOR_EACH (ivn, struct interaction_value, node, &iap->ivmap)
 	{
 	  iap->reverse_interaction_value_map[x++] = ivn;
-
 	}
 
       assert (x <= iap->n_cats);
@@ -586,7 +645,7 @@ categoricals_done (const struct categoricals *cat_)
 	  struct interaction_value *iv = iap->reverse_interaction_value_map[y];
 	  for (x = iap->base_subscript_short; x < iap->base_subscript_short + df ;++x)
 	    {
-	      const double bin = categoricals_get_code_for_case (cat, x, iv->ccase); \
+	      const double bin = categoricals_get_effects_code_for_case (cat, x, iv->ccase);
 	      iap->enc_sum [x - iap->base_subscript_short] += bin * iv->cc;
 	    }
 	  if (cat->payload && cat->payload->calculate)
@@ -646,11 +705,13 @@ categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript
   return   vp->enc_sum[subscript - vp->base_subscript_short];
 }
 
+
 /* Returns unity if the value in case C at SUBSCRIPT is equal to the category
    for that subscript */
-double
+static double
 categoricals_get_code_for_case (const struct categoricals *cat, int subscript,
-				const struct ccase *c)
+				const struct ccase *c,
+				bool effects_coding)
 {
   const struct interaction *iact = categoricals_get_interaction_by_subscript (cat, subscript);
 
@@ -683,18 +744,37 @@ categoricals_get_code_for_case (const struct categoricals *cat, int subscript,
       const int index = ((subscript - base_index) % iap->df_prod[v] ) / dfp;
       dfp = iap->df_prod [v];
 
-#if EFFECTS_CODING
-      if ( valn->index == df )
+      if (effects_coding && valn->index == df )
 	bin = -1.0;
-      else 
-#endif
-	if ( valn->index  != index )
-	  bin = 0;
+      else if ( valn->index != index )
+	bin = 0;
     
       result *= bin;
     }
 
   return result;
+}
+
+
+/* Returns unity if the value in case C at SUBSCRIPT is equal to the category
+   for that subscript */
+double
+categoricals_get_dummy_code_for_case (const struct categoricals *cat, int subscript,
+				     const struct ccase *c)
+{
+  return categoricals_get_code_for_case (cat, subscript, c, false);
+}
+
+/* Returns unity if the value in case C at SUBSCRIPT is equal to the category
+   for that subscript. 
+   Else if it is the last category, return -1.
+   Otherwise return 0.
+ */
+double
+categoricals_get_effects_code_for_case (const struct categoricals *cat, int subscript,
+					const struct ccase *c)
+{
+  return categoricals_get_code_for_case (cat, subscript, c, true);
 }
 
 

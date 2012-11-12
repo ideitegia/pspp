@@ -1461,25 +1461,6 @@ summary_report (const struct examine *cmd, int iact_idx)
   tab_submit (t);
 }
 
-
-/* Match a variable.
-   If the match succeeds, the variable will be placed in VAR.
-   Returns true if successful */
-static bool
-lex_match_variable (struct lexer *lexer, 
-                    const struct dictionary *dict, const struct variable **var)
-{
-  if (lex_token (lexer) !=  T_ID)
-
-    return false;
-
-  *var = parse_variable_const  (lexer, dict);
-
-  if ( *var == NULL)
-    return false;
-  return true;
-}
-
 /* Attempt to parse an interaction from LEXER */
 static struct interaction *
 parse_interaction (struct lexer *lexer, struct examine *ex)

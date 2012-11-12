@@ -268,7 +268,7 @@ get_val (const struct covariance *cov, int i, const struct ccase *c)
       return val->f;
     }
 
-  return categoricals_get_code_for_case (cov->categoricals, i - cov->n_vars, c);
+  return categoricals_get_effects_code_for_case (cov->categoricals, i - cov->n_vars, c);
 }
 
 #if 0

@@ -82,13 +82,24 @@ const struct interaction *categoricals_get_interaction_by_subscript (const struc
 
 double categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript);
 
-double categoricals_get_code_for_case (const struct categoricals *cat, int subscript, const struct ccase *c);
+/* Returns unity if the value in case C at SUBSCRIPT is equal to the category
+   for that subscript */
+double
+categoricals_get_dummy_code_for_case (const struct categoricals *cat, int subscript,
+				     const struct ccase *c);
+
+/* Returns unity if the value in case C at SUBSCRIPT is equal to the category
+   for that subscript. 
+   Else if it is the last category, return -1.
+   Otherwise return 0.
+ */
+double
+categoricals_get_effects_code_for_case (const struct categoricals *cat, int subscript,
+					const struct ccase *c);
 
 
 /* These use the long map.  Useful for descriptive statistics. */
 
-/* Return the value corresponding to the N'th category */
-const union value * categoricals_get_value_by_category (const struct categoricals *cat, int n);
 
 const struct ccase *
 categoricals_get_case_by_category_real (const struct categoricals *cat, int iact, int n);
