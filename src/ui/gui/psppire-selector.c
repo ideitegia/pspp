@@ -593,11 +593,11 @@ select_selection (PsppireSelector *selector)
   GtkTreeSelection* selection =
     gtk_tree_view_get_selection ( GTK_TREE_VIEW (selector->source));
 
-  GList *selected_rows =
-    gtk_tree_selection_get_selected_rows (selection, NULL);
+  GList *selected_rows = gtk_tree_selection_get_selected_rows (selection, NULL);
 
-  GtkTreeModel *childmodel  =
-    gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source))));
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source));
+
+  GtkTreeModel *childmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
 
   g_return_if_fail (selector->select_items);
 
@@ -615,14 +615,12 @@ select_selection (PsppireSelector *selector)
       GtkTreeIter iter;
       GtkTreePath *path  = item->data;
 
-      gtk_tree_model_get_iter (GTK_TREE_MODEL (gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source))),
-			       &iter, path);
+      g_return_if_fail (model);
 
-      gtk_tree_model_filter_convert_iter_to_child_iter
-	(GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source))),
-	 &child_iter,
-	 &iter);
+      gtk_tree_model_get_iter (model, &iter, path);
 
+      gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model),
+							&child_iter, &iter);
       selector->select_items (child_iter,
 			      selector->dest,
 			      childmodel,
