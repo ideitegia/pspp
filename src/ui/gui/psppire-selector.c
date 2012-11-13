@@ -132,14 +132,6 @@ psppire_selector_get_type (void)
 static GObjectClass * parent_class = NULL;
 
 static void
-psppire_selector_finalize (GObject *obj)
-{
-   /* Chain up to the parent class */
-   G_OBJECT_CLASS (parent_class)->finalize (obj);
-}
-
-
-static void
 psppire_selector_dispose (GObject *obj)
 {
   PsppireSelector *sel = PSPPIRE_SELECTOR (obj);
@@ -317,7 +309,6 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 		  G_TYPE_NONE,
 		  0);
 
-  object_class->finalize = psppire_selector_finalize;
   object_class->dispose = psppire_selector_dispose;
 
   class->source_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
