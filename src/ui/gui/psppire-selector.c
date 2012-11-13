@@ -67,8 +67,6 @@
 
 #include "psppire-selector.h"
 
-static void psppire_selector_base_finalize (PsppireSelectorClass *, gpointer);
-static void psppire_selector_base_init     (PsppireSelectorClass *class);
 static void psppire_selector_class_init    (PsppireSelectorClass *class);
 static void psppire_selector_init          (PsppireSelector      *selector);
 
@@ -113,8 +111,8 @@ psppire_selector_get_type (void)
       static const GTypeInfo psppire_selector_info =
       {
 	sizeof (PsppireSelectorClass),
-	(GBaseInitFunc) psppire_selector_base_init,
-        (GBaseFinalizeFunc) psppire_selector_base_finalize,
+	(GBaseInitFunc) NULL, 
+        (GBaseFinalizeFunc) NULL,
 	(GClassInitFunc)psppire_selector_class_init,
 	(GClassFinalizeFunc) NULL,
 	NULL,
@@ -319,30 +317,13 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 		  G_TYPE_NONE,
 		  0);
 
-  class->default_selection_funcs = g_hash_table_new (g_direct_hash, g_direct_equal);
-}
-
-
-static void
-psppire_selector_base_init (PsppireSelectorClass *class)
-{
-  GObjectClass *object_class = G_OBJECT_CLASS (class);
-
   object_class->finalize = psppire_selector_finalize;
   object_class->dispose = psppire_selector_dispose;
 
   class->source_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
+  class->default_selection_funcs = g_hash_table_new (g_direct_hash, g_direct_equal);
 }
 
-
-
-static void
-psppire_selector_base_finalize(PsppireSelectorClass *class,
-				gpointer class_data)
-{
-  g_hash_table_destroy (class->source_hash);
-  g_hash_table_destroy (class->default_selection_funcs);
-}
 
 /* Callback for when the source treeview is activated (double clicked) */
 static void
