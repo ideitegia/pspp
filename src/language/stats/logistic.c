@@ -560,6 +560,23 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
   if (NULL == beta_hat)
     return false;
 
+  
+  for (i = 0; i < cmd->n_cat_predictors; ++i)
+    {
+      if (1 >= categoricals_n_count (work.cats, i))
+	{
+	  struct string str;
+	  ds_init_empty (&str);
+	  
+	  interaction_to_string (cmd->cat_predictors[i], &str);
+
+	  msg (ME, _("Category %s does not have at least two distinct values. Logistic regression will not be run."),
+	       ds_cstr(&str));
+	  ds_destroy (&str);
+	  return false;
+      	}
+    }
+
   output_depvarmap (cmd, &work);
 
   case_processing_summary (&work);
