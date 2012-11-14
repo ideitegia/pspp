@@ -65,6 +65,8 @@
 #include "libpspp/misc.h"
 #include "math/categoricals.h"
 #include "math/interaction.h"
+#include "libpspp/hmap.h"
+#include "libpspp/hash-functions.h"
 
 #include "output/tab.h"
 
@@ -100,6 +102,12 @@ struct lr_spec
   /* The categorical predictors */
   struct interaction **cat_predictors;
   size_t n_cat_predictors;
+
+
+  /* The union of the categorical and non-categorical variables */
+  const struct variable **indep_vars;
+  size_t n_indep_vars;
+
 
   /* Which classes of missing vars are to be excluded */
   enum mv_class exclude;
@@ -441,10 +449,10 @@ beta_hat_initial (const struct lr_spec *cmd, struct lr_result *res, struct caser
       double weight = dict_get_case_weight (cmd->dict, c, &res->warn_bad_weight);
       const union value *depval = case_data (c, cmd->dep_var);
 
-      for (v = 0; v < cmd->n_predictor_vars; ++v)
+      for (v = 0; v < cmd->n_indep_vars; ++v)
 	{
-	  const union value *val = case_data (c, cmd->predictor_vars[v]);
-	  if (var_is_value_missing (cmd->predictor_vars[v], val, cmd->exclude))
+	  const union value *val = case_data (c, cmd->indep_vars[v]);
+	  if (var_is_value_missing (cmd->indep_vars[v], val, cmd->exclude))
 	    {
 	      missing = true;
 	      break;
@@ -583,8 +591,8 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 
 
   input = casereader_create_filter_missing (input,
-					    cmd->predictor_vars,
-					    cmd->n_predictor_vars,
+					    cmd->indep_vars,
+					    cmd->n_indep_vars,
 					    cmd->exclude,
 					    NULL,
 					    NULL);
@@ -671,6 +679,28 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
   return true;
 }
 
+struct variable_node
+{
+  struct hmap_node node;      /* Node in hash map. */
+  const struct variable *var; /* The variable */
+};
+
+static struct variable_node *
+lookup_variable (const struct hmap *map, const struct variable *var, unsigned int hash)
+{
+  struct variable_node *vn = NULL;
+  HMAP_FOR_EACH_WITH_HASH (vn, struct variable_node, node, hash, map)
+    {
+      if (vn->var == var)
+	break;
+      
+      fprintf (stderr, "Warning: Hash table collision\n");
+    }
+  
+  return vn;
+}
+
+
 /* Parse the LOGISTIC REGRESSION command syntax */
 int
 cmd_logistic (struct lexer *lexer, struct dataset *ds)
@@ -697,7 +727,7 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
   lr.print = PRINT_DEFAULT;
   lr.cat_predictors = NULL;
   lr.n_cat_predictors = 0;
-
+  lr.indep_vars = NULL;
 
 
   if (lex_match_id (lexer, "VARIABLES"))
@@ -920,26 +950,50 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
      final one, dropping any categorical variables which appear there.
      FIXME: This is O(NxM).
   */
+
+  {
+  struct variable_node *vn, *next;
+  struct hmap allvars;
+  hmap_init (&allvars);
   for (v = x = 0; v < n_pred_vars; ++v)
     {
       bool drop = false;
       const struct variable *var = pred_vars[v];
       int cv = 0;
+
+      unsigned int hash = hash_pointer (var, 0);
+      struct variable_node *vn = lookup_variable (&allvars, var, hash);
+      if (vn == NULL)
+	{
+	  vn = xmalloc (sizeof *vn);
+	  vn->var = var;
+	  hmap_insert (&allvars, &vn->node,  hash);
+	}
+
       for (cv = 0; cv < lr.n_cat_predictors ; ++cv)
 	{
 	  int iv;
 	  const struct interaction *iact = lr.cat_predictors[cv];
 	  for (iv = 0 ; iv < iact->n_vars ; ++iv)
 	    {
-	      if (var == iact->vars[iv])
+	      const struct variable *ivar = iact->vars[iv];
+	      unsigned int hash = hash_pointer (ivar, 0);
+	      struct variable_node *vn = lookup_variable (&allvars, ivar, hash);
+	      if (vn == NULL)
+		{
+		  vn = xmalloc (sizeof *vn);
+		  vn->var = ivar;
+		  
+		  hmap_insert (&allvars, &vn->node,  hash);
+		}
+
+	      if (var == ivar)
 		{
 		  drop = true;
-		  goto dropped;
 		}
 	    }
 	}
 
-    dropped:
       if (drop)
 	continue;
 
@@ -949,8 +1003,21 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
     }
   free (pred_vars);
 
+  lr.n_indep_vars = hmap_count (&allvars);
+  lr.indep_vars = xmalloc (lr.n_indep_vars * sizeof *lr.indep_vars);
 
-  /* Run logistical regression for each split group */
+  /* Interate over each variable and push it into the array */
+  x = 0;
+  HMAP_FOR_EACH_SAFE (vn, next, struct variable_node, node, &allvars)
+    {
+      lr.indep_vars[x++] = vn->var;
+      free (vn);
+    }
+  hmap_destroy (&allvars);
+  }  
+
+
+  /* logistical regression for each split group */
   {
     struct casegrouper *grouper;
     struct casereader *group;
@@ -965,12 +1032,16 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
 
   free (lr.predictor_vars);
   free (lr.cat_predictors);
+  free (lr.indep_vars);
+
   return CMD_SUCCESS;
 
  error:
 
   free (lr.predictor_vars);
   free (lr.cat_predictors);
+  free (lr.indep_vars);
+
   return CMD_FAILURE;
 }
 
