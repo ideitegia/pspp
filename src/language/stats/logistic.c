@@ -168,6 +168,10 @@ struct lr_result
    categorical predictors */
   struct categoricals *cats;
   struct payload cp;
+
+
+  /* The estimates of the predictor coefficients */
+  gsl_vector *beta_hat;
 };
 
 
@@ -199,8 +203,7 @@ static void output_categories (const struct lr_spec *cmd, const struct lr_result
 static void output_depvarmap (const struct lr_spec *cmd, const struct lr_result *);
 
 static void output_variables (const struct lr_spec *cmd, 
-			      const struct lr_result *,
-			      const gsl_vector *);
+			      const struct lr_result *);
 
 static void output_model_summary (const struct lr_result *,
 				  double initial_likelihood, double likelihood);
@@ -233,29 +236,28 @@ predictor_value (const struct ccase *c,
 
 
 /*
-  Return the probability estimator (that is the estimator of logit(y) )
-  corresponding to the coefficient estimator beta_hat for case C
+  Return the probability beta_hat (that is the estimator logit(y) )
+  corresponding to the coefficient estimator for case C
 */
 static double 
 pi_hat (const struct lr_spec *cmd, 
-	struct lr_result *res,
-	const gsl_vector *beta_hat,
+	const struct lr_result *res,
 	const struct variable **x, size_t n_x,
 	const struct ccase *c)
 {
   int v0;
   double pi = 0;
-  size_t n_coeffs = beta_hat->size;
+  size_t n_coeffs = res->beta_hat->size;
 
   if (cmd->constant)
     {
-      pi += gsl_vector_get (beta_hat, beta_hat->size - 1);
+      pi += gsl_vector_get (res->beta_hat, res->beta_hat->size - 1);
       n_coeffs--;
     }
   
   for (v0 = 0; v0 < n_coeffs; ++v0)
     {
-      pi += gsl_vector_get (beta_hat, v0) * 
+      pi += gsl_vector_get (res->beta_hat, v0) * 
 	predictor_value (c, x, n_x, res->cats, v0);
     }
 
@@ -279,7 +281,6 @@ hessian (const struct lr_spec *cmd,
 	 struct lr_result *res,
 	 struct casereader *input,
 	 const struct variable **x, size_t n_x,
-	 const gsl_vector *beta_hat,
 	 bool *converged)
 {
   struct casereader *reader;
@@ -293,7 +294,7 @@ hessian (const struct lr_spec *cmd,
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       int v0, v1;
-      double pi = pi_hat (cmd, res, beta_hat, x, n_x, c);
+      double pi = pi_hat (cmd, res, x, n_x, c);
 
       double weight = dict_get_case_weight (cmd->dict, c, &res->warn_bad_weight);
       double w = pi * (1 - pi);
@@ -301,10 +302,10 @@ hessian (const struct lr_spec *cmd,
 	max_w = w;
       w *= weight;
 
-      for (v0 = 0; v0 < beta_hat->size; ++v0)
+      for (v0 = 0; v0 < res->beta_hat->size; ++v0)
 	{
 	  double in0 = predictor_value (c, x, n_x, res->cats, v0);
-	  for (v1 = 0; v1 < beta_hat->size; ++v1)
+	  for (v1 = 0; v1 < res->beta_hat->size; ++v1)
 	    {
 	      double in1 = predictor_value (c, x, n_x, res->cats, v1);
 	      double *o = gsl_matrix_ptr (res->hessian, v0, v1);
@@ -335,19 +336,18 @@ xt_times_y_pi (const struct lr_spec *cmd,
 	       struct casereader *input,
 	       const struct variable **x, size_t n_x,
 	       const struct variable *y_var,
-	       const gsl_vector *beta_hat,
 	       double *likelihood)
 {
   struct casereader *reader;
   struct ccase *c;
-  gsl_vector *output = gsl_vector_calloc (beta_hat->size);
+  gsl_vector *output = gsl_vector_calloc (res->beta_hat->size);
 
   *likelihood = 1.0;
   for (reader = casereader_clone (input);
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       int v0;
-      double pi = pi_hat (cmd, res, beta_hat, x, n_x, c);
+      double pi = pi_hat (cmd, res, x, n_x, c);
       double weight = dict_get_case_weight (cmd->dict, c, &res->warn_bad_weight);
 
 
@@ -355,7 +355,7 @@ xt_times_y_pi (const struct lr_spec *cmd,
 
       *likelihood *= pow (pi, weight * y) * pow (1 - pi, weight * (1 - y));
 
-      for (v0 = 0; v0 < beta_hat->size; ++v0)
+      for (v0 = 0; v0 < res->beta_hat->size; ++v0)
 	{
 	  double in0 = predictor_value (c, x, n_x, res->cats, v0);
 	  double *o = gsl_vector_ptr (output, v0);
@@ -404,17 +404,18 @@ frq_destroy (const void *aux1 UNUSED, void *aux2 UNUSED, void *user_data UNUSED)
    * Creates and initialises the categoricals,
    * Accumulates summary results,
    * Calculates necessary initial values.
+   * Creates an initial value for \hat\beta the vector of beta_hats of \beta
 
-   Returns an initial value for \hat\beta the vector of estimators of \beta
+   Returns true if successful
 */
-static gsl_vector * 
-beta_hat_initial (const struct lr_spec *cmd, struct lr_result *res, struct casereader *input)
+static bool
+initial_pass (const struct lr_spec *cmd, struct lr_result *res, struct casereader *input)
 {
   const int width = var_get_width (cmd->dep_var);
 
   struct ccase *c;
   struct casereader *reader;
-  gsl_vector *b0 ;
+
   double sum;
   double sumA = 0.0;
   double sumB = 0.0;
@@ -523,19 +524,19 @@ beta_hat_initial (const struct lr_spec *cmd, struct lr_result *res, struct caser
     }
 
   n_coefficients += categoricals_df_total (res->cats);
-  b0 = gsl_vector_calloc (n_coefficients);
+  res->beta_hat = gsl_vector_calloc (n_coefficients);
 
-  if ( cmd->constant)
+  if (cmd->constant)
     {
       double mean = sum / res->cc;
-      gsl_vector_set (b0, b0->size - 1, log (mean / (1 - mean)));
+      gsl_vector_set (res->beta_hat, res->beta_hat->size - 1, log (mean / (1 - mean)));
     }
 
-  return b0;
+  return true;
 
  error:
   casereader_destroy (reader);
-  return NULL;
+  return false;
 }
 
 
@@ -546,8 +547,6 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 	const struct dataset *ds UNUSED)
 {
   int i;
-
-  gsl_vector *beta_hat;
 
   bool converged = false;
 
@@ -561,13 +560,12 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
   work.n_nonmissing = 0;
   work.warn_bad_weight = true;
   work.cats = NULL;
+  work.beta_hat = NULL;
 
-
-  /* Get the initial estimates of \beta and their standard errors */
-  beta_hat = beta_hat_initial (cmd, &work, input);
-  if (NULL == beta_hat)
+  /* Get the initial estimates of \beta and their standard errors.
+     And perform other auxilliary initialisation.  */
+  if (! initial_pass (cmd, &work, input))
     return false;
-
   
   for (i = 0; i < cmd->n_cat_predictors; ++i)
     {
@@ -598,7 +596,7 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 					    NULL);
 
 
-  work.hessian = gsl_matrix_calloc (beta_hat->size, beta_hat->size);
+  work.hessian = gsl_matrix_calloc (work.beta_hat->size, work.beta_hat->size);
 
   /* Start the Newton Raphson iteration process... */
   for( i = 0 ; i < cmd->max_iter ; ++i)
@@ -608,9 +606,8 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 
       
       hessian (cmd, &work, input,
-		   cmd->predictor_vars, cmd->n_predictor_vars,
-		   beta_hat,
-		   &converged);
+	       cmd->predictor_vars, cmd->n_predictor_vars,
+	       &converged);
 
       gsl_linalg_cholesky_decomp (work.hessian);
       gsl_linalg_cholesky_invert (work.hessian);
@@ -618,7 +615,6 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
       v = xt_times_y_pi (cmd, &work, input,
 			 cmd->predictor_vars, cmd->n_predictor_vars,
 			 cmd->dep_var,
-			 beta_hat,
 			 &likelihood);
 
       {
@@ -628,7 +624,7 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 	gsl_vector_free (v);
 
 
-	gsl_vector_add (beta_hat, delta);
+	gsl_vector_add (work.beta_hat, delta);
 
 	gsl_vector_minmax (delta, &min, &max);
 
@@ -669,10 +665,10 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
   if (work.cats)
     output_categories (cmd, &work);
 
-  output_variables (cmd, &work, beta_hat);
+  output_variables (cmd, &work);
 
   gsl_matrix_free (work.hessian);
-  gsl_vector_free (beta_hat); 
+  gsl_vector_free (work.beta_hat); 
   
   categoricals_destroy (work.cats);
 
@@ -1098,8 +1094,7 @@ output_depvarmap (const struct lr_spec *cmd, const struct lr_result *res)
 /* Show the Variables in the Equation box */
 static void
 output_variables (const struct lr_spec *cmd, 
-		  const struct lr_result *res,
-		  const gsl_vector *beta)
+		  const struct lr_result *res)
 {
   int row = 0;
   const int heading_columns = 1;
@@ -1157,7 +1152,7 @@ output_variables (const struct lr_spec *cmd,
     {
       const int idx = row - heading_rows - idx_correction;
 
-      const double b = gsl_vector_get (beta, idx);
+      const double b = gsl_vector_get (res->beta_hat, idx);
       const double sigma2 = gsl_matrix_get (res->hessian, idx, idx);
       const double wald = pow2 (b) / sigma2;
       const double df = 1;
@@ -1189,7 +1184,7 @@ output_variables (const struct lr_spec *cmd,
 	      gsl_matrix_const_view mv =
 		gsl_matrix_const_submatrix (res->hessian, idx, idx, df, df);
 	      gsl_matrix *subhessian = gsl_matrix_alloc (mv.matrix.size1, mv.matrix.size2);
-	      gsl_vector_const_view vv = gsl_vector_const_subvector (beta, idx, df);
+	      gsl_vector_const_view vv = gsl_vector_const_subvector (res->beta_hat, idx, df);
 	      gsl_vector *temp = gsl_vector_alloc (df);
 
 	      gsl_matrix_memcpy (subhessian, &mv.matrix);
