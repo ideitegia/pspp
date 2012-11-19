@@ -131,10 +131,43 @@ psppire_selector_get_type (void)
 
 static GObjectClass * parent_class = NULL;
 
+
+
+#define SELECTOR_DEBUGGING 0
+
+static void
+dump_hash_entry (gpointer key, gpointer value, gpointer obj)
+{
+  GList *item = NULL;
+  g_print ("Source %p; ", key);
+
+  for (item = g_list_first (value);
+       item != NULL;
+       item = g_list_next (item))
+    {
+      g_print ("%p(%p) ", item->data, item);
+    }
+  g_print ("\n");
+}
+
+/* This function is for debugging only */
+void 
+psppire_selector_show_map (PsppireSelector *obj)
+{
+  PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
+
+  g_print ("%s %p\n", __FUNCTION__, obj);
+  g_hash_table_foreach (class->source_hash, dump_hash_entry, obj);
+}
+
+
+
 static void
 psppire_selector_dispose (GObject *obj)
 {
   PsppireSelector *sel = PSPPIRE_SELECTOR (obj);
+  PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
+  GList *list;
 
   if (sel->dispose_has_run)
     return;
@@ -142,6 +175,21 @@ psppire_selector_dispose (GObject *obj)
   /* Make sure dispose does not run twice. */
   sel->dispose_has_run = TRUE;
 
+  /* Remove ourself from the source map. If we are the only entry for this source
+     widget, that will result in an empty list for the source.  In that case, we
+     remove the entire entry too. */
+  if ((list = g_hash_table_lookup (class->source_hash, sel->source)))
+    {
+      GList *newlist = g_list_remove_link (list, sel->source_litem);
+      g_list_free (sel->source_litem);
+      if (newlist == NULL)
+	g_hash_table_remove (class->source_hash, sel->source);
+      else
+	g_hash_table_replace (class->source_hash, sel->source, newlist);
+
+      sel->source_litem = NULL;
+    }
+  
   g_object_unref (sel->dest);
   g_object_unref (sel->source);
 
@@ -407,6 +455,8 @@ psppire_selector_init (PsppireSelector *selector)
 
   selector->row_activate_id = 0;
   selector->source_select_id  = 0;
+
+  selector->source_litem = NULL;
 }
 
 
@@ -726,8 +776,15 @@ set_tree_view_source (PsppireSelector *selector)
   
   if ( ! (list = g_hash_table_lookup (class->source_hash, selector->source)))
     {
+      /* Base case:  This widget is currently not the source of 
+	 any selector.  Create a hash entry and make this selector
+	 the first selector in the list */
+
       list = g_list_append (list, selector);
       g_hash_table_insert (class->source_hash, selector->source, list);
+
+      /* Save the list item so that it can be removed later */
+      selector->source_litem = list;
     }
   else
     {  /* Append this selector to the list and push the <source,list>
@@ -736,9 +793,15 @@ set_tree_view_source (PsppireSelector *selector)
       if ( NULL == g_list_find (list, selector) )
 	{
 	  if ( selector->primary_requested )
-	    list = g_list_prepend (list, selector);
+	    {
+	      list = g_list_prepend (list, selector);
+	      selector->source_litem = list;
+	    }
 	  else
-	    list = g_list_append (list, selector);
+	    {
+	      list = g_list_append (list, selector);
+	      selector->source_litem = g_list_last (list);
+	    }
 	  g_hash_table_replace (class->source_hash, selector->source, list);
 	}
     }
