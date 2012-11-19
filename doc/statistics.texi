@@ -741,7 +741,8 @@ LOGISTIC REGRESSION [VARIABLES =] @var{dependent_var} WITH @var{predictors}
      [/PRINT = [SUMMARY] [DEFAULT] [CI(@var{confidence})] [ALL]]
 
      [/CRITERIA = [BCON(@var{min_delta})] [ITERATE(@var{max_interations})]
-                  [LCON(@var{min_likelihood_delta})] [EPS(@var{min_epsilon})]]
+                  [LCON(@var{min_likelihood_delta})] [EPS(@var{min_epsilon})]
+                  [CUT(@var{cut_point})]]
 
      [/MISSING = @{INCLUDE|EXCLUDE@}]
 @end display
@@ -773,10 +774,14 @@ If you want a model without the constant term @math{b_0}, use the keyword @subcm
 @subcmd{/NOCONST} is a synonym for @subcmd{/ORIGIN}.
 
 An iterative Newton-Raphson procedure is used to fit the model.
-The @subcmd{/CRITERIA} subcommand is used to specify the stopping criteria of the procedure.
+The @subcmd{/CRITERIA} subcommand is used to specify the stopping criteria of the procedure,
+and other parameters.
+The value of @var{cut_point} is used in the classification table.  It is the 
+threshold above which predicted values are considered to be 1.  Values
+of @var{cut_point} must lie in the range [0,1].
 During iterations, if any one of the stopping criteria are satisfied, the procedure is
 considered complete.
-The criteria are:
+The stopping criteria are:
 @itemize
 @item The number of iterations exceeds @var{max_iterations}.  
       The default value of @var{max_iterations} is 20.
@@ -789,6 +794,7 @@ This means that this criterion is disabled.
 In other words, the probabilities are close to zero or one.
 The default value of @var{min_epsilon} is 0.00000001.
 @end itemize
+
 
 The @subcmd{PRINT} subcommand controls the display of optional statistics.
 Currently there is one such option, @subcmd{CI}, which indicates that the 

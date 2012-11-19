@@ -112,6 +112,15 @@ Table: Model Summary
 Step 1,-2 Log likelihood,Cox & Snell R Square,Nagelkerke R Square
 ,37.323,.455,.659
 
+Table: Classification Table
+,,,Predicted,,
+,,,outcome,,"Percentage
+Correct"
+,Observed,,1.000,2.000,
+Step 1,outcome,1.000,43,5,89.583
+,,2.000,4,14,77.778
+,Overall Percentage,,,,86.364
+
 Table: Variables in the Equation
 ,,B,S.E.,Wald,df,Sig.,Exp(B)
 Step 1,survrate,-.081,.019,17.756,1,.000,.922
@@ -213,6 +222,12 @@ AT_CHECK([diff unweighted-result weighted-result], [1], [dnl
 < Total,66,100.000
 ---
 > Total,63,100.000
+23,24c23,24
+< Step 1,outcome,1.000,43,5,89.583
+< ,,2.000,4,14,77.778
+---
+> Step 1,outcome,1.000,43.000,5.000,89.583
+> ,,2.000,4.000,14.000,77.778
 ])
 
 
@@ -258,6 +273,15 @@ note: Estimation terminated at iteration number 2 because parameter estimates ch
 Table: Model Summary
 Step 1,-2 Log likelihood,Cox & Snell R Square,Nagelkerke R Square
 ,275.637,.008,.011
+
+Table: Classification Table
+,,,Predicted,,
+,,,female,,"Percentage
+Correct"
+,Observed,,.00,1.00,
+Step 1,female,.00,0,91,.000
+,,1.00,0,109,100.000
+,Overall Percentage,,,,54.500
 
 Table: Variables in the Equation
 ,,B,S.E.,Wald,df,Sig.,Exp(B)
@@ -738,6 +762,15 @@ bcat,1.000,61,1,0,0
 ,3.000,121,0,0,1
 ,4.000,67,0,0,0
 
+Table: Classification Table
+,,,Predicted,,
+,,,y,,"Percentage
+Correct"
+,Observed,,4.000,9.000,
+Step 1,y,4.000,254,19,93.040
+,,9.000,97,30,23.622
+,Overall Percentage,,,,71.000
+
 Table: Variables in the Equation
 ,,B,S.E.,Wald,df,Sig.,Exp(B)
 Step 1,b1,.002,.001,4.284,1,.038,1.002
@@ -996,6 +1029,15 @@ Table: Categorical Variables' Codings
 ses,a,47,1,0
 ,b,95,0,1
 ,c,58,0,0
+
+Table: Classification Table
+,,,Predicted,,
+,,,honcomp,,"Percentage
+Correct"
+,Observed,,.000,1.000,
+Step 1,honcomp,.000,132,15,89.796
+,,1.000,26,27,50.943
+,Overall Percentage,,,,79.500
 
 Table: Variables in the Equation
 ,,B,S.E.,Wald,df,Sig.,Exp(B)

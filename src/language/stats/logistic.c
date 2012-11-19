@@ -172,6 +172,10 @@ struct lr_result
 
   /* The estimates of the predictor coefficients */
   gsl_vector *beta_hat;
+
+  /* The predicted classifications: 
+     True Negative, True Positive, False Negative, False Positive */
+  double tn, tp, fn, fp;
 };
 
 
@@ -197,6 +201,7 @@ map_dependent_var (const struct lr_spec *cmd, const struct lr_result *res, const
   return SYSMIS;
 }
 
+static void output_classification_table (const struct lr_spec *cmd, const struct lr_result *res);
 
 static void output_categories (const struct lr_spec *cmd, const struct lr_result *res);
 
@@ -328,7 +333,9 @@ hessian (const struct lr_spec *cmd,
    y is the vector of observed independent variables
    pi is the vector of estimates for y
 
-   As a side effect, the likelihood is stored in LIKELIHOOD
+   Side effects:
+     the likelihood is stored in LIKELIHOOD;
+     the predicted values are placed in the respective tn, fn, tp fp values in RES
 */
 static gsl_vector *
 xt_times_y_pi (const struct lr_spec *cmd,
@@ -343,9 +350,11 @@ xt_times_y_pi (const struct lr_spec *cmd,
   gsl_vector *output = gsl_vector_calloc (res->beta_hat->size);
 
   *likelihood = 1.0;
+  res->tn = res->tp = res->fn = res->fp = 0;
   for (reader = casereader_clone (input);
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
+      double pred_y = 0;
       int v0;
       double pi = pi_hat (cmd, res, x, n_x, c);
       double weight = dict_get_case_weight (cmd->dict, c, &res->warn_bad_weight);
@@ -360,6 +369,26 @@ xt_times_y_pi (const struct lr_spec *cmd,
 	  double in0 = predictor_value (c, x, n_x, res->cats, v0);
 	  double *o = gsl_vector_ptr (output, v0);
       	  *o += in0 * (y - pi) * weight;
+	  pred_y += gsl_vector_get (res->beta_hat, v0) * in0;
+	}
+
+      pred_y = 1 / (1.0 + exp(-pred_y));
+      assert (pred_y >= 0);
+      assert (pred_y <= 1);
+
+      if (pred_y <= cmd->cut_point)
+	{
+	  if (y == 0)
+	    res->tn += weight;
+	  else
+	    res->fn += weight;
+	}
+      else
+	{
+	  if (y == 0)
+	    res->fp += weight;
+	  else
+	    res->tp += weight;
 	}
     }
 
@@ -665,6 +694,7 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
   if (work.cats)
     output_categories (cmd, &work);
 
+  output_classification_table (cmd, &work);
   output_variables (cmd, &work);
 
   gsl_matrix_free (work.hessian);
@@ -920,6 +950,29 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
 			  goto error;
 			}
 		      lr.min_epsilon = lex_number (lexer);
+		      lex_get (lexer);
+		      if ( ! lex_force_match (lexer, T_RPAREN))
+			{
+			  lex_error (lexer, NULL);
+			  goto error;
+			}
+		    }
+		}
+	      else if (lex_match_id (lexer, "CUT"))
+		{
+		  if (lex_force_match (lexer, T_LPAREN))
+		    {
+		      if (! lex_force_num (lexer))
+			{
+			  lex_error (lexer, NULL);
+			  goto error;
+			}
+		      lr.cut_point = lex_number (lexer);
+		      if (lr.cut_point < 0 || lr.cut_point > 1.0)
+			{
+			  msg (ME, _("Cut point value must be in the range [0,1]"));
+			  goto error;
+			}
 		      lex_get (lexer);
 		      if ( ! lex_force_match (lexer, T_RPAREN))
 			{
@@ -1435,4 +1488,87 @@ output_categories (const struct lr_spec *cmd, const struct lr_result *res)
 
   tab_submit (t);
 
+}
+
+
+static void 
+output_classification_table (const struct lr_spec *cmd, const struct lr_result *res)
+{
+  const struct fmt_spec *wfmt =
+    cmd->wv ? var_get_print_format (cmd->wv) : &F_8_0;
+
+  const int heading_columns = 3;
+  const int heading_rows = 3;
+
+  struct string sv0, sv1;
+
+  const int nc = heading_columns + 3;
+  const int nr = heading_rows + 3;
+
+  struct tab_table *t = tab_create (nc, nr);
+
+  ds_init_empty (&sv0);
+  ds_init_empty (&sv1);
+
+  tab_title (t, _("Classification Table"));
+
+  tab_headers (t, heading_columns, 0, heading_rows, 0);
+
+  tab_box (t, TAL_2, TAL_2, -1, -1, 0, 0, nc - 1, nr - 1);
+  tab_box (t, -1, -1, -1, TAL_1, heading_columns, 0, nc - 1, nr - 1);
+
+  tab_hline (t, TAL_2, 0, nc - 1, heading_rows);
+  tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
+
+  tab_text (t,  0, heading_rows, TAB_CENTER | TAT_TITLE, _("Step 1"));
+
+
+  tab_joint_text (t, heading_columns, 0, nc - 1, 0,
+		  TAB_CENTER | TAT_TITLE, _("Predicted"));
+
+  tab_joint_text (t, heading_columns, 1, heading_columns + 1, 1, 
+		  0, var_to_string (cmd->dep_var) );
+
+  tab_joint_text (t, 1, 2, 2, 2,
+		  TAB_LEFT | TAT_TITLE, _("Observed"));
+
+  tab_text (t, 1, 3, TAB_LEFT, var_to_string (cmd->dep_var) );
+
+
+  tab_joint_text (t, nc - 1, 1, nc - 1, 2,
+		  TAB_CENTER | TAT_TITLE, _("Percentage\nCorrect"));
+
+
+  tab_joint_text (t, 1, nr - 1, 2, nr - 1,
+		  TAB_LEFT | TAT_TITLE, _("Overall Percentage"));
+
+
+  tab_hline (t, TAL_1, 1, nc - 1, nr - 1);
+
+  var_append_value_name (cmd->dep_var, &res->y0, &sv0);
+  var_append_value_name (cmd->dep_var, &res->y1, &sv1);
+
+  tab_text (t, 2, heading_rows,     TAB_LEFT,  ds_cstr (&sv0));
+  tab_text (t, 2, heading_rows + 1, TAB_LEFT,  ds_cstr (&sv1));
+
+  tab_text (t, heading_columns,     2, 0,  ds_cstr (&sv0));
+  tab_text (t, heading_columns + 1, 2, 0,  ds_cstr (&sv1));
+
+  ds_destroy (&sv0);
+  ds_destroy (&sv1);
+
+  tab_double (t, heading_columns, 3,     0, res->tn, wfmt);
+  tab_double (t, heading_columns + 1, 4, 0, res->tp, wfmt);
+
+  tab_double (t, heading_columns + 1, 3, 0, res->fp, wfmt);
+  tab_double (t, heading_columns,     4, 0, res->fn, wfmt);
+
+  tab_double (t, heading_columns + 2, 3, 0, 100 * res->tn / (res->tn + res->fp), 0);
+  tab_double (t, heading_columns + 2, 4, 0, 100 * res->tp / (res->tp + res->fn), 0);
+
+  tab_double (t, heading_columns + 2, 5, 0, 
+	      100 * (res->tp + res->tn) / (res->tp  + res->tn + res->fp + res->fn), 0);
+
+
+  tab_submit (t);
 }
