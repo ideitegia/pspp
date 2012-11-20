@@ -135,7 +135,8 @@ struct lr_spec
   /* What results should be presented */
   unsigned int print;
 
-  double cut_point;
+  /* Inverse logit of the cut point */
+  double ilogit_cut_point;
 };
 
 
@@ -372,11 +373,9 @@ xt_times_y_pi (const struct lr_spec *cmd,
 	  pred_y += gsl_vector_get (res->beta_hat, v0) * in0;
 	}
 
-      pred_y = 1 / (1.0 + exp(-pred_y));
-      assert (pred_y >= 0);
-      assert (pred_y <= 1);
-
-      if (pred_y <= cmd->cut_point)
+      /* Count the number of cases which would be correctly/incorrectly classified by this
+	 estimated model */
+      if (pred_y <= cmd->ilogit_cut_point)
 	{
 	  if (y == 0)
 	    res->tn += weight;
@@ -735,6 +734,7 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
      These may or may not include the categorical predictors */
   const struct variable **pred_vars;
   size_t n_pred_vars;
+  double cp = 0.5;
 
   int v, x;
   struct lr_spec lr;
@@ -747,7 +747,6 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
   lr.lcon = 0.0000;
   lr.bcon = 0.001;
   lr.min_epsilon = 0.00000001;
-  lr.cut_point = 0.5;
   lr.constant = true;
   lr.confidence = 95;
   lr.print = PRINT_DEFAULT;
@@ -967,8 +966,9 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
 			  lex_error (lexer, NULL);
 			  goto error;
 			}
-		      lr.cut_point = lex_number (lexer);
-		      if (lr.cut_point < 0 || lr.cut_point > 1.0)
+		      cp = lex_number (lexer);
+		      
+		      if (cp < 0 || cp > 1.0)
 			{
 			  msg (ME, _("Cut point value must be in the range [0,1]"));
 			  goto error;
@@ -995,11 +995,13 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
+  lr.ilogit_cut_point = - log (1/cp - 1);
+  
+
   /* Copy the predictor variables from the temporary location into the 
      final one, dropping any categorical variables which appear there.
      FIXME: This is O(NxM).
   */
-
   {
   struct variable_node *vn, *next;
   struct hmap allvars;
