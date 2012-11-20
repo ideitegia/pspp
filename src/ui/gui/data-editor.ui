@@ -445,6 +445,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="regression">
+            <property name="name">regression</property>
+            <property name="label" translatable="yes">_Regression</property>
+          </object>
+        </child>
+        <child>
           <object class="PsppireDialogActionRegression" id="linear-regression">
             <property name="name">linear-regression</property>
             <property name="manager">uimanager1</property>
@@ -627,7 +633,9 @@
           <menuitem action="k-means"/>
           <menuitem action="factor-analysis"/>
           <menuitem action="reliability"/>
-          <menuitem action="linear-regression"/>
+          <menu action="regression">
+            <menuitem action="linear-regression"/>
+          </menu>
           <menu action="non-parametrics">
             <menuitem action="chi-square"/>
             <menuitem action="binomial"/>
