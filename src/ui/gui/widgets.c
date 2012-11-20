@@ -54,6 +54,7 @@ preregister_widgets (void)
   psppire_dialog_action_descriptives_get_type ();
   psppire_dialog_action_examine_get_type ();
   psppire_dialog_action_factor_get_type ();
+  psppire_dialog_action_logistic_get_type ();
   psppire_dialog_action_kmeans_get_type ();
   psppire_dialog_action_means_get_type ();
   psppire_dialog_action_indep_samps_get_type ();
