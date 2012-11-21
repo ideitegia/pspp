@@ -150,6 +150,7 @@
                         <property name="label" translatable="yes">_Dependent</property>
                         <property name="use_markup">True</property>
                         <property name="use_underline">True</property>
+                        <property name="mnemonic_widget">dependent-entry</property>
                       </object>
                     </child>
                   </object>
