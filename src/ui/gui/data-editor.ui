@@ -454,14 +454,14 @@
           <object class="PsppireDialogActionRegression" id="linear-regression">
             <property name="name">linear-regression</property>
             <property name="manager">uimanager1</property>
-            <property name="label" translatable="yes">Linear _Regression...</property>
+            <property name="label" translatable="yes">_Linear...</property>
           </object>
         </child>
         <child>
           <object class="PsppireDialogActionLogistic" id="logistic-regression">
             <property name="name">logistic-regression</property>
             <property name="manager">uimanager1</property>
-            <property name="label" translatable="yes">Lo_gistic Regression...</property>
+            <property name="label" translatable="yes">_Binary Logistic...</property>
           </object>
         </child>
         <child>
