@@ -344,13 +344,13 @@ xt_times_y_pi (const struct lr_spec *cmd,
 	       struct casereader *input,
 	       const struct variable **x, size_t n_x,
 	       const struct variable *y_var,
-	       double *likelihood)
+	       double *llikelihood)
 {
   struct casereader *reader;
   struct ccase *c;
   gsl_vector *output = gsl_vector_calloc (res->beta_hat->size);
 
-  *likelihood = 1.0;
+  *llikelihood = 0.0;
   res->tn = res->tp = res->fn = res->fp = 0;
   for (reader = casereader_clone (input);
        (c = casereader_read (reader)) != NULL; case_unref (c))
@@ -363,7 +363,7 @@ xt_times_y_pi (const struct lr_spec *cmd,
 
       double y = map_dependent_var (cmd, res, case_data (c, y_var));
 
-      *likelihood *= pow (pi, weight * y) * pow (1 - pi, weight * (1 - y));
+      *llikelihood += (weight * y) * log (pi) + log (1 - pi) * weight * (1 - y);
 
       for (v0 = 0; v0 < res->beta_hat->size; ++v0)
 	{
@@ -578,10 +578,10 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 
   bool converged = false;
 
-  /* Set the likelihoods to a negative sentinel value */
-  double likelihood = -1;
-  double prev_likelihood = -1;
-  double initial_likelihood = -1;
+  /* Set the log likelihoods to a sentinel value */
+  double log_likelihood = SYSMIS;
+  double prev_log_likelihood = SYSMIS;
+  double initial_log_likelihood = SYSMIS;
 
   struct lr_result work;
   work.n_missing = 0;
@@ -643,7 +643,7 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
       v = xt_times_y_pi (cmd, &work, input,
 			 cmd->predictor_vars, cmd->n_predictor_vars,
 			 cmd->dep_var,
-			 &likelihood);
+			 &log_likelihood);
 
       {
 	/* delta = M.v */
@@ -666,29 +666,29 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 	gsl_vector_free (delta);
       }
 
-      if ( prev_likelihood >= 0)
+      if (i > 0)
 	{
-	  if (-log (likelihood) > -(1.0 - cmd->lcon) * log (prev_likelihood))
+	  if (-log_likelihood > -(1.0 - cmd->lcon) * prev_log_likelihood)
 	    {
 	      msg (MN, _("Estimation terminated at iteration number %d because Log Likelihood decreased by less than %g%%"), i + 1, 100 * cmd->lcon);
 	      converged = true;
 	    }
 	}
       if (i == 0)
-	initial_likelihood = likelihood;
-      prev_likelihood = likelihood;
+	initial_log_likelihood = log_likelihood;
+      prev_log_likelihood = log_likelihood;
 
       if (converged)
 	break;
     }
   casereader_destroy (input);
-  assert (initial_likelihood >= 0);
+
 
   if ( ! converged) 
     msg (MW, _("Estimation terminated at iteration number %d because maximum iterations has been reached"), i );
 
 
-  output_model_summary (&work, initial_likelihood, likelihood);
+  output_model_summary (&work, initial_log_likelihood, log_likelihood);
 
   if (work.cats)
     output_categories (cmd, &work);
@@ -1307,7 +1307,7 @@ output_variables (const struct lr_spec *cmd,
 /* Show the model summary box */
 static void
 output_model_summary (const struct lr_result *res,
-		      double initial_likelihood, double likelihood)
+		      double initial_log_likelihood, double log_likelihood)
 {
   const int heading_columns = 0;
   const int heading_rows = 1;
@@ -1329,15 +1329,15 @@ output_model_summary (const struct lr_result *res,
 
   tab_text (t,  0, 0, TAB_LEFT | TAT_TITLE, _("Step 1"));
   tab_text (t,  1, 0, TAB_CENTER | TAT_TITLE, _("-2 Log likelihood"));
-  tab_double (t,  1, 1, 0, -2 * log (likelihood), 0);
+  tab_double (t,  1, 1, 0, -2 * log_likelihood, 0);
 
 
   tab_text (t,  2, 0, TAB_CENTER | TAT_TITLE, _("Cox & Snell R Square"));
-  cox =  1.0 - pow (initial_likelihood /likelihood, 2 / res->cc);
+  cox =  1.0 - exp((initial_log_likelihood - log_likelihood) * (2 / res->cc));
   tab_double (t,  2, 1, 0, cox, 0);
 
   tab_text (t,  3, 0, TAB_CENTER | TAT_TITLE, _("Nagelkerke R Square"));
-  tab_double (t,  3, 1, 0, cox / ( 1.0 - pow (initial_likelihood, 2 / res->cc)), 0);
+  tab_double (t,  3, 1, 0, cox / ( 1.0 - exp(initial_log_likelihood * (2 / res->cc))), 0);
 
 
   tab_submit (t);
