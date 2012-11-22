@@ -62,6 +62,20 @@ struct _PsppireDialogActionLogistic
 
   GtkWidget *dep_var;
   GtkWidget *indep_vars;
+
+  GtkWidget *opts_dialog;
+  GtkWidget *conf_checkbox;
+  GtkWidget *conf_entry;
+  GtkWidget *const_checkbox;
+  GtkWidget *iterations_entry;
+  GtkWidget *cut_point_entry;
+
+  gdouble cut_point;
+  gint max_iterations;
+  gboolean constant;
+
+  gboolean conf;
+  gdouble conf_level;
 };
 
 
