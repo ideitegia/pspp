@@ -1289,10 +1289,14 @@ output_variables (const struct lr_spec *cmd,
 
       if (cmd->print & PRINT_CI)
 	{
+	  int last_ci = nr;
 	  double wc = gsl_cdf_ugaussian_Pinv (0.5 + cmd->confidence / 200.0);
 	  wc *= sqrt (sigma2);
 
-	  if (idx < cmd->n_predictor_vars)
+	  if (cmd->constant)
+	    last_ci--;
+
+	  if (row < last_ci)
 	    {
 	      tab_double (t, 8, row, 0, exp (b - wc), 0);
 	      tab_double (t, 9, row, 0, exp (b + wc), 0);
