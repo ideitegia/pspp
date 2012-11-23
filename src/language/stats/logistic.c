@@ -65,6 +65,8 @@
 #include "libpspp/misc.h"
 #include "math/categoricals.h"
 #include "math/interaction.h"
+#include "libpspp/hmap.h"
+#include "libpspp/hash-functions.h"
 
 #include "output/tab.h"
 
@@ -101,6 +103,12 @@ struct lr_spec
   struct interaction **cat_predictors;
   size_t n_cat_predictors;
 
+
+  /* The union of the categorical and non-categorical variables */
+  const struct variable **indep_vars;
+  size_t n_indep_vars;
+
+
   /* Which classes of missing vars are to be excluded */
   enum mv_class exclude;
 
@@ -127,7 +135,8 @@ struct lr_spec
   /* What results should be presented */
   unsigned int print;
 
-  double cut_point;
+  /* Inverse logit of the cut point */
+  double ilogit_cut_point;
 };
 
 
@@ -160,6 +169,14 @@ struct lr_result
    categorical predictors */
   struct categoricals *cats;
   struct payload cp;
+
+
+  /* The estimates of the predictor coefficients */
+  gsl_vector *beta_hat;
+
+  /* The predicted classifications: 
+     True Negative, True Positive, False Negative, False Positive */
+  double tn, tp, fn, fp;
 };
 
 
@@ -185,14 +202,14 @@ map_dependent_var (const struct lr_spec *cmd, const struct lr_result *res, const
   return SYSMIS;
 }
 
+static void output_classification_table (const struct lr_spec *cmd, const struct lr_result *res);
 
 static void output_categories (const struct lr_spec *cmd, const struct lr_result *res);
 
 static void output_depvarmap (const struct lr_spec *cmd, const struct lr_result *);
 
 static void output_variables (const struct lr_spec *cmd, 
-			      const struct lr_result *,
-			      const gsl_vector *);
+			      const struct lr_result *);
 
 static void output_model_summary (const struct lr_result *,
 				  double initial_likelihood, double likelihood);
@@ -225,29 +242,28 @@ predictor_value (const struct ccase *c,
 
 
 /*
-  Return the probability estimator (that is the estimator of logit(y) )
-  corresponding to the coefficient estimator beta_hat for case C
+  Return the probability beta_hat (that is the estimator logit(y) )
+  corresponding to the coefficient estimator for case C
 */
 static double 
 pi_hat (const struct lr_spec *cmd, 
-	struct lr_result *res,
-	const gsl_vector *beta_hat,
+	const struct lr_result *res,
 	const struct variable **x, size_t n_x,
 	const struct ccase *c)
 {
   int v0;
   double pi = 0;
-  size_t n_coeffs = beta_hat->size;
+  size_t n_coeffs = res->beta_hat->size;
 
   if (cmd->constant)
     {
-      pi += gsl_vector_get (beta_hat, beta_hat->size - 1);
+      pi += gsl_vector_get (res->beta_hat, res->beta_hat->size - 1);
       n_coeffs--;
     }
   
   for (v0 = 0; v0 < n_coeffs; ++v0)
     {
-      pi += gsl_vector_get (beta_hat, v0) * 
+      pi += gsl_vector_get (res->beta_hat, v0) * 
 	predictor_value (c, x, n_x, res->cats, v0);
     }
 
@@ -271,7 +287,6 @@ hessian (const struct lr_spec *cmd,
 	 struct lr_result *res,
 	 struct casereader *input,
 	 const struct variable **x, size_t n_x,
-	 const gsl_vector *beta_hat,
 	 bool *converged)
 {
   struct casereader *reader;
@@ -285,7 +300,7 @@ hessian (const struct lr_spec *cmd,
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       int v0, v1;
-      double pi = pi_hat (cmd, res, beta_hat, x, n_x, c);
+      double pi = pi_hat (cmd, res, x, n_x, c);
 
       double weight = dict_get_case_weight (cmd->dict, c, &res->warn_bad_weight);
       double w = pi * (1 - pi);
@@ -293,10 +308,10 @@ hessian (const struct lr_spec *cmd,
 	max_w = w;
       w *= weight;
 
-      for (v0 = 0; v0 < beta_hat->size; ++v0)
+      for (v0 = 0; v0 < res->beta_hat->size; ++v0)
 	{
 	  double in0 = predictor_value (c, x, n_x, res->cats, v0);
-	  for (v1 = 0; v1 < beta_hat->size; ++v1)
+	  for (v1 = 0; v1 < res->beta_hat->size; ++v1)
 	    {
 	      double in1 = predictor_value (c, x, n_x, res->cats, v1);
 	      double *o = gsl_matrix_ptr (res->hessian, v0, v1);
@@ -319,7 +334,9 @@ hessian (const struct lr_spec *cmd,
    y is the vector of observed independent variables
    pi is the vector of estimates for y
 
-   As a side effect, the likelihood is stored in LIKELIHOOD
+   Side effects:
+     the likelihood is stored in LIKELIHOOD;
+     the predicted values are placed in the respective tn, fn, tp fp values in RES
 */
 static gsl_vector *
 xt_times_y_pi (const struct lr_spec *cmd,
@@ -327,31 +344,50 @@ xt_times_y_pi (const struct lr_spec *cmd,
 	       struct casereader *input,
 	       const struct variable **x, size_t n_x,
 	       const struct variable *y_var,
-	       const gsl_vector *beta_hat,
-	       double *likelihood)
+	       double *llikelihood)
 {
   struct casereader *reader;
   struct ccase *c;
-  gsl_vector *output = gsl_vector_calloc (beta_hat->size);
+  gsl_vector *output = gsl_vector_calloc (res->beta_hat->size);
 
-  *likelihood = 1.0;
+  *llikelihood = 0.0;
+  res->tn = res->tp = res->fn = res->fp = 0;
   for (reader = casereader_clone (input);
        (c = casereader_read (reader)) != NULL; case_unref (c))
     {
+      double pred_y = 0;
       int v0;
-      double pi = pi_hat (cmd, res, beta_hat, x, n_x, c);
+      double pi = pi_hat (cmd, res, x, n_x, c);
       double weight = dict_get_case_weight (cmd->dict, c, &res->warn_bad_weight);
 
 
       double y = map_dependent_var (cmd, res, case_data (c, y_var));
 
-      *likelihood *= pow (pi, weight * y) * pow (1 - pi, weight * (1 - y));
+      *llikelihood += (weight * y) * log (pi) + log (1 - pi) * weight * (1 - y);
 
-      for (v0 = 0; v0 < beta_hat->size; ++v0)
+      for (v0 = 0; v0 < res->beta_hat->size; ++v0)
 	{
 	  double in0 = predictor_value (c, x, n_x, res->cats, v0);
 	  double *o = gsl_vector_ptr (output, v0);
       	  *o += in0 * (y - pi) * weight;
+	  pred_y += gsl_vector_get (res->beta_hat, v0) * in0;
+	}
+
+      /* Count the number of cases which would be correctly/incorrectly classified by this
+	 estimated model */
+      if (pred_y <= cmd->ilogit_cut_point)
+	{
+	  if (y == 0)
+	    res->tn += weight;
+	  else
+	    res->fn += weight;
+	}
+      else
+	{
+	  if (y == 0)
+	    res->fp += weight;
+	  else
+	    res->tp += weight;
 	}
     }
 
@@ -396,17 +432,18 @@ frq_destroy (const void *aux1 UNUSED, void *aux2 UNUSED, void *user_data UNUSED)
    * Creates and initialises the categoricals,
    * Accumulates summary results,
    * Calculates necessary initial values.
+   * Creates an initial value for \hat\beta the vector of beta_hats of \beta
 
-   Returns an initial value for \hat\beta the vector of estimators of \beta
+   Returns true if successful
 */
-static gsl_vector * 
-beta_hat_initial (const struct lr_spec *cmd, struct lr_result *res, struct casereader *input)
+static bool
+initial_pass (const struct lr_spec *cmd, struct lr_result *res, struct casereader *input)
 {
   const int width = var_get_width (cmd->dep_var);
 
   struct ccase *c;
   struct casereader *reader;
-  gsl_vector *b0 ;
+
   double sum;
   double sumA = 0.0;
   double sumB = 0.0;
@@ -441,10 +478,15 @@ beta_hat_initial (const struct lr_spec *cmd, struct lr_result *res, struct caser
       double weight = dict_get_case_weight (cmd->dict, c, &res->warn_bad_weight);
       const union value *depval = case_data (c, cmd->dep_var);
 
-      for (v = 0; v < cmd->n_predictor_vars; ++v)
+      if (var_is_value_missing (cmd->dep_var, depval, cmd->exclude))
 	{
-	  const union value *val = case_data (c, cmd->predictor_vars[v]);
-	  if (var_is_value_missing (cmd->predictor_vars[v], val, cmd->exclude))
+	  missing = true;
+	}
+      else 
+      for (v = 0; v < cmd->n_indep_vars; ++v)
+	{
+	  const union value *val = case_data (c, cmd->indep_vars[v]);
+	  if (var_is_value_missing (cmd->indep_vars[v], val, cmd->exclude))
 	    {
 	      missing = true;
 	      break;
@@ -515,19 +557,19 @@ beta_hat_initial (const struct lr_spec *cmd, struct lr_result *res, struct caser
     }
 
   n_coefficients += categoricals_df_total (res->cats);
-  b0 = gsl_vector_calloc (n_coefficients);
+  res->beta_hat = gsl_vector_calloc (n_coefficients);
 
-  if ( cmd->constant)
+  if (cmd->constant)
     {
       double mean = sum / res->cc;
-      gsl_vector_set (b0, b0->size - 1, log (mean / (1 - mean)));
+      gsl_vector_set (res->beta_hat, res->beta_hat->size - 1, log (mean / (1 - mean)));
     }
 
-  return b0;
+  return true;
 
  error:
   casereader_destroy (reader);
-  return NULL;
+  return false;
 }
 
 
@@ -539,26 +581,40 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 {
   int i;
 
-  gsl_vector *beta_hat;
-
   bool converged = false;
 
-  /* Set the likelihoods to a negative sentinel value */
-  double likelihood = -1;
-  double prev_likelihood = -1;
-  double initial_likelihood = -1;
+  /* Set the log likelihoods to a sentinel value */
+  double log_likelihood = SYSMIS;
+  double prev_log_likelihood = SYSMIS;
+  double initial_log_likelihood = SYSMIS;
 
   struct lr_result work;
   work.n_missing = 0;
   work.n_nonmissing = 0;
   work.warn_bad_weight = true;
   work.cats = NULL;
+  work.beta_hat = NULL;
 
-
-  /* Get the initial estimates of \beta and their standard errors */
-  beta_hat = beta_hat_initial (cmd, &work, input);
-  if (NULL == beta_hat)
+  /* Get the initial estimates of \beta and their standard errors.
+     And perform other auxilliary initialisation.  */
+  if (! initial_pass (cmd, &work, input))
     return false;
+  
+  for (i = 0; i < cmd->n_cat_predictors; ++i)
+    {
+      if (1 >= categoricals_n_count (work.cats, i))
+	{
+	  struct string str;
+	  ds_init_empty (&str);
+	  
+	  interaction_to_string (cmd->cat_predictors[i], &str);
+
+	  msg (ME, _("Category %s does not have at least two distinct values. Logistic regression will not be run."),
+	       ds_cstr(&str));
+	  ds_destroy (&str);
+	  return false;
+      	}
+    }
 
   output_depvarmap (cmd, &work);
 
@@ -566,14 +622,20 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 
 
   input = casereader_create_filter_missing (input,
-					    cmd->predictor_vars,
-					    cmd->n_predictor_vars,
+					    cmd->indep_vars,
+					    cmd->n_indep_vars,
 					    cmd->exclude,
 					    NULL,
 					    NULL);
 
+  input = casereader_create_filter_missing (input,
+					    &cmd->dep_var,
+					    1,
+					    cmd->exclude,
+					    NULL,
+					    NULL);
 
-  work.hessian = gsl_matrix_calloc (beta_hat->size, beta_hat->size);
+  work.hessian = gsl_matrix_calloc (work.beta_hat->size, work.beta_hat->size);
 
   /* Start the Newton Raphson iteration process... */
   for( i = 0 ; i < cmd->max_iter ; ++i)
@@ -583,9 +645,8 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 
       
       hessian (cmd, &work, input,
-		   cmd->predictor_vars, cmd->n_predictor_vars,
-		   beta_hat,
-		   &converged);
+	       cmd->predictor_vars, cmd->n_predictor_vars,
+	       &converged);
 
       gsl_linalg_cholesky_decomp (work.hessian);
       gsl_linalg_cholesky_invert (work.hessian);
@@ -593,8 +654,7 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
       v = xt_times_y_pi (cmd, &work, input,
 			 cmd->predictor_vars, cmd->n_predictor_vars,
 			 cmd->dep_var,
-			 beta_hat,
-			 &likelihood);
+			 &log_likelihood);
 
       {
 	/* delta = M.v */
@@ -603,7 +663,7 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 	gsl_vector_free (v);
 
 
-	gsl_vector_add (beta_hat, delta);
+	gsl_vector_add (work.beta_hat, delta);
 
 	gsl_vector_minmax (delta, &min, &max);
 
@@ -617,42 +677,65 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 	gsl_vector_free (delta);
       }
 
-      if ( prev_likelihood >= 0)
+      if (i > 0)
 	{
-	  if (-log (likelihood) > -(1.0 - cmd->lcon) * log (prev_likelihood))
+	  if (-log_likelihood > -(1.0 - cmd->lcon) * prev_log_likelihood)
 	    {
 	      msg (MN, _("Estimation terminated at iteration number %d because Log Likelihood decreased by less than %g%%"), i + 1, 100 * cmd->lcon);
 	      converged = true;
 	    }
 	}
       if (i == 0)
-	initial_likelihood = likelihood;
-      prev_likelihood = likelihood;
+	initial_log_likelihood = log_likelihood;
+      prev_log_likelihood = log_likelihood;
 
       if (converged)
 	break;
     }
   casereader_destroy (input);
-  assert (initial_likelihood >= 0);
+
 
   if ( ! converged) 
     msg (MW, _("Estimation terminated at iteration number %d because maximum iterations has been reached"), i );
 
 
-  output_model_summary (&work, initial_likelihood, likelihood);
+  output_model_summary (&work, initial_log_likelihood, log_likelihood);
 
   if (work.cats)
     output_categories (cmd, &work);
 
-  output_variables (cmd, &work, beta_hat);
+  output_classification_table (cmd, &work);
+  output_variables (cmd, &work);
 
   gsl_matrix_free (work.hessian);
-  gsl_vector_free (beta_hat); 
+  gsl_vector_free (work.beta_hat); 
   
   categoricals_destroy (work.cats);
 
   return true;
 }
+
+struct variable_node
+{
+  struct hmap_node node;      /* Node in hash map. */
+  const struct variable *var; /* The variable */
+};
+
+static struct variable_node *
+lookup_variable (const struct hmap *map, const struct variable *var, unsigned int hash)
+{
+  struct variable_node *vn = NULL;
+  HMAP_FOR_EACH_WITH_HASH (vn, struct variable_node, node, hash, map)
+    {
+      if (vn->var == var)
+	break;
+      
+      fprintf (stderr, "Warning: Hash table collision\n");
+    }
+  
+  return vn;
+}
+
 
 /* Parse the LOGISTIC REGRESSION command syntax */
 int
@@ -662,6 +745,7 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
      These may or may not include the categorical predictors */
   const struct variable **pred_vars;
   size_t n_pred_vars;
+  double cp = 0.5;
 
   int v, x;
   struct lr_spec lr;
@@ -674,13 +758,12 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
   lr.lcon = 0.0000;
   lr.bcon = 0.001;
   lr.min_epsilon = 0.00000001;
-  lr.cut_point = 0.5;
   lr.constant = true;
   lr.confidence = 95;
   lr.print = PRINT_DEFAULT;
   lr.cat_predictors = NULL;
   lr.n_cat_predictors = 0;
-
+  lr.indep_vars = NULL;
 
 
   if (lex_match_id (lexer, "VARIABLES"))
@@ -885,6 +968,30 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
 			}
 		    }
 		}
+	      else if (lex_match_id (lexer, "CUT"))
+		{
+		  if (lex_force_match (lexer, T_LPAREN))
+		    {
+		      if (! lex_force_num (lexer))
+			{
+			  lex_error (lexer, NULL);
+			  goto error;
+			}
+		      cp = lex_number (lexer);
+		      
+		      if (cp < 0 || cp > 1.0)
+			{
+			  msg (ME, _("Cut point value must be in the range [0,1]"));
+			  goto error;
+			}
+		      lex_get (lexer);
+		      if ( ! lex_force_match (lexer, T_RPAREN))
+			{
+			  lex_error (lexer, NULL);
+			  goto error;
+			}
+		    }
+		}
 	      else
 		{
 		  lex_error (lexer, NULL);
@@ -899,30 +1006,56 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
+  lr.ilogit_cut_point = - log (1/cp - 1);
+  
+
   /* Copy the predictor variables from the temporary location into the 
      final one, dropping any categorical variables which appear there.
      FIXME: This is O(NxM).
   */
+  {
+  struct variable_node *vn, *next;
+  struct hmap allvars;
+  hmap_init (&allvars);
   for (v = x = 0; v < n_pred_vars; ++v)
     {
       bool drop = false;
       const struct variable *var = pred_vars[v];
       int cv = 0;
+
+      unsigned int hash = hash_pointer (var, 0);
+      struct variable_node *vn = lookup_variable (&allvars, var, hash);
+      if (vn == NULL)
+	{
+	  vn = xmalloc (sizeof *vn);
+	  vn->var = var;
+	  hmap_insert (&allvars, &vn->node,  hash);
+	}
+
       for (cv = 0; cv < lr.n_cat_predictors ; ++cv)
 	{
 	  int iv;
 	  const struct interaction *iact = lr.cat_predictors[cv];
 	  for (iv = 0 ; iv < iact->n_vars ; ++iv)
 	    {
-	      if (var == iact->vars[iv])
+	      const struct variable *ivar = iact->vars[iv];
+	      unsigned int hash = hash_pointer (ivar, 0);
+	      struct variable_node *vn = lookup_variable (&allvars, ivar, hash);
+	      if (vn == NULL)
+		{
+		  vn = xmalloc (sizeof *vn);
+		  vn->var = ivar;
+		  
+		  hmap_insert (&allvars, &vn->node,  hash);
+		}
+
+	      if (var == ivar)
 		{
 		  drop = true;
-		  goto dropped;
 		}
 	    }
 	}
 
-    dropped:
       if (drop)
 	continue;
 
@@ -932,8 +1065,21 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
     }
   free (pred_vars);
 
+  lr.n_indep_vars = hmap_count (&allvars);
+  lr.indep_vars = xmalloc (lr.n_indep_vars * sizeof *lr.indep_vars);
 
-  /* Run logistical regression for each split group */
+  /* Interate over each variable and push it into the array */
+  x = 0;
+  HMAP_FOR_EACH_SAFE (vn, next, struct variable_node, node, &allvars)
+    {
+      lr.indep_vars[x++] = vn->var;
+      free (vn);
+    }
+  hmap_destroy (&allvars);
+  }  
+
+
+  /* logistical regression for each split group */
   {
     struct casegrouper *grouper;
     struct casereader *group;
@@ -948,12 +1094,16 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
 
   free (lr.predictor_vars);
   free (lr.cat_predictors);
+  free (lr.indep_vars);
+
   return CMD_SUCCESS;
 
  error:
 
   free (lr.predictor_vars);
   free (lr.cat_predictors);
+  free (lr.indep_vars);
+
   return CMD_FAILURE;
 }
 
@@ -1010,8 +1160,7 @@ output_depvarmap (const struct lr_spec *cmd, const struct lr_result *res)
 /* Show the Variables in the Equation box */
 static void
 output_variables (const struct lr_spec *cmd, 
-		  const struct lr_result *res,
-		  const gsl_vector *beta)
+		  const struct lr_result *res)
 {
   int row = 0;
   const int heading_columns = 1;
@@ -1069,7 +1218,7 @@ output_variables (const struct lr_spec *cmd,
     {
       const int idx = row - heading_rows - idx_correction;
 
-      const double b = gsl_vector_get (beta, idx);
+      const double b = gsl_vector_get (res->beta_hat, idx);
       const double sigma2 = gsl_matrix_get (res->hessian, idx, idx);
       const double wald = pow2 (b) / sigma2;
       const double df = 1;
@@ -1101,7 +1250,7 @@ output_variables (const struct lr_spec *cmd,
 	      gsl_matrix_const_view mv =
 		gsl_matrix_const_submatrix (res->hessian, idx, idx, df, df);
 	      gsl_matrix *subhessian = gsl_matrix_alloc (mv.matrix.size1, mv.matrix.size2);
-	      gsl_vector_const_view vv = gsl_vector_const_subvector (beta, idx, df);
+	      gsl_vector_const_view vv = gsl_vector_const_subvector (res->beta_hat, idx, df);
 	      gsl_vector *temp = gsl_vector_alloc (df);
 
 	      gsl_matrix_memcpy (subhessian, &mv.matrix);
@@ -1151,10 +1300,14 @@ output_variables (const struct lr_spec *cmd,
 
       if (cmd->print & PRINT_CI)
 	{
+	  int last_ci = nr;
 	  double wc = gsl_cdf_ugaussian_Pinv (0.5 + cmd->confidence / 200.0);
 	  wc *= sqrt (sigma2);
 
-	  if (idx < cmd->n_predictor_vars)
+	  if (cmd->constant)
+	    last_ci--;
+
+	  if (row < last_ci)
 	    {
 	      tab_double (t, 8, row, 0, exp (b - wc), 0);
 	      tab_double (t, 9, row, 0, exp (b + wc), 0);
@@ -1169,7 +1322,7 @@ output_variables (const struct lr_spec *cmd,
 /* Show the model summary box */
 static void
 output_model_summary (const struct lr_result *res,
-		      double initial_likelihood, double likelihood)
+		      double initial_log_likelihood, double log_likelihood)
 {
   const int heading_columns = 0;
   const int heading_rows = 1;
@@ -1191,15 +1344,15 @@ output_model_summary (const struct lr_result *res,
 
   tab_text (t,  0, 0, TAB_LEFT | TAT_TITLE, _("Step 1"));
   tab_text (t,  1, 0, TAB_CENTER | TAT_TITLE, _("-2 Log likelihood"));
-  tab_double (t,  1, 1, 0, -2 * log (likelihood), 0);
+  tab_double (t,  1, 1, 0, -2 * log_likelihood, 0);
 
 
   tab_text (t,  2, 0, TAB_CENTER | TAT_TITLE, _("Cox & Snell R Square"));
-  cox =  1.0 - pow (initial_likelihood /likelihood, 2 / res->cc);
+  cox =  1.0 - exp((initial_log_likelihood - log_likelihood) * (2 / res->cc));
   tab_double (t,  2, 1, 0, cox, 0);
 
   tab_text (t,  3, 0, TAB_CENTER | TAT_TITLE, _("Nagelkerke R Square"));
-  tab_double (t,  3, 1, 0, cox / ( 1.0 - pow (initial_likelihood, 2 / res->cc)), 0);
+  tab_double (t,  3, 1, 0, cox / ( 1.0 - exp(initial_log_likelihood * (2 / res->cc))), 0);
 
 
   tab_submit (t);
@@ -1352,4 +1505,87 @@ output_categories (const struct lr_spec *cmd, const struct lr_result *res)
 
   tab_submit (t);
 
+}
+
+
+static void 
+output_classification_table (const struct lr_spec *cmd, const struct lr_result *res)
+{
+  const struct fmt_spec *wfmt =
+    cmd->wv ? var_get_print_format (cmd->wv) : &F_8_0;
+
+  const int heading_columns = 3;
+  const int heading_rows = 3;
+
+  struct string sv0, sv1;
+
+  const int nc = heading_columns + 3;
+  const int nr = heading_rows + 3;
+
+  struct tab_table *t = tab_create (nc, nr);
+
+  ds_init_empty (&sv0);
+  ds_init_empty (&sv1);
+
+  tab_title (t, _("Classification Table"));
+
+  tab_headers (t, heading_columns, 0, heading_rows, 0);
+
+  tab_box (t, TAL_2, TAL_2, -1, -1, 0, 0, nc - 1, nr - 1);
+  tab_box (t, -1, -1, -1, TAL_1, heading_columns, 0, nc - 1, nr - 1);
+
+  tab_hline (t, TAL_2, 0, nc - 1, heading_rows);
+  tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
+
+  tab_text (t,  0, heading_rows, TAB_CENTER | TAT_TITLE, _("Step 1"));
+
+
+  tab_joint_text (t, heading_columns, 0, nc - 1, 0,
+		  TAB_CENTER | TAT_TITLE, _("Predicted"));
+
+  tab_joint_text (t, heading_columns, 1, heading_columns + 1, 1, 
+		  0, var_to_string (cmd->dep_var) );
+
+  tab_joint_text (t, 1, 2, 2, 2,
+		  TAB_LEFT | TAT_TITLE, _("Observed"));
+
+  tab_text (t, 1, 3, TAB_LEFT, var_to_string (cmd->dep_var) );
+
+
+  tab_joint_text (t, nc - 1, 1, nc - 1, 2,
+		  TAB_CENTER | TAT_TITLE, _("Percentage\nCorrect"));
+
+
+  tab_joint_text (t, 1, nr - 1, 2, nr - 1,
+		  TAB_LEFT | TAT_TITLE, _("Overall Percentage"));
+
+
+  tab_hline (t, TAL_1, 1, nc - 1, nr - 1);
+
+  var_append_value_name (cmd->dep_var, &res->y0, &sv0);
+  var_append_value_name (cmd->dep_var, &res->y1, &sv1);
+
+  tab_text (t, 2, heading_rows,     TAB_LEFT,  ds_cstr (&sv0));
+  tab_text (t, 2, heading_rows + 1, TAB_LEFT,  ds_cstr (&sv1));
+
+  tab_text (t, heading_columns,     2, 0,  ds_cstr (&sv0));
+  tab_text (t, heading_columns + 1, 2, 0,  ds_cstr (&sv1));
+
+  ds_destroy (&sv0);
+  ds_destroy (&sv1);
+
+  tab_double (t, heading_columns, 3,     0, res->tn, wfmt);
+  tab_double (t, heading_columns + 1, 4, 0, res->tp, wfmt);
+
+  tab_double (t, heading_columns + 1, 3, 0, res->fp, wfmt);
+  tab_double (t, heading_columns,     4, 0, res->fn, wfmt);
+
+  tab_double (t, heading_columns + 2, 3, 0, 100 * res->tn / (res->tn + res->fp), 0);
+  tab_double (t, heading_columns + 2, 4, 0, 100 * res->tp / (res->tp + res->fn), 0);
+
+  tab_double (t, heading_columns + 2, 5, 0, 
+	      100 * (res->tp + res->tn) / (res->tp  + res->tn + res->fp + res->fn), 0);
+
+
+  tab_submit (t);
 }

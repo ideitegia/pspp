@@ -465,8 +465,13 @@ string_label_compare (const struct comparator *cmptr,
   const struct string_comparator *ssc =
     (const struct string_comparator *) cmptr;
 
+  int width;
+
   const char *text = var_lookup_value_label (cmptr->var, val);
-  int width = strlen (text);
+  if (text == NULL)
+    return false;
+
+  width = strlen (text);
 
   assert ( cmptr->flags & STR_CMP_LABELS);
 

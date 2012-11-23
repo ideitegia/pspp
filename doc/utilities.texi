@@ -721,7 +721,7 @@ If @subcmd{TNUMBERS} is set to @subcmd{LABELS}, then values are displayed using 
 If the a value has no label, then it will be displayed using its literal value.
 If @subcmd{TNUMBERS} is set to @subcmd{BOTH}, then values will be displayed with both their label
 (if any) and their literal value in parentheses.
-@itemx TVARS
+@item TVARS
 The @subcmd{TVARS} option sets the way in which variables are displayed in output tables.
 The valid settings are @subcmd{NAMES}, @subcmd{LABELS} and @subcmd{BOTH}.
 If @subcmd{TVARS} is set to @subcmd{NAMES}, then all variables are displayed using their names.
@@ -861,7 +861,7 @@ parameters.  Parameters that can be changed using @cmd{SET}
 with the same name.  @cmd{SHOW} supports the following additional
 subcommands:
 
-@table @bullet
+@table @asis
 @item @subcmd{ALL}
 Show all settings.
 @item @subcmd{CC}

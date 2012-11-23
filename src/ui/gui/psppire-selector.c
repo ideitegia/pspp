@@ -67,8 +67,6 @@
 
 #include "psppire-selector.h"
 
-static void psppire_selector_base_finalize (PsppireSelectorClass *, gpointer);
-static void psppire_selector_base_init     (PsppireSelectorClass *class);
 static void psppire_selector_class_init    (PsppireSelectorClass *class);
 static void psppire_selector_init          (PsppireSelector      *selector);
 
@@ -113,8 +111,8 @@ psppire_selector_get_type (void)
       static const GTypeInfo psppire_selector_info =
       {
 	sizeof (PsppireSelectorClass),
-	(GBaseInitFunc) psppire_selector_base_init,
-        (GBaseFinalizeFunc) psppire_selector_base_finalize,
+	(GBaseInitFunc) NULL, 
+        (GBaseFinalizeFunc) NULL,
 	(GClassInitFunc)psppire_selector_class_init,
 	(GClassFinalizeFunc) NULL,
 	NULL,
@@ -133,18 +131,43 @@ psppire_selector_get_type (void)
 
 static GObjectClass * parent_class = NULL;
 
+
+
+#define SELECTOR_DEBUGGING 0
+
 static void
-psppire_selector_finalize (GObject *obj)
+dump_hash_entry (gpointer key, gpointer value, gpointer obj)
 {
-   /* Chain up to the parent class */
-   G_OBJECT_CLASS (parent_class)->finalize (obj);
+  GList *item = NULL;
+  g_print ("Source %p; ", key);
+
+  for (item = g_list_first (value);
+       item != NULL;
+       item = g_list_next (item))
+    {
+      g_print ("%p(%p) ", item->data, item);
+    }
+  g_print ("\n");
 }
+
+/* This function is for debugging only */
+void 
+psppire_selector_show_map (PsppireSelector *obj)
+{
+  PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
+
+  g_print ("%s %p\n", __FUNCTION__, obj);
+  g_hash_table_foreach (class->source_hash, dump_hash_entry, obj);
+}
+
 
 
 static void
 psppire_selector_dispose (GObject *obj)
 {
   PsppireSelector *sel = PSPPIRE_SELECTOR (obj);
+  PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
+  GList *list;
 
   if (sel->dispose_has_run)
     return;
@@ -152,6 +175,21 @@ psppire_selector_dispose (GObject *obj)
   /* Make sure dispose does not run twice. */
   sel->dispose_has_run = TRUE;
 
+  /* Remove ourself from the source map. If we are the only entry for this source
+     widget, that will result in an empty list for the source.  In that case, we
+     remove the entire entry too. */
+  if ((list = g_hash_table_lookup (class->source_hash, sel->source)))
+    {
+      GList *newlist = g_list_remove_link (list, sel->source_litem);
+      g_list_free (sel->source_litem);
+      if (newlist == NULL)
+	g_hash_table_remove (class->source_hash, sel->source);
+      else
+	g_hash_table_replace (class->source_hash, sel->source, newlist);
+
+      sel->source_litem = NULL;
+    }
+  
   g_object_unref (sel->dest);
   g_object_unref (sel->source);
 
@@ -319,30 +357,12 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 		  G_TYPE_NONE,
 		  0);
 
-  class->default_selection_funcs = g_hash_table_new (g_direct_hash, g_direct_equal);
-}
-
-
-static void
-psppire_selector_base_init (PsppireSelectorClass *class)
-{
-  GObjectClass *object_class = G_OBJECT_CLASS (class);
-
-  object_class->finalize = psppire_selector_finalize;
   object_class->dispose = psppire_selector_dispose;
 
   class->source_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
+  class->default_selection_funcs = g_hash_table_new (g_direct_hash, g_direct_equal);
 }
 
-
-
-static void
-psppire_selector_base_finalize(PsppireSelectorClass *class,
-				gpointer class_data)
-{
-  g_hash_table_destroy (class->source_hash);
-  g_hash_table_destroy (class->default_selection_funcs);
-}
 
 /* Callback for when the source treeview is activated (double clicked) */
 static void
@@ -435,6 +455,8 @@ psppire_selector_init (PsppireSelector *selector)
 
   selector->row_activate_id = 0;
   selector->source_select_id  = 0;
+
+  selector->source_litem = NULL;
 }
 
 
@@ -612,11 +634,11 @@ select_selection (PsppireSelector *selector)
   GtkTreeSelection* selection =
     gtk_tree_view_get_selection ( GTK_TREE_VIEW (selector->source));
 
-  GList *selected_rows =
-    gtk_tree_selection_get_selected_rows (selection, NULL);
+  GList *selected_rows = gtk_tree_selection_get_selected_rows (selection, NULL);
 
-  GtkTreeModel *childmodel  =
-    gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source))));
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source));
+
+  GtkTreeModel *childmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
 
   g_return_if_fail (selector->select_items);
 
@@ -634,14 +656,12 @@ select_selection (PsppireSelector *selector)
       GtkTreeIter iter;
       GtkTreePath *path  = item->data;
 
-      gtk_tree_model_get_iter (GTK_TREE_MODEL (gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source))),
-			       &iter, path);
+      g_return_if_fail (model);
 
-      gtk_tree_model_filter_convert_iter_to_child_iter
-	(GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source))),
-	 &child_iter,
-	 &iter);
+      gtk_tree_model_get_iter (model, &iter, path);
 
+      gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model),
+							&child_iter, &iter);
       selector->select_items (child_iter,
 			      selector->dest,
 			      childmodel,
@@ -756,8 +776,15 @@ set_tree_view_source (PsppireSelector *selector)
   
   if ( ! (list = g_hash_table_lookup (class->source_hash, selector->source)))
     {
+      /* Base case:  This widget is currently not the source of 
+	 any selector.  Create a hash entry and make this selector
+	 the first selector in the list */
+
       list = g_list_append (list, selector);
       g_hash_table_insert (class->source_hash, selector->source, list);
+
+      /* Save the list item so that it can be removed later */
+      selector->source_litem = list;
     }
   else
     {  /* Append this selector to the list and push the <source,list>
@@ -766,9 +793,15 @@ set_tree_view_source (PsppireSelector *selector)
       if ( NULL == g_list_find (list, selector) )
 	{
 	  if ( selector->primary_requested )
-	    list = g_list_prepend (list, selector);
+	    {
+	      list = g_list_prepend (list, selector);
+	      selector->source_litem = list;
+	    }
 	  else
-	    list = g_list_append (list, selector);
+	    {
+	      list = g_list_append (list, selector);
+	      selector->source_litem = g_list_last (list);
+	    }
 	  g_hash_table_replace (class->source_hash, selector->source, list);
 	}
     }

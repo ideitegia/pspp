@@ -21,6 +21,7 @@ UI_FILES = \
 	src/ui/gui/k-means.ui \
 	src/ui/gui/k-related.ui \
 	src/ui/gui/ks-one-sample.ui \
+	src/ui/gui/logistic.ui \
 	src/ui/gui/means.ui \
 	src/ui/gui/missing-val-dialog.ui \
 	src/ui/gui/oneway.ui \
@@ -236,6 +237,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-indep-samps.h \
 	src/ui/gui/psppire-dialog-action-kmeans.c \
 	src/ui/gui/psppire-dialog-action-kmeans.h \
+	src/ui/gui/psppire-dialog-action-logistic.c \
+	src/ui/gui/psppire-dialog-action-logistic.h \
 	src/ui/gui/psppire-dialog-action-means.c \
 	src/ui/gui/psppire-dialog-action-means.h \
 	src/ui/gui/psppire-dialog-action-rank.c \

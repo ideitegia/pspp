@@ -98,6 +98,7 @@ struct _PsppireSelector
   gulong source_select_id ;
 
   gboolean primary_requested;
+  GList *source_litem;
 };
 
 struct _PsppireSelectorClass

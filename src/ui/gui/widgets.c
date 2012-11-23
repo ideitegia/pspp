@@ -31,6 +31,7 @@
 #include "psppire-dialog-action-var-info.h"
 #include "psppire-value-entry.h"
 
+static  volatile GType kludge;
 
 /* Any custom widgets which are to be used in GtkBuilder ui files
    need to be preregistered, otherwise GtkBuilder refuses to 
@@ -53,6 +54,7 @@ preregister_widgets (void)
   psppire_dialog_action_descriptives_get_type ();
   psppire_dialog_action_examine_get_type ();
   psppire_dialog_action_factor_get_type ();
+  psppire_dialog_action_logistic_get_type ();
   psppire_dialog_action_kmeans_get_type ();
   psppire_dialog_action_means_get_type ();
   psppire_dialog_action_indep_samps_get_type ();
@@ -66,5 +68,5 @@ preregister_widgets (void)
 
   /* This seems to be necessary on Cygwin.
      It ought not to be necessary.  Having it here can't do any harm. */
-  (void) gtk_source_view_get_type ();
+  kludge = gtk_source_view_get_type ();
 }

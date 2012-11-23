@@ -365,10 +365,23 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="regression">
+            <property name="name">regression</property>
+            <property name="label" translatable="yes">_Regression</property>
+          </object>
+        </child>
+        <child>
           <object class="PsppireDialogActionRegression" id="linear-regression">
             <property name="name">linear-regression</property>
             <property name="manager">uimanager1</property>
-            <property name="label" translatable="yes">Linear _Regression...</property>
+            <property name="label" translatable="yes">_Linear...</property>
+          </object>
+        </child>
+        <child>
+          <object class="PsppireDialogActionLogistic" id="logistic-regression">
+            <property name="name">logistic-regression</property>
+            <property name="manager">uimanager1</property>
+            <property name="label" translatable="yes">_Binary Logistic...</property>
           </object>
         </child>
         <child>
@@ -536,7 +549,10 @@
           <menuitem action="k-means"/>
           <menuitem action="factor-analysis"/>
           <menuitem action="reliability"/>
-          <menuitem action="linear-regression"/>
+          <menu action="regression">
+            <menuitem action="linear-regression"/>
+            <menuitem action="logistic-regression"/>
+          </menu>
           <menu action="non-parametrics">
             <menuitem action="chi-square"/>
             <menuitem action="binomial"/>
