@@ -478,6 +478,11 @@ initial_pass (const struct lr_spec *cmd, struct lr_result *res, struct casereade
       double weight = dict_get_case_weight (cmd->dict, c, &res->warn_bad_weight);
       const union value *depval = case_data (c, cmd->dep_var);
 
+      if (var_is_value_missing (cmd->dep_var, depval, cmd->exclude))
+	{
+	  missing = true;
+	}
+      else 
       for (v = 0; v < cmd->n_indep_vars; ++v)
 	{
 	  const union value *val = case_data (c, cmd->indep_vars[v]);
@@ -623,6 +628,12 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 					    NULL,
 					    NULL);
 
+  input = casereader_create_filter_missing (input,
+					    &cmd->dep_var,
+					    1,
+					    cmd->exclude,
+					    NULL,
+					    NULL);
 
   work.hessian = gsl_matrix_calloc (work.beta_hat->size, work.beta_hat->size);
 

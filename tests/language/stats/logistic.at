@@ -140,7 +140,7 @@ set decimal dot.
 data list notable file='lr-data.txt'
  list /id outcome survrate prognos amttreat   gsi  avoid intrus   pre_1     lre_1  w *.
 
-missing values survrate (999) avoid (44444).
+missing values survrate (999) avoid (44444) outcome (99).
 
 logistic regression
 	  variables = outcome with survrate avoid
@@ -149,10 +149,12 @@ logistic regression
 
 AT_CHECK([pspp -O format=csv lr-data.sps > run0], [0], [ignore])
 
+dnl Append some cases with missing values into the data.
 cat >> lr-data.txt << HERE
  105.00    1.00    999.00    3.00     2.00   .35  17.00  20.00  .50110  -2.00440 1
  106.00    1.00    999.00    2.00     3.00   .38   7.00  15.00  .20168  -1.25264 1
  107.00    1.00    5.00      3.00     2.00   .28  44444  34     .00897  -1.00905 1
+ 108.00    99      5.00      3.00     2.00   .28  4      34     .00897  -1.00905 1
 HERE
 
 AT_CHECK([pspp -O format=csv lr-data.sps > run1], [0], [ignore])
@@ -164,9 +166,9 @@ AT_CHECK([diff run0 run1], [1], [dnl
 < Missing Cases,0,.000
 < Total,66,100.000
 ---
-> Included in Analysis,66,95.652
-> Missing Cases,3,4.348
-> Total,69,100.000
+> Included in Analysis,66,94.286
+> Missing Cases,4,5.714
+> Total,70,100.000
 ])
 
 AT_CLEANUP
