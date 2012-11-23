@@ -21,6 +21,7 @@
 #include "psppire-dialog-action-factor.h"
 #include "psppire-dialog-action-indep-samps.h"
 #include "psppire-dialog-action-kmeans.h"
+#include "psppire-dialog-action-logistic.h"
 #include "psppire-dialog-action-means.h"
 #include "psppire-means-layer.h"
 #include "psppire-dialog-action-rank.h"
