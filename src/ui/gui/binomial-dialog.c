@@ -42,14 +42,6 @@ struct binomial_dialog
   GtkWidget *cutpoint_entry;
 };
 
-static void
-set_sensitivity (GtkToggleButton *button, GtkWidget *w)
-{
-  gboolean state = gtk_toggle_button_get_active (button);
-  gtk_widget_set_sensitive (w, state);
-}
-
-
 static gboolean
 get_proportion (const struct binomial_dialog *bin_d, double *prop)
 {
@@ -171,7 +163,7 @@ binomial_dialog (PsppireDataWindow *dw)
 		"predicate", var_is_numeric,
 		NULL);
 
-  g_signal_connect (bin_d.cutpoint_button, "toggled", G_CALLBACK (set_sensitivity),
+  g_signal_connect (bin_d.cutpoint_button, "toggled", G_CALLBACK (set_sensitivity_from_toggle),
 		    bin_d.cutpoint_entry);
 
   g_signal_connect_swapped (dialog, "refresh", G_CALLBACK (refresh),  &bin_d);

@@ -165,3 +165,28 @@ numeric_only (GtkWidget *source, GtkWidget *dest)
   return retval;
 }
 
+/*
+  A pair of functions intended to be used as callbacks for the "toggled" signal
+  of a GtkToggleButton widget.  They make the sensitivity of W follow the status
+  of the togglebutton.
+*/
+void
+set_sensitivity_from_toggle (GtkToggleButton *togglebutton,  GtkWidget *w)
+{
+  gboolean active = gtk_toggle_button_get_active (togglebutton);
+
+  gtk_widget_set_sensitive (w, active);
+}
+
+/* */
+void
+set_sensitivity_from_toggle_invert (GtkToggleButton *togglebutton,
+				    GtkWidget *w)
+{
+  gboolean active = gtk_toggle_button_get_active (togglebutton);
+
+  gtk_widget_set_sensitive (w, !active);
+}
+
+
+

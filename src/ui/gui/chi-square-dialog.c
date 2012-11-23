@@ -46,14 +46,6 @@ struct chisquare_dialog
   GtkListStore *expected_list;
 };
 
-static void
-set_sensitivity (GtkToggleButton *button, GtkWidget *w)
-{
-  gboolean state = gtk_toggle_button_get_active (button);
-  gtk_widget_set_sensitive (w, state);
-}
-
-
 static gboolean
 dialog_state_valid (gpointer data)
 {
@@ -201,14 +193,14 @@ chisquare_dialog (PsppireDataWindow *dw)
 		NULL);
 
 
-  g_signal_connect (csd.range_button, "toggled", G_CALLBACK (set_sensitivity), 
+  g_signal_connect (csd.range_button, "toggled", G_CALLBACK (set_sensitivity_from_toggle), 
 		    range_table);
 
 
-  g_signal_connect (csd.values_button, "toggled", G_CALLBACK (set_sensitivity), 
+  g_signal_connect (csd.values_button, "toggled", G_CALLBACK (set_sensitivity_from_toggle), 
 		    values_acr);
 
-  g_signal_connect (csd.values_button, "toggled", G_CALLBACK (set_sensitivity), 
+  g_signal_connect (csd.values_button, "toggled", G_CALLBACK (set_sensitivity_from_toggle), 
 		    expected_value_entry);
 
 
