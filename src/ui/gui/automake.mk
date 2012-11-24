@@ -164,8 +164,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/autorecode-dialog.h \
 	src/ui/gui/aggregate-dialog.c \
 	src/ui/gui/aggregate-dialog.h \
-	src/ui/gui/binomial-dialog.c \
-	src/ui/gui/binomial-dialog.h \
 	src/ui/gui/builder-wrapper.c \
 	src/ui/gui/builder-wrapper.h \
 	src/ui/gui/checkbox-treeview.c \
@@ -226,6 +224,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog.h \
 	src/ui/gui/psppire-dialog-action.c \
 	src/ui/gui/psppire-dialog-action.h \
+	src/ui/gui/psppire-dialog-action-binomial.c \
+	src/ui/gui/psppire-dialog-action-binomial.h \
 	src/ui/gui/psppire-dialog-action-correlation.c \
 	src/ui/gui/psppire-dialog-action-correlation.h \
 	src/ui/gui/psppire-dialog-action-descriptives.c \

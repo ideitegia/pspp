@@ -26,7 +26,6 @@
 #include "libpspp/str.h"
 #include "ui/gui/aggregate-dialog.h"
 #include "ui/gui/autorecode-dialog.h"
-#include "ui/gui/binomial-dialog.h"
 #include "ui/gui/builder-wrapper.h"
 #include "ui/gui/chi-square-dialog.h"
 #include "ui/gui/comments-dialog.h"
@@ -1076,7 +1075,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "crosstabs", G_CALLBACK (crosstabs_dialog));
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
-  connect_action (de, "binomial", G_CALLBACK (binomial_dialog));
   connect_action (de, "runs", G_CALLBACK (runs_dialog));
   connect_action (de, "ks-one-sample", G_CALLBACK (ks_one_sample_dialog));
   connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));
