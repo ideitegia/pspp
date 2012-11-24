@@ -945,7 +945,8 @@ npar_binomial (struct lexer *lexer, struct dataset *ds,
 	{
 	  if (lex_match (lexer, T_LPAREN))
 	    {
-	      lex_force_num (lexer);
+	      if (! lex_force_num (lexer))
+		return 2;
 	      btp->category1 = lex_number (lexer);
       	      lex_get (lexer);
 	      if ( lex_match (lexer, T_COMMA))
