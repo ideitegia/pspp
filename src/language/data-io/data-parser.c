@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -473,10 +473,18 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
 
       /* Skip trailing soft separator and a single hard separator
          if present. */
-      ss_ltrim (&p, parser->soft_seps);
-      if (!ss_is_empty (p)
-          && ss_find_byte (parser->hard_seps, ss_first (p)) != SIZE_MAX)
-        ss_advance (&p, 1);
+      if (!ss_is_empty (p))
+        {
+          size_t n_seps = ss_ltrim (&p, parser->soft_seps);
+          if (!ss_is_empty (p)
+              && ss_find_byte (parser->hard_seps, ss_first (p)) != SIZE_MAX)
+            {
+              ss_advance (&p, 1);
+              n_seps++;
+            }
+          if (!n_seps)
+            msg (SW, _("Missing delimiter following quoted string."));
+        }
     }
   else
     {
