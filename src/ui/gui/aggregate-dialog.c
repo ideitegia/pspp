@@ -93,15 +93,6 @@ struct aggregate
 static char * generate_syntax (const struct aggregate *rd);
 
 
-/* Makes widget W's sensitivity follow the active state of TOGGLE */
-static void
-sensitive_if_active (GtkToggleButton *toggle, GtkWidget *w)
-{
-  gboolean active = gtk_toggle_button_get_active (toggle);
-
-  gtk_widget_set_sensitive (w, active);
-}
-
 static void update_arguments (struct aggregate *agg);
 
 
@@ -581,7 +572,7 @@ aggregate_dialog (PsppireDataWindow *dw)
 				      dialog_state_valid, &fd);
 
   g_signal_connect (fd.filename_radiobutton, "toggled",
-		    G_CALLBACK (sensitive_if_active), fd.filename_box );
+		    G_CALLBACK (set_sensitivity_from_toggle), fd.filename_box );
 
   g_signal_connect_swapped (fd.filename_button, "clicked",
 		    G_CALLBACK (choose_filename), &fd);
