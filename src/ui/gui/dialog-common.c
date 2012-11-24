@@ -176,6 +176,8 @@ set_sensitivity_from_toggle (GtkToggleButton *togglebutton,  GtkWidget *w)
   gboolean active = gtk_toggle_button_get_active (togglebutton);
 
   gtk_widget_set_sensitive (w, active);
+  if (active)
+    gtk_widget_grab_focus (w);
 }
 
 /* */
