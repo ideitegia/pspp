@@ -266,7 +266,7 @@ BEGIN DATA.
 END DATA.
 ])
 AT_CHECK([pspp -O format=csv data-list.sps], [0], [dnl
-data-list.sps:4: warning: LIST: Missing delimiter following quoted string.
+data-list.sps:4: warning: Missing delimiter following quoted string.
 
 Table: Data List
 s

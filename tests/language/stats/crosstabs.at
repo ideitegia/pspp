@@ -59,9 +59,9 @@ Variable,Format
 x,F8.0
 y,A18
 
-"crosstabs.sps:4: warning: BEGIN DATA: Missing value(s) for all variables from x onward.  These will be filled with the system-missing value or blanks, as appropriate."
+"crosstabs.sps:4: warning: Missing value(s) for all variables from x onward.  These will be filled with the system-missing value or blanks, as appropriate."
 
-"crosstabs.sps:6: warning: BEGIN DATA: Missing value(s) for all variables from x onward.  These will be filled with the system-missing value or blanks, as appropriate."
+"crosstabs.sps:6: warning: Missing value(s) for all variables from x onward.  These will be filled with the system-missing value or blanks, as appropriate."
 
 Table: Summary.
 ,Cases,,,,,
