@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -477,7 +477,8 @@ html_output_table (struct html_driver *html, struct table_item *item)
   fputs ("</TABLE>\n\n", html->file);
 }
 
-struct output_driver_factory html_driver_factory = { "html", html_create };
+struct output_driver_factory html_driver_factory =
+  { "html", "pspp.html", html_create };
 
 static const struct output_driver_class html_driver_class =
   {

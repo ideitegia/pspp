@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -294,16 +294,23 @@ output_driver_create (struct string_map *options)
   char *file_name;
   char *format;
 
-  file_name = string_map_find_and_delete (options, "output-file");
-  if (file_name == NULL)
-    file_name = xstrdup ("-");
-
   format = string_map_find_and_delete (options, "format");
+  file_name = string_map_find_and_delete (options, "output-file");
+
   if (format == NULL)
     {
-      const char *extension = strrchr (file_name, '.');
-      format = xstrdup (extension != NULL ? extension + 1 : "");
+      if (file_name != NULL)
+        {
+          const char *extension = strrchr (file_name, '.');
+          format = xstrdup (extension != NULL ? extension + 1 : "");
+        }
+      else
+        format = xstrdup ("txt");
     }
+  f = find_factory (format);
+
+  if (file_name == NULL)
+    file_name = xstrdup (f->default_file_name);
 
   /* XXX should use parse_enum(). */
   device_string = string_map_find_and_delete (options, "device");
@@ -320,7 +327,6 @@ output_driver_create (struct string_map *options)
       device_type = default_device_type (file_name);
     }
 
-  f = find_factory (format);
   driver = f->create (file_name, device_type, options);
   if (driver != NULL)
     {

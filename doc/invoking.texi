@@ -86,8 +86,9 @@ produce multiple output files, presumably in different formats.
 
 Use @samp{-} as @var{output-file} to write output to standard output.
 
-If no @option{-o} option is used, then @pspp{} writes output to standard
-output in plain text format.
+If no @option{-o} option is used, then @pspp{} writes text and CSV
+output to standard output and other kinds of output to whose name is
+based on the format, e.g.@: @file{pspp.pdf} for PDF output.
 
 @item @option{-O @var{option}=@var{value}}
 Sets an option for the output file configured by a preceding

@@ -922,9 +922,12 @@ xr_draw_title (struct xr_driver *xr, const char *title,
   xr_draw_cell (xr, &cell, bb, bb);
 }
 
-struct output_driver_factory pdf_driver_factory = { "pdf", xr_pdf_create };
-struct output_driver_factory ps_driver_factory = { "ps", xr_ps_create };
-struct output_driver_factory svg_driver_factory = { "svg", xr_svg_create };
+struct output_driver_factory pdf_driver_factory =
+  { "pdf", "pspp.pdf", xr_pdf_create };
+struct output_driver_factory ps_driver_factory =
+  { "ps", "pspp.ps", xr_ps_create };
+struct output_driver_factory svg_driver_factory =
+  { "svg", "pspp.svg", xr_svg_create };
 
 static const struct output_driver_class cairo_driver_class =
 {
