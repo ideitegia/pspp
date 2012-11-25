@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -114,6 +114,13 @@ parse_format_specifier (struct lexer *lexer, struct fmt_spec *format)
   if (!fmt_from_name (type, &format->type))
     {
       msg (SE, _("Unknown format type `%s'."), type);
+      return false;
+    }
+
+  if (format->w == 0 && !strchr (lex_tokcstr (lexer), '0'))
+    {
+      msg (SE, _("Format specifier `%s' lacks required width."),
+           lex_tokcstr (lexer));
       return false;
     }
 
