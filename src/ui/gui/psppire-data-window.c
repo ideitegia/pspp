@@ -904,10 +904,23 @@ connect_action (PsppireDataWindow *dw, const char *action_name,
 				    GCallback handler)
 {
   GtkAction *action = get_action_assert (dw->builder, action_name);
- 
+
   g_signal_connect_swapped (action, "activate", handler, dw);
 
   return action;
+}
+
+/* Only a data file with at least one variable can be saved. */
+static void
+enable_save (PsppireDataWindow *dw)
+{
+  PsppireDict *dict = dw->var_store->dictionary;
+  gboolean enable = psppire_dict_get_var_cnt (dict) > 0;
+
+  gtk_action_set_sensitive (get_action_assert (dw->builder, "file_save"),
+                            enable);
+  gtk_action_set_sensitive (get_action_assert (dw->builder, "file_save_as"),
+                            enable);
 }
 
 /* Initializes as much of a PsppireDataWindow as we can and must before the
@@ -1006,6 +1019,13 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 		    G_CALLBACK (on_split_change),
 		    de);
 
+  g_signal_connect_swapped (dict, "backend-changed",
+                            G_CALLBACK (enable_save), de);
+  g_signal_connect_swapped (dict, "variable-inserted",
+                            G_CALLBACK (enable_save), de);
+  g_signal_connect_swapped (dict, "variable-deleted",
+                            G_CALLBACK (enable_save), de);
+  enable_save (de);
 
   connect_action (de, "edit_copy", G_CALLBACK (on_edit_copy));
 
