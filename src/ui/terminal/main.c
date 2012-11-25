@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2006-2007, 2009-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,7 +49,6 @@
 #include "math/random.h"
 #include "output/driver.h"
 #include "output/message-item.h"
-#include "ui/debugger.h"
 #include "ui/source-init-opts.h"
 #include "ui/terminal/terminal-opts.h"
 #include "ui/terminal/terminal-reader.h"
@@ -194,9 +193,6 @@ bug_handler(int sig)
      recurse. */
   signal (sig, SIG_DFL);
 
-#if DEBUGGING
-  connect_debugger ();
-#endif
   switch (sig)
     {
     case SIGABRT:

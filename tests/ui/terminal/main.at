@@ -34,6 +34,5 @@ include the syntax file that triggered it and a sample
 of any data file used for input.
 proximate cause:     Segmentation Violation
 ])
-AT_CHECK([sed -n '/\*\*\*/,$p
-/proximate/q' < stderr], [0], [expout])
+AT_CHECK([sed '/proximate/q' < stderr], [0], [expout])
 AT_CLEANUP
