@@ -55,7 +55,7 @@ struct fh_properties
     enum fh_mode mode;          /* File mode. */
     size_t record_width;        /* Length of fixed-format records. */
     size_t tab_width;           /* Tab width, 0=do not expand tabs. */
-    char *encoding;             /* Charset for contents. */
+    const char *encoding;       /* Charset for contents. */
   };
 
 void fh_init (void);
