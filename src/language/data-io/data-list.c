@@ -429,9 +429,28 @@ parse_free (struct lexer *lexer, struct dictionary *dict,
 
       if (lex_match (lexer, T_LPAREN))
 	{
-	  if (!parse_format_specifier (lexer, &input)
-              || !fmt_check_input (&input)
-              || !lex_force_match (lexer, T_RPAREN))
+          char type[FMT_TYPE_LEN_MAX + 1];
+
+	  if (!parse_abstract_format_specifier (lexer, type, &input.w,
+                                                &input.d))
+            return NULL;
+          if (!fmt_from_name (type, &input.type))
+            {
+              msg (SE, _("Unknown format type `%s'."), type);
+              return NULL;
+            }
+
+          /* If no width was included, use the minimum width for the type.
+             This isn't quite right, because DATETIME by itself seems to become
+             DATETIME20 (see bug #30690), whereas this will become
+             DATETIME17.  The correct behavior is not documented. */
+          if (input.w == 0)
+            {
+              input.w = fmt_min_input_width (input.type);
+              input.d = 0;
+            }
+
+          if (!fmt_check_input (&input) || !lex_force_match (lexer, T_RPAREN))
             return NULL;
 
           /* As a special case, N format is treated as F format

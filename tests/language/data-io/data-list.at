@@ -274,3 +274,16 @@ y         @&t@
 z         @&t@
 ])
 AT_CLEANUP
+
+AT_SETUP([DATA LIST FREE and LIST assume a width if omitted])
+AT_DATA([data-list.sps], [dnl
+DATA LIST FREE TABLE/s (a) d (datetime) f (f).
+])
+AT_CHECK([pspp -O format=csv data-list.sps], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+s,A1
+d,DATETIME17.0
+f,F1.0
+])
+AT_CLEANUP
