@@ -36,3 +36,6 @@
 #else
 #define expensive_assert(EXPR) ((void) 0)
 #endif
+
+
+#define testing_assert(EXPR) do {if (settings_get_testing_mode ()) assert (EXPR); }  while (0);
