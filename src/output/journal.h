@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@
 
 void journal_enable (void);
 void journal_disable (void);
+bool journal_is_enabled (void);
 void journal_set_file_name (const char *);
+const char *journal_get_file_name (void);
 
 #endif /* output/journal.h */

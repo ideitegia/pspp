@@ -58,6 +58,9 @@ Changes from 0.6.2 to 0.7.9:
    - SET and SHOW no longer have ENDCMD, NULLINE, PROMPT, CPROMPT, and
      DPROMPT subcommands.  The defaults are now fixed values.
 
+   - SHOW now has a JOURNAL subcommand, to show the location of the
+     journal file.
+
    - VALUE LABELS can now assign value labels to long string
      variables.
 
