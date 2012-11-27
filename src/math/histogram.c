@@ -21,6 +21,7 @@
 #include <gsl/gsl_histogram.h>
 #include <math.h>
 
+#include "data/settings.h"
 #include "libpspp/message.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
