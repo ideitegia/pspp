@@ -31,7 +31,6 @@
 #include "ui/gui/comments-dialog.h"
 #include "ui/gui/compute-dialog.h"
 #include "ui/gui/count-dialog.h"
-#include "ui/gui/crosstabs-dialog.h"
 #include "ui/gui/entry-dialog.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/find-dialog.h"
@@ -1090,7 +1089,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "transform_count", G_CALLBACK (count_dialog));
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
-  connect_action (de, "crosstabs", G_CALLBACK (crosstabs_dialog));
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
   connect_action (de, "runs", G_CALLBACK (runs_dialog));

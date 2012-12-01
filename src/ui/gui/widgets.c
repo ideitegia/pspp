@@ -17,6 +17,7 @@
 
 #include "psppire-dialog-action-binomial.h"
 #include "psppire-dialog-action-correlation.h"
+#include "psppire-dialog-action-crosstabs.h"
 #include "psppire-dialog-action-descriptives.h"
 #include "psppire-dialog-action-examine.h"
 #include "psppire-dialog-action-factor.h"
@@ -55,6 +56,7 @@ preregister_widgets (void)
 
   psppire_dialog_action_binomial_get_type ();
   psppire_dialog_action_correlation_get_type ();
+  psppire_dialog_action_crosstabs_get_type ();
   psppire_dialog_action_descriptives_get_type ();
   psppire_dialog_action_examine_get_type ();
   psppire_dialog_action_factor_get_type ();
