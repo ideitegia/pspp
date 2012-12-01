@@ -864,6 +864,7 @@ rounder_init (struct rounder *r, double number, int max_decimals)
   r->leading_zeros = strspn (r->string, "0.");
   r->leading_nines = strspn (r->string, "9.");
   r->integer_digits = strchr (r->string, '.') - r->string;
+  assert (r->integer_digits < 64);
   assert (r->integer_digits >= 0);
   r->negative = number < 0;
 }
