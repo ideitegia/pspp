@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2009-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 #include "data/casegrouper.h"
 #include "data/casereader.h"
+#include "data/casewriter.h"
 #include "data/dataset.h"
 #include "data/dictionary.h"
 #include "data/transformations.h"
@@ -74,6 +75,9 @@ struct dsc_trns
     size_t var_cnt;             /* Number of variables. */
     enum dsc_missing_type missing_type; /* Treatment of missing values. */
     enum mv_class exclude;      /* Classes of missing values to exclude. */
+    struct casereader *z_reader; /* Reader for count, mean, stddev. */
+    casenumber count;            /* Number left in this SPLIT FILE group.*/
+    bool ok;
   };
 
 /* Statistics.  Used as bit indexes, so must be 32 or fewer. */
@@ -160,6 +164,9 @@ struct dsc_proc
     unsigned long show_stats;   /* Statistics to display. */
     unsigned long calc_stats;   /* Statistics to calculate. */
     enum moment max_moment;     /* Highest moment needed for stats. */
+
+    /* Z scores. */
+    struct casewriter *z_writer; /* Mean and stddev per SPLIT FILE group. */
   };
 
 /* Parsing. */
@@ -213,6 +220,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
   dsc->sort_by_stat = DSC_NONE;
   dsc->sort_ascending = 1;
   dsc->show_stats = dsc->calc_stats = DEFAULT_STATS;
+  dsc->z_writer = NULL;
 
   /* Parse DESCRIPTIVES. */
   while (lex_token (lexer) != T_ENDCMD)
@@ -367,6 +375,8 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
   /* Construct z-score varnames, show translation table. */
   if (z_cnt || save_z_scores)
     {
+      struct caseproto *proto;
+
       if (save_z_scores)
         {
           int gen_cnt = 0;
@@ -386,6 +396,13 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                 }
             }
         }
+
+      proto = caseproto_create ();
+      for (i = 0; i < 1 + 2 * z_cnt; i++)
+        proto = caseproto_add_width (proto, 0);
+      dsc->z_writer = autopaging_writer_create (proto);
+      caseproto_unref (proto);
+
       dump_z_table (dsc);
     }
 
@@ -475,6 +492,7 @@ free_dsc_proc (struct dsc_proc *dsc)
       free (dsc_var->z_name);
       moments_destroy (dsc_var->moments);
     }
+  casewriter_destroy (dsc->z_writer);
   free (dsc->vars);
   free (dsc);
 }
@@ -601,6 +619,36 @@ descriptives_trns_proc (void *trns_, struct ccase **c,
   const struct variable **vars;
   int all_sysmis = 0;
 
+  if (t->count <= 0)
+    {
+      struct ccase *z_case;
+
+      z_case = casereader_read (t->z_reader);
+      if (z_case)
+        {
+          size_t z_idx = 0;
+
+          t->count = case_num_idx (z_case, z_idx++);
+          for (z = t->z_scores; z < t->z_scores + t->z_score_cnt; z++)
+            {
+              z->mean = case_num_idx (z_case, z_idx++);
+              z->std_dev = case_num_idx (z_case, z_idx++);
+            }
+          case_unref (z_case);
+        }
+      else
+        {
+          if (t->ok)
+            {
+              msg (SE, _("Internal error processing Z scores"));
+              t->ok = false;
+            }
+          for (z = t->z_scores; z < t->z_scores + t->z_score_cnt; z++)
+            z->mean = z->std_dev = SYSMIS;
+        }
+    }
+  t->count--;
+
   if (t->missing_type == DSC_LISTWISE)
     {
       assert(t->vars);
@@ -635,11 +683,13 @@ static bool
 descriptives_trns_free (void *trns_)
 {
   struct dsc_trns *t = trns_;
+  bool ok = t->ok && !casereader_error (t->z_reader);
 
   free (t->z_scores);
+  casereader_destroy (t->z_reader);
   assert((t->missing_type != DSC_LISTWISE) ^ (t->vars != NULL));
   free (t->vars);
-  return true;
+  return ok;
 }
 
 /* Sets up a transformation to calculate Z scores. */
@@ -670,6 +720,10 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
       t->var_cnt = 0;
       t->vars = NULL;
     }
+  t->z_reader = casewriter_make_reader (dsc->z_writer);
+  t->count = 0;
+  t->ok = true;
+  dsc->z_writer = NULL;
 
   for (cnt = i = 0; i < dsc->var_cnt; i++)
     {
@@ -687,8 +741,6 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
           z = &t->z_scores[cnt++];
           z->src_var = dv->v;
           z->z_var = dst_var;
-          z->mean = dv->stats[DSC_MEAN];
-          z->std_dev = dv->stats[DSC_STDDEV];
 	}
     }
 
@@ -707,7 +759,9 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
                    struct dataset *ds)
 {
   struct casereader *pass1, *pass2;
+  casenumber count;
   struct ccase *c;
+  size_t z_idx;
   size_t i;
 
   c = casereader_peek (group, 0);
@@ -739,6 +793,7 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
   dsc->valid = 0.;
 
   /* First pass to handle most of the work. */
+  count = 0;
   for (; (c = casereader_read (pass1)) != NULL; case_unref (c))
     {
       double weight = dict_get_case_weight (dataset_dict (ds), c, NULL);
@@ -771,6 +826,8 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
           if (x > dv->max)
             dv->max = x;
         }
+
+      count++;
     }
   if (!casereader_destroy (pass1))
     {
@@ -806,6 +863,15 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
     }
 
   /* Calculate results. */
+  if (dsc->z_writer)
+    {
+      c = case_create (casewriter_get_proto (dsc->z_writer));
+      z_idx = 0;
+      case_data_rw_idx (c, z_idx++)->f = count;
+    }
+  else
+    c = NULL;
+
   for (i = 0; i < dsc->var_cnt; i++)
     {
       struct dsc_var *dv = &dsc->vars[i];
@@ -839,7 +905,16 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
       dv->stats[DSC_MAX] = dv->max == -DBL_MAX ? SYSMIS : dv->max;
       if (dsc->calc_stats & (1ul << DSC_SUM))
         dv->stats[DSC_SUM] = W * dv->stats[DSC_MEAN];
+
+      if (dv->z_name)
+        {
+          case_data_rw_idx (c, z_idx++)->f = dv->stats[DSC_MEAN];
+          case_data_rw_idx (c, z_idx++)->f = dv->stats[DSC_STDDEV];
+        }
     }
+
+  if (c != NULL)
+    casewriter_write (dsc->z_writer, c);
 
   /* Output results. */
   display (dsc);

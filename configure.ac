@@ -324,7 +324,7 @@ AC_SUBST([SIZEOF_SIZE_T])
 
 AC_C_BIGENDIAN
 
-AC_CHECK_FUNCS([__setfpucw fork execl execlp isinf isnan finite getpid feholdexcept fpsetmask popen round])
+AC_CHECK_FUNCS([__setfpucw fork execl isinf isnan finite getpid feholdexcept fpsetmask popen round])
 
 AC_PROG_LN_S
 

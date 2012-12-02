@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -517,7 +517,8 @@ odt_submit (struct output_driver *driver,
     }
 }
 
-struct output_driver_factory odt_driver_factory = { "odt", odt_create };
+struct output_driver_factory odt_driver_factory =
+  { "odt", "pspp.odf", odt_create };
 
 static const struct output_driver_class odt_driver_class =
 {

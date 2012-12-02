@@ -41,16 +41,6 @@ psppire_dialog_action_logistic_class_init (PsppireDialogActionLogisticClass *cla
 
 G_DEFINE_TYPE (PsppireDialogActionLogistic, psppire_dialog_action_logistic, PSPPIRE_TYPE_DIALOG_ACTION);
 
-static void
-set_sensitivity_from_toggle (GtkToggleButton *togglebutton,  gpointer data)
-{
-  GtkWidget *w = data;
-  gboolean active = gtk_toggle_button_get_active (togglebutton);
-
-  gtk_widget_set_sensitive (w, active);
-}
-
-
 static gboolean
 dialog_state_valid (gpointer data)
 {

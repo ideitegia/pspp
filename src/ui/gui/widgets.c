@@ -15,12 +15,16 @@
 #include "psppire-var-view.h"
 #include "psppire-val-chooser.h"
 
+#include "psppire-dialog-action-binomial.h"
 #include "psppire-dialog-action-correlation.h"
+#include "psppire-dialog-action-crosstabs.h"
 #include "psppire-dialog-action-descriptives.h"
 #include "psppire-dialog-action-examine.h"
 #include "psppire-dialog-action-factor.h"
+#include "psppire-dialog-action-frequencies.h"
 #include "psppire-dialog-action-indep-samps.h"
 #include "psppire-dialog-action-kmeans.h"
+#include "psppire-dialog-action-logistic.h"
 #include "psppire-dialog-action-means.h"
 #include "psppire-means-layer.h"
 #include "psppire-dialog-action-rank.h"
@@ -50,10 +54,13 @@ preregister_widgets (void)
   psppire_var_view_get_type ();
   psppire_value_entry_get_type ();
 
+  psppire_dialog_action_binomial_get_type ();
   psppire_dialog_action_correlation_get_type ();
+  psppire_dialog_action_crosstabs_get_type ();
   psppire_dialog_action_descriptives_get_type ();
   psppire_dialog_action_examine_get_type ();
   psppire_dialog_action_factor_get_type ();
+  psppire_dialog_action_frequencies_get_type ();
   psppire_dialog_action_logistic_get_type ();
   psppire_dialog_action_kmeans_get_type ();
   psppire_dialog_action_means_get_type ();

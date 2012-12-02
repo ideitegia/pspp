@@ -151,6 +151,7 @@ frequencies pos neg pn
 ])
 
 
-AT_CHECK([pspp -O format=csv histogram.sps], [0], [ignore])
+dnl The --testing-mode flag is important!!
+AT_CHECK([pspp --testing-mode -O format=csv histogram.sps], [0], [ignore])
 
 AT_CLEANUP

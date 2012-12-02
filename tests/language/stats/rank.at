@@ -481,19 +481,19 @@ DELETE VAR ran001 TO ran999.
 LIST.
 ])
 AT_CHECK([pspp -O format=csv rank.sps], [0], [dnl
-"rank.sps:3: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
+"rank.sps:3: warning: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
 
-"rank.sps:4: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
+"rank.sps:4: warning: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
 
-"rank.sps:5: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
+"rank.sps:5: warning: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
 
-"rank.sps:6: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
+"rank.sps:6: warning: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
 
-"rank.sps:7: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
+"rank.sps:7: warning: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
 
-"rank.sps:8: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
+"rank.sps:8: warning: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
 
-"rank.sps:9: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
+"rank.sps:9: warning: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate."
 
 Variables Created By RANK
 

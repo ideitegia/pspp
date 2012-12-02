@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include <gtk/gtk.h>
+#include "dialog-common.h"
 #include "psppire-val-chooser.h"
 
 #include "libpspp/str.h"
@@ -333,14 +334,6 @@ static struct layout range_opt[n_VAL_CHOOSER_BUTTONS]=
     {N_("Range, value thru _HIGHEST"), simple_entry, hi_down_set},
     {N_("_All other values"),          NULL,         else_set   }
   };
-
-static void
-set_sensitivity_from_toggle (GtkToggleButton *togglebutton,  GtkWidget *w)
-{
-  gboolean active = gtk_toggle_button_get_active (togglebutton);
-
-  gtk_widget_set_sensitive (w, active);
-}
 
 static void
 psppire_val_chooser_init (PsppireValChooser *vr)

@@ -112,7 +112,9 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
           emit_END_CASE (ds, inp);
           saw_END_CASE = true;
         }
-      else if (cmd_result_is_failure (result) && result != CMD_FAILURE)
+      else if (cmd_result_is_failure (result)
+               && result != CMD_FAILURE
+               && lex_get_error_mode (lexer) != LEX_ERROR_INTERACTIVE)
         {
           if (result == CMD_EOF)
             msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));

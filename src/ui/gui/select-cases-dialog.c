@@ -60,27 +60,6 @@ struct select_cases_dialog
 static gchar * generate_syntax (const struct select_cases_dialog *scd);
 
 
-static void
-set_sensitivity_from_toggle (GtkToggleButton *togglebutton,  gpointer data)
-{
-  GtkWidget *w = data;
-  gboolean active = gtk_toggle_button_get_active (togglebutton);
-
-  gtk_widget_set_sensitive (w, active);
-}
-
-static void
-set_sensitivity_from_toggle_invert (GtkToggleButton *togglebutton,
-				    gpointer data)
-{
-  GtkWidget *w = data;
-  gboolean active = gtk_toggle_button_get_active (togglebutton);
-
-  gtk_widget_set_sensitive (w, !active);
-}
-
-
-
 static const gchar label1[]=N_("Approximately %3d%% of all cases.");
 static const gchar label2[]=N_("Exactly %3d cases from the first %3d cases.");
 

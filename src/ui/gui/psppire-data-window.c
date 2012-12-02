@@ -26,16 +26,13 @@
 #include "libpspp/str.h"
 #include "ui/gui/aggregate-dialog.h"
 #include "ui/gui/autorecode-dialog.h"
-#include "ui/gui/binomial-dialog.h"
 #include "ui/gui/builder-wrapper.h"
 #include "ui/gui/chi-square-dialog.h"
 #include "ui/gui/comments-dialog.h"
 #include "ui/gui/compute-dialog.h"
 #include "ui/gui/count-dialog.h"
-#include "ui/gui/crosstabs-dialog.h"
 #include "ui/gui/entry-dialog.h"
 #include "ui/gui/executor.h"
-#include "ui/gui/frequencies-dialog.h"
 #include "ui/gui/help-menu.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/helper.h"
@@ -829,10 +826,22 @@ connect_action (PsppireDataWindow *dw, const char *action_name,
 				    GCallback handler)
 {
   GtkAction *action = get_action_assert (dw->builder, action_name);
- 
+
   g_signal_connect_swapped (action, "activate", handler, dw);
 
   return action;
+}
+
+/* Only a data file with at least one variable can be saved. */
+static void
+enable_save (PsppireDataWindow *dw)
+{
+  gboolean enable = psppire_dict_get_var_cnt (dw->dict) > 0;
+
+  gtk_action_set_sensitive (get_action_assert (dw->builder, "file_save"),
+                            enable);
+  gtk_action_set_sensitive (get_action_assert (dw->builder, "file_save_as"),
+                            enable);
 }
 
 /* Initializes as much of a PsppireDataWindow as we can and must before the
@@ -921,6 +930,13 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 		    G_CALLBACK (on_split_change),
 		    de);
 
+  g_signal_connect_swapped (de->dict, "backend-changed",
+                            G_CALLBACK (enable_save), de);
+  g_signal_connect_swapped (de->dict, "variable-inserted",
+                            G_CALLBACK (enable_save), de);
+  g_signal_connect_swapped (de->dict, "variable-deleted",
+                            G_CALLBACK (enable_save), de);
+  enable_save (de);
 
   connect_action (de, "file_new_data", G_CALLBACK (create_data_window));
 
@@ -954,11 +970,8 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "transform_count", G_CALLBACK (count_dialog));
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
-  connect_action (de, "analyze_frequencies", G_CALLBACK (frequencies_dialog));
-  connect_action (de, "crosstabs", G_CALLBACK (crosstabs_dialog));
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
   connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
-  connect_action (de, "binomial", G_CALLBACK (binomial_dialog));
   connect_action (de, "runs", G_CALLBACK (runs_dialog));
   connect_action (de, "ks-one-sample", G_CALLBACK (ks_one_sample_dialog));
   connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));

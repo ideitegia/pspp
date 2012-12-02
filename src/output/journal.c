@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -87,11 +87,11 @@ journal_output (struct journal_driver *j, const char *s)
 {
   if (j->file == NULL)
     {
-      j->file = fopen (journal_file_name, "a");
+      j->file = fopen (journal_get_file_name (), "a");
       if (j->file == NULL)
         {
           error (0, errno, _("error opening output file `%s'"),
-                 journal_file_name);
+                 journal_get_file_name ());
           output_driver_destroy (&j->driver);
           return;
         }
@@ -144,13 +144,6 @@ journal_enable (void)
 {
   if (journal == NULL)
     {
-      /* If no journal file name is configured, use the default. */
-      if (journal_file_name == NULL)
-	{
-	  const char *output_path = default_output_path ();
-	  journal_file_name = xasprintf ("%s%s", output_path, "pspp.jnl");
-	}
-
       /* Create journal driver. */
       journal = xzalloc (sizeof *journal);
       output_driver_init (&journal->driver, &journal_class, "journal",
@@ -171,6 +164,13 @@ journal_disable (void)
     output_driver_destroy (&journal->driver);
 }
 
+/* Returns true if journaling is enabled, false otherwise. */
+bool
+journal_is_enabled (void)
+{
+  return journal != NULL;
+}
+
 /* Sets the name of the journal file to FILE_NAME. */
 void
 journal_set_file_name (const char *file_name)
@@ -178,4 +178,17 @@ journal_set_file_name (const char *file_name)
   journal_close ();
   free (journal_file_name);
   journal_file_name = xstrdup (file_name);
+}
+
+/* Returns the name of the journal file.  The caller must not modify or free
+   the returned string. */
+const char *
+journal_get_file_name (void)
+{
+  if (journal_file_name == NULL)
+    {
+      const char *output_path = default_output_path ();
+      journal_file_name = xasprintf ("%s%s", output_path, "pspp.jnl");
+    }
+  return journal_file_name;
 }

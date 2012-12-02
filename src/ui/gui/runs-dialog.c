@@ -61,15 +61,6 @@ struct runs
 
 static char * generate_syntax (const struct runs *rd);
 
-/* Makes widget W's sensitivity follow the active state of TOGGLE */
-static void
-sensitive_if_active (GtkToggleButton *toggle, GtkWidget *w)
-{
-  gboolean active = gtk_toggle_button_get_active (toggle);
-
-  gtk_widget_set_sensitive (w, active);
-}
-
 static void
 refresh (struct runs *fd)
 {
@@ -151,7 +142,7 @@ runs_dialog (PsppireDataWindow *dw)
 		NULL);
 
   g_signal_connect (fd.cb[CB_CUSTOM], "toggled",
-		    G_CALLBACK (sensitive_if_active), fd.entry);
+		    G_CALLBACK (set_sensitivity_from_toggle), fd.entry);
 
   psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
 				      dialog_state_valid, &fd);

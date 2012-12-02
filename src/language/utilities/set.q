@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -709,6 +709,14 @@ show_format (const struct dataset *ds UNUSED)
 }
 
 static char *
+show_journal (const struct dataset *ds UNUSED)
+{
+  return (journal_is_enabled ()
+          ? xasprintf ("\"%s\"", journal_get_file_name ())
+          : xstrdup ("disabled"));
+}
+
+static char *
 show_length (const struct dataset *ds UNUSED)
 {
   return xasprintf ("%d", settings_get_viewlength ());
@@ -935,6 +943,7 @@ const struct show_sbc show_table[] =
     {"ENVIRONMENT", show_system},
     {"ERRORS", show_errors},
     {"FORMAT", show_format},
+    {"JOURNAL", show_journal},
     {"LENGTH", show_length},
     {"LOCALE", show_locale},
     {"MESSAGES", show_messages},

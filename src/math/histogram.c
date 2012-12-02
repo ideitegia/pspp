@@ -21,6 +21,7 @@
 #include <gsl/gsl_histogram.h>
 #include <math.h>
 
+#include "data/settings.h"
 #include "libpspp/message.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
@@ -84,6 +85,10 @@ double get_slack (double limit, double half_bin_width, int *n_half_bins)
    ADJ_MIN and ADJ_MAX are locations of the adjusted values of MIN and MAX (the range will
    always be  equal or slightly larger).
    Returns the number of bins.
+
+   The "testing_assert" expressions in this function should be algebraically correct.
+   However, due to floating point rounding they could fail, especially when small numbers
+   are involved.  In normal use, therefore, testing_assert does nothing.
  */
 static int
 adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, double *adj_max)
@@ -97,7 +102,7 @@ adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, do
   double lower_slack =  get_slack (min, half_bin_width, &lower_limit);
   double upper_slack = -get_slack (max, half_bin_width, &upper_limit);
 
-  assert (max > min);
+  testing_assert (max > min);
 
   /* If min is negative, then lower_slack may be less than zero.
      In this case, the lower bound must be extended in the negative direction
@@ -108,7 +113,7 @@ adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, do
       lower_limit--;
       lower_slack += half_bin_width;
     }
-  assert (lower_limit * half_bin_width <= min);
+  testing_assert (lower_limit * half_bin_width <= min);
 
   /* However, the upper bound must be extended regardless, because histogram bins
      span the range [lower, upper). In other words, the upper bound must be
@@ -116,7 +121,7 @@ adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, do
   */
   upper_limit++;;
   upper_slack += half_bin_width;
-  assert (upper_limit * half_bin_width > max);
+  testing_assert (upper_limit * half_bin_width > max);
 
   /* The range must be an EVEN number of half bin_widths */
   if ( (upper_limit - lower_limit) % 2)
@@ -159,7 +164,7 @@ adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, do
 
       if (upper_slack > lower_slack)
         {
-          assert (upper_slack > half_bin_width);
+          testing_assert (upper_slack > half_bin_width);
 
           /* Adjust the range to the left */
           lower_limit --;
@@ -169,7 +174,7 @@ adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, do
         }
       else
         {
-          assert (lower_slack >= half_bin_width);
+          testing_assert (lower_slack >= half_bin_width);
 
           /* Adjust the range to the right */
           lower_limit ++;
@@ -197,8 +202,8 @@ adjust_bin_ranges (double bin_width, double min, double max, double *adj_min, do
   *adj_min = lower_limit * half_bin_width;
   *adj_max = upper_limit * half_bin_width;
 
-  assert (*adj_max > max);
-  assert (*adj_min <= min);
+  testing_assert (*adj_max > max);
+  testing_assert (*adj_min <= min);
 
   return (upper_limit - lower_limit) / 2.0;
 }

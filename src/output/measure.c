@@ -18,6 +18,7 @@
 
 #include "output/measure.h"
 
+#include <gl/c-strtod.h>
 #include <ctype.h>
 #include <errno.h>
 #if HAVE_LC_PAPER
@@ -50,7 +51,7 @@ measure_dimension (const char *dimen)
   char *tail;
 
   /* Number. */
-  raw = strtod (dimen, &tail);
+  raw = c_strtod (dimen, &tail);
   if (raw < 0.0)
     goto syntax_error;
 
@@ -150,7 +151,7 @@ parse_paper_size (const char *size, int *h, int *v)
   char *tail;
 
   /* Width. */
-  raw_h = strtod (size, &tail);
+  raw_h = c_strtod (size, &tail);
   if (raw_h <= 0.0)
     return false;
 
@@ -158,7 +159,7 @@ parse_paper_size (const char *size, int *h, int *v)
   tail += strspn (tail, CC_SPACES "x,");
 
   /* Length. */
-  raw_v = strtod (tail, &tail);
+  raw_v = c_strtod (tail, &tail);
   if (raw_v <= 0.0)
     return false;
 

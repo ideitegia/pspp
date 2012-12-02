@@ -163,8 +163,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/autorecode-dialog.h \
 	src/ui/gui/aggregate-dialog.c \
 	src/ui/gui/aggregate-dialog.h \
-	src/ui/gui/binomial-dialog.c \
-	src/ui/gui/binomial-dialog.h \
 	src/ui/gui/builder-wrapper.c \
 	src/ui/gui/builder-wrapper.h \
 	src/ui/gui/checkbox-treeview.c \
@@ -177,8 +175,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/chi-square-dialog.h \
 	src/ui/gui/count-dialog.c \
 	src/ui/gui/count-dialog.h \
-	src/ui/gui/crosstabs-dialog.c \
-	src/ui/gui/crosstabs-dialog.h \
 	src/ui/gui/dialog-common.c \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.h \
@@ -189,8 +185,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/executor.h \
 	src/ui/gui/find-dialog.c \
 	src/ui/gui/find-dialog.h \
-	src/ui/gui/frequencies-dialog.c \
-	src/ui/gui/frequencies-dialog.h \
 	src/ui/gui/goto-case-dialog.c \
 	src/ui/gui/goto-case-dialog.h \
 	src/ui/gui/helper.c \
@@ -225,14 +219,20 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog.h \
 	src/ui/gui/psppire-dialog-action.c \
 	src/ui/gui/psppire-dialog-action.h \
+	src/ui/gui/psppire-dialog-action-binomial.c \
+	src/ui/gui/psppire-dialog-action-binomial.h \
 	src/ui/gui/psppire-dialog-action-correlation.c \
 	src/ui/gui/psppire-dialog-action-correlation.h \
+	src/ui/gui/psppire-dialog-action-crosstabs.c \
+	src/ui/gui/psppire-dialog-action-crosstabs.h \
 	src/ui/gui/psppire-dialog-action-descriptives.c \
 	src/ui/gui/psppire-dialog-action-descriptives.h \
 	src/ui/gui/psppire-dialog-action-examine.c \
 	src/ui/gui/psppire-dialog-action-examine.h \
 	src/ui/gui/psppire-dialog-action-factor.c \
 	src/ui/gui/psppire-dialog-action-factor.h \
+	src/ui/gui/psppire-dialog-action-frequencies.c \
+	src/ui/gui/psppire-dialog-action-frequencies.h \
 	src/ui/gui/psppire-dialog-action-indep-samps.c \
 	src/ui/gui/psppire-dialog-action-indep-samps.h \
 	src/ui/gui/psppire-dialog-action-kmeans.c \

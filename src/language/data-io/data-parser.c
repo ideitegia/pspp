@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -455,7 +455,7 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
       /* Quoted field. */
       int quote = ss_get_byte (&p);
       if (!ss_get_until (&p, quote, field))
-        msg (SW, _("Quoted string extends beyond end of line."));
+        msg (DW, _("Quoted string extends beyond end of line."));
       if (parser->quote_escape && ss_first (p) == quote)
         {
           ds_assign_substring (tmp, *field);
@@ -464,7 +464,7 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
               struct substring ss;
               ds_put_byte (tmp, quote);
               if (!ss_get_until (&p, quote, &ss))
-                msg (SW, _("Quoted string extends beyond end of line."));
+                msg (DW, _("Quoted string extends beyond end of line."));
               ds_put_substring (tmp, ss);
             }
           *field = ds_ss (tmp);
@@ -473,10 +473,18 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
 
       /* Skip trailing soft separator and a single hard separator
          if present. */
-      ss_ltrim (&p, parser->soft_seps);
-      if (!ss_is_empty (p)
-          && ss_find_byte (parser->hard_seps, ss_first (p)) != SIZE_MAX)
-        ss_advance (&p, 1);
+      if (!ss_is_empty (p))
+        {
+          size_t n_seps = ss_ltrim (&p, parser->soft_seps);
+          if (!ss_is_empty (p)
+              && ss_find_byte (parser->hard_seps, ss_first (p)) != SIZE_MAX)
+            {
+              ss_advance (&p, 1);
+              n_seps++;
+            }
+          if (!n_seps)
+            msg (DW, _("Missing delimiter following quoted string."));
+        }
     }
   else
     {
@@ -542,7 +550,7 @@ parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
 
       if (dfm_eof (reader))
         {
-          msg (SW, _("Partial case of %d of %d records discarded."),
+          msg (DW, _("Partial case of %d of %d records discarded."),
                row - 1, parser->records_per_case);
           return false;
         }
@@ -599,7 +607,7 @@ parse_delimited_span (const struct data_parser *parser,
 	  if (dfm_eof (reader))
 	    {
 	      if (f > parser->fields)
-		msg (SW, _("Partial case discarded.  The first variable "
+		msg (DW, _("Partial case discarded.  The first variable "
                            "missing was %s."), f->name);
               ds_destroy (&tmp);
 	      return false;
@@ -641,7 +649,7 @@ parse_delimited_no_span (const struct data_parser *parser,
       if (!cut_field (parser, reader, &first_column, &last_column, &tmp, &s))
 	{
 	  if (f < end - 1 && settings_get_undefined ())
-	    msg (SW, _("Missing value(s) for all variables from %s onward.  "
+	    msg (DW, _("Missing value(s) for all variables from %s onward.  "
                        "These will be filled with the system-missing value "
                        "or blanks, as appropriate."),
 		 f->name);
@@ -661,7 +669,7 @@ parse_delimited_no_span (const struct data_parser *parser,
   s = dfm_get_record (reader);
   ss_ltrim (&s, parser->soft_seps);
   if (!ss_is_empty (s))
-    msg (SW, _("Record ends in data not part of any field."));
+    msg (DW, _("Record ends in data not part of any field."));
 
 exit:
   dfm_forward_record (reader);

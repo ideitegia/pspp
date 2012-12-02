@@ -266,8 +266,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="analyze_frequencies">
-            <property name="name">analyze_frequencies</property>
+          <object class="PsppireDialogActionFrequencies" id="frequencies">
+            <property name="manager">uimanager1</property>
+            <property name="name">frequencies</property>
             <property name="label" translatable="yes">_Frequencies...</property>
           </object>
         </child>
@@ -286,8 +287,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="crosstabs">
+          <object class="PsppireDialogActionCrosstabs" id="crosstabs">
             <property name="name">crosstabs</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">_Crosstabs...</property>
           </object>
         </child>
@@ -397,8 +399,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="binomial">
+          <object class="PsppireDialogActionBinomial" id="binomial">
             <property name="name">binomial</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">_Binomial...</property>
           </object>
         </child>
@@ -532,7 +535,7 @@
         </menu>
         <menu action="analyze">
           <menu action="descriptive-statistics">
-            <menuitem action="analyze_frequencies"/>
+            <menuitem action="frequencies"/>
             <menuitem action="analyze_descriptives"/>
             <menuitem action="explore"/>
             <menuitem action="crosstabs"/>

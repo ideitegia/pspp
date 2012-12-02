@@ -1519,14 +1519,13 @@ static void
 format_cell_entry (struct tab_table *table, int c, int r, double value,
                    char suffix, bool mark_missing, const struct dictionary *dict)
 {
-  const struct fmt_spec f = {FMT_F, 10, 1};
   union value v;
   char suffixes[3];
   int suffix_len;
   char *s;
 
   v.f = value;
-  s = data_out (&v, dict_get_encoding (dict), &f);
+  s = data_out (&v, dict_get_encoding (dict), settings_get_format ());
 
   suffix_len = 0;
   if (suffix != 0)
