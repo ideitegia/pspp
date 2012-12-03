@@ -20,6 +20,7 @@
 #include "libpspp/misc.h"
 
 #include "gl/minmax.h"
+#include "gl/c-strtod.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -257,7 +258,7 @@ convert_xml_string_to_value (struct ccase *c, const struct variable *var,
       char *endptr;
 
       errno = 0;
-      v->f = strtod (text, &endptr);
+      v->f = c_strtod (text, &endptr);
       if ( errno != 0 || endptr == text)
 	v->f = SYSMIS;
     }

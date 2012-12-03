@@ -50,6 +50,7 @@
 #include "libpspp/str.h"
 #include "libpspp/stringi-set.h"
 
+#include "gl/c-strtod.h"
 #include "gl/c-ctype.h"
 #include "gl/inttostr.h"
 #include "gl/localcharset.h"
@@ -1437,7 +1438,7 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
           mrset->width = width;
           value_init (&mrset->counted, width);
           if (width == 0)
-            mrset->counted.f = strtod (counted, NULL);
+            mrset->counted.f = c_strtod (counted, NULL);
           else
             value_copy_str_rpad (&mrset->counted, width,
                                  (const uint8_t *) counted, ' ');

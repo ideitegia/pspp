@@ -1044,7 +1044,7 @@ parse_minute_second (struct data_in *i, double *time)
     *cp++ = ss_get_byte (&i->input);
   *cp = '\0';
 
-  *time += strtod (buf, NULL);
+  *time += c_strtod (buf, NULL);
 
   return NULL;
 }
