@@ -545,12 +545,7 @@ recode_substring_pool (const char *to, const char *from,
 void
 i18n_init (void)
 {
-  setlocale (LC_CTYPE, "");
-  setlocale (LC_COLLATE, "");
-  setlocale (LC_MESSAGES, "");
-#if HAVE_LC_PAPER
-  setlocale (LC_PAPER, "");
-#endif
+  setlocale (LC_ALL, "");
   bindtextdomain (PACKAGE, relocate(locale_dir));
   textdomain (PACKAGE);
 
@@ -597,7 +592,6 @@ set_encoding_from_locale (const char *loc)
     {
       ok = false;
     }
-
 
   setlocale (LC_CTYPE, tmp);
 
@@ -660,9 +654,6 @@ get_system_decimal (void)
 {
   char radix_char;
 
-  char *ol = xstrdup (setlocale (LC_NUMERIC, NULL));
-  setlocale (LC_NUMERIC, "");
-
 #if HAVE_NL_LANGINFO
   radix_char = nl_langinfo (RADIXCHAR)[0];
 #else
@@ -673,10 +664,6 @@ get_system_decimal (void)
   }
 #endif
 
-  /* We MUST leave LC_NUMERIC untouched, since it would
-     otherwise interfere with data_{in,out} */
-  setlocale (LC_NUMERIC, ol);
-  free (ol);
   return radix_char;
 }
 
