@@ -51,6 +51,7 @@ enum
     OPT_VERSION,
     OPT_NO_SPLASH,
     OPT_MEASURE_STARTUP,
+    OPT_DEBUG,
     N_STARTUP_OPTIONS
   };
 
@@ -60,7 +61,10 @@ static const struct argv_option startup_options[N_STARTUP_OPTIONS] =
     {"version",   'V', no_argument, OPT_VERSION},
     {"no-splash", 'q', no_argument, OPT_NO_SPLASH},
     {"measure-startup", 0, no_argument, OPT_MEASURE_STARTUP},
+    {"debug", 0, no_argument, OPT_DEBUG}
   };
+
+gboolean debug = FALSE;
 
 /* --measure-startup: Prints the elapsed time to start up and load any file
    specified on the command line. */
@@ -147,6 +151,10 @@ startup_option_callback (int id, void *show_splash_)
 
     case OPT_MEASURE_STARTUP:
       measure_startup = TRUE;
+      break;
+
+    case OPT_DEBUG:
+      debug = TRUE;
       break;
 
     default:

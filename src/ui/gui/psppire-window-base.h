@@ -55,6 +55,7 @@ struct _PsppireWindowBase
   GtkWindow parent;
 
   /* <private> */
+  gboolean exposed;
 };
 
 

@@ -30,7 +30,14 @@
 #include "psppire-conf.h"
 #include <string.h>
 
+
 #include <gtk/gtk.h>
+
+#ifdef GDK_WINDOWING_X11
+#include <gdk/gdkx.h>
+#endif
+
+extern gboolean debug;
 
 static void psppire_window_base_class_init    (PsppireWindowBaseClass *class);
 static void psppire_window_base_init          (PsppireWindowBase      *window);
@@ -68,6 +75,31 @@ realize (GtkWidget *wb)
     return GTK_WIDGET_CLASS (psppire_window_base_parent_class)->realize (wb) ;
 }
 
+static gboolean            
+expose_event (GtkWidget      *widget,
+	      GdkEventExpose *event)
+{
+  gboolean retval = FALSE;
+  PsppireWindowBase *wb = PSPPIRE_WINDOW_BASE (widget);
+
+  if (GTK_WIDGET_CLASS (psppire_window_base_parent_class)->expose_event)
+    retval = GTK_WIDGET_CLASS (psppire_window_base_parent_class)->expose_event (widget, event) ;
+
+#ifdef GDK_WINDOWING_X11
+  if (!wb->exposed)
+    {
+      GdkWindow *window = gtk_widget_get_window (widget);
+
+      XID xid = gdk_x11_drawable_get_xid (GDK_DRAWABLE (window));
+
+      g_print ("%s 0x%x\n", get_window_id (widget), (unsigned int) xid);
+    }
+#endif
+
+  wb->exposed = TRUE;
+
+  return retval;
+}
 
 /*
   When the window is resized/repositioned, write the new geometry to the config.
@@ -93,11 +125,16 @@ psppire_window_base_class_init    (PsppireWindowBaseClass *class)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
   widget_class->configure_event = configure_event;
+  if (debug)
+    widget_class->expose_event = expose_event;
   widget_class->realize = realize;
 }
 
 static void 
 psppire_window_base_init          (PsppireWindowBase      *window)
 {
+  PsppireWindowBase *wb = PSPPIRE_WINDOW_BASE (window);
+
+  wb->exposed = FALSE;
 }
 
