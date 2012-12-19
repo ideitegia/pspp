@@ -41,6 +41,7 @@
 #include "gl/error.h"
 #include "gl/tmpdir.h"
 #include "gl/xalloc.h"
+#include "gl/c-xvasprintf.h"
 
 #include "helper.h"
 
@@ -1049,7 +1050,6 @@ psppire_output_window_new (void)
 				   NULL));
 }
 
-
 
 static void
 create_xr_print_driver (GtkPrintContext *context, PsppireOutputWindow *window)
@@ -1072,15 +1072,15 @@ create_xr_print_driver (GtkPrintContext *context, PsppireOutputWindow *window)
 
   string_map_init (&options);
   string_map_insert_nocopy (&options, xstrdup ("paper-size"),
-                            xasprintf("%.2fx%.2fmm", width, height));
+                            c_xasprintf("%.2fx%.2fmm", width, height));
   string_map_insert_nocopy (&options, xstrdup ("left-margin"),
-                            xasprintf ("%.2fmm", left_margin));
+                            c_xasprintf ("%.2fmm", left_margin));
   string_map_insert_nocopy (&options, xstrdup ("right-margin"),
-                            xasprintf ("%.2fmm", right_margin));
+                            c_xasprintf ("%.2fmm", right_margin));
   string_map_insert_nocopy (&options, xstrdup ("top-margin"),
-                            xasprintf ("%.2fmm", top_margin));
+                            c_xasprintf ("%.2fmm", top_margin));
   string_map_insert_nocopy (&options, xstrdup ("bottom-margin"),
-                            xasprintf ("%.2fmm", bottom_margin));
+                            c_xasprintf ("%.2fmm", bottom_margin));
 
   window->print_xrd =
     xr_driver_create (gtk_print_context_get_cairo_context (context), &options);

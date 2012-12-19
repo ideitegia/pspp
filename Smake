@@ -12,6 +12,7 @@ GNULIB_MODULES = \
 	c-strcasestr \
 	c-ctype \
 	c-strtod \
+	c-xvasprintf \
 	clean-temp \
 	close \
 	configmake \
