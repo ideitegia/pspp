@@ -1,3 +1,4 @@
+#include <config.h>
 #include <gladeui/glade.h>
 #include <gtk/gtk.h>
 
