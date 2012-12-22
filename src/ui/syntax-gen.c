@@ -271,7 +271,7 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
             switch (*format++)
               {
               case 'p':
-                ds_put_format (output, "%f", d);
+                ds_put_c_format (output, "%f", d);
                 break;
               default:
                 NOT_REACHED ();
