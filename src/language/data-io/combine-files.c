@@ -665,8 +665,7 @@ free_comb_proc (struct comb_proc *proc)
 static bool scan_table (struct comb_file *, union value by[]);
 static struct ccase *create_output_case (const struct comb_proc *);
 static void apply_case (const struct comb_file *, struct ccase *);
-static void apply_file_case_and_advance (struct comb_file *, struct ccase *,
-                                         union value by[]);
+static void advance_file (struct comb_file *, union value by[]);
 static void output_case (struct comb_proc *, struct ccase *, union value by[]);
 static void output_buffered_case (struct comb_proc *);
 
@@ -686,7 +685,8 @@ execute_add_files (struct comb_proc *proc)
           while (file->is_minimal)
             {
               struct ccase *output = create_output_case (proc);
-              apply_file_case_and_advance (file, output, by);
+              apply_case (file, output);
+              advance_file (file, by);
               output_case (proc, output, by);
             }
         }
@@ -712,7 +712,10 @@ execute_match_files (struct comb_proc *proc)
           if (file->type == COMB_FILE)
             {
               if (file->is_minimal)
-                apply_file_case_and_advance (file, output, NULL);
+                {
+                  apply_case (file, output);
+                  advance_file (file, NULL);
+                }
             }
           else
             {
@@ -743,7 +746,8 @@ execute_update (struct comb_proc *proc)
       for (first = &proc->files[0]; ; first++)
         if (first->is_minimal)
           break;
-      apply_file_case_and_advance (first, output, by);
+      apply_case (first, output);
+      advance_file (first, by);
 
       /* Read additional cases and update the output case from
          them.  (Don't update the output case from any duplicate
@@ -752,7 +756,10 @@ execute_update (struct comb_proc *proc)
            file < &proc->files[proc->n_files]; file++)
         {
           while (file->is_minimal)
-            apply_file_case_and_advance (file, output, by);
+            {
+              apply_case (file, output);
+              advance_file (file, by);
+            }
         }
       casewriter_write (proc->output, output);
 
@@ -764,7 +771,8 @@ execute_update (struct comb_proc *proc)
           while (first->is_minimal)
             {
               output = create_output_case (proc);
-              apply_file_case_and_advance (first, output, by);
+              apply_case (first, output);
+              advance_file (first, by);
               casewriter_write (proc->output, output);
             }
         }
@@ -831,15 +839,12 @@ apply_case (const struct comb_file *file, struct ccase *output)
     case_data_rw (output, file->in_var)->f = true;
 }
 
-/* Like apply_case() above, but also advances FILE to its next
-   case.  Also, if BY is nonnull, then FILE's is_minimal member
-   is updated based on whether the new case's BY values still
-   match those in BY. */
+/* Advances FILE to its next case.  If BY is nonnull, then FILE's is_minimal
+   member is updated based on whether the new case's BY values still match
+   those in BY. */
 static void
-apply_file_case_and_advance (struct comb_file *file, struct ccase *output,
-                             union value by[])
+advance_file (struct comb_file *file, union value by[])
 {
-  apply_case (file, output);
   case_unref (file->data);
   file->data = casereader_read (file->reader);
   if (by)
