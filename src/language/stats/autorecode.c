@@ -37,8 +37,9 @@
 #include "libpspp/str.h"
 
 #include "gl/xalloc.h"
-#include "gl/vasnprintf.h"
+#include "gl/c-vasprintf.h"
 #include "gl/mbiter.h"
+
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -295,7 +296,6 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       for (j = 0; j < n_items; j++)
 	{
 	  const union value *from = &items[j]->from;
-	  size_t len;
 	  char *recoded_value  = NULL;
 	  char *c;
 	  const int src_width = items[j]->width;
@@ -315,7 +315,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 	      recoded_value = recode_string (UTF8, dict_get_encoding (arc->dict), str, src_width);
 	    }
 	  else
-	    recoded_value = asnprintf (NULL, &len, "%g", from->f);
+	    recoded_value = c_xasprintf ("%g", from->f);
 	  
 	  /* Remove trailing whitespace */
 	  for (c = recoded_value; *c != '\0'; c++)
