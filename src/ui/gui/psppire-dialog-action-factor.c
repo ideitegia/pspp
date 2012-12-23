@@ -26,6 +26,7 @@
 #include "psppire-dialog.h"
 #include "builder-wrapper.h"
 #include "psppire-scanf.h"
+#include <libpspp/str.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -58,69 +59,68 @@ generate_syntax (PsppireDialogAction *act)
   PsppireDialogActionFactor *rd  = PSPPIRE_DIALOG_ACTION_FACTOR (act);
 
   gchar *text = NULL;
-  GString *string = g_string_new ("FACTOR ");
+  struct string str;
+  ds_init_cstr (&str, "FACTOR ");
 
-  g_string_append (string, "\n\t/VARIABLES=");
+  ds_put_cstr (&str, "\n\t/VARIABLES=");
 
-  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->variables), 0, string);
+  psppire_var_view_append_names_str (PSPPIRE_VAR_VIEW (rd->variables), 0, &str);
 
 
-  g_string_append (string, "\n\t/CRITERIA = ");
+  ds_put_cstr (&str, "\n\t/CRITERIA = ");
   if ( rd->extraction.explicit_nfactors )
-    g_string_append_printf (string, "FACTORS (%d)", rd->extraction.n_factors);
+    ds_put_c_format (&str, "FACTORS (%d)", rd->extraction.n_factors);
   else
-    g_string_append_printf (string, "MINEIGEN (%g)", rd->extraction.mineigen);
+    ds_put_c_format (&str, "MINEIGEN (%g)", rd->extraction.mineigen);
 
   /*
     The CRITERIA = ITERATE subcommand is overloaded.
      It applies to the next /ROTATION and/or EXTRACTION command whatever comes first.
   */
-  g_string_append_printf (string, " ITERATE (%d)", rd->extraction.n_iterations);
+  ds_put_c_format (&str, " ITERATE (%d)", rd->extraction.n_iterations);
 
 
-  g_string_append (string, "\n\t/EXTRACTION =");
+  ds_put_cstr (&str, "\n\t/EXTRACTION =");
   if ( rd->extraction.paf)
-    g_string_append (string, "PAF");
+    ds_put_cstr (&str, "PAF");
   else
-    g_string_append (string, "PC");
+    ds_put_cstr (&str, "PC");
 
 
-  g_string_append (string, "\n\t/METHOD = ");
+  ds_put_cstr (&str, "\n\t/METHOD = ");
   if ( rd->extraction.covariance )
-    g_string_append (string, "COVARIANCE");
+    ds_put_cstr (&str, "COVARIANCE");
   else
-    g_string_append (string, "CORRELATION");
-
-
+    ds_put_cstr (&str, "CORRELATION");
 
   if ( rd->extraction.scree )
     {
-      g_string_append (string, "\n\t/PLOT = ");
-      g_string_append (string, "EIGEN");
+      ds_put_cstr (&str, "\n\t/PLOT = ");
+      ds_put_cstr (&str, "EIGEN");
     }
 
-  g_string_append (string, "\n\t/PRINT = ");
-  g_string_append (string, "INITIAL ");
+  ds_put_cstr (&str, "\n\t/PRINT = ");
+  ds_put_cstr (&str, "INITIAL ");
 
   if ( rd->extraction.unrotated )  
-    g_string_append (string, "EXTRACTION ");
+    ds_put_cstr (&str, "EXTRACTION ");
 
   if ( rd->rotation.rotated_solution )
-    g_string_append (string, "ROTATION");
+    ds_put_cstr (&str, "ROTATION");
 
 
   /* The CRITERIA = ITERATE subcommand is overloaded.
      It applies to the next /ROTATION and/or EXTRACTION command whatever comes first.
   */
-  g_string_append_printf (string, "\n\t/CRITERIA = ITERATE (%d)",  rd->rotation.iterations  );
+  ds_put_c_format (&str, "\n\t/CRITERIA = ITERATE (%d)",  rd->rotation.iterations  );
 
-  g_string_append (string, "\n\t/ROTATION = ");
-  g_string_append (string, rot_method_syntax[rd->rotation.method]);
+  ds_put_cstr (&str, "\n\t/ROTATION = ");
+  ds_put_cstr (&str, rot_method_syntax[rd->rotation.method]);
 
-  g_string_append (string, ".");
-  text = string->str;
+  ds_put_cstr (&str, ".");
+  text = ds_steal_cstr (&str);
 
-  g_string_free (string, FALSE);
+  ds_destroy (&str);
 
   return text;
 }
