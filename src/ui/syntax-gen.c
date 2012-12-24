@@ -30,6 +30,7 @@
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
+#include "libpspp/misc.h"
 
 #include "gl/ftoastr.h"
 
@@ -176,7 +177,7 @@ syntax_gen_number (struct string *output,
     {
       char s[DBL_BUFSIZE_BOUND];
 
-      dtoastr (s, sizeof s, 0, 0, number);
+      c_dtoastr (s, sizeof s, 0, 0, number);
       ds_put_cstr (output, s);
     }
 }

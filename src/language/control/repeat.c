@@ -32,6 +32,7 @@
 #include "libpspp/hmap.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
+#include "libpspp/misc.h"
 
 #include "gl/ftoastr.h"
 #include "gl/minmax.h"
@@ -399,7 +400,7 @@ parse_numbers (struct lexer *lexer, struct dummy_var *dv)
         {
           char s[DBL_BUFSIZE_BOUND];
 
-          dtoastr (s, sizeof s, 0, 0, lex_number (lexer));
+          c_dtoastr (s, sizeof s, 0, 0, lex_number (lexer));
           add_replacement (dv, xstrdup (s), &allocated);
           lex_get (lexer);
         }
