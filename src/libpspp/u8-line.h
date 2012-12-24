@@ -37,5 +37,6 @@ void u8_line_destroy (struct u8_line *);
 void u8_line_clear (struct u8_line *);
 char *u8_line_reserve (struct u8_line *, int x0, int x1, int n);
 void u8_line_put (struct u8_line *, int x0, int x1, const char *s, int n);
+void u8_line_set_length (struct u8_line *, int x);
 
 #endif /* libpspp/u8-line.h */

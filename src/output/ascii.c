@@ -943,6 +943,19 @@ ascii_test_write (struct output_driver *driver,
 
   a->y = 1;
 }
+
+void
+ascii_test_set_length (struct output_driver *driver, int y, int length)
+{
+  struct ascii_driver *a = ascii_driver_cast (driver);
+
+  if (a->file == NULL && !ascii_open_page (a))
+    return;
+
+  if (y < 0 || y >= a->length)
+    return;
+  u8_line_set_length (&a->lines[y], length);
+}
 
 /* ascii_close_page () and support routines. */
 

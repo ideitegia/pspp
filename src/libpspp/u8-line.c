@@ -193,3 +193,29 @@ u8_line_put (struct u8_line *line, int x0, int x1, const char *s, int n)
 {
   memcpy (u8_line_reserve (line, x0, x1, n), s, n);
 }
+
+/* Changes the width of LINE to X column widths.  If X is longer than LINE's
+   previous width, LINE is extended by appending spaces.  If X is shorter than
+   LINE's previous width, LINE is shortened by removing trailing characters. */
+void
+u8_line_set_length (struct u8_line *line, int x)
+{
+  if (x > line->width)
+    {
+      ds_put_byte_multiple (&line->s, ' ', x - line->width);
+      line->width = x;
+    }
+  else if (x < line->width)
+    {
+      struct u8_pos pos;
+
+      u8_line_find_pos (line, x, &pos);
+      ds_truncate (&line->s, pos.ofs0);
+      line->width = pos.x0;
+      if (x > line->width)
+        {
+          ds_put_byte_multiple (&line->s, '?', x - line->width);
+          line->width = x;
+        }
+    }
+}

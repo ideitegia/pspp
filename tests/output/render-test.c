@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -361,6 +361,7 @@ draw (FILE *stream)
   while (fgets (buffer, sizeof buffer, stream))
     {
       char text[sizeof buffer];
+      int length;
       int emph;
       int x, y;
 
@@ -368,9 +369,11 @@ draw (FILE *stream)
       if (strchr ("#\r\n", buffer[0]))
         continue;
 
-      if (sscanf (buffer, "%d %d %d %[^\n]", &x, &y, &emph, text) != 4)
+      if (sscanf (buffer, "%d %d %d %[^\n]", &x, &y, &emph, text) == 4)
+        ascii_test_write (ascii_driver, text, x, y, emph ? TAB_EMPH : 0);
+      else if (sscanf (buffer, "set-length %d %d", &y, &length) == 2)
+        ascii_test_set_length (ascii_driver, y, length);
+      else
         error (1, 0, "line %d has invalid format", line);
-
-      ascii_test_write (ascii_driver, text, x, y, emph ? TAB_EMPH : 0);
     }
 }
