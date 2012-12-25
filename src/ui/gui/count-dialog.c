@@ -237,17 +237,19 @@ generate_syntax (const struct cnt_dialog *cnt)
   const gchar *s = NULL;
   gboolean ok;
   GtkTreeIter iter;
-  GString *str = g_string_sized_new (100);
+  struct string dds;
+  
+  ds_init_empty (&dds);
 
-  g_string_append (str, "\nCOUNT ");
+  ds_put_cstr (&dds, "\nCOUNT ");
 
-  g_string_append (str, gtk_entry_get_text (GTK_ENTRY (cnt->target)));
+  ds_put_cstr (&dds, gtk_entry_get_text (GTK_ENTRY (cnt->target)));
 
-  g_string_append (str, " =");
+  ds_put_cstr (&dds, " =");
 
-  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (cnt->variable_treeview), 0, str);
+  psppire_var_view_append_names_str (PSPPIRE_VAR_VIEW (cnt->variable_treeview), 0, &dds);
 
-  g_string_append (str, "(");
+  ds_put_cstr (&dds, "(");
   for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (cnt->value_list),
 					   &iter);
        ok;
@@ -261,36 +263,31 @@ generate_syntax (const struct cnt_dialog *cnt)
 
       ov = g_value_get_boxed (&a_value);
 
-      g_string_append (str, " ");
-      old_value_append_syntax (str, ov);
+      ds_put_cstr (&dds, " ");
+      old_value_append_syntax (&dds, ov);
     }
-  g_string_append (str, ").");
+  ds_put_cstr (&dds, ").");
 
 
   s = gtk_entry_get_text (GTK_ENTRY (cnt->label));
   if (0 != strcmp (s, ""))
   {
-    struct string ds;
-    ds_init_empty (&ds);
-    g_string_append (str, "\nVARIABLE LABELS ");
+    ds_put_cstr (&dds, "\nVARIABLE LABELS ");
 
-    g_string_append (str, gtk_entry_get_text (GTK_ENTRY (cnt->target)));
+    ds_put_cstr (&dds, gtk_entry_get_text (GTK_ENTRY (cnt->target)));
 
-    g_string_append (str, " ");
+    ds_put_cstr (&dds, " ");
 
-    syntax_gen_string (&ds, ss_cstr (s));
+    syntax_gen_string (&dds, ss_cstr (s));
 
-    g_string_append (str, ds_cstr (&ds));
-
-    g_string_append (str, ".");
-    ds_destroy (&ds);
+    ds_put_cstr (&dds, ".");
   }
 
-  g_string_append (str, "\nEXECUTE.\n");
+  ds_put_cstr (&dds, "\nEXECUTE.\n");
 
-  text = str->str;
+  text = ds_steal_cstr (&dds);
 
-  g_string_free (str, FALSE);
+  ds_destroy (&dds);
 
   return text;
 }

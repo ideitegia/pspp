@@ -543,46 +543,46 @@ old_value_get_type (void)
 
 /* Generate a syntax fragment for NV and append it to STR */
 void
-old_value_append_syntax (GString *str, const struct old_value *ov)
+old_value_append_syntax (struct string *str, const struct old_value *ov)
 {
   switch (ov->type)
     {
     case OV_NUMERIC:
-      g_string_append_printf (str, "%g", ov->v.v);
+      ds_put_c_format (str, "%g", ov->v.v);
       break;
     case OV_STRING:
       {
 	struct string ds = DS_EMPTY_INITIALIZER;
 	syntax_gen_string (&ds, ss_cstr (ov->v.s));
-	g_string_append (str, ds_cstr (&ds));
+	ds_put_cstr (str, ds_cstr (&ds));
 	ds_destroy (&ds);
       }
       break;
     case OV_MISSING:
-      g_string_append (str, "MISSING");
+      ds_put_cstr (str, "MISSING");
       break;
     case OV_SYSMIS:
-      g_string_append (str, "SYSMIS");
+      ds_put_cstr (str, "SYSMIS");
       break;
     case OV_ELSE:
-      g_string_append (str, "ELSE");
+      ds_put_cstr (str, "ELSE");
       break;
     case OV_RANGE:
-      g_string_append_printf (str, "%g THRU %g",
+      ds_put_c_format (str, "%g THRU %g",
 			      ov->v.range[0],
 			      ov->v.range[1]);
       break;
     case OV_LOW_UP:
-      g_string_append_printf (str, "LOWEST THRU %g",
+      ds_put_c_format (str, "LOWEST THRU %g",
 			      ov->v.range[1]);
       break;
     case OV_HIGH_DOWN:
-      g_string_append_printf (str, "%g THRU HIGHEST",
+      ds_put_c_format (str, "%g THRU HIGHEST",
 			      ov->v.range[0]);
       break;
     default:
       g_warning ("Invalid type in old recode value");
-      g_string_append (str, "???");
+      ds_put_cstr (str, "???");
       break;
     };
 }
