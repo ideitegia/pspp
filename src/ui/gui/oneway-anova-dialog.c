@@ -231,22 +231,23 @@ static gchar * generate_syntax (const struct oneway_anova_dialog *ow)
   gint i;
   gboolean descriptives = gtk_toggle_button_get_active (ow->descriptives);
   gboolean homogeneity = gtk_toggle_button_get_active (ow->homogeneity);
+  struct string dss;
 
-  GString *str = g_string_new ("ONEWAY /VARIABLES=");
+  ds_init_cstr (&dss, "ONEWAY /VARIABLES=");
 
-  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (ow->vars_treeview), 0, str);
+  psppire_var_view_append_names_str (PSPPIRE_VAR_VIEW (ow->vars_treeview), 0, &dss);
 
-  g_string_append (str, " BY ");
+  ds_put_cstr (&dss, " BY ");
 
-  g_string_append (str, gtk_entry_get_text (GTK_ENTRY (ow->factor_entry)));
+  ds_put_cstr (&dss, gtk_entry_get_text (GTK_ENTRY (ow->factor_entry)));
 
   if (descriptives || homogeneity )
     {
-      g_string_append (str, "\n\t/STATISTICS=");
+      ds_put_cstr (&dss, "\n\t/STATISTICS=");
       if (descriptives)
-	g_string_append (str, "DESCRIPTIVES ");
+	ds_put_cstr (&dss, "DESCRIPTIVES ");
       if (homogeneity)
-	g_string_append (str, "HOMOGENEITY ");
+	ds_put_cstr (&dss, "HOMOGENEITY ");
     }
 
   for (i = 0 ; i < ow->contrasts_array->len ; ++i )
@@ -255,7 +256,7 @@ static gchar * generate_syntax (const struct oneway_anova_dialog *ow)
       GtkTreeIter iter;
       gboolean ok;
 
-      g_string_append (str, "\n\t/CONTRAST=");
+      ds_put_cstr (&dss, "\n\t/CONTRAST=");
 
       for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(ls),
 					       &iter);
@@ -266,14 +267,14 @@ static gchar * generate_syntax (const struct oneway_anova_dialog *ow)
 
 	  gtk_tree_model_get (GTK_TREE_MODEL (ls), &iter, 0, &v, -1);
 
-	  g_string_append_printf (str, " %g", v);
+	  ds_put_c_format (&dss, " %g", v);
 	}
     }
 
-  g_string_append (str, ".\n");
+  ds_put_cstr (&dss, ".\n");
 
-  text = str->str;
-  g_string_free (str, FALSE);
+  text = ds_steal_cstr (&dss);
+  ds_destroy (&dss);
 
   return text;
 }
