@@ -37,7 +37,7 @@
 #include "libpspp/str.h"
 
 #include "gl/xalloc.h"
-#include "gl/c-vasprintf.h"
+#include "gl/c-xvasprintf.h"
 #include "gl/mbiter.h"
 
 
