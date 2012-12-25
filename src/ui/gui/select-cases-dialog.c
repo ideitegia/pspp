@@ -346,12 +346,14 @@ static gchar *
 generate_syntax_filter (const struct select_cases_dialog *scd)
 {
   gchar *text = NULL;
-  GString *string = g_string_new ("");
+  struct string dss;
 
   const gchar *filter = "filter_$";
   const gchar key[]="case_$";
 
-  if ( gtk_toggle_button_get_active
+  ds_init_empty (&dss);
+
+  if (gtk_toggle_button_get_active
        (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
 					      "radiobutton-range"))))
     {
@@ -363,14 +365,14 @@ generate_syntax_filter (const struct select_cases_dialog *scd)
 	GTK_SPIN_BUTTON (get_widget_assert (scd->xml,
 					   "range-dialog-last"));
 
-      g_string_append_printf (string,
+      ds_put_c_format (&dss,
 			      "COMPUTE filter_$ = ($CASENUM >= %ld "
 			       "AND $CASENUM <= %ld).\n",
 			      (long) gtk_spin_button_get_value (first),
 			      (long) gtk_spin_button_get_value (last)
 			      );
 
-      g_string_append (string, "EXECUTE.\n");
+      ds_put_cstr (&dss, "EXECUTE.\n");
     }
   else if ( gtk_toggle_button_get_active
        (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
@@ -385,7 +387,7 @@ generate_syntax_filter (const struct select_cases_dialog *scd)
 	  const double percentage =
 	    gtk_spin_button_get_value (GTK_SPIN_BUTTON (scd->spinbutton));
 
-	  g_string_append_printf (string,
+	  ds_put_c_format (&dss,
 				  "COMPUTE %s = RV.UNIFORM (0,1) < %g.\n",
 				  filter,
 				  percentage / 100.0 );
@@ -400,49 +402,47 @@ generate_syntax_filter (const struct select_cases_dialog *scd)
 
 	  const gchar ranvar[]="rv_$";
 
-	  g_string_append_printf (string,
+	  ds_put_c_format (&dss,
 				  "COMPUTE %s = $CASENUM.\n", key);
 
-	  g_string_append_printf (string,
+	  ds_put_c_format (&dss,
 				  "COMPUTE %s = %s > %d.\n",
 				  filter, key, from_n_cases);
 
-	  g_string_append_printf (string,
+	  ds_put_c_format (&dss,
 				  "COMPUTE %s = RV.UNIFORM (0, 1).\n",
 				  ranvar);
 
-	  g_string_append_printf (string,
+	  ds_put_c_format (&dss,
 				  "SORT BY %s, %s.\n",
 				  filter, ranvar);
 
-	  g_string_append (string, "EXECUTE.\n");
+	  ds_put_cstr (&dss, "EXECUTE.\n");
 				  
 
-	  g_string_append_printf (string,
+	  ds_put_c_format (&dss,
 				  "COMPUTE %s = $CASENUM.\n",
 				  filter );
 
-	  g_string_append_printf (string,
+	  ds_put_c_format (&dss,
 				  "COMPUTE %s = %s <= %d\n",
 				  filter,
 				  filter,
 				  n_cases );
 
-	  g_string_append (string, "EXECUTE.\n");
+	  ds_put_cstr (&dss, "EXECUTE.\n");
 
 
-	  g_string_append_printf (string,
+	  ds_put_c_format (&dss,
 				  "SORT BY %s.\n",
 				  key);
 
-	  g_string_append_printf (string,
+	  ds_put_c_format (&dss,
 				  "DELETE VARIABLES %s, %s.\n",
 				  key, ranvar);
-
 	}
 
-      g_string_append (string, "EXECUTE.\n");
-
+      ds_put_cstr (&dss, "EXECUTE.\n");
     }
   else
     {
@@ -452,11 +452,12 @@ generate_syntax_filter (const struct select_cases_dialog *scd)
       filter = gtk_entry_get_text (entry);
     }
 
+  ds_put_c_format (&dss, "FILTER BY %s.\n", filter);
 
-  g_string_append_printf  (string, "FILTER BY %s.\n", filter);
+  text  = ds_steal_cstr (&dss);
 
-  text  = string->str;
-  g_string_free (string, FALSE);
+  ds_destroy (&dss);
+
   return text;
 }
 
@@ -464,7 +465,7 @@ static gchar *
 generate_syntax_delete (const struct select_cases_dialog *scd)
 {
   gchar *text = NULL;
-  GString *string = NULL;
+  struct string dss;
 
   if ( gtk_toggle_button_get_active
        (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
@@ -473,7 +474,7 @@ generate_syntax_delete (const struct select_cases_dialog *scd)
       return xstrdup ("\n");
     }
 
-  string = g_string_new ("");
+  ds_init_empty (&dss);
 
   if ( gtk_toggle_button_get_active
        (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
@@ -483,13 +484,13 @@ generate_syntax_delete (const struct select_cases_dialog *scd)
       get_widget_assert (scd->xml,
 			 "radiobutton-sample-percent");
 
-    g_string_append (string, "SAMPLE ");
+    ds_put_cstr (&dss, "SAMPLE ");
 
     if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (random_sample)))
       {
 	const double percentage =
 	  gtk_spin_button_get_value (GTK_SPIN_BUTTON (scd->spinbutton));
-	g_string_append_printf (string, "%g.", percentage / 100.0);
+	ds_put_c_format (&dss, "%g.", percentage / 100.0);
       }
     else
       {
@@ -498,7 +499,7 @@ generate_syntax_delete (const struct select_cases_dialog *scd)
 	const gint from_n_cases =
 	  gtk_spin_button_get_value (GTK_SPIN_BUTTON (scd->spinbutton2));
 
-      	g_string_append_printf (string, "%d FROM %d .", n_cases, from_n_cases);
+      	ds_put_c_format (&dss, "%d FROM %d .", n_cases, from_n_cases);
       }
 
   }
@@ -514,14 +515,14 @@ generate_syntax_delete (const struct select_cases_dialog *scd)
 	GTK_SPIN_BUTTON (get_widget_assert (scd->xml,
 					   "range-dialog-last"));
 
-      g_string_append_printf (string,
+      ds_put_c_format (&dss,
 			      "COMPUTE filter_$ = ($CASENUM >= %ld "
 			       "AND $CASENUM <= %ld).\n",
 			      (long) gtk_spin_button_get_value (first),
 			      (long) gtk_spin_button_get_value (last)
 			      );
-      g_string_append (string, "EXECUTE.\n");
-      g_string_append_printf (string, "SELECT IF filter_$.\n");
+      ds_put_cstr (&dss, "EXECUTE.\n");
+      ds_put_c_format (&dss, "SELECT IF filter_$.\n");
 
     }
   else if ( gtk_toggle_button_get_active
@@ -533,17 +534,17 @@ generate_syntax_delete (const struct select_cases_dialog *scd)
 	GTK_ENTRY (get_widget_assert (scd->xml,
 				      "filter-variable-entry"));
 
-      g_string_append_printf (string, "SELECT IF (%s <> 0).",
+      ds_put_c_format (&dss, "SELECT IF (%s <> 0).",
 			      gtk_entry_get_text (entry));
     }
 
 
-  g_string_append (string, "\n");
+  ds_put_cstr (&dss, "\n");
 
+  text = ds_steal_cstr (&dss);
 
+  ds_destroy (&dss);
 
-  text  = string->str;
-  g_string_free (string, FALSE);
   return text;
 }
 
