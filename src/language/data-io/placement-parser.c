@@ -52,6 +52,13 @@ static bool fixed_parse_fortran (struct lexer *l, struct pool *, enum fmt_use,
    formats like those parsed by DATA LIST or PRINT.  Returns true
    only if successful.
 
+   The formats parsed are either input or output formats, according
+   to USE.
+
+   If USE is FMT_FOR_INPUT, then T, X, and / "formats" are parsed,
+   in addition to regular formats.  If USE is FMT_FOR_OUTPUT, then
+   T and X "formats" are parsed but not /.
+
    If successful, formats for VAR_CNT variables are stored in
    *FORMATS, and the number of formats required is stored in
    *FORMAT_CNT.  *FORMAT_CNT may be greater than VAR_CNT because
@@ -204,7 +211,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, enum fmt_use use,
         {
           new_formats = &f;
           new_format_cnt = 1;
-          if (lex_match (lexer, T_SLASH))
+          if (use == FMT_FOR_INPUT && lex_match (lexer, T_SLASH))
             f.type = PRS_TYPE_NEW_REC;
           else
             {
