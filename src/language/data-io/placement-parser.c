@@ -298,11 +298,8 @@ execute_placement_format (const struct fmt_spec *format,
     }
 }
 
-/* Parses a BASE-based column using LEXER.  Returns true and
-   stores a 1-based column number into *COLUMN if successful,
-   otherwise emits an error message and returns false. */
-static bool
-parse_column (int value, int base, int *column)
+bool
+parse_column__ (int value, int base, int *column)
 {
   assert (base == 0 || base == 1);
   *column = value - base + 1;
@@ -314,6 +311,27 @@ parse_column (int value, int base, int *column)
         msg (SE, _("Column positions for fields must not be negative."));
       return false;
     }
+  return true;
+}
+
+/* Parses a BASE-based column using LEXER.  Returns true and
+   stores a 1-based column number into *COLUMN if successful,
+   otherwise emits an error message and returns false.
+
+   If BASE is 0, zero-based column numbers are parsed; if BASE is
+   1, 1-based column numbers are parsed.  Regardless of BASE, the
+   values stored in *FIRST_COLUMN and *LAST_COLUMN are
+   1-based. */
+bool
+parse_column (struct lexer *lexer, int base, int *column)
+{
+  assert (base == 0 || base == 1);
+
+  if (!lex_force_int (lexer)
+      || !parse_column__ (lex_integer (lexer), base, column))
+    return false;
+
+  lex_get (lexer);
   return true;
 }
 
@@ -337,14 +355,14 @@ parse_column_range (struct lexer *lexer, int base,
 {
   /* First column. */
   if (!lex_force_int (lexer)
-      || !parse_column (lex_integer (lexer), base, first_column))
+      || !parse_column__ (lex_integer (lexer), base, first_column))
     return false;
   lex_get (lexer);
 
   /* Last column. */
   if (lex_is_integer (lexer) && lex_integer (lexer) < 0)
     {
-      if (!parse_column (-lex_integer (lexer), base, last_column))
+      if (!parse_column__ (-lex_integer (lexer), base, last_column))
         return false;
       lex_get (lexer);
 
