@@ -1685,3 +1685,32 @@ Asymp. Sig. (2-tailed),1.000,.414
 
 AT_CLEANUP
 
+
+
+AT_SETUP([NPAR TESTS CHISQUARE crash])
+dnl This syntax had been observed to crash pspp
+
+AT_DATA([npar.sps], [dnl
+data list list /x *.
+begin data.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+end data.
+
+* This happens to be invalid syntax.  But should not crash.
+NPAR TEST
+	/CHISQUARE= x(0.098, 99.098)
+	/EXPECTED =  1.2.
+])
+
+AT_CHECK([pspp -O format=csv npar.sps], [1], [ignore])
+
+AT_CLEANUP
