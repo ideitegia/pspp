@@ -27,6 +27,7 @@
 #include "libpspp/pool.h"
 #include "libpspp/str.h"
 
+#include "gl/c-strcase.h"
 #include "gl/xalloc.h"
 #include "gl/xsize.h"
 
@@ -220,9 +221,9 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, enum fmt_use use,
               if (!parse_abstract_format_specifier (lexer, type, &f.w, &f.d))
                 return false;
 
-              if (!strcasecmp (type, "T"))
+              if (!c_strcasecmp (type, "T"))
                 f.type = PRS_TYPE_T;
-              else if (!strcasecmp (type, "X"))
+              else if (!c_strcasecmp (type, "X"))
                 {
                   f.type = PRS_TYPE_X;
                   f.w = count;

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "data/file-name.h"
 #include "libpspp/str.h"
 
+#include "gl/c-strcase.h"
 #include "gl/error.h"
 
 #include "gettext.h"
@@ -135,7 +136,7 @@ parse_unit (const char *unit)
 
   unit += strspn (unit, CC_SPACES);
   for (p = units; p < units + sizeof units / sizeof *units; p++)
-    if (!strcasecmp (unit, p->name))
+    if (!c_strcasecmp (unit, p->name))
       return p->factor;
   return 0.0;
 }
