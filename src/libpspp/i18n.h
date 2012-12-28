@@ -72,6 +72,8 @@ unsigned int utf8_hash_case_bytes (const char *, size_t n, unsigned int basis);
 unsigned int utf8_hash_case_string (const char *, unsigned int basis);
 int utf8_strcasecmp (const char *, const char *);
 int utf8_strncasecmp (const char *, size_t, const char *, size_t);
+char *utf8_to_upper (const char *);
+char *utf8_to_lower (const char *);
 
 /* Information about character encodings. */
 

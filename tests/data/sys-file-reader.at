@@ -131,7 +131,7 @@ num8,Format: F8.0,,8
 ,Missing Values: 1 THRU 3; 5,,
 num9,Format: F8.0,,9
 ,Missing Values: 1 THRU HIGHEST; -5,,
-numÀÈÌÑÒ,Format: F8.0,,10
+numàèìñò,Format: F8.0,,10
 ,Missing Values: LOWEST THRU 1; 5,,
 str1,Format: A4,,11
 str2,String variable 2's label,,12
@@ -151,7 +151,7 @@ str8,25-byte string,,18
 ,Format: A25,,
 
 Table: Data List
-num1,num2,num3,num4,num5,num6,num7,num8,num9,numÀÈÌÑÒ,str1,str2,str3,str4,str5,str6,str7,str8
+num1,num2,num3,num4,num5,num6,num7,num8,num9,numàèìñò,str1,str2,str3,str4,str5,str6,str7,str8
 1,2,3,4,5,6,7,8,9,10,abcd,efgh,ijkl,mnop,qrst,uvwx,yzABCDEFGHI,JKLMNOPQRSTUVWXYZ01234567
 ])
 done
@@ -1014,11 +1014,11 @@ LIST.
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
   AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
 Variable,Description,,Position
-sÉq256,Format: A256,,1
+séq256,Format: A256,,1
 str600,Format: A600,,2
 
 Table: Data List
-sÉq256,str600
+séq256,str600
 abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@a,abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#abcdefghijklmnopqrstuvwxyz
 ])
 done

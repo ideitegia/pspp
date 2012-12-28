@@ -926,8 +926,7 @@ var_set_short_name (struct variable *var, size_t idx, const char *short_name)
           for (i = old_cnt; i < var->short_name_cnt; i++)
             var->short_names[i] = NULL;
         }
-      var->short_names[idx] = xstrdup (short_name);
-      str_uppercase (var->short_names[idx]);
+      var->short_names[idx] = utf8_to_upper (short_name);
     }
 
   dict_var_changed (var);

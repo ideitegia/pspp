@@ -28,6 +28,7 @@
 #include "libpspp/message.h"
 #include "libpspp/pool.h"
 
+#include "gl/c-ctype.h"
 #include "gl/c-vasnprintf.h"
 #include "gl/relocatable.h"
 #include "gl/minmax.h"
@@ -233,20 +234,26 @@ str_copy_buf_trunc (char *dst, size_t dst_size,
   dst[dst_len] = '\0';
 }
 
-/* Converts each byte in S to uppercase. */
+/* Converts each byte in S to uppercase.
+
+   This is suitable only for ASCII strings.  Use utf8_to_upper() for UTF-8
+   strings.*/
 void
 str_uppercase (char *s)
 {
   for (; *s != '\0'; s++)
-    *s = toupper ((unsigned char) *s);
+    *s = c_toupper ((unsigned char) *s);
 }
 
-/* Converts each byte in S to lowercase. */
+/* Converts each byte in S to lowercase.
+
+   This is suitable only for ASCII strings.  Use utf8_to_lower() for UTF-8
+   strings.*/
 void
 str_lowercase (char *s)
 {
   for (; *s != '\0'; s++)
-    *s = tolower ((unsigned char) *s);
+    *s = c_tolower ((unsigned char) *s);
 }
 
 /* Converts NUMBER into a string in 26-adic notation in BUFFER,

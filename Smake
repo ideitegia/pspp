@@ -78,6 +78,8 @@ GNULIB_MODULES = \
 	trunc \
 	unicase/u8-casecmp \
 	unicase/u8-casefold \
+	unicase/u8-tolower \
+	unicase/u8-toupper \
 	unictype/ctype-print \
 	unictype/property-id-continue \
 	unictype/property-id-start \

@@ -748,6 +748,39 @@ utf8_strncasecmp (const char *a, size_t an, const char *b, size_t bn)
 
   return result;
 }
+
+static char *
+utf8_casemap (const char *s,
+              uint8_t *(*f) (const uint8_t *, size_t, const char *, uninorm_t,
+                             uint8_t *, size_t *))
+{
+  char *result;
+  size_t size;
+
+  result = CHAR_CAST (char *,
+                      f (CHAR_CAST (const uint8_t *, s), strlen (s) + 1,
+                         NULL, NULL, NULL, &size));
+  if (result == NULL)
+    {
+      if (errno == ENOMEM)
+        xalloc_die ();
+
+      result = xstrdup (s);
+    }
+  return result;
+}
+
+char *
+utf8_to_upper (const char *s)
+{
+  return utf8_casemap (s, u8_toupper);
+}
+
+char *
+utf8_to_lower (const char *s)
+{
+  return utf8_casemap (s, u8_tolower);
+}
 
 bool
 get_encoding_info (struct encoding_info *e, const char *name)
