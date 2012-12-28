@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -281,6 +281,7 @@ csv_write_var__ (struct csv_writer *w, const struct csv_var *cv,
   else
     {
       char s[MAX (DBL_STRLEN_BOUND, 128)];
+      char *cp;
 
       switch (cv->format.type)
         {
@@ -307,12 +308,9 @@ csv_write_var__ (struct csv_writer *w, const struct csv_var *cv,
         case FMT_WKDAY:
         case FMT_MONTH:
           dtoastr (s, sizeof s, 0, 0, value->f);
-          if (w->opts.decimal != '.')
-            {
-              char *cp = strchr (s, '.');
-              if (cp != NULL)
-                *cp = w->opts.decimal;
-            }
+          cp = strpbrk (s, ".,");
+          if (cp != NULL)
+            *cp = w->opts.decimal;
           break;
 
         case FMT_DATE:
