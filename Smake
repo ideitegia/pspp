@@ -76,11 +76,14 @@ GNULIB_MODULES = \
 	sys_stat \
 	tempname \
 	trunc \
+	unicase/u8-casecmp \
+	unicase/u8-casefold \
 	unictype/ctype-print \
 	unictype/property-id-continue \
 	unictype/property-id-start \
 	unigbrk/uc-is-grapheme-break \
 	unilbrk/u8-possible-linebreaks \
+	uninorm/nfkd \
 	unistd \
 	unistr/u8-check \
 	unistr/u8-cpy \

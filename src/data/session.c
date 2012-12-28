@@ -25,6 +25,7 @@
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
 #include "libpspp/hash-functions.h"
+#include "libpspp/i18n.h"
 #include "libpspp/str.h"
 #include "libpspp/hmapx.h"
 
@@ -94,7 +95,8 @@ session_add_dataset (struct session *s, struct dataset *ds)
   if (old != NULL)
     session_remove_dataset (s, old);
 
-  hmapx_insert (&s->datasets, ds, hash_case_string (dataset_name (ds), 0));
+  hmapx_insert (&s->datasets, ds,
+                utf8_hash_case_string (dataset_name (ds), 0));
   if (s->active == NULL)
     s->active = ds;
 
@@ -193,8 +195,9 @@ session_lookup_dataset__ (const struct session *s_, const char *name)
   struct hmapx_node *node;
   struct dataset *ds;
 
-  HMAPX_FOR_EACH_WITH_HASH (ds, node, hash_case_string (name, 0), &s->datasets)
-    if (!strcasecmp (dataset_name (ds), name))
+  HMAPX_FOR_EACH_WITH_HASH (ds, node, utf8_hash_case_string (name, 0),
+                            &s->datasets)
+    if (!utf8_strcasecmp (dataset_name (ds), name))
       return node;
 
   return NULL;

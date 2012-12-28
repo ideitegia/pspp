@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,8 +21,6 @@
 
 unsigned int hash_bytes (const void *, size_t, unsigned int basis);
 unsigned int hash_string (const char *, unsigned int basis);
-unsigned int hash_case_bytes (const void *, size_t, unsigned int basis);
-unsigned int hash_case_string (const char *, unsigned int basis);
 unsigned int hash_int (int, unsigned int basis);
 unsigned int hash_double (double, unsigned int basis);
 unsigned int hash_pointer (const void *, unsigned int basis);

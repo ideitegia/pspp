@@ -30,6 +30,7 @@
 #include "libpspp/cast.h"
 #include "libpspp/hash-functions.h"
 #include "libpspp/hmap.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "libpspp/misc.h"
@@ -78,7 +79,7 @@ cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
 static unsigned int
 hash_dummy (const char *name, size_t name_len)
 {
-  return hash_case_bytes (name, name_len, 0);
+  return utf8_hash_case_bytes (name, name_len, 0);
 }
 
 static const struct dummy_var *
@@ -88,7 +89,7 @@ find_dummy_var (struct hmap *hmap, const char *name, size_t name_len)
 
   HMAP_FOR_EACH_WITH_HASH (dv, struct dummy_var, hmap_node,
                            hash_dummy (name, name_len), hmap)
-    if (strcasecmp (dv->name, name))
+    if (utf8_strcasecmp (dv->name, name))
       return dv;
 
   return NULL;

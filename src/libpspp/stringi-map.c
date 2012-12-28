@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "libpspp/hash-functions.h"
+#include "libpspp/i18n.h"
 #include "libpspp/string-set.h"
 #include "libpspp/stringi-set.h"
 
@@ -148,7 +149,7 @@ stringi_map_find (const struct stringi_map *map, const char *key)
 struct stringi_map_node *
 stringi_map_find_node (const struct stringi_map *map, const char *key)
 {
-  return stringi_map_find_node__ (map, key, hash_case_string (key, 0));
+  return stringi_map_find_node__ (map, key, utf8_hash_case_string (key, 0));
 }
 
 /* If MAP contains KEY (or an equivalent with different case) as a key, deletes
@@ -175,7 +176,7 @@ struct stringi_map_node *
 stringi_map_insert (struct stringi_map *map, const char *key,
                     const char *value)
 {
-  unsigned int hash = hash_case_string (key, 0);
+  unsigned int hash = utf8_hash_case_string (key, 0);
   struct stringi_map_node *node = stringi_map_find_node__ (map, key, hash);
   if (node == NULL)
     node = stringi_map_insert__ (map, xstrdup (key), xstrdup (value), hash);
@@ -189,7 +190,7 @@ stringi_map_insert (struct stringi_map *map, const char *key,
 struct stringi_map_node *
 stringi_map_insert_nocopy (struct stringi_map *map, char *key, char *value)
 {
-  unsigned int hash = hash_case_string (key, 0);
+  unsigned int hash = utf8_hash_case_string (key, 0);
   struct stringi_map_node *node = stringi_map_find_node__ (map, key, hash);
   if (node == NULL)
     node = stringi_map_insert__ (map, key, value, hash);
@@ -208,7 +209,7 @@ struct stringi_map_node *
 stringi_map_replace (struct stringi_map *map, const char *key,
                      const char *value)
 {
-  unsigned int hash = hash_case_string (key, 0);
+  unsigned int hash = utf8_hash_case_string (key, 0);
   struct stringi_map_node *node = stringi_map_find_node__ (map, key, hash);
   if (node == NULL)
     node = stringi_map_insert__ (map, xstrdup (key), xstrdup (value), hash);
@@ -224,7 +225,7 @@ stringi_map_replace (struct stringi_map *map, const char *key,
 struct stringi_map_node *
 stringi_map_replace_nocopy (struct stringi_map *map, char *key, char *value)
 {
-  unsigned int hash = hash_case_string (key, 0);
+  unsigned int hash = utf8_hash_case_string (key, 0);
   struct stringi_map_node *node = stringi_map_find_node__ (map, key, hash);
   if (node == NULL)
     node = stringi_map_insert__ (map, key, value, hash);
@@ -242,7 +243,7 @@ stringi_map_replace_nocopy (struct stringi_map *map, char *key, char *value)
 bool
 stringi_map_delete (struct stringi_map *map, const char *key)
 {
-  return stringi_map_delete__ (map, key, hash_case_string (key, 0));
+  return stringi_map_delete__ (map, key, utf8_hash_case_string (key, 0));
 }
 
 /* Deletes NODE from MAP and destroys the node and its key and value. */
@@ -344,7 +345,7 @@ stringi_map_find_node__ (const struct stringi_map *map, const char *key,
 
   HMAP_FOR_EACH_WITH_HASH (node, struct stringi_map_node, hmap_node,
                            hash, &map->hmap)
-    if (!strcasecmp (key, node->key))
+    if (!utf8_strcasecmp (key, node->key))
       return node;
 
   return NULL;

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -100,53 +100,6 @@ unsigned int
 hash_string (const char *s, unsigned int basis)
 {
   return hash_bytes (s, strlen (s), basis);
-}
-
-/* Returns a hash value for the N bytes at S, with lowercase and uppercase
-   letters treated as equal, starting from BASIS. */
-unsigned int
-hash_case_bytes (const void *s_, size_t n, unsigned int basis)
-{
-  const char *s = s_;
-  uint32_t a, b, c;
-  uint32_t tmp[3];
-  int i;
-
-  a = b = c = 0xdeadbeef + n + basis;
-
-  while (n >= 12)
-    {
-      for (i = 0; i < 12; i++)
-        ((unsigned char *)tmp)[i] = toupper ((unsigned char) s[i]);
-      a += tmp[0];
-      b += tmp[1];
-      c += tmp[2];
-      HASH_MIX (a, b, c);
-      n -= 12;
-      s += 12;
-    }
-
-  if (n > 0)
-    {
-      memset (tmp, 0, 12);
-      for (i = 0; i < n; i++)
-        ((unsigned char *)tmp)[i] = toupper ((unsigned char) s[i]);
-      a += tmp[0];
-      b += tmp[1];
-      c += tmp[2];
-    }
-
-  HASH_FINAL (a, b, c);
-  return c;
-}
-
-/* Returns a hash value for null-terminated string S, with
-   lowercase and uppercase letters treated as equal, starting
-   from BASIS. */
-unsigned int
-hash_case_string (const char *s, unsigned int basis)
-{
-  return hash_case_bytes (s, strlen (s), basis);
 }
 
 /* Returns a hash value for integer X, starting from BASIS. */

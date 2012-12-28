@@ -512,7 +512,7 @@ try_name (const struct dictionary *dict, struct dsc_proc *dsc,
   for (i = 0; i < dsc->var_cnt; i++)
     {
       struct dsc_var *dsc_var = &dsc->vars[i];
-      if (dsc_var->z_name != NULL && !strcasecmp (dsc_var->z_name, name))
+      if (dsc_var->z_name != NULL && !utf8_strcasecmp (dsc_var->z_name, name))
         return false;
     }
   return true;
@@ -1017,7 +1017,7 @@ descriptives_compare_dsc_vars (const void *a_, const void *b_, const void *dsc_)
   int result;
 
   if (dsc->sort_by_stat == DSC_NAME)
-    result = strcasecmp (var_get_name (a->v), var_get_name (b->v));
+    result = utf8_strcasecmp (var_get_name (a->v), var_get_name (b->v));
   else
     {
       double as = a->stats[dsc->sort_by_stat];

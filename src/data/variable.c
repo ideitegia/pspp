@@ -201,7 +201,7 @@ compare_vars_by_name (const void *a_, const void *b_, const void *aux UNUSED)
   const struct variable *a = a_;
   const struct variable *b = b_;
 
-  return strcasecmp (a->name, b->name);
+  return utf8_strcasecmp (a->name, b->name);
 }
 
 /* A hsh_hash_func that hashes variable V based on its name. */
@@ -210,7 +210,7 @@ hash_var_by_name (const void *v_, const void *aux UNUSED)
 {
   const struct variable *v = v_;
 
-  return hash_case_string (v->name, 0);
+  return utf8_hash_case_string (v->name, 0);
 }
 
 /* A hsh_compare_func that orders pointers to variables A and B
@@ -222,7 +222,7 @@ compare_var_ptrs_by_name (const void *a_, const void *b_,
   struct variable *const *a = a_;
   struct variable *const *b = b_;
 
-  return strcasecmp (var_get_name (*a), var_get_name (*b));
+  return utf8_strcasecmp (var_get_name (*a), var_get_name (*b));
 }
 
 /* A hsh_compare_func that orders pointers to variables A and B
@@ -246,7 +246,7 @@ hash_var_ptr_by_name (const void *v_, const void *aux UNUSED)
 {
   struct variable *const *v = v_;
 
-  return hash_case_string (var_get_name (*v), 0);
+  return utf8_hash_case_string (var_get_name (*v), 0);
 }
 
 /* Returns the type of variable V. */

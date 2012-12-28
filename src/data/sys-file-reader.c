@@ -1610,7 +1610,7 @@ parse_long_var_name_map (struct sfm_reader *r,
         }
 
       /* Identify any duplicates. */
-      if (strcasecmp (var_get_short_name (var, 0), long_name)
+      if (utf8_strcasecmp (var_get_short_name (var, 0), long_name)
           && dict_lookup_var (dict, long_name) != NULL)
         {
           sys_warn (r, record->pos,

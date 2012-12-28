@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 #include "libpspp/hash-functions.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/str.h"
 #include "libpspp/string-set.h"
 #include "libpspp/stringi-set.h"
@@ -276,7 +277,7 @@ check_map_contains (struct stringi_map *map,
 
   node = stringi_map_find_node (map, key);
   check (node != NULL);
-  check (!strcasecmp (key, stringi_map_node_get_key (node)));
+  check (!utf8_strcasecmp (key, stringi_map_node_get_key (node)));
   check (!strcmp (value, stringi_map_node_get_value (node)));
 
   check (node == stringi_map_insert (map, key, "012"));

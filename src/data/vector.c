@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011, 2012  Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "data/dictionary.h"
 #include "data/identifier.h"
 #include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
 #include "libpspp/str.h"
 
 #include "gl/xalloc.h"
@@ -140,6 +141,6 @@ compare_vector_ptrs_by_name (const void *a_, const void *b_)
   struct vector *a = *pa;
   struct vector *b = *pb;
 
-  return strcasecmp (a->name, b->name);
+  return utf8_strcasecmp (a->name, b->name);
 }
 

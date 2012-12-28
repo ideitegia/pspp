@@ -176,8 +176,8 @@ fh_from_id (const char *id)
   struct file_handle *handle;
 
   HMAP_FOR_EACH_WITH_HASH (handle, struct file_handle, name_node,
-                           hash_case_string (id, 0), &named_handles)
-    if (!strcasecmp (id, handle->id))
+                           utf8_hash_case_string (id, 0), &named_handles)
+    if (!utf8_strcasecmp (id, handle->id))
       {
 	return fh_ref (handle);
       }
@@ -206,7 +206,7 @@ create_handle (const char *id, char *handle_name, enum fh_referent referent,
   if (id != NULL)
     {
       hmap_insert (&named_handles, &handle->name_node,
-                   hash_case_string (handle->id, 0));
+                   utf8_hash_case_string (handle->id, 0));
     }
 
   return handle;
