@@ -774,11 +774,12 @@ write_mrsets (struct sfm_writer *w, const struct dictionary *dict,
       for (j = 0; j < mrset->n_vars; j++)
         {
           const char *short_name_utf8 = var_get_short_name (mrset->vars[j], 0);
+          char *lower_name_utf8 = utf8_to_lower (short_name_utf8);
           char *short_name = recode_string (encoding, "UTF-8",
-                                            short_name_utf8, -1);
-          str_lowercase (short_name);
+                                            lower_name_utf8, -1);
           ds_put_format (&s, " %s", short_name);
           free (short_name);
+          free (lower_name_utf8);
         }
       ds_put_byte (&s, '\n');
     }

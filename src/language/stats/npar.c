@@ -830,11 +830,11 @@ npar_chisquare (struct lexer *lexer, struct dataset *ds,
     {
       cstp->ranged = true;
       if ( ! lex_force_num (lexer)) return 0;
-      cstp->lo = lex_integer (lexer);
+      cstp->lo = lex_number (lexer);
       lex_get (lexer);
       lex_force_match (lexer, T_COMMA);
       if (! lex_force_num (lexer) ) return 0;
-      cstp->hi = lex_integer (lexer);
+      cstp->hi = lex_number (lexer);
       if ( cstp->lo >= cstp->hi )
 	{
 	  msg (ME,

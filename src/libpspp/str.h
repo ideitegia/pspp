@@ -228,8 +228,14 @@ void ds_put_cstr (struct string *, const char *);
 void ds_put_substring (struct string *, struct substring);
 void ds_put_vformat (struct string *st, const char *, va_list)
      PRINTF_FORMAT (2, 0);
+void ds_put_c_vformat (struct string *st, const char *, va_list)
+     PRINTF_FORMAT (2, 0);
+
 void ds_put_format (struct string *, const char *, ...)
      PRINTF_FORMAT (2, 3);
+void ds_put_c_format (struct string *, const char *, ...)
+     PRINTF_FORMAT (2, 3);
+
 char *ds_put_uninit (struct string *st, size_t incr);
 
 char *ds_splice_uninit (struct string *, size_t ofs, size_t old_len,

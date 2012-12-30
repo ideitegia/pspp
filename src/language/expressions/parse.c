@@ -39,6 +39,7 @@
 #include "libpspp/pool.h"
 #include "libpspp/str.h"
 
+#include "gl/c-strcase.h"
 #include "gl/xalloc.h"
 
 /* Declarations. */
@@ -1006,7 +1007,7 @@ compare_names (const char *test, const char *name, bool abbrev_ok)
 static int
 compare_strings (const char *test, const char *name, bool abbrev_ok UNUSED)
 {
-  return strcasecmp (test, name);
+  return c_strcasecmp (test, name);
 }
 
 static bool

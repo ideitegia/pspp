@@ -27,6 +27,7 @@
 #include "libpspp/cast.h"
 
 #include "gl/c-ctype.h"
+#include "gl/c-strtod.h"
 #include "gl/xmemdup0.h"
 
 enum
@@ -379,7 +380,7 @@ scan_number__ (struct substring s)
   else
     p = xmemdup0 (s.string, s.length);
 
-  number = strtod (p, NULL);
+  number = c_strtod (p, NULL);
 
   if (p != buf)
     free (p);

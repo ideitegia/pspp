@@ -30,6 +30,7 @@
 #include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
+#include "libpspp/misc.h"
 
 #include "gl/ftoastr.h"
 
@@ -176,7 +177,7 @@ syntax_gen_number (struct string *output,
     {
       char s[DBL_BUFSIZE_BOUND];
 
-      dtoastr (s, sizeof s, 0, 0, number);
+      c_dtoastr (s, sizeof s, 0, 0, number);
       ds_put_cstr (output, s);
     }
 }
@@ -231,6 +232,7 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
 {
   for (;;)
     {
+      char directive;
       size_t copy = strcspn (format, "%");
       ds_put_substring (output, ss_buffer (format, copy));
       format += copy;
@@ -239,7 +241,8 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
         return;
       assert (*format == '%');
       format++;
-      switch (*format++)
+      directive = *format++;
+      switch (directive)
         {
         case 's':
           {
@@ -266,16 +269,14 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
           break;
 
         case 'f':
+	case 'g':
           {
+	    char conv[3];
             double d = va_arg (args, double);
-            switch (*format++)
-              {
-              case 'p':
-                ds_put_format (output, "%f", d);
-                break;
-              default:
-                NOT_REACHED ();
-              }
+	    conv[0]='%';
+	    conv[1]=directive;
+	    conv[2]='\0';
+	    ds_put_c_format (output, conv, d);
             break;
           }
 

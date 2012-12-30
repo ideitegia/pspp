@@ -23,6 +23,7 @@
 
 #include "libpspp/array.h"
 #include "libpspp/hash-functions.h"
+#include "libpspp/i18n.h"
 
 #include "gl/xalloc.h"
 
@@ -223,8 +224,8 @@ attrset_lookup (struct attrset *set, const char *name)
 {
   struct attribute *attr;
   HMAP_FOR_EACH_WITH_HASH (attr, struct attribute, node,
-                           hash_case_string (name, 0), &set->map)
-    if (!strcasecmp (attribute_get_name (attr), name))
+                           utf8_hash_case_string (name, 0), &set->map)
+    if (!utf8_strcasecmp (attribute_get_name (attr), name))
       break;
   return attr;
 }
@@ -237,7 +238,7 @@ attrset_add (struct attrset *set, struct attribute *attr)
 {
   const char *name = attribute_get_name (attr);
   assert (attrset_lookup (set, name) == NULL);
-  hmap_insert (&set->map, &attr->node, hash_case_string (name, 0));
+  hmap_insert (&set->map, &attr->node, utf8_hash_case_string (name, 0));
 }
 
 /* Deletes any attribute from SET that matches NAME

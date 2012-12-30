@@ -67,6 +67,13 @@ void set_default_encoding (const char *enc);
 bool set_encoding_from_locale (const char *loc);
 
 const char *uc_name (ucs4_t uc, char buffer[16]);
+
+unsigned int utf8_hash_case_bytes (const char *, size_t n, unsigned int basis);
+unsigned int utf8_hash_case_string (const char *, unsigned int basis);
+int utf8_strcasecmp (const char *, const char *);
+int utf8_strncasecmp (const char *, size_t, const char *, size_t);
+char *utf8_to_upper (const char *);
+char *utf8_to_lower (const char *);
 
 /* Information about character encodings. */
 

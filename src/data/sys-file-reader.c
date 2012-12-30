@@ -50,6 +50,7 @@
 #include "libpspp/str.h"
 #include "libpspp/stringi-set.h"
 
+#include "gl/c-strtod.h"
 #include "gl/c-ctype.h"
 #include "gl/inttostr.h"
 #include "gl/localcharset.h"
@@ -1437,7 +1438,7 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
           mrset->width = width;
           value_init (&mrset->counted, width);
           if (width == 0)
-            mrset->counted.f = strtod (counted, NULL);
+            mrset->counted.f = c_strtod (counted, NULL);
           else
             value_copy_str_rpad (&mrset->counted, width,
                                  (const uint8_t *) counted, ' ');
@@ -1572,7 +1573,8 @@ parse_long_var_name_map (struct sfm_reader *r,
 
   if (record == NULL)
     {
-      /* Convert variable names to lowercase. */
+      /* There are no long variable names.  Use the short variable names,
+         converted to lowercase, as the long variable names. */
       size_t i;
 
       for (i = 0; i < dict_get_var_cnt (dict); i++)
@@ -1580,11 +1582,8 @@ parse_long_var_name_map (struct sfm_reader *r,
 	  struct variable *var = dict_get_var (dict, i);
           char *new_name;
 
-          new_name = xstrdup (var_get_name (var));
-	  str_lowercase (new_name);
-
+          new_name = utf8_to_lower (var_get_name (var));
           rename_var_and_save_short_names (dict, var, new_name);
-
           free (new_name);
 	}
 
@@ -1609,7 +1608,7 @@ parse_long_var_name_map (struct sfm_reader *r,
         }
 
       /* Identify any duplicates. */
-      if (strcasecmp (var_get_short_name (var, 0), long_name)
+      if (utf8_strcasecmp (var_get_short_name (var, 0), long_name)
           && dict_lookup_var (dict, long_name) != NULL)
         {
           sys_warn (r, record->pos,

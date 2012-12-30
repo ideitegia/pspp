@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/str.h"
 
 /* Exit with a failure code.
@@ -244,7 +245,7 @@ check_set_contains (struct stringi_set *set, const char *string)
 
   node = stringi_set_find_node (set, string);
   check (node != NULL);
-  check (!strcasecmp (string, stringi_set_node_get_string (node)));
+  check (!utf8_strcasecmp (string, stringi_set_node_get_string (node)));
 }
 
 /* Checks that SET contains the CNT strings in DATA, that its structure is
@@ -302,7 +303,7 @@ check_stringi_set (struct stringi_set *set, const int data[], size_t cnt)
           check (s == array[i]);
 
           for (j = 0; j < left; j++)
-            if (!strcasecmp (s, make_string (data_copy[j])))
+            if (!utf8_strcasecmp (s, make_string (data_copy[j])))
               {
                 data_copy[j] = data_copy[--left];
                 goto next;
@@ -319,7 +320,7 @@ check_stringi_set (struct stringi_set *set, const int data[], size_t cnt)
       for (i = 0; i < cnt; i++)
         {
           if (i > 0)
-            check (strcasecmp (array[i - 1], array[i]) < 0);
+            check (utf8_strcasecmp (array[i - 1], array[i]) < 0);
           check (stringi_set_contains (set, array[i]));
         }
       free (array);

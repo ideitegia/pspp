@@ -1,28 +1,28 @@
 # German translation for PSPP
 # Copyright (C) 2012 Free Software Foundation, Inc.
 # This file is distributed under the same license as the pspp package.
-# Matthias Keil <matthias.keil@uni-jena.de>, 2012.
+# Matthias Keil <matthias.keil@ymail.com>, - 2012
+# Stefan Grotz <stefan.grotz@uni-jena.de>, 2012 -
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pspp 0.7.9\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2012-02-03 19:12-0800\n"
-"PO-Revision-Date: 2012-02-29 10:29+0100\n"
-"Last-Translator: Matthias Keil <matthias.keil@uni-jena.de>\n"
+"PO-Revision-Date: 2012-12-17 19:01+0100\n"
+"Last-Translator: Matthias Keil <matthias.keil@ymail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
-"Language: \n"
+"Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"X-Poedit-Language: German\n"
-"X-Poedit-Country: GERMANY\n"
-"X-Poedit-SourceCharset: utf-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: src/ui/gui/helper.c:153
 msgid "Sorry. The help system hasn't yet been implemented."
-msgstr ""
+msgstr "Entschuldigung. Das Hilfesystem wurde noch nicht implementiert.  "
 
 #: src/ui/gui/psppire-buttonbox.c:329 src/ui/gui/psppire-buttonbox.c:487
 msgid "Continue"
@@ -88,17 +88,17 @@ msgstr ""
 #: src/data/calendar.c:100
 #, c-format
 msgid "Month %d is not in acceptable range of 0 to 13."
-msgstr ""
+msgstr "Der Monat  %d ist nicht im akzeptierten Bereich von 0 bis 13."
 
 #: src/data/calendar.c:110
 #, c-format
 msgid "Day %d is not in acceptable range of 0 to 31."
-msgstr ""
+msgstr "Der Tag %d ist nicht im akzeptierten Bereich von 0 bis 31"
 
 #: src/data/calendar.c:119
 #, c-format
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
-msgstr ""
+msgstr "Das Datum %04d-%d-%d ist vor dem frühsten akzeptierten Datum 1582-10-15."
 
 #: src/data/casereader-filter.c:221
 msgid "At least one case in the data read had a weight value that was user-missing, system-missing, zero, or negative.  These case(s) were ignored."
@@ -108,7 +108,7 @@ msgstr ""
 #. that identify types of files.
 #: src/data/csv-file-writer.c:152
 msgid "CSV file"
-msgstr ""
+msgstr "CSV Datei"
 
 #: src/data/csv-file-writer.c:161 src/data/sys-file-writer.c:225
 #, c-format
@@ -135,7 +135,7 @@ msgstr ""
 
 #: src/data/data-in.c:391
 msgid "Invalid numeric syntax."
-msgstr ""
+msgstr "Ungültige numerische Syntax."
 
 #: src/data/data-in.c:399 src/data/data-in.c:570
 msgid "Too-large number set to system-missing."
@@ -176,7 +176,7 @@ msgstr ""
 #: src/data/data-in.c:782
 #, c-format
 msgid "Day (%ld) must be between 1 and 31."
-msgstr ""
+msgstr "Tag (%ld) muss zwischen 1 und 31 liegen."
 
 #: src/data/data-in.c:827
 msgid "Delimiter expected between fields in date."
@@ -184,12 +184,12 @@ msgstr ""
 
 #: src/data/data-in.c:901
 msgid "Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names."
-msgstr ""
+msgstr "Unbekanntes Monatsformat. Monate müssen mit arabischen oder romanischen Zahlen oder mindestens den ersten 3 Buchstaben ihrer englischen Namen bezeichnet werden."
 
 #: src/data/data-in.c:928
 #, c-format
 msgid "Year (%ld) must be between 1582 and 19999."
-msgstr ""
+msgstr "Jahr (%ld) muss zwischen 1582 und 19999 liegen."
 
 #: src/data/data-in.c:939
 #, c-format
@@ -213,7 +213,7 @@ msgstr ""
 #: src/data/data-in.c:1000
 #, c-format
 msgid "Week (%ld) must be between 1 and 53."
-msgstr ""
+msgstr "Woche (%ld) muss zwischen 1 und 53 liegen."
 
 #: src/data/data-in.c:1012
 msgid "Delimiter expected between fields in time."
@@ -222,7 +222,7 @@ msgstr ""
 #: src/data/data-in.c:1032
 #, c-format
 msgid "Minute (%ld) must be between 0 and 59."
-msgstr ""
+msgstr "Minute (%ld) muss zwischen 0 und 59 liegen."
 
 #: src/data/data-in.c:1070
 msgid "Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified."
@@ -236,12 +236,12 @@ msgstr ""
 #: src/data/data-out.c:546
 #, c-format
 msgid "Weekday number %f is not between 1 and 7."
-msgstr ""
+msgstr "Die Nummer des Wochentages %f ist nicht zwischen 1 und 7."
 
 #: src/data/data-out.c:571
 #, c-format
 msgid "Month number %f is not between 1 and 12."
-msgstr ""
+msgstr "Die Nummer des Monats %f  ist nicht zwischen 1 und 12."
 
 #: src/data/dataset-reader.c:54
 #, c-format
@@ -252,7 +252,7 @@ msgstr ""
 #. messages in fh_lock() that identify types of files.
 #: src/data/dataset-writer.c:66 src/language/data-io/file-handle.q:187
 msgid "dataset"
-msgstr ""
+msgstr "Datensatz"
 
 #: src/data/dict-class.c:52
 msgid "ordinary"
@@ -277,7 +277,7 @@ msgstr ""
 
 #: src/data/file-handle-def.c:254
 msgid "active dataset"
-msgstr ""
+msgstr "aktiver Datensatz"
 
 #: src/data/file-handle-def.c:465
 #, c-format
@@ -541,7 +541,7 @@ msgstr ""
 
 #: src/data/por-file-reader.c:386
 msgid "Number expected."
-msgstr ""
+msgstr "Zahl erwartet."
 
 #: src/data/por-file-reader.c:414
 msgid "Missing numeric terminator."
@@ -743,7 +743,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:467
 #, c-format
 msgid "Weighting variable must be numeric (not string variable `%s')."
-msgstr ""
+msgstr "Gewichtungsvariable muss numerisch sein. ( nicht Stringvariable `%s')."
 
 #: src/data/sys-file-reader.c:502
 #, c-format
@@ -807,7 +807,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:959
 #, c-format
 msgid "Invalid variable name `%s'."
-msgstr ""
+msgstr "Ungültiges Variablenlabel `%s'."
 
 #: src/data/sys-file-reader.c:967
 #, c-format
@@ -1053,7 +1053,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:2541
 #, c-format
 msgid "System error: %s."
-msgstr ""
+msgstr "System Fehler: %s."
 
 #: src/data/sys-file-reader.c:2543
 msgid "Unexpected end of file."
@@ -1108,7 +1108,7 @@ msgstr "Zentriert"
 #: src/language/utilities/set.q:220
 #, c-format
 msgid "%s is not yet implemented."
-msgstr ""
+msgstr "%s ist noch nicht implementiert."
 
 #: src/language/command.c:201
 #, c-format
@@ -1251,7 +1251,7 @@ msgstr ""
 
 #: src/language/lexer/lexer.c:398
 msgid "Syntax error at end of input"
-msgstr ""
+msgstr "Syntax Fehler am ende der Eingabe"
 
 #: src/language/lexer/lexer.c:419 src/language/xforms/select-if.c:60
 #: src/language/stats/autorecode.c:206 src/language/stats/npar.c:478
@@ -1277,16 +1277,16 @@ msgstr ""
 
 #: src/language/lexer/lexer.c:1300
 msgid "Syntax error at end of command"
-msgstr ""
+msgstr "Syntax Fehler am Ende des Befehls"
 
 #: src/language/lexer/lexer.c:1309
 #, c-format
 msgid "Syntax error at `%s'"
-msgstr ""
+msgstr "Syntax Fehler bei `%s'"
 
 #: src/language/lexer/lexer.c:1312
 msgid "Syntax error"
-msgstr ""
+msgstr "Syntax Fehler"
 
 #: src/language/lexer/lexer.c:1476
 #, c-format
@@ -1319,7 +1319,7 @@ msgstr ""
 
 #: src/language/lexer/lexer.c:1508
 msgid "Unexpected `.' in middle of command"
-msgstr ""
+msgstr "Unerwartetes  `.' in der Mitte des Befehls."
 
 #: src/language/lexer/lexer.c:1514
 #, c-format
@@ -1355,7 +1355,7 @@ msgstr ""
 #: src/language/data-io/placement-parser.c:225
 #, c-format
 msgid "Unknown format type `%s'."
-msgstr ""
+msgstr "Unbekannter Formattyp  `%s'."
 
 #: src/language/lexer/format-parser.c:131
 msgid "expecting format type"
@@ -1390,17 +1390,17 @@ msgstr ""
 #: src/language/lexer/variable-parser.c:77
 #, c-format
 msgid "%s is not a variable name."
-msgstr ""
+msgstr "%s ist kein Variablenlabel"
 
 #: src/language/lexer/variable-parser.c:180
 #, c-format
 msgid "%s is not a numeric variable.  It will not be included in the variable list."
-msgstr ""
+msgstr "%s ist keine numerische Variable. Es wird nicht in die Variablenliste eingefügt."
 
 #: src/language/lexer/variable-parser.c:183
 #, c-format
 msgid "%s is not a string variable.  It will not be included in the variable list."
-msgstr ""
+msgstr "%s ist keine String-Variable. Es wird nicht in die Variablenliste eingefügt."
 
 #: src/language/lexer/variable-parser.c:187
 #, c-format
@@ -1421,7 +1421,7 @@ msgstr ""
 #: src/language/lexer/variable-parser.c:404
 #, c-format
 msgid "Variable %s appears twice in variable list."
-msgstr ""
+msgstr "Variable %s taucht zwei Mal in der Variablenliste auf."
 
 #: src/language/lexer/variable-parser.c:315
 #, c-format
@@ -1525,7 +1525,7 @@ msgstr ""
 
 #: src/language/xforms/select-if.c:115
 msgid "The filter variable must be numeric."
-msgstr ""
+msgstr "Die Filtervariable muss numerisch sein."
 
 #: src/language/xforms/select-if.c:121
 msgid "The filter variable may not be scratch."
@@ -1726,7 +1726,7 @@ msgstr "Variablen"
 
 #: src/language/dictionary/mrsets.c:550
 msgid "Details"
-msgstr ""
+msgstr "Details"
 
 #: src/language/dictionary/mrsets.c:564
 msgid "Multiple dichotomy set"
@@ -1781,7 +1781,7 @@ msgstr ""
 #: src/language/dictionary/numeric.c:87 src/language/dictionary/numeric.c:157
 #, c-format
 msgid "There is already a variable named %s."
-msgstr ""
+msgstr "Es existiert bereits eine Variable namens  %s."
 
 #: src/language/dictionary/numeric.c:142
 #, c-format
@@ -1819,7 +1819,7 @@ msgstr "Label:"
 
 #: src/language/dictionary/sys-file-info.c:100
 msgid "No label."
-msgstr ""
+msgstr "Kein Label."
 
 #: src/language/dictionary/sys-file-info.c:103
 msgid "Created:"
@@ -1890,7 +1890,7 @@ msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:133
 msgid "Not weighted."
-msgstr ""
+msgstr "Nicht gewichtet."
 
 #: src/language/dictionary/sys-file-info.c:135
 msgid "Mode:"
@@ -1903,11 +1903,11 @@ msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:137
 msgid "on"
-msgstr ""
+msgstr "an"
 
 #: src/language/dictionary/sys-file-info.c:137
 msgid "off"
-msgstr ""
+msgstr "aus"
 
 #: src/language/dictionary/sys-file-info.c:140
 msgid "Charset:"
@@ -1985,7 +1985,7 @@ msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:525
 msgid "Missing Values: "
-msgstr ""
+msgstr "Fehlende Werte:"
 
 #: src/language/dictionary/sys-file-info.c:624
 msgid "No vectors defined."
@@ -2029,7 +2029,7 @@ msgstr ""
 #: src/language/dictionary/vector.c:171
 #, c-format
 msgid "%s is an existing variable name."
-msgstr ""
+msgstr "%s ist ein existierendes Variablenlabel"
 
 #: src/language/dictionary/variable-display.c:120
 msgid "Variable display width must be a positive integer."
@@ -2734,7 +2734,7 @@ msgstr ""
 
 #: src/language/stats/glm.c:167
 msgid "Multivariate analysis is not yet implemented"
-msgstr ""
+msgstr "Multivariate Analysen sind noch nicht implementiert"
 
 #: src/language/stats/glm.c:272
 msgid "Only types 1, 2 & 3 sums of squares are currently implemented"
@@ -2773,7 +2773,7 @@ msgstr ""
 
 #: src/language/stats/glm.c:844
 msgid "Error"
-msgstr ""
+msgstr "Fehler"
 
 #: src/language/stats/glm.c:860
 msgid "Corrected Total"
@@ -2920,7 +2920,7 @@ msgstr ""
 #: src/language/stats/means.c:1066 src/language/stats/crosstabs.q:839
 #: src/language/stats/examine.q:1178 src/language/stats/frequencies.q:823
 msgid "Percent"
-msgstr ""
+msgstr "Prozent"
 
 #: src/language/stats/means.c:1096 src/language/stats/means.c:1105
 #: src/language/stats/means.c:1114
@@ -3334,11 +3334,11 @@ msgstr ""
 
 #: src/language/stats/roc.c:1068
 msgid "Unweighted"
-msgstr ""
+msgstr "ungewichtet"
 
 #: src/language/stats/roc.c:1069
 msgid "Weighted"
-msgstr ""
+msgstr "gewichtet"
 
 #: src/language/stats/roc.c:1073
 msgid "Valid N (listwise)"
@@ -3800,19 +3800,19 @@ msgstr ""
 #: src/language/data-io/dataset.c:63
 #, c-format
 msgid "There is no dataset named %s."
-msgstr ""
+msgstr "Es gibt keinen Datensatz namens %s."
 
 #: src/language/data-io/dataset.c:257
 msgid "Dataset"
-msgstr ""
+msgstr "Datensatz"
 
 #: src/language/data-io/dataset.c:265
 msgid "unnamed dataset"
-msgstr ""
+msgstr "unbenannter Datensatz"
 
 #: src/language/data-io/dataset.c:269
 msgid "(active dataset)"
-msgstr ""
+msgstr "(aktiver Datensatz)"
 
 #: src/language/data-io/get-data.c:99
 #, c-format
@@ -4122,7 +4122,7 @@ msgstr ""
 
 #: src/libpspp/message.c:85
 msgid "error"
-msgstr ""
+msgstr "Fehler"
 
 #: src/libpspp/message.c:87
 msgid "warning"
@@ -4415,7 +4415,7 @@ msgstr ""
 #: src/output/charts/plot-hist-cairo.c:112
 #: src/language/stats/frequencies.q:822
 msgid "Frequency"
-msgstr ""
+msgstr "Häufigkeit"
 
 #: src/output/charts/roc-chart-cairo.c:36 src/ui/gui/roc.ui:7
 msgid "ROC Curve"
@@ -4651,7 +4651,7 @@ msgstr "Eine Software zur Analyse von statistischen Daten"
 #. translation to your language.
 #: src/ui/gui/help-menu.c:76
 msgid "translator-credits"
-msgstr "Matthias Keil"
+msgstr "Matthias KeilStefan Grotz"
 
 #: src/ui/gui/help-menu.c:106
 #, c-format
@@ -4816,7 +4816,7 @@ msgstr ""
 #: src/ui/gui/psppire-dialog-action-var-info.c:124
 #, c-format
 msgid "Missing Values: %s\n"
-msgstr ""
+msgstr "Fehlende Werte: %s\n"
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:128
 #, c-format
@@ -4825,7 +4825,7 @@ msgstr ""
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:141
 msgid "Value Labels:\n"
-msgstr ""
+msgstr "Wertelabel:\n"
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:150
 #, c-format
@@ -5185,7 +5185,7 @@ msgstr ""
 #: src/ui/gui/text-data-import-dialog.c:453
 #, c-format
 msgid "Could not open `%s': %s"
-msgstr ""
+msgstr " `%s': %s konnte nicht geöffnet werden"
 
 #: src/ui/gui/text-data-import-dialog.c:469
 #, c-format
@@ -5320,12 +5320,12 @@ msgstr "Fälle gewichten mit %s"
 #: src/language/utilities/set.q:156 src/language/utilities/set.q:163
 #, c-format
 msgid "%s must be at least 1."
-msgstr ""
+msgstr "%s muss mindestens 1 sein."
 
 #: src/language/utilities/set.q:170 src/language/data-io/file-handle.q:102
 #, c-format
 msgid "%s must not be negative."
-msgstr ""
+msgstr "%s darf nicht negativ sein."
 
 #: src/language/utilities/set.q:189
 msgid "WORKSPACE must be at least 1MB"
@@ -5414,7 +5414,7 @@ msgstr ""
 #: src/language/utilities/set.q:870
 #, c-format
 msgid "%s is %s."
-msgstr ""
+msgstr "%s ist %s."
 
 #: src/language/utilities/set.q:973
 #, c-format
@@ -5444,7 +5444,7 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:826
 msgid "Summary."
-msgstr ""
+msgstr "Zusammenfassung."
 
 #. TRANSLATORS: The %s here describes a crosstabulation.  It takes the
 #. form "var1 * var2 * var3 * ...".
@@ -5686,7 +5686,7 @@ msgstr ""
 
 #: src/language/stats/frequencies.q:381
 msgid "Bar charts are not implemented."
-msgstr ""
+msgstr "Balkendiagramme sind noch nicht implementiert."
 
 #: src/language/stats/frequencies.q:398
 #, c-format
@@ -5710,15 +5710,15 @@ msgstr ""
 
 #: src/language/stats/frequencies.q:820
 msgid "Value Label"
-msgstr ""
+msgstr "Wertelabel"
 
 #: src/language/stats/frequencies.q:824
 msgid "Valid Percent"
-msgstr ""
+msgstr "Gültige Prozente"
 
 #: src/language/stats/frequencies.q:825
 msgid "Cum Percent"
-msgstr ""
+msgstr "Kumulierte Prozente"
 
 #: src/language/stats/frequencies.q:1015
 #, c-format
@@ -5789,7 +5789,7 @@ msgstr ""
 
 #: src/language/stats/regression.q:938
 msgid "REGRESSION requires numeric variables."
-msgstr ""
+msgstr "REGRESSION benötigt numerische Variablen."
 
 #: src/language/stats/regression.q:1013
 msgid "No valid data found. This command was skipped."
@@ -7221,7 +7221,7 @@ msgstr "Anzahl Dezimalstellen:"
 
 #: src/ui/gui/var-sheet-dialogs.ui:419 src/ui/gui/var-sheet-dialogs.ui:610
 msgid "Value Labels"
-msgstr "Wertelabels"
+msgstr "Wertelabel"
 
 #: src/ui/gui/var-sheet-dialogs.ui:516
 msgid "Value Label:"
@@ -7332,7 +7332,7 @@ msgstr "Gehe zu Fall..."
 
 #: src/ui/gui/data-editor.ui:140
 msgid "Jump to a case in the data sheet"
-msgstr ""
+msgstr "Gehe zu Fall"
 
 #: src/ui/gui/data-editor.ui:166
 msgid "Cl_ear Variables"
@@ -7348,7 +7348,7 @@ msgstr ""
 
 #: src/ui/gui/data-editor.ui:176
 msgid "Delete the cases at the selected position(s)"
-msgstr ""
+msgstr "Lösche Fälle in den/der ausgewählten Position(en)"
 
 #: src/ui/gui/data-editor.ui:183
 msgid "_Find..."
@@ -7408,7 +7408,7 @@ msgstr "Datei aufte_ilen..."
 
 #: src/ui/gui/data-editor.ui:268
 msgid "Split the active dataset"
-msgstr ""
+msgstr "Datei aufteilen"
 
 #: src/ui/gui/data-editor.ui:275
 msgid "Select _Cases..."
@@ -7560,7 +7560,7 @@ msgstr "_Variablen..."
 
 #: src/ui/gui/data-editor.ui:502
 msgid "Jump to variable"
-msgstr ""
+msgstr "Zu Variable springen"
 
 #: src/ui/gui/data-editor.ui:509
 msgid "Data File _Comments..."

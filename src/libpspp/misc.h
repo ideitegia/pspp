@@ -17,6 +17,7 @@
 #if !libpspp_misc_h
 #define libpspp_misc_h 1
 
+#include <stddef.h>
 #include <float.h>
 #include <math.h>
 
@@ -94,6 +95,8 @@ maximize_int (int *dest, int src)
   if (src > *dest)
     *dest = src;
 }
+
+int c_dtoastr (char *buf, size_t bufsize, int flags, int width, double x);
 
 
 #endif /* libpspp/misc.h */

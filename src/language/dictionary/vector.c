@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "language/lexer/lexer.h"
 #include "language/lexer/variable-parser.h"
 #include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/pool.h"
@@ -68,7 +69,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
 	    }
 
           for (i = 0; i < vector_cnt; i++)
-            if (!strcasecmp (vectors[i], lex_tokcstr (lexer)))
+            if (!utf8_strcasecmp (vectors[i], lex_tokcstr (lexer)))
 	      {
 		msg (SE, _("Vector name %s is given twice."),
                      lex_tokcstr (lexer));

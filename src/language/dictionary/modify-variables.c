@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "libpspp/assertion.h"
 #include "libpspp/bit-vector.h"
 #include "libpspp/compiler.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
@@ -355,7 +356,7 @@ compare_variables_given_ordering (const void *a_, const void *b_,
       result = a_index < b_index ? -1 : a_index > b_index;
     }
   else
-    result = strcasecmp (var_get_name (a), var_get_name (b));
+    result = utf8_strcasecmp (var_get_name (a), var_get_name (b));
   if (!ordering->forward)
     result = -result;
   return result;
@@ -377,7 +378,7 @@ compare_var_renaming_by_new_name (const void *a_, const void *b_,
   const struct var_renaming *a = a_;
   const struct var_renaming *b = b_;
 
-  return strcasecmp (a->new_name, b->new_name);
+  return utf8_strcasecmp (a->new_name, b->new_name);
 }
 
 /* Returns true if performing VM on dictionary D would not cause

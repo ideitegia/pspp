@@ -951,31 +951,26 @@ run_old_and_new_dialog (struct recode_dialog *rd)
 
 /* Generate a syntax fragment for NV and append it to STR */
 static void
-new_value_append_syntax (GString *str, const struct new_value *nv)
+new_value_append_syntax (struct string *dds, const struct new_value *nv)
 {
   switch (nv->type)
     {
     case NV_NUMERIC:
-      g_string_append_printf (str, "%g", nv->v.v);
+      ds_put_c_format (dds, "%g", nv->v.v);
       break;
     case NV_STRING:
-      {
-	struct string ds = DS_EMPTY_INITIALIZER;
-	syntax_gen_string (&ds, ss_cstr (nv->v.s));
-	g_string_append (str, ds_cstr (&ds));
-	ds_destroy (&ds);
-      }
+      syntax_gen_string (dds, ss_cstr (nv->v.s));
       break;
     case NV_COPY:
-      g_string_append (str, "COPY");
+      ds_put_cstr (dds, "COPY");
       break;
     case NV_SYSMIS:
-      g_string_append (str, "SYSMIS");
+      ds_put_cstr (dds, "SYSMIS");
       break;
     default:
       /* Shouldn't ever happen */
       g_warning ("Invalid type in new recode value");
-      g_string_append (str, "???");
+      ds_put_cstr (dds, "???");
       break;
     }
 }
@@ -987,8 +982,10 @@ generate_syntax (const struct recode_dialog *rd)
   gboolean ok;
   GtkTreeIter iter;
   gchar *text;
+  struct string dds;
 
-  GString *str = g_string_sized_new (100);
+  ds_init_empty (&dds);
+
 
   /* Declare new string variables if applicable */
   if ( rd->different &&
@@ -1002,24 +999,24 @@ generate_syntax (const struct recode_dialog *rd)
       g_hash_table_iter_init (&iter, rd->varmap);
       while (g_hash_table_iter_next (&iter, (void**) &var, (void**) &nlp))
 	{
-	  g_string_append (str, "\nSTRING ");
-	  g_string_append (str, nlp->name);
-	  g_string_append_printf (str, " (A%d).",
+	  ds_put_cstr (&dds, "\nSTRING ");
+	  ds_put_cstr (&dds, nlp->name);
+	  ds_put_c_format (&dds, " (A%d).",
 				  (int)
 				  gtk_spin_button_get_value (GTK_SPIN_BUTTON (rd->width_entry) )
 				  );
 	}
     }
 
-  g_string_append (str, "\nRECODE ");
+  ds_put_cstr (&dds, "\nRECODE ");
 
-  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->variable_treeview), 0, str);
+  psppire_var_view_append_names_str (PSPPIRE_VAR_VIEW (rd->variable_treeview), 0, &dds);
 
-  g_string_append (str, "\n\t");
+  ds_put_cstr (&dds, "\n\t");
 
   if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (rd->convert_button)))
     {
-      g_string_append (str, "(CONVERT) ");
+      ds_put_cstr (&dds, "(CONVERT) ");
     }
 
   for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (rd->value_map),
@@ -1040,13 +1037,13 @@ generate_syntax (const struct recode_dialog *rd)
       ov = g_value_get_boxed (&ov_value);
       nv = g_value_get_boxed (&nv_value);
 
-      g_string_append (str, "(");
+      ds_put_cstr (&dds, "(");
 
-      old_value_append_syntax (str, ov);
-      g_string_append (str, " = ");
-      new_value_append_syntax (str, nv);
+      old_value_append_syntax (&dds, ov);
+      ds_put_cstr (&dds, " = ");
+      new_value_append_syntax (&dds, nv);
 
-      g_string_append (str, ") ");
+      ds_put_cstr (&dds, ") ");
       g_value_unset (&ov_value);
       g_value_unset (&nv_value);
     }
@@ -1056,7 +1053,7 @@ generate_syntax (const struct recode_dialog *rd)
     {
 
       GtkTreeIter iter;
-      g_string_append (str, "\n\tINTO ");
+      ds_put_cstr (&dds, "\n\tINTO ");
 
       for (ok = psppire_var_view_get_iter_first (PSPPIRE_VAR_VIEW (rd->variable_treeview), &iter);
 	   ok;
@@ -1067,12 +1064,12 @@ generate_syntax (const struct recode_dialog *rd)
 
 	    nlp = g_hash_table_lookup (rd->varmap, var);
 	    
-	    g_string_append (str, nlp->name);
-	    g_string_append (str, " ");
+	    ds_put_cstr (&dds, nlp->name);
+	    ds_put_cstr (&dds, " ");
 	  }
     }
 
-  g_string_append (str, ".");
+  ds_put_cstr (&dds, ".");
 
   /* If applicable, set labels for the new variables. */
   if ( rd->different )
@@ -1090,7 +1087,7 @@ generate_syntax (const struct recode_dialog *rd)
 	      struct string sl;
 	      ds_init_empty (&sl);
 	      syntax_gen_string (&sl, ss_cstr (nlp->label));
-	      g_string_append_printf (str, "\nVARIABLE LABELS %s %s.",
+	      ds_put_c_format (&dds, "\nVARIABLE LABELS %s %s.",
 				      nlp->name, ds_cstr (&sl));
 
 	      ds_destroy (&sl);
@@ -1098,12 +1095,12 @@ generate_syntax (const struct recode_dialog *rd)
 	}
     }
 
-  g_string_append (str, "\nEXECUTE.\n");
+  ds_put_cstr (&dds, "\nEXECUTE.\n");
 
 
-  text = str->str;
+  text = ds_steal_cstr (&dds);
 
-  g_string_free (str, FALSE);
+  ds_destroy (&dds);
 
   return text;
 }

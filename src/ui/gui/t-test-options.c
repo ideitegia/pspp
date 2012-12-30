@@ -127,14 +127,20 @@ tt_options_dialog_run (struct tt_options_dialog *tto)
 void
 tt_options_dialog_append_syntax (const struct tt_options_dialog *tto, GString *str)
 {
-  g_string_append (str, "\t/MISSING=");
+  struct string dss;
+  ds_init_empty (&dss);
 
-  if ( tto->excl == EXCL_ANALYSIS )
-    g_string_append (str, "ANALYSIS");
+  ds_put_cstr (&dss, "\t/MISSING=");
+
+  if (tto->excl == EXCL_ANALYSIS)
+    ds_put_cstr (&dss, "ANALYSIS");
   else
-    g_string_append (str, "LISTWISE");
+    ds_put_cstr (&dss, "LISTWISE");
 
+  ds_put_c_format (&dss, "\n\t/CRITERIA=CIN(%g)",
+		   tto->confidence_interval/100.0);
 
-  g_string_append_printf (str, "\n\t/CRITERIA=CIN(%g)",
-			  tto->confidence_interval/100.0);
+  g_string_append (str, ds_cstr (&dss));
+
+  ds_destroy (&dss);
 }

@@ -137,26 +137,28 @@ generate_syntax (PsppireDialogAction *a)
   gchar *text = NULL;
 
   double prop;
-  GString *string = g_string_new ("NPAR TEST\n\t/BINOMIAL");
+  struct string str;
+
+  ds_init_cstr (&str, "NPAR TEST\n\t/BINOMIAL");
 
   if ( get_proportion (scd, &prop))
-    g_string_append_printf (string, "(%g)", prop);
+    ds_put_c_format (&str, "(%g)", prop);
 
-  g_string_append (string, " =");
+  ds_put_cstr (&str, " =");
 
-  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (scd->var_view), 0, string);
+  psppire_var_view_append_names_str (PSPPIRE_VAR_VIEW (scd->var_view), 0, &str);
 
   if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (scd->cutpoint_button)))
     {
       const gchar *cutpoint = gtk_entry_get_text (GTK_ENTRY (scd->cutpoint_entry));
-      g_string_append_printf (string, "(%s)", cutpoint);
+      ds_put_c_format  (&str, "(%s)", cutpoint);
     }
 
-  g_string_append (string, ".\n");
+  ds_put_cstr (&str, ".\n");
 
-  text = string->str;
+  text = ds_steal_cstr (&str);
 
-  g_string_free (string, FALSE);
+  ds_destroy (&str);
 
   return text;
 }

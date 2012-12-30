@@ -95,7 +95,8 @@ struct old_value
 
 GType old_value_get_type (void);
 
-void old_value_append_syntax (GString *str, const struct old_value *ov);
+struct string;
+void old_value_append_syntax (struct string *str, const struct old_value *ov);
 
 void psppire_val_chooser_get_status (PsppireValChooser *vr, struct old_value *ov);
 void psppire_val_chooser_set_status (PsppireValChooser *vr, const struct old_value *ov);

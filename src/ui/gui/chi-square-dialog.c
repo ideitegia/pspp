@@ -82,31 +82,26 @@ static char *
 generate_syntax (const struct chisquare_dialog *scd)
 {
   gchar *text;
-  GString *string;
+  struct string dss;
 
+  ds_init_cstr (&dss, "NPAR TEST\n\t/CHISQUARE=");
 
-  string = g_string_new ("NPAR TEST\n\t/CHISQUARE=");
-
-  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (scd->var_view), 0, string);
-
+  psppire_var_view_append_names_str (PSPPIRE_VAR_VIEW (scd->var_view), 0, &dss);
 
   if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (scd->range_button)))
     {
-      g_string_append (string, "(");
+      ds_put_cstr (&dss, "(");
       
-      g_string_append (string, 
+      ds_put_cstr (&dss, 
 		       gtk_entry_get_text (GTK_ENTRY (scd->value_lower)));
 
-      g_string_append (string, ", ");
+      ds_put_cstr (&dss, ", ");
 
-      g_string_append (string,
+      ds_put_cstr (&dss,
 		       gtk_entry_get_text (GTK_ENTRY (scd->value_upper)));
 
-      g_string_append (string, ")");
+      ds_put_cstr (&dss, ")");
     }
-
-
-
 
   if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (scd->values_button)))
     {
@@ -114,8 +109,8 @@ generate_syntax (const struct chisquare_dialog *scd)
       GtkTreeIter iter;
       gboolean ok;
 
-      g_string_append (string, "\n\t");
-      g_string_append (string, "/EXPECTED = ");
+      ds_put_cstr (&dss, "\n\t");
+      ds_put_cstr (&dss, "/EXPECTED = ");
 
       
       for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(ls),
@@ -127,18 +122,15 @@ generate_syntax (const struct chisquare_dialog *scd)
 
 	  gtk_tree_model_get (GTK_TREE_MODEL (ls), &iter, 0, &v, -1);
 
-	  g_string_append_printf (string, " %g", v);
+	  ds_put_c_format (&dss, " %g", v);
 	}
-
-
-
     }
 
-  g_string_append (string, ".\n");
+  ds_put_cstr (&dss, ".\n");
 
-  text = string->str;
+  text = ds_steal_cstr (&dss);
 
-  g_string_free (string, FALSE);
+  ds_destroy (&dss);
 
   return text;
 }
