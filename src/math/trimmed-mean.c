@@ -81,8 +81,6 @@ trimmed_mean_calculate (const struct trimmed_mean *tm)
 {
   const struct order_stats *os = (const struct order_stats *) tm;
 
-  assert (os->cc == tm->w);
-
   return
     (
      (os->k[0].cc_p1 - os->k[0].tc) * os->k[0].y_p1

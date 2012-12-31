@@ -48,8 +48,6 @@ percentile_calculate (const struct percentile *ptl, enum pc_alg alg)
   struct percentile *mutable = CONST_CAST (struct percentile *, ptl);
   const struct order_stats *os = &ptl->parent;
 
-  assert (os->cc == ptl->w);
-
   if ( ptl->g1 == SYSMIS)
     mutable->g1 = (os->k[0].tc - os->k[0].cc) / os->k[0].c_p1;
 
