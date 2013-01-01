@@ -227,6 +227,81 @@ V1,Highest,1,21,20.00
 ])
 AT_CLEANUP
 
+
+
+AT_SETUP([EXAMINE -- extremes with fractional weights])
+AT_DATA([extreme.sps], [dnl
+set format=F20.3.
+data list notable list /w * x *.
+begin data.
+ 0.88  300000
+ 0.86  320000
+ 0.98  480000
+ 0.93  960000
+ 1.35  960000
+ 1.31  960000
+ 0.88  960000
+ 0.88  1080000
+ 0.88  1080000
+ 0.95  1200000
+ 1.47  1200000
+ 0.93  1200000
+ 0.98  1320000
+ 1.31  1380000
+ 0.93  1440000
+ 0.88  1560000
+ 1.56  1560000
+ 1.47  1560000
+end data.
+
+weight by w.
+
+
+EXAMINE
+        x
+        /STATISTICS = DESCRIPTIVES EXTREME (5)
+        .
+])
+
+AT_CHECK([pspp -O format=csv  extreme.sps], [0], [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x,19.430,100%,.000,0%,19.430,100%
+
+Table: Extreme Values
+,,,Case Number,Value
+x,Highest,1,18,1560000.000
+,,2,17,1560000.000
+,,3,16,1560000.000
+,,4,15,1440000.000
+,,5,14,1380000.000
+,Lowest,1,1,300000.000
+,,2,2,320000.000
+,,3,3,480000.000
+,,4,4,960000.000
+,,5,5,960000.000
+
+Table: Descriptives
+,,,Statistic,Std. Error
+x,Mean,,1120010.293,86222.178
+,95% Confidence Interval for Mean,Lower Bound,939166.693,
+,,Upper Bound,1300853.894,
+,5% Trimmed Mean,,1141017.899,
+,Median,,1200000.000,
+,Variance,,144447748124.869,
+,Std. Deviation,,380062.821,
+,Minimum,,300000.000,
+,Maximum,,1560000.000,
+,Range,,1260000.000,
+,Interquartile Range,,467258.065,
+,Skewness,,-.887,.519
+,Kurtosis,,.340,1.005
+])
+
+AT_CLEANUP
+
 dnl Test the PERCENTILES subcommand of the EXAMINE command.
 dnl In particular test that it behaves properly when there are only 
 dnl a few cases.
