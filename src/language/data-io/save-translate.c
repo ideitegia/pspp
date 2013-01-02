@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
   enum { CSV_FILE = 1, TAB_FILE } type;
 
   struct dictionary *dict;
+  struct case_map_stage *stage;
   struct case_map *map;
   struct casewriter *writer;
   struct file_handle *handle;
@@ -67,6 +68,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
   type = 0;
 
   dict = dict_clone (dataset_dict (ds));
+  stage = NULL;
   map = NULL;
 
   handle = NULL;
@@ -81,7 +83,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
   delimiter = 0;
   qualifier = '"';
 
-  case_map_prepare_dict (dict);
+  stage = case_map_stage_create (dict);
   dict_delete_scratch_vars (dict);
 
   while (lex_match (lexer, T_SLASH))
@@ -271,7 +273,8 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
     goto error;
   fh_unref (handle);
 
-  map = case_map_from_dict (dict);
+  map = case_map_stage_get_case_map (stage);
+  case_map_stage_destroy (stage);
   if (map != NULL)
     writer = case_map_create_output_translator (map, writer);
   dict_destroy (dict);
@@ -283,6 +286,7 @@ cmd_save_translate (struct lexer *lexer, struct dataset *ds)
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 
 error:
+  case_map_stage_destroy (stage);
   fh_unref (handle);
   dict_destroy (dict);
   case_map_destroy (map);

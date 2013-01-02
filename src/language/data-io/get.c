@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -73,6 +73,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds,
   struct file_handle *fh = NULL;
   struct dictionary *dict = NULL;
   struct case_map *map = NULL;
+  struct case_map_stage *stage = NULL;
   char *encoding = NULL;
 
   for (;;)
@@ -125,7 +126,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds,
   if (reader == NULL)
     goto error;
 
-  case_map_prepare_dict (dict);
+  stage = case_map_stage_create (dict);
 
   while (lex_token (lexer) != T_ENDCMD)
     {
@@ -135,7 +136,8 @@ parse_read_command (struct lexer *lexer, struct dataset *ds,
     }
   dict_compact_values (dict);
 
-  map = case_map_from_dict (dict);
+  map = case_map_stage_get_case_map (stage);
+  case_map_stage_destroy (stage);
   if (map != NULL)
     reader = case_map_create_input_translator (map, reader);
 
@@ -147,6 +149,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds,
   return CMD_SUCCESS;
 
  error:
+  case_map_stage_destroy (stage);
   fh_unref (fh);
   casereader_destroy (reader);
   if (dict != NULL)

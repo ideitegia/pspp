@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@
 #include "data/variable.h"
 #include "data/case.h"
 #include "libpspp/assertion.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/hmap.h"
 
 #include "gl/xalloc.h"
 
@@ -209,57 +211,115 @@ case_map_to_compact_dict (const struct dictionary *d,
 
   return map;
 }
+
+struct stage_var
+  {
+    struct hmap_node hmap_node; /* In struct case_map_stage's 'stage_vars'. */
+    const struct variable *var;
+    int case_index;
+  };
 
-/* Prepares dictionary D for producing a case map.  Afterward,
-   the caller may delete, reorder, or rename variables within D
-   at will before using case_map_from_dict() to produce the case
+struct case_map_stage
+  {
+    const struct dictionary *dict;
+    struct hmap stage_vars;
+  };
+
+/* Prepares and returns a "struct case_map_stage" for producing a case map for
+   DICT.  Afterward, the caller may delete, reorder, or rename variables within
+   DICT at will before using case_map_stage_get_case_map() to produce the case
    map.
 
-   Uses D's aux members, which must otherwise not be in use. */
-void
-case_map_prepare_dict (const struct dictionary *d)
+   The caller must *not* add new variables to DICT. */
+struct case_map_stage *
+case_map_stage_create (const struct dictionary *dict)
 {
-  size_t var_cnt = dict_get_var_cnt (d);
+  size_t n_vars = dict_get_var_cnt (dict);
+  struct case_map_stage *stage;
   size_t i;
 
-  for (i = 0; i < var_cnt; i++)
+  stage = xmalloc (sizeof *stage);
+  stage->dict = dict;
+  hmap_init (&stage->stage_vars);
+
+  for (i = 0; i < n_vars; i++)
     {
-      struct variable *v = dict_get_var (d, i);
-      int *src_fv = xmalloc (sizeof *src_fv);
-      *src_fv = var_get_case_index (v);
-      var_attach_aux (v, src_fv, var_dtor_free);
+      const struct variable *var = dict_get_var (dict, i);
+      struct stage_var *stage_var;
+
+      stage_var = xmalloc (sizeof *stage_var);
+      stage_var->var = var;
+      stage_var->case_index = var_get_case_index (var);
+      hmap_insert (&stage->stage_vars, &stage_var->hmap_node,
+                   hash_pointer (var, 0));
+    }
+
+  return stage;
+}
+
+/* Destroys STAGE, which was created by case_map_stage_create(). */
+void
+case_map_stage_destroy (struct case_map_stage *stage)
+{
+  if (stage != NULL)
+    {
+      struct stage_var *stage_var, *next_stage_var;
+
+      HMAP_FOR_EACH_SAFE (stage_var, next_stage_var,
+                          struct stage_var, hmap_node, &stage->stage_vars)
+        {
+          hmap_delete (&stage->stage_vars, &stage_var->hmap_node);
+          free (stage_var);
+        }
+      hmap_destroy (&stage->stage_vars);
+      free (stage);
     }
 }
 
-/* Produces a case map from dictionary D, which must have been
-   previously prepared with case_map_prepare_dict().
+static const struct stage_var *
+case_map_stage_find_var (const struct case_map_stage *stage,
+                         const struct variable *var)
+{
+  const struct stage_var *stage_var;
 
-   Does not retain any reference to D, and clears the aux members
-   set up by case_map_prepare_dict().
+  HMAP_FOR_EACH_IN_BUCKET (stage_var, struct stage_var, hmap_node,
+                           hash_pointer (var, 0), &stage->stage_vars)
+    if (stage_var->var == var)
+      return stage_var;
 
-   Returns the new case map, or a null pointer if no mapping is
-   required (that is, no data has changed position). */
+  /* If the following assertion is reached, it indicates a bug in the
+     case_map_stage client: the client allowed a new variable to be added to
+     the dictionary.  This is not allowed, because of the risk that the new
+     varaible might have the same address as an old variable that has been
+     deleted. */
+  NOT_REACHED ();
+}
+
+/* Produces a case map from STAGE, which must have been previously created with
+   case_map_stage_create().  The case map maps from the original case index of
+   the variables in STAGE's dictionary to their current case indexes.
+
+   Returns the new case map, or a null pointer if no mapping is required (that
+   is, no data has changed position). */
 struct case_map *
-case_map_from_dict (const struct dictionary *d)
+case_map_stage_get_case_map (const struct case_map_stage *stage)
 {
   struct case_map *map;
-  size_t var_cnt = dict_get_var_cnt (d);
+  size_t n_vars = dict_get_var_cnt (stage->dict);
   size_t n_values;
   size_t i;
   bool identity_map = true;
 
-  map = create_case_map (dict_get_proto (d));
-  for (i = 0; i < var_cnt; i++)
+  map = create_case_map (dict_get_proto (stage->dict));
+  for (i = 0; i < n_vars; i++)
     {
-      struct variable *v = dict_get_var (d, i);
-      int *src_fv = var_detach_aux (v);
+      const struct variable *var = dict_get_var (stage->dict, i);
+      const struct stage_var *stage_var = case_map_stage_find_var (stage, var);
 
-      if (var_get_case_index (v) != *src_fv)
+      if (var_get_case_index (var) != stage_var->case_index)
         identity_map = false;
 
-      insert_mapping (map, *src_fv, var_get_case_index (v));
-
-      free (src_fv);
+      insert_mapping (map, stage_var->case_index, var_get_case_index (var));
     }
 
   if (identity_map)
