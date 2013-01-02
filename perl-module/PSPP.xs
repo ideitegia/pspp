@@ -88,10 +88,16 @@ struct sysreader_info
 };
 
 
+struct input_format {
+  struct hmap_node hmap_node;   /* In struct pspp_dict's input_formats map. */
+  const struct variable *var;
+  struct fmt_spec input_format;
+};
 
 /* A thin wrapper around struct dictionary.*/
 struct pspp_dict {
   struct dictionary *dict;
+  struct hmap input_formats;	/* Contains struct input_format. */
 };
 
 
@@ -157,14 +163,6 @@ value_to_scalar (const union value *val, const struct variable *var)
 
 
 static void
-var_set_input_format (struct variable *v, input_format ip_fmt)
-{
-  struct fmt_spec *if_copy = malloc (sizeof (*if_copy));
-  memcpy (if_copy, &ip_fmt, sizeof (ip_fmt));
-  var_attach_aux (v, if_copy, var_dtor_free);
-}
-
-static void
 make_value_from_scalar (union value *uv, SV *val, const struct variable *var)
 {
  value_init (uv, var_get_width (var));
@@ -176,7 +174,21 @@ create_pspp_dict (struct dictionary *dict)
 {
   struct pspp_dict *pspp_dict = xmalloc (sizeof *pspp_dict);
   pspp_dict->dict = dict;
+  hmap_init (&pspp_dict->input_formats);
   return pspp_dict;
+}
+
+static const struct fmt_spec *
+find_input_format (const struct pspp_dict *dict, const struct variable *var)
+{
+  struct input_format *input_format;
+
+  HMAP_FOR_EACH_IN_BUCKET (input_format, struct input_format, hmap_node,
+                           hash_pointer (var, 0), &dict->input_formats)
+    if (input_format->var == var)
+      return &input_format->input_format;
+
+  return NULL;
 }
 
 
@@ -251,6 +263,15 @@ DESTROY (dict)
 CODE:
  if (dict != NULL)
    {
+     struct input_format *input_format, *next_input_format;
+
+     HMAP_FOR_EACH_SAFE (input_format, next_input_format,
+			 struct input_format, hmap_node, &dict->input_formats)
+       {
+         hmap_delete (&dict->input_formats, &input_format->hmap_node);
+	 free (input_format);
+       }
+     hmap_destroy (&dict->input_formats);
      dict_destroy (dict->dict);
      free (dict);
    }
@@ -353,6 +374,7 @@ INIT:
   }
 CODE:
  struct fmt_spec op_fmt;
+ struct input_format *input_format;
 
  struct variable *v;
  op_fmt = fmt_for_output_from_input (&ip_fmt);
@@ -364,7 +386,13 @@ CODE:
     XSRETURN_UNDEF;
   }
  var_set_both_formats (v, &op_fmt);
- var_set_input_format (v, ip_fmt);
+
+ input_format = xmalloc (sizeof *input_format);
+ input_format->var = v;
+ input_format->input_format = ip_fmt;
+ hmap_insert (&dict->input_formats, &input_format->hmap_node,
+              hash_pointer (v, 0));
+
  RETVAL = v;
 OUTPUT:
  RETVAL
@@ -668,7 +696,7 @@ CODE:
  for (sv = av_shift (av_case); SvOK (sv);  sv = av_shift (av_case))
  {
     const struct variable *v = vv[i++];
-    const struct fmt_spec *ifmt = var_get_aux (v);
+    const struct fmt_spec *ifmt = find_input_format (swi->dict, v);
 
     /* If an input format has been set, then use it.
        Otherwise just convert the raw value.
