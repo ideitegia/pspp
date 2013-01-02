@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -60,7 +60,7 @@ typedef struct fmt_spec output_format ;
 
 
 /*  A thin wrapper around sfm_writer */
-struct sysfile_info
+struct syswriter_info
 {
   bool opened;
 
@@ -98,15 +98,15 @@ message_handler (const struct msg *m, void *aux)
 }
 
 static int
-sysfile_close (struct sysfile_info *sfi)
+sysfile_close (struct syswriter_info *swi)
 {
   int retval ;
-  if ( ! sfi->opened )
+  if ( ! swi->opened )
     return 0;
 
-  retval = casewriter_destroy (sfi->writer);
+  retval = casewriter_destroy (swi->writer);
   if (retval > 0 )
-    sfi->opened = false;
+    swi->opened = false;
 
   return retval;
 }
@@ -567,7 +567,7 @@ RETVAL
 MODULE = PSPP		PACKAGE = PSPP::Sysfile
 
 
-struct sysfile_info *
+struct syswriter_info *
 pxs_create_sysfile (name, dict, opts_hr)
  char *name
  struct dictionary *dict;
@@ -593,36 +593,36 @@ INIT:
 CODE:
  struct file_handle *fh =
   fh_create_file (NULL, name, fh_default_properties () );
- struct sysfile_info *sfi = xmalloc (sizeof (*sfi));
- sfi->writer = sfm_open_writer (fh, dict, opts);
- sfi->dict = dict;
- sfi->opened = true;
- sfi->dict_sv = dict_sv;
- SvREFCNT_inc (sfi->dict_sv);
+ struct syswriter_info *swi = xmalloc (sizeof (*swi));
+ swi->writer = sfm_open_writer (fh, dict, opts);
+ swi->dict = dict;
+ swi->opened = true;
+ swi->dict_sv = dict_sv;
+ SvREFCNT_inc (swi->dict_sv);
  
- RETVAL = sfi;
+ RETVAL = swi;
  OUTPUT:
 RETVAL
 
 int
-close (sfi)
- struct sysfile_info *sfi
+close (swi)
+ struct syswriter_info *swi
 CODE:
- RETVAL = sysfile_close (sfi);
+ RETVAL = sysfile_close (swi);
 OUTPUT:
  RETVAL
 
 void
-DESTROY (sfi)
- struct sysfile_info *sfi
+DESTROY (swi)
+ struct syswriter_info *swi
 CODE:
- sysfile_close (sfi);
- SvREFCNT_dec (sfi->dict_sv);
- free (sfi);
+ sysfile_close (swi);
+ SvREFCNT_dec (swi->dict_sv);
+ free (swi);
 
 int
-append_case (sfi, ccase)
- struct sysfile_info *sfi
+append_case (swi, ccase)
+ struct syswriter_info *swi
  SV *ccase
 INIT:
  SV *errstr = get_sv("PSPP::errstr", TRUE);
@@ -640,12 +640,12 @@ CODE:
  struct ccase *c;
  SV *sv;
 
- if ( av_len (av_case) >= dict_get_var_cnt (sfi->dict))
+ if ( av_len (av_case) >= dict_get_var_cnt (swi->dict))
    XSRETURN_UNDEF;
 
- c =  case_create (dict_get_proto (sfi->dict));
+ c =  case_create (dict_get_proto (swi->dict));
 
- dict_get_vars (sfi->dict, &vv, &nv, 1u << DC_ORDINARY | 1u << DC_SYSTEM);
+ dict_get_vars (swi->dict, &vv, &nv, 1u << DC_ORDINARY | 1u << DC_SYSTEM);
 
  for (sv = av_shift (av_case); SvOK (sv);  sv = av_shift (av_case))
  {
@@ -663,7 +663,7 @@ CODE:
 
 	error = data_in (ss, SvUTF8(sv) ? UTF8: "iso-8859-1", ifmt->type,
  	       	         case_data_rw (c, v), var_get_width (v),
-			 dict_get_encoding (sfi->dict));
+			 dict_get_encoding (swi->dict));
         ok = error == NULL;
         free (error);
 
@@ -680,13 +680,13 @@ CODE:
  }
 
  /* The remaining variables must be sysmis or blank string */
- while (i < dict_get_var_cnt (sfi->dict))
+ while (i < dict_get_var_cnt (swi->dict))
  {
    const struct variable *v = vv[i++];
    union value *val = case_data_rw (c, v);
    value_set_missing (val, var_get_width (v));
  }
- casewriter_write (sfi->writer, c);
+ casewriter_write (swi->writer, c);
  RETVAL = 1;
  finish:
  free (vv);

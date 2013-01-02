@@ -1,7 +1,7 @@
 TYPEMAP
  struct dictionary *   T_PTRREF
  struct variable *     T_PTRREF
- struct sysfile_info * T_PTRREF
+ struct syswriter_info * T_PTRREF
  struct sysreader_info * T_PTRREF
  input_format  INPUT_FMT_SPEC
  output_format OUTPUT_FMT_SPEC
