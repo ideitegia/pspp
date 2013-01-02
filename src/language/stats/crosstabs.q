@@ -123,6 +123,7 @@ enum
 /* A crosstabulation of 2 or more variables. */
 struct pivot_table
   {
+    struct crosstabs_proc *proc;
     struct fmt_spec weight_format; /* Format for weight variable. */
     double missing;             /* Weight of missing cases. */
 
@@ -162,16 +163,12 @@ struct pivot_table
 /* Integer mode variable info. */
 struct var_range
   {
+    struct hmap_node hmap_node; /* In struct crosstabs_proc var_ranges map. */
+    const struct variable *var; /* The variable. */
     int min;			/* Minimum value. */
     int max;			/* Maximum value + 1. */
     int count;			/* max - min. */
   };
-
-static inline struct var_range *
-get_var_range (const struct variable *v)
-{
-  return var_get_aux (v);
-}
 
 struct crosstabs_proc
   {
@@ -185,6 +182,7 @@ struct crosstabs_proc
     /* Variables specifies on VARIABLES. */
     const struct variable **variables;
     size_t n_variables;
+    struct hmap var_ranges;
 
     /* TABLES. */
     struct pivot_table *pivots;
@@ -201,6 +199,9 @@ struct crosstabs_proc
     bool descending;            /* True if descending sort order is requested. */
   };
 
+const struct var_range *get_var_range (const struct crosstabs_proc *,
+                                       const struct variable *);
+
 static bool should_tabulate_case (const struct pivot_table *,
                                   const struct ccase *, enum mv_class exclude);
 static void tabulate_general_case (struct pivot_table *, const struct ccase *,
@@ -215,6 +216,7 @@ int
 cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 {
   const struct variable *wv = dict_get_weight (dataset_dict (ds));
+  struct var_range *range, *next_range;
   struct crosstabs_proc proc;
   struct casegrouper *grouper;
   struct casereader *input, *group;
@@ -228,6 +230,7 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
   proc.bad_warn = true;
   proc.variables = NULL;
   proc.n_variables = 0;
+  hmap_init (&proc.var_ranges);
   proc.pivots = NULL;
   proc.n_pivots = 0;
   proc.descending = false;
@@ -346,6 +349,12 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 
 exit:
   free (proc.variables);
+  HMAP_FOR_EACH_SAFE (range, next_range, struct var_range, hmap_node,
+                      &proc.var_ranges)
+    {
+      hmap_delete (&proc.var_ranges, &range->hmap_node);
+      free (range);
+    }
   for (pt = &proc.pivots[0]; pt < &proc.pivots[proc.n_pivots]; pt++)
     {
       free (pt->vars);
@@ -427,6 +436,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds,
       struct pivot_table *pt = &proc->pivots[proc->n_pivots++];
       int j;
 
+      pt->proc = proc;
       pt->weight_format = proc->weight_format;
       pt->missing = 0.;
       pt->n_vars = n_by;
@@ -513,11 +523,15 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
 
       for (i = orig_nv; i < proc->n_variables; i++)
         {
+          const struct variable *var = proc->variables[i];
           struct var_range *vr = xmalloc (sizeof *vr);
+
+          vr->var = var;
           vr->min = min;
 	  vr->max = max + 1.;
 	  vr->count = max - min + 1;
-          var_attach_aux (proc->variables[i], vr, var_dtor_free);
+          hmap_insert (&proc->var_ranges, &vr->hmap_node,
+                       hash_pointer (var, 0));
 	}
 
       if (lex_token (lexer) == T_SLASH)
@@ -535,6 +549,22 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
 
 /* Data file processing. */
 
+const struct var_range *
+get_var_range (const struct crosstabs_proc *proc, const struct variable *var)
+{
+  if (!hmap_is_empty (&proc->var_ranges))
+    {
+      const struct var_range *range;
+
+      HMAP_FOR_EACH_IN_BUCKET (range, struct var_range, hmap_node,
+                               hash_pointer (var, 0), &proc->var_ranges)
+        if (range->var == var)
+          return range;
+    }
+
+  return NULL;
+}
+
 static bool
 should_tabulate_case (const struct pivot_table *pt, const struct ccase *c,
                       enum mv_class exclude)
@@ -543,7 +573,7 @@ should_tabulate_case (const struct pivot_table *pt, const struct ccase *c,
   for (j = 0; j < pt->n_vars; j++)
     {
       const struct variable *var = pt->vars[j];
-      struct var_range *range = get_var_range (var);
+      const struct var_range *range = get_var_range (pt->proc, var);
 
       if (var_is_value_missing (var, case_data (c, var), exclude))
         return false;
@@ -1423,7 +1453,7 @@ enum_var_values (const struct pivot_table *pt, int var_idx,
                  union value **valuesp, int *n_values, bool descending)
 {
   const struct variable *var = pt->vars[var_idx];
-  struct var_range *range = get_var_range (var);
+  const struct var_range *range = get_var_range (pt->proc, var);
   union value *values;
   size_t i;
 
