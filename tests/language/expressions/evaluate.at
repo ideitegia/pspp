@@ -3,12 +3,13 @@ m4_define([CHECK_EXPR_EVAL],
    AT_DATA([evaluate.sps],
      [set mxwarn 1000.
 set mxerr 1000.
+set epoch 1940.
 m4_foreach([check], [m4_shift($@)],
                  [DEBUG EVALUATE NOOPT m4_argn(4, check)/[]m4_car(check).
 DEBUG EVALUATE m4_argn(4, check)/[]m4_car(check).
 ])])
    AT_CAPTURE_FILE([evaluate.sps])
-   m4_pushdef([i], [2])
+   m4_pushdef([i], [3])
    AT_CHECK([pspp --testing-mode --error-file=- --no-output evaluate.sps], 
      [m4_if(m4_bregexp([m4_foreach([check], [m4_shift($@)], [m4_argn(3, check)])], [error:]), [-1], [0], [1])], 
      [stdout])
