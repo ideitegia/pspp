@@ -68,7 +68,7 @@ struct syswriter_info
   struct casewriter *writer;
 
   /* A pointer to the dictionary. Owned externally */
-  const struct dictionary *dict;
+  const struct pspp_dict *dict;
 
   /* The scalar containing the dictionary */
   SV *dict_sv;
@@ -84,9 +84,15 @@ struct sysreader_info
   struct casereader *reader;
 
   /* A pointer to the dictionary. */
-  struct dictionary *dict;
+  struct pspp_dict *dict;
 };
 
+
+
+/* A thin wrapper around struct dictionary.*/
+struct pspp_dict {
+  struct dictionary *dict;
+};
 
 
 /*  A message handler which writes messages to PSPP::errstr */
@@ -165,6 +171,14 @@ make_value_from_scalar (union value *uv, SV *val, const struct variable *var)
  scalar_to_value (uv, val, var);
 }
 
+static struct pspp_dict *
+create_pspp_dict (struct dictionary *dict)
+{
+  struct pspp_dict *pspp_dict = xmalloc (sizeof *pspp_dict);
+  pspp_dict->dict = dict;
+  return pspp_dict;
+}
+
 
 MODULE = PSPP
 
@@ -223,94 +237,97 @@ RETVAL
 
 MODULE = PSPP		PACKAGE = PSPP::Dict
 
-struct dictionary *
+struct pspp_dict *
 pxs_dict_new()
 CODE:
- RETVAL = dict_create ("UTF-8");
+ RETVAL = create_pspp_dict (dict_create ("UTF-8"));
 OUTPUT:
  RETVAL
 
 
 void
 DESTROY (dict)
- struct dictionary *dict
+ struct pspp_dict *dict
 CODE:
- dict_destroy (dict);
-
+ if (dict != NULL)
+   {
+     dict_destroy (dict->dict);
+     free (dict);
+   }
 
 int
 get_var_cnt (dict)
- struct dictionary *dict
+ struct pspp_dict *dict
 CODE:
- RETVAL = dict_get_var_cnt (dict);
+ RETVAL = dict_get_var_cnt (dict->dict);
 OUTPUT:
 RETVAL
 
 void
 set_label (dict, label)
- struct dictionary *dict
+ struct pspp_dict *dict
  char *label
 CODE:
- dict_set_label (dict, label);
+ dict_set_label (dict->dict, label);
 
 void
 set_documents (dict, docs)
- struct dictionary *dict
+ struct pspp_dict *dict
  char *docs
 CODE:
- dict_set_documents_string (dict, docs);
+ dict_set_documents_string (dict->dict, docs);
 
 
 void
 add_document (dict, doc)
- struct dictionary *dict
+ struct pspp_dict *dict
  char *doc
 CODE:
- dict_add_document_line (dict, doc, false);
+ dict_add_document_line (dict->dict, doc, false);
 
 
 void
 clear_documents (dict)
- struct dictionary *dict
+ struct pspp_dict *dict
 CODE:
- dict_clear_documents (dict);
+ dict_clear_documents (dict->dict);
 
 
 void
 set_weight (dict, var)
- struct dictionary *dict
+ struct pspp_dict *dict
  struct variable *var
 CODE:
- dict_set_weight (dict, var);
+ dict_set_weight (dict->dict, var);
 
 
 struct variable *
 pxs_get_variable (dict, idx)
- struct dictionary *dict
+ struct pspp_dict *dict
  SV *idx
 INIT:
  SV *errstr = get_sv("PSPP::errstr", TRUE);
  sv_setpv (errstr, "");
- if ( SvIV (idx) >= dict_get_var_cnt (dict))
+ if ( SvIV (idx) >= dict_get_var_cnt (dict->dict))
   {
     sv_setpv (errstr, "The dictionary doesn't have that many variables.");
     XSRETURN_UNDEF;
   }
 CODE:
- RETVAL = dict_get_var (dict, SvIV (idx));
+ RETVAL = dict_get_var (dict->dict, SvIV (idx));
  OUTPUT:
 RETVAL
 
 
 struct variable *
 pxs_get_var_by_name (dict, name)
- struct dictionary *dict
+ struct pspp_dict *dict
  const char *name
 INIT:
  SV *errstr = get_sv("PSPP::errstr", TRUE);
  sv_setpv (errstr, "");
 CODE:
- struct variable *var = dict_lookup_var (dict, name);
+ struct variable *var = dict_lookup_var (dict->dict, name);
  if ( ! var )
       sv_setpv (errstr, "No such variable.");
  RETVAL = var;
@@ -323,7 +340,7 @@ MODULE = PSPP		PACKAGE = PSPP::Var
 
 struct variable *
 pxs_dict_create_var (dict, name, ip_fmt)
- struct dictionary * dict
+ struct pspp_dict * dict
  char *name
  input_format ip_fmt
 INIT:
@@ -339,7 +356,7 @@ CODE:
 
  struct variable *v;
  op_fmt = fmt_for_output_from_input (&ip_fmt);
- v = dict_create_var (dict, name,
+ v = dict_create_var (dict->dict, name,
 	fmt_is_string (op_fmt.type) ? op_fmt.w : 0);
  if ( NULL == v )
   {
@@ -570,7 +587,7 @@ MODULE = PSPP		PACKAGE = PSPP::Sysfile
 struct syswriter_info *
 pxs_create_sysfile (name, dict, opts_hr)
  char *name
- struct dictionary *dict;
+ struct pspp_dict *dict;
  SV *opts_hr
 INIT:
  SV *dict_sv = ST(1);
@@ -594,7 +611,7 @@ CODE:
  struct file_handle *fh =
   fh_create_file (NULL, name, fh_default_properties () );
  struct syswriter_info *swi = xmalloc (sizeof (*swi));
- swi->writer = sfm_open_writer (fh, dict, opts);
+ swi->writer = sfm_open_writer (fh, dict->dict, opts);
  swi->dict = dict;
  swi->opened = true;
  swi->dict_sv = dict_sv;
@@ -640,12 +657,13 @@ CODE:
  struct ccase *c;
  SV *sv;
 
- if ( av_len (av_case) >= dict_get_var_cnt (swi->dict))
+ if ( av_len (av_case) >= dict_get_var_cnt (swi->dict->dict))
    XSRETURN_UNDEF;
 
- c =  case_create (dict_get_proto (swi->dict));
+ c =  case_create (dict_get_proto (swi->dict->dict));
 
- dict_get_vars (swi->dict, &vv, &nv, 1u << DC_ORDINARY | 1u << DC_SYSTEM);
+ dict_get_vars (swi->dict->dict, &vv, &nv,
+                1u << DC_ORDINARY | 1u << DC_SYSTEM);
 
  for (sv = av_shift (av_case); SvOK (sv);  sv = av_shift (av_case))
  {
@@ -663,7 +681,7 @@ CODE:
 
 	error = data_in (ss, SvUTF8(sv) ? UTF8: "iso-8859-1", ifmt->type,
  	       	         case_data_rw (c, v), var_get_width (v),
-			 dict_get_encoding (swi->dict));
+			 dict_get_encoding (swi->dict->dict));
         ok = error == NULL;
         free (error);
 
@@ -680,7 +698,7 @@ CODE:
  }
 
  /* The remaining variables must be sysmis or blank string */
- while (i < dict_get_var_cnt (swi->dict))
+ while (i < dict_get_var_cnt (swi->dict->dict))
  {
    const struct variable *v = vv[i++];
    union value *val = case_data_rw (c, v);
@@ -706,22 +724,25 @@ CODE:
  struct sysreader_info *sri = NULL;
  struct file_handle *fh =
  	 fh_create_file (NULL, name, fh_default_properties () );
+ struct dictionary *dict;
 
  sri = xmalloc (sizeof (*sri));
- sri->reader = sfm_open_reader (fh, NULL, &sri->dict, &sri->opts);
+ sri->reader = sfm_open_reader (fh, NULL, &dict, &sri->opts);
 
- if ( NULL == sri->reader)
- {
-   free (sri);
-   sri = NULL;
- }
+ if ( sri->reader != NULL)
+   sri->dict = create_pspp_dict (dict);
+ else
+   {
+     free (sri);
+     sri = NULL;
+   }
 
  RETVAL = sri;
  OUTPUT:
 RETVAL
 
 
-struct dictionary *
+struct pspp_dict *
 pxs_get_dict (reader)
  struct sysreader_info *reader;
 CODE:
@@ -755,10 +776,10 @@ PPCODE:
  {
   int v;
 
-  EXTEND (SP, dict_get_var_cnt (sfr->dict));
-  for (v = 0; v < dict_get_var_cnt (sfr->dict); ++v )
+  EXTEND (SP, dict_get_var_cnt (sfr->dict->dict));
+  for (v = 0; v < dict_get_var_cnt (sfr->dict->dict); ++v )
     {
-      const struct variable *var = dict_get_var (sfr->dict, v);
+      const struct variable *var = dict_get_var (sfr->dict->dict, v);
       const union value *val = case_data (c, var);
 
       PUSHs (sv_2mortal (value_to_scalar (val, var)));

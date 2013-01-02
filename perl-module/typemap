@@ -1,5 +1,5 @@
 TYPEMAP
- struct dictionary *   T_PTRREF
+ struct pspp_dict *    T_PTRREF
  struct variable *     T_PTRREF
  struct syswriter_info * T_PTRREF
  struct sysreader_info * T_PTRREF
