@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@ struct dictionary *dict_clone (const struct dictionary *);
 
 /* Clearing and destroying dictionaries. */
 void dict_clear (struct dictionary *);
-void dict_clear_aux (struct dictionary *);
 void dict_destroy (struct dictionary *);
 
 /* Common ways to access variables. */

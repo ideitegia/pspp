@@ -72,10 +72,6 @@ struct variable
     char **short_names;
     size_t short_name_cnt;
 
-    /* Each command may use these fields as needed. */
-    void *aux;
-    void (*aux_dtor) (struct variable *);
-
     /* Custom attributes. */
     struct attrset attributes;
   };
@@ -149,7 +145,6 @@ var_destroy (struct variable *v)
       assert (!var_has_vardict (v));
       mv_destroy (&v->miss);
       var_clear_short_names (v);
-      var_clear_aux (v);
       val_labs_destroy (v->val_labs);
       var_clear_label (v);
       attrset_destroy (var_get_attributes (v));
@@ -966,63 +961,6 @@ var_get_case_index (const struct variable *v)
 {
   assert (var_has_vardict (v));
   return vardict_get_case_index (v->vardict);
-}
-
-/* Returns V's auxiliary data, or a null pointer if none has been
-   attached. */
-void *
-var_get_aux (const struct variable *v)
-{
-  return v->aux;
-}
-
-/* Assign auxiliary data AUX to variable V, which must not
-   already have auxiliary data.  Before V's auxiliary data is
-   cleared, AUX_DTOR(V) will be called.  (var_dtor_free, below,
-   may be appropriate for use as AUX_DTOR.) */
-void *
-var_attach_aux (const struct variable *v_,
-                void *aux, void (*aux_dtor) (struct variable *))
-{
-  struct variable *v = CONST_CAST (struct variable *, v_);
-  assert (v->aux == NULL);
-  assert (aux != NULL);
-  v->aux = aux;
-  v->aux_dtor = aux_dtor;
-  return aux;
-}
-
-/* Remove auxiliary data, if any, from V, and return it, without
-   calling any associated destructor. */
-void *
-var_detach_aux (struct variable *v)
-{
-  void *aux = v->aux;
-  assert (aux != NULL);
-  v->aux = NULL;
-  return aux;
-}
-
-/* Clears auxiliary data, if any, from V, and calls any
-   associated destructor. */
-void
-var_clear_aux (struct variable *v)
-{
-  if (v->aux != NULL)
-    {
-      if (v->aux_dtor != NULL)
-        v->aux_dtor (v);
-      v->aux = NULL;
-    }
-}
-
-/* This function is appropriate for use an auxiliary data
-   destructor (passed as AUX_DTOR to var_attach_aux()) for the
-   case where the auxiliary data should be passed to free(). */
-void
-var_dtor_free (struct variable *v)
-{
-  free (v->aux);
 }
 
 /* Returns variable V's attribute set.  The caller may examine or
