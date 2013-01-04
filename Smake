@@ -81,8 +81,7 @@ GNULIB_MODULES = \
 	unicase/u8-tolower \
 	unicase/u8-toupper \
 	unictype/ctype-print \
-	unictype/property-id-continue \
-	unictype/property-id-start \
+	unictype/category-of \
 	unigbrk/uc-is-grapheme-break \
 	unilbrk/u8-possible-linebreaks \
 	uninorm/nfkd \
