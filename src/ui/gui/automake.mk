@@ -310,6 +310,7 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/page-first-line.c \
 	src/ui/gui/page-formats.c \
 	src/ui/gui/page-separators.c \
+	src/ui/gui/page-sheet-spec.c \
 	src/ui/gui/text-data-import-dialog.c \
 	src/ui/gui/text-data-import-dialog.h \
 	src/ui/gui/transpose-dialog.c \

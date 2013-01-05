@@ -29,6 +29,8 @@
 #include "data/data-in.h"
 #include "data/data-out.h"
 #include "data/format-guesser.h"
+#include "data/gnumeric-reader.h"
+#include "data/spreadsheet-reader.h"
 #include "data/value-labels.h"
 #include "language/data-io/data-parser.h"
 #include "language/lexer/lexer.h"
@@ -74,75 +76,92 @@ bool
 init_file (struct import_assistant *ia, GtkWindow *parent_window)
 {
   struct file *file = &ia->file;
-  enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
-  enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
-  struct line_reader *reader;
-  struct string input;
-
   file->file_name = choose_file (parent_window, &file->encoding);
   if (file->file_name == NULL)
     return false;
 
-  reader = line_reader_for_file (file->encoding, file->file_name, O_RDONLY);
-  if (reader == NULL)
-    {
-      msg (ME, _("Could not open `%s': %s"),
-           file->file_name, strerror (errno));
-      return false;
-    }
+  struct dictionary *dict = NULL;
+  struct spreadsheet_read_info sri;
 
-  ds_init_empty (&input);
-  file->lines = xnmalloc (MAX_PREVIEW_LINES, sizeof *file->lines);
-  for (; file->line_cnt < MAX_PREVIEW_LINES; file->line_cnt++)
-    {
-      ds_clear (&input);
-      if (!line_reader_read (reader, &input, MAX_LINE_LEN + 1)
-          || ds_length (&input) > MAX_LINE_LEN)
-        {
-          if (line_reader_eof (reader))
-            break;
-          else if (line_reader_error (reader))
-            msg (ME, _("Error reading `%s': %s"),
-                 file->file_name, strerror (line_reader_error (reader)));
-          else
-            msg (ME, _("Failed to read `%s', because it contains a line "
-                       "over %d bytes long and therefore appears not to be "
-                       "a text file."),
-                 file->file_name, MAX_LINE_LEN);
-          line_reader_close (reader);
-          destroy_file (ia);
-          ds_destroy (&input);
-          return false;
-        }
+  sri.sheet_name = NULL;
+  sri.file_name = file->file_name;
+  sri.cell_range = NULL;
+  sri.sheet_index = 1;
+  sri.read_names = true;
+  sri.asw = 0;
 
-      ds_init_cstr (&file->lines[file->line_cnt],
-                    recode_string ("UTF-8", line_reader_get_encoding (reader),
-                                   ds_cstr (&input), ds_length (&input)));
-    }
-  ds_destroy (&input);
+  struct casereader *creader = gnumeric_open_reader (&sri, &dict);
+  printf ("%s:%d %s\n", __FILE__, __LINE__, sri.file_name);
+  ia->file.type = FTYPE_SPREADSHEET;
 
-  if (file->line_cnt == 0)
-    {
-      msg (ME, _("`%s' is empty."), file->file_name);
-      line_reader_close (reader);
-      destroy_file (ia);
-      return false;
-    }
+  if (creader == NULL)
+  {
+    enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
+    enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
 
-  /* Estimate the number of lines in the file. */
-  if (file->line_cnt < MAX_PREVIEW_LINES)
-    file->total_lines = file->line_cnt;
-  else
-    {
-      struct stat s;
-      off_t position = line_reader_tell (reader);
-      if (fstat (line_reader_fileno (reader), &s) == 0 && position > 0)
-        file->total_lines = (double) file->line_cnt / position * s.st_size;
-      else
-        file->total_lines = 0;
-    }
+    struct string input;
+    struct line_reader *reader = line_reader_for_file (file->encoding, file->file_name, O_RDONLY);
+    if (reader == NULL)
+      {
+	msg (ME, _("Could not open `%s': %s"),
+	     file->file_name, strerror (errno));
+	return false;
+      }
 
-  line_reader_close (reader);
+    ds_init_empty (&input);
+    file->lines = xnmalloc (MAX_PREVIEW_LINES, sizeof *file->lines);
+    for (; file->line_cnt < MAX_PREVIEW_LINES; file->line_cnt++)
+      {
+	ds_clear (&input);
+	if (!line_reader_read (reader, &input, MAX_LINE_LEN + 1)
+	    || ds_length (&input) > MAX_LINE_LEN)
+	  {
+	    if (line_reader_eof (reader))
+	      break;
+	    else if (line_reader_error (reader))
+	      msg (ME, _("Error reading `%s': %s"),
+		   file->file_name, strerror (line_reader_error (reader)));
+	    else
+	      msg (ME, _("Failed to read `%s', because it contains a line "
+			 "over %d bytes long and therefore appears not to be "
+			 "a text file."),
+		   file->file_name, MAX_LINE_LEN);
+	    line_reader_close (reader);
+	    destroy_file (ia);
+	    ds_destroy (&input);
+	    return false;
+	  }
+
+	ds_init_cstr (&file->lines[file->line_cnt],
+		      recode_string ("UTF-8", line_reader_get_encoding (reader),
+				     ds_cstr (&input), ds_length (&input)));
+      }
+    ds_destroy (&input);
+
+    if (file->line_cnt == 0)
+      {
+	msg (ME, _("`%s' is empty."), file->file_name);
+	line_reader_close (reader);
+	destroy_file (ia);
+	return false;
+      }
+
+    /* Estimate the number of lines in the file. */
+    if (file->line_cnt < MAX_PREVIEW_LINES)
+      file->total_lines = file->line_cnt;
+    else
+      {
+	struct stat s;
+	off_t position = line_reader_tell (reader);
+	if (fstat (line_reader_fileno (reader), &s) == 0 && position > 0)
+	  file->total_lines = (double) file->line_cnt / position * s.st_size;
+	else
+	  file->total_lines = 0;
+      }
+
+    line_reader_close (reader);
+    ia->file.type = FTYPE_TEXT;
+  }
 
   return true;
 }

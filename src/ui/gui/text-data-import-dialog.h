@@ -22,10 +22,21 @@
 
 #include "libpspp/str.h"
 
+enum file_type
+  {
+    FTYPE_TEXT,
+    FTYPE_SPREADSHEET
+  };
+
 /* The file to be imported. */
 struct file
   {
     char *file_name;        /* File name. */
+
+    enum file_type type;
+
+    /* Relevant only for text files */
+
     gchar *encoding;        /* Encoding. */
     unsigned long int total_lines; /* Number of lines in file. */
     bool total_is_exact;    /* Is total_lines exact (or an estimate)? */
@@ -49,6 +60,14 @@ struct assistant
     GtkCellRenderer *prop_renderer;
     GtkCellRenderer *fixed_renderer;
   };
+
+
+/* The sheet_spec page of the assistant (only relevant for spreadsheet imports). */
+struct sheet_spec_page
+  {
+    GtkWidget *page;
+  };
+
 
 /* The introduction page of the assistant. */
 struct intro_page
@@ -113,6 +132,7 @@ struct import_assistant
     struct file file;
     struct assistant asst;
     struct intro_page intro;
+    struct sheet_spec_page sheet_spec;
     struct first_line_page first_line;
     struct separators_page separators;
     struct formats_page formats;
