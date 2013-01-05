@@ -212,6 +212,23 @@ choose_file (GtkWindow *parent_window, gchar **encodingp)
   gtk_file_filter_add_mime_type (filter, "text/tab-separated-values");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Gnumeric Spreadsheet Files"));
+  gtk_file_filter_add_mime_type (filter, "application/x-gnumeric");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("OpenOffice.Org Spreadsheet Files"));
+  gtk_file_filter_add_mime_type (filter, "application/vnd.oasis.opendocument.spreadsheet");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("All Spreadsheet Files"));
+  gtk_file_filter_add_mime_type (filter, "application/x-gnumeric");
+  gtk_file_filter_add_mime_type (filter, "application/vnd.oasis.opendocument.spreadsheet");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+
   gtk_file_chooser_set_extra_widget (
     GTK_FILE_CHOOSER (dialog), psppire_encoding_selector_new ("Auto", true));
 
