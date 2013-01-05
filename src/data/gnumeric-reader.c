@@ -299,7 +299,7 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
                            (xmlInputCloseCallback) gzclose, gz,
 			   NULL, NULL, 0);
 
-  if ( r->xtr == NULL)
+  if ( r->xtr == NULL )
     goto error;
 
   if ( gri->cell_range )
@@ -422,10 +422,13 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
 	}
     }
 
-
-  /* Create the dictionary and populate it */
-  *dict = r->dict = dict_create (
-    CHAR_CAST (const char *, xmlTextReaderConstEncoding (r->xtr)));
+  {
+    const xmlChar *enc = xmlTextReaderConstEncoding (r->xtr);
+    if ( enc == NULL)
+      goto error;
+    /* Create the dictionary and populate it */
+    *dict = r->dict = dict_create (CHAR_CAST (const char *, enc));
+  }
 
   for (i = 0 ; i < n_var_specs ; ++i )
     {
