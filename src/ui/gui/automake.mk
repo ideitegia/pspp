@@ -304,6 +304,12 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/select-cases-dialog.h \
 	src/ui/gui/split-file-dialog.c \
 	src/ui/gui/split-file-dialog.h \
+	src/ui/gui/page-assistant.c \
+	src/ui/gui/page-intro.c \
+	src/ui/gui/page-file.c \
+	src/ui/gui/page-first-line.c \
+	src/ui/gui/page-formats.c \
+	src/ui/gui/page-separators.c \
 	src/ui/gui/text-data-import-dialog.c \
 	src/ui/gui/text-data-import-dialog.h \
 	src/ui/gui/transpose-dialog.c \
