@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,8 +32,9 @@
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
 
-#include "gl/xalloc.h"
+#include "gl/c-strcase.h"
 #include "gl/minmax.h"
+#include "gl/xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -270,7 +271,7 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
   {
     const char *dt =  PQparameterStatus (r->conn, "integer_datetimes");
 
-    r->integer_datetimes = ( 0 == strcasecmp (dt, "on"));
+    r->integer_datetimes = ( 0 == c_strcasecmp (dt, "on"));
   }
 
 #if USE_SSL

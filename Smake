@@ -7,10 +7,12 @@ GNULIB_TOOL = $(GNULIB)/gnulib-tool
 GNULIB_MODULES = \
 	assert \
 	byteswap \
+	c-snprintf \
 	c-strcase \
 	c-strcasestr \
 	c-ctype \
 	c-strtod \
+	c-xvasprintf \
 	clean-temp \
 	close \
 	configmake \
@@ -74,11 +76,15 @@ GNULIB_MODULES = \
 	sys_stat \
 	tempname \
 	trunc \
+	unicase/u8-casecmp \
+	unicase/u8-casefold \
+	unicase/u8-tolower \
+	unicase/u8-toupper \
 	unictype/ctype-print \
-	unictype/property-id-continue \
-	unictype/property-id-start \
+	unictype/category-of \
 	unigbrk/uc-is-grapheme-break \
 	unilbrk/u8-possible-linebreaks \
+	uninorm/nfkd \
 	unistd \
 	unistr/u8-check \
 	unistr/u8-cpy \

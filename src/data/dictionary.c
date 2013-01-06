@@ -279,17 +279,6 @@ dict_clear (struct dictionary *d)
   attrset_clear (&d->attributes);
 }
 
-/* Destroys the aux data for every variable in D, by calling
-   var_clear_aux() for each variable. */
-void
-dict_clear_aux (struct dictionary *d)
-{
-  int i;
-
-  for (i = 0; i < d->var_cnt; i++)
-    var_clear_aux (d->var[i].var);
-}
-
 /* Clears a dictionary and destroys it. */
 void
 dict_destroy (struct dictionary *d)
@@ -397,7 +386,7 @@ add_var (struct dictionary *d, struct variable *v)
   vardict->dict = d;
   vardict->var = v;
   hmap_insert (&d->name_map, &vardict->name_node,
-               hash_case_string (var_get_name (v), 0));
+               utf8_hash_case_string (var_get_name (v), 0));
   vardict->case_index = d->next_value_idx;
   var_set_vardict (v, vardict);
 
@@ -487,10 +476,10 @@ dict_lookup_var (const struct dictionary *d, const char *name)
   struct vardict_info *vardict;
 
   HMAP_FOR_EACH_WITH_HASH (vardict, struct vardict_info, name_node,
-                           hash_case_string (name, 0), &d->name_map)
+                           utf8_hash_case_string (name, 0), &d->name_map)
     {
       struct variable *var = vardict->var;
-      if (!strcasecmp (var_get_name (var), name))
+      if (!utf8_strcasecmp (var_get_name (var), name))
         return var;
     }
 
@@ -599,9 +588,6 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   const int case_index = var_get_case_index (v);
 
   assert (dict_contains_var (d, v));
-
-  /* Delete aux data. */
-  var_clear_aux (v);
 
   dict_unset_split_var (d, v);
   dict_unset_mrset_var (d, v);
@@ -742,7 +728,7 @@ rename_var (struct variable *v, const char *new_name)
   struct vardict_info *vardict = var_get_vardict (v);
   var_clear_vardict (v);
   var_set_name (v, new_name);
-  vardict->name_node.hash = hash_case_string (new_name, 0);
+  vardict->name_node.hash = utf8_hash_case_string (new_name, 0);
   var_set_vardict (v, vardict);
 }
 
@@ -753,7 +739,7 @@ void
 dict_rename_var (struct dictionary *d, struct variable *v,
                  const char *new_name)
 {
-  assert (!strcasecmp (var_get_name (v), new_name)
+  assert (!utf8_strcasecmp (var_get_name (v), new_name)
           || dict_lookup_var (d, new_name) == NULL);
 
   unindex_var (d, var_get_vardict (v));
@@ -1411,7 +1397,7 @@ dict_lookup_vector (const struct dictionary *d, const char *name)
 {
   size_t i;
   for (i = 0; i < d->vector_cnt; i++)
-    if (!strcasecmp (vector_get_name (d->vector[i]), name))
+    if (!utf8_strcasecmp (vector_get_name (d->vector[i]), name))
       return d->vector[i];
   return NULL;
 }
@@ -1456,7 +1442,7 @@ dict_lookup_mrset_idx (const struct dictionary *dict, const char *name)
   size_t i;
 
   for (i = 0; i < dict->n_mrsets; i++)
-    if (!strcasecmp (name, dict->mrsets[i]->name))
+    if (!utf8_strcasecmp (name, dict->mrsets[i]->name))
       return i;
 
   return SIZE_MAX;

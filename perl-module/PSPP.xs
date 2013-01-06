@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -60,7 +60,7 @@ typedef struct fmt_spec output_format ;
 
 
 /*  A thin wrapper around sfm_writer */
-struct sysfile_info
+struct syswriter_info
 {
   bool opened;
 
@@ -68,7 +68,7 @@ struct sysfile_info
   struct casewriter *writer;
 
   /* A pointer to the dictionary. Owned externally */
-  const struct dictionary *dict;
+  const struct pspp_dict *dict;
 
   /* The scalar containing the dictionary */
   SV *dict_sv;
@@ -84,9 +84,21 @@ struct sysreader_info
   struct casereader *reader;
 
   /* A pointer to the dictionary. */
-  struct dictionary *dict;
+  struct pspp_dict *dict;
 };
 
+
+struct input_format {
+  struct hmap_node hmap_node;   /* In struct pspp_dict's input_formats map. */
+  const struct variable *var;
+  struct fmt_spec input_format;
+};
+
+/* A thin wrapper around struct dictionary.*/
+struct pspp_dict {
+  struct dictionary *dict;
+  struct hmap input_formats;	/* Contains struct input_format. */
+};
 
 
 /*  A message handler which writes messages to PSPP::errstr */
@@ -98,15 +110,15 @@ message_handler (const struct msg *m, void *aux)
 }
 
 static int
-sysfile_close (struct sysfile_info *sfi)
+sysfile_close (struct syswriter_info *swi)
 {
   int retval ;
-  if ( ! sfi->opened )
+  if ( ! swi->opened )
     return 0;
 
-  retval = casewriter_destroy (sfi->writer);
+  retval = casewriter_destroy (swi->writer);
   if (retval > 0 )
-    sfi->opened = false;
+    swi->opened = false;
 
   return retval;
 }
@@ -151,18 +163,32 @@ value_to_scalar (const union value *val, const struct variable *var)
 
 
 static void
-var_set_input_format (struct variable *v, input_format ip_fmt)
-{
-  struct fmt_spec *if_copy = malloc (sizeof (*if_copy));
-  memcpy (if_copy, &ip_fmt, sizeof (ip_fmt));
-  var_attach_aux (v, if_copy, var_dtor_free);
-}
-
-static void
 make_value_from_scalar (union value *uv, SV *val, const struct variable *var)
 {
  value_init (uv, var_get_width (var));
  scalar_to_value (uv, val, var);
+}
+
+static struct pspp_dict *
+create_pspp_dict (struct dictionary *dict)
+{
+  struct pspp_dict *pspp_dict = xmalloc (sizeof *pspp_dict);
+  pspp_dict->dict = dict;
+  hmap_init (&pspp_dict->input_formats);
+  return pspp_dict;
+}
+
+static const struct fmt_spec *
+find_input_format (const struct pspp_dict *dict, const struct variable *var)
+{
+  struct input_format *input_format;
+
+  HMAP_FOR_EACH_IN_BUCKET (input_format, struct input_format, hmap_node,
+                           hash_pointer (var, 0), &dict->input_formats)
+    if (input_format->var == var)
+      return &input_format->input_format;
+
+  return NULL;
 }
 
 
@@ -223,94 +249,106 @@ RETVAL
 
 MODULE = PSPP		PACKAGE = PSPP::Dict
 
-struct dictionary *
+struct pspp_dict *
 pxs_dict_new()
 CODE:
- RETVAL = dict_create ("UTF-8");
+ RETVAL = create_pspp_dict (dict_create ("UTF-8"));
 OUTPUT:
  RETVAL
 
 
 void
 DESTROY (dict)
- struct dictionary *dict
+ struct pspp_dict *dict
 CODE:
- dict_destroy (dict);
+ if (dict != NULL)
+   {
+     struct input_format *input_format, *next_input_format;
 
+     HMAP_FOR_EACH_SAFE (input_format, next_input_format,
+			 struct input_format, hmap_node, &dict->input_formats)
+       {
+         hmap_delete (&dict->input_formats, &input_format->hmap_node);
+	 free (input_format);
+       }
+     hmap_destroy (&dict->input_formats);
+     dict_destroy (dict->dict);
+     free (dict);
+   }
 
 int
 get_var_cnt (dict)
- struct dictionary *dict
+ struct pspp_dict *dict
 CODE:
- RETVAL = dict_get_var_cnt (dict);
+ RETVAL = dict_get_var_cnt (dict->dict);
 OUTPUT:
 RETVAL
 
 void
 set_label (dict, label)
- struct dictionary *dict
+ struct pspp_dict *dict
  char *label
 CODE:
- dict_set_label (dict, label);
+ dict_set_label (dict->dict, label);
 
 void
 set_documents (dict, docs)
- struct dictionary *dict
+ struct pspp_dict *dict
  char *docs
 CODE:
- dict_set_documents_string (dict, docs);
+ dict_set_documents_string (dict->dict, docs);
 
 
 void
 add_document (dict, doc)
- struct dictionary *dict
+ struct pspp_dict *dict
  char *doc
 CODE:
- dict_add_document_line (dict, doc, false);
+ dict_add_document_line (dict->dict, doc, false);
 
 
 void
 clear_documents (dict)
- struct dictionary *dict
+ struct pspp_dict *dict
 CODE:
- dict_clear_documents (dict);
+ dict_clear_documents (dict->dict);
 
 
 void
 set_weight (dict, var)
- struct dictionary *dict
+ struct pspp_dict *dict
  struct variable *var
 CODE:
- dict_set_weight (dict, var);
+ dict_set_weight (dict->dict, var);
 
 
 struct variable *
 pxs_get_variable (dict, idx)
- struct dictionary *dict
+ struct pspp_dict *dict
  SV *idx
 INIT:
  SV *errstr = get_sv("PSPP::errstr", TRUE);
  sv_setpv (errstr, "");
- if ( SvIV (idx) >= dict_get_var_cnt (dict))
+ if ( SvIV (idx) >= dict_get_var_cnt (dict->dict))
   {
     sv_setpv (errstr, "The dictionary doesn't have that many variables.");
     XSRETURN_UNDEF;
   }
 CODE:
- RETVAL = dict_get_var (dict, SvIV (idx));
+ RETVAL = dict_get_var (dict->dict, SvIV (idx));
  OUTPUT:
 RETVAL
 
 
 struct variable *
 pxs_get_var_by_name (dict, name)
- struct dictionary *dict
+ struct pspp_dict *dict
  const char *name
 INIT:
  SV *errstr = get_sv("PSPP::errstr", TRUE);
  sv_setpv (errstr, "");
 CODE:
- struct variable *var = dict_lookup_var (dict, name);
+ struct variable *var = dict_lookup_var (dict->dict, name);
  if ( ! var )
       sv_setpv (errstr, "No such variable.");
  RETVAL = var;
@@ -323,7 +361,7 @@ MODULE = PSPP		PACKAGE = PSPP::Var
 
 struct variable *
 pxs_dict_create_var (dict, name, ip_fmt)
- struct dictionary * dict
+ struct pspp_dict * dict
  char *name
  input_format ip_fmt
 INIT:
@@ -336,10 +374,11 @@ INIT:
   }
 CODE:
  struct fmt_spec op_fmt;
+ struct input_format *input_format;
 
  struct variable *v;
  op_fmt = fmt_for_output_from_input (&ip_fmt);
- v = dict_create_var (dict, name,
+ v = dict_create_var (dict->dict, name,
 	fmt_is_string (op_fmt.type) ? op_fmt.w : 0);
  if ( NULL == v )
   {
@@ -347,7 +386,13 @@ CODE:
     XSRETURN_UNDEF;
   }
  var_set_both_formats (v, &op_fmt);
- var_set_input_format (v, ip_fmt);
+
+ input_format = xmalloc (sizeof *input_format);
+ input_format->var = v;
+ input_format->input_format = ip_fmt;
+ hmap_insert (&dict->input_formats, &input_format->hmap_node,
+              hash_pointer (v, 0));
+
  RETVAL = v;
 OUTPUT:
  RETVAL
@@ -567,10 +612,10 @@ RETVAL
 MODULE = PSPP		PACKAGE = PSPP::Sysfile
 
 
-struct sysfile_info *
+struct syswriter_info *
 pxs_create_sysfile (name, dict, opts_hr)
  char *name
- struct dictionary *dict;
+ struct pspp_dict *dict;
  SV *opts_hr
 INIT:
  SV *dict_sv = ST(1);
@@ -593,36 +638,36 @@ INIT:
 CODE:
  struct file_handle *fh =
   fh_create_file (NULL, name, fh_default_properties () );
- struct sysfile_info *sfi = xmalloc (sizeof (*sfi));
- sfi->writer = sfm_open_writer (fh, dict, opts);
- sfi->dict = dict;
- sfi->opened = true;
- sfi->dict_sv = dict_sv;
- SvREFCNT_inc (sfi->dict_sv);
+ struct syswriter_info *swi = xmalloc (sizeof (*swi));
+ swi->writer = sfm_open_writer (fh, dict->dict, opts);
+ swi->dict = dict;
+ swi->opened = true;
+ swi->dict_sv = dict_sv;
+ SvREFCNT_inc (swi->dict_sv);
  
- RETVAL = sfi;
+ RETVAL = swi;
  OUTPUT:
 RETVAL
 
 int
-close (sfi)
- struct sysfile_info *sfi
+close (swi)
+ struct syswriter_info *swi
 CODE:
- RETVAL = sysfile_close (sfi);
+ RETVAL = sysfile_close (swi);
 OUTPUT:
  RETVAL
 
 void
-DESTROY (sfi)
- struct sysfile_info *sfi
+DESTROY (swi)
+ struct syswriter_info *swi
 CODE:
- sysfile_close (sfi);
- SvREFCNT_dec (sfi->dict_sv);
- free (sfi);
+ sysfile_close (swi);
+ SvREFCNT_dec (swi->dict_sv);
+ free (swi);
 
 int
-append_case (sfi, ccase)
- struct sysfile_info *sfi
+append_case (swi, ccase)
+ struct syswriter_info *swi
  SV *ccase
 INIT:
  SV *errstr = get_sv("PSPP::errstr", TRUE);
@@ -640,17 +685,18 @@ CODE:
  struct ccase *c;
  SV *sv;
 
- if ( av_len (av_case) >= dict_get_var_cnt (sfi->dict))
+ if ( av_len (av_case) >= dict_get_var_cnt (swi->dict->dict))
    XSRETURN_UNDEF;
 
- c =  case_create (dict_get_proto (sfi->dict));
+ c =  case_create (dict_get_proto (swi->dict->dict));
 
- dict_get_vars (sfi->dict, &vv, &nv, 1u << DC_ORDINARY | 1u << DC_SYSTEM);
+ dict_get_vars (swi->dict->dict, &vv, &nv,
+                1u << DC_ORDINARY | 1u << DC_SYSTEM);
 
  for (sv = av_shift (av_case); SvOK (sv);  sv = av_shift (av_case))
  {
     const struct variable *v = vv[i++];
-    const struct fmt_spec *ifmt = var_get_aux (v);
+    const struct fmt_spec *ifmt = find_input_format (swi->dict, v);
 
     /* If an input format has been set, then use it.
        Otherwise just convert the raw value.
@@ -663,7 +709,7 @@ CODE:
 
 	error = data_in (ss, SvUTF8(sv) ? UTF8: "iso-8859-1", ifmt->type,
  	       	         case_data_rw (c, v), var_get_width (v),
-			 dict_get_encoding (sfi->dict));
+			 dict_get_encoding (swi->dict->dict));
         ok = error == NULL;
         free (error);
 
@@ -680,13 +726,13 @@ CODE:
  }
 
  /* The remaining variables must be sysmis or blank string */
- while (i < dict_get_var_cnt (sfi->dict))
+ while (i < dict_get_var_cnt (swi->dict->dict))
  {
    const struct variable *v = vv[i++];
    union value *val = case_data_rw (c, v);
    value_set_missing (val, var_get_width (v));
  }
- casewriter_write (sfi->writer, c);
+ casewriter_write (swi->writer, c);
  RETVAL = 1;
  finish:
  free (vv);
@@ -706,22 +752,25 @@ CODE:
  struct sysreader_info *sri = NULL;
  struct file_handle *fh =
  	 fh_create_file (NULL, name, fh_default_properties () );
+ struct dictionary *dict;
 
  sri = xmalloc (sizeof (*sri));
- sri->reader = sfm_open_reader (fh, NULL, &sri->dict, &sri->opts);
+ sri->reader = sfm_open_reader (fh, NULL, &dict, &sri->opts);
 
- if ( NULL == sri->reader)
- {
-   free (sri);
-   sri = NULL;
- }
+ if ( sri->reader != NULL)
+   sri->dict = create_pspp_dict (dict);
+ else
+   {
+     free (sri);
+     sri = NULL;
+   }
 
  RETVAL = sri;
  OUTPUT:
 RETVAL
 
 
-struct dictionary *
+struct pspp_dict *
 pxs_get_dict (reader)
  struct sysreader_info *reader;
 CODE:
@@ -755,10 +804,10 @@ PPCODE:
  {
   int v;
 
-  EXTEND (SP, dict_get_var_cnt (sfr->dict));
-  for (v = 0; v < dict_get_var_cnt (sfr->dict); ++v )
+  EXTEND (SP, dict_get_var_cnt (sfr->dict->dict));
+  for (v = 0; v < dict_get_var_cnt (sfr->dict->dict); ++v )
     {
-      const struct variable *var = dict_get_var (sfr->dict, v);
+      const struct variable *var = dict_get_var (sfr->dict->dict, v);
       const union value *val = case_data (c, var);
 
       PUSHs (sv_2mortal (value_to_scalar (val, var)));

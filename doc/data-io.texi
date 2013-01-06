@@ -963,7 +963,7 @@ PRINT
         [/[@var{line_no}] @var{arg}@dots{}]
 
 @var{arg} takes one of the following forms:
-        '@var{string}' [@var{start}-@var{end}]
+        '@var{string}' [@var{start}]
         @var{var_list} @var{start}-@var{end} [@var{type_spec}]
         @var{var_list} (@var{fortran_spec})
         @var{var_list} *
@@ -1003,11 +1003,10 @@ line number, the next line number will be specified.  Multiple lines may
 be specified using multiple slashes with the intended output for a line
 following its respective slash.
 
-Literal strings may be printed.  Specify the string itself.  Optionally
-the string may be followed by a column number or range of column
-numbers, specifying the location on the line for the string to be
-printed.  Otherwise, the string will be printed at the current position
-on the line.
+Literal strings may be printed.  Specify the string itself.
+Optionally the string may be followed by a column number, specifying
+the column on the line where the string should start.  Otherwise, the
+string will be printed at the current position on the line.
 
 Variables to be printed can be specified in the same ways as available
 for @cmd{DATA LIST FIXED} (@pxref{DATA LIST FIXED}).  In addition, a

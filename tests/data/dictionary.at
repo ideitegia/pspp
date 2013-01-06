@@ -1,0 +1,14 @@
+AT_BANNER([dictionary])
+
+AT_SETUP([dictionary case-insensitivity])
+AT_DATA([dictionary.sps], [dnl
+DATA LIST LIST /aèiöu aeiou.
+BEGIN DATA
+1 2
+END DATA.
+LIST AÈIÖU
+RENAME VARIABLE (aèiöu=AÈIÖU).
+LIST.
+RENAME VARIABLE (aeiou=aèiöu).
+])
+AT_CLEANUP

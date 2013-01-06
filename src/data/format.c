@@ -33,6 +33,7 @@
 #include "libpspp/misc.h"
 #include "libpspp/str.h"
 
+#include "gl/c-strcase.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
 
@@ -581,7 +582,7 @@ fmt_from_name (const char *name, enum fmt_type *type)
   int i;
 
   for (i = 0; i < FMT_NUMBER_OF_FORMATS; i++)
-    if (!strcasecmp (name, get_fmt_desc (i)->name))
+    if (!c_strcasecmp (name, get_fmt_desc (i)->name))
       {
         *type = i;
         return true;

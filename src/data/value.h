@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -76,6 +76,8 @@ unsigned int value_hash (const union value *, int width, unsigned int basis);
 bool value_is_resizable (const union value *, int old_width, int new_width);
 bool value_needs_resize (int old_width, int new_width);
 void value_resize (union value *, int old_width, int new_width);
+
+bool value_is_spaces (const union value *, int width);
 
 static inline void value_swap (union value *, union value *);
 

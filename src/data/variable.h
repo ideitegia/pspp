@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -156,14 +156,6 @@ void var_clear_short_names (struct variable *);
 /* Relationship with dictionary. */
 size_t var_get_dict_index (const struct variable *);
 size_t var_get_case_index (const struct variable *);
-
-/* Variable auxiliary data. */
-void *var_get_aux (const struct variable *);
-void *var_attach_aux (const struct variable *,
-                      void *aux, void (*aux_dtor) (struct variable *));
-void var_clear_aux (struct variable *);
-void *var_detach_aux (struct variable *);
-void var_dtor_free (struct variable *);
 
 /* Custom attributes. */
 struct attrset *var_get_attributes (const struct variable *);

@@ -92,6 +92,8 @@ src_libpspp_liblibpspp_la_SOURCES = \
 	src/libpspp/tower.h \
 	src/libpspp/u8-istream.c \
 	src/libpspp/u8-istream.h \
+	src/libpspp/u8-line.c \
+	src/libpspp/u8-line.h \
 	src/libpspp/version.h \
 	src/libpspp/zip-private.h \
 	src/libpspp/zip-reader.c \

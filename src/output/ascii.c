@@ -22,8 +22,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <unistd.h>
 #include <unilbrk.h>
+#include <unistd.h>
 #include <unistr.h>
 #include <uniwidth.h>
 
@@ -35,6 +35,7 @@
 #include "libpspp/message.h"
 #include "libpspp/start-date.h"
 #include "libpspp/string-map.h"
+#include "libpspp/u8-line.h"
 #include "libpspp/version.h"
 #include "output/ascii.h"
 #include "output/cairo.h"
@@ -128,13 +129,6 @@ make_box_index (int left, int right, int top, int bottom)
   return ((right * 3 + bottom) * 3 + left) * 3 + top;
 }
 
-/* A line of text. */
-struct ascii_line
-  {
-    struct string s;            /* Content, in UTF-8. */
-    size_t width;               /* Display width, in character positions. */
-  };
-
 /* How to emphasize text. */
 enum emphasis_style
   {
@@ -174,7 +168,7 @@ struct ascii_driver
     FILE *file;                 /* Output file. */
     bool error;                 /* Output error? */
     int page_number;		/* Current page number. */
-    struct ascii_line *lines;   /* Page content. */
+    struct u8_line *lines;      /* Page content. */
     int allocated_lines;        /* Number of lines allocated. */
     int chart_cnt;              /* Number of charts so far. */
     int y;
@@ -210,11 +204,7 @@ reallocate_lines (struct ascii_driver *a)
       int i;
       a->lines = xnrealloc (a->lines, a->length, sizeof *a->lines);
       for (i = a->allocated_lines; i < a->length; i++)
-        {
-          struct ascii_line *line = &a->lines[i];
-          ds_init_empty (&line->s);
-          line->width = 0;
-        }
+        u8_line_init (&a->lines[i]);
       a->allocated_lines = a->length;
     }
 }
@@ -380,7 +370,7 @@ ascii_destroy (struct output_driver *driver)
   free (a->file_name);
   free (a->chart_file_name);
   for (i = 0; i < a->allocated_lines; i++)
-    ds_destroy (&a->lines[i].s);
+    u8_line_destroy (&a->lines[i]);
   free (a->lines);
   free (a);
 }
@@ -698,136 +688,11 @@ ascii_draw_cell (void *a_, const struct table_cell *cell,
   ascii_layout_cell (a, cell, bb, clip, &w, &h);
 }
 
-static int
-u8_mb_to_display (int *wp, const uint8_t *s, size_t n)
-{
-  size_t ofs;
-  ucs4_t uc;
-  int w;
-
-  ofs = u8_mbtouc (&uc, s, n);
-  if (ofs < n && s[ofs] == '\b')
-    {
-      ofs++;
-      ofs += u8_mbtouc (&uc, s + ofs, n - ofs);
-    }
-
-  w = uc_width (uc, "UTF-8");
-  if (w <= 0)
-    {
-      *wp = 0;
-      return ofs;
-    }
-
-  while (ofs < n)
-    {
-      int mblen = u8_mbtouc (&uc, s + ofs, n - ofs);
-      if (uc_width (uc, "UTF-8") > 0)
-        break;
-      ofs += mblen;
-    }
-
-  *wp = w;
-  return ofs;
-}
-
-struct ascii_pos
-  {
-    int x0;
-    int x1;
-    size_t ofs0;
-    size_t ofs1;
-  };
-
-static void
-find_ascii_pos (struct ascii_line *line, int target_x, struct ascii_pos *c)
-{
-  const uint8_t *s = CHAR_CAST (const uint8_t *, ds_cstr (&line->s));
-  size_t length = ds_length (&line->s);
-  size_t ofs;
-  int mblen;
-  int x;
-
-  x = 0;
-  for (ofs = 0; ; ofs += mblen)
-    {
-      int w;
-
-      mblen = u8_mb_to_display (&w, s + ofs, length - ofs);
-      if (x + w > target_x)
-        {
-          c->x0 = x;
-          c->x1 = x + w;
-          c->ofs0 = ofs;
-          c->ofs1 = ofs + mblen;
-          return;
-        }
-      x += w;
-    }
-}
-
 static char *
 ascii_reserve (struct ascii_driver *a, int y, int x0, int x1, int n)
 {
-  struct ascii_line *line;
   assert (y < a->allocated_lines);
-  line = &a->lines[y];
-
-  if (x0 >= line->width)
-    {
-      /* The common case: adding new characters at the end of a line. */
-      ds_put_byte_multiple (&line->s, ' ', x0 - line->width);
-      line->width = x1;
-      return ds_put_uninit (&line->s, n);
-    }
-  else if (x0 == x1)
-    return NULL;
-  else
-    {
-      /* An unusual case: overwriting characters in the middle of a line.  We
-         don't keep any kind of mapping from bytes to display positions, so we
-         have to iterate over the whole line starting from the beginning. */
-      struct ascii_pos p0, p1;
-      char *s;
-
-      /* Find the positions of the first and last character.  We must find the
-         both characters' positions before changing the line, because that
-         would prevent finding the other character's position. */
-      find_ascii_pos (line, x0, &p0);
-      if (x1 < line->width)
-        find_ascii_pos (line, x1, &p1);
-
-      /* If a double-width character occupies both x0 - 1 and x0, then replace
-         its first character width by '?'. */
-      s = ds_data (&line->s);
-      while (p0.x0 < x0)
-        {
-          s[p0.ofs0++] = '?';
-          p0.x0++;
-        }
-
-      if (x1 >= line->width)
-        {
-          ds_truncate (&line->s, p0.ofs0);
-          line->width = x1;
-          return ds_put_uninit (&line->s, n);
-        }
-
-      /* If a double-width character occupies both x1 - 1 and x1, then we need
-         to replace its second character width by '?'. */
-      if (p1.x0 < x1)
-        {
-          do
-            {
-              s[--p1.ofs1] = '?';
-              p1.x0++;
-            }
-          while (p1.x0 < x1);
-          return ds_splice_uninit (&line->s, p0.ofs0, p1.ofs1 - p0.ofs0, n);
-        }
-
-      return ds_splice_uninit (&line->s, p0.ofs0, p1.ofs0 - p0.ofs0, n);
-    }
+  return u8_line_reserve (&a->lines[y], x0, x1, n);
 }
 
 static void
@@ -1078,6 +943,19 @@ ascii_test_write (struct output_driver *driver,
 
   a->y = 1;
 }
+
+void
+ascii_test_set_length (struct output_driver *driver, int y, int length)
+{
+  struct ascii_driver *a = ascii_driver_cast (driver);
+
+  if (a->file == NULL && !ascii_open_page (a))
+    return;
+
+  if (y < 0 || y >= a->length)
+    return;
+  u8_line_set_length (&a->lines[y], length);
+}
 
 /* ascii_close_page () and support routines. */
 
@@ -1132,11 +1010,7 @@ ascii_open_page (struct ascii_driver *a)
   reallocate_lines (a);
 
   for (i = 0; i < a->length; i++)
-    {
-      struct ascii_line *line = &a->lines[i];
-      ds_clear (&line->s);
-      line->width = 0;
-    }
+    u8_line_clear (&a->lines[i]);
 
   return true;
 }
@@ -1195,7 +1069,7 @@ ascii_close_page (struct ascii_driver *a)
   any_blank = false;
   for (y = 0; y < a->allocated_lines; y++)
     {
-      struct ascii_line *line = &a->lines[y];
+      struct u8_line *line = &a->lines[y];
 
       if (a->squeeze_blank_lines && y > 0 && line->width == 0)
         any_blank = true;

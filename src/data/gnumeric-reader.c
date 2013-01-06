@@ -145,6 +145,7 @@ process_node (struct gnumeric_reader *r)
       if (0 == xmlStrcasecmp (name, _xml("gnm:Sheet")) &&
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
+	  ++r->sheet_index;
 	  r->state = STATE_SHEET_START;
 	}
       break;
@@ -154,21 +155,15 @@ process_node (struct gnumeric_reader *r)
 	{
 	  r->state = STATE_SHEET_NAME;
 	}
-      else if (0 == xmlStrcasecmp (name, _xml("gnm:Name"))  &&
-	       XML_READER_TYPE_END_ELEMENT  == r->node_type)
-	{
-	  r->state = STATE_INIT;
-	}
       break;
     case STATE_SHEET_NAME:
       if (0 == xmlStrcasecmp (name, _xml("gnm:Name"))  &&
 	  XML_READER_TYPE_END_ELEMENT  == r->node_type)
 	{
-	  r->state = STATE_SHEET_START;
+	  r->state = STATE_INIT;
 	}
       else if (XML_READER_TYPE_TEXT == r->node_type)
 	{
-	  ++r->sheet_index;
 	  if ( r->target_sheet != NULL)
 	    {
 	      xmlChar *value = xmlTextReaderValue (r->xtr);
@@ -229,7 +224,9 @@ process_node (struct gnumeric_reader *r)
     case STATE_CELL:
       if (0 == xmlStrcasecmp (name, _xml("gnm:Cell"))  &&
 			      XML_READER_TYPE_END_ELEMENT  == r->node_type)
-	r->state = STATE_CELLS_START;
+	{
+	  r->state = STATE_CELLS_START;
+	}
       break;
     default:
       break;
@@ -299,7 +296,7 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
                            (xmlInputCloseCallback) gzclose, gz,
 			   NULL, NULL, 0);
 
-  if ( r->xtr == NULL)
+  if ( r->xtr == NULL )
     goto error;
 
   if ( gri->cell_range )
@@ -422,10 +419,13 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
 	}
     }
 
-
-  /* Create the dictionary and populate it */
-  *dict = r->dict = dict_create (
-    CHAR_CAST (const char *, xmlTextReaderConstEncoding (r->xtr)));
+  {
+    const xmlChar *enc = xmlTextReaderConstEncoding (r->xtr);
+    if ( enc == NULL)
+      goto error;
+    /* Create the dictionary and populate it */
+    *dict = r->dict = dict_create (CHAR_CAST (const char *, enc));
+  }
 
   for (i = 0 ; i < n_var_specs ; ++i )
     {

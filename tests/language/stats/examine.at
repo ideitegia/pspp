@@ -36,10 +36,11 @@ EXAMINE
 	/STATISTICS descriptives extreme(3)
 	.
 ])
-AT_CHECK([pspp -o pspp.csv examine.sps])
+
+
 dnl In the following data, only the extreme values have been checked.
 dnl The descriptives have been blindly pasted.
-AT_CHECK([cat pspp.csv], [0], [dnl
+AT_CHECK([pspp -O format=csv examine.sps], [0], [dnl
 Table: Reading free-form data from INLINE.
 Variable,Format
 QUALITY,F8.0
@@ -77,8 +78,8 @@ Breaking Strain,Highest,1,12,7.00
 ,,2,16,6.00
 ,,3,14,5.00
 ,Lowest,1,3,1.00
-,,2,3,1.00
-,,3,4,1.00
+,,2,4,1.00
+,,3,2,2.00
 
 Table: Descriptives
 ,,,Statistic,Std. Error
@@ -110,11 +111,11 @@ Breaking Strain,Aspeger,Highest,1,6,4.00
 ,,,2,5,4.00
 ,,,3,1,3.00
 ,,Lowest,1,3,1.00
-,,,2,3,1.00
-,,,3,4,1.00
+,,,2,4,1.00
+,,,3,2,2.00
 ,Bloggs,Highest,1,7,5.00
 ,,,2,9,4.00
-,,,3,9,4.00
+,,,3,11,3.00
 ,,Lowest,1,8,2.00
 ,,,2,10,2.00
 ,,,3,11,3.00
@@ -123,7 +124,7 @@ Breaking Strain,Aspeger,Highest,1,6,4.00
 ,,,3,14,5.00
 ,,Lowest,1,15,3.00
 ,,,2,13,4.00
-,,,3,13,4.00
+,,,3,14,5.00
 
 Table: Descriptives
 ,Manufacturer,,,Statistic,Std. Error
@@ -167,6 +168,7 @@ Breaking Strain,Aspeger,Mean,,2.25,.45
 ,,Skewness,,.30,.75
 ,,Kurtosis,,.15,1.48
 ])
+
 AT_CLEANUP
 
 AT_SETUP([EXAMINE -- extremes])
@@ -202,8 +204,8 @@ examine v1
  /statistics=extreme(6)
  .
 ])
-AT_CHECK([pspp -o pspp.csv examine.sps])
-AT_CHECK([cat pspp.csv], [0], [dnl
+
+AT_CHECK([pspp -O format=csv examine.sps], [0],[dnl
 Table: Case Processing Summary
 ,Cases,,,,,
 ,Valid,,Missing,,Total,
@@ -215,16 +217,92 @@ Table: Extreme Values
 V1,Highest,1,21,20.00
 ,,2,20,19.00
 ,,3,19,18.00
-,,4,19,18.00
-,,5,18,17.00
-,,6,17,16.00
+,,4,18,17.00
+,,5,17,16.00
+,,6,16,15.00
 ,Lowest,1,1,1.00
 ,,2,2,2.00
 ,,3,3,3.00
-,,4,3,3.00
-,,5,4,3.00
-,,6,5,4.00
+,,4,4,3.00
+,,5,5,4.00
+,,6,6,5.00
 ])
+
+AT_CLEANUP
+
+
+
+AT_SETUP([EXAMINE -- extremes with fractional weights])
+AT_DATA([extreme.sps], [dnl
+set format=F20.3.
+data list notable list /w * x *.
+begin data.
+ 0.88  300000
+ 0.86  320000
+ 0.98  480000
+ 0.93  960000
+ 1.35  960000
+ 1.31  960000
+ 0.88  960000
+ 0.88  1080000
+ 0.88  1080000
+ 0.95  1200000
+ 1.47  1200000
+ 0.93  1200000
+ 0.98  1320000
+ 1.31  1380000
+ 0.93  1440000
+ 0.88  1560000
+ 1.56  1560000
+ 1.47  1560000
+end data.
+
+weight by w.
+
+
+EXAMINE
+        x
+        /STATISTICS = DESCRIPTIVES EXTREME (5)
+        .
+])
+
+AT_CHECK([pspp -O format=csv  extreme.sps], [0], [dnl
+Table: Case Processing Summary
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x,19.430,100%,.000,0%,19.430,100%
+
+Table: Extreme Values
+,,,Case Number,Value
+x,Highest,1,18,1560000.000
+,,2,17,1560000.000
+,,3,16,1560000.000
+,,4,15,1440000.000
+,,5,14,1380000.000
+,Lowest,1,1,300000.000
+,,2,2,320000.000
+,,3,3,480000.000
+,,4,4,960000.000
+,,5,5,960000.000
+
+Table: Descriptives
+,,,Statistic,Std. Error
+x,Mean,,1120010.293,86222.178
+,95% Confidence Interval for Mean,Lower Bound,939166.693,
+,,Upper Bound,1300853.894,
+,5% Trimmed Mean,,1141017.899,
+,Median,,1200000.000,
+,Variance,,144447748124.869,
+,Std. Deviation,,380062.821,
+,Minimum,,300000.000,
+,Maximum,,1560000.000,
+,Range,,1260000.000,
+,Interquartile Range,,467258.065,
+,Skewness,,-.887,.519
+,Kurtosis,,.340,1.005
+])
+
 AT_CLEANUP
 
 dnl Test the PERCENTILES subcommand of the EXAMINE command.

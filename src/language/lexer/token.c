@@ -25,6 +25,8 @@
 #include "data/identifier.h"
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
+#include "libpspp/misc.h"
+
 
 #include "gl/ftoastr.h"
 #include "gl/xalloc.h"
@@ -51,7 +53,7 @@ number_token_to_string (const struct token *token)
 {
   char buffer[DBL_BUFSIZE_BOUND];
 
-  dtoastr (buffer, sizeof buffer, 0, 0, fabs (token->number));
+  c_dtoastr (buffer, sizeof buffer, 0, 0, fabs (token->number));
   return (token->type == T_POS_NUM
           ? xstrdup (buffer)
           : xasprintf ("-%s", buffer));
@@ -163,7 +165,7 @@ token_print (const struct token *token, FILE *stream)
     {
       char s[DBL_BUFSIZE_BOUND];
 
-      dtoastr (s, sizeof s, 0, 0, token->number);
+      c_dtoastr (s, sizeof s, 0, 0, token->number);
       fprintf (stream, "\t%s", s);
     }
   if (token->type == T_ID || token->type == T_STRING || token->string.length)

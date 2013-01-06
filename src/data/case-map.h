@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,8 +45,9 @@ struct casewriter *case_map_create_output_translator (struct case_map *,
 
 /* For mapping cases for one version of a dictionary to those in
    a modified version of the same dictionary. */
-void case_map_prepare_dict (const struct dictionary *);
-struct case_map *case_map_from_dict (const struct dictionary *);
+struct case_map_stage *case_map_stage_create (const struct dictionary *);
+void case_map_stage_destroy (struct case_map_stage *);
+struct case_map *case_map_stage_get_case_map (const struct case_map_stage *);
 
 /* For eliminating "holes" in a case. */
 struct case_map *case_map_to_compact_dict (const struct dictionary *d,

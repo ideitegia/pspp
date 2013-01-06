@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <uniwidth.h>
 
 #include "data/case.h"
 #include "data/dataset.h"
@@ -38,6 +39,7 @@
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/pool.h"
+#include "libpspp/u8-line.h"
 #include "output/tab.h"
 #include "output/text-item.h"
 
@@ -70,6 +72,7 @@ struct prt_out_spec
 
     /* PRT_LITERAL only. */
     struct string string;       /* String to output. */
+    int width;                  /* Width of 'string', in display columns. */
   };
 
 static inline struct prt_out_spec *
@@ -88,7 +91,6 @@ struct print_trns
     struct dfm_writer *writer;	/* Output file, NULL=listing file. */
     struct ll_list specs;       /* List of struct prt_out_specs. */
     size_t record_cnt;          /* Number of records to write. */
-    struct string line;         /* Output buffer. */
   };
 
 enum which_formats
@@ -99,7 +101,7 @@ enum which_formats
 
 static int internal_cmd_print (struct lexer *, struct dataset *ds,
 			       enum which_formats, bool eject);
-static trns_proc_func print_trns_proc;
+static trns_proc_func print_text_trns_proc, print_binary_trns_proc;
 static trns_free_func print_trns_free;
 static bool parse_specs (struct lexer *, struct pool *tmp_pool, struct print_trns *,
 			 struct dictionary *dict, enum which_formats);
@@ -133,11 +135,13 @@ static int
 internal_cmd_print (struct lexer *lexer, struct dataset *ds,
 		    enum which_formats which_formats, bool eject)
 {
-  bool print_table = 0;
+  bool print_table = false;
+  const struct prt_out_spec *spec;
   struct print_trns *trns;
   struct file_handle *fh = NULL;
   char *encoding = NULL;
   struct pool *tmp_pool;
+  bool binary;
 
   /* Fill in prt to facilitate error-handling. */
   trns = pool_create_container (struct print_trns, pool);
@@ -145,8 +149,6 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
   trns->writer = NULL;
   trns->record_cnt = 0;
   ll_init (&trns->specs);
-  ds_init_empty (&trns->line);
-  ds_register_pool (&trns->line, trns->pool);
 
   tmp_pool = pool_create_subpool (trns->pool);
 
@@ -201,6 +203,27 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
   if (!parse_specs (lexer, tmp_pool, trns, dataset_dict (ds), which_formats))
     goto error;
 
+  /* Are there any binary formats?
+
+     There are real difficulties figuring out what to do when both binary
+     formats and nontrivial encodings enter the picture.  So when binary
+     formats are present we fall back to much simpler handling. */
+  binary = false;
+  ll_for_each (spec, struct prt_out_spec, ll, &trns->specs)
+    {
+      if (spec->type == PRT_VAR
+          && fmt_get_category (spec->format.type) == FMT_CAT_BINARY)
+        {
+          binary = true;
+          break;
+        }
+    }
+  if (binary && fh == NULL)
+    {
+      msg (SE, _("OUTFILE is required when binary formats are specified."));
+      goto error;
+    }
+
   if (lex_end_of_command (lexer) != CMD_SUCCESS)
     goto error;
 
@@ -219,7 +242,11 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
     dump_table (trns, fh);
 
   /* Put the transformation in the queue. */
-  add_transformation (ds, print_trns_proc, print_trns_free, trns);
+  add_transformation (ds,
+                      (binary
+                       ? print_binary_trns_proc
+                       : print_text_trns_proc),
+                      print_trns_free, trns);
 
   pool_destroy (tmp_pool);
   fh_unref (fh);
@@ -267,8 +294,8 @@ parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns
       if (lex_is_string (lexer))
 	ok = parse_string_argument (lexer, trns, record, &column);
       else
-	ok = parse_variable_argument (lexer, dict, trns, tmp_pool, &record, &column,
-                                      which_formats);
+	ok = parse_variable_argument (lexer, dict, trns, tmp_pool, &record,
+                                      &column, which_formats);
       if (!ok)
 	return 0;
 
@@ -310,7 +337,11 @@ parse_string_argument (struct lexer *lexer, struct print_trns *trns, int record,
       if (range_specified)
         ds_set_length (&spec->string, last_column - first_column + 1, ' ');
     }
-  *column = spec->first_column + ds_length (&spec->string);
+
+  spec->width = u8_strwidth (CHAR_CAST (const uint8_t *,
+                                        ds_cstr (&spec->string)),
+                             UTF8);
+  *column = spec->first_column + spec->width;
 
   ll_push_tail (&trns->specs, &spec->ll);
   return true;
@@ -455,53 +486,73 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
   tab_submit (t);
 }
 
-/* Transformation. */
+/* Transformation, for all-text output. */
 
-static void flush_records (struct print_trns *, int target_record,
-                           bool *eject, int *record);
+static void print_text_flush_records (struct print_trns *, struct u8_line *,
+                                      int target_record,
+                                      bool *eject, int *record);
 
 /* Performs the transformation inside print_trns T on case C. */
 static int
-print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
+print_text_trns_proc (void *trns_, struct ccase **c,
+                      casenumber case_num UNUSED)
 {
   struct print_trns *trns = trns_;
-  bool eject = trns->eject;
-  char encoded_space = recode_byte (trns->encoding, C_ENCODING, ' ');
-  int record = 1;
   struct prt_out_spec *spec;
+  struct u8_line line;
 
-  ds_clear (&trns->line);
-  ds_put_byte (&trns->line, ' ');
+  bool eject = trns->eject;
+  int record = 1;
+
+  u8_line_init (&line);
   ll_for_each (spec, struct prt_out_spec, ll, &trns->specs)
     {
-      flush_records (trns, spec->record, &eject, &record);
+      int x0 = spec->first_column;
 
-      ds_set_length (&trns->line, spec->first_column, encoded_space);
+      print_text_flush_records (trns, &line, spec->record, &eject, &record);
+
+      u8_line_set_length (&line, spec->first_column);
       if (spec->type == PRT_VAR)
         {
           const union value *input = case_data (*c, spec->var);
+          int x1;
+
           if (!spec->sysmis_as_spaces || input->f != SYSMIS)
-            data_out_recode (input, var_get_encoding (spec->var),
-                             &spec->format, &trns->line, trns->encoding);
+            {
+              size_t len;
+              int width;
+              char *s;
+
+              s = data_out (input, var_get_encoding (spec->var),
+                            &spec->format);
+              len = strlen (s);
+              width = u8_width (CHAR_CAST (const uint8_t *, s), len, UTF8);
+              x1 = x0 + width;
+              u8_line_put (&line, x0, x1, s, len);
+              free (s);
+            }
           else
-            ds_put_byte_multiple (&trns->line, encoded_space, spec->format.w);
+            {
+              int n = spec->format.w;
+
+              x1 = x0 + n;
+              memset (u8_line_reserve (&line, x0, x1, n), ' ', n);
+            }
+
           if (spec->add_space)
-            ds_put_byte (&trns->line, encoded_space);
+            *u8_line_reserve (&line, x1, x1 + 1, 1) = ' ';
         }
       else
         {
-          ds_put_substring (&trns->line, ds_ss (&spec->string));
-          if (0 != strcmp (trns->encoding, C_ENCODING))
-            {
-              size_t length = ds_length (&spec->string);
-              char *data = ss_data (ds_tail (&trns->line, length));
-	      char *s = recode_string (trns->encoding, C_ENCODING, data, length);
-	      memcpy (data, s, length);
-	      free (s);
-            }
+          const struct string *s = &spec->string;
+
+          u8_line_put (&line, x0, x0 + spec->width,
+                       ds_data (s), ds_length (s));
         }
     }
-  flush_records (trns, trns->record_cnt + 1, &eject, &record);
+  print_text_flush_records (trns, &line, trns->record_cnt + 1,
+                            &eject, &record);
+  u8_line_destroy (&line);
 
   if (trns->writer != NULL && dfm_write_error (trns->writer))
     return TRNS_ERROR;
@@ -513,13 +564,11 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
    output is preceded by ejecting the page (and *EJECT is set
    false). */
 static void
-flush_records (struct print_trns *trns, int target_record,
-               bool *eject, int *record)
+print_text_flush_records (struct print_trns *trns, struct u8_line *line,
+                          int target_record, bool *eject, int *record)
 {
   for (; target_record > *record; (*record)++)
     {
-      char *line = ds_cstr (&trns->line);
-      size_t length = ds_length (&trns->line);
       char leader = ' ';
 
       if (*eject)
@@ -530,24 +579,123 @@ flush_records (struct print_trns *trns, int target_record,
           else
             leader = '1';
         }
-      line[0] = recode_byte (trns->encoding, C_ENCODING, leader);
+      *u8_line_reserve (line, 0, 1, 1) = leader;
 
       if (trns->writer == NULL)
-        tab_output_text (TAB_FIX, &line[1]);
+        tab_output_text (TAB_FIX, ds_cstr (&line->s) + 1);
       else
         {
+          size_t len = ds_length (&line->s);
+          char *s = ds_cstr (&line->s);
+
           if (!trns->include_prefix)
             {
-              line++;
-              length--;
+              s++;
+              len--;
             }
-          dfm_put_record (trns->writer, line, length);
-        }
 
-      ds_truncate (&trns->line, 1);
+          if (is_encoding_utf8 (trns->encoding))
+            dfm_put_record (trns->writer, s, len);
+          else
+            {
+              char *recoded = recode_string (trns->encoding, UTF8, s, len);
+              dfm_put_record (trns->writer, recoded, strlen (recoded));
+              free (recoded);
+            }
+        }
     }
 }
+
+/* Transformation, for output involving binary. */
 
+static void print_binary_flush_records (struct print_trns *,
+                                        struct string *line, int target_record,
+                                        bool *eject, int *record);
+
+/* Performs the transformation inside print_trns T on case C. */
+static int
+print_binary_trns_proc (void *trns_, struct ccase **c,
+                        casenumber case_num UNUSED)
+{
+  struct print_trns *trns = trns_;
+  bool eject = trns->eject;
+  char encoded_space = recode_byte (trns->encoding, C_ENCODING, ' ');
+  int record = 1;
+  struct prt_out_spec *spec;
+  struct string line;
+
+  ds_init_empty (&line);
+  ds_put_byte (&line, ' ');
+  ll_for_each (spec, struct prt_out_spec, ll, &trns->specs)
+    {
+      print_binary_flush_records (trns, &line, spec->record, &eject, &record);
+
+      ds_set_length (&line, spec->first_column, encoded_space);
+      if (spec->type == PRT_VAR)
+        {
+          const union value *input = case_data (*c, spec->var);
+          if (!spec->sysmis_as_spaces || input->f != SYSMIS)
+            data_out_recode (input, var_get_encoding (spec->var),
+                             &spec->format, &line, trns->encoding);
+          else
+            ds_put_byte_multiple (&line, encoded_space, spec->format.w);
+          if (spec->add_space)
+            ds_put_byte (&line, encoded_space);
+        }
+      else
+        {
+          ds_put_substring (&line, ds_ss (&spec->string));
+          if (0 != strcmp (trns->encoding, UTF8))
+            {
+              size_t length = ds_length (&spec->string);
+              char *data = ss_data (ds_tail (&line, length));
+	      char *s = recode_string (trns->encoding, UTF8, data, length);
+	      memcpy (data, s, length);
+	      free (s);
+            }
+        }
+    }
+  print_binary_flush_records (trns, &line, trns->record_cnt + 1,
+                              &eject, &record);
+  ds_destroy (&line);
+
+  if (trns->writer != NULL && dfm_write_error (trns->writer))
+    return TRNS_ERROR;
+  return TRNS_CONTINUE;
+}
+
+/* Advance from *RECORD to TARGET_RECORD, outputting records
+   along the way.  If *EJECT is true, then the first record
+   output is preceded by ejecting the page (and *EJECT is set
+   false). */
+static void
+print_binary_flush_records (struct print_trns *trns, struct string *line,
+                            int target_record, bool *eject, int *record)
+{
+  for (; target_record > *record; (*record)++)
+    {
+      char *s = ds_cstr (line);
+      size_t length = ds_length (line);
+      char leader = ' ';
+
+      if (*eject)
+        {
+          *eject = false;
+          leader = '1';
+        }
+      s[0] = recode_byte (trns->encoding, C_ENCODING, leader);
+
+      if (!trns->include_prefix)
+        {
+          s++;
+          length--;
+        }
+      dfm_put_record (trns->writer, s, length);
+
+      ds_truncate (line, 1);
+    }
+}
+
 /* Frees TRNS. */
 static bool
 print_trns_free (void *trns_)

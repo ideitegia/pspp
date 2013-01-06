@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
 #include "libpspp/hash-functions.h"
+#include "libpspp/i18n.h"
 #include "libpspp/hmapx.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
@@ -819,9 +820,9 @@ array_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
   struct hmapx_node *node;
   struct variable **varp;
 
-  HMAPX_FOR_EACH_WITH_HASH (varp, node, hash_case_string (name, 0),
+  HMAPX_FOR_EACH_WITH_HASH (varp, node, utf8_hash_case_string (name, 0),
                             &avs->vars_by_name)
-    if (!strcasecmp (name, var_get_name (*varp)))
+    if (!utf8_strcasecmp (name, var_get_name (*varp)))
       {
         *idx = varp - avs->var;
         return true;
@@ -869,7 +870,7 @@ var_set_create_from_array (struct variable *const *var, size_t var_cnt)
           return NULL;
         }
       hmapx_insert (&avs->vars_by_name, CONST_CAST (void *, &avs->var[i]),
-                    hash_case_string (name, 0));
+                    utf8_hash_case_string (name, 0));
     }
 
   return vs;

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -227,10 +227,19 @@ parse_spreadsheet (struct lexer *lexer)
 	  else if (lex_match_id (lexer, "INDEX"))
 	    {
 	      sri->sheet_index = lex_integer (lexer);
+	      if (sri->sheet_index <= 0)
+		{
+		  msg (SE, _("The sheet index must be greater than or equal to 1"));
+		  goto error;
+		}
 	      lex_get (lexer);
 	    }
 	  else
-	    goto error;
+	    {
+	      msg (SE, _("%s must be followed by either \"%s\" or \"%s\"."),
+		   "/SHEET", "NAME", "INDEX");
+	      goto error;
+	    }
 	}
       else if (lex_match_id (lexer, "CELLRANGE"))
 	{
@@ -249,7 +258,11 @@ parse_spreadsheet (struct lexer *lexer)
 	      lex_get (lexer);
 	    }
 	  else
-	    goto error;
+	    {
+	      msg (SE, _("%s must be followed by either \"%s\" or \"%s\"."),
+		   "/CELLRANGE", "FULL", "RANGE");
+	      goto error;
+	    }
 	}
       else if (lex_match_id (lexer, "READNAMES"))
 	{
@@ -264,7 +277,11 @@ parse_spreadsheet (struct lexer *lexer)
 	      sri->read_names = false;
 	    }
 	  else
-	    goto error;
+	    {
+	      msg (SE, _("%s must be followed by either \"%s\" or \"%s\"."),
+		   "/READNAMES", "ON", "OFF");
+	      goto error;
+	    }
 	}
       else
 	{

@@ -69,6 +69,7 @@ struct comb_file
     /* Variables. */
     struct subcase by_vars;     /* BY variables in this input file. */
     struct subcase src, dst;    /* Data to copy to output; where to put it. */
+    const struct missing_values **mv; /* Each variable's missing values. */
 
     /* Input files. */
     struct file_handle *handle; /* Input file handle. */
@@ -197,6 +198,7 @@ combine_files (enum comb_command_type command,
       subcase_init_empty (&file->by_vars);
       subcase_init_empty (&file->src);
       subcase_init_empty (&file->dst);
+      file->mv = NULL;
       file->handle = NULL;
       file->dict = NULL;
       file->reader = NULL;
@@ -413,6 +415,7 @@ combine_files (enum comb_command_type command,
       size_t src_var_cnt = dict_get_var_cnt (file->dict);
       size_t j;
 
+      file->mv = xnmalloc (src_var_cnt, sizeof *file->mv);
       for (j = 0; j < src_var_cnt; j++)
         {
           struct variable *src_var = dict_get_var (file->dict, j);
@@ -420,6 +423,8 @@ combine_files (enum comb_command_type command,
                                                       var_get_name (src_var));
           if (dst_var != NULL)
             {
+              size_t n = subcase_get_n_fields (&file->src);
+              file->mv[n] = var_get_missing_values (src_var);
               subcase_add_var (&file->src, src_var, SC_ASCEND);
               subcase_add_var (&file->dst, dst_var, SC_ASCEND);
             }
@@ -633,6 +638,7 @@ close_all_comb_files (struct comb_proc *proc)
       subcase_destroy (&file->by_vars);
       subcase_destroy (&file->src);
       subcase_destroy (&file->dst);
+      free (file->mv);
       fh_unref (file->handle);
       dict_destroy (file->dict);
       casereader_destroy (file->reader);
@@ -665,8 +671,8 @@ free_comb_proc (struct comb_proc *proc)
 static bool scan_table (struct comb_file *, union value by[]);
 static struct ccase *create_output_case (const struct comb_proc *);
 static void apply_case (const struct comb_file *, struct ccase *);
-static void apply_file_case_and_advance (struct comb_file *, struct ccase *,
-                                         union value by[]);
+static void apply_nonmissing_case (const struct comb_file *, struct ccase *);
+static void advance_file (struct comb_file *, union value by[]);
 static void output_case (struct comb_proc *, struct ccase *, union value by[]);
 static void output_buffered_case (struct comb_proc *);
 
@@ -686,7 +692,8 @@ execute_add_files (struct comb_proc *proc)
           while (file->is_minimal)
             {
               struct ccase *output = create_output_case (proc);
-              apply_file_case_and_advance (file, output, by);
+              apply_case (file, output);
+              advance_file (file, by);
               output_case (proc, output, by);
             }
         }
@@ -712,7 +719,10 @@ execute_match_files (struct comb_proc *proc)
           if (file->type == COMB_FILE)
             {
               if (file->is_minimal)
-                apply_file_case_and_advance (file, output, NULL);
+                {
+                  apply_case (file, output);
+                  advance_file (file, NULL);
+                }
             }
           else
             {
@@ -743,7 +753,8 @@ execute_update (struct comb_proc *proc)
       for (first = &proc->files[0]; ; first++)
         if (first->is_minimal)
           break;
-      apply_file_case_and_advance (first, output, by);
+      apply_case (first, output);
+      advance_file (first, by);
 
       /* Read additional cases and update the output case from
          them.  (Don't update the output case from any duplicate
@@ -752,7 +763,10 @@ execute_update (struct comb_proc *proc)
            file < &proc->files[proc->n_files]; file++)
         {
           while (file->is_minimal)
-            apply_file_case_and_advance (file, output, by);
+            {
+              apply_nonmissing_case (file, output);
+              advance_file (file, by);
+            }
         }
       casewriter_write (proc->output, output);
 
@@ -764,7 +778,8 @@ execute_update (struct comb_proc *proc)
           while (first->is_minimal)
             {
               output = create_output_case (proc);
-              apply_file_case_and_advance (first, output, by);
+              apply_case (first, output);
+              advance_file (first, by);
               casewriter_write (proc->output, output);
             }
         }
@@ -821,25 +836,53 @@ create_output_case (const struct comb_proc *proc)
   return output;
 }
 
+static void
+mark_file_used (const struct comb_file *file, struct ccase *output)
+{
+  if (file->in_var != NULL)
+    case_data_rw (output, file->in_var)->f = true;
+}
+
 /* Copies the data from FILE's case into output case OUTPUT.
    If FILE has an IN variable, then it is set to 1 in OUTPUT. */
 static void
 apply_case (const struct comb_file *file, struct ccase *output)
 {
   subcase_copy (&file->src, file->data, &file->dst, output);
-  if (file->in_var != NULL)
-    case_data_rw (output, file->in_var)->f = true;
+  mark_file_used (file, output);
 }
 
-/* Like apply_case() above, but also advances FILE to its next
-   case.  Also, if BY is nonnull, then FILE's is_minimal member
-   is updated based on whether the new case's BY values still
-   match those in BY. */
+/* Copies the data from FILE's case into output case OUTPUT,
+   skipping values that are missing or all spaces.
+
+   If FILE has an IN variable, then it is set to 1 in OUTPUT. */
 static void
-apply_file_case_and_advance (struct comb_file *file, struct ccase *output,
-                             union value by[])
+apply_nonmissing_case (const struct comb_file *file, struct ccase *output)
 {
-  apply_case (file, output);
+  size_t i;
+
+  for (i = 0; i < subcase_get_n_fields (&file->src); i++)
+    {
+      const struct subcase_field *src_field = &file->src.fields[i];
+      const struct subcase_field *dst_field = &file->dst.fields[i];
+      const union value *src_value
+        = case_data_idx (file->data, src_field->case_index);
+      int width = src_field->width;
+
+      if (!mv_is_value_missing (file->mv[i], src_value, MV_ANY)
+          && !(width > 0 && value_is_spaces (src_value, width)))
+        value_copy (case_data_rw_idx (output, dst_field->case_index),
+                    src_value, width);
+    }
+  mark_file_used (file, output);
+}
+
+/* Advances FILE to its next case.  If BY is nonnull, then FILE's is_minimal
+   member is updated based on whether the new case's BY values still match
+   those in BY. */
+static void
+advance_file (struct comb_file *file, union value by[])
+{
   case_unref (file->data);
   file->data = casereader_read (file->reader);
   if (by)

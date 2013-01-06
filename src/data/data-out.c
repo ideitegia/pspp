@@ -41,6 +41,7 @@
 #include "libpspp/str.h"
 
 #include "gl/minmax.h"
+#include "gl/c-snprintf.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -244,7 +245,7 @@ output_N (const union value *input, const struct fmt_spec *format,
       char buf[128];
       number = fabs (round (number));
       if (number < power10 (format->w)
-          && sprintf (buf, "%0*.0f", format->w, number) == format->w)
+          && c_snprintf (buf, 128, "%0*.0f", format->w, number) == format->w)
         memcpy (output, buf, format->w);
       else
         output_overflow (format, output);
@@ -263,7 +264,7 @@ output_Z (const union value *input, const struct fmt_spec *format,
   if (input->f == SYSMIS)
     output_missing (format, output);
   else if (fabs (number) < power10 (format->w)
-           && sprintf (buf, "%0*.0f", format->w,
+           && c_snprintf (buf, 128, "%0*.0f", format->w,
                        fabs (round (number))) == format->w)
     {
       if (number < 0 && strspn (buf, "0") < format->w)
@@ -466,14 +467,14 @@ output_date (const union value *input, const struct fmt_spec *format,
           if (number < 0)
             *p++ = '-';
           number = fabs (number);
-          p += sprintf (p, "%*.0f", count, floor (number / 60. / 60. / 24.));
+          p += c_snprintf (p, 64, "%*.0f", count, floor (number / 60. / 60. / 24.));
           number = fmod (number, 60. * 60. * 24.);
           break;
         case 'H':
           if (number < 0)
             *p++ = '-';
           number = fabs (number);
-          p += sprintf (p, "%0*.0f", count, floor (number / 60. / 60.));
+          p += c_snprintf (p, 64, "%0*.0f", count, floor (number / 60. / 60.));
           number = fmod (number, 60. * 60.);
           break;
         case 'M':
@@ -489,7 +490,7 @@ output_date (const union value *input, const struct fmt_spec *format,
             {
               int d = MIN (format->d, excess_width - 4);
               int w = d + 3;
-              sprintf (p, ":%0*.*f", w, d, number);
+              c_snprintf (p, 64, ":%0*.*f", w, d, number);
 	      if (settings_get_decimal_char (FMT_F) != '.')
                 {
                   char *cp = strchr (p, '.');
@@ -742,7 +743,7 @@ output_scientific (double number, const struct fmt_spec *format,
   /* Figure out number of characters we can use for the fraction,
      if any.  (If that turns out to be 1, then we'll output a
      decimal point without any digits following; that's what the
-     # flag does in the call to sprintf, below.) */
+     # flag does in the call to c_snprintf, below.) */
   fraction_width = MIN (MIN (format->d + 1, format->w - width), 16);
   if (format->type != FMT_E && fraction_width == 1)
     fraction_width = 0;
@@ -757,9 +758,9 @@ output_scientific (double number, const struct fmt_spec *format,
   if (add_affixes)
     p = stpcpy (p, style->prefix.s);
   if (fraction_width > 0)
-    sprintf (p, "%#.*E", fraction_width - 1, fabs (number));
+    c_snprintf (p, 64, "%#.*E", fraction_width - 1, fabs (number));
   else
-    sprintf (p, "%.0E", fabs (number));
+    c_snprintf (p, 64, "%.0E", fabs (number));
 
   /* The C locale always uses a period `.' as a decimal point.
      Translate to comma if necessary. */
@@ -819,7 +820,7 @@ rounder_init (struct rounder *r, double number, int max_decimals)
 
          We append ".00" to the integer representation because
          round_up assumes that fractional digits are present.  */
-      sprintf (r->string, "%.0f.00", fabs (round (number)));
+      c_snprintf (r->string, 64, "%.0f.00", fabs (round (number)));
     }
   else
     {
@@ -846,7 +847,7 @@ rounder_init (struct rounder *r, double number, int max_decimals)
          numbers does not hint how to do what we want, and it's
          not obvious how to change their algorithms to do so.  It
          would also be a lot of work. */
-      sprintf (r->string, "%.*f", max_decimals + 2, fabs (number));
+      c_snprintf (r->string, 64, "%.*f", max_decimals + 2, fabs (number));
       if (!strcmp (r->string + strlen (r->string) - 2, "50"))
         {
           int binary_exponent, decimal_exponent, format_decimals;
@@ -854,7 +855,7 @@ rounder_init (struct rounder *r, double number, int max_decimals)
           decimal_exponent = binary_exponent * 3 / 10;
           format_decimals = (DBL_DIG + 1) - decimal_exponent;
           if (format_decimals > max_decimals + 2)
-            sprintf (r->string, "%.*f", format_decimals, fabs (number));
+            c_snprintf (r->string, 64, "%.*f", format_decimals, fabs (number));
         }
     }
 
@@ -1090,7 +1091,7 @@ output_bcd_integer (double number, int digits, char *output)
   if (number != SYSMIS
       && number >= 0.
       && number < power10 (digits)
-      && sprintf (decimal, "%0*.0f", digits, round (number)) == digits)
+      && c_snprintf (decimal, 64, "%0*.0f", digits, round (number)) == digits)
     {
       const char *src = decimal;
       int i;

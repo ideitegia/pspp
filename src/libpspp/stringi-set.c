@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 
 #include "libpspp/cast.h"
 #include "libpspp/hash-functions.h"
+#include "libpspp/i18n.h"
 
 #include "gl/xalloc.h"
 
@@ -88,7 +89,7 @@ stringi_set_contains (const struct stringi_set *set, const char *s)
 struct stringi_set_node *
 stringi_set_find_node (const struct stringi_set *set, const char *s)
 {
-  return stringi_set_find_node__ (set, s, hash_case_string (s, 0));
+  return stringi_set_find_node__ (set, s, utf8_hash_case_string (s, 0));
 }
 
 /* Inserts a copy of S into SET.  Returns true if successful, false if SET
@@ -96,7 +97,7 @@ stringi_set_find_node (const struct stringi_set *set, const char *s)
 bool
 stringi_set_insert (struct stringi_set *set, const char *s)
 {
-  unsigned int hash = hash_case_string (s, 0);
+  unsigned int hash = utf8_hash_case_string (s, 0);
   if (!stringi_set_find_node__ (set, s, hash))
     {
       stringi_set_insert__ (set, xstrdup (s), hash);
@@ -112,7 +113,7 @@ stringi_set_insert (struct stringi_set *set, const char *s)
 bool
 stringi_set_insert_nocopy (struct stringi_set *set, char *s)
 {
-  unsigned int hash = hash_case_string (s, 0);
+  unsigned int hash = utf8_hash_case_string (s, 0);
   if (!stringi_set_find_node__ (set, s, hash))
     {
       stringi_set_insert__ (set, s, hash);
@@ -130,7 +131,7 @@ stringi_set_insert_nocopy (struct stringi_set *set, char *s)
 bool
 stringi_set_delete (struct stringi_set *set, const char *s)
 {
-  return stringi_set_delete__ (set, s, hash_case_string (s, 0));
+  return stringi_set_delete__ (set, s, utf8_hash_case_string (s, 0));
 }
 
 /* Deletes NODE from SET, and frees NODE and its string. */
@@ -258,7 +259,7 @@ compare_strings (const void *a_, const void *b_)
 {
   const char *const *a = a_;
   const char *const *b = b_;
-  return strcasecmp (*a, *b);
+  return utf8_strcasecmp (*a, *b);
 }
 
 /* Allocates and returns an array that points to each of the strings in SET.
@@ -267,7 +268,7 @@ compare_strings (const void *a_, const void *b_)
    caller it is responsible for freeing the returned array itself (with
    free()).
 
-   The returned array is ordered according to strcasecmp(). */
+   The returned array is ordered according to utf8_strcasecmp(). */
 char **
 stringi_set_get_sorted_array (const struct stringi_set *set)
 {
@@ -286,7 +287,7 @@ stringi_set_find_node__ (const struct stringi_set *set, const char *s,
 
   HMAP_FOR_EACH_WITH_HASH (node, struct stringi_set_node, hmap_node,
                            hash, &set->hmap)
-    if (!strcasecmp (s, node->string))
+    if (!utf8_strcasecmp (s, node->string))
       return node;
 
   return NULL;

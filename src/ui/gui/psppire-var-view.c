@@ -21,6 +21,7 @@
 #include "psppire-var-ptr.h"
 #include "psppire-select-dest.h"
 
+#include <libpspp/str.h>
 #include <data/variable.h>
 
 #include <gettext.h>
@@ -400,3 +401,33 @@ psppire_var_view_append_names (PsppireVarView *vv, gint column, GString *string)
 
   return n_vars;
 }
+
+
+/*
+  Append the names of selected variables to STR
+  Returns the number of variables appended.
+*/
+gint 
+psppire_var_view_append_names_str (PsppireVarView *vv, gint column, struct string *str)
+{
+  gint n_vars = 0;
+  GtkTreeIter iter;
+
+  if ( psppire_var_view_get_iter_first (vv, &iter) )
+    {
+      do
+	{
+	  const struct variable *var = psppire_var_view_get_variable (vv, column, &iter);
+	  ds_put_cstr (str, " ");
+	  ds_put_cstr (str, var_get_name (var));
+
+	  n_vars++;
+	}
+      while (psppire_var_view_get_iter_next (vv, &iter));
+    }
+
+  return n_vars;
+}
+
+
+

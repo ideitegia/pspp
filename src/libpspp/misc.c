@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include "misc.h"
+#include <gl/ftoastr.h>
 
 /* Returns the number of digits in X. */
 int
@@ -33,3 +34,23 @@ intlog10 (unsigned x)
   return digits;
 }
 
+
+/* A locale independent version of dtoastr (from gnulib) */
+int
+c_dtoastr (char *buf, size_t bufsize, int flags, int width, double x)
+{
+  int i;
+  int result = dtoastr (buf, bufsize, flags, width, x);
+
+  /* Replace the first , (if any) by a . */
+  for (i = 0; i < result; ++i)
+    {
+      if (buf[i] == ',')
+	{
+	  buf[i] = '.';
+	  break;
+	}
+    }
+
+  return result;
+}

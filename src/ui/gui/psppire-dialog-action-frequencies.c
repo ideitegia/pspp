@@ -350,44 +350,45 @@ generate_syntax (PsppireDialogAction * a)
   gboolean ok;
   GtkTreeIter iter;
   guint selected = 0;
+  struct string str;
 
-  GString *string = g_string_new ("FREQUENCIES");
+  ds_init_cstr (&str, "FREQUENCIES");
 
-  g_string_append (string, "\n\t/VARIABLES=");
-  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (fd->stat_vars), 0, string);
+  ds_put_cstr (&str, "\n\t/VARIABLES=");
+  psppire_var_view_append_names_str (PSPPIRE_VAR_VIEW (fd->stat_vars), 0, &str);
 
-  g_string_append (string, "\n\t/FORMAT=");
+  ds_put_cstr (&str, "\n\t/FORMAT=");
 
   switch (fd->tables_opts_order)
     {
     case FRQ_AVALUE:
-      g_string_append (string, "AVALUE");
+      ds_put_cstr (&str, "AVALUE");
       break;
     case FRQ_DVALUE:
-      g_string_append (string, "DVALUE");
+      ds_put_cstr (&str, "DVALUE");
       break;
     case FRQ_ACOUNT:
-      g_string_append (string, "AFREQ");
+      ds_put_cstr (&str, "AFREQ");
       break;
     case FRQ_DCOUNT:
-      g_string_append (string, "DFREQ");
+      ds_put_cstr (&str, "DFREQ");
       break;
     default:
       g_assert_not_reached ();
     }
 
-  g_string_append (string, " ");
+  ds_put_cstr (&str, " ");
 
   switch (fd->tables_opts_table)
     {
     case FRQ_TABLE:
-      g_string_append (string, "TABLE");
+      ds_put_cstr (&str, "TABLE");
       break;
     case FRQ_NOTABLE:
-      g_string_append (string, "NOTABLE");
+      ds_put_cstr (&str, "NOTABLE");
       break;
     case FRQ_LIMIT:
-      g_string_append_printf (string, "LIMIT (%d)", fd->tables_opts_limit);
+      ds_put_c_format (&str, "LIMIT (%d)", fd->tables_opts_limit);
       break;
     }
 
@@ -404,17 +405,17 @@ generate_syntax (PsppireDialogAction * a)
 
   if (selected != B_FS_DEFAULT)
     {
-      g_string_append (string, "\n\t/STATISTICS=");
+      ds_put_cstr (&str, "\n\t/STATISTICS=");
       if (selected == B_FS_ALL)
-        g_string_append (string, "ALL");
+        ds_put_cstr (&str, "ALL");
       else if (selected == 0)
-        g_string_append (string, "NONE");
+        ds_put_cstr (&str, "NONE");
       else
         {
           int n = 0;
           if ((selected & B_FS_DEFAULT) == B_FS_DEFAULT)
             {
-              g_string_append (string, "DEFAULT");
+              ds_put_cstr (&str, "DEFAULT");
               selected &= ~B_FS_DEFAULT;
               n++;
             }
@@ -422,49 +423,49 @@ generate_syntax (PsppireDialogAction * a)
             if (selected & (1u << i))
               {
                 if (n++)
-                  g_string_append (string, " ");
-                g_string_append (string, stats[i].name);
+                  ds_put_cstr (&str, " ");
+                ds_put_cstr (&str, stats[i].name);
               }
         }
     }
 
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (fd->include_missing)))
-    g_string_append (string, "\n\t/MISSING=INCLUDE");
+    ds_put_cstr (&str, "\n\t/MISSING=INCLUDE");
 
 
   if (fd->charts_opts_draw_hist)
     {
-      g_string_append (string, "\n\t/HISTOGRAM=");
-      g_string_append (string,
+      ds_put_cstr (&str, "\n\t/HISTOGRAM=");
+      ds_put_cstr (&str,
                        fd->charts_opts_draw_normal ? "NORMAL" : "NONORMAL");
 
       if (fd->charts_opts_scale == FRQ_PERCENT)
-        g_string_append (string, " PERCENT");
+        ds_put_cstr (&str, " PERCENT");
 
       if (fd->charts_opts_use_min)
-        g_string_append_printf (string, " MIN(%.15g)", fd->charts_opts_min);
+        ds_put_c_format (&str, " MIN(%.15g)", fd->charts_opts_min);
       if (fd->charts_opts_use_max)
-        g_string_append_printf (string, " MAX(%.15g)", fd->charts_opts_max);
+        ds_put_c_format (&str, " MAX(%.15g)", fd->charts_opts_max);
     }
 
   if (fd->charts_opts_draw_pie)
     {
-      g_string_append (string, "\n\t/PIECHART=");
+      ds_put_cstr (&str, "\n\t/PIECHART=");
 
       if (fd->charts_opts_pie_include_missing)
-        g_string_append (string, " MISSING");
+        ds_put_cstr (&str, " MISSING");
 
       if (fd->charts_opts_use_min)
-        g_string_append_printf (string, " MIN(%.15g)", fd->charts_opts_min);
+        ds_put_c_format (&str, " MIN(%.15g)", fd->charts_opts_min);
       if (fd->charts_opts_use_max)
-        g_string_append_printf (string, " MAX(%.15g)", fd->charts_opts_max);
+        ds_put_c_format (&str, " MAX(%.15g)", fd->charts_opts_max);
     }
 
-  g_string_append (string, ".\n");
+  ds_put_cstr (&str, ".\n");
 
-  text = string->str;
+  text = ds_steal_cstr (&str);
 
-  g_string_free (string, FALSE);
+  ds_destroy (&str);
 
   return text;
 }

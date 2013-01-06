@@ -27,6 +27,7 @@
 #include "libpspp/pool.h"
 #include "libpspp/str.h"
 
+#include "gl/c-strcase.h"
 #include "gl/xalloc.h"
 #include "gl/xsize.h"
 
@@ -51,6 +52,13 @@ static bool fixed_parse_fortran (struct lexer *l, struct pool *, enum fmt_use,
    variable data in fixed positions in columns and rows, that is,
    formats like those parsed by DATA LIST or PRINT.  Returns true
    only if successful.
+
+   The formats parsed are either input or output formats, according
+   to USE.
+
+   If USE is FMT_FOR_INPUT, then T, X, and / "formats" are parsed,
+   in addition to regular formats.  If USE is FMT_FOR_OUTPUT, then
+   T and X "formats" are parsed but not /.
 
    If successful, formats for VAR_CNT variables are stored in
    *FORMATS, and the number of formats required is stored in
@@ -204,7 +212,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, enum fmt_use use,
         {
           new_formats = &f;
           new_format_cnt = 1;
-          if (lex_match (lexer, T_SLASH))
+          if (use == FMT_FOR_INPUT && lex_match (lexer, T_SLASH))
             f.type = PRS_TYPE_NEW_REC;
           else
             {
@@ -213,9 +221,9 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, enum fmt_use use,
               if (!parse_abstract_format_specifier (lexer, type, &f.w, &f.d))
                 return false;
 
-              if (!strcasecmp (type, "T"))
+              if (!c_strcasecmp (type, "T"))
                 f.type = PRS_TYPE_T;
-              else if (!strcasecmp (type, "X"))
+              else if (!c_strcasecmp (type, "X"))
                 {
                   f.type = PRS_TYPE_X;
                   f.w = count;
@@ -291,11 +299,8 @@ execute_placement_format (const struct fmt_spec *format,
     }
 }
 
-/* Parses a BASE-based column using LEXER.  Returns true and
-   stores a 1-based column number into *COLUMN if successful,
-   otherwise emits an error message and returns false. */
-static bool
-parse_column (int value, int base, int *column)
+bool
+parse_column__ (int value, int base, int *column)
 {
   assert (base == 0 || base == 1);
   *column = value - base + 1;
@@ -307,6 +312,27 @@ parse_column (int value, int base, int *column)
         msg (SE, _("Column positions for fields must not be negative."));
       return false;
     }
+  return true;
+}
+
+/* Parses a BASE-based column using LEXER.  Returns true and
+   stores a 1-based column number into *COLUMN if successful,
+   otherwise emits an error message and returns false.
+
+   If BASE is 0, zero-based column numbers are parsed; if BASE is
+   1, 1-based column numbers are parsed.  Regardless of BASE, the
+   values stored in *FIRST_COLUMN and *LAST_COLUMN are
+   1-based. */
+bool
+parse_column (struct lexer *lexer, int base, int *column)
+{
+  assert (base == 0 || base == 1);
+
+  if (!lex_force_int (lexer)
+      || !parse_column__ (lex_integer (lexer), base, column))
+    return false;
+
+  lex_get (lexer);
   return true;
 }
 
@@ -330,14 +356,14 @@ parse_column_range (struct lexer *lexer, int base,
 {
   /* First column. */
   if (!lex_force_int (lexer)
-      || !parse_column (lex_integer (lexer), base, first_column))
+      || !parse_column__ (lex_integer (lexer), base, first_column))
     return false;
   lex_get (lexer);
 
   /* Last column. */
   if (lex_is_integer (lexer) && lex_integer (lexer) < 0)
     {
-      if (!parse_column (-lex_integer (lexer), base, last_column))
+      if (!parse_column__ (-lex_integer (lexer), base, last_column))
         return false;
       lex_get (lexer);
 

@@ -138,7 +138,6 @@ cmd_parse_in_state (struct lexer *lexer, struct dataset *ds,
   ds = session_active_dataset (session);
   assert (!proc_is_open (ds));
   unset_cmd_algorithm ();
-  dict_clear_aux (dataset_dict (ds));
   if (!dataset_end_of_command (ds))
     result = CMD_CASCADING_FAILURE;
 

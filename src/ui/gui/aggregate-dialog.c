@@ -18,6 +18,7 @@
 
 #include "dialog-common.h"
 
+#include <gl/c-xvasprintf.h>
 #include <language/stats/aggregate.h>
 
 #include <ui/syntax-gen.h>
@@ -426,14 +427,13 @@ on_acr_change (const struct aggregate *agg, GtkTreeView *tv)
   gtk_entry_set_text (GTK_ENTRY (agg->summary_var_label_entry), label);
   gtk_entry_set_text (GTK_ENTRY (agg->summary_sv_entry), srcvar);
   
-  text = g_strdup_printf ("%g", arg1);
+  text = c_xasprintf ("%g", arg1);
   gtk_entry_set_text (GTK_ENTRY (agg->summary_arg1_entry), text);
   g_free (text);
 
-  text = g_strdup_printf ("%g", arg2);
+  text = c_xasprintf ("%g", arg2);
   gtk_entry_set_text (GTK_ENTRY (agg->summary_arg2_entry), text);
   g_free (text);
-
 
   gtk_combo_box_set_active (GTK_COMBO_BOX (agg->function_combo), f_idx);
 }
@@ -674,17 +674,22 @@ append_summary_spec (const struct aggregate *agg, GtkTreeIter *iter, GString *st
 
   if ( has_src_vars != AGR_SV_NO)
     {
-      g_string_append (string, " (");
+      struct string dss;
+      ds_init_cstr (&dss, " (");
       
-      g_string_append (string, srcvar);
+      ds_put_cstr (&dss, srcvar);
 
       if ( arity > 0)
-	g_string_append_printf (string, ", %g", arg1);
+	ds_put_c_format (&dss, ", %g", arg1);
 
       if ( arity > 1)
-	g_string_append_printf (string, ", %g", arg2);
+	ds_put_c_format (&dss, ", %g", arg2);
 
-      g_string_append (string, ")");
+      ds_put_cstr (&dss, ")");
+
+      g_string_append (string, ds_cstr (&dss));
+
+      ds_destroy (&dss);
     }
 
    free (label);

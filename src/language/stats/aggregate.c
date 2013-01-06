@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@
 #include "math/sort.h"
 #include "math/statistic.h"
 
+#include "gl/c-strcase.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
 
@@ -452,7 +453,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
       exclude = ds_chomp_byte (&function_name, '.') ? MV_SYSTEM : MV_ANY;
 
       for (function = agr_func_tab; function->name; function++)
-	if (!strcasecmp (function->name, ds_cstr (&function_name)))
+	if (!c_strcasecmp (function->name, ds_cstr (&function_name)))
 	  break;
       if (NULL == function->name)
 	{

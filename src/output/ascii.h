@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,5 +21,6 @@ struct output_driver;
 
 void ascii_test_write (struct output_driver *,
                        const char *s, int x, int y, unsigned int options);
+void ascii_test_set_length (struct output_driver *, int y, int length);
 
 #endif /* ascii.h */

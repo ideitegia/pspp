@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -171,6 +171,21 @@ value_resize (union value *value, int old_width, int new_width)
       value_destroy (value, old_width);
       *value = tmp;
     }
+}
+
+/* Returns true if VALUE, with the given WIDTH, is all spaces, false otherwise.
+   Returns false if VALUE is numeric. */
+bool
+value_is_spaces (const union value *value, int width)
+{
+  const uint8_t *s = value_str (value, width);
+  int i;
+
+  for (i = 0; i < width; i++)
+    if (s[i] != ' ')
+      return false;
+
+  return true;
 }
 
 /* Returns true if resizing a value from OLD_WIDTH to NEW_WIDTH

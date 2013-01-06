@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unicase.h>
 #include <unigbrk.h>
 
 #include "libpspp/assertion.h"
@@ -39,6 +40,7 @@
 
 #include "gl/c-strcase.h"
 #include "gl/localcharset.h"
+#include "gl/minmax.h"
 #include "gl/xalloc.h"
 #include "gl/relocatable.h"
 #include "gl/xstrndup.h"
@@ -545,12 +547,7 @@ recode_substring_pool (const char *to, const char *from,
 void
 i18n_init (void)
 {
-  setlocale (LC_CTYPE, "");
-  setlocale (LC_COLLATE, "");
-  setlocale (LC_MESSAGES, "");
-#if HAVE_LC_PAPER
-  setlocale (LC_PAPER, "");
-#endif
+  setlocale (LC_ALL, "");
   bindtextdomain (PACKAGE, relocate(locale_dir));
   textdomain (PACKAGE);
 
@@ -597,7 +594,6 @@ set_encoding_from_locale (const char *loc)
     {
       ok = false;
     }
-
 
   setlocale (LC_CTYPE, tmp);
 
@@ -660,9 +656,6 @@ get_system_decimal (void)
 {
   char radix_char;
 
-  char *ol = xstrdup (setlocale (LC_NUMERIC, NULL));
-  setlocale (LC_NUMERIC, "");
-
 #if HAVE_NL_LANGINFO
   radix_char = nl_langinfo (RADIXCHAR)[0];
 #else
@@ -673,10 +666,6 @@ get_system_decimal (void)
   }
 #endif
 
-  /* We MUST leave LC_NUMERIC untouched, since it would
-     otherwise interfere with data_{in,out} */
-  setlocale (LC_NUMERIC, ol);
-  free (ol);
   return radix_char;
 }
 
@@ -688,6 +677,109 @@ uc_name (ucs4_t uc, char buffer[16])
   else
     snprintf (buffer, 16, "U+%04X", uc);
   return buffer;
+}
+
+/* UTF-8 functions that deal with uppercase/lowercase distinctions. */
+
+/* Returns a hash value for the N bytes of UTF-8 encoded data starting at S,
+   with lowercase and uppercase letters treated as equal, starting from
+   BASIS. */
+unsigned int
+utf8_hash_case_bytes (const char *s, size_t n, unsigned int basis)
+{
+  uint8_t folded_buf[2048];
+  size_t folded_len = sizeof folded_buf;
+  uint8_t *folded_s;
+  unsigned int hash;
+
+  folded_s = u8_casefold (CHAR_CAST (const uint8_t *, s), n,
+                          NULL, UNINORM_NFKD, folded_buf, &folded_len);
+  if (folded_s != NULL)
+    {
+      hash = hash_bytes (folded_s, folded_len, basis);
+      if (folded_s != folded_buf)
+        free (folded_s);
+    }
+  else
+    {
+      if (errno == ENOMEM)
+        xalloc_die ();
+      hash = hash_bytes (s, n, basis);
+    }
+
+  return hash;
+}
+
+/* Returns a hash value for null-terminated UTF-8 string S, with lowercase and
+   uppercase letters treated as equal, starting from BASIS. */
+unsigned int
+utf8_hash_case_string (const char *s, unsigned int basis)
+{
+  return utf8_hash_case_bytes (s, strlen (s), basis);
+}
+
+/* Compares UTF-8 strings A and B case-insensitively.
+   Returns a negative value if A < B, zero if A == B, positive if A > B. */
+int
+utf8_strcasecmp (const char *a, const char *b)
+{
+  return utf8_strncasecmp (a, strlen (a), b, strlen (b));
+}
+
+/* Compares UTF-8 strings A (with length AN) and B (with length BN)
+   case-insensitively.
+   Returns a negative value if A < B, zero if A == B, positive if A > B. */
+int
+utf8_strncasecmp (const char *a, size_t an, const char *b, size_t bn)
+{
+  int result;
+
+  if (u8_casecmp (CHAR_CAST (const uint8_t *, a), an,
+                  CHAR_CAST (const uint8_t *, b), bn,
+                  NULL, UNINORM_NFKD, &result))
+    {
+      if (errno == ENOMEM)
+        xalloc_die ();
+
+      result = memcmp (a, b, MIN (an, bn));
+      if (result == 0)
+        result = an < bn ? -1 : an > bn;
+    }
+
+  return result;
+}
+
+static char *
+utf8_casemap (const char *s,
+              uint8_t *(*f) (const uint8_t *, size_t, const char *, uninorm_t,
+                             uint8_t *, size_t *))
+{
+  char *result;
+  size_t size;
+
+  result = CHAR_CAST (char *,
+                      f (CHAR_CAST (const uint8_t *, s), strlen (s) + 1,
+                         NULL, NULL, NULL, &size));
+  if (result == NULL)
+    {
+      if (errno == ENOMEM)
+        xalloc_die ();
+
+      result = xstrdup (s);
+    }
+  return result;
+}
+
+char *
+utf8_to_upper (const char *s)
+{
+  return utf8_casemap (s, u8_toupper);
+}
+
+char *
+utf8_to_lower (const char *s)
+{
+  return utf8_casemap (s, u8_tolower);
 }
 
 bool
