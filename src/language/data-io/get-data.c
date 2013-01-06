@@ -227,6 +227,11 @@ parse_spreadsheet (struct lexer *lexer)
 	  else if (lex_match_id (lexer, "INDEX"))
 	    {
 	      sri->sheet_index = lex_integer (lexer);
+	      if (sri->sheet_index <= 0)
+		{
+		  msg (SE, _("The sheet index must be greater than or equal to 1"));
+		  goto error;
+		}
 	      lex_get (lexer);
 	    }
 	  else
