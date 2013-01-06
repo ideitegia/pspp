@@ -222,9 +222,9 @@ generate_syntax (const struct import_assistant *ia)
 	size_t var_cnt;
 	size_t i;
 	syntax_gen_pspp (&s,
-			 "GET DATA\n"
-			 "  /TYPE=TXT\n"
-			 "  /FILE=%sq\n",
+			 "GET DATA"
+			 "\n  /TYPE=TXT"
+			 "\n  /FILE=%sq\n",
 			 ia->file.file_name);
 	if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
 	  syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
@@ -285,10 +285,10 @@ generate_syntax (const struct import_assistant *ia)
 	const struct sheet_spec_page *ssp = &ia->sheet_spec;
 
 	syntax_gen_pspp (&s,
-			 "GET DATA\n"
-			 "  /TYPE=%s\n"
-			 "  /FILE=%sq\n"
-			 "  /SHEET=index %d\n"
+			 "GET DATA"
+			 "\n  /TYPE=%ss"
+			 "\n  /FILE=%sq"
+			 "\n  /SHEET=index %d"
 			 ".",
 			 (ia->file.type == FTYPE_GNUMERIC) ? "GNM" : "ODS",
 			 ia->file.file_name,			 
