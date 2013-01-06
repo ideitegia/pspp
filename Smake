@@ -108,7 +108,7 @@ GNULIB_MODULES = \
 	xstrndup \
 	xvasprintf
 
-all: prep_ph
+all: prep_ph manual_images
 	$(MAKE) -f Smake Makefile.in configure
 
 .PHONY: prep_ph
@@ -146,6 +146,13 @@ check: all
 	cd _check && ../configure $(CONFIGUREFLAGS)
 	cd _check && make distcheck
 	rm -rf _check
+
+
+doc/Images/%.eps: doc/Images/%.png
+	convert $< $@
+
+.PHONY: manual_images
+manual_images: $(patsubst %.png,%.eps,$(wildcard doc/Images/*.png))
 
 _build: all
 	test -d _build || mkdir _build
