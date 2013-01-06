@@ -279,17 +279,6 @@ dict_clear (struct dictionary *d)
   attrset_clear (&d->attributes);
 }
 
-/* Destroys the aux data for every variable in D, by calling
-   var_clear_aux() for each variable. */
-void
-dict_clear_aux (struct dictionary *d)
-{
-  int i;
-
-  for (i = 0; i < d->var_cnt; i++)
-    var_clear_aux (d->var[i].var);
-}
-
 /* Clears a dictionary and destroys it. */
 void
 dict_destroy (struct dictionary *d)
@@ -599,9 +588,6 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   const int case_index = var_get_case_index (v);
 
   assert (dict_contains_var (d, v));
-
-  /* Delete aux data. */
-  var_clear_aux (v);
 
   dict_unset_split_var (d, v);
   dict_unset_mrset_var (d, v);

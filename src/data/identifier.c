@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2005, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2005, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -188,7 +188,13 @@ lex_is_idn (char c)
 bool
 lex_uc_is_id1 (ucs4_t uc)
 {
-  return is_ascii_id1 (uc) || (uc >= 0x80 && uc_is_property_id_start (uc));
+  return (uc < 0x80
+          ? is_ascii_id1 (uc)
+          : (uc_is_general_category_withtable (uc,
+                                               UC_CATEGORY_MASK_L |
+                                               UC_CATEGORY_MASK_M |
+                                               UC_CATEGORY_MASK_S)
+             && uc != 0xfffc && uc != 0xfffd));
 }
 
 /* Returns true if Unicode code point UC may be a character in an identifier
@@ -198,7 +204,12 @@ lex_uc_is_idn (ucs4_t uc)
 {
   return (uc < 0x80
           ? is_ascii_id1 (uc) || isdigit (uc) || uc == '.' || uc == '_'
-          : uc >= 0x80 && uc_is_property_id_continue (uc));
+          : (uc_is_general_category_withtable (uc,
+                                               UC_CATEGORY_MASK_L |
+                                               UC_CATEGORY_MASK_M |
+                                               UC_CATEGORY_MASK_S |
+                                               UC_CATEGORY_MASK_N)
+             && uc != 0xfffc && uc != 0xfffd));
 }
 
 /* Returns true if Unicode code point UC is a space that separates tokens. */

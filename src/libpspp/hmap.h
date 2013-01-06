@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -217,6 +217,30 @@ void hmap_moved (struct hmap *,
         : 0);                                                           \
        (DATA) = (NEXT))
 
+/* These macros are like the *_WITH_HASH macros above, except that they don't
+   skip data elements that are in the same hash bucket but have different hash
+   values.  This is a small optimization in code where comparing keys is just
+   as fast as comparing hashes (e.g. the key is an "int") or comparing keys
+   would duplicate comparing the hashes (e.g. the hash is the first word of a
+   multi-word random key).
+
+   These macros evaluate HASH only once.  They evaluate their
+   other arguments many times. */
+#define HMAP_FIRST_IN_BUCKET(STRUCT, MEMBER, HMAP, HASH)                \
+  HMAP_NULLABLE_DATA (hmap_first_in_bucket (HMAP, HASH), STRUCT, MEMBER)
+#define HMAP_NEXT_IN_BUCKET(DATA, STRUCT, MEMBER)                       \
+  HMAP_NULLABLE_DATA (hmap_next_in_bucket (&(DATA)->MEMBER), STRUCT, MEMBER)
+#define HMAP_FOR_EACH_IN_BUCKET(DATA, STRUCT, MEMBER, HASH, HMAP)       \
+  for ((DATA) = HMAP_FIRST_IN_BUCKET (STRUCT, MEMBER, HMAP, HASH);      \
+       (DATA) != NULL;                                                  \
+       (DATA) = HMAP_NEXT_IN_BUCKET (DATA, STRUCT, MEMBER))
+#define HMAP_FOR_EACH_IN_BUCKET_SAFE(DATA, NEXT, STRUCT, MEMBER, HASH, HMAP) \
+  for ((DATA) = HMAP_FIRST_IN_BUCKET (STRUCT, MEMBER, HMAP, HASH);      \
+       ((DATA) != NULL                                                  \
+        ? ((NEXT) = HMAP_NEXT_IN_BUCKET (DATA, STRUCT, MEMBER), 1)      \
+        : 0);                                                           \
+       (DATA) = (NEXT))
+
 /* Convenience macros for iteration.
 
    These macros automatically use HMAP_DATA to obtain the data
@@ -355,6 +379,48 @@ hmap_insert_fast (struct hmap *map, struct hmap_node *node, size_t hash)
   node->next = *bucket;
   *bucket = node;
   map->count++;
+}
+
+/* Returns the first node in MAP in the bucket for HASH, or a null pointer if
+   that bucket in HASH is empty.
+
+   This function runs in constant time.
+
+   Nodes are returned in arbitrary order that may change whenever the hash
+   table's current capacity changes, as reported by hmap_capacity().  Calls to
+   hmap_insert(), hmap_reserve(), and hmap_shrink() can change the capacity of
+   a hash map.  Inserting a node with hmap_insert_fast() or deleting one with
+   hmap_delete() will not change the relative ordering of nodes.
+
+   The HMAP_FOR_EACH_IN_BUCKET and HMAP_FOR_EACH_IN_BUCKET_SAFE macros provide
+   convenient ways to iterate over all the nodes with a given hash.  The
+   HMAP_FIRST_IN_BUCKET macro is an interface to this particular function that
+   is often more convenient. */
+static inline struct hmap_node *
+hmap_first_in_bucket (const struct hmap *map, size_t hash)
+{
+  return map->buckets[hash & map->mask];
+}
+
+/* Returns the next node following NODE within the same bucket, or a null
+   pointer if NODE is the last node in its bucket.
+
+   This function runs in constant time.
+
+   Nodes are returned in arbitrary order that may change whenever the hash
+   table's current capacity changes, as reported by hmap_capacity().  Calls to
+   hmap_insert(), hmap_reserve(), and hmap_shrink() can change the capacity of
+   a hash map.  Inserting a node with hmap_insert_fast() or deleting one with
+   hmap_delete() will not change the relative ordering of nodes.
+
+   The HMAP_FOR_EACH_IN_BUCKET and HMAP_FOR_EACH_IN_BUCKET_SAFE macros provide
+   convenient ways to iterate over all the nodes with a given hash.  The
+   HMAP_NEXT_IN_BUCKET macro is an interface to this particular function that
+   is often more convenient. */
+static inline struct hmap_node *
+hmap_next_in_bucket (const struct hmap_node *node)
+{
+  return node->next;
 }
 
 /* Removes NODE from MAP.  The client is responsible for freeing

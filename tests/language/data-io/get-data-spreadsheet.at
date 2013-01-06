@@ -175,6 +175,153 @@ AT_BANNER([GET DATA Spreadsheet /TYPE=GNM])
 
 CHECK_SPREADSHEET_READER([GNM])
 
+dnl Check for a bug where gnumeric files were interpreted incorrectly
+AT_SETUP([GET DATA /TYPE=GNM sheet index bug])
+AT_DATA([minimal3.gnumeric],[dnl
+<?xml version="1.0" encoding="UTF-8"?>
+<gnm:Workbook xmlns:gnm="http://www.gnumeric.org/v10.dtd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gnumeric.org/v9.xsd">
+  <gnm:Version Epoch="1" Major="10" Minor="8" Full="1.10.8"/>
+  <gnm:SheetNameIndex>
+    <gnm:SheetName gnm:Cols="256" gnm:Rows="65536">Sheet1</gnm:SheetName>
+    <gnm:SheetName gnm:Cols="256" gnm:Rows="65536">Sheet2</gnm:SheetName>
+    <gnm:SheetName gnm:Cols="256" gnm:Rows="65536">Sheet3</gnm:SheetName>
+  </gnm:SheetNameIndex>
+  <gnm:Sheets>
+    <gnm:Sheet DisplayFormulas="0" HideZero="0" HideGrid="0" HideColHeader="0" HideRowHeader="0" DisplayOutlines="1" OutlineSymbolsBelow="1" OutlineSymbolsRight="1" Visibility="GNM_SHEET_VISIBILITY_VISIBLE" GridColor="0:0:0">
+      <gnm:Name>Sheet1</gnm:Name>
+      <gnm:MaxCol>2</gnm:MaxCol>
+      <gnm:MaxRow>3</gnm:MaxRow>
+      <gnm:Names>
+        <gnm:Name>
+          <gnm:name>Print_Area</gnm:name>
+          <gnm:value>#REF!</gnm:value>
+          <gnm:position>A1</gnm:position>
+        </gnm:Name>
+        <gnm:Name>
+          <gnm:name>Sheet_Title</gnm:name>
+          <gnm:value>&quot;Sheet1&quot;</gnm:value>
+          <gnm:position>A1</gnm:position>
+        </gnm:Name>
+      </gnm:Names>
+      <gnm:Cols DefaultSizePts="48">
+        <gnm:ColInfo No="0" Unit="94.5" HardSize="1"/>
+        <gnm:ColInfo No="1" Unit="48" Count="2"/>
+      </gnm:Cols>
+      <gnm:Rows DefaultSizePts="12.75">
+        <gnm:RowInfo No="0" Unit="13.5" Count="4"/>
+      </gnm:Rows>
+      <gnm:Cells>
+        <gnm:Cell Row="0" Col="0" ValueType="60">Name</gnm:Cell>
+        <gnm:Cell Row="0" Col="1" ValueType="60">x</gnm:Cell>
+        <gnm:Cell Row="0" Col="2" ValueType="60">y</gnm:Cell>
+        <gnm:Cell Row="1" Col="0" ValueType="60">Sheet One</gnm:Cell>
+        <gnm:Cell Row="1" Col="1" ValueType="40">1</gnm:Cell>
+        <gnm:Cell Row="1" Col="2" ValueType="40">2</gnm:Cell>
+        <gnm:Cell Row="2" Col="0" ValueType="60">foo</gnm:Cell>
+        <gnm:Cell Row="2" Col="1" ValueType="40">3</gnm:Cell>
+        <gnm:Cell Row="2" Col="2" ValueType="40">4</gnm:Cell>
+        <gnm:Cell Row="3" Col="0" ValueType="60">bar</gnm:Cell>
+        <gnm:Cell Row="3" Col="1" ValueType="40">5</gnm:Cell>
+        <gnm:Cell Row="3" Col="2" ValueType="40">6</gnm:Cell>
+      </gnm:Cells>
+    </gnm:Sheet>
+    <gnm:Sheet DisplayFormulas="0" HideZero="0" HideGrid="0" HideColHeader="0" HideRowHeader="0" DisplayOutlines="1" OutlineSymbolsBelow="1" OutlineSymbolsRight="1" Visibility="GNM_SHEET_VISIBILITY_VISIBLE" GridColor="0:0:0">
+      <gnm:Name>Sheet2</gnm:Name>
+      <gnm:MaxCol>2</gnm:MaxCol>
+      <gnm:MaxRow>2</gnm:MaxRow>
+      <gnm:Names>
+        <gnm:Name>
+          <gnm:name>Print_Area</gnm:name>
+          <gnm:value>#REF!</gnm:value>
+          <gnm:position>A1</gnm:position>
+        </gnm:Name>
+        <gnm:Name>
+          <gnm:name>Sheet_Title</gnm:name>
+          <gnm:value>&quot;Sheet2&quot;</gnm:value>
+          <gnm:position>A1</gnm:position>
+        </gnm:Name>
+      </gnm:Names>
+      <gnm:Cols DefaultSizePts="48">
+        <gnm:ColInfo No="0" Unit="48"/>
+        <gnm:ColInfo No="1" Unit="57.75"/>
+        <gnm:ColInfo No="2" Unit="54.75"/>
+      </gnm:Cols>
+      <gnm:Rows DefaultSizePts="12.75">
+        <gnm:RowInfo No="0" Unit="13.5" Count="3"/>
+      </gnm:Rows>
+      <gnm:Cells>
+        <gnm:Cell Row="0" Col="0" ValueType="60">Comment</gnm:Cell>
+        <gnm:Cell Row="0" Col="1" ValueType="60">DOB</gnm:Cell>
+        <gnm:Cell Row="0" Col="2" ValueType="60">wealth</gnm:Cell>
+        <gnm:Cell Row="1" Col="0" ValueType="60">Sheet Two</gnm:Cell>
+        <gnm:Cell Row="1" Col="1" ValueType="60">24/5/1966</gnm:Cell>
+        <gnm:Cell Row="1" Col="2" ValueType="40" ValueFormat="_($* 0.00_);_($* (0.00);_($* &quot;-&quot;??_);_(@_)">0.02</gnm:Cell>
+        <gnm:Cell Row="2" Col="0" ValueType="60">wee</gnm:Cell>
+        <gnm:Cell Row="2" Col="1" ValueType="40" ValueFormat="dd/mm/yyyy">37145</gnm:Cell>
+        <gnm:Cell Row="2" Col="2" ValueType="40" ValueFormat="_($* 0.00_);_($* (0.00);_($* &quot;-&quot;??_);_(@_)">3000</gnm:Cell>
+      </gnm:Cells>
+    </gnm:Sheet>
+    <gnm:Sheet DisplayFormulas="0" HideZero="0" HideGrid="0" HideColHeader="0" HideRowHeader="0" DisplayOutlines="1" OutlineSymbolsBelow="1" OutlineSymbolsRight="1" Visibility="GNM_SHEET_VISIBILITY_VISIBLE" GridColor="0:0:0">
+      <gnm:Name>Sheet3</gnm:Name>
+      <gnm:MaxCol>2</gnm:MaxCol>
+      <gnm:MaxRow>2</gnm:MaxRow>
+      <gnm:Names>
+        <gnm:Name>
+          <gnm:name>Print_Area</gnm:name>
+          <gnm:value>#REF!</gnm:value>
+          <gnm:position>A1</gnm:position>
+        </gnm:Name>
+        <gnm:Name>
+          <gnm:name>Sheet_Title</gnm:name>
+          <gnm:value>&quot;Sheet3&quot;</gnm:value>
+          <gnm:position>A1</gnm:position>
+        </gnm:Name>
+      </gnm:Names>
+      <gnm:Cols DefaultSizePts="48">
+        <gnm:ColInfo No="0" Unit="48" Count="3"/>
+      </gnm:Cols>
+      <gnm:Rows DefaultSizePts="12.75">
+        <gnm:RowInfo No="0" Unit="13.5"/>
+        <gnm:RowInfo No="1" Unit="12.75" Count="2"/>
+      </gnm:Rows>
+      <gnm:Cells>
+        <gnm:Cell Row="0" Col="0" ValueType="40">3</gnm:Cell>
+        <gnm:Cell Row="0" Col="1" ValueType="40">4</gnm:Cell>
+        <gnm:Cell Row="0" Col="2" ValueType="40">5</gnm:Cell>
+        <gnm:Cell Row="1" Col="0" ValueType="40">6</gnm:Cell>
+        <gnm:Cell Row="1" Col="1" ValueType="40">7</gnm:Cell>
+        <gnm:Cell Row="1" Col="2" ValueType="40">8</gnm:Cell>
+        <gnm:Cell Row="2" Col="0" ValueType="40">9</gnm:Cell>
+        <gnm:Cell Row="2" Col="1" ValueType="40">10</gnm:Cell>
+        <gnm:Cell Row="2" Col="2" ValueType="40">11</gnm:Cell>
+      </gnm:Cells>
+    </gnm:Sheet>
+  </gnm:Sheets>
+</gnm:Workbook>
+])
+
+AT_DATA([gnum.sps], [dnl
+GET DATA 	
+	/TYPE=GNM
+        /FILE='minimal3.gnumeric'
+	/SHEET=index 3
+	/READNAMES=off
+	.
+
+LIST.
+])
+
+AT_CHECK([pspp -O format=csv gnum.sps], [0], [dnl
+Table: Data List
+VAR001,VAR002,VAR003
+3       ,4.00,5.00
+6       ,7.00,8.00
+9       ,10.00,11.00
+])
+
+
+AT_CLEANUP
+
 AT_BANNER([GET DATA Spreadsheet /TYPE=ODS])
 
 CHECK_SPREADSHEET_READER([ODS])

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -156,6 +156,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   struct file_handle *handle; /* Output file. */
   struct dictionary *dict;    /* Dictionary for output file. */
   struct casewriter *writer;  /* Writer. */
+  struct case_map_stage *stage; /* Preparation for 'map'. */
   struct case_map *map;       /* Map from input data to data for writer. */
 
   /* Common options. */
@@ -172,11 +173,12 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   handle = NULL;
   dict = dict_clone (dataset_dict (ds));
   writer = NULL;
+  stage = NULL;
   map = NULL;
   sysfile_opts = sfm_writer_default_options ();
   porfile_opts = pfm_writer_default_options ();
 
-  case_map_prepare_dict (dict);
+  stage = case_map_stage_create (dict);
   dict_delete_scratch_vars (dict);
 
   lex_match (lexer, T_SLASH);
@@ -301,7 +303,8 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   if (writer == NULL)
     goto error;
 
-  map = case_map_from_dict (dict);
+  map = case_map_stage_get_case_map (stage);
+  case_map_stage_destroy (stage);
   if (map != NULL)
     writer = case_map_create_output_translator (map, writer);
   dict_destroy (dict);
@@ -310,6 +313,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   return writer;
 
  error:
+  case_map_stage_destroy (stage);
   fh_unref (handle);
   casewriter_destroy (writer);
   dict_destroy (dict);

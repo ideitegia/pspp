@@ -1574,7 +1574,7 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
     {
       int i;
       casenumber imin = 0;
-      double imax = es[v].cc;
+      casenumber imax;
       struct casereader *reader;
       struct ccase *c;
 
@@ -1592,6 +1592,8 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
       es[v].sorted_reader = casewriter_make_reader (es[v].sorted_writer);
       es[v].sorted_writer = NULL;
 
+      imax = casereader_get_case_cnt (es[v].sorted_reader);
+
       es[v].maxima = pool_calloc (examine->pool, examine->calc_extremes, sizeof (*es[v].maxima));
       es[v].minima = pool_calloc (examine->pool, examine->calc_extremes, sizeof (*es[v].minima));
       for (i = 0; i < examine->calc_extremes; ++i)
@@ -1604,7 +1606,7 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
            (c = casereader_read (reader)) != NULL; case_unref (c))
         {
           const double val = case_data_idx (c, EX_VAL)->f;
-          const double wt = case_data_idx (c, EX_WT)->f;   /* FIXME: What about fractional weights ??? */
+          const double wt = case_data_idx (c, EX_WT)->f;
 
           moments_pass_two (es[v].mom, val, wt);
 
@@ -1620,15 +1622,15 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
                   min->val = val;
                   value_copy (&min->identity, case_data_idx (c, EX_ID), examine->id_width);
                 }
-              imin += wt;
+              imin ++;
             }
 
-          imax -= wt;
+          imax --;
           if (imax < examine->calc_extremes)
             {
               int x;
 
-              for (x = imax; x < imax + wt; ++x)
+              for (x = imax; x < imax + 1; ++x)
                 {
                   struct extremity *max;
 
@@ -1646,7 +1648,7 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
       if (examine->calc_extremes > 0)
         {
           assert (es[v].minima[0].val == es[v].minimum);
-          assert (es[v].maxima[0].val == es[v].maximum);
+	  assert (es[v].maxima[0].val == es[v].maximum);
         }
 
       {

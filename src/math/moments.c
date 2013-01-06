@@ -225,12 +225,8 @@ moments_calculate (const struct moments *m,
     }
   else
     {
-      /* After the second pass we can calculate any stat.  We
-         don't support "online" computation during the second
-         pass, so As a simple self-check, the total weight for
-         the passes must agree. */
+      /* After the second pass we can calculate any stat.  */
       assert (m->pass == 2);
-      assert (m->w1 == m->w2);
 
       if (m->w2 > 0.)
         {
