@@ -25,7 +25,8 @@
 enum file_type
   {
     FTYPE_TEXT,
-    FTYPE_SPREADSHEET
+    FTYPE_GNUMERIC,
+    FTYPE_ODS
   };
 
 /* The file to be imported. */
@@ -201,6 +202,9 @@ void destroy_file (struct import_assistant *ia);
 
 void init_intro_page (struct import_assistant *);
 void reset_intro_page (struct import_assistant *);
+
+void init_sheet_spec_page (struct import_assistant *);
+void reset_sheet_spec_page (struct import_assistant *);
 
 void init_first_line_page (struct import_assistant *ia);
 void prepare_first_line_page (struct import_assistant *ia);

@@ -45,8 +45,10 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) (msgid)
 
-static struct spreadsheet_read_info *parse_spreadsheet (struct lexer *lexer);
-static void destroy_spreadsheet_read_info (struct spreadsheet_read_info *);
+static bool parse_spreadsheet (struct lexer *lexer, struct spreadsheet_read_info *sri, 
+			       struct spreadsheet_read_options *opts);
+
+static void destroy_spreadsheet_read_info (struct spreadsheet_read_info *, struct spreadsheet_read_options *);
 
 static int parse_get_txt (struct lexer *lexer, struct dataset *);
 static int parse_get_psql (struct lexer *lexer, struct dataset *);
@@ -78,24 +80,25 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
     {
       struct casereader *reader = NULL;
       struct dictionary *dict = NULL;
-      struct spreadsheet_read_info *sri = parse_spreadsheet (lexer);
-      if (NULL == sri)
+      struct spreadsheet_read_info sri;
+      struct spreadsheet_read_options opts;
+      if (!parse_spreadsheet (lexer, &sri, &opts))
 	goto error;
 
       if ( 0 == strncasecmp (tok, "GNM", 3))
-	reader = gnumeric_open_reader (sri, &dict);
+	reader = gnumeric_open_reader (&sri, &opts, &dict);
       else if (0 == strncasecmp (tok, "ODS", 3))
-	reader = ods_open_reader (sri, &dict);
+	reader = ods_open_reader (&sri, &opts, &dict);
 
       if (reader)
 	{
 	  dataset_set_dict (ds, dict);
 	  dataset_set_source (ds, reader);
-	  destroy_spreadsheet_read_info (sri);
+	  destroy_spreadsheet_read_info (&sri, &opts);
 	  free (tok);
 	  return CMD_SUCCESS;
 	}
-      destroy_spreadsheet_read_info (sri);
+      destroy_spreadsheet_read_info (&sri, &opts);
     }
   else
     msg (SE, _("Unsupported TYPE %s."), tok);
@@ -181,13 +184,16 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
   return CMD_FAILURE;
 }
 
-static struct spreadsheet_read_info *
-parse_spreadsheet (struct lexer *lexer)
+static bool
+parse_spreadsheet (struct lexer *lexer, struct spreadsheet_read_info *sri, 
+		   struct spreadsheet_read_options *opts)
 {
-  struct spreadsheet_read_info *sri = xzalloc (sizeof *sri);
-  sri->sheet_index = 1;
+  opts->sheet_index = 1;
+  opts->sheet_name = NULL;
+  opts->cell_range = NULL;
   sri->read_names = true;
   sri->asw = -1;
+  sri->file_name = NULL;
 
   lex_force_match (lexer, T_SLASH);
 
@@ -219,8 +225,8 @@ parse_spreadsheet (struct lexer *lexer)
 	      if ( ! lex_force_string (lexer) )
 		goto error;
 
-	      sri->sheet_name = ss_xstrdup (lex_tokss (lexer));
-	      sri->sheet_index = -1;
+	      opts->sheet_name = ss_xstrdup (lex_tokss (lexer));
+	      opts->sheet_index = -1;
 
 	      lex_get (lexer);
 	    }
@@ -247,14 +253,14 @@ parse_spreadsheet (struct lexer *lexer)
 
 	  if (lex_match_id (lexer, "FULL"))
 	    {
-	      sri->cell_range = NULL;
+	      opts->cell_range = NULL;
 	    }
 	  else if (lex_match_id (lexer, "RANGE"))
 	    {
 	      if ( ! lex_force_string (lexer) )
 		goto error;
 
-	      sri->cell_range = ss_xstrdup (lex_tokss (lexer));
+	      opts->cell_range = ss_xstrdup (lex_tokss (lexer));
 	      lex_get (lexer);
 	    }
 	  else
@@ -290,11 +296,11 @@ parse_spreadsheet (struct lexer *lexer)
 	}
     }
 
-  return sri;
+  return true;
 
  error:
-  destroy_spreadsheet_read_info (sri);
-  return NULL;
+  destroy_spreadsheet_read_info (sri, opts);
+  return false;
 }
 
 
@@ -657,13 +663,10 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
 
 
 static void 
-destroy_spreadsheet_read_info (struct spreadsheet_read_info *sri)
+destroy_spreadsheet_read_info (struct spreadsheet_read_info *sri,
+			       struct spreadsheet_read_options *opts)
 {
-  if ( NULL == sri)
-    return;
-
-  free (sri->sheet_name);
-  free (sri->cell_range);
+  free (opts->sheet_name);
+  free (opts->cell_range);
   free (sri->file_name);
-  free (sri);
 }

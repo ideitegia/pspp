@@ -22,14 +22,23 @@
 /* Default width of string variables. */
 #define SPREADSHEET_DEFAULT_WIDTH 8
 
+/* These elements are read/write.
+   They may be passed in NULL (for pointers) or negative for integers, in which
+   case they will be filled in be the function.
+*/
+struct spreadsheet_read_options
+{
+  char *sheet_name ;       /* The name of the sheet to open (in UTF-8) */
+  int sheet_index ;        /* The index of the sheet to open (only used if sheet_name is NULL) */
+  char *cell_range ;       /* The cell range (in UTF-8) */
+};
+
+
 struct spreadsheet_read_info
 {
-  char *sheet_name ;            /* In UTF-8. */
-  char *file_name ;             /* In filename encoding. */
-  char *cell_range ;            /* In UTF-8. */
-  int sheet_index ;
-  bool read_names ;
-  int asw ;
+  char *file_name ;        /* The name of the file to open (in filename encoding) */
+  bool read_names ;        /* True if the first row is to be used as the names of the variables */
+  int asw ;                /* The width of string variables in the created dictionary */
 };
 
 int pseudo_base26 (const char *str);

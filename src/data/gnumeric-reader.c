@@ -28,10 +28,12 @@
 
 #include "spreadsheet-reader.h"
 
+#include "c-xvasprintf.h"
+
 #if !GNM_SUPPORT
 
 struct casereader *
-gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
+gnumeric_open_reader (struct spreadsheet_read_info *gri, struct spreadsheet_read_options *opts, struct dictionary **dict)
 {
   msg (ME, _("Support for %s files was not compiled into this installation of PSPP"), "Gnumeric");
 
@@ -274,7 +276,9 @@ struct var_spec
 };
 
 struct casereader *
-gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
+gnumeric_open_reader (const struct spreadsheet_read_info *gri, 
+		      struct spreadsheet_read_options *opts,
+		      struct dictionary **dict)
 {
   unsigned long int vstart = 0;
   int ret;
@@ -304,14 +308,14 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
   if ( r->xtr == NULL )
     goto error;
 
-  if ( gri->cell_range )
+  if ( opts->cell_range )
     {
-      if ( ! convert_cell_ref (gri->cell_range,
+      if ( ! convert_cell_ref (opts->cell_range,
 			       &r->start_col, &r->start_row,
 			       &r->stop_col, &r->stop_row))
 	{
 	  msg (SE, _("Invalid cell range `%s'"),
-	       gri->cell_range);
+	       opts->cell_range);
 	  goto error;
 	}
     }
@@ -324,8 +328,8 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
     }
 
   r->state = STATE_INIT;
-  r->target_sheet = BAD_CAST gri->sheet_name;
-  r->target_sheet_index = gri->sheet_index;
+  r->target_sheet = BAD_CAST opts->sheet_name;
+  r->target_sheet_index = opts->sheet_index;
   r->row = r->col = -1;
   r->sheet_index = 0;
 
@@ -347,7 +351,7 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
 
   /* If a range has been given, then  use that to calculate the number
      of cases */
-  if ( gri->cell_range)
+  if ( opts->cell_range)
     {
       n_cases = MIN (n_cases, r->stop_row - r->start_row + 1);
     }
@@ -486,7 +490,17 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
     }
 
   free (var_spec);
-
+  
+  
+  if (opts->cell_range == NULL)
+    {
+      opts->cell_range = c_xasprintf ("%c%d:%c%d", 
+				       r->start_col + 'A',
+				       r->start_row,
+				       r->stop_col + 'A' + caseproto_get_n_widths (r->proto),
+				       r->start_row + n_cases);
+    }
+  
   return casereader_create_sequential
     (NULL,
      r->proto,

@@ -65,6 +65,7 @@ static char *generate_syntax (const struct import_assistant *);
 
 static void add_line_number_column (const struct import_assistant *,
                                     GtkTreeView *);
+
 /* Pops up the Text Data Import assistant. */
 void
 text_data_import_assistant (PsppireDataWindow *dw)
@@ -214,74 +215,93 @@ generate_syntax (const struct import_assistant *ia)
 {
   struct string s = DS_EMPTY_INITIALIZER;
 
-  if (ia->file.type == FTYPE_TEXT)
-  {
-    size_t var_cnt;
-    size_t i;
-    syntax_gen_pspp (&s,
-		     "GET DATA\n"
-		     "  /TYPE=TXT\n"
-		     "  /FILE=%sq\n",
-		     ia->file.file_name);
-    if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
-      syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
-    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
-							 ia->intro.n_cases_button)))
-      ds_put_format (&s, "  /IMPORTCASES=FIRST %d\n",
-		     gtk_spin_button_get_value_as_int (
-						       GTK_SPIN_BUTTON (ia->intro.n_cases_spin)));
-    else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
-							      ia->intro.percent_button)))
-      ds_put_format (&s, "  /IMPORTCASES=PERCENT %d\n",
-		     gtk_spin_button_get_value_as_int (
-						       GTK_SPIN_BUTTON (ia->intro.percent_spin)));
-    else
-      ds_put_cstr (&s, "  /IMPORTCASES=ALL\n");
-    ds_put_cstr (&s,
-		 "  /ARRANGEMENT=DELIMITED\n"
-		 "  /DELCASE=LINE\n");
-    if (ia->first_line.skip_lines > 0)
-      ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line.skip_lines + 1);
-    ds_put_cstr (&s, "  /DELIMITERS=\"");
-    if (ds_find_byte (&ia->separators.separators, '\t') != SIZE_MAX)
-      ds_put_cstr (&s, "\\t");
-    if (ds_find_byte (&ia->separators.separators, '\\') != SIZE_MAX)
-      ds_put_cstr (&s, "\\\\");
-    for (i = 0; i < ds_length (&ia->separators.separators); i++)
-      {
-	char c = ds_at (&ia->separators.separators, i);
-	if (c == '"')
-	  ds_put_cstr (&s, "\"\"");
-	else if (c != '\t' && c != '\\')
-	  ds_put_byte (&s, c);
-      }
-    ds_put_cstr (&s, "\"\n");
-    if (!ds_is_empty (&ia->separators.quotes))
-      syntax_gen_pspp (&s, "  /QUALIFIER=%sq\n", ds_cstr (&ia->separators.quotes));
-    if (!ds_is_empty (&ia->separators.quotes) && ia->separators.escape)
-      ds_put_cstr (&s, "  /ESCAPE\n");
-    ds_put_cstr (&s, "  /VARIABLES=\n");
-
-    var_cnt = dict_get_var_cnt (ia->formats.dict);
-    for (i = 0; i < var_cnt; i++)
-      {
-	struct variable *var = dict_get_var (ia->formats.dict, i);
-	char format_string[FMT_STRING_LEN_MAX + 1];
-	fmt_to_string (var_get_print_format (var), format_string);
-	ds_put_format (&s, "    %s %s%s\n",
-		       var_get_name (var), format_string,
-		       i == var_cnt - 1 ? "." : "");
-      }
-
-    apply_dict (ia->formats.dict, &s);
-  }
-  else
+  switch (ia->file.type)
     {
-      syntax_gen_pspp (&s,
-		       "GET DATA\n"
-		       "  /TYPE=GNM\n"
-		       "  /FILE=%sq\n",
-		       ia->file.file_name);
+    case FTYPE_TEXT:
+      {
+	size_t var_cnt;
+	size_t i;
+	syntax_gen_pspp (&s,
+			 "GET DATA\n"
+			 "  /TYPE=TXT\n"
+			 "  /FILE=%sq\n",
+			 ia->file.file_name);
+	if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
+	  syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
+	if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
+							     ia->intro.n_cases_button)))
+	  ds_put_format (&s, "  /IMPORTCASES=FIRST %d\n",
+			 gtk_spin_button_get_value_as_int (
+							   GTK_SPIN_BUTTON (ia->intro.n_cases_spin)));
+	else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
+								  ia->intro.percent_button)))
+	  ds_put_format (&s, "  /IMPORTCASES=PERCENT %d\n",
+			 gtk_spin_button_get_value_as_int (
+							   GTK_SPIN_BUTTON (ia->intro.percent_spin)));
+	else
+	  ds_put_cstr (&s, "  /IMPORTCASES=ALL\n");
+	ds_put_cstr (&s,
+		     "  /ARRANGEMENT=DELIMITED\n"
+		     "  /DELCASE=LINE\n");
+	if (ia->first_line.skip_lines > 0)
+	  ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line.skip_lines + 1);
+	ds_put_cstr (&s, "  /DELIMITERS=\"");
+	if (ds_find_byte (&ia->separators.separators, '\t') != SIZE_MAX)
+	  ds_put_cstr (&s, "\\t");
+	if (ds_find_byte (&ia->separators.separators, '\\') != SIZE_MAX)
+	  ds_put_cstr (&s, "\\\\");
+	for (i = 0; i < ds_length (&ia->separators.separators); i++)
+	  {
+	    char c = ds_at (&ia->separators.separators, i);
+	    if (c == '"')
+	      ds_put_cstr (&s, "\"\"");
+	    else if (c != '\t' && c != '\\')
+	      ds_put_byte (&s, c);
+	  }
+	ds_put_cstr (&s, "\"\n");
+	if (!ds_is_empty (&ia->separators.quotes))
+	  syntax_gen_pspp (&s, "  /QUALIFIER=%sq\n", ds_cstr (&ia->separators.quotes));
+	if (!ds_is_empty (&ia->separators.quotes) && ia->separators.escape)
+	  ds_put_cstr (&s, "  /ESCAPE\n");
+	ds_put_cstr (&s, "  /VARIABLES=\n");
+
+	var_cnt = dict_get_var_cnt (ia->formats.dict);
+	for (i = 0; i < var_cnt; i++)
+	  {
+	    struct variable *var = dict_get_var (ia->formats.dict, i);
+	    char format_string[FMT_STRING_LEN_MAX + 1];
+	    fmt_to_string (var_get_print_format (var), format_string);
+	    ds_put_format (&s, "    %s %s%s\n",
+			   var_get_name (var), format_string,
+			   i == var_cnt - 1 ? "." : "");
+	  }
+
+	apply_dict (ia->formats.dict, &s);
+      }
+      break;
+    case FTYPE_GNUMERIC:
+      {
+	syntax_gen_pspp (&s,
+			 "GET DATA\n"
+			 "  /TYPE=GNM\n"
+			 "  /FILE=%sq\n",
+			 ia->file.file_name);
+      }
+      break;
+    
+    case FTYPE_ODS:
+      {
+	syntax_gen_pspp (&s,
+			 "GET DATA\n"
+			 "  /TYPE=ODS\n"
+			 "  /FILE=%sq\n",
+			 ia->file.file_name);
+      }
+      break;
+
+
+    default:
+      g_assert_not_reached ();
     }
 
 
@@ -463,8 +483,8 @@ render_output_cell (GtkTreeViewColumn *tree_column,
    preview tree view. */
 static gboolean
 on_query_output_tooltip (GtkWidget *widget, gint wx, gint wy,
-                        gboolean keyboard_mode UNUSED,
-                        GtkTooltip *tooltip, struct import_assistant *ia)
+			 gboolean keyboard_mode UNUSED,
+			 GtkTooltip *tooltip, struct import_assistant *ia)
 {
   size_t row, column;
   char *text;
@@ -536,7 +556,7 @@ make_tree_view (const struct import_assistant *ia,
 
   *tree_view = GTK_TREE_VIEW (gtk_tree_view_new ());
   model = GTK_TREE_MODEL (psppire_empty_list_store_new (
-                            ia->file.line_cnt - first_line));
+							ia->file.line_cnt - first_line));
   g_object_set_data (G_OBJECT (model), "lines", ia->file.lines + first_line);
   g_object_set_data (G_OBJECT (model), "first-line",
                      GINT_TO_POINTER (first_line));
@@ -570,10 +590,10 @@ add_line_number_column (const struct import_assistant *ia,
   GtkTreeViewColumn *column;
 
   column = gtk_tree_view_column_new_with_attributes (
-    _("Line"), ia->asst.prop_renderer, (void *) NULL);
+						     _("Line"), ia->asst.prop_renderer, (void *) NULL);
   gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);
   gtk_tree_view_column_set_fixed_width (
-    column, get_monospace_width (treeview, ia->asst.prop_renderer, 5));
+					column, get_monospace_width (treeview, ia->asst.prop_renderer, 5));
   gtk_tree_view_column_set_resizable (column, TRUE);
   gtk_tree_view_column_set_cell_data_func (column, ia->asst.prop_renderer,
                                            render_line_number, NULL, NULL);
@@ -637,8 +657,8 @@ make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
   gtk_tree_view_column_pack_start (tree_column, ia->asst.fixed_renderer,
                                    FALSE);
   gtk_tree_view_column_set_cell_data_func (
-    tree_column, ia->asst.fixed_renderer,
-    input ? render_input_cell : render_output_cell, ia, NULL);
+					   tree_column, ia->asst.fixed_renderer,
+					   input ? render_input_cell : render_output_cell, ia, NULL);
   gtk_tree_view_column_set_sizing (tree_column, GTK_TREE_VIEW_COLUMN_FIXED);
   gtk_tree_view_column_set_fixed_width (tree_column, MAX (content_width,
                                                           header_width));

@@ -29,7 +29,9 @@
 #include "data/data-in.h"
 #include "data/data-out.h"
 #include "data/format-guesser.h"
+#include "data/casereader.h"
 #include "data/gnumeric-reader.h"
+#include "data/ods-reader.h"
 #include "data/spreadsheet-reader.h"
 #include "data/value-labels.h"
 #include "language/data-io/data-parser.h"
@@ -75,30 +77,84 @@ static char *choose_file (GtkWindow *parent_window, gchar **encodingp);
 bool
 init_file (struct import_assistant *ia, GtkWindow *parent_window)
 {
+  enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
+  enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
   struct file *file = &ia->file;
+  struct separators_page *sepp = &ia->separators;
+  struct casereader *creader = NULL;
+  struct dictionary *dict = NULL;
+  struct spreadsheet_read_info sri;
+  struct spreadsheet_read_options opts;
+
+  file->lines = NULL;
   file->file_name = choose_file (parent_window, &file->encoding);
   if (file->file_name == NULL)
     return false;
 
-  struct dictionary *dict = NULL;
-  struct spreadsheet_read_info sri;
+  opts.sheet_name = NULL;
+  opts.cell_range = NULL;
+  opts.sheet_index = 1;
 
-  sri.sheet_name = NULL;
   sri.file_name = file->file_name;
-  sri.cell_range = NULL;
-  sri.sheet_index = 1;
   sri.read_names = true;
-  sri.asw = 0;
+  sri.asw = -1;
 
-  struct casereader *creader = gnumeric_open_reader (&sri, &dict);
-  printf ("%s:%d %s\n", __FILE__, __LINE__, sri.file_name);
-  ia->file.type = FTYPE_SPREADSHEET;
+  if (!creader) 
+    {
+      creader = gnumeric_open_reader (&sri, &opts, &dict);
+      ia->file.type = FTYPE_GNUMERIC;
+    }
+	
+  if (!creader) 
+    {
+      creader = ods_open_reader (&sri, &opts, &dict);
+      ia->file.type = FTYPE_ODS;
+    }
+    
+  if (creader)
+    {
+      int col;
+      int rows = 0;
+      struct ccase *c;
+  
+      sepp->column_cnt = dict_get_var_cnt (dict);
+      sepp->columns = xcalloc (sepp->column_cnt, sizeof (*sepp->columns));
+      for (col = 0; col < sepp->column_cnt ; ++col)
+	{
+	  const struct variable *var = dict_get_var (dict, col);
+	  sepp->columns[col].name = xstrdup (var_get_name (var));
+	  sepp->columns[col].contents = NULL;
+	}
 
-  if (creader == NULL)
-  {
-    enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
-    enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
+      for (; (c = casereader_read (creader)) != NULL; case_unref (c))
+	{
+	  rows++;
+	  for (col = 0; col < sepp->column_cnt ; ++col)
+	    {
+	      char *ss;
+	      const struct variable *var = dict_get_var (dict, col);
 
+	      sepp->columns[col].contents = xrealloc (sepp->columns[col].contents,
+						      sizeof (struct substring) * rows);
+
+	      ss = data_out (case_data (c, var), dict_get_encoding (dict), 
+			     var_get_print_format (var));
+
+	      sepp->columns[col].contents[rows - 1] = ss_cstr (ss);
+	    }
+
+	  if (rows > MAX_PREVIEW_LINES)
+	    {
+	      case_unref (c);
+	      break;
+	    }
+	}
+
+      file->line_cnt = rows;
+      casereader_destroy (creader);
+    }
+  else
+    {
     struct string input;
     struct line_reader *reader = line_reader_for_file (file->encoding, file->file_name, O_RDONLY);
     if (reader == NULL)
@@ -173,9 +229,13 @@ destroy_file (struct import_assistant *ia)
   struct file *f = &ia->file;
   size_t i;
 
-  for (i = 0; i < f->line_cnt; i++)
-    ds_destroy (&f->lines[i]);
-  free (f->lines);
+  if (f->lines)
+    {
+      for (i = 0; i < f->line_cnt; i++)
+	ds_destroy (&f->lines[i]);
+      free (f->lines);
+    }
+
   g_free (f->file_name);
   g_free (f->encoding);
 }

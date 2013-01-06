@@ -20,8 +20,12 @@
 struct casereader;
 struct dictionary;
 struct spreadsheet_read_info;
+struct spreadsheet_read_options;
 
-struct casereader * ods_open_reader (struct spreadsheet_read_info *, struct dictionary **);
+
+struct casereader * ods_open_reader (const struct spreadsheet_read_info *,
+				     struct spreadsheet_read_options *,
+				     struct dictionary **);
 
 
 #endif

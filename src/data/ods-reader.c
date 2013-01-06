@@ -33,7 +33,8 @@
 #if !ODF_READ_SUPPORT
 
 struct casereader *
-ods_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
+ods_open_reader (const struct spreadsheet_read_info *gri, struct spreadsheet_read_options *opts, 
+		 struct dictionary **dict)
 {
   msg (ME, _("Support for %s files was not compiled into this installation of PSPP"), "OpenDocument");
 
@@ -334,7 +335,8 @@ convert_xml_to_value (struct ccase *c, const struct variable *var,
 
 
 struct casereader *
-ods_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
+ods_open_reader (const struct spreadsheet_read_info *gri, struct spreadsheet_read_options *opts,
+		 struct dictionary **dict)
 {
   int ret = 0;
   xmlChar *type = NULL;
@@ -382,14 +384,14 @@ ods_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
       goto error;
     }
 
-  if ( gri->cell_range )
+  if ( opts->cell_range )
     {
-      if ( ! convert_cell_ref (gri->cell_range,
+      if ( ! convert_cell_ref (opts->cell_range,
 			       &r->start_col, &r->start_row,
 			       &r->stop_col, &r->stop_row))
 	{
 	  msg (SE, _("Invalid cell range `%s'"),
-	       gri->cell_range);
+	       opts->cell_range);
 	  goto error;
 	}
     }
@@ -402,8 +404,8 @@ ods_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dict)
     }
 
   r->state = STATE_INIT;
-  r->target_sheet = BAD_CAST gri->sheet_name;
-  r->target_sheet_index = gri->sheet_index;
+  r->target_sheet = BAD_CAST opts->sheet_name;
+  r->target_sheet_index = opts->sheet_index;
   r->row = r->col = -1;
   r->sheet_index = 0;
 

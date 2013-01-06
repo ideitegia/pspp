@@ -22,8 +22,11 @@
 struct casereader;
 struct dictionary;
 struct spreadsheet_read_info;
+struct spreadsheet_read_options;
 
-struct casereader * gnumeric_open_reader (struct spreadsheet_read_info *, struct dictionary **);
+struct casereader * gnumeric_open_reader (const struct spreadsheet_read_info *, 
+					  struct spreadsheet_read_options *,
+					  struct dictionary **);
 
 
 #endif
