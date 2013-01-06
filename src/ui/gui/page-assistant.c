@@ -47,8 +47,6 @@
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-var-store.h"
-#include "ui/gui/psppire-scanf.h"
-#include "ui/syntax-gen.h"
 
 #include "gl/error.h"
 #include "gl/intprops.h"
@@ -150,6 +148,10 @@ static void
 on_prepare (GtkAssistant *assistant, GtkWidget *page,
             struct import_assistant *ia)
 {
+  int pn = gtk_assistant_get_current_page (assistant);
+
+  if (pn == 1 && ia->file.type != FTYPE_TEXT)
+    post_sheet_spec_page (ia);
 
   if (gtk_assistant_get_page_type (assistant, page)
       == GTK_ASSISTANT_PAGE_CONFIRM)
@@ -207,6 +209,8 @@ on_reset (GtkButton *button, struct import_assistant *ia)
     reset_separators_page (ia);
   else if (page == ia->formats.page)
     reset_formats_page (ia);
+  else if (page == ia->sheet_spec.page)
+    reset_sheet_spec_page (ia);
 }
 
 /* Causes the assistant to close, returning RESPONSE for

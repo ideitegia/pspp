@@ -64,9 +64,64 @@
 
 struct import_assistant;
 
-/* Choosing a file and reading it. */
-
+/* Choose a file */
 static char *choose_file (GtkWindow *parent_window, gchar **encodingp);
+enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
+
+
+/*
+  Update IA according to the contents of DICT and CREADER.
+  CREADER will be destroyed by this function.
+*/
+void 
+update_assistant (struct import_assistant *ia)
+{
+  struct sheet_spec_page *ssp = &ia->sheet_spec;
+
+  struct file *file = &ia->file;
+  struct separators_page *sepp = &ia->separators;
+  int col;
+  int rows = 0;
+  struct ccase *c;
+  
+  sepp->column_cnt = dict_get_var_cnt (ssp->dict);
+  sepp->columns = xcalloc (sepp->column_cnt, sizeof (*sepp->columns));
+  for (col = 0; col < sepp->column_cnt ; ++col)
+    {
+      const struct variable *var = dict_get_var (ssp->dict, col);
+      sepp->columns[col].name = xstrdup (var_get_name (var));
+      sepp->columns[col].contents = NULL;
+    }
+
+  for (; (c = casereader_read (ssp->reader)) != NULL; case_unref (c))
+    {
+      rows++;
+      for (col = 0; col < sepp->column_cnt ; ++col)
+	{
+	  char *ss;
+	  const struct variable *var = dict_get_var (ssp->dict, col);
+
+	  sepp->columns[col].contents = xrealloc (sepp->columns[col].contents,
+						  sizeof (struct substring) * rows);
+
+	  ss = data_out (case_data (c, var), dict_get_encoding (ssp->dict), 
+			 var_get_print_format (var));
+
+	  sepp->columns[col].contents[rows - 1] = ss_cstr (ss);
+	}
+
+      if (rows > MAX_PREVIEW_LINES)
+	{
+	  case_unref (c);
+	  break;
+	}
+    }
+
+  file->line_cnt = rows;
+  casereader_destroy (ssp->reader);
+  ssp->reader = NULL;
+}
+
 
 /* Obtains the file to import from the user and initializes IA's
    file substructure.  PARENT_WINDOW must be the window to use
@@ -77,10 +132,8 @@ static char *choose_file (GtkWindow *parent_window, gchar **encodingp);
 bool
 init_file (struct import_assistant *ia, GtkWindow *parent_window)
 {
-  enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
   enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
   struct file *file = &ia->file;
-  struct separators_page *sepp = &ia->separators;
   struct casereader *creader = NULL;
   struct dictionary *dict = NULL;
   struct spreadsheet_read_info sri;
@@ -113,45 +166,11 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
     
   if (creader)
     {
-      int col;
-      int rows = 0;
-      struct ccase *c;
-  
-      sepp->column_cnt = dict_get_var_cnt (dict);
-      sepp->columns = xcalloc (sepp->column_cnt, sizeof (*sepp->columns));
-      for (col = 0; col < sepp->column_cnt ; ++col)
-	{
-	  const struct variable *var = dict_get_var (dict, col);
-	  sepp->columns[col].name = xstrdup (var_get_name (var));
-	  sepp->columns[col].contents = NULL;
-	}
+      struct sheet_spec_page *ssp = &ia->sheet_spec;
+      ssp->dict = dict;
+      ssp->reader = creader;
 
-      for (; (c = casereader_read (creader)) != NULL; case_unref (c))
-	{
-	  rows++;
-	  for (col = 0; col < sepp->column_cnt ; ++col)
-	    {
-	      char *ss;
-	      const struct variable *var = dict_get_var (dict, col);
-
-	      sepp->columns[col].contents = xrealloc (sepp->columns[col].contents,
-						      sizeof (struct substring) * rows);
-
-	      ss = data_out (case_data (c, var), dict_get_encoding (dict), 
-			     var_get_print_format (var));
-
-	      sepp->columns[col].contents[rows - 1] = ss_cstr (ss);
-	    }
-
-	  if (rows > MAX_PREVIEW_LINES)
-	    {
-	      case_unref (c);
-	      break;
-	    }
-	}
-
-      file->line_cnt = rows;
-      casereader_destroy (creader);
+      update_assistant (ia);
     }
   else
     {

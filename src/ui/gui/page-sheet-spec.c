@@ -30,6 +30,9 @@
 #include "data/data-out.h"
 #include "data/format-guesser.h"
 #include "data/value-labels.h"
+#include "data/gnumeric-reader.h"
+#include "data/ods-reader.h"
+#include "data/spreadsheet-reader.h"
 #include "language/data-io/data-parser.h"
 #include "language/lexer/lexer.h"
 #include "libpspp/assertion.h"
@@ -81,5 +84,52 @@ init_sheet_spec_page (struct import_assistant *ia)
 void
 reset_sheet_spec_page (struct import_assistant *ia)
 {
+  printf ("%s\n", __FUNCTION__);
+}
+
+/* Called when the Forward button is clicked, 
+   but before displaying the new page.
+*/
+void
+post_sheet_spec_page (struct import_assistant *ia)
+{
+  GtkBuilder *builder = ia->asst.builder;
+
+  struct file *file = &ia->file;
+  struct sheet_spec_page *ssp = &ia->sheet_spec;
+  struct casereader *creader;
+  struct dictionary *dict;
+
+  GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
+
+  gint num = atoi (gtk_entry_get_text (sheet_entry));
+  
+  printf ("%s sheet number %d\n", __FUNCTION__, num);
+
+  ssp->opts.sheet_name = NULL;
+  ssp->opts.cell_range = NULL;
+  ssp->opts.sheet_index = num;
+
+  ssp->sri.file_name = file->file_name;
+  ssp->sri.read_names = true;
+  ssp->sri.asw = -1;
+
+  switch (ia->file.type)
+    {
+    case FTYPE_ODS:
+      creader = ods_open_reader (&ssp->sri, &ssp->opts, &dict);
+      break;
+    case FTYPE_GNUMERIC:
+      creader = gnumeric_open_reader (&ssp->sri, &ssp->opts, &dict);
+      break;
+    default:
+      g_assert_not_reached ();
+      break;
+    }
+
+  ssp->dict = dict;
+  ssp->reader = creader;
+
+  update_assistant (ia);
 }
 

@@ -19,6 +19,7 @@
 
 #include <glib-object.h>
 #include "ui/gui/psppire-data-window.h"
+#include "data/spreadsheet-reader.h"
 
 #include "libpspp/str.h"
 
@@ -67,6 +68,11 @@ struct assistant
 struct sheet_spec_page
   {
     GtkWidget *page;
+    struct casereader *reader;
+    struct dictionary *dict;
+
+    struct spreadsheet_read_info sri;
+    struct spreadsheet_read_options opts;
   };
 
 
@@ -196,6 +202,9 @@ GtkTreeViewColumn *make_data_column (struct import_assistant *,
                                             gint column_idx);
 
 
+void  update_assistant (struct import_assistant *ia);
+
+
 bool init_file (struct import_assistant *ia, GtkWindow *parent_window);
 void destroy_file (struct import_assistant *ia);
 
@@ -205,11 +214,11 @@ void reset_intro_page (struct import_assistant *);
 
 void init_sheet_spec_page (struct import_assistant *);
 void reset_sheet_spec_page (struct import_assistant *);
+void post_sheet_spec_page (struct import_assistant *ia);
 
 void init_first_line_page (struct import_assistant *ia);
 void prepare_first_line_page (struct import_assistant *ia);
 void reset_first_line_page (struct import_assistant *);
-void destroy_first_line_page (struct import_assistant *ia);
 
 void init_separators_page (struct import_assistant *ia);
 void prepare_separators_page (struct import_assistant *ia);
@@ -220,7 +229,6 @@ void init_formats_page (struct import_assistant *ia);
 void prepare_formats_page (struct import_assistant *ia);
 void reset_formats_page (struct import_assistant *);
 void destroy_formats_page (struct import_assistant *ia);
-
 
 void init_assistant (struct import_assistant *, GtkWindow *);
 void destroy_assistant (struct import_assistant *);

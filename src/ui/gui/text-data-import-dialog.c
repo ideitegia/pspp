@@ -280,26 +280,22 @@ generate_syntax (const struct import_assistant *ia)
       }
       break;
     case FTYPE_GNUMERIC:
+    case FTYPE_ODS:
       {
+	const struct sheet_spec_page *ssp = &ia->sheet_spec;
+
 	syntax_gen_pspp (&s,
 			 "GET DATA\n"
-			 "  /TYPE=GNM\n"
-			 "  /FILE=%sq\n",
-			 ia->file.file_name);
+			 "  /TYPE=%s\n"
+			 "  /FILE=%sq\n"
+			 "  /SHEET=index %d\n"
+			 ".",
+			 (ia->file.type == FTYPE_GNUMERIC) ? "GNM" : "ODS",
+			 ia->file.file_name,			 
+			 ssp->opts.sheet_index);
       }
       break;
     
-    case FTYPE_ODS:
-      {
-	syntax_gen_pspp (&s,
-			 "GET DATA\n"
-			 "  /TYPE=ODS\n"
-			 "  /FILE=%sq\n",
-			 ia->file.file_name);
-      }
-      break;
-
-
     default:
       g_assert_not_reached ();
     }
