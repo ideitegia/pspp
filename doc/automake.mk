@@ -86,3 +86,6 @@ CLEANFILES += pspp-dev.dvi $(docbook_DATA)
 
 doc: $(INFO_DEPS) $(DVIS) $(PDFS) $(PSS) $(HTMLS) $(dist_docbook_DATA)
 .PHONY: doc
+
+include $(top_srcdir)/doc/Images/png_manifest
+include $(top_srcdir)/doc/Images/eps_manifest

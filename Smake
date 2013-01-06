@@ -108,7 +108,7 @@ GNULIB_MODULES = \
 	xstrndup \
 	xvasprintf
 
-all: prep_ph manual_images
+all: prep_ph manual_images doc/Images/eps_manifest doc/Images/png_manifest
 	$(MAKE) -f Smake Makefile.in configure
 
 .PHONY: prep_ph
@@ -153,6 +153,14 @@ doc/Images/%.eps: doc/Images/%.png
 
 .PHONY: manual_images
 manual_images: $(patsubst %.png,%.eps,$(wildcard doc/Images/*.png))
+
+
+doc/Images/eps_manifest: $(patsubst %.png,%.eps,$(wildcard doc/Images/*.png))
+	echo 'EXTRA_DIST += $^' > doc/Images/eps_manifest
+
+doc/Images/png_manifest: $(wildcard doc/Images/*.png)
+	echo 'EXTRA_DIST += $^' > doc/Images/png_manifest
+
 
 _build: all
 	test -d _build || mkdir _build

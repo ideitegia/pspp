@@ -10,3 +10,5 @@ tut.texi
 version-dev.texi
 version.texi
 Images/*.eps
+Images/png_manifest
+Images/eps_manifest
