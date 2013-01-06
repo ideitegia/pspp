@@ -1032,7 +1032,7 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   connect_action (de, "file_new_data", G_CALLBACK (create_data_window));
 
-  connect_action (de, "file_import-text", G_CALLBACK (text_data_import_assistant));
+  connect_action (de, "file_import", G_CALLBACK (text_data_import_assistant));
 
   connect_action (de, "file_save", G_CALLBACK (psppire_window_save));
  
