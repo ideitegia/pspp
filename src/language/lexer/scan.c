@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -503,9 +503,6 @@ scan_start__ (struct scanner *scanner, enum segment_type type,
 
     case SEG_UNEXPECTED_CHAR:
       return scan_unexpected_char (&s, token);
-
-    case SEG_N_TYPES:
-      NOT_REACHED ();
     }
 
   NOT_REACHED ();

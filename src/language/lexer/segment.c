@@ -601,9 +601,6 @@ next_id_in_command (const struct segmenter *s, const char *input, size_t n,
         case SEG_UNEXPECTED_CHAR:
           id[0] = '\0';
           return ofs + retval;
-
-        case SEG_N_TYPES:
-          NOT_REACHED ();
         }
       ofs += retval;
     }

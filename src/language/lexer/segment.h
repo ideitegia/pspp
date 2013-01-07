@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -97,8 +97,12 @@ enum segment_type
 #define SEG_TYPE(NAME) SEG_##NAME,
     SEG_TYPES
 #undef SEG_TYPE
-    SEG_N_TYPES
   };
+
+/* Number of segment types. */
+#define SEG_TYPE(NAME) + 1
+enum { SEG_N_TYPES = SEG_TYPES };
+#undef SEG_TYPE
 
 const char *segment_type_to_string (enum segment_type);
 
