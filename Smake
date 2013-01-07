@@ -48,6 +48,7 @@ GNULIB_MODULES = \
         mbiter \
 	memcasecmp \
 	memchr \
+	memchr2 \
 	mempcpy \
 	memrchr \
 	minmax \
