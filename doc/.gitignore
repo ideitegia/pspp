@@ -9,6 +9,6 @@ stamp-vti
 tut.texi
 version-dev.texi
 version.texi
-Images/*.eps
-Images/png_manifest
-Images/eps_manifest
+*.eps
+png_manifest
+eps_manifest

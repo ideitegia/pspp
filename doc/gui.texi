@@ -42,7 +42,7 @@ Central to PSPP, launches when you start a session. Similar in organization to a
 @end table
 
 @float Figure, fig:pic1
-@image{Images/pic1}
+@image{pic1}
 @caption{Data editor window}
 @end float
 
@@ -70,7 +70,7 @@ Enter command line instructions to edit, import and analyze data. This has the a
 @end table
 
 @float Figure, fig:pic2
-@image{Images/pic2}
+@image{pic2}
 @caption{Syntax editor window}
 @end float
 
@@ -86,7 +86,7 @@ Toggle between views by clicking on the @button{Data View} or @button{Variable V
 
 
 @float Figure, fig:pic3
-@image{Images/pic3,6in}
+@image{pic3,6in}
 @caption{Data editor window}
 @end float
 
@@ -106,7 +106,7 @@ Toggle between views by clicking on the @button{Data View} or @button{Variable V
 PSPP lists variables in columns and cases in rows, e.g., in the hotel customer satisfaction survey (@pxref{fig:pic4}) each row represents the set of answers given by each respondent and each column a question. 
 
 @float Figure, fig:pic4
-@image{Images/pic4}
+@image{pic4}
 @caption{Data view }
 @end float
 
@@ -119,7 +119,7 @@ Display variable attributes associated with each case, where variable attributes
 
 
 @float Figure, fig:pic5
-@image{Images/pic5,6in}
+@image{pic5,6in}
 @caption{Variable view}
 @end float
 
@@ -161,7 +161,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 @end table
 
 @float Figure, fig:pic6
-@image{Images/pic6, 6in}
+@image{pic6, 6in}
 @caption{Edit @button{name} in variable view.}
 @end float
 
@@ -185,7 +185,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 @end table
 
 @float Figure, fig:pic7
-@image{Images/pic7, 6in}
+@image{pic7, 6in}
 @caption{Edit @button{type} in variable view.}
 @end float
 
@@ -204,7 +204,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 @end table
 
 @float Figure, fig:pic8
-@image{Images/pic8, 6in}
+@image{pic8, 6in}
 @caption{Edit @button{width} in variable view.}
 @end float
 
@@ -222,7 +222,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 @end table
 
 @float Figure, fig:pic9
-@image{Images/pic9, 6in}
+@image{pic9, 6in}
 @caption{Edit @button{decimals} in variable view.}
 @end float
 
@@ -241,7 +241,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 @end table
 
 @float Figure, fig:pic10
-@image{Images/pic10, 6in}
+@image{pic10, 6in}
 @caption{Edit @button{label} in variable view.}
 @end float
 
@@ -269,7 +269,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 @end table
 
 @float Figure, fig:pic11
-@image{Images/pic11, 6in}
+@image{pic11, 6in}
 @caption{Edit @button{values} in variable view.}
 @end float
 
@@ -291,7 +291,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 @end table
 
 @float Figure, fig:pic12
-@image{Images/pic12, 6in}
+@image{pic12, 6in}
 @end float
 
 
@@ -309,7 +309,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 @end table
 
 @float Figure, fig:pic13
-@image{Images/pic13, 6in}
+@image{pic13, 6in}
 @caption{Edit @button{columns} in variable view.}
 @end float
 
@@ -331,7 +331,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 @end table
 
 @float Figure, fig:pic14
-@image{Images/pic14, 6in}
+@image{pic14, 6in}
 @caption{Edit @button{align} in variable view.}
 @end float
 
@@ -352,7 +352,7 @@ Edit variable attributes such as Name, Type, Width, Decimals, Label, and Values,
 
 
 @float Figure, fig:pic15
-@image{Images/pic15, 6in}
+@image{pic15, 6in}
 @caption{Edit @button{measure} in variable view.}
 @end float
 
@@ -368,7 +368,7 @@ In addition, if you already have at least one variable defined, then you can add
  
 
 @float Figure, fig:pic16
-@image{Images/pic16}
+@image{pic16}
 @caption{Insert new variable}
 @end float
 
@@ -390,7 +390,7 @@ There are a few ways to add a new case to an existing variable:
 
 
 @float Figure, fig:pic17
-@image{Images/pic17}
+@image{pic17}
 @caption{Insert new case}
 @end float
 
@@ -402,7 +402,7 @@ There are a few ways to add a new case to an existing variable:
 Hover the mouse over the variables name at the top of the column to view its label.
 
 @float Figure, fig:pic18
-@image{Images/pic18}
+@image{pic18}
 @caption{Hover mouse over variable title to view its label.}
 @end float
 
@@ -446,7 +446,7 @@ There are a couple of ways to clear columns:
 
 
 @float Figure, fig:pic19
-@image{Images/pic19}
+@image{pic19}
 @caption{Delete variables}
 @end float
 
@@ -470,7 +470,7 @@ There are a couple of ways to clear cases:
 
 
 @float Figure, fig:pic20
-@image{Images/pic20}
+@image{pic20}
 @caption{Delete cases}
 @end float
 
@@ -490,7 +490,7 @@ There are two alternative ways to sort cases without using the menu:
 
 
 @float Figure, fig:pic21
-@image{Images/pic21}
+@image{pic21}
 @caption{Sort cases}
 @end float
 
@@ -503,7 +503,7 @@ There are two alternative ways to sort cases without using the menu:
 Located at the bottom of the data editor window, provides information about the data under process. 
 
 @float Figure, fig:pic22
-@image{Images/pic22}
+@image{pic22}
 @caption{Status bar}
 @end float
 
@@ -557,7 +557,7 @@ The output viewer displays results, charts, and the instruction set executed, wh
 @end table
 
 @float Figure, fig:pic23
-@image{Images/pic23}
+@image{pic23}
 @caption{Output viewer displays open file instructions.}
 @end float
 
@@ -568,7 +568,7 @@ The output viewer displays results, charts, and the instruction set executed, wh
 @end table
 
 @float Figure, fig:pic24
-@image{Images/pic24}
+@image{pic24}
 @caption{Output viewer displays executed statistics functions.}
 @end float
 
@@ -580,7 +580,7 @@ The output viewer displays results, charts, and the instruction set executed, wh
 
 
 @float Figure, fig:pic25 
-@image{Images/pic25}
+@image{pic25}
 @caption{Output viewer panes}
 @end float
 
@@ -614,7 +614,7 @@ For example, the following set of commands (@pxref{fig:pic26}) populates the dat
 
 
 @float Figure, fig:pic26
-@image{Images/pic26}
+@image{pic26}
 @caption{Enter command line instructions in the syntax editor.}
 @end float
 
@@ -642,7 +642,7 @@ Most data-editor-menu functions enable you to paste the command line equivalent 
 @end table
 
 @float Figure, fig:pic27
-@image{Images/pic27}
+@image{pic27}
 @caption{@button{Descriptives} function in the data editor drop down menu.}
 @end float
 
@@ -654,7 +654,7 @@ Most data-editor-menu functions enable you to paste the command line equivalent 
 
 
 @float Figure, fig:pic28
-@image{Images/pic28}
+@image{pic28}
 @caption{@button{Paste} button in the @button{Descriptives} dialogue box.}
 @end float
 
@@ -664,7 +664,7 @@ Most data-editor-menu functions enable you to paste the command line equivalent 
 @end table
 
 @float Figure, fig:pic29
-@image{Images/pic29}
+@image{pic29}
 @caption{Command line equivalent of @button{Descriptives} function in the drop-down menu. }
 @end float
 
@@ -806,7 +806,7 @@ Import all or part of the file.
 @end table
 
 @float Figure, fig:pic32
-@image{Images/pic32, 6in}
+@image{pic32, 6in}
 @caption{Import textual data dialogue box}
 @end float
 
@@ -819,7 +819,7 @@ Select the first line of data.
 
 
 @float Figure, fig:pic33
-@image{Images/pic33}
+@image{pic33}
 @caption{Select first line of data.}
 @end float
 
@@ -850,7 +850,7 @@ Choose how to quote separator characters as demonstrated below (@pxref{fig:pic34
 
 
 @float Figure, fig:pic34
-@image{Images/pic34}
+@image{pic34}
 @caption{Choose data separators dialogue box}
 @end float
 
@@ -862,7 +862,7 @@ Verify and edit variable attributes ( @pxref{Language,,Attributes}).
 @end table
 
 @float Figure, fig:pic35
-@image{Images/pic35}
+@image{pic35}
 @caption{Check and fix data formats.}
 @end float
 
@@ -903,7 +903,7 @@ Display the dictionary of the currently opened file.
 @end table
 
 @float Figure, fig:pic36
-@image{Images/pic36}
+@image{pic36}
 @caption{Dictionary of current file.}
 @end float
 
@@ -967,7 +967,7 @@ By default, PSPP inserts a numerical variable type (@pxref{Language,,Basic Numer
 Select @clicksequence{ Edit @click{} Insert Variable} to enter a new variable. 
 
 @float Figure, fig:pic37
-@image{Images/pic37}
+@image{pic37}
 @caption{Insert variable in data editor.}
 @end float
 
@@ -1053,7 +1053,7 @@ Show the value label associated with each result in data view.
 The data editor window on the right displays the value labels of the numerical survey data displayed in the window to the left (@pxref{fig:pic38}). 
 
 @float Figure, fig:pic38
-@image{Images/pic38}
+@image{pic38}
 @caption{Value labels of the data in the left window.}
 @end float
 
@@ -1112,7 +1112,7 @@ sp 1
 
 
 @float Figure, fig:pic39
-@image{Images/pic39}
+@image{pic39}
 @caption{@button{Split File} Dialogue Box}
 @end float
 
@@ -1121,7 +1121,7 @@ sp 1
 @end table
 
 @float Figure, fig:pic40
-@image{Images/pic40}
+@image{pic40}
 @caption{Physiology data file}
 @end float
 
@@ -1144,7 +1144,7 @@ sp 1
 
 
 @float Figure, fig:pic41
-@image{Images/pic39}
+@image{pic39}
 @caption{@button{Split-File} dialogue box}
 @end float
 
@@ -1163,7 +1163,7 @@ sp 1
 
 
 @float Figure, fig:pic42
-@image{Images/pic42}
+@image{pic42}
 @caption{Split-file results in output viewer}
 @end float
 
@@ -1224,7 +1224,7 @@ Compute the absolute difference in weight before and after participants follow a
 
  
 @float Figure, fig:pic43
-@image{Images/pic43}
+@image{pic43}
 @caption{Volunteers weights before and after dieting.}
 @end float
 
@@ -1239,7 +1239,7 @@ Compute the absolute difference in weight before and after participants follow a
 @end table
 
 @float Figure, fig:pic44
-@image{Images/pic44}
+@image{pic44}
 @caption{@button{Compute} dialogue box}
 @end float
 
@@ -1250,7 +1250,7 @@ Compute the absolute difference in weight before and after participants follow a
 
 
 @float Figure, fig:pic45
-@image{Images/pic45}
+@image{pic45}
 @caption{Compute solution @button{Type} and @button{Label}}
 @end float
 
@@ -1276,7 +1276,7 @@ Compute the absolute difference in weight before and after participants follow a
 @end table
 
 @float Figure, fig:pic46
-@image{Images/pic46, 6in}
+@image{pic46, 6in}
 @caption{Enter numeric expression into @button{compute} dialogue box.}
 @end float
 
@@ -1299,7 +1299,7 @@ Compute the absolute difference in weight before and after participants follow a
 @end table
 
 @float Figure, fig:pic47
-@image{Images/pic47}
+@image{pic47}
 @caption{Enter formula into @button{compute} variable dialogue box.}
 @end float
 
@@ -1309,7 +1309,7 @@ Compute the absolute difference in weight before and after participants follow a
 @end table
 
 @float Figure, fig:pic49
-@image{Images/pic49, 6in}
+@image{pic49, 6in}
 @caption{New variable @button{weight change} from calculation in @button{compute} dialogue box.}
 @end float
 
@@ -1323,7 +1323,7 @@ Create new variables that hold ranks, Savage scores, Normal scores, and percenti
 PSPP automatically names and labels these such as to indicate original variable name and selected measures. 
 
 @float Figure, fig:pic50
-@image{Images/pic50}
+@image{pic50}
 @caption{Rank cases by one or more variables.}
 @end float
 
@@ -1351,7 +1351,7 @@ PSPP automatically names and labels these such as to indicate original variable 
 @end table
 
 @float Figure, fig:pic51
-@image{Images/pic51}
+@image{pic51}
 @caption{@button{Rank case types} dialogue box.}
 @end float
 
@@ -1442,7 +1442,7 @@ Use to select the method for assigning rankings to cases with the same value on 
 @end table
 
 @float Figure, fig:pic52
-@image{Images/pic52}
+@image{pic52}
 @caption{@button{Rank case ties} dialogue box}
 @end float
 
@@ -1461,7 +1461,7 @@ Increase the value 12 Miles per Gallon (MPG) to 13 in the data set listing the m
 
 
 @float Figure, fig:pic53
-@image{Images/pic53}
+@image{pic53}
 @caption{Mileage-per-gallon data file}
 @end float
 
@@ -1479,7 +1479,7 @@ Increase the value 12 Miles per Gallon (MPG) to 13 in the data set listing the m
 @end table
 
 @float Figure, fig:pic54
-@image{Images/pic54}
+@image{pic54}
 @caption{@button{Recode into same variables} pop-up box}
 @end float
 
@@ -1497,7 +1497,7 @@ Increase the value 12 Miles per Gallon (MPG) to 13 in the data set listing the m
 
 
 @float Figure, fig:pic55
-@image{Images/pic55}
+@image{pic55}
 @caption{@button{Recode into same variables: Old and new values} pop-up box}
 @end float
 
@@ -1509,7 +1509,7 @@ Increase the value 12 Miles per Gallon (MPG) to 13 in the data set listing the m
 @end table
 
 @float Figure, fig:pic56
-@image{Images/pic56}
+@image{pic56}
 @caption{Replace cases with a new value.}
 @end float
 
@@ -1519,7 +1519,7 @@ Increase the value 12 Miles per Gallon (MPG) to 13 in the data set listing the m
 @end table
 
 @float Figure, fig:pic57
-@image{Images/pic57}
+@image{pic57}
 @caption{Display old and new case values in @button{Recode into same variables} pop-up box.}
 @end float
 
@@ -1590,7 +1590,7 @@ Increase the value 12 Miles per Gallon (MPG) to 13 in the data set listing the m
 
 
 @float Figure, fig:pic58
-@image{Images/pic58}
+@image{pic58}
 @caption{Collapse a range of values into categories with @button{recode into same variables}.}
 @end float
 
@@ -1604,7 +1604,7 @@ Increase the value 12 Miles per Gallon (MPG) to 13 in the data set listing the m
 @end table
 
 @float Figure, fig:pic59
-@image{Images/pic59}
+@image{pic59}
 @caption{Calculated @button{frequency} data inserted into data editor.}
 @end float
 
@@ -1619,7 +1619,7 @@ There are two options available; change a single value to a new one or change a 
 Note, that  the new variable type must be the same as the original; numeric or string (@pxref{Recode Into Same Variables}).
 
 @float Figure, fig:pic60
-@image{Images/pic60}
+@image{pic60}
 @caption{Recode case values into a new variable.}
 @end float
 
@@ -1782,7 +1782,7 @@ Optionally, view frequency tables and charts.
 
 
 @float Figure, fig:pic61
-@image{Images/pic61}
+@image{pic61}
 @caption{@button{Frequencies} dialogue box}
 @end float
 
@@ -1794,7 +1794,7 @@ Optionally, view frequency tables and charts.
 @end table
 
 @float Figure, fig:pic62
-@image{Images/pic62}
+@image{pic62}
 @caption{Select variables in the @button{frequencies} dialogue box. }
 @end float
 
@@ -1805,7 +1805,7 @@ Optionally, view frequency tables and charts.
 @end table
 
 @float Figure, fig:pic63
-@image{Images/pic63}
+@image{pic63}
 @caption{@button{Frequency tables} pop-up box }
 @end float
 
@@ -1815,7 +1815,7 @@ Optionally, view frequency tables and charts.
 
 
 @float Figure, fig:pic64
-@image{Images/pic64}
+@image{pic64}
 @caption{@button{Frequency charts} pop-up box. }
 @end float
 
@@ -1835,7 +1835,7 @@ Optionally, view frequency tables and charts.
 Analyze the extent to which hotel customers were satisfied with the level of service in the following survey (@pxref{fig:pic65}). 
 
 @float Figure, fig:pic65
-@image{Images/pic65, 6in}
+@image{pic65, 6in}
 @caption{Customer satisfaction survey }
 @end float
 
@@ -1855,7 +1855,7 @@ Analyze the extent to which hotel customers were satisfied with the level of ser
 @end table
 
 @float Figure, fig:pic66
-@image{Images/pic66}
+@image{pic66}
 @caption{Pick variables in the @button{frequencies} dialogue box. }
 @end float
 
@@ -1868,7 +1868,7 @@ Analyze the extent to which hotel customers were satisfied with the level of ser
 @end table
 
 @float Figure, fig:pic67
-@image{Images/pic67}
+@image{pic67}
 @caption{Plot histograms of selected data.}
 @end float
 
@@ -1878,7 +1878,7 @@ Analyze the extent to which hotel customers were satisfied with the level of ser
 @end table
 
 @float Figure, fig:pic68
-@image{Images/pic68}
+@image{pic68}
 @caption{Select statistical analyses in the @button{frequencies} pop-up.}
 @end float
 
@@ -1891,7 +1891,7 @@ Analyze the extent to which hotel customers were satisfied with the level of ser
 
 
 @float Figure, fig:pic69
-@image{Images/pic69}
+@image{pic69}
 @caption{Results of @button{frequencies} function displayed in output viewer.}
 @end float
 
@@ -1931,7 +1931,7 @@ Write a small program to generate normally distributed numbers that represent SA
 
 
 @float Figure, fig:pic70
-@image{Images/pic70}
+@image{pic70}
 @caption{Generate data (random numbers) in the syntax editor.}
 @end float
 
@@ -1942,7 +1942,7 @@ Write a small program to generate normally distributed numbers that represent SA
 @end table
 
 @float Figure, fig:pic71
-@image{Images/pic71}
+@image{pic71}
 @caption{New data generated with command line instructions in the syntax editor.}
 @end float
 
@@ -1962,7 +1962,7 @@ Write a small program to generate normally distributed numbers that represent SA
 
 
 @float Figure, fig:pic72
-@image{Images/pic72}
+@image{pic72}
 @caption{@button{Z-scores} generated with the @button{descriptives} function.}
 @end float
 
@@ -1981,7 +1981,7 @@ Generate descriptive statistics of the following data set of SAT test scores ver
 
 
 @float Figure, fig:pic73
-@image{Images/pic73}
+@image{pic73}
 @caption{Data sheet of SAT scores by gender.}
 @end float
 
@@ -1997,7 +1997,7 @@ Generate descriptive statistics of the following data set of SAT test scores ver
 @end table
 
 @float Figure, fig:pic74
-@image{Images/pic74}
+@image{pic74}
 @caption{@button{Explore} dialogue box}
 @end float
 
@@ -2017,7 +2017,7 @@ Generate descriptive statistics of the following data set of SAT test scores ver
 @end table
 
 @float Figure, fig:pic75
-@image{Images/pic75}
+@image{pic75}
 @caption{@button{Explore} statistic functions}
 @end float 
 
@@ -2027,7 +2027,7 @@ Generate descriptive statistics of the following data set of SAT test scores ver
 @end table
 
 @float Figure, fig:pic76
-@image{Images/pic76}
+@image{pic76}
 @caption{ @button{Explore} statistical analysis results displayed in output viewer.  }
 @end float
 
@@ -2045,7 +2045,7 @@ Generate descriptive statistics of the following data set of SAT test scores ver
 @end table
 
 @float Figure, fig:pic77
-@image{Images/pic77}
+@image{pic77}
 @caption{Compare SAT scores by gender with the @button{Explore} function.} 
 @end float
 
@@ -2063,7 +2063,7 @@ Generate descriptive statistics of the following data set of SAT test scores ver
 
 
 @float Figure, fig:pic78
-@image{Images/pic78}
+@image{pic78}
 @caption{Results of @button{Explore} function analysis in output viewer.}
 @end float
 
@@ -2215,7 +2215,7 @@ Consider a medical study examining the relative risk of patients having cerebell
 @end table
 
 @float Figure, fig:pic79
-@image{Images/pic79}
+@image{pic79}
 @caption{Toxicity data in the data editor} 
 @end float
 
@@ -2226,7 +2226,7 @@ Consider a medical study examining the relative risk of patients having cerebell
 @end table
 
 @float Figure, fig:pic80
-@image{Images/pic80}
+@image{pic80}
 @caption{@button{Weight cases} function} 
 @end float
 
@@ -2247,7 +2247,7 @@ Consider a medical study examining the relative risk of patients having cerebell
 @end table
    
 @float Figure, fig:pic81
-@image{Images/pic81}
+@image{pic81}
 @caption{@button{Crosstabs} dialogue box.} 
 @end float
 
@@ -2260,7 +2260,7 @@ Consider a medical study examining the relative risk of patients having cerebell
 @end table
 
 @float Figure, fig:pic82
-@image{Images/pic82}
+@image{pic82}
 @caption{@button{Crosstab} statistics results in output viewer.}
 @end float
 
@@ -2295,7 +2295,7 @@ Tests if the mean of a single variable differs from a specified constant.
 @end table
 
 @float Figure, fig:pic83
-@image{Images/pic83}
+@image{pic83}
 @caption{@button{One-Sample T Test} dialogue box}
 @end float
 
@@ -2305,7 +2305,7 @@ Tests if the mean of a single variable differs from a specified constant.
 @end table
 
 @float Figure, fig:pic84
-@image{Images/pic84}
+@image{pic84}
 @caption{@button{One-Sample T Test} output results}
 @end float
 
@@ -2374,7 +2374,7 @@ Although the test requires normally distributed data, minor departures from this
 @end table
 
 @float Figure, fig:pic85
-@image{Images/pic85}
+@image{pic85}
 @caption{@button{Independent-Samples T Test} dialogue box}
 @end float
 
@@ -2388,7 +2388,7 @@ Although the test requires normally distributed data, minor departures from this
 @end table   
 
 @float Figure, fig:pic86
-@image{Images/pic86}
+@image{pic86}
 @caption{Define variables and groups in the @button{Independent-Samples T Test} dialogue.}
 @end float
 
@@ -2404,7 +2404,7 @@ Although the test requires normally distributed data, minor departures from this
 @comment : There is no pic87
 
 @float Figure, fig:pic88
-@image{Images/pic88}
+@image{pic88}
 @caption{Organize data into groups. }
 @end float
 
@@ -2416,7 +2416,7 @@ Although the test requires normally distributed data, minor departures from this
 @end table
 
 @float Figure, fig:pic89
-@image{Images/pic89}
+@image{pic89}
 @caption{Results of the @button{Independent-Samples T Test} in the output viewer.}
 @end float
 
@@ -2440,7 +2440,7 @@ Each pair is then the measurement before coupled with the measurement after.
 @end table
 
 @float Figure, fig:pic90
-@image{Images/pic90}
+@image{pic90}
 @caption{Before and after data}
 @end float
 
@@ -2455,7 +2455,7 @@ Each pair is then the measurement before coupled with the measurement after.
 @end table
 
 @float Figure, fig:pic91
-@image{Images/pic91}
+@image{pic91}
 @caption{@button{Paired Samples T Test} dialogue box. }
 @end float
 
@@ -2467,7 +2467,7 @@ Each pair is then the measurement before coupled with the measurement after.
 @end table
 
 @float Figure, fig:pic92
-@image{Images/pic92}
+@image{pic92}
 @caption{@button{Paired Samples T Test} output results.}
 @end float
 
@@ -2505,7 +2505,7 @@ Note: this only tells you if the means of the groups are significantly different
 @end table
 
 @float Figure, fig:pic93
-@image{Images/pic93}
+@image{pic93}
 @caption{Data describing the lung capacity of several groups of smokers.}
 @end float
 
@@ -2515,7 +2515,7 @@ Note: this only tells you if the means of the groups are significantly different
 @end table
 
 @float Figure, fig:pic94a
-@image{Images/pic94a}
+@image{pic94a}
 @caption{@button{One-Way ANOVA} dialogue box}
 @end float
 
@@ -2524,7 +2524,7 @@ Note: this only tells you if the means of the groups are significantly different
 @end table
 
 @float Figure, fig:pic94b
-@image{Images/pic94b}
+@image{pic94b}
 @caption{Select dependent variable in @button{One-Way ANOVA} dialogue box}
 @end float
 
@@ -2534,7 +2534,7 @@ Note: this only tells you if the means of the groups are significantly different
 @end table
 
 @float Figure, fig:pic95
-@image{Images/pic95}
+@image{pic95}
 @caption{Dependent and independent variables in the @button{One-Way ANOVA} dialogue. }
 @end float
 
@@ -2545,7 +2545,7 @@ Note: this only tells you if the means of the groups are significantly different
 @end table
 
 @float Figure, fig:pic96
-@image{Images/pic96}
+@image{pic96}
 @caption{@button{One-Way ANOVA} output}
 @end float
 
@@ -2580,7 +2580,7 @@ is a weighted sum of the means and enables you to test your research hypothesis 
 @end table
 
 @float Figure, fig:pic97
-@image{Images/pic97}
+@image{pic97}
 @caption{Use @button{contrasts} button to calculate weighted sum of the means.}
 @end float
 
@@ -2592,7 +2592,7 @@ is a weighted sum of the means and enables you to test your research hypothesis 
 @end table
 
 @float Figure, fig:pic98
-@image{Images/pic98}
+@image{pic98}
 @caption{@button{Contrasts} dialogue box}
 @end float
 
@@ -2603,7 +2603,7 @@ is a weighted sum of the means and enables you to test your research hypothesis 
 @end table
 
 @float Figure, fig:pic99
-@image{Images/pic99}
+@image{pic99}
 @caption{@button{One-Way ANOVA} output}
 @end float
 
@@ -2678,7 +2678,7 @@ A negative value indicates that large values of one variable are associated with
 @end table
 
 @float Figure, fig:pic100
-@image{Images/pic100}
+@image{pic100}
 @caption{@button{Bivariate Correlations} dialogue box}
 @end float
 
@@ -2689,7 +2689,7 @@ A negative value indicates that large values of one variable are associated with
 @end table
 
 @float Figure, fig:pic101
-@image{Images/pic101}
+@image{pic101}
 @caption{@button{Bivariate Correlations} output}
 @end float
 
@@ -2712,7 +2712,7 @@ Helps identify the underlying variables, or factors, to explain correlations. Va
 @end table
 
 @float Figure, fig:pic102
-@image{Images/pic102}
+@image{pic102}
 @caption{@button{Factor Analysis} dialogue box}
 @end float
 
@@ -2721,7 +2721,7 @@ Helps identify the underlying variables, or factors, to explain correlations. Va
 @cindex extraction
 
 @float Figure, fig:pic103
-@image{Images/pic103}
+@image{pic103}
 @caption{@button{Factor Analysis Extraction} dialogue box}
 @end float
 
@@ -2800,7 +2800,7 @@ Specify the maximum number of steps the algorithm can take to estimate the solut
 @cindex rotation 
 
 @float Figure, fig:pic104
-@image{Images/pic104}
+@image{pic104}
 @caption{@button{Factor Analysis Rotation} dialogue box}
 @end float
 
@@ -2855,7 +2855,7 @@ Choose the maximum number of steps the algorithm can take to reach convergence. 
 @end table
 
 @float Figure, fig:pic105
-@image{Images/pic105}
+@image{pic105}
 @caption{Survey data describing influential factors in purchasing.}
 @end float
 
@@ -2871,7 +2871,7 @@ Choose the maximum number of steps the algorithm can take to reach convergence. 
 
 
 @float Figure, fig:pic106
-@image{Images/pic106}
+@image{pic106}
 @caption{ Pick variables for @button{Factor Analysis}.}
 @end float
 
@@ -2880,7 +2880,7 @@ Choose the maximum number of steps the algorithm can take to reach convergence. 
 @end table
 
 @float Figure, fig:pic107
-@image{Images/pic107}
+@image{pic107}
 @caption{All variables are selected for @button{Factor Analysis}. }
 @end float
 
@@ -2907,8 +2907,8 @@ Choose the maximum number of steps the algorithm can take to reach convergence. 
 @end table
 
 @float Figure, fig:pic108
-@image{Images/pic108}
-@image{Images/pic109}
+@image{pic108}
+@image{pic109}
 @caption{@button{Factor Analysis} output }
 @end float
 
@@ -2920,7 +2920,7 @@ Choose the maximum number of steps the algorithm can take to reach convergence. 
 Estimate the internal consistency reliability. Options include Split-half reliability and Cronbach's Alpha. 
 
 @float Figure, fig:pic110
-@image{Images/pic110}
+@image{pic110}
 @caption{@button{Reliability Analysis} dialogue box }
 @end float
 
@@ -2948,7 +2948,7 @@ Examine the internal reliability of the following pass-fail test data (@pxref{fi
 
 
 @float Figure, fig:pic111
-@image{Images/pic111}
+@image{pic111}
 @caption{Fail-pass test data }
 @end float
 
@@ -2963,7 +2963,7 @@ Examine the internal reliability of the following pass-fail test data (@pxref{fi
 @end table
 
 @float Figure, fig:pic112
-@image{Images/pic112}
+@image{pic112}
 @caption{Pick variables for @button{Reliability Analysis}}
 @end float
 
@@ -2972,7 +2972,7 @@ Examine the internal reliability of the following pass-fail test data (@pxref{fi
 @end table
 
 @float Figure, fig:pic113
-@image{Images/pic113}
+@image{pic113}
 @caption{All variables are chosen for @button{Reliability Analysis}.}
 @end float
 
@@ -2982,7 +2982,7 @@ Examine the internal reliability of the following pass-fail test data (@pxref{fi
 @end table
 
 @float Figure, fig:pic114
-@image{Images/pic114}
+@image{pic114}
 @caption{@button{Reliability Analysis} output}
 @end float
 
@@ -3061,7 +3061,7 @@ The primary purpose of this test is to observe if the number of outcomes for eac
 @end table
 
 @float Figure, fig:pic115
-@image{Images/pic115}
+@image{pic115}
 @caption{@button{Binomial} dialogue box}
 @end float
 
@@ -3070,7 +3070,7 @@ The primary purpose of this test is to observe if the number of outcomes for eac
 @end table
 
 @float Figure, fig:pic116
-@image{Images/pic116}
+@image{pic116}
 @caption{@button{Binomial Test} output}
 @end float
 
@@ -3098,7 +3098,7 @@ Used to check if distributions of categorical variables differ, where categorica
 @end table
 
 @float Figure, fig:pic117
-@image{Images/pic117}
+@image{pic117}
 @caption{@button{Chi-Square Test} dialogue box}
 @end float
 
@@ -3113,7 +3113,7 @@ Used to check if distributions of categorical variables differ, where categorica
 
 
 @float Figure, fig:pic118
-@image{Images/pic118}
+@image{pic118}
 @caption{@button{Chi-Square Test} output}
 @end float
 
@@ -3128,7 +3128,7 @@ The Roc Curve function returns an ROC curve with the option to display a diagona
 
 
 @float Figure, fig:pic119
-@image{Images/pic119}
+@image{pic119}
 @caption{@button{ROC Curve} dialogue box}
 @end float
 
@@ -3181,7 +3181,7 @@ The @button{age} variable holds the patients ages and the corresponding @button{
 
 
 @float Figure, fig:pic120
-@image{Images/pic120}
+@image{pic120}
 @caption{Medical test data }
 @end float
 
@@ -3202,7 +3202,7 @@ The @button{age} variable holds the patients ages and the corresponding @button{
 @end table
 
 @float Figure, fig:pic121
-@image{Images/pic121}
+@image{pic121}
 @caption{@button{ROC Curve} dialogue box }
 @end float
 
@@ -3211,7 +3211,7 @@ The @button{age} variable holds the patients ages and the corresponding @button{
 @end table
 
 @float Figure, fig:pic122
-@image{Images/pic122, 6in}
+@image{pic122, 6in}
 @caption{@button{ROC Curve} output}
 @end float
 
@@ -3252,7 +3252,7 @@ Properties include variable name and label, Data format, user-missing values, me
 
 
 @float Figure, fig:pic123
-@image{Images/pic123, 14cm}
+@image{pic123, 14cm}
 @caption{View variable properties in @button{Variables} dialogue box.}
 @end float
 
@@ -3264,7 +3264,7 @@ Properties include variable name and label, Data format, user-missing values, me
 This feature enables you to add comments to a data file. 
 
 @float Figure, fig:pic124
-@image{Images/pic124, 14cm}
+@image{pic124, 14cm}
 @caption{@button{Comments} dialogue box}
 @end float
 
@@ -3306,7 +3306,7 @@ Split the current data editor window (@pxref{fig:pic125}).
 
 
 @float Figure, fig:pic125
-@image{Images/pic125, 6in}
+@image{pic125, 6in}
 @caption{Split data-editor window}
 @end float
 
@@ -3323,7 +3323,7 @@ Provide user instructions and product version information.
 PSPP provides a tool bar across the top with short cuts to more commonly used menu commands.
 
 @float Figure, fig:pic126
-@image{Images/pic126, 6in}
+@image{pic126, 6in}
 @caption{Data editor toolbar}
 @end float
 
