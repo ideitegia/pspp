@@ -79,7 +79,6 @@ $(srcdir)/doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 
 docbookdir = $(docdir)
 dist_docbook_DATA = doc/pspp.xml
- 
 
 EXTRA_DIST += doc/OChangeLog
 CLEANFILES += pspp-dev.dvi $(docbook_DATA)
@@ -89,3 +88,7 @@ doc: $(INFO_DEPS) $(DVIS) $(PDFS) $(PSS) $(HTMLS) $(dist_docbook_DATA)
 
 include $(top_srcdir)/doc/png_manifest
 include $(top_srcdir)/doc/eps_manifest
+
+html-local: 
+	cp $(MANUAL_IMAGES) doc/pspp.html
+

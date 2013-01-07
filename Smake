@@ -165,7 +165,8 @@ doc/eps_manifest: $(patsubst %.png,%.eps,$(wildcard doc/*.png))
 	echo 'EXTRA_DIST += $^' > doc/eps_manifest
 
 doc/png_manifest: $(wildcard doc/*.png)
-	echo 'EXTRA_DIST += $^' > doc/png_manifest
+	echo 'MANUAL_IMAGES = $(subst doc/, $$(top_srcdir)/doc/, $^)' > $@
+	echo 'EXTRA_DIST += $$(MANUAL_IMAGES)' >> $@
 
 
 _build: all
