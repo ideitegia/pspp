@@ -289,10 +289,12 @@ generate_syntax (const struct import_assistant *ia)
 			 "\n  /TYPE=%ss"
 			 "\n  /FILE=%sq"
 			 "\n  /SHEET=index %d"
+			 "\n  /READNAMES=%ss"
 			 ".",
 			 (ia->file.type == FTYPE_GNUMERIC) ? "GNM" : "ODS",
 			 ia->file.file_name,			 
-			 ssp->opts.sheet_index);
+			 ssp->opts.sheet_index,
+			 ssp->sri.read_names ? "ON" : "OFF");
       }
       break;
     

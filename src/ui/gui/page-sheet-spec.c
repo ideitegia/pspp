@@ -101,6 +101,7 @@ post_sheet_spec_page (struct import_assistant *ia)
   struct dictionary *dict;
 
   GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
+  GtkWidget *readnames_checkbox = get_widget_assert (builder, "readnames-checkbox");
 
   gint num = atoi (gtk_entry_get_text (sheet_entry));
   
@@ -111,7 +112,7 @@ post_sheet_spec_page (struct import_assistant *ia)
   ssp->opts.sheet_index = num;
 
   ssp->sri.file_name = file->file_name;
-  ssp->sri.read_names = true;
+  ssp->sri.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
   ssp->sri.asw = -1;
 
   switch (ia->file.type)

@@ -763,7 +763,7 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkCheckButton" id="checkbutton1">
+                          <object class="GtkCheckButton" id="readnames-checkbox">
                             <property name="label" translatable="yes">Use first row as _variable names</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
