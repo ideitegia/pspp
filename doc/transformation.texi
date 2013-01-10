@@ -519,7 +519,7 @@ The source values are used to specify the values in the dataset which
 need to change, and the destination value specifies the new value
 to which they should be changed.
 Each @var{src_value} may take one of the following forms:
-@itemize @bullet
+@table @asis
 @item @var{number}
 If the source variables are numeric then @var{src_value} may be a literal
 number.
@@ -549,11 +549,11 @@ The @samp{ELSE} keyword may be used to match any values which are
 not matched by any other @var{src_value} appearing in the command.
 If this keyword appears, it should be used in the last mapping of the 
 command.
-@end itemize
+@end table
 
 After the source variables comes an @samp{=} and then the @var{dest_value}.
 The @var{dest_value} may take any of the following forms:
-@itemize @bullet
+@table @asis
 @item @var{number}
 A literal numeric value to which the source values should be changed.
 This implies the destination variable must be numeric.
@@ -569,7 +569,7 @@ The special keyword @samp{COPY} means that the source value should not be
 modified, but
 copied directly to the destination value.
 This is meaningful only if @samp{INTO @var{dest_vars}} is specified.
-@end itemize
+@end table
 
 Mappings are considered from left to right.
 Therefore, if a value is matched by a @var{src_value} from more than 
