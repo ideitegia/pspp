@@ -528,11 +528,9 @@ If the source variables are string variables then @var{src_value} may be a
 literal string (like all strings, enclosed in single or double quotes).
 @item @var{num1} THRU @var{num2}
 This form is valid only when the source variables are numeric.
-It specifies all values in the range [@var{num1}, @var{num2}].
-Normally you would ensure that @var{num2} is greater than or equal to
-@var{num1}.
-If @var{num1} however is greater than @var{num2}, then the range 
-[@var{num2},@var{num1}] will be used instead.
+It specifies all values in the range between @var{num1} and @var{num2},
+including both endpoints of the range.  By convention, @var{num1}
+should be less than @var{num2}.
 Open-ended ranges may be specified using @samp{LO} or @samp{LOWEST} 
 for @var{num1}
 or @samp{HI} or @samp{HIGHEST} for @var{num2}.
