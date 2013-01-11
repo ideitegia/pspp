@@ -300,38 +300,13 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
 }
 
 static bool
-xr_is_72dpi (cairo_t *cr)
-{
-  cairo_surface_type_t type;
-  cairo_surface_t *surface;
-
-  surface = cairo_get_target (cr);
-  type = cairo_surface_get_type (surface);
-  return type == CAIRO_SURFACE_TYPE_PDF || type == CAIRO_SURFACE_TYPE_PS;
-}
-
-static bool
 xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
 {
-  PangoContext *context;
-  PangoFontMap *map;
   int i;
 
   xr->cairo = cairo;
 
   cairo_set_line_width (xr->cairo, xr_to_pt (xr->line_width));
-
-  map = pango_cairo_font_map_get_default ();
-  context = pango_font_map_create_context (map);
-  if (xr_is_72dpi (cairo))
-    {
-      /* Pango seems to always scale fonts according to the DPI specified
-         in the font map, even if the surface has a real DPI.  The default
-         DPI is 96, so on a 72 DPI device fonts end up being 96/72 = 133%
-         of their desired size.  We deal with this by fixing the resolution
-         here.  Presumably there is a better solution, but what? */
-      pango_cairo_context_set_resolution (context, 72.0);
-    }
 
   xr->char_width = 0;
   xr->char_height = 0;
@@ -340,7 +315,7 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
       struct xr_font *font = &xr->fonts[i];
       int char_width, char_height;
 
-      font->layout = pango_layout_new (context);
+      font->layout = pango_cairo_create_layout (cairo);
       pango_layout_set_font_description (font->layout, font->desc);
 
       pango_layout_set_text (font->layout, "0", 1);
@@ -348,8 +323,6 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
       xr->char_width = MAX (xr->char_width, char_width);
       xr->char_height = MAX (xr->char_height, char_height);
     }
-
-  g_object_unref (G_OBJECT (context));
 
   if (xr->params == NULL)
     {
