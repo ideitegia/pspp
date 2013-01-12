@@ -161,12 +161,29 @@ doc/%.eps: doc/%.png
 manual_images: $(patsubst %.png,%.eps,$(wildcard doc/*.png))
 
 
-doc/eps_manifest: $(patsubst %.png,%.eps,$(wildcard doc/*.png))
-	echo 'EXTRA_DIST += $^' > doc/eps_manifest
-
-doc/png_manifest: $(wildcard doc/*.png)
-	echo 'MANUAL_IMAGES = $(subst doc/, $$(top_srcdir)/doc/, $^)' > $@
+doc/png_manifest: $(wildcard doc/*.texi)
+	echo 'MANUAL_IMAGES = \\' > $@
+	echo $^ | while read f; do \
+		cat $$f | grep @image | while read d; do \
+	        	dependent=`echo $$d | sed -e 's/@image{\([^},]*\).*/\1/g'` ; \
+			echo '\t$$(top_srcdir)'"/doc/$$dependent.png \\"; \
+		done ; \
+	done | sort -u | sed -e '$$s/\\//' >> $@
+	echo >>$@
+	echo >> $@
 	echo 'EXTRA_DIST += $$(MANUAL_IMAGES)' >> $@
+
+
+doc/eps_manifest: $(wildcard doc/*.texi)
+	printf 'EXTRA_DIST += ' > $@
+	echo $^ | while read f; do \
+		cat $$f | grep @image | while read d; do \
+	        	dependent=`echo $$d | sed -e 's/@image{\([^},]*\).*/\1/g'` ; \
+	    		printf " doc/$$dependent.eps"; \
+		done ; \
+	done >> $@
+	echo >> $@
+
 
 
 _build: all
