@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -523,6 +523,8 @@ static void
 xr_submit (struct output_driver *driver, const struct output_item *output_item)
 {
   struct xr_driver *xr = xr_driver_cast (driver);
+
+  output_driver_track_current_command (output_item, &xr->command_name);
 
   xr_driver_output_item (xr, output_item);
   while (xr_driver_need_new_page (xr))
