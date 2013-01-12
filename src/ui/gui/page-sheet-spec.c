@@ -93,17 +93,17 @@ reset_sheet_spec_page (struct import_assistant *ia)
 void
 post_sheet_spec_page (struct import_assistant *ia)
 {
-  char col_start[10];
-  char col_stop[10];
   int row_start = -1;
   int row_stop = -1;
+  int col_start = -1;
+  int col_stop = -1;
 
   GtkBuilder *builder = ia->asst.builder;
 
   struct file *file = &ia->file;
   struct sheet_spec_page *ssp = &ia->sheet_spec;
-  struct casereader *creader;
-  struct dictionary *dict;
+  struct casereader *creader = NULL;
+  struct dictionary *dict = NULL;
 
   GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
   GtkWidget *range_entry = get_widget_assert (builder, "cell-range-entry");
@@ -112,15 +112,19 @@ post_sheet_spec_page (struct import_assistant *ia)
   gint num = atoi (gtk_entry_get_text (GTK_ENTRY (sheet_entry)));
 
   const gchar *range = gtk_entry_get_text (GTK_ENTRY (range_entry));
-  
-  sscanf (range, "%[a-zA-Z]%d:%[a-zA-Z]%d", col_start, &row_start, col_stop, &row_stop);
+
+
+  if ( num < 1 )
+    num = 1;
   
   ssp->opts.sheet_name = NULL;
-  ssp->opts.cell_range = NULL;
+  ssp->opts.cell_range = range;
   ssp->opts.sheet_index = num;
 
-  if ( row_start > 0 && row_stop > 0)
-    ssp->opts.cell_range = xasprintf ("%s%d:%s%d", col_start, row_start, col_stop, row_stop);
+  if ( convert_cell_ref (range, &col_start, &row_start, &col_stop, &row_stop))
+    {
+      ssp->opts.cell_range = range;
+    }
 
   ssp->sri.file_name = file->file_name;
   ssp->sri.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
@@ -142,6 +146,20 @@ post_sheet_spec_page (struct import_assistant *ia)
   ssp->dict = dict;
   ssp->reader = creader;
 
-  update_assistant (ia);
+  if (creader && dict)
+    {
+      update_assistant (ia);
+    }
+  else
+    {
+      GtkWidget * dialog = gtk_message_dialog_new (NULL,
+			      GTK_DIALOG_MODAL,
+			      GTK_MESSAGE_ERROR,
+			      GTK_BUTTONS_CLOSE,
+			      _("An error occurred reading the spreadsheet file."));
+
+      gtk_dialog_run (GTK_DIALOG (dialog));
+      gtk_widget_destroy (dialog);
+    }
 }
 

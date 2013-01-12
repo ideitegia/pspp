@@ -80,43 +80,46 @@ update_assistant (struct import_assistant *ia)
 
   struct file *file = &ia->file;
   struct separators_page *sepp = &ia->separators;
-  int col;
   int rows = 0;
-  struct ccase *c;
-  
-  sepp->column_cnt = dict_get_var_cnt (ssp->dict);
-  sepp->columns = xcalloc (sepp->column_cnt, sizeof (*sepp->columns));
-  for (col = 0; col < sepp->column_cnt ; ++col)
+  if (ssp->dict)
     {
-      const struct variable *var = dict_get_var (ssp->dict, col);
-      sepp->columns[col].name = xstrdup (var_get_name (var));
-      sepp->columns[col].contents = NULL;
-    }
+      struct ccase *c;
+      int col;
 
-  for (; (c = casereader_read (ssp->reader)) != NULL; case_unref (c))
-    {
-      rows++;
+      sepp->column_cnt = dict_get_var_cnt (ssp->dict);
+      sepp->columns = xcalloc (sepp->column_cnt, sizeof (*sepp->columns));
       for (col = 0; col < sepp->column_cnt ; ++col)
 	{
-	  char *ss;
 	  const struct variable *var = dict_get_var (ssp->dict, col);
-
-	  sepp->columns[col].contents = xrealloc (sepp->columns[col].contents,
-						  sizeof (struct substring) * rows);
-
-	  ss = data_out (case_data (c, var), dict_get_encoding (ssp->dict), 
-			 var_get_print_format (var));
-
-	  sepp->columns[col].contents[rows - 1] = ss_cstr (ss);
+	  sepp->columns[col].name = xstrdup (var_get_name (var));
+	  sepp->columns[col].contents = NULL;
 	}
 
-      if (rows > MAX_PREVIEW_LINES)
+      for (; (c = casereader_read (ssp->reader)) != NULL; case_unref (c))
 	{
-	  case_unref (c);
-	  break;
+	  rows++;
+	  for (col = 0; col < sepp->column_cnt ; ++col)
+	    {
+	      char *ss;
+	      const struct variable *var = dict_get_var (ssp->dict, col);
+
+	      sepp->columns[col].contents = xrealloc (sepp->columns[col].contents,
+						      sizeof (struct substring) * rows);
+
+	      ss = data_out (case_data (c, var), dict_get_encoding (ssp->dict), 
+			     var_get_print_format (var));
+
+	      sepp->columns[col].contents[rows - 1] = ss_cstr (ss);
+	    }
+
+	  if (rows > MAX_PREVIEW_LINES)
+	    {
+	      case_unref (c);
+	      break;
+	    }
 	}
     }
-
+  
   file->line_cnt = rows;
   casereader_destroy (ssp->reader);
   ssp->reader = NULL;
@@ -164,7 +167,7 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
       ia->file.type = FTYPE_ODS;
     }
     
-  if (creader)
+  if (creader && dict)
     {
       struct sheet_spec_page *ssp = &ia->sheet_spec;
       ssp->dict = dict;

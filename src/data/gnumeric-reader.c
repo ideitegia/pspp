@@ -169,7 +169,6 @@ process_node (struct gnumeric_reader *r)
 	{
 	  if ( r->target_sheet != NULL)
 	    {
-	      printf ("%s:%d\n", __FILE__, __LINE__);
 	      xmlChar *value = xmlTextReaderValue (r->xtr);
 	      if ( 0 == xmlStrcmp (value, r->target_sheet))
 		r->state = STATE_SHEET_FOUND;
@@ -177,7 +176,6 @@ process_node (struct gnumeric_reader *r)
 	    }
 	  else if (r->target_sheet_index == r->sheet_index)
 	    {
-	      printf ("%s:%d %d\n", __FILE__, __LINE__, r->sheet_index);
 	      r->state = STATE_SHEET_FOUND;
 	    }
 	}

@@ -80,8 +80,6 @@ text_data_import_assistant (PsppireDataWindow *dw)
       return;
     }
 
-  printf ("%s:%d %s\n", __FILE__, __LINE__, ia->file.file_name);
-
   init_assistant (ia, parent_window);
   if ( ia->file.type == FTYPE_TEXT)
     {
