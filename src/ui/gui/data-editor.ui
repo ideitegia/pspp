@@ -51,7 +51,7 @@
         <child>
           <object class="GtkAction" id="file_import">
             <property name="name">file_import</property>
-            <property name="label" translatable="yes">_Import Data...</property>
+            <property name="label" translatable="yes">I_mport Data...</property>
 	    <property name="stock-id">gtk-convert</property>
           </object>
         </child>
