@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -89,5 +89,19 @@ enum scan_result
 void scanner_init (struct scanner *, struct token *);
 enum scan_result scanner_push (struct scanner *, enum segment_type,
                                struct substring, struct token *);
+
+/* A simplified lexer for handling syntax in a string. */
+
+struct string_lexer
+  {
+    const char *input;
+    size_t length;
+    size_t offset;
+    struct segmenter segmenter;
+  };
+
+void string_lexer_init (struct string_lexer *, const char *input,
+                        enum segmenter_mode);
+bool string_lexer_next (struct string_lexer *, struct token *);
 
 #endif /* scan.h */

@@ -592,3 +592,58 @@ scanner_push (struct scanner *scanner, enum segment_type type,
 
   NOT_REACHED ();
 }
+
+/* Initializes SLEX for parsing INPUT in the specified MODE.
+
+   SLEX has no internal state to free, but it retains a reference to INPUT, so
+   INPUT must not be modified or freed while SLEX is still in use. */
+void
+string_lexer_init (struct string_lexer *slex, const char *input,
+                   enum segmenter_mode mode)
+{
+  slex->input = input;
+  slex->length = strlen (input) + 1;
+  slex->offset = 0;
+  segmenter_init (&slex->segmenter, mode);
+}
+
+/*  */
+bool
+string_lexer_next (struct string_lexer *slex, struct token *token)
+{
+  struct segmenter saved_segmenter;
+  size_t saved_offset = 0;
+
+  struct scanner scanner;
+
+  scanner_init (&scanner, token);
+  for (;;)
+    {
+      const char *s = slex->input + slex->offset;
+      size_t left = slex->length - slex->offset;
+      enum segment_type type;
+      int n;
+
+      n = segmenter_push (&slex->segmenter, s, left, &type);
+      assert (n >= 0);
+
+      slex->offset += n;
+      switch (scanner_push (&scanner, type, ss_buffer (s, n), token))
+        {
+        case SCAN_BACK:
+          slex->segmenter = saved_segmenter;
+          slex->offset = saved_offset;
+          /* Fall through. */
+        case SCAN_DONE:
+          return token->type != T_STOP;
+
+        case SCAN_MORE:
+          break;
+
+        case SCAN_SAVE:
+          saved_segmenter = slex->segmenter;
+          saved_offset = slex->offset;
+          break;
+        }
+    }
+}

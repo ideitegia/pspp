@@ -45,21 +45,12 @@ static void usage (void) NO_RETURN;
 int
 main (int argc, char *argv[])
 {
-  struct segment
-    {
-      enum segment_type type;
-      struct substring string;
-    };
-
-  size_t offset;
   const char *file_name;
-  char *input;
-  struct segmenter s;
-  struct segment *segs;
-  size_t n_segs, allocated_segs;
   size_t length;
-  size_t i;
-  int n;
+  char *input;
+
+  struct string_lexer slex;
+  bool more;
 
   set_program_name (argv[0]);
   file_name = parse_options (argc, argv);
@@ -76,53 +67,12 @@ main (int argc, char *argv[])
     input[length++] = '\n';
   input[length++] = '\0';
 
-  segs = NULL;
-  n_segs = allocated_segs = 0;
-
-  segmenter_init (&s, mode);
-  for (offset = 0; offset < length; offset += n)
+  string_lexer_init (&slex, input, mode);
+  do
     {
-      enum segment_type type;
-
-      n = segmenter_push (&s, input + offset, length - offset, &type);
-      assert (n >= 0);
-      assert (offset + n <= length);
-
-      if (n_segs >= allocated_segs)
-        segs = x2nrealloc (segs, &allocated_segs, sizeof *segs);
-
-      segs[n_segs].type = type;
-      segs[n_segs].string.string = input + offset;
-      segs[n_segs].string.length = n;
-      n_segs++;
-    }
-
-  for (i = 0; i < n_segs; )
-    {
-      enum scan_result result;
-      struct scanner scanner;
       struct token token;
-      int saved = -1;
 
-      scanner_init (&scanner, &token);
-      do
-        {
-          struct segment *seg;
-
-          assert (i < n_segs);
-
-          seg = &segs[i++];
-          result = scanner_push (&scanner, seg->type, seg->string, &token);
-          if (result == SCAN_SAVE)
-            saved = i;
-        }
-      while (result == SCAN_MORE || result == SCAN_SAVE);
-
-      if (result == SCAN_BACK)
-        {
-          assert (saved >= 0);
-          i = saved;
-        }
+      more = string_lexer_next (&slex, &token);
 
       printf ("%s", scan_type_to_string (token.type));
       if (token.number != 0.0)
@@ -138,9 +88,9 @@ main (int argc, char *argv[])
 
       token_destroy (&token);
     }
+  while (more);
 
   free (input);
-  free (segs);
 
   return 0;
 }
