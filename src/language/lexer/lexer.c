@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -830,99 +830,58 @@ lex_next_tokss (const struct lexer *lexer, int n)
   return lex_next (lexer, n)->string;
 }
 
-/* If LEXER is positioned at the (pseudo)identifier S, skips it and returns
-   true.  Otherwise, returns false.
+static bool
+lex_tokens_match (const struct token *actual, const struct token *expected)
+{
+  if (actual->type != expected->type)
+    return false;
 
-   S may consist of an arbitrary number of identifiers, integers, and
-   punctuation e.g. "KRUSKAL-WALLIS", "2SLS", or "END INPUT PROGRAM".
-   Identifiers may be abbreviated to their first three letters.  Currently only
-   hyphens, slashes, and equals signs are supported as punctuation (but it
-   would be easy to add more).
+  switch (actual->type)
+    {
+    case T_POS_NUM:
+    case T_NEG_NUM:
+      return actual->number == expected->number;
 
-   S must be an ASCII string. */
+    case T_ID:
+      return lex_id_match (expected->string, actual->string);
+
+    case T_STRING:
+      return (actual->string.length == expected->string.length
+              && !memcmp (actual->string.string, expected->string.string,
+                          actual->string.length));
+
+    default:
+      return true;
+    }
+}
+
+/* If LEXER is positioned at the sequence of tokens that may be parsed from S,
+   skips it and returns true.  Otherwise, returns false.
+
+   S may consist of an arbitrary sequence of tokens, e.g. "KRUSKAL-WALLIS",
+   "2SLS", or "END INPUT PROGRAM".  Identifiers may be abbreviated to their
+   first three letters. */
 bool
 lex_match_phrase (struct lexer *lexer, const char *s)
 {
-  int tok_idx;
+  struct string_lexer slex;
+  struct token token;
+  int i;
 
-  for (tok_idx = 0; ; tok_idx++)
-    {
-      enum token_type token;
-      unsigned char c;
+  i = 0;
+  string_lexer_init (&slex, s, SEG_MODE_INTERACTIVE);
+  while (string_lexer_next (&slex, &token))
+    if (token.type != SCAN_SKIP)
+      {
+        bool match = lex_tokens_match (lex_next (lexer, i++), &token);
+        token_destroy (&token);
+        if (!match)
+          return false;
+      }
 
-      while (c_isspace (*s))
-        s++;
-
-      c = *s;
-      if (c == '\0')
-        {
-          int i;
-
-          for (i = 0; i < tok_idx; i++)
-            lex_get (lexer);
-          return true;
-        }
-
-      token = lex_next_token (lexer, tok_idx);
-      switch (c)
-        {
-        case '-':
-          if (token != T_DASH)
-            return false;
-          s++;
-          break;
-
-        case '/':
-          if (token != T_SLASH)
-            return false;
-          s++;
-          break;
-
-        case '=':
-          if (token != T_EQUALS)
-            return false;
-          s++;
-          break;
-
-        case '0': case '1': case '2': case '3': case '4':
-        case '5': case '6': case '7': case '8': case '9':
-          {
-            unsigned int value;
-
-            if (token != T_POS_NUM)
-              return false;
-
-            value = 0;
-            do
-              {
-                value = value * 10 + (*s++ - '0');
-              }
-            while (c_isdigit (*s));
-
-            if (lex_next_tokval (lexer, tok_idx) != value)
-              return false;
-          }
-          break;
-
-        default:
-          if (lex_is_id1 (c))
-            {
-              int len;
-
-              if (token != T_ID)
-                return false;
-
-              len = lex_id_get_length (ss_cstr (s));
-              if (!lex_id_match (ss_buffer (s, len),
-                                 lex_next_tokss (lexer, tok_idx)))
-                return false;
-
-              s += len;
-            }
-          else
-            NOT_REACHED ();
-        }
-    }
+  while (i-- > 0)
+    lex_get (lexer);
+  return true;
 }
 
 static int
