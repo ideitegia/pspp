@@ -487,6 +487,7 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
 
   free (var_spec);
   dict_destroy (*dict);
+  *dict = NULL;
 
   gnm_file_casereader_destroy (NULL, r);
 
