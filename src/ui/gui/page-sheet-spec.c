@@ -93,6 +93,11 @@ reset_sheet_spec_page (struct import_assistant *ia)
 void
 post_sheet_spec_page (struct import_assistant *ia)
 {
+  char col_start[10];
+  char col_stop[10];
+  int row_start = -1;
+  int row_stop = -1;
+
   GtkBuilder *builder = ia->asst.builder;
 
   struct file *file = &ia->file;
@@ -101,15 +106,21 @@ post_sheet_spec_page (struct import_assistant *ia)
   struct dictionary *dict;
 
   GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
+  GtkWidget *range_entry = get_widget_assert (builder, "cell-range-entry");
   GtkWidget *readnames_checkbox = get_widget_assert (builder, "readnames-checkbox");
 
-  gint num = atoi (gtk_entry_get_text (sheet_entry));
-  
-  printf ("%s sheet number %d\n", __FUNCTION__, num);
+  gint num = atoi (gtk_entry_get_text (GTK_ENTRY (sheet_entry)));
 
+  const gchar *range = gtk_entry_get_text (GTK_ENTRY (range_entry));
+  
+  sscanf (range, "%[a-zA-Z]%d:%[a-zA-Z]%d", col_start, &row_start, col_stop, &row_stop);
+  
   ssp->opts.sheet_name = NULL;
   ssp->opts.cell_range = NULL;
   ssp->opts.sheet_index = num;
+
+  if ( row_start > 0 && row_stop > 0)
+    ssp->opts.cell_range = xasprintf ("%s%d:%s%d", col_start, row_start, col_stop, row_stop);
 
   ssp->sri.file_name = file->file_name;
   ssp->sri.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));

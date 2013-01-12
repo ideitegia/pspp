@@ -289,12 +289,28 @@ generate_syntax (const struct import_assistant *ia)
 			 "\n  /TYPE=%ss"
 			 "\n  /FILE=%sq"
 			 "\n  /SHEET=index %d"
-			 "\n  /READNAMES=%ss"
-			 ".",
+			 "\n  /READNAMES=%ss",
 			 (ia->file.type == FTYPE_GNUMERIC) ? "GNM" : "ODS",
 			 ia->file.file_name,			 
 			 ssp->opts.sheet_index,
 			 ssp->sri.read_names ? "ON" : "OFF");
+
+
+	if ( ssp->opts.cell_range)
+	  {
+	    syntax_gen_pspp (&s,
+			     "\n  /CELLRANGE=RANGE %sq",
+			     ssp->opts.cell_range);
+	  }
+	else
+	  {
+	    syntax_gen_pspp (&s,
+			     "\n  /CELLRANGE=FULL");
+	  }
+
+
+	syntax_gen_pspp (&s, ".");
+
       }
       break;
     
