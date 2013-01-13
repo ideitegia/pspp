@@ -72,6 +72,7 @@ text_data_import_assistant (PsppireDataWindow *dw)
 {
   GtkWindow *parent_window = GTK_WINDOW (dw);
   struct import_assistant *ia;
+  struct sheet_spec_page *ssp ;
 
   ia = xzalloc (sizeof *ia);
   if (!init_file (ia, parent_window))
@@ -81,7 +82,8 @@ text_data_import_assistant (PsppireDataWindow *dw)
     }
 
   init_assistant (ia, parent_window);
-  if ( ia->file.type == FTYPE_TEXT)
+  ssp = &ia->sheet_spec;
+  if (ssp->spreadsheet == NULL)
     {
       init_intro_page (ia);
       init_first_line_page (ia);
@@ -112,7 +114,7 @@ text_data_import_assistant (PsppireDataWindow *dw)
       break;
     }
 
-  if ( ia->file.type == FTYPE_TEXT)
+  if (ssp->spreadsheet == NULL)
     {
       destroy_formats_page (ia);
       destroy_separators_page (ia);
@@ -211,111 +213,104 @@ apply_dict (const struct dictionary *dict, struct string *s)
 static char *
 generate_syntax (const struct import_assistant *ia)
 {
+  struct sheet_spec_page *ssp = &ia->sheet_spec;
+
   struct string s = DS_EMPTY_INITIALIZER;
 
-  switch (ia->file.type)
+  if (ssp->spreadsheet == NULL)
     {
-    case FTYPE_TEXT:
-      {
-	size_t var_cnt;
-	size_t i;
-	syntax_gen_pspp (&s,
-			 "GET DATA"
-			 "\n  /TYPE=TXT"
-			 "\n  /FILE=%sq\n",
-			 ia->file.file_name);
-	if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
-	  syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
-	if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
-							     ia->intro.n_cases_button)))
-	  ds_put_format (&s, "  /IMPORTCASES=FIRST %d\n",
-			 gtk_spin_button_get_value_as_int (
-							   GTK_SPIN_BUTTON (ia->intro.n_cases_spin)));
-	else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
-								  ia->intro.percent_button)))
-	  ds_put_format (&s, "  /IMPORTCASES=PERCENT %d\n",
-			 gtk_spin_button_get_value_as_int (
-							   GTK_SPIN_BUTTON (ia->intro.percent_spin)));
-	else
-	  ds_put_cstr (&s, "  /IMPORTCASES=ALL\n");
-	ds_put_cstr (&s,
-		     "  /ARRANGEMENT=DELIMITED\n"
-		     "  /DELCASE=LINE\n");
-	if (ia->first_line.skip_lines > 0)
-	  ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line.skip_lines + 1);
-	ds_put_cstr (&s, "  /DELIMITERS=\"");
-	if (ds_find_byte (&ia->separators.separators, '\t') != SIZE_MAX)
-	  ds_put_cstr (&s, "\\t");
-	if (ds_find_byte (&ia->separators.separators, '\\') != SIZE_MAX)
-	  ds_put_cstr (&s, "\\\\");
-	for (i = 0; i < ds_length (&ia->separators.separators); i++)
-	  {
-	    char c = ds_at (&ia->separators.separators, i);
-	    if (c == '"')
-	      ds_put_cstr (&s, "\"\"");
-	    else if (c != '\t' && c != '\\')
-	      ds_put_byte (&s, c);
-	  }
-	ds_put_cstr (&s, "\"\n");
-	if (!ds_is_empty (&ia->separators.quotes))
-	  syntax_gen_pspp (&s, "  /QUALIFIER=%sq\n", ds_cstr (&ia->separators.quotes));
-	if (!ds_is_empty (&ia->separators.quotes) && ia->separators.escape)
-	  ds_put_cstr (&s, "  /ESCAPE\n");
-	ds_put_cstr (&s, "  /VARIABLES=\n");
+      size_t var_cnt;
+      size_t i;
+      syntax_gen_pspp (&s,
+		       "GET DATA"
+		       "\n  /TYPE=TXT"
+		       "\n  /FILE=%sq\n",
+		       ia->file.file_name);
+      if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
+	syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
+      if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
+							   ia->intro.n_cases_button)))
+	ds_put_format (&s, "  /IMPORTCASES=FIRST %d\n",
+		       gtk_spin_button_get_value_as_int (
+							 GTK_SPIN_BUTTON (ia->intro.n_cases_spin)));
+      else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
+								ia->intro.percent_button)))
+	ds_put_format (&s, "  /IMPORTCASES=PERCENT %d\n",
+		       gtk_spin_button_get_value_as_int (
+							 GTK_SPIN_BUTTON (ia->intro.percent_spin)));
+      else
+	ds_put_cstr (&s, "  /IMPORTCASES=ALL\n");
+      ds_put_cstr (&s,
+		   "  /ARRANGEMENT=DELIMITED\n"
+		   "  /DELCASE=LINE\n");
+      if (ia->first_line.skip_lines > 0)
+	ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line.skip_lines + 1);
+      ds_put_cstr (&s, "  /DELIMITERS=\"");
+      if (ds_find_byte (&ia->separators.separators, '\t') != SIZE_MAX)
+	ds_put_cstr (&s, "\\t");
+      if (ds_find_byte (&ia->separators.separators, '\\') != SIZE_MAX)
+	ds_put_cstr (&s, "\\\\");
+      for (i = 0; i < ds_length (&ia->separators.separators); i++)
+	{
+	  char c = ds_at (&ia->separators.separators, i);
+	  if (c == '"')
+	    ds_put_cstr (&s, "\"\"");
+	  else if (c != '\t' && c != '\\')
+	    ds_put_byte (&s, c);
+	}
+      ds_put_cstr (&s, "\"\n");
+      if (!ds_is_empty (&ia->separators.quotes))
+	syntax_gen_pspp (&s, "  /QUALIFIER=%sq\n", ds_cstr (&ia->separators.quotes));
+      if (!ds_is_empty (&ia->separators.quotes) && ia->separators.escape)
+	ds_put_cstr (&s, "  /ESCAPE\n");
+      ds_put_cstr (&s, "  /VARIABLES=\n");
 
-	var_cnt = dict_get_var_cnt (ia->formats.dict);
-	for (i = 0; i < var_cnt; i++)
-	  {
-	    struct variable *var = dict_get_var (ia->formats.dict, i);
-	    char format_string[FMT_STRING_LEN_MAX + 1];
-	    fmt_to_string (var_get_print_format (var), format_string);
-	    ds_put_format (&s, "    %s %s%s\n",
-			   var_get_name (var), format_string,
-			   i == var_cnt - 1 ? "." : "");
-	  }
+      var_cnt = dict_get_var_cnt (ia->formats.dict);
+      for (i = 0; i < var_cnt; i++)
+	{
+	  struct variable *var = dict_get_var (ia->formats.dict, i);
+	  char format_string[FMT_STRING_LEN_MAX + 1];
+	  fmt_to_string (var_get_print_format (var), format_string);
+	  ds_put_format (&s, "    %s %s%s\n",
+			 var_get_name (var), format_string,
+			 i == var_cnt - 1 ? "." : "");
+	}
 
-	apply_dict (ia->formats.dict, &s);
-      }
-      break;
-    case FTYPE_GNUMERIC:
-    case FTYPE_ODS:
-      {
-	const struct sheet_spec_page *ssp = &ia->sheet_spec;
-
-	syntax_gen_pspp (&s,
-			 "GET DATA"
-			 "\n  /TYPE=%ss"
-			 "\n  /FILE=%sq"
-			 "\n  /SHEET=index %d"
-			 "\n  /READNAMES=%ss",
-			 (ia->file.type == FTYPE_GNUMERIC) ? "GNM" : "ODS",
-			 ia->file.file_name,			 
-			 ssp->opts.sheet_index,
-			 ssp->sri.read_names ? "ON" : "OFF");
-
-
-	if ( ssp->opts.cell_range)
-	  {
-	    syntax_gen_pspp (&s,
-			     "\n  /CELLRANGE=RANGE %sq",
-			     ssp->opts.cell_range);
-	  }
-	else
-	  {
-	    syntax_gen_pspp (&s,
-			     "\n  /CELLRANGE=FULL");
-	  }
-
-
-	syntax_gen_pspp (&s, ".");
-
-      }
-      break;
-    
-    default:
-      g_assert_not_reached ();
+      apply_dict (ia->formats.dict, &s);
     }
+  else
+    {
+      const struct sheet_spec_page *ssp = &ia->sheet_spec;
 
+      printf ("%s:%d %p %d\n", __FILE__, __LINE__, ssp->spreadsheet, ssp->spreadsheet->type);
+
+      syntax_gen_pspp (&s,
+		       "GET DATA"
+		       "\n  /TYPE=%ss"
+		       "\n  /FILE=%sq"
+		       "\n  /SHEET=index %d"
+		       "\n  /READNAMES=%ss",
+		       (ssp->spreadsheet->type == SPREADSHEET_GNUMERIC) ? "GNM" : "ODS",
+		       ia->file.file_name,			 
+		       ssp->opts.sheet_index,
+		       ssp->sri.read_names ? "ON" : "OFF");
+
+
+      if ( ssp->opts.cell_range)
+	{
+	  syntax_gen_pspp (&s,
+			   "\n  /CELLRANGE=RANGE %sq",
+			   ssp->opts.cell_range);
+	}
+      else
+	{
+	  syntax_gen_pspp (&s,
+			   "\n  /CELLRANGE=FULL");
+	}
+
+
+      syntax_gen_pspp (&s, ".");
+    }
 
   return ds_cstr (&s);
 }

@@ -93,7 +93,9 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	}
       else if (0 == strncasecmp (tok, "ODS", 3))
 	{
-	  reader = ods_open_reader (&sri, &opts, &dict);
+	  struct spreadsheet *spreadsheet = ods_probe (sri.file_name);
+	  reader = ods_make_reader (spreadsheet, &sri, &opts);
+	  dict = spreadsheet->dict;
 	}
 
       if (reader)

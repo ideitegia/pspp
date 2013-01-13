@@ -86,6 +86,7 @@ update_assistant (struct import_assistant *ia)
       struct ccase *c;
       int col;
 
+
       sepp->column_cnt = dict_get_var_cnt (ssp->dict);
       sepp->columns = xcalloc (sepp->column_cnt, sizeof (*sepp->columns));
       for (col = 0; col < sepp->column_cnt ; ++col)
@@ -121,8 +122,6 @@ update_assistant (struct import_assistant *ia)
     }
   
   file->line_cnt = rows;
-  casereader_destroy (ssp->reader);
-  ssp->reader = NULL;
 }
 
 
@@ -154,37 +153,25 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   sri.read_names = true;
   sri.asw = -1;
 
-  ssp->spreadsheet = gnumeric_probe (sri.file_name);
+  if (ssp->spreadsheet == NULL)
+    ssp->spreadsheet = gnumeric_probe (sri.file_name);
+  
+  printf ("%s:%d %p %d\n", __FILE__, __LINE__, ssp->spreadsheet, ssp->spreadsheet->type);
+  
+  if (ssp->spreadsheet == NULL)
+    ssp->spreadsheet = ods_probe (sri.file_name);
+
+  printf ("%s:%d %p %d\n", __FILE__, __LINE__, ssp->spreadsheet, ssp->spreadsheet->type);
 
   if (ssp->spreadsheet)
     {
-      struct casereader *creader = NULL;
-      struct dictionary *dict = NULL;
-
-      if (ssp->spreadsheet->type == SPREADSHEET_GNUMERIC) 
-	{
-	  ia->file.type = FTYPE_GNUMERIC;
-	}
-      else if (ssp->spreadsheet->type == SPREADSHEET_ODS) 
-	{
-	  ia->file.type = FTYPE_ODS;
-	}
-      else
-	{
-	  assert (0);
-	}
-    
-      {
-	struct sheet_spec_page *ssp = &ia->sheet_spec;
-	ssp->dict = dict;
-	ssp->reader = creader;
-	
-	update_assistant (ia);
-      }
-
+      
+      //      update_assistant (ia);
     }
   else
     {
+  printf ("%s:%d %p\n", __FILE__, __LINE__, ssp->spreadsheet);
+
     struct string input;
     struct line_reader *reader = line_reader_for_file (file->encoding, file->file_name, O_RDONLY);
     if (reader == NULL)
@@ -246,7 +233,6 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
       }
 
     line_reader_close (reader);
-    ia->file.type = FTYPE_TEXT;
   }
 
   return true;

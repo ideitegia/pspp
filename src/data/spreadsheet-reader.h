@@ -54,6 +54,7 @@ bool convert_cell_ref (const char *ref,
 
 enum spreadsheet_type
   {
+    SPREADSHEET_NONE,
     SPREADSHEET_GNUMERIC,
     SPREADSHEET_ODS
   };

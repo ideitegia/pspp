@@ -23,19 +23,10 @@
 
 #include "libpspp/str.h"
 
-enum file_type
-  {
-    FTYPE_TEXT,
-    FTYPE_GNUMERIC,
-    FTYPE_ODS
-  };
-
 /* The file to be imported. */
 struct file
   {
     char *file_name;        /* File name. */
-
-    enum file_type type;
 
     /* Relevant only for text files */
 

@@ -148,9 +148,11 @@ static void
 on_prepare (GtkAssistant *assistant, GtkWidget *page,
             struct import_assistant *ia)
 {
+  struct sheet_spec_page *ssp = &ia->sheet_spec;
+
   int pn = gtk_assistant_get_current_page (assistant);
 
-  if (pn == 1 && ia->file.type != FTYPE_TEXT)
+  if (pn == 1 && ssp->spreadsheet)
     post_sheet_spec_page (ia);
 
   if (gtk_assistant_get_page_type (assistant, page)
@@ -165,8 +167,10 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
     prepare_separators_page (ia);
   else if (page == ia->formats.page)
     prepare_formats_page (ia);
-  else if (page == ia->sheet_spec.page)
-    prepare_sheet_spec_page (ia);
+  else if (page == ia->sheet_spec.page && ssp->spreadsheet)
+    {
+      prepare_sheet_spec_page (ia);
+    }
 
 
   

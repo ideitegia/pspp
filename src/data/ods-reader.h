@@ -23,9 +23,11 @@ struct spreadsheet_read_info;
 struct spreadsheet_read_options;
 
 
-struct casereader * ods_open_reader (const struct spreadsheet_read_info *,
-				     struct spreadsheet_read_options *,
-				     struct dictionary **);
+struct spreadsheet *ods_probe (const char *filename);
+
+struct casereader * ods_make_reader (struct spreadsheet *spreadsheet, 
+				     const struct spreadsheet_read_info *gri,
+				     struct spreadsheet_read_options *opts);
 
 
 #endif

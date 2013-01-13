@@ -145,12 +145,15 @@ post_sheet_spec_page (struct import_assistant *ia)
   ssp->sri.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
   ssp->sri.asw = -1;
 
-  switch (ia->file.type)
+  switch (ssp->spreadsheet->type)
     {
-    case FTYPE_ODS:
-      creader = ods_open_reader (&ssp->sri, &ssp->opts, &dict);
+    case SPREADSHEET_ODS:
+      {
+	creader = ods_make_reader (ssp->spreadsheet, &ssp->sri, &ssp->opts);
+	dict = ssp->spreadsheet->dict;
+      }
       break;
-    case FTYPE_GNUMERIC:
+    case SPREADSHEET_GNUMERIC:
       {
 	creader = gnumeric_make_reader (ssp->spreadsheet, &ssp->sri, &ssp->opts);
 	dict = ssp->spreadsheet->dict;

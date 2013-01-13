@@ -336,11 +336,91 @@ convert_xml_to_value (struct ccase *c, const struct variable *var,
 }
 
 
-struct casereader *
-ods_open_reader (const struct spreadsheet_read_info *gri, struct spreadsheet_read_options *opts,
-		 struct dictionary **dict)
+/* Try to find out how many sheets there are in the "workbook" */
+static int
+get_sheet_count (struct zip_reader *zreader)
 {
-  int ret = 0;
+  xmlTextReaderPtr mxtr;
+  struct zip_member *meta = NULL;
+  meta = zip_member_open (zreader, "meta.xml");
+
+  if ( meta == NULL)
+    return -1;
+
+  mxtr = xmlReaderForIO ((xmlInputReadCallback) zip_member_read,
+			 (xmlInputCloseCallback) zip_member_finish,
+			 meta,   NULL, NULL, XML_PARSE_RECOVER);
+
+  while (1 == xmlTextReaderRead (mxtr))
+    {
+      xmlChar *name = xmlTextReaderName (mxtr);
+      if ( 0 == xmlStrcmp (name, _xml("meta:document-statistic")))
+	{
+	  xmlChar *attr = xmlTextReaderGetAttribute (mxtr, _xml ("meta:table-count"));
+	    
+	  if ( attr != NULL)
+	    {
+	      int s = _xmlchar_to_int (attr);
+	      return s;
+	    }
+	}
+    }
+  return -1;
+}
+
+struct spreadsheet *ods_probe (const char *filename)
+{
+  struct ods_reader *r;
+  struct string errs;
+  xmlTextReaderPtr xtr ;
+  int sheet_count;
+  struct zip_member *content = NULL;
+
+  struct zip_reader *zreader = NULL;
+
+  ds_init_empty (&errs);
+
+  zreader = zip_reader_create (filename, &errs);
+
+  if (zreader == NULL)
+    return NULL;
+
+  content = zip_member_open (zreader, "content.xml");
+
+  if ( content == NULL)
+    goto error;
+
+  zip_member_ref (content);
+
+  sheet_count = get_sheet_count (zreader);
+
+  xtr = xmlReaderForIO ((xmlInputReadCallback) zip_member_read,
+			   (xmlInputCloseCallback) zip_member_finish,
+			   content,   NULL, NULL, XML_PARSE_RECOVER);
+
+  if ( xtr == NULL)
+    goto error;
+
+  r = xzalloc (sizeof *r);
+  r->xtr = xtr;
+  r->spreadsheet.type = SPREADSHEET_ODS;
+  r->spreadsheet.sheets = sheet_count;
+
+  ds_destroy (&errs);
+
+  return &r->spreadsheet;
+
+ error:
+  zip_reader_destroy (zreader);
+  ds_destroy (&errs);
+  return NULL;
+}
+
+struct casereader *
+ods_make_reader (struct spreadsheet *spreadsheet, 
+		 const struct spreadsheet_read_info *gri, struct spreadsheet_read_options *opts)
+{
+  intf ret = 0;
   xmlChar *type = NULL;
   unsigned long int vstart = 0;
   casenumber n_cases = CASENUMBER_MAX;
@@ -348,43 +428,12 @@ ods_open_reader (const struct spreadsheet_read_info *gri, struct spreadsheet_rea
   struct var_spec *var_spec = NULL;
   int n_var_specs = 0;
 
-  struct ods_reader *r = xzalloc (sizeof *r);
-  struct zip_member *content = NULL;
-  struct zip_reader *zreader ;
+  struct ods_reader *r = (struct ods_reader *) spreadsheet;
   xmlChar *val_string = NULL;
 
+  assert (r);
   r->read_names = gri->read_names;
   ds_init_empty (&r->ods_errs);
-
-  zreader = zip_reader_create (gri->file_name, &r->ods_errs);
-
-  if ( NULL == zreader)
-    {
-      msg (ME, _("Error opening `%s' for reading as a OpenDocument spreadsheet file: %s."),
-           gri->file_name, ds_cstr (&r->ods_errs));
-
-      goto error;
-    }
-
-  content = zip_member_open (zreader, "content.xml");
-  if ( NULL == content)
-    {
-      msg (ME, _("Could not extract OpenDocument spreadsheet from file `%s': %s."),
-           gri->file_name, ds_cstr (&r->ods_errs));
-
-      goto error;
-    }
-
-  zip_member_ref (content);
-
-  r->xtr = xmlReaderForIO ((xmlInputReadCallback) zip_member_read,
-			   (xmlInputCloseCallback) zip_member_finish,
-			   content,   NULL, NULL, XML_PARSE_RECOVER);
-
-  if ( r->xtr == NULL)
-    {
-      goto error;
-    }
 
   if ( opts->cell_range )
     {
@@ -517,7 +566,7 @@ ods_open_reader (const struct spreadsheet_read_info *gri, struct spreadsheet_rea
     }
 
   /* Create the dictionary and populate it */
-  *dict = r->dict = dict_create (
+  r->spreadsheet.dict = r->dict = dict_create (
     CHAR_CAST (const char *, xmlTextReaderConstEncoding (r->xtr)));
 
   for (i = 0 ; i < n_var_specs ; ++i )
@@ -564,7 +613,7 @@ ods_open_reader (const struct spreadsheet_read_info *gri, struct spreadsheet_rea
       convert_xml_to_value (r->first_case, var,  &var_spec[i].firstval);
     }
 
-  zip_reader_destroy (zreader);
+  //  zip_reader_destroy (zreader);
 
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
@@ -584,7 +633,7 @@ ods_open_reader (const struct spreadsheet_read_info *gri, struct spreadsheet_rea
 
  error:
   
-  zip_reader_destroy (zreader);
+  // zip_reader_destroy (zreader);
 
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
@@ -596,7 +645,8 @@ ods_open_reader (const struct spreadsheet_read_info *gri, struct spreadsheet_rea
 
   free (var_spec);
 
-  dict_destroy (r->dict);
+  dict_destroy (r->spreadsheet.dict);
+  r->spreadsheet.dict = NULL;
   ods_file_casereader_destroy (NULL, r);
 
 
@@ -622,7 +672,6 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
       r->used_first_case = true;
       return r->first_case;
     }
-
 
   if ( r->state > STATE_INIT)
     {
