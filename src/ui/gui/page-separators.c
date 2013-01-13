@@ -134,7 +134,7 @@ void
 init_separators_page (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
-  struct separators_page *p = &ia->separators;
+  struct separators_page *p = ia->separators;
   size_t i;
 
   choose_likely_separators (ia);
@@ -170,7 +170,7 @@ init_separators_page (struct import_assistant *ia)
 void
 destroy_separators_page (struct import_assistant *ia)
 {
-  struct separators_page *s = &ia->separators;
+  struct separators_page *s = ia->separators;
 
   ds_destroy (&s->separators);
   ds_destroy (&s->quotes);
@@ -199,7 +199,7 @@ reset_separators_page (struct import_assistant *ia)
 static void
 clear_fields (struct import_assistant *ia)
 {
-  struct separators_page *s = &ia->separators;
+  struct separators_page *s = ia->separators;
 
   if (s->column_cnt > 0)
     {
@@ -237,7 +237,7 @@ clear_fields (struct import_assistant *ia)
 static void
 split_fields (struct import_assistant *ia)
 {
-  struct separators_page *s = &ia->separators;
+  struct separators_page *s = ia->separators;
   size_t columns_allocated;
   bool space_sep;
   size_t row;
@@ -330,8 +330,8 @@ split_fields (struct import_assistant *ia)
 static void
 choose_column_names (struct import_assistant *ia)
 {
-  const struct first_line_page *f = &ia->first_line;
-  struct separators_page *s = &ia->separators;
+  const struct first_line_page *f = ia->first_line;
+  struct separators_page *s = ia->separators;
   struct dictionary *dict;
   unsigned long int generated_name_count = 0;
   struct column *col;
@@ -372,10 +372,9 @@ choose_likely_separators (struct import_assistant *ia)
         histogram[(unsigned char) line.string[i]]++;
     }
 
-  find_commonest_chars (histogram, "\"'", "", &ia->separators.quotes);
-  find_commonest_chars (histogram, ",;:/|!\t-", ",",
-                        &ia->separators.separators);
-  ia->separators.escape = true;
+  find_commonest_chars (histogram, "\"'", "", &ia->separators->quotes);
+  find_commonest_chars (histogram, ",;:/|!\t-", ",", &ia->separators->separators);
+  ia->separators->escape = true;
 }
 
 /* Chooses the most common character among those in TARGETS,
@@ -420,12 +419,12 @@ revise_fields_preview (struct import_assistant *ia)
 
   push_watch_cursor (ia);
 
-  w = GTK_WIDGET (ia->separators.fields_tree_view);
+  w = GTK_WIDGET (ia->separators->fields_tree_view);
   gtk_widget_destroy (w);
   get_separators (ia);
   split_fields (ia);
   choose_column_names (ia);
-  ia->separators.fields_tree_view = create_data_tree_view (
+  ia->separators->fields_tree_view = create_data_tree_view (
     true,
     GTK_CONTAINER (get_widget_assert (ia->asst.builder, "fields-scroller")),
     ia);
@@ -437,7 +436,7 @@ revise_fields_preview (struct import_assistant *ia)
 static void
 set_separators (struct import_assistant *ia)
 {
-  struct separators_page *s = &ia->separators;
+  struct separators_page *s = ia->separators;
   unsigned int seps;
   struct string custom;
   bool any_custom;
@@ -495,7 +494,7 @@ set_separators (struct import_assistant *ia)
 static void
 get_separators (struct import_assistant *ia)
 {
-  struct separators_page *s = &ia->separators;
+  struct separators_page *s = ia->separators;
   int i;
 
   ds_clear (&s->separators);
@@ -540,7 +539,7 @@ on_separators_custom_cb_toggle (GtkToggleButton *custom_cb,
                                 struct import_assistant *ia)
 {
   bool is_active = gtk_toggle_button_get_active (custom_cb);
-  gtk_widget_set_sensitive (ia->separators.custom_entry, is_active);
+  gtk_widget_set_sensitive (ia->separators->custom_entry, is_active);
   revise_fields_preview (ia);
 }
 
@@ -558,8 +557,8 @@ static void
 on_quote_cb_toggle (GtkToggleButton *quote_cb, struct import_assistant *ia)
 {
   bool is_active = gtk_toggle_button_get_active (quote_cb);
-  gtk_widget_set_sensitive (ia->separators.quote_combo, is_active);
-  gtk_widget_set_sensitive (ia->separators.escape_cb, is_active);
+  gtk_widget_set_sensitive (ia->separators->quote_combo, is_active);
+  gtk_widget_set_sensitive (ia->separators->escape_cb, is_active);
   revise_fields_preview (ia);
 }
 

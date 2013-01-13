@@ -130,11 +130,12 @@ struct import_assistant
   {
     struct file file;
     struct assistant asst;
-    struct intro_page intro;
-    struct sheet_spec_page sheet_spec;
-    struct first_line_page first_line;
-    struct separators_page separators;
-    struct formats_page formats;
+
+    struct intro_page *intro;
+    struct sheet_spec_page *sheet_spec;
+    struct first_line_page *first_line;
+    struct separators_page *separators;
+    struct formats_page *formats;
   };
 
 
@@ -223,7 +224,7 @@ void prepare_formats_page (struct import_assistant *ia);
 void reset_formats_page (struct import_assistant *);
 void destroy_formats_page (struct import_assistant *ia);
 
-void init_assistant (struct import_assistant *, GtkWindow *);
+struct import_assistant * init_assistant (GtkWindow *);
 void destroy_assistant (struct import_assistant *);
 
 

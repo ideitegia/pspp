@@ -69,7 +69,7 @@ void
 init_formats_page (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
-  struct formats_page *p = &ia->formats;
+  struct formats_page *p = ia->formats;
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Formats"),
                                    GTK_ASSISTANT_PAGE_CONFIRM);
@@ -83,7 +83,7 @@ init_formats_page (struct import_assistant *ia)
 void
 destroy_formats_page (struct import_assistant *ia)
 {
-  struct formats_page *p = &ia->formats;
+  struct formats_page *p = ia->formats;
 
   if (p->psppire_dict != NULL)
     {
@@ -104,8 +104,8 @@ prepare_formats_page (struct import_assistant *ia)
   GtkBin *vars_scroller;
   GtkWidget *old_var_sheet;
   PsppireVarSheet *var_sheet;
-  struct separators_page *seps = &ia->separators;
-  struct formats_page *p = &ia->formats;
+  struct separators_page *seps = ia->separators;
+  struct formats_page *p = ia->formats;
   struct fmt_guesser *fg;
   unsigned long int number = 0;
   size_t column_idx;
@@ -134,7 +134,7 @@ prepare_formats_page (struct import_assistant *ia)
 
           /* Choose variable format. */
           fmt_guesser_clear (fg);
-          for (row = ia->first_line.skip_lines; row < ia->file.line_cnt; row++)
+          for (row = ia->first_line->skip_lines; row < ia->file.line_cnt; row++)
             fmt_guesser_add (fg, column->contents[row]);
           fmt_guesser_guess (fg, &format);
           fmt_fix_input (&format);
@@ -160,13 +160,13 @@ prepare_formats_page (struct import_assistant *ia)
   psppire_dict = psppire_dict_new_from_dict (dict);
   g_signal_connect (psppire_dict, "variable_changed",
                     G_CALLBACK (on_variable_change), ia);
-  ia->formats.dict = dict;
-  ia->formats.psppire_dict = psppire_dict;
+  ia->formats->dict = dict;
+  ia->formats->psppire_dict = psppire_dict;
 
   /* XXX: PsppireVarStore doesn't hold a reference to
      psppire_dict for now, but it should.  After it does, we
      should g_object_ref the psppire_dict here, since we also
-     hold a reference via ia->formats.dict. */
+     hold a reference via ia->formats->dict. */
   var_store = psppire_var_store_new (psppire_dict);
   g_object_set (var_store,
                 "format-type", PSPPIRE_VAR_STORE_INPUT_FORMATS,
@@ -184,8 +184,8 @@ prepare_formats_page (struct import_assistant *ia)
   gtk_container_add (GTK_CONTAINER (vars_scroller), GTK_WIDGET (var_sheet));
   gtk_widget_show (GTK_WIDGET (var_sheet));
 
-  gtk_widget_destroy (GTK_WIDGET (ia->formats.data_tree_view));
-  ia->formats.data_tree_view = create_data_tree_view (
+  gtk_widget_destroy (GTK_WIDGET (ia->formats->data_tree_view));
+  ia->formats->data_tree_view = create_data_tree_view (
     false,
     GTK_CONTAINER (get_widget_assert (ia->asst.builder, "data-scroller")),
     ia);
@@ -200,7 +200,7 @@ prepare_formats_page (struct import_assistant *ia)
 static void
 clear_modified_vars (struct import_assistant *ia)
 {
-  struct formats_page *p = &ia->formats;
+  struct formats_page *p = ia->formats;
   size_t i;
 
   for (i = 0; i < p->modified_var_cnt; i++)
@@ -227,8 +227,8 @@ static void
 on_variable_change (PsppireDict *dict, int dict_idx,
                     struct import_assistant *ia)
 {
-  struct formats_page *p = &ia->formats;
-  GtkTreeView *tv = ia->formats.data_tree_view;
+  struct formats_page *p = ia->formats;
+  GtkTreeView *tv = ia->formats->data_tree_view;
   gint column_idx = dict_idx + 1;
 
   push_watch_cursor (ia);

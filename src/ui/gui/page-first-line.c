@@ -74,7 +74,7 @@ static void get_first_line (struct import_assistant *);
 void
 init_first_line_page (struct import_assistant *ia)
 {
-  struct first_line_page *p = &ia->first_line;
+  struct first_line_page *p = ia->first_line;
   GtkBuilder *builder = ia->asst.builder;
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "FirstLine"),
@@ -97,8 +97,8 @@ init_first_line_page (struct import_assistant *ia)
 void
 reset_first_line_page (struct import_assistant *ia)
 {
-  ia->first_line.skip_lines = 0;
-  ia->first_line.variable_names = false;
+  ia->first_line->skip_lines = 0;
+  ia->first_line->variable_names = false;
   set_first_line (ia);
 }
 
@@ -185,16 +185,16 @@ set_first_line (struct import_assistant *ia)
 {
   GtkTreePath *path;
 
-  path = gtk_tree_path_new_from_indices (ia->first_line.skip_lines, -1);
-  gtk_tree_view_set_cursor (GTK_TREE_VIEW (ia->first_line.tree_view),
+  path = gtk_tree_path_new_from_indices (ia->first_line->skip_lines, -1);
+  gtk_tree_view_set_cursor (GTK_TREE_VIEW (ia->first_line->tree_view),
                             path, NULL, false);
   gtk_tree_path_free (path);
 
   gtk_toggle_button_set_active (
-    GTK_TOGGLE_BUTTON (ia->first_line.variable_names_cb),
-    ia->first_line.variable_names);
-  gtk_widget_set_sensitive (ia->first_line.variable_names_cb,
-                            ia->first_line.skip_lines > 0);
+    GTK_TOGGLE_BUTTON (ia->first_line->variable_names_cb),
+    ia->first_line->variable_names);
+  gtk_widget_set_sensitive (ia->first_line->variable_names_cb,
+                            ia->first_line->skip_lines > 0);
 }
 
 /* Sets IA's first_line substructure to match the widgets. */
@@ -205,19 +205,19 @@ get_first_line (struct import_assistant *ia)
   GtkTreeIter iter;
   GtkTreeModel *model;
 
-  selection = gtk_tree_view_get_selection (ia->first_line.tree_view);
+  selection = gtk_tree_view_get_selection (ia->first_line->tree_view);
   if (gtk_tree_selection_get_selected (selection, &model, &iter))
     {
       GtkTreePath *path = gtk_tree_model_get_path (model, &iter);
       int row = gtk_tree_path_get_indices (path)[0];
       gtk_tree_path_free (path);
 
-      ia->first_line.skip_lines = row;
-      ia->first_line.variable_names =
-        (ia->first_line.skip_lines > 0
+      ia->first_line->skip_lines = row;
+      ia->first_line->variable_names =
+        (ia->first_line->skip_lines > 0
          && gtk_toggle_button_get_active (
-           GTK_TOGGLE_BUTTON (ia->first_line.variable_names_cb)));
+           GTK_TOGGLE_BUTTON (ia->first_line->variable_names_cb)));
     }
-  gtk_widget_set_sensitive (ia->first_line.variable_names_cb,
-                            ia->first_line.skip_lines > 0);
+  gtk_widget_set_sensitive (ia->first_line->variable_names_cb,
+                            ia->first_line->skip_lines > 0);
 }

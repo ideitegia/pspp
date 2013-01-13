@@ -76,10 +76,10 @@ enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
 void 
 update_assistant (struct import_assistant *ia)
 {
-  struct sheet_spec_page *ssp = &ia->sheet_spec;
+  struct sheet_spec_page *ssp = ia->sheet_spec;
 
   struct file *file = &ia->file;
-  struct separators_page *sepp = &ia->separators;
+  struct separators_page *sepp = ia->separators;
   int rows = 0;
   if (ssp->dict)
     {
@@ -136,7 +136,7 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
 {
   enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
   struct file *file = &ia->file;
-  struct sheet_spec_page *ssp = &ia->sheet_spec;
+  struct sheet_spec_page *ssp = ia->sheet_spec;
   struct spreadsheet_read_info sri;
   struct spreadsheet_read_options opts;
 
@@ -156,12 +156,8 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   if (ssp->spreadsheet == NULL)
     ssp->spreadsheet = gnumeric_probe (sri.file_name);
   
-  printf ("%s:%d %p %d\n", __FILE__, __LINE__, ssp->spreadsheet, ssp->spreadsheet->type);
-  
   if (ssp->spreadsheet == NULL)
     ssp->spreadsheet = ods_probe (sri.file_name);
-
-  printf ("%s:%d %p %d\n", __FILE__, __LINE__, ssp->spreadsheet, ssp->spreadsheet->type);
 
   if (ssp->spreadsheet)
     {
@@ -170,8 +166,6 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
     }
   else
     {
-  printf ("%s:%d %p\n", __FILE__, __LINE__, ssp->spreadsheet);
-
     struct string input;
     struct line_reader *reader = line_reader_for_file (file->encoding, file->file_name, O_RDONLY);
     if (reader == NULL)

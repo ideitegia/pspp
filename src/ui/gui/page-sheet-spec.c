@@ -73,7 +73,7 @@ void
 init_sheet_spec_page (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
-  struct sheet_spec_page *p = &ia->sheet_spec;
+  struct sheet_spec_page *p = ia->sheet_spec;
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Sheet"),
                                    GTK_ASSISTANT_PAGE_INTRO);
@@ -84,7 +84,7 @@ init_sheet_spec_page (struct import_assistant *ia)
 void
 prepare_sheet_spec_page (struct import_assistant *ia)
 {
-  struct sheet_spec_page *p = &ia->sheet_spec;
+  struct sheet_spec_page *p = ia->sheet_spec;
 
   GtkBuilder *builder = ia->asst.builder;
   GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
@@ -117,7 +117,7 @@ post_sheet_spec_page (struct import_assistant *ia)
   GtkBuilder *builder = ia->asst.builder;
 
   struct file *file = &ia->file;
-  struct sheet_spec_page *ssp = &ia->sheet_spec;
+  struct sheet_spec_page *ssp = ia->sheet_spec;
   struct casereader *creader = NULL;
   struct dictionary *dict = NULL;
 

@@ -69,10 +69,19 @@ static void close_assistant (struct import_assistant *, int response);
 
 /* Initializes IA's asst substructure.  PARENT_WINDOW must be the
    window to use as the assistant window's parent.  */
-void
-init_assistant (struct import_assistant *ia, GtkWindow *parent_window)
+struct import_assistant *
+init_assistant (GtkWindow *parent_window)
 {
+  struct import_assistant *ia = NULL;
+  ia = xzalloc (sizeof *ia);
   struct assistant *a = &ia->asst;
+
+
+  ia->intro = xzalloc (sizeof *ia->intro);
+  ia->sheet_spec = xzalloc (sizeof *ia->sheet_spec);
+  ia->first_line = xzalloc (sizeof *ia->first_line);
+  ia->separators = xzalloc (sizeof *ia->separators);
+  ia->formats = xzalloc (sizeof *ia->formats);
 
   a->builder = builder_new ("text-data-import.ui");
   a->assistant = GTK_ASSISTANT (gtk_assistant_new ());
@@ -97,6 +106,7 @@ init_assistant (struct import_assistant *ia, GtkWindow *parent_window)
   g_object_set (G_OBJECT (a->fixed_renderer),
                 "family", "Monospace",
                 (void *) NULL);
+  return ia;
 }
 
 /* Frees IA's asst substructure. */
@@ -148,7 +158,7 @@ static void
 on_prepare (GtkAssistant *assistant, GtkWidget *page,
             struct import_assistant *ia)
 {
-  struct sheet_spec_page *ssp = &ia->sheet_spec;
+  struct sheet_spec_page *ssp = ia->sheet_spec;
 
   int pn = gtk_assistant_get_current_page (assistant);
 
@@ -163,11 +173,11 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
 
 
   /* Prepare .... */
-  if (page == ia->separators.page)
+  if (page == ia->separators->page)
     prepare_separators_page (ia);
-  else if (page == ia->formats.page)
+  else if (page == ia->formats->page)
     prepare_formats_page (ia);
-  else if (page == ia->sheet_spec.page && ssp->spreadsheet)
+  else if (page == ia->sheet_spec->page && ssp->spreadsheet)
     {
       prepare_sheet_spec_page (ia);
     }
@@ -175,7 +185,7 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
 
   
   gtk_widget_show (ia->asst.reset_button);
-  if (page == ia->formats.page)
+  if (page == ia->formats->page)
     gtk_widget_show (ia->asst.paste_button);
   else
     gtk_widget_hide (ia->asst.paste_button);
@@ -211,15 +221,15 @@ on_reset (GtkButton *button, struct import_assistant *ia)
   gint page_num = gtk_assistant_get_current_page (ia->asst.assistant);
   GtkWidget *page = gtk_assistant_get_nth_page (ia->asst.assistant, page_num);
 
-  if (page == ia->intro.page)
+  if (page == ia->intro->page)
     reset_intro_page (ia);
-  else if (page == ia->first_line.page)
+  else if (page == ia->first_line->page)
     reset_first_line_page (ia);
-  else if (page == ia->separators.page)
+  else if (page == ia->separators->page)
     reset_separators_page (ia);
-  else if (page == ia->formats.page)
+  else if (page == ia->formats->page)
     reset_formats_page (ia);
-  else if (page == ia->sheet_spec.page)
+  else if (page == ia->sheet_spec->page)
     reset_sheet_spec_page (ia);
 }
 

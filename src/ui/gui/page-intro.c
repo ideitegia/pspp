@@ -71,7 +71,7 @@ void
 init_intro_page (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
-  struct intro_page *p = &ia->intro;
+  struct intro_page *p = ia->intro;
   struct string s;
   GtkWidget *hbox_n_cases ;
   GtkWidget *hbox_percent ;
@@ -153,7 +153,7 @@ init_intro_page (struct import_assistant *ia)
 void
 reset_intro_page (struct import_assistant *ia)
 {
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (ia->intro.all_cases_button),
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (ia->intro->all_cases_button),
                                 true);
 }
 
@@ -161,7 +161,7 @@ reset_intro_page (struct import_assistant *ia)
 static void
 on_intro_amount_changed (struct import_assistant *ia)
 {
-  struct intro_page *p = &ia->intro;
+  struct intro_page *p = ia->intro;
 
   gtk_widget_set_sensitive (p->n_cases_spin,
                             gtk_toggle_button_get_active (

@@ -71,18 +71,17 @@ void
 text_data_import_assistant (PsppireDataWindow *dw)
 {
   GtkWindow *parent_window = GTK_WINDOW (dw);
-  struct import_assistant *ia;
+  struct import_assistant *ia = init_assistant (parent_window);
   struct sheet_spec_page *ssp ;
 
-  ia = xzalloc (sizeof *ia);
   if (!init_file (ia, parent_window))
     {
       free (ia);
       return;
     }
 
-  init_assistant (ia, parent_window);
-  ssp = &ia->sheet_spec;
+
+  ssp = ia->sheet_spec;
   if (ssp->spreadsheet == NULL)
     {
       init_intro_page (ia);
@@ -213,7 +212,7 @@ apply_dict (const struct dictionary *dict, struct string *s)
 static char *
 generate_syntax (const struct import_assistant *ia)
 {
-  struct sheet_spec_page *ssp = &ia->sheet_spec;
+  struct sheet_spec_page *ssp = ia->sheet_spec;
 
   struct string s = DS_EMPTY_INITIALIZER;
 
@@ -229,46 +228,46 @@ generate_syntax (const struct import_assistant *ia)
       if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
 	syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
       if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
-							   ia->intro.n_cases_button)))
+							   ia->intro->n_cases_button)))
 	ds_put_format (&s, "  /IMPORTCASES=FIRST %d\n",
 		       gtk_spin_button_get_value_as_int (
-							 GTK_SPIN_BUTTON (ia->intro.n_cases_spin)));
+							 GTK_SPIN_BUTTON (ia->intro->n_cases_spin)));
       else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
-								ia->intro.percent_button)))
+								ia->intro->percent_button)))
 	ds_put_format (&s, "  /IMPORTCASES=PERCENT %d\n",
 		       gtk_spin_button_get_value_as_int (
-							 GTK_SPIN_BUTTON (ia->intro.percent_spin)));
+							 GTK_SPIN_BUTTON (ia->intro->percent_spin)));
       else
 	ds_put_cstr (&s, "  /IMPORTCASES=ALL\n");
       ds_put_cstr (&s,
 		   "  /ARRANGEMENT=DELIMITED\n"
 		   "  /DELCASE=LINE\n");
-      if (ia->first_line.skip_lines > 0)
-	ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line.skip_lines + 1);
+      if (ia->first_line->skip_lines > 0)
+	ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line->skip_lines + 1);
       ds_put_cstr (&s, "  /DELIMITERS=\"");
-      if (ds_find_byte (&ia->separators.separators, '\t') != SIZE_MAX)
+      if (ds_find_byte (&ia->separators->separators, '\t') != SIZE_MAX)
 	ds_put_cstr (&s, "\\t");
-      if (ds_find_byte (&ia->separators.separators, '\\') != SIZE_MAX)
+      if (ds_find_byte (&ia->separators->separators, '\\') != SIZE_MAX)
 	ds_put_cstr (&s, "\\\\");
-      for (i = 0; i < ds_length (&ia->separators.separators); i++)
+      for (i = 0; i < ds_length (&ia->separators->separators); i++)
 	{
-	  char c = ds_at (&ia->separators.separators, i);
+	  char c = ds_at (&ia->separators->separators, i);
 	  if (c == '"')
 	    ds_put_cstr (&s, "\"\"");
 	  else if (c != '\t' && c != '\\')
 	    ds_put_byte (&s, c);
 	}
       ds_put_cstr (&s, "\"\n");
-      if (!ds_is_empty (&ia->separators.quotes))
-	syntax_gen_pspp (&s, "  /QUALIFIER=%sq\n", ds_cstr (&ia->separators.quotes));
-      if (!ds_is_empty (&ia->separators.quotes) && ia->separators.escape)
+      if (!ds_is_empty (&ia->separators->quotes))
+	syntax_gen_pspp (&s, "  /QUALIFIER=%sq\n", ds_cstr (&ia->separators->quotes));
+      if (!ds_is_empty (&ia->separators->quotes) && ia->separators->escape)
 	ds_put_cstr (&s, "  /ESCAPE\n");
       ds_put_cstr (&s, "  /VARIABLES=\n");
 
-      var_cnt = dict_get_var_cnt (ia->formats.dict);
+      var_cnt = dict_get_var_cnt (ia->formats->dict);
       for (i = 0; i < var_cnt; i++)
 	{
-	  struct variable *var = dict_get_var (ia->formats.dict, i);
+	  struct variable *var = dict_get_var (ia->formats->dict, i);
 	  char format_string[FMT_STRING_LEN_MAX + 1];
 	  fmt_to_string (var_get_print_format (var), format_string);
 	  ds_put_format (&s, "    %s %s%s\n",
@@ -276,11 +275,11 @@ generate_syntax (const struct import_assistant *ia)
 			 i == var_cnt - 1 ? "." : "");
 	}
 
-      apply_dict (ia->formats.dict, &s);
+      apply_dict (ia->formats->dict, &s);
     }
   else
     {
-      const struct sheet_spec_page *ssp = &ia->sheet_spec;
+      const struct sheet_spec_page *ssp = ia->sheet_spec;
 
       printf ("%s:%d %p %d\n", __FILE__, __LINE__, ssp->spreadsheet, ssp->spreadsheet->type);
 
@@ -343,8 +342,8 @@ render_input_cell (GtkTreeViewColumn *tree_column, GtkCellRenderer *cell,
 
   column = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tree_column),
                                                "column-number"));
-  row = empty_list_store_iter_to_row (iter) + ia->first_line.skip_lines;
-  field = ia->separators.columns[column].contents[row];
+  row = empty_list_store_iter_to_row (iter) + ia->first_line->skip_lines;
+  field = ia->separators->columns[column].contents[row];
   if (field.string != NULL)
     {
       GValue text = {0, };
@@ -380,7 +379,7 @@ on_query_input_tooltip (GtkWidget *widget, gint wx, gint wy,
   if (!get_tooltip_location (widget, wx, wy, ia, &row, &column))
     return FALSE;
 
-  if (ia->separators.columns[column].contents[row].string != NULL)
+  if (ia->separators->columns[column].contents[row].string != NULL)
     return FALSE;
 
   gtk_tooltip_set_text (tooltip,
@@ -410,8 +409,8 @@ parse_field (struct import_assistant *ia,
   char *tooltip;
   bool ok;
 
-  field = ia->separators.columns[column].contents[row];
-  var = dict_get_var (ia->formats.dict, column);
+  field = ia->separators->columns[column].contents[row];
+  var = dict_get_var (ia->formats->dict, column);
   value_init (&val, var_get_width (var));
   in = var_get_print_format (var);
   out = fmt_for_output_from_input (in);
@@ -421,7 +420,7 @@ parse_field (struct import_assistant *ia,
       char *error;
 
       error = data_in (field, "UTF-8", in->type, &val, var_get_width (var),
-                       dict_get_encoding (ia->formats.dict));
+                       dict_get_encoding (ia->formats->dict));
       if (error != NULL)
         {
           tooltip = xasprintf (_("Cannot parse field content `%.*s' as "
@@ -439,7 +438,7 @@ parse_field (struct import_assistant *ia,
     }
   if (outputp != NULL)
     {
-      *outputp = data_out (&val, dict_get_encoding (ia->formats.dict),  &out);
+      *outputp = data_out (&val, dict_get_encoding (ia->formats->dict),  &out);
     }
   value_destroy (&val, var_get_width (var));
 
@@ -467,7 +466,7 @@ render_output_cell (GtkTreeViewColumn *tree_column,
 
   ok = parse_field (ia,
                     (empty_list_store_iter_to_row (iter)
-                     + ia->first_line.skip_lines),
+                     + ia->first_line->skip_lines),
                     GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tree_column),
                                                         "column-number")),
                     &output, NULL);
@@ -550,7 +549,7 @@ get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
   if (!ok)
     return FALSE;
 
-  *row = empty_list_store_iter_to_row (&iter) + ia->first_line.skip_lines;
+  *row = empty_list_store_iter_to_row (&iter) + ia->first_line->skip_lines;
   return TRUE;
 }
 
@@ -646,9 +645,9 @@ make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
   char *name;
 
   if (input)
-    column = &ia->separators.columns[dict_idx];
+    column = &ia->separators->columns[dict_idx];
   else
-    var = dict_get_var (ia->formats.dict, dict_idx);
+    var = dict_get_var (ia->formats->dict, dict_idx);
 
   name = escape_underscores (input ? column->name : var_get_name (var));
   char_cnt = input ? column->width : var_get_print_format (var)->w;
@@ -682,11 +681,11 @@ create_data_tree_view (bool input, GtkContainer *parent,
   GtkTreeView *tree_view;
   gint i;
 
-  make_tree_view (ia, ia->first_line.skip_lines, &tree_view);
+  make_tree_view (ia, ia->first_line->skip_lines, &tree_view);
   gtk_tree_selection_set_mode (gtk_tree_view_get_selection (tree_view),
                                GTK_SELECTION_NONE);
 
-  for (i = 0; i < ia->separators.column_cnt; i++)
+  for (i = 0; i < ia->separators->column_cnt; i++)
     gtk_tree_view_append_column (tree_view,
                                  make_data_column (ia, tree_view, input, i));
 
