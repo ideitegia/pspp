@@ -88,6 +88,8 @@ enum reader_state
 
 struct ods_reader
 {
+  struct spreadsheet spreadsheet;
+
   xmlTextReaderPtr xtr;
 
   enum reader_state state;

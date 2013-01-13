@@ -52,5 +52,39 @@ bool convert_cell_ref (const char *ref,
 
 #define _xmlchar_to_int(X) (atoi(CHAR_CAST (const char *, X)))
 
+enum spreadsheet_type
+  {
+    SPREADSHEET_GNUMERIC,
+    SPREADSHEET_ODS
+  };
+
+struct spreadsheet
+{
+  enum spreadsheet_type type;
+
+  struct casereader * (*make_reader) (struct spreadsheet *);
+
+  /* The total number of sheets in the "workbook" */
+  int sheets;
+
+  /* The dictionary */
+  struct dictionary *dict;
+};
+
+/* 
+   Attempt to open the file called FILENAME as a spreadsheet.
+   It is not known a priori, what type of spreadsheet FILENAME is, or
+   even if it is a spreadsheet at all.
+   If it fails to open, then it will return NULL without any error or
+   warning messages.
+ */
+struct spreadsheet * spreadsheet_open (const char *filename);
+void spreadsheet_close (struct spreadsheet *);
+
+struct casereeader;
+struct casereader * spreadsheet_make_reader (struct spreadsheet *s);
+
+
+#define SPREADSHEET_CAST(X) ((struct spreadsheet *)(X))
 
 #endif

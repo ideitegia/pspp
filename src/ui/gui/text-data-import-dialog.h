@@ -70,7 +70,8 @@ struct sheet_spec_page
     GtkWidget *page;
     struct casereader *reader;
     struct dictionary *dict;
-
+    struct spreadsheet *spreadsheet;
+    
     struct spreadsheet_read_info sri;
     struct spreadsheet_read_options opts;
   };
@@ -213,6 +214,7 @@ void init_intro_page (struct import_assistant *);
 void reset_intro_page (struct import_assistant *);
 
 void init_sheet_spec_page (struct import_assistant *);
+void prepare_sheet_spec_page (struct import_assistant *ia);
 void reset_sheet_spec_page (struct import_assistant *);
 void post_sheet_spec_page (struct import_assistant *ia);
 

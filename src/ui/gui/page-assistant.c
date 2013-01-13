@@ -159,11 +159,17 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
   else
     gtk_widget_grab_focus (assistant->forward);
 
+
+  /* Prepare .... */
   if (page == ia->separators.page)
     prepare_separators_page (ia);
   else if (page == ia->formats.page)
     prepare_formats_page (ia);
+  else if (page == ia->sheet_spec.page)
+    prepare_sheet_spec_page (ia);
 
+
+  
   gtk_widget_show (ia->asst.reset_button);
   if (page == ia->formats.page)
     gtk_widget_show (ia->asst.paste_button);

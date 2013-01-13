@@ -666,6 +666,12 @@ The selected file contains N lines of text.  Only the first M of these will be s
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
+  <object class="GtkAdjustment" id="adjustment3">
+    <property name="value">1</property>
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
   <object class="GtkWindow" id="Sheet">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
     <property name="border_width">12</property>
@@ -721,10 +727,11 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkEntry" id="sheet-entry">
+                          <object class="GtkSpinButton" id="sheet-entry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
+                            <property name="adjustment">adjustment3</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>

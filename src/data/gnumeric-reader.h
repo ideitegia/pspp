@@ -24,6 +24,9 @@ struct dictionary;
 struct spreadsheet_read_info;
 struct spreadsheet_read_options;
 
+
+struct spreadsheet *gnumeric_probe (const char *filename);
+
 struct casereader * gnumeric_open_reader (const struct spreadsheet_read_info *, 
 					  struct spreadsheet_read_options *,
 					  struct dictionary **);

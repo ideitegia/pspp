@@ -137,8 +137,7 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
 {
   enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
   struct file *file = &ia->file;
-  struct casereader *creader = NULL;
-  struct dictionary *dict = NULL;
+  struct sheet_spec_page *ssp = &ia->sheet_spec;
   struct spreadsheet_read_info sri;
   struct spreadsheet_read_options opts;
 
@@ -155,25 +154,34 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   sri.read_names = true;
   sri.asw = -1;
 
-  if (!creader) 
-    {
-      creader = gnumeric_open_reader (&sri, &opts, &dict);
-      ia->file.type = FTYPE_GNUMERIC;
-    }
-	
-  if (!creader) 
-    {
-      creader = ods_open_reader (&sri, &opts, &dict);
-      ia->file.type = FTYPE_ODS;
-    }
-    
-  if (creader && dict)
-    {
-      struct sheet_spec_page *ssp = &ia->sheet_spec;
-      ssp->dict = dict;
-      ssp->reader = creader;
+  ssp->spreadsheet = gnumeric_probe (sri.file_name);
 
-      update_assistant (ia);
+  if (ssp->spreadsheet)
+    {
+      struct casereader *creader = NULL;
+      struct dictionary *dict = NULL;
+
+      if (ssp->spreadsheet->type == SPREADSHEET_GNUMERIC) 
+	{
+	  ia->file.type = FTYPE_GNUMERIC;
+	}
+      else if (ssp->spreadsheet->type == SPREADSHEET_ODS) 
+	{
+	  ia->file.type = FTYPE_ODS;
+	}
+      else
+	{
+	  assert (0);
+	}
+    
+      {
+	struct sheet_spec_page *ssp = &ia->sheet_spec;
+	ssp->dict = dict;
+	ssp->reader = creader;
+	
+	update_assistant (ia);
+      }
+
     }
   else
     {

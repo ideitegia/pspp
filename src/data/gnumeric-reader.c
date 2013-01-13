@@ -75,7 +75,9 @@ static const struct casereader_class gnm_file_casereader_class =
 
 enum reader_state
   {
-    STATE_INIT = 0,        /* Initial state */
+    STATE_PRE_INIT = 0,        /* Initial state */
+    STATE_SHEET_COUNT,      /* Found the sheet index */
+    STATE_INIT ,           /* Other Initial state */
     STATE_SHEET_START,     /* Found the start of a sheet */
     STATE_SHEET_NAME,      /* Found the sheet name */
     STATE_MAXROW,
@@ -87,9 +89,15 @@ enum reader_state
 
 struct gnumeric_reader
 {
+  struct spreadsheet spreadsheet;
+
   xmlTextReaderPtr xtr;
 
   enum reader_state state;
+
+  /* The total number of sheets in the "workbook" */
+  int sheet_total ;
+
   int row;
   int col;
   int min_col;
@@ -144,6 +152,28 @@ process_node (struct gnumeric_reader *r)
 
   switch ( r->state)
     {
+    case STATE_PRE_INIT:
+      if (0 == xmlStrcasecmp (name, _xml("gnm:SheetNameIndex")) &&
+	  XML_READER_TYPE_ELEMENT  == r->node_type)
+	{
+	  r->state = STATE_SHEET_COUNT;
+	  r->sheet_total = 0;
+	}
+      break;
+
+    case STATE_SHEET_COUNT:
+      if (0 == xmlStrcasecmp (name, _xml("gnm:SheetName")) &&
+	  XML_READER_TYPE_ELEMENT  == r->node_type)
+	{
+	  r->sheet_total++;
+	}
+      else if (0 == xmlStrcasecmp (name, _xml("gnm:SheetNameIndex")) &&
+	  XML_READER_TYPE_END_ELEMENT  == r->node_type)
+	{
+	  r->state = STATE_INIT;
+	}
+      break;
+
     case STATE_INIT:
       if (0 == xmlStrcasecmp (name, _xml("gnm:Sheet")) &&
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
@@ -275,6 +305,58 @@ struct var_spec
   xmlChar *first_value;
 };
 
+struct spreadsheet *
+gnumeric_probe (const char *filename)
+{
+  int ret;
+  struct gnumeric_reader *r = NULL;
+  xmlTextReaderPtr xtr;
+
+  gzFile gz = gzopen (filename, "r");
+
+  if (NULL == gz)
+    return NULL;
+
+  xtr = xmlReaderForIO ((xmlInputReadCallback) gzread,
+                           (xmlInputCloseCallback) gzclose, gz,
+			   NULL, NULL, 0);
+
+  if (xtr == NULL)
+    return NULL;
+
+  r = xzalloc (sizeof *r);
+  
+  r->xtr = xtr;
+  r->sheet_total = -1;
+  r->state = STATE_PRE_INIT;
+
+
+  /* Advance to the start of the workbook.
+     This gives us some confidence that we are actually dealing with a gnumeric
+     spreadsheet.
+   */
+  while ( (r->state != STATE_INIT )
+	  && 1 == (ret = xmlTextReaderRead (r->xtr)))
+    {
+      process_node (r);
+    }
+
+  if (ret != 1)
+    {
+      /* Not a gnumeric spreadsheet */
+      free (r);
+      gzclose (gz);
+      return NULL;
+    }
+    
+  r->spreadsheet.type = SPREADSHEET_GNUMERIC;
+  r->spreadsheet.sheets = r->sheet_total;
+  r->spreadsheet.make_reader = NULL;
+  
+  
+  return &r->spreadsheet;
+}
+
 struct casereader *
 gnumeric_open_reader (const struct spreadsheet_read_info *gri, 
 		      struct spreadsheet_read_options *opts,
@@ -287,26 +369,15 @@ gnumeric_open_reader (const struct spreadsheet_read_info *gri,
   struct var_spec *var_spec = NULL;
   int n_var_specs = 0;
 
+  struct spreadsheet * spreadsheet = NULL;
   struct gnumeric_reader *r = NULL;
 
-  gzFile gz = gzopen (gri->file_name, "r");
+  spreadsheet = gnumeric_probe (gri->file_name);
 
-  if ( NULL == gz)
-    {
-      msg (ME, _("Error opening `%s' for reading as a Gnumeric file: %s."),
-           gri->file_name, strerror (errno));
-
-      goto error;
-    }
-
-  r = xzalloc (sizeof *r);
-
-  r->xtr = xmlReaderForIO ((xmlInputReadCallback) gzread,
-                           (xmlInputCloseCallback) gzclose, gz,
-			   NULL, NULL, 0);
-
-  if ( r->xtr == NULL )
+  if (spreadsheet == NULL)
     goto error;
+
+  r = (struct gnumeric_reader *) (spreadsheet);
 
   if ( opts->cell_range )
     {
@@ -327,7 +398,7 @@ gnumeric_open_reader (const struct spreadsheet_read_info *gri,
       r->stop_row = -1;
     }
 
-  r->state = STATE_INIT;
+
   r->target_sheet = BAD_CAST opts->sheet_name;
   r->target_sheet_index = opts->sheet_index;
   r->row = r->col = -1;

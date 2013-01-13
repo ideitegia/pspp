@@ -22,6 +22,24 @@
 #include <stdio.h>
 #include <string.h>
 
+
+struct spreadsheet * 
+spreadsheet_open (const char *filename)
+{
+  struct spreadsheet *ss = NULL;
+
+  ss = gnumeric_probe (filename);
+  
+  return ss;
+}
+
+void 
+spreadsheet_close (struct spreadsheet *spreadsheet)
+{
+}
+
+
+
 /* Convert a string, which is an integer encoded in base26
    IE, A=0, B=1, ... Z=25 to the integer it represents.
    ... except that in this scheme, digits with an exponent

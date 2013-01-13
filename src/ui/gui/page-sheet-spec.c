@@ -80,6 +80,22 @@ init_sheet_spec_page (struct import_assistant *ia)
 
 }
 
+/* Prepares IA's sheet_spec page. */
+void
+prepare_sheet_spec_page (struct import_assistant *ia)
+{
+  struct sheet_spec_page *p = &ia->sheet_spec;
+
+  GtkBuilder *builder = ia->asst.builder;
+  GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
+
+  printf ("%s %d\n", __FUNCTION__, p->spreadsheet->sheets);
+
+  gtk_spin_button_set_digits (GTK_SPIN_BUTTON (sheet_entry), 0);
+  gtk_spin_button_set_range (GTK_SPIN_BUTTON (sheet_entry), 1, p->spreadsheet->sheets);
+}
+
+
 /* Resets IA's sheet_spec page to its initial state. */
 void
 reset_sheet_spec_page (struct import_assistant *ia)
@@ -109,16 +125,15 @@ post_sheet_spec_page (struct import_assistant *ia)
   GtkWidget *range_entry = get_widget_assert (builder, "cell-range-entry");
   GtkWidget *readnames_checkbox = get_widget_assert (builder, "readnames-checkbox");
 
-  gint num = atoi (gtk_entry_get_text (GTK_ENTRY (sheet_entry)));
+  gint num = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (sheet_entry));
 
   const gchar *range = gtk_entry_get_text (GTK_ENTRY (range_entry));
-
 
   if ( num < 1 )
     num = 1;
   
   ssp->opts.sheet_name = NULL;
-  ssp->opts.cell_range = range;
+  ssp->opts.cell_range = NULL;
   ssp->opts.sheet_index = num;
 
   if ( convert_cell_ref (range, &col_start, &row_start, &col_stop, &row_stop))
