@@ -27,9 +27,9 @@ struct spreadsheet_read_options;
 
 struct spreadsheet *gnumeric_probe (const char *filename);
 
-struct casereader * gnumeric_open_reader (const struct spreadsheet_read_info *, 
-					  struct spreadsheet_read_options *,
-					  struct dictionary **);
+struct casereader * gnumeric_make_reader (struct spreadsheet *spreadsheet,
+					  const struct spreadsheet_read_info *gri, 
+					  struct spreadsheet_read_options *opts);
 
 
 #endif

@@ -86,9 +86,15 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	goto error;
 
       if ( 0 == strncasecmp (tok, "GNM", 3))
-	reader = gnumeric_open_reader (&sri, &opts, &dict);
+	{
+	  struct spreadsheet *spreadsheet = gnumeric_probe (sri.file_name);
+	  reader = gnumeric_make_reader (spreadsheet, &sri, &opts);
+	  dict = spreadsheet->dict;
+	}
       else if (0 == strncasecmp (tok, "ODS", 3))
-	reader = ods_open_reader (&sri, &opts, &dict);
+	{
+	  reader = ods_open_reader (&sri, &opts, &dict);
+	}
 
       if (reader)
 	{

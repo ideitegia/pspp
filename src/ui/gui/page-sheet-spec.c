@@ -151,7 +151,10 @@ post_sheet_spec_page (struct import_assistant *ia)
       creader = ods_open_reader (&ssp->sri, &ssp->opts, &dict);
       break;
     case FTYPE_GNUMERIC:
-      creader = gnumeric_open_reader (&ssp->sri, &ssp->opts, &dict);
+      {
+	creader = gnumeric_make_reader (ssp->spreadsheet, &ssp->sri, &ssp->opts);
+	dict = ssp->spreadsheet->dict;
+      }
       break;
     default:
       g_assert_not_reached ();

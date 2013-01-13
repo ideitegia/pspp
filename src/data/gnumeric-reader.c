@@ -95,9 +95,6 @@ struct gnumeric_reader
 
   enum reader_state state;
 
-  /* The total number of sheets in the "workbook" */
-  int sheet_total ;
-
   int row;
   int col;
   int min_col;
@@ -157,7 +154,7 @@ process_node (struct gnumeric_reader *r)
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
 	  r->state = STATE_SHEET_COUNT;
-	  r->sheet_total = 0;
+	  r->spreadsheet.sheets = 0;
 	}
       break;
 
@@ -165,7 +162,7 @@ process_node (struct gnumeric_reader *r)
       if (0 == xmlStrcasecmp (name, _xml("gnm:SheetName")) &&
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
-	  r->sheet_total++;
+	  r->spreadsheet.sheets++;
 	}
       else if (0 == xmlStrcasecmp (name, _xml("gnm:SheetNameIndex")) &&
 	  XML_READER_TYPE_END_ELEMENT  == r->node_type)
@@ -327,7 +324,7 @@ gnumeric_probe (const char *filename)
   r = xzalloc (sizeof *r);
   
   r->xtr = xtr;
-  r->sheet_total = -1;
+  r->spreadsheet.sheets = -1;
   r->state = STATE_PRE_INIT;
 
 
@@ -350,32 +347,23 @@ gnumeric_probe (const char *filename)
     }
     
   r->spreadsheet.type = SPREADSHEET_GNUMERIC;
-  r->spreadsheet.sheets = r->sheet_total;
-  r->spreadsheet.make_reader = NULL;
-  
   
   return &r->spreadsheet;
 }
 
+
 struct casereader *
-gnumeric_open_reader (const struct spreadsheet_read_info *gri, 
-		      struct spreadsheet_read_options *opts,
-		      struct dictionary **dict)
+gnumeric_make_reader (struct spreadsheet *spreadsheet,
+		      const struct spreadsheet_read_info *gri, 
+		      struct spreadsheet_read_options *opts)
 {
+  struct gnumeric_reader *r = NULL;
   unsigned long int vstart = 0;
   int ret;
   casenumber n_cases = CASENUMBER_MAX;
   int i;
   struct var_spec *var_spec = NULL;
   int n_var_specs = 0;
-
-  struct spreadsheet * spreadsheet = NULL;
-  struct gnumeric_reader *r = NULL;
-
-  spreadsheet = gnumeric_probe (gri->file_name);
-
-  if (spreadsheet == NULL)
-    goto error;
 
   r = (struct gnumeric_reader *) (spreadsheet);
 
@@ -508,7 +496,7 @@ gnumeric_open_reader (const struct spreadsheet_read_info *gri,
     if ( enc == NULL)
       goto error;
     /* Create the dictionary and populate it */
-    *dict = r->dict = dict_create (CHAR_CAST (const char *, enc));
+    spreadsheet->dict = r->dict = dict_create (CHAR_CAST (const char *, enc));
   }
 
   for (i = 0 ; i < n_var_specs ; ++i )
@@ -587,8 +575,8 @@ gnumeric_open_reader (const struct spreadsheet_read_info *gri,
     }
 
   free (var_spec);
-  dict_destroy (*dict);
-  *dict = NULL;
+  dict_destroy (spreadsheet->dict);
+  spreadsheet->dict = NULL;
 
   gnm_file_casereader_destroy (NULL, r);
 

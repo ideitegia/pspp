@@ -62,8 +62,6 @@ struct spreadsheet
 {
   enum spreadsheet_type type;
 
-  struct casereader * (*make_reader) (struct spreadsheet *);
-
   /* The total number of sheets in the "workbook" */
   int sheets;
 
