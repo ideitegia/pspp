@@ -116,7 +116,6 @@ post_sheet_spec_page (struct import_assistant *ia)
 
   GtkBuilder *builder = ia->asst.builder;
 
-  struct file *file = &ia->file;
   struct sheet_spec_page *ssp = ia->sheet_spec;
   struct casereader *creader = NULL;
   struct dictionary *dict = NULL;
@@ -141,7 +140,6 @@ post_sheet_spec_page (struct import_assistant *ia)
       ssp->opts.cell_range = range;
     }
 
-  ssp->sri.file_name = file->file_name;
   ssp->sri.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
   ssp->sri.asw = -1;
 

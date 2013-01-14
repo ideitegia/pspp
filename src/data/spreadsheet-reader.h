@@ -36,7 +36,6 @@ struct spreadsheet_read_options
 
 struct spreadsheet_read_info
 {
-  char *file_name ;        /* The name of the file to open (in filename encoding) */
   bool read_names ;        /* True if the first row is to be used as the names of the variables */
   int asw ;                /* The width of string variables in the created dictionary */
 };
@@ -61,6 +60,8 @@ enum spreadsheet_type
 
 struct spreadsheet
 {
+  char *file_name;
+
   enum spreadsheet_type type;
 
   /* The total number of sheets in the "workbook" */

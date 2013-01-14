@@ -45,7 +45,7 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) (msgid)
 
-static bool parse_spreadsheet (struct lexer *lexer, struct spreadsheet_read_info *sri, 
+static bool parse_spreadsheet (struct lexer *lexer, char **filename, struct spreadsheet_read_info *sri, 
 			       struct spreadsheet_read_options *opts);
 
 static void destroy_spreadsheet_read_info (struct spreadsheet_read_info *, struct spreadsheet_read_options *);
@@ -78,22 +78,23 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
   else if (lex_match_id (lexer, "GNM") || 
       lex_match_id (lexer, "ODS"))
     {
+      char *filename = NULL;
       struct casereader *reader = NULL;
       struct dictionary *dict = NULL;
       struct spreadsheet_read_info sri;
       struct spreadsheet_read_options opts;
-      if (!parse_spreadsheet (lexer, &sri, &opts))
+      if (!parse_spreadsheet (lexer, &filename, &sri, &opts))
 	goto error;
 
       if ( 0 == strncasecmp (tok, "GNM", 3))
 	{
-	  struct spreadsheet *spreadsheet = gnumeric_probe (sri.file_name);
+	  struct spreadsheet *spreadsheet = gnumeric_probe (filename);
 	  reader = gnumeric_make_reader (spreadsheet, &sri, &opts);
 	  dict = spreadsheet->dict;
 	}
       else if (0 == strncasecmp (tok, "ODS", 3))
 	{
-	  struct spreadsheet *spreadsheet = ods_probe (sri.file_name);
+	  struct spreadsheet *spreadsheet = ods_probe (filename);
 	  reader = ods_make_reader (spreadsheet, &sri, &opts);
 	  dict = spreadsheet->dict;
 	}
@@ -193,7 +194,7 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
 }
 
 static bool
-parse_spreadsheet (struct lexer *lexer, struct spreadsheet_read_info *sri, 
+parse_spreadsheet (struct lexer *lexer, char **filename, struct spreadsheet_read_info *sri, 
 		   struct spreadsheet_read_options *opts)
 {
   opts->sheet_index = 1;
@@ -201,7 +202,6 @@ parse_spreadsheet (struct lexer *lexer, struct spreadsheet_read_info *sri,
   opts->cell_range = NULL;
   sri->read_names = true;
   sri->asw = -1;
-  sri->file_name = NULL;
 
   lex_force_match (lexer, T_SLASH);
 
@@ -213,7 +213,7 @@ parse_spreadsheet (struct lexer *lexer, struct spreadsheet_read_info *sri,
   if (!lex_force_string (lexer))
     goto error;
 
-  sri->file_name = utf8_to_filename (lex_tokcstr (lexer));
+  *filename  = utf8_to_filename (lex_tokcstr (lexer));
 
   lex_get (lexer);
 
@@ -676,5 +676,4 @@ destroy_spreadsheet_read_info (struct spreadsheet_read_info *sri,
 {
   free (opts->sheet_name);
   free (opts->cell_range);
-  free (sri->file_name);
 }

@@ -408,6 +408,7 @@ struct spreadsheet *ods_probe (const char *filename)
 
   ds_destroy (&errs);
 
+  r->spreadsheet.file_name = filename;
   return &r->spreadsheet;
 
  error:
@@ -483,7 +484,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
   if (ret < 1)
     {
       msg (MW, _("Selected sheet or range of spreadsheet `%s' is empty."),
-           gri->file_name);
+           spreadsheet->file_name);
       goto error;
     }
 
@@ -598,7 +599,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
   if ( n_var_specs ==  0 )
     {
       msg (MW, _("Selected sheet or range of spreadsheet `%s' is empty."),
-           gri->file_name);
+           spreadsheet->file_name);
       goto error;
     }
 

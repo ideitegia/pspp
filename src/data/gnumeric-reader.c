@@ -347,6 +347,7 @@ gnumeric_probe (const char *filename)
     }
     
   r->spreadsheet.type = SPREADSHEET_GNUMERIC;
+  r->spreadsheet.file_name = filename;
   
   return &r->spreadsheet;
 }
@@ -522,7 +523,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
   if ( n_var_specs ==  0 )
     {
       msg (MW, _("Selected sheet or range of spreadsheet `%s' is empty."),
-           gri->file_name);
+           spreadsheet->file_name);
       goto error;
     }
 
@@ -553,7 +554,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
   
   if (opts->cell_range == NULL)
     {
-      opts->cell_range = c_xasprintf ("%c%d:%c%d", 
+      opts->cell_range = c_xasprintf ("%c%d:%c%ld", 
 				       r->start_col + 'A',
 				       r->start_row,
 				       r->stop_col + 'A' + caseproto_get_n_widths (r->proto),

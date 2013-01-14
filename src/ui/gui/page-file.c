@@ -149,19 +149,17 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   opts.cell_range = NULL;
   opts.sheet_index = 1;
 
-  sri.file_name = file->file_name;
   sri.read_names = true;
   sri.asw = -1;
 
   if (ssp->spreadsheet == NULL)
-    ssp->spreadsheet = gnumeric_probe (sri.file_name);
+    ssp->spreadsheet = gnumeric_probe (file->file_name);
   
   if (ssp->spreadsheet == NULL)
-    ssp->spreadsheet = ods_probe (sri.file_name);
+    ssp->spreadsheet = ods_probe (file->file_name);
 
   if (ssp->spreadsheet)
     {
-      
       //      update_assistant (ia);
     }
   else
