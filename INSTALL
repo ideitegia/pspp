@@ -272,13 +272,6 @@ Optional Features
    Disable building the Perl module, in case it does not build properly
    or you do not need it.
 
-`--enable-anachronistic-dependencies'
-   If you use this option, some of the checks for dependent libraries
-   will be relaxed, permitting configure to succeed when older versions
-   of libraries are detected.   Use of this option is not recommended.
-   If you use it, some features may be missing and the build may fail
-   with obscure error messages.
-
 `--enable-relocatable'
    This option is useful for building a package which can be installed
    into an arbitrary directory and freely copied to any other directory.
