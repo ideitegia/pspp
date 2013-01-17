@@ -24,11 +24,9 @@
 #include "gl/configmake.h"
 
 
-GtkBuilder *builder_new_real (const gchar *name);
+GtkBuilder *builder_new_real (const gchar *pathname, const gchar *filename);
 
-GtkBuilder * builder_new_x (const gchar *obj_name);
-
-#define builder_new(NAME) (builder_new_real (relocate (PKGDATADIR "/" NAME)))
+#define builder_new(NAME) (builder_new_real (relocate (PKGDATADIR "/" NAME), NAME))
 
 GObject *get_object_assert (GtkBuilder *builder, const gchar *name, GType type);
 GtkAction * get_action_assert (GtkBuilder *builder, const gchar *name);

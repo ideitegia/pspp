@@ -1,0 +1,3 @@
+%  examples/Diet.sav
+PsppireDataWindow keys alt+t c 
+compute-variable-dialog keys alt+v ; string weight_change ; keys alt+n ; string "ABS(weight_after - weight_before)" ; capture

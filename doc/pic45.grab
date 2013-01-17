@@ -1,0 +1,4 @@
+% 
+PsppireDataWindow keys alt+t c 
+compute-variable-dialog keys alt+v; string xxx ; keys alt+t
+type-and-label-dialog capture

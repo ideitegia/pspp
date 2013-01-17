@@ -89,6 +89,19 @@ doc: $(INFO_DEPS) $(DVIS) $(PDFS) $(PSS) $(HTMLS) $(dist_docbook_DATA)
 include $(top_srcdir)/doc/png_manifest
 include $(top_srcdir)/doc/eps_manifest
 
-html-local: 
+$(MANUAL_IMAGES): src/ui/gui/psppire
+
+html-local: $(MANUAL_IMAGES)
 	cp $(MANUAL_IMAGES) doc/pspp.html
 
+doc/pspp.pdf: $(MANUAL_IMAGES)
+
+SUFFIXES+=.grab .png
+
+.grab.png:
+	bash $(top_srcdir)/doc/grab -v -I $(top_srcdir) $< -o $@
+
+SUFFIXES+=.eps
+
+.png.eps:
+	convert $< $@

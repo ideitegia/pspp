@@ -1,0 +1,244 @@
+#!/bin/bash
+
+# This script takes a command file (indicated with the -d option) and
+# uses it to capture screenshots of the PSPP gui.
+# The command file comprises lines of the form:
+#
+# WindowName Cmd args; Cmd args; .... ;
+# which indicate that a window names WindowName is expected, and when
+# it appears, the action identified by Cmd should be taken.  There are
+# currently three commands: 
+# keys : indicates that keystrokes should be sent to the window
+# string: a typed string should be send to the window
+# capture: A screenshot should be taken.
+#
+# Normally, capture will be the last command, after which the script terminates.
+
+
+# Check that necessary dependencies are installed
+
+if ! which xdotool > /dev/null ; then 
+  echo xdotool must be installed
+  exit 1
+fi
+
+debug=0
+while test $# -gt 0; do
+    case $1 in
+	-v)
+	    debug=$[$debug + 1]
+	    ;;
+	-o)
+	    shift
+	    outputfile=$1
+	    ;;
+	-I)
+	    shift
+	    top_srcdir=$1
+	    export PSPPIRE_SOURCE_DIR="$top_srcdir/src/ui/gui/"
+	    ;;
+        -m)
+	    shift
+	    windowmanager=$1
+	    ;;
+        -*)
+	   echo "Unknown option $1"
+	   exit 1
+	   ;;
+	*)
+	    keystrokefile=$1
+	    ;;
+    esac
+    shift;
+done
+
+if test -z "$keystrokefile" -o -z "$outputfile"; then
+ echo 'Usage: grab keystrokefile [-v -v -v ...] [-I searchpath] [-m windowmanager] -o outputfile';
+ exit 1;
+fi
+
+
+cleanup ()
+{
+ if test -n "$wm_pid" ; then kill $wm_pid ; fi
+ kill $server_pid 2> /dev/null
+ rm -rf $cleandir
+}
+
+do_cmd ()
+{
+    xid="$1";
+    inputseq="$2";
+
+    xdotool windowfocus $xid 
+    IFS=';'  # input sequences are separated by semicolons
+    for ip in $inputseq; do
+	IFS=' 	' # the elements of the sequence are separated by whitespace
+	read cmd args <<<$ip ;
+	case $cmd in 
+	    ignore)
+		;;
+	    raise)
+		xdotool windowraise $xid;
+		;;
+	    capture)
+                sleep 1 ;
+		import  -frame -window $xid png:$outputfile ;
+                result=$?
+		cleanup
+		exit $result
+		;;
+	    keys)
+		for a in $args; do
+		    case $a in
+			[1-9]*'*'*) 
+			    qty=${a%\**};
+			    k=${a#*\*};
+			    ;;
+			*) qty=1; k=$a;;
+		    esac;
+		    while test $[qty--] -gt 0; do
+			sleep 1;
+			xdotool key --window $xid $k ;
+		    done;
+		done
+		;;
+	    string)
+		args=${args%\"} # Remove enclosing "" if any.
+		args=${args#\"}
+		xdotool type --window $xid -- "$args" ;
+		;;
+	    size)
+		xdotool windowsize $xid $args ;
+		;;
+	    *)
+		echo "Unknown command $cmd";
+		cleanup
+		exit 1
+		;;
+	esac
+    done
+}
+
+cleandir=`mktemp -d`
+
+cat > $cleandir/rc <<EOF
+style "Dark" 
+{
+      font_name = "Sans Italic 10"
+      base[NORMAL] = "#343434"
+      base[INSENSITIVE] = mix (0.7, "#343434", "#d3d3d3") 
+      text[NORMAL] = "#d3d3d3"
+      bg[NORMAL] = "#555555"
+      bg[INSENSITIVE] = mix (0.7, "#555555", "#e3e3e3") 
+      fg[NORMAL] = "#e3e3e3"
+
+      engine "clearlooks" {}
+}
+
+
+style "Light" 
+{
+      xthickness = 5
+      ythickness = 5
+      fg[NORMAL] = "black"
+      text[NORMAL] = "black"
+
+      base[NORMAL] = "white"
+      bg[NORMAL] = "white"
+
+      font_name = "Sans Bold 10"
+
+      engine "hcengine" {}
+}
+
+style "normal" 
+{
+      font_name = "Sans 8"
+}
+
+class "*" style "normal"
+
+EOF
+
+if test $debug -le 1; then
+    stderr=/dev/null
+    stdout=/dev/null
+else
+    stderr=`tty`
+    stdout=$stderr
+fi
+
+resolution=1280x1024
+display=:1
+if test $debug -gt 1 ; then
+    Xephyr -screen $resolution $display 2> $stderr > $stdout&
+    sleep 1;  #Xephyr seems to take a long time to initialise
+else
+    Xvfb -screen 0 "$resolution"x24 $display 2> $stderr > $stdout &
+fi
+server_pid=$!
+
+export DISPLAY=$display
+export XDG_CONFIG_HOME=$cleandir
+export GTK2_RC_FILES=$cleandir/rc 
+
+if test -n "$windowmanager" ; then
+  if ! which $windowmanager > /dev/null ; then
+      echo Window Manager $windowmanager is not installed;
+      cleanup
+      exit 1;
+  fi;
+  $windowmanager --sync 2> $stderr > $stdout & 
+  wm_pid=$!
+fi
+
+subject=./src/ui/gui/psppire
+if ! $subject --version > /dev/null ; then
+      echo The GUI $subject does not exist;
+      cleanup
+      exit 1;
+fi;
+
+
+(
+read -u 7 magic datafile;
+if test $magic != '%' ; then
+    echo 'Expected % at start of input'
+    cleanup
+    exit 1;
+fi
+if test -n "$datafile" ; then
+    datafile=$top_srcdir/$datafile
+fi
+
+declare -a xids;
+
+IFS=' 	'
+export TMOUT=5
+LC_ALL=C \
+ $subject --debug --sync --no-splash \
+ $datafile  2> $stderr | while read  -u 7 window inputseq  ; do
+    if test -z ${window##\+[0-9]} ; then
+	ref=${window##\+}
+        do_cmd "${xids[$[${#xids[*]} - 1 - $ref]]}" "$inputseq";
+    else
+    while read -u 0 wname xid ; do
+	xids[$[x++]]=$xid;
+	if test $debug -gt 0; then
+	    echo Got $wname $xid
+	fi
+	case $wname in
+	    $window)
+             do_cmd "${xids[$[${#xids[*]} - 1]]}" "$inputseq";
+            break 
+            ;;
+	esac
+    done
+    if test -z "$wname"; then #Timeout was exceeded
+	echo "Expecting $window.  Not received after $TMOUT seconds"
+        cleanup
+        exit 1
+    fi
+    fi
+done)  7< $keystrokefile

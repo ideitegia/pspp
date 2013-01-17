@@ -22,36 +22,30 @@
 
 
 GtkBuilder *
-builder_new_real (const gchar *name)
+builder_new_real (const gchar *pathname, const gchar *filename)
 {
   GtkBuilder *builder = gtk_builder_new ();
-
+  guint result = 0;
   GError *err = NULL;
-  if ( ! gtk_builder_add_from_file (builder, name,  &err))
+  result = gtk_builder_add_from_file (builder, pathname,  &err);
+  if (result == 0)
     {
-      g_critical ("Couldn\'t open user interface  file %s: %s", name, err->message);
+      gchar *srcdir = getenv ("PSPPIRE_SOURCE_DIR");
+      if (srcdir)
+	{
+	  gchar *altpathname = g_strdup_printf ("%s/%s", srcdir, filename);
+	  g_warning ("Trying alternative path for ui file %s", altpathname);
+	  result = gtk_builder_add_from_file (builder, altpathname,  NULL);
+	  g_free (altpathname);
+	}
+      if (result == 0)
+	g_critical ("Couldn\'t open user interface  file %s: %s", pathname, err->message);
+
       g_clear_error (&err);
     }
 
   return builder;
 }
-
-
-GtkBuilder * 
-builder_new_x (const gchar *obj_name)
-{
-  GtkBuilder *b;
-  GString *str = g_string_new (PKGDATADIR);
-  g_string_append (str, "/");
-  g_string_append (str, obj_name);
-
-  b = builder_new_real (relocate (str->str));
-
-  g_string_free (str, TRUE);
-
-  return b;
-}
-
 
 
 GObject *
