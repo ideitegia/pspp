@@ -66,8 +66,7 @@
 #define V TABLE_VERT
 
 /* Measurements as we present to the rest of PSPP. */
-#define XR_POINT PANGO_SCALE
-#define XR_INCH (XR_POINT * 72)
+#define XR_POINT 1000
 
 /* Conversions to and from points. */
 static double
@@ -1016,8 +1015,8 @@ xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
     {
       int w0 = render_page_get_size (r->page, H);
       int w1 = r->title_width;
-      *w = MAX (w0, w1) / 1024;
-      *h = (render_page_get_size (r->page, V) + r->title_height) / 1024;
+      *w = MAX (w0, w1) / XR_POINT;
+      *h = (render_page_get_size (r->page, V) + r->title_height) / XR_POINT;
     }
   else
     {
@@ -1049,8 +1048,9 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
         }
 
       xr->y = r->title_height;
-      render_page_draw_region (r->page, x * 1024, (y * 1024) - r->title_height,
-                               w * 1024, h * 1024);
+      render_page_draw_region (r->page, 
+			       x * XR_POINT, (y * XR_POINT) - r->title_height,
+                               w * XR_POINT, h * XR_POINT);
     }
   else
     xr_draw_chart (to_chart_item (r->item), cr,
