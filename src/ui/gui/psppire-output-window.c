@@ -1041,6 +1041,26 @@ psppire_output_window_new (void)
 }
 
 
+
+static cairo_t *
+get_cairo_context_from_print_context (GtkPrintContext *context)
+{
+  cairo_t *cr = gtk_print_context_get_cairo_context (context);
+  
+  /*
+    For all platforms except windows, gtk_print_context_get_dpi_[xy] returns 72.
+    Windows returns 600.
+  */
+  double xres = gtk_print_context_get_dpi_x (context);
+  double yres = gtk_print_context_get_dpi_y (context);
+  
+  /* This means that the cairo context now has its dimensions in Points */
+  cairo_scale (cr, xres / 72.0, yres / 72.0);
+  
+  return cr;
+}
+
+
 static void
 create_xr_print_driver (GtkPrintContext *context, PsppireOutputWindow *window)
 {
@@ -1072,8 +1092,7 @@ create_xr_print_driver (GtkPrintContext *context, PsppireOutputWindow *window)
   string_map_insert_nocopy (&options, xstrdup ("bottom-margin"),
                             c_xasprintf ("%.2fmm", bottom_margin));
 
-  window->print_xrd =
-    xr_driver_create (gtk_print_context_get_cairo_context (context), &options);
+  window->print_xrd = xr_driver_create (get_cairo_context_from_print_context (context), &options);
 
   string_map_destroy (&options);
 }
@@ -1140,7 +1159,7 @@ draw_page (GtkPrintOperation *operation,
 	   gint               page_number,
 	   PsppireOutputWindow *window)
 {
-  xr_driver_next_page (window->print_xrd, gtk_print_context_get_cairo_context (context));
+  xr_driver_next_page (window->print_xrd, get_cairo_context_from_print_context (context));
   while (!xr_driver_need_new_page (window->print_xrd)
          && window->print_item < window->n_items)
     xr_driver_output_item (window->print_xrd, window->items [window->print_item++]);
