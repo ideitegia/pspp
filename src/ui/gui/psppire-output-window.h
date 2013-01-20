@@ -67,6 +67,8 @@ struct _PsppireOutputWindow
   int print_item;
   int print_n_pages;
   gboolean paginated;
+
+  gboolean dispose_has_run;
 };
 
 struct _PsppireOutputWindowClass

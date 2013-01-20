@@ -57,8 +57,6 @@ enum
     N_COLS
   };
 
-static void psppire_output_window_base_finalize (PsppireOutputWindowClass *, gpointer);
-static void psppire_output_window_base_init     (PsppireOutputWindowClass *class);
 static void psppire_output_window_class_init    (PsppireOutputWindowClass *class);
 static void psppire_output_window_init          (PsppireOutputWindow      *window);
 
@@ -75,8 +73,8 @@ psppire_output_window_get_type (void)
       static const GTypeInfo psppire_output_window_info =
       {
 	sizeof (PsppireOutputWindowClass),
-	(GBaseInitFunc) psppire_output_window_base_init,
-        (GBaseFinalizeFunc) psppire_output_window_base_finalize,
+	(GBaseInitFunc) NULL,
+        (GBaseFinalizeFunc) NULL,
 	(GClassInitFunc)psppire_output_window_class_init,
 	(GClassFinalizeFunc) NULL,
 	NULL,
@@ -112,6 +110,10 @@ psppire_output_window_dispose (GObject *obj)
   PsppireOutputWindow *viewer = PSPPIRE_OUTPUT_WINDOW (obj);
   size_t i;
 
+  if (viewer->dispose_has_run) 
+    return;
+
+  viewer->dispose_has_run = TRUE;
   for (i = 0; i < viewer->n_items; i++)
     output_item_unref (viewer->items[i]);
   free (viewer->items);
@@ -134,24 +136,10 @@ psppire_output_window_class_init (PsppireOutputWindowClass *class)
   object_class->dispose = psppire_output_window_dispose;
   
   GTK_WIDGET_CLASS (object_class)->style_set = psppire_output_window_style_set;
-}
-
-
-static void
-psppire_output_window_base_init (PsppireOutputWindowClass *class)
-{
-  GObjectClass *object_class = G_OBJECT_CLASS (class);
-
   object_class->finalize = psppire_output_window_finalize;
 }
 
 
-
-static void
-psppire_output_window_base_finalize (PsppireOutputWindowClass *class,
-				     gpointer class_data)
-{
-}
 
 /* Output driver class. */
 
@@ -975,6 +963,8 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   window->output = GTK_LAYOUT (get_widget_assert (xml, "output"));
   window->y = 0;
+  window->print_settings = NULL;
+  window->dispose_has_run = FALSE;
 
   window->overview = GTK_TREE_VIEW (get_widget_assert (xml, "overview"));
 
@@ -1168,9 +1158,9 @@ psppire_output_window_print (PsppireOutputWindow *window)
     gtk_print_operation_set_print_settings (print, window->print_settings);
 
   g_signal_connect (print, "begin_print", G_CALLBACK (begin_print), window);
-  g_signal_connect (print, "end_print", G_CALLBACK (end_print),     window);
-  g_signal_connect (print, "paginate", G_CALLBACK (paginate),       window);
-  g_signal_connect (print, "draw_page", G_CALLBACK (draw_page),     window);
+  g_signal_connect (print, "end_print",   G_CALLBACK (end_print),   window);
+  g_signal_connect (print, "paginate",    G_CALLBACK (paginate),    window);
+  g_signal_connect (print, "draw_page",   G_CALLBACK (draw_page),   window);
 
   res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
                                  GTK_WINDOW (window), NULL);
@@ -1180,7 +1170,6 @@ psppire_output_window_print (PsppireOutputWindow *window)
       if (window->print_settings != NULL)
         g_object_unref (window->print_settings);
       window->print_settings = g_object_ref (gtk_print_operation_get_print_settings (print));
-      
     }
 
   g_object_unref (print);
