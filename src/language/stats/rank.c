@@ -81,7 +81,7 @@ static double rank_ntiles (const struct rank *, double c, double cc, double cc_1
 			   int i, double w);
 
 
-enum RANK_FUNC
+enum rank_func
   {
     RANK,
     NORMAL,
@@ -146,7 +146,7 @@ enum fraction
 
 struct rank_spec
 {
-  enum RANK_FUNC rfunc;
+  enum rank_func rfunc;
   struct variable **destvars;
 };
 
@@ -157,7 +157,7 @@ struct rank_spec
    If VNAME is NULL, then a name will be automatically chosen.
 */
 static struct variable *
-create_rank_variable (struct dictionary *dict, enum RANK_FUNC f,
+create_rank_variable (struct dictionary *dict, enum rank_func f,
 		      const struct variable *src_var,
 		      const char *vname)
 {
@@ -626,7 +626,7 @@ fraction_name (const struct rank *cmd)
 /* Create a label on DEST_VAR, describing its derivation from SRC_VAR and F */
 static void
 create_var_label (struct rank *cmd, struct variable *dest_var,
-		  const struct variable *src_var, enum RANK_FUNC f)
+		  const struct variable *src_var, enum rank_func f)
 {
   struct string label;
   ds_init_empty (&label);
