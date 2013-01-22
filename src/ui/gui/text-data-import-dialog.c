@@ -80,11 +80,9 @@ text_data_import_assistant (PsppireDataWindow *dw)
       return;
     }
 
-
   ssp = ia->sheet_spec;
   if (ssp->spreadsheet == NULL)
     {
-      init_intro_page (ia);
       init_first_line_page (ia);
       init_separators_page (ia);
     }

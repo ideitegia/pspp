@@ -76,15 +76,15 @@ init_assistant (GtkWindow *parent_window)
   ia = xzalloc (sizeof *ia);
   struct assistant *a = &ia->asst;
 
+  a->builder = builder_new ("text-data-import.ui");
+  a->assistant = GTK_ASSISTANT (gtk_assistant_new ());
 
-  ia->intro = xzalloc (sizeof *ia->intro);
+  ia->intro = intro_page_create (ia);
   ia->sheet_spec = xzalloc (sizeof *ia->sheet_spec);
   ia->first_line = xzalloc (sizeof *ia->first_line);
   ia->separators = xzalloc (sizeof *ia->separators);
   ia->formats = xzalloc (sizeof *ia->formats);
 
-  a->builder = builder_new ("text-data-import.ui");
-  a->assistant = GTK_ASSISTANT (gtk_assistant_new ());
   g_signal_connect (a->assistant, "prepare", G_CALLBACK (on_prepare), ia);
   g_signal_connect (a->assistant, "cancel", G_CALLBACK (on_cancel), ia);
   g_signal_connect (a->assistant, "close", G_CALLBACK (on_close), ia);

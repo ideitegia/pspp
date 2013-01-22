@@ -64,19 +64,19 @@ struct import_assistant;
 
 /* The "intro" page of the assistant. */
 
-static void on_intro_amount_changed (struct import_assistant *);
+static void on_intro_amount_changed (struct intro_page *);
 
 /* Initializes IA's intro substructure. */
-void
-init_intro_page (struct import_assistant *ia)
+struct intro_page *
+intro_page_create (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
-  struct intro_page *p = ia->intro;
   struct string s;
   GtkWidget *hbox_n_cases ;
   GtkWidget *hbox_percent ;
   GtkWidget *table ;
 
+  struct intro_page *p = xzalloc (sizeof (*p));
 
   p->n_cases_spin = gtk_spin_button_new_with_range (0, INT_MAX, 100);
 
@@ -106,13 +106,13 @@ init_intro_page (struct import_assistant *ia)
   p->percent_button = get_widget_assert (builder, "import-percent");
 
   g_signal_connect_swapped (p->all_cases_button, "toggled",
-                    G_CALLBACK (on_intro_amount_changed), ia);
+                    G_CALLBACK (on_intro_amount_changed), p);
   g_signal_connect_swapped (p->n_cases_button, "toggled",
-                    G_CALLBACK (on_intro_amount_changed), ia);
+                    G_CALLBACK (on_intro_amount_changed), p);
   g_signal_connect_swapped (p->percent_button, "toggled",
-                    G_CALLBACK (on_intro_amount_changed), ia);
+                    G_CALLBACK (on_intro_amount_changed), p);
 
-  on_intro_amount_changed (ia);
+  on_intro_amount_changed (p);
 
   ds_init_empty (&s);
   ds_put_cstr (&s, _("This assistant will guide you through the process of "
@@ -147,6 +147,8 @@ init_intro_page (struct import_assistant *ia)
   gtk_label_set_text (GTK_LABEL (get_widget_assert (builder, "intro-label")),
                       ds_cstr (&s));
   ds_destroy (&s);
+
+  return p;
 }
 
 /* Resets IA's intro page to its initial state. */
@@ -159,10 +161,8 @@ reset_intro_page (struct import_assistant *ia)
 
 /* Called when one of the radio buttons is clicked. */
 static void
-on_intro_amount_changed (struct import_assistant *ia)
+on_intro_amount_changed (struct intro_page *p)
 {
-  struct intro_page *p = ia->intro;
-
   gtk_widget_set_sensitive (p->n_cases_spin,
                             gtk_toggle_button_get_active (
                               GTK_TOGGLE_BUTTON (p->n_cases_button)));
