@@ -81,15 +81,8 @@ text_data_import_assistant (PsppireDataWindow *dw)
     }
 
   ssp = ia->sheet_spec;
-  if (ssp->spreadsheet == NULL)
-    {
-      init_first_line_page (ia);
-      init_separators_page (ia);
-    }
-  else
-    {
-      init_sheet_spec_page (ia);
-    }
+  init_first_line_page (ia);
+  init_separators_page (ia);
 
   init_formats_page (ia);
 
@@ -111,11 +104,8 @@ text_data_import_assistant (PsppireDataWindow *dw)
       break;
     }
 
-  if (ssp->spreadsheet == NULL)
-    {
-      destroy_formats_page (ia);
-      destroy_separators_page (ia);
-    }
+  destroy_formats_page (ia);
+  destroy_separators_page (ia);
 
   destroy_assistant (ia);
   destroy_file (ia);
@@ -214,6 +204,7 @@ generate_syntax (const struct import_assistant *ia)
 
   struct string s = DS_EMPTY_INITIALIZER;
 
+#if 0
   if (ssp->spreadsheet == NULL)
     {
       size_t var_cnt;
@@ -267,10 +258,9 @@ generate_syntax (const struct import_assistant *ia)
       apply_dict (ia->formats->dict, &s);
     }
   else
+
     {
       const struct sheet_spec_page *ssp = ia->sheet_spec;
-
-      printf ("%s:%d %p %d\n", __FILE__, __LINE__, ssp->spreadsheet, ssp->spreadsheet->type);
 
       syntax_gen_pspp (&s,
 		       "GET DATA"
@@ -300,6 +290,7 @@ generate_syntax (const struct import_assistant *ia)
       syntax_gen_pspp (&s, ".");
     }
 
+#endif
   return ds_cstr (&s);
 }
 

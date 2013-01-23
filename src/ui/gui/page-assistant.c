@@ -72,15 +72,15 @@ static void close_assistant (struct import_assistant *, int response);
 struct import_assistant *
 init_assistant (GtkWindow *parent_window)
 {
-  struct import_assistant *ia = NULL;
-  ia = xzalloc (sizeof *ia);
+  struct import_assistant *ia = xzalloc (sizeof *ia);
   struct assistant *a = &ia->asst;
 
   a->builder = builder_new ("text-data-import.ui");
   a->assistant = GTK_ASSISTANT (gtk_assistant_new ());
 
+  ia->sheet_spec = sheet_spec_page_create (ia);
   ia->intro = intro_page_create (ia);
-  ia->sheet_spec = xzalloc (sizeof *ia->sheet_spec);
+
   ia->first_line = xzalloc (sizeof *ia->first_line);
   ia->separators = xzalloc (sizeof *ia->separators);
   ia->formats = xzalloc (sizeof *ia->formats);

@@ -23,6 +23,8 @@
 
 #include "libpspp/str.h"
 
+enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
+
 /* The file to be imported. */
 struct file
   {
@@ -54,18 +56,6 @@ struct assistant
     GtkCellRenderer *fixed_renderer;
   };
 
-
-/* The sheet_spec page of the assistant (only relevant for spreadsheet imports). */
-struct sheet_spec_page
-  {
-    GtkWidget *page;
-    struct casereader *reader;
-    struct dictionary *dict;
-    struct spreadsheet *spreadsheet;
-    
-    struct spreadsheet_read_info sri;
-    struct spreadsheet_read_options opts;
-  };
 
 
 /* Page where the user chooses the first line of data. */

@@ -64,20 +64,35 @@
 struct import_assistant;
 
 
-
 /* The "sheet-spec" page of the assistant. */
+
+/* The sheet_spec page of the assistant (only relevant for spreadsheet imports). */
+struct sheet_spec_page
+  {
+    GtkWidget *page;
+    struct casereader *reader;
+    struct dictionary *dict;
+    struct spreadsheet *spreadsheet;
+    
+    struct spreadsheet_read_info sri;
+    struct spreadsheet_read_options opts;
+  };
+
+
+
 
 
 /* Initializes IA's sheet_spec substructure. */
-void
-init_sheet_spec_page (struct import_assistant *ia)
+struct sheet_spec_page *
+sheet_spec_page_create (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
-  struct sheet_spec_page *p = ia->sheet_spec;
+  struct sheet_spec_page *p = xzalloc (sizeof (*p));
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Sheet"),
                                    GTK_ASSISTANT_PAGE_INTRO);
 
+  return p;
 }
 
 /* Prepares IA's sheet_spec page. */
@@ -182,3 +197,58 @@ post_sheet_spec_page (struct import_assistant *ia)
     }
 }
 
+
+/*
+  Update IA according to the contents of DICT and CREADER.
+  CREADER will be destroyed by this function.
+*/
+void 
+update_assistant (struct import_assistant *ia)
+{
+  struct sheet_spec_page *ssp = ia->sheet_spec;
+  //  struct file *file = &ia->file;
+  struct separators_page *sepp = ia->separators;
+  int rows = 0;
+
+
+  if (ssp->dict)
+    {
+      struct ccase *c;
+      int col;
+
+      sepp->column_cnt = dict_get_var_cnt (ssp->dict);
+      sepp->columns = xcalloc (sepp->column_cnt, sizeof (*sepp->columns));
+      for (col = 0; col < sepp->column_cnt ; ++col)
+	{
+	  const struct variable *var = dict_get_var (ssp->dict, col);
+	  sepp->columns[col].name = xstrdup (var_get_name (var));
+	  sepp->columns[col].contents = NULL;
+	}
+
+      for (; (c = casereader_read (ssp->reader)) != NULL; case_unref (c))
+	{
+	  rows++;
+	  for (col = 0; col < sepp->column_cnt ; ++col)
+	    {
+	      char *ss;
+	      const struct variable *var = dict_get_var (ssp->dict, col);
+
+	      sepp->columns[col].contents = xrealloc (sepp->columns[col].contents,
+						      sizeof (struct substring) * rows);
+
+	      ss = data_out (case_data (c, var), dict_get_encoding (ssp->dict), 
+			     var_get_print_format (var));
+
+	      sepp->columns[col].contents[rows - 1] = ss_cstr (ss);
+	    }
+
+	  if (rows > MAX_PREVIEW_LINES)
+	    {
+	      case_unref (c);
+	      break;
+	    }
+	}
+    }
+  
+  //  file->line_cnt = rows;
+}
