@@ -225,18 +225,9 @@ generate_syntax (const struct import_assistant *ia)
 		       ia->file.file_name);
       if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
 	syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
-      if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
-							   ia->intro->n_cases_button)))
-	ds_put_format (&s, "  /IMPORTCASES=FIRST %d\n",
-		       gtk_spin_button_get_value_as_int (
-							 GTK_SPIN_BUTTON (ia->intro->n_cases_spin)));
-      else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
-								ia->intro->percent_button)))
-	ds_put_format (&s, "  /IMPORTCASES=PERCENT %d\n",
-		       gtk_spin_button_get_value_as_int (
-							 GTK_SPIN_BUTTON (ia->intro->percent_spin)));
-      else
-	ds_put_cstr (&s, "  /IMPORTCASES=ALL\n");
+
+      intro_append_syntax (ia->intro, &s);
+
       ds_put_cstr (&s,
 		   "  /ARRANGEMENT=DELIMITED\n"
 		   "  /DELCASE=LINE\n");

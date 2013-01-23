@@ -85,6 +85,7 @@ init_assistant (GtkWindow *parent_window)
   ia->separators = xzalloc (sizeof *ia->separators);
   ia->formats = xzalloc (sizeof *ia->formats);
 
+
   g_signal_connect (a->assistant, "prepare", G_CALLBACK (on_prepare), ia);
   g_signal_connect (a->assistant, "cancel", G_CALLBACK (on_cancel), ia);
   g_signal_connect (a->assistant, "close", G_CALLBACK (on_close), ia);
@@ -161,7 +162,9 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
   struct sheet_spec_page *ssp = ia->sheet_spec;
 
   int pn = gtk_assistant_get_current_page (assistant);
+  g_print ("%s:%d Page %d %p\n", __FILE__, __LINE__, pn, page);
 
+#if 0  
   if (pn == 1 && ssp->spreadsheet)
     post_sheet_spec_page (ia);
 
@@ -183,6 +186,7 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
     }
 
 
+#endif
   
   gtk_widget_show (ia->asst.reset_button);
   if (page == ia->formats->page)
@@ -218,6 +222,7 @@ on_paste (GtkButton *button, struct import_assistant *ia)
 static void
 on_reset (GtkButton *button, struct import_assistant *ia)
 {
+#if 0
   gint page_num = gtk_assistant_get_current_page (ia->asst.assistant);
   GtkWidget *page = gtk_assistant_get_nth_page (ia->asst.assistant, page_num);
 
@@ -231,6 +236,7 @@ on_reset (GtkButton *button, struct import_assistant *ia)
     reset_formats_page (ia);
   else if (page == ia->sheet_spec->page)
     reset_sheet_spec_page (ia);
+#endif
 }
 
 /* Causes the assistant to close, returning RESPONSE for

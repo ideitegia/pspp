@@ -64,6 +64,17 @@ struct import_assistant;
 
 /* The "intro" page of the assistant. */
 
+/* The introduction page of the assistant. */
+struct intro_page
+  {
+    GtkWidget *page;
+    GtkWidget *all_cases_button;
+    GtkWidget *n_cases_button;
+    GtkWidget *n_cases_spin;
+    GtkWidget *percent_button;
+    GtkWidget *percent_spin;
+  };
+
 static void on_intro_amount_changed (struct intro_page *);
 
 /* Initializes IA's intro substructure. */
@@ -98,6 +109,8 @@ intro_page_create (struct import_assistant *ia)
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Intro"),
                                    GTK_ASSISTANT_PAGE_INTRO);
+  
+  g_print ("%s:%d Added page %p\n", __FILE__, __LINE__, p->page);
 
   p->all_cases_button = get_widget_assert (builder, "import-all-cases");
 
@@ -170,4 +183,18 @@ on_intro_amount_changed (struct intro_page *p)
   gtk_widget_set_sensitive (p->percent_spin,
                             gtk_toggle_button_get_active (
                               GTK_TOGGLE_BUTTON (p->percent_button)));
+}
+
+
+void
+intro_append_syntax (const struct intro_page *p, struct string *s)
+{
+  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (p->n_cases_button)))
+    ds_put_format (s, "  /IMPORTCASES=FIRST %d\n",
+		   gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (p->n_cases_spin)));
+  else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (p->percent_button)))
+    ds_put_format (s, "  /IMPORTCASES=PERCENT %d\n",
+		   gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (p->percent_spin)));
+  else
+    ds_put_cstr (s, "  /IMPORTCASES=ALL\n");
 }

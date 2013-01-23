@@ -68,17 +68,6 @@ struct sheet_spec_page
   };
 
 
-/* The introduction page of the assistant. */
-struct intro_page
-  {
-    GtkWidget *page;
-    GtkWidget *all_cases_button;
-    GtkWidget *n_cases_button;
-    GtkWidget *n_cases_spin;
-    GtkWidget *percent_button;
-    GtkWidget *percent_spin;
-  };
-
 /* Page where the user chooses the first line of data. */
 struct first_line_page
   {
@@ -197,13 +186,9 @@ GtkTreeViewColumn *make_data_column (struct import_assistant *,
 
 void  update_assistant (struct import_assistant *ia);
 
-
 bool init_file (struct import_assistant *ia, GtkWindow *parent_window);
 void destroy_file (struct import_assistant *ia);
 
-
-void init_intro_page (struct import_assistant *);
-void reset_intro_page (struct import_assistant *);
 
 void init_sheet_spec_page (struct import_assistant *);
 void prepare_sheet_spec_page (struct import_assistant *ia);
