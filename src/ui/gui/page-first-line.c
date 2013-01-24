@@ -59,7 +59,16 @@
 #define N_(msgid) msgid
 
 
+
 /* The "first line" page of the assistant. */
+
+/* Page where the user chooses the first line of data. */
+struct first_line_page
+  {
+    GtkWidget *page;
+    GtkTreeView *tree_view;
+    GtkWidget *variable_names_cb;
+  };
 
 static GtkTreeView *create_lines_tree_view (GtkContainer *parent_window,
                                             struct import_assistant *);
@@ -71,10 +80,11 @@ static void set_first_line (struct import_assistant *);
 static void get_first_line (struct import_assistant *);
 
 /* Initializes IA's first_line substructure. */
-void
-init_first_line_page (struct import_assistant *ia)
+struct first_line_page *
+first_line_page_create (struct import_assistant *ia)
 {
-  struct first_line_page *p = ia->first_line;
+  struct first_line_page *p = xzalloc (sizeof *p);
+
   GtkBuilder *builder = ia->asst.builder;
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "FirstLine"),
@@ -86,19 +96,19 @@ init_first_line_page (struct import_assistant *ia)
   gtk_tree_selection_set_mode (
     gtk_tree_view_get_selection (GTK_TREE_VIEW (p->tree_view)),
     GTK_SELECTION_BROWSE);
-  set_first_line (ia);
   g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (p->tree_view)),
                     "changed", G_CALLBACK (on_first_line_change), ia);
   g_signal_connect (p->variable_names_cb, "toggled",
                     G_CALLBACK (on_variable_names_cb_toggle), ia);
+  return p;
 }
 
 /* Resets the first_line page to its initial content. */
 void
 reset_first_line_page (struct import_assistant *ia)
 {
-  ia->first_line->skip_lines = 0;
-  ia->first_line->variable_names = false;
+  ia->skip_lines = 0;
+  ia->variable_names = false;
   set_first_line (ia);
 }
 
@@ -124,7 +134,7 @@ render_line (GtkTreeViewColumn *tree_column,
 static GtkTreeView *
 create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
 {
-  GtkTreeView *tree_view;
+  GtkTreeView *tree_view = NULL;
   GtkTreeViewColumn *column;
   size_t max_line_length;
   gint content_width, header_width;
@@ -185,16 +195,16 @@ set_first_line (struct import_assistant *ia)
 {
   GtkTreePath *path;
 
-  path = gtk_tree_path_new_from_indices (ia->first_line->skip_lines, -1);
+  path = gtk_tree_path_new_from_indices (ia->skip_lines, -1);
   gtk_tree_view_set_cursor (GTK_TREE_VIEW (ia->first_line->tree_view),
                             path, NULL, false);
   gtk_tree_path_free (path);
 
   gtk_toggle_button_set_active (
     GTK_TOGGLE_BUTTON (ia->first_line->variable_names_cb),
-    ia->first_line->variable_names);
+    ia->variable_names);
   gtk_widget_set_sensitive (ia->first_line->variable_names_cb,
-                            ia->first_line->skip_lines > 0);
+                            ia->skip_lines > 0);
 }
 
 /* Sets IA's first_line substructure to match the widgets. */
@@ -212,12 +222,12 @@ get_first_line (struct import_assistant *ia)
       int row = gtk_tree_path_get_indices (path)[0];
       gtk_tree_path_free (path);
 
-      ia->first_line->skip_lines = row;
-      ia->first_line->variable_names =
-        (ia->first_line->skip_lines > 0
+      ia->skip_lines = row;
+      ia->variable_names =
+        (ia->skip_lines > 0
          && gtk_toggle_button_get_active (
            GTK_TOGGLE_BUTTON (ia->first_line->variable_names_cb)));
     }
   gtk_widget_set_sensitive (ia->first_line->variable_names_cb,
-                            ia->first_line->skip_lines > 0);
+                            ia->skip_lines > 0);
 }

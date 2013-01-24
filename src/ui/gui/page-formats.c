@@ -133,7 +133,7 @@ prepare_formats_page (struct import_assistant *ia)
 
           /* Choose variable format. */
           fmt_guesser_clear (fg);
-          for (row = ia->first_line->skip_lines; row < ia->file.line_cnt; row++)
+          for (row = ia->skip_lines; row < ia->file.line_cnt; row++)
             fmt_guesser_add (fg, column->contents[row]);
           fmt_guesser_guess (fg, &format);
           fmt_fix_input (&format);

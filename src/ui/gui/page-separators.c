@@ -347,14 +347,13 @@ split_fields (struct import_assistant *ia)
 static void
 choose_column_names (struct import_assistant *ia)
 {
-  const struct first_line_page *f = ia->first_line;
   struct dictionary *dict;
   unsigned long int generated_name_count = 0;
   struct column *col;
   size_t name_row;
 
   dict = dict_create (get_default_encoding ());
-  name_row = f->variable_names && f->skip_lines ? f->skip_lines : 0;
+  name_row = ia->variable_names && ia->skip_lines ? ia->skip_lines : 0;
   for (col = ia->columns; col < &ia->columns[ia->column_cnt]; col++)
     {
       char *hint, *name;

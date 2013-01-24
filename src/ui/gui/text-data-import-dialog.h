@@ -59,18 +59,6 @@ struct assistant
 
 
 
-/* Page where the user chooses the first line of data. */
-struct first_line_page
-  {
-    int skip_lines;    /* Number of initial lines to skip? */
-    bool variable_names; /* Variable names above first line of data? */
-
-    GtkWidget *page;
-    GtkTreeView *tree_view;
-    GtkWidget *variable_names_cb;
-  };
-
-
 /* Page where the user verifies and adjusts input formats. */
 struct formats_page
   {
@@ -98,6 +86,9 @@ struct import_assistant
     /* The columns produced. */
     struct column *columns;     /* Information about each column. */
     size_t column_cnt;          /* Number of columns. */
+
+    int skip_lines;             /* Number of initial lines to skip? */
+    bool variable_names;        /* Variable names above first line of data? */
   };
 
 
@@ -162,8 +153,6 @@ void  update_assistant (struct import_assistant *ia);
 bool init_file (struct import_assistant *ia, GtkWindow *parent_window);
 void destroy_file (struct import_assistant *ia);
 
-
-void init_sheet_spec_page (struct import_assistant *);
 void prepare_sheet_spec_page (struct import_assistant *ia);
 void reset_sheet_spec_page (struct import_assistant *);
 void post_sheet_spec_page (struct import_assistant *ia);
@@ -172,7 +161,6 @@ void init_first_line_page (struct import_assistant *ia);
 void prepare_first_line_page (struct import_assistant *ia);
 void reset_first_line_page (struct import_assistant *);
 
-void init_separators_page (struct import_assistant *ia);
 void prepare_separators_page (struct import_assistant *ia);
 void reset_separators_page (struct import_assistant *);
 void destroy_separators_page (struct import_assistant *ia);

@@ -82,8 +82,19 @@ init_assistant (GtkWindow *parent_window)
   ia->intro = intro_page_create (ia);
   ia->separators = separators_page_create (ia);
 
-  ia->first_line = xzalloc (sizeof *ia->first_line);
+
+  a->prop_renderer = gtk_cell_renderer_text_new ();
+  g_object_ref_sink (a->prop_renderer);
+  a->fixed_renderer = gtk_cell_renderer_text_new ();
+  g_object_ref_sink (a->fixed_renderer);
+  g_object_set (G_OBJECT (a->fixed_renderer),
+                "family", "Monospace",
+                (void *) NULL);
+
+  ia->first_line = first_line_page_create (ia);
+
   ia->formats = xzalloc (sizeof *ia->formats);
+
 
 
   g_signal_connect (a->assistant, "prepare", G_CALLBACK (on_prepare), ia);
@@ -99,14 +110,6 @@ init_assistant (GtkWindow *parent_window)
                         _("Importing Delimited Text Data"));
   gtk_window_set_transient_for (GTK_WINDOW (a->assistant), parent_window);
   gtk_window_set_icon_name (GTK_WINDOW (a->assistant), "pspp");
-
-  a->prop_renderer = gtk_cell_renderer_text_new ();
-  g_object_ref_sink (a->prop_renderer);
-  a->fixed_renderer = gtk_cell_renderer_text_new ();
-  g_object_ref_sink (a->fixed_renderer);
-  g_object_set (G_OBJECT (a->fixed_renderer),
-                "family", "Monospace",
-                (void *) NULL);
 
   return ia;
 }

@@ -81,7 +81,6 @@ text_data_import_assistant (PsppireDataWindow *dw)
     }
 
   ssp = ia->sheet_spec;
-  init_first_line_page (ia);
 
   init_formats_page (ia);
 
@@ -319,7 +318,7 @@ render_input_cell (GtkTreeViewColumn *tree_column, GtkCellRenderer *cell,
 
   column = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tree_column),
                                                "column-number"));
-  row = empty_list_store_iter_to_row (iter) + ia->first_line->skip_lines;
+  row = empty_list_store_iter_to_row (iter) + ia->skip_lines;
   field = ia->columns[column].contents[row];
   if (field.string != NULL)
     {
@@ -443,7 +442,7 @@ render_output_cell (GtkTreeViewColumn *tree_column,
 
   ok = parse_field (ia,
                     (empty_list_store_iter_to_row (iter)
-                     + ia->first_line->skip_lines),
+                     + ia->skip_lines),
                     GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tree_column),
                                                         "column-number")),
                     &output, NULL);
@@ -526,7 +525,7 @@ get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
   if (!ok)
     return FALSE;
 
-  *row = empty_list_store_iter_to_row (&iter) + ia->first_line->skip_lines;
+  *row = empty_list_store_iter_to_row (&iter) + ia->skip_lines;
   return TRUE;
 }
 
@@ -658,7 +657,7 @@ create_data_tree_view (bool input, GtkContainer *parent,
   GtkTreeView *tree_view;
   gint i;
 
-  make_tree_view (ia, ia->first_line->skip_lines, &tree_view);
+  make_tree_view (ia, ia->skip_lines, &tree_view);
   gtk_tree_selection_set_mode (gtk_tree_view_get_selection (tree_view),
                                GTK_SELECTION_NONE);
 
