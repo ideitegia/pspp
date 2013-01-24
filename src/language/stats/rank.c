@@ -595,25 +595,14 @@ rank_cmd (struct dataset *ds,  const struct rank *cmd);
 static const char *
 fraction_name (const struct rank *cmd)
 {
-  static char name[10];
   switch (cmd->fraction )
     {
-    case FRAC_BLOM:
-      strcpy (name, "BLOM");
-      break;
-    case FRAC_RANKIT:
-      strcpy (name, "RANKIT");
-      break;
-    case FRAC_TUKEY:
-      strcpy (name, "TUKEY");
-      break;
-    case FRAC_VW:
-      strcpy (name, "VW");
-      break;
-    default:
-      NOT_REACHED ();
+    case FRAC_BLOM:   return "BLOM";
+    case FRAC_RANKIT: return "RANKIT";
+    case FRAC_TUKEY:  return "TUKEY";
+    case FRAC_VW:     return "VW";
+    default:          NOT_REACHED ();
     }
-  return name;
 }
 
 /* Create a label on DEST_VAR, describing its derivation from SRC_VAR and F */
