@@ -16,6 +16,9 @@
 
 #include <config.h>
 
+#include <math.h>
+#include <gsl/gsl_cdf.h>
+
 #include "data/case.h"
 #include "data/casegrouper.h"
 #include "data/casereader.h"
@@ -26,26 +29,18 @@
 #include "data/subcase.h"
 #include "data/casewriter.h"
 #include "data/short-names.h"
-
 #include "language/command.h"
 #include "language/lexer/lexer.h"
 #include "language/lexer/variable-parser.h"
 #include "language/stats/sort-criteria.h"
-
 #include "math/sort.h"
-
 #include "libpspp/assertion.h"
-#include "libpspp/misc.h"
-#include "libpspp/taint.h"
-#include "libpspp/pool.h"
 #include "libpspp/message.h"
-
+#include "libpspp/misc.h"
+#include "libpspp/pool.h"
+#include "libpspp/taint.h"
 
 #include "output/tab.h"
-
-#include <math.h>
-
-#include <gsl/gsl_cdf.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
