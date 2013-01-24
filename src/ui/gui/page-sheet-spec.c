@@ -75,14 +75,10 @@ struct sheet_spec_page
     GtkWidget *page;
     struct casereader *reader;
     struct dictionary *dict;
-    struct spreadsheet *spreadsheet;
     
     struct spreadsheet_read_info sri;
     struct spreadsheet_read_options opts;
   };
-
-
-
 
 
 /* Initializes IA's sheet_spec substructure. */
@@ -107,10 +103,8 @@ prepare_sheet_spec_page (struct import_assistant *ia)
   GtkBuilder *builder = ia->asst.builder;
   GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
 
-  printf ("%s %d\n", __FUNCTION__, p->spreadsheet->sheets);
-
-  gtk_spin_button_set_digits (GTK_SPIN_BUTTON (sheet_entry), 0);
-  gtk_spin_button_set_range (GTK_SPIN_BUTTON (sheet_entry), 1, p->spreadsheet->sheets);
+    gtk_spin_button_set_digits (GTK_SPIN_BUTTON (sheet_entry), 0);
+  gtk_spin_button_set_range (GTK_SPIN_BUTTON (sheet_entry), 1, ia->spreadsheet->sheets);
 }
 
 
@@ -161,18 +155,18 @@ post_sheet_spec_page (struct import_assistant *ia)
   ssp->sri.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
   ssp->sri.asw = -1;
 
-  switch (ssp->spreadsheet->type)
+  switch (ia->spreadsheet->type)
     {
     case SPREADSHEET_ODS:
       {
-	creader = ods_make_reader (ssp->spreadsheet, &ssp->sri, &ssp->opts);
-	dict = ssp->spreadsheet->dict;
+	creader = ods_make_reader (ia->spreadsheet, &ssp->sri, &ssp->opts);
+	dict = ia->spreadsheet->dict;
       }
       break;
     case SPREADSHEET_GNUMERIC:
       {
-	creader = gnumeric_make_reader (ssp->spreadsheet, &ssp->sri, &ssp->opts);
-	dict = ssp->spreadsheet->dict;
+	creader = gnumeric_make_reader (ia->spreadsheet, &ssp->sri, &ssp->opts);
+	dict = ia->spreadsheet->dict;
       }
       break;
     default:
@@ -210,7 +204,6 @@ update_assistant (struct import_assistant *ia)
 {
   struct sheet_spec_page *ssp = ia->sheet_spec;
   int rows = 0;
-
 
   if (ssp->dict)
     {

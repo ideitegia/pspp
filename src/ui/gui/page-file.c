@@ -84,7 +84,6 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   struct sheet_spec_page *ssp = ia->sheet_spec;
   struct spreadsheet_read_info sri;
   struct spreadsheet_read_options opts;
-  struct spreadsheet *spreadsheet = NULL;
 
   file->lines = NULL;
   file->file_name = choose_file (parent_window, &file->encoding);
@@ -98,17 +97,13 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   sri.read_names = true;
   sri.asw = -1;
 
-  if (spreadsheet == NULL)
-    spreadsheet = gnumeric_probe (file->file_name);
+  if (ia->spreadsheet == NULL)
+    ia->spreadsheet = gnumeric_probe (file->file_name);
   
-  if (spreadsheet == NULL)
-    spreadsheet = ods_probe (file->file_name);
+  if (ia->spreadsheet == NULL)
+    ia->spreadsheet = ods_probe (file->file_name);
 
-  if (spreadsheet)
-    {
-      //      update_assistant (ia);
-    }
-  else
+  if (! ia->spreadsheet)
     {
     struct string input;
     struct line_reader *reader = line_reader_for_file (file->encoding, file->file_name, O_RDONLY);

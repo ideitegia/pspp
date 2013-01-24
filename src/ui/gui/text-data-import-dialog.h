@@ -74,6 +74,8 @@ struct import_assistant
     int skip_lines;             /* Number of initial lines to skip? */
     bool variable_names;        /* Variable names above first line of data? */
     struct dictionary *dict;
+
+    struct spreadsheet *spreadsheet;
   };
 
 struct column
