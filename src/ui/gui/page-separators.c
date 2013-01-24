@@ -58,7 +58,24 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-
+/* Page where the user chooses field separators. */
+struct separators_page
+  {
+    /* How to break lines into columns. */
+    struct string separators;   /* Field separators. */
+    struct string quotes;       /* Quote characters. */
+    bool escape;                /* Doubled quotes yield a quote mark? */
+
+    GtkWidget *page;
+    GtkWidget *custom_cb;
+    GtkWidget *custom_entry;
+    GtkWidget *quote_cb;
+    GtkWidget *quote_combo;
+    GtkEntry *quote_entry;
+    GtkWidget *escape_cb;
+    GtkTreeView *fields_tree_view;
+  };
+
 /* The "separators" page of the assistant. */
 
 static void revise_fields_preview (struct import_assistant *ia);
@@ -130,14 +147,15 @@ set_quote_list (GtkComboBoxEntry *cb)
 }
 
 /* Initializes IA's separators substructure. */
-void
-init_separators_page (struct import_assistant *ia)
+
+struct separators_page *
+separators_page_create (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
-  struct separators_page *p = ia->separators;
+
   size_t i;
 
-  choose_likely_separators (ia);
+  struct separators_page *p = xzalloc (sizeof *p);
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Separators"),
                                    GTK_ASSISTANT_PAGE_CONTENT);
@@ -148,7 +166,6 @@ init_separators_page (struct import_assistant *ia)
   p->quote_cb = get_widget_assert (builder, "quote-cb");
   p->escape_cb = get_widget_assert (builder, "escape");
 
-  set_separators (ia);
   set_quote_list (GTK_COMBO_BOX_ENTRY (p->quote_combo));
   p->fields_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "fields"));
   g_signal_connect (p->quote_combo, "changed",
@@ -164,6 +181,8 @@ init_separators_page (struct import_assistant *ia)
                       "toggled", G_CALLBACK (on_separator_toggle), ia);
   g_signal_connect (p->escape_cb, "toggled",
                     G_CALLBACK (on_separator_toggle), ia);
+
+  return p;
 }
 
 /* Frees IA's separators substructure. */
@@ -329,7 +348,6 @@ static void
 choose_column_names (struct import_assistant *ia)
 {
   const struct first_line_page *f = ia->first_line;
-  struct separators_page *s = ia->separators;
   struct dictionary *dict;
   unsigned long int generated_name_count = 0;
   struct column *col;

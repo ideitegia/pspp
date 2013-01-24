@@ -80,9 +80,9 @@ init_assistant (GtkWindow *parent_window)
 
   ia->sheet_spec = sheet_spec_page_create (ia);
   ia->intro = intro_page_create (ia);
+  ia->separators = separators_page_create (ia);
 
   ia->first_line = xzalloc (sizeof *ia->first_line);
-  ia->separators = xzalloc (sizeof *ia->separators);
   ia->formats = xzalloc (sizeof *ia->formats);
 
 
@@ -107,6 +107,7 @@ init_assistant (GtkWindow *parent_window)
   g_object_set (G_OBJECT (a->fixed_renderer),
                 "family", "Monospace",
                 (void *) NULL);
+
   return ia;
 }
 

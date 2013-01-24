@@ -82,7 +82,6 @@ text_data_import_assistant (PsppireDataWindow *dw)
 
   ssp = ia->sheet_spec;
   init_first_line_page (ia);
-  init_separators_page (ia);
 
   init_formats_page (ia);
 

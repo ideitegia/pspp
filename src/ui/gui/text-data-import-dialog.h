@@ -71,24 +71,6 @@ struct first_line_page
   };
 
 
-/* Page where the user chooses field separators. */
-struct separators_page
-  {
-    /* How to break lines into columns. */
-    struct string separators;   /* Field separators. */
-    struct string quotes;       /* Quote characters. */
-    bool escape;                /* Doubled quotes yield a quote mark? */
-
-    GtkWidget *page;
-    GtkWidget *custom_cb;
-    GtkWidget *custom_entry;
-    GtkWidget *quote_cb;
-    GtkWidget *quote_combo;
-    GtkEntry *quote_entry;
-    GtkWidget *escape_cb;
-    GtkTreeView *fields_tree_view;
-  };
-
 /* Page where the user verifies and adjusts input formats. */
 struct formats_page
   {
