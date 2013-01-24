@@ -222,8 +222,6 @@ struct rank
   const struct variable **vars;
   size_t n_vars;
 
-  bool ascending;
-
   const struct variable **group_vars;
   size_t n_group_vars;
 
@@ -683,8 +681,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 
   if (!parse_sort_criteria (lexer, rank.dict,
 			    &rank.sc,
-			    &rank.vars,
-			    &rank.ascending))
+			    &rank.vars, NULL))
     goto error;
 
   rank.n_vars = rank.sc.n_fields;
