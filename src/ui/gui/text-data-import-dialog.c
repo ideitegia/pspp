@@ -200,8 +200,6 @@ apply_dict (const struct dictionary *dict, struct string *s)
 static char *
 generate_syntax (const struct import_assistant *ia)
 {
-  struct sheet_spec_page *ssp = ia->sheet_spec;
-
   struct string s = DS_EMPTY_INITIALIZER;
 
 #if 0
@@ -323,7 +321,7 @@ render_input_cell (GtkTreeViewColumn *tree_column, GtkCellRenderer *cell,
   column = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tree_column),
                                                "column-number"));
   row = empty_list_store_iter_to_row (iter) + ia->first_line->skip_lines;
-  field = ia->separators->columns[column].contents[row];
+  field = ia->columns[column].contents[row];
   if (field.string != NULL)
     {
       GValue text = {0, };
@@ -359,7 +357,7 @@ on_query_input_tooltip (GtkWidget *widget, gint wx, gint wy,
   if (!get_tooltip_location (widget, wx, wy, ia, &row, &column))
     return FALSE;
 
-  if (ia->separators->columns[column].contents[row].string != NULL)
+  if (ia->columns[column].contents[row].string != NULL)
     return FALSE;
 
   gtk_tooltip_set_text (tooltip,
@@ -389,7 +387,7 @@ parse_field (struct import_assistant *ia,
   char *tooltip;
   bool ok;
 
-  field = ia->separators->columns[column].contents[row];
+  field = ia->columns[column].contents[row];
   var = dict_get_var (ia->formats->dict, column);
   value_init (&val, var_get_width (var));
   in = var_get_print_format (var);
@@ -625,7 +623,7 @@ make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
   char *name;
 
   if (input)
-    column = &ia->separators->columns[dict_idx];
+    column = &ia->columns[dict_idx];
   else
     var = dict_get_var (ia->formats->dict, dict_idx);
 
@@ -665,7 +663,7 @@ create_data_tree_view (bool input, GtkContainer *parent,
   gtk_tree_selection_set_mode (gtk_tree_view_get_selection (tree_view),
                                GTK_SELECTION_NONE);
 
-  for (i = 0; i < ia->separators->column_cnt; i++)
+  for (i = 0; i < ia->column_cnt; i++)
     gtk_tree_view_append_column (tree_view,
                                  make_data_column (ia, tree_view, input, i));
 

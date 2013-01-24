@@ -54,6 +54,7 @@ struct assistant
 
     GtkCellRenderer *prop_renderer;
     GtkCellRenderer *fixed_renderer;
+
   };
 
 
@@ -77,10 +78,6 @@ struct separators_page
     struct string separators;   /* Field separators. */
     struct string quotes;       /* Quote characters. */
     bool escape;                /* Doubled quotes yield a quote mark? */
-
-    /* The columns produced thereby. */
-    struct column *columns;     /* Information about each column. */
-    size_t column_cnt;          /* Number of columns. */
 
     GtkWidget *page;
     GtkWidget *custom_cb;
@@ -115,6 +112,10 @@ struct import_assistant
     struct first_line_page *first_line;
     struct separators_page *separators;
     struct formats_page *formats;
+
+    /* The columns produced. */
+    struct column *columns;     /* Information about each column. */
+    size_t column_cnt;          /* Number of columns. */
   };
 
 

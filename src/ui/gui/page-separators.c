@@ -199,9 +199,7 @@ reset_separators_page (struct import_assistant *ia)
 static void
 clear_fields (struct import_assistant *ia)
 {
-  struct separators_page *s = ia->separators;
-
-  if (s->column_cnt > 0)
+  if (ia->column_cnt > 0)
     {
       struct column *col;
       size_t row;
@@ -212,7 +210,7 @@ clear_fields (struct import_assistant *ia)
           const char *line_start = ds_data (line);
           const char *line_end = ds_end (line);
 
-          for (col = s->columns; col < &s->columns[s->column_cnt]; col++)
+          for (col = ia->columns; col < &ia->columns[ia->column_cnt]; col++)
             {
               char *s = ss_data (col->contents[row]);
               if (!(s >= line_start && s <= line_end))
@@ -220,15 +218,15 @@ clear_fields (struct import_assistant *ia)
             }
         }
 
-      for (col = s->columns; col < &s->columns[s->column_cnt]; col++)
+      for (col = ia->columns; col < &ia->columns[ia->column_cnt]; col++)
         {
           free (col->name);
           free (col->contents);
         }
 
-      free (s->columns);
-      s->columns = NULL;
-      s->column_cnt = 0;
+      free (ia->columns);
+      ia->columns = NULL;
+      ia->column_cnt = 0;
     }
 }
 
@@ -297,20 +295,20 @@ split_fields (struct import_assistant *ia)
             ss_get_bytes (&text, ss_cspan (text, ds_ss (&s->separators)),
                           &field);
 
-          if (column_idx >= s->column_cnt)
+          if (column_idx >= ia->column_cnt)
             {
               struct column *column;
 
-              if (s->column_cnt >= columns_allocated)
-                s->columns = x2nrealloc (s->columns, &columns_allocated,
-                                         sizeof *s->columns);
-              column = &s->columns[s->column_cnt++];
+              if (ia->column_cnt >= columns_allocated)
+                ia->columns = x2nrealloc (ia->columns, &columns_allocated,
+                                         sizeof *ia->columns);
+              column = &ia->columns[ia->column_cnt++];
               column->name = NULL;
               column->width = 0;
               column->contents = xcalloc (ia->file.line_cnt,
                                           sizeof *column->contents);
             }
-          column = &s->columns[column_idx];
+          column = &ia->columns[column_idx];
           column->contents[row] = field;
           if (ss_length (field) > column->width)
             column->width = ss_length (field);
@@ -339,7 +337,7 @@ choose_column_names (struct import_assistant *ia)
 
   dict = dict_create (get_default_encoding ());
   name_row = f->variable_names && f->skip_lines ? f->skip_lines : 0;
-  for (col = s->columns; col < &s->columns[s->column_cnt]; col++)
+  for (col = ia->columns; col < &ia->columns[ia->column_cnt]; col++)
     {
       char *hint, *name;
 

@@ -114,8 +114,7 @@ prepare_formats_page (struct import_assistant *ia)
 
   dict = dict_create (get_default_encoding ());
   fg = fmt_guesser_create ();
-  printf ("%s:%d Column count %d\n", __FILE__, __LINE__, seps->column_cnt);
-  for (column_idx = 0; column_idx < seps->column_cnt; column_idx++)
+  for (column_idx = 0; column_idx < ia->column_cnt; column_idx++)
     {
       struct variable *modified_var;
 
@@ -123,7 +122,7 @@ prepare_formats_page (struct import_assistant *ia)
                       ? p->modified_vars[column_idx] : NULL);
       if (modified_var == NULL)
         {
-          struct column *column = &seps->columns[column_idx];
+          struct column *column = &ia->columns[column_idx];
           struct variable *var;
           struct fmt_spec format;
           char *name;

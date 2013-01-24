@@ -207,7 +207,6 @@ update_assistant (struct import_assistant *ia)
 {
   struct sheet_spec_page *ssp = ia->sheet_spec;
   //  struct file *file = &ia->file;
-  struct separators_page *sepp = ia->separators;
   int rows = 0;
 
 
@@ -216,30 +215,30 @@ update_assistant (struct import_assistant *ia)
       struct ccase *c;
       int col;
 
-      sepp->column_cnt = dict_get_var_cnt (ssp->dict);
-      sepp->columns = xcalloc (sepp->column_cnt, sizeof (*sepp->columns));
-      for (col = 0; col < sepp->column_cnt ; ++col)
+      ia->column_cnt = dict_get_var_cnt (ssp->dict);
+      ia->columns = xcalloc (ia->column_cnt, sizeof (*ia->columns));
+      for (col = 0; col < ia->column_cnt ; ++col)
 	{
 	  const struct variable *var = dict_get_var (ssp->dict, col);
-	  sepp->columns[col].name = xstrdup (var_get_name (var));
-	  sepp->columns[col].contents = NULL;
+	  ia->columns[col].name = xstrdup (var_get_name (var));
+	  ia->columns[col].contents = NULL;
 	}
 
       for (; (c = casereader_read (ssp->reader)) != NULL; case_unref (c))
 	{
 	  rows++;
-	  for (col = 0; col < sepp->column_cnt ; ++col)
+	  for (col = 0; col < ia->column_cnt ; ++col)
 	    {
 	      char *ss;
 	      const struct variable *var = dict_get_var (ssp->dict, col);
 
-	      sepp->columns[col].contents = xrealloc (sepp->columns[col].contents,
+	      ia->columns[col].contents = xrealloc (ia->columns[col].contents,
 						      sizeof (struct substring) * rows);
 
 	      ss = data_out (case_data (c, var), dict_get_encoding (ssp->dict), 
 			     var_get_print_format (var));
 
-	      sepp->columns[col].contents[rows - 1] = ss_cstr (ss);
+	      ia->columns[col].contents[rows - 1] = ss_cstr (ss);
 	    }
 
 	  if (rows > MAX_PREVIEW_LINES)
