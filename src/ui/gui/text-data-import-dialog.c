@@ -82,8 +82,6 @@ text_data_import_assistant (PsppireDataWindow *dw)
 
   ssp = ia->sheet_spec;
 
-  init_formats_page (ia);
-
   gtk_widget_show_all (GTK_WIDGET (ia->asst.assistant));
 
   ia->asst.main_loop = g_main_loop_new (NULL, false);
@@ -377,16 +375,15 @@ parse_field (struct import_assistant *ia,
              size_t row, size_t column,
              char **outputp, char **tooltipp)
 {
-  struct substring field;
-  union value val;
-  struct variable *var;
   const struct fmt_spec *in;
   struct fmt_spec out;
   char *tooltip;
   bool ok;
 
-  field = ia->columns[column].contents[row];
-  var = dict_get_var (ia->formats->dict, column);
+  struct substring field = ia->columns[column].contents[row];
+  struct variable *var = dict_get_var (ia->dict, column);
+  union value val;
+
   value_init (&val, var_get_width (var));
   in = var_get_print_format (var);
   out = fmt_for_output_from_input (in);
@@ -396,7 +393,7 @@ parse_field (struct import_assistant *ia,
       char *error;
 
       error = data_in (field, "UTF-8", in->type, &val, var_get_width (var),
-                       dict_get_encoding (ia->formats->dict));
+                       dict_get_encoding (ia->dict));
       if (error != NULL)
         {
           tooltip = xasprintf (_("Cannot parse field content `%.*s' as "
@@ -414,7 +411,7 @@ parse_field (struct import_assistant *ia,
     }
   if (outputp != NULL)
     {
-      *outputp = data_out (&val, dict_get_encoding (ia->formats->dict),  &out);
+      *outputp = data_out (&val, dict_get_encoding (ia->dict),  &out);
     }
   value_destroy (&val, var_get_width (var));
 
@@ -623,7 +620,7 @@ make_data_column (struct import_assistant *ia, GtkTreeView *tree_view,
   if (input)
     column = &ia->columns[dict_idx];
   else
-    var = dict_get_var (ia->formats->dict, dict_idx);
+    var = dict_get_var (ia->dict, dict_idx);
 
   name = escape_underscores (input ? column->name : var_get_name (var));
   char_cnt = input ? column->width : var_get_print_format (var)->w;

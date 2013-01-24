@@ -58,6 +58,16 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+/* Page where the user verifies and adjusts input formats. */
+struct formats_page
+  {
+    GtkWidget *page;
+    GtkTreeView *data_tree_view;
+    PsppireDict *psppire_dict;
+    struct variable **modified_vars;
+    size_t modified_var_cnt;
+  };
+
 /* The "formats" page of the assistant. */
 
 static void on_variable_change (PsppireDict *dict, int idx,
@@ -65,18 +75,20 @@ static void on_variable_change (PsppireDict *dict, int idx,
 static void clear_modified_vars (struct import_assistant *);
 
 /* Initializes IA's formats substructure. */
-void
-init_formats_page (struct import_assistant *ia)
+
+struct formats_page *
+formats_page_create (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
-  struct formats_page *p = ia->formats;
+  struct formats_page *p = xzalloc (sizeof *p);
 
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Formats"),
                                    GTK_ASSISTANT_PAGE_CONFIRM);
   p->data_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "data"));
   p->modified_vars = NULL;
   p->modified_var_cnt = 0;
-  p->dict = NULL;
+
+  return p;
 }
 
 /* Frees IA's formats substructure. */
@@ -159,7 +171,7 @@ prepare_formats_page (struct import_assistant *ia)
   psppire_dict = psppire_dict_new_from_dict (dict);
   g_signal_connect (psppire_dict, "variable_changed",
                     G_CALLBACK (on_variable_change), ia);
-  ia->formats->dict = dict;
+  ia->dict = dict;
   ia->formats->psppire_dict = psppire_dict;
 
   /* XXX: PsppireVarStore doesn't hold a reference to

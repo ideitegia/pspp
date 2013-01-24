@@ -54,23 +54,7 @@ struct assistant
 
     GtkCellRenderer *prop_renderer;
     GtkCellRenderer *fixed_renderer;
-
   };
-
-
-
-/* Page where the user verifies and adjusts input formats. */
-struct formats_page
-  {
-    struct dictionary *dict;
-
-    GtkWidget *page;
-    GtkTreeView *data_tree_view;
-    PsppireDict *psppire_dict;
-    struct variable **modified_vars;
-    size_t modified_var_cnt;
-  };
-
 
 struct import_assistant
   {
@@ -89,10 +73,8 @@ struct import_assistant
 
     int skip_lines;             /* Number of initial lines to skip? */
     bool variable_names;        /* Variable names above first line of data? */
+    struct dictionary *dict;
   };
-
-
-
 
 struct column
   {
@@ -157,7 +139,6 @@ void prepare_sheet_spec_page (struct import_assistant *ia);
 void reset_sheet_spec_page (struct import_assistant *);
 void post_sheet_spec_page (struct import_assistant *ia);
 
-void init_first_line_page (struct import_assistant *ia);
 void prepare_first_line_page (struct import_assistant *ia);
 void reset_first_line_page (struct import_assistant *);
 
@@ -165,7 +146,6 @@ void prepare_separators_page (struct import_assistant *ia);
 void reset_separators_page (struct import_assistant *);
 void destroy_separators_page (struct import_assistant *ia);
 
-void init_formats_page (struct import_assistant *ia);
 void prepare_formats_page (struct import_assistant *ia);
 void reset_formats_page (struct import_assistant *);
 void destroy_formats_page (struct import_assistant *ia);

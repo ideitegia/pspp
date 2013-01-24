@@ -93,9 +93,7 @@ init_assistant (GtkWindow *parent_window)
 
   ia->first_line = first_line_page_create (ia);
 
-  ia->formats = xzalloc (sizeof *ia->formats);
-
-
+  ia->formats = formats_page_create (ia);
 
   g_signal_connect (a->assistant, "prepare", G_CALLBACK (on_prepare), ia);
   g_signal_connect (a->assistant, "cancel", G_CALLBACK (on_cancel), ia);
@@ -190,13 +188,15 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
     }
 
 
-#endif
+
   
   gtk_widget_show (ia->asst.reset_button);
   if (page == ia->formats->page)
     gtk_widget_show (ia->asst.paste_button);
   else
     gtk_widget_hide (ia->asst.paste_button);
+
+#endif
 }
 
 /* Called when the Cancel button in the assistant is clicked. */

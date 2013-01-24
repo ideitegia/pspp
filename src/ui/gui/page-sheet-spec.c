@@ -53,6 +53,8 @@
 #include "ui/gui/psppire-scanf.h"
 #include "ui/syntax-gen.h"
 
+#include <data/casereader.h>
+
 #include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/xalloc.h"
@@ -62,6 +64,7 @@
 #define N_(msgid) msgid
 
 struct import_assistant;
+
 
 
 /* The "sheet-spec" page of the assistant. */
@@ -206,7 +209,6 @@ void
 update_assistant (struct import_assistant *ia)
 {
   struct sheet_spec_page *ssp = ia->sheet_spec;
-  //  struct file *file = &ia->file;
   int rows = 0;
 
 
