@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -113,15 +113,16 @@ reliability_destroy (struct reliability *rel)
 {
   int j;
   ds_destroy (&rel->scale_name);
-  for (j = 0; j < rel->n_sc ; ++j)
-    {
-      int x;
-      free (rel->sc[j].items);
-      moments1_destroy (rel->sc[j].total);
-      for (x = 0; x < rel->sc[j].n_items; ++x)
-	free (rel->sc[j].m[x]);
-      free (rel->sc[j].m);
-    }
+  if (rel->sc)
+    for (j = 0; j < rel->n_sc ; ++j)
+      {
+	int x;
+	free (rel->sc[j].items);
+	moments1_destroy (rel->sc[j].total);
+	for (x = 0; x < rel->sc[j].n_items; ++x)
+	  free (rel->sc[j].m[x]);
+	free (rel->sc[j].m);
+      }
 
   free (rel->sc);
   free (rel->variables);
@@ -136,11 +137,11 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
   reliability.n_variables = 0;
   reliability.variables = NULL;
   reliability.model = MODEL_ALPHA;
-    reliability.exclude = MV_ANY;
+  reliability.exclude = MV_ANY;
   reliability.summary = 0;
-
+  reliability.n_sc = 0;
+  reliability.sc = NULL;
   reliability.wv = dict_get_weight (dict);
-
   reliability.total_start = 0;
 
   lex_match (lexer, T_SLASH);
