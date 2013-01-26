@@ -20,6 +20,8 @@
 
 #include "psppire-spreadsheet-model.h"
 
+#include "data/spreadsheet-reader.h"
+
 static void psppire_spreadsheet_model_init           (PsppireSpreadsheetModel *spreadsheetModel);
 static void psppire_spreadsheet_model_class_init     (PsppireSpreadsheetModelClass *class);
 
@@ -71,6 +73,35 @@ psppire_spreadsheet_model_get_type (void)
 }
 
 
+/* Properties */
+enum
+{
+  PROP_0,
+  PROP_SPREADSHEET
+};
+
+
+static void
+psppire_spreadsheet_model_set_property (GObject         *object,
+					guint            prop_id,
+					const GValue    *value,
+					GParamSpec      *pspec)
+{
+  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (object);
+
+  switch (prop_id)
+    {
+    case PROP_SPREADSHEET:
+      spreadsheetModel->spreadsheet = g_value_get_pointer (value);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
+
+
+
 static void
 psppire_spreadsheet_model_dispose  (GObject *object)
 {
@@ -87,8 +118,22 @@ psppire_spreadsheet_model_class_init (PsppireSpreadsheetModelClass *class)
 {
   GObjectClass *object_class;
 
+  GParamSpec *spreadsheet_spec =
+    g_param_spec_pointer ("spreadsheet",
+			  "Spreadsheet",
+			  "The spreadsheet that this model represents",
+			  G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE);
+
   parent_class = g_type_class_peek_parent (class);
   object_class = (GObjectClass*) class;
+
+  object_class->set_property = psppire_spreadsheet_model_set_property;
+
+  g_object_class_install_property (object_class,
+                                   PROP_SPREADSHEET,
+                                   spreadsheet_spec);
+
+
 
   object_class->finalize = psppire_spreadsheet_model_finalize;
   object_class->dispose = psppire_spreadsheet_model_dispose;
@@ -104,9 +149,11 @@ psppire_spreadsheet_model_init (PsppireSpreadsheetModel *spreadsheetModel)
 
 
 GtkTreeModel*
-psppire_spreadsheet_model_new (void)
+psppire_spreadsheet_model_new (struct spreadsheet *sp)
 {
-  return g_object_new (psppire_spreadsheet_model_get_type (), NULL);
+  return g_object_new (psppire_spreadsheet_model_get_type (), 
+		       "spreadsheet", sp,
+		       NULL);
 }
 
 
@@ -174,7 +221,7 @@ tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
 
   g_print ("%s %d\n", __FUNCTION__, iter->user_data);
 
-  if ( iter->user_data >= 5 - 1)
+  if ( iter->user_data >= spreadsheetModel->spreadsheet->sheets - 1)
     return FALSE;
 
   iter->user_data++;
@@ -209,16 +256,10 @@ tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
   if ( parent )
     return FALSE;
 
-  if ( n >= 5)
+  if ( n >= spreadsheetModel->spreadsheet->sheets)
     return FALSE;
 
   iter->stamp = spreadsheetModel->stamp;
-  /*
-  iter->user_data = psppire_dict_get_variable (dict, n);
-
-  if ( !iter->user_data)
-    return FALSE;
-  */
 
   return TRUE;
 }

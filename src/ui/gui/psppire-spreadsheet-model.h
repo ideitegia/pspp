@@ -53,6 +53,8 @@ typedef struct _PsppireSpreadsheetModel       PsppireSpreadsheetModel;
 typedef struct _PsppireSpreadsheetModelClass  PsppireSpreadsheetModelClass;
 
 
+struct spreadsheet;
+
 struct _PsppireSpreadsheetModel
 {
   GObject parent;
@@ -60,6 +62,7 @@ struct _PsppireSpreadsheetModel
 
   /*< private >*/
   gint stamp;
+  struct spreadsheet *spreadsheet;
 
   gboolean dispose_has_run ;
 };
@@ -73,7 +76,8 @@ struct _PsppireSpreadsheetModelClass
 
 GType psppire_spreadsheet_model_get_type (void) G_GNUC_CONST;
 
-GtkTreeModel * psppire_spreadsheet_model_new (void);
+
+GtkTreeModel * psppire_spreadsheet_model_new (struct spreadsheet *sp);
 
 
 G_END_DECLS

@@ -6,6 +6,8 @@
 
 #include "psppire-spreadsheet-model.h"
 
+#include "data/gnumeric-reader.h"
+
 #define N 10
 
 static GtkListStore *
@@ -27,8 +29,6 @@ make_store ()
     return list_store;
   }
 
-
-
 int
 main (int argc, char *argv[] )
 {
@@ -37,8 +37,18 @@ main (int argc, char *argv[] )
   GtkTreeModel *tm;
   gtk_init (&argc, &argv);
     
+  if ( argc < 2)
+    g_error ("Usage: prog file\n");
 
-  tm = psppire_spreadsheet_model_new ();
+  struct spreadsheet *sp = gnumeric_probe (argv[1]);
+  
+  if (sp == NULL)
+    {
+      g_error ("%s is not a gnumeric file\n", argv[1]);
+      return 0;
+    }
+
+  tm = psppire_spreadsheet_model_new (sp);
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     
   gtk_container_set_border_width (GTK_CONTAINER (window), 10);
