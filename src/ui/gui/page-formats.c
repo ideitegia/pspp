@@ -82,8 +82,10 @@ formats_page_create (struct import_assistant *ia)
   GtkBuilder *builder = ia->asst.builder;
   struct formats_page *p = xzalloc (sizeof *p);
 
+#if 0
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Formats"),
                                    GTK_ASSISTANT_PAGE_CONFIRM);
+#endif
   p->data_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "data"));
   p->modified_vars = NULL;
   p->modified_var_cnt = 0;

@@ -107,10 +107,12 @@ intro_page_create (struct import_assistant *ia)
 			     1, 2,
 			     2, 3);
 
+#if 0
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Intro"),
                                    GTK_ASSISTANT_PAGE_INTRO);
-  
+
   g_print ("%s:%d Added page %p\n", __FILE__, __LINE__, p->page);
+#endif  
 
   p->all_cases_button = get_widget_assert (builder, "import-all-cases");
 

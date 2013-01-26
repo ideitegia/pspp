@@ -72,6 +72,7 @@ text_data_import_assistant (PsppireDataWindow *dw)
 {
   GtkWindow *parent_window = GTK_WINDOW (dw);
   struct import_assistant *ia = init_assistant (parent_window);
+  GtkBuilder *builder = ia->asst.builder;
   struct sheet_spec_page *ssp ;
 
   if (!init_file (ia, parent_window))
@@ -81,6 +82,13 @@ text_data_import_assistant (PsppireDataWindow *dw)
     }
 
   ssp = ia->sheet_spec;
+
+  add_page_to_assistant (ia, get_widget_assert (builder, "Sheet"),
+			 GTK_ASSISTANT_PAGE_INTRO);
+
+  add_page_to_assistant (ia, get_widget_assert (builder, "Formats"),
+			 GTK_ASSISTANT_PAGE_CONFIRM);
+
 
   gtk_widget_show_all (GTK_WIDGET (ia->asst.assistant));
 

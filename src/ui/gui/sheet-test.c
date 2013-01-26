@@ -62,7 +62,7 @@ main (int argc, char *argv[] )
   gtk_container_set_border_width (GTK_CONTAINER (window), 10);
   
   //  tm = GTK_TREE_MODEL (make_store ());
-  combo_box = gtk_combo_box_new_with_model (tm);
+  combo_box = gtk_combo_box_new();
 
   {
     GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
@@ -72,6 +72,8 @@ main (int argc, char *argv[] )
 				    NULL);
   }
 
+  gtk_combo_box_set_model (GTK_COMBO_BOX (combo_box), 
+			   tm);
 
 
   gtk_combo_box_set_active (combo_box, 0);

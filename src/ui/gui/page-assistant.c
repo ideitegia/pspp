@@ -166,10 +166,10 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
   int pn = gtk_assistant_get_current_page (assistant);
   g_print ("%s:%d Page %d %p\n", __FILE__, __LINE__, pn, page);
 
-#if 0  
-  if (pn == 1 && ssp->spreadsheet)
-    post_sheet_spec_page (ia);
+  if (pn == 0)
+    prepare_sheet_spec_page (ia);
 
+#if 0  
   if (gtk_assistant_get_page_type (assistant, page)
       == GTK_ASSISTANT_PAGE_CONFIRM)
     gtk_widget_grab_focus (assistant->apply);
@@ -186,9 +186,6 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
     {
       prepare_sheet_spec_page (ia);
     }
-
-
-
   
   gtk_widget_show (ia->asst.reset_button);
   if (page == ia->formats->page)

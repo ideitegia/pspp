@@ -88,8 +88,12 @@ sheet_spec_page_create (struct import_assistant *ia)
   GtkBuilder *builder = ia->asst.builder;
   struct sheet_spec_page *p = xzalloc (sizeof (*p));
 
-  p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Sheet"),
-                                   GTK_ASSISTANT_PAGE_INTRO);
+  GtkWidget *combo_box = get_widget_assert (builder, "sheet-entry");
+  GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box), renderer, TRUE);
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box), renderer,
+				  "text", 0,
+				  NULL);
 
   return p;
 }
@@ -98,13 +102,13 @@ sheet_spec_page_create (struct import_assistant *ia)
 void
 prepare_sheet_spec_page (struct import_assistant *ia)
 {
-  struct sheet_spec_page *p = ia->sheet_spec;
-
   GtkBuilder *builder = ia->asst.builder;
   GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
+  printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
+  gtk_combo_box_set_model (GTK_COMBO_BOX (sheet_entry), 
+			   psppire_spreadsheet_model_new (ia->spreadsheet));
 
-    gtk_spin_button_set_digits (GTK_SPIN_BUTTON (sheet_entry), 0);
-  gtk_spin_button_set_range (GTK_SPIN_BUTTON (sheet_entry), 1, ia->spreadsheet->sheets);
+  gtk_combo_box_set_active (sheet_entry, 0);
 }
 
 
@@ -136,10 +140,9 @@ post_sheet_spec_page (struct import_assistant *ia)
   GtkWidget *range_entry = get_widget_assert (builder, "cell-range-entry");
   GtkWidget *readnames_checkbox = get_widget_assert (builder, "readnames-checkbox");
 
-  gint num = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (sheet_entry));
-
   const gchar *range = gtk_entry_get_text (GTK_ENTRY (range_entry));
 
+  gint num = 0;
   if ( num < 1 )
     num = 1;
   

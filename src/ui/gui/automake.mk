@@ -286,6 +286,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-output-window.h \
 	src/ui/gui/psppire-var-view.c \
 	src/ui/gui/psppire-var-view.h \
+	src/ui/gui/psppire-spreadsheet-model.c \
+	src/ui/gui/psppire-spreadsheet-model.h \
 	src/ui/gui/psppire-selector.h \
 	src/ui/gui/psppire-select-dest.c \
 	src/ui/gui/psppire-select-dest.h \

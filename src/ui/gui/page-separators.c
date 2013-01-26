@@ -157,8 +157,10 @@ separators_page_create (struct import_assistant *ia)
 
   struct separators_page *p = xzalloc (sizeof *p);
 
+#if 0
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Separators"),
                                    GTK_ASSISTANT_PAGE_CONTENT);
+#endif
   p->custom_cb = get_widget_assert (builder, "custom-cb");
   p->custom_entry = get_widget_assert (builder, "custom-entry");
   p->quote_combo = get_widget_assert (builder, "quote-combo");
