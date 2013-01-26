@@ -4,6 +4,7 @@
 
 #include <gtk/gtk.h>
 
+#include "psppire-spreadsheet-model.h"
 
 #define N 10
 
@@ -14,7 +15,6 @@ make_store ()
     GtkTreeIter iter;
     
     GtkListStore * list_store  = gtk_list_store_new (2, G_TYPE_INT, G_TYPE_STRING);
-
 
     for (i = 0; i < N; ++i)
       {
@@ -28,22 +28,23 @@ make_store ()
   }
 
 
+
 int
 main (int argc, char *argv[] )
 {
-
-  /* GtkWidget is the storage type for widgets */
   GtkWidget *window;
   GtkWidget *treeview;
-    
+  GtkTreeModel *tm;
   gtk_init (&argc, &argv);
     
+
+  tm = psppire_spreadsheet_model_new ();
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     
   gtk_container_set_border_width (GTK_CONTAINER (window), 10);
 
-
-  treeview = gtk_tree_view_new_with_model (GTK_TREE_MODEL (make_store ()));
+  
+  treeview = gtk_tree_view_new_with_model (tm);
 
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (treeview),
 					       0, "sheet name",

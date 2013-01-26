@@ -93,7 +93,7 @@ src_ui_gui_spread_test_LDADD = \
 	$(GTHREAD_LIBS)
 
 
-src_ui_gui_spread_test_SOURCES = src/ui/gui/sheet-test.c
+src_ui_gui_spread_test_SOURCES = src/ui/gui/sheet-test.c src/ui/gui/psppire-spreadsheet-model.c
 
 
 src_ui_gui_psppiredir = $(pkgdatadir)
