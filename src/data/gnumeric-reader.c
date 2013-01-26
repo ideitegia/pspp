@@ -100,7 +100,8 @@ struct gnumeric_reader
   int min_col;
   int node_type;
   int sheet_index;
-
+  
+  xmlChar **sheet_names;
 
   const xmlChar *target_sheet;
   int target_sheet_index;
@@ -116,12 +117,23 @@ struct gnumeric_reader
   bool used_first_case;
 };
 
+
+char *
+gnumeric_get_sheet_name (struct spreadsheet *s, int n)
+{
+  struct gnumeric_reader *gr = (struct gnumeric_reader *) s;
+  assert (n < s->sheets);
+
+  return gr->sheet_names[n];
+}
+
 static void process_node (struct gnumeric_reader *r);
 
 
 static void
 gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
+  int i;
   struct gnumeric_reader *r = r_;
   if ( r == NULL)
 	return ;
@@ -133,6 +145,13 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
     case_unref (r->first_case);
 
   caseproto_unref (r->proto);
+
+  for (i = 0; i < r->spreadsheet.sheets; ++i)
+    {
+      xmlFree (r->sheet_names[i]);
+    }
+    
+  free (r->sheet_names);
 
   free (r);
 }
@@ -163,11 +182,16 @@ process_node (struct gnumeric_reader *r)
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
 	  r->spreadsheet.sheets++;
+	  r->sheet_names = xrealloc (r->sheet_names, r->spreadsheet.sheets * sizeof *r->sheet_names);
 	}
       else if (0 == xmlStrcasecmp (name, _xml("gnm:SheetNameIndex")) &&
 	  XML_READER_TYPE_END_ELEMENT  == r->node_type)
 	{
 	  r->state = STATE_INIT;
+	}
+      else if (XML_READER_TYPE_TEXT == r->node_type)
+	{
+	  r->sheet_names [r->spreadsheet.sheets - 1] = xmlTextReaderValue (r->xtr);
 	}
       break;
 

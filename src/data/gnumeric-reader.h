@@ -24,8 +24,10 @@ struct dictionary;
 struct spreadsheet_read_info;
 struct spreadsheet_read_options;
 
-
 struct spreadsheet *gnumeric_probe (const char *filename);
+
+char * gnumeric_get_sheet_name (struct spreadsheet *s, int n);
+
 
 struct casereader * gnumeric_make_reader (struct spreadsheet *spreadsheet,
 					  const struct spreadsheet_read_info *gri, 
