@@ -86,6 +86,12 @@ enum reader_state
     STATE_CELL             /* Found a cell */
   };
 
+struct sheet_detail
+{
+  xmlChar *name;
+  char *range;
+};
+
 
 struct gnumeric_reader
 {
@@ -101,7 +107,7 @@ struct gnumeric_reader
   int node_type;
   int sheet_index;
   
-  xmlChar **sheet_names;
+  struct sheet_detail *sheets;
 
   const xmlChar *target_sheet;
   int target_sheet_index;
@@ -124,7 +130,7 @@ gnumeric_get_sheet_name (struct spreadsheet *s, int n)
   struct gnumeric_reader *gr = (struct gnumeric_reader *) s;
   assert (n < s->sheets);
 
-  return gr->sheet_names[n];
+  return gr->sheets[n].name;
 }
 
 const char *
@@ -158,10 +164,10 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   for (i = 0; i < r->spreadsheet.sheets; ++i)
     {
-      xmlFree (r->sheet_names[i]);
+      xmlFree (r->sheets[i].name);
     }
     
-  free (r->sheet_names);
+  free (r->sheets);
 
   free (r);
 }
@@ -192,7 +198,7 @@ process_node (struct gnumeric_reader *r)
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
 	  r->spreadsheet.sheets++;
-	  r->sheet_names = xrealloc (r->sheet_names, r->spreadsheet.sheets * sizeof *r->sheet_names);
+	  r->sheets = xrealloc (r->sheets, r->spreadsheet.sheets * sizeof *r->sheets);
 	}
       else if (0 == xmlStrcasecmp (name, _xml("gnm:SheetNameIndex")) &&
 	  XML_READER_TYPE_END_ELEMENT  == r->node_type)
@@ -201,7 +207,7 @@ process_node (struct gnumeric_reader *r)
 	}
       else if (XML_READER_TYPE_TEXT == r->node_type)
 	{
-	  r->sheet_names [r->spreadsheet.sheets - 1] = xmlTextReaderValue (r->xtr);
+	  r->sheets [r->spreadsheet.sheets - 1].name = xmlTextReaderValue (r->xtr);
 	}
       break;
 
@@ -340,8 +346,8 @@ struct var_spec
 void 
 gnumeric_destroy (struct spreadsheet *s)
 {
-    struct gnumeric_reader *r = s;
-    gnm_file_casereader_destroy (NULL, s);
+  struct gnumeric_reader *r = (struct gnumeric *) s;
+  gnm_file_casereader_destroy (NULL, s);
 }
 
 struct spreadsheet *

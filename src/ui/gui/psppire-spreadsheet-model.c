@@ -89,7 +89,7 @@ psppire_spreadsheet_model_set_property (GObject * object,
                                         const GValue * value,
                                         GParamSpec * pspec)
 {
-  PsppireSpreadsheetModel *spreadsheetModel =
+  PsppireSpreadsheetModel *spreadsheetModel = 
     PSPPIRE_SPREADSHEET_MODEL (object);
 
   switch (prop_id)
@@ -216,7 +216,7 @@ tree_model_get_iter (GtkTreeModel * model, GtkTreeIter * iter,
 }
 
 static gboolean
-tree_model_iter_next (GtkTreeModel * model, GtkTreeIter * iter)
+tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
 {
   PsppireSpreadsheetModel *spreadsheetModel =
     PSPPIRE_SPREADSHEET_MODEL (model);
@@ -305,7 +305,7 @@ tree_model_n_children (GtkTreeModel * model, GtkTreeIter * iter)
 }
 
 static gboolean
-tree_model_iter_has_child (GtkTreeModel * tree_model, GtkTreeIter * iter)
+tree_model_iter_has_child (GtkTreeModel *tree_model, GtkTreeIter *iter)
 {
   return FALSE;
 }
@@ -328,6 +328,21 @@ tree_model_get_path (GtkTreeModel * model, GtkTreeIter * iter)
 }
 
 
+static gboolean
+tree_model_children (GtkTreeModel *model, GtkTreeIter *iter, GtkTreeIter *parent)
+{
+  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (model);
+
+  if (parent != NULL)
+    return FALSE;
+
+  iter->stamp = spreadsheetModel->stamp;
+  iter->user_data = 0;
+    
+  return TRUE;
+}
+
+
 
 static void
 spreadsheet_tree_model_init (GtkTreeModelIface * iface)
@@ -339,7 +354,7 @@ spreadsheet_tree_model_init (GtkTreeModelIface * iface)
   iface->iter_next = tree_model_iter_next;
   iface->get_value = tree_model_get_value;
 
-  iface->iter_children = NULL;
+  iface->iter_children = tree_model_children;
   iface->iter_parent = NULL;
 
   iface->get_path = tree_model_get_path;
