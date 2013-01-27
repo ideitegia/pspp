@@ -26,8 +26,11 @@ struct spreadsheet_read_options;
 
 struct spreadsheet *gnumeric_probe (const char *filename);
 
-char * gnumeric_get_sheet_name (struct spreadsheet *s, int n);
+const char * gnumeric_get_sheet_name (struct spreadsheet *s, int n);
 
+const char * gnumeric_get_sheet_range (struct spreadsheet *s, int n);
+
+void gnumeric_destroy (struct spreadsheet *);
 
 struct casereader * gnumeric_make_reader (struct spreadsheet *spreadsheet,
 					  const struct spreadsheet_read_info *gri, 

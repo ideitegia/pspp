@@ -118,7 +118,7 @@ struct gnumeric_reader
 };
 
 
-char *
+const char *
 gnumeric_get_sheet_name (struct spreadsheet *s, int n)
 {
   struct gnumeric_reader *gr = (struct gnumeric_reader *) s;
@@ -126,6 +126,16 @@ gnumeric_get_sheet_name (struct spreadsheet *s, int n)
 
   return gr->sheet_names[n];
 }
+
+const char *
+gnumeric_get_sheet_range (struct spreadsheet *s, int n)
+{
+  struct gnumeric_reader *gr = (struct gnumeric_reader *) s;
+  assert (n < s->sheets);
+
+  return "I havent the fogiest idea";
+}
+
 
 static void process_node (struct gnumeric_reader *r);
 
@@ -325,6 +335,14 @@ struct var_spec
   int width;
   xmlChar *first_value;
 };
+
+
+void 
+gnumeric_destroy (struct spreadsheet *s)
+{
+    struct gnumeric_reader *r = s;
+    gnm_file_casereader_destroy (NULL, s);
+}
 
 struct spreadsheet *
 gnumeric_probe (const char *filename)

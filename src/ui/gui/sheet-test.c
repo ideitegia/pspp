@@ -52,8 +52,6 @@ main (int argc, char *argv[] )
       return 0;
     }
 
-
-
   tm = psppire_spreadsheet_model_new (sp);
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   hbox = gtk_hbox_new (FALSE, 5);
@@ -76,7 +74,7 @@ main (int argc, char *argv[] )
 			   tm);
 
 
-  gtk_combo_box_set_active (combo_box, 0);
+  gtk_combo_box_set_active (GTK_COMBO_BOX (combo_box), 0);
 
   treeview = gtk_tree_view_new_with_model (tm);
 
@@ -101,9 +99,13 @@ main (int argc, char *argv[] )
 
   gtk_container_add (GTK_CONTAINER (window), hbox);
 
+  g_signal_connect (window, "destroy", gtk_main_quit, 0);
+
   gtk_widget_show_all (window);
-    
+
   gtk_main ();
+
+  gnumeric_destroy (sp);
     
   return 0;
 }

@@ -24,16 +24,18 @@
 
 #include "data/gnumeric-reader.h"
 
-static void psppire_spreadsheet_model_init           (PsppireSpreadsheetModel *spreadsheetModel);
-static void psppire_spreadsheet_model_class_init     (PsppireSpreadsheetModelClass *class);
+static void psppire_spreadsheet_model_init (PsppireSpreadsheetModel *
+                                            spreadsheetModel);
+static void psppire_spreadsheet_model_class_init (PsppireSpreadsheetModelClass
+                                                  * class);
 
-static void psppire_spreadsheet_model_finalize       (GObject   *object);
-static void psppire_spreadsheet_model_dispose        (GObject   *object);
+static void psppire_spreadsheet_model_finalize (GObject * object);
+static void psppire_spreadsheet_model_dispose (GObject * object);
 
 static GObjectClass *parent_class = NULL;
 
 
-static void spreadsheet_tree_model_init (GtkTreeModelIface *iface);
+static void spreadsheet_tree_model_init (GtkTreeModelIface * iface);
 
 
 GType
@@ -43,31 +45,30 @@ psppire_spreadsheet_model_get_type (void)
 
   if (!object_type)
     {
-      static const GTypeInfo spreadsheet_model_info =
-      {
-	sizeof (PsppireSpreadsheetModelClass),
-	NULL,		/* base_init */
-	NULL,		/* base_finalize */
+      static const GTypeInfo spreadsheet_model_info = {
+        sizeof (PsppireSpreadsheetModelClass),
+        NULL,                   /* base_init */
+        NULL,                   /* base_finalize */
         (GClassInitFunc) psppire_spreadsheet_model_class_init,
-	NULL,		/* class_finalize */
-	NULL,		/* class_data */
+        NULL,                   /* class_finalize */
+        NULL,                   /* class_data */
         sizeof (PsppireSpreadsheetModel),
-	0,
+        0,
         (GInstanceInitFunc) psppire_spreadsheet_model_init,
       };
 
       static const GInterfaceInfo tree_model_info = {
-	(GInterfaceInitFunc) spreadsheet_tree_model_init,
-	NULL,
-	NULL
+        (GInterfaceInitFunc) spreadsheet_tree_model_init,
+        NULL,
+        NULL
       };
-      
+
       object_type = g_type_register_static (G_TYPE_OBJECT,
-						"PsppireSpreadsheetModel",
-						&spreadsheet_model_info, 0);
+                                            "PsppireSpreadsheetModel",
+                                            &spreadsheet_model_info, 0);
 
       g_type_add_interface_static (object_type, GTK_TYPE_TREE_MODEL,
-				   &tree_model_info);
+                                   &tree_model_info);
     }
 
   return object_type;
@@ -83,12 +84,13 @@ enum
 
 
 static void
-psppire_spreadsheet_model_set_property (GObject         *object,
-					guint            prop_id,
-					const GValue    *value,
-					GParamSpec      *pspec)
+psppire_spreadsheet_model_set_property (GObject * object,
+                                        guint prop_id,
+                                        const GValue * value,
+                                        GParamSpec * pspec)
 {
-  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (object);
+  PsppireSpreadsheetModel *spreadsheetModel =
+    PSPPIRE_SPREADSHEET_MODEL (object);
 
   switch (prop_id)
     {
@@ -102,39 +104,35 @@ psppire_spreadsheet_model_set_property (GObject         *object,
 }
 
 
-
 static void
-psppire_spreadsheet_model_dispose  (GObject *object)
+psppire_spreadsheet_model_dispose (GObject * object)
 {
 }
 
 static void
-psppire_spreadsheet_model_finalize (GObject *object)
+psppire_spreadsheet_model_finalize (GObject * object)
 {
   //  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (object);
 }
 
 static void
-psppire_spreadsheet_model_class_init (PsppireSpreadsheetModelClass *class)
+psppire_spreadsheet_model_class_init (PsppireSpreadsheetModelClass * class)
 {
   GObjectClass *object_class;
 
-  GParamSpec *spreadsheet_spec =
-    g_param_spec_pointer ("spreadsheet",
-			  "Spreadsheet",
-			  "The spreadsheet that this model represents",
-			  G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE);
+  GParamSpec *spreadsheet_spec = g_param_spec_pointer ("spreadsheet",
+                                                       "Spreadsheet",
+                                                       "The spreadsheet that this model represents",
+                                                       G_PARAM_CONSTRUCT_ONLY
+                                                       | G_PARAM_WRITABLE);
 
   parent_class = g_type_class_peek_parent (class);
-  object_class = (GObjectClass*) class;
+  object_class = (GObjectClass *) class;
 
   object_class->set_property = psppire_spreadsheet_model_set_property;
 
   g_object_class_install_property (object_class,
-                                   PROP_SPREADSHEET,
-                                   spreadsheet_spec);
-
-
+                                   PROP_SPREADSHEET, spreadsheet_spec);
 
   object_class->finalize = psppire_spreadsheet_model_finalize;
   object_class->dispose = psppire_spreadsheet_model_dispose;
@@ -142,56 +140,62 @@ psppire_spreadsheet_model_class_init (PsppireSpreadsheetModelClass *class)
 
 
 static void
-psppire_spreadsheet_model_init (PsppireSpreadsheetModel *spreadsheetModel)
+psppire_spreadsheet_model_init (PsppireSpreadsheetModel * spreadsheetModel)
 {
   spreadsheetModel->dispose_has_run = FALSE;
   spreadsheetModel->stamp = g_random_int ();
 }
 
 
-GtkTreeModel*
+GtkTreeModel *
 psppire_spreadsheet_model_new (struct spreadsheet *sp)
 {
-  return g_object_new (psppire_spreadsheet_model_get_type (), 
-		       "spreadsheet", sp,
-		       NULL);
+  return g_object_new (psppire_spreadsheet_model_get_type (),
+                       "spreadsheet", sp, NULL);
 }
-
-
 
 
 
 
-static const gint N_COLS = 2;
 
-static gint 
-tree_model_n_columns (GtkTreeModel *model)
+enum
+{
+  COL_SHEET_NAME,
+  COL_SHEET_RANGE,
+  N_COLS
+};
+
+static gint
+tree_model_n_columns (GtkTreeModel * model)
 {
   return N_COLS;
 }
 
 static GtkTreeModelFlags
-tree_model_get_flags (GtkTreeModel *model)
+tree_model_get_flags (GtkTreeModel * model)
 {
-  g_return_val_if_fail (PSPPIRE_IS_SPREADSHEET_MODEL (model), (GtkTreeModelFlags) 0);
+  g_return_val_if_fail (PSPPIRE_IS_SPREADSHEET_MODEL (model),
+                        (GtkTreeModelFlags) 0);
 
   return GTK_TREE_MODEL_LIST_ONLY;
 }
 
 static GType
-tree_model_column_type (GtkTreeModel *model, gint index)
+tree_model_column_type (GtkTreeModel * model, gint index)
 {
   g_return_val_if_fail (PSPPIRE_IS_SPREADSHEET_MODEL (model), (GType) 0);
   g_return_val_if_fail (index < N_COLS, (GType) 0);
- 
+
   return G_TYPE_STRING;
 }
 
 
 static gboolean
-tree_model_get_iter (GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
+tree_model_get_iter (GtkTreeModel * model, GtkTreeIter * iter,
+                     GtkTreePath * path)
 {
-  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (model);
+  PsppireSpreadsheetModel *spreadsheetModel =
+    PSPPIRE_SPREADSHEET_MODEL (model);
   gint *indices, depth;
   gint n;
 
@@ -203,7 +207,7 @@ tree_model_get_iter (GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
 
   indices = gtk_tree_path_get_indices (path);
 
-  n = indices [0];
+  n = indices[0];
 
   iter->stamp = spreadsheetModel->stamp;
   iter->user_data = (gpointer) n;
@@ -212,15 +216,16 @@ tree_model_get_iter (GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
 }
 
 static gboolean
-tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
+tree_model_iter_next (GtkTreeModel * model, GtkTreeIter * iter)
 {
-  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (model);
+  PsppireSpreadsheetModel *spreadsheetModel =
+    PSPPIRE_SPREADSHEET_MODEL (model);
   g_return_val_if_fail (iter->stamp == spreadsheetModel->stamp, FALSE);
 
-  if ( iter == NULL)
+  if (iter == NULL)
     return FALSE;
 
-  if ( (gint) iter->user_data >= spreadsheetModel->spreadsheet->sheets - 1)
+  if ((gint) iter->user_data >= spreadsheetModel->spreadsheet->sheets - 1)
     {
       iter->user_data = NULL;
       iter->stamp = 0;
@@ -234,41 +239,51 @@ tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
 
 
 static void
-tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
-		      gint column, GValue *value)
+tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
+                      gint column, GValue * value)
 {
-  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (model);
+  PsppireSpreadsheetModel *spreadsheetModel =
+    PSPPIRE_SPREADSHEET_MODEL (model);
   g_return_if_fail (column < N_COLS);
   g_return_if_fail (iter->stamp == spreadsheetModel->stamp);
 
   g_value_init (value, G_TYPE_STRING);
   switch (column)
     {
-    case 0:
+    case COL_SHEET_NAME:
       {
-	char *x = gnumeric_get_sheet_name (spreadsheetModel->spreadsheet, (gint) iter->user_data);
-	g_value_set_string (value, x);
+        const char *x =
+          gnumeric_get_sheet_name (spreadsheetModel->spreadsheet,
+                                   (gint) iter->user_data);
+        g_value_set_string (value, x);
       }
       break;
-    case 1:
-      g_value_set_string (value, "bar");
+    case COL_SHEET_RANGE:
+      {
+        const char *x =
+          gnumeric_get_sheet_range (spreadsheetModel->spreadsheet,
+                                    (gint) iter->user_data);
+        g_value_set_string (value, x);
+      }
       break;
     default:
-      g_critical ("Bad column");
+      g_error ("%s:%d Invalid column in spreadsheet model", __FILE__,
+               __LINE__);
       break;
-  }
+    }
 }
 
 static gboolean
-tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
-		      GtkTreeIter *parent, gint n)
+tree_model_nth_child (GtkTreeModel * model, GtkTreeIter * iter,
+                      GtkTreeIter * parent, gint n)
 {
-  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (model);
+  PsppireSpreadsheetModel *spreadsheetModel =
+    PSPPIRE_SPREADSHEET_MODEL (model);
 
-  if ( parent )
+  if (parent)
     return FALSE;
 
-  if ( n >= spreadsheetModel->spreadsheet->sheets)
+  if (n >= spreadsheetModel->spreadsheet->sheets)
     return FALSE;
 
   iter->stamp = spreadsheetModel->stamp;
@@ -278,28 +293,28 @@ tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
 }
 
 static gint
-tree_model_n_children (GtkTreeModel *model,
-		       GtkTreeIter  *iter)
+tree_model_n_children (GtkTreeModel * model, GtkTreeIter * iter)
 {
-  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (model);
+  PsppireSpreadsheetModel *spreadsheetModel =
+    PSPPIRE_SPREADSHEET_MODEL (model);
 
-  if ( iter == NULL )
-      return spreadsheetModel->spreadsheet->sheets;
+  if (iter == NULL)
+    return spreadsheetModel->spreadsheet->sheets;
 
   return 0;
 }
 
 static gboolean
-tree_model_iter_has_child  (GtkTreeModel *tree_model,
-			    GtkTreeIter  *iter)
+tree_model_iter_has_child (GtkTreeModel * tree_model, GtkTreeIter * iter)
 {
   return FALSE;
 }
 
 static GtkTreePath *
-tree_model_get_path (GtkTreeModel *model, GtkTreeIter *iter)
+tree_model_get_path (GtkTreeModel * model, GtkTreeIter * iter)
 {
-  PsppireSpreadsheetModel *spreadsheetModel = PSPPIRE_SPREADSHEET_MODEL (model);
+  PsppireSpreadsheetModel *spreadsheetModel =
+    PSPPIRE_SPREADSHEET_MODEL (model);
   GtkTreePath *path;
   gint index = (gint) iter->user_data;
 
@@ -315,7 +330,7 @@ tree_model_get_path (GtkTreeModel *model, GtkTreeIter *iter)
 
 
 static void
-spreadsheet_tree_model_init (GtkTreeModelIface *iface)
+spreadsheet_tree_model_init (GtkTreeModelIface * iface)
 {
   iface->get_flags = tree_model_get_flags;
   iface->get_n_columns = tree_model_n_columns;
@@ -328,7 +343,7 @@ spreadsheet_tree_model_init (GtkTreeModelIface *iface)
   iface->iter_parent = NULL;
 
   iface->get_path = tree_model_get_path;
-  iface->iter_has_child = tree_model_iter_has_child ;
-  iface->iter_n_children = tree_model_n_children ;
-  iface->iter_nth_child = tree_model_nth_child ;
+  iface->iter_has_child = tree_model_iter_has_child;
+  iface->iter_n_children = tree_model_n_children;
+  iface->iter_nth_child = tree_model_nth_child;
 }
