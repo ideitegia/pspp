@@ -260,10 +260,11 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
       break;
     case COL_SHEET_RANGE:
       {
-        const char *x =
+        char *x =
           gnumeric_get_sheet_range (spreadsheetModel->spreadsheet,
                                     (gint) iter->user_data);
         g_value_set_string (value, x);
+	free (x);
       }
       break;
     default:

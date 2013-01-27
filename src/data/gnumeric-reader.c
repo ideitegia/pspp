@@ -145,7 +145,7 @@ gnumeric_get_sheet_name (struct spreadsheet *s, int n)
 static void process_node (struct gnumeric_reader *r);
 
 
-const char *
+char *
 gnumeric_get_sheet_range (struct spreadsheet *s, int n)
 {
   int ret;
@@ -268,6 +268,7 @@ process_node (struct gnumeric_reader *r)
 	}
       else if (XML_READER_TYPE_TEXT == r->node_type)
 	{
+#if MODEL_SHOULD_WORK
        	  if ( r->target_sheet != NULL)
 	    {
 	      xmlChar *value = xmlTextReaderValue (r->xtr);
@@ -279,6 +280,9 @@ process_node (struct gnumeric_reader *r)
 	    {
 	      r->state = STATE_SHEET_FOUND;
 	    }
+#else
+      r->state = STATE_SHEET_FOUND;
+#endif
 	}
       break;
     case STATE_SHEET_FOUND:
