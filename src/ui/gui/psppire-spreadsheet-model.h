@@ -82,4 +82,12 @@ GtkTreeModel * psppire_spreadsheet_model_new (struct spreadsheet *sp);
 
 G_END_DECLS
 
+
+enum
+{
+  PSPPIRE_SPREADSHEET_MODEL_COL_NAME,
+  PSPPIRE_SPREADSHEET_MODEL_COL_RANGE,
+  PSPPIRE_SPREADSHEET_MODEL_N_COLS
+};
+
 #endif /* __PSPPIRE_SPREADSHEET_MODEL_H__ */

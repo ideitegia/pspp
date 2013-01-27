@@ -157,18 +157,10 @@ psppire_spreadsheet_model_new (struct spreadsheet *sp)
 
 
 
-
-enum
-{
-  COL_SHEET_NAME,
-  COL_SHEET_RANGE,
-  N_COLS
-};
-
 static gint
 tree_model_n_columns (GtkTreeModel * model)
 {
-  return N_COLS;
+  return PSPPIRE_SPREADSHEET_MODEL_N_COLS;
 }
 
 static GtkTreeModelFlags
@@ -184,7 +176,7 @@ static GType
 tree_model_column_type (GtkTreeModel * model, gint index)
 {
   g_return_val_if_fail (PSPPIRE_IS_SPREADSHEET_MODEL (model), (GType) 0);
-  g_return_val_if_fail (index < N_COLS, (GType) 0);
+  g_return_val_if_fail (index < PSPPIRE_SPREADSHEET_MODEL_N_COLS, (GType) 0);
 
   return G_TYPE_STRING;
 }
@@ -244,13 +236,13 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
 {
   PsppireSpreadsheetModel *spreadsheetModel =
     PSPPIRE_SPREADSHEET_MODEL (model);
-  g_return_if_fail (column < N_COLS);
+  g_return_if_fail (column < PSPPIRE_SPREADSHEET_MODEL_N_COLS);
   g_return_if_fail (iter->stamp == spreadsheetModel->stamp);
 
   g_value_init (value, G_TYPE_STRING);
   switch (column)
     {
-    case COL_SHEET_NAME:
+    case PSPPIRE_SPREADSHEET_MODEL_COL_NAME:
       {
         const char *x =
           gnumeric_get_sheet_name (spreadsheetModel->spreadsheet,
@@ -258,13 +250,13 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
         g_value_set_string (value, x);
       }
       break;
-    case COL_SHEET_RANGE:
+    case PSPPIRE_SPREADSHEET_MODEL_COL_RANGE:
       {
         char *x =
           gnumeric_get_sheet_range (spreadsheetModel->spreadsheet,
                                     (gint) iter->user_data);
         g_value_set_string (value, x);
-	free (x);
+	g_free (x);
       }
       break;
     default:

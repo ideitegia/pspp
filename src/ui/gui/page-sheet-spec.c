@@ -53,6 +53,8 @@
 #include "ui/gui/psppire-scanf.h"
 #include "ui/syntax-gen.h"
 
+#include "ui/gui/psppire-spreadsheet-model.h"
+
 #include <data/casereader.h>
 
 #include "gl/error.h"
@@ -64,8 +66,6 @@
 #define N_(msgid) msgid
 
 struct import_assistant;
-
-
 
 /* The "sheet-spec" page of the assistant. */
 
@@ -80,6 +80,20 @@ struct sheet_spec_page
     struct spreadsheet_read_options opts;
   };
 
+static void 
+on_sheet_combo_changed (GtkComboBox *cb, struct import_assistant *ia)
+{
+  GtkTreeIter iter;
+  gchar *range = NULL;
+  GtkTreeModel *model = gtk_combo_box_get_model (cb);
+  GtkBuilder *builder = ia->asst.builder;
+  GtkWidget *range_entry = get_widget_assert (builder, "cell-range-entry");
+
+  gtk_combo_box_get_active_iter (cb, &iter);
+  gtk_tree_model_get (model, &iter, PSPPIRE_SPREADSHEET_MODEL_COL_RANGE, &range, -1);
+  gtk_entry_set_text (GTK_ENTRY (range_entry), range);
+  g_free (range);
+}
 
 /* Initializes IA's sheet_spec substructure. */
 struct sheet_spec_page *
@@ -94,6 +108,8 @@ sheet_spec_page_create (struct import_assistant *ia)
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box), renderer,
 				  "text", 0,
 				  NULL);
+
+  g_signal_connect (combo_box, "changed", G_CALLBACK (on_sheet_combo_changed), ia);
 
   return p;
 }
