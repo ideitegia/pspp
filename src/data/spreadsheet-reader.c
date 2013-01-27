@@ -73,6 +73,14 @@ pseudo_base26 (const char *str)
   return result;
 }
 
+char *
+create_cell_ref (int col0, int row0, int coli, int rowi)
+{
+  return c_xasprintf ("%c%d:%c%ld", 
+	       col0 + 'A', row0 + 1,
+	       coli + 'A', rowi + 1);
+}
+
 
 /* Convert a cell reference in the form "A1:B2", to
    integers.  A1 means column zero, row zero.

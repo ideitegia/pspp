@@ -71,6 +71,9 @@ struct spreadsheet
   struct dictionary *dict;
 };
 
+
+char *create_cell_ref (int col0, int row0, int coli, int rowi);
+
 /* 
    Attempt to open the file called FILENAME as a spreadsheet.
    It is not known a priori, what type of spreadsheet FILENAME is, or
