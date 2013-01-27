@@ -81,6 +81,7 @@ enum reader_state
     STATE_SHEET_START,     /* Found the start of a sheet */
     STATE_SHEET_NAME,      /* Found the sheet name */
     STATE_MAXROW,
+    STATE_MAXCOL,
     STATE_SHEET_FOUND,     /* Found the sheet that we actually want */
     STATE_CELLS_START,     /* Found the start of the cell array */
     STATE_CELL             /* Found a cell */
@@ -89,7 +90,6 @@ enum reader_state
 struct sheet_detail
 {
   xmlChar *name;
-  char *range;
 };
 
 
@@ -106,16 +106,16 @@ struct gnumeric_reader
   int min_col;
   int node_type;
   int sheet_index;
+
+  int start_col;
+  int stop_col;
+  int start_row;
+  int stop_row;
   
   struct sheet_detail *sheets;
 
   const xmlChar *target_sheet;
   int target_sheet_index;
-
-  int start_row;
-  int start_col;
-  int stop_row;
-  int stop_col;
 
   struct caseproto *proto;
   struct dictionary *dict;
@@ -260,6 +260,11 @@ process_node (struct gnumeric_reader *r)
 	{
 	  r->state = STATE_MAXROW;
 	}
+      else if (0 == xmlStrcasecmp (name, _xml("gnm:MaxCol"))  &&
+	  XML_READER_TYPE_ELEMENT  == r->node_type)
+	{
+	  r->state = STATE_MAXCOL;
+	}
       else if (0 == xmlStrcasecmp (name, _xml("gnm:Sheet"))  &&
 	  XML_READER_TYPE_END_ELEMENT  == r->node_type)
 	{
@@ -272,6 +277,24 @@ process_node (struct gnumeric_reader *r)
 	{
 	  r->state = STATE_SHEET_FOUND;
 	}
+      else if (r->node_type == XML_READER_TYPE_TEXT)
+	{
+	  xmlChar *value = xmlTextReaderValue (r->xtr);
+	  xmlFree (value);
+	}
+      break;
+    case STATE_MAXCOL:
+      if (0 == xmlStrcasecmp (name, _xml("gnm:MaxCol"))  &&
+	  XML_READER_TYPE_END_ELEMENT  == r->node_type)
+	{
+	  r->state = STATE_SHEET_FOUND;
+	}
+      else if (r->node_type == XML_READER_TYPE_TEXT)
+	{
+	  xmlChar *value = xmlTextReaderValue (r->xtr);
+	  xmlFree (value);
+	}
+      break;
     case STATE_CELLS_START:
       if (0 == xmlStrcasecmp (name, _xml ("gnm:Cell"))  &&
 	  XML_READER_TYPE_ELEMENT  == r->node_type)

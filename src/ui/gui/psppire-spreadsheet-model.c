@@ -267,8 +267,8 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
       }
       break;
     default:
-      g_error ("%s:%d Invalid column in spreadsheet model", __FILE__,
-               __LINE__);
+      g_error ("%s:%d Invalid column in spreadsheet model",
+	       __FILE__, __LINE__);
       break;
     }
 }
