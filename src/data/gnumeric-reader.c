@@ -98,6 +98,8 @@ struct sheet_detail
 
   int maxcol;
   int maxrow;
+
+  z_off_t offset;
 };
 
 
@@ -106,6 +108,7 @@ struct gnumeric_reader
   struct spreadsheet spreadsheet;
 
   xmlTextReaderPtr xtr;
+  gzFile gz;
 
   enum reader_state state;
 
@@ -228,6 +231,7 @@ process_node (struct gnumeric_reader *r)
 	  r->sheets = xrealloc (r->sheets, r->spreadsheet.sheets * sizeof *r->sheets);
 	  sd = &r->sheets[r->spreadsheet.sheets - 1];
 	  sd->start_col = sd->stop_col = sd->start_row = sd->stop_row = -1;
+	  sd->offset = -1;
 	}
       else if (0 == xmlStrcasecmp (name, _xml("gnm:SheetNameIndex")) &&
 	  XML_READER_TYPE_END_ELEMENT  == r->node_type)
@@ -246,6 +250,7 @@ process_node (struct gnumeric_reader *r)
 	{
 	  ++r->sheet_index;
 	  r->state = STATE_SHEET_START;
+	  r->sheets[r->sheet_index].offset = gztell (r->gz);
 	}
       break;
     case STATE_SHEET_START:
@@ -268,7 +273,6 @@ process_node (struct gnumeric_reader *r)
 	}
       else if (XML_READER_TYPE_TEXT == r->node_type)
 	{
-#if MODEL_SHOULD_WORK
        	  if ( r->target_sheet != NULL)
 	    {
 	      xmlChar *value = xmlTextReaderValue (r->xtr);
@@ -280,9 +284,10 @@ process_node (struct gnumeric_reader *r)
 	    {
 	      r->state = STATE_SHEET_FOUND;
 	    }
-#else
-      r->state = STATE_SHEET_FOUND;
-#endif
+	  else if (r->target_sheet_index == -1)
+	    {
+	      r->state = STATE_SHEET_FOUND;
+	    }
 	}
       break;
     case STATE_SHEET_FOUND:
@@ -432,7 +437,8 @@ gnumeric_probe (const char *filename)
   struct gnumeric_reader *r = NULL;
   xmlTextReaderPtr xtr;
 
-  gzFile gz = gzopen (filename, "r");
+  gzFile gz;
+  gz = gzopen (filename, "r");
 
   if (NULL == gz)
     return NULL;
@@ -442,13 +448,20 @@ gnumeric_probe (const char *filename)
 			   NULL, NULL, 0);
 
   if (xtr == NULL)
-    return NULL;
+    {
+      gzclose (gz);
+      return NULL;
+    }
 
   r = xzalloc (sizeof *r);
   
+  r->gz = gz;
   r->xtr = xtr;
   r->spreadsheet.sheets = -1;
   r->state = STATE_PRE_INIT;
+
+  r->target_sheet = NULL;
+  r->target_sheet_index = -1;
 
 
   /* Advance to the start of the workbook.
@@ -464,8 +477,8 @@ gnumeric_probe (const char *filename)
   if (ret != 1)
     {
       /* Not a gnumeric spreadsheet */
+      xmlFreeTextReader (r->xtr);
       free (r);
-      gzclose (gz);
       return NULL;
     }
     
