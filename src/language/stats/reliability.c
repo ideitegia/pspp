@@ -143,6 +143,8 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
   reliability.sc = NULL;
   reliability.wv = dict_get_weight (dict);
   reliability.total_start = 0;
+  ds_init_empty (&reliability.scale_name);
+
 
   lex_match (lexer, T_SLASH);
 
@@ -169,7 +171,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
       reliability.n_sc = 1;
       reliability.sc = xzalloc (sizeof (struct cronbach) * reliability.n_sc);
 
-      ds_init_cstr (&reliability.scale_name, "ANY");
+      ds_assign_cstr (&reliability.scale_name, "ANY");
 
       c = &reliability.sc[0];
       c->n_items = reliability.n_variables;
