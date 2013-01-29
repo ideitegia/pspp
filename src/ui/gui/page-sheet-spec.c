@@ -91,7 +91,7 @@ on_sheet_combo_changed (GtkComboBox *cb, struct import_assistant *ia)
 
   gtk_combo_box_get_active_iter (cb, &iter);
   gtk_tree_model_get (model, &iter, PSPPIRE_SPREADSHEET_MODEL_COL_RANGE, &range, -1);
-  gtk_entry_set_text (GTK_ENTRY (range_entry), range);
+  gtk_entry_set_text (GTK_ENTRY (range_entry), range ?  range : "");
   g_free (range);
 }
 

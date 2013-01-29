@@ -126,9 +126,18 @@ int_to_ps26 (int i)
 char *
 create_cell_ref (int col0, int row0, int coli, int rowi)
 {
-  char *cs0 =  int_to_ps26 (col0);
-  char *csi =  int_to_ps26 (coli);
-  char *s =  c_xasprintf ("%s%d:%s%ld",
+  char *cs0 ;
+  char *csi ;
+  char *s ;
+
+  if ( col0 < 0) return NULL;
+  if ( rowi < 0) return NULL;
+  if ( coli < 0) return NULL;
+  if ( row0 < 0) return NULL;
+
+  cs0 =  int_to_ps26 (col0);
+  csi =  int_to_ps26 (coli);
+  s =  c_xasprintf ("%s%d:%s%ld",
 			 cs0, row0 + 1,
 			 csi, rowi + 1);
   free (cs0);
