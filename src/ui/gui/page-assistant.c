@@ -78,11 +78,6 @@ init_assistant (GtkWindow *parent_window)
   a->builder = builder_new ("text-data-import.ui");
   a->assistant = GTK_ASSISTANT (gtk_assistant_new ());
 
-  ia->sheet_spec = sheet_spec_page_create (ia);
-  ia->intro = intro_page_create (ia);
-  ia->separators = separators_page_create (ia);
-
-
   a->prop_renderer = gtk_cell_renderer_text_new ();
   g_object_ref_sink (a->prop_renderer);
   a->fixed_renderer = gtk_cell_renderer_text_new ();
@@ -90,10 +85,6 @@ init_assistant (GtkWindow *parent_window)
   g_object_set (G_OBJECT (a->fixed_renderer),
                 "family", "Monospace",
                 (void *) NULL);
-
-  ia->first_line = first_line_page_create (ia);
-
-  ia->formats = formats_page_create (ia);
 
   g_signal_connect (a->assistant, "prepare", G_CALLBACK (on_prepare), ia);
   g_signal_connect (a->assistant, "cancel", G_CALLBACK (on_cancel), ia);
@@ -108,6 +99,7 @@ init_assistant (GtkWindow *parent_window)
                         _("Importing Delimited Text Data"));
   gtk_window_set_transient_for (GTK_WINDOW (a->assistant), parent_window);
   gtk_window_set_icon_name (GTK_WINDOW (a->assistant), "pspp");
+
 
   return ia;
 }
@@ -166,10 +158,17 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
   int pn = gtk_assistant_get_current_page (assistant);
   g_print ("%s:%d Page %d %p\n", __FILE__, __LINE__, pn, page);
 
-  if (pn == 0)
-    prepare_sheet_spec_page (ia);
+  if ( ia->spreadsheet) 
+    {
+      if (pn == 0)
+	prepare_sheet_spec_page (ia);
+      else if (pn == 1)
+	{
+	  post_sheet_spec_page (ia);
+	  prepare_formats_page (ia);
+	}
+    }
 
-#if 0  
   if (gtk_assistant_get_page_type (assistant, page)
       == GTK_ASSISTANT_PAGE_CONFIRM)
     gtk_widget_grab_focus (assistant->apply);
@@ -177,16 +176,15 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
     gtk_widget_grab_focus (assistant->forward);
 
 
+
+#if 0  
   /* Prepare .... */
   if (page == ia->separators->page)
     prepare_separators_page (ia);
   else if (page == ia->formats->page)
     prepare_formats_page (ia);
-  else if (page == ia->sheet_spec->page && ssp->spreadsheet)
-    {
-      prepare_sheet_spec_page (ia);
-    }
-  
+
+
   gtk_widget_show (ia->asst.reset_button);
   if (page == ia->formats->page)
     gtk_widget_show (ia->asst.paste_button);

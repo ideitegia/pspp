@@ -111,6 +111,9 @@ sheet_spec_page_create (struct import_assistant *ia)
 
   g_signal_connect (combo_box, "changed", G_CALLBACK (on_sheet_combo_changed), ia);
 
+  add_page_to_assistant (ia, get_widget_assert (builder, "Sheet"),
+			 GTK_ASSISTANT_PAGE_INTRO);
+
   return p;
 }
 
@@ -158,17 +161,19 @@ post_sheet_spec_page (struct import_assistant *ia)
 
   const gchar *range = gtk_entry_get_text (GTK_ENTRY (range_entry));
 
-  gint num = 0;
-  if ( num < 1 )
-    num = 1;
+  gint num = 1;
   
   ssp->opts.sheet_name = NULL;
   ssp->opts.cell_range = NULL;
   ssp->opts.sheet_index = num;
 
+  printf ("%s:%d Range is %s\n", __FILE__, __LINE__, range);
+  printf ("%s:%d Sheet Number is %d\n", __FILE__, __LINE__, num);
+
   if ( convert_cell_ref (range, &col_start, &row_start, &col_stop, &row_stop))
     {
       ssp->opts.cell_range = range;
+      printf ("%s:%d Range is valid\n", __FILE__, __LINE__);
     }
 
   ssp->sri.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
@@ -178,14 +183,17 @@ post_sheet_spec_page (struct import_assistant *ia)
     {
     case SPREADSHEET_ODS:
       {
+	printf ("%s:%d\n", __FILE__, __LINE__);
 	creader = ods_make_reader (ia->spreadsheet, &ssp->sri, &ssp->opts);
 	dict = ia->spreadsheet->dict;
       }
       break;
     case SPREADSHEET_GNUMERIC:
       {
+	printf ("%s:%d\n",__FILE__, __LINE__);
 	creader = gnumeric_make_reader (ia->spreadsheet, &ssp->sri, &ssp->opts);
 	dict = ia->spreadsheet->dict;
+	printf ("%s:%d Reader %p Dict %p\n",__FILE__, __LINE__, creader, dict);
       }
       break;
     default:
@@ -224,11 +232,13 @@ update_assistant (struct import_assistant *ia)
   struct sheet_spec_page *ssp = ia->sheet_spec;
   int rows = 0;
 
+  printf ("%s:%d\n");
   if (ssp->dict)
     {
       struct ccase *c;
       int col;
 
+      printf ("%s:%d\n");
       ia->column_cnt = dict_get_var_cnt (ssp->dict);
       ia->columns = xcalloc (ia->column_cnt, sizeof (*ia->columns));
       for (col = 0; col < ia->column_cnt ; ++col)

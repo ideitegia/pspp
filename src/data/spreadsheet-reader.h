@@ -40,7 +40,8 @@ struct spreadsheet_read_info
   int asw ;                /* The width of string variables in the created dictionary */
 };
 
-int pseudo_base26 (const char *str);
+int ps26_to_int (const char *str);
+char * int_to_ps26 (int);
 
 bool convert_cell_ref (const char *ref,
 		       int *col0, int *row0,

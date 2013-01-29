@@ -83,12 +83,17 @@ text_data_import_assistant (PsppireDataWindow *dw)
 
   ssp = ia->sheet_spec;
 
-  add_page_to_assistant (ia, get_widget_assert (builder, "Sheet"),
-			 GTK_ASSISTANT_PAGE_INTRO);
-
-  add_page_to_assistant (ia, get_widget_assert (builder, "Formats"),
-			 GTK_ASSISTANT_PAGE_CONFIRM);
-
+  if (ia->spreadsheet)
+    {
+      ia->sheet_spec = sheet_spec_page_create (ia);
+    }
+  else
+    {
+      ia->intro = intro_page_create (ia);
+      ia->separators = separators_page_create (ia);
+      ia->first_line = first_line_page_create (ia);
+    }
+  ia->formats = formats_page_create (ia);
 
   gtk_widget_show_all (GTK_WIDGET (ia->asst.assistant));
 
@@ -108,8 +113,11 @@ text_data_import_assistant (PsppireDataWindow *dw)
       break;
     }
 
-  destroy_formats_page (ia);
-  destroy_separators_page (ia);
+  if (ssp) 
+    {
+      destroy_formats_page (ia);
+      destroy_separators_page (ia);
+    }
 
   destroy_assistant (ia);
   destroy_file (ia);

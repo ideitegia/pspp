@@ -100,12 +100,12 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   if (ia->spreadsheet == NULL)
     ia->spreadsheet = gnumeric_probe (file->file_name);
 
-  printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
-  
   if (ia->spreadsheet == NULL)
     ia->spreadsheet = ods_probe (file->file_name);
 
-  if (! ia->spreadsheet)
+  printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
+  
+  if (ia->spreadsheet == NULL)
     {
     struct string input;
     struct line_reader *reader = line_reader_for_file (file->encoding, file->file_name, O_RDONLY);

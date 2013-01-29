@@ -82,10 +82,9 @@ formats_page_create (struct import_assistant *ia)
   GtkBuilder *builder = ia->asst.builder;
   struct formats_page *p = xzalloc (sizeof *p);
 
-#if 0
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Formats"),
-                                   GTK_ASSISTANT_PAGE_CONFIRM);
-#endif
+			 GTK_ASSISTANT_PAGE_CONFIRM);
+
   p->data_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "data"));
   p->modified_vars = NULL;
   p->modified_var_cnt = 0;
@@ -130,10 +129,8 @@ prepare_formats_page (struct import_assistant *ia)
   fg = fmt_guesser_create ();
   for (column_idx = 0; column_idx < ia->column_cnt; column_idx++)
     {
-      struct variable *modified_var;
-
-      modified_var = (column_idx < p->modified_var_cnt
-                      ? p->modified_vars[column_idx] : NULL);
+      struct variable *modified_var = 
+	(column_idx < p->modified_var_cnt ? p->modified_vars[column_idx] : NULL);
       if (modified_var == NULL)
         {
           struct column *column = &ia->columns[column_idx];
