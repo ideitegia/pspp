@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2006, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc
+   Copyright (C) 2005, 2006, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -510,6 +510,26 @@ rank_savage (const struct rank *cmd UNUSED, double c, double cc, double cc_1,
   NOT_REACHED();
 }
 
+static double
+sum_weights (const struct casereader *input, int weight_idx)
+{
+  if (weight_idx == -1)
+    return casereader_count_cases (input);
+  else
+    {
+      struct casereader *pass;
+      struct ccase *c;
+      double w;
+
+      w = 0.0;
+      pass = casereader_clone (input);
+      for (; (c = casereader_read (pass)) != NULL; case_unref (c))
+        w += case_num_idx (c, weight_idx);
+      casereader_destroy (pass);
+
+      return w;
+    }
+}
 
 static void
 rank_sorted_file (struct casereader *input,
@@ -519,46 +539,39 @@ rank_sorted_file (struct casereader *input,
 		  const struct rank *cmd
 		  )
 {
-  struct casereader *pass1, *pass2, *pass2_1;
+  struct variable *weight_var = dict_get_weight (dict);
+  int weight_idx = weight_var ? var_get_case_index (weight_var) : -1;
   struct casegrouper *tie_grouper;
+  struct casereader *tied_cases;
   struct ccase *c;
-  double w = 0.0;
   double cc = 0.0;
+  double w;
   int tie_group = 1;
 
   input = casereader_create_filter_missing (input, &cmd->vars[dest_idx], 1,
                                             cmd->exclude, NULL, output);
   input = casereader_create_filter_weight (input, dict, NULL, output);
 
-  casereader_split (input, &pass1, &pass2);
+  /* Get total group weight. */
+  w = sum_weights (input, weight_idx);
 
-  /* Pass 1: Get total group weight. */
-  for (; (c = casereader_read (pass1)) != NULL; case_unref (c))
-    w += dict_get_case_weight (dict, c, NULL);
-  casereader_destroy (pass1);
-
-  /* Pass 2: Do ranking. */
-  tie_grouper = casegrouper_create_vars (pass2, &cmd->vars[dest_idx], 1);
-  while (casegrouper_get_next_group (tie_grouper, &pass2_1))
+  /* Do ranking. */
+  tie_grouper = casegrouper_create_vars (input, &cmd->vars[dest_idx], 1);
+  for (; casegrouper_get_next_group (tie_grouper, &tied_cases);
+       casereader_destroy (tied_cases))
     {
-      struct casereader *pass2_2;
+      double tw = sum_weights (tied_cases, weight_idx);
       double cc_1 = cc;
-      double tw = 0.0;
-      int i;
+      cc += tw;
 
-      pass2_2 = casereader_clone (pass2_1);
-      taint_propagate (casereader_get_taint (pass2_2),
+      taint_propagate (casereader_get_taint (tied_cases),
                        casewriter_get_taint (output));
 
-      /* Pass 2.1: Sum up weight for tied cases. */
-      for (; (c = casereader_read (pass2_1)) != NULL; case_unref (c))
-        tw += dict_get_case_weight (dict, c, NULL);
-      cc += tw;
-      casereader_destroy (pass2_1);
-
-      /* Pass 2.2: Rank tied cases. */
-      while ((c = casereader_read (pass2_2)) != NULL)
+      /* Rank tied cases. */
+      while ((c = casereader_read (tied_cases)) != NULL)
         {
+          size_t i;
+
           c = case_unshare (c);
           for (i = 0; i < cmd->n_rs; ++i)
             {
@@ -568,7 +581,6 @@ rank_sorted_file (struct casereader *input,
             }
           casewriter_write (output, c);
         }
-      casereader_destroy (pass2_2);
 
       tie_group++;
     }
