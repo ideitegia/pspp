@@ -35,9 +35,11 @@
 #include "language/stats/sort-criteria.h"
 #include "math/sort.h"
 #include "libpspp/assertion.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
 #include "libpspp/pool.h"
+#include "libpspp/string-set.h"
 #include "libpspp/taint.h"
 
 #include "output/tab.h"
@@ -143,69 +145,68 @@ struct rank_spec
 {
   enum rank_func rfunc;
   struct variable **destvars;
+  const char **dest_names;
 };
 
-
-/* Create and return a new variable in which to store the ranks of SRC_VAR
-   accoring to the rank function F.
-   VNAME is the name of the variable to be created.
-   If VNAME is NULL, then a name will be automatically chosen.
-*/
-static struct variable *
-create_rank_variable (struct dictionary *dict, enum rank_func f,
-		      const struct variable *src_var,
-		      const char *vname)
+/* If NEW_NAME exists in DICT or NEW_NAMES, returns NULL without changing
+   anything.  Otherwise, inserts NEW_NAME in NEW_NAMES and returns the copy of
+   NEW_NAME now in NEW_NAMES. */
+static const char *
+try_new_name (const char *new_name,
+              const struct dictionary *dict, struct string_set *new_names)
 {
+  return (!dict_lookup_var (dict, new_name)
+          && string_set_insert (new_names, new_name)
+          ? string_set_find_node (new_names, new_name)->string
+          : NULL);
+}
+
+/* Returns a variable name for storing ranks of a variable named SRC_NAME
+   accoring to the rank function F.  The name chosen will not be one already in
+   DICT or NEW_NAMES.
+
+   If successful, adds the new name to NEW_NAMES and returns the name added.
+   If no name can be generated, returns NULL. */
+static const char *
+rank_choose_dest_name (struct dictionary *dict, struct string_set *new_names,
+                       enum rank_func f, const char *src_name)
+{
+  char *src_name_7;
+  char name[128];
+  const char *s;
   int i;
-  struct variable *var = NULL;
-  char name[SHORT_NAME_LEN + 1];
 
-  if ( vname )
-    var = dict_create_var(dict, vname, 0);
+  /* Try the first character of the ranking function followed by the first 7
+     bytes of the srcinal variable name. */
+  src_name_7 = utf8_encoding_trunc (src_name, dict_get_encoding (dict), 7);
+  snprintf (name, sizeof name, "%c%s", function_name[f][0], src_name_7);
+  free (src_name_7);
+  s = try_new_name (name, dict, new_names);
+  if (s != NULL)
+    return s;
 
-  if ( NULL == var )
+  /* Try "fun###". */
+  for (i = 1; i <= 999; i++)
     {
-      snprintf (name, SHORT_NAME_LEN + 1, "%c%s",
-                function_name[f][0], var_get_name (src_var));
-
-      var = dict_create_var(dict, name, 0);
-    }
-  i = 1;
-  while( NULL == var )
-    {
-      char func_abb[4];
-      snprintf(func_abb, 4, "%s", function_name[f]);
-      snprintf(name, SHORT_NAME_LEN + 1, "%s%03d", func_abb,
-	       i);
-
-      var = dict_create_var(dict, name, 0);
-      if (i++ >= 999)
-	break;
+      sprintf (name, "%.3s%03d", function_name[f], i);
+      s = try_new_name (name, dict, new_names);
+      if (s != NULL)
+        return s;
     }
 
-  i = 1;
-  while ( NULL == var )
+  /* Try "RNKfn##". */
+  for (i = 1; i <= 99; i++)
     {
-      char func_abb[3];
-      snprintf(func_abb, 3, "%s", function_name[f]);
-
-      snprintf(name, SHORT_NAME_LEN + 1,
-	       "RNK%s%02d", func_abb, i);
-
-      var = dict_create_var(dict, name, 0);
-      if ( i++ >= 99 )
-	break;
+      sprintf (name, "RNK%.2s%02d", function_name[f], i);
+      s = try_new_name (name, dict, new_names);
+      if (s != NULL)
+        return s;
     }
 
-  if ( NULL == var )
-    {
-      msg(ME, _("Cannot create new rank variable.  All candidates in use."));
-      return NULL;
-    }
-
-  var_set_both_formats (var, &dest_format[f]);
-
-  return var;
+  msg (ME, _("Cannot generate variable name for ranking %s with %s.  "
+             "All candidates in use."),
+       src_name, function_name[f]);
+  return NULL;
 }
 
 struct rank
@@ -248,7 +249,8 @@ destroy_rank (struct rank *rank)
 }
 
 static bool
-parse_into (struct lexer *lexer, struct rank *cmd)
+parse_into (struct lexer *lexer, struct rank *cmd,
+            struct string_set *new_names)
 {
   int var_count = 0;
   struct rank_spec *rs = NULL;
@@ -306,30 +308,32 @@ parse_into (struct lexer *lexer, struct rank *cmd)
     }
 
   cmd->n_rs++;
-  rs->destvars = NULL;
-  rs->destvars = pool_calloc (cmd->pool, cmd->n_vars, sizeof (*rs->destvars));
+  rs->dest_names = pool_calloc (cmd->pool, cmd->n_vars,
+                                sizeof *rs->dest_names);
 
   if (lex_match_id (lexer, "INTO"))
     {
       while( lex_token (lexer) == T_ID )
 	{
 	  const char *name = lex_tokcstr (lexer);
-	  if ( dict_lookup_var (cmd->dict, name) != NULL )
-	    {
-	      msg (SE, _("Variable %s already exists."), name);
-	      return false;
-	    }
-	  
+
 	  if ( var_count >= subcase_get_n_fields (&cmd->sc) )
-	    {
-	      msg (SE, _("Too many variables in INTO clause."));
-	      return false;
-	    }
-	  rs->destvars[var_count] = 
-	    create_rank_variable (cmd->dict, rs->rfunc, cmd->vars[var_count], name);
-	  ++var_count;
-	  lex_get (lexer);
-	}
+            msg (SE, _("Too many variables in INTO clause."));
+	  else if ( dict_lookup_var (cmd->dict, name) != NULL )
+            msg (SE, _("Variable %s already exists."), name);
+          else if (string_set_contains (new_names, name))
+            msg (SE, _("Duplicate variable name %s."), name);
+          else
+            {
+              string_set_insert (new_names, name);
+              rs->dest_names[var_count++] = pool_strdup (cmd->pool, name);
+              lex_get (lexer);
+              continue;
+            }
+
+          /* Error path. */
+          return false;
+        }
     }
 
   return true;
@@ -617,12 +621,14 @@ fraction_name (const struct rank *cmd)
     }
 }
 
-/* Create a label on DEST_VAR, describing its derivation from SRC_VAR and F */
-static void
-create_var_label (struct rank *cmd, struct variable *dest_var,
-		  const struct variable *src_var, enum rank_func f)
+/* Returns a label for a variable derived from SRC_VAR with function F. */
+static const char *
+create_var_label (struct rank *cmd, const struct variable *src_var,
+                  enum rank_func f)
 {
   struct string label;
+  const char *pool_label;
+
   ds_init_empty (&label);
 
   if ( cmd->n_group_vars > 0 )
@@ -646,16 +652,20 @@ create_var_label (struct rank *cmd, struct variable *dest_var,
     ds_put_format (&label, _("%s of %s"),
                    function_name[f], var_get_name (src_var));
 
-  var_set_label (dest_var, ds_cstr (&label), false);
+  pool_label = pool_strdup (cmd->pool, ds_cstr (&label));
   
   ds_destroy (&label);
+
+  return pool_label;
 }
 
 int
 cmd_rank (struct lexer *lexer, struct dataset *ds)
 {
+  struct string_set new_names;
   struct rank rank;
   struct variable *order;
+  struct rank_spec *rs;
   bool result = true;
   int i;
 
@@ -671,6 +681,8 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   rank.fraction = FRAC_BLOM;
   rank.print = true;
   rank.pool = pool_create ();
+
+  string_set_init (&new_names);
 
   if (lex_match_id (lexer, "VARIABLES"))
     lex_force_match (lexer, T_EQUALS);
@@ -778,7 +790,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 	      goto error;
 	    }
 	}
-      else if (! parse_into (lexer, &rank))
+      else if (! parse_into (lexer, &rank, &new_names))
 	goto error;
     }
 
@@ -786,33 +798,54 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   /* If no rank specs are given, then apply a default */
   if ( rank.n_rs == 0)
     {
-      rank.rs = pool_calloc (rank.pool, 1, sizeof (*rank.rs));
+      struct rank_spec *rs;
+
+      rs = pool_calloc (rank.pool, 1, sizeof *rs);
+      rs->rfunc = RANK;
+      rs->dest_names = pool_calloc (rank.pool, 1, sizeof *rs->dest_names);
+
+      rank.rs = rs;
       rank.n_rs = 1;
-      rank.rs[0].rfunc = RANK;
-      rank.rs[0].destvars = pool_calloc (rank.pool, rank.n_vars, sizeof (*rank.rs[0].destvars));
     }
 
-  /* Create variables for all rank destinations which haven't
-     already been created with INTO.
-     Add labels to all the destination variables.
-  */
-  for (i = 0 ; i <  rank.n_rs ; ++i )
+  /* Choose variable names for all rank destinations which haven't already been
+     created with INTO. */
+  for (rs = rank.rs; rs < &rank.rs[rank.n_rs]; rs++)
     {
       int v;
-      struct rank_spec *rs = &rank.rs[i];
 
       for ( v = 0 ; v < rank.n_vars ;  v ++ )
-	{
-	  if ( rs->destvars[v] == NULL )
-	    {
-	      rs->destvars[v] =
-		create_rank_variable (rank.dict, rs->rfunc, rank.vars[v], NULL);
-	    }
+        {
+          const char **dst_name = &rs->dest_names[v];
+          if ( *dst_name == NULL )
+            {
+              *dst_name = rank_choose_dest_name (rank.dict, &new_names,
+                                                 rs->rfunc,
+                                                 var_get_name (rank.vars[v]));
+              if (*dst_name == NULL)
+                goto error;
+            }
+        }
+    }
 
-	  create_var_label (&rank, rs->destvars[v],
-			    rank.vars[v],
-			    rs->rfunc);
-	}
+  /* Create variables. */
+  for (rs = rank.rs; rs < &rank.rs[rank.n_rs]; rs++)
+    rs->destvars = pool_nmalloc (rank.pool, rank.n_vars, sizeof *rs->destvars);
+  for ( i = 0 ; i < rank.n_vars ;  i ++ )
+    {
+      struct variable *var;
+
+      for (rs = rank.rs; rs < &rank.rs[rank.n_rs]; rs++)
+        {
+          var = dict_create_var_assert (dataset_dict (ds),
+                                        rs->dest_names[i], 0);
+          var_set_both_formats (var, &dest_format[rs->rfunc]);
+          var_set_label (var, create_var_label (&rank, rank.vars[i],
+                                                rs->rfunc),
+                         false);
+
+          rs->destvars[i] = var;
+        }
     }
 
   if ( rank.print )
@@ -845,7 +878,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		    tab_output_text_format (0,
                                             _("%s into %s(%s of %s using %s BY %s)"),
                                             var_get_name (rank.vars[v]),
-                                            var_get_name (rank.rs[i].destvars[v]),
+                                            rank.rs[i].dest_names[v],
                                             function_name[rank.rs[i].rfunc],
                                             var_get_name (rank.vars[v]),
                                             fraction_name (&rank),
@@ -855,7 +888,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		    tab_output_text_format (0,
                                             _("%s into %s(%s of %s BY %s)"),
                                             var_get_name (rank.vars[v]),
-                                            var_get_name (rank.rs[i].destvars[v]),
+                                            rank.rs[i].dest_names[v],
                                             function_name[rank.rs[i].rfunc],
                                             var_get_name (rank.vars[v]),
                                             ds_cstr (&varlist));
@@ -868,7 +901,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		    tab_output_text_format (0,
                                             _("%s into %s(%s of %s using %s)"),
                                             var_get_name (rank.vars[v]),
-                                            var_get_name (rank.rs[i].destvars[v]),
+                                            rank.rs[i].dest_names[v],
                                             function_name[rank.rs[i].rfunc],
                                             var_get_name (rank.vars[v]),
                                             fraction_name (&rank));
@@ -877,7 +910,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		    tab_output_text_format (0,
                                             _("%s into %s(%s of %s)"),
                                             var_get_name (rank.vars[v]),
-                                            var_get_name (rank.rs[i].destvars[v]),
+                                            rank.rs[i].dest_names[v],
                                             function_name[rank.rs[i].rfunc],
                                             var_get_name (rank.vars[v]));
 		}
@@ -913,11 +946,13 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   }
 
   destroy_rank (&rank);
+  string_set_destroy (&new_names);
   return CMD_SUCCESS;
 
  error:
 
   destroy_rank (&rank);
+  string_set_destroy (&new_names);
   return CMD_FAILURE;
 }
 
