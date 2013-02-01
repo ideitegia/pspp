@@ -589,21 +589,8 @@ rank_sorted_file (struct casereader *input,
 }
 
 
-/* Transformation function to enumerate all the cases */
-static int
-create_resort_key (void *key_var_, struct ccase **cc, casenumber case_num)
-{
-  struct variable *key_var = key_var_;
-
-  *cc = case_unshare (*cc);
-  case_data_rw (*cc, key_var)->f = case_num;
-
-  return TRNS_CONTINUE;
-}
-
 static bool
 rank_cmd (struct dataset *ds,  const struct rank *cmd);
-
 
 static const char *
 fraction_name (const struct rank *cmd)
@@ -1000,11 +987,7 @@ rank_cmd (struct dataset *ds, const struct rank *cmd)
   bool ok = true;
   int i;
 
-  /* Add a variable which we can sort by to get back the original
-     order */
-  order_var = dict_create_var_assert (dataset_dict (ds), "$ORDER", 0);
-
-  add_transformation (ds, create_resort_key, 0, order_var);
+  order_var = add_permanent_ordering_transformation (ds);
 
   /* Create output files. */
   {

@@ -411,6 +411,62 @@ x,w,xl,xh,xc,Nx
 ])
 AT_CLEANUP
 
+AT_SETUP([RANK and TEMPORARY])
+AT_DATA([rank.sps], [dnl
+DATA LIST LIST NOTABLE /age (f2) gender (a1).
+BEGIN DATA.
+44 m
+32 f
+43 m
+49 m
+33 f
+35 f
+29 f
+50 m
+42 m
+33 f
+48 m
+END DATA.
+
+TEMPORARY.
+SELECT IF gender = 'm'.
+RANK age /RANK INTO Rm.
+
+TEMPORARY.
+SELECT IF gender = 'f'.
+RANK age /RANK INTO Rf.
+
+LIST.
+])
+AT_CHECK([pspp -O format=csv rank.sps], [0], [dnl
+Variables Created By RANK
+
+
+
+age into Rm(RANK of age)
+
+Variables Created By RANK
+
+
+
+age into Rf(RANK of age)
+
+Table: Data List
+age,gender,Rm,Rf
+44,m,3.000,.   @&t@
+32,f,.   ,2.000
+43,m,2.000,.   @&t@
+49,m,5.000,.   @&t@
+33,f,.   ,3.500
+35,f,.   ,5.000
+29,f,.   ,1.000
+50,m,6.000,.   @&t@
+42,m,1.000,.   @&t@
+33,f,.   ,3.500
+48,m,4.000,.   @&t@
+])
+AT_CLEANUP
+
 AT_SETUP([RANK variable name fallback])
 AT_DATA([rank.sps], [dnl
 DATA LIST LIST NOTABLE /foo * rfoo * ran003 *.
