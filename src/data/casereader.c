@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -116,25 +116,6 @@ casereader_clone (const struct casereader *reader_)
   assert (clone != NULL);
   assert (clone != reader);
   return clone;
-}
-
-/* Makes a copy of ORIGINAL into *NEW1 (if NEW1 is non-null) and
-   *NEW2 (if NEW2 is non-null), then destroys ORIGINAL. */
-void
-casereader_split (struct casereader *original,
-                  struct casereader **new1, struct casereader **new2)
-{
-  if (new1 != NULL && new2 != NULL)
-    {
-      *new1 = casereader_rename (original);
-      *new2 = casereader_clone (*new1);
-    }
-  else if (new1 != NULL)
-    *new1 = casereader_rename (original);
-  else if (new2 != NULL)
-    *new2 = casereader_rename (original);
-  else
-    casereader_destroy (original);
 }
 
 /* Returns a copy of READER, which is itself destroyed.
