@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -59,26 +59,25 @@ trns_chain_create (void)
   return chain;
 }
 
-/* Finalizes all the transformations in CHAIN.
-   A chain is only finalized once; afterward, calling this
-   function is a no-op.
-   Finalizers may add transformations to CHAIN, but after
-   finalization the chain's contents are fixed, so that no more
-   transformations may be added afterward. */
+/* Finalizes all the un-finalized transformations in CHAIN.
+   Any given transformation is only finalized once. */
 void
 trns_chain_finalize (struct trns_chain *chain)
 {
-  if (!chain->finalized)
+  while (!chain->finalized)
     {
       size_t i;
 
+      chain->finalized = true;
       for (i = 0; i < chain->trns_cnt; i++)
         {
           struct transformation *trns = &chain->trns[i];
-          if (trns->finalize != NULL)
-            trns->finalize (trns->aux);
+          trns_finalize_func *finalize = trns->finalize;
+
+          trns->finalize = NULL;
+          if (finalize != NULL)
+            finalize (trns->aux);
         }
-      chain->finalized = true;
     }
 }
 
@@ -127,7 +126,7 @@ trns_chain_append (struct trns_chain *chain, trns_finalize_func *finalize,
 {
   struct transformation *trns;
 
-  assert (!chain->finalized);
+  chain->finalized = false;
 
   if (chain->trns_cnt == chain->trns_cap)
     chain->trns = x2nrealloc (chain->trns, &chain->trns_cap,

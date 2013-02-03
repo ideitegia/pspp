@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include "gl/progname.h"
 #include "gl/read-file.h"
 #include "gl/xalloc.h"
+#include "gl/xmemdup0.h"
 
 /* -a/--auto, -b/--batch, -i/--interactive: syntax mode. */
 static enum segmenter_mode mode = SEG_MODE_AUTO;
@@ -46,18 +47,21 @@ static bool verbose;
 /* -1, --one-byte: Feed in one byte at a time? */
 static bool one_byte;
 
+/* -0, --truncations: Check that every truncation of input yields a result. */
+static bool check_truncations;
+
 static const char *parse_options (int argc, char **argv);
 static void usage (void) NO_RETURN;
+
+static void check_segmentation (const char *input, size_t length,
+                                bool print_segments);
 
 int
 main (int argc, char *argv[])
 {
-  size_t offset, line_number, line_offset;
   const char *file_name;
-  char *input;
-  struct segmenter s;
   size_t length;
-  int prev_type;
+  char *input;
 
   set_program_name (argv[0]);
   file_name = parse_options (argc, argv);
@@ -69,10 +73,38 @@ main (int argc, char *argv[])
            : read_file (file_name, &length));
   if (input == NULL)
     error (EXIT_FAILURE, errno, "reading %s failed", file_name);
-  input = xrealloc (input, length + 3);
-  if (length == 0 || input[length - 1] != '\n')
-    input[length++] = '\n';
-  input[length++] = '\0';
+
+  if (!check_truncations)
+    {
+      input = xrealloc (input, length + 3);
+      if (length == 0 || input[length - 1] != '\n')
+        input[length++] = '\n';
+      input[length++] = '\0';
+
+      check_segmentation (input, length, true);
+    }
+  else
+    {
+      size_t test_len;
+
+      for (test_len = 0; test_len <= length; test_len++)
+        {
+          char *copy = xmemdup0 (input, test_len);
+          check_segmentation (copy, test_len + 1, false);
+          free (copy);
+        }
+    }
+  free (input);
+
+  return 0;
+}
+
+static void
+check_segmentation (const char *input, size_t length, bool print_segments)
+{
+  size_t offset, line_number, line_offset;
+  struct segmenter s;
+  int prev_type;
 
   segmenter_init (&s, mode);
 
@@ -122,6 +154,12 @@ main (int argc, char *argv[])
                     && input[offset] == '\r' && input[offset + 1] == '\n'));
       else
         assert (memchr (&input[offset], '\n', n) == NULL);
+
+      if (!print_segments)
+        {
+          offset += n;
+          continue;
+        }
 
       if (!verbose)
         {
@@ -228,11 +266,9 @@ main (int argc, char *argv[])
           printf (" (%s)\n", prompt_style_to_string (prompt));
         }
     }
-  putchar ('\n');
 
-  free (input);
-
-  return 0;
+  if (print_segments)
+    putchar ('\n');
 }
 
 static const char *
@@ -243,6 +279,7 @@ parse_options (int argc, char **argv)
       static const struct option options[] =
         {
           {"one-byte", no_argument, NULL, '1'},
+          {"truncations", no_argument, NULL, '0'},
           {"auto", no_argument, NULL, 'a'},
           {"batch", no_argument, NULL, 'b'},
           {"interactive", no_argument, NULL, 'i'},
@@ -251,7 +288,7 @@ parse_options (int argc, char **argv)
           {NULL, 0, NULL, 0},
         };
 
-      int c = getopt_long (argc, argv, "1abivh", options, NULL);
+      int c = getopt_long (argc, argv, "01abivh", options, NULL);
       if (c == -1)
         break;
 
@@ -259,6 +296,10 @@ parse_options (int argc, char **argv)
         {
         case '1':
           one_byte = true;
+          break;
+
+        case '0':
+          check_truncations = true;
           break;
 
         case 'a':
@@ -308,6 +349,7 @@ usage: %s [OPTIONS] INPUT\n\
 \n\
 Options:\n\
   -1, --one-byte      feed one byte at a time\n\
+  -0, --truncations   check null truncation of each prefix of input\n\
   -a, --auto          use \"auto\" syntax mode\n\
   -b, --batch         use \"batch\" syntax mode\n\
   -i, --interactive   use \"interactive\" syntax mode (default)\n\

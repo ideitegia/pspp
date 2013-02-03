@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,6 +46,8 @@ struct casegrouper
    the same group, false otherwise.  DESTROY will be called when
    the casegrouper is destroyed and should free any storage
    needed by SAME_GROUP.
+
+   Takes ownerhip of READER.
 
    SAME_GROUP may be a null pointer.  If so, READER's entire
    contents is considered to be a single group. */
@@ -167,7 +169,9 @@ static void casegrouper_vars_destroy (void *);
 /* Creates and returns a casegrouper that reads data from READER
    and breaks it into contiguous groups of cases that have equal
    values for the VAR_CNT variables in VARS.  If VAR_CNT is 0,
-   then all the cases will be put in a single group. */
+   then all the cases will be put in a single group.
+
+   Takes ownerhip of READER. */
 struct casegrouper *
 casegrouper_create_vars (struct casereader *reader,
                          const struct variable *const *vars,
@@ -188,7 +192,9 @@ casegrouper_create_vars (struct casereader *reader,
    and breaks it into contiguous groups of cases that have equal
    values for the SPLIT FILE variables in DICT.  If DICT has no
    SPLIT FILE variables, then all the cases will be put into a
-   single group. */
+   single group.
+
+   Takes ownerhip of READER. */
 struct casegrouper *
 casegrouper_create_splits (struct casereader *reader,
                            const struct dictionary *dict)
@@ -202,7 +208,9 @@ casegrouper_create_splits (struct casereader *reader,
    and breaks it into contiguous groups of cases that have equal
    values for the variables used for sorting in SC.  If SC is
    empty (contains no fields), then all the cases will be put
-   into a single group. */
+   into a single group.
+
+   Takes ownerhip of READER. */
 struct casegrouper *
 casegrouper_create_subcase (struct casereader *reader,
                             const struct subcase *sc)

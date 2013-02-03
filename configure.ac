@@ -20,11 +20,6 @@ PKG_PROG_PKG_CONFIG
 m4_pattern_forbid([PKG_CHECK_MODULES])
 PSPP_CHECK_CLICKSEQUENCE
 
-AC_ARG_ENABLE(
-  anachronistic-dependencies, 
-  [AS_HELP_STRING([--enable-anachronistic-dependencies], 
-                  [Attempt to allow building against older versions of dependent libraries])])
-
 PSPP_ENABLE_OPTION(-Wdeclaration-after-statement)
 PSPP_ENABLE_WERROR
 

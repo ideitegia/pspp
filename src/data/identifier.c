@@ -24,9 +24,11 @@
 #include "data/identifier.h"
 
 #include <string.h>
+#include <unistr.h>
 #include <unictype.h>
 
 #include "libpspp/assertion.h"
+#include "libpspp/cast.h"
 
 #include "gl/c-ctype.h"
 
@@ -232,15 +234,21 @@ lex_uc_is_space (ucs4_t uc)
 size_t
 lex_id_get_length (struct substring string)
 {
-  size_t length = 0;
-  if (!ss_is_empty (string) && lex_is_id1 (ss_first (string)))
+  const uint8_t *s = CHAR_CAST (const uint8_t *, string.string);
+  size_t len = string.length;
+  size_t ofs;
+  int mblen;
+
+  for (ofs = 0; ofs < string.length; ofs += mblen)
     {
-      length = 1;
-      while (length < ss_length (string)
-             && lex_is_idn (ss_at (string, length)))
-        length++;
+      ucs4_t uc;
+
+      mblen = u8_mbtouc (&uc, s + ofs, len - ofs);
+      if (!(ofs == 0 ? lex_uc_is_id1 (uc) : lex_uc_is_idn (uc)))
+        break;
     }
-  return length;
+
+  return ofs;
 }
 
 /* Comparing identifiers. */

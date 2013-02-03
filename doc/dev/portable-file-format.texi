@@ -18,6 +18,7 @@ for portable files formatted in EBCDIC or other character sets.
 * Version and Date Info Record::
 * Identification Records::
 * Variable Count Record::
+* Precision Record::
 * Case Weight Variable Record::
 * Variable Records::
 * Value Label Records::
@@ -350,10 +351,16 @@ additional information on the product that wrote the portable file.
 @node Variable Count Record
 @section Variable Count Record
 
-The variable count record has tag code @samp{4}.  It consists of two
-integer fields.  The first contains the number of variables in the file
-dictionary.  The purpose of the second is unknown; it contains the value
-161 in all portable files examined so far.
+The variable count record has tag code @samp{4}.  It consists of a
+single integer field giving the number of variables in the file
+dictionary.
+
+@node Precision Record
+@section Precision Record
+
+The precision record has tag code @samp{5}.  It consists of a single
+integer field specifying the maximum number of base-30 digits used in
+data in the file.
 
 @node Case Weight Variable Record
 @section Case Weight Variable Record

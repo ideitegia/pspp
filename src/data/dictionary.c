@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -363,9 +363,12 @@ dict_get_vars_mutable (const struct dictionary *d, struct variable ***vars,
 }
 
 static struct variable *
-add_var (struct dictionary *d, struct variable *v)
+add_var_with_case_index (struct dictionary *d, struct variable *v,
+                         int case_index)
 {
   struct vardict_info *vardict;
+
+  assert (case_index >= d->next_value_idx);
 
   /* Update dictionary. */
   if (d->var_cnt >= d->var_cap)
@@ -387,17 +390,23 @@ add_var (struct dictionary *d, struct variable *v)
   vardict->var = v;
   hmap_insert (&d->name_map, &vardict->name_node,
                utf8_hash_case_string (var_get_name (v), 0));
-  vardict->case_index = d->next_value_idx;
+  vardict->case_index = case_index;
   var_set_vardict (v, vardict);
 
   if ( d->changed ) d->changed (d, d->changed_data);
   if ( d->callbacks &&  d->callbacks->var_added )
     d->callbacks->var_added (d, var_get_dict_index (v), d->cb_data);
 
-  d->next_value_idx++;
   invalidate_proto (d);
+  d->next_value_idx = case_index + 1;
 
   return v;
+}
+
+static struct variable *
+add_var (struct dictionary *d, struct variable *v)
+{
+  return add_var_with_case_index (d, v, d->next_value_idx);
 }
 
 /* Creates and returns a new variable in D with the given NAME
@@ -466,6 +475,15 @@ dict_clone_var_as_assert (struct dictionary *d, const struct variable *old_var,
   assert (dict_lookup_var (d, name) == NULL);
   var_set_name (new_var, name);
   return add_var (d, new_var);
+}
+
+struct variable *
+dict_clone_var_in_place_assert (struct dictionary *d,
+                                const struct variable *old_var)
+{
+  assert (dict_lookup_var (d, var_get_name (old_var)) == NULL);
+  return add_var_with_case_index (d, var_clone (old_var),
+                                  var_get_case_index (old_var));
 }
 
 /* Returns the variable named NAME in D, or a null pointer if no

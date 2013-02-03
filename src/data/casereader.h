@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,8 +64,6 @@ struct ccase *casereader_read (struct casereader *);
 bool casereader_destroy (struct casereader *);
 
 struct casereader *casereader_clone (const struct casereader *);
-void casereader_split (struct casereader *,
-                       struct casereader **, struct casereader **);
 struct casereader *casereader_rename (struct casereader *);
 void casereader_swap (struct casereader *, struct casereader *);
 

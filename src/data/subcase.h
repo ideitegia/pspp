@@ -72,6 +72,8 @@ void subcase_add_always (struct subcase *sc, int case_index, int width,
                          enum subcase_direction direction);
 void subcase_add_var_always (struct subcase *, const struct variable *,
                              enum subcase_direction);
+void subcase_add_vars_always (struct subcase *,
+                              const struct variable *const *, size_t n_vars);
 void subcase_add_proto_always (struct subcase *, const struct caseproto *);
 
 const struct caseproto *subcase_get_proto (const struct subcase *);

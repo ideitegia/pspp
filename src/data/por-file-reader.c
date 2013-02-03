@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -657,8 +657,8 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
   if (r->var_cnt <= 0)
     error (r, _("Invalid number of variables %d."), r->var_cnt);
 
-  /* Purpose of this value is unknown.  It is typically 161. */
-  read_int (r);
+  if (match (r, '5'))
+    read_int (r);
 
   if (match (r, '6'))
     {

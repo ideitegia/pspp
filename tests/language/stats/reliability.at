@@ -247,3 +247,24 @@ Cronbach's Alpha,N of Items
 .75,4
 ])
 AT_CLEANUP
+
+
+dnl This was causing a AT.  
+AT_SETUP([RELIABILITY bad syntax])
+AT_DATA([bad-syntax.sps], [dnl
+data list notable list /x * y *.
+begin data.
+1 10
+2 20
+3 30
+4 50
+5 50
+end data.
+
+* This syntax is incorrect
+reliability x y.
+])
+
+AT_CHECK([pspp -O format=csv bad-syntax.sps], [1], [ignore])
+
+AT_CLEANUP

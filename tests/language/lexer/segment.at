@@ -1,7 +1,9 @@
 AT_BANNER([syntax segmentation])
 m4_define([PSPP_CHECK_SEGMENT],
   [AT_CHECK([segment-test $1 input], [0], [expout])
-   AT_CHECK([segment-test -1 $1 input], [0], [expout])])
+   AT_CHECK([segment-test -1 $1 input], [0], [expout])
+   AT_CHECK([segment-test -0 $1 input])
+   AT_CHECK([segment-test -01 $1 input])])
 
 AT_SETUP([identifiers])
 AT_KEYWORDS([segment])

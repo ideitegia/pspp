@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -66,8 +66,7 @@
 #define V TABLE_VERT
 
 /* Measurements as we present to the rest of PSPP. */
-#define XR_POINT PANGO_SCALE
-#define XR_INCH (XR_POINT * 72)
+#define XR_POINT 1000
 
 /* Conversions to and from points. */
 static double
@@ -300,38 +299,13 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
 }
 
 static bool
-xr_is_72dpi (cairo_t *cr)
-{
-  cairo_surface_type_t type;
-  cairo_surface_t *surface;
-
-  surface = cairo_get_target (cr);
-  type = cairo_surface_get_type (surface);
-  return type == CAIRO_SURFACE_TYPE_PDF || type == CAIRO_SURFACE_TYPE_PS;
-}
-
-static bool
 xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
 {
-  PangoContext *context;
-  PangoFontMap *map;
   int i;
 
   xr->cairo = cairo;
 
   cairo_set_line_width (xr->cairo, xr_to_pt (xr->line_width));
-
-  map = pango_cairo_font_map_get_default ();
-  context = pango_font_map_create_context (map);
-  if (xr_is_72dpi (cairo))
-    {
-      /* Pango seems to always scale fonts according to the DPI specified
-         in the font map, even if the surface has a real DPI.  The default
-         DPI is 96, so on a 72 DPI device fonts end up being 96/72 = 133%
-         of their desired size.  We deal with this by fixing the resolution
-         here.  Presumably there is a better solution, but what? */
-      pango_cairo_context_set_resolution (context, 72.0);
-    }
 
   xr->char_width = 0;
   xr->char_height = 0;
@@ -340,7 +314,7 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
       struct xr_font *font = &xr->fonts[i];
       int char_width, char_height;
 
-      font->layout = pango_layout_new (context);
+      font->layout = pango_cairo_create_layout (cairo);
       pango_layout_set_font_description (font->layout, font->desc);
 
       pango_layout_set_text (font->layout, "0", 1);
@@ -348,8 +322,6 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
       xr->char_width = MAX (xr->char_width, char_width);
       xr->char_height = MAX (xr->char_height, char_height);
     }
-
-  g_object_unref (G_OBJECT (context));
 
   if (xr->params == NULL)
     {
@@ -550,6 +522,8 @@ static void
 xr_submit (struct output_driver *driver, const struct output_item *output_item)
 {
   struct xr_driver *xr = xr_driver_cast (driver);
+
+  output_driver_track_current_command (output_item, &xr->command_name);
 
   xr_driver_output_item (xr, output_item);
   while (xr_driver_need_new_page (xr))
@@ -1041,8 +1015,8 @@ xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
     {
       int w0 = render_page_get_size (r->page, H);
       int w1 = r->title_width;
-      *w = MAX (w0, w1) / 1024;
-      *h = (render_page_get_size (r->page, V) + r->title_height) / 1024;
+      *w = MAX (w0, w1) / XR_POINT;
+      *h = (render_page_get_size (r->page, V) + r->title_height) / XR_POINT;
     }
   else
     {
@@ -1074,8 +1048,9 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
         }
 
       xr->y = r->title_height;
-      render_page_draw_region (r->page, x * 1024, (y * 1024) - r->title_height,
-                               w * 1024, h * 1024);
+      render_page_draw_region (r->page, 
+			       x * XR_POINT, (y * XR_POINT) - r->title_height,
+                               w * XR_POINT, h * XR_POINT);
     }
   else
     xr_draw_chart (to_chart_item (r->item), cr,

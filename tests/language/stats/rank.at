@@ -92,23 +92,23 @@ b,Format: F8.2,,2
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-count,N of a,,3
+Ra,RANK of a,,3
+,Format: F9.3,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+RFR001,RFRACTION of a,,4
+,Format: F6.4,,
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+count,N of a,,5
 ,Format: F6.0,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-Ra,RANK of a,,4
+Rb,RANK of b,,6
 ,Format: F9.3,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-Rb,RANK of b,,5
-,Format: F9.3,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-RFR001,RFRACTION of a,,6
-,Format: F6.4,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
@@ -124,17 +124,17 @@ Nb,N of b,,8
 ,Display Width: 8,,
 
 Table: Data List
-a,b,count,Ra,Rb,RFR001,RFR002,Nb
-.00,24.00,10,10.000,8.000,1.0000,.8889,9
-1.00,32.00,10,9.000,4.000,.9000,.4444,9
-2.00,31.00,10,8.000,5.000,.8000,.5556,9
-2.00,32.00,10,8.000,4.000,.8000,.4444,9
-4.00,30.00,10,6.000,6.000,.6000,.6667,9
-5.00,29.00,10,5.000,7.000,.5000,.7778,9
-6.00,1.00,10,4.000,9.000,.4000,1.0000,9
-7.00,43.00,10,3.000,2.000,.3000,.2222,9
-8.00,.  ,10,2.000,.   ,.2000,.    ,.
-9.00,45.00,10,1.000,1.000,.1000,.1111,9
+a,b,Ra,RFR001,count,Rb,RFR002,Nb
+.00,24.00,10.000,1.0000,10,8.000,.8889,9
+1.00,32.00,9.000,.9000,10,4.000,.4444,9
+2.00,31.00,8.000,.8000,10,5.000,.5556,9
+2.00,32.00,8.000,.8000,10,4.000,.4444,9
+4.00,30.00,6.000,.6000,10,6.000,.6667,9
+5.00,29.00,5.000,.5000,10,7.000,.7778,9
+6.00,1.00,4.000,.4000,10,9.000,1.0000,9
+7.00,43.00,3.000,.3000,10,2.000,.2222,9
+8.00,.  ,2.000,.2000,10,.   ,.    ,.
+9.00,45.00,1.000,.1000,10,1.000,.1111,9
 ])
 AT_CLEANUP
 
@@ -408,6 +408,62 @@ x,w,xl,xh,xc,Nx
 6.00,.10,.600,.700,6.000,-.4067
 7.00,.10,.700,.800,7.000,-.2670
 8.00,.10,.800,.900,8.000,-.1323
+])
+AT_CLEANUP
+
+AT_SETUP([RANK and TEMPORARY])
+AT_DATA([rank.sps], [dnl
+DATA LIST LIST NOTABLE /age (f2) gender (a1).
+BEGIN DATA.
+44 m
+32 f
+43 m
+49 m
+33 f
+35 f
+29 f
+50 m
+42 m
+33 f
+48 m
+END DATA.
+
+TEMPORARY.
+SELECT IF gender = 'm'.
+RANK age /RANK INTO Rm.
+
+TEMPORARY.
+SELECT IF gender = 'f'.
+RANK age /RANK INTO Rf.
+
+LIST.
+])
+AT_CHECK([pspp -O format=csv rank.sps], [0], [dnl
+Variables Created By RANK
+
+
+
+age into Rm(RANK of age)
+
+Variables Created By RANK
+
+
+
+age into Rf(RANK of age)
+
+Table: Data List
+age,gender,Rm,Rf
+44,m,3.000,.   @&t@
+32,f,.   ,2.000
+43,m,2.000,.   @&t@
+49,m,5.000,.   @&t@
+33,f,.   ,3.500
+35,f,.   ,5.000
+29,f,.   ,1.000
+50,m,6.000,.   @&t@
+42,m,1.000,.   @&t@
+33,f,.   ,3.500
+48,m,4.000,.   @&t@
 ])
 AT_CLEANUP
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 
 #include "gl/c-ctype.h"
 #include "gl/c-strcase.h"
+#include "gl/memchr2.h"
 
 enum segmenter_state
   {
@@ -83,9 +84,9 @@ segmenter_parse_shbang__ (struct segmenter *s, const char *input, size_t n,
           int ofs;
 
           for (ofs = 2; ofs < n; ofs++)
-            if (input[ofs] == '\n')
+            if (input[ofs] == '\n' || input[ofs] == '\0')
               {
-                if (input[ofs - 1] == '\r')
+                if (input[ofs] == '\n' && input[ofs - 1] == '\r')
                   ofs--;
 
                 s->state = S_GENERAL;
@@ -123,7 +124,7 @@ skip_comment (const char *input, size_t n, size_t ofs)
 {
   for (; ofs < n; ofs++)
     {
-      if (input[ofs] == '\n')
+      if (input[ofs] == '\n' || input[ofs] == '\0')
         return ofs;
       else if (input[ofs] == '*')
         {
@@ -171,7 +172,7 @@ skip_spaces_and_comments (const char *input, size_t n, int ofs)
 static int
 is_end_of_line (const char *input, size_t n, int ofs)
 {
-  if (input[ofs] == '\n')
+  if (input[ofs] == '\n' || input[ofs] == '\0')
     return 1;
   else if (input[ofs] == '\r')
     {
@@ -192,7 +193,6 @@ at_end_of_line (const char *input, size_t n, int ofs)
 
   return is_end_of_line (input, n, ofs);
 }
-
 
 static int
 segmenter_parse_newline__ (const char *input, size_t n,
@@ -228,7 +228,7 @@ skip_spaces (const char *input, size_t n, size_t ofs)
       if (mblen < 0)
         return -1;
 
-      if (!lex_uc_is_space (uc) || uc == '\n')
+      if (!lex_uc_is_space (uc) || uc == '\n' || uc == '\0')
         return ofs;
 
       ofs += mblen;
@@ -370,8 +370,9 @@ segmenter_parse_comment_1__ (struct segmenter *s,
         case '\n':
           if (ofs > 1 && input[ofs - 1] == '\r')
             ofs--;
-
-          if (endcmd == -2)
+          /* Fall through. */
+        case '\0':
+          if (endcmd == -2 || uc == '\0')
             {
               /* Blank line ends comment command. */
               s->state = S_GENERAL;
@@ -491,6 +492,11 @@ segmenter_parse_document_1__ (struct segmenter *s, const char *input, size_t n,
           s->state = end_cmd ? S_DOCUMENT_3 : S_DOCUMENT_2;
           return ofs;
 
+        case '\0':
+          *type = SEG_DOCUMENT;
+          s->state = S_DOCUMENT_3;
+          return ofs;
+
         default:
           if (!lex_uc_is_space (uc))
             end_cmd = false;
@@ -601,9 +607,6 @@ next_id_in_command (const struct segmenter *s, const char *input, size_t n,
         case SEG_UNEXPECTED_CHAR:
           id[0] = '\0';
           return ofs + retval;
-
-        case SEG_N_TYPES:
-          NOT_REACHED ();
         }
       ofs += retval;
     }
@@ -1001,7 +1004,7 @@ segmenter_detect_command_name__ (const char *input, size_t n, int ofs)
       if (mblen < 0)
         return -1;
 
-      if (uc == '\n'
+      if (uc == '\n' || uc == '\0'
           || !(lex_uc_is_space (uc) || lex_uc_is_idn (uc) || uc == '-'))
         break;
 
@@ -1250,14 +1253,19 @@ static int
 segmenter_parse_full_line__ (const char *input, size_t n,
                              enum segment_type *type)
 {
-  const char *newline = memchr (input, '\n', n);
+  const char *newline = memchr2 (input, '\n', '\0', n);
 
   if (newline == NULL)
     return -1;
   else
     {
       int ofs = newline - input;
-      if (ofs == 0 || (ofs == 1 && input[0] == '\r'))
+      if (*newline == '\0')
+        {
+          assert (ofs > 0);
+          return ofs;
+        }
+      else if (ofs == 0 || (ofs == 1 && input[0] == '\r'))
         {
           *type = SEG_NEWLINE;
           return ofs + 1;
@@ -1438,6 +1446,7 @@ segmenter_parse_title_2__ (struct segmenter *s,
       switch (uc)
         {
         case '\n':
+        case '\0':
           s->state = S_GENERAL;
           s->substate = 0;
           *type = SEG_UNQUOTED_STRING;

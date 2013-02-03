@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,18 +43,8 @@ void
 subcase_init_vars (struct subcase *sc,
                    const struct variable *const *vars, size_t n_vars)
 {
-  size_t i;
-
-  sc->fields = xnmalloc (n_vars, sizeof *sc->fields);
-  sc->n_fields = n_vars;
-  sc->proto = NULL;
-  for (i = 0; i < n_vars; i++)
-    {
-      struct subcase_field *field = &sc->fields[i];
-      field->case_index = var_get_case_index (vars[i]);
-      field->width = var_get_width (vars[i]);
-      field->direction = SC_ASCEND;
-    }
+  subcase_init_empty (sc);
+  subcase_add_vars_always (sc, vars, n_vars);
 }
 
 /* Initializes SC as a subcase with a single field extracted
@@ -164,6 +154,27 @@ subcase_add_var_always (struct subcase *sc, const struct variable *var,
 {
   return subcase_add_always (sc, var_get_case_index (var),
                              var_get_width (var), direction);
+}
+
+/* Add a field for each of the N_VARS variables in VAR to SC, regardless of
+   whether each variable already has a field in SC.  The fields are added with
+   ascending direction. */
+void
+subcase_add_vars_always (struct subcase *sc,
+                         const struct variable *const *vars, size_t n_vars)
+{
+  size_t i;
+
+  sc->fields = xnrealloc (sc->fields,
+                          sc->n_fields + n_vars, sizeof *sc->fields);
+  for (i = 0; i < n_vars; i++)
+    {
+      struct subcase_field *field = &sc->fields[sc->n_fields++];
+      field->case_index = var_get_case_index (vars[i]);
+      field->width = var_get_width (vars[i]);
+      field->direction = SC_ASCEND;
+    }
+  invalidate_proto (sc);
 }
 
 /* Add a field for CASE_INDEX, WIDTH to SC, with DIRECTION as the

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -804,6 +804,39 @@ proc_cancel_all_transformations (struct dataset *ds)
   dataset_transformations_changed__ (ds, false);
 
   return ok;
+}
+
+static int
+store_case_num (void *var_, struct ccase **cc, casenumber case_num)
+{
+  struct variable *var = var_;
+
+  *cc = case_unshare (*cc);
+  case_data_rw (*cc, var)->f = case_num;
+
+  return TRNS_CONTINUE;
+}
+
+/* Add a variable which we can sort by to get back the original order. */
+struct variable *
+add_permanent_ordering_transformation (struct dataset *ds)
+{
+  struct variable *temp_var;
+
+  temp_var = dict_create_var_assert (ds->dict, "$ORDER", 0);
+  if (proc_in_temporary_transformations (ds))
+    {
+      struct variable *perm_var;
+
+      perm_var = dict_clone_var_in_place_assert (ds->permanent_dict, temp_var);
+      trns_chain_append (ds->permanent_trns_chain, NULL, store_case_num,
+                         NULL, perm_var);
+      trns_chain_finalize (ds->permanent_trns_chain);
+    }
+  else
+    add_transformation (ds, store_case_num, NULL, temp_var);
+
+  return temp_var;
 }
 
 /* Causes output from the next procedure to be discarded, instead
