@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -934,21 +934,21 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
                                     G_TYPE_INT, -1);
 
       gtk_binding_entry_add_signal (binding_set[i], GDK_KP_Right, 0, "move-cursor", 2,
-                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_DISPLAY_LINE_ENDS,
                                     G_TYPE_INT, 1);
 
       gtk_binding_entry_add_signal (binding_set[i], GDK_KP_Left, 0, "move-cursor", 2,
-                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_DISPLAY_LINE_ENDS,
                                     G_TYPE_INT, -1);
 
       gtk_binding_entry_add_signal (binding_set[i], GDK_Right, GDK_CONTROL_MASK,
                                     "move-cursor", 2,
-                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_DISPLAY_LINE_ENDS,
                                     G_TYPE_INT, 1);
 
       gtk_binding_entry_add_signal (binding_set[i], GDK_Left, GDK_CONTROL_MASK,
                                     "move-cursor", 2,
-                                    G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_DISPLAY_LINE_ENDS,
                                     G_TYPE_INT, -1);
 
       gtk_binding_entry_add_signal (binding_set[i], GDK_KP_Right, GDK_CONTROL_MASK,
@@ -12413,6 +12413,24 @@ pspp_sheet_view_event (GtkWidget *widget,
         case GDK_Tab:
         case GDK_ISO_Left_Tab:
           keyval = GDK_Tab;
+          break;
+
+        default:
+          return FALSE;
+        }
+      break;
+
+    case GDK_CONTROL_MASK:
+      switch (event->keyval)
+        {
+        case GDK_Left:      case GDK_KP_Left:
+          if (!is_all_selected (widget) && !is_at_left (widget))
+            return FALSE;
+          break;
+
+        case GDK_Right:     case GDK_KP_Right:
+          if (!is_all_selected (widget) && !is_at_right (widget))
+            return FALSE;
           break;
 
         default:
