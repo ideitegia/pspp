@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2009, 2010, 2011, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -340,11 +340,12 @@ insert_menuitem_into_menu (PsppireWindow *window, gpointer key)
 
   /* Add a separator before adding the first real item.  If we add a separator
      at any other time, sometimes GtkUIManager removes it. */
-  if (g_hash_table_size (window->menuitem_table) == 0)
+  if (!window->added_separator)
     {
       GtkWidget *separator = gtk_separator_menu_item_new ();
       gtk_widget_show (separator);
       gtk_menu_shell_append (window->menu, separator);
+      window->added_separator = TRUE;
     }
 
   filename = g_filename_display_name (key);
@@ -467,6 +468,7 @@ psppire_window_init (PsppireWindow *window)
 					     G_CALLBACK (remove_menuitem),
 					     window);
 
+  window->added_separator = FALSE;
   window->dirty = FALSE;
 
   g_signal_connect_swapped (window, "delete-event", G_CALLBACK (on_delete), window);
