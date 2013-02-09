@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -502,7 +502,7 @@ identify_indep_vars (const struct regression *cmd,
 	There is only one independent variable, and it is the same
 	as the dependent variable. Print a warning and continue.
       */
-      msg (SE,
+      msg (SW,
 	   gettext ("The dependent variable is equal to the independent variable." 
 		    "The least squares line is therefore Y=X." 
 		    "Standard errors and related statistics may be meaningless."));
@@ -588,23 +588,24 @@ fill_covariance (gsl_matrix *cov, struct covariance *all_cov,
 /*
   STATISTICS subcommand output functions.
 */
-static void reg_stats_r (linreg *, void *);
-static void reg_stats_coeff (linreg *, void *);
-static void reg_stats_anova (linreg *, void *);
-static void reg_stats_bcov (linreg *, void *);
+static void reg_stats_r (linreg *, void *, const struct variable *);
+static void reg_stats_coeff (linreg *, void *, const struct variable *);
+static void reg_stats_anova (linreg *, void *, const struct variable *);
+static void reg_stats_bcov (linreg *, void *, const struct variable *);
 
-static void statistics_keyword_output (void (*)(linreg *, void *),
-				       bool, linreg *, void *);
+static void statistics_keyword_output (void (*)(linreg *, void *, const struct variable *),
+				       bool, linreg *, void *, const struct variable *);
 
 
 
 static void
-subcommand_statistics (const struct regression *cmd , linreg * c, void *aux)
+subcommand_statistics (const struct regression *cmd , linreg * c, void *aux,
+		       const struct variable *var)
 {
-  statistics_keyword_output (reg_stats_r, cmd->r, c, aux);
-  statistics_keyword_output (reg_stats_anova, cmd->anova, c, aux);
-  statistics_keyword_output (reg_stats_coeff, cmd->coeff, c, aux);
-  statistics_keyword_output (reg_stats_bcov, cmd->bcov, c, aux);
+  statistics_keyword_output (reg_stats_r, cmd->r, c, aux, var);
+  statistics_keyword_output (reg_stats_anova, cmd->anova, c, aux, var);
+  statistics_keyword_output (reg_stats_coeff, cmd->coeff, c, aux, var);
+  statistics_keyword_output (reg_stats_bcov, cmd->bcov, c, aux, var);
 }
 
 
@@ -619,7 +620,6 @@ run_regression (const struct regression *cmd, struct casereader *input)
   struct covariance *cov;
   const struct variable **vars;
   const struct variable **all_vars;
-  const struct variable *dep_var;
   struct casereader *reader;
   size_t n_all_vars;
 
@@ -646,9 +646,9 @@ run_regression (const struct regression *cmd, struct casereader *input)
   for (k = 0; k < cmd->n_dep_vars; k++)
     {
       double n_data;
-
+      const struct variable *dep_var = cmd->dep_vars[k];
       gsl_matrix *this_cm;
-      dep_var = cmd->dep_vars[k];
+
       n_indep = identify_indep_vars (cmd, vars, dep_var);
       
       this_cm = gsl_matrix_alloc (n_indep + 1, n_indep + 1);
@@ -679,7 +679,7 @@ run_regression (const struct regression *cmd, struct casereader *input)
 	  
 	  if (!taint_has_tainted_successor (casereader_get_taint (input)))
 	    {
-	      subcommand_statistics (cmd, models[k], this_cm);
+	      subcommand_statistics (cmd, models[k], this_cm, dep_var);
 	    }
 	}
       else
@@ -705,7 +705,7 @@ run_regression (const struct regression *cmd, struct casereader *input)
 
 
 static void
-reg_stats_r (linreg *c, void *aux UNUSED)
+reg_stats_r (linreg *c, void *aux UNUSED, const struct variable *var)
 {
   struct tab_table *t;
   int n_rows = 2;
@@ -732,7 +732,7 @@ reg_stats_r (linreg *c, void *aux UNUSED)
   tab_double (t, 2, 1, TAB_RIGHT, rsq, NULL);
   tab_double (t, 3, 1, TAB_RIGHT, adjrsq, NULL);
   tab_double (t, 4, 1, TAB_RIGHT, std_error, NULL);
-  tab_title (t, _("Model Summary"));
+  tab_title (t, _("Model Summary (%s)"), var_to_string (var));
   tab_submit (t);
 }
 
@@ -740,7 +740,7 @@ reg_stats_r (linreg *c, void *aux UNUSED)
   Table showing estimated regression coefficients.
 */
 static void
-reg_stats_coeff (linreg * c, void *aux_)
+reg_stats_coeff (linreg * c, void *aux_, const struct variable *var)
 {
   size_t j;
   int n_cols = 7;
@@ -823,7 +823,7 @@ reg_stats_coeff (linreg * c, void *aux_)
       tab_double (t, 6, this_row, 0, pval, NULL);
       ds_destroy (&tstr);
     }
-  tab_title (t, _("Coefficients"));
+  tab_title (t, _("Coefficients (%s)"), var_to_string (var));
   tab_submit (t);
 }
 
@@ -831,7 +831,7 @@ reg_stats_coeff (linreg * c, void *aux_)
   Display the ANOVA table.
 */
 static void
-reg_stats_anova (linreg * c, void *aux UNUSED)
+reg_stats_anova (linreg * c, void *aux UNUSED, const struct variable *var)
 {
   int n_cols = 7;
   int n_rows = 4;
@@ -881,13 +881,13 @@ reg_stats_anova (linreg * c, void *aux UNUSED)
 
   tab_double (t, 6, 1, 0, pval, NULL);
 
-  tab_title (t, _("ANOVA"));
+  tab_title (t, _("ANOVA (%s)"), var_to_string (var));
   tab_submit (t);
 }
 
 
 static void
-reg_stats_bcov (linreg * c, void *aux UNUSED)
+reg_stats_bcov (linreg * c, void *aux UNUSED, const struct variable *var)
 {
   int n_cols;
   int n_rows;
@@ -923,16 +923,16 @@ reg_stats_bcov (linreg * c, void *aux UNUSED)
                       gsl_matrix_get (c->cov, row, col), NULL);
 	}
     }
-  tab_title (t, _("Coefficient Correlations"));
+  tab_title (t, _("Coefficient Correlations (%s)"), var_to_string (var));
   tab_submit (t);
 }
 
 static void
-statistics_keyword_output (void (*function) (linreg *, void *),
-			   bool keyword, linreg * c, void *aux)
+statistics_keyword_output (void (*function) (linreg *, void *, const struct variable *var),
+			   bool keyword, linreg * c, void *aux, const struct variable *var)
 {
   if (keyword)
     {
-      (*function) (c, aux);
+      (*function) (c, aux, var);
     }
 }
