@@ -214,8 +214,7 @@ generate_syntax (const struct import_assistant *ia)
 {
   struct string s = DS_EMPTY_INITIALIZER;
 
-#if 0
-  if (ssp->spreadsheet == NULL)
+  if (ia->spreadsheet == NULL)
     {
       size_t var_cnt;
       size_t i;
@@ -232,6 +231,8 @@ generate_syntax (const struct import_assistant *ia)
       ds_put_cstr (&s,
 		   "  /ARRANGEMENT=DELIMITED\n"
 		   "  /DELCASE=LINE\n");
+
+#if 0
       if (ia->first_line->skip_lines > 0)
 	ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line->skip_lines + 1);
       ds_put_cstr (&s, "  /DELIMITERS=\"");
@@ -265,42 +266,15 @@ generate_syntax (const struct import_assistant *ia)
 			 i == var_cnt - 1 ? "." : "");
 	}
 
+
       apply_dict (ia->formats->dict, &s);
+#endif
     }
   else
-
     {
-      const struct sheet_spec_page *ssp = ia->sheet_spec;
-
-      syntax_gen_pspp (&s,
-		       "GET DATA"
-		       "\n  /TYPE=%ss"
-		       "\n  /FILE=%sq"
-		       "\n  /SHEET=index %d"
-		       "\n  /READNAMES=%ss",
-		       (ssp->spreadsheet->type == SPREADSHEET_GNUMERIC) ? "GNM" : "ODS",
-		       ia->file.file_name,			 
-		       ssp->opts.sheet_index,
-		       ssp->sri.read_names ? "ON" : "OFF");
-
-
-      if ( ssp->opts.cell_range)
-	{
-	  syntax_gen_pspp (&s,
-			   "\n  /CELLRANGE=RANGE %sq",
-			   ssp->opts.cell_range);
-	}
-      else
-	{
-	  syntax_gen_pspp (&s,
-			   "\n  /CELLRANGE=FULL");
-	}
-
-
-      syntax_gen_pspp (&s, ".");
+      return sheet_spec_gen_syntax (ia);
     }
 
-#endif
   return ds_cstr (&s);
 }
 

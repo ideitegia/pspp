@@ -80,6 +80,46 @@ struct sheet_spec_page
     struct spreadsheet_read_options opts;
   };
 
+
+char *
+sheet_spec_gen_syntax (const struct import_assistant *ia)
+{
+  const struct sheet_spec_page *ssp = ia->sheet_spec;
+
+  struct string s = DS_EMPTY_INITIALIZER;
+
+  syntax_gen_pspp (&s,
+		   "GET DATA"
+		   "\n  /TYPE=%ss"
+		   "\n  /FILE=%sq"
+		   "\n  /SHEET=index %d"
+		   "\n  /READNAMES=%ss",
+		   (ia->spreadsheet->type == SPREADSHEET_GNUMERIC) ? "GNM" : "ODS",
+		   ia->file.file_name,			 
+		   ssp->opts.sheet_index,
+		   ssp->sri.read_names ? "ON" : "OFF");
+
+
+  if ( ssp->opts.cell_range)
+    {
+      syntax_gen_pspp (&s,
+		       "\n  /CELLRANGE=RANGE %sq",
+		       ssp->opts.cell_range);
+    }
+  else
+    {
+      syntax_gen_pspp (&s,
+		       "\n  /CELLRANGE=FULL");
+    }
+
+
+  syntax_gen_pspp (&s, ".");
+
+  
+  return ds_cstr (&s);
+}
+
+
 static void 
 on_sheet_combo_changed (GtkComboBox *cb, struct import_assistant *ia)
 {
@@ -249,16 +289,16 @@ update_assistant (struct import_assistant *ia)
 	    {
 	      char *ss;
 	      const struct variable *var = dict_get_var (ssp->dict, col);
-
+	      
 	      ia->columns[col].contents = xrealloc (ia->columns[col].contents,
-						      sizeof (struct substring) * rows);
-
+						    sizeof (struct substring) * rows);
+	      
 	      ss = data_out (case_data (c, var), dict_get_encoding (ssp->dict), 
 			     var_get_print_format (var));
-
+	      
 	      ia->columns[col].contents[rows - 1] = ss_cstr (ss);
 	    }
-
+	  
 	  if (rows > MAX_PREVIEW_LINES)
 	    {
 	      case_unref (c);
