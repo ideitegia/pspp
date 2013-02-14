@@ -66,7 +66,7 @@ struct spreadsheet
   enum spreadsheet_type type;
 
   /* The total number of sheets in the "workbook" */
-  int sheets;
+  int n_sheets;
 
   /* The dictionary */
   struct dictionary *dict;

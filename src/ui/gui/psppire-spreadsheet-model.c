@@ -217,7 +217,7 @@ tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
   if (iter == NULL)
     return FALSE;
 
-  if ((gint) iter->user_data >= spreadsheetModel->spreadsheet->sheets - 1)
+  if ((gint) iter->user_data >= spreadsheetModel->spreadsheet->n_sheets - 1)
     {
       iter->user_data = NULL;
       iter->stamp = 0;
@@ -276,7 +276,7 @@ tree_model_nth_child (GtkTreeModel * model, GtkTreeIter * iter,
   if (parent)
     return FALSE;
 
-  if (n >= spreadsheetModel->spreadsheet->sheets)
+  if (n >= spreadsheetModel->spreadsheet->n_sheets)
     return FALSE;
 
   iter->stamp = spreadsheetModel->stamp;
@@ -292,7 +292,7 @@ tree_model_n_children (GtkTreeModel * model, GtkTreeIter * iter)
     PSPPIRE_SPREADSHEET_MODEL (model);
 
   if (iter == NULL)
-    return spreadsheetModel->spreadsheet->sheets;
+    return spreadsheetModel->spreadsheet->n_sheets;
 
   return 0;
 }

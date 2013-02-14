@@ -404,7 +404,7 @@ struct spreadsheet *ods_probe (const char *filename)
   r = xzalloc (sizeof *r);
   r->xtr = xtr;
   r->spreadsheet.type = SPREADSHEET_ODS;
-  r->spreadsheet.sheets = sheet_count;
+  r->spreadsheet.n_sheets = sheet_count;
 
   ds_destroy (&errs);
 

@@ -138,7 +138,7 @@ const char *
 gnumeric_get_sheet_name (struct spreadsheet *s, int n)
 {
   struct gnumeric_reader *gr = (struct gnumeric_reader *) s;
-  assert (n < s->sheets);
+  assert (n < s->n_sheets);
 
   return gr->sheets[n].name;
 }
@@ -153,7 +153,7 @@ gnumeric_get_sheet_range (struct spreadsheet *s, int n)
   int ret;
   struct gnumeric_reader *gr = (struct gnumeric_reader *) s;
   
-  assert (n < s->sheets);
+  assert (n < s->n_sheets);
 
   while ( 
 	 (gr->sheets[n].stop_col == -1)
@@ -189,7 +189,7 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   caseproto_unref (r->proto);
 
-  for (i = 0; i < r->spreadsheet.sheets; ++i)
+  for (i = 0; i < r->spreadsheet.n_sheets; ++i)
     {
       xmlFree (r->sheets[i].name);
     }
@@ -217,7 +217,7 @@ process_node (struct gnumeric_reader *r)
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
 	  r->state = STATE_SHEET_COUNT;
-	  r->spreadsheet.sheets = 0;
+	  r->spreadsheet.n_sheets = 0;
 	}
       break;
 
@@ -226,9 +226,9 @@ process_node (struct gnumeric_reader *r)
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
 	  struct sheet_detail *sd ;
-	  r->spreadsheet.sheets++;
-	  r->sheets = xrealloc (r->sheets, r->spreadsheet.sheets * sizeof *r->sheets);
-	  sd = &r->sheets[r->spreadsheet.sheets - 1];
+	  r->spreadsheet.n_sheets++;
+	  r->sheets = xrealloc (r->sheets, r->spreadsheet.n_sheets * sizeof *r->sheets);
+	  sd = &r->sheets[r->spreadsheet.n_sheets - 1];
 	  sd->start_col = sd->stop_col = sd->start_row = sd->stop_row = -1;
 	}
       else if (0 == xmlStrcasecmp (name, _xml("gnm:SheetNameIndex")) &&
@@ -238,7 +238,7 @@ process_node (struct gnumeric_reader *r)
 	}
       else if (XML_READER_TYPE_TEXT == r->node_type)
 	{
-	  r->sheets [r->spreadsheet.sheets - 1].name = xmlTextReaderValue (r->xtr);
+	  r->sheets [r->spreadsheet.n_sheets - 1].name = xmlTextReaderValue (r->xtr);
 	}
       break;
 
@@ -462,7 +462,7 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
   if (r == NULL)
     {
       r = xzalloc (sizeof *r);
-      r->spreadsheet.sheets = -1;
+      r->spreadsheet.n_sheets = -1;
       r->spreadsheet.file_name = filename;
     }
 
