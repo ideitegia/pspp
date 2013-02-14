@@ -460,15 +460,18 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
     }
 
   if (r == NULL)
-    r = xzalloc (sizeof *r);
-
-  r->xtr = xtr;
-  r->spreadsheet.sheets = -1;
-  r->state = STATE_PRE_INIT;
+    {
+      r = xzalloc (sizeof *r);
+      r->spreadsheet.sheets = -1;
+      r->spreadsheet.file_name = filename;
+    }
 
   r->target_sheet = NULL;
   r->target_sheet_index = -1;
 
+  r->row = r->col = -1;
+  r->state = STATE_PRE_INIT;
+  r->xtr = xtr;
 
   /* Advance to the start of the workbook.
      This gives us some confidence that we are actually dealing with a gnumeric
@@ -482,9 +485,6 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
 
   r->spreadsheet.type = SPREADSHEET_GNUMERIC;
 
-  if (filename)
-    r->spreadsheet.file_name = filename;
-
   return r;
 }
 
@@ -492,10 +492,8 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
 struct spreadsheet *
 gnumeric_probe (const char *filename)
 {
-  struct gnumeric_reader *r = NULL;
-  
-  r = gnumeric_reopen (r, filename);
-  
+  struct gnumeric_reader *r = gnumeric_reopen (NULL, filename);
+
   return &r->spreadsheet;
 }
 
@@ -514,6 +512,9 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
   int n_var_specs = 0;
 
   r = (struct gnumeric_reader *) (spreadsheet);
+
+  if (r->row != -1)
+    r = gnumeric_reopen (r, NULL);
 
   if ( opts->cell_range )
     {
