@@ -167,13 +167,9 @@ post_sheet_spec_page (struct import_assistant *ia)
   ssp->opts.cell_range = NULL;
   ssp->opts.sheet_index = num;
 
-  printf ("%s:%d Range is %s\n", __FILE__, __LINE__, range);
-  printf ("%s:%d Sheet Number is %d\n", __FILE__, __LINE__, num);
-
   if ( convert_cell_ref (range, &col_start, &row_start, &col_stop, &row_stop))
     {
       ssp->opts.cell_range = range;
-      printf ("%s:%d Range is valid\n", __FILE__, __LINE__);
     }
 
   ssp->sri.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
@@ -232,13 +228,11 @@ update_assistant (struct import_assistant *ia)
   struct sheet_spec_page *ssp = ia->sheet_spec;
   int rows = 0;
 
-  printf ("%s:%d\n");
   if (ssp->dict)
     {
       struct ccase *c;
       int col;
 
-      printf ("%s:%d\n");
       ia->column_cnt = dict_get_var_cnt (ssp->dict);
       ia->columns = xcalloc (ia->column_cnt, sizeof (*ia->columns));
       for (col = 0; col < ia->column_cnt ; ++col)
@@ -273,5 +267,5 @@ update_assistant (struct import_assistant *ia)
 	}
     }
   
-  //  file->line_cnt = rows;
+  ia->file.line_cnt = rows;
 }
