@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,8 +98,6 @@ struct sheet_detail
 
   int maxcol;
   int maxrow;
-
-  z_off_t offset;
 };
 
 
@@ -107,9 +105,10 @@ struct gnumeric_reader
 {
   struct spreadsheet spreadsheet;
 
+  /* The libxml reader for this instance */
   xmlTextReaderPtr xtr;
-  gzFile gz;
 
+  /* An internal state variable */
   enum reader_state state;
 
   int row;
@@ -231,7 +230,6 @@ process_node (struct gnumeric_reader *r)
 	  r->sheets = xrealloc (r->sheets, r->spreadsheet.sheets * sizeof *r->sheets);
 	  sd = &r->sheets[r->spreadsheet.sheets - 1];
 	  sd->start_col = sd->stop_col = sd->start_row = sd->stop_row = -1;
-	  sd->offset = -1;
 	}
       else if (0 == xmlStrcasecmp (name, _xml("gnm:SheetNameIndex")) &&
 	  XML_READER_TYPE_END_ELEMENT  == r->node_type)
@@ -250,7 +248,6 @@ process_node (struct gnumeric_reader *r)
 	{
 	  ++r->sheet_index;
 	  r->state = STATE_SHEET_START;
-	  r->sheets[r->sheet_index].offset = gztell (r->gz);
 	}
       break;
     case STATE_SHEET_START:
@@ -430,15 +427,24 @@ gnumeric_destroy (struct spreadsheet *s)
   gnm_file_casereader_destroy (NULL, s);
 }
 
-struct spreadsheet *
-gnumeric_probe (const char *filename)
-{
-  int ret;
-  struct gnumeric_reader *r = NULL;
-  xmlTextReaderPtr xtr;
 
+static struct gnumeric_reader *
+gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
+{  
+  int ret;
+
+  xmlTextReaderPtr xtr;
   gzFile gz;
-  gz = gzopen (filename, "r");
+
+  assert (r == NULL || filename == NULL);
+
+  if (r && r->xtr)
+    xmlFreeTextReader (r->xtr);
+
+  if (filename)
+    gz = gzopen (filename, "r");
+  else
+    gz = gzopen ( r->spreadsheet.file_name, "r");
 
   if (NULL == gz)
     return NULL;
@@ -453,9 +459,9 @@ gnumeric_probe (const char *filename)
       return NULL;
     }
 
-  r = xzalloc (sizeof *r);
-  
-  r->gz = gz;
+  if (r == NULL)
+    r = xzalloc (sizeof *r);
+
   r->xtr = xtr;
   r->spreadsheet.sheets = -1;
   r->state = STATE_PRE_INIT;
@@ -474,16 +480,21 @@ gnumeric_probe (const char *filename)
       process_node (r);
     }
 
-  if (ret != 1)
-    {
-      /* Not a gnumeric spreadsheet */
-      xmlFreeTextReader (r->xtr);
-      free (r);
-      return NULL;
-    }
-    
   r->spreadsheet.type = SPREADSHEET_GNUMERIC;
-  r->spreadsheet.file_name = filename;
+
+  if (filename)
+    r->spreadsheet.file_name = filename;
+
+  return r;
+}
+
+
+struct spreadsheet *
+gnumeric_probe (const char *filename)
+{
+  struct gnumeric_reader *r = NULL;
+  
+  r = gnumeric_reopen (r, filename);
   
   return &r->spreadsheet;
 }
