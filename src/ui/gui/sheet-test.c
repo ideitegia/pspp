@@ -7,6 +7,9 @@
 #include "psppire-spreadsheet-model.h"
 
 #include "data/gnumeric-reader.h"
+#include "data/spreadsheet-reader.h"
+#include "data/casereader.h"
+#include "data/case.h"
 
 #define N 10
 
@@ -29,6 +32,37 @@ make_store ()
     return list_store;
   }
 
+
+struct spreadsheet *sp = NULL;
+GtkWidget *combo_box;
+
+static void
+on_clicked (GtkButton *button, gpointer data)
+{
+  struct ccase *c;
+  gint x = gtk_combo_box_get_active (GTK_COMBO_BOX (combo_box));
+  struct casereader *reader ;
+  struct spreadsheet_read_info ri;
+  struct spreadsheet_read_options opts;
+
+  g_print( "%s %d\n", __FUNCTION__, x);
+
+  opts.sheet_index = x + 1;
+  opts.cell_range = NULL;
+  opts.sheet_name = NULL;
+
+  ri.read_names = TRUE;
+  ri.asw = -1;
+
+  reader = gnumeric_make_reader (sp, &ri, &opts);
+  for (;
+           (c = casereader_read (reader)) != NULL; case_unref (c))
+    {
+      const double val = case_data_idx (c, 0)->f;
+      printf ("%g\n", val);
+    }
+}
+
 int
 main (int argc, char *argv[] )
 {
@@ -36,9 +70,10 @@ main (int argc, char *argv[] )
   GtkWidget *hbox;
   GtkWidget *vbox;
   GtkWidget *treeview;
-  GtkWidget *combo_box;
+
   GtkTreeModel *tm;
-  struct spreadsheet *sp = NULL;
+  GtkWidget *button;
+
   gtk_init (&argc, &argv);
     
   if ( argc < 2)
@@ -56,10 +91,12 @@ main (int argc, char *argv[] )
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   hbox = gtk_hbox_new (FALSE, 5);
   vbox = gtk_vbox_new (FALSE, 5);
-    
+
+  button = gtk_button_new_with_label ("Test reader");
+  g_signal_connect (button, "clicked", G_CALLBACK (on_clicked), NULL);
+   
   gtk_container_set_border_width (GTK_CONTAINER (window), 10);
   
-  //  tm = GTK_TREE_MODEL (make_store ());
   combo_box = gtk_combo_box_new();
 
   {
@@ -70,9 +107,7 @@ main (int argc, char *argv[] )
 				    NULL);
   }
 
-  gtk_combo_box_set_model (GTK_COMBO_BOX (combo_box), 
-			   tm);
-
+  gtk_combo_box_set_model (GTK_COMBO_BOX (combo_box), tm);
 
   gtk_combo_box_set_active (GTK_COMBO_BOX (combo_box), 0);
 
@@ -95,6 +130,7 @@ main (int argc, char *argv[] )
   gtk_box_pack_start (GTK_BOX (hbox), treeview, TRUE, TRUE, 5);
 
   gtk_box_pack_start (GTK_BOX (vbox), combo_box, FALSE, FALSE, 5);
+  gtk_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 5);
   gtk_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 5);
 
   gtk_container_add (GTK_CONTAINER (window), hbox);
