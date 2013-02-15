@@ -140,7 +140,7 @@ gnumeric_get_sheet_name (struct spreadsheet *s, int n)
   struct gnumeric_reader *gr = (struct gnumeric_reader *) s;
   assert (n < s->n_sheets);
 
-  return gr->sheets[n].name;
+  return gr->sheets[n].name; // Kludge: Assumes the encoding is utf8
 }
 
 
@@ -175,7 +175,6 @@ gnumeric_get_sheet_range (struct spreadsheet *s, int n)
 static void
 gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
-  int i;
   struct gnumeric_reader *r = r_;
   if ( r == NULL)
 	return ;
@@ -430,7 +429,6 @@ struct var_spec
 void 
 gnumeric_destroy (struct spreadsheet *s)
 {
-  struct gnumeric_reader *r = (struct gnumeric *) s;
   gnm_file_casereader_destroy (NULL, s);
 }
 

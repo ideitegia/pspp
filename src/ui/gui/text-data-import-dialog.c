@@ -18,6 +18,12 @@
 
 #include "ui/gui/text-data-import-dialog.h"
 
+#include "page-intro.h"
+#include "page-sheet-spec.h"
+#include "page-first-line.h"
+#include "page-separators.h"
+#include "page-formats.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <gtk-contrib/psppire-sheet.h>
@@ -72,7 +78,6 @@ text_data_import_assistant (PsppireDataWindow *dw)
 {
   GtkWindow *parent_window = GTK_WINDOW (dw);
   struct import_assistant *ia = init_assistant (parent_window);
-  GtkBuilder *builder = ia->asst.builder;
   struct sheet_spec_page *ssp ;
 
   if (!init_file (ia, parent_window))
@@ -216,8 +221,6 @@ generate_syntax (const struct import_assistant *ia)
 
   if (ia->spreadsheet == NULL)
     {
-      size_t var_cnt;
-      size_t i;
       syntax_gen_pspp (&s,
 		       "GET DATA"
 		       "\n  /TYPE=TXT"
@@ -226,13 +229,14 @@ generate_syntax (const struct import_assistant *ia)
       if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
 	syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
 
+#if 0
       intro_append_syntax (ia->intro, &s);
 
       ds_put_cstr (&s,
 		   "  /ARRANGEMENT=DELIMITED\n"
 		   "  /DELCASE=LINE\n");
 
-#if 0
+
       if (ia->first_line->skip_lines > 0)
 	ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line->skip_lines + 1);
       ds_put_cstr (&s, "  /DELIMITERS=\"");

@@ -13,6 +13,7 @@
 
 #define N 10
 
+#if 0
 static GtkListStore *
 make_store ()
   {
@@ -31,7 +32,7 @@ make_store ()
       }
     return list_store;
   }
-
+#endif
 
 struct spreadsheet *sp = NULL;
 GtkWidget *combo_box;

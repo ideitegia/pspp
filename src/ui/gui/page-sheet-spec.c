@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include "page-sheet-spec.h"
+
 #include "ui/gui/text-data-import-dialog.h"
 
 #include <errno.h>
@@ -163,11 +165,11 @@ prepare_sheet_spec_page (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
   GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
-  printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
+
   gtk_combo_box_set_model (GTK_COMBO_BOX (sheet_entry), 
 			   psppire_spreadsheet_model_new (ia->spreadsheet));
 
-  gtk_combo_box_set_active (sheet_entry, 0);
+  gtk_combo_box_set_active (GTK_COMBO_BOX (sheet_entry), 0);
 }
 
 
@@ -195,7 +197,6 @@ post_sheet_spec_page (struct import_assistant *ia)
   struct casereader *creader = NULL;
   struct dictionary *dict = NULL;
 
-  GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
   GtkWidget *range_entry = get_widget_assert (builder, "cell-range-entry");
   GtkWidget *readnames_checkbox = get_widget_assert (builder, "readnames-checkbox");
 

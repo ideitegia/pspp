@@ -18,10 +18,14 @@
 
 #include "spreadsheet-reader.h"
 
+#include "gnumeric-reader.h"
+
 #include <libpspp/str.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <gl/xalloc.h>
+#include <gl/c-xvasprintf.h>
+#include <stdlib.h>
 
 struct spreadsheet * 
 spreadsheet_open (const char *filename)
@@ -34,7 +38,7 @@ spreadsheet_open (const char *filename)
 }
 
 void 
-spreadsheet_close (struct spreadsheet *spreadsheet)
+spreadsheet_close (UNUSED struct spreadsheet *spreadsheet)
 {
 }
 
@@ -107,7 +111,7 @@ int_to_ps26 (int i)
   i -= lower;
   i += base;
 
-  ret = malloc (exp);
+  ret = xmalloc (exp);
 
   exp = 0;
   do
@@ -137,7 +141,7 @@ create_cell_ref (int col0, int row0, int coli, int rowi)
 
   cs0 =  int_to_ps26 (col0);
   csi =  int_to_ps26 (coli);
-  s =  c_xasprintf ("%s%d:%s%ld",
+  s =  c_xasprintf ("%s%d:%s%d",
 			 cs0, row0 + 1,
 			 csi, rowi + 1);
   free (cs0);

@@ -81,7 +81,6 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
 {
   enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
   struct file *file = &ia->file;
-  struct sheet_spec_page *ssp = ia->sheet_spec;
   struct spreadsheet_read_info sri;
   struct spreadsheet_read_options opts;
 

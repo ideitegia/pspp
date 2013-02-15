@@ -117,7 +117,6 @@ prepare_formats_page (struct import_assistant *ia)
   GtkBin *vars_scroller;
   GtkWidget *old_var_sheet;
   PsppireVarSheet *var_sheet;
-  struct separators_page *seps = ia->separators;
   struct formats_page *p = ia->formats;
   struct fmt_guesser *fg;
   unsigned long int number = 0;

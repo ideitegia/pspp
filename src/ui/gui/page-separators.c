@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include "page-separators.h"
+
 #include "ui/gui/text-data-import-dialog.h"
 
 #include <errno.h>

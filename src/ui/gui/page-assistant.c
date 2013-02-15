@@ -153,10 +153,7 @@ static void
 on_prepare (GtkAssistant *assistant, GtkWidget *page,
             struct import_assistant *ia)
 {
-  struct sheet_spec_page *ssp = ia->sheet_spec;
-
   int pn = gtk_assistant_get_current_page (assistant);
-  g_print ("%s:%d Page %d %p\n", __FILE__, __LINE__, pn, page);
 
   if ( ia->spreadsheet) 
     {
