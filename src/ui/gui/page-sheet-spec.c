@@ -201,12 +201,13 @@ post_sheet_spec_page (struct import_assistant *ia)
   GtkWidget *readnames_checkbox = get_widget_assert (builder, "readnames-checkbox");
 
   const gchar *range = gtk_entry_get_text (GTK_ENTRY (range_entry));
+  GtkWidget *combo_box = get_widget_assert (builder, "sheet-entry");
 
-  gint num = 1;
+  gint num = gtk_combo_box_get_active (GTK_COMBO_BOX (combo_box));
   
   ssp->opts.sheet_name = NULL;
   ssp->opts.cell_range = NULL;
-  ssp->opts.sheet_index = num;
+  ssp->opts.sheet_index = num + 1;
 
   if ( convert_cell_ref (range, &col_start, &row_start, &col_stop, &row_stop))
     {
@@ -220,17 +221,14 @@ post_sheet_spec_page (struct import_assistant *ia)
     {
     case SPREADSHEET_ODS:
       {
-	printf ("%s:%d\n", __FILE__, __LINE__);
 	creader = ods_make_reader (ia->spreadsheet, &ssp->sri, &ssp->opts);
 	dict = ia->spreadsheet->dict;
       }
       break;
     case SPREADSHEET_GNUMERIC:
       {
-	printf ("%s:%d\n",__FILE__, __LINE__);
 	creader = gnumeric_make_reader (ia->spreadsheet, &ssp->sri, &ssp->opts);
 	dict = ia->spreadsheet->dict;
-	printf ("%s:%d Reader %p Dict %p\n",__FILE__, __LINE__, creader, dict);
       }
       break;
     default:
