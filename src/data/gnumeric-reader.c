@@ -115,7 +115,7 @@ struct gnumeric_reader
   int col;
   int min_col;
   int node_type;
-  int sheet_index;
+  int current_sheet;
 
   int start_col;
   int stop_col;
@@ -212,7 +212,7 @@ process_node (struct gnumeric_reader *r)
   switch ( r->state)
     {
     case STATE_PRE_INIT:
-      r->sheet_index = -1;
+      r->current_sheet = -1;
       if (0 == xmlStrcasecmp (name, _xml("gnm:SheetNameIndex")) &&
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
@@ -246,7 +246,7 @@ process_node (struct gnumeric_reader *r)
       if (0 == xmlStrcasecmp (name, _xml("gnm:Sheet")) &&
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
-	  ++r->sheet_index;
+	  ++r->current_sheet;
 	  r->state = STATE_SHEET_START;
 	}
       break;
@@ -277,7 +277,7 @@ process_node (struct gnumeric_reader *r)
 		r->state = STATE_SHEET_FOUND;
 	      free (value);
 	    }
-	  else if (r->target_sheet_index == r->sheet_index + 1)
+	  else if (r->target_sheet_index == r->current_sheet + 1)
 	    {
 	      r->state = STATE_SHEET_FOUND;
 	    }
@@ -320,7 +320,7 @@ process_node (struct gnumeric_reader *r)
       else if (r->node_type == XML_READER_TYPE_TEXT)
 	{
 	  xmlChar *value = xmlTextReaderValue (r->xtr);
-	  r->sheets[r->sheet_index].maxrow = _xmlchar_to_int (value);
+	  r->sheets[r->current_sheet].maxrow = _xmlchar_to_int (value);
 	  xmlFree (value);
 	}
       break;
@@ -333,7 +333,7 @@ process_node (struct gnumeric_reader *r)
       else if (r->node_type == XML_READER_TYPE_TEXT)
 	{
 	  xmlChar *value = xmlTextReaderValue (r->xtr);
-	  r->sheets[r->sheet_index].maxcol = _xmlchar_to_int (value);
+	  r->sheets[r->current_sheet].maxcol = _xmlchar_to_int (value);
 	  xmlFree (value);
 	}
       break;
@@ -354,21 +354,21 @@ process_node (struct gnumeric_reader *r)
 	  attr = xmlTextReaderGetAttribute (r->xtr, _xml ("Row"));
 	  r->row = _xmlchar_to_int (attr);
 	  free (attr);
-	  if (r->sheets[r->sheet_index].start_row == -1)
+	  if (r->sheets[r->current_sheet].start_row == -1)
 	    {
-	      r->sheets[r->sheet_index].start_row = r->row;
+	      r->sheets[r->current_sheet].start_row = r->row;
 	    }
 
-	  if (r->sheets[r->sheet_index].start_col == -1)
+	  if (r->sheets[r->current_sheet].start_col == -1)
 	    {
-	      r->sheets[r->sheet_index].start_col = r->col;
+	      r->sheets[r->current_sheet].start_col = r->col;
 	    }
 	}
       else if (0 == xmlStrcasecmp (name, _xml("gnm:Cells"))  &&
 	       XML_READER_TYPE_END_ELEMENT  == r->node_type)
 	{
-	  r->sheets[r->sheet_index].stop_col = r->col;
-	  r->sheets[r->sheet_index].stop_row = r->row;
+	  r->sheets[r->current_sheet].stop_col = r->col;
+	  r->sheets[r->current_sheet].stop_row = r->row;
 	  r->state = STATE_SHEET_NAME;
 	}
       break;
@@ -538,7 +538,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
   r->target_sheet = BAD_CAST opts->sheet_name;
   r->target_sheet_index = opts->sheet_index;
   r->row = r->col = -1;
-  r->sheet_index = -1;
+  r->current_sheet = -1;
 
   /* Advance to the start of the cells for the target sheet */
   while ( (r->state != STATE_CELL || r->row < r->start_row )
