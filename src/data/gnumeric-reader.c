@@ -90,6 +90,7 @@ struct gnumeric_reader
   enum reader_state state;
   int row;
   int col;
+  int min_col;
   int node_type;
   int sheet_index;
 
@@ -181,6 +182,7 @@ process_node (struct gnumeric_reader *r)
       if (0 == xmlStrcasecmp (name, _xml("gnm:Cells"))  &&
 	  XML_READER_TYPE_ELEMENT  == r->node_type)
 	{
+	  r->min_col = INT_MAX;
 	  if (! xmlTextReaderIsEmptyElement (r->xtr))
 	    r->state = STATE_CELLS_START;
 	}
@@ -211,6 +213,9 @@ process_node (struct gnumeric_reader *r)
 	  attr = xmlTextReaderGetAttribute (r->xtr, _xml ("Col"));
 	  r->col =  _xmlchar_to_int (attr);
 	  free (attr);
+
+	  if (r->col < r->min_col)
+	    r->min_col = r->col;
 
 	  attr = xmlTextReaderGetAttribute (r->xtr, _xml ("Row"));
 	  r->row = _xmlchar_to_int (attr);
@@ -312,7 +317,7 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
     }
   else
     {
-      r->start_col = 0;
+      r->start_col = -1;
       r->start_row = 0;
       r->stop_col = -1;
       r->stop_row = -1;
@@ -373,11 +378,15 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
 
       if ( idx  >= n_var_specs )
 	{
+	  int i;
+	  var_spec = xrealloc (var_spec, sizeof (*var_spec) * (idx + 1));
+	  for (i = n_var_specs; i <= idx; ++i)
+	  {
+	    var_spec [i].name = NULL;
+	    var_spec [i].width = -1;
+	    var_spec [i].first_value = NULL;
+	  }
 	  n_var_specs =  idx + 1 ;
-	  var_spec = xrealloc (var_spec, sizeof (*var_spec) * n_var_specs);
-	  var_spec [idx].name = NULL;
-	  var_spec [idx].width = -1;
-	  var_spec [idx].first_value = NULL;
 	}
 
       if ( r->node_type == XML_READER_TYPE_TEXT )
@@ -431,6 +440,9 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
     {
       char *name;
 
+      if ( (var_spec[i].name == NULL) && (var_spec[i].first_value == NULL))
+	continue;
+
       /* Probably no data exists for this variable, so allocate a
 	 default width */
       if ( var_spec[i].width == -1 )
@@ -455,9 +467,13 @@ gnumeric_open_reader (struct spreadsheet_read_info *gri, struct dictionary **dic
   r->first_case = case_create (r->proto);
   case_set_missing (r->first_case);
 
+  int x = 0;
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
-      const struct variable *var = dict_get_var (r->dict, i);
+      if ( (var_spec[i].name == NULL) && (var_spec[i].first_value == NULL))
+	continue;
+
+      const struct variable *var = dict_get_var (r->dict, x++);
 
       convert_xml_string_to_value (r->first_case, var,
 				   var_spec[i].first_value);
@@ -514,6 +530,9 @@ gnm_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 
   c = case_create (r->proto);
   case_set_missing (c);
+
+  if (r->start_col == -1)
+    r->start_col = r->min_col;
 
   while ((r->state == STATE_CELL || r->state == STATE_CELLS_START )
 	 && r->row == current_row && (ret = xmlTextReaderRead (r->xtr)))
