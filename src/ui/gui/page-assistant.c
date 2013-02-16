@@ -165,6 +165,14 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
 	  prepare_formats_page (ia);
 	}
     }
+  else
+    {
+      if (pn == 0)
+	prepare_separators_page (ia);
+      else if (pn == 3)
+	prepare_formats_page (ia);
+    }
+
 
   if (gtk_assistant_get_page_type (assistant, page)
       == GTK_ASSISTANT_PAGE_CONFIRM)
@@ -174,14 +182,8 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
 
 
 
-#if 0  
-  /* Prepare .... */
-  if (page == ia->separators->page)
-    prepare_separators_page (ia);
-  else if (page == ia->formats->page)
-    prepare_formats_page (ia);
 
-
+#if 0
   gtk_widget_show (ia->asst.reset_button);
   if (page == ia->formats->page)
     gtk_widget_show (ia->asst.paste_button);

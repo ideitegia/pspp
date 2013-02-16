@@ -89,10 +89,9 @@ first_line_page_create (struct import_assistant *ia)
 
   GtkBuilder *builder = ia->asst.builder;
 
-#if 0
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "FirstLine"),
                                    GTK_ASSISTANT_PAGE_CONTENT);
-#endif
+
   gtk_widget_destroy (get_widget_assert (builder, "first-line"));
   p->tree_view = create_lines_tree_view (
     GTK_CONTAINER (get_widget_assert (builder, "first-line-scroller")), ia);
