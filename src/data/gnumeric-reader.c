@@ -488,6 +488,14 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
       process_node (r);
     }
 
+  if ( ret != 1)
+    {
+      /* Does not seem to be a gnumeric file */
+      xmlFreeTextReader (r->xtr);
+      free (r);
+      return NULL;
+    }
+
   r->spreadsheet.type = SPREADSHEET_GNUMERIC;
 
   return r;

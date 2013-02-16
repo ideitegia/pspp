@@ -96,8 +96,12 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   sri.read_names = true;
   sri.asw = -1;
 
+  printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
+
   if (ia->spreadsheet == NULL)
     ia->spreadsheet = gnumeric_probe (file->file_name);
+
+  printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
 
   if (ia->spreadsheet == NULL)
     ia->spreadsheet = ods_probe (file->file_name);
