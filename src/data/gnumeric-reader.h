@@ -24,7 +24,7 @@ struct dictionary;
 struct spreadsheet_read_info;
 struct spreadsheet_read_options;
 
-struct spreadsheet *gnumeric_probe (const char *filename);
+struct spreadsheet *gnumeric_probe (const char *filename, bool report_errors);
 
 const char * gnumeric_get_sheet_name (struct spreadsheet *s, int n);
 

@@ -368,7 +368,7 @@ get_sheet_count (struct zip_reader *zreader)
   return -1;
 }
 
-struct spreadsheet *ods_probe (const char *filename)
+struct spreadsheet *ods_probe (const char *filename, bool report_errors)
 {
   struct ods_reader *r;
   struct string errs;

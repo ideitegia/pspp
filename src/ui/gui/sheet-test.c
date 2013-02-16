@@ -80,7 +80,7 @@ main (int argc, char *argv[] )
   if ( argc < 2)
     g_error ("Usage: prog file\n");
 
-  sp = gnumeric_probe (argv[1]);
+  sp = gnumeric_probe (argv[1], true);
   
   if (sp == NULL)
     {

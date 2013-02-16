@@ -88,13 +88,13 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 
       if ( 0 == strncasecmp (tok, "GNM", 3))
 	{
-	  struct spreadsheet *spreadsheet = gnumeric_probe (filename);
+	  struct spreadsheet *spreadsheet = gnumeric_probe (filename, true);
 	  reader = gnumeric_make_reader (spreadsheet, &sri, &opts);
 	  dict = spreadsheet->dict;
 	}
       else if (0 == strncasecmp (tok, "ODS", 3))
 	{
-	  struct spreadsheet *spreadsheet = ods_probe (filename);
+	  struct spreadsheet *spreadsheet = ods_probe (filename, true);
 	  reader = ods_make_reader (spreadsheet, &sri, &opts);
 	  dict = spreadsheet->dict;
 	}

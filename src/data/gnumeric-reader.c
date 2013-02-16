@@ -433,8 +433,20 @@ gnumeric_destroy (struct spreadsheet *s)
 }
 
 
+static void
+gnumeric_error_handler (void *ctx, const char *mesg,
+			UNUSED xmlParserSeverities sev, xmlTextReaderLocatorPtr loc)
+{
+  struct gnumeric_reader *r = ctx;
+       
+  msg (MW, _("There was a problem whilst reading the Gnumeric file `%s' (near line %d): `%s'"),
+       r->spreadsheet.file_name,
+       xmlTextReaderLocatorLineNumber (loc),
+       mesg);
+}
+
 static struct gnumeric_reader *
-gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
+gnumeric_reopen (struct gnumeric_reader *r, const char *filename, bool show_errors)
 {  
   int ret;
 
@@ -454,9 +466,11 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
   if (NULL == gz)
     return NULL;
 
+
   xtr = xmlReaderForIO ((xmlInputReadCallback) gzread,
-                           (xmlInputCloseCallback) gzclose, gz,
-			   NULL, NULL, 0);
+			(xmlInputCloseCallback) gzclose, gz,
+			NULL, NULL,
+			show_errors ? 0 : (XML_PARSE_NOERROR | XML_PARSE_NOWARNING) );
 
   if (xtr == NULL)
     {
@@ -470,6 +484,9 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
       r->spreadsheet.n_sheets = -1;
       r->spreadsheet.file_name = filename;
     }
+  
+  if (show_errors) 
+    xmlTextReaderSetErrorHandler (xtr, gnumeric_error_handler, r);
 
   r->target_sheet = NULL;
   r->target_sheet_index = -1;
@@ -503,9 +520,9 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename)
 
 
 struct spreadsheet *
-gnumeric_probe (const char *filename)
+gnumeric_probe (const char *filename, bool report_errors)
 {
-  struct gnumeric_reader *r = gnumeric_reopen (NULL, filename);
+  struct gnumeric_reader *r = gnumeric_reopen (NULL, filename, report_errors);
 
   return &r->spreadsheet;
 }
@@ -527,7 +544,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
   r = (struct gnumeric_reader *) (spreadsheet);
 
   if (r->row != -1)
-    r = gnumeric_reopen (r, NULL);
+    r = gnumeric_reopen (r, NULL, true);
 
   if ( opts->cell_range )
     {

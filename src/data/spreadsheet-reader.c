@@ -32,7 +32,7 @@ spreadsheet_open (const char *filename)
 {
   struct spreadsheet *ss = NULL;
 
-  ss = gnumeric_probe (filename);
+  ss = gnumeric_probe (filename, true);
   
   return ss;
 }

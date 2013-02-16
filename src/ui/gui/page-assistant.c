@@ -180,16 +180,12 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
   else
     gtk_widget_grab_focus (assistant->forward);
 
-
-
-
 #if 0
   gtk_widget_show (ia->asst.reset_button);
   if (page == ia->formats->page)
     gtk_widget_show (ia->asst.paste_button);
   else
     gtk_widget_hide (ia->asst.paste_button);
-
 #endif
 }
 

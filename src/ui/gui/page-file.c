@@ -99,12 +99,12 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
 
   if (ia->spreadsheet == NULL)
-    ia->spreadsheet = gnumeric_probe (file->file_name);
+    ia->spreadsheet = gnumeric_probe (file->file_name, false);
 
   printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
 
   if (ia->spreadsheet == NULL)
-    ia->spreadsheet = ods_probe (file->file_name);
+    ia->spreadsheet = ods_probe (file->file_name, false);
 
   printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
   
