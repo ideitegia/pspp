@@ -50,7 +50,6 @@
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-scanf.h"
-#include "ui/syntax-gen.h"
 
 #include "gl/error.h"
 #include "gl/intprops.h"
@@ -589,3 +588,28 @@ on_separator_toggle (GtkToggleButton *toggle UNUSED,
   revise_fields_preview (ia);
 }
 
+
+
+void 
+separators_append_syntax (struct import_assistant *ia, struct string *s)
+{
+  int i;
+  ds_put_cstr (s, "  /DELIMITERS=\"");
+  if (ds_find_byte (&ia->separators->separators, '\t') != SIZE_MAX)
+    ds_put_cstr (s, "\\t");
+  if (ds_find_byte (&ia->separators->separators, '\\') != SIZE_MAX)
+    ds_put_cstr (s, "\\\\");
+  for (i = 0; i < ds_length (&ia->separators->separators); i++)
+    {
+      char c = ds_at (&ia->separators->separators, i);
+      if (c == '"')
+	ds_put_cstr (s, "\"\"");
+      else if (c != '\t' && c != '\\')
+	ds_put_byte (s, c);
+    }
+  ds_put_cstr (s, "\"\n");
+  if (!ds_is_empty (&ia->separators->quotes))
+    syntax_gen_pspp (s, "  /QUALIFIER=%sq\n", ds_cstr (&ia->separators->quotes));
+  if (!ds_is_empty (&ia->separators->quotes) && ia->separators->escape)
+    ds_put_cstr (s, "  /ESCAPE\n");
+}

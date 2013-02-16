@@ -48,7 +48,6 @@
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-scanf.h"
-#include "ui/syntax-gen.h"
 
 #include "gl/error.h"
 #include "gl/intprops.h"
@@ -269,3 +268,23 @@ on_variable_change (PsppireDict *dict, int dict_idx,
 }
 
 
+
+
+void
+formats_append_syntax (struct import_assistant *ia, struct string *s)
+{
+  int i;
+  int var_cnt;
+  ds_put_cstr (s, "  /VARIABLES=\n");
+  
+  var_cnt = dict_get_var_cnt (ia->dict);
+  for (i = 0; i < var_cnt; i++)
+    {
+      struct variable *var = dict_get_var (ia->dict, i);
+      char format_string[FMT_STRING_LEN_MAX + 1];
+      fmt_to_string (var_get_print_format (var), format_string);
+      ds_put_format (s, "    %s %s%s\n",
+		     var_get_name (var), format_string,
+		     i == var_cnt - 1 ? "." : "");
+    }
+}

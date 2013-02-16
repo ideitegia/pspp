@@ -50,7 +50,6 @@
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-scanf.h"
-#include "ui/syntax-gen.h"
 
 #include "gl/error.h"
 #include "gl/intprops.h"
@@ -233,4 +232,13 @@ get_first_line (struct import_assistant *ia)
     }
   gtk_widget_set_sensitive (ia->first_line->variable_names_cb,
                             ia->skip_lines > 0);
+}
+
+
+
+void
+first_line_append_syntax (struct import_assistant *ia, struct string *s)
+{
+  if (ia->skip_lines > 0)
+    ds_put_format (s, "  /FIRSTCASE=%d\n", ia->skip_lines + 1);
 }

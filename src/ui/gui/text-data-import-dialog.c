@@ -231,50 +231,18 @@ generate_syntax (const struct import_assistant *ia)
       if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
 	syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
 
-#if 0
+
       intro_append_syntax (ia->intro, &s);
+
 
       ds_put_cstr (&s,
 		   "  /ARRANGEMENT=DELIMITED\n"
 		   "  /DELCASE=LINE\n");
 
-
-      if (ia->first_line->skip_lines > 0)
-	ds_put_format (&s, "  /FIRSTCASE=%d\n", ia->first_line->skip_lines + 1);
-      ds_put_cstr (&s, "  /DELIMITERS=\"");
-      if (ds_find_byte (&ia->separators->separators, '\t') != SIZE_MAX)
-	ds_put_cstr (&s, "\\t");
-      if (ds_find_byte (&ia->separators->separators, '\\') != SIZE_MAX)
-	ds_put_cstr (&s, "\\\\");
-      for (i = 0; i < ds_length (&ia->separators->separators); i++)
-	{
-	  char c = ds_at (&ia->separators->separators, i);
-	  if (c == '"')
-	    ds_put_cstr (&s, "\"\"");
-	  else if (c != '\t' && c != '\\')
-	    ds_put_byte (&s, c);
-	}
-      ds_put_cstr (&s, "\"\n");
-      if (!ds_is_empty (&ia->separators->quotes))
-	syntax_gen_pspp (&s, "  /QUALIFIER=%sq\n", ds_cstr (&ia->separators->quotes));
-      if (!ds_is_empty (&ia->separators->quotes) && ia->separators->escape)
-	ds_put_cstr (&s, "  /ESCAPE\n");
-      ds_put_cstr (&s, "  /VARIABLES=\n");
-
-      var_cnt = dict_get_var_cnt (ia->formats->dict);
-      for (i = 0; i < var_cnt; i++)
-	{
-	  struct variable *var = dict_get_var (ia->formats->dict, i);
-	  char format_string[FMT_STRING_LEN_MAX + 1];
-	  fmt_to_string (var_get_print_format (var), format_string);
-	  ds_put_format (&s, "    %s %s%s\n",
-			 var_get_name (var), format_string,
-			 i == var_cnt - 1 ? "." : "");
-	}
-
-
-      apply_dict (ia->formats->dict, &s);
-#endif
+      first_line_append_syntax (ia, &s);
+      separators_append_syntax (ia, &s);
+      formats_append_syntax (ia, &s);
+      apply_dict (ia->dict, &s);
     }
   else
     {
