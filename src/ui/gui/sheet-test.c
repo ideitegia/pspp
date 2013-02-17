@@ -78,11 +78,17 @@ main (int argc, char *argv[] )
   if ( argc < 2)
     g_error ("Usage: prog file\n");
 
-  sp = gnumeric_probe (argv[1], true);
+  sp = NULL;
+
+  if (sp == NULL)
+    sp = gnumeric_probe (argv[1], false);
+
+  if (sp == NULL)
+    sp = ods_probe (argv[1], false);
   
   if (sp == NULL)
     {
-      g_error ("%s is not a gnumeric file\n", argv[1]);
+      g_error ("%s is neither a gnumeric nor a ods file\n", argv[1]);
       return 0;
     }
 
@@ -140,7 +146,7 @@ main (int argc, char *argv[] )
 
   gtk_main ();
 
-  gnumeric_destroy (sp);
+  //  gnumeric_destroy (sp);
     
   return 0;
 }

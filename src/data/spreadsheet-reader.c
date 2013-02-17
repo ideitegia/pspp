@@ -19,6 +19,7 @@
 #include "spreadsheet-reader.h"
 
 #include "gnumeric-reader.h"
+#include "ods-reader.h"
 
 #include <libpspp/str.h>
 #include <stdio.h>
@@ -32,7 +33,7 @@ spreadsheet_open (const char *filename)
 {
   struct spreadsheet *ss = NULL;
 
-  ss = gnumeric_probe (filename, true);
+  ss = ods_probe (filename, true);
   
   return ss;
 }

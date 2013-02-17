@@ -19,9 +19,12 @@
 
 struct casereader;
 struct dictionary;
-struct spreadsheet_read_info;
-struct spreadsheet_read_options;
 
+struct spreadsheet_read_options;
+struct spreadsheet;
+
+const char * ods_get_sheet_name (struct spreadsheet *s, int n);
+char * ods_get_sheet_range (struct spreadsheet *s, int n);
 
 struct spreadsheet *ods_probe (const char *filename, bool report_errors);
 

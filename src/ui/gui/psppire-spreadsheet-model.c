@@ -23,6 +23,7 @@
 #include "data/spreadsheet-reader.h"
 
 #include "data/gnumeric-reader.h"
+#include "data/ods-reader.h"
 
 static void psppire_spreadsheet_model_init (PsppireSpreadsheetModel *
                                             spreadsheetModel);
@@ -245,15 +246,16 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
     case PSPPIRE_SPREADSHEET_MODEL_COL_NAME:
       {
         const char *x =
-          gnumeric_get_sheet_name (spreadsheetModel->spreadsheet,
+          ods_get_sheet_name (spreadsheetModel->spreadsheet,
                                    (gint) iter->user_data);
+	
         g_value_set_string (value, x);
       }
       break;
     case PSPPIRE_SPREADSHEET_MODEL_COL_RANGE:
       {
         char *x =
-          gnumeric_get_sheet_range (spreadsheetModel->spreadsheet,
+          ods_get_sheet_range (spreadsheetModel->spreadsheet,
                                     (gint) iter->user_data);
         g_value_set_string (value, x);
 	g_free (x);

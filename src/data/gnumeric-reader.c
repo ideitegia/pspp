@@ -438,7 +438,8 @@ gnumeric_error_handler (void *ctx, const char *mesg,
 {
   struct gnumeric_reader *r = ctx;
        
-  msg (MW, _("There was a problem whilst reading the Gnumeric file `%s' (near line %d): `%s'"),
+  msg (MW, _("There was a problem whilst reading the %s file `%s' (near line %d): `%s'"),
+       "Gnumeric",
        r->spreadsheet.file_name,
        xmlTextReaderLocatorLineNumber (loc),
        mesg);
@@ -503,6 +504,7 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename, bool show_erro
     {
       process_node (r);
     }
+
 
   if ( ret != 1)
     {
