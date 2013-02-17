@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -86,9 +86,6 @@ struct sheet_detail
   int stop_col;
   int start_row;
   int stop_row;
-
-  int maxcol;
-  int maxrow;
 };
 
 
@@ -114,8 +111,6 @@ struct ods_reader
   int col;
   int node_type;
   int sheet_index;
-  int max_col;
-  int min_col;
 
   const xmlChar *target_sheet;
   int target_sheet_index;
@@ -170,7 +165,7 @@ ods_get_sheet_range (struct spreadsheet *s, int n)
   assert (n < s->n_sheets);
 
   while ( 
-	 (or->n_allocated_sheets <= n || or->sheets[n].stop_col == -1)
+	 (or->n_allocated_sheets <= n || or->state != STATE_SPREADSHEET)
 	 && 
 	 (1 == (ret = xmlTextReaderRead (or->xtr)))
 	  )
@@ -243,10 +238,8 @@ process_node (struct ods_reader *r)
 	  r->sheets[r->n_allocated_sheets - 1].start_row = -1;
 	  r->sheets[r->n_allocated_sheets - 1].stop_row = -1;
 	  r->sheets[r->n_allocated_sheets - 1].name = value;
-	  r->col = -1;
-	  r->row = -1;
-	  r->max_col = -1;
-	  r->min_col = INT_MAX;
+	  r->col = 0;
+	  r->row = 0;
 	  ++r->sheet_index;
 
 	  printf ("%s:%d Start of SHEET %d: Rows %d\n", __FILE__, __LINE__,
@@ -285,7 +278,7 @@ process_node (struct ods_reader *r)
 
 	  printf ("%s:%d  Start of Row %d Span %d\n", __FILE__, __LINE__,  r->row, row_span);
 	  r->row += row_span;
-	  r->col = -1;
+	  r->col = 0;
 	  
 	  if (! xmlTextReaderIsEmptyElement (r->xtr))
 	    r->state = STATE_ROW;
@@ -294,9 +287,6 @@ process_node (struct ods_reader *r)
 	       (XML_READER_TYPE_END_ELEMENT  == r->node_type))
 	{
 	  printf ("%s:%d End of SHEET %d %d,%d\n", __FILE__, __LINE__,  r->sheet_index,  r->row, r->col);
-	  r->sheets[r->sheet_index].stop_row = r->row;
-	  r->sheets[r->sheet_index].stop_col = r->max_col - 1;
-	  r->sheets[r->sheet_index].start_col = r->min_col;
 	  r->state = STATE_SPREADSHEET;
 
 	}
@@ -310,15 +300,13 @@ process_node (struct ods_reader *r)
 	    xmlTextReaderGetAttribute (r->xtr,
 				       _xml ("table:number-columns-repeated"));
 	  
-	  int col_span = value ? _xmlchar_to_int (value) : 0;
+	  int col_span = value ? _xmlchar_to_int (value) : 1;
 
 	  r->col += col_span;
-	  r->col ++;
 
-	  if (r->min_col > r->col)
-	    r->min_col = r->col;
-
-	  printf ("%s:%d  Start of Cell %d, %d\n", __FILE__, __LINE__,    r->row, r->col);
+	  printf ("%s:%d  (span %d) Start of Cell %d, %d\n", __FILE__, __LINE__,  
+		  col_span,
+		  r->row, r->col);
 	  if (! xmlTextReaderIsEmptyElement (r->xtr))
 	    r->state = STATE_CELL;
 	}
@@ -328,8 +316,6 @@ process_node (struct ods_reader *r)
 	{
 	  /* Set the span back to the default */
 	  printf ("%s:%d  End of Cell:  %d, %d\n", __FILE__, __LINE__, r->row, r->col);
-	  if ( r->max_col < r->col)
-	    r->max_col = r->col;
 	  r->state = STATE_TABLE;
 	}
       break;
@@ -354,9 +340,20 @@ process_node (struct ods_reader *r)
       break;
     case STATE_CELL_CONTENT:
       if (r->sheets[r->sheet_index].start_row == -1)
-	r->sheets[r->sheet_index].start_row = r->row;
-      //      printf ("%s:%d Cell contents: Rows %d\n", __FILE__, __LINE__, r->row);
-      /* if (XML_READER_TYPE_TEXT != r->node_type) */
+	r->sheets[r->sheet_index].start_row = r->row - 1;
+
+      if ( 
+	  (r->sheets[r->sheet_index].start_col == -1)
+	  ||
+	  (r->sheets[r->sheet_index].start_col >= r->col - 1)
+	   )
+	r->sheets[r->sheet_index].start_col = r->col - 1;
+
+      r->sheets[r->sheet_index].stop_row = r->row - 1;
+
+      if ( r->sheets[r->sheet_index].stop_col <  r->col - 1)
+	r->sheets[r->sheet_index].stop_col = r->col - 1;
+
       r->state = STATE_CELL;
       break;
     default:
@@ -590,7 +587,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
   r->state = STATE_INIT;
   r->target_sheet = BAD_CAST opts->sheet_name;
   r->target_sheet_index = opts->sheet_index;
-  r->row = r->col = -1;
+  r->row = r->col = 0;
   r->sheet_index = 0;
 
 
