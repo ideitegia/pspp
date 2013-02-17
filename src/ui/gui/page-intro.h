@@ -19,8 +19,10 @@
 
 struct intro_page;
 struct import_assistant;
+struct string;
 
 struct intro_page *intro_page_create (struct import_assistant *ia);
+void intro_append_syntax (const struct intro_page *p, struct string *s);
 
 
 #endif

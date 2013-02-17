@@ -19,8 +19,10 @@
 
 struct formats_page;
 struct import_assistant;
+struct string;
 
 struct formats_page *formats_page_create (struct import_assistant *ia);
+void formats_append_syntax (const struct import_assistant *ia, struct string *s);
 
 
 #endif

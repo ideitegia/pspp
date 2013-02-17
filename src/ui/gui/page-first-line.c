@@ -237,7 +237,7 @@ get_first_line (struct import_assistant *ia)
 
 
 void
-first_line_append_syntax (struct import_assistant *ia, struct string *s)
+first_line_append_syntax (const struct import_assistant *ia, struct string *s)
 {
   if (ia->skip_lines > 0)
     ds_put_format (s, "  /FIRSTCASE=%d\n", ia->skip_lines + 1);

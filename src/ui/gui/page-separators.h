@@ -20,7 +20,10 @@
 
 struct separators_page;
 struct import_assistant;
+struct string;
 
 struct separators_page *separators_page_create (struct import_assistant *ia);
+void  separators_append_syntax (const struct import_assistant *ia, struct string *s);
+
 
 #endif

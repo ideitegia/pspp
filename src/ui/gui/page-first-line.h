@@ -20,7 +20,9 @@
 
 struct first_line_page ;
 struct import_assistant;
+struct string;
 
 struct first_line_page *first_line_page_create (struct import_assistant *ia);
+void first_line_append_syntax (const struct import_assistant *ia, struct string *s);
 
 #endif

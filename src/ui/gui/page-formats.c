@@ -271,7 +271,7 @@ on_variable_change (PsppireDict *dict, int dict_idx,
 
 
 void
-formats_append_syntax (struct import_assistant *ia, struct string *s)
+formats_append_syntax (const struct import_assistant *ia, struct string *s)
 {
   int i;
   int var_cnt;

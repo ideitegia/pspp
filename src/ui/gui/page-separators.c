@@ -50,6 +50,7 @@
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-scanf.h"
+#include "ui/syntax-gen.h"
 
 #include "gl/error.h"
 #include "gl/intprops.h"
@@ -591,7 +592,7 @@ on_separator_toggle (GtkToggleButton *toggle UNUSED,
 
 
 void 
-separators_append_syntax (struct import_assistant *ia, struct string *s)
+separators_append_syntax (const struct import_assistant *ia, struct string *s)
 {
   int i;
   ds_put_cstr (s, "  /DELIMITERS=\"");
