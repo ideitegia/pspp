@@ -672,8 +672,6 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
 
 static void 
 destroy_spreadsheet_read_info (UNUSED struct spreadsheet_read_info *sri,
-			       struct spreadsheet_read_options *opts)
+			       UNUSED struct spreadsheet_read_options *opts)
 {
-  free (opts->sheet_name);
-  free (opts->cell_range);
 }

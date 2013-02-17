@@ -208,10 +208,9 @@ process_node (struct gnumeric_reader *r)
   if (name == NULL)
     name = xmlStrdup (_xml ("--"));
 
-
   r->node_type = xmlTextReaderNodeType (r->xtr);
 
-  switch ( r->state)
+  switch (r->state)
     {
     case STATE_PRE_INIT:
       r->current_sheet = -1;
@@ -531,7 +530,7 @@ gnumeric_probe (const char *filename, bool report_errors)
 struct casereader *
 gnumeric_make_reader (struct spreadsheet *spreadsheet,
 		      const struct spreadsheet_read_info *gri, 
-		      struct spreadsheet_read_options *opts)
+		      const struct spreadsheet_read_options *opts)
 {
   struct gnumeric_reader *r = NULL;
   unsigned long int vstart = 0;
@@ -727,7 +726,8 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
 
   free (var_spec);
   
-  
+
+#if 0  
   if (opts->cell_range == NULL)
     {
       opts->cell_range = c_xasprintf ("%c%d:%c%ld", 
@@ -736,6 +736,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
 				       r->stop_col + 'A' + caseproto_get_n_widths (r->proto),
 				       r->start_row + n_cases);
     }
+#endif
   
   return casereader_create_sequential
     (NULL,

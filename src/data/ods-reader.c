@@ -419,7 +419,8 @@ struct spreadsheet *ods_probe (const char *filename, bool report_errors)
 
 struct casereader *
 ods_make_reader (struct spreadsheet *spreadsheet, 
-		 const struct spreadsheet_read_info *gri, struct spreadsheet_read_options *opts)
+		 const struct spreadsheet_read_info *gri,
+		 const struct spreadsheet_read_options *opts)
 {
   intf ret = 0;
   xmlChar *type = NULL;

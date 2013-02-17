@@ -87,6 +87,9 @@ char *
 sheet_spec_gen_syntax (const struct import_assistant *ia)
 {
   const struct sheet_spec_page *ssp = ia->sheet_spec;
+  GtkBuilder *builder = ia->asst.builder;
+  GtkWidget *range_entry = get_widget_assert (builder, "cell-range-entry");
+  const gchar *range = gtk_entry_get_text (GTK_ENTRY (range_entry));
 
   struct string s = DS_EMPTY_INITIALIZER;
 
@@ -102,11 +105,10 @@ sheet_spec_gen_syntax (const struct import_assistant *ia)
 		   ssp->sri.read_names ? "ON" : "OFF");
 
 
-  if ( ssp->opts.cell_range)
+  if (range && 0 != strcmp ("", range))
     {
       syntax_gen_pspp (&s,
-		       "\n  /CELLRANGE=RANGE %sq",
-		       ssp->opts.cell_range);
+		       "\n  /CELLRANGE=RANGE %sq", range);
     }
   else
     {
@@ -197,9 +199,8 @@ post_sheet_spec_page (struct import_assistant *ia)
   struct casereader *creader = NULL;
   struct dictionary *dict = NULL;
 
-  GtkWidget *range_entry = get_widget_assert (builder, "cell-range-entry");
   GtkWidget *readnames_checkbox = get_widget_assert (builder, "readnames-checkbox");
-
+  GtkWidget *range_entry = get_widget_assert (builder, "cell-range-entry");
   const gchar *range = gtk_entry_get_text (GTK_ENTRY (range_entry));
   GtkWidget *combo_box = get_widget_assert (builder, "sheet-entry");
 

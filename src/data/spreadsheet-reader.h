@@ -28,11 +28,10 @@
 */
 struct spreadsheet_read_options
 {
-  char *sheet_name ;       /* The name of the sheet to open (in UTF-8) */
+  const char *sheet_name ; /* The name of the sheet to open (in UTF-8) */
   int sheet_index ;        /* The index of the sheet to open (only used if sheet_name is NULL) */
-  char *cell_range ;       /* The cell range (in UTF-8) */
+  const char *cell_range ; /* The cell range (in UTF-8) */
 };
-
 
 struct spreadsheet_read_info
 {
