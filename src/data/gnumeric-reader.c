@@ -31,7 +31,7 @@
 #if !GNM_SUPPORT
 
 struct casereader *
-gnumeric_open_reader (struct spreadsheet_read_info *gri, struct spreadsheet_read_options *opts, struct dictionary **dict)
+gnumeric_open_reader (const struct spreadsheet_read_options *opts, struct dictionary **dict)
 {
   msg (ME, _("Support for %s files was not compiled into this installation of PSPP"), "Gnumeric");
 
@@ -545,7 +545,6 @@ gnumeric_probe (const char *filename, bool report_errors)
 
 struct casereader *
 gnumeric_make_reader (struct spreadsheet *spreadsheet,
-		      const struct spreadsheet_read_info *gri, 
 		      const struct spreadsheet_read_options *opts)
 {
   int x = 0;
@@ -608,7 +607,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
       n_cases = MIN (n_cases, r->stop_row - r->start_row + 1);
     }
 
-  if ( gri->read_names )
+  if ( opts->read_names )
     {
       r->start_row++;
       n_cases --;
@@ -652,7 +651,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
 
 	  if ( r->row < r->start_row)
 	    {
-	      if ( gri->read_names )
+	      if ( opts->read_names )
 		{
 		  var_spec [idx].name = xstrdup (text);
 		}
@@ -662,8 +661,8 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
 	      var_spec [idx].first_value = xmlStrdup (value);
 
 	      if (-1 ==  var_spec [idx].width )
-		var_spec [idx].width = (gri->asw == -1) ?
-		  ROUND_UP (strlen(text), SPREADSHEET_DEFAULT_WIDTH) : gri->asw;
+		var_spec [idx].width = (opts->asw == -1) ?
+		  ROUND_UP (strlen(text), SPREADSHEET_DEFAULT_WIDTH) : opts->asw;
 	    }
 
 	  free (value);

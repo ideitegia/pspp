@@ -33,7 +33,6 @@ char * gnumeric_get_sheet_range (struct spreadsheet *s, int n);
 void gnumeric_destroy (struct spreadsheet *);
 
 struct casereader * gnumeric_make_reader (struct spreadsheet *spreadsheet,
-					  const struct spreadsheet_read_info *gri, 
 					  const struct spreadsheet_read_options *opts);
 
 

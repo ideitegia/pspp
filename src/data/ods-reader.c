@@ -33,7 +33,7 @@
 #if !ODF_READ_SUPPORT
 
 struct casereader *
-ods_open_reader (const struct spreadsheet_read_info *gri, struct spreadsheet_read_options *opts, 
+ods_open_reader (const struct spreadsheet_read_options *opts, 
 		 struct dictionary **dict)
 {
   msg (ME, _("Support for %s files was not compiled into this installation of PSPP"), "OpenDocument");
@@ -419,7 +419,6 @@ struct spreadsheet *ods_probe (const char *filename, bool report_errors)
 
 struct casereader *
 ods_make_reader (struct spreadsheet *spreadsheet, 
-		 const struct spreadsheet_read_info *gri,
 		 const struct spreadsheet_read_options *opts)
 {
   intf ret = 0;
@@ -434,7 +433,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
   xmlChar *val_string = NULL;
 
   assert (r);
-  r->read_names = gri->read_names;
+  r->read_names = opts->read_names;
   ds_init_empty (&r->ods_errs);
 
   if ( opts->cell_range )
@@ -489,7 +488,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
       goto error;
     }
 
-  if ( gri->read_names)
+  if ( opts->read_names)
     {
       while (1 == (ret = xmlTextReaderRead (r->xtr)))
 	{
@@ -538,7 +537,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
     {
       int idx;
       process_node (r);
-      if ( r->row >= r->start_row + 1 + gri->read_names)
+      if ( r->row >= r->start_row + 1 + opts->read_names)
 	break;
 
       if ( r->col < r->start_col)
@@ -576,7 +575,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
       struct fmt_spec fmt;
       struct variable *var = NULL;
       char *name = dict_make_unique_var_name (r->dict, var_spec[i].name, &vstart);
-      int width  = xmv_to_width (&var_spec[i].firstval, gri->asw);
+      int width  = xmv_to_width (&var_spec[i].firstval, opts->asw);
       dict_create_var (r->dict, name, width);
       free (name);
 

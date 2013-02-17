@@ -81,7 +81,6 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
 {
   enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
   struct file *file = &ia->file;
-  struct spreadsheet_read_info sri;
   struct spreadsheet_read_options opts;
 
   file->lines = NULL;
@@ -93,8 +92,8 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   opts.cell_range = NULL;
   opts.sheet_index = 1;
 
-  sri.read_names = true;
-  sri.asw = -1;
+  opts.read_names = true;
+  opts.asw = -1;
 
   printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
 

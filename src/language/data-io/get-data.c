@@ -45,7 +45,7 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) (msgid)
 
-static bool parse_spreadsheet (struct lexer *lexer, char **filename, struct spreadsheet_read_info *sri, 
+static bool parse_spreadsheet (struct lexer *lexer, char **filename,
 			       struct spreadsheet_read_options *opts);
 
 static void destroy_spreadsheet_read_info (struct spreadsheet_read_info *, struct spreadsheet_read_options *);
@@ -81,21 +81,20 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
       char *filename = NULL;
       struct casereader *reader = NULL;
       struct dictionary *dict = NULL;
-      struct spreadsheet_read_info sri;
       struct spreadsheet_read_options opts;
-      if (!parse_spreadsheet (lexer, &filename, &sri, &opts))
+      if (!parse_spreadsheet (lexer, &filename, &opts))
 	goto error;
 
       if ( 0 == strncasecmp (tok, "GNM", 3))
 	{
 	  struct spreadsheet *spreadsheet = gnumeric_probe (filename, true);
-	  reader = gnumeric_make_reader (spreadsheet, &sri, &opts);
+	  reader = gnumeric_make_reader (spreadsheet, &opts);
 	  dict = spreadsheet->dict;
 	}
       else if (0 == strncasecmp (tok, "ODS", 3))
 	{
 	  struct spreadsheet *spreadsheet = ods_probe (filename, true);
-	  reader = ods_make_reader (spreadsheet, &sri, &opts);
+	  reader = ods_make_reader (spreadsheet, &opts);
 	  dict = spreadsheet->dict;
 	}
 
@@ -103,11 +102,9 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	{
 	  dataset_set_dict (ds, dict);
 	  dataset_set_source (ds, reader);
-	  destroy_spreadsheet_read_info (&sri, &opts);
 	  free (tok);
 	  return CMD_SUCCESS;
 	}
-      destroy_spreadsheet_read_info (&sri, &opts);
     }
   else
     msg (SE, _("Unsupported TYPE %s."), tok);
@@ -194,14 +191,14 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
 }
 
 static bool
-parse_spreadsheet (struct lexer *lexer, char **filename, struct spreadsheet_read_info *sri, 
+parse_spreadsheet (struct lexer *lexer, char **filename, 
 		   struct spreadsheet_read_options *opts)
 {
   opts->sheet_index = 1;
   opts->sheet_name = NULL;
   opts->cell_range = NULL;
-  sri->read_names = true;
-  sri->asw = -1;
+  opts->read_names = true;
+  opts->asw = -1;
 
   lex_force_match (lexer, T_SLASH);
 
@@ -222,7 +219,7 @@ parse_spreadsheet (struct lexer *lexer, char **filename, struct spreadsheet_read
       if ( lex_match_id (lexer, "ASSUMEDSTRWIDTH"))
 	{
 	  lex_match (lexer, T_EQUALS);
-	  sri->asw = lex_integer (lexer);
+	  opts->asw = lex_integer (lexer);
 	  lex_get (lexer);
 	}
       else if (lex_match_id (lexer, "SHEET"))
@@ -284,11 +281,11 @@ parse_spreadsheet (struct lexer *lexer, char **filename, struct spreadsheet_read
 
 	  if ( lex_match_id (lexer, "ON"))
 	    {
-	      sri->read_names = true;
+	      opts->read_names = true;
 	    }
 	  else if (lex_match_id (lexer, "OFF"))
 	    {
-	      sri->read_names = false;
+	      opts->read_names = false;
 	    }
 	  else
 	    {
@@ -307,7 +304,6 @@ parse_spreadsheet (struct lexer *lexer, char **filename, struct spreadsheet_read
   return true;
 
  error:
-  destroy_spreadsheet_read_info (sri, opts);
   return false;
 }
 

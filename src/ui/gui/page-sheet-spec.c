@@ -78,7 +78,6 @@ struct sheet_spec_page
     struct casereader *reader;
     struct dictionary *dict;
     
-    struct spreadsheet_read_info sri;
     struct spreadsheet_read_options opts;
   };
 
@@ -102,7 +101,7 @@ sheet_spec_gen_syntax (const struct import_assistant *ia)
 		   (ia->spreadsheet->type == SPREADSHEET_GNUMERIC) ? "GNM" : "ODS",
 		   ia->file.file_name,			 
 		   ssp->opts.sheet_index,
-		   ssp->sri.read_names ? "ON" : "OFF");
+		   ssp->opts.read_names ? "ON" : "OFF");
 
 
   if (range && 0 != strcmp ("", range))
@@ -215,20 +214,20 @@ post_sheet_spec_page (struct import_assistant *ia)
       ssp->opts.cell_range = range;
     }
 
-  ssp->sri.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
-  ssp->sri.asw = -1;
+  ssp->opts.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
+  ssp->opts.asw = -1;
 
   switch (ia->spreadsheet->type)
     {
     case SPREADSHEET_ODS:
       {
-	creader = ods_make_reader (ia->spreadsheet, &ssp->sri, &ssp->opts);
+	creader = ods_make_reader (ia->spreadsheet, &ssp->opts);
 	dict = ia->spreadsheet->dict;
       }
       break;
     case SPREADSHEET_GNUMERIC:
       {
-	creader = gnumeric_make_reader (ia->spreadsheet, &ssp->sri, &ssp->opts);
+	creader = gnumeric_make_reader (ia->spreadsheet, &ssp->opts);
 	dict = ia->spreadsheet->dict;
       }
       break;

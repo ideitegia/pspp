@@ -43,7 +43,6 @@ on_clicked (GtkButton *button, gpointer data)
   struct ccase *c;
   gint x = gtk_combo_box_get_active (GTK_COMBO_BOX (combo_box));
   struct casereader *reader ;
-  struct spreadsheet_read_info ri;
   struct spreadsheet_read_options opts;
 
   g_print( "%s %d\n", __FUNCTION__, x);
@@ -51,11 +50,10 @@ on_clicked (GtkButton *button, gpointer data)
   opts.sheet_index = x + 1;
   opts.cell_range = NULL;
   opts.sheet_name = NULL;
+  opts.read_names = TRUE;
+  opts.asw = -1;
 
-  ri.read_names = TRUE;
-  ri.asw = -1;
-
-  reader = gnumeric_make_reader (sp, &ri, &opts);
+  reader = gnumeric_make_reader (sp, &opts);
   for (;
            (c = casereader_read (reader)) != NULL; case_unref (c))
     {
