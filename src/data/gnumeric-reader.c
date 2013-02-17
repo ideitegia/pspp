@@ -28,8 +28,6 @@
 
 #include "spreadsheet-reader.h"
 
-#include "c-xvasprintf.h"
-
 #if !GNM_SUPPORT
 
 struct casereader *
@@ -532,6 +530,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
 		      const struct spreadsheet_read_info *gri, 
 		      const struct spreadsheet_read_options *opts)
 {
+  int x = 0;
   struct gnumeric_reader *r = NULL;
   unsigned long int vstart = 0;
   int ret;
@@ -706,13 +705,15 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
   r->first_case = case_create (r->proto);
   case_set_missing (r->first_case);
 
-  int x = 0;
+
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
+      const struct variable *var;
+
       if ( (var_spec[i].name == NULL) && (var_spec[i].first_value == NULL))
 	continue;
 
-      const struct variable *var = dict_get_var (r->dict, x++);
+      var = dict_get_var (r->dict, x++);
 
       convert_xml_string_to_value (r->first_case, var,
 				   var_spec[i].first_value);
@@ -727,17 +728,6 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
   free (var_spec);
   
 
-#if 0  
-  if (opts->cell_range == NULL)
-    {
-      opts->cell_range = c_xasprintf ("%c%d:%c%ld", 
-				       r->start_col + 'A',
-				       r->start_row,
-				       r->stop_col + 'A' + caseproto_get_n_widths (r->proto),
-				       r->start_row + n_cases);
-    }
-#endif
-  
   return casereader_create_sequential
     (NULL,
      r->proto,
