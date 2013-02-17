@@ -87,7 +87,8 @@ enum reader_state
 
 struct sheet_detail
 {
-  xmlChar *name;
+  /* The name of the sheet (utf8 encoding) */
+  char *name;
 
   int start_col;
   int stop_col;
@@ -138,11 +139,12 @@ gnumeric_get_sheet_name (struct spreadsheet *s, int n)
   struct gnumeric_reader *gr = (struct gnumeric_reader *) s;
   assert (n < s->n_sheets);
 
-  return gr->sheets[n].name; // Kludge: Assumes the encoding is utf8
+  return gr->sheets[n].name; 
 }
 
 
 static void process_node (struct gnumeric_reader *r);
+
 
 
 char *
@@ -241,7 +243,7 @@ process_node (struct gnumeric_reader *r)
 	}
       else if (XML_READER_TYPE_TEXT == r->node_type)
 	{
-	  r->sheets [r->spreadsheet.n_sheets - 1].name = xmlTextReaderValue (r->xtr);
+	  r->sheets [r->spreadsheet.n_sheets - 1].name = CHAR_CAST (char *, xmlTextReaderValue (r->xtr));
 	}
       break;
 
@@ -511,6 +513,22 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename, bool show_erro
     }
 
   r->spreadsheet.type = SPREADSHEET_GNUMERIC;
+
+  if (show_errors)
+    {
+      const xmlChar *enc = xmlTextReaderConstEncoding (r->xtr);
+      xmlCharEncoding xce = xmlParseCharEncoding (CHAR_CAST (const char *, enc));
+
+      if ( XML_CHAR_ENCODING_UTF8 != xce)
+	{
+	  /* I have been told that ALL gnumeric files are UTF8 encoded.  If that is correct, this 
+	     can never happen. */
+	  msg (MW, _("The gnumeric file `%s' is encoded as %s instead of the usual UTF-8 encoding. "
+		     "Any non-ascii characters will be incorrectly imported."),
+	       r->spreadsheet.file_name,
+	       enc);
+	}
+    }
 
   return r;
 }
