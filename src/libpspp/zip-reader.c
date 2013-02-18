@@ -390,17 +390,15 @@ zip_member_open (struct zip_reader *zr, const char *member)
   if ( zr == NULL)
     return NULL;
 
-  for (i = 0 ; i < zr->n_members; ++i)
+  for (i = 0; i < zr->n_members; ++i)
   {
-    zm = zr->members[i] = zip_header_read_next (zr);
+    zm = zr->members[i];
+    if (zm == NULL)
+      zm = zr->members[i] = zip_header_read_next (zr);
     if (zm && 0 == strcmp (zm->name, member))
-      {
-	break;
-      }
+      break;
     else
-      {
-	zm = NULL;
-      }
+      zm = NULL;
   }
   
   if ( zm == NULL)
