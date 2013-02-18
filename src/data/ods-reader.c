@@ -228,7 +228,7 @@ process_node (struct ods_reader *r)
 		  r->sheet_index,  r->row);
 
 	  r->state = STATE_SPREADSHEET;
-	  r->sheet_index = -1
+	  r->sheet_index = -1;
 	}
       break;
     case STATE_SPREADSHEET:
@@ -706,6 +706,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	}
     }
 
+  printf ("%s:%d N varspecs %d\n", __FILE__, __LINE__, n_var_specs);
 
   /* Read in the first row of data */
   while (1 == xmlTextReaderRead (r->xtr))
@@ -729,6 +730,14 @@ ods_make_reader (struct spreadsheet *spreadsheet,
       if ( r->state == STATE_CELL_CONTENT &&
 	   XML_READER_TYPE_TEXT  == r->node_type)
 	{
+
+	  if ( idx >= n_var_specs) 
+	    {
+	      var_spec = xrealloc (var_spec, sizeof (*var_spec) * (idx + 1));
+	      var_spec [idx].name = NULL;
+	      n_var_specs = idx + 1;
+	    }
+	    
 	  var_spec [idx].firstval.type = type;
 	  var_spec [idx].firstval.text = xmlTextReaderValue (r->xtr);
 	  var_spec [idx].firstval.value = val_string;
@@ -737,6 +746,8 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	  type = NULL;
 	}
     }
+
+  printf ("%s:%d N varspecs %d\n", __FILE__, __LINE__, n_var_specs);
 
   /* Create the dictionary and populate it */
   r->spreadsheet.dict = r->dict = dict_create (
