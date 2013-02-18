@@ -1,5 +1,3 @@
-/* This is a file */
-
 #include <config.h>
 
 #include <gtk/gtk.h>
@@ -7,6 +5,7 @@
 #include "psppire-spreadsheet-model.h"
 
 #include "data/gnumeric-reader.h"
+#include "data/ods-reader.h"
 #include "data/spreadsheet-reader.h"
 #include "data/casereader.h"
 #include "data/case.h"
@@ -34,9 +33,8 @@ make_store ()
   }
 #endif
 
-struct spreadsheet *sp = NULL;
-GtkWidget *combo_box;
 
+#if 0
 static void
 on_clicked (GtkButton *button, gpointer data)
 {
@@ -61,6 +59,7 @@ on_clicked (GtkButton *button, gpointer data)
       printf ("%g\n", val);
     }
 }
+#endif
 
 int
 main (int argc, char *argv[] )
@@ -73,6 +72,9 @@ main (int argc, char *argv[] )
   GtkTreeModel *tm;
   GtkWidget *button;
 
+  struct spreadsheet *sp = NULL;
+  GtkWidget *combo_box;
+
   gtk_init (&argc, &argv);
     
   if ( argc < 2)
@@ -80,8 +82,10 @@ main (int argc, char *argv[] )
 
   sp = NULL;
 
+#if 0
   if (sp == NULL)
     sp = gnumeric_probe (argv[1], false);
+#endif
 
   if (sp == NULL)
     sp = ods_probe (argv[1], false);
@@ -98,7 +102,7 @@ main (int argc, char *argv[] )
   vbox = gtk_vbox_new (FALSE, 5);
 
   button = gtk_button_new_with_label ("Test reader");
-  g_signal_connect (button, "clicked", G_CALLBACK (on_clicked), NULL);
+  //  g_signal_connect (button, "clicked", G_CALLBACK (on_clicked), NULL);
    
   gtk_container_set_border_width (GTK_CONTAINER (window), 10);
   
