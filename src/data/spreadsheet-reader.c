@@ -112,7 +112,7 @@ int_to_ps26 (int i)
   i -= lower;
   i += base;
 
-  ret = xmalloc (exp);
+  ret = xmalloc (exp + 1);
 
   exp = 0;
   do
