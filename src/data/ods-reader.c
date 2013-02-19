@@ -115,7 +115,11 @@ struct ods_reader
   const xmlChar *target_sheet;
   int target_sheet_index;
 
-#if 1
+
+  int wanted_row_start;
+  int wanted_col_start;
+
+#if 0
   int start_row;
   int start_col;
   int stop_row;
@@ -578,7 +582,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
   if ( !init_reader (r, true))
     goto error;
 
-#if 1
+#if 0
   if ( opts->cell_range )
     {
       if ( ! convert_cell_ref (opts->cell_range,
@@ -604,6 +608,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
   r->target_sheet_index = opts->sheet_index;
   r->row = r->col = 0;
 
+#if 0
   /* If CELLRANGE was given, then we know how many variables should be read */
   if ( r->stop_col != -1 )
     {
@@ -612,6 +617,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
       var_spec = xrealloc (var_spec, sizeof (*var_spec) * n_var_specs);
       memset (var_spec, '\0', sizeof (*var_spec) * n_var_specs);
     }
+#endif
 
   /* Advance to the start of the cells for the target sheet */
   while ( r->current_sheet < r->target_sheet_index - 1 ||
@@ -641,10 +647,10 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	  process_node (r);
 
 	  /* If the row is finished then stop for now */
-	  if (r->state == STATE_TABLE && r->row > r->start_row)
+	  if (r->state == STATE_TABLE && r->row > r->wanted_row_start)
 	    break;
 
-	  idx = r->col - r->start_col - 1;
+	  idx = r->col - r->wanted_col_start - 1;
 
 	  if (r->state == STATE_CELL_CONTENT 
 	      &&
@@ -679,10 +685,10 @@ ods_make_reader (struct spreadsheet *spreadsheet,
       process_node (r);
 
       /* If the row is finished then stop for now */
-      if (r->state == STATE_TABLE && r->row > r->start_row + (opts->read_names ? 1 : 0))
+      if (r->state == STATE_TABLE && r->row > r->wanted_row_start + (opts->read_names ? 1 : 0))
 	break;
 
-      idx = r->col - r->start_col - 1;
+      idx = r->col - r->wanted_col_start - 1;
 
       if ( r->state == STATE_CELL &&
 	   XML_READER_TYPE_ELEMENT  == r->node_type)
@@ -864,7 +870,7 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 
 	  for (col = 0; col < r->col_span; ++col)
 	    {
-	      const int idx = r->col + col - r->start_col - 1;
+	      const int idx = r->col + col - r->wanted_col_start - 1;
 	      const struct variable *var = dict_get_var (r->dict, idx);
 	      convert_xml_to_value (c, var, xmv);
 	    }
