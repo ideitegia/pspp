@@ -307,6 +307,7 @@ process_node (struct ods_reader *r)
 	}
       break;
     case STATE_ROW:
+      //      printf ("%s:%d Name is %s\n", __FILE__, __LINE__, name);
       if ( (0 == xmlStrcasecmp (name, _xml ("table:table-cell")))
 	   && 
 	   (XML_READER_TYPE_ELEMENT  == r->node_type))
@@ -317,6 +318,8 @@ process_node (struct ods_reader *r)
 	  
 	  r->col_span = value ? _xmlchar_to_int (value) : 1;
 	  r->col += r->col_span;
+
+	  //	  printf ("%s:%d %s\n", __FILE__, __LINE__, value);
 
 	  if (! xmlTextReaderIsEmptyElement (r->xtr))
 	    r->state = STATE_CELL;
@@ -836,11 +839,21 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
       return r->first_case;
     }
 
-  if (reading_target_sheet (r)  && r->state != STATE_TABLE)
+
+  /* Advance to the start of a row. (If there is one) */
+  while (r->state != STATE_ROW && 1 == xmlTextReaderRead (r->xtr))
     {
-      c = case_create (r->proto);
-      case_set_missing (c);
+      process_node (r);
     }
+
+
+  if ( ! reading_target_sheet (r)  ||  r->state < STATE_TABLE)
+    {
+      return NULL;
+    }
+
+  c = case_create (r->proto);
+  case_set_missing (c);
   
   while (1 == xmlTextReaderRead (r->xtr))
     {
@@ -849,15 +862,15 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
       if (r->row > current_row && r->state == STATE_ROW)
 	break;
 #endif
-
-      if ( r->state == STATE_CELL &&
-	   r->node_type == XML_READER_TYPE_ELEMENT )
+      //      printf ("%s:%d\n", __FILE__, __LINE__);
+      if (r->state == STATE_CELL &&
+	   r->node_type == XML_READER_TYPE_ELEMENT)
 	{
 	  val_string = xmlTextReaderGetAttribute (r->xtr, _xml ("office:value"));
 	}
 
-      if ( r->state == STATE_CELL_CONTENT && 
-	   r->node_type == XML_READER_TYPE_TEXT )
+      if (r->state == STATE_CELL_CONTENT && 
+	   r->node_type == XML_READER_TYPE_TEXT)
 	{
 	  int col;
 	  struct xml_value *xmv = xzalloc (sizeof *xmv);
@@ -876,19 +889,10 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 	  free (xmv->value);
 	  free (xmv);
 	}
-
-      if ( r->state == STATE_TABLE)
+      if ( r->state <= STATE_TABLE)
 	break;
     }
 
-  if (NULL == c)
-    {
-      case_unref (c);
-      return NULL;
-    }
-  else
-    {
-      return c;
-    }
+  return c;
 }
 #endif
