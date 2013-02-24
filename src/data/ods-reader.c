@@ -112,7 +112,7 @@ struct ods_reader
   int node_type;
   int current_sheet;
 
-  const xmlChar *target_sheet;
+  const xmlChar *target_sheet_name;
   int target_sheet_index;
 
 
@@ -258,9 +258,9 @@ process_node (struct ods_reader *r)
 	  r->col = 0;
 	  r->row = 0;
 
-	  if ( r->target_sheet != NULL)
+	  if ( r->target_sheet_name != NULL)
 	    {
-	      if ( 0 == xmlStrcmp (value, r->target_sheet))
+	      if ( 0 == xmlStrcmp (value, r->target_sheet_name))
 		{
 		  r->sheet_found = true;
 		}
@@ -604,7 +604,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 #endif
 
   r->state = STATE_INIT;
-  r->target_sheet = BAD_CAST opts->sheet_name;
+  r->target_sheet_name = BAD_CAST opts->sheet_name;
   r->target_sheet_index = opts->sheet_index;
   r->row = r->col = 0;
 
