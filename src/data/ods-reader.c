@@ -22,6 +22,7 @@
 
 #include "data/data-in.h"
 
+#include "gl/c-strtod.h"
 #include "gl/minmax.h"
 
 #include "gettext.h"
@@ -436,20 +437,27 @@ convert_xml_to_value (struct ccase *c, const struct variable *var,
     value_copy_str_rpad (v, var_get_width (var), xmv->text, ' ');
   else
     {
-      const char *text ;
       const struct fmt_spec *fmt = var_get_write_format (var);
       enum fmt_category fc  = fmt_get_category (fmt->type);
 
       assert ( fc != FMT_CAT_STRING);
 
-      text =
-        xmv->value ? CHAR_CAST (const char *, xmv->value) : CHAR_CAST (const char *, xmv->text);
+      if ( 0 == xmlStrcmp (xmv->type, _xml("float")))
+	{
+	  v->f = c_strtod (xmv->value, NULL);
+	}
+      else
+	{
+	  const char *text = xmv->value ?
+	    CHAR_CAST (const char *, xmv->value) : CHAR_CAST (const char *, xmv->text);
 
-      free (data_in (ss_cstr (text), "UTF-8",
-                     fmt->type,
-                     v,
-                     var_get_width (var),
-                     "UTF-8"));
+
+	  free (data_in (ss_cstr (text), "UTF-8",
+			 fmt->type,
+			 v,
+			 var_get_width (var),
+			 "UTF-8"));
+	}
     }
 }
 
@@ -837,6 +845,7 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 {
   struct ccase *c = NULL;
   xmlChar *val_string = NULL;
+  xmlChar *type = NULL;
   struct ods_reader *r = r_;
   int current_row = r->row;
 
@@ -873,6 +882,7 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
       if (r->state == STATE_CELL &&
 	   r->node_type == XML_READER_TYPE_ELEMENT)
 	{
+	  type = xmlTextReaderGetAttribute (r->xtr, _xml ("office:value-type"));
 	  val_string = xmlTextReaderGetAttribute (r->xtr, _xml ("office:value"));
 	}
 
@@ -882,7 +892,8 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 	  int col;
 	  struct xml_value *xmv = xzalloc (sizeof *xmv);
 	  xmv->text = xmlTextReaderValue (r->xtr);
-	  xmv->value = val_string;
+	  xmv->value = val_string;	 
+	  xmv->type = type;
 	  val_string = NULL;
 
 	  for (col = 0; col < r->col_span; ++col)
