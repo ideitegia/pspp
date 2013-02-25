@@ -1,5 +1,6 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012,
+                 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -88,12 +89,16 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
       if ( 0 == strncasecmp (tok, "GNM", 3))
 	{
 	  struct spreadsheet *spreadsheet = gnumeric_probe (filename, true);
+	  if (spreadsheet == NULL)
+	    goto error;
 	  reader = gnumeric_make_reader (spreadsheet, &opts);
 	  dict = spreadsheet->dict;
 	}
       else if (0 == strncasecmp (tok, "ODS", 3))
 	{
 	  struct spreadsheet *spreadsheet = ods_probe (filename, true);
+	  if (spreadsheet == NULL)
+	    goto error;
 	  reader = ods_make_reader (spreadsheet, &opts);
 	  dict = spreadsheet->dict;
 	}
