@@ -539,7 +539,14 @@ ods_probe (const char *filename, bool report_errors)
   struct zip_reader *zr = zip_reader_create (filename, &errs);
 
   if (zr == NULL)
-    return NULL;
+    {
+      if (report_errors)
+	{
+	  msg (ME, _("Cannot open %s as a OpenDocument file: %s"),
+	       filename, ds_cstr (&errs));
+	}
+      return NULL;
+    }
 
   sheet_count = get_sheet_count (zr);
 
