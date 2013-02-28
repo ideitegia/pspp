@@ -637,7 +637,8 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 
 
   /* Advance to the start of the cells for the target sheet */
-  while ( ! reading_target_sheet (r)  || r->state != STATE_ROW || r->row < r->start_row )
+  while ( ! reading_target_sheet (r)  
+	  || r->state != STATE_ROW || r->row <= r->start_row )
     {
       if (1 != (ret = xmlTextReaderRead (r->xtr)))
 	   break;
@@ -696,6 +697,9 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	      var_spec[idx].firstval.type = 0;
 
 	      var_spec [idx].name = strdup (CHAR_CAST (const char *, value));
+
+	      //	      printf ("%s:%d Name %s\n", __FILE__, __LINE__, var_spec [idx].name);
+
 	      xmlFree (value);
 	    }
 	}
@@ -751,6 +755,8 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	  var_spec [idx].firstval.type = type;
 	  var_spec [idx].firstval.text = xmlTextReaderValue (r->xtr);
 	  var_spec [idx].firstval.value = val_string;
+
+	  //	  printf ("%s:%d Text %s\n", __FILE__, __LINE__, var_spec [idx].firstval.text);
 
 	  val_string = NULL;
 	  type = NULL;
