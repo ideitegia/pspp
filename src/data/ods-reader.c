@@ -646,7 +646,6 @@ ods_make_reader (struct spreadsheet *spreadsheet,
       process_node (r);
     }
 
-
   if (ret < 1)
     {
       msg (MW, _("Selected sheet or range of spreadsheet `%s' is empty."),
@@ -710,6 +709,9 @@ ods_make_reader (struct spreadsheet *spreadsheet,
     {
       int idx;
       process_node (r);
+
+      if ( ! reading_target_sheet (r) )
+	break;
 
       /* If the row is finished then stop for now */
       if (r->state == STATE_TABLE &&
