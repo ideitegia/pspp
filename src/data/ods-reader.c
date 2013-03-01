@@ -317,10 +317,10 @@ process_node (struct ods_reader *r)
 	  r->col_span = value ? _xmlchar_to_int (value) : 1;
 	  r->col += r->col_span;
 
-	  //	  printf ("%s:%d %s\n", __FILE__, __LINE__, value);
-
 	  if (! xmlTextReaderIsEmptyElement (r->xtr))
 	    r->state = STATE_CELL;
+
+	  xmlFree (value);
 	}
       else if ( (0 == xmlStrcasecmp (name, _xml ("table:table-row")))
 		&&
@@ -480,14 +480,21 @@ get_sheet_count (struct zip_reader *zreader)
       if ( 0 == xmlStrcmp (name, _xml("meta:document-statistic")))
 	{
 	  xmlChar *attr = xmlTextReaderGetAttribute (mxtr, _xml ("meta:table-count"));
-	    
+
 	  if ( attr != NULL)
 	    {
 	      int s = _xmlchar_to_int (attr);
+	      xmlFreeTextReader (mxtr);
+	      xmlFree (name);
+	      xmlFree (attr);      
 	      return s;
 	    }
+	  xmlFree (attr);      
 	}
+      xmlFree (name);      
     }
+
+  xmlFreeTextReader (mxtr);
   return -1;
 }
 
