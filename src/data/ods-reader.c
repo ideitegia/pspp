@@ -268,7 +268,7 @@ process_node (struct ods_reader *r)
 	      r->sheets[r->n_allocated_sheets - 1].stop_col = -1;
 	      r->sheets[r->n_allocated_sheets - 1].start_row = -1;
 	      r->sheets[r->n_allocated_sheets - 1].stop_row = -1;
-	      r->sheets[r->n_allocated_sheets - 1].name = xmlStrdup (r->current_sheet_name);
+	      r->sheets[r->n_allocated_sheets - 1].name = CHAR_CAST (char *, xmlStrdup (r->current_sheet_name));
 	    }
 
 	  r->col = 0;
@@ -441,7 +441,7 @@ convert_xml_to_value (struct ccase *c, const struct variable *var,
 
       if ( 0 == xmlStrcmp (xmv->type, _xml("float")))
 	{
-	  v->f = c_strtod (xmv->value, NULL);
+	  v->f = c_strtod (CHAR_CAST (const char *, xmv->value), NULL);
 	}
       else
 	{
@@ -929,13 +929,14 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 
 	  for (col = 0; col < r->col_span; ++col)
 	    {
+	      const struct variable *var;
 	      const int idx = r->col + col - r->start_col - 1;
 	      if (idx < 0)
 		continue;
 	      if (r->stop_col != -1 && idx > r->stop_col - r->start_col )
 		break;
 
-	      const struct variable *var = dict_get_var (r->dict, idx);
+              var = dict_get_var (r->dict, idx);
 	      convert_xml_to_value (c, var, xmv);
 	    }
 
