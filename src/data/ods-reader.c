@@ -305,7 +305,6 @@ process_node (struct ods_reader *r)
 	}
       break;
     case STATE_ROW:
-      //      printf ("%s:%d Name is %s\n", __FILE__, __LINE__, name);
       if ( (0 == xmlStrcasecmp (name, _xml ("table:table-cell")))
 	   && 
 	   (XML_READER_TYPE_ELEMENT  == r->node_type))
@@ -680,8 +679,6 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	  if (r->stop_col != -1 && idx > r->stop_col - r->start_col)
 	    continue;
 
-	  //	  printf ("%s:%d IDX %d COL %d\n", __FILE__, __LINE__, idx, r->col);
-
 	  if (r->state == STATE_CELL_CONTENT 
 	      &&
 	      XML_READER_TYPE_TEXT  == r->node_type)
@@ -703,8 +700,6 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	      var_spec[idx].firstval.type = 0;
 
 	      var_spec [idx].name = strdup (CHAR_CAST (const char *, value));
-
-	      //	      printf ("%s:%d Name %s\n", __FILE__, __LINE__, var_spec [idx].name);
 
 	      xmlFree (value);
 	    }
@@ -756,16 +751,10 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	      var_spec [idx].name = NULL;
 	      n_var_specs = idx + 1;
 	    }
-#if 0
-	  printf ("%s:%d Idx %d n_var_specs %d\n", __FILE__, __LINE__,
-		  idx, n_var_specs);
-#endif
-	    
+
 	  var_spec [idx].firstval.type = type;
 	  var_spec [idx].firstval.text = xmlTextReaderValue (r->xtr);
 	  var_spec [idx].firstval.value = val_string;
-
-	  //	  printf ("%s:%d Text %s\n", __FILE__, __LINE__, var_spec [idx].firstval.text);
 
 	  val_string = NULL;
 	  type = NULL;
@@ -830,9 +819,8 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	break;
     }
 
-  //  zip_reader_destroy (zreader);
+  // zip_reader_destroy (zreader);
 
-#if 0
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
       free (var_spec[i].firstval.type);
@@ -842,7 +830,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
     }
 
   free (var_spec);
-#endif
+
 
   return casereader_create_sequential
     (NULL,
@@ -852,7 +840,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 
  error:
   
-  // zip_reader_destroy (zreader);
+  //zip_reader_destroy (zreader);
 
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
@@ -947,8 +935,9 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 	      convert_xml_to_value (c, var, xmv);
 	    }
 
-	  free (xmv->text);
-	  free (xmv->value);
+	  xmlFree (xmv->text);
+	  xmlFree (xmv->value);
+	  xmlFree (xmv->type);
 	  free (xmv);
 	}
       if ( r->state <= STATE_TABLE)
