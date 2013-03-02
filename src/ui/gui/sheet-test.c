@@ -10,9 +10,10 @@
 #include "data/casereader.h"
 #include "data/case.h"
 
+#if 0
 #define N 10
 
-#if 0
+
 static GtkListStore *
 make_store ()
   {
@@ -34,12 +35,19 @@ make_store ()
 #endif
 
 
-#if 0
+struct xxx
+{
+  struct spreadsheet *sp;
+  GtkWidget *combo_box;
+};
+
+
+
 static void
-on_clicked (GtkButton *button, gpointer data)
+on_clicked (GtkButton *button, struct xxx *stuff)
 {
   struct ccase *c;
-  gint x = gtk_combo_box_get_active (GTK_COMBO_BOX (combo_box));
+  gint x = gtk_combo_box_get_active (GTK_COMBO_BOX (stuff->combo_box));
   struct casereader *reader ;
   struct spreadsheet_read_options opts;
 
@@ -51,7 +59,7 @@ on_clicked (GtkButton *button, gpointer data)
   opts.read_names = TRUE;
   opts.asw = -1;
 
-  reader = gnumeric_make_reader (sp, &opts);
+  reader = ods_make_reader (stuff->sp, &opts);
   for (;
            (c = casereader_read (reader)) != NULL; case_unref (c))
     {
@@ -59,7 +67,7 @@ on_clicked (GtkButton *button, gpointer data)
       printf ("%g\n", val);
     }
 }
-#endif
+
 
 int
 main (int argc, char *argv[] )
@@ -71,54 +79,52 @@ main (int argc, char *argv[] )
 
   GtkTreeModel *tm;
   GtkWidget *button;
-
-  struct spreadsheet *sp = NULL;
-  GtkWidget *combo_box;
+  struct xxx stuff;
 
   gtk_init (&argc, &argv);
     
   if ( argc < 2)
     g_error ("Usage: prog file\n");
 
-  sp = NULL;
+  stuff.sp = NULL;
 
 #if 0
   if (sp == NULL)
     sp = gnumeric_probe (argv[1], false);
 #endif
 
-  if (sp == NULL)
-    sp = ods_probe (argv[1], false);
+  if (stuff.sp == NULL)
+    stuff.sp = ods_probe (argv[1], false);
   
-  if (sp == NULL)
+  if (stuff.sp == NULL)
     {
       g_error ("%s is neither a gnumeric nor a ods file\n", argv[1]);
       return 0;
     }
 
-  tm = psppire_spreadsheet_model_new (sp);
+  tm = psppire_spreadsheet_model_new (stuff.sp);
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   hbox = gtk_hbox_new (FALSE, 5);
   vbox = gtk_vbox_new (FALSE, 5);
 
   button = gtk_button_new_with_label ("Test reader");
-  //  g_signal_connect (button, "clicked", G_CALLBACK (on_clicked), NULL);
+  g_signal_connect (button, "clicked", G_CALLBACK (on_clicked), &stuff);
    
   gtk_container_set_border_width (GTK_CONTAINER (window), 10);
   
-  combo_box = gtk_combo_box_new();
+  stuff.combo_box = gtk_combo_box_new();
 
   {
     GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
-    gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box), renderer, TRUE);
-    gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box), renderer,
+    gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (stuff.combo_box), renderer, TRUE);
+    gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (stuff.combo_box), renderer,
 				    "text", 0,
 				    NULL);
   }
 
-  gtk_combo_box_set_model (GTK_COMBO_BOX (combo_box), tm);
+  gtk_combo_box_set_model (GTK_COMBO_BOX (stuff.combo_box), tm);
 
-  gtk_combo_box_set_active (GTK_COMBO_BOX (combo_box), 0);
+  gtk_combo_box_set_active (GTK_COMBO_BOX (stuff.combo_box), 0);
 
   treeview = gtk_tree_view_new_with_model (tm);
 
@@ -138,7 +144,7 @@ main (int argc, char *argv[] )
 
   gtk_box_pack_start (GTK_BOX (hbox), treeview, TRUE, TRUE, 5);
 
-  gtk_box_pack_start (GTK_BOX (vbox), combo_box, FALSE, FALSE, 5);
+  gtk_box_pack_start (GTK_BOX (vbox), stuff.combo_box, FALSE, FALSE, 5);
   gtk_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 5);
   gtk_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 5);
 
