@@ -117,12 +117,10 @@ struct ods_reader
   int target_sheet_index;
 
 
-#if 1
   int start_row;
   int start_col;
   int stop_row;
   int stop_col;
-#endif
 
   int col_span;
 
@@ -161,17 +159,19 @@ static void process_node (struct ods_reader *r);
 const char *
 ods_get_sheet_name (struct spreadsheet *s, int n)
 {
-  int ret;
   struct ods_reader *or = (struct ods_reader *) s;
   
   assert (n < s->n_sheets);
 
   while ( 
-	 (or->n_allocated_sheets <= n)
-	 && 
-	 (1 == (ret = xmlTextReaderRead (or->xtr)))
+	  (or->n_allocated_sheets <= n)
+	  || or->state != STATE_SPREADSHEET
 	  )
     {
+      int ret = xmlTextReaderRead (or->xtr);
+      if ( ret != 1)
+	break;
+
       process_node (or);
     }
 
@@ -181,22 +181,22 @@ ods_get_sheet_name (struct spreadsheet *s, int n)
 char *
 ods_get_sheet_range (struct spreadsheet *s, int n)
 {
-  int ret = -1;
   struct ods_reader *or = (struct ods_reader *) s;
   
   assert (n < s->n_sheets);
 
   while ( 
-	 (
 	  (or->n_allocated_sheets <= n)
-	  || (or->sheets[n].stop_row == -1) )
-	 && 
-	 (1 == (ret = xmlTextReaderRead (or->xtr)))
+	  || (or->sheets[n].stop_row == -1) 
+	  || or->state != STATE_SPREADSHEET
 	  )
     {
+      int ret = xmlTextReaderRead (or->xtr);
+      if ( ret != 1)
+	break;
+
       process_node (or);
     }
-
 
   return create_cell_ref (
 			  or->sheets[n].start_col,
@@ -263,6 +263,7 @@ process_node (struct ods_reader *r)
 
 	  if (r->current_sheet >= r->n_allocated_sheets)
 	    {
+	      assert (r->current_sheet == r->n_allocated_sheets);
 	      r->sheets = xrealloc (r->sheets, sizeof (*r->sheets) * ++r->n_allocated_sheets);
 	      r->sheets[r->n_allocated_sheets - 1].start_col = -1;
 	      r->sheets[r->n_allocated_sheets - 1].stop_col = -1;
