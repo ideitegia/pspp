@@ -257,7 +257,8 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
         char *x =
           ods_get_sheet_range (spreadsheetModel->spreadsheet,
                                     (gint) iter->user_data);
-        g_value_set_string (value, x);
+
+	g_value_set_string (value, x ? x : "(empty)");
 	g_free (x);
       }
       break;
