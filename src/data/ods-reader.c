@@ -534,6 +534,10 @@ init_reader (struct ods_reader *r, bool report_errors)
 
   r->xtr = xtr;
   r->spreadsheet.type = SPREADSHEET_ODS;
+  r->row = 0;
+  r->col = 0;
+  r->current_sheet = 0;
+  r->state = STATE_INIT;
 
   if (report_errors) 
     xmlTextReaderSetErrorHandler (xtr, ods_error_handler, r);
@@ -693,7 +697,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 		  /* xrealloc (unlike realloc) doesn't initialise its memory to 0 */
 		  memset (var_spec + n_var_specs,
 			  0, 
-			  (n_var_specs - idx + 1) * sizeof (*var_spec));
+			  (idx - n_var_specs + 1) * sizeof (*var_spec));
 		  n_var_specs = idx + 1;
 		}
 	      var_spec[idx].firstval.text = 0;
@@ -749,6 +753,10 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	  if (idx >= n_var_specs)
 	    {
 	      var_spec = xrealloc (var_spec, sizeof (*var_spec) * (idx + 1));
+	      memset (var_spec + n_var_specs,
+		      0, 
+		      (idx - n_var_specs + 1) * sizeof (*var_spec));
+
 	      var_spec [idx].name = NULL;
 	      n_var_specs = idx + 1;
 	    }
