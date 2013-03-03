@@ -8407,7 +8407,7 @@ pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
   int new_node = -1;
   int cursor_node = -1;
   GtkTreePath *cursor_path = NULL;
-  GtkTreeSelectMode mode = 0;
+  PsppSheetSelectMode mode = 0;
 
   if (!gtk_widget_has_focus (GTK_WIDGET (tree_view)))
     return FALSE;
@@ -8438,9 +8438,9 @@ pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
     }
 
   if (tree_view->priv->ctrl_pressed)
-    mode |= GTK_TREE_SELECT_MODE_TOGGLE;
+    mode |= PSPP_SHEET_SELECT_MODE_TOGGLE;
   if (tree_view->priv->shift_pressed)
-    mode |= GTK_TREE_SELECT_MODE_EXTEND;
+    mode |= PSPP_SHEET_SELECT_MODE_EXTEND;
 
   _pspp_sheet_selection_internal_select_node (tree_view->priv->selection,
 					    cursor_node,
@@ -8498,7 +8498,7 @@ pspp_sheet_view_real_toggle_cursor_row (PsppSheetView *tree_view)
   _pspp_sheet_selection_internal_select_node (tree_view->priv->selection,
 					    cursor_node,
 					    cursor_path,
-                                            GTK_TREE_SELECT_MODE_TOGGLE,
+                                            PSPP_SHEET_SELECT_MODE_TOGGLE,
 					    FALSE);
 
   /* We bail out if the original (tree, node) don't exist anymore after
@@ -10027,12 +10027,12 @@ pspp_sheet_view_real_set_cursor (PsppSheetView     *tree_view,
 
       if (clear_and_select && !tree_view->priv->ctrl_pressed)
         {
-          GtkTreeSelectMode mode = 0;
+          PsppSheetSelectMode mode = 0;
 
           if (tree_view->priv->ctrl_pressed)
-            mode |= GTK_TREE_SELECT_MODE_TOGGLE;
+            mode |= PSPP_SHEET_SELECT_MODE_TOGGLE;
           if (tree_view->priv->shift_pressed)
-            mode |= GTK_TREE_SELECT_MODE_EXTEND;
+            mode |= PSPP_SHEET_SELECT_MODE_EXTEND;
 
           _pspp_sheet_selection_internal_select_node (tree_view->priv->selection,
                                                     node, path, mode,
