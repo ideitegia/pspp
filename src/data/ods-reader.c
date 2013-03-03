@@ -934,7 +934,7 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 	  for (col = 0; col < r->col_span; ++col)
 	    {
 	      const struct variable *var;
-	      const int idx = r->col + col - r->start_col - 1;
+	      const int idx = r->col - col - r->start_col - 1;
 	      if (idx < 0)
 		continue;
 	      if (r->stop_col != -1 && idx > r->stop_col - r->start_col )
