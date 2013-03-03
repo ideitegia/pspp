@@ -46,6 +46,8 @@ struct xxx
 static void
 on_clicked (GtkButton *button, struct xxx *stuff)
 {
+  const struct caseproto *proto;
+  int nvals;
   struct ccase *c;
   gint x = gtk_combo_box_get_active (GTK_COMBO_BOX (stuff->combo_box));
   struct casereader *reader ;
@@ -60,11 +62,21 @@ on_clicked (GtkButton *button, struct xxx *stuff)
   opts.asw = -1;
 
   reader = ods_make_reader (stuff->sp, &opts);
+  proto = casereader_get_proto (reader);
+
+  nvals = caseproto_get_n_widths (proto);
+  
   for (;
            (c = casereader_read (reader)) != NULL; case_unref (c))
     {
-      const double val = case_data_idx (c, 0)->f;
-      printf ("%g\n", val);
+      int i;
+
+      for (i = 0; i < nvals ; ++i)
+      {
+	const double val = case_data_idx (c, i)->f;
+	printf ("%g ", val);
+      }
+      printf ("\n");
     }
 }
 
