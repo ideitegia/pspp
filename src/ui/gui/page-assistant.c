@@ -65,7 +65,6 @@ static void on_cancel (GtkAssistant *assistant, struct import_assistant *);
 static void on_close (GtkAssistant *assistant, struct import_assistant *);
 static void on_paste (GtkButton *button, struct import_assistant *);
 static void on_reset (GtkButton *button, struct import_assistant *);
-static void close_assistant (struct import_assistant *, int response);
 
 /* Initializes IA's asst substructure.  PARENT_WINDOW must be the
    window to use as the assistant window's parent.  */
@@ -239,7 +238,10 @@ static void
 close_assistant (struct import_assistant *ia, int response)
 {
   ia->asst.response = response;
-  g_main_loop_quit (ia->asst.main_loop);
+  /*  Use our loop_done variable until we find out
+      why      g_main_loop_quit (ia->asst.main_loop); doesn't work.
+  */
+  ia->asst.loop_done = true;
   gtk_widget_hide (GTK_WIDGET (ia->asst.assistant));
 }
 

@@ -105,7 +105,20 @@ text_data_import_assistant (PsppireDataWindow *dw)
   gtk_widget_show_all (GTK_WIDGET (ia->asst.assistant));
 
   ia->asst.main_loop = g_main_loop_new (NULL, false);
-  g_main_loop_run (ia->asst.main_loop);
+
+  {  
+  /*
+    Instead of this block,
+    A simple     g_main_loop_run (ia->asst.main_loop);  should work here.  But it seems to crash.
+    I have no idea why.
+  */
+    GMainContext *ctx = g_main_loop_get_context (ia->asst.main_loop);
+    ia->asst.loop_done = false;
+    while (! ia->asst.loop_done)
+      {
+	g_main_context_iteration (ctx, TRUE);
+      }
+  }
   g_main_loop_unref (ia->asst.main_loop);
 
   switch (ia->asst.response)

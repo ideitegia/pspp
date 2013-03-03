@@ -47,6 +47,7 @@ struct assistant
     GtkBuilder *builder;
     GtkAssistant *assistant;
     GMainLoop *main_loop;
+    bool loop_done;
     GtkWidget *paste_button;
     GtkWidget *reset_button;
     int response;
