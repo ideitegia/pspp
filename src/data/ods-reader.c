@@ -523,6 +523,8 @@ init_reader (struct ods_reader *r, bool report_errors)
 
   zip_member_ref (content);
 
+  if (r->xtr)
+    xmlFreeTextReader (r->xtr);
 
   xtr = xmlReaderForIO ((xmlInputReadCallback) zip_member_read,
 			(xmlInputCloseCallback) zip_member_finish,

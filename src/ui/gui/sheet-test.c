@@ -78,6 +78,8 @@ on_clicked (GtkButton *button, struct xxx *stuff)
       }
       printf ("\n");
     }
+
+  casereader_destroy (reader);
 }
 
 
