@@ -209,6 +209,7 @@ ods_get_sheet_range (struct spreadsheet *s, int n)
 static void
 ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
+  int i;
   struct ods_reader *r = r_;
   if ( r == NULL)
     return ;
@@ -227,7 +228,16 @@ ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   caseproto_unref (r->proto);
 
-  //  free (r);
+  xmlFree (r->current_sheet_name);
+
+  for (i = 0; i < r->n_allocated_sheets; ++i)
+  {
+    xmlFree (r->sheets[i].name);
+  }
+
+  free (r->sheets);
+
+  free (r);
 }
 
 static void
@@ -298,6 +308,8 @@ process_node (struct ods_reader *r)
 	  
 	  if (! xmlTextReaderIsEmptyElement (r->xtr))
 	    r->state = STATE_ROW;
+
+	  xmlFree (value);
 	}
       else if (0 == xmlStrcasecmp (name, _xml("table:table")) && 
 	       (XML_READER_TYPE_END_ELEMENT  == r->node_type))

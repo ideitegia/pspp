@@ -175,6 +175,7 @@ gnumeric_get_sheet_range (struct spreadsheet *s, int n)
 static void
 gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
+  int i;
   struct gnumeric_reader *r = r_;
   if ( r == NULL)
 	return ;
@@ -188,7 +189,6 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   caseproto_unref (r->proto);
 
-#if 0
   for (i = 0; i < r->spreadsheet.n_sheets; ++i)
     {
       xmlFree (r->sheets[i].name);
@@ -198,7 +198,6 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
 
   free (r);
-#endif
 }
 
 static void

@@ -103,6 +103,8 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	  dict = spreadsheet->dict;
 	}
 
+      free (filename);
+
       if (reader)
 	{
 	  dataset_set_dict (ds, dict);
