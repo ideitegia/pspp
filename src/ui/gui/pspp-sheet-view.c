@@ -924,6 +924,14 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
                                         GTK_MOVEMENT_PAGES, 1);
 
 
+      gtk_binding_entry_add_signal (binding_set[i], GDK_Up, GDK_CONTROL_MASK, "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_BUFFER_ENDS,
+                                    G_TYPE_INT, -1);
+
+      gtk_binding_entry_add_signal (binding_set[i], GDK_Down, GDK_CONTROL_MASK, "move-cursor", 2,
+                                    G_TYPE_ENUM, GTK_MOVEMENT_BUFFER_ENDS,
+                                    G_TYPE_INT, 1);
+
       gtk_binding_entry_add_signal (binding_set[i], GDK_Right, 0, "move-cursor", 2,
                                     G_TYPE_ENUM, GTK_MOVEMENT_VISUAL_POSITIONS,
                                     G_TYPE_INT, 1);
@@ -12430,6 +12438,10 @@ pspp_sheet_view_event (GtkWidget *widget,
         case GDK_Right:     case GDK_KP_Right:
           if (!is_all_selected (widget) && !is_at_right (widget))
             return FALSE;
+          break;
+
+        case GDK_Up:        case GDK_KP_Up:
+        case GDK_Down:      case GDK_KP_Down:
           break;
 
         default:
