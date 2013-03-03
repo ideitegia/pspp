@@ -256,7 +256,8 @@ static gboolean pspp_sheet_view_real_move_cursor            (PsppSheetView     *
 static gboolean pspp_sheet_view_real_select_all             (PsppSheetView     *tree_view);
 static gboolean pspp_sheet_view_real_unselect_all           (PsppSheetView     *tree_view);
 static gboolean pspp_sheet_view_real_select_cursor_row      (PsppSheetView     *tree_view,
-							   gboolean         start_editing);
+                                                             gboolean         start_editing,
+                                                             PsppSheetSelectMode mode);
 static gboolean pspp_sheet_view_real_toggle_cursor_row      (PsppSheetView     *tree_view);
 static void pspp_sheet_view_row_changed                     (GtkTreeModel    *model,
 							   GtkTreePath     *path,
@@ -316,21 +317,27 @@ static gboolean pspp_sheet_view_maybe_begin_dragging_row       (PsppSheetView   
 							      GdkEventMotion     *event);
 static void     pspp_sheet_view_focus_to_cursor                (PsppSheetView        *tree_view);
 static gboolean pspp_sheet_view_move_cursor_up_down            (PsppSheetView        *tree_view,
-							      gint                count);
+							      gint                count,
+                                                                PsppSheetSelectMode mode);
 static void     pspp_sheet_view_move_cursor_page_up_down       (PsppSheetView        *tree_view,
-							      gint                count);
+							      gint                count,
+                                                                PsppSheetSelectMode mode);
 static void     pspp_sheet_view_move_cursor_left_right         (PsppSheetView        *tree_view,
-							      gint                count);
+                                                                gint                count,
+                                                                PsppSheetSelectMode mode);
 static void     pspp_sheet_view_move_cursor_line_start_end     (PsppSheetView        *tree_view,
-							        gint                count);
+							        gint                count,
+                                                                PsppSheetSelectMode mode);
 static void     pspp_sheet_view_move_cursor_tab                (PsppSheetView        *tree_view,
 							      gint                count);
 static void     pspp_sheet_view_move_cursor_start_end          (PsppSheetView        *tree_view,
-							      gint                count);
+							      gint                count,
+                                                                PsppSheetSelectMode mode);
 static void     pspp_sheet_view_real_set_cursor                (PsppSheetView        *tree_view,
 							      GtkTreePath        *path,
 							      gboolean            clear_and_select,
-							      gboolean            clamp_node);
+                                                              gboolean            clamp_node,
+                                                              PsppSheetSelectMode mode);
 static gboolean pspp_sheet_view_has_special_cell               (PsppSheetView        *tree_view);
 static void     pspp_sheet_view_stop_rubber_band               (PsppSheetView        *tree_view);
 static void     update_prelight                              (PsppSheetView        *tree_view,
@@ -856,8 +863,8 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 		  G_STRUCT_OFFSET (PsppSheetViewClass, select_cursor_row),
 		  NULL, NULL,
 		  psppire_marshal_BOOLEAN__BOOLEAN,
-		  G_TYPE_BOOLEAN, 1,
-		  G_TYPE_BOOLEAN);
+		  G_TYPE_BOOLEAN, 2,
+		  G_TYPE_BOOLEAN, G_TYPE_INT);
 
   tree_view_signals[TOGGLE_CURSOR_ROW] =
     g_signal_new ("toggle-cursor-row",
@@ -976,20 +983,27 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
   gtk_binding_entry_add_signal (binding_set[0], GDK_backslash, GDK_CONTROL_MASK, "unselect-all", 0);
 
   gtk_binding_entry_add_signal (binding_set[0], GDK_space, GDK_SHIFT_MASK, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
+				G_TYPE_BOOLEAN, TRUE,
+                                G_TYPE_INT, PSPP_SHEET_SELECT_MODE_EXTEND);
   gtk_binding_entry_add_signal (binding_set[0], GDK_KP_Space, GDK_SHIFT_MASK, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
+				G_TYPE_BOOLEAN, TRUE,
+                                G_TYPE_INT, PSPP_SHEET_SELECT_MODE_EXTEND);
 
   gtk_binding_entry_add_signal (binding_set[0], GDK_space, 0, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
+				G_TYPE_BOOLEAN, TRUE,
+                                G_TYPE_INT, 0);
   gtk_binding_entry_add_signal (binding_set[0], GDK_KP_Space, 0, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
+				G_TYPE_BOOLEAN, TRUE,
+                                G_TYPE_INT, 0);
   gtk_binding_entry_add_signal (binding_set[0], GDK_Return, 0, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
+				G_TYPE_BOOLEAN, TRUE,
+                                G_TYPE_INT, 0);
   gtk_binding_entry_add_signal (binding_set[0], GDK_ISO_Enter, 0, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
+				G_TYPE_BOOLEAN, TRUE,
+                                G_TYPE_INT, 0);
   gtk_binding_entry_add_signal (binding_set[0], GDK_KP_Enter, 0, "select-cursor-row", 1,
-				G_TYPE_BOOLEAN, TRUE);
+				G_TYPE_BOOLEAN, TRUE,
+                                G_TYPE_INT, 0);
 
   gtk_binding_entry_add_signal (binding_set[0], GDK_BackSpace, 0, "select-cursor-parent", 0);
   gtk_binding_entry_add_signal (binding_set[0], GDK_BackSpace, GDK_CONTROL_MASK, "select-cursor-parent", 0);
@@ -2362,10 +2376,12 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
        */
       if (event->type == GDK_BUTTON_PRESS)
         {
+          PsppSheetSelectionMode mode = 0;
+
           if ((event->state & GDK_CONTROL_MASK) == GDK_CONTROL_MASK)
-            tree_view->priv->ctrl_pressed = TRUE;
+            mode |= PSPP_SHEET_SELECT_MODE_TOGGLE;
           if ((event->state & GDK_SHIFT_MASK) == GDK_SHIFT_MASK)
-            tree_view->priv->shift_pressed = TRUE;
+            mode |= PSPP_SHEET_SELECT_MODE_EXTEND;
 
           focus_cell = _pspp_sheet_view_column_get_cell_at_pos (column, event->x - background_area.x);
           if (focus_cell)
@@ -2373,17 +2389,17 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
 
           if (event->state & GDK_CONTROL_MASK)
             {
-              pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, TRUE);
+              pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, TRUE, mode);
               pspp_sheet_view_real_toggle_cursor_row (tree_view);
             }
           else if (event->state & GDK_SHIFT_MASK)
             {
-              pspp_sheet_view_real_set_cursor (tree_view, path, TRUE, TRUE);
-              pspp_sheet_view_real_select_cursor_row (tree_view, FALSE);
+              pspp_sheet_view_real_set_cursor (tree_view, path, TRUE, TRUE, mode);
+              pspp_sheet_view_real_select_cursor_row (tree_view, FALSE, mode);
             }
           else
             {
-              pspp_sheet_view_real_set_cursor (tree_view, path, TRUE, TRUE);
+              pspp_sheet_view_real_set_cursor (tree_view, path, TRUE, TRUE, 0);
             }
 
           if (tree_view->priv->anchor_column == NULL ||
@@ -2393,9 +2409,6 @@ pspp_sheet_view_button_press (GtkWidget      *widget,
           pspp_sheet_selection_select_column_range (tree_view->priv->selection,
                                                     tree_view->priv->anchor_column,
                                                     column);
-
-          tree_view->priv->ctrl_pressed = FALSE;
-          tree_view->priv->shift_pressed = FALSE;
         }
 
       /* the treeview may have been scrolled because of _set_cursor,
@@ -2685,7 +2698,7 @@ pspp_sheet_view_button_release_edit (PsppSheetView *tree_view,
     return FALSE;
 
   pspp_sheet_view_real_set_cursor (tree_view, path,
-                                   TRUE, TRUE);
+                                   TRUE, TRUE, 0); /* XXX mode? */
   gtk_widget_queue_draw (GTK_WIDGET (tree_view));
 
   area = cell_area;
@@ -2803,7 +2816,7 @@ prelight_or_select (PsppSheetView *tree_view,
               if (pspp_sheet_view_node_is_selected (tree_view, node))
 		{
 		  PSPP_SHEET_VIEW_UNSET_FLAG (tree_view, PSPP_SHEET_VIEW_DRAW_KEYFOCUS);
-		  pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, FALSE);
+		  pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, FALSE, 0); /* XXX mode? */
 		}
 	      gtk_tree_path_free (path);
 	    }
@@ -3295,7 +3308,7 @@ pspp_sheet_view_stop_rubber_band (PsppSheetView *tree_view)
       /* ... and the cursor to the end path */
       tmp_path = _pspp_sheet_view_find_path (tree_view,
 					   tree_view->priv->rubber_band_end_node);
-      pspp_sheet_view_real_set_cursor (PSPP_SHEET_VIEW (tree_view), tmp_path, FALSE, FALSE);
+      pspp_sheet_view_real_set_cursor (PSPP_SHEET_VIEW (tree_view), tmp_path, FALSE, FALSE, 0); /* XXX mode? */
       gtk_tree_path_free (tmp_path);
 
       _pspp_sheet_selection_emit_changed (tree_view->priv->selection);
@@ -6962,6 +6975,7 @@ pspp_sheet_view_real_move_cursor (PsppSheetView       *tree_view,
 				GtkMovementStep    step,
 				gint               count)
 {
+  PsppSheetSelectMode mode;
   GdkModifierType state;
 
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), FALSE);
@@ -6981,12 +6995,13 @@ pspp_sheet_view_real_move_cursor (PsppSheetView       *tree_view,
   PSPP_SHEET_VIEW_SET_FLAG (tree_view, PSPP_SHEET_VIEW_DRAW_KEYFOCUS);
   gtk_widget_grab_focus (GTK_WIDGET (tree_view));
 
+  mode = 0;
   if (gtk_get_current_event_state (&state))
     {
       if ((state & GDK_CONTROL_MASK) == GDK_CONTROL_MASK)
-        tree_view->priv->ctrl_pressed = TRUE;
+        mode |= PSPP_SHEET_SELECT_MODE_TOGGLE;
       if ((state & GDK_SHIFT_MASK) == GDK_SHIFT_MASK)
-        tree_view->priv->shift_pressed = TRUE;
+        mode |= PSPP_SHEET_SELECT_MODE_EXTEND;
     }
   /* else we assume not pressed */
 
@@ -6996,26 +7011,23 @@ pspp_sheet_view_real_move_cursor (PsppSheetView       *tree_view,
       pspp_sheet_view_move_cursor_tab (tree_view, count);
       break;
     case GTK_MOVEMENT_VISUAL_POSITIONS:
-      pspp_sheet_view_move_cursor_left_right (tree_view, count);
+      pspp_sheet_view_move_cursor_left_right (tree_view, count, mode);
       break;
     case GTK_MOVEMENT_DISPLAY_LINES:
-      pspp_sheet_view_move_cursor_up_down (tree_view, count);
+      pspp_sheet_view_move_cursor_up_down (tree_view, count, mode);
       break;
     case GTK_MOVEMENT_PAGES:
-      pspp_sheet_view_move_cursor_page_up_down (tree_view, count);
+      pspp_sheet_view_move_cursor_page_up_down (tree_view, count, mode);
       break;
     case GTK_MOVEMENT_BUFFER_ENDS:
-      pspp_sheet_view_move_cursor_start_end (tree_view, count);
+      pspp_sheet_view_move_cursor_start_end (tree_view, count, mode);
       break;
     case GTK_MOVEMENT_DISPLAY_LINE_ENDS:
-      pspp_sheet_view_move_cursor_line_start_end (tree_view, count);
+      pspp_sheet_view_move_cursor_line_start_end (tree_view, count, mode);
       break;
     default:
       g_assert_not_reached ();
     }
-
-  tree_view->priv->ctrl_pressed = FALSE;
-  tree_view->priv->shift_pressed = FALSE;
 
   return TRUE;
 }
@@ -7782,9 +7794,9 @@ pspp_sheet_view_focus_to_cursor (PsppSheetView *tree_view)
 	{
 	  if (tree_view->priv->selection->type == PSPP_SHEET_SELECTION_MULTIPLE ||
               tree_view->priv->selection->type == PSPP_SHEET_SELECTION_RECTANGLE)
-	    pspp_sheet_view_real_set_cursor (tree_view, cursor_path, FALSE, FALSE);
+	    pspp_sheet_view_real_set_cursor (tree_view, cursor_path, FALSE, FALSE, 0);
 	  else
-	    pspp_sheet_view_real_set_cursor (tree_view, cursor_path, TRUE, FALSE);
+	    pspp_sheet_view_real_set_cursor (tree_view, cursor_path, TRUE, FALSE, 0);
 	}
     }
 
@@ -7816,7 +7828,8 @@ pspp_sheet_view_focus_to_cursor (PsppSheetView *tree_view)
 
 static gboolean
 pspp_sheet_view_move_cursor_up_down (PsppSheetView *tree_view,
-				   gint         count)
+				   gint         count,
+                                   PsppSheetSelectMode mode)
 {
   gint selection_count;
   int cursor_node = -1;
@@ -7843,7 +7856,7 @@ pspp_sheet_view_move_cursor_up_down (PsppSheetView *tree_view,
 
   if (selection_count == 0
       && tree_view->priv->selection->type != PSPP_SHEET_SELECTION_NONE
-      && !tree_view->priv->ctrl_pressed)
+      && !(mode & PSPP_SHEET_SELECT_MODE_TOGGLE))
     {
       /* Don't move the cursor, but just select the current node */
       new_cursor_node = cursor_node;
@@ -7897,14 +7910,14 @@ pspp_sheet_view_move_cursor_up_down (PsppSheetView *tree_view,
   if (new_cursor_node >= 0)
     {
       cursor_path = _pspp_sheet_view_find_path (tree_view, new_cursor_node);
-      pspp_sheet_view_real_set_cursor (tree_view, cursor_path, TRUE, TRUE);
+      pspp_sheet_view_real_set_cursor (tree_view, cursor_path, TRUE, TRUE, mode);
       gtk_tree_path_free (cursor_path);
     }
   else
     {
       pspp_sheet_view_clamp_node_visible (tree_view, cursor_node);
 
-      if (!tree_view->priv->shift_pressed)
+      if (!(mode & PSPP_SHEET_SELECT_MODE_EXTEND))
         {
           if (! gtk_widget_keynav_failed (GTK_WIDGET (tree_view),
                                           count < 0 ?
@@ -7935,7 +7948,8 @@ pspp_sheet_view_move_cursor_up_down (PsppSheetView *tree_view,
 
 static void
 pspp_sheet_view_move_cursor_page_up_down (PsppSheetView *tree_view,
-					gint         count)
+                                          gint         count,
+                                          PsppSheetSelectMode mode)
 {
   int cursor_node = -1;
   GtkTreePath *old_cursor_path = NULL;
@@ -8009,7 +8023,7 @@ pspp_sheet_view_move_cursor_page_up_down (PsppSheetView *tree_view,
   /* update y */
   y = pspp_sheet_view_node_find_offset (tree_view, cursor_node);
 
-  pspp_sheet_view_real_set_cursor (tree_view, cursor_path, TRUE, FALSE);
+  pspp_sheet_view_real_set_cursor (tree_view, cursor_path, TRUE, FALSE, mode);
 
   y -= window_y;
   pspp_sheet_view_scroll_to_point (tree_view, -1, y);
@@ -8028,7 +8042,8 @@ cleanup:
 
 static void
 pspp_sheet_view_move_cursor_left_right (PsppSheetView *tree_view,
-				      gint         count)
+                                        gint         count,
+                                        PsppSheetSelectMode mode)
 {
   int cursor_node = -1;
   GtkTreePath *cursor_path = NULL;
@@ -8121,7 +8136,8 @@ pspp_sheet_view_move_cursor_left_right (PsppSheetView *tree_view,
 
 static void
 pspp_sheet_view_move_cursor_line_start_end (PsppSheetView *tree_view,
-                                            gint         count)
+                                            gint         count,
+                                            PsppSheetSelectMode mode)
 {
   int cursor_node = -1;
   GtkTreePath *cursor_path = NULL;
@@ -8308,12 +8324,7 @@ pspp_sheet_view_move_cursor_tab (PsppSheetView *tree_view,
 
   if (!try_move_cursor_tab (tree_view, TRUE, count))
     {
-      /* Shift+Tab goes backward, but Shift isn't supposed to act as Shift does
-         for other movement commands, that is, it shouldn't cause the selection
-         to be extended, so we need to act as though it is off. */
-      tree_view->priv->shift_pressed = FALSE;
-
-      if (pspp_sheet_view_move_cursor_up_down (tree_view, count)
+      if (pspp_sheet_view_move_cursor_up_down (tree_view, count, 0)
           && !try_move_cursor_tab (tree_view, FALSE, count))
         gtk_widget_error_bell (GTK_WIDGET (tree_view));
     }
@@ -8324,7 +8335,8 @@ pspp_sheet_view_move_cursor_tab (PsppSheetView *tree_view,
 
 static void
 pspp_sheet_view_move_cursor_start_end (PsppSheetView *tree_view,
-				     gint         count)
+                                       gint         count,
+                                       PsppSheetSelectMode mode)
 {
   int cursor_node;
   GtkTreePath *path;
@@ -8357,7 +8369,7 @@ pspp_sheet_view_move_cursor_start_end (PsppSheetView *tree_view,
 
   if (gtk_tree_path_compare (old_path, path))
     {
-      pspp_sheet_view_real_set_cursor (tree_view, path, TRUE, TRUE);
+      pspp_sheet_view_real_set_cursor (tree_view, path, TRUE, TRUE, mode);
       gtk_widget_grab_focus (GTK_WIDGET (tree_view));
     }
   else
@@ -8402,12 +8414,12 @@ pspp_sheet_view_real_unselect_all (PsppSheetView *tree_view)
 
 static gboolean
 pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
-				      gboolean     start_editing)
+                                        gboolean     start_editing,
+                                        PsppSheetSelectMode mode)
 {
   int new_node = -1;
   int cursor_node = -1;
   GtkTreePath *cursor_path = NULL;
-  PsppSheetSelectMode mode = 0;
 
   if (!gtk_widget_has_focus (GTK_WIDGET (tree_view)))
     return FALSE;
@@ -8427,7 +8439,7 @@ pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
       return FALSE;
     }
 
-  if (!tree_view->priv->shift_pressed && start_editing &&
+  if (!(mode & PSPP_SHEET_SELECT_MODE_EXTEND) && start_editing &&
       tree_view->priv->focus_column)
     {
       if (pspp_sheet_view_start_editing (tree_view, cursor_path))
@@ -8436,11 +8448,6 @@ pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
 	  return TRUE;
 	}
     }
-
-  if (tree_view->priv->ctrl_pressed)
-    mode |= PSPP_SHEET_SELECT_MODE_TOGGLE;
-  if (tree_view->priv->shift_pressed)
-    mode |= PSPP_SHEET_SELECT_MODE_EXTEND;
 
   _pspp_sheet_selection_internal_select_node (tree_view->priv->selection,
 					    cursor_node,
@@ -8462,7 +8469,7 @@ pspp_sheet_view_real_select_cursor_row (PsppSheetView *tree_view,
   gtk_widget_grab_focus (GTK_WIDGET (tree_view));
   _pspp_sheet_view_queue_draw_node (tree_view, cursor_node, NULL);
 
-  if (!tree_view->priv->shift_pressed)
+  if (!(mode & PSPP_SHEET_SELECT_MODE_EXTEND))
     pspp_sheet_view_row_activated (tree_view, cursor_path,
                                  tree_view->priv->focus_column);
     
@@ -10000,7 +10007,8 @@ static void
 pspp_sheet_view_real_set_cursor (PsppSheetView     *tree_view,
 			       GtkTreePath     *path,
 			       gboolean         clear_and_select,
-			       gboolean         clamp_node)
+                               gboolean         clamp_node,
+                               PsppSheetSelectMode mode)
 {
   int node = -1;
 
@@ -10025,19 +10033,10 @@ pspp_sheet_view_real_set_cursor (PsppSheetView     *tree_view,
     {
       int new_node = -1;
 
-      if (clear_and_select && !tree_view->priv->ctrl_pressed)
-        {
-          PsppSheetSelectMode mode = 0;
-
-          if (tree_view->priv->ctrl_pressed)
-            mode |= PSPP_SHEET_SELECT_MODE_TOGGLE;
-          if (tree_view->priv->shift_pressed)
-            mode |= PSPP_SHEET_SELECT_MODE_EXTEND;
-
-          _pspp_sheet_selection_internal_select_node (tree_view->priv->selection,
+      if (clear_and_select && !(mode & PSPP_SHEET_SELECT_MODE_TOGGLE))
+        _pspp_sheet_selection_internal_select_node (tree_view->priv->selection,
                                                     node, path, mode,
                                                     FALSE);
-        }
 
       /* We have to re-find tree and node here again, somebody might have
        * cleared the node or the whole tree in the PsppSheetSelection::changed
@@ -10171,7 +10170,7 @@ pspp_sheet_view_set_cursor_on_cell (PsppSheetView       *tree_view,
       tree_view->priv->edited_column->editable_widget)
     pspp_sheet_view_stop_editing (tree_view, TRUE);
 
-  pspp_sheet_view_real_set_cursor (tree_view, path, TRUE, TRUE);
+  pspp_sheet_view_real_set_cursor (tree_view, path, TRUE, TRUE, 0);
 
   if (focus_column && focus_column->visible)
     {
@@ -12091,7 +12090,7 @@ pspp_sheet_view_search_iter (GtkTreeModel     *model,
               pspp_sheet_view_scroll_to_cell (tree_view, path, NULL,
                                               TRUE, 0.5, 0.0);
               pspp_sheet_selection_select_iter (selection, iter);
-              pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, TRUE);
+              pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, TRUE, 0);
 
 	      if (path)
 		gtk_tree_path_free (path);
@@ -12501,7 +12500,7 @@ pspp_sheet_view_real_start_editing (PsppSheetView       *tree_view,
 
   row = gtk_tree_path_get_indices (path)[0];
   tree_view->priv->edited_row = row;
-  pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, TRUE);
+  pspp_sheet_view_real_set_cursor (tree_view, path, FALSE, TRUE, 0);
   cell_area->y += pre_val - (int)tree_view->priv->vadjustment->value;
 
   pspp_sheet_selection_unselect_all_columns (tree_view->priv->selection);

@@ -53,13 +53,6 @@ typedef enum
   PSPP_SHEET_VIEW_IN_COLUMN_DRAG = 1 << 7
 } PsppSheetViewFlags;
 
-typedef enum
-{
-  PSPP_SHEET_SELECT_MODE_TOGGLE = 1 << 0,
-  PSPP_SHEET_SELECT_MODE_EXTEND = 1 << 1
-}
-PsppSheetSelectMode;
-
 enum
 {
   DRAG_COLUMN_WINDOW_STATE_UNSET = 0,
@@ -262,9 +255,6 @@ struct _PsppSheetViewPrivate
 
   /* for DnD */
   guint empty_view_drop : 1;
-
-  guint ctrl_pressed : 1;
-  guint shift_pressed : 1;
 
   guint init_hadjust_value : 1;
 
