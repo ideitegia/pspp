@@ -43,6 +43,26 @@ spreadsheet_close (UNUSED struct spreadsheet *spreadsheet)
 {
 }
 
+
+struct casereader * 
+spreadsheet_make_reader (struct spreadsheet *s, const struct spreadsheet_read_options *opts)
+{
+  return ods_make_reader (s, opts);
+}
+
+const char * 
+spreadsheet_get_sheet_name (struct spreadsheet *s, int n)
+{
+  return ods_get_sheet_name (s, n);
+}
+
+char * 
+spreadsheet_get_sheet_range (struct spreadsheet *s, int n)
+{
+  return ods_get_sheet_range (s, n);
+}
+
+
 #define RADIX 26
 
 static void

@@ -220,14 +220,9 @@ post_sheet_spec_page (struct import_assistant *ia)
   switch (ia->spreadsheet->type)
     {
     case SPREADSHEET_ODS:
-      {
-	creader = ods_make_reader (ia->spreadsheet, &ssp->opts);
-	dict = ia->spreadsheet->dict;
-      }
-      break;
     case SPREADSHEET_GNUMERIC:
       {
-	creader = gnumeric_make_reader (ia->spreadsheet, &ssp->opts);
+	creader = spreadsheet_make_reader (ia->spreadsheet, &ssp->opts);
 	dict = ia->spreadsheet->dict;
       }
       break;

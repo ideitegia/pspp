@@ -19,6 +19,8 @@
 
 #include <stdbool.h>
 
+struct casereeader;
+
 /* Default width of string variables. */
 #define SPREADSHEET_DEFAULT_WIDTH 8
 
@@ -54,6 +56,7 @@ enum spreadsheet_type
     SPREADSHEET_ODS
   };
 
+
 struct spreadsheet
 {
   const char *file_name;
@@ -68,6 +71,12 @@ struct spreadsheet
 };
 
 
+struct casereader * spreadsheet_make_reader (struct spreadsheet *, const struct spreadsheet_read_options *);
+
+const char * spreadsheet_get_sheet_name (struct spreadsheet *s, int n);
+char * spreadsheet_get_sheet_range (struct spreadsheet *s, int n);
+
+
 char *create_cell_ref (int col0, int row0, int coli, int rowi);
 
 /* 
@@ -80,8 +89,8 @@ char *create_cell_ref (int col0, int row0, int coli, int rowi);
 struct spreadsheet * spreadsheet_open (const char *filename);
 void spreadsheet_close (struct spreadsheet *);
 
-struct casereeader;
-struct casereader * spreadsheet_make_reader (struct spreadsheet *s);
+
+
 
 
 #define SPREADSHEET_CAST(X) ((struct spreadsheet *)(X))

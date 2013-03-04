@@ -18,12 +18,14 @@
 #include <config.h>
 #include <glib.h>
 
-#include "psppire-spreadsheet-model.h"
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
 
+
+#include "psppire-spreadsheet-model.h"
 #include "data/spreadsheet-reader.h"
 
-#include "data/gnumeric-reader.h"
-#include "data/ods-reader.h"
 
 static void psppire_spreadsheet_model_init (PsppireSpreadsheetModel *
                                             spreadsheetModel);
@@ -246,7 +248,7 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
     case PSPPIRE_SPREADSHEET_MODEL_COL_NAME:
       {
         const char *x =
-          ods_get_sheet_name (spreadsheetModel->spreadsheet,
+          spreadsheet_get_sheet_name (spreadsheetModel->spreadsheet,
                                    (gint) iter->user_data);
 	
         g_value_set_string (value, x);
@@ -255,10 +257,10 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
     case PSPPIRE_SPREADSHEET_MODEL_COL_RANGE:
       {
         char *x =
-          ods_get_sheet_range (spreadsheetModel->spreadsheet,
+          spreadsheet_get_sheet_range (spreadsheetModel->spreadsheet,
                                     (gint) iter->user_data);
 
-	g_value_set_string (value, x ? x : "(empty)");
+	g_value_set_string (value, x ? x : _("(empty)"));
 	g_free (x);
       }
       break;
