@@ -28,16 +28,6 @@
 #include <gl/c-xvasprintf.h>
 #include <stdlib.h>
 
-struct spreadsheet * 
-spreadsheet_open (const char *filename)
-{
-  struct spreadsheet *ss = NULL;
-
-  ss = ods_probe (filename, true);
-  
-  return ss;
-}
-
 void 
 spreadsheet_close (UNUSED struct spreadsheet *spreadsheet)
 {
@@ -47,19 +37,36 @@ spreadsheet_close (UNUSED struct spreadsheet *spreadsheet)
 struct casereader * 
 spreadsheet_make_reader (struct spreadsheet *s, const struct spreadsheet_read_options *opts)
 {
-  return ods_make_reader (s, opts);
+  if ( s->type == SPREADSHEET_ODS)
+    return ods_make_reader (s, opts);
+  if ( s->type == SPREADSHEET_GNUMERIC)
+    return gnumeric_make_reader (s, opts);
+
+  return NULL;
 }
 
 const char * 
 spreadsheet_get_sheet_name (struct spreadsheet *s, int n)
 {
-  return ods_get_sheet_name (s, n);
+  if ( s->type == SPREADSHEET_ODS)
+    return ods_get_sheet_name (s, n);
+
+  if ( s->type == SPREADSHEET_GNUMERIC)
+    return gnumeric_get_sheet_name (s, n);
+
+  return NULL;
 }
 
 char * 
 spreadsheet_get_sheet_range (struct spreadsheet *s, int n)
 {
-  return ods_get_sheet_range (s, n);
+  if ( s->type == SPREADSHEET_ODS)
+    return ods_get_sheet_range (s, n);
+
+  if ( s->type == SPREADSHEET_GNUMERIC)
+    return gnumeric_get_sheet_range (s, n);
+
+  return NULL;
 }
 
 

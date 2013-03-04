@@ -79,14 +79,6 @@ char * spreadsheet_get_sheet_range (struct spreadsheet *s, int n);
 
 char *create_cell_ref (int col0, int row0, int coli, int rowi);
 
-/* 
-   Attempt to open the file called FILENAME as a spreadsheet.
-   It is not known a priori, what type of spreadsheet FILENAME is, or
-   even if it is a spreadsheet at all.
-   If it fails to open, then it will return NULL without any error or
-   warning messages.
- */
-struct spreadsheet * spreadsheet_open (const char *filename);
 void spreadsheet_close (struct spreadsheet *);
 
 
