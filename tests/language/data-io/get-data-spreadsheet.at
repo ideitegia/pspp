@@ -147,6 +147,22 @@ vone,vtwo,vthree,v4
 ])
 AT_CLEANUP
 
+dnl This syntax doesn't do anything particularly useful.
+dnl It has been seen to cause a few crashes, so we check here that it
+dnl doesn't do anthing bad.
+AT_SETUP([GET DATA /TYPE=$1 with no options])
+SPREADSHEET_TEST_PREP($1)
+AT_DATA([get-data.sps], [dnl
+* This sheet is empty
+GET DATA /TYPE=$1 /FILE='testsheet'.
+DISPLAY DICTIONARY.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv get-data.sps], [0], [ignore])
+AT_CLEANUP
+
+
+
 AT_SETUP([GET DATA /TYPE=$1 with empty sheet])
 SPREADSHEET_TEST_PREP($1)
 AT_DATA([get-data.sps], [dnl
