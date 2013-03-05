@@ -652,15 +652,6 @@ ods_make_reader (struct spreadsheet *spreadsheet,
   r->row = r->col = 0;
 
 
-#if 0
-  printf ("%s:%d %d,%d %d,%d\n", __FILE__, __LINE__, 
-	  r->start_col,
-	  r->start_row,
-	  r->stop_col,
-	  r->stop_row);
-#endif
-
-
   /* Advance to the start of the cells for the target sheet */
   while ( ! reading_target_sheet (r)  
 	  || r->state != STATE_ROW || r->row <= r->start_row )
@@ -756,14 +747,6 @@ ods_make_reader (struct spreadsheet *spreadsheet,
       if ( r->state == STATE_CELL_CONTENT &&
 	   XML_READER_TYPE_TEXT  == r->node_type)
 	{
-#if 0
-	  printf ("%s:%d Idx %d n_var_specs %d\n", __FILE__, __LINE__,
-		  idx, n_var_specs);
-
-	  printf ("%s:%d Idx %d r_col %d\n", __FILE__, __LINE__,
-		  idx, r->col);
-#endif
-
 	  if (idx >= n_var_specs)
 	    {
 	      var_spec = xrealloc (var_spec, sizeof (*var_spec) * (idx + 1));
@@ -952,6 +935,8 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 	      if (idx < 0)
 		continue;
 	      if (r->stop_col != -1 && idx > r->stop_col - r->start_col )
+		break;
+	      if (idx >= dict_get_var_cnt (r->dict))
 		break;
 
               var = dict_get_var (r->dict, idx);
