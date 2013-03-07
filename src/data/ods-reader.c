@@ -68,14 +68,13 @@ ods_open_reader (const struct spreadsheet_read_options *opts,
 
 static void ods_file_casereader_destroy (struct casereader *, void *);
 static struct ccase *ods_file_casereader_read (struct casereader *, void *);
-static struct casereader *ods_file_casereader_clone (struct casereader *, void *);
 
 
 static const struct casereader_class ods_file_casereader_class =
   {
     ods_file_casereader_read,
     ods_file_casereader_destroy,
-    ods_file_casereader_clone,
+    NULL,
     NULL,
   };
 
@@ -142,6 +141,7 @@ void
 ods_destroy (struct spreadsheet *s)
 {
   struct ods_reader *r = s;
+
   if (--r->ref_cnt == 0)
     {
       int i;
@@ -227,16 +227,6 @@ ods_get_sheet_range (struct spreadsheet *s, int n)
 			  or->sheets[n].stop_row);
 }
 
-
-static struct casereader *
-ods_file_casereader_clone (struct casereader *r_, void *s)
-{
-  struct ods_reader *r = r_;
-
-  printf ("%s:%d CLONE reffing %p %d\n", __FILE__, __LINE__, s, r->ref_cnt);
-  
-  return r_;
-}
 
 static void
 ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
