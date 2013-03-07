@@ -126,7 +126,9 @@ zip_reader_destroy (struct zip_reader *zr)
   if (zr == NULL) 
     return;
 
-  fclose (zr->fr);
+  if (zr->fr != NULL)
+    fclose (zr->fr);
+
   free (zr->filename);
 
   for (i = 0; i < zr->n_members; ++i)

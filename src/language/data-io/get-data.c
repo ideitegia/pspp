@@ -62,7 +62,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
   lex_force_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "TYPE"))
-    return CMD_FAILURE;
+    goto error;
 
   lex_force_match (lexer, T_EQUALS);
 
@@ -102,6 +102,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	    goto error;
 	  reader = ods_make_reader (spreadsheet, &opts);
 	  dict = spreadsheet->dict;
+	  ods_destroy (spreadsheet);
 	}
 
       free (filename);
@@ -111,13 +112,12 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	  dataset_set_dict (ds, dict);
 	  dataset_set_source (ds, reader);
 	  free (tok);
+	  destroy_spreadsheet_read_info (&opts);
 	  return CMD_SUCCESS;
 	}
     }
   else
     msg (SE, _("Unsupported TYPE %s."), tok);
-
-
 
 
  error:

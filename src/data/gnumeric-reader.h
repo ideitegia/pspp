@@ -29,10 +29,10 @@ struct spreadsheet *gnumeric_probe (const char *filename, bool report_errors);
 const char * gnumeric_get_sheet_name (struct spreadsheet *s, int n);
 char * gnumeric_get_sheet_range (struct spreadsheet *s, int n);
 
-void gnumeric_destroy (struct spreadsheet *);
-
 struct casereader * gnumeric_make_reader (struct spreadsheet *spreadsheet,
 					  const struct spreadsheet_read_options *opts);
+
+void gnumeric_destroy (struct spreadsheet *r);
 
 
 #endif

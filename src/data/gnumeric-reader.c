@@ -63,6 +63,7 @@ static void gnm_file_casereader_destroy (struct casereader *, void *);
 
 static struct ccase *gnm_file_casereader_read (struct casereader *, void *);
 
+
 static const struct casereader_class gnm_file_casereader_class =
   {
     gnm_file_casereader_read,
@@ -133,6 +134,23 @@ struct gnumeric_reader
 };
 
 
+void
+gnumeric_destroy (struct spreadsheet *s)
+{
+  struct gnumeric_reader *r = s;
+  int i;
+
+  for (i = 0; i < s->n_sheets; ++i)
+    {
+      xmlFree (r->sheets[i].name);
+    }
+    
+  free (r->sheets);
+
+  free (r);
+}
+
+
 const char *
 gnumeric_get_sheet_name (struct spreadsheet *s, int n)
 {
@@ -175,7 +193,6 @@ gnumeric_get_sheet_range (struct spreadsheet *s, int n)
 static void
 gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
-  int i;
   struct gnumeric_reader *r = r_;
   if ( r == NULL)
 	return ;
@@ -188,17 +205,8 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
     case_unref (r->first_case);
 
   caseproto_unref (r->proto);
-
-  for (i = 0; i < r->spreadsheet.n_sheets; ++i)
-    {
-      xmlFree (r->sheets[i].name);
-    }
-    
-  free (r->sheets);
-
-
-  free (r);
 }
+
 
 static void
 process_node (struct gnumeric_reader *r)
@@ -422,13 +430,6 @@ struct var_spec
   int width;
   xmlChar *first_value;
 };
-
-
-void 
-gnumeric_destroy (struct spreadsheet *s)
-{
-  gnm_file_casereader_destroy (NULL, s);
-}
 
 
 static void

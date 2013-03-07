@@ -67,14 +67,15 @@ ods_open_reader (const struct spreadsheet_read_options *opts,
 #include "gl/xalloc.h"
 
 static void ods_file_casereader_destroy (struct casereader *, void *);
-
 static struct ccase *ods_file_casereader_read (struct casereader *, void *);
+static struct casereader *ods_file_casereader_clone (struct casereader *, void *);
+
 
 static const struct casereader_class ods_file_casereader_class =
   {
     ods_file_casereader_read,
     ods_file_casereader_destroy,
-    NULL,
+    ods_file_casereader_clone,
     NULL,
   };
 
@@ -105,6 +106,7 @@ struct ods_reader
   struct spreadsheet spreadsheet;
   struct zip_reader *zreader;
   xmlTextReaderPtr xtr;
+  int ref_cnt;
 
   enum reader_state state;
   int row;
@@ -113,7 +115,7 @@ struct ods_reader
   int current_sheet;
   xmlChar *current_sheet_name;
 
-  const xmlChar *target_sheet_name;
+  xmlChar *target_sheet_name;
   int target_sheet_index;
 
 
@@ -135,6 +137,26 @@ struct ods_reader
 
   struct string ods_errs;
 };
+
+void
+ods_destroy (struct spreadsheet *s)
+{
+  struct ods_reader *r = s;
+  if (--r->ref_cnt == 0)
+    {
+      int i;
+
+      for (i = 0; i < r->n_allocated_sheets; ++i)
+	{
+	  xmlFree (r->sheets[i].name);
+	}
+
+      zip_reader_destroy (r->zreader);
+      free (r->sheets);
+      free (r);
+    }
+}
+
 
 
 static bool
@@ -206,10 +228,19 @@ ods_get_sheet_range (struct spreadsheet *s, int n)
 }
 
 
+static struct casereader *
+ods_file_casereader_clone (struct casereader *r_, void *s)
+{
+  struct ods_reader *r = r_;
+
+  printf ("%s:%d CLONE reffing %p %d\n", __FILE__, __LINE__, s, r->ref_cnt);
+  
+  return r_;
+}
+
 static void
 ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
-  int i;
   struct ods_reader *r = r_;
   if ( r == NULL)
     return ;
@@ -229,16 +260,14 @@ ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
   caseproto_unref (r->proto);
 
   xmlFree (r->current_sheet_name);
+  xmlFree (r->target_sheet_name);
 
-  for (i = 0; i < r->n_allocated_sheets; ++i)
-  {
-    xmlFree (r->sheets[i].name);
-  }
-
-  free (r->sheets);
-
-  free (r);
+  ods_destroy (r);
 }
+
+
+
+
 
 static void
 process_node (struct ods_reader *r)
@@ -483,7 +512,7 @@ get_sheet_count (struct zip_reader *zreader)
     return -1;
 
   mxtr = xmlReaderForIO ((xmlInputReadCallback) zip_member_read,
-			 (xmlInputCloseCallback) zip_member_finish,
+			 (xmlInputCloseCallback) NULL,
 			 meta,   NULL, NULL, 0);
 
   while (1 == xmlTextReaderRead (mxtr))
@@ -533,11 +562,10 @@ init_reader (struct ods_reader *r, bool report_errors)
   if ( content == NULL)
     return false;
 
-  zip_member_ref (content);
-
   if (r->xtr)
     xmlFreeTextReader (r->xtr);
 
+  zip_member_ref (content);
   xtr = xmlReaderForIO ((xmlInputReadCallback) zip_member_read,
 			(xmlInputCloseCallback) zip_member_finish,
 			content,   NULL, NULL,
@@ -582,6 +610,7 @@ ods_probe (const char *filename, bool report_errors)
 
   r = xzalloc (sizeof *r);
   r->zreader = zr;
+  r->ref_cnt = 1;
 
   if (! init_reader (r, report_errors))
     {
@@ -622,12 +651,12 @@ ods_make_reader (struct spreadsheet *spreadsheet,
   assert (r);
   r->read_names = opts->read_names;
   ds_init_empty (&r->ods_errs);
-
+  ++r->ref_cnt;
 
   if ( !init_reader (r, true))
     goto error;
 
-  if ( opts->cell_range )
+  if (opts->cell_range)
     {
       if ( ! convert_cell_ref (opts->cell_range,
 			       &r->start_col, &r->start_row,
@@ -647,7 +676,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
     }
 
   r->state = STATE_INIT;
-  r->target_sheet_name = BAD_CAST opts->sheet_name;
+  r->target_sheet_name = xmlStrdup (BAD_CAST opts->sheet_name);
   r->target_sheet_index = opts->sheet_index;
   r->row = r->col = 0;
 
@@ -825,7 +854,6 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 	break;
     }
 
-  // zip_reader_destroy (zreader);
 
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
@@ -846,8 +874,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 
  error:
   
-  //zip_reader_destroy (zreader);
-
+#if 0
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
       free (var_spec[i].firstval.type);
@@ -860,6 +887,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 
   dict_destroy (r->spreadsheet.dict);
   r->spreadsheet.dict = NULL;
+#endif
   ods_file_casereader_destroy (NULL, r);
 
 

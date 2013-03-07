@@ -18,6 +18,7 @@
 
 #include "spreadsheet-reader.h"
 
+#include <libpspp/assertion.h>
 #include "gnumeric-reader.h"
 #include "ods-reader.h"
 
@@ -28,9 +29,22 @@
 #include <gl/c-xvasprintf.h>
 #include <stdlib.h>
 
+
 void 
-spreadsheet_close (UNUSED struct spreadsheet *spreadsheet)
+spreadsheet_destroy (struct spreadsheet *s)
 {
+  switch (s->type)
+    {
+    case SPREADSHEET_ODS:
+      ods_destroy (s);
+      break;
+    case SPREADSHEET_GNUMERIC:
+      gnumeric_destroy (s);
+      break;
+    default:
+      NOT_REACHED ();
+      break;
+    }
 }
 
 

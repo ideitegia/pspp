@@ -79,7 +79,7 @@ char * spreadsheet_get_sheet_range (struct spreadsheet *s, int n);
 
 char *create_cell_ref (int col0, int row0, int coli, int rowi);
 
-void spreadsheet_close (struct spreadsheet *);
+void spreadsheet_destroy (struct spreadsheet *);
 
 
 
