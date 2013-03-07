@@ -102,8 +102,6 @@ main (int argc, char **argv)
 	      fprintf (stderr, "Unzip failed: %s\n", ds_cstr (&str));
 	      check_die ();
 	    }
-	  
-	  zip_member_unref (zm);
 	}
       zip_reader_destroy (zr);
     }
