@@ -382,7 +382,7 @@ zip_member_open (struct zip_reader *zr, const char *member)
   uint32_t ucomp_size, comp_size;
   
   uint32_t crc;
-
+  bool new_member = false;
   char *name = NULL;
 
   int i;
@@ -396,7 +396,10 @@ zip_member_open (struct zip_reader *zr, const char *member)
     zm = zr->members[i];
 
     if (zm == NULL)
-      zm = zr->members[i] = zip_header_read_next (zr);
+      {
+	zm = zr->members[i] = zip_header_read_next (zr);
+	new_member = true;
+      }
     if (zm && 0 == strcmp (zm->name, member))
       break;
     else
@@ -450,8 +453,11 @@ zip_member_open (struct zip_reader *zr, const char *member)
   free (name);
 
   zm->bytes_unread = zm->ucomp_size;
+  
+  if ( !new_member)
+    decompressors[zm->compression].finish (zm);
 
-  if ( !  decompressors[zm->compression].init (zm) )
+  if (!decompressors[zm->compression].init (zm) )
     return NULL;
 
   return zm;
