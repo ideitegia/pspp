@@ -80,7 +80,7 @@ on_clicked (GtkButton *button, struct xxx *stuff)
   opts.read_names = TRUE;
   opts.asw = -1;
 
-  reader = ods_make_reader (stuff->sp, &opts);
+  reader = spreadsheet_make_reader (stuff->sp, &opts);
   proto = casereader_get_proto (reader);
 
   nvals = caseproto_get_n_widths (proto);
@@ -121,10 +121,8 @@ main (int argc, char *argv[] )
 
   stuff.sp = NULL;
 
-#if 0
-  if (sp == NULL)
-    sp = gnumeric_probe (argv[1], false);
-#endif
+  if (stuff.sp == NULL)
+    stuff.sp = gnumeric_probe (argv[1], false);
 
   if (stuff.sp == NULL)
     stuff.sp = ods_probe (argv[1], false);
