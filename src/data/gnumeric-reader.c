@@ -104,6 +104,7 @@ struct sheet_detail
 struct gnumeric_reader
 {
   struct spreadsheet spreadsheet;
+  int ref_cnt;
 
   /* The libxml reader for this instance */
   xmlTextReaderPtr xtr;
@@ -138,16 +139,20 @@ void
 gnumeric_destroy (struct spreadsheet *s)
 {
   struct gnumeric_reader *r = s;
-  int i;
 
-  for (i = 0; i < s->n_sheets; ++i)
+  if (0 == --r->ref_cnt)
     {
-      xmlFree (r->sheets[i].name);
-    }
-    
-  free (r->sheets);
+      int i;
 
-  free (r);
+      for (i = 0; i < s->n_sheets; ++i)
+	{
+	  xmlFree (r->sheets[i].name);
+	}
+    
+      free (r->sheets);
+
+      free (r);
+    }
 }
 
 
@@ -496,6 +501,7 @@ gnumeric_reopen (struct gnumeric_reader *r, const char *filename, bool show_erro
   r->row = r->col = -1;
   r->state = STATE_PRE_INIT;
   r->xtr = xtr;
+  r->ref_cnt++;
 
   /* Advance to the start of the workbook.
      This gives us some confidence that we are actually dealing with a gnumeric
@@ -564,6 +570,8 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
 
   if (r->row != -1)
     r = gnumeric_reopen (r, NULL, true);
+
+
 
   if ( opts->cell_range )
     {
