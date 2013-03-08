@@ -28,6 +28,7 @@
 #include "data/spreadsheet-reader.h"
 #include "data/casereader.h"
 #include "data/case.h"
+#include "gl/xalloc.h"
 
 #if 0
 #define N 10
@@ -72,11 +73,9 @@ on_clicked (GtkButton *button, struct xxx *stuff)
   struct casereader *reader ;
   struct spreadsheet_read_options opts;
 
-  g_print( "%s %d\n", __FUNCTION__, x);
-
-  opts.sheet_index = x + 1;
-  opts.cell_range = NULL;
-  opts.sheet_name = NULL;
+  opts.sheet_index = -1;
+  opts.cell_range = spreadsheet_get_sheet_range (stuff->sp, x);
+  opts.sheet_name = spreadsheet_get_sheet_name (stuff->sp, x);
   opts.read_names = TRUE;
   opts.asw = -1;
 
@@ -85,15 +84,24 @@ on_clicked (GtkButton *button, struct xxx *stuff)
 
   nvals = caseproto_get_n_widths (proto);
   
-  for (;
-           (c = casereader_read (reader)) != NULL; case_unref (c))
+  for (; (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       int i;
 
       for (i = 0; i < nvals ; ++i)
       {
-	const double val = case_data_idx (c, i)->f;
-	printf ("%g ", val);
+	const int width = caseproto_get_width (proto, i);
+	const union value *val = case_data_idx (c, i);
+	if (0 == width)
+	  printf ("%g ", val->f);
+	else
+	  {
+	    char *ss = xzalloc (width + 1);
+	    strncpy (ss, value_str (val, width), width);
+	    
+	    printf ("%s ", ss);
+	    free (ss);
+	  }
       }
       printf ("\n");
     }
@@ -187,7 +195,7 @@ main (int argc, char *argv[] )
 
   gtk_main ();
 
-  //  gnumeric_destroy (sp);
-    
+  spreadsheet_destroy (stuff.sp);
+
   return 0;
 }
