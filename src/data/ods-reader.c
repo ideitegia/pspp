@@ -864,7 +864,6 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 
  error:
   
-#if 0
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
       free (var_spec[i].firstval.type);
@@ -877,9 +876,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 
   dict_destroy (r->spreadsheet.dict);
   r->spreadsheet.dict = NULL;
-#endif
   ods_file_casereader_destroy (NULL, r);
-
 
   return NULL;
 }
