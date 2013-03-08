@@ -57,11 +57,12 @@ static int parse_get_psql (struct lexer *lexer, struct dataset *);
 int
 cmd_get_data (struct lexer *lexer, struct dataset *ds)
 {
+  struct spreadsheet_read_options opts;
   char *tok = NULL;
   lex_force_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "TYPE"))
-    return CMD_FAILURE;
+    goto error;
 
   lex_force_match (lexer, T_EQUALS);
 
@@ -82,7 +83,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
       char *filename = NULL;
       struct casereader *reader = NULL;
       struct dictionary *dict = NULL;
-      struct spreadsheet_read_options opts;
+
       if (!parse_spreadsheet (lexer, &filename, &opts))
 	goto error;
 
@@ -101,6 +102,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	    goto error;
 	  reader = ods_make_reader (spreadsheet, &opts);
 	  dict = spreadsheet->dict;
+	  ods_destroy (spreadsheet);
 	}
 
       free (filename);
@@ -113,15 +115,13 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	  destroy_spreadsheet_read_info (&opts);
 	  return CMD_SUCCESS;
 	}
-      destroy_spreadsheet_read_info (&opts);
     }
   else
     msg (SE, _("Unsupported TYPE %s."), tok);
 
 
-
-
  error:
+  destroy_spreadsheet_read_info (&opts);
   free (tok);
   return CMD_FAILURE;
 }
@@ -682,4 +682,5 @@ static void
 destroy_spreadsheet_read_info (struct spreadsheet_read_options *opts)
 {
   free (opts->cell_range);
+  free (opts->sheet_name);
 }
