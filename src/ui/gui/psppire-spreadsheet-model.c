@@ -14,6 +14,11 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+/* This file implements a GtkTreeModel.  It allows GtkComboBox and 
+   GtkTreeView to display the names and non-empty cell ranges of the
+   sheets aka "Tables" of spreadsheet files.
+   It doesn't take any notice of the spreadsheet data itself.
+*/
 
 #include <config.h>
 #include <glib.h>
