@@ -205,6 +205,8 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
     case_unref (r->first_case);
 
   caseproto_unref (r->proto);
+
+  gnumeric_destroy (r);
 }
 
 
