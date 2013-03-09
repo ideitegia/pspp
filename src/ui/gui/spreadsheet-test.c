@@ -28,31 +28,8 @@
 #include "data/spreadsheet-reader.h"
 #include "data/casereader.h"
 #include "data/case.h"
+#include "libpspp/message.h"
 #include "gl/xalloc.h"
-
-#if 0
-#define N 10
-
-
-static GtkListStore *
-make_store ()
-  {
-    int i;
-    GtkTreeIter iter;
-    
-    GtkListStore * list_store  = gtk_list_store_new (2, G_TYPE_INT, G_TYPE_STRING);
-
-    for (i = 0; i < N; ++i)
-      {
-	gtk_list_store_append (list_store, &iter);
-	gtk_list_store_set (list_store, &iter,
-			    0, N - i,
-			    1, "xxx", 
-			    -1);
-      }
-    return list_store;
-  }
-#endif
 
 
 struct xxx
@@ -80,6 +57,10 @@ on_clicked (GtkButton *button, struct xxx *stuff)
   opts.asw = -1;
 
   reader = spreadsheet_make_reader (stuff->sp, &opts);
+
+  if (reader == NULL)
+    return;
+
   proto = casereader_get_proto (reader);
 
   nvals = caseproto_get_n_widths (proto);
@@ -109,6 +90,12 @@ on_clicked (GtkButton *button, struct xxx *stuff)
   casereader_destroy (reader);
 }
 
+static void 
+print_msg (const struct msg *m, void *aux UNUSED)
+{
+  fprintf (stderr, "%s\n", m->text);
+}
+
 
 int
 main (int argc, char *argv[] )
@@ -126,6 +113,8 @@ main (int argc, char *argv[] )
     
   if ( argc < 2)
     g_error ("Usage: prog file\n");
+
+  msg_set_handler (print_msg, 0);
 
   stuff.sp = NULL;
 
