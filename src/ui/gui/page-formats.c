@@ -198,6 +198,8 @@ prepare_formats_page (struct import_assistant *ia)
     GTK_CONTAINER (get_widget_assert (ia->asst.builder, "data-scroller")),
     ia);
 
+  gtk_widget_show (ia->asst.paste_button);
+
   pop_watch_cursor (ia);
 }
 

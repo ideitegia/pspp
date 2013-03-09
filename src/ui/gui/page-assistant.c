@@ -154,6 +154,9 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
 {
   int pn = gtk_assistant_get_current_page (assistant);
 
+  gtk_widget_show (ia->asst.reset_button);
+  gtk_widget_hide (ia->asst.paste_button);
+
   if ( ia->spreadsheet) 
     {
       if (pn == 0)
@@ -178,14 +181,6 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
     gtk_widget_grab_focus (assistant->apply);
   else
     gtk_widget_grab_focus (assistant->forward);
-
-#if 0
-  gtk_widget_show (ia->asst.reset_button);
-  if (page == ia->formats->page)
-    gtk_widget_show (ia->asst.paste_button);
-  else
-    gtk_widget_hide (ia->asst.paste_button);
-#endif
 }
 
 /* Called when the Cancel button in the assistant is clicked. */
