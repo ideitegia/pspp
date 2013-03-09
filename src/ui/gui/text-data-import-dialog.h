@@ -25,6 +25,11 @@
 
 enum { MAX_PREVIEW_LINES = 1000 }; /* Max number of lines to read. */
 
+struct assist_page
+{
+  GtkWidget *page;
+};
+
 /* The file to be imported. */
 struct file
   {
@@ -144,6 +149,8 @@ void post_sheet_spec_page (struct import_assistant *ia);
 
 void prepare_first_line_page (struct import_assistant *ia);
 void reset_first_line_page (struct import_assistant *);
+
+void reset_intro_page (struct import_assistant *ia);
 
 void prepare_separators_page (struct import_assistant *ia);
 void reset_separators_page (struct import_assistant *);

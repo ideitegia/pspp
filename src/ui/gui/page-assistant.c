@@ -206,25 +206,32 @@ on_paste (GtkButton *button, struct import_assistant *ia)
   close_assistant (ia, PSPPIRE_RESPONSE_PASTE);
 }
 
+static GtkWidget *
+assist_get_page (struct assist_page *ap)
+{
+  if (ap == NULL)
+    return NULL;
+
+  return ap->page;
+}
+
 /* Called when the Reset button is clicked. */
 static void
 on_reset (GtkButton *button, struct import_assistant *ia)
 {
-#if 0
   gint page_num = gtk_assistant_get_current_page (ia->asst.assistant);
   GtkWidget *page = gtk_assistant_get_nth_page (ia->asst.assistant, page_num);
 
-  if (page == ia->intro->page)
+  if (page == assist_get_page ((struct assist_page *) ia->intro))
     reset_intro_page (ia);
-  else if (page == ia->first_line->page)
+  else if (page == assist_get_page ((struct assist_page *) ia->first_line))
     reset_first_line_page (ia);
-  else if (page == ia->separators->page)
+  else if (page == assist_get_page ((struct assist_page *) ia->separators))
     reset_separators_page (ia);
-  else if (page == ia->formats->page)
+  else if (page == assist_get_page ((struct assist_page *) ia->formats))
     reset_formats_page (ia);
-  else if (page == ia->sheet_spec->page)
+  else if (page == assist_get_page ((struct assist_page *) ia->sheet_spec))
     reset_sheet_spec_page (ia);
-#endif
 }
 
 /* Causes the assistant to close, returning RESPONSE for
