@@ -140,7 +140,7 @@ struct ods_reader
 void
 ods_destroy (struct spreadsheet *s)
 {
-  struct ods_reader *r = s;
+  struct ods_reader *r = (struct ods_reader *) s;
 
   if (--r->ref_cnt == 0)
     {
@@ -252,7 +252,7 @@ ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
   xmlFree (r->current_sheet_name);
   xmlFree (r->target_sheet_name);
 
-  ods_destroy (r);
+  ods_destroy (&r->spreadsheet);
 }
 
 
