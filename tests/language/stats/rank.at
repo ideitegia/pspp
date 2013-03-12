@@ -37,6 +37,40 @@ x,Rx
 ])
 AT_CLEANUP
 
+# This checks for regression against a crash reported as bug #38482
+# that occurred when multiple variables were specified without any
+# rank specifications.
+AT_SETUP([RANK multiple variables with defaults])
+AT_DATA([rank.sps], [dnl
+DATA LIST LIST NOTABLE /x * y * z *.
+BEGIN DATA.
+    1.00     2.00     3.00
+    4.00     5.00     6.00
+END DATA.
+
+RANK ALL.
+
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv rank.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+Variables Created By RANK
+
+
+
+x into Rx(RANK of x)
+
+y into Ry(RANK of y)
+
+z into Rz(RANK of z)
+
+Table: Data List
+x,y,z,Rx,Ry,Rz
+1.00,2.00,3.00,1.000,1.000,1.000
+4.00,5.00,6.00,2.000,2.000,2.000
+])
+AT_CLEANUP
+
 AT_SETUP([RANK with RANK, RFRACTION, N])
 AT_DATA([rank.sps], [dnl
 DATA LIST LIST NOTABLE /a * b *.
