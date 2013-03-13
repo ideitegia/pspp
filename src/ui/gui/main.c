@@ -249,25 +249,32 @@ static GMemVTable vtable =
   };
 
 #ifdef __APPLE__
+static const bool apple = true;
+#else
+static const bool apple = false;
+#endif
+
 /* Searches ARGV for the -psn_xxxx option that the desktop application
    launcher passes in, and removes it if it finds it.  Returns the new value
    of ARGC. */
-static int
+static inline int
 remove_psn (int argc, char **argv)
 {
-  int i;
-
-  for (i = 0; i < argc; i++)
+  if (apple)
     {
-      if (!strncmp(argv[i], "-psn", 4))
-        {
-          remove_element (argv, argc + 1, sizeof *argv, i);
-          return argc - 1;
-        }
+      int i;
+
+      for (i = 0; i < argc; i++)
+	{
+	  if (!strncmp (argv[i], "-psn", 4))
+	    {
+	      remove_element (argv, argc + 1, sizeof *argv, i);
+	      return argc - 1;
+	    }
+	}
     }
   return argc;
 }
-#endif  /* __APPLE__ */
 
 int
 main (int argc, char *argv[])
@@ -300,9 +307,7 @@ main (int argc, char *argv[])
       g_warning ("%s", vers);
     }
 
-#ifdef __APPLE__
   argc = remove_psn (argc, argv);
-#endif
 
   /* Parse our own options. 
      This must come BEFORE gdk_init otherwise options such as 

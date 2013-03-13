@@ -55,8 +55,10 @@ EXTRA_DIST += \
 
 if HAVE_GUI
 bin_PROGRAMS += src/ui/gui/psppire 
+noinst_PROGRAMS += src/ui/gui/spreadsheet-test
 
 src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GTKSOURCEVIEW_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
+src_ui_gui_spreadsheet_test_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
 
 
 src_ui_gui_psppire_LDFLAGS = \
@@ -82,6 +84,16 @@ src_ui_gui_psppire_LDADD = \
 	$(CAIRO_LIBS) \
 	$(LIBINTL) \
 	$(GSL_LIBS)
+
+
+src_ui_gui_spreadsheet_test_LDADD = \
+	src/libpspp-core.la \
+	$(GTK_LIBS) \
+	$(GTHREAD_LIBS)
+
+
+src_ui_gui_spreadsheet_test_SOURCES = src/ui/gui/spreadsheet-test.c src/ui/gui/psppire-spreadsheet-model.c
+
 
 src_ui_gui_psppiredir = $(pkgdatadir)
 
@@ -273,6 +285,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-output-window.h \
 	src/ui/gui/psppire-var-view.c \
 	src/ui/gui/psppire-var-view.h \
+	src/ui/gui/psppire-spreadsheet-model.c \
+	src/ui/gui/psppire-spreadsheet-model.h \
 	src/ui/gui/psppire-selector.h \
 	src/ui/gui/psppire-select-dest.c \
 	src/ui/gui/psppire-select-dest.h \

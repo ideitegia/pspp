@@ -275,7 +275,7 @@ zip_header_read_next (struct zip_reader *zr)
   get_u32 (zr->fr, &eattr);
   get_u32 (zr->fr, &zm->offset);
 
-  zm->name = calloc (nlen + 1, 1);
+  zm->name = xzalloc (nlen + 1);
   get_bytes (zr->fr, zm->name, nlen);
 
   skip_bytes (zr->fr, extralen);
@@ -298,7 +298,7 @@ zip_reader_create (const char *filename, struct string *errs)
   off_t offset = 0;
   uint32_t central_dir_start, central_dir_length;
 
-  struct zip_reader *zr = malloc (sizeof *zr);
+  struct zip_reader *zr = xzalloc (sizeof *zr);
   zr->errs = errs;
   if ( zr->errs)
     ds_init_empty (zr->errs);
@@ -363,7 +363,8 @@ zip_reader_create (const char *filename, struct string *errs)
       return NULL;
     }
 
-  zr->members = calloc (zr->n_members, sizeof (*zr->members));
+  zr->members = xcalloc (zr->n_members, sizeof (*zr->members));
+  memset (zr->members, 0, zr->n_members * sizeof (*zr->members));
 
   zr->filename = strdup (filename);
 
@@ -381,7 +382,7 @@ zip_member_open (struct zip_reader *zr, const char *member)
   uint32_t ucomp_size, comp_size;
   
   uint32_t crc;
-
+  bool new_member = false;
   char *name = NULL;
 
   int i;
@@ -390,17 +391,19 @@ zip_member_open (struct zip_reader *zr, const char *member)
   if ( zr == NULL)
     return NULL;
 
-  for (i = 0 ; i < zr->n_members; ++i)
+  for (i = 0; i < zr->n_members; ++i)
   {
-    zm = zr->members[i] = zip_header_read_next (zr);
+    zm = zr->members[i];
+
+    if (zm == NULL)
+      {
+	zm = zr->members[i] = zip_header_read_next (zr);
+	new_member = true;
+      }
     if (zm && 0 == strcmp (zm->name, member))
-      {
-	break;
-      }
+      break;
     else
-      {
-	zm = NULL;
-      }
+      zm = NULL;
   }
   
   if ( zm == NULL)
@@ -431,7 +434,7 @@ zip_member_open (struct zip_reader *zr, const char *member)
   get_u16 (zm->fp, &nlen);
   get_u16 (zm->fp, &extra_len);
 
-  name = calloc (nlen + 1, sizeof (char));
+  name = xzalloc (nlen + 1);
 
   get_bytes (zm->fp, name, nlen);
 
@@ -450,8 +453,11 @@ zip_member_open (struct zip_reader *zr, const char *member)
   free (name);
 
   zm->bytes_unread = zm->ucomp_size;
+  
+  if ( !new_member)
+    decompressors[zm->compression].finish (zm);
 
-  if ( !  decompressors[zm->compression].init (zm) )
+  if (!decompressors[zm->compression].init (zm) )
     return NULL;
 
   return zm;

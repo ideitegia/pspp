@@ -18,6 +18,7 @@ end data
 regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 /method=enter /save=pred resid.
 list.
 ])
+
 AT_CHECK([pspp -o pspp.csv regression.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
 Table: Reading free-form data from INLINE.
@@ -26,17 +27,17 @@ v0,F8.0
 v1,F8.0
 v2,F8.0
 
-Table: Model Summary
+Table: Model Summary (v2)
 ,R,R Square,Adjusted R Square,Std. Error of the Estimate
 ,.97,.94,.93,1.34
 
-Table: ANOVA
+Table: ANOVA (v2)
 ,,Sum of Squares,df,Mean Square,F,Significance
 ,Regression,202.75,2,101.38,56.75,.00
 ,Residual,12.50,7,1.79,,
 ,Total,215.26,9,,,
 
-Table: Coefficients
+Table: Coefficients (v2)
 ,,B,Std. Error,Beta,t,Significance
 ,(Constant),2.19,2.36,.00,.93,.38
 ,v0,1.81,1.05,.17,1.72,.12
@@ -1573,17 +1574,17 @@ Variable,Format
 v0,F8.0
 v1,F8.0
 
-Table: Model Summary
+Table: Model Summary (v0)
 ,R,R Square,Adjusted R Square,Std. Error of the Estimate
 ,.05,.00,.00,8.11
 
-Table: ANOVA
+Table: ANOVA (v0)
 ,,Sum of Squares,df,Mean Square,F,Significance
 ,Regression,235.23,1,235.23,3.58,.06
 ,Residual,98438.40,1498,65.71,,
 ,Total,98673.63,1499,,,
 
-Table: Coefficients
+Table: Coefficients (v0)
 ,,B,Std. Error,Beta,t,Significance
 ,(Constant),1.24,.42,.00,2.95,.00
 ,v1,1.37,.72,.05,1.89,.06

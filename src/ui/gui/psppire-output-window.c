@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -653,14 +653,17 @@ psppire_output_window_export (PsppireOutputWindow *window)
 
   if ( response == GTK_RESPONSE_ACCEPT )
     {
-      int file_type = gtk_combo_box_get_active (GTK_COMBO_BOX (combo));
-      char *filename = gtk_file_chooser_get_filename (chooser);
+      gint file_type = gtk_combo_box_get_active (GTK_COMBO_BOX (combo));
+      gchar *filename = gtk_file_chooser_get_filename (chooser);
       struct string_map options;
 
       g_return_if_fail (filename);
 
       if (file_type == FT_AUTO)
 	{
+          /* If the "Infer file type from extension" option was chosen,
+             search for the respective type in the list.
+             (It's a O(n) search, but fortunately n is small). */
 	  gint i;
 	  for (i = 1 ; i < N_EXTENSIONS ; ++i)
 	    {
@@ -671,7 +674,17 @@ psppire_output_window_export (PsppireOutputWindow *window)
 		}
 	    }
 	}
+      else if (! g_str_has_suffix (filename, ft[file_type].ext))
+        {
+          /* If an explicit document format was chosen, and if the chosen
+             filename does not already have that particular "extension",
+             then append it.
+           */
 
+          gchar *of = filename;
+          filename = g_strconcat (filename, ft[file_type].ext, NULL);
+          g_free (of);
+        }
       
       string_map_init (&options);
       string_map_insert (&options, "output-file", filename);

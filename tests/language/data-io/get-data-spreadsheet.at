@@ -147,6 +147,22 @@ vone,vtwo,vthree,v4
 ])
 AT_CLEANUP
 
+dnl This syntax doesn't do anything particularly useful.
+dnl It has been seen to cause a few crashes, so we check here that it
+dnl doesn't do anthing bad.
+AT_SETUP([GET DATA /TYPE=$1 with no options])
+SPREADSHEET_TEST_PREP($1)
+AT_DATA([get-data.sps], [dnl
+* This sheet is empty
+GET DATA /TYPE=$1 /FILE='testsheet'.
+DISPLAY DICTIONARY.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv get-data.sps], [0], [ignore])
+AT_CLEANUP
+
+
+
 AT_SETUP([GET DATA /TYPE=$1 with empty sheet])
 SPREADSHEET_TEST_PREP($1)
 AT_DATA([get-data.sps], [dnl
@@ -321,6 +337,59 @@ VAR001,VAR002,VAR003
 
 
 AT_CLEANUP
+
+
+dnl Check for a bug where certain gnumeric files failed an assertion
+AT_SETUP([GET DATA /TYPE=GNM assert-fail])
+AT_DATA([read.sps],[dnl
+GET DATA 
+	/TYPE=GNM
+	/FILE='crash.gnumeric' 
+	.
+list.
+])
+
+
+AT_DATA([crash.gnumeric],[dnl
+<?xml version="1.0" encoding="UTF-8"?>
+<gnm:Workbook xmlns:gnm="http://www.gnumeric.org/v10.dtd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gnumeric.org/v9.xsd">
+  <office:document-meta xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:ooo="http://openoffice.org/2004/office" office:version="1.1">
+  </office:document-meta>
+  <gnm:SheetNameIndex>
+    <gnm:SheetName gnm:Cols="256" gnm:Rows="65536">Sheet1</gnm:SheetName>
+  </gnm:SheetNameIndex>
+  <gnm:Sheets>
+    <gnm:Sheet DisplayFormulas="0" HideZero="0" HideGrid="0" HideColHeader="0" HideRowHeader="0" DisplayOutlines="1" OutlineSymbolsBelow="1" OutlineSymbolsRight="1" Visibility="GNM_SHEET_VISIBILITY_VISIBLE" GridColor="0:0:0">
+      <gnm:Name>Sheet1</gnm:Name>
+      <gnm:MaxCol>2</gnm:MaxCol>
+      <gnm:MaxRow>4</gnm:MaxRow>
+      <gnm:Styles>
+        <gnm:StyleRegion startCol="0" startRow="0" endCol="255" endRow="65535">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+          </gnm:Style>
+        </gnm:StyleRegion>
+      </gnm:Styles>
+      <gnm:Cells>
+        <gnm:Cell Row="1" Col="1" ValueType="60">one</gnm:Cell>
+        <gnm:Cell Row="1" Col="2" ValueType="60">two</gnm:Cell>
+        <gnm:Cell Row="2" Col="1" ValueType="40">1</gnm:Cell>
+        <gnm:Cell Row="2" Col="2" ValueType="40">2</gnm:Cell>
+        <gnm:Cell Row="3" Col="1" ValueType="40">1</gnm:Cell>
+        <gnm:Cell Row="3" Col="2" ValueType="40">2</gnm:Cell>
+        <gnm:Cell Row="4" Col="1" ValueType="40">1</gnm:Cell>
+        <gnm:Cell Row="4" Col="2" ValueType="40">2</gnm:Cell>
+      </gnm:Cells>
+    </gnm:Sheet>
+  </gnm:Sheets>
+</gnm:Workbook>
+])
+
+AT_CHECK([pspp -O format=csv read.sps], [0], [ignore])
+
+
+AT_CLEANUP
+
+
 
 AT_BANNER([GET DATA Spreadsheet /TYPE=ODS])
 

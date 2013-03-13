@@ -299,7 +299,7 @@ execute_placement_format (const struct fmt_spec *format,
     }
 }
 
-bool
+static bool
 parse_column__ (int value, int base, int *column)
 {
   assert (base == 0 || base == 1);

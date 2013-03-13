@@ -1,6 +1,6 @@
 /*
   PSPP - a program for statistical analysis.
-  Copyright (C) 2012 Free Software Foundation, Inc.
+  Copyright (C) 2012, 2013  Free Software Foundation, Inc.
   
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -304,13 +304,19 @@ show_boxplot_grouped (const struct examine *cmd, int iact_idx)
           ds_init_empty (&label);
           for (ivar_idx = 0; ivar_idx < iact->n_vars; ++ivar_idx)
             {
+              struct string l;
               const struct variable *ivar = iact->vars[ivar_idx];
               const union value *val = case_data (c, ivar);
-              
-              ds_put_cstr (&label, var_to_string (ivar));
-              ds_put_cstr (&label, " = ");
-              append_value_name (ivar, val, &label);
-              ds_put_cstr (&label, "; ");
+              ds_init_empty (&l);
+
+              append_value_name (ivar, val, &l);
+              ds_ltrim (&l, ss_cstr (" "));
+
+              ds_put_substring (&label, l.ss);
+              if (ivar_idx < iact->n_vars - 1)
+                ds_put_cstr (&label, "; ");
+
+              ds_destroy (&l);
             }
 
           boxplot_add_box (boxplot, es[v].box_whisker, ds_cstr (&label));
