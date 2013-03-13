@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,6 +51,8 @@ static void psppire_data_sheet_dispose (GObject *);
 static void psppire_data_sheet_unset_data_store (PsppireDataSheet *);
 
 static void psppire_data_sheet_update_clip_actions (PsppireDataSheet *);
+static void psppire_data_sheet_update_primary_selection (PsppireDataSheet *,
+                                                         gboolean should_own);
 static void psppire_data_sheet_set_clip (PsppireDataSheet *, gboolean cut);
 
 static void on_selection_changed (PsppSheetSelection *, gpointer);
@@ -1389,6 +1391,7 @@ on_selection_changed (PsppSheetSelection *selection,
   PsppSheetView *sheet_view = pspp_sheet_selection_get_tree_view (selection);
   PsppireDataSheet *data_sheet = PSPPIRE_DATA_SHEET (sheet_view);
   gint n_selected_rows;
+  gboolean any_variables_selected;
   gboolean may_delete_cases, may_delete_vars, may_insert_vars;
   GList *list, *iter;
   GtkTreePath *path;
@@ -1421,6 +1424,7 @@ on_selection_changed (PsppSheetSelection *selection,
   action = get_action_assert (data_sheet->builder, "edit_clear-cases");
   gtk_action_set_sensitive (action, may_delete_cases);
 
+  any_variables_selected = FALSE;
   may_delete_vars = may_insert_vars = FALSE;
   list = pspp_sheet_selection_get_selected_columns (selection);
   for (iter = list; iter != NULL; iter = iter->next)
@@ -1431,6 +1435,7 @@ on_selection_changed (PsppSheetSelection *selection,
       if (var != NULL)
         {
           may_delete_vars = may_insert_vars = TRUE;
+          any_variables_selected = TRUE;
           break;
         }
       if (g_object_get_data (G_OBJECT (column), "new-var-column") != NULL)
@@ -1454,6 +1459,9 @@ on_selection_changed (PsppSheetSelection *selection,
   gtk_action_set_sensitive (action, may_delete_vars);
 
   psppire_data_sheet_update_clip_actions (data_sheet);
+  psppire_data_sheet_update_primary_selection (data_sheet,
+                                               (n_selected_rows > 0
+                                                && any_variables_selected));
 }
 
 static gboolean
@@ -1677,6 +1685,8 @@ psppire_data_sheet_init (PsppireDataSheet *obj)
   obj->show_case_numbers = TRUE;
   obj->may_create_vars = TRUE;
   obj->may_delete_vars = TRUE;
+
+  obj->owns_primary_selection = FALSE;
 
   obj->scroll_to_bottom_signal = 0;
   obj->scroll_to_right_signal = 0;
@@ -2039,38 +2049,27 @@ static struct dictionary *clip_dict = NULL;
 
 static void psppire_data_sheet_update_clipboard (PsppireDataSheet *);
 
-/* Set the clip from the currently selected range in DATA_SHEET.  If CUT is
-   true, clears the original data from DATA_SHEET, otherwise leaves the
-   original data in-place. */
-static void
-psppire_data_sheet_set_clip (PsppireDataSheet *data_sheet,
-                             gboolean cut)
+static gboolean
+psppire_data_sheet_fetch_clip (PsppireDataSheet *data_sheet, gboolean cut,
+                               struct casereader **readerp,
+                               struct dictionary **dictp)
 {
   struct casewriter *writer ;
   PsppireDataStore *ds = psppire_data_sheet_get_data_store (data_sheet);
   struct case_map *map = NULL;
   struct range_set *rows, *cols;
   const struct range_set_node *node;
+  struct dictionary *dict;
 
   if (!psppire_data_sheet_get_selected_range (data_sheet, &rows, &cols))
-    return;
-
-
-  /* Destroy any existing clip */
-  if ( clip_datasheet )
     {
-      casereader_destroy (clip_datasheet);
-      clip_datasheet = NULL;
-    }
-
-  if ( clip_dict )
-    {
-      dict_destroy (clip_dict);
-      clip_dict = NULL;
+      *readerp = NULL;
+      *dictp = NULL;
+      return FALSE;
     }
 
   /* Construct clip dictionary. */
-  clip_dict = dict_create (dict_get_encoding (ds->dict->dict));
+  *dictp = dict = dict_create (dict_get_encoding (ds->dict->dict));
   RANGE_SET_FOR_EACH (node, cols)
     {
       int dict_index;
@@ -2078,13 +2077,13 @@ psppire_data_sheet_set_clip (PsppireDataSheet *data_sheet,
       for (dict_index = node->start; dict_index < node->end; dict_index++)
         {
           struct variable *var = dict_get_var (ds->dict->dict, dict_index);
-          dict_clone_var_assert (clip_dict, var);
+          dict_clone_var_assert (dict, var);
         }
     }
 
   /* Construct clip data. */
-  map = case_map_by_name (ds->dict->dict, clip_dict);
-  writer = autopaging_writer_create (dict_get_proto (clip_dict));
+  map = case_map_by_name (ds->dict->dict, dict);
+  writer = autopaging_writer_create (dict_get_proto (dict));
   RANGE_SET_FOR_EACH (node, rows)
     {
       unsigned long int row;
@@ -2132,9 +2131,31 @@ psppire_data_sheet_set_clip (PsppireDataSheet *data_sheet,
   range_set_destroy (rows);
   range_set_destroy (cols);
 
-  clip_datasheet = casewriter_make_reader (writer);
+  *readerp = casewriter_make_reader (writer);
 
-  psppire_data_sheet_update_clipboard (data_sheet);
+  return TRUE;
+}
+
+/* Set the clip from the currently selected range in DATA_SHEET.  If CUT is
+   true, clears the original data from DATA_SHEET, otherwise leaves the
+   original data in-place. */
+static void
+psppire_data_sheet_set_clip (PsppireDataSheet *data_sheet,
+                             gboolean cut)
+{
+  struct casereader *reader;
+  struct dictionary *dict;
+
+  if (psppire_data_sheet_fetch_clip (data_sheet, cut, &reader, &dict))
+    {
+      casereader_destroy (clip_datasheet);
+      dict_destroy (clip_dict);
+
+      clip_datasheet = reader;
+      clip_dict = dict;
+
+      psppire_data_sheet_update_clipboard (data_sheet);
+    }
 }
 
 enum {
@@ -2160,14 +2181,14 @@ data_out_g_string (GString *string, const struct variable *v,
 }
 
 static GString *
-clip_to_text (void)
+clip_to_text (struct casereader *datasheet, struct dictionary *dict)
 {
   casenumber r;
   GString *string;
 
-  const size_t val_cnt = caseproto_get_n_widths (casereader_get_proto (clip_datasheet));
-  const casenumber case_cnt = casereader_get_case_cnt (clip_datasheet);
-  const size_t var_cnt = dict_get_var_cnt (clip_dict);
+  const size_t val_cnt = caseproto_get_n_widths (casereader_get_proto (datasheet));
+  const casenumber case_cnt = casereader_get_case_cnt (datasheet);
+  const size_t var_cnt = dict_get_var_cnt (dict);
 
   string = g_string_sized_new (10 * val_cnt * case_cnt);
 
@@ -2176,7 +2197,7 @@ clip_to_text (void)
       int c;
       struct ccase *cc;
 
-      cc = casereader_peek (clip_datasheet, r);
+      cc = casereader_peek (datasheet, r);
       if (cc == NULL)
 	{
 	  g_warning ("Clipboard seems to have inexplicably shrunk");
@@ -2185,7 +2206,7 @@ clip_to_text (void)
 
       for (c = 0 ; c < var_cnt ; ++c)
 	{
-	  const struct variable *v = dict_get_var (clip_dict, c);
+	  const struct variable *v = dict_get_var (dict, c);
 	  data_out_g_string (string, v, cc);
 	  if ( c < val_cnt - 1 )
 	    g_string_append (string, "\t");
@@ -2202,14 +2223,14 @@ clip_to_text (void)
 
 
 static GString *
-clip_to_html (void)
+clip_to_html (struct casereader *datasheet, struct dictionary *dict)
 {
   casenumber r;
   GString *string;
 
-  const size_t val_cnt = caseproto_get_n_widths (casereader_get_proto (clip_datasheet));
-  const casenumber case_cnt = casereader_get_case_cnt (clip_datasheet);
-  const size_t var_cnt = dict_get_var_cnt (clip_dict);
+  const size_t val_cnt = caseproto_get_n_widths (casereader_get_proto (datasheet));
+  const casenumber case_cnt = casereader_get_case_cnt (datasheet);
+  const size_t var_cnt = dict_get_var_cnt (dict);
 
   /* Guestimate the size needed */
   string = g_string_sized_new (80 + 20 * val_cnt * case_cnt);
@@ -2221,7 +2242,7 @@ clip_to_html (void)
   for (r = 0 ; r < case_cnt ; ++r )
     {
       int c;
-      struct ccase *cc = casereader_peek (clip_datasheet, r);
+      struct ccase *cc = casereader_peek (datasheet, r);
       if (cc == NULL)
 	{
 	  g_warning ("Clipboard seems to have inexplicably shrunk");
@@ -2231,7 +2252,7 @@ clip_to_html (void)
 
       for (c = 0 ; c < var_cnt ; ++c)
 	{
-	  const struct variable *v = dict_get_var (clip_dict, c);
+	  const struct variable *v = dict_get_var (dict, c);
 	  g_string_append (string, "<td>");
 	  data_out_g_string (string, v, cc);
 	  g_string_append (string, "</td>\n");
@@ -2249,20 +2270,20 @@ clip_to_html (void)
 
 
 static void
-psppire_data_sheet_clipboard_get_cb (GtkClipboard     *clipboard,
-                                     GtkSelectionData *selection_data,
-                                     guint             info,
-                                     gpointer          data)
+psppire_data_sheet_clipboard_set (GtkSelectionData *selection_data,
+                                  guint             info,
+                                  struct casereader *reader,
+                                  struct dictionary *dict)
 {
   GString *string = NULL;
 
   switch (info)
     {
     case SELECT_FMT_TEXT:
-      string = clip_to_text ();
+      string = clip_to_text (reader, dict);
       break;
     case SELECT_FMT_HTML:
-      string = clip_to_html ();
+      string = clip_to_html (reader, dict);
       break;
     default:
       g_assert_not_reached ();
@@ -2273,6 +2294,16 @@ psppire_data_sheet_clipboard_get_cb (GtkClipboard     *clipboard,
 			  (const guchar *) string->str, string->len);
 
   g_string_free (string, TRUE);
+}
+
+static void
+psppire_data_sheet_clipboard_get_cb (GtkClipboard     *clipboard,
+                                     GtkSelectionData *selection_data,
+                                     guint             info,
+                                     gpointer          data)
+{
+  psppire_data_sheet_clipboard_set (selection_data, info,
+                                    clip_datasheet, clip_dict);
 }
 
 static void
@@ -2333,6 +2364,50 @@ psppire_data_sheet_update_clip_actions (PsppireDataSheet *data_sheet)
 
   action = get_action_assert (data_sheet->builder, "edit_cut");
   gtk_action_set_sensitive (action, enable);
+}
+
+static void
+psppire_data_sheet_primary_get_cb (GtkClipboard     *clipboard,
+                                   GtkSelectionData *selection_data,
+                                   guint             info,
+                                   gpointer          data)
+{
+  PsppireDataSheet *data_sheet = PSPPIRE_DATA_SHEET (data);
+  struct casereader *reader;
+  struct dictionary *dict;
+
+  if (psppire_data_sheet_fetch_clip (data_sheet, FALSE, &reader, &dict))
+    {
+      psppire_data_sheet_clipboard_set (selection_data, info,
+                                        reader, dict);
+      casereader_destroy (reader);
+      dict_destroy (dict);
+    }
+}
+
+static void
+psppire_data_sheet_update_primary_selection (PsppireDataSheet *data_sheet,
+                                             gboolean should_own)
+{
+  GtkClipboard *clipboard;
+  GdkDisplay *display;
+
+  display = gtk_widget_get_display (GTK_WIDGET (data_sheet));
+  clipboard = gtk_clipboard_get_for_display (display, GDK_SELECTION_PRIMARY);
+  g_return_if_fail (clipboard != NULL);
+
+  printf ("owns_primary_selection=%d should_own=%d\n",
+          data_sheet->owns_primary_selection, should_own);
+  if (data_sheet->owns_primary_selection && !should_own)
+    {
+      data_sheet->owns_primary_selection = FALSE;
+      gtk_clipboard_clear (clipboard);
+    }
+  else if (should_own)
+    data_sheet->owns_primary_selection =
+      gtk_clipboard_set_with_owner (clipboard, targets, G_N_ELEMENTS (targets),
+                                    psppire_data_sheet_primary_get_cb,
+                                    NULL, G_OBJECT (data_sheet));
 }
 
 /* A callback for when the clipboard contents have been received. */
