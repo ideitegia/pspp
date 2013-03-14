@@ -138,7 +138,7 @@ struct gnumeric_reader
 void
 gnumeric_destroy (struct spreadsheet *s)
 {
-  struct gnumeric_reader *r = s;
+  struct gnumeric_reader *r = (struct gnumeric_reader *) s;
 
   if (0 == --r->ref_cnt)
     {
@@ -211,7 +211,7 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   caseproto_unref (r->proto);
 
-  gnumeric_destroy (r);
+  gnumeric_destroy (&r->spreadsheet);
 }
 
 

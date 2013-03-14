@@ -784,8 +784,8 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 
       rs = pool_calloc (rank.pool, 1, sizeof *rs);
       rs->rfunc = RANK;
-      rs->dest_names = pool_calloc (rank.pool, 1, sizeof *rs->dest_names);
-      rs->dest_labels = pool_calloc (rank.pool, 1, sizeof *rs->dest_labels);
+      rs->dest_names = pool_calloc (rank.pool, rank.n_vars,
+                                    sizeof *rs->dest_names);
 
       rank.rs = rs;
       rank.n_rs = 1;

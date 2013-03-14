@@ -52,7 +52,8 @@ on_clicked (GtkButton *button, struct xxx *stuff)
 
   opts.sheet_index = -1;
   opts.cell_range = spreadsheet_get_sheet_range (stuff->sp, x);
-  opts.sheet_name = spreadsheet_get_sheet_name (stuff->sp, x);
+  opts.sheet_name = CONST_CAST (char *,
+                                spreadsheet_get_sheet_name (stuff->sp, x));
   opts.read_names = TRUE;
   opts.asw = -1;
 
@@ -78,7 +79,7 @@ on_clicked (GtkButton *button, struct xxx *stuff)
 	else
 	  {
 	    char *ss = xzalloc (width + 1);
-	    strncpy (ss, value_str (val, width), width);
+            memcpy (ss, value_str (val, width), width);
 	    
 	    printf ("%s ", ss);
 	    free (ss);
