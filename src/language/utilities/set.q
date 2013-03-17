@@ -873,6 +873,12 @@ show_width (const struct dataset *ds UNUSED)
 }
 
 static char *
+show_workspace (const struct dataset *ds UNUSED)
+{
+  return xasprintf ("%d", settings_get_workspace ());
+}
+
+static char *
 show_current_directory (const struct dataset *ds UNUSED)
 {
   char *buf = NULL;
@@ -963,6 +969,7 @@ const struct show_sbc show_table[] =
     {"WIB", show_wib},
     {"WRB", show_wrb},
     {"WIDTH", show_width},
+    {"WORKSPACE", show_workspace},
   };
 
 static void
