@@ -875,7 +875,8 @@ show_width (const struct dataset *ds UNUSED)
 static char *
 show_workspace (const struct dataset *ds UNUSED)
 {
-  return xasprintf ("%d", settings_get_workspace ());
+  size_t ws = settings_get_workspace () / 1024L;
+  return xasprintf ("%ld", ws);
 }
 
 static char *
