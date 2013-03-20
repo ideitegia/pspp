@@ -49,9 +49,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="file_import-text">
-            <property name="name">file_import-text</property>
-            <property name="label" translatable="yes">_Import Delimited Text Data...</property>
+          <object class="GtkAction" id="file_import">
+            <property name="name">file_import</property>
+            <property name="label" translatable="yes">I_mport Data...</property>
 	    <property name="stock-id">gtk-convert</property>
           </object>
         </child>
@@ -565,7 +565,7 @@
             <menuitem action="file_new_data"/>
           </menu>
           <menuitem action="file_open"/>
-          <menuitem action="file_import-text"/>
+          <menuitem action="file_import"/>
           <separator/>
           <menuitem action="file_save"/>
           <menuitem action="file_save_as"/>
