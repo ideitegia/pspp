@@ -606,7 +606,7 @@ RANDOM, which will obtain an initial seed from the current time of day.
 Currently not used.
 
 @item WORKSPACE
-The maximum amount of memory that @pspp{} will use to store data being processed.
+The maximum amount of memory (in kilobytes) that @pspp{} will use to store data being processed.
 If memory in excess of the workspace size is required, then @pspp{} will start
 to use temporary files to store the data.
 Setting a higher value will, in general, mean procedures will run faster, 

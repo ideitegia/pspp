@@ -452,7 +452,7 @@ settings_get_workspace_cases (const struct caseproto *proto)
    bytes. */
 
 void
-settings_set_workspace ( size_t workspace)
+settings_set_workspace (size_t workspace)
 {
   the_settings.workspace = workspace;
 }
