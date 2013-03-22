@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@
      lrecl=integer;
      tabwidth=integer;
      mode=mode:!character/binary/image/360;
+     ends=ends:lf/crlf;
      recform=recform:fixed/f/variable/v/spanned/vs;
      encoding=string.
 */
@@ -104,6 +105,10 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
           else
             msg (SE, _("%s must not be negative."), "TABWIDTH");
         }
+      if (cmd.ends == FH_LF)
+        properties.line_ends = FH_END_LF;
+      else if (cmd.ends == FH_CRLF)
+        properties.line_ends = FH_END_CRLF;
       break;
     case FH_IMAGE:
       properties.mode = FH_MODE_FIXED;

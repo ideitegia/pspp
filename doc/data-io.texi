@@ -573,6 +573,7 @@ For text files:
         FILE HANDLE @var{handle_name}
                 /NAME='@var{file_name}
                 [/MODE=CHARACTER]
+                [/ENDS=@{CR,CRLF@}]
                 /TABWIDTH=@var{tab_width}
                 [ENCODING='@var{encoding}']
 
@@ -619,15 +620,19 @@ The effect and syntax of @cmd{FILE HANDLE} depends on the selected MODE:
 
 @itemize
 @item
-In CHARACTER mode, the default, the data file is read as a text file,
-according to the local system's conventions, and each text line is
-read as one record.
+In CHARACTER mode, the default, the data file is read as a text file.
+Each text line is read as one record.
 
 In CHARACTER mode only, tabs are expanded to spaces by input programs,
 except by @cmd{DATA LIST FREE} with explicitly specified delimiters.
 Each tab is 4 characters wide by default, but TABWIDTH (a @pspp{}
 extension) may be used to specify an alternate width.  Use a TABWIDTH
 of 0 to suppress tab expansion.
+
+By default, a file written in CHARACTER mode uses line feeds only at
+ends of lines, which is customary on Unix-like system.  Specify ENDS
+as CR or CRLF to override the default.  PSPP reads files using either
+convention on any kind of system, regardless of ENDS.
 
 @item
 In IMAGE mode, the data file is treated as a series of fixed-length

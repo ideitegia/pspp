@@ -302,3 +302,36 @@ AT_CHECK([cat foo2.out], [0], [dnl
 ls -l foo.out foo2.out
 AT_CHECK([test -c foo.out])
 AT_CLEANUP
+
+AT_SETUP([PRINT with special line ends])
+AT_DATA([print.sps], [dnl
+FILE HANDLE lf   /NAME='lf.txt'   /ENDS=LF.
+FILE HANDLE crlf /NAME='crlf.txt' /ENDS=CRLF.
+DATA LIST NOTABLE /x 1.
+BEGIN DATA.
+1
+2
+3
+4
+5
+END DATA.
+PRINT OUTFILE=lf/x.
+PRINT OUTFILE=crlf/x.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv print.sps])
+AT_CHECK([cat lf.txt], [0], [dnl
+ 1 @&t@
+ 2 @&t@
+ 3 @&t@
+ 4 @&t@
+ 5 @&t@
+])
+AT_CHECK([tr '\r' R < crlf.txt], [0], [dnl
+ 1 R
+ 2 R
+ 3 R
+ 4 R
+ 5 R
+])
+AT_CLEANUP
