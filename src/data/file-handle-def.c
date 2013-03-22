@@ -265,8 +265,14 @@ fh_create_dataset (struct dataset *ds)
 const struct fh_properties *
 fh_default_properties (void)
 {
+#if defined _WIN32 || defined __WIN32__
+#define DEFAULT_LINE_ENDS FH_END_CRLF
+#else
+#define DEFAULT_LINE_ENDS FH_END_LF
+#endif
+
   static const struct fh_properties default_properties
-    = {FH_MODE_TEXT, FH_END_LF, 1024, 4, (char *) "Auto"};
+    = {FH_MODE_TEXT, DEFAULT_LINE_ENDS, 1024, 4, (char *) "Auto"};
   return &default_properties;
 }
 

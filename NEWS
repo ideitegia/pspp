@@ -136,6 +136,10 @@ Changes from 0.6.2 to 0.7.9:
    See the documentation for the INSERT command in the PSPP manual for
    more information.
 
+ * Text data files that PRINT and WRITE creates now use the system
+   native line ends by default (CRLF on Windows, LF only elsewhere).
+   Use the new ENDS subcommand on FILE HANDLE to override the default.
+
  * A new Perl module allows Perl programs to read and write PSPP
    system files.
 

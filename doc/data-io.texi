@@ -629,10 +629,11 @@ Each tab is 4 characters wide by default, but TABWIDTH (a @pspp{}
 extension) may be used to specify an alternate width.  Use a TABWIDTH
 of 0 to suppress tab expansion.
 
-By default, a file written in CHARACTER mode uses line feeds only at
-ends of lines, which is customary on Unix-like system.  Specify ENDS
-as CR or CRLF to override the default.  PSPP reads files using either
-convention on any kind of system, regardless of ENDS.
+A file written in CHARACTER mode by default uses the line ends of the
+system on which PSPP is running, that is, on Windows, the default is
+CR LF line ends, and on other systems the default is LF only.  Specify
+ENDS as CR or CRLF to override the default.  PSPP reads files using
+either convention on any kind of system, regardless of ENDS.
 
 @item
 In IMAGE mode, the data file is treated as a series of fixed-length
