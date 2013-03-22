@@ -160,7 +160,9 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
   if ( ia->spreadsheet) 
     {
       if (pn == 0)
-	prepare_sheet_spec_page (ia);
+	{
+	  prepare_sheet_spec_page (ia);
+        }
       else if (pn == 1)
 	{
 	  post_sheet_spec_page (ia);

@@ -95,18 +95,13 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
   opts.read_names = true;
   opts.asw = -1;
 
-  printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
 
   if (ia->spreadsheet == NULL)
     ia->spreadsheet = gnumeric_probe (file->file_name, false);
 
-  printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
-
   if (ia->spreadsheet == NULL)
     ia->spreadsheet = ods_probe (file->file_name, false);
 
-  printf ("%s:%d %p\n", __FILE__, __LINE__, ia->spreadsheet);
-  
   if (ia->spreadsheet == NULL)
     {
     struct string input;
@@ -259,7 +254,6 @@ choose_file (GtkWindow *parent_window, gchar **encodingp)
   gtk_file_filter_add_mime_type (filter, "application/x-gnumeric");
   gtk_file_filter_add_mime_type (filter, "application/vnd.oasis.opendocument.spreadsheet");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
 
   gtk_file_chooser_set_extra_widget (
     GTK_FILE_CHOOSER (dialog), psppire_encoding_selector_new ("Auto", true));
