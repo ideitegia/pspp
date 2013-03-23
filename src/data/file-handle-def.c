@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ struct file_handle
     /* FH_REF_FILE only. */
     char *file_name;		/* File name as provided by user. */
     enum fh_mode mode;  	/* File mode. */
+    enum fh_line_ends line_ends; /* Line ends for text files. */
 
     /* FH_REF_FILE and FH_REF_INLINE only. */
     size_t record_width;        /* Length of fixed-format records. */
@@ -236,6 +237,7 @@ fh_create_file (const char *id, const char *file_name,
   handle = create_handle (id, handle_name, FH_REF_FILE, properties->encoding);
   handle->file_name = xstrdup (file_name);
   handle->mode = properties->mode;
+  handle->line_ends = properties->line_ends;
   handle->record_width = properties->record_width;
   handle->tab_width = properties->tab_width;
   return handle;
@@ -263,8 +265,14 @@ fh_create_dataset (struct dataset *ds)
 const struct fh_properties *
 fh_default_properties (void)
 {
+#if defined _WIN32 || defined __WIN32__
+#define DEFAULT_LINE_ENDS FH_END_CRLF
+#else
+#define DEFAULT_LINE_ENDS FH_END_LF
+#endif
+
   static const struct fh_properties default_properties
-    = {FH_MODE_TEXT, 1024, 4, (char *) "Auto"};
+    = {FH_MODE_TEXT, DEFAULT_LINE_ENDS, 1024, 4, (char *) "Auto"};
   return &default_properties;
 }
 
@@ -312,6 +320,15 @@ fh_get_mode (const struct file_handle *handle)
 {
   assert (handle->referent == FH_REF_FILE);
   return handle->mode;
+}
+
+/* Returns the line ends of HANDLE, which must be a handle associated with a
+   file. */
+enum fh_line_ends
+fh_get_line_ends (const struct file_handle *handle)
+{
+  assert (handle->referent == FH_REF_FILE);
+  return handle->line_ends;
 }
 
 /* Returns the width of a logical record on HANDLE. */

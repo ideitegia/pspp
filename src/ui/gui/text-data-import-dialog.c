@@ -243,7 +243,6 @@ generate_syntax (const struct import_assistant *ia)
       if (ia->file.encoding && strcmp (ia->file.encoding, "Auto"))
 	syntax_gen_pspp (&s, "  /ENCODING=%sq\n", ia->file.encoding);
 
-
       intro_append_syntax (ia->intro, &s);
 
 
@@ -260,7 +259,7 @@ generate_syntax (const struct import_assistant *ia)
     {
       return sheet_spec_gen_syntax (ia);
     }
-
+  
   return ds_cstr (&s);
 }
 
