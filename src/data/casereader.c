@@ -239,13 +239,12 @@ static casenumber
 casereader_count_cases__ (const struct casereader *reader,
                           casenumber max_cases)
 {
-  struct casereader *clone;
-  casenumber n_cases;
-
-  clone = casereader_clone (reader);
-  n_cases = casereader_advance (clone, max_cases);
+  struct casereader *clone = casereader_clone (reader);
+  casenumber n_cases = casereader_advance (clone, max_cases);
+#if (__GNUC__ == 4 ) && (__GNUC_MINOR__ == 4)
+  volatile int x = 1;
+#endif
   casereader_destroy (clone);
-
   return n_cases;
 }
 
