@@ -81,20 +81,11 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
 {
   enum { MAX_LINE_LEN = 16384 }; /* Max length of an acceptable line. */
   struct file *file = &ia->file;
-  struct spreadsheet_read_options opts;
 
   file->lines = NULL;
   file->file_name = choose_file (parent_window, &file->encoding);
   if (file->file_name == NULL)
     return false;
-
-  opts.sheet_name = NULL;
-  opts.cell_range = NULL;
-  opts.sheet_index = 1;
-
-  opts.read_names = true;
-  opts.asw = -1;
-
 
   if (ia->spreadsheet == NULL)
     ia->spreadsheet = gnumeric_probe (file->file_name, false);
