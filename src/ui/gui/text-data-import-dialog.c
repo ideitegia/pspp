@@ -87,8 +87,8 @@ text_data_import_assistant (PsppireDataWindow *dw)
 
     {
       ia->intro = intro_page_create (ia);
-      ia->separators = separators_page_create (ia);
       ia->first_line = first_line_page_create (ia);
+      ia->separators = separators_page_create (ia);
     }
   ia->formats = formats_page_create (ia);
 
