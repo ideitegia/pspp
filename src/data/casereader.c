@@ -1,4 +1,4 @@
-/* PSPP - a program for statistical analysis.
+/* pspp - a program for statistical analysis.
    Copyright (C) 2007, 2009, 2010, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -91,10 +91,10 @@ casereader_destroy (struct casereader *reader)
   bool ok = true;
   if (reader != NULL)
     {
-      //      reader->class->destroy (reader, reader->aux);
-      // ok = taint_destroy (reader->taint);
-      // caseproto_unref (reader->proto);
-      //  free (reader);
+      reader->class->destroy (reader, reader->aux);
+      ok = taint_destroy (reader->taint);
+      caseproto_unref (reader->proto);
+      free (reader);
     }
   return ok;
 }
