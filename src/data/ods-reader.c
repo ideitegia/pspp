@@ -113,7 +113,7 @@ struct state_data
   int col_span;
 };
 
-struct ods_reader
+struct ods_reader		/*  */
 {
   struct spreadsheet spreadsheet;
   struct zip_reader *zreader;
@@ -144,6 +144,7 @@ struct ods_reader
 void
 ods_destroy (struct spreadsheet *s)
 {
+  printf ("%s:%d\n", __FILE__, __LINE__);
 #if 0
   struct ods_reader *r = (struct ods_reader *) s;
 
@@ -239,6 +240,7 @@ ods_get_sheet_range (struct spreadsheet *s, int n)
 static void
 ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
+  printf ("%s:%d %p\n", __FILE__, __LINE__, r_);
 #if 0
   struct ods_reader *r = r_;
   if ( r == NULL)
@@ -490,11 +492,11 @@ convert_xml_to_value (struct ccase *c, const struct variable *var,
 	    CHAR_CAST (const char *, xmv->value) : CHAR_CAST (const char *, xmv->text);
 
 
-	  free (data_in (ss_cstr (text), "UTF-8",
+	  data_in (ss_cstr (text), "UTF-8",
 			 fmt->type,
 			 v,
 			 var_get_width (var),
-			 "UTF-8"));
+			 "UTF-8");
 	}
     }
 }
@@ -564,7 +566,7 @@ init_reader (struct ods_reader *r, bool report_errors)
 
   zip_member_ref (content);
   xtr = xmlReaderForIO ((xmlInputReadCallback) zip_member_read,
-			(xmlInputCloseCallback) zip_member_finish,
+			(xmlInputCloseCallback) NULL,
 			content,   NULL, NULL,
 			report_errors ? 0 : (XML_PARSE_NOERROR | XML_PARSE_NOWARNING) );
 
@@ -905,12 +907,11 @@ static struct ccase *
 ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 {
   struct ccase *c = NULL;
-  xmlChar *val_string = NULL;
-  xmlChar *type = NULL;
   struct ods_reader *r = r_;
 
   if (!r->used_first_case)
     {
+      printf ("%s:%d\n", __FILE__, __LINE__);
       r->used_first_case = true;
       return r->first_case;
     }
@@ -930,12 +931,18 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
        ||  (r->stop_row != -1 && r->rsd.row > r->stop_row + 1)
        )
     {
+      printf ("%s:%d\n", __FILE__, __LINE__);
       return NULL;
     }
+  printf ("%s:%d\n", __FILE__, __LINE__);
 
   c = case_create (r->proto);
   case_set_missing (c);
   
+#if 1
+  xmlChar *val_string = NULL;
+  xmlChar *type = NULL;
+
   while (1 == xmlTextReaderRead (r->rsd.xtr))
     {
       process_node (r, &r->rsd);
@@ -975,14 +982,15 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 	      convert_xml_to_value (c, var, xmv);
 	    }
 
-	  xmlFree (xmv->text);
-	  xmlFree (xmv->value);
-	  xmlFree (xmv->type);
-	  free (xmv);
+	  //	  xmlFree (xmv->text);
+	  //	  xmlFree (xmv->value);
+	  //	  xmlFree (xmv->type);
+	  //	  free (xmv);
 	}
       if ( r->rsd.state <= STATE_TABLE)
 	break;
     }
+#endif
 
   return c;
 }
