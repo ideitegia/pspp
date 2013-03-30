@@ -113,7 +113,14 @@ struct state_data
   int col_span;
 };
 
-struct ods_reader		/*  */
+static void
+state_data_destroy (struct state_data *sd)
+{
+  xmlFree (sd->current_sheet_name);
+  xmlFreeTextReader (sd->xtr);
+}
+
+struct ods_reader
 {
   struct spreadsheet spreadsheet;
   struct zip_reader *zreader;
@@ -144,23 +151,23 @@ struct ods_reader		/*  */
 void
 ods_destroy (struct spreadsheet *s)
 {
-#if 0
   struct ods_reader *r = (struct ods_reader *) s;
 
   if (--r->ref_cnt == 0)
     {
       int i;
 
+      state_data_destroy (&r->foo);
       for (i = 0; i < r->n_allocated_sheets; ++i)
 	{
 	  xmlFree (r->sheets[i].name);
 	}
-
+	
       zip_reader_destroy (r->zreader);
       free (r->sheets);
+	
       free (r);
     }
-#endif
 }
 
 
@@ -239,14 +246,11 @@ ods_get_sheet_range (struct spreadsheet *s, int n)
 static void
 ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
-#if 0
   struct ods_reader *r = r_;
   if ( r == NULL)
     return ;
 
-  if (r->xtr)
-    xmlFreeTextReader (r->xtr);
-  r->xtr = NULL;
+  state_data_destroy (&r->rsd);
 
   if ( ! ds_is_empty (&r->ods_errs))
     msg (ME, "%s", ds_cstr (&r->ods_errs));
@@ -258,11 +262,9 @@ ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   caseproto_unref (r->proto);
 
-  xmlFree (r->current_sheet_name);
   xmlFree (r->target_sheet_name);
 
   ods_destroy (&r->spreadsheet);
-#endif
 }
 
 
@@ -490,11 +492,11 @@ convert_xml_to_value (struct ccase *c, const struct variable *var,
 	    CHAR_CAST (const char *, xmv->value) : CHAR_CAST (const char *, xmv->text);
 
 
-	  data_in (ss_cstr (text), "UTF-8",
+	  free (data_in (ss_cstr (text), "UTF-8",
 			 fmt->type,
 			 v,
 			 var_get_width (var),
-			 "UTF-8");
+			 "UTF-8"));
 	}
     }
 }
@@ -562,7 +564,6 @@ init_reader (struct ods_reader *r, bool report_errors)
   if ( content == NULL)
     return NULL;
 
-  zip_member_ref (content);
   xtr = xmlReaderForIO ((xmlInputReadCallback) zip_member_read,
 			(xmlInputCloseCallback) NULL,
 			content,   NULL, NULL,
