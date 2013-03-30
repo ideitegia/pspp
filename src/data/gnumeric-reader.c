@@ -140,6 +140,8 @@ gnumeric_destroy (struct spreadsheet *s)
 {
   struct gnumeric_reader *r = (struct gnumeric_reader *) s;
 
+
+#if 0
   if (0 == --r->ref_cnt)
     {
       int i;
@@ -153,6 +155,7 @@ gnumeric_destroy (struct spreadsheet *s)
 
       free (r);
     }
+#endif
 }
 
 
@@ -199,9 +202,11 @@ static void
 gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
   struct gnumeric_reader *r = r_;
+
   if ( r == NULL)
 	return ;
 
+#if 0
   if ( r->xtr)
     xmlFreeTextReader (r->xtr);
   r->xtr = NULL;
@@ -212,6 +217,7 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
   caseproto_unref (r->proto);
 
   gnumeric_destroy (&r->spreadsheet);
+#endif
 }
 
 
