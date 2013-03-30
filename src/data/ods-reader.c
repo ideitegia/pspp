@@ -128,7 +128,10 @@ struct ods_reader
   int target_sheet_index;
   xmlChar *target_sheet_name;
   
-  struct state_data foo;
+  /* State data for the meta data */
+  struct state_data msd;
+
+  /* State data for the reader */
   struct state_data rsd;
 
   int start_row;
@@ -157,7 +160,7 @@ ods_destroy (struct spreadsheet *s)
     {
       int i;
 
-      state_data_destroy (&r->foo);
+      state_data_destroy (&r->msd);
       for (i = 0; i < r->n_allocated_sheets; ++i)
 	{
 	  xmlFree (r->sheets[i].name);
@@ -173,15 +176,15 @@ ods_destroy (struct spreadsheet *s)
 
 
 static bool
-reading_target_sheet (const struct ods_reader *r, const struct state_data *foo)
+reading_target_sheet (const struct ods_reader *r, const struct state_data *msd)
 {
   if (r->target_sheet_name != NULL)
     {
-      if ( 0 == xmlStrcmp (r->target_sheet_name, foo->current_sheet_name))
+      if ( 0 == xmlStrcmp (r->target_sheet_name, msd->current_sheet_name))
 	return true;
     }
   
-  if (r->target_sheet_index == foo->current_sheet + 1)
+  if (r->target_sheet_index == msd->current_sheet + 1)
     return true;
 
   return false;
@@ -195,7 +198,7 @@ const char *
 ods_get_sheet_name (struct spreadsheet *s, int n)
 {
   struct ods_reader *r = (struct ods_reader *) s;
-  struct state_data *or = &r->foo;
+  struct state_data *or = &r->msd;
 
   assert (n < s->n_sheets);
 
@@ -218,7 +221,7 @@ char *
 ods_get_sheet_range (struct spreadsheet *s, int n)
 {
   struct ods_reader *r = (struct ods_reader *) s;
-  struct state_data *or = &r->foo;
+  struct state_data *or = &r->msd;
   
   assert (n < s->n_sheets);
 
@@ -612,11 +615,11 @@ ods_probe (const char *filename, bool report_errors)
     {
       goto error;
     }
-  r->foo.xtr = xtr;
-  r->foo.row = 0;
-  r->foo.col = 0;
-  r->foo.current_sheet = 0;
-  r->foo.state = STATE_INIT;
+  r->msd.xtr = xtr;
+  r->msd.row = 0;
+  r->msd.col = 0;
+  r->msd.current_sheet = 0;
+  r->msd.state = STATE_INIT;
 
 
   r->spreadsheet.n_sheets = sheet_count;
