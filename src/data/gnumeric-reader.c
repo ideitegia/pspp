@@ -221,10 +221,11 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   state_data_destroy (&r->rsd);
 
-  if ( ! r->used_first_case )
+  if (r->first_case &&  ! r->used_first_case )
     case_unref (r->first_case);
 
-  caseproto_unref (r->proto);
+  if (r->proto) 
+    caseproto_unref (r->proto);
 
   gnumeric_destroy (&r->spreadsheet);
 }
@@ -592,8 +593,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
 
   r = (struct gnumeric_reader *) (spreadsheet);
 
-  if (r->rsd.row != -1)
-    r = gnumeric_reopen (r, NULL, true);
+  r = gnumeric_reopen (r, NULL, true);
 
   if ( opts->cell_range )
     {
@@ -618,6 +618,8 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
   r->target_sheet_index = opts->sheet_index;
   r->rsd.row = r->rsd.col = -1;
   r->rsd.current_sheet = -1;
+  r->first_case = NULL;
+  r->proto = NULL;
 
   /* Advance to the start of the cells for the target sheet */
   while ( (r->rsd.state != STATE_CELL || r->rsd.row < r->start_row )
