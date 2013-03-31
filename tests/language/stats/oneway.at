@@ -602,7 +602,7 @@ pigmentation,Between Groups,478.950,3,159.650,12.927,.000
 ,Within Groups,197.600,16,12.350,,
 ,Total,676.550,19,,,
 
-Table: Multiple Comparisons
+Table: Multiple Comparisons (pigmentation)
 ,,,Mean Difference,,,95% Confidence Interval,
 ,(I) family,(J) family,(I - J),Std. Error,Sig.,Lower Bound,Upper Bound
 LSD,1.000,2.000,-7.400,2.223,.004,-12.112,-2.688
@@ -671,7 +671,7 @@ libido,Between Groups,20.133,2,10.067,5.119,.025
 ,Within Groups,23.600,12,1.967,,
 ,Total,43.733,14,,,
 
-Table: Multiple Comparisons
+Table: Multiple Comparisons (libido)
 ,,,Mean Difference,,,95% Confidence Interval,
 ,(I) Dose of Viagra,(J) Dose of Viagra,(I - J),Std. Error,Sig.,Lower Bound,Upper Bound
 Tukey HSD,Placebo,1 Dose,-1.000,.887,.516,-3.366,1.366
@@ -731,7 +731,7 @@ score,Between Groups,54.9500,3,18.3167,7.0449,.0031
 ,Within Groups,41.6000,16,2.6000,,
 ,Total,96.5500,19,,,
 
-Table: Multiple Comparisons
+Table: Multiple Comparisons (score)
 ,,,Mean Difference,,,95% Confidence Interval,
 ,(I) program,(J) program,(I - J),Std. Error,Sig.,Lower Bound,Upper Bound
 Šidák,1.0000,2.0000,3.0000,1.0198,.0561,-.0575,6.0575
@@ -812,7 +812,7 @@ Days of Use,Between Groups,555.275,3,185.092,6.663,.001
 ,Within Groups,1000.100,36,27.781,,
 ,Total,1555.375,39,,,
 
-Table: Multiple Comparisons
+Table: Multiple Comparisons (Days of Use)
 ,,,Mean Difference,,,95% Confidence Interval,
 ,(I) group,(J) group,(I - J),Std. Error,Sig.,Lower Bound,Upper Bound
 Scheffé,one,two,3.800,2.357,.467,-3.112,10.712

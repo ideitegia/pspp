@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.7.10\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2013-03-26 21:38-0700\n"
-"PO-Revision-Date: 2013-03-27 08:38+0200\n"
+"PO-Revision-Date: 2013-03-30 12:49+0200\n"
 "Last-Translator: Mindaugas Baranauskas <embar@super.lt>\n"
 "Language-Team: Lithuanian <komp_lt@konferencijos.lt>\n"
 "Language: lt\n"
@@ -2632,7 +2632,7 @@ msgstr "Intervalas tarp kvartilių"
 
 #: src/language/stats/examine.c:1106
 msgid "Extreme Values"
-msgstr "Ekstremumų reikšmės"
+msgstr "Išskirčių reikšmės"
 
 #: src/language/stats/examine.c:1127 src/language/data-io/list.q:157
 msgid "Case Number"
@@ -2640,11 +2640,11 @@ msgstr "Atvejo numeris"
 
 #: src/language/stats/examine.c:1202
 msgid "Highest"
-msgstr "Didžiausias"
+msgstr "Didžiausia"
 
 #: src/language/stats/examine.c:1213
 msgid "Lowest"
-msgstr "Mažiausias"
+msgstr "Mažiausia"
 
 #: src/language/stats/examine.c:1305 src/language/stats/logistic.c:1374
 #: src/language/stats/means.c:1042 src/language/stats/reliability.c:528
@@ -4831,7 +4831,7 @@ msgstr ""
 #: src/output/tab.c:289
 #, c-format
 msgid "bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
-msgstr ""
+msgstr "netinkama lentelė (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d), nes lentelės dydis (%d,%d)\n"
 
 #: src/output/cairo.c:227
 #, c-format
@@ -4856,7 +4856,7 @@ msgstr ""
 #: src/output/cairo.c:460
 #, c-format
 msgid "error drawing output for %s driver: %s"
-msgstr ""
+msgstr "klaida braižant su %s tvarkykle: %s"
 
 #: src/output/cairo.c:1120
 #, c-format
@@ -4866,24 +4866,24 @@ msgstr "klaida bandant rašyti į rezultatų rinkmeną „%s“: %s"
 #: src/output/charts/np-plot-cairo.c:37
 #, c-format
 msgid "Normal Q-Q Plot of %s"
-msgstr ""
+msgstr "%s: kvantilių grafikas"
 
 #: src/output/charts/np-plot-cairo.c:38 src/output/charts/np-plot-cairo.c:65
 msgid "Observed Value"
-msgstr "Stebėta reikšmė"
+msgstr "Empirinė reikšmė"
 
 #: src/output/charts/np-plot-cairo.c:39
 msgid "Expected Normal"
-msgstr ""
+msgstr "Teorinis pagal normalųjį"
 
 #: src/output/charts/np-plot-cairo.c:64
 #, c-format
 msgid "Detrended Normal Q-Q Plot of %s"
-msgstr ""
+msgstr "%s: kvantilių grafikas be trendo"
 
 #: src/output/charts/np-plot-cairo.c:66
 msgid "Dev from Normal"
-msgstr ""
+msgstr "Nuokrypis nuo normaliojo"
 
 #: src/output/charts/plot-hist-cairo.c:41
 #, c-format
@@ -4919,7 +4919,7 @@ msgstr "Tikrinė reikšmė"
 #: src/output/charts/spreadlevel-cairo.c:37
 #, c-format
 msgid "Spread vs. Level Plot of %s"
-msgstr ""
+msgstr "%s: sklaidos ir lygio grafikas"
 
 #: src/output/charts/spreadlevel-cairo.c:38
 msgid "Level"
@@ -6601,7 +6601,7 @@ msgstr "_Aprašomoji"
 
 #: src/ui/gui/examine.ui:341
 msgid "_Extremes"
-msgstr "_Ekstremumai"
+msgstr "_Išskirtys"
 
 #: src/ui/gui/examine.ui:355
 msgid "_Percentiles"

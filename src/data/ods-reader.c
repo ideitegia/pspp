@@ -911,6 +911,9 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
   struct ccase *c = NULL;
   struct ods_reader *r = r_;
 
+  xmlChar *val_string = NULL;
+  xmlChar *type = NULL;
+
   if (!r->used_first_case)
     {
       r->used_first_case = true;
@@ -938,9 +941,6 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
   c = case_create (r->proto);
   case_set_missing (c);
   
-  xmlChar *val_string = NULL;
-  xmlChar *type = NULL;
-
   while (1 == xmlTextReaderRead (r->rsd.xtr))
     {
       process_node (r, &r->rsd);
