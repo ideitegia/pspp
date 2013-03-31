@@ -94,6 +94,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	    goto error;
 	  reader = gnumeric_make_reader (spreadsheet, &opts);
 	  dict = spreadsheet->dict;
+	  gnumeric_destroy (spreadsheet);
 	}
       else if (0 == strncasecmp (tok, "ODS", 3))
 	{
