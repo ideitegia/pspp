@@ -221,17 +221,11 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   state_data_destroy (&r->rsd);
 
-#if 0
-  if ( r->rsd.xtr)
-    xmlFreeTextReader (r->rsd.xtr);
-  r->rsd.xtr = NULL;
-
   if ( ! r->used_first_case )
     case_unref (r->first_case);
 
   caseproto_unref (r->proto);
 
-#endif
   gnumeric_destroy (&r->spreadsheet);
 }
 
