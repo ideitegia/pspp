@@ -117,6 +117,14 @@ struct state_data
   int min_col;
 };
 
+
+static void
+state_data_destroy (struct state_data *sd)
+{
+  xmlFreeTextReader (sd->xtr);
+}
+
+
 struct gnumeric_reader
 {
   struct spreadsheet spreadsheet;
@@ -147,7 +155,6 @@ gnumeric_destroy (struct spreadsheet *s)
 {
   struct gnumeric_reader *r = (struct gnumeric_reader *) s;
 
-#if 0
   if (0 == --r->ref_cnt)
     {
       int i;
@@ -158,10 +165,10 @@ gnumeric_destroy (struct spreadsheet *s)
 	}
     
       free (r->sheets);
+      state_data_destroy (&r->msd);
 
       free (r);
     }
-#endif
 }
 
 
@@ -212,6 +219,8 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
   if ( r == NULL)
 	return ;
 
+  state_data_destroy (&r->rsd);
+
 #if 0
   if ( r->rsd.xtr)
     xmlFreeTextReader (r->rsd.xtr);
@@ -222,8 +231,8 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   caseproto_unref (r->proto);
 
-  gnumeric_destroy (&r->spreadsheet);
 #endif
+  gnumeric_destroy (&r->spreadsheet);
 }
 
 
@@ -258,6 +267,7 @@ process_node (struct gnumeric_reader *r, struct state_data *sd)
 	      r->sheets = xrealloc (r->sheets, (sd->current_sheet + 1) * sizeof *r->sheets);
 	      detail = &r->sheets[sd->current_sheet];
 	      detail->start_col = detail->stop_col = detail->start_row = detail->stop_row = -1;
+	      detail->name = NULL;
 	      r->spreadsheet.n_sheets = sd->current_sheet + 1;
 	    }
 	}
@@ -269,7 +279,8 @@ process_node (struct gnumeric_reader *r, struct state_data *sd)
 	}
       else if (XML_READER_TYPE_TEXT == sd->node_type)
 	{
-	  r->sheets [r->spreadsheet.n_sheets - 1].name = CHAR_CAST (char *, xmlTextReaderValue (sd->xtr));
+	  if ( r->sheets [r->spreadsheet.n_sheets - 1].name == NULL)
+	    r->sheets [r->spreadsheet.n_sheets - 1].name = CHAR_CAST (char *, xmlTextReaderValue (sd->xtr));
 	}
       break;
 
@@ -468,7 +479,7 @@ static struct gnumeric_reader *
 gnumeric_reopen (struct gnumeric_reader *r, const char *filename, bool show_errors)
 {  
   int ret;
-  struct state_data *sd;//  = filename ? &r->msd : &r->rsd;
+  struct state_data *sd;
 
   xmlTextReaderPtr xtr;
   gzFile gz;
@@ -589,8 +600,6 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
 
   if (r->rsd.row != -1)
     r = gnumeric_reopen (r, NULL, true);
-
-
 
   if ( opts->cell_range )
     {
@@ -850,7 +859,6 @@ gnm_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 
 	  free (value);
 	}
-
     }
 
   if (ret == 1)
