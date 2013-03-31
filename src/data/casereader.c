@@ -242,9 +242,9 @@ casereader_count_cases__ (const struct casereader *reader,
   struct casereader *clone = casereader_clone (reader);
   casenumber n_cases = casereader_advance (clone, max_cases);
 #if (__GNUC__ == 4 ) && (__GNUC_MINOR__ == 4)
-  // volatile int x = 1;
+  volatile int x = 1; x++;
 #endif
-  //  casereader_destroy (clone);
+  casereader_destroy (clone);
   return n_cases;
 }
 
