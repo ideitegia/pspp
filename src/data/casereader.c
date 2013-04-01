@@ -242,6 +242,19 @@ casereader_count_cases__ (const struct casereader *reader,
   struct casereader *clone;
   casenumber n_cases;
 
+  /* This seems to avoid a bug in Gcc 4.4.5 where, upon
+     return from this function, the stack appeared corrupt,
+     and the program returned to the wrong address.  Oddly
+     the problem only manifested itself when used in conjunction
+     with the ODS reader, in code such as:
+
+     GET DATA /TYPE=ODS ....
+     LIST.
+  */
+#if (__GNUC__ == 4 ) && (__GNUC_MINOR__ == 4)
+  volatile int x = 1; x++;
+#endif
+
   clone = casereader_clone (reader);
   n_cases = casereader_advance (clone, max_cases);
   casereader_destroy (clone);
