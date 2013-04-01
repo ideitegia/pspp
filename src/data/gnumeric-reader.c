@@ -473,7 +473,7 @@ gnumeric_error_handler (void *ctx, const char *mesg,
 static struct gnumeric_reader *
 gnumeric_reopen (struct gnumeric_reader *r, const char *filename, bool show_errors)
 {  
-  int ret;
+  int ret = -1;
   struct state_data *sd;
 
   xmlTextReaderPtr xtr;
