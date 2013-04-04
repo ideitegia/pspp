@@ -268,3 +268,32 @@ reliability x y.
 AT_CHECK([pspp -O format=csv bad-syntax.sps], [1], [ignore])
 
 AT_CLEANUP
+
+dnl Checks for a crash when bad syntax followed scale specification.
+AT_SETUP([RELIABILITY bad syntax 2])
+AT_DATA([bad-syntax.sps], [dnl
+new file.
+data list notable list /f01 f02 f03 f04 f05 f06 f07 f08 f09 f10 *.
+begin data.
+end data.
+
+* This syntax is incorrect
+reliability variables=f01 to f10/asdfj.
+])
+AT_CHECK([pspp -O format=csv bad-syntax.sps], [1], [ignore])
+AT_CLEANUP
+
+
+dnl Checks for a crash when the active file was empty.  Bug #38660.
+AT_SETUP([RELIABILITY crash with no data])
+AT_DATA([reliability.sps], [dnl
+new file.
+data list notable list /f01 f02 f03 f04 f05 f06 f07 f08 f09 f10 *.
+begin data.
+end data.
+
+reliability variables=f01 to f10.
+])
+AT_CHECK([pspp -O format=csv reliability.sps], [0], [])
+AT_CLEANUP
+
