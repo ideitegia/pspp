@@ -118,9 +118,10 @@ reliability_destroy (struct reliability *rel)
       {
 	int x;
 	free (rel->sc[j].items);
-	moments1_destroy (rel->sc[j].total);
-	for (x = 0; x < rel->sc[j].n_items; ++x)
-	  free (rel->sc[j].m[x]);
+        moments1_destroy (rel->sc[j].total);
+        if (rel->sc[j].m)
+          for (x = 0; x < rel->sc[j].n_items; ++x)
+            free (rel->sc[j].m[x]);
 	free (rel->sc[j].m);
       }
 
@@ -374,6 +375,20 @@ run_reliability (struct dataset *ds, const struct reliability *reliability)
   struct casereader *group;
 
   struct casegrouper *grouper = casegrouper_create_splits (proc_open (ds), dict);
+  int si;
+
+  for (si = 0 ; si < reliability->n_sc; ++si)
+    {
+      struct cronbach *s = &reliability->sc[si];
+      int i;
+
+      s->m = xzalloc (sizeof *s->m * s->n_items);
+      s->total = moments1_create (MOMENT_VARIANCE);
+
+      for (i = 0 ; i < s->n_items ; ++i )
+	s->m[i] = moments1_create (MOMENT_VARIANCE);
+    }
+
 
   while (casegrouper_get_next_group (grouper, &group))
     {
@@ -437,11 +452,10 @@ do_reliability (struct casereader *input, struct dataset *ds,
     {
       struct cronbach *s = &rel->sc[si];
 
-      s->m = xzalloc (sizeof (s->m) * s->n_items);
-      s->total = moments1_create (MOMENT_VARIANCE);
+      moments1_clear (s->total);
 
       for (i = 0 ; i < s->n_items ; ++i )
-	s->m[i] = moments1_create (MOMENT_VARIANCE);
+        moments1_clear (s->m[i]);
     }
 
   input = casereader_create_filter_missing (input,
