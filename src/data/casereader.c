@@ -1,4 +1,4 @@
-/* pspp - a program for statistical analysis.
+/* PSPP - a program for statistical analysis.
    Copyright (C) 2007, 2009, 2010, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -258,6 +258,7 @@ casereader_count_cases__ (const struct casereader *reader,
   clone = casereader_clone (reader);
   n_cases = casereader_advance (clone, max_cases);
   casereader_destroy (clone);
+
   return n_cases;
 }
 
