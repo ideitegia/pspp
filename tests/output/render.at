@@ -1725,12 +1725,11 @@ AT_CHECK([render-test --width=15 --length=15 input], [0], [dnl
 +-+--+--+---+
 |h|       The
 | |        su
-| |    determ
-+-+       han
-|i|missing va
-| |     If IN
-| |         s
-+-+      user
++-+    determ
+|i|       han
+| |missing va
+| |If INCLUDE
++-+ then user
 |j|        va
 | |   include
 | | calculati
@@ -1739,13 +1738,13 @@ AT_CHECK([render-test --width=15 --length=15 input], [0], [dnl
 +-+ NOINCLUDE
 |k|      whic
 | |
-+-+      user
-|l|        va
-| |         e
+| |      user
++-+        va
+|l|         e
+| |
 | |
 +-+
 |m|
-| |
 | |
 +-+----------
 
@@ -1757,8 +1756,7 @@ ubcommand|
 mines the|
 ndling of|
 ariables.|
-NCLUDE is|
-set, then|
+E is set,|
 r‑missing|
 alues are|
 ed in the|
@@ -1802,5 +1800,34 @@ x y z
 1 2 3
 4 5 6
 7 8 9
+])
+AT_CLEANUP
+
+# Long string variables tend to end in lots of spaces.  The ASCII
+# driver didn't handle this very well: it would essentially produce
+# one blank line in a cell for each trailing space.  This test
+# checks for regression.  See bug #38672.
+AT_SETUP([ASCII driver renders end of line spaces reasonably])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [dnl
+3 3
+@a
+@b
+@xyzzy                                          @&t@
+@d
+@e
+@f
+@g
+@h
+@i
+])
+AT_CHECK([render-test --width=15 --length=15 input], [0], [dnl
++-+-+-----+
+|a|b|xyzzy|
++-+-+-----+
+|d|e|    f|
++-+-+-----+
+|g|h|    i|
++-+-+-----+
 ])
 AT_CLEANUP
