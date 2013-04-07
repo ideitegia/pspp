@@ -129,9 +129,9 @@ struct examine
   size_t n_percentiles;
   
   bool npplot;
-  bool histogram;
+  bool histogramplot;
   bool boxplot;
-  bool spreadlevel;
+  bool spreadlevelplot;
   int sl_power;
 
   enum bp_mode boxplot_mode;
@@ -1584,7 +1584,7 @@ calculate_n (const void *aux1, void *aux2 UNUSED, void *user_data)
       struct casereader *reader;
       struct ccase *c;
 
-      if (examine->histogram)
+      if (examine->histogramplot)
         {
           /* Sturges Rule */
           double bin_width = fabs (es[v].minimum - es[v].maximum)
@@ -1856,13 +1856,13 @@ run_examine (struct examine *cmd, struct casereader *input)
             }
         }
 
-      if (cmd->histogram)
+      if (cmd->histogramplot)
         show_histogram (cmd, i);
 
       if (cmd->npplot)
         show_npplot (cmd, i);
 
-      if (cmd->spreadlevel)
+      if (cmd->spreadlevelplot)
         show_spreadlevel (cmd, i);
 
       if (cmd->descriptives)
@@ -1913,10 +1913,10 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 
   examine.dep_excl = MV_ANY;
   examine.fctr_excl = MV_ANY;
-  examine.histogram = false;
+  examine.histogramplot = false;
   examine.npplot = false;
   examine.boxplot = false;
-  examine.spreadlevel = false;
+  examine.spreadlevelplot = false;
   examine.sl_power = 0;
   
   examine.dict = dataset_dict (ds);
@@ -2151,11 +2151,11 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
                 }
               else if (lex_match_id (lexer, "HISTOGRAM"))
                 {
-                  examine.histogram = true;
+                  examine.histogramplot = true;
                 }
               else if (lex_match_id (lexer, "SPREADLEVEL"))
                 {
-		  examine.spreadlevel = true;
+		  examine.spreadlevelplot = true;
 		  examine.sl_power = 0;
 		  if (lex_match (lexer, T_LPAREN))
 		    {
@@ -2168,13 +2168,13 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
                 }
               else if (lex_match_id (lexer, "NONE"))
                 {
-                  examine.histogram = false;
+                  examine.histogramplot = false;
                   examine.npplot = false;
                   examine.boxplot = false;
                 }
               else if (lex_match (lexer, T_ALL))
                 {
-                  examine.histogram = true;
+                  examine.histogramplot = true;
                   examine.npplot = true;
                   examine.boxplot = true;
                 }
