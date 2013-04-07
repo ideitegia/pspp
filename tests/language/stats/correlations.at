@@ -145,3 +145,57 @@ foo,Pearson Correlation,1.000,-1.000
 ])
 
 AT_CLEANUP
+
+dnl Checks for bug #38661.
+AT_SETUP([CORRELATIONS -- crash with WITH keyword])
+AT_DATA([correlations.sps], [dnl
+DATA LIST LIST NOTABLE /a b c d e f g h i.
+.
+BEGIN DATA.
+20 21 17 28 23 4.35 24 19 25
+28 18 29 30 23 4.55 17 23 28
+47 18 30 30 29 4.35 26 31 31
+20 7 19 22 22 4.80 24 16 27
+19 12 17 27 22 . 22 14 25
+22 9 19 30 33 5 29 30 27
+41 16 22 32 23 3.90 26 27 23
+18 18 20 26 22 5.80 17 20 39
+18 24 25 25 31 5.15 27 27 34
+19 22 26 23 37 6 41 32 27
+23 12 15 29 25 4.10 21 27 20
+21 4 28 37 31 5.65 27 18 42
+19 5 17 17 29 3.10 19 16 19
+21 17 20 35 31 . 28 30 22
+END DATA.
+
+CORRELATIONS VARIABLE=a f b WITH c g h i e d/STATISTICS=DESCRIPTIVES.
+])
+AT_CHECK([pspp -o pspp.csv correlations.sps])
+# Check the output, ignoring the actual correlations values since
+# they look pretty nonsensical to me for this input (they include NaNs).
+AT_CHECK([sed '/a,Pearson/,$s/,\([[^,]]*\),.*/,\1,.../' pspp.csv], [0], [dnl
+Table: Descriptive Statistics
+,Mean,Std. Deviation,N
+a,24.00,8.93,14.00
+f,4.73,.85,12.00
+b,14.50,6.41,14.00
+c,21.71,4.98,14.00
+g,24.86,6.09,14.00
+h,23.57,6.30,14.00
+i,27.79,6.73,14.00
+e,27.21,4.95,14.00
+d,27.93,5.23,14.00
+
+Table: Correlations
+,,c,g,h,i,e,d
+a,Pearson Correlation,...
+,Sig. (2-tailed),...
+,N,...
+f,Pearson Correlation,...
+,Sig. (2-tailed),...
+,N,...
+b,Pearson Correlation,...
+,Sig. (2-tailed),...
+,N,...
+])
+AT_CLEANUP
