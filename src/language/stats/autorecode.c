@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -297,9 +297,10 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 	{
 	  const union value *from = &items[j]->from;
 	  char *recoded_value  = NULL;
-	  char *c;
 	  const int src_width = items[j]->width;
 	  union value to_val;
+	  size_t len;
+
 	  value_init (&to_val, 0);
 
 	  items[j]->to = direction == ASCENDING ? j + 1 : n_items - j;
@@ -318,12 +319,9 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 	    recoded_value = c_xasprintf ("%g", from->f);
 	  
 	  /* Remove trailing whitespace */
-	  for (c = recoded_value; *c != '\0'; c++)
-	    if ( *c == ' ')
-	      {
-		*c = '\0';
-		break;
-	      }
+          len = strlen (recoded_value);
+          while (len > 0 && recoded_value[len - 1] == ' ')
+            recoded_value[--len] = '\0';
 
 	  var_add_value_label (spec->dst, &to_val, recoded_value);
 	  value_destroy (&to_val, 0);
