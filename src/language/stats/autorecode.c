@@ -59,7 +59,8 @@ struct arc_item
 /* Explains how to recode an AUTORECODE variable. */
 struct arc_spec
   {
-    const struct variable *src;	/* Source variable. */
+    int width;                  /* Variable width. */
+    int src_idx;                /* Case index of source variable. */
     struct variable *dst;	/* Target variable. */
     struct rec_items *items;
   };
@@ -89,7 +90,6 @@ struct autorecode_pgm
   struct rec_items *global_items;
 
   bool blank_valid;
-  const struct dictionary *dict;
 };
 
 static trns_proc_func autorecode_trns_proc;
@@ -145,18 +145,17 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
   /* Create procedure. */
   arc = xzalloc (sizeof *arc);
   arc->blank_valid = true;
-  arc->dict = dataset_dict (ds);
 
   /* Parse variable lists. */
   lex_match_id (lexer, "VARIABLES");
   lex_match (lexer, T_EQUALS);
-  if (!parse_variables_const (lexer, arc->dict, &src_vars, &n_srcs,
-                              PV_NO_DUPLICATE))
+  if (!parse_variables_const (lexer, dict, &src_vars, &n_srcs,
+                              PV_NO_DUPLICATE | PV_NO_SCRATCH))
     goto error;
   if (!lex_force_match_id (lexer, "INTO"))
     goto error;
   lex_match (lexer, T_EQUALS);
-  if (!parse_DATA_LIST_vars (lexer, arc->dict, &dst_names, &n_dsts,
+  if (!parse_DATA_LIST_vars (lexer, dict, &dst_names, &n_dsts,
                              PV_NO_DUPLICATE))
     goto error;
   if (n_dsts != n_srcs)
@@ -171,7 +170,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
     {
       const char *name = dst_names[i];
 
-      if (dict_lookup_var (arc->dict, name) != NULL)
+      if (dict_lookup_var (dict, name) != NULL)
         {
           msg (SE, _("Target variable %s duplicates existing variable %s."),
                name, name);
@@ -226,7 +225,8 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
     {
       struct arc_spec *spec = &arc->specs[i];
 
-      spec->src = src_vars[i];
+      spec->width = var_get_width (src_vars[i]);
+      spec->src_idx = var_get_case_index (src_vars[i]);
 
       if (arc->global_items)
 	{
@@ -248,15 +248,17 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
     for (i = 0; i < arc->n_specs; i++)
       {
         struct arc_spec *spec = &arc->specs[i];
-        int width = var_get_width (spec->src);
-        const union value *value = case_data (c, spec->src);
+        int width = spec->width;
+        const union value *value = case_data_idx (c, spec->src_idx);
         size_t hash = value_hash (value, width, 0);
         struct arc_item *item;
 
         item = find_arc_item (spec, value, hash);
         if ( (item == NULL)
 	     &&  
-	     ( arc->blank_valid || var_is_numeric (spec->src) || ! value_is_blank (value, width, arc->dict))
+	     ( arc->blank_valid
+               || val_type_from_width (spec->width) == VAL_NUMERIC
+               || ! value_is_blank (value, width, dict))
 	     )
           {
             item = xmalloc (sizeof *item);
@@ -267,6 +269,10 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       }
   ok = casereader_destroy (input);
   ok = proc_commit (ds) && ok;
+
+  /* Re-fetch dictionary because it might have changed (if TEMPORARY was in
+     use). */
+  dict = dataset_dict (ds);
 
   /* Create transformation. */
   for (i = 0; i < arc->n_specs; i++)
@@ -313,7 +319,8 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 	    {
 	      const char *str = CHAR_CAST_BUG (const char*, value_str (from, src_width));
 
-	      recoded_value = recode_string (UTF8, dict_get_encoding (arc->dict), str, src_width);
+	      recoded_value = recode_string (UTF8, dict_get_encoding (dict),
+                                             str, src_width);
 	    }
 	  else
 	    recoded_value = c_xasprintf ("%g", from->f);
@@ -399,7 +406,7 @@ find_arc_item (const struct arc_spec *spec, const union value *value,
   struct arc_item *item;
 
   HMAP_FOR_EACH_WITH_HASH (item, struct arc_item, hmap_node, hash, &spec->items->ht)
-    if (value_equal (value, &item->from, var_get_width (spec->src)))
+    if (value_equal (value, &item->from, spec->width))
       return item;
   return NULL;
 }
@@ -436,9 +443,9 @@ autorecode_trns_proc (void *arc_, struct ccase **c,
   for (i = 0; i < arc->n_specs; i++)
     {
       const struct arc_spec *spec = &arc->specs[i];
-      int width = var_get_width (spec->src);
-      const union value *value = case_data (*c, spec->src);
-      const struct arc_item *item = find_arc_item (spec, value, value_hash (value, width, 0));
+      const union value *value = case_data_idx (*c, spec->src_idx);
+      unsigned int hash = value_hash (value, spec->width, 0);
+      const struct arc_item *item = find_arc_item (spec, value, hash);
 
       case_data_rw (*c, spec->dst)->f = item ? item->to : SYSMIS;
     }
