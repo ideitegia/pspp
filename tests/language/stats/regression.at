@@ -1674,3 +1674,20 @@ AT_CHECK([diff pspp.csv pspp-ref.csv])
 
 
 AT_CLEANUP
+
+AT_SETUP([REGRESSION with invalid syntax (and empty dataset)])
+
+AT_DATA([ss.sps], [dnl
+data list notable list / v0 to v2.
+begin data
+end data.
+
+regression /variables=v0 v1
+	     /statistics r coeff anova
+	     /dependent=v2
+	     /method=enter v2.
+])
+
+AT_CHECK([pspp ss.sps], [1], [ignore])
+
+AT_CLEANUP

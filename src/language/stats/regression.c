@@ -414,9 +414,12 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   return CMD_SUCCESS;
   
  error:
+  if (regression.models)
+   {
   for (k = 0; k < regression.n_dep_vars; k++)
     linreg_unref (regression.models[k]);
   free (regression.models);
+   }
   free (regression.vars);
   free (regression.dep_vars);
   return CMD_FAILURE;
