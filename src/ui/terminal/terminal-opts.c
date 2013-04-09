@@ -20,6 +20,8 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+
 
 #include "data/settings.h"
 #include "data/file-name.h"
@@ -39,6 +41,7 @@
 #include "output/msglog.h"
 
 #include "gl/error.h"
+#include "gl/localcharset.h"
 #include "gl/progname.h"
 #include "gl/version-etc.h"
 #include "gl/xmemdup0.h"
@@ -302,6 +305,8 @@ terminal_opts_init (struct argv_parser *ap,
 void
 terminal_opts_done (struct terminal_opts *to, int argc, char *argv[])
 {
+      if (0 == strcmp (locale_charset (), "UTF-8"))
+        string_map_insert (&to->options, "box", "unicode");
   register_output_driver (to);
   if (!to->has_output_driver)
     {

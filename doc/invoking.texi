@@ -333,10 +333,13 @@ Length of the bottom margin, in lines.  @pspp{} subtracts this value from
 the page length.  Default: @code{0}.
 
 @item @option{-O box=@{ascii|unicode@}}
-Sets the characters used for lines in tables.  The default,
-@code{ascii}, uses @samp{-}, @samp{|}, and @samp{+} for single-width
-lines and @samp{=} and @samp{#} for double-width lines.  Specify
-@code{unicode} to use Unicode box drawing characters.
+Sets the characters used for lines in tables.  
+If set to 
+@code{ascii} the characters @samp{-}, @samp{|}, and @samp{+} for single-width
+lines and @samp{=} and @samp{#} for double-width lines are used.
+If set to @code{unicode} then  Unicode box drawing characters will be used.
+The default is @code{unicode} if the locale's character encoding is "UTF-8"
+or @code{ascii} otherwise.
 
 @item @option{-O emphasis=@{none|bold|underline@}}
 How to emphasize text.  Bold and underline emphasis are achieved with
