@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,11 +16,33 @@
 
 #include <config.h>
 
+#include <signal.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdbool.h>
+
+#if HAVE_READLINE
+#include <readline/readline.h>
+#include <readline/history.h>
+
+static char *history_file;
+
+static char **complete_command_name (const char *, int, int);
+static char **dont_complete (const char *, int, int);
+static char *command_generator (const char *text, int state);
+
+static const bool have_readline = true;
+
+#else
+static const bool have_readline = false;
+static int rl_end;
+#endif
+
+
 #include "ui/terminal/terminal-reader.h"
 
 #include <assert.h>
 #include <errno.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -56,7 +78,7 @@ static int n_terminal_readers;
 
 static void readline_init (void);
 static void readline_done (void);
-static struct substring readline_read (enum prompt_style);
+static bool readline_read (struct substring *, enum prompt_style);
 
 /* Display a welcoming message. */
 static void
@@ -94,7 +116,12 @@ terminal_reader_read (struct lex_reader *r_, char *buf, size_t n,
       output_flush ();
 
       ss_dealloc (&r->s);
-      r->s = readline_read (prompt_style);
+      if (! readline_read (&r->s, prompt_style))
+	{
+          *buf = '\n';
+          fprintf (rl_outstream, "\n");
+	  return 1;
+	}
       r->offset = 0;
       r->eof = ss_is_empty (r->s);
 
@@ -183,19 +210,85 @@ readline_prompt (enum prompt_style style)
 }
 
 
+
+static int pfd[2];
+static bool sigint_received ;
+
+static void 
+handler (int sig)
+{
+  rl_end = 0;
+
+  write (pfd[1], "x", 1);
+  rl_echo_signal_char (sig);
+}
+
+
+/* 
+   A function similar to getc from stdio.
+   However this one may be interrupted by SIGINT.
+   If that happens it will return EOF and the global variable
+   sigint_received will be set to true.
+ */
+static int
+interruptible_getc (FILE *fp)
+{
+  int c  = 0;
+  int ret = -1;
+  do
+    {
+      struct timeval timeout = {0, 50000};
+      fd_set what;
+      int max_fd = 0;
+      int fd ;
+      FD_ZERO (&what);
+      fd = fileno (fp);
+      max_fd = (max_fd > fd) ? max_fd : fd;
+      FD_SET (fd, &what);
+      fd = pfd[0];
+      max_fd = (max_fd > fd) ? max_fd : fd;
+      FD_SET (fd, &what);
+      ret = select (max_fd + 1, &what, NULL, NULL, &timeout);
+      if ( ret == -1 && errno != EINTR)
+	{
+	  perror ("Select failed");
+	  continue;
+	}
+
+      if (ret > 0 )
+	{
+	  if (FD_ISSET (pfd[0], &what))
+	    {
+	      char dummy[1];
+	      read (pfd[0], dummy, 1);
+	      sigint_received = true;
+	      return EOF;
+	    }
+	}
+    }
+  while (ret <= 0);
+
+  /* This will not block! */
+  read (fileno (fp), &c, 1);
+
+  return c;
+}
+
+
+
 #if HAVE_READLINE
-#include <readline/readline.h>
-#include <readline/history.h>
-
-static char *history_file;
-
-static char **complete_command_name (const char *, int, int);
-static char **dont_complete (const char *, int, int);
-static char *command_generator (const char *text, int state);
 
 static void
 readline_init (void)
 {
+  if ( 0 != pipe2 (pfd, O_NONBLOCK))
+    perror ("Cannot create pipe");
+
+  if ( SIG_ERR == signal (SIGINT, handler))
+    perror ("Cannot add signal handler");
+
+  rl_catch_signals = 0;
+  rl_getc_function = interruptible_getc;
   rl_basic_word_break_characters = "\n";
   using_history ();
   stifle_history (500);
@@ -219,15 +312,25 @@ readline_done (void)
   free (history_file);
 }
 
-static struct substring
-readline_read (enum prompt_style style)
+/* Prompt the user for a line of input and return it in LINE. 
+   Returns true if the LINE should be considered valid, false otherwise.
+ */
+static bool
+readline_read (struct substring *line, enum prompt_style style)
 {
   char *string;
 
   rl_attempted_completion_function = (style == PROMPT_FIRST
                                       ? complete_command_name
                                       : dont_complete);
+  sigint_received = false;
   string = readline (readline_prompt (style));
+  if (sigint_received)
+    {
+      *line = ss_empty ();
+      return false;
+    }
+
   if (string != NULL)
     {
       char *end;
@@ -237,10 +340,12 @@ readline_read (enum prompt_style style)
 
       end = strchr (string, '\0');
       *end = '\n';
-      return ss_buffer (string, end - string + 1);
+      *line = ss_buffer (string, end - string + 1);
     }
   else
-    return ss_empty ();
+    *line = ss_empty ();
+
+  return true;
 }
 
 /* Returns a set of command name completions for TEXT.
@@ -284,7 +389,9 @@ command_generator (const char *text, int state)
   name = cmd_complete (text, &cmd);
   return name ? xstrdup (name) : NULL;
 }
+
 #else  /* !HAVE_READLINE */
+
 static void
 readline_init (void)
 {
@@ -295,17 +402,19 @@ readline_done (void)
 {
 }
 
-static struct substring
-readline_read (enum prompt_style style)
+static bool
+readline_read (struct substring *line, enum prompt_style style)
 {
+  struct string string;
   const char *prompt = readline_prompt (style);
-  struct string line;
 
   fputs (prompt, stdout);
   fflush (stdout);
-  ds_init_empty (&line);
-  ds_read_line (&line, stdin, SIZE_MAX);
-
-  return line.ss;
+  ds_init_empty (&string);
+  ds_read_line (&string, stdin, SIZE_MAX);
+  
+  *line = string.ss;
+  
+  return false;
 }
 #endif /* !HAVE_READLINE */
