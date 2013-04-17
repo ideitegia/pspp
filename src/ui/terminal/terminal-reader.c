@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #if HAVE_READLINE
 #include <readline/readline.h>
