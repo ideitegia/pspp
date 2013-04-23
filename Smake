@@ -71,6 +71,7 @@ GNULIB_MODULES = \
 	stdarg \
 	stdbool \
 	stdint \
+	strcasestr \
 	stpcpy \
 	strerror \
 	strftime \
