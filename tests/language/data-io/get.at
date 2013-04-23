@@ -90,3 +90,13 @@ x,y,z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w
 GET_KEEP_ALL([uncompressed])
 GET_KEEP_ALL([compressed])
 
+
+dnl Test for a crash when no /TYPE was provided
+AT_SETUP([GET data no type])
+AT_DATA([get.sps], [dnl
+get data /file='anything'.
+])
+
+AT_CHECK([pspp get.sps], [1], [ignore])
+
+AT_CLEANUP
