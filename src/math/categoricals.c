@@ -103,7 +103,7 @@ lookup_variable (const struct hmap *map, const struct variable *var, unsigned in
       if (vn->var == var)
 	break;
       
-      fprintf (stderr, "Warning: Hash table collision\n");
+      fprintf (stderr, "%s:%d Warning: Hash table collision\n", __FILE__, __LINE__);
     }
   
   return vn;
@@ -115,7 +115,7 @@ struct interact_params
   /* A map of cases indexed by a interaction_value */
   struct hmap ivmap;
 
-  struct interaction *iact;
+  const struct interaction *iact;
 
   int base_subscript_short;
   int base_subscript_long;
@@ -270,6 +270,7 @@ categoricals_destroy (struct categoricals *cat)
   int i;
   if (NULL == cat)
     return;
+
   for (i = 0; i < cat->n_iap; ++i)
     {
       struct interaction_value *iv = NULL;
@@ -284,7 +285,6 @@ categoricals_destroy (struct categoricals *cat)
       free (cat->iap[i].enc_sum);
       free (cat->iap[i].df_prod);
       hmap_destroy (&cat->iap[i].ivmap);
-      interaction_destroy (cat->iap[i].iact);
     }
 
   /* Interate over each variable and delete its value map */

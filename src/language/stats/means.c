@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -764,7 +764,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
         const struct layer *lyr = &table->layers[l];
 	const int n_vars = lyr->n_factor_vars;
         table->interactions[l] = interaction_create (NULL);
-        for (v = 0 ; v < n_vars ; ++v)
+        for (v = 0; v < n_vars ; ++v)
           {
             interaction_add_variable (table->interactions[l],
                                       lyr->factor_vars[v]);
@@ -786,12 +786,31 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
     ok = proc_commit (ds) && ok;
   }
 
+  for (t = 0; t < means.n_tables; ++t)
+  {
+    int l;
+    struct mtable *table = &means.table[t];
+    for (l = 0; l < table->n_layers; ++l)
+      {
+	interaction_destroy (table->interactions[l]);
+      }
+  }
 
   pool_destroy (means.pool);
   return CMD_SUCCESS;
 
 error:
 
+  for (t = 0; t < means.n_tables; ++t)
+    {
+      int l;
+      struct mtable *table = &means.table[t];
+      for (l = 0; l < table->n_layers; ++l)
+	{
+	  interaction_destroy (table->interactions[l]);
+	}
+    }
+  
   pool_destroy (means.pool);
   return CMD_FAILURE;
 }
