@@ -319,16 +319,16 @@ term_is_utf8_xterm (void)
 void
 terminal_opts_done (struct terminal_opts *to, int argc, char *argv[])
 {
-  if ((0 == strcmp (locale_charset (), "UTF-8"))
-      ||
-      (term_is_utf8_xterm ()) )
-    {
-      string_map_insert (&to->options, "box", "unicode");
-    }
-  
   register_output_driver (to);
   if (!to->has_output_driver)
     {
+      if ((0 == strcmp (locale_charset (), "UTF-8"))
+	  ||
+	  (term_is_utf8_xterm ()) )
+	{
+	  string_map_insert (&to->options, "box", "unicode");
+	}
+  
       string_map_insert (&to->options, "output-file", "-");
       string_map_insert (&to->options, "format", "txt");
       register_output_driver (to);
