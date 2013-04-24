@@ -1527,7 +1527,7 @@ update_n (const void *aux1, void *aux2 UNUSED, void *user_data,
   int v;
   const struct examine *examine = aux1;
   struct exploratory_stats *es = user_data;
-
+  
   for (v = 0; v < examine->n_dep_vars; v++)
     {
       struct ccase *outcase ;
@@ -1801,11 +1801,9 @@ run_examine (struct examine *cmd, struct casereader *input)
 
   categoricals_set_payload (cmd->cats, &payload, cmd, NULL);
 
-  if (cmd->id_idx == -1)
+  if (cmd->id_var == NULL)
     {
       struct ccase *c = casereader_peek (input,  0);
-
-      assert (cmd->id_var == NULL);
 
       cmd->id_idx = case_get_value_cnt (c);
       input = casereader_create_arithmetic_sequence (input, 1.0, 1.0);
