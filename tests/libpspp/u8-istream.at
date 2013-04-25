@@ -137,6 +137,40 @@ entrée
 ])
 AT_CLEANUP
 
+AT_SETUP([read UTF-16 as Auto])
+AT_KEYWORDS([u8_istream])
+AT_CHECK([i18n-test supports_encodings UTF-16 UTF-16BE UTF-16LE])
+AT_CHECK([printf '\0e\0n\0t\0r\0\351\0e\0\n' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf 'e\0n\0t\0r\0\351\0e\0\n\0' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf '\376\377\0e\0n\0t\0r\0\351\0e\0\n' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf '\377\376e\0n\0t\0r\0\351\0e\0\n\0' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CLEANUP
+
+AT_SETUP([read UTF-32 as Auto])
+AT_KEYWORDS([u8_istream])
+AT_CHECK([i18n-test supports_encodings UTF-16 UTF-16BE UTF-16LE])
+AT_CHECK([printf '\0\0\0e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf 'e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n\0\0\0' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf '\0\0\376\377\0\0\0e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf '\377\376\0\0e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n\0\0\0' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CLEANUP
+
 AT_SETUP([read EUC-JP as Auto,EUC-JP])
 AT_KEYWORDS([u8_istream])
 AT_CHECK([i18n-test supports_encodings EUC-JP])

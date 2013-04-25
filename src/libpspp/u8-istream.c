@@ -134,12 +134,14 @@ u8_istream_for_fd (const char *fromcode, int fd)
     {
       if (encoding_guess_encoding_is_auto (fromcode)
           && !strcmp (encoding, "ASCII"))
-        is->state = S_AUTO;
+        {
+          is->state = S_AUTO;
+          encoding = encoding_guess_parse_encoding (fromcode);
+        }
       else
         is->state = S_CONVERT;
 
-      is->converter = iconv_open ("UTF-8",
-                                  encoding_guess_parse_encoding (fromcode));
+      is->converter = iconv_open ("UTF-8", encoding);
       if (is->converter == (iconv_t) -1)
         goto error;
     }
