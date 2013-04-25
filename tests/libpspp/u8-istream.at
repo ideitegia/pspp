@@ -115,9 +115,9 @@ AT_SETUP([read ISO-8859-1 as Auto,ISO-8859-1])
 AT_KEYWORDS([u8_istream])
 AT_CHECK([i18n-test supports_encodings ISO-8859-1])
 buffer_size=`u8-istream-test buffer-size`
-($PERL -e "print 'x' x int($buffer_size * 2.5)"; printf 'entr\351e\n') > input
+($PERL -e 'print "xyzzy\n" x int('$buffer_size' * 2.5 / 7)'; printf 'entr\351e\n') > input
 (echo "Auto mode"
- $PERL -e "print 'x' x int($buffer_size * 2.5)"
+ $PERL -e 'print "xyzzy\n" x int('$buffer_size' * 2.5 / 7)'
  printf 'entr\303\251e\n') > expout
 AT_CHECK([u8-istream-test read input Auto,ISO-8859-1], [0], [expout])
 AT_CLEANUP
