@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -109,6 +109,8 @@ bool encoding_guess_encoding_is_auto (const char *encoding);
 /* Making an initial coding guess based on the start of a file. */
 const char *encoding_guess_head_encoding (const char *encoding,
                                           const void *, size_t);
+size_t encoding_guess_bom_length (const char *encoding,
+                                  const void *, size_t n);
 
 /* Refining an initial ASCII coding guess using later non-ASCII bytes. */
 static inline bool encoding_guess_is_ascii_text (uint8_t c);
