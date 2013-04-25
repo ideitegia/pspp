@@ -109,6 +109,11 @@ Auto mode
 entrée
 UTF-8 mode
 ])
+AT_CHECK([printf '\357\273\277entr\303\251e\n' | u8-istream-test read - Auto], [0], [dnl
+UTF-8 mode
+entrée
+UTF-8 mode
+])
 AT_CLEANUP
 
 AT_SETUP([read ISO-8859-1 as Auto,ISO-8859-1])
