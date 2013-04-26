@@ -107,7 +107,7 @@ SAVE outfile='xx.sav'.
 SORT CASES by bb.
 T-TEST /GROUP=q(0,1) /VARIABLES=bb.
 USE ALL.
-* FLIP /VARIABLES = bb, c .
+FLIP /VARIABLES = bb, c .
 
 execute.
 finish.

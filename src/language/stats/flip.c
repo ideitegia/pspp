@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ struct flip_pgm
     int n_cases;                /* Pre-flip number of cases. */
 
     struct variable *new_names_var; /* Variable with new variable names. */
-    struct dictionary *dict;     /* Dictionary of the names */
+    const char *encoding;           /* Variable names' encoding. */
     struct var_names old_names; /* Variable names before FLIP. */
     struct var_names new_names; /* Variable names after FLIP. */
 
@@ -87,7 +87,8 @@ static void make_new_var (struct dictionary *, const char *name);
 int
 cmd_flip (struct lexer *lexer, struct dataset *ds)
 {
-  struct dictionary *dict = dataset_dict (ds);
+  struct dictionary *old_dict = dataset_dict (ds);
+  struct dictionary *new_dict = NULL;
   const struct variable **vars;
   struct flip_pgm *flip;
   struct casereader *input, *reader;
@@ -108,31 +109,30 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   flip->file = NULL;
   flip->cases_read = 0;
   flip->error = false;
-  flip->dict = dict;
 
   lex_match (lexer, T_SLASH);
   if (lex_match_id (lexer, "VARIABLES"))
     {
       lex_match (lexer, T_EQUALS);
-      if (!parse_variables_const (lexer, dict, &vars, &flip->n_vars,
+      if (!parse_variables_const (lexer, old_dict, &vars, &flip->n_vars,
                                   PV_NO_DUPLICATE))
 	goto error;
       lex_match (lexer, T_SLASH);
     }
   else
-    dict_get_vars (dict, &vars, &flip->n_vars, DC_SYSTEM);
+    dict_get_vars (old_dict, &vars, &flip->n_vars, DC_SYSTEM);
   pool_register (flip->pool, free, vars);
 
   lex_match (lexer, T_SLASH);
   if (lex_match_id (lexer, "NEWNAMES"))
     {
       lex_match (lexer, T_EQUALS);
-      flip->new_names_var = parse_variable (lexer, dict);
+      flip->new_names_var = parse_variable (lexer, old_dict);
       if (!flip->new_names_var)
         goto error;
     }
   else
-    flip->new_names_var = dict_lookup_var (dict, "CASE_LBL");
+    flip->new_names_var = dict_lookup_var (old_dict, "CASE_LBL");
 
   if (flip->new_names_var)
     {
@@ -161,6 +161,11 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   /* Read the active dataset into a flip_sink. */
   proc_discard_output (ds);
 
+  /* Save old dictionary. */
+  new_dict = dict_clone (old_dict);
+  flip->encoding = dict_get_encoding (new_dict);
+  dict_clear (new_dict);
+
   input = proc_open (ds);
   while ((c = casereader_read (input)) != NULL)
     {
@@ -185,8 +190,9 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
             }
           else
             {
-              name = data_out_pool (value, dict_get_encoding (flip->dict), var_get_write_format (flip->new_names_var),
-		 flip->pool);
+              name = data_out_pool (value, dict_get_encoding (old_dict),
+                                    var_get_write_format (flip->new_names_var),
+                                    flip->pool);
             }
           var_names_add (flip->pool, &flip->new_names, name);
         }
@@ -203,26 +209,27 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
     }
 
   /* Flip the dictionary. */
-  dict_clear (dict);
-  dict_create_var_assert (dict, "CASE_LBL", 8);
+  dict_create_var_assert (new_dict, "CASE_LBL", 8);
   for (i = 0; i < flip->n_cases; i++)
     if (flip->new_names.n_names)
-      make_new_var (dict, flip->new_names.names[i]);
+      make_new_var (new_dict, flip->new_names.names[i]);
     else
       {
         char s[3 + INT_STRLEN_BOUND (i) + 1];
         sprintf (s, "VAR%03zu", i);
-        dict_create_var_assert (dict, s, 0);
+        dict_create_var_assert (new_dict, s, 0);
       }
 
   /* Set up flipped data for reading. */
-  reader = casereader_create_sequential (NULL, dict_get_proto (dict),
+  reader = casereader_create_sequential (NULL, dict_get_proto (new_dict),
                                          flip->n_vars,
                                          &flip_casereader_class, flip);
+  dataset_set_dict (ds, new_dict);
   dataset_set_source (ds, reader);
   return CMD_SUCCESS;
 
  error:
+  dict_destroy (new_dict);
   destroy_flip_pgm (flip);
   return CMD_CASCADING_FAILURE;
 }
@@ -398,7 +405,6 @@ static struct ccase *
 flip_casereader_read (struct casereader *reader, void *flip_)
 {
   struct flip_pgm *flip = flip_;
-  const char *encoding;
   struct ccase *c;
   size_t i;
 
@@ -406,9 +412,8 @@ flip_casereader_read (struct casereader *reader, void *flip_)
     return false;
 
   c = case_create (casereader_get_proto (reader));
-  encoding = dict_get_encoding (flip->dict);
-  data_in (ss_cstr (flip->old_names.names[flip->cases_read]), encoding,
-           FMT_A, case_data_rw_idx (c, 0), 8, encoding);
+  data_in (ss_cstr (flip->old_names.names[flip->cases_read]), flip->encoding,
+           FMT_A, case_data_rw_idx (c, 0), 8, flip->encoding);
 
   for (i = 0; i < flip->n_cases; i++)
     {
