@@ -22,6 +22,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+
 #if HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -41,6 +42,9 @@ static int rl_end;
 
 
 #include "ui/terminal/terminal-reader.h"
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
 #include <assert.h>
 #include <errno.h>
