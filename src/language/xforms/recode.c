@@ -563,7 +563,7 @@ enlarge_dst_widths (struct recode_trns *trns)
 	    {
 	      msg (ME, 
 		   _("Cannot recode because the variable %s would require a width of %d bytes or greater, but it has a width of only %d bytes."),
-		   var_get_name (narrow_var), out->width, trns->max_dst_width);
+		   var_get_name (narrow_var), out->width, min_dst_width);
 	      return false;
 	    }
 	    

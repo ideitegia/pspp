@@ -300,7 +300,7 @@ AT_CLEANUP
 AT_SETUP([RECODE increased string widths])
 
 AT_DATA([recode.sps],[dnl
-data list list /x (a1) y (a8) z *.
+data list notable list /x (a1) y (a8) z *.
 begin data.
 a a         2
 a two       2
@@ -314,13 +314,7 @@ list.
 ])
 
 AT_CHECK([pspp -O format=csv recode.sps], [1], [dnl
-Table: Reading free-form data from INLINE.
-Variable,Format
-x,A1
-y,A8
-z,F8.0
-
-"error: Cannot recode in place, because the variable x would require a width of 5 bytes or greater, but it has a width of only 8 bytes."
+"error: Cannot recode because the variable x would require a width of 5 bytes or greater, but it has a width of only 1 bytes."
 
 Table: Data List
 x,y,z
