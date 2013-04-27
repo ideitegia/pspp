@@ -125,7 +125,7 @@ static void set_map_out_num (struct map_out *, double);
 static void set_map_out_str (struct map_out *, struct pool *,
                              struct substring);
 
-static void enlarge_dst_widths (struct recode_trns *);
+static bool enlarge_dst_widths (struct recode_trns *);
 static void create_dst_vars (struct recode_trns *, struct dictionary *);
 
 static trns_proc_func recode_trns_proc;
@@ -157,7 +157,12 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
       /* Ensure that all the output strings are at least as wide
          as the widest destination variable. */
       if (trns->dst_type == VAL_STRING)
-        enlarge_dst_widths (trns);
+	{
+	  if ( ! enlarge_dst_widths (trns))
+	    {
+	      return CMD_FAILURE;
+	    }
+	}
 
       /* Create destination variables, if needed.
          This must be the final step; otherwise we'd have to
@@ -528,26 +533,46 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
 
 /* Ensures that all the output values in TRNS are as wide as the
    widest destination variable. */
-static void
+static bool
 enlarge_dst_widths (struct recode_trns *trns)
 {
   size_t i;
-
+  const struct variable *narrow_var = NULL;
+  int min_dst_width = INT_MAX;
   trns->max_dst_width = 0;
+  
   for (i = 0; i < trns->var_cnt; i++)
     {
       const struct variable *v = trns->dst_vars[i];
       if (var_get_width (v) > trns->max_dst_width)
         trns->max_dst_width = var_get_width (v);
+
+      if (var_get_width (v) < min_dst_width)
+	{
+	  min_dst_width = var_get_width (v);
+	  narrow_var = v;
+	}
     }
 
   for (i = 0; i < trns->map_cnt; i++)
     {
       struct map_out *out = &trns->mappings[i].out;
       if (!out->copy_input)
-        value_resize_pool (trns->pool, &out->value,
-                           out->width, trns->max_dst_width);
+	{
+	  if (out->width > min_dst_width)
+	    {
+	      msg (ME, 
+		   _("Cannot recode because the variable %s would require a width of %d bytes or greater, but it has a width of only %d bytes."),
+		   var_get_name (narrow_var), out->width, trns->max_dst_width);
+	      return false;
+	    }
+	    
+	  value_resize_pool (trns->pool, &out->value,
+			     out->width, trns->max_dst_width);
+	}
     }
+
+  return true;
 }
 
 /* Creates destination variables that don't already exist. */
