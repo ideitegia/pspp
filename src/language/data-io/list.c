@@ -59,7 +59,7 @@ struct lst_cmd
   int first;
   int last;
   int step;
-  struct variable **v_variables;
+  const struct variable **v_variables;
   size_t n_variables;
   enum numbering numbering;
 };
@@ -162,7 +162,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
       if (lex_match_id (lexer, "VARIABLES") )
         {
           lex_match (lexer, T_EQUALS);
-          if (! parse_variables (lexer, dict, &cmd.v_variables, &cmd.n_variables, 0 ))
+          if (! parse_variables_const (lexer, dict, &cmd.v_variables, &cmd.n_variables, 0 ))
             {
               msg (SE, _("No variables specified."));
               return CMD_FAILURE;
@@ -213,7 +213,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
               lex_get (lexer);
             }
         }
-      else if (! parse_variables (lexer, dict, &cmd.v_variables, &cmd.n_variables, 0 ))
+      else if (! parse_variables_const (lexer, dict, &cmd.v_variables, &cmd.n_variables, 0 ))
         {
           return CMD_FAILURE;
         }
