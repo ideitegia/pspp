@@ -28,7 +28,10 @@
 #include "data/spreadsheet-reader.h"
 #include "data/casereader.h"
 #include "data/case.h"
+#include "data/settings.h"
 #include "libpspp/message.h"
+#include "libpspp/i18n.h"
+
 #include "gl/xalloc.h"
 
 
@@ -109,6 +112,9 @@ main (int argc, char *argv[] )
   GtkTreeModel *tm;
   GtkWidget *button;
   struct xxx stuff;
+
+  i18n_init ();
+  settings_init ();
 
   gtk_init (&argc, &argv);
     
