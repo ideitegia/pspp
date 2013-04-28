@@ -193,7 +193,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
 
           if (lex_force_int (lexer))
             {
-              lex_match_int (lexer, &cmd.first);
+	      cmd.first = lex_integer (lexer);
               lex_get (lexer);
             }
 
