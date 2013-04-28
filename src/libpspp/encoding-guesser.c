@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -187,6 +187,36 @@ is_all_utf8_text (const void *s_, size_t n)
   return true;
 }
 
+static bool
+is_utf8_bom (const uint8_t *data, size_t n)
+{
+  return n >= 3 && data[0] == 0xef && data[1] == 0xbb && data[2] == 0xbf;
+}
+
+static bool
+is_utf16le_bom (const uint8_t *data, size_t n)
+{
+  return (n >= ENCODING_GUESS_MIN || n % 2 == 0) && get_le16 (data) == 0xfeff;
+}
+
+static bool
+is_utf16be_bom (const uint8_t *data, size_t n)
+{
+  return (n >= ENCODING_GUESS_MIN || n % 2 == 0) && get_be16 (data) == 0xfeff;
+}
+
+static bool
+is_utf32le_bom (const uint8_t *data, size_t n)
+{
+  return (n >= ENCODING_GUESS_MIN || n % 4 == 0) && get_le32 (data) == 0xfeff;
+}
+
+static bool
+is_utf32be_bom (const uint8_t *data, size_t n)
+{
+  return (n >= ENCODING_GUESS_MIN || n % 4 == 0) && get_be32 (data) == 0xfeff;
+}
+
 /* Attempts to guess the encoding of a text file based on ENCODING, an encoding
    name in one of the forms described at the top of encoding-guesser.h, and
    DATA, which contains the first N bytes of the file.  Returns the guessed
@@ -220,8 +250,7 @@ encoding_guess_head_encoding (const char *encoding,
   if (n == 0)
     return fallback_encoding;
 
-  if ((n >= ENCODING_GUESS_MIN || n % 4 == 0)
-      && (get_be32 (data) == 0xfeff || get_le32 (data) == 0xfeff))
+  if (is_utf32be_bom (data, n) || is_utf32le_bom (data, n))
     return "UTF-32";
 
   if (n >= 4)
@@ -233,11 +262,10 @@ encoding_guess_head_encoding (const char *encoding,
         return "UTF-EBCDIC";
     }
 
-  if ((n >= ENCODING_GUESS_MIN || n % 2 == 0)
-      && (get_be16 (data) == 0xfeff || get_le16 (data) == 0xfeff))
+  if (is_utf16be_bom (data, n) || is_utf16le_bom (data, n))
     return "UTF-16";
 
-  if (n >= 3 && data[0] == 0xef && data[1] == 0xbb && data[2] == 0xbf)
+  if (is_utf8_bom (data, n))
     return "UTF-8";
 
   guess = guess_utf16 (data, n);
@@ -254,6 +282,40 @@ encoding_guess_head_encoding (const char *encoding,
     return fallback_encoding;
 
   return "ASCII";
+}
+
+static bool
+is_encoding_utf16 (const char *encoding)
+{
+  return (!c_strcasecmp (encoding, "utf-16")
+          || !c_strcasecmp (encoding, "utf16"));
+}
+
+static bool
+is_encoding_utf32 (const char *encoding)
+{
+  return (!c_strcasecmp (encoding, "utf-32")
+          || !c_strcasecmp (encoding, "utf32"));
+}
+
+/* If ENCODING is the name of an encoding that could begin with a byte-order
+   mark, and in fact the N bytes in DATA do begin with a byte-order mark,
+   returns the number of bytes in the byte-order mark.  Otherwise, returns 0.
+
+   N must be at least ENCODING_GUESS_MIN, unless the file is shorter than
+   that. */
+size_t
+encoding_guess_bom_length (const char *encoding,
+                           const void *data_, size_t n)
+{
+  const uint8_t *data = data_;
+
+  return (is_utf8_bom (data, n) && is_encoding_utf8 (encoding) ? 3
+          : is_utf16le_bom (data, n) && is_encoding_utf16 (encoding) ? 2
+          : is_utf16be_bom (data, n) && is_encoding_utf16 (encoding) ? 2
+          : is_utf32le_bom (data, n) && is_encoding_utf32 (encoding) ? 4
+          : is_utf32be_bom (data, n) && is_encoding_utf32 (encoding) ? 4
+          : 0);
 }
 
 /* Returns an encoding guess based on ENCODING and the N bytes of text starting

@@ -54,6 +54,7 @@ GNULIB_MODULES = \
 	minmax \
 	mkdtemp \
 	mkstemp \
+	pipe2 \
 	printf-posix \
 	printf-safe \
 	progname \
@@ -63,12 +64,14 @@ GNULIB_MODULES = \
 	relocatable-prog \
 	rename \
 	round \
+	select \
 	snprintf \
 	snprintf-posix \
 	sprintf-posix \
 	stdarg \
 	stdbool \
 	stdint \
+	strcasestr \
 	stpcpy \
 	strerror \
 	strftime \

@@ -14,8 +14,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef __NEW_HISTOGRAM_H__
-#define __NEW_HISTOGRAM_H__
+#ifndef __HISTOGRAM_H__
+#define __HISTOGRAM_H__
 
 #include <stddef.h>
 

@@ -234,7 +234,7 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
   for (c = 0 ; c < matrix_cols ; ++c)
     {
       const struct variable *v = corr->n_vars_total > corr->n_vars1 ?
-	corr->vars[corr->n_vars_total - corr->n_vars1 - 1 + c] : corr->vars[c];
+	corr->vars[corr->n_vars1 + c] : corr->vars[c];
       tab_text (t, heading_columns + c, 0, TAB_LEFT | TAT_TITLE, var_to_string (v));      
     }
 

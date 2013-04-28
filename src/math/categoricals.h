@@ -28,7 +28,7 @@ struct interaction;
 
 union value ;
 
-struct categoricals *categoricals_create (struct interaction *const *, size_t n_int,
+struct categoricals *categoricals_create (struct interaction *const*, size_t n_int,
 					  const struct variable *wv, enum mv_class dep_excl,
 					  enum mv_class fctr_excl);
 

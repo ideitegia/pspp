@@ -117,7 +117,10 @@ static void
 state_data_destroy (struct state_data *sd)
 {
   xmlFree (sd->current_sheet_name);
+  sd->current_sheet_name = NULL;
+
   xmlFreeTextReader (sd->xtr);
+  sd->xtr = NULL;
 }
 
 struct ods_reader
@@ -260,12 +263,16 @@ ods_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   ds_destroy (&r->ods_errs);
 
-  if ( ! r->used_first_case )
+  if ( r->first_case && ! r->used_first_case )
     case_unref (r->first_case);
 
+
   caseproto_unref (r->proto);
+  r->proto = NULL;
 
   xmlFree (r->target_sheet_name);
+  r->target_sheet_name = NULL;
+
 
   ods_destroy (&r->spreadsheet);
 }
@@ -669,6 +676,8 @@ ods_make_reader (struct spreadsheet *spreadsheet,
   r->rsd.current_sheet = 0;
   r->rsd.state = STATE_INIT;
 
+  r->used_first_case = false;
+  r->first_case = NULL;
 
   if (opts->cell_range)
     {
@@ -835,9 +844,6 @@ ods_make_reader (struct spreadsheet *spreadsheet,
       var_set_both_formats (var, &fmt);
     }
 
-  /* Create the first case, and cache it */
-  r->used_first_case = false;
-
   if ( n_var_specs ==  0 )
     {
       msg (MW, _("Selected sheet or range of spreadsheet `%s' is empty."),
@@ -845,6 +851,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
       goto error;
     }
 
+  /* Create the first case, and cache it */
   r->proto = caseproto_ref (dict_get_proto (r->dict));
   r->first_case = case_create (r->proto);
   case_set_missing (r->first_case);

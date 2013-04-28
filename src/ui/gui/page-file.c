@@ -203,7 +203,7 @@ choose_file (GtkWindow *parent_window, gchar **encodingp)
   g_object_set (dialog, "local-only", FALSE, NULL);
 
   filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Text files"));
+  gtk_file_filter_set_name (filter, _("Text Files"));
   gtk_file_filter_add_mime_type (filter, "text/*");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 

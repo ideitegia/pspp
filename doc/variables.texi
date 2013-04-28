@@ -471,18 +471,45 @@ already present.
 @vindex STRING
 
 @display
-STRING /@var{var_list} (@var{fmt_spec}).
+STRING @var{var_list} (@var{fmt_spec}) [/@var{var_list} (@var{fmt_spec})] [@dots{}].
 @end display
 
 @cmd{STRING} creates new string variables for use in
 transformations.
 
-Specify a slash (@samp{/}), followed by the names of the string
-variables to create and the desired output format specification in
-parentheses (@pxref{Input and Output Formats}).  Variable widths are
+Specify a list of names for the variable you want to create,
+followed by the desired output format specification in
+parentheses (@pxref{Input and Output Formats}).  
+Variable widths are
 implicitly derived from the specified output formats.
+The created variables will be initialized to spaces.
 
-Created variables are initialized to spaces.
+If you want to create several variables with  distinct
+output formats, you can either use two or more separate @cmd{STRING} commands,
+or you can specify further variable list and format specification pairs, each separated
+from the previous by a slash (@samp{/}).
+
+The following example is one way to create three string variables; Two of the
+variables have format A24 and the other A80:
+@example
+STRING firstname lastname (A24) / address (A80).
+@end example
+
+@noindent Here is another way to achieve the same result:
+@example
+STRING firstname lastname (A24).
+STRING address (A80).
+@end example
+
+@noindent @dots{} and here is yet another way:
+
+@example
+STRING firstname (A24).
+STRING lastname (A24).
+STRING address (A80).
+@end example
+
+
 
 
 @node VARIABLE ATTRIBUTE

@@ -858,6 +858,7 @@ ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
       size_t last_break_ofs = 0;
       int last_break_width = 0;
       int width = 0;
+      size_t graph_ofs;
       size_t ofs;
 
       for (ofs = 0; ofs < n; )
@@ -893,25 +894,27 @@ ascii_layout_cell (struct ascii_driver *a, const struct table_cell *cell,
             }
           ofs += mblen;
         }
-      if (b[ofs] != UC_BREAK_MANDATORY)
-        {
-          while (ofs > 0 && isspace (line[ofs - 1]))
-            {
-              ofs--;
-              width--;
-            }
-        }
-      if (width > *widthp)
-        *widthp = width;
+
+      /* Trim any trailing spaces off the end of the text to be drawn. */
+      for (graph_ofs = ofs; graph_ofs > 0; graph_ofs--)
+        if (!isspace (line[graph_ofs - 1]))
+          break;
+      width -= ofs - graph_ofs;
 
       /* Draw text. */
-      text_draw (a, cell->options, bb, clip, y, line, ofs, width);
+      text_draw (a, cell->options, bb, clip, y, line, graph_ofs, width);
 
-      /* Next line. */
+      /* If a new-line ended the line, just skip the new-line.  Otherwise, skip
+         past any spaces past the end of the line (but not past a new-line). */
+      if (b[ofs] == UC_BREAK_MANDATORY)
+        ofs++;
+      else
+        while (ofs < n && isspace (line[ofs]) && b[ofs] != UC_BREAK_MANDATORY)
+          ofs++;
+
+      if (width > *widthp)
+        *widthp = width;
       pos += ofs;
-      if (ofs < n && isspace (line[ofs]))
-        pos++;
-
     }
   *heightp = y - bb[V][0];
 

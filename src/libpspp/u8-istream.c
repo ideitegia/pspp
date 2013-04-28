@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -122,17 +122,26 @@ u8_istream_for_fd (const char *fromcode, int fd)
 
   encoding = encoding_guess_head_encoding (fromcode, is->buffer, is->length);
   if (is_encoding_utf8 (encoding))
-    is->state = S_UTF8;
+    {
+      unsigned int bom_len;
+
+      is->state = S_UTF8;
+      bom_len = encoding_guess_bom_length (encoding, is->buffer, is->length);
+      is->head += bom_len;
+      is->length -= bom_len;
+    }
   else
     {
       if (encoding_guess_encoding_is_auto (fromcode)
           && !strcmp (encoding, "ASCII"))
-        is->state = S_AUTO;
+        {
+          is->state = S_AUTO;
+          encoding = encoding_guess_parse_encoding (fromcode);
+        }
       else
         is->state = S_CONVERT;
 
-      is->converter = iconv_open ("UTF-8",
-                                  encoding_guess_parse_encoding (fromcode));
+      is->converter = iconv_open ("UTF-8", encoding);
       if (is->converter == (iconv_t) -1)
         goto error;
     }
