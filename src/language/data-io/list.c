@@ -56,9 +56,9 @@ enum numbering
 
 struct lst_cmd
 {
-  int first;
-  int last;
-  int step;
+  long first;
+  long last;
+  long step;
   const struct variable **v_variables;
   size_t n_variables;
   enum numbering numbering;
