@@ -2396,8 +2396,6 @@ psppire_data_sheet_update_primary_selection (PsppireDataSheet *data_sheet,
   clipboard = gtk_clipboard_get_for_display (display, GDK_SELECTION_PRIMARY);
   g_return_if_fail (clipboard != NULL);
 
-  printf ("owns_primary_selection=%d should_own=%d\n",
-          data_sheet->owns_primary_selection, should_own);
   if (data_sheet->owns_primary_selection && !should_own)
     {
       data_sheet->owns_primary_selection = FALSE;
