@@ -2474,23 +2474,40 @@ psppire_data_sheet_clip_received_cb (GtkClipboard *clipboard,
 }
 
 static void
+psppire_data_sheet_targets_received_cb (GtkClipboard *clipboard,
+                                        GdkAtom *atoms,
+                                        gint n_atoms,
+                                        gpointer data)
+{
+  GtkAction *action = GTK_ACTION (data);
+  gboolean compatible_target;
+  gint i;
+
+  compatible_target = FALSE;
+  for (i = 0; i < G_N_ELEMENTS (targets); i++)
+    {
+      GdkAtom target = gdk_atom_intern (targets[i].target, TRUE);
+      gint j;
+
+      for (j = 0; j < n_atoms; j++)
+        if (target == atoms[j])
+          {
+            compatible_target = TRUE;
+            break;
+          }
+    }
+
+  gtk_action_set_sensitive (action, compatible_target);
+  g_object_unref (action);
+}
+
+static void
 on_owner_change (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
 {
   PsppireDataSheet *data_sheet = PSPPIRE_DATA_SHEET (data);
-  gboolean compatible_target = FALSE;
-  GtkAction *action;
-  gint i;
+  GtkAction *action = get_action_assert (data_sheet->builder, "edit_paste");
 
-  for (i = 0; i < G_N_ELEMENTS (targets); i++)
-    {
-      GdkAtom atom = gdk_atom_intern (targets[i].target, TRUE);
-      if (gtk_clipboard_wait_is_target_available (clip, atom))
-        {
-          compatible_target = TRUE;
-          break;
-        }
-    }
-
-  action = get_action_assert (data_sheet->builder, "edit_paste");
-  gtk_action_set_sensitive (action, compatible_target);
+  g_object_ref (action);
+  gtk_clipboard_request_targets (clip, psppire_data_sheet_targets_received_cb,
+                                 action);
 }
