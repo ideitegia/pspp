@@ -53,6 +53,9 @@ struct _PsppireDataSheet
   guint scroll_to_bottom_signal;
   guint scroll_to_right_signal;
 
+  GtkClipboard *clip;
+  guint on_owner_change_signal;
+
   PsppSheetViewColumn *new_variable_column;
 
   GtkBuilder *builder;

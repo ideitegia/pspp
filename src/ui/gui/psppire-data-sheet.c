@@ -1203,6 +1203,13 @@ psppire_data_sheet_dispose (GObject *object)
 {
   PsppireDataSheet *data_sheet = PSPPIRE_DATA_SHEET (object);
 
+  if (data_sheet->clip != NULL && data_sheet->on_owner_change_signal != 0)
+    {
+      g_signal_handler_disconnect (data_sheet->clip,
+                                   data_sheet->on_owner_change_signal);
+      data_sheet->on_owner_change_signal = 0;
+    }
+
   if (data_sheet->dispose_has_run)
     return;
 
@@ -1221,14 +1228,19 @@ psppire_data_sheet_dispose (GObject *object)
 static void
 psppire_data_sheet_map (GtkWidget *widget)
 {
-  GtkClipboard *clip;
+  PsppireDataSheet *data_sheet = PSPPIRE_DATA_SHEET (widget);
 
   GTK_WIDGET_CLASS (psppire_data_sheet_parent_class)->map (widget);
 
-  clip = gtk_widget_get_clipboard (widget, GDK_SELECTION_CLIPBOARD);
-  g_signal_connect (clip, "owner-change", G_CALLBACK (on_owner_change),
-                    widget);
-  on_owner_change (clip, NULL, widget);
+  data_sheet->clip = gtk_widget_get_clipboard (widget,
+                                               GDK_SELECTION_CLIPBOARD);
+  if (data_sheet->on_owner_change_signal)
+    g_signal_handler_disconnect (data_sheet->clip,
+                                 data_sheet->on_owner_change_signal);
+  data_sheet->on_owner_change_signal
+    = g_signal_connect (data_sheet->clip, "owner-change",
+                        G_CALLBACK (on_owner_change), widget);
+  on_owner_change (data_sheet->clip, NULL, widget);
 }
 
 static void
@@ -1690,6 +1702,7 @@ psppire_data_sheet_init (PsppireDataSheet *obj)
 
   obj->scroll_to_bottom_signal = 0;
   obj->scroll_to_right_signal = 0;
+  obj->on_owner_change_signal = 0;
   obj->new_variable_column = NULL;
   obj->container = NULL;
 
