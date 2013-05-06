@@ -236,18 +236,14 @@ psppire_window_finalize (GObject *object)
 
   PsppireWindowRegister *reg = psppire_window_register_new ();
 
+  g_signal_handler_disconnect (reg, window->remove_handler);
+  g_signal_handler_disconnect (reg, window->insert_handler);
   psppire_window_register_remove (reg, window->list_name);
   g_free (window->filename);
   g_free (window->basename);
   g_free (window->id);
   g_free (window->description);
   g_free (window->list_name);
-
-  g_signal_handler_disconnect (psppire_window_register_new (),
-			       window->remove_handler);
-
-  g_signal_handler_disconnect (psppire_window_register_new (),
-			       window->insert_handler);
 
   g_hash_table_destroy (window->menuitem_table);
 
