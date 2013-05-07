@@ -294,3 +294,34 @@ A,B,A1
 3,4,1
 ])
 AT_CLEANUP
+
+
+
+AT_SETUP([RECODE increased string widths])
+
+AT_DATA([recode.sps],[dnl
+data list notable list /x (a1) y (a8) z *.
+begin data.
+a a         2
+a two       2
+b three     2
+c b         2
+end data.
+
+recode x y ("a" = "first") .
+
+list.
+])
+
+AT_CHECK([pspp -O format=csv recode.sps], [1], [dnl
+"error: Cannot recode because the variable x would require a width of 5 bytes or greater, but it has a width of only 1 bytes."
+
+Table: Data List
+x,y,z
+a,a       ,2.00
+a,two     ,2.00
+b,three   ,2.00
+c,b       ,2.00
+])
+
+AT_CLEANUP

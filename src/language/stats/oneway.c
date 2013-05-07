@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1569,7 +1569,7 @@ show_comparisons (const struct oneway_spec *cmd, const struct oneway_workspace *
 
   tab_vline (t, TAL_2, heading_cols, 0, n_rows - 1);
 
-  tab_title (t, _("Multiple Comparisons"));
+  tab_title (t, _("Multiple Comparisons (%s)"), var_to_string (cmd->vars[v]));
 
   tab_text_format (t,  1, 1, TAB_LEFT | TAT_TITLE, _("(I) %s"), var_to_string (cmd->indep_var));
   tab_text_format (t,  2, 1, TAB_LEFT | TAT_TITLE, _("(J) %s"), var_to_string (cmd->indep_var));

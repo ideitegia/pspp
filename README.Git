@@ -34,11 +34,11 @@ This version of PSPP should work with the Gnulib commit shown below.
 Gnulib does not maintain a stable API or ABI, so it is possible that
 PSPP will not work with older or newer versions of Gnulib.
 
-	commit f022473fdaf724d84817c4003120b9a38fbf884b
-	Author: Ben Pfaff <blp@cs.stanford.edu>
-	Date:   Tue Dec 18 21:06:17 2012 -0800
+	commit 5191133e01659a051c21ea16765d9233b6a9fe47
+	Author: Paul Eggert <eggert@cs.ucla.edu>
+	Date:   Tue Apr 30 23:14:19 2013 -0700
 
-	    New 'c-*printf' modules for formatted output in C locale.
+	    utimensat-tests, etc.: try to fix some races
 
 
 To clone Gnulib into a directory named "gnulib" using Git, and then

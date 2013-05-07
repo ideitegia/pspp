@@ -57,8 +57,15 @@ static int parse_get_psql (struct lexer *lexer, struct dataset *);
 int
 cmd_get_data (struct lexer *lexer, struct dataset *ds)
 {
-  struct spreadsheet_read_options opts;
   char *tok = NULL;
+  struct spreadsheet_read_options opts;
+  
+  opts.sheet_name = NULL;
+  opts.sheet_index = -1;
+  opts.cell_range = NULL;
+  opts.read_names = false;
+  opts.asw = -1;
+
   lex_force_match (lexer, T_SLASH);
 
   if (!lex_force_match_id (lexer, "TYPE"))
@@ -94,6 +101,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	    goto error;
 	  reader = gnumeric_make_reader (spreadsheet, &opts);
 	  dict = spreadsheet->dict;
+	  gnumeric_destroy (spreadsheet);
 	}
       else if (0 == strncasecmp (tok, "ODS", 3))
 	{

@@ -627,3 +627,29 @@ included in the variable list.
 ])
 
 AT_CLEANUP
+
+AT_SETUP([ASCII unicode box chars])
+
+AT_DATA([uc.sps], [dnl
+SET FORMAT=F8.4.
+DATA LIST NOTABLE LIST /x * .
+BEGIN DATA.
+1
+2
+3
+END DATA.
+
+DESCRIPTIVES X.
+])
+
+
+AT_CHECK([pspp -O box=unicode uc.sps], [0], [dnl
+Valid cases = 3; cases with missing value(s) = 0.
+╭────────╥─┬──────┬───────┬───────┬───────╮
+│Variable║N│ Mean │Std Dev│Minimum│Maximum│
+╞════════╬═╪══════╪═══════╪═══════╪═══════╡
+│x       ║3│2.0000│ 1.0000│ 1.0000│ 3.0000│
+╰────────╨─┴──────┴───────┴───────┴───────╯
+])
+
+AT_CLEANUP

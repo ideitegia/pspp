@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2005, 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2005, 2006, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,10 +49,22 @@ enum fh_access
     FH_ACC_WRITE                /* Write to it. */
   };
 
+/* How a line ends.
+
+   This affects only writing FH_MODE_TEXT files.  Writing in other modes does
+   not use line ends, and reading in FH_MODE_TEXT mode accepts all forms of
+   line ends. */
+enum fh_line_ends
+  {
+    FH_END_LF,                  /* Unix line ends (\n). */
+    FH_END_CRLF                 /* MS-DOS line ends (\r\n). */
+  };
+
 /* Properties of a file handle. */
 struct fh_properties
   {
     enum fh_mode mode;          /* File mode. */
+    enum fh_line_ends line_ends; /* Line ends for text files. */
     size_t record_width;        /* Length of fixed-format records. */
     size_t tab_width;           /* Tab width, 0=do not expand tabs. */
     const char *encoding;       /* Charset for contents. */
@@ -87,6 +99,7 @@ const char *fh_get_encoding (const struct file_handle *);
 /* Properties of FH_REF_FILE file handles. */
 const char *fh_get_file_name (const struct file_handle *);
 enum fh_mode fh_get_mode (const struct file_handle *) ;
+enum fh_line_ends fh_get_line_ends (const struct file_handle *);
 
 /* Properties of FH_REF_FILE and FH_REF_INLINE file handles. */
 size_t fh_get_record_width (const struct file_handle *);

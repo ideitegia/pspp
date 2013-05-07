@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -264,7 +264,8 @@ combine_files (enum comb_command_type command,
             saw_sort = true;
           }
 
-      merge_dictionary (proc.dict, file);
+      if (!merge_dictionary (proc.dict, file))
+        goto error;
     }
 
   while (lex_token (lexer) != T_ENDCMD)
@@ -554,8 +555,10 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
           if (var_get_width (mv) != var_get_width (dv))
             {
               const char *var_name = var_get_name (dv);
-              const char *file_name = fh_get_name (f->handle);
               struct string s = DS_EMPTY_INITIALIZER;
+              const char *file_name;
+
+              file_name = f->handle ? fh_get_name (f->handle) : "*";
               ds_put_format (&s,
                              _("Variable %s in file %s has different "
                                "type or width from the same variable in "

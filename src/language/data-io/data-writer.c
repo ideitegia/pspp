@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2004, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-2004, 2006, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,8 +49,10 @@ struct dfm_writer
     FILE *file;                 /* Associated file. */
     struct replace_file *rf;    /* Atomic file replacement support. */
     char *encoding;             /* Encoding. */
+    enum fh_line_ends line_ends; /* Line ends for text files. */
 
     int unit;                   /* Unit width, in bytes. */
+    char cr[MAX_UNIT];          /* \r in encoding, 'unit' bytes long. */
     char lf[MAX_UNIT];          /* \n in encoding, 'unit' bytes long. */
     char spaces[32];            /* 32 bytes worth of ' ' in encoding. */
   };
@@ -93,7 +95,9 @@ dfm_open_writer (struct file_handle *fh, const char *encoding)
   w->rf = replace_file_start (fh_get_file_name (w->fh), "wb", 0666,
                               &w->file, NULL);
   w->encoding = xstrdup (encoding);
+  w->line_ends = fh_get_line_ends (fh);
   w->unit = ei.unit;
+  memcpy (w->cr, ei.cr, sizeof w->cr);
   memcpy (w->lf, ei.lf, sizeof w->lf);
   for (ofs = 0; ofs + ei.unit <= sizeof w->spaces; ofs += ei.unit)
     memcpy (&w->spaces[ofs], ei.space, ei.unit);
@@ -134,6 +138,8 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
     {
     case FH_MODE_TEXT:
       fwrite (rec, len, 1, w->file);
+      if (w->line_ends == FH_END_CRLF)
+        fwrite (w->cr, w->unit, 1, w->file);
       fwrite (w->lf, w->unit, 1, w->file);
       break;
 

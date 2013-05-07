@@ -198,3 +198,33 @@ x,y,j
 2.00,3.00,55.00
 ])
 AT_CLEANUP
+
+dnl Tests for a bug that caused MATCH FILES to crash
+dnl with incompatible variables, especially but not
+dnl exclusively when one variable came from the active
+dnl file.
+AT_SETUP([MATCH FILES with incompatible variable types])
+AT_DATA([match-files.sps], [dnl
+DATA LIST LIST NOTABLE/name (A6) x.
+BEGIN DATA.
+al,7
+brad,8
+carl,9
+END DATA.
+SAVE OUTFILE='x.sav'.
+
+DATA LIST LIST NOTABLE/name (A7) y.
+BEGIN DATA.
+al,1
+carl,2
+dan,3
+END DATA.
+MATCH FILES/FILE='x.sav'/FILE=*/BY name.
+LIST.
+])
+AT_CHECK([pspp -O format=csv match-files.sps], [1], [dnl
+"match-files.sps:15: error: MATCH FILES: Variable name in file * has different type or width from the same variable in earlier file.  In file *, name is a string variable with width 7.  In an earlier file, name was a string variable with width 6."
+
+match-files.sps:16: error: Stopping syntax file processing here to avoid a cascade of dependent command failures.
+])
+AT_CLEANUP

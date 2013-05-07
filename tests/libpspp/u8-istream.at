@@ -109,15 +109,20 @@ Auto mode
 entrée
 UTF-8 mode
 ])
+AT_CHECK([printf '\357\273\277entr\303\251e\n' | u8-istream-test read - Auto], [0], [dnl
+UTF-8 mode
+entrée
+UTF-8 mode
+])
 AT_CLEANUP
 
 AT_SETUP([read ISO-8859-1 as Auto,ISO-8859-1])
 AT_KEYWORDS([u8_istream])
 AT_CHECK([i18n-test supports_encodings ISO-8859-1])
 buffer_size=`u8-istream-test buffer-size`
-($PERL -e "print 'x' x int($buffer_size * 2.5)"; printf 'entr\351e\n') > input
+($PERL -e 'print "xyzzy\n" x int('$buffer_size' * 2.5 / 7)'; printf 'entr\351e\n') > input
 (echo "Auto mode"
- $PERL -e "print 'x' x int($buffer_size * 2.5)"
+ $PERL -e 'print "xyzzy\n" x int('$buffer_size' * 2.5 / 7)'
  printf 'entr\303\251e\n') > expout
 AT_CHECK([u8-istream-test read input Auto,ISO-8859-1], [0], [expout])
 AT_CLEANUP
@@ -129,6 +134,40 @@ AT_CHECK([i18n-test supports_encodings UTF-16BE])
 AT_CHECK([printf '\0e\0n\0t\0r\0\351\0e\0\n' | u8-istream-test read - Auto,UTF-16BE], 
   [0], [dnl
 entrée
+])
+AT_CLEANUP
+
+AT_SETUP([read UTF-16 as Auto])
+AT_KEYWORDS([u8_istream])
+AT_CHECK([i18n-test supports_encodings UTF-16 UTF-16BE UTF-16LE])
+AT_CHECK([printf '\0e\0n\0t\0r\0\351\0e\0\n' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf 'e\0n\0t\0r\0\351\0e\0\n\0' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf '\376\377\0e\0n\0t\0r\0\351\0e\0\n' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf '\377\376e\0n\0t\0r\0\351\0e\0\n\0' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CLEANUP
+
+AT_SETUP([read UTF-32 as Auto])
+AT_KEYWORDS([u8_istream])
+AT_CHECK([i18n-test supports_encodings UTF-16 UTF-16BE UTF-16LE])
+AT_CHECK([printf '\0\0\0e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf 'e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n\0\0\0' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf '\0\0\376\377\0\0\0e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n' | u8-istream-test read - Auto],
+  [0], [entrée
+])
+AT_CHECK([printf '\377\376\0\0e\0\0\0n\0\0\0t\0\0\0r\0\0\0\351\0\0\0e\0\0\0\n\0\0\0' | u8-istream-test read - Auto],
+  [0], [entrée
 ])
 AT_CLEANUP
 

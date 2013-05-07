@@ -20,6 +20,8 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+
 
 #include "data/settings.h"
 #include "data/file-name.h"
@@ -39,6 +41,7 @@
 #include "output/msglog.h"
 
 #include "gl/error.h"
+#include "gl/localcharset.h"
 #include "gl/progname.h"
 #include "gl/version-etc.h"
 #include "gl/xmemdup0.h"
@@ -299,12 +302,33 @@ terminal_opts_init (struct argv_parser *ap,
   return to;
 }
 
+/* Return true iff the terminal appears to be an xterm with 
+   UTF-8 capabilities */
+static bool
+term_is_utf8_xterm (void)
+{
+  char *s = NULL;
+
+  if ( (s = getenv ("TERM")) && (0 == strcmp ("xterm", s)) )
+    if ( (s = getenv ("XTERM_LOCALE")) )
+      return strcasestr (s, "utf8") || strcasestr (s, "utf-8");
+
+  return false;
+}
+
 void
 terminal_opts_done (struct terminal_opts *to, int argc, char *argv[])
 {
   register_output_driver (to);
   if (!to->has_output_driver)
     {
+      if ((0 == strcmp (locale_charset (), "UTF-8"))
+	  ||
+	  (term_is_utf8_xterm ()) )
+	{
+	  string_map_insert (&to->options, "box", "unicode");
+	}
+  
       string_map_insert (&to->options, "output-file", "-");
       string_map_insert (&to->options, "format", "txt");
       register_output_driver (to);

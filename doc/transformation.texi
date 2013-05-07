@@ -579,13 +579,17 @@ The behaviour of the command is slightly different depending on whether it
 appears or not.
 
 If @samp{INTO @var{dest_vars}} does not appear, then values will be recoded
-``in place´´.  This means that the recoded values are written back to the
+``in place´´.
+This means that the recoded values are written back to the
 source variables from whence the original values came.
 In this case, the @var{dest_value} for every mapping must imply a value which
 has the same type as the @var{src_value}.
 For example, if the source value is a string value, it is not permissible for
 @var{dest_value} to be @samp{SYSMIS} or another forms which implies a numeric
 result.
+It is also not permissible for @var{dest_value} to be  longer than the width
+of the source variable.
+
 The following example two numeric variables @var{x} and @var{y} are recoded
 in place.
 Zero is recoded to 99, the values 1 to 10 inclusive are unchanged,

@@ -554,3 +554,20 @@ AT_CLEANUP
 
 
 
+AT_SETUP([MEANS empty factor spec])
+
+AT_DATA([means-bad.sps], [dnl
+data list list /outcome *.
+begin data.
+1
+2
+3
+end data.
+
+MEANS TABLES =  outcome 
+	BY.
+])
+
+AT_CHECK([pspp -O format=csv means-bad.sps], [1], [ignore])
+
+AT_CLEANUP

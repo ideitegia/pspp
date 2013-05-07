@@ -1,6 +1,6 @@
 AT_BANNER([SPLIT FILE])
 
-AT_SETUP([SPLIT FILE])
+AT_SETUP([SPLIT FILE - basic test])
 AT_DATA([split-file.sps], [dnl
 title 'Test SPLIT FILE utility'.
 
@@ -52,4 +52,67 @@ X,Y
 2,9
 2,4
 ])
+AT_CLEANUP
+
+
+
+
+
+AT_SETUP([SPLIT FILE  - vs procedures])
+AT_DATA([split-file.sps], [dnl
+
+* This test is a compendium of those procedures which might
+* have problems when run in conjunction with SPLITS.
+
+data list list /a b c q g *.
+begin data.
+1 2 3     1  0 
+4 5 6     0  0
+7 8 9     1  0
+10 11 12  0  1
+13 14 15  1  1
+end data.
+
+split file by g.
+
+
+* The commented out lines are ones which currently fail.
+
+AGGREGATE outfile='foo' /break=c /X=sum(a). 
+AUTORECODE variables = c into d .
+COUNT e = c (1 2 3 4 5 6 7).
+CROSSTABS a by b.
+CORRELATIONS /VARIABLES = a b.
+DELETE VARIABLES a.
+DESCRIPTIVES e .
+EXAMINE c by b.
+EXPORT outfile='xxx'.
+FACTOR /VARIABLES = b c d.
+FILTER BY c.
+FREQUENCIES b.
+GLM c BY b.
+LIST.
+LOGISTIC REGRESSION q WITH b.
+MEANS c b.
+NPAR TESTS /MCNEMAR q.
+ONEWAY c BY b.
+QUICK CLUSTER b c.
+RANK b c.
+REGRESSION /VARIABLES = c /DEPENDENT = q.
+RELIABILITY /VARIABLES = c b d. 
+RENAME VARIABLES (b = bb).
+ROC bb by q(1).
+SAMPLE 0.9 .
+SAVE outfile='xx.sav'.
+SORT CASES by bb.
+T-TEST /GROUP=q(0,1) /VARIABLES=bb.
+USE ALL.
+FLIP /VARIABLES = bb, c .
+
+execute.
+finish.
+])
+
+AT_CHECK([pspp -O format=csv split-file.sps], [0],[ignore])
+
 AT_CLEANUP

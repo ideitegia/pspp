@@ -365,7 +365,7 @@ EXTRA_DIST += tests/testsuite.at
 
 CHECK_LOCAL += tests_check
 tests_check: tests/atconfig tests/atlocal $(TESTSUITE) $(check_PROGRAMS)
-	$(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=$(AUTOTEST_PATH) $(TESTSUITEFLAGS)
+	XTERM_LOCALE='' $(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=$(AUTOTEST_PATH) $(TESTSUITEFLAGS)
 
 CLEAN_LOCAL += tests_clean
 tests_clean:

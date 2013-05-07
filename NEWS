@@ -1,10 +1,10 @@
 PSPP NEWS -- history of user-visible changes.
-Copyright (C) 1996-2000, 2008-2012 Free Software Foundation, Inc.
+Copyright (C) 1996-2000, 2008-2013 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
-Changes from 0.6.2 to 0.7.9:
+Changes from 0.6.2 to 0.7.10:
 
  * New commands:
 
@@ -41,6 +41,8 @@ Changes from 0.6.2 to 0.7.9:
      contains an INCLUDE or INSERT command, substitutions are not
      applied to the included file.
   
+   - FILE HANDLE has a new ENDS subcommand to select CR or CRLF new-lines.
+
    - HOST has been updated to use more modern syntax.
 
    - Most commands that work with data files now support a new
@@ -133,6 +135,10 @@ Changes from 0.6.2 to 0.7.9:
 
    See the documentation for the INSERT command in the PSPP manual for
    more information.
+
+ * Text data files that PRINT and WRITE creates now use the system
+   native line ends by default (CRLF on Windows, LF only elsewhere).
+   Use the new ENDS subcommand on FILE HANDLE to override the default.
 
  * A new Perl module allows Perl programs to read and write PSPP
    system files.

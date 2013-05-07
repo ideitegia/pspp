@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -384,7 +384,7 @@ first_update (void *stat, double w UNUSED, double x)
   double *f = stat;
 
   if (*f == SYSMIS)
-     *f = x;
+    *f = x;
 }
 
 static double
@@ -502,11 +502,12 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
   table->ii = 0;
   table->n_layers = 0;
   table->layers = NULL;
+  table->interactions = NULL;
 
   /* Dependent variable (s) */
   if (!parse_variables_const_pool (lexer, cmd->pool, cmd->dict,
-			      &table->dep_vars, &table->n_dep_vars,
-			      PV_NO_DUPLICATE | PV_NUMERIC))
+				   &table->dep_vars, &table->n_dep_vars,
+				   PV_NO_DUPLICATE | PV_NUMERIC))
     return false;
 
   /* Factor variable (s) */
@@ -517,7 +518,7 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
 	  table->n_layers++;
           table->layers = 
 	    pool_realloc (cmd->pool, table->layers, 
-		      sizeof (*table->layers) * table->n_layers);
+			  sizeof (*table->layers) * table->n_layers);
 
 	  if (!parse_variables_const_pool 
               (lexer, cmd->pool, cmd->dict,
@@ -538,7 +539,7 @@ parse_means_table_syntax (struct lexer *lexer, const struct means *cmd, struct m
   table->n_layers++;
   table->layers = 
     pool_realloc (cmd->pool, table->layers, 
-              sizeof (*table->layers) * table->n_layers);
+		  sizeof (*table->layers) * table->n_layers);
   table->layers[table->n_layers - 1].factor_vars = NULL;
   table->layers[table->n_layers - 1].n_factor_vars = 0;
 
@@ -633,10 +634,10 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
       if (lex_match_id (lexer, "MISSING"))
 	{
 	  /*
-	     If no MISSING subcommand is specified, each combination of
-	     a dependent variable and categorical variables is handled
-	     separately.
-	   */
+	    If no MISSING subcommand is specified, each combination of
+	    a dependent variable and categorical variables is handled
+	    separately.
+	  */
 	  lex_match (lexer, T_EQUALS);
 	  if (lex_match_id (lexer, "INCLUDE"))
 	    {
@@ -661,17 +662,17 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 	    }
 	  else if (lex_match_id (lexer, "DEPENDENT"))
 	    /*
-	     Use the command "/MISSING=DEPENDENT" to
-	     include user-missing values for the categorical variables, 
-	     while excluding them for the dependent variables.
+	      Use the command "/MISSING=DEPENDENT" to
+	      include user-missing values for the categorical variables, 
+	      while excluding them for the dependent variables.
 
-	     Cases are dropped only when user-missing values
-	     appear in dependent  variables.  User-missing
-	     values for categorical variables are treated according to
-	     their face value.
+	      Cases are dropped only when user-missing values
+	      appear in dependent  variables.  User-missing
+	      values for categorical variables are treated according to
+	      their face value.
 
-	     Cases are ALWAYS dropped when System Missing values appear 
-	     in the categorical variables.
+	      Cases are ALWAYS dropped when System Missing values appear 
+	      in the categorical variables.
 	    */
 	    {
 	      means.dep_exclude = MV_ANY;
@@ -698,7 +699,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 		  int x;
 		  means.cells =
 		    pool_realloc (means.pool, means.cells,
-			      (means.n_cells += n_C) * sizeof (*means.cells));
+				  (means.n_cells += n_C) * sizeof (*means.cells));
 
 		  for (x = 0; x < n_C; ++x)
 		    means.cells[means.n_cells - (n_C - 1 - x) - 1] = x;
@@ -711,7 +712,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 		{
 		  means.cells =
 		    pool_realloc (means.pool, means.cells,
-			      (means.n_cells += 3) * sizeof (*means.cells));
+				  (means.n_cells += 3) * sizeof (*means.cells));
 		  
 		  means.cells[means.n_cells - 2 - 1] = MEANS_MEAN;
 		  means.cells[means.n_cells - 1 - 1] = MEANS_N;
@@ -725,7 +726,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 			{
 			  means.cells =
 			    pool_realloc (means.pool, means.cells,
-				      ++means.n_cells * sizeof (*means.cells));
+					  ++means.n_cells * sizeof (*means.cells));
 			
 			  means.cells[means.n_cells - 1] = k;
 			  break;
@@ -749,28 +750,28 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 
 
   for (t = 0; t < means.n_tables; ++t)
-  {
-    struct mtable *table = &means.table[t];
+    {
+      struct mtable *table = &means.table[t];
 
-    table->interactions =
-      pool_calloc (means.pool, table->n_layers, sizeof (*table->interactions));
+      table->interactions =
+	pool_calloc (means.pool, table->n_layers, sizeof (*table->interactions));
 
-    table->summary =
-      pool_calloc (means.pool, table->n_dep_vars * table->n_layers, sizeof (*table->summary));
+      table->summary =
+	pool_calloc (means.pool, table->n_dep_vars * table->n_layers, sizeof (*table->summary));
 
-    for (l = 0; l < table->n_layers; ++l)
-      {
-        int v;
-        const struct layer *lyr = &table->layers[l];
-	const int n_vars = lyr->n_factor_vars;
-        table->interactions[l] = interaction_create (NULL);
-        for (v = 0 ; v < n_vars ; ++v)
-          {
-            interaction_add_variable (table->interactions[l],
-                                      lyr->factor_vars[v]);
-          }
-      }
-  }
+      for (l = 0; l < table->n_layers; ++l)
+	{
+	  int v;
+	  const struct layer *lyr = &table->layers[l];
+	  const int n_vars = lyr->n_factor_vars;
+	  table->interactions[l] = interaction_create (NULL);
+	  for (v = 0; v < n_vars ; ++v)
+	    {
+	      interaction_add_variable (table->interactions[l],
+					lyr->factor_vars[v]);
+	    }
+	}
+    }
 
   {
     struct casegrouper *grouper;
@@ -786,12 +787,33 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
     ok = proc_commit (ds) && ok;
   }
 
+  for (t = 0; t < means.n_tables; ++t)
+    {
+      int l;
+      struct mtable *table = &means.table[t];
+      if (table->interactions)
+	for (l = 0; l < table->n_layers; ++l)
+	  {
+	    interaction_destroy (table->interactions[l]);
+	  }
+    }
 
   pool_destroy (means.pool);
   return CMD_SUCCESS;
 
-error:
+ error:
 
+  for (t = 0; t < means.n_tables; ++t)
+    {
+      int l;
+      struct mtable *table = &means.table[t];
+      if (table->interactions)
+	for (l = 0; l < table->n_layers; ++l)
+	  {
+	    interaction_destroy (table->interactions[l]);
+	  }  
+    }
+  
   pool_destroy (means.pool);
   return CMD_FAILURE;
 }
@@ -958,14 +980,14 @@ run_means (struct means *cmd, struct casereader *input,
   payload.destroy = destroy_n;
   
   for (t = 0; t < cmd->n_tables; ++t)
-  {
-    struct mtable *table = &cmd->table[t];
-    table->cats
-      = categoricals_create (table->interactions,
-			     table->n_layers, wv, cmd->dep_exclude, cmd->exclude);
+    {
+      struct mtable *table = &cmd->table[t];
+      table->cats
+	= categoricals_create (table->interactions,
+			       table->n_layers, wv, cmd->dep_exclude, cmd->exclude);
 
-    categoricals_set_payload (table->cats, &payload, cmd, table);
-  }
+      categoricals_set_payload (table->cats, &payload, cmd, table);
+    }
 
   for (reader = input;
        (c = casereader_read (reader)) != NULL; case_unref (c))
