@@ -169,25 +169,34 @@ int_to_ps26 (int i)
   return ret;
 }
 
+
 char *
-create_cell_ref (int col0, int row0, int coli, int rowi)
+create_cell_ref (int col0, int row0)
 {
   char *cs0 ;
-  char *csi ;
   char *s ;
 
   if ( col0 < 0) return NULL;
-  if ( rowi < 0) return NULL;
-  if ( coli < 0) return NULL;
   if ( row0 < 0) return NULL;
 
   cs0 =  int_to_ps26 (col0);
-  csi =  int_to_ps26 (coli);
-  s =  c_xasprintf ("%s%d:%s%d",
-			 cs0, row0 + 1,
-			 csi, rowi + 1);
+  s =  c_xasprintf ("%s%d", cs0, row0 + 1);
+
   free (cs0);
-  free (csi);
+
+  return s;
+}
+
+char *
+create_cell_range (int col0, int row0, int coli, int rowi)
+{
+  char *s0 = create_cell_ref (col0, row0);
+  char *si = create_cell_ref (coli, rowi);
+
+  char *s =  c_xasprintf ("%s:%s", s0, si);
+
+  free (s0);
+  free (si);
 
   return s;
 }

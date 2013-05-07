@@ -203,7 +203,7 @@ gnumeric_get_sheet_range (struct spreadsheet *s, int n)
       process_node (gr, &gr->msd);
     }
 
-  return create_cell_ref (
+  return create_cell_range (
 			  gr->sheets[n].start_col,
 			  gr->sheets[n].start_row,
 			  gr->sheets[n].stop_col,

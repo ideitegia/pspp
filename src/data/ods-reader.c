@@ -241,7 +241,7 @@ ods_get_sheet_range (struct spreadsheet *s, int n)
       process_node (r, or);
     }
 
-  return create_cell_ref (
+  return create_cell_range (
 			  r->sheets[n].start_col,
 			  r->sheets[n].start_row,
 			  r->sheets[n].stop_col,
