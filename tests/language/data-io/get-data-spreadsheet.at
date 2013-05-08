@@ -87,8 +87,7 @@ GET DATA /TYPE=$1 /FILE='testsheet' /SHEET=index 3.
 DISPLAY VARIABLES.
 LIST.
 ])
-AT_CHECK([pspp -o pspp.csv get-data.sps])
-AT_CHECK([cat pspp.csv], [0], [dnl
+AT_CHECK([pspp -O format=csv get-data.sps], [0], [dnl
 Variable,Description,,Position
 name,Format: A8,,1
 ,Measure: Nominal,,
@@ -102,6 +101,8 @@ height,Format: F8.2,,3
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
+
+warning: Cannot convert the value in the spreadsheet cell C4 to format (F8.2): Field contents are not numeric.
 
 Table: Data List
 name,id,height
