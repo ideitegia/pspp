@@ -243,7 +243,7 @@ ods_get_sheet_range (struct spreadsheet *s, int n)
       process_node (r, or);
     }
 
-  return create_cell_ref (
+  return create_cell_range (
 			  r->sheets[n].start_col,
 			  r->sheets[n].start_row,
 			  r->sheets[n].stop_col,
@@ -477,7 +477,7 @@ xmv_to_width (const struct xml_value *xmv, int fallback)
  */
 static void
 convert_xml_to_value (struct ccase *c, const struct variable *var,
-		      const struct xml_value *xmv)
+		      const struct xml_value *xmv, int col, int row)
 {
   union value *v = case_data_rw (c, var);
 
@@ -503,12 +503,22 @@ convert_xml_to_value (struct ccase *c, const struct variable *var,
 	  const char *text = xmv->value ?
 	    CHAR_CAST (const char *, xmv->value) : CHAR_CAST (const char *, xmv->text);
 
-
-	  free (data_in (ss_cstr (text), "UTF-8",
+	  char *m = data_in (ss_cstr (text), "UTF-8",
 			 fmt->type,
 			 v,
 			 var_get_width (var),
-			 "UTF-8"));
+			 "UTF-8");
+
+	  if (m)
+	    {
+	      char buf [FMT_STRING_LEN_MAX + 1];
+	      char *cell = create_cell_ref (col, row);
+
+	      msg (MW, _("Cannot convert the value in the spreadsheet cell %s to format (%s): %s"), 
+		   cell, fmt_to_string (fmt, buf), m);
+	      free (cell);
+	    }
+	  free (m);
 	}
     }
 }
@@ -865,7 +875,9 @@ ods_make_reader (struct spreadsheet *spreadsheet,
     {
       const struct variable *var = dict_get_var (r->dict, i);
 
-      convert_xml_to_value (r->first_case, var,  &var_spec[i].firstval);
+      convert_xml_to_value (r->first_case, var,  &var_spec[i].firstval,
+			    r->rsd.col - n_var_specs + i,
+			    r->rsd.row - 1);
     }
 
   /* Read in the first row of data */
@@ -989,7 +1001,7 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 		break;
 
               var = dict_get_var (r->dict, idx);
-	      convert_xml_to_value (c, var, xmv);
+	      convert_xml_to_value (c, var, xmv, idx + r->start_col, r->rsd.row - 1);
 	    }
 
 	  xmlFree (xmv->text);
