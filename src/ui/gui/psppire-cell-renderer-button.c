@@ -349,7 +349,6 @@ psppire_cell_renderer_button_press_event (GtkButton      *button,
       gdk_window_coords_to_parent (event->window,
                                    event->x, event->y,
                                    &event->x, &event->y);
-      event->window = gdk_window_get_parent (event->window);
       g_signal_stop_emission_by_name (button, "button-press-event");
       return FALSE;
     }
