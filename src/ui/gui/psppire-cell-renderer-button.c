@@ -346,9 +346,11 @@ psppire_cell_renderer_button_press_event (GtkButton      *button,
          parent window, because the normal GObject signal propagation mechanism
          won't do it for us.  (This might be a hint that we're doing this
          wrong.) */
-      gdk_window_coords_to_parent (event->window,
-                                   event->x, event->y,
-                                   &event->x, &event->y);
+      gint x, y;
+
+      gdk_window_get_position (event->window, &x, &y);
+      event->x += x;
+      event->y += y;
       g_signal_stop_emission_by_name (button, "button-press-event");
       return FALSE;
     }
