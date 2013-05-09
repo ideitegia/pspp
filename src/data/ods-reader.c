@@ -720,7 +720,7 @@ ods_make_reader (struct spreadsheet *spreadsheet,
 
   if ( opts->read_names)
     {
-      while (1 == (ret = xmlTextReaderRead (r->rsd.xtr)))
+      while (1 == xmlTextReaderRead (r->rsd.xtr))
 	{
 	  int idx;
 

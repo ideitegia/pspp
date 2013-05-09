@@ -20,7 +20,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <gtk-contrib/psppire-sheet.h>
 #include <gtk/gtk.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -46,7 +45,6 @@
 #include "ui/gui/psppire-encoding-selector.h"
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-var-sheet.h"
-#include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-scanf.h"
 
 #include "gl/error.h"
@@ -61,7 +59,7 @@
 struct formats_page
   {
     GtkWidget *page;
-    GtkTreeView *data_tree_view;
+    PsppSheetView *data_tree_view;
     PsppireDict *psppire_dict;
     struct variable **modified_vars;
     size_t modified_var_cnt;
@@ -84,7 +82,7 @@ formats_page_create (struct import_assistant *ia)
   p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Formats"),
 			 GTK_ASSISTANT_PAGE_CONFIRM);
 
-  p->data_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "data"));
+  p->data_tree_view = PSPP_SHEET_VIEW (get_widget_assert (builder, "data"));
   p->modified_vars = NULL;
   p->modified_var_cnt = 0;
 
@@ -112,7 +110,6 @@ prepare_formats_page (struct import_assistant *ia)
 {
   struct dictionary *dict;
   PsppireDict *psppire_dict;
-  PsppireVarStore *var_store;
   GtkBin *vars_scroller;
   GtkWidget *old_var_sheet;
   PsppireVarSheet *var_sheet;
@@ -175,14 +172,13 @@ prepare_formats_page (struct import_assistant *ia)
      psppire_dict for now, but it should.  After it does, we
      should g_object_ref the psppire_dict here, since we also
      hold a reference via ia->formats->dict. */
-  var_store = psppire_var_store_new (psppire_dict);
-  g_object_set (var_store,
-                "format-type", PSPPIRE_VAR_STORE_INPUT_FORMATS,
-                (void *) NULL);
   var_sheet = PSPPIRE_VAR_SHEET (psppire_var_sheet_new ());
   g_object_set (var_sheet,
-                "model", var_store,
+                "dictionary", psppire_dict,
                 "may-create-vars", FALSE,
+                "may-delete-vars", FALSE,
+                "format-use", FMT_FOR_INPUT,
+                "enable-grid-lines", PSPP_SHEET_VIEW_GRID_LINES_BOTH,
                 (void *) NULL);
 
   vars_scroller = GTK_BIN (get_widget_assert (ia->asst.builder, "vars-scroller"));
@@ -238,15 +234,15 @@ on_variable_change (PsppireDict *dict, int dict_idx,
                     struct import_assistant *ia)
 {
   struct formats_page *p = ia->formats;
-  GtkTreeView *tv = ia->formats->data_tree_view;
+  PsppSheetView *tv = ia->formats->data_tree_view;
   gint column_idx = dict_idx + 1;
 
   push_watch_cursor (ia);
 
   /* Remove previous column and replace with new column. */
-  gtk_tree_view_remove_column (tv, gtk_tree_view_get_column (tv, column_idx));
-  gtk_tree_view_insert_column (tv, make_data_column (ia, tv, false, dict_idx),
-                               column_idx);
+  pspp_sheet_view_remove_column (tv, pspp_sheet_view_get_column (tv, column_idx));
+  pspp_sheet_view_insert_column (tv, make_data_column (ia, tv, false, dict_idx),
+                                 column_idx);
 
   /* Save a copy of the modified variable in modified_vars, so
      that its attributes will be preserved if we back up to the

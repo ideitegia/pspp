@@ -1593,6 +1593,13 @@ ds_put_byte_multiple (struct string *st, int ch, size_t cnt)
   memset (ds_put_uninit (st, cnt), ch, cnt);
 }
 
+/* Appends Unicode code point UC to ST in UTF-8 encoding. */
+void
+ds_put_unichar (struct string *st, ucs4_t uc)
+{
+  ds_extend (st, ds_length (st) + 6);
+  st->ss.length += u8_uctomb (CHAR_CAST (uint8_t *, ds_end (st)), uc, 6);
+}
 
 /* If relocation has been enabled, replace ST,
    with its relocated version */

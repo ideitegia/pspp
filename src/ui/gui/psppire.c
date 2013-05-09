@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,7 +51,6 @@
 #include "ui/gui/psppire-output-window.h"
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-selector.h"
-#include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-var-view.h"
 #include "ui/gui/psppire-window-register.h"
 #include "ui/gui/widgets.h"
@@ -74,8 +73,6 @@ static gchar *local_to_filename_encoding (const char *fn);
 void
 initialize (const char *data_file)
 {
-  PsppireDataWindow *data_window;
-
   i18n_init ();
 
   preregister_widgets ();
@@ -100,8 +97,6 @@ initialize (const char *data_file)
   psppire_selector_set_default_selection_func (PSPPIRE_VAR_VIEW_TYPE, insert_source_row_into_tree_view);
   psppire_selector_set_default_selection_func (GTK_TYPE_TREE_VIEW, insert_source_row_into_tree_view);
 
-  data_window = psppire_default_data_window ();
-
   if (data_file)
     {
       gchar *filename = local_to_filename_encoding (data_file);
@@ -109,12 +104,17 @@ initialize (const char *data_file)
       /* Check to see if the file is a .sav or a .por file.  If not
          assume that it is a syntax file */
       if ( any_reader_may_open (filename))
-        psppire_window_load (PSPPIRE_WINDOW (data_window), filename);
+        open_data_window (NULL, filename);
       else
-        open_syntax_window (filename, NULL);
+        {
+          create_data_window ();
+          open_syntax_window (filename, NULL);
+        }
 
       g_free (filename);
     }
+  else
+    create_data_window ();
 }
 
 

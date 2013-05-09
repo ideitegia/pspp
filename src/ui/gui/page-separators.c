@@ -22,7 +22,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <gtk-contrib/psppire-sheet.h>
 #include <gtk/gtk.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -48,7 +47,6 @@
 #include "ui/gui/psppire-encoding-selector.h"
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-var-sheet.h"
-#include "ui/gui/psppire-var-store.h"
 #include "ui/gui/psppire-scanf.h"
 #include "ui/syntax-gen.h"
 
@@ -75,7 +73,7 @@ struct separators_page
     GtkWidget *quote_combo;
     GtkEntry *quote_entry;
     GtkWidget *escape_cb;
-    GtkTreeView *fields_tree_view;
+    PsppSheetView *fields_tree_view;
   };
 
 /* The "separators" page of the assistant. */
@@ -170,7 +168,7 @@ separators_page_create (struct import_assistant *ia)
   p->escape_cb = get_widget_assert (builder, "escape");
 
   set_quote_list (GTK_COMBO_BOX_ENTRY (p->quote_combo));
-  p->fields_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "fields"));
+  p->fields_tree_view = PSPP_SHEET_VIEW (get_widget_assert (builder, "fields"));
   g_signal_connect (p->quote_combo, "changed",
                     G_CALLBACK (on_quote_combo_change), ia);
   g_signal_connect (p->quote_cb, "toggled",

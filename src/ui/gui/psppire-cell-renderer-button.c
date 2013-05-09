@@ -30,7 +30,7 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static void psppire_cell_renderer_button_destroy (GtkObject *);
+static void psppire_cell_renderer_button_dispose (GObject *);
 static void psppire_cell_renderer_button_finalize (GObject *);
 
 static void update_style_cache (PsppireCellRendererButton *button,
@@ -135,13 +135,6 @@ on_style_set (GtkWidget                 *base,
 }
 
 static void
-on_destroy (GtkObject                 *base,
-            PsppireCellRendererButton *button)
-{
-  update_style_cache (button, NULL);
-}
-
-static void
 update_style_cache (PsppireCellRendererButton *button,
                     GtkWidget                 *widget)
 {
@@ -167,11 +160,6 @@ update_style_cache (PsppireCellRendererButton *button,
                                        button->style_set_handler);
           button->style_set_handler = 0;
         }
-      if (button->destroy_handler)
-        {
-          g_signal_handler_disconnect (button->base, button->destroy_handler);
-          button->destroy_handler = 0;
-        }
       g_object_unref (button->base);
       button->base = NULL;
     }
@@ -186,10 +174,6 @@ update_style_cache (PsppireCellRendererButton *button,
       button->style_set_handler = g_signal_connect (widget, "style-set",
                                                     G_CALLBACK (on_style_set),
                                                     button);
-      button->destroy_handler = g_signal_connect (widget, "destroy",
-                                                  G_CALLBACK (on_destroy),
-                                                  button);
-
       g_object_ref (widget);
       g_object_ref (button->button_style);
       g_object_ref (button->label_style);
@@ -308,25 +292,6 @@ psppire_cell_renderer_button_clicked (GtkButton *button,
   g_free (path);
 }
 
-static gboolean
-psppire_cell_renderer_button_focus_out_event (GtkWidget *widget,
-                                              GdkEvent  *event,
-                                              gpointer   data)
-{
-  PsppireCellRendererButton *cell_button = data;
-
-  g_signal_handlers_disconnect_by_func (widget,
-                                        psppire_cell_renderer_button_focus_out_event,
-                                        data);
-  g_signal_handlers_disconnect_by_func (widget,
-                                        psppire_cell_renderer_button_clicked,
-                                        data);
-
-  gtk_cell_renderer_stop_editing (GTK_CELL_RENDERER (cell_button), FALSE);
-
-  return FALSE;
-}
-
 #define IDLE_ID_STRING "psppire-cell-renderer-button-idle-id"
 
 static gboolean
@@ -334,8 +299,8 @@ psppire_cell_renderer_button_initial_click (gpointer data)
 {
   GtkButton *button = data;
 
-  gtk_button_clicked (button);
   g_object_steal_data (G_OBJECT (button), IDLE_ID_STRING);
+  gtk_button_clicked (button);
   return FALSE;
 }
 
@@ -369,6 +334,25 @@ psppire_cell_renderer_button_press_event (GtkButton      *button,
                                           gpointer        data)
 {
   PsppireCellRendererButton *cell_button = data;
+
+  if (event->button == 3)
+    {
+      /* Allow right-click events to propagate upward in the widget hierarchy.
+         Otherwise right-click menus, that trigger on a button-press-event on
+         the containing PsppSheetView, will pop up if the button is rendered as
+         a facade but not if the button widget exists.
+
+         We have to translate the event's data by hand to be relative to the
+         parent window, because the normal GObject signal propagation mechanism
+         won't do it for us.  (This might be a hint that we're doing this
+         wrong.) */
+      gdk_window_coords_to_parent (event->window,
+                                   event->x, event->y,
+                                   &event->x, &event->y);
+      event->window = gdk_window_get_parent (event->window);
+      g_signal_stop_emission_by_name (button, "button-press-event");
+      return FALSE;
+    }
 
   if (cell_button->click_time != 0)
     {
@@ -425,9 +409,6 @@ psppire_cell_renderer_button_start_editing (GtkCellRenderer      *cell,
                                       "slash", cell_button->slash,
                                       NULL);
 
-  g_signal_connect (G_OBJECT (cell_button->button), "focus-out-event",
-                    G_CALLBACK (psppire_cell_renderer_button_focus_out_event),
-                    cell);
   g_signal_connect (G_OBJECT (cell_button->button), "clicked",
                     G_CALLBACK (psppire_cell_renderer_button_clicked),
                     cell);
@@ -466,14 +447,12 @@ static void
 psppire_cell_renderer_button_class_init (PsppireCellRendererButtonClass *class)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (class);
-  GtkObjectClass *gtk_object_class = GTK_OBJECT_CLASS (class);
   GtkCellRendererClass *cell_class = GTK_CELL_RENDERER_CLASS (class);
 
   gobject_class->set_property = psppire_cell_renderer_button_set_property;
   gobject_class->get_property = psppire_cell_renderer_button_get_property;
   gobject_class->finalize = psppire_cell_renderer_button_finalize;
-
-  gtk_object_class->destroy = psppire_cell_renderer_button_destroy;
+  gobject_class->dispose = psppire_cell_renderer_button_dispose;
 
   cell_class->get_size = psppire_cell_renderer_button_get_size;
   cell_class->render = psppire_cell_renderer_button_render;
@@ -540,7 +519,7 @@ psppire_cell_renderer_button_init (PsppireCellRendererButton *obj)
   obj->label_style = NULL;
   obj->base = NULL;
   obj->style_set_handler = 0;
-  obj->destroy_handler = 0;
+  obj->dispose_has_run = FALSE;
 }
 
 static void
@@ -552,13 +531,20 @@ psppire_cell_renderer_button_finalize (GObject *obj)
 }
 
 static void
-psppire_cell_renderer_button_destroy (GtkObject *obj)
+psppire_cell_renderer_button_dispose (GObject *obj)
 {
   PsppireCellRendererButton *button = PSPPIRE_CELL_RENDERER_BUTTON (obj);
 
+  if (button->dispose_has_run)
+    return;
+  
+  button->dispose_has_run = TRUE;
+
+  /* When called with NULL, as we are doing here, update_style_cache
+     does nothing more than to drop references */
   update_style_cache (button, NULL);
 
-  GTK_OBJECT_CLASS (psppire_cell_renderer_button_parent_class)->destroy (obj);
+  G_OBJECT_CLASS (psppire_cell_renderer_button_parent_class)->dispose (obj);
 }
 
 GtkCellRenderer *

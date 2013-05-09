@@ -21,7 +21,6 @@
 #include "psppire-dialog.h"
 #include "psppire-keypad.h"
 #include "psppire-data-window.h"
-#include "psppire-var-store.h"
 #include "psppire-selector.h"
 #include "dialog-common.h"
 #include <libpspp/i18n.h>
@@ -387,7 +386,6 @@ compute_dialog (PsppireDataWindow *de)
 {
   gint response;
 
-  PsppireVarStore *vs = NULL;
   struct compute_dialog scd;
 
   GtkBuilder *xml = builder_new ("compute.ui");
@@ -409,8 +407,7 @@ compute_dialog (PsppireDataWindow *de)
 	get_widget_assert (xml, "radio-button-string");
 
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-  g_object_get (vs, "dictionary", &scd.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &scd.dict, NULL);
   scd.use_type = FALSE;
 
   g_signal_connect (expression, "toggled",

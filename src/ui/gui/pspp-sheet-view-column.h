@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -110,6 +110,7 @@ struct _PsppSheetViewColumn
   guint GSEAL (selected)            : 1;
   guint GSEAL (selectable)          : 1;
   guint GSEAL (row_head)            : 1;
+  guint GSEAL (tabbable)            : 1;
   guint GSEAL (need_button)         : 1;
 };
 
@@ -214,6 +215,9 @@ gboolean                pspp_sheet_view_column_get_selectable     (PsppSheetView
 void                    pspp_sheet_view_column_set_row_head     (PsppSheetViewColumn       *tree_column,
 								  gboolean                 row_head);
 gboolean                pspp_sheet_view_column_get_row_head     (PsppSheetViewColumn       *tree_column);
+void                    pspp_sheet_view_column_set_tabbable     (PsppSheetViewColumn       *tree_column,
+                                                                 gboolean                 tabbable);
+gboolean                pspp_sheet_view_column_get_tabbable     (PsppSheetViewColumn       *tree_column);
 
 
 

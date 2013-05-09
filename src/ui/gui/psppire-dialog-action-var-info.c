@@ -18,21 +18,20 @@
 
 #include <config.h>
 
-#include "psppire-dialog-action-var-info.h"
+#include "ui/gui/psppire-dialog-action-var-info.h"
 
-#include <data/variable.h>
-#include <data/format.h>
-#include <data/value-labels.h>
-#include <libpspp/i18n.h>
+#include <gtk/gtk.h>
 
-#include "var-display.h"
-#include "helper.h"
-#include "psppire-var-view.h"
-#include "psppire-dictview.h"
-
-#include "psppire-dialog.h"
-#include "builder-wrapper.h"
-#include "psppire-data-window.h"
+#include "data/format.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "libpspp/i18n.h"
+#include "ui/gui/builder-wrapper.h"
+#include "ui/gui/helper.h"
+#include "ui/gui/psppire-data-window.h"
+#include "ui/gui/psppire-dialog.h"
+#include "ui/gui/psppire-dictview.h"
+#include "ui/gui/var-display.h"
 
 static void psppire_dialog_action_var_info_init            (PsppireDialogActionVarInfo      *act);
 static void psppire_dialog_action_var_info_class_init      (PsppireDialogActionVarInfoClass *class);
@@ -178,9 +177,8 @@ jump_to (PsppireDialog *d, gint response, gpointer data)
 
   g_object_get (pda, "top-level", &dw, NULL);
 
-  g_object_set (dw->data_editor,
-		"current-variable", var_get_dict_index (var),
-		NULL);
+  psppire_data_editor_goto_variable (dw->data_editor,
+                                     var_get_dict_index (var));
 }
 
 static void
@@ -228,4 +226,3 @@ static void
 psppire_dialog_action_var_info_init (PsppireDialogActionVarInfo *act)
 {
 }
-

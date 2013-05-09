@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2008, 2009, 2010, 2012  Free Software Foundation
+   Copyright (C) 2006, 2008, 2009, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@
 #include <data/data-out.h>
 #include <data/variable.h>
 
-#include <ui/gui/sheet/psppire-sheetmodel.h>
 #include <ui/gui/psppire-marshal.h>
 
 #include <pango/pango-context.h>
@@ -49,14 +48,9 @@
 
 static void psppire_data_store_init            (PsppireDataStore      *data_store);
 static void psppire_data_store_class_init      (PsppireDataStoreClass *class);
-static void psppire_data_store_sheet_model_init (PsppireSheetModelIface *iface);
 
 static void psppire_data_store_finalize        (GObject           *object);
 static void psppire_data_store_dispose        (GObject           *object);
-
-static gboolean psppire_data_store_clear_datum (PsppireSheetModel *model,
-					  glong row, glong column);
-
 
 static gboolean psppire_data_store_insert_case (PsppireDataStore *ds,
 						struct ccase *cc,
@@ -67,8 +61,6 @@ static gboolean psppire_data_store_data_in (PsppireDataStore *ds,
 					    casenumber casenum, gint idx,
 					    struct substring input,
 					    const struct fmt_spec *fmt);
-
-
 
 static GObjectClass *parent_class = NULL;
 
@@ -105,22 +97,9 @@ psppire_data_store_get_type (void)
         (GInstanceInitFunc) psppire_data_store_init,
       };
 
-      static const GInterfaceInfo sheet_model_info =
-      {
-	(GInterfaceInitFunc) psppire_data_store_sheet_model_init,
-	NULL,
-	NULL
-      };
-
-
       data_store_type = g_type_register_static (G_TYPE_OBJECT,
 						"PsppireDataStore",
 						&data_store_info, 0);
-
-      g_type_add_interface_static (data_store_type,
-				   PSPPIRE_TYPE_SHEET_MODEL,
-				   &sheet_model_info);
-
     }
 
   return data_store_type;
@@ -190,27 +169,6 @@ static gboolean
 psppire_data_store_insert_value (PsppireDataStore *ds,
 				  gint width, gint where);
 
-static bool
-psppire_data_store_get_value (const PsppireDataStore *ds,
-			      casenumber casenum, size_t idx,
-			      union value *value);
-
-
-static gboolean
-psppire_data_store_set_value (PsppireDataStore *ds, casenumber casenum,
-			      gint idx, union value *v);
-
-
-
-
-static glong
-psppire_data_store_get_var_count (const PsppireSheetModel *model)
-{
-  const PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
-
-  return psppire_dict_get_var_cnt (store->dict);
-}
-
 casenumber
 psppire_data_store_get_case_count (const PsppireDataStore *store)
 {
@@ -229,13 +187,6 @@ psppire_data_store_get_proto (const PsppireDataStore *store)
   return psppire_dict_get_proto (store->dict);
 }
 
-static casenumber
-psppire_data_store_get_case_count_wrapper (const PsppireSheetModel *model)
-{
-  const PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
-  return psppire_data_store_get_case_count (store);
-}
-
 static void
 psppire_data_store_init (PsppireDataStore *data_store)
 {
@@ -244,94 +195,24 @@ psppire_data_store_init (PsppireDataStore *data_store)
   data_store->dispose_has_run = FALSE;
 }
 
-static inline gchar *
-psppire_data_store_get_string_wrapper (const PsppireSheetModel *model, glong row,
-				       glong column)
-{
-  return psppire_data_store_get_string (PSPPIRE_DATA_STORE (model), row, column);
-}
-
-
-static inline gboolean
-psppire_data_store_set_string_wrapper (PsppireSheetModel *model,
-				       const gchar *text,
-				       glong row, glong column)
-{
-  return psppire_data_store_set_string (PSPPIRE_DATA_STORE (model), text,
-					row, column);
-}
-
-
-
-static gchar * get_column_subtitle (const PsppireSheetModel *model, gint col);
-static gchar * get_column_button_label (const PsppireSheetModel *model, gint col);
-static gboolean get_column_sensitivity (const PsppireSheetModel *model, gint col);
-static GtkJustification get_column_justification (const PsppireSheetModel *model, gint col);
-
-static gchar * get_row_button_label (const PsppireSheetModel *model, gint row);
-static gboolean get_row_sensitivity (const PsppireSheetModel *model, gint row);
-static gboolean get_row_overstrike (const PsppireSheetModel *model, gint row);
-
-
-static void
-psppire_data_store_sheet_model_init (PsppireSheetModelIface *iface)
-{
-  iface->free_strings = TRUE;
-  iface->get_string = psppire_data_store_get_string_wrapper;
-  iface->set_string = psppire_data_store_set_string_wrapper;
-  iface->clear_datum = psppire_data_store_clear_datum;
-  iface->is_editable = NULL;
-  iface->get_foreground = NULL;
-  iface->get_background = NULL;
-  iface->get_column_count = psppire_data_store_get_var_count;
-  iface->get_row_count = psppire_data_store_get_case_count_wrapper;
-
-  iface->get_column_subtitle = get_column_subtitle;
-  iface->get_column_title = get_column_button_label;
-  iface->get_column_sensitivity = get_column_sensitivity;
-  iface->get_column_justification = get_column_justification;
-
-  iface->get_row_title = get_row_button_label;
-  iface->get_row_sensitivity = get_row_sensitivity;
-  iface->get_row_overstrike = get_row_overstrike;
-}
-
-
 /*
    A callback which occurs after a variable has been deleted.
  */
 static void
 delete_variable_callback (GObject *obj, const struct variable *var UNUSED,
                           gint dict_index, gint case_index,
-			  gpointer data)
+                          gpointer data)
 {
   PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
 
-  psppire_sheet_model_columns_deleted (PSPPIRE_SHEET_MODEL (store), dict_index, 1);
   datasheet_delete_columns (store->datasheet, case_index, 1);
   datasheet_insert_column (store->datasheet, NULL, -1, case_index);
-#if AXIS_TRANSITION
-
-
-  psppire_sheet_column_columns_changed (PSPPIRE_SHEET_COLUMN (store),
-				   dict_index, -1);
-#endif
 }
 
 static void
 variable_changed_callback (GObject *obj, gint var_num, gpointer data)
 {
-#if AXIS_TRANSITION
-  PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
-
-  psppire_sheet_column_columns_changed (PSPPIRE_SHEET_COLUMN (store),
-				  var_num, 1);
-
-  psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (store),
-			       -1, var_num,
-			       -1, var_num);
-#endif
 }
 
 static void
@@ -348,14 +229,6 @@ insert_variable_callback (GObject *obj, gint var_num, gpointer data)
   variable = psppire_dict_get_variable (store->dict, var_num);
   posn = var_get_case_index (variable);
   psppire_data_store_insert_value (store, var_get_width (variable), posn);
-
-#if AXIS_TRANSITION
-
-  psppire_sheet_column_columns_changed (PSPPIRE_SHEET_COLUMN (store),
-				  var_num, 1);
-#endif
-
-  psppire_sheet_model_columns_inserted (PSPPIRE_SHEET_MODEL (store), var_num, 1);
 }
 
 struct resize_datum_aux
@@ -437,9 +310,6 @@ psppire_data_store_set_reader (PsppireDataStore *ds,
 
   ds->datasheet = datasheet_create (reader);
 
-  psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (ds),
-			       -1, -1, -1, -1);
-
   if ( ds->dict )
     for (i = 0 ; i < n_dict_signals; ++i )
       {
@@ -504,11 +374,6 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
 
 
   /* The entire model has changed */
-  psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (data_store), -1, -1, -1, -1);
-
-#if AXIS_TRANSITION
-  psppire_sheet_column_columns_changed (PSPPIRE_SHEET_COLUMN (data_store), 0, -1);
-#endif
 
   if ( data_store->dict )
     for (i = 0 ; i < n_dict_signals; ++i )
@@ -524,6 +389,13 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
 static void
 psppire_data_store_finalize (GObject *object)
 {
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (object);
+
+  if (ds->datasheet)
+    {
+      datasheet_destroy (ds->datasheet);
+      ds->datasheet = NULL;
+    }
 
   /* must chain up */
   (* parent_class->finalize) (object);
@@ -538,11 +410,6 @@ psppire_data_store_dispose (GObject *object)
   if (ds->dispose_has_run)
     return;
 
-  if (ds->datasheet)
-    {
-      datasheet_destroy (ds->datasheet);
-      ds->datasheet = NULL;
-    }
 
   /* must chain up */
   (* parent_class->dispose) (object);
@@ -575,130 +442,84 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn)
   return result;
 }
 
-
 gchar *
-psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
+psppire_data_store_get_string (PsppireDataStore *store,
+                               glong row, const struct variable *var,
+                               bool use_value_label)
 {
-  gint idx;
-  char *text;
-  const struct fmt_spec *fp ;
-  const struct variable *pv ;
-  const struct dictionary *dict;
+  gchar *string;
   union value v;
   int width;
 
-  g_return_val_if_fail (store->dict, NULL);
-  g_return_val_if_fail (store->datasheet, NULL);
+  g_return_val_if_fail (store != NULL, NULL);
+  g_return_val_if_fail (var != NULL, NULL);
 
-  dict = store->dict->dict;
-
-  if (column >= psppire_dict_get_var_cnt (store->dict))
+  if (row < 0 || row >= datasheet_get_n_rows (store->datasheet))
     return NULL;
 
-  if ( row >= psppire_data_store_get_case_count (store))
-    return NULL;
-
-  pv = psppire_dict_get_variable (store->dict, column);
-
-  g_assert (pv);
-
-  idx = var_get_case_index (pv);
-  width = var_get_width (pv);
-
-  g_assert (idx >= 0);
-
+  width = var_get_width (var);
   value_init (&v, width);
-  if (!psppire_data_store_get_value (store, row, idx, &v))
-    return NULL;
+  datasheet_get_value (store->datasheet, row, var_get_case_index (var), &v);
 
-  if ( store->show_labels)
+  string = NULL;
+  if (use_value_label)
     {
-      const gchar *label = var_lookup_value_label (pv, &v);
-      if (label)
-        {
-          value_destroy (&v, width);
-	  return g_strdup (label);
-        }
+      const char *label = var_lookup_value_label (var, &v);
+      if (label != NULL)
+        string = g_strdup (label);
     }
-
-  fp = var_get_print_format (pv);
-
-  text = data_out (&v, dict_get_encoding (dict), fp);
-
-  g_strchomp (text);
+  if (string == NULL)
+    string = value_to_text (v, var);
 
   value_destroy (&v, width);
-  return text;
+
+  return string;
 }
 
 
-static gboolean
-psppire_data_store_clear_datum (PsppireSheetModel *model,
-					  glong row, glong col)
-{
-  PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
+/* Attempts to update that part of the variable store which corresponds to VAR
+   within ROW with the value TEXT.
 
-  union value v;
-  const struct variable *pv = psppire_dict_get_variable (store->dict, col);
-  int width = var_get_width (pv);
+   If USE_VALUE_LABEL is true, and TEXT is a value label for the column's
+   variable, then stores the value from that value label instead of the literal
+   TEXT.
 
-  const gint index = var_get_case_index (pv) ;
-
-  value_init (&v, width);
-  value_set_missing (&v, width);
-  psppire_data_store_set_value (store, row, index, &v);
-  value_destroy (&v, width);
-
-  psppire_sheet_model_range_changed (model, row, col, row, col);
-
-
-  return TRUE;
-}
-
-
-/* Attempts to update that part of the variable store which corresponds
-   to ROW, COL with  the value TEXT.
-   Returns true if anything was updated, false otherwise.
-*/
+   Returns true if anything was updated, false otherwise.  */
 gboolean
 psppire_data_store_set_string (PsppireDataStore *store,
-			       const gchar *text, glong row, glong col)
+			       const gchar *text,
+                               glong row, const struct variable *var,
+                               gboolean use_value_label)
 {
+  gint case_index;
   glong n_cases;
-  const struct variable *pv = psppire_dict_get_variable (store->dict, col);
-  if ( NULL == pv)
-    return FALSE;
+  gboolean ok;
 
   n_cases = psppire_data_store_get_case_count (store);
-
-  if ( row > n_cases)
+  if (row > n_cases)
     return FALSE;
-
   if (row == n_cases)
     psppire_data_store_insert_new_case (store, row);
 
-  psppire_data_store_data_in (store, row,
-			      var_get_case_index (pv), ss_cstr (text),
-			      var_get_print_format (pv));
+  case_index = var_get_case_index (var);
+  if (use_value_label)
+    {
+      const struct val_labs *vls = var_get_value_labels (var);
+      const union value *value = vls ? val_labs_find_value (vls, text) : NULL;
+      if (value)
+        ok = datasheet_put_value (store->datasheet, row, case_index, value);
+      else
+        ok = FALSE;
+    }
+  else
+    ok = psppire_data_store_data_in (store, row, case_index, ss_cstr (text),
+                                     var_get_print_format (var));
 
-  psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (store), row, col, row, col);
-
-  return TRUE;
+  if (ok)
+    g_signal_emit (store, signals [CASE_CHANGED], 0, row);
+  return ok;
 }
 
-
-
-void
-psppire_data_store_show_labels (PsppireDataStore *store, gboolean show_labels)
-{
-  g_return_if_fail (store);
-  g_return_if_fail (PSPPIRE_IS_DATA_STORE (store));
-
-  store->show_labels = show_labels;
-
-  psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (store),
-				 -1, -1, -1, -1);
-}
 
 
 void
@@ -743,93 +564,6 @@ psppire_data_store_get_reader (PsppireDataStore *ds)
 
 static const gchar null_var_name[]=N_("var");
 
-
-
-/* Row related funcs */
-
-static gchar *
-get_row_button_label (const PsppireSheetModel *model, gint unit)
-{
-  // PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
-
-  return g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
-}
-
-
-static gboolean
-get_row_sensitivity (const PsppireSheetModel *model, gint unit)
-{
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
-
-  return (unit < psppire_data_store_get_case_count (ds));
-}
-
-
-
-
-/* Column related stuff */
-
-static gchar *
-get_column_subtitle (const PsppireSheetModel *model, gint col)
-{
-  const struct variable *v ;
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
-
-  if ( col >= psppire_dict_get_var_cnt (ds->dict) )
-    return NULL;
-
-  v = psppire_dict_get_variable (ds->dict, col);
-
-  if ( ! var_has_label (v))
-    return NULL;
-
-  return xstrdup (var_get_label (v));
-}
-
-static gchar *
-get_column_button_label (const PsppireSheetModel *model, gint col)
-{
-  struct variable *pv ;
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
-
-  if ( col >= psppire_dict_get_var_cnt (ds->dict) )
-    return xstrdup (gettext (null_var_name));
-
-  pv = psppire_dict_get_variable (ds->dict, col);
-
-  if (NULL == pv)
-    return NULL;
-
-  return xstrdup (var_get_name (pv));
-}
-
-static gboolean
-get_column_sensitivity (const PsppireSheetModel *model, gint col)
-{
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
-
-  return (col < psppire_dict_get_var_cnt (ds->dict));
-}
-
-
-
-static GtkJustification
-get_column_justification (const PsppireSheetModel *model, gint col)
-{
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
-  const struct variable *pv ;
-
-  if ( col >= psppire_dict_get_var_cnt (ds->dict) )
-    return GTK_JUSTIFY_LEFT;
-
-  pv = psppire_dict_get_variable (ds->dict, col);
-
-  return (var_get_alignment (pv) == ALIGN_LEFT ? GTK_JUSTIFY_LEFT
-          : var_get_alignment (pv) == ALIGN_RIGHT ? GTK_JUSTIFY_RIGHT
-          : GTK_JUSTIFY_CENTER);
-}
-
-
 
 
 
@@ -861,7 +595,6 @@ psppire_data_store_delete_cases (PsppireDataStore *ds, casenumber first,
   datasheet_delete_rows (ds->datasheet, first, n_cases);
 
   g_signal_emit (ds, signals [CASES_DELETED], 0, first, n_cases);
-  psppire_sheet_model_rows_deleted (PSPPIRE_SHEET_MODEL (ds), first, n_cases);
 
   return TRUE;
 }
@@ -883,10 +616,7 @@ psppire_data_store_insert_case (PsppireDataStore *ds,
   result = datasheet_insert_rows (ds->datasheet, posn, &cc, 1);
 
   if ( result )
-    {
-      g_signal_emit (ds, signals [CASE_INSERTED], 0, posn);
-      psppire_sheet_model_rows_inserted (PSPPIRE_SHEET_MODEL (ds), posn, 1);
-    }
+    g_signal_emit (ds, signals [CASE_INSERTED], 0, posn);
   else
     g_warning ("Cannot insert case at position %ld\n", posn);
 
@@ -894,38 +624,28 @@ psppire_data_store_insert_case (PsppireDataStore *ds,
 }
 
 
-/* Copies the IDXth value from case CASENUM into VALUE, which
-   must be of the correct width for IDX.
-   Returns true if successful, false on failure. */
-static bool
-psppire_data_store_get_value (const PsppireDataStore *ds,
-			      casenumber casenum, size_t idx,
-			      union value *value)
-{
-  g_return_val_if_fail (ds, false);
-  g_return_val_if_fail (ds->datasheet, false);
-  g_return_val_if_fail (idx < datasheet_get_n_columns (ds->datasheet), false);
-
-  return datasheet_get_value (ds->datasheet, casenum, idx, value);
-}
-
-
-
-/* Set the IDXth value of case C to V.
+/* Set the value of VAR in case CASENUM to V.
    V must be the correct width for IDX.
    Returns true if successful, false on I/O error. */
-static gboolean
+gboolean
 psppire_data_store_set_value (PsppireDataStore *ds, casenumber casenum,
-			      gint idx, union value *v)
+			      const struct variable *var, const union value *v)
 {
+  glong n_cases;
   bool ok;
 
   g_return_val_if_fail (ds, FALSE);
   g_return_val_if_fail (ds->datasheet, FALSE);
 
-  g_return_val_if_fail (idx < datasheet_get_n_columns (ds->datasheet), FALSE);
+  n_cases = psppire_data_store_get_case_count (ds);
+  if ( casenum > n_cases)
+    return FALSE;
 
-  ok = datasheet_put_value (ds->datasheet, casenum, idx, v);
+  if (casenum == n_cases)
+    psppire_data_store_insert_new_case (ds, casenum);
+
+  ok = datasheet_put_value (ds->datasheet, casenum, var_get_case_index (var),
+                            v);
   if (ok)
     g_signal_emit (ds, signals [CASE_CHANGED], 0, casenum);
 
@@ -964,9 +684,6 @@ psppire_data_store_data_in (PsppireDataStore *ds, casenumber casenum, gint idx,
         && datasheet_put_value (ds->datasheet, casenum, idx, &value));
   value_destroy (&value, width);
 
-  if (ok)
-    g_signal_emit (ds, signals [CASE_CHANGED], 0, casenum);
-
   return ok;
 }
 
@@ -988,40 +705,38 @@ psppire_data_store_insert_value (PsppireDataStore *ds,
     ds->datasheet = datasheet_create (NULL);
 
   value_init (&value, width);
-  if (width == 0)
-    value.f = 0;
-  else
-    value_set_missing (&value, width);
+  value_set_missing (&value, width);
 
   datasheet_insert_column (ds->datasheet, &value, width, where);
+  value_destroy (&value, width);
 
   return TRUE;
 }
 
-static gboolean
-get_row_overstrike (const PsppireSheetModel *model, gint row)
+gboolean
+psppire_data_store_filtered (PsppireDataStore *ds,
+                             glong row)
 {
   union value val;
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
-  const struct dictionary *dict = ds->dict->dict;
-
-  const struct variable *filter = dict_get_filter (dict);
+  const struct dictionary *dict;
+  const struct variable *filter;
 
   if ( row < 0 || row >= datasheet_get_n_rows (ds->datasheet))
     return FALSE;
 
+  dict = ds->dict->dict;
+  g_return_val_if_fail (dict, FALSE);
+  filter = dict_get_filter (dict);
   if ( ! filter)
     return FALSE;
 
-  g_assert (var_is_numeric (filter));
-
+  g_return_val_if_fail (var_is_numeric (filter), FALSE);
   value_init (&val, 0);
   if ( ! datasheet_get_value (ds->datasheet, row,
-			      var_get_case_index (filter),
-			      &val) )
+                              var_get_case_index (filter),
+                              &val) )
     return FALSE;
-
 
   return (val.f == 0.0);
 }

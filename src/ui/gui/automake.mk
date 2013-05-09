@@ -1,7 +1,5 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-include $(top_srcdir)/src/ui/gui/sheet/automake.mk
-
 UI_FILES = \
 	src/ui/gui/aggregate.ui \
 	src/ui/gui/autorecode.ui \
@@ -11,6 +9,7 @@ UI_FILES = \
 	src/ui/gui/count.ui \
 	src/ui/gui/crosstabs.ui \
 	src/ui/gui/chi-square.ui \
+	src/ui/gui/data-sheet.ui \
 	src/ui/gui/descriptives.ui \
 	src/ui/gui/entry-dialog.ui \
 	src/ui/gui/examine.ui \
@@ -45,6 +44,7 @@ UI_FILES = \
 	src/ui/gui/data-editor.ui \
 	src/ui/gui/output-viewer.ui \
 	src/ui/gui/syntax-editor.ui \
+	src/ui/gui/var-sheet.ui \
 	src/ui/gui/var-type-dialog.ui
 
 EXTRA_DIST += \
@@ -74,8 +74,7 @@ endif
 
 
 src_ui_gui_psppire_LDADD = \
-        src/ui/gui/sheet/libsheet.la \
-	lib/gtk-contrib/libgtksheet.a \
+	lib/gtk-contrib/libxpaned.a \
 	src/ui/libuicommon.la \
 	src/libpspp.la \
 	src/libpspp-core.la \
@@ -188,8 +187,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/chi-square-dialog.h \
 	src/ui/gui/count-dialog.c \
 	src/ui/gui/count-dialog.h \
-	src/ui/gui/customentry.c \
-	src/ui/gui/customentry.h \
 	src/ui/gui/dialog-common.c \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.h \
@@ -225,6 +222,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-conf.h \
 	src/ui/gui/psppire-data-editor.c \
 	src/ui/gui/psppire-data-editor.h \
+	src/ui/gui/psppire-data-sheet.c \
+	src/ui/gui/psppire-data-sheet.h \
 	src/ui/gui/psppire-data-store.c \
 	src/ui/gui/psppire-data-store.h \
 	src/ui/gui/psppire-data-window.c \
@@ -301,8 +300,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-var-ptr.h \
 	src/ui/gui/psppire-var-sheet.c \
 	src/ui/gui/psppire-var-sheet.h \
-	src/ui/gui/psppire-var-store.c \
-	src/ui/gui/psppire-var-store.h \
 	src/ui/gui/psppire-vbuttonbox.h \
 	src/ui/gui/psppire-window.c \
 	src/ui/gui/psppire-window.h \

@@ -272,7 +272,6 @@ autorecode_dialog (PsppireDataWindow *de)
   gint response;
 
   GtkBuilder *xml = builder_new ("autorecode.ui");
-  PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "autorecode-dialog");
   GtkWidget *source = get_widget_assert   (xml, "dict-view");
@@ -325,11 +324,10 @@ autorecode_dialog (PsppireDataWindow *de)
 
     }
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_get (vs, "dictionary", &rd.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &rd.dict, NULL);
   g_object_set (source, "model", rd.dict, NULL);
 
 

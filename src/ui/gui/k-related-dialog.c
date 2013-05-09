@@ -126,13 +126,10 @@ k_related_dialog (PsppireDataWindow *dw)
   struct k_related_dialog krd;
 
   GtkBuilder *xml = builder_new ("k-related.ui");
-  PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "k-related-dialog");
 
   GtkWidget *dict_view = get_widget_assert   (xml, "dict-view");
-
-  g_object_get (dw->data_editor, "var-store", &vs, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (dw));
 
@@ -142,7 +139,7 @@ k_related_dialog (PsppireDataWindow *dw)
   krd.kendal =  get_widget_assert (xml, "kendal-checkbutton");
   krd.cochran =  get_widget_assert (xml, "cochran-checkbutton");
 
-  g_object_get (vs, "dictionary", &krd.dict, NULL);
+  g_object_get (dw->data_editor, "dictionary", &krd.dict, NULL);
   g_object_set (dict_view,
 		"model", krd.dict, 
 		"predicate", var_is_numeric,

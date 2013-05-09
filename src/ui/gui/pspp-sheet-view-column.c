@@ -72,7 +72,8 @@ enum
   PROP_QUICK_EDIT,
   PROP_SELECTED,
   PROP_SELECTABLE,
-  PROP_ROW_HEAD
+  PROP_ROW_HEAD,
+  PROP_TABBABLE
 };
 
 enum
@@ -426,6 +427,14 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
                                                          P_("If true, this column is a \"row head\", equivalent to a column head.  If rectangular selection is enabled, then shift+click and control+click in the column select row ranges and toggle row selection, respectively.  The column should ordinarily include a button cell; clicking on the button will select the row (and deselect all other rows)."),
                                                          FALSE,
                                                          GTK_PARAM_READWRITE));
+
+  g_object_class_install_property (object_class,
+                                   PROP_TABBABLE,
+                                   g_param_spec_boolean ("tabbable",
+                                                         P_("Tabbable"),
+                                                         P_("If true, Tab and Shift+Tab visit this column.  If false, Tab and Shift+Tab skip this column."),
+                                                         TRUE,
+                                                         GTK_PARAM_READWRITE));
 }
 
 static void
@@ -468,6 +477,7 @@ pspp_sheet_view_column_init (PsppSheetViewColumn *tree_column)
   tree_column->selected = FALSE;
   tree_column->selectable = TRUE;
   tree_column->row_head = FALSE;
+  tree_column->tabbable = TRUE;
   tree_column->sort_order = GTK_SORT_ASCENDING;
   tree_column->show_sort_indicator = FALSE;
   tree_column->property_changed_signal = 0;
@@ -621,6 +631,11 @@ pspp_sheet_view_column_set_property (GObject         *object,
                                              g_value_get_boolean (value));
       break;
 
+    case PROP_TABBABLE:
+      pspp_sheet_view_column_set_tabbable (tree_column,
+                                           g_value_get_boolean (value));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -737,6 +752,11 @@ pspp_sheet_view_column_get_property (GObject         *object,
     case PROP_ROW_HEAD:
       g_value_set_boolean (value,
                            pspp_sheet_view_column_get_row_head (tree_column));
+      break;
+
+    case PROP_TABBABLE:
+      g_value_set_boolean (value,
+                           pspp_sheet_view_column_get_tabbable (tree_column));
       break;
 
     default:
@@ -1366,8 +1386,13 @@ on_pspp_sheet_view_column_button_clicked (PsppSheetViewColumn *column)
   if (pspp_sheet_selection_get_mode (selection) == PSPP_SHEET_SELECTION_RECTANGLE)
     {
       pspp_sheet_selection_select_all (selection);
-      pspp_sheet_selection_unselect_all_columns (selection);
-      pspp_sheet_selection_select_column (selection, column);
+      if (pspp_sheet_view_column_get_row_head (column))
+        pspp_sheet_selection_select_all_columns (selection);
+      else
+        {
+          pspp_sheet_selection_unselect_all_columns (selection);
+          pspp_sheet_selection_select_column (selection, column);
+        }
       sheet_view->priv->anchor_column = column;
       return TRUE;
     }
@@ -2364,7 +2389,7 @@ pspp_sheet_view_column_set_expand (PsppSheetViewColumn *tree_column,
 {
   g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
 
-  expand = expand?TRUE:FALSE;
+  expand = !!expand;
   if (tree_column->expand == expand)
     return;
   tree_column->expand = expand;
@@ -2545,10 +2570,11 @@ pspp_sheet_view_column_set_reorderable (PsppSheetViewColumn *tree_column,
   /*  if (reorderable)
       pspp_sheet_view_column_set_clickable (tree_column, TRUE);*/
 
-  if (tree_column->reorderable == (reorderable?TRUE:FALSE))
+  reorderable = !!reorderable;
+  if (tree_column->reorderable == reorderable)
     return;
 
-  tree_column->reorderable = (reorderable?TRUE:FALSE);
+  tree_column->reorderable = reorderable;
   pspp_sheet_view_column_update_button (tree_column);
   g_object_notify (G_OBJECT (tree_column), "reorderable");
 }
@@ -2585,7 +2611,7 @@ pspp_sheet_view_column_set_quick_edit (PsppSheetViewColumn *tree_column,
   quick_edit = !!quick_edit;
   if (tree_column->quick_edit != quick_edit)
     {
-      tree_column->quick_edit = (quick_edit?TRUE:FALSE);
+      tree_column->quick_edit = quick_edit;
       g_object_notify (G_OBJECT (tree_column), "quick-edit");
     }
 }
@@ -2629,7 +2655,7 @@ pspp_sheet_view_column_set_selected (PsppSheetViewColumn *tree_column,
 
       if (tree_column->tree_view != NULL)
         gtk_widget_queue_draw (GTK_WIDGET (tree_column->tree_view));
-      tree_column->selected = (selected?TRUE:FALSE);
+      tree_column->selected = selected;
       g_object_notify (G_OBJECT (tree_column), "selected");
 
       sheet_view = PSPP_SHEET_VIEW (pspp_sheet_view_column_get_tree_view (
@@ -2674,7 +2700,7 @@ pspp_sheet_view_column_set_selectable (PsppSheetViewColumn *tree_column,
     {
       if (tree_column->tree_view != NULL)
         gtk_widget_queue_draw (GTK_WIDGET (tree_column->tree_view));
-      tree_column->selectable = (selectable?TRUE:FALSE);
+      tree_column->selectable = selectable;
       g_object_notify (G_OBJECT (tree_column), "selectable");
     }
 }
@@ -2713,7 +2739,7 @@ pspp_sheet_view_column_set_row_head (PsppSheetViewColumn *tree_column,
   row_head = !!row_head;
   if (tree_column->row_head != row_head)
     {
-      tree_column->row_head = (row_head?TRUE:FALSE);
+      tree_column->row_head = row_head;
       g_object_notify (G_OBJECT (tree_column), "row_head");
     }
 }
@@ -2732,6 +2758,44 @@ pspp_sheet_view_column_get_row_head (PsppSheetViewColumn *tree_column)
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), FALSE);
 
   return tree_column->row_head;
+}
+
+
+/**
+ * pspp_sheet_view_column_set_tabbable:
+ * @tree_column: A #PsppSheetViewColumn
+ * @tabbable: If true, the column is "tabbable", meaning that Tab and Shift+Tab
+ * in the sheet visit this column.  If false, Tab and Shift+Tab skip this
+ * column.
+ **/
+void
+pspp_sheet_view_column_set_tabbable (PsppSheetViewColumn *tree_column,
+                                     gboolean           tabbable)
+{
+  g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
+
+  tabbable = !!tabbable;
+  if (tree_column->tabbable != tabbable)
+    {
+      tree_column->tabbable = tabbable;
+      g_object_notify (G_OBJECT (tree_column), "tabbable");
+    }
+}
+
+/**
+ * pspp_sheet_view_column_get_tabbable:
+ * @tree_column: A #PsppSheetViewColumn
+ *
+ * Returns %TRUE if the column is tabbable.
+ *
+ * Return value: %TRUE if the column is tabbable.
+ **/
+gboolean
+pspp_sheet_view_column_get_tabbable (PsppSheetViewColumn *tree_column)
+{
+  g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), FALSE);
+
+  return tree_column->tabbable;
 }
 
 

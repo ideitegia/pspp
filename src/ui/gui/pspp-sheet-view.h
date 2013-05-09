@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -84,6 +84,13 @@ typedef enum
   PSPP_SHEET_VIEW_DROP_INTO_OR_AFTER
 } PsppSheetViewDropPosition;
 
+typedef enum
+{
+  PSPP_SHEET_SELECT_MODE_TOGGLE = 1 << 0,
+  PSPP_SHEET_SELECT_MODE_EXTEND = 1 << 1
+}
+PsppSheetSelectMode;
+
 #define PSPP_TYPE_SHEET_VIEW		(pspp_sheet_view_get_type ())
 #define PSPP_SHEET_VIEW(obj)		(G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPP_TYPE_SHEET_VIEW, PsppSheetView))
 #define PSPP_SHEET_VIEW_CLASS(klass)	(G_TYPE_CHECK_CLASS_CAST ((klass), PSPP_TYPE_SHEET_VIEW, PsppSheetViewClass))
@@ -102,6 +109,8 @@ struct _PsppSheetView
   GtkContainer parent;
 
   PsppSheetViewPrivate *GSEAL (priv);
+
+  gboolean dispose_has_run ;
 };
 
 struct _PsppSheetViewClass
@@ -124,7 +133,8 @@ struct _PsppSheetViewClass
   gboolean (* select_all)                 (PsppSheetView       *tree_view);
   gboolean (* unselect_all)               (PsppSheetView       *tree_view);
   gboolean (* select_cursor_row)          (PsppSheetView       *tree_view,
-					   gboolean           start_editing);
+					   gboolean           start_editing,
+                                           PsppSheetSelectMode mode);
   gboolean (* toggle_cursor_row)          (PsppSheetView       *tree_view);
   gboolean (* select_cursor_parent)       (PsppSheetView       *tree_view);
   gboolean (* start_interactive_search)   (PsppSheetView       *tree_view);

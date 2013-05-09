@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2011, 2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,14 +17,23 @@
 #ifndef __PSPPIRE_DATA_EDITOR_H__
 #define __PSPPIRE_DATA_EDITOR_H__
 
+/* PsppireDataEditor is a GtkNotebook for editing a single PSPP dataset.
+
+   PsppireDataEditor has two tabs that normally contain a PsppireDataSheet and
+   a PsppireVarSheet.  The user can choose to "split" the PsppireDataSheet view
+   into four views within the single tab.  PsppireDataEditor also adds some
+   decorations above the PsppireDataSheet to note the current cell and allow
+   the current cell to be edited.
+
+   PsppireDataEditor's normal parent in the widget hierarchy is
+   PsppireDataWindow. */
 
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtk.h>
 
-#include <ui/gui/sheet/psppire-axis.h>
-#include "psppire-var-store.h"
 #include "psppire-data-store.h"
+#include "ui/gui/pspp-sheet-view.h"
 
 G_BEGIN_DECLS
 
@@ -44,29 +53,27 @@ struct _PsppireDataEditor
   GtkNotebook parent;
 
   /* <private> */
-  gboolean dispose_has_run;
-  GtkWidget *cell_ref_entry;
-  GtkWidget *datum_entry;
-  GtkWidget *var_sheet;
-  struct _PsppireDataWindow *data_window;
   PsppireDataStore *data_store;
-  PsppireVarStore *var_store;
+  PsppireDict *dict;
 
-  GtkWidget *sheet_bin[4];
-  GtkWidget *data_sheet[4];
+  /* Font to use in var sheet and data sheet(s), NULL to use system default. */
+  struct _PangoFontDescription *font;
 
-  GtkWidget *data_vbox;
+  /* Variable sheet tab. */
+  GtkWidget *var_sheet;
 
-  GtkWidget *paned;
-  gboolean split;
+  /* Data sheet tab. */
+  GtkWidget *vbox;             /* Top-level widget in tab. */
+  GtkWidget *cell_ref_label;   /* GtkLabel that shows selected case and var. */
+  GtkWidget *datum_entry;      /* GtkComboBoxEntry for editing current cell. */
+  GtkWidget *datasheet_vbox_widget; /* ->vbox child that holds data sheets. */
+  GtkWidget *data_sheets[4];   /* Normally one data sheet; four, if split. */
+  gboolean split;              /* True if data sheets are split. */
 
-  PsppireAxis *vaxis[2];
-
-  /* There's only one horizontal axis, since the
-     column widths are parameters of the variables */
-  PsppireAxis *haxis;
+  /* UI manager for whichever var or data sheet is currently in use. */
+  GtkUIManager *ui_manager;
+  GtkWidget *old_vbox_widget;
 };
-
 
 struct _PsppireDataEditorClass
 {
@@ -75,25 +82,19 @@ struct _PsppireDataEditorClass
 
 
 GType          psppire_data_editor_get_type        (void);
-GtkWidget*     psppire_data_editor_new             (struct _PsppireDataWindow *, PsppireVarStore *, PsppireDataStore *);
-void           psppire_data_editor_clip_copy       (PsppireDataEditor *);
-void           psppire_data_editor_clip_paste      (PsppireDataEditor *);
-void           psppire_data_editor_clip_cut        (PsppireDataEditor *);
-void           psppire_data_editor_sort_ascending  (PsppireDataEditor *);
-void           psppire_data_editor_sort_descending (PsppireDataEditor *);
-void           psppire_data_editor_insert_variable (PsppireDataEditor *);
-void           psppire_data_editor_delete_variables (PsppireDataEditor *);
+GtkWidget*     psppire_data_editor_new             (PsppireDict *, PsppireDataStore *);
 void           psppire_data_editor_show_grid       (PsppireDataEditor *, gboolean);
-void           psppire_data_editor_insert_case     (PsppireDataEditor *);
-void           psppire_data_editor_delete_cases    (PsppireDataEditor *);
 void           psppire_data_editor_set_font        (PsppireDataEditor *, PangoFontDescription *);
-void           psppire_data_editor_delete_cases    (PsppireDataEditor *);
 void           psppire_data_editor_split_window    (PsppireDataEditor *, gboolean );
 
+void           psppire_data_editor_goto_variable   (PsppireDataEditor *, gint dict_index);
 
-G_END_DECLS
+struct _PsppireDataSheet *psppire_data_editor_get_active_data_sheet (PsppireDataEditor *);
+
+GtkUIManager *psppire_data_editor_get_ui_manager (PsppireDataEditor *);
 
 enum {PSPPIRE_DATA_EDITOR_DATA_VIEW = 0, PSPPIRE_DATA_EDITOR_VARIABLE_VIEW};
 
+G_END_DECLS
 
 #endif /* __PSPPIRE_DATA_EDITOR_H__ */

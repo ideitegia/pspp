@@ -20,7 +20,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <gtk-contrib/psppire-sheet.h>
 #include <gtk/gtk.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -46,7 +45,6 @@
 #include "ui/gui/psppire-encoding-selector.h"
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-var-sheet.h"
-#include "ui/gui/psppire-var-store.h"
 
 #include "gl/error.h"
 #include "gl/intprops.h"

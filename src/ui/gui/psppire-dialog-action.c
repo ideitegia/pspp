@@ -88,7 +88,6 @@ psppire_dialog_action_activate (PsppireDialogAction *act)
 {
   gint response;
 
-  PsppireVarStore *vs;
   PsppireDialogActionClass *class = PSPPIRE_DIALOG_ACTION_GET_CLASS (act);
 
   GSList *sl = gtk_ui_manager_get_toplevels (act->uim, GTK_UI_MANAGER_MENUBAR | GTK_UI_MANAGER_TOOLBAR);
@@ -97,9 +96,7 @@ psppire_dialog_action_activate (PsppireDialogAction *act)
   act->toplevel = gtk_widget_get_toplevel (GTK_WIDGET (sl->data));
   g_slist_free (sl);
 
-  vs = PSPPIRE_DATA_WINDOW(act->toplevel)->var_store;
-  
-  g_object_get (vs, "dictionary", &act->dict, NULL);
+  act->dict = PSPPIRE_DATA_WINDOW(act->toplevel)->dict;
   
   g_object_set (act->source, "model", act->dict, NULL);
   
@@ -140,7 +137,7 @@ psppire_dialog_action_class_init (PsppireDialogActionClass *class)
 			 "Manager",
 			 "The GtkUIManager which created this object",
 			 GTK_TYPE_UI_MANAGER,
-			 G_PARAM_CONSTRUCT_ONLY |G_PARAM_READWRITE);
+			 G_PARAM_READWRITE);
 
   GParamSpec *toplevel_spec =
     g_param_spec_object ("top-level",

@@ -22,7 +22,6 @@
 #include "psppire-data-editor.h"
 #include "executor.h"
 #include "helper.h"
-#include "psppire-var-store.h"
 #include <ui/syntax-gen.h>
 
 #include "comments-dialog.h"
@@ -104,9 +103,6 @@ comments_dialog (PsppireDataWindow *de)
   GtkWidget *label = get_widget_assert (xml, "column-number-label");
   GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
 
-  PsppireVarStore *vs = NULL;
-
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
@@ -144,7 +140,7 @@ comments_dialog (PsppireDataWindow *de)
   }
 
   cd.xml = xml;
-  g_object_get (vs, "dictionary", &cd.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &cd.dict, NULL);
 
   g_signal_connect (buffer, "mark-set",
 		    G_CALLBACK (set_column_number), label);

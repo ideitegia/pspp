@@ -26,7 +26,6 @@
 #include "data/format.h"
 #include "data/variable.h"
 #include "ui/gui/psppire-dialog.h"
-#include "ui/gui/psppire-var-store.h"
 
 G_BEGIN_DECLS
 

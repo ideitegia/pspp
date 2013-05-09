@@ -460,8 +460,6 @@ aggregate_dialog (PsppireDataWindow *dw)
   struct aggregate fd;
   gint response;
 
-  PsppireVarStore *vs;
-
   GtkWidget *dialog ;
   GtkWidget *source ;
 
@@ -557,11 +555,9 @@ aggregate_dialog (PsppireDataWindow *dw)
 
   g_signal_connect_swapped (dialog, "refresh", G_CALLBACK (refresh),  &fd);
 
-  g_object_get (fd.de->data_editor, "var-store", &vs, NULL);
-
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (fd.de));
 
-  g_object_get (vs, "dictionary", &fd.dict, NULL);
+  g_object_get (fd.de->data_editor, "dictionary", &fd.dict, NULL);
   g_object_set (source, "model", fd.dict, NULL);
 
 

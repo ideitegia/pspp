@@ -31,7 +31,8 @@ G_BEGIN_DECLS
 typedef struct _PsppireCellRendererButton      PsppireCellRendererButton;
 typedef struct _PsppireCellRendererButtonClass PsppireCellRendererButtonClass;
 
-struct _PsppireCellRendererButton {
+struct _PsppireCellRendererButton
+{
   GtkCellRenderer parent;
 
   gboolean editable;
@@ -52,7 +53,7 @@ struct _PsppireCellRendererButton {
   GtkStyle *label_style;
   GtkWidget *base;
   gulong style_set_handler;
-  gulong destroy_handler;
+  gboolean dispose_has_run;
 };
 
 struct _PsppireCellRendererButtonClass {

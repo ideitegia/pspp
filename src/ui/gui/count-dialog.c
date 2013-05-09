@@ -114,7 +114,6 @@ dialog_state_valid (gpointer data)
 void count_dialog (PsppireDataWindow *de)
 {
   gint response;
-  PsppireVarStore *vs = NULL;
   struct cnt_dialog cnt;
 
   GtkBuilder *builder = builder_new ("count.ui");
@@ -137,9 +136,7 @@ void count_dialog (PsppireDataWindow *de)
   g_signal_connect (cnt.dialog, "refresh", G_CALLBACK (refresh),  &cnt);
 
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-  g_object_get (vs, "dictionary", &cnt.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &cnt.dict, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (cnt.dialog), GTK_WINDOW (de));
 

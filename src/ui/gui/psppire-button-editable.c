@@ -41,7 +41,8 @@ enum
   {
     PROP_0,
     PROP_PATH,
-    PROP_SLASH
+    PROP_SLASH,
+    PROP_EDITING_CANCELED
   };
 
 static void
@@ -61,6 +62,9 @@ psppire_button_editable_set_property (GObject      *object,
 
     case PROP_SLASH:
       psppire_button_editable_set_slash (obj, g_value_get_boolean (value));
+      break;
+
+    case PROP_EDITING_CANCELED:
       break;
 
     default:
@@ -87,6 +91,10 @@ psppire_button_editable_get_property (GObject      *object,
       g_value_set_boolean (value, psppire_button_editable_get_slash (obj));
       break;
 
+    case PROP_EDITING_CANCELED:
+      g_value_set_boolean (value, FALSE);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -94,14 +102,13 @@ psppire_button_editable_get_property (GObject      *object,
 }
 
 static void
-psppire_button_editable_dispose (GObject *gobject)
+psppire_button_editable_finalize (GObject *gobject)
 {
   PsppireButtonEditable *obj = PSPPIRE_BUTTON_EDITABLE (gobject);
 
   g_free (obj->path);
-  obj->path = NULL;
 
-  G_OBJECT_CLASS (psppire_button_editable_parent_class)->dispose (gobject);
+  G_OBJECT_CLASS (psppire_button_editable_parent_class)->finalize (gobject);
 }
 
 static gboolean
@@ -110,7 +117,7 @@ psppire_button_editable_button_release (GtkWidget      *widget,
 {
   if (event->button == 1)
     {
-      g_signal_emit_by_name (widget, "button-release-event", event, NULL);
+      g_signal_emit_by_name (widget, "released", event, NULL);
     }
 
   return TRUE;
@@ -149,7 +156,7 @@ psppire_button_editable_class_init (PsppireButtonEditableClass *class)
 
   gobject_class->set_property = psppire_button_editable_set_property;
   gobject_class->get_property = psppire_button_editable_get_property;
-  gobject_class->dispose = psppire_button_editable_dispose;
+  gobject_class->finalize = psppire_button_editable_finalize;
 
   widget_class->button_release_event = psppire_button_editable_button_release;
   widget_class->expose_event = psppire_button_editable_expose_event;
@@ -170,6 +177,9 @@ psppire_button_editable_class_init (PsppireButtonEditableClass *class)
                                                          FALSE,
                                                          G_PARAM_READWRITE));
 
+  g_object_class_override_property (gobject_class,
+                                   PROP_EDITING_CANCELED,
+                                    "editing-canceled");
 }
 
 static void

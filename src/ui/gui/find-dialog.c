@@ -20,36 +20,34 @@ which match particular strings */
 
 #include <config.h>
 
-#include "find-dialog.h"
-#include "psppire-selector.h"
-#include "psppire-dialog.h"
-#include "builder-wrapper.h"
-#include "helper.h"
-#include "psppire-data-window.h"
-#include "dict-display.h"
-#include <data/value.h>
-#include <data/format.h>
-#include <data/datasheet.h>
-#include <data/data-in.h>
-#include "psppire-data-store.h"
 #include <ctype.h>
-#include <sys/types.h>
-#include <regex.h>
-#include <libpspp/cast.h>
-#include <libpspp/message.h>
-
 #include <gtk/gtk.h>
+#include <regex.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
-#include "xalloc.h"
+#include "data/data-in.h"
+#include "data/datasheet.h"
+#include "data/format.h"
+#include "data/value.h"
+#include "libpspp/cast.h"
+#include "libpspp/message.h"
+#include "ui/gui/builder-wrapper.h"
+#include "ui/gui/dict-display.h"
+#include "ui/gui/find-dialog.h"
+#include "ui/gui/helper.h"
+#include "ui/gui/psppire-data-sheet.h"
+#include "ui/gui/psppire-data-store.h"
+#include "ui/gui/psppire-data-window.h"
+#include "ui/gui/psppire-dialog.h"
+#include "ui/gui/psppire-selector.h"
+
+#include "gl/xalloc.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-
-/* FIXME: These shouldn't be here */
-#include "psppire-var-store.h"
 
 struct find_dialog
 {
@@ -102,12 +100,13 @@ refresh (GObject *obj, const struct find_dialog *fd)
 static void
 do_find (GObject *obj, const struct find_dialog *fd)
 {
+  PsppireDataSheet *data_sheet;
   casenumber x = -1;
   gint column = -1;
   glong row;
 
-  g_object_get (fd->de->data_editor, "current-case", &row, NULL);
-
+  data_sheet = psppire_data_editor_get_active_data_sheet (fd->de->data_editor);
+  row = psppire_data_sheet_get_selected_case (data_sheet);
   if ( row < 0 )
     row = 0;
 
@@ -119,10 +118,8 @@ do_find (GObject *obj, const struct find_dialog *fd)
       gtk_notebook_set_current_page (GTK_NOTEBOOK (fd->de->data_editor),
 				     PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
-      g_object_set (fd->de->data_editor,
-		    "current-case", x,
-		    "current-variable", column,
-		    NULL);
+      psppire_data_sheet_goto_case (data_sheet, x);
+      psppire_data_sheet_goto_variable (data_sheet, column);
     }
 
 }
@@ -196,7 +193,6 @@ find_dialog (PsppireDataWindow *de)
 
   GtkWidget *buttonbox;
 
-  PsppireVarStore *vs ;
   PsppireDataStore *ds ;
 
   fd.xml = builder_new ("find.ui");
@@ -215,11 +211,9 @@ find_dialog (PsppireDataWindow *de)
   selector = get_widget_assert (fd.xml, "find-selector");
 
   g_object_get (de->data_editor,
-		"var-store", &vs,
+		"dictionary", &fd.dict,
 		"data-store", &ds,
 		NULL);
-
-  g_object_get (vs, "dictionary", &fd.dict, NULL);
 
   fd.data = ds->datasheet;
 

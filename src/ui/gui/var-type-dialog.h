@@ -20,7 +20,6 @@
 
 #include "data/format.h"
 #include "psppire-dialog.h"
-#include "psppire-var-store.h"
 
 G_BEGIN_DECLS
 

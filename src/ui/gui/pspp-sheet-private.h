@@ -1,5 +1,5 @@
  /* PSPPIRE - a graphical user interface for PSPP.
-    Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+    Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,13 +52,6 @@ typedef enum
   PSPP_SHEET_VIEW_MODEL_SETUP = 1 << 6,
   PSPP_SHEET_VIEW_IN_COLUMN_DRAG = 1 << 7
 } PsppSheetViewFlags;
-
-typedef enum
-{
-  GTK_TREE_SELECT_MODE_TOGGLE = 1 << 0,
-  GTK_TREE_SELECT_MODE_EXTEND = 1 << 1
-}
-GtkTreeSelectMode;
 
 enum
 {
@@ -157,6 +150,7 @@ struct _PsppSheetViewPrivate
 
   /* Cell Editing */
   PsppSheetViewColumn *edited_column;
+  gint edited_row;
 
   /* Selection information */
   PsppSheetSelection *selection;
@@ -239,7 +233,7 @@ struct _PsppSheetViewPrivate
 
   /* Grid and tree lines */
   PsppSheetViewGridLines grid_lines;
-  GdkGC *grid_line_gc;
+  GdkGC *grid_line_gc[5];
 
   /* Special cells. */
   PsppSheetViewSpecialCells special_cells;
@@ -261,9 +255,6 @@ struct _PsppSheetViewPrivate
 
   /* for DnD */
   guint empty_view_drop : 1;
-
-  guint ctrl_pressed : 1;
-  guint shift_pressed : 1;
 
   guint init_hadjust_value : 1;
 
@@ -361,7 +352,7 @@ struct _PsppSheetViewPrivate
 void         _pspp_sheet_selection_internal_select_node (PsppSheetSelection  *selection,
 						       int                node,
 						       GtkTreePath       *path,
-                                                       GtkTreeSelectMode  mode,
+                                                       PsppSheetSelectMode  mode,
 						       gboolean           override_browse_mode);
 void         _pspp_sheet_selection_emit_changed         (PsppSheetSelection  *selection);
 void         _pspp_sheet_view_find_node                 (PsppSheetView       *tree_view,

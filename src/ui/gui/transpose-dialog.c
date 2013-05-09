@@ -36,10 +36,6 @@
 #define N_(msgid) msgid
 
 
-/* FIXME: These shouldn't be here */
-#include "psppire-var-store.h"
-
-
 static gchar * generate_syntax (PsppireDict *dict, GtkBuilder *xml);
 
 static void
@@ -84,15 +80,11 @@ transpose_dialog (PsppireDataWindow *de)
 
   GtkBuilder *xml = builder_new ("psppire.ui");
 
-  PsppireVarStore *vs = NULL;
-
   GtkWidget *dialog = get_widget_assert (xml, "transpose-dialog");
   GtkWidget *source = get_widget_assert (xml, "source-treeview");
   GtkWidget *selector2 = get_widget_assert (xml, "psppire-selector3");
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-  g_object_get (vs, "dictionary", &dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &dict, NULL);
   g_object_set (source, "model", dict, NULL);
 
   psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector2),

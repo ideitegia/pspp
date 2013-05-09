@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+<interface>
+  <object class="GtkUIManager" id="data_sheet_uim">
+    <ui>
+      <menubar name="menubar">
+	<placeholder name="DataSheetEditMenu">
+	  <menu name="edit" action="edit2">
+	    <menuitem action="edit_insert-variable"/>
+	    <menuitem action="edit_insert-case"/>
+	    <menuitem action="edit_goto-variable"/>
+	    <menuitem action="edit_goto-case"/>
+	    <separator/>
+	    <menuitem action="edit_cut"/>
+	    <menuitem action="edit_copy"/>
+	    <menuitem action="edit_paste"/>
+	    <menuitem action="edit_clear-variables"/>
+	    <menuitem action="edit_clear-cases"/>
+	    <separator/>
+	    <menuitem action="edit_find"/>
+	  </menu>
+	</placeholder>
+      </menubar>
+      <toolbar name="toolbar">
+	<placeholder name="DataSheetToolItems">
+	  <toolitem name="toolbar_goto-variable" action="edit_goto-variable"/>
+	  <toolitem name="toolbar_goto-case" action="edit_goto-case"/>
+	  <toolitem name="toolbar_find" action="edit_find"/>
+	  <toolitem name="toolbar_insert-cases" action="edit_insert-case"/>
+	  <toolitem name="toolbar_insert-variable" action="edit_insert-variable"/>
+	</placeholder>
+      </toolbar>
+      <popup name="datasheet-variable-popup">
+	<menuitem action="edit_insert-variable"/>
+	<separator/>
+	<menuitem action="edit_clear-variables"/>
+	<separator/>
+        <menuitem action="sort-up"/>
+        <menuitem action="sort-down"/>
+      </popup>
+      <popup name="datasheet-cases-popup">
+	<menuitem action="edit_insert-case"/>
+	<separator/>
+	<menuitem action="edit_clear-cases"/>
+      </popup>
+    </ui>
+    <child>
+      <object class="GtkActionGroup" id="actiongroup3">
+        <child>
+          <object class="GtkAction" id="edit2">
+            <property name="name">edit</property>
+            <property name="label" translatable="yes">_Edit</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_insert-variable">
+            <property name="name">edit_insert-variable</property>
+            <property name="label" translatable="yes">Insert Variable</property>
+            <property name="tooltip" translatable="yes">Create a new variable at the current position</property>
+	    <property name="stock-id">pspp-insert-variable</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_insert-case">
+            <property name="name">edit_insert-case</property>
+            <property name="label" translatable="yes">Insert Cases</property>
+            <property name="tooltip" translatable="yes">Create a new case at the current position</property>
+	    <property name="stock-id">pspp-insert-case</property>
+          </object>
+        </child>
+        <child>
+          <object class="PsppireDialogActionVarInfo" id="edit_goto-variable">
+            <property name="name">edit_goto-variable</property>
+            <property name="label" translatable="yes">Go To Variable...</property>
+	    <property name="tooltip" translatable="yes">Jump to variable</property>
+	    <property name="stock-id">pspp-goto-variable</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_goto-case">
+            <property name="label" translatable="yes">Go To Case...</property>
+            <property name="name">edit_goto-case</property>
+            <property name="tooltip" translatable="yes">Jump to a case in the data sheet</property>
+	    <property name="stock-id">gtk-jump-to</property>
+
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_cut">
+            <property name="stock-id">gtk-cut</property>
+            <property name="name">edit_cut</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_copy">
+            <property name="stock-id">gtk-copy</property>
+            <property name="name">edit_copy</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_paste">
+            <property name="stock-id">gtk-paste</property>
+            <property name="name">edit_paste</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_clear-variables">
+            <property name="name">edit_clear-variables</property>
+            <property name="label" translatable="yes">Cl_ear Variables</property>
+	    <property name="tooltip" translatable="yes">Delete the variables at the selected position(s)</property>
+            <property name="stock-id">gtk-clear</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_clear-cases">
+            <property name="name">edit_clear-cases</property>
+            <property name="stock-id">gtk-clear</property>
+            <property name="label" translatable="yes">_Clear Cases</property>
+            <property name="tooltip" translatable="yes">Delete the cases at the selected position(s)</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="edit_find">
+            <property name="stock-id">gtk-find</property>
+            <property name="name">edit_find</property>
+            <property name="label" translatable="yes">_Find...</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="sort-up">
+            <property name="stock-id">gtk-sort-ascending</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="sort-down">
+            <property name="stock-id">gtk-sort-descending</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkMenu" constructor="data_sheet_uim" id="datasheet-cases-popup">
+    <property name="visible">True</property>
+  </object>
+  <object class="GtkMenu" constructor="data_sheet_uim" id="datasheet-variable-popup">
+    <property name="visible">True</property>
+  </object>
+</interface>

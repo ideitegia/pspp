@@ -20,7 +20,6 @@
 #include <gtk/gtk.h>
 #include "t-test-one-sample.h"
 #include "psppire-dict.h"
-#include "psppire-var-store.h"
 #include "psppire-var-view.h"
 #include "builder-wrapper.h"
 #include "psppire-data-window.h"
@@ -125,8 +124,6 @@ t_test_one_sample_dialog (PsppireDataWindow *de)
   struct tt_one_sample_dialog tt_d;
   gint response;
 
-  PsppireVarStore *vs = NULL;
-
   GtkBuilder *xml = builder_new ("t-test.ui");
 
   GtkWidget *dict_view =
@@ -137,9 +134,7 @@ t_test_one_sample_dialog (PsppireDataWindow *de)
 
   GtkWidget *dialog = get_widget_assert (xml, "t-test-one-sample-dialog");
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-  g_object_get (vs, "dictionary", &tt_d.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &tt_d.dict, NULL);
   tt_d.vars_treeview = get_widget_assert (xml, "one-sample-t-test-treeview1");
   tt_d.test_value_entry = get_widget_assert (xml, "test-value-entry");
   tt_d.opt = tt_options_dialog_create (GTK_WINDOW (de));

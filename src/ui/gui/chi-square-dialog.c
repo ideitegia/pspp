@@ -146,7 +146,6 @@ chisquare_dialog (PsppireDataWindow *dw)
   struct chisquare_dialog csd;
 
   GtkBuilder *xml = builder_new ("chi-square.ui");
-  PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "chisquare-dialog");
 
@@ -173,12 +172,10 @@ chisquare_dialog (PsppireDataWindow *dw)
 
   csd.values_button = get_widget_assert   (xml, "radiobutton2");
 
-  g_object_get (dw->data_editor, "var-store", &vs, NULL);
-
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (dw));
  
 
-  g_object_get (vs, "dictionary", &csd.dict, NULL);
+  g_object_get (dw->data_editor, "dictionary", &csd.dict, NULL);
   g_object_set (dict_view,
 		"model", csd.dict, 
 		"predicate", var_is_numeric,

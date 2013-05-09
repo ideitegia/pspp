@@ -3,6 +3,7 @@
 **      10        20        30        40        50        60        70        80
 **
 **  library for GtkXPaned-widget, a 2x2 grid-like variation of GtkPaned of gtk+
+**  Copyright (C) 2012 Free Software Foundation, Inc.
 **  Copyright (C) 2005-2006 Mirco "MacSlow" Müller <macslow@bangang.de>
 **
 **  This library is free software; you can redistribute it and/or
@@ -687,8 +688,8 @@ static void gtk_xpaned_size_request (GtkWidget* widget,
 	{
 		gtk_widget_size_request (xpaned->bottom_right_child, &child_requisition);
 
-		requisition->width = MAX (requisition->width, child_requisition.width);
-		requisition->height = MAX (requisition->height, child_requisition.height);
+		requisition->width = child_requisition.width;
+		requisition->height = child_requisition.height;
 	}
 
 	/* add 2 times the set border-width to the GtkXPaneds requisition */
@@ -2444,14 +2445,6 @@ gtk_xpaned_compute_position (GtkXPaned* xpaned,
 		{
 			xpaned->top_left_child_size.width = top_left_child_req->width;
 			xpaned->top_left_child_size.height = top_left_child_req->height;
-		}
-		else if (top_left_child_req->width + top_right_child_req->width != 0)
-		{
-			xpaned->top_left_child_size.width = allocation->width * ((gdouble)top_left_child_req->width / (top_left_child_req->width + top_right_child_req->width)) + 0.5;
-		}
-		else if (top_left_child_req->height + top_right_child_req->height != 0)
-		{
-			xpaned->top_left_child_size.height = allocation->height * ((gdouble)top_left_child_req->height / (top_left_child_req->height + top_right_child_req->height)) + 0.5;
 		}
 		else
 		{

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -547,7 +547,7 @@ pspp_sheet_selection_select_path (PsppSheetSelection *selection,
 				GtkTreePath      *path)
 {
   int node;
-  GtkTreeSelectMode mode = 0;
+  PsppSheetSelectMode mode = 0;
 
   g_return_if_fail (PSPP_IS_SHEET_SELECTION (selection));
   g_return_if_fail (selection->tree_view != NULL);
@@ -562,7 +562,7 @@ pspp_sheet_selection_select_path (PsppSheetSelection *selection,
 
   if (selection->type == PSPP_SHEET_SELECTION_MULTIPLE ||
       selection->type == PSPP_SHEET_SELECTION_RECTANGLE)
-    mode = GTK_TREE_SELECT_MODE_TOGGLE;
+    mode = PSPP_SHEET_SELECT_MODE_TOGGLE;
 
   _pspp_sheet_selection_internal_select_node (selection,
 					    node,
@@ -598,7 +598,7 @@ pspp_sheet_selection_unselect_path (PsppSheetSelection *selection,
   _pspp_sheet_selection_internal_select_node (selection,
 					    node,
 					    path,
-                                            GTK_TREE_SELECT_MODE_TOGGLE,
+                                            PSPP_SHEET_SELECT_MODE_TOGGLE,
 					    TRUE);
 }
 
@@ -1001,7 +1001,7 @@ void
 _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
 					  int               node,
 					  GtkTreePath      *path,
-                                          GtkTreeSelectMode mode,
+                                          PsppSheetSelectMode mode,
 					  gboolean          override_browse_mode)
 {
   gint dirty = FALSE;
@@ -1025,7 +1025,7 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
       else if (selection->type == PSPP_SHEET_SELECTION_SINGLE &&
 	       anchor_path && gtk_tree_path_compare (path, anchor_path) == 0)
 	{
-	  if ((mode & GTK_TREE_SELECT_MODE_TOGGLE) == GTK_TREE_SELECT_MODE_TOGGLE)
+	  if ((mode & PSPP_SHEET_SELECT_MODE_TOGGLE) == PSPP_SHEET_SELECT_MODE_TOGGLE)
 	    {
 	      dirty = pspp_sheet_selection_real_unselect_all (selection);
 	    }
@@ -1070,7 +1070,7 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
   else if (selection->type == PSPP_SHEET_SELECTION_MULTIPLE ||
            selection->type == PSPP_SHEET_SELECTION_RECTANGLE)
     {
-      if ((mode & GTK_TREE_SELECT_MODE_EXTEND) == GTK_TREE_SELECT_MODE_EXTEND
+      if ((mode & PSPP_SHEET_SELECT_MODE_EXTEND) == PSPP_SHEET_SELECT_MODE_EXTEND
           && (anchor_path == NULL))
 	{
 	  if (selection->tree_view->priv->anchor)
@@ -1080,13 +1080,13 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
 	    gtk_tree_row_reference_new_proxy (G_OBJECT (selection->tree_view), selection->tree_view->priv->model, path);
 	  dirty = pspp_sheet_selection_real_select_node (selection, node, TRUE);
 	}
-      else if ((mode & (GTK_TREE_SELECT_MODE_EXTEND | GTK_TREE_SELECT_MODE_TOGGLE)) == (GTK_TREE_SELECT_MODE_EXTEND | GTK_TREE_SELECT_MODE_TOGGLE))
+      else if ((mode & (PSPP_SHEET_SELECT_MODE_EXTEND | PSPP_SHEET_SELECT_MODE_TOGGLE)) == (PSPP_SHEET_SELECT_MODE_EXTEND | PSPP_SHEET_SELECT_MODE_TOGGLE))
 	{
 	  pspp_sheet_selection_select_range (selection,
 					   anchor_path,
 					   path);
 	}
-      else if ((mode & GTK_TREE_SELECT_MODE_TOGGLE) == GTK_TREE_SELECT_MODE_TOGGLE)
+      else if ((mode & PSPP_SHEET_SELECT_MODE_TOGGLE) == PSPP_SHEET_SELECT_MODE_TOGGLE)
 	{
           bool selected = pspp_sheet_view_node_is_selected (selection->tree_view, node);
 	  if (selection->tree_view->priv->anchor)
@@ -1100,7 +1100,7 @@ _pspp_sheet_selection_internal_select_node (PsppSheetSelection *selection,
 	  else
 	    dirty |= pspp_sheet_selection_real_select_node (selection, node, TRUE);
 	}
-      else if ((mode & GTK_TREE_SELECT_MODE_EXTEND) == GTK_TREE_SELECT_MODE_EXTEND)
+      else if ((mode & PSPP_SHEET_SELECT_MODE_EXTEND) == PSPP_SHEET_SELECT_MODE_EXTEND)
 	{
 	  dirty = pspp_sheet_selection_real_unselect_all (selection);
 	  dirty |= pspp_sheet_selection_real_modify_range (selection,

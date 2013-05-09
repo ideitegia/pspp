@@ -114,12 +114,8 @@ univariate_dialog (PsppireDataWindow * de)
   GtkWidget *factor_selector = get_widget_assert (xml, "factor-selector");
 
 
-  PsppireVarStore *vs = NULL;
-
   uv_d.dep_entry = get_widget_assert (xml, "dep-entry");
   uv_d.factor_list = get_widget_assert (xml, "factors-view");
-
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &uv_d);
@@ -128,7 +124,7 @@ univariate_dialog (PsppireDataWindow * de)
 				      dialog_state_valid, &uv_d);
 
 
-  g_object_get (vs, "dictionary", &uv_d.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &uv_d.dict, NULL);
   g_object_set (source, "model", uv_d.dict, NULL);
 
   psppire_selector_set_allow (PSPPIRE_SELECTOR (dep_selector),

@@ -34,9 +34,6 @@
 
 #include "dialog-common.h"
 
-/* FIXME: These shouldn't be here */
-#include "psppire-var-store.h"
-
 
 struct split_file_dialog
 {
@@ -165,7 +162,6 @@ split_file_dialog (PsppireDataWindow *de)
 {
   gint response;
   struct split_file_dialog sfd;
-  PsppireVarStore *vs ;
 
   GtkWidget *dialog   ;
   GtkWidget *source   ;
@@ -181,9 +177,7 @@ split_file_dialog (PsppireDataWindow *de)
 
   sfd.tv = GTK_TREE_VIEW (get_widget_assert (sfd.xml, "split-file-grouping-vars"));
 
-  g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-  g_object_get (vs, "dictionary", &sfd.dict, NULL);
+  g_object_get (de->data_editor, "dictionary", &sfd.dict, NULL);
 
   sfd.selector = PSPPIRE_SELECTOR (selector);
 

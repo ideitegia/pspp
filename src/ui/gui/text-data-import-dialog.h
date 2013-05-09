@@ -117,11 +117,11 @@ void text_data_import_assistant (PsppireDataWindow *);
 /* FIXME: Should this be private to first line page ? */
 void make_tree_view (const struct import_assistant *ia,
                             size_t first_line,
-                            GtkTreeView **tree_view);
+                            PsppSheetView **tree_view);
 
-gint get_monospace_width (GtkTreeView *, GtkCellRenderer *,
+gint get_monospace_width (PsppSheetView *, GtkCellRenderer *,
                                  size_t char_cnt);
-gint get_string_width (GtkTreeView *, GtkCellRenderer *,
+gint get_string_width (PsppSheetView *, GtkCellRenderer *,
                               const char *string);
 
 
@@ -130,12 +130,12 @@ void push_watch_cursor (struct import_assistant *);
 void pop_watch_cursor (struct import_assistant *);
 
 
-GtkTreeView *create_data_tree_view (bool input, GtkContainer *parent,
-                                           struct import_assistant *);
+PsppSheetView *create_data_tree_view (bool input, GtkContainer *parent,
+                                      struct import_assistant *);
 
-GtkTreeViewColumn *make_data_column (struct import_assistant *,
-                                            GtkTreeView *, bool input,
-                                            gint column_idx);
+PsppSheetViewColumn *make_data_column (struct import_assistant *,
+                                       PsppSheetView *, bool input,
+                                       gint column_idx);
 
 
 void  update_assistant (struct import_assistant *ia);

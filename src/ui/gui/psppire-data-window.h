@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010, 2011  Free Software Foundation
+   Copyright (C) 2008, 2010, 2011, 2012  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,15 @@
 #ifndef __PSPPIRE_DATA_WINDOW_H__
 #define __PSPPIRE_DATA_WINDOW_H__
 
+/* PsppireDataWindow is a top-level window for editing a PSPP dataset.
+
+   PsppireDataWindow contains a PsppireDataEditor.
+
+   PsppireDataWindow's own functionality basically amounts to managing menus
+   and toolbars.  In addition to maintaining some menu itema and toolbar items
+   of its own, it merges in menu and toolbar items provided by its child
+   PsppireDataEditor (based on the "ui-manager" property of PsppireDataEditor).
+ */
 
 #include <glib.h>
 #include <glib-object.h>
@@ -50,24 +59,20 @@ struct _PsppireDataWindow
   /* <private> */
   PsppireDataEditor *data_editor;
   GtkBuilder *builder;
+  GtkUIManager *ui_manager;
 
-  PsppireVarStore *var_store;
+  PsppireDict *dict;
   struct dataset *dataset;
   PsppireDataStore *data_store;
-
-  GtkAction *invoke_goto_dialog;
-
-  GtkAction *insert_variable;
-  GtkAction *insert_case;
-  GtkAction *delete_variables;
-  GtkAction *delete_cases;
-
 
   gboolean save_as_portable;
 
   struct ll ll;                 /* In global 'all_data_windows' list. */
   unsigned long int lazy_serial;
   unsigned int dataset_seqno;
+
+  GtkUIManager *uim;
+  guint merge_id;
 };
 
 struct _PsppireDataWindowClass
@@ -86,6 +91,7 @@ void psppire_data_window_set_default (PsppireDataWindow *);
 void psppire_data_window_undefault (PsppireDataWindow *);
 
 PsppireDataWindow *psppire_data_window_for_dataset (struct dataset *);
+PsppireDataWindow *psppire_data_window_for_data_store (PsppireDataStore *);
 
 bool psppire_data_window_is_empty (PsppireDataWindow *);
 void create_data_window (void);
