@@ -152,6 +152,8 @@ struct ods_reader
   bool read_names;
 
   struct string ods_errs;
+
+  struct string zip_errs;
 };
 
 void
@@ -592,28 +594,33 @@ init_reader (struct ods_reader *r, bool report_errors)
 }
 
 
+
 struct spreadsheet *
 ods_probe (const char *filename, bool report_errors)
 {
-  struct ods_reader *r;
-  struct string errs = DS_EMPTY_INITIALIZER;
   int sheet_count;
-  struct zip_reader *zr = zip_reader_create (filename, &errs);
-  xmlTextReaderPtr xtr;
+  struct ods_reader *r = xzalloc (sizeof *r);
+  xmlTextReaderPtr xtr;  
+  struct zip_reader *zr;
+
+  ds_init_empty (&r->zip_errs);
+
+  zr = zip_reader_create (filename, &r->zip_errs);
 
   if (zr == NULL)
     {
       if (report_errors)
 	{
 	  msg (ME, _("Cannot open %s as a OpenDocument file: %s"),
-	       filename, ds_cstr (&errs));
+	       filename, ds_cstr (&r->zip_errs));
 	}
+      ds_destroy (&r->zip_errs);
+      free (r);
       return NULL;
     }
 
   sheet_count = get_sheet_count (zr);
 
-  r = xzalloc (sizeof *r);
   r->zreader = zr;
   r->ref_cnt = 1;
 
@@ -633,14 +640,12 @@ ods_probe (const char *filename, bool report_errors)
   r->n_allocated_sheets = 0;
   r->sheets = NULL;
 
-  ds_destroy (&errs);
-
   r->spreadsheet.file_name = filename;
   return &r->spreadsheet;
 
  error:
+  ds_destroy (&r->zip_errs);
   zip_reader_destroy (r->zreader);
-  ds_destroy (&errs);
   free (r);
   return NULL;
 }
