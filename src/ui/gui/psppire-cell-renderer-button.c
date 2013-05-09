@@ -340,16 +340,7 @@ psppire_cell_renderer_button_press_event (GtkButton      *button,
       /* Allow right-click events to propagate upward in the widget hierarchy.
          Otherwise right-click menus, that trigger on a button-press-event on
          the containing PsppSheetView, will pop up if the button is rendered as
-         a facade but not if the button widget exists.
-
-         We have to translate the event's data by hand to be relative to the
-         parent window, because the normal GObject signal propagation mechanism
-         won't do it for us.  (This might be a hint that we're doing this
-         wrong.) */
-      gdk_window_coords_to_parent (event->window,
-                                   event->x, event->y,
-                                   &event->x, &event->y);
-      event->window = gdk_window_get_parent (event->window);
+         a facade but not if the button widget exists.  */
       g_signal_stop_emission_by_name (button, "button-press-event");
       return FALSE;
     }
