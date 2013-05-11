@@ -45,9 +45,9 @@ bool convert_cell_ref (const char *ref,
 		       int *coli, int *rowi);
 
 
-#define _xml(X) (CHAR_CAST (const xmlChar *, X))
+#define _xml(X) (CHAR_CAST (const xmlChar *, (X)))
 
-#define _xmlchar_to_int(X) (atoi(CHAR_CAST (const char *, X)))
+#define _xmlchar_to_int(X) ((X) ? atoi (CHAR_CAST (const char *, (X))) : -1)
 
 enum spreadsheet_type
   {
