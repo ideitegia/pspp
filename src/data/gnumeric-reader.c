@@ -782,7 +782,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
 	      xmlChar *attr =
 		xmlTextReaderGetAttribute (r->rsd.xtr, _xml ("ValueType"));
 
-	      if ( NULL == attr || 60 !=  _xmlchar_to_int (attr))
+	      if ( NULL == attr || VALUE_STRING !=  _xmlchar_to_int (attr))
 		var_spec [idx].width = 0;
 
 	      free (attr);
