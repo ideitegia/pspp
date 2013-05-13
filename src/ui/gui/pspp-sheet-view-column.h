@@ -185,7 +185,7 @@ void                    pspp_sheet_view_column_clicked             (PsppSheetVie
  */
 void                    pspp_sheet_view_column_set_title           (PsppSheetViewColumn       *tree_column,
 								  const gchar             *title);
-G_CONST_RETURN gchar   *pspp_sheet_view_column_get_title           (PsppSheetViewColumn       *tree_column);
+const gchar   *         pspp_sheet_view_column_get_title           (PsppSheetViewColumn       *tree_column);
 void                    pspp_sheet_view_column_set_expand          (PsppSheetViewColumn       *tree_column,
 								  gboolean                 expand);
 gboolean                pspp_sheet_view_column_get_expand          (PsppSheetViewColumn       *tree_column);

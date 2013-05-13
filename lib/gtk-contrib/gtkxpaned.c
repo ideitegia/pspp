@@ -1,34 +1,34 @@
 /*******************************************************************************
-**3456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 
-**      10        20        30        40        50        60        70        80
-**
-**  library for GtkXPaned-widget, a 2x2 grid-like variation of GtkPaned of gtk+
-**  Copyright (C) 2012 Free Software Foundation, Inc.
-**  Copyright (C) 2005-2006 Mirco "MacSlow" Müller <macslow@bangang.de>
-**
-**  This library is free software; you can redistribute it and/or
-**  modify it under the terms of the GNU Lesser General Public
-**  License as published by the Free Software Foundation; either
-**  version 2.1 of the License, or (at your option) any later version.
-**
-**  This library is distributed in the hope that it will be useful,
-**  but WITHOUT ANY WARRANTY; without even the implied warranty of
-**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-**  Lesser General Public License for more details.
-**
-**  You should have received a copy of the GNU Lesser General Public
-**  License along with this library; if not, write to the Free Software
-**  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-**
-**  GtkXPaned is based on GtkPaned which was done by...
-**
-**  "Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald"
-**
-**  and later modified by...
-**
-**  "the GTK+ Team and others 1997-2000"
-**
-*******************************************************************************/
+ **3456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 
+ **      10        20        30        40        50        60        70        80
+ **
+ **  library for GtkXPaned-widget, a 2x2 grid-like variation of GtkPaned of gtk+
+ **  Copyright (C) 2012 Free Software Foundation, Inc.
+ **  Copyright (C) 2005-2006 Mirco "MacSlow" Müller <macslow@bangang.de>
+ **
+ **  This library is free software; you can redistribute it and/or
+ **  modify it under the terms of the GNU Lesser General Public
+ **  License as published by the Free Software Foundation; either
+ **  version 2.1 of the License, or (at your option) any later version.
+ **
+ **  This library is distributed in the hope that it will be useful,
+ **  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ **  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ **  Lesser General Public License for more details.
+ **
+ **  You should have received a copy of the GNU Lesser General Public
+ **  License along with this library; if not, write to the Free Software
+ **  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ **
+ **  GtkXPaned is based on GtkPaned which was done by...
+ **
+ **  "Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald"
+ **
+ **  and later modified by...
+ **
+ **  "the GTK+ Team and others 1997-2000"
+ **
+ *******************************************************************************/
 
 #include <config.h>
 #include "gtkxpaned.h"
@@ -39,34 +39,34 @@
 
 
 enum WidgetProperties
-{
-  PROP_0,
-  PROP_X_POSITION,
-  PROP_Y_POSITION,
-  PROP_POSITION_SET,
-  PROP_MIN_X_POSITION,
-  PROP_MIN_Y_POSITION,
-  PROP_MAX_X_POSITION,
-  PROP_MAX_Y_POSITION
-};
+  {
+    PROP_0,
+    PROP_X_POSITION,
+    PROP_Y_POSITION,
+    PROP_POSITION_SET,
+    PROP_MIN_X_POSITION,
+    PROP_MIN_Y_POSITION,
+    PROP_MAX_X_POSITION,
+    PROP_MAX_Y_POSITION
+  };
 
 enum ChildProperties
-{
-  CHILD_PROP_0,
-  CHILD_PROP_RESIZE,
-  CHILD_PROP_SHRINK
-};
+  {
+    CHILD_PROP_0,
+    CHILD_PROP_RESIZE,
+    CHILD_PROP_SHRINK
+  };
 
 enum WidgetSignals
-{
-  CYCLE_CHILD_FOCUS,
-  TOGGLE_HANDLE_FOCUS,
-  MOVE_HANDLE,
-  CYCLE_HANDLE_FOCUS,
-  ACCEPT_POSITION,
-  CANCEL_POSITION,
-  LAST_SIGNAL
-};
+  {
+    CYCLE_CHILD_FOCUS,
+    TOGGLE_HANDLE_FOCUS,
+    MOVE_HANDLE,
+    CYCLE_HANDLE_FOCUS,
+    ACCEPT_POSITION,
+    CANCEL_POSITION,
+    LAST_SIGNAL
+  };
 
 static void gtk_xpaned_class_init (GtkXPanedClass * klass);
 
@@ -332,14 +332,14 @@ gtk_xpaned_class_init (GtkXPanedClass * class)
                                                              G_MAXINT,
                                                              3,
                                                              G_PARAM_READABLE));
-        /**
-	* GtkXPaned:min-x-position:
-	*
-	* The smallest possible value for the x-position property. This property is derived from the
-	* size and shrinkability of the widget's children.
-	*
-	* Since: 2.4
-	*/
+  /**
+   * GtkXPaned:min-x-position:
+   *
+   * The smallest possible value for the x-position property. This property is derived from the
+   * size and shrinkability of the widget's children.
+   *
+   * Since: 2.4
+   */
   g_object_class_install_property (object_class,
                                    PROP_MIN_X_POSITION,
                                    g_param_spec_int ("min-x-position",
@@ -349,14 +349,14 @@ gtk_xpaned_class_init (GtkXPanedClass * class)
                                                      G_MAXINT,
                                                      0, G_PARAM_READABLE));
 
-        /**
-	* GtkXPaned:min-y-position:
-	*
-	* The smallest possible value for the y-position property. This property is derived from the
-	* size and shrinkability of the widget's children.
-	*
-	* Since: 2.4
-	*/
+  /**
+   * GtkXPaned:min-y-position:
+   *
+   * The smallest possible value for the y-position property. This property is derived from the
+   * size and shrinkability of the widget's children.
+   *
+   * Since: 2.4
+   */
   g_object_class_install_property (object_class,
                                    PROP_MIN_Y_POSITION,
                                    g_param_spec_int ("min-y-position",
@@ -366,14 +366,14 @@ gtk_xpaned_class_init (GtkXPanedClass * class)
                                                      G_MAXINT,
                                                      0, G_PARAM_READABLE));
 
-        /**
-	* GtkPaned:max-x-position:
-	*
-	* The largest possible value for the x-position property. This property is derived from the
-	* size and shrinkability of the widget's children.
-	*
-	* Since: 2.4
-	*/
+  /**
+   * GtkPaned:max-x-position:
+   *
+   * The largest possible value for the x-position property. This property is derived from the
+   * size and shrinkability of the widget's children.
+   *
+   * Since: 2.4
+   */
   g_object_class_install_property (object_class,
                                    PROP_MAX_X_POSITION,
                                    g_param_spec_int ("max-x-position",
@@ -384,14 +384,14 @@ gtk_xpaned_class_init (GtkXPanedClass * class)
                                                      G_MAXINT,
                                                      G_PARAM_READABLE));
 
-        /**
-	* GtkPaned:max-y-position:
-	*
-	* The largest possible value for the y-position property. This property is derived from the
-	* size and shrinkability of the widget's children.
-	*
-	* Since: 2.4
-	*/
+  /**
+   * GtkPaned:max-y-position:
+   *
+   * The largest possible value for the y-position property. This property is derived from the
+   * size and shrinkability of the widget's children.
+   *
+   * Since: 2.4
+   */
   g_object_class_install_property (object_class,
                                    PROP_MAX_Y_POSITION,
                                    g_param_spec_int ("max-y-position",
@@ -402,14 +402,14 @@ gtk_xpaned_class_init (GtkXPanedClass * class)
                                                      G_MAXINT,
                                                      G_PARAM_READABLE));
 
-        /**
-	* GtkPaned:resize:
-	*
-	* The "resize" child property determines whether the child expands and 
-	* shrinks along with the paned widget.
-	* 
-	* Since: 2.4 
-	*/
+  /**
+   * GtkPaned:resize:
+   *
+   * The "resize" child property determines whether the child expands and 
+   * shrinks along with the paned widget.
+   * 
+   * Since: 2.4 
+   */
   gtk_container_class_install_child_property (container_class,
                                               CHILD_PROP_RESIZE,
                                               g_param_spec_boolean ("resize",
@@ -418,14 +418,14 @@ gtk_xpaned_class_init (GtkXPanedClass * class)
                                                                     TRUE,
                                                                     G_PARAM_READWRITE));
 
-        /**
-	* GtkPaned:shrink:
-	*
-	* The "shrink" child property determines whether the child can be made 
-	* smaller than its requisition.
-	* 
-	* Since: 2.4 
-	*/
+  /**
+   * GtkPaned:shrink:
+   *
+   * The "shrink" child property determines whether the child can be made 
+   * smaller than its requisition.
+   * 
+   * Since: 2.4 
+   */
   gtk_container_class_install_child_property (container_class,
                                               CHILD_PROP_SHRINK,
                                               g_param_spec_boolean ("shrink",
@@ -596,7 +596,8 @@ gtk_xpaned_child_type (GtkContainer * container)
 static void
 gtk_xpaned_init (GtkXPaned * xpaned)
 {
-  GTK_WIDGET_SET_FLAGS (xpaned, GTK_NO_WINDOW | GTK_CAN_FOCUS);
+  gtk_widget_set_can_focus (GTK_WIDGET (xpaned), TRUE);
+  gtk_widget_set_has_window (GTK_WIDGET (xpaned), FALSE);
 
   xpaned->top_left_child = NULL;
   xpaned->top_right_child = NULL;
@@ -1132,7 +1133,7 @@ gtk_xpaned_realize (GtkWidget * widget)
   gint attributes_mask_south;
   gint attributes_mask_middle;
 
-  GTK_WIDGET_SET_FLAGS (widget, GTK_REALIZED);
+  gtk_widget_set_realized (widget, TRUE);
   xpaned = GTK_XPANED (widget);
 
   widget->window = gtk_widget_get_parent_window (widget);
@@ -1424,9 +1425,9 @@ gtk_xpaned_expose (GtkWidget * widget, GdkEventExpose * event)
                         xpaned->handle_pos_west.y + 1,
                         256 + handle_size, handle_size - 2,
                         /*xpaned->handle_pos_west.x,
-                           xpaned->handle_pos_west.y + 1,
-                           xpaned->handle_pos_west.width + handle_size + xpaned->handle_pos_east.width,
-                           handle_size - 2, */
+                          xpaned->handle_pos_west.y + 1,
+                          xpaned->handle_pos_west.width + handle_size + xpaned->handle_pos_east.width,
+                          handle_size - 2, */
                         GTK_ORIENTATION_HORIZONTAL);
       gtk_paint_handle (widget->style,
                         widget->window,
@@ -1439,9 +1440,9 @@ gtk_xpaned_expose (GtkWidget * widget, GdkEventExpose * event)
                         xpaned->handle_pos_south.y - handle_size - 256 / 2,
                         handle_size - 2, 256 + handle_size,
                         /*xpaned->handle_pos_north.x + 1,
-                           xpaned->handle_pos_north.y,
-                           handle_size - 2,
-                           xpaned->handle_pos_north.height + handle_size + xpaned->handle_pos_south.height, */
+                          xpaned->handle_pos_north.y,
+                          handle_size - 2,
+                          xpaned->handle_pos_north.height + handle_size + xpaned->handle_pos_south.height, */
                         GTK_ORIENTATION_VERTICAL);
     }
 
@@ -1659,9 +1660,9 @@ gtk_xpaned_focus (GtkWidget * widget, GtkDirectionType direction)
    * excessive cut-and-paste from gtkcontainer.c?
    */
 
-  GTK_WIDGET_UNSET_FLAGS (widget, GTK_CAN_FOCUS);
+  gtk_widget_set_can_focus (GTK_WIDGET (widget), FALSE);
   retval = (*GTK_WIDGET_CLASS (parent_class)->focus) (widget, direction);
-  GTK_WIDGET_SET_FLAGS (widget, GTK_CAN_FOCUS);
+  gtk_widget_set_can_focus (GTK_WIDGET (widget), TRUE);
 
   return retval;
 }
@@ -2547,7 +2548,7 @@ gtk_xpaned_compute_position (GtkXPaned * xpaned,
   else
     {
       /* If the position was set before the initial allocation.
-       ** (paned->last_allocation <= 0) just clamp it and leave it. */
+      ** (paned->last_allocation <= 0) just clamp it and leave it. */
       if (xpaned->last_allocation.width > 0)
         {
           if (xpaned->top_left_child_resize
@@ -2563,15 +2564,15 @@ gtk_xpaned_compute_position (GtkXPaned * xpaned,
             if (!
                 (!xpaned->top_left_child_resize
                  && xpaned->top_right_child_resize))
-            {
-              xpaned->top_left_child_size.width = allocation->width
-                * ((gdouble) xpaned->top_left_child_size.width /
-                   (xpaned->last_allocation.width)) + 0.5;
+              {
+                xpaned->top_left_child_size.width = allocation->width
+                  * ((gdouble) xpaned->top_left_child_size.width /
+                     (xpaned->last_allocation.width)) + 0.5;
 
-              xpaned->top_left_child_size.height = allocation->height
-                * ((gdouble) xpaned->top_left_child_size.height /
-                   (xpaned->last_allocation.height)) + 0.5;
-            }
+                xpaned->top_left_child_size.height = allocation->height
+                  * ((gdouble) xpaned->top_left_child_size.height /
+                     (xpaned->last_allocation.height)) + 0.5;
+              }
         }
       if (xpaned->last_allocation.height > 0)
         {
@@ -2587,16 +2588,16 @@ gtk_xpaned_compute_position (GtkXPaned * xpaned,
             if (!
                 (!xpaned->top_left_child_resize
                  && xpaned->top_right_child_resize))
-            {
-              xpaned->top_left_child_size.width =
-                allocation->width *
-                ((gdouble) xpaned->top_left_child_size.width /
-                 (xpaned->last_allocation.width)) + 0.5;
-              xpaned->top_left_child_size.height =
-                allocation->height *
-                ((gdouble) xpaned->top_left_child_size.height /
-                 (xpaned->last_allocation.height)) + 0.5;
-            }
+              {
+                xpaned->top_left_child_size.width =
+                  allocation->width *
+                  ((gdouble) xpaned->top_left_child_size.width /
+                   (xpaned->last_allocation.width)) + 0.5;
+                xpaned->top_left_child_size.height =
+                  allocation->height *
+                  ((gdouble) xpaned->top_left_child_size.height /
+                   (xpaned->last_allocation.height)) + 0.5;
+              }
         }
 
     }
