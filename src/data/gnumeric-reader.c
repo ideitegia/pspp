@@ -629,6 +629,7 @@ struct casereader *
 gnumeric_make_reader (struct spreadsheet *spreadsheet,
 		      const struct spreadsheet_read_options *opts)
 {
+  int type = 0;
   int x = 0;
   struct gnumeric_reader *r = NULL;
   unsigned long int vstart = 0;
@@ -696,7 +697,7 @@ gnumeric_make_reader (struct spreadsheet *spreadsheet,
       n_cases --;
     }
 
-  int type = 0;
+
   /* Read in the first row of cells,
      including the headers if read_names was set */
   while (
