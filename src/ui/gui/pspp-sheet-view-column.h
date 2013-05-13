@@ -141,9 +141,9 @@ void                    pspp_sheet_view_column_pack_end            (PsppSheetVie
 								  GtkCellRenderer         *cell,
 								  gboolean                 expand);
 void                    pspp_sheet_view_column_clear               (PsppSheetViewColumn       *tree_column);
-#ifndef GTK_DISABLE_DEPRECATED
+
 GList                  *pspp_sheet_view_column_get_cell_renderers  (PsppSheetViewColumn       *tree_column);
-#endif
+
 void                    pspp_sheet_view_column_add_attribute       (PsppSheetViewColumn       *tree_column,
 								  GtkCellRenderer         *cell_renderer,
 								  const gchar             *attribute,
