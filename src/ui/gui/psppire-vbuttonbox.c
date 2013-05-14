@@ -162,7 +162,6 @@ gtk_vbutton_box_size_allocate (GtkWidget     *widget,
 {
   GtkBox *base_box;
   GtkButtonBox *box;
-  GtkBoxChild *child;
   GList *children;
   GtkAllocation child_allocation;
   gint nvis_children;
@@ -235,20 +234,22 @@ gtk_vbutton_box_size_allocate (GtkWidget     *widget,
   x = allocation->x + (allocation->width - child_width) / 2;
   childspace = child_height + childspacing;
 
-  children = GTK_BOX (box)->children;
-
+  children = gtk_container_get_children (GTK_CONTAINER (box));
   while (children)
     {
-      child = children->data;
+      GtkWidget *child = children->data;
       children = children->next;
 
-      if (gtk_widget_get_visible (child->widget))
+      if (gtk_widget_get_visible (child))
 	{
+          gboolean is_secondary = FALSE;
+          gtk_container_child_get (GTK_CONTAINER (box), child, "secondary", &is_secondary, NULL);
+
 	  child_allocation.width = child_width;
 	  child_allocation.height = child_height;
 	  child_allocation.x = x;
 
-	  if (child->is_secondary)
+	  if (is_secondary)
 	    {
 	      child_allocation.y = secondary_y;
 	      secondary_y += childspace;
@@ -259,7 +260,7 @@ gtk_vbutton_box_size_allocate (GtkWidget     *widget,
 	      y += childspace;
 	    }
 
-	  gtk_widget_size_allocate (child->widget, &child_allocation);
+	  gtk_widget_size_allocate (child, &child_allocation);
 	}
     }
 }

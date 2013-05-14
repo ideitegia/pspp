@@ -162,7 +162,6 @@ gtk_hbutton_box_size_allocate (GtkWidget     *widget,
 {
   GtkBox *base_box;
   GtkButtonBox *box;
-  GtkBoxChild *child;
   GList *children;
   GtkAllocation child_allocation;
   gint nvis_children;
@@ -236,25 +235,29 @@ gtk_hbutton_box_size_allocate (GtkWidget     *widget,
   y = allocation->y + (allocation->height - child_height) / 2;
   childspace = child_width + childspacing;
 
-  children = GTK_BOX (box)->children;
+  children = gtk_container_get_children (GTK_CONTAINER (box));
 
   while (children)
     {
-      child = children->data;
+      GtkWidget *child = children->data;
       children = children->next;
 
-      if (gtk_widget_get_visible (child->widget))
+      if (gtk_widget_get_visible (child))
 	{
+          gboolean is_secondary = FALSE;
+          gtk_container_child_get (GTK_CONTAINER (box), child, "secondary", &is_secondary, NULL);
+
+
 	  child_allocation.width = child_width;
 	  child_allocation.height = child_height;
 	  child_allocation.y = y;
 
-	  if (child->is_secondary)
-	    {
+          if (is_secondary)
+            {
 	      child_allocation.x = secondary_x;
 	      secondary_x += childspace;
 	    }
-	  else
+          else
 	    {
 	      child_allocation.x = x;
 	      x += childspace;
@@ -263,7 +266,7 @@ gtk_hbutton_box_size_allocate (GtkWidget     *widget,
 	  if (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL)
 	    child_allocation.x = (allocation->x + allocation->width) - (child_allocation.x + child_width - allocation->x);
 
-	  gtk_widget_size_allocate (child->widget, &child_allocation);
+	  gtk_widget_size_allocate (child, &child_allocation);
 	}
     }
 }
