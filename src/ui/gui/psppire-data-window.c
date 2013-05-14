@@ -779,7 +779,7 @@ set_unsaved (gpointer w)
 }
 
 static void
-on_switch_page (PsppireDataEditor *de, GtkNotebookPage *p,
+on_switch_page (PsppireDataEditor *de, gpointer p,
 		gint pagenum, PsppireDataWindow *dw)
 {
   GtkWidget *page_menu_item;

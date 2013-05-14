@@ -224,7 +224,7 @@ psppire_data_editor_get_property (GObject         *object,
 
 static void
 psppire_data_editor_switch_page (GtkNotebook     *notebook,
-                                 GtkNotebookPage *page,
+                                 gpointer page,
                                  guint            page_num)
 {
   GTK_NOTEBOOK_CLASS (parent_class)->switch_page (notebook, page, page_num);

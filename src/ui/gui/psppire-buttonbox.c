@@ -406,8 +406,9 @@ psppire_button_box_init (PsppireButtonBox *bb)
 }
 
 
-/* This function is lifted verbatim from the Gtk2.10.6 library */
-
+/* This function was lifted verbatim from the Gtk2.10.6 library.
+   But later modified to fit Gtk2.24
+ */
 void
 _psppire_button_box_child_requisition (GtkWidget *widget,
 				       int       *nvis_children,
@@ -416,7 +417,6 @@ _psppire_button_box_child_requisition (GtkWidget *widget,
 				       int       *height)
 {
   GtkButtonBox *bbox;
-  GtkBoxChild *child;
   GList *children;
   gint nchildren;
   gint nsecondaries;
@@ -457,27 +457,32 @@ _psppire_button_box_child_requisition (GtkWidget *widget,
 
   nchildren = 0;
   nsecondaries = 0;
-  children = GTK_BOX(bbox)->children;
+
   needed_width = child_min_width;
   needed_height = child_min_height;
   ipad_w = ipad_x * 2;
   ipad_h = ipad_y * 2;
 
+  children = gtk_container_get_children (GTK_CONTAINER (bbox));
   while (children)
     {
-      child = children->data;
+      GtkWidget *child = children->data;
       children = children->next;
 
-      if (gtk_widget_get_visible (child->widget))
+      if (gtk_widget_get_visible (child))
 	{
+          gboolean is_secondary = FALSE;
 	  nchildren += 1;
-	  gtk_widget_size_request (child->widget, &child_requisition);
+	  gtk_widget_size_request (child, &child_requisition);
 
 	  if (child_requisition.width + ipad_w > needed_width)
 	    needed_width = child_requisition.width + ipad_w;
 	  if (child_requisition.height + ipad_h > needed_height)
 	    needed_height = child_requisition.height + ipad_h;
-	  if (child->is_secondary)
+
+          gtk_container_child_get (GTK_CONTAINER (bbox), child, "secondary", &is_secondary, NULL);
+
+          if (is_secondary)
 	    nsecondaries++;
 	}
     }
