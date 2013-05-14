@@ -141,9 +141,9 @@ void                    pspp_sheet_view_column_pack_end            (PsppSheetVie
 								  GtkCellRenderer         *cell,
 								  gboolean                 expand);
 void                    pspp_sheet_view_column_clear               (PsppSheetViewColumn       *tree_column);
-#ifndef GTK_DISABLE_DEPRECATED
+
 GList                  *pspp_sheet_view_column_get_cell_renderers  (PsppSheetViewColumn       *tree_column);
-#endif
+
 void                    pspp_sheet_view_column_add_attribute       (PsppSheetViewColumn       *tree_column,
 								  GtkCellRenderer         *cell_renderer,
 								  const gchar             *attribute,
@@ -185,7 +185,7 @@ void                    pspp_sheet_view_column_clicked             (PsppSheetVie
  */
 void                    pspp_sheet_view_column_set_title           (PsppSheetViewColumn       *tree_column,
 								  const gchar             *title);
-G_CONST_RETURN gchar   *pspp_sheet_view_column_get_title           (PsppSheetViewColumn       *tree_column);
+const gchar   *         pspp_sheet_view_column_get_title           (PsppSheetViewColumn       *tree_column);
 void                    pspp_sheet_view_column_set_expand          (PsppSheetViewColumn       *tree_column,
 								  gboolean                 expand);
 gboolean                pspp_sheet_view_column_get_expand          (PsppSheetViewColumn       *tree_column);

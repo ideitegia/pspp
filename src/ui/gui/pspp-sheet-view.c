@@ -8553,9 +8553,9 @@ send_focus_change (GtkWidget *widget,
   g_object_ref (widget);
    
  if (in)
-    GTK_WIDGET_SET_FLAGS (widget, GTK_HAS_FOCUS);
-  else
-    GTK_WIDGET_UNSET_FLAGS (widget, GTK_HAS_FOCUS);
+   GTK_WIDGET_SET_FLAGS (widget, GTK_HAS_FOCUS);
+ else
+   GTK_WIDGET_UNSET_FLAGS (widget, GTK_HAS_FOCUS);
 
   fevent->focus_change.type = GDK_FOCUS_CHANGE;
   fevent->focus_change.window = g_object_ref (widget->window);

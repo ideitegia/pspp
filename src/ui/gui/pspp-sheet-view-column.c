@@ -2363,7 +2363,7 @@ pspp_sheet_view_column_set_title (PsppSheetViewColumn *tree_column,
  * Return value: the title of the column. This string should not be
  * modified or freed.
  **/
-G_CONST_RETURN gchar *
+const gchar *
 pspp_sheet_view_column_get_title (PsppSheetViewColumn *tree_column)
 {
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column), NULL);
