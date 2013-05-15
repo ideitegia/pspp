@@ -164,11 +164,14 @@ prepare_sheet_spec_page (struct import_assistant *ia)
 {
   GtkBuilder *builder = ia->asst.builder;
   GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
+  GtkWidget *readnames_checkbox = get_widget_assert (builder, "readnames-checkbox");
 
   gtk_combo_box_set_model (GTK_COMBO_BOX (sheet_entry), 
 			   psppire_spreadsheet_model_new (ia->spreadsheet));
 
   gtk_combo_box_set_active (GTK_COMBO_BOX (sheet_entry), 0);
+
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (readnames_checkbox), FALSE);
 }
 
 
@@ -176,7 +179,13 @@ prepare_sheet_spec_page (struct import_assistant *ia)
 void
 reset_sheet_spec_page (struct import_assistant *ia)
 {
-  printf ("%s\n", __FUNCTION__);
+  GtkBuilder *builder = ia->asst.builder;
+  GtkWidget *sheet_entry = get_widget_assert (builder, "sheet-entry");
+  GtkWidget *readnames_checkbox = get_widget_assert (builder, "readnames-checkbox");
+
+  gtk_combo_box_set_active (GTK_COMBO_BOX (sheet_entry), 0);
+
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (readnames_checkbox), FALSE);
 }
 
 /* Called when the Forward button is clicked, 
