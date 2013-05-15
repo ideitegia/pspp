@@ -217,17 +217,23 @@ assist_get_page (struct assist_page *ap)
 static void
 on_reset (GtkButton *button, struct import_assistant *ia)
 {
-  gint page_num = gtk_assistant_get_current_page (ia->asst.assistant);
-  GtkWidget *page = gtk_assistant_get_nth_page (ia->asst.assistant, page_num);
-
-  if (page == assist_get_page ((struct assist_page *) ia->intro))
-    reset_intro_page (ia);
-  else if (page == assist_get_page ((struct assist_page *) ia->first_line))
-    reset_first_line_page (ia);
-  else if (page == assist_get_page ((struct assist_page *) ia->separators))
-    reset_separators_page (ia);
-  else if (page == assist_get_page ((struct assist_page *) ia->formats))
-    reset_formats_page (ia);
+  gint pn = gtk_assistant_get_current_page (ia->asst.assistant);
+  
+      switch (pn)
+	{
+	case 0:
+	  reset_intro_page (ia);
+	  break;
+	case 1:
+	  reset_first_line_page (ia);
+	  break;
+	case 2:
+	  reset_separators_page (ia);
+	  break;
+	case 3:
+	  reset_formats_page (ia);
+	  break;
+	}
 }
 
 /* Causes the assistant to close, returning RESPONSE for
