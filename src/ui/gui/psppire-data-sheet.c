@@ -337,13 +337,15 @@ on_data_column_editing_started (GtkCellRenderer *cell,
   if (var_has_value_labels (var) && GTK_IS_COMBO_BOX (editable))
     {
       const struct val_labs *labels = var_get_value_labels (var);
-      const struct val_lab *vl;
+      const struct val_lab **vls = val_labs_sorted (labels);
+      size_t n_vls = val_labs_count (labels);
       GtkListStore *list_store;
+      int i;
 
       list_store = gtk_list_store_new (1, G_TYPE_STRING);
-      for (vl = val_labs_first (labels); vl != NULL;
-           vl = val_labs_next (labels, vl))
+      for (i = 0; i < n_vls; ++i)
         {
+          const struct val_lab *vl = vls[i];
           GtkTreeIter iter;
 
           gtk_list_store_append (list_store, &iter);
@@ -351,6 +353,7 @@ on_data_column_editing_started (GtkCellRenderer *cell,
                               0, val_lab_get_label (vl),
                               -1);
         }
+      free (vls);
 
       gtk_combo_box_set_model (GTK_COMBO_BOX (editable),
                                GTK_TREE_MODEL (list_store));
