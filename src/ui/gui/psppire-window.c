@@ -660,7 +660,7 @@ psppire_window_save_as (PsppireWindow *w)
 static void delete_recent (const char *file_name);
 
 gboolean
-psppire_window_load (PsppireWindow *w, const gchar *file)
+psppire_window_load (PsppireWindow *w, const gchar *file, gpointer hint)
 {
   gboolean ok;
   PsppireWindowIface *i = PSPPIRE_WINDOW_MODEL_GET_IFACE (w);
@@ -671,7 +671,7 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
 
   g_return_val_if_fail (i->load, FALSE);
 
-  ok = i->load (w, file);
+  ok = i->load (w, file, hint);
 
   if ( ok )
     {
@@ -804,7 +804,7 @@ psppire_window_open (PsppireWindow *de)
           gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (dialog)));
 
 	if (any_reader_may_open (sysname))
-          open_data_window (de, name);
+          open_data_window (de, name, NULL);
 	else
 	  open_syntax_window (name, encoding);
 

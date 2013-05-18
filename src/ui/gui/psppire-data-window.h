@@ -95,7 +95,7 @@ PsppireDataWindow *psppire_data_window_for_data_store (PsppireDataStore *);
 
 bool psppire_data_window_is_empty (PsppireDataWindow *);
 void create_data_window (void);
-void open_data_window (PsppireWindow *victim, const char *file_name);
+void open_data_window (PsppireWindow *victim, const char *file_name, gpointer hint);
 
 G_END_DECLS
 

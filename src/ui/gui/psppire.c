@@ -104,7 +104,7 @@ initialize (const char *data_file)
       /* Check to see if the file is a .sav or a .por file.  If not
          assume that it is a syntax file */
       if ( any_reader_may_open (filename))
-        open_data_window (NULL, filename);
+        open_data_window (NULL, filename, NULL);
       else
         {
           create_data_window ();

@@ -336,7 +336,7 @@ name_has_suffix (const gchar *name)
 }
 
 static gboolean
-load_file (PsppireWindow *de, const gchar *file_name)
+load_file (PsppireWindow *de, const gchar *file_name, gpointer not_used)
 {
   struct string filename;
   gchar *utf8_file_name;
@@ -701,7 +701,7 @@ on_recent_data_select (GtkMenuShell *menushell,
 
   g_free (uri);
 
-  open_data_window (window, file);
+  open_data_window (window, file, NULL);
 
   g_free (file);
 }
@@ -764,7 +764,7 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 
   free (encoding);
 
-  if ( psppire_window_load (PSPPIRE_WINDOW (se), file) ) 
+  if ( psppire_window_load (PSPPIRE_WINDOW (se), file, NULL) ) 
     gtk_widget_show (se);
   else
     gtk_widget_destroy (se);
@@ -1317,7 +1317,7 @@ create_data_window (void)
 }
 
 void
-open_data_window (PsppireWindow *victim, const char *file_name)
+open_data_window (PsppireWindow *victim, const char *file_name, gpointer hint)
 {
   GtkWidget *window;
 
@@ -1330,7 +1330,7 @@ open_data_window (PsppireWindow *victim, const char *file_name)
   else
     window = psppire_data_window_new (NULL);
 
-  psppire_window_load (PSPPIRE_WINDOW (window), file_name);
+  psppire_window_load (PSPPIRE_WINDOW (window), file_name, hint);
   gtk_widget_show_all (window);
 }
 

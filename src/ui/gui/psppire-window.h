@@ -91,7 +91,7 @@ struct _PsppireWindowIface
 
   void (*save) (PsppireWindow *w);
   void (*pick_filename) (PsppireWindow *);
-  gboolean (*load) (PsppireWindow *w, const gchar *);
+  gboolean (*load) (PsppireWindow *w, const gchar *, gpointer hint);
 };
 
 
@@ -112,7 +112,7 @@ gint psppire_window_query_save (PsppireWindow *);
 
 void psppire_window_save (PsppireWindow *w);
 void psppire_window_save_as (PsppireWindow *w);
-gboolean psppire_window_load (PsppireWindow *w, const gchar *file);
+gboolean psppire_window_load (PsppireWindow *w, const gchar *file, gpointer hint);
 void psppire_window_open (PsppireWindow *de);
 GtkWidget *psppire_window_file_chooser_dialog (PsppireWindow *toplevel);
 

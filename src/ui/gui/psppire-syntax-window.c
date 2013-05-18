@@ -669,7 +669,7 @@ load_and_show_syntax_window (GtkWidget *se, const gchar *filename)
   gboolean ok;
 
   gtk_source_buffer_begin_not_undoable_action (PSPPIRE_SYNTAX_WINDOW (se)->buffer);
-  ok = psppire_window_load (PSPPIRE_WINDOW (se), filename);
+  ok = psppire_window_load (PSPPIRE_WINDOW (se), filename, NULL);
   gtk_source_buffer_end_not_undoable_action (PSPPIRE_SYNTAX_WINDOW (se)->buffer);
 
   if (ok )
@@ -944,7 +944,7 @@ error_dialog (GtkWindow *w, const gchar *filename,  GError *err)
   Loads the buffer from the file called FILENAME
 */
 gboolean
-syntax_load (PsppireWindow *window, const gchar *filename)
+syntax_load (PsppireWindow *window, const gchar *filename, gpointer not_used)
 {
   GError *err = NULL;
   gchar *text_locale = NULL;
