@@ -267,7 +267,7 @@ apply_options (struct xr_driver *xr, struct string_map *o)
   xr->fonts[XR_FONT_EMPHASIS].desc = parse_font (d, o, "emph-font",
                                                  "serif italic", font_points);
 
-  xr->line_gutter = XR_POINT;
+  xr->line_gutter = parse_dimension (opt (d, o, "gutter", "3pt"));
   xr->line_space = XR_POINT;
   xr->line_width = XR_POINT / 2;
   xr->page_number = 0;
