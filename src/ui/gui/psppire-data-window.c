@@ -336,34 +336,46 @@ name_has_suffix (const gchar *name)
 }
 
 static gboolean
-load_file (PsppireWindow *de, const gchar *file_name, gpointer not_used)
+load_file (PsppireWindow *de, const gchar *file_name, gpointer syn)
 {
-  struct string filename;
-  gchar *utf8_file_name;
-  const char *mime_type;
-  gchar *syntax;
+  const char *mime_type = NULL;
+  gchar *syntax = NULL;
   bool ok;
 
-  ds_init_empty (&filename);
+  if (syn == NULL)
+    {
+      gchar *utf8_file_name;
+      struct string filename;
+      ds_init_empty (&filename);
+      
+      utf8_file_name = g_filename_to_utf8 (file_name, -1, NULL, NULL, NULL);
+    
+      syntax_gen_string (&filename, ss_cstr (utf8_file_name));
+      
+      g_free (utf8_file_name);
+      
+      syntax = g_strdup_printf ("GET FILE=%s.", ds_cstr (&filename));
+      ds_destroy (&filename);
 
-  utf8_file_name = g_filename_to_utf8 (file_name, -1, NULL, NULL, NULL);
-
-  syntax_gen_string (&filename, ss_cstr (utf8_file_name));
-
-  g_free (utf8_file_name);
-
-  syntax = g_strdup_printf ("GET FILE=%s.", ds_cstr (&filename));
-  ds_destroy (&filename);
+    }
+  else
+    {
+      syntax = syn;
+    }
 
   ok = execute_syntax (PSPPIRE_DATA_WINDOW (de),
                        lex_reader_for_string (syntax));
   g_free (syntax);
 
-  mime_type = (name_has_por_suffix (file_name)
-               ? "application/x-spss-por"
-               : "application/x-spss-sav");
-
-  add_most_recent (file_name, mime_type);
+  if (ok && syn == NULL)
+    {
+      if (name_has_por_suffix (file_name))
+	mime_type = "application/x-spss-por";
+      else if (name_has_sav_suffix (file_name))
+	mime_type = "application/x-spss-sav";
+      
+      add_most_recent (file_name, mime_type);
+    }
 
   return ok;
 }

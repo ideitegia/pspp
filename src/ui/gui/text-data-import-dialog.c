@@ -122,7 +122,11 @@ text_data_import_assistant (PsppireDataWindow *dw)
   switch (ia->asst.response)
     {
     case GTK_RESPONSE_APPLY:
-      free (execute_syntax_string (dw, generate_syntax (ia)));
+      {
+	gchar *fn = g_path_get_basename (ia->file.file_name);
+	open_data_window (PSPPIRE_WINDOW (dw), fn, generate_syntax (ia));
+	g_free (fn);
+      }
       break;
     case PSPPIRE_RESPONSE_PASTE:
       free (paste_syntax_to_window (generate_syntax (ia)));
