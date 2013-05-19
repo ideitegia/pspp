@@ -121,7 +121,7 @@ src/libpspp/version.c: $(top_srcdir)/AUTHORS Makefile
 	echo "const char bare_version[] = \"$(VERSION)\";" >> $@
 	echo "const char version[] = \"GNU $(PACKAGE) $(VERSION)\";" >> $@
 	echo "const char stat_version[] = \"GNU $(PACKAGE) $(VERSION) \
-(`date`).\";" >> $@
+(`LC_ALL=C TZ=UTC date`).\";" >> $@
 	echo "const char host_system[] = \"$(host_triplet)\";" >> $@
 	echo "const char build_system[] = \"$(build_triplet)\";" >> $@
 	echo "const char locale_dir[] = \"$(datadir)/locale\";" >> $@
