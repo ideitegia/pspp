@@ -206,15 +206,6 @@ on_paste (GtkButton *button, struct import_assistant *ia)
   close_assistant (ia, PSPPIRE_RESPONSE_PASTE);
 }
 
-static GtkWidget *
-assist_get_page (struct assist_page *ap)
-{
-  if (ap == NULL)
-    return NULL;
-
-  return ap->page;
-}
-
 /* Called when the Reset button is clicked. */
 static void
 on_reset (GtkButton *button, struct import_assistant *ia)
