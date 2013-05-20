@@ -1893,9 +1893,8 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
       if (column == tree_view->priv->drag_column)
 	{
 	  GtkAllocation drag_allocation;
-	  gdk_drawable_get_size (tree_view->priv->drag_window,
-				 &(drag_allocation.width),
-				 &(drag_allocation.height));
+	  drag_allocation.width =  gdk_window_get_width (tree_view->priv->drag_window);
+	  drag_allocation.height = gdk_window_get_height (tree_view->priv->drag_window);
 	  drag_allocation.x = 0;
 	  drag_allocation.y = 0;
           pspp_sheet_view_column_size_allocate (tree_view->priv->drag_column,
@@ -3713,7 +3712,8 @@ invalidate_empty_focus (PsppSheetView *tree_view)
 
   area.x = 0;
   area.y = 0;
-  gdk_drawable_get_size (tree_view->priv->bin_window, &area.width, &area.height);
+  area.width = gdk_window_get_width (tree_view->priv->bin_window);
+  area.height = gdk_window_get_height (tree_view->priv->bin_window);
   gdk_window_invalidate_rect (tree_view->priv->bin_window, &area, FALSE);
 }
 
@@ -3729,7 +3729,8 @@ draw_empty_focus (PsppSheetView *tree_view, GdkRectangle *clip_area)
   if (!gtk_widget_has_focus (widget))
     return;
 
-  gdk_drawable_get_size (tree_view->priv->bin_window, &w, &h);
+  w = gdk_window_get_width (tree_view->priv->bin_window);
+  h = gdk_window_get_height (tree_view->priv->bin_window);
 
   w -= 2;
   h -= 2;
@@ -3754,13 +3755,10 @@ pspp_sheet_view_draw_grid_lines (PsppSheetView    *tree_view,
   GList *list = tree_view->priv->columns;
   gint i = 0;
   gint current_x = 0;
-  gint height;
 
   if (tree_view->priv->grid_lines != PSPP_SHEET_VIEW_GRID_LINES_VERTICAL
       && tree_view->priv->grid_lines != PSPP_SHEET_VIEW_GRID_LINES_BOTH)
     return;
-
-  gdk_drawable_get_size (event->window, NULL, &height);
 
   /* Only draw the lines for visible rows and columns */
   for (list = tree_view->priv->columns; list; list = list->next, i++)
@@ -3852,8 +3850,12 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   if (new_y < 0)
     new_y = 0;
   y_offset = -pspp_sheet_view_find_offset (tree_view, new_y, &node);
-  gdk_drawable_get_size (tree_view->priv->bin_window,
-                         &bin_window_width, &bin_window_height);
+  bin_window_width = 
+    gdk_window_get_width (tree_view->priv->bin_window);
+
+  bin_window_height = 
+    gdk_window_get_height (tree_view->priv->bin_window);
+
 
   if (tree_view->priv->height < bin_window_height)
     {
@@ -4238,8 +4240,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
 	      if (node < 0)
 		break;
-	      gdk_drawable_get_size (tree_view->priv->bin_window,
-				     &width, NULL);
+	      width = gdk_window_get_width (tree_view->priv->bin_window);
 
 	      if (row_ending_details)
 		gtk_paint_focus (widget->style,
@@ -4294,8 +4295,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	     (flags & GTK_CELL_RENDERER_INSENSITIVE ? GTK_STATE_INSENSITIVE :
 	      GTK_STATE_NORMAL));
 
-	  gdk_drawable_get_size (tree_view->priv->bin_window,
-				 &width, NULL);
+	  width = gdk_window_get_width (tree_view->priv->bin_window);
 	  
 	  if (draw_hgrid_lines)
 	    {
@@ -7601,9 +7601,7 @@ pspp_sheet_view_set_column_drag_info (PsppSheetView       *tree_view,
 	}
       else
 	{
-	  gint width;
-
-	  gdk_drawable_get_size (tree_view->priv->header_window, &width, NULL);
+	  gint width = gdk_window_get_width (tree_view->priv->header_window);
 	  reorder->right_align = width + TREE_VIEW_COLUMN_DRAG_DEAD_MULTIPLIER (tree_view);
 	}
     }
@@ -7615,7 +7613,7 @@ _pspp_sheet_view_column_start_drag (PsppSheetView       *tree_view,
 {
   GdkEvent *send_event;
   GtkAllocation allocation;
-  gint x, y, width, height;
+  gint x, y;
   GdkScreen *screen = gtk_widget_get_screen (GTK_WIDGET (tree_view));
   GdkDisplay *display = gdk_screen_get_display (screen);
 
@@ -7698,7 +7696,6 @@ _pspp_sheet_view_column_start_drag (PsppSheetView       *tree_view,
   gdk_window_show (tree_view->priv->drag_window);
 
   gdk_window_get_origin (tree_view->priv->header_window, &x, &y);
-  gdk_drawable_get_size (tree_view->priv->header_window, &width, &height);
 
   gtk_widget_grab_focus (GTK_WIDGET (tree_view));
   while (gtk_events_pending ())
@@ -11309,8 +11306,7 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
   background_area.y = y;
   background_area.height = ROW_HEIGHT (tree_view);
 
-  gdk_drawable_get_size (tree_view->priv->bin_window,
-                         &bin_window_width, NULL);
+  bin_window_width = gdk_window_get_width (tree_view->priv->bin_window);
 
   drawable = gdk_pixmap_new (tree_view->priv->bin_window,
                              bin_window_width + 2,
@@ -11732,9 +11728,9 @@ pspp_sheet_view_search_position_func (PsppSheetView *tree_view,
   gtk_widget_realize (search_dialog);
 
   gdk_window_get_origin (tree_window, &tree_x, &tree_y);
-  gdk_drawable_get_size (tree_window,
-			 &tree_width,
-			 &tree_height);
+  tree_width = gdk_window_get_width (tree_window);
+  tree_height = gdk_window_get_height (tree_window);
+
   gtk_widget_size_request (search_dialog, &requisition);
 
   if (tree_x + tree_width > gdk_screen_get_width (screen))
