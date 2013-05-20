@@ -2643,7 +2643,7 @@ pspp_sheet_view_button_release_column_resize (GtkWidget      *widget,
 
   PSPP_SHEET_VIEW_UNSET_FLAG (tree_view, PSPP_SHEET_VIEW_IN_COLUMN_RESIZE);
   gtk_grab_remove (widget);
-  gdk_display_pointer_ungrab (gdk_drawable_get_display (event->window),
+  gdk_display_pointer_ungrab (gdk_window_get_display (event->window),
 			      event->time);
   return TRUE;
 }
