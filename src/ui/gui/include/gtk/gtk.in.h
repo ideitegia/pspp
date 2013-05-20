@@ -234,4 +234,9 @@ gtk_button_get_event_window (GtkButton *button)
 }
 #endif  /* gtk < 2.22 */
 
+
+#ifndef G_CONST_RETURN
+#define G_CONST_RETURN const
+#endif
+
 #endif /* PSPP_GTK_GTK_H */
