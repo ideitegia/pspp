@@ -121,7 +121,7 @@ static const struct separator separators[] =
 #define SEPARATOR_CNT (sizeof separators / sizeof *separators)
 
 static void
-set_quote_list (GtkComboBoxEntry *cb)
+set_quote_list (GtkComboBox *cb)
 {
   GtkListStore *list =  gtk_list_store_new (1, G_TYPE_STRING);
   GtkTreeIter iter;
@@ -143,7 +143,7 @@ set_quote_list (GtkComboBoxEntry *cb)
   gtk_combo_box_set_model (GTK_COMBO_BOX (cb), GTK_TREE_MODEL (list));
   g_object_unref (list);
 
-  gtk_combo_box_entry_set_text_column (cb, 0);
+  gtk_combo_box_set_entry_text_column (cb, 0);
 }
 
 /* Initializes IA's separators substructure. */
@@ -167,7 +167,7 @@ separators_page_create (struct import_assistant *ia)
   p->quote_cb = get_widget_assert (builder, "quote-cb");
   p->escape_cb = get_widget_assert (builder, "escape");
 
-  set_quote_list (GTK_COMBO_BOX_ENTRY (p->quote_combo));
+  set_quote_list (GTK_COMBO_BOX (p->quote_combo));
   p->fields_tree_view = PSPP_SHEET_VIEW (get_widget_assert (builder, "fields"));
   g_signal_connect (p->quote_combo, "changed",
                     G_CALLBACK (on_quote_combo_change), ia);
@@ -528,10 +528,8 @@ get_separators (struct import_assistant *ia)
 
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (s->quote_cb)))
     {
-      gchar *text = gtk_combo_box_get_active_text (
-                      GTK_COMBO_BOX (s->quote_combo));
+      const gchar *text = gtk_entry_get_text (GTK_ENTRY (gtk_bin_get_child (GTK_BIN (s->quote_combo))));
       ds_assign_cstr (&s->quotes, text);
-      g_free (text);
     }
   else
     ds_clear (&s->quotes);

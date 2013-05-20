@@ -28,7 +28,7 @@ static void psppire_value_entry_finalize (GObject *);
 
 G_DEFINE_TYPE (PsppireValueEntry,
                psppire_value_entry,
-               GTK_TYPE_COMBO_BOX_ENTRY);
+               GTK_TYPE_COMBO_BOX);
 
 enum
   {
@@ -130,14 +130,39 @@ psppire_value_entry_get_property (GObject      *object,
 }
 
 static void
+psppire_value_entry_text_changed (GtkEntryBuffer *buffer,
+                                  GParamSpec *pspec,
+                                  PsppireValueEntry *obj)
+{
+  obj->cur_value = NULL;
+}
+
+
+static void
+on_realize (GtkWidget *w)
+{
+  GtkEntry *entry = GTK_ENTRY (gtk_bin_get_child (GTK_BIN (w)));
+  GtkEntryBuffer *buffer = gtk_entry_get_buffer (entry);
+
+  gtk_combo_box_set_entry_text_column (GTK_COMBO_BOX (w), COL_LABEL);
+  
+  g_signal_connect (buffer, "notify::text",
+                    G_CALLBACK (psppire_value_entry_text_changed), w);
+
+  GTK_WIDGET_CLASS (psppire_value_entry_parent_class)->realize (w);
+}
+
+static void
 psppire_value_entry_class_init (PsppireValueEntryClass *class)
 {
-  GObjectClass *gobject_class;
-  gobject_class = G_OBJECT_CLASS (class);
+  GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
+
 
   gobject_class->finalize = psppire_value_entry_finalize;
   gobject_class->set_property = psppire_value_entry_set_property;
   gobject_class->get_property = psppire_value_entry_get_property;
+  widget_class->realize = on_realize;
 
   g_object_class_install_property (
     gobject_class, PROP_SHOW_VALUE_LABEL,
@@ -198,28 +223,13 @@ psppire_value_entry_class_init (PsppireValueEntryClass *class)
 }
 
 static void
-psppire_value_entry_text_changed (GtkEntryBuffer *buffer,
-                                  GParamSpec *pspec,
-                                  PsppireValueEntry *obj)
-{
-  obj->cur_value = NULL;
-}
-
-static void
 psppire_value_entry_init (PsppireValueEntry *obj)
 {
-  GtkEntry *entry = GTK_ENTRY (gtk_bin_get_child (GTK_BIN (obj)));
-  GtkEntryBuffer *buffer = gtk_entry_get_buffer (entry);
-
   obj->show_value_label = true;
   obj->val_labs = NULL;
   obj->format = F_8_0;
   obj->encoding = NULL;
   obj->cur_value = NULL;
-  gtk_combo_box_entry_set_text_column (GTK_COMBO_BOX_ENTRY (obj), COL_LABEL);
-
-  g_signal_connect (buffer, "notify::text",
-                    G_CALLBACK (psppire_value_entry_text_changed), obj);
 }
 
 static void
@@ -236,7 +246,7 @@ psppire_value_entry_finalize (GObject *gobject)
 GtkWidget *
 psppire_value_entry_new (void)
 {
-  return GTK_WIDGET (g_object_new (PSPPIRE_TYPE_VALUE_ENTRY, NULL));
+  return GTK_WIDGET (g_object_new (PSPPIRE_TYPE_VALUE_ENTRY, "has-entry", TRUE, NULL));
 }
 
 static void

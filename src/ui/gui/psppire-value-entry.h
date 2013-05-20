@@ -20,7 +20,7 @@
 #include <gtk/gtk.h>
 #include "data/format.h"
 
-/* PsppireValueEntry is a subclass of GtkComboBoxEntry that is specialized for
+/* PsppireValueEntry is a subclass of GtkComboBox that is specialized for
    displaying and entering "union value"s.  Its main advantage over a plain
    GtkEntry is that, when value labels are supplied, it (optionally) displays
    the value label instead of the value.  It also allows the user to choose a
@@ -52,7 +52,7 @@ typedef struct _PsppireValueEntryClass PsppireValueEntryClass;
 
 struct _PsppireValueEntry 
 {
-  GtkComboBoxEntry parent;
+  GtkComboBox parent;
 
   gboolean show_value_label;
 
@@ -65,7 +65,7 @@ struct _PsppireValueEntry
 
 struct _PsppireValueEntryClass 
 {
-  GtkComboBoxEntryClass parent_class;
+  GtkComboBoxClass parent_class;
 };
 
 GType psppire_value_entry_get_type (void);

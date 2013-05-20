@@ -181,6 +181,7 @@
                     </child>
                     <child>
                       <object class="PsppireValueEntry" id="entry2">
+			<property name="has-entry">True</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                       </object>
