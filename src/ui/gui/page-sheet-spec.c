@@ -218,7 +218,7 @@ post_sheet_spec_page (struct import_assistant *ia)
 
   if ( convert_cell_ref (range, &col_start, &row_start, &col_stop, &row_stop))
     {
-      ssp->opts.cell_range = range;
+      ssp->opts.cell_range = g_strdup (range);
     }
 
   ssp->opts.read_names = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (readnames_checkbox));
