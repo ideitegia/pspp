@@ -300,10 +300,11 @@ psppire_conf_save_window_geometry (PsppireConf *conf,
 
   if (!maximized)
     {
-      gint width, height;
       gint x, y;
 
-      gdk_drawable_get_size (w, &width, &height);
+      gint width = gdk_window_get_width (w);
+      gint height= gdk_window_get_height (w);
+
       gdk_window_get_position (w, &x, &y);
 
       psppire_conf_set_int (conf, base, "height", height);
