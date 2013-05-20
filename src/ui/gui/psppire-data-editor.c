@@ -224,7 +224,11 @@ psppire_data_editor_get_property (GObject         *object,
 
 static void
 psppire_data_editor_switch_page (GtkNotebook     *notebook,
+#if GTK_DISABLE_DEPRECATED && GTK_CHECK_VERSION(2,20,0)
                                  gpointer page,
+#else
+                                 GtkNotebookPage *page,
+#endif
                                  guint            page_num)
 {
   GTK_NOTEBOOK_CLASS (parent_class)->switch_page (notebook, page, page_num);
