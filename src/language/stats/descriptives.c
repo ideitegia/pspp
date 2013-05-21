@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2000, 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2009-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -396,6 +396,13 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
                 }
             }
         }
+
+      /* It would be better to handle Z scores correctly (however we define
+         that) when TEMPORARY is in effect, but in the meantime this at least
+         prevents a use-after-free error.  See bug #38786.  */
+      if (proc_make_temporary_transformations_permanent (ds))
+        msg (SW, _("DESCRIPTIVES with Z scores ignores TEMPORARY.  "
+                   "Temporary transformations will be made permanent."));
 
       proto = caseproto_create ();
       for (i = 0; i < 1 + 2 * z_cnt; i++)
