@@ -759,6 +759,8 @@ proc_make_temporary_transformations_permanent (struct dataset *ds)
       trns_chain_splice (ds->permanent_trns_chain, ds->temporary_trns_chain);
       ds->temporary_trns_chain = NULL;
 
+      ds->cur_trns_chain = ds->permanent_trns_chain;
+
       dict_destroy (ds->permanent_dict);
       ds->permanent_dict = NULL;
 

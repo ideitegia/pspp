@@ -166,6 +166,7 @@ trns_chain_splice (struct trns_chain *dst, struct trns_chain *src)
     }
   dst->trns_cnt += src->trns_cnt;
 
+  src->trns_cnt = 0;
   trns_chain_destroy (src);
 }
 
