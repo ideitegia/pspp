@@ -689,6 +689,8 @@ descriptives_trns_free (void *trns_)
   casereader_destroy (t->z_reader);
   assert((t->missing_type != DSC_LISTWISE) ^ (t->vars != NULL));
   free (t->vars);
+  free (t);
+
   return ok;
 }
 
@@ -732,11 +734,13 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
 	{
           struct dsc_z_score *z;
 	  struct variable *dst_var;
+          char *label;
 
 	  dst_var = dict_create_var_assert (dataset_dict (ds), dv->z_name, 0);
-          var_set_label (dst_var,
-                         xasprintf (_("Z-score of %s"),var_to_string (dv->v)),
-                         false);
+
+          label = xasprintf (_("Z-score of %s"),var_to_string (dv->v));
+          var_set_label (dst_var, label, false);
+          free (label);
 
           z = &t->z_scores[cnt++];
           z->src_var = dv->v;
