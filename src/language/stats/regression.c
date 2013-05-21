@@ -388,6 +388,13 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
 
   regression.models = xcalloc (regression.n_dep_vars, sizeof *regression.models);
 
+  if (regression.pred || regression.resid)
+    {
+      if (proc_make_temporary_transformations_permanent (ds))
+        msg (SW, _("REGRESSION with SAVE ignores TEMPORARY.  "
+                   "Temporary transformations will be made permanent."));
+    }
+
   {
     struct casegrouper *grouper;
     struct casereader *group;
