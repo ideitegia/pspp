@@ -746,9 +746,13 @@ proc_start_temporary_transformations (struct dataset *ds)
     }
 }
 
-/* Converts all the temporary transformations, if any, to
-   permanent transformations.  Further transformations will be
-   permanent.
+/* Converts all the temporary transformations, if any, to permanent
+   transformations.  Further transformations will be permanent.
+
+   The FILTER command is implemented as a temporary transformation, so a
+   procedure that uses this function should usually use proc_open_filtering()
+   with FILTER false, instead of plain proc_open().
+
    Returns true if anything changed, false otherwise. */
 bool
 proc_make_temporary_transformations_permanent (struct dataset *ds)

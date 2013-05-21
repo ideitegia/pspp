@@ -1,0 +1,29 @@
+AT_BANNER([DELETE VARIABLES])
+
+dnl Checks for regressions against a crash reported in bug #38843.
+AT_SETUP([DELETE VARIABLES with FILTER])
+AT_DATA([delete-variables.sps], [dnl
+DATA LIST LIST /a b.
+BEGIN DATA.
+1 3
+4 6
+7 9
+END DATA.
+
+FILTER BY b.
+DELETE VARIABLES a.
+LIST.
+])
+AT_CHECK([pspp -O format=csv delete-variables.sps], [0], [dnl
+Table: Reading free-form data from INLINE.
+Variable,Format
+a,F8.0
+b,F8.0
+
+Table: Data List
+b
+3.00
+6.00
+9.00
+])
+AT_CLEANUP

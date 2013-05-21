@@ -270,6 +270,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   int k;
   struct regression regression;
   const struct dictionary *dict = dataset_dict (ds);
+  bool save;
 
   memset (&regression, 0, sizeof (struct regression));
 
@@ -388,7 +389,8 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
 
   regression.models = xcalloc (regression.n_dep_vars, sizeof *regression.models);
 
-  if (regression.pred || regression.resid)
+  save = regression.pred || regression.resid;
+  if (save)
     {
       if (proc_make_temporary_transformations_permanent (ds))
         msg (SW, _("REGRESSION with SAVE ignores TEMPORARY.  "
@@ -400,14 +402,15 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
     struct casereader *group;
     bool ok;
     
-    grouper = casegrouper_create_splits (proc_open (ds), dict);
+    grouper = casegrouper_create_splits (proc_open_filtering (ds, !save),
+                                         dict);
     while (casegrouper_get_next_group (grouper, &group))
       run_regression (&regression, group);
     ok = casegrouper_destroy (grouper);
     ok = proc_commit (ds) && ok;
   }
 
-  if (regression.pred || regression.resid )
+  if (save)
     {
       subcommand_save (&regression);
     }

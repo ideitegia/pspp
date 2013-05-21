@@ -441,7 +441,8 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
       dsc->vars[i].moments = moments_create (dsc->max_moment);
 
   /* Data pass. */
-  grouper = casegrouper_create_splits (proc_open (ds), dict);
+  grouper = casegrouper_create_splits (proc_open_filtering (ds, z_cnt == 0),
+                                       dict);
   while (casegrouper_get_next_group (grouper, &group))
     calc_descriptives (dsc, group, ds);
   ok = casegrouper_destroy (grouper);

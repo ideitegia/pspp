@@ -445,7 +445,7 @@ combine_files (enum comb_command_type command,
           if (active_file == NULL)
             {
               proc_discard_output (ds);
-              file->reader = active_file = proc_open (ds);
+              file->reader = active_file = proc_open_filtering (ds, false);
             }
           else
             file->reader = casereader_clone (active_file);

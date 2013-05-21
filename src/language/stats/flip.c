@@ -166,7 +166,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   flip->encoding = dict_get_encoding (new_dict);
   dict_clear (new_dict);
 
-  input = proc_open (ds);
+  input = proc_open_filtering (ds, false);
   while ((c = casereader_read (input)) != NULL)
     {
       flip->n_cases++;
