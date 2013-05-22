@@ -130,7 +130,15 @@ prep_ph:
 		--source-base=gl --lib=libgl --tests-base=tests \
 		--doc-base=gl/doc --aux-dir=build-aux  \
 		--libtool $(GNULIB_MODULES)
-	libtoolize --force --automake
+	if (glibtoolize --version) >/dev/null 2>&1; then	\
+		LIBTOOLIZE=glibtoolize;				\
+	elif (libtoolize --version) >/dev/null 2>&1; then	\
+		LIBTOOLIZE=libtoolize;				\
+	else							\
+		echo >&2 "libtoolize not found";		\
+		exit 1;						\
+	fi;							\
+	$$LIBTOOLIZE --force --automake
 
 aclocal.m4:
 	aclocal -I m4 -I gl/m4
