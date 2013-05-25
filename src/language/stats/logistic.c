@@ -741,6 +741,7 @@ lookup_variable (const struct hmap *map, const struct variable *var, unsigned in
 int
 cmd_logistic (struct lexer *lexer, struct dataset *ds)
 {
+  int i;
   /* Temporary location for the predictor variables.
      These may or may not include the categorical predictors */
   const struct variable **pred_vars;
@@ -1092,6 +1093,10 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
     ok = proc_commit (ds) && ok;
   }
 
+  for (i = 0 ; i < lr.n_cat_predictors; ++i)
+    {
+      interaction_destroy (lr.cat_predictors[i]);
+    }
   free (lr.predictor_vars);
   free (lr.cat_predictors);
   free (lr.indep_vars);
@@ -1100,6 +1105,10 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
 
  error:
 
+  for (i = 0 ; i < lr.n_cat_predictors; ++i)
+    {
+      interaction_destroy (lr.cat_predictors[i]);
+    }
   free (lr.predictor_vars);
   free (lr.cat_predictors);
   free (lr.indep_vars);
