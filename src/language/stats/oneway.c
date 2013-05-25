@@ -52,6 +52,7 @@
 /* Workspace variable for each dependent variable */
 struct per_var_ws
 {
+  struct interaction *iact;
   struct categoricals *cat;
   struct covariance *cov;
   struct levene *nl;
@@ -702,15 +703,14 @@ run_oneway (const struct oneway_spec *cmd,
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
-      struct interaction *inter = interaction_create (cmd->indep_var);
-
       struct payload payload;
       payload.create = makeit;
       payload.update = updateit;
       payload.calculate = NULL;
       payload.destroy = killit;
 
-      ws.vws[v].cat = categoricals_create (&inter, 1, cmd->wv,
+      ws.vws[v].iact = interaction_create (cmd->indep_var);
+      ws.vws[v].cat = categoricals_create (&ws.vws[v].iact, 1, cmd->wv,
                                            cmd->exclude, cmd->exclude);
 
       categoricals_set_payload (ws.vws[v].cat, &payload, 
@@ -874,7 +874,9 @@ run_oneway (const struct oneway_spec *cmd,
       covariance_destroy (ws.vws[v].cov);
       levene_destroy (ws.vws[v].nl);
       dd_destroy (ws.dd_total[v]);
+      interaction_destroy (ws.vws[v].iact);
     }
+
   free (ws.vws);
   free (ws.dd_total);
 }

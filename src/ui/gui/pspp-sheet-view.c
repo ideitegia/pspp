@@ -6606,7 +6606,9 @@ pspp_sheet_view_focus_column (PsppSheetView *tree_view,
   if (!focus_column->button)
     {
       pspp_sheet_view_column_set_need_button (focus_column, TRUE);
-      g_return_if_fail (focus_column->button != NULL);
+      //      g_return_if_fail (focus_column->button != NULL);
+      if (focus_column->button == NULL)
+	return;
     }
 
   if (GTK_CONTAINER (tree_view)->focus_child != focus_column->button)
