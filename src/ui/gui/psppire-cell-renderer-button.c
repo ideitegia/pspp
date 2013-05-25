@@ -407,7 +407,6 @@ psppire_cell_renderer_button_start_editing (GtkCellRenderer      *cell,
                                       "xalign", xalign,
                                       "yalign", yalign,
                                       "path", path,
-                                      "slash", cell_button->slash,
                                       NULL);
 
   g_signal_connect (G_OBJECT (cell_button->button), "clicked",

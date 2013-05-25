@@ -34,7 +34,6 @@ typedef struct _PsppireButtonEditableClass PsppireButtonEditableClass;
 struct _PsppireButtonEditable {
   GtkButton parent;
   gchar *path;
-  gboolean slash;
 };
 
 struct _PsppireButtonEditableClass {
@@ -43,10 +42,6 @@ struct _PsppireButtonEditableClass {
 
 GType psppire_button_editable_get_type (void) G_GNUC_CONST;
 PsppireButtonEditable* psppire_button_editable_new (void);
-
-void psppire_button_editable_set_slash (PsppireButtonEditable *,
-                                        gboolean slash);
-gboolean psppire_button_editable_get_slash (const PsppireButtonEditable *);
 
 G_END_DECLS
 
