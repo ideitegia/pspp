@@ -729,7 +729,8 @@ reg_stats_r (linreg *c, void *aux UNUSED, const struct variable *var)
 
   assert (c != NULL);
   rsq = linreg_ssreg (c) / linreg_sst (c);
-  adjrsq = 1.0 - (1.0 - rsq) * (linreg_n_obs (c) - 1.0) / (linreg_n_obs (c) - linreg_n_coeffs (c));
+  adjrsq = rsq - 
+    (1.0 - rsq) * linreg_n_coeffs (c) / (linreg_n_obs (c) - linreg_n_coeffs (c) - 1);
   std_error = sqrt (linreg_mse (c));
   t = tab_create (n_cols, n_rows);
   tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
