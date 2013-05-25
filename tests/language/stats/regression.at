@@ -2,7 +2,8 @@ AT_BANNER([REGRESSION])
 
 AT_SETUP([REGRESSION])
 AT_DATA([regression.sps], [dnl
-data list list / v0 to v2.
+set format = F22.3.
+data list notable list / v0 to v2.
 begin data
  0.65377128  7.735648 -23.97588
 -0.13087553  6.142625 -19.63854
@@ -19,43 +20,36 @@ regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 /method=enter 
 list.
 ])
 
-AT_CHECK([pspp -o pspp.csv regression.sps])
-AT_CHECK([cat pspp.csv], [0], [dnl
-Table: Reading free-form data from INLINE.
-Variable,Format
-v0,F8.0
-v1,F8.0
-v2,F8.0
-
+AT_CHECK([pspp -O format=csv regression.sps], [0], [dnl
 Table: Model Summary (v2)
 ,R,R Square,Adjusted R Square,Std. Error of the Estimate
-,.97,.94,.93,1.34
+,.971,.942,.925,1.337
 
 Table: ANOVA (v2)
 ,,Sum of Squares,df,Mean Square,F,Significance
-,Regression,202.75,2,101.38,56.75,.00
-,Residual,12.50,7,1.79,,
-,Total,215.26,9,,,
+,Regression,202.753,2,101.376,56.754,.000
+,Residual,12.504,7,1.786,,
+,Total,215.256,9,,,
 
 Table: Coefficients (v2)
 ,,B,Std. Error,Beta,t,Significance
-,(Constant),2.19,2.36,.00,.93,.38
-,v0,1.81,1.05,.17,1.72,.13
-,v1,-3.43,.33,-1.03,-10.33,.00
+,(Constant),2.191,2.357,.000,.930,.380
+,v0,1.813,1.053,.171,1.722,.129
+,v1,-3.427,.332,-1.026,-10.334,.000
 ,,,,,,
 
 Table: Data List
 v0,v1,v2,RES1,PRED1
-.65,7.74,-23.98,-.84,-23.13
--.13,6.14,-19.64,-.54,-19.10
-.35,7.65,-25.27,-1.87,-23.40
-.69,6.13,-16.57,.97,-17.54
--.07,8.25,-25.80,.40,-26.20
--.34,6.03,-17.57,1.53,-19.10
-.76,9.83,-28.36,1.77,-30.13
--.47,5.34,-16.80,.18,-16.97
--.06,8.84,-29.26,-1.05,-28.21
-.56,6.20,-18.58,-.54,-18.04
+.654,7.736,-23.976,-.84,-23.13
+-.131,6.143,-19.639,-.54,-19.10
+.349,7.651,-25.266,-1.87,-23.40
+.692,6.125,-16.571,.97,-17.54
+-.074,8.246,-25.800,.40,-26.20
+-.344,6.032,-17.567,1.53,-19.10
+.760,9.832,-28.360,1.77,-30.13
+-.470,5.344,-16.795,.18,-16.97
+-.061,8.838,-29.257,-1.05,-28.21
+.562,6.200,-18.582,-.54,-18.04
 ])
 AT_CLEANUP
 
