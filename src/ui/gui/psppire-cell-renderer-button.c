@@ -219,11 +219,20 @@ psppire_cell_renderer_button_render (GtkCellRenderer      *cell,
                         button->ypad, cell->xalign, cell->yalign);
 
   if (button->slash)
-    gdk_draw_line (window, button->button_style->black_gc,
-                   cell_area->x,
-                   cell_area->y + cell_area->height,
-                   cell_area->x + cell_area->width,
-                   cell_area->y);
+    {
+      cairo_t *cr = gdk_cairo_create (window);
+
+      cairo_set_line_width (cr, 1.0);
+      cairo_set_line_cap (cr, CAIRO_LINE_CAP_SQUARE);
+      cairo_move_to (cr, 
+		     cell_area->x,
+		     cell_area->y + cell_area->height);
+
+      cairo_line_to (cr,
+		     cell_area->x + cell_area->width,
+		     cell_area->y);
+      cairo_stroke (cr);
+    }
 }
 
 static void
