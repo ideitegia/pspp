@@ -2278,6 +2278,8 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 
   caseproto_unref (examine.ex_proto);
 
+  for (i = 0; i < examine.n_iacts; ++i)
+    interaction_destroy (examine.iacts[i]);
   free (examine.ptiles);
   free (examine.dep_vars);
   pool_destroy (examine.pool);
