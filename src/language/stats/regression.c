@@ -832,7 +832,7 @@ reg_stats_coeff (linreg * c, void *aux_, const struct variable *var)
       */
       pval =
 	2 * gsl_cdf_tdist_Q (fabs (t_stat),
-			     (double) (linreg_n_obs (c) - linreg_n_coeffs (c)));
+			     (double) (linreg_n_obs (c) - linreg_n_coeffs (c) - 1));
       tab_double (t, 6, this_row, 0, pval, NULL);
       ds_destroy (&tstr);
     }

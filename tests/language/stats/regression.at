@@ -40,7 +40,7 @@ Table: ANOVA (v2)
 Table: Coefficients (v2)
 ,,B,Std. Error,Beta,t,Significance
 ,(Constant),2.19,2.36,.00,.93,.38
-,v0,1.81,1.05,.17,1.72,.12
+,v0,1.81,1.05,.17,1.72,.13
 ,v1,-3.43,.33,-1.03,-10.33,.00
 ,,,,,,
 
