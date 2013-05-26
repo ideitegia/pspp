@@ -1518,10 +1518,10 @@ pspp_sheet_view_realize (GtkWidget *widget)
   gdk_window_set_user_data (tree_view->priv->header_window, widget);
 
   /* Add them all up. */
-  widget->style = gtk_style_attach (widget->style, gtk_widget_get_window (widget));
+  widget->style = gtk_style_attach (gtk_widget_get_style (widget), gtk_widget_get_window (widget));
   gdk_window_set_back_pixmap (gtk_widget_get_window (widget), NULL, FALSE);
-  gdk_window_set_background (tree_view->priv->bin_window, &widget->style->base[gtk_widget_get_state (widget)]);
-  gtk_style_set_background (widget->style, tree_view->priv->header_window, GTK_STATE_NORMAL);
+  gdk_window_set_background (tree_view->priv->bin_window, &gtk_widget_get_style (widget)->base[gtk_widget_get_state (widget)]);
+  gtk_style_set_background (gtk_widget_get_style (widget), tree_view->priv->header_window, GTK_STATE_NORMAL);
 
   tmp_list = tree_view->priv->children;
   while (tmp_list)
@@ -1823,7 +1823,7 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
   PsppSheetView *tree_view;
   GList *list, *first_column, *last_column;
   PsppSheetViewColumn *column;
-  GtkAllocation allocation;
+  GtkAllocation col_allocation;
   gint width = 0;
   gint extra, extra_per_column;
   gint full_requested_width = 0;
@@ -1845,8 +1845,8 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
        first_column = first_column->next)
     ;
 
-  allocation.y = 0;
-  allocation.height = tree_view->priv->header_height;
+  col_allocation.y = 0;
+  col_allocation.height = tree_view->priv->header_height;
 
   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
 
@@ -1900,7 +1900,7 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
 
       real_requested_width = pspp_sheet_view_get_real_requested_width_from_column (tree_view, column);
 
-      allocation.x = width;
+      col_allocation.x = width;
       column->width = real_requested_width;
 
       if (column->expand)
@@ -1922,15 +1922,15 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
       if (column->width != old_width)
         g_object_notify (G_OBJECT (column), "width");
 
-      allocation.width = column->width;
+      col_allocation.width = column->width;
       width += column->width;
 
       if (column->width > old_width)
         column_changed = TRUE;
 
-      pspp_sheet_view_column_size_allocate (column, &allocation);
+      pspp_sheet_view_column_size_allocate (column, &col_allocation);
 
-      if (span_intersects (allocation.x, allocation.width,
+      if (span_intersects (col_allocation.x, col_allocation.width,
                            gtk_adjustment_get_value (tree_view->priv->hadjustment),
                            widget->allocation.width)
           && gtk_widget_get_realized (widget))
@@ -1938,9 +1938,9 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
 
       if (column->window)
 	gdk_window_move_resize (column->window,
-                                allocation.x + (rtl ? 0 : allocation.width) - TREE_VIEW_DRAG_WIDTH/2,
-				allocation.y,
-                                TREE_VIEW_DRAG_WIDTH, allocation.height);
+                                col_allocation.x + (rtl ? 0 : col_allocation.width) - TREE_VIEW_DRAG_WIDTH/2,
+				col_allocation.y,
+                                TREE_VIEW_DRAG_WIDTH, col_allocation.height);
     }
 
   /* We change the width here.  The user might have been resizing columns,
@@ -6902,8 +6902,8 @@ pspp_sheet_view_style_set (GtkWidget *widget,
   if (gtk_widget_get_realized (widget))
     {
       gdk_window_set_back_pixmap (gtk_widget_get_window (widget), NULL, FALSE);
-      gdk_window_set_background (tree_view->priv->bin_window, &widget->style->base[gtk_widget_get_state (widget)]);
-      gtk_style_set_background (widget->style, tree_view->priv->header_window, GTK_STATE_NORMAL);
+      gdk_window_set_background (tree_view->priv->bin_window, &gtk_widget_get_style (widget)->base[gtk_widget_get_state (widget)]);
+      gtk_style_set_background (gtk_widget_get_style (widget), tree_view->priv->header_window, GTK_STATE_NORMAL);
       pspp_sheet_view_set_grid_lines (tree_view, tree_view->priv->grid_lines);
     }
 
