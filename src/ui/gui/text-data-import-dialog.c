@@ -662,7 +662,7 @@ push_watch_cursor (struct import_assistant *ia)
       GtkWidget *widget = GTK_WIDGET (ia->asst.assistant);
       GdkDisplay *display = gtk_widget_get_display (widget);
       GdkCursor *cursor = gdk_cursor_new_for_display (display, GDK_WATCH);
-      gdk_window_set_cursor (widget->window, cursor);
+      gdk_window_set_cursor (gtk_widget_get_window (widget), cursor);
       gdk_cursor_unref (cursor);
       gdk_display_flush (display);
     }
@@ -676,6 +676,6 @@ pop_watch_cursor (struct import_assistant *ia)
   if (--ia->asst.watch_cursor == 0)
     {
       GtkWidget *widget = GTK_WIDGET (ia->asst.assistant);
-      gdk_window_set_cursor (widget->window, NULL);
+      gdk_window_set_cursor (gtk_widget_get_window (widget), NULL);
     }
 }
