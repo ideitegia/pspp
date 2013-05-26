@@ -233,7 +233,6 @@ struct _PsppSheetViewPrivate
 
   /* Grid and tree lines */
   PsppSheetViewGridLines grid_lines;
-  GdkGC *grid_line_gc[5];
 
   /* Special cells. */
   PsppSheetViewSpecialCells special_cells;
