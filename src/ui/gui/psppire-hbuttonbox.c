@@ -114,9 +114,9 @@ gtk_hbutton_box_size_request (GtkWidget      *widget,
   box = GTK_BOX (widget);
   bbox = GTK_BUTTON_BOX (widget);
 
-  spacing = box->spacing;
-  layout = bbox->layout_style != GTK_BUTTONBOX_DEFAULT_STYLE
-	  ? bbox->layout_style : default_layout_style;
+  spacing = gtk_box_get_spacing (box);
+  layout = gtk_button_box_get_layout (bbox) != GTK_BUTTONBOX_DEFAULT_STYLE
+	  ? gtk_button_box_get_layout (bbox) : default_layout_style;
 
   _psppire_button_box_child_requisition (widget,
                                      &nvis_children,
@@ -150,8 +150,8 @@ gtk_hbutton_box_size_request (GtkWidget      *widget,
     requisition->height = child_height;
   }
 
-  requisition->width += GTK_CONTAINER (box)->border_width * 2;
-  requisition->height += GTK_CONTAINER (box)->border_width * 2;
+  requisition->width += gtk_container_get_border_width (GTK_CONTAINER (box)) * 2;
+  requisition->height += gtk_container_get_border_width (GTK_CONTAINER (box)) * 2;
 }
 
 
@@ -179,28 +179,28 @@ gtk_hbutton_box_size_allocate (GtkWidget     *widget,
 
   base_box = GTK_BOX (widget);
   box = GTK_BUTTON_BOX (widget);
-  spacing = base_box->spacing;
-  layout = box->layout_style != GTK_BUTTONBOX_DEFAULT_STYLE
-	  ? box->layout_style : default_layout_style;
+  spacing = gtk_box_get_spacing (base_box);
+  layout = gtk_button_box_get_layout (box) != GTK_BUTTONBOX_DEFAULT_STYLE
+	  ? gtk_button_box_get_layout (box) : default_layout_style;
   _psppire_button_box_child_requisition (widget,
                                      &nvis_children,
 				     &n_secondaries,
                                      &child_width,
                                      &child_height);
-  widget->allocation = *allocation;
-  width = allocation->width - GTK_CONTAINER (box)->border_width*2;
+  gtk_widget_set_allocation (widget, allocation);
+  width = allocation->width - gtk_container_get_border_width (GTK_CONTAINER (box))*2;
   switch (layout)
   {
   case GTK_BUTTONBOX_SPREAD:
     childspacing = (width - (nvis_children * child_width)) / (nvis_children + 1);
-    x = allocation->x + GTK_CONTAINER (box)->border_width + childspacing;
+    x = allocation->x + gtk_container_get_border_width (GTK_CONTAINER (box)) + childspacing;
     secondary_x = x + ((nvis_children - n_secondaries) * (child_width + childspacing));
     break;
   case GTK_BUTTONBOX_EDGE:
     if (nvis_children >= 2)
       {
 	childspacing = (width - (nvis_children * child_width)) / (nvis_children - 1);
-	x = allocation->x + GTK_CONTAINER (box)->border_width;
+	x = allocation->x + gtk_container_get_border_width (GTK_CONTAINER (box));
 	secondary_x = x + ((nvis_children - n_secondaries) * (child_width + childspacing));
       }
     else
@@ -212,19 +212,19 @@ gtk_hbutton_box_size_allocate (GtkWidget     *widget,
     break;
   case GTK_BUTTONBOX_START:
     childspacing = spacing;
-    x = allocation->x + GTK_CONTAINER (box)->border_width;
+    x = allocation->x + gtk_container_get_border_width (GTK_CONTAINER (box));
     secondary_x = allocation->x + allocation->width
       - child_width * n_secondaries
       - spacing * (n_secondaries - 1)
-      - GTK_CONTAINER (box)->border_width;
+      - gtk_container_get_border_width (GTK_CONTAINER (box));
     break;
   case GTK_BUTTONBOX_END:
     childspacing = spacing;
     x = allocation->x + allocation->width
       - child_width * (nvis_children - n_secondaries)
       - spacing * (nvis_children - n_secondaries - 1)
-      - GTK_CONTAINER (box)->border_width;
-    secondary_x = allocation->x + GTK_CONTAINER (box)->border_width;
+      - gtk_container_get_border_width (GTK_CONTAINER (box));
+    secondary_x = allocation->x + gtk_container_get_border_width (GTK_CONTAINER (box));
     break;
   default:
     g_assert_not_reached();
