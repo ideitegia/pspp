@@ -201,7 +201,7 @@ err_dialog (const gchar *msg, GtkWindow *window)
 
   hbox = gtk_hbox_new (FALSE, 10);
 
-  gtk_container_add (GTK_CONTAINER (GTK_DIALOG (dialog)->vbox),
+  gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog))),
 		     hbox);
 
   gtk_box_pack_start (GTK_BOX (hbox), icon, TRUE, FALSE, 10);
