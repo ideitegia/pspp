@@ -199,12 +199,14 @@ print_startup_time (gpointer data)
   return FALSE;
 }
 
+/*
 static gboolean
 quit_one_loop (gpointer data)
 {
   gtk_main_quit ();
   return FALSE;
 }
+*/
 
 struct initialisation_parameters
 {
@@ -329,13 +331,14 @@ main (int argc, char *argv[])
   init_p.splash_window = create_splash_window ();
   init_p.data_file = optind < argc ? argv[optind] : NULL;
 
-  if ( show_splash )
-    gtk_widget_show (init_p.splash_window);
+  //  if ( show_splash )
+  //    gtk_widget_show (init_p.splash_window);
 
-  g_idle_add (quit_one_loop, 0);
+  //  g_idle_add (quit_one_loop, 0);
 
-  gtk_quit_add (0, run_inner_loop, &init_p);
-  gtk_main ();
+  //  gtk_quit_add (0, run_inner_loop, &init_p);
+  run_inner_loop (&init_p);
+  //  gtk_main ();
 
   return 0;
 }
