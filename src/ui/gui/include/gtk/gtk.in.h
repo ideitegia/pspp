@@ -239,4 +239,8 @@ gtk_button_get_event_window (GtkButton *button)
 #define G_CONST_RETURN const
 #endif
 
+
+/* Like GSEAL but only used in PSPP */
+#define PSEAL(X) X
+
 #endif /* PSPP_GTK_GTK_H */
