@@ -594,11 +594,12 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
   work.warn_bad_weight = true;
   work.cats = NULL;
   work.beta_hat = NULL;
+  work.hessian = NULL;
 
   /* Get the initial estimates of \beta and their standard errors.
      And perform other auxilliary initialisation.  */
   if (! initial_pass (cmd, &work, input))
-    return false;
+    goto error;
   
   for (i = 0; i < cmd->n_cat_predictors; ++i)
     {
@@ -612,7 +613,7 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
 	  msg (ME, _("Category %s does not have at least two distinct values. Logistic regression will not be run."),
 	       ds_cstr(&str));
 	  ds_destroy (&str);
-	  return false;
+	  goto error;
       	}
     }
 
@@ -692,7 +693,7 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
       if (converged)
 	break;
     }
-  casereader_destroy (input);
+
 
 
   if ( ! converged) 
@@ -707,12 +708,20 @@ run_lr (const struct lr_spec *cmd, struct casereader *input,
   output_classification_table (cmd, &work);
   output_variables (cmd, &work);
 
+  casereader_destroy (input);
   gsl_matrix_free (work.hessian);
   gsl_vector_free (work.beta_hat); 
-  
   categoricals_destroy (work.cats);
 
   return true;
+
+ error:
+  casereader_destroy (input);
+  gsl_matrix_free (work.hessian);
+  gsl_vector_free (work.beta_hat); 
+  categoricals_destroy (work.cats);
+
+  return false;
 }
 
 struct variable_node
