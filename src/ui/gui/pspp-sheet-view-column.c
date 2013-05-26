@@ -1552,6 +1552,7 @@ pspp_sheet_view_column_setup_sort_column_id_callback (PsppSheetViewColumn *tree_
 void
 _pspp_sheet_view_column_realize_button (PsppSheetViewColumn *column)
 {
+  GtkAllocation allocation;
   PsppSheetView *tree_view;
   GdkWindowAttr attr;
   guint attributes_mask;
@@ -1589,8 +1590,8 @@ _pspp_sheet_view_column_realize_button (PsppSheetViewColumn *column)
   attr.y = 0;
   attr.width = TREE_VIEW_DRAG_WIDTH;
   attr.height = tree_view->priv->header_height;
-
-  attr.x = (column->button->allocation.x + (rtl ? 0 : column->button->allocation.width)) - TREE_VIEW_DRAG_WIDTH / 2;
+  gtk_widget_get_allocation (column->button, &allocation);
+  attr.x = (allocation.x + (rtl ? 0 : allocation.width)) - TREE_VIEW_DRAG_WIDTH / 2;
   column->window = gdk_window_new (tree_view->priv->header_window,
 				   &attr, attributes_mask);
   gdk_window_set_user_data (column->window, tree_view);
@@ -1706,7 +1707,7 @@ _pspp_sheet_view_column_count_special_cells (PsppSheetViewColumn *column)
 
       if ((cellinfo->cell->mode == GTK_CELL_RENDERER_MODE_EDITABLE ||
 	  cellinfo->cell->mode == GTK_CELL_RENDERER_MODE_ACTIVATABLE) &&
-	  cellinfo->cell->visible)
+	  gtk_cell_renderer_get_visible (cellinfo->cell))
 	i++;
     }
 
@@ -3181,7 +3182,7 @@ pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
     {
       PsppSheetViewColumnCellInfo *info = (PsppSheetViewColumnCellInfo *)list->data;
 
-      if (! info->cell->visible)
+      if (! gtk_cell_renderer_get_visible (info->cell))
 	continue;
 
       if (info->expand == TRUE)
@@ -3208,7 +3209,7 @@ pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
       if (info->pack == GTK_PACK_END)
 	continue;
 
-      if (! info->cell->visible)
+      if (! gtk_cell_renderer_get_visible (info->cell))
 	continue;
 
       if ((info->has_focus || special_cells == 1) && cursor_row)
@@ -3383,7 +3384,7 @@ pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
       if (info->pack == GTK_PACK_START)
 	continue;
 
-      if (! info->cell->visible)
+      if (! gtk_cell_renderer_get_visible (info->cell))
 	continue;
 
       if ((info->has_focus || special_cells == 1) && cursor_row)
@@ -3931,7 +3932,7 @@ _pspp_sheet_view_column_cell_draw_focus (PsppSheetViewColumn  *tree_column,
       cell_state = flags & GTK_CELL_RENDERER_SELECTED ? GTK_STATE_SELECTED :
 	      (flags & GTK_CELL_RENDERER_PRELIT ? GTK_STATE_PRELIGHT :
 	      (flags & GTK_CELL_RENDERER_INSENSITIVE ? GTK_STATE_INSENSITIVE : GTK_STATE_NORMAL));
-      gtk_paint_focus (tree_column->tree_view->style,
+      gtk_paint_focus (gtk_widget_get_style (GTK_WIDGET (tree_column->tree_view)),
 		       window,
 		       cell_state,
 		       cell_area,
@@ -3965,7 +3966,7 @@ pspp_sheet_view_column_cell_is_visible (PsppSheetViewColumn *tree_column)
     {
       PsppSheetViewColumnCellInfo *info = (PsppSheetViewColumnCellInfo *) list->data;
 
-      if (info->cell->visible)
+      if (gtk_cell_renderer_get_visible (info->cell))
 	return TRUE;
     }
 
@@ -4089,7 +4090,7 @@ _pspp_sheet_view_column_get_neighbor_sizes (PsppSheetViewColumn *column,
       if (info->cell == cell)
 	break;
       
-      if (info->cell->visible)
+      if (gtk_cell_renderer_get_visible (info->cell))
 	l += info->real_width + column->spacing;
     }
 
@@ -4099,7 +4100,7 @@ _pspp_sheet_view_column_get_neighbor_sizes (PsppSheetViewColumn *column,
       
       list = pspp_sheet_view_column_cell_next (column, list);
 
-      if (info->cell->visible)
+      if (gtk_cell_renderer_get_visible (info->cell))
 	r += info->real_width + column->spacing;
     }
 
@@ -4146,7 +4147,7 @@ pspp_sheet_view_column_cell_get_position (PsppSheetViewColumn *tree_column,
           break;
         }
 
-      if (cellinfo->cell->visible)
+      if (gtk_cell_renderer_get_visible (cellinfo->cell))
         current_x += cellinfo->real_width;
     }
 
