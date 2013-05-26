@@ -644,14 +644,10 @@ static void
 fonts_activate (PsppireDataWindow  *de)
 {
   GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (de));
-  PangoFontDescription *current_font;
-  gchar *font_name;
-  GtkWidget *dialog =
-    gtk_font_selection_dialog_new (_("Font Selection"));
-
-
-  current_font = GTK_WIDGET(de->data_editor)->style->font_desc;
-  font_name = pango_font_description_to_string (current_font);
+  GtkWidget *dialog =  gtk_font_selection_dialog_new (_("Font Selection"));
+  GtkStyle *style = gtk_widget_get_style (GTK_WIDGET(de->data_editor));
+  PangoFontDescription *current_font = style->font_desc;
+  gchar *font_name = pango_font_description_to_string (current_font);
 
   gtk_font_selection_dialog_set_font_name (GTK_FONT_SELECTION_DIALOG (dialog), font_name);
 
@@ -866,12 +862,14 @@ enable_save (PsppireDataWindow *dw)
 static void
 psppire_data_window_init (PsppireDataWindow *de)
 {
+  GtkWidget *w ;
   de->builder = builder_new ("data-editor.ui");
 
   de->ui_manager = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
-  PSPPIRE_WINDOW (de)->menu =
-    GTK_MENU_SHELL (gtk_ui_manager_get_widget (de->ui_manager, "/ui/menubar/windows/windows_minimise_all")->parent);
+  w = gtk_ui_manager_get_widget (de->ui_manager, "/ui/menubar/windows/windows_minimise_all");
+
+  PSPPIRE_WINDOW (de)->menu = GTK_MENU_SHELL (gtk_widget_get_parent (w));
 
   de->uim = NULL;
   de->merge_id = 0;
