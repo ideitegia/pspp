@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@ union value;
 char * data_out (const union value *, const char *encoding, const struct fmt_spec *);
 
 char * data_out_pool (const union value *, const char *encoding, const struct fmt_spec *, struct pool *pool);
+
+char *data_out_stretchy (const union value *, const char *encoding, const struct fmt_spec *, struct pool *);
 
 void data_out_recode (const union value *input, const char *input_encoding,
                       const struct fmt_spec *,

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -191,6 +191,28 @@ data_out_pool (const union value *input, const char *encoding,
       converters[format->type] (input, format, output);
       return output;
     }
+}
+
+/* Like data_out_pool(), except that for basic numeric formats (F, COMMA, DOT,
+   COLLAR, PCT, E) and custom currency formats are formatted as wide as
+   necessary to fully display the selected number of decimal places. */
+char *
+data_out_stretchy (const union value *input, const char *encoding,
+                   const struct fmt_spec *format, struct pool *pool)
+{
+  struct fmt_spec wide_format;
+
+  if (fmt_get_category (format->type) & (FMT_CAT_BASIC | FMT_CAT_CUSTOM))
+    {
+      /* XXX In the common case this wastes memory for 40 bytes of mostly
+         spaces. */
+      wide_format.type = format->type;
+      wide_format.w = 40;
+      wide_format.d = format->d;
+      format = &wide_format;
+    }
+
+  return data_out_pool (input, encoding, format, pool);
 }
 
 char *

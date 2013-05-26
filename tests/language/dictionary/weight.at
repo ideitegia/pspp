@@ -72,7 +72,7 @@ BVAR,1,6- 10,F5.0
 
 Table: Valid cases = 730; cases with missing value(s) = 0.
 Variable,Valid N,Missing N,Mean,S.E. Mean,Std Dev,Variance,Kurtosis,S.E. Kurt,Skewness,S.E. Skew,Range,Minimum,Maximum,Sum
-AVAR,730,0,31.515,.405,10.937,119.608,2.411,.181,1.345,.090,76.000,18.000,94.000,23006.00
+AVAR,730,0,31.515,.405,10.937,119.608,2.411,.181,1.345,.090,76.000,18.000,94.000,23006.000
 
 Table: AVAR
 Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
@@ -145,7 +145,7 @@ S.E. Skew,,.090
 Range,,76.000
 Minimum,,18.000
 Maximum,,94.000
-Sum,,23006.00
+Sum,,23006.000
 Percentiles,50 (Median),28
 ])
 AT_CLEANUP

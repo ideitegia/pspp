@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -379,9 +379,9 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
     }
 #endif
 
-  contents = data_out_pool (v, var_get_encoding (var),
-                            f != NULL ? f : var_get_print_format (var),
-                            table->container);
+  contents = data_out_stretchy (v, var_get_encoding (var),
+                                f != NULL ? f : var_get_print_format (var),
+                                table->container);
 
   table->cc[c + r * table->cf] = contents;
   table->ct[c + r * table->cf] = opt;
@@ -419,7 +419,7 @@ tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, C_ENCODING, &f, table->container);
+  s = data_out_stretchy (&double_value, C_ENCODING, &f, table->container);
 
   table->cc[c + r * table->cf] = s + strspn (s, " ");
   table->ct[c + r * table->cf] = opt;
@@ -461,7 +461,7 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, C_ENCODING, fmt, table->container);
+  s = data_out_stretchy (&double_value, C_ENCODING, fmt, table->container);
   table->cc[c + r * table->cf] = s + strspn (s, " ");
   table->ct[c + r * table->cf] = opt;
 }
