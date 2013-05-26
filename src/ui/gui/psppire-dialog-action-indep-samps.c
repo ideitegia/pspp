@@ -151,13 +151,14 @@ run_define_groups (PsppireDialogActionIndepSamps *act)
 {
   gint response;
   PsppireDialogAction *da = PSPPIRE_DIALOG_ACTION (act);
+  GtkWidget *parent1 = gtk_widget_get_parent (act->dg_table1);
+  GtkWidget *parent2 = gtk_widget_get_parent (act->dg_table2);
 
-  if ( act->dg_table2->parent)
-    gtk_container_remove (GTK_CONTAINER (act->dg_table2->parent), act->dg_table2);
+  if (parent1)
+    gtk_container_remove (GTK_CONTAINER (parent1), act->dg_table1);
 
-  if ( act->dg_table1->parent)
-    gtk_container_remove (GTK_CONTAINER (act->dg_table1->parent), act->dg_table1);
-
+  if (parent2)
+    gtk_container_remove (GTK_CONTAINER (parent2), act->dg_table2);
 
   if ( var_is_numeric (act->grp_var))
     {
