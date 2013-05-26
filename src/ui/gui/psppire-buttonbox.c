@@ -446,14 +446,10 @@ _psppire_button_box_child_requisition (GtkWidget *widget,
                         "child-internal-pad-y", &ipad_y_default,
 			NULL);
 
-  child_min_width = bbox->child_min_width   != GTK_BUTTONBOX_DEFAULT
-    ? bbox->child_min_width : width_default;
-  child_min_height = bbox->child_min_height !=GTK_BUTTONBOX_DEFAULT
-    ? bbox->child_min_height : height_default;
-  ipad_x = bbox->child_ipad_x != GTK_BUTTONBOX_DEFAULT
-    ? bbox->child_ipad_x : ipad_x_default;
-  ipad_y = bbox->child_ipad_y != GTK_BUTTONBOX_DEFAULT
-    ? bbox->child_ipad_y : ipad_y_default;
+  child_min_width = width_default;
+  child_min_height = height_default;
+  ipad_x = ipad_x_default;
+  ipad_y = ipad_y_default;
 
   nchildren = 0;
   nsecondaries = 0;

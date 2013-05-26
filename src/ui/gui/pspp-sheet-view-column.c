@@ -1248,7 +1248,7 @@ pspp_sheet_view_column_button_event (GtkWidget *widget,
       ((GdkEventButton *)event)->button == 1)
     {
       column->maybe_reordered = TRUE;
-      gdk_window_get_pointer (GTK_BUTTON (widget)->event_window,
+      gdk_window_get_pointer (gtk_button_get_event_window (GTK_BUTTON (widget)),
 			      &column->drag_x,
 			      &column->drag_y,
 			      NULL);
@@ -1675,9 +1675,12 @@ _pspp_sheet_view_column_has_editable_cell (PsppSheetViewColumn *column)
   GList *list;
 
   for (list = column->cell_list; list; list = list->next)
-    if (((PsppSheetViewColumnCellInfo *)list->data)->cell->mode ==
-	GTK_CELL_RENDERER_MODE_EDITABLE)
-      return TRUE;
+    {
+      GtkCellRendererMode mode;
+      g_object_get (((PsppSheetViewColumnCellInfo *)list->data)->cell, "mode", &mode, NULL);
+      if (mode == GTK_CELL_RENDERER_MODE_EDITABLE)
+	return TRUE;
+    }
 
   return FALSE;
 }
@@ -1705,8 +1708,11 @@ _pspp_sheet_view_column_count_special_cells (PsppSheetViewColumn *column)
     {
       PsppSheetViewColumnCellInfo *cellinfo = list->data;
 
-      if ((cellinfo->cell->mode == GTK_CELL_RENDERER_MODE_EDITABLE ||
-	  cellinfo->cell->mode == GTK_CELL_RENDERER_MODE_ACTIVATABLE) &&
+      GtkCellRendererMode mode;
+      g_object_get (cellinfo->cell, "mode", &mode, NULL);
+
+      if ((mode == GTK_CELL_RENDERER_MODE_EDITABLE ||
+	  mode == GTK_CELL_RENDERER_MODE_ACTIVATABLE) &&
 	  gtk_cell_renderer_get_visible (cellinfo->cell))
 	i++;
     }

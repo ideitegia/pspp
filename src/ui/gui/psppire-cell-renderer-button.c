@@ -70,15 +70,14 @@ psppire_cell_renderer_button_set_property (GObject      *object,
                                            GParamSpec   *pspec)
 {
   PsppireCellRendererButton *obj = PSPPIRE_CELL_RENDERER_BUTTON (object);
-
   switch (prop_id)
     {
     case PROP_EDITABLE:
       obj->editable = g_value_get_boolean (value);
       if (obj->editable)
-        GTK_CELL_RENDERER (obj)->mode = GTK_CELL_RENDERER_MODE_EDITABLE;
+	g_object_set (obj, "mode", GTK_CELL_RENDERER_MODE_EDITABLE, NULL);
       else
-        GTK_CELL_RENDERER (obj)->mode = GTK_CELL_RENDERER_MODE_INERT;
+	g_object_set (obj, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
       break;
 
     case PROP_LABEL:
@@ -189,10 +188,11 @@ psppire_cell_renderer_button_render (GtkCellRenderer      *cell,
                                      GdkRectangle         *expose_area,
                                      GtkCellRendererState  flags)
 {
-  PsppireCellRendererButton *button = PSPPIRE_CELL_RENDERER_BUTTON (cell);
   GtkStateType state_type;
-
-  if (!button->editable || !cell->sensitive)
+  PsppireCellRendererButton *button = PSPPIRE_CELL_RENDERER_BUTTON (cell);
+  gfloat xalign, yalign;
+  
+  if (!button->editable || ! gtk_cell_renderer_get_sensitive (cell))
     state_type = GTK_STATE_INSENSITIVE;
   else if (flags & GTK_CELL_RENDERER_SELECTED)
     {
@@ -211,12 +211,14 @@ psppire_cell_renderer_button_render (GtkCellRenderer      *cell,
         state_type = GTK_STATE_NORMAL;
     }
 
+  gtk_cell_renderer_get_alignment (cell, &xalign, &yalign);
+
   update_style_cache (button, widget);
   facade_button_render (widget, window, expose_area,
                         cell_area, button->border_width, button->button_style,
                         state_type,
                         button->label_style, button->label, button->xpad,
-                        button->ypad, cell->xalign, cell->yalign);
+                        button->ypad, xalign, yalign);
 
   if (button->slash)
     {
