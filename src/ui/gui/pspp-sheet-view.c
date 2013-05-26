@@ -1824,6 +1824,7 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
   GList *list, *first_column, *last_column;
   PsppSheetViewColumn *column;
   GtkAllocation col_allocation;
+  GtkAllocation allocation;
   gint width = 0;
   gint extra, extra_per_column;
   gint full_requested_width = 0;
@@ -1837,6 +1838,7 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
        last_column && !(PSPP_SHEET_VIEW_COLUMN (last_column->data)->visible);
        last_column = last_column->prev)
     ;
+
   if (last_column == NULL)
     return;
 
@@ -1864,7 +1866,8 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
 	number_of_expand_columns++;
     }
 
-  extra = MAX (widget->allocation.width - full_requested_width, 0);
+  gtk_widget_get_allocation (widget, &allocation);
+  extra = MAX (allocation.width - full_requested_width, 0);
   if (number_of_expand_columns > 0)
     extra_per_column = extra/number_of_expand_columns;
   else
@@ -1932,7 +1935,7 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
 
       if (span_intersects (col_allocation.x, col_allocation.width,
                            gtk_adjustment_get_value (tree_view->priv->hadjustment),
-                           widget->allocation.width)
+                           allocation.width)
           && gtk_widget_get_realized (widget))
         pspp_sheet_view_column_set_need_button (column, TRUE);
 
@@ -1954,7 +1957,6 @@ pspp_sheet_view_size_allocate_columns (GtkWidget *widget,
     gtk_widget_queue_draw (GTK_WIDGET (tree_view));
 }
 
-
 static void
 pspp_sheet_view_size_allocate (GtkWidget     *widget,
 			     GtkAllocation *allocation)
@@ -1962,12 +1964,14 @@ pspp_sheet_view_size_allocate (GtkWidget     *widget,
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
   GList *tmp_list;
   gboolean width_changed = FALSE;
-  gint old_width = widget->allocation.width;
+  GtkAllocation old_allocation;
+  gtk_widget_get_allocation (widget, &old_allocation);
 
-  if (allocation->width != widget->allocation.width)
+  if (allocation->width != old_allocation.width)
     width_changed = TRUE;
 
-  widget->allocation = *allocation;
+
+  gtk_widget_set_allocation (widget, allocation);
 
   tmp_list = tree_view->priv->children;
 
@@ -2006,9 +2010,9 @@ pspp_sheet_view_size_allocate (GtkWidget     *widget,
 	      gtk_adjustment_set_value (tree_view->priv->hadjustment, MAX (tree_view->priv->width - allocation->width, 0));
 	      tree_view->priv->init_hadjust_value = FALSE;
 	    }
-	  else if (allocation->width != old_width)
+	  else if (allocation->width != old_allocation.width)
 	    {
-	      gtk_adjustment_set_value (tree_view->priv->hadjustment, CLAMP (gtk_adjustment_get_value (tree_view->priv->hadjustment) - allocation->width + old_width, 0, tree_view->priv->width - allocation->width));
+	      gtk_adjustment_set_value (tree_view->priv->hadjustment, CLAMP (gtk_adjustment_get_value (tree_view->priv->hadjustment) - allocation->width + old_allocation.width, 0, tree_view->priv->width - allocation->width));
 	    }
 	  else
 	    gtk_adjustment_set_value (tree_view->priv->hadjustment, CLAMP (tree_view->priv->width - (tree_view->priv->prev_width - gtk_adjustment_get_value (tree_view->priv->hadjustment)), 0, tree_view->priv->width - allocation->width));
