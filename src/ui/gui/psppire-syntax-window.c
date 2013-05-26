@@ -296,7 +296,7 @@ clipboard_get_cb (GtkClipboard     *clipboard,
   PsppireSyntaxWindow *sw = data;
   g_assert (info == SELECT_FMT_TEXT);
 
-  gtk_selection_data_set (selection_data, selection_data->target,
+  gtk_selection_data_set (selection_data, gtk_selection_data_get_target (selection_data),
 			  8,
 			  (const guchar *) sw->cliptext, strlen (sw->cliptext));
 
@@ -378,15 +378,15 @@ contents_received_callback (GtkClipboard *clipboard,
 {
   PsppireSyntaxWindow *syntax_window = data;
 
-  if ( sd->length < 0 )
+  if ( gtk_selection_data_get_length (sd) < 0 )
     return;
 
-  if ( sd->type != gdk_atom_intern ("UTF8_STRING", FALSE))
+  if ( gtk_selection_data_get_data_type (sd) != gdk_atom_intern ("UTF8_STRING", FALSE))
     return;
 
   gtk_text_buffer_insert_at_cursor (GTK_TEXT_BUFFER (syntax_window->buffer),
-				    (gchar *) sd->data,
-				    sd->length);
+				    (gchar *) gtk_selection_data_get_data (sd),
+				    gtk_selection_data_get_length (sd));
 
 }
 
@@ -892,11 +892,11 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   {
   GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1", GTK_TYPE_UI_MANAGER));
+  GtkWidget *w = gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all");
 
   merge_help_menu (uim);
 
-  PSPPIRE_WINDOW (window)->menu =
-    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
+  PSPPIRE_WINDOW (window)->menu = GTK_MENU_SHELL (gtk_widget_get_parent (w));
   }
 
   g_object_unref (xml);

@@ -2305,7 +2305,7 @@ psppire_data_sheet_clipboard_set (GtkSelectionData *selection_data,
       g_assert_not_reached ();
     }
 
-  gtk_selection_data_set (selection_data, selection_data->target,
+  gtk_selection_data_set (selection_data, gtk_selection_data_get_target (selection_data),
 			  8,
 			  (const guchar *) string->str, string->len);
 
@@ -2438,13 +2438,13 @@ psppire_data_sheet_clip_received_cb (GtkClipboard *clipboard,
   gint first_column;
   char *c;
 
-  if ( sd->length < 0 )
+  if ( gtk_selection_data_get_length (sd) < 0 )
     return;
 
-  if ( sd->type != gdk_atom_intern ("UTF8_STRING", FALSE))
+  if ( gtk_selection_data_get_data_type (sd) != gdk_atom_intern ("UTF8_STRING", FALSE))
     return;
 
-  c = (char *) sd->data;
+  c = (char *) gtk_selection_data_get_data (sd);
 
   /* Get the starting selected position in the data sheet.  (Possibly we should
      only paste into the selected range if it's larger than one cell?) */
@@ -2458,14 +2458,14 @@ psppire_data_sheet_clip_received_cb (GtkClipboard *clipboard,
   g_return_if_fail (next_row >= 0);
   g_return_if_fail (next_column >= 0);
 
-  while (count < sd->length)
+  while (count < gtk_selection_data_get_length (sd))
     {
       gint row = next_row;
       gint column = next_column;
       struct variable *var;
       char *s = c;
 
-      while (*c != '\t' && *c != '\n' && count < sd->length)
+      while (*c != '\t' && *c != '\n' && count < gtk_selection_data_get_length (sd))
         {
           c++;
           count++;
