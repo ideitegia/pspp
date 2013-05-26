@@ -160,6 +160,7 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
 	{
 	  if ( ! enlarge_dst_widths (trns))
 	    {
+	      recode_trns_free (trns);
 	      return CMD_FAILURE;
 	    }
 	}
