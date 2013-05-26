@@ -167,7 +167,7 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
   PsppireOutputWindow *viewer = PSPPIRE_OUTPUT_WINDOW (data);
   struct xr_rendering *r = g_object_get_data (G_OBJECT (widget), "rendering");
-  cairo_t *cr = gdk_cairo_create (widget->window);
+  cairo_t *cr = gdk_cairo_create (gtk_widget_get_window (widget));
 
   const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
 
@@ -246,7 +246,7 @@ psppire_output_submit (struct output_driver *this,
         return;
     }
 
-  cr = gdk_cairo_create (GTK_WIDGET (pod->viewer)->window);
+  cr = gdk_cairo_create (gtk_widget_get_window (GTK_WIDGET (pod->viewer)));
   if (pod->xr == NULL)
     {
       const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
@@ -454,8 +454,8 @@ on_row_activate (GtkTreeView *overview,
   g_value_unset (&value);
 
   vadj = gtk_layout_get_vadjustment (window->output);
-  min = vadj->lower;
-  max = vadj->upper - vadj->page_size;
+  min = gtk_adjustment_get_lower (vadj);
+  max = gtk_adjustment_get_upper (vadj) - gtk_adjustment_get_page_size (vadj);
   if (y < min)
     y = min;
   else if (y > max)
@@ -833,7 +833,7 @@ clipboard_get_cb (GtkClipboard     *clipboard,
 
   if ( g_file_get_contents (filename, &text, &length, NULL) )
     {
-      gtk_selection_data_set (selection_data, selection_data->target,
+      gtk_selection_data_set (selection_data, gtk_selection_data_get_target (selection_data),
 			      8,
 			      (const guchar *) text, length);
     }
@@ -1022,11 +1022,14 @@ psppire_output_window_init (PsppireOutputWindow *window)
 		    NULL);
 
   {
+    GtkWidget *w;
     GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1", GTK_TYPE_UI_MANAGER));
     merge_help_menu (uim);
 
+    w = gtk_ui_manager_get_widget (uim,"/ui/menubar/windows_menuitem/windows_minimise-all");
+
     PSPPIRE_WINDOW (window)->menu =
-      GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows_menuitem/windows_minimise-all")->parent);
+      GTK_MENU_SHELL (gtk_widget_get_parent (w));
   }
 
   g_signal_connect_swapped (get_action_assert (xml, "file_export"), "activate",
