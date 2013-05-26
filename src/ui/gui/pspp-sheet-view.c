@@ -2891,6 +2891,7 @@ update_prelight (PsppSheetView *tree_view,
 static void
 pspp_sheet_view_motion_draw_column_motion_arrow (PsppSheetView *tree_view)
 {
+#if GTK3_TRANSITION
   PsppSheetViewColumnReorder *reorder = tree_view->priv->cur_reorder;
   GtkWidget *widget = GTK_WIDGET (tree_view);
   GdkBitmap *mask = NULL;
@@ -3129,6 +3130,7 @@ pspp_sheet_view_motion_draw_column_motion_arrow (PsppSheetView *tree_view)
 
   gdk_window_show (tree_view->priv->drag_highlight_window);
   gdk_window_raise (tree_view->priv->drag_highlight_window);
+#endif
 }
 
 static gboolean
@@ -4295,6 +4297,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
               break;
             }
 
+#if GTK3_TRANSITION
           if (highlight_y >= 0)
             {
               gdk_draw_line (event->window,
@@ -4304,6 +4307,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
                              rtl ? 0 : bin_window_width,
                              highlight_y);
             }
+#endif
         }
 
       /* draw the big row-spanning focus rectangle, if needed */
@@ -11323,12 +11327,14 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
   expose_area.width = bin_window_width + 2;
   expose_area.height = background_area.height + 2;
 
+#if GTK3_TRANSITION
   gdk_draw_rectangle (drawable,
                       widget->style->base_gc [gtk_widget_get_state (widget)],
                       TRUE,
                       0, 0,
                       bin_window_width + 2,
                       background_area.height + 2);
+#endif
 
   rtl = gtk_widget_get_direction (GTK_WIDGET (tree_view)) == GTK_TEXT_DIR_RTL;
 
@@ -11367,12 +11373,14 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
       cell_offset += column->width;
     }
 
+#if GTK3_TRANSITION
   gdk_draw_rectangle (drawable,
                       widget->style->black_gc,
                       FALSE,
                       0, 0,
                       bin_window_width + 1,
                       background_area.height + 1);
+#endif
 
   return drawable;
 }
