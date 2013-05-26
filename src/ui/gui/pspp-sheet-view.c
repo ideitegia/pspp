@@ -1463,9 +1463,9 @@ pspp_sheet_view_realize (GtkWidget *widget)
 
   /* Make the main, clipping window */
   attributes.window_type = GDK_WINDOW_CHILD;
-  attributes.x = widget->allocation.x;
-  attributes.y = widget->allocation.y;
-  attributes.width = widget->allocation.width;
+  attributes.x =      widget->allocation.x;
+  attributes.y =      widget->allocation.y;
+  attributes.width =  widget->allocation.width;
   attributes.height = widget->allocation.height;
   attributes.wclass = GDK_INPUT_OUTPUT;
   attributes.visual = gtk_widget_get_visual (widget);
@@ -4890,7 +4890,7 @@ pspp_sheet_view_key_press (GtkWidget   *widget,
       old_text = g_strdup (gtk_entry_get_text (GTK_ENTRY (tree_view->priv->search_entry)));
       new_event = gdk_event_copy ((GdkEvent *) event);
       g_object_unref (((GdkEventKey *) new_event)->window);
-      ((GdkEventKey *) new_event)->window = g_object_ref (tree_view->priv->search_window->window);
+      ((GdkEventKey *) new_event)->window = g_object_ref (gtk_widget_get_window (tree_view->priv->search_window));
       gtk_widget_realize (tree_view->priv->search_window);
 
       popup_menu_id = g_signal_connect (tree_view->priv->search_entry, 
@@ -8793,8 +8793,8 @@ typedef struct
 /* The window to which gtk_widget_get_window (widget) is relative */
 #define ALLOCATION_WINDOW(widget)		\
    (!gtk_widget_get_has_window (widget) ?		\
-    (widget)->window :                          \
-     gdk_window_get_parent ((widget)->window))
+    gtk_widget_get_window (widget) :                          \
+    gdk_window_get_parent (gtk_widget_get_window (widget)))
 
 static void
 adjust_allocation_recurse (GtkWidget *widget,
