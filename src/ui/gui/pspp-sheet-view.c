@@ -3525,14 +3525,16 @@ pspp_sheet_view_update_rubber_band_selection (PsppSheetView *tree_view)
   tree_view->priv->rubber_band_end_node = end_node;
 }
 
+#define GDK_RECTANGLE_PTR(X) ((GdkRectangle *)(X))
+
 static void
 pspp_sheet_view_update_rubber_band (PsppSheetView *tree_view)
 {
   gint x, y;
-  GdkRectangle old_area;
-  GdkRectangle new_area;
-  GdkRectangle common;
-  GdkRegion *invalid_region;
+  cairo_rectangle_int_t old_area;
+  cairo_rectangle_int_t new_area;
+  cairo_rectangle_int_t common;
+  cairo_region_t *invalid_region;
   PsppSheetViewColumn *column;
 
   old_area.x = MIN (tree_view->priv->press_start_x, tree_view->priv->rubber_band_x);
@@ -3550,13 +3552,14 @@ pspp_sheet_view_update_rubber_band (PsppSheetView *tree_view)
   new_area.width = ABS (x - tree_view->priv->press_start_x) + 1;
   new_area.height = ABS (y - tree_view->priv->press_start_y) + 1;
 
-  invalid_region = gdk_region_rectangle (&old_area);
-  gdk_region_union_with_rect (invalid_region, &new_area);
+  invalid_region = cairo_region_create_rectangle (&old_area);
+  cairo_region_union_rectangle (invalid_region, &new_area);
 
-  gdk_rectangle_intersect (&old_area, &new_area, &common);
+  gdk_rectangle_intersect (GDK_RECTANGLE_PTR (&old_area), 
+			   GDK_RECTANGLE_PTR (&new_area), GDK_RECTANGLE_PTR (&common));
   if (common.width > 2 && common.height > 2)
     {
-      GdkRegion *common_region;
+      cairo_region_t *common_region;
 
       /* make sure the border is invalidated */
       common.x += 1;
@@ -3564,15 +3567,26 @@ pspp_sheet_view_update_rubber_band (PsppSheetView *tree_view)
       common.width -= 2;
       common.height -= 2;
 
-      common_region = gdk_region_rectangle (&common);
+      common_region = cairo_region_create_rectangle (&common);
 
-      gdk_region_subtract (invalid_region, common_region);
-      gdk_region_destroy (common_region);
+      cairo_region_subtract (invalid_region, common_region);
+      cairo_region_destroy (common_region);
     }
 
-  gdk_window_invalidate_region (tree_view->priv->bin_window, invalid_region, TRUE);
+#if GTK_MAJOR_VERSION == 3
+  gdk_window_invalidate_region (tree_view->priv->bin_window, invalid_region, TRUE);  
+#else
+  {
+    cairo_rectangle_int_t extents;
+    GdkRegion *ereg;
+    cairo_region_get_extents (invalid_region, &extents);
+    ereg = gdk_region_rectangle (GDK_RECTANGLE_PTR (&extents));
+    gdk_window_invalidate_region (tree_view->priv->bin_window, ereg, TRUE);
+    gdk_region_destroy (ereg);
+  }
+#endif
 
-  gdk_region_destroy (invalid_region);
+  cairo_region_destroy (invalid_region);
 
   tree_view->priv->rubber_band_x = x;
   tree_view->priv->rubber_band_y = y;
