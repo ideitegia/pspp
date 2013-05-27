@@ -75,6 +75,30 @@ static void gtk_xpaned_init (GtkXPaned * xpaned);
 static void gtk_xpaned_size_request (GtkWidget * widget,
                                      GtkRequisition * requisition);
 
+static void
+gtk_xpaned_get_preferred_width (GtkWidget *widget,
+                               gint      *minimal_width,
+                               gint      *natural_width)
+{
+  GtkRequisition requisition;
+
+  gtk_xpaned_size_request (widget, &requisition);
+
+  *minimal_width = *natural_width = requisition.width;
+}
+
+static void
+gtk_xpaned_get_preferred_height (GtkWidget *widget,
+                                gint      *minimal_height,
+                                gint      *natural_height)
+{
+  GtkRequisition requisition;
+
+  gtk_xpaned_size_request (widget, &requisition);
+
+  *minimal_height = *natural_height = requisition.height;
+}
+
 static void gtk_xpaned_size_allocate (GtkWidget * widget,
                                       GtkAllocation * allocation);
 
@@ -275,7 +299,9 @@ gtk_xpaned_class_init (GtkXPanedClass * class)
   widget_class->button_press_event = gtk_xpaned_button_press;
   widget_class->button_release_event = gtk_xpaned_button_release;
   widget_class->motion_notify_event = gtk_xpaned_motion;
-  widget_class->size_request = gtk_xpaned_size_request;
+  widget_class->get_preferred_width  = gtk_xpaned_get_preferred_width;
+  widget_class->get_preferred_height = gtk_xpaned_get_preferred_height;
+
   widget_class->size_allocate = gtk_xpaned_size_allocate;
 
   container_class->add = gtk_xpaned_add;
