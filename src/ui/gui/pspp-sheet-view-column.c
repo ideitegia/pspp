@@ -3122,7 +3122,7 @@ enum {
 
 static gboolean
 pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
-					  GdkWindow          *window,
+					    cairo_t *cr,
 					  const GdkRectangle *background_area,
 					  const GdkRectangle *cell_area,
 					  guint               flags,
@@ -3281,11 +3281,10 @@ pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
       if (action == CELL_ACTION_RENDER)
 	{
 	  gtk_cell_renderer_render (info->cell,
-				    window,
+				    cr,
 				    tree_column->tree_view,
 				    &rtl_background_area,
 				    &rtl_cell_area,
-				    &real_expose_area, 
 				    flags);
 	}
       /* FOCUS */
@@ -3446,11 +3445,10 @@ pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
       if (action == CELL_ACTION_RENDER)
 	{
 	  gtk_cell_renderer_render (info->cell,
-				    window,
+				    cr,
 				    tree_column->tree_view,
 				    &rtl_background_area,
 				    &rtl_cell_area,
-				    &real_expose_area,
 				    flags);
 	}
       /* FOCUS */
@@ -3602,7 +3600,7 @@ pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
  **/
 void
 _pspp_sheet_view_column_cell_render (PsppSheetViewColumn  *tree_column,
-				   GdkWindow          *window,
+				     cairo_t *cr,
 				   const GdkRectangle *background_area,
 				   const GdkRectangle *cell_area,
 				   const GdkRectangle *expose_area,
@@ -3614,7 +3612,7 @@ _pspp_sheet_view_column_cell_render (PsppSheetViewColumn  *tree_column,
   g_return_if_fail (expose_area != NULL);
 
   pspp_sheet_view_column_cell_process_action (tree_column,
-					    window,
+					      cr,
 					    background_area,
 					    cell_area,
 					    flags,

@@ -406,7 +406,7 @@ void              _pspp_sheet_selection_set_tree_view      (PsppSheetSelection *
                                                           PsppSheetView      *tree_view);
 
 void		  _pspp_sheet_view_column_cell_render      (PsppSheetViewColumn  *tree_column,
-							  GdkWindow          *window,
+							    cairo_t *cr,
 							  const GdkRectangle *background_area,
 							  const GdkRectangle *cell_area,
 							  const GdkRectangle *expose_area,
