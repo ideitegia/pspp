@@ -3775,10 +3775,10 @@ draw_empty_focus (PsppSheetView *tree_view, GdkRectangle *clip_area)
 
 static void
 pspp_sheet_view_draw_vertical_grid_lines (PsppSheetView    *tree_view,
-			       GdkEventExpose *event,
-                                 gint            n_visible_columns,
-                                 gint min_y,
-                                 gint max_y)
+					  cairo_t *cr,
+					  gint n_visible_columns,
+					  gint min_y,
+					  gint max_y)
 {
   GList *list = tree_view->priv->columns;
   gint i = 0;
@@ -3802,26 +3802,12 @@ pspp_sheet_view_draw_vertical_grid_lines (PsppSheetView    *tree_view,
 
       current_x += column->width;
 
-      if (current_x - 1 >= event->area.x
-          && current_x - 1 < event->area.x + event->area.width)
-	{
-#if GTK3_TRANSITION
-	  gdk_draw_line (event->window,
-			 tree_view->priv->grid_line_gc[GTK_WIDGET(tree_view)->state],
-			 current_x - 1, min_y,
-			 current_x - 1, max_y - min_y);
-#else
-
-	  cairo_t *cr = gdk_cairo_create (event->window);	
-	  cairo_set_line_width (cr, 1.0);
-	  cairo_set_line_cap (cr, CAIRO_LINE_CAP_SQUARE);
-	  cairo_move_to (cr, current_x - 0.5, min_y);
-	  cairo_line_to (cr, current_x - 0.5 , max_y - min_y);
-
-	  cairo_stroke (cr);
-	  cairo_destroy (cr);
-#endif
-	}
+      cairo_set_line_width (cr, 1.0);
+      cairo_set_line_cap (cr, CAIRO_LINE_CAP_SQUARE);
+      cairo_move_to (cr, current_x - 0.5, min_y);
+      cairo_line_to (cr, current_x - 0.5 , max_y - min_y);
+      
+      cairo_stroke (cr);
     }
 }
 
@@ -3864,6 +3850,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   gboolean row_ending_details;
   gboolean draw_vgrid_lines, draw_hgrid_lines;
   gint min_y, max_y;
+  cairo_t *cr = gdk_cairo_create (event->window);
 
   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
 
@@ -4204,7 +4191,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
 	  if (draw_hgrid_lines)
 	    {
-	      cairo_t *cr = gdk_cairo_create (event->window);	
 	      cairo_set_line_width (cr, 1.0);
 	      cairo_set_line_cap (cr, CAIRO_LINE_CAP_SQUARE);
 
@@ -4239,7 +4225,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 #endif
 		}
 	      cairo_stroke (cr);
-	      cairo_destroy (cr);
 	    }
 
           _pspp_sheet_view_column_cell_render (column,
@@ -4420,7 +4405,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   while (y_offset < event->area.height);
 
 done:
-  pspp_sheet_view_draw_vertical_grid_lines (tree_view, event, n_visible_columns,
+  pspp_sheet_view_draw_vertical_grid_lines (tree_view, cr, n_visible_columns,
                                    min_y, max_y);
 
 #if GTK3_TRANSITION
@@ -4454,6 +4439,7 @@ pspp_sheet_view_expose (GtkWidget      *widget,
                         GdkEventExpose *event)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
+  cairo_t *cr = gdk_cairo_create (event->window);
 
   if (event->window == tree_view->priv->bin_window)
     {
@@ -4516,10 +4502,10 @@ pspp_sheet_view_expose (GtkWidget      *widget,
           n_visible_columns ++;
         }
       pspp_sheet_view_draw_vertical_grid_lines (tree_view,
-                                       event,
-                                       n_visible_columns,
-                                       event->area.y,
-                                       event->area.height);
+						cr,
+						n_visible_columns,
+						event->area.y,
+						event->area.height);
     }
   else if (event->window == tree_view->priv->drag_window)
     {
