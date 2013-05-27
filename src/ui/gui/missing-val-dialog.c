@@ -184,8 +184,7 @@ err_dialog (const gchar *msg, GtkWindow *window)
     gtk_dialog_new_with_buttons ("PSPP",
 				 window,
 				 GTK_DIALOG_MODAL |
-				 GTK_DIALOG_DESTROY_WITH_PARENT |
-				 GTK_DIALOG_NO_SEPARATOR,
+				 GTK_DIALOG_DESTROY_WITH_PARENT, 
 				 GTK_STOCK_OK,
 				 GTK_RESPONSE_ACCEPT,
 				 NULL);
