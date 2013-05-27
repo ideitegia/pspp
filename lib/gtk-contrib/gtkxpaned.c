@@ -37,7 +37,6 @@
 #include <ui/gui/psppire-marshal.h>
 #include <gdk/gdkkeysyms.h>
 
-
 enum WidgetProperties
   {
     PROP_0,
@@ -713,8 +712,8 @@ gtk_xpaned_size_request (GtkWidget * widget, GtkRequisition * requisition)
     }
 
   /* add 2 times the set border-width to the GtkXPaneds requisition */
-  requisition->width += GTK_CONTAINER (xpaned)->border_width * 2;
-  requisition->height += GTK_CONTAINER (xpaned)->border_width * 2;
+  requisition->width += gtk_container_get_border_width (GTK_CONTAINER (xpaned)) * 2;
+  requisition->height += gtk_container_get_border_width (GTK_CONTAINER (xpaned)) * 2;
 
   /* also add the handle "thickness" to GtkXPaneds width- and height-requisitions */
   if (xpaned->top_left_child
@@ -747,7 +746,7 @@ static void
 gtk_xpaned_size_allocate (GtkWidget * widget, GtkAllocation * allocation)
 {
   GtkXPaned *xpaned = GTK_XPANED (widget);
-  gint border_width = GTK_CONTAINER (xpaned)->border_width;
+  gint border_width = gtk_container_get_border_width (GTK_CONTAINER (xpaned));
   GtkAllocation top_left_child_allocation;
   GtkAllocation top_right_child_allocation;
   GtkAllocation bottom_left_child_allocation;
@@ -761,7 +760,7 @@ gtk_xpaned_size_allocate (GtkWidget * widget, GtkAllocation * allocation)
   /* determine size of handle(s) */
   gtk_widget_style_get (widget, "handle-size", &handle_size, NULL);
 
-  widget->allocation = *allocation;
+  gtk_widget_set_allocation (widget, allocation);
 
   if (xpaned->top_left_child
       && gtk_widget_get_visible (xpaned->top_left_child)
@@ -793,34 +792,34 @@ gtk_xpaned_size_allocate (GtkWidget * widget, GtkAllocation * allocation)
 
       /* calculate the current positions and sizes of the handles */
       xpaned->handle_pos_east.x =
-        widget->allocation.x + border_width +
+        allocation->x + border_width +
         xpaned->top_left_child_size.width + handle_size;
       xpaned->handle_pos_east.y =
-        widget->allocation.y + border_width +
+        allocation->y + border_width +
         xpaned->top_left_child_size.height;
       xpaned->handle_pos_east.width =
-        widget->allocation.width - xpaned->top_left_child_size.width -
+        allocation->width - xpaned->top_left_child_size.width -
         2 * border_width - handle_size;
       xpaned->handle_pos_east.height = handle_size;
 
-      xpaned->handle_pos_west.x = widget->allocation.x + border_width;
+      xpaned->handle_pos_west.x = allocation->x + border_width;
       xpaned->handle_pos_west.y = xpaned->handle_pos_east.y;
       xpaned->handle_pos_west.width =
-        widget->allocation.width - xpaned->handle_pos_east.width -
+        allocation->width - xpaned->handle_pos_east.width -
         2 * border_width - handle_size;
       xpaned->handle_pos_west.height = handle_size;
 
       xpaned->handle_pos_north.x = xpaned->handle_pos_east.x - handle_size;
-      xpaned->handle_pos_north.y = widget->allocation.y + border_width;
+      xpaned->handle_pos_north.y = allocation->y + border_width;
       xpaned->handle_pos_north.width = handle_size;
       xpaned->handle_pos_north.height =
-        xpaned->handle_pos_east.y - widget->allocation.y - border_width;
+        xpaned->handle_pos_east.y - allocation->y - border_width;
 
       xpaned->handle_pos_south.x = xpaned->handle_pos_north.x;
       xpaned->handle_pos_south.y = xpaned->handle_pos_east.y + handle_size;
       xpaned->handle_pos_south.width = handle_size;
       xpaned->handle_pos_south.height =
-        widget->allocation.height - xpaned->handle_pos_north.height -
+        allocation->height - xpaned->handle_pos_north.height -
         2 * border_width - handle_size;
 
 
@@ -831,16 +830,16 @@ gtk_xpaned_size_allocate (GtkWidget * widget, GtkAllocation * allocation)
       xpaned->handle_pos_middle.height = handle_size + CENTRUM;
 
       /* set allocation for top-left child */
-      top_left_child_allocation.x = widget->allocation.x + border_width;
-      top_left_child_allocation.y = widget->allocation.y + border_width;
+      top_left_child_allocation.x = allocation->x + border_width;
+      top_left_child_allocation.y = allocation->y + border_width;
       top_left_child_allocation.width = xpaned->handle_pos_west.width;
       top_left_child_allocation.height = xpaned->handle_pos_north.height;
 
       /* set allocation for top-right child */
       top_right_child_allocation.x =
-        widget->allocation.x + border_width + handle_size +
+        allocation->x + border_width + handle_size +
         top_left_child_allocation.width;
-      top_right_child_allocation.y = widget->allocation.y + border_width;
+      top_right_child_allocation.y = allocation->y + border_width;
       top_right_child_allocation.width = xpaned->handle_pos_east.width;
       top_right_child_allocation.height = xpaned->handle_pos_north.height;
 
@@ -1136,8 +1135,8 @@ gtk_xpaned_realize (GtkWidget * widget)
   gtk_widget_set_realized (widget, TRUE);
   xpaned = GTK_XPANED (widget);
 
-  widget->window = gtk_widget_get_parent_window (widget);
-  g_object_ref (widget->window);
+  gtk_widget_set_window (widget, gtk_widget_get_parent_window (widget));
+  //  g_object_ref (widget->window);
 
   attributes_east.window_type = GDK_WINDOW_CHILD;
   attributes_west.window_type = GDK_WINDOW_CHILD;
@@ -1235,19 +1234,19 @@ gtk_xpaned_realize (GtkWidget * widget)
   attributes_mask_south = GDK_WA_X | GDK_WA_Y | GDK_WA_CURSOR;
   attributes_mask_middle = GDK_WA_X | GDK_WA_Y | GDK_WA_CURSOR;
 
-  xpaned->handle_east = gdk_window_new (widget->window,
+  xpaned->handle_east = gdk_window_new (gtk_widget_get_window (widget),
                                         &attributes_east,
                                         attributes_mask_east);
-  xpaned->handle_west = gdk_window_new (widget->window,
+  xpaned->handle_west = gdk_window_new (gtk_widget_get_window (widget),
                                         &attributes_west,
                                         attributes_mask_west);
-  xpaned->handle_north = gdk_window_new (widget->window,
+  xpaned->handle_north = gdk_window_new (gtk_widget_get_window (widget),
                                          &attributes_north,
                                          attributes_mask_north);
-  xpaned->handle_south = gdk_window_new (widget->window,
+  xpaned->handle_south = gdk_window_new (gtk_widget_get_window (widget),
                                          &attributes_south,
                                          attributes_mask_south);
-  xpaned->handle_middle = gdk_window_new (widget->window,
+  xpaned->handle_middle = gdk_window_new (gtk_widget_get_window (widget),
                                           &attributes_middle,
                                           attributes_mask_middle);
 
@@ -1263,7 +1262,12 @@ gtk_xpaned_realize (GtkWidget * widget)
   gdk_cursor_unref (attributes_south.cursor);
   gdk_cursor_unref (attributes_middle.cursor);
 
-  widget->style = gtk_style_attach (widget->style, widget->window);
+  {
+  GtkStyle *style = gtk_widget_get_style (widget);
+  style = gtk_style_attach (style, gtk_widget_get_window (widget));
+  gtk_widget_set_style (widget, style);
+  }
+  
 
   if (xpaned->top_left_child
       && gtk_widget_get_visible (xpaned->top_left_child)
@@ -1414,8 +1418,8 @@ gtk_xpaned_expose (GtkWidget * widget, GdkEventExpose * event)
         xpaned->handle_pos_north.height + handle_size +
         xpaned->handle_pos_south.height;
 
-      gtk_paint_handle (widget->style,
-                        widget->window,
+      gtk_paint_handle (gtk_widget_get_style (widget),
+                        gtk_widget_get_window (widget),
                         state,
                         GTK_SHADOW_NONE,
                         &horizontalClipArea,
@@ -1429,8 +1433,8 @@ gtk_xpaned_expose (GtkWidget * widget, GdkEventExpose * event)
                           xpaned->handle_pos_west.width + handle_size + xpaned->handle_pos_east.width,
                           handle_size - 2, */
                         GTK_ORIENTATION_HORIZONTAL);
-      gtk_paint_handle (widget->style,
-                        widget->window,
+      gtk_paint_handle (gtk_widget_get_style (widget),
+                        gtk_widget_get_window (widget),
                         state,
                         GTK_SHADOW_NONE,
                         &verticalClipArea,
@@ -1467,6 +1471,8 @@ update_drag (GtkXPaned * xpaned)
   GdkPoint pos;
   gint handle_size;
   GtkRequisition size;
+  GtkAllocation allocation;
+  gtk_widget_get_allocation (GTK_WIDGET (xpaned), &allocation);
 
   gtk_widget_get_pointer (GTK_WIDGET (xpaned), &pos.x, &pos.y);
 
@@ -1479,15 +1485,14 @@ update_drag (GtkXPaned * xpaned)
           gtk_widget_style_get (GTK_WIDGET (xpaned),
                                 "handle-size", &handle_size, NULL);
 
-          size.height =
-            GTK_WIDGET (xpaned)->allocation.height - pos.y - handle_size;
+          size.height = allocation.height - pos.y - handle_size;
         }
       else
         {
           size.height = pos.y;
         }
 
-      size.height -= GTK_CONTAINER (xpaned)->border_width;
+      size.height -= gtk_container_get_border_width (GTK_CONTAINER (xpaned));
 
       size.height =
         CLAMP (size.height, xpaned->min_position.y, xpaned->max_position.y);
@@ -1505,15 +1510,14 @@ update_drag (GtkXPaned * xpaned)
           gtk_widget_style_get (GTK_WIDGET (xpaned),
                                 "handle-size", &handle_size, NULL);
 
-          size.width =
-            GTK_WIDGET (xpaned)->allocation.width - pos.x - handle_size;
+          size.width = allocation.width - pos.x - handle_size;
         }
       else
         {
           size.width = pos.x;
         }
 
-      size.width -= GTK_CONTAINER (xpaned)->border_width;
+      size.width -= gtk_container_get_border_width (GTK_CONTAINER (xpaned));
 
       size.width =
         CLAMP (size.width, xpaned->min_position.x, xpaned->max_position.x);
@@ -1532,10 +1536,8 @@ update_drag (GtkXPaned * xpaned)
           gtk_widget_style_get (GTK_WIDGET (xpaned),
                                 "handle-size", &handle_size, NULL);
 
-          size.width =
-            GTK_WIDGET (xpaned)->allocation.width - pos.x - handle_size;
-          size.height =
-            GTK_WIDGET (xpaned)->allocation.height - pos.y - handle_size;
+          size.width = allocation.width - pos.x - handle_size;
+          size.height = allocation.height - pos.y - handle_size;
         }
       else
         {
@@ -1543,8 +1545,8 @@ update_drag (GtkXPaned * xpaned)
           size.height = pos.y;
         }
 
-      size.width -= GTK_CONTAINER (xpaned)->border_width;
-      size.height -= GTK_CONTAINER (xpaned)->border_width;
+      size.width -= gtk_container_get_border_width (GTK_CONTAINER (xpaned));
+      size.height -= gtk_container_get_border_width (GTK_CONTAINER (xpaned));
 
       size.width =
         CLAMP (size.width, xpaned->min_position.x, xpaned->max_position.x);
@@ -2496,7 +2498,7 @@ gtk_xpaned_compute_position (GtkXPaned * xpaned,
   GdkPoint old_min_position;
   GdkPoint old_max_position;
   gint handle_size;
-  gint border_width = GTK_CONTAINER (xpaned)->border_width;
+  gint border_width = gtk_container_get_border_width (GTK_CONTAINER (xpaned));
 
   g_return_if_fail (GTK_IS_XPANED (xpaned));
 
@@ -2783,7 +2785,7 @@ xpaned_get_focus_widget (GtkXPaned * xpaned)
 
   toplevel = gtk_widget_get_toplevel (GTK_WIDGET (xpaned));
   if (gtk_widget_is_toplevel (toplevel))
-    return GTK_WINDOW (toplevel)->focus_widget;
+    return gtk_window_get_focus (GTK_WINDOW (toplevel));
 
   return NULL;
 }
@@ -2809,17 +2811,17 @@ gtk_xpaned_set_focus_child (GtkContainer * container, GtkWidget * focus_child)
           /* If there is one or more paned widgets between us and the
            * focus widget, we want the topmost of those as last_focus
            */
-          for (w = last_focus; w != GTK_WIDGET (xpaned); w = w->parent)
+          for (w = last_focus; w != GTK_WIDGET (xpaned); w = gtk_widget_get_parent (w))
             if (GTK_IS_XPANED (w))
               last_focus = w;
 
-          if (container->focus_child == xpaned->top_left_child)
+          if (gtk_container_get_focus_child (container) == xpaned->top_left_child)
             gtk_xpaned_set_last_top_left_child_focus (xpaned, last_focus);
-          else if (container->focus_child == xpaned->top_right_child)
+          else if (gtk_container_get_focus_child (container) == xpaned->top_right_child)
             gtk_xpaned_set_last_top_right_child_focus (xpaned, last_focus);
-          else if (container->focus_child == xpaned->bottom_left_child)
+          else if (gtk_container_get_focus_child (container) == xpaned->bottom_left_child)
             gtk_xpaned_set_last_bottom_left_child_focus (xpaned, last_focus);
-          else if (container->focus_child == xpaned->bottom_right_child)
+          else if (gtk_container_get_focus_child (container) == xpaned->bottom_right_child)
             gtk_xpaned_set_last_bottom_right_child_focus (xpaned, last_focus);
         }
     }
@@ -2870,8 +2872,8 @@ gtk_xpaned_get_cycle_chain (GtkXPaned * xpaned,
       gtk_xpaned_set_last_bottom_right_child_focus (xpaned, NULL);
     }
 
-  if (GTK_WIDGET (xpaned)->parent)
-    ancestor = gtk_widget_get_ancestor (GTK_WIDGET (xpaned)->parent,
+  if (gtk_widget_get_parent (GTK_WIDGET (xpaned)))
+    ancestor = gtk_widget_get_ancestor (gtk_widget_get_parent (GTK_WIDGET (xpaned)),
                                         GTK_TYPE_XPANED);
 
   /* The idea here is that temp_list is a list of widgets we want to cycle
@@ -2884,28 +2886,28 @@ gtk_xpaned_get_cycle_chain (GtkXPaned * xpaned,
    */
   if (direction == GTK_DIR_TAB_FORWARD)
     {
-      if (container->focus_child == xpaned->top_left_child)
+      if (gtk_container_get_focus_child (container) == xpaned->top_left_child)
         {
           temp_list =
             g_list_append (temp_list, xpaned->last_top_right_child_focus);
           temp_list = g_list_append (temp_list, xpaned->top_right_child);
           temp_list = g_list_append (temp_list, ancestor);
         }
-      else if (container->focus_child == xpaned->top_right_child)
+      else if (gtk_container_get_focus_child (container) == xpaned->top_right_child)
         {
           temp_list = g_list_append (temp_list, ancestor);
           temp_list =
             g_list_append (temp_list, xpaned->last_bottom_left_child_focus);
           temp_list = g_list_append (temp_list, xpaned->bottom_left_child);
         }
-      else if (container->focus_child == xpaned->bottom_left_child)
+      else if (gtk_container_get_focus_child (container) == xpaned->bottom_left_child)
         {
           temp_list = g_list_append (temp_list, ancestor);
           temp_list =
             g_list_append (temp_list, xpaned->last_bottom_right_child_focus);
           temp_list = g_list_append (temp_list, xpaned->bottom_right_child);
         }
-      else if (container->focus_child == xpaned->bottom_right_child)
+      else if (gtk_container_get_focus_child (container) == xpaned->bottom_right_child)
         {
           temp_list = g_list_append (temp_list, ancestor);
           temp_list =
@@ -2931,28 +2933,28 @@ gtk_xpaned_get_cycle_chain (GtkXPaned * xpaned,
     }
   else
     {
-      if (container->focus_child == xpaned->top_left_child)
+      if (gtk_container_get_focus_child (container) == xpaned->top_left_child)
         {
           temp_list = g_list_append (temp_list, ancestor);
           temp_list =
             g_list_append (temp_list, xpaned->last_top_right_child_focus);
           temp_list = g_list_append (temp_list, xpaned->top_right_child);
         }
-      else if (container->focus_child == xpaned->top_right_child)
+      else if (gtk_container_get_focus_child (container) == xpaned->top_right_child)
         {
           temp_list =
             g_list_append (temp_list, xpaned->last_bottom_left_child_focus);
           temp_list = g_list_append (temp_list, xpaned->bottom_left_child);
           temp_list = g_list_append (temp_list, ancestor);
         }
-      else if (container->focus_child == xpaned->bottom_right_child)
+      else if (gtk_container_get_focus_child (container) == xpaned->bottom_right_child)
         {
           temp_list =
             g_list_append (temp_list, xpaned->last_bottom_left_child_focus);
           temp_list = g_list_append (temp_list, xpaned->bottom_left_child);
           temp_list = g_list_append (temp_list, ancestor);
         }
-      else if (container->focus_child == xpaned->top_right_child)
+      else if (gtk_container_get_focus_child (container) == xpaned->top_right_child)
         {
           temp_list =
             g_list_append (temp_list, xpaned->last_bottom_left_child_focus);
@@ -3058,7 +3060,7 @@ get_all_xpanes (GtkXPaned * xpaned)
   GList *result = NULL;
   GtkWidget *w;
 
-  for (w = GTK_WIDGET (xpaned); w != NULL; w = w->parent)
+  for (w = GTK_WIDGET (xpaned); w != NULL; w = gtk_widget_get_parent (w))
     {
       if (GTK_IS_XPANED (w))
         topmost = GTK_XPANED (w);
@@ -3324,7 +3326,7 @@ gtk_xpaned_cycle_handle_focus (GtkXPaned * xpaned, gboolean reversed)
 
       gtk_xpaned_find_neighbours (xpaned, &next, &prev);
 
-      if (container->focus_child == xpaned->top_left_child)
+      if (gtk_container_get_focus_child (container) == xpaned->top_left_child)
         {
           if (reversed)
             {
@@ -3337,7 +3339,7 @@ gtk_xpaned_cycle_handle_focus (GtkXPaned * xpaned, gboolean reversed)
               first = xpaned;
             }
         }
-      else if (container->focus_child == xpaned->top_right_child)
+      else if (gtk_container_get_focus_child (container) == xpaned->top_right_child)
         {
           if (reversed)
             {
@@ -3368,7 +3370,7 @@ gtk_xpaned_cycle_handle_focus (GtkXPaned * xpaned, gboolean reversed)
 
       if (GTK_IS_WINDOW (toplevel))
         gtk_xpaned_set_saved_focus (focus,
-                                    GTK_WINDOW (toplevel)->focus_widget);
+                                    gtk_window_get_focus (GTK_WINDOW (toplevel)));
       gtk_xpaned_set_first_xpaned (focus, first);
       focus->original_position.x = gtk_xpaned_get_position_x (focus);
       focus->original_position.y = gtk_xpaned_get_position_y (focus);
