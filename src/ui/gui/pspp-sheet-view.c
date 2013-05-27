@@ -3868,9 +3868,11 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
       return TRUE;
     }
 
+#if GTK3_TRANSITION
   /* clip event->area to the visible area */
   if (event->area.height < 0.5)
     return TRUE;
+#endif
 
   validate_visible_area (tree_view);
 
