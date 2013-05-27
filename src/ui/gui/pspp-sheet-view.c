@@ -3748,10 +3748,11 @@ invalidate_empty_focus (PsppSheetView *tree_view)
  * is empty.
  */
 static void
-draw_empty_focus (PsppSheetView *tree_view, GdkRectangle *clip_area)
+draw_empty_focus (PsppSheetView *tree_view)
 {
   GtkWidget *widget = GTK_WIDGET (tree_view);
   gint w, h;
+  cairo_t *cr = gdk_cairo_create (tree_view->priv->bin_window);
 
   if (!gtk_widget_has_focus (widget))
     return;
@@ -3764,12 +3765,12 @@ draw_empty_focus (PsppSheetView *tree_view, GdkRectangle *clip_area)
 
   if (w > 0 && h > 0)
     gtk_paint_focus (gtk_widget_get_style (widget),
-		     tree_view->priv->bin_window,
+		     cr,
 		     gtk_widget_get_state (widget),
-		     clip_area,
 		     widget,
 		     NULL,
 		     1, 1, w, h);
+  cairo_destroy (cr);
 }
 
 static void
@@ -3871,7 +3872,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
   if (tree_view->priv->row_count == 0)
     {
-      draw_empty_focus (tree_view, &Zarea);
+      draw_empty_focus (tree_view);
       return TRUE;
     }
 
