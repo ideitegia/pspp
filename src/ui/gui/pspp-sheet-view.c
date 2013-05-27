@@ -40,6 +40,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms-compat.h>
 #include <string.h>
 
 #include "ui/gui/psppire-marshal.h"

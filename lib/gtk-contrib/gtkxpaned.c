@@ -36,6 +36,7 @@
 #include <gtk/gtk.h>
 #include <ui/gui/psppire-marshal.h>
 #include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms-compat.h>
 
 enum WidgetProperties
   {
