@@ -12536,7 +12536,7 @@ pspp_sheet_view_event (GtkWidget *widget,
   gtk_tree_path_free (path);
 
   handled = gtk_binding_set_activate (edit_bindings, keyval, event->state,
-                                      GTK_OBJECT (tree_view));
+                                      G_OBJECT (tree_view));
   if (handled)
     g_signal_stop_emission_by_name (widget, "event");
 
