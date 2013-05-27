@@ -310,8 +310,10 @@ psppire_window_base_init (PsppireWindowClass *class)
 static void
 menu_toggled (GtkCheckMenuItem *mi, gpointer data)
 {
+#if GTK3_TRANSITION
   /* Prohibit changes to the state */
   mi->active = !mi->active;
+#endif
 }
 
 
@@ -355,9 +357,11 @@ insert_menuitem_into_menu (PsppireWindow *window, gpointer key)
 
   gtk_menu_shell_append (window->menu, item);
 
+#if GTK3_TRANSITION
   /* Set the state without emitting a signal */
   GTK_CHECK_MENU_ITEM (item)->active =
    (psppire_window_register_lookup (psppire_window_register_new (), key) == window);
+#endif
 
   g_hash_table_insert (window->menuitem_table, key, item);
 }

@@ -189,11 +189,13 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
     }
 
 
+#if GTK3_TRANSITION
   if (gtk_assistant_get_page_type (assistant, page)
       == GTK_ASSISTANT_PAGE_CONFIRM)
     gtk_widget_grab_focus (assistant->apply);
   else
     gtk_widget_grab_focus (assistant->forward);
+#endif
 }
 
 /* Called when the Cancel button in the assistant is clicked. */

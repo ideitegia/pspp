@@ -355,8 +355,10 @@ static void     pspp_sheet_view_search_position_func      (PsppSheetView      *t
 static void     pspp_sheet_view_search_disable_popdown    (GtkEntry         *entry,
 							 GtkMenu          *menu,
 							 gpointer          data);
+#if GTK3_TRANSITION
 static void     pspp_sheet_view_search_preedit_changed    (GtkIMContext     *im_context,
 							 PsppSheetView      *tree_view);
+#endif
 static void     pspp_sheet_view_search_activate           (GtkEntry         *entry,
 							 PsppSheetView      *tree_view);
 static gboolean pspp_sheet_view_real_search_enable_popdown(gpointer          data);
@@ -8667,10 +8669,12 @@ pspp_sheet_view_ensure_interactive_directory (PsppSheetView *tree_view)
 		    "activate", G_CALLBACK (pspp_sheet_view_search_activate),
 		    tree_view);
 
+#if GTK3_TRANSITION
   g_signal_connect (GTK_ENTRY (tree_view->priv->search_entry)->im_context,
 		    "preedit-changed",
 		    G_CALLBACK (pspp_sheet_view_search_preedit_changed),
 		    tree_view);
+#endif
 
   gtk_container_add (GTK_CONTAINER (vbox),
 		     tree_view->priv->search_entry);
@@ -11809,6 +11813,7 @@ pspp_sheet_view_search_disable_popdown (GtkEntry *entry,
 		    G_CALLBACK (pspp_sheet_view_search_enable_popdown), data);
 }
 
+#if GTK3_TRANSITION
 /* Because we're visible but offscreen, we just set a flag in the preedit
  * callback.
  */
@@ -11827,6 +11832,7 @@ pspp_sheet_view_search_preedit_changed (GtkIMContext *im_context,
     }
 
 }
+#endif
 
 static void
 pspp_sheet_view_search_activate (GtkEntry    *entry,
