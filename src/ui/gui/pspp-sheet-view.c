@@ -11299,7 +11299,7 @@ pspp_sheet_view_get_dest_row_at_pos (PsppSheetView             *tree_view,
 }
 
 
-
+#if GTK3_TRANSITION
 /* KEEP IN SYNC WITH PSPP_SHEET_VIEW_BIN_EXPOSE */
 /**
  * pspp_sheet_view_create_row_drag_icon:
@@ -11422,7 +11422,7 @@ pspp_sheet_view_create_row_drag_icon (PsppSheetView  *tree_view,
 
   return drawable;
 }
-
+#endif
 
 /**
  * pspp_sheet_view_set_destroy_count_func:
