@@ -437,12 +437,34 @@ pspp_sheet_view_column_class_init (PsppSheetViewColumnClass *class)
                                                          GTK_PARAM_READWRITE));
 }
 
+
+static void _cell_layout_buildable_custom_tag_end (GtkBuildable *buildable,
+						   GtkBuilder   *builder,
+						   GObject      *child,
+						   const gchar  *tagname,
+						   gpointer     *data);
+
+
+static void _cell_layout_buildable_add_child (GtkBuildable      *buildable,
+						  GtkBuilder        *builder,
+						  GObject           *child,
+						  const gchar       *type);
+
+
+static gboolean _cell_layout_buildable_custom_tag_start (GtkBuildable  *buildable,
+                                             GtkBuilder    *builder,
+                                             GObject       *child,
+                                             const gchar   *tagname,
+                                             GMarkupParser *parser,
+					 gpointer      *data);
+
+
 static void
 pspp_sheet_view_column_buildable_init (GtkBuildableIface *iface)
 {
-  iface->add_child = _gtk_cell_layout_buildable_add_child;
-  iface->custom_tag_start = _gtk_cell_layout_buildable_custom_tag_start;
-  iface->custom_tag_end = _gtk_cell_layout_buildable_custom_tag_end;
+  iface->add_child = _cell_layout_buildable_add_child;
+  iface->custom_tag_start = _cell_layout_buildable_custom_tag_start;
+  iface->custom_tag_end = _cell_layout_buildable_custom_tag_end;
 }
 
 static void
@@ -4280,8 +4302,8 @@ static const GMarkupParser attributes_parser =
     attributes_text_element,
   };
 
-gboolean
-_gtk_cell_layout_buildable_custom_tag_start (GtkBuildable  *buildable,
+static gboolean
+_cell_layout_buildable_custom_tag_start (GtkBuildable  *buildable,
                                              GtkBuilder    *builder,
                                              GObject       *child,
                                              const gchar   *tagname,
@@ -4308,8 +4330,8 @@ _gtk_cell_layout_buildable_custom_tag_start (GtkBuildable  *buildable,
   return FALSE;
 }
 
-void
-_gtk_cell_layout_buildable_custom_tag_end (GtkBuildable *buildable,
+static void
+_cell_layout_buildable_custom_tag_end (GtkBuildable *buildable,
                                            GtkBuilder   *builder,
                                            GObject      *child,
                                            const gchar  *tagname,
@@ -4322,8 +4344,8 @@ _gtk_cell_layout_buildable_custom_tag_end (GtkBuildable *buildable,
   g_slice_free (AttributesSubParserData, parser_data);
 }
 
-void
-_gtk_cell_layout_buildable_add_child (GtkBuildable      *buildable,
+static void
+_cell_layout_buildable_add_child (GtkBuildable      *buildable,
                                       GtkBuilder        *builder,
                                       GObject           *child,
                                       const gchar       *type)
