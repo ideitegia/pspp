@@ -3912,7 +3912,7 @@ _pspp_sheet_view_column_cell_focus (PsppSheetViewColumn *tree_column,
 
 void
 _pspp_sheet_view_column_cell_draw_focus (PsppSheetViewColumn  *tree_column,
-				       GdkWindow          *window,
+					 cairo_t *cr,
 				       const GdkRectangle *background_area,
 				       const GdkRectangle *cell_area,
 				       const GdkRectangle *expose_area,
@@ -3945,7 +3945,7 @@ _pspp_sheet_view_column_cell_draw_focus (PsppSheetViewColumn  *tree_column,
     {
       GdkRectangle focus_rectangle;
       pspp_sheet_view_column_cell_process_action (tree_column,
-						window,
+						  cr,
 						background_area,
 						cell_area,
 						flags,
@@ -3957,10 +3957,10 @@ _pspp_sheet_view_column_cell_draw_focus (PsppSheetViewColumn  *tree_column,
       cell_state = flags & GTK_CELL_RENDERER_SELECTED ? GTK_STATE_SELECTED :
 	      (flags & GTK_CELL_RENDERER_PRELIT ? GTK_STATE_PRELIGHT :
 	      (flags & GTK_CELL_RENDERER_INSENSITIVE ? GTK_STATE_INSENSITIVE : GTK_STATE_NORMAL));
+
       gtk_paint_focus (gtk_widget_get_style (GTK_WIDGET (tree_column->tree_view)),
-		       window,
+		       cr,
 		       cell_state,
-		       cell_area,
 		       tree_column->tree_view,
 		       "treeview",
 		       focus_rectangle.x,

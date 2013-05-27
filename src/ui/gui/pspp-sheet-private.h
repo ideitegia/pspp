@@ -420,7 +420,7 @@ gboolean	  _pspp_sheet_view_column_cell_focus       (PsppSheetViewColumn  *tree_
 							  gboolean            left,
 							  gboolean            right);
 void		  _pspp_sheet_view_column_cell_draw_focus  (PsppSheetViewColumn  *tree_column,
-							  GdkWindow          *window,
+							    cairo_t *cr,
 							  const GdkRectangle *background_area,
 							  const GdkRectangle *cell_area,
 							  const GdkRectangle *expose_area,
