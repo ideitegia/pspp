@@ -3601,6 +3601,7 @@ pspp_sheet_view_update_rubber_band (PsppSheetView *tree_view)
   pspp_sheet_view_update_rubber_band_selection (tree_view);
 }
 
+#if GTK3_TRANSITION
 static void
 pspp_sheet_view_paint_rubber_band (PsppSheetView  *tree_view,
 				GdkRectangle *area)
@@ -3645,6 +3646,8 @@ pspp_sheet_view_paint_rubber_band (PsppSheetView  *tree_view,
 
   cairo_destroy (cr);
 }
+#endif
+
 
 static gboolean
 pspp_sheet_view_motion_bin_window (GtkWidget      *widget,
@@ -4420,6 +4423,7 @@ done:
   pspp_sheet_view_draw_vertical_grid_lines (tree_view, event, n_visible_columns,
                                    min_y, max_y);
 
+#if GTK3_TRANSITION
  if (tree_view->priv->rubber_band_status == RUBBER_BAND_ACTIVE)
    {
      GdkRectangle *rectangles;
@@ -4434,6 +4438,7 @@ done:
 
      g_free (rectangles);
    }
+#endif
 
   if (cursor_path)
     gtk_tree_path_free (cursor_path);
