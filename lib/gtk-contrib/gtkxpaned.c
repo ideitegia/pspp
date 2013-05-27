@@ -109,8 +109,8 @@ static void gtk_xpaned_map (GtkWidget * widget);
 
 static void gtk_xpaned_unmap (GtkWidget * widget);
 
-static gboolean gtk_xpaned_expose (GtkWidget * widget,
-                                   GdkEventExpose * event);
+static gboolean gtk_xpaned_draw (GtkWidget * widget,
+                                   cairo_t *ct);
 
 static gboolean gtk_xpaned_enter (GtkWidget * widget,
                                   GdkEventCrossing * event);
@@ -268,7 +268,7 @@ gtk_xpaned_class_init (GtkXPanedClass * class)
   widget_class->unrealize = gtk_xpaned_unrealize;
   widget_class->map = gtk_xpaned_map;
   widget_class->unmap = gtk_xpaned_unmap;
-  widget_class->expose_event = gtk_xpaned_expose;
+  widget_class->draw = gtk_xpaned_draw;
   widget_class->focus = gtk_xpaned_focus;
   widget_class->enter_notify_event = gtk_xpaned_enter;
   widget_class->leave_notify_event = gtk_xpaned_leave;
@@ -1366,7 +1366,7 @@ gtk_xpaned_unmap (GtkWidget * widget)
 }
 
 static gboolean
-gtk_xpaned_expose (GtkWidget * widget, GdkEventExpose * event)
+gtk_xpaned_draw (GtkWidget * widget, cairo_t *cr)
 {
   GtkXPaned *xpaned = GTK_XPANED (widget);
   gint handle_size;
@@ -1413,10 +1413,9 @@ gtk_xpaned_expose (GtkWidget * widget, GdkEventExpose * event)
         xpaned->handle_pos_south.height;
 
       gtk_paint_handle (gtk_widget_get_style (widget),
-                        gtk_widget_get_window (widget),
+                        cr,
                         state,
                         GTK_SHADOW_NONE,
-                        &horizontalClipArea,
                         widget,
                         "paned",
                         xpaned->handle_pos_east.x - handle_size - 256 / 2,
@@ -1427,11 +1426,11 @@ gtk_xpaned_expose (GtkWidget * widget, GdkEventExpose * event)
                           xpaned->handle_pos_west.width + handle_size + xpaned->handle_pos_east.width,
                           handle_size - 2, */
                         GTK_ORIENTATION_HORIZONTAL);
+
       gtk_paint_handle (gtk_widget_get_style (widget),
-                        gtk_widget_get_window (widget),
+                        cr,
                         state,
                         GTK_SHADOW_NONE,
-                        &verticalClipArea,
                         widget,
                         "paned",
                         xpaned->handle_pos_north.x + 1,
@@ -1445,7 +1444,7 @@ gtk_xpaned_expose (GtkWidget * widget, GdkEventExpose * event)
     }
 
   /* Chain up to draw children */
-  GTK_WIDGET_CLASS (parent_class)->expose_event (widget, event);
+  GTK_WIDGET_CLASS (parent_class)->draw (widget, cr);
 
   return FALSE;
 }
