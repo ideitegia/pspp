@@ -37,6 +37,33 @@ static void gtk_hbutton_box_size_allocate (GtkWidget      *widget,
 					   GtkAllocation  *allocation);
 
 
+static void
+psppire_hbutton_box_get_preferred_height (GtkWidget *widget,
+                                gint      *minimal_height,
+                                gint      *natural_height)
+{
+  GtkRequisition requisition;
+
+  gtk_hbutton_box_size_request (widget, &requisition);
+
+  *minimal_height = *natural_height = requisition.height;
+}
+
+
+static void
+psppire_hbutton_box_get_preferred_width (GtkWidget *widget,
+                                gint      *minimal_width,
+                                gint      *natural_width)
+{
+  GtkRequisition requisition;
+
+  gtk_hbutton_box_size_request (widget, &requisition);
+
+  *minimal_width = *natural_width = requisition.width;
+}
+
+
+
 
 GType
 psppire_hbutton_box_get_type (void)
@@ -72,7 +99,8 @@ psppire_hbuttonbox_class_init (PsppireHButtonBoxClass *class)
 
   widget_class = (GtkWidgetClass*) class;
 
-  widget_class->size_request = gtk_hbutton_box_size_request;
+  widget_class->get_preferred_width = psppire_hbutton_box_get_preferred_width;
+  widget_class->get_preferred_height = psppire_hbutton_box_get_preferred_height;
   widget_class->size_allocate = gtk_hbutton_box_size_allocate;
 }
 
