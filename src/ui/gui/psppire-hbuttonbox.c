@@ -37,7 +37,6 @@ static void gtk_hbutton_box_size_allocate (GtkWidget      *widget,
 					   GtkAllocation  *allocation);
 
 
-static const GtkButtonBoxStyle default_layout_style = GTK_BUTTONBOX_EDGE;
 
 GType
 psppire_hbutton_box_get_type (void)
@@ -115,8 +114,7 @@ gtk_hbutton_box_size_request (GtkWidget      *widget,
   bbox = GTK_BUTTON_BOX (widget);
 
   spacing = gtk_box_get_spacing (box);
-  layout = gtk_button_box_get_layout (bbox) != GTK_BUTTONBOX_DEFAULT_STYLE
-	  ? gtk_button_box_get_layout (bbox) : default_layout_style;
+  layout = gtk_button_box_get_layout (bbox) ;
 
   _psppire_button_box_child_requisition (widget,
                                      &nvis_children,
@@ -137,13 +135,11 @@ gtk_hbutton_box_size_request (GtkWidget      *widget,
       requisition->width =
 	      nvis_children*child_width + ((nvis_children+1)*spacing);
       break;
+    default:
     case GTK_BUTTONBOX_EDGE:
     case GTK_BUTTONBOX_START:
     case GTK_BUTTONBOX_END:
       requisition->width = nvis_children*child_width + ((nvis_children-1)*spacing);
-      break;
-    default:
-      g_assert_not_reached();
       break;
     }
 
@@ -180,8 +176,7 @@ gtk_hbutton_box_size_allocate (GtkWidget     *widget,
   base_box = GTK_BOX (widget);
   box = GTK_BUTTON_BOX (widget);
   spacing = gtk_box_get_spacing (base_box);
-  layout = gtk_button_box_get_layout (box) != GTK_BUTTONBOX_DEFAULT_STYLE
-	  ? gtk_button_box_get_layout (box) : default_layout_style;
+  layout = gtk_button_box_get_layout (box) ;
   _psppire_button_box_child_requisition (widget,
                                      &nvis_children,
 				     &n_secondaries,
@@ -196,6 +191,7 @@ gtk_hbutton_box_size_allocate (GtkWidget     *widget,
     x = allocation->x + gtk_container_get_border_width (GTK_CONTAINER (box)) + childspacing;
     secondary_x = x + ((nvis_children - n_secondaries) * (child_width + childspacing));
     break;
+  default:
   case GTK_BUTTONBOX_EDGE:
     if (nvis_children >= 2)
       {
@@ -225,9 +221,6 @@ gtk_hbutton_box_size_allocate (GtkWidget     *widget,
       - spacing * (nvis_children - n_secondaries - 1)
       - gtk_container_get_border_width (GTK_CONTAINER (box));
     secondary_x = allocation->x + gtk_container_get_border_width (GTK_CONTAINER (box));
-    break;
-  default:
-    g_assert_not_reached();
     break;
   }
 
