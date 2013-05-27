@@ -58,7 +58,7 @@ The following packages are required to enable PSPP's graphing
 features.  If you cannot arrange to install them, you must run
 `configure' with --without-cairo.
 
-    * Cairo (http://cairographics.org/), version 1.5 or later.
+    * Cairo (http://cairographics.org/), version 1.12 or later.
 
     * Pango (http://www.pango.org/), version 1.22 or later.
 
@@ -70,10 +70,10 @@ use the GUI, you must run `configure' with --without-gui.
       0.18 and 0.19 have a bug that will prevent library detection,
       but other versions should be fine.
 
-    * GTK+ (http://www.gtk.org/), version 2.24.0 or later.
+    * GTK+ (http://www.gtk.org/), version 3.4.0 or later.
 
     * GtkSourceView (http://projects.gnome.org/gtksourceview/) 
-      version 2.2 or later.
+      version 3.4.0 or later.
 
 
 Installing the following packages will allow your PSPP binary to read
@@ -335,7 +335,7 @@ Generic `configure' Options
 `configure --help' for more details.
 
 ----------------------------------------------------------------------
-Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005, 2007 Free
+Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005, 2007, 2013 Free
 Software Foundation, Inc.
 
 This file is free documentation; the Free Software Foundation gives
