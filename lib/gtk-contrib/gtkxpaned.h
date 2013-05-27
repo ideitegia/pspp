@@ -32,7 +32,7 @@
 #ifndef GTK_XPANED_H
 #define GTK_XPANED_H
 
-#include <gtk/gtkcontainer.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 #define GTK_TYPE_XPANED                  (gtk_xpaned_get_type ())
