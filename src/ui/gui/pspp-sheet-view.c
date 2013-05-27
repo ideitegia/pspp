@@ -1525,7 +1525,6 @@ pspp_sheet_view_realize (GtkWidget *widget)
   /* Add them all up. */
   gtk_widget_set_style (widget,
 		       gtk_style_attach (gtk_widget_get_style (widget), gtk_widget_get_window (widget)));
-  gdk_window_set_back_pixmap (gtk_widget_get_window (widget), NULL, FALSE);
   gdk_window_set_background (tree_view->priv->bin_window, &gtk_widget_get_style (widget)->base[gtk_widget_get_state (widget)]);
   gtk_style_set_background (gtk_widget_get_style (widget), tree_view->priv->header_window, GTK_STATE_NORMAL);
 
@@ -6932,7 +6931,6 @@ pspp_sheet_view_style_set (GtkWidget *widget,
 
   if (gtk_widget_get_realized (widget))
     {
-      gdk_window_set_back_pixmap (gtk_widget_get_window (widget), NULL, FALSE);
       gdk_window_set_background (tree_view->priv->bin_window, &gtk_widget_get_style (widget)->base[gtk_widget_get_state (widget)]);
       gtk_style_set_background (gtk_widget_get_style (widget), tree_view->priv->header_window, GTK_STATE_NORMAL);
       pspp_sheet_view_set_grid_lines (tree_view, tree_view->priv->grid_lines);
@@ -12803,7 +12801,6 @@ pspp_sheet_view_state_changed (GtkWidget      *widget,
   if (gtk_widget_get_realized (widget))
     {
       GtkStyle *style = gtk_widget_get_style (widget);
-      gdk_window_set_back_pixmap (gtk_widget_get_window (widget), NULL, FALSE);
       gdk_window_set_background (tree_view->priv->bin_window, &style->base[gtk_widget_get_state (widget)]);
     }
 
