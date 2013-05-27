@@ -191,6 +191,7 @@ psppire_cell_renderer_button_render (GtkCellRenderer      *cell,
   GtkStateType state_type;
   PsppireCellRendererButton *button = PSPPIRE_CELL_RENDERER_BUTTON (cell);
   gfloat xalign, yalign;
+  cairo_t *cr ;
   
   if (!button->editable || ! gtk_cell_renderer_get_sensitive (cell))
     state_type = GTK_STATE_INSENSITIVE;
@@ -213,8 +214,11 @@ psppire_cell_renderer_button_render (GtkCellRenderer      *cell,
 
   gtk_cell_renderer_get_alignment (cell, &xalign, &yalign);
 
+
   update_style_cache (button, widget);
-  facade_button_render (widget, window, expose_area,
+
+  cr = gdk_cairo_create (window);
+  facade_button_render (widget, cr, expose_area,
                         cell_area, button->border_width, button->button_style,
                         state_type,
                         button->label_style, button->label, button->xpad,
@@ -222,8 +226,6 @@ psppire_cell_renderer_button_render (GtkCellRenderer      *cell,
 
   if (button->slash)
     {
-      cairo_t *cr = gdk_cairo_create (window);
-
       cairo_set_line_width (cr, 1.0);
       cairo_set_line_cap (cr, CAIRO_LINE_CAP_SQUARE);
       cairo_move_to (cr, 
@@ -235,6 +237,8 @@ psppire_cell_renderer_button_render (GtkCellRenderer      *cell,
 		     cell_area->y);
       cairo_stroke (cr);
     }
+
+  cairo_destroy (cr);
 }
 
 static void
