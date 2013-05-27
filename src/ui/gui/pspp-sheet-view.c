@@ -4090,11 +4090,13 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	      cell_area.height -= grid_line_width;
 	    }
 
+#if GTK3_TRANSITION
 	  if (gdk_region_rect_in (event->region, &background_area) == GDK_OVERLAP_RECTANGLE_OUT)
 	    {
 	      cell_offset += column->width;
 	      continue;
 	    }
+#endif
 
 	  pspp_sheet_view_column_cell_set_cell_data (column,
                                                      tree_view->priv->model,
