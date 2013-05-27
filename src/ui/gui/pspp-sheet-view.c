@@ -6142,10 +6142,12 @@ pspp_sheet_view_maybe_begin_dragging_row (PsppSheetView      *tree_view,
 }
 
 
+
 static void
 pspp_sheet_view_drag_begin (GtkWidget      *widget,
                           GdkDragContext *context)
 {
+#if GTK3_TRANSITION
   PsppSheetView *tree_view;
   GtkTreePath *path = NULL;
   gint cell_x, cell_y;
@@ -6183,7 +6185,9 @@ pspp_sheet_view_drag_begin (GtkWidget      *widget,
 
   g_object_unref (row_pix);
   gtk_tree_path_free (path);
+#endif
 }
+
 
 static void
 pspp_sheet_view_drag_end (GtkWidget      *widget,
