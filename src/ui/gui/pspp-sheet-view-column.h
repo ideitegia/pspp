@@ -59,7 +59,7 @@ typedef void (* PsppSheetCellDataFunc) (PsppSheetViewColumn *tree_column,
 
 struct _PsppSheetViewColumn
 {
-  GtkObject parent;
+  GObject parent;
 
   GtkWidget *PSEAL (tree_view);
   GtkWidget *PSEAL (button);
@@ -116,7 +116,7 @@ struct _PsppSheetViewColumn
 
 struct _PsppSheetViewColumnClass
 {
-  GtkObjectClass parent_class;
+  GObjectClass parent_class;
 
   gboolean (*clicked) (PsppSheetViewColumn *tree_column);
   gboolean (*button_press_event) (PsppSheetViewColumn *,

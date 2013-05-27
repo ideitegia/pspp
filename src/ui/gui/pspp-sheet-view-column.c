@@ -186,7 +186,7 @@ static void pspp_sheet_view_column_buildable_init                 (GtkBuildableI
 
 static guint tree_column_signals[LAST_SIGNAL] = { 0 };
 
-G_DEFINE_TYPE_WITH_CODE (PsppSheetViewColumn, pspp_sheet_view_column, GTK_TYPE_OBJECT,
+G_DEFINE_TYPE_WITH_CODE (PsppSheetViewColumn, pspp_sheet_view_column, G_TYPE_OBJECT,
 			 G_IMPLEMENT_INTERFACE (GTK_TYPE_CELL_LAYOUT,
 						pspp_sheet_view_column_cell_layout_init)
 			 G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
