@@ -181,7 +181,7 @@ update_style_cache (PsppireCellRendererButton *button,
 
 static void
 psppire_cell_renderer_button_render (GtkCellRenderer      *cell,
-                                     GdkDrawable          *window,
+                                     GdkWindow            *window,
                                      GtkWidget            *widget,
                                      GdkRectangle         *background_area,
                                      GdkRectangle         *cell_area,

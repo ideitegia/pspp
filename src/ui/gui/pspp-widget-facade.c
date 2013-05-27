@@ -313,7 +313,7 @@ get_layout_location (GtkWidget *base,
 
 void
 facade_button_render (GtkWidget *base,
-                      GdkDrawable *window,
+                      GdkWindow   *window,
                       GdkRectangle *expose_area,
 
                       GdkRectangle *button_area,
