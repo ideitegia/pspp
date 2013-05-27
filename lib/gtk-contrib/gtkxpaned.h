@@ -67,7 +67,7 @@ struct _GtkXPaned
   GdkWindow *handle_north;
   GdkWindow *handle_south;
   GdkWindow *handle_middle;
-  GdkGC *xor_gc;
+
   GdkCursorType cursor_type_east;
   GdkCursorType cursor_type_west;
   GdkCursorType cursor_type_north;

@@ -607,7 +607,6 @@ gtk_xpaned_init (GtkXPaned * xpaned)
   xpaned->handle_north = NULL;
   xpaned->handle_south = NULL;
   xpaned->handle_middle = NULL;
-  xpaned->xor_gc = NULL;
   xpaned->cursor_type_east = GDK_SB_V_DOUBLE_ARROW;
   xpaned->cursor_type_west = GDK_SB_V_DOUBLE_ARROW;
   xpaned->cursor_type_north = GDK_SB_H_DOUBLE_ARROW;
@@ -1290,12 +1289,6 @@ static void
 gtk_xpaned_unrealize (GtkWidget * widget)
 {
   GtkXPaned *xpaned = GTK_XPANED (widget);
-
-  if (xpaned->xor_gc)
-    {
-      g_object_unref (xpaned->xor_gc);
-      xpaned->xor_gc = NULL;
-    }
 
   if (xpaned->handle_east)
     {
