@@ -3851,6 +3851,14 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   gboolean draw_vgrid_lines, draw_hgrid_lines;
   gint min_y, max_y;
   cairo_t *cr = gdk_cairo_create (event->window);
+  GdkRectangle Zarea;
+  GtkAllocation allocation;
+  gtk_widget_get_allocation (widget, &allocation);
+
+  Zarea.x =      0;
+  Zarea.y =      0;
+  Zarea.width =  gdk_window_get_width (event->window);
+  Zarea.height = allocation.height;
 
   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
 
@@ -3864,19 +3872,19 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
   if (tree_view->priv->row_count == 0)
     {
-      draw_empty_focus (tree_view, &event->area);
+      draw_empty_focus (tree_view, &Zarea);
       return TRUE;
     }
 
 #if GTK3_TRANSITION
   /* clip event->area to the visible area */
-  if (event->area.height < 0.5)
+  if (Zarea.height < 0.5)
     return TRUE;
 #endif
 
   validate_visible_area (tree_view);
 
-  new_y = TREE_WINDOW_Y_TO_RBTREE_Y (tree_view, event->area.y);
+  new_y = TREE_WINDOW_Y_TO_RBTREE_Y (tree_view, Zarea.y);
 
   if (new_y < 0)
     new_y = 0;
@@ -3894,7 +3902,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
                           event->window,
                           gtk_widget_get_state (widget),
                           GTK_SHADOW_NONE,
-                          &event->area,
+                          &Zarea,
                           widget,
                           "cell_even",
                           0, tree_view->priv->height,
@@ -3976,7 +3984,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
       cell_offset = 0;
 
-      background_area.y = y_offset + event->area.y;
+      background_area.y = y_offset + Zarea.y;
       background_area.height = max_height;
       max_y = background_area.y + max_height;
 
@@ -4027,12 +4035,14 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
           else
             selected_column = TRUE;
 
-	  if (cell_offset > event->area.x + event->area.width ||
-	      cell_offset + column->width < event->area.x)
+#if GTK3_TRANSITION
+	  if (cell_offset > Zarea.x + Zarea.width ||
+	      cell_offset + column->width < Zarea.x)
 	    {
 	      cell_offset += column->width;
 	      continue;
 	    }
+#endif
 
           if (selected && selected_column)
             flags |= GTK_CELL_RENDERER_SELECTED;
@@ -4168,7 +4178,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 				  event->window,
 				  state,
 				  GTK_SHADOW_NONE,
-				  &event->area,
+				  &Zarea,
 				  widget,
 				  new_detail,
 				  background_area.x,
@@ -4182,7 +4192,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 				  event->window,
 				  state,
 				  GTK_SHADOW_NONE,
-				  &event->area,
+				  &Zarea,
 				  widget,
 				  detail,
 				  background_area.x,
@@ -4211,7 +4221,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 #endif
 		}
 
-	      if (y_offset + max_height >= event->area.height - 0.5)
+	      if (y_offset + max_height >= Zarea.height - 0.5)
 		{
 #if GTK3_TRANSITION
 		  gdk_draw_line (event->window,
@@ -4233,7 +4243,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
                                                event->window,
                                                &background_area,
                                                &cell_area,
-                                               &event->area,
+                                               &Zarea,
                                                flags);
 
           if (node == cursor && has_special_cell &&
@@ -4246,25 +4256,25 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 						     event->window,
 						     &background_area,
 						     &cell_area,
-						     &event->area,
+						     &Zarea,
 						     flags);
 	    }
 
 	  cell_offset += column->width;
 	}
 
-      if (cell_offset < event->area.x)
+      if (cell_offset < Zarea.x)
         {
           gtk_paint_flat_box (gtk_widget_get_style (widget),
                               event->window,
                               GTK_STATE_NORMAL,
                               GTK_SHADOW_NONE,
-                              &event->area,
+                              &Zarea,
                               widget,
                               "base",
                               cell_offset,
                               background_area.y,
-                              event->area.x - cell_offset,
+                              Zarea.x - cell_offset,
                               background_area.height);
         }
 
@@ -4300,7 +4310,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 		gtk_paint_focus (gtk_widget_get_style (widget),
 			         tree_view->priv->bin_window,
 				 gtk_widget_get_state (widget),
-				 &event->area,
+				 &Zarea,
 				 widget,
 				 (is_first
 				  ? (is_last ? "treeview-drop-indicator" : "treeview-drop-indicator-left" )
@@ -4313,7 +4323,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 		gtk_paint_focus (gtk_widget_get_style (widget),
 			         tree_view->priv->bin_window,
 				 gtk_widget_get_state (widget),
-				 &event->area,
+				 &Zarea,
 				 widget,
 				 "treeview-drop-indicator",
 				 0, BACKGROUND_FIRST_PIXEL (tree_view, node)
@@ -4368,7 +4378,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	    gtk_paint_focus (gtk_widget_get_style (widget),
 			     tree_view->priv->bin_window,
 			     focus_rect_state,
-			     &event->area,
+			     &Zarea,
 			     widget,
 			     (is_first
 			      ? (is_last ? "treeview" : "treeview-left" )
@@ -4379,7 +4389,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	    gtk_paint_focus (gtk_widget_get_style (widget),
 			     tree_view->priv->bin_window,
 			     focus_rect_state,
-			     &event->area,
+			     &Zarea,
 			     widget,
 			     "treeview",
 			     0, tmp_y,
@@ -4404,7 +4414,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
         }
       while (!done);
     }
-  while (y_offset < event->area.height);
+  while (y_offset < Zarea.height);
 
 done:
   pspp_sheet_view_draw_vertical_grid_lines (tree_view, cr, n_visible_columns,
