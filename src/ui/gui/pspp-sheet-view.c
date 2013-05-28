@@ -4240,7 +4240,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	    }
 
           _pspp_sheet_view_column_cell_render (column,
-                                               event->window,
+                                               cr,
                                                &background_area,
                                                &cell_area,
                                                &Zarea,
@@ -4253,7 +4253,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 	       (column == tree_view->priv->edited_column)))
 	    {
 	      _pspp_sheet_view_column_cell_draw_focus (column,
-						     event->window,
+						       cr,
 						     &background_area,
 						     &cell_area,
 						     &Zarea,
