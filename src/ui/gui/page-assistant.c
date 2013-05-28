@@ -169,10 +169,23 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
     }
   else
     {
-      if (pn == 0)
-	prepare_separators_page (ia);
-      else if (pn == 3)
-	prepare_formats_page (ia);
+      switch (pn)
+	{
+	case 0:
+	  reset_intro_page (ia);
+	  break;
+	case 1:
+	  reset_first_line_page (ia);
+	  break;
+	case 2:
+	  prepare_separators_page (ia);
+	  reset_separators_page (ia);
+	  break;
+	case 3:
+	  prepare_formats_page (ia);
+	  reset_formats_page (ia);
+	  break;
+	}
     }
 
 
