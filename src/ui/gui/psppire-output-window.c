@@ -163,12 +163,10 @@ psppire_output_cast (struct output_driver *driver)
 static void on_dwgarea_realize (GtkWidget *widget, gpointer data);
 
 static gboolean
-expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
+draw_callback (GtkWidget *widget, cairo_t *cr, gpointer data)
 {
   PsppireOutputWindow *viewer = PSPPIRE_OUTPUT_WINDOW (data);
   struct xr_rendering *r = g_object_get_data (G_OBJECT (widget), "rendering");
-  cairo_t *cr = gdk_cairo_create (gtk_widget_get_window (widget));
-
   const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
 
   PangoFontDescription *font_desc;
@@ -195,10 +193,7 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   pango_font_description_free (font_desc);
 
   xr_rendering_apply_options (r, &viewer->render_opts);
-
   xr_rendering_draw_all (r, cr);
-
-  cairo_destroy (cr);
 
   return TRUE;
 }
@@ -310,8 +305,8 @@ psppire_output_submit (struct output_driver *this,
   g_signal_connect (drawing_area, "realize",
                      G_CALLBACK (on_dwgarea_realize), pod->viewer);
 
-  g_signal_connect (drawing_area, "expose_event",
-                     G_CALLBACK (expose_event_callback), pod->viewer);
+  g_signal_connect (drawing_area, "draw",
+                     G_CALLBACK (draw_callback), pod->viewer);
 
   gtk_widget_set_size_request (drawing_area, tw, th);
   gtk_layout_put (pod->viewer->output, drawing_area, 0, pod->viewer->y);
