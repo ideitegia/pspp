@@ -3851,6 +3851,8 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   gboolean draw_vgrid_lines, draw_hgrid_lines;
   gint min_y, max_y;
   cairo_t *cr = gdk_cairo_create (event->window);
+
+  cairo_t *bwcr = gdk_cairo_create (tree_view->priv->bin_window);
   GdkRectangle Zarea;
   GtkAllocation allocation;
   gtk_widget_get_allocation (widget, &allocation);
@@ -4302,9 +4304,8 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
 	      if (row_ending_details)
 		gtk_paint_focus (gtk_widget_get_style (widget),
-			         tree_view->priv->bin_window,
+			         bwcr,
 				 gtk_widget_get_state (widget),
-				 &Zarea,
 				 widget,
 				 (is_first
 				  ? (is_last ? "treeview-drop-indicator" : "treeview-drop-indicator-left" )
@@ -4315,9 +4316,8 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 			       - focus_line_width + 1);
 	      else
 		gtk_paint_focus (gtk_widget_get_style (widget),
-			         tree_view->priv->bin_window,
+			         bwcr,
 				 gtk_widget_get_state (widget),
-				 &Zarea,
 				 widget,
 				 "treeview-drop-indicator",
 				 0, BACKGROUND_FIRST_PIXEL (tree_view, node)
@@ -4370,9 +4370,8 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
 	  if (row_ending_details)
 	    gtk_paint_focus (gtk_widget_get_style (widget),
-			     tree_view->priv->bin_window,
+			     bwcr,
 			     focus_rect_state,
-			     &Zarea,
 			     widget,
 			     (is_first
 			      ? (is_last ? "treeview" : "treeview-left" )
@@ -4381,9 +4380,8 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 			     width, tmp_height);
 	  else
 	    gtk_paint_focus (gtk_widget_get_style (widget),
-			     tree_view->priv->bin_window,
+			     bwcr,
 			     focus_rect_state,
-			     &Zarea,
 			     widget,
 			     "treeview",
 			     0, tmp_y,
