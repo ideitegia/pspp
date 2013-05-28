@@ -171,8 +171,8 @@ static void     pspp_sheet_view_size_request         (GtkWidget        *widget,
 						    GtkRequisition   *requisition);
 static void     pspp_sheet_view_size_allocate        (GtkWidget        *widget,
 						    GtkAllocation    *allocation);
-static gboolean pspp_sheet_view_expose               (GtkWidget        *widget,
-						    GdkEventExpose   *event);
+static gboolean pspp_sheet_view_draw               (GtkWidget        *widget,
+						    cairo_t *cr);
 static gboolean pspp_sheet_view_key_press            (GtkWidget        *widget,
 						    GdkEventKey      *event);
 static gboolean pspp_sheet_view_key_release          (GtkWidget        *widget,
@@ -513,7 +513,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
   widget_class->grab_broken_event = pspp_sheet_view_grab_broken;
   /*widget_class->configure_event = pspp_sheet_view_configure;*/
   widget_class->motion_notify_event = pspp_sheet_view_motion;
-  widget_class->expose_event = pspp_sheet_view_expose;
+  widget_class->draw = pspp_sheet_view_draw;
   widget_class->key_press_event = pspp_sheet_view_key_press;
   widget_class->key_release_event = pspp_sheet_view_key_release;
   widget_class->enter_notify_event = pspp_sheet_view_enter_notify;
@@ -4463,19 +4463,38 @@ done:
   return FALSE;
 }
 
+
 static gboolean
-pspp_sheet_view_expose (GtkWidget      *widget,
-                        GdkEventExpose *event)
+window_intersects (GdkWindow *window, GdkRectangle *rect) 
+{
+  GdkRectangle window_rect;
+  gdk_window_get_position (window,
+			   &window_rect.x, &window_rect.y);
+    
+  window_rect.width = gdk_window_get_width (window);
+  window_rect.height = gdk_window_get_height (window);
+
+  return gdk_rectangle_intersect (&window_rect, rect, NULL);
+}
+
+
+static gboolean
+pspp_sheet_view_draw (GtkWidget      *widget,
+		      cairo_t *cr)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
-  cairo_t *cr = gdk_cairo_create (event->window);
+  GtkAllocation allocation;
+  GdkRectangle clip_rect;
+  gtk_widget_get_allocation (widget, &allocation);
+  
+  gdk_cairo_get_clip_rectangle (cr, &clip_rect);
 
-  if (event->window == tree_view->priv->bin_window)
+  if (window_intersects (tree_view->priv->bin_window, &clip_rect))
     {
       gboolean retval;
       GList *tmp_list;
 
-      retval = pspp_sheet_view_bin_expose (widget, event);
+      retval = pspp_sheet_view_bin_expose (widget, cr);
 
       /* We can't just chain up to Container::expose as it will try to send the
        * event to the headers, so we handle propagating it to our children
@@ -4492,7 +4511,7 @@ pspp_sheet_view_expose (GtkWidget      *widget,
 
       return retval;
     }
-  else if (event->window == tree_view->priv->header_window)
+  else if (window_intersects (tree_view->priv->header_window, &clip_rect))
     {
       gint n_visible_columns;
       GList *list;
@@ -4503,10 +4522,11 @@ pspp_sheet_view_expose (GtkWidget      *widget,
                           GTK_SHADOW_NONE,
                           widget,
                           "cell_odd",
-                          event->area.x,
-                          event->area.y,
-                          event->area.width,
-                          event->area.height);
+			  allocation.x,
+			  allocation.y,
+			  allocation.width,
+			  allocation.height
+			  );
 
       for (list = tree_view->priv->columns; list != NULL; list = list->next)
 	{
@@ -4516,10 +4536,10 @@ pspp_sheet_view_expose (GtkWidget      *widget,
 	    continue;
 
           if (span_intersects (column->allocation.x, column->allocation.width,
-                               event->area.x, event->area.width)
+			       allocation.x, allocation.width)
               && column->button != NULL)
-            gtk_container_propagate_expose (GTK_CONTAINER (tree_view),
-                                            column->button, event);
+            gtk_container_propagate_draw (GTK_CONTAINER (tree_view),
+					  column->button, cr);
 	}
 
       n_visible_columns = 0;
@@ -4532,16 +4552,21 @@ pspp_sheet_view_expose (GtkWidget      *widget,
       pspp_sheet_view_draw_vertical_grid_lines (tree_view,
 						cr,
 						n_visible_columns,
-						event->area.y,
-						event->area.height);
+						allocation.y,
+						allocation.height);
+
+      return TRUE;
     }
-  else if (event->window == tree_view->priv->drag_window)
+  else if (window_intersects (tree_view->priv->drag_window, &clip_rect))
     {
-      gtk_container_propagate_expose (GTK_CONTAINER (tree_view),
-				      tree_view->priv->drag_column->button,
-				      event);
+      gtk_container_propagate_draw (GTK_CONTAINER (tree_view),
+				    tree_view->priv->drag_column->button,
+				    cr);
+     
+      return TRUE;
     }
-  return TRUE;
+
+  return FALSE;
 }
 
 enum
