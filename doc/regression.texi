@@ -86,6 +86,8 @@ already exists,
 choose the name of
 the variable for the predicted values similarly, but with @samp{PRED} as a
 prefix.
+When @subcmd{SAVE} is used, @pspp{} ignores @cmd{TEMPORARY}, treating
+temporary transformations as permanent.
 
 @node Examples
 @subsection Examples

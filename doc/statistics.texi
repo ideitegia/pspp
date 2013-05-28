@@ -73,6 +73,8 @@ names ZSC000 through ZSC999, STDZ00 through STDZ09, ZZZZ00 through
 ZZZZ09, ZQZQ00 through ZQZQ09, in that sequence.  In addition, Z score
 variable names can be specified explicitly on @subcmd{VARIABLES} in the variable
 list by enclosing them in parentheses after each variable.
+When Z scores are calculated, @pspp{} ignores @cmd{TEMPORARY},
+treating temporary transformations as permanent.
 
 The @subcmd{STATISTICS} subcommand specifies the statistics to be displayed:
 
