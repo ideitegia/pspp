@@ -64,9 +64,7 @@ void facade_button_get_size_request (gint border_width,
                                      GtkRequisition *);
 void facade_button_render (GtkWidget *base,
                            cairo_t *cr,
-                           GdkRectangle *expose_area,
-
-                           GdkRectangle *button_area,
+                           const GdkRectangle *button_area,
                            gint border_width,
                            GtkStyle *button_style,
                            GtkStateType state_type,

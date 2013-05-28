@@ -314,9 +314,7 @@ get_layout_location (GtkWidget *base,
 void
 facade_button_render (GtkWidget *base,
                       cairo_t *cr,
-                      GdkRectangle *expose_area,
-
-                      GdkRectangle *button_area,
+                      const GdkRectangle *button_area,
                       gint border_width,
                       GtkStyle *button_style,
                       GtkStateType state_type,
