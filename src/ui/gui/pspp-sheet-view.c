@@ -454,6 +454,30 @@ G_DEFINE_TYPE_WITH_CODE (PsppSheetView, pspp_sheet_view, GTK_TYPE_CONTAINER,
 						pspp_sheet_view_buildable_init))
 
 static void
+pspp_sheet_view_get_preferred_width (GtkWidget *widget,
+                               gint      *minimal_width,
+                               gint      *natural_width)
+{
+  GtkRequisition requisition;
+
+  pspp_sheet_view_size_request (widget, &requisition);
+
+  *minimal_width = *natural_width = requisition.width;
+}
+
+static void
+pspp_sheet_view_get_preferred_height (GtkWidget *widget,
+                                gint      *minimal_height,
+                                gint      *natural_height)
+{
+  GtkRequisition requisition;
+
+  pspp_sheet_view_size_request (widget, &requisition);
+
+  *minimal_height = *natural_height = requisition.height;
+}
+
+static void
 pspp_sheet_view_class_init (PsppSheetViewClass *class)
 {
   GObjectClass *o_class;
@@ -481,7 +505,8 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
   widget_class->map = pspp_sheet_view_map;
   widget_class->realize = pspp_sheet_view_realize;
   widget_class->unrealize = pspp_sheet_view_unrealize;
-  widget_class->size_request = pspp_sheet_view_size_request;
+  widget_class->get_preferred_width = pspp_sheet_view_get_preferred_width;
+  widget_class->get_preferred_height = pspp_sheet_view_get_preferred_height;
   widget_class->size_allocate = pspp_sheet_view_size_allocate;
   widget_class->button_press_event = pspp_sheet_view_button_press;
   widget_class->button_release_event = pspp_sheet_view_button_release;
