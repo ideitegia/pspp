@@ -409,7 +409,6 @@ void		  _pspp_sheet_view_column_cell_render      (PsppSheetViewColumn  *tree_col
 							    cairo_t *cr,
 							  const GdkRectangle *background_area,
 							  const GdkRectangle *cell_area,
-							  const GdkRectangle *expose_area,
 							  guint               flags);
 void		  _pspp_sheet_view_column_get_focus_area   (PsppSheetViewColumn  *tree_column,
 							  const GdkRectangle *background_area,
@@ -423,7 +422,6 @@ void		  _pspp_sheet_view_column_cell_draw_focus  (PsppSheetViewColumn  *tree_col
 							    cairo_t *cr,
 							  const GdkRectangle *background_area,
 							  const GdkRectangle *cell_area,
-							  const GdkRectangle *expose_area,
 							  guint               flags);
 void		  _pspp_sheet_view_column_cell_set_dirty	 (PsppSheetViewColumn  *tree_column);
 void              _pspp_sheet_view_column_get_neighbor_sizes (PsppSheetViewColumn *column,

@@ -3127,7 +3127,6 @@ pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
 					  const GdkRectangle *cell_area,
 					  guint               flags,
 					  gint                action,
-					  const GdkRectangle *expose_area,     /* RENDER */
 					  GdkRectangle       *focus_rectangle, /* FOCUS  */
 					  GtkCellEditable   **editable_widget, /* EVENT  */
 					  GdkEvent           *event,           /* EVENT  */
@@ -3136,7 +3135,6 @@ pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
   GList *list;
   GdkRectangle real_cell_area;
   GdkRectangle real_background_area;
-  GdkRectangle real_expose_area = *cell_area;
   gint depth = 0;
   gint expand_cell_count = 0;
   gint full_requested_width = 0;
@@ -3592,7 +3590,6 @@ pspp_sheet_view_column_cell_process_action (PsppSheetViewColumn  *tree_column,
  * @window: a #GdkDrawable to draw to
  * @background_area: entire cell area (including tree expanders and maybe padding on the sides)
  * @cell_area: area normally rendered by a cell renderer
- * @expose_area: area that actually needs updating
  * @flags: flags that affect rendering
  * 
  * Renders the cell contained by #tree_column. This is used primarily by the
@@ -3603,13 +3600,11 @@ _pspp_sheet_view_column_cell_render (PsppSheetViewColumn  *tree_column,
 				     cairo_t *cr,
 				   const GdkRectangle *background_area,
 				   const GdkRectangle *cell_area,
-				   const GdkRectangle *expose_area,
 				   guint               flags)
 {
   g_return_if_fail (PSPP_IS_SHEET_VIEW_COLUMN (tree_column));
   g_return_if_fail (background_area != NULL);
   g_return_if_fail (cell_area != NULL);
-  g_return_if_fail (expose_area != NULL);
 
   pspp_sheet_view_column_cell_process_action (tree_column,
 					      cr,
@@ -3617,7 +3612,6 @@ _pspp_sheet_view_column_cell_render (PsppSheetViewColumn  *tree_column,
 					    cell_area,
 					    flags,
 					    CELL_ACTION_RENDER,
-					    expose_area,
 					    NULL, NULL, NULL, NULL);
 }
 
@@ -3638,7 +3632,7 @@ _pspp_sheet_view_column_cell_event (PsppSheetViewColumn  *tree_column,
 						   cell_area,
 						   flags,
 						   CELL_ACTION_EVENT,
-						   NULL, NULL,
+						   NULL,
 						   editable_widget,
 						   event,
 						   path_string);
@@ -3656,7 +3650,6 @@ _pspp_sheet_view_column_get_focus_area (PsppSheetViewColumn  *tree_column,
 					    cell_area,
 					    0,
 					    CELL_ACTION_FOCUS,
-					    NULL,
 					    focus_area,
 					    NULL, NULL, NULL);
 }
@@ -3915,7 +3908,6 @@ _pspp_sheet_view_column_cell_draw_focus (PsppSheetViewColumn  *tree_column,
 					 cairo_t *cr,
 				       const GdkRectangle *background_area,
 				       const GdkRectangle *cell_area,
-				       const GdkRectangle *expose_area,
 				       guint               flags)
 {
   gint focus_line_width;
@@ -3950,7 +3942,6 @@ _pspp_sheet_view_column_cell_draw_focus (PsppSheetViewColumn  *tree_column,
 						cell_area,
 						flags,
 						CELL_ACTION_FOCUS,
-						expose_area,
 						&focus_rectangle,
 						NULL, NULL, NULL);
 

@@ -4243,7 +4243,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
                                                cr,
                                                &background_area,
                                                &cell_area,
-                                               &Zarea,
                                                flags);
 
           if (node == cursor && has_special_cell &&
@@ -4256,7 +4255,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 						       cr,
 						     &background_area,
 						     &cell_area,
-						     &Zarea,
 						     flags);
 	    }
 
