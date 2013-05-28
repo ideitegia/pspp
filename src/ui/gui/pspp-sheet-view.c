@@ -779,6 +779,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 								GTK_PARAM_READABLE));
 
   /* Signals */
+#if GTK3_TRANSITION
   /**
    * PsppSheetView::set-scroll-adjustments
    * @horizontal: the horizontal #GtkAdjustment
@@ -798,6 +799,7 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 		  G_TYPE_NONE, 2,
 		  GTK_TYPE_ADJUSTMENT,
 		  GTK_TYPE_ADJUSTMENT);
+#endif
 
   /**
    * PsppSheetView::row-activated:
