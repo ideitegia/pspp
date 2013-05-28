@@ -3819,7 +3819,7 @@ pspp_sheet_view_draw_vertical_grid_lines (PsppSheetView    *tree_view,
  */
 static gboolean
 pspp_sheet_view_bin_expose (GtkWidget      *widget,
-			    GdkEventExpose *event)
+			    cairo_t *cr)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
   GtkTreePath *path;
@@ -3850,7 +3850,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   gboolean row_ending_details;
   gboolean draw_vgrid_lines, draw_hgrid_lines;
   gint min_y, max_y;
-  cairo_t *cr = gdk_cairo_create (event->window);
 
   cairo_t *bwcr = gdk_cairo_create (tree_view->priv->bin_window);
   GdkRectangle Zarea;
@@ -3859,7 +3858,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
   Zarea.x =      0;
   Zarea.y =      0;
-  Zarea.width =  gdk_window_get_width (event->window);
   Zarea.height = allocation.height;
 
   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
@@ -4462,7 +4460,7 @@ pspp_sheet_view_expose (GtkWidget      *widget,
 	  PsppSheetViewChild *child = tmp_list->data;
 	  tmp_list = tmp_list->next;
 
-	  gtk_container_propagate_expose (GTK_CONTAINER (tree_view), child->widget, event);
+	  gtk_container_propagate_draw (GTK_CONTAINER (tree_view), child->widget, cr);
 	}
 
       return retval;
