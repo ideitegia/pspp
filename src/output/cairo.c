@@ -1028,11 +1028,9 @@ xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
 static void xr_draw_chart (const struct chart_item *, cairo_t *,
                     double x, double y, double width, double height);
 
-/* Draws onto CR at least the region of R that is enclosed in (X,Y)-(X+W,Y+H),
-   and possibly some additional parts. */
+/* Draws onto CR */
 void
-xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
-                   int x, int y, int w, int h)
+xr_rendering_draw_all (struct xr_rendering *r, cairo_t *cr)
 {
   if (is_table_item (r->item))
     {
@@ -1048,9 +1046,7 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
         }
 
       xr->y = r->title_height;
-      render_page_draw_region (r->page, 
-			       x * XR_POINT, (y * XR_POINT) - r->title_height,
-                               w * XR_POINT, h * XR_POINT);
+      render_page_draw (r->page);
     }
   else
     xr_draw_chart (to_chart_item (r->item), cr,

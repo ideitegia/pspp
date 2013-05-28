@@ -41,8 +41,7 @@ struct xr_rendering *xr_rendering_create (struct xr_driver *,
 
 void xr_rendering_apply_options (struct xr_rendering *, struct string_map *o);
 void xr_rendering_measure (struct xr_rendering *, int *w, int *h);
-void xr_rendering_draw (struct xr_rendering *, cairo_t *,
-                        int x, int y, int w, int h);
+void xr_rendering_draw_all (struct xr_rendering *r, cairo_t *cr);
 
 /* Functions for rendering a series of output items to a series of Cairo
    contexts, with pagination, possibly including headers.

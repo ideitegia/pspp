@@ -196,12 +196,13 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 
   xr_rendering_apply_options (r, &viewer->render_opts);
 
-  xr_rendering_draw (r, cr, event->area.x, event->area.y,
-                     event->area.width, event->area.height);
+  xr_rendering_draw_all (r, cr);
+
   cairo_destroy (cr);
 
   return TRUE;
 }
+
 
 static void
 psppire_output_submit (struct output_driver *this,

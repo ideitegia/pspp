@@ -93,8 +93,6 @@ void render_page_unref (struct render_page *);
 
 int render_page_get_size (const struct render_page *, enum table_axis);
 void render_page_draw (const struct render_page *);
-void render_page_draw_region (const struct render_page *,
-                              int x, int y, int w, int h);
 
 /* An iterator for breaking render_pages into smaller chunks. */
 struct render_break
