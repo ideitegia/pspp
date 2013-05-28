@@ -57,8 +57,8 @@ if HAVE_GUI
 bin_PROGRAMS += src/ui/gui/psppire 
 noinst_PROGRAMS += src/ui/gui/spreadsheet-test
 
-src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GTKSOURCEVIEW_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
-src_ui_gui_spreadsheet_test_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
+src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GTKSOURCEVIEW_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1 -DGDK_DISABLE_DEPRECATION_WARNINGS=1
+src_ui_gui_spreadsheet_test_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1 -DGDK_DISABLE_DEPRECATION_WARNINGS=1
 
 
 src_ui_gui_psppire_LDFLAGS = \
