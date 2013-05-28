@@ -31,3 +31,18 @@ AT_CHECK([pspp -O format=csv input-program.sps], [1], [dnl
 error: DESCRIPTIVES: Syntax error at end of input: expecting BEGIN.
 ])
 AT_CLEANUP
+
+dnl Tests for bug #38782, an infinite loop processing an empty input program.
+AT_SETUP([INPUT PROGRAM infinite loop])
+AT_DATA([input-program.sps], [dnl
+INPUT PROGRAM.
+STRING firstname lastname (a24) / address (a80).
+END INPUT PROGRAM.
+EXECUTE.
+])
+AT_CHECK([pspp -O format=csv input-program.sps], [1], [dnl
+input-program.sps:3: error: Input program must contain DATA LIST or END FILE.
+
+input-program.sps:4: error: EXECUTE: EXECUTE is allowed only after the active dataset has been defined.
+])
+AT_CLEANUP

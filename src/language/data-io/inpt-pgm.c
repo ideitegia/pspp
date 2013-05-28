@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,12 +43,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Private result codes for use within INPUT PROGRAM. */
-enum cmd_result_extensions
-  {
-    CMD_END_CASE = CMD_PRIVATE_FIRST
-  };
-
 /* Indicates how a `union value' should be initialized. */
 struct input_program_pgm
   {
@@ -91,6 +85,8 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
 {
   struct input_program_pgm *inp;
   bool saw_END_CASE = false;
+  bool saw_END_FILE = false;
+  bool saw_DATA_LIST = false;
 
   dataset_clear (ds);
   if (!lex_match (lexer, T_ENDCMD))
@@ -107,27 +103,48 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
       enum cmd_result result;
 
       result = cmd_parse_in_state (lexer, ds, CMD_STATE_INPUT_PROGRAM);
-      if (result == (enum cmd_result) CMD_END_CASE)
+      switch (result)
         {
+        case CMD_DATA_LIST:
+          saw_DATA_LIST = true;
+          break;
+
+        case CMD_END_CASE:
           emit_END_CASE (ds, inp);
           saw_END_CASE = true;
-        }
-      else if (cmd_result_is_failure (result)
-               && result != CMD_FAILURE
-               && lex_get_error_mode (lexer) != LEX_ERROR_INTERACTIVE)
-        {
-          if (result == CMD_EOF)
-            msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
-          inside_input_program = false;
-          dataset_clear (ds);
-          destroy_input_program (inp);
-          return result;
+          break;
+
+        case CMD_END_FILE:
+          saw_END_FILE = true;
+          break;
+
+        case CMD_FAILURE:
+          break;
+
+        default:
+          if (cmd_result_is_failure (result)
+              && lex_get_error_mode (lexer) != LEX_ERROR_INTERACTIVE)
+            {
+              if (result == CMD_EOF)
+                msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
+              inside_input_program = false;
+              dataset_clear (ds);
+              destroy_input_program (inp);
+              return result;
+            }
         }
     }
   if (!saw_END_CASE)
     emit_END_CASE (ds, inp);
   inside_input_program = false;
 
+  if (!saw_DATA_LIST && !saw_END_FILE)
+    {
+      msg (SE, _("Input program must contain DATA LIST or END FILE."));
+      dataset_clear (ds);
+      destroy_input_program (inp);
+      return CMD_FAILURE;
+    }
   if (dict_get_next_value_idx (dataset_dict (ds)) == 0)
     {
       msg (SE, _("Input program did not create any variables."));
@@ -371,7 +388,7 @@ cmd_end_file (struct lexer *lexer UNUSED, struct dataset *ds)
 
   add_transformation (ds, end_file_trns_proc, NULL, NULL);
 
-  return CMD_SUCCESS;
+  return CMD_END_FILE;
 }
 
 /* Executes an END FILE transformation. */

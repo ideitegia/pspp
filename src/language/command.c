@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,10 +50,22 @@
 static inline bool
 cmd_result_is_valid (enum cmd_result result)
 {
-  return (result == CMD_SUCCESS || result == CMD_EOF || result == CMD_FINISH
-          || (result >= CMD_PRIVATE_FIRST && result <= CMD_PRIVATE_LAST)
-          || result == CMD_FAILURE || result == CMD_NOT_IMPLEMENTED
-          || result == CMD_CASCADING_FAILURE);
+  switch (result)
+    {
+    case CMD_SUCCESS:
+    case CMD_EOF:
+    case CMD_FINISH:
+    case CMD_DATA_LIST:
+    case CMD_END_CASE:
+    case CMD_END_FILE:
+    case CMD_FAILURE:
+    case CMD_NOT_IMPLEMENTED:
+    case CMD_CASCADING_FAILURE:
+      return true;
+
+    default:
+      return false;
+    }
 }
 
 /* Returns true if RESULT indicates success,

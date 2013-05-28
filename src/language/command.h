@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,11 +27,11 @@ enum cmd_result
     CMD_EOF = 2,                /* End of input. */
     CMD_FINISH = 3,             /* FINISH was executed. */
 
-    /* Range of successful return values available for use
-       by agreement between a command and the caller of
-       cmd_parse(). */
-    CMD_PRIVATE_FIRST = 4,
-    CMD_PRIVATE_LAST = 127,
+    /* Successful return values returned by specific commands to let INPUT
+       PROGRAM function properly. */
+    CMD_DATA_LIST,
+    CMD_END_CASE,
+    CMD_END_FILE,
 
     /* Various kinds of failures. */
     CMD_FAILURE = -1,           /* Not executed at all. */

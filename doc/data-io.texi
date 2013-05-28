@@ -795,6 +795,9 @@ so an infinite loop results.  @cmd{END FILE}, when executed,
 stops the flow of input data and passes out of the @cmd{INPUT PROGRAM}
 structure.
 
+@cmd{INPUT PROGRAM} must contain at least one @cmd{DATA LIST} or
+@cmd{END FILE} command.
+
 All this is very confusing.  A few examples should help to clarify.
 
 @c If you change this example, change the regression test1 in
