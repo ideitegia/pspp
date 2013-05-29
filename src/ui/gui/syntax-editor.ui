@@ -220,6 +220,5 @@
   </object>
   <object class="GtkStatusbar" id="statusbar2">
     <property name="visible">True</property>
-    <property name="has_resize_grip">True</property>
   </object>
 </interface>
