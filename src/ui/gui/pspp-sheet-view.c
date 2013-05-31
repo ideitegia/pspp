@@ -4476,7 +4476,10 @@ pspp_sheet_view_draw (GtkWidget      *widget,
       gboolean retval;
       GList *tmp_list;
 
+      cairo_save (cr);
+      cairo_translate (cr, 0, gdk_window_get_height (tree_view->priv->header_window));
       retval = pspp_sheet_view_bin_expose (widget, cr);
+      cairo_restore (cr);
 
       /* We can't just chain up to Container::expose as it will try to send the
        * event to the headers, so we handle propagating it to our children
