@@ -3878,7 +3878,6 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
   gboolean draw_vgrid_lines, draw_hgrid_lines;
   gint min_y, max_y;
 
-  cairo_t *bwcr = gdk_cairo_create (tree_view->priv->bin_window);
   GdkRectangle Zarea;
   GtkAllocation allocation;
   gtk_widget_get_allocation (widget, &allocation);
@@ -4329,7 +4328,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
 	      if (row_ending_details)
 		gtk_paint_focus (gtk_widget_get_style (widget),
-			         bwcr,
+			         cr,
 				 gtk_widget_get_state (widget),
 				 widget,
 				 (is_first
@@ -4341,7 +4340,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 			       - focus_line_width + 1);
 	      else
 		gtk_paint_focus (gtk_widget_get_style (widget),
-			         bwcr,
+			         cr,
 				 gtk_widget_get_state (widget),
 				 widget,
 				 "treeview-drop-indicator",
@@ -4395,7 +4394,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 
 	  if (row_ending_details)
 	    gtk_paint_focus (gtk_widget_get_style (widget),
-			     bwcr,
+			     cr,
 			     focus_rect_state,
 			     widget,
 			     (is_first
@@ -4405,7 +4404,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 			     width, tmp_height);
 	  else
 	    gtk_paint_focus (gtk_widget_get_style (widget),
-			     bwcr,
+			     cr,
 			     focus_rect_state,
 			     widget,
 			     "treeview",
@@ -4465,31 +4464,14 @@ done:
 
 
 static gboolean
-window_intersects (GdkWindow *window, GdkRectangle *rect) 
-{
-  GdkRectangle window_rect;
-  gdk_window_get_position (window,
-			   &window_rect.x, &window_rect.y);
-    
-  window_rect.width = gdk_window_get_width (window);
-  window_rect.height = gdk_window_get_height (window);
-
-  return gdk_rectangle_intersect (&window_rect, rect, NULL);
-}
-
-
-static gboolean
 pspp_sheet_view_draw (GtkWidget      *widget,
 		      cairo_t *cr)
 {
   PsppSheetView *tree_view = PSPP_SHEET_VIEW (widget);
   GtkAllocation allocation;
-  GdkRectangle clip_rect;
   gtk_widget_get_allocation (widget, &allocation);
   
-  gdk_cairo_get_clip_rectangle (cr, &clip_rect);
-
-  if (window_intersects (tree_view->priv->bin_window, &clip_rect))
+  if (gtk_cairo_should_draw_window (cr, tree_view->priv->bin_window))
     {
       gboolean retval;
       GList *tmp_list;
@@ -4511,7 +4493,7 @@ pspp_sheet_view_draw (GtkWidget      *widget,
 
       return retval;
     }
-  else if (window_intersects (tree_view->priv->header_window, &clip_rect))
+  else if (gtk_cairo_should_draw_window (cr, tree_view->priv->header_window))
     {
       gint n_visible_columns;
       GList *list;
@@ -4557,7 +4539,7 @@ pspp_sheet_view_draw (GtkWidget      *widget,
 
       return TRUE;
     }
-  else if (window_intersects (tree_view->priv->drag_window, &clip_rect))
+  else if (gtk_cairo_should_draw_window (cr, tree_view->priv->drag_window))
     {
       gtk_container_propagate_draw (GTK_CONTAINER (tree_view),
 				    tree_view->priv->drag_column->button,
