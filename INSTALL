@@ -17,9 +17,16 @@ the following simple procedure should work, even on non-GNU systems:
  sudo make install
 
 Obviously, you should replace 'pspp-*' in the above, with the name of
-the tarball you are installing.  If any part of this process fails, then 
-it's likely that one or more of the necessary prerequisites is missing
-from your system.   Read on to find out how to correct this.
+the tarball you are installing.  
+
+In 99% of cases, that is all you have to do - FINISHED! 
+
+
+If any part of the above process fails, then it is
+likely that one or more of the necessary prerequisites is missing
+from your system.  The following paragraphs contain highly detailed
+information which will help you fix this.
+
 
 Before You Install
 ==================
@@ -35,7 +42,7 @@ not present on your system.
 
 The following packages are required to install PSPP:
 
-    * An ANSI C compiler and tool chain.  On Unix-like systems, we
+    * A C compiler and tool chain.  On Unix-like systems, we
       recommend GCC, but any modern compilation environment should
       work.  On Microsoft Windows, Cygwin (http://www.cygwin.com/) and
       MinGW (http://www.mingw.org/) are known to work.
@@ -56,7 +63,8 @@ The following packages are required to install PSPP:
 
 The following packages are required to enable PSPP's graphing
 features.  If you cannot arrange to install them, you must run
-`configure' with --without-cairo.
+`configure' with --without-cairo (in which case you will get no graphing
+capability).
 
     * Cairo (http://cairographics.org/), version 1.5 or later.
 
@@ -70,25 +78,27 @@ use the GUI, you must run `configure' with --without-gui.
       0.18 and 0.19 have a bug that will prevent library detection,
       but other versions should be fine.
 
-    * GTK+ (http://www.gtk.org/), version 2.16.0 or later.
+    * GTK+ (http://www.gtk.org/), version 2.16.0 or later.  However
+      it must be Gtk+ 2.something  - The Gtk+-3.x series will NOT work!
 
     * GtkSourceView (http://projects.gnome.org/gtksourceview/) 
       version 2.2 or later.
 
+The following packages are optional:
 
-Installing the following packages will allow your PSPP binary to read
+Installing the following packages will allow your PSPP program to read
 Gnumeric files.
 
     * zlib (http://www.zlib.net/).
 
     * libxml2 (http://xmlsoft.org/).  
 
-Installing the following packages will allow your PSPP binary to write
+Installing the following packages will allow your PSPP program to write
 OpenDocument text (ODT) files:
 
     * libxml2 (http://xmlsoft.org/).  
 
-The following packages are optional.
+Other optional packages:
 
     * libncurses (http://www.gnu.org/software/ncurses/).  Without it,
       PSPP will assume it is running in an 80x25 terminal.
@@ -276,7 +286,7 @@ Optional Features
    This option is useful for building a package which can be installed
    into an arbitrary directory and freely copied to any other directory.
    If you use this option, you will probably want to install the pspp
-   with a command similar to "make install DESTDIR=<distination>".
+   with a command similar to "make install DESTDIR=<destination>".
 
 Defining Variables
 ==================
@@ -335,7 +345,7 @@ Generic `configure' Options
 `configure --help' for more details.
 
 ----------------------------------------------------------------------
-Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005, 2007 Free
+Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005, 2007, 2013 Free
 Software Foundation, Inc.
 
 This file is free documentation; the Free Software Foundation gives

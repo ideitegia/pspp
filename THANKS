@@ -1,4 +1,6 @@
 Thanks to...
+
+     * The Gnulib team for painstaking work to enable portability.
                                        
      * David MacKenzie for writing Autoconf, the automatic configuration
        tool.
@@ -11,6 +13,6 @@ Thanks to...
 
      * François Pinard for advice on proceeding with development.
 
-     * Jim Van Zandt for Debian packaging and suggestions.
+     * Jim Van Zandt and "Bojo" for Debian packaging and suggestions.
 
      * The coordinators and translators at translationproject.org.
