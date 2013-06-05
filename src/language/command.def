@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,12 +18,6 @@
 DEF_CMD (S_ANY, F_ENHANCED, "CLOSE FILE HANDLE", cmd_close_file_handle)
 DEF_CMD (S_ANY, 0, "CACHE", cmd_cache)
 DEF_CMD (S_ANY, 0, "CD", cmd_cd)
-DEF_CMD (S_ANY, 0, "DATASET ACTIVATE", cmd_dataset_activate)
-DEF_CMD (S_ANY, 0, "DATASET DECLARE", cmd_dataset_declare)
-DEF_CMD (S_ANY, 0, "DATASET CLOSE", cmd_dataset_close)
-DEF_CMD (S_ANY, 0, "DATASET COPY", cmd_dataset_copy)
-DEF_CMD (S_ANY, 0, "DATASET NAME", cmd_dataset_name)
-DEF_CMD (S_ANY, 0, "DATASET DISPLAY", cmd_dataset_display)
 DEF_CMD (S_ANY, 0, "DO REPEAT", cmd_do_repeat)
 DEF_CMD (S_ANY, 0, "END REPEAT", cmd_end_repeat)
 DEF_CMD (S_ANY, 0, "ECHO", cmd_echo)
@@ -58,6 +52,12 @@ DEF_CMD (S_INITIAL | S_DATA, 0, "IMPORT", cmd_import)
 DEF_CMD (S_INITIAL | S_DATA, 0, "INPUT PROGRAM", cmd_input_program)
 DEF_CMD (S_INITIAL | S_DATA, 0, "MATCH FILES", cmd_match_files)
 DEF_CMD (S_INITIAL | S_DATA, 0, "UPDATE", cmd_update)
+DEF_CMD (S_INITIAL | S_DATA, 0, "DATASET ACTIVATE", cmd_dataset_activate)
+DEF_CMD (S_INITIAL | S_DATA, 0, "DATASET DECLARE", cmd_dataset_declare)
+DEF_CMD (S_INITIAL | S_DATA, 0, "DATASET CLOSE", cmd_dataset_close)
+DEF_CMD (S_INITIAL | S_DATA, 0, "DATASET COPY", cmd_dataset_copy)
+DEF_CMD (S_INITIAL | S_DATA, 0, "DATASET NAME", cmd_dataset_name)
+DEF_CMD (S_INITIAL | S_DATA, 0, "DATASET DISPLAY", cmd_dataset_display)
 
 /* Transformations and utilities that may appear after active
    file definition or within INPUT PROGRAM. */
