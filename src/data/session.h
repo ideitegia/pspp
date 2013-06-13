@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 struct dataset;
 
-struct session *session_create (void);
+struct session *session_create (struct session *parent);
 void session_destroy (struct session *);
 
 struct dataset *session_active_dataset (struct session *);

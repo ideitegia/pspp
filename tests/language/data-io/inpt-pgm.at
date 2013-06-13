@@ -46,3 +46,37 @@ input-program.sps:3: error: Input program must contain DATA LIST or END FILE.
 input-program.sps:4: error: EXECUTE: EXECUTE is allowed only after the active dataset has been defined.
 ])
 AT_CLEANUP
+
+dnl Tests for bug #39097, a bug when an INPUT PROGRAM used VECTOR, was
+dnl followed immediately by a call to proc_execute() (here via DATASET
+dnl COPY), and then the input was actually used.
+AT_SETUP([INPUT PROGRAM with VECTOR and EXECUTE])
+AT_DATA([input-program.sps], [dnl
+INPUT PROGRAM.
+VECTOR vec(5).
+LOOP #c = 1 to 10.
+ LOOP #v = 1 to 5.
+  COMPUTE vec(#v) = #v.
+ END LOOP.
+ END CASE.
+END LOOP.
+END FILE.
+END INPUT PROGRAM.
+DATASET COPY x.
+LIST.
+])
+AT_CHECK([pspp -O format=csv input-program.sps], [0], [dnl
+Table: Data List
+vec1,vec2,vec3,vec4,vec5
+1.00,2.00,3.00,4.00,5.00
+1.00,2.00,3.00,4.00,5.00
+1.00,2.00,3.00,4.00,5.00
+1.00,2.00,3.00,4.00,5.00
+1.00,2.00,3.00,4.00,5.00
+1.00,2.00,3.00,4.00,5.00
+1.00,2.00,3.00,4.00,5.00
+1.00,2.00,3.00,4.00,5.00
+1.00,2.00,3.00,4.00,5.00
+1.00,2.00,3.00,4.00,5.00
+])
+AT_CLEANUP
