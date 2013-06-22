@@ -1619,44 +1619,6 @@ dict_var_changed (const struct variable *v, unsigned int what, struct variable *
 }
 
 
-/* Called from variable.c to notify the dictionary that the variable's width
-   has changed */
-void
-dict_var_resized (const struct variable *v, int old_width)
-{
-  if ( var_has_vardict (v))
-    {
-      const struct vardict_info *vardict = var_get_vardict (v);
-      struct dictionary *d;
-
-      d = vardict->dict;
-
-      if (d->changed) d->changed (d, d->changed_data);
-
-      invalidate_proto (d);
-      if ( d->callbacks && d->callbacks->var_resized )
-	d->callbacks->var_resized (d, var_get_dict_index (v), old_width,
-                                   d->cb_data);
-    }
-}
-
-/* Called from variable.c to notify the dictionary that the variable's display width
-   has changed */
-void
-dict_var_display_width_changed (const struct variable *v)
-{
-  if ( var_has_vardict (v))
-    {
-      const struct vardict_info *vardict = var_get_vardict (v);
-      struct dictionary *d;
-
-      d = vardict->dict;
-
-      if (d->changed) d->changed (d, d->changed_data);
-      if ( d->callbacks && d->callbacks->var_display_width_changed )
-	d->callbacks->var_display_width_changed (d, var_get_dict_index (v), d->cb_data);
-    }
-}
 
 /* Dictionary used to contain "internal variables". */
 static struct dictionary *internal_dict;

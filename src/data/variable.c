@@ -278,7 +278,6 @@ var_set_width (struct variable *v, int new_width)
   fmt_resize (&v->write, new_width);
 
   v->width = new_width;
-  dict_var_resized (v, old_width);
   dict_var_changed (v, VAR_TRAIT_WIDTH, ov);
 }
 
@@ -835,7 +834,6 @@ var_set_display_width_quiet (struct variable *v, int new_width)
   if (v->display_width != new_width)
     {
       v->display_width = new_width;
-      dict_var_display_width_changed (v);
     }
 }
 

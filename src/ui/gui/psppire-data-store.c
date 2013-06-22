@@ -210,35 +210,13 @@ delete_variable_callback (GObject *obj, const struct variable *var UNUSED,
   datasheet_insert_column (store->datasheet, NULL, -1, case_index);
 }
 
-static void
-variable_changed_callback (GObject *obj, gint var_num, guint what, const struct variable *oldvar, gpointer data)
-{
-}
-
-static void
-insert_variable_callback (GObject *obj, gint var_num, gpointer data)
-{
-  struct variable *variable;
-  PsppireDataStore *store;
-  gint posn;
-
-  g_return_if_fail (data);
-
-  store  = PSPPIRE_DATA_STORE (data);
-
-  variable = psppire_dict_get_variable (store->dict, var_num);
-  posn = var_get_case_index (variable);
-  psppire_data_store_insert_value (store, var_get_width (variable), posn);
-}
-
 struct resize_datum_aux
   {
     int old_width;
     int new_width;
   };
 
-
-void
+static void
 resize_datum (const union value *old, union value *new, void *aux_)
 {
   struct resize_datum_aux *aux = aux_;
@@ -258,27 +236,38 @@ resize_datum (const union value *old, union value *new, void *aux_)
 }
 
 static void
-dict_size_change_callback (GObject *obj,
-			  gint var_num, gint old_width, gpointer data)
+variable_changed_callback (GObject *obj, gint var_num, guint what, const struct variable *oldvar,
+			   gpointer data)
 {
   PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
-  struct variable *variable;
-  int posn;
+  struct variable *variable = psppire_dict_get_variable (store->dict, var_num);
 
-  variable = psppire_dict_get_variable (store->dict, var_num);
-  posn = var_get_case_index (variable);
-
-  if (old_width != var_get_width (variable))
+  if (what & VAR_TRAIT_WIDTH)
     {
+      int posn = var_get_case_index (variable);
       struct resize_datum_aux aux;
-      aux.old_width = old_width;
+      aux.old_width = var_get_width (oldvar);
       aux.new_width = var_get_width (variable);
       datasheet_resize_column (store->datasheet, posn, aux.new_width,
                                resize_datum, &aux);
     }
 }
 
+static void
+insert_variable_callback (GObject *obj, gint var_num, gpointer data)
+{
+  struct variable *variable;
+  PsppireDataStore *store;
+  gint posn;
 
+  g_return_if_fail (data);
+
+  store  = PSPPIRE_DATA_STORE (data);
+
+  variable = psppire_dict_get_variable (store->dict, var_num);
+  posn = var_get_case_index (variable);
+  psppire_data_store_insert_value (store, var_get_width (variable), posn);
+}
 
 /**
  * psppire_data_store_new:
@@ -363,11 +352,6 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
       data_store->dict_handler_id [VARIABLE_CHANGED] =
 	g_signal_connect (dict, "variable-changed",
 			  G_CALLBACK (variable_changed_callback),
-			  data_store);
-
-      data_store->dict_handler_id [SIZE_CHANGED] =
-	g_signal_connect (dict, "dict-size-changed",
-			  G_CALLBACK (dict_size_change_callback),
 			  data_store);
     }
 

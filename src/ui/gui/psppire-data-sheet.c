@@ -1922,10 +1922,15 @@ on_variable_changed (PsppireDict *dict, int dict_index,
   g_return_if_fail (data_sheet->data_store != NULL);
   g_return_if_fail (dict == data_sheet->data_store->dict);
 
+
+  if (what & VAR_TRAIT_DISPLAY_WIDTH)
+    on_variable_display_width_changed (dict, dict_index, data_sheet);
+
   column = psppire_data_sheet_find_column_for_variable (data_sheet,
                                                         dict_index);
   if (column == NULL)
     return;
+
 
   var = psppire_dict_get_variable (data_store->dict, dict_index);
   g_return_if_fail (var != NULL);
@@ -2045,9 +2050,6 @@ psppire_data_sheet_set_data_store (PsppireDataSheet *data_sheet,
          data_store's dict. */
       g_signal_connect (data_store->dict, "variable-changed",
                         G_CALLBACK (on_variable_changed),
-                        data_sheet);
-      g_signal_connect (data_store->dict, "variable-display-width-changed",
-                        G_CALLBACK (on_variable_display_width_changed),
                         data_sheet);
       g_signal_connect (data_store->dict, "variable-inserted",
                         G_CALLBACK (on_variable_inserted), data_sheet);

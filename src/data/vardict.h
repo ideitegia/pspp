@@ -40,8 +40,6 @@ void var_clear_vardict (struct variable *);
 
 /* Called by variable.c, defined in dictionary.c. */
 void dict_var_changed (const struct variable *v, unsigned int what, struct variable *ov);
-void dict_var_resized (const struct variable *v, int old_width);
-void dict_var_display_width_changed (const struct variable *v);
 
 int vardict_get_dict_index (const struct vardict_info *);
 
