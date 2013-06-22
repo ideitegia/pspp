@@ -212,27 +212,21 @@ delete_variable_callback (GObject *obj, const struct variable *var UNUSED,
 
 struct resize_datum_aux
   {
-    int old_width;
-    int new_width;
+    const struct dictionary *dict;
+    const struct variable *new_variable;
+    const struct variable *old_variable;
   };
 
 static void
 resize_datum (const union value *old, union value *new, const void *aux_)
 {
   const struct resize_datum_aux *aux = aux_;
-
-  if (aux->new_width == 0)
-    {
-      /* FIXME: try to parse string as number. */
-      new->f = SYSMIS;
-    }
-  else if (aux->old_width == 0)
-    {
-      /* FIXME: format number as string. */
-      value_set_missing (new, aux->new_width);
-    }
-  else
-    value_copy_rpad (new, aux->new_width, old, aux->old_width, ' ');
+  int new_width = var_get_width (aux->new_variable);
+  const char *enc = dict_get_encoding (aux->dict);
+  const struct fmt_spec *newfmt = var_get_print_format (aux->new_variable);
+  char *s = data_out (old, enc, var_get_print_format (aux->old_variable));
+  free (data_in (ss_cstr (s), enc, newfmt->type, new, new_width, enc));
+  free (s);
 }
 
 static void
@@ -246,9 +240,10 @@ variable_changed_callback (GObject *obj, gint var_num, guint what, const struct 
     {
       int posn = var_get_case_index (variable);
       struct resize_datum_aux aux;
-      aux.old_width = var_get_width (oldvar);
-      aux.new_width = var_get_width (variable);
-      datasheet_resize_column (store->datasheet, posn, aux.new_width,
+      aux.old_variable = oldvar;
+      aux.new_variable = variable;
+      aux.dict = store->dict->dict;
+      datasheet_resize_column (store->datasheet, posn, var_get_width (variable),
                                resize_datum, &aux);
     }
 }
