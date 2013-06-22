@@ -217,9 +217,9 @@ struct resize_datum_aux
   };
 
 static void
-resize_datum (const union value *old, union value *new, void *aux_)
+resize_datum (const union value *old, union value *new, const void *aux_)
 {
-  struct resize_datum_aux *aux = aux_;
+  const struct resize_datum_aux *aux = aux_;
 
   if (aux->new_width == 0)
     {

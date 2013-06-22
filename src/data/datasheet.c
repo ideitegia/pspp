@@ -431,8 +431,8 @@ struct resize_datasheet_value_aux
     size_t src_ofs;
     int src_width;
 
-    void (*resize_cb) (const union value *, union value *, void *aux);
-    void *resize_cb_aux;
+    void (*resize_cb) (const union value *, union value *, const void *aux);
+    const void *resize_cb_aux;
 
     union value dst_value;
     size_t dst_ofs;
@@ -460,8 +460,8 @@ resize_datasheet_value (const void *src, void *dst, void *aux_)
 bool
 datasheet_resize_column (struct datasheet *ds, size_t column, int new_width,
                          void (*resize_cb) (const union value *,
-                                            union value *, void *aux),
-                         void *resize_cb_aux)
+                                            union value *, const void *aux),
+                         const void *resize_cb_aux)
 {
   struct column old_col;
   struct column *col;

@@ -485,9 +485,9 @@ struct resize_cb_aux
   };
 
 static void
-resize_cb (const union value *old_value, union value *new_value, void *aux_)
+resize_cb (const union value *old_value, union value *new_value, const void *aux_)
 {
-  struct resize_cb_aux *aux = aux_;
+  const struct resize_cb_aux *aux = aux_;
 
   value_from_param (new_value, aux->new_width,
                     value_hash (old_value, aux->old_width, 0));
