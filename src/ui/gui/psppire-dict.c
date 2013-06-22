@@ -256,7 +256,7 @@ delcb (struct dictionary *d, const struct variable *var,
 }
 
 static void
-mutcb (struct dictionary *d, int idx, void *pd)
+mutcb (struct dictionary *d, int idx, unsigned int what, const struct variable *oldvar, void *pd)
 {
   g_signal_emit (pd, signals [VARIABLE_CHANGED], 0, idx);
 }

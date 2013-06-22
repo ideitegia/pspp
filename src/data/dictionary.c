@@ -547,6 +547,7 @@ static void
 reindex_var (struct dictionary *d, struct vardict_info *vardict)
 {
   struct variable *var = vardict->var;
+  struct variable *old = var_clone (var);
 
   var_set_vardict (var, vardict);
   hmap_insert_fast (&d->name_map, &vardict->name_node,
@@ -554,7 +555,8 @@ reindex_var (struct dictionary *d, struct vardict_info *vardict)
 
   if ( d->changed ) d->changed (d, d->changed_data);
   if ( d->callbacks &&  d->callbacks->var_changed )
-    d->callbacks->var_changed (d, var_get_dict_index (var), d->cb_data);
+    d->callbacks->var_changed (d, var_get_dict_index (var), VAR_TRAIT_POSITION, old, d->cb_data);
+  var_destroy (old);
 }
 
 /* Sets the case_index in V's vardict to CASE_INDEX. */
@@ -757,6 +759,7 @@ void
 dict_rename_var (struct dictionary *d, struct variable *v,
                  const char *new_name)
 {
+  struct variable *old = var_clone (v);
   assert (!utf8_strcasecmp (var_get_name (v), new_name)
           || dict_lookup_var (d, new_name) == NULL);
 
@@ -769,7 +772,9 @@ dict_rename_var (struct dictionary *d, struct variable *v,
 
   if ( d->changed ) d->changed (d, d->changed_data);
   if ( d->callbacks &&  d->callbacks->var_changed )
-    d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
+    d->callbacks->var_changed (d, var_get_dict_index (v), VAR_TRAIT_NAME, old, d->cb_data);
+
+  var_destroy (old);
 }
 
 /* Renames COUNT variables specified in VARS to the names given
@@ -1596,7 +1601,7 @@ dict_has_attributes (const struct dictionary *d)
    prior to the change.  OLDVAR is destroyed by this function.
 */
 void
-dict_var_changed (const struct variable *v, unsigned int what UNUSED, struct variable *oldvar)
+dict_var_changed (const struct variable *v, unsigned int what, struct variable *oldvar)
 {
   if ( var_has_vardict (v))
     {
@@ -1608,7 +1613,7 @@ dict_var_changed (const struct variable *v, unsigned int what UNUSED, struct var
 
       if (d->changed ) d->changed (d, d->changed_data);
       if ( d->callbacks && d->callbacks->var_changed )
-	d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
+	d->callbacks->var_changed (d, var_get_dict_index (v), what, oldvar, d->cb_data);
     }
   var_destroy (oldvar);
 }
