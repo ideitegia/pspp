@@ -211,7 +211,7 @@ delete_variable_callback (GObject *obj, const struct variable *var UNUSED,
 }
 
 static void
-variable_changed_callback (GObject *obj, gint var_num, gpointer data)
+variable_changed_callback (GObject *obj, gint var_num, guint what, const struct variable *oldvar, gpointer data)
 {
 }
 

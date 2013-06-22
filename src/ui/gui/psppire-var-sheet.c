@@ -1288,7 +1288,9 @@ refresh_model (PsppireVarSheet *var_sheet)
 }
 
 static void
-on_var_changed (PsppireDict *dict, glong row, PsppireVarSheet *var_sheet)
+on_var_changed (PsppireDict *dict, glong row,
+		guint what, const struct variable *oldvar,
+		PsppireVarSheet *var_sheet)
 {
   PsppireEmptyListStore *store;
 

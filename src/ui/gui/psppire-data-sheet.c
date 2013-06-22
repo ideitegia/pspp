@@ -1909,6 +1909,7 @@ on_variable_display_width_changed (PsppireDict *dict, int dict_index,
 
 static void
 on_variable_changed (PsppireDict *dict, int dict_index,
+		     guint what, const struct variable *oldvar,
                      PsppireDataSheet *data_sheet)
 {
   PsppireDataStore *data_store = psppire_data_sheet_get_data_store (data_sheet);

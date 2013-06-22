@@ -134,10 +134,13 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
-		  g_cclosure_marshal_VOID__INT,
+		  psppire_marshal_VOID__INT_UINT_POINTER,
 		  G_TYPE_NONE,
-		  1,
-		  G_TYPE_INT);
+		  3,
+		  G_TYPE_INT,
+		  G_TYPE_UINT,
+		  G_TYPE_POINTER
+		  );
 
 
 
@@ -258,7 +261,7 @@ delcb (struct dictionary *d, const struct variable *var,
 static void
 mutcb (struct dictionary *d, int idx, unsigned int what, const struct variable *oldvar, void *pd)
 {
-  g_signal_emit (pd, signals [VARIABLE_CHANGED], 0, idx);
+  g_signal_emit (pd, signals [VARIABLE_CHANGED], 0, idx, what, oldvar);
 }
 
 static void
