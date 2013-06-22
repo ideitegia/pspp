@@ -275,7 +275,7 @@ var_set_width (struct variable *v, int new_width)
 
   v->width = new_width;
   dict_var_resized (v, old_width);
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_WIDTH);
 }
 
 /* Returns true if variable V is numeric, false otherwise. */
@@ -326,7 +326,7 @@ void
 var_set_missing_values (struct variable *v, const struct missing_values *miss)
 {
   var_set_missing_values_quiet (v, miss);
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_MISSING_VALUES);
 }
 
 /* Sets variable V to have no user-missing values. */
@@ -414,7 +414,7 @@ void
 var_set_value_labels (struct variable *v, const struct val_labs *vls)
 {
   var_set_value_labels_quiet (v, vls);
-  dict_var_changed (v);  
+  dict_var_changed (v, VAR_TRAIT_LABEL);  
 }
 
 
@@ -549,7 +549,7 @@ void
 var_set_print_format (struct variable *v, const struct fmt_spec *print)
 {
   var_set_print_format_quiet (v, print);
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_FORMAT);
 }
 
 /* Returns V's write format specification. */
@@ -581,7 +581,7 @@ void
 var_set_write_format (struct variable *v, const struct fmt_spec *write)
 {
   var_set_write_format_quiet (v, write);
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_FORMAT);
 }
 
 
@@ -592,8 +592,9 @@ var_set_write_format (struct variable *v, const struct fmt_spec *write)
 void
 var_set_both_formats (struct variable *v, const struct fmt_spec *format)
 {
-  var_set_print_format (v, format);
-  var_set_write_format (v, format);
+  var_set_print_format_quiet (v, format);
+  var_set_write_format_quiet (v, format);
+  dict_var_changed (v, VAR_TRAIT_FORMAT);
 }
 
 /* Returns the default print and write format for a variable of
@@ -725,7 +726,7 @@ var_set_label (struct variable *v, const char *label, bool issue_warning)
 {
   bool truncated = var_set_label_quiet (v, label, issue_warning);
 
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_LABEL);
 
   return truncated;
 }
@@ -795,7 +796,7 @@ void
 var_set_measure (struct variable *v, enum measure measure)
 {
   var_set_measure_quiet (v, measure);
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_MEASURE);
 }
 
 
@@ -831,7 +832,7 @@ void
 var_set_display_width (struct variable *v, int new_width)
 {
   var_set_display_width_quiet (v, new_width);
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_DISPLAY_WIDTH);
 }
 
 
@@ -892,7 +893,7 @@ void
 var_set_alignment (struct variable *v, enum alignment alignment)
 {
   var_set_alignment_quiet (v, alignment);
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_ALIGNMENT);
 }
 
 
@@ -930,7 +931,7 @@ void
 var_set_leave (struct variable *v, bool leave)
 {
   var_set_leave_quiet (v, leave);
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_LEAVE);
 }
 
 
@@ -1002,7 +1003,7 @@ var_set_short_name (struct variable *var, size_t idx, const char *short_name)
       var->short_names[idx] = utf8_to_upper (short_name);
     }
 
-  dict_var_changed (var);
+  dict_var_changed (var, VAR_TRAIT_NAME);
 }
 
 /* Clears V's short names. */
@@ -1064,7 +1065,7 @@ void
 var_set_attributes (struct variable *v, const struct attrset *attrs) 
 {
   var_set_attributes_quiet (v, attrs);
-  dict_var_changed (v);
+  dict_var_changed (v, VAR_TRAIT_ATTRIBUTES);
 }
 
 

@@ -1594,7 +1594,7 @@ dict_has_attributes (const struct dictionary *d)
 /* Called from variable.c to notify the dictionary that some property of
    the variable has changed */
 void
-dict_var_changed (const struct variable *v)
+dict_var_changed (const struct variable *v, unsigned int what UNUSED)
 {
   if ( var_has_vardict (v))
     {

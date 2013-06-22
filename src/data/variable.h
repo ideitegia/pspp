@@ -23,6 +23,21 @@
 #include "data/missing-values.h"
 #include "data/val-type.h"
 
+/* Bitfields to identify traits of a variable */
+
+#define VAR_TRAIT_NAME             0x0001
+#define VAR_TRAIT_WIDTH            0x0002
+#define VAR_TRAIT_FORMAT           0x0004
+#define VAR_TRAIT_LABEL            0x0008
+#define VAR_TRAIT_VALUE_LABELS     0x0010
+#define VAR_TRAIT_MISSING_VALUES   0x0020
+#define VAR_TRAIT_ALIGNMENT        0x0040
+#define VAR_TRAIT_MEASURE          0x0080
+#define VAR_TRAIT_DISPLAY_WIDTH    0x0100
+#define VAR_TRAIT_LEAVE            0x0200
+#define VAR_TRAIT_POSITION         0x0400
+#define VAR_TRAIT_ATTRIBUTES       0x0800
+
 union value;
 
 /* Variables.
