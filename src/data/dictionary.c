@@ -1591,10 +1591,12 @@ dict_has_attributes (const struct dictionary *d)
   return attrset_count (&d->attributes) > 0;
 }
 
-/* Called from variable.c to notify the dictionary that some property of
-   the variable has changed */
+/* Called from variable.c to notify the dictionary that some property (indicated
+   by WHAT) of the variable has changed.  OLDVAR is a copy of V as it existed
+   prior to the change.  OLDVAR is destroyed by this function.
+*/
 void
-dict_var_changed (const struct variable *v, unsigned int what UNUSED)
+dict_var_changed (const struct variable *v, unsigned int what UNUSED, struct variable *oldvar)
 {
   if ( var_has_vardict (v))
     {
@@ -1608,6 +1610,7 @@ dict_var_changed (const struct variable *v, unsigned int what UNUSED)
       if ( d->callbacks && d->callbacks->var_changed )
 	d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
     }
+  var_destroy (oldvar);
 }
 
 
