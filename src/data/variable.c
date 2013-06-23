@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -555,7 +555,7 @@ var_set_print_format (struct variable *v, const struct fmt_spec *print)
 {
   struct variable *ov = var_clone (v);
   var_set_print_format_quiet (v, print);
-  dict_var_changed (v, VAR_TRAIT_FORMAT, ov);
+  dict_var_changed (v, VAR_TRAIT_PRINT_FORMAT, ov);
 }
 
 /* Returns V's write format specification. */
@@ -588,7 +588,7 @@ var_set_write_format (struct variable *v, const struct fmt_spec *write)
 {
   struct variable *ov = var_clone (v);
   var_set_write_format_quiet (v, write);
-  dict_var_changed (v, VAR_TRAIT_FORMAT, ov);
+  dict_var_changed (v, VAR_TRAIT_WRITE_FORMAT, ov);
 }
 
 
@@ -602,7 +602,7 @@ var_set_both_formats (struct variable *v, const struct fmt_spec *format)
   struct variable *ov = var_clone (v);
   var_set_print_format_quiet (v, format);
   var_set_write_format_quiet (v, format);
-  dict_var_changed (v, VAR_TRAIT_FORMAT, ov);
+  dict_var_changed (v, VAR_TRAIT_PRINT_FORMAT | VAR_TRAIT_WRITE_FORMAT, ov);
 }
 
 /* Returns the default print and write format for a variable of

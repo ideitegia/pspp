@@ -27,7 +27,7 @@
 
 #define VAR_TRAIT_NAME             0x0001
 #define VAR_TRAIT_WIDTH            0x0002
-#define VAR_TRAIT_FORMAT           0x0004
+/* Available for reuse: 0x0004 */
 #define VAR_TRAIT_LABEL            0x0008
 #define VAR_TRAIT_VALUE_LABELS     0x0010
 #define VAR_TRAIT_MISSING_VALUES   0x0020
@@ -37,6 +37,9 @@
 #define VAR_TRAIT_LEAVE            0x0200
 #define VAR_TRAIT_POSITION         0x0400
 #define VAR_TRAIT_ATTRIBUTES       0x0800
+#define VAR_TRAIT_PRINT_FORMAT     0x1000
+#define VAR_TRAIT_WRITE_FORMAT     0x2000
+
 
 union value;
 
