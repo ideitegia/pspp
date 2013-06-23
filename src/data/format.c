@@ -475,8 +475,10 @@ fmt_equal (const struct fmt_spec *a, const struct fmt_spec *b)
   return a->type == b->type && a->w == b->w && a->d == b->d;
 }
 
-/* Adjusts FMT to be valid for a value of the given WIDTH. */
-void
+/* Adjusts FMT to be valid for a value of the given WIDTH if necessary.
+   If nothing needed to be changed the return value is false
+ */
+bool
 fmt_resize (struct fmt_spec *fmt, int width)
 {
   if ((width > 0) != fmt_is_string (fmt->type))
@@ -494,7 +496,9 @@ fmt_resize (struct fmt_spec *fmt, int width)
   else
     {
       /* Still numeric. */
+      return false;
     }
+  return true;
 }
 
 /* Adjusts FMT's width and decimal places to be valid for USE.  */

@@ -249,18 +249,23 @@ var_set_width (struct variable *v, int new_width)
 {
   struct variable *ov;
   const int old_width = v->width;
+  unsigned int traits = 0;
 
   if (old_width == new_width)
     return;
 
   ov = var_clone (v);
 
-  if (mv_is_resizable (&v->miss, new_width))
-    mv_resize (&v->miss, new_width);
-  else
+  if (var_has_missing_values (v))
     {
-      mv_destroy (&v->miss);
-      mv_init (&v->miss, new_width);
+      if (mv_is_resizable (&v->miss, new_width))
+	mv_resize (&v->miss, new_width);
+      else
+	{
+	  mv_destroy (&v->miss);
+	  mv_init (&v->miss, new_width);
+	}
+      traits |= VAR_TRAIT_MISSING_VALUES;
     }
 
   if (v->val_labs != NULL)
@@ -272,13 +277,18 @@ var_set_width (struct variable *v, int new_width)
           val_labs_destroy (v->val_labs);
           v->val_labs = NULL;
         }
+      traits |= VAR_TRAIT_VALUE_LABELS;
     }
 
-  fmt_resize (&v->print, new_width);
-  fmt_resize (&v->write, new_width);
+  if (fmt_resize (&v->print, new_width))
+    traits |= VAR_TRAIT_PRINT_FORMAT;
+
+  if (fmt_resize (&v->write, new_width))
+    traits |= VAR_TRAIT_WRITE_FORMAT;
 
   v->width = new_width;
-  dict_var_changed (v, VAR_TRAIT_WIDTH, ov);
+  traits |= VAR_TRAIT_WIDTH;
+  dict_var_changed (v, traits, ov);
 }
 
 /* Returns true if variable V is numeric, false otherwise. */
