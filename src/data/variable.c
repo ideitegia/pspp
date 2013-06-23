@@ -77,6 +77,8 @@ struct variable
   };
 
 
+static void var_set_print_format_quiet (struct variable *v, const struct fmt_spec *print);
+static void var_set_write_format_quiet (struct variable *v, const struct fmt_spec *write);
 static bool var_set_label_quiet (struct variable *v, const char *label, bool issue_warning);
 static void var_set_name_quiet (struct variable *v, const char *name);
 
@@ -242,17 +244,12 @@ var_get_width (const struct variable *v)
   return v->width;
 }
 
-/* Changes the width of V to NEW_WIDTH.
-   This function should be used cautiously. */
 void
-var_set_width (struct variable *v, int new_width)
+var_set_width_and_formats (struct variable *v, int new_width,
+			   const struct fmt_spec *print, const struct fmt_spec *write)
 {
   struct variable *ov;
-  const int old_width = v->width;
   unsigned int traits = 0;
-
-  if (old_width == new_width)
-    return;
 
   ov = var_clone (v);
 
@@ -288,8 +285,37 @@ var_set_width (struct variable *v, int new_width)
 
   v->width = new_width;
   traits |= VAR_TRAIT_WIDTH;
+
+  if (print)
+    {
+      var_set_print_format_quiet (v, print);
+      traits |= VAR_TRAIT_PRINT_FORMAT;
+    }
+
+  if (write)
+    {
+      var_set_write_format_quiet (v, write);
+      traits |= VAR_TRAIT_WRITE_FORMAT;
+    }
+
   dict_var_changed (v, traits, ov);
 }
+
+/* Changes the width of V to NEW_WIDTH.
+   This function should be used cautiously. */
+void
+var_set_width (struct variable *v, int new_width)
+{
+  const int old_width = v->width;
+
+  if (old_width == new_width)
+    return;
+
+  var_set_width_and_formats (v, new_width, NULL, NULL);
+}
+
+
+
 
 /* Returns true if variable V is numeric, false otherwise. */
 bool

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,10 +64,14 @@ unsigned hash_var_ptr_by_name (const void *, const void *);
 
 int compare_var_ptrs_by_dict_index (const void *, const void *, const void *);
 
+struct fmt_spec;
+
 /* Types and widths of values associated with a variable. */
 enum val_type var_get_type (const struct variable *);
 int var_get_width (const struct variable *);
 void var_set_width (struct variable *, int width);
+void var_set_width_and_formats (struct variable *v, int new_width,
+				const struct fmt_spec *print, const struct fmt_spec *write);
 
 bool var_is_numeric (const struct variable *);
 bool var_is_alpha (const struct variable *);
