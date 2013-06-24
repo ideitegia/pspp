@@ -51,8 +51,8 @@ void datasheet_move_columns (struct datasheet *,
                              size_t cnt);
 bool datasheet_resize_column (struct datasheet *, size_t column, int new_width,
                               void (*resize_cb) (const union value *,
-                                                 union value *, void *aux),
-                              void *aux);
+                                                 union value *, const void *aux),
+                              const void *aux);
 
 /* Rows. */
 casenumber datasheet_get_n_rows (const struct datasheet *);

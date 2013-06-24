@@ -453,8 +453,8 @@ on_type_click (PsppireCellRendererButton *cell,
 
   format = *var_get_print_format (var);
   psppire_var_type_dialog_run (GTK_WINDOW (toplevel), &format);
-  var_set_width (var, fmt_var_width (&format));
-  var_set_both_formats (var, &format);
+
+  var_set_width_and_formats (var, fmt_var_width (&format), &format, &format);
 }
 
 static void
@@ -1288,7 +1288,9 @@ refresh_model (PsppireVarSheet *var_sheet)
 }
 
 static void
-on_var_changed (PsppireDict *dict, glong row, PsppireVarSheet *var_sheet)
+on_var_changed (PsppireDict *dict, glong row,
+		guint what, const struct variable *oldvar,
+		PsppireVarSheet *var_sheet)
 {
   PsppireEmptyListStore *store;
 

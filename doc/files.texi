@@ -879,7 +879,7 @@ decimal point character set with SET DECIMAL (@pxref{SET DECIMAL}).
 
 The TEXTOPTIONS QUALIFIER setting specifies a character that is output
 before and after a value that contains the delimiter character or the
-qualifier character.  The default is a double quote (@samp{@@}).  A
+qualifier character.  The default is a double quote (@samp{"}).  A
 qualifier character that appears within a value is doubled.
 
 @node SYSFILE INFO

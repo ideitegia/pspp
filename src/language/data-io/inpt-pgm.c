@@ -24,6 +24,7 @@
 #include "data/casereader-provider.h"
 #include "data/dataset.h"
 #include "data/dictionary.h"
+#include "data/session.h"
 #include "data/transformations.h"
 #include "data/variable.h"
 #include "language/command.h"
@@ -46,6 +47,8 @@
 /* Indicates how a `union value' should be initialized. */
 struct input_program_pgm
   {
+    struct session *session;
+    struct dataset *ds;
     struct trns_chain *trns_chain;
     enum trns_result restart;
 
@@ -88,11 +91,12 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   bool saw_END_FILE = false;
   bool saw_DATA_LIST = false;
 
-  dataset_clear (ds);
   if (!lex_match (lexer, T_ENDCMD))
     return lex_end_of_command (lexer);
 
   inp = xmalloc (sizeof *inp);
+  inp->session = session_create (dataset_session (ds));
+  inp->ds = dataset_create (inp->session, "INPUT PROGRAM");
   inp->trns_chain = NULL;
   inp->init = NULL;
   inp->proto = NULL;
@@ -102,7 +106,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
     {
       enum cmd_result result;
 
-      result = cmd_parse_in_state (lexer, ds, CMD_STATE_INPUT_PROGRAM);
+      result = cmd_parse_in_state (lexer, inp->ds, CMD_STATE_INPUT_PROGRAM);
       switch (result)
         {
         case CMD_DATA_LIST:
@@ -110,7 +114,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
           break;
 
         case CMD_END_CASE:
-          emit_END_CASE (ds, inp);
+          emit_END_CASE (inp->ds, inp);
           saw_END_CASE = true;
           break;
 
@@ -128,41 +132,39 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
               if (result == CMD_EOF)
                 msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
               inside_input_program = false;
-              dataset_clear (ds);
               destroy_input_program (inp);
               return result;
             }
         }
     }
   if (!saw_END_CASE)
-    emit_END_CASE (ds, inp);
+    emit_END_CASE (inp->ds, inp);
   inside_input_program = false;
 
   if (!saw_DATA_LIST && !saw_END_FILE)
     {
       msg (SE, _("Input program must contain DATA LIST or END FILE."));
-      dataset_clear (ds);
       destroy_input_program (inp);
       return CMD_FAILURE;
     }
-  if (dict_get_next_value_idx (dataset_dict (ds)) == 0)
+  if (dict_get_next_value_idx (dataset_dict (inp->ds)) == 0)
     {
       msg (SE, _("Input program did not create any variables."));
-      dataset_clear (ds);
       destroy_input_program (inp);
       return CMD_FAILURE;
     }
 
-  inp->trns_chain = proc_capture_transformations (ds);
+  inp->trns_chain = proc_capture_transformations (inp->ds);
   trns_chain_finalize (inp->trns_chain);
 
   inp->restart = TRNS_CONTINUE;
 
   /* Figure out how to initialize each input case. */
   inp->init = caseinit_create ();
-  caseinit_mark_for_init (inp->init, dataset_dict (ds));
-  inp->proto = caseproto_ref (dict_get_proto (dataset_dict (ds)));
+  caseinit_mark_for_init (inp->init, dataset_dict (inp->ds));
+  inp->proto = caseproto_ref (dict_get_proto (dataset_dict (inp->ds)));
 
+  dataset_set_dict (ds, dict_clone (dataset_dict (inp->ds)));
   dataset_set_source (
     ds, casereader_create_sequential (NULL, inp->proto, CASENUMBER_MAX,
                                       &input_program_casereader_class, inp));
@@ -227,6 +229,7 @@ destroy_input_program (struct input_program_pgm *pgm)
 {
   if (pgm != NULL)
     {
+      session_destroy (pgm->session);
       trns_chain_destroy (pgm->trns_chain);
       caseinit_destroy (pgm->init);
       caseproto_unref (pgm->proto);

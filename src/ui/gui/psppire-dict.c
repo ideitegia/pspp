@@ -41,10 +41,8 @@ enum  {
   BACKEND_CHANGED,
 
   VARIABLE_CHANGED,
-  VARIABLE_RESIZED,
   VARIABLE_INSERTED,
   VARIABLE_DELETED,
-  VARIABLE_DISPLAY_WIDTH_CHANGED,
 
   WEIGHT_CHANGED,
   FILTER_CHANGED,
@@ -134,10 +132,13 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
-		  g_cclosure_marshal_VOID__INT,
+		  psppire_marshal_VOID__INT_UINT_POINTER,
 		  G_TYPE_NONE,
-		  1,
-		  G_TYPE_INT);
+		  3,
+		  G_TYPE_INT,
+		  G_TYPE_UINT,
+		  G_TYPE_POINTER
+		  );
 
 
 
@@ -164,30 +165,6 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  3,
 		  G_TYPE_POINTER,
 		  G_TYPE_INT,
-		  G_TYPE_INT);
-
-
-  signals [VARIABLE_RESIZED] =
-    g_signal_new ("dict-size-changed",
-		  G_TYPE_FROM_CLASS (class),
-		  G_SIGNAL_RUN_FIRST,
-		  0,
-		  NULL, NULL,
-		  psppire_marshal_VOID__INT_INT,
-		  G_TYPE_NONE,
-		  2,
-		  G_TYPE_INT,
-		  G_TYPE_INT);
-
-  signals [VARIABLE_DISPLAY_WIDTH_CHANGED] =
-    g_signal_new ("variable-display-width-changed",
-		  G_TYPE_FROM_CLASS (class),
-		  G_SIGNAL_RUN_FIRST,
-		  0,
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__INT,
-		  G_TYPE_NONE,
-		  1,
 		  G_TYPE_INT);
 
 
@@ -256,15 +233,9 @@ delcb (struct dictionary *d, const struct variable *var,
 }
 
 static void
-mutcb (struct dictionary *d, int idx, void *pd)
+mutcb (struct dictionary *d, int idx, unsigned int what, const struct variable *oldvar, void *pd)
 {
-  g_signal_emit (pd, signals [VARIABLE_CHANGED], 0, idx);
-}
-
-static void
-resize_cb (struct dictionary *d, int idx, int old_width, void *pd)
-{
-  g_signal_emit (pd, signals [VARIABLE_RESIZED], 0, idx, old_width);
+  g_signal_emit (pd, signals [VARIABLE_CHANGED], 0, idx, what, oldvar);
 }
 
 static void
@@ -285,24 +256,14 @@ split_changed_callback (struct dictionary *d, void *pd)
   g_signal_emit (pd, signals [SPLIT_CHANGED], 0);
 }
 
-static void
-variable_display_width_callback (struct dictionary *d, int idx, void *pd)
-{
-  g_signal_emit (pd, signals [VARIABLE_DISPLAY_WIDTH_CHANGED], 0, idx);
-}
-
-
-
 static const struct dict_callbacks gui_callbacks =
   {
     addcb,
     delcb,
     mutcb,
-    resize_cb,
     weight_changed_callback,
     filter_changed_callback,
-    split_changed_callback,
-    variable_display_width_callback
+    split_changed_callback
   };
 
 static void
@@ -564,22 +525,6 @@ gint
 psppire_dict_get_next_value_idx (const PsppireDict *dict)
 {
   return dict_get_next_value_idx (dict->dict);
-}
-
-
-void
-psppire_dict_resize_variable (PsppireDict *d, const struct variable *pv,
-			      gint old_size, gint new_size)
-{
-  g_return_if_fail (d);
-  g_return_if_fail (d->dict);
-
-  if ( old_size == new_size )
-    return ;
-
-  g_signal_emit (d, signals [VARIABLE_RESIZED], 0,
-		 var_get_dict_index (pv),
-		 new_size - old_size );
 }
 
 

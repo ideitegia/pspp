@@ -2,9 +2,10 @@ PSPP is a program for statistical analysis of sampled data.  It is
 a free replacement for the proprietary program SPSS.
 
 PSPP supports T-tests, ANOVA and GLM analyses, factor analysis,
-non-parametric tests, and other statistical features.  PSPP produces
-statistical reports in plain text, PDF, PostScript, CSV, HTML, SVG,
-and OpenDocument formats.
+non-parametric tests, linear and logistic regression, clustering, 
+and other statistical features.  PSPP produces statistical reports in
+plain text, PDF, PostScript, CSV, HTML, SVG, and OpenDocument formats.
+It can import data from OpenDocument, Gnumeric, text and SPSS formats.
 
 PSPP has both text-based and graphical user interfaces.  The PSPP
 user interface has been translated into a number of languages.
@@ -17,7 +18,7 @@ For information on differences from previous versions, please see file
 NEWS.  
           
 Source code for the latest release of PSPP is available at
-ftp://ftp.gnu.org/pub/gnu/pspp/.  Older versions may be obtained from
+ftp://ftp.gnu.org/pub/gnu/pspp/.  Test releases are at
 ftp://alpha.gnu.org/gnu/pspp/.  Development sources are available
 at http://savannah.gnu.org/projects/pspp
 
@@ -25,7 +26,7 @@ The following miscellaneous notes apply to this release:
 
 	* On a few operating systems, such as OpenBSD, some of the
           tests may fail with messages similar to: 'Warning: cannot
-          create a convertor for "646" to "UTF-8"'.  These test
+          create a converter for "646" to "UTF-8"'.  These test
           failures may safely be ignored.
 
 Questions and comments about using PSPP may be sent to pspp-users@gnu.org.

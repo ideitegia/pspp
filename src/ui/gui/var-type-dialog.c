@@ -84,6 +84,9 @@ static GObject *psppire_var_type_dialog_constructor (GType type, guint,
                                                      GObjectConstructParam *);
 static void psppire_var_type_dialog_set_state (PsppireVarTypeDialog *);
 
+static void psppire_var_type_dialog_set_format (PsppireVarTypeDialog *dialog,
+						const struct fmt_spec *format);
+
 static int find_format (const struct fmt_spec *target,
                         const struct fmt_spec formats[], int n_formats);
 static int find_format_type (int target, const int types[], int n_types);
@@ -145,7 +148,7 @@ psppire_var_type_dialog_get_property (GObject      *object,
     }
 }
 
-void
+static void
 psppire_var_type_dialog_set_format (PsppireVarTypeDialog *dialog,
                                     const struct fmt_spec *format)
 {
@@ -153,7 +156,7 @@ psppire_var_type_dialog_set_format (PsppireVarTypeDialog *dialog,
   psppire_var_type_dialog_set_state (dialog);
 }
 
-const struct fmt_spec *
+static const struct fmt_spec *
 psppire_var_type_dialog_get_format (const PsppireVarTypeDialog *dialog)
 {
   return &dialog->fmt_l;

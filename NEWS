@@ -97,6 +97,9 @@ Changes from 0.6.2 to 0.7.10:
      argument.  This means that on a properly configured desktop, double
      clicking on an icon will open the file.
 
+   - Foreign formats, such as Gnumeric, OpenDocument and CSV can be imported
+     via using an "intelligent" application assistant dialog.
+
  * Output changes:
 
    - The new "cairo" output driver supports output in PostScript, PDF,

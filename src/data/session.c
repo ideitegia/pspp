@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 struct session
   {
+    struct session *parent;
     struct hmapx datasets;
     struct dataset *active;
     char *syntax_encoding;      /* Default encoding for syntax files. */
@@ -43,14 +44,16 @@ static struct hmapx_node *session_lookup_dataset__ (const struct session *,
                                                     const char *name);
 
 struct session *
-session_create (void)
+session_create (struct session *parent)
 {
   struct session *s;
 
   s = xmalloc (sizeof *s);
+  s->parent = parent;
   hmapx_init (&s->datasets);
   s->active = NULL;
-  s->syntax_encoding = xstrdup ("Auto");
+  s->syntax_encoding = xstrdup (s->parent != NULL
+                                ? s->parent->syntax_encoding : "Auto");
   s->n_dataset_names = 0;
   return s;
 }
@@ -115,7 +118,9 @@ struct dataset *
 session_lookup_dataset (const struct session *s, const char *name)
 {
   struct hmapx_node *node = session_lookup_dataset__ (s, name);
-  return node != NULL ? node->data : NULL;
+  return (node != NULL ? node->data
+          : s->parent != NULL ? session_lookup_dataset (s->parent, name)
+          : NULL);
 }
 
 struct dataset *
