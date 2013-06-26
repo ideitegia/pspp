@@ -523,6 +523,7 @@ initial_pass (const struct lr_spec *cmd, struct lr_result *res, struct casereade
 	      )
 	    {
 	      msg (ME, _("Dependent variable's values are not dichotomous."));
+              case_unref (c);
 	      goto error;
 	    }
 	}
