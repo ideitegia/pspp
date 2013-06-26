@@ -676,8 +676,7 @@ run_regression (const struct regression *cmd, struct casereader *input)
       this_cm = gsl_matrix_alloc (n_indep + 1, n_indep + 1);
       n_data = fill_covariance (this_cm, cov, vars, n_indep,
                                 dep_var, all_vars, n_all_vars, means);
-      models[k] = linreg_alloc (dep_var, (const struct variable **) vars,
-                                n_data, n_indep);
+      models[k] = linreg_alloc (dep_var, vars,  n_data, n_indep);
       models[k]->depvar = dep_var;
       for (i = 0; i < n_indep; i++)
         {
