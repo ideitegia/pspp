@@ -115,7 +115,6 @@ struct linreg_struct
      column of the design matrix.
    */
   double depvar_mean;
-  double depvar_std;
   gsl_vector *indep_means;
   gsl_vector *indep_std;
 
@@ -123,8 +122,6 @@ struct linreg_struct
      Sums of squares.
    */
   double ssm;			/* Sums of squares for the overall model. */
-  gsl_vector *ss_indeps;	/* Sums of squares from each
-				   independent variable. */
   double sst;			/* Sum of squares total. */
   double sse;			/* Sum of squares error. */
   double mse;			/* Mean squared error. This is just sse /
@@ -171,11 +168,6 @@ double
 linreg_residual (const linreg *, double, const double *, size_t);
 const struct variable ** linreg_get_vars (const linreg *);
 
-/*
-  Return or set the standard deviation of the independent variable.
- */
-double linreg_get_indep_variable_sd (linreg *, size_t);
-void linreg_set_indep_variable_sd (linreg *, size_t, double);
 /*
   Mean of the independent variable.
  */
