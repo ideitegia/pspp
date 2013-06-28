@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -737,12 +737,25 @@ postcalc (struct crosstabs_proc *proc)
 
       pt->missing = 0.0;
 
-      /* Free only the members that were allocated in this
-         function.  The other pointer members are either both
-         allocated and destroyed at a lower level (in
-         output_pivot_table), or both allocated and destroyed at
-         a higher level (in crs_custom_tables and free_proc,
+      /* Free the members that were allocated in this function(and the values
+         owned by the entries.
+
+         The other pointer members are either both allocated and destroyed at a
+         lower level (in output_pivot_table), or both allocated and destroyed
+         at a higher level (in crs_custom_tables and free_proc,
          respectively). */
+      for (i = 0; i < pt->n_vars; i++)
+        {
+          int width = var_get_width (pt->vars[i]);
+          if (value_needs_init (width))
+            {
+              size_t j;
+
+              for (j = 0; j < pt->n_entries; j++)
+                value_destroy (&pt->entries[j]->values[i], width);
+            }
+        }
+
       for (i = 0; i < pt->n_entries; i++)
         free (pt->entries[i]);
       free (pt->entries);
@@ -966,6 +979,7 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
            ds_cstr (&vars));
 
       ds_destroy (&vars);
+      free (pt->cols);
       return;
     }
 
@@ -1447,7 +1461,9 @@ compare_value_3way_inv (const void *a_, const void *b_, const void *width_)
    with index VAR_IDX takes on.  The values are returned as a
    malloc()'d array stored in *VALUES, with the number of values
    stored in *VALUE_CNT.
-   */
+
+   The caller must eventually free *VALUES, but each pointer in *VALUES points
+   to existing data not owned by *VALUES itself. */
 static void
 enum_var_values (const struct pivot_table *pt, int var_idx,
                  union value **valuesp, int *n_values, bool descending)
