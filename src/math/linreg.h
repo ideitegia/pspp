@@ -90,7 +90,6 @@ typedef struct pspp_linreg_opts_struct pspp_linreg_opts;
 
 struct linreg_struct
 {
-  int refcnt;
   double n_obs;			/* Number of observations. */
   int n_indeps;			/* Number of independent variables. */
   int n_coeffs;                 /* The intercept is not considered a
@@ -139,9 +138,8 @@ struct linreg_struct
   double dfe;
   double dfm;
 
-  struct variable *pred;
-  struct variable *resid;
   int dependent_column; /* Column containing the dependent variable. Defaults to last column. */
+  int refcnt;
 };
 
 typedef struct linreg_struct linreg;
@@ -152,20 +150,17 @@ linreg *linreg_alloc (const struct variable *, const struct variable **,
 		      double, size_t);
 
 void linreg_unref (linreg *);
-void linreg_ref (linreg *c);
+void linreg_ref (linreg *);
 
 /*
   Fit the linear model via least squares. All pointers passed to pspp_linreg
   are assumed to be allocated to the correct size and initialized to the
   values as indicated by opts.
  */
-void
-linreg_fit (const gsl_matrix *, linreg *);
+void linreg_fit (const gsl_matrix *, linreg *);
 
-double
-linreg_predict (const linreg *, const double *, size_t);
-double
-linreg_residual (const linreg *, double, const double *, size_t);
+double linreg_predict (const linreg *, const double *, size_t);
+double linreg_residual (const linreg *, double, const double *, size_t);
 const struct variable ** linreg_get_vars (const linreg *);
 
 /*

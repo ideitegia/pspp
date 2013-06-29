@@ -100,12 +100,12 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
      Default settings.
    */
   c->method = LINREG_SWEEP;
-  c->pred = NULL;
-  c->resid = NULL;
 
   c->refcnt = 1;
+
   return c;
 }
+
 
 void
 linreg_ref (linreg *c)
@@ -116,7 +116,7 @@ linreg_ref (linreg *c)
 void
 linreg_unref (linreg *c)
 {
-  if (c && --c->refcnt == 0)
+  if (--c->refcnt == 0)
     {
       gsl_vector_free (c->indep_means);
       gsl_vector_free (c->indep_std);
