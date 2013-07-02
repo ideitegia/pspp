@@ -146,6 +146,40 @@ AT_CHECK([cat outdata-g0.txt outdata-g1.txt | diff outdata-split.txt - ], [0], [
 AT_CLEANUP
 
 
+# Test that the procedure behaves sensibly when presented with
+# multiple dependent variables
+AT_SETUP([LINEAR REGRESSION multiple dependent variables])
+AT_DATA([regression.sps], [dnl
+set seed = 2.
+input program.
+loop #c = 1 to 200.
+     compute x0 = rv.normal (0, 1).
+     compute x1 = rv.normal (0, 2).
+     compute err = rv.normal (0, 0.8).
+     compute y = 2 - 1.5 * x0 + 8.4 * x1 + err.
+     compute ycopy = y.
+     end case.
+end loop.
+end file.
+end input program.
+
+regression 
+	   /variables = x0 x1
+	   /dependent = y ycopy
+	   /statistics = all
+])
+
+AT_CHECK([pspp -O format=csv regression.sps > output], [0], [ignore])
+
+
+AT_CHECK([head -16 output > first], [0], [])
+AT_CHECK([tail -16 output > second], [0], [])
+
+AT_CHECK([sed -e 's/ycopy/y/g' second | diff first -], [0], [])
+
+
+AT_CLEANUP
+
 # Tests the QR decomposition used by the REGRESSION command.
 AT_SETUP([LINEAR REGRESSION test of QR decomposition])
 AT_DATA([regression.sps], [dnl
