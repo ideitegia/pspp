@@ -166,7 +166,7 @@ const struct variable ** linreg_get_vars (const linreg *);
 /*
   Mean of the independent variable.
  */
-double linreg_get_indep_variable_mean (linreg *, size_t);
+double linreg_get_indep_variable_mean (const linreg *, size_t);
 void linreg_set_indep_variable_mean (linreg *, size_t, double);
 
 double linreg_mse (const linreg *);
@@ -183,5 +183,5 @@ double linreg_ssreg (const linreg *);
 double linreg_dfmodel (const linreg *);
 double linreg_sst (const linreg *);
 void linreg_set_depvar_mean (linreg *, double);
-double linreg_get_depvar_mean (linreg *);
+double linreg_get_depvar_mean (const linreg *);
 #endif

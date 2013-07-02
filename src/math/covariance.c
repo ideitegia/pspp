@@ -113,6 +113,8 @@ struct covariance
   /* Flags indicating that the first case has been seen */
   bool pass_one_first_case_seen;
   bool pass_two_first_case_seen;
+
+  gsl_matrix *unnormalised;
 };
 
 
@@ -202,6 +204,7 @@ covariance_2pass_create (size_t n_vars, const struct variable *const *vars,
   cov->cm = NULL;
 
   cov->categoricals = cats;
+  cov->unnormalised = NULL;
 
   return cov;
 }
@@ -667,27 +670,31 @@ covariance_calculate_single_pass_unnormalized (struct covariance *cov)
 
 
 /* Return a pointer to gsl_matrix containing the pairwise covariances.  The
-   caller owns the returned matrix and must free it when it is no longer
-   needed.
+   returned matrix is owned by the structure, and must not be freed.
 
    Call this function only after all data have been accumulated.  */
-gsl_matrix *
+const gsl_matrix *
 covariance_calculate_unnormalized (struct covariance *cov)
 {
   if ( cov->state <= 0 )
     return NULL;
 
+  if (cov->unnormalised != NULL)
+    return cov->unnormalised;
+
   switch (cov->passes)
     {
     case 1:
-      return covariance_calculate_single_pass_unnormalized (cov);  
+      cov->unnormalised =  covariance_calculate_single_pass_unnormalized (cov);  
       break;
     case 2:
-      return covariance_calculate_double_pass_unnormalized (cov);  
+      cov->unnormalised =  covariance_calculate_double_pass_unnormalized (cov);  
       break;
     default:
       NOT_REACHED ();
     }
+
+  return cov->unnormalised;
 }
 
 /* Function to access the categoricals used by COV
@@ -711,6 +718,7 @@ covariance_destroy (struct covariance *cov)
   for (i = 0; i < n_MOMENTS; ++i)
     gsl_matrix_free (cov->moments[i]);
 
+  gsl_matrix_free (cov->unnormalised);
   free (cov->moments);
   free (cov->cm);
   free (cov);

@@ -387,7 +387,7 @@ fill_submatrix (const gsl_matrix * cov, gsl_matrix * submatrix, bool *dropped_f)
 static void
 ssq_type1 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 {
-  gsl_matrix *cm = covariance_calculate_unnormalized (cov);
+  const gsl_matrix *cm = covariance_calculate_unnormalized (cov);
   size_t i;
   size_t k;
   bool *model_dropped = xcalloc (covariance_dim (cov), sizeof (*model_dropped));
@@ -447,7 +447,6 @@ ssq_type1 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 
   free (model_dropped);
   free (submodel_dropped);
-  gsl_matrix_free (cm);
 }
 
 /* 
@@ -457,7 +456,7 @@ ssq_type1 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 static void
 ssq_type2 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 {
-  gsl_matrix *cm = covariance_calculate_unnormalized (cov);
+  const gsl_matrix *cm = covariance_calculate_unnormalized (cov);
   size_t i;
   size_t k;
   bool *model_dropped = xcalloc (covariance_dim (cov), sizeof (*model_dropped));
@@ -511,7 +510,6 @@ ssq_type2 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 
   free (model_dropped);
   free (submodel_dropped);
-  gsl_matrix_free (cm);
 }
 
 /* 
@@ -521,7 +519,7 @@ ssq_type2 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 static void
 ssq_type3 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
 {
-  gsl_matrix *cm = covariance_calculate_unnormalized (cov);
+  const gsl_matrix *cm = covariance_calculate_unnormalized (cov);
   size_t i;
   size_t k;
   bool *model_dropped = xcalloc (covariance_dim (cov), sizeof (*model_dropped));
@@ -568,8 +566,6 @@ ssq_type3 (struct covariance *cov, gsl_vector *ssq, const struct glm_spec *cmd)
       gsl_matrix_free (model_cov);
     }
   free (model_dropped);
-
-  gsl_matrix_free (cm);
 }
 
 
@@ -657,7 +653,9 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
     }
 
   {
-    gsl_matrix *cm = covariance_calculate_unnormalized (cov);
+    const gsl_matrix *ucm = covariance_calculate_unnormalized (cov);
+    gsl_matrix *cm = gsl_matrix_alloc (ucm->size1, ucm->size2);
+    gsl_matrix_memcpy (cm, ucm);
 
     //    dump_matrix (cm);
 
@@ -686,7 +684,6 @@ run_glm (struct glm_spec *cmd, struct casereader *input,
 	break;
       }
     //    dump_matrix (cm);
-
     gsl_matrix_free (cm);
   }
 

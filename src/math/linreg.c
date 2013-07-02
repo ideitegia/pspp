@@ -247,7 +247,7 @@ linreg_residual (const linreg *c, double obs, const double *vals, size_t n_vals)
 /*
   Mean of the independent variable.
  */
-double linreg_get_indep_variable_mean (linreg *c, size_t j)
+double linreg_get_indep_variable_mean (const linreg *c, size_t j)
 {
   assert (c != NULL);
   return gsl_vector_get (c->indep_means, j);
@@ -450,7 +450,7 @@ linreg_set_depvar_mean (linreg *c, double x)
 }
 
 double 
-linreg_get_depvar_mean (linreg *c)
+linreg_get_depvar_mean (const linreg *c)
 {
   return c->depvar_mean;
 }
