@@ -1,6 +1,6 @@
-AT_BANNER([REGRESSION])
+AT_BANNER([LINEAR REGRESSION])
 
-AT_SETUP([REGRESSION])
+AT_SETUP([LINEAR REGRESSION - basic])
 AT_DATA([regression.sps], [dnl
 set format = F22.3.
 data list notable list / v0 to v2.
@@ -54,7 +54,7 @@ v0,v1,v2,RES1,PRED1
 AT_CLEANUP
 
 # Tests the QR decomposition used by the REGRESSION command.
-AT_SETUP([REGRESSION test of QR decomposition])
+AT_SETUP([LINEAR REGRESSION test of QR decomposition])
 AT_DATA([regression.sps], [dnl
 data list list / v0 to v1.
 begin data
@@ -1586,7 +1586,7 @@ Table: Coefficients (v0)
 ])
 AT_CLEANUP
 
-AT_SETUP([REGRESSION no crash on all missing])
+AT_SETUP([LINEAR REGRESSION no crash on all missing])
 AT_DATA([regcrash.sps], [dnl
 data list list /x * y.
 begin data.
@@ -1612,7 +1612,7 @@ AT_CLEANUP
 
 
 
-AT_SETUP([REGRESSION missing dependent variable])
+AT_SETUP([LINEAR REGRESSION missing dependent variable])
 
 dnl Test for a bug where missing values in the dependent variable were not being
 dnl ignored like they should have been.
@@ -1669,7 +1669,7 @@ AT_CHECK([diff pspp.csv pspp-ref.csv])
 
 AT_CLEANUP
 
-AT_SETUP([REGRESSION with invalid syntax (and empty dataset)])
+AT_SETUP([LINEAR REGRESSION with invalid syntax (and empty dataset)])
 
 AT_DATA([ss.sps], [dnl
 data list notable list / v0 to v2.
