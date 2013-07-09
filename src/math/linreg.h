@@ -173,7 +173,7 @@ double linreg_mse (const linreg *);
 
 double linreg_intercept (const linreg *);
 
-gsl_matrix * linreg_cov (const linreg *);
+const gsl_matrix * linreg_cov (const linreg *);
 double linreg_coeff (const linreg *, size_t);
 const struct variable * linreg_indep_var (const linreg *, size_t);
 size_t linreg_n_coeffs (const linreg *);

@@ -390,7 +390,7 @@ double linreg_intercept (const linreg *c)
   return c->intercept;
 }
 
-gsl_matrix *
+const gsl_matrix *
 linreg_cov (const linreg *c)
 {
   return c->cov;
