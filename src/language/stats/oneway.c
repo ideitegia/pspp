@@ -841,6 +841,7 @@ run_oneway (const struct oneway_spec *cmd,
       reg_sweep (cm, 0);
 
       pvw->sse = gsl_matrix_get (cm, 0, 0);
+      gsl_matrix_free (cm);
 
       pvw->ssa = pvw->sst - pvw->sse;
 
