@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -442,8 +442,8 @@ test_delete (void)
                       assert (j < block_cnt - i);
                       if (expected[j].x == idx)
                         {
-                          memcpy (&expected[j], &expected[j + 1],
-                                  sizeof *expected * (block_cnt - i - j - 1));
+                          memmove (&expected[j], &expected[j + 1],
+                                   sizeof *expected * (block_cnt - i - j - 1));
                           break;
                         }
                     }
