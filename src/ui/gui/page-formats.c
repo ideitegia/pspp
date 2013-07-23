@@ -68,7 +68,10 @@ struct formats_page
 /* The "formats" page of the assistant. */
 
 static void on_variable_change (PsppireDict *dict, int idx,
+				unsigned int what,
+				const struct variable *oldvar,
                                 struct import_assistant *);
+
 static void clear_modified_vars (struct import_assistant *);
 
 /* Initializes IA's formats substructure. */
@@ -231,6 +234,7 @@ reset_formats_page (struct import_assistant *ia)
    dictionary. */
 static void
 on_variable_change (PsppireDict *dict, int dict_idx,
+		    unsigned int what, const struct variable *oldvar,
                     struct import_assistant *ia)
 {
   struct formats_page *p = ia->formats;
