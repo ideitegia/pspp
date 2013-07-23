@@ -166,7 +166,7 @@ prepare_formats_page (struct import_assistant *ia)
   fmt_guesser_destroy (fg);
 
   psppire_dict = psppire_dict_new_from_dict (dict);
-  g_signal_connect (psppire_dict, "variable_changed",
+  g_signal_connect (psppire_dict, "variable-changed",
                     G_CALLBACK (on_variable_change), ia);
   ia->dict = dict;
   ia->formats->psppire_dict = psppire_dict;
