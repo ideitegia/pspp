@@ -1646,7 +1646,7 @@ lex_reader_for_substring_nocopy (struct substring s)
 
   r = xmalloc (sizeof *r);
   lex_reader_init (&r->reader, &lex_string_reader_class);
-  r->reader.syntax = LEX_SYNTAX_INTERACTIVE;
+  r->reader.syntax = LEX_SYNTAX_AUTO;
   r->s = s;
   r->offset = 0;
 

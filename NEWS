@@ -4,6 +4,14 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
+Changes after 0.8.0:
+
+ * PSPPIRE graphical user interface improvements:
+
+   - Syntax windows now parse syntax in "auto" mode, which in practice
+     should mean that both "batch" and "interactive" syntax now works,
+     instead of just "interactive" syntax.
+
 Changes from 0.6.2 to 0.8.0:
 
  * New commands:
