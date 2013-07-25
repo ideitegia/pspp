@@ -32,7 +32,7 @@
 #define N_(msgid) msgid
 
 
-static const gchar *artists[] = { "Patrick Brunier", "Dondi Bogusky", NULL};
+static const gchar *artists[] = { "Bastián Díaz", "Hugo Alejandro", "Patrick Brunier", "Dondi Bogusky", NULL};
 
 static void
 about_new (GtkMenuItem *m, GtkWindow *parent)
