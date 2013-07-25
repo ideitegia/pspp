@@ -118,8 +118,52 @@ GNULIB_MODULES = \
 	xstrndup \
 	xvasprintf
 
-all: prep_ph
+
+
+MIMETYPE_ICONS = \
+src/ui/gui/icons/mimetypes/32x32/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/32x32/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/32x32/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/22x22/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/22x22/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/22x22/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/24x24/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/24x24/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/24x24/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/256x256/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/256x256/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/256x256/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/16x16/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/16x16/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/16x16/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/48x48/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/48x48/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/48x48/application-x-spss-sps.png \
+
+
+ICONS=$(MIMETYPE_ICONS)
+
+
+all: prep_ph  icons
 	$(MAKE) -f Smake Makefile.in configure
+
+icons: $(ICONS)
+
+src/ui/gui/icons/manifest:
+	$(RM) $@
+	printf '# This is a generated file. Do not edit.\n' >> $@
+	printf 'icons =' >> $@
+	for i in  $(ICONS); do \
+	  printf ' \\\n\t '$$i >> $@; \
+	done
+	echo >> $@
+	echo >> $@
+	printf 'icon_srcs = ' >> $@
+	for i in  $(ICONS); do \
+	  printf ' \\\n\t '$$i | sed -e 's/\.png$$/.svg/' -e 's%/icons/%/artwork/%' >> $@ ; \
+	done
+	echo ' ' >> $@
+	echo >> $@
 
 .PHONY: prep_ph
 prep_ph: 
@@ -149,7 +193,7 @@ configure: configure.ac aclocal.m4
 config.h.in: configure.ac
 	autoheader
 
-Makefile.in: Makefile.am config.h.in aclocal.m4
+Makefile.in: Makefile.am config.h.in aclocal.m4 src/ui/gui/icons/manifest
 	automake --add-missing --copy --no-force --include-deps
 
 
@@ -172,6 +216,8 @@ _build: all
 _debug: all
 	test -d _debug || mkdir _debug
 	cd _debug && ../configure $(CONFIGUREFLAGS) --enable-debug
+
+
 
 PO_FILES = po/ChangeLog \
 po/Rules-quot po/boldquot.sed		\
@@ -200,3 +246,8 @@ clean:
 	rm -f reloc-ldflags install-reloc
 
 .PHONY: all gettextize clean
+
+src/ui/gui/icons/%.png: src/ui/gui/artwork/%.svg src/ui/gui/icons/COPYING_CCBYSA3
+	mkdir -p $(dir $@)
+	gimp -i -b '(let* ((image  (car  (gimp-file-load 1  "$<"  "$<"))))  (gimp-image-attach-parasite image (list "gimp-comment" 0 "$(shell cat $(lastword $^))" ))  (gimp-file-save 1 image (car  (gimp-image-get-active-drawable image)) "$@" "$@")) (gimp-quit 1)'
+

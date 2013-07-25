@@ -98,34 +98,35 @@ src_ui_gui_spreadsheet_test_SOURCES = src/ui/gui/spreadsheet-test.c src/ui/gui/p
 src_ui_gui_psppiredir = $(pkgdatadir)
 
 
-themedir = $(DESTDIR)$(datadir)/icons/hicolor
-context = pspp
+thethemedir = $(DESTDIR)$(datadir)/icons/hicolor
+thecontext = pspp
 
 
 install-lang:
 	$(INSTALL_DATA) $(top_srcdir)/src/ui/gui/pspp.lang $(DESTDIR)$(pkgdatadir)
 
-install-icons:
+install-legacy-icons:
 	for size in 16x16 ; do \
-	  $(MKDIR_P) $(themedir)/$$size/$(context) ; \
-          $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/icons/$$size/* $(themedir)/$$size/$(context) ; \
-	  $(MKDIR_P) $(themedir)/$$size/apps ; \
-	  $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/app-icons/$$size/pspp.png $(themedir)/$$size/apps ; \
+	  $(MKDIR_P) $(thetemedir)/$$size/$(thecontext) ; \
+          $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/icons/$$size/* $(thethemedir)/$$size/$(thecontext) ; \
+	  $(MKDIR_P) $(thethemedir)/$$size/apps ; \
+	  $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/app-icons/$$size/pspp.png $(thethemedir)/$$size/apps ; \
 	done 
+
+INSTALL_DATA_HOOKS += install-legacy-icons install-lang
+
+uninstall-legacy-icons:
+	for size in 16x16 ; do \
+          rm -r -f $(thethemedir)/$$size/$(thecontext); \
+          rm -f $(thethemedir)/$$size/apps/pspp.png; \
+	done 
+
+update-icon-cache:
 	if test -z "$(DESTDIR)" ; then \
-		gtk-update-icon-cache --ignore-theme-index $(themedir); \
+		gtk-update-icon-cache --ignore-theme-index $(thethemedir); \
 	fi
 
-INSTALL_DATA_HOOKS += install-icons install-lang
-
-uninstall-icons:
-	for size in 16x16 ; do \
-          rm -r -f $(themedir)/$$size/$(context); \
-          rm -f $(themedir)/$$size/apps/pspp.png; \
-	done 
-	gtk-update-icon-cache --ignore-theme-index $(themedir)
-
-UNINSTALL_DATA_HOOKS += uninstall-icons
+UNINSTALL_DATA_HOOKS += uninstall-legacy-icons
 
 dist_src_ui_gui_psppire_DATA = \
 	$(UI_FILES) \
@@ -412,4 +413,9 @@ src/ui/gui/include/gtk/gtk.h: src/ui/gui/include/gtk/gtk.in.h
 	mv $@-t $@
 CLEANFILES += src/ui/gui/include/gtk/gtk.h
 EXTRA_DIST += src/ui/gui/include/gtk/gtk.in.h
+
+include $(top_srcdir)/src/ui/gui/icons/automake.mk
+
+UNINSTALL_DATA_HOOKS += update-icon-cache
+INSTALL_DATA_HOOKS += update-icon-cache
 

@@ -23,6 +23,8 @@ following:
 
 	* Texinfo 4.7 or later, to build the documentation.
 
+	* Gimp --  2.8.2 is known to work
+
 After you install PSPP's prerequisites, you must obtain a copy of
 Gnulib, then bootstrap the tree, as described in the sections below.
 After that, you may follow the procedure described in INSTALL.
