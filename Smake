@@ -118,6 +118,13 @@ GNULIB_MODULES = \
 	xstrndup \
 	xvasprintf
 
+APP_ICONS = \
+src/ui/gui/icons/apps/32x32/pspp.png \
+src/ui/gui/icons/apps/22x22/pspp.png \
+src/ui/gui/icons/apps/24x24/pspp.png \
+src/ui/gui/icons/apps/256x256/pspp.png \
+src/ui/gui/icons/apps/16x16/pspp.png \
+src/ui/gui/icons/apps/48x48/pspp.png
 
 
 MIMETYPE_ICONS = \
@@ -141,7 +148,7 @@ src/ui/gui/icons/mimetypes/48x48/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-sps.png \
 
 
-ICONS=$(MIMETYPE_ICONS)
+ICONS=$(MIMETYPE_ICONS) $(APP_ICONS)
 
 
 all: prep_ph  icons

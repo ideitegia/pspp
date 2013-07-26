@@ -6,22 +6,26 @@ themedir = $(DESTDIR)$(datadir)/icons/hicolor
 
 sizes=16x16 22x22  24x24 32x32 48x48 256x256
 
-install-mimetypes:
+install-ext-icons:
+	for context in apps mimetypes; do \
 	for size in $(sizes); do \
-		$(MKDIR_P) $(themedir)/$$size/mimetypes ; \
-		if (cd $(top_srcdir)/src/ui/gui/icons/mimetypes/$$size && \
+		$(MKDIR_P) $(themedir)/$$size/$$context ; \
+		if (cd $(top_srcdir)/src/ui/gui/icons/$$context/$$size && \
 			(test ! "`printf '%s %s %s' . .. *`" = '. .. *' || test -f '*')) 2> /dev/null ; then \
-			$(INSTALL_DATA) $(top_srcdir)/src/ui/gui/icons/mimetypes/$$size/* $(themedir)/$$size/mimetypes ; \
+			$(INSTALL_DATA) $(top_srcdir)/src/ui/gui/icons/$$context/$$size/* $(themedir)/$$size/$$context ; \
 		fi ; \
+	done ; \
 	done
 
 
-uninstall-mimetypes:
+uninstall-ext-icons:
+	for context in apps mimetypes; do \
 	for size in $(sizes); do \
-		if (cd $(top_srcdir)/src/ui/gui/icons/mimetypes/$$size && \
+		if (cd $(top_srcdir)/src/ui/gui/icons/$$context/$$size && \
 			(test ! "`printf '%s %s %s' . .. *`" = '. .. *' || test -f '*')) 2> /dev/null ; then \
-			  rm -rf $(themedir)/$$size/mimetypes/application-x-spss-* ; \
+			  rm -rf $(themedir)/$$size/$$context/application-x-spss-* ; \
 		fi ; \
+	done ; \
 	done
 
 
@@ -51,5 +55,5 @@ uninstall-icons:
 
 
 
-INSTALL_DATA_HOOKS += install-icons install-mimetypes
-UNINSTALL_DATA_HOOKS += uninstall-icons uninstall-mimetypes
+INSTALL_DATA_HOOKS += install-icons install-ext-icons
+UNINSTALL_DATA_HOOKS += uninstall-icons uninstall-ext-icons
