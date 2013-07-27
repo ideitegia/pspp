@@ -8,8 +8,8 @@ sizes=16x16 22x22  24x24 32x32 48x48 256x256
 
 install-ext-icons:
 	for context in apps mimetypes; do \
-		$(MKDIR_P) $(themedir)/$$size/$$context ; \
 		for size in $(sizes); do \
+		$(MKDIR_P) $(themedir)/$$size/$$context ; \
 			if (cd $(top_srcdir)/src/ui/gui/icons/$$context/$$size && \
 				(test ! "`printf '%s %s %s' . .. *`" = '. .. *' || test -f '*')) 2> /dev/null ; then \
 				$(INSTALL_DATA) $(top_srcdir)/src/ui/gui/icons/$$context/$$size/* $(themedir)/$$size/$$context ; \

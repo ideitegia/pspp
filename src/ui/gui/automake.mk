@@ -107,10 +107,8 @@ install-lang:
 
 install-legacy-icons:
 	for size in 16x16 ; do \
-	  $(MKDIR_P) $(thetemedir)/$$size/$(thecontext) ; \
+	  $(MKDIR_P) $(thethemedir)/$$size/$(thecontext) ; \
           $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/icons/$$size/* $(thethemedir)/$$size/$(thecontext) ; \
-	  $(MKDIR_P) $(thethemedir)/$$size/apps ; \
-	  $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/app-icons/$$size/pspp.png $(thethemedir)/$$size/apps ; \
 	done 
 
 INSTALL_DATA_HOOKS += install-legacy-icons install-lang
@@ -118,7 +116,6 @@ INSTALL_DATA_HOOKS += install-legacy-icons install-lang
 uninstall-legacy-icons:
 	for size in 16x16 ; do \
           rm -r -f $(thethemedir)/$$size/$(thecontext); \
-          rm -f $(thethemedir)/$$size/apps/pspp.png; \
 	done 
 
 update-icon-cache:
@@ -130,7 +127,6 @@ UNINSTALL_DATA_HOOKS += uninstall-legacy-icons
 
 dist_src_ui_gui_psppire_DATA = \
 	$(UI_FILES) \
-	$(top_srcdir)/src/ui/gui/app-icons/16x16/pspp.png \
 	$(top_srcdir)/src/ui/gui/pspp.lang \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
