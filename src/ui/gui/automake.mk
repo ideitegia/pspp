@@ -142,7 +142,6 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/icons/16x16/scale.png \
 	$(top_srcdir)/src/ui/gui/icons/16x16/string.png \
 	$(top_srcdir)/src/ui/gui/icons/16x16/date-scale.png \
-	$(top_srcdir)/src/ui/gui/icons/splash.png \
 	$(top_srcdir)/src/ui/gui/psppire.gtkrc
 
 src_ui_gui_psppire_SOURCES = \

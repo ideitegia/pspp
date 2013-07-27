@@ -147,8 +147,10 @@ src/ui/gui/icons/mimetypes/48x48/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-sps.png \
 
+MISC_ICONS = src/ui/gui/icons/splash.png
 
-ICONS=$(MIMETYPE_ICONS) $(APP_ICONS)
+
+ICONS=$(MIMETYPE_ICONS) $(APP_ICONS) $(MISC_ICONS)
 
 
 all: prep_ph  icons

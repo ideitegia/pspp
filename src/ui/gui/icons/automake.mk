@@ -58,3 +58,8 @@ uninstall-icons:
 
 INSTALL_DATA_HOOKS += install-icons install-ext-icons
 UNINSTALL_DATA_HOOKS += uninstall-icons uninstall-ext-icons
+
+if HAVE_GUI
+dist_src_ui_gui_psppire_DATA += \
+	$(top_srcdir)/src/ui/gui/icons/splash.png
+endif
