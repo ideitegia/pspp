@@ -4165,7 +4165,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 			       background_area.x + background_area.width,
 			       background_area.y);
 
-	      if (y_offset + max_height >= event->area.height)
+	      if (y_offset + max_height <= event->area.height)
 		gdk_draw_line (event->window,
 			       tree_view->priv->grid_line_gc[widget->state],
 			       background_area.x, background_area.y + max_height,
