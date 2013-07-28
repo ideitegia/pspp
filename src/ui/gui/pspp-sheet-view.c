@@ -3766,22 +3766,25 @@ pspp_sheet_view_draw_grid_lines (PsppSheetView    *tree_view,
   for (list = tree_view->priv->columns; list; list = list->next, i++)
     {
       PsppSheetViewColumn *column = list->data;
-
-      /* We don't want a line for the last column */
-      if (i == n_visible_columns - 1)
-	break;
+      gint x;
 
       if (! column->visible)
 	continue;
 
       current_x += column->width;
 
-      if (current_x - 1 >= event->area.x
-          && current_x - 1 < event->area.x + event->area.width)
+      /* Generally the grid lines should fit within the column, but for the
+         last visible column we put it just past the end of the column.
+         (Otherwise horizontal grid lines sometimes stick out by one pixel.) */
+      x = current_x;
+      if (i != n_visible_columns - 1)
+        x--;
+
+      if (x >= event->area.x && x < event->area.x + event->area.width)
         gdk_draw_line (event->window,
                        tree_view->priv->grid_line_gc[GTK_WIDGET(tree_view)->state],
-                       current_x - 1, min_y,
-                       current_x - 1, max_y - min_y);
+                       x, min_y,
+                       x, max_y - min_y);
     }
 }
 
