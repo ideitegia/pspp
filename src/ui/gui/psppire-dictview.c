@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2009, 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -340,33 +340,41 @@ var_icon_cell_data_func (GtkTreeViewColumn *col,
   struct variable *var;
   gtk_tree_model_get (model, iter, DICT_TVM_COL_VAR, &var, -1);
 
+  g_object_set (cell, "stock_id",
+                psppire_dict_view_get_var_measurement_stock_id (var), NULL);
+}
+
+const char *
+psppire_dict_view_get_var_measurement_stock_id (const struct variable *var)
+{
   if ( var_is_alpha (var))
-    {
-      g_object_set (cell, "stock-id", "var-string", NULL);
-    }
+    return "var-string";
   else
     {
       const struct fmt_spec *fs = var_get_print_format (var);
       int cat = fmt_get_category (fs->type);
+
       switch ( var_get_measure (var))
 	{
 	case MEASURE_NOMINAL:
-	  g_object_set (cell, "stock-id", "var-nominal", NULL);
-	  break;
+          return "var-nominal";
+
 	case MEASURE_ORDINAL:
-	  g_object_set (cell, "stock-id", "var-ordinal", NULL);
-	  break;
+          return "var-ordinal";
+
 	case MEASURE_SCALE:
 	  if ( ( FMT_CAT_DATE | FMT_CAT_TIME ) & cat )
-	    g_object_set (cell, "stock-id", "var-date-scale", NULL);
+            return "var-date-scale";
 	  else
-	    g_object_set (cell, "stock-id", "var-scale", NULL);
+            return "var-scale";
 	  break;
+
 	default:
-	  g_assert_not_reached ();
-	};
+	  g_return_val_if_reached ("");
+	}
     }
 }
+
 
 
 /* Sets the tooltip to be the name of the variable under the cursor */

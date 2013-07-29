@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "ui/gui/psppire-data-editor.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dialog-action-var-info.h"
+#include "ui/gui/psppire-dictview.h"
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-marshal.h"
 #include "ui/gui/val-labs-dialog.h"
@@ -311,14 +312,19 @@ render_var_cell (PsppSheetViewColumn *tree_column,
 
   if (row >= psppire_dict_get_var_cnt (var_sheet->dict))
     {
-      g_object_set (cell,
-                    "text", "",
-                    "editable", column_id == VS_NAME,
-                    NULL);
-      if (column_id == VS_WIDTH
-          || column_id == VS_DECIMALS
-          || column_id == VS_COLUMNS)
-        g_object_set (cell, "adjustment", NULL, NULL);
+      if (GTK_IS_CELL_RENDERER_TEXT (cell))
+        {
+          g_object_set (cell,
+                        "text", "",
+                        "editable", column_id == VS_NAME,
+                        NULL);
+          if (column_id == VS_WIDTH
+              || column_id == VS_DECIMALS
+              || column_id == VS_COLUMNS)
+            g_object_set (cell, "adjustment", NULL, NULL);
+        }
+      else
+        g_object_set (cell, "stock-id", "", NULL);
       return;
     }
 
@@ -414,10 +420,15 @@ render_var_cell (PsppSheetViewColumn *tree_column,
       break;
 
     case VS_MEASURE:
-      g_object_set (cell,
-                    "text", measure_to_string (var_get_measure (var)),
-                    "editable", TRUE,
-                    NULL);
+      if (GTK_IS_CELL_RENDERER_TEXT (cell))
+        g_object_set (cell,
+                      "text", measure_to_string (var_get_measure (var)),
+                      "editable", TRUE,
+                      NULL);
+      else
+        g_object_set (cell, "stock-id",
+                      psppire_dict_view_get_var_measurement_stock_id (var),
+                      NULL);
       break;
     }
 }
@@ -1179,6 +1190,7 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
 {
   PsppSheetView *sheet_view = PSPP_SHEET_VIEW (obj);
   PsppSheetViewColumn *column;
+  GtkCellRenderer *cell;
   GtkAction *action;
   GList *list;
 
@@ -1224,11 +1236,16 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
                     alignment_to_string (ALIGN_RIGHT), ALIGN_RIGHT,
                     NULL);
 
-  add_combo_column (obj, VS_MEASURE, _("Measure"), 10,
-                    measure_to_string (MEASURE_NOMINAL), MEASURE_NOMINAL,
-                    measure_to_string (MEASURE_ORDINAL), MEASURE_ORDINAL,
-                    measure_to_string (MEASURE_SCALE), MEASURE_SCALE,
-                    NULL);
+  column
+    = add_combo_column (obj, VS_MEASURE, _("Measure"), 12,
+                        measure_to_string (MEASURE_NOMINAL), MEASURE_NOMINAL,
+                        measure_to_string (MEASURE_ORDINAL), MEASURE_ORDINAL,
+                        measure_to_string (MEASURE_SCALE), MEASURE_SCALE,
+                        NULL);
+  cell = gtk_cell_renderer_pixbuf_new ();
+  pspp_sheet_view_column_pack_end (column, cell, FALSE);
+  pspp_sheet_view_column_set_cell_data_func (
+    column, cell, render_var_cell, obj, NULL);
 
   pspp_sheet_view_set_rubber_banding (sheet_view, TRUE);
   pspp_sheet_selection_set_mode (pspp_sheet_view_get_selection (sheet_view),
