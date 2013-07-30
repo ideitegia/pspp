@@ -1468,12 +1468,18 @@ static void
 update_drag (GtkXPaned * xpaned)
 {
   GdkPoint pos;
+  GtkWidget *widget = GTK_WIDGET (xpaned);
   gint handle_size;
   GtkRequisition size;
   GtkAllocation allocation;
-  gtk_widget_get_allocation (GTK_WIDGET (xpaned), &allocation);
 
-  gtk_widget_get_pointer (GTK_WIDGET (xpaned), &pos.x, &pos.y);
+  gtk_widget_get_allocation (widget, &allocation);
+
+  gdk_window_get_device_position (gtk_widget_get_window (widget),
+                                  gdk_device_manager_get_client_pointer (
+                                    gdk_display_get_device_manager (
+                                      gtk_widget_get_display (widget))),
+                                  &pos.x, &pos.y, NULL);
 
   if (xpaned->in_drag_vert)
     {
@@ -1481,8 +1487,7 @@ update_drag (GtkXPaned * xpaned)
 
       if (is_rtl (xpaned))
         {
-          gtk_widget_style_get (GTK_WIDGET (xpaned),
-                                "handle-size", &handle_size, NULL);
+          gtk_widget_style_get (widget, "handle-size", &handle_size, NULL);
 
           size.height = allocation.height - pos.y - handle_size;
         }
@@ -1506,8 +1511,7 @@ update_drag (GtkXPaned * xpaned)
 
       if (is_rtl (xpaned))
         {
-          gtk_widget_style_get (GTK_WIDGET (xpaned),
-                                "handle-size", &handle_size, NULL);
+          gtk_widget_style_get (widget, "handle-size", &handle_size, NULL);
 
           size.width = allocation.width - pos.x - handle_size;
         }
@@ -1532,8 +1536,7 @@ update_drag (GtkXPaned * xpaned)
 
       if (is_rtl (xpaned))
         {
-          gtk_widget_style_get (GTK_WIDGET (xpaned),
-                                "handle-size", &handle_size, NULL);
+          gtk_widget_style_get (widget, "handle-size", &handle_size, NULL);
 
           size.width = allocation.width - pos.x - handle_size;
           size.height = allocation.height - pos.y - handle_size;
