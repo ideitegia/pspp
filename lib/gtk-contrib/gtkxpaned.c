@@ -72,19 +72,66 @@ static void gtk_xpaned_class_init (GtkXPanedClass * klass);
 
 static void gtk_xpaned_init (GtkXPaned * xpaned);
 
-static void gtk_xpaned_size_request (GtkWidget * widget,
-                                     GtkRequisition * requisition);
-
 static void
 gtk_xpaned_get_preferred_width (GtkWidget *widget,
-                               gint      *minimal_width,
-                               gint      *natural_width)
+                                gint      *minimal_width,
+                                gint      *natural_width)
 {
-  GtkRequisition requisition;
+  GtkXPaned *xpaned = GTK_XPANED (widget);
+  gint tl[2], tr[2], bl[2], br[2];
+  gint overhead;
+  gint w[2];
+  int i;
 
-  gtk_xpaned_size_request (widget, &requisition);
+  if (xpaned->top_left_child
+      && gtk_widget_get_visible (xpaned->top_left_child))
+    gtk_widget_get_preferred_width (xpaned->top_left_child, &tl[0], &tl[1]);
+  else
+    tl[0] = tl[1] = 0;
 
-  *minimal_width = *natural_width = requisition.width;
+  if (xpaned->top_right_child
+      && gtk_widget_get_visible (xpaned->top_right_child))
+    gtk_widget_get_preferred_width (xpaned->top_right_child, &tr[0], &tr[1]);
+  else
+    tr[0] = tr[1] = 0;
+
+  if (xpaned->bottom_left_child
+      && gtk_widget_get_visible (xpaned->bottom_left_child))
+    gtk_widget_get_preferred_width (xpaned->bottom_left_child, &bl[0], &bl[1]);
+  else
+    bl[0] = bl[1] = 0;
+
+  if (xpaned->bottom_right_child
+      && gtk_widget_get_visible (xpaned->bottom_right_child))
+    gtk_widget_get_preferred_width (xpaned->bottom_right_child,
+                                    &br[0], &br[1]);
+  else
+    br[0] = br[1] = 0;
+
+  /* add 2 times the set border-width to the GtkXPaneds requisition */
+  overhead = gtk_container_get_border_width (GTK_CONTAINER (xpaned)) * 2;
+
+  /* also add the handle "thickness" to GtkXPaned's width requisition */
+  if (xpaned->top_left_child
+      && gtk_widget_get_visible (xpaned->top_left_child)
+      && xpaned->top_right_child
+      && gtk_widget_get_visible (xpaned->top_right_child)
+      && xpaned->bottom_left_child
+      && gtk_widget_get_visible (xpaned->bottom_left_child)
+      && xpaned->bottom_right_child
+      && gtk_widget_get_visible (xpaned->bottom_right_child))
+    {
+      gint handle_size;
+
+      gtk_widget_style_get (widget, "handle-size", &handle_size, NULL);
+      overhead += handle_size;
+    }
+
+  for (i = 0; i < 2; i++)
+    w[i] = (br[i] ? br[i] : MAX (tl[i] + tr[i], bl[i])) + overhead;
+
+  *minimal_width = w[0];
+  *natural_width = w[1];
 }
 
 static void
@@ -92,11 +139,62 @@ gtk_xpaned_get_preferred_height (GtkWidget *widget,
                                 gint      *minimal_height,
                                 gint      *natural_height)
 {
-  GtkRequisition requisition;
+  GtkXPaned *xpaned = GTK_XPANED (widget);
+  gint tl[2], tr[2], bl[2], br[2];
+  gint overhead;
+  gint h[2];
+  int i;
 
-  gtk_xpaned_size_request (widget, &requisition);
+  if (xpaned->top_left_child
+      && gtk_widget_get_visible (xpaned->top_left_child))
+    gtk_widget_get_preferred_height (xpaned->top_left_child, &tl[0], &tl[1]);
+  else
+    tl[0] = tl[1] = 0;
 
-  *minimal_height = *natural_height = requisition.height;
+  if (xpaned->top_right_child
+      && gtk_widget_get_visible (xpaned->top_right_child))
+    gtk_widget_get_preferred_height (xpaned->top_right_child, &tr[0], &tr[1]);
+  else
+    tr[0] = tr[1] = 0;
+
+  if (xpaned->bottom_left_child
+      && gtk_widget_get_visible (xpaned->bottom_left_child))
+    gtk_widget_get_preferred_height (xpaned->bottom_left_child,
+                                     &bl[0], &bl[1]);
+  else
+    bl[0] = bl[1] = 0;
+
+  if (xpaned->bottom_right_child
+      && gtk_widget_get_visible (xpaned->bottom_right_child))
+    gtk_widget_get_preferred_height (xpaned->bottom_right_child,
+                                    &br[0], &br[1]);
+  else
+    br[0] = br[1] = 0;
+
+  /* add 2 times the set border-width to the GtkXPaneds requisition */
+  overhead = gtk_container_get_border_width (GTK_CONTAINER (xpaned)) * 2;
+
+  /* also add the handle "thickness" to GtkXPaned's height-requisition */
+  if (xpaned->top_left_child
+      && gtk_widget_get_visible (xpaned->top_left_child)
+      && xpaned->top_right_child
+      && gtk_widget_get_visible (xpaned->top_right_child)
+      && xpaned->bottom_left_child
+      && gtk_widget_get_visible (xpaned->bottom_left_child)
+      && xpaned->bottom_right_child
+      && gtk_widget_get_visible (xpaned->bottom_right_child))
+    {
+      gint handle_size;
+
+      gtk_widget_style_get (widget, "handle-size", &handle_size, NULL);
+      overhead += handle_size;
+    }
+
+  for (i = 0; i < 2; i++)
+    h[i] = (br[i] ? br[i] : bl[i] + MAX (tl[i], tr[i])) + overhead;
+
+  *minimal_height = h[0];
+  *natural_height = h[1];
 }
 
 static void gtk_xpaned_size_allocate (GtkWidget * widget,
@@ -690,75 +788,6 @@ gtk_xpaned_init (GtkXPaned * xpaned)
   xpaned->drag_pos.y = -1;
 }
 
-static void
-gtk_xpaned_size_request (GtkWidget * widget, GtkRequisition * requisition)
-{
-  GtkXPaned *xpaned = GTK_XPANED (widget);
-  GtkRequisition child_requisition;
-
-  requisition->width = 0;
-  requisition->height = 0;
-
-  if (xpaned->top_left_child
-      && gtk_widget_get_visible (xpaned->top_left_child))
-    {
-      gtk_widget_size_request (xpaned->top_left_child, &child_requisition);
-
-      requisition->width = child_requisition.width;
-      requisition->height = child_requisition.height;
-    }
-
-  if (xpaned->top_right_child
-      && gtk_widget_get_visible (xpaned->top_right_child))
-    {
-      gtk_widget_size_request (xpaned->top_right_child, &child_requisition);
-
-      requisition->width += child_requisition.width;
-      requisition->height =
-        MAX (requisition->height, child_requisition.height);
-    }
-
-  if (xpaned->bottom_left_child
-      && gtk_widget_get_visible (xpaned->bottom_left_child))
-    {
-      gtk_widget_size_request (xpaned->bottom_left_child, &child_requisition);
-
-      requisition->width = MAX (requisition->width, child_requisition.width);
-      requisition->height += child_requisition.height;
-    }
-
-  if (xpaned->bottom_right_child
-      && gtk_widget_get_visible (xpaned->bottom_right_child))
-    {
-      gtk_widget_size_request (xpaned->bottom_right_child,
-                               &child_requisition);
-
-      requisition->width = child_requisition.width;
-      requisition->height = child_requisition.height;
-    }
-
-  /* add 2 times the set border-width to the GtkXPaneds requisition */
-  requisition->width += gtk_container_get_border_width (GTK_CONTAINER (xpaned)) * 2;
-  requisition->height += gtk_container_get_border_width (GTK_CONTAINER (xpaned)) * 2;
-
-  /* also add the handle "thickness" to GtkXPaneds width- and height-requisitions */
-  if (xpaned->top_left_child
-      && gtk_widget_get_visible (xpaned->top_left_child)
-      && xpaned->top_right_child
-      && gtk_widget_get_visible (xpaned->top_right_child)
-      && xpaned->bottom_left_child
-      && gtk_widget_get_visible (xpaned->bottom_left_child)
-      && xpaned->bottom_right_child
-      && gtk_widget_get_visible (xpaned->bottom_right_child))
-    {
-      gint handle_size;
-
-      gtk_widget_style_get (widget, "handle-size", &handle_size, NULL);
-      requisition->width += handle_size;
-      requisition->height += handle_size;
-    }
-}
-
 void
 gtk_xpaned_compute_position (GtkXPaned * xpaned,
                              const GtkAllocation * allocation,
@@ -798,14 +827,14 @@ gtk_xpaned_size_allocate (GtkWidget * widget, GtkAllocation * allocation)
       && gtk_widget_get_visible (xpaned->bottom_right_child))
     {
       /* what sizes do the children want to be at least at */
-      gtk_widget_get_child_requisition (xpaned->top_left_child,
-                                        &top_left_child_requisition);
-      gtk_widget_get_child_requisition (xpaned->top_right_child,
-                                        &top_right_child_requisition);
-      gtk_widget_get_child_requisition (xpaned->bottom_left_child,
-                                        &bottom_left_child_requisition);
-      gtk_widget_get_child_requisition (xpaned->bottom_right_child,
-                                        &bottom_right_child_requisition);
+      gtk_widget_get_preferred_size (xpaned->top_left_child,
+                                     &top_left_child_requisition, NULL);
+      gtk_widget_get_preferred_size (xpaned->top_right_child,
+                                     &top_right_child_requisition, NULL);
+      gtk_widget_get_preferred_size (xpaned->bottom_left_child,
+                                     &bottom_left_child_requisition, NULL);
+      gtk_widget_get_preferred_size (xpaned->bottom_right_child,
+                                     &bottom_right_child_requisition, NULL);
 
       /* determine the total requisition-sum of all requisitions of borders,
        * handles, children etc. */
