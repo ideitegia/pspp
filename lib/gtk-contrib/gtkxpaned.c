@@ -1435,44 +1435,18 @@ gtk_xpaned_draw (GtkWidget * widget, cairo_t *cr)
       && xpaned->bottom_right_child
       && gtk_widget_get_visible (xpaned->bottom_right_child))
     {
-      GtkStateType state;
+      GtkStyleContext *context;
 
-      if (gtk_widget_is_focus (widget))
-        state = GTK_STATE_SELECTED;
-      else if (xpaned->handle_prelit)
-        state = GTK_STATE_PRELIGHT;
-      else
-        state = gtk_widget_get_state (widget);
+      context = gtk_widget_get_style_context (widget);
+      gtk_render_handle (context, cr,
+                         xpaned->handle_pos_east.x - handle_size - 256 / 2,
+                         xpaned->handle_pos_west.y + 1,
+                         256 + handle_size, handle_size - 2);
 
-      gtk_paint_handle (gtk_widget_get_style (widget),
-                        cr,
-                        state,
-                        GTK_SHADOW_NONE,
-                        widget,
-                        "paned",
-                        xpaned->handle_pos_east.x - handle_size - 256 / 2,
-                        xpaned->handle_pos_west.y + 1,
-                        256 + handle_size, handle_size - 2,
-                        /*xpaned->handle_pos_west.x,
-                          xpaned->handle_pos_west.y + 1,
-                          xpaned->handle_pos_west.width + handle_size + xpaned->handle_pos_east.width,
-                          handle_size - 2, */
-                        GTK_ORIENTATION_HORIZONTAL);
-
-      gtk_paint_handle (gtk_widget_get_style (widget),
-                        cr,
-                        state,
-                        GTK_SHADOW_NONE,
-                        widget,
-                        "paned",
-                        xpaned->handle_pos_north.x + 1,
-                        xpaned->handle_pos_south.y - handle_size - 256 / 2,
-                        handle_size - 2, 256 + handle_size,
-                        /*xpaned->handle_pos_north.x + 1,
-                          xpaned->handle_pos_north.y,
-                          handle_size - 2,
-                          xpaned->handle_pos_north.height + handle_size + xpaned->handle_pos_south.height, */
-                        GTK_ORIENTATION_VERTICAL);
+      gtk_render_handle (context, cr,
+                         xpaned->handle_pos_north.x + 1,
+                         xpaned->handle_pos_south.y - handle_size - 256 / 2,
+                         handle_size - 2, 256 + handle_size);
     }
 
   /* Chain up to draw children */
