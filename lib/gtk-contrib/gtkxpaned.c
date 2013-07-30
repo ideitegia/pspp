@@ -3,7 +3,7 @@
  **      10        20        30        40        50        60        70        80
  **
  **  library for GtkXPaned-widget, a 2x2 grid-like variation of GtkPaned of gtk+
- **  Copyright (C) 2012 Free Software Foundation, Inc.
+ **  Copyright (C) 2012, 2013 Free Software Foundation, Inc.
  **  Copyright (C) 2005-2006 Mirco "MacSlow" Müller <macslow@bangang.de>
  **
  **  This library is free software; you can redistribute it and/or
@@ -1396,8 +1396,6 @@ gtk_xpaned_draw (GtkWidget * widget, cairo_t *cr)
 {
   GtkXPaned *xpaned = GTK_XPANED (widget);
   gint handle_size;
-  GdkRectangle horizontalClipArea;
-  GdkRectangle verticalClipArea;
 
   /* determine size of handle(s) */
   gtk_widget_style_get (widget, "handle-size", &handle_size, NULL);
@@ -1423,20 +1421,6 @@ gtk_xpaned_draw (GtkWidget * widget, cairo_t *cr)
         state = GTK_STATE_PRELIGHT;
       else
         state = gtk_widget_get_state (widget);
-
-      horizontalClipArea.x = xpaned->handle_pos_west.x;
-      horizontalClipArea.y = xpaned->handle_pos_west.y;
-      horizontalClipArea.width =
-        xpaned->handle_pos_west.width + handle_size +
-        xpaned->handle_pos_east.width;
-      horizontalClipArea.height = handle_size;
-
-      verticalClipArea.x = xpaned->handle_pos_north.x;
-      verticalClipArea.y = xpaned->handle_pos_north.y;
-      verticalClipArea.width = handle_size;
-      verticalClipArea.height =
-        xpaned->handle_pos_north.height + handle_size +
-        xpaned->handle_pos_south.height;
 
       gtk_paint_handle (gtk_widget_get_style (widget),
                         cr,
