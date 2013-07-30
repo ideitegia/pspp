@@ -1311,11 +1311,11 @@ gtk_xpaned_realize (GtkWidget * widget)
   gdk_window_set_user_data (xpaned->handle_south, xpaned);
   gdk_window_set_user_data (xpaned->handle_middle, xpaned);
 
-  gdk_cursor_unref (attributes_east.cursor);
-  gdk_cursor_unref (attributes_west.cursor);
-  gdk_cursor_unref (attributes_north.cursor);
-  gdk_cursor_unref (attributes_south.cursor);
-  gdk_cursor_unref (attributes_middle.cursor);
+  g_object_unref (attributes_east.cursor);
+  g_object_unref (attributes_west.cursor);
+  g_object_unref (attributes_north.cursor);
+  g_object_unref (attributes_south.cursor);
+  g_object_unref (attributes_middle.cursor);
 
   {
   GtkStyle *style = gtk_widget_get_style (widget);
