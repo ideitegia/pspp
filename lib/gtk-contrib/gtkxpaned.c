@@ -1317,13 +1317,6 @@ gtk_xpaned_realize (GtkWidget * widget)
   g_object_unref (attributes_south.cursor);
   g_object_unref (attributes_middle.cursor);
 
-  {
-  GtkStyle *style = gtk_widget_get_style (widget);
-  style = gtk_style_attach (style, gtk_widget_get_window (widget));
-  gtk_widget_set_style (widget, style);
-  }
-  
-
   if (xpaned->top_left_child
       && gtk_widget_get_visible (xpaned->top_left_child)
       && xpaned->top_right_child
