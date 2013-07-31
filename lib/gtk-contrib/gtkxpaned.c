@@ -1676,6 +1676,22 @@ gtk_xpaned_focus (GtkWidget * widget, GtkDirectionType direction)
   return retval;
 }
 
+static void
+gtk_xpaned_button_press_grab (GdkWindow *handle, GdkEventButton *event)
+{
+  /* We need a server grab here, not gtk_grab_add(), since
+   * we don't want to pass events on to the widget's children */
+  gdk_device_grab (event->device, handle,
+                   GDK_OWNERSHIP_NONE,
+                   FALSE,
+                   (GDK_POINTER_MOTION_HINT_MASK
+                    | GDK_BUTTON1_MOTION_MASK
+                    | GDK_BUTTON_RELEASE_MASK
+                    | GDK_ENTER_NOTIFY_MASK
+                    | GDK_LEAVE_NOTIFY_MASK),
+                   NULL, event->time);
+}
+
 static gboolean
 gtk_xpaned_button_press (GtkWidget * widget, GdkEventButton * event)
 {
@@ -1697,20 +1713,7 @@ gtk_xpaned_button_press (GtkWidget * widget, GdkEventButton * event)
       event->window == xpaned->handle_middle && event->button == 1)
     {
       xpaned->in_drag_vert_and_horiz = TRUE;
-
-      /* We need a server grab here, not gtk_grab_add(), since
-       * we don't want to pass events on to the widget's children */
-      if (gdk_pointer_grab (xpaned->handle_middle,
-                            FALSE,
-                            GDK_POINTER_MOTION_HINT_MASK
-                            | GDK_BUTTON1_MOTION_MASK
-                            | GDK_BUTTON_RELEASE_MASK
-                            | GDK_ENTER_NOTIFY_MASK
-                            | GDK_LEAVE_NOTIFY_MASK,
-                            NULL, NULL, event->time) == GDK_GRAB_SUCCESS)
-        {
-        }
-
+      gtk_xpaned_button_press_grab (xpaned->handle_middle, event);
       xpaned->drag_pos.x = event->x;
       xpaned->drag_pos.y = event->y;
 
@@ -1724,20 +1727,7 @@ gtk_xpaned_button_press (GtkWidget * widget, GdkEventButton * event)
            event->window != xpaned->handle_middle && event->button == 1)
     {
       xpaned->in_drag_vert = TRUE;
-
-      /* We need a server grab here, not gtk_grab_add(), since
-       * we don't want to pass events on to the widget's children */
-      if (gdk_pointer_grab (xpaned->handle_east,
-                            FALSE,
-                            GDK_POINTER_MOTION_HINT_MASK
-                            | GDK_BUTTON1_MOTION_MASK
-                            | GDK_BUTTON_RELEASE_MASK
-                            | GDK_ENTER_NOTIFY_MASK
-                            | GDK_LEAVE_NOTIFY_MASK,
-                            NULL, NULL, event->time) == GDK_GRAB_SUCCESS)
-        {
-        }
-
+      gtk_xpaned_button_press_grab (xpaned->handle_east, event);
       xpaned->drag_pos.y = event->y;
 
       return TRUE;
@@ -1750,20 +1740,7 @@ gtk_xpaned_button_press (GtkWidget * widget, GdkEventButton * event)
            event->window != xpaned->handle_middle && event->button == 1)
     {
       xpaned->in_drag_vert = TRUE;
-
-      /* We need a server grab here, not gtk_grab_add(), since
-       * we don't want to pass events on to the widget's children */
-      if (gdk_pointer_grab (xpaned->handle_west,
-                            FALSE,
-                            GDK_POINTER_MOTION_HINT_MASK
-                            | GDK_BUTTON1_MOTION_MASK
-                            | GDK_BUTTON_RELEASE_MASK
-                            | GDK_ENTER_NOTIFY_MASK
-                            | GDK_LEAVE_NOTIFY_MASK,
-                            NULL, NULL, event->time) == GDK_GRAB_SUCCESS)
-        {
-        }
-
+      gtk_xpaned_button_press_grab (xpaned->handle_west, event);
       xpaned->drag_pos.y = event->y;
 
       return TRUE;
@@ -1776,20 +1753,7 @@ gtk_xpaned_button_press (GtkWidget * widget, GdkEventButton * event)
            event->window != xpaned->handle_middle && event->button == 1)
     {
       xpaned->in_drag_horiz = TRUE;
-
-      /* We need a server grab here, not gtk_grab_add(), since
-       * we don't want to pass events on to the widget's children */
-      if (gdk_pointer_grab (xpaned->handle_north,
-                            FALSE,
-                            GDK_POINTER_MOTION_HINT_MASK
-                            | GDK_BUTTON1_MOTION_MASK
-                            | GDK_BUTTON_RELEASE_MASK
-                            | GDK_ENTER_NOTIFY_MASK
-                            | GDK_LEAVE_NOTIFY_MASK,
-                            NULL, NULL, event->time) == GDK_GRAB_SUCCESS)
-        {
-        }
-
+      gtk_xpaned_button_press_grab (xpaned->handle_north, event);
       xpaned->drag_pos.x = event->x;
 
       return TRUE;
@@ -1802,20 +1766,7 @@ gtk_xpaned_button_press (GtkWidget * widget, GdkEventButton * event)
            event->window != xpaned->handle_middle && event->button == 1)
     {
       xpaned->in_drag_horiz = TRUE;
-
-      /* We need a server grab here, not gtk_grab_add(), since
-       * we don't want to pass events on to the widget's children */
-      if (gdk_pointer_grab (xpaned->handle_south,
-                            FALSE,
-                            GDK_POINTER_MOTION_HINT_MASK
-                            | GDK_BUTTON1_MOTION_MASK
-                            | GDK_BUTTON_RELEASE_MASK
-                            | GDK_ENTER_NOTIFY_MASK
-                            | GDK_LEAVE_NOTIFY_MASK,
-                            NULL, NULL, event->time) == GDK_GRAB_SUCCESS)
-        {
-        }
-
+      gtk_xpaned_button_press_grab (xpaned->handle_south, event);
       xpaned->drag_pos.x = event->x;
 
       return TRUE;
@@ -1833,8 +1784,7 @@ gtk_xpaned_button_release (GtkWidget * widget, GdkEventButton * event)
       xpaned->in_drag_vert = FALSE;
       xpaned->drag_pos.y = -1;
       xpaned->position_set = TRUE;
-      gdk_display_pointer_ungrab (gtk_widget_get_display (widget),
-                                  event->time);
+      gdk_device_ungrab (event->device, event->time);
       return TRUE;
     }
   else if (xpaned->in_drag_horiz && (event->button == 1))
@@ -1842,8 +1792,7 @@ gtk_xpaned_button_release (GtkWidget * widget, GdkEventButton * event)
       xpaned->in_drag_horiz = FALSE;
       xpaned->drag_pos.x = -1;
       xpaned->position_set = TRUE;
-      gdk_display_pointer_ungrab (gtk_widget_get_display (widget),
-                                  event->time);
+      gdk_device_ungrab (event->device, event->time);
       return TRUE;
     }
   else if (xpaned->in_drag_vert_and_horiz && (event->button == 1))
@@ -1852,8 +1801,7 @@ gtk_xpaned_button_release (GtkWidget * widget, GdkEventButton * event)
       xpaned->drag_pos.x = -1;
       xpaned->drag_pos.y = -1;
       xpaned->position_set = TRUE;
-      gdk_display_pointer_ungrab (gtk_widget_get_display (widget),
-                                  event->time);
+      gdk_device_ungrab (event->device, event->time);
       return TRUE;
     }
 
