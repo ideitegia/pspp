@@ -1480,6 +1480,11 @@ update_drag (GtkXPaned * xpaned)
                                     gdk_display_get_device_manager (
                                       gtk_widget_get_display (widget))),
                                   &pos.x, &pos.y, NULL);
+  if (!gtk_widget_get_has_window (widget))
+    {
+      pos.x -= allocation.x;
+      pos.y -= allocation.y;
+    }
 
   if (xpaned->in_drag_vert)
     {
