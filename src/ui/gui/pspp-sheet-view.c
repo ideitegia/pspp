@@ -135,6 +135,8 @@ enum {
   PROP_MODEL,
   PROP_HADJUSTMENT,
   PROP_VADJUSTMENT,
+  PROP_HSCROLL_POLICY,
+  PROP_VSCROLL_POLICY,
   PROP_HEADERS_VISIBLE,
   PROP_HEADERS_CLICKABLE,
   PROP_REORDERABLE,
@@ -295,6 +297,12 @@ static void     pspp_sheet_view_top_row_to_dy (PsppSheetView *tree_view);
 static void     invalidate_empty_focus      (PsppSheetView *tree_view);
 
 /* Internal functions */
+static GtkAdjustment *pspp_sheet_view_do_get_hadjustment (PsppSheetView *);
+static GtkAdjustment *pspp_sheet_view_do_get_vadjustment (PsppSheetView *);
+static void pspp_sheet_view_do_set_hadjustment (PsppSheetView   *tree_view,
+                                              GtkAdjustment *adjustment);
+static void pspp_sheet_view_do_set_vadjustment (PsppSheetView   *tree_view,
+                                              GtkAdjustment *adjustment);
 static void     pspp_sheet_view_add_move_binding               (GtkBindingSet      *binding_set,
 							      guint               keyval,
 							      guint               modmask,
@@ -451,7 +459,8 @@ static GtkBindingSet *edit_bindings;
 
 G_DEFINE_TYPE_WITH_CODE (PsppSheetView, pspp_sheet_view, GTK_TYPE_CONTAINER,
 			 G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
-						pspp_sheet_view_buildable_init))
+						pspp_sheet_view_buildable_init)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_SCROLLABLE, NULL))
 
 static void
 pspp_sheet_view_get_preferred_width (GtkWidget *widget,
@@ -556,21 +565,10 @@ pspp_sheet_view_class_init (PsppSheetViewClass *class)
 							GTK_TYPE_TREE_MODEL,
 							GTK_PARAM_READWRITE));
 
-  g_object_class_install_property (o_class,
-                                   PROP_HADJUSTMENT,
-                                   g_param_spec_object ("hadjustment",
-							P_("Horizontal Adjustment"),
-                                                        P_("Horizontal Adjustment for the widget"),
-                                                        GTK_TYPE_ADJUSTMENT,
-                                                        GTK_PARAM_READWRITE));
-
-  g_object_class_install_property (o_class,
-                                   PROP_VADJUSTMENT,
-                                   g_param_spec_object ("vadjustment",
-							P_("Vertical Adjustment"),
-                                                        P_("Vertical Adjustment for the widget"),
-                                                        GTK_TYPE_ADJUSTMENT,
-                                                        GTK_PARAM_READWRITE));
+  g_object_class_override_property (o_class, PROP_HADJUSTMENT,    "hadjustment");
+  g_object_class_override_property (o_class, PROP_VADJUSTMENT,    "vadjustment");
+  g_object_class_override_property (o_class, PROP_HSCROLL_POLICY, "hscroll-policy");
+  g_object_class_override_property (o_class, PROP_VSCROLL_POLICY, "vscroll-policy");
 
   g_object_class_install_property (o_class,
                                    PROP_HEADERS_VISIBLE,
@@ -1121,6 +1119,9 @@ pspp_sheet_view_init (PsppSheetView *tree_view)
   tree_view->priv->button_style = NULL;
 
   tree_view->dispose_has_run = FALSE;
+
+  pspp_sheet_view_do_set_vadjustment (tree_view, NULL);
+  pspp_sheet_view_do_set_hadjustment (tree_view, NULL);
 }
 
 
@@ -1144,12 +1145,20 @@ pspp_sheet_view_set_property (GObject         *object,
       pspp_sheet_view_set_model (tree_view, g_value_get_object (value));
       break;
     case PROP_HADJUSTMENT:
-      pspp_sheet_view_set_hadjustment (tree_view, g_value_get_object (value));
+      pspp_sheet_view_do_set_hadjustment (tree_view, g_value_get_object (value));
       break;
     case PROP_VADJUSTMENT:
-      pspp_sheet_view_set_vadjustment (tree_view, g_value_get_object (value));
+      pspp_sheet_view_do_set_vadjustment (tree_view, g_value_get_object (value));
       break;
-    case PROP_HEADERS_VISIBLE:
+    case PROP_HSCROLL_POLICY:
+      tree_view->priv->hscroll_policy = g_value_get_enum (value);
+      gtk_widget_queue_resize (GTK_WIDGET (tree_view));
+      break;
+    case PROP_VSCROLL_POLICY:
+      tree_view->priv->vscroll_policy = g_value_get_enum (value);
+      gtk_widget_queue_resize (GTK_WIDGET (tree_view));
+      break;
+     case PROP_HEADERS_VISIBLE:
       pspp_sheet_view_set_headers_visible (tree_view, g_value_get_boolean (value));
       break;
     case PROP_HEADERS_CLICKABLE:
@@ -1231,6 +1240,12 @@ pspp_sheet_view_get_property (GObject    *object,
       break;
     case PROP_VADJUSTMENT:
       g_value_set_object (value, tree_view->priv->vadjustment);
+      break;
+    case PROP_HSCROLL_POLICY:
+      g_value_set_enum (value, tree_view->priv->hscroll_policy);
+      break;
+    case PROP_VSCROLL_POLICY:
+      g_value_set_enum (value, tree_view->priv->vscroll_policy);
       break;
     case PROP_HEADERS_VISIBLE:
       g_value_set_boolean (value, pspp_sheet_view_get_headers_visible (tree_view));
@@ -9214,9 +9229,12 @@ pspp_sheet_view_get_hadjustment (PsppSheetView *tree_view)
 {
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), NULL);
 
-  if (tree_view->priv->hadjustment == NULL)
-    pspp_sheet_view_set_hadjustment (tree_view, NULL);
+  return pspp_sheet_view_do_get_hadjustment (tree_view);
+}
 
+static GtkAdjustment *
+pspp_sheet_view_do_get_hadjustment (PsppSheetView *tree_view)
+{
   return tree_view->priv->hadjustment;
 }
 
@@ -9240,23 +9258,60 @@ pspp_sheet_view_set_hadjustment (PsppSheetView   *tree_view,
   g_object_notify (G_OBJECT (tree_view), "hadjustment");
 }
 
+static void
+pspp_sheet_view_do_set_hadjustment (PsppSheetView   *tree_view,
+                                  GtkAdjustment *adjustment)
+{
+  PsppSheetViewPrivate *priv = tree_view->priv;
+
+  if (adjustment && priv->hadjustment == adjustment)
+    return;
+
+  if (priv->hadjustment != NULL)
+    {
+      g_signal_handlers_disconnect_by_func (priv->hadjustment,
+                                            pspp_sheet_view_adjustment_changed,
+                                            tree_view);
+      g_object_unref (priv->hadjustment);
+    }
+
+  if (adjustment == NULL)
+    adjustment = gtk_adjustment_new (0.0, 0.0, 0.0,
+                                     0.0, 0.0, 0.0);
+
+  g_signal_connect (adjustment, "value-changed",
+                    G_CALLBACK (pspp_sheet_view_adjustment_changed), tree_view);
+  priv->hadjustment = g_object_ref_sink (adjustment);
+  /* FIXME: Adjustment should probably be populated here with fresh values, but
+   * internal details are too complicated for me to decipher right now.
+   */
+  pspp_sheet_view_adjustment_changed (NULL, tree_view);
+
+  g_object_notify (G_OBJECT (tree_view), "hadjustment");
+}
+
 /**
  * pspp_sheet_view_get_vadjustment:
  * @tree_view: A #PsppSheetView
  *
  * Gets the #GtkAdjustment currently being used for the vertical aspect.
  *
- * Return value: A #GtkAdjustment object, or %NULL if none is currently being
- * used.
+ * Return value: (transfer none): A #GtkAdjustment object, or %NULL
+ *     if none is currently being used.
+ *
+ * Deprecated: 3.0: Use gtk_scrollable_get_vadjustment()
  **/
 GtkAdjustment *
 pspp_sheet_view_get_vadjustment (PsppSheetView *tree_view)
 {
   g_return_val_if_fail (PSPP_IS_SHEET_VIEW (tree_view), NULL);
 
-  if (tree_view->priv->vadjustment == NULL)
-    pspp_sheet_view_set_vadjustment (tree_view, NULL);
+  return pspp_sheet_view_do_get_vadjustment (tree_view);
+}
 
+static GtkAdjustment *
+pspp_sheet_view_do_get_vadjustment (PsppSheetView *tree_view)
+{
   return tree_view->priv->vadjustment;
 }
 
@@ -9266,17 +9321,47 @@ pspp_sheet_view_get_vadjustment (PsppSheetView *tree_view)
  * @adjustment: (allow-none): The #GtkAdjustment to set, or %NULL
  *
  * Sets the #GtkAdjustment for the current vertical aspect.
+ *
+ * Deprecated: 3.0: Use gtk_scrollable_set_vadjustment()
  **/
 void
 pspp_sheet_view_set_vadjustment (PsppSheetView   *tree_view,
-			       GtkAdjustment *adjustment)
+                               GtkAdjustment *adjustment)
 {
   g_return_if_fail (PSPP_IS_SHEET_VIEW (tree_view));
+  g_return_if_fail (adjustment == NULL || GTK_IS_ADJUSTMENT (adjustment));
 
-  pspp_sheet_view_set_adjustments (tree_view,
-				 tree_view->priv->hadjustment,
-				 adjustment);
+  pspp_sheet_view_do_set_vadjustment (tree_view, adjustment);
+}
 
+static void
+pspp_sheet_view_do_set_vadjustment (PsppSheetView   *tree_view,
+                                  GtkAdjustment *adjustment)
+{
+  PsppSheetViewPrivate *priv = tree_view->priv;
+
+  if (adjustment && priv->vadjustment == adjustment)
+    return;
+
+  if (priv->vadjustment != NULL)
+    {
+      g_signal_handlers_disconnect_by_func (priv->vadjustment,
+                                            pspp_sheet_view_adjustment_changed,
+                                            tree_view);
+      g_object_unref (priv->vadjustment);
+    }
+
+  if (adjustment == NULL)
+    adjustment = gtk_adjustment_new (0.0, 0.0, 0.0,
+                                     0.0, 0.0, 0.0);
+
+  g_signal_connect (adjustment, "value-changed",
+                    G_CALLBACK (pspp_sheet_view_adjustment_changed), tree_view);
+  priv->vadjustment = g_object_ref_sink (adjustment);
+  /* FIXME: Adjustment should probably be populated here with fresh values, but
+   * internal details are too complicated for me to decipher right now.
+   */
+  pspp_sheet_view_adjustment_changed (NULL, tree_view);
   g_object_notify (G_OBJECT (tree_view), "vadjustment");
 }
 

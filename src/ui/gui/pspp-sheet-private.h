@@ -274,8 +274,13 @@ struct _PsppSheetViewPrivate
   guint post_validation_flag : 1;
 
   /* Whether our key press handler is to avoid sending an unhandled binding to the search entry */
+
   guint search_entry_avoid_unhandled_binding : 1;
-};
+  /* GtkScrollablePolicy needs to be checked when
+   * driving the scrollable adjustment values */
+  guint hscroll_policy : 1;
+  guint vscroll_policy : 1;
+ };
 
 #ifdef __GNUC__
 
