@@ -1253,7 +1253,9 @@ Record type.  Always set to 7.
 @item int32 subtype;
 Record subtype.  May take any value.  According to Aapi
 H@"am@"al@"ainen, value 5 indicates a set of grouped variables and 6
-indicates date info (probably related to USE).
+indicates date info (probably related to USE).  Subtype 24 appears to
+contain XML that describes how data in the file should be displayed
+on-screen.
 
 @item int32 size;
 Size of each piece of data in the data part.  Should have the value 1,

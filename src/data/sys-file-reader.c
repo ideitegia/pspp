@@ -83,7 +83,8 @@ enum
     EXT_VAR_ATTRS     = 18,     /* Variable attributes. */
     EXT_MRSETS2       = 19,     /* Multiple response sets (extended). */
     EXT_ENCODING      = 20,     /* Character encoding. */
-    EXT_LONG_LABELS   = 21      /* Value labels for long strings. */
+    EXT_LONG_LABELS   = 21,     /* Value labels for long strings. */
+    EXT_DATAVIEW      = 24      /* "Format properties in dataview table". */
   };
 
 /* Fields from the top-level header record. */
@@ -887,6 +888,7 @@ read_extension_record (struct sfm_reader *r, int subtype)
       { EXT_VAR_SETS,     0, 0 },
       { EXT_DATE,         0, 0 },
       { EXT_DATA_ENTRY,   0, 0 },
+      { EXT_DATAVIEW,     0, 0 },
     };
 
   const struct extension_record_type *type;
