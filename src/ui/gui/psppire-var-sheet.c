@@ -293,6 +293,25 @@ render_popup_cell (PsppSheetViewColumn *tree_column,
                 NULL);
 }
 
+const char *
+get_var_align_stock_id (const struct variable *var)
+{
+  switch (var_get_alignment (var))
+    {
+    case ALIGN_LEFT:
+      return GTK_STOCK_JUSTIFY_LEFT;
+
+    case ALIGN_CENTRE:
+      return GTK_STOCK_JUSTIFY_CENTER;
+
+    case ALIGN_RIGHT:
+      return GTK_STOCK_JUSTIFY_RIGHT;
+
+    default:
+      g_return_val_if_reached ("");
+    }
+}
+
 static void
 render_var_cell (PsppSheetViewColumn *tree_column,
                  GtkCellRenderer *cell,
@@ -413,10 +432,13 @@ render_var_cell (PsppSheetViewColumn *tree_column,
       break;
 
     case VS_ALIGN:
-      g_object_set (cell,
-                    "text", alignment_to_string (var_get_alignment (var)),
-                    "editable", TRUE,
-                    NULL);
+      if (GTK_IS_CELL_RENDERER_TEXT (cell))
+        g_object_set (cell,
+                      "text", alignment_to_string (var_get_alignment (var)),
+                      "editable", TRUE,
+                      NULL);
+      else
+        g_object_set (cell, "stock-id", get_var_align_stock_id (var), NULL);
       break;
 
     case VS_MEASURE:
@@ -1230,11 +1252,16 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
 
   add_spin_column (obj, VS_COLUMNS, _("Columns"), 3);
 
-  add_combo_column (obj, VS_ALIGN, _("Align"), 6,
-                    alignment_to_string (ALIGN_LEFT), ALIGN_LEFT,
-                    alignment_to_string (ALIGN_CENTRE), ALIGN_CENTRE,
-                    alignment_to_string (ALIGN_RIGHT), ALIGN_RIGHT,
-                    NULL);
+  column
+   = add_combo_column (obj, VS_ALIGN, _("Align"), 8,
+                       alignment_to_string (ALIGN_LEFT), ALIGN_LEFT,
+                       alignment_to_string (ALIGN_CENTRE), ALIGN_CENTRE,
+                       alignment_to_string (ALIGN_RIGHT), ALIGN_RIGHT,
+                       NULL);
+  cell = gtk_cell_renderer_pixbuf_new ();
+  pspp_sheet_view_column_pack_end (column, cell, FALSE);
+  pspp_sheet_view_column_set_cell_data_func (
+    column, cell, render_var_cell, obj, NULL);
 
   column
     = add_combo_column (obj, VS_MEASURE, _("Measure"), 12,
