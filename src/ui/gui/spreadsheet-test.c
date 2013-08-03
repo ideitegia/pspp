@@ -139,8 +139,8 @@ main (int argc, char *argv[] )
 
   tm = psppire_spreadsheet_model_new (stuff.sp);
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  hbox = gtk_hbox_new (FALSE, 5);
-  vbox = gtk_vbox_new (FALSE, 5);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
+  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
 
   button = gtk_button_new_with_label ("Test reader");
   g_signal_connect (button, "clicked", G_CALLBACK (on_clicked), &stuff);
