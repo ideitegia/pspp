@@ -33,12 +33,28 @@ floating-point numbers, and translates as needed.  However, only IEEE
 has actually been observed in system files, and it is likely that
 other formats are obsolete or were never used.
 
-The PSPP system-missing value is represented by the largest possible
-negative number in the floating point format (@code{-DBL_MAX}).  Two
-other values are important for use as missing values: @code{HIGHEST},
-represented by the largest possible positive number (@code{DBL_MAX}),
-and @code{LOWEST}, represented by the second-largest negative number
-(in IEEE 754 format, @code{0xffeffffffffffffe}).
+System files use a few floating point values for special purposes:
+
+@table @asis
+@item SYSMIS
+The system-missing value is represented by the largest possible
+negative number in the floating point format (@code{-DBL_MAX}).
+
+@item HIGHEST
+HIGHEST is used as the high end of a missing value range with an
+unbounded maximum.  It is represented by the largest possible positive
+number (@code{DBL_MAX}).
+
+@item LOWEST
+LOWEST is used as the low end of a missing value range with an
+unbounded minimum.  It was originally represented by the
+second-largest negative number (in IEEE 754 format,
+@code{0xffeffffffffffffe}).  System files written by SPSS 21 and later
+instead use the largest negative number (@code{-DBL_MAX}), the same
+value as SYSMIS.  This does not lead to ambiguity because LOWEST
+appears in system files only in missing value ranges, which never
+contain SYSMIS.
+@end table
 
 System files are divided into records, each of which begins with a
 4-byte record type, usually regarded as an @code{int32}.

@@ -1040,6 +1040,11 @@ parse_variable_records (struct sfm_reader *r, struct dictionary *dict,
                 {
                   double low = parse_float (r, rec->missing, 0);
                   double high = parse_float (r, rec->missing, 8);
+
+                  /* Deal with SPSS 21 change in representation. */
+                  if (low == SYSMIS)
+                    low = LOWEST;
+
                   mv_add_range (&mv, low, high);
                   ofs += 16;
                 }
@@ -1269,11 +1274,14 @@ parse_machine_float_info (struct sfm_reader *r,
                 "instead of %g (%a)."),
               highest, highest, "HIGHEST", HIGHEST, HIGHEST);
 
-  if (lowest != LOWEST)
+  /* SPSS before version 21 used a unique value just bigger than SYSMIS as
+     LOWEST.  SPSS 21 uses SYSMIS for LOWEST, which is OK because LOWEST only
+     appears in a context (missing values) where SYSMIS cannot. */
+  if (lowest != LOWEST && lowest != SYSMIS)
     sys_warn (r, record->pos,
               _("File specifies unexpected value %g (%a) as %s, "
-                "instead of %g (%a)."),
-              lowest, lowest, "LOWEST", LOWEST, LOWEST);
+                "instead of %g (%a) or %g (%a)."),
+              lowest, lowest, "LOWEST", LOWEST, LOWEST, SYSMIS, SYSMIS);
 }
 
 /* Parses record type 7, subtype 7 or 19. */
