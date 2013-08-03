@@ -1070,17 +1070,20 @@ read_unknown_extension (struct sfm_reader *r, size_t size, size_t count)
       buffer = xmalloc (count);
       read_bytes (r, buffer, count);
       if (memchr (buffer, 0, count) == 0)
-        for (i = 0; i < count; i++)
-          {
-            unsigned char c = buffer[i];
+        {
+          for (i = 0; i < count; i++)
+            {
+              unsigned char c = buffer[i];
 
-            if (c == '\\')
-              printf ("\\\\");
-            else if (c == '\n' || isprint (c))
-              putchar (c);
-            else
-              printf ("\\%02x", c);
-          }
+              if (c == '\\')
+                printf ("\\\\");
+              else if (c == '\n' || isprint (c))
+                putchar (c);
+              else
+                printf ("\\%02x", c);
+            }
+          putchar ('\n');
+        }
       else
         hex_dump (0, buffer, count);
       free (buffer);
