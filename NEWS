@@ -6,6 +6,10 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
 Changes after 0.8.0:
 
+ * Notable bug fixes:
+
+   - System files written by IBM SPSS 21 are now read without warnings.
+
  * PSPPIRE graphical user interface improvements:
 
    - Syntax windows now parse syntax in "auto" mode, which in practice

@@ -831,8 +831,8 @@ Ordinal Scale
 Continuous Scale
 @end table
 
-SPSS 14 sometimes writes a @code{measure} of 0 for string variables.
-PSPP interprets this as nominal scale.
+SPSS sometimes writes a @code{measure} of 0.  PSPP interprets this as
+nominal scale.
 
 @item int32 width;
 The width of the display column for the variable in characters.

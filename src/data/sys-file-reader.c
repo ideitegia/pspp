@@ -1514,9 +1514,8 @@ parse_display_parameters (struct sfm_reader *r,
       align = parse_int (r, record->data, ofs);
       ofs += 4;
 
-      /* SPSS 14 sometimes seems to set string variables' measure
-         to zero. */
-      if (0 == measure && var_is_alpha (v))
+      /* SPSS sometimes seems to set variables' measure to zero. */
+      if (0 == measure)
         measure = 1;
 
       if (measure < 1 || measure > 3 || align < 0 || align > 2)
