@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -663,20 +663,20 @@ read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
     sys_error (r, "Bad size (%zu) or count (%zu) on extension 4.",
                size, count);
 
-  printf ("\tsysmis: %g\n", sysmis);
+  printf ("\tsysmis: %g (%a)\n", sysmis, sysmis);
   if (sysmis != SYSMIS)
-    sys_warn (r, "File specifies unexpected value %g as %s.",
-              sysmis, "SYSMIS");
+    sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
+              sysmis, sysmis, "SYSMIS");
 
-  printf ("\thighest: %g\n", highest);
+  printf ("\thighest: %g (%a)\n", highest, highest);
   if (highest != HIGHEST)
-    sys_warn (r, "File specifies unexpected value %g as %s.",
-              highest, "HIGHEST");
+    sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
+              highest, highest, "HIGHEST");
 
-  printf ("\tlowest: %g\n", lowest);
-  if (lowest != LOWEST)
-    sys_warn (r, "File specifies unexpected value %g as %s.",
-              lowest, "LOWEST");
+  printf ("\tlowest: %g (%a)\n", lowest, lowest);
+  if (lowest != LOWEST && lowest != SYSMIS)
+    sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
+              lowest, lowest, "LOWEST");
 }
 
 /* Read record type 7, subtype 7. */

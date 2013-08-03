@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2000, 2006-2007, 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2006-2007, 2009-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1258,16 +1258,22 @@ parse_machine_float_info (struct sfm_reader *r,
   double lowest = parse_float (r, record->data, 16);
 
   if (sysmis != SYSMIS)
-    sys_warn (r, record->pos, _("File specifies unexpected value %g as %s."),
-              sysmis, "SYSMIS");
+    sys_warn (r, record->pos,
+              _("File specifies unexpected value %g (%a) as %s, "
+                "instead of %g (%a)."),
+              sysmis, sysmis, "SYSMIS", SYSMIS, SYSMIS);
 
   if (highest != HIGHEST)
-    sys_warn (r, record->pos, _("File specifies unexpected value %g as %s."),
-              highest, "HIGHEST");
+    sys_warn (r, record->pos,
+              _("File specifies unexpected value %g (%a) as %s, "
+                "instead of %g (%a)."),
+              highest, highest, "HIGHEST", HIGHEST, HIGHEST);
 
   if (lowest != LOWEST)
-    sys_warn (r, record->pos, _("File specifies unexpected value %g as %s."),
-              lowest, "LOWEST");
+    sys_warn (r, record->pos,
+              _("File specifies unexpected value %g (%a) as %s, "
+                "instead of %g (%a)."),
+              lowest, lowest, "LOWEST", LOWEST, LOWEST);
 }
 
 /* Parses record type 7, subtype 7 or 19. */

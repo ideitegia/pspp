@@ -2044,12 +2044,12 @@ do
 ])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
-  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 0 as SYSMIS.
+  AT_CHECK([pspp -O format=csv sys-file.sps | sed 's/ [(].*/.../'], [0], [dnl
+"warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 0...
 
-warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 1 as HIGHEST.
+"warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 1...
 
-warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 2 as LOWEST.
+"warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 2...
 ])
 done
 AT_CLEANUP
