@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
 
 #include <assert.h>
 #include <gsl/gsl_errno.h>
@@ -56,6 +57,9 @@
 #include "ui/gui/widgets.h"
 #include "ui/source-init-opts.h"
 #include "ui/syntax-gen.h"
+
+#include "ui/gui/icons/icon-names.h"
+
 
 #include "gl/configmake.h"
 #include "gl/xalloc.h"
@@ -185,66 +189,100 @@ inject_renamed_icons (void)
     }
 }
 
-struct icon_info
+struct icon_size
 {
-  const char *file_name;
-  const gchar *id;
+  int resolution;
+  GtkIconSize size;
 };
 
 
-static const struct icon_info icons[] =
-  {
-    {PKGDATADIR "/value-labels.png",    "pspp-value-labels"},
-    {PKGDATADIR "/weight-cases.png",    "pspp-weight-cases"},
-    {PKGDATADIR "/goto-variable.png",   "pspp-goto-variable"},
-    {PKGDATADIR "/insert-variable.png", "pspp-insert-variable"},
-    {PKGDATADIR "/insert-case.png",     "pspp-insert-case"},
-    {PKGDATADIR "/split-file.png",      "pspp-split-file"},
-    {PKGDATADIR "/select-cases.png",    "pspp-select-cases"},
-    {PKGDATADIR "/recent-dialogs.png",  "pspp-recent-dialogs"},
-    {PKGDATADIR "/nominal.png",         "var-nominal"},
-    {PKGDATADIR "/ordinal.png",         "var-ordinal"},
-    {PKGDATADIR "/scale.png",           "var-scale"},
-    {PKGDATADIR "/string.png",          "var-string"},
-    {PKGDATADIR "/date-scale.png",      "var-date-scale"}
-  };
+static const struct icon_size sizes[] = {
+  {16,  GTK_ICON_SIZE_MENU},
+  {24,  GTK_ICON_SIZE_LARGE_TOOLBAR}
+};
+
 
 static void
 create_icon_factory (void)
 {
-  gint i;
+  gint c;
   GtkIconFactory *factory = gtk_icon_factory_new ();
-
-  for (i = 0 ; i < sizeof (icons) / sizeof(icons[0]); ++i)
-    {
-      GError *err = NULL;
-      GdkPixbuf *pixbuf =
-	gdk_pixbuf_new_from_file (relocate (icons[i].file_name), &err);
-
-      if ( pixbuf )
-	{
-	  GtkIconSet *icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-	  g_object_unref (pixbuf);
-	  gtk_icon_factory_add ( factory, icons[i].id, icon_set);
-	}
-      else
-	{
-	  g_warning ("Cannot create icon: %s", err->message);
-	  g_clear_error (&err);
-	}
+  struct icon_context xx[2];
+  xx[0] = action_icon_context;
+  xx[1] = category_icon_context;
+  for (c = 0 ; c < 2 ; ++c)
+  {
+    const struct icon_context *ic = &xx[c];
+    gint i;
+    for (i = 0 ; i < ic->n_icons ; ++i)
+      {
+	GtkIconSet *icon_set = gtk_icon_set_new ();
+	int r;
+	for (r = 0 ; r < sizeof (sizes) / sizeof (sizes[0]); ++r)
+	  {
+	    GtkIconSource *source = gtk_icon_source_new ();
+	    gchar *filename = g_strdup_printf ("%s/%s/%dx%d/%s.png", PKGDATADIR,
+					       ic->context_name,
+					       sizes[r].resolution, sizes[r].resolution,
+					       ic->icon_name[i]);
+	    
+	    gtk_icon_source_set_filename (source, filename);
+	    gtk_icon_source_set_size_wildcarded (source, FALSE);
+	    gtk_icon_source_set_size (source, sizes[r].size);
+	    g_free (filename);
+	    gtk_icon_set_add_source (icon_set, source);
+	  }
+      
+	gtk_icon_factory_add (factory, ic->icon_name[i], icon_set);
     }
+  }
+
+  {
+    struct iconmap
+    {
+      const gchar *gtk_id;
+      gchar *pspp_id;
+    };
+
+    /* We have our own icons for some things.
+       But we want the Stock Item to be identical to the Gtk standard
+       ones in all other respects.
+    */
+    const struct iconmap map[] = {
+      {GTK_STOCK_NEW,   "file-new-document"},
+      {GTK_STOCK_QUIT,  "file-quit"},
+      {GTK_STOCK_SAVE,  "file-save-document"},
+      {GTK_STOCK_CUT,   "edit-cut"},
+      {GTK_STOCK_COPY,  "edit-copy"},
+      {GTK_STOCK_PASTE, "edit-paste"},
+      {GTK_STOCK_ABOUT, "help-about"},
+      {GTK_STOCK_PRINT, "file-print-document"}
+    };
+
+    GtkStockItem customised[sizeof (map) / sizeof (map[0])];
+    int i;
+
+    for (i = 0; i < sizeof (map) / sizeof (map[0]); ++i)
+    {
+      gtk_stock_lookup (map[i].gtk_id, &customised[i]);
+      customised[i].stock_id =  map[i].pspp_id;
+    }
+
+
+
+    gtk_stock_add (customised, sizeof (map) / sizeof (map[0]));
+  }
 
   {
     /* Create our own "pspp-stock-reset" item, using the
        GTK_STOCK_REFRESH icon set */
-
-    GtkStockItem items[] = {
+    GtkStockItem items[2] = {
       {"pspp-stock-reset", N_("_Reset"), 0, 0, PACKAGE},
       {"pspp-stock-select", N_("_Select"), 0, 0, PACKAGE}
     };
 
-
     gtk_stock_add (items, 2);
+
     gtk_icon_factory_add (factory, "pspp-stock-reset",
 			  gtk_icon_factory_lookup_default (GTK_STOCK_REFRESH)
 			  );

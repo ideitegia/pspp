@@ -12,14 +12,14 @@
         <child>
           <object class="GtkAction" id="file_print">
             <property name="name">file_print</property>
-            <property name="stock-id">gtk-print</property>
+            <property name="stock-id">file-print-document</property>
             <property name="label" translatable="yes">_Print...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_export">
             <property name="name">file_export</property>
-            <property name="stock-id">gtk-convert</property>
+            <property name="stock-id">file-export-document</property>
             <property name="label" translatable="yes">_Export...</property>
           </object>
         </child>
@@ -37,7 +37,7 @@
         </child>
         <child>
           <object class="GtkAction" id="edit_copy">
-            <property name="stock-id">gtk-copy</property>
+            <property name="stock-id">edit-copy</property>
             <property name="name">edit_copy</property>
           </object>
         </child>

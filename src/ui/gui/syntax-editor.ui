@@ -12,7 +12,7 @@
         </child>
         <child>
           <object class="GtkAction" id="new2">
-            <property name="stock-id">gtk-new</property>
+            <property name="stock-id">file-new-document</property>
             <property name="name">new2</property>
           </object>
         </child>
@@ -37,7 +37,7 @@
         </child>
         <child>
           <object class="GtkAction" id="file_save">
-            <property name="stock-id">gtk-save</property>
+            <property name="stock-id">file-save-document</property>
             <property name="name">file_save</property>
           </object>
         </child>
@@ -51,12 +51,12 @@
         <child>
           <object class="GtkAction" id="file_print">
             <property name="name">file_print</property>
-            <property name="stock-id">gtk-print</property>
+            <property name="stock-id">file-print-document</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_quit">
-            <property name="stock-id">gtk-quit</property>
+            <property name="stock-id">file-quit</property>
             <property name="name">file_quit</property>
           </object>
         </child>
@@ -68,21 +68,21 @@
         </child>
         <child>
           <object class="GtkAction" id="edit_cut">
-            <property name="stock-id">gtk-cut</property>
+            <property name="stock-id">edit-cut</property>
             <property name="name">edit_cut</property>
             <property name="sensitive">false</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_copy">
-            <property name="stock-id">gtk-copy</property>
+            <property name="stock-id">edit-copy</property>
             <property name="name">edit_copy</property>
             <property name="sensitive">false</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_paste">
-            <property name="stock-id">gtk-paste</property>
+            <property name="stock-id">edit-paste</property>
             <property name="name">edit_paste</property>
             <property name="sensitive">false</property>
           </object>

@@ -127,6 +127,33 @@ src/ui/gui/icons/apps/16x16/pspp.png \
 src/ui/gui/icons/apps/48x48/pspp.png
 
 
+
+CATEGORY_ICONS = \
+src/ui/gui/icons/categories/24x24/variable-string-nominal.png \
+src/ui/gui/icons/categories/24x24/align-center.png \
+src/ui/gui/icons/categories/24x24/variable-nominal.png \
+src/ui/gui/icons/categories/24x24/align-left.png \
+src/ui/gui/icons/categories/24x24/variable-date-scale.png \
+src/ui/gui/icons/categories/24x24/variable-scale.png \
+src/ui/gui/icons/categories/24x24/variable-string-ordinal.png \
+src/ui/gui/icons/categories/24x24/variable-ordinal.png \
+src/ui/gui/icons/categories/24x24/align-right.png \
+src/ui/gui/icons/categories/24x24/variable-date-nominal.png \
+src/ui/gui/icons/categories/24x24/variable-date-ordinal.png \
+src/ui/gui/icons/categories/24x24/variable-string-scale.png \
+src/ui/gui/icons/categories/16x16/variable-string-nominal.png \
+src/ui/gui/icons/categories/16x16/align-center.png \
+src/ui/gui/icons/categories/16x16/variable-nominal.png \
+src/ui/gui/icons/categories/16x16/align-left.png \
+src/ui/gui/icons/categories/16x16/variable-date-scale.png \
+src/ui/gui/icons/categories/16x16/variable-scale.png \
+src/ui/gui/icons/categories/16x16/variable-string-ordinal.png \
+src/ui/gui/icons/categories/16x16/variable-ordinal.png \
+src/ui/gui/icons/categories/16x16/align-right.png \
+src/ui/gui/icons/categories/16x16/variable-date-nominal.png \
+src/ui/gui/icons/categories/16x16/variable-date-ordinal.png \
+src/ui/gui/icons/categories/16x16/variable-string-scale.png
+
 MIMETYPE_ICONS = \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-sav.png \
@@ -150,13 +177,144 @@ src/ui/gui/icons/mimetypes/48x48/application-x-spss-sps.png \
 MISC_ICONS = src/ui/gui/icons/splash.png
 
 
-ICONS=$(MIMETYPE_ICONS) $(APP_ICONS) $(MISC_ICONS)
 
+ACTION_ICONS = \
+src/ui/gui/icons/actions/24x24/edit-copy.png \
+src/ui/gui/icons/actions/24x24/windows-split.png \
+src/ui/gui/icons/actions/24x24/edit-paste.png \
+src/ui/gui/icons/actions/24x24/help-reference-manual.png \
+src/ui/gui/icons/actions/24x24/view-value-labels.png \
+src/ui/gui/icons/actions/24x24/file-print-document.png \
+src/ui/gui/icons/actions/24x24/file-open-document.png \
+src/ui/gui/icons/actions/24x24/transform-runpending-transforms.png \
+src/ui/gui/icons/actions/24x24/file-save-document.png \
+src/ui/gui/icons/actions/24x24/file-rename-dataset.png \
+src/ui/gui/icons/actions/24x24/edit-select-all.png \
+src/ui/gui/icons/actions/24x24/file-display-information.png \
+src/ui/gui/icons/actions/24x24/edit-insert-variable.png \
+src/ui/gui/icons/actions/24x24/file-export-document.png \
+src/ui/gui/icons/actions/24x24/utilities-case.png \
+src/ui/gui/icons/actions/24x24/data-sort-cases.png \
+src/ui/gui/icons/actions/24x24/utilities-variable.png \
+src/ui/gui/icons/actions/24x24/edit-clear-data.png \
+src/ui/gui/icons/actions/24x24/utilities-datafile-comments.png \
+src/ui/gui/icons/actions/24x24/windows-minimize.png \
+src/ui/gui/icons/actions/24x24/transform-recode-different-variables.png \
+src/ui/gui/icons/actions/24x24/transform-compute.png \
+src/ui/gui/icons/actions/24x24/recent-dialogs.png \
+src/ui/gui/icons/actions/24x24/transform-count.png \
+src/ui/gui/icons/actions/24x24/edit-goto-case.png \
+src/ui/gui/icons/actions/24x24/data-split-file.png \
+src/ui/gui/icons/actions/24x24/help-about.png \
+src/ui/gui/icons/actions/24x24/transform-automatic-recode.png \
+src/ui/gui/icons/actions/24x24/data-transpose.png \
+src/ui/gui/icons/actions/24x24/edit-search-case.png \
+src/ui/gui/icons/actions/24x24/view-fullscreen.png \
+src/ui/gui/icons/actions/24x24/edit-add-variable.png \
+src/ui/gui/icons/actions/24x24/data-select-case.png \
+src/ui/gui/icons/actions/24x24/file-import-document.png \
+src/ui/gui/icons/actions/24x24/data-weight-cases.png \
+src/ui/gui/icons/actions/24x24/edit-add-case.png \
+src/ui/gui/icons/actions/24x24/edit-insert-case.png \
+src/ui/gui/icons/actions/24x24/file-quit.png \
+src/ui/gui/icons/actions/24x24/file-recently-used.png \
+src/ui/gui/icons/actions/24x24/edit-goto-variable.png \
+src/ui/gui/icons/actions/24x24/transform-rank-cases.png \
+src/ui/gui/icons/actions/24x24/transform-recode-same-variables.png \
+src/ui/gui/icons/actions/24x24/view-fonts.png \
+src/ui/gui/icons/actions/24x24/file-saveas-document.png \
+src/ui/gui/icons/actions/24x24/edit-cut.png \
+src/ui/gui/icons/actions/24x24/file-new-document.png \
+src/ui/gui/icons/actions/24x24/data-aggregate.png \
+src/ui/gui/icons/actions/16x16/edit-copy.png \
+src/ui/gui/icons/actions/16x16/windows-split.png \
+src/ui/gui/icons/actions/16x16/edit-paste.png \
+src/ui/gui/icons/actions/16x16/help-reference-manual.png \
+src/ui/gui/icons/actions/16x16/view-value-labels.png \
+src/ui/gui/icons/actions/16x16/file-print-document.png \
+src/ui/gui/icons/actions/16x16/file-open-document.png \
+src/ui/gui/icons/actions/16x16/transform-runpending-transforms.png \
+src/ui/gui/icons/actions/16x16/file-save-document.png \
+src/ui/gui/icons/actions/16x16/file-rename-dataset.png \
+src/ui/gui/icons/actions/16x16/edit-select-all.png \
+src/ui/gui/icons/actions/16x16/file-display-information.png \
+src/ui/gui/icons/actions/16x16/edit-insert-variable.png \
+src/ui/gui/icons/actions/16x16/file-export-document.png \
+src/ui/gui/icons/actions/16x16/utilities-case.png \
+src/ui/gui/icons/actions/16x16/data-sort-cases.png \
+src/ui/gui/icons/actions/16x16/utilities-variable.png \
+src/ui/gui/icons/actions/16x16/edit-clear-data.png \
+src/ui/gui/icons/actions/16x16/utilities-datafile-comments.png \
+src/ui/gui/icons/actions/16x16/windows-minimize.png \
+src/ui/gui/icons/actions/16x16/transform-recode-different-variables.png \
+src/ui/gui/icons/actions/16x16/transform-compute.png \
+src/ui/gui/icons/actions/16x16/recent-dialogs.png \
+src/ui/gui/icons/actions/16x16/transform-count.png \
+src/ui/gui/icons/actions/16x16/edit-goto-case.png \
+src/ui/gui/icons/actions/16x16/data-split-file.png \
+src/ui/gui/icons/actions/16x16/help-about.png \
+src/ui/gui/icons/actions/16x16/transform-automatic-recode.png \
+src/ui/gui/icons/actions/16x16/data-transpose.png \
+src/ui/gui/icons/actions/16x16/edit-search-case.png \
+src/ui/gui/icons/actions/16x16/view-fullscreen.png \
+src/ui/gui/icons/actions/16x16/edit-add-variable.png \
+src/ui/gui/icons/actions/16x16/data-select-case.png \
+src/ui/gui/icons/actions/16x16/file-import-document.png \
+src/ui/gui/icons/actions/16x16/data-weight-cases.png \
+src/ui/gui/icons/actions/16x16/edit-add-case.png \
+src/ui/gui/icons/actions/16x16/edit-insert-case.png \
+src/ui/gui/icons/actions/16x16/file-quit.png \
+src/ui/gui/icons/actions/16x16/file-recently-used.png \
+src/ui/gui/icons/actions/16x16/edit-goto-variable.png \
+src/ui/gui/icons/actions/16x16/transform-rank-cases.png \
+src/ui/gui/icons/actions/16x16/transform-recode-same-variables.png \
+src/ui/gui/icons/actions/16x16/view-fonts.png \
+src/ui/gui/icons/actions/16x16/file-saveas-document.png \
+src/ui/gui/icons/actions/16x16/edit-cut.png \
+src/ui/gui/icons/actions/16x16/file-new-document.png \
+src/ui/gui/icons/actions/16x16/data-aggregate.png \
+
+ICONS=$(CATEGORY_ICONS) $(ACTION_ICONS) $(MIMETYPE_ICONS) $(APP_ICONS) $(MISC_ICONS)
 
 all: prep_ph  icons
 	$(MAKE) -f Smake Makefile.in configure
 
-icons: $(ICONS)
+icons: $(ICONS) src/ui/gui/icons/icon-names.c
+
+src/ui/gui/icons/icon-names.c:
+	$(RM) $@
+	printf '/* This is a generated file. Do not edit. */\n' >> $@
+	printf '#include "icon-names.h"\n' >> $@
+	echo >> $@
+	printf 'static const char *action_icon_name[] =' >> $@
+	printf '\n{\n' >> $@
+	for i in $(ACTION_ICONS) ; do \
+	 echo $$i; \
+	done | sed -e 's%[a-zA-Z/]*/[1-9]*x[1-9]*/\([^ ]*\)\.png%\1%g' | sort -u | while read f ; do \
+	 printf '  "%s", \n' $$f >> $@ ; \
+	done ; \
+	printf '};\n\n' >> $@ ; \
+	printf 'const struct icon_context action_icon_context = {\n' >> $@
+	printf '  action_icon_name,\n' >> $@
+	printf "  sizeof (action_icon_name) / sizeof (action_icon_name[0]),\n" >> $@ 
+	printf "  \"actions\"\n" >> $@
+	printf '};\n' >> $@ ; \
+	echo >> $@
+	printf 'static const char *category_icon_name[] =' >> $@
+	printf '\n{\n' >> $@
+	for i in $(CATEGORY_ICONS) ; do \
+	 echo $$i; \
+	done | sed -e 's%[a-zA-Z/]*/[1-9]*x[1-9]*/\([^ ]*\)\.png%\1%g' | sort -u | while read f ; do \
+	 printf '  "%s", \n' $$f >> $@ ; \
+	done ; \
+	printf '};\n\n' >> $@ ; \
+	printf 'const struct icon_context category_icon_context = {\n' >> $@
+	printf '  category_icon_name,\n' >> $@
+	printf "  sizeof (category_icon_name) / sizeof (category_icon_name[0]),\n" >> $@ 
+	printf "  \"categories\"\n" >> $@
+	printf '};\n' >> $@ ; \
+	echo >> $@
+
 
 src/ui/gui/icons/manifest:
 	$(RM) $@

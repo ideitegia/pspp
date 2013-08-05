@@ -11,7 +11,7 @@
         </child>
         <child>
           <object class="GtkAction" id="new1">
-            <property name="stock-id">gtk-new</property>
+            <property name="stock-id">file-new-document</property>
             <property name="name">new1</property>
           </object>
         </child>
@@ -29,7 +29,7 @@
         </child>
         <child>
           <object class="GtkAction" id="file_open">
-            <property name="stock-id">gtk-open</property>
+            <property name="stock-id">file-open-document</property>
             <property name="name">file_open</property>
             <property name="label" translatable="yes">_Open...</property>
           </object>
@@ -38,24 +38,25 @@
           <object class="GtkAction" id="file_import">
             <property name="name">file_import</property>
             <property name="label" translatable="yes">I_mport Data...</property>
-	    <property name="stock-id">gtk-convert</property>
+	    <property name="stock-id">file-import-document</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="rename_dataset">
             <property name="name">rename_dataset</property>
 	    <property name="label" translatable="yes">_Rename Dataset...</property>
+            <property name="stock-id">file-rename-dataset</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_save">
-            <property name="stock-id">gtk-save</property>
+            <property name="stock-id">file-save-document</property>
             <property name="name">file_save</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_save_as">
-            <property name="stock-id">gtk-save-as</property>
+            <property name="stock-id">file-saveas-document</property>
             <property name="name">file_save_as</property>
             <property name="label" translatable="yes">Save _As...</property>
           </object>
@@ -64,7 +65,7 @@
           <object class="GtkAction" id="file-information">
             <property name="name">file-information</property>
             <property name="label" translatable="yes">D_isplay Data File Information</property>
-            <property name="stock-id">gtk-info</property>
+            <property name="stock-id">file-display-information</property>
           </object>
         </child>
         <child>
@@ -83,17 +84,19 @@
           <object class="GtkAction" id="file_recent-data">
             <property name="name">file_recent-data</property>
             <property name="label" translatable="yes">Recently Used Da_ta</property>
+            <property name="stock-id">file-recently-used</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_recent-files">
             <property name="name">file_recent-files</property>
             <property name="label" translatable="yes">Recently Used _Files</property>
+            <property name="stock-id">file-recently-used</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_quit">
-            <property name="stock-id">gtk-quit</property>
+            <property name="stock-id">file-quit</property>
             <property name="name">file_quit</property>
           </object>
         </child>
@@ -119,7 +122,7 @@
         <child>
           <object class="GtkAction" id="view_fonts">
             <property name="name">view_fonts</property>
-            <property name="stock-id">gtk-select-font</property>
+            <property name="stock-id">view-fonts</property>
             <property name="label" translatable="yes">_Font...</property>
           </object>
         </child>
@@ -135,7 +138,7 @@
             <property name="name">view_value-labels</property>
             <property name="label" translatable="yes">Value _Labels</property>
 	    <property name="tooltip" translatable="yes">Show/hide value labels</property>
-	    <property name="stock-id">pspp-value-labels</property>
+	    <property name="stock-id">view-value-labels</property>
           </object>
         </child>
         <child>
@@ -162,13 +165,13 @@
             <property name="label" translatable="yes">_Sort Cases...</property>
             <property name="name">data_sort-cases</property>
             <property name="manager">uimanager1</property>
-	    <property name="stock-id">gtk-sort-ascending</property>
+	    <property name="stock-id">data-sort-cases</property>
 	    <property name="tooltip" translatable="yes">Sort cases in the active dataset</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="data_transpose">
-	    <property name="stock-id">pspp-transpose</property>
+	    <property name="stock-id">data-transpose</property>
             <property name="name">data_transpose</property>
             <property name="label" translatable="yes">_Transpose...</property>
 	    <property name="tooltip" translatable="yes">Transpose the cases with the variables</property>
@@ -176,7 +179,7 @@
         </child>
         <child>
           <object class="GtkAction" id="data_aggregate">
-	    <property name="stock-id">pspp-aggregate</property>
+	    <property name="stock-id">data-aggregate</property>
             <property name="name">data_aggregate</property>
             <property name="label" translatable="yes">_Aggregate...</property>
           </object>
@@ -186,13 +189,15 @@
             <property name="name">data_split-file</property>
             <property name="label" translatable="yes">S_plit File...</property>
 	    <property name="tooltip" translatable="yes">Split the active dataset</property>
-	    <property name="stock-id">pspp-split-file</property>
+	    <property name="stock-id">data-split-file</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="data_select-cases">
             <property name="name">data_select-cases</property>
             <property name="label" translatable="yes">Select _Cases...</property>
+	    <property name="tooltip" translatable="yes">Choose a subset of cases for analysis</property>
+	    <property name="stock-id">data-select-case</property>
           </object>
         </child>
         <child>
@@ -200,7 +205,7 @@
             <property name="name">data_weight-cases</property>
             <property name="label" translatable="yes">_Weight Cases...</property>
 	    <property name="tooltip" translatable="yes">Weight cases by variable</property>
-	    <property name="stock-id">pspp-weight-cases</property>
+	    <property name="stock-id">data-weight-cases</property>
           </object>
         </child>
         <child>
@@ -213,12 +218,14 @@
           <object class="GtkAction" id="transform_compute">
             <property name="name">transform_compute</property>
             <property name="label" translatable="yes">_Compute...</property>
+	    <property name="stock-id">transform-compute</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="transform_count">
             <property name="name">transform_count</property>
             <property name="label" translatable="yes">Cou_nt...</property>
+	    <property name="stock-id">transform-count</property>
           </object>
         </child>
         <child>
@@ -226,30 +233,35 @@
             <property name="name">transform_rank</property>
             <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">Ran_k Cases...</property>
+	    <property name="stock-id">transform-rank-cases</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="transform_autorecode">
             <property name="name">transform_autorecode</property>
             <property name="label" translatable="yes">Auto_matic Recode...</property>
+	    <property name="stock-id">transform-automatic-recode</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="transform_recode-same">
             <property name="name">transform_recode-same</property>
             <property name="label" translatable="yes">Recode into _Same Variables...</property>
+	    <property name="stock-id">transform-recode-same-variables</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="transform_recode-different">
             <property name="name">transform_recode-different</property>
             <property name="label" translatable="yes">Recode into _Different Variables...</property>
+	    <property name="stock-id">transform-recode-different-variables</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="transform_run-pending">
             <property name="name">transform_run-pending</property>
             <property name="label" translatable="yes">_Run Pending Transforms</property>
+	    <property name="stock-id">transform-runpending-transforms</property>
           </object>
           <accelerator key="G" modifiers="GDK_CONTROL_MASK"/>
         </child>
@@ -448,13 +460,14 @@
             <property name="name">utilities_variables</property>
             <property name="label" translatable="yes">_Variables...</property>
 	    <property name="tooltip" translatable="yes">Jump to variable</property>
-	    <property name="stock-id">pspp-goto-variable</property>
+	    <property name="stock-id">utilities-variable</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="utilities_comments">
             <property name="name">utilities_comments</property>
             <property name="label" translatable="yes">Data File _Comments...</property>
+	    <property name="stock-id">utilities-datafile-comments</property>
           </object>
         </child>
         <child>
@@ -467,12 +480,14 @@
           <object class="GtkAction" id="windows_minimise_all">
             <property name="name">windows_minimise_all</property>
             <property name="label" translatable="yes">_Minimize All Windows</property>
+	    <property name="stock-id">windows-minimize</property>
           </object>
         </child>
         <child>
           <object class="GtkToggleAction" id="windows_split">
             <property name="name">windows_split</property>
             <property name="label" translatable="yes">_Split</property>
+	    <property name="stock-id">windows-split</property>
           </object>
         </child>
       </object>

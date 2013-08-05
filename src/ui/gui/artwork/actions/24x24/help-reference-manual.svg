@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg7384"
+   sodipodi:docname="edit-paste.svg"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   height="24"
+   width="24"
+   inkscape:export-filename="/home/raizen/Escritorio/PSPP icon original/Carpeta sin título/goto-case.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <metadata
+     id="metadata90">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>GNU PSPP Community</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     inkscape:cy="8.7794729"
+     pagecolor="#4d4d4d"
+     borderopacity="1"
+     showborder="false"
+     inkscape:bbox-paths="false"
+     guidetolerance="10"
+     inkscape:object-paths="true"
+     inkscape:window-width="1366"
+     showguides="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-bbox="true"
+     inkscape:pageshadow="2"
+     inkscape:guide-bbox="true"
+     inkscape:snap-nodes="true"
+     bordercolor="#666666"
+     objecttolerance="10"
+     id="namedview88"
+     showgrid="true"
+     inkscape:window-maximized="1"
+     inkscape:window-x="0"
+     inkscape:snap-global="true"
+     inkscape:window-y="28"
+     gridtolerance="10"
+     inkscape:window-height="675"
+     inkscape:snap-others="false"
+     inkscape:snap-to-guides="true"
+     inkscape:current-layer="layer12"
+     inkscape:snap-bbox-midpoints="false"
+     inkscape:zoom="7.4262405"
+     inkscape:cx="3.1541791"
+     inkscape:snap-grids="true"
+     inkscape:pageopacity="0">
+    <inkscape:grid
+       spacingx="1px"
+       spacingy="1px"
+       id="grid4866"
+       empspacing="2"
+       enabled="true"
+       type="xygrid"
+       snapvisiblegridlinesonly="true"
+       visible="true" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,16.085251"
+       id="guide3001" />
+    <sodipodi:guide
+       position="24,16.798541"
+       orientation="-16.02426,0"
+       id="guide3003" />
+    <sodipodi:guide
+       position="15.620287,24"
+       orientation="0,-16.085251"
+       id="guide3005" />
+    <sodipodi:guide
+       position="0,16.02426"
+       orientation="16.02426,0"
+       id="guide3007" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,24"
+       id="guide3022" />
+    <sodipodi:guide
+       position="24,0"
+       orientation="-24,0"
+       id="guide3024" />
+    <sodipodi:guide
+       position="24,24"
+       orientation="0,-24"
+       id="guide3026" />
+    <sodipodi:guide
+       position="0,24"
+       orientation="24,0"
+       id="guide3028" />
+  </sodipodi:namedview>
+  <defs
+     id="defs7386" />
+  <g
+     inkscape:label="GNU PSPP Symbolic icon theme"
+     transform="translate(-60.952227,-639)"
+     inkscape:groupmode="layer"
+     id="layer12"
+     style="display:inline">
+    <rect
+       style="fill:none;stroke:none"
+       id="rect4938"
+       width="24"
+       height="23.990229"
+       x="60.952221"
+       y="639.00336"
+       rx="2"
+       ry="1.9991857" />
+    <g
+       style="display:inline"
+       transform="matrix(1,0,0,0.9983534,148.95216,387.02285)"
+       inkscape:label="lc_helpindex"
+       id="lc_helpindex">
+      <rect
+         y="252.3622"
+         x="-88"
+         height="24"
+         width="24"
+         id="rect8730"
+         style="fill:none;stroke:none" />
+      <path
+         sodipodi:nodetypes="ssssscccccsccccccccccsssss"
+         inkscape:connector-curvature="0"
+         id="path50307"
+         d="m -75.999986,255.39769 c -5.52285,0 -10,4.46234 -10,9.98519 0,5.52285 4.47715,10.01649 10,10.01649 5.52285,0 10,-4.49364 10,-10.01649 0,-5.52285 -4.47715,-9.98519 -10,-9.98519 z m 0.21875,2.75453 c 2.46171,-0.1304 4.64336,1.6789 4.78125,4.0066 -1.5e-4,1.98609 -0.58362,2.69996 -2.40625,4.0066 -0.28617,0.20359 -0.48846,0.35046 -0.5625,0.43822 -0.0741,0.0879 -0.0312,0.066 -0.0312,0.0626 0.0105,0.74873 -0.70807,1.40857 -1.5,1.40857 -0.79193,0 -1.51049,-0.65984 -1.5,-1.40857 0,-0.71202 0.32102,-1.3497 0.6875,-1.78419 0.36648,-0.43454 0.75285,-0.72785 1.09375,-0.97035 0.30584,-0.22756 0.69151,-0.55394 1.03125,-0.93904 0.14014,-0.15887 0.19349,-0.41072 0.1875,-0.59473 l 0,-0.0626 c -0.0473,-0.79827 -0.74955,-1.35946 -1.59375,-1.31467 -0.8442,0.0448 -1.45361,0.61031 -1.40625,1.40857 l -3,0 c -0.13789,-2.32773 1.75704,-4.12646 4.21875,-4.25701 z m 0.28125,11.33116 c 0.82777,0 1.5,0.65713 1.5,1.43987 0,0.78267 -0.67223,1.40857 -1.5,1.40857 -0.82777,0 -1.5,-0.6259 -1.5,-1.40857 0,-0.78274 0.67223,-1.43987 1.5,-1.43987 z"
+         style="fill:#555753;fill-opacity:1;fill-rule:nonzero;stroke:none;display:inline" />
+    </g>
+  </g>
+</svg>

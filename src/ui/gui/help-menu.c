@@ -136,14 +136,14 @@ merge_help_menu (GtkUIManager *uim)
       },
     
       {
-	"help_reference", GTK_STOCK_HELP,            /* name, stock id */
+	"help_reference", "help-reference-manual",            /* name, stock id */
 	N_("_Reference Manual"), NULL,               /* label, accelerator */
 	NULL,                                        /* tooltip */
 	G_CALLBACK (reference_manual)
       },
     
       {
-	"help_about", GTK_STOCK_ABOUT,
+	"help_about", "help-about",
 	NULL, NULL, NULL,
 	G_CALLBACK (about_new)
       },

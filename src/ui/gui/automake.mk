@@ -98,50 +98,14 @@ src_ui_gui_spreadsheet_test_SOURCES = src/ui/gui/spreadsheet-test.c src/ui/gui/p
 src_ui_gui_psppiredir = $(pkgdatadir)
 
 
-thethemedir = $(DESTDIR)$(datadir)/icons/hicolor
-thecontext = pspp
-
-
 install-lang:
 	$(INSTALL_DATA) $(top_srcdir)/src/ui/gui/pspp.lang $(DESTDIR)$(pkgdatadir)
 
-install-legacy-icons:
-	for size in 16x16 ; do \
-	  $(MKDIR_P) $(thethemedir)/$$size/$(thecontext) ; \
-          $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/icons/$$size/* $(thethemedir)/$$size/$(thecontext) ; \
-	done 
-
-INSTALL_DATA_HOOKS += install-legacy-icons install-lang
-
-uninstall-legacy-icons:
-	for size in 16x16 ; do \
-          rm -r -f $(thethemedir)/$$size/$(thecontext); \
-	done 
-
-update-icon-cache:
-	if test -z "$(DESTDIR)" ; then \
-		gtk-update-icon-cache --ignore-theme-index $(thethemedir); \
-	fi
-
-UNINSTALL_DATA_HOOKS += uninstall-legacy-icons
+INSTALL_DATA_HOOKS += install-lang
 
 dist_src_ui_gui_psppire_DATA = \
 	$(UI_FILES) \
 	$(top_srcdir)/src/ui/gui/pspp.lang \
-	$(top_srcdir)/src/ui/gui/pspplogo.png \
-	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
-	$(top_srcdir)/src/ui/gui/icons/goto-variable.png\
-	$(top_srcdir)/src/ui/gui/icons/insert-case.png \
-	$(top_srcdir)/src/ui/gui/icons/insert-variable.png \
-	$(top_srcdir)/src/ui/gui/icons/recent-dialogs.png \
-	$(top_srcdir)/src/ui/gui/icons/split-file.png \
-	$(top_srcdir)/src/ui/gui/icons/select-cases.png \
-	$(top_srcdir)/src/ui/gui/icons/weight-cases.png \
-	$(top_srcdir)/src/ui/gui/icons/16x16/nominal.png  \
-	$(top_srcdir)/src/ui/gui/icons/16x16/ordinal.png \
-	$(top_srcdir)/src/ui/gui/icons/16x16/scale.png \
-	$(top_srcdir)/src/ui/gui/icons/16x16/string.png \
-	$(top_srcdir)/src/ui/gui/icons/16x16/date-scale.png \
 	$(top_srcdir)/src/ui/gui/psppire.gtkrc
 
 src_ui_gui_psppire_SOURCES = \

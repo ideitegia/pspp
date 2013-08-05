@@ -348,31 +348,64 @@ const char *
 psppire_dict_view_get_var_measurement_stock_id (const struct variable *var)
 {
   if ( var_is_alpha (var))
-    return "var-string";
-  else
     {
-      const struct fmt_spec *fs = var_get_print_format (var);
-      int cat = fmt_get_category (fs->type);
-
       switch ( var_get_measure (var))
 	{
 	case MEASURE_NOMINAL:
-          return "var-nominal";
-
+	  return ("variable-string-nominal");
+	  break;
 	case MEASURE_ORDINAL:
-          return "var-ordinal";
-
+	  return ("variable-string-ordinal");
+	  break;
 	case MEASURE_SCALE:
-	  if ( ( FMT_CAT_DATE | FMT_CAT_TIME ) & cat )
-            return "var-date-scale";
-	  else
-            return "var-scale";
+	  return ("variable-string-scale");
 	  break;
 
 	default:
 	  g_return_val_if_reached ("");
 	}
     }
+  else
+    {
+      const struct fmt_spec *fs = var_get_print_format (var);
+      int cat = fmt_get_category (fs->type);
+
+      if ( ( FMT_CAT_DATE | FMT_CAT_TIME ) & cat )
+	{
+	  switch ( var_get_measure (var))
+	    {
+	    case MEASURE_NOMINAL:
+	      return ("variable-date-nominal");
+	      break;
+	    case MEASURE_ORDINAL:
+	      return ("variable-date-ordinal");
+	      break;
+	    case MEASURE_SCALE:
+	      return ("variable-date-scale");
+		break;
+	    default:
+	      g_assert_not_reached ();
+	    };
+	}
+      else
+	{
+	  switch ( var_get_measure (var))
+	    {
+	    case MEASURE_NOMINAL:
+	      return ("variable-nominal");
+	      break;
+	    case MEASURE_ORDINAL:
+	      return ("variable-ordinal");
+	      break;
+	    case MEASURE_SCALE:
+	      return ("variable-scale");
+	      break;
+	    default:
+	      g_assert_not_reached ();
+	    };
+	}
+    }
+  return NULL;
 }
 
 
