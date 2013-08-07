@@ -47,14 +47,14 @@ static const struct table_class table_paste_class;
 static struct table_paste *
 table_paste_cast (const struct table *table)
 {
-  assert (table->class == &table_paste_class);
+  assert (table->klass == &table_paste_class);
   return UP_CAST (table, struct table_paste, table);
 }
 
 static bool
 is_table_paste (const struct table *table, int orientation)
 {
-  return (table->class == &table_paste_class
+  return (table->klass == &table_paste_class
           && table_paste_cast (table)->orientation == orientation);
 }
 
@@ -151,15 +151,15 @@ table_paste (struct table *a, struct table *b, enum table_axis orientation)
   /* Handle tables that know how to paste themselves. */
   if (!table_is_shared (a) && !table_is_shared (b) && a != b)
     {
-      if (a->class->paste != NULL)
+      if (a->klass->paste != NULL)
         {
-          struct table *new = a->class->paste (a, b, orientation);
+          struct table *new = a->klass->paste (a, b, orientation);
           if (new != NULL)
             return new;
         }
-      if (b->class->paste != NULL && a->class != b->class)
+      if (b->klass->paste != NULL && a->klass != b->klass)
         {
-          struct table *new = b->class->paste (a, b, orientation);
+          struct table *new = b->klass->paste (a, b, orientation);
           if (new != NULL)
             return new;
         }

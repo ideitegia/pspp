@@ -102,7 +102,7 @@ enum table_axis
 /* A table. */
 struct table
   {
-    const struct table_class *class;
+    const struct table_class *klass;
 
     /* Table size.
 

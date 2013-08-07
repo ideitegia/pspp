@@ -35,7 +35,7 @@ static const struct table_class table_select_class;
 static struct table_select *
 table_select_cast (const struct table *table)
 {
-  assert (table->class == &table_select_class);
+  assert (table->klass == &table_select_class);
   return UP_CAST (table, struct table_select, table);
 }
 
@@ -55,9 +55,9 @@ table_select (struct table *subtable, int rect[TABLE_N_AXES][2])
       && rect[TABLE_VERT][1] == subtable->n[TABLE_VERT])
     return subtable;
 
-  if (!table_is_shared (subtable) && subtable->class->select != NULL)
+  if (!table_is_shared (subtable) && subtable->klass->select != NULL)
     {
-      struct table *selected = subtable->class->select (subtable, rect);
+      struct table *selected = subtable->klass->select (subtable, rect);
       if (selected != NULL)
         return selected;
     }
