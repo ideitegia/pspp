@@ -281,7 +281,7 @@ all: prep_ph  icons
 
 icons: $(ICONS) src/ui/gui/icons/icon-names.c
 
-src/ui/gui/icons/icon-names.c:
+src/ui/gui/icons/icon-names.c: $(MAKEFILE_LIST)
 	$(RM) $@
 	printf '/* This is a generated file. Do not edit. */\n' >> $@
 	printf '#include "icon-names.h"\n' >> $@
@@ -316,7 +316,7 @@ src/ui/gui/icons/icon-names.c:
 	echo >> $@
 
 
-src/ui/gui/icons/manifest:
+src/ui/gui/icons/manifest: $(MAKEFILE_LIST)
 	$(RM) $@
 	printf '# This is a generated file. Do not edit.\n' >> $@
 	printf 'icons =' >> $@
