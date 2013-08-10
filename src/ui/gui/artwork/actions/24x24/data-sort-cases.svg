@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg7384"
+   sodipodi:docname="data-sort-cases.svg"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   height="24"
+   width="24"
+   inkscape:export-filename="/home/raizen/Escritorio/PSPP icon original/Carpeta sin título/goto-case.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <metadata
+     id="metadata90">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>GNU PSPP Community</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     inkscape:cy="8.3303645"
+     pagecolor="#4d4d4d"
+     borderopacity="1"
+     showborder="false"
+     inkscape:bbox-paths="false"
+     guidetolerance="10"
+     inkscape:object-paths="true"
+     inkscape:window-width="1366"
+     showguides="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-bbox="true"
+     inkscape:pageshadow="2"
+     inkscape:guide-bbox="true"
+     inkscape:snap-nodes="false"
+     bordercolor="#666666"
+     objecttolerance="10"
+     id="namedview88"
+     showgrid="true"
+     inkscape:window-maximized="1"
+     inkscape:window-x="0"
+     inkscape:snap-global="true"
+     inkscape:window-y="28"
+     gridtolerance="10"
+     inkscape:window-height="675"
+     inkscape:snap-others="false"
+     inkscape:snap-to-guides="true"
+     inkscape:current-layer="layer12"
+     inkscape:snap-bbox-midpoints="false"
+     inkscape:zoom="10.50229"
+     inkscape:cx="-4.6402657"
+     inkscape:snap-grids="true"
+     inkscape:pageopacity="0"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="false">
+    <inkscape:grid
+       spacingx="1px"
+       spacingy="1px"
+       id="grid4866"
+       empspacing="2"
+       enabled="true"
+       type="xygrid"
+       snapvisiblegridlinesonly="true"
+       visible="true" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,16.085251"
+       id="guide3001" />
+    <sodipodi:guide
+       position="24,16.798541"
+       orientation="-16.02426,0"
+       id="guide3003" />
+    <sodipodi:guide
+       position="15.620287,24"
+       orientation="0,-16.085251"
+       id="guide3005" />
+    <sodipodi:guide
+       position="0,16.02426"
+       orientation="16.02426,0"
+       id="guide3007" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,24"
+       id="guide3022" />
+    <sodipodi:guide
+       position="24,0"
+       orientation="-24,0"
+       id="guide3024" />
+    <sodipodi:guide
+       position="24,24"
+       orientation="0,-24"
+       id="guide3026" />
+    <sodipodi:guide
+       position="0,24"
+       orientation="24,0"
+       id="guide3028" />
+  </sodipodi:namedview>
+  <defs
+     id="defs7386">
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect91806"
+       is_visible="true" />
+  </defs>
+  <g
+     inkscape:label="GNU PSPP Symbolic icon theme"
+     transform="translate(-60.952227,-639)"
+     inkscape:groupmode="layer"
+     id="layer12"
+     style="display:inline">
+    <g
+       transform="matrix(0,-1.0555665,0.66664042,0,-359.35901,997.85227)"
+       id="g4532"
+       style="display:inline">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4534"
+         d="m 320.0625,656 0,3.00006 18,0 0,-3.00006 -18,0 z"
+         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#555753;fill-opacity:1;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans" />
+    </g>
+    <path
+       inkscape:connector-curvature="0"
+       style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#555753;fill:#555753;fill-opacity:1;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       d="m 74.957057,656.00482 1,0 c 0.25689,0 0.52846,0.12983 0.71875,0.3125 l 2.28125,2.6875 2.28149,-2.6875 c 0.19029,-0.18267 0.46186,-0.3125 0.71875,-0.3125 l 1,0 0,0.41322 -1.1e-4,0.58678 c 0,0.30945 -0.0903,0.55232 -0.28125,0.75 -1.07301,1.41667 -2.64588,2.83333 -3.71888,4.25 l -3.71886,-4.25 c -0.19095,-0.19768 -0.28125,-0.44055 -0.28125,-0.75 l 1.1e-4,-0.58678 z"
+       id="path4538"
+       sodipodi:nodetypes="ccccccccccccccc" />
+    <g
+       transform="scale(1.0237404,0.97681013)"
+       style="font-size:18.05874443px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#555753;fill-opacity:1;stroke:none;font-family:Open Sans;-inkscape-font-specification:Open Sans"
+       id="text3015">
+      <path
+         d="m 69.382293,665.25488 -0.520247,-1.34029 -0.07054,0 c -0.452651,0.57021 -0.919991,0.96701 -1.402022,1.19039 -0.476163,0.21751 -1.099283,0.32626 -1.869362,0.32626 -0.946441,0 -1.693009,-0.27041 -2.239708,-0.81123 -0.540822,-0.54083 -0.811233,-1.31091 -0.811232,-2.31025 -1e-6,-1.04637 0.364465,-1.81646 1.0934,-2.31025 0.73481,-0.49967 1.839966,-0.77596 3.315473,-0.82887 l 1.710643,-0.0529 0,-0.43207 c -7e-6,-0.99934 -0.511436,-1.49901 -1.534288,-1.49902 -0.787723,10e-6 -1.713586,0.23809 -2.77759,0.71424 l -0.890593,-1.81645 c 1.134548,-0.59372 2.392545,-0.89059 3.773996,-0.8906 1.322655,10e-6 2.336695,0.28806 3.042122,0.86414 0.705411,0.5761 1.05812,1.452 1.05813,2.62769 l 0,6.56922 -1.87818,0 m -0.793597,-4.56759 -1.040494,0.0353 c -0.781846,0.0235 -1.363816,0.1646 -1.745914,0.42325 -0.382106,0.25866 -0.573157,0.65252 -0.573154,1.18158 -3e-6,0.75833 0.435005,1.13749 1.305027,1.13749 0.623115,0 1.119848,-0.17929 1.490199,-0.53788 0.376217,-0.35859 0.564329,-0.83475 0.564336,-1.42848 l 0,-0.81123"
+         style="font-weight:bold;fill:#555753;-inkscape-font-specification:Open Sans Bold"
+         id="path3024" />
+    </g>
+    <g
+       transform="scale(1.0674849,0.93678144)"
+       style="font-size:19.55464745px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#555753;fill-opacity:1;stroke:none;font-family:Open Sans;-inkscape-font-specification:Open Sans"
+       id="text3019">
+      <path
+         d="m 68.340291,706.67499 -8.431032,0 0,-1.71867 4.945951,-6.73146 -4.649958,0 0,-2.22472 7.963172,0 0,1.89053 -4.812277,6.55959 4.984144,0 0,2.22473"
+         style="font-weight:bold;fill:#555753;-inkscape-font-specification:Open Sans Bold"
+         id="path3027" />
+    </g>
+  </g>
+</svg>

@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg7384"
-   sodipodi:docname="utilities-datafile-comments.svg"
+   sodipodi:docname="edit-paste.svg"
    version="1.1"
    inkscape:version="0.48.4 r9939"
    height="24"
@@ -26,7 +26,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
         <dc:creator>
           <cc:Agent>
             <dc:title>GNU PSPP Community</dc:title>
@@ -144,46 +144,24 @@
        y="639.00336"
        rx="2"
        ry="1.9991857" />
-    <rect
-       y="639.02533"
-       x="60.952232"
-       height="23.960482"
-       width="24"
-       id="rect6623"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:none;stroke:none;font-family:Sans" />
-    <path
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#555753;fill-opacity:1;fill-rule:evenodd;stroke:none;font-family:Sans"
-       d="m 78.95223,643.02092 -2,1.9967 2,1.99671 2,-1.99671 c 0,-1.10275 -0.89543,-1.9967 -2,-1.9967 z m -3,2.99506 -7,6.98731 0,1.99671 2,0 7,-6.98732 z"
-       id="path6625"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccccccccc" />
-    <rect
-       y="643.02094"
-       x="62.952232"
-       height="2.0043349"
-       width="9.999999"
-       id="rect6627"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#555753;fill-opacity:1;stroke:none;font-family:Sans" />
-    <rect
-       y="648.0127"
-       x="62.952232"
-       height="2.0043368"
-       width="5.999999"
-       id="rect6629"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#555753;fill-opacity:1;stroke:none;font-family:Sans" />
-    <rect
-       y="653.00446"
-       x="62.952232"
-       height="2.0043387"
-       width="3.9999988"
-       id="rect6631"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#555753;fill-opacity:1;stroke:none;font-family:Sans" />
-    <rect
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#555753;fill-opacity:1;stroke:none;font-family:Sans"
-       id="rect6653"
-       width="15.999984"
-       height="2.0043387"
-       x="62.952232"
-       y="657.99622" />
+    <g
+       style="display:inline"
+       transform="matrix(1,0,0,0.9983534,148.95216,387.02285)"
+       inkscape:label="lc_helpindex"
+       id="lc_helpindex">
+      <rect
+         y="252.3622"
+         x="-88"
+         height="24"
+         width="24"
+         id="rect8730"
+         style="fill:none;stroke:none" />
+      <path
+         sodipodi:nodetypes="ssssscccccsccccccccccsssss"
+         inkscape:connector-curvature="0"
+         id="path50307"
+         d="m -75.999986,255.39769 c -5.52285,0 -10,4.46234 -10,9.98519 0,5.52285 4.47715,10.01649 10,10.01649 5.52285,0 10,-4.49364 10,-10.01649 0,-5.52285 -4.47715,-9.98519 -10,-9.98519 z m 0.21875,2.75453 c 2.46171,-0.1304 4.64336,1.6789 4.78125,4.0066 -1.5e-4,1.98609 -0.58362,2.69996 -2.40625,4.0066 -0.28617,0.20359 -0.48846,0.35046 -0.5625,0.43822 -0.0741,0.0879 -0.0312,0.066 -0.0312,0.0626 0.0105,0.74873 -0.70807,1.40857 -1.5,1.40857 -0.79193,0 -1.51049,-0.65984 -1.5,-1.40857 0,-0.71202 0.32102,-1.3497 0.6875,-1.78419 0.36648,-0.43454 0.75285,-0.72785 1.09375,-0.97035 0.30584,-0.22756 0.69151,-0.55394 1.03125,-0.93904 0.14014,-0.15887 0.19349,-0.41072 0.1875,-0.59473 l 0,-0.0626 c -0.0473,-0.79827 -0.74955,-1.35946 -1.59375,-1.31467 -0.8442,0.0448 -1.45361,0.61031 -1.40625,1.40857 l -3,0 c -0.13789,-2.32773 1.75704,-4.12646 4.21875,-4.25701 z m 0.28125,11.33116 c 0.82777,0 1.5,0.65713 1.5,1.43987 0,0.78267 -0.67223,1.40857 -1.5,1.40857 -0.82777,0 -1.5,-0.6259 -1.5,-1.40857 0,-0.78274 0.67223,-1.43987 1.5,-1.43987 z"
+         style="fill:#555753;fill-opacity:1;fill-rule:nonzero;stroke:none;display:inline" />
+    </g>
   </g>
 </svg>
