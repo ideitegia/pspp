@@ -108,6 +108,9 @@ strings, comments, unquoted strings (such as the text on the
 @cmd{TITLE} or @cmd{DOCUMENT} command), or inside @cmd{BEGIN
 DATA}@dots{}@cmd{END DATA}.
 
+Substitution occurs only on whole words, so that, for example, a dummy
+variable PRINT would not be substituted into the word PRINTOUT.
+
 New variable names used as replacements are not automatically created
 as variables, but only if used in the code block in a context that
 would create them, e.g.@: on a @cmd{NUMERIC} or @cmd{STRING} command
