@@ -71,10 +71,8 @@ source_init_option_callback (int id, void *aux UNUSED)
       else if (!strcmp (optarg, "enhanced"))
 	settings_set_algorithm (ENHANCED);
       else
-        /* TRANSLATORS: Leave the words `compatible' and `enhanced' in their
-	original English. */
         error (1, 0,
-               _("Algorithm must be either `compatible' or `enhanced'."));
+               _("Algorithm must be either `%s' or `%s'."), "compatible", "enhanced");
       break;
 
     case OPT_INCLUDE:
@@ -98,10 +96,8 @@ source_init_option_callback (int id, void *aux UNUSED)
       else if (!strcmp (optarg, "enhanced"))
 	settings_set_syntax (ENHANCED);
       else
-        /* TRANSLATORS: Leave the words `compatible' and `enhanced' in their
-	original English. */
         error (1, 0,
-               _("Syntax must be either `compatible' or `enhanced'."));
+               _("Syntax must be either `%s' or `%s'."), "compatible", "enhanced");
       break;
 
     default:
