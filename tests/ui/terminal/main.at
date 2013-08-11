@@ -36,3 +36,16 @@ proximate cause:     Segmentation Violation
 ])
 AT_CHECK([sed '/proximate/q' < stderr], [0], [expout])
 AT_CLEANUP
+
+
+dnl This tests for a crash which was observed with --syntax
+AT_SETUP([argument parsing])
+
+AT_DATA([main.sps], [dnl
+ECHO 'This is a test'.
+FINISH.
+])
+
+AT_CHECK([pspp --syntax=enhanced main.sps], [0], [ignore])
+
+AT_CLEANUP
