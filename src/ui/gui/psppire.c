@@ -225,10 +225,13 @@ create_icon_factory (void)
 					       ic->context_name,
 					       sizes[r].resolution, sizes[r].resolution,
 					       ic->icon_name[i]);
-	    
-	    gtk_icon_source_set_filename (source, filename);
+	    const char *relocated_filename = relocate (filename);
+
+	    gtk_icon_source_set_filename (source, relocated_filename);
 	    gtk_icon_source_set_size_wildcarded (source, FALSE);
 	    gtk_icon_source_set_size (source, sizes[r].size);
+	    if (filename != relocated_filename)
+	      free (CONST_CAST (char *, relocated_filename));
 	    g_free (filename);
 	    gtk_icon_set_add_source (icon_set, source);
 	  }
