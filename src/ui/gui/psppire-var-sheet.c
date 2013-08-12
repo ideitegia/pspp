@@ -1259,6 +1259,7 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
                        alignment_to_string (ALIGN_RIGHT), ALIGN_RIGHT,
                        NULL);
   cell = gtk_cell_renderer_pixbuf_new ();
+  g_object_set (cell, "width", 16, "height", 16, NULL);
   pspp_sheet_view_column_pack_end (column, cell, FALSE);
   pspp_sheet_view_column_set_cell_data_func (
     column, cell, render_var_cell, obj, NULL);
@@ -1270,6 +1271,7 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
                         measure_to_string (MEASURE_SCALE), MEASURE_SCALE,
                         NULL);
   cell = gtk_cell_renderer_pixbuf_new ();
+  g_object_set (cell, "width", 16, "height", 16, NULL);
   pspp_sheet_view_column_pack_end (column, cell, FALSE);
   pspp_sheet_view_column_set_cell_data_func (
     column, cell, render_var_cell, obj, NULL);
