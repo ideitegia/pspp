@@ -177,7 +177,7 @@ terminal_reader_create (void)
   r = xzalloc (sizeof *r);
   r->reader.class = &terminal_reader_class;
   r->reader.syntax = LEX_SYNTAX_INTERACTIVE;
-  r->reader.error = LEX_ERROR_INTERACTIVE;
+  r->reader.error = LEX_ERROR_TERMINAL;
   r->reader.file_name = NULL;
   r->s = ss_empty ();
   r->offset = 0;

@@ -129,7 +129,7 @@ lex_reader_init (struct lex_reader *reader,
 {
   reader->class = class;
   reader->syntax = LEX_SYNTAX_AUTO;
-  reader->error = LEX_ERROR_INTERACTIVE;
+  reader->error = LEX_ERROR_CONTINUE;
   reader->file_name = NULL;
   reader->line_number = 0;
 }
@@ -1053,7 +1053,7 @@ lex_get_syntax_mode (const struct lexer *lexer)
 }
 
 /* Returns the error mode for the syntax file from which the current drawn is
-   drawn.  Returns LEX_ERROR_INTERACTIVE for a T_STOP token or if the command's
+   drawn.  Returns LEX_ERROR_TERMINAL for a T_STOP token or if the command's
    source does not have line numbers.
 
    There is no version of this function that takes an N argument because
@@ -1063,13 +1063,12 @@ enum lex_error_mode
 lex_get_error_mode (const struct lexer *lexer)
 {
   struct lex_source *src = lex_source__ (lexer);
-  return src == NULL ? LEX_ERROR_INTERACTIVE : src->reader->error;
+  return src == NULL ? LEX_ERROR_TERMINAL : src->reader->error;
 }
 
 /* If the source that LEXER is currently reading has error mode
-   LEX_ERROR_INTERACTIVE, discards all buffered input and tokens, so that the
-   next token to be read comes directly from whatever is next read from the
-   stream.
+   LEX_ERROR_TERMINAL, discards all buffered input and tokens, so that the next
+   token to be read comes directly from whatever is next read from the stream.
 
    It makes sense to call this function after encountering an error in a
    command entered on the console, because usually the user would prefer not to
@@ -1078,7 +1077,7 @@ void
 lex_interactive_reset (struct lexer *lexer)
 {
   struct lex_source *src = lex_source__ (lexer);
-  if (src != NULL && src->reader->error == LEX_ERROR_INTERACTIVE)
+  if (src != NULL && src->reader->error == LEX_ERROR_TERMINAL)
     {
       src->head = src->tail = 0;
       src->journal_pos = src->seg_pos = src->line_pos = 0;
@@ -1100,7 +1099,7 @@ lex_discard_rest_of_command (struct lexer *lexer)
 }
 
 /* Discards all lookahead tokens in LEXER, then discards all input sources
-   until it encounters one with error mode LEX_ERROR_INTERACTIVE or until it
+   until it encounters one with error mode LEX_ERROR_TERMINAL or until it
    runs out of input sources. */
 void
 lex_discard_noninteractive (struct lexer *lexer)
@@ -1112,7 +1111,7 @@ lex_discard_noninteractive (struct lexer *lexer)
       while (!deque_is_empty (&src->deque))
         lex_source_pop__ (src);
 
-      for (; src != NULL && src->reader->error != LEX_ERROR_INTERACTIVE;
+      for (; src != NULL && src->reader->error != LEX_ERROR_TERMINAL;
            src = lex_source__ (lexer))
         lex_source_destroy (src);
     }
