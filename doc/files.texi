@@ -211,7 +211,7 @@ specified.  It determines the type of the file or source to read.
 Spreadsheet files created by Gnumeric (@url{http://gnumeric.org}).
 
 @item ODS
-Spreadsheet files in OpenDocument format.
+Spreadsheet files in OpenDocument format (@url{http://opendocumentformat.org}).
 
 @item PSQL
 Relations from PostgreSQL databases (@url{http://postgresql.org}).
