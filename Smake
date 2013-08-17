@@ -415,7 +415,17 @@ clean:
 
 .PHONY: all gettextize clean
 
+
+# The "convert" program from imagemagick can be used to create png from svg but doesn't properly deal
+# with the alpha channels.  Therefore, it is not recommended for production pspp builds, but might
+# be useful to get something working on a platform which doesn't have a working gimp.
+
+#svg2png=convert $1 $3
+
+svg2png=gimp -i -b '(let* ((image  (car  (gimp-file-load 1  "$1"  "$1"))))  (gimp-image-attach-parasite image (list "gimp-comment" 0 "$(shell cat $2)"))  (gimp-file-save 1 image (car  (gimp-image-get-active-drawable image)) "$3" "$3")) (gimp-quit 1)'
+
+
 src/ui/gui/icons/%.png: src/ui/gui/artwork/%.svg src/ui/gui/icons/COPYING_CCBYSA3
 	mkdir -p $(dir $@)
-	gimp -i -b '(let* ((image  (car  (gimp-file-load 1  "$<"  "$<"))))  (gimp-image-attach-parasite image (list "gimp-comment" 0 "$(shell cat $(lastword $^))" ))  (gimp-file-save 1 image (car  (gimp-image-get-active-drawable image)) "$@" "$@")) (gimp-quit 1)'
+	$(call svg2png,$<,$(lastword $^),$@)
 
