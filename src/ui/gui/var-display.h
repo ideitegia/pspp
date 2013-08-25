@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2011  Free Software Foundation
+   Copyright (C) 2007, 2011, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,9 +25,6 @@
 struct variable;
 
 #define n_ALIGNMENTS 3
-
-extern const gchar *const alignments[n_ALIGNMENTS + 1];
-extern const gchar *const measures[n_MEASURES + 1];
 
 gchar *missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GError **err);
 
