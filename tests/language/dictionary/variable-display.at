@@ -6,6 +6,7 @@ DATA LIST FREE /x y z.
 VARIABLE ALIGNMENT x (LEFT)/y (RIGHT)/z (CENTER).
 VARIABLE WIDTH x (10)/y (12)/z (14).
 VARIABLE LEVEL x (SCALE)/y (ORDINAL)/z (NOMINAL).
+VARIABLE ROLE /INPUT x /TARGET y /BOTH z.
 DISPLAY DICTIONARY.
 ])
 AT_CHECK([pspp -o pspp.csv var-display.sps])
@@ -13,14 +14,17 @@ AT_CHECK([cat pspp.csv], [0], [dnl
 Variable,Description,,Position
 x,Format: F8.2,,1
 ,Measure: Scale,,
+,Role: Input,,
 ,Display Alignment: Left,,
 ,Display Width: 10,,
 y,Format: F8.2,,2
 ,Measure: Ordinal,,
+,Role: Output,,
 ,Display Alignment: Right,,
 ,Display Width: 12,,
 z,Format: F8.2,,3
 ,Measure: Nominal,,
+,Role: Both,,
 ,Display Alignment: Center,,
 ,Display Width: 14,,
 ])

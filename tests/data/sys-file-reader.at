@@ -1062,6 +1062,7 @@ dnl Variable attributes record.
 "FirstVariable:";
   "ad"; i8 232; "le('23'"; i8 10; "'34'"; i8 10; ")";
   "bert('123'"; i8 10; ")";
+  "$@Role('1'"; i8 10; ")";
 "/S"; i8 233; "condVariable:";
   "xyzzy('quux'"; i8 10; ")";
 );
@@ -1074,25 +1075,50 @@ dnl Dictionary termination record.
 999; 0;
 ])
 for variant in \
-	"be c7cae57af35662acec3b945abcf7927c" \
-	"le eb6b4ab9c27bfa0daa49bf2770bccb70"
+	"be 7fff0c04f697adf45f55d8be4aaa8712" \
+	"le 7331339199344aa58bc60d7d05d538a7"
 do
   set $variant
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
 ])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
-DISPLAY ATTRIBUTES.
+DISPLAY @ATTRIBUTES.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
   AT_CHECK([cat pspp.csv], [0],
 [[Variable,Description,
 FirstVariable,Custom attributes:,
+,$@Role,1
 ,adèle[1],23
 ,adèle[2],34
 ,bert,123
 SécondVariable,Custom attributes:,
 ,xyzzy,quux
+
+Table: Custom data file attributes.
+Attribute,Value
+Attr1[1],Value1
+Attr1[2],'déclaration'
+SécondAttr[1],123
+SécondAttr[2],456
+]])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0],
+[[Variable,Description,,Position
+FirstVariable,Format: F8.0,,1
+,Role: Input,,
+,Custom attributes:,,
+,adèle[1],23,
+,adèle[2],34,
+,bert,123,
+SécondVariable,Format: F8.0,,2
+,Custom attributes:,,
+,xyzzy,quux,
 
 Table: Custom data file attributes.
 Attribute,Value

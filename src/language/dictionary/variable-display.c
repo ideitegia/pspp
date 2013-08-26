@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -181,5 +181,42 @@ cmd_variable_level (struct lexer *lexer, struct dataset *ds)
 
     }
   while (lex_token (lexer) != T_ENDCMD);
+  return CMD_SUCCESS;
+}
+
+/* Set variables' role */
+int
+cmd_variable_role (struct lexer *lexer, struct dataset *ds)
+{
+  while (lex_match (lexer, T_SLASH))
+    {
+      struct variable **v;
+      size_t nv;
+      enum var_role role;
+      size_t i;
+
+      if ( lex_match_id (lexer, "INPUT"))
+        role = ROLE_INPUT;
+      else if ( lex_match_id (lexer, "TARGET"))
+        role = ROLE_OUTPUT;
+      else if ( lex_match_id (lexer, "BOTH"))
+        role = ROLE_BOTH;
+      else if ( lex_match_id (lexer, "NONE"))
+        role = ROLE_NONE;
+      else if ( lex_match_id (lexer, "PARTITION"))
+        role = ROLE_PARTITION;
+      else if ( lex_match_id (lexer, "SPLIT"))
+        role = ROLE_SPLIT;
+      else
+        return CMD_FAILURE;
+
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
+        return CMD_FAILURE;
+
+      for (i = 0; i < nv; i++)
+	var_set_role (v[i], role);
+      free (v);
+    }
+
   return CMD_SUCCESS;
 }

@@ -58,6 +58,7 @@ struct variable
 
     /* GUI information. */
     enum measure measure;       /* Nominal, ordinal, or continuous. */
+    enum var_role role;         /* Intended use. */
     int display_width;          /* Width of data editor column. */
     enum alignment alignment;   /* Alignment of data in GUI. */
 
@@ -102,6 +103,7 @@ var_create (const char *name, int width)
   type = val_type_from_width (width);
   v->alignment = var_default_alignment (type);
   v->measure = var_default_measure (type);
+  v->role = ROLE_NONE;
   v->display_width = var_default_display_width (width);
   v->print = v->write = var_default_formats (width);
   attrset_init (&v->attributes);
@@ -820,6 +822,27 @@ measure_to_string (enum measure m)
     }
 }
 
+/* Returns a string version of measurement level M, for use in PSPP command
+   syntax. */
+const char *
+measure_to_syntax (enum measure m)
+{
+  switch (m)
+    {
+    case MEASURE_NOMINAL:
+      return "NOMINAL";
+
+    case MEASURE_ORDINAL:
+      return "ORDINAL";
+
+    case MEASURE_SCALE:
+      return "SCALE";
+
+    default:
+      return "Invalid";
+    }
+}
+
 /* Returns V's measurement level. */
 enum measure
 var_get_measure (const struct variable *v)
@@ -854,6 +877,109 @@ enum measure
 var_default_measure (enum val_type type)
 {
   return type == VAL_NUMERIC ? MEASURE_SCALE : MEASURE_NOMINAL;
+}
+
+/* Returns true if M is a valid variable role,
+   false otherwise. */
+bool
+var_role_is_valid (enum var_role role)
+{
+  switch (role)
+    {
+    case ROLE_NONE:
+    case ROLE_INPUT:
+    case ROLE_OUTPUT:
+    case ROLE_BOTH:
+    case ROLE_PARTITION:
+    case ROLE_SPLIT:
+      return true;
+
+    default:
+      return false;
+    }
+}
+
+/* Returns a string version of ROLE, for display to a user. */
+const char *
+var_role_to_string (enum var_role role)
+{
+  switch (role)
+    {
+    case ROLE_NONE:
+      return _("None");
+
+    case ROLE_INPUT:
+      return _("Input");
+
+    case ROLE_OUTPUT:
+      return _("Output");
+
+    case ROLE_BOTH:
+      return _("Both");
+
+    case ROLE_PARTITION:
+      return _("Partition");
+
+    case ROLE_SPLIT:
+      return _("Split");
+
+    default:
+      return "Invalid";
+    }
+}
+
+/* Returns a string version of ROLE, for use in PSPP comamnd syntax. */
+const char *
+var_role_to_syntax (enum var_role role)
+{
+  switch (role)
+    {
+    case ROLE_NONE:
+      return "NONE";
+
+    case ROLE_INPUT:
+      return "INPUT";
+
+    case ROLE_OUTPUT:
+      return "TARGET";
+
+    case ROLE_BOTH:
+      return "BOTH";
+
+    case ROLE_PARTITION:
+      return "PARTITION";
+
+    case ROLE_SPLIT:
+      return "SPLIT";
+
+    default:
+      return "<invalid>";
+    }
+}
+
+/* Returns V's role. */
+enum var_role
+var_get_role (const struct variable *v)
+{
+  return v->role;
+}
+
+/* Sets V's role to ROLE. */
+static void
+var_set_role_quiet (struct variable *v, enum var_role role)
+{
+  assert (var_role_is_valid (role));
+  v->role = role;
+}
+
+
+/* Sets V's role to ROLE. */
+void
+var_set_role (struct variable *v, enum var_role role)
+{
+  struct variable *ov = var_clone (v);
+  var_set_role_quiet (v, role);
+  dict_var_changed (v, VAR_TRAIT_ROLE, ov);
 }
 
 /* Returns V's display width, which applies only to GUIs. */
@@ -913,6 +1039,26 @@ alignment_to_string (enum alignment a)
 
     case ALIGN_CENTRE:
       return _("Center");
+
+    default:
+      return "Invalid";
+    }
+}
+
+/* Returns a string version of alignment A, for use in PSPP command syntax. */
+const char *
+alignment_to_syntax (enum alignment a)
+{
+  switch (a)
+    {
+    case ALIGN_LEFT:
+      return "LEFT";
+
+    case ALIGN_RIGHT:
+      return "RIGHT";
+
+    case ALIGN_CENTRE:
+      return "CENTER";
 
     default:
       return "Invalid";
@@ -1150,6 +1296,7 @@ var_clone (const struct variable *old_var)
   var_set_value_labels_quiet (new_var, var_get_value_labels (old_var));
   var_set_label_quiet (new_var, var_get_label (old_var), false);
   var_set_measure_quiet (new_var, var_get_measure (old_var));
+  var_set_role_quiet (new_var, var_get_role (old_var));
   var_set_display_width_quiet (new_var, var_get_display_width (old_var));
   var_set_alignment_quiet (new_var, var_get_alignment (old_var));
   var_set_leave_quiet (new_var, var_get_leave (old_var));

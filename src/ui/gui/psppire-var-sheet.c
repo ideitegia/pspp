@@ -54,7 +54,8 @@ enum vs_column
     VS_MISSING,
     VS_COLUMNS,
     VS_ALIGN,
-    VS_MEASURE
+    VS_MEASURE,
+    VS_ROLE
   };
 
 G_DEFINE_TYPE (PsppireVarSheet, psppire_var_sheet, PSPP_TYPE_SHEET_VIEW);
@@ -274,6 +275,21 @@ on_var_column_edited (GtkCellRendererText *cell,
       else if (!strcmp (new_text, measure_to_string (MEASURE_SCALE)))
         var_set_measure (var, MEASURE_SCALE);
       break;
+
+    case VS_ROLE:
+      if (!strcmp (new_text, var_role_to_string (ROLE_NONE)))
+        var_set_role (var, ROLE_NONE);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_INPUT)))
+        var_set_role (var, ROLE_INPUT);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_OUTPUT)))
+        var_set_role (var, ROLE_OUTPUT);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_BOTH)))
+        var_set_role (var, ROLE_BOTH);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_PARTITION)))
+        var_set_role (var, ROLE_PARTITION);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_SPLIT)))
+        var_set_role (var, ROLE_SPLIT);
+      break;
     }
 }
 
@@ -451,6 +467,13 @@ render_var_cell (PsppSheetViewColumn *tree_column,
         g_object_set (cell, "stock-id",
                       psppire_dict_view_get_var_measurement_stock_id (var),
                       NULL);
+      break;
+
+    case VS_ROLE:
+      g_object_set (cell,
+                    "text", var_role_to_string (var_get_role (var)),
+                    "editable", TRUE,
+                    NULL);
       break;
     }
 }
@@ -1275,6 +1298,15 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
   pspp_sheet_view_column_pack_end (column, cell, FALSE);
   pspp_sheet_view_column_set_cell_data_func (
     column, cell, render_var_cell, obj, NULL);
+
+  add_combo_column (obj, VS_ROLE, _("Role"), 12,
+                    var_role_to_string (ROLE_NONE), ROLE_NONE,
+                    var_role_to_string (ROLE_INPUT), ROLE_INPUT,
+                    var_role_to_string (ROLE_OUTPUT), ROLE_OUTPUT,
+                    var_role_to_string (ROLE_BOTH), ROLE_BOTH,
+                    var_role_to_string (ROLE_PARTITION), ROLE_PARTITION,
+                    var_role_to_string (ROLE_SPLIT), ROLE_SPLIT,
+                    NULL);
 
   pspp_sheet_view_set_rubber_banding (sheet_view, TRUE);
   pspp_sheet_selection_set_mode (pspp_sheet_view_get_selection (sheet_view),

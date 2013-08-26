@@ -686,7 +686,7 @@ AT_DATA([test.pl],
 
     my $attr = $var->get_attributes ();
 
-    foreach my $k (keys %$attr)
+    foreach my $k (sort (keys (%$attr)))
     {
 	my $ll = $attr->{$k};
 	print "$k =>";
@@ -694,7 +694,8 @@ AT_DATA([test.pl],
     }
 ]])
 AT_CHECK([RUN_PERL_MODULE test.pl], [0],
-  [[colour =>blue, pink, violet
+  [[$@Role =>0
+colour =>blue, pink, violet
 nationality =>foreign
 size =>large
 ]])

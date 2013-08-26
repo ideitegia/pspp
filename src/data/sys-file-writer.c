@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2000, 2006-2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2006-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -259,9 +259,12 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 
   write_long_string_value_labels (w, d);
 
-  if (attrset_count (dict_get_attributes (d)))
-    write_data_file_attributes (w, d);
-  write_variable_attributes (w, d);
+  if (opts.version >= 3)
+    {
+      if (attrset_count (dict_get_attributes (d)))
+        write_data_file_attributes (w, d);
+      write_variable_attributes (w, d);
+    }
 
   write_mrsets (w, d, false);
 
@@ -681,6 +684,46 @@ write_data_file_attributes (struct sfm_writer *w,
 }
 
 static void
+add_role_attribute (enum var_role role, struct attrset *attrs)
+{
+  struct attribute *attr;
+  const char *s;
+
+  switch (role)
+    {
+    case ROLE_NONE:
+    default:
+      s = "0";
+      break;
+
+    case ROLE_INPUT:
+      s = "1";
+      break;
+
+    case ROLE_OUTPUT:
+      s = "2";
+      break;
+
+    case ROLE_BOTH:
+      s = "3";
+      break;
+
+    case ROLE_PARTITION:
+      s = "4";
+      break;
+
+    case ROLE_SPLIT:
+      s = "5";
+      break;
+    }
+  attrset_delete (attrs, "$@Role");
+
+  attr = attribute_create ("$@Role");
+  attribute_add_value (attr, s);
+  attrset_add (attrs, attr);
+}
+
+static void
 write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
 {
   struct string s = DS_EMPTY_INITIALIZER;
@@ -691,14 +734,16 @@ write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
   for (i = 0; i < n_vars; i++)
     { 
       struct variable *v = dict_get_var (d, i);
-      struct attrset *attrs = var_get_attributes (v);
-      if (attrset_count (attrs)) 
-        {
-          if (n_attrsets++)
-            ds_put_byte (&s, '/');
-          ds_put_format (&s, "%s:", var_get_name (v));
-          put_attrset (&s, attrs);
-        }
+      struct attrset attrs;
+
+      attrset_clone (&attrs, var_get_attributes (v));
+
+      add_role_attribute (var_get_role (v), &attrs);
+      if (n_attrsets++)
+        ds_put_byte (&s, '/');
+      ds_put_format (&s, "%s:", var_get_name (v));
+      put_attrset (&s, &attrs);
+      attrset_destroy (&attrs);
     }
   if (n_attrsets)
     write_utf8_record (w, dict_get_encoding (d), &s, 18);

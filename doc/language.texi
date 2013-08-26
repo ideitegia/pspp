@@ -502,6 +502,11 @@ Similar to print format, but used by the @cmd{WRITE} command
 @item Custom attributes
 User-defined associations between names and values.  @xref{VARIABLE
 ATTRIBUTE}.
+
+@cindex variable role
+@item Role
+The intended role of a variable for use in dialog boxes in graphical
+user interfaces.  @xref{VARIABLE ROLE}.
 @end table
 
 @node System Variables

@@ -591,7 +591,7 @@ SYNTAX
 
     open (MYFILE, ">$tempdir/out.txt");
 
-    foreach $k (keys %$attr)
+    foreach $k (sort (keys (%$attr)))
     {
 	my $ll = $attr->{$k};
 	print MYFILE "$k =>";
@@ -600,7 +600,8 @@ SYNTAX
 
     close (MYFILE);
 
-    ok (compare ("$tempdir/out.txt", <<EOF), "Custom Attributes");
+    ok (compare ("$tempdir/out.txt", <<'EOF'), "Custom Attributes");
+$@Role =>0
 colour =>blue, pink, violet
 nationality =>foreign
 size =>large

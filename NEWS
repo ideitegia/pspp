@@ -6,11 +6,17 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
 Changes after 0.8.0:
 
+ * New commands:
+
+   - VARIABLE ROLE.
+
  * PSPPIRE graphical user interface improvements:
 
    - Syntax windows now parse syntax in "auto" mode, which in practice
      should mean that both "batch" and "interactive" syntax now works,
      instead of just "interactive" syntax.
+
+   - The variable pane of data windows now include a Role column.
 
  * Notable bug fixes:
 

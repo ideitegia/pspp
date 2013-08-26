@@ -295,6 +295,7 @@ static void parse_data_file_attributes (struct sfm_reader *,
 static void parse_variable_attributes (struct sfm_reader *,
                                        const struct sfm_extension_record *,
                                        struct dictionary *);
+static void assign_variable_roles (struct sfm_reader *, struct dictionary *);
 static void parse_long_string_value_labels (struct sfm_reader *,
                                             const struct sfm_extension_record *,
                                             struct dictionary *);
@@ -524,7 +525,12 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
 
   /* The following records use long names, so they need to follow renaming. */
   if (extensions[EXT_VAR_ATTRS] != NULL)
-    parse_variable_attributes (r, extensions[EXT_VAR_ATTRS], dict);
+    {
+      parse_variable_attributes (r, extensions[EXT_VAR_ATTRS], dict);
+
+      /* Roles use the $@Role attribute.  */
+      assign_variable_roles (r, dict);
+    }
 
   if (extensions[EXT_LONG_LABELS] != NULL)
     parse_long_string_value_labels (r, extensions[EXT_LONG_LABELS], dict);
@@ -1894,6 +1900,64 @@ parse_variable_attributes (struct sfm_reader *r,
   while (text_read_variable_name (r, dict, text, ss_cstr (":"), &var))
     parse_attributes (r, text, var != NULL ? var_get_attributes (var) : NULL);
   close_text_record (r, text);
+}
+
+static void
+assign_variable_roles (struct sfm_reader *r, struct dictionary *dict)
+{
+  size_t n_warnings = 0;
+  size_t i;
+
+  for (i = 0; i < dict_get_var_cnt (dict); i++)
+    {
+      struct variable *var = dict_get_var (dict, i);
+      struct attrset *attrs = var_get_attributes (var);
+      const struct attribute *attr = attrset_lookup (attrs, "$@Role");
+      if (attr != NULL)
+        {
+          int value = atoi (attribute_get_value (attr, 0));
+          enum var_role role;
+
+          switch (value)
+            {
+            case 0:
+              role = ROLE_NONE;
+              break;
+
+            case 1:
+              role = ROLE_INPUT;
+              break;
+
+            case 2:
+              role = ROLE_OUTPUT;
+              break;
+
+            case 3:
+              role = ROLE_BOTH;
+              break;
+
+            case 4:
+              role = ROLE_PARTITION;
+              break;
+
+            case 5:
+              role = ROLE_SPLIT;
+              break;
+
+            default:
+              role = ROLE_NONE;
+              if (n_warnings++ == 0)
+                sys_warn (r, 0, _("Invalid role for variable %s."),
+                          var_get_name (var));
+            }
+
+          var_set_role (var, role);
+        }
+    }
+
+  if (n_warnings > 1)
+    sys_warn (r, 0, _("%zu other variables had invalid roles."),
+              n_warnings - 1);
 }
 
 static void

@@ -162,6 +162,7 @@ apply_dict (const struct dictionary *dict, struct string *s)
       enum val_type type = var_get_type (var);
       int width = var_get_width (var);
       enum measure measure = var_get_measure (var);
+      enum var_role role = var_get_role (var);
       enum alignment alignment = var_get_alignment (var);
       const struct fmt_spec *format = var_get_print_format (var);
 
@@ -212,16 +213,13 @@ apply_dict (const struct dictionary *dict, struct string *s)
                          name, var_get_label (var));
       if (measure != var_default_measure (type))
         syntax_gen_pspp (s, "VARIABLE LEVEL %ss (%ss).\n",
-                         name,
-                         (measure == MEASURE_NOMINAL ? "NOMINAL"
-                          : measure == MEASURE_ORDINAL ? "ORDINAL"
-                          : "SCALE"));
+                         name, measure_to_syntax (measure));
+      if (role != ROLE_NONE)
+        syntax_gen_pspp (s, "VARIABLE ROLE /%ss %ss.\n",
+                         var_role_to_syntax (role), name);
       if (alignment != var_default_alignment (type))
         syntax_gen_pspp (s, "VARIABLE ALIGNMENT %ss (%ss).\n",
-                         name,
-                         (alignment == ALIGN_LEFT ? "LEFT"
-                          : alignment == ALIGN_CENTRE ? "CENTER"
-                          : "RIGHT"));
+                         name, alignment_to_syntax (alignment));
       if (var_get_display_width (var) != var_default_display_width (width))
         syntax_gen_pspp (s, "VARIABLE WIDTH %ss (%d).\n",
                          name, var_get_display_width (var));
