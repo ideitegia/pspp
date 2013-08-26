@@ -114,7 +114,7 @@ GNULIB_MODULES = \
 	xstrndup \
 	xvasprintf
 
-all: prep_ph manual_images doc/eps_manifest doc/png_manifest
+all: prep_ph manual_images doc/eps_manifest doc/png_manifest doc/txt_manifest
 	$(MAKE) -f Smake Makefile.in configure
 
 .PHONY: prep_ph
@@ -162,7 +162,7 @@ manual_images: $(patsubst %.png,%.eps,$(wildcard doc/*.png))
 
 
 doc/png_manifest: $(wildcard doc/*.texi)
-	echo 'MANUAL_IMAGES = \\' > $@
+	echo 'PNG_FILES = \\' > $@
 	echo $^ | while read f; do \
 		cat $$f | grep @image | while read d; do \
 	        	dependent=`echo $$d | sed -e 's/@image{\([^},]*\).*/\1/g'` ; \
@@ -171,18 +171,31 @@ doc/png_manifest: $(wildcard doc/*.texi)
 	done | sort -u | sed -e '$$s/\\//' >> $@
 	echo >>$@
 	echo >> $@
-	echo 'EXTRA_DIST += $$(MANUAL_IMAGES)' >> $@
-
+	echo 'EXTRA_DIST += $$(PNG_FILES)' >> $@
 
 doc/eps_manifest: $(wildcard doc/*.texi)
-	printf 'EXTRA_DIST += ' > $@
+	echo 'EPS_FILES = \\' > $@
 	echo $^ | while read f; do \
 		cat $$f | grep @image | while read d; do \
 	        	dependent=`echo $$d | sed -e 's/@image{\([^},]*\).*/\1/g'` ; \
-	    		printf " doc/$$dependent.eps"; \
+			echo '\t$$(top_srcdir)'"/doc/$$dependent.eps \\"; \
 		done ; \
-	done >> $@
+	done | sort -u | sed -e '$$s/\\//' >> $@
+	echo >>$@
 	echo >> $@
+	echo 'EXTRA_DIST += $$(EPS_FILES)' >> $@
+
+doc/txt_manifest: $(wildcard doc/*.texi)
+	echo 'TXT_FILES = \\' > $@
+	echo $^ | while read f; do \
+		cat $$f | grep @image | while read d; do \
+	        	dependent=`echo $$d | sed -e 's/@image{\([^},]*\).*/\1/g'` ; \
+			echo '\t$$(top_srcdir)'"/doc/$$dependent.txt \\"; \
+		done ; \
+	done | sort -u | sed -e '$$s/\\//' >> $@
+	echo >>$@
+	echo >> $@
+	echo 'EXTRA_DIST += $$(TXT_FILES)' >> $@
 
 
 
