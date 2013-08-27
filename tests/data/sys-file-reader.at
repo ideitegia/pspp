@@ -1111,7 +1111,7 @@ DISPLAY DICTIONARY.
   AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0],
 [[Variable,Description,,Position
 FirstVariable,Format: F8.0,,1
-,Role: Input,,
+,Role: Output,,
 ,Custom attributes:,,
 ,adèle[1],23,
 ,adèle[2],34,

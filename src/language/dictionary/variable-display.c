@@ -208,7 +208,10 @@ cmd_variable_role (struct lexer *lexer, struct dataset *ds)
       else if ( lex_match_id (lexer, "SPLIT"))
         role = ROLE_SPLIT;
       else
-        return CMD_FAILURE;
+        {
+          lex_error (lexer, NULL);
+          return CMD_FAILURE;
+        }
 
       if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;

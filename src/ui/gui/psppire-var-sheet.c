@@ -277,14 +277,14 @@ on_var_column_edited (GtkCellRendererText *cell,
       break;
 
     case VS_ROLE:
-      if (!strcmp (new_text, var_role_to_string (ROLE_NONE)))
-        var_set_role (var, ROLE_NONE);
-      else if (!strcmp (new_text, var_role_to_string (ROLE_INPUT)))
+      if (!strcmp (new_text, var_role_to_string (ROLE_INPUT)))
         var_set_role (var, ROLE_INPUT);
       else if (!strcmp (new_text, var_role_to_string (ROLE_OUTPUT)))
         var_set_role (var, ROLE_OUTPUT);
       else if (!strcmp (new_text, var_role_to_string (ROLE_BOTH)))
         var_set_role (var, ROLE_BOTH);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_NONE)))
+        var_set_role (var, ROLE_NONE);
       else if (!strcmp (new_text, var_role_to_string (ROLE_PARTITION)))
         var_set_role (var, ROLE_PARTITION);
       else if (!strcmp (new_text, var_role_to_string (ROLE_SPLIT)))
@@ -1300,10 +1300,10 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
     column, cell, render_var_cell, obj, NULL);
 
   add_combo_column (obj, VS_ROLE, _("Role"), 12,
-                    var_role_to_string (ROLE_NONE), ROLE_NONE,
                     var_role_to_string (ROLE_INPUT), ROLE_INPUT,
                     var_role_to_string (ROLE_OUTPUT), ROLE_OUTPUT,
                     var_role_to_string (ROLE_BOTH), ROLE_BOTH,
+                    var_role_to_string (ROLE_NONE), ROLE_NONE,
                     var_role_to_string (ROLE_PARTITION), ROLE_PARTITION,
                     var_role_to_string (ROLE_SPLIT), ROLE_SPLIT,
                     NULL);

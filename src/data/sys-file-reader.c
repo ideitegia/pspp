@@ -1921,19 +1921,19 @@ assign_variable_roles (struct sfm_reader *r, struct dictionary *dict)
           switch (value)
             {
             case 0:
-              role = ROLE_NONE;
-              break;
-
-            case 1:
               role = ROLE_INPUT;
               break;
 
-            case 2:
+            case 1:
               role = ROLE_OUTPUT;
               break;
 
-            case 3:
+            case 2:
               role = ROLE_BOTH;
+              break;
+
+            case 3:
+              role = ROLE_NONE;
               break;
 
             case 4:
@@ -1945,9 +1945,9 @@ assign_variable_roles (struct sfm_reader *r, struct dictionary *dict)
               break;
 
             default:
-              role = ROLE_NONE;
+              role = ROLE_INPUT;
               if (n_warnings++ == 0)
-                sys_warn (r, 0, _("Invalid role for variable %s."),
+                sys_warn (r, -1, _("Invalid role for variable %s."),
                           var_get_name (var));
             }
 
@@ -1956,7 +1956,7 @@ assign_variable_roles (struct sfm_reader *r, struct dictionary *dict)
     }
 
   if (n_warnings > 1)
-    sys_warn (r, 0, _("%zu other variables had invalid roles."),
+    sys_warn (r, -1, _("%zu other variables had invalid roles."),
               n_warnings - 1);
 }
 

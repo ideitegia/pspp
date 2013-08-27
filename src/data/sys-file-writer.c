@@ -691,20 +691,20 @@ add_role_attribute (enum var_role role, struct attrset *attrs)
 
   switch (role)
     {
-    case ROLE_NONE:
+    case ROLE_INPUT:
     default:
       s = "0";
       break;
 
-    case ROLE_INPUT:
+    case ROLE_OUTPUT:
       s = "1";
       break;
 
-    case ROLE_OUTPUT:
+    case ROLE_BOTH:
       s = "2";
       break;
 
-    case ROLE_BOTH:
+    case ROLE_NONE:
       s = "3";
       break;
 

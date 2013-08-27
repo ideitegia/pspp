@@ -103,7 +103,7 @@ var_create (const char *name, int width)
   type = val_type_from_width (width);
   v->alignment = var_default_alignment (type);
   v->measure = var_default_measure (type);
-  v->role = ROLE_NONE;
+  v->role = ROLE_INPUT;
   v->display_width = var_default_display_width (width);
   v->print = v->write = var_default_formats (width);
   attrset_init (&v->attributes);
@@ -905,9 +905,6 @@ var_role_to_string (enum var_role role)
 {
   switch (role)
     {
-    case ROLE_NONE:
-      return _("None");
-
     case ROLE_INPUT:
       return _("Input");
 
@@ -916,6 +913,9 @@ var_role_to_string (enum var_role role)
 
     case ROLE_BOTH:
       return _("Both");
+
+    case ROLE_NONE:
+      return _("None");
 
     case ROLE_PARTITION:
       return _("Partition");
@@ -934,9 +934,6 @@ var_role_to_syntax (enum var_role role)
 {
   switch (role)
     {
-    case ROLE_NONE:
-      return "NONE";
-
     case ROLE_INPUT:
       return "INPUT";
 
@@ -945,6 +942,9 @@ var_role_to_syntax (enum var_role role)
 
     case ROLE_BOTH:
       return "BOTH";
+
+    case ROLE_NONE:
+      return "NONE";
 
     case ROLE_PARTITION:
       return "PARTITION";

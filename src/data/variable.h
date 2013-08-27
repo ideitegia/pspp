@@ -145,10 +145,10 @@ enum measure var_default_measure (enum val_type);
 /* Intended usage of a variable, for populating dialogs. */
 enum var_role
   {
-    ROLE_NONE,
     ROLE_INPUT,
     ROLE_OUTPUT,
     ROLE_BOTH,
+    ROLE_NONE,
     ROLE_PARTITION,
     ROLE_SPLIT
   };

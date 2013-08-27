@@ -504,7 +504,7 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
                              measure_to_string (var_get_measure (v)));
       r++;
 
-      if (role != ROLE_NONE)
+      if (role != ROLE_INPUT)
         {
           tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
                                  _("Role: %s"), var_role_to_string (role));

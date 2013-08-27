@@ -214,7 +214,7 @@ apply_dict (const struct dictionary *dict, struct string *s)
       if (measure != var_default_measure (type))
         syntax_gen_pspp (s, "VARIABLE LEVEL %ss (%ss).\n",
                          name, measure_to_syntax (measure));
-      if (role != ROLE_NONE)
+      if (role != ROLE_INPUT)
         syntax_gen_pspp (s, "VARIABLE ROLE /%ss %ss.\n",
                          var_role_to_syntax (role), name);
       if (alignment != var_default_alignment (type))
