@@ -1130,6 +1130,83 @@ SécondAttr[2],456
 done
 AT_CLEANUP
 
+AT_SETUP([variable roles])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+7; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted
+0; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Variables.
+2; 0; 0; 0; 0x050800 *2; s8 "I";
+2; 0; 0; 0; 0x050800 *2; s8 "O";
+2; 0; 0; 0; 0x050800 *2; s8 "B";
+2; 0; 0; 0; 0x050800 *2; s8 "N";
+2; 0; 0; 0; 0x050800 *2; s8 "P";
+2; 0; 0; 0; 0x050800 *2; s8 "S";
+2; 0; 0; 0; 0x050800 *2; s8 "X";
+
+dnl Machine integer info record.
+7; 3; 4; 8; 1; 2; 3; -1; 1; 1; ENDIAN; 1252;
+
+dnl Variable attributes record.
+7; 18; 1; COUNT (
+"I:$@Role('0'"; i8 10; ")";
+"/O:$@Role('1'"; i8 10; ")";
+"/B:$@Role('2'"; i8 10; ")";
+"/N:$@Role('3'"; i8 10; ")";
+"/P:$@Role('4'"; i8 10; ")";
+"/S:$@Role('5'"; i8 10; ")";
+"/X:$@Role('6'"; i8 10; ")";
+);
+
+dnl Character encoding record.
+7; 20; 1; 12; "windows-1252";
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be b08b39cd005682f680d132d272f5158d" \
+	"le 176e4ac91197f5cb8732258033cfabdc"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav': Invalid role for variable x.
+])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+warning: `sys-file.sav': Invalid role for variable x.
+
+Variable,Description,,Position
+i,Format: F8.0,,1
+o,Format: F8.0,,2
+,Role: Output,,
+b,Format: F8.0,,3
+,Role: Both,,
+n,Format: F8.0,,4
+,Role: None,,
+p,Format: F8.0,,5
+,Role: Partition,,
+s,Format: F8.0,,6
+,Role: Split,,
+x,Format: F8.0,,7
+])
+done
+AT_CLEANUP
+
 AT_SETUP([compressed data])
 AT_KEYWORDS([sack synthetic system file positive])
 AT_DATA([sys-file.sack], [dnl

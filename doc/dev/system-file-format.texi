@@ -1189,6 +1189,32 @@ will contain a variable attribute record with the following contents:
 00000030  0a 29                                             |.)              |
 @end example
 
+@menu
+* Variable Roles::
+@end menu
+
+@node Variable Roles
+@subsection Variable Roles
+
+A variable's role is represented as an attribute named @code{$@@Role}.
+This attribute has a single element whose values and their meanings
+are:
+
+@table @code
+@item 0
+Input.  This, the default, is the most common role.
+@item 1
+Output.
+@item 2
+Both.
+@item 3
+None.
+@item 4
+Partition.
+@item 5
+Split.
+@end table
+
 @node Extended Number of Cases Record
 @section Extended Number of Cases Record
 
