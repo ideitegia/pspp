@@ -338,74 +338,53 @@ var_icon_cell_data_func (GtkTreeViewColumn *col,
 		       gpointer data)
 {
   struct variable *var;
+
   gtk_tree_model_get (model, iter, DICT_TVM_COL_VAR, &var, -1);
 
   g_object_set (cell, "stock_id",
-                psppire_dict_view_get_var_measurement_stock_id (var), NULL);
+                get_var_measurement_stock_id (var_get_print_format (var)->type,
+                                              var_get_measure (var)),
+                NULL);
 }
 
 const char *
-psppire_dict_view_get_var_measurement_stock_id (const struct variable *var)
+get_var_measurement_stock_id (enum fmt_type type, enum measure measure)
 {
-  if ( var_is_alpha (var))
+  switch (fmt_get_category (type))
     {
-      switch ( var_get_measure (var))
+    case FMT_CAT_STRING:
+      switch (measure)
 	{
-	case MEASURE_NOMINAL:
-	  return ("variable-string-nominal");
-	  break;
-	case MEASURE_ORDINAL:
-	  return ("variable-string-ordinal");
-	  break;
-	case MEASURE_SCALE:
-	  return ("variable-string-scale");
-	  break;
+	case MEASURE_NOMINAL: return "variable-string-nominal";
+	case MEASURE_ORDINAL: return "variable-string-ordinal";
+	case MEASURE_SCALE:   return "variable-string-scale";
+        case n_MEASURES: break;
+	}
+      break;
 
-	default:
-	  g_return_val_if_reached ("");
-	}
-    }
-  else
-    {
-      const struct fmt_spec *fs = var_get_print_format (var);
-      int cat = fmt_get_category (fs->type);
+    case FMT_CAT_DATE:
+    case FMT_CAT_TIME:
+      switch (measure)
+        {
+        case MEASURE_NOMINAL: return "variable-date-nominal";
+        case MEASURE_ORDINAL: return "variable-date-ordinal";
+        case MEASURE_SCALE:   return "variable-date-scale";
+        case n_MEASURES: break;
+        }
+      break;
 
-      if ( ( FMT_CAT_DATE | FMT_CAT_TIME ) & cat )
-	{
-	  switch ( var_get_measure (var))
-	    {
-	    case MEASURE_NOMINAL:
-	      return ("variable-date-nominal");
-	      break;
-	    case MEASURE_ORDINAL:
-	      return ("variable-date-ordinal");
-	      break;
-	    case MEASURE_SCALE:
-	      return ("variable-date-scale");
-		break;
-	    default:
-	      g_assert_not_reached ();
-	    };
+    default:
+      switch (measure)
+        {
+        case MEASURE_NOMINAL: return "variable-nominal";
+        case MEASURE_ORDINAL: return "variable-ordinal";
+        case MEASURE_SCALE:   return "variable-scale";
+        case n_MEASURES: break;
 	}
-      else
-	{
-	  switch ( var_get_measure (var))
-	    {
-	    case MEASURE_NOMINAL:
-	      return ("variable-nominal");
-	      break;
-	    case MEASURE_ORDINAL:
-	      return ("variable-ordinal");
-	      break;
-	    case MEASURE_SCALE:
-	      return ("variable-scale");
-	      break;
-	    default:
-	      g_assert_not_reached ();
-	    };
-	}
+      break;
     }
-  return NULL;
+
+  g_return_val_if_reached ("");
 }
 
 

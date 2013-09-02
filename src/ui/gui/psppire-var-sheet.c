@@ -464,9 +464,14 @@ render_var_cell (PsppSheetViewColumn *tree_column,
                       "editable", TRUE,
                       NULL);
       else
-        g_object_set (cell, "stock-id",
-                      psppire_dict_view_get_var_measurement_stock_id (var),
-                      NULL);
+        {
+          enum fmt_type type = var_get_print_format (var)->type;
+          enum measure measure = var_get_measure (var);
+
+          g_object_set (cell, "stock-id",
+                        get_var_measurement_stock_id (type, measure),
+                        NULL);
+        }
       break;
 
     case VS_ROLE:

@@ -23,6 +23,7 @@
 #include <glib-object.h>
 #include <gtk/gtk.h>
 
+#include "data/format.h"
 #include "psppire-dict.h"
 #include "dict-display.h"
 
@@ -62,8 +63,7 @@ struct _PsppireDictViewClass
 GType      psppire_dict_view_get_type        (void);
 struct variable * psppire_dict_view_get_selected_variable (PsppireDictView *);
 
-const char *psppire_dict_view_get_var_measurement_stock_id (
-  const struct variable *);
+const char *get_var_measurement_stock_id (enum fmt_type, enum measure);
 
 G_END_DECLS
 
