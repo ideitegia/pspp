@@ -143,6 +143,19 @@ scroll_to_bottom (GtkWidget      *widget,
     }
 }
 
+static struct variable *
+path_string_to_var (PsppireVarSheet *var_sheet, gchar *path_string)
+{
+  GtkTreePath *path;
+  gint row;
+
+  path = gtk_tree_path_new_from_string (path_string);
+  row = gtk_tree_path_get_indices (path)[0];
+  gtk_tree_path_free (path);
+
+  return psppire_dict_get_variable (var_sheet->dict, row);
+}
+
 static void
 on_var_column_edited (GtkCellRendererText *cell,
                       gchar               *path_string,
@@ -155,17 +168,11 @@ on_var_column_edited (GtkCellRendererText *cell,
   enum vs_column column_id;
   struct variable *var;
   int width, decimals;
-  GtkTreePath *path;
-  gint row;
-
-  path = gtk_tree_path_new_from_string (path_string);
-  row = gtk_tree_path_get_indices (path)[0];
-  gtk_tree_path_free (path);
 
   column_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cell),
                                                   "column-id"));
 
-  var = psppire_dict_get_variable (var_sheet->dict, row);
+  var = path_string_to_var (var_sheet, path_string);
   if (var == NULL)
     {
       g_return_if_fail (column_id == VS_NAME);
