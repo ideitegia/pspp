@@ -645,9 +645,69 @@ add_spin_column (PsppireVarSheet *var_sheet, enum vs_column column_id,
                                column_id, title, width);
 }
 
+static const char *
+measure_to_stock_id (enum fmt_type type, int measure)
+{
+  return get_var_measurement_stock_id (type, measure);
+}
+
+static const char *
+alignment_to_stock_id (enum fmt_type type, int alignment)
+{
+  return get_var_align_stock_id (alignment);
+}
+
+static void
+render_measure (GtkCellLayout *cell_layout,
+                GtkCellRenderer *cell,
+                GtkTreeModel *tree_model,
+                GtkTreeIter *iter,
+                gpointer data)
+{
+  const char *(*value_to_stock_id) (enum fmt_type, int value);
+  enum fmt_type type = GPOINTER_TO_INT (data);
+  gint value;
+
+  value_to_stock_id = g_object_get_data (G_OBJECT (cell), "value-to-stock-id");
+
+  gtk_tree_model_get (tree_model, iter, 0, &value, -1);
+  g_object_set (cell, "stock-id", value_to_stock_id (type, value), NULL);
+}
+
+static void
+on_combo_editing_started (GtkCellRenderer *renderer,
+                          GtkCellEditable *editable,
+                          gchar           *path_string,
+                          gpointer         user_data)
+{
+  PsppireVarSheet *var_sheet = user_data;
+
+  if (GTK_IS_COMBO_BOX (editable))
+    {
+      struct variable *var = path_string_to_variable (var_sheet, path_string);
+      const struct fmt_spec *format = var_get_print_format (var);
+      const char *(*value_to_stock_id) (enum fmt_type, int value);
+      GtkCellRenderer *cell;
+
+      value_to_stock_id = g_object_get_data (G_OBJECT (renderer),
+                                             "value-to-stock-id");
+
+      cell = gtk_cell_renderer_pixbuf_new ();
+      g_object_set (cell, "width", 16, "height", 16, NULL);
+      g_object_set_data (G_OBJECT (cell),
+                         "value-to-stock-id", value_to_stock_id);
+      gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (editable), cell, FALSE);
+      gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT (editable), cell,
+                                          render_measure,
+                                          GINT_TO_POINTER (format->type),
+                                          NULL);
+    }
+}
+
 static PsppSheetViewColumn *
 add_combo_column (PsppireVarSheet *var_sheet, enum vs_column column_id,
                   const char *title, int width,
+                  const char *(*value_to_stock_id) (enum fmt_type, int value),
                   ...)
 {
   GtkCellRenderer *cell;
@@ -656,7 +716,7 @@ add_combo_column (PsppireVarSheet *var_sheet, enum vs_column column_id,
   va_list args;
 
   store = gtk_list_store_new (2, G_TYPE_INT, G_TYPE_STRING);
-  va_start (args, width);
+  va_start (args, value_to_stock_id);
   while ((name = va_arg (args, const char *)) != NULL)
     {
       int value = va_arg (args, int);
@@ -673,9 +733,16 @@ add_combo_column (PsppireVarSheet *var_sheet, enum vs_column column_id,
                 "model", GTK_TREE_MODEL (store),
                 "text-column", 1,
                 NULL);
+  if (value_to_stock_id != NULL)
+    {
+      g_object_set_data (G_OBJECT (cell),
+                         "value-to-stock-id", value_to_stock_id);
+      g_signal_connect (cell, "editing-started",
+                        G_CALLBACK (on_combo_editing_started),
+                        var_sheet);
+    }
 
   return add_var_sheet_column (var_sheet, cell, column_id, title, width);
-
 }
 
 static void
@@ -1289,7 +1356,7 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
   add_spin_column (obj, VS_COLUMNS, _("Columns"), 3);
 
   column
-   = add_combo_column (obj, VS_ALIGN, _("Align"), 8,
+   = add_combo_column (obj, VS_ALIGN, _("Align"), 8, alignment_to_stock_id,
                        alignment_to_string (ALIGN_LEFT), ALIGN_LEFT,
                        alignment_to_string (ALIGN_CENTRE), ALIGN_CENTRE,
                        alignment_to_string (ALIGN_RIGHT), ALIGN_RIGHT,
@@ -1301,7 +1368,7 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
     column, cell, render_var_cell, obj, NULL);
 
   column
-    = add_combo_column (obj, VS_MEASURE, _("Measure"), 12,
+    = add_combo_column (obj, VS_MEASURE, _("Measure"), 12, measure_to_stock_id,
                         measure_to_string (MEASURE_NOMINAL), MEASURE_NOMINAL,
                         measure_to_string (MEASURE_ORDINAL), MEASURE_ORDINAL,
                         measure_to_string (MEASURE_SCALE), MEASURE_SCALE,
@@ -1312,7 +1379,7 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
   pspp_sheet_view_column_set_cell_data_func (
     column, cell, render_var_cell, obj, NULL);
 
-  add_combo_column (obj, VS_ROLE, _("Role"), 12,
+  add_combo_column (obj, VS_ROLE, _("Role"), 12, NULL,
                     var_role_to_string (ROLE_INPUT), ROLE_INPUT,
                     var_role_to_string (ROLE_OUTPUT), ROLE_OUTPUT,
                     var_role_to_string (ROLE_BOTH), ROLE_BOTH,
