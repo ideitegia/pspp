@@ -310,9 +310,9 @@ render_popup_cell (PsppSheetViewColumn *tree_column,
 }
 
 const char *
-get_var_align_stock_id (const struct variable *var)
+get_var_align_stock_id (enum alignment alignment)
 {
-  switch (var_get_alignment (var))
+  switch (alignment)
     {
     case ALIGN_LEFT:
       return GTK_STOCK_JUSTIFY_LEFT;
@@ -454,7 +454,8 @@ render_var_cell (PsppSheetViewColumn *tree_column,
                       "editable", TRUE,
                       NULL);
       else
-        g_object_set (cell, "stock-id", get_var_align_stock_id (var), NULL);
+        g_object_set (cell, "stock-id",
+                      get_var_align_stock_id (var_get_alignment (var)), NULL);
       break;
 
     case VS_MEASURE:
