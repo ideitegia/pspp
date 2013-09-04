@@ -53,7 +53,8 @@ spreadsheet_destroy (struct spreadsheet *s)
 
 
 struct casereader * 
-spreadsheet_make_reader (struct spreadsheet *s, const struct spreadsheet_read_options *opts)
+spreadsheet_make_reader (struct spreadsheet *s UNUSED,
+                         const struct spreadsheet_read_options *opts UNUSED)
 {
 #ifdef ODS_READ_SUPPORT
   if ( s->type == SPREADSHEET_ODS)
