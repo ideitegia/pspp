@@ -3,7 +3,7 @@ m4_define([SPREADSHEET_TEST_PREP],[dnl
  m4_if($1,[GNM],[dnl
     AT_CHECK([gzip -c $top_srcdir/tests/language/data-io/Book1.gnm.unzipped > Book1.gnumeric])dnl
     m4_define([testsheet],[Book1.gnumeric])dnl
-    AT_SKIP_IF([test n$GNM_SUPPORT != nyes])dnl
+    AT_SKIP_IF([test n$GNM_READ_SUPPORT != nyes])dnl
     ]) dnl
  m4_if($1,[ODS],[dnl
     AT_CHECK([cp $top_srcdir/tests/language/data-io/test.ods test.ods])dnl

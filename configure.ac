@@ -201,19 +201,19 @@ AC_DEFINE(
 
 dnl Gnumeric and OpenDocument (read) support requires libxml2 and zlib.
 if test $HAVE_LIBXML2 = yes && test $HAVE_ZLIB = yes; then
-  GNM_SUPPORT=yes
+  GNM_READ_SUPPORT=yes
   ODF_READ_SUPPORT=yes
   AC_DEFINE(
-    [GNM_SUPPORT], [1],
+    [GNM_READ_SUPPORT], [1],
     [Define to 1 if building in support for reading Gnumeric files.])
   AC_DEFINE(
     [ODF_READ_SUPPORT], [1],
     [Define to 1 if building in support for reading OpenDocument files.])
 else
-  GNM_SUPPORT=no
+  GNM_READ_SUPPORT=no
   ODF_READ_SUPPORT=no
 fi
-AC_SUBST([GNM_SUPPORT])
+AC_SUBST([GNM_READ_SUPPORT])
 AC_SUBST([ODF_READ_SUPPORT])
 
 dnl ODF support requires libxml2 (zlib is optional).
