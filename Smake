@@ -152,7 +152,13 @@ src/ui/gui/icons/categories/16x16/variable-ordinal.png \
 src/ui/gui/icons/categories/16x16/align-right.png \
 src/ui/gui/icons/categories/16x16/variable-date-nominal.png \
 src/ui/gui/icons/categories/16x16/variable-date-ordinal.png \
-src/ui/gui/icons/categories/16x16/variable-string-scale.png
+src/ui/gui/icons/categories/16x16/variable-string-scale.png \
+src/ui/gui/icons/categories/16x16/variable-role-partition.png \
+src/ui/gui/icons/categories/16x16/variable-role-target.png \
+src/ui/gui/icons/categories/16x16/variable-role-split.png \
+src/ui/gui/icons/categories/16x16/variable-role-input.png \
+src/ui/gui/icons/categories/16x16/variable-role-none.png \
+src/ui/gui/icons/categories/16x16/variable-role-both.png
 
 MIMETYPE_ICONS = \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-por.png \

@@ -335,6 +335,22 @@ get_var_align_stock_id (enum alignment alignment)
     }
 }
 
+const char *
+get_var_role_stock_id (enum var_role role)
+{
+  switch (role)
+    {
+    case ROLE_INPUT: return "variable-role-input";
+    case ROLE_OUTPUT: return "variable-role-target";
+    case ROLE_BOTH: return "variable-role-both";
+    case ROLE_NONE: return "variable-role-none";
+    case ROLE_PARTITION: return "variable-role-partition";
+    case ROLE_SPLIT: return "variable-role-split";
+    default:
+      g_return_val_if_reached ("");
+    }
+}
+
 static void
 render_var_cell (PsppSheetViewColumn *tree_column,
                  GtkCellRenderer *cell,
@@ -483,10 +499,14 @@ render_var_cell (PsppSheetViewColumn *tree_column,
       break;
 
     case VS_ROLE:
-      g_object_set (cell,
-                    "text", var_role_to_string (var_get_role (var)),
-                    "editable", TRUE,
-                    NULL);
+      if (GTK_IS_CELL_RENDERER_TEXT (cell))
+        g_object_set (cell,
+                      "text", var_role_to_string (var_get_role (var)),
+                      "editable", TRUE,
+                      NULL);
+      else
+        g_object_set (cell, "stock-id",
+                      get_var_role_stock_id (var_get_role (var)), NULL);
       break;
     }
 }
@@ -657,12 +677,18 @@ alignment_to_stock_id (enum fmt_type type, int alignment)
   return get_var_align_stock_id (alignment);
 }
 
+static const char *
+role_to_stock_id (enum fmt_type type, int role)
+{
+  return get_var_role_stock_id (role);
+}
+
 static void
-render_measure (GtkCellLayout *cell_layout,
-                GtkCellRenderer *cell,
-                GtkTreeModel *tree_model,
-                GtkTreeIter *iter,
-                gpointer data)
+render_var_pixbuf (GtkCellLayout *cell_layout,
+                   GtkCellRenderer *cell,
+                   GtkTreeModel *tree_model,
+                   GtkTreeIter *iter,
+                   gpointer data)
 {
   const char *(*value_to_stock_id) (enum fmt_type, int value);
   enum fmt_type type = GPOINTER_TO_INT (data);
@@ -698,18 +724,19 @@ on_combo_editing_started (GtkCellRenderer *renderer,
                          "value-to-stock-id", value_to_stock_id);
       gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (editable), cell, FALSE);
       gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT (editable), cell,
-                                          render_measure,
+                                          render_var_pixbuf,
                                           GINT_TO_POINTER (format->type),
                                           NULL);
     }
 }
 
-static PsppSheetViewColumn *
+static void
 add_combo_column (PsppireVarSheet *var_sheet, enum vs_column column_id,
                   const char *title, int width,
                   const char *(*value_to_stock_id) (enum fmt_type, int value),
                   ...)
 {
+  PsppSheetViewColumn *column;
   GtkCellRenderer *cell;
   GtkListStore *store;
   const char *name;
@@ -742,7 +769,13 @@ add_combo_column (PsppireVarSheet *var_sheet, enum vs_column column_id,
                         var_sheet);
     }
 
-  return add_var_sheet_column (var_sheet, cell, column_id, title, width);
+  column = add_var_sheet_column (var_sheet, cell, column_id, title, width);
+
+  cell = gtk_cell_renderer_pixbuf_new ();
+  g_object_set (cell, "width", 16, "height", 16, NULL);
+  pspp_sheet_view_column_pack_end (column, cell, FALSE);
+  pspp_sheet_view_column_set_cell_data_func (
+    column, cell, render_var_cell, var_sheet, NULL);
 }
 
 static void
@@ -1315,7 +1348,6 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
 {
   PsppSheetView *sheet_view = PSPP_SHEET_VIEW (obj);
   PsppSheetViewColumn *column;
-  GtkCellRenderer *cell;
   GtkAction *action;
   GList *list;
 
@@ -1355,31 +1387,19 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
 
   add_spin_column (obj, VS_COLUMNS, _("Columns"), 3);
 
-  column
-   = add_combo_column (obj, VS_ALIGN, _("Align"), 8, alignment_to_stock_id,
-                       alignment_to_string (ALIGN_LEFT), ALIGN_LEFT,
-                       alignment_to_string (ALIGN_CENTRE), ALIGN_CENTRE,
-                       alignment_to_string (ALIGN_RIGHT), ALIGN_RIGHT,
-                       NULL);
-  cell = gtk_cell_renderer_pixbuf_new ();
-  g_object_set (cell, "width", 16, "height", 16, NULL);
-  pspp_sheet_view_column_pack_end (column, cell, FALSE);
-  pspp_sheet_view_column_set_cell_data_func (
-    column, cell, render_var_cell, obj, NULL);
+  add_combo_column (obj, VS_ALIGN, _("Align"), 8, alignment_to_stock_id,
+                    alignment_to_string (ALIGN_LEFT), ALIGN_LEFT,
+                    alignment_to_string (ALIGN_CENTRE), ALIGN_CENTRE,
+                    alignment_to_string (ALIGN_RIGHT), ALIGN_RIGHT,
+                    NULL);
 
-  column
-    = add_combo_column (obj, VS_MEASURE, _("Measure"), 12, measure_to_stock_id,
-                        measure_to_string (MEASURE_NOMINAL), MEASURE_NOMINAL,
-                        measure_to_string (MEASURE_ORDINAL), MEASURE_ORDINAL,
-                        measure_to_string (MEASURE_SCALE), MEASURE_SCALE,
-                        NULL);
-  cell = gtk_cell_renderer_pixbuf_new ();
-  g_object_set (cell, "width", 16, "height", 16, NULL);
-  pspp_sheet_view_column_pack_end (column, cell, FALSE);
-  pspp_sheet_view_column_set_cell_data_func (
-    column, cell, render_var_cell, obj, NULL);
+  add_combo_column (obj, VS_MEASURE, _("Measure"), 12, measure_to_stock_id,
+                    measure_to_string (MEASURE_NOMINAL), MEASURE_NOMINAL,
+                    measure_to_string (MEASURE_ORDINAL), MEASURE_ORDINAL,
+                    measure_to_string (MEASURE_SCALE), MEASURE_SCALE,
+                    NULL);
 
-  add_combo_column (obj, VS_ROLE, _("Role"), 12, NULL,
+  add_combo_column (obj, VS_ROLE, _("Role"), 12, role_to_stock_id,
                     var_role_to_string (ROLE_INPUT), ROLE_INPUT,
                     var_role_to_string (ROLE_OUTPUT), ROLE_OUTPUT,
                     var_role_to_string (ROLE_BOTH), ROLE_BOTH,
