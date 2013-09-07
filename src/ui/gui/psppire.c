@@ -189,16 +189,25 @@ inject_renamed_icons (void)
     }
 }
 
+
 struct icon_size
 {
-  int resolution;
-  GtkIconSize size;
+  int resolution;  /* The dimension of the images which will be used */
+  size_t n_sizes;  /* The number of items in the array below.
+		      This may be zero, in which case the iconset will be wildcarded
+		      (used by default when no non-wildcarded set is available) */
+  const GtkIconSize *usage; /* An array determining for what the icon set is used */
 };
 
+static const GtkIconSize menus[] = {GTK_ICON_SIZE_MENU};
 
-static const struct icon_size sizes[] = {
-  {16,  GTK_ICON_SIZE_MENU},
-  {24,  GTK_ICON_SIZE_LARGE_TOOLBAR}
+
+/* We currently have two icon sets viz: 16x16 and 24x24.
+   We use the 16x16 for menus, and the 24x24 for everything else. */
+static const struct icon_size sizemap[] = 
+{
+  {16,  sizeof (menus) / sizeof (GtkIconSize), menus},
+  {24, 0, 0}
 };
 
 
@@ -207,29 +216,31 @@ create_icon_factory (void)
 {
   gint c;
   GtkIconFactory *factory = gtk_icon_factory_new ();
-  struct icon_context xx[2];
-  xx[0] = action_icon_context;
-  xx[1] = category_icon_context;
+  struct icon_context ctx[2];
+  ctx[0] = action_icon_context;
+  ctx[1] = category_icon_context;
   for (c = 0 ; c < 2 ; ++c)
   {
-    const struct icon_context *ic = &xx[c];
+    const struct icon_context *ic = &ctx[c];
     gint i;
     for (i = 0 ; i < ic->n_icons ; ++i)
       {
 	GtkIconSet *icon_set = gtk_icon_set_new ();
 	int r;
-	for (r = 0 ; r < sizeof (sizes) / sizeof (sizes[0]); ++r)
+	for (r = 0 ; r < sizeof (sizemap) / sizeof (sizemap[0]); ++r)
 	  {
+	    int s;
 	    GtkIconSource *source = gtk_icon_source_new ();
 	    gchar *filename = g_strdup_printf ("%s/%s/%dx%d/%s.png", PKGDATADIR,
 					       ic->context_name,
-					       sizes[r].resolution, sizes[r].resolution,
+					       sizemap[r].resolution, sizemap[r].resolution,
 					       ic->icon_name[i]);
 	    const char *relocated_filename = relocate (filename);
 
 	    gtk_icon_source_set_filename (source, relocated_filename);
-	    gtk_icon_source_set_size_wildcarded (source, FALSE);
-	    gtk_icon_source_set_size (source, sizes[r].size);
+	    gtk_icon_source_set_size_wildcarded (source, sizemap[r].n_sizes <= 0);
+	    for (s = 0 ; s < sizemap[r].n_sizes ; ++s)
+	      gtk_icon_source_set_size (source, sizemap[r].usage[s]);
 	    if (filename != relocated_filename)
 	      free (CONST_CAST (char *, relocated_filename));
 	    g_free (filename);
