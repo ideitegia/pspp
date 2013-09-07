@@ -12,6 +12,8 @@ Changes after 0.8.0:
 
  * PSPPIRE graphical user interface improvements:
 
+   - A new set of icons has been contributed.
+
    - Syntax windows now parse syntax in "auto" mode, which in practice
      should mean that both "batch" and "interactive" syntax now works,
      instead of just "interactive" syntax.
