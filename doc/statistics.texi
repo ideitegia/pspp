@@ -705,13 +705,23 @@ performed, and all coefficients will be printed.
 The @subcmd{/CRITERIA} subcommand is used to specify how the number of extracted factors (components) are chosen.
 If @subcmd{FACTORS(@var{n})} is
 specified, where @var{n} is an integer, then @var{n} factors will be extracted.  Otherwise, the @subcmd{MINEIGEN} setting will
-be used.  @subcmd{MINEIGEN(@var{l})} requests that all factors whose eigenvalues are greater than or equal to @var{l} are extracted.
-The default value of @var{l} is 1.    The @subcmd{ECONVERGE} and @subcmd{ITERATE} settings have effect only when iterative algorithms for factor
-extraction (such as Principal Axis Factoring) are used.   @subcmd{ECONVERGE(@var{delta})} specifies that
+be used.  
+@subcmd{MINEIGEN(@var{l})} requests that all factors whose eigenvalues are greater than or equal to @var{l} are extracted.
+The default value of @var{l} is 1.    
+The @subcmd{ECONVERGE} setting has effect only when iterative algorithms for factor
+extraction (such as Principal Axis Factoring) are used.   
+@subcmd{ECONVERGE(@var{delta})} specifies that
 iteration should cease when
 the maximum absolute value of the communality estimate between one iteration and the previous is less than @var{delta}. The
 default value of @var{delta} is 0.001.
-The @subcmd{ITERATE(@var{m})} setting sets the maximum number of iterations to @var{m}.  The default value of @var{m} is 25.
+The @subcmd{ITERATE(@var{m})} may appear any number of times and is used for two different purposes.  
+It is used to set the maximum number of iterations (@var{m}) for convergence and also to set the maximum number of iterations
+for rotation.
+Whether it affects convergence or rotation depends upon which subcommand follows the @subcmd{ITERATE} subcommand.
+If @subcmd{EXTRACTION} follows, it affects convergence.  
+If @subcmd{ROTATION} follows, it affects rotation.  
+If neither @subcmd{ROTATION} nor @subcmd{EXTRACTION} follow a @subcmd{ITERATE} subcommand it will be ignored.
+The default value of @var{m} is 25.
 
 The @cmd{MISSING} subcommand determines the handling of missing variables.  
 If @subcmd{INCLUDE} is set, then user-missing values are included in the
