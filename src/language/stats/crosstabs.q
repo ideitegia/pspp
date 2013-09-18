@@ -2090,16 +2090,17 @@ display_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 
 /* Statistical calculations. */
 
-/* Returns the value of the gamma (factorial) function for an integer
+/* Returns the value of the logarithm of gamma (factorial) function for an integer
    argument PT. */
 static double
-gamma_int (double pt)
+log_gamma_int (double pt)
 {
-  double r = 1;
+  double r = 0;
   int i;
 
   for (i = 2; i < pt; i++)
-    r *= i;
+    r += log(i);
+
   return r;
 }
 
@@ -2108,11 +2109,11 @@ gamma_int (double pt)
 static inline double
 Pr (int a, int b, int c, int d)
 {
-  return (gamma_int (a + b + 1.) / gamma_int (a + 1.)
-	  * gamma_int (c + d + 1.) / gamma_int (b + 1.)
-	  * gamma_int (a + c + 1.) / gamma_int (c + 1.)
-	  * gamma_int (b + d + 1.) / gamma_int (d + 1.)
-	  / gamma_int (a + b + c + d + 1.));
+  return exp (log_gamma_int (a + b + 1.) -  log_gamma_int (a + 1.)
+	    + log_gamma_int (c + d + 1.) - log_gamma_int (b + 1.)
+	    + log_gamma_int (a + c + 1.) - log_gamma_int (c + 1.)
+	    + log_gamma_int (b + d + 1.) - log_gamma_int (d + 1.)
+	    - log_gamma_int (a + b + c + d + 1.));
 }
 
 /* Swap the contents of A and B. */
