@@ -2131,6 +2131,7 @@ static void
 calc_fisher (int a, int b, int c, int d, double *fisher1, double *fisher2)
 {
   int pt;
+  double pn1;
 
   if (MIN (c, d) < MIN (a, b))
     swap (&a, &c), swap (&b, &d);
@@ -2144,13 +2145,21 @@ calc_fisher (int a, int b, int c, int d, double *fisher1, double *fisher2)
 	swap (&a, &c), swap (&b, &d);
     }
 
-  *fisher1 = 0.;
-  for (pt = 0; pt <= a; pt++)
-    *fisher1 += Pr (a - pt, b + pt, c + pt, d - pt);
+  pn1 = Pr (a, b, c, d);
+  *fisher1 = pn1;
+  for (pt = 1; pt <= a; pt++)
+    {
+      *fisher1 += Pr (a - pt, b + pt, c + pt, d - pt);
+    }
 
   *fisher2 = *fisher1;
+
   for (pt = 1; pt <= b; pt++)
-    *fisher2 += Pr (a + pt, b - pt, c - pt, d + pt);
+    {
+      double p = Pr (a + pt, b - pt, c - pt, d + pt);
+      if (p < pn1)
+	*fisher2 += p;
+    }
 }
 
 /* Calculates chi-squares into CHISQ.  MAT is a matrix with N_COLS
