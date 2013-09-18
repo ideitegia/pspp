@@ -10,6 +10,11 @@ Changes after 0.8.0:
 
    - VARIABLE ROLE.
 
+ * Changes to existing commands:
+
+   - CROSSTABS: The requirement that one expected count must be less than five
+	before Fishers Exact Test will be reported has been removed.
+
  * PSPPIRE graphical user interface improvements:
 
    - A new set of icons has been contributed.

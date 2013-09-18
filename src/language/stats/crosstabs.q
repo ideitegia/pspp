@@ -2244,8 +2244,7 @@ calc_chisq (struct pivot_table *pt,
       }
 
       /* Fisher. */
-      if (f11 < 5. || f12 < 5. || f21 < 5. || f22 < 5.)
-	calc_fisher (f11 + .5, f12 + .5, f21 + .5, f22 + .5, fisher1, fisher2);
+      calc_fisher (f11 + .5, f12 + .5, f21 + .5, f22 + .5, fisher1, fisher2);
     }
 
   /* Calculate Mantel-Haenszel. */
