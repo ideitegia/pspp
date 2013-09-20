@@ -90,56 +90,67 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   casereader_destroy (reader);
 
   t = tab_create (2, 11);
+  r = 0;
   tab_vline (t, TAL_GAP, 1, 0, 8);
-  tab_text (t, 0, 0, TAB_LEFT, _("File:"));
-  tab_text (t, 1, 0, TAB_LEFT, fh_get_file_name (h));
-  tab_text (t, 0, 1, TAB_LEFT, _("Label:"));
+
+  tab_text (t, 0, r, TAB_LEFT, _("File:"));
+  tab_text (t, 1, r++, TAB_LEFT, fh_get_file_name (h));
+
+  tab_text (t, 0, r, TAB_LEFT, _("Label:"));
   {
     const char *label = dict_get_label (d);
     if (label == NULL)
       label = _("No label.");
-    tab_text (t, 1, 1, TAB_LEFT, label);
+    tab_text (t, 1, r++, TAB_LEFT, label);
   }
-  tab_text (t, 0, 2, TAB_LEFT, _("Created:"));
-  tab_text_format (t, 1, 2, TAB_LEFT, "%s %s by %s",
+
+  tab_text (t, 0, r, TAB_LEFT, _("Created:"));
+  tab_text_format (t, 1, r++, TAB_LEFT, "%s %s by %s",
                    info.creation_date, info.creation_time, info.product);
-  tab_text (t, 0, 3, TAB_LEFT, _("Integer Format:"));
-  tab_text (t, 1, 3, TAB_LEFT,
+
+  tab_text (t, 0, r, TAB_LEFT, _("Integer Format:"));
+  tab_text (t, 1, r++, TAB_LEFT,
             info.integer_format == INTEGER_MSB_FIRST ? _("Big Endian")
             : info.integer_format == INTEGER_LSB_FIRST ? _("Little Endian")
             : _("Unknown"));
-  tab_text (t, 0, 4, TAB_LEFT, _("Real Format:"));
-  tab_text (t, 1, 4, TAB_LEFT,
+
+  tab_text (t, 0, r, TAB_LEFT, _("Real Format:"));
+  tab_text (t, 1, r++, TAB_LEFT,
             info.float_format == FLOAT_IEEE_DOUBLE_LE ? _("IEEE 754 LE.")
             : info.float_format == FLOAT_IEEE_DOUBLE_BE ? _("IEEE 754 BE.")
             : info.float_format == FLOAT_VAX_D ? _("VAX D.")
             : info.float_format == FLOAT_VAX_G ? _("VAX G.")
             : info.float_format == FLOAT_Z_LONG ? _("IBM 390 Hex Long.")
             : _("Unknown"));
-  tab_text (t, 0, 5, TAB_LEFT, _("Variables:"));
-  tab_text_format (t, 1, 5, TAB_LEFT, "%zu", dict_get_var_cnt (d));
-  tab_text (t, 0, 6, TAB_LEFT, _("Cases:"));
+
+  tab_text (t, 0, r, TAB_LEFT, _("Variables:"));
+  tab_text_format (t, 1, r++, TAB_LEFT, "%zu", dict_get_var_cnt (d));
+
+  tab_text (t, 0, r, TAB_LEFT, _("Cases:"));
   if (info.case_cnt == -1)
-    tab_text (t, 1, 6, TAB_LEFT, _("Unknown"));
+    tab_text (t, 1, r, TAB_LEFT, _("Unknown"));
   else
-    tab_text_format (t, 1, 6, TAB_LEFT, "%ld", (long int) info.case_cnt);
-  tab_text (t, 0, 7, TAB_LEFT, _("Type:"));
-  tab_text (t, 1, 7, TAB_LEFT, _("System File"));
-  tab_text (t, 0, 8, TAB_LEFT, _("Weight:"));
+    tab_text_format (t, 1, r, TAB_LEFT, "%ld", (long int) info.case_cnt);
+  r++;
+
+  tab_text (t, 0, r, TAB_LEFT, _("Type:"));
+  tab_text (t, 1, r++, TAB_LEFT, _("System File"));
+
+  tab_text (t, 0, r, TAB_LEFT, _("Weight:"));
   {
     struct variable *weight_var = dict_get_weight (d);
-    tab_text (t, 1, 8, TAB_LEFT,
+    tab_text (t, 1, r++, TAB_LEFT,
               (weight_var != NULL
                ? var_get_name (weight_var) : _("Not weighted.")));
   }
-  tab_text (t, 0, 9, TAB_LEFT, _("Mode:"));
-  tab_text_format (t, 1, 9, TAB_LEFT,
+
+  tab_text (t, 0, r, TAB_LEFT, _("Mode:"));
+  tab_text_format (t, 1, r++, TAB_LEFT,
                    _("Compression %s."), info.compressed ? _("on") : _("off"));
 
 
-  tab_text (t, 0, 10, TAB_LEFT, _("Charset:"));
-  tab_text (t, 1, 10, TAB_LEFT, dict_get_encoding (d));
-
+  tab_text (t, 0, r, TAB_LEFT, _("Charset:"));
+  tab_text (t, 1, r++, TAB_LEFT, dict_get_encoding (d));
 
   tab_submit (t);
 
