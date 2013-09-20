@@ -96,6 +96,7 @@ Each type of record is described separately below.
 * Machine Integer Info Record::
 * Machine Floating-Point Info Record::
 * Multiple Response Sets Records::
+* Extra Product Info Record::
 * Variable Display Parameter Record::
 * Long Variable Names Record::
 * Very Long String Record::
@@ -202,6 +203,10 @@ field is arbitrarily set to @samp{00:00:00}.
 @item char file_label[64];
 File label declared by the user, if any (@pxref{FILE LABEL,,,pspp,
 PSPP Users Guide}).  Padded on the right with spaces.
+
+A product that identifies itself as @code{VOXCO INTERVIEWER 4.3} uses
+CR-only line ends in this field, rather than the more usual LF-only or
+CR LF line ends.
 
 @item char padding[3];
 Ignored padding bytes to make the structure a multiple of 32 bits in
@@ -779,6 +784,44 @@ subtype 19:
 $d=E 1 2 34 13 third mdgroup k l m
 $e=E 11 6 choice 0  n o p
 @end example
+
+@node Extra Product Info Record
+@section Extra Product Info Record
+
+This optional record appears to contain a text string that describes
+the program that wrote the file and the source of the data.  (This is
+redundant with the file label and product info found in the file
+header record.)
+
+@example
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
+
+/* @r{Exactly @code{count} bytes of data.} */
+char                info[];
+@end example
+
+@table @code
+@item int32 rec_type;
+Record type.  Always set to 7.
+
+@item int32 subtype;
+Record subtype.  Always set to 10.
+
+@item int32 size;
+The size of each element in the @code{info} member. Always set to 1.
+
+@item int32 count;
+The total number of bytes in @code{info}.
+
+@item char info[];
+A text string.  A product that identifies itself as @code{VOXCO
+INTERVIEWER 4.3} uses CR-only line ends in this field, rather than the
+more usual LF-only or CR LF line ends.
+@end table
 
 @node Variable Display Parameter Record
 @section Variable Display Parameter Record

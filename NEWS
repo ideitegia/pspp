@@ -24,6 +24,9 @@ Changes after 0.8.0:
 
    - System files written by IBM SPSS 21 are now read without warnings.
 
+   - System files written by "VOXCO INTERVIEWER 4.3" are now read
+     without warnings.
+
    - PSPPIRE should now more gracefully handle syntax files that contain
      errors.
 

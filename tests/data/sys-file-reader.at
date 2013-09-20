@@ -640,6 +640,57 @@ Category label source: Value labels of counted value
 done
 AT_CLEANUP
 
+dnl Also checks for handling of CR-only line ends in file label and
+dnl extra product info.
+AT_SETUP([extra product info])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+4; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted
+0; dnl No cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; "PSPP synthetic"; i8 13; s49 "test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "A";
+2; 0; 0; 0; 0x050800 *2; s8 "B";
+2; 0; 0; 0; 0x050800 *2; s8 "C";
+2; 0; 0; 0; 0x050800 *2; s8 "D";
+
+dnl Extra product info.
+7; 10; 1; COUNT ("Extra product info"; i8 13; "another line"; i8 13; "blah");
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 0e1cac77501322b012637dcaeb3858ab" \
+	"le ecffd25cae41bbc89c29487abe192016"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+SYSFILE INFO FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([sed 7q pspp.csv], [0], [dnl
+File:,sys-file.sav
+Label:,"PSPP synthetic
+test file"
+Created:,01 Jan 11 20:53:52 by $(@%:@) SPSS DATA FILE PSPP synthetic test file
+Product:,"Extra product info
+another line
+blah"
+])
+done
+AT_CLEANUP
+
 AT_SETUP([variable display parameters, without width])
 AT_KEYWORDS([sack synthetic system file positive])
 AT_DATA([sys-file.sack], [dnl

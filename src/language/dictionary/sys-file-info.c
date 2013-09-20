@@ -89,7 +89,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
     }
   casereader_destroy (reader);
 
-  t = tab_create (2, 11);
+  t = tab_create (2, 11 + (info.product_ext != NULL));
   r = 0;
   tab_vline (t, TAL_GAP, 1, 0, 8);
 
@@ -107,6 +107,12 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   tab_text (t, 0, r, TAB_LEFT, _("Created:"));
   tab_text_format (t, 1, r++, TAB_LEFT, "%s %s by %s",
                    info.creation_date, info.creation_time, info.product);
+
+  if (info.product_ext)
+    {
+      tab_text (t, 0, r, TAB_LEFT, _("Product:"));
+      tab_text (t, 1, r++, TAB_LEFT, info.product_ext);
+    }
 
   tab_text (t, 0, r, TAB_LEFT, _("Integer Format:"));
   tab_text (t, 1, r++, TAB_LEFT,

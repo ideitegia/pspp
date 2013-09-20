@@ -72,7 +72,8 @@ enum
     EXT_DATE          = 6,      /* DATE. */
     EXT_MRSETS        = 7,      /* Multiple response sets. */
     EXT_DATA_ENTRY    = 8,      /* SPSS Data Entry. */
-    /* subtypes 9-10 unknown */
+    /* subtype 9 unknown */
+    EXT_PRODUCT_INFO  = 10,     /* Extra product info text. */
     EXT_DISPLAY       = 11,     /* Variable display parameters. */
     /* subtype 12 unknown */
     EXT_LONG_NAMES    = 13,     /* Long variable names. */
@@ -201,6 +202,8 @@ static double read_float (struct sfm_reader *);
 static void read_string (struct sfm_reader *, char *, size_t);
 static void skip_bytes (struct sfm_reader *, size_t);
 
+static char *fix_line_ends (const char *);
+
 static int parse_int (struct sfm_reader *, const void *data, size_t ofs);
 static double parse_float (struct sfm_reader *, const void *data, size_t ofs);
 
@@ -246,6 +249,7 @@ static bool text_read_short_name (struct sfm_reader *, struct dictionary *,
 static const char *text_parse_counted_string (struct sfm_reader *,
                                               struct text_record *);
 static size_t text_pos (const struct text_record *);
+static const char *text_get_all (const struct text_record *);
 
 static bool close_reader (struct sfm_reader *r);
 
@@ -276,6 +280,9 @@ static void parse_machine_integer_info (struct sfm_reader *,
                                         struct sfm_read_info *);
 static void parse_machine_float_info (struct sfm_reader *,
                                       const struct sfm_extension_record *);
+static void parse_extra_product_info (struct sfm_reader *,
+                                      const struct sfm_extension_record *,
+                                      struct sfm_read_info *);
 static void parse_mrsets (struct sfm_reader *,
                           const struct sfm_extension_record *,
                           struct dictionary *);
@@ -309,6 +316,7 @@ sfm_read_info_destroy (struct sfm_read_info *info)
       free (info->creation_date);
       free (info->creation_time);
       free (info->product);
+      free (info->product_ext);
     }
 }
 
@@ -478,6 +486,9 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
 
   if (extensions[EXT_FLOAT] != NULL)
     parse_machine_float_info (r, extensions[EXT_FLOAT]);
+
+  if (extensions[EXT_PRODUCT_INFO] != NULL)
+    parse_extra_product_info (r, extensions[EXT_PRODUCT_INFO], info);
 
   if (extensions[EXT_FILE_ATTRS] != NULL)
     parse_data_file_attributes (r, extensions[EXT_FILE_ATTRS], dict);
@@ -880,6 +891,7 @@ read_extension_record (struct sfm_reader *r, int subtype)
       { EXT_INTEGER,      4, 8 },
       { EXT_FLOAT,        8, 3 },
       { EXT_MRSETS,       1, 0 },
+      { EXT_PRODUCT_INFO, 1, 0 },
       { EXT_DISPLAY,      4, 0 },
       { EXT_LONG_NAMES,   1, 0 },
       { EXT_LONG_STRINGS, 1, 0 },
@@ -959,13 +971,16 @@ parse_header (struct sfm_reader *r, const struct sfm_header_record *header,
   const char *dict_encoding = dict_get_encoding (dict);
   struct substring product;
   struct substring label;
+  char *fixed_label;
 
   /* Convert file label to UTF-8 and put it into DICT. */
   label = recode_substring_pool ("UTF-8", dict_encoding,
                                  ss_cstr (header->file_label), r->pool);
   ss_trim (&label, ss_cstr (" "));
   label.string[label.length] = '\0';
-  dict_set_label (dict, label.string);
+  fixed_label = fix_line_ends (label.string);
+  dict_set_label (dict, fixed_label);
+  free (fixed_label);
 
   /* Put creation date and time in UTF-8 into INFO. */
   info->creation_date = recode_string ("UTF-8", dict_encoding,
@@ -1290,6 +1305,19 @@ parse_machine_float_info (struct sfm_reader *r,
               _("File specifies unexpected value %g (%a) as %s, "
                 "instead of %g (%a) or %g (%a)."),
               lowest, lowest, "LOWEST", LOWEST, LOWEST, SYSMIS, SYSMIS);
+}
+
+/* Parses record type 7, subtype 10. */
+static void
+parse_extra_product_info (struct sfm_reader *r,
+                          const struct sfm_extension_record *record,
+                          struct sfm_read_info *info)
+{
+  struct text_record *text;
+
+  text = open_text_record (r, record, true);
+  info->product_ext = fix_line_ends (text_get_all (text));
+  close_text_record (r, text);
 }
 
 /* Parses record type 7, subtype 7 or 19. */
@@ -2589,6 +2617,12 @@ text_pos (const struct text_record *text)
 {
   return text->pos;
 }
+
+static const char *
+text_get_all (const struct text_record *text)
+{
+  return text->buffer.string;
+}
 
 /* Messages. */
 
@@ -2740,6 +2774,35 @@ skip_bytes (struct sfm_reader *r, size_t bytes)
       read_bytes (r, buffer, chunk);
       bytes -= chunk;
     }
+}
+
+/* Returns a malloc()'d copy of S in which all lone CRs and CR LF pairs have
+   been replaced by LFs.
+
+   (A product that identifies itself as VOXCO INTERVIEWER 4.3 produces system
+   files that use CR-only line ends in the file label and extra product
+   info.) */
+static char *
+fix_line_ends (const char *s)
+{
+  char *dst, *d;
+
+  d = dst = xmalloc (strlen (s) + 1);
+  while (*s != '\0')
+    {
+      if (*s == '\r')
+        {
+          s++;
+          if (*s == '\n')
+            s++;
+          *d++ = '\n';
+        }
+      else
+        *d++ = *s++;
+    }
+  *d = '\0';
+
+  return dst;
 }
 
 static const struct casereader_class sys_file_casereader_class =

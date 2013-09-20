@@ -65,6 +65,8 @@ static void read_machine_integer_info (struct sfm_reader *,
                                        size_t size, size_t count);
 static void read_machine_float_info (struct sfm_reader *,
                                      size_t size, size_t count);
+static void read_extra_product_info (struct sfm_reader *,
+                                     size_t size, size_t count);
 static void read_mrsets (struct sfm_reader *, size_t size, size_t count);
 static void read_display_parameters (struct sfm_reader *,
                                      size_t size, size_t count);
@@ -94,6 +96,7 @@ static char *text_tokenize (struct text_record *, int delimiter);
 static bool text_match (struct text_record *text, int c);
 static const char *text_parse_counted_string (struct text_record *);
 static size_t text_pos (const struct text_record *);
+static const char *text_get_all (const struct text_record *);
 
 static void usage (void);
 static void sys_warn (struct sfm_reader *, const char *, ...)
@@ -110,6 +113,8 @@ static double read_float (struct sfm_reader *);
 static void read_string (struct sfm_reader *, char *, size_t);
 static void skip_bytes (struct sfm_reader *, size_t);
 static void trim_spaces (char *);
+
+static void print_string (const char *s, size_t len);
 
 int
 main (int argc, char *argv[])
@@ -574,6 +579,10 @@ read_extension_record (struct sfm_reader *r)
       read_mrsets (r, size, count);
       return;
 
+    case 10:
+      read_extra_product_info (r, size, count);
+      return;
+
     case 11:
       read_display_parameters (r, size, count);
       return;
@@ -677,6 +686,20 @@ read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
   if (lowest != LOWEST && lowest != SYSMIS)
     sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
               lowest, lowest, "LOWEST");
+}
+
+static void
+read_extra_product_info (struct sfm_reader *r,
+                         size_t size, size_t count)
+{
+  struct text_record *text;
+  const char *s;
+
+  printf ("%08llx: extra product info\n", (long long int) ftello (r->file));
+  text = open_text_record (r, size * count);
+  s = text_get_all (text);
+  print_string (s, strlen (s));
+  close_text_record (text);
 }
 
 /* Read record type 7, subtype 7. */
@@ -1069,23 +1092,7 @@ read_unknown_extension (struct sfm_reader *r, size_t size, size_t count)
     {
       buffer = xmalloc (count);
       read_bytes (r, buffer, count);
-      if (memchr (buffer, 0, count) == 0)
-        {
-          for (i = 0; i < count; i++)
-            {
-              unsigned char c = buffer[i];
-
-              if (c == '\\')
-                printf ("\\\\");
-              else if (c == '\n' || isprint (c))
-                putchar (c);
-              else
-                printf ("\\%02x", c);
-            }
-          putchar ('\n');
-        }
-      else
-        hex_dump (0, buffer, count);
+      print_string (CHAR_CAST (char *, buffer), count);
       free (buffer);
     }
 }
@@ -1333,6 +1340,12 @@ text_pos (const struct text_record *text)
 {
   return text->pos;
 }
+
+static const char *
+text_get_all (const struct text_record *text)
+{
+  return text->buffer;
+}
 
 static void
 usage (void)
@@ -1484,4 +1497,28 @@ trim_spaces (char *s)
   while (end > s && end[-1] == ' ')
     end--;
   *end = '\0';
+}
+
+static void
+print_string (const char *s, size_t len)
+{
+  if (memchr (s, 0, len) == 0)
+    {
+      size_t i;
+
+      for (i = 0; i < len; i++)
+        {
+          unsigned char c = s[i];
+
+          if (c == '\\')
+            printf ("\\\\");
+          else if (c == '\n' || isprint (c))
+            putchar (c);
+          else
+            printf ("\\%02x", c);
+        }
+      putchar ('\n');
+    }
+  else
+    hex_dump (0, s, len);
 }
