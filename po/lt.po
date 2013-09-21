@@ -5,10 +5,10 @@
 # Mindaugas Baranauskas <embar@super.lt>, 2010, 2011, 2012, 2013.
 msgid ""
 msgstr ""
-"Project-Id-Version: pspp-0.7.10\n"
+"Project-Id-Version: pspp-0.8.0\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2013-03-26 21:38-0700\n"
-"PO-Revision-Date: 2013-03-30 12:49+0200\n"
+"POT-Creation-Date: 2013-07-22 22:06-0700\n"
+"PO-Revision-Date: 2013-09-20 10:09+0300\n"
 "Last-Translator: Mindaugas Baranauskas <embar@super.lt>\n"
 "Language-Team: Lithuanian <komp_lt@konferencijos.lt>\n"
 "Language: lt\n"
@@ -30,9 +30,10 @@ msgstr "_Tęsti"
 #: src/language/dictionary/sys-file-info.c:148
 #: src/language/dictionary/sys-file-info.c:332
 #: src/language/dictionary/sys-file-info.c:650
-#: src/language/stats/descriptives.c:970
+#: src/language/stats/descriptives.c:982
 #: src/language/data-io/data-parser.c:691
 #: src/language/data-io/data-parser.c:730 src/language/data-io/print.c:446
+#: src/ui/gui/psppire-var-sheet.c:1079
 msgid "Variable"
 msgstr "Kintamasis"
 
@@ -207,12 +208,12 @@ msgstr "Savaitės diena neatpažinta. Turi būti nurodytos angliško pavadinimo 
 msgid "`%c' expected in date field."
 msgstr "Datos laukelyje tikėtasi „%c“."
 
-#: src/data/data-out.c:544
+#: src/data/data-out.c:566
 #, c-format
 msgid "Weekday number %f is not between 1 and 7."
 msgstr "Savaitės dienos numeris %f nėra tarp 1 ir 7."
 
-#: src/data/data-out.c:569
+#: src/data/data-out.c:591
 #, c-format
 msgid "Month number %f is not between 1 and 12."
 msgstr "Mėnesio numeris %f nėra tarp 1 ir 12."
@@ -240,11 +241,11 @@ msgstr "sisteminė"
 msgid "scratch"
 msgstr ""
 
-#: src/data/dictionary.c:1005
+#: src/data/dictionary.c:1010
 msgid "At least one case in the data file had a weight value that was user-missing, system-missing, zero, or negative.  These case(s) were ignored."
 msgstr "Nuskaitytoje rinkmenoje bent vienas atvejis turi svorio reikšmę, kuri yra naudotojo apibrėžta kaip praleista, sisteminė praleista, nulis arba neigiamas skaičius. Šie atvejai ignoruojami."
 
-#: src/data/dictionary.c:1334
+#: src/data/dictionary.c:1339
 #, c-format
 msgid "Truncating document line to %d bytes."
 msgstr "Dokumento eilutė sutrumpinta iki %d bitų(-o)."
@@ -328,29 +329,29 @@ msgstr[3] "%s %s nurodo %d dešimtainių skilčių, bet nurodytas plotis neleist
 msgid "%s variables are not compatible with %s format %s."
 msgstr "%s kintamieji nesuderinami su %s formatu %s."
 
-#: src/data/format.c:415 src/data/format.c:1006
-#: src/ui/gui/var-type-dialog.ui:143
+#: src/data/format.c:415 src/data/format.c:1010
+#: src/ui/gui/var-type-dialog.ui:142
 msgid "String"
 msgstr "Teksto eilutė"
 
-#: src/data/format.c:415 src/data/format.c:969
-#: src/ui/gui/var-type-dialog.ui:31
+#: src/data/format.c:415 src/data/format.c:973
+#: src/ui/gui/var-type-dialog.ui:30
 msgid "Numeric"
 msgstr "Skaitmeninis"
 
 #: src/data/format.c:416 src/data/sys-file-reader.c:1719
-#: src/data/sys-file-reader.c:1721 src/language/xforms/recode.c:506
-#: src/language/xforms/recode.c:507 src/language/xforms/recode.c:519
-#: src/language/xforms/recode.c:520
+#: src/data/sys-file-reader.c:1721 src/language/xforms/recode.c:512
+#: src/language/xforms/recode.c:513 src/language/xforms/recode.c:525
+#: src/language/xforms/recode.c:526
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/dictionary/apply-dictionary.c:78
 msgid "numeric"
 msgstr "skaitmeninis"
 
 #: src/data/format.c:416 src/data/sys-file-reader.c:1719
-#: src/data/sys-file-reader.c:1721 src/language/xforms/recode.c:506
-#: src/language/xforms/recode.c:507 src/language/xforms/recode.c:519
-#: src/language/xforms/recode.c:520
+#: src/data/sys-file-reader.c:1721 src/language/xforms/recode.c:512
+#: src/language/xforms/recode.c:513 src/language/xforms/recode.c:525
+#: src/language/xforms/recode.c:526
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/dictionary/apply-dictionary.c:78
 msgid "string"
@@ -361,27 +362,27 @@ msgstr "teksto eilutė "
 msgid "String variable with width %d is not compatible with format %s."
 msgstr "Teksto eilutės kintamasis, kurio plotis %d, yra nesuderinamas su %s formatu."
 
-#: src/data/format.c:972 src/ui/gui/var-type-dialog.ui:47
+#: src/data/format.c:976 src/ui/gui/var-type-dialog.ui:46
 msgid "Comma"
 msgstr "Su kableliu"
 
-#: src/data/format.c:975 src/ui/gui/var-type-dialog.ui:63
+#: src/data/format.c:979 src/ui/gui/var-type-dialog.ui:62
 msgid "Dot"
 msgstr "Su tašku"
 
-#: src/data/format.c:978
+#: src/data/format.c:982
 msgid "Scientific"
 msgstr "Mokslinis"
 
-#: src/data/format.c:993 src/ui/gui/var-type-dialog.ui:95
+#: src/data/format.c:997 src/ui/gui/var-type-dialog.ui:94
 msgid "Date"
 msgstr "Data"
 
-#: src/data/format.c:996 src/ui/gui/var-type-dialog.ui:111
+#: src/data/format.c:1000 src/ui/gui/var-type-dialog.ui:110
 msgid "Dollar"
 msgstr "Doleriai"
 
-#: src/data/format.c:1003
+#: src/data/format.c:1007
 msgid "Custom"
 msgstr "Savitas"
 
@@ -390,23 +391,28 @@ msgstr "Savitas"
 msgid "Support for %s files was not compiled into this installation of PSPP"
 msgstr "%s rinkmenų palaikymas nebuvo sukonfigūruotas kompiliuojant PSPP"
 
-#: src/data/gnumeric-reader.c:448 src/data/ods-reader.c:538
+#: src/data/gnumeric-reader.c:490 src/data/ods-reader.c:517
+#, c-format
+msgid "Cannot convert the value in the spreadsheet cell %s to format (%s): %s"
+msgstr ""
+
+#: src/data/gnumeric-reader.c:513 src/data/ods-reader.c:572
 #, c-format
 msgid "There was a problem whilst reading the %s file `%s' (near line %d): `%s'"
 msgstr ""
 
-#: src/data/gnumeric-reader.c:536
+#: src/data/gnumeric-reader.c:608
 #, c-format
 msgid "The gnumeric file `%s' is encoded as %s instead of the usual UTF-8 encoding. Any non-ascii characters will be incorrectly imported."
 msgstr ""
 
-#: src/data/gnumeric-reader.c:582 src/data/ods-reader.c:655
+#: src/data/gnumeric-reader.c:652 src/data/ods-reader.c:703
 #, c-format
 msgid "Invalid cell range `%s'"
 msgstr "Netinkama langelių sritis „%s“"
 
-#: src/data/gnumeric-reader.c:728 src/data/ods-reader.c:686
-#: src/data/ods-reader.c:822
+#: src/data/gnumeric-reader.c:824 src/data/ods-reader.c:731
+#: src/data/ods-reader.c:864
 #, c-format
 msgid "Selected sheet or range of spreadsheet `%s' is empty."
 msgstr "Pasirinktas lakštas arba skaičialentės sritis „%s“ yra tuščia."
@@ -480,7 +486,7 @@ msgstr "Pašalinama %s: %s."
 msgid "%s is not a valid name for a multiple response set.  Multiple response set names must begin with `$'."
 msgstr ""
 
-#: src/data/ods-reader.c:593
+#: src/data/ods-reader.c:624
 #, c-format
 msgid "Cannot open %s as a OpenDocument file: %s"
 msgstr "Nepavyksta atverti „%s“ tarsi OpenDocument rinkmenos: %s"
@@ -1049,127 +1055,122 @@ msgstr "Nežinoma sisteminės rinkmenos versija %d. Laikysima, kad tai yra %d."
 msgid "An I/O error occurred writing system file `%s'."
 msgstr "Įvedimo/išvedimo klaida įrašant sisteminę rinkmeną „%s“."
 
-#: src/data/variable.c:599
+#: src/data/variable.c:669
 #, c-format
 msgid "%s (%s)"
 msgstr "%s (%s)"
 
-#: src/data/variable.c:671
+#: src/data/variable.c:741
 #, c-format
 msgid "Truncating variable label for variable `%s' to %d bytes."
 msgstr "Kintamojo „%s“ etiketė sutrumpinama iki %d baitų."
 
-#: src/data/variable.c:719 src/language/dictionary/sys-file-info.c:505
-#: src/ui/gui/psppire-var-sheet.c:113
+#: src/data/variable.c:810 src/language/dictionary/sys-file-info.c:505
 msgid "Nominal"
 msgstr "Pavadinimų"
 
-#: src/data/variable.c:722 src/language/dictionary/sys-file-info.c:506
-#: src/ui/gui/psppire-var-sheet.c:114
+#: src/data/variable.c:813 src/language/dictionary/sys-file-info.c:506
 msgid "Ordinal"
 msgstr "Rangų"
 
-#: src/data/variable.c:725 src/language/dictionary/sys-file-info.c:507
-#: src/language/stats/ks-one-sample.c:327 src/ui/gui/psppire-var-sheet.c:115
+#: src/data/variable.c:816 src/language/dictionary/sys-file-info.c:507
+#: src/language/stats/ks-one-sample.c:327
 msgid "Scale"
 msgstr "Intervalų"
 
-#: src/data/variable.c:801 src/language/dictionary/sys-file-info.c:511
-#: src/ui/gui/psppire-var-sheet.c:106
+#: src/data/variable.c:909 src/language/dictionary/sys-file-info.c:511
 msgid "Left"
 msgstr "Kairinė"
 
-#: src/data/variable.c:804 src/language/dictionary/sys-file-info.c:513
-#: src/ui/gui/psppire-var-sheet.c:107
+#: src/data/variable.c:912 src/language/dictionary/sys-file-info.c:513
 msgid "Right"
 msgstr "Dešininė"
 
-#: src/data/variable.c:807 src/language/dictionary/sys-file-info.c:512
-#: src/ui/gui/psppire-var-sheet.c:108
+#: src/data/variable.c:915 src/language/dictionary/sys-file-info.c:512
 msgid "Center"
 msgstr "Centrinė"
 
-#: src/language/command.c:195 src/language/expressions/parse.c:1295
+#: src/language/command.c:207 src/language/expressions/parse.c:1295
 #: src/language/utilities/set.q:227
 #, c-format
 msgid "%s is not yet implemented."
 msgstr "%s dar nėra realizuota."
 
-#: src/language/command.c:200
+#: src/language/command.c:212
 #, c-format
 msgid "%s may be used only in testing mode."
 msgstr "%s gali būti naudojamas tik išbandymo veiksenoje."
 
-#: src/language/command.c:205
+#: src/language/command.c:217
 #, c-format
 msgid "%s may be used only in enhanced syntax mode."
 msgstr "%s gali būti naudojamas tik išplėstoje sintaksės veiksenoje."
 
-#: src/language/command.c:333
+#: src/language/command.c:345
 msgid "expecting command name"
 msgstr "tikėtasi komandos vardo"
 
-#: src/language/command.c:335
+#: src/language/command.c:347
 #, c-format
 msgid "Unknown command `%s'."
 msgstr "Nežinoma komanda „%s“."
 
-#: src/language/command.c:368
+#: src/language/command.c:380
 #, c-format
 msgid "%s is allowed only before the active dataset has been defined."
 msgstr "%s leidžiama tik prieš nurodant veikiamąjį duomenų rinkinį."
 
-#: src/language/command.c:372
+#: src/language/command.c:384
 #, c-format
 msgid "%s is allowed only after the active dataset has been defined."
 msgstr "%s leidžiama tik nurodžius veikiamąjį duomenų rinkinį."
 
-#: src/language/command.c:376
+#: src/language/command.c:388
 #, c-format
 msgid "%s is allowed only inside INPUT PROGRAM."
 msgstr "%s leidžiama tik INPUT PROGRAM viduje."
 
-#: src/language/command.c:380
+#: src/language/command.c:392
 #, c-format
 msgid "%s is allowed only inside FILE TYPE."
 msgstr "%s leidžiama tik FILE TYPE viduje."
 
-#: src/language/command.c:387 src/language/command.c:391
+#: src/language/command.c:399 src/language/command.c:403
 #, c-format
 msgid "%s is allowed only before the active dataset has been defined or inside %s."
 msgstr "%s leidžiama tik prieš nurodant veikiamąjį duomenų rinkinį arba %s viduje."
 
-#: src/language/command.c:395 src/language/command.c:399
+#: src/language/command.c:407 src/language/command.c:411
 #, c-format
 msgid "%s is allowed only after the active dataset has been defined or inside %s."
 msgstr "%s leidžiama tik nurodžius veikiamąjį duomenų rinkinį arba %s viduje."
 
-#: src/language/command.c:403
+#: src/language/command.c:415
 #, c-format
 msgid "%s is allowed only inside INPUT PROGRAM or inside FILE TYPE."
 msgstr "%s leidžiama tik INPUT PROGRAM arba FILE TYPE viduje."
 
-#: src/language/command.c:408
+#: src/language/command.c:420
 #, c-format
 msgid "%s is allowed only after the active dataset has been defined, inside INPUT PROGRAM, or inside FILE TYPE."
 msgstr "%s leidžiama tik nurodžius veikiamąjį duomenų rinkinį, INPUT PROGRAM viduje arba FILE TYPE viduje."
 
-#: src/language/command.c:413
+#: src/language/command.c:425
 #, c-format
 msgid "%s is allowed only before the active dataset has been defined, inside INPUT PROGRAM, or inside FILE TYPE."
 msgstr "%s leidžiama tik prieš nurodant veikiamąjį duomenų rinkinį, INPUT PROGRAM viduje arba FILE TYPE viduje."
 
-#: src/language/command.c:431 src/language/command.c:434
+#: src/language/command.c:443 src/language/command.c:446
 #, c-format
 msgid "%s is not allowed inside %s."
 msgstr "%s neleidžiama %s viduje."
 
-#: src/language/command.c:516 src/language/utilities/host.c:130
+#: src/language/command.c:528 src/language/utilities/host.c:130
 #: src/language/utilities/permissions.c:105
 msgid "This command not allowed when the SAFER option is set."
 msgstr "Ši komanda neleidžiama, jei naudojama parinktis SAFER."
 
-#: src/language/command.c:532
+#: src/language/command.c:544
 #, c-format
 msgid "Error removing `%s': %s."
 msgstr "Nepavyko pašalinti „%s“: %s."
@@ -1239,7 +1240,7 @@ msgid "Syntax error at end of input"
 msgstr "Sintaksės klaida įvedimo pabaigoje"
 
 #: src/language/lexer/lexer.c:419 src/language/xforms/select-if.c:60
-#: src/language/stats/autorecode.c:217 src/language/stats/npar.c:504
+#: src/language/stats/autorecode.c:216 src/language/stats/npar.c:504
 #: src/language/data-io/print-space.c:83
 msgid "expecting end of command"
 msgstr "tikėtasi komandos pabaigos"
@@ -1337,7 +1338,7 @@ msgstr "tikėtasi tinkamo formato nurodymo"
 
 #: src/language/lexer/format-parser.c:116
 #: src/language/lexer/format-parser.c:143 src/language/data-io/data-list.c:439
-#: src/language/data-io/get-data.c:618
+#: src/language/data-io/get-data.c:626
 #: src/language/data-io/placement-parser.c:236
 #, c-format
 msgid "Unknown format type `%s'."
@@ -1474,41 +1475,46 @@ msgstr ""
 msgid "Cannot sample %d observations from a population of %d."
 msgstr ""
 
-#: src/language/xforms/recode.c:255
+#: src/language/xforms/recode.c:261
 msgid "Inconsistent target variable types.  Target variables must be all numeric or all string."
 msgstr ""
 
-#: src/language/xforms/recode.c:276
+#: src/language/xforms/recode.c:282
 msgid "CONVERT requires string input values and numeric output values."
 msgstr "CONVERT komandai reikia tekstinių reikšmių įvestyje ir skaitmeninių reikšmių išvestyje."
 
-#: src/language/xforms/recode.c:333
+#: src/language/xforms/recode.c:339
 msgid "THRU is not allowed with string variables."
 msgstr "THRU: negalima su tekstinės eilutės kintamaisiais."
 
-#: src/language/xforms/recode.c:416
+#: src/language/xforms/recode.c:422
 msgid "expecting output value"
 msgstr "tikėtasi išvedimo reikšmės"
 
-#: src/language/xforms/recode.c:473
+#: src/language/xforms/recode.c:479
 #, c-format
 msgid "%zu variable(s) cannot be recoded into %zu variable(s).  Specify the same number of variables as source and target variables."
 msgstr ""
 
-#: src/language/xforms/recode.c:488
+#: src/language/xforms/recode.c:494
 #, c-format
 msgid "There is no variable named %s.  (All string variables specified on INTO must already exist.  Use the STRING command to create a string variable.)"
 msgstr ""
 
-#: src/language/xforms/recode.c:504
+#: src/language/xforms/recode.c:510
 #, c-format
 msgid "INTO is required with %s input values and %s output values."
 msgstr ""
 
-#: src/language/xforms/recode.c:517
+#: src/language/xforms/recode.c:523
 #, c-format
 msgid "Type mismatch.  Cannot store %s data in %s variable %s."
 msgstr "Netinka tipas. Negalima saugoti %s duomenų %s kintamajame %s."
+
+#: src/language/xforms/recode.c:566
+#, c-format
+msgid "Cannot recode because the variable %s would require a width of %d bytes or greater, but it has a width of only %d bytes."
+msgstr ""
 
 #: src/language/xforms/select-if.c:100
 msgid "Syntax error expecting OFF or BY.  Turning off case filtering."
@@ -1706,8 +1712,7 @@ msgstr ""
 msgid "Multiple Response Sets"
 msgstr ""
 
-#: src/language/dictionary/mrsets.c:548 src/ui/gui/psppire-var-sheet.c:551
-#: src/ui/gui/psppire-var-store.c:773
+#: src/language/dictionary/mrsets.c:548 src/ui/gui/psppire-var-sheet.c:1198
 msgid "Name"
 msgstr "Vardas"
 
@@ -1731,8 +1736,7 @@ msgstr ""
 #: src/language/dictionary/split-file.c:84
 #: src/language/dictionary/sys-file-info.c:336
 #: src/language/dictionary/sys-file-info.c:579
-#: src/ui/gui/psppire-var-sheet.c:555 src/ui/gui/psppire-var-store.c:777
-#: src/ui/gui/compute.ui:479
+#: src/ui/gui/psppire-var-sheet.c:1211 src/ui/gui/compute.ui:479
 msgid "Label"
 msgstr "Etiketė"
 
@@ -1792,9 +1796,9 @@ msgstr "Pervadinama nekartojant kintamojo vardo %s."
 #: src/language/dictionary/sys-file-info.c:425
 #: src/language/dictionary/sys-file-info.c:578
 #: src/language/stats/cochran.c:170 src/language/stats/examine.c:1130
-#: src/language/stats/reliability.c:780 src/language/stats/reliability.c:791
-#: src/language/stats/crosstabs.q:1263 src/language/stats/crosstabs.q:1290
-#: src/language/stats/crosstabs.q:1313 src/language/stats/crosstabs.q:1338
+#: src/language/stats/reliability.c:794 src/language/stats/reliability.c:805
+#: src/language/stats/crosstabs.q:1277 src/language/stats/crosstabs.q:1304
+#: src/language/stats/crosstabs.q:1327 src/language/stats/crosstabs.q:1352
 #: src/language/stats/frequencies.q:826 src/ui/gui/count.ui:244
 msgid "Value"
 msgstr "Reikšmė"
@@ -1871,7 +1875,7 @@ msgid "Type:"
 msgstr "Tipas:"
 
 #: src/language/dictionary/sys-file-info.c:127
-#: src/ui/gui/psppire-data-window.c:516
+#: src/ui/gui/psppire-data-window.c:496
 msgid "System File"
 msgstr "Sisteminė rinkmena"
 
@@ -2205,12 +2209,12 @@ msgstr ""
 msgid "Variable name %s is not unique within the aggregate file dictionary, which contains the aggregate variables and the break variables."
 msgstr ""
 
-#: src/language/stats/autorecode.c:164
+#: src/language/stats/autorecode.c:163
 #, c-format
 msgid "Source variable count (%zu) does not match target variable count (%zu)."
 msgstr "Šaltinio kintamųjų kiekis (%zu) neatitinka paskirties kintamojo kiekio (%zu)."
 
-#: src/language/stats/autorecode.c:176
+#: src/language/stats/autorecode.c:175
 #, c-format
 msgid "Target variable %s duplicates existing variable %s."
 msgstr "Paskirties kintamasis %s dubliuoja esamą kintamąjį %s."
@@ -2235,19 +2239,19 @@ msgstr "Antra grupė"
 #: src/language/stats/binomial.c:219 src/language/stats/chisquare.c:180
 #: src/language/stats/chisquare.c:239 src/language/stats/examine.c:1335
 #: src/language/stats/factor.c:1513 src/language/stats/glm.c:849
-#: src/language/stats/kruskal-wallis.c:325 src/language/stats/logistic.c:1390
-#: src/language/stats/mann-whitney.c:188 src/language/stats/means.c:1057
-#: src/language/stats/oneway.c:993 src/language/stats/oneway.c:1164
-#: src/language/stats/reliability.c:560 src/language/stats/regression.c:863
+#: src/language/stats/kruskal-wallis.c:325 src/language/stats/logistic.c:1409
+#: src/language/stats/mann-whitney.c:188 src/language/stats/means.c:1079
+#: src/language/stats/oneway.c:998 src/language/stats/oneway.c:1169
+#: src/language/stats/reliability.c:574 src/language/stats/regression.c:888
 #: src/language/stats/sign.c:95 src/language/stats/wilcoxon.c:255
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:91
-#: src/language/stats/crosstabs.q:861 src/language/stats/crosstabs.q:1205
-#: src/language/stats/crosstabs.q:1588 src/language/stats/frequencies.q:884
+#: src/language/stats/crosstabs.q:874 src/language/stats/crosstabs.q:1219
+#: src/language/stats/crosstabs.q:1604 src/language/stats/frequencies.q:884
 msgid "Total"
 msgstr "Iš viso"
 
 #: src/language/stats/binomial.c:252 src/language/stats/chisquare.c:202
-#: src/language/stats/crosstabs.q:1288 src/language/stats/crosstabs.q:1335
+#: src/language/stats/crosstabs.q:1302 src/language/stats/crosstabs.q:1349
 msgid "Category"
 msgstr "Kategorija"
 
@@ -2255,17 +2259,17 @@ msgstr "Kategorija"
 #: src/language/stats/correlations.c:120 src/language/stats/correlations.c:229
 #: src/language/stats/examine.c:1340 src/language/stats/friedman.c:275
 #: src/language/stats/kruskal-wallis.c:273
-#: src/language/stats/ks-one-sample.c:293 src/language/stats/logistic.c:1384
+#: src/language/stats/ks-one-sample.c:293 src/language/stats/logistic.c:1403
 #: src/language/stats/jonckheere-terpstra.c:380
 #: src/language/stats/mann-whitney.c:190 src/language/stats/means.c:408
-#: src/language/stats/means.c:1066 src/language/stats/mcnemar.c:259
+#: src/language/stats/means.c:1088 src/language/stats/mcnemar.c:259
 #: src/language/stats/median.c:417 src/language/stats/npar-summary.c:123
-#: src/language/stats/oneway.c:1063 src/language/stats/reliability.c:563
+#: src/language/stats/oneway.c:1068 src/language/stats/reliability.c:577
 #: src/language/stats/sign.c:74 src/language/stats/t-test-indep.c:211
 #: src/language/stats/t-test-one-sample.c:158
 #: src/language/stats/t-test-paired.c:179
 #: src/language/stats/t-test-paired.c:233 src/language/stats/wilcoxon.c:238
-#: src/language/stats/crosstabs.q:868 src/language/stats/frequencies.q:1046
+#: src/language/stats/crosstabs.q:881 src/language/stats/frequencies.q:1046
 msgid "N"
 msgstr "N"
 
@@ -2277,8 +2281,8 @@ msgstr "Stebėta prop."
 msgid "Test Prop."
 msgstr "Kriter. prop."
 
-#: src/language/stats/binomial.c:258 src/language/stats/crosstabs.q:1268
-#: src/language/stats/crosstabs.q:1270
+#: src/language/stats/binomial.c:258 src/language/stats/crosstabs.q:1282
+#: src/language/stats/crosstabs.q:1284
 #, c-format
 msgid "Exact Sig. (%d-tailed)"
 msgstr "Tiksli p-reikšmė (%d-pusė)"
@@ -2297,7 +2301,7 @@ msgid "Expected N"
 msgstr "Prognozuotų N"
 
 #: src/language/stats/chisquare.c:166 src/language/stats/chisquare.c:205
-#: src/language/stats/regression.c:862
+#: src/language/stats/regression.c:887
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:93
 msgid "Residual"
 msgstr "Liekana"
@@ -2324,11 +2328,11 @@ msgstr "Chi kvadratas"
 #: src/language/stats/chisquare.c:267 src/language/stats/cochran.c:217
 #: src/language/stats/factor.c:1880 src/language/stats/friedman.c:285
 #: src/language/stats/glm.c:750 src/language/stats/kruskal-wallis.c:349
-#: src/language/stats/logistic.c:1204 src/language/stats/median.c:426
-#: src/language/stats/oneway.c:970 src/language/stats/oneway.c:1375
-#: src/language/stats/regression.c:856 src/language/stats/t-test-indep.c:291
+#: src/language/stats/logistic.c:1223 src/language/stats/median.c:426
+#: src/language/stats/oneway.c:975 src/language/stats/oneway.c:1380
+#: src/language/stats/regression.c:881 src/language/stats/t-test-indep.c:291
 #: src/language/stats/t-test-one-sample.c:95
-#: src/language/stats/t-test-paired.c:306 src/language/stats/crosstabs.q:1264
+#: src/language/stats/t-test-paired.c:306 src/language/stats/crosstabs.q:1278
 msgid "df"
 msgstr "skirt."
 
@@ -2364,7 +2368,7 @@ msgstr "Aprašomoji statistika"
 #: src/language/stats/correlations.c:118 src/language/stats/descriptives.c:106
 #: src/language/stats/examine.c:886 src/language/stats/factor.c:1806
 #: src/language/stats/ks-one-sample.c:302 src/language/stats/means.c:407
-#: src/language/stats/npar-summary.c:126 src/language/stats/oneway.c:1064
+#: src/language/stats/npar-summary.c:126 src/language/stats/oneway.c:1069
 #: src/language/stats/t-test-indep.c:212
 #: src/language/stats/t-test-one-sample.c:159
 #: src/language/stats/t-test-paired.c:180
@@ -2378,7 +2382,7 @@ msgstr "Vidurkis"
 #: src/language/stats/correlations.c:119 src/language/stats/examine.c:978
 #: src/language/stats/factor.c:1807 src/language/stats/ks-one-sample.c:304
 #: src/language/stats/means.c:409 src/language/stats/npar-summary.c:129
-#: src/language/stats/oneway.c:1065 src/language/stats/t-test-indep.c:213
+#: src/language/stats/oneway.c:1070 src/language/stats/t-test-indep.c:213
 #: src/language/stats/t-test-one-sample.c:160
 #: src/language/stats/t-test-paired.c:181
 #: src/language/stats/t-test-paired.c:309
@@ -2393,7 +2397,7 @@ msgstr "Koreliacijos"
 msgid "Pearson Correlation"
 msgstr "Pirsono koreliacija"
 
-#: src/language/stats/correlations.c:220 src/language/stats/oneway.c:1376
+#: src/language/stats/correlations.c:220 src/language/stats/oneway.c:1381
 #: src/language/stats/t-test-indep.c:292
 #: src/language/stats/t-test-one-sample.c:96
 #: src/language/stats/t-test-paired.c:307
@@ -2413,7 +2417,7 @@ msgid "Covariance"
 msgstr "Kovariacija"
 
 #: src/language/stats/correlations.c:458 src/language/stats/descriptives.c:371
-#: src/language/data-io/list.q:90
+#: src/language/data-io/list.c:167
 msgid "No variables specified."
 msgstr "Nenurodytas joks kintamasis."
 
@@ -2472,7 +2476,7 @@ msgstr "Sritis"
 
 #: src/language/stats/descriptives.c:115 src/language/stats/examine.c:990
 #: src/language/stats/ks-one-sample.c:311
-#: src/language/stats/npar-summary.c:132 src/language/stats/oneway.c:1078
+#: src/language/stats/npar-summary.c:132 src/language/stats/oneway.c:1083
 #: src/ui/gui/psppire-dialog-action-descriptives.c:41
 #: src/ui/gui/psppire-dialog-action-frequencies.c:42
 #: src/language/stats/frequencies.q:118
@@ -2481,7 +2485,7 @@ msgstr "Mažiausia"
 
 #: src/language/stats/descriptives.c:116 src/language/stats/examine.c:1004
 #: src/language/stats/ks-one-sample.c:313
-#: src/language/stats/npar-summary.c:135 src/language/stats/oneway.c:1079
+#: src/language/stats/npar-summary.c:135 src/language/stats/oneway.c:1084
 #: src/ui/gui/psppire-dialog-action-descriptives.c:42
 #: src/ui/gui/psppire-dialog-action-frequencies.c:43
 #: src/language/stats/frequencies.q:119
@@ -2498,46 +2502,50 @@ msgstr "Suma"
 #: src/language/stats/descriptives.c:353
 #, c-format
 msgid "Z-score variable name %s would be a duplicate variable name."
-msgstr ""
+msgstr "Z reikšmių kintamojo vardas %s turi skirtis nuo jau esamų kintamųjų vardų"
 
-#: src/language/stats/descriptives.c:474
+#: src/language/stats/descriptives.c:404
+msgid "DESCRIPTIVES with Z scores ignores TEMPORARY.  Temporary transformations will be made permanent."
+msgstr "DESCRIPTIVES su Z reikšmėmis nepaiso TEMPORARY.  Laikinos transformacijos bus atliekamos kaip ilgalaikės."
+
+#: src/language/stats/descriptives.c:482
 msgid "expecting statistic name: reverting to default"
-msgstr ""
+msgstr "tikėtasi stitistinio vardo: grįžtama prie numatytojo"
 
-#: src/language/stats/descriptives.c:557
+#: src/language/stats/descriptives.c:565
 msgid "Ran out of generic names for Z-score variables.  There are only 126 generic names: ZSC001-ZSC0999, STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."
 msgstr ""
 
-#: src/language/stats/descriptives.c:586
+#: src/language/stats/descriptives.c:594
 msgid "Mapping of variables to corresponding Z-scores."
 msgstr ""
 
-#: src/language/stats/descriptives.c:590 src/language/stats/glm.c:744
+#: src/language/stats/descriptives.c:598 src/language/stats/glm.c:744
 msgid "Source"
 msgstr "Šaltinis"
 
-#: src/language/stats/descriptives.c:591
+#: src/language/stats/descriptives.c:599
 msgid "Target"
 msgstr "Paskirtis"
 
-#: src/language/stats/descriptives.c:643
+#: src/language/stats/descriptives.c:651
 msgid "Internal error processing Z scores"
-msgstr ""
+msgstr "Apdorojant Z reikšmes įvyko vidinė klaida"
 
-#: src/language/stats/descriptives.c:738
+#: src/language/stats/descriptives.c:749
 #, c-format
 msgid "Z-score of %s"
 msgstr "%s z-reikšmė"
 
-#: src/language/stats/descriptives.c:973
+#: src/language/stats/descriptives.c:985
 msgid "Valid N"
 msgstr "Galiojančių N"
 
-#: src/language/stats/descriptives.c:974
+#: src/language/stats/descriptives.c:986
 msgid "Missing N"
 msgstr "Praleistų N"
 
-#: src/language/stats/descriptives.c:1002
+#: src/language/stats/descriptives.c:1014
 #, c-format
 msgid "Valid cases = %g; cases with missing value(s) = %g."
 msgstr "Galiojančių atvejai = %g; atvejų su praleistomis reikšmėmis = %g."
@@ -2583,35 +2591,35 @@ msgstr "%g"
 msgid "Tukey's Hinges"
 msgstr ""
 
-#: src/language/stats/examine.c:787 src/language/stats/oneway.c:1081
+#: src/language/stats/examine.c:787 src/language/stats/oneway.c:1086
 #: src/ui/gui/descriptives.ui:8
 msgid "Descriptives"
 msgstr "Aprašomoji"
 
 #: src/language/stats/examine.c:804 src/ui/gui/checkbox-treeview.c:94
-#: src/language/stats/crosstabs.q:1262 src/language/stats/crosstabs.q:1289
-#: src/language/stats/crosstabs.q:1312 src/language/stats/crosstabs.q:1336
+#: src/language/stats/crosstabs.q:1276 src/language/stats/crosstabs.q:1303
+#: src/language/stats/crosstabs.q:1326 src/language/stats/crosstabs.q:1350
 msgid "Statistic"
 msgstr "Statistika"
 
-#: src/language/stats/examine.c:807 src/language/stats/oneway.c:1066
-#: src/language/stats/oneway.c:1373 src/language/stats/oneway.c:1578
-#: src/language/stats/roc.c:975 src/language/stats/regression.c:770
+#: src/language/stats/examine.c:807 src/language/stats/oneway.c:1071
+#: src/language/stats/oneway.c:1378 src/language/stats/oneway.c:1583
+#: src/language/stats/roc.c:978 src/language/stats/regression.c:792
 msgid "Std. Error"
 msgstr "Std. paklaida"
 
-#: src/language/stats/examine.c:903 src/language/stats/oneway.c:1072
+#: src/language/stats/examine.c:903 src/language/stats/oneway.c:1077
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr "%g%% pasikliautinasis intervalas vidurkiams"
 
-#: src/language/stats/examine.c:911 src/language/stats/oneway.c:1075
-#: src/language/stats/oneway.c:1585 src/language/stats/roc.c:978
+#: src/language/stats/examine.c:911 src/language/stats/oneway.c:1080
+#: src/language/stats/oneway.c:1590 src/language/stats/roc.c:981
 msgid "Lower Bound"
 msgstr "Apačia"
 
-#: src/language/stats/examine.c:924 src/language/stats/oneway.c:1076
-#: src/language/stats/oneway.c:1586 src/language/stats/roc.c:979
+#: src/language/stats/examine.c:924 src/language/stats/oneway.c:1081
+#: src/language/stats/oneway.c:1591 src/language/stats/roc.c:982
 msgid "Upper Bound"
 msgstr "Viršus"
 
@@ -2634,7 +2642,7 @@ msgstr "Intervalas tarp kvartilių"
 msgid "Extreme Values"
 msgstr "Išskirčių reikšmės"
 
-#: src/language/stats/examine.c:1127 src/language/data-io/list.q:157
+#: src/language/stats/examine.c:1127 src/language/data-io/list.c:114
 msgid "Case Number"
 msgstr "Atvejo numeris"
 
@@ -2646,44 +2654,43 @@ msgstr "Didžiausia"
 msgid "Lowest"
 msgstr "Mažiausia"
 
-#: src/language/stats/examine.c:1305 src/language/stats/logistic.c:1374
-#: src/language/stats/means.c:1042 src/language/stats/reliability.c:528
+#: src/language/stats/examine.c:1305 src/language/stats/logistic.c:1393
+#: src/language/stats/means.c:1064 src/language/stats/reliability.c:542
 msgid "Case Processing Summary"
 msgstr "Atvejų apdorojimo santrauka"
 
-#: src/language/stats/examine.c:1321 src/language/stats/means.c:1053
-#: src/language/stats/reliability.c:551 src/language/stats/crosstabs.q:858
+#: src/language/stats/examine.c:1321 src/language/stats/means.c:1075
+#: src/language/stats/reliability.c:565 src/language/stats/crosstabs.q:871
 msgid "Cases"
 msgstr "Atvejų"
 
 #: src/language/stats/examine.c:1325 src/language/stats/quick-cluster.c:475
-#: src/language/stats/reliability.c:554 src/language/stats/crosstabs.q:859
+#: src/language/stats/reliability.c:568 src/language/stats/crosstabs.q:872
 #: src/language/stats/frequencies.q:1047
 msgid "Valid"
 msgstr "Galiojančių"
 
-#: src/language/stats/examine.c:1330 src/ui/gui/psppire-var-sheet.c:557
-#: src/ui/gui/psppire-var-store.c:779 src/language/stats/crosstabs.q:860
+#: src/language/stats/examine.c:1330 src/language/stats/crosstabs.q:873
 #: src/language/stats/frequencies.q:877 src/language/stats/frequencies.q:1048
 msgid "Missing"
 msgstr "Praleista"
 
-#: src/language/stats/examine.c:1342 src/language/stats/logistic.c:1385
-#: src/language/stats/means.c:1068 src/language/stats/crosstabs.q:869
+#: src/language/stats/examine.c:1342 src/language/stats/logistic.c:1404
+#: src/language/stats/means.c:1090 src/language/stats/crosstabs.q:882
 #: src/language/stats/frequencies.q:828
 msgid "Percent"
 msgstr "Procentai"
 
-#: src/language/stats/examine.c:1982
+#: src/language/stats/examine.c:1980
 #, c-format
 msgid "%s may not be negative. Using default value (%g)."
 msgstr "%s negali būti neigiamas. Naudosima numatytoji reikšmė (%g)."
 
-#: src/language/stats/examine.c:2019
+#: src/language/stats/examine.c:2017
 msgid "Percentiles must lie in the range (0, 100)"
 msgstr "Procentiliai turi būti (0, 100) intervale"
 
-#: src/language/stats/examine.c:2213
+#: src/language/stats/examine.c:2211
 #, c-format
 msgid "%s and %s are mutually exclusive"
 msgstr ""
@@ -2720,9 +2727,7 @@ msgstr "Komponentė"
 msgid "Factor"
 msgstr "Faktorius"
 
-#: src/language/stats/factor.c:1398 src/ui/gui/psppire-data-store.c:755
-#: src/ui/gui/psppire-var-store.c:635 src/ui/gui/psppire-var-store.c:645
-#: src/ui/gui/psppire-var-store.c:655 src/ui/gui/psppire-var-store.c:766
+#: src/language/stats/factor.c:1398
 #, c-format
 msgid "%d"
 msgstr "%d"
@@ -2790,7 +2795,7 @@ msgid "Approx. Chi-Square"
 msgstr "Apytiksl. Chi-kvadratas"
 
 #: src/language/stats/factor.c:1881 src/language/stats/glm.c:753
-#: src/language/stats/logistic.c:1205 src/language/stats/oneway.c:1579
+#: src/language/stats/logistic.c:1224 src/language/stats/oneway.c:1584
 #: src/language/stats/t-test-indep.c:289
 #: src/language/stats/t-test-paired.c:235
 msgid "Sig."
@@ -2820,7 +2825,7 @@ msgstr "Pasukta komponenčių matrica"
 msgid "Rotated Factor Matrix"
 msgstr "Pasukta faktorių matrica"
 
-#: src/language/stats/flip.c:99
+#: src/language/stats/flip.c:100
 msgid "FLIP ignores TEMPORARY.  Temporary transformations will be made permanent."
 msgstr "FLIP nepaiso TEMPORARY.  Laikinos transformacijos bus atliekamos kaip ilgalaikės."
 
@@ -2828,45 +2833,45 @@ msgstr "FLIP nepaiso TEMPORARY.  Laikinos transformacijos bus atliekamos kaip il
 msgid "Could not create temporary file for FLIP."
 msgstr "FLIP komandai nepavyksta sukurti laikinosios rinkmenos."
 
-#: src/language/stats/flip.c:326
+#: src/language/stats/flip.c:333
 #, c-format
 msgid "Error rewinding FLIP file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:333
+#: src/language/stats/flip.c:340
 msgid "Error creating FLIP source file."
 msgstr "Klaida kuriant FLIP šaltinio rinkmeną."
 
-#: src/language/stats/flip.c:346
+#: src/language/stats/flip.c:353
 #, c-format
 msgid "Error reading FLIP file: %s."
 msgstr "klaida skaitant FLIP rinkmeną: %s."
 
-#: src/language/stats/flip.c:348
+#: src/language/stats/flip.c:355
 msgid "Unexpected end of file reading FLIP file."
 msgstr "Netikėta skaitomos FLIP rinkmenos pabaiga."
 
-#: src/language/stats/flip.c:364
+#: src/language/stats/flip.c:371
 #, c-format
 msgid "Error seeking FLIP source file: %s."
 msgstr "Klaida ieškant FLIP šaltinio rinkmenos: %s."
 
-#: src/language/stats/flip.c:372
+#: src/language/stats/flip.c:379
 #, c-format
 msgid "Error writing FLIP source file: %s."
 msgstr "Klaida rašant FLIP šaltinio rinkmenos: %s."
 
-#: src/language/stats/flip.c:387
+#: src/language/stats/flip.c:394
 #, c-format
 msgid "Error rewinding FLIP source file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:420
+#: src/language/stats/flip.c:425
 #, c-format
 msgid "Error reading FLIP temporary file: %s."
 msgstr "Klaida skaitant FLIP laikinąją rinkmeną: %s."
 
-#: src/language/stats/flip.c:423
+#: src/language/stats/flip.c:428
 msgid "Unexpected end of file reading FLIP temporary file."
 msgstr "netikėta skaitomos FLIP laikinosios rinkmenos pabaiga."
 
@@ -2901,13 +2906,13 @@ msgstr ""
 msgid "Type %s Sum of Squares"
 msgstr "%s tipo kvadratų suma"
 
-#: src/language/stats/glm.c:751 src/language/stats/oneway.c:971
-#: src/language/stats/regression.c:857
+#: src/language/stats/glm.c:751 src/language/stats/oneway.c:976
+#: src/language/stats/regression.c:882
 msgid "Mean Square"
 msgstr "Vidutinis kvadratas"
 
-#: src/language/stats/glm.c:752 src/language/stats/oneway.c:972
-#: src/language/stats/regression.c:858 src/language/stats/t-test-indep.c:288
+#: src/language/stats/glm.c:752 src/language/stats/oneway.c:977
+#: src/language/stats/regression.c:883 src/language/stats/t-test-indep.c:288
 msgid "F"
 msgstr "F"
 
@@ -2915,7 +2920,7 @@ msgstr "F"
 msgid "Corrected Model"
 msgstr "Koreguotas modelis"
 
-#: src/language/stats/glm.c:763 src/language/stats/regression.c:910
+#: src/language/stats/glm.c:763 src/language/stats/regression.c:935
 msgid "Model"
 msgstr "Modelis"
 
@@ -2949,7 +2954,7 @@ msgstr "Puasono parametrai"
 
 #: src/language/stats/ks-one-sample.c:320
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:74
-#: src/language/stats/crosstabs.q:1972
+#: src/language/stats/crosstabs.q:1988
 msgid "Lambda"
 msgstr "Liambda"
 
@@ -2965,11 +2970,11 @@ msgstr "Didžiausi skirtumai"
 msgid "Absolute"
 msgstr "Absoliutus"
 
-#: src/language/stats/ks-one-sample.c:390 src/language/stats/roc.c:1076
+#: src/language/stats/ks-one-sample.c:390 src/language/stats/roc.c:1079
 msgid "Positive"
 msgstr "Teigiamų"
 
-#: src/language/stats/ks-one-sample.c:393 src/language/stats/roc.c:1077
+#: src/language/stats/ks-one-sample.c:393 src/language/stats/roc.c:1080
 msgid "Negative"
 msgstr "Neigiamų"
 
@@ -2980,7 +2985,7 @@ msgstr "Kolmogorovo ir Smirnovo Z"
 #: src/language/stats/ks-one-sample.c:399
 #: src/language/stats/jonckheere-terpstra.c:385
 #: src/language/stats/mann-whitney.c:267 src/language/stats/runs.c:399
-#: src/language/stats/wilcoxon.c:318 src/language/stats/crosstabs.q:1266
+#: src/language/stats/wilcoxon.c:318 src/language/stats/crosstabs.q:1280
 msgid "Asymp. Sig. (2-tailed)"
 msgstr "Asimp. p-reikšmė (2-pusė)"
 
@@ -2992,153 +2997,153 @@ msgstr ""
 msgid "Dependent variable's values are not dichotomous."
 msgstr "Priklausomo kintamojo reikšmės nėra dvireikšmės"
 
-#: src/language/stats/logistic.c:612
+#: src/language/stats/logistic.c:614
 #, c-format
 msgid "Category %s does not have at least two distinct values. Logistic regression will not be run."
 msgstr ""
 
-#: src/language/stats/logistic.c:672
+#: src/language/stats/logistic.c:674
 #, c-format
 msgid "Estimation terminated at iteration number %d because parameter estimates changed by less than %g"
 msgstr ""
 
-#: src/language/stats/logistic.c:684
+#: src/language/stats/logistic.c:686
 #, c-format
 msgid "Estimation terminated at iteration number %d because Log Likelihood decreased by less than %g%%"
 msgstr ""
 
-#: src/language/stats/logistic.c:699
+#: src/language/stats/logistic.c:701
 #, c-format
 msgid "Estimation terminated at iteration number %d because maximum iterations has been reached"
 msgstr ""
 
-#: src/language/stats/logistic.c:984
+#: src/language/stats/logistic.c:995
 msgid "Cut point value must be in the range [0,1]"
 msgstr ""
 
-#: src/language/stats/logistic.c:1129
+#: src/language/stats/logistic.c:1148
 msgid "Dependent Variable Encoding"
 msgstr "Priklausomo kintamojo kodavimas"
 
-#: src/language/stats/logistic.c:1138
+#: src/language/stats/logistic.c:1157
 msgid "Original Value"
 msgstr "Pradinė reikšmė"
 
-#: src/language/stats/logistic.c:1139
+#: src/language/stats/logistic.c:1158
 msgid "Internal Value"
 msgstr "Vidinė reikšmė"
 
-#: src/language/stats/logistic.c:1190
+#: src/language/stats/logistic.c:1209
 msgid "Variables in the Equation"
 msgstr "Lygties kintamieji"
 
-#: src/language/stats/logistic.c:1199 src/language/stats/logistic.c:1345
-#: src/language/stats/logistic.c:1540
+#: src/language/stats/logistic.c:1218 src/language/stats/logistic.c:1364
+#: src/language/stats/logistic.c:1559
 msgid "Step 1"
 msgstr "1-as žingsnis"
 
-#: src/language/stats/logistic.c:1201 src/language/stats/regression.c:769
+#: src/language/stats/logistic.c:1220 src/language/stats/regression.c:791
 msgid "B"
 msgstr "B"
 
-#: src/language/stats/logistic.c:1202
+#: src/language/stats/logistic.c:1221
 msgid "S.E."
 msgstr ""
 
-#: src/language/stats/logistic.c:1203
+#: src/language/stats/logistic.c:1222
 msgid "Wald"
 msgstr ""
 
-#: src/language/stats/logistic.c:1206
+#: src/language/stats/logistic.c:1225
 msgid "Exp(B)"
 msgstr ""
 
-#: src/language/stats/logistic.c:1211
+#: src/language/stats/logistic.c:1230
 #, c-format
 msgid "%d%% CI for Exp(B)"
 msgstr ""
 
-#: src/language/stats/logistic.c:1213 src/language/stats/t-test-indep.c:295
+#: src/language/stats/logistic.c:1232 src/language/stats/t-test-indep.c:295
 #: src/language/stats/t-test-one-sample.c:98
-#: src/language/stats/t-test-paired.c:312 src/language/stats/crosstabs.q:1314
+#: src/language/stats/t-test-paired.c:312 src/language/stats/crosstabs.q:1328
 msgid "Lower"
 msgstr "Apačia"
 
-#: src/language/stats/logistic.c:1214 src/language/stats/t-test-indep.c:296
+#: src/language/stats/logistic.c:1233 src/language/stats/t-test-indep.c:296
 #: src/language/stats/t-test-one-sample.c:99
-#: src/language/stats/t-test-paired.c:313 src/language/stats/crosstabs.q:1315
+#: src/language/stats/t-test-paired.c:313 src/language/stats/crosstabs.q:1329
 msgid "Upper"
 msgstr "Viršus"
 
-#: src/language/stats/logistic.c:1291
+#: src/language/stats/logistic.c:1310
 msgid "Constant"
 msgstr "Konstanta"
 
-#: src/language/stats/logistic.c:1336
+#: src/language/stats/logistic.c:1355
 msgid "Model Summary"
 msgstr "Modelio santrauka"
 
-#: src/language/stats/logistic.c:1346
+#: src/language/stats/logistic.c:1365
 msgid "-2 Log likelihood"
 msgstr ""
 
-#: src/language/stats/logistic.c:1350
+#: src/language/stats/logistic.c:1369
 msgid "Cox & Snell R Square"
 msgstr ""
 
-#: src/language/stats/logistic.c:1354
+#: src/language/stats/logistic.c:1373
 msgid "Nagelkerke R Square"
 msgstr ""
 
-#: src/language/stats/logistic.c:1383
+#: src/language/stats/logistic.c:1402
 msgid "Unweighted Cases"
 msgstr "Nesveriami atvejai"
 
-#: src/language/stats/logistic.c:1388
+#: src/language/stats/logistic.c:1407
 msgid "Included in Analysis"
 msgstr "Į analizę įtraukta"
 
-#: src/language/stats/logistic.c:1389
+#: src/language/stats/logistic.c:1408
 msgid "Missing Cases"
 msgstr "Praleisti atvejai"
 
-#: src/language/stats/logistic.c:1438
+#: src/language/stats/logistic.c:1457
 msgid "Categorical Variables' Codings"
 msgstr "Kategorinių kintamųjų kodavimas"
 
-#: src/language/stats/logistic.c:1448 src/output/charts/plot-hist-cairo.c:119
+#: src/language/stats/logistic.c:1467 src/output/charts/plot-hist-cairo.c:119
 #: src/language/stats/frequencies.q:827
 msgid "Frequency"
 msgstr "Dažnis"
 
-#: src/language/stats/logistic.c:1451
+#: src/language/stats/logistic.c:1470
 msgid "Parameter coding"
 msgstr "Parametrų kodavimas"
 
-#: src/language/stats/logistic.c:1457
+#: src/language/stats/logistic.c:1476
 #, c-format
 msgid "(%d)"
 msgstr "(%d)"
 
-#: src/language/stats/logistic.c:1530
+#: src/language/stats/logistic.c:1549
 msgid "Classification Table"
 msgstr "Klasifikacinė lentelė"
 
-#: src/language/stats/logistic.c:1544
+#: src/language/stats/logistic.c:1563
 msgid "Predicted"
 msgstr "Prognozuota"
 
-#: src/language/stats/logistic.c:1550
+#: src/language/stats/logistic.c:1569
 msgid "Observed"
 msgstr "Stebėtų"
 
-#: src/language/stats/logistic.c:1556
+#: src/language/stats/logistic.c:1575
 msgid ""
 "Percentage\n"
 "Correct"
 msgstr ""
 
-#: src/language/stats/logistic.c:1560
+#: src/language/stats/logistic.c:1579
 msgid "Overall Percentage"
 msgstr ""
 
@@ -3230,21 +3235,21 @@ msgstr "Harmoninis vidurkis"
 msgid "Geom. Mean"
 msgstr "Geom. vidurkis"
 
-#: src/language/stats/means.c:1055
+#: src/language/stats/means.c:1077
 msgid "Included"
 msgstr "Įtrauktų"
 
-#: src/language/stats/means.c:1056 src/language/stats/reliability.c:557
+#: src/language/stats/means.c:1078 src/language/stats/reliability.c:571
 msgid "Excluded"
 msgstr "Atmestų"
 
-#: src/language/stats/means.c:1098 src/language/stats/means.c:1107
-#: src/language/stats/means.c:1116
+#: src/language/stats/means.c:1120 src/language/stats/means.c:1129
+#: src/language/stats/means.c:1138
 #, c-format
 msgid "%g%%"
 msgstr "%g%%"
 
-#: src/language/stats/means.c:1148
+#: src/language/stats/means.c:1170
 msgid "Report"
 msgstr "Ataskaita"
 
@@ -3300,142 +3305,143 @@ msgstr "50-asis (mediana)"
 msgid "75th"
 msgstr "75-asis"
 
-#: src/language/stats/oneway.c:358
+#: src/language/stats/oneway.c:359
 msgid "LSD"
 msgstr "LSD"
 
-#: src/language/stats/oneway.c:359
+#: src/language/stats/oneway.c:360
 msgid "Tukey HSD"
 msgstr "Tjukio HSD"
 
-#: src/language/stats/oneway.c:360
+#: src/language/stats/oneway.c:361
 msgid "Bonferroni"
 msgstr "Bonferroni"
 
-#: src/language/stats/oneway.c:361
+#: src/language/stats/oneway.c:362
 msgid "Scheffé"
 msgstr "Šefė"
 
-#: src/language/stats/oneway.c:362
+#: src/language/stats/oneway.c:363
 msgid "Games-Howell"
 msgstr "Games-Howell"
 
-#: src/language/stats/oneway.c:363
+#: src/language/stats/oneway.c:364
 msgid "Šidák"
 msgstr "Šidák"
 
-#: src/language/stats/oneway.c:511
+#: src/language/stats/oneway.c:512
 #, c-format
 msgid "The post hoc analysis method %s is not supported."
 msgstr "Post hoc analizės medotas %s nepalaikomas."
 
-#: src/language/stats/oneway.c:826
+#: src/language/stats/oneway.c:827
 #, c-format
 msgid "Dependent variable %s has no non-missing values.  No analysis for this variable will be done."
 msgstr ""
 
-#: src/language/stats/oneway.c:904
+#: src/language/stats/oneway.c:909
 #, c-format
 msgid "In contrast list %zu, the number of coefficients (%zu) does not equal the number of groups (%d). This contrast list will be ignored."
 msgstr "Kontrastų sąraše %zu koeficientų skaičius (%zu) nelygus grupių skaičiui (%d). Todėl šio kontrastų sąrašo nepaisoma."
 
-#: src/language/stats/oneway.c:916
+#: src/language/stats/oneway.c:921
 #, c-format
 msgid "Coefficients for contrast %zu do not total zero"
 msgstr "Kontrastų sąrašo Nr. %zu suma koeficientų suma nelygi nuliui"
 
-#: src/language/stats/oneway.c:969 src/language/stats/regression.c:855
+#: src/language/stats/oneway.c:974 src/language/stats/regression.c:880
 msgid "Sum of Squares"
 msgstr "Kvadratų suma"
 
-#: src/language/stats/oneway.c:973 src/language/stats/oneway.c:1220
-#: src/language/stats/regression.c:773 src/language/stats/regression.c:859
+#: src/language/stats/oneway.c:978 src/language/stats/oneway.c:1225
+#: src/language/stats/regression.c:795 src/language/stats/regression.c:884
 msgid "Significance"
 msgstr "Reikšmingumas"
 
-#: src/language/stats/oneway.c:991
+#: src/language/stats/oneway.c:996
 msgid "Between Groups"
 msgstr "Tarp grupių"
 
-#: src/language/stats/oneway.c:992
+#: src/language/stats/oneway.c:997
 msgid "Within Groups"
 msgstr "Vidinė"
 
-#: src/language/stats/oneway.c:1025
+#: src/language/stats/oneway.c:1030
 msgid "ANOVA"
 msgstr "ANOVA"
 
-#: src/language/stats/oneway.c:1217
+#: src/language/stats/oneway.c:1222
 msgid "Levene Statistic"
 msgstr "Statistika (Levene)"
 
-#: src/language/stats/oneway.c:1218
+#: src/language/stats/oneway.c:1223
 msgid "df1"
 msgstr "skirt1"
 
-#: src/language/stats/oneway.c:1219
+#: src/language/stats/oneway.c:1224
 msgid "df2"
 msgstr "skirt2"
 
-#: src/language/stats/oneway.c:1222
+#: src/language/stats/oneway.c:1227
 msgid "Test of Homogeneity of Variances"
 msgstr "Dispersijų homogeniškumo kriterijus"
 
-#: src/language/stats/oneway.c:1295
+#: src/language/stats/oneway.c:1300
 msgid "Contrast Coefficients"
 msgstr "Kontrastų koeficientai"
 
-#: src/language/stats/oneway.c:1297 src/language/stats/oneway.c:1371
+#: src/language/stats/oneway.c:1302 src/language/stats/oneway.c:1376
 msgid "Contrast"
 msgstr "Kontrastas"
 
-#: src/language/stats/oneway.c:1369
+#: src/language/stats/oneway.c:1374
 msgid "Contrast Tests"
 msgstr "Kontrastų kriterijus"
 
-#: src/language/stats/oneway.c:1372
+#: src/language/stats/oneway.c:1377
 msgid "Value of Contrast"
 msgstr "Kontrasto reikšmė"
 
-#: src/language/stats/oneway.c:1374 src/language/stats/regression.c:772
+#: src/language/stats/oneway.c:1379 src/language/stats/regression.c:794
 #: src/language/stats/t-test-indep.c:290
 #: src/language/stats/t-test-one-sample.c:94
 #: src/language/stats/t-test-paired.c:305
 msgid "t"
 msgstr "t"
 
-#: src/language/stats/oneway.c:1426
+#: src/language/stats/oneway.c:1431
 msgid "Assume equal variances"
 msgstr "Manant, kas dispersijos yra lygios"
 
-#: src/language/stats/oneway.c:1430
+#: src/language/stats/oneway.c:1435
 msgid "Does not assume equal"
 msgstr "Nemanant, kad lygios"
 
-#: src/language/stats/oneway.c:1572
-msgid "Multiple Comparisons"
-msgstr "Kartotiniai palyginimai"
+#: src/language/stats/oneway.c:1577
+#, c-format
+msgid "Multiple Comparisons (%s)"
+msgstr "Kartotiniai palyginimai (%s)"
 
-#: src/language/stats/oneway.c:1574
+#: src/language/stats/oneway.c:1579
 #, c-format
 msgid "(I) %s"
 msgstr ""
 
-#: src/language/stats/oneway.c:1575
+#: src/language/stats/oneway.c:1580
 #, c-format
 msgid "(J) %s"
 msgstr ""
 
-#: src/language/stats/oneway.c:1576 src/language/stats/t-test-indep.c:293
+#: src/language/stats/oneway.c:1581 src/language/stats/t-test-indep.c:293
 #: src/language/stats/t-test-one-sample.c:97
 msgid "Mean Difference"
 msgstr "Vidurkių skirtumas"
 
-#: src/language/stats/oneway.c:1577
+#: src/language/stats/oneway.c:1582
 msgid "(I - J)"
 msgstr ""
 
-#: src/language/stats/oneway.c:1582
+#: src/language/stats/oneway.c:1587
 #, c-format
 msgid "%g%% Confidence Interval"
 msgstr "%g%% pasikliautinasis intervalas"
@@ -3514,212 +3520,216 @@ msgstr "%s į %s (%s iš %s naudojant %s)"
 msgid "%s into %s(%s of %s)"
 msgstr "%s į %s (%s iš %s)"
 
-#: src/language/stats/reliability.c:163
+#: src/language/stats/reliability.c:164
 msgid "Reliability on a single variable is not useful."
 msgstr "Klausimynų patikimumo skaičiavimas remiantis vienu kintamuoju nėra naudingas."
 
-#: src/language/stats/reliability.c:290
+#: src/language/stats/reliability.c:291
 msgid "The split point must be less than the number of variables"
 msgstr "Skaidant kintamųjų skaičius pirmoje dalyje negali būti didesnis nei visų kintamųjų skaičius"
 
-#: src/language/stats/reliability.c:502
+#: src/language/stats/reliability.c:516
 #, c-format
 msgid "Scale: %s"
 msgstr "Skalė: %s"
 
-#: src/language/stats/reliability.c:565 src/ui/gui/logistic.ui:288
+#: src/language/stats/reliability.c:579 src/ui/gui/logistic.ui:288
 msgid "%"
 msgstr "%"
 
-#: src/language/stats/reliability.c:610
+#: src/language/stats/reliability.c:624
 msgid "Item-Total Statistics"
 msgstr "„Elementas-visuma“ statistika"
 
-#: src/language/stats/reliability.c:632
+#: src/language/stats/reliability.c:646
 msgid "Scale Mean if Item Deleted"
 msgstr "Klausimyno vidurkis, jei elementas pašalintas"
 
-#: src/language/stats/reliability.c:635
+#: src/language/stats/reliability.c:649
 msgid "Scale Variance if Item Deleted"
 msgstr "Klausimyno dispersija, jei elementas pašalintas"
 
-#: src/language/stats/reliability.c:638
+#: src/language/stats/reliability.c:652
 msgid "Corrected Item-Total Correlation"
 msgstr "Koreguota „elementas-visuma“ koreliacija"
 
-#: src/language/stats/reliability.c:641
+#: src/language/stats/reliability.c:655
 msgid "Cronbach's Alpha if Item Deleted"
 msgstr "Kronbacho alfa, jei elementas pašalintas"
 
-#: src/language/stats/reliability.c:715
+#: src/language/stats/reliability.c:729
 msgid "Reliability Statistics"
 msgstr "Klausimynų patikimumo statistika"
 
-#: src/language/stats/reliability.c:755 src/language/stats/reliability.c:774
+#: src/language/stats/reliability.c:769 src/language/stats/reliability.c:788
 msgid "Cronbach's Alpha"
 msgstr "Kronbacho alfa"
 
-#: src/language/stats/reliability.c:758 src/language/stats/reliability.c:783
-#: src/language/stats/reliability.c:794
+#: src/language/stats/reliability.c:772 src/language/stats/reliability.c:797
+#: src/language/stats/reliability.c:808
 msgid "N of Items"
 msgstr "N elementų"
 
-#: src/language/stats/reliability.c:777
+#: src/language/stats/reliability.c:791
 msgid "Part 1"
 msgstr "1 dalis"
 
-#: src/language/stats/reliability.c:788
+#: src/language/stats/reliability.c:802
 msgid "Part 2"
 msgstr "2 dalis"
 
-#: src/language/stats/reliability.c:799
+#: src/language/stats/reliability.c:813
 msgid "Total N of Items"
 msgstr "Iš viso N elementų"
 
-#: src/language/stats/reliability.c:802
+#: src/language/stats/reliability.c:816
 msgid "Correlation Between Forms"
 msgstr "Koreliacija tarp formų"
 
-#: src/language/stats/reliability.c:806
+#: src/language/stats/reliability.c:820
 msgid "Spearman-Brown Coefficient"
 msgstr "Spirmeno ir Brauno koeficientas"
 
-#: src/language/stats/reliability.c:809
+#: src/language/stats/reliability.c:823
 msgid "Equal Length"
 msgstr "Vienodas ilgis"
 
-#: src/language/stats/reliability.c:812
+#: src/language/stats/reliability.c:826
 msgid "Unequal Length"
 msgstr "Nevienodas ilgis"
 
-#: src/language/stats/reliability.c:816
+#: src/language/stats/reliability.c:830
 msgid "Guttman Split-Half Coefficient"
 msgstr "Gutmano dalinimo pusiau koeficientas"
 
-#: src/language/stats/roc.c:955
+#: src/language/stats/roc.c:958
 msgid "Area Under the Curve"
 msgstr "Plotas po kreive"
 
-#: src/language/stats/roc.c:957
+#: src/language/stats/roc.c:960
 #, c-format
 msgid "Area Under the Curve (%s)"
 msgstr "Plotas po kreive (%s)"
 
-#: src/language/stats/roc.c:962
+#: src/language/stats/roc.c:965
 msgid "Area"
 msgstr "Plotas"
 
-#: src/language/stats/roc.c:976
+#: src/language/stats/roc.c:979
 msgid "Asymptotic Sig."
 msgstr "Asimptotinė p-reikšmė"
 
-#: src/language/stats/roc.c:983
+#: src/language/stats/roc.c:986
 #, c-format
 msgid "Asymp. %g%% Confidence Interval"
 msgstr "Asimp. %g%% pasikliautinasis intervalas"
 
-#: src/language/stats/roc.c:989
+#: src/language/stats/roc.c:992
 msgid "Variable under test"
 msgstr "Kriterijaus kintamasis"
 
-#: src/language/stats/roc.c:1048
+#: src/language/stats/roc.c:1051
 msgid "Case Summary"
 msgstr "Atvejų suvestinė"
 
-#: src/language/stats/roc.c:1068
+#: src/language/stats/roc.c:1071
 msgid "Unweighted"
 msgstr "Nesverta"
 
-#: src/language/stats/roc.c:1069
+#: src/language/stats/roc.c:1072
 msgid "Weighted"
 msgstr "Sverta"
 
-#: src/language/stats/roc.c:1073
+#: src/language/stats/roc.c:1076
 msgid "Valid N (listwise)"
 msgstr "Galiojančių N (visuose)"
 
-#: src/language/stats/roc.c:1105
+#: src/language/stats/roc.c:1108
 msgid "Coordinates of the Curve"
 msgstr "Kreivės koordinatės"
 
-#: src/language/stats/roc.c:1107
+#: src/language/stats/roc.c:1110
 #, c-format
 msgid "Coordinates of the Curve (%s)"
 msgstr "Kreivės (%s) koordinatės"
 
-#: src/language/stats/roc.c:1115
+#: src/language/stats/roc.c:1118
 msgid "Test variable"
 msgstr "Kriterijaus kintamasis"
 
-#: src/language/stats/roc.c:1117
+#: src/language/stats/roc.c:1120
 msgid "Positive if greater than or equal to"
 msgstr "Teigiamas, jei didesnis arba lygus"
 
-#: src/language/stats/roc.c:1118 src/output/charts/roc-chart-cairo.c:38
+#: src/language/stats/roc.c:1121 src/output/charts/roc-chart-cairo.c:38
 msgid "Sensitivity"
 msgstr "Jautrumas"
 
-#: src/language/stats/roc.c:1119 src/output/charts/roc-chart-cairo.c:37
+#: src/language/stats/roc.c:1122 src/output/charts/roc-chart-cairo.c:37
 msgid "1 - Specificity"
 msgstr "1 - specifiškumas"
 
-#: src/language/stats/regression.c:506
+#: src/language/stats/regression.c:346
+msgid "REGRESSION with SAVE ignores TEMPORARY.  Temporary transformations will be made permanent."
+msgstr "REGRESSION su SAVE nepaiso TEMPORARY.  Laikinos transformacijos bus atliekamos kaip ilgalaikės."
+
+#: src/language/stats/regression.c:481
 msgid "The dependent variable is equal to the independent variable.The least squares line is therefore Y=X.Standard errors and related statistics may be meaningless."
 msgstr "Priklausomas kintamasis lygus nepriklausomam kintamajam. Todėl mažiausiųjų kvadratų linija yra Y=X. Standartinė paklaida ir kita statistika gali būti beprasmiška."
 
-#: src/language/stats/regression.c:688
+#: src/language/stats/regression.c:665
 msgid "No valid data found. This command was skipped."
 msgstr "Nerasta tinkamų duomenų. Ši komanda buvo praleista."
 
-#: src/language/stats/regression.c:727
+#: src/language/stats/regression.c:750
 #: src/ui/gui/psppire-dialog-action-regression.c:41
 msgid "R"
 msgstr "R"
 
-#: src/language/stats/regression.c:728
+#: src/language/stats/regression.c:751
 msgid "R Square"
 msgstr "R kvadratas"
 
-#: src/language/stats/regression.c:729
+#: src/language/stats/regression.c:752
 msgid "Adjusted R Square"
 msgstr "Koreguotas R kvadratas"
 
-#: src/language/stats/regression.c:730
+#: src/language/stats/regression.c:753
 msgid "Std. Error of the Estimate"
 msgstr "Įverčio std. paklaida"
 
-#: src/language/stats/regression.c:735
+#: src/language/stats/regression.c:758
 #, c-format
 msgid "Model Summary (%s)"
 msgstr "Modelio santrauka (%s)"
 
-#: src/language/stats/regression.c:771
+#: src/language/stats/regression.c:793
 msgid "Beta"
 msgstr "Beta"
 
-#: src/language/stats/regression.c:774
+#: src/language/stats/regression.c:796
 msgid "(Constant)"
 msgstr "(Konstanta)"
 
-#: src/language/stats/regression.c:826
+#: src/language/stats/regression.c:851
 #, c-format
 msgid "Coefficients (%s)"
 msgstr "Koeficientai (%s)"
 
-#: src/language/stats/regression.c:861 src/ui/gui/regression.ui:7
+#: src/language/stats/regression.c:886 src/ui/gui/regression.ui:7
 msgid "Regression"
 msgstr "Regresija"
 
-#: src/language/stats/regression.c:884
+#: src/language/stats/regression.c:909
 #, c-format
 msgid "ANOVA (%s)"
 msgstr "ANOVA (%s)"
 
-#: src/language/stats/regression.c:911
+#: src/language/stats/regression.c:936
 msgid "Covariances"
 msgstr "Kovariacija"
 
-#: src/language/stats/regression.c:926
+#: src/language/stats/regression.c:951
 #, c-format
 msgid "Coefficient Correlations (%s)"
 msgstr "Koeficientų koreliacijos (%s)"
@@ -3912,57 +3922,57 @@ msgstr "Ši komanda negali būti naudojama po TEMPORARY, jei veikiamasis duomen�
 msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr "Keletas IN pokomandžių vienai rinkmenai (FILE) ar lentelei (TABLE)."
 
-#: src/language/data-io/combine-files.c:306
+#: src/language/data-io/combine-files.c:307
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr "Rinkmenai %s trūksta BY kintamojo %s."
 
-#: src/language/data-io/combine-files.c:309
+#: src/language/data-io/combine-files.c:310
 #, c-format
 msgid "Active dataset lacks BY variable %s."
 msgstr "Aktyviam duomenų rinkiniui trūksta BY kintamojo %s."
 
-#: src/language/data-io/combine-files.c:386
-#: src/language/data-io/combine-files.c:391
+#: src/language/data-io/combine-files.c:387
+#: src/language/data-io/combine-files.c:392
 #, c-format
 msgid "BY is required when %s is specified."
 msgstr "Kai nurodomas %s, reikalinga BY komanda."
 
-#: src/language/data-io/combine-files.c:519
+#: src/language/data-io/combine-files.c:520
 msgid "Combining files with incompatible encodings. String data may not be represented correctly."
 msgstr "Derinamos rinkmenos su nesuderinamomis koduotėmis. Tekstinių eilučių duomenys gali būti pateikti netinkamai."
 
-#: src/language/data-io/combine-files.c:560
+#: src/language/data-io/combine-files.c:563
 #, c-format
 msgid "Variable %s in file %s has different type or width from the same variable in earlier file."
 msgstr "Kintamasis %s rinkmenoje %s yra kitokio tipo arba kitokio pločio negu tas pats kintamasis ankstesnėje rinkmenoje."
 
-#: src/language/data-io/combine-files.c:566
+#: src/language/data-io/combine-files.c:569
 #, c-format
 msgid "In file %s, %s is numeric."
 msgstr "%s rinkmenoje: %s yra skaitmeninis."
 
-#: src/language/data-io/combine-files.c:569
+#: src/language/data-io/combine-files.c:572
 #, c-format
 msgid "In file %s, %s is a string variable with width %d."
 msgstr "%s rinkmenoje: %s yra teksto eilutės kintamasis, kurio plotis %d."
 
-#: src/language/data-io/combine-files.c:574
+#: src/language/data-io/combine-files.c:577
 #, c-format
 msgid "In an earlier file, %s was numeric."
 msgstr "Ankstesnėje rinkmenoje: %s buvo skaitmeninis."
 
-#: src/language/data-io/combine-files.c:577
+#: src/language/data-io/combine-files.c:580
 #, c-format
 msgid "In an earlier file, %s was a string variable with width %d."
 msgstr "Ankstesnėje rinkmenoje: %s buvo teksto eilutės kintamasis, kurio plotis %d."
 
-#: src/language/data-io/combine-files.c:617
+#: src/language/data-io/combine-files.c:620
 #, c-format
 msgid "Variable name %s specified on %s subcommand duplicates an existing variable name."
 msgstr "Kintamojo vardas %s, kuris nurodytas %s pokomandyje, dubliuoja esamą kintamojo vardą."
 
-#: src/language/data-io/combine-files.c:789
+#: src/language/data-io/combine-files.c:792
 #, c-format
 msgid "Encountered %zu sets of duplicate cases in the master file."
 msgstr ""
@@ -3992,7 +4002,7 @@ msgid "At least one variable must be specified."
 msgstr "Turi būti nurodytas bent vienas kintamasis.q"
 
 #: src/language/data-io/data-list.c:369 src/language/data-io/data-list.c:477
-#: src/language/data-io/get-data.c:645
+#: src/language/data-io/get-data.c:653
 #, c-format
 msgid "%s is a duplicate variable name."
 msgstr "Kintamojo vardas „%s“ kartojasi."
@@ -4050,7 +4060,7 @@ msgid "Record"
 msgstr "Įrašas"
 
 #: src/language/data-io/data-parser.c:693 src/language/data-io/print.c:448
-#: src/ui/gui/psppire-var-sheet.c:558 src/ui/gui/psppire-var-store.c:780
+#: src/ui/gui/psppire-var-sheet.c:1219
 msgid "Columns"
 msgstr "Stulpeliai"
 
@@ -4164,68 +4174,92 @@ msgstr "nepavadintas duomenų rinkinys"
 msgid "(active dataset)"
 msgstr "(veikiamasis duomenų rinkinys)"
 
-#: src/language/data-io/get-data.c:120
+#: src/language/data-io/get-data.c:128
 #, c-format
 msgid "Unsupported TYPE %s."
 msgstr "Nepalaikomas TYPE (tipas) %s."
 
-#: src/language/data-io/get-data.c:255
+#: src/language/data-io/get-data.c:263
 msgid "The sheet index must be greater than or equal to 1"
 msgstr "Lakšto indeksas turi būti ne mažesnis kaip 1"
 
-#: src/language/data-io/get-data.c:262 src/language/data-io/get-data.c:285
-#: src/language/data-io/get-data.c:304
+#: src/language/data-io/get-data.c:270 src/language/data-io/get-data.c:293
+#: src/language/data-io/get-data.c:312
 #, c-format
 msgid "%s must be followed by either \"%s\" or \"%s\"."
 msgstr "prieš %s turi eiti „%s“ arba „%s“."
 
-#: src/language/data-io/get-data.c:334
+#: src/language/data-io/get-data.c:342
 #, c-format
 msgid "%s is allowed only with %s arrangement, but %s arrangement was stated or implied earlier in this command."
 msgstr ""
 
-#: src/language/data-io/get-data.c:415
+#: src/language/data-io/get-data.c:423
 msgid "Value of FIRSTCASE must be 1 or greater."
 msgstr "FIRSTCASE turi būti 1 arba didesnė."
 
-#: src/language/data-io/get-data.c:453
+#: src/language/data-io/get-data.c:461
 msgid "Value of FIXCASE must be at least 1."
 msgstr "FIXCASE reikšmė turi būti bent 1."
 
-#: src/language/data-io/get-data.c:473
+#: src/language/data-io/get-data.c:481
 msgid "Value of FIRST must be at least 1."
 msgstr "FIRST reikšmė turi būti bent 1."
 
-#: src/language/data-io/get-data.c:485
+#: src/language/data-io/get-data.c:493
 msgid "Value of PERCENT must be between 1 and 100."
 msgstr "PERCENT (procentų) reikšmė turi būti iš intervalo tarp 1 ir 100."
 
-#: src/language/data-io/get-data.c:536
+#: src/language/data-io/get-data.c:544
 msgid "In compatible syntax mode, the QUALIFIER string must contain exactly one character."
 msgstr ""
 
-#: src/language/data-io/get-data.c:571
+#: src/language/data-io/get-data.c:579
 #: src/language/data-io/placement-parser.c:406
 #, c-format
 msgid "The record number specified, %ld, is at or before the previous record, %d.  Data fields must be listed in order of increasing record number."
 msgstr ""
 
-#: src/language/data-io/get-data.c:580
+#: src/language/data-io/get-data.c:588
 #, c-format
 msgid "The record number specified, %ld, exceeds the number of records per case specified on FIXCASE, %d."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:120
+#: src/language/data-io/inpt-pgm.c:133
 msgid "Unexpected end-of-file within INPUT PROGRAM."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:133
+#: src/language/data-io/inpt-pgm.c:146
+msgid "Input program must contain DATA LIST or END FILE."
+msgstr ""
+
+#: src/language/data-io/inpt-pgm.c:152
 msgid "Input program did not create any variables."
 msgstr "Įvedimo programa nesukūrė jokių kintamųjų."
 
-#: src/language/data-io/inpt-pgm.c:345
+#: src/language/data-io/inpt-pgm.c:365
 msgid "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr "REREAD: stulpelių numeriai turi būti teigiami baigtiniai skaičiai. Stulpelis nustatomas į 1."
+
+#: src/language/data-io/list.c:227
+#, c-format
+msgid "The first case (%ld) specified precedes the last case (%ld) specified.  The values will be swapped."
+msgstr ""
+
+#: src/language/data-io/list.c:236
+#, c-format
+msgid "The first case (%ld) to list is less than 1.  The value is being reset to 1."
+msgstr "Pirmasis atvejis (%ld) mažesnis už 1. Reikšmė pakeista į 1."
+
+#: src/language/data-io/list.c:243
+#, c-format
+msgid "The last case (%ld) to list is less than 1.  The value is being reset to 1."
+msgstr "Paskutinysis atvejis (%ld) mažesnis už 1. Reikšmė pakeista į 1."
+
+#: src/language/data-io/list.c:250
+#, c-format
+msgid "The step value %ld is less than 1.  The value is being reset to 1."
+msgstr "Žingsnio reikšmė %ld mažesnė nei 1. Reikšmė atstatyta į 1."
 
 #: src/language/data-io/placement-parser.c:96
 #, c-format
@@ -4689,32 +4723,32 @@ msgstr "Empirinis"
 msgid "Empirical with averaging"
 msgstr ""
 
-#: src/output/ascii.c:306
+#: src/output/ascii.c:307
 #, c-format
 msgid "%s: %s must be positive integer or `auto'"
 msgstr "%s: %s turi būti teigiamas sveikasis skaičius arba „auto“"
 
-#: src/output/ascii.c:339
+#: src/output/ascii.c:340
 #, c-format
 msgid "ascii: page excluding margins and headers must be at least %d characters wide by %d lines long, but as configured is only %d characters by %d lines"
 msgstr ""
 
-#: src/output/ascii.c:387
+#: src/output/ascii.c:388
 #, c-format
 msgid "ascii: closing output file `%s'"
 msgstr "ascii: užveriama rezultatų rinkmena „%s“"
 
-#: src/output/ascii.c:530
+#: src/output/ascii.c:531
 #, c-format
 msgid "See %s for a chart."
 msgstr "Diagrama: %s."
 
-#: src/output/ascii.c:1001
+#: src/output/ascii.c:1005
 #, c-format
 msgid "ascii: opening output file `%s'"
 msgstr "ascii: atveriama rezultatų rinkmena „%s“"
 
-#: src/output/ascii.c:1058
+#: src/output/ascii.c:1062
 #, c-format
 msgid "%s - Page %d"
 msgstr "%s - %d puslapis"
@@ -4949,17 +4983,17 @@ msgstr "Klaida įvyko esant aktyviam ERROR=STOP."
 msgid "Stopping syntax file processing here to avoid a cascade of dependent command failures."
 msgstr "Sintaksės rinkmenos apdorojimas stabdomas tam, kad būtų išvengta klaidų susijusiose komandose."
 
-#: src/ui/terminal/terminal-opts.c:122
+#: src/ui/terminal/terminal-opts.c:125
 #, c-format
 msgid "%s: output option missing `='"
 msgstr "%s: išvedimo parinkčiai trūksta „=“"
 
-#: src/ui/terminal/terminal-opts.c:129
+#: src/ui/terminal/terminal-opts.c:132
 #, c-format
 msgid "%s: output option specified more than once"
 msgstr "%s: išvedimo parinktis nurodyta daugiau nei vieną kartą"
 
-#: src/ui/terminal/terminal-opts.c:171
+#: src/ui/terminal/terminal-opts.c:174
 #, c-format
 msgid ""
 "PSPP, a program for statistical analysis of sample data.\n"
@@ -5035,31 +5069,29 @@ msgstr ""
 msgid "could not access definition for terminal `%s'"
 msgstr ""
 
-#: src/ui/gui/psppire-button-editable.c:160
+#: src/ui/gui/psppire-button-editable.c:135
 msgid "TreeView path"
 msgstr "TreeView kelias"
 
-#: src/ui/gui/psppire-button-editable.c:161
+#: src/ui/gui/psppire-button-editable.c:136
 msgid "The path to the row in the GtkTreeView, as a string"
 msgstr "Kelias iki GtkTreeView eilutės, kelias tekstinės eilutės formatu"
 
-#: src/ui/gui/psppire-button-editable.c:168
-#: src/ui/gui/psppire-cell-renderer-button.c:519
+#: src/ui/gui/psppire-cell-renderer-button.c:498
 msgid "Diagonal slash"
 msgstr "Įstrižainės brūkšnys"
 
-#: src/ui/gui/psppire-button-editable.c:169
-#: src/ui/gui/psppire-cell-renderer-button.c:520
+#: src/ui/gui/psppire-cell-renderer-button.c:499
 msgid "Whether to draw a diagonal slash across the button."
 msgstr "Ar mygtuke nubrėžti įstrižainę."
 
-#: src/ui/gui/autorecode-dialog.c:293 src/ui/gui/recode-dialog.c:662
-#: src/ui/gui/recode-dialog.c:747
+#: src/ui/gui/autorecode-dialog.c:292 src/ui/gui/recode-dialog.c:658
+#: src/ui/gui/recode-dialog.c:743
 msgid "New"
 msgstr "Naujas"
 
-#: src/ui/gui/autorecode-dialog.c:307 src/ui/gui/recode-dialog.c:677
-#: src/ui/gui/recode-dialog.c:739
+#: src/ui/gui/autorecode-dialog.c:306 src/ui/gui/recode-dialog.c:673
+#: src/ui/gui/recode-dialog.c:735
 msgid "Old"
 msgstr "Senas"
 
@@ -5067,22 +5099,22 @@ msgstr "Senas"
 msgid "Aggregate destination file"
 msgstr "Agregavimo paskirties rinkmena"
 
-#: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:498
-#: src/ui/gui/psppire-window.c:733
+#: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:478
+#: src/ui/gui/psppire-window.c:731
 msgid "System Files (*.sav)"
 msgstr "Sisteminės rinkmenos (*.sav)"
 
-#: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:503
-#: src/ui/gui/psppire-window.c:738
+#: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:483
+#: src/ui/gui/psppire-window.c:736
 msgid "Portable Files (*.por) "
 msgstr "Perkeliamos (Portable) rinkmenos (*.por)"
 
-#: src/ui/gui/comments-dialog.c:58
+#: src/ui/gui/comments-dialog.c:57
 #, c-format
 msgid "Column Number: %d"
 msgstr "Stulpelio numeris: %d"
 
-#: src/ui/gui/find-dialog.c:650
+#: src/ui/gui/find-dialog.c:644
 #, c-format
 msgid "Bad regular expression: %s"
 msgstr "Netinkama reguliarioji išraiška: %s"
@@ -5174,7 +5206,7 @@ msgstr "Reikšmė netinka kintamojo tipui"
 msgid "Incorrect range specification"
 msgstr "Klaidinga srities specifikacija"
 
-#: src/ui/gui/oneway-anova-dialog.c:301
+#: src/ui/gui/oneway-anova-dialog.c:296
 #, c-format
 msgid "Contrast %d of %d"
 msgstr "%d kontrastas iš %d"
@@ -5187,84 +5219,114 @@ msgstr "At_statyti"
 msgid "_Select"
 msgstr "_Pasirinkti"
 
-#: src/ui/gui/psppire-data-editor.c:978
+#: src/ui/gui/psppire-data-editor.c:441
+#, c-format
+msgid "%'d case"
+msgid_plural "%'d cases"
+msgstr[0] "%'d atvejis"
+msgstr[1] "%'d atvejis"
+msgstr[2] "%'d atvejai"
+msgstr[3] "%'d atvejų"
+
+#: src/ui/gui/psppire-data-editor.c:446
+#, c-format
+msgid "%'d variable"
+msgid_plural "%'d variables"
+msgstr[0] "%'d kintamasis"
+msgstr[1] "%'d kintamasis"
+msgstr[2] "%'d kintamieji"
+msgstr[3] "%'d kintamųjų"
+
+#: src/ui/gui/psppire-data-editor.c:734
 msgid "Data View"
 msgstr "Duomenų rodinys"
 
-#: src/ui/gui/psppire-data-editor.c:981
+#: src/ui/gui/psppire-data-editor.c:747
 msgid "Variable View"
 msgstr "Kintamųjų rodinys"
 
-#: src/ui/gui/psppire-data-store.c:744
+#: src/ui/gui/psppire-data-sheet.c:138
+msgid "Enter a number to add a new variable."
+msgstr "Norėdami sukurti naują kintamąjį, įveskite skaičių."
+
+#: src/ui/gui/psppire-data-sheet.c:143
+msgid "Enter a number to add a new case."
+msgstr "Norėdami sukurti naują atvejį, įveskite skaičių."
+
+#: src/ui/gui/psppire-data-sheet.c:229
+msgid "Case"
+msgstr "Atvejis"
+
+#: src/ui/gui/psppire-data-store.c:544
 msgid "var"
 msgstr "kint"
 
-#: src/ui/gui/psppire-data-window.c:198
+#: src/ui/gui/psppire-data-window.c:183
 msgid "Transformations Pending"
 msgstr "Laukiama transformacijos"
 
-#: src/ui/gui/psppire-data-window.c:214
+#: src/ui/gui/psppire-data-window.c:199
 msgid "Filter off"
 msgstr "Nefiltr."
 
-#: src/ui/gui/psppire-data-window.c:228
+#: src/ui/gui/psppire-data-window.c:211
 #, c-format
 msgid "Filter by %s"
 msgstr "Filtr. pg. %s"
 
-#: src/ui/gui/psppire-data-window.c:249
+#: src/ui/gui/psppire-data-window.c:232
 msgid "No Split"
 msgstr "Neskaidoma"
 
-#: src/ui/gui/psppire-data-window.c:258
+#: src/ui/gui/psppire-data-window.c:241
 msgid "Split by "
 msgstr "Skaid. pg. "
 
-#: src/ui/gui/psppire-data-window.c:286
+#: src/ui/gui/psppire-data-window.c:269
 msgid "Weights off"
 msgstr "Nesveriama"
 
-#: src/ui/gui/psppire-data-window.c:300
+#: src/ui/gui/psppire-data-window.c:281
 #, c-format
 msgid "Weight by %s"
 msgstr "Sverti pagal %s"
 
-#: src/ui/gui/psppire-data-window.c:489 src/ui/gui/aggregate.ui:450
+#: src/ui/gui/psppire-data-window.c:469 src/ui/gui/aggregate.ui:450
 msgid "Save"
 msgstr "Įrašyti"
 
-#: src/ui/gui/psppire-data-window.c:508 src/ui/gui/psppire-syntax-window.c:605
-#: src/ui/gui/psppire-window.c:749 src/ui/gui/page-file.c:238
+#: src/ui/gui/psppire-data-window.c:488 src/ui/gui/psppire-syntax-window.c:605
+#: src/ui/gui/psppire-window.c:747 src/ui/gui/page-file.c:251
 msgid "All Files"
 msgstr "Visos rinkmenos"
 
-#: src/ui/gui/psppire-data-window.c:521
+#: src/ui/gui/psppire-data-window.c:501
 msgid "Portable File"
 msgstr "Perkeliama rinkmena"
 
-#: src/ui/gui/psppire-data-window.c:578
+#: src/ui/gui/psppire-data-window.c:558
 msgid "Delete Existing Dataset?"
 msgstr "Pašalinti esamą duomenų rinkinį?"
 
-#: src/ui/gui/psppire-data-window.c:582
+#: src/ui/gui/psppire-data-window.c:562
 #, c-format
 msgid "Renaming \"%s\" to \"%s\" will destroy the existing dataset named \"%s\".  Are you sure that you want to do this?"
 msgstr "„%s“ pervadinant į „%s“, bus pašalintas esamas duomenų rinkinys vardu „%s“. Tikrai tęsti?"
 
-#: src/ui/gui/psppire-data-window.c:610
+#: src/ui/gui/psppire-data-window.c:590
 #, c-format
 msgid "Please enter a new name for dataset \"%s\":"
 msgstr "Įveskite naują duomenų rinkinio „%s“ vardą:"
 
-#: src/ui/gui/psppire-data-window.c:612
+#: src/ui/gui/psppire-data-window.c:592
 msgid "Rename Dataset"
 msgstr "Duomenų rinkinio pervadinimas"
 
-#: src/ui/gui/psppire-data-window.c:691
+#: src/ui/gui/psppire-data-window.c:650
 msgid "Font Selection"
 msgstr "Šrifto pasirinkimas"
 
-#: src/ui/gui/psppire-data-window.c:1338
+#: src/ui/gui/psppire-data-window.c:1255
 msgid "Data Editor"
 msgstr "duomenų redaktorius"
 
@@ -5273,7 +5335,7 @@ msgid "Chisq"
 msgstr "Chi-kvadr."
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:72
-#: src/language/stats/crosstabs.q:1834
+#: src/language/stats/crosstabs.q:1850
 msgid "Phi"
 msgstr "Phi"
 
@@ -5298,7 +5360,7 @@ msgid "Risk"
 msgstr "Rizikos laipsnis"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:79
-#: src/language/stats/crosstabs.q:1839
+#: src/language/stats/crosstabs.q:1855
 msgid "Gamma"
 msgstr "Gamma"
 
@@ -5307,12 +5369,12 @@ msgid "D"
 msgstr "D"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:81
-#: src/language/stats/crosstabs.q:1842
+#: src/language/stats/crosstabs.q:1858
 msgid "Kappa"
 msgstr "Kappa"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:82
-#: src/language/stats/crosstabs.q:1976
+#: src/language/stats/crosstabs.q:1992
 msgid "Eta"
 msgstr "Eta"
 
@@ -5324,8 +5386,8 @@ msgstr "Korel."
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:96
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:131
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:139
-#: src/ui/gui/psppire-dialog-action-var-info.c:47
-#: src/ui/gui/psppire-var-store.c:613 src/ui/gui/var-display.c:16
+#: src/ui/gui/psppire-dialog-action-var-info.c:46
+#: src/ui/gui/psppire-var-sheet.c:377 src/ui/gui/var-display.c:16
 msgid "None"
 msgstr "Nieko"
 
@@ -5391,31 +5453,31 @@ msgstr "Anova"
 msgid "Bcov"
 msgstr "Bcov"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:113
+#: src/ui/gui/psppire-dialog-action-var-info.c:112
 #, c-format
 msgid "Label: %s\n"
 msgstr "Etiketė: %s\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:120
+#: src/ui/gui/psppire-dialog-action-var-info.c:119
 #, c-format
 msgid "Type: %s\n"
 msgstr "Tipas: %s\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:124
+#: src/ui/gui/psppire-dialog-action-var-info.c:123
 #, c-format
 msgid "Missing Values: %s\n"
 msgstr "Praleistos reikšmės: %s\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:128
+#: src/ui/gui/psppire-dialog-action-var-info.c:127
 #, c-format
 msgid "Measurement Level: %s\n"
 msgstr "Matavimo skalė: %s\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:141
+#: src/ui/gui/psppire-dialog-action-var-info.c:140
 msgid "Value Labels:\n"
 msgstr "Reikšmių etiketės:\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:150
+#: src/ui/gui/psppire-dialog-action-var-info.c:149
 #, c-format
 msgid "%s %s\n"
 msgstr "%s %s\n"
@@ -5427,12 +5489,12 @@ msgstr "%s %s\n"
 #. - The first character may not be a digit
 #. - The final charactor may not be '.' or '_'
 #.
-#: src/ui/gui/psppire-dict.c:371
+#: src/ui/gui/psppire-dict.c:332
 #, c-format
 msgid "Var%04d"
 msgstr "Kint%04d"
 
-#: src/ui/gui/psppire-dict.c:555
+#: src/ui/gui/psppire-dict.c:516
 msgid "Duplicate variable name."
 msgstr "Kintamojo vardas kartojasi."
 
@@ -5515,7 +5577,7 @@ msgstr "Rinkmena „%s“ įrašyta"
 msgid "Save Syntax"
 msgstr "Įrašyti sintaksę"
 
-#: src/ui/gui/psppire-syntax-window.c:599 src/ui/gui/psppire-window.c:743
+#: src/ui/gui/psppire-syntax-window.c:599 src/ui/gui/psppire-window.c:741
 msgid "Syntax Files (*.sps) "
 msgstr "sintaksės rinkmenos (*.sps)"
 
@@ -5560,72 +5622,103 @@ msgstr "Sritis, nuo ... iki _DIDŽIAUSIOS reikšmės"
 msgid "_All other values"
 msgstr "_Visos kitos reikšmės"
 
-#: src/ui/gui/psppire-var-sheet.c:552 src/ui/gui/psppire-var-store.c:774
-#: src/language/stats/crosstabs.q:1337 src/ui/gui/compute.ui:618
+#: src/ui/gui/psppire-var-sheet.c:173 src/ui/gui/psppire-var-sheet.c:178
+msgid "Cannot create variable."
+msgstr "Nepavyksta sukurti kintamojo."
+
+#: src/ui/gui/psppire-var-sheet.c:174 src/ui/gui/psppire-var-sheet.c:203
+#, c-format
+msgid "\"%s\" is not a valid variable name."
+msgstr "%s nėra tinkamas kintamojo vardas."
+
+#: src/ui/gui/psppire-var-sheet.c:179 src/ui/gui/psppire-var-sheet.c:209
+#, c-format
+msgid "This dictionary already contains a variable named \"%s\"."
+msgstr "Kintamasis vardu %s jau yra."
+
+#: src/ui/gui/psppire-var-sheet.c:202 src/ui/gui/psppire-var-sheet.c:208
+msgid "Cannot rename variable."
+msgstr "Nepavyksta pervadinti kintamojo."
+
+#: src/ui/gui/psppire-var-sheet.c:384
+#, c-format
+msgid "{%s, %s}..."
+msgstr "{%s, %s}..."
+
+#: src/ui/gui/psppire-var-sheet.c:711
+msgid "Enter a variable name to add a new variable."
+msgstr "Norėdami įtraukti naują kintamąjį, įrašykite jo vardą."
+
+#: src/ui/gui/psppire-var-sheet.c:751
+#, c-format
+msgid "{%s, %s}\n"
+msgstr "{%s, %s}\n"
+
+#: src/ui/gui/psppire-var-sheet.c:1204 src/language/stats/crosstabs.q:1351
+#: src/ui/gui/compute.ui:618
 msgid "Type"
 msgstr "Tipas"
 
-#: src/ui/gui/psppire-var-sheet.c:553 src/ui/gui/psppire-var-store.c:775
-#: src/ui/gui/compute.ui:532
+#: src/ui/gui/psppire-var-sheet.c:1207 src/ui/gui/compute.ui:532
 msgid "Width"
 msgstr "Plotis"
 
-#: src/ui/gui/psppire-var-sheet.c:554 src/ui/gui/psppire-var-store.c:776
+#: src/ui/gui/psppire-var-sheet.c:1209
 msgid "Decimals"
 msgstr "10-tainė skiltis"
 
-#: src/ui/gui/psppire-var-sheet.c:556 src/ui/gui/psppire-var-store.c:778
-msgid "Values"
-msgstr "Reikšmės"
+#: src/ui/gui/psppire-var-sheet.c:1213 src/ui/gui/val-labs-dialog.ui:190
+msgid "Value Labels"
+msgstr "Reikšmių etiketės"
 
-#: src/ui/gui/psppire-var-sheet.c:559 src/ui/gui/psppire-var-store.c:781
+#: src/ui/gui/psppire-var-sheet.c:1216 src/ui/gui/examine.ui:469
+#: src/ui/gui/t-test.ui:81
+msgid "Missing Values"
+msgstr "Praleistos reikšmės"
+
+#: src/ui/gui/psppire-var-sheet.c:1221
 msgid "Align"
 msgstr "Lygiuotė"
 
-#: src/ui/gui/psppire-var-sheet.c:560 src/ui/gui/psppire-var-store.c:782
+#: src/ui/gui/psppire-var-sheet.c:1227
 msgid "Measure"
 msgstr "Matavimo skalė"
 
-#: src/ui/gui/psppire-var-store.c:692
-#, c-format
-msgid "{%s,`%s'}_"
-msgstr "{%s,„%s“}_"
-
-#: src/ui/gui/psppire-window.c:505
+#: src/ui/gui/psppire-window.c:503
 #, c-format
 msgid "Save the changes to `%s' before closing?"
 msgstr "Prieš užveriant įrašyti pakeitimus į „%s“?"
 
-#: src/ui/gui/psppire-window.c:512
+#: src/ui/gui/psppire-window.c:510
 #, c-format
 msgid "If you don't save, changes from the last %ld seconds will be permanently lost."
 msgstr "Jei neįrašysite, visiškai prarasite pakeitimus, kuriuos atlikote per pastarąsias %ld sekundes."
 
-#: src/ui/gui/psppire-window.c:516
+#: src/ui/gui/psppire-window.c:514
 msgid "Close _without saving"
 msgstr "Užverti _neįrašant"
 
-#: src/ui/gui/psppire-window.c:716
+#: src/ui/gui/psppire-window.c:714
 msgid "Open"
 msgstr "Atverti"
 
-#: src/ui/gui/psppire-window.c:725
+#: src/ui/gui/psppire-window.c:723
 msgid "Data and Syntax Files"
 msgstr "Duomenų ir sintaksės rinkmenos"
 
-#: src/ui/gui/recode-dialog.c:645
+#: src/ui/gui/recode-dialog.c:641
 msgid "Recode into Different Variables"
 msgstr "Perkoduoti į kitus kintamuosius"
 
-#: src/ui/gui/recode-dialog.c:648 src/ui/gui/recode.ui:332
+#: src/ui/gui/recode-dialog.c:644 src/ui/gui/recode.ui:332
 msgid "Recode into Same Variables"
 msgstr "Perkoduoti į tuos pačius kintamuosius"
 
-#: src/ui/gui/recode-dialog.c:909
+#: src/ui/gui/recode-dialog.c:905
 msgid "Recode into Different Variables: Old and New Values "
 msgstr "Perkoduoti į kitus kintamuosius senos ir naujos reikšmės "
 
-#: src/ui/gui/recode-dialog.c:910
+#: src/ui/gui/recode-dialog.c:906
 msgid "Recode into Same Variables: Old and New Values"
 msgstr "Perkoduoti į tuos pačius kintamuosius: senos ir naujos reikšmės"
 
@@ -5644,21 +5737,21 @@ msgstr "Tiksliai %3d atvejų iš %3d."
 msgid "%d thru %d"
 msgstr "nuo %d iki %d"
 
-#: src/ui/gui/page-assistant.c:98
+#: src/ui/gui/page-assistant.c:96
 msgid "Importing Delimited Text Data"
 msgstr "Importuojami bet kokie tekstiniai duomenys"
 
-#: src/ui/gui/page-intro.c:96
+#: src/ui/gui/page-intro.c:94
 #, c-format
 msgid "Only the first %4d cases"
 msgstr "Tik pirmuosius %4d"
 
-#: src/ui/gui/page-intro.c:106
+#: src/ui/gui/page-intro.c:104
 #, c-format
 msgid "Only the first %3d %% of file (approximately)"
 msgstr "Tik %3d %% rinkmenos nuo pradžių (apytiksliai)"
 
-#: src/ui/gui/page-intro.c:131
+#: src/ui/gui/page-intro.c:129
 msgid ""
 "This assistant will guide you through the process of importing data into PSPP from a text file with one line per case,  in which fields are separated by tabs, commas, or other delimiters.\n"
 "\n"
@@ -5666,7 +5759,7 @@ msgstr ""
 "Šis vediklis padės į PSPP importuoti duomenis iš tekstinės rinkmenos, kur viena eilutė atitiks vieną atvejį, o laukai (būsimi kintamieji) atskiriami tabuliacija, kableliu ar kitu pasirinktu simboliu.\n"
 "\n"
 
-#: src/ui/gui/page-intro.c:137
+#: src/ui/gui/page-intro.c:135
 #, c-format
 msgid "The selected file contains %zu line of text.  "
 msgid_plural "The selected file contains %zu lines of text.  "
@@ -5675,7 +5768,7 @@ msgstr[1] "Pasirinkta rinkmena turi %zu eilutę teksto. "
 msgstr[2] "Pasirinkta rinkmena turi %zu eilutes teksto. "
 msgstr[3] "Pasirinkta rinkmena turi %zu eilučių teksto. "
 
-#: src/ui/gui/page-intro.c:145
+#: src/ui/gui/page-intro.c:143
 #, c-format
 msgid "The selected file contains approximately %lu line of text.  "
 msgid_plural "The selected file contains approximately %lu lines of text.  "
@@ -5684,7 +5777,7 @@ msgstr[1] "Pasirinkta rinkmena turi maždaug %lu eilutę teksto. "
 msgstr[2] "Pasirinkta rinkmena turi maždaug %lu eilutes teksto. "
 msgstr[3] "Pasirinkta rinkmena turi maždaug %lu eilučių teksto. "
 
-#: src/ui/gui/page-intro.c:151
+#: src/ui/gui/page-intro.c:149
 #, c-format
 msgid "Only the first %zu line of the file will be shown for preview purposes in the following screens.  "
 msgid_plural "Only the first %zu lines of the file will be shown for preview purposes in the following screens.  "
@@ -5693,69 +5786,85 @@ msgstr[1] "Sekančiame lange galėsite peržiūrėti tik pirmąsias %zu eilutes.
 msgstr[2] "Sekančiame lange galėsite peržiūrėti tik pirmąsias %zu eilutes. "
 msgstr[3] "Sekančiame lange galėsite peržiūrėti tik pirmąsias %zu eilučių. "
 
-#: src/ui/gui/page-intro.c:158
+#: src/ui/gui/page-intro.c:156
 msgid "You may choose below how much of the file should actually be imported."
 msgstr "Žemiau galite nurodyti, kiek importuoti rinkmenos duomenų."
 
-#: src/ui/gui/page-file.c:102
+#: src/ui/gui/page-file.c:100
 #, c-format
 msgid "Could not open `%s': %s"
 msgstr "Nepavyksta atverti „%s“: %s"
 
-#: src/ui/gui/page-file.c:118
+#: src/ui/gui/page-file.c:116
 #, c-format
 msgid "Error reading `%s': %s"
 msgstr "Klaida bandant nuskaityti „%s“: %s"
 
-#: src/ui/gui/page-file.c:121
+#: src/ui/gui/page-file.c:119
 #, c-format
 msgid "Failed to read `%s', because it contains a line over %d bytes long and therefore appears not to be a text file."
 msgstr "Nepavyko nuskaityti „%s“, nes joje bent viena linija yra ilgesnė kaip %d bit. Galbūt tai nėra tekstinė rinkmena."
 
-#: src/ui/gui/page-file.c:139
+#: src/ui/gui/page-file.c:137
 #, c-format
 msgid "`%s' is empty."
 msgstr "„%s“ yra tuščias."
 
-#: src/ui/gui/page-file.c:196
+#: src/ui/gui/page-file.c:194
 msgid "Import Delimited Text Data"
 msgstr "Importuoti bet kokius tekstinius duomenis"
 
-#: src/ui/gui/page-file.c:206
-msgid "Text files"
+#: src/ui/gui/page-file.c:204
+msgid "Text Files"
 msgstr "Tekstinės rinkmenos"
 
-#: src/ui/gui/page-file.c:211
+#: src/ui/gui/page-file.c:209
 msgid "Text (*.txt) Files"
 msgstr "Tekstinės (*.txt) rinkmenos"
 
-#: src/ui/gui/page-file.c:217
+#: src/ui/gui/page-file.c:215
 msgid "Plain Text (ASCII) Files"
 msgstr "Grynojo teksto (ASCII) rinkmenos"
 
-#: src/ui/gui/page-file.c:222
+#: src/ui/gui/page-file.c:220
 msgid "Comma Separated Value Files"
 msgstr "Kableliais atskirtų reikšmių rinkmenos"
 
-#: src/ui/gui/page-file.c:229
+#: src/ui/gui/page-file.c:227
 msgid "Tab Separated Value Files"
 msgstr "Tabuliavimo žyme atskirtų reikšmių rinkmenos"
 
-#: src/ui/gui/page-first-line.c:144
+#: src/ui/gui/page-file.c:232
+msgid "Gnumeric Spreadsheet Files"
+msgstr "Gnumeric skaičialenčių rinkmenos"
+
+#: src/ui/gui/page-file.c:237
+msgid "OpenDocument Spreadsheet Files"
+msgstr "OpenDocument skaičialenčių rinkmenos"
+
+#: src/ui/gui/page-file.c:242
+msgid "All Spreadsheet Files"
+msgstr "Visos skaičialenčių rinkmenos"
+
+#: src/ui/gui/page-first-line.c:146
 msgid "Text"
 msgstr "Tekstas"
 
-#: src/ui/gui/text-data-import-dialog.c:321
-#: src/ui/gui/text-data-import-dialog.c:369
+#: src/ui/gui/page-sheet-spec.c:254
+msgid "An error occurred reading the spreadsheet file."
+msgstr "Klaida skaitant skaičialentės rinkmeną."
+
+#: src/ui/gui/text-data-import-dialog.c:338
+#: src/ui/gui/text-data-import-dialog.c:386
 msgid "This input line has too few separators to fill in this field."
 msgstr "Įvedimo eilutė turi per mažai skyriklių, tad šis laukas neužpildytas"
 
-#: src/ui/gui/text-data-import-dialog.c:360
+#: src/ui/gui/text-data-import-dialog.c:377
 #, c-format
 msgid "Cannot parse field content `%.*s' as format %s: %s"
 msgstr "Nepavyksta lauko turinio „%.*s“ išnagrinėti %s formatu: %s"
 
-#: src/ui/gui/text-data-import-dialog.c:533
+#: src/ui/gui/text-data-import-dialog.c:551
 msgid "Line"
 msgstr "Eilutė"
 
@@ -5764,32 +5873,32 @@ msgstr "Eilutė"
 msgid "Con_fidence Interval: %2d %%"
 msgstr "_Pasikliautinasis intervalas: %2d %%"
 
-#: src/ui/gui/t-test-paired-samples.c:93 src/ui/gui/examine.ui:266
+#: src/ui/gui/t-test-paired-samples.c:92 src/ui/gui/examine.ui:266
 #: src/ui/gui/indep-samples.ui:69 src/ui/gui/t-test.ui:250
 msgid "O_ptions..."
 msgstr "_Parinktys..."
 
-#: src/ui/gui/t-test-paired-samples.c:105
+#: src/ui/gui/t-test-paired-samples.c:104
 msgid "Paired Samples T Test"
 msgstr "Kriterijus porinėms imtims"
 
-#: src/ui/gui/npar-two-sample-related.c:129 src/ui/gui/k-related.ui:183
+#: src/ui/gui/npar-two-sample-related.c:128 src/ui/gui/k-related.ui:183
 msgid "Test Type"
 msgstr "Kriterijaus tipas"
 
-#: src/ui/gui/npar-two-sample-related.c:136
+#: src/ui/gui/npar-two-sample-related.c:135
 msgid "_Wilcoxon"
 msgstr "_Vilkoksono"
 
-#: src/ui/gui/npar-two-sample-related.c:137
+#: src/ui/gui/npar-two-sample-related.c:136
 msgid "_Sign"
 msgstr "_Ženklų"
 
-#: src/ui/gui/npar-two-sample-related.c:138
+#: src/ui/gui/npar-two-sample-related.c:137
 msgid "_McNemar"
 msgstr "_Maknemaros"
 
-#: src/ui/gui/npar-two-sample-related.c:153
+#: src/ui/gui/npar-two-sample-related.c:152
 msgid "Two-Related-Samples Tests"
 msgstr "Kriterijai dvejoms priklausomoms imtims"
 
@@ -5798,12 +5907,12 @@ msgstr "Kriterijai dvejoms priklausomoms imtims"
 msgid "%s = `%s'"
 msgstr "%s = „%s“"
 
-#: src/ui/gui/weight-cases-dialog.c:81 src/ui/gui/psppire.ui:52
+#: src/ui/gui/weight-cases-dialog.c:79 src/ui/gui/psppire.ui:52
 #: src/ui/gui/psppire.ui:155
 msgid "Do not weight cases"
 msgstr "Nesverti atvejų"
 
-#: src/ui/gui/weight-cases-dialog.c:87
+#: src/ui/gui/weight-cases-dialog.c:85
 #, c-format
 msgid "Weight cases by %s"
 msgstr "Atvejus sverti pagal %s"
@@ -5933,188 +6042,188 @@ msgstr "VARIABLES (kintamieji) turi nurodyti pirmiau nei TABLES (lentelės)."
 msgid "Maximum value (%ld) less than minimum value (%ld)."
 msgstr "Didžiausia reikšmė (%ld) yra mažesnė mažiausiąją (%ld)."
 
-#: src/language/stats/crosstabs.q:856
+#: src/language/stats/crosstabs.q:869
 msgid "Summary."
 msgstr "Santrauka."
 
 #. TRANSLATORS: The %s here describes a crosstabulation.  It takes the
 #. form "var1 * var2 * var3 * ...".
-#: src/language/stats/crosstabs.q:965
+#: src/language/stats/crosstabs.q:978
 #, c-format
 msgid "Crosstabulation %s contained no non-missing cases."
 msgstr "Požymių priklausomumo lentelėje „%s“ visi atvejai turi praleistas reikšmes."
 
-#: src/language/stats/crosstabs.q:1163
+#: src/language/stats/crosstabs.q:1177
 msgid "count"
 msgstr "kiekis"
 
-#: src/language/stats/crosstabs.q:1164
+#: src/language/stats/crosstabs.q:1178
 msgid "row %"
 msgstr "% eilutė"
 
-#: src/language/stats/crosstabs.q:1165
+#: src/language/stats/crosstabs.q:1179
 msgid "column %"
 msgstr "% stulpelis"
 
-#: src/language/stats/crosstabs.q:1166
+#: src/language/stats/crosstabs.q:1180
 msgid "total %"
 msgstr "iš viso %"
 
-#: src/language/stats/crosstabs.q:1167
+#: src/language/stats/crosstabs.q:1181
 msgid "expected"
 msgstr "tikėtasi"
 
-#: src/language/stats/crosstabs.q:1168
+#: src/language/stats/crosstabs.q:1182
 msgid "residual"
 msgstr "liekana"
 
-#: src/language/stats/crosstabs.q:1169
+#: src/language/stats/crosstabs.q:1183
 msgid "std. resid."
 msgstr "norm. liekana"
 
-#: src/language/stats/crosstabs.q:1170
+#: src/language/stats/crosstabs.q:1184
 msgid "adj. resid."
 msgstr "patiksl. norm. liekana"
 
-#: src/language/stats/crosstabs.q:1259
+#: src/language/stats/crosstabs.q:1273
 msgid "Chi-square tests."
 msgstr "Chi-kvadrato kriterij."
 
-#: src/language/stats/crosstabs.q:1285
+#: src/language/stats/crosstabs.q:1299
 msgid "Symmetric measures."
 msgstr "Simetriniai matavimai."
 
-#: src/language/stats/crosstabs.q:1291 src/language/stats/crosstabs.q:1339
+#: src/language/stats/crosstabs.q:1305 src/language/stats/crosstabs.q:1353
 msgid "Asymp. Std. Error"
 msgstr "Asimpt. std. paklaida"
 
-#: src/language/stats/crosstabs.q:1292 src/language/stats/crosstabs.q:1340
+#: src/language/stats/crosstabs.q:1306 src/language/stats/crosstabs.q:1354
 msgid "Approx. T"
 msgstr "Apytiksl. T"
 
-#: src/language/stats/crosstabs.q:1293 src/language/stats/crosstabs.q:1341
+#: src/language/stats/crosstabs.q:1307 src/language/stats/crosstabs.q:1355
 msgid "Approx. Sig."
 msgstr "Apytiksl. p-reikšmė"
 
-#: src/language/stats/crosstabs.q:1307
+#: src/language/stats/crosstabs.q:1321
 msgid "Risk estimate."
 msgstr "Rizikos įvertis."
 
-#: src/language/stats/crosstabs.q:1311
+#: src/language/stats/crosstabs.q:1325
 #, c-format
 msgid "95%% Confidence Interval"
 msgstr "95%% pasikliautinasis intervalas"
 
-#: src/language/stats/crosstabs.q:1332
+#: src/language/stats/crosstabs.q:1346
 msgid "Directional measures."
 msgstr "Kryptingi matavimai."
 
-#: src/language/stats/crosstabs.q:1768
+#: src/language/stats/crosstabs.q:1784
 msgid "Pearson Chi-Square"
 msgstr "Pirsono Chi-kvadratas"
 
-#: src/language/stats/crosstabs.q:1769
+#: src/language/stats/crosstabs.q:1785
 msgid "Likelihood Ratio"
 msgstr "Tikėtinumo santykis"
 
-#: src/language/stats/crosstabs.q:1770
+#: src/language/stats/crosstabs.q:1786
 msgid "Fisher's Exact Test"
 msgstr "Tikslus Fišerio kriterijus"
 
-#: src/language/stats/crosstabs.q:1771
+#: src/language/stats/crosstabs.q:1787
 msgid "Continuity Correction"
 msgstr "Tolydumo pataisa"
 
-#: src/language/stats/crosstabs.q:1772
+#: src/language/stats/crosstabs.q:1788
 msgid "Linear-by-Linear Association"
 msgstr "Dvitiesinė priklausomybė"
 
-#: src/language/stats/crosstabs.q:1807 src/language/stats/crosstabs.q:1882
-#: src/language/stats/crosstabs.q:1947
+#: src/language/stats/crosstabs.q:1823 src/language/stats/crosstabs.q:1898
+#: src/language/stats/crosstabs.q:1963
 msgid "N of Valid Cases"
 msgstr "N galiojančių atvejų"
 
-#: src/language/stats/crosstabs.q:1826 src/language/stats/crosstabs.q:1965
+#: src/language/stats/crosstabs.q:1842 src/language/stats/crosstabs.q:1981
 msgid "Nominal by Nominal"
 msgstr "Pavadinimų x pavadinimų"
 
-#: src/language/stats/crosstabs.q:1827 src/language/stats/crosstabs.q:1966
+#: src/language/stats/crosstabs.q:1843 src/language/stats/crosstabs.q:1982
 msgid "Ordinal by Ordinal"
 msgstr "Rangų x rangų"
 
-#: src/language/stats/crosstabs.q:1828
+#: src/language/stats/crosstabs.q:1844
 msgid "Interval by Interval"
 msgstr "Intervalų x intervalų"
 
-#: src/language/stats/crosstabs.q:1829
+#: src/language/stats/crosstabs.q:1845
 msgid "Measure of Agreement"
 msgstr "Sutarimas"
 
-#: src/language/stats/crosstabs.q:1835
+#: src/language/stats/crosstabs.q:1851
 msgid "Cramer's V"
 msgstr "Kramerio V"
 
-#: src/language/stats/crosstabs.q:1836
+#: src/language/stats/crosstabs.q:1852
 msgid "Contingency Coefficient"
 msgstr "Kontingencijos koeficientas"
 
-#: src/language/stats/crosstabs.q:1837
+#: src/language/stats/crosstabs.q:1853
 msgid "Kendall's tau-b"
 msgstr "Kendall tau-b"
 
-#: src/language/stats/crosstabs.q:1838
+#: src/language/stats/crosstabs.q:1854
 msgid "Kendall's tau-c"
 msgstr "Kendall tau-c"
 
-#: src/language/stats/crosstabs.q:1840
+#: src/language/stats/crosstabs.q:1856
 msgid "Spearman Correlation"
 msgstr "Spirmano koreliacija"
 
-#: src/language/stats/crosstabs.q:1841
+#: src/language/stats/crosstabs.q:1857
 msgid "Pearson's R"
 msgstr "Pirsono R"
 
-#: src/language/stats/crosstabs.q:1920
+#: src/language/stats/crosstabs.q:1936
 #, c-format
 msgid "Odds Ratio for %s (%g / %g)"
 msgstr "Galimybių santykis: %s (%g / %g)"
 
-#: src/language/stats/crosstabs.q:1923
+#: src/language/stats/crosstabs.q:1939
 #, c-format
 msgid "Odds Ratio for %s (%.*s / %.*s)"
 msgstr "Galimybių santykis: %s (%.*s / %.*s)"
 
-#: src/language/stats/crosstabs.q:1931
+#: src/language/stats/crosstabs.q:1947
 #, c-format
 msgid "For cohort %s = %g"
 msgstr "Kohortai %s = %g"
 
-#: src/language/stats/crosstabs.q:1934
+#: src/language/stats/crosstabs.q:1950
 #, c-format
 msgid "For cohort %s = %.*s"
 msgstr "Kohortai %s = %.*s"
 
-#: src/language/stats/crosstabs.q:1967
+#: src/language/stats/crosstabs.q:1983
 msgid "Nominal by Interval"
 msgstr "Pavadinimų x intervalų"
 
-#: src/language/stats/crosstabs.q:1973
+#: src/language/stats/crosstabs.q:1989
 msgid "Goodman and Kruskal tau"
 msgstr "Gudmano-Kruskalio tau"
 
-#: src/language/stats/crosstabs.q:1974
+#: src/language/stats/crosstabs.q:1990
 msgid "Uncertainty Coefficient"
 msgstr "Neapibrėžtumo koeficientas"
 
-#: src/language/stats/crosstabs.q:1975
+#: src/language/stats/crosstabs.q:1991
 msgid "Somers' d"
 msgstr "Somers d"
 
-#: src/language/stats/crosstabs.q:1981
+#: src/language/stats/crosstabs.q:1997
 msgid "Symmetric"
 msgstr "Simetrinis"
 
-#: src/language/stats/crosstabs.q:1982 src/language/stats/crosstabs.q:1983
+#: src/language/stats/crosstabs.q:1998 src/language/stats/crosstabs.q:1999
 #, c-format
 msgid "%s Dependent"
 msgstr "%s priklausomas"
@@ -6209,26 +6318,6 @@ msgstr ""
 #, c-format
 msgid "Handle for %s not allowed here."
 msgstr ""
-
-#: src/language/data-io/list.q:98
-#, c-format
-msgid "The first case (%ld) specified precedes the last case (%ld) specified.  The values will be swapped."
-msgstr ""
-
-#: src/language/data-io/list.q:106
-#, c-format
-msgid "The first case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr "Pirmasis atvejis (%ld) mažesnis už 1. Reikšmė pakeista į 1."
-
-#: src/language/data-io/list.q:112
-#, c-format
-msgid "The last case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr "Paskutinysis atvejis (%ld) mažesnis už 1. Reikšmė pakeista į 1."
-
-#: src/language/data-io/list.q:118
-#, c-format
-msgid "The step value %ld is less than 1.  The value is being reset to 1."
-msgstr "Žingsnio reikšmė %ld mažesnė nei 1. Reikšmė atstatyta į 1."
 
 #: src/ui/gui/aggregate.ui:7
 msgid "Aggregate Data"
@@ -6550,6 +6639,65 @@ msgstr "Prognozuojamos reikšmės:"
 msgid "Test _Variables"
 msgstr "_Kriterijaus kintamieji"
 
+#: src/ui/gui/data-sheet.ui:51 src/ui/gui/data-editor.ui:103
+#: src/ui/gui/output-viewer.ui:29 src/ui/gui/syntax-editor.ui:66
+#: src/ui/gui/var-sheet.ui:35
+msgid "_Edit"
+msgstr "_Taisa"
+
+#: src/ui/gui/data-sheet.ui:57 src/ui/gui/var-sheet.ui:41
+msgid "Insert Variable"
+msgstr "Įterpti kintamąjį"
+
+#: src/ui/gui/data-sheet.ui:58 src/ui/gui/var-sheet.ui:42
+msgid "Create a new variable at the current position"
+msgstr "Sukurti naują kintamąjį šioje vietoje"
+
+#: src/ui/gui/data-sheet.ui:65
+msgid "Insert Cases"
+msgstr "Įterpti atvejus"
+
+#: src/ui/gui/data-sheet.ui:66
+msgid "Create a new case at the current position"
+msgstr "Sukurti naują atvejį šioje vietoje"
+
+#: src/ui/gui/data-sheet.ui:73 src/ui/gui/var-sheet.ui:49
+msgid "Go To Variable..."
+msgstr "Pereiti prie kintamojo..."
+
+#: src/ui/gui/data-sheet.ui:74 src/ui/gui/data-editor.ui:450
+#: src/ui/gui/var-sheet.ui:50
+msgid "Jump to variable"
+msgstr "Šokti į kintamąjį"
+
+#: src/ui/gui/data-sheet.ui:80
+msgid "Go To Case..."
+msgstr "Pereiti prie atvejo..."
+
+#: src/ui/gui/data-sheet.ui:82
+msgid "Jump to a case in the data sheet"
+msgstr "Šokti į atvejį duomenų lakšte"
+
+#: src/ui/gui/data-sheet.ui:108 src/ui/gui/var-sheet.ui:75
+msgid "Cl_ear Variables"
+msgstr "Iš_valyti kintamuosius"
+
+#: src/ui/gui/data-sheet.ui:109 src/ui/gui/var-sheet.ui:76
+msgid "Delete the variables at the selected position(s)"
+msgstr "Pašalinti pasirinktų pozicijų kintamuosius"
+
+#: src/ui/gui/data-sheet.ui:117
+msgid "_Clear Cases"
+msgstr "Iš_valyti atvejus"
+
+#: src/ui/gui/data-sheet.ui:118
+msgid "Delete the cases at the selected position(s)"
+msgstr "Pašalinti pasirinktų pozicijų atvejus"
+
+#: src/ui/gui/data-sheet.ui:125
+msgid "_Find..."
+msgstr "_Ieškoti..."
+
 #: src/ui/gui/descriptives.ui:115 src/ui/gui/factor.ui:183
 #: src/ui/gui/recode.ui:606
 msgid "_Variables:"
@@ -6623,10 +6771,6 @@ msgstr "Atvejai neįtraukiami _porų analizėse"
 msgid "_Report values"
 msgstr ""
 
-#: src/ui/gui/examine.ui:469 src/ui/gui/t-test.ui:81
-msgid "Missing Values"
-msgstr "Praleistos reikšmės"
-
 #: src/ui/gui/goto-case.ui:8
 msgid "Goto Case"
 msgstr "Šokti į atvejį"
@@ -6647,7 +6791,7 @@ msgstr "Pagrindinių ašių faktorizacija"
 msgid "Factor Analysis"
 msgstr "Faktorinė analizė"
 
-#: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:359
+#: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:279
 msgid "_Descriptives..."
 msgstr "_Aprašomoji..."
 
@@ -7637,6 +7781,30 @@ msgstr "<b>Kintamieji</b>"
 msgid "<b>Data Preview</b>"
 msgstr "<b>Duomenų peržiūra</b>"
 
+#: src/ui/gui/text-data-import.ui:659
+msgid "Importing Spreadsheet Data"
+msgstr "Duomenų importavimas iš skaičialentės"
+
+#: src/ui/gui/text-data-import.ui:670
+msgid "Enter below the sheet number and the cell range which you wish to import."
+msgstr "Nurodykite importuotino lakšto numerį ir langelių sritį."
+
+#: src/ui/gui/text-data-import.ui:728
+msgid "_Cells: "
+msgstr "_Langeliai: "
+
+#: src/ui/gui/text-data-import.ui:741
+msgid "_Sheet Index: "
+msgstr "_Lakštas: "
+
+#: src/ui/gui/text-data-import.ui:754
+msgid "Use first row as _variable names"
+msgstr "Pirmoje eilutė yra _kintamųjų vardai"
+
+#: src/ui/gui/text-data-import.ui:776
+msgid "<b>Cells to Import</b>"
+msgstr "<b>Importuotini langeliai</b>"
+
 #: src/ui/gui/univariate.ui:7
 msgid "Univariate"
 msgstr "Vienmatė dispersinė analizė"
@@ -7661,372 +7829,315 @@ msgstr "Vienmatė dispersinė analizė: statistika"
 msgid "Value Label:"
 msgstr "Reikšmės etiketė:"
 
-#: src/ui/gui/val-labs-dialog.ui:190
-msgid "Value Labels"
-msgstr "Reikšmių etiketės"
-
 #: src/ui/gui/variable-info.ui:50
 msgid "Variable Information:"
 msgstr "Informacija apie kintamąjį:"
 
-#: src/ui/gui/data-editor.ui:23 src/ui/gui/output-viewer.ui:9
+#: src/ui/gui/data-editor.ui:9 src/ui/gui/output-viewer.ui:9
 #: src/ui/gui/syntax-editor.ui:10
 msgid "_File"
 msgstr "_Rinkmena"
 
-#: src/ui/gui/data-editor.ui:35 src/ui/gui/syntax-editor.ui:22
+#: src/ui/gui/data-editor.ui:21 src/ui/gui/syntax-editor.ui:22
 msgid "_Syntax"
 msgstr "_Sintaksė"
 
-#: src/ui/gui/data-editor.ui:41 src/ui/gui/data-editor.ui:224
-#: src/ui/gui/data-editor.ui:237 src/ui/gui/syntax-editor.ui:28
+#: src/ui/gui/data-editor.ui:27 src/ui/gui/data-editor.ui:144
+#: src/ui/gui/data-editor.ui:157 src/ui/gui/syntax-editor.ui:28
 msgid "_Data"
 msgstr "_Duomenys"
 
-#: src/ui/gui/data-editor.ui:48 src/ui/gui/syntax-editor.ui:35
+#: src/ui/gui/data-editor.ui:34 src/ui/gui/syntax-editor.ui:35
 msgid "_Open..."
 msgstr "_Atverti..."
 
-#: src/ui/gui/data-editor.ui:54
+#: src/ui/gui/data-editor.ui:40
 msgid "I_mport Data..."
 msgstr "_Importuoti duomenis..."
 
-#: src/ui/gui/data-editor.ui:61
+#: src/ui/gui/data-editor.ui:47
 msgid "_Rename Dataset..."
 msgstr "_Pervadinti duomenų rinkinį..."
 
-#: src/ui/gui/data-editor.ui:74 src/ui/gui/syntax-editor.ui:48
+#: src/ui/gui/data-editor.ui:60 src/ui/gui/syntax-editor.ui:48
 msgid "Save _As..."
 msgstr "Įrašyti _kaip..."
 
-#: src/ui/gui/data-editor.ui:80
+#: src/ui/gui/data-editor.ui:66
 msgid "D_isplay Data File Information"
 msgstr "_Rodyti duomenų rinkmenos informaciją"
 
-#: src/ui/gui/data-editor.ui:87
+#: src/ui/gui/data-editor.ui:73
 msgid "Working File"
 msgstr "Veikiamoji rinkmena"
 
-#: src/ui/gui/data-editor.ui:93
+#: src/ui/gui/data-editor.ui:79
 msgid "External File..."
 msgstr "Išorinė rinkmena..."
 
-#: src/ui/gui/data-editor.ui:99
+#: src/ui/gui/data-editor.ui:85
 msgid "Recently Used Da_ta"
 msgstr "Paskiausi _duomenys"
 
-#: src/ui/gui/data-editor.ui:105
+#: src/ui/gui/data-editor.ui:91
 msgid "Recently Used _Files"
 msgstr "Paskiausios _rinkmenos"
 
-#: src/ui/gui/data-editor.ui:117 src/ui/gui/output-viewer.ui:29
-#: src/ui/gui/syntax-editor.ui:66
-msgid "_Edit"
-msgstr "_Taisa"
-
-#: src/ui/gui/data-editor.ui:123
-msgid "Insert Variable"
-msgstr "Įterpti kintamąjį"
-
-#: src/ui/gui/data-editor.ui:124
-msgid "Create a new variable at the current position"
-msgstr "Sukurti naują kintamąjį šioje vietoje"
-
-#: src/ui/gui/data-editor.ui:131
-msgid "Insert Cases"
-msgstr "Įterpti atvejus"
-
-#: src/ui/gui/data-editor.ui:132
-msgid "Create a new case at the current position"
-msgstr "Sukurti naują atvejį šioje vietoje"
-
-#: src/ui/gui/data-editor.ui:138
-msgid "Go To Case..."
-msgstr "Šokti į atvejį..."
-
-#: src/ui/gui/data-editor.ui:140
-msgid "Jump to a case in the data sheet"
-msgstr "Šokti į atvejį duomenų lakšte"
-
-#: src/ui/gui/data-editor.ui:166
-msgid "Cl_ear Variables"
-msgstr "Iš_valyti kintamuosius"
-
-#: src/ui/gui/data-editor.ui:167
-msgid "Delete the variables at the selected position(s)"
-msgstr "Pašalinti pasirinktų pozicijų kintamuosius"
-
-#: src/ui/gui/data-editor.ui:175
-msgid "_Clear Cases"
-msgstr "Iš_valyti atvejus"
-
-#: src/ui/gui/data-editor.ui:176
-msgid "Delete the cases at the selected position(s)"
-msgstr "Pašalinti pasirinktų pozicijų atvejus"
-
-#: src/ui/gui/data-editor.ui:183
-msgid "_Find..."
-msgstr "_Ieškoti..."
-
-#: src/ui/gui/data-editor.ui:189
+#: src/ui/gui/data-editor.ui:109
 msgid "_View"
 msgstr "Ro_dymas"
 
-#: src/ui/gui/data-editor.ui:196
+#: src/ui/gui/data-editor.ui:116
 msgid "_Status Bar"
 msgstr "_Būsenos juosta"
 
-#: src/ui/gui/data-editor.ui:203
+#: src/ui/gui/data-editor.ui:123
 msgid "_Font..."
 msgstr "Šri_ftai..."
 
-#: src/ui/gui/data-editor.ui:210
+#: src/ui/gui/data-editor.ui:130
 msgid "_Grid Lines"
 msgstr "_Tinklelis"
 
-#: src/ui/gui/data-editor.ui:216
+#: src/ui/gui/data-editor.ui:136
 msgid "Value _Labels"
 msgstr "Reikšmių _etiketės"
 
-#: src/ui/gui/data-editor.ui:217
+#: src/ui/gui/data-editor.ui:137
 msgid "Show/hide value labels"
 msgstr "Rodyti / slėpti reikšmių etiketes"
 
-#: src/ui/gui/data-editor.ui:230
+#: src/ui/gui/data-editor.ui:150
 msgid "_Variables"
 msgstr "_Kintamieji"
 
-#: src/ui/gui/data-editor.ui:242
+#: src/ui/gui/data-editor.ui:162
 msgid "_Sort Cases..."
 msgstr "_Rikiuoti atvejus..."
 
-#: src/ui/gui/data-editor.ui:246
+#: src/ui/gui/data-editor.ui:166
 msgid "Sort cases in the active dataset"
 msgstr "Rikiuoti veikiamojo duomenų rinkinio atvejus"
 
-#: src/ui/gui/data-editor.ui:253
+#: src/ui/gui/data-editor.ui:173
 msgid "_Transpose..."
 msgstr "_Transponuoti..."
 
-#: src/ui/gui/data-editor.ui:254
+#: src/ui/gui/data-editor.ui:174
 msgid "Transpose the cases with the variables"
 msgstr "Transponuoti atvejus ir kintamuosius"
 
-#: src/ui/gui/data-editor.ui:261
+#: src/ui/gui/data-editor.ui:181
 msgid "_Aggregate..."
 msgstr "Agreg_uoti..."
 
-#: src/ui/gui/data-editor.ui:267
+#: src/ui/gui/data-editor.ui:187
 msgid "S_plit File..."
 msgstr "_Skaidyti rinkmeną..."
 
-#: src/ui/gui/data-editor.ui:268
+#: src/ui/gui/data-editor.ui:188
 msgid "Split the active dataset"
 msgstr "Skaidyti veikiamąjį duomenų rinkinį"
 
-#: src/ui/gui/data-editor.ui:275
+#: src/ui/gui/data-editor.ui:195
 msgid "Select _Cases..."
 msgstr "_Atvejų atranka..."
 
-#: src/ui/gui/data-editor.ui:281
+#: src/ui/gui/data-editor.ui:201
 msgid "_Weight Cases..."
 msgstr "S_verti atvejus..."
 
-#: src/ui/gui/data-editor.ui:282
+#: src/ui/gui/data-editor.ui:202
 msgid "Weight cases by variable"
 msgstr "Atvejus sverti pagal kintamąjį"
 
-#: src/ui/gui/data-editor.ui:289
+#: src/ui/gui/data-editor.ui:209
 msgid "_Transform"
 msgstr "Trans_formuoti"
 
-#: src/ui/gui/data-editor.ui:295
+#: src/ui/gui/data-editor.ui:215
 msgid "_Compute..."
 msgstr "_Apskaičiuoti..."
 
-#: src/ui/gui/data-editor.ui:301
+#: src/ui/gui/data-editor.ui:221
 msgid "Cou_nt..."
 msgstr "_Suskaičiuoti reikšmių pasikartojimą..."
 
-#: src/ui/gui/data-editor.ui:308
+#: src/ui/gui/data-editor.ui:228
 msgid "Ran_k Cases..."
 msgstr "_Ranguoti atvejus..."
 
-#: src/ui/gui/data-editor.ui:314
+#: src/ui/gui/data-editor.ui:234
 msgid "Auto_matic Recode..."
 msgstr "Auto_matiškai perkoduoti..."
 
-#: src/ui/gui/data-editor.ui:320
+#: src/ui/gui/data-editor.ui:240
 msgid "Recode into _Same Variables..."
 msgstr "Perkoduoti į _tuos pačius kintamuosius..."
 
-#: src/ui/gui/data-editor.ui:326
+#: src/ui/gui/data-editor.ui:246
 msgid "Recode into _Different Variables..."
 msgstr "Perkoduoti į _kitus kintamuosius..."
 
-#: src/ui/gui/data-editor.ui:332
+#: src/ui/gui/data-editor.ui:252
 msgid "_Run Pending Transforms"
 msgstr "_Vykdyti laukiančias transformacijas"
 
-#: src/ui/gui/data-editor.ui:339
+#: src/ui/gui/data-editor.ui:259
 msgid "_Analyze"
 msgstr "_Analizuoti"
 
-#: src/ui/gui/data-editor.ui:345
+#: src/ui/gui/data-editor.ui:265
 msgid "_Descriptive Statistics"
 msgstr "_Aprašomoji statistika"
 
-#: src/ui/gui/data-editor.ui:352
+#: src/ui/gui/data-editor.ui:272
 msgid "_Frequencies..."
 msgstr "_Dažniai..."
 
-#: src/ui/gui/data-editor.ui:366
+#: src/ui/gui/data-editor.ui:286
 msgid "_Explore..."
 msgstr "_Tyrinėti..."
 
-#: src/ui/gui/data-editor.ui:373
+#: src/ui/gui/data-editor.ui:293
 msgid "_Crosstabs..."
 msgstr "_Požymių priklausomumo lentelės..."
 
-#: src/ui/gui/data-editor.ui:379
+#: src/ui/gui/data-editor.ui:299
 msgid "Compare _Means"
 msgstr "Palyginti _vidurkius"
 
-#: src/ui/gui/data-editor.ui:386
+#: src/ui/gui/data-editor.ui:306
 msgid "_Means..."
 msgstr "_Vidurkiai..."
 
-#: src/ui/gui/data-editor.ui:392
+#: src/ui/gui/data-editor.ui:312
 msgid "_One Sample T Test..."
 msgstr "T kriterijus _vienai imčiai..."
 
-#: src/ui/gui/data-editor.ui:399
+#: src/ui/gui/data-editor.ui:319
 msgid "_Independent Samples T Test..."
 msgstr "T kriterijus _nepriklausomoms imtims..."
 
-#: src/ui/gui/data-editor.ui:405
+#: src/ui/gui/data-editor.ui:325
 msgid "_Paired Samples T Test..."
 msgstr "_T kriterijus porinėms imtims..."
 
-#: src/ui/gui/data-editor.ui:411
+#: src/ui/gui/data-editor.ui:331
 msgid "One Way _ANOVA..."
 msgstr "Vienfaktorinė _ANOVA..."
 
-#: src/ui/gui/data-editor.ui:417
+#: src/ui/gui/data-editor.ui:337
 msgid "_Univariate Analysis..."
 msgstr "_Vienmatė dispersinė analizė..."
 
-#: src/ui/gui/data-editor.ui:425
+#: src/ui/gui/data-editor.ui:345
 msgid "Bivariate _Correlation..."
 msgstr "_Dviejų kintamųjų koreliacija..."
 
-#: src/ui/gui/data-editor.ui:432
+#: src/ui/gui/data-editor.ui:352
 msgid "_K-Means Cluster..."
 msgstr "K-vidurkių _reikšm. klaster. analizė..."
 
-#: src/ui/gui/data-editor.ui:439
+#: src/ui/gui/data-editor.ui:359
 msgid "Factor _Analysis..."
 msgstr "_Faktorinė analizė..."
 
-#: src/ui/gui/data-editor.ui:446
+#: src/ui/gui/data-editor.ui:366
 msgid "Re_liability..."
 msgstr "_Klausimynų patikimumas..."
 
-#: src/ui/gui/data-editor.ui:452
+#: src/ui/gui/data-editor.ui:372
 msgid "_Regression"
 msgstr "_Regresija"
 
-#: src/ui/gui/data-editor.ui:459
+#: src/ui/gui/data-editor.ui:379
 msgid "_Linear..."
 msgstr "_Tiesienė regresija..."
 
-#: src/ui/gui/data-editor.ui:466
+#: src/ui/gui/data-editor.ui:386
 msgid "_Binary Logistic..."
 msgstr "_Dvireikšmė logistinė regresija..."
 
-#: src/ui/gui/data-editor.ui:472
+#: src/ui/gui/data-editor.ui:392
 msgid "_Non-Parametric Statistics"
 msgstr "_Neparametrinė statistika"
 
-#: src/ui/gui/data-editor.ui:478
+#: src/ui/gui/data-editor.ui:398
 msgid "_Chi-Square..."
 msgstr "_Chi-kvadratas..."
 
-#: src/ui/gui/data-editor.ui:485
+#: src/ui/gui/data-editor.ui:405
 msgid "_Binomial..."
 msgstr "_Binominis..."
 
-#: src/ui/gui/data-editor.ui:491
+#: src/ui/gui/data-editor.ui:411
 msgid "R_uns..."
 msgstr "_Serijų kriterijus..."
 
-#: src/ui/gui/data-editor.ui:497
+#: src/ui/gui/data-editor.ui:417
 msgid "1-Sample _K-S..."
 msgstr "K-S kriterijus 1 imčiai..."
 
-#: src/ui/gui/data-editor.ui:503
+#: src/ui/gui/data-editor.ui:423
 msgid "2 _Related Samples..."
 msgstr "2 p_riklausomos imtys..."
 
-#: src/ui/gui/data-editor.ui:509
+#: src/ui/gui/data-editor.ui:429
 msgid "K Related _Samples..."
 msgstr "_K priklausomų imčių..."
 
-#: src/ui/gui/data-editor.ui:516
+#: src/ui/gui/data-editor.ui:436
 msgid "ROC Cur_ve..."
 msgstr "_Operatoriaus charakteringa kreivė..."
 
-#: src/ui/gui/data-editor.ui:522
+#: src/ui/gui/data-editor.ui:442
 msgid "_Utilities"
 msgstr "Įra_nkiai"
 
-#: src/ui/gui/data-editor.ui:529
+#: src/ui/gui/data-editor.ui:449
 msgid "_Variables..."
 msgstr "_Kintamieji..."
 
-#: src/ui/gui/data-editor.ui:530
-msgid "Jump to variable"
-msgstr "Šokti į kintamąjį"
-
-#: src/ui/gui/data-editor.ui:537
+#: src/ui/gui/data-editor.ui:457
 msgid "Data File _Comments..."
 msgstr "Duomenų rinkmenos _komentarai..."
 
-#: src/ui/gui/data-editor.ui:543 src/ui/gui/output-viewer.ui:47
+#: src/ui/gui/data-editor.ui:463 src/ui/gui/output-viewer.ui:47
 #: src/ui/gui/syntax-editor.ui:143
 msgid "_Windows"
 msgstr "_Langas"
 
-#: src/ui/gui/data-editor.ui:549 src/ui/gui/output-viewer.ui:53
+#: src/ui/gui/data-editor.ui:469 src/ui/gui/output-viewer.ui:53
 #: src/ui/gui/syntax-editor.ui:149
 msgid "_Minimize All Windows"
 msgstr "_Suskleisti visus langus"
 
-#: src/ui/gui/data-editor.ui:555
+#: src/ui/gui/data-editor.ui:475
 msgid "_Split"
 msgstr "_Skaidyti"
 
-#: src/ui/gui/data-editor.ui:743
+#: src/ui/gui/data-editor.ui:618
 msgid "Information Area"
 msgstr "Informacijos sritis"
 
-#: src/ui/gui/data-editor.ui:765
+#: src/ui/gui/data-editor.ui:640
 msgid "Processor Area"
 msgstr "Doroklės sritis"
 
-#: src/ui/gui/data-editor.ui:790
+#: src/ui/gui/data-editor.ui:665
 msgid "Case Counter Area"
 msgstr "Atvejų skaičiavimo sritis"
 
-#: src/ui/gui/data-editor.ui:815
+#: src/ui/gui/data-editor.ui:690
 msgid "Filter Use Status Area"
 msgstr "Filtro naudojimo būsenos sritis"
 
-#: src/ui/gui/data-editor.ui:841
+#: src/ui/gui/data-editor.ui:716
 msgid "Weight Status Area"
 msgstr "Svėrimo būsenos sritis"
 
-#: src/ui/gui/data-editor.ui:867
+#: src/ui/gui/data-editor.ui:742
 msgid "Split File Status Area"
 msgstr "Rinkmenos skaidymo sritis"
 
@@ -8058,31 +8169,31 @@ msgstr "Veikiamoji eilutė"
 msgid "To End"
 msgstr "Iki galo"
 
-#: src/ui/gui/var-type-dialog.ui:79
+#: src/ui/gui/var-type-dialog.ui:78
 msgid "Scientific notation"
 msgstr "Mokslinis užrašas"
 
-#: src/ui/gui/var-type-dialog.ui:127
+#: src/ui/gui/var-type-dialog.ui:126
 msgid "Custom currency"
 msgstr "Savita valiuta"
 
-#: src/ui/gui/var-type-dialog.ui:229
+#: src/ui/gui/var-type-dialog.ui:226
 msgid "positive"
 msgstr "teigiamas"
 
-#: src/ui/gui/var-type-dialog.ui:238
+#: src/ui/gui/var-type-dialog.ui:235
 msgid "negative"
 msgstr "neigiamas"
 
-#: src/ui/gui/var-type-dialog.ui:251
+#: src/ui/gui/var-type-dialog.ui:248
 msgid "Sample"
 msgstr "Imtis"
 
-#: src/ui/gui/var-type-dialog.ui:298
+#: src/ui/gui/var-type-dialog.ui:295
 msgid "Width:"
 msgstr "Plotis:"
 
-#: src/ui/gui/var-type-dialog.ui:349
+#: src/ui/gui/var-type-dialog.ui:344
 msgid "Decimal Places:"
 msgstr "Dešimtainė skiltis:"
 
@@ -8094,11 +8205,11 @@ msgstr "Statistinė programinė įranga"
 msgid "Analyze statistical data with a free alternative to SPSS"
 msgstr "Statistinių duomenų analizavimas su nemokama SPSS alternatyva"
 
+#~ msgid "Values"
+#~ msgstr "Reikšmės"
+
 #~ msgid "Error opening `%s' for reading as a Gnumeric file: %s."
 #~ msgstr "Klaida skaitymui atveriant „%s“ kaip Gnumeric rinkmeną: %s."
-
-#~ msgid "Could not extract OpenDocument spreadsheet from file `%s': %s."
-#~ msgstr "Iš rinkmenos „%s“ nepavyksta ištraukti OpenDocument skaičialentės: %s."
 
 #~ msgid "_Import Delimited Text Data..."
 #~ msgstr "_Importuoti tekstinius duomenis..."
@@ -8289,9 +8400,6 @@ msgstr "Statistinių duomenų analizavimas su nemokama SPSS alternatyva"
 #~ msgid "Untitled"
 #~ msgstr "Bevardė"
 
-#~ msgid "Cannot create variable name from %s"
-#~ msgstr "Nepavyksta sukurti kintamojo vardo iš %s"
-
 #~ msgid "Recoded variable name duplicates an existing `%s' within system file."
 #~ msgstr "Kintamojo, į kurį ketinama perkoduoti, vardas jau yra „%s“ sistemos rinkmenoje."
 
@@ -8373,9 +8481,6 @@ msgstr "Statistinių duomenų analizavimas su nemokama SPSS alternatyva"
 
 #~ msgid "`%s' is not a variable name"
 #~ msgstr "„%s“ nėra kintamojo vardas"
-
-#~ msgid " cases"
-#~ msgstr " atvejai"
 
 #~ msgid "%s: Creating temporary file: %s."
 #~ msgstr "%s: Kuriama laikinoji rinkmena: %s."
