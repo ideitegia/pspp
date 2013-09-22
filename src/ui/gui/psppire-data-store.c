@@ -205,6 +205,7 @@ delete_variable_callback (GObject *obj, const struct variable *var UNUSED,
 {
   PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
+  g_return_if_fail (store->datasheet);
 
   datasheet_delete_columns (store->datasheet, case_index, 1);
   datasheet_insert_column (store->datasheet, NULL, -1, case_index);
@@ -431,6 +432,7 @@ psppire_data_store_get_string (PsppireDataStore *store,
   int width;
 
   g_return_val_if_fail (store != NULL, NULL);
+  g_return_val_if_fail (store->datasheet != NULL, NULL);
   g_return_val_if_fail (var != NULL, NULL);
 
   if (row < 0 || row >= datasheet_get_n_rows (store->datasheet))
