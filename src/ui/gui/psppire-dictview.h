@@ -61,6 +61,9 @@ struct _PsppireDictViewClass
 };
 
 GType      psppire_dict_view_get_type        (void);
+void psppire_dict_view_get_selected_variables (PsppireDictView *,
+                                               struct variable ***vars,
+                                               size_t *n_varsp);
 struct variable * psppire_dict_view_get_selected_variable (PsppireDictView *);
 
 const char *get_var_measurement_stock_id (enum fmt_type, enum measure);

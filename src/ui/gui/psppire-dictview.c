@@ -546,26 +546,18 @@ psppire_dict_view_new (void)
   return GTK_WIDGET (g_object_new (psppire_dict_view_get_type (), NULL));
 }
 
-
-
-struct variable *
-psppire_dict_view_get_selected_variable (PsppireDictView *treeview)
+static struct variable *
+psppire_dict_view_iter_to_var (PsppireDictView *dict_view,
+                               GtkTreeIter *top_iter)
 {
-  struct variable *var;
-  GtkTreeModel *top_model;
-  GtkTreeIter top_iter;
+  GtkTreeView *treeview = GTK_TREE_VIEW (dict_view);
+  GtkTreeModel *top_model = gtk_tree_view_get_model (treeview);
 
+  struct variable *var;
   GtkTreeModel *model;
   GtkTreeIter iter;
 
-  GtkTreeSelection *selection =
-    gtk_tree_view_get_selection (GTK_TREE_VIEW (treeview));
-
-  if (! gtk_tree_selection_get_selected (selection,
-					 &top_model, &top_iter))
-    return NULL;
-
-  dv_get_base_model (top_model, &top_iter, &model, &iter);
+  dv_get_base_model (top_model, top_iter, &model, &iter);
 
   g_assert (PSPPIRE_IS_DICT (model));
 
@@ -573,6 +565,58 @@ psppire_dict_view_get_selected_variable (PsppireDictView *treeview)
 		      &iter, DICT_TVM_COL_VAR, &var, -1);
 
   return var;
+}
+
+struct get_vars_aux
+  {
+    PsppireDictView *dict_view;
+    struct variable **vars;
+    size_t idx;
+  };
+
+static void
+get_vars_cb (GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
+             gpointer data)
+{
+  struct get_vars_aux *aux = data;
+  struct variable *var = psppire_dict_view_iter_to_var (aux->dict_view, iter);
+
+  g_return_if_fail (var != NULL);
+  aux->vars[aux->idx++] = var;
+}
+
+void
+psppire_dict_view_get_selected_variables (PsppireDictView *dict_view,
+                                          struct variable ***vars,
+                                          size_t *n_varsp)
+{
+  GtkTreeView *tree_view = GTK_TREE_VIEW (dict_view);
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (tree_view);
+  gint n_vars = gtk_tree_selection_count_selected_rows (selection);
+  struct get_vars_aux aux;
+
+  *vars = g_malloc_n (n_vars, sizeof **vars);
+
+  aux.dict_view = dict_view;
+  aux.vars = *vars;
+  aux.idx = 0;
+  gtk_tree_selection_selected_foreach (selection, get_vars_cb, &aux);
+
+  *n_varsp = aux.idx;
+  g_return_if_fail (aux.idx >= n_vars);
+}
+
+struct variable *
+psppire_dict_view_get_selected_variable (PsppireDictView *dict_view)
+{
+  GtkTreeView *tree_view = GTK_TREE_VIEW (dict_view);
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (tree_view);
+  GtkTreeIter iter;
+
+  if (gtk_tree_selection_get_selected (selection, NULL, &iter))
+    return psppire_dict_view_iter_to_var (dict_view, &iter);
+  else
+    return NULL;
 }
 
 
