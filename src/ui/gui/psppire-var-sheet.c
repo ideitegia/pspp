@@ -457,7 +457,7 @@ render_var_cell (PsppSheetViewColumn *tree_column,
 
     case VS_MISSING:
       {
-        char *text = missing_values_to_string (var_sheet->dict, var, NULL);
+        char *text = missing_values_to_string (var, NULL);
         g_object_set (cell,
                       "text", text,
                       "editable", FALSE,

@@ -119,7 +119,7 @@ populate_text (PsppireDictView *treeview, gpointer data)
     g_string_append_printf (gstring, _("Type: %s\n"), buffer);
   }
 
-  text = missing_values_to_string (dict, var, NULL);
+  text = missing_values_to_string (var, NULL);
   g_string_append_printf (gstring, _("Missing Values: %s\n"),
 			  text);
   g_free (text);

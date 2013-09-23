@@ -17,7 +17,7 @@ static const gchar none[] = N_("None");
 
 
 gchar *
-missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GError **err)
+missing_values_to_string (const struct variable *pv, GError **err)
 {
   gchar *s;
   const struct missing_values *miss = var_get_missing_values (pv);

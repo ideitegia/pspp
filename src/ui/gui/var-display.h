@@ -26,6 +26,6 @@ struct variable;
 
 #define n_ALIGNMENTS 3
 
-gchar *missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GError **err);
+gchar *missing_values_to_string (const struct variable *pv, GError **err);
 
 #endif
