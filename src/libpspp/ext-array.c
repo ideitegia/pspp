@@ -20,6 +20,7 @@
 #include <config.h>
 
 #include "libpspp/ext-array.h"
+#include "libpspp/message.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -29,7 +30,6 @@
 #include "libpspp/cast.h"
 #include "libpspp/temp-file.h"
 
-#include "gl/error.h"
 #include "gl/unlocked-io.h"
 #include "gl/xalloc.h"
 
@@ -63,7 +63,7 @@ ext_array_create (void)
   struct ext_array *ea = xmalloc (sizeof *ea);
   ea->file = create_temp_file ();
   if (ea->file == NULL)
-    error (0, errno, _("failed to create temporary file"));
+    msg_error (errno, _("failed to create temporary file"));
   ea->position = 0;
   ea->op = OP_WRITE;
   return ea;
@@ -103,7 +103,7 @@ do_seek (const struct ext_array *ea_, off_t offset, enum op op)
           return true;
         }
       else
-        error (0, errno, _("seeking in temporary file"));
+        msg_error (errno, _("seeking in temporary file"));
     }
 
   return false;
@@ -122,9 +122,9 @@ do_read (const struct ext_array *ea_, void *buffer, size_t bytes)
   if (bytes > 0 && fread (buffer, bytes, 1, ea->file) != 1)
     {
       if (ferror (ea->file))
-        error (0, errno, _("reading temporary file"));
+        msg_error (errno, _("reading temporary file"));
       else if (feof (ea->file))
-        error (0, 0, _("unexpected end of file reading temporary file"));
+        msg_error ( 0, _("unexpected end of file reading temporary file"));
       else
         NOT_REACHED ();
       return false;
@@ -144,7 +144,7 @@ do_write (struct ext_array *ea, const void *buffer, size_t bytes)
   assert (!ext_array_error (ea));
   if (bytes > 0 && fwrite (buffer, bytes, 1, ea->file) != 1)
     {
-      error (0, errno, _("writing to temporary file"));
+      msg_error (errno, _("writing to temporary file"));
       return false;
     }
   ea->position += bytes;

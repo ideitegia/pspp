@@ -27,7 +27,6 @@
 #include "libpspp/assertion.h"
 #include "libpspp/integer-format.h"
 
-#include "gl/error.h"
 
 /* Neutral intermediate representation for binary floating-point numbers. */
 struct fp

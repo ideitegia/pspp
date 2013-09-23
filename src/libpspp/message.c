@@ -1,5 +1,6 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 
+   2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -47,25 +48,59 @@ static int messages_disabled;
 
 /* Public functions. */
 
+
+void
+vmsg (enum msg_class class, const char *format, va_list args)
+{
+  struct msg m;
+
+  m.category = msg_class_to_category (class);
+  m.severity = msg_class_to_severity (class);
+  m.text = xvasprintf (format, args);
+  m.file_name = NULL;
+  m.first_line = m.last_line = 0;
+  m.first_column = m.last_column = 0;
+
+  msg_emit (&m);
+}
+
 /* Writes error message in CLASS, with text FORMAT, formatted with
    printf, to the standard places. */
 void
 msg (enum msg_class class, const char *format, ...)
 {
-  struct msg m;
   va_list args;
-
-  m.category = msg_class_to_category (class);
-  m.severity = msg_class_to_severity (class);
   va_start (args, format);
-  m.text = xvasprintf (format, args);
+  vmsg (class, format, args);
+  va_end (args);
+}
+
+
+
+void
+msg_error (int errnum, const char *format, ...)
+{
+  va_list args;
+  char *e;
+  struct msg m;
+
+  m.category = MSG_C_GENERAL;
+  m.severity = MSG_S_ERROR;
+
+  va_start (args, format);
+  e = xvasprintf (format, args);
+  va_end (args);
+
   m.file_name = NULL;
   m.first_line = m.last_line = 0;
   m.first_column = m.last_column = 0;
-  va_end (args);
+  m.text = xasprintf (_("%s: %s"), e, strerror (errnum));
+  free (e);
 
   msg_emit (&m);
 }
+
+
 
 void
 msg_set_handler (void (*handler) (const struct msg *, void *aux), void *aux)
@@ -235,6 +270,27 @@ msg_ui_any_errors (void)
   return counts[MSG_S_ERROR] > 0;
 }
 
+
+static int entrances = 0;
+
+static void
+ship_message (struct msg *m)
+{
+  entrances++;
+  if ( ! m->shipped )
+    {
+      if (msg_handler && entrances <= 1)
+	msg_handler (m, msg_aux);
+      else
+	{
+	  fwrite (m->text, 1, strlen (m->text), stderr);
+	  fwrite ("\n", 1, 1, stderr);
+	}
+    }
+  m->shipped = true;
+  entrances--;
+}
+
 static void
 submit_note (char *s)
 {
@@ -248,24 +304,26 @@ submit_note (char *s)
   m.first_column = 0;
   m.last_column = 0;
   m.text = s;
-  msg_handler (&m, msg_aux);
+  m.shipped = false;
+
+  ship_message (&m);
+
   free (s);
 }
 
 
 
 static void
-process_msg (const struct msg *m)
+process_msg (struct msg *m)
 {
   int n_msgs, max_msgs;
-
 
   if (too_many_errors
       || (too_many_notes && m->severity == MSG_S_NOTE)
       || (warnings_off && m->severity == MSG_S_WARNING) )
     return;
 
-  msg_handler (m, msg_aux);
+  ship_message (m);
 
   counts[m->severity]++;
   max_msgs = settings_get_max_messages (m->severity);
@@ -300,6 +358,7 @@ process_msg (const struct msg *m)
 void
 msg_emit (struct msg *m)
 {
+  m->shipped = false;
   if (!messages_disabled)
      process_msg (m);
 

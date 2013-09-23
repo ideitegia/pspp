@@ -48,7 +48,6 @@
 #include "output/table-item.h"
 #include "output/text-item.h"
 
-#include "gl/error.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
 
@@ -304,7 +303,7 @@ parse_page_size (struct driver_option *option)
           if (dim >= 1 && errno != ERANGE && *tail == '\0')
             dim = value;
           else
-            error (0, 0, _("%s: %s must be positive integer or `auto'"),
+            msg (MW, _("%s: %s must be positive integer or `auto'"),
                    option->driver_name, option->name);
         }
     }
@@ -336,7 +335,7 @@ update_page_size (struct ascii_driver *a, bool issue_error)
   if (a->width < MIN_WIDTH || a->length < MIN_LENGTH)
     {
       if (issue_error)
-        error (0, 0,
+        msg (ME,
                _("ascii: page excluding margins and headers "
                  "must be at least %d characters wide by %d lines long, but "
                  "as configured is only %d characters by %d lines"),
@@ -385,7 +384,7 @@ ascii_flush (struct output_driver *driver)
       ascii_close_page (a);
 
       if (fn_close (a->file_name, a->file) != 0)
-        error (0, errno, _("ascii: closing output file `%s'"),
+        msg_error (ME, errno, _("ascii: closing output file `%s'"),
                a->file_name);
       a->file = NULL;
     }
@@ -1002,7 +1001,7 @@ ascii_open_page (struct ascii_driver *a)
         }
       else
         {
-          error (0, errno, _("ascii: opening output file `%s'"),
+          msg_error (errno, _("ascii: opening output file `%s'"),
                  a->file_name);
           a->error = true;
           return false;

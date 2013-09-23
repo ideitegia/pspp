@@ -38,7 +38,6 @@
 #include "ui/gui/builder-wrapper.h"
 #include "ui/gui/psppire-output-window.h"
 
-#include "gl/error.h"
 #include "gl/tmpdir.h"
 #include "gl/xalloc.h"
 #include "gl/c-xvasprintf.h"
@@ -770,7 +769,7 @@ clipboard_get_cb (GtkClipboard     *clipboard,
   if (path_search (dirname, sizeof dirname, NULL, NULL, true)
       || mkdtemp (dirname) == NULL)
     {
-      error (0, errno, _("failed to create temporary directory"));
+      msg_error (errno, _("failed to create temporary directory during clipboard operation"));
       return;
     }
   filename = xasprintf ("%s/clip.tmp", dirname);

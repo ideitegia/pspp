@@ -151,7 +151,9 @@ tests_libpspp_sparse_array_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
 tests_libpspp_sparse_xarray_test_SOURCES = \
 	tests/libpspp/sparse-xarray-test.c
 tests_libpspp_sparse_xarray_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
-tests_libpspp_sparse_xarray_test_LDADD = src/libpspp/liblibpspp.la gl/libgl.la
+tests_libpspp_sparse_xarray_test_LDADD = src/libpspp/liblibpspp.la \
+	src/libpspp-core.la \
+	gl/libgl.la 
 
 tests_data_inexactify_SOURCES = tests/data/inexactify.c
 
@@ -192,11 +194,12 @@ tests_language_lexer_segment_test_LDADD = \
 check_PROGRAMS += tests/libpspp/zip-test
 tests_libpspp_zip_test_SOURCES = \
 	tests/libpspp/zip-test.c
+
 tests_libpspp_zip_test_CFLAGS = $(AM_CFLAGS)
 tests_libpspp_zip_test_LDADD = \
 	src/libpspp/liblibpspp.la \
+	src/libpspp-core.la \
 	gl/libgl.la 
-
 
 check_PROGRAMS += tests/output/render-test
 tests_output_render_test_SOURCES = tests/output/render-test.c

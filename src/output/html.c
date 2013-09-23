@@ -39,7 +39,6 @@
 #include "output/table-item.h"
 #include "output/text-item.h"
 
-#include "error.h"
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -106,7 +105,7 @@ html_create (const char *file_name, enum settings_output_devices device_type,
   html->file = fn_open (html->file_name, "w");
   if (html->file == NULL)
     {
-      error (0, errno, _("error opening output file `%s'"), html->file_name);
+      msg_error (errno, _("error opening output file `%s'"), html->file_name);
       goto error;
     }
 

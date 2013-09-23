@@ -24,12 +24,12 @@
 
 #include "data/file-name.h"
 #include "libpspp/cast.h"
+#include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "output/driver-provider.h"
 #include "output/message-item.h"
 #include "output/text-item.h"
 
-#include "gl/error.h"
 #include "gl/fwriteerror.h"
 #include "gl/xalloc.h"
 
@@ -64,7 +64,7 @@ journal_close (void)
   if (journal != NULL && journal->file != NULL)
     {
       if (fwriteerror (journal->file))
-        error (0, errno, _("error writing output file `%s'"),
+        msg_error (errno, _("error writing output file `%s'"),
                journal_file_name);
       journal->file = NULL;
     }
@@ -90,7 +90,7 @@ journal_output (struct journal_driver *j, const char *s)
       j->file = fopen (journal_get_file_name (), "a");
       if (j->file == NULL)
         {
-          error (0, errno, _("error opening output file `%s'"),
+          msg_error (errno, _("error opening output file `%s'"),
                  journal_get_file_name ());
           output_driver_destroy (&j->driver);
           return;

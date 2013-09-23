@@ -29,7 +29,6 @@
 #include "output/driver-provider.h"
 #include "output/measure.h"
 
-#include "gl/error.h"
 #include "gl/xalloc.h"
 
 #include "gettext.h"
@@ -110,7 +109,7 @@ do_parse_boolean (const char *driver_name, const char *key,
     return false;
   else
     {
-      error (0, 0, _("%s: `%s' is `%s' but a Boolean value is required"),
+      msg (MW, _("%s: `%s' is `%s' but a Boolean value is required"),
              driver_name, value, key);
       return -1;
     }
@@ -185,7 +184,7 @@ parse_enum (struct driver_option *o, ...)
                   ds_put_format (&choices, "`%s'", s);
                 }
 
-              error (0, 0, _("%s: `%s' is `%s' but one of the following "
+              msg (MW, _("%s: `%s' is `%s' but one of the following "
                              "is required: %s"),
                      o->driver_name, o->name, o->value, ds_cstr (&choices));
               ds_destroy (&choices);
@@ -229,22 +228,22 @@ parse_int (struct driver_option *o, int min_value, int max_value)
       else if (max_value == INT_MAX)
         {
           if (min_value == 0)
-            error (0, 0, _("%s: `%s' is `%s' but a nonnegative integer "
+            msg (MW, _("%s: `%s' is `%s' but a nonnegative integer "
                            "is required"),
                    o->driver_name, o->name, o->value);
           else if (min_value == 1)
-            error (0, 0, _("%s: `%s' is `%s' but a positive integer is "
+            msg (MW, _("%s: `%s' is `%s' but a positive integer is "
                            "required"), o->driver_name, o->name, o->value);
           else if (min_value == INT_MIN)
-            error (0, 0, _("%s: `%s' is `%s' but an integer is required"),
+            msg (MW, _("%s: `%s' is `%s' but an integer is required"),
                    o->driver_name, o->name, o->value);
           else
-            error (0, 0, _("%s: `%s' is `%s' but an integer greater "
+            msg (MW, _("%s: `%s' is `%s' but an integer greater "
                            "than %d is required"),
                    o->driver_name, o->name, o->value, min_value - 1);
         }
       else
-        error (0, 0, _("%s: `%s' is `%s'  but an integer between %d and "
+        msg (MW, _("%s: `%s' is `%s'  but an integer between %d and "
                        "%d is required"),
                o->driver_name, o->name, o->value, min_value, max_value);
     }
@@ -323,7 +322,7 @@ parse_chart_file_name (struct driver_option *o)
         chart_file_name = xstrdup (o->value);
       else
         {
-          error (0, 0, _("%s: `%s' is `%s' but a file name that contains "
+          msg (MW, _("%s: `%s' is `%s' but a file name that contains "
                          "`#' is required."),
                  o->name, o->value, o->driver_name);
           chart_file_name = default_chart_file_name (o->default_value);

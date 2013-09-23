@@ -52,7 +52,6 @@
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-scanf.h"
 
-#include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/xalloc.h"
 

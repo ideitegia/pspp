@@ -56,7 +56,6 @@
 #include "ui/gui/psppire-scanf.h"
 #include "ui/syntax-gen.h"
 
-#include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/xalloc.h"
 

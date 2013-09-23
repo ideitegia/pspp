@@ -57,7 +57,6 @@
 
 #include <data/casereader.h>
 
-#include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/xalloc.h"
 

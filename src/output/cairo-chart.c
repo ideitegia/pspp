@@ -22,7 +22,6 @@
 #include <cairo/cairo.h>
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
-#include <errno.h>
 #include <float.h>
 #include <math.h>
 #include <stdarg.h>
@@ -35,7 +34,6 @@
 #include "output/cairo.h"
 #include "output/chart-item.h"
 
-#include "gl/error.h"
 #include "gl/xalloc.h"
 #include "gl/xvasprintf.h"
 

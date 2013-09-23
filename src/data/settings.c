@@ -29,7 +29,6 @@
 #include "libpspp/integer-format.h"
 #include "libpspp/message.h"
 
-#include "gl/error.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
 

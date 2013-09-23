@@ -26,10 +26,10 @@
 #include "data/file-name.h"
 #include "data/settings.h"
 #include "libpspp/cast.h"
+#include "libpspp/message.h"
 #include "output/driver-provider.h"
 #include "output/message-item.h"
 
-#include "gl/error.h"
 #include "gl/fwriteerror.h"
 #include "gl/xalloc.h"
 
@@ -63,7 +63,7 @@ msglog_create (const char *file_name)
   file = fn_open (file_name, "w");
   if (file == NULL)
     {
-      error (0, errno, _("error opening output file `%s'"), file_name);
+      msg_error (errno, _("error opening output file `%s'"), file_name);
       return NULL;
     }
 

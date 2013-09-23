@@ -38,7 +38,6 @@
 #include "output/table-provider.h"
 #include "output/text-item.h"
 
-#include "gl/error.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
 

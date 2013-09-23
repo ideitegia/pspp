@@ -46,7 +46,6 @@
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-var-sheet.h"
 
-#include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/xalloc.h"
 

@@ -53,7 +53,6 @@
 #include <pango/pangocairo.h>
 #include <stdlib.h>
 
-#include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
@@ -224,7 +223,7 @@ parse_font (struct output_driver *d, struct string_map *options,
   desc = pango_font_description_from_string (string);
   if (desc == NULL)
     {
-      error (0, 0, _("`%s': bad font specification"), string);
+      msg (MW, _("`%s': bad font specification"), string);
 
       /* Fall back to DEFAULT_VALUE, which had better be a valid font
          description. */
@@ -379,7 +378,7 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
   status = cairo_surface_status (surface);
   if (status != CAIRO_STATUS_SUCCESS)
     {
-      error (0, 0, _("error opening output file `%s': %s"),
+      msg (ME, _("error opening output file `%s': %s"),
              file_name, cairo_status_to_string (status));
       cairo_surface_destroy (surface);
       goto error;
@@ -396,7 +395,7 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
 
   if (xr->width / xr->char_width < MIN_WIDTH)
     {
-      error (0, 0, _("The defined page is not wide enough to hold at least %d "
+      msg (ME, _("The defined page is not wide enough to hold at least %d "
                      "characters in the default font.  In fact, there's only "
                      "room for %d characters."),
              MIN_WIDTH,
@@ -406,7 +405,7 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
 
   if (xr->length / xr->char_height < MIN_LENGTH)
     {
-      error (0, 0, _("The defined page is not long enough to hold at least %d "
+      msg (ME, _("The defined page is not long enough to hold at least %d "
                      "lines in the default font.  In fact, there's only "
                      "room for %d lines."),
              MIN_LENGTH,
@@ -457,7 +456,7 @@ xr_destroy (struct output_driver *driver)
       cairo_surface_finish (cairo_get_target (xr->cairo));
       status = cairo_status (xr->cairo);
       if (status != CAIRO_STATUS_SUCCESS)
-        error (0, 0, _("error drawing output for %s driver: %s"),
+        msg (ME, _("error drawing output for %s driver: %s"),
                output_driver_get_name (driver),
                cairo_status_to_string (status));
       cairo_destroy (xr->cairo);
@@ -1117,7 +1116,7 @@ xr_draw_png_chart (const struct chart_item *item,
 
   status = cairo_surface_write_to_png (surface, file_name);
   if (status != CAIRO_STATUS_SUCCESS)
-    error (0, 0, _("error writing output file `%s': %s"),
+    msg (ME, _("error writing output file `%s': %s"),
            file_name, cairo_status_to_string (status));
 
   cairo_destroy (cr);

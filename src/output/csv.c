@@ -31,7 +31,6 @@
 #include "output/table-item.h"
 #include "output/table-provider.h"
 
-#include "gl/error.h"
 #include "gl/xalloc.h"
 #include "gl/xvasprintf.h"
 
@@ -94,7 +93,7 @@ csv_create (const char *file_name, enum settings_output_devices device_type,
 
   if (csv->file == NULL)
     {
-      error (0, errno, _("error opening output file `%s'"), csv->file_name);
+      msg_error (errno, _("error opening output file `%s'"), csv->file_name);
       output_driver_destroy (d);
       return NULL;
     }
