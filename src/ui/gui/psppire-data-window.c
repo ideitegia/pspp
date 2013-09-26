@@ -1095,6 +1095,15 @@ psppire_data_window_dispose (GObject *object)
 
   if (dw->dict)
     {
+      g_signal_handlers_disconnect_by_func (dw->dict,
+                                            G_CALLBACK (enable_save), dw);
+      g_signal_handlers_disconnect_by_func (dw->dict,
+                                            G_CALLBACK (on_weight_change), dw);
+      g_signal_handlers_disconnect_by_func (dw->dict,
+                                            G_CALLBACK (on_filter_change), dw);
+      g_signal_handlers_disconnect_by_func (dw->dict,
+                                            G_CALLBACK (on_split_change), dw);
+
       g_object_unref (dw->dict);
       dw->dict = NULL;
     }
