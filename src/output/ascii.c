@@ -384,8 +384,7 @@ ascii_flush (struct output_driver *driver)
       ascii_close_page (a);
 
       if (fn_close (a->file_name, a->file) != 0)
-        msg_error (ME, errno, _("ascii: closing output file `%s'"),
-               a->file_name);
+        msg_error (errno, _("ascii: closing output file `%s'"), a->file_name);
       a->file = NULL;
     }
 }
