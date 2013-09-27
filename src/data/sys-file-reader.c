@@ -1747,7 +1747,7 @@ parse_value_labels (struct sfm_reader *r, struct dictionary *dict,
   char **utf8_labels;
   size_t i;
 
-  utf8_labels = pool_nmalloc (r->pool, sizeof *utf8_labels, record->n_labels);
+  utf8_labels = pool_nmalloc (r->pool, record->n_labels, sizeof *utf8_labels);
   for (i = 0; i < record->n_labels; i++)
     utf8_labels[i] = recode_string_pool ("UTF-8", dict_get_encoding (dict),
                                          record->labels[i].label, -1,
