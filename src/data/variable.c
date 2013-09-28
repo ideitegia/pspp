@@ -285,8 +285,11 @@ var_set_width_and_formats (struct variable *v, int new_width,
   if (fmt_resize (&v->write, new_width))
     traits |= VAR_TRAIT_WRITE_FORMAT;
 
-  v->width = new_width;
-  traits |= VAR_TRAIT_WIDTH;
+  if (v->width != new_width)
+    {
+      v->width = new_width;
+      traits |= VAR_TRAIT_WIDTH;
+    }
 
   if (print)
     {
@@ -300,7 +303,8 @@ var_set_width_and_formats (struct variable *v, int new_width,
       traits |= VAR_TRAIT_WRITE_FORMAT;
     }
 
-  dict_var_changed (v, traits, ov);
+  if (traits != 0)
+    dict_var_changed (v, traits, ov);
 }
 
 /* Changes the width of V to NEW_WIDTH.
