@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -384,7 +384,7 @@ distribute_spanned_width (int width,
           w += width * unspanned * d0;
         }
 
-      rows[x].width = w / d;
+      rows[x].width = MAX (rows[x].width, w / d);
       w -= rows[x].width * d;
     }
 }
