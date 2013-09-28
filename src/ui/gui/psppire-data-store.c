@@ -226,7 +226,10 @@ resize_datum (const union value *old, union value *new, const void *aux_)
   const char *enc = dict_get_encoding (aux->dict);
   const struct fmt_spec *newfmt = var_get_print_format (aux->new_variable);
   char *s = data_out (old, enc, var_get_print_format (aux->old_variable));
-  free (data_in (ss_cstr (s), enc, newfmt->type, new, new_width, enc));
+  enum fmt_type type = (fmt_usable_for_input (newfmt->type)
+                        ? newfmt->type
+                        : FMT_DOLLAR);
+  free (data_in (ss_cstr (s), enc, type, new, new_width, enc));
   free (s);
 }
 
