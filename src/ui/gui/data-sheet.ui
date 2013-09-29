@@ -62,7 +62,7 @@
         <child>
           <object class="GtkAction" id="edit_insert-case">
             <property name="name">edit_insert-case</property>
-            <property name="label" translatable="yes">Insert Cases</property>
+            <property name="label" translatable="yes">Insert Case</property>
             <property name="tooltip" translatable="yes">Create a new case at the current position</property>
 	    <property name="stock-id">edit-insert-case</property>
           </object>
@@ -72,7 +72,7 @@
             <property name="name">edit_goto-variable</property>
             <property name="label" translatable="yes">Go To Variable...</property>
 	    <property name="tooltip" translatable="yes">Jump to variable</property>
-	    <property name="stock-id">edit-goto-variable</property>
+	    <property name="stock-id">edit-go-to-variable</property>
           </object>
         </child>
         <child>
@@ -80,7 +80,7 @@
             <property name="label" translatable="yes">Go To Case...</property>
             <property name="name">edit_goto-case</property>
             <property name="tooltip" translatable="yes">Jump to a case in the data sheet</property>
-	    <property name="stock-id">edit-goto-case</property>
+	    <property name="stock-id">edit-go-to-case</property>
 
           </object>
         </child>
@@ -107,32 +107,32 @@
             <property name="name">edit_clear-variables</property>
             <property name="label" translatable="yes">Cl_ear Variables</property>
 	    <property name="tooltip" translatable="yes">Delete the variables at the selected position(s)</property>
-            <property name="stock-id">gtk-clear</property>
+            <property name="stock-id">edit-clear</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_clear-cases">
             <property name="name">edit_clear-cases</property>
-            <property name="stock-id">gtk-clear</property>
+            <property name="stock-id">edit-clear</property>
             <property name="label" translatable="yes">_Clear Cases</property>
             <property name="tooltip" translatable="yes">Delete the cases at the selected position(s)</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_find">
-            <property name="stock-id">edit-search-case</property>
+            <property name="stock-id">edit-find</property>
             <property name="name">edit_find</property>
             <property name="label" translatable="yes">_Find...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="sort-up">
-            <property name="stock-id">gtk-sort-ascending</property>
+            <property name="stock-id">data-sort-ascending</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="sort-down">
-            <property name="stock-id">gtk-sort-descending</property>
+            <property name="stock-id">data-sort-descending</property>
           </object>
         </child>
       </object>

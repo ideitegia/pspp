@@ -12,7 +12,7 @@
         </child>
         <child>
           <object class="GtkAction" id="new2">
-            <property name="stock-id">file-new-document</property>
+            <property name="stock-id">file-new-data</property>
             <property name="name">new2</property>
           </object>
         </child>
@@ -30,20 +30,20 @@
         </child>
         <child>
           <object class="GtkAction" id="file_open">
-            <property name="stock-id">gtk-open</property>
+            <property name="stock-id">file-open-data</property>
             <property name="name">file_open</property>
             <property name="label" translatable="yes">_Open...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_save">
-            <property name="stock-id">file-save-document</property>
+            <property name="stock-id">file-save-data</property>
             <property name="name">file_save</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_save_as">
-            <property name="stock-id">gtk-save-as</property>
+            <property name="stock-id">file-save-as</property>
             <property name="name">file_save_as</property>
             <property name="label" translatable="yes">Save _As...</property>
           </object>
@@ -51,7 +51,7 @@
         <child>
           <object class="GtkAction" id="file_print">
             <property name="name">file_print</property>
-            <property name="stock-id">file-print-document</property>
+            <property name="stock-id">file-print</property>
           </object>
         </child>
         <child>
@@ -89,20 +89,20 @@
         </child>
         <child>
           <object class="GtkAction" id="edit_delete">
-            <property name="stock-id">gtk-delete</property>
+            <property name="stock-id">edit-delete</property>
             <property name="name">edit_delete</property>
             <property name="sensitive">false</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_undo">
-            <property name="stock-id">gtk-undo</property>
+            <property name="stock-id">edit-undo</property>
             <property name="name">edit_undo</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_redo">
-            <property name="stock-id">gtk-redo</property>
+            <property name="stock-id">edit-redo</property>
             <property name="name">edit_redo</property>
           </object>
         </child>
@@ -114,18 +114,21 @@
         </child>
         <child>
           <object class="GtkAction" id="run_all">
+	    <property name="stock-id">run-all</property>
             <property name="name">run_all</property>
             <property name="label" translatable="yes">All</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="run_selection">
+	    <property name="stock-id">run-selection</property>
             <property name="name">run_selection</property>
             <property name="label" translatable="yes">Selection</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="run_current_line">
+	    <property name="stock-id">run-current-line</property>
             <property name="name">run_current_line</property>
             <property name="label" translatable="yes">Current Line</property>
           </object>
@@ -133,7 +136,8 @@
         </child>
         <child>
           <object class="GtkAction" id="run_to_end">
-            <property name="name">run_to_end</property>
+	    <property name="stock-id">run-to-end</property>
+            <property name="name">run-to-end</property>
             <property name="label" translatable="yes">To End</property>
           </object>
         </child>
@@ -145,6 +149,7 @@
         </child>
         <child>
           <object class="GtkAction" id="windows_minimise_all">
+	    <property name="stock-id">windows-minimize-all</property>
             <property name="name">windows_minimise_all</property>
             <property name="label" translatable="yes">_Minimize All Windows</property>
           </object>

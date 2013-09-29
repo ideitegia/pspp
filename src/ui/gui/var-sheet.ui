@@ -48,7 +48,7 @@
             <property name="name">edit_goto-variable</property>
             <property name="label" translatable="yes">Go To Variable...</property>
 	    <property name="tooltip" translatable="yes">Jump to variable</property>
-	    <property name="stock-id">edit-goto-variable</property>
+	    <property name="stock-id">edit-go-to-variable</property>
           </object>
         </child>
 	<child>
@@ -74,7 +74,7 @@
 	    <property name="name">edit_clear-variables</property>
 	    <property name="label" translatable="yes">Cl_ear Variables</property>
 	    <property name="tooltip" translatable="yes">Delete the variables at the selected position(s)</property>
-	    <property name="stock-id">gtk-clear</property>
+	    <property name="stock-id">edit-clear</property>
 	  </object>
 	</child>
       </object>
