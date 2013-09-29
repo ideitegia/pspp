@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="16"
+   height="16"
+   id="svg3991"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="role-input.svg">
+  <title
+     id="title4018">GNU PSPP flat icon set</title>
+  <defs
+     id="defs3993" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="22.4"
+     inkscape:cx="8"
+     inkscape:cy="6.1783041"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="683"
+     inkscape:window-height="708"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     showborder="false"
+     inkscape:snap-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2983"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,16"
+       id="guide2985" />
+    <sodipodi:guide
+       position="16,0"
+       orientation="-16,0"
+       id="guide2987" />
+    <sodipodi:guide
+       position="16,16"
+       orientation="0,-16"
+       id="guide2989" />
+    <sodipodi:guide
+       position="0,16"
+       orientation="16,0"
+       id="guide2991" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3996">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>GNU PSPP flat icon set</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Bastián Díaz</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://github.com/bedf/PSPPire-artwork</dc:source>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1036.3622)">
+    <g
+       transform="translate(95.008814,670.00002)"
+       style="display:inline"
+       id="g6132">
+      <g
+         id="g5838">
+        <path
+           inkscape:connector-curvature="0"
+           style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:2.15649271;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+           d="m -88,366.375 0,1.0625 c -3.146507,0.25987 -5.677219,2.79473 -5.9375,5.9375 l -0.71875,0 -0.34375,0 0,0.40625 a 0.50137124,0.50219969 0 0 0 0,0.1875 l 0,0.40625 0.4375,0 0.625,0 c 0.231801,3.17166 2.770328,5.70728 5.9375,5.96875 l 0,1.03125 0.4375,0 0.15625,0 0.40625,0 0,-0.34375 0,-0.0313 a 0.5,0.50082618 0 0 0 0,-0.0625 0.5,0.50082618 0 0 0 0.03125,-0.0625 l 0,-0.53125 c 3.181771,-0.24744 5.736423,-2.78664 5.96875,-5.96875 l 1,0 0,-0.34375 a 0.4992251,0.50005 0 0 0 0,-0.0625 l 0,-0.0313 a 0.4992251,0.50005 0 0 0 0,-0.21875 0.4992251,0.50005 0 0 0 0,-0.0313 l 0,-0.3125 -0.3125,0 a 0.4992251,0.50005 0 0 0 -0.15625,-0.0313 l -0.53125,0 c -0.275214,-3.13852 -2.818369,-5.66124 -5.96875,-5.90625 l 0,-0.5625 A 0.4992251,0.50005 0 0 0 -87,366.8125 a 0.4992251,0.50005 0 0 0 0,-0.0937 l 0,-0.34375 -0.34375,0 -0.34375,0 -0.3125,0 z m 0,3.09375 0,1.90625 0.34375,0 0.03125,0 a 0.5,0.50082618 0 0 0 0.25,0 l 0.0625,0 0.3125,0 0,-0.3125 0,-0.0313 a 0.5,0.50082618 0 0 0 0,-0.0625 0.5,0.50082618 0 0 0 0.03125,-0.0625 l 0,-1.4375 c 2.06215,0.22936 3.680386,1.82403 3.9375,3.875 l -1.375,0 a 0.4992251,0.50005 0 0 0 -0.125,0 0.50307267,0.50390393 0 0 0 -0.125,0.0313 l -0.03125,0 -0.3125,0 0,0.4375 0,0.0625 0,0.5 2,0 c -0.218038,2.0958 -1.87481,3.7046 -3.96875,3.9375 l 0,-1.375 A 0.49922507,0.50004997 0 0 0 -87,376.84375 0.49922507,0.50004997 0 0 0 -87,376.75 l 0,-0.375 -1,0 0,1.9375 c -2.078504,-0.24484 -3.688252,-1.85255 -3.90625,-3.9375 l 1.53125,0 0.375,0 0,-0.3125 0,-0.0625 a 0.4992251,0.50005 0 0 0 0,-0.0313 0.4992251,0.50005 0 0 0 0,-0.21875 0.4992251,0.50005 0 0 0 0,-0.0313 l 0,-0.34375 -0.34375,0 -1.5625,0 c 0.243435,-2.05573 1.848111,-3.66367 3.90625,-3.90625 z m 0.53125,2.90625 c -0.82706,0 -1.5,0.67157 -1.5,1.5 0,0.82843 0.67294,1.5 1.5,1.5 0.82706,0 1.5,-0.67157 1.5,-1.5 0,-0.82843 -0.67294,-1.5 -1.5,-1.5 z"
+           id="path4640" />
+        <rect
+           style="fill:none;stroke:none"
+           id="rect5452"
+           width="16"
+           height="16"
+           x="-95"
+           y="366.36218" />
+      </g>
+    </g>
+  </g>
+</svg>

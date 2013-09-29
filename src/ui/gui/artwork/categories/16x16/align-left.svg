@@ -9,28 +9,77 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   sodipodi:docname="align-center.svg"
+   width="16"
    height="16"
-   id="svg7384"
-   inkscape:version="0.48.4 r9939"
+   id="svg3991"
    version="1.1"
-   width="16">
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="help-about.svg">
+  <title
+     id="title4018">GNU PSPP flat icon set</title>
+  <defs
+     id="defs3993" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="22.4"
+     inkscape:cx="8"
+     inkscape:cy="6.1783041"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="683"
+     inkscape:window-height="709"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     showborder="false"
+     inkscape:snap-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2983"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,16"
+       id="guide2985" />
+    <sodipodi:guide
+       position="16,0"
+       orientation="-16,0"
+       id="guide2987" />
+    <sodipodi:guide
+       position="16,16"
+       orientation="0,-16"
+       id="guide2989" />
+    <sodipodi:guide
+       position="0,16"
+       orientation="16,0"
+       id="guide2991" />
+  </sodipodi:namedview>
   <metadata
-     id="metadata90">
+     id="metadata3996">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-        <dc:creator>
-          <cc:Agent>
-            <dc:title>GNU PSPP Community</dc:title>
-          </cc:Agent>
-        </dc:creator>
+        <dc:title>GNU PSPP flat icon set</dc:title>
         <cc:license
            rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Bastián Díaz</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://github.com/bedf/PSPPire-artwork</dc:source>
       </cc:Work>
       <cc:License
          rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
@@ -49,172 +98,49 @@
       </cc:License>
     </rdf:RDF>
   </metadata>
-  <sodipodi:namedview
-     inkscape:bbox-paths="false"
-     bordercolor="#666666"
-     borderopacity="1"
-     inkscape:current-layer="layer11"
-     inkscape:cx="-0.33250532"
-     inkscape:cy="12.340674"
-     gridtolerance="10"
-     inkscape:guide-bbox="true"
-     guidetolerance="10"
-     id="namedview88"
-     inkscape:object-nodes="false"
-     inkscape:object-paths="false"
-     objecttolerance="10"
-     pagecolor="#555753"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     showborder="false"
-     showgrid="true"
-     showguides="true"
-     inkscape:snap-bbox="true"
-     inkscape:snap-bbox-midpoints="true"
-     inkscape:snap-global="true"
-     inkscape:snap-grids="true"
-     inkscape:snap-nodes="false"
-     inkscape:snap-others="false"
-     inkscape:snap-to-guides="true"
-     inkscape:window-height="675"
-     inkscape:window-maximized="1"
-     inkscape:window-width="1366"
-     inkscape:window-x="0"
-     inkscape:window-y="28"
-     inkscape:zoom="11.313709"
-     inkscape:bbox-nodes="true"
-     inkscape:snap-bbox-edge-midpoints="true">
-    <inkscape:grid
-       empspacing="2"
-       enabled="true"
-       id="grid4866"
-       snapvisiblegridlinesonly="true"
-       spacingx="1px"
-       spacingy="1px"
-       type="xygrid"
-       visible="true" />
-    <sodipodi:guide
-       position="0,0"
-       orientation="0,16"
-       id="guide2996" />
-    <sodipodi:guide
-       position="16,0"
-       orientation="-16,0"
-       id="guide2998" />
-    <sodipodi:guide
-       position="13,16"
-       orientation="0,-16"
-       id="guide3000" />
-    <sodipodi:guide
-       position="0,12"
-       orientation="16,0"
-       id="guide3002" />
-    <sodipodi:guide
-       position="0,0"
-       orientation="0,24"
-       id="guide4287" />
-    <sodipodi:guide
-       position="24,0"
-       orientation="-24,0"
-       id="guide4289" />
-    <sodipodi:guide
-       position="24,24"
-       orientation="0,-24"
-       id="guide4291" />
-    <sodipodi:guide
-       position="0,24"
-       orientation="24,0"
-       id="guide4293" />
-  </sodipodi:namedview>
-  <defs
-     id="defs7386" />
   <g
+     inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer9"
-     inkscape:label="status"
-     style="display:inline"
-     transform="translate(-283,-649)" />
-  <g
-     inkscape:groupmode="layer"
-     id="layer10"
-     inkscape:label="devices"
-     transform="translate(-283,-649)" />
-  <g
-     inkscape:groupmode="layer"
-     id="layer11"
-     inkscape:label="apps"
-     transform="translate(-283,-649)">
+     id="layer1"
+     transform="translate(0,-1036.3622)">
     <g
-       inkscape:label="sc_leftpara"
-       transform="translate(201.9998,292)"
-       id="sc_leftpara"
-       style="display:inline">
-      <rect
-         style="color:#555753;fill:none;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible"
-         id="rect3825-9-8-3-5"
-         width="16"
-         height="16"
-         x="81.000198"
-         y="357"
-         inkscape:label="a" />
-      <rect
-         style="color:#555753;fill:#555753;fill-opacity:1;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible"
-         id="rect3825-9-8-7-9-1"
-         width="7.9996052"
-         height="2.0002136"
-         x="84.000397"
-         y="359.99979"
-         inkscape:label="a" />
-      <rect
-         style="color:#555753;fill:#555753;fill-opacity:1;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible"
-         id="rect3825-9-8-7-8-4-7"
-         width="9.9996014"
-         height="2.0002136"
-         x="84.000397"
-         y="363.99979"
-         inkscape:label="a" />
-      <rect
-         style="color:#555753;fill:#555753;fill-opacity:1;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible"
-         id="rect3825-9-8-7-8-9-9-8"
-         width="3.9996033"
-         height="2.0002136"
-         x="84.000397"
-         y="367.99979"
-         inkscape:label="a" />
+       transform="translate(620,670.00002)"
+       style="display:inline"
+       id="g5198">
+      <g
+         id="g5375">
+        <rect
+           x="-616.99982"
+           y="369.36197"
+           id="rect3825-9-8-7-9-1"
+           height="2.0002136"
+           inkscape:label="a"
+           style="color:#bebebe;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible"
+           width="7.9996052" />
+        <rect
+           x="-616.99982"
+           y="373.36197"
+           id="rect3825-9-8-7-8-4-7"
+           height="2.0002136"
+           inkscape:label="a"
+           style="color:#bebebe;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible"
+           width="9.9996014" />
+        <rect
+           x="-616.99982"
+           y="377.36197"
+           id="rect3825-9-8-7-8-9-9-8"
+           height="2.0002136"
+           inkscape:label="a"
+           style="color:#bebebe;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible"
+           width="3.9996033" />
+        <rect
+           style="opacity:0.35;fill:none"
+           id="rect5373"
+           width="16"
+           height="16"
+           x="-620"
+           y="366.36218" />
+      </g>
     </g>
   </g>
-  <g
-     inkscape:groupmode="layer"
-     id="layer13"
-     inkscape:label="places"
-     transform="translate(-283,-649)" />
-  <g
-     inkscape:groupmode="layer"
-     id="layer14"
-     inkscape:label="mimetypes"
-     transform="translate(-283,-649)" />
-  <g
-     inkscape:groupmode="layer"
-     id="layer15"
-     inkscape:label="emblems"
-     style="display:inline"
-     transform="translate(-283,-649)" />
-  <g
-     inkscape:groupmode="layer"
-     id="g71291"
-     inkscape:label="emotes"
-     style="display:inline"
-     transform="translate(-283,-649)" />
-  <g
-     inkscape:groupmode="layer"
-     id="g4953"
-     inkscape:label="categories"
-     style="display:inline"
-     transform="translate(-283,-649)" />
-  <g
-     inkscape:groupmode="layer"
-     id="layer12"
-     inkscape:label="actions"
-     style="display:inline"
-     transform="translate(-283,-649)" />
 </svg>

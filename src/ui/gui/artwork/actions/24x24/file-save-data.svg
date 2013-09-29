@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="24"
+   height="24"
+   id="svg3991"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="edit-go-to-variable.svg">
+  <title
+     id="title4018">GNU PSPP flat icon set</title>
+  <defs
+     id="defs3993" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="11.2"
+     inkscape:cx="12.875286"
+     inkscape:cy="9.6348948"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="683"
+     inkscape:window-height="708"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     showborder="false"
+     inkscape:snap-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2983"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,24"
+       id="guide5959" />
+    <sodipodi:guide
+       position="24,0"
+       orientation="-24,0"
+       id="guide5961" />
+    <sodipodi:guide
+       position="24,24"
+       orientation="0,-24"
+       id="guide5963" />
+    <sodipodi:guide
+       position="0,24"
+       orientation="24,0"
+       id="guide5965" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3996">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>GNU PSPP flat icon set</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Bastián Díaz</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://github.com/bedf/PSPPire-artwork</dc:source>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1028.3622)">
+    <g
+       transform="translate(545,539.98724)"
+       style="display:inline"
+       id="g6229">
+      <rect
+         style="opacity:0;fill:#2e3436;fill-opacity:1;stroke:none;display:inline"
+         id="rect4861-5-4"
+         width="24"
+         height="24"
+         x="-545"
+         y="488.36218" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6179"
+         d="m -540.9994,505.36218 a 0.74788884,0.77928928 0 0 0 0,0.0313 0.74788884,0.77928928 0 0 0 0,0.0313 l 0,0.37568 a 0.74788884,0.77928928 0 0 0 0,0.0626 l 0,0.50091 0,5.00916 0,1.00183 6.99974,0 0.99996,0 0.99996,0 6.99974,0 0,-1.00183 0,-5.00916 0,-0.50091 0,-0.50092 -1.74993,0 -12.46828,0 -1.78119,0 z m 4.99982,2.03497 c 0.55225,0 0.99996,0.42094 0.99996,0.97053 l 0.99996,0 1.99992,0 0.99997,0 c 0,-0.54959 0.4477,-0.97053 0.99996,-0.97053 0.55226,0 0.99996,0.42094 0.99996,0.97053 0,1.09916 -0.8954,2.00366 -1.99992,2.00366 l -0.99997,0 -1.99992,0 -0.99996,0 c -1.10453,0 -1.99993,-0.9045 -1.99993,-2.00366 0,-0.54959 0.44771,-0.97053 0.99997,-0.97053 z"
+         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#bebebe;fill:#555753;fill-opacity:1;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans" />
+      <path
+         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#bebebe;fill:#555753;fill-opacity:1;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+         sodipodi:nodetypes="ccccccccccccc"
+         id="path15265-7-3-4-83"
+         d="m -527.00004,496.36233 -1.99998,0 c -0.5138,2e-5 -1.0569,0.23572 -1.4375,0.56738 l -2.56246,2.32618 -2.56246,-2.3262 c -0.38008,-0.33212 -0.9237,-0.56736 -1.43754,-0.56728 l -2,0 -2e-5,1.81558 c 0,0.56182 0.1804,1.00274 0.5626,1.36164 l 5.43748,4.82255 5.43742,-4.82255 c 0.38186,-0.35898 0.5625,-0.79986 0.5625,-1.36168 l 0,-1.81556 z"
+         inkscape:connector-curvature="0" />
+      <rect
+         y="489.36218"
+         x="-535"
+         height="12"
+         width="4"
+         id="rect6166"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6199"
+         d="m -539.02666,502.36368 a 0.99574696,0.99257028 0 0 0 -0.87119,0.55826 l -0.99565,1.98494 a 1.0088085,1.0055901 0 0 0 1.80461,0.89943 l 0.99565,-1.98495 a 0.99574696,0.99257028 0 0 0 -0.93342,-1.45768 z"
+         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#555753;fill-opacity:1;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6199-6"
+         d="m -526.97323,502.36389 a 0.99574696,0.99257028 0 0 1 0.87119,0.55826 l 0.99565,1.98494 a 1.0088085,1.0055901 0 0 1 -1.80461,0.89943 l -0.99565,-1.98495 a 0.99574696,0.99257028 0 0 1 0.93342,-1.45768 z"
+         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#555753;fill-opacity:1;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans" />
+    </g>
+  </g>
+</svg>

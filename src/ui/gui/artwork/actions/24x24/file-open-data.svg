@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="24"
+   height="24"
+   id="svg3991"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="file-open-data.svg">
+  <title
+     id="title4018">GNU PSPP flat icon set</title>
+  <defs
+     id="defs3993" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="11.2"
+     inkscape:cx="12.875286"
+     inkscape:cy="9.6348948"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="683"
+     inkscape:window-height="709"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     showborder="false"
+     inkscape:snap-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2983"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,24"
+       id="guide5959" />
+    <sodipodi:guide
+       position="24,0"
+       orientation="-24,0"
+       id="guide5961" />
+    <sodipodi:guide
+       position="24,24"
+       orientation="0,-24"
+       id="guide5963" />
+    <sodipodi:guide
+       position="0,24"
+       orientation="24,0"
+       id="guide5965" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3996">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>GNU PSPP flat icon set</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Bastián Díaz</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://github.com/bedf/PSPPire-artwork</dc:source>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1028.3622)">
+    <g
+       transform="translate(620,540.00002)"
+       style="display:inline"
+       id="g7000">
+      <rect
+         ry="1"
+         y="490.36218"
+         x="-614"
+         height="11"
+         width="3"
+         id="rect6763"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         transform="matrix(0.64938101,0.76046322,-0.76046322,0.64938101,0,0)"
+         ry="1"
+         y="777.05542"
+         x="-19.260319"
+         height="3"
+         width="9"
+         id="rect6823"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         ry="1"
+         transform="matrix(0,1,-1,0,0,0)"
+         y="603"
+         x="490.36218"
+         height="11"
+         width="3"
+         id="rect6763-1"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <rect
+         y="498.36218"
+         x="-614"
+         height="3"
+         width="3"
+         id="rect6783"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         y="498.36218"
+         x="-601"
+         height="3"
+         width="3"
+         id="rect6783-9"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <rect
+         ry="1"
+         y="496.36218"
+         x="-601"
+         height="5"
+         width="3"
+         id="rect6783-9-5"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <rect
+         y="493.36218"
+         x="-605"
+         height="4"
+         width="4"
+         id="rect6821"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         ry="0"
+         y="490.36218"
+         x="-605"
+         height="1"
+         width="1.4453125"
+         id="rect6825"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         y="496.58484"
+         x="-599"
+         height="1.7773553"
+         width="1"
+         id="rect6827"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         ry="1"
+         y="500.36218"
+         x="-620"
+         height="11"
+         width="3"
+         id="rect6763-0"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <rect
+         transform="matrix(0,1,-1,0,0,0)"
+         ry="0.95652175"
+         y="598"
+         x="509.36218"
+         height="22"
+         width="3"
+         id="rect6763-0-1"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <rect
+         ry="1"
+         y="503.36218"
+         x="-614"
+         height="2"
+         width="18"
+         id="rect6865"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         ry="1"
+         y="496.36218"
+         x="-620"
+         height="4"
+         width="4"
+         id="rect6867"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         y="498.36218"
+         x="-620"
+         height="4"
+         width="3"
+         id="rect6867-3"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6894"
+         d="m -617,501.36218 c 0,-0.27614 0.10029,-0.53779 0.28125,-0.71875 0.18096,-0.18096 0.44261,-0.28125 0.71875,-0.28125 l -1,0 0,1 z"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         y="496.36218"
+         x="-617"
+         height="4"
+         width="1"
+         id="rect6902"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6894-7"
+         d="m -616,509.36218 c -0.27614,0 -0.53779,-0.10029 -0.71875,-0.28125 C -616.89971,508.89997 -617,508.63832 -617,508.36218 l 0,1 1,0 z"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6894-0"
+         d="m -615,508.36218 c 0,0.27614 -0.10029,0.53779 -0.28125,0.71875 -0.18096,0.18096 -0.44261,0.28125 -0.71875,0.28125 l 1,0 0,-1 z"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6958"
+         d="m -615,508.36218 1,-5 1,0 0,6 -2,0 z"
+         style="fill:#555753;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6996"
+         d="m -598,511.36218 2,-7 -18,0 0,6 13,0 0,1 z"
+         style="fill:#555753;stroke:none" />
+      <rect
+         y="488.36218"
+         x="-620"
+         height="24"
+         width="24"
+         id="rect6998"
+         style="fill:none;stroke:none" />
+    </g>
+  </g>
+</svg>
