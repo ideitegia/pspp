@@ -135,23 +135,23 @@ src/ui/gui/icons/categories/16x16/align-right.png \
 src/ui/gui/icons/categories/16x16/measure-scale.png \
 src/ui/gui/icons/categories/16x16/measure-ordinal.png \
 src/ui/gui/icons/categories/16x16/measure-nominal.png \
-src/ui/gui/icons/categories/16x16/measure-date-scale \
+src/ui/gui/icons/categories/16x16/measure-date-scale.png \
 src/ui/gui/icons/categories/16x16/measure-date-nominal.png \
-src/ui/gui/icons/categories/16x16/measure-date-ordinal \
+src/ui/gui/icons/categories/16x16/measure-date-ordinal.png \
 src/ui/gui/icons/categories/16x16/measure-time-scale.png \
-src/ui/gui/icons/categories/16x16/measure-time-nominal \
-src/ui/gui/icons/categories/16x16/measure-time-ordinal \
+src/ui/gui/icons/categories/16x16/measure-time-nominal.png \
+src/ui/gui/icons/categories/16x16/measure-time-ordinal.png \
 src/ui/gui/icons/categories/16x16/measure-string-nominal.png \
 src/ui/gui/icons/categories/16x16/measure-string-ordinal.png \
-src/ui/gui/icons/categories/16x16/measure-currency-scale \
+src/ui/gui/icons/categories/16x16/measure-currency-scale.png \
 src/ui/gui/icons/categories/16x16/measure-currency-nominal.png \
-src/ui/gui/icons/categories/16x16/measure-currency-ordinal \
+src/ui/gui/icons/categories/16x16/measure-currency-ordinal.png \
 src/ui/gui/icons/categories/16x16/role-input.png \
 src/ui/gui/icons/categories/16x16/role-target.png \
 src/ui/gui/icons/categories/16x16/role-both.png \
 src/ui/gui/icons/categories/16x16/role-none.png \
 src/ui/gui/icons/categories/16x16/role-partition.png \
-src/ui/gui/icons/categories/16x16/role-split.png \
+src/ui/gui/icons/categories/16x16/role-split.png
 
 MIMETYPE_ICONS = \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-por.png \
@@ -243,20 +243,20 @@ src/ui/gui/icons/actions/16x16/transform-automatic-recode.png \
 src/ui/gui/icons/actions/16x16/transform-in-to-same-variables.png \
 src/ui/gui/icons/actions/16x16/transform-in-to-different-variables.png \
 src/ui/gui/icons/actions/16x16/transform-run-pending.png \
-src/ui/gui/icons/actions/16x16/analyze-descriptive-statistics \
+src/ui/gui/icons/actions/16x16/analyze-descriptive-statistics.png \
 src/ui/gui/icons/actions/16x16/analyze-compare-means.png \
 src/ui/gui/icons/actions/16x16/analyze-bivariate-correlation.png \
-src/ui/gui/icons/actions/16x16/analyze-kmeans-cluster.png
-src/ui/gui/icons/actions/16x16/analyze-factor-analysis.png
-src/ui/gui/icons/actions/16x16/analyze-realiability.png
-src/ui/gui/icons/actions/16x16/analyze-regression.png
-src/ui/gui/icons/actions/16x16/analyze-non-parametric-statistics.png
-src/ui/gui/icons/actions/16x16/analyze-roc-curve.png
-src/ui/gui/icons/actions/16x16/utilities-variables.png
-src/ui/gui/icons/actions/16x16/utilities-data-file-comments.png
-src/ui/gui/icons/actions/16x16/windows-minimize-all.png
-src/ui/gui/icons/actions/16x16/windows-split.png
-src/ui/gui/icons/actions/16x16/help-reference-manual.png
+src/ui/gui/icons/actions/16x16/analyze-kmeans-cluster.png \
+src/ui/gui/icons/actions/16x16/analyze-factor-analysis.png \
+src/ui/gui/icons/actions/16x16/analyze-realiability.png \
+src/ui/gui/icons/actions/16x16/analyze-regression.png \
+src/ui/gui/icons/actions/16x16/analyze-non-parametric-statistics.png \
+src/ui/gui/icons/actions/16x16/analyze-roc-curve.png \
+src/ui/gui/icons/actions/16x16/utilities-variables.png \
+src/ui/gui/icons/actions/16x16/utilities-data-file-comments.png \
+src/ui/gui/icons/actions/16x16/windows-minimize-all.png \
+src/ui/gui/icons/actions/16x16/windows-split.png \
+src/ui/gui/icons/actions/16x16/help-reference-manual.png \
 src/ui/gui/icons/actions/16x16/help-about.png
 
 
