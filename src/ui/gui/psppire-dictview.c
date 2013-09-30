@@ -355,9 +355,9 @@ get_var_measurement_stock_id (enum fmt_type type, enum measure measure)
     case FMT_CAT_STRING:
       switch (measure)
 	{
-	case MEASURE_NOMINAL: return "variable-string-nominal";
-	case MEASURE_ORDINAL: return "variable-string-ordinal";
-	case MEASURE_SCALE:   return "variable-string-scale";
+	case MEASURE_NOMINAL: return "measure-string-nominal";
+	case MEASURE_ORDINAL: return "measure-string-ordinal";
+	case MEASURE_SCALE:   return "role-none";
         case n_MEASURES: break;
 	}
       break;
@@ -366,9 +366,9 @@ get_var_measurement_stock_id (enum fmt_type type, enum measure measure)
     case FMT_CAT_TIME:
       switch (measure)
         {
-        case MEASURE_NOMINAL: return "variable-date-nominal";
-        case MEASURE_ORDINAL: return "variable-date-ordinal";
-        case MEASURE_SCALE:   return "variable-date-scale";
+        case MEASURE_NOMINAL: return "measure-date-nominal";
+        case MEASURE_ORDINAL: return "measure-date-ordinal";
+        case MEASURE_SCALE:   return "measure-date-scale";
         case n_MEASURES: break;
         }
       break;
@@ -376,9 +376,9 @@ get_var_measurement_stock_id (enum fmt_type type, enum measure measure)
     default:
       switch (measure)
         {
-        case MEASURE_NOMINAL: return "variable-nominal";
-        case MEASURE_ORDINAL: return "variable-ordinal";
-        case MEASURE_SCALE:   return "variable-scale";
+        case MEASURE_NOMINAL: return "measure-nominal";
+        case MEASURE_ORDINAL: return "measure-ordinal";
+        case MEASURE_SCALE:   return "measure-scale";
         case n_MEASURES: break;
 	}
       break;

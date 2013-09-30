@@ -286,8 +286,8 @@ on_var_column_edited (GtkCellRendererText *cell,
     case VS_ROLE:
       if (!strcmp (new_text, var_role_to_string (ROLE_INPUT)))
         var_set_role (var, ROLE_INPUT);
-      else if (!strcmp (new_text, var_role_to_string (ROLE_OUTPUT)))
-        var_set_role (var, ROLE_OUTPUT);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_TARGET)))
+        var_set_role (var, ROLE_TARGET);
       else if (!strcmp (new_text, var_role_to_string (ROLE_BOTH)))
         var_set_role (var, ROLE_BOTH);
       else if (!strcmp (new_text, var_role_to_string (ROLE_NONE)))
@@ -321,15 +321,9 @@ get_var_align_stock_id (enum alignment alignment)
 {
   switch (alignment)
     {
-    case ALIGN_LEFT:
-      return GTK_STOCK_JUSTIFY_LEFT;
-
-    case ALIGN_CENTRE:
-      return GTK_STOCK_JUSTIFY_CENTER;
-
-    case ALIGN_RIGHT:
-      return GTK_STOCK_JUSTIFY_RIGHT;
-
+    case ALIGN_LEFT: return "align-left";
+    case ALIGN_CENTRE: return "align-center";
+    case ALIGN_RIGHT: return "align-right";
     default:
       g_return_val_if_reached ("");
     }
@@ -340,12 +334,12 @@ get_var_role_stock_id (enum var_role role)
 {
   switch (role)
     {
-    case ROLE_INPUT: return "variable-role-input";
-    case ROLE_OUTPUT: return "variable-role-target";
-    case ROLE_BOTH: return "variable-role-both";
-    case ROLE_NONE: return "variable-role-none";
-    case ROLE_PARTITION: return "variable-role-partition";
-    case ROLE_SPLIT: return "variable-role-split";
+    case ROLE_INPUT: return "role-input";
+    case ROLE_TARGET: return "role-target";
+    case ROLE_BOTH: return "role-both";
+    case ROLE_NONE: return "role-none";
+    case ROLE_PARTITION: return "role-partition";
+    case ROLE_SPLIT: return "role-split";
     default:
       g_return_val_if_reached ("");
     }
@@ -1393,15 +1387,15 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
                     alignment_to_string (ALIGN_RIGHT), ALIGN_RIGHT,
                     NULL);
 
-  add_combo_column (obj, VS_MEASURE, _("Measure"), 12, measure_to_stock_id,
+  add_combo_column (obj, VS_MEASURE, _("Measure"), 11, measure_to_stock_id,
                     measure_to_string (MEASURE_NOMINAL), MEASURE_NOMINAL,
                     measure_to_string (MEASURE_ORDINAL), MEASURE_ORDINAL,
                     measure_to_string (MEASURE_SCALE), MEASURE_SCALE,
                     NULL);
 
-  add_combo_column (obj, VS_ROLE, _("Role"), 12, role_to_stock_id,
+  add_combo_column (obj, VS_ROLE, _("Role"), 11, role_to_stock_id,
                     var_role_to_string (ROLE_INPUT), ROLE_INPUT,
-                    var_role_to_string (ROLE_OUTPUT), ROLE_OUTPUT,
+                    var_role_to_string (ROLE_TARGET), ROLE_TARGET,
                     var_role_to_string (ROLE_BOTH), ROLE_BOTH,
                     var_role_to_string (ROLE_NONE), ROLE_NONE,
                     var_role_to_string (ROLE_PARTITION), ROLE_PARTITION,
