@@ -14,16 +14,19 @@
           <object class="GtkAction" id="new2">
             <property name="stock-id">file-new-data</property>
             <property name="name">new2</property>
+	    <property name="label" translatable="yes">_New...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_new_syntax">
+	    <property name="stock-id">file-syntax-data</property>
             <property name="name">file_new_syntax</property>
             <property name="label" translatable="yes">_Syntax</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_new_data">
+	    <property name="stock-id">file-system-data</property>
             <property name="name">file_new_data</property>
             <property name="label" translatable="yes">_Data</property>
           </object>
@@ -39,6 +42,7 @@
           <object class="GtkAction" id="file_save">
             <property name="stock-id">file-save-data</property>
             <property name="name">file_save</property>
+	    <property name="label" translatable="yes">_Save...</property>
           </object>
         </child>
         <child>
@@ -52,6 +56,7 @@
           <object class="GtkAction" id="file_print">
             <property name="name">file_print</property>
             <property name="stock-id">file-print</property>
+	    <property name="label" translatable="yes">_Print...</property>
           </object>
         </child>
         <child>
@@ -98,12 +103,14 @@
           <object class="GtkAction" id="edit_undo">
             <property name="stock-id">edit-undo</property>
             <property name="name">edit_undo</property>
+	    <property name="sensitive">false</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_redo">
             <property name="stock-id">edit-redo</property>
             <property name="name">edit_redo</property>
+	    <property name="sensitive">false</property>
           </object>
         </child>
         <child>

@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="analyze-regression.svg">
+   sodipodi:docname="transform-compute.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -33,7 +33,7 @@
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="683"
-     inkscape:window-height="709"
+     inkscape:window-height="708"
      inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="0"
@@ -106,11 +106,11 @@
     <g
        transform="translate(620,805.00002)"
        style="display:inline"
-       id="g5710">
+       id="g5474">
       <path
          inkscape:connector-curvature="0"
          id="rect3725-0-9-5-1"
-         d="m -617,232.375 c -0.554,0 -1,0.446 -1,1 l 0,3 0,9 0,1 1,0 10,0 1,0 0,-1 0,-9 0,-3 c 0,-0.554 -0.446,-1 -1,-1 l -10,0 z m 1,2 8,0 0,2 -8,0 0,-2 z m 0,3 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m -6,3 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m -6,3 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z"
+         d="m -617,232.375 c -0.554,0 -1,0.446 -1,1 l 0,3 0,9 0,1 0,1 12,0 0,-1 0,-1 0,-9 0,-3 c 0,-0.554 -0.446,-1 -1,-1 l -10,0 z m 1,2 8,0 0,2 -8,0 0,-2 z m 0,3 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m -6,3 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m -6,3 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z m 3,0 2,0 0,2 -2,0 0,-2 z"
          style="fill:#555753;display:inline" />
       <rect
          y="231.36218"

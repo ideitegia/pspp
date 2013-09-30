@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="analyze-regression.svg">
+   sodipodi:docname="analyze-non-parametric-statistics.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -33,7 +33,7 @@
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="683"
-     inkscape:window-height="709"
+     inkscape:window-height="708"
      inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="0"
@@ -106,7 +106,7 @@
     <g
        transform="translate(290,774.9872)"
        style="display:inline"
-       id="g5182">
+       id="g5163">
       <path
          inkscape:connector-curvature="0"
          id="rect3682-7"
@@ -120,9 +120,9 @@
          id="rect4992"
          style="fill:#555753;fill-opacity:1;stroke:none" />
       <rect
-         y="268.36218"
+         y="269.36218"
          x="-284"
-         height="7"
+         height="6"
          width="1"
          id="rect4992-2"
          style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />

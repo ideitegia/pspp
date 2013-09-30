@@ -12,18 +12,21 @@
         <child>
           <object class="GtkAction" id="new1">
             <property name="stock-id">file-new-data</property>
+	    <property name="label" translatable="yes">_New...</property>
             <property name="name">new1</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_new_syntax">
             <property name="name">file_new_syntax</property>
+	    <property name="stock-id">file-syntax-data</property>
             <property name="label" translatable="yes">_Syntax</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_new_data">
             <property name="name">file_new_data</property>
+	    <property name="stock-id">file-system-data</property>
             <property name="label" translatable="yes">_Data</property>
           </object>
         </child>
@@ -73,12 +76,14 @@
           <object class="GtkAction" id="file_information_working-file">
             <property name="name">file_information_working-file</property>
             <property name="label" translatable="yes">Working File</property>
+	    <property name="stock-id">display-information-working-file</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_information_external-file">
             <property name="name">file_information_external-file</property>
             <property name="label" translatable="yes">External File...</property>
+	    <property name="stock-id">display-information-external-file</property>
           </object>
         </child>
         <child>

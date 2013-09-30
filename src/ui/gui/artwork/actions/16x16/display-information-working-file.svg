@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="run-all.svg">
+   sodipodi:docname="display-information-external-file.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -28,7 +28,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="22.4"
      inkscape:cx="8"
-     inkscape:cy="6.1783041"
+     inkscape:cy="7.9640184"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -104,27 +104,36 @@
      id="layer1"
      transform="translate(0,-1036.3622)">
     <g
-       transform="translate(-340,915.00002)"
        style="display:inline"
-       id="g5352">
-      <path
-         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#555753;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-         sodipodi:nodetypes="ccccccsccccc"
-         id="path3807-1-1-9-38-4"
-         d="m 345.03135,125.36216 0,7.00001 0.6031,0 0.0624,0 c 0.1164,7e-4 0.23144,-0.0271 0.33275,-0.0875 l 4.65849,-2.80001 c 0.20676,-0.12032 0.31195,-0.36642 0.31195,-0.6125 0,-0.24609 -0.10519,-0.49218 -0.31195,-0.6125 l -4.65849,-2.8 c -0.10131,-0.0604 -0.21635,-0.0884 -0.33275,-0.0875 l -0.0624,0 z"
-         inkscape:connector-curvature="0" />
+       id="g4856"
+       transform="translate(485,885.00002)">
+      <g
+         style="fill:#555753"
+         id="g3600"
+         transform="translate(-533.02362,-246.63782)">
+        <path
+           style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#bebebe;fill:#555753;fill-opacity:1;stroke:none;stroke-width:1.99999976;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Andale Mono;-inkscape-font-specification:Andale Mono"
+           id="rect11749-5-91"
+           d="M 51.1875,398 C 49.985903,398 49,398.98758 49,400.1875 l 0,5.625 C 49,407.01242 49.985903,408 51.1875,408 l 9.625,0 C 62.014097,408 63,407.01242 63,405.8125 l 0,-5.625 C 63,398.98758 62.014097,398 60.8125,398 l -9.625,0 z m 0,2 9.625,0 C 60.936295,400 61,400.0566 61,400.1875 l 0,5.625 C 61,405.9434 60.936295,406 60.8125,406 l -9.625,0 C 51.063705,406 51,405.9434 51,405.8125 l 0,-5.625 C 51,400.0566 51.063705,400 51.1875,400 z"
+           inkscape:connector-curvature="0" />
+        <path
+           style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#bebebe;fill:#555753;fill-opacity:1;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Andale Mono;-inkscape-font-specification:Andale Mono"
+           id="path11751-2-7"
+           d="m 53.90625,409.03125 a 0.50219246,0.50219246 0 1 0 0.09375,1 l 4,0 a 0.50005,0.50005 0 1 0 0,-1 l -4,0 a 0.50005,0.50005 0 0 0 -0.09375,0 z"
+           inkscape:connector-curvature="0" />
+        <path
+           style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#bebebe;fill:#555753;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Andale Mono;-inkscape-font-specification:Andale Mono"
+           id="rect4340"
+           d="m 50.90625,411 a 1.0001,1.0001 0 0 0 -0.625,0.28125 l -1,1 A 1.0001,1.0001 0 0 0 50,414 l 12,0 a 1.0001,1.0001 0 0 0 0.71875,-1.71875 l -1,-1 A 1.0001,1.0001 0 0 0 61,411 l -10,0 a 1.0001,1.0001 0 0 0 -0.09375,0 z"
+           inkscape:connector-curvature="0" />
+      </g>
       <rect
-         y="121.36218"
-         x="340"
+         y="151.36218"
+         x="-485"
          height="16"
          width="16"
-         id="rect4993"
+         id="rect4854"
          style="fill:none;stroke:none" />
-      <path
-         inkscape:connector-curvature="0"
-         id="rect5000-1"
-         d="m 342,122.36218 c -0.554,0 -1,0.446 -1,1 l 0,11 c 0,0.554 0.446,1 1,1 l 12,0 c 0.1385,0 0.25528,-0.0433 0.375,-0.0937 0.35916,-0.15141 0.625,-0.49075 0.625,-0.90625 l 0,-11 c 0,-0.554 -0.446,-1 -1,-1 l -12,0 z m 1,2 10,0 0,9 -10,0 0,-9 z"
-         style="opacity:0.35;fill:#555753;fill-opacity:1;stroke:none" />
     </g>
   </g>
 </svg>

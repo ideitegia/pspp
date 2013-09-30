@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="transform-in-to-same-variables.svg">
+   sodipodi:docname="transform-in-to-different-variables.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -33,7 +33,7 @@
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="683"
-     inkscape:window-height="709"
+     inkscape:window-height="708"
      inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="0"
@@ -106,17 +106,7 @@
     <g
        transform="translate(620,775.00002)"
        style="display:inline"
-       id="g5867">
-      <path
-         id="rect6194-0"
-         d="m -610,269.36218 c -1.108,0 -2,0.892 -2,2 l 0,4 c 0,1.108 0.892,2 2,2 l 4,0 c 1.108,0 2,-0.892 2,-2 l 0,-4 c 0,-1.108 -0.892,-2 -2,-2 l -4,0 z m 0.71875,1.28125 1.28125,1.28125 1.28125,-1.28125 1.4375,1.40625 -1.71875,1.71875 0,2.59375 -2,0 0,-2.59375 -1.71875,-1.71875 1.4375,-1.40625 z"
-         style="fill:#555753;fill-opacity:1;stroke:none;display:inline"
-         inkscape:connector-curvature="0" />
-      <path
-         inkscape:connector-curvature="0"
-         id="rect6194-2-8"
-         d="m -618,261.36218 c -1.108,0 -2,0.892 -2,2 l 0,4 c 0,1.108 0.892,2 2,2 l 4,0 c 1.108,0 2,-0.892 2,-2 l 0,-4 c 0,-1.108 -0.892,-2 -2,-2 l -4,0 z m 0.71875,1.28125 1.28125,1.28125 1.28125,-1.28125 1.4375,1.40625 -1.28125,1.3125 1.28125,1.28125 -1.4375,1.40625 -1.28125,-1.28125 -1.28125,1.28125 -1.4375,-1.40625 1.28125,-1.28125 -1.28125,-1.3125 1.4375,-1.40625 z"
-         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+       id="g6183">
       <path
          inkscape:connector-curvature="0"
          id="path6429-8"
@@ -129,6 +119,16 @@
          width="16"
          id="rect6590"
          style="fill:none;stroke:none" />
+      <path
+         id="rect6016-0"
+         d="m -618,261.36218 c -1.108,0 -2,0.892 -2,2 l 0,4 c 0,1.108 0.892,2 2,2 l 4,0 c 1.108,0 2,-0.892 2,-2 l 0,-4 c 0,-1.108 -0.892,-2 -2,-2 l -4,0 z m 0.53125,1.46875 1.46875,1.46875 1.46875,-1.46875 1.0625,1.0625 -1.46875,1.46875 1.46875,1.46875 -1.0625,1.0625 -1.46875,-1.46875 -1.46875,1.46875 -1.0625,-1.0625 1.46875,-1.46875 -1.46875,-1.46875 1.0625,-1.0625 z"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline"
+         inkscape:connector-curvature="0" />
+      <path
+         id="rect6009-6"
+         d="m -610,269.36218 c -1.108,0 -2,0.892 -2,2 l 0,4 c 0,1.108 0.892,2 2,2 l 4,0 c 1.108,0 2,-0.892 2,-2 l 0,-4 c 0,-1.108 -0.892,-2 -2,-2 l -4,0 z m 0.53125,1.46875 1.46875,1.46875 1.46875,-1.46875 1.0625,1.0625 -1.78125,1.78125 0,2.6875 -1.5,0 0,-2.6875 -1.78125,-1.78125 1.0625,-1.0625 z"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline"
+         inkscape:connector-curvature="0" />
     </g>
   </g>
 </svg>

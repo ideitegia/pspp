@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="measure-string-nominal.svg">
+   sodipodi:docname="measure-string-ordinal.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -106,37 +106,34 @@
     <g
        transform="translate(380,610.00002)"
        style="display:inline"
-       id="g6557">
-      <g
-         id="g5477">
-        <path
-           style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#2e3436;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
-           id="path11930-0-3"
-           d="m -374,432.375 0,2.22363 0,4.53992 0,2.22363 3,0 0,-2.22363 0,-4.53992 0,-2.22363 -3,0 z"
-           inkscape:connector-curvature="0" />
-        <path
-           inkscape:connector-curvature="0"
-           style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#2e3436;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
-           d="m -369,429.375 0,2.96875 0,2.5625 c 0.58804,-0.33985 1.27199,-0.53125 2,-0.53125 0.34518,0 0.68048,0.0428 1,0.125 l 0,-2.15625 0,-2.96875 -3,0 z"
-           id="path11930-0-4" />
-        <path
-           style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#2e3436;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
-           id="path11930-0"
-           d="m -379,435.29968 0,1.5 0,3.0625 0,1.5 3,0 0,-1.5 0,-3.0625 0,-1.5 -3,0 z"
-           inkscape:connector-curvature="0" />
-        <rect
-           style="fill:none;stroke:none"
-           id="rect5402"
-           width="16"
-           height="16"
-           x="-380"
-           y="426.36218" />
-        <path
-           style="fill:#2e3436;fill-opacity:1;stroke:none;display:inline"
-           d="m -367,435.36218 c -1.65685,0 -3,1.34315 -3,3 l 0,4 2,0 0,-2 2,0 0,2 2,0 0,-4 c 0,-1.65685 -1.34315,-3 -3,-3 z m 0,2 c 0.55228,0 1,0.44772 1,1 l 0,1 -2,0 0,-1 c 0,-0.55228 0.44772,-1 1,-1 z"
-           id="path7755-2-3"
-           inkscape:connector-curvature="0" />
-      </g>
+       id="g6625">
+      <path
+         inkscape:connector-curvature="0"
+         id="path11930-0-3"
+         d="m -374,432.375 0,2.21875 0,4.53125 0,2.25 2.75,0 0,-3 c 0,-0.47121 0.10586,-0.91879 0.25,-1.34375 l 0,-2.4375 0,-2.21875 -3,0 z"
+         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#2e3436;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans" />
+      <path
+         id="path11930-0-4"
+         d="m -369,429.375 0,2.96875 0,2.3125 c 0.59905,-0.3245 1.27611,-0.53125 2,-0.53125 0.34907,0 0.67455,0.0754 1,0.15625 l 0,-1.9375 0,-2.96875 -3,0 z"
+         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#2e3436;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:connector-curvature="0"
+         d="m -379,435.29968 0,1.5 0,3.0625 0,1.5 3,0 0,-1.5 0,-3.0625 0,-1.5 -3,0 z"
+         id="path11930-0"
+         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#2e3436;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans" />
+      <rect
+         y="426.36218"
+         x="-380"
+         height="16"
+         width="16"
+         id="rect5402"
+         style="fill:none;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path7755-2-3-2-2"
+         d="m -367,435.36218 c -1.65685,0 -3,1.34315 -3,3 l 0,4 2,0 0,-2 2,0 0,2 2,0 0,-4 c 0,-1.65685 -1.34315,-3 -3,-3 z m 0,2 c 0.55228,0 1,0.44772 1,1 l 0,1 -2,0 0,-1 c 0,-0.55228 0.44772,-1 1,-1 z"
+         style="fill:#2e3436;fill-opacity:1;stroke:none;display:inline" />
     </g>
   </g>
 </svg>

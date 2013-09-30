@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="measure-currency-scale.svg">
+   sodipodi:docname="measure-currency-nominal.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -106,42 +106,39 @@
     <g
        transform="translate(290,610.00002)"
        style="display:inline"
-       id="g6525">
-      <g
-         id="g5718">
-        <path
-           sodipodi:cx="-9"
-           sodipodi:cy="321"
-           d="m -2,321 c 0,3.86599 -3.1340068,7 -7,7 -3.865993,0 -7,-3.13401 -7,-7 0,-3.86599 3.134007,-7 7,-7 3.8659932,0 7,3.13401 7,7 z"
-           id="path8593-0-6"
-           sodipodi:rx="7"
-           sodipodi:ry="7"
-           style="color:#000000;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:2.15384626;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
-           transform="matrix(0.49987831,0,0,0.4999999,-280.99853,277.36222)"
-           sodipodi:type="arc" />
-        <path
-           sodipodi:cx="-9"
-           sodipodi:cy="321"
-           d="m -2,321 c 0,3.86599 -3.1340068,7 -7,7 -3.865993,0 -7,-3.13401 -7,-7 0,-3.86599 3.134007,-7 7,-7 3.8659932,0 7,3.13401 7,7 z"
-           id="path8593-0-7-1"
-           sodipodi:rx="7"
-           sodipodi:ry="7"
-           style="color:#000000;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:2.15384626;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
-           transform="matrix(0.49987831,0,0,0.4999999,-277.00024,270.36222)"
-           sodipodi:type="arc" />
-        <rect
-           style="fill:none;stroke:none"
-           id="rect5426"
-           width="16"
-           height="16"
-           x="-290"
-           y="426.36218" />
-        <path
-           style="fill:#2e3436;fill-opacity:1;stroke:none;display:inline"
-           d="m -279,434.36218 0,1 -0.5,0 c -0.831,0 -1.5,0.669 -1.5,1.5 0,0.831 0.669,1.5 1.5,1.5 l 0.5,0 2,0 0.5,0 c 0.277,0 0.5,0.223 0.5,0.5 0,0.277 -0.223,0.5 -0.5,0.5 l -0.5,0 -4,0 0,1 2,0 0,1 2,0 0,-1 0.5,0 c 0.831,0 1.5,-0.669 1.5,-1.5 0,-0.831 -0.669,-1.5 -1.5,-1.5 l -0.5,0 -2,0 -0.5,0 c -0.277,0 -0.5,-0.223 -0.5,-0.5 0,-0.277 0.223,-0.5 0.5,-0.5 l 0.5,0 4,0 0,-1 -2,0 0,-1 -2,0 z"
-           id="rect5488-8"
-           inkscape:connector-curvature="0" />
-      </g>
+       id="g4088">
+      <path
+         sodipodi:type="arc"
+         transform="matrix(0.49987831,0,0,0.4999999,-280.99853,277.36222)"
+         style="color:#000000;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:2.15384626;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
+         sodipodi:ry="7"
+         sodipodi:rx="7"
+         id="path8593-0-6"
+         d="m -2,321 c 0,3.86599 -3.1340068,7 -7,7 -3.865993,0 -7,-3.13401 -7,-7 0,-3.86599 3.134007,-7 7,-7 3.8659932,0 7,3.13401 7,7 z"
+         sodipodi:cy="321"
+         sodipodi:cx="-9" />
+      <path
+         sodipodi:type="arc"
+         transform="matrix(0.49987831,0,0,0.4999999,-277.00024,270.36222)"
+         style="color:#000000;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:2.15384626;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
+         sodipodi:ry="7"
+         sodipodi:rx="7"
+         id="path8593-0-7-1"
+         d="m -2,321 c 0,3.86599 -3.1340068,7 -7,7 -3.865993,0 -7,-3.13401 -7,-7 0,-3.86599 3.134007,-7 7,-7 3.8659932,0 7,3.13401 7,7 z"
+         sodipodi:cy="321"
+         sodipodi:cx="-9" />
+      <rect
+         y="426.36218"
+         x="-290"
+         height="16"
+         width="16"
+         id="rect5426"
+         style="fill:none;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="rect5488-8"
+         d="m -278,435.36218 0,1 -0.5,0 c -0.831,0 -1.5,0.669 -1.5,1.5 0,0.831 0.669,1.5 1.5,1.5 l 0.5,0 2,0 0.5,0 c 0.277,0 0.5,0.223 0.5,0.5 0,0.277 -0.223,0.5 -0.5,0.5 l -0.5,0 -4,0 0,1 2,0 0,1 2,0 0,-1 0.5,0 c 0.831,0 1.5,-0.669 1.5,-1.5 0,-0.831 -0.669,-1.5 -1.5,-1.5 l -0.5,0 -2,0 -0.5,0 c -0.277,0 -0.5,-0.223 -0.5,-0.5 0,-0.277 0.223,-0.5 0.5,-0.5 l 0.5,0 4,0 0,-1 -2,0 0,-1 -2,0 z"
+         style="fill:#2e3436;fill-opacity:1;stroke:none;display:inline" />
     </g>
   </g>
 </svg>

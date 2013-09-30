@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="edit-go-to-case.svg">
+   sodipodi:docname="edit-go-to-variable.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -106,7 +106,7 @@
     <g
        transform="translate(470,540.00002)"
        style="display:inline"
-       id="g6036">
+       id="g5888">
       <rect
          style="opacity:0;fill:#ffffff;fill-opacity:1;stroke:none;display:inline"
          id="rect4898-0"
@@ -122,10 +122,10 @@
          id="rect5357-05"
          style="fill:none;stroke:none" />
       <path
+         inkscape:connector-curvature="0"
          id="rect5340-3-4"
-         d="m -459.50352,497.3622 c -2.49216,0 -4.49849,2.007 -4.49849,4.5 l 0,5.99999 c 0,2.49299 2.00633,4.49999 4.49849,4.49999 l 5.99799,0 c 2.49216,0 4.49849,-2.007 4.49849,-4.49999 l 0,-5.99999 c 0,-2.493 -2.00633,-4.5 -4.49849,-4.5 l -5.99799,0 z m -0.42173,1.92187 3.42073,3.42188 3.42072,-3.42188 2.15553,2.10938 -3.42073,3.46874 3.42073,3.42187 -2.15553,2.10937 -3.42072,-3.42187 -3.42073,3.42187 -2.15553,-2.10937 3.42073,-3.42187 -3.42073,-3.46874 2.15553,-2.10938 z"
-         style="fill:#555753;fill-opacity:1;stroke:none;display:inline"
-         inkscape:connector-curvature="0" />
+         d="m -459.5,497.375 c -2.49216,0 -4.5,2.007 -4.5,4.5 l 0,6 c 0,2.49299 2.00784,4.5 4.5,4.5 l 6,0 c 2.49216,0 4.5,-2.00701 4.5,-4.5 l 0,-6 c 0,-2.493 -2.00784,-4.5 -4.5,-4.5 l -6,0 z m -0.5,2 3.625,3.625 3.625,-3.625 1.75,1.78125 -3.625,3.625 3.625,3.59375 -1.75,1.78125 -3.625,-3.625 -3.625,3.625 -1.75,-1.78125 3.625,-3.59375 -3.625,-3.625 1.75,-1.78125 z"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
       <path
          inkscape:connector-curvature="0"
          id="path6429-5-2-9-5-8-8"

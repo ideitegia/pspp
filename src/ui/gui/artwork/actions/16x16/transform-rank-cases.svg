@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="transform-compute.svg">
+   sodipodi:docname="transform-rank-cases.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -33,7 +33,7 @@
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="683"
-     inkscape:window-height="709"
+     inkscape:window-height="708"
      inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="0"
@@ -106,7 +106,7 @@
     <g
        transform="translate(530,805.00002)"
        style="display:inline"
-       id="g5610">
+       id="g5195">
       <path
          inkscape:connector-curvature="0"
          id="path4625"
@@ -131,9 +131,9 @@
          style="fill:none;stroke:none" />
       <path
          inkscape:connector-curvature="0"
-         id="path5338-7"
-         d="m -522.5,232.36218 c -2.52128,0.25605 -4.5,2.41117 -4.5,5 0,2.76142 2.23858,5 5,5 2.76142,0 5,-2.23858 5,-5 0,-2.76142 -2.23858,-5 -5,-5 -0.17259,0 -0.33191,-0.0171 -0.5,0 z m 0.5,1 c 1.10457,0 2,0.89543 2,2 0,1.10457 -0.89543,2 -2,2 -1.10457,0 -2,-0.89543 -2,-2 0,-1.10457 0.89543,-2 2,-2 z m -1,4 0,1 2,0 0,-1 c 1.10457,0 2,0.89543 2,2 0,1.10457 -1.34315,2 -3,2 -1.65685,0 -3,-0.89543 -3,-2 0,-1.10457 0.89543,-2 2,-2 z"
-         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+         id="path5185"
+         d="m -522.5,232.375 c -2.52128,0.25605 -4.5,2.41116 -4.5,5 0,2.76143 2.23858,5 5,5 2.76142,0 5,-2.23857 5,-5 0,-2.76143 -2.23858,-5 -5,-5 -0.17259,0 -0.33191,-0.0171 -0.5,0 z m 0.5,1.5 c 0.92047,0 1.65625,0.78349 1.65625,1.75 0,0.96649 -0.73578,1.75 -1.65625,1.75 -0.92047,0 -1.65625,-0.78351 -1.65625,-1.75 0,-0.96651 0.73578,-1.75 1.65625,-1.75 z m -0.84375,3.5 0,0.875 1.6875,0 0,-0.875 c 0.92047,0 1.65625,0.7835 1.65625,1.75 0,0.96649 -1.11929,1.75 -2.5,1.75 -1.38071,0 -2.5,-0.78351 -2.5,-1.75 0,-0.9665 0.73578,-1.75 1.65625,-1.75 z"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
     </g>
   </g>
 </svg>

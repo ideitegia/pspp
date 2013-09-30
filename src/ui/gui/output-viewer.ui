@@ -33,12 +33,14 @@
           <object class="GtkAction" id="edit_select-all">
             <property name="name">edit_select-all</property>
             <property name="stock-id">edit-select-all</property>
+	    <property name="label" translatable="yes">Select _All</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_copy">
             <property name="stock-id">edit-copy</property>
             <property name="name">edit_copy</property>
+	    <property name="label" translatable="yes">_Copy</property>
           </object>
         </child>
         <child>

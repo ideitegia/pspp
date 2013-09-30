@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="run-current-line.svg">
+   sodipodi:docname="run-to-end.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -33,7 +33,7 @@
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="683"
-     inkscape:window-height="709"
+     inkscape:window-height="708"
      inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="0"
@@ -106,28 +106,32 @@
     <g
        transform="translate(-475,915.00002)"
        style="display:inline"
-       id="g4203">
+       id="g5389">
+      <path
+         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#555753;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+         sodipodi:nodetypes="ccccccsccccc"
+         id="path3807-1-1-9-38-4-1"
+         d="m 480.03134,126.36215 0,5.00002 0.40101,0 0.0415,0 c 0.0774,5e-4 0.15389,-0.0194 0.22125,-0.0625 l 3.09748,-2.00001 c 0.13748,-0.0859 0.20742,-0.26173 0.20742,-0.4375 0,-0.17578 -0.0699,-0.35156 -0.20742,-0.4375 l -3.09748,-2.00001 c -0.0674,-0.0431 -0.14386,-0.0631 -0.22125,-0.0625 l -0.0415,0 z"
+         inkscape:connector-curvature="0" />
       <rect
          y="121.36218"
          x="475"
          height="16"
          width="16"
-         id="rect5015"
+         id="rect4993-9"
          style="fill:none;stroke:none" />
-      <rect
-         transform="matrix(0,1,-1,0,0,0)"
-         y="-489"
-         x="124.36218"
-         height="2"
-         width="10"
-         id="rect5061-5"
-         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
       <path
          inkscape:connector-curvature="0"
-         d="m 477,130.36218 5.5625,0 -1.28125,1.28125 c -0.18815,0.18816 -0.28124,0.45345 -0.28125,0.71875 l 0,1 1,0 c 0.2653,-1e-5 0.53058,-0.0931 0.71875,-0.28125 l 3,-3 0.28125,-0.28125 0,-0.875 -0.28125,-0.28125 -3,-3 C 482.53058,125.45524 482.2653,125.36219 482,125.36218 l -1,0 0,1 c 10e-6,0.2653 0.0931,0.53059 0.28125,0.71875 l 1.28125,1.28125 -5.5625,0 z"
-         id="path3613-3"
-         sodipodi:nodetypes="ccccccccccccccccccc"
-         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#555753;fill-opacity:1;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans" />
+         id="rect5000-1-8"
+         d="m 477,122.36218 c -0.554,0 -1,0.446 -1,1 l 0,11 c 0,0.554 0.446,1 1,1 l 12,0 c 0.1385,0 0.25528,-0.0433 0.375,-0.0937 0.35916,-0.15141 0.625,-0.49075 0.625,-0.90625 l 0,-11 c 0,-0.554 -0.446,-1 -1,-1 l -12,0 z m 1,2 10,0 0,9 -10,0 0,-9 z"
+         style="opacity:0.35;fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         y="126.36218"
+         x="484"
+         height="5"
+         width="2"
+         id="rect5387"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
     </g>
   </g>
 </svg>

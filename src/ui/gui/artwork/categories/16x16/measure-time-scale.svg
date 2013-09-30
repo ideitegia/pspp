@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="measure-date-ordinal.svg">
+   sodipodi:docname="measure-time-scale.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -106,35 +106,84 @@
     <g
        transform="translate(335,640.00002)"
        style="display:inline"
-       id="g6541">
+       id="g6494">
+      <rect
+         y="396.36218"
+         x="-335"
+         height="16"
+         width="16"
+         id="rect5382"
+         style="fill:none;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="rect5888-4"
+         d="m -332,397.375 0,12 0,1 0,1 6,0 0,-2 -4,0 0,-1 1,0 0.5,0 0.5,0 0,-0.5 0,-0.5 -0.5,0 -0.5,0 -1,0 0,-1 2,0 0.5,0 0.5,0 0,-0.5 0,-0.5 -0.5,0 -0.5,0 -2,0 0,-1 1,0 0.5,0 0.5,0 0,-0.5 0,-0.5 -0.5,0 -0.5,0 -1,0 0,-1 2,0 0.5,0 0.5,0 0,-0.5 0,-0.5 -0.5,0 -0.5,0 -2,0 0,-2 4,0 c 1.06188,-0.0309 2.16571,-0.0829 2,2 l 0,1 0,2 2,0 0,-3 c 0,-3 -1,-4 -4,-4 l -4,0 -2,0 z"
+         style="fill:#2e3436;fill-opacity:1;display:inline" />
       <g
-         id="g5187">
+         transform="translate(-17,-3.4210825e-6)"
+         id="g6335">
         <rect
-           style="fill:none;stroke:none"
-           id="rect5382"
-           width="16"
-           height="16"
-           x="-335"
-           y="396.36218" />
-        <g
-           id="g5140"
-           transform="translate(-9,1.0000026)">
-          <path
-             inkscape:connector-curvature="0"
-             id="path4334"
-             d="m -313.5,404.36218 c -1.933,0 -3.5,1.567 -3.5,3.5 0,1.933 1.567,3.5 3.5,3.5 1.933,0 3.5,-1.567 3.5,-3.5 0,-1.933 -1.567,-3.5 -3.5,-3.5 z m 0,1 c 1.38071,0 2.5,1.11929 2.5,2.5 0,1.38071 -1.11929,2.5 -2.5,2.5 -1.38071,0 -2.5,-1.11929 -2.5,-2.5 0,-1.38071 1.11929,-2.5 2.5,-2.5 z"
-             style="fill:#2e3436;fill-opacity:1;stroke:none" />
-          <path
-             inkscape:connector-curvature="0"
-             id="path4341"
-             d="m -312.28125,406.34375 a 0.250025,0.250025 0 0 0 -0.125,0.0937 L -313.5,407.5 l -0.4375,-0.4375 a 0.250025,0.250025 0 0 0 -0.0313,-0.0313 0.250025,0.250025 0 0 0 -0.0937,-0.0313 0.250025,0.250025 0 0 0 -0.125,0 0.250025,0.250025 0 0 0 -0.0625,0.0313 0.250025,0.250025 0 0 0 -0.125,0.15625 0.250025,0.250025 0 0 0 0.0937,0.21875 l 0.625,0.625 0.1875,0.1875 0.15625,-0.1875 1.25,-1.25 a 0.250025,0.250025 0 0 0 0.0313,-0.0313 0.250025,0.250025 0 0 0 0.0313,-0.0625 0.250025,0.250025 0 0 0 0,-0.125 0.250025,0.250025 0 0 0 -0.0313,-0.0937 0.250025,0.250025 0 0 0 -0.0625,-0.0625 0.250025,0.250025 0 0 0 -0.0625,-0.0313 0.250025,0.250025 0 0 0 -0.125,-0.0313 z"
-             style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:0.5;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans" />
-        </g>
+           style="fill:#2e3436;fill-opacity:1;stroke:none;display:inline"
+           id="rect5780-8"
+           width="6"
+           height="1"
+           x="-308"
+           y="405.36218" />
+        <rect
+           style="fill:#2e3436;fill-opacity:1;stroke:none;display:inline"
+           id="rect5780-9-8"
+           width="6"
+           height="1"
+           x="-308"
+           y="411.36218" />
         <path
-           inkscape:connector-curvature="0"
-           style="fill:#2e3436;fill-opacity:1;display:inline"
-           d="m -332,397.375 0,12 0,1 0,1 5.78125,0 c -0.39578,-0.58583 -0.63582,-1.26195 -0.71875,-2 l -3.0625,0 0,-1 1,0 0.5,0 0.5,0 0,-0.5 0,-0.5 -0.5,0 -0.5,0 -1,0 0,-1 2,0 0.5,0 0.5,0 0,-0.5 0,-0.5 -0.5,0 -0.5,0 -2,0 0,-1 1,0 0.5,0 0.5,0 0,-0.5 0,-0.5 -0.5,0 -0.5,0 -1,0 0,-1 2,0 0.5,0 0.5,0 0,-0.5 0,-0.5 -0.5,0 -0.5,0 -2,0 0,-2 4,0 c 1.06188,-0.0309 2.16571,-0.0829 2,2 l 0,1 0,2.28125 c 0.47255,-0.16854 0.96957,-0.28125 1.5,-0.28125 0.17178,0 0.33323,0.0438 0.5,0.0625 l 0,-3.0625 c 0,-3 -1,-4 -4,-4 l -4,0 -2,0 z"
-           id="rect5888-5" />
+           sodipodi:type="arc"
+           style="fill:none;stroke:#2d3335;stroke-width:0.467879;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline"
+           id="path5800-9"
+           sodipodi:cx="-267"
+           sodipodi:cy="404.36218"
+           sodipodi:rx="1"
+           sodipodi:ry="1"
+           d="m -268,404.36218 c 0,-0.55228 0.44772,-1 1,-1 0.55228,0 1,0.44772 1,1 l -1,0 z"
+           sodipodi:start="3.1415927"
+           sodipodi:end="6.2831853"
+           transform="matrix(-1.8029863,0,0,-2.3240972,-786.39735,1345.6181)" />
+        <path
+           sodipodi:type="arc"
+           style="fill:none;stroke:#2d3335;stroke-width:0.46787143;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline"
+           id="path5800-6-1"
+           sodipodi:cx="-267"
+           sodipodi:cy="404.36218"
+           sodipodi:rx="1"
+           sodipodi:ry="1"
+           d="m -268,404.36218 c 0,-0.55228 0.44772,-1 1,-1 0.55228,0 1,0.44772 1,1 l -1,0 z"
+           sodipodi:start="3.1415927"
+           sodipodi:end="6.2831853"
+           transform="matrix(1.8029849,0,0,2.3241078,176.39698,-527.89799)" />
+        <path
+           sodipodi:type="arc"
+           style="fill:#2e3436;fill-opacity:1;stroke:none;display:inline"
+           id="path5820-6"
+           sodipodi:cx="-266.5"
+           sodipodi:cy="408.86218"
+           sodipodi:rx="0.5"
+           sodipodi:ry="0.5"
+           d="m -266,408.86218 c 0,0.27614 -0.22386,0.5 -0.5,0.5 -0.27614,0 -0.5,-0.22386 -0.5,-0.5 0,-0.27614 0.22386,-0.5 0.5,-0.5 0.27614,0 0.5,0.22386 0.5,0.5 z"
+           transform="matrix(2,0,0,1,228,2.6171874e-6)" />
+        <rect
+           style="fill:#2e3436;fill-opacity:1;stroke:none;display:inline"
+           id="rect5889-9"
+           width="3.198874"
+           height="0.49719238"
+           x="-306.62976"
+           y="411.36218" />
+        <rect
+           style="fill:#2e3436;fill-opacity:1;stroke:none;display:inline"
+           id="rect5889-4-7"
+           width="1.7073205"
+           height="0.38128155"
+           x="-305.7879"
+           y="407.64651" />
       </g>
     </g>
   </g>

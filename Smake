@@ -125,6 +125,7 @@ src/ui/gui/icons/apps/24x24/pspp.png \
 src/ui/gui/icons/apps/256x256/pspp.png \
 src/ui/gui/icons/apps/16x16/pspp.png \
 src/ui/gui/icons/apps/48x48/pspp.png \
+src/ui/gui/icons/apps/scalable/pspp.svg \
 
 
 
@@ -200,6 +201,8 @@ src/ui/gui/icons/actions/24x24/file-open-data.png \
 src/ui/gui/icons/actions/24x24/file-save-data.png \
 src/ui/gui/icons/actions/24x24/view-value-labels.png \
 src/ui/gui/icons/actions/16x16/file-new-data.png \
+src/ui/gui/icons/actions/16x16/file-syntax-data.png \
+src/ui/gui/icons/actions/16x16/file-system-data.png \
 src/ui/gui/icons/actions/16x16/file-open-data.png \
 src/ui/gui/icons/actions/16x16/file-import-data.png \
 src/ui/gui/icons/actions/16x16/file-export-data.png \
@@ -208,6 +211,8 @@ src/ui/gui/icons/actions/16x16/file-save-as.png \
 src/ui/gui/icons/actions/16x16/file-print.png \
 src/ui/gui/icons/actions/16x16/file-rename-data-set.png \
 src/ui/gui/icons/actions/16x16/file-display-information.png \
+src/ui/gui/icons/actions/16x16/display-information-working-file.png \
+src/ui/gui/icons/actions/16x16/display-information-external-file.png \
 src/ui/gui/icons/actions/16x16/file-recently-used.png \
 src/ui/gui/icons/actions/16x16/file-quit.png \
 src/ui/gui/icons/actions/16x16/file-display-information.png \

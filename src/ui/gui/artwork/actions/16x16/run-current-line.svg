@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="run-selection.svg">
+   sodipodi:docname="run-current-line.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -33,7 +33,7 @@
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="683"
-     inkscape:window-height="709"
+     inkscape:window-height="708"
      inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="0"
@@ -106,20 +106,7 @@
     <g
        transform="translate(-430,915.00002)"
        style="display:inline"
-       id="g7054">
-      <rect
-         y="130.36218"
-         x="438"
-         height="2"
-         width="6"
-         id="rect5061"
-         style="fill:#555753;fill-opacity:1;stroke:none" />
-      <path
-         id="path8864-9-6-3"
-         style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#bebebe;fill:#555753;fill-opacity:1;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-         inkscape:connector-curvature="0"
-         d="m 432,126.36218 0,1 c 0,0.25689 0.12983,0.52846 0.3125,0.71875 l 1.28125,1.28125 -1.28125,1.28125 C 432.12983,130.83372 432,131.10529 432,131.36218 l 0,1 1,0 c 0.30945,0 0.55232,-0.0903 0.75,-0.28125 l 2.65625,-2.71875 -2.65625,-2.71875 c -0.19768,-0.19095 -0.44055,-0.28125 -0.75,-0.28125 l -1,0 z"
-         sodipodi:nodetypes="ccccccccccccc" />
+       id="g5461">
       <rect
          y="121.36218"
          x="430"
@@ -127,6 +114,39 @@
          width="16"
          id="rect5006"
          style="fill:none;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="rect5000-1-2-0"
+         d="m 432,122.36218 c -0.554,0 -1,0.446 -1,1 l 0,11 c 0,0.554 0.446,1 1,1 l 12,0 c 0.1385,0 0.25528,-0.0433 0.375,-0.0937 0.35916,-0.15141 0.625,-0.49075 0.625,-0.90625 l 0,-11 c 0,-0.554 -0.446,-1 -1,-1 l -12,0 z m 1,2 10,0 0,9 -10,0 0,-9 z"
+         style="opacity:0.35;fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <rect
+         y="126.36218"
+         x="431"
+         height="2"
+         width="14"
+         id="rect5405"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <rect
+         y="130.36218"
+         x="431"
+         height="2"
+         width="14"
+         id="rect5405-4"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <rect
+         y="126.36218"
+         x="431"
+         height="6"
+         width="2"
+         id="rect5405-0"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
+      <rect
+         y="126.36218"
+         x="443"
+         height="6"
+         width="2"
+         id="rect5405-0-7"
+         style="fill:#555753;fill-opacity:1;stroke:none;display:inline" />
     </g>
   </g>
 </svg>
