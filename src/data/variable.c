@@ -892,7 +892,7 @@ var_role_is_valid (enum var_role role)
     {
     case ROLE_NONE:
     case ROLE_INPUT:
-    case ROLE_OUTPUT:
+    case ROLE_TARGET:
     case ROLE_BOTH:
     case ROLE_PARTITION:
     case ROLE_SPLIT:
@@ -912,7 +912,7 @@ var_role_to_string (enum var_role role)
     case ROLE_INPUT:
       return _("Input");
 
-    case ROLE_OUTPUT:
+    case ROLE_TARGET:
       return _("Output");
 
     case ROLE_BOTH:
@@ -941,7 +941,7 @@ var_role_to_syntax (enum var_role role)
     case ROLE_INPUT:
       return "INPUT";
 
-    case ROLE_OUTPUT:
+    case ROLE_TARGET:
       return "TARGET";
 
     case ROLE_BOTH:

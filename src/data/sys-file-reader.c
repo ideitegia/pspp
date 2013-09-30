@@ -1958,7 +1958,7 @@ assign_variable_roles (struct sfm_reader *r, struct dictionary *dict)
               break;
 
             case 1:
-              role = ROLE_OUTPUT;
+              role = ROLE_TARGET;
               break;
 
             case 2:

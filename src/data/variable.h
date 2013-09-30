@@ -146,7 +146,7 @@ enum measure var_default_measure (enum val_type);
 enum var_role
   {
     ROLE_INPUT,
-    ROLE_OUTPUT,
+    ROLE_TARGET,
     ROLE_BOTH,
     ROLE_NONE,
     ROLE_PARTITION,

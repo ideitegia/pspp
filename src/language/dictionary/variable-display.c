@@ -198,7 +198,7 @@ cmd_variable_role (struct lexer *lexer, struct dataset *ds)
       if ( lex_match_id (lexer, "INPUT"))
         role = ROLE_INPUT;
       else if ( lex_match_id (lexer, "TARGET"))
-        role = ROLE_OUTPUT;
+        role = ROLE_TARGET;
       else if ( lex_match_id (lexer, "BOTH"))
         role = ROLE_BOTH;
       else if ( lex_match_id (lexer, "NONE"))

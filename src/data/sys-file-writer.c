@@ -706,7 +706,7 @@ add_role_attribute (enum var_role role, struct attrset *attrs)
       s = "0";
       break;
 
-    case ROLE_OUTPUT:
+    case ROLE_TARGET:
       s = "1";
       break;
 
