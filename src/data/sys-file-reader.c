@@ -85,6 +85,7 @@ enum
     EXT_MRSETS2       = 19,     /* Multiple response sets (extended). */
     EXT_ENCODING      = 20,     /* Character encoding. */
     EXT_LONG_LABELS   = 21,     /* Value labels for long strings. */
+    EXT_LONG_MISSING  = 22,     /* Missing values for long strings. */
     EXT_DATAVIEW      = 24      /* "Format properties in dataview table". */
   };
 
@@ -141,6 +142,7 @@ struct sfm_document_record
 
 struct sfm_extension_record
   {
+    int subtype;                /* Record subtype. */
     off_t pos;                  /* Starting offset in file. */
     size_t size;                /* Size of data elements. */
     size_t count;               /* Number of data elements. */
@@ -306,6 +308,9 @@ static void assign_variable_roles (struct sfm_reader *, struct dictionary *);
 static void parse_long_string_value_labels (struct sfm_reader *,
                                             const struct sfm_extension_record *,
                                             struct dictionary *);
+static void parse_long_string_missing_values (struct sfm_reader *,
+                                              const struct sfm_extension_record *,
+                                              struct dictionary *);
 
 /* Frees the strings inside INFO. */
 void
@@ -545,6 +550,8 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
 
   if (extensions[EXT_LONG_LABELS] != NULL)
     parse_long_string_value_labels (r, extensions[EXT_LONG_LABELS], dict);
+  if (extensions[EXT_LONG_MISSING] != NULL)
+    parse_long_string_missing_values (r, extensions[EXT_LONG_MISSING], dict);
 
   /* Warn if the actual amount of data per case differs from the
      amount that the header claims.  SPSS version 13 gets this
@@ -862,6 +869,7 @@ static void
 read_extension_record_header (struct sfm_reader *r, int subtype,
                               struct sfm_extension_record *record)
 {
+  record->subtype = subtype;
   record->pos = r->pos;
   record->size = read_int (r);
   record->count = read_int (r);
@@ -901,6 +909,7 @@ read_extension_record (struct sfm_reader *r, int subtype)
       { EXT_MRSETS2,      1, 0 },
       { EXT_ENCODING,     1, 0 },
       { EXT_LONG_LABELS,  1, 0 },
+      { EXT_LONG_MISSING, 1, 0 },
 
       /* Ignored record types. */
       { EXT_VAR_SETS,     0, 0 },
@@ -1992,7 +2001,8 @@ check_overflow (struct sfm_reader *r,
   size_t end = record->size * record->count;
   if (length >= end || ofs + length > end)
     sys_error (r, record->pos + end,
-               _("Long string value label record ends unexpectedly."));
+               _("Extension record subtype %d ends unexpectedly."),
+               record->subtype);
 }
 
 static void
@@ -2031,20 +2041,20 @@ parse_long_string_value_labels (struct sfm_reader *r,
       var = dict_lookup_var (dict, var_name);
       if (var == NULL)
         sys_warn (r, record->pos + ofs,
-                  _("Ignoring long string value record for "
+                  _("Ignoring long string value label record for "
                     "unknown variable %s."), var_name);
       else if (var_is_numeric (var))
         {
           sys_warn (r, record->pos + ofs,
-                    _("Ignoring long string value record for "
+                    _("Ignoring long string value label record for "
                       "numeric variable %s."), var_name);
           var = NULL;
         }
       else if (width != var_get_width (var))
         {
           sys_warn (r, record->pos + ofs,
-                    _("Ignoring long string value record for variable %s "
-                      "because the record's width (%d) does not match the "
+                    _("Ignoring long string value label record for variable "
+                      "%s because the record's width (%d) does not match the "
                       "variable's width (%d)."),
                     var_name, width, var_get_width (var));
           var = NULL;
@@ -2072,8 +2082,8 @@ parse_long_string_value_labels (struct sfm_reader *r,
               else
                 {
                   sys_warn (r, record->pos + ofs,
-                            _("Ignoring long string value %zu for variable "
-                              "%s, with width %d, that has bad value "
+                            _("Ignoring long string value label %zu for "
+                              "variable %s, with width %d, that has bad value "
                               "width %zu."),
                             i, var_get_name (var), width, value_length);
                   skip = true;
@@ -2104,6 +2114,89 @@ parse_long_string_value_labels (struct sfm_reader *r,
             }
           ofs += label_length;
         }
+    }
+}
+
+static void
+parse_long_string_missing_values (struct sfm_reader *r,
+                                  const struct sfm_extension_record *record,
+                                  struct dictionary *dict)
+{
+  const char *dict_encoding = dict_get_encoding (dict);
+  size_t end = record->size * record->count;
+  size_t ofs = 0;
+
+  while (ofs < end)
+    {
+      struct missing_values mv;
+      char *var_name;
+      struct variable *var;
+      int n_missing_values;
+      int var_name_len;
+      size_t i;
+
+      /* Parse variable name length. */
+      check_overflow (r, record, ofs, 4);
+      var_name_len = parse_int (r, record->data, ofs);
+      ofs += 4;
+
+      /* Parse variable name. */
+      check_overflow (r, record, ofs, var_name_len + 1);
+      var_name = recode_string_pool ("UTF-8", dict_encoding,
+                                     (const char *) record->data + ofs,
+                                     var_name_len, r->pool);
+      ofs += var_name_len;
+
+      /* Parse number of missing values. */
+      n_missing_values = ((const uint8_t *) record->data)[ofs];
+      if (n_missing_values < 1 || n_missing_values > 3)
+        sys_warn (r, record->pos + ofs,
+                  _("Long string missing values record says variable %s "
+                    "has %d missing values, but only 1 to 3 missing values "
+                    "are allowed."),
+                  var_name, n_missing_values);
+      ofs++;
+
+      /* Look up 'var' and validate. */
+      var = dict_lookup_var (dict, var_name);
+      if (var == NULL)
+        sys_warn (r, record->pos + ofs,
+                  _("Ignoring long string missing value record for "
+                    "unknown variable %s."), var_name);
+      else if (var_is_numeric (var))
+        {
+          sys_warn (r, record->pos + ofs,
+                    _("Ignoring long string missing value record for "
+                      "numeric variable %s."), var_name);
+          var = NULL;
+        }
+
+      /* Parse values. */
+      mv_init_pool (r->pool, &mv, var ? var_get_width (var) : 8);
+      for (i = 0; i < n_missing_values; i++)
+	{
+          size_t value_length;
+
+          /* Parse value length. */
+          check_overflow (r, record, ofs, 4);
+          value_length = parse_int (r, record->data, ofs);
+          ofs += 4;
+
+          /* Parse value. */
+          check_overflow (r, record, ofs, value_length);
+          if (var != NULL
+              && i < 3
+              && !mv_add_str (&mv, (const uint8_t *) record->data + ofs,
+                              value_length))
+            sys_warn (r, record->pos + ofs,
+                      _("Ignoring long string missing value %zu for variable "
+                        "%s, with width %d, that has bad value width %zu."),
+                      i, var_get_name (var), var_get_width (var),
+                      value_length);
+          ofs += value_length;
+        }
+      if (var != NULL)
+        var_set_missing_values (var, &mv);
     }
 }
 

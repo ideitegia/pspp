@@ -6,8 +6,16 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
 Changes since 0.8.1:
 
- * Charts are now rendered with colours from the Tango palette instead of fully 
-   saturated primaries.
+ * Charts are now rendered with colours from the Tango palette instead
+   of fully saturated primaries.
+
+ * Missing values for long string variables are now read from and
+   written to system files in an SPSS-compatible fashion.
+
+   (Earlier versions of PSPP that supported missing values for long
+   string variables wrote them to system files in an SPSS-incompatible
+   way.  To fix the problem, read the system file with this version of
+   PSPP and then save a new copy of it.)
 
 Changes from 0.8.0 to 0.8.1:
 

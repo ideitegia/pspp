@@ -116,6 +116,8 @@ static void write_vls_length_table (struct sfm_writer *w,
 
 static void write_long_string_value_labels (struct sfm_writer *,
                                             const struct dictionary *);
+static void write_long_string_missing_values (struct sfm_writer *,
+                                              const struct dictionary *);
 
 static void write_mrsets (struct sfm_writer *, const struct dictionary *,
                           bool pre_v14);
@@ -258,6 +260,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   write_vls_length_table (w, d);
 
   write_long_string_value_labels (w, d);
+  write_long_string_missing_values (w, d);
 
   if (opts.version >= 3)
     {
@@ -442,7 +445,6 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   int segment_cnt = sfm_width_to_segments (width);
   int seg0_width = sfm_segment_alloc_width (width, 0);
   const char *encoding = var_get_encoding (v);
-  struct missing_values mv;
   int i;
 
   /* Record type. */
@@ -456,14 +458,20 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 
   /* Number of missing values.  If there is a range, then the
      range counts as 2 missing values and causes the number to be
-     negated. */
-  mv_copy (&mv, var_get_missing_values (v));
-  if (mv_get_width (&mv) > 8)
-    mv_resize (&mv, 8);
-  if (mv_has_range (&mv))
-    write_int (w, -2 - mv_n_values (&mv));
+     negated.
+
+     Missing values for long string variables are written in a separate
+     record. */
+  if (width <= MAX_SHORT_STRING)
+    {
+      const struct missing_values *mv = var_get_missing_values (v);
+      if (mv_has_range (mv))
+        write_int (w, -2 - mv_n_values (mv));
+      else
+        write_int (w, mv_n_values (mv));
+    }
   else
-    write_int (w, mv_n_values (&mv));
+    write_int (w, 0);
 
   /* Print and write formats. */
   write_format (w, *var_get_print_format (v), seg0_width);
@@ -486,15 +494,19 @@ write_variable (struct sfm_writer *w, const struct variable *v)
     }
 
   /* Write the missing values, if any, range first. */
-  if (mv_has_range (&mv))
+  if (width <= MAX_SHORT_STRING)
     {
-      double x, y;
-      mv_get_range (&mv, &x, &y);
-      write_float (w, x);
-      write_float (w, y);
+      const struct missing_values *mv = var_get_missing_values (v);
+      if (mv_has_range (mv))
+        {
+          double x, y;
+          mv_get_range (mv, &x, &y);
+          write_float (w, x);
+          write_float (w, y);
+        }
+      for (i = 0; i < mv_n_values (mv); i++)
+        write_value (w, mv_get_value (mv, i), width);
     }
-  for (i = 0; i < mv_n_values (&mv); i++)
-    write_value (w, mv_get_value (&mv, i), mv_get_width (&mv));
 
   write_variable_continuation_records (w, seg0_width);
 
@@ -514,8 +526,6 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 
       write_variable_continuation_records (w, seg_width);
     }
-
-  mv_destroy (&mv);
 }
 
 /* Writes the value labels to system file W.
@@ -891,11 +901,11 @@ write_vls_length_table (struct sfm_writer *w,
   ds_destroy (&map);
 }
 
-
 static void
 write_long_string_value_labels (struct sfm_writer *w,
                                 const struct dictionary *dict)
 {
+  const char *encoding = dict_get_encoding (dict);
   size_t n_vars = dict_get_var_cnt (dict);
   size_t size, i;
   off_t start UNUSED;
@@ -906,7 +916,6 @@ write_long_string_value_labels (struct sfm_writer *w,
     {
       struct variable *var = dict_get_var (dict, i);
       const struct val_labs *val_labs = var_get_value_labels (var);
-      const char *encoding = var_get_encoding (var);
       int width = var_get_width (var);
       const struct val_lab *val_lab;
 
@@ -936,7 +945,6 @@ write_long_string_value_labels (struct sfm_writer *w,
     {
       struct variable *var = dict_get_var (dict, i);
       const struct val_labs *val_labs = var_get_value_labels (var);
-      const char *encoding = var_get_encoding (var);
       int width = var_get_width (var);
       const struct val_lab *val_lab;
       char *var_name;
@@ -967,6 +975,71 @@ write_long_string_value_labels (struct sfm_writer *w,
           write_int (w, len);
           write_bytes (w, label, len);
           free (label);
+        }
+    }
+  assert (ftello (w->file) == start + size);
+}
+
+static void
+write_long_string_missing_values (struct sfm_writer *w,
+                                  const struct dictionary *dict)
+{
+  const char *encoding = dict_get_encoding (dict);
+  size_t n_vars = dict_get_var_cnt (dict);
+  size_t size, i;
+  off_t start UNUSED;
+
+  /* Figure out the size in advance. */
+  size = 0;
+  for (i = 0; i < n_vars; i++)
+    {
+      struct variable *var = dict_get_var (dict, i);
+      const struct missing_values *mv = var_get_missing_values (var);
+      int width = var_get_width (var);
+
+      if (mv_is_empty (mv) || width < 9)
+        continue;
+
+      size += 4;
+      size += recode_string_len (encoding, "UTF-8", var_get_name (var), -1);
+      size += 1;
+      size += mv_n_values (mv) * (4 + 8);
+    }
+  if (size == 0)
+    return;
+
+  write_int (w, 7);             /* Record type. */
+  write_int (w, 22);            /* Record subtype */
+  write_int (w, 1);             /* Data item (byte) size. */
+  write_int (w, size);          /* Number of data items. */
+
+  start = ftello (w->file);
+  for (i = 0; i < n_vars; i++)
+    {
+      struct variable *var = dict_get_var (dict, i);
+      const struct missing_values *mv = var_get_missing_values (var);
+      int width = var_get_width (var);
+      uint8_t n_missing_values;
+      char *var_name;
+      int j;
+
+      if (mv_is_empty (mv) || width < 9)
+        continue;
+
+      var_name = recode_string (encoding, "UTF-8", var_get_name (var), -1);
+      write_int (w, strlen (var_name));
+      write_bytes (w, var_name, strlen (var_name));
+      free (var_name);
+
+      n_missing_values = mv_n_values (mv);
+      write_bytes (w, &n_missing_values, 1);
+
+      for (j = 0; j < n_missing_values; j++)
+        {
+          const union value *value = mv_get_value (mv, j);
+
+          write_int (w, 8);
+          write_bytes (w, value_str (value, width), 8);
         }
     }
   assert (ftello (w->file) == start + size);

@@ -102,6 +102,7 @@ Each type of record is described separately below.
 * Very Long String Record::
 * Character Encoding Record::
 * Long String Value Labels Record::
+* Long String Missing Values Record::
 * Data File and Variable Attributes Records::
 * Extended Number of Cases Record::
 * Miscellaneous Informational Records::
@@ -276,6 +277,10 @@ one, two, or three discrete missing values, set to 1, 2, or 3,
 respectively.  If the variable has a range for missing variables, set to
 -2; if the variable has a range for missing variables plus a single
 discrete value, set to -3.
+
+A long string variable always has the value 0 here.  A separate record
+indicates missing values for long string variables (@pxref{Long String
+Missing Values Record}).
 
 @item int32 print;
 Print format for this variable.  See below.
@@ -1149,6 +1154,74 @@ bytes in @code{value}; it is equal to @code{var_width}.  The
 The label for the string value.  @code{label_len}, which must be
 between 0 and 120, is the number of bytes in @code{label}.  The
 @code{label} array is not padded or null-terminated.
+@end table
+@end table
+
+@node Long String Missing Values Record
+@section Long String Missing Values Record
+
+This record, if present, specifies missing values for long string
+variables.
+
+@example
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
+
+/* @r{Repeated up to exactly @code{count} bytes.} */
+int32               var_name_len;
+char                var_name[];
+char                n_missing_values;
+long_string_missing_value   values[];
+@end example
+
+@table @code
+@item int32 rec_type;
+Record type.  Always set to 7.
+
+@item int32 subtype;
+Record subtype.  Always set to 22.
+
+@item int32 size;
+Always set to 1.
+
+@item int32 count;
+The number of bytes following the header until the next header.
+
+@item int32 var_name_len;
+@itemx char var_name[];
+The number of bytes in the name of the long string variable that has
+missing values, plus the variable name itself, which consists of
+exactly @code{var_name_len} bytes.  The variable name is not padded to
+any particular boundary, nor is it null-terminated.
+
+@item char n_missing_values;
+The number of missing values, either 1, 2, or 3.  (This is, unusually,
+a single byte instead of a 32-bit number.)
+
+@itemx long_string_missing_value values[];
+The missing values themselves.  This array contains exactly
+@code{n_missing_values} elements, each of which has the following
+substructure:
+
+@example
+int32               value_len;
+char                value[];
+@end example
+
+@table @code
+@item int32 value_len;
+The length of the missing value string, in bytes.  This value should
+be 8, because long string variables are at least 8 bytes wide (by
+definition), only the first 8 bytes of a long string variable's
+missing values are allowed to be non-spaces, and any spaces within the
+first 8 bytes are included in the missing value here.
+
+@itemx char value[];
+The missing value string, exactly @code{value_len} bytes, without
+any padding or null terminator.
 @end table
 @end table
 

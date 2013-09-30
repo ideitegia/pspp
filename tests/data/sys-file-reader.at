@@ -6,7 +6,7 @@ AT_DATA([sys-file.sack], [dnl
 dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
 2; dnl Layout code
-22; dnl Nominal case size
+28; dnl Nominal case size
 0; dnl Not compressed
 0; dnl Not weighted
 1; dnl 1 case.
@@ -68,11 +68,24 @@ dnl String variable, three missing values.
 2; 4; 0; 3; 0x010400 *2; s8 "STR6"; s8 "MISS"; s8 "OTHR"; s8 "MORE";
 
 dnl Long string variable, one missing value.
+dnl (This is not how SPSS represents missing values for long strings--it
+dnl uses a separate record as shown later below--but old versions of PSPP
+dnl did use this representation so we continue supporting it for backward
+dnl compatibility.
 2; 11; 0; 1; 0x010b00 *2; s8 "STR7"; "first8by";
 2; -1; 0; 0; 0; 0; s8 "";
 
+dnl Long string variables that will have missing values added with a
+dnl later record.
+2; 9; 0; 0; 0x010900 *2; s8 "STR8";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 10; 0; 0; 0x010a00 *2; s8 "STR9";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 11; 0; 0; 0x010b00 *2; s8 "STR10";
+2; -1; 0; 0; 0; 0; s8 "";
+
 dnl Long string variable, value label.
-2; 25; 1; 0; 0x011900 *2; s8 "STR8"; 14; "25-byte string"; i8 0 * 2;
+2; 25; 1; 0; 0x011900 *2; s8 "STR11"; 14; "25-byte string"; i8 0 * 2;
 ( 2; -1; 0; 0; 0; 0; s8 ""; ) * 2;
 dnl Variable label fields on continuation records have been spotted in system
 dnl files created by "SPSS Power Macintosh Release 6.1".
@@ -84,6 +97,18 @@ dnl Machine integer info record.
 dnl Machine floating-point info record.
 7; 4; 8; 3; SYSMIS; HIGHEST; LOWEST;
 
+dnl Long string variable missing values record.
+7; 22; 1; COUNT (
+dnl One missing value for STR8.
+COUNT("STR8"); i8 1; 8; "abcdefgh";
+
+dnl Two missing values for STR9.
+COUNT("STR9"); i8 2; 8; "abcdefgh"; 8; "01234567";
+
+dnl Three missing values for STR9.
+COUNT("STR10"); i8 3; 8; "abcdefgh"; 8; "01234567"; 8; "0       ";
+);
+
 dnl Character encoding record.
 7; 20; 1; 12; "windows-1252";
 
@@ -93,11 +118,12 @@ dnl Dictionary termination record.
 dnl Data.
 1.0; 2.0; 3.0; 4.0; 5.0; 6.0; 7.0; 8.0; 9.0; 10.0;
 s8 "abcd"; s8 "efgh"; s8 "ijkl"; s8 "mnop"; s8 "qrst"; s8 "uvwx";
-s16 "yzABCDEFGHI"; s32 "JKLMNOPQRSTUVWXYZ01234567";
+s16 "yzABCDEFGHI"; s16 "JKLMNOPQR"; s16 "STUVWXYZ01";
+s16 "23456789abc"; s32 "defghijklmnopqstuvwxyzABC";
 ])
 for variant in \
-	"be 94338da4d8d44244d43f31e2ea4d0a6a" \
-	"le e3e7eefb984b81be5531b579293cb127"
+	"be ae072375af73d628a544cc2230dd72c9" \
+	"le 039a21ab64f68c65b240e782a6b0f563"
 do
   set $variant
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
@@ -147,12 +173,18 @@ str6,Format: A4,,16
 ,"Missing Values: ""MISS""; ""OTHR""; ""MORE""",,
 str7,Format: A11,,17
 ,"Missing Values: ""first8by""",,
-str8,25-byte string,,18
+str8,Format: A9,,18
+,"Missing Values: ""abcdefgh""",,
+str9,Format: A10,,19
+,"Missing Values: ""abcdefgh""; ""01234567""",,
+str10,Format: A11,,20
+,"Missing Values: ""abcdefgh""; ""01234567""; ""0       """,,
+str11,25-byte string,,21
 ,Format: A25,,
 
 Table: Data List
-num1,num2,num3,num4,num5,num6,num7,num8,num9,numàèìñò,str1,str2,str3,str4,str5,str6,str7,str8
-1,2,3,4,5,6,7,8,9,10,abcd,efgh,ijkl,mnop,qrst,uvwx,yzABCDEFGHI,JKLMNOPQRSTUVWXYZ01234567
+num1,num2,num3,num4,num5,num6,num7,num8,num9,numàèìñò,str1,str2,str3,str4,str5,str6,str7,str8,str9,str10,str11
+1,2,3,4,5,6,7,8,9,10,abcd,efgh,ijkl,mnop,qrst,uvwx,yzABCDEFGHI,JKLMNOPQR,STUVWXYZ01,23456789abc,defghijklmnopqstuvwxyzABC
 ])
 done
 AT_CLEANUP
@@ -1817,6 +1849,112 @@ warning: `sys-file.sav' near offset 0x124: Variable STR2 with width 4 has invali
 done
 AT_CLEANUP
 
+AT_SETUP([invalid long string missing values])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+7; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted
+1; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52";
+"PSPP synthetic test file: "; i8 244; i8 245; i8 246; i8 248; s34 "";
+i8 0 *3;
+
+dnl One numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Long string variables that will have missing values added with a
+dnl later record.
+2; 9; 0; 0; 0x010900 *2; s8 "STR1";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 10; 0; 0; 0x010a00 *2; s8 "STR2";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 11; 0; 0; 0x010b00 *2; s8 "STR3";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Machine integer info record.
+7; 3; 4; 8; 1; 2; 3; -1; 1; 1; ENDIAN; 1252;
+
+dnl Machine floating-point info record.
+7; 4; 8; 3; SYSMIS; HIGHEST; LOWEST;
+
+dnl Long string variable missing values record.
+7; 22; 1; COUNT (
+dnl Zero missing values (not allowed) for STR1 .
+COUNT("STR1"); i8 >>0<<;
+
+dnl Four missing values (not allowed) for STR2.
+COUNT("STR2"); i8 4;
+8; "abcdefgh"; 8; "ijklmnop"; 8; "qrstuvwx"; 8; "yz012345";
+
+dnl Missing values for unknown variable
+COUNT(>>"Nonexistent"<<); i8 1; 8; "abcdefgh";
+
+dnl Missing values for numeric variable
+COUNT(>>"NUM1"<<); i8 1; 8; "abcdefgh";
+
+dnl Too long missing value
+COUNT("STR3"); i8 1; >>COUNT("abcdefghijkl")<<;
+);
+
+dnl Character encoding record.
+7; 20; 1; 12; "windows-1252";
+
+dnl Dictionary termination record.
+999; 0;
+s8 "abcd"; s8 "efgh"; s8 "ijkl"; s8 "mnop"; s8 "qrst"; s8 "uvwx";
+s16 "yzABCDEFGHI"; s16 "JKLMNOPQR"; s16 "STUVWXYZ01";
+s16 "23456789abc"; s32 "defghijklmnopqstuvwxyzABC";
+])
+
+for variant in \
+	"be 26e815cfb41eaedb435ea3c81b96215c" \
+	"le 72d70456bd4dc88bb0a0fdb039ccdfa3"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0],
+   ["warning: `sys-file.sav' near offset 0x1f8: Long string missing values record says variable STR1 has 0 missing values, but only 1 to 3 missing values are allowed."
+
+"warning: `sys-file.sav' near offset 0x201: Long string missing values record says variable STR2 has 4 missing values, but only 1 to 3 missing values are allowed."
+
+warning: `sys-file.sav' near offset 0x242: Ignoring long string missing value record for unknown variable Nonexistent.
+
+warning: `sys-file.sav' near offset 0x257: Ignoring long string missing value record for numeric variable NUM1.
+
+"warning: `sys-file.sav' near offset 0x270: Ignoring long string missing value 0 for variable str3, with width 11, that has bad value width 12."
+
+Variable,Description,,Position
+num1,Format: F8.0,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+str1,Format: A9,,2
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 9,,
+str2,Format: A10,,3
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 10,,
+,"Missing Values: ""abcdefgh""; ""ijklmnop""; ""qrstuvwx""",,
+str3,Format: A11,,4
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 11,,
+])
+done
+AT_CLEANUP
+
 AT_SETUP([weighting variable must be numeric])
 AT_KEYWORDS([sack synthetic system file negative])
 AT_DATA([sys-file.sack], [dnl
@@ -3238,13 +3376,13 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0x128: Ignoring long string value record for unknown variable STR9.
+warning: `sys-file.sav' near offset 0x128: Ignoring long string value label record for unknown variable STR9.
 
-warning: `sys-file.sav' near offset 0x164: Ignoring long string value record for numeric variable NUM1.
+warning: `sys-file.sav' near offset 0x164: Ignoring long string value label record for numeric variable NUM1.
 
-warning: `sys-file.sav' near offset 0x193: Ignoring long string value record for variable STR14 because the record's width (9) does not match the variable's width (14).
+warning: `sys-file.sav' near offset 0x193: Ignoring long string value label record for variable STR14 because the record's width (9) does not match the variable's width (14).
 
-"warning: `sys-file.sav' near offset 0x1d4: Ignoring long string value 0 for variable str14, with width 14, that has bad value width 9."
+"warning: `sys-file.sav' near offset 0x1d4: Ignoring long string value label 0 for variable str14, with width 14, that has bad value width 9."
 
 warning: `sys-file.sav' near offset 0x259: Duplicate value label for `abcdefghijklmn' on str14.
 ])

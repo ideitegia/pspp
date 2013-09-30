@@ -83,6 +83,8 @@ static void read_character_encoding (struct sfm_reader *r,
 				       size_t size, size_t count);
 static void read_long_string_value_labels (struct sfm_reader *r,
                                            size_t size, size_t count);
+static void read_long_string_missing_values (struct sfm_reader *r,
+                                             size_t size, size_t count);
 static void read_unknown_extension (struct sfm_reader *,
                                     size_t size, size_t count);
 static void read_compressed_data (struct sfm_reader *, int max_cases);
@@ -615,6 +617,10 @@ read_extension_record (struct sfm_reader *r)
       read_long_string_value_labels (r, size, count);
       return;
 
+    case 22:
+      read_long_string_missing_values (r, size, count);
+      return;
+
     default:
       sys_warn (r, "Unrecognized record type 7, subtype %d.", subtype);
       read_unknown_extension (r, size, count);
@@ -1033,6 +1039,56 @@ read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
           free (value);
           free (label);
 	}
+    }
+}
+
+static void
+read_long_string_missing_values (struct sfm_reader *r,
+                                 size_t size, size_t count)
+{
+  long long int start = ftello (r->file);
+
+  printf ("%08llx: long string missing values\n", start);
+  while (ftello (r->file) - start < size * count)
+    {
+      long long posn = ftello (r->file);
+      char var_name[ID_MAX_LEN + 1];
+      uint8_t n_missing_values;
+      int var_name_len;
+      int i;
+
+      /* Read variable name. */
+      var_name_len = read_int (r);
+      if (var_name_len > ID_MAX_LEN)
+        sys_error (r, "Variable name length in long string value label "
+                   "record (%d) exceeds %d-byte limit.",
+                   var_name_len, ID_MAX_LEN);
+      read_string (r, var_name, var_name_len + 1);
+
+      /* Read number of values. */
+      read_bytes (r, &n_missing_values, 1);
+
+      printf ("\t%08llx: %s, %d missing values:",
+              posn, var_name, n_missing_values);
+
+      /* Read values. */
+      for (i = 0; i < n_missing_values; i++)
+	{
+          char *value;
+          int value_length;
+
+          posn = ftello (r->file);
+
+          /* Read value. */
+          value_length = read_int (r);
+          value = xmalloc (value_length + 1);
+          read_string (r, value, value_length + 1);
+
+          printf (" \"%s\"", value);
+
+          free (value);
+	}
+      printf ("\n");
     }
 }
 
