@@ -1085,11 +1085,7 @@ parse_variable_records (struct sfm_reader *r, struct dictionary *dict,
               value_init_pool (r->pool, &value, width);
               value_set_missing (&value, width);
               for (i = 0; i < rec->missing_value_code; i++)
-                {
-                  uint8_t *s = value_str_rw (&value, width);
-                  memcpy (s, rec->missing + 8 * i, MIN (width, 8));
-                  mv_add_str (&mv, s);
-                }
+                mv_add_str (&mv, rec->missing + 8 * i, MIN (width, 8));
             }
           var_set_missing_values (var, &mv);
         }

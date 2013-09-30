@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ void mv_get_range (const struct missing_values *, double *low, double *high);
 
 /* Adding and modifying discrete values. */
 bool mv_add_value (struct missing_values *, const union value *);
-bool mv_add_str (struct missing_values *, const uint8_t[]);
+bool mv_add_str (struct missing_values *, const uint8_t[], size_t len);
 bool mv_add_num (struct missing_values *, double);
 void mv_pop_value (struct missing_values *, union value *);
 bool mv_replace_value (struct missing_values *, const union value *, int idx);
