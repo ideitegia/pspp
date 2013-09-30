@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="run-to-end.svg">
+   sodipodi:docname="help-about.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -33,7 +33,7 @@
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="683"
-     inkscape:window-height="709"
+     inkscape:window-height="708"
      inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="0"
@@ -104,20 +104,27 @@
      id="layer1"
      transform="translate(0,-1036.3622)">
     <g
-       transform="translate(-385,805.00002)"
+       transform="translate(-385,805.00006)"
        style="display:inline"
-       id="g7357">
-      <path
-         inkscape:connector-curvature="0"
-         id="path7348"
-         d="m 393.5,233.375 c -3.58985,0 -6.5,2.91015 -6.5,6.5 0,3.58985 2.91015,6.5 6.5,6.5 3.58985,0 6.5,-2.91015 6.5,-6.5 0,-3.58985 -2.91015,-6.5 -6.5,-6.5 z m 0,2 c 0.82843,0 1.5,0.67157 1.5,1.5 0,0.82843 -0.67157,1.5 -1.5,1.5 -0.82843,0 -1.5,-0.67157 -1.5,-1.5 0,-0.82843 0.67157,-1.5 1.5,-1.5 z m -1.5,4 3,0 0,5 -3,0 0,-5 z"
-         style="fill:#555753;fill-opacity:1;stroke:none" />
+       id="g4776">
       <rect
          y="231.36218"
          x="385"
          height="16"
          width="16"
          id="rect7355"
+         style="fill:none;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path3999"
+         d="m 393.5,232.36218 c -4.14213,0 -7.5,3.35786 -7.5,7.5 0,4.14214 3.35787,7.5 7.5,7.5 4.14213,0 7.5,-3.35786 7.5,-7.5 0,-4.14214 -3.35787,-7.5 -7.5,-7.5 z m 0,3 c 0.82843,0 1.5,0.67157 1.5,1.5 0,0.82843 -0.67157,1.5 -1.5,1.5 -0.82843,0 -1.5,-0.67157 -1.5,-1.5 0,-0.82843 0.67157,-1.5 1.5,-1.5 z m -1.5,4 3,0 0,6 -3,0 0,-6 z"
+         style="fill:#555753;stroke:none" />
+      <rect
+         y="231.36218"
+         x="385"
+         height="16"
+         width="16"
+         id="rect4006"
          style="fill:none;stroke:none" />
     </g>
   </g>

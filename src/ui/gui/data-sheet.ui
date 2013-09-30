@@ -128,11 +128,15 @@
         <child>
           <object class="GtkAction" id="sort-up">
             <property name="stock-id">data-sort-ascending</property>
+	    <property name="name">sort_ascending</property>
+            <property name="label" translatable="yes">Sort _Ascending</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="sort-down">
             <property name="stock-id">data-sort-descending</property>
+	    <property name="name">sort_descending</property>
+            <property name="label" translatable="yes">Sort _Descending</property>
           </object>
         </child>
       </object>

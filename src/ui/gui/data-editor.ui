@@ -52,6 +52,7 @@
           <object class="GtkAction" id="file_save">
             <property name="stock-id">file-save-data</property>
             <property name="name">file_save</property>
+	    <property name="label" translatable="yes">_Save</property>
           </object>
         </child>
         <child>
@@ -275,7 +276,7 @@
           <object class="GtkAction" id="descriptive-statistics">
             <property name="name">descriptive-statistics</property>
             <property name="label" translatable="yes">_Descriptive Statistics</property>
-	    <property name="stock-id">tanalyze-descriptive-statistics</property>
+	    <property name="stock-id">analyze-descriptive-statistics</property>
           </object>
         </child>
         <child>
