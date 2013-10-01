@@ -200,14 +200,21 @@ struct icon_size
 };
 
 static const GtkIconSize menus[] = {GTK_ICON_SIZE_MENU};
+static const GtkIconSize toolbar[] = {GTK_ICON_SIZE_LARGE_TOOLBAR};
 
 
-/* We currently have two icon sets viz: 16x16 and 24x24.
-   We use the 16x16 for menus, and the 24x24 for everything else. */
+/* We currently have three icon sets viz: 16x16, 24x24 and 32x32
+   We use the 16x16 for menus, the 32x32 for the toolbar and 
+   the 24x24 for everything else.
+
+   Exactly one element of the following array should have its 2nd and 3rd
+   argument as zero.
+*/
 static const struct icon_size sizemap[] = 
 {
   {16,  sizeof (menus) / sizeof (GtkIconSize), menus},
-  {24, 0, 0}
+  {24, 0, 0},
+  {32,  sizeof (toolbar) / sizeof (GtkIconSize), toolbar}
 };
 
 
