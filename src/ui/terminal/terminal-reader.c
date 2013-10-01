@@ -107,6 +107,14 @@ terminal_reader_cast (struct lex_reader *r)
   return UP_CAST (r, struct terminal_reader, reader);
 }
 
+/* 
+   Older libreadline versions do not provide rl_outstream.
+   However, it is almost always going to be the same as stdout.
+ */
+#if HAVE_RL_OUTSTREAM
+# define rl_outstream stdout
+#endif
+
 static size_t
 terminal_reader_read (struct lex_reader *r_, char *buf, size_t n,
                       enum prompt_style prompt_style)
