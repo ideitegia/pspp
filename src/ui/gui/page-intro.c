@@ -37,7 +37,6 @@
 #include "libpspp/i18n.h"
 #include "libpspp/line-reader.h"
 #include "libpspp/message.h"
-#include "ui/gui/checkbox-treeview.h"
 #include "ui/gui/dialog-common.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/helper.h"
