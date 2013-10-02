@@ -27,7 +27,7 @@
 
 #include "psppire-dialog.h"
 #include "builder-wrapper.h"
-#include "checkbox-treeview.h"
+#include "psppire-checkbox-treeview.h"
 #include "psppire-dict.h"
 #include "libpspp/str.h"
 
@@ -162,10 +162,10 @@ psppire_dialog_action_regression_activate (GtkAction *a)
 
   g_object_unref (xml);
 
-  put_checkbox_items_in_treeview (GTK_TREE_VIEW (act->stat_view),
-				  B_RG_STATS_DEFAULT,
-				  N_REGRESSION_STATS,
-				  stats);
+  psppire_checkbox_treeview_populate (PSPPIRE_CHECKBOX_TREEVIEW (act->stat_view),
+  				  B_RG_STATS_DEFAULT,
+  				  N_REGRESSION_STATS,
+  				  stats);
 
   psppire_dialog_action_set_refresh (pda, refresh);
 

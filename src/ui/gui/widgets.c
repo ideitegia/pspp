@@ -14,6 +14,7 @@
 #include "psppire-dictview.h"
 #include "psppire-var-view.h"
 #include "psppire-val-chooser.h"
+#include "psppire-checkbox-treeview.h"
 
 #include "psppire-dialog-action-binomial.h"
 #include "psppire-dialog-action-correlation.h"
@@ -53,6 +54,7 @@ preregister_widgets (void)
   psppire_dict_view_get_type ();
   psppire_var_view_get_type ();
   psppire_value_entry_get_type ();
+  psppire_checkbox_treeview_get_type ();
 
   psppire_dialog_action_binomial_get_type ();
   psppire_dialog_action_correlation_get_type ();

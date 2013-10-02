@@ -19,7 +19,7 @@
 
 #include "psppire-dialog-action-descriptives.h"
 
-#include "checkbox-treeview.h"
+#include "psppire-checkbox-treeview.h"
 
 #include "psppire-var-view.h"
 #include "psppire-dict.h"
@@ -209,9 +209,9 @@ psppire_dialog_action_descriptives_activate (GtkAction *a)
   g_object_set (pda->source, "model", pda->dict,
 	"predicate", var_is_numeric, NULL);
 
-  put_checkbox_items_in_treeview (GTK_TREE_VIEW (stats_treeview),
-				  B_DS_DEFAULT,
-				  N_DESCRIPTIVE_STATS, stats);
+  psppire_checkbox_treeview_populate (PSPPIRE_CHECKBOX_TREEVIEW (stats_treeview),
+				      B_DS_DEFAULT,
+				      N_DESCRIPTIVE_STATS, stats);
 
   act->stat_vars = GTK_TREE_VIEW (act->variables);
   act->stats = gtk_tree_view_get_model (GTK_TREE_VIEW (stats_treeview));
