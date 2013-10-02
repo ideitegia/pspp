@@ -868,16 +868,7 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
       cairo_restore (xr->cairo);
     }
 
-  if (width != NULL || height != NULL)
-    {
-      int w, h;
-
-      pango_layout_get_size (font->layout, &w, &h);
-      if (width != NULL)
-        *width = w;
-      if (height != NULL)
-        *height = h;
-    }
+  pango_layout_get_size (font->layout, width, height);
 }
 
 static void
