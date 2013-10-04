@@ -26,6 +26,7 @@
 #include "psppire-dialog-action-factor.h"
 #include "psppire-dialog-action-frequencies.h"
 #include "psppire-dialog-action-indep-samps.h"
+#include "psppire-dialog-action-1sks.h"
 #include "psppire-dialog-action-kmeans.h"
 #include "psppire-dialog-action-logistic.h"
 #include "psppire-dialog-action-means.h"
@@ -60,6 +61,7 @@ preregister_widgets (void)
   psppire_value_entry_get_type ();
   psppire_checkbox_treeview_get_type ();
 
+  psppire_dialog_action_1sks_get_type ();
   psppire_dialog_action_binomial_get_type ();
   psppire_dialog_action_chisquare_get_type ();
   psppire_dialog_action_correlation_get_type ();

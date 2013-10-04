@@ -161,8 +161,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/helper.h \
 	src/ui/gui/k-related-dialog.c \
 	src/ui/gui/k-related-dialog.h \
-	src/ui/gui/ks-one-sample-dialog.c \
-	src/ui/gui/ks-one-sample-dialog.h \
 	src/ui/gui/main.c \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \
@@ -189,6 +187,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog.h \
 	src/ui/gui/psppire-dialog-action.c \
 	src/ui/gui/psppire-dialog-action.h \
+	src/ui/gui/psppire-dialog-action-1sks.c \
+	src/ui/gui/psppire-dialog-action-1sks.h \
 	src/ui/gui/psppire-dialog-action-binomial.c \
 	src/ui/gui/psppire-dialog-action-binomial.h \
 	src/ui/gui/psppire-dialog-action-chisquare.c \

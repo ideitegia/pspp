@@ -442,8 +442,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="ks-one-sample">
+          <object class="PsppireDialogAction1sks" id="ks-one-sample">
             <property name="name">ks-one-sample</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">1-Sample _K-S...</property>
           </object>
         </child>

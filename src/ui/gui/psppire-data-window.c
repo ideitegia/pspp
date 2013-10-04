@@ -43,7 +43,6 @@
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-window.h"
 #include "ui/gui/psppire.h"
-#include "ui/gui/ks-one-sample-dialog.h"
 #include "ui/gui/recode-dialog.h"
 #include "ui/gui/select-cases-dialog.h"
 #include "ui/gui/split-file-dialog.h"
@@ -970,7 +969,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "transform_count", G_CALLBACK (count_dialog));
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
-  connect_action (de, "ks-one-sample", G_CALLBACK (ks_one_sample_dialog));
   connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));
   connect_action (de, "two-related-samples", G_CALLBACK (two_related_dialog));
 
