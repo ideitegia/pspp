@@ -50,7 +50,6 @@
 #include "ui/gui/t-test-one-sample.h"
 #include "ui/gui/t-test-paired-samples.h"
 #include "ui/gui/text-data-import-dialog.h"
-#include "ui/gui/univariate-dialog.h"
 #include "ui/gui/weight-cases-dialog.h"
 #include "ui/syntax-gen.h"
 
@@ -948,19 +947,12 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   enable_save (de);
 
   connect_action (de, "file_new_data", G_CALLBACK (create_data_window));
-
   connect_action (de, "file_import", G_CALLBACK (text_data_import_assistant));
-
   connect_action (de, "file_save", G_CALLBACK (psppire_window_save));
- 
   connect_action (de, "file_open", G_CALLBACK (psppire_window_open));
-
   connect_action (de, "file_save_as", G_CALLBACK (psppire_window_save_as));
-
   connect_action (de, "rename_dataset", G_CALLBACK (on_rename_dataset));
-
   connect_action (de, "file_information_working-file", G_CALLBACK (display_dict));
-
   connect_action (de, "file_information_external-file", G_CALLBACK (sysfile_info));
 
   g_signal_connect_swapped (get_action_assert (de->builder, "view_value-labels"), "toggled", G_CALLBACK (toggle_value_labels), de);
@@ -978,7 +970,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "transform_count", G_CALLBACK (count_dialog));
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
-  connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
   connect_action (de, "ks-one-sample", G_CALLBACK (ks_one_sample_dialog));
   connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));
   connect_action (de, "two-related-samples", G_CALLBACK (two_related_dialog));

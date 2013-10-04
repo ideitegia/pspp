@@ -353,8 +353,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="univariate">
+          <object class="PsppireDialogActionUnivariate" id="univariate">
             <property name="name">univariate</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">_Univariate Analysis...</property>
             <property name="visible">False</property>
           </object>

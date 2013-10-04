@@ -227,6 +227,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-runs.h \
 	src/ui/gui/psppire-dialog-action-sort.c \
 	src/ui/gui/psppire-dialog-action-sort.h \
+	src/ui/gui/psppire-dialog-action-univariate.c \
+	src/ui/gui/psppire-dialog-action-univariate.h \
 	src/ui/gui/psppire-dialog-action-var-info.c \
 	src/ui/gui/psppire-dialog-action-var-info.h \
 	src/ui/gui/psppire-dict.c \
@@ -299,8 +301,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/t-test-paired-samples.h \
 	src/ui/gui/npar-two-sample-related.c \
 	src/ui/gui/npar-two-sample-related.h \
-	src/ui/gui/univariate-dialog.c \
-	src/ui/gui/univariate-dialog.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \
