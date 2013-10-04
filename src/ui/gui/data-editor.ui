@@ -420,8 +420,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="chi-square">
+          <object class="PsppireDialogActionChisquare" id="chi-square">
             <property name="name">chi-square</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">_Chi-Square...</property>
           </object>
         </child>

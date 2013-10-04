@@ -27,7 +27,6 @@
 #include "ui/gui/aggregate-dialog.h"
 #include "ui/gui/autorecode-dialog.h"
 #include "ui/gui/builder-wrapper.h"
-#include "ui/gui/chi-square-dialog.h"
 #include "ui/gui/comments-dialog.h"
 #include "ui/gui/compute-dialog.h"
 #include "ui/gui/count-dialog.h"
@@ -980,7 +979,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
   connect_action (de, "univariate", G_CALLBACK (univariate_dialog));
-  connect_action (de, "chi-square", G_CALLBACK (chisquare_dialog));
   connect_action (de, "ks-one-sample", G_CALLBACK (ks_one_sample_dialog));
   connect_action (de, "k-related-samples", G_CALLBACK (k_related_dialog));
   connect_action (de, "two-related-samples", G_CALLBACK (two_related_dialog));
