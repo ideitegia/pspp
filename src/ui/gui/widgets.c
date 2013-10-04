@@ -37,6 +37,7 @@
 #include "psppire-dialog-action-roc.h"
 #include "psppire-dialog-action-runs.h"
 #include "psppire-dialog-action-sort.h"
+#include "psppire-dialog-action-tt1s.h"
 #include "psppire-dialog-action-univariate.h"
 #include "psppire-dialog-action-var-info.h"
 #include "psppire-value-entry.h"
@@ -83,6 +84,7 @@ preregister_widgets (void)
   psppire_dialog_action_roc_get_type ();
   psppire_dialog_action_runs_get_type ();
   psppire_dialog_action_sort_get_type ();
+  psppire_dialog_action_tt1s_get_type ();
   psppire_dialog_action_univariate_get_type ();
 
   /* This seems to be necessary on Cygwin.

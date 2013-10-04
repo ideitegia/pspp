@@ -227,6 +227,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-runs.h \
 	src/ui/gui/psppire-dialog-action-sort.c \
 	src/ui/gui/psppire-dialog-action-sort.h \
+	src/ui/gui/psppire-dialog-action-tt1s.c \
+	src/ui/gui/psppire-dialog-action-tt1s.h \
 	src/ui/gui/psppire-dialog-action-univariate.c \
 	src/ui/gui/psppire-dialog-action-univariate.h \
 	src/ui/gui/psppire-dialog-action-var-info.c \
@@ -293,8 +295,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/page-sheet-spec.h \
 	src/ui/gui/text-data-import-dialog.c \
 	src/ui/gui/text-data-import-dialog.h \
-	src/ui/gui/t-test-one-sample.c \
-	src/ui/gui/t-test-one-sample.h \
 	src/ui/gui/t-test-options.c \
 	src/ui/gui/t-test-options.h \
 	src/ui/gui/t-test-paired-samples.c \

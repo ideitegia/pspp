@@ -46,7 +46,6 @@
 #include "ui/gui/recode-dialog.h"
 #include "ui/gui/select-cases-dialog.h"
 #include "ui/gui/split-file-dialog.h"
-#include "ui/gui/t-test-one-sample.h"
 #include "ui/gui/t-test-paired-samples.h"
 #include "ui/gui/text-data-import-dialog.h"
 #include "ui/gui/weight-cases-dialog.h"
@@ -964,7 +963,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "data_weight-cases", G_CALLBACK (weight_cases_dialog));
   connect_action (de, "oneway-anova", G_CALLBACK (oneway_anova_dialog));
   connect_action (de, "paired-t-test", G_CALLBACK (t_test_paired_samples_dialog));
-  connect_action (de, "one-sample-t-test", G_CALLBACK (t_test_one_sample_dialog));
   connect_action (de, "utilities_comments", G_CALLBACK (comments_dialog));
   connect_action (de, "transform_count", G_CALLBACK (count_dialog));
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
