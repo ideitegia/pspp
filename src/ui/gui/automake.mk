@@ -203,6 +203,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-examine.h \
 	src/ui/gui/psppire-dialog-action-factor.c \
 	src/ui/gui/psppire-dialog-action-factor.h \
+	src/ui/gui/psppire-dialog-action-flip.c \
+	src/ui/gui/psppire-dialog-action-flip.h \
 	src/ui/gui/psppire-dialog-action-frequencies.c \
 	src/ui/gui/psppire-dialog-action-frequencies.h \
 	src/ui/gui/psppire-dialog-action-indep-samps.c \
@@ -289,8 +291,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/page-sheet-spec.h \
 	src/ui/gui/text-data-import-dialog.c \
 	src/ui/gui/text-data-import-dialog.h \
-	src/ui/gui/transpose-dialog.c \
-	src/ui/gui/transpose-dialog.h \
 	src/ui/gui/t-test-one-sample.c \
 	src/ui/gui/t-test-one-sample.h \
 	src/ui/gui/t-test-options.c \

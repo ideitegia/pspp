@@ -51,7 +51,6 @@
 #include "ui/gui/t-test-one-sample.h"
 #include "ui/gui/t-test-paired-samples.h"
 #include "ui/gui/text-data-import-dialog.h"
-#include "ui/gui/transpose-dialog.h"
 #include "ui/gui/univariate-dialog.h"
 #include "ui/gui/weight-cases-dialog.h"
 #include "ui/syntax-gen.h"
@@ -967,7 +966,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   g_signal_connect_swapped (get_action_assert (de->builder, "view_value-labels"), "toggled", G_CALLBACK (toggle_value_labels), de);
 
-  connect_action (de, "data_transpose", G_CALLBACK (transpose_dialog));
   connect_action (de, "data_select-cases", G_CALLBACK (select_cases_dialog));
   connect_action (de, "data_aggregate", G_CALLBACK (aggregate_dialog));
   connect_action (de, "transform_compute", G_CALLBACK (compute_dialog));

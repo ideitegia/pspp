@@ -176,9 +176,10 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="data_transpose">
+          <object class="PsppireDialogActionFlip" id="data_transpose">
 	    <property name="stock-id">data-transpose</property>
             <property name="name">data_transpose</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">_Transpose...</property>
 	    <property name="tooltip" translatable="yes">Transpose the cases with the variables</property>
           </object>
