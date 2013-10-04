@@ -432,8 +432,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="runs">
+          <object class="PsppireDialogActionRuns" id="runs">
             <property name="name">runs</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">R_uns...</property>
           </object>
         </child>

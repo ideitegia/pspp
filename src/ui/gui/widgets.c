@@ -32,6 +32,7 @@
 #include "psppire-dialog-action-regression.h"
 #include "psppire-dialog-action-reliability.h"
 #include "psppire-dialog-action-roc.h"
+#include "psppire-dialog-action-runs.h"
 #include "psppire-dialog-action-sort.h"
 #include "psppire-dialog-action-var-info.h"
 #include "psppire-value-entry.h"
@@ -73,6 +74,7 @@ preregister_widgets (void)
   psppire_dialog_action_reliability_get_type ();
   psppire_dialog_action_regression_get_type ();
   psppire_dialog_action_roc_get_type ();
+  psppire_dialog_action_runs_get_type ();
   psppire_dialog_action_sort_get_type ();
 
   /* This seems to be necessary on Cygwin.
