@@ -91,7 +91,7 @@ on_change_clicked (GObject *obj, gpointer data)
   struct autorecode *rd = data;
   struct variable *var = NULL;
   struct nlp *nlp;
-  GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd->var_view)->list);
+  GtkTreeModel *model = psppire_var_view_get_current_model (PSPPIRE_VAR_VIEW (rd->var_view));
   GtkTreeIter iter;
   GtkTreeSelection *selection =
     gtk_tree_view_get_selection (GTK_TREE_VIEW (rd->var_view));
@@ -184,7 +184,6 @@ on_entry_change (struct autorecode *rd)
 	      valid = FALSE;
 	      break;
 	    }
-
 	}
     }
 
@@ -200,7 +199,8 @@ static void
 on_selection_change (GtkTreeSelection *selection, gpointer data)
 {
   struct autorecode *rd = data;
-  GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd->var_view)->list);
+  GtkTreeModel *model = psppire_var_view_get_current_model (PSPPIRE_VAR_VIEW (rd->var_view));
+
   GList *rows = gtk_tree_selection_get_selected_rows (selection, &model);
 
   if ( rows && !rows->next)

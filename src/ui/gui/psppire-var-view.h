@@ -40,19 +40,28 @@ typedef struct _PsppireVarViewClass  PsppireVarViewClass;
 
 struct variable;
 
+struct vvstate
+{
+  /* An array of GtkListStores */
+  GtkListStore **list;
+
+  /* The size of the above array */
+  gint n_lists;
+
+  /* The currently selected item in the array */
+  gint l_idx;
+};
+
 struct _PsppireVarView
 {
   GtkTreeView parent;
 
   /* Private */
-  GtkListStore **list;
+  struct vvstate *state;
   
   GType *cols;
   gint *nums;
   gint n_cols;
-
-  gint n_lists;
-  gint l_idx;
 };
 
 struct _PsppireVarViewClass
@@ -76,12 +85,11 @@ const struct variable * psppire_var_view_get_variable (PsppireVarView *vv, gint 
 void     psppire_var_view_push_model (PsppireVarView *vv);
 
 gboolean psppire_var_view_set_current_model (PsppireVarView *vv, gint n);
+GtkTreeModel *psppire_var_view_get_current_model (PsppireVarView *vv);
 
 void psppire_var_view_clear (PsppireVarView *vv);
 
 GtkWidget* psppire_var_view_new (void);
-
-
 
 G_END_DECLS
 
