@@ -51,8 +51,10 @@ generate_syntax (PsppireDialogAction *act)
       GtkTreeIter iter;
       PsppireVarView *vv = PSPPIRE_VAR_VIEW (layer->var_view);
       psppire_var_view_set_current_model (vv, l);
-      g_string_append (string, "\n\tBY");
-      for (ok = psppire_var_view_get_iter_first (vv, &iter);
+      ok = psppire_var_view_get_iter_first (vv, &iter);
+      if (ok)
+	g_string_append (string, "\n\tBY");
+      for (;
 	   ok;
 	   ok = psppire_var_view_get_iter_next (vv, &iter))
 	  {
@@ -62,7 +64,7 @@ generate_syntax (PsppireDialogAction *act)
 	  }
     }
 
-  g_string_append (string, ".");
+  g_string_append (string, ".\n");
   text = string->str;
 
   g_string_free (string, FALSE);
