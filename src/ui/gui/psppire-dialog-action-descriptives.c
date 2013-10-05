@@ -206,7 +206,7 @@ psppire_dialog_action_descriptives_activate (GtkAction *a)
   pda->source = get_widget_assert   (xml, "all-variables");
   act->variables =   get_widget_assert   (xml, "stat-variables");
 
-  g_object_set (pda->source, "model", pda->dict,
+  g_object_set (pda->source,
 	"predicate", var_is_numeric, NULL);
 
   psppire_checkbox_treeview_populate (PSPPIRE_CHECKBOX_TREEVIEW (stats_treeview),

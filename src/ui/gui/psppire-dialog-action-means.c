@@ -110,7 +110,6 @@ psppire_dialog_action_means_activate (GtkAction *a)
   act->variables = get_widget_assert   (xml, "stat-variables");
 
   g_object_set (pda->source,
-		"model", pda->dict,
 		"predicate", var_is_numeric,
 		NULL);
 

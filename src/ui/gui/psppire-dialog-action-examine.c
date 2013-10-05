@@ -226,10 +226,6 @@ psppire_dialog_action_examine_activate (GtkAction *a)
   act->pairwise    = get_widget_assert (xml, "radiobutton2");
   act->report      = get_widget_assert (xml, "radiobutton3");
 
-  g_object_set (pda->source,
-		"model", pda->dict,
-		NULL);
-
   psppire_selector_set_allow (PSPPIRE_SELECTOR (dep_sel), numeric_only);
 
   psppire_dialog_action_set_valid_predicate (pda, (void *) dialog_state_valid);
