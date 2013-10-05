@@ -1201,7 +1201,7 @@ any particular boundary, nor is it null-terminated.
 The number of missing values, either 1, 2, or 3.  (This is, unusually,
 a single byte instead of a 32-bit number.)
 
-@itemx long_string_missing_value values[];
+@item long_string_missing_value values[];
 The missing values themselves.  This array contains exactly
 @code{n_missing_values} elements, each of which has the following
 substructure:
@@ -1219,7 +1219,7 @@ definition), only the first 8 bytes of a long string variable's
 missing values are allowed to be non-spaces, and any spaces within the
 first 8 bytes are included in the missing value here.
 
-@itemx char value[];
+@item char value[];
 The missing value string, exactly @code{value_len} bytes, without
 any padding or null terminator.
 @end table
