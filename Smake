@@ -125,9 +125,7 @@ src/ui/gui/icons/apps/24x24/pspp.png \
 src/ui/gui/icons/apps/256x256/pspp.png \
 src/ui/gui/icons/apps/16x16/pspp.png \
 src/ui/gui/icons/apps/48x48/pspp.png \
-src/ui/gui/icons/apps/scalable/pspp.svg \
-
-
+src/ui/gui/icons/apps/scalable/pspp.png
 
 CATEGORY_ICONS = \
 src/ui/gui/icons/categories/16x16/align-left.png \
