@@ -248,6 +248,7 @@ src/ui/gui/icons/actions/16x16/transform-in-to-different-variables.png \
 src/ui/gui/icons/actions/16x16/transform-run-pending.png \
 src/ui/gui/icons/actions/16x16/analyze-descriptive-statistics.png \
 src/ui/gui/icons/actions/16x16/analyze-compare-means.png \
+src/ui/gui/icons/actions/16x16/analyze-univariate-analysis.png \
 src/ui/gui/icons/actions/16x16/analyze-bivariate-correlation.png \
 src/ui/gui/icons/actions/16x16/analyze-kmeans-cluster.png \
 src/ui/gui/icons/actions/16x16/analyze-factor-analysis.png \
