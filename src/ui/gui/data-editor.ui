@@ -636,6 +636,7 @@
     <child>
       <object class="GtkToolbar" constructor="uimanager1" id="toolbar">
         <property name="visible">True</property>
+        <property name="toolbar-style">GTK_TOOLBAR_ICONS</property>
       </object>
     </child>
   </object>
