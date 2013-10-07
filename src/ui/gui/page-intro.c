@@ -130,16 +130,16 @@ intro_page_create (struct import_assistant *ia)
                      "commas, or other delimiters.\n\n"));
   if (ia->file.total_is_exact)
     ds_put_format (
-      &s, ngettext ("The selected file contains %zu line of text.  ",
-                    "The selected file contains %zu lines of text.  ",
+      &s, ngettext ("The selected file contains %'zu line of text.  ",
+                    "The selected file contains %'zu lines of text.  ",
                     ia->file.line_cnt),
       ia->file.line_cnt);
   else if (ia->file.total_lines > 0)
     {
       ds_put_format (
         &s, ngettext (
-          "The selected file contains approximately %lu line of text.  ",
-          "The selected file contains approximately %lu lines of text.  ",
+          "The selected file contains approximately %'lu line of text.  ",
+          "The selected file contains approximately %'lu lines of text.  ",
           ia->file.total_lines),
         ia->file.total_lines);
       ds_put_format (
