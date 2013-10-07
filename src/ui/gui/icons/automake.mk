@@ -4,7 +4,7 @@ EXTRA_DIST += $(icons) $(icon_srcs)
 
 themedir = $(DESTDIR)$(datadir)/icons/hicolor
 
-sizes=16x16 22x22  24x24 32x32 48x48 256x256
+sizes=16x16 22x22  24x24 32x32 48x48 256x256 scalable
 
 install-ext-icons:
 	for context in apps mimetypes; do \

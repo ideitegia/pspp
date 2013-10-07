@@ -125,7 +125,7 @@ src/ui/gui/icons/apps/24x24/pspp.png \
 src/ui/gui/icons/apps/256x256/pspp.png \
 src/ui/gui/icons/apps/16x16/pspp.png \
 src/ui/gui/icons/apps/48x48/pspp.png \
-src/ui/gui/icons/apps/scalable/pspp.png
+src/ui/gui/icons/apps/scalable/pspp.svg
 
 CATEGORY_ICONS = \
 src/ui/gui/icons/categories/16x16/align-left.png \
@@ -418,3 +418,7 @@ src/ui/gui/icons/%.png: src/ui/gui/artwork/%.svg src/ui/gui/icons/COPYING_CCBYSA
 	mkdir -p $(dir $@)
 	$(call svg2png,$<,$(lastword $^),$@)
 
+
+src/ui/gui/icons/%.svg: src/ui/gui/artwork/%.svg
+	mkdir -p $(dir $@)
+	cp $< $@
