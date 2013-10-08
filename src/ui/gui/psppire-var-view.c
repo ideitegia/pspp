@@ -104,32 +104,18 @@ psppire_var_view_get_type (void)
 void 
 psppire_var_view_clear (PsppireVarView *vv)
 {
-  gint i;
-  for (i = 0; i < vv->state->n_lists; ++i)
-    g_object_unref (vv->state->list[i]);
+  GtkListStore *l = gtk_list_store_newv  (vv->n_cols, vv->cols);
 
-  g_free (vv->state->list);
-
-  vv->state->n_lists = 0;
-  vv->state->l_idx = -1;
-  vv->state->list = NULL;
-
-  psppire_var_view_push_model (vv);
+  gtk_tree_view_set_model (GTK_TREE_VIEW (vv), GTK_TREE_MODEL (l));
 }
 
 
 static void
 psppire_var_view_finalize (GObject *object)
 {
-  gint i;
   PsppireVarView *var_view = PSPPIRE_VAR_VIEW (object);
   g_free (var_view->nums);
-  for (i = 0; i < var_view->state->n_lists; ++i)
-    g_object_unref (var_view->state->list[i]);
-
-  g_free (var_view->state->list);
   g_free (var_view->cols);
-  g_free (var_view->state);
 }
 
 
@@ -221,48 +207,10 @@ set_renderers (PsppireVarView *var_view)
 }
 
 
-
-
-/* Set a model, which is an GtkListStore of gpointers which point to a variable */
-void
-psppire_var_view_push_model (PsppireVarView *vv)
-{
-  vv->state->n_lists++;
-  vv->state->l_idx++;
-  vv->state->list = xrealloc (vv->state->list, sizeof (*vv->state->list) * vv->state->n_lists);
-  vv->state->list[vv->state->l_idx] = gtk_list_store_newv  (vv->n_cols, vv->cols);
-  g_object_ref (vv->state->list[vv->state->l_idx]);
-  gtk_tree_view_set_model (GTK_TREE_VIEW (vv), GTK_TREE_MODEL (vv->state->list[vv->state->l_idx]));
-}
-
-
 GtkTreeModel *
 psppire_var_view_get_current_model (PsppireVarView *vv)
 {
-  if (vv->state == NULL) 
-    return NULL;
-
-  if (vv->state->list == NULL) 
-    return NULL;
-
-  if (vv->state->l_idx <= 0) 
-    return NULL;
-
-  return GTK_TREE_MODEL (vv->state->list[vv->state->l_idx]);
-}
-
-
-gboolean
-psppire_var_view_set_current_model (PsppireVarView *vv, gint n)
-{
-  if (n < 0 || n >= vv->state->n_lists)
-    return FALSE;
-
-  vv->state->l_idx = n;
-
-  gtk_tree_view_set_model (GTK_TREE_VIEW (vv), GTK_TREE_MODEL (vv->state->list[vv->state->l_idx]));
-
-  return TRUE;
+  return gtk_tree_view_get_model (GTK_TREE_VIEW (vv));
 }
 
 static void
@@ -325,8 +273,6 @@ psppire_var_view_base_init (PsppireVarViewClass *class)
 
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
-
-
   object_class->finalize = psppire_var_view_finalize;
 }
 
@@ -344,10 +290,6 @@ static void
 psppire_var_view_init (PsppireVarView *vv)
 {
   vv->cols = 0;
-  vv->state = g_malloc (sizeof *vv->state);
-  vv->state->n_lists = 0;
-  vv->state->l_idx = -1;
-  vv->state->list = NULL;
 }
 
 
@@ -362,27 +304,23 @@ gboolean
 psppire_var_view_get_iter_first (PsppireVarView *vv, GtkTreeIter *iter)
 {
   GtkTreeIter dummy;
-  if ( vv->state->l_idx < 0)
-    return FALSE;
-
-  return gtk_tree_model_get_iter_first (GTK_TREE_MODEL (vv->state->list[vv->state->l_idx]), iter ? iter : &dummy);
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (vv));
+  return gtk_tree_model_get_iter_first (model, iter ? iter : &dummy);
 }
 
 gboolean
 psppire_var_view_get_iter_next (PsppireVarView *vv, GtkTreeIter *iter)
 {
-  if ( vv->state->l_idx < 0)
-    return FALSE;
-
-  return gtk_tree_model_iter_next (GTK_TREE_MODEL (vv->state->list[vv->state->l_idx]), iter);
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (vv));
+  return gtk_tree_model_iter_next (model, iter);
 }
 
 const struct variable *
-psppire_var_view_get_variable (PsppireVarView *vv, gint column, GtkTreeIter *iter)
+psppire_var_view_get_var_from_model (GtkTreeModel *model, gint column, GtkTreeIter *iter)
 {
   const struct variable *var = NULL;
   GValue value = {0};
-  gtk_tree_model_get_value (GTK_TREE_MODEL (vv->state->list[vv->state->l_idx]), iter, column, &value);
+  gtk_tree_model_get_value (model, iter, column, &value);
 
   if ( G_VALUE_TYPE (&value) == PSPPIRE_VAR_PTR_TYPE)
     var = g_value_get_boxed (&value);
@@ -394,6 +332,15 @@ psppire_var_view_get_variable (PsppireVarView *vv, gint column, GtkTreeIter *ite
 
   return var;
 }
+
+const struct variable *
+psppire_var_view_get_variable (PsppireVarView *vv, gint column, GtkTreeIter *iter)
+{
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (vv));
+  return psppire_var_view_get_var_from_model (model, column, iter);
+}
+
+
 
 /*
   Append the names of selected variables to STRING.

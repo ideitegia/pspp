@@ -47,18 +47,15 @@ generate_syntax (PsppireDialogAction *act)
 
   for (l = 0; l < layer->n_layers; ++l)
     {
-      gboolean ok;
       GtkTreeIter iter;
-      PsppireVarView *vv = PSPPIRE_VAR_VIEW (layer->var_view);
-      psppire_var_view_set_current_model (vv, l);
-      ok = psppire_var_view_get_iter_first (vv, &iter);
+
+      GtkTreeModel *m = psppire_means_layer_get_model_n (layer, l);
+      gboolean ok = gtk_tree_model_get_iter_first (m, &iter);
       if (ok)
 	g_string_append (string, "\n\tBY");
-      for (;
-	   ok;
-	   ok = psppire_var_view_get_iter_next (vv, &iter))
+      for (; ok; ok = gtk_tree_model_iter_next (m, &iter))
 	  {
-	    const struct variable *var = psppire_var_view_get_variable (vv, 0, &iter);
+	    const struct variable *var = psppire_var_view_get_var_from_model (m, 0, &iter);
 	    g_string_append (string, " ");
 	    g_string_append (string, var_get_name (var));
 	  }
