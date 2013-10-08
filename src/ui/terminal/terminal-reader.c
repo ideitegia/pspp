@@ -26,6 +26,7 @@
 #if HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <termios.h>
 
 static char *history_file;
 
@@ -107,13 +108,35 @@ terminal_reader_cast (struct lex_reader *r)
   return UP_CAST (r, struct terminal_reader, reader);
 }
 
-/* 
-   Older libreadline versions do not provide rl_outstream.
-   However, it is almost always going to be the same as stdout.
- */
-#if HAVE_RL_OUTSTREAM
+/* Older libreadline versions do not provide rl_outstream.
+   However, it is almost always going to be the same as stdout. */
+#if ! HAVE_RL_OUTSTREAM
 # define rl_outstream stdout
 #endif
+
+/* Similarly, rl_echo_signal_char is fairly recent.
+   We provide our own crude version if it is not present. */
+#if ! HAVE_RL_ECHO_SIGNAL_CHAR
+static void
+rl_echo_signal_char (int sig)
+{
+  struct termios t;
+  if (0 == tcgetattr (0, &t))
+    {
+      cc_t c = t.c_cc[VINTR];
+  
+      if (c >= 0  && c <= 'Z' - 'A')
+	fprintf (rl_outstream, "^%c", 'A' + c - 1);
+      else
+	fprintf (rl_outstream, "%c", c);
+    }
+  else
+    fprintf (rl_outstream, "^C");
+
+  fflush (rl_outstream);
+}  
+#endif
+
 
 static size_t
 terminal_reader_read (struct lex_reader *r_, char *buf, size_t n,

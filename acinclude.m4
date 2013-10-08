@@ -124,8 +124,9 @@ AC_DEFUN([PSPP_READLINE],
     AC_MSG_CHECKING([how to link with libreadline])
     AC_MSG_RESULT([$LIBREADLINE])
     AC_SEARCH_LIBS([rl_outstream], [readline],
-        AC_DEFINE(HAVE_RL_OUTSTREAM, 1, [Define if the readline library provides rl_outstream.])
-    )
+        AC_DEFINE(HAVE_RL_OUTSTREAM, 1, [Define if the readline library provides rl_outstream.]))
+    AC_SEARCH_LIBS([rl_echo_signal_char], [readline],
+        AC_DEFINE(HAVE_RL_ECHO_SIGNAL_CHAR, 1, [Define if the readline library provides rl_echo_signal_char.]))
   else
     dnl If $LIBREADLINE didn't lead to a usable library, we don't
     dnl need $INCREADLINE either.
