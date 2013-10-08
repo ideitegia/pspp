@@ -884,6 +884,12 @@ on_dest_data_delete (GtkTreeModel *tree_model,
 
 
 static void
+remove_selector_handlers (PsppireSelector *selector, GObject *sel)
+{
+  g_signal_handlers_disconnect_by_data (sel, selector);
+}
+
+static void
 on_dest_model_changed (PsppireSelector *selector)
 {
   GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->dest));
@@ -896,6 +902,8 @@ on_dest_model_changed (PsppireSelector *selector)
   
   g_signal_connect (model, "row-deleted", G_CALLBACK (on_dest_data_delete),
 		    selector);
+
+  g_signal_connect (selector, "destroy", G_CALLBACK (remove_selector_handlers), model);
   
   if ( selector->selecting ) return;
   
