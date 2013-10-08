@@ -172,9 +172,7 @@ src/ui/gui/icons/mimetypes/48x48/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-sps.png \
 
-MISC_ICONS = src/ui/gui/icons/splash.png \
-src/ui/gui/icons/about-logo.png
-
+MISC_ICONS = src/ui/gui/icons/splash.png
 
 
 ACTION_ICONS = \

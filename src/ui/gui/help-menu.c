@@ -32,19 +32,14 @@
 #define N_(msgid) msgid
 
 
-static const gchar *artists[] = { "Bastián Díaz", "Hugo Alejandro", "Patrick Brunier", "Dondi Bogusky", NULL};
+static const gchar *artists[] = { "Bastián Díaz", "Hugo Alejandro", NULL};
 
 static void
 about_new (GtkMenuItem *m, GtkWindow *parent)
 {
   GtkWidget *about =  gtk_about_dialog_new ();
 
-  GdkPixbuf *pb =
-    gdk_pixbuf_new_from_file_at_size (relocate (PKGDATADIR "/about-logo.png"),
-				      64, 64, 0);
-
-  gtk_about_dialog_set_logo (GTK_ABOUT_DIALOG (about), pb);
-
+  gtk_about_dialog_set_logo_icon_name (GTK_ABOUT_DIALOG (about), "pspp");
 
   gtk_window_set_icon_name (GTK_WINDOW (about), "pspp");
 
