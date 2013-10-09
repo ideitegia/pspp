@@ -26,6 +26,7 @@
 #include "psppire-dialog-action-factor.h"
 #include "psppire-dialog-action-frequencies.h"
 #include "psppire-dialog-action-indep-samps.h"
+#include "psppire-dialog-action-k-related.h"
 #include "psppire-dialog-action-1sks.h"
 #include "psppire-dialog-action-kmeans.h"
 #include "psppire-dialog-action-logistic.h"
@@ -74,6 +75,7 @@ preregister_widgets (void)
   psppire_dialog_action_frequencies_get_type ();
   psppire_dialog_action_logistic_get_type ();
   psppire_dialog_action_kmeans_get_type ();
+  psppire_dialog_action_k_related_get_type ();
   psppire_dialog_action_means_get_type ();
   psppire_dialog_action_indep_samps_get_type ();
   psppire_means_layer_get_type ();

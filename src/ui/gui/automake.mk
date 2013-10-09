@@ -159,8 +159,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/help-menu.c \
 	src/ui/gui/help-menu.h \
 	src/ui/gui/helper.h \
-	src/ui/gui/k-related-dialog.c \
-	src/ui/gui/k-related-dialog.h \
 	src/ui/gui/main.c \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \
@@ -213,6 +211,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-kmeans.h \
 	src/ui/gui/psppire-dialog-action-logistic.c \
 	src/ui/gui/psppire-dialog-action-logistic.h \
+	src/ui/gui/psppire-dialog-action-k-related.c \
+	src/ui/gui/psppire-dialog-action-k-related.h \
 	src/ui/gui/psppire-dialog-action-means.c \
 	src/ui/gui/psppire-dialog-action-means.h \
 	src/ui/gui/psppire-dialog-action-rank.c \

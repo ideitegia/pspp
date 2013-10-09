@@ -457,8 +457,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="k-related-samples">
+          <object class="PsppireDialogActionKRelated" id="k-related-samples">
             <property name="name">"k-related-samples"></property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">K Related _Samples...</property>
           </object>
         </child>
