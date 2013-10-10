@@ -139,8 +139,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/builder-wrapper.h \
 	src/ui/gui/comments-dialog.c \
 	src/ui/gui/comments-dialog.h \
-	src/ui/gui/compute-dialog.c \
-	src/ui/gui/compute-dialog.h \
 	src/ui/gui/count-dialog.c \
 	src/ui/gui/count-dialog.h \
 	src/ui/gui/dialog-common.c \
@@ -191,6 +189,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-binomial.h \
 	src/ui/gui/psppire-dialog-action-chisquare.c \
 	src/ui/gui/psppire-dialog-action-chisquare.h \
+	src/ui/gui/psppire-dialog-action-compute.c \
+	src/ui/gui/psppire-dialog-action-compute.h \
 	src/ui/gui/psppire-dialog-action-correlation.c \
 	src/ui/gui/psppire-dialog-action-correlation.h \
 	src/ui/gui/psppire-dialog-action-crosstabs.c \

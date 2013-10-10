@@ -28,7 +28,6 @@
 #include "ui/gui/autorecode-dialog.h"
 #include "ui/gui/builder-wrapper.h"
 #include "ui/gui/comments-dialog.h"
-#include "ui/gui/compute-dialog.h"
 #include "ui/gui/count-dialog.h"
 #include "ui/gui/entry-dialog.h"
 #include "ui/gui/executor.h"
@@ -956,7 +955,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
 
   connect_action (de, "data_select-cases", G_CALLBACK (select_cases_dialog));
   connect_action (de, "data_aggregate", G_CALLBACK (aggregate_dialog));
-  connect_action (de, "transform_compute", G_CALLBACK (compute_dialog));
   connect_action (de, "transform_autorecode", G_CALLBACK (autorecode_dialog));
   connect_action (de, "data_split-file", G_CALLBACK (split_file_dialog));
   connect_action (de, "data_weight-cases", G_CALLBACK (weight_cases_dialog));

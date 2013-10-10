@@ -222,8 +222,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="transform_compute">
+          <object class="PsppireDialogActionCompute" id="transform_compute">
             <property name="name">transform_compute</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">_Compute...</property>
 	    <property name="stock-id">transform-compute</property>
           </object>
