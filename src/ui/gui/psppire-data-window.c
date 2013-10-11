@@ -28,7 +28,6 @@
 #include "ui/gui/autorecode-dialog.h"
 #include "ui/gui/builder-wrapper.h"
 #include "ui/gui/comments-dialog.h"
-#include "ui/gui/count-dialog.h"
 #include "ui/gui/entry-dialog.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/help-menu.h"
@@ -961,7 +960,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "oneway-anova", G_CALLBACK (oneway_anova_dialog));
   connect_action (de, "paired-t-test", G_CALLBACK (t_test_paired_samples_dialog));
   connect_action (de, "utilities_comments", G_CALLBACK (comments_dialog));
-  connect_action (de, "transform_count", G_CALLBACK (count_dialog));
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
   connect_action (de, "two-related-samples", G_CALLBACK (two_related_dialog));

@@ -230,8 +230,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="transform_count">
+          <object class="PsppireDialogActionCount" id="transform_count">
             <property name="name">transform_count</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">Cou_nt...</property>
 	    <property name="stock-id">transform-count</property>
           </object>
