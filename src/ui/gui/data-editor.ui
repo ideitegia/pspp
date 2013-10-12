@@ -344,8 +344,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="paired-t-test">
+          <object class="PsppireDialogActionPaired" id="paired-t-test">
             <property name="name">paired-t-test</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">_Paired Samples T Test...</property>
           </object>
         </child>
@@ -453,8 +454,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="two-related-samples">
+          <object class="PsppireDialogActionTwoSample" id="two-related-samples">
             <property name="name">"two-related-samples"></property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">2 _Related Samples...</property>
           </object>
         </child>

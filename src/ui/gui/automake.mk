@@ -160,8 +160,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/missing-val-dialog.h \
         src/ui/gui/oneway-anova-dialog.c \
         src/ui/gui/oneway-anova-dialog.h \
-	src/ui/gui/paired-dialog.c \
-	src/ui/gui/paired-dialog.h \
 	src/ui/gui/psppire.c \
 	src/ui/gui/psppire.h \
 	src/ui/gui/psppire-acr.h \
@@ -215,6 +213,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-k-related.h \
 	src/ui/gui/psppire-dialog-action-means.c \
 	src/ui/gui/psppire-dialog-action-means.h \
+	src/ui/gui/psppire-dialog-action-paired.c \
+	src/ui/gui/psppire-dialog-action-paired.h \
 	src/ui/gui/psppire-dialog-action-rank.c \
 	src/ui/gui/psppire-dialog-action-rank.h \
 	src/ui/gui/psppire-dialog-action-regression.c \
@@ -229,6 +229,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-sort.h \
 	src/ui/gui/psppire-dialog-action-tt1s.c \
 	src/ui/gui/psppire-dialog-action-tt1s.h \
+	src/ui/gui/psppire-dialog-action-two-sample.c \
+	src/ui/gui/psppire-dialog-action-two-sample.h \
 	src/ui/gui/psppire-dialog-action-univariate.c \
 	src/ui/gui/psppire-dialog-action-univariate.h \
 	src/ui/gui/psppire-dialog-action-var-info.c \
@@ -297,10 +299,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/text-data-import-dialog.h \
 	src/ui/gui/t-test-options.c \
 	src/ui/gui/t-test-options.h \
-	src/ui/gui/t-test-paired-samples.c \
-	src/ui/gui/t-test-paired-samples.h \
-	src/ui/gui/npar-two-sample-related.c \
-	src/ui/gui/npar-two-sample-related.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \

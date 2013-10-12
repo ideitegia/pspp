@@ -474,6 +474,12 @@ connect_notify_signal (GtkWidget *w, gpointer data)
 gint
 psppire_dialog_run (PsppireDialog *dialog)
 {
+  gchar *title = NULL;
+  g_object_get (dialog, "title", &title, NULL);
+
+  if (title == NULL)
+    g_warning ("PsppireDialog %s has no title", gtk_widget_get_name (GTK_WIDGET (dialog)));
+  
   if ( dialog->contents_are_valid != NULL )
     gtk_container_foreach (GTK_CONTAINER (dialog->box),
 			   connect_notify_signal,

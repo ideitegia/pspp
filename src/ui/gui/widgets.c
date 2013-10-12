@@ -33,6 +33,7 @@
 #include "psppire-dialog-action-kmeans.h"
 #include "psppire-dialog-action-logistic.h"
 #include "psppire-dialog-action-means.h"
+#include "psppire-dialog-action-paired.h"
 #include "psppire-means-layer.h"
 #include "psppire-dialog-action-rank.h"
 #include "psppire-dialog-action-regression.h"
@@ -41,6 +42,7 @@
 #include "psppire-dialog-action-runs.h"
 #include "psppire-dialog-action-sort.h"
 #include "psppire-dialog-action-tt1s.h"
+#include "psppire-dialog-action-two-sample.h"
 #include "psppire-dialog-action-univariate.h"
 #include "psppire-dialog-action-var-info.h"
 #include "psppire-value-entry.h"
@@ -81,6 +83,7 @@ preregister_widgets (void)
   psppire_dialog_action_kmeans_get_type ();
   psppire_dialog_action_k_related_get_type ();
   psppire_dialog_action_means_get_type ();
+  psppire_dialog_action_paired_get_type ();
   psppire_dialog_action_indep_samps_get_type ();
   psppire_means_layer_get_type ();
   psppire_dialog_action_var_info_get_type ();
@@ -91,6 +94,7 @@ preregister_widgets (void)
   psppire_dialog_action_runs_get_type ();
   psppire_dialog_action_sort_get_type ();
   psppire_dialog_action_tt1s_get_type ();
+  psppire_dialog_action_two_sample_get_type ();
   psppire_dialog_action_univariate_get_type ();
 
   /* This seems to be necessary on Cygwin.
