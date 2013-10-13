@@ -351,8 +351,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="oneway-anova">
+          <object class="PsppireDialogActionOneway" id="oneway-anova">
             <property name="name">oneway-anova</property>
+            <property name="manager">uimanager1</property>
             <property name="label" translatable="yes">One Way _ANOVA...</property>
           </object>
         </child>

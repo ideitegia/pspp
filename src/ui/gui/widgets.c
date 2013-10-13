@@ -34,6 +34,7 @@
 #include "psppire-dialog-action-logistic.h"
 #include "psppire-dialog-action-means.h"
 #include "psppire-dialog-action-paired.h"
+#include "psppire-dialog-action-oneway.h"
 #include "psppire-means-layer.h"
 #include "psppire-dialog-action-rank.h"
 #include "psppire-dialog-action-regression.h"
@@ -83,6 +84,7 @@ preregister_widgets (void)
   psppire_dialog_action_kmeans_get_type ();
   psppire_dialog_action_k_related_get_type ();
   psppire_dialog_action_means_get_type ();
+  psppire_dialog_action_oneway_get_type ();
   psppire_dialog_action_paired_get_type ();
   psppire_dialog_action_indep_samps_get_type ();
   psppire_means_layer_get_type ();

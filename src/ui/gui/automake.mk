@@ -158,8 +158,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/main.c \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \
-        src/ui/gui/oneway-anova-dialog.c \
-        src/ui/gui/oneway-anova-dialog.h \
 	src/ui/gui/psppire.c \
 	src/ui/gui/psppire.h \
 	src/ui/gui/psppire-acr.h \
@@ -213,6 +211,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-k-related.h \
 	src/ui/gui/psppire-dialog-action-means.c \
 	src/ui/gui/psppire-dialog-action-means.h \
+	src/ui/gui/psppire-dialog-action-oneway.c \
+	src/ui/gui/psppire-dialog-action-oneway.h \
 	src/ui/gui/psppire-dialog-action-paired.c \
 	src/ui/gui/psppire-dialog-action-paired.h \
 	src/ui/gui/psppire-dialog-action-rank.c \

@@ -33,7 +33,6 @@
 #include "ui/gui/help-menu.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/helper.h"
-#include "ui/gui/oneway-anova-dialog.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dialog-action.h"
 #include "ui/gui/psppire-syntax-window.h"
@@ -955,7 +954,6 @@ psppire_data_window_finish_init (PsppireDataWindow *de,
   connect_action (de, "transform_autorecode", G_CALLBACK (autorecode_dialog));
   connect_action (de, "data_split-file", G_CALLBACK (split_file_dialog));
   connect_action (de, "data_weight-cases", G_CALLBACK (weight_cases_dialog));
-  connect_action (de, "oneway-anova", G_CALLBACK (oneway_anova_dialog));
   connect_action (de, "utilities_comments", G_CALLBACK (comments_dialog));
   connect_action (de, "transform_recode-same", G_CALLBACK (recode_same_dialog));
   connect_action (de, "transform_recode-different", G_CALLBACK (recode_different_dialog));
