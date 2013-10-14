@@ -223,6 +223,31 @@ psppire_conf_get_boolean (PsppireConf *conf, const gchar *base,
 }
 
 
+
+gboolean
+psppire_conf_get_string (PsppireConf *conf, const gchar *base,
+			 const gchar *name, gchar **value)
+{
+  gboolean ok;
+  gchar *b;
+  GError *err = NULL;
+  conf_read (conf);
+  b = g_key_file_get_string (conf->keyfile,
+			     base,
+			     name, &err);
+
+  ok = (err == NULL);
+  if ( err != NULL )
+    g_error_free (err);
+
+  if (ok)
+    *value = b;
+
+  return ok;
+}
+
+
+
 void
 psppire_conf_set_int (PsppireConf *conf,
 		      const gchar *base, const gchar *name,
@@ -240,6 +265,18 @@ psppire_conf_set_boolean (PsppireConf *conf,
   g_key_file_set_boolean (conf->keyfile, base, name, value);
   conf_write (conf);
 }
+
+
+void
+psppire_conf_set_string (PsppireConf *conf,
+			 const gchar *base, const gchar *name,
+			 const gchar *value)
+{
+  g_key_file_set_string (conf->keyfile, base, name, value);
+  conf_write (conf);
+}
+
+
 
 /*
   A convenience function to set the geometry of a

@@ -79,6 +79,9 @@ PsppireConf * psppire_conf_new (void);
 gboolean psppire_conf_get_int (PsppireConf *,
 			       const gchar *, const gchar *, int *);
 
+gboolean psppire_conf_get_string (PsppireConf *,
+			       const gchar *, const gchar *, gchar **);
+
 gboolean psppire_conf_get_boolean (PsppireConf *,
 				   const gchar *, const gchar *, gboolean *);
 
@@ -90,6 +93,9 @@ void psppire_conf_set_boolean (PsppireConf *conf,
 			       const gchar *base, const gchar *name,
 			       gboolean value);
 
+void psppire_conf_set_string (PsppireConf *conf,
+			       const gchar *base, const gchar *name,
+			      const gchar *value);
 
 void psppire_conf_set_window_geometry (PsppireConf *conf,
 				       const gchar *base,

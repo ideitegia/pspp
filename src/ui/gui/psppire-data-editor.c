@@ -32,6 +32,7 @@
 #include "ui/gui/psppire-value-entry.h"
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire.h"
+#include "ui/gui/psppire-conf.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -697,11 +698,14 @@ make_split_datasheet (PsppireDataEditor *de, GtkTreeViewGridLines grid_lines,
   return GTK_WIDGET (xpaned);
 }
 
+static void set_font_recursively (GtkWidget *w, gpointer data);
+
 static void
 psppire_data_editor_init (PsppireDataEditor *de)
 {
   GtkWidget *var_sheet_scroller;
   GtkWidget *hbox;
+  gchar *fontname = NULL;
 
   de->font = NULL;
   de->ui_manager = NULL;
@@ -750,6 +754,15 @@ psppire_data_editor_init (PsppireDataEditor *de)
                     G_CALLBACK (on_var_sheet_var_double_clicked), de);
 
   g_object_set (de, "can-focus", FALSE, NULL);
+
+  if (psppire_conf_get_string (psppire_conf_new (),
+			   "Data Editor", "font",
+				&fontname) )
+    {
+      de->font = pango_font_description_from_string (fontname);
+      g_free (fontname);
+      set_font_recursively (GTK_WIDGET (de), de->font);
+    }
 
   psppire_data_editor_update_ui_manager (de);
 }
@@ -802,11 +815,18 @@ set_font_recursively (GtkWidget *w, gpointer data)
 void
 psppire_data_editor_set_font (PsppireDataEditor *de, PangoFontDescription *font_desc)
 {
+  gchar *font_name;
   set_font_recursively (GTK_WIDGET (de), font_desc);
 
   if (de->font)
     pango_font_description_free (de->font);
   de->font = pango_font_description_copy (font_desc);
+  font_name = pango_font_description_to_string (de->font);
+
+  psppire_conf_set_string (psppire_conf_new (),
+			   "Data Editor", "font",
+			   font_name);
+
 }
 
 /* If SPLIT is TRUE, splits DE's data sheet into four panes.
