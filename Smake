@@ -79,6 +79,7 @@ GNULIB_MODULES = \
 	strtok_r \
 	sys_stat \
 	tempname \
+	termios \
 	trunc \
 	unicase/u8-casecmp \
 	unicase/u8-casefold \

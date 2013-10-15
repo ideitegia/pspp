@@ -120,6 +120,7 @@ terminal_reader_cast (struct lex_reader *r)
 static void
 rl_echo_signal_char (int sig)
 {
+#if HAVE_TERMIOS_H
   struct termios t;
   if (0 == tcgetattr (0, &t))
     {
@@ -131,6 +132,7 @@ rl_echo_signal_char (int sig)
 	fprintf (rl_outstream, "%c", c);
     }
   else
+#endif
     fprintf (rl_outstream, "^C");
 
   fflush (rl_outstream);
