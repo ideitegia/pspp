@@ -78,15 +78,16 @@ struct sfm_writer
 
     /* Compression buffering.
 
-       Compressed data is output as groups of 8 1-byte opcodes
-       followed by up to 8 (depending on the opcodes) 8-byte data
-       items.  Data items and opcodes arrive at the same time but
-       must be reordered for writing to disk, thus a small amount
-       of buffering here. */
-    uint8_t opcodes[8];         /* Buffered opcodes. */
-    int opcode_cnt;             /* Number of buffered opcodes. */
-    uint8_t data[8][8];         /* Buffered data. */
-    int data_cnt;               /* Number of buffered data items. */
+       Compressed data is output as a series of 8-byte elements, with 1 to 9
+       such elements clustered together.  The first element in a cluster is 8
+       1-byte opcodes.  Some opcodes call for an additional element in the
+       cluster (hence, if there are eight such opcodes, then the cluster
+       contains a full 9 elements).
+
+       cbuf[] holds a cluster at a time. */
+    uint8_t cbuf[9][8];
+    int n_opcodes;              /* Number of opcodes in cbuf[0] so far. */
+    int n_elements;             /* Number of elements in cbuf[] so far. */
 
     /* Variables. */
     struct sfm_var *sfm_vars;   /* Variables. */
@@ -202,7 +203,8 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   w->compress = opts.compress;
   w->case_cnt = 0;
 
-  w->opcode_cnt = w->data_cnt = 0;
+  w->n_opcodes = w->n_elements = 0;
+  memset (w->cbuf[0], 0, 8);
 
   /* Figure out how to map in-memory case data to on-disk case
      data.  Also count the number of segments.  Very long strings
@@ -1207,8 +1209,7 @@ close_writer (struct sfm_writer *w)
   if (w->file != NULL)
     {
       /* Flush buffer. */
-      if (w->opcode_cnt > 0)
-        flush_compressed (w);
+      flush_compressed (w);
       fflush (w->file);
 
       ok = !write_error (w);
@@ -1329,19 +1330,16 @@ write_case_compressed (struct sfm_writer *w, const struct ccase *c)
     }
 }
 
-/* Flushes buffered compressed opcodes and data to W.
-   The compression buffer must not be empty. */
+/* Flushes buffered compressed opcodes and data to W. */
 static void
 flush_compressed (struct sfm_writer *w)
 {
-  assert (w->opcode_cnt > 0 && w->opcode_cnt <= 8);
-
-  write_bytes (w, w->opcodes, w->opcode_cnt);
-  write_zeros (w, 8 - w->opcode_cnt);
-
-  write_bytes (w, w->data, w->data_cnt * sizeof *w->data);
-
-  w->opcode_cnt = w->data_cnt = 0;
+  if (w->n_opcodes)
+    {
+      write_bytes (w, w->cbuf, 8 * (1 + w->n_elements));
+      w->n_opcodes = w->n_elements = 0;
+      memset (w->cbuf[0], 0, 8);
+    }
 }
 
 /* Appends OPCODE to the buffered set of compression opcodes in
@@ -1349,10 +1347,10 @@ flush_compressed (struct sfm_writer *w)
 static void
 put_cmp_opcode (struct sfm_writer *w, uint8_t opcode)
 {
-  if (w->opcode_cnt >= 8)
+  if (w->n_opcodes >= 8)
     flush_compressed (w);
 
-  w->opcodes[w->opcode_cnt++] = opcode;
+  w->cbuf[0][w->n_opcodes++] = opcode;
 }
 
 /* Appends NUMBER to the buffered compression data in W.  The
@@ -1365,7 +1363,7 @@ put_cmp_number (struct sfm_writer *w, double number)
   assert (w->opcode_cnt > 0);
   assert (w->data_cnt < 8);
 
-  convert_double_to_output_format (number, w->data[w->data_cnt++]);
+  convert_double_to_output_format (number, w->cbuf[++w->n_elements]);
 }
 
 /* Appends SIZE bytes of DATA to the buffered compression data in
@@ -1381,9 +1379,9 @@ put_cmp_string (struct sfm_writer *w, const void *data, size_t size)
   assert (w->data_cnt < 8);
   assert (size <= 8);
 
-  memset (w->data[w->data_cnt], w->space, 8);
-  memcpy (w->data[w->data_cnt], data, size);
-  w->data_cnt++;
+  w->n_elements++;
+  memset (w->cbuf[w->n_elements], w->space, 8);
+  memcpy (w->cbuf[w->n_elements], data, size);
 }
 
 /* Writes 32-bit integer X to the output file for writer W. */
