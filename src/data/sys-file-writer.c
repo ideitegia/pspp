@@ -1292,10 +1292,7 @@ write_case_compressed (struct sfm_writer *w, const struct ccase *c)
                    && d == (int) d)
             put_cmp_opcode (w, (int) d + COMPRESSION_BIAS);
           else
-            {
-              put_cmp_opcode (w, 253);
-              put_cmp_number (w, d);
-            }
+            put_cmp_number (w, d);
         }
       else
         {
@@ -1313,10 +1310,7 @@ write_case_compressed (struct sfm_writer *w, const struct ccase *c)
               if (!memcmp (data, "        ", chunk_size))
                 put_cmp_opcode (w, 254);
               else
-                {
-                  put_cmp_opcode (w, 253);
-                  put_cmp_string (w, data, chunk_size);
-                }
+                put_cmp_string (w, data, chunk_size);
             }
 
           /* This code deals properly with padding that is not a
@@ -1353,32 +1347,23 @@ put_cmp_opcode (struct sfm_writer *w, uint8_t opcode)
   w->cbuf[0][w->n_opcodes++] = opcode;
 }
 
-/* Appends NUMBER to the buffered compression data in W.  The
-   buffer must not be full; the way to assure that is to call
-   this function only just after a call to put_cmp_opcode, which
-   will flush the buffer as necessary. */
+/* Appends NUMBER to the buffered compression data in W. */
 static void
 put_cmp_number (struct sfm_writer *w, double number)
 {
-  assert (w->opcode_cnt > 0);
-  assert (w->data_cnt < 8);
-
+  put_cmp_opcode (w, 253);
   convert_double_to_output_format (number, w->cbuf[++w->n_elements]);
 }
 
 /* Appends SIZE bytes of DATA to the buffered compression data in
    W, followed by enough spaces to pad the output data to exactly
-   8 bytes (thus, SIZE must be no greater than 8).  The buffer
-   must not be full; the way to assure that is to call this
-   function only just after a call to put_cmp_opcode, which will
-   flush the buffer as necessary. */
+   8 bytes (thus, SIZE must be no greater than 8). */
 static void
 put_cmp_string (struct sfm_writer *w, const void *data, size_t size)
 {
-  assert (w->opcode_cnt > 0);
-  assert (w->data_cnt < 8);
   assert (size <= 8);
 
+  put_cmp_opcode (w, 253);
   w->n_elements++;
   memset (w->cbuf[w->n_elements], w->space, 8);
   memcpy (w->cbuf[w->n_elements], data, size);
