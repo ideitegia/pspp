@@ -110,6 +110,13 @@ struct xr_render_fsm
     void (*destroy) (struct xr_render_fsm *);
   };
 
+struct xr_color
+{
+  double red;
+  double green;
+  double blue;
+};
+
 /* Cairo output driver. */
 struct xr_driver
   {
@@ -130,8 +137,8 @@ struct xr_driver
     int line_space;		/* Space between lines. */
     int line_width;		/* Width of lines. */
 
-    double bg_red, bg_green, bg_blue; /* Background color */
-    double fg_red, fg_green, fg_blue; /* Foreground color */
+    struct xr_color bg;    /* Background color */
+    struct xr_color fg;    /* Foreground color */
 
     /* Internal state. */
     struct render_params *params;
@@ -186,8 +193,8 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
 */
 static void
 parse_color (struct output_driver *d, struct string_map *options,
-	      const char *key, const char *default_value,
-	      double *dred, double *dgreen, double *dblue)
+	     const char *key, const char *default_value,
+	     struct xr_color *color)
 {
   int red, green, blue;
   char *string = parse_string (opt (d, options, key, default_value));
@@ -205,9 +212,9 @@ parse_color (struct output_driver *d, struct string_map *options,
   free (string);
 
   /* Convert 16 bit ints to float */
-  *dred = red / (double) 0xFFFF;
-  *dgreen = green / (double) 0xFFFF;
-  *dblue = blue / (double) 0xFFFF;
+  color->red = red / (double) 0xFFFF;
+  color->green = green / (double) 0xFFFF;
+  color->blue = blue / (double) 0xFFFF;
 }
 
 static PangoFontDescription *
@@ -271,8 +278,8 @@ apply_options (struct xr_driver *xr, struct string_map *o)
   xr->line_width = XR_POINT / 2;
   xr->page_number = 0;
 
-  parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &xr->bg_red, &xr->bg_green, &xr->bg_blue);
-  parse_color (d, o, "foreground-color", "#000000000000", &xr->fg_red, &xr->fg_green, &xr->fg_blue);
+  parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &xr->bg);
+  parse_color (d, o, "foreground-color", "#000000000000", &xr->fg);
 
   parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
   xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
@@ -347,7 +354,7 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
         }
     }
 
-  cairo_set_source_rgb (xr->cairo, xr->fg_red, xr->fg_green, xr->fg_blue);
+  cairo_set_source_rgb (xr->cairo, xr->fg.red, xr->fg.green, xr->fg.blue);
 
   return true;
 }
@@ -551,7 +558,7 @@ xr_driver_next_page (struct xr_driver *xr, cairo_t *cairo)
   if (cairo != NULL)
     {
       cairo_save (cairo);
-      cairo_set_source_rgb (cairo, xr->bg_red, xr->bg_green, xr->bg_blue);
+      cairo_set_source_rgb (cairo, xr->bg.red, xr->bg.green, xr->bg.blue);
       cairo_rectangle (cairo, 0, 0, xr->width, xr->length);
       cairo_fill (cairo);
       cairo_restore (cairo);
