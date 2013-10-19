@@ -62,9 +62,9 @@ parse_num_range (struct lexer *lexer,
       if (*y < *x)
         {
           double t;
-          msg (SW, _("Low end of range (%g) is below high end (%g).  "
-                     "The range will be treated as reversed."),
-               *x, *y);
+          msg (SW, _("The high end of the range (%g) is below the low end (%g).  "
+                     "The range will be treated as if reversed."),
+               *y, *x);
           t = *x;
           *x = *y;
           *y = t;
