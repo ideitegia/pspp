@@ -17,6 +17,10 @@ Changes since 0.8.1:
    way.  To fix the problem, read the system file with this version of
    PSPP and then save a new copy of it.)
 
+ * Build changes:
+
+   - zlib is now a required dependency.  (Previously it was optional.)
+
 Changes from 0.8.0 to 0.8.1:
 
  * New commands:

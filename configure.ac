@@ -176,16 +176,8 @@ PKG_CHECK_MODULES(
    PSPP_OPTIONAL_PREREQ([libxml2])])
 
 dnl Check for zlib.
-AC_SEARCH_LIBS(
-  [gzopen], [z],
-  [HAVE_ZLIB=yes],
-  [HAVE_ZLIB=no
-   PSPP_OPTIONAL_PREREQ([zlib])])
-AC_CHECK_HEADERS(
-  [zlib.h], 
-  [],
-  [HAVE_ZLIB=no
-   PSPP_OPTIONAL_PREREQ([zlib])])
+AC_SEARCH_LIBS([gzopen], [z], [], [PSPP_REQUIRED_PREREQ([zlib])])
+AC_CHECK_HEADERS([zlib.h], [], [PSPP_REQUIRED_PREREQ([zlib])])
 
 dnl Avoid interference between zlib's crc32() function and gnulib's
 dnl crc32() function, which have different signatures.  PSPP calls
@@ -200,7 +192,7 @@ AC_DEFINE(
   [Avoid making zlib call gnulib's crc32() instead of its own.])
 
 dnl Gnumeric and OpenDocument (read) support requires libxml2 and zlib.
-if test $HAVE_LIBXML2 = yes && test $HAVE_ZLIB = yes; then
+if test $HAVE_LIBXML2 = yes; then
   GNM_READ_SUPPORT=yes
   ODF_READ_SUPPORT=yes
   AC_DEFINE(

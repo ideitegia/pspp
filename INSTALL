@@ -61,6 +61,8 @@ The following packages are required to install PSPP:
       GNU libc includes an integrated libintl, so there is no need to
       separately install libintl on a GNU/Linux system.
 
+    * zlib (http://www.zlib.net/).
+
 The following packages are required to enable PSPP's graphing
 features.  If you cannot arrange to install them, you must run
 `configure' with --without-cairo (in which case you will get no graphing
@@ -88,8 +90,6 @@ The following packages are optional:
 
 Installing the following packages will allow your PSPP program to read
 Gnumeric files.
-
-    * zlib (http://www.zlib.net/).
 
     * libxml2 (http://xmlsoft.org/).  
 
