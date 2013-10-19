@@ -110,13 +110,6 @@ struct xr_render_fsm
     void (*destroy) (struct xr_render_fsm *);
   };
 
-struct xr_color
-{
-  double red;
-  double green;
-  double blue;
-};
-
 /* Cairo output driver. */
 struct xr_driver
   {
@@ -191,7 +184,7 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
    Future implementations might allow things like "yellow" and
    "sky-blue-ultra-brown"
 */
-static void
+void
 parse_color (struct output_driver *d, struct string_map *options,
 	     const char *key, const char *default_value,
 	     struct xr_color *color)
@@ -1096,7 +1089,10 @@ xr_draw_chart (const struct chart_item *chart_item, cairo_t *cr,
 
 char *
 xr_draw_png_chart (const struct chart_item *item,
-                   const char *file_name_template, int number)
+                   const char *file_name_template, int number,
+		   const struct xr_color *fg,
+		   const struct xr_color *bg
+		   )
 {
   const int width = 640;
   const int length = 480;
@@ -1117,7 +1113,10 @@ xr_draw_png_chart (const struct chart_item *item,
   surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, length);
   cr = cairo_create (surface);
 
-  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+  cairo_set_source_rgb (cr, bg->red, bg->green, bg->blue);
+  cairo_paint (cr);
+
+  cairo_set_source_rgb (cr, fg->red, fg->green, fg->blue);
 
   xr_draw_chart (item, cr, 0.0, 0.0, width, length);
 

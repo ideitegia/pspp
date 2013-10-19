@@ -150,6 +150,11 @@ struct ascii_driver
     enum emphasis_style emphasis; /* How to emphasize text. */
     char *chart_file_name;      /* Name of files used for charts. */
 
+    /* Colours for charts */
+    struct xr_color fg;
+    struct xr_color bg;
+
+
     int width;                  /* Page width. */
     int length;                 /* Page length minus margins and header. */
     bool auto_width;            /* Use viewwidth as page width? */
@@ -256,6 +261,9 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
   a->auto_width = a->width < 0;
   a->auto_length = paper_length < 0;
   a->length = paper_length - vertical_margins (a);
+
+  parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &a->bg);
+  parse_color (d, o, "foreground-color", "#000000000000", &a->fg);
 
   box = parse_enum (opt (d, o, "box", "ascii"),
                     "ascii", BOX_ASCII,
@@ -520,7 +528,9 @@ ascii_submit (struct output_driver *driver,
       char *file_name;
 
       file_name = xr_draw_png_chart (chart_item, a->chart_file_name,
-                                     a->chart_cnt++);
+                                     a->chart_cnt++,
+				     &a->fg, 
+				     &a->bg);
       if (file_name != NULL)
         {
           struct text_item *text_item;
