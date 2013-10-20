@@ -302,6 +302,16 @@ Specify @code{none} to disable chart output.  Charts are always
 disabled if your installation of @pspp{} was compiled without the
 Cairo library.
 
+@item @option{-O foreground-color=@var{color}}
+@itemx @option{-O background-color=@var{color}}
+Sets @var{color} as the color to be used for the background or foreground to 
+be used for charts.
+Color should be given in the format @code{#@var{RRRR}@var{GGGG}@var{BBBB}},
+where @var{RRRR}, @var{GGGG} and @var{BBBB} are 4 character hexadecimal
+representations of the red, green and blue components respectively.
+If charts are disabled, this option has no effect.
+
+
 @item @option{-O paginate=@var{boolean}}
 If set, @pspp{} writes an ASCII formfeed the end of every page.  Default:
 @code{off}.
