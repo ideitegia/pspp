@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -97,7 +97,7 @@ csv_writer_options_init (struct csv_writer_options *opts)
   opts->use_value_labels = false;
   opts->use_print_formats = false;
   opts->decimal = settings_get_decimal_char (FMT_F);
-  opts->delimiter = 0;
+  opts->delimiter = ',';
   opts->qualifier = '"';
 }
 
