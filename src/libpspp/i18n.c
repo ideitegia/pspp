@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -502,7 +502,8 @@ filename_to_utf8 (const char *filename)
    dynamically allocated string in TO-encoding.  Any characters which cannot be
    converted will be represented by '?'.
 
-   The returned string will be null-terminated and allocated on POOL.
+   The returned string will be null-terminated and allocated on POOL with
+   pool_malloc().
 
    This function's behaviour differs from that of g_convert_with_fallback
    provided by GLib.  The GLib function will fail (returns NULL) if any part of
@@ -526,7 +527,11 @@ recode_substring_pool (const char *to, const char *from,
   if ( (iconv_t) -1 == conv )
     {
       struct substring out;
-      ss_alloc_substring_pool (&out, text, pool);
+
+      out.string = pool_malloc (pool, text.length + 1);
+      out.length = text.length;
+      memcpy (out.string, text.string, text.length);
+      out.string[out.length] = '\0';
       return out;
     }
 
