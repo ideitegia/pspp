@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp 0.8.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2013-09-22 22:37-0700\n"
-"PO-Revision-Date: 2013-09-24 11:38+0300\n"
+"PO-Revision-Date: 2013-10-20 21:09+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
 "Language: uk\n"
@@ -39,7 +39,7 @@ msgstr "Змінна"
 
 #: src/ui/gui/psppire-dictview.c:523
 msgid "Prefer variable labels"
-msgstr ""
+msgstr "Перевага змінних міток"
 
 #: src/ui/gui/psppire-var-view.c:202
 #, c-format
@@ -1917,7 +1917,7 @@ msgstr "Змінні:"
 
 #: src/language/dictionary/sys-file-info.c:135
 msgid "Cases:"
-msgstr "Варіанти:"
+msgstr "Спостереження:"
 
 #: src/language/dictionary/sys-file-info.c:142
 msgid "Type:"
@@ -2698,7 +2698,7 @@ msgstr ""
 
 #: src/language/stats/examine.c:1127 src/language/data-io/list.c:114
 msgid "Case Number"
-msgstr "Номер варіанта"
+msgstr "Номер спостереження"
 
 #: src/language/stats/examine.c:1202
 msgid "Highest"
@@ -2716,7 +2716,7 @@ msgstr ""
 #: src/language/stats/examine.c:1321 src/language/stats/means.c:1075
 #: src/language/stats/reliability.c:565 src/language/stats/crosstabs.q:871
 msgid "Cases"
-msgstr "Варіанти"
+msgstr "Спостереження"
 
 #: src/language/stats/examine.c:1325 src/language/stats/quick-cluster.c:475
 #: src/language/stats/reliability.c:568 src/language/stats/crosstabs.q:872
@@ -2846,7 +2846,7 @@ msgstr ""
 
 #: src/language/stats/factor.c:1883
 msgid "Approx. Chi-Square"
-msgstr ""
+msgstr "Приблизне χ-квадрат"
 
 #: src/language/stats/factor.c:1885 src/language/stats/glm.c:753
 #: src/language/stats/logistic.c:1224 src/language/stats/oneway.c:1584
@@ -2899,7 +2899,7 @@ msgstr ""
 #: src/language/stats/flip.c:353
 #, c-format
 msgid "Error reading FLIP file: %s."
-msgstr ""
+msgstr "Помилка під час читання файла FLIP: %s."
 
 #: src/language/stats/flip.c:355
 msgid "Unexpected end of file reading FLIP file."
@@ -2932,12 +2932,12 @@ msgstr ""
 #: src/language/stats/friedman.c:227 src/language/stats/kruskal-wallis.c:258
 #: src/language/stats/mann-whitney.c:171 src/language/stats/wilcoxon.c:225
 msgid "Ranks"
-msgstr ""
+msgstr "Ранги"
 
 #: src/language/stats/friedman.c:238 src/language/stats/kruskal-wallis.c:272
 #: src/language/stats/mann-whitney.c:196 src/language/stats/wilcoxon.c:239
 msgid "Mean Rank"
-msgstr ""
+msgstr "Середній ранг"
 
 #: src/language/stats/friedman.c:279
 msgid "Kendall's W"
@@ -3039,7 +3039,7 @@ msgstr "Від’ємна"
 
 #: src/language/stats/ks-one-sample.c:396
 msgid "Kolmogorov-Smirnov Z"
-msgstr ""
+msgstr "Колмогорова-Смірнова (Z)"
 
 #: src/language/stats/ks-one-sample.c:399
 #: src/language/stats/jonckheere-terpstra.c:385
@@ -3168,7 +3168,7 @@ msgstr ""
 
 #: src/language/stats/logistic.c:1408
 msgid "Missing Cases"
-msgstr ""
+msgstr "Пропущені спостереження"
 
 #: src/language/stats/logistic.c:1457
 msgid "Categorical Variables' Codings"
@@ -3181,7 +3181,7 @@ msgstr "Частота"
 
 #: src/language/stats/logistic.c:1470
 msgid "Parameter coding"
-msgstr ""
+msgstr "Кодування параметра"
 
 #: src/language/stats/logistic.c:1476
 #, c-format
@@ -3190,15 +3190,15 @@ msgstr "(%d)"
 
 #: src/language/stats/logistic.c:1549
 msgid "Classification Table"
-msgstr ""
+msgstr "Таблиця класифікації"
 
 #: src/language/stats/logistic.c:1563
 msgid "Predicted"
-msgstr ""
+msgstr "Передбачене"
 
 #: src/language/stats/logistic.c:1569
 msgid "Observed"
-msgstr ""
+msgstr "Спостережне"
 
 #: src/language/stats/logistic.c:1575
 msgid ""
@@ -3208,7 +3208,7 @@ msgstr ""
 
 #: src/language/stats/logistic.c:1579
 msgid "Overall Percentage"
-msgstr ""
+msgstr "Загальний відсоток"
 
 #: src/language/stats/jonckheere-terpstra.c:364
 msgid "Jonckheere-Terpstra Test"
@@ -3417,33 +3417,32 @@ msgstr ""
 
 #: src/language/stats/oneway.c:974 src/language/stats/regression.c:880
 msgid "Sum of Squares"
-msgstr ""
+msgstr "Сума квадратів"
 
 #: src/language/stats/oneway.c:978 src/language/stats/oneway.c:1225
 #: src/language/stats/regression.c:795 src/language/stats/regression.c:884
 msgid "Significance"
-msgstr ""
+msgstr "Значимість"
 
 #: src/language/stats/oneway.c:996
 msgid "Between Groups"
-msgstr ""
+msgstr "Між групами"
 
 #: src/language/stats/oneway.c:997
 msgid "Within Groups"
-msgstr ""
+msgstr "Всередині груп"
 
 #: src/language/stats/oneway.c:1030
 msgid "ANOVA"
-msgstr ""
+msgstr "ANOVA"
 
 #: src/language/stats/oneway.c:1222
 msgid "Levene Statistic"
 msgstr ""
 
 #: src/language/stats/oneway.c:1223
-#, fuzzy
 msgid "df1"
-msgstr "<command>df</command>"
+msgstr ""
 
 #: src/language/stats/oneway.c:1224
 #, fuzzy
@@ -3513,7 +3512,7 @@ msgstr ""
 #: src/language/stats/oneway.c:1587
 #, c-format
 msgid "%g%% Confidence Interval"
-msgstr ""
+msgstr "%g%%-ий довірчий інтервал"
 
 #: src/language/stats/quick-cluster.c:361
 msgid "Number of clusters may not be larger than the number of cases."
@@ -3529,9 +3528,8 @@ msgstr ""
 
 #: src/language/stats/quick-cluster.c:409
 #: src/language/stats/quick-cluster.c:463
-#, fuzzy
 msgid "Cluster"
-msgstr "Кластер"
+msgstr ""
 
 #: src/language/stats/quick-cluster.c:461
 msgid "Number of Cases in each Cluster"
@@ -4971,7 +4969,7 @@ msgstr ""
 #: src/output/cairo.c:1120
 #, c-format
 msgid "error writing output file `%s': %s"
-msgstr ""
+msgstr "помилка під час запису файла результатів «%s»: %s"
 
 #: src/output/charts/np-plot-cairo.c:37
 #, c-format
@@ -4980,7 +4978,7 @@ msgstr ""
 
 #: src/output/charts/np-plot-cairo.c:38 src/output/charts/np-plot-cairo.c:65
 msgid "Observed Value"
-msgstr ""
+msgstr "Спостережне значення"
 
 #: src/output/charts/np-plot-cairo.c:39
 msgid "Expected Normal"
@@ -4993,12 +4991,12 @@ msgstr ""
 
 #: src/output/charts/np-plot-cairo.c:66
 msgid "Dev from Normal"
-msgstr ""
+msgstr "Відх. від норм."
 
 #: src/output/charts/plot-hist-cairo.c:41
 #, c-format
 msgid "N = %.2f"
-msgstr ""
+msgstr "N = %.2f"
 
 #: src/output/charts/plot-hist-cairo.c:50
 #, c-format
@@ -5008,7 +5006,7 @@ msgstr ""
 #: src/output/charts/plot-hist-cairo.c:59
 #, c-format
 msgid "Std. Dev = %.2f"
-msgstr ""
+msgstr "Стд. відх. = %.2f"
 
 #: src/output/charts/plot-hist-cairo.c:117
 msgid "HISTOGRAM"
@@ -5024,7 +5022,7 @@ msgstr ""
 
 #: src/output/charts/scree-cairo.c:38
 msgid "Eigenvalue"
-msgstr ""
+msgstr "Власне значення"
 
 #: src/output/charts/spreadlevel-cairo.c:37
 #, c-format
@@ -5041,7 +5039,7 @@ msgstr "Розсіювання"
 
 #: src/output/odt.c:94
 msgid "error creating temporary file"
-msgstr ""
+msgstr "помилка під час створення тимчасового файла"
 
 #: src/ui/source-init-opts.c:75
 #, c-format
@@ -5064,12 +5062,12 @@ msgstr ""
 #: src/ui/terminal/terminal-opts.c:125
 #, c-format
 msgid "%s: output option missing `='"
-msgstr ""
+msgstr "%s: у параметрі виведення результатів пропущено «=»"
 
 #: src/ui/terminal/terminal-opts.c:132
 #, c-format
 msgid "%s: output option specified more than once"
-msgstr ""
+msgstr "%s: параметр виведення результатів вказано декілька разів"
 
 #: src/ui/terminal/terminal-opts.c:174
 #, c-format
@@ -5113,7 +5111,7 @@ msgstr ""
 #: src/ui/terminal/terminal.c:62
 #, c-format
 msgid "could not access definition for terminal `%s'"
-msgstr ""
+msgstr "не вдалося отримати доступ до визначення термінала «%s»"
 
 #: src/ui/gui/psppire-button-editable.c:135
 msgid "TreeView path"
@@ -5125,7 +5123,7 @@ msgstr ""
 
 #: src/ui/gui/psppire-cell-renderer-button.c:498
 msgid "Diagonal slash"
-msgstr ""
+msgstr "Діагональна риска"
 
 #: src/ui/gui/psppire-cell-renderer-button.c:499
 msgid "Whether to draw a diagonal slash across the button."
@@ -5143,27 +5141,27 @@ msgstr "Старий"
 
 #: src/ui/gui/aggregate-dialog.c:154
 msgid "Aggregate destination file"
-msgstr ""
+msgstr "Агрегувати файл призначення"
 
 #: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:478
 #: src/ui/gui/psppire-window.c:731
 msgid "System Files (*.sav)"
-msgstr ""
+msgstr "системні файли (*.sav)"
 
 #: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:483
 #: src/ui/gui/psppire-window.c:736
 msgid "Portable Files (*.por) "
-msgstr ""
+msgstr "портативні файли (*.por) "
 
 #: src/ui/gui/comments-dialog.c:57
 #, c-format
 msgid "Column Number: %d"
-msgstr ""
+msgstr "Номер стовпчика: %d"
 
 #: src/ui/gui/find-dialog.c:644
 #, c-format
 msgid "Bad regular expression: %s"
-msgstr ""
+msgstr "Помилковий формальний вираз: %s"
 
 #: src/ui/gui/help-menu.c:66
 msgid "A program for the analysis of sampled data"
@@ -5225,7 +5223,7 @@ msgstr "Некоректне значення типу змінної"
 
 #: src/ui/gui/missing-val-dialog.c:277
 msgid "Incorrect range specification"
-msgstr ""
+msgstr "Некоректне визначення діапазону"
 
 #: src/ui/gui/oneway-anova-dialog.c:296
 #, c-format
@@ -5272,11 +5270,11 @@ msgstr "Введіть число, щоб додати нову змінну."
 
 #: src/ui/gui/psppire-data-sheet.c:143
 msgid "Enter a number to add a new case."
-msgstr "Введіть число, щоб додати новий варіант."
+msgstr "Введіть число, щоб додати нове спостереження."
 
 #: src/ui/gui/psppire-data-sheet.c:229
 msgid "Case"
-msgstr "Варіант"
+msgstr "Спостереження"
 
 #: src/ui/gui/psppire-data-store.c:544
 #, fuzzy
@@ -5289,12 +5287,12 @@ msgstr ""
 
 #: src/ui/gui/psppire-data-window.c:199
 msgid "Filter off"
-msgstr ""
+msgstr "Фільтрування вимкнено"
 
 #: src/ui/gui/psppire-data-window.c:211
 #, c-format
 msgid "Filter by %s"
-msgstr ""
+msgstr "Фільтрування за %s"
 
 #: src/ui/gui/psppire-data-window.c:232
 msgid "No Split"
@@ -5311,7 +5309,7 @@ msgstr ""
 #: src/ui/gui/psppire-data-window.c:281
 #, c-format
 msgid "Weight by %s"
-msgstr ""
+msgstr "Вага за %s"
 
 #: src/ui/gui/psppire-data-window.c:469 src/ui/gui/aggregate.ui:450
 msgid "Save"
@@ -5324,11 +5322,11 @@ msgstr "усі файли"
 
 #: src/ui/gui/psppire-data-window.c:501
 msgid "Portable File"
-msgstr ""
+msgstr "Портативний файл"
 
 #: src/ui/gui/psppire-data-window.c:558
 msgid "Delete Existing Dataset?"
-msgstr ""
+msgstr "Вилучити наявний набір даних?"
 
 #: src/ui/gui/psppire-data-window.c:562
 #, c-format
@@ -5338,11 +5336,11 @@ msgstr ""
 #: src/ui/gui/psppire-data-window.c:590
 #, c-format
 msgid "Please enter a new name for dataset \"%s\":"
-msgstr ""
+msgstr "Вкажіть нову назву набору даних «%s»:"
 
 #: src/ui/gui/psppire-data-window.c:592
 msgid "Rename Dataset"
-msgstr ""
+msgstr "Перейменувати набір даних"
 
 #: src/ui/gui/psppire-data-window.c:650
 msgid "Font Selection"
@@ -5350,7 +5348,7 @@ msgstr "Вибір шрифту"
 
 #: src/ui/gui/psppire-data-window.c:1255
 msgid "Data Editor"
-msgstr ""
+msgstr "Редактор даних"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:71
 msgid "Chisq"
@@ -5463,7 +5461,7 @@ msgstr ""
 
 #: src/ui/gui/psppire-dialog-action-regression.c:42
 msgid "Anova"
-msgstr ""
+msgstr "ANOVA"
 
 #: src/ui/gui/psppire-dialog-action-regression.c:43
 msgid "Bcov"
@@ -5482,16 +5480,16 @@ msgstr "Тип: %s\n"
 #: src/ui/gui/psppire-dialog-action-var-info.c:136
 #, c-format
 msgid "Missing Values: %s\n"
-msgstr ""
+msgstr "Пропущені значення: %s\n"
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:140
 #, c-format
 msgid "Measurement Level: %s\n"
-msgstr ""
+msgstr "Рівень вимірювання: %s\n"
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:153
 msgid "Value Labels:\n"
-msgstr ""
+msgstr "Мітки значень:\n"
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:162
 #, c-format
@@ -5508,7 +5506,7 @@ msgstr "%s %s\n"
 #: src/ui/gui/psppire-dict.c:332
 #, c-format
 msgid "Var%04d"
-msgstr ""
+msgstr "Змін%04d"
 
 #: src/ui/gui/psppire-dict.c:516
 msgid "Duplicate variable name."
@@ -5565,7 +5563,7 @@ msgstr "відокремлені комами значення (*.csv)"
 
 #: src/ui/gui/psppire-output-window.c:615
 msgid "Export Output"
-msgstr ""
+msgstr "Експортувати виведені дані"
 
 #: src/ui/gui/psppire-output-window.c:773
 msgid "failed to create temporary directory"
@@ -5573,7 +5571,7 @@ msgstr "не вдалося створити каталог тимчасових
 
 #: src/ui/gui/psppire-output-window.c:1052
 msgid "Output Viewer"
-msgstr ""
+msgstr "Перегляд виведених даних"
 
 #: src/ui/gui/psppire-spreadsheet-model.c:268
 #, fuzzy
@@ -5583,7 +5581,7 @@ msgstr "Порожній"
 #: src/ui/gui/psppire-syntax-window.c:568
 #, c-format
 msgid "Saved file `%s'"
-msgstr ""
+msgstr "Збережено файл «%s»"
 
 #: src/ui/gui/psppire-syntax-window.c:589
 msgid "Save Syntax"
@@ -5621,7 +5619,7 @@ msgstr ""
 
 #: src/ui/gui/psppire-val-chooser.c:332
 msgid "_Range:"
-msgstr ""
+msgstr "_Діапазон:"
 
 #: src/ui/gui/psppire-val-chooser.c:333
 msgid "Range, _LOWEST thru value"
@@ -5633,11 +5631,11 @@ msgstr ""
 
 #: src/ui/gui/psppire-val-chooser.c:335
 msgid "_All other values"
-msgstr ""
+msgstr "_Усі інші значення"
 
 #: src/ui/gui/psppire-var-sheet.c:182 src/ui/gui/psppire-var-sheet.c:187
 msgid "Cannot create variable."
-msgstr ""
+msgstr "Не вдалося створити змінну."
 
 #: src/ui/gui/psppire-var-sheet.c:183 src/ui/gui/psppire-var-sheet.c:212
 #, c-format
@@ -5647,20 +5645,20 @@ msgstr ""
 #: src/ui/gui/psppire-var-sheet.c:188 src/ui/gui/psppire-var-sheet.c:218
 #, c-format
 msgid "This dictionary already contains a variable named \"%s\"."
-msgstr ""
+msgstr "У цьому словнику вже міститься змінна з назвою «%s»."
 
 #: src/ui/gui/psppire-var-sheet.c:211 src/ui/gui/psppire-var-sheet.c:217
 msgid "Cannot rename variable."
-msgstr ""
+msgstr "Не вдалося перейменувати змінну."
 
 #: src/ui/gui/psppire-var-sheet.c:448
 #, c-format
 msgid "{%s, %s}..."
-msgstr ""
+msgstr "{%s, %s}…"
 
 #: src/ui/gui/psppire-var-sheet.c:880
 msgid "Enter a variable name to add a new variable."
-msgstr ""
+msgstr "Щоб додати нову змінну, вкажіть її назву."
 
 #: src/ui/gui/psppire-var-sheet.c:920
 #, c-format
@@ -5694,7 +5692,6 @@ msgid "Align"
 msgstr "Вирівняти"
 
 #: src/ui/gui/psppire-var-sheet.c:1396
-#, fuzzy
 msgid "Measure"
 msgstr "Міра"
 
@@ -5705,7 +5702,7 @@ msgstr "Роль"
 #: src/ui/gui/psppire-window.c:503
 #, c-format
 msgid "Save the changes to `%s' before closing?"
-msgstr ""
+msgstr "Зберегти зміни до «%s», перш ніж закривати?"
 
 #: src/ui/gui/psppire-window.c:510
 #, c-format
@@ -5726,11 +5723,11 @@ msgstr ""
 
 #: src/ui/gui/recode-dialog.c:641
 msgid "Recode into Different Variables"
-msgstr ""
+msgstr "Перекодувати до інших змінних"
 
 #: src/ui/gui/recode-dialog.c:644 src/ui/gui/recode.ui:332
 msgid "Recode into Same Variables"
-msgstr ""
+msgstr "Перекодувати до тих самих змінних"
 
 #: src/ui/gui/recode-dialog.c:905
 msgid "Recode into Different Variables: Old and New Values "
@@ -5809,7 +5806,7 @@ msgstr ""
 #: src/ui/gui/page-file.c:100
 #, c-format
 msgid "Could not open `%s': %s"
-msgstr ""
+msgstr "Не вдалося відкрити «%s»: %s"
 
 #: src/ui/gui/page-file.c:116
 #, c-format
@@ -5984,9 +5981,8 @@ msgid "%s is not a recognized encoding or locale name"
 msgstr ""
 
 #: src/language/utilities/set.q:538
-#, fuzzy
 msgid "WIDTH must be at least 40."
-msgstr "Ширина має бути принаймні 1."
+msgstr ""
 
 #: src/language/utilities/set.q:565
 #, c-format
@@ -6087,9 +6083,8 @@ msgid "column %"
 msgstr "Стовпчик"
 
 #: src/language/stats/crosstabs.q:1180
-#, fuzzy
 msgid "total %"
-msgstr "Загалом"
+msgstr "загальний %"
 
 #: src/language/stats/crosstabs.q:1181
 msgid "expected"
@@ -6344,7 +6339,7 @@ msgstr ""
 
 #: src/ui/gui/aggregate.ui:7
 msgid "Aggregate Data"
-msgstr ""
+msgstr "Агрегувати дані"
 
 #: src/ui/gui/aggregate.ui:101
 msgid "_Break variable(s)"
@@ -6372,19 +6367,19 @@ msgstr "Аргумент 2:"
 
 #: src/ui/gui/aggregate.ui:330
 msgid "Aggregated variables"
-msgstr ""
+msgstr "Агрегувати змінні"
 
 #: src/ui/gui/aggregate.ui:364
 msgid "_Add aggregated variables to the active dataset"
-msgstr ""
+msgstr "_Додати агреговані змінні до активного набору даних"
 
 #: src/ui/gui/aggregate.ui:378
 msgid "_Replace the current dataset with the aggregated variables"
-msgstr ""
+msgstr "_Замінити поточний набір даних агрегованими змінними"
 
 #: src/ui/gui/aggregate.ui:393
 msgid "_Write a new data file containing only the aggregated variables"
-msgstr ""
+msgstr "З_аписати новий файл даних, що міститиме лише агреговані змінні"
 
 #: src/ui/gui/aggregate.ui:430
 msgid "label"
@@ -6675,48 +6670,48 @@ msgstr "Вставити змінну"
 
 #: src/ui/gui/data-sheet.ui:58 src/ui/gui/var-sheet.ui:42
 msgid "Create a new variable at the current position"
-msgstr ""
+msgstr "Створити запис нової змінної у поточній позиції"
 
 #: src/ui/gui/data-sheet.ui:65
 msgid "Insert Cases"
-msgstr ""
+msgstr "Вставити спостереження"
 
 #: src/ui/gui/data-sheet.ui:66
 msgid "Create a new case at the current position"
-msgstr ""
+msgstr "Створити запис спостереження у поточній позиції"
 
 #: src/ui/gui/data-sheet.ui:73 src/ui/gui/var-sheet.ui:49
 msgid "Go To Variable..."
-msgstr ""
+msgstr "Перейти до змінної…"
 
 #: src/ui/gui/data-sheet.ui:74 src/ui/gui/data-editor.ui:462
 #: src/ui/gui/var-sheet.ui:50
 msgid "Jump to variable"
-msgstr ""
+msgstr "Перейти до змінної"
 
 #: src/ui/gui/data-sheet.ui:80
 msgid "Go To Case..."
-msgstr ""
+msgstr "Перейти до спостереження…"
 
 #: src/ui/gui/data-sheet.ui:82
 msgid "Jump to a case in the data sheet"
-msgstr ""
+msgstr "Перейти до спостереження у таблиці даних"
 
 #: src/ui/gui/data-sheet.ui:108 src/ui/gui/var-sheet.ui:75
 msgid "Cl_ear Variables"
-msgstr ""
+msgstr "Споро_жнити змінні"
 
 #: src/ui/gui/data-sheet.ui:109 src/ui/gui/var-sheet.ui:76
 msgid "Delete the variables at the selected position(s)"
-msgstr ""
+msgstr "Вилучити змінні на позначених позиціях"
 
 #: src/ui/gui/data-sheet.ui:117
 msgid "_Clear Cases"
-msgstr ""
+msgstr "С_порожнити спостереження"
 
 #: src/ui/gui/data-sheet.ui:118
 msgid "Delete the cases at the selected position(s)"
-msgstr ""
+msgstr "Вилучити записи спостереженьна позначених позиціях"
 
 #: src/ui/gui/data-sheet.ui:125
 msgid "_Find..."
@@ -6725,7 +6720,7 @@ msgstr "З_найти…"
 #: src/ui/gui/descriptives.ui:115 src/ui/gui/factor.ui:183
 #: src/ui/gui/recode.ui:606
 msgid "_Variables:"
-msgstr ""
+msgstr "_Змінні:"
 
 #: src/ui/gui/descriptives.ui:159
 msgid "S_tatistics:"
@@ -6733,11 +6728,11 @@ msgstr "С_татистика:"
 
 #: src/ui/gui/descriptives.ui:198
 msgid "_Exclude entire case if any selected variable is missing"
-msgstr ""
+msgstr "Ви_ключити усе спостереження, якщо не вистачає хоч одної позначеної змінної"
 
 #: src/ui/gui/descriptives.ui:214
 msgid "_Include user-missing data in analysis"
-msgstr ""
+msgstr "_Включити дані з пропущеними позиціями до аналізу"
 
 #: src/ui/gui/descriptives.ui:230
 msgid "Save _Z-scores of selected variables as new variables"
@@ -6857,16 +6852,14 @@ msgid "_Scree plot"
 msgstr ""
 
 #: src/ui/gui/factor.ui:375 src/ui/gui/roc.ui:287
-#, fuzzy
 msgid "Display"
-msgstr "Показ"
+msgstr "Показати"
 
 #: src/ui/gui/factor.ui:448
 msgid "_Number of factors:"
 msgstr ""
 
 #: src/ui/gui/factor.ui:480
-#, fuzzy
 msgid "Extract"
 msgstr "Видобути"
 
@@ -6876,12 +6869,11 @@ msgstr ""
 
 #: src/ui/gui/factor.ui:560
 msgid "Factor Analysis: Rotation"
-msgstr ""
+msgstr "Фактоний аналіз: Обертання"
 
 #: src/ui/gui/factor.ui:593
-#, fuzzy
 msgid "_None"
-msgstr "_Жодних"
+msgstr "_Немає"
 
 #: src/ui/gui/factor.ui:604
 msgid "_Varimax"
@@ -7069,9 +7061,8 @@ msgid "_Grouping Variable:"
 msgstr ""
 
 #: src/ui/gui/indep-samples.ui:238
-#, fuzzy
 msgid "Define Groups"
-msgstr "Визначити групи"
+msgstr "Визначення груп"
 
 #: src/ui/gui/indep-samples.ui:278
 msgid "Group_2 value:"
@@ -7118,13 +7109,12 @@ msgid "Test _Variable List:"
 msgstr ""
 
 #: src/ui/gui/ks-one-sample.ui:139
-#, fuzzy
 msgid "_Normal"
-msgstr "_Звичайний"
+msgstr "_Нормальний"
 
 #: src/ui/gui/ks-one-sample.ui:150
 msgid "_Poisson"
-msgstr ""
+msgstr "_Пуассона"
 
 #: src/ui/gui/ks-one-sample.ui:164
 msgid "_Uniform"
@@ -7419,7 +7409,6 @@ msgid "Mo_de"
 msgstr "_Режим"
 
 #: src/ui/gui/runs.ui:154
-#, fuzzy
 msgid "_Custom:"
 msgstr "_Нетипове:"
 
@@ -7429,7 +7418,7 @@ msgstr ""
 
 #: src/ui/gui/sort.ui:8
 msgid "Sort Cases"
-msgstr ""
+msgstr "Упорядковування спостережень"
 
 #: src/ui/gui/sort.ui:79
 msgid "Sort by:"
@@ -7440,38 +7429,36 @@ msgid "Descending"
 msgstr "за спаданням"
 
 #: src/ui/gui/sort.ui:168
-#, fuzzy
 msgid "Sort Order"
 msgstr "Порядок"
 
 #: src/ui/gui/split-file.ui:8
-#, fuzzy
 msgid "Split File"
-msgstr "Розді&лити файл..."
+msgstr "Розділити файл"
 
 #: src/ui/gui/split-file.ui:69
 msgid "Anal_yze all cases.  Do not create groups."
-msgstr ""
+msgstr "Ана_лізувати усі спостереження. Не створювати груп."
 
 #: src/ui/gui/split-file.ui:86
 msgid "Compare _groups."
-msgstr ""
+msgstr "Порівняти _групи."
 
 #: src/ui/gui/split-file.ui:104
 msgid "Organize ou_tput by groups."
-msgstr ""
+msgstr "Упорядкувати _результати за групами."
 
 #: src/ui/gui/split-file.ui:188
 msgid "Groups _based on:"
-msgstr ""
+msgstr "_Основа групування:"
 
 #: src/ui/gui/split-file.ui:213
 msgid "_Sort the file by grouping variables."
-msgstr ""
+msgstr "_Упорядкувати файл за змінними групування."
 
 #: src/ui/gui/split-file.ui:230
 msgid "_File is already sorted."
-msgstr ""
+msgstr "_Файл уже упорядковано."
 
 #: src/ui/gui/split-file.ui:283
 msgid "Current Status : "
@@ -7479,7 +7466,7 @@ msgstr "Поточний стан: "
 
 #: src/ui/gui/split-file.ui:294
 msgid "Analysis by groups is off"
-msgstr ""
+msgstr "Аналіз за групами вимкнено"
 
 #: src/ui/gui/recode.ui:16
 msgid "Old Value"
@@ -7491,7 +7478,7 @@ msgstr ""
 
 #: src/ui/gui/recode.ui:113
 msgid "Co_py old values"
-msgstr ""
+msgstr "Ко_піювати попередні значення"
 
 #: src/ui/gui/recode.ui:139
 msgid "Va_lue: "
@@ -7643,7 +7630,7 @@ msgstr "Якщо…"
 
 #: src/ui/gui/select-cases.ui:418
 msgid "All Cases"
-msgstr "Усі варіанти"
+msgstr "Усі спостереження"
 
 #: src/ui/gui/select-cases.ui:433
 msgid "Select"
@@ -7659,7 +7646,7 @@ msgstr "Вилучено"
 
 #: src/ui/gui/select-cases.ui:499
 msgid "Unselected Cases Are"
-msgstr ""
+msgstr "Непозначеними спостереженнями є"
 
 #: src/ui/gui/select-cases.ui:541
 msgid "Select Cases: Range"
@@ -7667,11 +7654,11 @@ msgstr ""
 
 #: src/ui/gui/select-cases.ui:590
 msgid "First case"
-msgstr ""
+msgstr "Перше спостереження"
 
 #: src/ui/gui/select-cases.ui:603
 msgid "Last case"
-msgstr ""
+msgstr "Останнє спостереження"
 
 #: src/ui/gui/select-cases.ui:616
 msgid "Observation"
@@ -7703,7 +7690,7 @@ msgstr ""
 
 #: src/ui/gui/text-data-import.ui:8
 msgid "Importing Textual Data"
-msgstr ""
+msgstr "Імпортування текстових даних"
 
 #: src/ui/gui/text-data-import.ui:19
 msgid ""
@@ -7714,7 +7701,7 @@ msgstr ""
 
 #: src/ui/gui/text-data-import.ui:95
 msgid "All cases"
-msgstr ""
+msgstr "Усі спостереження"
 
 #: src/ui/gui/text-data-import.ui:116
 msgid "<b>Amount to Import</b>"
@@ -7722,22 +7709,21 @@ msgstr "<b>Величина, яку слід імпортувати</b>"
 
 #: src/ui/gui/text-data-import.ui:135
 msgid "Select Data to Import"
-msgstr ""
+msgstr "Виберіть дані для імпортування"
 
 #: src/ui/gui/text-data-import.ui:146
 msgid "Select the first line of the data file that contains data."
-msgstr ""
+msgstr "Виберіть перший рядок файла даних, у якому містяться дані."
 
 #: src/ui/gui/text-data-import.ui:174
 msgid "Line above selected line contains variable names"
-msgstr ""
+msgstr "У рядку над вибраним рядком містяться назви змінних"
 
 #: src/ui/gui/text-data-import.ui:192
 msgid "Choose Separators"
 msgstr ""
 
 #: src/ui/gui/text-data-import.ui:238
-#, fuzzy
 msgid "C_ustom"
 msgstr "Н_етиповий"
 
@@ -7945,7 +7931,7 @@ msgstr "_Змінні"
 
 #: src/ui/gui/data-editor.ui:165
 msgid "_Sort Cases..."
-msgstr ""
+msgstr "_Упорядкувати спостереження…"
 
 #: src/ui/gui/data-editor.ui:169
 msgid "Sort cases in the active dataset"
@@ -7961,7 +7947,7 @@ msgstr ""
 
 #: src/ui/gui/data-editor.ui:184
 msgid "_Aggregate..."
-msgstr ""
+msgstr "_Агрегувати…"
 
 #: src/ui/gui/data-editor.ui:190
 msgid "S_plit File..."
