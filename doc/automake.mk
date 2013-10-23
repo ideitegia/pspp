@@ -18,6 +18,7 @@ doc_pspp_TEXINFOS = doc/version.texi \
 	doc/invoking.texi \
 	doc/language.texi \
 	doc/license.texi \
+	doc/pspp-convert.texi \
 	doc/ni.texi \
 	doc/not-implemented.texi \
 	doc/statistics.texi \

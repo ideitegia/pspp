@@ -21,6 +21,11 @@ Changes since 0.8.1:
    way.  To fix the problem, read the system file with this version of
    PSPP and then save a new copy of it.)
 
+ * pspp-convert, a new standalone utility for converting SPSS system
+   and portable files to other formats, is now included.  The initial
+   version is only capable of converting to comma-separated value
+   files..
+
  * Build changes:
 
    - zlib is now a required dependency.  (Previously it was optional.)
