@@ -74,7 +74,7 @@ struct pfm_writer
 struct pfm_var
   {
     int width;                  /* 0=numeric, otherwise string var width. */
-    int fv;                     /* Starting case index. */
+    int case_index;             /* Index in case. */
   };
 
 static const struct casewriter_class por_file_casewriter_class;
@@ -131,7 +131,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
       const struct variable *dv = dict_get_var (dict, i);
       struct pfm_var *pv = &w->vars[i];
       pv->width = MIN (var_get_width (dv), MAX_POR_WIDTH);
-      pv->fv = var_get_case_index (dv);
+      pv->case_index = var_get_case_index (dv);
     }
 
   w->digits = opts.digits;
@@ -458,11 +458,11 @@ por_file_casewriter_write (struct casewriter *writer, void *w_,
           struct pfm_var *v = &w->vars[i];
 
           if (v->width == 0)
-            write_float (w, case_num_idx (c, v->fv));
+            write_float (w, case_num_idx (c, v->case_index));
           else
             {
               write_int (w, v->width);
-              buf_write (w, case_str_idx (c, v->fv), v->width);
+              buf_write (w, case_str_idx (c, v->case_index), v->width);
             }
         }
     }
