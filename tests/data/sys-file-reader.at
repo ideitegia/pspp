@@ -1297,7 +1297,7 @@ dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
 2; dnl Layout code
 6; dnl Nominal case size
-1; dnl Not compressed
+1; dnl Simple compression
 0; dnl Not weighted 
 -1; dnl Unspecified number of cases.
 100.0; dnl Bias.
@@ -1361,7 +1361,7 @@ dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
 2; dnl Layout code
 6; dnl Nominal case size
-1; dnl Not compressed
+1; dnl Simple compression.
 0; dnl Not weighted 
 -1; dnl Unspecified number of cases.
 0.0; dnl Bias.
@@ -1425,7 +1425,7 @@ dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
 2; dnl Layout code
 6; dnl Nominal case size
-1; dnl Not compressed
+1; dnl Simple compression.
 0; dnl Not weighted 
 -1; dnl Unspecified number of cases.
 50.0; dnl Bias.
@@ -1482,6 +1482,105 @@ num1,num2,str4,str8,str15
 -49,50,,abcdefgh,0123   @&t@
 .,201,jklm,nopqrstu,vwxyzABC       @&t@
 51,52,DEFG,HIJKLMNO,PQRSTUV
+])
+done
+AT_CLEANUP
+
+m4_divert_push([PREPARE_TESTS])
+zcompressed_sack () {
+    cat <<'EOF'
+dnl File header.
+"$FL3"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+6; dnl Nominal case size
+2; dnl zlib compressed
+0; dnl Not weighted
+-1; dnl Unspecified number of cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR4";
+2; 8; 0; 0; 0x010800 *2; s8 "STR8";
+2; 15; 0; 0; 0x010f00 *2; s8 "STR15";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl ZLIB data header.
+i64 0x178;    # zheader_ofs
+i64 0x1e9;    # ztrailer_ofs
+i64 48;       # ztrailer_len
+
+dnl ZLIB data block.
+dnl
+dnl This is the compressed form of:
+dnl
+dnl 01 64 fe fd fe fd ff fb  61 62 63 64 65 66 67 68  |.d......abcdefgh|
+dnl 30 31 32 33 20 20 20 20  fd fd fd fe 65 66 fd fd  |0123    ....ef..|
+dnl 6a 6b 6c 6d 20 20 20 20  6e 6f 70 71 72 73 74 75  |jklm    nopqrstu|
+dnl 76 77 78 79 7a 41 42 43  44 45 46 47 20 20 20 20  |vwxyzABCDEFG    |
+dnl 48 49 4a 4b 4c 4d 4e 4f  fe fd fc 00 00 00 00 00  |HIJKLMNO........|
+dnl 50 51 52 53 54 55 56 57                           |PQRSTUVW|
+dnl
+dnl which is the data from the "compressed data" test.
+hex "78 01 63 4c f9 f7 f7 df  df ff bf 13 93 92 53 52";
+hex "d3 d2 33 0c 0c 8d 8c 15  80 e0 ef df bf ff 52 d3";
+hex "fe fe cd ca ce c9 05 f1  f3 f2 0b 0a 8b 8a 4b 4a";
+hex "cb ca 2b 2a ab 1c 9d 9c  5d 5c dd dc 41 e2 1e 9e";
+hex "5e de 3e be 7e fe ff fe  fe 61 00 81 80 c0 a0 e0";
+hex "90 d0 b0 70 00 0f 3f 23  d7";
+
+dnl ZLIB data trailer fixed header:
+i64 -100;     # ztrailer_bias
+i64 0;        # ztrailer_zero
+0x3ff000;     # block_size
+1;            # n_blocks
+
+dnl ZLIB block descriptor:
+i64 0x178;    # uncompressed_ofs
+i64 0x190;    # compressed_ofs
+88;           # uncompressed_size
+89;           # compressed_size
+EOF
+}
+m4_divert_pop([PREPARE_TESTS])
+
+AT_SETUP([zcompressed data])
+AT_KEYWORDS([sack synthetic system file positive zlib])
+zcompressed_sack > sys-file.sack
+for variant in \
+	"be 2d706c3ca0cc9be7f1721f09d0d42179" \
+	"le 3f362f338d65b0a836b3c752cc3fc5bc"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+num1,Format: F8.0,,1
+num2,Format: F8.0,,2
+str4,Format: A4,,3
+str8,Format: A8,,4
+str15,Format: A15,,5
+
+Table: Data List
+num1,num2,str4,str8,str15
+-99,0,,abcdefgh,0123   @&t@
+.,151,jklm,nopqrstu,vwxyzABC       @&t@
+1,2,DEFG,HIJKLMNO,PQRSTUV
 ])
 done
 AT_CLEANUP
@@ -3553,3 +3652,296 @@ num1,num2,str4,str8,str15
 done
 AT_CLEANUP
 
+AT_SETUP([zcompressed data - bad zheader_ofs])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*zheader_ofs.*/>>i64 0<<;/' > sys-file.sack
+for variant in \
+	"be 6d5c32f34fa1bed6f9b8f7045d104fdc" \
+	"le 1f67fbda4f0021143e141fe8403c5a97"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x178: Wrong ZLIB data header offset 0 (expected 0x178).
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - bad ztrailer_ofs])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_ofs.*/>>i64 0<<;/' > sys-file.sack
+for variant in \
+	"be e2c8dec0c62d3d798825ad5906370634" \
+	"le c1cff4cdddeee80bf1580cbc26fa9fd5"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x178: Impossible ZLIB trailer offset 0x0.
+])
+done
+AT_CLEANUP
+
+# ztrailer_len must be a multiple of 24 and at least 48,
+# so a value of 12 is impossible.
+AT_SETUP([zcompressed data - invalid ztrailer_len])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_len.*/>>i64 12<<;/' > sys-file.sack
+for variant in \
+	"be 27f5203463bc4c7644382f24ae87f84c" \
+	"le 0035fa6ee7690720429715150ede85f4"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x178: Invalid ZLIB trailer length 12.
+])
+done
+AT_CLEANUP
+
+# ztrailer_ofs + ztrailer_len must be the file size.
+AT_SETUP([zcompressed data - wrong ztrailer_len])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_len.*/>>i64 72<<;/' > sys-file.sack
+for variant in \
+	"be 2ba9ae97bc0a7f5dcfe36e2463b9d7cb" \
+	"le d737ea0a53ca5c6f20be359027171d73"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [warning: `sys-file.sav' near offset 0x190: End of ZLIB trailer (0x231) is not file size (0x219).
+error: `sys-file.sav' near offset 0x201: 72-byte ZLIB trailer specifies 1 data blocks (expected 2).
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong ztrailer_bias])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_bias.*/>>i64 0<<;/' > sys-file.sack
+for variant in \
+	"be a5b56ab5e799a3626de2cdd7bd8d7a03" \
+	"le d7cd584c6d5a95df10ba640eb3f1f24f"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x1f1: ZLIB trailer bias (0) differs from file header bias (100.00).
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong ztrailer_zero])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_zero.*/>>i64 100<<;/' > sys-file.sack
+for variant in \
+	"be 8d746abedb3e74cfdc22207f3455db92" \
+	"le 79cea017365cab35d59c7a300cfa66c1"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [warning: `sys-file.sav' near offset 0x1f9: ZLIB trailer "zero" field has nonzero value 100.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong block_size])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*block_size.*/>>0x1000<<;/' > sys-file.sack
+for variant in \
+	"be 8d5a1caa56be8892d453faf1047005ca" \
+	"le 7daa1bd57b192893b313a351202e179b"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [warning: `sys-file.sav' near offset 0x1fd: ZLIB trailer specifies unexpected 4096-byte block size.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong n_blocks])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*n_blocks.*/>>2<<;/' > sys-file.sack
+for variant in \
+	"be cd29596fd6bf4a2f651febe820a7955f" \
+	"le 8fc1f718dfd2abac7c3442c1055d4cab"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: 48-byte ZLIB trailer specifies 2 data blocks (expected 1).
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong uncompressed_ofs])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*uncompressed_ofs.*/i64 >>0x177<<;/' > sys-file.sack
+for variant in \
+	"be 5546120fe6161dc6ed20aec48d8e74a4" \
+	"le 86fafd625ed5ceaa1bff4fc7f500b6ab"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reported uncompressed data offset 0x177, when 0x178 was expected.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong compressed_ofs])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*\bcompressed_ofs.*/i64 >>0x191<<;/' > sys-file.sack
+for variant in \
+	"be 652e28f8d3f8e4ce47ad18d0f30e7bb9" \
+	"le ebf2c647f2d7c47858d4f5ed683526e6"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reported compressed data offset 0x191, when 0x190 was expected.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - compressed sizes don't add up])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL3"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+6; dnl Nominal case size
+2; dnl zlib compressed
+0; dnl Not weighted
+-1; dnl Unspecified number of cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR4";
+2; 8; 0; 0; 0x010800 *2; s8 "STR8";
+2; 15; 0; 0; 0x010f00 *2; s8 "STR15";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl ZLIB data header.
+i64 0x178;    # zheader_ofs
+i64 0x190;    # ztrailer_ofs
+i64 72;       # ztrailer_len
+
+dnl This is where the ZLIB data blocks would go, but we don't need any to
+dnl provoke this message so we omit them.
+
+dnl ZLIB data trailer fixed header:
+i64 -100;     # ztrailer_bias
+i64 0;        # ztrailer_zero
+0x3ff000;     # block_size
+2;            # n_blocks
+
+dnl ZLIB block descriptor 1:
+i64 0x178;    # uncompressed_ofs
+i64 0x190;    # compressed_ofs
+0x100000;     # uncompressed_size
+0x12345;      # compressed_size
+
+dnl ZLIB block descriptor 2:
+i64 0x100178; # uncompressed_ofs
+i64 0x12405;  # compressed_ofs
+0x100000;     # uncompressed_size
+0x12345;      # compressed_size
+])
+for variant in \
+	"be 72ebf57bffa340afe16ed79959faac09" \
+	"le 80b34e98f6b181dcc2e8ca4ba13f768d"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [warning: `sys-file.sav' near offset 0x1a8: ZLIB block descriptor 0 reported block size 0x100000, when 0x3ff000 was expected.
+error: `sys-file.sav' near offset 0x1c0: ZLIB block descriptor 1 reported compressed data offset 0x12405, when 0x124d5 was expected.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - uncompressed_size > block_size])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*uncompressed_size.*/>>0x400000<<;/' > sys-file.sack
+for variant in \
+	"be 9bb74ef407fe0b79e43c388eedc28212" \
+	"le 6f145fb5f820c513f50b6f81310cdad5"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [warning: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reported block size 0x400000, when at most 0x3ff000 was expected.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - compression expands data too much])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*uncompressed_size.*/>>50<<;/
+s/.*\bcompressed_size.*/>>100<<;/' > sys-file.sack
+for variant in \
+	"be e11cadde5f0855c965a1cb388dedc36e" \
+	"le 37953e71462b6554c5644fec8b539164"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reports compressed size 100 and uncompressed size 50.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - compressed sizes don't add up])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*\bcompressed_size.*/>>88<<;/' > sys-file.sack
+for variant in \
+	"be 366eaf85be1f26fb6549e2f8ee393628" \
+	"le a756e5125e6a908cb4990f66cc419bef"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x219: ZLIB trailer is at offset 0x1e9 but 0x1e8 would be expected from block descriptors.
+])
+done
+AT_CLEANUP

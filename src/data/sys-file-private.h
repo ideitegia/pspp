@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006-2007, 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2006-2007, 2009-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,13 +35,18 @@
 
 struct dictionary;
 
-/* Magic numbers.
+/* ASCII magic numbers. */
+#define ASCII_MAGIC  "$FL2"     /* For regular files. */
+#define ASCII_ZMAGIC "$FL3"     /* For ZLIB compressed files. */
 
-   Both of these are actually $FL2 in the respective character set.  The "FL2"
-   part is invariant among national variants of each character set, but "$" has
-   different encodings, so it is safer to write them as hexadecimal. */
-#define ASCII_MAGIC  "\x24\x46\x4c\x32"
+/* EBCDIC magic number, the same as ASCII_MAGIC but encoded in EBCDIC.
+
+   No EBCDIC ZLIB compressed files have been observed, so we do not define
+   EBCDIC_ZMAGIC even though the value is obvious. */
 #define EBCDIC_MAGIC "\x5b\xc6\xd3\xf2"
+
+/* Amount of data that ZLIB compressed data blocks typically decompress to. */
+#define ZBLOCK_SIZE 0x3ff000
 
 /* A variable in a system file. */
 struct sfm_var

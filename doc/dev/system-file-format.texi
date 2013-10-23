@@ -56,6 +56,18 @@ appears in system files only in missing value ranges, which never
 contain SYSMIS.
 @end table
 
+System files may use most character encodings based on an 8-bit unit.
+UTF-16 and UTF-32, based on wider units, appear to be unacceptable.
+@code{rec_type} in the file header record is sufficient to distinguish
+between ASCII and EBCDIC based encodings.  The best way to determine
+the specific encoding in use is to consult the character encoding
+record (@pxref{Character Encoding Record}), if present, and failing
+that the @code{character_code} in the machine integer info record
+(@pxref{Machine Integer Info Record}).  The same encoding should be
+used for the dictionary and the data in the file, although it is
+possible to artificially synthesize files that use different encodings
+(@pxref{Character Encoding Record}).
+
 System files are divided into records, each of which begins with a
 4-byte record type, usually regarded as an @code{int32}.
 
@@ -121,7 +133,7 @@ char                rec_type[4];
 char                prod_name[60];
 int32               layout_code;
 int32               nominal_case_size;
-int32               compressed;
+int32               compression;
 int32               weight_index;
 int32               ncases;
 flt64               bias;
@@ -133,9 +145,15 @@ char                padding[3];
 
 @table @code
 @item char rec_type[4];
-Record type code, set to @samp{$FL2}, that is, either @code{24 46 4c
-32} if the file uses an ASCII-based character encoding, or @code{5b c6
-d3 f2} if the file uses an EBCDIC-based character encoding.
+Record type code, either @samp{$FL2} for system files with
+uncompressed data or data compressed with simple bytecode compression,
+or @samp{$FL3} for system files with ZLIB compressed data.
+
+This is truly a character field that uses the character encoding as
+other strings.  Thus, in a file with an ASCII-based character encoding
+this field contains @code{24 46 4c 32} or @code{24 46 4c 33}, and in a
+file with an EBCDIC-based encoding this field contains @code{5b c6 d3
+f2}.  (No EBCDIC-based ZLIB-compressed files have been observed.)
 
 @item char prod_name[60];
 Product identification string.  This always begins with the characters
@@ -160,7 +178,10 @@ files written by some systems set this value to -1.  In general, it is
 unsafe for systems reading system files to rely upon this value.
 
 @item int32 compressed;
-Set to 1 if the data in the file is compressed, 0 otherwise.
+Set to 0 if the data in the file is not compressed, 1 if the data is
+compressed with simple bytecode compression, 2 if the data is ZLIB
+compressed.  This field has value 2 if and only if @code{rec_type} is
+@samp{$FL3}.
 
 @item int32 weight_index;
 If one of the variables in the data set is used as a weighting
@@ -577,7 +598,8 @@ Floating point representation code.  For IEEE 754 systems this is 1.
 IBM 370 sets this to 2, and DEC VAX E to 3.
 
 @item int32 compression_code;
-Compression code.  Always set to 1.
+Compression code.  Always set to 1, regardless of whether or how the
+file is compressed.
 
 @item int32 endianness;
 Machine endianness.  1 indicates big-endian, 2 indicates little-endian.
@@ -1434,22 +1456,23 @@ Ignored padding.  Should be set to 0.
 @node Data Record
 @section Data Record
 
-Data records must follow all other records in the system file.  There must
-be at least one data record in every system file.
+The data record must follow all other records in the system file.
+Every system file must have a data record that specifies data for at
+least one case.  The format of the data record varies depending on the
+value of @code{compression} in the file header record:
 
-The format of data records varies depending on whether the data is
-compressed.  Regardless, the data is arranged in a series of 8-byte
-elements.
-
-When data is not compressed,
-each element corresponds to
+@table @asis
+@item 0: no compression
+Data is arranged as a series of 8-byte elements.
+Each element corresponds to
 the variable declared in the respective variable record (@pxref{Variable
 Record}).  Numeric values are given in @code{flt64} format; string
 values are literal characters string, padded on the right when
 necessary to fill out 8-byte units.
 
-Compressed data is arranged in the following manner: the first 8 bytes
-in the data section is divided into a series of 1-byte command
+@item 1: bytecode compression
+The first 8 bytes
+of the data record is divided into a series of 1-byte command
 codes.  These codes have meanings as described below:
 
 @table @asis
@@ -1487,8 +1510,125 @@ An 8-byte string value that is all spaces.
 The system-missing value.
 @end table
 
-When the end of the an 8-byte group of command bytes is reached, any
-blocks of non-compressible values indicated by code 253 are skipped,
-and the next element of command bytes is read and interpreted, until
-the end of the file or a code with value 252 is reached.
+The end of the 8-byte group of bytecodes is followed by any 8-byte
+blocks of non-compressible values indicated by code 253.  After that
+follows another 8-byte group of bytecodes, then those bytecodes'
+non-compressible values.  The pattern repeats to the end of the file
+or a code with value 252.
+
+@item 2: ZLIB compression
+The data record consists of the following, in order:
+
+@itemize @bullet
+@item
+ZLIB data header, 24 bytes long.
+
+@item
+One or more variable-length blocks of ZLIB compressed data.
+
+@item
+ZLIB data trailer, with a 24-byte fixed header plus an additional 24
+bytes for each preceding ZLIB compressed data block.
+@end itemize
+
+The ZLIB data header has the following format:
+
+@example
+int64               zheader_ofs;
+int64               ztrailer_ofs;
+int64               ztrailer_len;
+@end example
+
+@table @code
+@item int64 zheader_ofs;
+The offset, in bytes, of the beginning of this structure within the
+system file.
+
+@item int64 ztrailer_ofs;
+The offset, in bytes, of the first byte of the ZLIB data trailer.
+
+@item int64 ztrailer_len;
+The number of bytes in the ZLIB data trailer.  This and the previous
+field sum to the size of the system file in bytes.
+@end table
+
+The data header is followed by @code{(ztrailer_ofs - 24) / 24} ZLIB
+compressed data blocks.  Each ZLIB compressed data block begins with a
+ZLIB header as specified in RFC@tie{}1950, e.g.@: hex bytes @code{78
+01} (the only header yet observed in practice).  Each block
+decompresses to a fixed number of bytes (in practice only
+@code{0x3ff000}-byte blocks have been observed), except that the last
+block of data may be shorter.  The last ZLIB compressed data block
+gends just before offset @code{ztrailer_ofs}.
+
+The result of ZLIB decompression is bytecode compressed data as
+described above for compression format 1.
+
+The ZLIB data trailer begins with the following 24-byte fixed header:
+
+@example
+int64               bias;
+int64               zero;
+int32               block_size;
+int32               n_blocks;
+@end example
+
+@table @code
+@item int64 int_bias;
+The compression bias as a negative integer, e.g.@: if @code{bias} in
+the file header record is 100.0, then @code{int_bias} is @minus{}100
+(this is the only value yet observed in practice).
+
+@item int64 zero;
+Always observed to be zero.
+
+@item int32 block_size;
+The number of bytes in each ZLIB compressed data block, except
+possibly the last, following decompression.  Only @code{0x3ff000} has
+been observed so far.
+
+@item int32 n_blocks;
+The number of ZLIB compressed data blocks, always exactly
+@code{(ztrailer_ofs - 24) / 24}.
+@end table
+
+The fixed header is followed by @code{n_blocks} 24-byte ZLIB data
+block descriptors, each of which describes the compressed data block
+corresponding to its offset.  Each block descriptor has the following
+format:
+
+@example
+int64               uncompressed_ofs;
+int64               compressed_ofs;
+int32               uncompressed_size;
+int32               compressed_size;
+@end example
+
+@table @code
+@item int64 uncompressed_ofs;
+The offset, in bytes, that this block of data would have in a similar
+system file that uses compression format 1.  This is
+@code{zheader_ofs} in the first block descriptor, and in each
+succeeding block descriptor it is the sum of the previous desciptor's
+@code{uncompressed_ofs} and @code{uncompressed_size}.
+
+@item int64 compressed_ofs;
+The offset, in bytes, of the actual beginning of this compressed data
+block.  This is @code{zheader_ofs + 24} in the first block descriptor,
+and in each succeeding block descriptor it is the sum of the previous
+descriptor's @code{compressed_ofs} and @code{compressed_size}.  The
+final block descriptor's @code{compressed_ofs} and
+@code{compressed_size} sum to @code{ztrailer_ofs}.
+
+@item int32 uncompressed_size;
+The number of bytes in this data block, after decompression.  This is
+@code{block_size} in every data block except the last, which may be
+smaller.
+
+@item int32 compressed_size;
+The number of bytes in this data block, as stored compressed in this
+system file.
+@end table
+@end table
+
 @setfilename ignored

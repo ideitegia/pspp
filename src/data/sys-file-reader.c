@@ -24,6 +24,8 @@
 #include <inttypes.h>
 #include <setjmp.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <zlib.h>
 
 #include "data/attributes.h"
 #include "data/case.h"
@@ -57,6 +59,7 @@
 #include "gl/minmax.h"
 #include "gl/unlocked-io.h"
 #include "gl/xalloc.h"
+#include "gl/xalloc-oversized.h"
 #include "gl/xsize.h"
 
 #include "gettext.h"
@@ -173,11 +176,21 @@ struct sfm_reader
     const char *encoding;       /* String encoding. */
 
     /* Decompression. */
-    bool compressed;		/* File is compressed? */
+    enum sfm_compression compression;
     double bias;		/* Compression bias, usually 100.0. */
     uint8_t opcodes[8];         /* Current block of opcodes. */
     size_t opcode_idx;          /* Next opcode to interpret, 8 if none left. */
     bool corruption_warning;    /* Warned about possible corruption? */
+
+    /* ZLIB decompression. */
+    long long int ztrailer_ofs; /* Offset of ZLIB trailer at end of file. */
+#define ZIN_BUF_SIZE  4096
+    uint8_t *zin_buf;           /* Inflation input buffer. */
+#define ZOUT_BUF_SIZE 16384
+    uint8_t *zout_buf;          /* Inflation output buffer. */
+    unsigned int zout_end;      /* Number of bytes of data in zout_buf. */
+    unsigned int zout_pos;      /* First unconsumed byte in zout_buf. */
+    z_stream zstream;           /* ZLIB inflater. */
   };
 
 static const struct casereader_class sys_file_casereader_class;
@@ -200,9 +213,18 @@ static void sys_error (struct sfm_reader *, off_t, const char *, ...)
 static void read_bytes (struct sfm_reader *, void *, size_t);
 static bool try_read_bytes (struct sfm_reader *, void *, size_t);
 static int read_int (struct sfm_reader *);
-static double read_float (struct sfm_reader *);
+static long long int read_int64 (struct sfm_reader *);
 static void read_string (struct sfm_reader *, char *, size_t);
 static void skip_bytes (struct sfm_reader *, size_t);
+
+/* ZLIB compressed data handling. */
+static void read_zheader (struct sfm_reader *);
+static void open_zstream (struct sfm_reader *);
+static void close_zstream (struct sfm_reader *);
+static bool read_bytes_zlib (struct sfm_reader *, void *, size_t);
+static void read_compressed_bytes (struct sfm_reader *, void *, size_t);
+static bool try_read_compressed_bytes (struct sfm_reader *, void *, size_t);
+static double read_compressed_float (struct sfm_reader *);
 
 static char *fix_line_ends (const char *);
 
@@ -367,6 +389,7 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
   r->error = false;
   r->opcode_idx = sizeof r->opcodes;
   r->corruption_warning = false;
+  r->zin_buf = r->zout_buf = NULL;
 
   info = infop ? infop : xmalloc (sizeof *info);
   memset (info, 0, sizeof *info);
@@ -471,6 +494,9 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
           goto error;
         }
     }
+
+  if (r->compression == SFM_COMP_ZLIB)
+    read_zheader (r);
 
   /* Now actually parse what we read.
 
@@ -646,7 +672,9 @@ sfm_detect (FILE *file)
     return false;
   magic[4] = '\0';
 
-  return !strcmp (ASCII_MAGIC, magic) || !strcmp (EBCDIC_MAGIC, magic);
+  return (!strcmp (ASCII_MAGIC, magic)
+          || !strcmp (ASCII_ZMAGIC, magic)
+          || !strcmp (EBCDIC_MAGIC, magic));
 }
 
 /* Reads the global header of the system file.  Initializes *HEADER and *INFO,
@@ -658,12 +686,18 @@ read_header (struct sfm_reader *r, struct sfm_read_info *info,
 {
   uint8_t raw_layout_code[4];
   uint8_t raw_bias[8];
+  int compressed;
+  bool zmagic;
 
   read_string (r, header->magic, sizeof header->magic);
   read_string (r, header->eye_catcher, sizeof header->eye_catcher);
 
-  if (strcmp (ASCII_MAGIC, header->magic)
-      && strcmp (EBCDIC_MAGIC, header->magic))
+  if (!strcmp (ASCII_MAGIC, header->magic)
+      || !strcmp (EBCDIC_MAGIC, header->magic))
+    zmagic = false;
+  else if (!strcmp (ASCII_ZMAGIC, header->magic))
+    zmagic = true;
+  else
     sys_error (r, 0, _("This is not an SPSS system file."));
 
   /* Identify integer format. */
@@ -681,7 +715,25 @@ read_header (struct sfm_reader *r, struct sfm_read_info *info,
       || header->nominal_case_size > INT_MAX / 16)
     header->nominal_case_size = -1;
 
-  r->compressed = read_int (r) != 0;
+  compressed = read_int (r);
+  if (!zmagic)
+    {
+      if (compressed == 0)
+        r->compression = SFM_COMP_NONE;
+      else if (compressed == 1)
+        r->compression = SFM_COMP_SIMPLE;
+      else if (compressed != 0)
+        sys_error (r, 0, "System file header has invalid compression "
+                   "value %d.", compressed);
+    }
+  else
+    {
+      if (compressed == 2)
+        r->compression = SFM_COMP_ZLIB;
+      else
+        sys_error (r, 0, "ZLIB-compressed system file header has invalid "
+                   "compression value %d.", compressed);
+    }
 
   header->weight_idx = read_int (r);
 
@@ -723,7 +775,7 @@ read_header (struct sfm_reader *r, struct sfm_read_info *info,
 
   info->integer_format = r->integer_format;
   info->float_format = r->float_format;
-  info->compressed = r->compressed;
+  info->compression = r->compression;
   info->case_cnt = r->case_cnt;
 }
 
@@ -2289,7 +2341,7 @@ read_error (struct casereader *r, const struct sfm_reader *sfm)
 static bool
 read_case_number (struct sfm_reader *r, double *d)
 {
-  if (!r->compressed)
+  if (r->compression == SFM_COMP_NONE)
     {
       uint8_t number[8];
       if (!try_read_bytes (r, number, sizeof number))
@@ -2339,13 +2391,13 @@ read_case_string (struct sfm_reader *r, uint8_t *s, size_t length)
 static int
 read_opcode (struct sfm_reader *r)
 {
-  assert (r->compressed);
+  assert (r->compression != SFM_COMP_NONE);
   for (;;)
     {
       int opcode;
       if (r->opcode_idx >= sizeof r->opcodes)
         {
-          if (!try_read_bytes (r, r->opcodes, sizeof r->opcodes))
+          if (!try_read_compressed_bytes (r, r->opcodes, sizeof r->opcodes))
             return -1;
           r->opcode_idx = 0;
         }
@@ -2370,7 +2422,7 @@ read_compressed_number (struct sfm_reader *r, double *d)
       return false;
 
     case 253:
-      *d = read_float (r);
+      *d = read_compressed_float (r);
       break;
 
     case 254:
@@ -2411,7 +2463,7 @@ read_compressed_string (struct sfm_reader *r, uint8_t *dst)
       return false;
 
     case 253:
-      read_bytes (r, dst, 8);
+      read_compressed_bytes (r, dst, 8);
       break;
 
     case 254:
@@ -2453,7 +2505,7 @@ static bool
 read_whole_strings (struct sfm_reader *r, uint8_t *s, size_t length)
 {
   assert (length % 8 == 0);
-  if (!r->compressed)
+  if (r->compression == SFM_COMP_NONE)
     return try_read_bytes (r, s, length);
   else
     {
@@ -2820,14 +2872,14 @@ read_int (struct sfm_reader *r)
   return integer_get (r->integer_format, integer, sizeof integer);
 }
 
-/* Reads a 64-bit floating-point number from R and returns its
-   value in host format. */
-static double
-read_float (struct sfm_reader *r)
+/* Reads a 64-bit signed integer from R and returns its value in
+   host format. */
+static long long int
+read_int64 (struct sfm_reader *r)
 {
-  uint8_t number[8];
-  read_bytes (r, number, sizeof number);
-  return float_get_double (r->float_format, number);
+  uint8_t integer[8];
+  read_bytes (r, integer, sizeof integer);
+  return integer_get (r->integer_format, integer, sizeof integer);
 }
 
 static int
@@ -2892,6 +2944,308 @@ fix_line_ends (const char *s)
   *d = '\0';
 
   return dst;
+}
+
+static void
+read_ztrailer (struct sfm_reader *r,
+               long long int zheader_ofs,
+               long long int ztrailer_len);
+
+static void *
+zalloc (voidpf pool_, uInt items, uInt size)
+{
+  struct pool *pool = pool_;
+
+  return (!size || xalloc_oversized (items, size)
+          ? Z_NULL
+          : pool_malloc (pool, items * size));
+}
+
+static void
+zfree (voidpf pool_, voidpf address)
+{
+  struct pool *pool = pool_;
+
+  pool_free (pool, address);
+}
+
+static void
+read_zheader (struct sfm_reader *r)
+{
+  off_t pos = r->pos;
+  long long int zheader_ofs = read_int64 (r);
+  long long int ztrailer_ofs = read_int64 (r);
+  long long int ztrailer_len = read_int64 (r);
+
+  if (zheader_ofs != pos)
+    sys_error (r, pos, _("Wrong ZLIB data header offset %#llx "
+                         "(expected %#llx)."),
+               zheader_ofs, (long long int) pos);
+
+  if (ztrailer_ofs < r->pos)
+    sys_error (r, pos, _("Impossible ZLIB trailer offset 0x%llx."),
+               ztrailer_ofs);
+
+  if (ztrailer_len < 24 || ztrailer_len % 24)
+    sys_error (r, pos, _("Invalid ZLIB trailer length %lld."), ztrailer_len);
+
+  r->ztrailer_ofs = ztrailer_ofs;
+  read_ztrailer (r, zheader_ofs, ztrailer_len);
+
+  if (r->zin_buf == NULL)
+    {
+      r->zin_buf = pool_malloc (r->pool, ZIN_BUF_SIZE);
+      r->zout_buf = pool_malloc (r->pool, ZOUT_BUF_SIZE);
+      r->zstream.next_in = NULL;
+      r->zstream.avail_in = 0;
+    }
+
+  r->zstream.zalloc = zalloc;
+  r->zstream.zfree = zfree;
+  r->zstream.opaque = r->pool;
+
+  open_zstream (r);
+}
+
+static void
+seek (struct sfm_reader *r, off_t offset)
+{
+  if (fseeko (r->file, offset, SEEK_SET))
+    sys_error (r, 0, _("%s: seek failed (%s)."),
+               fh_get_file_name (r->fh), strerror (errno));
+  r->pos = offset;
+}
+
+/* Performs some additional consistency checks on the ZLIB compressed data
+   trailer. */
+static void
+read_ztrailer (struct sfm_reader *r,
+               long long int zheader_ofs,
+               long long int ztrailer_len)
+{
+  long long int expected_uncmp_ofs;
+  long long int expected_cmp_ofs;
+  long long int bias;
+  long long int zero;
+  unsigned int block_size;
+  unsigned int n_blocks;
+  unsigned int i;
+  struct stat s;
+
+  if (fstat (fileno (r->file), &s))
+    sys_error (ME, 0, _("%s: stat failed (%s)."),
+               fh_get_file_name (r->fh), strerror (errno));
+
+  if (!S_ISREG (s.st_mode))
+    {
+      /* We can't seek to the trailer and then back to the data in this file,
+         so skip doing extra checks. */
+      return;
+    }
+
+  if (r->ztrailer_ofs + ztrailer_len != s.st_size)
+    sys_warn (r, r->pos,
+              _("End of ZLIB trailer (0x%llx) is not file size (0x%llx)."),
+              r->ztrailer_ofs + ztrailer_len, (long long int) s.st_size);
+
+  seek (r, r->ztrailer_ofs);
+
+  /* Read fixed header from ZLIB data trailer. */
+  bias = read_int64 (r);
+  if (-bias != r->bias)
+    sys_error (r, r->pos, _("ZLIB trailer bias (%lld) differs from "
+                            "file header bias (%.2f)."),
+               -bias, r->bias);
+
+  zero = read_int64 (r);
+  if (zero != 0)
+    sys_warn (r, r->pos,
+              _("ZLIB trailer \"zero\" field has nonzero value %lld."), zero);
+
+  block_size = read_int (r);
+  if (block_size != ZBLOCK_SIZE)
+    sys_warn (r, r->pos,
+              _("ZLIB trailer specifies unexpected %u-byte block size."),
+              block_size);
+
+  n_blocks = read_int (r);
+  if (n_blocks != (ztrailer_len - 24) / 24)
+    sys_error (r, r->pos,
+               _("%lld-byte ZLIB trailer specifies %u data blocks (expected "
+                 "%lld)."),
+               ztrailer_len, n_blocks, (ztrailer_len - 24) / 24);
+
+  expected_uncmp_ofs = zheader_ofs;
+  expected_cmp_ofs = zheader_ofs + 24;
+  for (i = 0; i < n_blocks; i++)
+    {
+      off_t desc_ofs = r->pos;
+      unsigned long long int uncompressed_ofs = read_int64 (r);
+      unsigned long long int compressed_ofs = read_int64 (r);
+      unsigned int uncompressed_size = read_int (r);
+      unsigned int compressed_size = read_int (r);
+
+      if (uncompressed_ofs != expected_uncmp_ofs)
+        sys_error (r, desc_ofs,
+                   _("ZLIB block descriptor %u reported uncompressed data "
+                     "offset %#llx, when %#llx was expected."),
+                   i, uncompressed_ofs, expected_uncmp_ofs);
+
+      if (compressed_ofs != expected_cmp_ofs)
+        sys_error (r, desc_ofs,
+                   _("ZLIB block descriptor %u reported compressed data "
+                     "offset %#llx, when %#llx was expected."),
+                   i, compressed_ofs, expected_cmp_ofs);
+
+      if (i < n_blocks - 1)
+        {
+          if (uncompressed_size != block_size)
+            sys_warn (r, desc_ofs,
+                      _("ZLIB block descriptor %u reported block size %#x, "
+                        "when %#x was expected."),
+                      i, uncompressed_size, block_size);
+        }
+      else
+        {
+          if (uncompressed_size > block_size)
+            sys_warn (r, desc_ofs,
+                      _("ZLIB block descriptor %u reported block size %#x, "
+                        "when at most %#x was expected."),
+                      i, uncompressed_size, block_size);
+        }
+
+      /* http://www.zlib.net/zlib_tech.html says that the maximum expansion
+         from compression, with worst-case parameters, is 13.5% plus 11 bytes.
+         This code checks for an expansion of more than 14.3% plus 11
+         bytes.  */
+      if (compressed_size > uncompressed_size + uncompressed_size / 7 + 11)
+        sys_error (r, desc_ofs,
+                   _("ZLIB block descriptor %u reports compressed size %u "
+                     "and uncompressed size %u."),
+                   i, compressed_size, uncompressed_size);
+
+      expected_uncmp_ofs += uncompressed_size;
+      expected_cmp_ofs += compressed_size;
+    }
+
+  if (expected_cmp_ofs != r->ztrailer_ofs)
+    sys_error (r, r->pos, _("ZLIB trailer is at offset %#llx but %#llx "
+                            "would be expected from block descriptors."),
+               r->ztrailer_ofs, expected_cmp_ofs);
+
+  seek (r, zheader_ofs + 24);
+}
+
+static void
+open_zstream (struct sfm_reader *r)
+{
+  int error;
+
+  r->zout_pos = r->zout_end = 0;
+  error = inflateInit (&r->zstream);
+  if (error != Z_OK)
+    sys_error (r, r->pos, _("ZLIB initialization failed (%s)."),
+               r->zstream.msg);
+}
+
+static void
+close_zstream (struct sfm_reader *r)
+{
+  int error;
+
+  error = inflateEnd (&r->zstream);
+  if (error != Z_OK)
+    sys_error (r, r->pos, _("Inconsistency at end of ZLIB stream (%s)."),
+               r->zstream.msg);
+}
+
+static bool
+read_bytes_zlib (struct sfm_reader *r, void *buf_, size_t byte_cnt)
+{
+  uint8_t *buf = buf_;
+
+  if (byte_cnt == 0)
+    return true;
+
+  for (;;)
+    {
+      int error;
+
+      /* Use already inflated data if there is any. */
+      if (r->zout_pos < r->zout_end)
+        {
+          unsigned int n = MIN (byte_cnt, r->zout_end - r->zout_pos);
+          memcpy (buf, &r->zout_buf[r->zout_pos], n);
+          r->zout_pos += n;
+          byte_cnt -= n;
+          buf += n;
+
+          if (byte_cnt == 0)
+            return true;
+        }
+
+      /* We need to inflate some more data.
+         Get some more input data if we don't have any. */
+      if (r->zstream.avail_in == 0)
+        {
+          unsigned int n = MIN (ZIN_BUF_SIZE, r->ztrailer_ofs - r->pos);
+          if (n == 0 || !try_read_bytes (r, r->zin_buf, n))
+            return false;
+          r->zstream.avail_in = n;
+          r->zstream.next_in = r->zin_buf;
+        }
+
+      /* Inflate the (remaining) input data. */
+      r->zstream.avail_out = ZOUT_BUF_SIZE;
+      r->zstream.next_out = r->zout_buf;
+      error = inflate (&r->zstream, Z_SYNC_FLUSH);
+      r->zout_pos = 0;
+      r->zout_end = r->zstream.next_out - r->zout_buf;
+      if (r->zout_end == 0)
+        {
+          if (error == Z_STREAM_END)
+            {
+              close_zstream (r);
+              open_zstream (r);
+            }
+          else
+            sys_error (r, r->pos, _("ZLIB stream inconsistency (%s)."),
+                       r->zstream.msg);
+        }
+      else
+        {
+          /* Process the output data and ignore 'error' for now.  ZLIB will
+             present it to us again on the next inflate() call. */
+        }
+    }
+}
+
+static void
+read_compressed_bytes (struct sfm_reader *r, void *buf, size_t byte_cnt)
+{
+  if (r->compression == SFM_COMP_SIMPLE)
+    return read_bytes (r, buf, byte_cnt);
+  else if (!read_bytes_zlib (r, buf, byte_cnt))
+    sys_error (r, r->pos, _("Unexpected end of ZLIB compressed data."));
+}
+
+static bool
+try_read_compressed_bytes (struct sfm_reader *r, void *buf, size_t byte_cnt)
+{
+  if (r->compression == SFM_COMP_SIMPLE)
+    return try_read_bytes (r, buf, byte_cnt);
+  else
+    return read_bytes_zlib (r, buf, byte_cnt);
+}
+
+/* Reads a 64-bit floating-point number from R and returns its
+   value in host format. */
+static double
+read_compressed_float (struct sfm_reader *r)
+{
+  uint8_t number[8];
+  read_compressed_bytes (r, number, sizeof number);
+  return float_get_double (r->float_format, number);
 }
 
 static const struct casereader_class sys_file_casereader_class =

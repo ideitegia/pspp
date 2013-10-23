@@ -9,6 +9,10 @@ Changes since 0.8.1:
  * Charts are now rendered with colours from the Tango palette instead
    of fully saturated primaries.
 
+ * PSPP can now read and write ZCOMPRESSED system files, a new format
+   variant that compresses data much more effectively than the
+   previous form of compression (which is still supported).
+
  * Missing values for long string variables are now read from and
    written to system files in an SPSS-compatible fashion.
 

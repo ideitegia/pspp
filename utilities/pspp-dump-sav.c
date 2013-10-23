@@ -39,6 +39,13 @@
 
 #define ID_MAX_LEN 64
 
+enum compression
+  {
+    COMP_NONE,
+    COMP_SIMPLE,
+    COMP_ZLIB
+  };
+
 struct sfm_reader
   {
     const char *file_name;
@@ -52,7 +59,7 @@ struct sfm_reader
     enum integer_format integer_format;
     enum float_format float_format;
 
-    bool compressed;
+    enum compression compression;
     double bias;
   };
 
@@ -87,7 +94,8 @@ static void read_long_string_missing_values (struct sfm_reader *r,
                                              size_t size, size_t count);
 static void read_unknown_extension (struct sfm_reader *,
                                     size_t size, size_t count);
-static void read_compressed_data (struct sfm_reader *, int max_cases);
+static void read_simple_compressed_data (struct sfm_reader *, int max_cases);
+static void read_zlib_compressed_data (struct sfm_reader *);
 
 static struct text_record *open_text_record (
   struct sfm_reader *, size_t size);
@@ -180,7 +188,7 @@ main (int argc, char *argv[])
       r.n_var_widths = 0;
       r.allocated_var_widths = 0;
       r.var_widths = 0;
-      r.compressed = false;
+      r.compression = COMP_NONE;
 
       if (argc - optind > 1)
         printf ("Reading \"%s\":\n", r.file_name);
@@ -218,8 +226,13 @@ main (int argc, char *argv[])
               (long long int) ftello (r.file),
               (long long int) ftello (r.file) + 4);
 
-      if (r.compressed && max_cases > 0)
-        read_compressed_data (&r, max_cases);
+      if (r.compression == COMP_SIMPLE)
+        {
+          if (max_cases > 0)
+            read_simple_compressed_data (&r, max_cases);
+        }
+      else if (r.compression == COMP_ZLIB)
+        read_zlib_compressed_data (&r);
 
       fclose (r.file);
     }
@@ -241,11 +254,16 @@ read_header (struct sfm_reader *r)
   char creation_date[10];
   char creation_time[9];
   char file_label[65];
+  bool zmagic;
 
   read_string (r, rec_type, sizeof rec_type);
   read_string (r, eye_catcher, sizeof eye_catcher);
 
-  if (strcmp ("$FL2", rec_type) != 0)
+  if (!strcmp ("$FL2", rec_type))
+    zmagic = false;
+  else if (!strcmp ("$FL3", rec_type))
+    zmagic = true;
+  else
     sys_error (r, "This is not an SPSS system file.");
 
   /* Identify integer format. */
@@ -265,7 +283,24 @@ read_header (struct sfm_reader *r)
   weight_index = read_int (r);
   ncases = read_int (r);
 
-  r->compressed = compressed != 0;
+  if (!zmagic)
+    {
+      if (compressed == 0)
+        r->compression = COMP_NONE;
+      else if (compressed == 1)
+        r->compression = COMP_SIMPLE;
+      else if (compressed != 0)
+        sys_error (r, "SAV file header has invalid compression value "
+                   "%"PRId32".", compressed);
+    }
+  else
+    {
+      if (compressed == 2)
+        r->compression = COMP_ZLIB;
+      else
+        sys_error (r, "ZSAV file header has invalid compression value "
+                   "%"PRId32".", compressed);
+    }
 
   /* Identify floating-point format and obtain compression bias. */
   read_bytes (r, raw_bias, sizeof raw_bias);
@@ -289,7 +324,12 @@ read_header (struct sfm_reader *r)
   printf ("File header record:\n");
   printf ("\t%17s: %s\n", "Product name", eye_catcher);
   printf ("\t%17s: %"PRId32"\n", "Layout code", layout_code);
-  printf ("\t%17s: %"PRId32"\n", "Compressed", compressed);
+  printf ("\t%17s: %"PRId32" (%s)\n", "Compressed",
+          compressed,
+          r->compression == COMP_NONE ? "no compression"
+          : r->compression == COMP_SIMPLE ? "simple compression"
+          : r->compression == COMP_ZLIB ? "ZLIB compression"
+          : "<error>");
   printf ("\t%17s: %"PRId32"\n", "Weight index", weight_index);
   printf ("\t%17s: %"PRId32"\n", "Number of cases", ncases);
   printf ("\t%17s: %g\n", "Compression bias", r->bias);
@@ -1170,7 +1210,7 @@ read_variable_attributes (struct sfm_reader *r, size_t size, size_t count)
 }
 
 static void
-read_compressed_data (struct sfm_reader *r, int max_cases)
+read_simple_compressed_data (struct sfm_reader *r, int max_cases)
 {
   enum { N_OPCODES = 8 };
   uint8_t opcodes[N_OPCODES];
@@ -1256,6 +1296,87 @@ read_compressed_data (struct sfm_reader *r, int max_cases)
 
           opcode_idx++;
         }
+    }
+}
+
+static void
+read_zlib_compressed_data (struct sfm_reader *r)
+{
+  long long int ofs;
+  long long int this_ofs, next_ofs, next_len;
+  long long int bias, zero;
+  long long int expected_uncmp_ofs, expected_cmp_ofs;
+  unsigned int block_size, n_blocks;
+  unsigned int i;
+
+  read_int (r);
+  ofs = ftello (r->file);
+  printf ("\n%08llx: ZLIB compressed data header:\n", ofs);
+
+  this_ofs = read_int64 (r);
+  next_ofs = read_int64 (r);
+  next_len = read_int64 (r);
+
+  printf ("\tzheader_ofs: 0x%llx\n", this_ofs);
+  if (this_ofs != ofs)
+    printf ("\t\t(Expected 0x%llx.)\n", ofs);
+  printf ("\tztrailer_ofs: 0x%llx\n", next_ofs);
+  printf ("\tztrailer_len: %lld\n", next_len);
+  if (next_len < 24 || next_len % 24)
+    printf ("\t\t(Trailer length is not a positive multiple of 24.)\n");
+
+  printf ("\n%08llx: 0x%llx bytes of ZLIB compressed data\n",
+          ofs + 8 * 3, next_ofs - (ofs + 8 * 3));
+
+  skip_bytes (r, next_ofs - (ofs + 8 * 3));
+
+  printf ("\n%08llx: ZLIB trailer fixed header:\n", next_ofs);
+  bias = read_int64 (r);
+  zero = read_int64 (r);
+  block_size = read_int (r);
+  n_blocks = read_int (r);
+  printf ("\tbias: %lld\n", bias);
+  printf ("\tzero: 0x%llx\n", zero);
+  if (zero != 0)
+    printf ("\t\t(Expected 0.)\n");
+  printf ("\tblock_size: 0x%x\n", block_size);
+  if (block_size != 0x3ff000)
+    printf ("\t\t(Expected 0x3ff000.)\n");
+  printf ("\tn_blocks: %u\n", n_blocks);
+  if (n_blocks != next_len / 24 - 1)
+    printf ("\t\t(Expected %llu.)\n", next_len / 24 - 1);
+
+  expected_uncmp_ofs = ofs;
+  expected_cmp_ofs = ofs + 24;
+  for (i = 0; i < n_blocks; i++)
+    {
+      long long int blockinfo_ofs = ftello (r->file);
+      unsigned long long int uncompressed_ofs = read_int64 (r);
+      unsigned long long int compressed_ofs = read_int64 (r);
+      unsigned int uncompressed_size = read_int (r);
+      unsigned int compressed_size = read_int (r);
+
+      printf ("\n%08llx: ZLIB block descriptor %d\n", blockinfo_ofs, i + 1);
+
+      printf ("\tuncompressed_ofs: 0x%llx\n", uncompressed_ofs);
+      if (uncompressed_ofs != expected_uncmp_ofs)
+        printf ("\t\t(Expected 0x%llx.)\n", ofs);
+
+      printf ("\tcompressed_ofs: 0x%llx\n", compressed_ofs);
+      if (compressed_ofs != expected_cmp_ofs)
+        printf ("\t\t(Expected 0x%llx.)\n", ofs + 24);
+
+      printf ("\tuncompressed_size: 0x%x\n", uncompressed_size);
+      if (i < n_blocks - 1 && uncompressed_size != block_size)
+        printf ("\t\t(Expected 0x%x.)\n", block_size);
+
+      printf ("\tcompressed_size: 0x%x\n", compressed_size);
+      if (i == n_blocks - 1 && compressed_ofs + compressed_size != next_ofs)
+        printf ("\t\t(This was expected to be 0x%llx.)\n",
+                next_ofs - compressed_size);
+
+      expected_uncmp_ofs += uncompressed_size;
+      expected_cmp_ofs += compressed_size;
     }
 }
 

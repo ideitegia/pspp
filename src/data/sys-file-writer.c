@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <zlib.h>
 
 #include "data/attributes.h"
 #include "data/case.h"
@@ -72,11 +73,11 @@ struct sfm_writer
     FILE *file;			/* File stream. */
     struct replace_file *rf;    /* Ticket for replacing output file. */
 
-    bool compress;		/* 1=compressed, 0=not compressed. */
+    enum sfm_compression compression;
     casenumber case_cnt;	/* Number of cases written so far. */
     uint8_t space;              /* ' ' in the file's character encoding. */
 
-    /* Compression buffering.
+    /* Simple compression buffering.
 
        Compressed data is output as a series of 8-byte elements, with 1 to 9
        such elements clustered together.  The first element in a cluster is 8
@@ -89,11 +90,23 @@ struct sfm_writer
     int n_opcodes;              /* Number of opcodes in cbuf[0] so far. */
     int n_elements;             /* Number of elements in cbuf[] so far. */
 
+    /* ZLIB compression. */
+    z_stream zstream;           /* ZLIB deflater. */
+    off_t zstart;
+    struct zblock *blocks;
+    size_t n_blocks, allocated_blocks;
+
     /* Variables. */
     struct sfm_var *sfm_vars;   /* Variables. */
     size_t sfm_var_cnt;         /* Number of variables. */
     size_t segment_cnt;         /* Number of variables including extra segments
                                    for long string variables. */
+  };
+
+struct zblock
+  {
+    unsigned int uncompressed_size;
+    unsigned int compressed_size;
   };
 
 static const struct casewriter_class sys_file_casewriter_class;
@@ -134,6 +147,7 @@ static void write_variable_attributes (struct sfm_writer *,
                                        const struct dictionary *);
 
 static void write_int (struct sfm_writer *, int32_t);
+static void write_int64 (struct sfm_writer *, int64_t);
 static inline void convert_double_to_output_format (double, uint8_t[8]);
 static void write_float (struct sfm_writer *, double);
 static void write_string (struct sfm_writer *, const char *, size_t);
@@ -156,6 +170,10 @@ static void put_cmp_opcode (struct sfm_writer *, uint8_t);
 static void put_cmp_number (struct sfm_writer *, double);
 static void put_cmp_string (struct sfm_writer *, const void *, size_t);
 
+static bool start_zstream (struct sfm_writer *);
+static void finish_zstream (struct sfm_writer *);
+static void write_ztrailer (struct sfm_writer *);
+
 static bool write_error (const struct sfm_writer *);
 static bool close_writer (struct sfm_writer *);
 
@@ -164,8 +182,10 @@ struct sfm_write_options
 sfm_writer_default_options (void)
 {
   struct sfm_write_options opts;
+  opts.compression = (settings_get_scompression ()
+                      ? SFM_COMP_SIMPLE
+                      : SFM_COMP_NONE);
   opts.create_writeable = true;
-  opts.compress = settings_get_scompression ();
   opts.version = 3;
   return opts;
 }
@@ -194,13 +214,20 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     }
 
   /* Create and initialize writer. */
-  w = xmalloc (sizeof *w);
+  w = xzalloc (sizeof *w);
   w->fh = fh_ref (fh);
   w->lock = NULL;
   w->file = NULL;
   w->rf = NULL;
 
-  w->compress = opts.compress;
+  /* Use the requested compression, except that no EBCDIC-based ZLIB compressed
+     files have been observed, so drop back to simple compression for those
+     files. */
+  w->compression = opts.compression;
+  if (w->compression == SFM_COMP_ZLIB
+      && is_encoding_ebcdic_compatible (dict_get_encoding (d)))
+    w->compression = SFM_COMP_SIMPLE;
+
   w->case_cnt = 0;
 
   w->n_opcodes = w->n_elements = 0;
@@ -279,6 +306,20 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   write_int (w, 999);
   write_int (w, 0);
 
+  if (w->compression == SFM_COMP_ZLIB)
+    {
+      w->zstream.zalloc = Z_NULL;
+      w->zstream.zfree = Z_NULL;
+      w->zstream.opaque = Z_NULL;
+      w->zstart = ftello (w->file);
+
+      write_int64 (w, w->zstart);
+      write_int64 (w, 0);
+      write_int64 (w, 0);
+
+      start_zstream (w);
+    }
+
   if (write_error (w))
     goto error;
 
@@ -336,6 +377,8 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   /* Record-type code. */
   if (is_encoding_ebcdic_compatible (dict_encoding))
     write_string (w, EBCDIC_MAGIC, 4);
+  else if (w->compression == SFM_COMP_ZLIB)
+    write_string (w, ASCII_ZMAGIC, 4);
   else
     write_string (w, ASCII_MAGIC, 4);
 
@@ -351,7 +394,9 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   write_int (w, calc_oct_idx (d, NULL));
 
   /* Compressed? */
-  write_int (w, w->compress);
+  write_int (w, (w->compression == SFM_COMP_NONE ? 0
+                 : w->compression == SFM_COMP_SIMPLE ? 1
+                 : 2));
 
   /* Weight variable. */
   weight = dict_get_weight (d);
@@ -1171,7 +1216,7 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
 
   w->case_cnt++;
 
-  if (!w->compress)
+  if (w->compression == SFM_COMP_NONE)
     write_case_uncompressed (w, c);
   else
     write_case_compressed (w, c);
@@ -1210,6 +1255,11 @@ close_writer (struct sfm_writer *w)
     {
       /* Flush buffer. */
       flush_compressed (w);
+      if (w->compression == SFM_COMP_ZLIB)
+        {
+          finish_zstream (w);
+          write_ztrailer (w);
+        }
       fflush (w->file);
 
       ok = !write_error (w);
@@ -1233,6 +1283,8 @@ close_writer (struct sfm_writer *w)
       if (ok ? !replace_file_commit (w->rf) : !replace_file_abort (w->rf))
         ok = false;
     }
+
+  free (w->blocks);
 
   fh_unlock (w->lock);
   fh_unref (w->fh);
@@ -1324,13 +1376,142 @@ write_case_compressed (struct sfm_writer *w, const struct ccase *c)
     }
 }
 
+static bool
+start_zstream (struct sfm_writer *w)
+{
+  int error;
+
+  error = deflateInit (&w->zstream, 1);
+  if (error != Z_OK)
+    {
+      msg (ME, _("Failed to initialize ZLIB for compression (%s)."),
+           w->zstream.msg);
+      return false;
+    }
+  return true;
+}
+
+static void
+finish_zstream (struct sfm_writer *w)
+{
+  struct zblock *block;
+  int error;
+
+  assert (w->zstream.total_in <= ZBLOCK_SIZE);
+
+  w->zstream.next_in = NULL;
+  w->zstream.avail_in = 0;
+  do
+    {
+      uint8_t buf[4096];
+
+      w->zstream.next_out = buf;
+      w->zstream.avail_out = sizeof buf;
+      error = deflate (&w->zstream, Z_FINISH);
+      write_bytes (w, buf, w->zstream.next_out - buf);
+    }
+  while (error == Z_OK);
+
+  if (error != Z_STREAM_END)
+    msg (ME, _("Failed to complete ZLIB stream compression (%s)."),
+         w->zstream.msg);
+
+  if (w->n_blocks >= w->allocated_blocks)
+    w->blocks = x2nrealloc (w->blocks, &w->allocated_blocks,
+                            sizeof *w->blocks);
+  block = &w->blocks[w->n_blocks++];
+  block->uncompressed_size = w->zstream.total_in;
+  block->compressed_size = w->zstream.total_out;
+}
+
+static void
+write_zlib (struct sfm_writer *w, const void *data_, unsigned int n)
+{
+  const uint8_t *data = data_;
+
+  while (n > 0)
+    {
+      unsigned int chunk;
+
+      if (w->zstream.total_in >= ZBLOCK_SIZE)
+        {
+          finish_zstream (w);
+          start_zstream (w);
+        }
+
+      chunk = MIN (n, ZBLOCK_SIZE - w->zstream.total_in);
+
+      w->zstream.next_in = CONST_CAST (uint8_t *, data);
+      w->zstream.avail_in = chunk;
+      do
+        {
+          uint8_t buf[4096];
+          int error;
+
+          w->zstream.next_out = buf;
+          w->zstream.avail_out = sizeof buf;
+          error = deflate (&w->zstream, Z_NO_FLUSH);
+          write_bytes (w, buf, w->zstream.next_out - buf);
+          if (error != Z_OK)
+            {
+              msg (ME, _("ZLIB stream compression failed (%s)."),
+                   w->zstream.msg);
+              return;
+            }
+        }
+      while (w->zstream.avail_in > 0 || w->zstream.avail_out == 0);
+      data += chunk;
+      n -= chunk;
+    }
+}
+
+static void
+write_ztrailer (struct sfm_writer *w)
+{
+  long long int uncompressed_ofs;
+  long long int compressed_ofs;
+  const struct zblock *block;
+
+  write_int64 (w, -COMPRESSION_BIAS);
+  write_int64 (w, 0);
+  write_int (w, ZBLOCK_SIZE);
+  write_int (w, w->n_blocks);
+
+  uncompressed_ofs = w->zstart;
+  compressed_ofs = w->zstart + 24;
+  for (block = w->blocks; block < &w->blocks[w->n_blocks]; block++)
+    {
+      write_int64 (w, uncompressed_ofs);
+      write_int64 (w, compressed_ofs);
+      write_int (w, block->uncompressed_size);
+      write_int (w, block->compressed_size);
+
+      uncompressed_ofs += block->uncompressed_size;
+      compressed_ofs += block->compressed_size;
+    }
+
+  if (!fseeko (w->file, w->zstart + 8, SEEK_SET))
+    {
+      write_int64 (w, compressed_ofs);
+      write_int64 (w, 24 + (w->n_blocks * 24));
+    }
+  else
+    msg (ME, _("%s: Seek failed (%s)."),
+         fh_get_file_name (w->fh), strerror (errno));
+}
+
 /* Flushes buffered compressed opcodes and data to W. */
 static void
 flush_compressed (struct sfm_writer *w)
 {
   if (w->n_opcodes)
     {
-      write_bytes (w, w->cbuf, 8 * (1 + w->n_elements));
+      unsigned int n = 8 * (1 + w->n_elements);
+      if (w->compression == SFM_COMP_SIMPLE)
+        write_bytes (w, w->cbuf, n);
+      else
+        write_zlib (w, w->cbuf, n);
+
       w->n_opcodes = w->n_elements = 0;
       memset (w->cbuf[0], 0, 8);
     }
@@ -1372,6 +1553,13 @@ put_cmp_string (struct sfm_writer *w, const void *data, size_t size)
 /* Writes 32-bit integer X to the output file for writer W. */
 static void
 write_int (struct sfm_writer *w, int32_t x)
+{
+  write_bytes (w, &x, sizeof x);
+}
+
+/* Writes 64-bit integer X to the output file for writer W. */
+static void
+write_int64 (struct sfm_writer *w, int64_t x)
 {
   write_bytes (w, &x, sizeof x);
 }

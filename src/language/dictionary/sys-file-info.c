@@ -150,10 +150,11 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
                ? var_get_name (weight_var) : _("Not weighted.")));
   }
 
-  tab_text (t, 0, r, TAB_LEFT, _("Mode:"));
+  tab_text (t, 0, r, TAB_LEFT, _("Compression:"));
   tab_text_format (t, 1, r++, TAB_LEFT,
-                   _("Compression %s."), info.compressed ? _("on") : _("off"));
-
+                   info.compression == SFM_COMP_NONE ? _("None")
+                   : info.compression == SFM_COMP_SIMPLE ? "SAV"
+                   : "ZSAV");
 
   tab_text (t, 0, r, TAB_LEFT, _("Charset:"));
   tab_text (t, 1, r++, TAB_LEFT, dict_get_encoding (d));

@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #include "data/case.h"
+#include "data/sys-file.h"
 #include "libpspp/float-format.h"
 #include "libpspp/integer-format.h"
 
@@ -36,7 +37,7 @@ struct sfm_read_info
     char *creation_time;	/* "hh:mm:ss". */
     enum integer_format integer_format;
     enum float_format float_format;
-    bool compressed;		/* 0=no, 1=yes. */
+    enum sfm_compression compression;
     casenumber case_cnt;        /* -1 if unknown. */
     char *product;		/* Product name. */
     char *product_ext;          /* Extra product info. */

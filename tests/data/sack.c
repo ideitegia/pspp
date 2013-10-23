@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "libpspp/float-format.h"
 #include "libpspp/integer-format.h"
 
+#include "gl/c-ctype.h"
 #include "gl/error.h"
 #include "gl/md5.h"
 #include "gl/intprops.h"
@@ -58,12 +59,14 @@ enum token_type
     T_LPAREN,
     T_RPAREN,
     T_I8,
+    T_I64,
     T_S,
-    T_COUNT
+    T_COUNT,
+    T_HEX
   };
 
 static enum token_type token;
-static unsigned long int tok_integer;
+static unsigned long long int tok_integer;
 static double tok_float;
 static char *tok_string;
 static size_t tok_strlen, tok_allocated;
@@ -92,12 +95,19 @@ fatal (const char *message, ...)
 }
 
 static void
-add_char (int c)
+add_char__ (int c)
 {
   if (tok_strlen >= tok_allocated)
     tok_string = x2realloc (tok_string, &tok_allocated);
 
-  tok_string[tok_strlen++] = c;
+  tok_string[tok_strlen] = c;
+}
+
+static void
+add_char (int c)
+{
+  add_char__ (c);
+  tok_strlen++;
 }
 
 static void
@@ -135,14 +145,14 @@ get_token (void)
           c = getc (input);
         }
       while (isdigit (c) || isalpha (c) || c == '.');
-      add_char ('\0');
+      add_char__ ('\0');
       ungetc (c, input);
 
       errno = 0;
       if (strchr (tok_string, '.') == NULL)
         {
           token = T_INTEGER;
-          tok_integer = strtoul (tok_string, &tail, 0);
+          tok_integer = strtoull (tok_string, &tail, 0);
         }
       else
         {
@@ -161,6 +171,7 @@ get_token (void)
             fatal ("new-line inside string");
           add_char (c);
         }
+      add_char__ ('\0');
     }
   else if (c == ';')
     token = T_SEMICOLON;
@@ -183,6 +194,8 @@ get_token (void)
 
       if (!strcmp (tok_string, "i8"))
         token = T_I8;
+      else if (!strcmp (tok_string, "i64"))
+        token = T_I64;
       else if (tok_string[0] == 's')
         {
           token = T_S;
@@ -210,6 +223,8 @@ get_token (void)
         }
       else if (!strcmp (tok_string, "COUNT"))
         token = T_COUNT;
+      else if (!strcmp (tok_string, "hex"))
+        token = T_HEX;
       else
         fatal ("invalid token `%s'", tok_string);
     }
@@ -233,6 +248,17 @@ buffer_put_uninit (struct buffer *buffer, size_t n)
       buffer->data = xrealloc (buffer->data, buffer->allocated);
     }
   return &buffer->data[buffer->size - n];
+}
+
+/* Returns the integer value of hex digit C. */
+static int
+hexit_value (int c)
+{
+  const char s[] = "0123456789abcdef";
+  const char *cp = strchr (s, c_tolower ((unsigned char) c));
+
+  assert (cp != NULL);
+  return cp - s;
 }
 
 static void
@@ -265,6 +291,9 @@ stdout.  A data item is one of the following\n\
 \n\
   - The literal \"i8\" followed by an integer.  Output as a single\n\
     byte with the specified value.\n\
+\n\
+  - The literal \"i64\" followed by an integer.  Output as a 64-bit\n\
+    binary integer.\n\
 \n\
   - One of the literals SYSMIS, LOWEST, or HIGHEST.  Output as a\n\
     64-bit IEEE 754 float of the appropriate PSPP value.\n\
@@ -378,6 +407,19 @@ parse_data_item (struct buffer *output)
         }
       while (token == T_INTEGER);
     }
+  else if (token == T_I64)
+    {
+      get_token ();
+      do
+        {
+          if (token != T_INTEGER)
+            fatal ("integer expected after `i64'");
+          integer_put (tok_integer, integer_format,
+                       buffer_put_uninit (output, 8), 8);
+          get_token ();
+        }
+      while (token == T_INTEGER);
+    }
   else if (token == T_STRING)
     {
       buffer_put (output, tok_string, tok_strlen);
@@ -425,6 +467,33 @@ parse_data_item (struct buffer *output)
 
       integer_put (output->size - old_size - 4, integer_format,
                    output->data + old_size, 4);
+    }
+  else if (token == T_HEX)
+    {
+      const char *p;
+
+      get_token ();
+
+      if (token != T_STRING)
+        fatal ("string expected");
+
+      for (p = tok_string; *p; p++)
+        {
+          if (isspace ((unsigned char) *p))
+            continue;
+          else if (isxdigit ((unsigned char) p[0])
+                   && isxdigit ((unsigned char) p[1]))
+            {
+              int high = hexit_value (p[0]);
+              int low = hexit_value (p[1]);
+              uint8_t byte = high * 16 + low;
+              buffer_put (output, &byte, 1);
+              p++;
+            }
+          else
+            fatal ("invalid format in hex string");
+        }
+      get_token ();
     }
   else
     fatal ("syntax error");
