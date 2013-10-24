@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp 0.8.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2013-09-22 22:37-0700\n"
-"PO-Revision-Date: 2013-10-20 21:09+0300\n"
+"PO-Revision-Date: 2013-10-23 21:06+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
 "Language: uk\n"
@@ -44,36 +44,36 @@ msgstr "Перевага змінних міток"
 #: src/ui/gui/psppire-var-view.c:202
 #, c-format
 msgid "Var%d"
-msgstr ""
+msgstr "Змін%d"
 
 #: src/data/any-reader.c:60
 #, c-format
 msgid "An error occurred while opening `%s': %s."
-msgstr ""
+msgstr "Під час спроби відкрити «%s» сталася помилка: %s."
 
 #: src/data/any-reader.c:111
 #, c-format
 msgid "`%s' is not a system or portable file."
-msgstr ""
+msgstr "«%s» не є системним або портативним файлом."
 
 #: src/data/any-reader.c:117 src/data/any-writer.c:67
 msgid "The inline file is not allowed here."
-msgstr ""
+msgstr "Тут не можна використовувати вбудовані файли."
 
 #: src/data/calendar.c:100
 #, c-format
 msgid "Month %d is not in acceptable range of 0 to 13."
-msgstr ""
+msgstr "Місяць %d не належить до прийнятного діапазону від 0 до 13."
 
 #: src/data/calendar.c:110
 #, c-format
 msgid "Day %d is not in acceptable range of 0 to 31."
-msgstr ""
+msgstr "День %d не належить до прийнятного діапазону від 0 до 31."
 
 #: src/data/calendar.c:119
 #, c-format
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
-msgstr ""
+msgstr "Дата %04d-%d-%d передує найдавнішій прийнятній даті, 1582-10-15."
 
 #: src/data/casereader-filter.c:221
 msgid "At least one case in the data read had a weight value that was user-missing, system-missing, zero, or negative.  These case(s) were ignored."
@@ -88,25 +88,25 @@ msgstr "файл CSV"
 #: src/data/csv-file-writer.c:161 src/data/sys-file-writer.c:227
 #, c-format
 msgid "Error opening `%s' for writing as a system file: %s."
-msgstr ""
+msgstr "Помилка під час спроби відкрити «%s» для запису у форматі системного файла: %s."
 
 #: src/data/csv-file-writer.c:460
 #, c-format
 msgid "An I/O error occurred writing CSV file `%s'."
-msgstr ""
+msgstr "Під час спроби записати файл CSV «%s» сталася помилка."
 
 #: src/data/data-in.c:171
 #, c-format
 msgid "Data is not valid as format %s: %s"
-msgstr ""
+msgstr "Дані у форматі %s є некоректними: %s"
 
 #: src/data/data-in.c:373 src/data/data-in.c:549
 msgid "Field contents are not numeric."
-msgstr ""
+msgstr "Вміст поля не є числом."
 
 #: src/data/data-in.c:375 src/data/data-in.c:551
 msgid "Number followed by garbage."
-msgstr ""
+msgstr "Після запису числа виявлено зайві символи."
 
 #: src/data/data-in.c:388
 msgid "Invalid numeric syntax."
@@ -122,19 +122,19 @@ msgstr "Надто мале число замінено на нуль."
 
 #: src/data/data-in.c:422
 msgid "All characters in field must be digits."
-msgstr ""
+msgstr "Усі символи у полі мають бути цифрами."
 
 #: src/data/data-in.c:441
 msgid "Unrecognized character in field."
-msgstr ""
+msgstr "Невідомий символ у полі."
 
 #: src/data/data-in.c:462 src/data/data-in.c:725
 msgid "Field must have even length."
-msgstr ""
+msgstr "Довжина поля має бути парною величиною."
 
 #: src/data/data-in.c:464 src/data/data-in.c:728
 msgid "Field must contain only hex digits."
-msgstr ""
+msgstr "Вміст поля має складатися лише з шістнадцяткових цифр."
 
 #: src/data/data-in.c:540
 msgid "Invalid zoned decimal syntax."
@@ -146,16 +146,16 @@ msgstr "Некоректний синтаксис поля P."
 
 #: src/data/data-in.c:764 src/data/data-in.c:810
 msgid "Syntax error in date field."
-msgstr ""
+msgstr "Синтаксична помилка у полі даних."
 
 #: src/data/data-in.c:779
 #, c-format
 msgid "Day (%ld) must be between 1 and 31."
-msgstr ""
+msgstr "День (%ld) має бути цілим числом від 1 до 31."
 
 #: src/data/data-in.c:824
 msgid "Delimiter expected between fields in date."
-msgstr ""
+msgstr "Між полями у даті мало бути вказано роздільник."
 
 #: src/data/data-in.c:898
 msgid "Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names."
@@ -164,59 +164,59 @@ msgstr ""
 #: src/data/data-in.c:925
 #, c-format
 msgid "Year (%ld) must be between 1582 and 19999."
-msgstr ""
+msgstr "Рік (%ld) має бути цілим числом від 1582 до 19999."
 
 #: src/data/data-in.c:936
 #, c-format
 msgid "Trailing garbage `%.*s' following date."
-msgstr ""
+msgstr "Зайві дані «%.*s» після дати."
 
 #: src/data/data-in.c:950
 msgid "Julian day must have exactly three digits."
-msgstr ""
+msgstr "Запис юліанського дня має складатися точно з трьох цифр."
 
 #: src/data/data-in.c:952
 #, c-format
 msgid "Julian day (%ld) must be between 1 and 366."
-msgstr ""
+msgstr "Юліанський день (%ld) має бути цілим числом від 1 до 366."
 
 #: src/data/data-in.c:976
 #, c-format
 msgid "Quarter (%ld) must be between 1 and 4."
-msgstr ""
+msgstr "Квартал (%ld) має бути цілим числом від 1 до 4."
 
 #: src/data/data-in.c:997
 #, c-format
 msgid "Week (%ld) must be between 1 and 53."
-msgstr ""
+msgstr "Тиждень (%ld) має бути цілим числом від 1 до 53."
 
 #: src/data/data-in.c:1009
 msgid "Delimiter expected between fields in time."
-msgstr ""
+msgstr "Між полями у записі часу мало бути вказано роздільник."
 
 #: src/data/data-in.c:1029
 #, c-format
 msgid "Minute (%ld) must be between 0 and 59."
-msgstr ""
+msgstr "Хвилини (%ld) мають бути цілим числом від 0 до 59."
 
 #: src/data/data-in.c:1067
 msgid "Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified."
-msgstr ""
+msgstr "Нерозпізнана назва дня тижня. Слід вказати принаймні дві перших літери назви дня тижня англійською."
 
 #: src/data/data-in.c:1197
 #, c-format
 msgid "`%c' expected in date field."
-msgstr ""
+msgstr "У полі дати мав бути символ «%c»."
 
 #: src/data/data-out.c:566
 #, c-format
 msgid "Weekday number %f is not between 1 and 7."
-msgstr ""
+msgstr "День тижня %f не є цілими числом від 1 до 7."
 
 #: src/data/data-out.c:591
 #, c-format
 msgid "Month number %f is not between 1 and 12."
-msgstr ""
+msgstr "Місяць %f не є цілими числом від 1 до 12."
 
 #: src/data/dataset-reader.c:54
 #, c-format
@@ -250,11 +250,11 @@ msgstr ""
 #: src/data/dictionary.c:1339
 #, c-format
 msgid "Truncating document line to %d bytes."
-msgstr ""
+msgstr "Обрізаємо рядок документа до %d байтів."
 
 #: src/data/file-handle-def.c:257
 msgid "active dataset"
-msgstr ""
+msgstr "активний набір даних"
 
 #: src/data/file-handle-def.c:482
 #, c-format
@@ -269,7 +269,7 @@ msgstr ""
 #: src/data/file-handle-def.c:493
 #, c-format
 msgid "Can't re-open %s as a %s."
-msgstr ""
+msgstr "Не вдалося повторно відкрити %s як %s."
 
 #: src/data/file-name.c:173
 #, c-format
@@ -287,7 +287,7 @@ msgstr "Вихідний формат"
 #: src/data/format.c:332
 #, c-format
 msgid "Format %s may not be used for input."
-msgstr ""
+msgstr "Формат %s не можна використовувати для вхідних даних."
 
 #: src/data/format.c:339
 #, c-format
@@ -329,7 +329,7 @@ msgstr[3] ""
 #: src/data/format.c:414
 #, c-format
 msgid "%s variables are not compatible with %s format %s."
-msgstr ""
+msgstr "Змінні %s несумісні з форматом %s %s."
 
 #: src/data/format.c:415 src/data/format.c:1010
 #: src/ui/gui/var-type-dialog.ui:142
@@ -411,7 +411,7 @@ msgstr ""
 #: src/data/gnumeric-reader.c:652 src/data/ods-reader.c:703
 #, c-format
 msgid "Invalid cell range `%s'"
-msgstr ""
+msgstr "Некоректний діапазон комірок «%s»"
 
 #: src/data/gnumeric-reader.c:824 src/data/ods-reader.c:731
 #: src/data/ods-reader.c:864
@@ -426,7 +426,7 @@ msgstr ""
 
 #: src/data/identifier2.c:84
 msgid "Identifier cannot be empty string."
-msgstr ""
+msgstr "Ідентифікатор не може бути порожнім рядком."
 
 #: src/data/identifier2.c:92
 #, c-format
@@ -451,37 +451,37 @@ msgstr ""
 #: src/data/make-file.c:71
 #, c-format
 msgid "Opening %s for writing: %s."
-msgstr ""
+msgstr "Відкриваємо %s для запису: %s."
 
 #: src/data/make-file.c:80
 #, c-format
 msgid "Opening stream for %s: %s."
-msgstr ""
+msgstr "Відкриваємо потік для %s: %s."
 
 #: src/data/make-file.c:109
 #, c-format
 msgid "Creating temporary file to replace %s: %s."
-msgstr ""
+msgstr "Створюємо тимчасовий файл на заміну %s: %s."
 
 #: src/data/make-file.c:120
 #, c-format
 msgid "Creating temporary file %s: %s."
-msgstr ""
+msgstr "Створюємо тимчасовий файл %s: %s."
 
 #: src/data/make-file.c:132
 #, c-format
 msgid "Opening stream for temporary file %s: %s."
-msgstr ""
+msgstr "Відкриваємо потік для тимчасового файла %s: %s."
 
 #: src/data/make-file.c:173
 #, c-format
 msgid "Replacing %s by %s: %s."
-msgstr ""
+msgstr "Замінюємо %s на %s: %s."
 
 #: src/data/make-file.c:201
 #, c-format
 msgid "Removing %s: %s."
-msgstr ""
+msgstr "Вилучаємо %s: %s."
 
 #: src/data/mrset.c:83
 #, c-format
@@ -491,22 +491,22 @@ msgstr ""
 #: src/data/ods-reader.c:624
 #, c-format
 msgid "Cannot open %s as a OpenDocument file: %s"
-msgstr ""
+msgstr "Не вдалося відкрити %s як файл OpenDocument: %s"
 
 #: src/data/por-file-reader.c:101
 #, c-format
 msgid "portable file %s corrupt at offset 0x%llx: "
-msgstr ""
+msgstr "портативний файл %s пошкоджено з позиції 0x%llx: "
 
 #: src/data/por-file-reader.c:133
 #, c-format
 msgid "reading portable file %s at offset 0x%llx: "
-msgstr ""
+msgstr "читання портативного файла %s на позиції 0x%llx: "
 
 #: src/data/por-file-reader.c:164
 #, c-format
 msgid "Error closing portable file `%s': %s."
-msgstr ""
+msgstr "Помилка під час спроби закрити портативний файл «%s»: %s."
 
 #: src/data/por-file-reader.c:216
 msgid "unexpected end of file"
@@ -516,16 +516,16 @@ msgstr "неочікуваний символ кінця файла"
 #. messages in fh_lock() that identify types of files.
 #: src/data/por-file-reader.c:275 src/data/por-file-writer.c:148
 msgid "portable file"
-msgstr ""
+msgstr "портативний файл"
 
 #: src/data/por-file-reader.c:283
 #, c-format
 msgid "An error occurred while opening `%s' for reading as a portable file: %s."
-msgstr ""
+msgstr "Під час спроби відкрити файл «%s» для читання у форматі портативного файла сталася помилка: %s."
 
 #: src/data/por-file-reader.c:304
 msgid "Data record expected."
-msgstr ""
+msgstr "Мало бути вказано запис даних."
 
 #: src/data/por-file-reader.c:386
 msgid "Number expected."
@@ -542,27 +542,27 @@ msgstr "Некоректне ціле число."
 #: src/data/por-file-reader.c:448 src/data/por-file-reader.c:468
 #, c-format
 msgid "Bad string length %d."
-msgstr ""
+msgstr "Помилкова довжина рядка, %d."
 
 #: src/data/por-file-reader.c:531
 #, c-format
 msgid "%s: Not a portable file."
-msgstr ""
+msgstr "%s: не є портативним файлом."
 
 #: src/data/por-file-reader.c:548
 #, c-format
 msgid "Unrecognized version code `%c'."
-msgstr ""
+msgstr "Нерозпізнаний код версії, «%c»."
 
 #: src/data/por-file-reader.c:561
 #, c-format
 msgid "Bad date string length %zu."
-msgstr ""
+msgstr "Помилкова довжина рядка дати, %zu."
 
 #: src/data/por-file-reader.c:563
 #, c-format
 msgid "Bad time string length %zu."
-msgstr ""
+msgstr "Помилкова довжина рядка часу, %zu."
 
 #: src/data/por-file-reader.c:605
 #, c-format
@@ -586,7 +586,7 @@ msgstr ""
 #: src/data/por-file-reader.c:658
 #, c-format
 msgid "Invalid number of variables %d."
-msgstr ""
+msgstr "Некоректна кількість змінних, %d."
 
 #: src/data/por-file-reader.c:667
 #, c-format
@@ -595,22 +595,22 @@ msgstr ""
 
 #: src/data/por-file-reader.c:682
 msgid "Expected variable record."
-msgstr ""
+msgstr "Мало бути вказано запис змінної."
 
 #: src/data/por-file-reader.c:686
 #, c-format
 msgid "Invalid variable width %d."
-msgstr ""
+msgstr "Некоректна ширина змінної, %d."
 
 #: src/data/por-file-reader.c:694
 #, c-format
 msgid "Invalid variable name `%s' in position %d."
-msgstr ""
+msgstr "Некоректна назва змінної «%s» у позиції %d."
 
 #: src/data/por-file-reader.c:698 src/data/sys-file-reader.c:1028
 #, c-format
 msgid "Bad width %d for variable %s."
-msgstr ""
+msgstr "Помилкова ширина %d змінної %s."
 
 #: src/data/por-file-reader.c:712
 #, c-format
@@ -645,7 +645,7 @@ msgstr ""
 #: src/data/por-file-writer.c:505
 #, c-format
 msgid "An I/O error occurred writing portable file `%s'."
-msgstr ""
+msgstr "Під час спроби записати портативний файл «%s» сталася помилка."
 
 #: src/data/psql-reader.c:48
 msgid "Support for reading postgres databases was not compiled into this installation of PSPP"
@@ -658,7 +658,7 @@ msgstr ""
 #: src/data/psql-reader.c:248
 #, c-format
 msgid "Error opening psql source: %s."
-msgstr ""
+msgstr "Помилка під час спроби відкрити джерело psql: %s."
 
 #: src/data/psql-reader.c:263
 #, c-format
@@ -673,7 +673,7 @@ msgstr ""
 #: src/data/psql-reader.c:354
 #, c-format
 msgid "Error from psql source: %s."
-msgstr ""
+msgstr "Помилка від джерела psql: %s."
 
 #: src/data/psql-reader.c:449
 #, c-format
@@ -698,12 +698,12 @@ msgstr ""
 #. messages in fh_lock() that identify types of files.
 #: src/data/sys-file-reader.c:371 src/data/sys-file-writer.c:215
 msgid "system file"
-msgstr ""
+msgstr "системний файл"
 
 #: src/data/sys-file-reader.c:378
 #, c-format
 msgid "Error opening `%s' for reading as a system file: %s."
-msgstr ""
+msgstr "Помилка під час відкриття «%s» для читання у форматі системного файла: %s."
 
 #: src/data/sys-file-reader.c:430
 msgid "Misplaced type 4 record."
@@ -726,7 +726,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:465
 #, c-format
 msgid "Unrecognized record type %d."
-msgstr ""
+msgstr "Нерозпізнаний тип запису %d."
 
 #: src/data/sys-file-reader.c:515
 #, c-format
@@ -741,11 +741,11 @@ msgstr ""
 #: src/data/sys-file-reader.c:607
 #, c-format
 msgid "Error closing system file `%s': %s."
-msgstr ""
+msgstr "Помилка під час спроби закрити системний файл «%s»: %s."
 
 #: src/data/sys-file-reader.c:660 src/data/sys-file-reader.c:670
 msgid "This is not an SPSS system file."
-msgstr ""
+msgstr "Це не системний файл SPSS."
 
 #: src/data/sys-file-reader.c:693
 msgid "Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format."
@@ -766,7 +766,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:796
 #, c-format
 msgid "Invalid number of labels %zu."
-msgstr ""
+msgstr "Некоректна кількість міток, %zu."
 
 #: src/data/sys-file-reader.c:821
 msgid "Variable index record (type 4) does not immediately follow value label record (type 3) as it should."
@@ -800,11 +800,11 @@ msgstr "Некоректна назва змінної, «%s»."
 #: src/data/sys-file-reader.c:1032
 #, c-format
 msgid "Duplicate variable name `%s'."
-msgstr ""
+msgstr "Дублювання назви змінної, «%s»."
 
 #: src/data/sys-file-reader.c:1108
 msgid "Missing string continuation record."
-msgstr ""
+msgstr "Пропущено запис продовження рядка."
 
 #: src/data/sys-file-reader.c:1150
 #, c-format
@@ -873,12 +873,12 @@ msgstr ""
 #: src/data/sys-file-reader.c:1463
 #, c-format
 msgid "MRSET %s contains both string and numeric variables."
-msgstr ""
+msgstr "MRSET %s містить одразу рядкові і числові змінні."
 
 #: src/data/sys-file-reader.c:1479
 #, c-format
 msgid "MRSET %s has only %zu variables."
-msgstr ""
+msgstr "MRSET %s містить лише %zu змінні."
 
 #: src/data/sys-file-reader.c:1526
 #, c-format
@@ -953,12 +953,12 @@ msgstr ""
 #: src/data/sys-file-reader.c:1874
 #, c-format
 msgid "Error parsing attribute value %s[%d]."
-msgstr ""
+msgstr "Помилка під час спроби обробити значення атрибута %s[%d]."
 
 #: src/data/sys-file-reader.c:1888
 #, c-format
 msgid "Attribute value %s[%d] is not quoted: %s."
-msgstr ""
+msgstr "Значення атрибута %s[%d] вказано не у лапках: %s."
 
 #: src/data/sys-file-reader.c:1978
 #, c-format
@@ -1055,7 +1055,7 @@ msgstr "«%s»: "
 #: src/data/sys-file-reader.c:2699
 #, c-format
 msgid "System error: %s."
-msgstr ""
+msgstr "Системна помилка: %s."
 
 #: src/data/sys-file-reader.c:2701
 msgid "Unexpected end of file."
@@ -1064,17 +1064,17 @@ msgstr "Неочікуваний символ кінця файла."
 #: src/data/sys-file-writer.c:188
 #, c-format
 msgid "Unknown system file version %d. Treating as version %d."
-msgstr ""
+msgstr "Невідома версія системного файла, %d. Вважаємо версію рівною %d."
 
 #: src/data/sys-file-writer.c:1156
 #, c-format
 msgid "An I/O error occurred writing system file `%s'."
-msgstr ""
+msgstr "Під час спроби записати системний файл «%s» сталася помилка."
 
 #: src/data/variable.c:671
 #, c-format
 msgid "%s (%s)"
-msgstr ""
+msgstr "%s (%s)"
 
 #: src/data/variable.c:743
 #, c-format
@@ -1144,7 +1144,7 @@ msgstr "%s ще не реалізовано."
 #: src/language/command.c:212
 #, c-format
 msgid "%s may be used only in testing mode."
-msgstr ""
+msgstr "%s можна використовувати лише у режимі тестування."
 
 #: src/language/command.c:217
 #, c-format
@@ -1153,7 +1153,7 @@ msgstr ""
 
 #: src/language/command.c:345
 msgid "expecting command name"
-msgstr ""
+msgstr "мало бути вказано назву команди"
 
 #: src/language/command.c:347
 #, c-format
@@ -1208,7 +1208,7 @@ msgstr ""
 #: src/language/command.c:443 src/language/command.c:446
 #, c-format
 msgid "%s is not allowed inside %s."
-msgstr ""
+msgstr "%s не можна використовувати всередині %s."
 
 #: src/language/command.c:528 src/language/utilities/host.c:130
 #: src/language/utilities/permissions.c:105
@@ -1218,62 +1218,62 @@ msgstr ""
 #: src/language/command.c:544
 #, c-format
 msgid "Error removing `%s': %s."
-msgstr ""
+msgstr "Помилка під час спроби вилучити «%s»: %s."
 
 #: src/language/lexer/lexer.c:295
 #, c-format
 msgid "expecting %s"
-msgstr ""
+msgstr "мало бути %s"
 
 #: src/language/lexer/lexer.c:299
 #, c-format
 msgid "expecting %s or %s"
-msgstr ""
+msgstr "мало бути %s або %s"
 
 #: src/language/lexer/lexer.c:303
 #, c-format
 msgid "expecting %s, %s, or %s"
-msgstr ""
+msgstr "мало бути %s, %s або %s"
 
 #: src/language/lexer/lexer.c:308
 #, c-format
 msgid "expecting %s, %s, %s, or %s"
-msgstr ""
+msgstr "мало бути %s, %s, %s або %s"
 
 #: src/language/lexer/lexer.c:313
 #, c-format
 msgid "expecting %s, %s, %s, %s, or %s"
-msgstr ""
+msgstr "мало бути %s, %s, %s, %s або %s"
 
 #: src/language/lexer/lexer.c:318
 #, c-format
 msgid "expecting %s, %s, %s, %s, %s, or %s"
-msgstr ""
+msgstr "мало бути %s, %s, %s, %s, %s або %s"
 
 #: src/language/lexer/lexer.c:324
 #, c-format
 msgid "expecting %s, %s, %s, %s, %s, %s, or %s"
-msgstr ""
+msgstr "мало бути %s, %s, %s, %s, %s, %s або %s"
 
 #: src/language/lexer/lexer.c:330
 #, c-format
 msgid "expecting %s, %s, %s, %s, %s, %s, %s, or %s"
-msgstr ""
+msgstr "мало бути %s, %s, %s, %s, %s, %s, %s або %s"
 
 #: src/language/lexer/lexer.c:350
 #, c-format
 msgid "Subcommand %s may only be specified once."
-msgstr ""
+msgstr "Підкоманду %s можна вказувати лише раз."
 
 #: src/language/lexer/lexer.c:362
 #, c-format
 msgid "Required subcommand %s was not specified."
-msgstr ""
+msgstr "Обов’язкову підкоманду %s не було вказано."
 
 #: src/language/lexer/lexer.c:370
 #, c-format
 msgid "%s may only be specified once within subcommand %s"
-msgstr ""
+msgstr "%s можна вказувати лише один раз у межах підкоманди %s"
 
 #: src/language/lexer/lexer.c:379
 #, c-format
@@ -1282,33 +1282,33 @@ msgstr ""
 
 #: src/language/lexer/lexer.c:398
 msgid "Syntax error at end of input"
-msgstr ""
+msgstr "Синтаксична помилка наприкінці вхідних даних"
 
 #: src/language/lexer/lexer.c:419 src/language/xforms/select-if.c:60
 #: src/language/stats/autorecode.c:216 src/language/stats/npar.c:504
 #: src/language/data-io/print-space.c:83
 msgid "expecting end of command"
-msgstr ""
+msgstr "команду мало бути завершено"
 
 #: src/language/lexer/lexer.c:623
 msgid "expecting string"
-msgstr ""
+msgstr "мало бути вказано рядок"
 
 #: src/language/lexer/lexer.c:652
 msgid "expecting integer"
-msgstr ""
+msgstr "мало бути вказано ціле число"
 
 #: src/language/lexer/lexer.c:665
 msgid "expecting number"
-msgstr ""
+msgstr "мало бути вказано число"
 
 #: src/language/lexer/lexer.c:677
 msgid "expecting identifier"
-msgstr ""
+msgstr "мало бути вказано ідентифікатор"
 
 #: src/language/lexer/lexer.c:1262
 msgid "Syntax error at end of command"
-msgstr ""
+msgstr "Синтаксична помилка наприкінці команди"
 
 #: src/language/lexer/lexer.c:1271
 #, c-format
@@ -1327,7 +1327,7 @@ msgstr ""
 #: src/language/lexer/lexer.c:1445
 #, c-format
 msgid "`%c' is not a valid hex digit"
-msgstr ""
+msgstr "«%c» не є коректною шістнадцятковою цифрою"
 
 #: src/language/lexer/lexer.c:1450
 #, c-format
@@ -1350,27 +1350,27 @@ msgstr ""
 
 #: src/language/lexer/lexer.c:1470
 msgid "Unexpected `.' in middle of command"
-msgstr ""
+msgstr "Посеред команди мало бути вказано «.»"
 
 #: src/language/lexer/lexer.c:1476
 #, c-format
 msgid "Bad character %s in input"
-msgstr ""
+msgstr "Помилковий символ %s у вхідних даних"
 
 #: src/language/lexer/lexer.c:1570
 #, c-format
 msgid "Opening `%s': %s."
-msgstr ""
+msgstr "Відкриваємо «%s»: %s."
 
 #: src/language/lexer/lexer.c:1600
 #, c-format
 msgid "Error reading `%s': %s."
-msgstr ""
+msgstr "Помилка під час читання «%s»: %s."
 
 #: src/language/lexer/lexer.c:1614
 #, c-format
 msgid "Error closing `%s': %s."
-msgstr ""
+msgstr "Помилка під час спроби закрити «%s»: %s."
 
 #: src/language/lexer/subcommand-list.c:118
 #, c-format
@@ -1379,7 +1379,7 @@ msgstr ""
 
 #: src/language/lexer/format-parser.c:77
 msgid "expecting valid format specifier"
-msgstr ""
+msgstr "мало бути вказано коректний специфікатор формату"
 
 #: src/language/lexer/format-parser.c:116
 #: src/language/lexer/format-parser.c:143 src/language/data-io/data-list.c:439
@@ -1396,7 +1396,7 @@ msgstr ""
 
 #: src/language/lexer/format-parser.c:138
 msgid "expecting format type"
-msgstr ""
+msgstr "мало бути вказано тип форматування"
 
 #: src/language/lexer/value-parser.c:65
 #, c-format
@@ -1418,16 +1418,16 @@ msgstr ""
 
 #: src/language/lexer/value-parser.c:125
 msgid "expecting number or data string"
-msgstr ""
+msgstr "мало бути вказано число або рядок даних"
 
 #: src/language/lexer/variable-parser.c:70
 msgid "expecting variable name"
-msgstr ""
+msgstr "мало бути вказано назву змінної"
 
 #: src/language/lexer/variable-parser.c:80
 #, c-format
 msgid "%s is not a variable name."
-msgstr ""
+msgstr "%s не є назвою змінної."
 
 #: src/language/lexer/variable-parser.c:183
 #, c-format
@@ -1505,11 +1505,11 @@ msgstr ""
 #: src/language/xforms/compute.c:355
 #, c-format
 msgid "There is no vector named %s."
-msgstr ""
+msgstr "Немає вектора з назвою %s."
 
 #: src/language/xforms/count.c:125
 msgid "Destination cannot be a string variable."
-msgstr ""
+msgstr "Призначення не може бути рядковою змінною."
 
 #: src/language/xforms/sample.c:76
 msgid "The sampling factor must be between 0 and 1 exclusive."
@@ -1530,11 +1530,11 @@ msgstr ""
 
 #: src/language/xforms/recode.c:339
 msgid "THRU is not allowed with string variables."
-msgstr ""
+msgstr "THRU не можна використовувати з рядковими змінними."
 
 #: src/language/xforms/recode.c:422
 msgid "expecting output value"
-msgstr ""
+msgstr "мало бути отримано вихідне значення"
 
 #: src/language/xforms/recode.c:479
 #, c-format
@@ -1554,7 +1554,7 @@ msgstr ""
 #: src/language/xforms/recode.c:523
 #, c-format
 msgid "Type mismatch.  Cannot store %s data in %s variable %s."
-msgstr ""
+msgstr "Невідповідність типів. Не вдалося зберегти дані %s data у змінній %s %s."
 
 #: src/language/xforms/recode.c:566
 #, c-format
@@ -1567,7 +1567,7 @@ msgstr ""
 
 #: src/language/xforms/select-if.c:115
 msgid "The filter variable must be numeric."
-msgstr ""
+msgstr "Змінна фільтрування має бути числовою."
 
 #: src/language/xforms/select-if.c:121
 msgid "The filter variable may not be scratch."
@@ -1586,7 +1586,7 @@ msgstr ""
 #: src/language/control/control-stack.c:76
 #, c-format
 msgid "This command cannot appear outside %s...%s."
-msgstr ""
+msgstr "Цю команду не можна використовувати поза межами %s...%s."
 
 #: src/language/control/do-if.c:177
 msgid "This command may not follow ELSE in DO IF...END IF."
