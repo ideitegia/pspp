@@ -3811,7 +3811,7 @@ AT_CLEANUP
 
 AT_SETUP([zcompressed data - wrong compressed_ofs])
 AT_KEYWORDS([sack synthetic system file negative zlib])
-zcompressed_sack | sed 's/.*\bcompressed_ofs.*/i64 >>0x191<<;/' > sys-file.sack
+zcompressed_sack | sed 's/.*@%:@ compressed_ofs.*/i64 >>0x191<<;/' > sys-file.sack
 for variant in \
 	"be 652e28f8d3f8e4ce47ad18d0f30e7bb9" \
 	"le ebf2c647f2d7c47858d4f5ed683526e6"
@@ -3914,7 +3914,7 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - compression expands data too much])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*uncompressed_size.*/>>50<<;/
-s/.*\bcompressed_size.*/>>100<<;/' > sys-file.sack
+s/.*@%:@ compressed_size.*/>>100<<;/' > sys-file.sack
 for variant in \
 	"be e11cadde5f0855c965a1cb388dedc36e" \
 	"le 37953e71462b6554c5644fec8b539164"
@@ -3931,7 +3931,7 @@ AT_CLEANUP
 
 AT_SETUP([zcompressed data - compressed sizes don't add up])
 AT_KEYWORDS([sack synthetic system file negative zlib])
-zcompressed_sack | sed 's/.*\bcompressed_size.*/>>88<<;/' > sys-file.sack
+zcompressed_sack | sed 's/.*@%:@ compressed_size.*/>>88<<;/' > sys-file.sack
 for variant in \
 	"be 366eaf85be1f26fb6549e2f8ee393628" \
 	"le a756e5125e6a908cb4990f66cc419bef"
