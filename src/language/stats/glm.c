@@ -267,7 +267,7 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 	    }
 
 	  glm.ss_type = lex_integer (lexer);
-	  if (1 > glm.ss_type  && 3 < glm.ss_type )
+	  if (1 > glm.ss_type  ||  3 < glm.ss_type )
 	    {
 	      msg (ME, _("Only types 1, 2 & 3 sums of squares are currently implemented"));
 	      goto error;

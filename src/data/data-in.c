@@ -919,7 +919,7 @@ parse_year (struct data_in *i, long *year, size_t max_digits)
       else
         *year += epoch_century + 100;
     }
-  if (*year >= 1582 || *year <= 19999)
+  if (*year >= 1582 && *year <= 19999)
     return NULL;
 
   return xasprintf (_("Year (%ld) must be between 1582 and 19999."), *year);
