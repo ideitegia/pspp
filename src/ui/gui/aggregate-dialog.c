@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -165,6 +165,11 @@ choose_filename (struct aggregate *fd)
   filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
   gtk_file_filter_add_mime_type (filter, "application/x-spss-sav");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Compressed System Files (*.zsav)"));
+  gtk_file_filter_add_pattern (filter, "*.zsav");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   filter = gtk_file_filter_new ();

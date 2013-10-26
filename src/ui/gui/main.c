@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -113,8 +113,8 @@ Informative output:\n\
   -h, --help                display this help and exit\n\
   -V, --version             output version information and exit\n\
 \n\
-A non-option argument is interpreted as a .sav file, a .por file or a syntax\n\
-file to load.\n"),
+A non-option argument is interpreted as a data file in .sav or .zsav or .por\n\
+format or a syntax file to load.\n"),
           program_name, gtk_help, inc_path);
 
   free (inc_path);

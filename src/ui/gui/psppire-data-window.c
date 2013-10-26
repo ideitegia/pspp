@@ -303,17 +303,24 @@ dump_rm (GtkRecentManager *rm)
 #endif
 
 static gboolean
+has_suffix (const gchar *name, const gchar *suffix)
+{
+  size_t name_len = strlen (name);
+  size_t suffix_len = strlen (suffix);
+  return (name_len > suffix_len
+          && !c_strcasecmp (&name[name_len - suffix_len], suffix));
+}
+
+static gboolean
 name_has_por_suffix (const gchar *name)
 {
-  size_t length = strlen (name);
-  return length > 4 && !c_strcasecmp (&name[length - 4], ".por");
+  return has_suffix (name, ".por");
 }
 
 static gboolean
 name_has_sav_suffix (const gchar *name)
 {
-  size_t length = strlen (name);
-  return length > 4 && !c_strcasecmp (&name[length - 4], ".sav");
+  return has_suffix (name, ".sav") || has_suffix (name, ".zsav");
 }
 
 /* Returns true if NAME has a suffix which might denote a PSPP file */
@@ -368,6 +375,17 @@ load_file (PsppireWindow *de, const gchar *file_name, gpointer syn)
   return ok;
 }
 
+static const char *
+psppire_data_window_format_to_string (enum PsppireDataWindowFormat format)
+{
+  if (format == PSPPIRE_DATA_WINDOW_SAV)
+    return ".sav";
+  else if (format == PSPPIRE_DATA_WINDOW_ZSAV)
+    return ".zsav";
+  else
+    return ".por";
+}
+
 /* Save DE to file */
 static void
 save_file (PsppireWindow *w)
@@ -384,12 +402,7 @@ save_file (PsppireWindow *w)
   fnx = g_string_new (file_name);
 
   if ( ! name_has_suffix (fnx->str))
-    {
-      if ( de->save_as_portable)
-	g_string_append (fnx, ".por");
-      else
-	g_string_append (fnx, ".sav");
-    }
+    g_string_append (fnx, psppire_data_window_format_to_string (de->format));
 
   ds_init_empty (&filename);
 
@@ -400,9 +413,13 @@ save_file (PsppireWindow *w)
   syntax_gen_string (&filename, ss_cstr (utf8_file_name));
   g_free (utf8_file_name);
 
-  syntax = g_strdup_printf ("%s OUTFILE=%s.",
-                            de->save_as_portable ? "EXPORT" : "SAVE",
-                            ds_cstr (&filename));
+  if (de->format == PSPPIRE_DATA_WINDOW_SAV)
+    syntax = g_strdup_printf ("SAVE OUTFILE=%s.", ds_cstr (&filename));
+  else if (de->format == PSPPIRE_DATA_WINDOW_ZSAV)
+    syntax = g_strdup_printf ("SAVE /ZCOMPRESSED /OUTFILE=%s.",
+                              ds_cstr (&filename));
+  else
+    syntax = g_strdup_printf ("EXPORT OUTFILE=%s.", ds_cstr (&filename));
 
   ds_destroy (&filename);
 
@@ -450,9 +467,11 @@ sysfile_info (PsppireDataWindow *de)
 static void
 data_pick_filename (PsppireWindow *window)
 {
+  GtkListStore *list_store;
+  GtkWidget *combo_box;
+
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (window);
-  GtkFileFilter *filter = gtk_file_filter_new ();
-  GtkWidget *button_sys;
+  GtkFileFilter *filter;
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Save"),
 				 GTK_WINDOW (de),
@@ -463,8 +482,14 @@ data_pick_filename (PsppireWindow *window)
 
   g_object_set (dialog, "local-only", FALSE, NULL);
 
+  filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
   gtk_file_filter_add_mime_type (filter, "application/x-spss-sav");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Compressed System Files (*.zsav)"));
+  gtk_file_filter_add_pattern (filter, "*.zsav");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   filter = gtk_file_filter_new ();
@@ -478,22 +503,46 @@ data_pick_filename (PsppireWindow *window)
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   {
-    GtkWidget *button_por;
-    GtkWidget *vbox = gtk_vbox_new (TRUE, 5);
-    button_sys =
-      gtk_radio_button_new_with_label (NULL, _("System File"));
+    GtkCellRenderer *cell;
+    GtkWidget *label;
+    GtkTreeIter iter;
+    GtkWidget *hbox;
 
-    button_por =
-      gtk_radio_button_new_with_label
-      (gtk_radio_button_get_group (GTK_RADIO_BUTTON(button_sys)),
-       _("Portable File"));
+    list_store = gtk_list_store_new (2, G_TYPE_INT, G_TYPE_STRING);
+    combo_box = gtk_combo_box_new_with_model (GTK_TREE_MODEL (list_store));
 
-    psppire_box_pack_start_defaults (GTK_BOX (vbox), button_sys);
-    psppire_box_pack_start_defaults (GTK_BOX (vbox), button_por);
+    gtk_list_store_append (list_store, &iter);
+    gtk_list_store_set (list_store, &iter,
+                        0, PSPPIRE_DATA_WINDOW_SAV,
+                        1, _("System File"),
+                        -1);
+    gtk_combo_box_set_active_iter (GTK_COMBO_BOX (combo_box), &iter);
 
-    gtk_widget_show_all (vbox);
+    gtk_list_store_append (list_store, &iter);
+    gtk_list_store_set (list_store, &iter,
+                        0, PSPPIRE_DATA_WINDOW_ZSAV,
+                        1, _("Compressed System File"),
+                        -1);
 
-    gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER(dialog), vbox);
+    gtk_list_store_append (list_store, &iter);
+    gtk_list_store_set (list_store, &iter,
+                        0, PSPPIRE_DATA_WINDOW_POR,
+                        1, _("Portable File"),
+                        -1);
+
+    label = gtk_label_new (_("Format:"));
+
+    cell = gtk_cell_renderer_text_new ();
+    gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box), cell, FALSE);
+    gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (combo_box), cell,
+                                   "text", 1);
+
+    hbox = gtk_hbox_new (FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox), combo_box, FALSE, FALSE, 0);
+    gtk_widget_show_all (hbox);
+
+    gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (dialog), hbox);
   }
 
   gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog),
@@ -509,16 +558,18 @@ data_pick_filename (PsppireWindow *window)
 	   gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog))
 	   );
 
-	de->save_as_portable =
-	  ! gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button_sys));
+        GtkTreeIter iter;
+        int format;
+
+        gtk_combo_box_get_active_iter (GTK_COMBO_BOX (combo_box), &iter);
+        gtk_tree_model_get (GTK_TREE_MODEL (list_store), &iter,
+                            0, &format,
+                            -1);
+	de->format = format;
 
 	if ( ! name_has_suffix (filename->str))
-	  {
-	    if ( de->save_as_portable)
-	      g_string_append (filename, ".por");
-	    else
-	      g_string_append (filename, ".sav");
-	  }
+          g_string_append (filename,
+                           psppire_data_window_format_to_string (format));
 
 	psppire_window_set_filename (PSPPIRE_WINDOW (de), filename->str);
 
