@@ -591,7 +591,7 @@ get_string_width (PsppSheetView *treeview, GtkCellRenderer *renderer,
 }
 
 static gint
-get_monospac_width (PsppSheetView *treeview, GtkCellRenderer *renderer,
+get_monospace_width (PsppSheetView *treeview, GtkCellRenderer *renderer,
                      size_t char_cnt)
 {
   struct string s;
